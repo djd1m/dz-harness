@@ -1,0 +1,229 @@
+{
+  "upstream_note": "Book-derived pack (ADR-001 book-knowledge-digitizer). NO origin block: the book is the immutable upstream; dz sync-upstream skips book packs. PUBLIC (owner decision 2026-08-25): rephrased/original content, inspired by the book; README carries the inspiration attribution. Machine-distilled trust_tier 0.",
+  "upstream_type": "book",
+  "book": {
+    "title": "Высоконагруженные приложения (Designing Data-Intensive Applications)",
+    "author": "Martin Kleppmann",
+    "isbn": "978-5-4461-0512-0",
+    "edition": "рус. пер."
+  },
+  "digitizer": {
+    "pack": "@dzhechkov/skills-book-digitizer",
+    "corpus_version": "79d3129315c1d126",
+    "extraction_model": "claude (bulk map-reduce, 18 chunks ∥)",
+    "date": "2026-07-04",
+    "total_kus": 116,
+    "verified_kus": 116,
+    "shingling_gate": "PASSED — 0 uncited verbatim runs ≥8 words (2026-07-04); 3 initial leaks re-paraphrased"
+  },
+  "skills": {
+    "ddia-batch-and-stream-processing": {
+      "upstream_type": "book",
+      "chapters": [
+        10,
+        11
+      ],
+      "derived_from": [
+        "ddia-ch10-ku01",
+        "ddia-ch10-ku01",
+        "ddia-ch10-ku02",
+        "ddia-ch10-ku03",
+        "ddia-ch10-ku04",
+        "ddia-ch10-ku05",
+        "ddia-ch10-ku06",
+        "ddia-ch10-ku07",
+        "ddia-ch10-ku08",
+        "ddia-ch11-ku01",
+        "ddia-ch11-ku02",
+        "ddia-ch11-ku03",
+        "ddia-ch11-ku04",
+        "ddia-ch11-ku05",
+        "ddia-ch11-ku06",
+        "ddia-ch11-ku07",
+        "ddia-ch11-ku08"
+      ],
+      "verified_ratio": "100%"
+    },
+    "ddia-data-model-selection": {
+      "upstream_type": "book",
+      "chapters": [
+        2
+      ],
+      "derived_from": [
+        "ddia-ch02-ku01",
+        "ddia-ch02-ku02",
+        "ddia-ch02-ku03",
+        "ddia-ch02-ku04",
+        "ddia-ch02-ku05",
+        "ddia-ch02-ku06",
+        "ddia-ch02-ku07",
+        "ddia-ch02-ku08"
+      ],
+      "verified_ratio": "100%"
+    },
+    "ddia-deriving-data-and-integration": {
+      "upstream_type": "book",
+      "chapters": [
+        12
+      ],
+      "derived_from": [
+        "ddia-ch12-ku01",
+        "ddia-ch12-ku01",
+        "ddia-ch12-ku02",
+        "ddia-ch12-ku02",
+        "ddia-ch12-ku03",
+        "ddia-ch12-ku03",
+        "ddia-ch12-ku04",
+        "ddia-ch12-ku04",
+        "ddia-ch12-ku05",
+        "ddia-ch12-ku05",
+        "ddia-ch12-ku06",
+        "ddia-ch12-ku06",
+        "ddia-ch12-ku07",
+        "ddia-ch12-ku08"
+      ],
+      "verified_ratio": "100%"
+    },
+    "ddia-distributed-consistency-consensus": {
+      "upstream_type": "book",
+      "chapters": [
+        8,
+        9
+      ],
+      "derived_from": [
+        "ddia-ch08-ku01",
+        "ddia-ch08-ku01",
+        "ddia-ch08-ku02",
+        "ddia-ch08-ku02",
+        "ddia-ch08-ku03",
+        "ddia-ch08-ku04",
+        "ddia-ch08-ku05",
+        "ddia-ch08-ku06",
+        "ddia-ch08-ku07",
+        "ddia-ch08-ku08",
+        "ddia-ch09-ku01",
+        "ddia-ch09-ku01",
+        "ddia-ch09-ku02",
+        "ddia-ch09-ku02",
+        "ddia-ch09-ku03",
+        "ddia-ch09-ku03",
+        "ddia-ch09-ku04",
+        "ddia-ch09-ku04",
+        "ddia-ch09-ku05",
+        "ddia-ch09-ku05",
+        "ddia-ch09-ku06",
+        "ddia-ch09-ku06",
+        "ddia-ch09-ku07",
+        "ddia-ch09-ku07",
+        "ddia-ch09-ku08",
+        "ddia-ch09-ku08",
+        "ddia-ch09-ku09"
+      ],
+      "verified_ratio": "100%"
+    },
+    "ddia-encoding-and-schema-evolution": {
+      "upstream_type": "book",
+      "chapters": [
+        4
+      ],
+      "derived_from": [
+        "ddia-ch04-ku01",
+        "ddia-ch04-ku02",
+        "ddia-ch04-ku03",
+        "ddia-ch04-ku04",
+        "ddia-ch04-ku05",
+        "ddia-ch04-ku06",
+        "ddia-ch04-ku07",
+        "ddia-ch04-ku08"
+      ],
+      "verified_ratio": "100%"
+    },
+    "ddia-partitioning-strategy": {
+      "upstream_type": "book",
+      "chapters": [
+        6
+      ],
+      "derived_from": [
+        "ddia-ch06-ku01",
+        "ddia-ch06-ku02",
+        "ddia-ch06-ku03",
+        "ddia-ch06-ku04",
+        "ddia-ch06-ku05",
+        "ddia-ch06-ku06",
+        "ddia-ch06-ku07"
+      ],
+      "verified_ratio": "100%"
+    },
+    "ddia-reliability-scalability-foundations": {
+      "upstream_type": "book",
+      "chapters": [
+        1
+      ],
+      "derived_from": [
+        "ddia-ch01-ku01",
+        "ddia-ch01-ku02",
+        "ddia-ch01-ku03",
+        "ddia-ch01-ku04",
+        "ddia-ch01-ku05",
+        "ddia-ch01-ku06",
+        "ddia-ch01-ku07",
+        "ddia-ch01-ku08"
+      ],
+      "verified_ratio": "100%"
+    },
+    "ddia-replication-topology-choice": {
+      "upstream_type": "book",
+      "chapters": [
+        5
+      ],
+      "derived_from": [
+        "ddia-ch05-ku01",
+        "ddia-ch05-ku01",
+        "ddia-ch05-ku02",
+        "ddia-ch05-ku02",
+        "ddia-ch05-ku03",
+        "ddia-ch05-ku04",
+        "ddia-ch05-ku05",
+        "ddia-ch05-ku06",
+        "ddia-ch05-ku07"
+      ],
+      "verified_ratio": "100%"
+    },
+    "ddia-storage-engine-tradeoffs": {
+      "upstream_type": "book",
+      "chapters": [
+        3
+      ],
+      "derived_from": [
+        "ddia-ch03-ku01",
+        "ddia-ch03-ku02",
+        "ddia-ch03-ku03",
+        "ddia-ch03-ku04",
+        "ddia-ch03-ku05",
+        "ddia-ch03-ku06",
+        "ddia-ch03-ku07",
+        "ddia-ch03-ku08",
+        "ddia-ch03-ku09"
+      ],
+      "verified_ratio": "100%"
+    },
+    "ddia-transaction-isolation-choice": {
+      "upstream_type": "book",
+      "chapters": [
+        7
+      ],
+      "derived_from": [
+        "ddia-ch07-ku01",
+        "ddia-ch07-ku02",
+        "ddia-ch07-ku03",
+        "ddia-ch07-ku04",
+        "ddia-ch07-ku05",
+        "ddia-ch07-ku06",
+        "ddia-ch07-ku07",
+        "ddia-ch07-ku08",
+        "ddia-ch07-ku09"
+      ],
+      "verified_ratio": "100%"
+    }
+  }
+}

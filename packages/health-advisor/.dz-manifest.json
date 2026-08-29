@@ -1,0 +1,981 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "health-advisor",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "884236f9b66a843c3230f6fbb5253ba5c87afb78d1d4374590875e96bf6ed6f6"
+      },
+      {
+        "path": "base/assets/html-template.js",
+        "sha256": "cc35df4b564f91ac290accdc5b7dac86d00a57e3d052c2b45daf5b8064fd8920"
+      },
+      {
+        "path": "base/formats/consult-synthesis.md",
+        "sha256": "80e151ffa3aeef7e0ad12646414504e758e099f25a6e31a1094c5eae543fc0ab"
+      },
+      {
+        "path": "base/formats/evaluate-doctor-answer.md",
+        "sha256": "ec6ef12d338188e60789084f474a392d88668d9835a9e327cb24c3f75295ec74"
+      },
+      {
+        "path": "base/formats/plain-language-explanation.md",
+        "sha256": "14478f1d3001e8975949bcbdc3080c58c3608cef568429e61ce023d55054751b"
+      },
+      {
+        "path": "base/formats/prognosis-horizons.md",
+        "sha256": "6262ca9eaa011454b6f1dc08d0c7f7d802117fcd5ce9b06eb60945f7efc9b635"
+      },
+      {
+        "path": "base/formats/questions-for-doctor.md",
+        "sha256": "3f901eb63ab69ee8c3a43a832ace6981fff5cab719006368d7e25f1f9d58bca3"
+      },
+      {
+        "path": "base/formats/specialist-findings.md",
+        "sha256": "e7d31745efd69c38804e3165ce415fb851f3f989b5cc097c6810979cf4ef29b4"
+      },
+      {
+        "path": "base/modules/00-intake.md",
+        "sha256": "8353c44ed543493d38c9a1d0e4a870a3a78af83429a268a981c0b4dfbbcaaf28"
+      },
+      {
+        "path": "base/modules/01-profile.md",
+        "sha256": "41e9656d91a841b99c2009d2de5812f3b6f78896f9ba1c6b6a9458d777dd8a3e"
+      },
+      {
+        "path": "base/modules/02-medications.md",
+        "sha256": "4be3480278178f81d190312ca5ac5725826e10806bb663c468702415524da55e"
+      },
+      {
+        "path": "base/modules/03-doctors.md",
+        "sha256": "75ea1954817e5b7043ab29375bb88f434250f7843de02b3046695c1468562e64"
+      },
+      {
+        "path": "base/modules/04-appointment.md",
+        "sha256": "917b0e98b967389ec6d7e512c4897978fe03fe1d8f2b5839a454acd9d8450a75"
+      },
+      {
+        "path": "base/modules/05-exercise.md",
+        "sha256": "1aab1ec418b2e30ed5cb95c7f183d156a6e44f0688edbcfd48f769d0b898a386"
+      },
+      {
+        "path": "base/modules/06-nutrition.md",
+        "sha256": "661000f9d64fefcecbc1ee1cb5a25b36b2f09f1fe9ebff1baa7ce1d62fc87d0e"
+      },
+      {
+        "path": "base/modules/07-special.md",
+        "sha256": "b223e9ec4d0913264659375bb198a9a6c8a7a8f67967d0a574e6939df239a8ab"
+      },
+      {
+        "path": "base/modules/08-monitoring.md",
+        "sha256": "c47a7c7e50a6a4159d8a50af3d30fd2155c747122f6631b516d13616e97a5373"
+      },
+      {
+        "path": "base/prompts/researcher.md",
+        "sha256": "c460ef19e4a3e1c8e9bba3e26d6d485f997d388fcbd8255fb748227f253f676b"
+      },
+      {
+        "path": "base/prompts/system-prompt.md",
+        "sha256": "f330d7fc7a0365a30db339c19b4971e8f45f9166dcdb23d1d07f24b158da0151"
+      },
+      {
+        "path": "base/skills/base/analyst-manual-full/SKILL.md",
+        "sha256": "4733b487b8a2772ada4108561429611308e7a785c43d4dab0de8c9112637f3d0"
+      },
+      {
+        "path": "base/skills/base/explore/SKILL.md",
+        "sha256": "2473e7961845db0d64566cd42627b374d1830664b9e302058a1b1aa466bc7361"
+      },
+      {
+        "path": "base/skills/base/explore/references/questioning-techniques.md",
+        "sha256": "ec0dd00871d3abe950f9cf375216a43043827897166c4165c3fa581839851195"
+      },
+      {
+        "path": "base/skills/base/explore/references/task-brief-templates.md",
+        "sha256": "4e9292479e120afce944b747bb7b4a7226c41e9880708d620de3ea4fa4ef0249"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/SKILL.md",
+        "sha256": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/references/ed25519-verification.md",
+        "sha256": "2742f14b472bff69c83f24d9bac5bf023bd7f9ecc3e659742ac3152a239dd68f"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/references/research-actions.md",
+        "sha256": "156d2f8ce342f7013bc758fe7c0d3ad3041b4f67f30dbcf8d59e091cb70d9a9c"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/references/source-evaluation.md",
+        "sha256": "d6a19abb6be64dc9e1f539903080029125d2d899da4de3063e75e1afb7e4906f"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/__pycache__/learning_bridge.cpython-310.pyc",
+        "sha256": "dd8c7d45e3dd8848afa08e0ccb064cc355ae7ee5313b42dd41075c26e978316b"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/check_report_evidence.py",
+        "sha256": "5053e677f11d00b4dd8365a81eafa1d2c961eebd25c33f72b02455573a934a32"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/ed25519_verifier.py",
+        "sha256": "f4a2ac9e6473201583643fe8abf47560863cec600344dad5c9df06091b4298f5"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/evidence_fetch.py",
+        "sha256": "5f4d7cb5d6fb3106d64130b6606582eb55a4f633ef969cf7890b1de1c179345b"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/fixture_legacy_v1_fact.json",
+        "sha256": "e613de4737145cbfb5f349fbf9f1122801ce3508b62c3a18e2e0cba26b9da5b0"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/fixture_legacy_v2_fact.json",
+        "sha256": "3f552b47c3864e4ff7ae8c72516e98c188592c7f4f7703d09ce88b39f586ad9d"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/fixtures_field_cases.json",
+        "sha256": "e2ee619732ab4a1b57285e57b4349f96b4158b231a5624e5264fadf69edb8983"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/goap_planner.py",
+        "sha256": "f5cbf4784106710b363e7f29bfa538b75f488cb25e1c273ae40de9f4c2a6710b"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/learning_bridge.py",
+        "sha256": "0edfdd280e1f8c2f4f0c5834f1d93791505b99463851dfa8235b9bb7ecb9d1bb"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/population_match.py",
+        "sha256": "bbd1d3346a6fb75d0e8526cb5d2fc8bc8613bb31ab63ffb0958d436d5e009054"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/risk_statement.py",
+        "sha256": "320ffece816e875f65624583846f44dc99461f672a0de7cda42be5ddf29d6de5"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/source_tiers.py",
+        "sha256": "e1aae76fad01693ab35b51466fc4369c04a5ac64230fd307e7b798dc5beeff7a"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/test_ed25519_verifier.py",
+        "sha256": "dcba1ce538ff946d6928f30a7c5cbcc37fddf712b6181f91f94c76e20c117ac5"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/test_evidence_provenance.py",
+        "sha256": "292bfcdcc086934905c77f1543d8400ee483166ff3ce26c79bb526c204320dbb"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/test_goap_planner.py",
+        "sha256": "7942ada069048b7e97bf2b6e920898a58517ccec090069f347399dbf1fc37731"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/test_population_match.py",
+        "sha256": "f33f72c0ba6305af1644e6b1a7f7635d3f33273344f19c14e7dbd2f819af0e7f"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/test_risk_absolute.py",
+        "sha256": "ab353db189650551c374cb772ba4a3a6929e3a2618f2f5c112eca4c3f69e46b6"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/test_signature_v3.py",
+        "sha256": "a04259296df104c9497c7b31d29556cb9a7ad4dd3339cbe3d8d32a4f53950d25"
+      },
+      {
+        "path": "base/skills/base/goap-research-ed25519/scripts/test_suite_completeness.py",
+        "sha256": "727c5d5b0dad215957012276ebc146397178255077e762ed7b88a60d8178d2ab"
+      },
+      {
+        "path": "base/skills/base/problem-solver-enhanced/SKILL.md",
+        "sha256": "031378aa2e10c98928e35de07d454135e73550cd0c49f0cd886d53e4208d6b9f"
+      },
+      {
+        "path": "base/skills/health-advisor-research.md",
+        "sha256": "624b34af4f9e433e60993c2c591102c37a975c45bf8d4fc7dba0c178b7f3e5cc"
+      },
+      {
+        "path": "base/skills/health-advisor.md",
+        "sha256": "387ceb6089c6a653b3d046682e4c4f47534ac2c5c5683aa4259dc8e9be3f190a"
+      },
+      {
+        "path": "base/skills/references/emergency-thresholds.md",
+        "sha256": "5a04a152d08ed9666cd095d08ef968863680780119e4654b700ae932ede2b4e1"
+      },
+      {
+        "path": "base/skills/references/evidence-levels.md",
+        "sha256": "50a1cc9554908079f1ff0ff161f2250d45e0ecdb04640036cbcbb042d645a764"
+      },
+      {
+        "path": "base/skills/references/trusted-issuers.md",
+        "sha256": "5a85bfa08a90f6dbe5834eb74ce46830004aeef449b1517517dfa8f6d8c2a713"
+      },
+      {
+        "path": "bin/health-advisor.js",
+        "sha256": "d3d3bbcf3f92a70921be7113a5d687fb20b1bf51755b6c64625d097e87fa8521"
+      },
+      {
+        "path": "lib/appraisal-acl/crossref.js",
+        "sha256": "68f6146b56f9cb76154a673b5cafbb9573e7387622717fc41c7e95471008d687"
+      },
+      {
+        "path": "lib/appraisal-acl/ctgov-history.js",
+        "sha256": "aa43ad45ee1d50503c7359a5217aae5cc9d9dfc3def011a8b9056d722724546d"
+      },
+      {
+        "path": "lib/appraisal-acl/ctgov-v2.js",
+        "sha256": "9ee3b5e302f2c4d7ba34eec8f8d68193e06eaab5f073d2d966bce707e303d385"
+      },
+      {
+        "path": "lib/appraisal-acl/europepmc.js",
+        "sha256": "2b375150d5612ede842c8bdf65a796eb88ee92c2b4a6252c452fe38da69cbe0e"
+      },
+      {
+        "path": "lib/appraisal-acl/pubmed.js",
+        "sha256": "88d23d87532d9754b8f4d3438df2e921c51c6124cf1c929ce6f41fe27ecddfa0"
+      },
+      {
+        "path": "lib/appraisal-acl/retraction-index.js",
+        "sha256": "c0328e1e24490062817f244bff94ede5d3a80827ec694e3a8858600c62b8568e"
+      },
+      {
+        "path": "lib/appraisal-bundle.js",
+        "sha256": "b71822fefba89e10539b0246ea9cf12f7c233208e514a850b8926819874480fe"
+      },
+      {
+        "path": "lib/appraisal-checks/01-retraction-status.js",
+        "sha256": "18bb117577ced365e24b7207002f6e433fa49f8d7244b5bb7ef7e47490bfb662"
+      },
+      {
+        "path": "lib/appraisal-checks/02-cites-retracted-work.js",
+        "sha256": "e79684791bb07ed36308880d7a26b73a18fc45a239b53dd0c67089e3ceab8abb"
+      },
+      {
+        "path": "lib/appraisal-checks/03-registration-timing.js",
+        "sha256": "fa6964a7d1c892d91e389e8de88a8266cb2e736a85493b91c596919b5a822a50"
+      },
+      {
+        "path": "lib/appraisal-checks/04-05-registry-record-changed.js",
+        "sha256": "e97b9220bf7dda0bbec21854b66916dc54fb6e41fc6b3dece6e939b6f78bda7c"
+      },
+      {
+        "path": "lib/appraisal-checks/06-enrollment-actuality.js",
+        "sha256": "d6529d437d55b881870f8ea0ef963b2aaddbe83a096aeb400e897931b087dc07"
+      },
+      {
+        "path": "lib/appraisal-checks/07-results-reporting-timeliness.js",
+        "sha256": "3f9abbbc14f260d1bc0fe80ff0c9330451479e8a6a07eec9911eb67b4fb7fbd2"
+      },
+      {
+        "path": "lib/appraisal-core.js",
+        "sha256": "58e923e8e2090efed51e4dc52697f163f885e5126f494b78aeb8b7507e5a4209"
+      },
+      {
+        "path": "lib/appraisal-egress-scan.js",
+        "sha256": "42aaac646e5d13e8c16db661fbb42c7b7ff49bd6c5e7bc3ab06df9f2279698f6"
+      },
+      {
+        "path": "lib/appraisal-run.js",
+        "sha256": "197f2e44b4f07c13e48f124e7bbeaf3307f804e90d5419cdf18584095ecf9b43"
+      },
+      {
+        "path": "lib/appraisal-transport.js",
+        "sha256": "88b64d4550ddacd53a22704de4fb9cebddad242e753bc9bc8252b80ddd069a92"
+      },
+      {
+        "path": "lib/appraisal.js",
+        "sha256": "caaa4f10e4f02d53fe00c8ebed3ab92d4545281dc7183c32eb5b1ca4488a682c"
+      },
+      {
+        "path": "lib/caveat-gate-report.js",
+        "sha256": "50032201d40fb4dab7cee144fbeea3fd9414412a31030ceb21a5246f9a6b47f2"
+      },
+      {
+        "path": "lib/caveat-gate.js",
+        "sha256": "dc41da4bb7953245b8a0b632c3a6c461e694e384b11b500a5645b2da699c9d12"
+      },
+      {
+        "path": "lib/check.js",
+        "sha256": "0bdec32bd3a3eff96a74bc6d6d888e5f819ed13d0dc6f26929be0282dab079a1"
+      },
+      {
+        "path": "lib/consult-anchors.js",
+        "sha256": "98bea9ee22e9adeff99c50c73d39ef522d6b8d4039c5072e23d1185a319c9727"
+      },
+      {
+        "path": "lib/consult-cli.js",
+        "sha256": "19dcd4ac74b95766049863ff6529a3375252405c6814e834603a9b01e3f8f461"
+      },
+      {
+        "path": "lib/consult-finding-id.js",
+        "sha256": "93aff6b18ee45b9b8062a9b063c22506b38db38bf2ac6ce0bac6c7e3f2d279a0"
+      },
+      {
+        "path": "lib/consult-finding-schema.js",
+        "sha256": "185f02c1ae698accbd19dd5e412deac73aeae27f8b1f385b2a37dd54fbfae006"
+      },
+      {
+        "path": "lib/emergency-triage.js",
+        "sha256": "f064b7dda0e588dfc574d72d7603be4ddf0317734c92491b0ddf5a38eba58694"
+      },
+      {
+        "path": "lib/installer.js",
+        "sha256": "bb8cc6ad3b381def8c6bb7016f249f5ad6c660cb3e815eea313842321093b2dc"
+      },
+      {
+        "path": "lib/registry-comparison.js",
+        "sha256": "285c83d77988af1f08f8d2fc275995919dacb17a6d2f6a2597ce68b706829087"
+      },
+      {
+        "path": "lib/registry-edit-timing.js",
+        "sha256": "b3b738299f9f1f5b3bdfbc40b47e3b665f7529fb362e8be49c97cc2298343dcf"
+      },
+      {
+        "path": "lib/registry-linkage.js",
+        "sha256": "9604de46a22984b1f24d9f43444f641fe376e9c04ed9133c6b8bdf38297cc331"
+      },
+      {
+        "path": "lib/registry/caveat-types.json",
+        "sha256": "a5a545f6ca2b1421ae63fad435151d5fa11bb9ce9e9c8b6c6aa3eb47fd11af96"
+      },
+      {
+        "path": "lib/registry/emergency-thresholds.json",
+        "sha256": "b3b92a389d3d230c4e0a4188415a3b8491965d9c24260d0d92f478e15d403f05"
+      },
+      {
+        "path": "lib/render.js",
+        "sha256": "4f19b6945e67210714b45c27ba0697b7d6dda2b00e8a85097c23a88a7abf5cb5"
+      },
+      {
+        "path": "lib/source-anchor-store.js",
+        "sha256": "d7116a705314cef379bdcd65236105339d53413c294ec087750948797dd8e039"
+      },
+      {
+        "path": "lib/source-anchor.js",
+        "sha256": "98304122a7eba0a24a13b2465c978cd87ed89aabbb748100767ca8b715200fdd"
+      },
+      {
+        "path": "lib/workspace-layout.js",
+        "sha256": "3aa74a0b4fe27ca17fe3e1dff9812c44b99f65daf528027b6e828a92a5de08ac"
+      },
+      {
+        "path": "package.json",
+        "sha256": "2cdb485fc3b98af3a3764f9dafc5a1a06fb728b2d044ed07f5b22ca26b9fc49c"
+      },
+      {
+        "path": "skills/case-state/SKILL.md",
+        "sha256": "72540342c4c8bcda6c7f15166f3eec0d1c6bab3991356bd3a4250e1356a298e3"
+      },
+      {
+        "path": "skills/case-state/engine/anchor-write.js",
+        "sha256": "1fca9bf9bf39e1c5b346653c0c7f60ec9d052300db6a781aa3637d24aa423c1c"
+      },
+      {
+        "path": "skills/case-state/engine/cli.js",
+        "sha256": "b5271a793723955b8fc8d99c965731ac33aef73133deedeb76408151418f759b"
+      },
+      {
+        "path": "skills/case-state/engine/conclusion.js",
+        "sha256": "2573df1a555461ae4257bea86eb68a04c85275e69d618df3c1b737411a70d22f"
+      },
+      {
+        "path": "skills/case-state/engine/diff.js",
+        "sha256": "1df9d852e463140d445718bd7e6d22a81f53b1bd1f5cd5f22eb2a3e47d64d9d3"
+      },
+      {
+        "path": "skills/case-state/engine/facts.js",
+        "sha256": "09013d4e53b7194ec96b504e12b3fc0afcce9653a976b598c4480691c58d6211"
+      },
+      {
+        "path": "skills/case-state/engine/fixtures/facts-fresh.json",
+        "sha256": "df35725ad030bc8de1a4cfa3bad22c97c049b8148908b3418f2128093ed57b84"
+      },
+      {
+        "path": "skills/case-state/engine/fixtures/facts.json",
+        "sha256": "151285d2b600bf4dc9c3dc6951dc8a1154bd0dea66404aecbfb37240cdab018e"
+      },
+      {
+        "path": "skills/case-state/engine/fixtures/open_questions.json",
+        "sha256": "44b1855f5c077075240bcb408a9f283982b93feddb3c17b512b83b91b71ac6b8"
+      },
+      {
+        "path": "skills/case-state/engine/fixtures/profile-invalid.json",
+        "sha256": "ebf9885aed449135524e2d72e6f8f62acd2fc4b24b097e052c607d9e708833c3"
+      },
+      {
+        "path": "skills/case-state/engine/fixtures/profile.json",
+        "sha256": "6292ad8cc695c268dbc681f1fd068e517c228eb75d243a3399cee600fc457f7d"
+      },
+      {
+        "path": "skills/case-state/engine/freshness.js",
+        "sha256": "8c052309d5296ea010061b1b17ad20e9d8845af492c05525ca41ca544b2b4f7c"
+      },
+      {
+        "path": "skills/case-state/engine/index.js",
+        "sha256": "2428e617d4606ccd65cc8352208f021ec7390f368a80222ea843fb1d8fd3f853"
+      },
+      {
+        "path": "skills/case-state/engine/lock.js",
+        "sha256": "4c3e1c7dd685e4f0d2fe5c6cee6008ce473debf7c7f28817d2afb36b5f9b9b23"
+      },
+      {
+        "path": "skills/case-state/engine/profile.js",
+        "sha256": "f34d78eb159d4606ebfe147af89b32f542a543bb176e1be99ca1b780d7bd7e65"
+      },
+      {
+        "path": "skills/case-state/engine/questions.js",
+        "sha256": "a2e1d79c2c8e906cd0b313ba664657666ec99490bdcecade3f2f61da2c68a2a9"
+      },
+      {
+        "path": "skills/case-state/engine/registry/derived-metrics.json",
+        "sha256": "6f4a905d2643384e53a5f170222ef91dfcf84cb8dae8111af25a57d24db23085"
+      },
+      {
+        "path": "skills/case-state/engine/registry/profile-required.json",
+        "sha256": "2ae0eea6b92cfc21bf987ed48c8f887c01f8d333f8ba19d3603221ea6184fdcc"
+      },
+      {
+        "path": "skills/case-state/engine/registry/recheck-ttl.json",
+        "sha256": "41a07828e3594bbccc8bc9c05ec6a6f185839c955f378cfe927b40d6d3609451"
+      },
+      {
+        "path": "skills/case-state/engine/render.js",
+        "sha256": "d4cfaa60057397b388e71b3c89ede85080b914685b99b069419fd219f62b1dc3"
+      },
+      {
+        "path": "skills/case-state/engine/schema.js",
+        "sha256": "1fc5600aeb4f0d613bfdedd10a2c8077596d7f21ee9990b929e3baa3e04f4acc"
+      },
+      {
+        "path": "skills/case-state/engine/session.js",
+        "sha256": "af2f7adfc7fb673e99fda875e1421014a4f310fdad9493a20b772af37d84dad9"
+      },
+      {
+        "path": "skills/case-state/engine/source-anchor.js",
+        "sha256": "400ae84226dfd7ac3673d71d2ccffe71eca288deaf240192f94c02fd828d89a8"
+      },
+      {
+        "path": "skills/clinical-decision-support/README.md",
+        "sha256": "f8866e5469d6d5174c298844995aff0f8db3c4fd4a3333eb926f3fea6776de31"
+      },
+      {
+        "path": "skills/clinical-decision-support/SKILL.md",
+        "sha256": "1cdde5b5df4ff091061d892ae4415277f7533b69c1cf5a77f6541fe5e504d4f0"
+      },
+      {
+        "path": "skills/clinical-decision-support/assets/example_gbm_cohort.md",
+        "sha256": "55c16db7f75aa557c48f861800558914de4c8abdd39bcc439ddc6c6063e52b93"
+      },
+      {
+        "path": "skills/clinical-decision-support/assets/recommendation_strength_guide.md",
+        "sha256": "dbf49e98ffbaf6c6a24485df97922fbab9873983f495ea7a5302cf69aa4f38e1"
+      },
+      {
+        "path": "skills/clinical-decision-support/assets/templates.tex",
+        "sha256": "1f2c6c46fe0bf1dcca4ce966849b838e99b22740e3c616925bdf3f2118fa9c25"
+      },
+      {
+        "path": "skills/clinical-decision-support/scripts/biomarker_classifier.py",
+        "sha256": "ea6099b09e270c4a91384cdfe6f91be3039f346926d90971cada7711c668e0b5"
+      },
+      {
+        "path": "skills/clinical-decision-support/scripts/build_decision_tree.py",
+        "sha256": "cc9fa644357e1bb29ff0cff7a5054298602f549ab4df8b3d0f7e64894f1d470a"
+      },
+      {
+        "path": "skills/clinical-decision-support/scripts/create_cohort_tables.py",
+        "sha256": "aad38d5f7033c0ea10a3bddfc531d79233c5b1de8923824aee984bd879483573"
+      },
+      {
+        "path": "skills/clinical-decision-support/scripts/generate_survival_analysis.py",
+        "sha256": "b3f3dc4c912e8d06addc3b2f450b6188ad78bce46f3c2cea513e4ca0be46974f"
+      },
+      {
+        "path": "skills/clinical-decision-support/scripts/validate_cds_document.py",
+        "sha256": "a2aa28c6afdd22ce36a32c0081b66c7119c6e5aa19d3a33ee9229f5d7668fcfe"
+      },
+      {
+        "path": "skills/clinical-diagnostic-reasoning/SKILL.md",
+        "sha256": "c3158527492301c5668c743d0bab37a2b21fdc788fe19184994f1267fd23e6fb"
+      },
+      {
+        "path": "skills/clinical-nlp-extractor/README.md",
+        "sha256": "7b2841c0a382d414e5bacf00a05d3c547a129a57331589412fef5ae3f7553b58"
+      },
+      {
+        "path": "skills/clinical-nlp-extractor/SKILL.md",
+        "sha256": "08288e287d5928d3361843edae1dd9f399e7178a43e725744c81ab6b1686165f"
+      },
+      {
+        "path": "skills/clinical-nlp-extractor/entity_extractor.py",
+        "sha256": "3f6b14243cbeb65594c3cb49367c4f0ab83f974bc5753a0dfef5959d578a5f03"
+      },
+      {
+        "path": "skills/clinical-targets/SKILL.md",
+        "sha256": "e5f07d6fd9dfa75a0b0be3f472ee963465b701cd6ae9a316fa244ac27aee07c2"
+      },
+      {
+        "path": "skills/clinical-targets/engine/acl-lab-results.js",
+        "sha256": "ac8141fd306fef0fa1c43e6ac0e7ab610256e247b4566205e8f00fe93ee37e8a"
+      },
+      {
+        "path": "skills/clinical-targets/engine/applicability.js",
+        "sha256": "6db8f23bef1aa921b47fb9a7cb950b91e0e263b8bd25faa1c97daea0bd1af5fe"
+      },
+      {
+        "path": "skills/clinical-targets/engine/claim.js",
+        "sha256": "bca8c7de1a7127509fb31c1eed536478769438c58de377d167d968c9db6c284e"
+      },
+      {
+        "path": "skills/clinical-targets/engine/cli.js",
+        "sha256": "209de6f5324855219f8edf0d34e2d2166f71e09b7095ca4ebf998678159a1647"
+      },
+      {
+        "path": "skills/clinical-targets/engine/evaluate.js",
+        "sha256": "1fe0aa6fdd4d1aba635ff8ffda83059264d7f71d34121133226833a4d3bf4325"
+      },
+      {
+        "path": "skills/clinical-targets/engine/index.js",
+        "sha256": "074a468097717fb49e09214ef0ff94229d90eecbb10c249daa1e37f9637953e9"
+      },
+      {
+        "path": "skills/clinical-targets/engine/registry.js",
+        "sha256": "008b60ce70b6dcb2ce1fc1c91585701b71656cee40df5894c5ff8932ee677e3f"
+      },
+      {
+        "path": "skills/clinical-targets/engine/registry/analytes/apolipoprotein-b.json",
+        "sha256": "d4980494e4ac0d0b0db68f30b01a0b2017bd0ab8de42c89b94548805364ab1c8"
+      },
+      {
+        "path": "skills/clinical-targets/engine/registry/analytes/testosterone-total.json",
+        "sha256": "908bcdaf03ec08079cfa98d4914fa42b2ca2e17eb68013601736583d50db2494"
+      },
+      {
+        "path": "skills/clinical-targets/engine/registry/analytes/transferrin-saturation.json",
+        "sha256": "5a4396c0d2b5f32ae7c9231aadb8ffd68595e4abf9b401c2ce1d27be1998ad84"
+      },
+      {
+        "path": "skills/clinical-targets/engine/registry/targets/apolipoprotein-b.json",
+        "sha256": "1011f87b89094f770d57a9cc6025b314ff438e65483d3d629695545a0dc0e0bc"
+      },
+      {
+        "path": "skills/clinical-targets/engine/registry/targets/transferrin-saturation.json",
+        "sha256": "a071afea18e210a4ea0a5f4253dc163a5c47ae8e0f68298a6939b0723dbd004d"
+      },
+      {
+        "path": "skills/clinical-targets/engine/registry/units.json",
+        "sha256": "526a2979c8a38c61fd7632e03c5945cf93f059c9a61aac654d81f3bec1c9d066"
+      },
+      {
+        "path": "skills/clinical-targets/engine/render.js",
+        "sha256": "79878962bf650d9b817f63e3fb2cb8ccd8176284d59782d5e25d0d9ae8dcb76d"
+      },
+      {
+        "path": "skills/clinical-targets/engine/schema.js",
+        "sha256": "922d459f8cab7ede9c3b0eff645caa988281b5996f33bf443601b8bbc57992bf"
+      },
+      {
+        "path": "skills/clinical-targets/engine/units.js",
+        "sha256": "f0efce362fb7fdf19ea3e666d8b3edfa5f5e0177eff7f69ef3e3eb5a70626153"
+      },
+      {
+        "path": "skills/clinical-targets/examples/apob-field-case.json",
+        "sha256": "1815bc9b5e783563927cc4d0c7a75731e4ef24ae7a6d3f2889afdc0501670c12"
+      },
+      {
+        "path": "skills/clinicaltrials-database/SKILL.md",
+        "sha256": "a0f665a3674dea477adc01918767201616a2138d660ecd2a289b995bc6918ab3"
+      },
+      {
+        "path": "skills/clinicaltrials-database/scripts/query_clinicaltrials.py",
+        "sha256": "32d478f864e529ef002ab8bba347823a413f05edb234fc8c3abad7824aa83603"
+      },
+      {
+        "path": "skills/clinpgx/SKILL.md",
+        "sha256": "d06afeb29fe997f4448e2b67d9f330a69d082905bcfb60c5047bad80f98fbfdc"
+      },
+      {
+        "path": "skills/clinpgx/api.py",
+        "sha256": "6375165ff049c5846c78d0f1b0d17d059d1f823a02750f98df557880587922aa"
+      },
+      {
+        "path": "skills/clinpgx/clinpgx.py",
+        "sha256": "f6328dd03f38994655de6d4e5219ecda99054e21a84c390890a33a1fd41398fe"
+      },
+      {
+        "path": "skills/clinpgx/tests/__init__.py",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "skills/clinpgx/tests/test_clinpgx.py",
+        "sha256": "66b5fd96648fe1040bcc96d11cc14ca5d89978c01a31a95c22d48cdd4dc8b2d4"
+      },
+      {
+        "path": "skills/critical-appraisal/SKILL.md",
+        "sha256": "9324256cd0cdbb4dae0b4783e1c5b87eb06fbac41047e04f293a6f23687fe15b"
+      },
+      {
+        "path": "skills/critical-appraisal/references/registry-vs-publication.md",
+        "sha256": "86eb53bc23ce234f5447e1a62521cb588ffebd26199b51935ce931070efe1a31"
+      },
+      {
+        "path": "skills/critical-appraisal/references/retraction-notices.md",
+        "sha256": "5e274a980dbc26e0f5272a7b14a256f3f25943e13b1ec19c73b06148bb4f31f3"
+      },
+      {
+        "path": "skills/critical-appraisal/references/transparency-vs-bias.md",
+        "sha256": "1df5aad6cb2f05c7281a2e07f49b6a963f76d1761b50a46e3c117aeb3f21fb4c"
+      },
+      {
+        "path": "skills/critical-appraisal/scripts/appraise.js",
+        "sha256": "f33f080ecc4fd7717d46d482826def92aff945989ad30815dab4603ea5868c4a"
+      },
+      {
+        "path": "skills/critical-appraisal/scripts/capture-fixtures.js",
+        "sha256": "fd3457f833f023789a10ab011caa9b398a0c8b27361c2c2b32caf43826778182"
+      },
+      {
+        "path": "skills/deep-research/SKILL.md",
+        "sha256": "fba7b07105438185171e408d920538b4464634a7a9f4809dd5cfba69ca349b38"
+      },
+      {
+        "path": "skills/drug-interaction-checker/SKILL.md",
+        "sha256": "1f2a55f2a15d0cb96fe589728764e578b7b5304deb6a73eb154e3ecc0c95a111"
+      },
+      {
+        "path": "skills/drug-interaction-checker/impl.py",
+        "sha256": "885680f873c32e3da2caf8b93d9a7c128cb2647dc3b7dafca395a14fae9606c6"
+      },
+      {
+        "path": "skills/emergency-card/SKILL.md",
+        "sha256": "94dc4fb3e29e8e1cecb086dcbb18270180505dbc295c93913aa48f8cfc54f8b0"
+      },
+      {
+        "path": "skills/emergency-card/examples.md",
+        "sha256": "362b55a7e8d30f0d0af2e57b8da6d6e279e76c3aa23705b155154c43d97616c0"
+      },
+      {
+        "path": "skills/emergency-card/formats.md",
+        "sha256": "bf4cd3e2d19418ebd716727344aec987f5c4935a9a58ae42c2cef923c187ea40"
+      },
+      {
+        "path": "skills/fitness-analyzer/SKILL.md",
+        "sha256": "5fb172cccc2feedfb89c2aecd7766130f4509c77495fe589792b8e8cdc3686d1"
+      },
+      {
+        "path": "skills/fitness-analyzer/examples.md",
+        "sha256": "f739bfabf6096ccf33b4a2b83b09fcf7e2d4ce51b95902629c5a87ef778ee9a9"
+      },
+      {
+        "path": "skills/health-trend-analyzer/SKILL.md",
+        "sha256": "228232cb178fae8fee4e8fc9d8221d02d7d73fd7a88dc214e2c075a733fc65e7"
+      },
+      {
+        "path": "skills/health-trend-analyzer/algorithms.md",
+        "sha256": "eb816443fcb4ac04989ec579a29549481e6bdb5eae64d426ad0e45f2d041de76"
+      },
+      {
+        "path": "skills/health-trend-analyzer/data-sources.md",
+        "sha256": "c6ff75cb563fb59e5e8fc1c00bbea1221af094670dba8377ba9d5e9d29974c2b"
+      },
+      {
+        "path": "skills/health-trend-analyzer/examples.md",
+        "sha256": "d87ac3df77020c82d01804e37d7e350d34d10826f96b7700eb4573834fe9c9bb"
+      },
+      {
+        "path": "skills/health-trend-analyzer/templates/charts-config.js",
+        "sha256": "0a153ef4cee1c55a3f5c0d5b8d47d8005ee2f991f7e5e88b042c327e8620122d"
+      },
+      {
+        "path": "skills/health-trend-analyzer/templates/custom-styles.css",
+        "sha256": "97f7bebee3b98b3f4770b846e7f104ad34bec5f37b97b5e048d425a3273e6ee7"
+      },
+      {
+        "path": "skills/health-trend-analyzer/templates/report-template.html",
+        "sha256": "b064f60885dcf3389931d670d2c16c9f1ad6f4329a892b7484c6f5d6809337b7"
+      },
+      {
+        "path": "skills/health-trend-analyzer/test-data/profile-mock.json",
+        "sha256": "745176df378ccdefb2eae8b119e4fde98cd5376c549e0386478375473b823ced"
+      },
+      {
+        "path": "skills/intake-archive/SKILL.md",
+        "sha256": "534457b1e22af5966fce4fd097387dace9b431a5e38536a65c5008054ad583b1"
+      },
+      {
+        "path": "skills/intake-archive/engine/cli.js",
+        "sha256": "209dcb8b63f9006d1e0e611dbfefec1b2dbd30a6b317f831c2b32fa0d55ea777"
+      },
+      {
+        "path": "skills/intake-archive/engine/digest.js",
+        "sha256": "37abc5c1f5dca9eef1223391a623423ede389eab643c630a3258e98aac89310c"
+      },
+      {
+        "path": "skills/intake-archive/engine/egress-scan.js",
+        "sha256": "43328e4f8fd7c3469690f2e8ed9fb94a93fa7c779f1ecee3e89f92d21f736394"
+      },
+      {
+        "path": "skills/intake-archive/engine/errors.js",
+        "sha256": "bdb7fa8b53b35c56496d1510075a1e140151625acd9590e4b607cd50a8879b04"
+      },
+      {
+        "path": "skills/intake-archive/engine/extract.js",
+        "sha256": "d64ee356d94679405e7e557f47f2f8fe5cddc3dacb8edda135705b270209f9c4"
+      },
+      {
+        "path": "skills/intake-archive/engine/limits.js",
+        "sha256": "e05224f55e6b3fd34ec342fe81db1a04f48044e06d3a3d6fa54e4e18b7a068ce"
+      },
+      {
+        "path": "skills/intake-archive/engine/manifest.js",
+        "sha256": "d7c9a4a341cdd9b285b21ab3c045a0c65652b0f0684dadb953b51da9dbdfe845"
+      },
+      {
+        "path": "skills/intake-archive/engine/registry/limits.json",
+        "sha256": "e5fa6992afdba1acfa6ebdb495c4e00825fe333732e7ebf9a53a56f9befd48d4"
+      },
+      {
+        "path": "skills/intake-archive/engine/run.js",
+        "sha256": "a365be515caeaf4a73836b7fdcec64b1722e03625d758923bd8d3b81acbc0cde"
+      },
+      {
+        "path": "skills/intake-archive/engine/transport.js",
+        "sha256": "c43729f6222bb0c19208b455c13360eccc66bfa29737069cc2ae7d470bad1c6c"
+      },
+      {
+        "path": "skills/intake-archive/engine/verify.js",
+        "sha256": "8279ba9b05c28bf7e0d933456b261304bac4c2b1adc9b673e26c7bf3a8ce0f74"
+      },
+      {
+        "path": "skills/intake-archive/engine/zip.js",
+        "sha256": "3ad622709dfdeb46bf19b5fb58875912a60688097b970d7db7a2657d7fc16416"
+      },
+      {
+        "path": "skills/lab-results/SKILL.md",
+        "sha256": "1c9b9da73309c8682692e881c603cb30441c3beeba7b09e6c7655e80eab19f92"
+      },
+      {
+        "path": "skills/lab-results/__pycache__/coworker.cpython-310.pyc",
+        "sha256": "bca90fd4f2e5981f117c0e3992a93d0523f23f0368dafddab76977f92d98d56d"
+      },
+      {
+        "path": "skills/lab-results/coworker.py",
+        "sha256": "fdf44a5a85f50b8238ae43b3f8256e0cffc8feebe8680fdb506c838d954f5cdf"
+      },
+      {
+        "path": "skills/medical-entity-extractor/SKILL.md",
+        "sha256": "c7600358ddc195b03925a109b295274a2fccdadf937740b5cd460c7a87328cfe"
+      },
+      {
+        "path": "skills/multi-search-engine/CHANGELOG.md",
+        "sha256": "21ed06de8dcb14e477f44b6cc7762e18689c4b2da0006600c9d5a509a32bb17c"
+      },
+      {
+        "path": "skills/multi-search-engine/SKILL.md",
+        "sha256": "54880e4e46c9aa8c26ae5f673d3388d9ce1502c23b694ffd963383b89ad31557"
+      },
+      {
+        "path": "skills/multi-search-engine/config.json",
+        "sha256": "120f98289429b9763f548266d65a48faf4d50acb39d893260386cf3c5f370d25"
+      },
+      {
+        "path": "skills/multi-search-engine/references/international-search.md",
+        "sha256": "275fd92b8106e94c5279e7ca03a2d1e29df007bac6a9d262000e94cde7f1b8e4"
+      },
+      {
+        "path": "skills/nutrition-analyzer/SKILL.md",
+        "sha256": "4ae11c16e38e269cb061f8000b4c1767e67cdfed51ed01ee29751214cada4686"
+      },
+      {
+        "path": "skills/patiently-ai/SKILL.md",
+        "sha256": "5621adc8db0a17a1551b8dc7d21b5c216d5f01732fc9775b0f6ce283ef5ef9f4"
+      },
+      {
+        "path": "skills/preanalytical-guard/SKILL.md",
+        "sha256": "42a8b93f08f951e2cc14504f285c5935216f599c29f28444172aa206a82fe441"
+      },
+      {
+        "path": "skills/preanalytical-guard/engine/acl-lab-results.js",
+        "sha256": "72e69c830fc99dcef44bda9760a0946274f6d5897266aa25aa9c3e97e4c08821"
+      },
+      {
+        "path": "skills/preanalytical-guard/engine/analyte-name.js",
+        "sha256": "3494e226b3394d583397d882b316fff219dfe0fef6ffd2a693315f8e55e0edc4"
+      },
+      {
+        "path": "skills/preanalytical-guard/engine/attach.js",
+        "sha256": "521ecebdaa7282407624aa2191d6008407e51ca2c795d06c2d2b80a7f622d1b3"
+      },
+      {
+        "path": "skills/preanalytical-guard/engine/conditions.js",
+        "sha256": "a2574fd57aa5ec4fc0813bc5a0f92b2680cc98e4d99658b12d760fc8c801af7d"
+      },
+      {
+        "path": "skills/preanalytical-guard/engine/document-guard.js",
+        "sha256": "c69203c5305b03818f2e22a2115de58bb646d62bcf741002e8726334af2d4b42"
+      },
+      {
+        "path": "skills/preanalytical-guard/engine/document-signals.js",
+        "sha256": "8512d0c274fd1a5193f42449c2f47b762c0d9a12faf69b3c87e2cab6826f812b"
+      },
+      {
+        "path": "skills/preanalytical-guard/engine/evaluate.js",
+        "sha256": "84775ea71d349ef9fafbb83ef9870b082eefaee3c627a06ccced7fbe643678ac"
+      },
+      {
+        "path": "skills/preanalytical-guard/engine/index.js",
+        "sha256": "cb911bbb7b81c222e8b6781715479b37dc03a97c0e8dd9c0a17d2114c51e6d03"
+      },
+      {
+        "path": "skills/preanalytical-guard/engine/predicate.js",
+        "sha256": "e4101b8143de8bec104b2d4270ed5e8dce545426ebcfa86dea0d9f28e669cf18"
+      },
+      {
+        "path": "skills/preanalytical-guard/engine/registry.js",
+        "sha256": "5c59725197f3ca29cdd1e410bd58b5304088ccc5a743aea54dd2cbafdee4ad5e"
+      },
+      {
+        "path": "skills/preanalytical-guard/engine/render.js",
+        "sha256": "6a7c55065bd41588985209aedced16bdbd61243e11357e1a6a03bb94953bdbd8"
+      },
+      {
+        "path": "skills/preanalytical-guard/engine/schema.js",
+        "sha256": "6ebaeb7fc26a8169ee9936ab7a083d7155647d9e5e26e514780f99b077e16938"
+      },
+      {
+        "path": "skills/preanalytical-guard/engine/ticket.js",
+        "sha256": "347c301e0d1cd21698d470cb356e00a639d073ec8412ec41422aacf6628a7c39"
+      },
+      {
+        "path": "skills/preanalytical-guard/engine/units.js",
+        "sha256": "3d217819f12a7e324a2202cabe5a05dcb32ecad87b8887b5f83427fab2cbc90c"
+      },
+      {
+        "path": "skills/preanalytical-guard/references/preanalytical-variation.md",
+        "sha256": "2d694fe4f506ed7fc994e96a908abbedcdc283c91844a69c621c68fb50d2ba42"
+      },
+      {
+        "path": "skills/preanalytical-guard/registry/companions.json",
+        "sha256": "34de82e88f7b432fd7e0d514c05d56ce20fcdaf66198749d27226ece8f75a508"
+      },
+      {
+        "path": "skills/preanalytical-guard/registry/confounders.json",
+        "sha256": "8c06868002932865150bdf8a1fe8982a85228d661e5508ea8f66982a28320a25"
+      },
+      {
+        "path": "skills/preanalytical-guard/registry/document-signals.json",
+        "sha256": "6bc13db726d0fcb4fc221243a05fa20e15b4d7bae9662f364d03bb28f40dc6c7"
+      },
+      {
+        "path": "skills/preanalytical-guard/registry/reference-bands.json",
+        "sha256": "5b9741fbb8e3af081a7281ede5de3e749a6af20531106e9f56d2a7b5a6dcf261"
+      },
+      {
+        "path": "skills/preanalytical-guard/registry/universal.json",
+        "sha256": "c4a7e1f6a1af2ff8bcbd33f0e3a2114d2a0f38c1289b81c363fe08c45b8272a8"
+      },
+      {
+        "path": "skills/pubmed-search/SKILL.md",
+        "sha256": "8bb64e4cb470b4e67c47894f291a0680d5d07aff092e1c77b135afbfb6ccc7db"
+      },
+      {
+        "path": "skills/rehabilitation-analyzer/SKILL.md",
+        "sha256": "01f695c985935f53ed40c24a855d022a25b7eda2741dbbf7b551486d6f0f6d24"
+      },
+      {
+        "path": "skills/sleep-analyzer/SKILL.md",
+        "sha256": "ab0b8e87003a76fb37b5a31d3049f5134b9d1c314b6b1e51b6d3164778d1dc66"
+      },
+      {
+        "path": "skills/third-brain/SKILL.md",
+        "sha256": "4cae568bd43204b545e17c404d66dc4ba302b1e8879098f52b06bedadfb3c5bc"
+      },
+      {
+        "path": "skills/third-brain/engine/cli.js",
+        "sha256": "1f44246ca20bda2b0bd42dc113b64e3c1ee26536914f80bffa74037ce492bea2"
+      },
+      {
+        "path": "skills/third-brain/engine/errors.js",
+        "sha256": "a5c7eb0239aa14b582d98909a2444b2e059e5941ab85c447117160c53ee20251"
+      },
+      {
+        "path": "skills/third-brain/engine/limits.js",
+        "sha256": "ebc17d7dcdc17553bc7a3bf5995a46ada4166f66225d94027e2334af269a245a"
+      },
+      {
+        "path": "skills/third-brain/engine/plan.js",
+        "sha256": "299910b1142c1a24359c004b4c6b254c6df9046112113c65b4252c50ffc43e29"
+      },
+      {
+        "path": "skills/third-brain/engine/search.js",
+        "sha256": "6a1e63c5e30c1792fd91cd116e74e06758a0571dcc7525d09f1a3f18ef423440"
+      },
+      {
+        "path": "skills/third-brain/engine/write.js",
+        "sha256": "bd9d64eb6614801df8eacba7ba986b272802721f5fe8d3b96320a5e0aae18b70"
+      },
+      {
+        "path": "skills/tooluniverse-drug-drug-interaction/EXAMPLES.md",
+        "sha256": "ff81bfc2f1515b07094cdcfd3f33b0c323229f8fa22bd540a8c78d133aafc8ac"
+      },
+      {
+        "path": "skills/tooluniverse-drug-drug-interaction/QUICK_START.md",
+        "sha256": "61309ac3c153c1b605e43dbbfaf6a0a89a4d8d37668e0288d85e87ea042d9a5e"
+      },
+      {
+        "path": "skills/tooluniverse-drug-drug-interaction/README.md",
+        "sha256": "722212ab96ec46efc31f38158aad64351eb05583cda8ed8fbdbf3c0ad709e867"
+      },
+      {
+        "path": "skills/tooluniverse-drug-drug-interaction/SKILL.md",
+        "sha256": "354ef448976969f91251cead8911a59da5efcca35bc37ab7b9c9f4c6d38950e9"
+      },
+      {
+        "path": "skills/tooluniverse-drug-drug-interaction/ddi_pipeline.py",
+        "sha256": "657cf7e67d0e96d2c52258b704e67a1d5ca9e2bc4d4bb0a91b0fca9a3af480c7"
+      },
+      {
+        "path": "skills/tooluniverse-drug-drug-interaction/ddi_working_example.py",
+        "sha256": "0d6253d7389eb8a11c413d12b3b011d6c390c1b184d7016ce7e7fb350e09b51c"
+      },
+      {
+        "path": "skills/tooluniverse-drug-drug-interaction/python_implementation.py",
+        "sha256": "657cf7e67d0e96d2c52258b704e67a1d5ca9e2bc4d4bb0a91b0fca9a3af480c7"
+      },
+      {
+        "path": "skills/tooluniverse-drug-research/CHANGELOG.md",
+        "sha256": "64b048c013314b55b10c25cd1bf7d5583484e73612ae1164026d53f46aeaa4e6"
+      },
+      {
+        "path": "skills/tooluniverse-drug-research/EXAMPLES.md",
+        "sha256": "791d60badfde2237c748225e792f8ec05139430c7aa65f386753a27ab95b2cb4"
+      },
+      {
+        "path": "skills/tooluniverse-drug-research/SKILL.md",
+        "sha256": "40316db9cea2ca64bca4f008008561c4969f1f31aed507ac15ae8b755d9e34df"
+      },
+      {
+        "path": "skills/tooluniverse-drug-research/TOOLS_REFERENCE.md",
+        "sha256": "70798233fec8b8c9c7d92bd79f453d103f518028f5f2a942727bd488da138f99"
+      },
+      {
+        "path": "skills/tooluniverse-drug-research/WORKFLOWS.md",
+        "sha256": "bf6351ef617fd4d085617a630b4f1d12b7023e54d24462afcba3edd43eaa59b6"
+      },
+      {
+        "path": "skills/weightloss-analyzer/SKILL.md",
+        "sha256": "71f4046e856de8ece1db61382c49a0019569b424f5a2fddd232c7dfc7694196a"
+      },
+      {
+        "path": "webui.config.json",
+        "sha256": "5baa50f01b422e8f75810714643b058fab4e6b45d6862cb0fcf0719db41102aa"
+      }
+    ]
+  },
+  "signature": "MOmiCqBpXhBM3EoYqkhMrRc4/4og1fbeu0otO5VEW2tu1T5FBifJovZQLGzr0CVCJMOMgrZJFJKWZ606t6ByCg=="
+}

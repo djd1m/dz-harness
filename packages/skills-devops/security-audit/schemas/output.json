@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "security-audit output",
+  "description": "Structured output from the security-audit skill",
+  "type": "object",
+  "required": ["status", "risk_assessment", "findings", "mitigations"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "skipped"]
+    },
+    "risk_assessment": {
+      "type": "object",
+      "required": ["overall_risk", "summary"],
+      "properties": {
+        "overall_risk": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low", "none"],
+          "description": "Highest severity among all findings"
+        },
+        "summary": {
+          "type": "string",
+          "description": "1-2 sentence risk summary"
+        },
+        "trust_boundaries_identified": {
+          "type": "integer",
+          "description": "Number of trust boundaries mapped"
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "category", "file", "line", "input_trigger", "path", "impact", "fix"],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "high", "medium", "low"]
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "injection_sql",
+              "injection_command",
+              "injection_template",
+              "auth_bypass",
+              "authz_escalation",
+              "secret_exposure",
+              "path_traversal",
+              "file_upload",
+              "ssrf",
+              "xss",
+              "csrf",
+              "xxe",
+              "deserialization",
+              "open_redirect",
+              "dependency_vuln",
+              "tls_misconfiguration",
+              "info_disclosure",
+              "rate_limiting",
+              "other"
+            ]
+          },
+          "file": {
+            "type": "string",
+            "description": "File path relative to repo root"
+          },
+          "line": {
+            "type": "integer",
+            "description": "Line number of the vulnerable code"
+          },
+          "input_trigger": {
+            "type": "string",
+            "description": "Specific input an attacker would send"
+          },
+          "path": {
+            "type": "string",
+            "description": "Data flow from entry point to dangerous sink"
+          },
+          "impact": {
+            "type": "string",
+            "description": "What the attacker can achieve"
+          },
+          "fix": {
+            "type": "string",
+            "description": "Concrete code change to close the vulnerability"
+          },
+          "cwe": {
+            "type": "string",
+            "description": "CWE identifier if applicable (e.g., CWE-89)"
+          }
+        }
+      }
+    },
+    "mitigations": {
+      "type": "object",
+      "properties": {
+        "existing": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Security defenses already in place"
+        },
+        "recommended": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Additional defenses to add"
+        }
+      }
+    },
+    "stats": {
+      "type": "object",
+      "properties": {
+        "files_audited": { "type": "integer" },
+        "critical_count": { "type": "integer" },
+        "high_count": { "type": "integer" },
+        "medium_count": { "type": "integer" },
+        "low_count": { "type": "integer" }
+      }
+    }
+  }
+}

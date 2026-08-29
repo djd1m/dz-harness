@@ -1,0 +1,10 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "agentdb-memory config validation",
+  "type": "object",
+  "properties": {
+    "mcp_server": { "type": "string", "description": "MCP server name (should be 'agentdb')" },
+    "storage_path": { "type": "string", "description": "Path to .rvf file" },
+    "learning_enabled": { "type": "boolean", "default": true }
+  }
+}

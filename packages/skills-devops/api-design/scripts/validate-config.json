@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "api-design config validator",
+  "description": "Validates configuration inputs for the api-design skill",
+  "type": "object",
+  "properties": {
+    "api_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Name of the API being designed"
+    },
+    "paradigm": {
+      "type": "string",
+      "enum": ["rest", "graphql", "grpc", "auto"],
+      "default": "auto",
+      "description": "Preferred API paradigm. Use 'auto' to let the skill recommend one."
+    },
+    "consumers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["web_frontend", "mobile", "third_party", "internal_service", "cli"]
+      },
+      "minItems": 1,
+      "description": "Who will consume this API"
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "List of resource names to design endpoints for"
+    },
+    "existing_spec_path": {
+      "type": "string",
+      "description": "Path to an existing OpenAPI spec to review (for review mode)"
+    },
+    "existing_spec_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL of an existing OpenAPI spec to review"
+    },
+    "response_format": {
+      "type": "string",
+      "enum": ["plain_json", "wrapped", "json_api"],
+      "default": "plain_json",
+      "description": "Response envelope convention"
+    },
+    "pagination_strategy": {
+      "type": "string",
+      "enum": ["cursor", "offset", "auto"],
+      "default": "auto",
+      "description": "Preferred pagination strategy. Use 'auto' to let the skill recommend one."
+    },
+    "versioning_strategy": {
+      "type": "string",
+      "enum": ["url_path", "header", "accept_header", "query_param", "auto"],
+      "default": "auto",
+      "description": "Preferred versioning strategy"
+    },
+    "auth_methods": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["bearer_jwt", "bearer_opaque", "api_key", "oauth2", "basic"]
+      },
+      "description": "Authentication methods to include in the design"
+    },
+    "field_naming": {
+      "type": "string",
+      "enum": ["snake_case", "camelCase"],
+      "default": "snake_case",
+      "description": "Field naming convention for request/response bodies"
+    },
+    "generate_openapi": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to generate a complete OpenAPI 3.1 spec"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["design", "review", "compare"],
+      "default": "design",
+      "description": "Skill mode: design a new API, review an existing one, or compare paradigms"
+    }
+  },
+  "if": {
+    "properties": { "mode": { "const": "review" } }
+  },
+  "then": {
+    "anyOf": [
+      { "required": ["existing_spec_path"] },
+      { "required": ["existing_spec_url"] }
+    ]
+  }
+}

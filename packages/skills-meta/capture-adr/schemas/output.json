@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Capture ADR Output",
+  "type": "object",
+  "required": ["file_path", "number", "title", "status"],
+  "properties": {
+    "file_path": {
+      "type": "string",
+      "description": "Relative path to the written ADR file (e.g. 'docs/decisions/0003-use-zod.md')"
+    },
+    "number": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Auto-incremented ADR number"
+    },
+    "title": {
+      "type": "string",
+      "description": "Imperative phrase title of the decision"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["accepted", "needs-oversight"],
+      "description": "All auto-captured ADRs start as needs-oversight"
+    },
+    "fields_complete": {
+      "type": "boolean",
+      "description": "True when all four fields (title, context, decision, consequences) were confidently inferred"
+    },
+    "created_directory": {
+      "type": "boolean",
+      "description": "True when docs/decisions/ was created during this capture"
+    }
+  }
+}

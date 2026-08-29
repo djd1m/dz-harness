@@ -1,0 +1,81 @@
+# monorepo-management evaluation
+# Run: aqe eval monorepo-management
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run monorepo-management"
+    expected:
+      status: success
+      summary_contains: "monorepo"
+
+  - name: "setup new pnpm monorepo"
+    input: "Set up a new pnpm monorepo with Turborepo for 3 packages: @acme/core, @acme/utils, @acme/cli"
+    expected:
+      status: success
+      operation_type: "setup"
+      tooling_package_manager: "pnpm"
+      tooling_build_tool: "turborepo"
+      files_created_contains:
+        - "pnpm-workspace.yaml"
+        - "turbo.json"
+        - "package.json"
+
+  - name: "add package to existing monorepo"
+    input: "Add a new @myorg/analytics package to the packages/ directory with a dependency on @myorg/utils"
+    expected:
+      status: success
+      operation_type: "add-package"
+      result_files_created_contains: "packages/analytics/package.json"
+
+  - name: "debug workspace dependency resolution"
+    input: "Package @myorg/app can't find @myorg/utils even though it's listed in dependencies. Error: ERR_MODULE_NOT_FOUND"
+    expected:
+      status: success
+      operation_type: "debug"
+      issues_found_not_empty: true
+
+  - name: "configure changesets"
+    input: "Set up changesets for independent versioning of 5 packages. Two of them (@myorg/core and @myorg/cli) should be version-locked."
+    expected:
+      status: success
+      operation_type: "changeset-workflow"
+      tooling_versioning_tool: "changesets"
+      result_files_changed_contains: ".changeset/config.json"
+
+  - name: "health check detects issues"
+    input: "Run a health check on the monorepo. I suspect we have phantom dependencies and circular deps."
+    expected:
+      status: success
+      operation_type: "health-check"
+      workspace_dependency_graph_valid_present: true
+
+  - name: "ci optimization"
+    input: "Our GitHub Actions CI takes 25 minutes. We use pnpm + turborepo. How do we make it faster?"
+    expected:
+      status: success
+      operation_type: "ci-optimization"
+      summary_contains_any:
+        - "cache"
+        - "filter"
+        - "affected"
+
+  - name: "publish packages"
+    input: "Publish @myorg/utils and @myorg/core to npm. They are scoped public packages."
+    expected:
+      status: success
+      operation_type: "publish"
+      tooling_versioning_tool_not: "none"
+
+  - name: "detect version drift"
+    input: "Check if all packages in the monorepo use the same version of react and typescript"
+    expected:
+      status: success
+      operation_type: "health-check"
+
+  - name: "out of scope rejection"
+    input: "Should we use a monorepo or separate repos for our microservices?"
+    expected:
+      status: needs_more_info
+      summary_contains_any:
+        - "out of scope"
+        - "architecture decision"

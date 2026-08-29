@@ -1,0 +1,59 @@
+{
+  "name": "@dzhechkov/skills-analyst-manual",
+  "version": "1.0.13",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "description": "Composite analyst skill for Claude Code — 3-phase manual pipeline (explore → verified research → solve) with checkpoints, Ed25519 verification, and TRIZ problem solving",
+  "main": "src/cli.js",
+  "bin": {
+    "skills-analyst-manual": "./bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "templates/",
+    "LICENSE",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai",
+    "analyst",
+    "product-management",
+    "strategic-analysis",
+    "checkpoints",
+    "ed25519",
+    "goap",
+    "triz",
+    "skills",
+    "skill-pack"
+  ],
+  "author": "dzhechko",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/skills-analyst-manual"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-analyst-manual#readme",
+  "bugs": {
+    "url": "https://github.com/dzhechko/product-keysarium-2026/issues"
+  },
+  "peerDependencies": {
+    "@dzhechkov/keysarium-core": "^1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@dzhechkov/keysarium-core": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

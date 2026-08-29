@@ -1,0 +1,46 @@
+{
+  "name": "@dzhechkov/loop-designer-plugin",
+  "version": "0.1.4",
+  "description": "Claude Code plugin for authoring agent loops — the loop-plan-author skill plus five /loop-designer commands over dz workflow. dz AUTHORS, GATES and READS loops — it never RUNS one.",
+  "type": "module",
+  "license": "MIT",
+  "author": "dzhechko",
+  "private": false,
+  "keywords": [
+    "claude-code",
+    "plugin",
+    "agent-skills",
+    "loop-plan",
+    "workflow",
+    "multi-agent",
+    "codex"
+  ],
+  "bin": {
+    "loop-designer": "./bin/loop-designer.js"
+  },
+  "files": [
+    ".dz-manifest.json",
+    "sbom.json",
+    ".claude-plugin/",
+    ".codex-plugin/",
+    "skills/",
+    "commands/",
+    "bin/",
+    "lib/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
+    "test": "node --test \"test/*.test.mjs\""
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/loop-designer-plugin"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/loop-designer-plugin#readme"
+}

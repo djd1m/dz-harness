@@ -1,0 +1,36 @@
+skill: aiagents-context-engineering
+# Positives cover: budget arithmetic before code, dropping the retrieval node for a huge window,
+# compressing a grown dialogue, session state out of process memory, cross-device continuity,
+# anonymous vs account binding, the clarity/schema principle, the relevance rule, self-notes,
+# and per-step assembly.
+positives:
+  - "У нас регламент на тридцать страниц. Надо понять, отдавать его модели целиком или резать — как это вообще посчитать заранее, до кода?"
+  - "The team wants to drop the retrieval and ranking nodes entirely — the window is huge now, so just load the whole handbook into the prompt. What does that actually cost us?"
+  - "Переписка с клиентом идёт третий день, вызов перестал помещаться. Что из неё обязано доехать до модели, а что можно свернуть в пару строк?"
+  - "Conversation state currently lives in a dictionary inside the web process, and we are about to run several instances behind a load balancer. What breaks and where does it go instead?"
+  - "Клиент начал разговор в приложении в метро, дописал вечером с ноутбука — агент здоровается заново. Что мы сделали не так на уровне хранения?"
+  - "Half our users never sign in. How do we recognise them between calls at all, and what can we honestly promise them about continuity?"
+  - "Каждый шаг получает нашу выдачу разным сырым текстом, и модель каждый раз угадывает формат. Стоит ли фиксировать структуру того, что мы ей отдаём?"
+  - "On every step we attach the whole knowledge-base section because it is probably relevant. It feels wrong and it is expensive — what is the actual rule here?"
+  - "Наткнулся на Self-Notes: модель сначала конспектирует вход и только потом отвечает. Есть смысл встраивать это к нам и чем это отличается от того, что мы уже делаем?"
+  - "Бюджет на шаг мы так и не считали, а код оркестрации пишется третий день. С чего начать, чтобы потом не переделывать всё?"
+# Seam-level positives: the neighbour's vocabulary (runtime pruning, RAG, durable storage) with
+# a decision that is design-time assembly or state placement, and therefore ours.
+  - "Проектируем агента поддержки. Хочу заранее заложить в архитектуру, сколько токенов уходит на шаг и по какому правилу сворачивается история, а не разбираться с этим на лету, когда контекст уже кончился."
+  - "Вектор-стор с поиском у нас уже есть и работает нормально. Вопрос другой: сколько найденных фрагментов реально класть в один вызов, чтобы не выжечь весь бюджет?"
+  - "Состояние сеанса обязано пережить рестарт процесса. Пока не выбираем между Postgres и Redis — сначала надо решить, что вообще должно жить между вызовами, а что дешевле пересобрать заново."
+negatives:
+  - prompt: "Нам нужен инвертированный индекс с BM25 или сразу вектора с эмбеддингами? И надо ли отдельно заводить эпизодическую память агента поверх этого."
+    should_activate: "aiagents-knowledge-and-memory"
+  - prompt: "Поток стал многошаговым. Оставить линейную цепочку или строить граф с условными переходами, и куда воткнуть шаг рефлексии?"
+    should_activate: "aiagents-orchestration-and-planning"
+  - prompt: "Общее состояние на десяток агентов — PostgreSQL, Redis или чекпоинты Temporal? Смотрим прежде всего на долговременность."
+    should_activate: "aiagents-multi-agent-infrastructure"
+  - prompt: "У меня прямо сейчас сессия под восемьдесят процентов контекста и вот-вот всё отвалится. Что подрезать, что свернуть, что делегировать сабагенту?"
+    should_activate: "context-window-management"
+  - prompt: "Как через AgentDB сохранить паттерн и потом найти его семантическим поиском? Нужны примеры вызовов."
+    should_activate: "agentdb-memory"
+  - prompt: "Пройди по этому проекту и вытащи оттуда переиспользуемые паттерны, правила и сниппеты, разложив по категориям."
+    should_activate: "knowledge-extractor"
+  - prompt: "Как в интерфейсе показать пользователю, что агент помнит прошлый разговор, и дать ему это сбросить, чтобы это не выглядело жутковато?"
+    should_activate: "aiagents-agent-ux"

@@ -1,0 +1,149 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "skills-book-ddia",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "1e140159b1588e942b09454945295aa90deea7715800d18ea05bb8dc87b97213"
+      },
+      {
+        "path": "README.md",
+        "sha256": "2ff28e43258b5c2c7473b1834a3818f7da1451d00cf139c628f777ada2ef94d3"
+      },
+      {
+        "path": "ROUTING-GATE.md",
+        "sha256": "fea3024e7cf2b26a002d4b3615078ae9ea2a57767179b0ed66e071b43937c25a"
+      },
+      {
+        "path": "ddia-batch-and-stream-processing/SKILL.md",
+        "sha256": "d6208708feb784209a933b2d884a54b97b67958ca49f2f8fce8f54f18779002a"
+      },
+      {
+        "path": "ddia-batch-and-stream-processing/evals/routing.yaml",
+        "sha256": "b2a038825d052ab49b411d1cc238da539b1c65ec0c8d3cbf46a524a36e08c6b2"
+      },
+      {
+        "path": "ddia-batch-and-stream-processing/references/knowledge-units.md",
+        "sha256": "5d073db29b1332b2c3dc52ee4618b5b94052f17cf7b3dd81d05917f8027d082d"
+      },
+      {
+        "path": "ddia-data-model-selection/SKILL.md",
+        "sha256": "7ef7bb400e1316724b23bb9be8489c204daeaa9bb3c52724033554850b2d0fb0"
+      },
+      {
+        "path": "ddia-data-model-selection/evals/routing.yaml",
+        "sha256": "1ebb222f5b5e5e3d24162129981f725261a32289fdc8ba93257906489cdb1f99"
+      },
+      {
+        "path": "ddia-data-model-selection/references/knowledge-units.md",
+        "sha256": "62b10faef1e34708db432ecf273d14335f0d03cb92c2d3778a081641fa11cd12"
+      },
+      {
+        "path": "ddia-deriving-data-and-integration/SKILL.md",
+        "sha256": "b8389237cd9262934087cfa3f04154f4b3d8945d6ea5194b0aab613e4371edf5"
+      },
+      {
+        "path": "ddia-deriving-data-and-integration/evals/routing.yaml",
+        "sha256": "1e2ed8ff9943336fcd5e19bb6973dafc756dcb527c2a200a410bfbf880f18c63"
+      },
+      {
+        "path": "ddia-deriving-data-and-integration/references/knowledge-units.md",
+        "sha256": "fa543cd2692caa744906aeaa957582ab09062aef28354304850a7b680cd8a11a"
+      },
+      {
+        "path": "ddia-distributed-consistency-consensus/SKILL.md",
+        "sha256": "5008383f0d4cfa05786eff8bd95396537655d57c0fbc83eaa3369bbe1b4f7527"
+      },
+      {
+        "path": "ddia-distributed-consistency-consensus/evals/routing.yaml",
+        "sha256": "f0320fe862c39195779a458efc7e7cb2ff8d3f77bf6dda0d81772094e1ea9115"
+      },
+      {
+        "path": "ddia-distributed-consistency-consensus/references/knowledge-units.md",
+        "sha256": "057601f266b0aad866892f35486269519178630956351a3cf8373e62d059beb3"
+      },
+      {
+        "path": "ddia-encoding-and-schema-evolution/SKILL.md",
+        "sha256": "6f1e934ae057328d60b266e16f7f7f494b851afd54ce380fbf969de653804964"
+      },
+      {
+        "path": "ddia-encoding-and-schema-evolution/evals/routing.yaml",
+        "sha256": "c589ea2cb52d06439a7807e88474344500b1f3a47f48e0b7e752577bbf406e65"
+      },
+      {
+        "path": "ddia-encoding-and-schema-evolution/references/knowledge-units.md",
+        "sha256": "1baab294353c42118313a676b824ac2f6914a39fd940509933f3aa0e151a1bef"
+      },
+      {
+        "path": "ddia-partitioning-strategy/SKILL.md",
+        "sha256": "b7fbb28b2fa65cef729479baf69b195f03ab7ee0b426b648928a75ca2dffebc3"
+      },
+      {
+        "path": "ddia-partitioning-strategy/evals/routing.yaml",
+        "sha256": "bc1586f326908e2a4d2892d178e3666aeac50d31d315229b579357d2a50bfe49"
+      },
+      {
+        "path": "ddia-partitioning-strategy/references/knowledge-units.md",
+        "sha256": "06f53c0a33fa3e9fa8b572af629d8fd64a937891532cb06dd1a6668e2bd49830"
+      },
+      {
+        "path": "ddia-reliability-scalability-foundations/SKILL.md",
+        "sha256": "51afe05a9efaa7673e95406f874182c869b6f7d2229d17232ef0acb03f802505"
+      },
+      {
+        "path": "ddia-reliability-scalability-foundations/evals/routing.yaml",
+        "sha256": "6c515f024af0f6cea05dd110e5ef06007da2b42986b3bc4e6689d0536c9aaa27"
+      },
+      {
+        "path": "ddia-reliability-scalability-foundations/references/knowledge-units.md",
+        "sha256": "a49a6d259cbd80d86020b05197e6ea2405ae05d2acb6f65ed99257b9e22258c7"
+      },
+      {
+        "path": "ddia-replication-topology-choice/SKILL.md",
+        "sha256": "ee3f3353e6444a89d38f257600ef4e77f6e53f0c683547f266007c843739aa7b"
+      },
+      {
+        "path": "ddia-replication-topology-choice/evals/routing.yaml",
+        "sha256": "30b4ef8f2e36a050d6187f98d2f3faffd084496cfca4b7df474481ca9bafc194"
+      },
+      {
+        "path": "ddia-replication-topology-choice/references/knowledge-units.md",
+        "sha256": "361248e49ed4be2a629fc3fa7f97732f3bc788276053fe9769b50698353a980a"
+      },
+      {
+        "path": "ddia-storage-engine-tradeoffs/SKILL.md",
+        "sha256": "6aae0beffd77986e86efa51a59918f0caeee99786ddb6b58af4908a23b44c355"
+      },
+      {
+        "path": "ddia-storage-engine-tradeoffs/evals/routing.yaml",
+        "sha256": "a4286ef64c4889ef7b67783bc269fad69c2ae76373ce37fb2cdb493c9c5e6ea0"
+      },
+      {
+        "path": "ddia-storage-engine-tradeoffs/references/knowledge-units.md",
+        "sha256": "0e0a7aae39b7974bbfa29328c859be44bf513beab9a31b2b0294520d7b04cc5c"
+      },
+      {
+        "path": "ddia-transaction-isolation-choice/SKILL.md",
+        "sha256": "43e7d4877fe188df54c9a57077b2ed462a3f988d7c1ba9a793cba24ed8555396"
+      },
+      {
+        "path": "ddia-transaction-isolation-choice/evals/routing.yaml",
+        "sha256": "ec093c39a61064e570dab0473d128f870b0d4d43028afac114ee4cd6d922ffe0"
+      },
+      {
+        "path": "ddia-transaction-isolation-choice/references/knowledge-units.md",
+        "sha256": "a546cdfbe80a1176cf58801c5a05b2acbea92daea2b7f13bdec3c2ca2fd2e63f"
+      },
+      {
+        "path": "package.json",
+        "sha256": "c4cba382ecee726b3a1f10bbbe6f07a5149c75176308d4793dab8c2255d0517e"
+      },
+      {
+        "path": "sources.json",
+        "sha256": "1d1dbd8041aa7bb5e817ef83a8f4cf86a58c7255c6ef1c55df44369b7e52c44d"
+      }
+    ]
+  },
+  "signature": "ELhOWYCNfmwGUb5wRrJxcgCK7ofiKYSTcMGrnXjuK99xPxNgx2q9TcbHmLoTpdYPQQcwBpVpOU7loesPpxKSCQ=="
+}

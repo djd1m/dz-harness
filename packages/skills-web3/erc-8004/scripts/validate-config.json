@@ -1,0 +1,49 @@
+{
+  "name": "erc-8004",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "id": "operation-valid",
+      "type": "enum",
+      "field": "operation",
+      "values": ["register", "update", "query", "transfer"],
+      "required": true,
+      "message": "Operation must be register, update, query, or transfer (ERC-8004 has no bridge)"
+    },
+    {
+      "id": "chain-supported",
+      "type": "enum",
+      "field": "chain",
+      "values": ["base", "base-sepolia", "ethereum", "optimism", "arbitrum"],
+      "required": true,
+      "message": "Chain must be a supported ERC-8004 network"
+    },
+    {
+      "id": "token-id-format",
+      "type": "custom",
+      "condition": "operation !== 'register'",
+      "check": "token_id !== undefined && token_id.length > 0",
+      "message": "Token ID is required for non-register operations"
+    },
+    {
+      "id": "metadata-uri-format",
+      "type": "custom",
+      "condition": "operation === 'register' || operation === 'update'",
+      "check": "metadata_uri !== undefined && (metadata_uri.startsWith('ipfs://') || metadata_uri.startsWith('https://') || metadata_uri.startsWith('data:'))",
+      "message": "Metadata URI must be IPFS, HTTPS, or data URI"
+    },
+    {
+      "id": "metadata-schema",
+      "type": "custom",
+      "condition": "metadata !== undefined",
+      "check": "metadata.name !== undefined && metadata.name.length > 0",
+      "message": "Agent metadata must include a name"
+    }
+  ],
+  "environment": {
+    "required_for_write": ["PRIVATE_KEY", "REGISTRY_ADDRESS"],
+    "optional": ["PINATA_JWT"]
+  },
+  "_contract_address_note": "TODO: unverified — ERC-8004 has no canonical deployment; the previously listed Base address had no bytecode. Supply the verified Identity Registry address per chain via REGISTRY_ADDRESS.",
+  "contract_address": null
+}

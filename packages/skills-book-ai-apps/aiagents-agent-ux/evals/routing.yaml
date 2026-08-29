@@ -1,0 +1,42 @@
+skill: aiagents-agent-ux
+# Positives cover: modality pick, discoverability of capabilities, sync-vs-async delivery,
+# barge-in, proactivity balance, silent failure, personalisation limits, modality handover,
+# video risk, tone consistency.
+positives:
+  - "Ассистент для кладовщиков, у которых заняты руки. Голос или всё-таки экран на терминале?"
+  - "Users keep asking our chatbot for things it cannot do and then quietly leave — they have no idea where the boundary is."
+  - "Сборка отчёта занимает минут двадцать. Держать человека в чате с крутилкой или отпустить и прислать результат?"
+  - "Our voice agent makes people dictate the whole order again if they change their mind halfway through a sentence."
+  - "Подсказки помощника прилетают либо посреди созвона, либо когда они уже никому не нужны."
+  - "The external API died and the assistant just went quiet. What was it supposed to put on screen instead of silence?"
+  - "Хотим, чтобы помощник подстраивался под привычки человека, но не выглядел как слежка. Где здесь граница?"
+  - "Человек начал диктовать в машине, потом пересел за ноутбук — заставлять его повторять уже сказанное нельзя."
+  - "Should we put a talking avatar on the support page, or is that going to creep people out?"
+  - "На один и тот же вопрос ответ звучит то осторожно, то безапелляционно. Люди начинают не доверять."
+# Seam-level positives: neighbour's vocabulary, this skill's question.
+  - "Уже решено, что рискованные действия агент подтверждает у человека. Как показать это подтверждение, чтобы это не читалось как заглушка-модалка?"
+  - "Suggested-action buttons under the input box — how many do we show, and at which moment, so the person actually learns what the assistant can do?"
+  - "Раскатываем помощника на пять команд, и терпимость к всплывающим подсказкам у всех разная. Какие ручки частоты и каналов отдать самим людям?"
+negatives:
+  - prompt: "На каком уровне неопределённости случай обязан уходить человеку, и что положить в пакет передачи, чтобы человек смог продолжить с места остановки?"
+    should_activate: "aiagents-human-in-the-loop"
+  - prompt: "Как агенту выражать уверенность — числом, словами или разбросом по прогонам, и как не скатиться ни в вечное может быть, ни в ложную категоричность?"
+    should_activate: "aiagents-human-in-the-loop"
+  - prompt: "Хочу проверяемое свойство: подаём агенту искажённый и внезапный ввод, и он обязан уточнить или деградировать, а не выдумать ответ. Как это оформить в тест?"
+    should_activate: "aiagents-probabilistic-behaviour-checks"
+  - prompt: "Нам под эту задачу вообще нужен агент или хватит детерминированного потока? И если агент, то на какой модели его держать?"
+    should_activate: "aiagents-agent-fit-and-model-choice"
+  - prompt: "Кто отвечает, если помощник дал сотруднику неверный совет и компания потеряла деньги, и нужен ли нам внутренний совет, который смотрит его поведение?"
+    should_activate: "aiagents-org-adoption-and-governance"
+  - prompt: "Где физически должно лежать состояние сеанса между вызовами — на клиенте, на сервере или гибридом, и почему нельзя держать его в памяти процесса?"
+    should_activate: "aiagents-context-engineering"
+  - prompt: "Свёрстай дашборд на React: карточки метрик, тёмная тема, приличная типографика и сетка."
+    should_activate: "frontend-design"
+  - prompt: "Наш лендинг выглядит как шаблон из конструктора. Нужен редизайн с собственным визуальным языком, начиная с аудита текущего."
+    should_activate: "design-taste-frontend"
+  - prompt: "Мы не понимаем настоящую боль пользователей. Хотим провести исследование, собрать JTBD и CJM до того, как что-то строить."
+    should_activate: "design-thinking"
+  - prompt: "Перед аудитом по ADA надо пройти WCAG 2.2 и проверить всё экранным диктором."
+    should_activate: "accessibility-testing"
+  - prompt: "Нужна страница для владельца продукта: два варианта на выбор, мокапы до и после в рамке браузера, и чтобы он мог кликнуть и вернуть нам ответ."
+    should_activate: "decision-mockups"

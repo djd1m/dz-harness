@@ -1,0 +1,332 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "database-migration output",
+  "description": "Structured output from the database-migration skill",
+  "type": "object",
+  "required": ["status", "migration_plan", "rollback_plan", "deployment_order"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "skipped"]
+    },
+    "migration_plan": {
+      "type": "object",
+      "required": ["tool", "migration_type", "steps"],
+      "properties": {
+        "tool": {
+          "type": "string",
+          "description": "Migration tool used (e.g., Knex, Prisma, Flyway, Alembic)"
+        },
+        "database": {
+          "type": "string",
+          "enum": ["postgresql", "mysql", "sqlite", "sqlserver", "oracle", "mongodb"],
+          "description": "Target database system"
+        },
+        "migration_type": {
+          "type": "string",
+          "enum": ["schema", "data", "seed", "rollback", "combined"],
+          "description": "Type of migration"
+        },
+        "strategy": {
+          "type": "string",
+          "enum": ["expand_contract", "direct", "shadow_table", "online_ddl", "partition_migrate"],
+          "description": "Migration strategy for zero-downtime"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["step_number", "description", "sql"],
+            "properties": {
+              "step_number": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Step order"
+              },
+              "description": {
+                "type": "string",
+                "description": "What this step does"
+              },
+              "phase": {
+                "type": "string",
+                "enum": ["expand", "backfill", "migrate_code", "contract", "direct"],
+                "description": "Which phase of expand-contract this step belongs to"
+              },
+              "sql": {
+                "type": "string",
+                "description": "SQL statement(s) to execute"
+              },
+              "reversible": {
+                "type": "boolean",
+                "description": "Whether this step can be rolled back"
+              },
+              "locking": {
+                "type": "string",
+                "enum": ["none", "brief_metadata", "row_level", "table_level", "full_rewrite"],
+                "description": "Lock impact of this step"
+              },
+              "estimated_duration": {
+                "type": "string",
+                "description": "Estimated execution time (e.g., 'instant', '5s', '30m')"
+              },
+              "requires_downtime": {
+                "type": "boolean",
+                "description": "Whether this step requires application downtime"
+              }
+            }
+          },
+          "minItems": 1,
+          "description": "Ordered list of migration steps"
+        },
+        "affected_tables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Table name"
+              },
+              "row_count_estimate": {
+                "type": ["integer", "null"],
+                "minimum": 0,
+                "description": "Approximate number of rows"
+              },
+              "size_estimate": {
+                "type": ["string", "null"],
+                "description": "Approximate table size (e.g., '2.4 GB')"
+              },
+              "operations": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "add_column", "drop_column", "rename_column", "change_type",
+                    "add_index", "drop_index", "add_constraint", "drop_constraint",
+                    "backfill", "create_table", "drop_table", "partition"
+                  ]
+                },
+                "description": "Operations performed on this table"
+              }
+            }
+          },
+          "description": "Tables affected by this migration"
+        }
+      }
+    },
+    "rollback_plan": {
+      "type": "object",
+      "required": ["reversible", "steps"],
+      "properties": {
+        "reversible": {
+          "type": "boolean",
+          "description": "Whether the full migration can be reversed"
+        },
+        "irreversible_steps": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Steps that cannot be reversed (e.g., 'DROP COLUMN email')"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["step_number", "description"],
+            "properties": {
+              "step_number": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "description": {
+                "type": "string"
+              },
+              "sql": {
+                "type": "string",
+                "description": "Rollback SQL statement"
+              },
+              "action": {
+                "type": "string",
+                "description": "Non-SQL rollback action (e.g., 'Deploy previous app version')"
+              }
+            }
+          },
+          "minItems": 1,
+          "description": "Ordered rollback steps"
+        },
+        "backup_required": {
+          "type": "boolean",
+          "description": "Whether a pre-migration backup is required"
+        },
+        "backup_command": {
+          "type": "string",
+          "description": "Command to create the backup (e.g., pg_dump)"
+        },
+        "estimated_rollback_time": {
+          "type": "string",
+          "description": "Estimated time to complete rollback (e.g., '5 minutes', '2 hours for PITR')"
+        },
+        "pitr_available": {
+          "type": "boolean",
+          "description": "Whether point-in-time recovery is available as a last resort"
+        }
+      }
+    },
+    "deployment_order": {
+      "type": "object",
+      "required": ["phases"],
+      "properties": {
+        "phases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["phase_number", "description", "type"],
+            "properties": {
+              "phase_number": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "description": {
+                "type": "string",
+                "description": "What happens in this phase"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["migration", "code_deploy", "backfill", "verification", "cleanup"],
+                "description": "Type of deployment phase"
+              },
+              "timing": {
+                "type": "string",
+                "description": "When to execute (e.g., 'Day 1 morning', 'Immediately after phase 1')"
+              },
+              "verification_steps": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Steps to verify this phase succeeded"
+              },
+              "rollback_trigger": {
+                "type": "string",
+                "description": "Condition that triggers rollback (e.g., 'Error rate > 1%')"
+              }
+            }
+          },
+          "minItems": 1,
+          "description": "Ordered deployment phases"
+        },
+        "feature_flags": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "purpose"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Feature flag name"
+              },
+              "purpose": {
+                "type": "string",
+                "description": "What the flag controls"
+              },
+              "initial_state": {
+                "type": "string",
+                "enum": ["on", "off"],
+                "description": "Initial state of the flag"
+              }
+            }
+          },
+          "description": "Feature flags used during the migration"
+        },
+        "estimated_total_duration": {
+          "type": "string",
+          "description": "Total estimated duration from start to cleanup"
+        }
+      }
+    },
+    "testing": {
+      "type": "object",
+      "properties": {
+        "tested_on_prod_data": {
+          "type": "boolean",
+          "description": "Whether migration was tested on production-size data"
+        },
+        "execution_time_measured": {
+          "type": "boolean",
+          "description": "Whether execution time was measured"
+        },
+        "execution_time": {
+          "type": "string",
+          "description": "Measured execution time on prod-size data"
+        },
+        "lock_impact_verified": {
+          "type": "boolean",
+          "description": "Whether lock impact was verified"
+        },
+        "rollback_tested": {
+          "type": "boolean",
+          "description": "Whether rollback was tested"
+        },
+        "app_tests_passed": {
+          "type": "boolean",
+          "description": "Whether application tests passed after migration"
+        },
+        "dry_run_command": {
+          "type": "string",
+          "description": "Command to run migration in dry-run mode"
+        }
+      }
+    },
+    "backfill": {
+      "type": "object",
+      "properties": {
+        "required": {
+          "type": "boolean",
+          "description": "Whether a data backfill is needed"
+        },
+        "batch_size": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of rows per batch"
+        },
+        "estimated_batches": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Estimated number of batches"
+        },
+        "estimated_duration": {
+          "type": "string",
+          "description": "Estimated total backfill duration"
+        },
+        "idempotent": {
+          "type": "boolean",
+          "description": "Whether the backfill is safe to rerun"
+        },
+        "progress_query": {
+          "type": "string",
+          "description": "SQL query to check backfill progress"
+        }
+      }
+    },
+    "large_table_handling": {
+      "type": "object",
+      "properties": {
+        "is_large_table": {
+          "type": "boolean",
+          "description": "Whether any affected table qualifies as large (>1M rows)"
+        },
+        "tool_used": {
+          "type": "string",
+          "enum": ["pt_online_schema_change", "gh_ost", "pg_repack", "native_online_ddl", "shadow_table", "partitioning", "none"],
+          "description": "Online schema change tool used"
+        },
+        "estimated_duration": {
+          "type": "string",
+          "description": "Estimated duration for the large table operation"
+        },
+        "max_lag_threshold": {
+          "type": "string",
+          "description": "Maximum replication lag threshold during migration"
+        }
+      }
+    }
+  }
+}

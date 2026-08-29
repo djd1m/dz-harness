@@ -1,0 +1,170 @@
+name: google-sheets
+description: Evaluation suite for the google-sheets MCP wrapper skill
+version: "1.0.0"
+
+setup:
+  required_env:
+    - SERVICE_ACCOUNT_PATH
+  mcp_server: google-sheets
+  prerequisites:
+    - description: "A test spreadsheet must exist and be shared with the service account"
+    - description: "Set TEST_SPREADSHEET_ID env var to the test spreadsheet ID"
+
+test_fixtures:
+  spreadsheet_id: "${TEST_SPREADSHEET_ID}"
+  test_sheet_name: "SkillEvalTest"
+
+evals:
+  - id: read-sheet-basic
+    description: Read a range from a spreadsheet returns 2D array
+    tool: read_sheet
+    input:
+      spreadsheet_id: "${TEST_SPREADSHEET_ID}"
+      range: "Sheet1!A1:C3"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: values
+      - type: field_is_type
+        field: values
+        expected_type: array
+
+  - id: read-sheet-formulas
+    description: Reading with FORMULA render option returns formula strings
+    tool: read_sheet
+    input:
+      spreadsheet_id: "${TEST_SPREADSHEET_ID}"
+      range: "Sheet1!A1:C3"
+      value_render_option: "FORMULA"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: values
+
+  - id: write-sheet-basic
+    description: Writing data to a range reports updated cell count
+    tool: write_sheet
+    input:
+      spreadsheet_id: "${TEST_SPREADSHEET_ID}"
+      range: "SkillEvalTest!A1:B3"
+      values:
+        - ["Name", "Value"]
+        - ["test_key_1", 100]
+        - ["test_key_2", 200]
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: updated_cells
+      - type: field_gte
+        field: updated_cells
+        value: 6
+
+  - id: write-sheet-formulas
+    description: Writing formulas with USER_ENTERED are evaluated
+    tool: write_sheet
+    input:
+      spreadsheet_id: "${TEST_SPREADSHEET_ID}"
+      range: "SkillEvalTest!C1:C3"
+      values:
+        - ["Sum"]
+        - ["=B2+B3"]
+        - ["=AVERAGE(B2:B3)"]
+      value_input_option: "USER_ENTERED"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: updated_cells
+
+  - id: create-sheet
+    description: Creating a new spreadsheet returns ID and URL
+    tool: create_sheet
+    input:
+      title: "Skill Eval Test Sheet"
+      sheets: ["Data", "Summary"]
+      initial_data:
+        Data:
+          - ["Col A", "Col B", "Col C"]
+          - [1, 2, 3]
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: created.spreadsheet_id
+      - type: field_present
+        field: created.spreadsheet_url
+      - type: field_not_empty
+        field: created.spreadsheet_id
+
+  - id: format-cells
+    description: Formatting cells applies styles without error
+    tool: format_cells
+    input:
+      spreadsheet_id: "${TEST_SPREADSHEET_ID}"
+      range: "SkillEvalTest!A1:C1"
+      format:
+        bold: true
+        background_color: "#4285F4"
+        font_color: "#FFFFFF"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: no_error
+
+  - id: add-chart
+    description: Adding a chart creates a chart object
+    tool: add_chart
+    input:
+      spreadsheet_id: "${TEST_SPREADSHEET_ID}"
+      data_range: "SkillEvalTest!A1:B3"
+      chart_type: "BAR"
+      title: "Eval Test Chart"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: chart_id
+
+  - id: read-nonexistent-range
+    description: Reading a non-existent range returns empty or error
+    tool: read_sheet
+    input:
+      spreadsheet_id: "${TEST_SPREADSHEET_ID}"
+      range: "NonExistentSheet!A1:Z100"
+    assertions:
+      - type: returns_error
+        error_contains: "range"
+
+  - id: invalid-spreadsheet-id
+    description: Invalid spreadsheet ID returns a clear error
+    tool: read_sheet
+    input:
+      spreadsheet_id: "invalid-id-that-does-not-exist"
+      range: "Sheet1!A1:A1"
+    assertions:
+      - type: returns_error
+
+  - id: write-read-roundtrip
+    description: Data written can be read back identically
+    steps:
+      - tool: write_sheet
+        input:
+          spreadsheet_id: "${TEST_SPREADSHEET_ID}"
+          range: "SkillEvalTest!E1:F2"
+          values:
+            - ["roundtrip_key", "roundtrip_val"]
+            - [42, "hello"]
+      - tool: read_sheet
+        input:
+          spreadsheet_id: "${TEST_SPREADSHEET_ID}"
+          range: "SkillEvalTest!E1:F2"
+        assertions:
+          - type: field_equals
+            field: "values[0][0]"
+            value: "roundtrip_key"
+          - type: field_equals
+            field: "values[1][0]"
+            value: 42

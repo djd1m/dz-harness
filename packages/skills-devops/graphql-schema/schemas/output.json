@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "graphql-schema output",
+  "description": "Structured output from the graphql-schema skill",
+  "type": "object",
+  "required": ["status", "summary", "action_type"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "needs_more_info"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line summary of the GraphQL schema design or review"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": ["design", "review", "add_pagination", "add_auth", "add_error_handling", "optimize"],
+      "description": "What type of action was performed"
+    },
+    "approach": {
+      "type": "string",
+      "enum": ["schema-first", "code-first"],
+      "description": "Schema design approach used"
+    },
+    "types_defined": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "kind"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Type name"
+          },
+          "kind": {
+            "type": "string",
+            "enum": ["object", "input", "enum", "union", "interface", "scalar", "connection"],
+            "description": "Kind of GraphQL type"
+          },
+          "field_count": {
+            "type": "integer",
+            "description": "Number of fields in this type"
+          },
+          "has_pagination": {
+            "type": "boolean",
+            "description": "Whether this type uses cursor-based pagination"
+          }
+        }
+      },
+      "description": "Types defined or modified in the schema"
+    },
+    "queries": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Query fields defined"
+    },
+    "mutations": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Mutation fields defined"
+    },
+    "has_dataloader": {
+      "type": "boolean",
+      "description": "Whether DataLoader is used for N+1 prevention"
+    },
+    "has_auth": {
+      "type": "boolean",
+      "description": "Whether authentication/authorization is configured"
+    },
+    "has_complexity_limit": {
+      "type": "boolean",
+      "description": "Whether query complexity limiting is configured"
+    },
+    "has_depth_limit": {
+      "type": "boolean",
+      "description": "Whether query depth limiting is configured"
+    },
+    "review_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "finding", "recommendation"],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "warning", "info"]
+          },
+          "finding": { "type": "string" },
+          "recommendation": { "type": "string" },
+          "anti_pattern": { "type": "string" }
+        }
+      },
+      "description": "Review findings when auditing an existing schema"
+    },
+    "self_check": {
+      "type": "object",
+      "properties": {
+        "passed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12
+        },
+        "total": {
+          "type": "integer",
+          "const": 12
+        },
+        "failures": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "description": "Results of the 12-item self-check"
+    },
+    "files_generated": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of files created or modified"
+    }
+  }
+}

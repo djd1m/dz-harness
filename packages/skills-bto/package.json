@@ -1,0 +1,60 @@
+{
+  "name": "@dzhechkov/skills-bto",
+  "version": "1.4.4",
+  "description": "Build-Benchmark-Test-Optimize skill pack for Claude Code — deterministic benchmarking, quality gates, witness chain, judge attestation, and optimization",
+  "main": "src/cli.js",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "bin": {
+    "skills-bto": "./bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "templates/",
+    "CHANGELOG.md",
+    "LICENSE",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai",
+    "bto",
+    "benchmark",
+    "build-test-optimize",
+    "skills",
+    "quality-gates",
+    "testing",
+    "optimization",
+    "skill-pack"
+  ],
+  "author": "dzhechko",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/skills-bto"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-bto#readme",
+  "bugs": {
+    "url": "https://github.com/dzhechko/product-keysarium-2026/issues"
+  },
+  "peerDependencies": {
+    "@dzhechkov/keysarium-core": "^1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@dzhechkov/keysarium-core": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

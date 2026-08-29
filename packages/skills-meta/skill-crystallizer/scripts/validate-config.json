@@ -1,0 +1,31 @@
+{
+  "schema": "../schemas/output.json",
+  "rules": [
+    {
+      "id": "SC-001",
+      "description": "Benchmark grade must be A for newly created skills",
+      "path": "benchmark_grade",
+      "condition": "==",
+      "value": "A",
+      "severity": "error"
+    },
+    {
+      "id": "SC-002",
+      "description": "DERIVED mode must reference at least 2 source skills",
+      "path": "source_skills",
+      "condition": "min_length",
+      "value": 2,
+      "severity": "error",
+      "applies_to_modes": ["DERIVED"]
+    },
+    {
+      "id": "SC-003",
+      "description": "Rejected skills must have a rejection reason",
+      "path": "rejection_reason",
+      "condition": "exists_when",
+      "when_path": "status",
+      "when_value": "rejected",
+      "severity": "error"
+    }
+  ]
+}

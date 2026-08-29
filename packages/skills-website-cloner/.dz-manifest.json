@@ -1,0 +1,65 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "skills-website-cloner",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "1b47b7e23e11bffe0e2bfc8d69272d5e7838865d3c209aa557ebabb4cc675c0c"
+      },
+      {
+        "path": "README.md",
+        "sha256": "5af2ce0ab469298d0c8dfac62f7ff7ecf5a19d44a146b277d5295283eb422a47"
+      },
+      {
+        "path": "bin/cli.js",
+        "sha256": "a210174d6b63d053f7744757972d31acb0f4d9c59f8dacff7b62872a19ebd31a"
+      },
+      {
+        "path": "package.json",
+        "sha256": "3c01e0acc62a2aa22ab5f4d0bffcb78c9df1c7534cb91dcf960fbba1f7c597fd"
+      },
+      {
+        "path": "sources.json",
+        "sha256": "07b381b5f65e550aafbe7859d4c6532381f1f811bf5e57e206e667e4b12db95f"
+      },
+      {
+        "path": "src/cli.js",
+        "sha256": "6411f1d832274aa8e9267a9a073557367583cc57a0658caa46708d9b73efd7f3"
+      },
+      {
+        "path": "src/commands/doctor.js",
+        "sha256": "b715d93a06e5fdd53b6a8fc215737b3505c76550aae34ce77750695eb3618c8e"
+      },
+      {
+        "path": "src/commands/init.js",
+        "sha256": "6e494a12a38e3dec2bbe739b0fe7f9cdf60bd66aa54832b45404c88a22d6caf6"
+      },
+      {
+        "path": "src/commands/list.js",
+        "sha256": "a208e576ebcbc5b6d8e39720d721dfd7eaf651a3d8b8b65c308dde79c14730b9"
+      },
+      {
+        "path": "src/commands/remove.js",
+        "sha256": "62a101a8057c3f68a334b324d5f6c5911c59d8268e3073059dd72784267c1b8b"
+      },
+      {
+        "path": "src/commands/update.js",
+        "sha256": "8d450a9e9fcaf191a8973f06e0e954dc9fd396a5fed22c29d70758e0d606ee03"
+      },
+      {
+        "path": "src/utils.js",
+        "sha256": "0e771b8da155ce20051d8afcbc60637f3ebbf003abc6a5ba08ea6e5f095cacbd"
+      },
+      {
+        "path": "templates/.claude/commands/clone-website.md",
+        "sha256": "77e667b4284f96c63c27775fef61093cffdb98f123746634bba7691978122328"
+      },
+      {
+        "path": "templates/.claude/skills/clone-website/SKILL.md",
+        "sha256": "b3b4bac20854e18c3d34d6660652a2758c083065818dc00c9c33d1ea8647c00c"
+      }
+    ]
+  },
+  "signature": "uqDH0TnUcOfrlPvXdDNM0X2AC2d6KPT6oInqIbOxyUx2iu/JR5cY/UzE6EPUEWJh4fbA/9Gb3MY1dg0j9HaBAg=="
+}

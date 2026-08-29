@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отчёт по анализу трендов здоровья</title>
+
+    <!-- Tailwind CSS v3.4 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons v0.263 -->
+    <script src="https://unpkg.com/lucide@0.263.0/dist/umd/lucide.js"></script>
+
+    <!-- ECharts v5.5 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+
+    <style>
+        /* Стили для печати */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .chart-container {
+                page-break-inside: avoid;
+            }
+            section {
+                page-break-inside: avoid;
+            }
+        }
+
+        /* Режим высокой контрастности */
+        @media (prefers-contrast: high) {
+            .card {
+                border: 2px solid #000;
+            }
+        }
+
+        /* Контейнеры графиков */
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            min-height: 400px;
+        }
+
+        /* Пользовательская полоса прокрутки */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- 1. Область заголовка -->
+        <header class="mb-8 bg-white rounded-lg shadow-md p-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+                        <i data-lucide="activity" class="text-blue-600"></i>
+                        Отчёт по анализу трендов здоровья
+                    </h1>
+                    <p class="text-gray-600">
+                        Время формирования: <span id="report-date">2025-12-31 12:34:56</span> |
+                        Период анализа: <span id="analysis-period">последние 3 месяца</span>
+                    </p>
+                </div>
+                <div class="flex gap-2 no-print">
+                    <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        Печать отчёта
+                    </button>
+                    <button onclick="exportAllCharts()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        Экспорт графиков
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 2. Общая оценка -->
+        <section id="summary" class="mb-8">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                <i data-lucide="layout-dashboard" class="text-blue-600"></i>
+                Общая оценка
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="summary-cards">
+                <!-- Карточки ключевых показателей - динамическое внедрение -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-gray-600">Изменение веса</span>
+                        <i data-lucide="trending-down" class="text-green-600"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900">-2,3 кг</div>
+                    <div class="text-sm text-green-600 mt-1">Постепенное снижение</div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-gray-600">Индекс ИМТ</span>
+                        <i data-lucide="heart" class="text-blue-600"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900">21,5</div>
+                    <div class="text-sm text-blue-600 mt-1">Нормальный диапазон</div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-gray-600">Частота симптомов</span>
+                        <i data-lucide="alert-circle" class="text-yellow-600"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900">12 раз</div>
+                    <div class="text-sm text-yellow-600 mt-1">Лёгкие колебания</div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-gray-600">Приверженность приёму лекарств</span>
+                        <i data-lucide="pill" class="text-green-600"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-gray-900">92%</div>
+                    <div class="text-sm text-green-600 mt-1">Хорошо</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Тренды веса/ИМТ -->
+        <section id="weight-bmi" class="mb-8 bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                <i data-lucide="scale" class="text-blue-600"></i>
+                Тренды веса/ИМТ
+            </h2>
+            <div id="weight-chart" class="chart-container"></div>
+            <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                <h3 class="font-semibold text-blue-900 mb-2">Выводы анализа</h3>
+                <p id="weight-analysis" class="text-blue-800">
+                    За последние 3 месяца ваш вес снизился с 60,8 кг до 58,5 кг, ИМТ — с 22,3 до 21,5.
+                    В целом наблюдается стабильная тенденция к снижению, показатели остаются в пределах нормы. Рекомендуется продолжать поддерживать текущий образ жизни.
+                </p>
+            </div>
+        </section>
+
+        <!-- 4. Паттерны симптомов -->
+        <section id="symptoms" class="mb-8 bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                <i data-lucide="alert-triangle" class="text-yellow-600"></i>
+                Паттерны симптомов
+            </h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div id="symptoms-chart" class="chart-container"></div>
+                <div id="symptoms-timeline-chart" class="chart-container"></div>
+            </div>
+            <div class="mt-4 p-4 bg-yellow-50 rounded-lg">
+                <h3 class="font-semibold text-yellow-900 mb-2">Выводы анализа</h3>
+                <p id="symptoms-analysis" class="text-yellow-800">
+                    За последние 3 месяца зафиксировано 12 случаев симптомов, наиболее частые — головная боль (4 раза) и усталость (3 раза).
+                    Частота симптомов демонстрирует циклический паттерн, возможно связанный с рабочим стрессом. Рекомендуется уделить внимание управлению стрессом.
+                </p>
+            </div>
+        </section>
+
+        <!-- 5. Приверженность приёму лекарств -->
+        <section id="medications" class="mb-8 bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                <i data-lucide="package" class="text-green-600"></i>
+                Приверженность приёму лекарств
+            </h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-1">
+                    <div id="medication-gauge" class="chart-container"></div>
+                </div>
+                <div class="lg:col-span-2">
+                    <div id="medication-pie" class="chart-container"></div>
+                </div>
+            </div>
+            <div class="mt-4 p-4 bg-green-50 rounded-lg">
+                <h3 class="font-semibold text-green-900 mb-2">Выводы анализа</h3>
+                <p id="medication-analysis" class="text-green-800">
+                    За последние 3 месяца общая приверженность приёму лекарств составила 92%, что является хорошим показателем. Из 28 запланированных доз принято 26,
+                    пропущено 2 дозы. Рекомендуется установить напоминание о приёме лекарств для дальнейшего повышения приверженности.
+                </p>
+            </div>
+        </section>
+
+        <!-- 6. Тренды результатов анализов -->
+        <section id="lab-results" class="mb-8 bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                <i data-lucide="flask-conical" class="text-purple-600"></i>
+                Тренды результатов анализов
+            </h2>
+            <div id="lab-chart" class="chart-container"></div>
+            <div class="mt-4 p-4 bg-purple-50 rounded-lg">
+                <h3 class="font-semibold text-purple-900 mb-2">Выводы анализа</h3>
+                <p id="lab-analysis" class="text-purple-800">
+                    Уровень холестерина снизился с 240 мг/дл до 210 мг/дл, приблизившись к верхней границе нормы (200 мг/дл).
+                    Глюкоза крови остаётся в нормальном диапазоне 5,4-5,6 ммоль/л. Тенденция к улучшению очевидна, рекомендуется продолжать поддерживать текущий подход.
+                </p>
+            </div>
+        </section>
+
+        <!-- 7. Корреляционный анализ -->
+        <section id="correlations" class="mb-8 bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                <i data-lucide="network" class="text-indigo-600"></i>
+                Корреляционный анализ
+            </h2>
+            <div id="correlation-heatmap" class="chart-container"></div>
+            <div class="mt-4 p-4 bg-indigo-50 rounded-lg">
+                <h3 class="font-semibold text-indigo-900 mb-2">Выводы анализа</h3>
+                <p id="correlation-analysis" class="text-indigo-800">
+                    Продолжительность сна и оценка настроения демонстрируют сильную положительную корреляцию (r=0,82), качество сна значительно влияет на настроение.
+                    Приверженность приёму лекарств и частота симптомов имеют отрицательную корреляцию (r=-0,65), регулярный приём лекарств помогает уменьшить симптомы.
+                    Изменение веса и оценка настроения слабо коррелируют (r=0,35).
+                </p>
+            </div>
+        </section>
+
+        <!-- 8. Настроение и сон -->
+        <section id="mood-sleep" class="mb-8 bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                <i data-lucide="smile" class="text-pink-600"></i>
+                Настроение и сон
+            </h2>
+            <div id="mood-chart" class="chart-container"></div>
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-4 bg-pink-50 rounded-lg">
+                    <div class="text-sm text-pink-600 mb-1">Средняя оценка настроения</div>
+                    <div class="text-2xl font-bold text-pink-900">7,2 / 10</div>
+                </div>
+                <div class="p-4 bg-pink-50 rounded-lg">
+                    <div class="text-sm text-pink-600 mb-1">Средняя продолжительность сна</div>
+                    <div class="text-2xl font-bold text-pink-900">7,1 часов</div>
+                </div>
+                <div class="p-4 bg-pink-50 rounded-lg">
+                    <div class="text-sm text-pink-600 mb-1">Оценка качества сна</div>
+                    <div class="text-2xl font-bold text-pink-900">Хорошее</div>
+                </div>
+            </div>
+            <div class="mt-4 p-4 bg-pink-50 rounded-lg">
+                <h3 class="font-semibold text-pink-900 mb-2">Выводы анализа</h3>
+                <p id="mood-analysis" class="text-pink-800">
+                    За последние 3 месяца средняя оценка настроения составила 7,2, общее эмоциональное состояние хорошее. Настроение и сон демонстрируют синхронные колебания,
+                    при достаточном сне оценка настроения заметно повышается. Рекомендуется поддерживать регулярный режим сна, обеспечивая 7-8 часов сна.
+                </p>
+            </div>
+        </section>
+
+        <!-- 9. Оценка рисков и рекомендации -->
+        <section id="recommendations" class="mb-8 bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                <i data-lucide="lightbulb" class="text-amber-600"></i>
+                Оценка рисков и рекомендации
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="recommendation-cards">
+                <!-- Предупреждения о рисках -->
+                <div class="border-l-4 border-red-500 bg-red-50 p-4 rounded-r-lg">
+                    <h3 class="font-semibold text-red-900 mb-2 flex items-center gap-2">
+                        <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                        Требует внимания
+                    </h3>
+                    <ul class="list-disc list-inside text-red-800 space-y-1">
+                        <li>Высокая частота головной боли, рекомендуется выяснить причину</li>
+                        <li>Случаи пропуска приёма лекарств, рекомендуется установить напоминание</li>
+                    </ul>
+                </div>
+
+                <!-- Положительные тенденции -->
+                <div class="border-l-4 border-green-500 bg-green-50 p-4 rounded-r-lg">
+                    <h3 class="font-semibold text-green-900 mb-2 flex items-center gap-2">
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                        Положительные тенденции
+                    </h3>
+                    <ul class="list-disc list-inside text-green-800 space-y-1">
+                        <li>Вес/ИМТ стабильно снижаются в пределах здорового диапазона</li>
+                        <li>Заметное улучшение уровня холестерина</li>
+                        <li>Приверженность приёму лекарств в целом хорошая</li>
+                    </ul>
+                </div>
+
+                <!-- Рекомендации по поведению -->
+                <div class="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-lg">
+                    <h3 class="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                        <i data-lucide="target" class="w-5 h-5"></i>
+                        Рекомендации по поведению
+                    </h3>
+                    <ul class="list-disc list-inside text-blue-800 space-y-1">
+                        <li>Поддерживать регулярный режим сна, обеспечивая 7-8 часов сна</li>
+                        <li>Вести дневник головной боли, выявляя триггеры</li>
+                        <li>Установить напоминание о приёме лекарств, уменьшить пропуски</li>
+                    </ul>
+                </div>
+
+                <!-- Последующий мониторинг -->
+                <div class="border-l-4 border-purple-500 bg-purple-50 p-4 rounded-r-lg">
+                    <h3 class="font-semibold text-purple-900 mb-2 flex items-center gap-2">
+                        <i data-lucide="calendar" class="w-5 h-5"></i>
+                        Последующий мониторинг
+                    </h3>
+                    <ul class="list-disc list-inside text-purple-800 space-y-1">
+                        <li>Рекомендуется повторная проверка липидного профиля через 3 месяца</li>
+                        <li>Продолжать мониторинг изменений симптомов</li>
+                        <li>Регулярно оценивать эффективность лекарственной терапии</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. Отказ от ответственности -->
+        <footer id="disclaimer" class="bg-gray-100 rounded-lg p-6 text-sm text-gray-600">
+            <h3 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                <i data-lucide="info" class="w-5 h-5"></i>
+                Отказ от ответственности
+            </h3>
+            <p class="mb-2">
+                Данный отчёт сформирован на основе предоставленных вами данных о здоровье и предназначен только для справки, не являясь медицинским диагнозом, рекомендацией по лечению или профессиональным медицинским заключением.
+            </p>
+            <p class="mb-2">
+                Анализ и рекомендации в отчёте сгенерированы системой ИИ и могут содержать неточности или иметь ограничения. При наличии проблем со здоровьем или вопросов
+                обратитесь к квалифицированному медицинскому специалисту.
+            </p>
+            <p>
+                Время формирования: <span id="disclaimer-date">2025-12-31 12:34:56</span> |
+                Период данных: <span id="disclaimer-period">2025-10-01 по 2025-12-31</span>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Инициализация иконок Lucide
+        lucide.createIcons();
+
+        // Объект данных отчёта (будет динамически внедрён через Skill)
+        const reportData = {
+            meta: {
+                generatedAt: '2025-12-31T12:34:56',
+                periodStart: '2025-10-01',
+                periodEnd: '2025-12-31',
+                periodMonths: 3
+            },
+            summary: {
+                weightChange: -2.3,
+                weightTrend: 'Постепенное снижение',
+                bmi: 21.5,
+                bmiStatus: 'Нормальный диапазон',
+                symptomCount: 12,
+                symptomTrend: 'Лёгкие колебания',
+                medicationAdherence: 92,
+                adherenceStatus: 'Хорошо'
+            }
+            // Остальные данные будут внедрены при фактическом использовании
+        };
+
+        // Обновление даты и времени на странице
+        document.getElementById('report-date').textContent = reportData.meta.generatedAt;
+        document.getElementById('analysis-period').textContent =
+            `последние ${reportData.meta.periodMonths} месяца (${reportData.meta.periodStart} по ${reportData.meta.periodEnd})`;
+        document.getElementById('disclaimer-date').textContent = reportData.meta.generatedAt;
+        document.getElementById('disclaimer-period').textContent =
+            `${reportData.meta.periodStart} по ${reportData.meta.periodEnd}`;
+
+        // Экспорт всех графиков в PNG
+        function exportAllCharts() {
+            const chartIds = [
+                'weight-chart',
+                'symptoms-chart',
+                'symptoms-timeline-chart',
+                'medication-gauge',
+                'medication-pie',
+                'lab-chart',
+                'correlation-heatmap',
+                'mood-chart'
+            ];
+
+            chartIds.forEach((id, index) => {
+                setTimeout(() => {
+                    const chart = echarts.getInstanceByDom(document.getElementById(id));
+                    if (chart) {
+                        const url = chart.getDataURL({
+                            type: 'png',
+                            pixelRatio: 2,
+                            backgroundColor: '#fff'
+                        });
+                        const link = document.createElement('a');
+                        link.download = `health-trend-${id}.png`;
+                        link.href = url;
+                        link.click();
+                    }
+                }, index * 500);
+            });
+        }
+
+        // Функция инициализации графиков (подробная конфигурация определена в charts-config.js)
+        function initCharts() {
+            // Заглушка - фактическая конфигурация графиков определена в charts-config.js
+            console.log('Charts initialized with data:', reportData);
+
+            // Пример: инициализация графика веса/ИМТ
+            const weightChart = echarts.init(document.getElementById('weight-chart'));
+            weightChart.setOption({
+                title: { text: 'Тренды изменения веса/ИМТ', left: 'center' },
+                tooltip: { trigger: 'axis' },
+                legend: { data: ['Вес (кг)', 'ИМТ'], top: 30 },
+                xAxis: {
+                    type: 'category',
+                    data: ['2025-10', '2025-11', '2025-12']
+                },
+                yAxis: [
+                    { type: 'value', name: 'Вес (кг)', position: 'left' },
+                    { type: 'value', name: 'ИМТ', position: 'right' }
+                ],
+                series: [
+                    {
+                        name: 'Вес',
+                        type: 'line',
+                        data: [60.8, 59.5, 58.5],
+                        smooth: true,
+                        itemStyle: { color: '#3b82f6' }
+                    },
+                    {
+                        name: 'ИМТ',
+                        type: 'line',
+                        yAxisIndex: 1,
+                        data: [22.3, 21.8, 21.5],
+                        smooth: true,
+                        itemStyle: { color: '#8b5cf6' }
+                    }
+                ]
+            });
+
+            // Инициализация остальных графиков...
+            // (Полная конфигурация графиков определена в charts-config.js)
+        }
+
+        // Инициализация графиков после загрузки страницы
+        window.addEventListener('load', initCharts);
+
+        // Адаптивное изменение размера графиков
+        window.addEventListener('resize', () => {
+            const chartIds = [
+                'weight-chart',
+                'symptoms-chart',
+                'symptoms-timeline-chart',
+                'medication-gauge',
+                'medication-pie',
+                'lab-chart',
+                'correlation-heatmap',
+                'mood-chart'
+            ];
+
+            chartIds.forEach(id => {
+                const chart = echarts.getInstanceByDom(document.getElementById(id));
+                if (chart) {
+                    chart.resize();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

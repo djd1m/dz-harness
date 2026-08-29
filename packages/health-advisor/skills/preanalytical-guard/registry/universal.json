@@ -1,0 +1,5 @@
+{
+  "schema": "universal-bundle-v1",
+  "_note": "Slots every analyte requires, whatever the registry says about it. This file may only ADD to the code-level floor in engine/conditions.js (UNIVERSAL_REQUIRED_SLOTS) — the floor is code precisely so that deleting this data file cannot disarm the gate.",
+  "required_slots": ["collected_at", "fasting_state"]
+}

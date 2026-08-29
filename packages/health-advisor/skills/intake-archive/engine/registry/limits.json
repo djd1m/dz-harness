@@ -1,0 +1,14 @@
+{
+  "schema": "ha-intake-limits-1",
+  "max_entries": 5000,
+  "max_entry_bytes": 268435456,
+  "max_total_bytes": 2147483648,
+  "max_entry_ratio": 200,
+  "max_total_ratio": 100,
+  "max_path_depth": 16,
+  "max_name_bytes": 255,
+  "max_download_bytes": 536870912,
+  "max_redirects": 3,
+  "idle_timeout_ms": 30000,
+  "total_timeout_ms": 900000
+}

@@ -1,0 +1,172 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TrailsSkillOutput",
+  "description": "Output schema for Trails cross-chain DeFi orchestration skill",
+  "type": "object",
+  "required": ["method", "result"],
+  "properties": {
+    "method": {
+      "type": "string",
+      "enum": [
+        "QuoteIntent",
+        "CommitIntent",
+        "ExecuteIntent",
+        "WaitIntentReceipt",
+        "GetIntent",
+        "ListIntents",
+        "CancelIntent",
+        "GetTokenPrices",
+        "ListEarnPools",
+        "GetEarnPool",
+        "ListYieldVaults",
+        "GetYieldVault",
+        "ListSupportedChains",
+        "ListSupportedTokens",
+        "GetRoute",
+        "EstimateGas",
+        "GetTransactionStatus"
+      ],
+      "description": "The Trails API method that was called"
+    },
+    "result": {
+      "type": "object",
+      "properties": {
+        "success": { "type": "boolean" },
+        "data": {
+          "oneOf": [
+            { "$ref": "#/definitions/QuoteResult" },
+            { "$ref": "#/definitions/CommitResult" },
+            { "$ref": "#/definitions/ExecuteResult" },
+            { "$ref": "#/definitions/ReceiptResult" },
+            { "$ref": "#/definitions/TokenPricesResult" },
+            { "$ref": "#/definitions/EarnPoolsResult" },
+            { "$ref": "#/definitions/YieldVaultsResult" }
+          ]
+        },
+        "error": {
+          "type": "object",
+          "properties": {
+            "code": { "type": "integer" },
+            "message": { "type": "string" }
+          }
+        }
+      },
+      "required": ["success"]
+    }
+  },
+  "definitions": {
+    "QuoteResult": {
+      "type": "object",
+      "properties": {
+        "quoteId": { "type": "string" },
+        "estimatedOutput": { "type": "string", "description": "Amount in base units" },
+        "route": {
+          "type": "object",
+          "properties": {
+            "steps": { "type": "array", "items": { "type": "object" } },
+            "estimatedGas": { "type": "string" }
+          }
+        },
+        "expiresAt": { "type": "string", "format": "date-time" },
+        "slippageBps": { "type": "integer" }
+      },
+      "required": ["quoteId", "estimatedOutput"]
+    },
+    "CommitResult": {
+      "type": "object",
+      "properties": {
+        "commitId": { "type": "string" },
+        "transactions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "to": { "type": "string" },
+              "data": { "type": "string" },
+              "value": { "type": "string" },
+              "chainId": { "type": "integer" }
+            }
+          }
+        },
+        "expiresAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["commitId", "transactions"]
+    },
+    "ExecuteResult": {
+      "type": "object",
+      "properties": {
+        "intentId": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "executing", "completed", "failed"] }
+      },
+      "required": ["intentId", "status"]
+    },
+    "ReceiptResult": {
+      "type": "object",
+      "properties": {
+        "intentId": { "type": "string" },
+        "status": { "type": "string", "enum": ["completed", "failed", "timeout"] },
+        "txHashes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "actualOutput": { "type": "string" },
+        "gasUsed": { "type": "string" }
+      },
+      "required": ["intentId", "status"]
+    },
+    "TokenPricesResult": {
+      "type": "object",
+      "properties": {
+        "prices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "token": { "type": "string" },
+              "chain": { "type": "string" },
+              "priceUsd": { "type": "number" },
+              "change24h": { "type": "number" }
+            }
+          }
+        }
+      }
+    },
+    "EarnPoolsResult": {
+      "type": "object",
+      "properties": {
+        "pools": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "poolId": { "type": "string" },
+              "name": { "type": "string" },
+              "chain": { "type": "string" },
+              "apy": { "type": "number" },
+              "tvl": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "YieldVaultsResult": {
+      "type": "object",
+      "properties": {
+        "vaults": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "vaultId": { "type": "string" },
+              "name": { "type": "string" },
+              "strategy": { "type": "string" },
+              "chain": { "type": "string" },
+              "tvl": { "type": "string" },
+              "apy": { "type": "number" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "skill": "trip-planner",
+  "version": "1.0.0",
+  "rules": [
+    { "id": "TP-001", "severity": "error", "check": "every point has title + category" },
+    { "id": "TP-002", "severity": "error", "check": "every point has real lat/lon OR is flagged null (never fabricated)" },
+    { "id": "TP-003", "severity": "error", "check": "every day with >=2 located points renders a Yandex route link (rtext=lat,lon)" },
+    { "id": "TP-004", "severity": "error", "check": "Open-Meteo widget wired per day (day or lodging coords + date)" },
+    { "id": "TP-005", "severity": "error", "check": "constraints honored in every venue (no-alcohol/veg/kids/budget)" },
+    { "id": "TP-006", "severity": "error", "check": "booking.required points show «Купить билет» with a url" },
+    { "id": "TP-007", "severity": "warning", "check": "category mix present (excursion/museum/walk/viewpoint/water/cuisine)" },
+    { "id": "TP-008", "severity": "error", "check": "day 1 starts after arrival; last day ends before departure" },
+    { "id": "TP-009", "severity": "error", "check": "HTML: no horizontal scroll at 390px; cards expand/collapse; embedded JSON parses" },
+    { "id": "TP-010", "severity": "warning", "check": "per-day budget within the stated limit" }
+  ],
+  "maps": { "pin": "pt=lon,lat", "route": "rtext=lat,lon~...&rtt=pd|auto|mt" },
+  "weather": { "provider": "open-meteo", "key_required": false }
+}

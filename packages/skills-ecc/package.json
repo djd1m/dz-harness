@@ -1,0 +1,53 @@
+{
+  "name": "@dzhechkov/skills-ecc",
+  "version": "0.1.11",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "description": "Curated skill pack \u2014 20 skills imported from ECC (github.com/affaan-m/ECC). Agent architecture, autonomous loops, testing patterns, DevOps patterns.",
+  "license": "MIT",
+  "author": "dzhechko",
+  "keywords": [
+    "agent-skills",
+    "agentskills.io",
+    "ecc",
+    "autonomous-agents",
+    "testing-patterns"
+  ],
+  "files": [
+    "docker-patterns",
+    "git-workflow",
+    "architecture-decision-records",
+    "autonomous-loops",
+    "agent-architecture-audit",
+    "agent-eval",
+    "agentic-engineering",
+    "ai-regression-testing",
+    "e2e-testing",
+    "django-tdd",
+    "fastapi-patterns",
+    "flutter-dart-code-review",
+    "backend-patterns",
+    "benchmark-optimization-loop",
+    "brand-voice",
+    "browser-qa",
+    "canary-watch",
+    "continuous-agent-loop",
+    "data-scraper-agent",
+    "enterprise-agent-ops",
+    "sources.json",
+    "README.md",
+    "LICENSE",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/skills-ecc"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-ecc#readme"
+}

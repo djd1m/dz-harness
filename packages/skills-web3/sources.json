@@ -1,0 +1,24 @@
+{
+  "origin": {
+    "repo": "gitlawb/banker-skills",
+    "url": "https://github.com/gitlawb/banker-skills",
+    "branch": "main",
+    "license": "MIT",
+    "author": "BankrBot",
+    "canonicalized": "2026-06-03"
+  },
+  "skills": {
+    "quicknode": { "path": "quicknode/SKILL.md", "version": "latest" },
+    "zerion": { "path": "zerion/SKILL.md", "version": "latest" },
+    "symbiosis": { "path": "symbiosis/SKILL.md", "version": "latest" },
+    "ens-primary-name": { "path": "ens-primary-name/SKILL.md", "version": "latest" },
+    "erc-8004": { "path": "erc-8004/SKILL.md", "version": "latest" },
+    "veil": { "path": "veil/SKILL.md", "version": "latest" },
+    "neynar": { "path": "neynar/SKILL.md", "version": "latest" },
+    "trails": { "path": "trails/SKILL.md", "version": "latest" },
+    "bankr": { "path": "bankr/SKILL.md", "version": "latest" },
+    "siwa": { "path": "siwa/SKILL.md", "version": "latest", "note": "version 0.2.0 in original" },
+    "hydrex": { "path": "hydrex/SKILL.md", "version": "latest" },
+    "quotient": { "path": "quotient/skill.md", "version": "latest", "note": "lowercase filename in original" }
+  }
+}

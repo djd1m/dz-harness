@@ -1,0 +1,96 @@
+name: git-conflict-resolve
+description: Evaluation cases for git-conflict-resolve skill
+version: "1.0"
+
+cases:
+  - id: simple-merge-same-goal
+    description: "Both branches fixed the same typo independently"
+    input:
+      operation: merge
+      conflict: |
+        <<<<<<< HEAD
+        const maxRetries = 3;
+        =======
+        const maxRetries = 3;
+        >>>>>>> fix/retry-count
+    expected:
+      conflicts:
+        - blocks:
+            - classification: same-goal
+      resolutions:
+        - strategy: pick-ours
+
+  - id: independent-additions
+    description: "Both branches added different imports"
+    input:
+      operation: merge
+      conflict: |
+        <<<<<<< HEAD
+        import { useState } from 'react';
+        import { useQuery } from '@tanstack/react-query';
+        =======
+        import { useState } from 'react';
+        import { useAuth } from './hooks/useAuth';
+        >>>>>>> feature/auth
+    expected:
+      conflicts:
+        - blocks:
+            - classification: independent
+      resolutions:
+        - strategy: merge-both
+
+  - id: logical-conflict-requires-user
+    description: "Both branches changed the same logic differently"
+    input:
+      operation: rebase
+      conflict: |
+        <<<<<<< HEAD
+        function calculateDiscount(total) {
+          return total > 100 ? total * 0.1 : 0;
+        }
+        =======
+        function calculateDiscount(total, membership) {
+          return membership === 'gold' ? total * 0.2 : total * 0.05;
+        }
+        >>>>>>> feature/membership-discounts
+    expected:
+      conflicts:
+        - blocks:
+            - classification: logical-conflict
+      resolutions:
+        - strategy: user-decision-required
+          user_input_needed: true
+      continue_command: "git rebase --continue"
+
+  - id: deletion-conflict
+    description: "One side deleted a function, the other modified it"
+    input:
+      operation: cherry-pick
+      conflict: |
+        <<<<<<< HEAD
+        =======
+        function legacyFormat(data) {
+          return { ...data, version: 2 };
+        }
+        >>>>>>> abc1234
+    expected:
+      conflicts:
+        - blocks:
+            - classification: deletion-conflict
+
+  - id: multi-file-ordering
+    description: "Multiple files with dependency ordering"
+    input:
+      operation: merge
+      files:
+        - path: "src/types.ts"
+          conflict: "Type definition changes"
+        - path: "src/utils.ts"
+          conflict: "Utility using changed types"
+        - path: "src/components/App.tsx"
+          conflict: "Component using changed utils"
+    expected:
+      resolutions:
+        order: ["src/types.ts", "src/utils.ts", "src/components/App.tsx"]
+      verification:
+        diff_reviewed: true

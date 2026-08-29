@@ -1,0 +1,417 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "harness-cli"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e74440eef6812dbeaa550bdbbd80483e4cf4f38c22857260c534726f14ebb680"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/bin.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1d651fdfe05fc306c857bbbee44c395b63b39c1e0c53a8166eb7ca43c6cfa157"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/bin.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "74105b3edb4c4a7d75393a7cb2dda06a0f545b1cce75e9a772a30b18b3609374"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/bin.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e215d5ebb9d87106c3bdfda29c8cb1af59bc9bdbd62c11b2b6a313a2bd3ecd7c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/bin.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "31849f2576f6e57a8a71f49cbb1a6e6c692f98dd8303217ec836933420d08dac"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/boolean-flags.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "014b309c8b7de90b6c0d87e4f4c6a15623fd9c261252282faa3567dd3b9d0d4d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/boolean-flags.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bf5eadb6ea3ed4761fbc8206167c86119467d7dfd28d7e0eee7cd21d30099da6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/boolean-flags.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2cee996fe21ed692135c98b35bf5e56a89f2dc157f681b36c65020fd062b857b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/boolean-flags.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "68a41f08452af263f2a378b54e813567b6ba52376f3d0e13567a7eef7dff09e0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/cli.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aac58bbd870ae960365e085570635030bd4ef454e2326ac3d782c8e9f8116941"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/cli.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a5d8d7579320ddbb30016d48c6d74a8ecf5628d90efe3925ed8ecb06cde7477c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/cli.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bee6b00ec45da2d49c60ff85a675f989100bf703ce05cbaa5e4f730417161ccc"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/cli.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e68711d595224a75faf9527aa6ec186b0c37ef551470c9df3690b780efe9cfd5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/core-compat.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8635dba8bfdc635d44467a47ff693ec9f85b14c1d9c6dfa6d00e6e9ff5d2f7f1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/core-compat.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e378022dd85db141f1d5b4d06d4791072b4caf6900b992dde5781d09b0559c35"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/core-compat.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "570a6e1d7536890735e771888050c490bc1a2a239b2a2514d87248604e3354f0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/core-compat.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "342b0c716f6ac9f853e6fb9e10d2d3ae4c643f047becd200d6f8576a84674fb2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/index.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4d80bdb7f6742b2f356b07688cda569ea2aaab55f9300626244d15862da8a14f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/index.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3bc53d2587335beb17c5bd4ffb88987f61328b164519714d198a94f893bd3ea9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/index.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e2f5b6cb4291b002ec74891f666ab11e916d10455ae1ca2a88d41207c944b771"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/index.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "116828d2b6d8698b6a66291b0676e97c7cf0208a3591e8047462c70065b94bc1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/install-spec.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f1a4d132eb06068e2c45ce7976f1b01482187c93021bbfaceb7f1dbe76c8c991"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/install-spec.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "59a6d12466909c86aa06c272b237ca39473f106fd544725b1e6c707ca1c06a25"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/install-spec.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "354aae49a20a404eb9d0405ca6c7f6fa277e23b3e9f4988582f0c610486a2e6b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/install-spec.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3f8225df12c17826d5e8642f342a2fae21f4d1c32bb0969915570258a1ce6a76"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/known-flags.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "40403ed4e24cdf95cb2757653485d7cb4650ef8496af96927ab503c2a189c598"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/known-flags.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "310b51c71ec9f0f2089ece6ff4f33c2baeae78d462b3bbdd702255bcf73fb726"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/known-flags.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8c457fd3408799ce075bb07a6a77a885141cbf8cd9d47ae8c124ad60e64fd7f3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/known-flags.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e6a349e6587f8dfa134c597328d09ac09755c321c23d1bab98fd6e6a3adff86a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "keys/README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "142fc5d0d59003476b8e7367d6fc21fe40ce9e0bf70159318a05abdb10502b8a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "keys/dz.pub",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "353885160582f8e0cfb2a97ef9e51f77997f0120841f92a1ce50d202ebf5dd73"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "11df4bc14008b0e123b91bf5dc395589a147c24de3afd1f7beb58093ec753325"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/bin.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "42a1f67e1f39c4cda2df0887c16fbb6f54eb108ba0cb18612bb83ee153092463"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/boolean-flags.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3ea2dd881198881f94675ce14e465ce007e5d987e25b7786f67d9af13e880e22"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/cli.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6d402ac972df1c859da5996a65dbd94699f5df5080217cf6fce9af354fe92699"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/core-compat.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "432d622419ea6a6cbb704ff9a6a1e305f2a3f920f253d31712a0566ab457db53"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/index.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0401f29a7a76e73e6f6654c7f05ef547bbd7fc180a127202255337f31c21454a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/install-spec.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4196fd89c6d2ab1f3ba107141c32635f2739dc38d978a9f4f41a8b0db0ddc5f9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/known-flags.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2956fd1c4720c3ccdd5b4ffd4edfa8c19ad034b5ff7fb418c5befb9cb3829644"
+        }
+      ]
+    }
+  ]
+}

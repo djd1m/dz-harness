@@ -1,0 +1,157 @@
+{
+  "origin": {
+    "repo": "gitlawb/openclaude-skills",
+    "url": "https://github.com/gitlawb/openclaude-skills",
+    "branch": "main",
+    "license": "MIT",
+    "author": "gnanam",
+    "canonicalized": "2026-06-03"
+  },
+  "skills": {
+    "pr-review": {
+      "path": "skills/pr-review/SKILL.md",
+      "version": "0.1.0",
+      "trust": "official"
+    },
+    "security-audit": {
+      "path": "skills/security-audit/SKILL.md",
+      "version": "0.1.0",
+      "trust": "official"
+    },
+    "test-writer": {
+      "path": "skills/test-writer/SKILL.md",
+      "version": "0.1.0",
+      "trust": "official"
+    },
+    "ci-fix": {
+      "path": "skills/ci-fix/SKILL.md",
+      "version": "0.1.0",
+      "trust": "official"
+    },
+    "codeql-fix": {
+      "path": "skills/codeql-fix/SKILL.md",
+      "version": "0.1.0",
+      "trust": "official"
+    },
+    "database-review": {
+      "path": "skills/database-review/SKILL.md",
+      "version": "0.1.0",
+      "trust": "official"
+    },
+    "debugging": {
+      "path": "skills/debugging/SKILL.md",
+      "version": "0.1.0",
+      "trust": "official"
+    },
+    "frontend-implementation": {
+      "path": "skills/frontend-implementation/SKILL.md",
+      "version": "0.1.0",
+      "trust": "official"
+    },
+    "git-conflict-resolve": {
+      "path": "skills/git-conflict-resolve/SKILL.md",
+      "version": "0.1.0",
+      "trust": "official"
+    },
+    "provider-debug": {
+      "path": "skills/provider-debug/SKILL.md",
+      "version": "0.1.0",
+      "trust": "official"
+    },
+    "api-design": {
+      "upstream_type": "original",
+      "upstream_path": "api-design/SKILL.md",
+      "description": "Designs REST and GraphQL APIs with OpenAPI specs, error contracts, pagination, versioning, and security."
+    },
+    "c4-architecture": {
+      "upstream_type": "original",
+      "upstream_path": "c4-architecture/SKILL.md",
+      "description": "Generates and validates C4 architecture diagrams — context, container, component, and code level views."
+    },
+    "data-pipeline": {
+      "upstream_type": "original",
+      "upstream_path": "data-pipeline/SKILL.md",
+      "description": "Designs and reviews ETL/ELT data pipelines — schema design, transformations, orchestration, monitoring, and data quality."
+    },
+    "database-migration": {
+      "upstream_type": "original",
+      "upstream_path": "database-migration/SKILL.md",
+      "description": "Plans and executes database migrations — schema changes, data migrations, zero-downtime strategies, and rollback plans."
+    },
+    "docker-compose": {
+      "upstream_type": "original",
+      "upstream_path": "docker-compose/SKILL.md",
+      "description": "Designs and reviews Docker Compose configurations — multi-service setups, networking, volumes, health checks, and production hardening."
+    },
+    "github-actions": {
+      "upstream_type": "original",
+      "upstream_path": "github-actions/SKILL.md",
+      "description": "Designs and reviews GitHub Actions workflows — CI/CD pipelines, matrix builds, caching, secrets, reusable workflows, and security hardening."
+    },
+    "graphql-schema": {
+      "upstream_type": "original",
+      "upstream_path": "graphql-schema/SKILL.md",
+      "description": "Designs and reviews GraphQL schemas — types, resolvers, pagination, error handling, performance, and security."
+    },
+    "incident-response": {
+      "upstream_type": "original",
+      "upstream_path": "incident-response/SKILL.md",
+      "description": "Guides production incident handling — triage, mitigation, root cause analysis, and postmortem."
+    },
+    "kubernetes": {
+      "upstream_type": "original",
+      "upstream_path": "kubernetes/SKILL.md",
+      "description": "Designs and reviews Kubernetes deployments — manifests, Helm charts, scaling, networking, security, and troubleshooting."
+    },
+    "monorepo-management": {
+      "upstream_type": "original",
+      "upstream_path": "monorepo-management/SKILL.md",
+      "description": "Manages monorepo structure — workspace config, dependency graph, changesets, selective builds, and package publishing."
+    },
+    "nginx-config": {
+      "upstream_type": "original",
+      "upstream_path": "nginx-config/SKILL.md",
+      "description": "Designs and reviews Nginx configurations — reverse proxy, load balancing, SSL/TLS, rate limiting, and security headers."
+    },
+    "observability": {
+      "upstream_type": "original",
+      "upstream_path": "observability/SKILL.md",
+      "description": "Designs observability stacks — metrics, logs, traces, dashboards, alerting, and SLO/SLI definitions."
+    },
+    "playwright-testing": {
+      "upstream_type": "original",
+      "upstream_path": "playwright-testing/SKILL.md",
+      "description": "Designs and implements Playwright E2E tests — page objects, fixtures, assertions, visual regression, and CI integration."
+    },
+    "redis-patterns": {
+      "upstream_type": "original",
+      "upstream_path": "redis-patterns/SKILL.md",
+      "description": "Designs Redis usage patterns — caching strategies, pub/sub, rate limiting, sessions, distributed locks, and data structures."
+    },
+    "retrospective": {
+      "upstream_type": "original",
+      "upstream_path": "retrospective/SKILL.md",
+      "description": "Facilitates sprint/project retrospectives — what went well, what to improve, action items with owners."
+    },
+    "risk-assessment": {
+      "upstream_type": "original",
+      "upstream_path": "risk-assessment/SKILL.md",
+      "description": "Scores pipeline risks, validates commits for security issues, and detects secret leaks before push."
+    },
+    "terraform": {
+      "upstream_type": "original",
+      "upstream_path": "terraform/SKILL.md",
+      "description": "Designs and reviews Terraform/OpenTofu IaC — modules, state management, provider config, security, and drift detection."
+    },
+    "problem-management": {
+      "path": "skills/problem-management/SKILL.md",
+      "version": "1.0.0",
+      "trust": "adapted",
+      "upstream_type": "adapted",
+      "upstream_repo": "https://github.com/windyroad/agent-plugins",
+      "upstream_package": "@windyroad/itil",
+      "license": "MIT",
+      "description": "ITIL v4 Problem Management — adapted (not verbatim) from @windyroad/itil (MIT); self-contained, tool-agnostic"
+    }
+  }
+}

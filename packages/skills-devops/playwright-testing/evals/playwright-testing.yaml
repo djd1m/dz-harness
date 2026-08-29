@@ -1,0 +1,97 @@
+# playwright-testing evaluation
+# Run: aqe eval playwright-testing
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run playwright-testing"
+    expected:
+      status: success
+      summary_contains: "playwright"
+
+  - name: "setup new project"
+    input: "Set up Playwright for a Next.js project with login, dashboard, and settings pages"
+    expected:
+      status: success
+      action_type: "setup"
+      page_objects_count_gte: 3
+      files_generated_any_match: "playwright.config.ts"
+      has_ci_config: true
+      self_check_passed_gte: 8
+
+  - name: "create login tests"
+    input: "Create Playwright E2E tests for a login page with email/password form, error messages, and redirect to dashboard"
+    expected:
+      status: success
+      action_type: "create_tests"
+      tests_created_count_gte: 1
+      tests_created_any_match:
+        test_count_gte: 3
+      page_objects_count_gte: 1
+
+  - name: "review XPath selectors"
+    input: |
+      Review this Playwright test:
+      test('login', async ({ page }) => {
+        await page.goto('/login');
+        await page.locator('//input[@id="email"]').fill('user@test.com');
+        await page.locator('//input[@id="password"]').fill('pass123');
+        await page.locator('//button[@type="submit"]').click();
+        await page.waitForTimeout(3000);
+        expect(page.url()).toContain('/dashboard');
+      });
+    expected:
+      status: success
+      action_type: "review"
+      review_findings_count_gte: 3
+      review_findings_any_match:
+        finding_contains_any: ["XPath", "selector", "fragile"]
+        anti_pattern_any: ["xpath", "flaky"]
+
+  - name: "detect hardcoded waits"
+    input: |
+      Review:
+      test('load data', async ({ page }) => {
+        await page.goto('/users');
+        await page.waitForTimeout(5000);
+        const count = await page.locator('.user-card').count();
+        expect(count).toBeGreaterThan(0);
+      });
+    expected:
+      status: success
+      review_findings_any_match:
+        finding_contains_any: ["waitForTimeout", "hardcoded", "wait"]
+
+  - name: "detect no test isolation"
+    input: |
+      Review:
+      let createdUserId;
+      test('create user', async ({ page }) => {
+        await page.goto('/users/new');
+        await page.getByLabel('Name').fill('Test User');
+        await page.getByRole('button', { name: 'Create' }).click();
+        createdUserId = await page.getByTestId('user-id').textContent();
+      });
+      test('edit user', async ({ page }) => {
+        await page.goto(`/users/${createdUserId}/edit`);
+      });
+    expected:
+      status: success
+      review_findings_any_match:
+        finding_contains_any: ["isolation", "depend", "shared state"]
+
+  - name: "add visual regression"
+    input: "Add visual regression tests for the dashboard page with dynamic content masking"
+    expected:
+      status: success
+      action_type: "add_visual"
+      tests_created_any_match:
+        has_visual_regression: true
+
+  - name: "add API mocking"
+    input: "Add API mocking to test error states — server error, network timeout, and empty response"
+    expected:
+      status: success
+      action_type: "add_mocking"
+      tests_created_any_match:
+        has_api_mocking: true
+        test_count_gte: 3

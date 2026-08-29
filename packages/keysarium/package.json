@@ -1,0 +1,58 @@
+{
+  "name": "@dzhechkov/keysarium",
+  "version": "1.7.3",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "description": "AI Case Research Toolkit for Claude Code — full 7-phase pipeline with feature-adr, dream cycles, background workers, multi-platform support, reward learning, and Cloud.ru AI Factory mapping (--ai-factory flag)",
+  "main": "src/cli.js",
+  "bin": {
+    "keysarium": "./bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "templates/",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai",
+    "research",
+    "casarium",
+    "hackathon",
+    "skills",
+    "pipeline",
+    "keysarium",
+    "product-research",
+    "ai-factory",
+    "cloud-ru"
+  ],
+  "author": "dzhechko",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/keysarium"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/keysarium#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness-hub/issues"
+  },
+  "peerDependencies": {
+    "@dzhechkov/keysarium-core": "^1.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@dzhechkov/keysarium-core": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

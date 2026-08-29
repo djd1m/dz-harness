@@ -1,0 +1,77 @@
+name: provider-debug
+description: Evaluation cases for provider-debug skill
+version: "1.0"
+
+cases:
+  - id: openai-invalid-key
+    description: "OpenAI API returns 401 with invalid key"
+    input:
+      error: "Error: 401 Unauthorized - Invalid API key"
+      provider: openai
+      context: "User just rotated their API key"
+    expected:
+      error_classification:
+        http_status: 401
+        category: authentication
+      diagnosis:
+        layer: authentication
+      fix:
+        steps: non_empty
+      verification:
+        command: present
+
+  - id: ollama-connection-refused
+    description: "Ollama returns connection refused"
+    input:
+      error: "Error: connect ECONNREFUSED 127.0.0.1:11434"
+      provider: ollama
+      context: "User switched to Ollama but it is not starting"
+    expected:
+      provider:
+        type: local
+      error_classification:
+        category: connection_refused
+      diagnosis:
+        layer: network
+        root_cause: contains "not running"
+
+  - id: model-not-found
+    description: "Wrong model name for Anthropic"
+    input:
+      error: "Error: 404 - model: claude-3-opus is not a valid model"
+      provider: anthropic
+      context: "User typed model name from memory"
+    expected:
+      error_classification:
+        http_status: 404
+        category: model_not_found
+      fix:
+        description: contains "exact model"
+
+  - id: azure-openai-wrong-version
+    description: "Azure OpenAI returns 400 due to missing api-version"
+    input:
+      error: "Error: 400 - 'api-version' is required"
+      provider: azure-openai
+      context: "Migrating from direct OpenAI to Azure OpenAI"
+    expected:
+      provider:
+        type: azure-hosted
+      error_classification:
+        category: configuration_error
+      diagnosis:
+        layer: configuration
+
+  - id: lm-studio-empty-response
+    description: "LM Studio returns empty response"
+    input:
+      error: "Error: Empty response from http://localhost:1234/v1/chat/completions"
+      provider: lm-studio
+      context: "LM Studio UI is open but no model loaded"
+    expected:
+      provider:
+        type: local
+      error_classification:
+        category: empty_response
+      fix:
+        description: contains "load"

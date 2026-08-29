@@ -1,0 +1,27 @@
+skill: 12factor-concurrency-process-model
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+positives:
+  - "как масштабировать сервис под растущей нагрузкой — добавить потоков в один процесс или запускать больше процессов?"
+  - "Should I scale by adding threads inside one runtime, or by running more processes across machines?"
+  - "у нас HTTP-обработка и тяжёлые фоновые задачи в одном процессе — как их разнести?"
+  - "How do I split my app into web and worker process types and think in a process formation?"
+  - "нужно ли нашему процессу самому демонизироваться и писать pid-файл, чтобы переживать падения?"
+  - "Who should restart a crashed process — the app itself or an external process manager like systemd or Foreman?"
+  - "как доказать, что наша архитектура реально масштабируется под 10x трафика и смешанные нагрузки?"
+  - "Is running the process in the foreground and letting the platform supervise it the right model?"
+# Hard negatives: prompts owned by a SIBLING or existing arsenal skill — this skill must NOT win them.
+negatives:
+  - prompt: "Where should per-user session state live so any process can serve the request?"
+    should_activate: "12factor-stateless-processes"
+  - prompt: "Можно ли кэшировать значение в памяти процесса и читать его в следующем запросе?"
+    should_activate: "12factor-stateless-processes"
+  - prompt: "How do I make my process boot fast and shut down gracefully on SIGTERM?"
+    should_activate: "12factor-disposability-fast-startup"
+  - prompt: "Как правильно обрабатывать SIGTERM, чтобы завершить текущий запрос перед остановкой?"
+    should_activate: "12factor-disposability-fast-startup"
+  - prompt: "Should the app write logs to a file or stream them to stdout as an event stream?"
+    should_activate: "12factor-logs-as-streams"
+  - prompt: "Как подключиться к Postgres и относиться к нему как к заменяемому ресурсу?"
+    should_activate: "12factor-backing-services-as-resources"
+  - prompt: "Where do I store the database URL and API keys that vary per deploy?"
+    should_activate: "12factor-config-in-environment"

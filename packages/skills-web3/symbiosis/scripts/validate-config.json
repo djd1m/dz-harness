@@ -1,0 +1,50 @@
+{
+  "name": "symbiosis",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "id": "operation-valid",
+      "type": "enum",
+      "field": "operation",
+      "values": ["quote", "swap", "track"],
+      "required": true,
+      "message": "Operation must be quote, swap, or track"
+    },
+    {
+      "id": "source-chain-id",
+      "type": "custom",
+      "condition": "source_chain !== undefined",
+      "check": "source_chain.chain_id > 0",
+      "message": "Source chain must have a valid chain ID"
+    },
+    {
+      "id": "destination-chain-id",
+      "type": "custom",
+      "condition": "destination_chain !== undefined",
+      "check": "destination_chain.chain_id > 0",
+      "message": "Destination chain must have a valid chain ID"
+    },
+    {
+      "id": "slippage-range",
+      "type": "range",
+      "field": "slippage_bps",
+      "min": 0,
+      "max": 10000,
+      "required": false,
+      "message": "Slippage must be 0-10000 basis points (0-100%)"
+    },
+    {
+      "id": "token-addresses",
+      "type": "pattern",
+      "field": "token_in.address",
+      "pattern": "^0x[a-fA-F0-9]{40}$",
+      "required": true,
+      "message": "Token address must be a valid hex address"
+    }
+  ],
+  "environment": {
+    "required_for_execution": ["WALLET_PRIVATE_KEY"],
+    "optional": ["BANKR_API_KEY"]
+  },
+  "supported_chains": [8453, 1, 137, 42161, 10, 56, 43114]
+}

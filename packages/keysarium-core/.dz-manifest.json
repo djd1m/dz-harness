@@ -1,0 +1,101 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "keysarium-core",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "3220450d5e752c1d0b0efe95193db4b74b5d474e2bb5e94ae0d4543ce7492e46"
+      },
+      {
+        "path": "governance/checkpoint-protocol.md",
+        "sha256": "5521f3e415cf7a6c6013ea9b709fb9d1183f096b543d5ac39818bf57a8b1827d"
+      },
+      {
+        "path": "governance/constitution.md",
+        "sha256": "541601efae1c7a21ba8d379939483f705b7308c804888651380d22239c8f1d71"
+      },
+      {
+        "path": "governance/shard-protocol.md",
+        "sha256": "91e42d8e5218b5f6865398286e8264fbf6e3e7173a34ac885f42b0aad7662bff"
+      },
+      {
+        "path": "index.md",
+        "sha256": "94c8e0bc91da28065b56c74d89328206a0025117c75a6f3789ca03944b45cbab"
+      },
+      {
+        "path": "memory/dream-engine.md",
+        "sha256": "49bca8a6bc66b28b7a34853a1916cf7ee50838a1f613ce04af4898b6e8c569e7"
+      },
+      {
+        "path": "memory/memory-protocol.md",
+        "sha256": "75dfea7007aef293d3b53bd932b6ea51477a12348249fe735eb4c0578b2e7c23"
+      },
+      {
+        "path": "memory/reward-tracker.md",
+        "sha256": "c41d2fc5eaf3d06fbb8bea00cbf8dae6fab6978cec65e2e5d85d4256f389ff6b"
+      },
+      {
+        "path": "orchestration/background-workers.md",
+        "sha256": "0627325f928fde51086c44638dba13a6e1eaa553336708685dd3dbfa1d90b2f6"
+      },
+      {
+        "path": "orchestration/model-routing.md",
+        "sha256": "9a7e0c9d7df526478d9d222c107ad24176b471b69c9844355b39c010f4bb09d2"
+      },
+      {
+        "path": "orchestration/queen-protocol.md",
+        "sha256": "2823815b0039292a99e0aff1d3ae63bf0886e914b040082fc0e44f3c38e9b4f1"
+      },
+      {
+        "path": "orchestration/topology-selection.md",
+        "sha256": "51787511024e58bac33139383e01a7dc5d69409611cdf94c0503baa96461a9b8"
+      },
+      {
+        "path": "package.json",
+        "sha256": "30799de8a357b9aa414ebc861a142aecceb2c5310189600e649050dee87c1e46"
+      },
+      {
+        "path": "platform/adapter-registry.md",
+        "sha256": "90228bbfae6dcdffb61b679d85aa20ffd9e338cb9ee08695e3446720dfcb70d3"
+      },
+      {
+        "path": "platform/templates/copilot.md",
+        "sha256": "377ce965dd01eba253aa48caddd3702985802d5155a6f66c205cc56fdc13c15b"
+      },
+      {
+        "path": "platform/templates/cursor.md",
+        "sha256": "c97f56313e929fe0d4ad8301388b2c7b2c3f346f04efc5d125c790bf9c957a22"
+      },
+      {
+        "path": "platform/templates/opencode.md",
+        "sha256": "ee8586ec7f89170e5f97f50b3535446b3bbf359f95ff1ad923fb255e9ec0d3d7"
+      },
+      {
+        "path": "trust-tiers/promotion-protocol.md",
+        "sha256": "3c47809393a9b5f8c392125c0f1970995977fc03aee899bd359a4669aa17e7cf"
+      },
+      {
+        "path": "trust-tiers/tier-system.md",
+        "sha256": "e54f6e1465f324d81d948a6e9b72d2fb243f1eb6b5d433e7d7a42cd28eeb33b3"
+      },
+      {
+        "path": "verification/audit-trail.md",
+        "sha256": "9636cb2845db0310eda18872e8150aa5734c124df3a28ce453da86f4f73c79a0"
+      },
+      {
+        "path": "verification/judge-attestation.md",
+        "sha256": "fbefd761502d8b6d08f19cf3f1a6cf357c92e0ecb7a2dad8d962d5e90ae68bb5"
+      },
+      {
+        "path": "verification/witness-chain.md",
+        "sha256": "354b3d5c11757a43d484bf1b6c7e76e6ada6198c1cdabde07a8fa8197f9b0883"
+      }
+    ]
+  },
+  "signature": "g8Soimk3r1jNzA03y2T6pZXKB37eUptXr60ckVYgev6d2QnKXXRkh3uQ7eOaMW9nMrwGfpCBrFRmqm1A+LHQDA=="
+}

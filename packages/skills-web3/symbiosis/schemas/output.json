@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Symbiosis Swap Response",
+  "description": "Schema for Symbiosis cross-chain swap quotes and execution results",
+  "type": "object",
+  "properties": {
+    "operation": {
+      "type": "string",
+      "enum": ["quote", "swap", "track"],
+      "description": "Operation type"
+    },
+    "source_chain": {
+      "type": "object",
+      "properties": {
+        "chain_id": { "type": "integer" },
+        "name": { "type": "string" }
+      },
+      "required": ["chain_id"]
+    },
+    "destination_chain": {
+      "type": "object",
+      "properties": {
+        "chain_id": { "type": "integer" },
+        "name": { "type": "string" }
+      },
+      "required": ["chain_id"]
+    },
+    "token_in": {
+      "type": "object",
+      "properties": {
+        "address": { "type": "string" },
+        "symbol": { "type": "string" },
+        "decimals": { "type": "integer" },
+        "amount": { "type": "string", "description": "Raw amount in smallest units" },
+        "amount_human": { "type": "string", "description": "Human-readable amount" }
+      },
+      "required": ["address", "symbol", "amount"]
+    },
+    "token_out": {
+      "type": "object",
+      "properties": {
+        "address": { "type": "string" },
+        "symbol": { "type": "string" },
+        "decimals": { "type": "integer" },
+        "amount": { "type": "string" },
+        "amount_human": { "type": "string" }
+      },
+      "required": ["address", "symbol"]
+    },
+    "route": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "symbol": { "type": "string" },
+          "chain_id": { "type": "integer" }
+        }
+      },
+      "description": "Swap route path"
+    },
+    "fee_usd": { "type": "string", "description": "Fee in USD" },
+    "price_impact": { "type": "string", "description": "Price impact percentage" },
+    "slippage_bps": { "type": "integer", "description": "Slippage in basis points", "minimum": 0, "maximum": 10000 },
+    "tx_hash": { "type": "string", "description": "Transaction hash (after execution)" },
+    "status": {
+      "type": "string",
+      "enum": ["quoted", "approved", "submitted", "pending", "completed", "failed"],
+      "description": "Current swap status"
+    }
+  },
+  "required": ["operation", "source_chain", "destination_chain", "token_in", "token_out"]
+}

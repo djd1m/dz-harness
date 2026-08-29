@@ -1,0 +1,25 @@
+skill: 12factor-logs-as-streams
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+positives:
+  - "приложение должно писать логи в файл и само их ротировать или отдавать в stdout?"
+  - "Should our service open app.log and rotate it, or stream events to stdout?"
+  - "куда выводить логи процесса, чтобы платформа могла их собрать и разослать?"
+  - "Is our logging library doing too much by shipping logs to an archive from inside the app?"
+  - "как агрегировать логи со всех воркеров и веб-процессов централизованно?"
+  - "Do we need buffered or unbuffered log writes for real-time alerting?"
+  - "who should own log rotation, archival, and error-rate alerting — the app or the environment?"
+  - "мы запускаем голые процессы без роутера логов — куда денется вывод из stdout?"
+# Hard negatives: prompts owned by a SIBLING or existing arsenal skill — this skill must NOT win them.
+negatives:
+  - prompt: "Where should the credentials for our log shipper live — in code or env vars?"
+    should_activate: "12factor-config-in-environment"
+  - prompt: "Как приложению подключиться к Splunk/индексатору как к заменяемому ресурсу?"
+    should_activate: "12factor-backing-services-as-resources"
+  - prompt: "Should the app write per-deploy hostnames as source constants or in the environment?"
+    should_activate: "12factor-config-in-environment"
+  - prompt: "Как убрать локальное состояние процесса, чтобы его можно было спокойно перезапускать?"
+    should_activate: "12factor-stateless-processes"
+  - prompt: "How do I connect to the Postgres database and treat it as a swappable resource?"
+    should_activate: "12factor-backing-services-as-resources"
+  - prompt: "Plan a zero-downtime migration to add an index to the events table."
+    should_activate: "database-migration"

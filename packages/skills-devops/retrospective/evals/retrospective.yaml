@@ -1,0 +1,62 @@
+# retrospective evaluation
+# Run: aqe eval retrospective
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run retrospective"
+    expected:
+      status: success
+      summary_contains: "retrospective"
+
+  - name: "start stop continue format"
+    input: "Run a Start/Stop/Continue retrospective for Sprint 42. We completed 34 out of 40 story points. We had 2 incidents. Deployments went smoothly but code reviews took too long."
+    expected:
+      status: success
+      format: "start_stop_continue"
+      action_items_min_count: 1
+
+  - name: "4Ls format"
+    input: "Run a 4Ls retro for our Q2 project. Liked: pair programming sessions. Learned: Kubernetes networking. Lacked: documentation standards. Longed for: faster CI."
+    expected:
+      status: success
+      format: "4ls"
+      findings_min_count: 4
+
+  - name: "action item ownership"
+    input: "Generate retro action items for: tests are flaky (3rd time this issue appeared), PR reviews take 3+ days, no runbooks for on-call. Team: Alice (backend), Bob (frontend), Carol (SRE)."
+    expected:
+      status: success
+      action_items_min_count: 2
+      action_items_all_have_owner: true
+      action_items_all_have_due_date: true
+
+  - name: "recurring issue detection"
+    input: "Run a retro. Previous retro had action items: 'Fix flaky test suite (owner: Alice, status: not started)' and 'Add monitoring dashboards (owner: Bob, status: completed)'. This sprint we again had flaky test failures."
+    expected:
+      status: success
+      findings_has_recurring: true
+      previous_actions_review_min_count: 2
+
+  - name: "sailboat format"
+    input: "Run a Sailboat retrospective. Wind: great team collaboration, new CI pipeline. Anchor: technical debt in auth module, slow database migrations. Rocks: upcoming compliance audit. Island: ship v2.0 by end of quarter."
+    expected:
+      status: success
+      format: "sailboat"
+      findings_min_count: 4
+
+  - name: "metrics-driven analysis"
+    input: "Run retro for Sprint 15. Velocity: 28 (planned 40). Incidents: 5. Deployments: 2 (usually 8). The team was blocked on API design decisions for 4 days."
+    expected:
+      status: success
+      findings_min_count: 2
+      action_items_min_count: 1
+
+  - name: "anti-pattern detection"
+    input: "Our retro found these action items: 'improve testing', 'be more careful', 'communicate better', 'the team should fix the pipeline'. Are these good action items?"
+    expected:
+      status: success
+      summary_contains_any:
+        - "vague"
+        - "specific"
+        - "owner"
+        - "concrete"

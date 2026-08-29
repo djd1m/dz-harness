@@ -1,0 +1,59 @@
+{
+  "name": "@dzhechkov/skills-qe",
+  "version": "0.3.13",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "description": "Curated QE skill pack \u2014 22 skills (20 from agentic-qe + validate & systematic-debugging) for Claude Code agents.",
+  "license": "MIT",
+  "author": "dzhechko",
+  "keywords": [
+    "agent-skills",
+    "agentskills.io",
+    "skill-pack",
+    "claude-code",
+    "quality-engineering",
+    "agentic-qe",
+    "test-generation",
+    "coverage-analysis",
+    "chaos-engineering"
+  ],
+  "files": [
+    "qe-browser",
+    "qe-chaos-resilience",
+    "qe-code-intelligence",
+    "qe-coverage-analysis",
+    "qe-defect-intelligence",
+    "qe-iterative-loop",
+    "qe-learning-optimization",
+    "qe-quality-assessment",
+    "qe-requirements-validation",
+    "qe-test-execution",
+    "qe-test-generation",
+    "qe-visual-accessibility",
+    "brutal-honesty-review",
+    "six-thinking-hats",
+    "sfdipot-product-factors",
+    "qcsd-ideation-swarm",
+    "qcsd-development-swarm",
+    "qcsd-cicd-swarm",
+    "qcsd-production-swarm",
+    "qcsd-refinement-swarm",
+    "validate",
+    "systematic-debugging",
+    "sources.json",
+    "README.md",
+    "LICENSE",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/skills-qe"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-qe#readme"
+}

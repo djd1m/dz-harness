@@ -1,0 +1,33 @@
+skill: 12factor-backing-services-as-resources
+
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+# All are about how tightly the code couples to a networked dependency and whether it can be
+# swapped/relocated via config alone (databases, queues, caches, SMTP, blob stores, external APIs).
+positives:
+  - "как правильно подключиться к базе — захардкодить connection string или вынести?"
+  - "we want to move from self-hosted MySQL to a managed RDS-style database without touching code"
+  - "переезжаем с локального SMTP на Postmark — как сделать это без правки исходников?"
+  - "should the RabbitMQ / queue URL be hardcoded or come from config so we can point it elsewhere?"
+  - "база упала из-за железа — как поднять новую из бэкапа и переключиться без релиза?"
+  - "we use two sharded Postgres instances — how many resources is that, one config handle or two?"
+  - "хотим уметь менять кэш (Memcached) и S3-хранилище на лету, не пересобирая приложение"
+  - "make our local dev DB and the production managed DB indistinguishable to the app code"
+  - "attach Twilio / Postmark / New Relic as a backing service the app reaches through a handle"
+
+# Hard negatives: prompts a naive keyword match ("database", "config", "service", "connect") would
+# wrongly route here, but that actually belong to a sibling 12factor- skill or a non-12factor skill.
+negatives:
+  - prompt: "где хранить сами секреты и переменные окружения — в .env, в vault, в env vars?"
+    should_activate: "12factor-config-in-environment"
+  - prompt: "should config live in environment variables versus a checked-in config file?"
+    should_activate: "12factor-config-in-environment"
+  - prompt: "how do I declare and pin the client libraries (npm/pip) my app depends on?"
+    should_activate: "12factor-explicit-dependencies"
+  - prompt: "нужно ли держать процессы stateless и где хранить сессию пользователя?"
+    should_activate: "12factor-stateless-processes"
+  - prompt: "make our workers start fast and shut down gracefully on SIGTERM"
+    should_activate: "12factor-disposability-fast-startup"
+  - prompt: "plan a zero-downtime schema migration to add a column to our huge users table"
+    should_activate: "database-migration"
+  - prompt: "design the REST resource shape, pagination, and error contract for /orders"
+    should_activate: "api-design"

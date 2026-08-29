@@ -1,0 +1,192 @@
+{
+  "schema": "package-story-routing-receipt/1",
+  "measuredAt": "2026-08-21T18:27:55.542Z",
+  "judge": "claude:opus",
+  "isolation": [
+    "safe-mode",
+    "strict-mcp-config",
+    "no-tools",
+    "no-session-persistence",
+    "empty-cwd"
+  ],
+  "scope": "bounded pairwise routing: package-story-page vs package-tutorial-factory",
+  "evalSha256": "d30a449b505fd69ac98793c03d61d7aab4777a8aeeed772bd4f2cdf433640454",
+  "storySkillSha256": "65cd2059c6d4cea79faa995f2d9968c845bbba91f8235ce27af9de5ac6cd5e24",
+  "tutorialSkillSha256": "beb707558bc63fc109f65e146599b1338bbe1529124b8b70defb87af629f80af",
+  "catalogSha256": "0fe1dccecf8389c15eb3ea56879e816010074a620e3806788672a2b92106ce15",
+  "promptSha256": "9861c0ef0279be3f75e6633f04a4907b829ad77eeab8080959b51f79ce85ca85",
+  "pass": true,
+  "metrics": {
+    "positives": 12,
+    "activationHits": 12,
+    "activationRate": 1,
+    "siblingSteals": 0,
+    "siblingStealRate": 0,
+    "negatives": 8,
+    "negativeViolations": 0,
+    "negativeExactHits": 8,
+    "invalidAnswers": 0
+  },
+  "results": [
+    {
+      "id": "case-001",
+      "kind": "positive",
+      "prompt": "Покажи обычному человеку, как работает этот npm-пакет: сначала вход и готовый HTML, потом коротко установка и ограничения.",
+      "expected": "package-story-page",
+      "answer": "package-story-page",
+      "reason": "Examples-first explanation page, input then artifact, no course."
+    },
+    {
+      "id": "case-002",
+      "kind": "positive",
+      "prompt": "Сделай небольшую красивую страницу о существующем пакете, без учебного курса и экзамена.",
+      "expected": "package-story-page",
+      "answer": "package-story-page",
+      "reason": "Explicitly a small page without course or exam."
+    },
+    {
+      "id": "case-003",
+      "kind": "positive",
+      "prompt": "Нужен короткий лендинг для библиотеки: один живой сценарий, схема работы, доказательства и честные границы.",
+      "expected": "package-story-page",
+      "answer": "package-story-page",
+      "reason": "Short landing with one scenario, evidence, and honest limits."
+    },
+    {
+      "id": "case-004",
+      "kind": "positive",
+      "prompt": "Преврати README пакета в понятную демонстрационную страницу для нетехнической аудитории.",
+      "expected": "package-story-page",
+      "answer": "package-story-page",
+      "reason": "README turned into a demo page for non-technical readers."
+    },
+    {
+      "id": "case-005",
+      "kind": "positive",
+      "prompt": "Собери examples-first страницу пакета: синтетический ввод, проверяемый результат и где это запускается.",
+      "expected": "package-story-page",
+      "answer": "package-story-page",
+      "reason": "Examples-first package page with synthetic input and verifiable output."
+    },
+    {
+      "id": "case-006",
+      "kind": "positive",
+      "prompt": "Мне не нужны уроки — хочу быстро показать на сайте, что пакет принимает и какой артефакт выдаёт.",
+      "expected": "package-story-page",
+      "answer": "package-story-page",
+      "reason": "No lessons wanted; just show inputs and produced artifact."
+    },
+    {
+      "id": "case-007",
+      "kind": "positive",
+      "prompt": "Turn this existing package into a concise landing page that shows input and output before explaining internals.",
+      "expected": "package-story-page",
+      "answer": "package-story-page",
+      "reason": "Concise landing showing input/output before internals."
+    },
+    {
+      "id": "case-008",
+      "kind": "positive",
+      "prompt": "Build a short visual demo page for this library, with evidence links, install commands, and honest limitations.",
+      "expected": "package-story-page",
+      "answer": "package-story-page",
+      "reason": "Short visual demo page with evidence, install, limitations."
+    },
+    {
+      "id": "case-009",
+      "kind": "positive",
+      "prompt": "Explain this npm package to non-engineers on one self-contained page; start with a synthetic working example.",
+      "expected": "package-story-page",
+      "answer": "package-story-page",
+      "reason": "Self-contained one-page explanation starting from a working example."
+    },
+    {
+      "id": "case-010",
+      "kind": "positive",
+      "prompt": "I need an examples-first package story, not a curriculum: show the artifact, then mechanism, reuse, and safety.",
+      "expected": "package-story-page",
+      "answer": "package-story-page",
+      "reason": "Explicitly a package story, not a curriculum."
+    },
+    {
+      "id": "case-011",
+      "kind": "positive",
+      "prompt": "Make a compact marketing-style page for the package, but ground every factual claim in its README or tests.",
+      "expected": "package-story-page",
+      "answer": "package-story-page",
+      "reason": "Compact page with claims grounded in README/tests."
+    },
+    {
+      "id": "case-012",
+      "kind": "positive",
+      "prompt": "Create a mobile-friendly one-page explanation of what goes in, what happens, and what inspectable file comes out.",
+      "expected": "package-story-page",
+      "answer": "package-story-page",
+      "reason": "One-page in/mechanism/out explanation with inspectable artifact."
+    },
+    {
+      "id": "case-013",
+      "kind": "negative",
+      "prompt": "Сделай полноценный интерактивный курс по пакету с уроками, упражнениями, достижениями и финальным тестом.",
+      "expected": "package-tutorial-factory",
+      "answer": "package-tutorial-factory",
+      "reason": "Full interactive course with lessons, exercises, achievements, final test."
+    },
+    {
+      "id": "case-014",
+      "kind": "negative",
+      "prompt": "Хочу Head First обучение по этой библиотеке: несколько глав, практика после каждой и проверка знаний.",
+      "expected": "package-tutorial-factory",
+      "answer": "package-tutorial-factory",
+      "reason": "Head First course with chapters, practice, and knowledge checks."
+    },
+    {
+      "id": "case-015",
+      "kind": "negative",
+      "prompt": "Преврати пакет в учебный сайт, чтобы новичок проходил темы по порядку и видел свой прогресс.",
+      "expected": "package-tutorial-factory",
+      "answer": "package-tutorial-factory",
+      "reason": "Learning site with ordered topics and progress tracking."
+    },
+    {
+      "id": "case-016",
+      "kind": "negative",
+      "prompt": "Нужен не лендинг, а подробный курс с персонажем, заданиями и итоговым экзаменом.",
+      "expected": "package-tutorial-factory",
+      "answer": "package-tutorial-factory",
+      "reason": "Explicitly not a landing: detailed course with persona and exam."
+    },
+    {
+      "id": "case-017",
+      "kind": "negative",
+      "prompt": "Build a complete interactive course for this package with lessons, exercises, achievements, and a final quiz.",
+      "expected": "package-tutorial-factory",
+      "answer": "package-tutorial-factory",
+      "reason": "Complete course: lessons, exercises, achievements, quiz."
+    },
+    {
+      "id": "case-018",
+      "kind": "negative",
+      "prompt": "Turn the library into a Head First style curriculum with multiple sections and hands-on checkpoints.",
+      "expected": "package-tutorial-factory",
+      "answer": "package-tutorial-factory",
+      "reason": "Head First curriculum with sections and hands-on checkpoints."
+    },
+    {
+      "id": "case-019",
+      "kind": "negative",
+      "prompt": "Create a guided learning site where developers study this package step by step and track progress.",
+      "expected": "package-tutorial-factory",
+      "answer": "package-tutorial-factory",
+      "reason": "Guided step-by-step learning site with progress."
+    },
+    {
+      "id": "case-020",
+      "kind": "negative",
+      "prompt": "I want a full tutorial course, recurring learner persona, practice tasks, and a final assessment—not a landing page.",
+      "expected": "package-tutorial-factory",
+      "answer": "package-tutorial-factory",
+      "reason": "Full tutorial course with persona, practice, assessment, not a landing."
+    }
+  ]
+}

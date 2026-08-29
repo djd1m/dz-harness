@@ -1,0 +1,148 @@
+name: google-tasks
+description: Evaluation suite for the google-tasks MCP wrapper skill.
+version: "1.0.0"
+skill: google-tasks
+
+setup:
+  mcp_server: smithery/googletasks
+  transport: sse
+  requires_auth: true
+  auth_type: google-oauth
+
+evals:
+  - id: list-task-lists
+    description: List all task lists in the user's account
+    input:
+      tool: list_task_lists
+      args: {}
+    expected:
+      status: success
+      data_type: TaskListsResponse
+      constraints:
+        - "data.taskLists is an array"
+        - "each task list has id and title fields"
+    tags: [smoke, read]
+
+  - id: create-task-basic
+    description: Create a task with title only
+    input:
+      tool: create_task
+      args:
+        taskListId: "{{default_task_list_id}}"
+        title: "Test task from eval"
+    expected:
+      status: success
+      data_type: SingleTaskResponse
+      constraints:
+        - "data.task.title == 'Test task from eval'"
+        - "data.task.status == 'needsAction'"
+    cleanup:
+      tool: delete_task
+      args:
+        taskListId: "{{default_task_list_id}}"
+        taskId: "{{result.data.task.id}}"
+    tags: [smoke, write]
+
+  - id: create-task-with-due-date
+    description: Create a task with title, notes, and due date
+    input:
+      tool: create_task
+      args:
+        taskListId: "{{default_task_list_id}}"
+        title: "Review Q3 budget"
+        notes: "Check engineering allocation"
+        due: "2026-06-15T00:00:00Z"
+    expected:
+      status: success
+      data_type: SingleTaskResponse
+      constraints:
+        - "data.task.title == 'Review Q3 budget'"
+        - "data.task.notes contains 'engineering'"
+        - "data.task.due is a valid ISO date"
+    cleanup:
+      tool: delete_task
+      args:
+        taskListId: "{{default_task_list_id}}"
+        taskId: "{{result.data.task.id}}"
+    tags: [functional, write]
+
+  - id: complete-task
+    description: Create a task then mark it as completed
+    input:
+      steps:
+        - tool: create_task
+          args:
+            taskListId: "{{default_task_list_id}}"
+            title: "Task to complete"
+          save_as: created
+        - tool: complete_task
+          args:
+            taskListId: "{{default_task_list_id}}"
+            taskId: "{{created.data.task.id}}"
+    expected:
+      status: success
+      constraints:
+        - "data.task.status == 'completed'"
+    cleanup:
+      tool: delete_task
+      args:
+        taskListId: "{{default_task_list_id}}"
+        taskId: "{{created.data.task.id}}"
+    tags: [functional, write]
+
+  - id: list-tasks-filtered
+    description: List tasks from a specific task list
+    input:
+      tool: list_tasks
+      args:
+        taskListId: "{{default_task_list_id}}"
+    expected:
+      status: success
+      data_type: TasksResponse
+      constraints:
+        - "data.tasks is an array"
+        - "each task has id, title, and status fields"
+    tags: [smoke, read]
+
+  - id: move-task
+    description: Move a task to a new position within the list
+    input:
+      steps:
+        - tool: create_task
+          args:
+            taskListId: "{{default_task_list_id}}"
+            title: "Task to move"
+          save_as: created
+        - tool: move_task
+          args:
+            taskListId: "{{default_task_list_id}}"
+            taskId: "{{created.data.task.id}}"
+            position: "0"
+    expected:
+      status: success
+    cleanup:
+      tool: delete_task
+      args:
+        taskListId: "{{default_task_list_id}}"
+        taskId: "{{created.data.task.id}}"
+    tags: [functional, write]
+
+  - id: error-invalid-list
+    description: Attempting to list tasks from a non-existent list returns an error
+    input:
+      tool: list_tasks
+      args:
+        taskListId: "nonexistent-list-id-12345"
+    expected:
+      status: error
+      constraints:
+        - "error.code is present"
+        - "error.message is present"
+    tags: [negative, read]
+
+scoring:
+  pass_threshold: 0.85
+  weights:
+    smoke: 2.0
+    functional: 1.5
+    negative: 1.0

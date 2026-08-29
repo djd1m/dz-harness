@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "document-checker output",
+  "description": "Structured output from the document-checker skill",
+  "type": "object",
+  "required": ["status", "package_status", "documents", "issues", "recommendation"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "skipped"]
+    },
+    "student_name": {
+      "type": "string",
+      "description": "Student full name from the title page"
+    },
+    "topic": {
+      "type": "string",
+      "description": "Thesis topic from the title page"
+    },
+    "package_status": {
+      "type": "string",
+      "enum": ["complete", "incomplete"],
+      "description": "Overall package completeness status"
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "required", "found"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Document name"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether the document is mandatory"
+          },
+          "found": {
+            "type": "boolean",
+            "description": "Whether the document was found"
+          },
+          "format": {
+            "type": "string",
+            "description": "File format (PDF, DOCX, PPTX, etc.)"
+          },
+          "remarks": {
+            "type": "string",
+            "description": "Additional remarks about the document"
+          }
+        }
+      }
+    },
+    "title_page_check": {
+      "type": "object",
+      "properties": {
+        "student_name": { "type": "boolean" },
+        "topic": { "type": "boolean" },
+        "supervisor": { "type": "boolean" },
+        "year": { "type": "boolean" },
+        "university": { "type": "boolean" }
+      },
+      "description": "Title page fields presence check"
+    },
+    "table_of_contents": {
+      "type": "boolean",
+      "description": "Whether table of contents is present"
+    },
+    "bibliography": {
+      "type": "object",
+      "properties": {
+        "present": { "type": "boolean" },
+        "source_count": { "type": "integer" },
+        "references_valid": { "type": "boolean" }
+      },
+      "description": "Bibliography check results"
+    },
+    "topic_consistency": {
+      "type": "object",
+      "properties": {
+        "consistent": {
+          "type": "boolean",
+          "description": "Whether the topic matches across all documents"
+        },
+        "discrepancies": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of discrepancies found"
+        }
+      }
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "description"],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "warning", "info"]
+          },
+          "description": {
+            "type": "string",
+            "description": "Issue description"
+          }
+        }
+      }
+    },
+    "recommendation": {
+      "type": "string",
+      "description": "Final recommendation on package readiness for defense"
+    }
+  }
+}

@@ -1,0 +1,184 @@
+# docker-compose evaluation
+# Run: aqe eval docker-compose
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run docker-compose"
+    expected:
+      status: success
+      summary_contains: "docker-compose"
+
+  - name: "create node-postgres-redis stack"
+    input: "Create a docker-compose.yml for a Node.js app with PostgreSQL and Redis"
+    expected:
+      status: success
+      action_type: "create"
+      services_count_gte: 3
+      services_names_include: ["web", "postgres", "redis"]
+      self_check_passed_gte: 12
+
+  - name: "review existing compose file"
+    input: |
+      Review this docker-compose.yml:
+      services:
+        web:
+          image: node:latest
+          ports:
+            - "3000:3000"
+        db:
+          image: postgres
+          environment:
+            POSTGRES_PASSWORD: mysecretpassword
+    expected:
+      status: success
+      action_type: "review"
+      review_findings_count_gte: 4
+      review_findings_severities_include: ["critical"]
+
+  - name: "detect latest tag anti-pattern"
+    input: |
+      Review:
+      services:
+        app:
+          image: node:latest
+    expected:
+      status: success
+      review_findings_any_match:
+        anti_pattern: "latest"
+
+  - name: "detect missing healthchecks"
+    input: |
+      Review:
+      services:
+        web:
+          image: node:20-alpine
+          depends_on:
+            - postgres
+        postgres:
+          image: postgres:16
+    expected:
+      status: success
+      review_findings_any_match:
+        finding_contains: "health"
+
+  - name: "detect secrets in compose"
+    input: |
+      Review:
+      services:
+        db:
+          image: postgres:16
+          environment:
+            POSTGRES_PASSWORD: super_secret_password_123
+    expected:
+      status: success
+      review_findings_any_match:
+        severity: "critical"
+        finding_contains: "secret"
+
+  - name: "detect running as root"
+    input: |
+      Review:
+      services:
+        web:
+          image: node:20
+          ports:
+            - "3000:3000"
+    expected:
+      status: success
+      review_findings_any_match:
+        finding_contains_any: ["root", "user", "non-root"]
+
+  - name: "detect no resource limits"
+    input: |
+      Review:
+      services:
+        web:
+          image: node:20-alpine
+        postgres:
+          image: postgres:16-alpine
+    expected:
+      status: success
+      review_findings_any_match:
+        finding_contains_any: ["resource", "limit", "memory"]
+
+  - name: "add healthchecks to existing config"
+    input: |
+      Add health checks to my services:
+      services:
+        web:
+          image: myapp:1.0
+        postgres:
+          image: postgres:16-alpine
+        redis:
+          image: redis:7-alpine
+    expected:
+      status: success
+      action_type: "add_healthchecks"
+      services_all_have_healthcheck: true
+
+  - name: "production hardening"
+    input: "Harden my docker-compose.yml for production deployment"
+    expected:
+      status: success
+      action_type: "harden"
+      services_all_have_security_hardening: true
+
+  - name: "dev setup with hot reload"
+    input: "Set up docker compose watch for my Node.js app with hot reload"
+    expected:
+      status: success
+      action_type: "dev_setup"
+      summary_contains_any: ["watch", "reload", "development"]
+
+  - name: "python-mysql-rabbitmq stack"
+    input: "Create a Compose config for a Python Django app with MySQL and RabbitMQ for Celery"
+    expected:
+      status: success
+      action_type: "create"
+      services_count_gte: 4
+      services_names_include_any: ["api", "worker", "mysql", "rabbitmq"]
+
+  - name: "network isolation check"
+    input: "Create a Compose file with proper network isolation between frontend and backend services"
+    expected:
+      status: success
+      networks_count_gte: 2
+      networks_any_internal: true
+
+  - name: "detect exposed database ports"
+    input: |
+      Review:
+      services:
+        postgres:
+          image: postgres:16
+          ports:
+            - "5432:5432"
+    expected:
+      status: success
+      review_findings_any_match:
+        severity_any: ["critical", "warning"]
+        finding_contains_any: ["port", "expose", "database"]
+
+  - name: "self-check completeness"
+    input: "Create a production-ready docker-compose.yml for a web app with postgres and redis, and run the full self-check"
+    expected:
+      status: success
+      self_check_total: 14
+      self_check_passed_gte: 13
+
+  - name: "detect bind mounts in production"
+    input: |
+      Review this production config:
+      services:
+        web:
+          image: myapp:1.0
+          volumes:
+            - ./src:/app/src
+        postgres:
+          image: postgres:16
+          volumes:
+            - ./data:/var/lib/postgresql/data
+    expected:
+      status: success
+      review_findings_any_match:
+        finding_contains_any: ["bind mount", "production", "named volume"]

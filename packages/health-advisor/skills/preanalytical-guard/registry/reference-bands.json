@@ -1,0 +1,32 @@
+{
+  "schema": "reference-band-v1",
+  "_note": "The repeat gate must know a value sits under the band BEFORE anything is sent downstream, so the threshold is read out of the third-party engine's OWN DOCUMENTATION (source.kind='vendor-documented') and never obtained by running it. engine/ imports nothing from skills/lab-results/.",
+  "_units": "`unit_conversions` maps a REPORTED unit onto a multiplier into `unit`. It exists because QE F2 (MEASURED 2026-08-05) found the gate comparing a bare number against the band: `230 ng/dL` — about 8 nmol/L, plainly under the <12 band — was ADMITTED with withheld_reason null. A unit with no declared conversion is UNCOMPARABLE and fails closed; it is never silently treated as being in the band's own unit.",
+  "reference_bands": [
+    {
+      "id": "total-testosterone-low-band",
+      "analyte": "Total Testosterone",
+      "aliases": ["Testosterone", "Тестостерон общий"],
+      "low_below": 12,
+      "unit": "nmol/L",
+      "unit_conversions": {
+        "ng/dL": 0.03467,
+        "ng/mL": 3.467,
+        "nmol/l": 1,
+        "нмоль/л": 1
+      },
+      "unit_conversions_source": {
+        "kind": "arithmetic",
+        "citation": "Testosterone C19H28O2, molar mass 288.43 g/mol. 1 ng/dL = 1e-8 g/L ÷ 288.43 g/mol = 3.467e-11 mol/L = 0.03467 nmol/L; 1 ng/mL = 100 ng/dL = 3.467 nmol/L. DERIVED arithmetic, not a measurement and not a claim about any patient — the `нмоль/л` and `nmol/l` entries are the same unit spelled differently and carry the identity factor 1."
+      },
+      "source": {
+        "kind": "vendor-documented",
+        "citation": "skills/lab-results/coworker.py:434-443 — the engine's own documented string '<12 nmol/L in males is low-normal and warrants evaluation' (MEASURED 2026-08-04, feature 05_architecture.md F2)"
+      },
+      "repeat_normalisation": {
+        "magnitude": { "value": 30, "unit": "%", "qualifier": "up to" },
+        "source": { "kind": "field-case", "citation": "Step-0 brief, ha-slice-b — up to 30 % of first out-of-band values normalise on a plain repeat, with no treatment (CLAIMED — field case)" }
+      }
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "name": "veil",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "id": "operation-valid",
+      "type": "enum",
+      "field": "operation",
+      "values": ["deposit", "withdraw", "transfer", "merge", "balance", "status", "generate-keypair"],
+      "required": true,
+      "message": "Operation must be a valid Veil operation"
+    },
+    {
+      "id": "asset-supported",
+      "type": "enum",
+      "field": "asset",
+      "values": ["ETH", "USDC"],
+      "required": false,
+      "message": "Asset must be ETH or USDC"
+    },
+    {
+      "id": "deposit-minimum",
+      "type": "custom",
+      "condition": "operation === 'deposit' && asset === 'ETH'",
+      "check": "parseFloat(amount) >= 0.001",
+      "message": "Minimum ETH deposit is 0.001"
+    },
+    {
+      "id": "deposit-minimum-usdc",
+      "type": "custom",
+      "condition": "operation === 'deposit' && asset === 'USDC'",
+      "check": "parseFloat(amount) >= 1",
+      "message": "Minimum USDC deposit is 1"
+    },
+    {
+      "id": "shielded-address-format",
+      "type": "pattern",
+      "field": "shielded_address",
+      "pattern": "^veil:base:0x[a-fA-F0-9]+$",
+      "required": false,
+      "message": "Shielded address must be in veil:base:0x... format"
+    },
+    {
+      "id": "keypair-security",
+      "type": "custom",
+      "condition": "true",
+      "check": "!JSON.stringify(arguments).includes('privateKey')",
+      "message": "Never expose private keys in output"
+    }
+  ],
+  "environment": {
+    "required_for_deposit": ["WALLET_PRIVATE_KEY", "BASE_RPC_URL"],
+    "required_for_transfer": [],
+    "optional": ["BANKR_API_KEY"]
+  },
+  "file_locations": {
+    "config": "~/.veil/config.json",
+    "keypair": "~/.veil/keypair.json",
+    "state": "~/.veil/state.db"
+  }
+}

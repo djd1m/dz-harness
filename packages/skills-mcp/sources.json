@@ -1,0 +1,86 @@
+{
+  "upstream": "various MCP servers",
+  "description": "Canonical MCP-server skill pack — each skill wraps a Model Context Protocol server.",
+  "skills": {
+    "agentdb-memory": {
+      "upstream_type": "mcp-server",
+      "upstream_server": "agentdb (npx agentdb@latest mcp start — github.com/ruvnet/agentdb)",
+      "description": "Self-learning vector memory via AgentDB MCP — pattern storage, semantic search, Reflexion, causal graphs, and skill library."
+    },
+    "brave-search": {
+      "upstream_type": "mcp-server",
+      "upstream_server": "@brave/brave-search-mcp-server (github.com/anthropics/brave-search-mcp-server)",
+      "description": "Web search via Brave Search MCP — web, local, image, video, news results with AI summaries."
+    },
+    "comfyui": {
+      "upstream_type": "mcp-server",
+      "upstream_server": "comfyui-mcp (github.com/comfyui-mcp/comfyui-mcp)",
+      "description": "ComfyUI image generation via MCP — execute workflows, generate images, manage models, control VRAM."
+    },
+    "exa-search": {
+      "upstream_type": "mcp-server",
+      "upstream_server": "exa-mcp-server (npm) or hosted https://mcp.exa.ai/mcp (docs.exa.ai/reference/mcp)",
+      "description": "AI-powered web search via Exa MCP — semantic search, code search, company research, content crawling."
+    },
+    "gmail": {
+      "upstream_type": "mcp-server",
+      "upstream_server": "gogcli-mcp-gmail (npm; github.com/chrischall/gogcli-mcp) — built on gogcli (github.com/openclaw/gogcli)",
+      "description": "Gmail integration via MCP — search, read, send, label, draft, forward, autoreply, bulk operations."
+    },
+    "google-sheets": {
+      "upstream_type": "mcp-server",
+      "upstream_server": "mcp-google-sheets (npx; github.com/FilippTrigub/mcp-google-sheets) — stdio",
+      "description": "Google Sheets integration via MCP — read, write, create, format spreadsheets programmatically."
+    },
+    "google-calendar": {
+      "upstream_type": "mcp-server",
+      "upstream_server": "@cocal/google-calendar-mcp (npx; github.com/nspady/google-calendar-mcp) — stdio",
+      "description": "Google Calendar integration via MCP — create, update, list events, check availability, manage calendars."
+    },
+    "google-tasks": {
+      "upstream_type": "mcp-server",
+      "upstream_server": "@zcaceres/gtasks (github.com/zcaceres/gtasks-mcp) — stdio",
+      "description": "Google Tasks integration via MCP — create, list, complete, organize tasks and task lists."
+    },
+    "clickup": {
+      "upstream_type": "mcp-server",
+      "upstream_server": "@taazkareem/clickup-mcp-server (npx)",
+      "description": "ClickUp project management via MCP — tasks, sprints, comments, docs, time tracking with natural language."
+    },
+    "reddit": {
+      "upstream_type": "mcp-server",
+      "upstream_server": "npx reddit-mcp-server (Jordan Burke; github.com/jordanburke/reddit-mcp-server) — stdio",
+      "description": "Reddit integration via MCP — search posts, read threads, monitor subreddits, analyze discussions."
+    },
+    "jina-reader": {
+      "upstream_type": "mcp-server",
+      "upstream_server": "https://mcp.jina.ai (official Jina AI Remote MCP; github.com/jina-ai/MCP)",
+      "description": "Web content extraction via Jina Reader MCP — convert any URL to clean markdown, extract structured data."
+    },
+    "context7": {
+      "upstream_type": "mcp-server",
+      "upstream_server": "@upstash/context7-mcp (npx) — also Smithery hosted",
+      "description": "Context7 documentation search via MCP — search up-to-date library docs, API references, code examples."
+    },
+    "git-mcp": {
+      "upstream_type": "mcp-server",
+      "upstream_server": "@cyanheads/git-mcp-server (github.com/cyanheads/git-mcp-server)",
+      "description": "Git version control via MCP — clone, commit, branch, merge, diff, stash, cherry-pick, and worktree operations."
+    },
+    "gitlab": {
+      "upstream_type": "mcp-server",
+      "upstream_server": "@zereight/mcp-gitlab (github.com/zereight/mcp-gitlab)",
+      "description": "GitLab integration via MCP — projects, merge requests, issues, pipelines, wiki, releases, milestones."
+    },
+    "notion": {
+      "upstream_type": "mcp-server",
+      "upstream_server": "@notionhq/notion-mcp-server (github.com/notionhq/notion-mcp-server)",
+      "description": "Notion workspace integration via MCP — pages, databases, blocks, search, and content management."
+    },
+    "obsidian": {
+      "upstream_type": "mcp-server",
+      "upstream_server": "obsidian-mcp-server (github.com/MarkusPfworthy/obsidian-mcp-server)",
+      "description": "Obsidian vault management via MCP — read, write, search, edit notes, tags, and frontmatter."
+    }
+  }
+}

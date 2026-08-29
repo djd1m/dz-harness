@@ -1,0 +1,97 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "skills-pm",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "ae0291a01eae332ee9dace848e0843c1ac7665491439ebadc2fca0e9c7ba3281"
+      },
+      {
+        "path": "README.md",
+        "sha256": "2b27afa7bb68d5c90479ebe8fba2007deec40dea3262f0da46bf9c8e3ddfdd61"
+      },
+      {
+        "path": "ab-test-analysis/SKILL.md",
+        "sha256": "76e60c63a4645165ad193706bac746958884eb55239784fc2a35e56fa28aab0e"
+      },
+      {
+        "path": "beachhead-segment/SKILL.md",
+        "sha256": "3396fddb268407fb76cbf764b2bd3db853f331afda78ae44d2f260c3bced55a3"
+      },
+      {
+        "path": "brainstorm-okrs/SKILL.md",
+        "sha256": "134711decc47bb0bb25a57c7242edbb887c874e872aae9200959744e2808ad26"
+      },
+      {
+        "path": "cohort-analysis/SKILL.md",
+        "sha256": "3afbc8c42a88269f4e369246b7c4c5a2e3198d56c87b2c56715147ee705cf663"
+      },
+      {
+        "path": "growth-loops/SKILL.md",
+        "sha256": "aa2b88eaa411588501e56eaa3cb8e9fbd084d5b24a617544c625c608f79756aa"
+      },
+      {
+        "path": "gtm-strategy/SKILL.md",
+        "sha256": "0accdbf6605350111aa7cb4a84c8251d73ba0d0dae5711cf67ca508280f8b3c0"
+      },
+      {
+        "path": "market-sizing/SKILL.md",
+        "sha256": "d3cf9d18dad06aa1a950a0d34df80a7636088e54c0629f7ff493e8adde6014d4"
+      },
+      {
+        "path": "metrics-dashboard/SKILL.md",
+        "sha256": "7144f104a982b96d0847e6c9a906b187593717b7ad62b874890839e8da7ff9e2"
+      },
+      {
+        "path": "north-star-metric/SKILL.md",
+        "sha256": "07d1c4e8193e7e602a145bb54615ebc36ce73c37335ac382adcac3b2d2cd29f8"
+      },
+      {
+        "path": "opportunity-solution-tree/SKILL.md",
+        "sha256": "79d272d7bc2421b3132f5702ddb5526055b6c505ed02337a56ab930af2d1e937"
+      },
+      {
+        "path": "outcome-roadmap/SKILL.md",
+        "sha256": "2fce2fb39a2561c1906254b94b6b7244f03eeaf07ab8ee94ece3ff38cce55760"
+      },
+      {
+        "path": "package.json",
+        "sha256": "8dcce308095121e3f2c4f05f73e8a57fd081e16736516d47c540c008e6239ef4"
+      },
+      {
+        "path": "pricing-strategy/SKILL.md",
+        "sha256": "7352fa9be01d7efb4085a00d48a02f9d774c997d8bc91d44d9793ce76d1d782f"
+      },
+      {
+        "path": "prioritization-frameworks/SKILL.md",
+        "sha256": "638e73cf0f5a03e5f0e4186940db2c644032ae5616c5d4bcf1b51301fd40a0ad"
+      },
+      {
+        "path": "prioritize-features/SKILL.md",
+        "sha256": "4049b0d718158d6626f4a219c877fce09fb08536df30dfd27d84bc6e071b0e86"
+      },
+      {
+        "path": "product-strategy/SKILL.md",
+        "sha256": "d2992a470c6f318581c4343a07155c579899eb0a77b46031e6c56ed7ab33a585"
+      },
+      {
+        "path": "sources.json",
+        "sha256": "232326006c8218aace36f2505e5365b72d1f861ce3afdda23530827eee0b2f1a"
+      },
+      {
+        "path": "sprint-plan/SKILL.md",
+        "sha256": "d50731a025c1f9674ec8b04032e172099e88a6267969ae9486bae4371e0034d3"
+      },
+      {
+        "path": "stakeholder-map/SKILL.md",
+        "sha256": "fc0edb0cb3fbcd1484e3f481d54b9c1a27dde5c4cc0ae3c30fa843d6c10447ed"
+      },
+      {
+        "path": "strategy-red-team/SKILL.md",
+        "sha256": "10b5e670cf6dbd09c73bf999d3d25f514f81fed1c1137ef665761749588071a9"
+      }
+    ]
+  },
+  "signature": "JckHXtllPTm0fvtqdTvN8OT0OpAFsu/MsZ4ARnbYkZ5PA8ZxNorQrnqwELDWVuBGIieIsuW0haAj3u780FBkCw=="
+}

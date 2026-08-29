@@ -1,0 +1,187 @@
+name: google-calendar
+description: Evaluation suite for the google-calendar MCP wrapper skill
+version: "1.0.0"
+
+setup:
+  required_env:
+    - GOOGLE_OAUTH_CREDENTIALS
+  mcp_server: google-calendar
+  prerequisites:
+    - description: "OAuth credentials JSON (Desktop app type) at GOOGLE_OAUTH_CREDENTIALS; complete the auth flow once before running"
+    - description: "A test calendar should exist (or use primary)"
+
+test_fixtures:
+  calendar_id: "${TEST_CALENDAR_ID:-primary}"
+  test_event_prefix: "[SKILL-EVAL]"
+
+evals:
+  - id: list-events-today
+    description: Listing today's events returns an array
+    tool: list_events
+    input:
+      calendar_id: "${TEST_CALENDAR_ID:-primary}"
+      time_min: "2026-06-03T00:00:00Z"
+      time_max: "2026-06-03T23:59:59Z"
+      single_events: true
+      order_by: "startTime"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: events
+      - type: field_is_type
+        field: events
+        expected_type: array
+
+  - id: list-events-with-query
+    description: Query parameter filters events by text
+    tool: list_events
+    input:
+      query: "SKILL-EVAL"
+      time_min: "2026-01-01T00:00:00Z"
+      time_max: "2026-12-31T23:59:59Z"
+      max_results: 50
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: events
+
+  - id: create-event-basic
+    description: Creating an event returns event ID and link
+    tool: create_event
+    input:
+      summary: "[SKILL-EVAL] Test Event"
+      start: "2026-06-10T10:00:00"
+      end: "2026-06-10T10:30:00"
+      timezone: "UTC"
+      description: "Automated test event from google-calendar skill eval. Safe to delete."
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: created_event.id
+      - type: field_not_empty
+        field: created_event.id
+      - type: field_present
+        field: created_event.html_link
+
+  - id: create-event-with-attendees
+    description: Creating an event with attendees includes them in response
+    tool: create_event
+    input:
+      summary: "[SKILL-EVAL] Meeting with Attendees"
+      start: "2026-06-11T14:00:00"
+      end: "2026-06-11T14:30:00"
+      timezone: "America/New_York"
+      attendees: ["test@example.com"]
+      location: "https://meet.google.com/test"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: created_event.id
+
+  - id: create-recurring-event
+    description: Creating a recurring event includes recurrence rule
+    tool: create_event
+    input:
+      summary: "[SKILL-EVAL] Daily Standup"
+      start: "2026-06-10T09:00:00"
+      end: "2026-06-10T09:15:00"
+      timezone: "UTC"
+      recurrence: ["RRULE:FREQ=DAILY;COUNT=3"]
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: created_event.id
+
+  - id: update-event
+    description: Updating an event changes its properties
+    steps:
+      - tool: create_event
+        input:
+          summary: "[SKILL-EVAL] Update Test"
+          start: "2026-06-12T10:00:00"
+          end: "2026-06-12T10:30:00"
+          timezone: "UTC"
+        capture:
+          event_id: created_event.id
+      - tool: update_event
+        input:
+          event_id: "${event_id}"
+          summary: "[SKILL-EVAL] Updated Title"
+          start: "2026-06-12T11:00:00"
+          end: "2026-06-12T11:30:00"
+        assertions:
+          - type: output_matches_schema
+            schema: ../schemas/output.json
+          - type: field_present
+            field: created_event.id
+
+  - id: delete-event
+    description: Deleting an event succeeds
+    steps:
+      - tool: create_event
+        input:
+          summary: "[SKILL-EVAL] Delete Test"
+          start: "2026-06-13T10:00:00"
+          end: "2026-06-13T10:30:00"
+          timezone: "UTC"
+        capture:
+          event_id: created_event.id
+      - tool: delete_event
+        input:
+          event_id: "${event_id}"
+        assertions:
+          - type: output_matches_schema
+            schema: ../schemas/output.json
+          - type: field_equals
+            field: deleted
+            value: true
+
+  - id: check-availability
+    description: Checking availability returns free/busy periods
+    tool: check_availability
+    input:
+      calendars: ["primary"]
+      time_min: "2026-06-10T00:00:00Z"
+      time_max: "2026-06-10T23:59:59Z"
+      timezone: "UTC"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: availability
+      - type: array_length_gte
+        field: availability
+        value: 1
+      - type: each_item_has_field
+        field: availability
+        required_fields: ["calendar_id"]
+
+  - id: list-calendars
+    description: Listing calendars returns at least one calendar
+    tool: list_calendars
+    input: {}
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: calendars
+      - type: array_length_gte
+        field: calendars
+        value: 1
+      - type: each_item_has_field
+        field: calendars
+        required_fields: ["id", "summary"]
+
+  - id: invalid-event-id
+    description: Updating a non-existent event returns error
+    tool: update_event
+    input:
+      event_id: "nonexistent-event-id-12345"
+      summary: "Should fail"
+    assertions:
+      - type: returns_error

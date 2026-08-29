@@ -1,0 +1,147 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "harness-presets"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "332b33eef10ee5860b6d71d656c6f5711c14427cf05250765279ddcc77e9d1c7"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/index.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "97e0535b5af2432765a0b1e92220692cdcfd105f29ceb2cfed96df23bc68b61a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/index.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c2aae3a1bfe9924ca97bdddb3d4b0bdd528d34d11bbffe2d761380796a5c03f0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/index.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "acb5bf4d9c678a0a9b324512dd458774004cd5b1c43927f3906bbb36a25c8a64"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/index.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b2c2a34215f8e17ef93c80021dd4e8abee67e21b143d89383a23a307169871d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/presets.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "038d99cc4f57bbb3f71f6862be0c071f58aefa6f38b2d7438284c095f3000541"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/presets.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "909b0d85d60919fdd0eb2654fbb31f53b6c79ba0c65b1a860c0ea508acd64223"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/presets.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "581fd519ca85499cacdd554264be77283c7ea54a56ab30568c4d86644c6638ea"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/presets.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6732ee86108db03863b891104a01e41c3ec424c93eab0b2c9c5f055818385bfa"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "a57f10d1e4dd0bc4b216384f7f5e43a584966b3bce41ae4012553e0afa49c9a2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/index.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d707601eabe89c1133d11efb3a2ab1cce2934f7f67e95b6597e00dfc3b7b9ddb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/presets.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bbc22a241b88bbc9e81a6210c84eee2cabd1d602de805e494443132db1a4f377"
+        }
+      ]
+    }
+  ]
+}

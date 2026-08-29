@@ -1,0 +1,148 @@
+name: git-mcp
+description: Evaluation suite for the git-mcp MCP wrapper skill
+version: "1.0.0"
+
+setup:
+  required_env: []
+  mcp_server: git
+
+evals:
+  - id: status-clean-repo
+    description: Status on a clean repo shows no changes
+    tool: git_status
+    input:
+      repo_path: "${TEST_REPO_PATH}"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: status
+      - type: field_present
+        field: status.branch
+
+  - id: log-recent-commits
+    description: Log returns recent commits with sha and message
+    tool: git_log
+    input:
+      repo_path: "${TEST_REPO_PATH}"
+      max_count: 5
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: commits
+      - type: array_length_gte
+        field: commits
+        value: 1
+      - type: each_item_has_field
+        field: commits
+        required_fields: ["sha", "message"]
+
+  - id: diff-working-tree
+    description: Diff shows working tree changes
+    tool: git_diff
+    input:
+      repo_path: "${TEST_REPO_PATH}"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+
+  - id: branch-list
+    description: Branch list returns all local branches with current marker
+    tool: git_branch
+    input:
+      repo_path: "${TEST_REPO_PATH}"
+      action: "list"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: branches
+      - type: array_length_gte
+        field: branches
+        value: 1
+      - type: each_item_has_field
+        field: branches
+        required_fields: ["name"]
+
+  - id: branch-create-and-delete
+    description: Creating and deleting a branch succeeds
+    tool: git_branch
+    input:
+      repo_path: "${TEST_REPO_PATH}"
+      action: "create"
+      name: "eval-test-branch-temp"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_equals
+        field: success
+        value: true
+
+  - id: stash-list
+    description: Stash list returns stash entries
+    tool: git_stash
+    input:
+      repo_path: "${TEST_REPO_PATH}"
+      action: "list"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: stashes
+
+  - id: tag-list
+    description: Tag list returns existing tags
+    tool: git_tag
+    input:
+      repo_path: "${TEST_REPO_PATH}"
+      action: "list"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: tags
+
+  - id: remote-list
+    description: Remote list shows configured remotes
+    tool: git_remote
+    input:
+      repo_path: "${TEST_REPO_PATH}"
+      action: "list"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: remotes
+      - type: array_length_gte
+        field: remotes
+        value: 1
+
+  - id: clone-shallow
+    description: Shallow clone of a public repo succeeds
+    tool: git_clone
+    input:
+      url: "https://github.com/anthropics/anthropic-sdk-python.git"
+      path: "/tmp/eval-git-mcp-clone-test"
+      depth: 1
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_equals
+        field: success
+        value: true
+
+  - id: worktree-list
+    description: Worktree list shows current worktrees
+    tool: git_worktree
+    input:
+      repo_path: "${TEST_REPO_PATH}"
+      action: "list"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: worktrees
+      - type: array_length_gte
+        field: worktrees
+        value: 1

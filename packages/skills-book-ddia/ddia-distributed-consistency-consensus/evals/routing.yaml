@@ -1,0 +1,32 @@
+skill: ddia-distributed-consistency-consensus
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+# They cover the sub-decisions this skill owns: consistency-model choice, "does this need consensus?",
+# leader election / failover safety, distributed locks + fencing, build-vs-buy coordination
+# (ZooKeeper/etcd), 2PC vs consensus, CAP, quorum linearizability, clocks/timeouts, split-brain.
+positives:
+  - "нужна ли линеаризуемость для этой операции или хватит причинной согласованности?"
+  - "linearizable vs eventual — which consistency model do I actually need for the balance field?"
+  - "does enforcing a unique username across shards actually reduce to consensus?"
+  - "как безопасно сделать leader election и failover, чтобы не словить split-brain?"
+  - "should I stand up ZooKeeper/etcd for distributed locks or is that overkill here?"
+  - "2PC vs consensus for committing across two services — which is safe if the coordinator crashes?"
+  - "w+r>n у меня строгий кворум — это даёт мне сильную согласованность?"
+  - "our distributed lease holder can GC-pause for minutes — how do I stop it corrupting the resource?"
+  - "CAP: do I have to give up consistency or availability during a partition?"
+  - "how many nodes do I need in the consensus cluster to tolerate 2 failures, and what timeout for failure detection?"
+
+# Hard negatives: prompts that belong to a SIBLING DDIA skill or a non-DDIA arsenal skill that shares
+# vocabulary — this skill must NOT win them. For each, name which skill SHOULD activate.
+negatives:
+  - prompt: "single-leader vs multi-leader vs leaderless — how should I lay out my replicas?"
+    should_activate: "ddia-replication-topology-choice"
+  - prompt: "как настроить read-your-writes при асинхронной репликации с отставанием реплики?"
+    should_activate: "ddia-replication-topology-choice"
+  - prompt: "two concurrent transactions cause a write-skew booking bug — do I need serializable or snapshot isolation?"
+    should_activate: "ddia-transaction-isolation-choice"
+  - prompt: "нужно перебалансировать шарды при добавлении нод без массового переезда ключей — какую стратегию партиционирования взять?"
+    should_activate: "ddia-partitioning-strategy"
+  - prompt: "my Kubernetes operator uses etcd leader election via a Lease object — how do I configure that controller?"
+    should_activate: "kubernetes"
+  - prompt: "implement a distributed lock with Redis Redlock in my node client — what TTL and retry settings?"
+    should_activate: "redis-patterns"

@@ -1,0 +1,68 @@
+{
+  "name": "@dzhechkov/skills-feature-adr",
+  "version": "1.5.7",
+  "description": "Adaptive Feature Development skill pack for Claude Code — 11-step pipeline with Complexity Router (S/M/L/XL), ADR-driven architecture, 15 agentic-qe skills, multi-agent fleet QE. Supports --full-qe, --full-qe-extended, --with-learning, and --knowledge-extractor modes.",
+  "bin": {
+    "skills-feature-adr": "./bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "templates/",
+    "LICENSE",
+    "CHANGELOG.md",
+    "docs/",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
+    "test": "node --test \"test/**/*.test.js\"",
+    "prepack": "node -e \"const fs=require('fs');const bad=['.claude','.skills-feature-adr.json'].filter(p=>fs.existsSync(p));if(bad.length){console.error('prepack guard: stray init artifacts in package dir: '+bad.join(', ')+' — remove before packing');process.exit(1)}\""
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai",
+    "feature-adr",
+    "adr",
+    "architecture-decision-records",
+    "feature-development",
+    "complexity-router",
+    "skills",
+    "skill-pack",
+    "ddd",
+    "quality-engineering",
+    "agentic-qe",
+    "shift-left",
+    "fleet-qe",
+    "reward-learning",
+    "knowledge-extractor",
+    "harvest"
+  ],
+  "author": "dzhechko",
+  "license": "MIT AND Apache-2.0",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/skills-feature-adr"
+  },
+  "homepage": "https://github.com/djd1m/dz-skill-bundles/blob/main/docs/feature-adr-team-onboarding.md",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-skill-bundles/issues"
+  },
+  "peerDependencies": {
+    "@dzhechkov/keysarium-core": "^1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@dzhechkov/keysarium-core": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

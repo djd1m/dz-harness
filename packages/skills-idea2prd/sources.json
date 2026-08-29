@@ -1,0 +1,25 @@
+{
+  "_note": "Per ADR-0001: idea2prd-manual is the canonical artifact of THIS pack; the explore/goap/problem-solver trio is a TRACKED vendored copy whose canonical home is @dzhechkov/skills-analyst-manual. Re-sync with `dz sync-upstream`.",
+  "skills": {
+    "idea2prd-manual": {
+      "origin": "dz-original",
+      "canonical_pack": "@dzhechkov/skills-idea2prd",
+      "inspired_by": "Cloud.ru GenAI GTM idea2prd-manual (clean-room canonicalization)"
+    },
+    "explore": {
+      "origin": "vendored",
+      "canonical_pack": "@dzhechkov/skills-analyst-manual",
+      "upstream_path": "templates/.claude/skills/explore"
+    },
+    "goap-research-ed25519": {
+      "origin": "vendored",
+      "canonical_pack": "@dzhechkov/skills-analyst-manual",
+      "upstream_path": "templates/.claude/skills/goap-research-ed25519"
+    },
+    "problem-solver-enhanced": {
+      "origin": "vendored",
+      "canonical_pack": "@dzhechkov/skills-analyst-manual",
+      "upstream_path": "templates/.claude/skills/problem-solver-enhanced"
+    }
+  }
+}

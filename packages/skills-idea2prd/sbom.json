@@ -1,0 +1,517 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "skills-idea2prd"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a7dbdf9cb81895308026ba0a949dccdd078ec8c6d54a6fe3460d570adb415994"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "bin/cli.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a210174d6b63d053f7744757972d31acb0f4d9c59f8dacff7b62872a19ebd31a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "0299e1d22192fa2dfd9958f73b1475cec04efeef00452e15a2ea6f43a368f18d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "sources.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3712bcefb43e3f38a926974c6e6b7b1d36992549dabdfd82e68d0fb7b8ba4481"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/cli.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4ec553ef49d30599672cbaf5583fa999a0be4c06207433390d7d0bdd985bb804"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/doctor.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "82f35dabfeef6033ec3ee6142e04cd195002e7855f2d7ac7aa3222748a3e6de2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/init.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3bcd444ba61681bf5bd882fdbcbfbc7d180b5e0f370c0dd5ace6309a6e98040f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/list.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f7b3a45abd3a3fcd3b9d8dcfb4540ae55f57f0fd74a51cdd898f0faa9d8cfc43"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/remove.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5d49c362a97092c878a3c1871a038d1e49a8bb01c8c82a53e7b49652c1526299"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/update.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7e7a8720afcf9e2b58c910dc2b630e5c6fc1b1eea88ba02f427f195616727249"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/utils.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e07c5e711d54821869d6d76ff861920f37f54277b1a2fc953e45e3823aff4da4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/idea2prd-manual.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dcb6c72f3dba8ed1a6c087012658a822b9ce5a9e06da4d59520c7845600cac8b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/explore/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2473e7961845db0d64566cd42627b374d1830664b9e302058a1b1aa466bc7361"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/explore/references/questioning-techniques.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ec0dd00871d3abe950f9cf375216a43043827897166c4165c3fa581839851195"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/explore/references/task-brief-templates.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e9292479e120afce944b747bb7b4a7226c41e9880708d620de3ea4fa4ef0249"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/references/ed25519-verification.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2742f14b472bff69c83f24d9bac5bf023bd7f9ecc3e659742ac3152a239dd68f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/references/research-actions.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "156d2f8ce342f7013bc758fe7c0d3ad3041b4f67f30dbcf8d59e091cb70d9a9c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/references/source-evaluation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d6a19abb6be64dc9e1f539903080029125d2d899da4de3063e75e1afb7e4906f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/check_report_evidence.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5053e677f11d00b4dd8365a81eafa1d2c961eebd25c33f72b02455573a934a32"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/ed25519_verifier.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f4a2ac9e6473201583643fe8abf47560863cec600344dad5c9df06091b4298f5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/evidence_fetch.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5f4d7cb5d6fb3106d64130b6606582eb55a4f633ef969cf7890b1de1c179345b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/fixture_legacy_v1_fact.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e613de4737145cbfb5f349fbf9f1122801ce3508b62c3a18e2e0cba26b9da5b0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/fixture_legacy_v2_fact.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3f552b47c3864e4ff7ae8c72516e98c188592c7f4f7703d09ce88b39f586ad9d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/fixtures_field_cases.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e2ee619732ab4a1b57285e57b4349f96b4158b231a5624e5264fadf69edb8983"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/goap_planner.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f5cbf4784106710b363e7f29bfa538b75f488cb25e1c273ae40de9f4c2a6710b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/learning_bridge.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "74f8842978ba945ff78c2bd54702415dd87122e61919571e12a19c3cf1e56131"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/population_match.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bbd1d3346a6fb75d0e8526cb5d2fc8bc8613bb31ab63ffb0958d436d5e009054"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/risk_statement.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "320ffece816e875f65624583846f44dc99461f672a0de7cda42be5ddf29d6de5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/source_tiers.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e1aae76fad01693ab35b51466fc4369c04a5ac64230fd307e7b798dc5beeff7a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_ed25519_verifier.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dcba1ce538ff946d6928f30a7c5cbcc37fddf712b6181f91f94c76e20c117ac5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_evidence_provenance.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "292bfcdcc086934905c77f1543d8400ee483166ff3ce26c79bb526c204320dbb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_goap_planner.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7942ada069048b7e97bf2b6e920898a58517ccec090069f347399dbf1fc37731"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_population_match.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f33f72c0ba6305af1644e6b1a7f7635d3f33273344f19c14e7dbd2f819af0e7f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_risk_absolute.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ab353db189650551c374cb772ba4a3a6929e3a2618f2f5c112eca4c3f69e46b6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_signature_v3.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a04259296df104c9497c7b31d29556cb9a7ad4dd3339cbe3d8d32a4f53950d25"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_suite_completeness.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "727c5d5b0dad215957012276ebc146397178255077e762ed7b88a60d8178d2ab"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/idea2prd-manual/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "64780d15549e8c2c20a83fbb7afa6856cecbb6d7b940b72ea7d57dca83675786"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/idea2prd-manual/references/adr-catalog.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e65f61ebeb9d3aa3179f0457028640510dca9e6f5c096ebc474d5a088280b828"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/idea2prd-manual/references/c4-model.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5da67750e3b4c580252cd7368601a635d555dc2e6048751246f7c24d5a984f74"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/idea2prd-manual/references/completion-checklist-template.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4bb8a09829a7d616eef11833f71cba4f9a56f24364eccb9061c57f275abd82f7"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/idea2prd-manual/references/ddd-patterns.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "897cdc8c51113080ddef1167e02e1fa9a711475bebbc144ec3bbf4ccf1b464be"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/idea2prd-manual/references/fitness-functions-catalog.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b32dfd48d4b1cdd0845a5e4934eb7589cf553dc6d6850d2d0acb80c88568dd9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/idea2prd-manual/references/pseudocode-style.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "80b006853de2e3e38816b91a9b91443a512e9d0d3ec85801fee12f0e5025e155"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/idea2prd-manual/scripts/ai_context_builder.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3468e0fa2f283107e9e0fb6b4598cea6d3f916508a528613efe416c79841f86e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/idea2prd-manual/scripts/c4_generator.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "96d0c26edcd370c16fb5b171941b84dfe7a0b19c1b52cd7c3de234986ca8cbb6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/idea2prd-manual/scripts/fitness_validator.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "50b552669b1797072632982bdc0eb661239c2a21f37563b23f67eeb7af1677c9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/idea2prd-manual/scripts/pseudocode_generator.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "880cff2cc7b040c71114fe9dfea4d80f74686dfa8af6c6a90aed1ebe6ae21cfc"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/problem-solver-enhanced/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "031378aa2e10c98928e35de07d454135e73550cd0c49f0cd886d53e4208d6b9f"
+        }
+      ]
+    }
+  ]
+}

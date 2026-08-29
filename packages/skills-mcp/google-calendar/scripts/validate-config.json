@@ -1,0 +1,46 @@
+{
+  "name": "google-calendar",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "id": "env-check",
+      "type": "env",
+      "description": "Verify Google credentials are configured",
+      "required_vars_any": [
+        "GOOGLE_OAUTH_CREDENTIALS"
+      ],
+      "error_message": "GOOGLE_OAUTH_CREDENTIALS must be set to the path of your Google OAuth credentials JSON (Desktop app type)"
+    },
+    {
+      "id": "oauth-credentials-file",
+      "type": "file",
+      "description": "Verify OAuth credentials JSON file exists",
+      "path": "${GOOGLE_OAUTH_CREDENTIALS}",
+      "conditional_on": "GOOGLE_OAUTH_CREDENTIALS",
+      "error_message": "OAuth credentials file not found at path specified in GOOGLE_OAUTH_CREDENTIALS"
+    },
+    {
+      "id": "mcp-server-check",
+      "type": "command",
+      "description": "Verify MCP server package is available",
+      "command": "npx --yes @cocal/google-calendar-mcp --version",
+      "timeout_ms": 30000,
+      "error_message": "Cannot locate @cocal/google-calendar-mcp. Run: claude mcp add google-calendar -- npx @cocal/google-calendar-mcp"
+    },
+    {
+      "id": "output-schema",
+      "type": "json-schema",
+      "description": "Validate tool output against schema",
+      "schema_path": "../schemas/output.json"
+    }
+  ],
+  "mcp_config": {
+    "server_name": "google-calendar",
+    "command": "npx",
+    "args": ["@cocal/google-calendar-mcp"],
+    "transport": "stdio",
+    "env": {
+      "GOOGLE_OAUTH_CREDENTIALS": "${GOOGLE_OAUTH_CREDENTIALS}"
+    }
+  }
+}

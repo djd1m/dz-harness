@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "monorepo-management output",
+  "description": "Structured output from the monorepo-management skill",
+  "type": "object",
+  "required": ["status", "summary", "operation_type", "tooling", "result"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "needs_more_info"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line summary of the monorepo operation performed"
+    },
+    "operation_type": {
+      "type": "string",
+      "enum": [
+        "setup",
+        "add-package",
+        "dependency-management",
+        "build-pipeline",
+        "changeset-workflow",
+        "publish",
+        "ci-optimization",
+        "debug",
+        "health-check"
+      ],
+      "description": "Classification of the monorepo management operation"
+    },
+    "tooling": {
+      "type": "object",
+      "required": ["package_manager", "build_tool"],
+      "properties": {
+        "package_manager": {
+          "type": "string",
+          "enum": ["pnpm", "npm", "yarn", "bun"],
+          "description": "Package manager in use"
+        },
+        "build_tool": {
+          "type": "string",
+          "enum": ["turborepo", "nx", "lerna", "none"],
+          "description": "Monorepo build orchestration tool"
+        },
+        "versioning_tool": {
+          "type": "string",
+          "enum": ["changesets", "lerna", "nx-release", "manual", "none"],
+          "description": "Package versioning and publishing tool"
+        }
+      }
+    },
+    "workspace": {
+      "type": "object",
+      "properties": {
+        "total_packages": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of packages in the workspace"
+        },
+        "packages_affected": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Package names affected by this operation"
+        },
+        "dependency_graph_valid": {
+          "type": "boolean",
+          "description": "Whether the workspace dependency graph is acyclic and valid"
+        },
+        "circular_deps": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Circular dependency chains detected, if any"
+        }
+      }
+    },
+    "result": {
+      "type": "object",
+      "required": ["description", "files_changed"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Detailed description of what was done"
+        },
+        "files_changed": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of files created or modified"
+        },
+        "files_created": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of new files created"
+        },
+        "configs_updated": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "file": { "type": "string" },
+              "change": { "type": "string" }
+            }
+          },
+          "description": "Configuration files that were modified and what changed"
+        }
+      }
+    },
+    "issues_found": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "description"],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["error", "warning", "info"]
+          },
+          "description": {
+            "type": "string"
+          },
+          "package": {
+            "type": "string",
+            "description": "Package affected by the issue"
+          },
+          "fix": {
+            "type": "string",
+            "description": "Suggested fix for the issue"
+          }
+        }
+      },
+      "description": "Issues discovered during the operation"
+    },
+    "health": {
+      "type": "object",
+      "properties": {
+        "phantom_deps": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Packages using undeclared dependencies via hoisting"
+        },
+        "unused_deps": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Declared dependencies that are not imported"
+        },
+        "version_drift": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "dependency": { "type": "string" },
+              "versions": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          },
+          "description": "Dependencies with inconsistent versions across packages"
+        },
+        "missing_workspace_protocol": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Intra-monorepo deps not using workspace:* protocol"
+        }
+      }
+    }
+  }
+}

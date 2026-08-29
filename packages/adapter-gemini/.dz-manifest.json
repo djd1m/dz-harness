@@ -1,0 +1,41 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "adapter-gemini",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "f70164eacda2b6fb6fa1055564fea059415dbf8851abcea1486e5723c1e82b7a"
+      },
+      {
+        "path": "dist/index.d.ts",
+        "sha256": "5e2050b91407ad1b819279327a2d9dcc812e6919f04dd33903e854ce0bcdd696"
+      },
+      {
+        "path": "dist/index.d.ts.map",
+        "sha256": "99dec7f41623a9763d24dd5beb11c3a20b5b107e1899c1ee071d111651b312fc"
+      },
+      {
+        "path": "dist/index.js",
+        "sha256": "cb873d4130a5372a68a242014c7d548e6973b92146dd7ebcebc044e0893d58ac"
+      },
+      {
+        "path": "dist/index.js.map",
+        "sha256": "732347428738dc8401d5cf7260e63551834d648b455cdb271212b1dc1551533a"
+      },
+      {
+        "path": "package.json",
+        "sha256": "0fbbd7fb78c34516163207072ca361a6eb61e97461627b69844138b7ec8de7c1"
+      },
+      {
+        "path": "src/index.ts",
+        "sha256": "bfa18d922e9a1814768bef4c801b6127084474f6864189fc64c51fc27920bd95"
+      }
+    ]
+  },
+  "signature": "nhX0srWL2YyFGlJfgOtWaMNmgCXDQzRxuZ9aKagNlC9xdTRb9u89dtU0gAr+v7XQZZzAHKp0ojCT7C4jJ14VBA=="
+}

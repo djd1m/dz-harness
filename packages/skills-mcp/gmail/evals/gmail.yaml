@@ -1,0 +1,138 @@
+name: gmail
+description: Evaluation suite for the gmail MCP wrapper skill
+version: "1.0.0"
+
+setup:
+  required_env: []
+  mcp_server: gogcli-gmail
+  prerequisites:
+    - description: "gogcli must be installed and authenticated with a Gmail account"
+    - description: "Test account should have at least one email in INBOX"
+
+evals:
+  - id: search-inbox
+    description: Search inbox returns messages with IDs
+    tool: gmail_search
+    input:
+      query: "in:inbox"
+      max_results: 5
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: messages
+      - type: each_item_has_field
+        field: messages
+        required_fields: ["id"]
+
+  - id: search-with-query
+    description: Gmail query syntax filters results correctly
+    tool: gmail_search
+    input:
+      query: "is:unread newer_than:30d"
+      max_results: 10
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: messages
+
+  - id: search-by-sender
+    description: Search by sender returns matching emails
+    tool: gmail_search
+    input:
+      query: "from:noreply@github.com"
+      max_results: 5
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+
+  - id: search-with-label
+    description: Label filter scopes results to specific label
+    tool: gmail_search
+    input:
+      query: "in:inbox"
+      max_results: 5
+      label: "INBOX"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+
+  - id: get-message
+    description: Get message by ID returns full content
+    tool: gmail_get
+    input:
+      message_id: "test-message-id"
+      format: "full"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+    skip_reason: "Requires a valid message_id from search results"
+
+  - id: create-draft
+    description: Creating a draft returns draft ID
+    tool: gmail_draft
+    input:
+      to: "test@example.com"
+      subject: "[TEST] Skill eval draft"
+      body: "This is a test draft created by the gmail skill eval. Safe to delete."
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: send_result.message_id
+      - type: field_equals
+        field: send_result.status
+        value: "draft_created"
+
+  - id: label-message
+    description: Adding a label to a message succeeds
+    tool: gmail_label
+    input:
+      message_id: "test-message-id"
+      add_labels: ["STARRED"]
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: label_result
+    skip_reason: "Requires a valid message_id"
+
+  - id: bulk-mark-read
+    description: Bulk mark-read operation reports affected count
+    tool: gmail_bulk
+    input:
+      query: "is:unread older_than:90d category:promotions"
+      action: "mark_read"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: bulk_result.affected_count
+      - type: field_equals
+        field: bulk_result.action
+        value: "mark_read"
+
+  - id: send-validation
+    description: Sending without required fields returns error
+    tool: gmail_send
+    input:
+      to: ""
+      subject: ""
+      body: ""
+    assertions:
+      - type: returns_error
+        error_contains: "required"
+
+  - id: search-empty-results
+    description: Search with impossible query returns empty results
+    tool: gmail_search
+    input:
+      query: "from:nonexistent-user-abc123xyz@impossible-domain-that-does-not-exist.invalid"
+      max_results: 5
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: array_length_eq
+        field: messages
+        value: 0

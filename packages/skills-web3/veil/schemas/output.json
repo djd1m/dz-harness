@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Veil ZK Transaction Response",
+  "description": "Schema for Veil privacy-preserving ZK transaction operations",
+  "type": "object",
+  "properties": {
+    "operation": {
+      "type": "string",
+      "enum": ["deposit", "withdraw", "transfer", "merge", "balance", "status", "generate-keypair"],
+      "description": "Veil operation performed"
+    },
+    "asset": {
+      "type": "string",
+      "enum": ["ETH", "USDC"],
+      "description": "Asset involved"
+    },
+    "amount": {
+      "type": "string",
+      "description": "Human-readable amount"
+    },
+    "shielded_address": {
+      "type": "string",
+      "description": "Veil shielded address (veil:base:0x...)"
+    },
+    "public_address": {
+      "type": "string",
+      "pattern": "^0x[a-fA-F0-9]{40}$",
+      "description": "Public Ethereum address (for deposits/withdrawals)"
+    },
+    "tx_hash": {
+      "type": "string",
+      "description": "On-chain transaction hash (deposits/withdrawals)"
+    },
+    "transfer_id": {
+      "type": "string",
+      "description": "Shielded transfer ID (private transfers)"
+    },
+    "balances": {
+      "type": "object",
+      "properties": {
+        "ETH": {
+          "type": "object",
+          "properties": {
+            "available": { "type": "string" },
+            "pending": { "type": "string" }
+          }
+        },
+        "USDC": {
+          "type": "object",
+          "properties": {
+            "available": { "type": "string" },
+            "pending": { "type": "string" }
+          }
+        }
+      }
+    },
+    "utxos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "asset": { "type": "string", "enum": ["ETH", "USDC"] },
+          "amount": { "type": "string" },
+          "status": { "type": "string", "enum": ["available", "pending", "spent"] }
+        }
+      }
+    },
+    "protocol_status": {
+      "type": "object",
+      "properties": {
+        "tvl": { "type": "number", "description": "Total value locked in USD" },
+        "total_deposits": { "type": "integer" },
+        "anonymity_set_size": { "type": "integer" },
+        "relayer_active": { "type": "boolean" }
+      }
+    },
+    "proof_generation_time_ms": {
+      "type": "integer",
+      "description": "ZK proof generation time in milliseconds"
+    },
+    "used_relayer": {
+      "type": "boolean",
+      "description": "Whether the relayer was used for gas-free execution"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["success", "pending", "failed"],
+      "description": "Operation result status"
+    }
+  },
+  "required": ["operation"]
+}

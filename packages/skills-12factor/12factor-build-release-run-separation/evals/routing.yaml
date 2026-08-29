@@ -1,0 +1,29 @@
+skill: 12factor-build-release-run-separation
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+positives:
+  - "как правильно разложить деплой на этапы — сборка, релиз, запуск?"
+  - "how should I structure the deploy lifecycle into build, release and run stages?"
+  - "why can't I just edit the code on the live server to fix this quickly?"
+  - "хочу сделать откат релиза мгновенным и надёжным — как устроить release management?"
+  - "should releases be immutable, and how do I version them — timestamp or an increasing number?"
+  - "my app keeps crashing overnight after a reboot because it recompiles assets on start — how do I fix the run stage?"
+  - "почему нельзя вшивать конфиг в build-артефакт, и где тогда конфиг встречается с кодом?"
+  - "we're moving off manual scp deploys to a real pipeline — how do I separate building the artifact from running it?"
+  - "rollback через симлинк как в Capistrano — как правильно организовать неизменяемые релизы?"
+  - "how much work should happen at container start vs during the image build?"
+# Hard negatives: prompts owned by a SIBLING 12factor- skill (or arsenal skill) — this skill must NOT win.
+negatives:
+  - prompt: "how do I connect my app to the database — where should the connection string live?"
+    should_activate: "12factor-config-in-environment"
+  - prompt: "как хранить секреты и переменные окружения, чтобы не коммитить их в репозиторий?"
+    should_activate: "12factor-config-in-environment"
+  - prompt: "I want to swap my local Postgres for RDS without changing code — how do I treat it as an attached resource?"
+    should_activate: "12factor-backing-services-as-resources"
+  - prompt: "how do I keep my web processes stateless so I can scale them horizontally and not lose session data?"
+    should_activate: "12factor-stateless-processes"
+  - prompt: "как сделать быстрый старт и корректное завершение процесса по SIGTERM для graceful shutdown?"
+    should_activate: "12factor-disposability-fast-startup"
+  - prompt: "how do I set the replica count and readiness probe on this Kubernetes Deployment?"
+    should_activate: "kubernetes"
+  - prompt: "design a GitHub Actions workflow with a build matrix and dependency caching"
+    should_activate: "github-actions"

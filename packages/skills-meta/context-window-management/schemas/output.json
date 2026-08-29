@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Context Window Management Output",
+  "description": "Structured output from context management operations",
+  "type": "object",
+  "required": ["strategy_applied", "context_before_pct", "context_after_pct"],
+  "properties": {
+    "strategy_applied": {
+      "type": "string",
+      "enum": ["priority-pruning", "checkpoint-restore", "summarization", "sliding-window", "delegation"],
+      "description": "Strategy that was applied"
+    },
+    "context_before_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Estimated context usage before management (percentage)"
+    },
+    "context_after_pct": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Estimated context usage after management (percentage)"
+    },
+    "items_pruned": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of context items pruned or summarized"
+    },
+    "checkpoint_path": {
+      "type": "string",
+      "description": "Path to checkpoint file (if checkpoint-restore used)"
+    },
+    "essential_context_preserved": {
+      "type": "boolean",
+      "description": "Verification that critical context was not lost"
+    }
+  }
+}

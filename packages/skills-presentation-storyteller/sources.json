@@ -1,0 +1,19 @@
+{
+  "_note": "Per ADR-0001: presentation-storyteller is the canonical artifact of THIS pack (single source of truth; it had only one copy in the repo — keysarium — so there was no drift to resolve). The explore/goap pair is a TRACKED vendored copy. Re-sync with `dz sync-upstream`.",
+  "skills": {
+    "presentation-storyteller": {
+      "origin": "dz-original",
+      "canonical_pack": "@dzhechkov/skills-presentation-storyteller"
+    },
+    "explore": {
+      "origin": "vendored",
+      "canonical_pack": "@dzhechkov/skills-analyst-manual",
+      "upstream_path": "templates/.claude/skills/explore"
+    },
+    "goap-research-ed25519": {
+      "origin": "vendored",
+      "canonical_pack": "@dzhechkov/skills-analyst-manual",
+      "upstream_path": "templates/.claude/skills/goap-research-ed25519"
+    }
+  }
+}

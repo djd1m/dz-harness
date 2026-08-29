@@ -1,0 +1,33 @@
+skill: 12factor-codebase-repo-mapping
+
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+# All are about the repo↔app↔deploy mapping: one codebase per app, monorepo-vs-polyrepo,
+# shared-codebase violations, extract-a-library escape hatch, and many-deploys-of-one-codebase.
+positives:
+  - "один репозиторий или несколько для этого нового приложения?"
+  - "monorepo or polyrepo — how should we lay out repos for these services?"
+  - "у нас из одного репо деплоятся два разных сервиса, это нормально по 12-факторам?"
+  - "two apps are importing from the same shared repo — is that a code-structure smell?"
+  - "как разложить растущую систему на сервисы по репозиториям?"
+  - "two teams keep copy-pasting the same helpers between apps — share the repo or make a library?"
+  - "мы называем это одним приложением, но там пять репозиториев — это правильно?"
+  - "on staging we're a few commits behind prod and my laptop is ahead — are these different apps?"
+  - "should common code between our services live in a shared codebase or a versioned library?"
+
+# Hard negatives: prompts a naive keyword match ("repo", "version", "deploy", "config", "app")
+# would wrongly route here, but that actually belong to a sibling 12factor- skill or an arsenal skill.
+negatives:
+  - prompt: "how do I keep API keys and DB credentials out of the code and per-environment?"
+    should_activate: "12factor-config-in-environment"
+  - prompt: "как связаться с базой данных и брокером очередей как с подключаемыми ресурсами?"
+    should_activate: "12factor-backing-services-as-resources"
+  - prompt: "pin exact library versions and isolate dependencies so builds are reproducible"
+    should_activate: "12factor-explicit-dependencies"
+  - prompt: "turn a specific commit into a release artifact and run it — separate build, release, run stages"
+    should_activate: "12factor-build-release-run-separation"
+  - prompt: "our app keeps session state in memory between requests — how do we make processes stateless?"
+    should_activate: "12factor-stateless-processes"
+  - prompt: "plan a zero-downtime migration to add a column to our huge Postgres users table"
+    should_activate: "database-migration"
+  - prompt: "resolve this git merge conflict between the feature branch and main"
+    should_activate: "git-conflict-resolve"

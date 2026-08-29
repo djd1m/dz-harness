@@ -1,0 +1,64 @@
+{
+  "name": "quotient-config-validator",
+  "description": "Validates Quotient market intelligence API configuration",
+  "rules": [
+    {
+      "field": "apiKey",
+      "required": false,
+      "type": "string",
+      "minLength": 10,
+      "envFallback": "QUOTIENT_API_KEY",
+      "description": "Quotient API key from dev.quotient.social (alternative to x402)"
+    },
+    {
+      "field": "baseUrl",
+      "required": true,
+      "type": "string",
+      "pattern": "^https://",
+      "description": "Quotient API base URL — TODO: unverified. api.quotient.social resolves but documented paths return 404; confirm the real base URL via dev.quotient.social before use (no default provided so it cannot silently point at a dead host)."
+    },
+    {
+      "field": "paymentMethod",
+      "required": false,
+      "type": "string",
+      "enum": ["x402", "api_key"],
+      "default": "x402",
+      "description": "Payment method: x402 micropayments or API key billing"
+    },
+    {
+      "field": "bankrApiKey",
+      "required": false,
+      "type": "string",
+      "envFallback": "BANKR_API_KEY",
+      "description": "Bankr API key for x402 payment signing (required if paymentMethod is x402)"
+    },
+    {
+      "field": "maxPaymentPerRequest",
+      "required": false,
+      "type": "string",
+      "default": "0.05",
+      "description": "Maximum USDC payment allowed per single request (safety cap)"
+    }
+  ],
+  "requiredPreflight": [
+    {
+      "endpoint": "/openapi.json",
+      "description": "Fetch OpenAPI spec for endpoint schemas"
+    },
+    {
+      "endpoint": "/api/public/pricing",
+      "description": "Fetch current per-endpoint pricing"
+    }
+  ],
+  "x402Protocol": {
+    "network": "base",
+    "token": "USDC",
+    "steps": [
+      "send_request",
+      "parse_402_response",
+      "sign_payment",
+      "retry_with_proof",
+      "parse_response"
+    ]
+  }
+}

@@ -1,0 +1,71 @@
+name: database-review
+description: Evaluation cases for database-review skill
+version: "1.0"
+
+cases:
+  - id: add-column-with-default
+    description: "Adding a NOT NULL column with DEFAULT on a large table"
+    input:
+      migration: |
+        ALTER TABLE orders ADD COLUMN status VARCHAR(50) NOT NULL DEFAULT 'pending';
+      context:
+        engine: postgresql
+        version: "14"
+        table_rows: 5000000
+    expected:
+      safety_assessment: caution
+      findings_contain:
+        - severity: warning
+          category: lock_duration
+      deploy_recommendation:
+        rollback_plan: present
+
+  - id: index-without-concurrently
+    description: "Creating index without CONCURRENTLY on production table"
+    input:
+      migration: |
+        CREATE INDEX idx_users_email ON users (email);
+      context:
+        engine: postgresql
+        version: "15"
+        table_rows: 2000000
+    expected:
+      safety_assessment: unsafe
+      findings_contain:
+        - severity: blocker
+          category: index_build
+
+  - id: safe-migration
+    description: "Adding a nullable column (metadata-only in PG 11+)"
+    input:
+      migration: |
+        ALTER TABLE users ADD COLUMN bio TEXT;
+      context:
+        engine: postgresql
+        version: "15"
+        table_rows: 1000000
+    expected:
+      safety_assessment: safe
+
+  - id: slow-query-review
+    description: "Query with function on indexed column"
+    input:
+      query: "SELECT * FROM users WHERE LOWER(email) = 'test@example.com'"
+      context:
+        engine: postgresql
+        indexes: ["idx_users_email ON users(email)"]
+    expected:
+      findings_contain:
+        - severity: warning
+          category: query_performance
+
+  - id: missing-rollback
+    description: "Destructive migration without rollback"
+    input:
+      migration: |
+        DROP TABLE legacy_sessions;
+      rollback: null
+    expected:
+      findings_contain:
+        - severity: blocker
+          category: reversibility

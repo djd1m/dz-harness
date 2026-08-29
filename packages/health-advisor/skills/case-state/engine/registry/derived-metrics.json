@@ -1,0 +1,47 @@
+{
+  "schema": "derived-metrics-v1",
+  "_note": "DATA (ADR-002 §4). Every metric is `id + inputs + formula`, where the formula is a small STRUCTURAL expression tree over `{analyte}`, `{const}` and the four arithmetic ops. Adding a metric is a data edit; engine/profile.js contains no analyte name and no metric name (ADR-002 D5, grep-asserted).",
+  "_gfr_is_deliberately_absent": "base/modules/01-profile.md lists GFR among its derived metrics and this table does NOT ship it. CKD-EPI needs age, sex and a piecewise term — inputs that are demographics rather than folded observations, and a shape this four-op expression tree cannot express. Shipping an approximation would be an invented clinical constant, which the house Integrity rule forbids. The honest state is: not shipped, and said so here. A future ADR may extend the expression language and add it.",
+  "metrics": [
+    {
+      "id": "tg-hdl-ratio",
+      "label": "TG/HDL",
+      "unit": "ratio",
+      "inputs": ["triglycerides", "hdl"],
+      "formula": { "op": "divide", "a": { "analyte": "triglycerides" }, "b": { "analyte": "hdl" } }
+    },
+    {
+      "id": "bmi",
+      "label": "BMI",
+      "unit": "kg/m2",
+      "inputs": ["weight", "height-m"],
+      "formula": {
+        "op": "divide",
+        "a": { "analyte": "weight" },
+        "b": { "op": "multiply", "a": { "analyte": "height-m" }, "b": { "analyte": "height-m" } }
+      }
+    },
+    {
+      "id": "homa-ir",
+      "label": "HOMA-IR",
+      "unit": "index",
+      "inputs": ["fasting-glucose", "fasting-insulin"],
+      "formula": {
+        "op": "divide",
+        "a": { "op": "multiply", "a": { "analyte": "fasting-glucose" }, "b": { "analyte": "fasting-insulin" } },
+        "b": { "const": 22.5 }
+      }
+    },
+    {
+      "id": "free-androgen-index",
+      "label": "FAI",
+      "unit": "%",
+      "inputs": ["total-testosterone", "shbg"],
+      "formula": {
+        "op": "multiply",
+        "a": { "op": "divide", "a": { "analyte": "total-testosterone" }, "b": { "analyte": "shbg" } },
+        "b": { "const": 100 }
+      }
+    }
+  ]
+}

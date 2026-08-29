@@ -1,0 +1,35 @@
+skill: aiagents-agent-security
+# Positives cover: inherent agent risk sources, the adversarial-input catalogue and interception
+# points, layered model defence, guardrails on autonomy, least privilege as containment, the
+# external perimeter, data provenance/integrity, MAESTRO threat modelling, red-teaming, chaos.
+positives:
+  - "Агент читает входящие письма клиентов. Как защититься от инструкций, спрятанных в теле письма?"
+  - "Пользователь вытащил из агента системный промпт целиком. Что ставить, чтобы этого не повторилось?"
+  - "Нужно провести моделирование угроз для нашей агентной системы. С чего начинать и по каким слоям идти?"
+  - "Как устроить проверку на прочность силами красной команды для LLM-агента с доступом к инструментам?"
+  - "Our agent scrapes web pages and then calls tools. How do I stop instructions on those pages from hijacking it?"
+  - "Агент ходит в три внешних сервиса. Как закрыть периметр — сегментация, взаимный TLS, нулевое доверие?"
+  - "Один агент отравил общую память, и остальные начали ошибаться. Как это предотвратить архитектурно?"
+  - "Надо гарантировать, что данные, которые агент подтягивает, не подменили по дороге. Хеши, подписи — как выстроить?"
+  - "Какие права давать инструментам агента, чтобы компрометация одного не открыла всю систему?"
+  - "What layered defences go around the foundation model itself to survive jailbreak attempts?"
+# Seam-level adversarial positives (round 2): prompts that sit on the boundary with a
+# sibling and are still legitimately owned by THIS skill.
+  - "У агента есть право писать в CRM. Как ограничить радиус поражения, если его уговорят сделать лишнее?"
+  - "Хотим системно проверить, выдержит ли наш агент злонамеренного пользователя. Как это организовать?"
+  - "Данные для агента приходят из общего бакета, куда пишут три команды. Как убедиться, что их не подменили?"
+negatives:
+  - prompt: "Проведи ревью безопасности нашего REST-бэкенда: авторизация, инъекции в SQL, уязвимые зависимости."
+    should_activate: "security-audit"
+  - prompt: "Подтверди эксплуатируемость найденной XSS — нужен рабочий PoC, а не строчка в отчёте."
+    should_activate: "pentest-validation"
+  - prompt: "Просканируй наши хуки, MCP-серверы и права в .claude на небезопасные настройки и секреты."
+    should_activate: "agentshield-scan"
+  - prompt: "Какие пороги алертов и какие метрики собирать с агента, который уже работает в проде?"
+    should_activate: "aiagents-observability-and-drift"
+  - prompt: "Как описать контракт инструмента и схему его параметров, чтобы модель звала его правильно?"
+    should_activate: "aiagents-tool-design-and-selection"
+# WAVE-2 PROMOTION: these were soft_negatives while their cluster had no owner.
+# Wave 2 distilled that owner, so each is now a HARD negative against the new sibling.
+  - prompt: "На каких действиях агент обязан останавливаться и спрашивать человека, а какие делать сам?"
+    should_activate: "aiagents-human-in-the-loop"

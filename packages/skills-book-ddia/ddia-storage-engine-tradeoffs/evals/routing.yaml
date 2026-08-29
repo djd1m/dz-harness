@@ -1,0 +1,28 @@
+skill: ddia-storage-engine-tradeoffs
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+positives:
+  - "LSM или B-дерево для write-heavy OLTP-хранилища?"
+  - "We're write-bound on SSDs — would an LSM-tree cut write amplification vs our B-tree?"
+  - "проектирую аналитику по миллиардам строк, но читаю только пару колонок — строчное или столбцовое хранилище?"
+  - "Should I add a covering index here or just point the secondary index at the heap file?"
+  - "read-heavy vs write-heavy — какой движок хранения выбрать под наш профиль?"
+  - "Do these analytics queries deserve a separate column-oriented warehouse instead of running on the OLTP DB?"
+  - "стоит ли вообще добавлять индекс на эту колонку, или это только замедлит вставки?"
+  - "hash index vs SSTable for a per-URL view counter where all keys fit in RAM?"
+  - "star или snowflake схема для fact/dimension таблиц в нашем DWH?"
+  - "Our LSM store does slow lookups for missing keys — is a Bloom filter the fix, or switch to a B-tree?"
+# Hard negatives: prompts that belong to a SIBLING or an existing arsenal skill — this skill must NOT
+# win them. For each, name which skill SHOULD activate.
+negatives:
+  - prompt: "Should this domain be modeled as relational tables, a document, or a graph?"
+    should_activate: "ddia-data-model-selection"
+  - prompt: "Мигрируем формат сообщений в Kafka — как эволюционировать схему без поломки старых консьюмеров?"
+    should_activate: "ddia-encoding-and-schema-evolution"
+  - prompt: "Данные не влезают на один узел — шардировать по хешу ключа или по диапазону?"
+    should_activate: "ddia-partitioning-strategy"
+  - prompt: "We see write skew between concurrent transactions — do we need snapshot isolation or serializable?"
+    should_activate: "ddia-transaction-isolation-choice"
+  - prompt: "Plan a zero-downtime migration to add a new indexed column to the users table."
+    should_activate: "database-migration"
+  - prompt: "Наш read-heavy сервис тормозит — добавить слой кэширования на Redis перед базой?"
+    should_activate: "backend-patterns"

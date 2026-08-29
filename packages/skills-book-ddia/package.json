@@ -1,0 +1,32 @@
+{
+  "name": "@dzhechkov/skills-book-ddia",
+  "version": "0.1.4",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "description": "Decision-moment skills distilled from «Высоконагруженные приложения» (M. Kleppmann, DDIA рус.) — makes an AI coder apply the book’s data-systems methodologies. Machine-distilled (trust_tier 0), owner-private, book-derived.",
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "dzhechko",
+  "keywords": ["agent-skills", "skill-pack", "claude-code", "ddia", "data-intensive", "book-derived", "dz-digitized", "digitized-monograph"],
+  "files": [
+    ".dz-manifest.json",
+    "sbom.json",
+    "ddia-batch-and-stream-processing",
+    "ddia-data-model-selection",
+    "ddia-deriving-data-and-integration",
+    "ddia-distributed-consistency-consensus",
+    "ddia-encoding-and-schema-evolution",
+    "ddia-partitioning-strategy",
+    "ddia-reliability-scalability-foundations",
+    "ddia-replication-topology-choice",
+    "ddia-storage-engine-tradeoffs",
+    "ddia-transaction-isolation-choice",
+    "sources.json",
+    "README.md",
+    "LICENSE",
+    "ROUTING-GATE.md"
+  ],
+  "publishConfig": {
+    "access": "restricted"
+  }
+}

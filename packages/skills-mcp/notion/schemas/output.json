@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "notion skill output",
+  "description": "Validates output from Notion MCP tool calls",
+  "type": "object",
+  "properties": {
+    "tool": {
+      "type": "string",
+      "enum": [
+        "search_pages",
+        "get_page",
+        "create_page",
+        "update_page",
+        "query_database",
+        "create_database",
+        "append_blocks",
+        "get_block_children"
+      ],
+      "description": "The Notion MCP tool that was invoked"
+    },
+    "page": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "created_time": { "type": "string" },
+        "last_edited_time": { "type": "string" },
+        "properties": { "type": "object" },
+        "parent": { "type": "object" }
+      },
+      "description": "Page object returned from get/create/update operations"
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "object": { "type": "string", "enum": ["page", "database"] },
+          "url": { "type": "string", "format": "uri" },
+          "properties": { "type": "object" }
+        },
+        "required": ["id", "object"]
+      },
+      "description": "Search or query results"
+    },
+    "blocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string" },
+          "has_children": { "type": "boolean" }
+        },
+        "required": ["id", "type"]
+      },
+      "description": "Block children results"
+    },
+    "database": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "title": { "type": "array" },
+        "properties": { "type": "object" }
+      },
+      "description": "Database object from create_database"
+    },
+    "has_more": {
+      "type": "boolean",
+      "description": "Whether more results are available (pagination)"
+    },
+    "next_cursor": {
+      "type": ["string", "null"],
+      "description": "Cursor for fetching next page of results"
+    }
+  },
+  "required": ["tool"]
+}

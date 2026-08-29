@@ -1,0 +1,52 @@
+{
+  "name": "frontend-implementation",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "field": "components",
+      "rule": "min_items",
+      "value": 1,
+      "message": "At least one component must be created"
+    },
+    {
+      "field": "components[].name",
+      "rule": "required",
+      "message": "Each component must have a name"
+    },
+    {
+      "field": "components[].file_path",
+      "rule": "required",
+      "message": "Each component must have a file path"
+    },
+    {
+      "field": "states_handled",
+      "rule": "min_items",
+      "value": 1,
+      "message": "At least one non-happy state must be handled"
+    },
+    {
+      "field": "conventions_followed",
+      "rule": "required",
+      "message": "Must document which project conventions were followed"
+    },
+    {
+      "field": "conventions_followed.styling",
+      "rule": "required",
+      "message": "Styling approach must be documented"
+    }
+  ],
+  "constraints": [
+    {
+      "rule": "loading_state_required",
+      "condition": "components.any(type == 'page' or dependencies.any(contains 'fetch' or contains 'query'))",
+      "expected": "states_handled.includes('loading')",
+      "message": "Components with data fetching must handle loading state"
+    },
+    {
+      "rule": "tests_present",
+      "condition": "components.length > 0",
+      "expected": "tests.length > 0",
+      "message": "Tests should be provided for implemented components"
+    }
+  ]
+}

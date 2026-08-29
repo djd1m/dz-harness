@@ -1,0 +1,55 @@
+{
+  "name": "ens-primary-name",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "id": "operation-valid",
+      "type": "enum",
+      "field": "operation",
+      "values": ["set-primary", "verify-primary", "set-avatar", "get-avatar"],
+      "required": true,
+      "message": "Operation must be set-primary, verify-primary, set-avatar, or get-avatar"
+    },
+    {
+      "id": "chain-supported",
+      "type": "enum",
+      "field": "chain",
+      "values": ["ethereum", "base", "optimism", "arbitrum", "linea", "scroll"],
+      "required": true,
+      "message": "Chain must be a supported ENS L2"
+    },
+    {
+      "id": "ens-name-format",
+      "type": "pattern",
+      "field": "ens_name",
+      "pattern": "^[a-zA-Z0-9.-]+\\.eth$",
+      "required": false,
+      "message": "ENS name must end with .eth"
+    },
+    {
+      "id": "address-format",
+      "type": "pattern",
+      "field": "address",
+      "pattern": "^0x[a-fA-F0-9]{40}$",
+      "required": false,
+      "message": "Address must be a valid Ethereum address"
+    },
+    {
+      "id": "avatar-uri-format",
+      "type": "custom",
+      "condition": "operation === 'set-avatar' && avatar !== undefined",
+      "check": "avatar.uri.startsWith('https://') || avatar.uri.startsWith('ipfs://') || avatar.uri.startsWith('eip155:') || avatar.uri.startsWith('data:')",
+      "message": "Avatar URI must be HTTPS, IPFS, NFT reference, or data URI"
+    }
+  ],
+  "environment": {
+    "required_for_write": ["PRIVATE_KEY"],
+    "optional": []
+  },
+  "contracts": {
+    "ethereum": "0x084b1c3C81545d370f3634392De611CaaBFf8148",
+    "base": "0x0000000000D8e504002cC26E3Ec46D81971C1664",
+    "optimism": "0x0000000000D8e504002cC26E3Ec46D81971C1664",
+    "arbitrum": "0x0000000000D8e504002cC26E3Ec46D81971C1664"
+  }
+}

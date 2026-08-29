@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "nginx-config output",
+  "description": "Structured output from the nginx-config skill",
+  "type": "object",
+  "required": ["status", "summary", "action_type"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "needs_more_info"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line summary of the Nginx configuration or review"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": ["create", "review", "harden", "add_ssl", "add_rate_limiting", "performance_tune"],
+      "description": "What type of action was performed"
+    },
+    "server_blocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["server_name"],
+        "properties": {
+          "server_name": {
+            "type": "string",
+            "description": "The server_name directive value"
+          },
+          "listen_ports": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Ports this server block listens on"
+          },
+          "has_ssl": {
+            "type": "boolean",
+            "description": "Whether SSL/TLS is configured"
+          },
+          "has_security_headers": {
+            "type": "boolean",
+            "description": "Whether security headers are present"
+          },
+          "has_rate_limiting": {
+            "type": "boolean",
+            "description": "Whether rate limiting is configured"
+          },
+          "proxy_targets": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Upstream targets this block proxies to"
+          }
+        }
+      },
+      "description": "Server blocks in the configuration"
+    },
+    "upstreams": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "algorithm": {
+            "type": "string",
+            "enum": ["round-robin", "least_conn", "ip_hash", "hash"]
+          },
+          "server_count": { "type": "integer" },
+          "has_keepalive": { "type": "boolean" }
+        }
+      },
+      "description": "Upstream blocks defined in the configuration"
+    },
+    "review_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "finding", "recommendation"],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "warning", "info"]
+          },
+          "finding": { "type": "string" },
+          "recommendation": { "type": "string" },
+          "anti_pattern": { "type": "string" }
+          }
+      },
+      "description": "Review findings when auditing an existing configuration"
+    },
+    "self_check": {
+      "type": "object",
+      "properties": {
+        "passed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "total": {
+          "type": "integer",
+          "const": 10
+        },
+        "failures": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "description": "Results of the 10-item self-check"
+    },
+    "files_generated": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of files created or modified"
+    }
+  }
+}

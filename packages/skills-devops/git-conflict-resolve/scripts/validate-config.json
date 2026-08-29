@@ -1,0 +1,69 @@
+{
+  "name": "git-conflict-resolve",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "field": "operation",
+      "rule": "enum",
+      "values": ["merge", "rebase", "cherry-pick"],
+      "message": "Must identify the git operation type"
+    },
+    {
+      "field": "conflicts",
+      "rule": "min_items",
+      "value": 1,
+      "message": "At least one conflict must be documented"
+    },
+    {
+      "field": "conflicts[].blocks[].classification",
+      "rule": "enum",
+      "values": ["same-goal", "independent", "logical-conflict", "deletion-conflict"],
+      "message": "Each conflict block must be classified"
+    },
+    {
+      "field": "conflicts[].blocks[].ours_intent",
+      "rule": "required",
+      "message": "Must describe ours intent for each block"
+    },
+    {
+      "field": "conflicts[].blocks[].theirs_intent",
+      "rule": "required",
+      "message": "Must describe theirs intent for each block"
+    },
+    {
+      "field": "resolutions",
+      "rule": "min_items",
+      "value": 1,
+      "message": "At least one resolution must be provided"
+    },
+    {
+      "field": "resolutions[].strategy",
+      "rule": "required",
+      "message": "Each resolution must specify a strategy"
+    },
+    {
+      "field": "continue_command",
+      "rule": "required",
+      "message": "Must provide the continue command"
+    },
+    {
+      "field": "verification",
+      "rule": "required",
+      "message": "Verification results must be provided"
+    }
+  ],
+  "constraints": [
+    {
+      "rule": "logical_conflicts_need_user",
+      "condition": "conflicts.any(blocks.any(classification == 'logical-conflict'))",
+      "expected": "resolutions.any(user_input_needed == true or strategy == 'user-decision-required')",
+      "message": "Logical conflicts must request user input"
+    },
+    {
+      "rule": "continue_matches_operation",
+      "condition": "operation == 'rebase'",
+      "expected": "continue_command contains 'rebase --continue'",
+      "message": "Continue command must match the operation type"
+    }
+  ]
+}

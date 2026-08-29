@@ -1,0 +1,154 @@
+name: symbiosis
+description: "Evaluate Symbiosis cross-chain swap skill"
+version: "1.0.0"
+
+test_cases:
+  - id: quote-eth-base-to-usdc-ethereum
+    description: "Get quote for ETH on Base to USDC on Ethereum"
+    input:
+      operation: quote
+      source_chain:
+        chain_id: 8453
+        name: base
+      destination_chain:
+        chain_id: 1
+        name: ethereum
+      token_in:
+        address: "0x0000000000000000000000000000000000000000"
+        symbol: ETH
+        decimals: 18
+        amount: "100000000000000000"
+      token_out:
+        address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+        symbol: USDC
+        decimals: 6
+      slippage_bps: 300
+    expected:
+      operation: quote
+      status: quoted
+      token_out:
+        amount_present: true
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: token_out.amount
+      - type: field_present
+        field: route
+
+  - id: quote-usdc-polygon-to-usdc-base
+    description: "Get stablecoin cross-chain quote"
+    input:
+      operation: quote
+      source_chain:
+        chain_id: 137
+        name: polygon
+      destination_chain:
+        chain_id: 8453
+        name: base
+      token_in:
+        address: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"
+        symbol: USDC
+        decimals: 6
+        amount: "100000000"
+      token_out:
+        address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+        symbol: USDC
+        decimals: 6
+      slippage_bps: 50
+    expected:
+      operation: quote
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+
+  - id: swap-execution
+    description: "Execute cross-chain swap (dry run)"
+    input:
+      operation: swap
+      source_chain:
+        chain_id: 8453
+      destination_chain:
+        chain_id: 42161
+      token_in:
+        address: "0x0000000000000000000000000000000000000000"
+        symbol: ETH
+        decimals: 18
+        amount: "50000000000000000"
+      token_out:
+        address: "0x0000000000000000000000000000000000000000"
+        symbol: ETH
+        decimals: 18
+      slippage_bps: 300
+    expected:
+      operation: swap
+      status: submitted
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: tx_hash
+
+  - id: track-cross-chain
+    description: "Track cross-chain swap status"
+    input:
+      operation: track
+      tx_hash: "0xabc123..."
+    expected:
+      operation: track
+      status_one_of: ["pending", "completed", "failed"]
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: status
+
+  - id: high-slippage-warning
+    description: "Detect excessive slippage setting"
+    input:
+      operation: quote
+      slippage_bps: 5000
+      source_chain:
+        chain_id: 8453
+      destination_chain:
+        chain_id: 1
+      token_in:
+        address: "0x0000000000000000000000000000000000000000"
+        symbol: ETH
+        decimals: 18
+        amount: "1000000000000000000"
+      token_out:
+        address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+        symbol: USDC
+        decimals: 6
+    expected:
+      slippage_bps: 5000
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+
+  - id: bankr-integration
+    description: "Submit swap via Bankr API"
+    input:
+      operation: swap
+      source_chain:
+        chain_id: 8453
+        name: base
+      destination_chain:
+        chain_id: 137
+        name: polygon
+      token_in:
+        address: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+        symbol: USDC
+        decimals: 6
+        amount: "100000000"
+      token_out:
+        address: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"
+        symbol: USDC
+        decimals: 6
+      slippage_bps: 100
+    expected:
+      operation: swap
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json

@@ -1,0 +1,36 @@
+skill: package-story-page
+
+# Realistic RU/EN requests for a SHORT examples-first package story/landing page.
+# They intentionally avoid copying the frontmatter wording verbatim.
+positives:
+  - "Покажи обычному человеку, как работает этот npm-пакет: сначала вход и готовый HTML, потом коротко установка и ограничения."
+  - "Сделай небольшую красивую страницу о существующем пакете, без учебного курса и экзамена."
+  - "Нужен короткий лендинг для библиотеки: один живой сценарий, схема работы, доказательства и честные границы."
+  - "Преврати README пакета в понятную демонстрационную страницу для нетехнической аудитории."
+  - "Собери examples-first страницу пакета: синтетический ввод, проверяемый результат и где это запускается."
+  - "Мне не нужны уроки — хочу быстро показать на сайте, что пакет принимает и какой артефакт выдаёт."
+  - "Turn this existing package into a concise landing page that shows input and output before explaining internals."
+  - "Build a short visual demo page for this library, with evidence links, install commands, and honest limitations."
+  - "Explain this npm package to non-engineers on one self-contained page; start with a synthetic working example."
+  - "I need an examples-first package story, not a curriculum: show the artifact, then mechanism, reuse, and safety."
+  - "Make a compact marketing-style page for the package, but ground every factual claim in its README or tests."
+  - "Create a mobile-friendly one-page explanation of what goes in, what happens, and what inspectable file comes out."
+
+# Full lessons, exercises, progress and final tests belong to the sibling course factory.
+negatives:
+  - prompt: "Сделай полноценный интерактивный курс по пакету с уроками, упражнениями, достижениями и финальным тестом."
+    should_activate: "package-tutorial-factory"
+  - prompt: "Хочу Head First обучение по этой библиотеке: несколько глав, практика после каждой и проверка знаний."
+    should_activate: "package-tutorial-factory"
+  - prompt: "Преврати пакет в учебный сайт, чтобы новичок проходил темы по порядку и видел свой прогресс."
+    should_activate: "package-tutorial-factory"
+  - prompt: "Нужен не лендинг, а подробный курс с персонажем, заданиями и итоговым экзаменом."
+    should_activate: "package-tutorial-factory"
+  - prompt: "Build a complete interactive course for this package with lessons, exercises, achievements, and a final quiz."
+    should_activate: "package-tutorial-factory"
+  - prompt: "Turn the library into a Head First style curriculum with multiple sections and hands-on checkpoints."
+    should_activate: "package-tutorial-factory"
+  - prompt: "Create a guided learning site where developers study this package step by step and track progress."
+    should_activate: "package-tutorial-factory"
+  - prompt: "I want a full tutorial course, recurring learner persona, practice tasks, and a final assessment—not a landing page."
+    should_activate: "package-tutorial-factory"

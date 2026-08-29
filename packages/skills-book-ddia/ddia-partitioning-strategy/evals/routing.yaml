@@ -1,0 +1,30 @@
+skill: ddia-partitioning-strategy
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+# They cover the sub-decisions this skill owns: partition key scheme, hot spots,
+# secondary-index sharding, rebalancing, and request routing.
+positives:
+  - "range или hash секционирование для нашего 12-узлового кластера?"
+  - "range vs hash sharding — how do I pick a partition key?"
+  - "у нас один узел загружен под завязку, остальные простаивают — как убрать горячую точку?"
+  - "one celebrity user id is a hot key and it's saturating a single partition, what do I do?"
+  - "локальный или глобальный вторичный индекс — как секционировать secondary index?"
+  - "document-based vs term-based secondary index — which for a read-heavy filter query?"
+  - "мы масштабируем кластер, какой подход к rebalancing выбрать чтобы не гонять все данные?"
+  - "should I use a fixed number of partitions or dynamic partitioning as data grows?"
+  - "как клиент должен находить нужный узел — ZooKeeper с картой партиций или gossip?"
+  - "timestamp-first ключ секционирования — почему все сегодняшние записи бьют в одну партицию?"
+# Hard negatives: prompts that belong to a SIBLING or an existing arsenal skill — this skill must NOT
+# win them. For each, name which skill SHOULD activate.
+negatives:
+  - prompt: "single vs multi-leader replication for our shards — where should leaders live and how many copies?"
+    should_activate: "ddia-replication-topology-choice"
+  - prompt: "the ZooKeeper map that tracks partition placement — how do nodes agree on it without split-brain?"
+    should_activate: "ddia-distributed-consistency-consensus"
+  - prompt: "reads right after a write to the global term index come back stale — what isolation level fixes that?"
+    should_activate: "ddia-transaction-isolation-choice"
+  - prompt: "LSM-tree или B-дерево для движка хранения под наши ключи с диапазонными сканами?"
+    should_activate: "ddia-storage-engine-tradeoffs"
+  - prompt: "напиши zero-downtime миграцию чтобы перелить таблицу users на новую схему без блокировок"
+    should_activate: "database-migration"
+  - prompt: "how do I set up service discovery and a headless service so pods find each other in the cluster?"
+    should_activate: "kubernetes"

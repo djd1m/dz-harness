@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "gitlab config validator",
+  "description": "Validates configuration inputs for the gitlab skill",
+  "type": "object",
+  "properties": {
+    "gitlab_url": {
+      "type": "string",
+      "default": "https://gitlab.com",
+      "description": "GitLab instance URL"
+    },
+    "project": {
+      "type": "string",
+      "description": "Project path (e.g., 'group/project') or numeric ID"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "list_projects", "get_project", "create_project",
+        "list_merge_requests", "create_merge_request", "merge_merge_request", "approve_merge_request",
+        "list_issues", "create_issue", "update_issue",
+        "list_pipelines", "get_pipeline", "retry_pipeline", "cancel_pipeline",
+        "list_wiki_pages", "create_wiki_page",
+        "create_release", "list_tags", "create_tag",
+        "list_milestones", "create_milestone"
+      ],
+      "description": "GitLab operation to perform"
+    },
+    "merge_request": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "source_branch": { "type": "string" },
+        "target_branch": { "type": "string", "default": "main" },
+        "labels": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "assignee_ids": {
+          "type": "array",
+          "items": { "type": "integer" }
+        },
+        "squash": { "type": "boolean", "default": false },
+        "remove_source_branch": { "type": "boolean", "default": true }
+      }
+    },
+    "issue": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "labels": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "assignee_id": { "type": "integer" },
+        "milestone_id": { "type": "integer" },
+        "due_date": { "type": "string", "format": "date" }
+      }
+    },
+    "pipeline": {
+      "type": "object",
+      "properties": {
+        "ref": { "type": "string", "description": "Branch or tag to run pipeline on" },
+        "pipeline_id": { "type": "integer", "description": "Pipeline ID for status/retry/cancel" }
+      }
+    },
+    "filters": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": ["opened", "closed", "merged", "all"],
+          "default": "opened"
+        },
+        "labels": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "search": { "type": "string" },
+        "per_page": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 20
+        }
+      }
+    },
+    "transport": {
+      "type": "string",
+      "enum": ["stdio", "sse", "streamable-http"],
+      "default": "stdio",
+      "description": "MCP transport protocol"
+    }
+  }
+}

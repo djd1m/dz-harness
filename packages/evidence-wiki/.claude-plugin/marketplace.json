@@ -1,0 +1,14 @@
+{
+  "name": "evidence-wiki-marketplace",
+  "owner": {
+    "name": "Dmitry Zhechkov",
+    "email": "jechkov.dmitriy@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "evidence-wiki",
+      "source": "./",
+      "description": "Evidence-disciplined wiki — atomic, graph-linked concept pages where every factual claim carries an inline source, backed by N independent typed pillars and enforced via commands, a governance shard and pre-commit hooks."
+    }
+  ]
+}

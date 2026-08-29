@@ -1,0 +1,28 @@
+skill: ddia-replication-topology-choice
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+positives:
+  - "проектирую репликацию — single или multi-leader?"
+  - "single vs multi-leader?"
+  - "We're deploying across three datacenters and clients edit offline — which replication topology should I pick?"
+  - "Should the followers be synchronous or asynchronous, and what do I lose either way?"
+  - "синхронная или асинхронная репликация — как выбрать, чтобы не потерять подтверждённые записи?"
+  - "How do I tune the quorum, what w and r satisfy w+r>n for a Cassandra cluster of 5 nodes?"
+  - "leaderless Dynamo-style store — how should I resolve concurrent write conflicts, LWW or version vectors?"
+  - "users sometimes don't see their own edit right after saving — how do I get read-your-writes under replication lag?"
+  - "какой метод лога репликации выбрать — statement-based, WAL-shipping или logical/row-based?"
+  - "planning leader failover — should it be manual or automatic, and how do I avoid split-brain?"
+# Hard negatives: prompts that belong to a SIBLING or an existing arsenal skill — this skill must NOT
+# win them. For each, name which skill SHOULD activate.
+negatives:
+  - prompt: "how do I shard this 10TB users table across nodes so writes scale — hash or range partitioning?"
+    should_activate: "ddia-partitioning-strategy"
+  - prompt: "what transaction isolation level do I need to stop lost updates and write skew within a single node?"
+    should_activate: "ddia-transaction-isolation-choice"
+  - prompt: "I need real linearizability with leader election via Raft/Paxos — which consensus algorithm and how does it avoid split-brain?"
+    should_activate: "ddia-distributed-consistency-consensus"
+  - prompt: "should I use an LSM-tree or a B-tree storage engine, and how does the write-ahead log affect write amplification?"
+    should_activate: "ddia-storage-engine-tradeoffs"
+  - prompt: "my Postgres pods keep failing over — how do I set the replica count and readiness probe on the StatefulSet?"
+    should_activate: "kubernetes"
+  - prompt: "plan a zero-downtime migration to add a NOT NULL column to a 500M-row table with a safe rollback"
+    should_activate: "database-migration"

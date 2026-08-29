@@ -1,0 +1,52 @@
+{
+  "name": "@dzhechkov/skills-presentation-storyteller",
+  "version": "0.1.13",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "description": "Presentation Storyteller — composite skill for Claude Code: build a selling presentation with verified sources + a slide-by-slide storytelling speaker script (AIDA / Hero's Journey / Problem-Solution)",
+  "main": "src/cli.js",
+  "bin": {
+    "skills-presentation-storyteller": "./bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "templates/",
+    "sources.json",
+    "LICENSE",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai",
+    "presentation",
+    "storytelling",
+    "pitch-deck",
+    "sales-deck",
+    "speaker-notes",
+    "verified-sources",
+    "slides",
+    "skills",
+    "skill-pack"
+  ],
+  "author": "dzhechko",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/skills-presentation-storyteller"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-presentation-storyteller#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness-hub/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

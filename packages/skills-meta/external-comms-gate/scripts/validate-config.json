@@ -1,0 +1,33 @@
+{
+  "schema": "../schemas/output.json",
+  "rules": [
+    {
+      "id": "ECG-001",
+      "description": "Overall classification must be present",
+      "path": "overall",
+      "condition": "exists",
+      "severity": "error"
+    },
+    {
+      "id": "ECG-002",
+      "description": "Recommendation must be 'hold' when overall is BLOCK",
+      "path": "recommendation",
+      "condition": "when_overall_block_must_be_hold",
+      "severity": "error"
+    },
+    {
+      "id": "ECG-003",
+      "description": "Every BLOCK or WARNING finding must include a redaction suggestion",
+      "path": "findings[*].suggestion",
+      "condition": "required_when_classification_not_safe",
+      "severity": "warning"
+    },
+    {
+      "id": "ECG-004",
+      "description": "Channel must be identified",
+      "path": "channel",
+      "condition": "exists",
+      "severity": "error"
+    }
+  ]
+}

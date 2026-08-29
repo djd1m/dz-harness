@@ -1,0 +1,209 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "trip-planner",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "31020dabfc6e28b458d63b28162ae367792562dc1d60b1738aef0146d889eb82"
+      },
+      {
+        "path": "bin/cli.js",
+        "sha256": "a210174d6b63d053f7744757972d31acb0f4d9c59f8dacff7b62872a19ebd31a"
+      },
+      {
+        "path": "package.json",
+        "sha256": "29895a572d22913e330c2dd2340ff967f76879375977c86e78c66df2e68beb15"
+      },
+      {
+        "path": "src/cli.js",
+        "sha256": "d9a6243e23f87bf67ffef5c924262f4cc10903c5f4d3d33476d9620a432a3f7e"
+      },
+      {
+        "path": "templates/.claude/commands/trip-planner.md",
+        "sha256": "ab7948fbbc8fbe09c7ffd3606281022ac498ea8cbf93e38171939c3934f6caf8"
+      },
+      {
+        "path": "templates/.claude/rules/trip-planner-conventions.md",
+        "sha256": "3cad52bd8fa703d6b7566bc502be5ace75acc5f260b68598264d351f6c1b1115"
+      },
+      {
+        "path": "templates/.claude/shards/trip-planner.shard.md",
+        "sha256": "f65c9fac5363b4369eb2de2d76417406457fa09409fc3821d18fa0c44eb047cd"
+      },
+      {
+        "path": "templates/.claude/skills/explore/SKILL.md",
+        "sha256": "2473e7961845db0d64566cd42627b374d1830664b9e302058a1b1aa466bc7361"
+      },
+      {
+        "path": "templates/.claude/skills/explore/references/questioning-techniques.md",
+        "sha256": "ec0dd00871d3abe950f9cf375216a43043827897166c4165c3fa581839851195"
+      },
+      {
+        "path": "templates/.claude/skills/explore/references/task-brief-templates.md",
+        "sha256": "4e9292479e120afce944b747bb7b4a7226c41e9880708d620de3ea4fa4ef0249"
+      },
+      {
+        "path": "templates/.claude/skills/frontend-design/LICENSE.txt",
+        "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+      },
+      {
+        "path": "templates/.claude/skills/frontend-design/SKILL.md",
+        "sha256": "c9e93c1b95b99a9e120b93d7683afa804713f98ce44bf29ba6d24e9ea1b44aee"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/SKILL.md",
+        "sha256": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/references/ed25519-verification.md",
+        "sha256": "2742f14b472bff69c83f24d9bac5bf023bd7f9ecc3e659742ac3152a239dd68f"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/references/research-actions.md",
+        "sha256": "156d2f8ce342f7013bc758fe7c0d3ad3041b4f67f30dbcf8d59e091cb70d9a9c"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/references/source-evaluation.md",
+        "sha256": "d6a19abb6be64dc9e1f539903080029125d2d899da4de3063e75e1afb7e4906f"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/check_report_evidence.py",
+        "sha256": "5053e677f11d00b4dd8365a81eafa1d2c961eebd25c33f72b02455573a934a32"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/ed25519_verifier.py",
+        "sha256": "f4a2ac9e6473201583643fe8abf47560863cec600344dad5c9df06091b4298f5"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/evidence_fetch.py",
+        "sha256": "5f4d7cb5d6fb3106d64130b6606582eb55a4f633ef969cf7890b1de1c179345b"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/fixture_legacy_v1_fact.json",
+        "sha256": "e613de4737145cbfb5f349fbf9f1122801ce3508b62c3a18e2e0cba26b9da5b0"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/fixture_legacy_v2_fact.json",
+        "sha256": "3f552b47c3864e4ff7ae8c72516e98c188592c7f4f7703d09ce88b39f586ad9d"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/fixtures_field_cases.json",
+        "sha256": "e2ee619732ab4a1b57285e57b4349f96b4158b231a5624e5264fadf69edb8983"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/goap_planner.py",
+        "sha256": "f5cbf4784106710b363e7f29bfa538b75f488cb25e1c273ae40de9f4c2a6710b"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/learning_bridge.py",
+        "sha256": "74f8842978ba945ff78c2bd54702415dd87122e61919571e12a19c3cf1e56131"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/population_match.py",
+        "sha256": "bbd1d3346a6fb75d0e8526cb5d2fc8bc8613bb31ab63ffb0958d436d5e009054"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/risk_statement.py",
+        "sha256": "320ffece816e875f65624583846f44dc99461f672a0de7cda42be5ddf29d6de5"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/source_tiers.py",
+        "sha256": "e1aae76fad01693ab35b51466fc4369c04a5ac64230fd307e7b798dc5beeff7a"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_ed25519_verifier.py",
+        "sha256": "dcba1ce538ff946d6928f30a7c5cbcc37fddf712b6181f91f94c76e20c117ac5"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_evidence_provenance.py",
+        "sha256": "292bfcdcc086934905c77f1543d8400ee483166ff3ce26c79bb526c204320dbb"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_goap_planner.py",
+        "sha256": "7942ada069048b7e97bf2b6e920898a58517ccec090069f347399dbf1fc37731"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_population_match.py",
+        "sha256": "f33f72c0ba6305af1644e6b1a7f7635d3f33273344f19c14e7dbd2f819af0e7f"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_risk_absolute.py",
+        "sha256": "ab353db189650551c374cb772ba4a3a6929e3a2618f2f5c112eca4c3f69e46b6"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_signature_v3.py",
+        "sha256": "a04259296df104c9497c7b31d29556cb9a7ad4dd3339cbe3d8d32a4f53950d25"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_suite_completeness.py",
+        "sha256": "727c5d5b0dad215957012276ebc146397178255077e762ed7b88a60d8178d2ab"
+      },
+      {
+        "path": "templates/.claude/skills/trip-planner/SKILL.md",
+        "sha256": "eb13a3e7a642e1ee1ac076d5dd9dc216114ae67ed23b281116a3b9b4ee6cf21e"
+      },
+      {
+        "path": "templates/.claude/skills/trip-planner/evals/basic.md",
+        "sha256": "235f15775202adfe9a1207bb1edc40147a1492abad50b867d8bfb35c879d49c6"
+      },
+      {
+        "path": "templates/.claude/skills/trip-planner/examples/sample-trip-brief.md",
+        "sha256": "c01a6b04c845c735b2e13d2c062203dcb59bb2ba474978fdf512b12a21078d80"
+      },
+      {
+        "path": "templates/.claude/skills/trip-planner/modules/00-intake.md",
+        "sha256": "4e9221fa6894cae3b48f2a5831a0322c2bd64783d6e03d28b605479de504716d"
+      },
+      {
+        "path": "templates/.claude/skills/trip-planner/modules/01-research.md",
+        "sha256": "d38b52c6725c2e5a9b66d770a01f48d39b6f3499a86103eaaf8695ac005e2eb6"
+      },
+      {
+        "path": "templates/.claude/skills/trip-planner/modules/02-itinerary.md",
+        "sha256": "5df405b680d5853d7661e6c05cd940825dd37110266c20f7e41db9e439e51da4"
+      },
+      {
+        "path": "templates/.claude/skills/trip-planner/modules/03-site-generation.md",
+        "sha256": "b3dc4fbd86520fd161c0c9fcb40fb67db20fac1e298c06be7494cc5008d9e3e6"
+      },
+      {
+        "path": "templates/.claude/skills/trip-planner/modules/04-validation.md",
+        "sha256": "99d67db3887bba65ce442e2c58800f46ab11ddbd9d307de0c85b0894fd6b7bae"
+      },
+      {
+        "path": "templates/.claude/skills/trip-planner/references/data-schema.md",
+        "sha256": "0265542820988f4b8a548cbd45068032e28431ff47a684fd3d96bd1057c07261"
+      },
+      {
+        "path": "templates/.claude/skills/trip-planner/references/open-meteo.md",
+        "sha256": "fc049fe6203964b8cdff56cb52b851ca68479c55d4e81fd03a60f9ffbe34627b"
+      },
+      {
+        "path": "templates/.claude/skills/trip-planner/references/site-template.html",
+        "sha256": "c6be97353b27b87727493583e57d5d97b684e77705630a6a9438207abb4499a8"
+      },
+      {
+        "path": "templates/.claude/skills/trip-planner/references/yandex-maps.md",
+        "sha256": "d39fd2d7d112bc609ee3ef8a63bf38603d7cad81645e8cee1fd874c111f52897"
+      },
+      {
+        "path": "templates/.claude/skills/trip-planner/schemas/output.json",
+        "sha256": "22a09b828989d4c8a716b3471f2f08b0538a31b93d902b228f98b3257b18f848"
+      },
+      {
+        "path": "templates/.claude/skills/trip-planner/scripts/validate-config.json",
+        "sha256": "228f8b6d16ec5da85a7c0cbfb9e3eaa439acf5814b97a3395bc8edace9054bf1"
+      },
+      {
+        "path": "test/init.test.mjs",
+        "sha256": "bd949bec01cde6970f242d58b15a51c4884b0c3627ed565f534e446a26017a31"
+      }
+    ]
+  },
+  "signature": "vNdRgAgphmv6Zz23m4h2Apd1MlxQknKTfH886fEzv8SWUi/0zTOwHG8LgOc4d8LEs5mZB04vuj5UVVqrSrxqCg=="
+}

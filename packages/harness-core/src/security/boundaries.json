@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Input boundary catalog for DZ harness — every external input surface and its validator.",
+  "version": "0.1.0-RC",
+  "boundaries": [
+    {
+      "id": "cli-args",
+      "description": "Raw argv from the `dz` CLI — parsed by the internal parseArgs function that splits positional, --key value, and --flag tokens.",
+      "validator": "packages/@dzhechkov/harness-cli/src/cli.ts",
+      "scan": "parseArgs"
+    },
+    {
+      "id": "mcp-tool-inputs",
+      "description": "JSON-RPC tool call parameters received by the MCP server — each tool's inputSchema is a Zod schema that validates before the handler runs.",
+      "validator": "packages/@dzhechkov/mcp-server-tools/src/server.ts",
+      "scan": "zod-inputSchema"
+    },
+    {
+      "id": "skills-dir",
+      "description": "Filesystem path to the skills directory — resolved to an absolute path and checked with existsSync before any I/O.",
+      "validator": "packages/@dzhechkov/harness-core/src/skills.ts",
+      "scan": "existsSync"
+    },
+    {
+      "id": "emit-paths",
+      "description": "Skill id and asset paths used during emit — assertSafeId rejects empty, dot-dot, and slash-containing ids; normalizeAssetPath rejects traversal.",
+      "validator": "packages/@dzhechkov/core/src/skill-emit.ts",
+      "scan": "assertSafeId"
+    },
+    {
+      "id": "preset-name",
+      "description": "The --preset value supplied to `dz init` — validated by isPresetName which checks against the PRESETS const object.",
+      "validator": "packages/@dzhechkov/harness-presets/src/presets.ts",
+      "scan": "isPresetName"
+    },
+    {
+      "id": "target-name",
+      "description": "The --target value supplied to `dz init` / `dz verify` — validated by isTargetName which checks against the TARGETS const object.",
+      "validator": "packages/@dzhechkov/harness-core/src/targets.ts",
+      "scan": "isTargetName"
+    },
+    {
+      "id": "memory-record-id",
+      "description": "The unique record id for memory backend put/query — typed as string in the MemoryRecord interface; no further runtime validation beyond TypeScript.",
+      "validator": "packages/@dzhechkov/memory/src/backend.ts",
+      "scan": "string-type"
+    },
+    {
+      "id": "config-yaml",
+      "description": "The .agentic-qe/config.yaml file parsed by `dz doctor` — validated by yaml.parse with a structural check (typeof parsed?.project === 'string').",
+      "validator": "packages/@dzhechkov/harness-core/src/operations.ts",
+      "scan": "yaml.parse"
+    }
+  ]
+}

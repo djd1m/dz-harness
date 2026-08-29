@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GitConflictResolveOutput",
+  "description": "Structured output for git-conflict-resolve skill",
+  "type": "object",
+  "required": ["operation", "conflicts", "resolutions", "verification", "continue_command"],
+  "properties": {
+    "operation": {
+      "type": "string",
+      "enum": ["merge", "rebase", "cherry-pick"],
+      "description": "The git operation that caused conflicts"
+    },
+    "branches": {
+      "type": "object",
+      "properties": {
+        "ours": {
+          "type": "string",
+          "description": "Current/target branch"
+        },
+        "theirs": {
+          "type": "string",
+          "description": "Incoming/source branch or commit"
+        }
+      }
+    },
+    "conflicts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["file", "blocks"],
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "Conflicted file path"
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["ours_intent", "theirs_intent", "classification"],
+              "properties": {
+                "line_range": {
+                  "type": "string",
+                  "description": "Line range of the conflict block"
+                },
+                "ours_intent": {
+                  "type": "string",
+                  "description": "What the current branch intended"
+                },
+                "theirs_intent": {
+                  "type": "string",
+                  "description": "What the incoming branch intended"
+                },
+                "classification": {
+                  "type": "string",
+                  "enum": ["same-goal", "independent", "logical-conflict", "deletion-conflict"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "resolutions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["file", "strategy", "rationale"],
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "strategy": {
+            "type": "string",
+            "enum": ["pick-ours", "pick-theirs", "merge-both", "synthesize", "user-decision-required"]
+          },
+          "rationale": {
+            "type": "string"
+          },
+          "user_input_needed": {
+            "type": "boolean",
+            "default": false
+          },
+          "resolution_summary": {
+            "type": "string",
+            "description": "What the resolved code does"
+          }
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "required": ["diff_reviewed", "tests_passed"],
+      "properties": {
+        "diff_reviewed": {
+          "type": "boolean"
+        },
+        "tests_passed": {
+          "type": "boolean"
+        },
+        "test_command": {
+          "type": "string"
+        },
+        "artifacts_checked": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Duplicate imports, missing references, etc."
+        },
+        "issues_found": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "continue_command": {
+      "type": "string",
+      "description": "The git command to run to continue (e.g., git rebase --continue)"
+    },
+    "abort_command": {
+      "type": "string",
+      "description": "The git command to abort if needed"
+    }
+  }
+}

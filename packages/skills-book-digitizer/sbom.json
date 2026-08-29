@@ -1,0 +1,157 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "skills-book-digitizer"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bab7d18b5d705d191925e3a088a99d4164e395013da4b1e14bdf6785591edf25"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "book-brain-register/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dc1c788dd689009d23aab3ab2d098276f8df082373312225013f069ec597c744"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "book-ingest/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "26c0f692f8226e097b36995848d18a8aacf796cdace16ee141e459b93c23640d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "book-kb-index/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "36386990c7307f86c4ccc62b12b9bb1c6508c05d371ddf8b7d41a9172ec40521"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "book-knowledge-extract/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "92d5fb80d50493147f30f3e819c56e2a12d430673779fa26a8d266159b188d3f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "book-pack-assemble/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "28476188f040636f48a8ecb31b2da5b01a44a4cb220e5aa2cb2098767c24faa5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "book-skill-distill/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "36400891f0f2b05fc4fe638ff32bd6e3abc1252b19b1d0314aed80455d95da53"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "digitize-book/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0e0346c7a9ad556baca57def423fc75082abca73e211ba4c4c278f6bdd0bb5d2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "efc76c9c5789317a69db1266fdce548d1fd657dceab9bd48594e891a8754c8ea"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "scripts/book-ingest.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dc0c0222422077b0d31fc30bad2dd9dab5504c87a3033b4b52053235553910a5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "scripts/shingling-check.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0f4ff1fbcba61593b73c4cae036c49f9ca22bd2ea561b00ccb16fd273863a915"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "source-brain-ingest/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "03d50315df0ce18fd55b699e563f5fcfd1f5baf20652dd5e1cc91ef67b731509"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "sources.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d71a29530f63758845278e12a3c258e5d55671b04f579d10c5b9ab2323b2faf7"
+        }
+      ]
+    }
+  ]
+}

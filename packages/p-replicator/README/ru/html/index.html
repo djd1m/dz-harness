@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="auto">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>@dzhechkov/p-replicator v1.5.0 — Документация</title>
+<meta name="description" content="@dzhechkov/p-replicator — toolkit для AI-assisted разработки в Claude Code (Vibe Coding). 11 slash-команд, 10 skills, hooks, statusline, --feature-branches workflow для обучения. v1.5.0.">
+<meta name="keywords" content="p-replicator, claude code, vibe coding, sparc, ai-assisted, npm, dzhechkov, /replicate, /run, /feature, statusline, claude-code-toolkit, prd, sparc-mini, requirements-validator">
+<meta name="author" content="dzhechko">
+<meta name="robots" content="index, follow">
+
+<!-- Open Graph -->
+<meta property="og:title" content="@dzhechkov/p-replicator v1.5.0">
+<meta property="og:description" content="@dzhechkov/p-replicator — toolkit для AI-assisted разработки в Claude Code (Vibe Coding). 11 slash-команд, 10 skills, hooks, statusline, --feature-branches workflow для обучения. v1.5.0.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:site_name" content="P-Replicator Docs">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="@dzhechkov/p-replicator v1.5.0">
+<meta name="twitter:description" content="@dzhechkov/p-replicator — toolkit для AI-assisted разработки в Claude Code (Vibe Coding). 11 slash-команд, 10 skills, hooks, statusline, --feature-branches workflow для обучения. v1.5.0.">
+
+<!-- Theme color (browser chrome) -->
+<meta name="theme-color" content="#0969da" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)">
+
+<!-- Canonical -->
+<link rel="canonical" href="https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/p-replicator#readme">
+
+<!-- Structured data -->
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "@dzhechkov/p-replicator v1.5.0 — Документация",
+  "description": "@dzhechkov/p-replicator — toolkit для AI-assisted разработки в Claude Code (Vibe Coding). 11 slash-команд, 10 skills, hooks, statusline, --feature-branches workflow для обучения. v1.5.0.",
+  "author": {
+    "@type": "Person",
+    "name": "dzhechko"
+  },
+  "datePublished": "2026-05-07",
+  "inLanguage": "ru",
+  "about": {
+    "@type": "SoftwareSourceCode",
+    "name": "@dzhechkov/p-replicator",
+    "codeRepository": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/p-replicator",
+    "programmingLanguage": "JavaScript",
+    "softwareVersion": "1.5.0",
+    "license": "https://opensource.org/licenses/MIT"
+  },
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "@dzhechkov/p-replicator Documentation",
+    "url": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/p-replicator"
+  }
+}</script>
+
+<!-- Inline critical CSS for instant first paint (avoid FOUC) -->
+<script>
+// Apply theme BEFORE first paint to prevent flash
+(function() {
+  try {
+    var t = localStorage.getItem('p-replicator-theme') || 'auto';
+    if (t !== 'auto') document.documentElement.setAttribute('data-theme', t);
+  } catch (_) {}
+})();
+</script>
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a href="#main" class="skip-to-content">Перейти к содержимому</a>
+
+<div class="progress-bar" id="progressBar" aria-hidden="true"></div>
+
+<header class="site-header" role="banner">
+  <button class="menu-toggle" id="menuToggle" aria-label="Открыть меню" aria-expanded="false">
+    <span aria-hidden="true">☰</span>
+  </button>
+  <a href="#index" class="site-title">
+    <strong>P-Replicator</strong>
+    <span class="version">v1.5.0</span>
+  </a>
+  <nav class="header-nav" aria-label="Внешние ссылки">
+    <a href="https://www.npmjs.com/package/@dzhechkov/p-replicator" target="_blank" rel="noopener noreferrer">npm</a>
+    <a href="https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/p-replicator" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <a href="https://t.me/llm_notes" target="_blank" rel="noopener noreferrer">Telegram</a>
+  </nav>
+  <button class="theme-toggle" id="themeToggle" aria-label="Переключить тему">
+    <span aria-hidden="true">🌙</span>
+  </button>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar" aria-label="Содержание">
+    <div class="search-wrap">
+      <input type="search" class="search-input" id="searchInput"
+             placeholder="🔍 Поиск по документации"
+             aria-label="Поиск по документации"
+             autocomplete="off"
+             spellcheck="false">
+      <kbd class="search-kbd">/</kbd>
+    </div>
+    <div class="search-results" id="searchResults" role="listbox" hidden></div>
+    <nav class="toc" id="toc" aria-label="Содержание документации">
+      <ul><li><a href="#index" class="toc-section">Главная</a><ul><li><a href="#index-chto-eto">Что это</a></li><li><a href="#index-navigatsiya">Навигация</a></li><li><a href="#index-yazyki">Языки</a></li><li><a href="#index-versiya">Версия</a></li><li><a href="#index-bystryy-start">Быстрый старт</a></li><li><a href="#index-svyazannye-repozitorii">Связанные репозитории</a></li><li><a href="#index-companion-dokumentatsiya-vnutri-paketa">Companion-документация (внутри пакета)</a></li></ul></li><li><a href="#quickstart" class="toc-section">01. Быстрый старт</a><ul><li><a href="#quickstart-predusloviya">Предусловия</a></li><li><a href="#quickstart-ustanovka">Установка</a></li><li><a href="#quickstart-pervyy-zapusk">Первый запуск</a></li><li><a href="#quickstart-alternativnyy-vhod-u-menya-uzhe-est-tehdokumentatsiya">Альтернативный вход — у меня уже есть техдокументация</a></li><li><a href="#quickstart-dobavlenie-fich-v-suschestvuyuschiy-proekt-mode-2">Добавление фич в существующий проект (Mode 2)</a></li><li><a href="#quickstart-proverka-ustanovki">Проверка установки</a></li><li><a href="#quickstart-chto-delat-dalshe">Что делать дальше</a></li><li><a href="#quickstart-dopolnitelnye-komandy">Дополнительные команды</a></li><li><a href="#quickstart-chto-v-proekte-poyavilos-posle-init">Что в проекте появилось после init</a></li><li><a href="#quickstart-sleduyuschie-shagi">Следующие шаги</a></li></ul></li><li><a href="#user-guide" class="toc-section">02. Руководство</a><ul><li><a href="#user-guide-tablitsa-komand">Таблица команд</a></li><li><a href="#user-guide-replicate-glavnyy-pipeline">/replicate — главный pipeline</a></li><li><a href="#user-guide-start-bootstrap-proekta">/start — bootstrap проекта</a></li><li><a href="#user-guide-run-avtonomnaya-sborka-fich">/run — автономная сборка фич</a></li><li><a href="#user-guide-go-intelligent-router">/go — intelligent router</a></li><li><a href="#user-guide-next-navigator-po-roadmap">/next — навигатор по roadmap</a></li><li><a href="#user-guide-plan-lyogkiy-plan">/plan — лёгкий план</a></li><li><a href="#user-guide-feature-polnyy-sparc-mini-tsikl">/feature — полный SPARC-mini цикл</a></li><li><a href="#user-guide-myinsights-knowledge-capture">/myinsights — knowledge capture</a></li><li><a href="#user-guide-docs-generator-dokumentatsii">/docs — генератор документации</a></li><li><a href="#user-guide-harvest-izvlechenie-znaniy">/harvest — извлечение знаний</a></li><li><a href="#user-guide-deploy-deployment-workflow">/deploy — deployment workflow</a></li></ul></li><li><a href="#admin-guide" class="toc-section">03. Admin Guide</a><ul><li><a href="#admin-guide-settingsjson-glavnyy-konfig">settings.json — главный конфиг</a></li><li><a href="#admin-guide-hooks-zhiznennyy-tsikl">Hooks — жизненный цикл</a></li><li><a href="#admin-guide-statusline-pribornaya-panel">Statusline — приборная панель</a></li><li><a href="#admin-guide-state-file-dlya-live-progress">State-file для live progress</a></li><li><a href="#admin-guide-insights-system">Insights system</a></li><li><a href="#admin-guide-roadmap-management">Roadmap management</a></li><li><a href="#admin-guide-doctor-verify-dva-raznyh-instrumenta">Doctor + Verify — два разных инструмента</a></li><li><a href="#admin-guide-update-workflow">Update workflow</a></li><li><a href="#admin-guide-mcp-servers">MCP servers</a></li><li><a href="#admin-guide-svyaz-s-keysarium">Связь с Keysarium</a></li><li><a href="#admin-guide-dalshe">Дальше</a></li></ul></li><li><a href="#api-reference" class="toc-section">04. API Reference</a><ul><li><a href="#api-reference-cli-npx-dzhechkovp-replicator">CLI: npx @dzhechkov/p-replicator</a></li><li><a href="#api-reference-manifest-schema-p-replicatorjson">Manifest schema (.p-replicator.json)</a></li><li><a href="#api-reference-roadmap-schema-claudefeature-roadmapjson">Roadmap schema (.claude/feature-roadmap.json)</a></li><li><a href="#api-reference-state-file-schema-claudep-replicator-statejson">State-file schema (.claude/.p-replicator-state.json)</a></li><li><a href="#api-reference-settingsjson-struktura">settings.json — структура</a></li><li><a href="#api-reference-components-schema-vnutri-srcutilsjs">COMPONENTS schema (внутри src/utils.js)</a></li><li><a href="#api-reference-hook-scripts-api">Hook scripts API</a></li><li><a href="#api-reference-dalshe">Дальше</a></li></ul></li><li><a href="#architecture" class="toc-section">05. Архитектура</a><ul><li><a href="#architecture-dvuhurovnevaya-model-pre-shipped-vs-project-generated">Двухуровневая модель: Pre-shipped vs Project-generated</a></li><li><a href="#architecture-ssot-utilscomponents">SSOT: utils.COMPONENTS</a></li><li><a href="#architecture-path-derivation-getitemrelativepath">Path derivation: getItemRelativePath()</a></li><li><a href="#architecture-cross-platform-hooks-v141">Cross-platform hooks (v1.4.1)</a></li><li><a href="#architecture-sync-templates-merge-mode-v141">Sync-templates: MERGE mode (v1.4.1)</a></li><li><a href="#architecture-settingsjson-merge-v142">Settings.json merge (v1.4.2)</a></li><li><a href="#architecture-orphan-detection-v143">Orphan detection (v1.4.3)</a></li><li><a href="#architecture-statusline-architecture-v150">Statusline architecture (v1.5.0)</a></li><li><a href="#architecture-test-infrastructure">Test infrastructure</a></li><li><a href="#architecture-module-composition-view-syntax-claude-code-specific">Module composition: view() syntax (Claude Code-specific)</a></li><li><a href="#architecture-pipeline-replicate-fazy">Pipeline: /replicate фазы</a></li><li><a href="#architecture-dalshe">Дальше</a></li></ul></li><li><a href="#troubleshooting" class="toc-section">06. Troubleshooting</a><ul><li><a href="#troubleshooting-ustanovka-init">Установка / init</a></li><li><a href="#troubleshooting-posle-replicate">После /replicate</a></li><li><a href="#troubleshooting-hooks-statusline">Hooks / Statusline</a></li><li><a href="#troubleshooting-roadmap-feature-branches">Roadmap / --feature-branches</a></li><li><a href="#troubleshooting-tests-snapshot">Tests / Snapshot</a></li><li><a href="#troubleshooting-insights">Insights</a></li><li><a href="#troubleshooting-mcp-servers">MCP servers</a></li><li><a href="#troubleshooting-performance">Performance</a></li><li><a href="#troubleshooting-versionnye-nesovmestimosti">Версионные несовместимости</a></li><li><a href="#troubleshooting-esli-nichego-ne-pomogaet">Если ничего не помогает</a></li></ul></li><li><a href="#changelog" class="toc-section">07. Changelog</a><ul><li><a href="#changelog-v1514-2026-07-28">v1.5.14 — 2026-07-28</a></li><li><a href="#changelog-v1513-2026-07-10">v1.5.13 — 2026-07-10</a></li><li><a href="#changelog-v1511-v1512-2026-07-06">v1.5.11 / v1.5.12 — 2026-07-06</a></li><li><a href="#changelog-v159-v1510-2026-07-06">v1.5.9 / v1.5.10 — 2026-07-06</a></li><li><a href="#changelog-v158-2026-06-29">v1.5.8 — 2026-06-29</a></li><li><a href="#changelog-v157-2026-06-16">v1.5.7 — 2026-06-16</a></li><li><a href="#changelog-v155-v156-2026-06-11">v1.5.5 / v1.5.6 — 2026-06-11</a></li><li><a href="#changelog-v154-2026-05-13">v1.5.4 — 2026-05-13</a></li><li><a href="#changelog-v151-v153-2026-05-07">v1.5.1 – v1.5.3 — 2026-05-07</a></li><li><a href="#changelog-v150-2026-05-07">v1.5.0 — 2026-05-07</a></li><li><a href="#changelog-v143-2026-05-07">v1.4.3 — 2026-05-07</a></li><li><a href="#changelog-v142-2026-05-06">v1.4.2 — 2026-05-06</a></li></ul></li></ul>
+    </nav>
+  </aside>
+
+  <main id="main" class="main-content" role="main">
+    <article id="index" class="section" data-section-title="Главная">
+<h1 id="dokumentatsiya-dzhechkovp-replicator">Документация @dzhechkov/p-replicator</h1>
+<p>Полный комплект документации к npm-пакету <code>@dzhechkov/p-replicator</code> — toolkit для AI-assisted разработки в Claude Code (Vibe Coding).</p>
+<h2 id="index-chto-eto">Что это</h2>
+<p><code>p-replicator</code> устанавливает в проект готовый набор <code>.claude/</code>-инструментов: <strong>11 slash-команд</strong>, <strong>10 skills</strong>, <strong>4 агента</strong>, <strong>6 правил</strong>, <strong>7 hook-скриптов</strong> и <code>settings.json</code> с pre-configured хуками. Главная команда <code>/replicate</code> проводит проект через 5-фазный pipeline (Discovery → Planning → Validation → Toolkit Generation → Finalize), генерирует SPARC-документацию и project-specific артефакты.</p>
+<h2 id="index-navigatsiya">Навигация</h2>
+<div class="table-wrap"><table><thead><tr><th>Раздел</th><th>Описание</th></tr></thead><tbody><tr><td><a href="#quickstart">01_quickstart.md</a></td><td>Установка, первый запуск, проверка</td></tr><tr><td><a href="#user-guide">02_user_guide.md</a></td><td>Все команды и workflow с примерами</td></tr><tr><td><a href="#admin-guide">03_admin_guide.md</a></td><td>Настройка hooks, settings.json, statusline, insights</td></tr><tr><td><a href="#api-reference">04_api_reference.md</a></td><td>CLI-флаги, схемы манифеста, roadmap, state</td></tr><tr><td><a href="#architecture">05_architecture.md</a></td><td>Архитектура: pre-shipped vs generated, SSOT, hooks</td></tr><tr><td><a href="#troubleshooting">06_troubleshooting.md</a></td><td>Решение типичных проблем</td></tr><tr><td><a href="#changelog">07_changelog.md</a></td><td>История версий 1.3.x → 1.5.x</td></tr></tbody></table></div>
+<h2 id="index-yazyki">Языки</h2>
+<ul><li>🇷🇺 <a href="#index">Документация на русском</a> (вы здесь)</li><li>🇬🇧 <a href="https://github.com/djd1m/dz-harness-hub/blob/main/packages/@dzhechkov/p-replicator/README/eng/README.md" target="_blank" rel="noopener noreferrer">English documentation</a></li></ul>
+<h2 id="index-versiya">Версия</h2>
+<p><code>@dzhechkov/p-replicator@1.5.0</code> (последняя стабильная). См. история всех изменений в <code>../../CHANGELOG.md</code> (авторитетный источник).</p>
+<h2 id="index-bystryy-start">Быстрый старт</h2>
+<pre data-lang="bash"><code class="language-bash">cd ваш-проект
+npx @dzhechkov/p-replicator init
+claude                              # открыть Claude Code
+/replicate "описание вашего продукта"</code></pre>
+<p>После завершения <code>/replicate</code> запустите <code>/run mvp</code> для автономной сборки фич из roadmap'а или <code>/start</code> для bootstrap'а scaffold'а.</p>
+<h2 id="index-svyazannye-repozitorii">Связанные репозитории</h2>
+<ul><li>npm: https://www.npmjs.com/package/@dzhechkov/p-replicator</li><li>GitHub: https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/p-replicator</li><li>Issues: https://github.com/djd1m/dz-harness-hub/issues</li></ul>
+<h2 id="index-companion-dokumentatsiya-vnutri-paketa">Companion-документация (внутри пакета)</h2>
+<ul><li><code>../../CHANGELOG.md</code> — история версий</li><li><code>../../KNOWN_LIMITATIONS.md</code> — открытые задачи на улучшение (7 пунктов)</li><li><code>../../MULTIPLATFORM_ROADMAP.md</code> — roadmap поддержки Codex/OpenCode/KiloCode</li><li><code>../../README.md</code> — короткое user-facing intro</li></ul>
+<nav class="section-nav" aria-label="Навигация по секциям"><span></span><a href="#quickstart" class="next"><span class="nav-text"><span class="nav-label">Далее</span><span class="nav-title">01. Быстрый старт</span></span> <span class="nav-arrow">→</span></a></nav>
+</article>
+<article id="quickstart" class="section" data-section-title="01. Быстрый старт">
+<h1 id="01-bystryy-start">01. Быстрый старт</h1>
+<p>5 минут от пустой папки до работающего AI-pipeline'а.</p>
+<h2 id="quickstart-predusloviya">Предусловия</h2>
+<ul><li>Node.js ≥ 16.0.0</li><li>Claude Code установлен (CLI или web)</li><li>Git инициализирован в проекте (<code>git init</code> если ещё нет)</li><li>Docker + Docker Compose (нужны для <code>/start</code> фазы 3)</li></ul>
+<h2 id="quickstart-ustanovka">Установка</h2>
+<p>В корне вашего проекта:</p>
+<pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator init</code></pre>
+<p>Это создаст:</p>
+<ul><li><code>.claude/skills/</code> — 10 предустановленных skills</li><li><code>.claude/commands/</code> — 11 slash-команд (<code>/replicate</code>, <code>/run</code>, <code>/feature</code>, ...)</li><li><code>.claude/agents/</code> — 4 пайплайн-агента</li><li><code>.claude/rules/</code> — 5 governance-правил</li><li><code>.claude/hooks/</code> — 6 cross-platform Node-скриптов</li><li><code>.claude/settings.json</code> — конфигурация hooks + statusline</li><li><code>.p-replicator.json</code> — манифест установки</li></ul>
+<p>Установка идемпотентна: <code>init</code> не перезапишет существующие файлы без флага <code>--force</code>.</p>
+<h2 id="quickstart-pervyy-zapusk">Первый запуск</h2>
+<pre data-lang="bash"><code class="language-bash">claude                                    # открыть Claude Code в проекте</code></pre>
+<p>В Claude Code выполните:</p>
+<pre data-lang=""><code class="language-text">/replicate "Опишите ваш продукт в 1-2 предложениях"</code></pre>
+<p>Это запустит 5-фазный pipeline:</p>
+<div class="table-wrap"><table><thead><tr><th>Фаза</th><th>Что делает</th><th>Артефакты</th></tr></thead><tbody><tr><td><strong>0. Product Discovery</strong> (опционально)</td><td>Reverse-engineering похожих компаний</td><td><code>docs/00_product_discovery.md</code></td></tr><tr><td><strong>1. Planning</strong></td><td>Генерирует 11 SPARC-документов</td><td><code>docs/PRD.md</code>, <code>Architecture.md</code>, <code>Pseudocode.md</code>, ...</td></tr><tr><td><strong>2. Validation</strong></td><td>Swarm из 5 агентов проверяет docs (INVEST/SMART, score ≥70)</td><td><code>docs/validation-report.md</code></td></tr><tr><td><strong>3. Toolkit Generation</strong></td><td>Генерирует project-specific агенты, правила, скиллы</td><td><code>.claude/agents/planner.md</code>, <code>architect.md</code>, ...</td></tr><tr><td><strong>4. Finalize</strong></td><td>Scaffolds (Dockerfile, docker-compose.yml, .gitignore) + git commit</td><td>Project-готов</td></tr></tbody></table></div>
+<p>В каждой фазе — checkpoint: вы пишете «ок» для продолжения или даёте feedback.</p>
+<h2 id="quickstart-alternativnyy-vhod-u-menya-uzhe-est-tehdokumentatsiya">Альтернативный вход — у меня уже есть техдокументация</h2>
+<p>Если у вас на руках уже есть техническая документация (tech spec, архитектура, API-описания, design docs), можно <strong>пропустить Phase 0</strong> (Product Discovery) и скормить ваши доки прямо в Phase 1 как pre-filled context.</p>
+<h3 id="quickstart-podgotovka">Подготовка</h3>
+<pre data-lang="bash"><code class="language-bash">mkdir -p docs/existing
+cp your-tech-doc-*.md docs/existing/    # положите свои доки сюда</code></pre>
+<h3 id="quickstart-zapusk-3-sub-puti">Запуск (3 sub-пути)</h3>
+<div class="table-wrap"><table><thead><tr><th>Путь</th><th>Когда подходит</th><th>Что вызывается</th></tr></thead><tbody><tr><td><strong>A. /replicate с override</strong></td><td>Полный pipeline + toolkit + scaffold</td><td><code>/replicate "Use my docs in docs/existing/, skip Phase 0"</code></td></tr><tr><td><strong>B. Только SPARC docs</strong></td><td>Хочется только 11 SPARC-документов</td><td>Прямой вызов skill: «использовать <code>sparc-prd-mini</code> в AUTO режиме на <code>docs/existing/</code>»</td></tr><tr><td><strong>C. Только валидация</strong></td><td>Доки уже SPARC-форматированы</td><td>Переименовать в <code>PRD.md</code>, <code>Architecture.md</code> и т.д., затем «вызвать <code>requirements-validator</code>»</td></tr></tbody></table></div>
+<h3 id="quickstart-chto-menyaetsya-v-pipeline">Что меняется в pipeline</h3>
+<ul><li><strong>Phase 0</strong> — пропускается полностью</li><li><strong>Phase 1</strong> — <code>sparc-prd-mini</code> запускается в AUTO mode (без интерактивных вопросов), читает ваши доки, генерирует 11 SPARC-слотов; недостающее помечается <code>[GAP: ...]</code></li><li><strong>Phase 2-4</strong> — без изменений (валидация → toolkit → scaffold)</li></ul>
+<h3 id="quickstart-caveats">Caveats</h3>
+<ul><li>Не каждая ваша дока ляжет на 11 SPARC-слотов — ожидайте <code>[GAP: ...]</code> маркеров</li><li>Validation может пометить user stories «не INVEST» — это сигнал, что ваши доки стоит дополнить, а не баг</li><li>Архитектурные ограничения (pattern, containers, infra, deploy, AI) передавайте в Phase 1 явно, если их нет в ваших доках</li></ul>
+<p>Полный спец см. в <code>.claude/commands/replicate.md</code> секция «Alternative entry» и правило <code>.claude/rules/replicate-pipeline.md</code>.</p>
+<h2 id="quickstart-dobavlenie-fich-v-suschestvuyuschiy-proekt-mode-2">Добавление фич в существующий проект (Mode 2)</h2>
+<p>Если у вас <strong>уже есть рабочий проект</strong> (стек определён, PRD/Specification/ CLAUDE.md существуют) и вы хотите добавлять новые фичи с тем же циклом верификации что в <code>/replicate</code> — используйте <code>/feature</code>, а не <code>/replicate</code>.</p>
+<h3 id="quickstart-ustanovka-idempotent">Установка (idempotent)</h3>
+<pre data-lang="bash"><code class="language-bash">cd existing-project
+npx @dzhechkov/p-replicator init     # НЕ перезапишет ваш CLAUDE.md
+npx @dzhechkov/p-replicator verify   # убедиться что pre-shipped contract цел</code></pre>
+<h3 id="quickstart-normalizatsiya-sparc-putey-odnorazovo">Нормализация SPARC-путей (одноразово)</h3>
+<p><code>/feature</code> читает доки из стандартных слотов:</p>
+<pre data-lang="bash"><code class="language-bash">mv docs/your-prd.md   docs/PRD.md             # если у вас другие имена
+mv docs/your-spec.md  docs/Specification.md
+mv docs/your-arch.md  docs/Architecture.md
+# Pseudocode / Refinement / Completion — опционально</code></pre>
+<h3 id="quickstart-zapusk-fich-3-sub-puti">Запуск фич (3 sub-пути)</h3>
+<div class="table-wrap"><table><thead><tr><th>Путь</th><th>Когда подходит</th><th>Команда</th></tr></thead><tbody><tr><td><strong>A. /feature напрямую</strong></td><td>Одна фича, ≥4 файлов, новая capability</td><td><code>/feature add-stripe-payments</code></td></tr><tr><td><strong>B. /go auto-router</strong></td><td>Микс по сложности</td><td><code>/go add-pagination</code> (роутит /plan vs /feature)</td></tr><tr><td><strong>C. Прямые skill-вызовы</strong></td><td>Только validation-цикл, без полного lifecycle</td><td><code>requirements-validator</code> + <code>brutal-honesty-review</code></td></tr></tbody></table></div>
+<h3 id="quickstart-validation-thresholds-tot-zhe-swarm-chto-v-replicate-phase-2">Validation thresholds (тот же swarm, что в /replicate Phase 2)</h3>
+<div class="table-wrap"><table><thead><tr><th>Verdict</th><th>Score</th><th>Действие</th></tr></thead><tbody><tr><td>🟢 READY</td><td>≥ 70</td><td>IMPLEMENT</td></tr><tr><td>🟡 CAVEATS</td><td>50-69</td><td>IMPLEMENT + auto-retry один раз</td></tr><tr><td>🔴 NEEDS WORK</td><td>&lt; 50 / blockers</td><td>возврат на PLAN, max 3 retries</td></tr></tbody></table></div>
+<h3 id="quickstart-chto-sohranyaetsya-pri-init">Что сохраняется при <code>init</code></h3>
+<ul><li><code>CLAUDE.md</code> (root) — <strong>не трогается</strong> (только <code>--force</code>)</li><li><code>docs/PRD.md</code>, <code>Specification.md</code> — <strong>не трогаются</strong></li><li><code>.claude/commands/your-custom.md</code> — <strong>не трогаются</strong> (init добавляет только pre-shipped 11)</li><li><code>.claude/settings.json</code> — <strong>сливается</strong> через v1.4.2+ merge logic с deep-equals</li><li><code>.gitignore</code>, <code>package.json</code> — <strong>не трогаются</strong> init'ом</li></ul>
+<h3 id="quickstart-caveats-2">Caveats</h3>
+<ul><li><code>/start</code> НЕ запускайте в Mode 2 — он для свежих scaffold'ов</li><li><code>/feature-ent</code> недоступна в Mode 2 без ручного добавления DDD/ADR/C4 доков</li><li>Auto-commit hooks (Stop) могут конфликтовать с вашим git-workflow — отредактируйте <code>settings.json</code> после <code>init</code> (merge сохранит ваши правки на следующих апдейтах)</li><li>Нет флага <code>--prd-path</code> для нестандартных путей — нужен одноразовый rename/symlink (см. KNOWN_LIMITATIONS.md M3)</li></ul>
+<p>Полный recipe в <code>02_user_guide.md</code> секция «Feature workflow в существующем проекте (Mode 2)».</p>
+<h2 id="quickstart-proverka-ustanovki">Проверка установки</h2>
+<p>После <code>/replicate</code> выполните:</p>
+<pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator verify</code></pre>
+<p>Команда проверит:</p>
+<ul><li><strong>Pre-shipped contract</strong> (must-have): 10 skills + 11 commands + 4 agents + 6 rules + settings.json</li><li><strong>Post-/replicate hints</strong> (advisory): CLAUDE.md, project-specific агенты, feature-roadmap.json, security-правила и т.д.</li></ul>
+<p>Exit code <code>0</code> означает что pre-shipped контракт цел; warnings показывают что из project-specific артефактов ещё не создано.</p>
+<p>Альтернатива (для общей health-проверки):</p>
+<pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator doctor</code></pre>
+<h2 id="quickstart-chto-delat-dalshe">Что делать дальше</h2>
+<p>Сразу после <code>/replicate</code> доступны 3 основных пути:</p>
+<h3 id="quickstart-1-bootstrap-proekta-start">1. Bootstrap проекта (<code>/start</code>)</h3>
+<pre data-lang=""><code class="language-text">/start</code></pre>
+<p>Реализует scaffold по <code>docs/Architecture.md</code>: создаёт пакеты в monorepo, генерирует <code>package.json</code>, поднимает Docker, прогоняет migrations.</p>
+<h3 id="quickstart-2-avtonomnaya-sborka-fich-run-mvp">2. Автономная сборка фич (<code>/run mvp</code>)</h3>
+<pre data-lang=""><code class="language-text">/run mvp                                    # только MVP-фичи
+/run all                                    # все фичи из roadmap
+/run mvp --feature-branches                 # каждая фича в отдельной ветке
+/run mvp --feature-branches --auto-merge    # с автомерджем в main</code></pre>
+<p>Цикл: <code>/next</code> → <code>/go &lt;id&gt;</code> → пушит коммит → следующая фича. Останавливается когда roadmap пустой.</p>
+<h3 id="quickstart-3-odna-konkretnaya-ficha-go">3. Одна конкретная фича (<code>/go</code>)</h3>
+<pre data-lang=""><code class="language-text">/go auth-jwt                          # auto-роутер /plan vs /feature
+/feature auth-jwt                     # явно полный SPARC-mini цикл
+/plan add-payment-gateway             # лёгкий плановый файл</code></pre>
+<h2 id="quickstart-dopolnitelnye-komandy">Дополнительные команды</h2>
+<div class="table-wrap"><table><thead><tr><th>Команда</th><th>Когда использовать</th></tr></thead><tbody><tr><td><code>/myinsights "описание"</code></td><td>Зафиксировать «грабли» — error/workaround для будущих сессий</td></tr><tr><td><code>/docs</code></td><td>Сгенерировать пользовательскую документацию (RU+EN)</td></tr><tr><td><code>/harvest</code></td><td>Извлечь reusable-паттерны из проекта в knowledge-базу</td></tr><tr><td><code>/deploy staging</code></td><td>Deployment workflow с per-tier проверками</td></tr></tbody></table></div>
+<h2 id="quickstart-chto-v-proekte-poyavilos-posle-init">Что в проекте появилось после <code>init</code></h2>
+<pre data-lang=""><code class="language-text">ваш-проект/
+├── .claude/
+│   ├── skills/              # 10 skills
+│   ├── commands/            # 11 slash-команд
+│   ├── agents/              # 4 pipeline-агента
+│   ├── rules/               # 6 правил
+│   ├── hooks/               # 6 Node-скриптов
+│   └── settings.json        # hooks + statusline config
+├── .p-replicator.json       # манифест установки
+└── (your existing files…)</code></pre>
+<p>Все файлы в <code>.claude/</code> — каноничные шаблоны от пакета. Не редактируйте их напрямую: на следующем <code>update</code> они мерджатся через <code>mergeSettingsJson</code>+<code>removeOrphanHooks</code> алгоритм (с сохранением user customizations).</p>
+<h2 id="quickstart-sleduyuschie-shagi">Следующие шаги</h2>
+<ul><li>Прочитайте <a href="#user-guide">02_user_guide.md</a> — детали по каждой команде</li><li>Прочитайте <a href="#admin-guide">03_admin_guide.md</a> — настройка hooks/statusline</li><li>Если что-то не работает — <a href="#troubleshooting">06_troubleshooting.md</a></li></ul>
+<nav class="section-nav" aria-label="Навигация по секциям"><a href="#index" class="prev"><span class="nav-arrow">←</span> <span class="nav-text"><span class="nav-label">Предыдущее</span><span class="nav-title">Главная</span></span></a><a href="#user-guide" class="next"><span class="nav-text"><span class="nav-label">Далее</span><span class="nav-title">02. Руководство</span></span> <span class="nav-arrow">→</span></a></nav>
+</article>
+<article id="user-guide" class="section" data-section-title="02. Руководство пользователя">
+<h1 id="02-rukovodstvo-polzovatelya">02. Руководство пользователя</h1>
+<p>Подробный обзор всех 11 команд и их workflow.</p>
+<h2 id="user-guide-tablitsa-komand">Таблица команд</h2>
+<div class="table-wrap"><table><thead><tr><th>Команда</th><th>Назначение</th><th>Когда использовать</th></tr></thead><tbody><tr><td><code>/replicate</code></td><td>Полный pipeline: идея → SPARC docs → toolkit</td><td>В начале нового проекта</td></tr><tr><td><code>/start</code></td><td>Bootstrap скаффолда из SPARC docs</td><td>После <code>/replicate</code>, перед сборкой фич</td></tr><tr><td><code>/run</code></td><td>Автономный цикл сборки фич из roadmap</td><td>Регулярная разработка</td></tr><tr><td><code>/go</code></td><td>Router: выбирает /plan, /feature или /feature-ent</td><td>Одна конкретная фича</td></tr><tr><td><code>/next</code></td><td>Покажет следующую фичу из roadmap</td><td>Навигация по sprint'у</td></tr><tr><td><code>/plan</code></td><td>Лёгкий план в <code>docs/plans/&lt;id&gt;.md</code></td><td>Маленькая задача (≤3 файла)</td></tr><tr><td><code>/feature</code></td><td>Полный SPARC-mini цикл (PLAN → VALIDATE → IMPLEMENT → REVIEW)</td><td>Большая фича (4+ файлов)</td></tr><tr><td><code>/myinsights</code></td><td>Зафиксировать или recall insights</td><td>После каждой нетривиальной отладки</td></tr><tr><td><code>/docs</code></td><td>Генерация bilingual-документации (RU+EN)</td><td>В конце проекта или фичи</td></tr><tr><td><code>/harvest</code></td><td>Извлечение reusable-паттернов</td><td>После завершённого проекта</td></tr><tr><td><code>/deploy</code></td><td>Deployment workflow (dev/staging/prod)</td><td>Деплой</td></tr></tbody></table></div>
+<hr>
+<h2 id="user-guide-replicate-glavnyy-pipeline">/replicate — главный pipeline</h2>
+<p><strong>Назначение:</strong> превратить идею продукта в полностью документированный, валидированный, toolkit-готовый проект.</p>
+<p><strong>Использование:</strong></p>
+<pre data-lang=""><code class="language-text">/replicate "Маркетплейс хендмейд-товаров с AI-рекомендациями"
+/replicate "название компании"     # для reverse-engineering режима</code></pre>
+<p><strong>Фазы:</strong></p>
+<h3 id="user-guide-phase-0-product-discovery-optsionalno">Phase 0 — Product Discovery (опционально)</h3>
+<p>Активируется автоматически для SaaS, стартапов, новых продуктов. Скипается для internal tools и экспериментов.</p>
+<ul><li>Reverse-engineering похожих компаний (<code>reverse-engineering-unicorn</code> skill)</li><li>JTBD анализ + конкуренты + Blue Ocean</li><li>Output: <code>docs/00_product_discovery.md</code></li></ul>
+<h3 id="user-guide-phase-1-planning-sparc-docs">Phase 1 — Planning (SPARC docs)</h3>
+<p>Генерирует 11 документов в <code>docs/</code>:</p>
+<div class="table-wrap"><table><thead><tr><th>Документ</th><th>Содержание</th></tr></thead><tbody><tr><td><code>PRD.md</code></td><td>Vision, personas, user stories</td></tr><tr><td><code>Solution_Strategy.md</code></td><td>Подход к решению</td></tr><tr><td><code>Specification.md</code></td><td>Acceptance criteria, NFRs</td></tr><tr><td><code>Pseudocode.md</code></td><td>Алгоритмы и data flow</td></tr><tr><td><code>Architecture.md</code></td><td>C4 diagrams, tech stack</td></tr><tr><td><code>Refinement.md</code></td><td>Edge cases, testing strategy</td></tr><tr><td><code>Completion.md</code></td><td>Deploy, CI/CD, monitoring</td></tr><tr><td><code>Research_Findings.md</code></td><td>Market+tech research</td></tr><tr><td><code>Final_Summary.md</code></td><td>Executive summary</td></tr><tr><td><code>C4_Diagrams.md</code></td><td>Контекст / контейнеры / компоненты</td></tr><tr><td><code>ADR.md</code></td><td>Architecture Decision Records</td></tr></tbody></table></div>
+<p>Использует <code>sparc-prd-mini</code> skill (включает explore + research + solve фазы).</p>
+<h3 id="user-guide-phase-2-validation">Phase 2 — Validation</h3>
+<p>Swarm из 5 параллельных агентов:</p>
+<div class="table-wrap"><table><thead><tr><th>Агент</th><th>Что валидирует</th></tr></thead><tbody><tr><td><code>validator-stories</code></td><td>INVEST criteria для user stories</td></tr><tr><td><code>validator-acceptance</code></td><td>SMART criteria для AC</td></tr><tr><td><code>validator-architecture</code></td><td>Consistency архитектуры</td></tr><tr><td><code>validator-pseudocode</code></td><td>Cohesion алгоритмов</td></tr><tr><td><code>validator-coherence</code></td><td>Cross-document consistency</td></tr></tbody></table></div>
+<p><strong>Verdict:</strong></p>
+<ul><li>🟢 READY (score ≥70) → Phase 3</li><li>🟡 CAVEATS (50-69) → Phase 3 с заметками</li><li>🔴 NEEDS WORK (&lt;50 или blockers) → возврат на Phase 1 (max 3 retries)</li></ul>
+<h3 id="user-guide-phase-3-toolkit-generation">Phase 3 — Toolkit Generation</h3>
+<p><strong>Не генерирует pre-shipped команды</strong> (они уже установлены через init). Генерирует <strong>только project-specific</strong> артефакты:</p>
+<ul><li><code>.claude/agents/planner.md</code>, <code>code-reviewer.md</code>, <code>architect.md</code> (project-aware)</li><li><code>.claude/rules/security.md</code>, <code>coding-style.md</code>, <code>testing.md</code></li><li><code>.claude/skills/project-context/</code>, <code>coding-standards/</code></li><li><code>CLAUDE.md</code> enhanced с project-specific содержимым</li><li><code>.claude/feature-roadmap.json</code> (генерируется из PRD MVP scope)</li><li><code>DEVELOPMENT_GUIDE.md</code>, <code>README.md</code></li></ul>
+<h3 id="user-guide-phase-4-finalize">Phase 4 — Finalize</h3>
+<ul><li><code>docker-compose.yml</code>, <code>Dockerfile</code>, <code>.gitignore</code> (scaffold-файлы)</li><li>Git commit «chore: initial project setup»</li><li>Final summary</li></ul>
+<h3 id="user-guide-alternativnyy-vhod-u-vas-uzhe-est-tehdokumentatsiya">Альтернативный вход — у вас уже есть техдокументация</h3>
+<p>Pipeline официально поддерживает старт <strong>с уже существующей техдокументации</strong> — без прохождения Phase 0 (Product Discovery). Полезно когда:</p>
+<ul><li>Вы переносите существующий проект под Claude Code workflow</li><li>У вас есть tech spec / архитектура / API-доки от предыдущего этапа</li><li>Вы хотите только сгенерировать SPARC-документы и/или провалидировать их</li></ul>
+<h4 id="user-guide-triggery-lyuboy-iz-variantov">Триггеры (любой из вариантов)</h4>
+<p><code>/replicate</code> switch'ит на этот режим, когда видит в input одно из:</p>
+<ul><li>Path-указание: «используй мои доки в <code>docs/existing/</code>», «my tech specs in <code>&lt;path&gt;</code>»</li><li>Явный skip: «skip discovery», «skip Phase 0»</li><li>Утверждение: «у меня уже есть техническая документация»</li><li>Семантический флаг: <code>/replicate --from-docs &lt;path&gt;</code> или <code>--skip-discovery</code></li></ul>
+<h4 id="user-guide-podgotovka">Подготовка</h4>
+<p>Положите ваши доки в локальный подкаталог проекта (рекомендуется <code>docs/existing/</code> или <code>docs/source/</code>) — они должны быть видны pipeline'у, но отделены от сгенерированных SPARC-выходов.</p>
+<pre data-lang="bash"><code class="language-bash">mkdir -p docs/existing
+cp your-tech-doc-*.md docs/existing/</code></pre>
+<h4 id="user-guide-chto-menyaetsya-v-kazhdoy-faze">Что меняется в каждой фазе</h4>
+<div class="table-wrap"><table><thead><tr><th>Фаза</th><th>Стандартный режим</th><th>Существующие-docs режим</th></tr></thead><tbody><tr><td><strong>Phase 0</strong></td><td>reverse-engineering-unicorn (опц.)</td><td><strong>SKIPPED</strong></td></tr><tr><td><strong>Phase 1</strong></td><td>sparc-prd-mini interactive</td><td>sparc-prd-mini <strong>AUTO mode</strong> + ваши доки как контекст</td></tr><tr><td>Phase 1 sub-phases</td><td>Explore + Research + Solve</td><td><strong>SKIPPED</strong> (ответы уже у вас в доках)</td></tr><tr><td><strong>Phase 2</strong></td><td>Validation (5 агентов)</td><td>без изменений</td></tr><tr><td><strong>Phase 3</strong></td><td>Toolkit Generation</td><td>без изменений</td></tr><tr><td><strong>Phase 4</strong></td><td>Finalize + scaffolds</td><td>без изменений</td></tr></tbody></table></div>
+<h4 id="user-guide-tri-sub-puti">Три sub-пути</h4>
+<h5 id="user-guide-path-a-polnyy-pipeline-rekomenduemyy">Path A — полный pipeline (рекомендуемый)</h5>
+<pre data-lang=""><code class="language-text">/replicate "Use my docs in docs/existing/, skip Phase 0"</code></pre>
+<p>Получите все 11 SPARC-документов + validation report + project-specific toolkit</p>
+<ul><li>Docker scaffold. Лучший выбор когда нужен полный generated-проект.</li></ul>
+<h5 id="user-guide-path-b-tolko-sparc-docs">Path B — только SPARC docs</h5>
+<pre data-lang=""><code class="language-text">В Claude Code: «Используй skill sparc-prd-mini в AUTO режиме, читай контекст из
+docs/existing/, сгенерируй 11 SPARC-документов в docs/. Не запускай Phase 2/3/4.»</code></pre>
+<p>Только 11 файлов в <code>docs/</code>. Без validation, без toolkit, без scaffold. Полезно когда нужна только стандартизация документации.</p>
+<h5 id="user-guide-path-c-tolko-validatsiya">Path C — только валидация</h5>
+<p>Если ваши доки уже SPARC-форматированы (есть <code>PRD.md</code>, <code>Architecture.md</code> и т.д.):</p>
+<pre data-lang="bash"><code class="language-bash"># 1. Переместите/переименуйте доки в стандартные имена
+mv docs/existing/PRD.md docs/PRD.md
+# ... остальные 10 SPARC-имен
+
+# 2. В Claude Code:
+«Вызови skill requirements-validator на docs/. Сгенерируй validation-report.md.»</code></pre>
+<p>Получите только <code>docs/validation-report.md</code> + <code>docs/test-scenarios.md</code>. Без re-генерации SPARC.</p>
+<h4 id="user-guide-caveats-vazhno-znat">Caveats (важно знать)</h4>
+<ul><li><strong><code>[GAP: ...]</code> маркеры</strong> — если в ваших доках нет покрытия для какого-то из 11 SPARC-слотов, sparc-prd-mini поставит placeholder. Это нормально, но потребует ручного дополнения перед Phase 3.</li><li><strong>Validation может пометить «не INVEST»</strong> — если user stories в ваших доках не следуют INVEST/SMART, swarm выдаст 🟡 CAVEATS или 🔴 NEEDS WORK. Это сигнал, что доки стоит расширить, а не баг.</li><li><strong>Архитектурные ограничения</strong> — pattern, containers, infrastructure, deploy, AI integration — должны быть в ваших доках или явно переданы в input. По умолчанию sparc-prd-mini использует target-architecture из этой репы: Distributed Monolith / Docker / VPS / MCP.</li></ul>
+<h4 id="user-guide-verification">Verification</h4>
+<p>После <code>/replicate</code> запустите:</p>
+<pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator verify</code></pre>
+<p><code>verify</code> сообщит:</p>
+<ul><li>✅ Pre-shipped contract intact</li><li>✅ Post-/replicate hints: SPARC docs, validation-report, опционально toolkit-артефакты</li></ul>
+<h4 id="user-guide-future-enhancement-m2-v-knownlimitations">Future enhancement (M2 в KNOWN_LIMITATIONS)</h4>
+<p>Семантический флаг <code>--from-docs &lt;path&gt;</code> сейчас работает через natural-language override в input'е <code>/replicate</code>. Формальный CLI-флаг с парсингом на уровне команды — в roadmap'е (см. KNOWN_LIMITATIONS.md M2).</p>
+<hr>
+<h2 id="user-guide-start-bootstrap-proekta">/start — bootstrap проекта</h2>
+<p><strong>Назначение:</strong> превратить SPARC-документацию в работающий monorepo с <code>docker compose up</code>.</p>
+<p><strong>Использование:</strong></p>
+<pre data-lang=""><code class="language-text">/start                                  # с тестами + миграциями
+/start --skip-tests                     # без тестов (быстрее)
+/start --skip-seed                      # без DB seeding
+/start --dry-run                        # preview без записи</code></pre>
+<p><strong>4 фазы (sequential → parallel → sequential → finalize):</strong></p>
+<ol><li><strong>Foundation</strong> — root configs (<code>package.json</code>, <code>docker-compose.yml</code>, <code>.env.example</code>)</li><li><strong>Packages</strong> (⚡ parallel via <code>Task</code> tool) — один Task на пакет из Architecture.md</li><li><strong>Integration</strong> — <code>docker compose build/up</code>, миграции, health-check</li><li><strong>Finalize</strong> — README + git tag <code>v0.1.0-scaffold</code></li></ol>
+<p><strong>Critical rule:</strong> каждый Task в Phase 2 ОБЯЗАН ссылаться на конкретные SPARC docs (e.g., <code>docs/Specification.md</code> → ORM schema), не генерировать из памяти.</p>
+<hr>
+<h2 id="user-guide-run-avtonomnaya-sborka-fich">/run — автономная сборка фич</h2>
+<p><strong>Назначение:</strong> прокрутить весь roadmap (или MVP-подмножество) автоматически.</p>
+<p><strong>Использование:</strong></p>
+<pre data-lang=""><code class="language-text">/run mvp                                          # только priority=mvp
+/run all                                          # всё что в `next`/`planned`
+/run mvp --feature-branches                       # каждая фича в отдельной ветке
+/run mvp --feature-branches --auto-merge          # с автомерджем</code></pre>
+<p><strong>Workflow одной итерации:</strong></p>
+<pre data-lang=""><code class="language-text">while есть фичи в scope:
+    feature_id = /next                       # выбрать highest-priority
+    if no feature: break
+    /go feature_id                           # complexity router
+    verify (tests green, code committed)
+    mark roadmap entry: status=done
+    git commit + git push</code></pre>
+<p><strong>При <code>--feature-branches</code></strong> добавляются шаги:</p>
+<ol><li>Verify on <code>main</code> (else fail)</li><li>Auto-stash dirty working tree</li><li><code>git checkout -b feature/{NNN}-{id}</code> (NNN = zero-padded 3-digit)</li><li>После реализации: <code>git push origin feature/{NNN}-{id}</code></li><li>Update roadmap с <code>branch</code> field</li><li><code>git checkout main</code></li><li>(если <code>--auto-merge</code>) <code>git merge --no-ff feature/{NNN}-{id}</code></li></ol>
+<p><strong>Use case:</strong> для обучения / демо. Инструктор checkout'ит <code>feature/003-payment</code> для конкретной демонстрации.</p>
+<hr>
+<h2 id="user-guide-go-intelligent-router">/go — intelligent router</h2>
+<p><strong>Назначение:</strong> автоматически выбрать <code>/plan</code>, <code>/feature</code> или <code>/feature-ent</code> по complexity score.</p>
+<p><strong>Использование:</strong></p>
+<pre data-lang=""><code class="language-text">/go auth-jwt                       # фича из roadmap по id
+/go "Add Stripe integration"       # свободное описание
+/go auth-jwt --feature-branches    # с branch workflow (см. /run)</code></pre>
+<p><strong>Complexity scoring matrix:</strong></p>
+<div class="table-wrap"><table><thead><tr><th>Сигнал</th><th>Очки</th></tr></thead><tbody><tr><td>Touches ≤ 3 files</td><td>-2</td></tr><tr><td>Touches &gt; 10 files</td><td>+3</td></tr><tr><td>External API integration</td><td>+2</td></tr><tr><td>New DB entities</td><td>+2</td></tr><tr><td>Cross-bounded-context dependencies</td><td>+3</td></tr><tr><td>Hotfix</td><td>-3</td></tr><tr><td>&gt; 2 hours implementation</td><td>+3</td></tr></tbody></table></div>
+<p><strong>Decision:</strong></p>
+<ul><li>≤ -2 → <code>/plan</code></li><li>-1 to +4 → <code>/feature</code></li><li>≥ +5 + <code>/feature-ent</code> доступен → <code>/feature-ent</code> (DDD pipeline)</li><li>≥ +5 без <code>/feature-ent</code> → <code>/feature</code> с extra architecture care</li></ul>
+<hr>
+<h2 id="user-guide-next-navigator-po-roadmap">/next — навигатор по roadmap</h2>
+<p><strong>Использование:</strong></p>
+<pre data-lang=""><code class="language-text">/next                          # default: top 3 next/planned features
+/next update                   # сканирует код, suggest status updates
+/next auth-jwt                 # mark done + cascade unblock</code></pre>
+<p><strong>Default output:</strong></p>
+<pre data-lang=""><code class="language-text">1. [mvp] auth-jwt — JWT login (medium, 2-4h)
+2. [mvp] user-profile — Profile CRUD (simple, 1-2h)
+3. [high] payment-webhook — Stripe handler (complex, 4-6h)
+
+In progress: &lt;id&gt;
+Done: 5/12
+Blocked: 1</code></pre>
+<p><strong>Roadmap schema</strong> см. в <code>04_api_reference.md</code>.</p>
+<hr>
+<h2 id="user-guide-plan-lyogkiy-plan">/plan — лёгкий план</h2>
+<p><strong>Когда:</strong> ≤3 файла, &lt; 30 мин implementation, без новой архитектуры.</p>
+<p><strong>Использование:</strong></p>
+<pre data-lang=""><code class="language-text">/plan add-validation-helper
+/plan "fix race condition in cart"</code></pre>
+<p><strong>Output:</strong> <code>docs/plans/&lt;slug&gt;.md</code> с секциями:</p>
+<ul><li>Goal (1-2 предложения)</li><li>Tasks (numbered checklist)</li><li>Files Touched (table)</li><li>Dependencies + Risks</li><li>Verification</li></ul>
+<p>Auto-commit через Stop hook.</p>
+<hr>
+<h2 id="user-guide-feature-polnyy-sparc-mini-tsikl">/feature — полный SPARC-mini цикл</h2>
+<p><strong>Когда:</strong> ≥4 файла, новая capability, новая архитектура.</p>
+<p><strong>4 фазы с checkpoints:</strong></p>
+<h3 id="user-guide-phase-1-plan-sparc-prd-mini">Phase 1 — PLAN (sparc-prd-mini)</h3>
+<p>Генерирует 5 SPARC docs в <code>docs/features/&lt;feature&gt;/</code>:</p>
+<ul><li><code>01_specification.md</code>, <code>02_pseudocode.md</code>, <code>03_architecture.md</code>, <code>04_refinement.md</code>, <code>05_completion.md</code></li></ul>
+<h3 id="user-guide-phase-2-validate-requirements-validator">Phase 2 — VALIDATE (requirements-validator)</h3>
+<p>Score ≥ 70 → Phase 3. Auto-retry на 🟡 (caveats), max 3 retry на 🔴.</p>
+<h3 id="user-guide-phase-3-implement-parallel-agents">Phase 3 — IMPLEMENT (parallel agents)</h3>
+<p><code>Task</code> tool spawns параллельные tasks по independent units из Architecture.</p>
+<h3 id="user-guide-phase-4-review-brutal-honesty-review">Phase 4 — REVIEW (brutal-honesty-review)</h3>
+<p>Findings по severity: blocker (must fix) / high / medium / low.</p>
+<p><strong>AUTO mode</strong> (вызвано из <code>/go</code> или <code>/run</code>): без per-phase confirmations.</p>
+<h3 id="user-guide-feature-workflow-v-suschestvuyuschem-proekte-mode-2">Feature workflow в существующем проекте (Mode 2)</h3>
+<p><code>/feature</code> официально поддерживает <strong>два режима</strong> входа — оба используют идентичный 4-фазный pipeline (PLAN → VALIDATE → IMPLEMENT → REVIEW), те же validation thresholds, ту же retry-логику.</p>
+<div class="table-wrap"><table><thead><tr><th>Mode</th><th>Когда</th><th>Pre-conditions</th></tr></thead><tbody><tr><td><strong>Mode 1: Post-/replicate</strong></td><td>Проект bootstrap'нут через <code>/replicate</code></td><td>CLAUDE.md, docs/, scaffold всё сгенерено /replicate</td></tr><tr><td><strong>Mode 2: Existing project</strong></td><td>Проект уже работает, добавляем фичи с верификацией</td><td><code>init</code> запущен поверх существующего проекта; CLAUDE.md уже существует</td></tr></tbody></table></div>
+<h4 id="user-guide-kogda-ispolzovat-mode-2">Когда использовать Mode 2</h4>
+<ul><li>У вас уже есть стек, PRD, Specification, Architecture, CLAUDE.md</li><li>Вы хотите добавлять фичи с <strong>тем же циклом валидации</strong> что в <code>/replicate</code></li><li>Вы НЕ хотите перегенерировать существующий CLAUDE.md и scaffold</li></ul>
+<h4 id="user-guide-shagi-dlya-mode-2">Шаги для Mode 2</h4>
+<pre data-lang="bash"><code class="language-bash"># 1. Установка (idempotent — НЕ трогает CLAUDE.md и существующие .claude/ файлы)
+cd existing-project
+npx @dzhechkov/p-replicator init
+npx @dzhechkov/p-replicator verify     # pre-shipped contract OK
+
+# 2. Нормализация SPARC-путей (одноразово)
+#    /feature ожидает docs/PRD.md, docs/Specification.md, docs/Architecture.md
+mv docs/your-prd.md   docs/PRD.md
+mv docs/your-spec.md  docs/Specification.md
+mv docs/your-arch.md  docs/Architecture.md
+
+# 3. (Опционально) feature-roadmap для batch-режима через /run
+cat &gt; .claude/feature-roadmap.json &lt;&lt; 'EOF'
+{
+  "features": [
+    {"id": "stripe-payments", "title": "Stripe", "priority": "mvp", "status": "planned"},
+    {"id": "user-2fa",        "title": "2FA TOTP", "priority": "mvp", "status": "planned"}
+  ]
+}
+EOF
+
+# 4. Запуск
+claude
+/feature stripe-payments                    # одна фича
+/run mvp --feature-branches --auto-merge    # batch с git-веткованием</code></pre>
+<h4 id="user-guide-tri-sub-puti-dlya-mode-2">Три sub-пути для Mode 2</h4>
+<h5 id="user-guide-path-a-feature-napryamuyu-rekomenduemyy">Path A — <code>/feature</code> напрямую (рекомендуемый)</h5>
+<p>Одна фича, полный 4-фазный lifecycle. Подходит когда фича ≥4 файлов или вводит новую capability/архитектуру.</p>
+<pre data-lang=""><code class="language-text">/feature add-stripe-payments</code></pre>
+<h5 id="user-guide-path-b-go-auto-router">Path B — <code>/go</code> auto-router</h5>
+<p>Сам решает между <code>/plan</code> (≤3 файла) и <code>/feature</code> (≥4 файла) по эвристикам.</p>
+<pre data-lang=""><code class="language-text">/go add-pagination          # → /plan (мелкая)
+/go add-stripe-payments     # → /feature (крупная)</code></pre>
+<h5 id="user-guide-path-c-pryamoy-vyzov-skills-tolko-validation-tsikl">Path C — прямой вызов skills (только validation-цикл)</h5>
+<p>Если у вас своя реализация-флоу и нужен <strong>только</strong> validation-cycle:</p>
+<pre data-lang=""><code class="language-text">В Claude Code:
+«Вызови skill requirements-validator на docs/features/my-feature/.
+ Сгенерируй validation-report.md с verdict 🟢/🟡/🔴.»
+
+После реализации:
+«Вызови skill brutal-honesty-review на изменённые файлы.»</code></pre>
+<h4 id="user-guide-chto-sohranyaetsya-pri-init-v-suschestvuyuschem-proekte">Что сохраняется при <code>init</code> в существующем проекте</h4>
+<div class="table-wrap"><table><thead><tr><th>Артефакт</th><th>Поведение</th></tr></thead><tbody><tr><td><code>CLAUDE.md</code> (root)</td><td><strong>Сохраняется</strong> (только <code>--force</code> перезапишет)</td></tr><tr><td><code>docs/PRD.md</code>, <code>Specification.md</code>, ваши доки</td><td><strong>Сохраняются</strong></td></tr><tr><td><code>.claude/commands/your-custom.md</code></td><td><strong>Сохраняются</strong></td></tr><tr><td><code>.claude/settings.json</code></td><td><strong>Сливается</strong> (v1.4.2+ deep-equals merge с <code>shippedDefaults</code> baseline для orphan-detection)</td></tr><tr><td><code>.gitignore</code>, <code>package.json</code></td><td><strong>Не трогаются</strong></td></tr><tr><td><code>.p-replicator.json</code></td><td>Создаётся новый (manifest)</td></tr></tbody></table></div>
+<h4 id="user-guide-validation-thresholds-identichny-phase-2-of-replicate">Validation thresholds (идентичны Phase 2 of /replicate)</h4>
+<p><code>requirements-validator</code> оценивает по INVEST (user stories) + SMART (acceptance criteria). Тот же swarm-of-5 что в <code>/replicate</code>:</p>
+<ul><li>🟢 <strong>READY</strong> (score ≥ 70) — IMPLEMENT</li><li>🟡 <strong>CAVEATS</strong> (50-69, нет blockers) — IMPLEMENT + auto-retry один раз</li><li>🔴 <strong>NEEDS WORK</strong> (&lt; 50 OR blockers) — возврат на PLAN, max 3 retries → halt</li></ul>
+<p>После <code>IMPLEMENT</code> — <code>brutal-honesty-review</code> с severity: <code>blocker</code> (must fix) / <code>high</code> (fix unless deferred) / <code>medium</code> (follow-up issue) / <code>low</code> (logged only).</p>
+<h4 id="user-guide-caveats-mode-2-vazhno-znat">Caveats Mode 2 (важно знать)</h4>
+<ol><li><strong><code>/start</code> НЕ запускайте</strong> — он для свежих scaffold'ов под <code>Architecture.md</code>, не для добавления к существующему проекту.</li><li><strong><code>/feature-ent</code> недоступна</strong> в Mode 2 если нет DDD/ADR/C4-доков — <code>/replicate</code> Phase 3 нормально генерит её условно. Используйте <code>/feature</code> или <code>/go</code>.</li><li><strong>Auto-commit hooks</strong> (<code>Stop</code> → <code>autocommit-roadmap.cjs</code> / <code>-insights.cjs</code> / <code>-plans.cjs</code>) могут конфликтовать с custom git-workflow. Решение: после <code>init</code> отредактируйте <code>.claude/settings.json</code> — удалите ненужные matchers. v1.4.2+ merge logic сохранит правки на следующих <code>update</code> командах благодаря <code>shippedDefaults</code> baseline.</li><li><strong>Нестандартные пути доков</strong> — нет флагов <code>--prd-path</code> / <code>--spec-path</code>. Решение: одноразовый rename или symlink. См. KNOWN_LIMITATIONS.md M3 — формальный config-flag в roadmap (Tier S effort).</li></ol>
+<h4 id="user-guide-verification-2">Verification</h4>
+<p>После <code>/feature</code> (или <code>/run</code>) запустите:</p>
+<pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator verify</code></pre>
+<p>Должен показать:</p>
+<ul><li>✅ Pre-shipped contract intact (10 skills + 11 commands + 4 agents + 6 rules + settings.json)</li><li>✅ Post-/replicate hints — для Mode 2 многие будут отсутствовать (это нормально)</li><li>📊 Per-feature artifacts: <code>docs/features/&lt;id&gt;/01_specification.md</code>...<code>05_completion.md</code>, <code>validation-report.md</code>, <code>review-report.md</code></li></ul>
+<h4 id="user-guide-future-enhancement-m3-v-knownlimitations">Future enhancement (M3 в KNOWN_LIMITATIONS)</h4>
+<p><code>docPaths</code> config в <code>.p-replicator.json</code> для нестандартных путей доков — в roadmap'е. Tier S effort, чисто config + spec-read изменения, без изменений CLI-кода.</p>
+<hr>
+<h2 id="user-guide-myinsights-knowledge-capture">/myinsights — knowledge capture</h2>
+<p><strong>Назначение:</strong> строить project-local knowledge base «грабли» (rakes), которые auto-injected'ятся в каждую сессию через <code>SessionStart</code> hook.</p>
+<p><strong>Использование:</strong></p>
+<pre data-lang=""><code class="language-text">/myinsights                                 # interactive prompt
+/myinsights "Prisma migrate dev fails silently if shadow DB unreachable. Workaround: set DATABASE_URL_SHADOW explicitly."
+/myinsights recall prisma                  # search by keyword</code></pre>
+<p><strong>Структура entry:</strong></p>
+<pre data-lang="markdown"><code class="language-markdown">## 2026-05-07 — Prisma shadow DB requirement
+
+**Tags:** prisma-migration, postgres-shadow
+
+**Problem:**
+Migrate dev fails silently when shadow DB unreachable (no error message).
+
+**Solution:**
+Set DATABASE_URL_SHADOW env var explicitly to a separate database.
+
+**References:** packages/backend/prisma/schema.prisma:12, commit a3f4...</code></pre>
+<p><strong>Auto-injection:</strong> <code>SessionStart</code> hook (<code>.claude/hooks/session-insights.cjs</code>) читает <code>.claude/insights/index.md</code>, выводит 3 свежих entries в stdout, Claude Code инжектит в initial context.</p>
+<hr>
+<h2 id="user-guide-docs-generator-dokumentatsii">/docs — генератор документации</h2>
+<p><strong>Это команда, которая создала эти файлы.</strong> Bilingual (RU + EN) по умолчанию.</p>
+<p><strong>Использование:</strong></p>
+<pre data-lang=""><code class="language-text">/docs                       # RU + EN, create or replace
+/docs ru                    # только русский
+/docs eng                   # только английский
+/docs update                # обновить только изменённые секции</code></pre>
+<p><strong>Output:</strong> <code>README/{ru,eng}/</code> с 8 файлами per language (этот файл — один из них).</p>
+<hr>
+<h2 id="user-guide-harvest-izvlechenie-znaniy">/harvest — извлечение знаний</h2>
+<p><strong>Назначение:</strong> в конце проекта извлечь reusable-паттерны (skills, commands, rules, templates, snippets) для использования в новых проектах.</p>
+<p><strong>Использование:</strong></p>
+<pre data-lang=""><code class="language-text">/harvest quick               # быстро, без checkpoints (~15 мин)
+/harvest full                # полный 4-фазный pipeline (~45 мин)
+/harvest marker              # пометить артефакт для extraction
+/harvest audit               # ревью toolkit-зрелости</code></pre>
+<p><strong>4 фазы (full):</strong></p>
+<ol><li>AGENT REVIEW — 5 параллельных scanner-агентов</li><li>CLASSIFY — 7 категорий (skills/commands/rules/templates/...)</li><li>DECONTEXTUALIZE — убрать project-specific имена</li><li>INTEGRATE — записать в toolkit, обновить index</li></ol>
+<hr>
+<h2 id="user-guide-deploy-deployment-workflow">/deploy — deployment workflow</h2>
+<p><strong>Использование:</strong></p>
+<pre data-lang=""><code class="language-text">/deploy dev          # auto, минимум checks
+/deploy staging      # gate checks + smoke tests + health
+/deploy prod         # explicit `yes` confirmation + rollback plan</code></pre>
+<p><strong>Per-tier gate checks:</strong></p>
+<ul><li>ALL: tests pass, build OK, lint clean</li><li>STAGING+PROD: env vars set, external services reachable, images tagged</li><li>PROD: staging successful in 24h, no critical issues, on-call notified</li></ul>
+<p><strong>Auto-rollback</strong> на staging/prod при failed health-check.</p>
+<hr>
+<h2 id="user-guide-svyazi-mezhdu-komandami">Связи между командами</h2>
+<pre data-lang=""><code class="language-text">/replicate ─┬─ /start ──────── (один раз для bootstrap'а)
+            │
+            └─ /run mvp/all ──┬─ /next (выбор)
+                              ├─ /go ──┬─ /plan (simple)
+                              │       └─ /feature (standard)
+                              │           └─ AUTO mode внутри /run
+                              └─ git push + roadmap update
+
+В любой момент:
+  /myinsights — фиксация знаний
+  /docs — обновление документации
+  /verify, /doctor — health checks (CLI)
+
+В конце:
+  /harvest — извлечение паттернов
+  /deploy — деплой в production</code></pre>
+<p>Подробности по конфигурации hooks/statusline/insights см. в <a href="#admin-guide">03_admin_guide.md</a>.</p>
+<nav class="section-nav" aria-label="Навигация по секциям"><a href="#quickstart" class="prev"><span class="nav-arrow">←</span> <span class="nav-text"><span class="nav-label">Предыдущее</span><span class="nav-title">01. Быстрый старт</span></span></a><a href="#admin-guide" class="next"><span class="nav-text"><span class="nav-label">Далее</span><span class="nav-title">03. Admin Guide</span></span> <span class="nav-arrow">→</span></a></nav>
+</article>
+<article id="admin-guide" class="section" data-section-title="03. Admin Guide">
+<h1 id="03-admin-guide-konfiguratsiya-i-tonkaya-nastroyka">03. Admin Guide — конфигурация и тонкая настройка</h1>
+<p>Для тех, кто хочет понять и кастомизировать инфраструктуру <code>p-replicator</code>: hooks, statusline, settings.json, insights, roadmap.</p>
+<h2 id="admin-guide-settingsjson-glavnyy-konfig">settings.json — главный конфиг</h2>
+<p><strong>Расположение:</strong> <code>.claude/settings.json</code> в корне проекта.</p>
+<p><strong>Структура (defaults после init):</strong></p>
+<pre data-lang="json"><code class="language-json">{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment": "Default hooks + statusline shipped by @dzhechkov/p-replicator init.",
+  "statusLine": {
+    "type": "command",
+    "command": "node .claude/hooks/statusline.cjs"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/session-insights.cjs", "timeout": 5 }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/autocommit-roadmap.cjs", "timeout": 10 },
+          { "type": "command", "command": "node .claude/hooks/autocommit-insights.cjs", "timeout": 10 },
+          { "type": "command", "command": "node .claude/hooks/autocommit-plans.cjs", "timeout": 10 }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+<p><strong>Кастомизация:</strong> добавляйте новые hooks или event types — они будут СОХРАНЕНЫ при <code>init --force</code> или <code>update</code> благодаря merge-логике (<code>mergeSettingsJson</code> + <code>removeOrphanHooks</code>).</p>
+<p><strong>Полный сброс к defaults:</strong></p>
+<pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator init --force --reset-settings</code></pre>
+<hr>
+<h2 id="admin-guide-hooks-zhiznennyy-tsikl">Hooks — жизненный цикл</h2>
+<p><code>p-replicator</code> shipped с <strong>6 cross-platform Node-скриптами</strong> в <code>.claude/hooks/</code>:</p>
+<div class="table-wrap"><table><thead><tr><th>Hook</th><th>Event</th><th>Что делает</th></tr></thead><tbody><tr><td><code>session-insights.cjs</code></td><td>SessionStart</td><td>Инжектит 3 свежих insights из <code>.claude/insights/index.md</code> в stdout (Claude Code захватывает)</td></tr><tr><td><code>autocommit-roadmap.cjs</code></td><td>Stop</td><td>Auto-commit <code>.claude/feature-roadmap.json</code> если изменён</td></tr><tr><td><code>autocommit-insights.cjs</code></td><td>Stop</td><td>Auto-commit <code>.claude/insights/</code> если изменены</td></tr><tr><td><code>autocommit-plans.cjs</code></td><td>Stop</td><td>Auto-commit <code>docs/plans/</code> если изменены</td></tr><tr><td><code>statusline.cjs</code></td><td>(statusLine)</td><td>Multi-line dashboard над промптом</td></tr><tr><td><code>state-update.cjs</code></td><td>(utility)</td><td>Argv-driven helper для записи <code>.claude/.p-replicator-state.json</code></td></tr></tbody></table></div>
+<p><strong>Cross-platform discipline:</strong> все 4 autocommit-скрипта используют <code>execFileSync('git', [...])</code> (без shell-pipes, без <code>2&gt;/dev/null</code>/<code>|| true</code> — работает на Windows-cmd, bash, PowerShell идентично).</p>
+<p><strong>Каждый скрипт defensive:</strong> wrapped в try/catch, exit 0 always (best-effort, не блокирует сессию).</p>
+<hr>
+<h2 id="admin-guide-statusline-pribornaya-panel">Statusline — приборная панель</h2>
+<p><strong>Что показывает (6 строк):</strong></p>
+<pre data-lang=""><code class="language-text">P-Replicator V1.5.0 ● user │ Sonnet 4.7
+🚀 Pipeline   /&lt;cmd&gt; ▓▓▓░░░░ 50%  │ Phase: VALIDATE (2/4)  │ Last: /replicate
+🎯 Roadmap    [●●●○○○○○] mvp 3/8   │ Done 5/12  │ ▶ auth-jwt  │ Domain: banking
+📊 SPARC      ●11/11  │ 🟢 78/100  │ Plans ●3  │ ADRs ●2  │ Harvest 2026-05-05
+🛠️ Toolkit   Skills ●10/10 │ Cmds ●11/11 │ Agents ●4+3 │ Rules ●6+2 │ Hooks ●7/7
+💡 Insights   ●12 (2026-05-06) │ Tests 85/85 ✓ │ MCP ●1/1 │ Settings ✓ │ 🧬 Keysarium ✓</code></pre>
+<p><strong>Источники (heuristic + state-file):</strong></p>
+<div class="table-wrap"><table><thead><tr><th>Метрика</th><th>Откуда</th></tr></thead><tbody><tr><td>Pipeline command + phase + progress</td><td><code>.claude/.p-replicator-state.json</code> (state-file)</td></tr><tr><td>Roadmap progress</td><td><code>.claude/feature-roadmap.json</code></td></tr><tr><td>SPARC count</td><td><code>docs/{PRD,Architecture,...}.md</code> files</td></tr><tr><td>Validation score</td><td>regex extract from <code>docs/validation-report.md</code></td></tr><tr><td>Plans count</td><td><code>docs/plans/*.md</code></td></tr><tr><td>ADRs count</td><td><code>docs/ADR.md</code> <code>## ADR-...</code> headings, или <code>docs/adr/*.md</code>, или <code>docs/ddd/adr/*.md</code></td></tr><tr><td>Insights count + last date</td><td><code>## YYYY-MM-DD</code> headings в <code>.claude/insights/index.md</code></td></tr><tr><td>Toolkit counts</td><td>filesystem walk <code>.claude/{skills,commands,agents,rules,hooks}/</code></td></tr><tr><td>Settings status</td><td>deep-equals current vs <code>manifest.shippedDefaults</code> → <code>defaults</code>/<code>merged</code></td></tr><tr><td>MCP servers</td><td><code>.mcp.json</code></td></tr><tr><td>Domain</td><td>keyword grep <code>CLAUDE.md</code> (banking/retail/enterprise/healthcare)</td></tr><tr><td>Last harvest</td><td><code>TOOLKIT_HARVEST.md</code> mtime</td></tr><tr><td>Last test</td><td>optional <code>.claude/.last-test.json</code> cache</td></tr></tbody></table></div>
+<p><strong>Stale state file:</strong> если <code>.p-replicator-state.json</code> старше 30 минут — игнорируется (показывается <code>idle</code>).</p>
+<p><strong>Защита от поломки:</strong> каждая секция wrapped в <code>safeRun()</code> — error в одной не убивает весь statusline.</p>
+<p><strong>Отключить statusline:</strong></p>
+<p>Удалите поле <code>statusLine</code> из <code>.claude/settings.json</code>. На следующем <code>update</code> с merge-логикой удаление будет сохранено.</p>
+<hr>
+<h2 id="admin-guide-state-file-dlya-live-progress">State-file для live progress</h2>
+<p><code>.claude/.p-replicator-state.json</code> — ephemeral state, обновляется командами во время выполнения pipeline:</p>
+<pre data-lang="json"><code class="language-json">{
+  "currentCommand": "/feature",
+  "currentPhase": {
+    "name": "VALIDATE",
+    "index": 2,
+    "total": 4,
+    "progress": 0.5
+  },
+  "lastCommand": "/replicate",
+  "lastFeature": "auth-jwt",
+  "updatedAt": "2026-05-07T..."
+}</code></pre>
+<p><strong>Обновляется через <code>state-update.cjs</code>:</strong></p>
+<pre data-lang="bash"><code class="language-bash">node .claude/hooks/state-update.cjs \
+  --command /feature \
+  --phase VALIDATE \
+  --index 2 \
+  --total 4 \
+  --progress 0.5</code></pre>
+<p>Команды pipeline'а опционально вызывают этот скрипт через Bash tool, чтобы statusline показывал реальный прогресс.</p>
+<p><strong>⚠️ Известное ограничение:</strong> этот файл не auto-gitignored. Рекомендуется добавить вручную:</p>
+<pre data-lang=""><code class="language-text">echo ".claude/.p-replicator-state.json" &gt;&gt; .gitignore
+echo ".claude/.last-test.json" &gt;&gt; .gitignore</code></pre>
+<p>См. <code>KNOWN_LIMITATIONS.md</code> пункт L5.</p>
+<hr>
+<h2 id="admin-guide-insights-system">Insights system</h2>
+<p><strong>Storage:</strong> <code>.claude/insights/index.md</code> (markdown лог).</p>
+<p><strong>Формат entry:</strong></p>
+<pre data-lang="markdown"><code class="language-markdown">## YYYY-MM-DD — короткий title
+
+**Tags:** tag1, tag2, tag3
+
+**Problem:**
+Что произошло (1-3 предложения).
+
+**Solution:**
+Что починило (1-5 предложений с кодом если уместно).
+
+**References:** file:line или commit hash или external link
+
+---</code></pre>
+<p><strong>Жизненный цикл:</strong></p>
+<ul><li>≤ 50 entries → один <code>index.md</code></li><li>&gt; 50 → split на archive <code>&lt;YYYY-MM&gt;.md</code> с <code>index.md</code> как TOC</li><li>Никогда не удалять — only supersede через <code>**Status:** superseded by &lt;link&gt;</code></li></ul>
+<p><strong>Tag-конвенции:</strong></p>
+<ul><li>✅ <code>prisma-migration</code>, <code>postgres-timezone</code>, <code>docker-compose-network</code></li><li>❌ <code>bug</code>, <code>fix</code>, <code>important</code> (слишком generic — recall fail'ит)</li></ul>
+<p><strong>Auto-injection через SessionStart hook</strong> — описано выше.</p>
+<hr>
+<h2 id="admin-guide-roadmap-management">Roadmap management</h2>
+<p><strong>Файл:</strong> <code>.claude/feature-roadmap.json</code> (генерируется в <code>/replicate</code> Phase 3 из PRD MVP scope, или вручную).</p>
+<p><strong>Schema (post v1.5.0):</strong></p>
+<pre data-lang="json"><code class="language-json">{
+  "version": "1.0",
+  "features": [
+    {
+      "id": "auth-jwt",
+      "number": 1,
+      "branch": "feature/001-auth-jwt",
+      "name": "JWT-based authentication",
+      "priority": "mvp",
+      "status": "next",
+      "complexity": "medium",
+      "estimated_hours": "2-4",
+      "blockers": [],
+      "expected_files": [
+        "packages/backend/src/auth/jwt.ts"
+      ],
+      "depends_on": []
+    }
+  ]
+}</code></pre>
+<p><strong>Lifecycle states:</strong></p>
+<ul><li><code>planned</code> → ещё не приоритетная</li><li><code>next</code> → следующая в очереди (берётся <code>/next</code>)</li><li><code>in_progress</code> → активно работают</li><li><code>done</code> → реализована</li><li><code>blocked</code> → ждёт <code>depends_on</code> или manual fix</li></ul>
+<p><strong>Поля <code>number</code> и <code>branch</code></strong> заполняются <code>--feature-branches</code> flag'ом в <code>/run</code> или <code>/go</code>.</p>
+<p><strong>Auto-commit</strong> через <code>autocommit-roadmap.cjs</code> (Stop hook) при изменениях.</p>
+<hr>
+<h2 id="admin-guide-doctor-verify-dva-raznyh-instrumenta">Doctor + Verify — два разных инструмента</h2>
+<div class="table-wrap"><table><thead><tr><th>Инструмент</th><th>Что проверяет</th><th>Когда</th></tr></thead><tbody><tr><td><code>npx @dzhechkov/p-replicator doctor</code></td><td>Pre-shipped contract: 10 skills + 11 commands + 4 agents + 6 rules + settings.json + 7 hooks + git on PATH</td><td>После init / при подозрении что что-то сломалось</td></tr><tr><td><code>npx @dzhechkov/p-replicator verify</code></td><td>Pre-shipped + post-/replicate hints (CLAUDE.md, planner.md, security.md, feature-roadmap.json, и т.д.)</td><td>После каждого <code>/replicate</code> для уверенности</td></tr></tbody></table></div>
+<p><strong><code>doctor</code> exit codes:</strong></p>
+<ul><li><code>0</code> — всё в порядке</li><li><code>1</code> — что-то отсутствует из must-have (используйте <code>init --force</code> для repair)</li></ul>
+<p><strong><code>verify</code> exit codes:</strong></p>
+<ul><li><code>0</code> — pre-shipped contract в порядке (могут быть warnings про project-specific)</li><li><code>1</code> — pre-shipped contract нарушен</li></ul>
+<hr>
+<h2 id="admin-guide-update-workflow">Update workflow</h2>
+<pre data-lang="bash"><code class="language-bash"># Безопасный upgrade с preserve user customizations:
+npx @dzhechkov/p-replicator@latest update
+
+# Или через init --force (тоже preserves customizations):
+npx @dzhechkov/p-replicator@latest init --force
+
+# Полный сброс settings.json к defaults:
+npx @dzhechkov/p-replicator@latest init --force --reset-settings</code></pre>
+<p><strong>Что делает merge-логика:</strong></p>
+<ol><li>Читает <code>manifest.shippedDefaults['settings.json']</code> (что мы shipped в прошлый раз)</li><li>Читает текущий <code>templates/.claude/settings.json</code> (новый template)</li><li>Читает <code>.claude/settings.json</code> (user's current)</li><li><strong>Orphan detection:</strong> удаляет hooks, которые были в old template но НЕТ в new</li><li><strong>Merge:</strong> добавляет hooks из new template которых ЕЩЁ НЕТ в user's current</li><li>User-added hooks (никогда не были в old template) — <strong>СОХРАНЯЮТСЯ</strong></li></ol>
+<p><strong>Identity model:</strong> hooks сравниваются по <code>command</code> string. User-modified default (изменил command) → treated как user-added, preserved.</p>
+<p>См. подробности алгоритма в <a href="#architecture">05_architecture.md</a>.</p>
+<hr>
+<h2 id="admin-guide-mcp-servers">MCP servers</h2>
+<p><strong>Файл:</strong> <code>.mcp.json</code> (project-local).</p>
+<pre data-lang="json"><code class="language-json">{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/dir"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_TOKEN": "..." }
+    }
+  }
+}</code></pre>
+<p>Statusline показывает количество MCP серверов в строке Status.</p>
+<p><code>/replicate</code> Phase 3 автоматически генерирует <code>.mcp.json</code> при detected external integrations.</p>
+<hr>
+<h2 id="admin-guide-svyaz-s-keysarium">Связь с Keysarium</h2>
+<p>Если в проекте обнаружен <code>.keysarium.json</code> (от соседнего пакета <code>@dzhechkov/keysarium</code>):</p>
+<ul><li><code>init</code> показывает интеграционный banner</li><li>Statusline показывает <code>🧬 Keysarium ✓</code></li><li><code>/replicate</code> Phase 3 НЕ дублирует skills, которые уже предоставлены Keysarium'ом</li></ul>
+<p>Документация Keysarium — в собственном пакете.</p>
+<hr>
+<h2 id="admin-guide-dalshe">Дальше</h2>
+<ul><li><a href="#api-reference">04_api_reference.md</a> — формальные схемы</li><li><a href="#architecture">05_architecture.md</a> — внутреннее устройство</li><li><a href="#troubleshooting">06_troubleshooting.md</a> — типичные проблемы</li></ul>
+<nav class="section-nav" aria-label="Навигация по секциям"><a href="#user-guide" class="prev"><span class="nav-arrow">←</span> <span class="nav-text"><span class="nav-label">Предыдущее</span><span class="nav-title">02. Руководство</span></span></a><a href="#api-reference" class="next"><span class="nav-text"><span class="nav-label">Далее</span><span class="nav-title">04. API Reference</span></span> <span class="nav-arrow">→</span></a></nav>
+</article>
+<article id="api-reference" class="section" data-section-title="04. API Reference">
+<h1 id="04-api-reference">04. API Reference</h1>
+<p>Формальная справка: CLI-команды, флаги, схемы JSON-файлов.</p>
+<h2 id="api-reference-cli-npx-dzhechkovp-replicator">CLI: <code>npx @dzhechkov/p-replicator</code></h2>
+<h3 id="api-reference-subcommands">Subcommands</h3>
+<div class="table-wrap"><table><thead><tr><th>Subcommand</th><th>Назначение</th><th>Exit code</th></tr></thead><tbody><tr><td><code>init</code> (default)</td><td>Установка пакета в проект</td><td><code>0</code> ok, <code>1</code> если уже установлен без <code>--force</code></td></tr><tr><td><code>update</code></td><td>Обновление файлов до новой версии</td><td><code>0</code> ok, <code>1</code> если не установлен</td></tr><tr><td><code>remove</code></td><td>Удаление package-tracked файлов</td><td><code>0</code> ok, <code>1</code> если не установлен</td></tr><tr><td><code>list</code></td><td>Список установленных components</td><td><code>0</code></td></tr><tr><td><code>doctor</code></td><td>Health check pre-shipped contract</td><td><code>0</code> ok, <code>1</code> если что-то не так</td></tr><tr><td><code>verify</code></td><td>Pre-shipped + post-/replicate проверка</td><td><code>0</code> ok, <code>1</code> если pre-shipped contract нарушен</td></tr></tbody></table></div>
+<h3 id="api-reference-globalnye-flagi">Глобальные флаги</h3>
+<div class="table-wrap"><table><thead><tr><th>Флаг</th><th>Где работает</th><th>Описание</th></tr></thead><tbody><tr><td><code>--force</code></td><td><code>init</code></td><td>Перезаписать существующие файлы (с merge-логикой для settings.json)</td></tr><tr><td><code>--dry-run</code></td><td><code>init</code>, <code>update</code>, <code>remove</code></td><td>Preview без записи на диск</td></tr><tr><td><code>--reset-settings</code></td><td><code>init --force</code>, <code>update</code></td><td>Полный overwrite settings.json (отключает merge)</td></tr><tr><td><code>--help</code>, <code>-h</code></td><td>любой</td><td>Показать help</td></tr><tr><td><code>--version</code>, <code>-v</code></td><td>любой</td><td>Показать версию пакета</td></tr></tbody></table></div>
+<h3 id="api-reference-slash-command-flagi-vnutri-claude-code">Slash command флаги (внутри Claude Code)</h3>
+<div class="table-wrap"><table><thead><tr><th>Флаг</th><th>Где работает</th><th>Описание</th></tr></thead><tbody><tr><td><code>--feature-branches</code></td><td><code>/run</code>, <code>/go</code></td><td>Каждая фича в отдельной ветке <code>feature/{NNN}-{id}</code></td></tr><tr><td><code>--auto-merge</code></td><td><code>/run</code>, <code>/go</code> (с <code>--feature-branches</code>)</td><td>Автомердж feature-ветки в main после успеха</td></tr><tr><td><code>--skip-tests</code></td><td><code>/start</code></td><td>Пропустить генерацию тестов</td></tr><tr><td><code>--skip-seed</code></td><td><code>/start</code></td><td>Пропустить DB seeding</td></tr><tr><td><code>--dry-run</code></td><td><code>/start</code>, <code>/replicate</code></td><td>Preview без записи</td></tr></tbody></table></div>
+<hr>
+<h2 id="api-reference-manifest-schema-p-replicatorjson">Manifest schema (<code>.p-replicator.json</code>)</h2>
+<pre data-lang="json"><code class="language-json">{
+  "version": "1.5.0",
+  "installedAt": "2026-05-07T12:00:00.000Z",
+  "components": ["agents", "commands", "hooks", "rules", "settings", "skills"],
+  "files": [
+    ".claude/agents/doc-validator.md",
+    ".claude/commands/replicate.md",
+    "...sorted list of all installed files..."
+  ],
+  "shippedDefaults": {
+    "settings.json": {
+      "hooks": { "SessionStart": [...], "Stop": [...] },
+      "statusLine": { "type": "command", "command": "..." }
+    }
+  }
+}</code></pre>
+<p><strong>Поля:</strong></p>
+<div class="table-wrap"><table><thead><tr><th>Поле</th><th>Тип</th><th>Назначение</th></tr></thead><tbody><tr><td><code>version</code></td><td>semver</td><td>Версия pre-replicator при последнем install/update</td></tr><tr><td><code>installedAt</code></td><td>ISO-8601</td><td>Timestamp последней установки</td></tr><tr><td><code>components</code></td><td>array of group keys</td><td>Pre-shipped группы (skills/commands/agents/rules/settings/hooks)</td></tr><tr><td><code>files</code></td><td>sorted array</td><td>Все package-tracked файлы (для <code>remove</code>)</td></tr><tr><td><code>shippedDefaults</code></td><td>optional map</td><td>Snapshot template'ов для orphan detection при upgrade</td></tr></tbody></table></div>
+<p><strong>Backward compat:</strong> manifest без <code>shippedDefaults</code> (pre-1.4.3) загружается без ошибок — orphan detection skipped на первый upgrade.</p>
+<hr>
+<h2 id="api-reference-roadmap-schema-claudefeature-roadmapjson">Roadmap schema (<code>.claude/feature-roadmap.json</code>)</h2>
+<pre data-lang="json"><code class="language-json">{
+  "version": "1.0",
+  "features": [
+    {
+      "id": "auth-jwt",
+      "number": 1,
+      "branch": "feature/001-auth-jwt",
+      "name": "JWT-based authentication",
+      "priority": "mvp",
+      "status": "next",
+      "complexity": "medium",
+      "estimated_hours": "2-4",
+      "blockers": [],
+      "expected_files": ["packages/backend/src/auth/jwt.ts"],
+      "depends_on": []
+    }
+  ]
+}</code></pre>
+<h3 id="api-reference-feature-fields">Feature fields</h3>
+<div class="table-wrap"><table><thead><tr><th>Field</th><th>Required</th><th>Тип</th><th>Заполняется кем</th><th>Назначение</th></tr></thead><tbody><tr><td><code>id</code></td><td>yes</td><td>kebab-case slug</td><td>initial generation</td><td>Стабильный идентификатор</td></tr><tr><td><code>number</code></td><td>optional</td><td>int</td><td><code>--feature-branches</code> flag</td><td>Sequential 1..N для branch naming</td></tr><tr><td><code>branch</code></td><td>optional</td><td>string</td><td><code>--feature-branches</code> после успеха</td><td><code>feature/{NNN}-{id}</code> actual ref</td></tr><tr><td><code>name</code></td><td>recommended</td><td>string</td><td>initial generation</td><td>Human-readable title</td></tr><tr><td><code>priority</code></td><td>yes</td><td>enum</td><td>initial generation</td><td><code>mvp</code> \</td><td><code>high</code> \</td><td><code>medium</code> \</td><td><code>low</code></td></tr><tr><td><code>status</code></td><td>yes</td><td>enum</td><td>lifecycle</td><td><code>planned</code> \</td><td><code>next</code> \</td><td><code>in_progress</code> \</td><td><code>done</code> \</td><td><code>blocked</code></td></tr><tr><td><code>complexity</code></td><td>optional</td><td>enum</td><td>initial generation</td><td><code>simple</code> \</td><td><code>medium</code> \</td><td><code>complex</code></td></tr><tr><td><code>estimated_hours</code></td><td>optional</td><td>string</td><td>initial generation</td><td>Time hint</td></tr><tr><td><code>blockers</code></td><td>optional</td><td>string[]</td><td>manual</td><td>Issue IDs или free-form</td></tr><tr><td><code>expected_files</code></td><td>optional</td><td>string[]</td><td>initial generation</td><td>Используется <code>/next update</code> для detection</td></tr><tr><td><code>depends_on</code></td><td>optional</td><td>string[]</td><td>initial generation</td><td>Feature IDs которые должны завершиться первыми</td></tr></tbody></table></div>
+<hr>
+<h2 id="api-reference-state-file-schema-claudep-replicator-statejson">State-file schema (<code>.claude/.p-replicator-state.json</code>)</h2>
+<pre data-lang="json"><code class="language-json">{
+  "currentCommand": "/feature",
+  "currentPhase": {
+    "name": "VALIDATE",
+    "index": 2,
+    "total": 4,
+    "progress": 0.5
+  },
+  "lastCommand": "/replicate",
+  "lastFeature": "auth-jwt",
+  "updatedAt": "2026-05-07T..."
+}</code></pre>
+<p><strong>Поля:</strong></p>
+<div class="table-wrap"><table><thead><tr><th>Field</th><th>Тип</th><th>Назначение</th></tr></thead><tbody><tr><td><code>currentCommand</code></td><td><code>/&lt;name&gt;</code></td><td>Активная команда сейчас (<code>null</code> если idle)</td></tr><tr><td><code>currentPhase</code></td><td>object</td><td>Live progress в текущей команде</td></tr><tr><td><code>currentPhase.name</code></td><td>string</td><td>Имя фазы (e.g., <code>VALIDATE</code>, <code>IMPLEMENT</code>)</td></tr><tr><td><code>currentPhase.index</code></td><td>int</td><td>Текущая фаза 1..total</td></tr><tr><td><code>currentPhase.total</code></td><td>int</td><td>Сколько всего фаз</td></tr><tr><td><code>currentPhase.progress</code></td><td>float 0..1</td><td>Прогресс в текущей фазе</td></tr><tr><td><code>lastCommand</code></td><td><code>/&lt;name&gt;</code></td><td>Предыдущая команда (для статусной строки)</td></tr><tr><td><code>lastFeature</code></td><td>string</td><td>ID последней реализованной фичи</td></tr><tr><td><code>updatedAt</code></td><td>ISO-8601</td><td>Time-stamp</td></tr></tbody></table></div>
+<p><strong>Stale check:</strong> statusline игнорирует state старше 30 минут.</p>
+<p><strong>Update API:</strong></p>
+<pre data-lang="bash"><code class="language-bash">node .claude/hooks/state-update.cjs \
+  --command /feature \
+  --phase VALIDATE \
+  --index 2 \
+  --total 4 \
+  --progress 0.5 \
+  --last-command /replicate \
+  --last-feature auth-jwt</code></pre>
+<p>Or with full JSON:</p>
+<pre data-lang="bash"><code class="language-bash">node .claude/hooks/state-update.cjs --json '{"currentCommand":"/run", ...}'</code></pre>
+<hr>
+<h2 id="api-reference-settingsjson-struktura">settings.json — структура</h2>
+<pre data-lang="json"><code class="language-json">{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment": "Описание установки",
+  "statusLine": {
+    "type": "command",
+    "command": "node .claude/hooks/statusline.cjs"
+  },
+  "hooks": {
+    "SessionStart": [ /* matchers + hooks */ ],
+    "Stop": [ /* matchers + hooks */ ],
+    "PreToolUse": [ /* user-added */ ],
+    "PostToolUse": [ /* user-added */ ]
+  }
+}</code></pre>
+<h3 id="api-reference-statusline-field"><code>statusLine</code> field</h3>
+<pre data-lang="json"><code class="language-json">{
+  "statusLine": {
+    "type": "command",       // только "command" поддерживается
+    "command": "node .claude/hooks/statusline.cjs"
+  }
+}</code></pre>
+<p>Скрипт пишет в stdout multi-line ANSI-output. Удалите поле — statusline выключится (merge сохранит удаление при upgrade).</p>
+<h3 id="api-reference-hookseventtype-array"><code>hooks.&lt;EventType&gt;</code> array</h3>
+<p>Каждый element:</p>
+<pre data-lang="json"><code class="language-json">{
+  "matcher": "*",                    // или regex для tool-name
+  "hooks": [
+    {
+      "type": "command",
+      "command": "node .claude/hooks/X.cjs",
+      "timeout": 10                  // в секундах
+    }
+  ]
+}</code></pre>
+<p><strong>Event types в Claude Code:</strong></p>
+<ul><li><code>SessionStart</code> — при начале сессии (stdout инжектится в context)</li><li><code>Stop</code> — при завершении turn'а (side-effects: commit, log)</li><li><code>PreToolUse</code>, <code>PostToolUse</code> — вокруг tool-вызовов</li></ul>
+<hr>
+<h2 id="api-reference-components-schema-vnutri-srcutilsjs">COMPONENTS schema (внутри <code>src/utils.js</code>)</h2>
+<p>Контракт того что shipped и что generated:</p>
+<pre data-lang="javascript"><code class="language-javascript">const COMPONENTS = {
+  skills: {
+    src: '.claude/skills',
+    kind: 'pre-shipped',
+    label: 'Skills (10 skill packs)',
+    group: 'core',
+    items: { 'explore': '...', /* ... 10 entries */ },
+  },
+  commands: {
+    src: '.claude/commands',
+    kind: 'pre-shipped',
+    label: 'Commands (orchestration + workflow)',
+    group: 'core',
+    items: { 'replicate': '...', /* ... 11 entries */ },
+  },
+  agents: { kind: 'pre-shipped', items: { /* 4 entries */ } },
+  rules:  { kind: 'pre-shipped', items: { /* 5 entries */ } },
+  settings: { isFile: true, kind: 'pre-shipped', items: { 'settings.json': '...' } },
+  hooks: { kind: 'pre-shipped', items: { /* 6 entries */ } },
+
+  // Project-generated (created by /replicate Phase 3)
+  projectAgents: {
+    kind: 'project-generated',
+    items: {
+      '.claude/agents/planner.md': '...',
+      '.claude/agents/code-reviewer.md': '...',
+      '.claude/agents/architect.md': '...',
+    },
+  },
+  projectRules: {
+    kind: 'project-generated',
+    items: {
+      '.claude/rules/security.md': '...',
+      '.claude/rules/coding-style.md': '...',
+      '.claude/rules/testing.md': '...',
+    },
+  },
+  projectFiles: {
+    kind: 'project-generated',
+    items: {
+      'CLAUDE.md': '...',
+      '.claude/feature-roadmap.json': '...',
+      'DEVELOPMENT_GUIDE.md': '...',
+      'docker-compose.yml': '...',
+    },
+  },
+};</code></pre>
+<p><strong>Identity:</strong></p>
+<ul><li><code>kind: 'pre-shipped'</code> — installed by <code>init</code>, file paths derived from <code>src</code> + item key</li><li><code>kind: 'project-generated'</code> — created by <code>/replicate</code> Phase 3, item keys ARE full paths</li><li><code>isFile: true</code> — single-file component (settings.json), not a directory</li></ul>
+<p><strong>Helper:</strong> <code>utils.getItemRelativePath(comp, itemKey)</code> — централизованная derivation:</p>
+<ul><li>pre-shipped skills: <code>&lt;src&gt;/&lt;itemKey&gt;/SKILL.md</code></li><li>pre-shipped hooks: <code>&lt;src&gt;/&lt;itemKey&gt;.cjs</code></li><li>pre-shipped commands/rules/agents: <code>&lt;src&gt;/&lt;itemKey&gt;.md</code></li><li>pre-shipped settings.json: <code>comp.src</code> (full path)</li><li>project-generated: <code>itemKey</code> (already full path)</li></ul>
+<p>Используется <code>verify</code>, <code>doctor</code>, <code>list</code> для единообразного path-resolution.</p>
+<hr>
+<h2 id="api-reference-hook-scripts-api">Hook scripts API</h2>
+<h3 id="api-reference-session-insightscjs"><code>session-insights.cjs</code></h3>
+<p><strong>Trigger:</strong> <code>SessionStart</code> hook. <strong>Reads:</strong> <code>.claude/insights/index.md</code> (<code>## YYYY-MM-DD</code> headings) <strong>Writes:</strong> stdout (Claude Code инжектит в session context) <strong>Output:</strong> до 3 свежих insights в <code>## Recent project insights\n\n## ... ## ... ## ...</code> format</p>
+<h3 id="api-reference-autocommit-roadmapcjs-autocommit-insightscjs-autocommit-planscjs"><code>autocommit-roadmap.cjs</code> / <code>autocommit-insights.cjs</code> / <code>autocommit-plans.cjs</code></h3>
+<p><strong>Trigger:</strong> <code>Stop</code> hook. <strong>Reads:</strong> target paths (roadmap json / insights/ dir / plans/ dir) <strong>Side-effect:</strong> <code>git add</code> + <code>git diff --cached --quiet</code> check + <code>git commit --only</code> if changed <strong>stdout/stderr:</strong> suppressed (<code>stdio: 'ignore'</code>) <strong>Always exits 0</strong> (best-effort, не блокирует сессию)</p>
+<h3 id="api-reference-statuslinecjs"><code>statusline.cjs</code></h3>
+<p><strong>Trigger:</strong> Claude Code <code>statusLine</code> config (every prompt render). <strong>Reads:</strong> filesystem heuristics + state-file <strong>Writes:</strong> stdout 6-line ANSI-output (header + 5 content) <strong>Defensive:</strong> every section wrapped в <code>safeRun()</code> with fallback</p>
+<h3 id="api-reference-state-updatecjs"><code>state-update.cjs</code></h3>
+<p><strong>Invoked:</strong> by pipeline commands via Bash tool <strong>Args:</strong> <code>--command</code>, <code>--phase</code>, <code>--index</code>, <code>--total</code>, <code>--progress</code>, <code>--last-command</code>, <code>--last-feature</code>, <code>--json</code> <strong>Writes:</strong> <code>.claude/.p-replicator-state.json</code> <strong>Always exits 0</strong> (best-effort)</p>
+<hr>
+<h2 id="api-reference-dalshe">Дальше</h2>
+<ul><li><a href="#architecture">05_architecture.md</a> — как всё это устроено внутри</li></ul>
+<nav class="section-nav" aria-label="Навигация по секциям"><a href="#admin-guide" class="prev"><span class="nav-arrow">←</span> <span class="nav-text"><span class="nav-label">Предыдущее</span><span class="nav-title">03. Admin Guide</span></span></a><a href="#architecture" class="next"><span class="nav-text"><span class="nav-label">Далее</span><span class="nav-title">05. Архитектура</span></span> <span class="nav-arrow">→</span></a></nav>
+</article>
+<article id="architecture" class="section" data-section-title="05. Архитектура">
+<h1 id="05-arhitektura">05. Архитектура</h1>
+<p>Внутреннее устройство <code>p-replicator</code> — как ставится, как обновляется, как сосуществует с user customizations.</p>
+<h2 id="architecture-dvuhurovnevaya-model-pre-shipped-vs-project-generated">Двухуровневая модель: Pre-shipped vs Project-generated</h2>
+<p>Главное архитектурное разделение:</p>
+<div class="table-wrap"><table><thead><tr><th>Уровень</th><th>Кто создаёт</th><th>Где живёт</th><th>Изменяется</th></tr></thead><tbody><tr><td><strong>Pre-shipped</strong></td><td><code>npx p-replicator init</code></td><td><code>.claude/{skills,commands,agents,rules,hooks}/</code> + <code>settings.json</code></td><td>На каждом upgrade пакета</td></tr><tr><td><strong>Project-generated</strong></td><td><code>/replicate</code> Phase 3 (LLM execution)</td><td>Различные места: <code>CLAUDE.md</code>, <code>.claude/agents/planner.md</code>, <code>docs/</code>, и т.д.</td><td>Только при пересоздании</td></tr></tbody></table></div>
+<p>Это <strong>главный фикс</strong> v1.4.0 — раньше <code>/replicate</code> Phase 3 пыталась генерировать ВСЕ артефакты (включая generic команды как <code>/run</code>, <code>/feature</code>), что приводило к flaky outputs (LLM compression, missed templates). После v1.4.0 generic-команды pre-shipped, Phase 3 генерирует ТОЛЬКО project-specific.</p>
+<hr>
+<h2 id="architecture-ssot-utilscomponents">SSOT: <code>utils.COMPONENTS</code></h2>
+<p>Единый источник правды о том что shipped и что generated. Структура:</p>
+<pre data-lang="javascript"><code class="language-javascript">const COMPONENTS = {
+  // Pre-shipped (6 групп, install via npx init):
+  skills: { kind: 'pre-shipped', src: '.claude/skills', items: { /* 10 */ } },
+  commands: { kind: 'pre-shipped', src: '.claude/commands', items: { /* 11 */ } },
+  agents: { kind: 'pre-shipped', src: '.claude/agents', items: { /* 4 */ } },
+  rules: { kind: 'pre-shipped', src: '.claude/rules', items: { /* 5 */ } },
+  settings: { kind: 'pre-shipped', isFile: true, src: '.claude/settings.json' },
+  hooks: { kind: 'pre-shipped', src: '.claude/hooks', items: { /* 6 */ } },
+
+  // Project-generated (3 группы, created by /replicate Phase 3):
+  projectAgents: { kind: 'project-generated', items: { /* full paths */ } },
+  projectRules: { kind: 'project-generated', items: { /* full paths */ } },
+  projectFiles: { kind: 'project-generated', items: { /* full paths */ } },
+};</code></pre>
+<p><strong>Consumers:</strong></p>
+<ul><li><code>init.js</code> / <code>update.js</code> — итерируют только <code>kind === 'pre-shipped'</code> для install</li><li><code>doctor.js</code> — проверяет существование pre-shipped artifacts</li><li><code>list.js</code> — выводит metadata</li><li><code>verify.js</code> — проверяет ОБЕ группы (pre-shipped strict, project-generated hints)</li><li><code>cli.js</code> showHelp — динамически считает items для отображения</li></ul>
+<p><strong>Любая будущая правка items автоматически обновляет все 5 поверхностей</strong> — устранены drift-проблемы которые были до v1.3.1.</p>
+<hr>
+<h2 id="architecture-path-derivation-getitemrelativepath">Path derivation: <code>getItemRelativePath()</code></h2>
+<p>Один helper централизует derivation для всех групп:</p>
+<pre data-lang="javascript"><code class="language-javascript">function getItemRelativePath(comp, itemKey) {
+  if (comp.isFile) return comp.src;                                // settings.json
+  if (comp.kind === 'project-generated') return itemKey;            // full paths
+  if (comp.src === '.claude/skills') return path.join(comp.src, itemKey, 'SKILL.md');
+  if (comp.src === '.claude/hooks') return path.join(comp.src, itemKey + '.cjs');
+  return path.join(comp.src, itemKey + '.md');                     // commands/rules/agents
+}</code></pre>
+<hr>
+<h2 id="architecture-cross-platform-hooks-v141">Cross-platform hooks (v1.4.1)</h2>
+<p><strong>Дизайн-принцип:</strong> zero shell dependency.</p>
+<p>Все 7 hook-скриптов написаны на pure Node, используют <code>execFileSync('git', [...])</code> вместо shell-pipes. Это эквивалентно работает на:</p>
+<ul><li>Windows cmd.exe (нет <code>2&gt;/dev/null</code>, есть <code>2&gt;nul</code> — не нужен ни тот ни другой)</li><li>Bash / zsh / Git Bash на Windows</li><li>PowerShell</li></ul>
+<p><strong>Pattern для autocommit-скрипта:</strong></p>
+<pre data-lang="javascript"><code class="language-javascript">const fs = require('node:fs');
+const path = require('node:path');
+const { execFileSync } = require('node:child_process');
+
+const TARGET = path.resolve(process.cwd(), '.claude', 'feature-roadmap.json');
+const SILENT = { stdio: 'ignore' };
+const git = (args) =&gt; execFileSync('git', args, SILENT);
+
+try {
+  if (!fs.existsSync(TARGET)) process.exit(0);
+  try { git(['rev-parse', '--git-dir']); } catch { process.exit(0); }
+  git(['add', '--', TARGET]);
+  let hasDiff = false;
+  try { git(['diff', '--cached', '--quiet', '--', TARGET]); }
+  catch { hasDiff = true; }
+  if (hasDiff) git(['commit', '--only', '--', TARGET, '-m', '...']);
+} catch { process.exit(0); }</code></pre>
+<p><strong>Defensive properties:</strong></p>
+<ul><li><code>if (!fs.existsSync) exit 0</code> — нет файла, нечего коммитить</li><li><code>try { rev-parse } catch { exit 0 }</code> — нет git репозитория, skip</li><li><code>try { diff } catch { hasDiff = true }</code> — <code>git diff --quiet</code> exits 1 if diff</li><li>Outer <code>try/catch</code> гарантирует exit 0 при любых ошибках (best-effort)</li></ul>
+<hr>
+<h2 id="architecture-sync-templates-merge-mode-v141">Sync-templates: MERGE mode (v1.4.1)</h2>
+<p><strong>Файл:</strong> <code>scripts/sync-templates.js</code> — runs as <code>prepublishOnly</code> hook.</p>
+<p><strong>Цель:</strong> скопировать <code>.claude/</code> из source-repo в <code>templates/.claude/</code> (который попадает в npm tarball).</p>
+<p><strong>До v1.4.1 (BUG):</strong> <code>cleanDir(target)</code> + <code>copyRecursive(source, target)</code> — очищал target перед copy. Удалял файлы которые есть в <code>templates/</code> но нет в source. Это <strong>silently удалило все v1.4.0 pre-shipped команды</strong> во время <code>npm publish --dry-run</code>.</p>
+<p><strong>После v1.4.1 (FIX):</strong> <code>ensureDir(target)</code> + <code>copyRecursive(source, target)</code> — копирует/перезаписывает source-файлы, но НЕ удаляет target-only. Pre-shipped файлы выживают, source файлы overwrite'ят с правильным содержимым.</p>
+<p><strong>Идемпотентность:</strong> прогон 2 раза подряд → одинаковый result.</p>
+<hr>
+<h2 id="architecture-settingsjson-merge-v142">Settings.json merge (v1.4.2)</h2>
+<p><code>init --force</code> и <code>update</code> используют <code>mergeSettingsJson(existing, template)</code> для preserve user customizations:</p>
+<h3 id="architecture-algoritm">Алгоритм</h3>
+<pre data-lang=""><code class="language-text">mergeSettingsJson(existing, template):
+  if !existing: return template (fresh install)
+  if !template: return existing (defensive)
+
+  merged = {...existing}
+
+  # Top-level: template добавляет только то чего нет у user
+  for each (key, value) in template:
+    if key not in merged: merged[key] = value
+
+  # Hooks: deep merge per event type
+  if template.hooks:
+    merged.hooks = mergeHookEvents(existing.hooks, template.hooks)
+
+  return merged
+
+mergeHookEvents(existing, template):
+  for each eventType in template:
+    if !existing[eventType]: existing[eventType] = template[eventType]
+    else: mergeHookMatchers(existing[eventType], template[eventType])
+
+mergeHookMatchers(existing[], template[]):
+  for each tplEntry in template:
+    target = existing.find(e =&gt; e.matcher === tplEntry.matcher)
+    if !target: existing.push(tplEntry)
+    else:
+      existingCmds = Set(target.hooks.map(h =&gt; h.command))
+      for each tplHook in tplEntry.hooks:
+        if !existingCmds.has(tplHook.command):
+          target.hooks.push(tplHook)   # de-dup by command string</code></pre>
+<h3 id="architecture-identity-model">Identity model</h3>
+<p>Hooks сравниваются по <code>command</code> string. Implications:</p>
+<ul><li>User-added hook (отсутствует в template): <strong>preserved</strong></li><li>User-modified default (изменил command): treated как user-added → <strong>preserved</strong> (старый default удаляется через orphan detection если был в shippedDefaults)</li><li>Identical command в template и user: <strong>de-duped</strong> (только одна копия)</li><li>New hook in template: <strong>added</strong> к user's settings</li></ul>
+<h3 id="architecture-override">Override</h3>
+<p><code>--reset-settings</code> flag отключает merge — full overwrite. Для случаев когда user хочет clean-slate.</p>
+<hr>
+<h2 id="architecture-orphan-detection-v143">Orphan detection (v1.4.3)</h2>
+<p><strong>Проблема merge-only логики:</strong> если в новой версии package удаляет hook, старый hook остаётся у user'а forever (user-added perspective).</p>
+<p><strong>Решение:</strong> <code>manifest.shippedDefaults</code> baseline.</p>
+<h3 id="architecture-algoritm-2">Алгоритм</h3>
+<pre data-lang=""><code class="language-text">init/update upgrade flow:
+  1. previousManifest = read .p-replicator.json BEFORE overwrite
+  2. oldTpl = previousManifest.shippedDefaults['settings.json']
+  3. newTpl = read templates/.claude/settings.json (current)
+  4. existing = read user's .claude/settings.json
+  5. cleaned = removeOrphanHooks(existing, oldTpl, newTpl)
+  6. merged = mergeSettingsJson(cleaned, newTpl)
+  7. write merged to .claude/settings.json
+  8. write new manifest with shippedDefaults = newTpl (для следующего upgrade)
+
+removeOrphanHooks(existing, oldTpl, newTpl):
+  if !oldTpl: return existing (first upgrade, no baseline yet)
+  oldCmds = extractCommands(oldTpl)
+  newCmds = extractCommands(newTpl)
+  orphans = oldCmds.filter(c =&gt; !newCmds.has(c))
+  return existing with orphan commands filtered out</code></pre>
+<h3 id="architecture-svoystva">Свойства</h3>
+<ul><li><strong>User-added</strong> (никогда не было в <code>oldTpl</code>) → preserved</li><li><strong>Removed default</strong> (было в <code>oldTpl</code>, нет в <code>newTpl</code>, есть у user) → удалён</li><li><strong>Unchanged default</strong> (есть везде) → kept</li><li><strong>Renamed/modified default</strong> (cmd-string changed) → старый orphaned, новый added через merge</li></ul>
+<h3 id="architecture-backward-compat">Backward compat</h3>
+<p>Если manifest без <code>shippedDefaults</code> (pre-1.4.3 install) — orphan detection skipped на первый upgrade. Manifest заполняется на текущем install для будущих upgrade'ов.</p>
+<hr>
+<h2 id="architecture-statusline-architecture-v150">Statusline architecture (v1.5.0)</h2>
+<p><strong>Цель:</strong> single-script multi-line dashboard.</p>
+<pre data-lang=""><code class="language-text">┌─ statusline.cjs (entry, ~330 LOC) ─────────────────────────┐
+│                                                             │
+│   1. main()                                                 │
+│      ├── parseManifest() ───────► .p-replicator.json       │
+│      ├── parseState() ──────────► .claude/.p-replicator-state.json (with stale-check) │
+│      ├── parseRoadmap() ────────► .claude/feature-roadmap.json │
+│      ├── parseSparcDocs() ──────► docs/PRD.md, ..., ADR.md  │
+│      ├── parseValidationScore() ► docs/validation-report.md (regex) │
+│      ├── parseAdrs() ───────────► docs/ADR.md OR docs/adr/ OR docs/ddd/adr/ │
+│      ├── parsePlans() ──────────► docs/plans/*.md           │
+│      ├── parseInsights() ───────► .claude/insights/index.md │
+│      ├── parseToolkit() ────────► filesystem walks          │
+│      ├── parseSettingsStatus() ─► deep-equals current vs shippedDefaults │
+│      ├── parseMcpServers() ─────► .mcp.json                 │
+│      ├── parseKeysarium() ──────► .keysarium.json existence │
+│      ├── parseDomain() ─────────► CLAUDE.md keyword grep    │
+│      ├── parseLastHarvest() ────► TOOLKIT_HARVEST.md mtime  │
+│      └── parseLastTest() ───────► .claude/.last-test.json (optional) │
+│                                                             │
+│   2. lines = [                                              │
+│        buildHeader(manifest),                               │
+│        buildPipeline(state),                                │
+│        buildRoadmap(roadmap, domain),                       │
+│        buildDocs(sparc, validation, plans, adrs, lastHarvest), │
+│        buildToolkit(toolkit, expected),                     │
+│        buildStatus(insights, lastTest, mcpServers, settingsStatus, keysarium), │
+│      ]                                                       │
+│                                                             │
+│   3. process.stdout.write(lines.join('\n') + '\n')          │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘</code></pre>
+<p><strong>Defensive design:</strong> каждая <code>parse*</code> функция wrapped в <code>safeRun()</code> с fallback. Один parse error → fallback value, остальные секции работают.</p>
+<p><strong>State-file flow:</strong></p>
+<pre data-lang=""><code class="language-text">команда (e.g., /run) ──Bash──► node .claude/hooks/state-update.cjs --command /run --phase loop --progress 0.4
+                                          │
+                                          ▼
+                              .claude/.p-replicator-state.json (atomic write)
+                                          ▲
+                                          │
+Claude Code prompt ────────► node .claude/hooks/statusline.cjs
+                                          │
+                                          ▼
+                              читает state, считает heuristics, рендерит 6 строк</code></pre>
+<p><strong>Stale check:</strong> state старше 30 минут → ignore (показывается <code>idle</code> в Pipeline секции).</p>
+<hr>
+<h2 id="architecture-test-infrastructure">Test infrastructure</h2>
+<p><strong>Suite:</strong> 105 tests, 36 suites, ~25 sec runtime.</p>
+<div class="table-wrap"><table><thead><tr><th>Layer</th><th>File</th><th>Coverage</th></tr></thead><tbody><tr><td><strong>Unit</strong></td><td><code>tests/unit/utils.test.js</code> (54 tests)</td><td>Pure functions: createManifest, mergeSettingsJson, removeOrphanHooks, getItemRelativePath, parseToolkit logic</td></tr><tr><td><strong>E2E</strong></td><td><code>tests/e2e/lifecycle.test.js</code> (48 tests)</td><td>Full CLI lifecycle, hooks installation, settings merge edge cases, statusline output, --feature-branches docs</td></tr><tr><td><strong>Snapshot</strong></td><td><code>tests/snapshot/templates.test.js</code> (3 tests)</td><td>SHA-256 baseline для всех 115 файлов в <code>templates/</code></td></tr></tbody></table></div>
+<p><strong>Меta-тесты:</strong> проверяют consistency между документами. Например:</p>
+<ul><li><code>replicate-pipeline.md</code> упоминает все pre-shipped commands (no orphan in rule)</li><li><code>replicate.md</code> Phase 3 не утверждает «Generate <code>&lt;pre-shipped&gt;.md</code>» (no drift в spec)</li></ul>
+<p><strong>Snapshot baseline</strong> регенерируется через <code>npm run snapshot:baseline</code> после intentional template changes.</p>
+<hr>
+<h2 id="architecture-module-composition-view-syntax-claude-code-specific">Module composition: <code>view()</code> syntax (Claude Code-specific)</h2>
+<p>Skills используют <code>view()</code> для cross-skill loading в runtime:</p>
+<pre data-lang="markdown"><code class="language-markdown">view() .claude/skills/explore/SKILL.md
+view() .claude/skills/explore/references/questioning-techniques.md</code></pre>
+<p>Claude Code разрешает эти ссылки динамически: при выполнении skill, LLM читает referenced files в момент использования. Это позволяет skill A делегировать в skill B без duplicate-копий контента.</p>
+<p><strong>Ограничение:</strong> только Claude Code поддерживает этот runtime-механизм. Для других платформ (Codex, OpenCode) skill content должен быть <strong>inlined</strong> (скомпилирован в command markdown) на install-time. См. <code>MULTIPLATFORM_ROADMAP.md</code>.</p>
+<hr>
+<h2 id="architecture-pipeline-replicate-fazy">Pipeline: <code>/replicate</code> фазы</h2>
+<pre data-lang=""><code class="language-text">INPUT (idea or company name)
+   │
+   ▼
+Phase 0: PRODUCT DISCOVERY (опц.)
+   │   skill: reverse-engineering-unicorn
+   │   output: docs/00_product_discovery.md
+   ▼
+Phase 1: PLANNING
+   │   skill: sparc-prd-mini (внутри: explore + research + solve + 5 SPARC phases)
+   │   output: docs/PRD.md, Architecture.md, Pseudocode.md, ... (11 docs)
+   ▼
+Phase 2: VALIDATION (5-agent swarm)
+   │   skill: requirements-validator
+   │   output: docs/validation-report.md, docs/test-scenarios.md (BDD)
+   │   verdict: 🟢 READY / 🟡 CAVEATS / 🔴 NEEDS WORK (max 3 retries)
+   ▼
+Phase 3: TOOLKIT GENERATION (project-specific only)
+   │   skill: cc-toolkit-generator-enhanced (9 modules)
+   │   output: project agents (planner, code-reviewer, architect),
+   │            project rules (security, coding-style, testing),
+   │            project skills (project-context, coding-standards),
+   │            CLAUDE.md, feature-roadmap.json, DEVELOPMENT_GUIDE.md
+   ▼
+Phase 4: FINALIZE
+   │   output: docker-compose.yml, Dockerfile, .gitignore
+   │   action: git commit
+   ▼
+DONE — project готов к /start или /run</code></pre>
+<hr>
+<h2 id="architecture-dalshe">Дальше</h2>
+<ul><li><a href="#troubleshooting">06_troubleshooting.md</a> — типичные проблемы</li><li><a href="#changelog">07_changelog.md</a> — история эволюции</li></ul>
+<nav class="section-nav" aria-label="Навигация по секциям"><a href="#api-reference" class="prev"><span class="nav-arrow">←</span> <span class="nav-text"><span class="nav-label">Предыдущее</span><span class="nav-title">04. API Reference</span></span></a><a href="#troubleshooting" class="next"><span class="nav-text"><span class="nav-label">Далее</span><span class="nav-title">06. Troubleshooting</span></span> <span class="nav-arrow">→</span></a></nav>
+</article>
+<article id="troubleshooting" class="section" data-section-title="06. Troubleshooting">
+<h1 id="06-troubleshooting">06. Troubleshooting</h1>
+<p>Типичные проблемы и пути их решения.</p>
+<h2 id="troubleshooting-ustanovka-init">Установка / <code>init</code></h2>
+<h3 id="troubleshooting-init-otkazyvaetsya-rabotat-p-replicator-is-already-installed"><code>init</code> отказывается работать: «P-Replicator is already installed»</h3>
+<pre data-lang="bash"><code class="language-bash"># Если хотите upgrade с preserve customizations:
+npx @dzhechkov/p-replicator update
+
+# Или через init --force (тоже preserves customizations):
+npx @dzhechkov/p-replicator init --force
+
+# Полный сброс к defaults (потеряете user hooks):
+npx @dzhechkov/p-replicator init --force --reset-settings</code></pre>
+<h3 id="troubleshooting-posle-init-otsutstvuyut-kakie-to-fayly">После <code>init</code> отсутствуют какие-то файлы</h3>
+<pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator doctor</code></pre>
+<p>Если что-то fail'ит (e.g., «security.md missing»):</p>
+<pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator init --force      # полная переустановка pre-shipped</code></pre>
+<h3 id="troubleshooting-ustanovka-poshla-v-nodemodules-a-ne-v-proekt">Установка пошла в <code>~/node_modules</code>, а не в проект</h3>
+<p>Cause: в проекте нет <code>package.json</code>, npm walk'ает вверх и находит <code>package.json</code> в home-директории.</p>
+<p>Fix: создайте <code>package.json</code> в корне проекта:</p>
+<pre data-lang="bash"><code class="language-bash">npm init -y
+npx @dzhechkov/p-replicator init</code></pre>
+<hr>
+<h2 id="troubleshooting-posle-replicate">После <code>/replicate</code></h2>
+<h3 id="troubleshooting-replicate-ne-sgenerirovala-ozhidaemye-komandy-run-feature-myinsights"><code>/replicate</code> не сгенерировала ожидаемые команды (<code>/run</code>, <code>/feature</code>, <code>/myinsights</code>, ...)</h3>
+<p><strong>Это решено в v1.4.0+.</strong> Теперь все 11 generic команд <strong>pre-shipped</strong> через <code>init</code> — <code>/replicate</code> Phase 3 их не генерирует, только enhance'ит project-specific артефакты.</p>
+<p>Если у вас старая версия (≤1.3.x):</p>
+<pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator@latest init --force</code></pre>
+<p>После обновления <code>verify</code> покажет полный набор:</p>
+<pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator verify</code></pre>
+<h3 id="troubleshooting-replicate-phase-3-pishet-generate-commandsstartmd"><code>/replicate</code> Phase 3 пишет «Generate /commands/start.md»</h3>
+<p>Это устаревшая formulation в <code>replicate.md</code>. Должна быть <code>Pre-shipped... do NOT overwrite</code>. Если видите эту фразу:</p>
+<pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator@latest update    # обновит replicate.md</code></pre>
+<p>В v1.4.0+ есть meta-test который ловит эту регрессию. См. <code>tests/e2e/lifecycle.test.js</code> describe <code>meta: doc-consistency</code>.</p>
+<h3 id="troubleshooting-project-specific-agenty-plannermd-architectmd-ne-sozdany">Project-specific агенты (planner.md, architect.md) не созданы</h3>
+<p>Это нормально если <code>/replicate</code> Phase 3 ещё не запускалась. Запустите <code>/replicate "описание"</code> в Claude Code.</p>
+<p><code>verify</code> показывает их как <strong>hints</strong> (warning, не error) если <code>CLAUDE.md</code> или <code>feature-roadmap.json</code> есть, но agents отсутствуют.</p>
+<hr>
+<h2 id="troubleshooting-hooks-statusline">Hooks / Statusline</h2>
+<h3 id="troubleshooting-statusline-ne-otobrazhaetsya">Statusline не отображается</h3>
+<p><strong>Проверки:</strong></p>
+<ol><li>Версия Claude Code поддерживает <code>statusLine</code> config? Обновите Claude Code до последней.</li><li>Поле <code>statusLine</code> присутствует в <code>.claude/settings.json</code>? ``<code>bash cat .claude/settings.json | grep -A 3 statusLine </code>``</li><li>Скрипт работает напрямую? ``<code>bash node .claude/hooks/statusline.cjs </code>`` Должен вывести 6 строк ANSI-output.</li></ol>
+<p>Если 3-й пункт fail'ит:</p>
+<pre data-lang="bash"><code class="language-bash">node .claude/hooks/statusline.cjs 2&gt;&amp;1</code></pre>
+<p>Покажет stack trace. Скорее всего corrupt JSON или отсутствует <code>.p-replicator.json</code>.</p>
+<h3 id="troubleshooting-hooks-ne-auto-commityat">Hooks не auto-commit'ят</h3>
+<pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator doctor</code></pre>
+<p>В секции <code>Prerequisites:</code> должно быть:</p>
+<pre data-lang=""><code class="language-text">✓ git on PATH</code></pre>
+<p>Если <code>✗ git NOT on PATH</code> — установите git, добавьте в PATH.</p>
+<p>Также проверьте что <code>.git</code> директория существует (вы в репозитории):</p>
+<pre data-lang="bash"><code class="language-bash">git rev-parse --git-dir</code></pre>
+<h3 id="troubleshooting-huki-zapuskayutsya-no-nichego-ne-kommityat">Хуки запускаются но ничего не коммитят</h3>
+<p><strong>Cause:</strong> <code>.git</code> есть, но нет changes для коммита (что нормально).</p>
+<p><strong>Debug:</strong> напрямую:</p>
+<pre data-lang="bash"><code class="language-bash">node .claude/hooks/autocommit-roadmap.cjs
+echo "Exit: $?"
+git log -1 --format="%s"</code></pre>
+<p>Если файл не в манифесте git, сделайте <code>git add .claude/feature-roadmap.json</code> вручную один раз.</p>
+<h3 id="troubleshooting-statusline-pokazyvaet-settings-merged-hotya-ya-nichego-ne-menyal">Statusline показывает «Settings ⚠️ merged» хотя я ничего не менял</h3>
+<p>Cause: какой-то процесс модифицировал <code>settings.json</code> (формат, whitespace, ordering). Statusline сравнивает через deep-equals по sorted keys.</p>
+<p>Fix:</p>
+<pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator init --force --reset-settings</code></pre>
+<h3 id="troubleshooting-settingsjson-poteryal-moi-custom-hooks-posle-update">Settings.json потерял мои custom hooks после update</h3>
+<p><strong>Это БЫЛ bug до v1.4.2.</strong> В v1.4.2+ <code>update</code> и <code>init --force</code> используют <code>mergeSettingsJson</code> который preserves user customizations.</p>
+<p>Если вы на v1.4.1 или раньше:</p>
+<pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator@latest update</code></pre>
+<p>Если потеряли hooks безвозвратно — восстановите вручную из git history:</p>
+<pre data-lang="bash"><code class="language-bash">git log -p --follow -- .claude/settings.json</code></pre>
+<hr>
+<h2 id="troubleshooting-roadmap-feature-branches">Roadmap / <code>--feature-branches</code></h2>
+<h3 id="troubleshooting-run-feature-branches-srazu-failit-not-on-main"><code>/run --feature-branches</code> сразу fail'ит «not on main»</h3>
+<p>Cause: вы на feature-branch'е (не на main).</p>
+<pre data-lang="bash"><code class="language-bash">git status
+git checkout main           # переключиться
+/run mvp --feature-branches</code></pre>
+<h3 id="troubleshooting-feature-branches-poteryal-moi-nesohranyonnye-changes"><code>--feature-branches</code> потерял мои несохранённые changes</h3>
+<p>Они в stash:</p>
+<pre data-lang="bash"><code class="language-bash">git stash list                              # список stash'ей
+git stash show stash@{0}                    # preview
+git stash pop                               # восстановить (или git stash drop для удаления)</code></pre>
+<p><code>p-replicator</code> auto-stash'ит с message «auto-stash before /run feature-branches».</p>
+<h3 id="troubleshooting-feature-branch-bez-number-v-roadmap">Feature branch без <code>number</code> в roadmap</h3>
+<p>Cause: roadmap создан до v1.5.0 (нет <code>number</code> field).</p>
+<p><code>--feature-branches</code> flag auto-assign'ит <code>number = max(numbers) + 1</code> при первом encounter, persists обратно. Просто прогоните <code>/run mvp --feature-branches</code> ещё раз — numbers заполнятся.</p>
+<hr>
+<h2 id="troubleshooting-tests-snapshot">Tests / Snapshot</h2>
+<h3 id="troubleshooting-npm-test-failit-posle-moih-izmeneniy-v-template"><code>npm test</code> fail'ит после моих изменений в template</h3>
+<pre data-lang="bash"><code class="language-bash">npm test 2&gt;&amp;1 | head -30                    # увидеть какие тесты упали</code></pre>
+<p>Типичные причины:</p>
+<ol><li><strong>Snapshot test fail</strong> — изменились templates, baseline устарел. ``<code>bash npm run snapshot:baseline                # перегенерировать npm test                                 # должно стать зелёным </code>``</li></ol>
+<ol><li><strong>Meta-test fail</strong> — <code>replicate-pipeline.md</code> или <code>replicate.md</code> упоминают pre-shipped command в неправильной секции. Проверьте сами edits.</li></ol>
+<ol><li><strong>Unit test fail на COMPONENTS</strong> — нарушили SSOT. Проверьте что добавили <code>kind</code>, <code>items</code>, <code>label</code> в новый component group.</li></ol>
+<h3 id="troubleshooting-verify-pokazyvaet-orphany-post-init"><code>verify</code> показывает orphan'ы post-init</h3>
+<p>Cause: вы upgrade'нулись с старой версии (≤1.4.2) которая не tracked <code>shippedDefaults</code>. Orphan detection skipped на первый upgrade.</p>
+<p>Fix:</p>
+<pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator init --force    # populate shippedDefaults в manifest
+npx @dzhechkov/p-replicator init --force    # второй прогон удалит реальные orphan'ы (если они есть)</code></pre>
+<p>После этого orphan detection будет работать на каждом subsequent upgrade.</p>
+<hr>
+<h2 id="troubleshooting-insights">Insights</h2>
+<h3 id="troubleshooting-insights-ne-auto-injected-v-novuyu-sessiyu">Insights не auto-injected в новую сессию</h3>
+<p><strong>Проверки:</strong></p>
+<ol><li><code>.claude/insights/index.md</code> существует и содержит entries? ``<code>bash wc -l .claude/insights/index.md grep -c "^## " .claude/insights/index.md      # количество entries </code>``</li><li>Hook <code>session-insights.cjs</code> работает? ``<code>bash node .claude/hooks/session-insights.cjs </code>`<code> Должен вывести </code>## Recent project insights\n\n## ... ## ... ## ...`.</li><li>SessionStart hook configured? ``<code>bash cat .claude/settings.json | grep -A 5 SessionStart </code>``</li></ol>
+<p>Если все 3 OK, но всё равно не работает — Claude Code может cache'ировать session context. Перезапустите <code>claude</code>.</p>
+<h3 id="troubleshooting-myinsights-recall-query-nichego-ne-nahodit"><code>/myinsights recall &lt;query&gt;</code> ничего не находит</h3>
+<p>Cause: query не матчит tags. Recall — case-insensitive substring search по tags + body.</p>
+<p>Tip: проверьте tags entries:</p>
+<pre data-lang="bash"><code class="language-bash">grep "^\*\*Tags:" .claude/insights/index.md | head -10</code></pre>
+<p>Подберите более специфичный query (e.g., <code>prisma</code> вместо <code>bug</code>).</p>
+<hr>
+<h2 id="troubleshooting-mcp-servers">MCP servers</h2>
+<h3 id="troubleshooting-mcp-servers-ne-connectyatsya">MCP servers не connect'ятся</h3>
+<p>Это вне scope <code>p-replicator</code> — это Claude Code config. Проверьте:</p>
+<pre data-lang="bash"><code class="language-bash">cat .mcp.json                           # формат правильный?
+claude --debug                          # MCP errors в logs?</code></pre>
+<p>Statusline показывает количество server'ов из <code>.mcp.json</code> независимо от их working state.</p>
+<hr>
+<h2 id="troubleshooting-performance">Performance</h2>
+<h3 id="troubleshooting-statusline-tormozit-pri-kazhdoy-komande">Statusline тормозит при каждой команде</h3>
+<p><strong>Cause:</strong> очень большие docs/ или filesystem-trees.</p>
+<p><strong>Diagnose:</strong></p>
+<pre data-lang="bash"><code class="language-bash">time node .claude/hooks/statusline.cjs    # сколько секунд?</code></pre>
+<p>Должно быть &lt; 100ms. Если &gt; 1s — проверьте размер <code>docs/</code>:</p>
+<pre data-lang="bash"><code class="language-bash">du -sh docs/
+find docs/ -type f -name "*.md" | wc -l</code></pre>
+<p><strong>Workaround:</strong> временно отключить statusline через удаление <code>statusLine</code> поля в <code>.claude/settings.json</code>.</p>
+<p>См. <code>KNOWN_LIMITATIONS.md</code> пункт L6 — будущий enhancement: env-var <code>STATUSLINE_PROFILE=1</code> для измерения каждой секции.</p>
+<hr>
+<h2 id="troubleshooting-versionnye-nesovmestimosti">Версионные несовместимости</h2>
+<h3 id="troubleshooting-ya-na-staroy-versii-stoit-li-upgrading">Я на старой версии. Стоит ли upgrading?</h3>
+<div class="table-wrap"><table><thead><tr><th>Текущая → Целевая</th><th>Что получите</th><th>Migration cost</th></tr></thead><tbody><tr><td>1.3.x → 1.5.0</td><td>Все pre-shipped команды + statusline + feature-branches + merge-логика</td><td>Запустите <code>init --force</code> (preserves customizations)</td></tr><tr><td>1.4.0 → 1.4.1</td><td>Cross-platform hooks + sync merge mode</td><td><code>init --force</code></td></tr><tr><td>1.4.1 → 1.4.2</td><td>Settings merge (preserve customizations)</td><td><code>init --force</code> сразу безопасен (preserves)</td></tr><tr><td>1.4.2 → 1.4.3</td><td>Orphan detection</td><td>Первый upgrade без baseline — re-run <code>init --force</code> для populate</td></tr><tr><td>1.4.3 → 1.5.0</td><td>Statusline + --feature-branches</td><td><code>update</code> или <code>init --force</code></td></tr></tbody></table></div>
+<p>Полная история — в <a href="#changelog">07_changelog.md</a> или <code>CHANGELOG.md</code> (авторитетный).</p>
+<hr>
+<h2 id="troubleshooting-esli-nichego-ne-pomogaet">Если ничего не помогает</h2>
+<ol><li>Прочитайте <code>KNOWN_LIMITATIONS.md</code> — может это известное ограничение</li><li>Запустите <code>verify</code> + <code>doctor</code> — соберите exact output</li><li>Issue: https://github.com/djd1m/dz-harness-hub/issues приложите версию, output <code>verify</code>, шаги воспроизведения</li></ol>
+<nav class="section-nav" aria-label="Навигация по секциям"><a href="#architecture" class="prev"><span class="nav-arrow">←</span> <span class="nav-text"><span class="nav-label">Предыдущее</span><span class="nav-title">05. Архитектура</span></span></a><a href="#changelog" class="next"><span class="nav-text"><span class="nav-label">Далее</span><span class="nav-title">07. Changelog</span></span> <span class="nav-arrow">→</span></a></nav>
+</article>
+<article id="changelog" class="section" data-section-title="07. Changelog">
+<h1 id="07-changelog-kratkaya-versiya">07. Changelog (краткая версия)</h1>
+<p>Эволюция пакета по релизам. Полные detail'и — в <code>../../CHANGELOG.md</code> (авторитетный источник).</p>
+<h2 id="changelog-v1514-2026-07-28">v1.5.14 — 2026-07-28</h2>
+<p><strong>Фиксы документации и упаковки</strong> (по результатам верификации пакета; код рантайма не менялся).</p>
+<ul><li>📚 Закрыт пробел changelog v1.5.5–v1.5.13 в <code>CHANGELOG.md</code> + README</li><li>📦 <code>CHANGELOG.md</code> / <code>KNOWN_LIMITATIONS.md</code> / <code>MULTIPLATFORM_ROADMAP.md</code> / <code>tests/</code> теперь входят в tarball (ссылки в доках работают; <code>npm test</code> работает в установленном пакете — MEASURED: 105/105 в распакованном паке)</li><li>🔗 Ссылки GitHub → монорепо <code>github.com/djd1m/dz-harness-hub</code> (<code>packages/@dzhechkov/p-replicator</code>)</li><li>🔢 Число символов скиллов в npm description 194K+ → 880K+ (MEASURED: <code>find templates/.claude/skills -type f -exec cat {} + | wc -c</code> → 880,679)</li></ul>
+<h2 id="changelog-v1513-2026-07-10">v1.5.13 — 2026-07-10</h2>
+<ul><li>🐛 <code>brutal-honesty-review/schemas/output.json</code>: <code>trustTier</code> <code>const: 3</code> → диапазон 1–3</li></ul>
+<h2 id="changelog-v1511-v1512-2026-07-06">v1.5.11 / v1.5.12 — 2026-07-06</h2>
+<ul><li>✨ <code>brutal-honesty-review</code> получил <code>evals/</code>, <code>schemas/output.json</code>, <code>scripts/validate-config.json</code> (baseline-heal); v1.5.12 = только синк версий</li></ul>
+<h2 id="changelog-v159-v1510-2026-07-06">v1.5.9 / v1.5.10 — 2026-07-06</h2>
+<ul><li>🔒 Честный rewrite <code>goap-research-ed25519</code>: Ed25519 = provenance + tamper-evidence под pinned issuer-ключами, НЕ анти-галлюцинация (нетто −1,696 строк — MEASURED: <code>git diff --stat 9f18ec43 41ec8d36</code>)</li><li>🐛 <code>remove --dry-run</code> больше не удаляет манифест; <code>remove</code> сохраняет манифест, если часть файлов не удалилась; v1.5.10 = только синк версий</li></ul>
+<h2 id="changelog-v158-2026-06-29">v1.5.8 — 2026-06-29</h2>
+<ul><li>🆕 <code>trust_tier</code> frontmatter у vendored-скиллов + ADR-0001 <code>sources.json</code> (provenance) + опциональная секция UI-репликации (<code>clone-website</code>) (MEASURED: <code>git diff c9225e8f 9f18ec43 -- packages/@dzhechkov/p-replicator</code>)</li></ul>
+<h2 id="changelog-v157-2026-06-16">v1.5.7 — 2026-06-16</h2>
+<ul><li>🐛 Неизвестные опции / лишние аргументы CLI теперь дают exit 1</li><li>🐛 Манифест <code>init</code> строится по TEMPLATE-источнику, а не сканом назначения</li></ul>
+<h2 id="changelog-v155-v156-2026-06-11">v1.5.5 / v1.5.6 — 2026-06-11</h2>
+<ul><li>📦 Первые релизы из монорепо (<code>dz-harness-hub</code>); удалён деструктивный <code>prepublishOnly</code> sync-хук; <code>explore</code> получил <code>trust_tier</code> frontmatter</li></ul>
+<h2 id="changelog-v154-2026-05-13">v1.5.4 — 2026-05-13</h2>
+<ul><li>🐛 URL <code>$schema</code> в settings.json → вариант <code>json.schemastore.org</code> (вариант <code>www.</code> заставлял Claude Code пропускать весь settings-файл)</li></ul>
+<h2 id="changelog-v151-v153-2026-05-07">v1.5.1 – v1.5.3 — 2026-05-07</h2>
+<ul><li>📚 Только документация: workflow existing-docs (v1.5.1), Mode 2 (v1.5.2), npm README расширен ~14.6 kB → ~50 kB (v1.5.3)</li></ul>
+<h2 id="changelog-v150-2026-05-07">v1.5.0 — 2026-05-07</h2>
+<p><strong>Две фичи + 12 новых тестов.</strong></p>
+<ul><li>✨ <strong>Statusline dashboard</strong> (RuFlo-style 6-line multi-line status bar) через <code>templates/.claude/hooks/statusline.cjs</code></li><li>✨ <strong><code>--feature-branches</code> flag</strong> для <code>/run</code> и <code>/go</code> (workflow для обучения / демо: каждая фича на отдельной ветке <code>feature/{NNN}-{id}</code>)</li><li>🆕 <code>state-update.cjs</code> — argv-driven helper для pipeline команд писать прогресс</li><li>🆕 Roadmap schema расширена: <code>number</code> (auto-assigned), <code>branch</code> (populated при done)</li><li>🆕 <code>--auto-merge</code> companion flag (off by default)</li><li>📊 105 tests / 36 suites / 113 → 115 файлов в snapshot baseline</li></ul>
+<h2 id="changelog-v143-2026-05-07">v1.4.3 — 2026-05-07</h2>
+<p><strong>Orphan hook detection.</strong></p>
+<ul><li>🐛 <strong>Closed last v1.4.2 limitation:</strong> <code>mergeSettingsJson</code> теперь cleans hooks которые были shipped в прошлой версии но удалены в новой</li><li>🆕 <code>manifest.shippedDefaults['settings.json']</code> — baseline для orphan detection</li><li>🆕 <code>removeOrphanHooks(existing, oldTpl, newTpl)</code> helper</li><li>🐛 <strong>Bonus fix:</strong> <code>update.js</code> теперь тоже использует merge-логику (был bug: blindly overwrite settings.json)</li><li>📊 93 tests, +8 от v1.4.2</li></ul>
+<h2 id="changelog-v142-2026-05-06">v1.4.2 — 2026-05-06</h2>
+<p><strong>3 v1.4.1 limitations устранены.</strong></p>
+<ul><li>🐛 <code>init --force</code> теперь MERGE settings.json (preserves user customizations)</li><li>🆕 <code>--reset-settings</code> flag для explicit nuclear-overwrite</li><li>🐛 Stronger meta-test для <code>replicate.md</code> drift (multi-axis: verbs + section-scope + list-style + allowlist)</li><li>🆕 <code>doctor</code> checks <code>git on PATH</code> (Prerequisites section) — explains why autocommit hooks could silently no-op</li><li>📊 85 tests, +11 от v1.4.1</li></ul>
+<h2 id="changelog-v141-2026-05-06">v1.4.1 — 2026-05-06</h2>
+<p><strong>3 v1.4.0 limitations + 1 critical regression discovery.</strong></p>
+<ul><li>🐛 <strong>Cross-platform hooks:</strong> заменены bash-chains на 4 Node-скрипта (<code>session-insights</code>, <code>autocommit-{roadmap,insights,plans}</code>)</li><li>🐛 <strong><code>verify.js</code> SSOT:</strong> <code>kind: 'pre-shipped' | 'project-generated'</code> field + 3 новых project-generated groups</li><li>🐛 <strong>Meta-tests</strong> для <code>replicate.md</code> ↔ <code>replicate-pipeline.md</code> consistency</li><li>🐛 <strong>Critical regression discovered + fixed:</strong> <code>sync-templates.js</code> cleanDir тихо удалял pre-shipped файлы во время <code>npm publish --dry-run</code>. Switched to MERGE mode</li><li>🆕 6th COMPONENTS group: <code>hooks</code> (4 cross-platform Node scripts)</li><li>🆕 <code>getItemRelativePath()</code> helper для централизованного path-derivation</li><li>📊 74 tests, +14 от v1.4.0</li></ul>
+<h2 id="changelog-v140-2026-05-06">v1.4.0 — 2026-05-06</h2>
+<p><strong>Major release — 9 pre-shipped команд + verify command.</strong></p>
+<ul><li>✨ Закрыт корневой источник pain: <code>/replicate</code> Phase 3 больше не пытается генерировать generic команды. Все 11 commands + 5 rules + settings.json + 4 hooks теперь pre-shipped через <code>init</code></li><li>✨ <strong>9 новых pre-shipped команд:</strong> <code>/start</code>, <code>/plan</code>, <code>/feature</code>, <code>/go</code>, <code>/run</code>, <code>/next</code>, <code>/myinsights</code>, <code>/docs</code>, <code>/deploy</code></li><li>✨ <strong>3 новых pre-shipped rules:</strong> <code>git-workflow</code>, <code>insights-capture</code>, <code>feature-lifecycle</code></li><li>✨ <strong>Settings.json shipped</strong> with hooks (SessionStart insights inject + Stop auto-commit)</li><li>✨ <strong><code>verify</code> command</strong> — replaces user's manual verification prompt</li><li>🐛 5 sources of truth divergence (<code>replicate.md</code>, <code>replicate-pipeline.md</code>, cc-toolkit modules, README, cli help) unified via <code>utils.COMPONENTS.items</code></li><li>📊 60 tests, +8 от v1.3.1</li></ul>
+<h2 id="changelog-v131-2026-05-06">v1.3.1 — 2026-05-06</h2>
+<p><strong>Two real bug fixes.</strong></p>
+<ul><li>🐛 <strong><code>cli.js</code> --help showed «1 rule» while <code>EXPECTED_RULES</code> had 2 entries.</strong> SSOT fix: <code>COMPONENTS.&lt;group&gt;.items</code> map is single source of truth for counts, used by doctor/list/cli.js help via dynamic derivation</li><li>🐛 <strong><code>update.js</code> corrupted manifest</strong> — walked user's full <code>.claude/</code>, capturing project-generated files into <code>manifest.files</code>. Subsequent <code>remove</code> would delete them, contradicting documented behavior. Fixed by using <code>getRelativePaths(templateClaude)</code> instead</li><li>🐛 Bonus: <code>update</code> now removes orphan template files (files in old manifest but not in new template) — addresses original v1.3.0 concern about ignored <code>missing[]</code> from <code>diffFiles</code></li><li>📊 52 tests, +7 от v1.3.0</li></ul>
+<h2 id="changelog-v130-baseline">v1.3.0 (baseline)</h2>
+<p>Initial published version. 10 skills, 2 commands (<code>/replicate</code>, <code>/harvest</code>), 4 agents, 2 rules. SPARC documentation pipeline + knowledge extraction.</p>
+<hr>
+<h2 id="changelog-migration-po-versiyam">Migration по версиям</h2>
+<div class="table-wrap"><table><thead><tr><th>From → To</th><th>Команда</th></tr></thead><tbody><tr><td>1.3.x → 1.5.0</td><td><code>npx @dzhechkov/p-replicator@1.5.0 init --force</code> (preserves customizations)</td></tr><tr><td>Любая → latest</td><td><code>npx @dzhechkov/p-replicator@latest update</code></td></tr><tr><td>Полный reset</td><td><code>... init --force --reset-settings</code> (потеряете custom hooks)</td></tr></tbody></table></div>
+<p>После любого upgrade — <code>verify</code> для проверки contract:</p>
+<pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator verify</code></pre>
+<hr>
+<h2 id="changelog-patterns-persisted-v-aqe-memory">Patterns persisted в AQE memory</h2>
+<p>Каждое значимое улучшение зафиксировано как pattern (для cross-session learning):</p>
+<ul><li>v1.3.1: <code>cli-package-ssot-component-lists</code>, <code>cli-package-manifest-preservation</code>, <code>tdd-red-test-must-trigger-bug</code></li><li>v1.4.0: <code>cli-package-pre-ship-vs-generate-boundary</code>, <code>cli-package-verify-replaces-manual-prompts</code>, <code>documentation-source-of-truth-divergence</code></li><li>v1.4.1: <code>cli-package-cross-platform-hooks-via-node-scripts</code>, <code>cli-package-kind-discrimination-for-ssot</code>, <code>npm-package-prepublish-clean-and-replace-anti-pattern</code></li><li>v1.4.2: <code>cli-package-settings-json-merge-vs-overwrite</code>, <code>meta-test-multi-axis-drift-detection</code>, <code>cli-doctor-prerequisites-section</code></li><li>v1.4.3: <code>cli-shipped-defaults-baseline-for-orphan-detection</code>, <code>cli-update-must-mirror-init-merge-logic</code></li><li>v1.5.0: <code>cli-statusline-multi-line-dashboard</code>, <code>cli-feature-branches-flag-for-teaching-workflows</code></li></ul>
+<p>Каждый pattern содержит: context, problem, solution, verification, tradeoffs, applied-to (version/file).</p>
+<hr>
+<h2 id="changelog-polnyy-changelog">Полный CHANGELOG</h2>
+<p>См. <code>../../CHANGELOG.md</code> — авторитетный источник с полным detail'ями всех версий, migration notes, breaking changes (которых не было — все upgrade'ы backward-compatible).</p>
+<nav class="section-nav" aria-label="Навигация по секциям"><a href="#troubleshooting" class="prev"><span class="nav-arrow">←</span> <span class="nav-text"><span class="nav-label">Предыдущее</span><span class="nav-title">06. Troubleshooting</span></span></a><span></span></nav>
+</article>
+
+    <footer class="site-footer">
+      <div class="footer-row">
+        <strong>@dzhechkov/p-replicator</strong> v1.5.0 · MIT License
+      </div>
+      <div class="footer-row footer-muted">
+        Сгенерировано из <code>README/ru/*.md</code> командой <code>/docs</code>.
+      </div>
+      <div class="footer-row footer-muted">
+        Re-build: <code>cd packages/p-replicator/README/ru/html &amp;&amp; node build.js</code>
+      </div>
+      <div class="footer-row footer-links">
+        <a href="https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/p-replicator" target="_blank" rel="noopener noreferrer">GitHub</a>
+        ·
+        <a href="https://www.npmjs.com/package/@dzhechkov/p-replicator" target="_blank" rel="noopener noreferrer">npm</a>
+        ·
+        <a href="https://t.me/llm_notes" target="_blank" rel="noopener noreferrer">Telegram</a>
+      </div>
+    </footer>
+  </main>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+
+<button class="back-to-top" id="backToTop" aria-label="Наверх" hidden>
+  <span aria-hidden="true">↑</span>
+</button>
+
+<script src="script.js"></script>
+</body>
+</html>

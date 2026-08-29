@@ -1,0 +1,41 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "adapter-windsurf",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "a29e2c2dc17a5bcf0f116684bc548ab079c3d1368241e08a13522b472af5a940"
+      },
+      {
+        "path": "dist/index.d.ts",
+        "sha256": "bcf4903cf99065eb41ea3819cdab974cfb2a7d6fa05deee7570e048a47fba03f"
+      },
+      {
+        "path": "dist/index.d.ts.map",
+        "sha256": "ab163e7af84256e8623885bc5677c1da1894d23a2dc01336234456957ac8b367"
+      },
+      {
+        "path": "dist/index.js",
+        "sha256": "d4a24f91820b23c4f9a961050e2566d93e7e3b40f5b6adc8e5835d2115de5662"
+      },
+      {
+        "path": "dist/index.js.map",
+        "sha256": "18edf71aeddbc7415a175cbefa65fe9c1ac43a2fb6fb936c606e3cde757195ab"
+      },
+      {
+        "path": "package.json",
+        "sha256": "3fb8c7711736a1ee5bf03f91ec4804a3f309d2e6224fd671066f42f76d6279c2"
+      },
+      {
+        "path": "src/index.ts",
+        "sha256": "dc26dfc6b5529a58efe884091b6c97e13dacbc933b1c5996c02562a15dc7a943"
+      }
+    ]
+  },
+  "signature": "Y/iKlVM9e0cLfTHmAHRiTYmzWDwvDCuavv24POGunM9Xx1PwbP6HadVpeFoQG612ckC93DLGHoVpjw2zG82EBg=="
+}

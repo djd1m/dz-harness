@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "incident-response config validator",
+  "description": "Validates configuration inputs for the incident-response skill",
+  "type": "object",
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": ["full", "triage_only", "postmortem_only", "classify_only"],
+      "default": "full",
+      "description": "Which part of the incident response procedure to run. 'full' runs all 10 steps. 'triage_only' runs steps 1-4. 'postmortem_only' runs step 9 (requires incident context). 'classify_only' runs step 2."
+    },
+    "incident_title": {
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 200,
+      "description": "Short description of the incident, e.g., 'Payment API returning 500 errors'"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["SEV1", "SEV2", "SEV3", "SEV4"],
+      "description": "Pre-classified severity. If omitted, the skill will help classify."
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the incident started (ISO 8601). Used to calculate durations."
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the incident was resolved (ISO 8601). Required for postmortem_only mode."
+    },
+    "affected_services": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of services or systems affected, e.g., ['api-server', 'payment-service', 'postgres-primary']"
+    },
+    "affected_regions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "AWS regions or geographic areas affected, e.g., ['us-east-1', 'eu-west-1']"
+    },
+    "commander": {
+      "type": "string",
+      "description": "Name or handle of the incident commander"
+    },
+    "communication_channels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["slack", "statuspage", "pagerduty", "email", "teams", "opsgenie"]
+      },
+      "default": ["slack", "statuspage"],
+      "description": "Which communication channels to include guidance for"
+    },
+    "infrastructure": {
+      "type": "string",
+      "enum": ["kubernetes", "ecs", "lambda", "ec2", "heroku", "vercel", "bare_metal"],
+      "description": "Primary infrastructure platform — affects diagnostic commands and mitigation strategies"
+    },
+    "monitoring_stack": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["grafana", "datadog", "cloudwatch", "prometheus", "new_relic", "pagerduty", "opsgenie", "statuspage"]
+      },
+      "description": "Monitoring and alerting tools in use — affects log query and alert examples"
+    },
+    "include_templates": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to include Slack, email, and status page message templates in the output"
+    },
+    "include_commands": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to include diagnostic shell commands (kubectl, aws cli, etc.)"
+    },
+    "postmortem_context": {
+      "type": "object",
+      "description": "Context for postmortem_only mode — provide what you know about the incident",
+      "properties": {
+        "summary": {
+          "type": "string",
+          "description": "Brief description of what happened"
+        },
+        "root_cause": {
+          "type": "string",
+          "description": "Known root cause, if identified"
+        },
+        "mitigation_applied": {
+          "type": "string",
+          "description": "What was done to restore service"
+        },
+        "users_affected": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "revenue_impact_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "timeline_notes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Raw timeline notes, e.g., ['14:00 deploy went out', '14:12 alerts fired']"
+        }
+      }
+    }
+  },
+  "if": {
+    "properties": { "mode": { "const": "postmortem_only" } }
+  },
+  "then": {
+    "required": ["incident_title", "postmortem_context"]
+  }
+}

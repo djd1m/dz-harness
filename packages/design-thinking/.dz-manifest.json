@@ -1,0 +1,229 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "design-thinking",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "c19cf0a375164dda4c0bc388b893ab96264548e1e7e94886b04425597f470ab0"
+      },
+      {
+        "path": "bin/cli.js",
+        "sha256": "a210174d6b63d053f7744757972d31acb0f4d9c59f8dacff7b62872a19ebd31a"
+      },
+      {
+        "path": "package.json",
+        "sha256": "b9947e99466257b5a581c17a3a73c1c21f333adf02f19cd8cea9cd9b8d9bb548"
+      },
+      {
+        "path": "src/cli.js",
+        "sha256": "b041ad43a46fb3e6808d5ddefc5fa21d18b310314f6a1f16805342e1008955ec"
+      },
+      {
+        "path": "templates/.claude/commands/design-thinking.md",
+        "sha256": "92f11397304babfeec8ba157ed27662fb55343094a6b56990dc2ee0f9bad335d"
+      },
+      {
+        "path": "templates/.claude/rules/design-thinking-conventions.md",
+        "sha256": "d71f0df57fc23bc245412ef3f8e9b0cd17a55a0b08cb32b809290c2f99970d0d"
+      },
+      {
+        "path": "templates/.claude/shards/design-thinking.shard.md",
+        "sha256": "07c55c6ac054920573904ace27902e687b1570a0af1a270ac4651191b1eb23b2"
+      },
+      {
+        "path": "templates/.claude/skills/design-thinking/SKILL.md",
+        "sha256": "d90956c8d43c1a975ac35f3b56495d1b21f9aa3789fd0c1b021ee9b207c04bbc"
+      },
+      {
+        "path": "templates/.claude/skills/design-thinking/evals/basic.md",
+        "sha256": "3c680ccf2add52554484971cacb33a29e5258d0d92b0681c6e2d4fe6dd2bb077"
+      },
+      {
+        "path": "templates/.claude/skills/design-thinking/references/methodology-matrix.md",
+        "sha256": "653051a863e13091bd485a452925d0f68dc22986d193224dac3a8be693d71158"
+      },
+      {
+        "path": "templates/.claude/skills/design-thinking/schemas/output.json",
+        "sha256": "b6e3184f3a054f74a4995fa90645e1cdd0f47d6bec841abcad2b5e9579ead6f9"
+      },
+      {
+        "path": "templates/.claude/skills/design-thinking/scripts/validate-config.json",
+        "sha256": "c08d6028178102700bc689c73dac1af443cfc1493b25be458d62ed233700b426"
+      },
+      {
+        "path": "templates/.claude/skills/explore/SKILL.md",
+        "sha256": "2473e7961845db0d64566cd42627b374d1830664b9e302058a1b1aa466bc7361"
+      },
+      {
+        "path": "templates/.claude/skills/explore/references/questioning-techniques.md",
+        "sha256": "ec0dd00871d3abe950f9cf375216a43043827897166c4165c3fa581839851195"
+      },
+      {
+        "path": "templates/.claude/skills/explore/references/task-brief-templates.md",
+        "sha256": "4e9292479e120afce944b747bb7b4a7226c41e9880708d620de3ea4fa4ef0249"
+      },
+      {
+        "path": "templates/.claude/skills/frontend-design/LICENSE.txt",
+        "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+      },
+      {
+        "path": "templates/.claude/skills/frontend-design/SKILL.md",
+        "sha256": "c9e93c1b95b99a9e120b93d7683afa804713f98ce44bf29ba6d24e9ea1b44aee"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/SKILL.md",
+        "sha256": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/references/ed25519-verification.md",
+        "sha256": "2742f14b472bff69c83f24d9bac5bf023bd7f9ecc3e659742ac3152a239dd68f"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/references/research-actions.md",
+        "sha256": "156d2f8ce342f7013bc758fe7c0d3ad3041b4f67f30dbcf8d59e091cb70d9a9c"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/references/source-evaluation.md",
+        "sha256": "d6a19abb6be64dc9e1f539903080029125d2d899da4de3063e75e1afb7e4906f"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/check_report_evidence.py",
+        "sha256": "5053e677f11d00b4dd8365a81eafa1d2c961eebd25c33f72b02455573a934a32"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/ed25519_verifier.py",
+        "sha256": "f4a2ac9e6473201583643fe8abf47560863cec600344dad5c9df06091b4298f5"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/evidence_fetch.py",
+        "sha256": "5f4d7cb5d6fb3106d64130b6606582eb55a4f633ef969cf7890b1de1c179345b"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/fixture_legacy_v1_fact.json",
+        "sha256": "e613de4737145cbfb5f349fbf9f1122801ce3508b62c3a18e2e0cba26b9da5b0"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/fixture_legacy_v2_fact.json",
+        "sha256": "3f552b47c3864e4ff7ae8c72516e98c188592c7f4f7703d09ce88b39f586ad9d"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/fixtures_field_cases.json",
+        "sha256": "e2ee619732ab4a1b57285e57b4349f96b4158b231a5624e5264fadf69edb8983"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/goap_planner.py",
+        "sha256": "f5cbf4784106710b363e7f29bfa538b75f488cb25e1c273ae40de9f4c2a6710b"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/learning_bridge.py",
+        "sha256": "74f8842978ba945ff78c2bd54702415dd87122e61919571e12a19c3cf1e56131"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/population_match.py",
+        "sha256": "bbd1d3346a6fb75d0e8526cb5d2fc8bc8613bb31ab63ffb0958d436d5e009054"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/risk_statement.py",
+        "sha256": "320ffece816e875f65624583846f44dc99461f672a0de7cda42be5ddf29d6de5"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/source_tiers.py",
+        "sha256": "e1aae76fad01693ab35b51466fc4369c04a5ac64230fd307e7b798dc5beeff7a"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_ed25519_verifier.py",
+        "sha256": "dcba1ce538ff946d6928f30a7c5cbcc37fddf712b6181f91f94c76e20c117ac5"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_evidence_provenance.py",
+        "sha256": "292bfcdcc086934905c77f1543d8400ee483166ff3ce26c79bb526c204320dbb"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_goap_planner.py",
+        "sha256": "7942ada069048b7e97bf2b6e920898a58517ccec090069f347399dbf1fc37731"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_population_match.py",
+        "sha256": "f33f72c0ba6305af1644e6b1a7f7635d3f33273344f19c14e7dbd2f819af0e7f"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_risk_absolute.py",
+        "sha256": "ab353db189650551c374cb772ba4a3a6929e3a2618f2f5c112eca4c3f69e46b6"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_signature_v3.py",
+        "sha256": "a04259296df104c9497c7b31d29556cb9a7ad4dd3339cbe3d8d32a4f53950d25"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_suite_completeness.py",
+        "sha256": "727c5d5b0dad215957012276ebc146397178255077e762ed7b88a60d8178d2ab"
+      },
+      {
+        "path": "templates/.claude/skills/problem-solver-enhanced/SKILL.md",
+        "sha256": "031378aa2e10c98928e35de07d454135e73550cd0c49f0cd886d53e4208d6b9f"
+      },
+      {
+        "path": "templates/.claude/skills/reflection-loop/SKILL.md",
+        "sha256": "32aec11844192aa0d7c9f3726f055d896d8a9c9984699d4f9b3d9f6d06a27303"
+      },
+      {
+        "path": "templates/.claude/skills/reflection-loop/evals/basic.md",
+        "sha256": "07d84030472a6c80b633b45eee8d2a7ad59867b99dce19f76f8be9051c51a683"
+      },
+      {
+        "path": "templates/.claude/skills/reflection-loop/schemas/output.json",
+        "sha256": "31cf5df3b4640a6c5e53d4ac59f14fe73faaab00b3a56516d85b057635f22964"
+      },
+      {
+        "path": "templates/.claude/skills/reflection-loop/scripts/validate-config.json",
+        "sha256": "20cf28f6b99e2d1b8778aa27b101ddce6378202a58a8e0b18609ce5015f8d9af"
+      },
+      {
+        "path": "templates/.claude/skills/six-thinking-hats/README.md",
+        "sha256": "77b28909123d6928f873d562dfa50f10cba79f5c43d7d241179d8adf5b35d08a"
+      },
+      {
+        "path": "templates/.claude/skills/six-thinking-hats/SKILL.md",
+        "sha256": "c3eb12f7ed4908bd64df234c7417248471426c744ff3319833c5fa852fd47e8a"
+      },
+      {
+        "path": "templates/.claude/skills/six-thinking-hats/resources/examples/api-testing-example.md",
+        "sha256": "906aedf89d2da707adc844e8e3578ace88a9baa52778cd78523c954f9aa99866"
+      },
+      {
+        "path": "templates/.claude/skills/six-thinking-hats/resources/templates/solo-session-template.md",
+        "sha256": "b54ef848fc1839080dc0d3c0a6fe92ed47cfb4ca261af8bc125e3a3568472ee1"
+      },
+      {
+        "path": "templates/.claude/skills/six-thinking-hats/resources/templates/team-session-template.md",
+        "sha256": "dac4072b8ba2f8033a2f65bc8b2457afd106618ec3079a6074395fcf1d75e03b"
+      },
+      {
+        "path": "templates/.claude/skills/structured-reasoning/SKILL.md",
+        "sha256": "9e6b52c3d8575f8b87af1b4174bb9380c18df98266ce6d5c336fe055368a950e"
+      },
+      {
+        "path": "templates/.claude/skills/structured-reasoning/evals/basic.md",
+        "sha256": "2eaa3c0fb333d89b80b1fa5b7393bb8ab6cc363fc844704ede082551dbfe3ca1"
+      },
+      {
+        "path": "templates/.claude/skills/structured-reasoning/schemas/output.json",
+        "sha256": "9cfb05177e66158733179fef258b68cad97d6c989104229e026afb7b683c5c37"
+      },
+      {
+        "path": "templates/.claude/skills/structured-reasoning/scripts/validate-config.json",
+        "sha256": "acaf75951543e6947026d309bf6e85f5c042c114d7745205c33ffccdad705fc1"
+      },
+      {
+        "path": "test/init.test.mjs",
+        "sha256": "967680aaf57ec4e8a9475d3bd978269f6c88d644c6a6582ceb2ada1ee484a588"
+      }
+    ]
+  },
+  "signature": "hQ2UEPFBIN+3uasq3rDsaagMOsJyL1cMrCXK4F7OuMNkXcOKAkVtdDljPh8w5s26xmRUTb7CTW3ytT86ToslAQ=="
+}

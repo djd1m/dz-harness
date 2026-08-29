@@ -1,0 +1,78 @@
+{
+  "name": "@dzhechkov/harness-core",
+  "version": "0.8.5",
+  "description": "Shared harness logic - skill loading, additive apply, and the init/sync/verify/doctor operations.",
+  "type": "module",
+  "license": "MIT",
+  "author": "dzhechko",
+  "keywords": [
+    "agent-skills",
+    "harness",
+    "claude-code"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./slop-markers.json": "./src/slop-markers.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "prepublishOnly": "node scripts/refuse-wrong-publisher.mjs && node ../../../scripts/prepublish-gate.mjs"
+  },
+  "dependencies": {
+    "@dzhechkov/adapter-agents-md": "workspace:*",
+    "@dzhechkov/adapter-claude": "workspace:^",
+    "@dzhechkov/adapter-codex": "workspace:^",
+    "@dzhechkov/adapter-copilot": "workspace:*",
+    "@dzhechkov/adapter-cursor": "workspace:*",
+    "@dzhechkov/adapter-gemini": "workspace:*",
+    "@dzhechkov/adapter-hermes": "workspace:^",
+    "@dzhechkov/adapter-openclaude": "workspace:^",
+    "@dzhechkov/adapter-opencode": "workspace:^",
+    "@dzhechkov/adapter-windsurf": "workspace:*",
+    "@dzhechkov/core": "workspace:*",
+    "@dzhechkov/memory": "workspace:*",
+    "proper-lockfile": "^4.1.2",
+    "yaml": "^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@ruvector/rvf": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@ruvector/rvf": "^0.2.3",
+    "@types/node": "^25.6.0",
+    "@types/proper-lockfile": "^4.1.4",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/harness-core"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/harness-core#readme"
+}

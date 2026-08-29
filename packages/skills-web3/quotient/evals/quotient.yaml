@@ -1,0 +1,91 @@
+name: quotient
+description: Evaluate Quotient market intelligence API with x402 micropayments skill usage
+version: "1.0"
+
+prompts:
+  - id: preflight_check
+    input: "What are the current API prices for Quotient endpoints?"
+    expected_actions:
+      - action: fetch_pricing
+        endpoint: "/api/public/pricing"
+    expected_output:
+      contains:
+        - "endpoints"
+        - "price"
+        - "USDC"
+
+  - id: mispriced_markets
+    input: "Find crypto markets that are currently mispriced with high confidence"
+    expected_actions:
+      - action: fetch_pricing
+        description: "Preflight: check pricing"
+      - action: x402_flow
+        endpoint: "/api/v1/markets/mispriced"
+        params:
+          category: "crypto"
+          confidence_min: 0.8
+    expected_output:
+      contains:
+        - "mispriced"
+        - "fairValue"
+        - "deviation"
+        - "signal"
+
+  - id: x402_payment_flow
+    input: "Access the intelligence endpoint for DeFi topics"
+    expected_actions:
+      - action: send_request
+      - action: parse_402_response
+      - action: sign_payment
+      - action: retry_with_proof
+      - action: parse_response
+    validation:
+      must_follow_x402_steps: true
+    expected_output:
+      contains:
+        - "intelligence"
+        - "payment"
+        - "confirmed"
+
+  - id: analyst_signals
+    input: "Show me high-confidence buy signals from Quotient"
+    expected_actions:
+      - action: x402_flow
+        endpoint: "/api/v1/signals"
+        params:
+          type: "buy"
+          confidence_min: 0.8
+    expected_output:
+      contains:
+        - "signals"
+        - "type"
+        - "confidence"
+        - "priceTarget"
+
+  - id: market_lookup
+    input: "Get detailed market data for ETH/USD from Quotient"
+    expected_actions:
+      - action: x402_flow
+        endpoint: "/api/v1/markets/lookup"
+        params:
+          id: "mkt_eth_usd"
+    expected_output:
+      contains:
+        - "currentPrice"
+        - "volume24h"
+
+  - id: payment_cap_awareness
+    input: "Access all five paid endpoints in sequence"
+    validation:
+      must_check_pricing_first: true
+      must_respect_max_payment: true
+    expected_output:
+      contains:
+        - "payment"
+
+scoring:
+  x402_flow_correctness: 0.3
+  preflight_awareness: 0.2
+  correct_endpoint: 0.2
+  payment_verification: 0.15
+  pricing_check: 0.15

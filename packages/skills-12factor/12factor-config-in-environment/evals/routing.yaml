@@ -1,0 +1,25 @@
+skill: 12factor-config-in-environment
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+positives:
+  - "где хранить пароль к базе и API-ключ — в коде, в config-файле или в переменных окружения?"
+  - "Should secrets and per-deploy hostnames live in env vars or in a checked-in config file?"
+  - "хочу катить один и тот же билд на staging и prod без пересборки — как вынести настройки?"
+  - "Is committing a gitignored database.yml a safe place for our credentials?"
+  - "как понять, что наш репозиторий можно открыть публично без утечки секретов?"
+  - "We keep production.env and staging.env in git — should config be split by named environments instead?"
+  - "each developer needs their own DB URL and S3 key — named profiles or per-deploy env vars?"
+  - "какие значения считать конфигом, а какие оставить в коде (роуты, DI-обвязка)?"
+# Hard negatives: prompts owned by a SIBLING or existing arsenal skill — this skill must NOT win them.
+negatives:
+  - prompt: "How do I actually connect to the Postgres database and treat it as a swappable resource?"
+    should_activate: "12factor-backing-services-as-resources"
+  - prompt: "Как заменить локальный Memcached на облачный без изменения кода приложения?"
+    should_activate: "12factor-backing-services-as-resources"
+  - prompt: "Мы разделяем стадии сборки, релиза и запуска — как связать билд с его конфигом в релиз?"
+    should_activate: "12factor-build-release-run-separation"
+  - prompt: "Dev uses SQLite but prod uses Postgres — how do I close the dev/prod gap?"
+    should_activate: "12factor-dev-prod-parity"
+  - prompt: "Should the app write logs to a file or stream them to stdout?"
+    should_activate: "12factor-logs-as-streams"
+  - prompt: "Plan a zero-downtime migration to rotate the database password across all instances."
+    should_activate: "database-migration"

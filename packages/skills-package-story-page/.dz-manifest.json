@@ -1,0 +1,109 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "skills-package-story-page",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "7d9d87eb9da376f2048c5a16d9a5b95a570f088f2c689a999c0c83ab69a60855"
+      },
+      {
+        "path": "README.md",
+        "sha256": "6c9e2fb0c917ca170ba84cd645f28735f39a6dc0685f9fd015ae6262222385bf"
+      },
+      {
+        "path": "package-story-page/SKILL.md",
+        "sha256": "65cd2059c6d4cea79faa995f2d9968c845bbba91f8235ce27af9de5ac6cd5e24"
+      },
+      {
+        "path": "package-story-page/evals/opus-receipt.json",
+        "sha256": "97d56a30fef273e9072f2998d2b051f1d0430e89adb5d1a33da02c75221f349e"
+      },
+      {
+        "path": "package-story-page/evals/routing.yaml",
+        "sha256": "d30a449b505fd69ac98793c03d61d7aab4777a8aeeed772bd4f2cdf433640454"
+      },
+      {
+        "path": "package-story-page/evals/run-pair-routing.mjs",
+        "sha256": "9b8659149118e939afd04012317cb964d7cf1265a5e65fececb7085e5d919637"
+      },
+      {
+        "path": "package-story-page/references/evidence-contract.md",
+        "sha256": "3bf2a5e546b6933a878a69a6f2cd8d0612f562779322a03d7651ca013109f013"
+      },
+      {
+        "path": "package-story-page/references/story-contract.md",
+        "sha256": "017322a6ab580c7c10f01b4a0ad5b39173ed889c9aae8b62aead4163ebbc2de0"
+      },
+      {
+        "path": "package-story-page/references/visual-contract.md",
+        "sha256": "ab638133d6926c4d8167908c8e97426519914f20ef07c0b7b7ba9bfef05c917f"
+      },
+      {
+        "path": "package-story-page/scripts/extract-package-evidence.mjs",
+        "sha256": "ee175aa24fde44dba2df4b42f6d91a6060b29f0f2934d136c5b090d22d1c8efa"
+      },
+      {
+        "path": "package-story-page/scripts/render-story-page.mjs",
+        "sha256": "da9a444761650001175ef5a5cba4697f0eafacd28ce3fe74132e84aec8c54a8b"
+      },
+      {
+        "path": "package-story-page/scripts/story-schema.mjs",
+        "sha256": "dfd7dbfa0ee87fa56f5cbaad1c66434632046571e1fcb96678512f6ab9dd5074"
+      },
+      {
+        "path": "package-story-page/scripts/verify-story-page-browser.mjs",
+        "sha256": "83ebb3f2fd9d3d195d7937dc3223db8bcaa3f74b6d8766e403e4b08c60c37bd4"
+      },
+      {
+        "path": "package-story-page/scripts/verify-story-page.mjs",
+        "sha256": "92c0fd2271555853a66494e9cdd2e96842e7d8376258447340e27f652a34dd12"
+      },
+      {
+        "path": "package-story-page/scripts/verify-story-semantics.mjs",
+        "sha256": "13f703cd21051adf934b8be404f902a3ebba260c4ff6b26645016ef142989300"
+      },
+      {
+        "path": "package-story-page/vendor/entities.LICENSE.txt",
+        "sha256": "cb992345949ccd6e8394b2cd6c465f7b897c864f845937dbf64e8997f389e164"
+      },
+      {
+        "path": "package-story-page/vendor/parse5.LICENSE.txt",
+        "sha256": "8c535800331e1e4439835555b3f9edc7fe9dee2fab0d8bbbd5a982e8b8343d4d"
+      },
+      {
+        "path": "package-story-page/vendor/parse5.bundle.mjs",
+        "sha256": "67ad160b1d7dc6a36314459390148ad4699732f4c503e90790e6fced5c11c528"
+      },
+      {
+        "path": "package-story-page/vendor/parse5.provenance.json",
+        "sha256": "81f3b3ec06fd12491433476be5b2cb063eb8f7d91fda08cd300f3c99c17cd75e"
+      },
+      {
+        "path": "package.json",
+        "sha256": "b176e03378bbd69d6872d76234d467eeafada40ab92facf29aa697dd0710694a"
+      },
+      {
+        "path": "test/mutation-registry.json",
+        "sha256": "7befda983b2cf6105cdc2585bc7487dedd2d8a91e7e6c01d650e03021753ce31"
+      },
+      {
+        "path": "test/no-litter.test.mjs",
+        "sha256": "d52eeaa53b88701747166fa1add3c4d64f46cebf604de3efa94a99d5d8a1c22b"
+      },
+      {
+        "path": "test/run-mutation-suite.mjs",
+        "sha256": "55e3f76291b1a7d5a2d61dbc308823f1d9b7487ab2a516ec2ff8a050cacfbb3f"
+      },
+      {
+        "path": "test/semantic-disposition.json",
+        "sha256": "5976aa5f81284bf5aa5b0df56e0de0bb5863d30847ade4c5ca99a0f8b2ae1e8c"
+      },
+      {
+        "path": "test/story-page.test.mjs",
+        "sha256": "f981973318691eb13527969f5d41dba3820e382dd4086eb177fe12a3601304f2"
+      }
+    ]
+  },
+  "signature": "A/qRN9Gk+8P3XjY7vyE86J5Gqymi9YuC6k/i8ImDlLUNdsz/PLJTRGaABst7dbEMqVzSioEZaLpm1YVZVFNXDQ=="
+}

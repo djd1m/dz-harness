@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "dissertation-review output",
+  "description": "Structured output from the dissertation-review skill",
+  "type": "object",
+  "required": ["status", "format", "criteria_scores", "strengths", "weaknesses", "recommended_grade", "summary"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "skipped"]
+    },
+    "format": {
+      "type": "string",
+      "enum": ["research", "project"],
+      "description": "ВКР format: research (исследовательский) or project (проектный)"
+    },
+    "topic": {
+      "type": "string",
+      "description": "Thesis topic as stated on the title page"
+    },
+    "criteria_scores": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["criterion", "score", "comment"],
+        "properties": {
+          "criterion": {
+            "type": "string",
+            "description": "Evaluation criterion name"
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Score on 10-point scale"
+          },
+          "comment": {
+            "type": "string",
+            "description": "Brief justification for the score"
+          }
+        }
+      }
+    },
+    "strengths": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "Strong points of the thesis"
+    },
+    "weaknesses": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "Weak points of the thesis"
+    },
+    "supervisor_remarks": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Key remarks from the supervisor review"
+    },
+    "reviewer_remarks": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Key remarks from the external review"
+    },
+    "recommended_grade": {
+      "type": "object",
+      "required": ["five_point", "ten_point", "justification"],
+      "properties": {
+        "five_point": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 5,
+          "description": "Recommended grade on 5-point scale"
+        },
+        "ten_point": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "description": "Recommended grade on 10-point scale"
+        },
+        "justification": {
+          "type": "string",
+          "description": "Brief justification for the recommended grade"
+        }
+      }
+    },
+    "summary": {
+      "type": "string",
+      "description": "Overall summary of the thesis evaluation"
+    }
+  }
+}

@@ -1,0 +1,317 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "skills-tutorial-factory"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "855d12dad573d8a3bf401a1219f3096dbf26bf0fdf94c78f55a9135feb96604e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "beb707558bc63fc109f65e146599b1338bbe1529124b8b70defb87af629f80af"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/modules/00-orchestrator.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7370dd42c4d755bf4d57cffd7a3b2ab18bfd15b04ed4e97f9bd281d900d9d4ac"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/modules/01-extract-concepts.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "109ab66508853ade3e431bd17247413d31fd5468197d7d7021613cd4a8c156a8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/modules/02-author-course.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d8189b7ac0f6fb5e2d5925ff3fd74e1f34720f63224ede629e925581cedea93b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/modules/03-headfirst-gate.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "359c48b156bd8d9544423783cccd1b69874785cb52d87b47619a1a04ba93e7ea"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/modules/04-brain-friendliness.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "879110c8e6454c74cd48bef052cd8575e4867eec3f7737cac30ae4d3a92de51d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/modules/05-render.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fdbce32b30123336d19d863131d97acbaea4edcbf0ca22a7326ec8fff017b97b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/modules/06-verify-handoff.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b88329e2b49cf3ffaa0856aab7d2f94ecf447bdd9710af7d440b3cb0f0e4f165"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/references/course-skeleton.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0b0b11661150cd6b47870f9b815767ea2d44ad079a73360cdccff26f99afefb1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/references/head-first-method.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b7064d92e082f41fa63786d677a190007113a779cfe28f51b1972c54fb6f015e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/references/method-to-edusite-map.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "eb5b530fc8c72a90049207c3ca6947fd1b6fbda92713bcde62abf8afd2db0aeb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/scripts/app.src.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2bf5cad606cc0e8fd29b06e9680c372f376db1db86a4846bba61b744a8bfdd4c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/scripts/brain-friendliness-prompt.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f7bca730d19da5e1773b733c711bcd5249ff22a41ee51586f3f94846495828d0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/scripts/course-schema.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bc21ad70d331318cbcfdde2501fd1273d01489c473487e96c6313aa3f5b88dac"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/scripts/extract-brief.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e328d5e916f3319e890d6761d898dca0d9a7f38fd8e8cbd1e9d7fc048fcddbf4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/scripts/headfirst-gate.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9d27ffd9890f15bcef98ea02f54aaaf9372ca49922a449009ba3982e3bb449bc"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/scripts/render-site.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "026b64006c944ecadbc59fdbed36791358b2d31fc2621bd5c1be014bb82a1efd"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/scripts/shingling-check.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c25795ddcd55bdb04ded368d3ef27c3f0f3a07e4bfd8bf812c023787d70b9056"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/scripts/verify-site.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bc3f758f8a57c435efa8b9a79df66b286f9ee27e3d416fc11c1ff55e19a258bb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "aed9f5edaa0d0415e180b12816d3f17512d92253daa1dff717a7e95c02aff1c0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "test/_fixtures.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aff72d82565b06355d410f3c3e26d7f5dc51b170988f406873c17e4e9d0ac503"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "test/extract-brief.test.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bb4f105ed0857d41362d34d940871a6dd2b3822cbd95a0a0fc472dc3e44e326d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "test/factory-authoring.test.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d33d9000649baaec5e3c6cd9e93b66e3b5d759a6639969b1f5eb440777777fff"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "test/fixtures/synthetic-corpus/chunk-001.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "93b267dcbfb39fbbb21a0655d926fcd375812c2899172b18ca5b7e7498281f3f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "test/headfirst-gate.test.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8c01a8042a58cc2e144feac9c33a5fdb9b6705b36175c7e0dce4c5c20cd3251e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "test/honest-scope.test.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "16a87668312388bc59a8d00d58c1e68a4cdd10b66d6ad3ed19428b4465a56978"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "test/ip-shingling.test.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fd68ecf2107e509769a4a763e3b6afb45d0dfd1c11e2193d5fa453962518142d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "test/render-site.test.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "011313804134f0ed0758310c7048b0682437a607c5ec917f7d01c82c5374e4de"
+        }
+      ]
+    }
+  ]
+}

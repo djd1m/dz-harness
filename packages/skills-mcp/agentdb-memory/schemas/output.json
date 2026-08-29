@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "agentdb-memory output",
+  "type": "object",
+  "properties": {
+    "operation": { "type": "string", "enum": ["store", "search", "reflexion", "causal", "skill", "feedback"] },
+    "status": { "type": "string", "enum": ["success", "failure", "partial"] },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "content": { "type": "string" },
+          "score": { "type": "number" },
+          "metadata": { "type": "object" }
+        }
+      }
+    },
+    "learning_metrics": {
+      "type": "object",
+      "properties": {
+        "total_patterns": { "type": "integer" },
+        "total_episodes": { "type": "integer" },
+        "search_improvement": { "type": "number" },
+        "feedback_count": { "type": "integer" }
+      }
+    }
+  },
+  "required": ["operation", "status"]
+}

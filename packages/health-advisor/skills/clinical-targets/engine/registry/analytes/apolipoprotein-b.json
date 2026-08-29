@@ -1,0 +1,8 @@
+{
+  "analyteId": "apolipoprotein-b",
+  "displayName": "апоB (аполипопротеин B)",
+  "canonicalUnit": "g/L",
+  "reportingQuantum": 0.01,
+  "reportingSteps": { "g/L": 0.001, "mg/dL": 1 },
+  "aliases": ["ApoB", "Apo B", "Apolipoprotein B", "апоB", "апо B", "Аполипопротеин B"]
+}

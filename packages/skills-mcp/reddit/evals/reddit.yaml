@@ -1,0 +1,159 @@
+name: reddit
+description: Evaluation suite for the reddit MCP wrapper skill.
+version: "1.0.0"
+skill: reddit
+
+setup:
+  mcp_server: smithery/reddit
+  transport: sse
+  requires_auth: false
+
+evals:
+  - id: search-posts-basic
+    description: Search Reddit for posts matching a query
+    input:
+      tool: search_posts
+      args:
+        query: "javascript framework"
+        limit: 5
+    expected:
+      status: success
+      data_type: PostsResponse
+      constraints:
+        - "data.posts is an array"
+        - "data.posts.length <= 5"
+        - "each post has id, title, and subreddit fields"
+        - "each post has score and num_comments fields"
+    tags: [smoke, read]
+
+  - id: list-subreddit-hot
+    description: List hot posts from a well-known subreddit
+    input:
+      tool: list_subreddit
+      args:
+        subreddit: "programming"
+        sort: "hot"
+        limit: 10
+    expected:
+      status: success
+      data_type: PostsResponse
+      constraints:
+        - "data.posts is an array"
+        - "data.posts.length <= 10"
+        - "all posts have subreddit == 'programming'"
+    tags: [smoke, read]
+
+  - id: get-post-by-url
+    description: Get a specific post by Reddit URL
+    input:
+      tool: get_post
+      args:
+        url: "https://www.reddit.com/r/programming/comments/test123"
+    expected:
+      status: success
+      data_type: SinglePostResponse
+      constraints:
+        - "data.post.id is present"
+        - "data.post.title is a non-empty string"
+        - "data.post.selftext is a string"
+    tags: [functional, read]
+
+  - id: get-comments-threaded
+    description: Get threaded comments for a post
+    input:
+      tool: get_comments
+      args:
+        postId: "{{sample_post_id}}"
+        sort: "top"
+        limit: 10
+    expected:
+      status: success
+      data_type: CommentsResponse
+      constraints:
+        - "data.comments is an array"
+        - "each comment has id, author, body, and score fields"
+        - "top-level comments have depth == 0"
+    tags: [functional, read]
+
+  - id: search-subreddit-specific
+    description: Search within a specific subreddit
+    input:
+      tool: search_subreddit
+      args:
+        subreddit: "webdev"
+        query: "CSS grid"
+        limit: 5
+    expected:
+      status: success
+      data_type: PostsResponse
+      constraints:
+        - "data.posts is an array"
+        - "all posts have subreddit == 'webdev'"
+    tags: [functional, read]
+
+  - id: get-user-posts
+    description: Get posts by a specific Reddit user
+    input:
+      tool: get_user_posts
+      args:
+        username: "spez"
+        limit: 5
+    expected:
+      status: success
+      data_type: PostsResponse
+      constraints:
+        - "data.posts is an array"
+        - "all posts have author == 'spez'"
+    tags: [functional, read]
+
+  - id: list-subreddit-top-timeframe
+    description: List top posts from a subreddit within a time frame
+    input:
+      tool: list_subreddit
+      args:
+        subreddit: "technology"
+        sort: "top"
+        timeframe: "month"
+        limit: 5
+    expected:
+      status: success
+      data_type: PostsResponse
+      constraints:
+        - "data.posts is an array"
+        - "posts are sorted by score descending"
+    tags: [functional, read]
+
+  - id: error-private-subreddit
+    description: Accessing a private subreddit returns an error
+    input:
+      tool: list_subreddit
+      args:
+        subreddit: "nonexistent_private_sub_xyz"
+        limit: 1
+    expected:
+      status: error
+      constraints:
+        - "error.code is present"
+        - "error.message is present"
+    tags: [negative, read]
+
+  - id: read-only-verification
+    description: Verify no write tools are exposed
+    input:
+      tool: "__tool_list__"
+      args: {}
+    expected:
+      constraints:
+        - "tools does not contain 'create_post'"
+        - "tools does not contain 'submit_comment'"
+        - "tools does not contain 'upvote'"
+        - "tools does not contain 'downvote'"
+    tags: [security, meta]
+
+scoring:
+  pass_threshold: 0.85
+  weights:
+    smoke: 2.0
+    functional: 1.5
+    negative: 1.0
+    security: 2.0

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "audit findings",
+  "description": "The per-finding records a reconnaissance agent returns, before synthesis/ranking.",
+  "type": "array",
+  "maxItems": 20,
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["title", "category", "severity", "detail"],
+    "properties": {
+      "title": { "type": "string", "description": "concise finding title" },
+      "category": {
+        "type": "string",
+        "enum": ["Bug", "Security", "Performance", "Refactor", "Dead Code", "UX", "Architecture", "Gap", "Feature"]
+      },
+      "severity": { "type": "string", "enum": ["P0", "P1", "P2", "P3"] },
+      "file": { "type": "string", "description": "path; omit for Gap/Feature with no single location" },
+      "line": { "type": "integer", "minimum": 1 },
+      "detail": { "type": "string", "description": "what it is AND why it matters concretely (cost of inaction)" },
+      "overlap": { "type": "boolean", "description": "true if it may duplicate another lens — merged in synthesis" }
+    }
+  }
+}

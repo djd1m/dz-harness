@@ -1,0 +1,40 @@
+{
+  "name": "@dzhechkov/evidence-wiki",
+  "version": "0.2.5",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "description": "Evidence-disciplined wiki plugin \u2014 atomic concept pages where every claim carries inline sources.",
+  "license": "MIT",
+  "author": "dzhechko",
+  "keywords": [
+    "claude-code",
+    "plugin",
+    "wiki",
+    "evidence",
+    "knowledge-graph",
+    "triple-pillar"
+  ],
+  "files": [
+    ".claude-plugin",
+    "commands",
+    "governance",
+    "hooks",
+    "shards",
+    "skills",
+    "templates",
+    "README.md",
+    "LICENSE",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/evidence-wiki"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/evidence-wiki#readme"
+}

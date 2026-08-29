@@ -1,0 +1,26 @@
+{
+  "_note": "ADR-0002 Phase A. All 18 skills IMPORTED (MIT) from github.com/phuryn/pm-skills and curated (ultracode audit 2026-06-29: 9-plugin classify + adversarial verify; dropped ~50 as overlapping design-thinking/RE-unicorn/idea2prd/qe/devops or low-value). Flattened from the upstream plugin-marketplace layout (<plugin>/skills/<id>/) to flat pack-root <id>/. Only adaptation: added trust_tier frontmatter; skill bodies preserved verbatim. dz sync-upstream skips this (no top-level origin block).",
+  "upstream": "https://github.com/phuryn/pm-skills",
+  "license": "MIT",
+  "attribution": "phuryn — pm-skills (MIT)",
+  "skills": {
+    "opportunity-solution-tree": { "origin": "imported", "upstream_path": "pm-product-discovery/skills/opportunity-solution-tree/SKILL.md" },
+    "prioritize-features": { "origin": "imported", "upstream_path": "pm-product-discovery/skills/prioritize-features/SKILL.md" },
+    "metrics-dashboard": { "origin": "imported", "upstream_path": "pm-product-discovery/skills/metrics-dashboard/SKILL.md" },
+    "prioritization-frameworks": { "origin": "imported", "upstream_path": "pm-execution/skills/prioritization-frameworks/SKILL.md" },
+    "brainstorm-okrs": { "origin": "imported", "upstream_path": "pm-execution/skills/brainstorm-okrs/SKILL.md" },
+    "outcome-roadmap": { "origin": "imported", "upstream_path": "pm-execution/skills/outcome-roadmap/SKILL.md" },
+    "stakeholder-map": { "origin": "imported", "upstream_path": "pm-execution/skills/stakeholder-map/SKILL.md" },
+    "strategy-red-team": { "origin": "imported", "upstream_path": "pm-execution/skills/strategy-red-team/SKILL.md" },
+    "sprint-plan": { "origin": "imported", "upstream_path": "pm-execution/skills/sprint-plan/SKILL.md" },
+    "product-strategy": { "origin": "imported", "upstream_path": "pm-product-strategy/skills/product-strategy/SKILL.md" },
+    "pricing-strategy": { "origin": "imported", "upstream_path": "pm-product-strategy/skills/pricing-strategy/SKILL.md" },
+    "north-star-metric": { "origin": "imported", "upstream_path": "pm-marketing-growth/skills/north-star-metric/SKILL.md" },
+    "ab-test-analysis": { "origin": "imported", "upstream_path": "pm-data-analytics/skills/ab-test-analysis/SKILL.md" },
+    "cohort-analysis": { "origin": "imported", "upstream_path": "pm-data-analytics/skills/cohort-analysis/SKILL.md" },
+    "gtm-strategy": { "origin": "imported", "upstream_path": "pm-go-to-market/skills/gtm-strategy/SKILL.md" },
+    "growth-loops": { "origin": "imported", "upstream_path": "pm-go-to-market/skills/growth-loops/SKILL.md" },
+    "beachhead-segment": { "origin": "imported", "upstream_path": "pm-go-to-market/skills/beachhead-segment/SKILL.md" },
+    "market-sizing": { "origin": "imported", "upstream_path": "pm-market-research/skills/market-sizing/SKILL.md" }
+  }
+}

@@ -1,0 +1,34 @@
+skill: aiagents-tool-design-and-selection
+# Positives cover: tool metadata, schemas + validation contract, stateful-tool least privilege,
+# local/API/MCP типы, tool-choice mode, the selection ladder, parallel calls.
+positives:
+  - "Модель упорно игнорирует мой тул get_customer и лезет отвечать сама. Как переписать его описание?"
+  - "Наш агент вызвал delete_records на проде. Какие ограничения вешать на инструменты, которые меняют состояние?"
+  - "Инструментов стало полторы сотни, все в один промпт не влезают. Как организовать выбор нужного?"
+  - "Should this integration live as a local Python function the agent calls, or as an MCP server?"
+  - "Модель иногда отвечает текстом вместо вызова функции, а нам нужен гарантированный вызов. Как её заставить?"
+  - "Агент присылает аргументы с битым JSON. Что инструмент должен вернуть, чтобы модель исправилась со второй попытки?"
+  - "Хочу перед вызовом модели подтягивать только релевантные инструменты через эмбеддинги. Как это устроить?"
+  - "У нас есть search_docs и find_documents — модель выбирает между ними случайно. Что с этим делать?"
+  - "Can the agent fire three tool calls in one turn, and should I design the tools for that?"
+  - "Какую схему параметров описать для инструмента бронирования, чтобы модель не выдумывала поля?"
+# Seam-level adversarial positives (round 2): prompts that sit on the boundary with a
+# sibling and are still legitimately owned by THIS skill.
+  - "Мы дали агенту инструмент с параметром sql, и однажды он снёс таблицу. Как перепроектировать контракт этого инструмента?"
+  - "Выносить наш внутренний сервис как MCP-сервер или оставить прямым вызовом из кода агента?"
+  - "Хотим режим, в котором модель сама решает, что инструмент вообще не нужен. Как это задаётся?"
+negatives:
+  - prompt: "Проектируем публичный REST API для партнёров: пагинация, версионирование, контракт ошибок, OpenAPI."
+    should_activate: "api-design"
+  - prompt: "Какую модель поставить агенту, чтобы он вообще нормально справлялся с вызовом функций — топовую или можно младшую?"
+    should_activate: "aiagents-agent-fit-and-model-choice"
+  - prompt: "В ответе стороннего API прилетела строка с инструкциями для модели, и агент их выполнил. Как это перехватывать?"
+    should_activate: "aiagents-agent-security"
+  - prompt: "Прогони аудит безопасности нашего бэкенда: секреты в репозитории, уязвимые зависимости, OWASP-топ."
+    should_activate: "security-audit"
+  - prompt: "Просканируй наш каталог .claude — хуки, MCP-серверы и права в settings — на небезопасные настройки."
+    should_activate: "agentshield-scan"
+# WAVE-2 PROMOTION: these were soft_negatives while their cluster had no owner.
+# Wave 2 distilled that owner, so each is now a HARD negative against the new sibling.
+  - prompt: "Нужен планировщик, который разложит запрос пользователя на шаги и построит граф выполнения."
+    should_activate: "aiagents-orchestration-and-planning"

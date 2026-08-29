@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ENS Primary Name Response",
+  "description": "Schema for ENS primary name management operations",
+  "type": "object",
+  "properties": {
+    "operation": {
+      "type": "string",
+      "enum": ["set-primary", "verify-primary", "set-avatar", "get-avatar"],
+      "description": "ENS operation performed"
+    },
+    "chain": {
+      "type": "string",
+      "enum": ["ethereum", "base", "optimism", "arbitrum", "linea", "scroll"],
+      "description": "Chain where operation was performed"
+    },
+    "ens_name": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9.-]+\\.eth$",
+      "description": "ENS name (e.g., vitalik.eth)"
+    },
+    "address": {
+      "type": "string",
+      "pattern": "^0x[a-fA-F0-9]{40}$",
+      "description": "Ethereum address"
+    },
+    "reverse_registrar": {
+      "type": "string",
+      "pattern": "^0x[a-fA-F0-9]{40}$",
+      "description": "Reverse Registrar contract address used"
+    },
+    "tx_hash": {
+      "type": "string",
+      "description": "Transaction hash"
+    },
+    "avatar": {
+      "type": "object",
+      "properties": {
+        "uri": { "type": "string", "description": "Avatar URI" },
+        "format": {
+          "type": "string",
+          "enum": ["https", "ipfs", "erc721-nft", "erc1155-nft", "data-uri"],
+          "description": "Avatar URI format"
+        }
+      }
+    },
+    "resolution": {
+      "type": "object",
+      "properties": {
+        "forward": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "resolves_to": { "type": "string" }
+          },
+          "description": "Forward resolution: name -> address"
+        },
+        "reverse": {
+          "type": "object",
+          "properties": {
+            "address": { "type": "string" },
+            "resolves_to": { "type": "string" }
+          },
+          "description": "Reverse resolution: address -> name"
+        },
+        "bidirectional": { "type": "boolean", "description": "Both directions match" }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["success", "failed", "not-found"],
+      "description": "Operation result status"
+    }
+  },
+  "required": ["operation", "chain"]
+}

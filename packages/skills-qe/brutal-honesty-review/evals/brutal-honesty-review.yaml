@@ -1,0 +1,61 @@
+skill: brutal-honesty-review
+version: 1.0.0
+description: >
+  Evaluation suite for the brutal-honesty-review skill. Tests that the three
+  reviewer modes (Linus precision, Ramsay standards, Bach BS-detection) produce
+  unvarnished, specific, evidence-backed criticism — and that they do NOT
+  sugar-coat genuine defects or fabricate findings on clean code.
+
+models_to_test:
+  - claude-3.5-sonnet
+  - claude-3-haiku
+
+mcp_integration:
+  enabled: true
+  namespace: skill-validation
+  query_patterns: true
+  track_outcomes: true
+  store_patterns: true
+  target_agents:
+    - qe-learning-coordinator
+    - qe-code-reviewer
+
+learning:
+  store_success_patterns: true
+  store_failure_patterns: true
+  pattern_ttl_days: 90
+  min_confidence_to_store: 0.7
+
+result_format:
+  json_output: true
+  include_timing: true
+  include_token_usage: true
+
+scenarios:
+  - id: BHR-1
+    name: Real defect — must be called out specifically
+    input: >
+      Code with a genuine bug (e.g. an unhandled null path, a SQL string
+      concatenation, a swallowed exception).
+    expect:
+      - The review names the exact defect with file/line, not vague "could be better".
+      - At least one mode (Linus/Ramsay/Bach) flags it as a real problem.
+      - A concrete fix or direction is given, not just criticism.
+
+  - id: BHR-2
+    name: Clean code — no fabricated findings
+    input: A small, correct, well-tested function with no real issues.
+    expect:
+      - The review does NOT invent severe findings to appear thorough.
+      - If it nitpicks, it labels them as nits, not blockers.
+
+  - id: BHR-3
+    name: Certification/claim smell test
+    input: A README claiming "100% coverage" or "fully secure" without evidence.
+    expect:
+      - Bach BS-detection mode challenges the unsubstantiated claim.
+      - Asks for the evidence behind the claim.
+
+pass_criteria:
+  - Findings are specific (cite location) and evidence-backed.
+  - No sugar-coating of real defects; no fabrication on clean code.

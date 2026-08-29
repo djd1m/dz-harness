@@ -1,0 +1,43 @@
+# security-audit evaluation
+# Run: aqe eval security-audit
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run security-audit"
+    expected:
+      status: success
+      summary_contains: "security-audit"
+
+  - name: "sql injection detection"
+    input: "Audit this code: const q = `SELECT * FROM users WHERE id = ${req.params.id}`; db.query(q);"
+    expected:
+      status: success
+      findings_contain:
+        category: "injection_sql"
+        severity: "high"
+
+  - name: "hardcoded secret detection"
+    input: "Audit this code: const API_KEY = 'sk-live-abc123def456'; fetch(url, { headers: { Authorization: API_KEY } });"
+    expected:
+      status: success
+      findings_contain:
+        category: "secret_exposure"
+
+  - name: "clean code no false positives"
+    input: "Audit this code: const id = parseInt(req.params.id, 10); if (isNaN(id)) return res.status(400).send('Invalid'); const user = await db.query('SELECT * FROM users WHERE id = $1', [id]);"
+    expected:
+      status: success
+      findings_count: 0
+
+  - name: "path traversal detection"
+    input: "Audit this code: const file = path.join('/uploads', req.query.filename); fs.readFileSync(file);"
+    expected:
+      status: success
+      findings_contain:
+        category: "path_traversal"
+
+  - name: "framework mitigation recognition"
+    input: "Audit an Express app with helmet, csurf, and express-rate-limit middleware"
+    expected:
+      status: success
+      mitigations_exist: true

@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "playwright-testing output",
+  "description": "Structured output from the playwright-testing skill",
+  "type": "object",
+  "required": ["status", "summary", "action_type"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "needs_more_info"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line summary of the Playwright test design or review"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": ["setup", "create_tests", "review", "fix_flaky", "add_visual", "add_mocking", "ci_integration"],
+      "description": "What type of action was performed"
+    },
+    "page_objects": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "file_path"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Page object class name"
+          },
+          "file_path": {
+            "type": "string",
+            "description": "File path for the page object"
+          },
+          "selector_count": {
+            "type": "integer",
+            "description": "Number of selectors defined"
+          },
+          "action_count": {
+            "type": "integer",
+            "description": "Number of action methods defined"
+          }
+        }
+      },
+      "description": "Page objects created or reviewed"
+    },
+    "tests_created": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "file_path"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Test name"
+          },
+          "file_path": {
+            "type": "string",
+            "description": "File path for the test"
+          },
+          "test_count": {
+            "type": "integer",
+            "description": "Number of test cases in the file"
+          },
+          "has_visual_regression": {
+            "type": "boolean"
+          },
+          "has_api_mocking": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Test files created"
+    },
+    "fixtures_defined": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Custom fixtures defined"
+    },
+    "has_ci_config": {
+      "type": "boolean",
+      "description": "Whether CI workflow is configured"
+    },
+    "review_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "finding", "recommendation"],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "warning", "info"]
+          },
+          "finding": { "type": "string" },
+          "recommendation": { "type": "string" },
+          "anti_pattern": { "type": "string" }
+        }
+      },
+      "description": "Review findings when auditing existing tests"
+    },
+    "self_check": {
+      "type": "object",
+      "properties": {
+        "passed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "total": {
+          "type": "integer",
+          "const": 10
+        },
+        "failures": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "description": "Results of the 10-item self-check"
+    },
+    "files_generated": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of files created or modified"
+    }
+  }
+}

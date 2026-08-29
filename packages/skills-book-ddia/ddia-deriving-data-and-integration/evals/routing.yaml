@@ -1,0 +1,31 @@
+skill: ddia-deriving-data-and-integration
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+# They cover the sub-decisions this skill owns: distributed-txn vs log-based integration, single
+# global order, unbundling vs one product, write/read precompute boundary, end-to-end exactly-once,
+# constraints without atomic commit, timeliness-vs-integrity coordination, and coordination-avoidance.
+positives:
+  - "CDC vs 2PC — как держать DB, search index и кэш согласованными между собой?"
+  - "distributed transaction vs an async event log to integrate stores owned by different teams?"
+  - "our DB, Elasticsearch index and warehouse drift apart — what's the right way to sync the derived data?"
+  - "user re-submits a timed-out POST and gets charged twice — how do I make this operation exactly-once end to end?"
+  - "уникальные usernames в масштабе без atomic commit — как обеспечить uniqueness через партиционированный лог?"
+  - "cross-partition money transfer (debit + credit) that stays exactly-once without XA — how?"
+  - "нужна ли синхронная проверка ограничения или можно проверять асинхронно и компенсировать?"
+  - "we want a coordination-avoiding, multi-DC design with async replication — which constraints truly need linearizability?"
+  - "unbundling the database into DB + index + cache vs just using one integrated product — worth it?"
+  - "where do I put the precompute boundary — materialized view on the write path or compute at read time?"
+# Hard negatives: prompts that belong to a SIBLING or an existing arsenal skill — this skill must NOT
+# win them. For each, name which skill SHOULD activate.
+negatives:
+  - prompt: "Kafka vs RabbitMQ — какую модель брокера и какой движок обработки взять для потока событий?"
+    should_activate: "ddia-batch-and-stream-processing"
+  - prompt: "which join algorithm and window type in Spark to enrich a stream with a dimension table?"
+    should_activate: "ddia-batch-and-stream-processing"
+  - prompt: "app-level check-then-insert is racing under read-committed — which isolation level actually enforces uniqueness inside one DB?"
+    should_activate: "ddia-transaction-isolation-choice"
+  - prompt: "is total order broadcast really equivalent to consensus, and how do the nodes agree on the order without split-brain?"
+    should_activate: "ddia-distributed-consistency-consensus"
+  - prompt: "backfill the new denormalized search_index table from the primary DB with a zero-downtime migration"
+    should_activate: "database-migration"
+  - prompt: "design an Idempotency-Key header contract for our REST payments endpoint so client retries don't double-charge"
+    should_activate: "api-design"

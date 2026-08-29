@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "c4-architecture config validator",
+  "description": "Validates configuration inputs for the c4-architecture skill",
+  "type": "object",
+  "properties": {
+    "system_name": {
+      "type": "string",
+      "description": "Name of the system to diagram"
+    },
+    "source_path": {
+      "type": "string",
+      "description": "Path to source code for automatic structure detection"
+    },
+    "levels": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["context", "container", "component", "code"]
+      },
+      "default": ["context", "container", "component"],
+      "description": "Which C4 levels to generate"
+    },
+    "format": {
+      "type": "string",
+      "enum": ["mermaid", "plantuml", "structurizr"],
+      "default": "mermaid",
+      "description": "Output diagram format"
+    },
+    "existing_diagrams": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Paths to existing diagrams to validate or update"
+    },
+    "validate_only": {
+      "type": "boolean",
+      "default": false,
+      "description": "Only validate consistency of existing diagrams, do not generate new ones"
+    },
+    "zoom_container": {
+      "type": "string",
+      "description": "Name of the container to zoom into for Level 3 component diagram"
+    }
+  },
+  "anyOf": [
+    { "required": ["system_name"] },
+    { "required": ["source_path"] },
+    { "required": ["existing_diagrams"] }
+  ]
+}

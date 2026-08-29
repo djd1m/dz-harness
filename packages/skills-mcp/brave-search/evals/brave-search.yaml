@@ -1,0 +1,138 @@
+name: brave-search
+description: Evaluation suite for the brave-search MCP wrapper skill
+version: "1.0.0"
+
+setup:
+  required_env:
+    - BRAVE_API_KEY
+  mcp_server: brave-search
+
+evals:
+  - id: web-search-basic
+    description: Basic web search returns results with titles and URLs
+    tool: brave_web_search
+    input:
+      query: "Model Context Protocol specification"
+      count: 5
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+      - type: array_length_gte
+        field: results
+        value: 1
+      - type: each_item_has_field
+        field: results
+        required_fields: ["title", "url"]
+
+  - id: web-search-freshness
+    description: Freshness filter returns recent results only
+    tool: brave_web_search
+    input:
+      query: "latest AI news"
+      count: 5
+      freshness: "pd"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+
+  - id: web-search-with-summary
+    description: AI summary is returned when summary=true
+    tool: brave_web_search
+    input:
+      query: "what is WebAssembly"
+      count: 3
+      summary: true
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: summary
+      - type: field_not_empty
+        field: summary
+
+  - id: web-search-country-filter
+    description: Country filter scopes results geographically
+    tool: brave_web_search
+    input:
+      query: "local tech meetups"
+      count: 5
+      country: "DE"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+
+  - id: local-search
+    description: Local search returns businesses with names
+    tool: brave_local_search
+    input:
+      query: "coffee shops near Times Square New York"
+      count: 5
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: local_results
+      - type: each_item_has_field
+        field: local_results
+        required_fields: ["name"]
+
+  - id: news-search
+    description: News search returns recent articles
+    tool: brave_news_search
+    input:
+      query: "artificial intelligence regulation"
+      count: 5
+      freshness: "pw"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+
+  - id: video-search
+    description: Video search returns video results
+    tool: brave_video_search
+    input:
+      query: "TypeScript tutorial 2026"
+      count: 5
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+
+  - id: image-search
+    description: Image search returns image results
+    tool: brave_image_search
+    input:
+      query: "system architecture diagram"
+      count: 5
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+
+  - id: empty-query-error
+    description: Empty query returns an error
+    tool: brave_web_search
+    input:
+      query: ""
+    assertions:
+      - type: returns_error
+        error_contains: "query"
+
+  - id: query-max-length
+    description: Query exceeding 400 chars is rejected
+    tool: brave_web_search
+    input:
+      query: "a]repeated 401 times"
+    assertions:
+      - type: returns_error
+        error_contains: "400"

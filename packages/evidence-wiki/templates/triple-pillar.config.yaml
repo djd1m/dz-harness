@@ -1,0 +1,57 @@
+# triple-pillar.config.yaml — конфигурация для evidence-wiki plugin
+#
+# Скопируйте в корень вашего проекта и адаптируйте под вашу структуру.
+# Используется skill concept-wiki-generator и командами /wiki-generate, /triple-check.
+
+triple_pillar:
+  # ─── Типы pillar (минимум 2, рекомендуется 3+) ──────────────────────
+  pillar_types:
+    - id: "adr"
+      label: "Architectural Decisions"
+      path_pattern: "adrs/*.md"
+      required_for_concepts: true
+      # Decision-pillar: ПОЧЕМУ выбран этот подход
+    - id: "methodology"
+      label: "Methodologies"
+      path_pattern: "methodologies/*.md"
+      required_for_concepts: true
+      # Quantitative-pillar: расчёты, формулы, sensitivity analysis
+    - id: "research"
+      label: "Researches"
+      path_pattern: "researches/*/"
+      required_for_concepts: true
+      # Qualitative-pillar: глубинные исследования с верифицированными источниками
+
+  # ─── Валидация ──────────────────────────────────────────────────────
+  min_pillars_per_concept: 3
+  external_url_acceptable_for: ["research"]   # для research допустим внешний URL вместо файла
+  marker_open: "<!-- wiki:see-also-start -->"
+  marker_close: "<!-- wiki:see-also-end -->"
+
+  # ─── Wiki layout ────────────────────────────────────────────────────
+  wiki_dir: "wiki"
+  concept_dir: "wiki/concepts"
+  index_file: "wiki/INDEX.md"
+  graph_file: "wiki/graph.json"
+
+  # ─── Promise tags (machine-readable phase gates) ────────────────────
+  promise_tags:
+    success: "TRIPLE_PILLAR_VERIFIED"
+    warn: "TRIPLE_PILLAR_WARN"
+    fail: "TRIPLE_PILLAR_INCOMPLETE"
+
+  # ─── Pre-commit hook ────────────────────────────────────────────────
+  triple_check:
+    mode: "advisory"            # advisory | strict
+    missing_threshold: 3        # для strict mode
+    ignore_globs:
+      - "**/wiki-backlinks.md"
+      - "wiki/concepts/**"
+      - ".claude/**"
+
+  # ─── Source tier policy ─────────────────────────────────────────────
+  source_tiers:
+    A: "peer-reviewed, official company reports, Gartner/McKinsey/Deloitte"
+    B: "industry analyst reports, reputable tech media, official docs"
+    C: "verified domain-expert blogs"
+    D: "forums, unverified — только для триангуляции, не как primary"

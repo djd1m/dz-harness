@@ -1,0 +1,188 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "terraform output",
+  "description": "Structured output from the terraform skill",
+  "type": "object",
+  "required": ["status", "summary", "runtime", "scope"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "needs_more_info"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line summary of what was designed, reviewed, or recommended"
+    },
+    "runtime": {
+      "type": "string",
+      "enum": ["terraform", "opentofu", "pulumi", "cloudformation"],
+      "description": "IaC runtime selected or detected"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "new_project",
+        "module_design",
+        "state_management",
+        "security_review",
+        "ci_cd_setup",
+        "import_migration",
+        "drift_detection",
+        "code_review",
+        "troubleshooting"
+      ],
+      "description": "Primary scope of the task"
+    },
+    "cloud_provider": {
+      "type": "string",
+      "enum": ["aws", "gcp", "azure", "multi-cloud", "other"],
+      "description": "Target cloud provider"
+    },
+    "environment": {
+      "type": "string",
+      "enum": ["dev", "staging", "prod", "all"],
+      "description": "Target environment"
+    },
+    "project_structure": {
+      "type": "object",
+      "properties": {
+        "environments": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of environment directories created or reviewed"
+        },
+        "modules": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of modules created or reviewed"
+        },
+        "backend_type": {
+          "type": "string",
+          "enum": ["s3", "gcs", "azurerm", "terraform_cloud", "local", "consul"],
+          "description": "Remote backend type configured"
+        }
+      }
+    },
+    "state_config": {
+      "type": "object",
+      "properties": {
+        "backend": {
+          "type": "string",
+          "description": "Backend type (s3, gcs, azurerm, etc.)"
+        },
+        "locking_enabled": {
+          "type": "boolean",
+          "description": "Whether state locking is configured"
+        },
+        "encryption_enabled": {
+          "type": "boolean",
+          "description": "Whether state encryption is enabled"
+        },
+        "state_separation": {
+          "type": "string",
+          "enum": ["per-environment", "per-layer", "per-environment-per-layer", "single"],
+          "description": "State file separation strategy"
+        }
+      }
+    },
+    "security_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "finding", "recommendation"],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "high", "medium", "low", "info"]
+          },
+          "finding": {
+            "type": "string",
+            "description": "What was found"
+          },
+          "recommendation": {
+            "type": "string",
+            "description": "How to fix it"
+          },
+          "resource": {
+            "type": "string",
+            "description": "Terraform resource address affected"
+          },
+          "rule_id": {
+            "type": "string",
+            "description": "tfsec/checkov rule ID (e.g., aws-ec2-no-public-ingress-sgr)"
+          }
+        }
+      }
+    },
+    "modules_reviewed": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Module name"
+          },
+          "path": {
+            "type": "string",
+            "description": "Module path"
+          },
+          "issues": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Issues found in the module"
+          },
+          "version_pinned": {
+            "type": "boolean",
+            "description": "Whether the module source is version-pinned"
+          }
+        }
+      }
+    },
+    "drift_detected": {
+      "type": "boolean",
+      "description": "Whether drift was detected between state and actual infrastructure"
+    },
+    "resources_affected": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Terraform resource addresses created, modified, or flagged"
+    },
+    "anti_patterns_found": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Anti-patterns identified in the reviewed code"
+    },
+    "self_check": {
+      "type": "object",
+      "properties": {
+        "passed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 14,
+          "description": "Number of self-check items passing"
+        },
+        "total": {
+          "type": "integer",
+          "const": 14,
+          "description": "Total self-check items"
+        },
+        "failures": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Self-check items that did not pass"
+        }
+      }
+    },
+    "files_created": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of files created or modified"
+    },
+    "next_steps": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Recommended next actions"
+    }
+  }
+}

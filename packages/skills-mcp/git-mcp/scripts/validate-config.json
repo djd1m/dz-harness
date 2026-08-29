@@ -1,0 +1,43 @@
+{
+  "name": "git-mcp",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "id": "git-check",
+      "type": "command",
+      "description": "Verify Git is installed and accessible",
+      "command": "git --version",
+      "timeout_ms": 5000,
+      "error_message": "Git is not installed or not in PATH. Install Git: https://git-scm.com/downloads"
+    },
+    {
+      "id": "mcp-server-check",
+      "type": "command",
+      "description": "Verify MCP server package is available",
+      "command": "npx --yes @cyanheads/git-mcp-server --version",
+      "timeout_ms": 30000,
+      "error_message": "Cannot locate @cyanheads/git-mcp-server. Run: npm install -g @cyanheads/git-mcp-server"
+    },
+    {
+      "id": "git-config-check",
+      "type": "command",
+      "description": "Verify Git user name and email are configured",
+      "command": "git config user.name && git config user.email",
+      "timeout_ms": 5000,
+      "error_message": "Git user.name and user.email must be configured. Run: git config --global user.name 'Your Name' && git config --global user.email 'you@example.com'"
+    },
+    {
+      "id": "output-schema",
+      "type": "json-schema",
+      "description": "Validate tool output against schema",
+      "schema_path": "../schemas/output.json"
+    }
+  ],
+  "mcp_config": {
+    "server_name": "git",
+    "command": "npx",
+    "args": ["@cyanheads/git-mcp-server"],
+    "transport": "stdio",
+    "env": {}
+  }
+}

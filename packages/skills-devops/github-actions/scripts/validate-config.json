@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "github-actions config validator",
+  "description": "Validates configuration inputs for the github-actions skill",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "new_workflow",
+        "workflow_review",
+        "matrix_builds",
+        "caching",
+        "secrets_config",
+        "artifacts",
+        "reusable_workflows",
+        "security_hardening",
+        "release_pipeline",
+        "scheduled_jobs",
+        "performance",
+        "troubleshooting"
+      ],
+      "description": "Primary task to perform"
+    },
+    "trigger": {
+      "type": "string",
+      "enum": [
+        "push",
+        "pull_request",
+        "schedule",
+        "workflow_dispatch",
+        "workflow_call",
+        "release",
+        "auto"
+      ],
+      "default": "auto",
+      "description": "Workflow trigger type; auto selects based on task"
+    },
+    "runner": {
+      "type": "string",
+      "enum": [
+        "ubuntu-latest",
+        "macos-latest",
+        "windows-latest",
+        "larger-runner",
+        "self-hosted",
+        "auto"
+      ],
+      "default": "auto",
+      "description": "Runner type; auto selects based on workload"
+    },
+    "language": {
+      "type": "string",
+      "enum": ["node", "python", "go", "rust", "java", "dotnet", "ruby", "multi"],
+      "default": "node",
+      "description": "Primary project language for cache and setup actions"
+    },
+    "package_manager": {
+      "type": "string",
+      "enum": ["npm", "pnpm", "yarn", "pip", "poetry", "go-mod", "cargo", "gradle", "maven"],
+      "description": "Package manager for caching strategy"
+    },
+    "node_version": {
+      "type": "string",
+      "pattern": "^[0-9]+$",
+      "default": "22",
+      "description": "Node.js version (major version number)"
+    },
+    "cloud_provider": {
+      "type": "string",
+      "enum": ["aws", "gcp", "azure", "none"],
+      "default": "none",
+      "description": "Cloud provider for OIDC authentication"
+    },
+    "environments": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "GitHub environments to configure (e.g., dev, staging, production)"
+    },
+    "matrix_dimensions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {}
+      },
+      "description": "Matrix dimensions as key-value pairs (e.g., {os: ['ubuntu-latest'], node: [18, 20, 22]})"
+    },
+    "existing_workflow_path": {
+      "type": "string",
+      "description": "Path to existing workflow file for review or modification"
+    },
+    "enable_dependabot": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to set up Dependabot for GitHub Actions updates"
+    },
+    "enable_oidc": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to configure OIDC for cloud authentication"
+    },
+    "pin_actions_to_sha": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to pin all actions to commit SHAs"
+    },
+    "reusable_workflow_type": {
+      "type": "string",
+      "enum": ["workflow_call", "composite_action", "none"],
+      "default": "none",
+      "description": "Type of reusable component to create"
+    },
+    "concurrency_cancel_in_progress": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to cancel in-progress runs when a new run starts"
+    },
+    "timeout_minutes": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 360,
+      "default": 15,
+      "description": "Default job timeout in minutes"
+    }
+  },
+  "anyOf": [
+    { "required": ["task"] },
+    { "required": ["existing_workflow_path"] }
+  ]
+}

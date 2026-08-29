@@ -1,0 +1,138 @@
+name: jina-reader
+description: Evaluation suite for the jina-reader MCP wrapper skill.
+version: "1.0.0"
+skill: jina-reader
+
+setup:
+  mcp_server: jina
+  transport: http
+  url: "https://mcp.jina.ai/mcp"
+  requires_auth: false
+  fallback:
+    transport: sse
+    url: "https://mcp.jina.ai/sse"
+
+evals:
+  - id: read-url-basic
+    description: Read a simple web page and convert to markdown
+    input:
+      tool: read_url
+      args:
+        url: "https://example.com"
+    expected:
+      status: success
+      data_type: ReadUrlResponse
+      constraints:
+        - "data.url == 'https://example.com'"
+        - "data.content is a non-empty string"
+        - "data.content contains markdown formatting or plain text"
+        - "data.title is present"
+    tags: [smoke, read]
+
+  - id: read-url-article
+    description: Read a real article page and extract clean content
+    input:
+      tool: read_url
+      args:
+        url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions"
+    expected:
+      status: success
+      data_type: ReadUrlResponse
+      constraints:
+        - "data.content is a non-empty string"
+        - "data.content length > 500 characters"
+        - "data.wordCount > 100"
+        - "data.content does not contain navigation/menu HTML"
+    tags: [functional, read]
+
+  - id: extract-data-structured
+    description: Extract structured data from a web page
+    input:
+      tool: extract_data
+      args:
+        url: "https://example.com"
+        prompt: "Extract the page title and main heading"
+    expected:
+      status: success
+      data_type: ExtractDataResponse
+      constraints:
+        - "data.url is present"
+        - "data.extracted is an object"
+    tags: [functional, read]
+
+  - id: search-web
+    description: Search the web and return results as markdown
+    input:
+      tool: search_web
+      args:
+        query: "Model Context Protocol specification"
+    expected:
+      status: success
+      data_type: SearchWebResponse
+      constraints:
+        - "data.query is present"
+        - "data.results is an array"
+        - "data.results.length > 0"
+        - "each result has title and url fields"
+    tags: [smoke, read]
+
+  - id: read-url-with-images
+    description: Read a page and verify image references are captured
+    input:
+      tool: read_url
+      args:
+        url: "https://developer.mozilla.org/en-US/docs/Web"
+    expected:
+      status: success
+      data_type: ReadUrlResponse
+      constraints:
+        - "data.content is a non-empty string"
+        - "data.links is an array (may be empty)"
+    tags: [functional, read]
+
+  - id: read-url-large-page
+    description: Read a large page and verify content is reasonably complete
+    input:
+      tool: read_url
+      args:
+        url: "https://en.wikipedia.org/wiki/JavaScript"
+    expected:
+      status: success
+      data_type: ReadUrlResponse
+      constraints:
+        - "data.content is a non-empty string"
+        - "data.wordCount > 500"
+    tags: [functional, read]
+
+  - id: error-invalid-url
+    description: Invalid URL returns an error
+    input:
+      tool: read_url
+      args:
+        url: "not-a-valid-url"
+    expected:
+      status: error
+      constraints:
+        - "error.code is present"
+        - "error.message is present"
+    tags: [negative, read]
+
+  - id: error-unreachable-url
+    description: Unreachable URL returns an error
+    input:
+      tool: read_url
+      args:
+        url: "https://this-domain-does-not-exist-xyz123.com"
+    expected:
+      status: error
+      constraints:
+        - "error.code is present"
+        - "error.message is present"
+    tags: [negative, read]
+
+scoring:
+  pass_threshold: 0.85
+  weights:
+    smoke: 2.0
+    functional: 1.5
+    negative: 1.0

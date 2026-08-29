@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "google-calendar skill output",
+  "description": "Validates output from Google Calendar MCP tool calls",
+  "type": "object",
+  "properties": {
+    "tool": {
+      "type": "string",
+      "enum": [
+        "list_events",
+        "create_event",
+        "update_event",
+        "delete_event",
+        "check_availability",
+        "list_calendars"
+      ],
+      "description": "The Google Calendar tool that was invoked"
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "summary": { "type": "string" },
+          "start": { "type": "string", "format": "date-time" },
+          "end": { "type": "string", "format": "date-time" },
+          "location": { "type": "string" },
+          "description": { "type": "string" },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "email": { "type": "string", "format": "email" },
+                "display_name": { "type": "string" },
+                "response_status": {
+                  "type": "string",
+                  "enum": ["accepted", "declined", "tentative", "needsAction"]
+                }
+              },
+              "required": ["email"]
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["confirmed", "tentative", "cancelled"]
+          },
+          "recurrence": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "html_link": { "type": "string", "format": "uri" }
+        },
+        "required": ["id", "summary"]
+      },
+      "description": "List of calendar events"
+    },
+    "created_event": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "summary": { "type": "string" },
+        "html_link": { "type": "string", "format": "uri" },
+        "start": { "type": "string", "format": "date-time" },
+        "end": { "type": "string", "format": "date-time" }
+      },
+      "description": "Details of newly created or updated event"
+    },
+    "availability": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "calendar_id": { "type": "string" },
+          "busy_periods": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "start": { "type": "string", "format": "date-time" },
+                "end": { "type": "string", "format": "date-time" }
+              },
+              "required": ["start", "end"]
+            }
+          }
+        },
+        "required": ["calendar_id"]
+      },
+      "description": "Free/busy information per calendar"
+    },
+    "calendars": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "summary": { "type": "string" },
+          "description": { "type": "string" },
+          "timezone": { "type": "string" },
+          "access_role": {
+            "type": "string",
+            "enum": ["owner", "writer", "reader", "freeBusyReader"]
+          },
+          "primary": { "type": "boolean" }
+        },
+        "required": ["id", "summary"]
+      },
+      "description": "List of accessible calendars"
+    },
+    "deleted": {
+      "type": "boolean",
+      "description": "True if event was successfully deleted"
+    }
+  },
+  "required": ["tool"]
+}

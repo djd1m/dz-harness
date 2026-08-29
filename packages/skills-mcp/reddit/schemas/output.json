@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "reddit skill output",
+  "description": "Validated output schema for the reddit MCP wrapper skill.",
+  "type": "object",
+  "required": ["tool", "status"],
+  "properties": {
+    "tool": {
+      "type": "string",
+      "enum": [
+        "search_posts",
+        "get_post",
+        "get_comments",
+        "list_subreddit",
+        "get_user_posts",
+        "search_subreddit"
+      ],
+      "description": "The MCP tool that was invoked."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["success", "error"],
+      "description": "Outcome of the tool invocation."
+    },
+    "data": {
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "PostsResponse",
+          "properties": {
+            "posts": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "title", "subreddit"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "title": { "type": "string" },
+                  "author": { "type": "string" },
+                  "subreddit": { "type": "string" },
+                  "selftext": { "type": "string" },
+                  "url": { "type": "string", "format": "uri" },
+                  "permalink": { "type": "string" },
+                  "score": { "type": "integer" },
+                  "upvote_ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+                  "num_comments": { "type": "integer" },
+                  "created_utc": { "type": "number" },
+                  "is_self": { "type": "boolean" },
+                  "link_flair_text": { "type": ["string", "null"] }
+                }
+              }
+            },
+            "count": { "type": "integer" },
+            "after": { "type": ["string", "null"] }
+          }
+        },
+        {
+          "type": "object",
+          "title": "SinglePostResponse",
+          "properties": {
+            "post": {
+              "type": "object",
+              "required": ["id", "title", "subreddit"],
+              "properties": {
+                "id": { "type": "string" },
+                "title": { "type": "string" },
+                "author": { "type": "string" },
+                "subreddit": { "type": "string" },
+                "selftext": { "type": "string" },
+                "url": { "type": "string", "format": "uri" },
+                "score": { "type": "integer" },
+                "num_comments": { "type": "integer" },
+                "created_utc": { "type": "number" }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "title": "CommentsResponse",
+          "properties": {
+            "comments": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "body"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "author": { "type": "string" },
+                  "body": { "type": "string" },
+                  "score": { "type": "integer" },
+                  "created_utc": { "type": "number" },
+                  "depth": { "type": "integer" },
+                  "replies": {
+                    "type": "array",
+                    "items": { "$ref": "#/properties/data/oneOf/2/properties/comments/items" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

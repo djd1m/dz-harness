@@ -1,0 +1,24 @@
+{
+  "targetId": "apob-documented-atherosclerosis-lt80mgdl",
+  "analyteId": "apolipoprotein-b",
+  "bounds": {
+    "hi": { "value": 80, "unit": "mg/dL" },
+    "hiInclusive": false
+  },
+  "applicability": {
+    "requires": [
+      { "field": "conditions", "op": "includes", "value": "documented_atherosclerosis" }
+    ]
+  },
+  "evidenceClass": "ASSERTED",
+  "framingNote": "Это не диагноз. Референсный интервал приходит из вашей лаборатории; порог — из указанного источника для указанной группы пациентов. Решение о том, применим ли порог к вам, принимает врач.",
+  "citation": {
+    "organization": "ИСТОЧНИК НЕ ОТКРЫТ ЭТИМ ИНСТРУМЕНТОМ — порог заявлен в исходном обращении (field brief)",
+    "documentTitle": "Конкретное руководство в обращении не названо и этим пайплайном не запрашивалось",
+    "year": "год не указан",
+    "section": "не указан",
+    "quote": "апоB 106 мг/дл при референсе 66-133 «в норме», но выше цели <80 при документированном атеросклерозе",
+    "populationScope": "взрослые с документированным атеросклерозом",
+    "evidenceClass": "ASSERTED"
+  }
+}

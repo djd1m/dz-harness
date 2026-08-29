@@ -1,0 +1,77 @@
+# defense-evaluator evaluation
+# Run: aqe eval defense-evaluator
+
+test_cases:
+  - name: "basic invocation"
+    input: "Оцени доклад студента из транскрипта"
+    expected:
+      status: success
+      summary_contains: "defense-evaluator"
+
+  - name: "strong presentation - all elements present"
+    input: "Транскрипт: студент представился, назвал тему, обосновал актуальность, чётко сформулировал цель и 4 задачи, описал методологию (анализ, эксперимент, моделирование), представил конкретные результаты с цифрами и графиками, подвёл итоги и указал практическую значимость. Длительность 18 минут."
+    expected:
+      status: success
+      structure:
+        introduction: true
+        relevance: true
+        goals_and_tasks: true
+        methodology: true
+        results: true
+        conclusion: true
+      delivery_quality:
+        logic: high
+        specificity: data_and_facts
+      overall_impression: strong
+
+  - name: "weak presentation - missing structure elements"
+    input: "Транскрипт: студент сразу перешёл к результатам, не назвал тему, не объяснил актуальность, не упомянул методологию. Говорил общими фразами без цифр. Доклад занял 8 минут."
+    expected:
+      status: success
+      structure:
+        introduction: false
+        relevance: false
+        methodology: false
+      delivery_quality:
+        specificity: general_phrases
+      overall_impression: weak
+
+  - name: "thesis alignment - contradictions detected"
+    input: "Сопоставь доклад с ВКР. В докладе студент заявил рост показателя на 45%, а в ВКР указано 23%. Также в работе 5 задач, а в докладе упомянуты только 3."
+    expected:
+      status: success
+      thesis_alignment:
+        contradictions_found: true
+      has_fields:
+        - thesis_alignment
+        - additional_questions
+
+  - name: "question generation from presentation"
+    input: "Проанализируй транскрипт доклада и сформулируй дополнительные вопросы. Студент упомянул нейросетевую модель, но не назвал архитектуру и не привёл метрики качества."
+    expected:
+      status: success
+      has_fields:
+        - additional_questions
+      min_additional_questions: 1
+
+  - name: "partial delivery quality"
+    input: "Транскрипт: студент представил все разделы, но часто переспрашивал, путал термины, несколько раз повторялся. Перескакивал между введением и результатами. Уложился в 20 минут."
+    expected:
+      status: success
+      delivery_quality:
+        logic: low
+        terminology: inconsistent
+        material_command: partial
+      overall_impression: average
+
+  - name: "full report generation"
+    input: "Сформируй полную справку по докладу студента из файла transcript.txt с сопоставлением с ВКР"
+    expected:
+      status: success
+      has_fields:
+        - structure
+        - delivery_quality
+        - thesis_alignment
+        - additional_questions
+        - overall_impression
+        - summary

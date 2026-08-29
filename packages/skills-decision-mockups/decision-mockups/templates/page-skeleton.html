@@ -1,0 +1,701 @@
+<!--
+  ШАБЛОН СТРАНИЦЫ РЕШЕНИЙ (decision-mockups)
+  ==========================================
+  Этот файл рендерится КАК ЕСТЬ: скопируйте его, замените всё, помеченное словом
+  ЗАМЕНИТЬ (в тексте и в комментариях-маркерах), и опубликуйте через Artifact.
+
+  Структура файла (в порядке следования):
+    1. style — токены темы (3 состояния) + типографика + весь CSS-кит
+    2. header.page      — эйбрау, h1, лид, подсказка про клики, мета, вердикт-полоса, TOC
+    3. section#summary  — «Сводка за 60 секунд»: callout + tally + blockers + strip
+    4. section#cluster1 — кластер находок: интро с метафорой + карточки находок
+    5. section#mocks    — макеты «как сейчас / после починки»
+    6. section#questions— карточки открытых вопросов с чипом «кто решает»
+    7. footer.page      — где лежат планы
+    8. .pickbar + script — механика выбора и экспорта (идентична templates/picker.js)
+
+  ЖЁСТКИЕ ПРАВИЛА (нарушение = страница не долетает до владельца):
+    • Простой русский для руководителя. Инженерный жаргон — только в скобках как справка.
+    • ОДНА бытовая аналогия на понятие, и она вводится ДО термина.
+    • Каждая находка отвечает ровно на три вопроса: что не так / чем грозит / как чиним.
+    • Вариант никогда не скрывает свою цену и переделку. Рекомендация помечена явно.
+    • Развилка, у которой живой только один вариант, — ФАЛЬШИВАЯ: её удаляют, а не показывают.
+    • НИ ОДИН цвет не объявляется только внутри @media или [data-theme]. Только токены.
+    • Никаких внешних ресурсов: ни CDN, ни шрифтов, ни картинок (CSP артефактов их режет).
+    • Широкое содержимое — в overflow-x:auto; body по горизонтали не скроллится никогда.
+-->
+<title>ЗАМЕНИТЬ · разбор решений</title>
+<style>
+/* ==========================================================================
+   1. ТОКЕНЫ ТЕМЫ — полный набор (сейчас 41), объявлен ТРИЖДЫ (светлая / системная
+   тёмная / принудительная тёмная). Важно не число, а два свойства, которые проверяет
+   скрипт: наборы ИМЁН совпадают во всех трёх блоках (G3d/G3e), а ЗНАЧЕНИЯ в тёмных
+   блоках отличаются от светлых (G3g/G3h). Ни один цвет ниже по файлу не пишется
+   литералом — ни в CSS, ни в style="…".
+   ========================================================================== */
+:root{
+  --bg:#F7F5F0;
+  --bg-tint:#F1EEE6;
+  --surface:#FFFDF9;
+  --surface-2:#F4F1EA;
+  --border:#E2DCCF;
+  --border-strong:#CFC7B5;
+  --ink:#22201C;
+  --ink-soft:#4A473F;
+  --ink-mute:#7A756A;
+  --accent:#0F6B62;
+  --accent-ink:#0B4F49;
+  --accent-soft:#E2EFEC;
+  --accent-line:#BFD9D4;
+  --hi:#9B2C21;
+  --hi-bg:#F6E5E1;
+  --hi-line:#E4C3BB;
+  --med:#8A5A08;
+  --med-bg:#F7EDD9;
+  --med-line:#E6D2AC;
+  --low:#5F5B52;
+  --low-bg:#EDEAE2;
+  --low-line:#DAD5C8;
+  --ok:#26635A;
+  --ok-bg:#E4EFEB;
+  --shadow:0 1px 2px rgba(34,32,28,.04);
+  --mock-frame:#DCD6C8;
+  --mock-chrome:#EAE6DB;
+  --mock-side:#1F2A28;
+  --mock-side-ink:#D8E2DF;
+  --mock-side-hi:#33443F;
+  --mock-side-mute:#8FA3A0;
+  --mock-canvas:#FFFFFF;
+  --mock-line:#E6E2D8;
+  --mock-ink:#26241F;
+  --mock-mute:#8B867B;
+  --mock-bad:#9B2C21;
+  --mock-bad-bg:#F6E5E1;
+  --mock-good:#0F6B62;
+  --mock-good-bg:#E2EFEC;
+  --mock-warn-bg:#F7EDD9;
+  --mock-warn-ink:#8A5A08;
+}
+/* системная тёмная — но НЕ когда читатель принудительно выбрал светлую */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16171A;
+    --bg-tint:#1B1D20;
+    --surface:#1E2023;
+    --surface-2:#25272B;
+    --border:#33363B;
+    --border-strong:#474B52;
+    --ink:#EDEAE3;
+    --ink-soft:#C3BFB6;
+    --ink-mute:#948F85;
+    --accent:#5FC4B6;
+    --accent-ink:#8ED8CD;
+    --accent-soft:#1D3230;
+    --accent-line:#2F4E4A;
+    --hi:#E8907F;
+    --hi-bg:#3A2320;
+    --hi-line:#5B3630;
+    --med:#DDAE5E;
+    --med-bg:#352B18;
+    --med-line:#544323;
+    --low:#A9A49A;
+    --low-bg:#2A2C30;
+    --low-line:#3D4046;
+    --ok:#6FCBBB;
+    --ok-bg:#1C302D;
+    --shadow:0 1px 2px rgba(0,0,0,.3);
+    --mock-frame:#3A3D42;
+    --mock-chrome:#2B2E33;
+    --mock-side:#14201E;
+    --mock-side-ink:#CBD9D6;
+    --mock-side-hi:#22403C;
+    --mock-side-mute:#7E918E;
+    --mock-canvas:#212327;
+    --mock-line:#35383E;
+    --mock-ink:#E7E4DD;
+    --mock-mute:#918C82;
+    --mock-bad:#E8907F;
+    --mock-bad-bg:#3A2320;
+    --mock-good:#5FC4B6;
+    --mock-good-bg:#1C302D;
+    --mock-warn-bg:#352B18;
+    --mock-warn-ink:#DDAE5E;
+  }
+}
+/* принудительная тёмная — переключатель должен побеждать в обе стороны */
+:root[data-theme="dark"]{
+  --bg:#16171A;
+  --bg-tint:#1B1D20;
+  --surface:#1E2023;
+  --surface-2:#25272B;
+  --border:#33363B;
+  --border-strong:#474B52;
+  --ink:#EDEAE3;
+  --ink-soft:#C3BFB6;
+  --ink-mute:#948F85;
+  --accent:#5FC4B6;
+  --accent-ink:#8ED8CD;
+  --accent-soft:#1D3230;
+  --accent-line:#2F4E4A;
+  --hi:#E8907F;
+  --hi-bg:#3A2320;
+  --hi-line:#5B3630;
+  --med:#DDAE5E;
+  --med-bg:#352B18;
+  --med-line:#544323;
+  --low:#A9A49A;
+  --low-bg:#2A2C30;
+  --low-line:#3D4046;
+  --ok:#6FCBBB;
+  --ok-bg:#1C302D;
+  --shadow:0 1px 2px rgba(0,0,0,.3);
+  --mock-frame:#3A3D42;
+  --mock-chrome:#2B2E33;
+  --mock-side:#14201E;
+  --mock-side-ink:#CBD9D6;
+  --mock-side-hi:#22403C;
+  --mock-side-mute:#7E918E;
+  --mock-canvas:#212327;
+  --mock-line:#35383E;
+  --mock-ink:#E7E4DD;
+  --mock-mute:#918C82;
+  --mock-bad:#E8907F;
+  --mock-bad-bg:#3A2320;
+  --mock-good:#5FC4B6;
+  --mock-good-bg:#1C302D;
+  --mock-warn-bg:#352B18;
+  --mock-warn-ink:#DDAE5E;
+}
+
+/* ==========================================================================
+   2. БАЗА: типографика. body ОБЯЗАН задать фон токеном — прозрачный body
+   подхватывает тему хоста и даёт классический баг «нечитаемый артефакт».
+   ========================================================================== */
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:16.5px;
+  line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;              /* страница не ездит вбок НИКОГДА */
+}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px 96px}
+h1,h2,h3,h4{font-family:Georgia,"Iowan Old Style","Times New Roman",serif;font-weight:600;line-height:1.22;color:var(--ink)}
+h1{font-size:2.5rem;margin:0 0 10px;letter-spacing:-.01em}
+h2{font-size:1.75rem;margin:0 0 6px}
+h3{font-size:1.16rem;margin:0}
+p{margin:0 0 14px}
+a{color:var(--accent-ink);text-decoration:none;border-bottom:1px solid var(--accent-line)}
+a:hover{border-bottom-color:var(--accent)}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86em;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;padding:.05em .32em;color:var(--ink-soft)}
+.eyebrow{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:0 0 8px}
+
+/* 3. ШАПКА: лид → подсказка про клики → мета → вердикт-полоса → оглавление */
+header.page{padding:56px 0 30px;border-bottom:1px solid var(--border)}
+.lede{font-size:1.06rem;color:var(--ink-soft);max-width:74ch;margin:0 0 22px}
+.meta{font-size:.85rem;color:var(--ink-mute);margin:0 0 26px}
+.verdicts{display:flex;flex-wrap:wrap;gap:10px}
+.vd{border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:12px 18px;min-width:150px}
+.vd .n{font-family:Georgia,serif;font-size:1.85rem;line-height:1;display:block;margin-bottom:4px}
+.vd .l{font-size:.78rem;color:var(--ink-mute);letter-spacing:.04em;text-transform:uppercase}
+.vd.ok .n{color:var(--accent)}
+.vd.part .n{color:var(--med)}
+.vd.zero .n{color:var(--ink-mute)}
+
+nav.toc{margin:28px 0 0;border:1px solid var(--border);background:var(--surface);border-radius:12px;padding:18px 22px}
+nav.toc h4{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-mute);margin:0 0 12px;font-family:inherit;font-weight:700}
+nav.toc ol{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:6px 24px;font-size:.93rem}
+nav.toc a{border-bottom:none;color:var(--ink-soft)}
+nav.toc a:hover{color:var(--accent-ink)}
+nav.toc .num{color:var(--accent);font-weight:700;margin-right:8px}
+
+section.blk{padding:52px 0 8px;border-top:1px solid var(--border);margin-top:44px}
+section.blk:first-of-type{border-top:none}
+.sec-intro{font-size:1rem;color:var(--ink-soft);max-width:78ch;margin:14px 0 26px}
+
+/* 4. КАРТОЧКА НАХОДКИ: id-чип + h3 + чипы важности/трудозатрат, затем .qa */
+.cards{display:grid;gap:16px}
+.card{border:1px solid var(--border);background:var(--surface);border-radius:12px;padding:20px 22px;box-shadow:var(--shadow)}
+.card-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin-bottom:12px}
+.fid{font-family:Georgia,serif;font-size:1.02rem;color:var(--accent);font-weight:700;flex:0 0 auto}
+.card-head h3{flex:1 1 260px;min-width:0}
+.chips{display:flex;gap:6px;flex-wrap:wrap;flex:0 0 auto}
+.chip{font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;font-weight:700;border-radius:999px;padding:3px 9px;border:1px solid var(--border-strong);color:var(--ink-mute);background:var(--surface-2);white-space:nowrap}
+.chip.hi{color:var(--hi);background:var(--hi-bg);border-color:var(--hi-line)}
+.chip.med{color:var(--med);background:var(--med-bg);border-color:var(--med-line)}
+.chip.low{color:var(--low);background:var(--low-bg);border-color:var(--low-line)}
+.chip.part{color:var(--med);background:var(--med-bg);border-color:var(--med-line)}
+.chip.eff{color:var(--ink-soft);background:var(--surface-2)}
+.chip.who{color:var(--accent-ink);background:var(--accent-soft);border-color:var(--accent-line)}
+/* .qa — три строки и ровно три: что не так / чем грозит / как чиним */
+.qa{display:grid;gap:9px}
+.qa .row{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:start}
+.qa .k{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--ink-mute);padding-top:4px}
+.qa .v{font-size:.97rem;color:var(--ink-soft);margin:0}
+.qa .row.fix .k{color:var(--accent)}
+.qa .row.fix .v{color:var(--ink)}
+.opts{display:grid;gap:8px;margin-top:8px}
+.opt{border-left:3px solid var(--border-strong);padding:6px 0 6px 12px;font-size:.94rem;color:var(--ink-soft)}
+.opt b{color:var(--ink);font-weight:600}
+.opt.rec{border-left-color:var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;padding-right:12px}
+.pnote{font-size:.88rem;color:var(--ink-mute);margin:10px 0 0;padding-top:10px;border-top:1px dashed var(--border)}
+@media (max-width:640px){.qa .row{grid-template-columns:1fr;gap:2px}.qa .k{padding-top:0}}
+
+/* 5. СВОДКА: один callout + tally-сетка + блокеры + горизонтальная лента шагов */
+.callout{border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:12px;padding:20px 24px;margin:0 0 22px}
+.callout p:last-child{margin-bottom:0}
+.blockers{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:20px 0 24px}
+.blocker{border:1px solid var(--border);background:var(--surface);border-radius:12px;padding:16px 18px}
+.blocker .t{font-weight:700;font-size:.95rem;margin:0 0 6px;color:var(--ink)}
+.blocker .d{font-size:.9rem;color:var(--ink-mute);margin:0}
+.strip{overflow-x:auto;padding-bottom:6px;margin:8px 0 6px}   /* лента скроллится сама */
+.strip ol{display:flex;gap:12px;list-style:none;margin:0;padding:0;min-width:max-content}
+.strip li{flex:0 0 210px;border:1px solid var(--border);background:var(--surface);border-radius:12px;padding:14px 16px}
+.strip .sn{font-family:Georgia,serif;font-size:.78rem;font-weight:700;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;display:block;margin-bottom:6px}
+.strip .st{font-weight:600;font-size:.95rem;display:block;margin-bottom:4px}
+.strip .sd{font-size:.85rem;color:var(--ink-mute)}
+.tally{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:6px 0 20px}
+.tally div{border:1px solid var(--border);background:var(--surface-2);border-radius:10px;padding:10px 14px;font-size:.9rem;color:var(--ink-soft)}
+.tally b{display:block;font-family:Georgia,serif;font-size:1.3rem;color:var(--ink)}
+
+/* 6. МАКЕТЫ: пара «как сейчас / после починки», чистый CSS-браузер без картинок */
+.mockblock{border:1px solid var(--border);background:var(--surface);border-radius:12px;padding:22px 24px;margin-bottom:22px;box-shadow:var(--shadow)}
+.mockblock h3{margin-bottom:6px}
+.mockblock .lead{font-size:.95rem;color:var(--ink-soft);margin:8px 0 18px;max-width:82ch}
+.mock-pair{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:900px){.mock-pair{grid-template-columns:1fr}}
+figure{margin:0;min-width:0}
+.mock-cap{font-size:.7rem;letter-spacing:.13em;text-transform:uppercase;font-weight:700;margin:0 0 8px;display:block}
+.mock-cap.bad{color:var(--hi)}
+.mock-cap.good{color:var(--accent)}
+.mock-note{font-size:.85rem;color:var(--ink-mute);margin:10px 0 0}
+.mock-scroll{overflow-x:auto}
+.browser{border:1px solid var(--mock-frame);border-radius:10px;overflow:hidden;background:var(--mock-canvas);min-width:288px}
+.bbar{background:var(--mock-chrome);border-bottom:1px solid var(--mock-frame);padding:7px 9px;display:flex;align-items:center;gap:5px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--mock-frame);flex:0 0 auto}
+.url{flex:1;margin-left:5px;background:var(--mock-canvas);border:1px solid var(--mock-frame);border-radius:5px;font-size:9.5px;color:var(--mock-mute);padding:2px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:ui-monospace,Menlo,monospace}
+.app{display:grid;grid-template-columns:108px 1fr;min-height:236px}
+.app.chat{grid-template-columns:108px 1fr 88px}
+.side{background:var(--mock-side);color:var(--mock-side-ink);padding:11px 9px}
+.side .brand{font-family:Georgia,serif;font-size:11.5px;margin:0 0 11px;color:var(--mock-side-ink)}
+.side ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.side li{color:var(--mock-side-mute);font-size:9.5px;padding:3px 6px;border-radius:5px;line-height:1.35}
+.side li.on{background:var(--mock-side-hi);color:var(--mock-side-ink)}
+.main{min-width:0;background:var(--mock-canvas)}
+.tabs{display:flex;gap:13px;border-bottom:1px solid var(--mock-line);padding:0 11px}
+.tabs span{font-size:9.5px;padding:8px 0;color:var(--mock-mute);border-bottom:2px solid transparent;white-space:nowrap}
+.tabs span.on{color:var(--mock-ink);border-bottom-color:var(--mock-good);font-weight:700}
+.canvas{padding:11px}
+.mhead{font-family:Georgia,serif;font-size:12px;color:var(--mock-ink);margin:0 0 8px;line-height:1.3}
+.msub{font-size:9px;color:var(--mock-mute);margin:-4px 0 8px}
+.mcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.mcards.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.mc{border:1px solid var(--mock-line);border-radius:7px;padding:7px 8px;min-width:0}
+.mc .v{font-family:Georgia,serif;font-size:17px;color:var(--mock-ink);line-height:1.05;display:block}
+.mc .l{font-size:8.5px;color:var(--mock-mute);margin-top:3px;display:block;line-height:1.3}
+.mc.hero .v{font-size:21px;color:var(--mock-good)}
+.pills{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.pill{font-size:8.5px;color:var(--mock-mute);border:1px solid var(--mock-line);border-radius:999px;padding:2px 7px;white-space:nowrap}
+.mrow{display:flex;justify-content:space-between;gap:8px;font-size:9.5px;color:var(--mock-ink);padding:5px 0;border-bottom:1px solid var(--mock-line)}
+.mrow em{font-style:normal;color:var(--mock-mute);flex:0 0 auto}
+.badge{display:inline-block;font-size:9px;border-radius:6px;padding:3px 8px;margin:0 0 8px;border:1px solid var(--mock-line);line-height:1.35}
+.badge.warn{background:var(--mock-warn-bg);color:var(--mock-warn-ink)}
+.badge.bad{background:var(--mock-bad-bg);color:var(--mock-bad)}
+.badge.good{background:var(--mock-good-bg);color:var(--mock-good)}
+.mempty{border:1px dashed var(--mock-line);border-radius:8px;padding:26px 10px;text-align:center;color:var(--mock-mute);font-size:9.5px;line-height:1.5}
+.mbtn{display:inline-block;font-size:9px;border:1px solid var(--mock-line);border-radius:6px;padding:4px 9px;color:var(--mock-ink);background:var(--mock-canvas)}
+.mbtn.primary{background:var(--mock-good-bg);color:var(--mock-good);border-color:var(--mock-good)}
+.clickmark{font-size:8.5px;color:var(--mock-bad);margin-left:7px}
+.chatside{border-left:1px solid var(--mock-line);padding:10px 8px;background:var(--mock-canvas);min-width:0}
+.chatside .ct{font-size:9px;color:var(--mock-ink);margin:0 0 7px;font-weight:700}
+.chatside .ci{font-size:8.5px;color:var(--mock-mute);border:1px solid var(--mock-line);border-radius:5px;padding:3px 5px;margin-bottom:4px;line-height:1.3}
+.msel{font-size:8.5px;border:1px solid var(--mock-line);border-radius:5px;padding:3px 7px;color:var(--mock-mute);display:inline-block}
+.mtop{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 11px;border-bottom:1px solid var(--mock-line)}
+.mtop .tt{font-family:Georgia,serif;font-size:11px;color:var(--mock-ink)}
+
+/* 7. ВОПРОСЫ И ПОДВАЛ */
+.qgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:16px}
+.qcard{border:1px solid var(--border);background:var(--surface);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow)}
+.qcard h4{font-family:Georgia,serif;font-size:1.04rem;margin:0 0 10px;line-height:1.3;color:var(--ink)}
+.qcard h4 .qn{color:var(--accent);margin-right:8px}
+.qcard p{font-size:.93rem;color:var(--ink-soft);margin:0 0 10px}
+.qcard .rec{font-size:.93rem;color:var(--ink);border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 8px 8px 0;padding:8px 12px;margin:0 0 12px}
+.qcard .rec b{font-weight:600}
+/* чипы «кто решает» — переименуйте под свой состав, но оставьте ровно три роли */
+.chip.owner{color:var(--accent-ink);background:var(--accent-soft);border-color:var(--accent-line)}
+.chip.arch{color:var(--med);background:var(--med-bg);border-color:var(--med-line)}
+.chip.doit{color:var(--ok);background:var(--ok-bg);border-color:var(--accent-line)}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}
+footer.page{margin-top:56px;border-top:1px solid var(--border);padding:30px 0 0;font-size:.92rem;color:var(--ink-mute)}
+footer.page b{color:var(--ink-soft)}
+
+/* 8. МЕХАНИКА ВЫБОРА: .opts.pickable — развилки внутри находок,
+   .picks/.pickopt — развилки в карточках вопросов, .pickbar — липкая полоса */
+.pickhint{font-size:.95rem;color:var(--accent-ink);background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:10px;padding:10px 16px;max-width:74ch;margin:0 0 22px}
+.opts.pickable .opt{cursor:pointer;border-radius:0 8px 8px 0;padding-right:12px}
+.opts.pickable .opt:hover{background:var(--surface-2)}
+.opts.pickable .opt.suggest{border-left-style:dashed;border-left-color:var(--accent-line)}   /* рекомендация до выбора */
+.opts.pickable .opt.picked{border-left-style:solid;border-left-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+.opts.pickable .opt.picked b{color:var(--accent-ink)}
+.picklabel{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--ink-mute);margin:0 0 7px}
+.picks{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+.pickopt{cursor:pointer;font-size:.87rem;line-height:1.35;border:1px solid var(--border-strong);background:var(--surface-2);color:var(--ink-soft);border-radius:8px;padding:6px 11px}
+.pickopt:hover{border-color:var(--accent-line);color:var(--ink)}
+.pickopt.picked{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+[role="button"]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pickbar{position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--surface);border-top:1px solid var(--border-strong)}
+.pickbar[hidden]{display:none}
+.pickbar-in{max-width:1120px;margin:0 auto;padding:11px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pb-count{font-size:.92rem;color:var(--ink-soft)}
+.pb-count b{color:var(--ink)}
+.pb-actions{display:flex;gap:8px}
+.pb-btn{font-family:inherit;font-size:.9rem;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:var(--surface);border-radius:8px;padding:7px 15px}
+.pb-btn:hover{opacity:.92}
+.pb-btn.ghost{background:transparent;color:var(--ink-soft);border-color:var(--border-strong)}
+@media (max-width:640px){.pickbar-in{padding:10px 16px}.pb-count{font-size:.85rem}}
+</style>
+
+<div class="wrap">
+
+<!-- ========== ШАПКА ==================================================== -->
+<header class="page">
+  <p class="eyebrow">ЗАМЕНИТЬ · для владельца продукта</p>
+  <h1>ЗАМЕНИТЬ — что разбираем и сколько тут пунктов</h1>
+  <!-- Лид: одно-два предложения простым языком. Термин, без которого не обойтись,
+       вводится ТУТ же скобкой-расшифровкой, а не оставляется голым. -->
+  <p class="lede">ЗАМЕНИТЬ. Коллеги посмотрели N порций готового кода («мерж-реквестов» — кусков работы, которые ждут вливания в основную ветку) и выписали M замечаний. Мы перепроверили каждое по коду. Ниже — что именно не так, чем это грозит на экране и в проде, и как мы это чиним.</p>
+  <p class="pickhint">Развилки на странице кликабельны — выберите варианты и нажмите «Скопировать ответы» внизу, чтобы отправить выбор обратно в чат.</p>
+  <p class="meta">ЗАМЕНИТЬ · дата · на какой момент собраны данные · «ничего пока не реализовано» либо честный статус</p>
+  <!-- Вердикт-полоса: 3–4 крупные цифры, которые отвечают на «ну и что в итоге» -->
+  <div class="verdicts">
+    <div class="vd ok"><span class="n">35</span><span class="l">подтверждено</span></div>
+    <div class="vd part"><span class="n">2</span><span class="l">частично</span></div>
+    <div class="vd zero"><span class="n">0</span><span class="l">устарело</span></div>
+    <div class="vd"><span class="n">2–3</span><span class="l">недели работы</span></div>
+  </div>
+  <nav class="toc">
+    <h4>Содержание</h4>
+    <ol>
+      <li><a href="#summary"><span class="num">1</span>Сводка за 60 секунд</a></li>
+      <li><a href="#cluster1"><span class="num">2</span>ЗАМЕНИТЬ — кластер 1, N находок</a></li>
+      <li><a href="#mocks"><span class="num">3</span>Как это выглядит на экране</a></li>
+      <li><a href="#questions"><span class="num">4</span>Открытые вопросы</a></li>
+    </ol>
+  </nav>
+</header>
+
+<!-- ========== СВОДКА ЗА 60 СЕКУНД ====================================== -->
+<section class="blk" id="summary">
+  <p class="eyebrow">Раздел 1</p>
+  <h2>Сводка за 60 секунд</h2>
+  <p class="sec-intro">Если читать только один абзац — читайте этот.</p>
+
+  <!-- ОДИН callout. Внутри — самый важный вывод целиком, без «во-первых/во-вторых». -->
+  <div class="callout">
+    <p><b>ЗАМЕНИТЬ — главный вывод одной жирной фразой.</b> Дальше 2–3 предложения, которые его обосновывают: сколько подтвердилось, что оказалось частичным и в чём именно ошибка формулировки, чего не нашлось совсем.</p>
+    <p>ЗАМЕНИТЬ — второй абзац про объём: во что это выливается по времени и какие три пункта тянут на самостоятельные задачи со своим архитектурным решением.</p>
+  </div>
+
+  <div class="tally">
+    <div><b>3</b>ЗАМЕНИТЬ — кластер 1</div>
+    <div><b>5</b>ЗАМЕНИТЬ — кластер 2</div>
+    <div><b>9</b>ЗАМЕНИТЬ — кластер 3</div>
+    <div><b>10</b>ЗАМЕНИТЬ — кластер 4</div>
+  </div>
+
+  <h3 style="margin:26px 0 4px">ЗАМЕНИТЬ — что блокирует прямо сегодня</h3>
+  <p class="sec-intro" style="margin:6px 0 12px">ЗАМЕНИТЬ — одно предложение с бытовой аналогией, объясняющей механику блокировки (например: очередь вагонов в составе — пока первый не тронется, не тронется никто).</p>
+  <div class="blockers">
+    <div class="blocker"><p class="t">1. ЗАМЕНИТЬ</p><p class="d">Что сломано и почему это чинится быстро.</p></div>
+    <div class="blocker"><p class="t">2. ЗАМЕНИТЬ</p><p class="d">Что сломано и почему это чинится быстро.</p></div>
+    <div class="blocker"><p class="t">3. ЗАМЕНИТЬ</p><p class="d">Что сломано и почему это чинится быстро.</p></div>
+  </div>
+
+  <h3 style="margin:26px 0 4px">Порядок работ</h3>
+  <p class="sec-intro" style="margin:6px 0 10px">ЗАМЕНИТЬ — где жёсткая последовательность, а где потоки идут параллельно.</p>
+  <!-- Лента скроллится вбок сама (.strip{overflow-x:auto}); страница — нет. -->
+  <div class="strip">
+    <ol>
+      <li><span class="sn">Шаг 1 · полдня</span><span class="st">ЗАМЕНИТЬ</span><span class="sd">Что делаем и что это открывает.</span></li>
+      <li><span class="sn">Шаг 2 · 1 день</span><span class="st">ЗАМЕНИТЬ</span><span class="sd">Что делаем и что это открывает.</span></li>
+      <li><span class="sn">Шаг 3 · 2–3 дня</span><span class="st">ЗАМЕНИТЬ</span><span class="sd">Что делаем и что это открывает.</span></li>
+      <li><span class="sn">Шаг 4 · ожидание</span><span class="st">ЗАМЕНИТЬ</span><span class="sd">Работа готова, но упирается во внешний ответ.</span></li>
+    </ol>
+  </div>
+  <p class="pnote">ЗАМЕНИТЬ — сноска про честные ограничения разбора: что осталось за скобками и куда ведёт ссылка на <a href="#questions">открытые вопросы</a>.</p>
+</section>
+
+<!-- ========== КЛАСТЕР НАХОДОК ========================================== -->
+<section class="blk" id="cluster1">
+  <p class="eyebrow">Кластер 1 · находки 1–3</p>
+  <h2>ЗАМЕНИТЬ — имя кластера обычными словами</h2>
+  <!-- Интро на 2–3 предложения УЧИТ метафоре ДО того, как появится термин.
+       Одна аналогия на понятие, не две. Примеры удачных: багаж на ленте досмотра
+       (конвейер сборки), книга-закладка-должок (курсор инкрементального чтения),
+       общежитие без договора (общий ресурс без контракта), бронь переговорки (аренда задачи). -->
+  <p class="sec-intro">ЗАМЕНИТЬ. Перед тем как код попадёт в общую ветку, его прогоняют через конвейер автоматических проверок — как багаж через ленту досмотра. Если лента остановилась на первом чемодане, стоят все следующие. Ровно это сейчас и происходит.</p>
+  <div class="cards">
+
+    <!-- ВАРИАНТ 1: простая находка — три строки и всё -->
+    <div class="card">
+      <div class="card-head"><span class="fid">#1</span><h3>ЗАМЕНИТЬ — заголовок человеческими словами, без имён классов и файлов</h3>
+        <div class="chips"><span class="chip hi">Высокая</span><span class="chip eff">XS</span></div></div>
+      <div class="qa">
+        <div class="row"><div class="k">Что не так</div><p class="v">ЗАМЕНИТЬ — факт. Внутренние идентификаторы допустимы только в скобках как справка (<code>module.name</code>).</p></div>
+        <div class="row"><div class="k">Чем грозит</div><p class="v">ЗАМЕНИТЬ — последствие, которое видно руководителю на экране или в проде, а не «нарушен принцип».</p></div>
+        <div class="row fix"><div class="k">Как чиним</div><p class="v">ЗАМЕНИТЬ — конкретное действие и почему оно дешёвое или дорогое.</p></div>
+      </div>
+    </div>
+
+    <!-- ВАРИАНТ 2: находка с РАЗВИЛКОЙ.
+         data-group — уникальный id, data-label — человеческая подпись для экспорта.
+         Каждый вариант: role="button" tabindex="0" data-val="<короткий текст ответа>".
+         .suggest = рекомендация до выбора (пунктир). Вариант НИКОГДА не прячет свою цену.
+         Если живой вариант остался один — развилка фальшивая, удалите .opts и напишите
+         обычную строку «Как чиним». -->
+    <div class="card">
+      <div class="card-head"><span class="fid">#2</span><h3>ЗАМЕНИТЬ — находка, у которой есть настоящая развилка</h3>
+        <div class="chips"><span class="chip med">Средняя</span><span class="chip eff">S</span></div></div>
+      <div class="qa">
+        <div class="row"><div class="k">Что не так</div><p class="v">ЗАМЕНИТЬ.</p></div>
+        <div class="row"><div class="k">Чем грозит</div><p class="v">ЗАМЕНИТЬ.</p></div>
+        <div class="row fix"><div class="k">Как чиним</div>
+          <div class="opts pickable" data-group="f2" data-label="Находка #2 — ЗАМЕНИТЬ подпись развилки">
+            <div class="opt suggest" role="button" tabindex="0" data-val="Вариант A — рекомендуем"><b>Вариант A — рекомендуем.</b> ЗАМЕНИТЬ — что делаем, сколько стоит и что придётся переделать.</div>
+            <div class="opt" role="button" tabindex="0" data-val="Вариант B"><b>Вариант B.</b> ЗАМЕНИТЬ — альтернатива и её честная цена: чем именно она хуже.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ВАРИАНТ 3: находка «частично» — прямо сказано, что в замечании было неточно -->
+    <div class="card">
+      <div class="card-head"><span class="fid">#3</span><h3>ЗАМЕНИТЬ — находка, подтверждённая частично</h3>
+        <div class="chips"><span class="chip part">Частично</span><span class="chip low">Низкая</span><span class="chip eff">XS</span></div></div>
+      <div class="qa">
+        <div class="row"><div class="k">Что не так</div><p class="v">ЗАМЕНИТЬ — сам дефект реален, вот он.</p></div>
+        <div class="row"><div class="k">Чем грозит</div><p class="v">ЗАМЕНИТЬ.</p></div>
+        <div class="row fix"><div class="k">Как чиним</div><p class="v">ЗАМЕНИТЬ.</p></div>
+      </div>
+      <p class="pnote">ЗАМЕНИТЬ — что именно в замечании было неточно: например, «дефект настоящий, но процитирован не тот файл — строка живёт в соседнем модуле». Никаких «в целом верно».</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ========== МАКЕТЫ ==================================================== -->
+<!-- Макет заслуживает места, только если находка: (1) видна глазами,
+     (2) меняет решение читателя, (3) иначе потребовала бы абзаца текста.
+     Полный каталог компонентов — в references/mockup-kit.md. -->
+<section class="blk" id="mocks">
+  <p class="eyebrow">Раздел 3</p>
+  <h2>Как это выглядит на экране</h2>
+  <p class="sec-intro">ЗАМЕНИТЬ — сколько находок видно глазами. Слева «как сейчас», справа «как станет после починки». Это схематичные макеты, а не скриншоты: важна разница, а не пиксели.</p>
+
+  <div class="mockblock" id="mock-1">
+    <h3>#N · ЗАМЕНИТЬ — что показываем</h3>
+    <p class="lead">ЗАМЕНИТЬ — одно-два предложения: что происходит и почему это видно именно на экране.</p>
+    <div class="mock-pair">
+
+      <figure>
+        <span class="mock-cap bad">Как сейчас</span>
+        <div class="mock-scroll"><div class="browser">
+          <div class="bbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">ЗАМЕНИТЬ.example.ru/раздел</span></div>
+          <div class="app">
+            <aside class="side"><p class="brand">ЗАМЕНИТЬ</p><ul><li>Сводка</li><li class="on">Аналитика</li><li>Команда</li><li>Настройки</li></ul></aside>
+            <div class="main">
+              <div class="tabs"><span class="on">ЗАМЕНИТЬ</span><span>Вторая вкладка</span></div>
+              <div class="canvas">
+                <p class="mhead">ЗАМЕНИТЬ — заголовок экрана</p>
+                <div class="mempty">Нет данных<br>ЗАМЕНИТЬ — что видит человек вместо результата</div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+        <p class="mock-note">ЗАМЕНИТЬ — куда смотреть и почему это плохо. Не описание картинки, а вывод.</p>
+      </figure>
+
+      <figure>
+        <span class="mock-cap good">После починки</span>
+        <div class="mock-scroll"><div class="browser">
+          <div class="bbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">ЗАМЕНИТЬ.example.ru/раздел</span></div>
+          <div class="app">
+            <aside class="side"><p class="brand">ЗАМЕНИТЬ</p><ul><li>Сводка</li><li class="on">Аналитика</li><li>Команда</li><li>Настройки</li></ul></aside>
+            <div class="main">
+              <div class="tabs"><span class="on">ЗАМЕНИТЬ</span><span>Вторая вкладка</span></div>
+              <div class="canvas">
+                <span class="badge warn">ЗАМЕНИТЬ — честная плашка: дата данных и причина</span>
+                <p class="mhead">ЗАМЕНИТЬ — заголовок экрана</p>
+                <div class="mcards">
+                  <div class="mc"><span class="v">12</span><span class="l">ЗАМЕНИТЬ подпись</span></div>
+                  <div class="mc"><span class="v">4</span><span class="l">ЗАМЕНИТЬ подпись</span></div>
+                  <div class="mc"><span class="v">1</span><span class="l">ЗАМЕНИТЬ подпись</span></div>
+                </div>
+                <div class="mrow"><span>ЗАМЕНИТЬ строку</span><em>статус</em></div>
+                <div class="mrow"><span>ЗАМЕНИТЬ строку</span><em>статус</em></div>
+              </div>
+            </div>
+          </div>
+        </div></div>
+        <p class="mock-note">ЗАМЕНИТЬ — что изменилось и какой ценой (например: «правка — четыре строки в общем каркасе»).</p>
+      </figure>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========== ОТКРЫТЫЕ ВОПРОСЫ ========================================= -->
+<section class="blk" id="questions">
+  <p class="eyebrow">Раздел 4</p>
+  <h2>ЗАМЕНИТЬ — N открытых вопросов</h2>
+  <p class="sec-intro">Это <b>не дефекты</b>, а развилки. ЗАМЕНИТЬ — сколько из них определяют содержание первой версии, а сколько решения не требуют вовсе.</p>
+  <div class="legend">
+    <span class="chip owner">решает: владелец</span>
+    <span class="chip arch">решает: архитектор</span>
+    <span class="chip doit">просто выполнить</span>
+  </div>
+  <div class="qgrid">
+
+    <div class="qcard">
+      <h4><span class="qn">1</span>ЗАМЕНИТЬ — вопрос одной строкой</h4>
+      <p>ЗАМЕНИТЬ — суть развилки простыми словами: что стоит сейчас, чем это плохо, почему решение продуктовое, а не техническое.</p>
+      <p class="rec"><b>Рекомендация:</b> ЗАМЕНИТЬ — и что придётся сделать, если решим иначе (не «можно и так», а конкретная цена другого выбора).</p>
+      <p class="picklabel">Ваш выбор</p>
+      <div class="picks" data-group="q1" data-label="Вопрос 1 — ЗАМЕНИТЬ подпись">
+        <span class="pickopt" role="button" tabindex="0" data-val="ЗАМЕНИТЬ — короткий текст ответа A">ЗАМЕНИТЬ — короткий текст ответа A</span>
+        <span class="pickopt" role="button" tabindex="0" data-val="ЗАМЕНИТЬ — короткий текст ответа Б">ЗАМЕНИТЬ — короткий текст ответа Б</span>
+      </div>
+      <div class="chips"><span class="chip owner">владелец</span></div>
+    </div>
+
+    <div class="qcard">
+      <h4><span class="qn">2</span>ЗАМЕНИТЬ — вопрос, где решать нечего</h4>
+      <p>ЗАМЕНИТЬ — если вариант живой ровно один, развилку НЕ рисуем: это фальшивый выбор. Оставляем рекомендацию и чип «просто выполнить».</p>
+      <p class="rec"><b>Рекомендация:</b> ЗАМЕНИТЬ — что именно взять и сделать.</p>
+      <div class="chips"><span class="chip doit">просто выполнить</span></div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="page">
+  <p><b>ЗАМЕНИТЬ — где лежат планы: <code>plan/&lt;тема&gt;/</code></b> — что там: мастер-план, кластерные планы, файлы верификации. Честный статус реализации: <b>ничего пока не реализовано / реализация — по команде</b>.</p>
+  <p>ЗАМЕНИТЬ — дата · N находок · X подтверждено, Y частично, Z устарело</p>
+</footer>
+</div>
+
+<!-- Липкая полоса. #pb-total заполняется скриптом из DOM — руками не считать. -->
+<div class="pickbar" id="pickbar" hidden>
+  <div class="pickbar-in">
+    <span class="pb-count">Выбрано <b id="pb-n">0</b> из <span id="pb-total">0</span></span>
+    <span class="pb-actions">
+      <button type="button" class="pb-btn ghost" id="pb-reset">Сбросить</button>
+      <button type="button" class="pb-btn" id="pb-copy">Скопировать ответы</button>
+    </span>
+  </div>
+</div>
+
+<!-- Скрипт ниже — сокращённая версия templates/picker.js: та же механика и тот же формат
+     экспорта, но настройка тремя константами (KEY, TOPIC, DATE) вместо конфига и
+     data-атрибутов. Байт-в-байт они НЕ совпадают; правя одно, проверьте второе.
+     Держать инлайном обязательно: CSP артефактов режет любой внешний хост. -->
+<script>
+(function () {
+  // ==== НАСТРОЙКА (три строки на всю механику) ============================
+  var KEY   = 'ЗАМЕНИТЬ-picks';   // ключ в localStorage, УНИКАЛЬНЫЙ на страницу
+  var TOPIC = 'ЗАМЕНИТЬ — тема';  // подставится в «Решения по <тема> (<дата>):»
+  var DATE  = 'ЗАМЕНИТЬ — дата';
+
+  var groups = [].slice.call(document.querySelectorAll('[data-group]'));
+  var bar = document.getElementById('pickbar');
+  var nEl = document.getElementById('pb-n');
+  var copyBtn = document.getElementById('pb-copy');
+  var resetBtn = document.getElementById('pb-reset');
+  // Всего развилок считаем ИЗ DOM. Захардкоженное число рано или поздно разойдётся с разметкой.
+  document.getElementById('pb-total').textContent = String(groups.length);
+
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { state = {}; }
+
+  function optionsOf(g) { return [].slice.call(g.querySelectorAll('[data-val]')); }
+
+  function render() {
+    var n = 0;
+    groups.forEach(function (g) {
+      var id = g.getAttribute('data-group');
+      var chosen = state[id];
+      if (chosen) n++;
+      optionsOf(g).forEach(function (o) {
+        var on = o.getAttribute('data-val') === chosen;
+        o.classList.toggle('picked', on);
+        o.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    });
+    nEl.textContent = String(n);
+    bar.hidden = n === 0;
+    // Отступ снизу — по фактической высоте полосы: на 360px она переносится
+    // в две строки, и фиксированные 64px её уже не покрывают.
+    document.body.style.paddingBottom = n === 0 ? '' : ((bar.offsetHeight || 52) + 12) + 'px';
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function pick(g, o) {
+    var id = g.getAttribute('data-group');
+    var val = o.getAttribute('data-val');
+    state[id] = state[id] === val ? null : val;   // повторный клик снимает выбор
+    if (!state[id]) delete state[id];
+    save(); render();
+  }
+  groups.forEach(function (g) {
+    optionsOf(g).forEach(function (o) {
+      o.addEventListener('click', function () { pick(g, o); });
+      o.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); pick(g, o); }
+      });
+    });
+  });
+
+  function exportText() {
+    // Первая строка обязана называть тему и дату — иначе вставленный в свежий
+    // чат список ни о чём не говорит.
+    var lines = ['Решения по ' + TOPIC + ' (' + DATE + '):', ''];
+    var missing = [];
+    groups.forEach(function (g) {
+      var id = g.getAttribute('data-group');
+      var label = g.getAttribute('data-label') || id;
+      if (state[id]) lines.push(label + ': ' + state[id]);
+      else missing.push(label.split(' — ')[0]);   // в «без ответа» — только короткий кусок подписи
+    });
+    if (missing.length) { lines.push(''); lines.push('Без ответа: ' + missing.join(', ')); }
+    return lines.join('\n');
+  }
+  // Исходная подпись снимается ОДИН раз: прочитанная в момент клика, она на втором
+  // копировании за две секунды запомнится как «Скопировано ✓» — и останется навсегда.
+  var IDLE_LABEL = copyBtn.textContent, flashTimer = null;
+  function flash(msg) {
+    if (flashTimer) { clearTimeout(flashTimer); }
+    copyBtn.textContent = msg;
+    flashTimer = setTimeout(function () { copyBtn.textContent = IDLE_LABEL; flashTimer = null; }, 2000);
+  }
+  copyBtn.addEventListener('click', function () {
+    var text = exportText();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { flash('Скопировано ✓'); }, fallback);
+    } else { fallback(); }
+    function fallback() {   // в iframe артефакта clipboard API может быть недоступен
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); flash('Скопировано ✓'); }
+      catch (e) { flash('Не вышло — скопируйте вручную'); }
+      document.body.removeChild(ta);
+    }
+  });
+  resetBtn.addEventListener('click', function () { state = {}; save(); render(); });
+
+  render();
+})();
+</script>
+

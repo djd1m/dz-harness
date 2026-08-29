@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "pr-review output",
+  "description": "Structured output from the pr-review skill",
+  "type": "object",
+  "required": ["status", "summary", "verdict", "findings", "stats"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "skipped"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "2-3 sentence summary of what the PR does"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["approve", "request_changes", "comment"],
+      "description": "Overall review verdict"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "file", "line", "message", "suggestion"],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["blocker", "important", "nit"]
+          },
+          "file": {
+            "type": "string",
+            "description": "File path relative to repo root"
+          },
+          "line": {
+            "type": "integer",
+            "description": "Line number in the file"
+          },
+          "message": {
+            "type": "string",
+            "description": "What is wrong and why it matters"
+          },
+          "suggestion": {
+            "type": "string",
+            "description": "Concrete fix suggestion"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["correctness", "error_handling", "edge_case", "naming", "tests", "security", "performance", "breaking_change"]
+          }
+        }
+      }
+    },
+    "stats": {
+      "type": "object",
+      "properties": {
+        "files_changed": { "type": "integer" },
+        "lines_added": { "type": "integer" },
+        "lines_removed": { "type": "integer" },
+        "blockers": { "type": "integer" },
+        "important": { "type": "integer" },
+        "nits": { "type": "integer" }
+      }
+    },
+    "split_recommendation": {
+      "type": "string",
+      "description": "Present when PR exceeds size thresholds; suggests how to split"
+    }
+  }
+}

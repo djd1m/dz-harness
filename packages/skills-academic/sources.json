@@ -1,0 +1,26 @@
+{
+  "upstream": "original",
+  "description": "Original skill pack for academic thesis defense (ГЭК) workflows — authored for dz-harness-hub.",
+  "skills": {
+    "dissertation-review": {
+      "upstream_type": "original",
+      "description": "Reviews a dissertation/thesis and produces a structured справка with a grade corridor and per-criterion scoring."
+    },
+    "question-generator": {
+      "upstream_type": "original",
+      "description": "Generates defense (ГЭК) questions targeted to a thesis' content and weak spots."
+    },
+    "document-checker": {
+      "upstream_type": "original",
+      "description": "Checks thesis documents for structural, formatting, and completeness requirements."
+    },
+    "defense-evaluator": {
+      "upstream_type": "original",
+      "description": "Evaluates a thesis defense performance against ГЭК criteria."
+    },
+    "answer-assessor": {
+      "upstream_type": "original",
+      "description": "Assesses a student's answers to defense questions and scores them."
+    }
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ci-fix output",
+  "description": "Structured output from the ci-fix skill",
+  "type": "object",
+  "required": ["status", "summary", "failure_type", "root_cause", "fix"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "needs_more_info"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line summary of the failure and fix"
+    },
+    "failure_type": {
+      "type": "string",
+      "enum": ["build", "test", "lint", "deploy", "infra"],
+      "description": "Classification of the CI failure"
+    },
+    "failure_line": {
+      "type": "string",
+      "description": "The actual error line extracted from the log"
+    },
+    "root_cause": {
+      "type": "object",
+      "required": ["description", "layer"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Explanation of why the failure occurred"
+        },
+        "layer": {
+          "type": "string",
+          "enum": ["code", "test", "config", "environment", "dependency", "infra"],
+          "description": "Which layer contains the bug"
+        },
+        "env_mismatch": {
+          "type": "string",
+          "description": "Present when the root cause is a CI-vs-local environment difference"
+        },
+        "is_flaky": {
+          "type": "boolean",
+          "description": "Whether this is an intermittent/flaky failure"
+        },
+        "pre_existing": {
+          "type": "boolean",
+          "description": "Whether this failure predates the current PR"
+        }
+      }
+    },
+    "fix": {
+      "type": "object",
+      "required": ["description", "files_changed"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "What was changed to fix the failure"
+        },
+        "files_changed": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of files modified for the fix"
+        },
+        "workflow_changed": {
+          "type": "boolean",
+          "description": "Whether CI workflow files were modified"
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "properties": {
+        "local_pass": {
+          "type": "boolean",
+          "description": "Whether the fix passes locally"
+        },
+        "ci_pass": {
+          "type": "boolean",
+          "description": "Whether the fix passes in CI"
+        },
+        "ci_run_url": {
+          "type": "string",
+          "description": "URL of the CI run that verified the fix"
+        }
+      }
+    }
+  }
+}

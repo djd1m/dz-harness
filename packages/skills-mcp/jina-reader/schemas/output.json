@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "jina-reader skill output",
+  "description": "Validated output schema for the jina-reader MCP wrapper skill.",
+  "type": "object",
+  "required": ["tool", "status"],
+  "properties": {
+    "tool": {
+      "type": "string",
+      "enum": [
+        "read_url",
+        "extract_data",
+        "search_web"
+      ],
+      "description": "The MCP tool that was invoked."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["success", "error"],
+      "description": "Outcome of the tool invocation."
+    },
+    "data": {
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "ReadUrlResponse",
+          "properties": {
+            "url": { "type": "string", "format": "uri" },
+            "title": { "type": "string" },
+            "content": {
+              "type": "string",
+              "description": "Clean markdown content extracted from the page."
+            },
+            "description": { "type": "string" },
+            "siteName": { "type": "string" },
+            "publishedDate": { "type": ["string", "null"] },
+            "wordCount": { "type": "integer" },
+            "links": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "text": { "type": "string" },
+                  "href": { "type": "string", "format": "uri" }
+                }
+              }
+            },
+            "images": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "alt": { "type": "string" },
+                  "src": { "type": "string", "format": "uri" }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "title": "ExtractDataResponse",
+          "properties": {
+            "url": { "type": "string", "format": "uri" },
+            "extracted": {
+              "type": "object",
+              "description": "Structured data extracted according to the provided schema or prompt.",
+              "additionalProperties": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "title": "SearchWebResponse",
+          "properties": {
+            "query": { "type": "string" },
+            "results": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["title", "url"],
+                "properties": {
+                  "title": { "type": "string" },
+                  "url": { "type": "string", "format": "uri" },
+                  "description": { "type": "string" },
+                  "content": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

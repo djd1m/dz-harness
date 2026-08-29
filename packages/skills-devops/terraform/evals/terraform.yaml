@@ -1,0 +1,140 @@
+# terraform evaluation
+# Run: aqe eval terraform
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run terraform"
+    expected:
+      status: success
+      summary_contains: "terraform"
+
+  - name: "new project scaffolding"
+    input: "Set up a new Terraform project for AWS with dev, staging, and prod environments using S3 backend."
+    expected:
+      status: success
+      scope: "new_project"
+      cloud_provider: "aws"
+      project_structure_has_environments: true
+      project_structure_backend_type: "s3"
+      state_config_locking_enabled: true
+      state_config_encryption_enabled: true
+
+  - name: "module design"
+    input: "Design a Terraform module for an AWS VPC with public and private subnets across 3 AZs."
+    expected:
+      status: success
+      scope: "module_design"
+      summary_contains_any:
+        - "VPC"
+        - "vpc"
+        - "module"
+
+  - name: "security review catches hardcoded secrets"
+    input: "Review this Terraform code: variable \"db_password\" { default = \"supersecret123\" }"
+    expected:
+      status: success
+      scope: "security_review"
+      security_findings_min_count: 1
+      anti_patterns_contains_any:
+        - "hardcoded"
+        - "secret"
+        - "credential"
+
+  - name: "state management recommendation"
+    input: "We have 5 developers and our Terraform state is a local file. What should we do?"
+    expected:
+      status: success
+      scope: "state_management"
+      summary_contains_any:
+        - "remote"
+        - "backend"
+        - "S3"
+        - "locking"
+
+  - name: "runtime comparison"
+    input: "Should we use Terraform or OpenTofu? We are an open-source-first company."
+    expected:
+      status: success
+      runtime: "opentofu"
+      summary_contains_any:
+        - "OpenTofu"
+        - "open source"
+        - "MPL"
+
+  - name: "ci/cd setup"
+    input: "Set up GitHub Actions CI/CD for Terraform with plan on PR and apply on merge."
+    expected:
+      status: success
+      scope: "ci_cd_setup"
+      files_created_min_count: 1
+
+  - name: "import existing resources"
+    input: "I have an existing AWS VPC (vpc-abc123) and 2 EC2 instances that I need to bring under Terraform management."
+    expected:
+      status: success
+      scope: "import_migration"
+      summary_contains_any:
+        - "import"
+        - "Import"
+
+  - name: "drift detection setup"
+    input: "Someone keeps making changes in the AWS console. Set up drift detection for our Terraform-managed infrastructure."
+    expected:
+      status: success
+      scope: "drift_detection"
+      drift_detected: true
+      summary_contains_any:
+        - "drift"
+        - "schedule"
+        - "reconcil"
+
+  - name: "for_each vs count guidance"
+    input: "I'm using count to create subnets from a list and when I remove one from the middle, Terraform wants to destroy and recreate the others."
+    expected:
+      status: success
+      anti_patterns_contains_any:
+        - "count"
+        - "for_each"
+      summary_contains_any:
+        - "for_each"
+
+  - name: "no provider version pinning"
+    input: |
+      Review this: terraform { required_providers { aws = { source = "hashicorp/aws" } } }
+    expected:
+      status: success
+      scope: "code_review"
+      anti_patterns_contains_any:
+        - "version"
+        - "pin"
+        - "constraint"
+
+  - name: "multi-region setup"
+    input: "I need to deploy resources in us-east-1 and eu-west-1 from the same Terraform config."
+    expected:
+      status: success
+      summary_contains_any:
+        - "alias"
+        - "provider"
+        - "multi-region"
+
+  - name: "monolithic config refactoring"
+    input: "Our main.tf is 2500 lines long with VPC, EC2, RDS, S3, IAM, and CloudFront all in one file."
+    expected:
+      status: success
+      scope: "code_review"
+      anti_patterns_contains_any:
+        - "monolith"
+        - "split"
+        - "module"
+      modules_reviewed_min_count: 1
+
+  - name: "sensitive variable handling"
+    input: "How should I pass database passwords to Terraform without putting them in tfvars files?"
+    expected:
+      status: success
+      summary_contains_any:
+        - "sensitive"
+        - "Vault"
+        - "Secrets Manager"
+        - "environment"

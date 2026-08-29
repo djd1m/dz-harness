@@ -1,0 +1,55 @@
+{
+  "name": "siwa-config-validator",
+  "description": "Validates SIWA (Sign-In With Agent) ERC-8004 authentication configuration",
+  "rules": [
+    {
+      "field": "bankrApiKey",
+      "required": true,
+      "type": "string",
+      "minLength": 10,
+      "envFallback": "BANKR_API_KEY",
+      "description": "Bankr API key for agent-side signing"
+    },
+    {
+      "field": "domain",
+      "required": true,
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9.-]+$",
+      "description": "Service domain for SIWA messages"
+    },
+    {
+      "field": "chainId",
+      "required": false,
+      "type": "integer",
+      "default": 8453,
+      "description": "Chain ID for the signing context"
+    },
+    {
+      "field": "expirationMinutes",
+      "required": false,
+      "type": "integer",
+      "default": 10,
+      "minimum": 1,
+      "maximum": 1440,
+      "description": "Message expiration time in minutes"
+    },
+    {
+      "field": "capabilities",
+      "required": false,
+      "type": "array",
+      "items": { "type": "string", "pattern": "^urn:capability:" },
+      "default": ["urn:capability:read"],
+      "description": "Default capability URNs to request"
+    },
+    {
+      "field": "nonceStore",
+      "required": false,
+      "type": "string",
+      "enum": ["memory", "redis"],
+      "default": "memory",
+      "description": "Nonce store backend"
+    }
+  ],
+  "sdkPackage": "@buildersgarden/siwa",
+  "standards": ["ERC-8004", "ERC-8128"]
+}

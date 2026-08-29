@@ -1,0 +1,31 @@
+skill: ddia-transaction-isolation-choice
+
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+# Each is about the isolation-level / concurrency-safety decision this skill owns (single up-to-date copy).
+positives:
+  - "read committed, snapshot или serializable — что выбрать для этого сервиса?"
+  - "нужны ли нам вообще multi-object транзакции здесь, или хватит атомарного инкремента?"
+  - "our counter under-counts under concurrent increments — how do I stop this lost update?"
+  - "does MySQL InnoDB repeatable read actually protect against write skew?"
+  - "два дежурных одновременно снимаются со смены и оба проходят проверку 'хотя бы один на месте' — как предотвратить?"
+  - "should we bump the default isolation level to serializable or is snapshot isolation enough?"
+  - "SELECT FOR UPDATE или атомарная операция — какой механизм безопаснее для read-modify-write пути?"
+  - "we keep hitting phantom rows that break a uniqueness invariant — what isolation level stops that?"
+  - "Postgres SSI или actual serial execution в VoltDB — что брать под нашу нагрузку?"
+  - "how should I write safe retry / idempotency logic for transactions that got aborted?"
+
+# Hard negatives: prompts a naive keyword match would wrongly route here, but that belong to a
+# SIBLING DDIA skill or a non-DDIA arsenal skill. This skill must NOT win them.
+negatives:
+  - prompt: "нужен ли нам консенсус и exactly-once коммит через два узла, или хватит 2PC?"
+    should_activate: "ddia-distributed-consistency-consensus"
+  - prompt: "single vs multi-leader vs leaderless — как реплицировать эти данные между регионами?"
+    should_activate: "ddia-replication-topology-choice"
+  - prompt: "мы на multi-leader, конкурентные апдейты конфликтуют — CRDT или Last-Write-Wins для разрешения?"
+    should_activate: "ddia-replication-topology-choice"
+  - prompt: "how do we shard this table so cross-partition transactions stay rare — hash or range partitioning?"
+    should_activate: "ddia-partitioning-strategy"
+  - prompt: "plan a zero-downtime migration that adds a foreign key to the users table"
+    should_activate: "database-migration"
+  - prompt: "our Postgres shows lock-contention spikes in prod — set up dashboards and alerting for it"
+    should_activate: "observability"

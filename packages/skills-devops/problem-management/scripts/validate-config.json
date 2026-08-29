@@ -1,0 +1,78 @@
+{
+  "schema": "../schemas/output.json",
+  "description": "Validation rules for an ITIL Problem Management record. Adapted from @windyroad/itil (MIT).",
+  "rules": [
+    {
+      "id": "PM-001",
+      "description": "Problem must have a stable id.",
+      "path": "id",
+      "condition": "exists",
+      "severity": "error"
+    },
+    {
+      "id": "PM-002",
+      "description": "Status must be one of the lifecycle states.",
+      "path": "status",
+      "condition": "in",
+      "value": ["open", "under-investigation", "known-error", "verifying", "closed", "parked"],
+      "severity": "error"
+    },
+    {
+      "id": "PM-003",
+      "description": "Every problem must link >= 1 triggering incident, OR be explicitly marked proactive:true.",
+      "path": "linked_incidents",
+      "condition": "non_empty_unless_proactive",
+      "severity": "error"
+    },
+    {
+      "id": "PM-004",
+      "description": "A known-error requires a confirmed, evidence-backed root cause.",
+      "path": "root_cause.confirmed",
+      "condition": "required_true_when_status_is_known_error",
+      "severity": "error"
+    },
+    {
+      "id": "PM-005",
+      "description": "A known-error requires a documented workaround.",
+      "path": "workaround",
+      "condition": "required_non_empty_when_status_is_known_error",
+      "severity": "error"
+    },
+    {
+      "id": "PM-006",
+      "description": "A closed problem requires a verified fix (resolution.verified == true) or documented no-longer-relevant evidence. Premature close is rejected.",
+      "path": "resolution.verified",
+      "condition": "required_true_when_status_is_closed",
+      "severity": "error"
+    },
+    {
+      "id": "PM-007",
+      "description": "WSJF score must equal cost_of_delay / job_size.",
+      "path": "wsjf.score",
+      "condition": "equals_cost_of_delay_over_job_size",
+      "severity": "error"
+    },
+    {
+      "id": "PM-008",
+      "description": "WSJF job_size must be greater than zero (division guard).",
+      "path": "wsjf.job_size",
+      "condition": ">",
+      "value": 0,
+      "severity": "error"
+    },
+    {
+      "id": "PM-009",
+      "description": "Parked problems must document a parked_reason and are excluded from backlog ranking.",
+      "path": "parked_reason",
+      "condition": "required_non_empty_when_status_is_parked",
+      "severity": "error"
+    },
+    {
+      "id": "PM-010",
+      "description": "Root cause should cite evidence rather than a bare hypothesis.",
+      "path": "root_cause.evidence",
+      "condition": "non_empty_when_root_cause_present",
+      "severity": "warning"
+    }
+  ]
+}

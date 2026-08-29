@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "git-mcp skill output",
+  "description": "Validates output from Git MCP tool calls",
+  "type": "object",
+  "properties": {
+    "tool": {
+      "type": "string",
+      "enum": [
+        "git_status",
+        "git_diff",
+        "git_log",
+        "git_commit",
+        "git_branch",
+        "git_merge",
+        "git_rebase",
+        "git_stash",
+        "git_cherry_pick",
+        "git_clone",
+        "git_fetch",
+        "git_pull",
+        "git_push",
+        "git_reset",
+        "git_tag",
+        "git_worktree",
+        "git_remote"
+      ],
+      "description": "The Git MCP tool that was invoked"
+    },
+    "status": {
+      "type": "object",
+      "properties": {
+        "branch": { "type": "string" },
+        "staged": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "unstaged": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "untracked": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "clean": { "type": "boolean" }
+      },
+      "description": "Working tree status from git_status"
+    },
+    "diff": {
+      "type": "string",
+      "description": "Diff output text"
+    },
+    "commits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "sha": { "type": "string" },
+          "message": { "type": "string" },
+          "author": { "type": "string" },
+          "date": { "type": "string" }
+        },
+        "required": ["sha", "message"]
+      },
+      "description": "Commit log entries"
+    },
+    "commit": {
+      "type": "object",
+      "properties": {
+        "sha": { "type": "string" },
+        "message": { "type": "string" }
+      },
+      "description": "Created commit from git_commit"
+    },
+    "branches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "current": { "type": "boolean" },
+          "remote": { "type": "string" }
+        },
+        "required": ["name"]
+      },
+      "description": "Branch listing"
+    },
+    "merge_result": {
+      "type": "object",
+      "properties": {
+        "success": { "type": "boolean" },
+        "conflicts": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "message": { "type": "string" }
+      },
+      "description": "Merge or rebase result"
+    },
+    "stashes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "index": { "type": "integer" },
+          "message": { "type": "string" },
+          "branch": { "type": "string" }
+        },
+        "required": ["index", "message"]
+      },
+      "description": "Stash list entries"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "message": { "type": "string" },
+          "commit": { "type": "string" }
+        },
+        "required": ["name"]
+      },
+      "description": "Tag listing"
+    },
+    "worktrees": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" },
+          "branch": { "type": "string" },
+          "head": { "type": "string" }
+        },
+        "required": ["path"]
+      },
+      "description": "Worktree listing"
+    },
+    "remotes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "url": { "type": "string" }
+        },
+        "required": ["name"]
+      },
+      "description": "Remote listing"
+    },
+    "success": {
+      "type": "boolean",
+      "description": "Whether the operation completed successfully"
+    }
+  },
+  "required": ["tool"]
+}

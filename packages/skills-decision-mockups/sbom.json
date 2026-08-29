@@ -1,0 +1,147 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "skills-decision-mockups"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d85f0bbe09f5177a7f950b7ed19a6b42ddd133379339286f86babc3382999f8f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "decision-mockups/BTO_REPORT.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c76fc3dace75c51b5738214923b2a1120f8c887bef6f97922749ef25bc1fbd1f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "decision-mockups/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4a0b385ff22f19102ce41b11014bdd84fea5998dd427acaa79148c6f9838b8b4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "decision-mockups/evals/eval-cases.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8064ee6e779eb2abf974c137719884dd88a17041a7fb81895ca3d5e1d18d70c5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "decision-mockups/examples/README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "365ddcc6dfeb66c0871af9ce4439a895b83bcb736b03a0580a6df03018fdf60d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "decision-mockups/references/check_page.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0135dd125ab0bd69a09dfa52dcc902e7bcc24a98a38bcca35b4c21175a04ab65"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "decision-mockups/references/language-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "15f00a39b4e9d2baadc7b7df528a146d9427ec3a4537d4be008efa52e0242d61"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "decision-mockups/references/mockup-kit.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "09818ed53eb6364b09131dae6b4edf03d87d630c2d677740a3a3bebdaeabcc59"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "decision-mockups/references/quality-checklist.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "731ab0fd02e5c72a063a04b25bef456e24dd0d42ef8a71bb76ff22b344d4fa1a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "decision-mockups/templates/page-skeleton.html",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "63657f7f5a4acf869548926a596d8cac8ee19adaf199a0d9390916ef02861a6f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "decision-mockups/templates/picker.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e6ba953ef11ce78161fa75cafba121a1bced4dfc607d93479d38676b89c7f8ea"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "fec9b490c5fc1ad03fa02acac66d700cec030007f9c2076369031c81856b67af"
+        }
+      ]
+    }
+  ]
+}

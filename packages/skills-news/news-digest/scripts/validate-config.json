@@ -1,0 +1,24 @@
+{
+  "description": "Validation rules for a news-digest profile and run config. A profile under references/profiles/ should declare these fields; the engine validates against them before Phase 1.",
+  "profile": {
+    "required": ["streams", "must_cover", "meta_sources"],
+    "optional": ["watchlist", "source_tiers", "comparison_table", "sections"],
+    "fields": {
+      "streams": { "type": "array", "minItems": 1, "note": "each has name + weight (weights ~sum to 100)" },
+      "must_cover": { "type": "object", "note": "tiered entity lists (tier1 always-check, tier2 standard+, tier3 if surfaced)" },
+      "meta_sources": { "type": "array", "minItems": 1, "note": "changelog/release/aggregator sources WebFetched in the changelog sweep" },
+      "watchlist": { "type": "array", "note": "named products/projects/people tracked each run" },
+      "source_tiers": { "type": "object", "note": "optional concrete Tier-1..4 domains for the topic" }
+    }
+  },
+  "run": {
+    "required": ["topic"],
+    "optional": ["profile", "period_start", "period_end", "mode", "audience", "formats"],
+    "rules": [
+      "period_end must not be in the future (cap to today)",
+      "mode auto-derives from period length unless set explicitly: <=2wk QUICK, 1-3mo STANDARD, >3mo QUARTERLY",
+      "formats must be a subset of ['md','docx']; 'md' is always produced",
+      "company/competitive context must come from a LOCAL (unpublished) profile, never a shipped one"
+    ]
+  }
+}

@@ -1,0 +1,25 @@
+skill: 12factor-admin-processes
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+positives:
+  - "как правильно накатить миграцию схемы на прод — со своего ноутбука или иначе?"
+  - "How should I run a one-off database migration so it matches the deployed release?"
+  - "хочу открыть REPL и поправить данные в живой базе, чтобы не было рассинхрона с приложением"
+  - "куда положить разовый скрипт fix_bad_records и как его безопасно запустить?"
+  - "Should I run this cleanup script from my laptop or from the release itself?"
+  - "our web process starts with bundle exec thin start — how do I run rake db:migrate the same way?"
+  - "Python app on Virtualenv — как гонять manage.py migrate в том же окружении, что и веб-сервер?"
+  - "what's the right way to run an ad hoc admin/management task against a running app?"
+# Hard negatives: prompts owned by a SIBLING or existing arsenal skill — this skill must NOT win them.
+negatives:
+  - prompt: "How should my long-running web and worker processes be structured so they stay stateless?"
+    should_activate: "12factor-stateless-processes"
+  - prompt: "Как разделить стадии сборки, релиза и запуска, чтобы билд стал неизменяемым?"
+    should_activate: "12factor-build-release-run-separation"
+  - prompt: "Where should the database URL and API keys live — in code or in env vars?"
+    should_activate: "12factor-config-in-environment"
+  - prompt: "Как приложению подключаться к Postgres и обращаться с ним как со сменяемым ресурсом?"
+    should_activate: "12factor-backing-services-as-resources"
+  - prompt: "How do I vendor and isolate my app's dependencies with a bundler/manifest?"
+    should_activate: "12factor-explicit-dependencies"
+  - prompt: "Plan a zero-downtime schema change with backward-compatible steps and a rollback."
+    should_activate: "database-migration"

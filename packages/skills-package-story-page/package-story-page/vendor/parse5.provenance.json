@@ -1,0 +1,43 @@
+{
+  "schema": "package-story-page-parse5-vendor/1",
+  "builder": {
+    "platform": "linux",
+    "arch": "x64",
+    "node": "22.22.0",
+    "npm": "10.9.4",
+    "esbuild": "0.27.7"
+  },
+  "dependencies": {
+    "parse5": {
+      "version": "7.3.0",
+      "integrity": "sha512-IInvU7fabl34qmi9gY8XOVxhYyMyuH2xUNpb2q8/Y+7552KlejkRvqvD19nMoUW/uQGGbqNpA6Tufu5FL5BZgw=="
+    },
+    "entities": {
+      "version": "6.0.1",
+      "integrity": "sha512-aN97NXWF6AWBTahfVOIrB/NShkzi5H7F9r1s9mD3cDj4Ko5f2qhhVoYMibXF7GlLveb/D2ioWay8lxI97Ven3g=="
+    },
+    "esbuild": {
+      "version": "0.27.7",
+      "integrity": "sha512-IxpibTjyVnmrIQo5aqNpCgoACA/dTKLTlhMHihVHhdkxKyPO1uBBthumT0rdHmcsk9uMonIWS0m4FljWzILh3w=="
+    }
+  },
+  "bundle": {
+    "format": "esm",
+    "platform": "neutral",
+    "target": "es2022",
+    "charset": "utf8",
+    "legalComments": "none",
+    "sourcemap": false
+  },
+  "inputHashes": {
+    "package.json": "098aa9d2a32cfa19c43e1162ebd5ffb35c0c42cf6a7f6b06942e4c53ea7a475a",
+    "package-lock.json": "5bc48c0d91e014d1b6c4768ac93c13702a3f39599211fb5b2be9ab10f0af37db",
+    "entry.mjs": "13c2efcca702aedcd33e62533889de81a621fa585ffa4714bf423c1161c8793d",
+    "build.mjs": "40847efcd4092301fbd8435b62f0c06b41b8a06b6e7c58eabd8f36d2ccaa4d8b"
+  },
+  "outputHashes": {
+    "parse5.bundle.mjs": "67ad160b1d7dc6a36314459390148ad4699732f4c503e90790e6fced5c11c528",
+    "parse5.LICENSE.txt": "8c535800331e1e4439835555b3f9edc7fe9dee2fab0d8bbbd5a982e8b8343d4d",
+    "entities.LICENSE.txt": "cb992345949ccd6e8394b2cd6c465f7b897c864f845937dbf64e8997f389e164"
+  }
+}

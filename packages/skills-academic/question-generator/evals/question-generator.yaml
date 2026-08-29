@@ -1,0 +1,69 @@
+# question-generator evaluation
+# Run: aqe eval question-generator
+
+test_cases:
+  - name: "basic invocation"
+    input: "Сгенерируй вопросы к защите"
+    expected:
+      status: success
+      summary_contains: "question-generator"
+
+  - name: "questions from topic"
+    input: "Сгенерируй вопросы к защите ВКР на тему 'Влияние цифровой трансформации на управление знаниями'"
+    expected:
+      status: success
+      has_fields:
+        - topic
+        - questions
+        - stats
+
+  - name: "all categories present"
+    input: "Сгенерируй вопросы всех категорий по ВКР о машинном обучении в медицине"
+    expected:
+      status: success
+      questions_categories_include:
+        - basic
+        - methodological
+        - practical
+        - critical
+        - related
+
+  - name: "difficulty ranking"
+    input: "Ранжируй вопросы по сложности от базовых к экспертным"
+    expected:
+      status: success
+      has_fields:
+        - questions
+      questions_sorted_by: difficulty
+
+  - name: "expected keywords"
+    input: "Для каждого вопроса укажи ожидаемые ключевые слова в ответе"
+    expected:
+      status: success
+      all_questions_have: expected_keywords
+
+  - name: "basic questions only"
+    input: "Сгенерируй только базовые вопросы для проверки понимания темы"
+    expected:
+      status: success
+      questions_category_filter: basic
+
+  - name: "provocative questions"
+    input: "Подготовь провокационные вопросы по слабым местам работы"
+    expected:
+      status: success
+      has_fields:
+        - questions
+      questions_categories_include:
+        - critical
+
+  - name: "question count and stats"
+    input: "Сгенерируй 10-15 вопросов и покажи статистику по категориям"
+    expected:
+      status: success
+      has_fields:
+        - stats
+      stats_has:
+        - total_questions
+        - by_category
+        - by_difficulty

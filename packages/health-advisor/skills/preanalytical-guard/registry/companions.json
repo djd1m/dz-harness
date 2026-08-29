@@ -1,0 +1,23 @@
+{
+  "schema": "companion-v1",
+  "_note": "DATA. `requires` BLOCKS interpretation when a member is absent from the same batch; `recommends` never blocks. The split is the decision recorded in ADR-003.",
+  "_naming": "`aliases` declares NAMES, not spellings. engine/analyte-name.js folds case, word order, punctuation and parenthetical decoration, so `Total Testosterone` already covers `Testosterone, Total`, `total testosterone` and `Total testosterone (T)`. A TRANSLATION is not a spelling and cannot be derived, so each language is declared once — which is why the Russian name this package's own README and role file use is listed here. QE F3 (MEASURED 2026-08-05) found it missing and the value walking straight past the gate. `requires_aliases` does the same job for the COMPANION side: the role file's BLOCK row spells the companion «ГСПГ (SHBG)», and a batch reporting ГСПГ must satisfy `requires: ['SHBG']`.",
+  "companions": [
+    {
+      "id": "total-testosterone-requires-shbg",
+      "analyte": "Total Testosterone",
+      "aliases": ["Testosterone", "Тестостерон общий", "Тестостерон"],
+      "requires": ["SHBG"],
+      "requires_aliases": {
+        "SHBG": ["ГСПГ", "Sex Hormone Binding Globulin", "Sex Hormone-Binding Globulin", "Глобулин, связывающий половые гормоны"]
+      },
+      "recommends": ["Albumin"],
+      "effect": {
+        "kind": "non-interpretable-without",
+        "detected_after": "3 weeks (field case)",
+        "consequence": "a near-miss replacement-therapy discussion built on a probable artefact — total testosterone without SHBG cannot separate a binding-protein shift from a true change in the free fraction"
+      },
+      "source": { "kind": "field-case", "citation": "Step-0 brief, ha-slice-b (gap surfaced only in week 3; CLAIMED — field case)", "verified": false }
+    }
+  ]
+}

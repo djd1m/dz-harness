@@ -1,0 +1,44 @@
+skill: aiagents-probabilistic-behaviour-checks
+# Positives cover: run-to-run variation as defect-or-not, behaviour invariants under rephrasing,
+# long-dialogue contradiction and forced repetition, picking a hallucination lever, malformed
+# input and its pass criterion, the ask-instead-of-assume contract, conduct at the moment of
+# failure, and the triage rule for a single bad production result.
+positives:
+  - "Прогнали один и тот же сценарий трижды — три разных ответа, все правдоподобные. QA завёл дефект, разработчик закрыл его как not a bug. Кто из них прав?"
+  - "The support agent skipped asking for the photo of the damaged item when the user worded the refund request differently. How do we pin that step down so it cannot be skipped?"
+  - "Чем длиннее переписка, тем хуже: к концу агент рекомендует ровно то, что сам отверг в начале. Чем такое ловят?"
+  - "It keeps asking the user for the order number they already gave five turns ago, and then refunds the whole order instead of the one item that was damaged."
+  - "Юристы поймали агента на выдуманной ссылке на закон. Бюджета сразу на всё нет — что чинить первым и по какому признаку выбирать?"
+  - "Клиент ошибся одной цифрой в номере заказа, и агент оформил возврат по чужому. Что он был обязан сделать вместо этого и как это закрепить?"
+  - "Собираем набор из битых форматов, отраслевого сленга и падающих внешних сервисов. Непонятно главное — что тут считать успешным прохождением."
+  - "На «купи мне билет в Чикаго» агент просто купил в один конец на завтра. Он должен был переспросить — как это зафиксировать правилом и не превратить в допрос?"
+  - "Support escalated one bad answer from yesterday. Is there a procedure for deciding whether this deserves engineering time at all, or whether it sits inside the normal spread?"
+  - "Голосовой агент три раза подряд не понял пользователя. Что он обязан сделать в этот момент, чтобы это засчиталось как правильное поведение, а не как падение?"
+# Seam-level positives: they name the neighbour (the eval harness, an attack, production
+# monitoring) but ask the probabilistic-behaviour question that sits on top of it.
+  - "Оценочный набор и метрики у нас уже собраны, всё зелёное. При этом от прогона к прогону агент ведёт себя по-разному. Чего мы этим набором не проверяем?"
+  - "Пользователь вставил в поле заказа кусок текста, похожий на инструкцию. Меня сейчас волнует не атака как таковая, а то, что агент от этого валится вместо того, чтобы переспросить."
+  - "Мониторинг и алерты в проде уже настроены, панели есть. Не хватает самого правила: по какому признаку один плохой ответ уходит в разработку, а другой просто пишется в журнал как допустимое отклонение."
+negatives:
+  - prompt: "У агента вообще нет никаких метрик. Какой набор метрик завести, как собрать оценочный набор и как написать юнит-тесты на каждый инструмент отдельно?"
+    should_activate: "aiagents-evaluation-design"
+  - prompt: "Нужно провести red-teaming агента: прямые и косвенные промпт-инъекции, джейлбрейки, модель угроз и гардрейлы вокруг автономии."
+    should_activate: "aiagents-agent-security"
+  - prompt: "Что инструментировать у живого агента и по каким порогам алертить, чтобы поймать дрейф распределения входов за месяц?"
+    should_activate: "aiagents-observability-and-drift"
+  - prompt: "Какие пороги ставить в блокирующем гейте перед промоушеном новой версии агента и как раскатывать её канарейкой с возможностью отката?"
+    should_activate: "aiagents-release-gates-and-rollout"
+  - prompt: "На каком уровне автономии пускать агента, по каким триггерам он обязан позвать человека и что должно лежать в пакете передачи ревьюеру?"
+    should_activate: "aiagents-human-in-the-loop"
+  - prompt: "Как выстроить взаимодействие с пользователем: голос или экран, можно ли перебивать агента, как делать проактивные подсказки без назойливости?"
+    should_activate: "aiagents-agent-ux"
+  - prompt: "Ассистент у нас и пишет код, и сам его ревьюит. Нужен регрессионный прогон в песочнице без базы, чтобы ловить слепые зоны модели после каждого изменения."
+    should_activate: "ai-regression-testing"
+  - prompt: "Составь тест-кейсы по классам эквивалентности и граничным значениям для формы ввода почтового адреса."
+    should_activate: "test-design-techniques"
+  - prompt: "Вот вопрос и вот ответ студента. Оцени, насколько полно он его раскрыл, и выстави балл с обоснованием."
+    should_activate: "answer-assessor"
+  - prompt: "Сканер выкатил сорок находок по безопасности. Нужно каждую попробовать опровергнуть и разложить на подтверждённые и ложные срабатывания, с доказательством достижимости."
+    should_activate: "adversarial-verifier"
+  - prompt: "Перед мержем надо автоматически сверить вывод агента с ожидаемым результатом и откатывать изменение, если проверки качества красные."
+    should_activate: "verification-quality"

@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "context7 skill output",
+  "description": "Validated output schema for the context7 MCP wrapper skill.",
+  "type": "object",
+  "required": ["tool", "status"],
+  "properties": {
+    "tool": {
+      "type": "string",
+      "enum": [
+        "resolve_library",
+        "get_library_docs",
+        "search_docs"
+      ],
+      "description": "The MCP tool that was invoked."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["success", "error"],
+      "description": "Outcome of the tool invocation."
+    },
+    "data": {
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "ResolveLibraryResponse",
+          "properties": {
+            "library": {
+              "type": "object",
+              "required": ["id", "name"],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Context7 library identifier (e.g., '/facebook/react')."
+                },
+                "name": { "type": "string" },
+                "description": { "type": "string" },
+                "version": { "type": "string" },
+                "url": { "type": "string", "format": "uri" },
+                "totalSnippets": { "type": "integer" }
+              }
+            },
+            "alternatives": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "string" },
+                  "name": { "type": "string" },
+                  "description": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "title": "LibraryDocsResponse",
+          "properties": {
+            "libraryId": { "type": "string" },
+            "topic": { "type": "string" },
+            "snippets": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["content"],
+                "properties": {
+                  "title": { "type": "string" },
+                  "content": {
+                    "type": "string",
+                    "description": "Documentation content in markdown format."
+                  },
+                  "url": { "type": "string", "format": "uri" },
+                  "section": { "type": "string" },
+                  "relevanceScore": { "type": "number", "minimum": 0, "maximum": 1 }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "title": "SearchDocsResponse",
+          "properties": {
+            "query": { "type": "string" },
+            "results": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["libraryId", "content"],
+                "properties": {
+                  "libraryId": { "type": "string" },
+                  "libraryName": { "type": "string" },
+                  "title": { "type": "string" },
+                  "content": { "type": "string" },
+                  "url": { "type": "string", "format": "uri" },
+                  "relevanceScore": { "type": "number", "minimum": 0, "maximum": 1 }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

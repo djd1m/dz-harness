@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "security-audit config validator",
+  "description": "Validates configuration inputs for the security-audit skill",
+  "type": "object",
+  "properties": {
+    "target_path": {
+      "type": "string",
+      "description": "File or directory path to audit"
+    },
+    "pr_number": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "PR number to audit (changes only)"
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "injection",
+          "auth",
+          "secrets",
+          "file_ops",
+          "network",
+          "deserialization",
+          "xxe",
+          "dependencies"
+        ]
+      },
+      "description": "Limit audit to specific vulnerability categories"
+    },
+    "severity_threshold": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low"],
+      "default": "low",
+      "description": "Minimum severity to report"
+    },
+    "include_dependencies": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to check dependency vulnerabilities"
+    },
+    "framework": {
+      "type": "string",
+      "description": "Framework in use (express, fastify, django, etc.) to check framework-specific defaults"
+    }
+  },
+  "anyOf": [
+    { "required": ["target_path"] },
+    { "required": ["pr_number"] }
+  ]
+}

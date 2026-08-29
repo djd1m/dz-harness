@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "defense-evaluator output",
+  "description": "Structured output from the defense-evaluator skill",
+  "type": "object",
+  "required": ["status", "duration_minutes", "structure", "delivery_quality", "overall_impression"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "skipped"]
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Estimated presentation duration in minutes"
+    },
+    "structure": {
+      "type": "object",
+      "required": ["introduction", "relevance", "goals_and_tasks", "methodology", "results", "conclusion"],
+      "properties": {
+        "introduction": {
+          "type": "boolean",
+          "description": "Student introduced themselves and stated the topic"
+        },
+        "relevance": {
+          "type": "boolean",
+          "description": "Relevance / importance of the topic was explained"
+        },
+        "goals_and_tasks": {
+          "type": "boolean",
+          "description": "Goals and tasks were clearly formulated"
+        },
+        "methodology": {
+          "type": "boolean",
+          "description": "Research methodology was described"
+        },
+        "results": {
+          "type": "boolean",
+          "description": "Concrete results with data were presented"
+        },
+        "conclusion": {
+          "type": "boolean",
+          "description": "Conclusion with practical significance was provided"
+        }
+      }
+    },
+    "topic_coverage": {
+      "type": "object",
+      "properties": {
+        "matches_stated_topic": {
+          "type": "boolean",
+          "description": "Content aligns with the stated thesis topic"
+        },
+        "key_results_covered": {
+          "type": "boolean",
+          "description": "All key results from the thesis were mentioned"
+        },
+        "omissions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Significant omissions from the thesis not mentioned in the presentation"
+        }
+      }
+    },
+    "delivery_quality": {
+      "type": "object",
+      "required": ["logic", "material_command", "specificity"],
+      "properties": {
+        "logic": {
+          "type": "string",
+          "enum": ["high", "medium", "low"],
+          "description": "Logical flow of the presentation"
+        },
+        "material_command": {
+          "type": "string",
+          "enum": ["free_speech", "partial", "reading"],
+          "description": "How well the student commands the material"
+        },
+        "specificity": {
+          "type": "string",
+          "enum": ["data_and_facts", "general_phrases"],
+          "description": "Level of concrete data, facts, examples"
+        },
+        "terminology": {
+          "type": "string",
+          "enum": ["correct", "inconsistent", "avoids"],
+          "description": "Use of domain-specific terminology"
+        }
+      }
+    },
+    "thesis_alignment": {
+      "type": "object",
+      "properties": {
+        "contradictions_found": {
+          "type": "boolean",
+          "description": "Whether contradictions between presentation and thesis were found"
+        },
+        "contradictions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of contradictions between the presentation and the thesis"
+        },
+        "reviewer_remarks_addressed": {
+          "type": "boolean",
+          "description": "Whether supervisor/reviewer remarks were addressed in the presentation"
+        }
+      }
+    },
+    "additional_questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["question"],
+        "properties": {
+          "question": {
+            "type": "string",
+            "description": "Question arising from the presentation"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why this question is relevant"
+          }
+        }
+      },
+      "description": "Additional questions generated from the presentation analysis"
+    },
+    "overall_impression": {
+      "type": "string",
+      "enum": ["strong", "average", "weak"],
+      "description": "Overall impression of the defense presentation"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Free-text summary of the evaluation"
+    }
+  }
+}

@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "retrospective output",
+  "description": "Structured output from the retrospective skill",
+  "type": "object",
+  "required": ["status", "summary", "format", "action_items"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "needs_more_info"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line summary of the retrospective outcome"
+    },
+    "format": {
+      "type": "string",
+      "enum": ["start_stop_continue", "4ls", "mad_sad_glad", "sailboat", "timeline"],
+      "description": "Retrospective format used"
+    },
+    "sprint_id": {
+      "type": "string",
+      "description": "Sprint or project identifier"
+    },
+    "date_range": {
+      "type": "object",
+      "properties": {
+        "start": { "type": "string", "format": "date" },
+        "end": { "type": "string", "format": "date" }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "velocity": { "type": "number" },
+        "planned_points": { "type": "number" },
+        "completed_points": { "type": "number" },
+        "incidents": { "type": "integer" },
+        "deployment_count": { "type": "integer" }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["category", "description"],
+        "properties": {
+          "category": {
+            "type": "string",
+            "description": "Category within the chosen format (e.g., 'start', 'stop', 'continue')"
+          },
+          "description": {
+            "type": "string"
+          },
+          "votes": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of team members who mentioned this"
+          },
+          "recurring": {
+            "type": "boolean",
+            "description": "Whether this item appeared in previous retros"
+          },
+          "recurrence_count": {
+            "type": "integer",
+            "description": "Number of previous retros where this appeared"
+          }
+        }
+      }
+    },
+    "action_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["description", "owner", "due_date"],
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string",
+            "description": "Single person accountable"
+          },
+          "due_date": {
+            "type": "string",
+            "format": "date"
+          },
+          "definition_of_done": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["quick_win", "strategic", "fill_in"],
+            "description": "Effort-vs-impact quadrant"
+          },
+          "impact": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "effort": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "ticket_url": {
+            "type": "string",
+            "description": "URL to the tracking ticket"
+          }
+        }
+      },
+      "minItems": 1,
+      "maxItems": 5
+    },
+    "previous_actions_review": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["completed", "in_progress", "not_started", "dropped"]
+          },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "report_markdown": {
+      "type": "string",
+      "description": "Full retrospective report in markdown format"
+    }
+  }
+}

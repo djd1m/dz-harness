@@ -1,0 +1,68 @@
+{
+  "name": "reddit-validator",
+  "description": "Validates reddit MCP skill configuration and connectivity.",
+  "version": "1.0.0",
+  "checks": [
+    {
+      "id": "schema-valid",
+      "type": "json-schema",
+      "description": "Output conforms to schemas/output.json",
+      "schemaPath": "../schemas/output.json",
+      "severity": "error"
+    },
+    {
+      "id": "mcp-server-reachable",
+      "type": "reference",
+      "description": "Reddit MCP server listing (install: npx -y reddit-mcp-server, stdio)",
+      "url": "https://smithery.ai/server/@jordanburke/reddit-mcp-server",
+      "timeoutMs": 10000,
+      "severity": "error"
+    },
+    {
+      "id": "tool-enumeration",
+      "type": "tool-list",
+      "description": "All expected tools are available from the MCP server",
+      "expectedTools": [
+        "search_posts",
+        "get_post",
+        "get_comments",
+        "list_subreddit",
+        "get_user_posts",
+        "search_subreddit"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "response-shape",
+      "type": "output-sample",
+      "description": "Sample search returns expected post structure",
+      "tool": "search_posts",
+      "args": {
+        "query": "test",
+        "limit": 1
+      },
+      "expectFields": [
+        "tool",
+        "status"
+      ],
+      "severity": "warning"
+    },
+    {
+      "id": "read-only-safety",
+      "type": "tool-list-negative",
+      "description": "Server does not expose write operations (post, comment, vote)",
+      "forbiddenTools": [
+        "create_post",
+        "submit_comment",
+        "upvote",
+        "downvote"
+      ],
+      "severity": "warning"
+    }
+  ],
+  "scoring": {
+    "pass": "all error-severity checks pass",
+    "warn": "all error-severity checks pass but warnings present",
+    "fail": "any error-severity check fails"
+  }
+}

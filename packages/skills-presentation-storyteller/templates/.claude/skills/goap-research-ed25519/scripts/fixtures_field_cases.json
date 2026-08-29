@@ -1,0 +1,133 @@
+{
+  "_provenance": {
+    "status": "CLAIMED, not independently re-derived",
+    "evidence_class": "ASSERTED",
+    "note": "The four field cases are taken verbatim from a field report; this pipeline did not open the sources. Their `verbatim` strings are paraphrases of what the field report said the sources said, NOT transcriptions checked against a paper, and no DOI/NCT identifier is invented to make them look more grounded than they are. These fixtures assert the MATCHER's behaviour, which does not depend on the citation being real.",
+    "patient": "male, BMI 25, triglycerides 236 mg/dL, cardiovascular risk moderate (the brief's patient)"
+  },
+  "patient_profile": {
+    "sex": "male",
+    "bmi": 25,
+    "triglycerides_mg_dl": 236,
+    "cv_risk": "moderate"
+  },
+  "cases": [
+    {
+      "id": "testosterone-weight-loss",
+      "kind": "real-field-reversal",
+      "claim": "Weight loss raises testosterone",
+      "expected_verdict": "partial",
+      "expected_discrepancies": [
+        {"field": "bmi", "kind": "baseline-out-of-range", "direction": "below"}
+      ],
+      "why_not_none": "The patient could have enrolled; the effect was simply not measured from where his BMI stands. Saying 'none' here would be the mirror error of saying 'full'.",
+      "study_population": {
+        "description": "men with obesity (BMI >= 30) enrolled in a weight-loss intervention",
+        "locator": "[Methods, Participants]",
+        "criteria": {
+          "sex": {"op": "==", "value": "male", "kind": "eligibility",
+                  "verbatim": "men", "locator": "[Methods, Participants]"},
+          "bmi_min": {"op": ">=", "value": 30, "kind": "baseline",
+                      "verbatim": "men with obesity (BMI >= 30 kg/m2)",
+                      "locator": "[Methods, Participants]"}
+        }
+      }
+    },
+    {
+      "id": "ed-rct-bmi30",
+      "kind": "real-field-reversal",
+      "claim": "Erectile dysfunction is reversible (randomised controlled trial)",
+      "expected_verdict": "none",
+      "expected_discrepancies": [
+        {"field": "bmi", "kind": "eligibility-excluded", "direction": "below"}
+      ],
+      "why_none": "BMI >= 30 was an ENROLMENT criterion — this patient would not have been in the trial at all.",
+      "study_population": {
+        "description": "participants with BMI >= 30 randomised to the intervention",
+        "locator": "[Methods, Eligibility]",
+        "criteria": {
+          "bmi_min": {"op": ">=", "value": 30, "kind": "eligibility",
+                      "verbatim": "inclusion criteria: BMI >= 30 kg/m2",
+                      "locator": "[Methods, Eligibility]"}
+        }
+      }
+    },
+    {
+      "id": "traverse-cv-safety",
+      "kind": "real-field-reversal",
+      "claim": "TRAVERSE found no excess cardiovascular harm from testosterone therapy",
+      "expected_verdict": "none",
+      "expected_discrepancies": [
+        {"field": "cv_risk", "kind": "eligibility-excluded", "direction": "outside-set"}
+      ],
+      "why_none": "A null-harm finding established in high-cardiovascular-risk men does not extend by default to a man who is not high-risk.",
+      "study_population": {
+        "description": "men at high cardiovascular risk with hypogonadism",
+        "locator": "[Methods, Participants]",
+        "criteria": {
+          "cv_risk": {"op": "==", "value": "high", "kind": "eligibility",
+                      "verbatim": "men with high cardiovascular risk",
+                      "locator": "[Methods, Participants]"}
+        }
+      }
+    },
+    {
+      "id": "omega3-ldl",
+      "kind": "real-field-reversal",
+      "claim": "Omega-3 raises LDL by 44.5%",
+      "expected_verdict": "partial",
+      "expected_discrepancies": [
+        {"field": "triglycerides", "kind": "baseline-out-of-range", "direction": "below"}
+      ],
+      "why_not_none": "Severe hypertriglyceridemia is a different metabolic regime; the magnitude is not established at 236 mg/dL, but the patient is not excluded from the population.",
+      "study_population": {
+        "description": "patients with severe hypertriglyceridemia (baseline triglycerides >= 800 mg/dL)",
+        "locator": "[Methods, Baseline characteristics]",
+        "criteria": {
+          "triglycerides_mg_dl_min": {"op": ">=", "value": 800, "kind": "baseline",
+                                      "verbatim": "baseline triglycerides >= 800 mg/dL",
+                                      "locator": "[Methods, Baseline characteristics]"}
+        }
+      }
+    },
+    {
+      "id": "synthetic-missing-patient-value",
+      "kind": "synthetic",
+      "claim": "Synthetic: the patient profile does not carry the axis the study used",
+      "expected_verdict": "unknown",
+      "expected_discrepancies": [
+        {"field": "bmi", "kind": "patient-value-missing", "direction": "absent"}
+      ],
+      "patient_profile_override": {"sex": "male"},
+      "note": "01_requirements.md AC-5 called this `partial` under the three-verdict wording. ADR-001 §2 and AM-6 confirmed a FOURTH verdict: an unestablished criterion is not a milder kind of match, so this is `unknown`. The distinction is the whole of D-17's discipline — unevaluable is never a pass.",
+      "study_population": {
+        "description": "men with obesity (BMI >= 30)",
+        "locator": "[Methods]",
+        "criteria": {
+          "sex": {"op": "==", "value": "male", "kind": "eligibility",
+                  "verbatim": "men", "locator": "[Methods]"},
+          "bmi_min": {"op": ">=", "value": 30, "kind": "eligibility",
+                      "verbatim": "BMI >= 30 kg/m2", "locator": "[Methods]"}
+        }
+      }
+    },
+    {
+      "id": "synthetic-full",
+      "kind": "synthetic",
+      "claim": "Synthetic: every stated criterion is satisfied by a known patient value",
+      "expected_verdict": "full",
+      "expected_discrepancies": [],
+      "patient_profile_override": {"sex": "male", "bmi": 33},
+      "study_population": {
+        "description": "men with obesity (BMI >= 30)",
+        "locator": "[Methods]",
+        "criteria": {
+          "sex": {"op": "==", "value": "male", "kind": "eligibility",
+                  "verbatim": "men", "locator": "[Methods]"},
+          "bmi_min": {"op": ">=", "value": 30, "kind": "eligibility",
+                      "verbatim": "BMI >= 30 kg/m2", "locator": "[Methods]"}
+        }
+      }
+    }
+  ]
+}

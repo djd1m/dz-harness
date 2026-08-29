@@ -1,0 +1,585 @@
+{
+  "capturedAt": "2026-08-09",
+  "engineVersion": "cloudru-vm 0.2.3-20260718",
+  "engineSha256": "59f83fc0678b95146ca539764d0c805bd2514b8588f198c1e835b26e54c05124",
+  "method": "echo tools/list JSON-RPC | cloudru-vm mcp",
+  "toolCount": 144,
+  "tools": [
+    {
+      "name": "deploy",
+      "gated": false
+    },
+    {
+      "name": "provision",
+      "gated": false
+    },
+    {
+      "name": "status",
+      "gated": false
+    },
+    {
+      "name": "list",
+      "gated": false
+    },
+    {
+      "name": "vm_list",
+      "gated": false
+    },
+    {
+      "name": "vm_exec",
+      "gated": false
+    },
+    {
+      "name": "vm_get",
+      "gated": false
+    },
+    {
+      "name": "logs",
+      "gated": false
+    },
+    {
+      "name": "destroy",
+      "gated": true
+    },
+    {
+      "name": "list_zones",
+      "gated": false
+    },
+    {
+      "name": "list_images",
+      "gated": false
+    },
+    {
+      "name": "deploy_plan",
+      "gated": false
+    },
+    {
+      "name": "deploy_apply",
+      "gated": true
+    },
+    {
+      "name": "list_flavors",
+      "gated": false
+    },
+    {
+      "name": "list_disk_types",
+      "gated": false
+    },
+    {
+      "name": "list_subnets",
+      "gated": false
+    },
+    {
+      "name": "list_security_groups",
+      "gated": false
+    },
+    {
+      "name": "list_floating_ips",
+      "gated": false
+    },
+    {
+      "name": "open_ports",
+      "gated": true
+    },
+    {
+      "name": "k8s_list",
+      "gated": false
+    },
+    {
+      "name": "k8s_get",
+      "gated": false
+    },
+    {
+      "name": "k8s_options",
+      "gated": false
+    },
+    {
+      "name": "k8s_plan",
+      "gated": false
+    },
+    {
+      "name": "k8s_create",
+      "gated": true
+    },
+    {
+      "name": "k8s_kubeconfig",
+      "gated": false
+    },
+    {
+      "name": "k8s_delete",
+      "gated": true
+    },
+    {
+      "name": "k8s_nodepools",
+      "gated": false
+    },
+    {
+      "name": "k8s_add_nodepool",
+      "gated": true
+    },
+    {
+      "name": "k8s_kubectl",
+      "gated": true
+    },
+    {
+      "name": "k8s_apply",
+      "gated": true
+    },
+    {
+      "name": "k8s_helm",
+      "gated": true
+    },
+    {
+      "name": "disk_list",
+      "gated": false
+    },
+    {
+      "name": "disk_create",
+      "gated": true
+    },
+    {
+      "name": "disk_attach",
+      "gated": true
+    },
+    {
+      "name": "disk_detach",
+      "gated": true
+    },
+    {
+      "name": "disk_resize",
+      "gated": true
+    },
+    {
+      "name": "disk_delete",
+      "gated": true
+    },
+    {
+      "name": "ca_list",
+      "gated": false
+    },
+    {
+      "name": "ca_get",
+      "gated": false
+    },
+    {
+      "name": "ca_deploy",
+      "gated": true
+    },
+    {
+      "name": "ca_delete",
+      "gated": true
+    },
+    {
+      "name": "ca_logs",
+      "gated": false
+    },
+    {
+      "name": "ca_start",
+      "gated": false
+    },
+    {
+      "name": "ca_stop",
+      "gated": false
+    },
+    {
+      "name": "iam_service_accounts",
+      "gated": false
+    },
+    {
+      "name": "org_projects",
+      "gated": false
+    },
+    {
+      "name": "org_quotas",
+      "gated": false
+    },
+    {
+      "name": "release_floating_ip",
+      "gated": true
+    },
+    {
+      "name": "snat_list",
+      "gated": false
+    },
+    {
+      "name": "snat_create",
+      "gated": true
+    },
+    {
+      "name": "snat_delete",
+      "gated": true
+    },
+    {
+      "name": "pg_list",
+      "gated": false
+    },
+    {
+      "name": "pg_get",
+      "gated": false
+    },
+    {
+      "name": "pg_versions",
+      "gated": false
+    },
+    {
+      "name": "pg_specs",
+      "gated": false
+    },
+    {
+      "name": "pg_create",
+      "gated": true
+    },
+    {
+      "name": "pg_delete",
+      "gated": true
+    },
+    {
+      "name": "pg_operation",
+      "gated": false
+    },
+    {
+      "name": "kafka_list",
+      "gated": false
+    },
+    {
+      "name": "kafka_get",
+      "gated": false
+    },
+    {
+      "name": "kafka_versions",
+      "gated": false
+    },
+    {
+      "name": "kafka_specs",
+      "gated": false
+    },
+    {
+      "name": "kafka_create",
+      "gated": true
+    },
+    {
+      "name": "kafka_delete",
+      "gated": true
+    },
+    {
+      "name": "kafka_operation",
+      "gated": false
+    },
+    {
+      "name": "redis_list",
+      "gated": false
+    },
+    {
+      "name": "redis_get",
+      "gated": false
+    },
+    {
+      "name": "redis_versions",
+      "gated": false
+    },
+    {
+      "name": "redis_specs",
+      "gated": false
+    },
+    {
+      "name": "redis_create",
+      "gated": true
+    },
+    {
+      "name": "redis_delete",
+      "gated": true
+    },
+    {
+      "name": "redis_operation",
+      "gated": false
+    },
+    {
+      "name": "pg_databases",
+      "gated": false
+    },
+    {
+      "name": "pg_db_create",
+      "gated": true
+    },
+    {
+      "name": "pg_db_delete",
+      "gated": true
+    },
+    {
+      "name": "pg_users",
+      "gated": false
+    },
+    {
+      "name": "pg_user_create",
+      "gated": true
+    },
+    {
+      "name": "pg_user_delete",
+      "gated": true
+    },
+    {
+      "name": "pg_backups",
+      "gated": false
+    },
+    {
+      "name": "pg_backup_create",
+      "gated": true
+    },
+    {
+      "name": "lb_list",
+      "gated": false
+    },
+    {
+      "name": "lb_get",
+      "gated": false
+    },
+    {
+      "name": "lb_operation",
+      "gated": false
+    },
+    {
+      "name": "tg_list",
+      "gated": false
+    },
+    {
+      "name": "tg_get",
+      "gated": false
+    },
+    {
+      "name": "tg_create",
+      "gated": true
+    },
+    {
+      "name": "tg_delete",
+      "gated": true
+    },
+    {
+      "name": "lb_create",
+      "gated": true
+    },
+    {
+      "name": "lb_delete",
+      "gated": true
+    },
+    {
+      "name": "vpc_list",
+      "gated": false
+    },
+    {
+      "name": "vpc_get",
+      "gated": false
+    },
+    {
+      "name": "vpc_create",
+      "gated": true
+    },
+    {
+      "name": "vpc_delete",
+      "gated": true
+    },
+    {
+      "name": "vpc_operation",
+      "gated": false
+    },
+    {
+      "name": "vpc_routes",
+      "gated": false
+    },
+    {
+      "name": "vpc_route_create",
+      "gated": true
+    },
+    {
+      "name": "vpc_route_delete",
+      "gated": true
+    },
+    {
+      "name": "dns_zones",
+      "gated": false
+    },
+    {
+      "name": "dns_zone_get",
+      "gated": false
+    },
+    {
+      "name": "dns_zone_create",
+      "gated": true
+    },
+    {
+      "name": "dns_zone_delete",
+      "gated": true
+    },
+    {
+      "name": "dns_operation",
+      "gated": false
+    },
+    {
+      "name": "dns_records",
+      "gated": false
+    },
+    {
+      "name": "dns_record_get",
+      "gated": false
+    },
+    {
+      "name": "dns_record_create",
+      "gated": true
+    },
+    {
+      "name": "dns_record_delete",
+      "gated": true
+    },
+    {
+      "name": "secret_list",
+      "gated": false
+    },
+    {
+      "name": "secret_get",
+      "gated": false
+    },
+    {
+      "name": "secret_value",
+      "gated": false
+    },
+    {
+      "name": "secret_create",
+      "gated": true
+    },
+    {
+      "name": "secret_add_version",
+      "gated": true
+    },
+    {
+      "name": "secret_delete",
+      "gated": true
+    },
+    {
+      "name": "ar_list",
+      "gated": false
+    },
+    {
+      "name": "ar_get",
+      "gated": false
+    },
+    {
+      "name": "ar_create",
+      "gated": true
+    },
+    {
+      "name": "ar_delete",
+      "gated": true
+    },
+    {
+      "name": "ar_operation",
+      "gated": false
+    },
+    {
+      "name": "billing_balance",
+      "gated": false
+    },
+    {
+      "name": "billing_consumption",
+      "gated": false
+    },
+    {
+      "name": "billing_finops",
+      "gated": false
+    },
+    {
+      "name": "metrics_history",
+      "gated": false
+    },
+    {
+      "name": "metrics_scrape",
+      "gated": false
+    },
+    {
+      "name": "audit_events",
+      "gated": false
+    },
+    {
+      "name": "cert_list",
+      "gated": false
+    },
+    {
+      "name": "cert_get",
+      "gated": false
+    },
+    {
+      "name": "cert_issue_le",
+      "gated": false
+    },
+    {
+      "name": "cert_import",
+      "gated": false
+    },
+    {
+      "name": "cert_renew",
+      "gated": false
+    },
+    {
+      "name": "cert_delete",
+      "gated": true
+    },
+    {
+      "name": "cert_usage",
+      "gated": false
+    },
+    {
+      "name": "cert_versions",
+      "gated": false
+    },
+    {
+      "name": "cert_private_key",
+      "gated": true
+    },
+    {
+      "name": "cert_operation",
+      "gated": false
+    },
+    {
+      "name": "s3_buckets",
+      "gated": false
+    },
+    {
+      "name": "s3_ls",
+      "gated": false
+    },
+    {
+      "name": "s3_get",
+      "gated": false
+    },
+    {
+      "name": "s3_put",
+      "gated": false
+    },
+    {
+      "name": "s3_rm",
+      "gated": true
+    },
+    {
+      "name": "s3_bucket_create",
+      "gated": false
+    },
+    {
+      "name": "s3_bucket_delete",
+      "gated": true
+    },
+    {
+      "name": "stack_plan",
+      "gated": false
+    },
+    {
+      "name": "stack_apply",
+      "gated": true
+    },
+    {
+      "name": "stack_status",
+      "gated": false
+    },
+    {
+      "name": "stack_destroy",
+      "gated": true
+    }
+  ]
+}

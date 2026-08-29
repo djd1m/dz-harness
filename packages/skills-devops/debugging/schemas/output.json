@@ -1,0 +1,143 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DebuggingOutput",
+  "description": "Structured output for debugging skill",
+  "type": "object",
+  "required": ["symptom", "root_cause", "fix", "verification"],
+  "properties": {
+    "symptom": {
+      "type": "object",
+      "required": ["description", "error_type"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "What the user observed"
+        },
+        "error_type": {
+          "type": "string",
+          "enum": [
+            "runtime_error",
+            "crash",
+            "hang",
+            "oom",
+            "incorrect_behavior",
+            "intermittent_failure",
+            "performance_degradation",
+            "data_corruption"
+          ]
+        },
+        "error_message": {
+          "type": "string"
+        },
+        "stack_trace": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "string"
+        }
+      }
+    },
+    "investigation": {
+      "type": "object",
+      "properties": {
+        "hypotheses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "description": { "type": "string" },
+              "tested": { "type": "boolean" },
+              "result": { "type": "string" }
+            }
+          }
+        },
+        "bisect_results": {
+          "type": "string",
+          "description": "Results from time/code/data bisection"
+        },
+        "evidence": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Log lines, observations, test results supporting the diagnosis"
+        }
+      }
+    },
+    "root_cause": {
+      "type": "object",
+      "required": ["description", "location", "category"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "What actually went wrong and why"
+        },
+        "location": {
+          "type": "string",
+          "description": "File and line where the root cause lives"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "logic_error",
+            "null_reference",
+            "race_condition",
+            "resource_exhaustion",
+            "missing_validation",
+            "incorrect_assumption",
+            "configuration_error",
+            "dependency_issue",
+            "data_integrity",
+            "type_mismatch"
+          ]
+        },
+        "introduced_by": {
+          "type": "string",
+          "description": "Commit or change that introduced the bug, if identified"
+        }
+      }
+    },
+    "fix": {
+      "type": "object",
+      "required": ["description", "changes"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "What the fix does and why it addresses the root cause"
+        },
+        "changes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "file": { "type": "string" },
+              "description": { "type": "string" },
+              "diff_summary": { "type": "string" }
+            }
+          }
+        },
+        "alternatives_considered": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "required": ["steps"],
+      "properties": {
+        "steps": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Steps to verify the fix works"
+        },
+        "regression_test": {
+          "type": "string",
+          "description": "Test that prevents this bug from recurring"
+        },
+        "edge_cases_checked": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

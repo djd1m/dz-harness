@@ -1,0 +1,25 @@
+Copyright (c) 2026 dzhechko. All rights reserved.
+
+PUBLICLY DISTRIBUTED, PROPRIETARY. Free to install and use; not open-source.
+
+This package contains skills MACHINE-DISTILLED from — and INSPIRED BY — a third-party
+copyrighted book: «Designing Data-Intensive Applications» (Martin Kleppmann, O'Reilly;
+русское издание «Высоконагруженные приложения»). The content is derived know-how
+(rephrased methodologies, decision frameworks, and page-anchored facts) authored by the
+copyright holder of this package, NOT the book's text.
+
+Distribution decision (owner, 2026-08-25): this pack is published on npm and may be
+installed and used by anyone, for any purpose, including commercially, in their own
+projects and agent harnesses.
+
+- YOU MAY: install it, use the skills in your work, read and quote the `references/` Knowledge
+  Units with attribution, and depend on the package.
+- YOU MAY NOT: resell it, republish it under another name, or redistribute a modified copy of the
+  pack or its `references/` Knowledge Units as your own work.
+- The underlying methodologies and facts remain the intellectual property of the book's
+  author/publisher. This pack is an index INTO the book's ideas, never a substitute for it —
+  buy the book.
+- Skills ship at trust_tier 0 (machine-distilled, NOT human-reviewed against the cited pages) —
+  verify against the book before relying on them.
+
+No warranty of any kind. Use at your own risk.

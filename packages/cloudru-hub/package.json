@@ -1,0 +1,68 @@
+{
+  "name": "@dzhechkov/cloudru-hub",
+  "version": "0.1.10",
+  "licenseHold": {
+    "adr": "features/hermes-claude-adaptation/03_adr/001-licence-and-provenance-precondition.md",
+    "note": "SATISFIED hold (ADR-001 AM-2, grant recorded 2026-08-12 — see grant-record-2026-08-12.md). The field deliberately STAYS: the dz guard `licence-hold` rule passes a satisfied hold with the trigger in place and keeps verifying LICENSE (no PENDING placeholder, Grant-Confirmation URL), THIRD_PARTY_NOTICES and the SPDX license field on every publish. test/pack-holds.test.mjs goes RED if this field is dropped or the LICENSE grant record is degraded."
+  },
+  "description": "Unofficial Cloud.ru Evolution launcher for Claude Code and harness-cli targets: thin JS launcher for the cloudru-vm MCP engine (144 tools), per-target installers with a deterministic paid-step brake (permission ask/deny + PreToolUse veto hooks), and skill dialect compiler. The engine binary is resolved at RUNTIME, never bundled. NOT affiliated with Cloud.ru.",
+  "main": "src/cli.js",
+  "bin": {
+    "cloudru-hub": "./bin/cloudru-hub.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "templates/",
+    "data/",
+    "docs/",
+    "test/",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "cloudruHub": {
+    "binaryHashes": {
+      "linux-x64": "59f83fc0678b95146ca539764d0c805bd2514b8588f198c1e835b26e54c05124"
+    },
+    "engineVersion": "cloudru-vm 0.2.3-20260718",
+    "platformPackages": {
+      "linux-x64": "@dzhechkov/cloudru-vm-linux-x64"
+    }
+  },
+  "keywords": [
+    "cloudru",
+    "cloud-ru",
+    "evolution",
+    "mcp",
+    "claude",
+    "claude-code",
+    "deploy",
+    "vps",
+    "unofficial"
+  ],
+  "author": "dzhechko",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
+    "test": "node --test 'test/*.test.mjs'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/cloudru-hub"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/cloudru-hub#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness-hub/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

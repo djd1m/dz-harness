@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DatabaseReviewOutput",
+  "description": "Structured output for database-review skill",
+  "type": "object",
+  "required": ["database", "safety_assessment", "findings", "deploy_recommendation"],
+  "properties": {
+    "database": {
+      "type": "object",
+      "required": ["engine", "version"],
+      "properties": {
+        "engine": {
+          "type": "string",
+          "description": "Database engine (postgresql, mysql, sqlite, etc.)"
+        },
+        "version": {
+          "type": "string",
+          "description": "Database version"
+        }
+      }
+    },
+    "safety_assessment": {
+      "type": "string",
+      "enum": ["safe", "caution", "unsafe"],
+      "description": "Overall migration safety level"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "category", "description", "recommendation"],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["blocker", "warning", "suggestion"]
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "lock_duration",
+              "index_build",
+              "backfill",
+              "constraint",
+              "type_change",
+              "rolling_deploy",
+              "query_performance",
+              "data_integrity",
+              "reversibility",
+              "production_scale"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string",
+            "description": "File and line reference"
+          },
+          "recommendation": {
+            "type": "string"
+          },
+          "estimated_impact": {
+            "type": "string",
+            "description": "Estimated lock time or performance impact"
+          }
+        }
+      }
+    },
+    "deploy_recommendation": {
+      "type": "object",
+      "required": ["deploy_order", "rollback_plan"],
+      "properties": {
+        "deploy_order": {
+          "type": "string",
+          "description": "Recommended deploy sequence"
+        },
+        "estimated_downtime": {
+          "type": "string"
+        },
+        "rollback_plan": {
+          "type": "string"
+        },
+        "prerequisites": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "tables_affected": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "estimated_rows": { "type": "string" },
+          "lock_type": { "type": "string" },
+          "lock_duration_estimate": { "type": "string" }
+        }
+      }
+    }
+  }
+}

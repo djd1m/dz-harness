@@ -1,0 +1,41 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "adapter-openclaude",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "33e7a4fa53175e271890e69fe795d7ba9ffc3a24cba2a4e549bbb4893d3d9384"
+      },
+      {
+        "path": "dist/index.d.ts",
+        "sha256": "acbaf7a1cabaee6383e84f233b12288617d89a0a3bee3d0b3395505175f27f28"
+      },
+      {
+        "path": "dist/index.d.ts.map",
+        "sha256": "9bec5ad94a8821e5e8f32c230f0535f1d4985aaface9624851b7f031b808115b"
+      },
+      {
+        "path": "dist/index.js",
+        "sha256": "bcf6007ab0a1d5c83bdc9e6f482687a1e1a9bb33aa5a8e1147cd128b7fca1e90"
+      },
+      {
+        "path": "dist/index.js.map",
+        "sha256": "81a8d608296a8770b99e42f0b79e04ceca86081835198748edeec089db916c67"
+      },
+      {
+        "path": "package.json",
+        "sha256": "c221b40dc0ee09e25838f8678453cec5a592fde8355aec340eb14d5676266897"
+      },
+      {
+        "path": "src/index.ts",
+        "sha256": "d7211ff16b02eae8334dd9df03a68b66d0ed89d1bffd964744f23f3dd53663af"
+      }
+    ]
+  },
+  "signature": "AlAqrx0RF+PZM6ZoxLc2vKC/1c2l5l5GS7drgMM/1BApGsyKClOnswSOo5vxtlcsa0k66ruW6i0dUzZDSnFlDA=="
+}

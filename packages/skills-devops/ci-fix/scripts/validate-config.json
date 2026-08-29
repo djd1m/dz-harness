@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ci-fix config validator",
+  "description": "Validates configuration inputs for the ci-fix skill",
+  "type": "object",
+  "properties": {
+    "ci_log": {
+      "type": "string",
+      "description": "Raw CI log output or URL to CI run"
+    },
+    "ci_run_url": {
+      "type": "string",
+      "pattern": "^https://",
+      "description": "URL to the failed CI run (GitHub Actions, GitLab CI, etc.)"
+    },
+    "pr_number": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "PR number with failing checks"
+    },
+    "ci_system": {
+      "type": "string",
+      "enum": ["github-actions", "gitlab-ci", "jenkins", "circleci", "travis", "auto"],
+      "default": "auto",
+      "description": "CI system in use; auto detects from repo config"
+    },
+    "failure_type_hint": {
+      "type": "string",
+      "enum": ["build", "test", "lint", "deploy", "infra", "unknown"],
+      "description": "Optional hint about what kind of failure to look for"
+    },
+    "check_main_status": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to check if main branch CI is also failing"
+    }
+  },
+  "anyOf": [
+    { "required": ["ci_log"] },
+    { "required": ["ci_run_url"] },
+    { "required": ["pr_number"] }
+  ]
+}

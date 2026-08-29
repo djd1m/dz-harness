@@ -1,0 +1,44 @@
+# agentdb-memory evaluation
+# Run: aqe eval agentdb-memory
+
+test_cases:
+  - name: "store pattern"
+    input: "Store a pattern: successfully fixed N+1 query using DataLoader"
+    expected:
+      status: success
+      operation: store
+  - name: "search patterns"
+    input: "Search for past solutions to GraphQL performance issues"
+    expected:
+      status: success
+      operation: search
+  - name: "reflexion store"
+    input: "Record that blue-green deployment worked but health check was forgotten"
+    expected:
+      status: success
+      operation: reflexion
+  - name: "reflexion recall"
+    input: "What did I learn from past deployments?"
+    expected:
+      status: success
+      operation: reflexion
+  - name: "causal edge"
+    input: "Missing index caused slow user search query"
+    expected:
+      status: success
+      operation: causal
+  - name: "causal query"
+    input: "Why is the user search endpoint slow?"
+    expected:
+      status: success
+      operation: causal
+  - name: "skill creation"
+    input: "Create a reusable skill from the DataLoader optimization pattern"
+    expected:
+      status: success
+      operation: skill
+  - name: "feedback"
+    input: "The search result about DataLoader was helpful — record positive feedback"
+    expected:
+      status: success
+      operation: feedback

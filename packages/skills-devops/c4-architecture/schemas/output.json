@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "c4-architecture output",
+  "description": "Structured output from the c4-architecture skill",
+  "type": "object",
+  "required": ["status", "summary", "diagrams"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "needs_more_info"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line summary of the architecture documented"
+    },
+    "system_name": {
+      "type": "string",
+      "description": "Name of the system being diagrammed"
+    },
+    "format": {
+      "type": "string",
+      "enum": ["mermaid", "plantuml", "structurizr"],
+      "description": "Output diagram format"
+    },
+    "diagrams": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["level", "title", "content"],
+        "properties": {
+          "level": {
+            "type": "string",
+            "enum": ["context", "container", "component", "code"],
+            "description": "C4 diagram level"
+          },
+          "title": {
+            "type": "string",
+            "description": "Diagram title"
+          },
+          "content": {
+            "type": "string",
+            "description": "Diagram source code in the chosen format"
+          },
+          "element_count": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of elements in the diagram"
+          },
+          "relationship_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of relationships in the diagram"
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "consistency": {
+      "type": "object",
+      "properties": {
+        "valid": {
+          "type": "boolean",
+          "description": "Whether all diagrams are consistent across levels"
+        },
+        "issues": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of consistency issues found"
+        }
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "topic": {
+            "type": "string",
+            "description": "What was decided"
+          },
+          "rationale": {
+            "type": "string",
+            "description": "Why this decomposition was chosen"
+          }
+        }
+      },
+      "description": "Architecture decisions documented"
+    }
+  }
+}

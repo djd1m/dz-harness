@@ -1,0 +1,109 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "skills-edu-site",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "0f47d3ca0bcf0d00d2f680b3deaa40247b05fa1ac492b0281e75adbd535fc921"
+      },
+      {
+        "path": "bin/cli.js",
+        "sha256": "a210174d6b63d053f7744757972d31acb0f4d9c59f8dacff7b62872a19ebd31a"
+      },
+      {
+        "path": "package.json",
+        "sha256": "a81db2daebbcbbd78f785628758240bd53c4e00ad2a7b54f798ac85eb9bc0752"
+      },
+      {
+        "path": "src/cli.js",
+        "sha256": "cb76fbda8e91651e8260bfb074313c2121526fe5e1adfd834bbe4a191bbe0789"
+      },
+      {
+        "path": "src/commands/doctor.js",
+        "sha256": "e9a3dd11671e0dc146dd05233886cc16c8183644f39951918a92fed12afff53b"
+      },
+      {
+        "path": "src/commands/init.js",
+        "sha256": "624690adbf9fca651de26511c5c698037ecf64054a96aef6a66d9ffc55b3bbf1"
+      },
+      {
+        "path": "src/commands/list.js",
+        "sha256": "3554cc1f761858815db6f85beaf1a2577ac4919640f1dffed826e9b3b4c7a690"
+      },
+      {
+        "path": "src/commands/remove.js",
+        "sha256": "9e89d1adbbf04446185da64b0155eed2c7e814b437be34d0804f89ddb695e13c"
+      },
+      {
+        "path": "src/commands/update.js",
+        "sha256": "02bed2a48ee85c1a3056bdc2de3d888c773fb0202e0c6d5813aff511d086b8f1"
+      },
+      {
+        "path": "src/utils.js",
+        "sha256": "79a28b98fb29506cb0f38295916b1d7fb763ccd888c436384c90d6162a1696b7"
+      },
+      {
+        "path": "templates/.claude/skills/edu-site-generator/SKILL.md",
+        "sha256": "c999b07ed76c289e1433cfea0b59abd8723d9c36455f76dc2fd8a3c6cf064bcf"
+      },
+      {
+        "path": "templates/.claude/skills/edu-site-generator/examples/sample-course-structure.md",
+        "sha256": "316c0b881fea61cc2d63f8ba727fdc86ae3edc96140791f6158cc3bfc5b61df8"
+      },
+      {
+        "path": "templates/.claude/skills/edu-site-generator/modules/00-content-analysis.md",
+        "sha256": "6a31b5a4d9e5bb0cbbd834fc823740cc9674cee95ff6cc09f4649921f77c9652"
+      },
+      {
+        "path": "templates/.claude/skills/edu-site-generator/modules/01-course-structure.md",
+        "sha256": "ef9d6c46c7217a60628cf6ffdc3a7cbdb4caf3cc822f1523dba4b92372a5d36e"
+      },
+      {
+        "path": "templates/.claude/skills/edu-site-generator/modules/02-data-generation.md",
+        "sha256": "5f65ed75ffcb978b7310ee3764bf117cc65693001a72895cfe25126265111489"
+      },
+      {
+        "path": "templates/.claude/skills/edu-site-generator/modules/03-scaffold.md",
+        "sha256": "dbf6b8905fea13f148c0f801c77f2da76ecac471c25ed97145ba20c334fd47f3"
+      },
+      {
+        "path": "templates/.claude/skills/edu-site-generator/modules/04-components.md",
+        "sha256": "e2dec347acd49e9df5a91cd6e30cbe22731d31dba5464ac277281751f7fcc39c"
+      },
+      {
+        "path": "templates/.claude/skills/edu-site-generator/modules/05-gamification.md",
+        "sha256": "ed3b80c2f84b07ef1e10aaee5d82fb991e715a8d6db7ddca68e50a3977dc7a45"
+      },
+      {
+        "path": "templates/.claude/skills/edu-site-generator/modules/06-deploy.md",
+        "sha256": "d26453077076ef454993bb616230e73076b7be672c322d8f2113073602dbe7aa"
+      },
+      {
+        "path": "templates/.claude/skills/edu-site-generator/modules/07-verification.md",
+        "sha256": "4e40aa296081d9c07b0c1d59bab01731b053615381ec12191f33a140686c6f0b"
+      },
+      {
+        "path": "templates/.claude/skills/edu-site-generator/references/component-templates.md",
+        "sha256": "12a2f418785cca2f31ea73db98484d4c725cf2d06514454f2f81188f6f95221b"
+      },
+      {
+        "path": "templates/.claude/skills/edu-site-generator/references/data-schemas.md",
+        "sha256": "4e6311df1eb5363ca82d9238e3cdb96f959db241618344df02e4c108008ac61f"
+      },
+      {
+        "path": "templates/.claude/skills/edu-site-generator/references/exercise-catalog.md",
+        "sha256": "faa5ea7a79b81b5bea6efa51b0d8980595d47c1c844f53bd0e93f1e6d922cfeb"
+      },
+      {
+        "path": "templates/.claude/skills/edu-site-generator/references/tech-stack.md",
+        "sha256": "35b217de32ebc71016c4710260ab36b8a850f59602f7c8fb37f2092a39218ce8"
+      }
+    ]
+  },
+  "signature": "IXL+Wgir4jGB6M+782e7XpQ7c1DPiids5CoVpl77yBOKPzXeeVV4ZMjHQXSyEw2sRFPxIRFV+8KHPsSd9sDKDA=="
+}

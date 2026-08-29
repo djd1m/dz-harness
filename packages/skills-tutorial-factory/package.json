@@ -1,0 +1,75 @@
+{
+  "name": "@dzhechkov/skills-tutorial-factory",
+  "version": "0.4.3",
+  "description": "package-tutorial-factory — a meta-skill that turns any harness-hub package into a Head-First-style gamified edu-site learning course. Composes skills-book-digitizer (IP-safe distillation), edu-site-generator (render), and the code-skills-creator meta-factory pattern. Ships a distilled, page-anchored Head First method-KB + a deterministic zero-LLM Head-First checklist gate + an IP shingling gate.",
+  "license": "MIT",
+  "author": "dzhechko",
+  "type": "module",
+  "keywords": [
+    "agent-skills",
+    "agentskills.io",
+    "skill-pack",
+    "claude-code",
+    "meta-skill",
+    "edu-site",
+    "tutorial",
+    "head-first",
+    "gamification",
+    "pedagogy"
+  ],
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
+    "test": "node --test test/*.test.mjs",
+    "gate": "node package-tutorial-factory/scripts/headfirst-gate.mjs",
+    "extract": "node package-tutorial-factory/scripts/extract-brief.mjs",
+    "shingle": "node package-tutorial-factory/scripts/shingling-check.mjs",
+    "render": "node package-tutorial-factory/scripts/render-site.mjs",
+    "verify-site": "node package-tutorial-factory/scripts/verify-site.mjs"
+  },
+  "files": [
+    "package-tutorial-factory/SKILL.md",
+    "package-tutorial-factory/modules/00-orchestrator.md",
+    "package-tutorial-factory/modules/01-extract-concepts.md",
+    "package-tutorial-factory/modules/02-author-course.md",
+    "package-tutorial-factory/modules/03-headfirst-gate.md",
+    "package-tutorial-factory/modules/04-brain-friendliness.md",
+    "package-tutorial-factory/modules/05-render.md",
+    "package-tutorial-factory/modules/06-verify-handoff.md",
+    "package-tutorial-factory/references/course-skeleton.md",
+    "package-tutorial-factory/references/head-first-method.md",
+    "package-tutorial-factory/references/method-to-edusite-map.md",
+    "package-tutorial-factory/scripts/app.src.js",
+    "package-tutorial-factory/scripts/brain-friendliness-prompt.mjs",
+    "package-tutorial-factory/scripts/course-schema.mjs",
+    "package-tutorial-factory/scripts/extract-brief.mjs",
+    "package-tutorial-factory/scripts/headfirst-gate.mjs",
+    "package-tutorial-factory/scripts/render-site.mjs",
+    "package-tutorial-factory/scripts/shingling-check.mjs",
+    "package-tutorial-factory/scripts/verify-site.mjs",
+    "test/_fixtures.mjs",
+    "test/extract-brief.test.mjs",
+    "test/factory-authoring.test.mjs",
+    "test/fixtures/synthetic-corpus/chunk-001.md",
+    "test/headfirst-gate.test.mjs",
+    "test/honest-scope.test.mjs",
+    "test/ip-shingling.test.mjs",
+    "test/render-site.test.mjs",
+    "package.json",
+    "README.md",
+    "LICENSE",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/skills-tutorial-factory"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-tutorial-factory#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness-hub/issues"
+  }
+}

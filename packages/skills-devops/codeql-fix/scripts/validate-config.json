@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "codeql-fix config validator",
+  "description": "Validates configuration inputs for the codeql-fix skill",
+  "type": "object",
+  "properties": {
+    "finding_text": {
+      "type": "string",
+      "description": "Raw finding text from the static analysis tool"
+    },
+    "alert_url": {
+      "type": "string",
+      "pattern": "^https://",
+      "description": "URL to the alert in GitHub Security, Snyk dashboard, etc."
+    },
+    "rule_id": {
+      "type": "string",
+      "description": "Specific rule ID to look for (e.g., js/sql-injection)"
+    },
+    "tool": {
+      "type": "string",
+      "enum": ["codeql", "semgrep", "snyk", "sonarcloud", "sonarqube", "bandit", "auto"],
+      "default": "auto",
+      "description": "Which scanner produced the finding; auto detects from text"
+    },
+    "file": {
+      "type": "string",
+      "description": "File path where the finding was flagged"
+    },
+    "line": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Line number of the flagged code"
+    },
+    "batch_mode": {
+      "type": "boolean",
+      "default": false,
+      "description": "Process multiple findings from the same tool at once"
+    }
+  },
+  "anyOf": [
+    { "required": ["finding_text"] },
+    { "required": ["alert_url"] },
+    { "required": ["rule_id", "file"] }
+  ]
+}

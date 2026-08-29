@@ -1,0 +1,30 @@
+{
+  "schema": "../schemas/output.json",
+  "rules": [
+    {
+      "id": "CW-001",
+      "description": "Context usage after management must be lower than before",
+      "path": "context_after_pct",
+      "condition": "<",
+      "compare_path": "context_before_pct",
+      "severity": "error"
+    },
+    {
+      "id": "CW-002",
+      "description": "Essential context must be verified as preserved",
+      "path": "essential_context_preserved",
+      "condition": "==",
+      "value": true,
+      "severity": "error"
+    },
+    {
+      "id": "CW-003",
+      "description": "Checkpoint-restore must produce a checkpoint file path",
+      "path": "checkpoint_path",
+      "condition": "exists_when",
+      "when_path": "strategy_applied",
+      "when_value": "checkpoint-restore",
+      "severity": "error"
+    }
+  ]
+}

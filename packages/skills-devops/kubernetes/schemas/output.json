@@ -1,0 +1,354 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "kubernetes output",
+  "description": "Structured output from the kubernetes skill",
+  "type": "object",
+  "required": ["status", "summary", "workload_type", "scope"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "needs_more_info"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line summary of what was designed, reviewed, or recommended"
+    },
+    "workload_type": {
+      "type": "string",
+      "enum": ["deployment", "statefulset", "daemonset", "job", "cronjob", "mixed"],
+      "description": "Primary workload controller used or recommended"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "new_deployment",
+        "manifest_review",
+        "helm_chart",
+        "scaling",
+        "networking",
+        "security_hardening",
+        "storage",
+        "debugging",
+        "gitops",
+        "production_readiness",
+        "troubleshooting"
+      ],
+      "description": "Primary scope of the task"
+    },
+    "cluster_provider": {
+      "type": "string",
+      "enum": ["eks", "gke", "aks", "self-managed", "k3s", "kind", "minikube", "other"],
+      "description": "Kubernetes cluster provider"
+    },
+    "namespace": {
+      "type": "string",
+      "description": "Target namespace for the workload"
+    },
+    "manifests": {
+      "type": "object",
+      "properties": {
+        "resources_created": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of Kubernetes resource kinds created (e.g., Deployment, Service, Ingress)"
+        },
+        "resources_reviewed": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of Kubernetes resource kinds reviewed"
+        },
+        "namespaces": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Namespaces involved in the deployment"
+        }
+      }
+    },
+    "resource_config": {
+      "type": "object",
+      "properties": {
+        "requests_set": {
+          "type": "boolean",
+          "description": "Whether resource requests are defined on all containers"
+        },
+        "limits_set": {
+          "type": "boolean",
+          "description": "Whether resource limits are defined on all containers"
+        },
+        "hpa_enabled": {
+          "type": "boolean",
+          "description": "Whether HPA is configured"
+        },
+        "vpa_enabled": {
+          "type": "boolean",
+          "description": "Whether VPA is configured"
+        },
+        "pdb_configured": {
+          "type": "boolean",
+          "description": "Whether a PodDisruptionBudget is in place"
+        }
+      }
+    },
+    "health_checks": {
+      "type": "object",
+      "properties": {
+        "liveness_probe": {
+          "type": "boolean",
+          "description": "Whether livenessProbe is configured"
+        },
+        "readiness_probe": {
+          "type": "boolean",
+          "description": "Whether readinessProbe is configured"
+        },
+        "startup_probe": {
+          "type": "boolean",
+          "description": "Whether startupProbe is configured"
+        },
+        "probe_types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["httpGet", "tcpSocket", "exec"]
+          },
+          "description": "Types of probes used"
+        }
+      }
+    },
+    "networking": {
+      "type": "object",
+      "properties": {
+        "service_type": {
+          "type": "string",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer", "ExternalName", "Headless"],
+          "description": "Service type used"
+        },
+        "ingress_controller": {
+          "type": "string",
+          "enum": ["nginx", "traefik", "alb", "istio", "none"],
+          "description": "Ingress controller used"
+        },
+        "tls_enabled": {
+          "type": "boolean",
+          "description": "Whether TLS is configured on Ingress"
+        },
+        "network_policy_applied": {
+          "type": "boolean",
+          "description": "Whether NetworkPolicy resources are defined"
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "properties": {
+        "runs_as_non_root": {
+          "type": "boolean",
+          "description": "Whether runAsNonRoot is set"
+        },
+        "read_only_root_fs": {
+          "type": "boolean",
+          "description": "Whether readOnlyRootFilesystem is set"
+        },
+        "capabilities_dropped": {
+          "type": "boolean",
+          "description": "Whether all capabilities are dropped"
+        },
+        "dedicated_service_account": {
+          "type": "boolean",
+          "description": "Whether a dedicated ServiceAccount is used (not default)"
+        },
+        "pod_security_standard": {
+          "type": "string",
+          "enum": ["privileged", "baseline", "restricted", "not_set"],
+          "description": "PodSecurity standard level applied to the namespace"
+        },
+        "secrets_management": {
+          "type": "string",
+          "enum": ["sealed-secrets", "external-secrets", "vault", "sops", "plain", "none"],
+          "description": "Secret management approach"
+        },
+        "rbac_configured": {
+          "type": "boolean",
+          "description": "Whether RBAC roles and bindings are defined"
+        }
+      }
+    },
+    "storage": {
+      "type": "object",
+      "properties": {
+        "pvc_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of PersistentVolumeClaims"
+        },
+        "storage_class": {
+          "type": "string",
+          "description": "StorageClass used"
+        },
+        "reclaim_policy": {
+          "type": "string",
+          "enum": ["Retain", "Delete", "Recycle"],
+          "description": "Volume reclaim policy"
+        },
+        "volume_expansion_enabled": {
+          "type": "boolean",
+          "description": "Whether volume expansion is allowed"
+        }
+      }
+    },
+    "helm": {
+      "type": "object",
+      "properties": {
+        "chart_name": {
+          "type": "string",
+          "description": "Helm chart name"
+        },
+        "chart_version": {
+          "type": "string",
+          "description": "Helm chart version"
+        },
+        "dependencies": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Helm chart dependencies"
+        },
+        "hooks_used": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Helm hooks defined (e.g., pre-upgrade, post-install)"
+        }
+      }
+    },
+    "scaling": {
+      "type": "object",
+      "properties": {
+        "min_replicas": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Minimum replica count"
+        },
+        "max_replicas": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum replica count"
+        },
+        "scaling_metrics": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Metrics used for autoscaling (e.g., cpu, memory, custom)"
+        },
+        "keda_enabled": {
+          "type": "boolean",
+          "description": "Whether KEDA is used for event-driven scaling"
+        }
+      }
+    },
+    "gitops": {
+      "type": "object",
+      "properties": {
+        "tool": {
+          "type": "string",
+          "enum": ["argocd", "flux", "none"],
+          "description": "GitOps tool used"
+        },
+        "auto_sync": {
+          "type": "boolean",
+          "description": "Whether auto-sync is enabled"
+        },
+        "self_heal": {
+          "type": "boolean",
+          "description": "Whether self-heal is enabled"
+        },
+        "prune": {
+          "type": "boolean",
+          "description": "Whether prune is enabled"
+        }
+      }
+    },
+    "debugging_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["symptom", "cause", "resolution"],
+        "properties": {
+          "symptom": {
+            "type": "string",
+            "description": "Observed symptom (e.g., CrashLoopBackOff, OOMKilled)"
+          },
+          "cause": {
+            "type": "string",
+            "description": "Root cause identified"
+          },
+          "resolution": {
+            "type": "string",
+            "description": "Steps taken or recommended to resolve"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "high", "medium", "low"]
+          }
+        }
+      }
+    },
+    "security_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "finding", "recommendation"],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "high", "medium", "low", "info"]
+          },
+          "finding": {
+            "type": "string",
+            "description": "What was found"
+          },
+          "recommendation": {
+            "type": "string",
+            "description": "How to fix it"
+          },
+          "resource": {
+            "type": "string",
+            "description": "Kubernetes resource affected (e.g., Deployment/myapp)"
+          }
+        }
+      }
+    },
+    "anti_patterns_found": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Anti-patterns identified in the reviewed configuration"
+    },
+    "self_check": {
+      "type": "object",
+      "properties": {
+        "passed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 16,
+          "description": "Number of self-check items passing"
+        },
+        "total": {
+          "type": "integer",
+          "const": 16,
+          "description": "Total self-check items"
+        },
+        "failures": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Self-check items that did not pass"
+        }
+      }
+    },
+    "files_created": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of files created or modified"
+    },
+    "next_steps": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Recommended next actions"
+    }
+  }
+}

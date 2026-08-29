@@ -1,0 +1,288 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "github-actions output",
+  "description": "Structured output from the github-actions skill",
+  "type": "object",
+  "required": ["status", "summary", "scope"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "needs_more_info"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line summary of what was designed, reviewed, or recommended"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "new_workflow",
+        "workflow_review",
+        "matrix_builds",
+        "caching",
+        "secrets_config",
+        "artifacts",
+        "reusable_workflows",
+        "security_hardening",
+        "release_pipeline",
+        "scheduled_jobs",
+        "performance",
+        "troubleshooting"
+      ],
+      "description": "Primary scope of the task"
+    },
+    "trigger_types": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "push",
+          "pull_request",
+          "pull_request_target",
+          "schedule",
+          "workflow_dispatch",
+          "workflow_call",
+          "release",
+          "repository_dispatch",
+          "workflow_run"
+        ]
+      },
+      "description": "Workflow trigger types used or recommended"
+    },
+    "runner_type": {
+      "type": "string",
+      "enum": ["ubuntu-latest", "macos-latest", "windows-latest", "larger-runner", "self-hosted", "mixed"],
+      "description": "Runner type used or recommended"
+    },
+    "jobs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Job identifier"
+          },
+          "needs": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Job dependencies"
+          },
+          "runner": {
+            "type": "string",
+            "description": "Runner label for this job"
+          },
+          "timeout_minutes": {
+            "type": "integer",
+            "description": "Timeout in minutes"
+          },
+          "has_matrix": {
+            "type": "boolean",
+            "description": "Whether this job uses a matrix strategy"
+          },
+          "environment": {
+            "type": "string",
+            "description": "GitHub environment (if deploy job)"
+          }
+        }
+      },
+      "description": "Jobs in the workflow"
+    },
+    "matrix_config": {
+      "type": "object",
+      "properties": {
+        "dimensions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Matrix dimension names (e.g., os, node, python)"
+        },
+        "total_combinations": {
+          "type": "integer",
+          "description": "Total number of matrix combinations"
+        },
+        "fail_fast": {
+          "type": "boolean",
+          "description": "Whether fail-fast is enabled"
+        },
+        "max_parallel": {
+          "type": "integer",
+          "description": "Max parallel jobs"
+        }
+      }
+    },
+    "caching_strategy": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": ["setup-action-builtin", "actions-cache", "docker-gha", "none"],
+          "description": "Primary caching method"
+        },
+        "cache_keys_use_hashfiles": {
+          "type": "boolean",
+          "description": "Whether cache keys use hashFiles() for lockfile"
+        },
+        "restore_keys_defined": {
+          "type": "boolean",
+          "description": "Whether fallback restore-keys are defined"
+        }
+      }
+    },
+    "secrets_config": {
+      "type": "object",
+      "properties": {
+        "uses_oidc": {
+          "type": "boolean",
+          "description": "Whether OIDC is used for cloud auth"
+        },
+        "cloud_provider": {
+          "type": "string",
+          "enum": ["aws", "gcp", "azure", "none"],
+          "description": "Cloud provider for OIDC auth"
+        },
+        "uses_environments": {
+          "type": "boolean",
+          "description": "Whether GitHub environments are used"
+        },
+        "secrets_passed_via_env": {
+          "type": "boolean",
+          "description": "Whether secrets are passed via env blocks (not interpolated in run)"
+        }
+      }
+    },
+    "security_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "finding", "recommendation"],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "high", "medium", "low", "info"]
+          },
+          "finding": {
+            "type": "string",
+            "description": "What was found"
+          },
+          "recommendation": {
+            "type": "string",
+            "description": "How to fix it"
+          },
+          "line": {
+            "type": "integer",
+            "description": "Line number in the workflow file"
+          }
+        }
+      }
+    },
+    "actions_used": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "Action reference (e.g., actions/checkout)"
+          },
+          "pinned_to_sha": {
+            "type": "boolean",
+            "description": "Whether the action is pinned to a commit SHA"
+          },
+          "version_comment": {
+            "type": "string",
+            "description": "Version tag recorded in comment"
+          }
+        }
+      },
+      "description": "Third-party actions referenced in the workflow"
+    },
+    "permissions_declared": {
+      "type": "object",
+      "properties": {
+        "workflow_level": {
+          "type": "boolean",
+          "description": "Whether permissions are declared at workflow level"
+        },
+        "scopes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Permission scopes granted (e.g., contents:read, pull-requests:write)"
+        },
+        "least_privilege": {
+          "type": "boolean",
+          "description": "Whether the permissions follow least-privilege principle"
+        }
+      }
+    },
+    "concurrency_config": {
+      "type": "object",
+      "properties": {
+        "group_defined": {
+          "type": "boolean",
+          "description": "Whether a concurrency group is defined"
+        },
+        "cancel_in_progress": {
+          "type": "boolean",
+          "description": "Whether cancel-in-progress is enabled"
+        }
+      }
+    },
+    "reusable_workflow": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["workflow_call", "composite_action", "none"],
+          "description": "Type of reusable component"
+        },
+        "inputs_defined": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Input names defined"
+        },
+        "outputs_defined": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Output names defined"
+        }
+      }
+    },
+    "anti_patterns_found": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Anti-patterns identified in the reviewed workflow"
+    },
+    "self_check": {
+      "type": "object",
+      "properties": {
+        "passed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 12,
+          "description": "Number of self-check items passing"
+        },
+        "total": {
+          "type": "integer",
+          "const": 12,
+          "description": "Total self-check items"
+        },
+        "failures": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Self-check items that did not pass"
+        }
+      }
+    },
+    "files_created": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Workflow files created or modified"
+    },
+    "next_steps": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Recommended next actions"
+    }
+  }
+}

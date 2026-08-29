@@ -1,0 +1,61 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "harness-presets",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "332b33eef10ee5860b6d71d656c6f5711c14427cf05250765279ddcc77e9d1c7"
+      },
+      {
+        "path": "dist/index.d.ts",
+        "sha256": "97e0535b5af2432765a0b1e92220692cdcfd105f29ceb2cfed96df23bc68b61a"
+      },
+      {
+        "path": "dist/index.d.ts.map",
+        "sha256": "c2aae3a1bfe9924ca97bdddb3d4b0bdd528d34d11bbffe2d761380796a5c03f0"
+      },
+      {
+        "path": "dist/index.js",
+        "sha256": "acb5bf4d9c678a0a9b324512dd458774004cd5b1c43927f3906bbb36a25c8a64"
+      },
+      {
+        "path": "dist/index.js.map",
+        "sha256": "3b2c2a34215f8e17ef93c80021dd4e8abee67e21b143d89383a23a307169871d"
+      },
+      {
+        "path": "dist/presets.d.ts",
+        "sha256": "038d99cc4f57bbb3f71f6862be0c071f58aefa6f38b2d7438284c095f3000541"
+      },
+      {
+        "path": "dist/presets.d.ts.map",
+        "sha256": "909b0d85d60919fdd0eb2654fbb31f53b6c79ba0c65b1a860c0ea508acd64223"
+      },
+      {
+        "path": "dist/presets.js",
+        "sha256": "581fd519ca85499cacdd554264be77283c7ea54a56ab30568c4d86644c6638ea"
+      },
+      {
+        "path": "dist/presets.js.map",
+        "sha256": "6732ee86108db03863b891104a01e41c3ec424c93eab0b2c9c5f055818385bfa"
+      },
+      {
+        "path": "package.json",
+        "sha256": "a57f10d1e4dd0bc4b216384f7f5e43a584966b3bce41ae4012553e0afa49c9a2"
+      },
+      {
+        "path": "src/index.ts",
+        "sha256": "d707601eabe89c1133d11efb3a2ab1cce2934f7f67e95b6597e00dfc3b7b9ddb"
+      },
+      {
+        "path": "src/presets.ts",
+        "sha256": "bbc22a241b88bbc9e81a6210c84eee2cabd1d602de805e494443132db1a4f377"
+      }
+    ]
+  },
+  "signature": "9Un0r1NwJC4p6IEev5QxJcyPhqgDQ/ZfOf7Lxf1HaR9N5HCKFdXX80CRm1S1/xZVCs7GHDxpk6iBZeRMiWu0Bw=="
+}

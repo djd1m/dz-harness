@@ -1,0 +1,19 @@
+{
+  "_note": "Per ADR-0001: clone-website is an IMPORTED skill (MIT), canonicalized into this pack. No bundled sub-skills. It has hard runtime prerequisites (browser-MCP + a Next.js/shadcn/Tailwind scaffold) — see optional_deps. Re-sync with `dz sync-upstream`.",
+  "skills": {
+    "clone-website": {
+      "origin": "imported",
+      "license": "MIT",
+      "upstream": "https://github.com/JCodesMore/ai-website-cloner-template",
+      "upstream_path": ".claude/skills/clone-website/SKILL.md",
+      "attribution": "JCodesMore — ai-website-cloner-template (MIT)",
+      "canonical_pack": "@dzhechkov/skills-website-cloner",
+      "adaptations": "Core instructions preserved verbatim. Added trust_tier + agentskills.io section anchors (When To Use, Procedure overview, retitled 'What NOT to Do' → 'Anti-Patterns / Self-Check', 'Completion' → 'Output & Completion') surfacing content already present. No schemas/evals fabricated. L0 grade B."
+    }
+  },
+  "optional_deps": {
+    "_note": "REQUIRED at runtime but provided by the environment, not bundled.",
+    "browser-mcp": { "used_in": "Reconnaissance / extraction (mandatory)", "provided_by": "qe-browser (Vibium) → @dzhechkov/skills-qe, or browser-qa → @dzhechkov/skills-ecc, or any Chrome/Playwright/Browserbase MCP" },
+    "nextjs-scaffold": { "used_in": "Build target (mandatory)", "provided_by": "user-provided Next.js 16 + React 19 + Tailwind v4 + shadcn/ui project" }
+  }
+}

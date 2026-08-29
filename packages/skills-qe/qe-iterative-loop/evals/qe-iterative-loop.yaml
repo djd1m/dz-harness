@@ -1,0 +1,66 @@
+skill: qe-iterative-loop
+version: 1.0.0
+description: >
+  Evaluation suite for the qe-iterative-loop skill. Tests the autonomous
+  red-green-refactor loop: fixing failing tests, reaching a coverage target,
+  satisfying quality gates, and stabilizing flaky tests — while converging
+  (not looping forever) and never weakening tests to force a pass.
+
+models_to_test:
+  - claude-3.5-sonnet
+  - claude-3-haiku
+
+mcp_integration:
+  enabled: true
+  namespace: skill-validation
+  query_patterns: true
+  track_outcomes: true
+  store_patterns: true
+  target_agents:
+    - qe-learning-coordinator
+    - qe-iterative-loop-runner
+
+learning:
+  store_success_patterns: true
+  store_failure_patterns: true
+  pattern_ttl_days: 90
+  min_confidence_to_store: 0.7
+
+result_format:
+  json_output: true
+  include_timing: true
+  include_token_usage: true
+
+scenarios:
+  - id: QIL-1
+    name: Red -> Green
+    input: A failing unit test and the production code it exercises.
+    expect:
+      - The loop makes the test pass by fixing the production code, NOT by
+        deleting/weakening the test or asserting trivially.
+      - Other tests still pass after the change (no regression).
+
+  - id: QIL-2
+    name: Coverage target
+    input: A module at 60% coverage with a target of 80%.
+    expect:
+      - New tests are added for genuinely uncovered branches/paths.
+      - Coverage rises to or above the target; no .skip()/.only() introduced.
+
+  - id: QIL-3
+    name: Convergence / no infinite loop
+    input: A scenario that cannot reach the target within the iteration budget.
+    expect:
+      - The loop stops at the iteration cap and reports remaining gaps honestly,
+        rather than looping forever or claiming false success.
+
+  - id: QIL-4
+    name: Flaky stabilization
+    input: A test that passes intermittently (timing/order dependence).
+    expect:
+      - Root cause is diagnosed (not retried-until-green); the fix removes the
+        nondeterminism.
+
+pass_criteria:
+  - Tests are made to pass by fixing code, never by weakening assertions.
+  - The loop converges and reports honestly when a target is unreachable.

@@ -1,0 +1,20 @@
+{
+  "schema": "../schemas/output.json",
+  "rules": [
+    {
+      "id": "AS-001",
+      "description": "Grade must be assigned",
+      "path": "grade",
+      "condition": "exists",
+      "severity": "error"
+    },
+    {
+      "id": "AS-002",
+      "description": "No critical findings for pass recommendation",
+      "path": "findings_count.critical",
+      "condition": "==",
+      "value": 0,
+      "severity": "error"
+    }
+  ]
+}

@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "terraform config validator",
+  "description": "Validates configuration inputs for the terraform skill",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "new_project",
+        "module_design",
+        "state_management",
+        "security_review",
+        "ci_cd_setup",
+        "import_migration",
+        "drift_detection",
+        "code_review",
+        "troubleshooting"
+      ],
+      "description": "Primary task to perform"
+    },
+    "runtime": {
+      "type": "string",
+      "enum": ["terraform", "opentofu", "pulumi", "cloudformation", "auto"],
+      "default": "auto",
+      "description": "IaC runtime; auto detects from repo files"
+    },
+    "cloud_provider": {
+      "type": "string",
+      "enum": ["aws", "gcp", "azure", "multi-cloud"],
+      "default": "aws",
+      "description": "Target cloud provider"
+    },
+    "environment": {
+      "type": "string",
+      "enum": ["dev", "staging", "prod", "all"],
+      "default": "all",
+      "description": "Target environment for the operation"
+    },
+    "terraform_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Terraform version constraint (e.g., 1.7.0)"
+    },
+    "backend_type": {
+      "type": "string",
+      "enum": ["s3", "gcs", "azurerm", "terraform_cloud", "consul", "local"],
+      "default": "s3",
+      "description": "Remote state backend type"
+    },
+    "existing_code_path": {
+      "type": "string",
+      "description": "Path to existing Terraform code for review or migration"
+    },
+    "import_resources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["resource_type", "resource_id"],
+        "properties": {
+          "resource_type": {
+            "type": "string",
+            "description": "Terraform resource type (e.g., aws_instance)"
+          },
+          "resource_id": {
+            "type": "string",
+            "description": "Cloud resource ID to import"
+          },
+          "target_address": {
+            "type": "string",
+            "description": "Terraform address to import into (e.g., module.compute.aws_instance.main)"
+          }
+        }
+      },
+      "description": "Resources to import into Terraform state"
+    },
+    "security_scan_tool": {
+      "type": "string",
+      "enum": ["tfsec", "checkov", "trivy", "all"],
+      "default": "all",
+      "description": "Security scanning tool to use"
+    },
+    "enable_cost_estimation": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to include Infracost cost estimation in CI/CD"
+    },
+    "enable_drift_detection": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to set up scheduled drift detection"
+    },
+    "modules_to_create": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Names of Terraform modules to scaffold (e.g., networking, compute, database)"
+    },
+    "state_locking": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to enable state locking"
+    },
+    "state_encryption": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to enable state encryption at rest"
+    }
+  },
+  "anyOf": [
+    { "required": ["task"] },
+    { "required": ["existing_code_path"] }
+  ]
+}

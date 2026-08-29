@@ -1,0 +1,146 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HydrexSkillOutput",
+  "description": "Output schema for Hydrex liquidity governance on Base skill",
+  "type": "object",
+  "required": ["action", "result"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "lock",
+        "extend_lock",
+        "increase_lock",
+        "unlock",
+        "vote",
+        "deposit_vault",
+        "withdraw_vault",
+        "claim_rewards",
+        "exercise_ohydx",
+        "list_pools",
+        "get_pool",
+        "optimize_votes"
+      ],
+      "description": "The Hydrex governance action performed"
+    },
+    "result": {
+      "type": "object",
+      "properties": {
+        "success": { "type": "boolean" },
+        "data": {
+          "oneOf": [
+            { "$ref": "#/definitions/LockResult" },
+            { "$ref": "#/definitions/VoteResult" },
+            { "$ref": "#/definitions/VaultResult" },
+            { "$ref": "#/definitions/RewardsResult" },
+            { "$ref": "#/definitions/PoolsResult" },
+            { "$ref": "#/definitions/OptimizationResult" }
+          ]
+        },
+        "txHash": { "type": "string" },
+        "error": {
+          "type": "object",
+          "properties": {
+            "code": { "type": "string" },
+            "message": { "type": "string" }
+          }
+        }
+      },
+      "required": ["success"]
+    }
+  },
+  "definitions": {
+    "LockResult": {
+      "type": "object",
+      "properties": {
+        "hydxLocked": { "type": "string", "description": "Amount of HYDX locked" },
+        "veHydxBalance": { "type": "string", "description": "Resulting veHYDX balance" },
+        "lockEnd": { "type": "string", "format": "date-time" },
+        "lockDurationWeeks": { "type": "integer" },
+        "earningMultiplier": { "type": "number", "const": 1.3 }
+      },
+      "required": ["hydxLocked", "veHydxBalance", "lockEnd"]
+    },
+    "VoteResult": {
+      "type": "object",
+      "properties": {
+        "epoch": { "type": "integer" },
+        "votes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "pool": { "type": "string" },
+              "weight": { "type": "integer", "minimum": 0, "maximum": 10000, "description": "Weight in basis points" }
+            },
+            "required": ["pool", "weight"]
+          }
+        },
+        "totalWeight": { "type": "integer", "const": 10000 }
+      },
+      "required": ["epoch", "votes", "totalWeight"]
+    },
+    "VaultResult": {
+      "type": "object",
+      "properties": {
+        "vaultAddress": { "type": "string" },
+        "depositToken": { "type": "string" },
+        "amount": { "type": "string" },
+        "shares": { "type": "string" },
+        "currentApy": { "type": "number" }
+      }
+    },
+    "RewardsResult": {
+      "type": "object",
+      "properties": {
+        "oHydxClaimed": { "type": "string" },
+        "oHydxExercised": { "type": "string" },
+        "hydxReceived": { "type": "string" },
+        "exercisePrice": { "type": "string" },
+        "discount": { "type": "number" }
+      }
+    },
+    "PoolsResult": {
+      "type": "object",
+      "properties": {
+        "pools": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "address": { "type": "string" },
+              "token0": { "type": "object" },
+              "token1": { "type": "object" },
+              "tvl": { "type": "string" },
+              "baseApy": { "type": "number" },
+              "boostedApy": { "type": "number" },
+              "volume24h": { "type": "string" },
+              "fees24h": { "type": "string" },
+              "voteWeight": { "type": "integer" },
+              "incentives": { "type": "array", "items": { "type": "object" } }
+            }
+          }
+        }
+      }
+    },
+    "OptimizationResult": {
+      "type": "object",
+      "properties": {
+        "strategy": { "type": "string", "enum": ["yield_maximizer", "tvl_growth", "fee_revenue", "diversified", "mercenary"] },
+        "recommendedVotes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "pool": { "type": "string" },
+              "weight": { "type": "integer" },
+              "score": { "type": "number" },
+              "expectedApy": { "type": "number" }
+            }
+          }
+        },
+        "totalExpectedApy": { "type": "number" }
+      }
+    }
+  }
+}

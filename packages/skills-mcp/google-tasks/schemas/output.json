@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "google-tasks skill output",
+  "description": "Validated output schema for the google-tasks MCP wrapper skill.",
+  "type": "object",
+  "required": ["tool", "status"],
+  "properties": {
+    "tool": {
+      "type": "string",
+      "enum": [
+        "list_task_lists",
+        "list_tasks",
+        "create_task",
+        "update_task",
+        "complete_task",
+        "delete_task",
+        "move_task"
+      ],
+      "description": "The MCP tool that was invoked."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["success", "error"],
+      "description": "Outcome of the tool invocation."
+    },
+    "data": {
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "TaskListsResponse",
+          "properties": {
+            "taskLists": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "title"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "title": { "type": "string" },
+                  "updated": { "type": "string", "format": "date-time" }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "title": "TasksResponse",
+          "properties": {
+            "tasks": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "title", "status"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "title": { "type": "string" },
+                  "notes": { "type": "string" },
+                  "status": {
+                    "type": "string",
+                    "enum": ["needsAction", "completed"]
+                  },
+                  "due": { "type": "string", "format": "date-time" },
+                  "completed": { "type": "string", "format": "date-time" },
+                  "parent": { "type": "string" },
+                  "position": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "title": "SingleTaskResponse",
+          "properties": {
+            "task": {
+              "type": "object",
+              "required": ["id", "title", "status"],
+              "properties": {
+                "id": { "type": "string" },
+                "title": { "type": "string" },
+                "notes": { "type": "string" },
+                "status": {
+                  "type": "string",
+                  "enum": ["needsAction", "completed"]
+                },
+                "due": { "type": "string", "format": "date-time" },
+                "completed": { "type": "string", "format": "date-time" }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "title": "DeleteResponse",
+          "properties": {
+            "deleted": { "type": "boolean" },
+            "taskId": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

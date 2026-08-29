@@ -1,0 +1,35 @@
+skill: 12factor-port-binding
+
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+# All are about how a service is EXPORTED / becomes reachable — the app binding its own port and
+# carrying its own webserver, vs being hosted inside an injected server container; plus non-HTTP
+# port binding and one app being reachable by another as a backing service.
+positives:
+  - "нужен ли внешний Apache/Tomcat, или приложение должно само слушать порт?"
+  - "should my app embed its own webserver (Tornado/Thin/Jetty) or run inside a servlet container?"
+  - "деплою на PaaS, который даёт только роутинг — как приложение будет отдавать запросы?"
+  - "how does my app serve requests if the platform only provides a routing layer, not a webserver?"
+  - "хочу, чтобы приложение отвечало на http://localhost:<port>/ без внешнего сервера — как?"
+  - "expose a non-HTTP daemon (XMPP/ejabberd or a Redis-style service) by binding a port"
+  - "we want service B to reach service A as a dependency through A's URL — how do we export A?"
+  - "make the app self-contained so I hand the env only app+deps and it still answers on its port"
+
+# Hard negatives: prompts a naive keyword match ("port", "url", "service", "connect", "config")
+# would wrongly route here, but that actually belong to a sibling 12factor- skill or another skill.
+negatives:
+  - prompt: "как подключиться к базе данных — захардкодить connection string или вынести в config?"
+    should_activate: "12factor-backing-services-as-resources"
+  - prompt: "how do I connect to the database / swap local MySQL for a managed RDS without code changes?"
+    should_activate: "12factor-backing-services-as-resources"
+  - prompt: "где хранить сами секреты и переменные окружения — в .env, vault, env vars?"
+    should_activate: "12factor-config-in-environment"
+  - prompt: "should the port number and service URL live in environment variables versus a config file?"
+    should_activate: "12factor-config-in-environment"
+  - prompt: "how do I declare and pin the webserver client libraries (npm/pip) my app depends on?"
+    should_activate: "12factor-explicit-dependencies"
+  - prompt: "где хранить сессию пользователя, чтобы процессы оставались stateless?"
+    should_activate: "12factor-stateless-processes"
+  - prompt: "make our workers start fast and shut down gracefully on SIGTERM"
+    should_activate: "12factor-disposability-fast-startup"
+  - prompt: "configure nginx as a reverse proxy with TLS termination in front of my upstreams"
+    should_activate: "nginx-config"

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Adversarial Verifier Output",
+  "description": "Structured verdict from an adversarial verification pass over a single finding",
+  "type": "object",
+  "required": ["finding", "verdict", "confidence"],
+  "properties": {
+    "finding": {
+      "type": "string",
+      "description": "The restated, falsifiable claim under verification"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["TRUE_POSITIVE", "FALSE_POSITIVE", "UNCONFIRMED", "GUARDRAIL_BLOCKED", "VERIFY_ERROR"],
+      "description": "Single verdict from the dismissal taxonomy"
+    },
+    "confidence": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "Verifier confidence in the verdict (1-10)"
+    },
+    "reachable": {
+      "type": "boolean",
+      "description": "Whether an external/lower-privileged entry point reaches the code"
+    },
+    "defended": {
+      "type": "boolean",
+      "description": "Whether an upstream control fully closes the path"
+    },
+    "impact_demonstrated": {
+      "type": "boolean",
+      "description": "Whether concrete impact (input -> sink -> effect) was shown"
+    },
+    "evidence": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Primary-source citations the verdict rests on (file:line, artifact)"
+    },
+    "votes": {
+      "type": "array",
+      "description": "Per-skeptic verdicts when N-skeptic voting is used",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lens": { "type": "string", "enum": ["reachability", "defense", "impact"] },
+          "verdict": {
+            "type": "string",
+            "enum": ["TRUE_POSITIVE", "FALSE_POSITIVE", "UNCONFIRMED", "GUARDRAIL_BLOCKED", "VERIFY_ERROR"]
+          },
+          "confidence": { "type": "integer", "minimum": 1, "maximum": 10 }
+        }
+      }
+    }
+  }
+}

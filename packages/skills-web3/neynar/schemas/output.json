@@ -1,0 +1,151 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NeynarSkillOutput",
+  "description": "Output schema for Neynar Farcaster social protocol skill",
+  "type": "object",
+  "required": ["action", "result"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "user_lookup",
+        "user_search",
+        "user_bulk_lookup",
+        "feed_user",
+        "feed_channel",
+        "feed_trending",
+        "feed_following",
+        "cast_get",
+        "cast_post",
+        "cast_delete",
+        "cast_search",
+        "reaction_add",
+        "reaction_remove",
+        "follow",
+        "unfollow"
+      ],
+      "description": "The Farcaster action that was performed"
+    },
+    "result": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "description": "Whether the operation completed successfully"
+        },
+        "data": {
+          "oneOf": [
+            { "$ref": "#/definitions/UserResult" },
+            { "$ref": "#/definitions/FeedResult" },
+            { "$ref": "#/definitions/CastResult" },
+            { "$ref": "#/definitions/ReactionResult" },
+            { "$ref": "#/definitions/FollowResult" }
+          ]
+        },
+        "error": {
+          "type": "object",
+          "properties": {
+            "code": { "type": "integer" },
+            "message": { "type": "string" }
+          }
+        }
+      },
+      "required": ["success"]
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "rateLimit": {
+          "type": "object",
+          "properties": {
+            "limit": { "type": "integer" },
+            "remaining": { "type": "integer" },
+            "reset": { "type": "integer" }
+          }
+        },
+        "cursor": {
+          "type": "string",
+          "description": "Pagination cursor for next page"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "UserResult": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "fid": { "type": "integer" },
+              "username": { "type": "string" },
+              "display_name": { "type": "string" },
+              "pfp_url": { "type": "string", "format": "uri" },
+              "follower_count": { "type": "integer" },
+              "following_count": { "type": "integer" },
+              "verified_addresses": {
+                "type": "object",
+                "properties": {
+                  "eth_addresses": { "type": "array", "items": { "type": "string" } },
+                  "sol_addresses": { "type": "array", "items": { "type": "string" } }
+                }
+              }
+            },
+            "required": ["fid", "username"]
+          }
+        }
+      }
+    },
+    "FeedResult": {
+      "type": "object",
+      "properties": {
+        "casts": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Cast" }
+        }
+      }
+    },
+    "CastResult": {
+      "type": "object",
+      "properties": {
+        "cast": { "$ref": "#/definitions/Cast" }
+      }
+    },
+    "Cast": {
+      "type": "object",
+      "properties": {
+        "hash": { "type": "string" },
+        "author_fid": { "type": "integer" },
+        "text": { "type": "string", "maxLength": 320 },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "embeds": { "type": "array", "items": { "type": "object" } },
+        "channel_id": { "type": "string" },
+        "reactions": {
+          "type": "object",
+          "properties": {
+            "likes_count": { "type": "integer" },
+            "recasts_count": { "type": "integer" }
+          }
+        },
+        "replies_count": { "type": "integer" }
+      },
+      "required": ["hash", "author_fid", "text"]
+    },
+    "ReactionResult": {
+      "type": "object",
+      "properties": {
+        "reaction_type": { "type": "string", "enum": ["like", "recast"] },
+        "target_hash": { "type": "string" }
+      }
+    },
+    "FollowResult": {
+      "type": "object",
+      "properties": {
+        "target_fids": { "type": "array", "items": { "type": "integer" } },
+        "operation": { "type": "string", "enum": ["follow", "unfollow"] }
+      }
+    }
+  }
+}

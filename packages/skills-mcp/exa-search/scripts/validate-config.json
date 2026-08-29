@@ -1,0 +1,53 @@
+{
+  "name": "exa-search",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "id": "env-check",
+      "type": "env",
+      "description": "Verify EXA_API_KEY is set",
+      "required_vars": ["EXA_API_KEY"],
+      "error_message": "EXA_API_KEY is required. Get one at https://dashboard.exa.ai"
+    },
+    {
+      "id": "api-key-format",
+      "type": "pattern",
+      "description": "Validate API key format",
+      "var": "EXA_API_KEY",
+      "pattern": "^[a-f0-9-]{36,}$",
+      "error_message": "EXA_API_KEY does not match expected UUID format"
+    },
+    {
+      "id": "hosted-endpoint-check",
+      "type": "url",
+      "description": "Verify hosted MCP endpoint is reachable",
+      "url": "https://mcp.exa.ai/mcp",
+      "method": "OPTIONS",
+      "timeout_ms": 10000,
+      "error_message": "Cannot reach Exa hosted MCP endpoint at https://mcp.exa.ai/mcp"
+    },
+    {
+      "id": "output-schema",
+      "type": "json-schema",
+      "description": "Validate tool output against schema",
+      "schema_path": "../schemas/output.json"
+    }
+  ],
+  "mcp_config": {
+    "server_name": "exa",
+    "transport": "http",
+    "url": "https://mcp.exa.ai/mcp",
+    "headers": {
+      "x-api-key": "${EXA_API_KEY}"
+    },
+    "alternative": {
+      "server_name": "exa-search",
+      "command": "npx",
+      "args": ["exa-mcp-server"],
+      "transport": "stdio",
+      "env": {
+        "EXA_API_KEY": "${EXA_API_KEY}"
+      }
+    }
+  }
+}

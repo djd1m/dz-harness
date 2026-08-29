@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "clickup skill output",
+  "description": "Validated output schema for the clickup MCP wrapper skill.",
+  "type": "object",
+  "required": ["tool", "status"],
+  "properties": {
+    "tool": {
+      "type": "string",
+      "enum": [
+        "create_task",
+        "update_task",
+        "list_tasks",
+        "add_comment",
+        "create_doc",
+        "start_timer",
+        "stop_timer",
+        "list_spaces",
+        "list_folders"
+      ],
+      "description": "The MCP tool that was invoked."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["success", "error"],
+      "description": "Outcome of the tool invocation."
+    },
+    "data": {
+      "oneOf": [
+        {
+          "type": "object",
+          "title": "TaskResponse",
+          "properties": {
+            "task": {
+              "type": "object",
+              "required": ["id", "name", "status"],
+              "properties": {
+                "id": { "type": "string" },
+                "name": { "type": "string" },
+                "description": { "type": "string" },
+                "status": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "type": { "type": "string" }
+                  }
+                },
+                "priority": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "priority": { "type": "string" }
+                  }
+                },
+                "assignees": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "username": { "type": "string" },
+                      "email": { "type": "string" }
+                    }
+                  }
+                },
+                "due_date": { "type": ["string", "null"] },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "type": "string" }
+                    }
+                  }
+                },
+                "url": { "type": "string", "format": "uri" }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "title": "TaskListResponse",
+          "properties": {
+            "tasks": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "name"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "name": { "type": "string" },
+                  "status": { "type": "object" },
+                  "assignees": { "type": "array" },
+                  "due_date": { "type": ["string", "null"] }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "title": "CommentResponse",
+          "properties": {
+            "comment": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "comment_text": { "type": "string" },
+                "date": { "type": "string" }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "title": "TimerResponse",
+          "properties": {
+            "timer": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "task_id": { "type": "string" },
+                "start": { "type": "string" },
+                "end": { "type": ["string", "null"] },
+                "duration": { "type": "integer" }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "title": "SpacesResponse",
+          "properties": {
+            "spaces": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "name"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "name": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "title": "FoldersResponse",
+          "properties": {
+            "folders": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["id", "name"],
+                "properties": {
+                  "id": { "type": "string" },
+                  "name": { "type": "string" },
+                  "lists": { "type": "array" }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

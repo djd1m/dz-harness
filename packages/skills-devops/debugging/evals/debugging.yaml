@@ -1,0 +1,70 @@
+name: debugging
+description: Evaluation cases for debugging skill
+version: "1.0"
+
+cases:
+  - id: null-reference-from-stack-trace
+    description: "Diagnose null reference from stack trace"
+    input:
+      error: |
+        TypeError: Cannot read properties of undefined (reading 'map')
+            at UserList (/src/components/UserList.tsx:15:22)
+            at renderWithHooks (/node_modules/react-dom/...)
+            at App (/src/App.tsx:8:5)
+      context: "Users page crashes on load"
+    expected:
+      root_cause:
+        category: null_reference
+      fix:
+        description: present
+      verification:
+        steps: non_empty
+
+  - id: intermittent-failure
+    description: "Race condition causing intermittent test failure"
+    input:
+      error: "Test passes 9/10 times, fails with 'expected 2, received 1'"
+      context: "Counter component test with async state update"
+    expected:
+      root_cause:
+        category: race_condition
+      investigation:
+        hypotheses: non_empty
+
+  - id: oom-in-production
+    description: "Process killed with exit code 137"
+    input:
+      error: "Process exited with code 137"
+      logs: |
+        [14:23:01] Processing batch 1/100
+        [14:23:15] Processing batch 50/100
+        [14:23:22] Killed
+      context: "Data import job OOMs on large datasets"
+    expected:
+      symptom:
+        error_type: oom
+      root_cause:
+        category: resource_exhaustion
+
+  - id: works-locally-not-in-ci
+    description: "Test passes locally but fails in CI"
+    input:
+      error: "ENOENT: no such file or directory, open '/tmp/test-fixture.json'"
+      context: "Works on macOS, fails in Linux CI"
+    expected:
+      root_cause:
+        category: incorrect_assumption
+      fix:
+        description: present
+
+  - id: silent-data-corruption
+    description: "Incorrect behavior without error message"
+    input:
+      error: null
+      description: "User balances are negative after transfer. No errors in logs."
+      context: "Concurrent transfer requests to same account"
+    expected:
+      root_cause:
+        category: race_condition
+      verification:
+        regression_test: present

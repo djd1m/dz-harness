@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "docker-compose output",
+  "description": "Structured output from the docker-compose skill",
+  "type": "object",
+  "required": ["status", "summary", "action_type", "services"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "needs_more_info"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line summary of the Compose configuration or review"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": ["create", "review", "harden", "add_healthchecks", "add_resources", "dev_setup"],
+      "description": "What type of action was performed"
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "image"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Service name as it appears in the Compose file"
+          },
+          "image": {
+            "type": "string",
+            "description": "Docker image with pinned tag"
+          },
+          "has_healthcheck": {
+            "type": "boolean",
+            "description": "Whether the service has a healthcheck defined"
+          },
+          "has_resource_limits": {
+            "type": "boolean",
+            "description": "Whether deploy.resources.limits is set"
+          },
+          "has_security_hardening": {
+            "type": "boolean",
+            "description": "Whether cap_drop, no-new-privileges, and non-root user are set"
+          },
+          "exposed_ports": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Ports mapped to the host (not internal expose)"
+          },
+          "volumes": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Volume mounts for this service"
+          },
+          "networks": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Networks this service is attached to"
+          }
+        }
+      },
+      "description": "List of services in the Compose configuration"
+    },
+    "networks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "driver": { "type": "string" },
+          "internal": { "type": "boolean" }
+        }
+      },
+      "description": "Custom networks defined in the Compose file"
+    },
+    "volumes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "driver": { "type": "string" }
+        }
+      },
+      "description": "Named volumes defined in the Compose file"
+    },
+    "review_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["severity", "finding", "recommendation"],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "warning", "info"],
+            "description": "Severity of the finding"
+          },
+          "finding": {
+            "type": "string",
+            "description": "What was found"
+          },
+          "service": {
+            "type": "string",
+            "description": "Which service the finding applies to"
+          },
+          "recommendation": {
+            "type": "string",
+            "description": "How to fix the issue"
+          },
+          "anti_pattern": {
+            "type": "string",
+            "description": "Name of the anti-pattern if applicable"
+          }
+        }
+      },
+      "description": "Review findings when auditing an existing Compose file"
+    },
+    "self_check": {
+      "type": "object",
+      "properties": {
+        "passed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 14,
+          "description": "Number of self-check items that passed"
+        },
+        "total": {
+          "type": "integer",
+          "const": 14,
+          "description": "Total number of self-check items"
+        },
+        "failures": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Self-check items that failed"
+        }
+      },
+      "description": "Results of the 14-item self-check"
+    },
+    "files_generated": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of files created or modified (docker-compose.yml, Dockerfile, .env, etc.)"
+    }
+  }
+}

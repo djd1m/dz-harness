@@ -1,0 +1,247 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "keysarium-core"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3220450d5e752c1d0b0efe95193db4b74b5d474e2bb5e94ae0d4543ce7492e46"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "governance/checkpoint-protocol.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5521f3e415cf7a6c6013ea9b709fb9d1183f096b543d5ac39818bf57a8b1827d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "governance/constitution.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "541601efae1c7a21ba8d379939483f705b7308c804888651380d22239c8f1d71"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "governance/shard-protocol.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "91e42d8e5218b5f6865398286e8264fbf6e3e7173a34ac885f42b0aad7662bff"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "index.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "94c8e0bc91da28065b56c74d89328206a0025117c75a6f3789ca03944b45cbab"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "memory/dream-engine.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "49bca8a6bc66b28b7a34853a1916cf7ee50838a1f613ce04af4898b6e8c569e7"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "memory/memory-protocol.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "75dfea7007aef293d3b53bd932b6ea51477a12348249fe735eb4c0578b2e7c23"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "memory/reward-tracker.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c41d2fc5eaf3d06fbb8bea00cbf8dae6fab6978cec65e2e5d85d4256f389ff6b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "orchestration/background-workers.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0627325f928fde51086c44638dba13a6e1eaa553336708685dd3dbfa1d90b2f6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "orchestration/model-routing.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9a7e0c9d7df526478d9d222c107ad24176b471b69c9844355b39c010f4bb09d2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "orchestration/queen-protocol.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2823815b0039292a99e0aff1d3ae63bf0886e914b040082fc0e44f3c38e9b4f1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "orchestration/topology-selection.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "51787511024e58bac33139383e01a7dc5d69409611cdf94c0503baa96461a9b8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "30799de8a357b9aa414ebc861a142aecceb2c5310189600e649050dee87c1e46"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "platform/adapter-registry.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "90228bbfae6dcdffb61b679d85aa20ffd9e338cb9ee08695e3446720dfcb70d3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "platform/templates/copilot.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "377ce965dd01eba253aa48caddd3702985802d5155a6f66c205cc56fdc13c15b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "platform/templates/cursor.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c97f56313e929fe0d4ad8301388b2c7b2c3f346f04efc5d125c790bf9c957a22"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "platform/templates/opencode.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ee8586ec7f89170e5f97f50b3535446b3bbf359f95ff1ad923fb255e9ec0d3d7"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "trust-tiers/promotion-protocol.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3c47809393a9b5f8c392125c0f1970995977fc03aee899bd359a4669aa17e7cf"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "trust-tiers/tier-system.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e54f6e1465f324d81d948a6e9b72d2fb243f1eb6b5d433e7d7a42cd28eeb33b3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "verification/audit-trail.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9636cb2845db0310eda18872e8150aa5734c124df3a28ce453da86f4f73c79a0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "verification/judge-attestation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fbefd761502d8b6d08f19cf3f1a6cf357c92e0ecb7a2dad8d962d5e90ae68bb5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "verification/witness-chain.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "354b3d5c11757a43d484bf1b6c7e76e6ada6198c1cdabde07a8fa8197f9b0883"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+name: trails
+description: Evaluate Trails cross-chain DeFi orchestration skill usage
+version: "1.0"
+
+prompts:
+  - id: swap_quote
+    input: "Get a quote to swap 100 USDC to ETH on Base"
+    expected_actions:
+      - action: QuoteIntent
+        params:
+          type: "swap"
+          fromChain: "base"
+          toChain: "base"
+          amount: "100000000"
+    expected_output:
+      contains:
+        - "quoteId"
+        - "estimatedOutput"
+
+  - id: cross_chain_bridge
+    input: "Bridge 0.5 ETH from Ethereum to Base"
+    expected_actions:
+      - action: QuoteIntent
+        params:
+          type: "bridge"
+          fromChain: "ethereum"
+          toChain: "base"
+    expected_output:
+      contains:
+        - "quoteId"
+        - "route"
+
+  - id: full_intent_lifecycle
+    input: "Swap 1000 USDC to WETH on Base and wait for completion"
+    expected_actions:
+      - action: QuoteIntent
+      - action: CommitIntent
+      - action: submit_via_bankr
+      - action: ExecuteIntent
+      - action: WaitIntentReceipt
+    expected_output:
+      contains:
+        - "intentId"
+        - "status"
+        - "txHashes"
+
+  - id: list_earn_pools
+    input: "Show me available yield pools on Base with their APYs"
+    expected_actions:
+      - action: ListEarnPools
+    expected_output:
+      contains:
+        - "pools"
+        - "apy"
+
+  - id: token_prices
+    input: "What are the current prices for ETH and USDC on Base?"
+    expected_actions:
+      - action: GetTokenPrices
+    expected_output:
+      contains:
+        - "prices"
+        - "priceUsd"
+
+  - id: base_units_awareness
+    input: "Swap 1 ETH for USDC"
+    expected_actions:
+      - action: QuoteIntent
+        params:
+          amount: "1000000000000000000"
+    validation:
+      must_use_base_units: true
+      must_not_use_human_readable: true
+
+scoring:
+  correct_method: 0.25
+  correct_lifecycle_order: 0.25
+  base_units_conversion: 0.2
+  native_token_address: 0.15
+  bankr_submission_awareness: 0.15

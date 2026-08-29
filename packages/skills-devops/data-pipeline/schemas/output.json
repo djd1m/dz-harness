@@ -1,0 +1,398 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "data-pipeline output",
+  "description": "Structured output from the data-pipeline skill",
+  "type": "object",
+  "required": ["status", "summary", "pipeline"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "needs_more_info"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line summary of the pipeline design or review outcome"
+    },
+    "pipeline": {
+      "type": "object",
+      "required": ["name", "paradigm", "sources", "target"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Human-readable pipeline name"
+        },
+        "paradigm": {
+          "type": "string",
+          "enum": ["etl", "elt", "streaming", "hybrid"],
+          "description": "Processing paradigm"
+        },
+        "schedule": {
+          "type": "string",
+          "description": "Cron expression or schedule description"
+        },
+        "sla_hours": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Maximum hours from source change to target availability"
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "type", "extraction_method"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Source system or table name"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["database", "api", "file", "stream", "webhook", "cdc"],
+                "description": "Source type category"
+              },
+              "extraction_method": {
+                "type": "string",
+                "enum": ["full", "incremental", "cdc", "streaming", "api_poll", "event_push"],
+                "description": "How data is extracted from this source"
+              },
+              "format": {
+                "type": "string",
+                "description": "Data format (json, csv, parquet, avro, protobuf, sql)"
+              },
+              "volume_estimate": {
+                "type": "string",
+                "description": "Estimated rows/day or GB/day"
+              },
+              "watermark_column": {
+                "type": "string",
+                "description": "Column used for incremental extraction"
+              },
+              "schema_contract": {
+                "type": "string",
+                "description": "Path or reference to the source schema definition"
+              }
+            }
+          }
+        },
+        "target": {
+          "type": "object",
+          "required": ["platform", "schema_pattern"],
+          "properties": {
+            "platform": {
+              "type": "string",
+              "description": "Target data platform (snowflake, bigquery, redshift, postgres, databricks)"
+            },
+            "schema_pattern": {
+              "type": "string",
+              "enum": ["star", "snowflake", "data_vault", "one_big_table", "activity_schema"],
+              "description": "Schema design pattern"
+            },
+            "database": {
+              "type": "string",
+              "description": "Target database name"
+            },
+            "schema": {
+              "type": "string",
+              "description": "Target schema name"
+            }
+          }
+        }
+      }
+    },
+    "transformations": {
+      "type": "object",
+      "properties": {
+        "framework": {
+          "type": "string",
+          "enum": ["dbt", "spark", "pandas", "sql", "flink", "custom"],
+          "description": "Primary transformation framework"
+        },
+        "layers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "models"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "enum": ["staging", "intermediate", "mart"],
+                "description": "Transformation layer"
+              },
+              "models": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["name"],
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Model or transformation name"
+                    },
+                    "materialization": {
+                      "type": "string",
+                      "enum": ["view", "table", "incremental", "ephemeral"],
+                      "description": "How the model is materialized"
+                    },
+                    "grain": {
+                      "type": "string",
+                      "description": "What one row represents"
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Plain-English description of the model"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "orchestration": {
+      "type": "object",
+      "properties": {
+        "tool": {
+          "type": "string",
+          "enum": ["airflow", "prefect", "dagster", "cron", "step_functions", "cloud_composer", "mwaa", "custom"],
+          "description": "Orchestration tool"
+        },
+        "schedule": {
+          "type": "string",
+          "description": "Cron expression or interval"
+        },
+        "retries": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of retry attempts per task"
+        },
+        "retry_delay_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Initial delay between retries in seconds"
+        },
+        "exponential_backoff": {
+          "type": "boolean",
+          "description": "Whether retries use exponential backoff"
+        },
+        "max_active_runs": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum concurrent DAG/flow runs"
+        },
+        "sla": {
+          "type": "string",
+          "description": "SLA definition for the pipeline"
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "depends_on": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "timeout_minutes": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "quality_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type", "target"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Human-readable check name"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["uniqueness", "not_null", "accepted_values", "freshness", "row_count", "referential_integrity", "range", "custom_sql", "schema_drift"],
+            "description": "Category of quality check"
+          },
+          "target": {
+            "type": "string",
+            "description": "Table or column this check applies to"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["error", "warn"],
+            "description": "Whether a failure blocks the pipeline or only warns"
+          },
+          "threshold": {
+            "type": "string",
+            "description": "Threshold value for the check if applicable"
+          },
+          "description": {
+            "type": "string",
+            "description": "What this check verifies"
+          }
+        }
+      }
+    },
+    "monitoring": {
+      "type": "object",
+      "properties": {
+        "metrics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "type"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Metric name"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["row_count", "latency", "freshness", "error_rate", "cost", "duration", "data_drift"],
+                "description": "Metric category"
+              },
+              "alert_threshold": {
+                "type": "string",
+                "description": "Condition that triggers an alert"
+              },
+              "alert_channel": {
+                "type": "string",
+                "description": "Where alerts are sent (slack, pagerduty, email)"
+              }
+            }
+          }
+        },
+        "freshness_sla": {
+          "type": "string",
+          "description": "When data must be fresh by (e.g., 08:00 UTC)"
+        },
+        "dashboard_url": {
+          "type": "string",
+          "description": "URL to the monitoring dashboard"
+        }
+      }
+    },
+    "error_handling": {
+      "type": "object",
+      "properties": {
+        "dead_letter_queue": {
+          "type": "boolean",
+          "description": "Whether a DLQ is configured for unprocessable records"
+        },
+        "quarantine_table": {
+          "type": "string",
+          "description": "Table name for quarantined rows"
+        },
+        "idempotent_writes": {
+          "type": "boolean",
+          "description": "Whether all writes are idempotent"
+        },
+        "circuit_breaker": {
+          "type": "boolean",
+          "description": "Whether circuit breaker pattern is implemented for external calls"
+        }
+      }
+    },
+    "performance": {
+      "type": "object",
+      "properties": {
+        "partitioning": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "table": { "type": "string" },
+              "partition_column": { "type": "string" },
+              "partition_type": {
+                "type": "string",
+                "enum": ["date", "range", "hash", "list"]
+              }
+            }
+          }
+        },
+        "incremental_strategy": {
+          "type": "string",
+          "enum": ["merge", "delete_insert", "insert_overwrite", "append"],
+          "description": "Strategy for incremental loads"
+        },
+        "clustering_keys": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Columns used for clustering or sort keys"
+        }
+      }
+    },
+    "documentation": {
+      "type": "object",
+      "properties": {
+        "catalog_entry": {
+          "type": "boolean",
+          "description": "Whether a data catalog entry was created"
+        },
+        "lineage_graph": {
+          "type": "boolean",
+          "description": "Whether a lineage graph was generated"
+        },
+        "runbook": {
+          "type": "boolean",
+          "description": "Whether a runbook was written"
+        },
+        "sla_documented": {
+          "type": "boolean",
+          "description": "Whether SLAs are formally documented"
+        }
+      }
+    },
+    "anti_patterns_found": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["pattern", "location", "recommendation"],
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "description": "Name of the anti-pattern"
+          },
+          "location": {
+            "type": "string",
+            "description": "Where the anti-pattern was found"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "high", "medium", "low"]
+          },
+          "recommendation": {
+            "type": "string",
+            "description": "How to fix the anti-pattern"
+          }
+        }
+      }
+    },
+    "self_check": {
+      "type": "object",
+      "properties": {
+        "sources_documented": { "type": "boolean" },
+        "paradigm_justified": { "type": "boolean" },
+        "grain_defined": { "type": "boolean" },
+        "layers_structured": { "type": "boolean" },
+        "retries_configured": { "type": "boolean" },
+        "quality_checks_present": { "type": "boolean" },
+        "writes_idempotent": { "type": "boolean" },
+        "errors_not_dropped": { "type": "boolean" },
+        "monitoring_configured": { "type": "boolean" },
+        "incremental_where_needed": { "type": "boolean" },
+        "documentation_complete": { "type": "boolean" },
+        "no_hardcoded_secrets": { "type": "boolean" }
+      }
+    }
+  }
+}

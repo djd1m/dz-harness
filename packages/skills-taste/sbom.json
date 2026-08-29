@@ -1,0 +1,67 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "skills-taste"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "82a4251af197600176c104a55bb9e0522ec7ae3bf65070077e6c428cad927366"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "93c2b0d432bc7cff3bfde3a2fe7a78641fd5218df19db1a4abbe15bd5e881763"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "design-taste-frontend/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e07f7259db1ad3a7a9d59419e22e6b4946f781fe3d741e7a757b26f2ab26d784"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "2b536f8b4712945ea7835c4d44f5dc6b8eca9bbb75ca65fb281fb9cb0682b930"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "sources.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "acbabe64c0cf71a0920c5474ad8c22d912925351d5ba7b6f843ab7b462443cff"
+        }
+      ]
+    }
+  ]
+}

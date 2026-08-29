@@ -1,0 +1,63 @@
+{
+  "name": "provider-debug",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "field": "provider.name",
+      "rule": "required",
+      "message": "Provider must be identified"
+    },
+    {
+      "field": "provider.type",
+      "rule": "enum",
+      "values": ["cloud", "local", "proxy", "azure-hosted"],
+      "message": "Provider type must be classified"
+    },
+    {
+      "field": "error_classification.category",
+      "rule": "required",
+      "message": "Error must be categorized"
+    },
+    {
+      "field": "diagnosis.root_cause",
+      "rule": "required",
+      "message": "Root cause must be identified"
+    },
+    {
+      "field": "diagnosis.layer",
+      "rule": "enum",
+      "values": ["network", "authentication", "configuration", "provider", "application"],
+      "message": "Problem layer must be identified"
+    },
+    {
+      "field": "fix.steps",
+      "rule": "min_items",
+      "value": 1,
+      "message": "At least one fix step must be provided"
+    },
+    {
+      "field": "verification.command",
+      "rule": "required",
+      "message": "A verification command must be provided"
+    },
+    {
+      "field": "verification.expected_result",
+      "rule": "required",
+      "message": "Expected result of verification must be described"
+    }
+  ],
+  "constraints": [
+    {
+      "rule": "no_api_key_exposure",
+      "condition": "always",
+      "expected": "fix.steps.none(contains full API key)",
+      "message": "Never include full API keys in output"
+    },
+    {
+      "rule": "local_provider_check_process",
+      "condition": "provider.type == 'local'",
+      "expected": "diagnosis.config_checked.any(contains 'process' or contains 'service')",
+      "message": "Local providers must check if the process is running"
+    }
+  ]
+}

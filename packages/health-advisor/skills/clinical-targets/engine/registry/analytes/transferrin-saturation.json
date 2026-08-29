@@ -1,0 +1,8 @@
+{
+  "analyteId": "transferrin-saturation",
+  "displayName": "Насыщение трансферрина",
+  "canonicalUnit": "%",
+  "reportingQuantum": 1,
+  "reportingSteps": { "%": 1 },
+  "aliases": ["Transferrin Saturation", "TSAT", "Sat. трансферрина", "Насыщение трансферрина"]
+}

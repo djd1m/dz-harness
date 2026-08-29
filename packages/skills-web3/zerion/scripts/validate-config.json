@@ -1,0 +1,53 @@
+{
+  "name": "zerion",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "id": "endpoint-valid",
+      "type": "enum",
+      "field": "endpoint",
+      "values": ["portfolio", "positions", "transactions", "pnl", "chart", "nfts", "fungibles", "dapps", "chains", "gas", "swap"],
+      "required": true,
+      "message": "Endpoint must be a valid Zerion API endpoint"
+    },
+    {
+      "id": "wallet-address-format",
+      "type": "pattern",
+      "field": "wallet_address",
+      "pattern": "^0x[a-fA-F0-9]{40}$",
+      "required": false,
+      "message": "Wallet address must be a valid Ethereum address"
+    },
+    {
+      "id": "portfolio-values",
+      "type": "custom",
+      "condition": "endpoint === 'portfolio' && portfolio !== undefined",
+      "check": "portfolio.total_value >= 0",
+      "message": "Portfolio total value must be non-negative"
+    },
+    {
+      "id": "positions-array",
+      "type": "custom",
+      "condition": "endpoint === 'positions'",
+      "check": "Array.isArray(positions)",
+      "message": "Positions must be an array"
+    },
+    {
+      "id": "currency-valid",
+      "type": "enum",
+      "field": "currency",
+      "values": ["usd", "eur", "gbp", "btc", "eth"],
+      "required": false,
+      "message": "Currency must be a supported denomination"
+    }
+  ],
+  "environment": {
+    "required": ["ZERION_API_KEY"],
+    "optional": []
+  },
+  "rate_limits": {
+    "free": 60,
+    "growth": 600,
+    "pro": 6000
+  }
+}

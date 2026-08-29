@@ -1,0 +1,387 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "skills-bto"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "CHANGELOG.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3cdc74ff663f1a60b0905b26c74cb641f84e8ee89a077f479bed31b19545f359"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a622d32ed16bdd3b0db021ad84c5eba87da18e63fe2dd96b10ab1e3f86e24a36"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "bin/cli.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a210174d6b63d053f7744757972d31acb0f4d9c59f8dacff7b62872a19ebd31a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "ce96d003cae031193cb7e5f0575ae6d571f0fb93cfcb5e7e84fc94216eb69078"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/cli.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a712d4840731f4974e22155dc54f7ff3478e3bd15af8e4cefeb10ee3f11b3fe7"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/doctor.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1c7d323316e502b501ce2b15f177f7cc0766c70e995092b973d7d56522bbd034"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/init.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1317cb61dc3feafaa7224fb155caaf77a7a5e1097f81070477ffdc53e5c43b22"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/list.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1ec92e70601bac6da48cddca0764663d999b0aa3cca12b785d825b88de974cfa"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/remove.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f62beed8b76b134f50d959cd70bb96674a26bcce8441baf49fe08a0780d845ea"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/update.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f3217f1601eb3fdcfb9099fa07c551e4c922544d09224c9664b4ee5ce230634c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/utils.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0ab07df1d28b9c2565f564e43d76c4d7f28b776d43bcb946b22ac70db821f030"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/agents/bto-judge-panel.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1e31c6d4caf15f0ce1202d5cbfaf17d28611e2e98f125184da9ecaa30e01d7b8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/agents/bto-optimizer-worker.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b9b0522469f376135eb80d9c689c1eb0f5f07e96a3e4f4749002666a8236b64b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/bto-benchmark.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "45a85faaaff840a44bc77e61892b3b0188ff31d4c80c2ef5438618d93a547ef7"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/bto-build.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a1ac21e6ca097b9af1853a0cc815ff108c23eba690a76d4696e21fb4877c676c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/bto-optimize.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dd07ec79b88ccd3d29311325020c7fe389394e4f5d73004eadad1c605e104362"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/bto-test.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "823c509c3f0581cbd24daa1d2ce092ab4cd6f1bc60b23536ab1ce6521fadfcc1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/bto.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fa1a83a725e6fda68edfea7c15bce0ed688686127f2924de8983184e857fa991"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/verify-chain.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b064f512724091908a953dde475abe1c92f63e02728846644a218144f6616e9e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/rules/bto-quality-gates.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e4881acf5d15472629cea036fbea50bf2dd577b17d5c1c67730a03a5f47538b5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/rules/witness-chain.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "679aaed6c9b3a173d3fb2888239745d34ed1988315d4f531d14967c33193512b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/shards/bto-evaluation.shard.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "df1abe8d28f2a47fd24aa2da7621c9086f5208f9d675f99e25cf4889fbc6b456"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/bto/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cc15a07922126226776d4c48446b3d75fa8caaf16949389f448f42c9787207cb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/bto/examples/sample-benchmark-report.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cfea6681a75465c0372defee137a39d8fa86ed48b052f1685c96a1e96fb81f02"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/bto/examples/sample-eval-report.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "45ed20c23e42a9141de55c103a3d64917cf1f51e0d59a16fbdd9fe498632bbe5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/bto/modules/benchmark.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "41f87e7b2cd8ba9ae2f913a586651d299052534ba4875797c79cbc577d3df4d3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/bto/modules/build.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d1e26e331562175b3295de3e58edfecbd80eaaed9a57d7e5cf094bc4ffae8247"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/bto/modules/optimize.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d8737955bd02cdfa83af6d72fdbd59ac2f4a6d73b41788a4c801496654c0cc93"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/bto/modules/test.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9daa90fd8566fe7372ad088cd489cd11caf9ba2bd2c3bf2f2b822e3d2ee0bac9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/bto/references/eval-patterns.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bb4e4aca4c67937cedb91e66debb0e17f84322a5d9e29d8e0ef60a1af13cc92b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/bto/references/golden-samples.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d98baa5d0c7816fb547ba36d2526bed6317ec9c9c6e8a7c50af2c5d7c5a22a46"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/bto/references/judge-rubrics.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e7ee1f3802c79ce6a1966976d227a8cb060232109e487c6db45f0280cab47e20"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/bto/references/optimization-methods.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d15962e1035e600b897384faa9ea20d3c1c687da797e63480d48e2da039b8783"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/bto/references/quality-checklist.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "611c0a0785a41b12b8dde09e9086c5e051ac0672711a4e33df5fefc3c87f7561"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/judge-attestation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7a5c05c6ed514256e2e394b703dc5dfd5eee292f87fe95f8f4153707ff179667"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/witness-chain.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8d14187d213b2f4422af2699df6c940b54f5f8aba352d2e8070096b604fcba7e"
+        }
+      ]
+    }
+  ]
+}

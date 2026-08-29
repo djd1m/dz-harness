@@ -1,0 +1,29 @@
+{
+  "schema": "recheck-ttl-v1",
+  "_note": "DATA. `recheck_ttl_days` measures the age of OUR COPY (fetch_date), not the age of the source document — that axis lives in the frozen source_tiers.TTL_DAYS. A row whose number differs from that table MUST carry `differs_from_source_ttl` explaining why. These are DEFAULTS to be tuned, not clinical constants (ADR-005, risk R-4).",
+  "_fallback_row_kind_note": "The NAME of the fallback row is data too, so engine/freshness.js contains no kind literal at all — not even 'default' (ADR-005 D3). Remove this key, or the row it names, and an unmatched kind yields FRESHNESS_UNKNOWN rather than an implicit forever-fresh (ADR-005 §4).",
+  "fallback_row_kind": "default",
+  "rows": [
+    {
+      "kind": "guideline",
+      "recheck_ttl_days": 180,
+      "rationale": "a guideline can be superseded at any time; re-check twice a year",
+      "differs_from_source_ttl": "source_tiers.TTL_DAYS['guideline'] is 730 d and measures DOCUMENT age; 180 d here measures how long since we last confirmed this is still the current edition"
+    },
+    {
+      "kind": "meta_analysis",
+      "recheck_ttl_days": 730,
+      "rationale": "a published meta-analysis does not change; re-check for retraction or a newer synthesis"
+    },
+    {
+      "kind": "price",
+      "recheck_ttl_days": 7,
+      "rationale": "prices move weekly"
+    },
+    {
+      "kind": "default",
+      "recheck_ttl_days": 365,
+      "rationale": "used when no row matches; the verdict records usedDefault:true so the fallback is never invisible"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{"version":3,"file":"agentbox.d.ts","sourceRoot":"","sources":["../../src/sources/agentbox.ts"],"names":[],"mappings":"AAAA;;;;;;;;;;;;;;GAcG;AAEH,OAAO,KAAK,EAAE,WAAW,EAA+B,MAAM,aAAa,CAAC;AAK5E,UAAU,mBAAmB;IAC3B,mFAAmF;IACnF,QAAQ,CAAC,KAAK,CAAC,EAAE,MAAM,CAAC;CACzB;AAED;;;GAGG;AACH,wBAAsB,YAAY,CAAC,OAAO,GAAE,mBAAwB,GAAG,OAAO,CAAC,WAAW,EAAE,CAAC,CA2E5F"}

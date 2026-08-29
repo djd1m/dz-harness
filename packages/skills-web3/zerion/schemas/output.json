@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Zerion API Response",
+  "description": "Schema for Zerion wallet data and DeFi analytics responses",
+  "type": "object",
+  "properties": {
+    "endpoint": {
+      "type": "string",
+      "description": "Zerion API endpoint called",
+      "enum": ["portfolio", "positions", "transactions", "pnl", "chart", "nfts", "fungibles", "dapps", "chains", "gas", "swap"]
+    },
+    "wallet_address": {
+      "type": "string",
+      "pattern": "^0x[a-fA-F0-9]{40}$",
+      "description": "Queried wallet address"
+    },
+    "portfolio": {
+      "type": "object",
+      "properties": {
+        "total_value": { "type": "number", "description": "Total portfolio value in USD" },
+        "changes_1d_absolute": { "type": "number" },
+        "changes_1d_percent": { "type": "number" },
+        "distribution_by_type": { "type": "object", "additionalProperties": { "type": "number" } },
+        "distribution_by_chain": { "type": "object", "additionalProperties": { "type": "number" } }
+      }
+    },
+    "positions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "symbol": { "type": "string" },
+          "quantity": { "type": "number" },
+          "value": { "type": "number" },
+          "price": { "type": "number" },
+          "chain": { "type": "string" },
+          "changes_1d_absolute": { "type": "number" },
+          "changes_1d_percent": { "type": "number" }
+        }
+      }
+    },
+    "pnl": {
+      "type": "object",
+      "properties": {
+        "total_absolute": { "type": "number" },
+        "total_relative": { "type": "number" },
+        "realized_absolute": { "type": "number" },
+        "unrealized_absolute": { "type": "number" }
+      }
+    },
+    "transactions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "hash": { "type": "string" },
+          "type": { "type": "string", "enum": ["trade", "send", "receive", "approve", "mint"] },
+          "status": { "type": "string" },
+          "mined_at": { "type": "string", "format": "date-time" },
+          "fee_value": { "type": "number" }
+        }
+      }
+    },
+    "currency": {
+      "type": "string",
+      "default": "usd"
+    },
+    "chain_filter": {
+      "type": "string",
+      "description": "Chain ID filter applied"
+    }
+  },
+  "required": ["endpoint"]
+}

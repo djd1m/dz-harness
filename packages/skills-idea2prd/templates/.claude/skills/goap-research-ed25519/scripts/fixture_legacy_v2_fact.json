@@ -1,0 +1,23 @@
+{
+ "fact": {
+  "claim": "Omega-3 raised LDL by 44.5% at baseline triglycerides >= 800 mg/dL",
+  "confidence": 0.5,
+  "evidence_class": "LISTING_ONLY",
+  "fetch_date": null,
+  "issuer": "researcher",
+  "issuer_pubkey": "ed25519:DDG6cj/Q0iJRBvk8lXHissMSQeV7GQQCnYSEysbhV74=",
+  "metadata": {
+   "evidence_note": "card seen in the search listing; the full text was never opened"
+  },
+  "parent_citation": null,
+  "parent_hash": null,
+  "research_context": null,
+  "signature": "i9kvNmONaCdlggJQRa5gaqMeQNDvChZ4ehEO9QFqYtRXFUk43ycHCu6aDdoxszOKuZY/uL8tYgsZ0GgbtOBaBA==",
+  "source_date": "2012-11-01",
+  "source_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "source_url": "https://pubmed.ncbi.nlm.nih.gov/23083789",
+  "timestamp": "2026-08-04T21:11:31.577264Z",
+  "trust_class": "SELF_ATTESTED"
+ },
+ "pubkey_b64": "DDG6cj/Q0iJRBvk8lXHissMSQeV7GQQCnYSEysbhV74="
+}

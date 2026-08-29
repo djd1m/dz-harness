@@ -1,0 +1,37 @@
+{
+  "origin": {
+    "repo": "dz-curated/reasoning-skills",
+    "url": "https://github.com/djd1m/dz-harness-hub",
+    "branch": "main",
+    "license": "MIT",
+    "author": "dzhechko",
+    "canonicalized": "2026-07-15",
+    "note": "Depersonalized from a curated agentic-skills archive; stack-neutral reasoning & code-quality skills with zero product coupling. Individual skills embody public methodologies (SOLID, TDD, Karpathy's LLM-coding observations)."
+  },
+  "skills": {
+    "investigate": {
+      "path": "investigate/SKILL.md",
+      "version": "0.1.0",
+      "trust": "validated",
+      "provenance": "root-cause investigation methodology (diagnosis without fixing)"
+    },
+    "solid": {
+      "path": "solid/SKILL.md",
+      "version": "0.1.0",
+      "trust": "validated",
+      "provenance": "SOLID principles + TDD + clean-code craftsmanship"
+    },
+    "karpathy-guidelines": {
+      "path": "karpathy-guidelines/SKILL.md",
+      "version": "0.1.0",
+      "trust": "validated",
+      "provenance": "derived from Andrej Karpathy's observations on LLM coding pitfalls"
+    },
+    "agents-md-creator": {
+      "path": "agents-md-creator/SKILL.md",
+      "version": "0.1.0",
+      "trust": "validated",
+      "provenance": "generates per-repo AGENTS.md architectural skeletons for multi-repo projects"
+    }
+  }
+}

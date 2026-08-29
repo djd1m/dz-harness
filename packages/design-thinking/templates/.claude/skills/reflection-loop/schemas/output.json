@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Reflection Loop Output",
+  "description": "Structured output from the critique-revise cycle",
+  "type": "object",
+  "required": ["domain", "rounds_completed", "final_decision"],
+  "properties": {
+    "domain": {
+      "type": "string",
+      "enum": ["code", "text", "architecture", "research"],
+      "description": "Domain of the artifact being refined"
+    },
+    "rounds_completed": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3,
+      "description": "Number of critique-revise rounds executed"
+    },
+    "rounds": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "round_number": { "type": "integer", "minimum": 1 },
+          "issues_found": { "type": "integer", "minimum": 0 },
+          "changes_applied": { "type": "integer", "minimum": 0 },
+          "regressions_detected": { "type": "boolean" }
+        }
+      }
+    },
+    "final_decision": {
+      "type": "string",
+      "enum": ["accepted", "accepted_with_gaps", "max_rounds_reached"],
+      "description": "Final decision after all rounds"
+    },
+    "remaining_issues": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Issues documented but not resolved (if any)"
+    }
+  }
+}

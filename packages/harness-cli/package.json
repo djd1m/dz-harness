@@ -1,0 +1,87 @@
+{
+  "name": "@dzhechkov/harness-cli",
+  "version": "0.8.5",
+  "description": "The dz CLI — install AI skills for Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot. 83 commands, 14 presets, 10 platform targets.",
+  "type": "module",
+  "license": "MIT",
+  "author": "dzhechko",
+  "keywords": [
+    "agent-skills",
+    "agentskills.io",
+    "harness",
+    "cli",
+    "claude-code",
+    "codex",
+    "opencode",
+    "hermes",
+    "ai-skills",
+    "cross-platform",
+    "openclaude",
+    "agentdb",
+    "self-learning",
+    "mcp"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "dz": "./dist/bin.js"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "keys",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "node scripts/refuse-wrong-publisher.mjs && node ../../../scripts/prepublish-gate.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@dzhechkov/harness-core": "workspace:^",
+    "@dzhechkov/harness-presets": "workspace:^",
+    "@dzhechkov/scout": "workspace:^",
+    "@dzhechkov/skills-devops": "workspace:^",
+    "@dzhechkov/skills-mcp": "workspace:^",
+    "@dzhechkov/skills-web3": "workspace:^",
+    "@dzhechkov/skills-qe": "workspace:^",
+    "@dzhechkov/skills-meta": "workspace:^",
+    "@dzhechkov/skills-academic": "workspace:^",
+    "@dzhechkov/skills-ecc": "workspace:^",
+    "@dzhechkov/skills-news": "workspace:^",
+    "@dzhechkov/skills-pm": "workspace:^",
+    "@dzhechkov/skills-taste": "workspace:^",
+    "@dzhechkov/skills-idea2prd": "workspace:^",
+    "@dzhechkov/skills-reverse-engineering": "workspace:^",
+    "@dzhechkov/skills-presentation-storyteller": "workspace:^",
+    "@dzhechkov/skills-website-cloner": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/harness-cli"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/harness-cli#readme"
+}

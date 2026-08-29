@@ -1,0 +1,73 @@
+{
+  "$comment": "ADR-006 dialect table — ONE config, variants are GENERATED, hand forks are forbidden. `replacements` are applied in order to every .md of the canonical tree; afterwards the compiler REQUIRES that no forbiddenHermesTokens survive (a variant that still speaks Hermes dialect actively lies on the target and is never emitted) AND that no forbiddenCodenames occurrence survives (case-insensitive, WORD-BOUNDARY) in ANY emitted file (positive invariant, 2026-08-10 — the enumerated denylist alone let the bare codename through 5x, MEASURED). forbiddenCodenames covers the FULL engine identity (AM-2 2026-08-10): `hermes` + the go-module owner `dzhechko` + the CLI name `cloudru-vm-cli` (github.com/dzhechko/cloudru-vm-cli) + `captainkeys` (captainkeys.go). Matching is WORD-BOUNDARY, not substring: a raw `dzhechko` substring over-blocks the legitimately-published scope `@dzhechkov` (= dzhechko + v); \\b…\\b matches the standalone engine handle but not `@dzhechkov`, and also drops false positives like `thermes` while still catching `~/.hermes`, `hermes-agent` and Cyrillic-suffixed `hermesовский` (\\b treats `.`/`-`/`/`/Cyrillic as non-word). Over-block on the maintainer's controlled corpus is acceptable (loud, build-time, never ships); the residual all-Latin-embedded gap (`hermesbot`) is unobserved. Each identity token has a scrub replacement below where it legitimately appears (go-module path → published package name). The bare engine binary name `cloudru-vm` is DELIBERATELY NOT in forbiddenCodenames (0.1.3): it is ALSO the legitimate MCP server name that MUST appear in output — PROVEN: \\bcloudru-vm\\b matches the compiler's own injected tool_search prose `сервера cloudru-vm видны`, and `mcp__cloudru-vm__` is spared only because `_` is a word char. Instead the two UNAMBIGUOUS leak FORMS get targeted scrubs (ordered AFTER the longer `cloudru-vm-cli` scrub so it is never mis-split): (1) config-dir/dotted path `\\.cloudru-vm(?![\\w-])` → `.cloudru-hub` (lookahead spares `.cloudru-vm-cli`; no dot precedes the mcp__ id); (2) CLI invocation `cloudru-vm <verb>` → `cloudru-hub <verb>` for the engine's FINITE real verb set only (deploy|status|logs|destroy|verify|init|version|list-zones|list-images|mcp|doctor — cited from engine cmd/cloudru-vm/main.go AddCommand block, lines 53-65), `[ \\t]+` not `\\s+` so a line break is never joined, `(?:…)\\b` so `cloudru-vm deployment` and the Russian prose `cloudru-vm видны` are untouched. The mcp__ prefix double-spelling is settled by the live probe (feature README blocker 3).",
+  "forbiddenCodenames": ["hermes", "dzhechko", "cloudru-vm-cli", "captainkeys"],
+  "forbiddenHermesTokens": [
+    "tool_search",
+    "tool_describe",
+    "tool_call",
+    "hermes cron",
+    "/opt/data",
+    "SOUL",
+    "--deliver telegram",
+    "капитан"
+  ],
+  "routerMaxChars": 12000,
+  "pointerMaxChars": 2048,
+  "targets": {
+    "claude-code": {
+      "layout": "lossless",
+      "replacements": [
+        { "find": "mcp__cloudru_vm__", "flags": "g", "replace": "mcp__cloudru-vm__" },
+        { "find": "^.*tool_search.*$\\n?", "flags": "gm", "replace": "Инструменты сервера cloudru-vm видны в сессии как mcp__cloudru-vm__<имя>; Claude Code сам подгружает отложенные тулы через собственный ToolSearch — отдельный шаг поиска не нужен.\n" },
+        { "find": "^.*tool_(?:describe|call).*$\\n?", "flags": "gm", "replace": "" },
+        { "find": "hermes cron create\\s+'[^']*'", "flags": "g", "replace": "фоновый Bash (run_in_background) или /schedule" },
+        { "find": "^.*hermes cron.*$\\n?", "flags": "gm", "replace": "Для периодического поллинга используй фоновый Bash (run_in_background) или /schedule.\n" },
+        { "find": "\\s*--deliver telegram", "flags": "g", "replace": "" },
+        { "find": "^.*SOUL.*$\\n?", "flags": "gm", "replace": "" },
+        { "find": "/opt/data/cloudru", "flags": "g", "replace": "~/.cloudru-hub" },
+        { "find": "/opt/data", "flags": "g", "replace": "~/.cloudru-hub" },
+        { "find": "hermes-agent", "flags": "g", "replace": "agent-vm" },
+        { "find": "\\.hermes\\b", "flags": "g", "replace": ".cloudru-hub" },
+        { "find": "уроки Hermes ", "flags": "g", "replace": "уроки боевой эксплуатации " },
+        { "find": "так при Hermes возникли", "flags": "g", "replace": "так однажды возникли" },
+        { "find": "капитана", "flags": "g", "replace": "пользователя" },
+        { "find": "капитану", "flags": "g", "replace": "пользователю" },
+        { "find": "капитан", "flags": "g", "replace": "пользователь" },
+        { "find": "Капитан", "flags": "g", "replace": "Пользователь" },
+        { "find": "github\\.com/dzhechko/cloudru-vm-cli", "flags": "gi", "replace": "@dzhechkov/cloudru-hub" },
+        { "find": "cloudru-vm-cli", "flags": "gi", "replace": "cloudru-hub" },
+        { "find": "\\.cloudru-vm(?![\\w-])", "flags": "g", "replace": ".cloudru-hub" },
+        { "find": "\\bcloudru-vm[ \\t]+(?=(?:deploy|status|logs|destroy|verify|init|version|list-zones|list-images|mcp|doctor)\\b)", "flags": "g", "replace": "cloudru-hub " },
+        { "find": "\\bdzhechko\\b", "flags": "gi", "replace": "dzhechkov" },
+        { "find": "captainkeys", "flags": "gi", "replace": "user-keys" }
+      ]
+    },
+    "codex": {
+      "layout": "lossless",
+      "replacements": [
+        { "find": "^.*tool_search.*$\\n?", "flags": "gm", "replace": "MCP-тулы cloudru-vm codex деферит за собственным tool-search рантайма — отдельный шаг поиска не нужен; зови тулы по имени.\n" },
+        { "find": "^.*tool_(?:describe|call).*$\\n?", "flags": "gm", "replace": "" },
+        { "find": "hermes cron create\\s+'[^']*'", "flags": "g", "replace": "периодический повтор команды средствами вашей сессии" },
+        { "find": "^.*hermes cron.*$\\n?", "flags": "gm", "replace": "" },
+        { "find": "\\s*--deliver telegram", "flags": "g", "replace": "" },
+        { "find": "^.*SOUL.*$\\n?", "flags": "gm", "replace": "" },
+        { "find": "/opt/data/cloudru", "flags": "g", "replace": "~/.cloudru-hub" },
+        { "find": "/opt/data", "flags": "g", "replace": "~/.cloudru-hub" },
+        { "find": "hermes-agent", "flags": "g", "replace": "agent-vm" },
+        { "find": "\\.hermes\\b", "flags": "g", "replace": ".cloudru-hub" },
+        { "find": "уроки Hermes ", "flags": "g", "replace": "уроки боевой эксплуатации " },
+        { "find": "так при Hermes возникли", "flags": "g", "replace": "так однажды возникли" },
+        { "find": "капитана", "flags": "g", "replace": "пользователя" },
+        { "find": "капитану", "flags": "g", "replace": "пользователю" },
+        { "find": "капитан", "flags": "g", "replace": "пользователь" },
+        { "find": "Капитан", "flags": "g", "replace": "Пользователь" },
+        { "find": "github\\.com/dzhechko/cloudru-vm-cli", "flags": "gi", "replace": "@dzhechkov/cloudru-hub" },
+        { "find": "cloudru-vm-cli", "flags": "gi", "replace": "cloudru-hub" },
+        { "find": "\\.cloudru-vm(?![\\w-])", "flags": "g", "replace": ".cloudru-hub" },
+        { "find": "\\bcloudru-vm[ \\t]+(?=(?:deploy|status|logs|destroy|verify|init|version|list-zones|list-images|mcp|doctor)\\b)", "flags": "g", "replace": "cloudru-hub " },
+        { "find": "\\bdzhechko\\b", "flags": "gi", "replace": "dzhechkov" },
+        { "find": "captainkeys", "flags": "gi", "replace": "user-keys" }
+      ]
+    }
+  }
+}

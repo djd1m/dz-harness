@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "playwright-testing config validator",
+  "description": "Validates configuration inputs for the playwright-testing skill",
+  "type": "object",
+  "properties": {
+    "test_file": {
+      "type": "string",
+      "description": "Path to an existing Playwright test file to review"
+    },
+    "test_content": {
+      "type": "string",
+      "description": "Raw test code content pasted inline"
+    },
+    "action": {
+      "type": "string",
+      "enum": ["setup", "create_tests", "review", "fix_flaky", "add_visual", "add_mocking", "ci_integration"],
+      "default": "create_tests",
+      "description": "What action to perform"
+    },
+    "pages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "url"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Page name (e.g., Login, Dashboard, Settings)"
+          },
+          "url": {
+            "type": "string",
+            "description": "Page URL path (e.g., /login, /dashboard)"
+          },
+          "key_elements": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Key interactive elements on the page"
+          }
+        }
+      },
+      "description": "Pages to create tests or page objects for"
+    },
+    "framework": {
+      "type": "string",
+      "enum": ["react", "nextjs", "vue", "nuxt", "angular", "svelte", "generic"],
+      "default": "generic",
+      "description": "Frontend framework of the application under test"
+    },
+    "ci_platform": {
+      "type": "string",
+      "enum": ["github-actions", "gitlab-ci", "jenkins", "circleci"],
+      "default": "github-actions",
+      "description": "CI platform for workflow generation"
+    },
+    "browsers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["chromium", "firefox", "webkit"]
+      },
+      "default": ["chromium"],
+      "description": "Browsers to test against"
+    },
+    "include_visual_regression": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to include visual regression tests"
+    },
+    "include_api_mocking": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to include API mocking examples"
+    }
+  },
+  "anyOf": [
+    { "required": ["test_file"] },
+    { "required": ["test_content"] },
+    { "required": ["pages"] },
+    { "required": ["action"] }
+  ]
+}

@@ -1,0 +1,240 @@
+% =============================================================================
+% Clinical Decision Support — Consolidated LaTeX Templates
+% =============================================================================
+% This file contains all CDS templates in one place. Each template is wrapped
+% in a section that can be extracted or compiled independently by copying it
+% into its own .tex file with the shared preamble below.
+%
+% Sections:
+%   1. Color Schemes
+%   2. Biomarker Report Template
+%   3. Clinical Pathway Template
+%   4. Cohort Analysis Template
+%   5. Treatment Recommendation Template
+%
+% Shared Preamble (use with any individual section):
+%   \documentclass[10pt,letterpaper]{article}
+%   \usepackage[margin=0.5in]{geometry}
+%   \usepackage[utf8]{inputenc}
+%   \usepackage[T1]{fontenc}
+%   \usepackage{helvet} \renewcommand{\familydefault}{\sfdefault}
+%   \usepackage{xcolor,tcolorbox,array,tabularx,booktabs,enumitem}
+%   \usepackage{titlesec,fancyhdr,multicol,graphicx,float}
+%   \usepackage{tikz} \usetikzlibrary{shapes,arrows,positioning,fit,calc}
+%   \input{templates.tex}  % then \input only the section you need
+% =============================================================================
+
+
+% ╔═══════════════════════════════════════════════════════════════════════════╗
+% ║  SECTION 1 — COLOR SCHEMES                                              ║
+% ╚═══════════════════════════════════════════════════════════════════════════╝
+
+% --- Primary Theme ---
+\definecolor{headerblue}{RGB}{0,102,204}
+\definecolor{highlightgray}{RGB}{240,240,240}
+
+% --- Recommendation Strength ---
+\definecolor{stronggreen}{RGB}{0,153,76}
+\definecolor{strongdark}{RGB}{0,120,60}
+\definecolor{conditionalyellow}{RGB}{255,193,7}
+\definecolor{conditionalamber}{RGB}{255,160,0}
+\definecolor{researchblue}{RGB}{33,150,243}
+\definecolor{researchdark}{RGB}{25,118,210}
+\definecolor{warningred}{RGB}{204,0,0}
+\definecolor{dangerred}{RGB}{220,20,60}
+
+% --- Urgency Levels ---
+\definecolor{urgentred}{RGB}{220,20,60}
+\definecolor{semiurgent}{RGB}{255,152,0}
+\definecolor{routineblue}{RGB}{100,181,246}
+\definecolor{actiongreen}{RGB}{0,153,76}
+
+% --- Biomarker Categories ---
+\definecolor{mutationred}{RGB}{244,67,54}
+\definecolor{amplificationblue}{RGB}{33,150,243}
+\definecolor{deletionpurple}{RGB}{156,39,176}
+\definecolor{fusionpurple}{RGB}{156,39,176}
+\definecolor{expressionorange}{RGB}{255,152,0}
+\definecolor{tier1green}{RGB}{0,153,76}
+\definecolor{tier2orange}{RGB}{255,152,0}
+\definecolor{tier3gray}{RGB}{158,158,158}
+\definecolor{biomarkerblue}{RGB}{51,102,204}
+
+% --- Statistical Significance ---
+\definecolor{significant}{RGB}{0,153,76}
+\definecolor{trending}{RGB}{255,193,7}
+\definecolor{nonsignificant}{RGB}{158,158,158}
+
+% --- RECIST Response ---
+\definecolor{completeresponse}{RGB}{0,153,76}
+\definecolor{partialresponse}{RGB}{76,175,80}
+\definecolor{stabledisease}{RGB}{255,193,7}
+\definecolor{progressivedisease}{RGB}{244,67,54}
+
+% --- Survival Outcomes ---
+\definecolor{survivedgreen}{RGB}{0,153,76}
+\definecolor{eventred}{RGB}{244,67,54}
+\definecolor{censoredgray}{RGB}{158,158,158}
+
+% --- CTCAE Adverse Event Severity ---
+\definecolor{grade1}{RGB}{255,235,59}
+\definecolor{grade2}{RGB}{255,193,7}
+\definecolor{grade3}{RGB}{255,152,0}
+\definecolor{grade4}{RGB}{244,67,54}
+\definecolor{grade5}{RGB}{198,40,40}
+
+% --- Colorblind-Safe (Okabe-Ito) ---
+\definecolor{okabe1}{RGB}{230,159,0}
+\definecolor{okabe2}{RGB}{86,180,233}
+\definecolor{okabe3}{RGB}{0,158,115}
+\definecolor{okabe4}{RGB}{240,228,66}
+\definecolor{okabe5}{RGB}{0,114,178}
+\definecolor{okabe6}{RGB}{213,94,0}
+\definecolor{okabe7}{RGB}{204,121,167}
+
+% Accessibility: always use text labels alongside color; test in grayscale;
+% use Okabe-Ito palette for figures. Minimum contrast ratio 4.5:1.
+
+
+% ╔═══════════════════════════════════════════════════════════════════════════╗
+% ║  SECTION 2 — BIOMARKER REPORT TEMPLATE                                  ║
+% ║  Genomic profiling report for molecular subtype classification.          ║
+% ║  Standalone: \documentclass[10pt,letterpaper]{article} + shared preamble ║
+% ╚═══════════════════════════════════════════════════════════════════════════╝
+%
+% Header/footer:
+%   \fancyhead[L]{Genomic Profile Report: [PATIENT ID]}
+%   \fancyfoot[C]{Confidential Laboratory Report - CLIA/CAP Certified}
+%
+% Structure:
+%   Title → Patient/Specimen Info (tcolorbox) → Diagnosis → Results Summary
+%   → Tier 1 (FDA-Approved) → Tier 2 (Investigational) → Tier 3 (VUS)
+%   → Biomarkers Negative → TMB → MSI → Integrated Treatment Plan
+%   → Clinical Trial Matching (table) → Methodology → Limitations
+%   → Recommendations → References → Lab Director footer
+%
+% Key tcolorbox patterns:
+%   Tier 1: colback=tier1green!5, colframe=tier1green
+%     Mutation badge:  \colorbox{mutationred!60}{\textcolor{white}{\textbf{MUTATION}}}
+%     Amplification:   \colorbox{amplificationblue!60}{...}
+%   Tier 2: colback=tier2orange!5, colframe=tier2orange
+%     Fusion badge:    \colorbox{fusionpurple!60}{...}
+%   Tier 3: colback=tier3gray!10, colframe=tier3gray
+%
+% Clinical trial table columns: Trial | Intervention | Biomarker | Phase
+% Methodology section: Assay info, variant classification (5-tier),
+%   databases (OncoKB, CIViC, ClinVar, COSMIC)
+
+
+% ╔═══════════════════════════════════════════════════════════════════════════╗
+% ║  SECTION 3 — CLINICAL PATHWAY TEMPLATE                                  ║
+% ║  TikZ decision-algorithm flowcharts for treatment sequencing.            ║
+% ║  Standalone: \documentclass[10pt,letterpaper,landscape]{article}         ║
+% ╚═══════════════════════════════════════════════════════════════════════════╝
+%
+% Header/footer:
+%   \fancyhead[L]{Clinical Pathway: [CONDITION/DISEASE]}
+%   \fancyfoot[C]{Evidence-Based Clinical Decision Pathway | For Professional Use Only}
+%
+% TikZ node styles:
+\tikzstyle{cds@startstop} = [rectangle, rounded corners=8pt, minimum width=3cm,
+  minimum height=1cm, text centered, draw=black, fill=headerblue!20,
+  font=\small\bfseries]
+\tikzstyle{cds@decision} = [diamond, minimum width=3cm, minimum height=1.2cm,
+  text centered, draw=black, fill=conditionalyellow!40, font=\small,
+  aspect=2, inner sep=0pt]
+\tikzstyle{cds@process} = [rectangle, rounded corners=4pt, minimum width=3.5cm,
+  minimum height=0.9cm, text centered, draw=black, fill=actiongreen!20,
+  font=\small]
+\tikzstyle{cds@urgent} = [rectangle, rounded corners=4pt, minimum width=3.5cm,
+  minimum height=0.9cm, text centered, draw=urgentred, line width=1.5pt,
+  fill=urgentred!15, font=\small\bfseries]
+\tikzstyle{cds@routine} = [rectangle, rounded corners=4pt, minimum width=3.5cm,
+  minimum height=0.9cm, text centered, draw=black, fill=routineblue!20,
+  font=\small]
+\tikzstyle{cds@info} = [rectangle, rounded corners=2pt, minimum width=2.5cm,
+  minimum height=0.7cm, text centered, draw=researchblue, fill=researchblue!10,
+  font=\footnotesize]
+\tikzstyle{cds@arrow} = [thick,->,>=stealth]
+\tikzstyle{cds@urgentarrow} = [ultra thick,->,>=stealth,color=urgentred]
+%
+% Flowchart structure:
+%   Patient Presentation → Critical Criteria? --YES--> Immediate Action
+%                                             --NO---> Continue Evaluation
+%   Continue Evaluation → Risk Score >=X? --HIGH--> Admit ICU
+%                                         --MOD---> Admit Observation
+%                                         --LOW---> Outpatient
+%   All branches → Definitive Management
+%
+% Legend box: shows Start/End, Decision Point, Action/Process symbols
+%   and Urgency Color Coding (Urgent <1h, Semi-Urgent <24h, Routine >24h)
+%
+% Detailed Pathway Steps: 1) Initial Assessment, 2) Risk Stratification,
+%   3) Treatment Initiation, 4) Monitoring and Reassessment
+%
+% Risk scoring table: Clinical Feature | Points → Risk Categories
+% Evidence basis box: Key Supporting Evidence, Validation, Last Updated
+
+
+% ╔═══════════════════════════════════════════════════════════════════════════╗
+% ║  SECTION 4 — COHORT ANALYSIS TEMPLATE                                   ║
+% ║  Biomarker-stratified patient cohort analysis with statistics.           ║
+% ║  Standalone: \documentclass[10pt,letterpaper]{article} + shared preamble ║
+% ╚═══════════════════════════════════════════════════════════════════════════╝
+%
+% Header/footer:
+%   \fancyhead[L]{Clinical Decision Support: [COHORT NAME]}
+%   \fancyfoot[C]{Confidential Medical Document - For Professional Use Only}
+%
+% Structure:
+%   Title → Executive Summary (tcolorbox, highlightgray/headerblue)
+%   → Cohort Characteristics: Demographics table (Group A vs B, p-value),
+%     Biomarker Profile (biomarkerblue box)
+%   → Treatment Exposures table
+%   → Treatment Outcomes: Response Rates (RECIST v1.1), Survival (PFS, OS
+%     with HR, CI, log-rank p), Kaplan-Meier figure placeholder
+%   → Safety table (Any Grade + Grade 3-4, by group)
+%   → Statistical Analysis: Methods, Multivariable Cox regression table
+%   → Clinical Implications (highlightgreen box): Recommendations by group
+%   → Subgroup Analyses: Interaction testing, exploratory subgroups
+%   → Strengths and Limitations
+%   → Conclusions, References, Footer
+
+
+% ╔═══════════════════════════════════════════════════════════════════════════╗
+% ║  SECTION 5 — TREATMENT RECOMMENDATION TEMPLATE                          ║
+% ║  Evidence-based clinical practice guidelines with GRADE grading.         ║
+% ║  Standalone: \documentclass[10pt,letterpaper]{article} + shared preamble ║
+% ╚═══════════════════════════════════════════════════════════════════════════╝
+%
+% Header/footer:
+%   \fancyhead[L]{Treatment Recommendations: [CONDITION]}
+%   \fancyfoot[C]{Evidence-Based Clinical Guideline - For Professional Use Only}
+%
+% Recommendation Strength Legend:
+%   STRONG (Grade 1): stronggreen!30 — benefits clearly outweigh risks
+%   CONDITIONAL (Grade 2): conditionalyellow!30 — trade-offs, shared decision
+%   RESEARCH (Grade R): researchblue!30 — insufficient evidence, trial preferred
+%   Evidence Quality: A=High(RCTs), B=Moderate, C=Low(observational), D=Very low
+%
+% Structure:
+%   Title → Strength Legend → Clinical Context (disease overview, population)
+%   → Evidence Review: Key trials (design, population, endpoints, safety,
+%     quality), Guideline concordance table (NCCN, ASCO, ESMO)
+%   → Treatment Options:
+%     First-Line: Option 1 (STRONG 1A, stronggreen box),
+%                 Option 2 (CONDITIONAL 2B, conditionalyellow box),
+%                 Option 3 (RESEARCH R, researchblue box)
+%     Second-Line and Beyond
+%   → Special Populations: Elderly (>=70), Renal impairment (eGFR table),
+%     Hepatic impairment
+%   → Clinical Decision Algorithm (TikZ flowchart)
+%   → Monitoring Protocol: On-treatment table, Dose modification guidelines
+%     (hematologic and non-hematologic toxicity)
+%   → Recommendations by Clinical Scenario (GRADE boxes)
+%   → Alternative Approaches: Not Recommended (warningred box)
+%   → Supportive Care, Growth Factor Support
+%   → Follow-Up and Surveillance table (Years 1-5+)
+%   → Clinical Trial Opportunities
+%   → Shared Decision-Making: Goals of care, decision aids (NNT)
+%   → References, Committee footer

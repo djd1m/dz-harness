@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Structured Reasoning Output",
+  "description": "Structured output from the reasoning strategy execution",
+  "type": "object",
+  "required": ["strategy", "conclusion", "confidence"],
+  "properties": {
+    "strategy": {
+      "type": "string",
+      "enum": ["tree-of-thought", "chain-of-thought", "cot-compression", "reflection-suppression"],
+      "description": "Reasoning strategy selected"
+    },
+    "problem_classification": {
+      "type": "string",
+      "enum": ["exploration", "linear", "cost-sensitive", "over-analyzed"],
+      "description": "How the problem was classified"
+    },
+    "branches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "description": { "type": "string" },
+          "score": { "type": "number", "minimum": 0, "maximum": 10 },
+          "selected": { "type": "boolean" }
+        }
+      },
+      "description": "ToT branches (only for tree-of-thought strategy)"
+    },
+    "reasoning_steps": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Key reasoning steps taken"
+    },
+    "conclusion": {
+      "type": "string",
+      "description": "Final conclusion from the reasoning"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Confidence level in the conclusion"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+[
+  { "unit": "g/L",    "dimension": "mass-conc",      "factorToBase": 1 },
+  { "unit": "mg/dL",  "dimension": "mass-conc",      "factorToBase": 0.01 },
+  { "unit": "ng/dL",  "dimension": "mass-conc",      "factorToBase": 1e-8 },
+  { "unit": "mmol/L", "dimension": "substance-conc", "factorToBase": 1 },
+  { "unit": "nmol/L", "dimension": "substance-conc", "factorToBase": 1e-6 },
+  { "unit": "%",      "dimension": "ratio",          "factorToBase": 0.01 }
+]

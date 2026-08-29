@@ -1,0 +1,9 @@
+{
+  "analyteId": "testosterone-total",
+  "displayName": "Тестостерон общий",
+  "canonicalUnit": "nmol/L",
+  "molarMass_g_per_mol": 288.42,
+  "reportingQuantum": 0.01,
+  "reportingSteps": { "nmol/L": 0.01, "ng/dL": 1 },
+  "aliases": ["Total Testosterone", "Testosterone", "Тестостерон общий", "Тестостерон"]
+}
