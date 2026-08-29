@@ -1,0 +1,119 @@
+name: erc-8004
+description: "Evaluate ERC-8004 on-chain AI agent identity registry skill"
+version: "1.0.0"
+
+test_cases:
+  - id: register-agent-base
+    description: "Register new agent identity on Base"
+    input:
+      operation: register
+      chain: base
+      metadata_uri: "ipfs://QmAgentMetadataHash"
+      metadata:
+        name: "TestAgent"
+        description: "A test AI agent"
+        version: "1.0.0"
+        agent_type: "defi-monitor"
+        capabilities: ["portfolio-tracking"]
+    expected:
+      operation: register
+      chain: base
+      status_not: failed
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: token_id
+      - type: field_present
+        field: tx_hash
+
+  - id: register-agent-testnet
+    description: "Register agent on Base Sepolia testnet"
+    input:
+      operation: register
+      chain: base-sepolia
+      metadata_uri: "https://example.com/agent.json"
+    expected:
+      operation: register
+      chain: base-sepolia
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: token_id
+
+  - id: update-metadata
+    description: "Update agent metadata URI"
+    input:
+      operation: update
+      chain: base
+      token_id: "42"
+      metadata_uri: "ipfs://QmNewMetadataHash"
+    expected:
+      operation: update
+      chain: base
+      token_id: "42"
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: tx_hash
+
+  # NOTE: ERC-8004 defines no cross-chain bridge; the previous "bridge-to-optimism"
+  # test exercised a fabricated bridge() operation and has been removed. Identities
+  # are per-chain singletons — register separately on each chain.
+
+  - id: query-agent
+    description: "Query agent identity by token ID"
+    input:
+      operation: query
+      chain: base
+      token_id: "42"
+    expected:
+      operation: query
+      chain: base
+      token_id: "42"
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: owner
+      - type: field_present
+        field: metadata_uri
+
+  - id: metadata-validation
+    description: "Validate agent metadata JSON schema"
+    input:
+      operation: register
+      chain: base
+      metadata:
+        name: "ComplianceBot"
+        description: "Monitors regulatory compliance"
+        version: "2.1.0"
+        agent_type: "compliance"
+        model: "claude-opus-4-20250514"
+        capabilities: ["monitoring", "alerting", "reporting"]
+        chains: ["base", "ethereum"]
+    expected:
+      metadata:
+        name: "ComplianceBot"
+        capabilities_count: 3
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: metadata.name
+      - type: field_present
+        field: metadata.capabilities
+
+  - id: cost-estimation
+    description: "Estimate registration cost on Base"
+    input:
+      operation: register
+      chain: base
+    expected:
+      gas_used_max: 200000
+      cost_estimate_usd_max: 0.05
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json

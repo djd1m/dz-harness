@@ -1,0 +1,195 @@
+# observability evaluation
+# Run: aqe eval observability
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run observability"
+    expected:
+      status: success
+      summary_contains: "observability"
+
+  - name: "full stack design for microservices"
+    input: "Design an observability stack for our 8-service Kubernetes platform running Node.js and Go services. We want open-source tools."
+    config:
+      mode: "full"
+      infrastructure: "kubernetes"
+      vendor_preference: "open_source"
+      services:
+        - name: "api-gateway"
+          language: "go"
+          is_user_facing: true
+        - name: "payment-service"
+          language: "typescript"
+          is_user_facing: true
+        - name: "notification-service"
+          language: "typescript"
+          is_user_facing: false
+    expected:
+      status: success
+      pillars:
+        metrics:
+          tool_in: ["Prometheus", "prometheus"]
+        logs:
+          structured: true
+          correlation_ids: true
+        traces:
+          instrumentation_type: "opentelemetry"
+          context_propagation: true
+      dashboards:
+        dashboards_defined_min: 1
+      alerting:
+        rules_min: 1
+      slos:
+        definitions_min: 1
+
+  - name: "metrics design with RED method"
+    input: "Design metrics for our API service using the RED method. We use Prometheus and Grafana."
+    config:
+      mode: "metrics_only"
+      existing_stack:
+        metrics: "prometheus"
+        dashboards: "grafana"
+    expected:
+      status: success
+      pillars:
+        metrics:
+          methodology_in: ["RED", "both"]
+          cardinality_bounded: true
+
+  - name: "structured logging setup"
+    input: "Set up structured JSON logging for our Node.js services. We need correlation IDs and PII redaction for GDPR compliance."
+    config:
+      mode: "logging_only"
+      compliance_requirements: ["gdpr"]
+      services:
+        - name: "user-service"
+          language: "typescript"
+    expected:
+      status: success
+      pillars:
+        logs:
+          structured: true
+          correlation_ids: true
+          pii_redaction: true
+          log_levels_defined: true
+
+  - name: "distributed tracing with sampling"
+    input: "Add distributed tracing to our microservices. We get 5000 RPS and need to control costs with sampling."
+    config:
+      mode: "tracing_only"
+      traffic_rps: 5000
+      vendor_preference: "open_source"
+    expected:
+      status: success
+      pillars:
+        traces:
+          instrumentation_type: "opentelemetry"
+          sampling_strategy_in: ["probabilistic", "tail_based"]
+          context_propagation: true
+          trace_to_log_correlation: true
+
+  - name: "SLO definitions for payment service"
+    input: "Define SLOs for our payment service: 99.95% availability and p99 latency under 500ms."
+    config:
+      mode: "slo_only"
+      slo_targets:
+        - service: "payment-service"
+          type: "availability"
+          objective: 99.95
+        - service: "payment-service"
+          type: "latency"
+          objective: 99.0
+          latency_threshold_ms: 500
+    expected:
+      status: success
+      slos:
+        definitions_min: 2
+        definitions_all_have:
+          - "name"
+          - "sli_type"
+          - "objective_percent"
+          - "window"
+        burn_rate_alerts_configured: true
+
+  - name: "alert fatigue reduction"
+    input: "Our on-call team is getting 50+ alerts per day. Help us reduce alert fatigue and rationalize our alerting rules."
+    config:
+      mode: "alerting_only"
+      existing_stack:
+        alerting: "alertmanager"
+    expected:
+      status: success
+      alerting:
+        fatigue_prevention:
+          grouping: true
+          inhibition: true
+          for_durations_set: true
+          regular_review: true
+        rules_have_severity: true
+        rules_have_runbooks: true
+
+  - name: "cost optimization review"
+    input: "We are spending $18k/month on Datadog. Help us optimize observability costs."
+    config:
+      mode: "cost_review"
+      budget_monthly_usd: 10000
+      existing_stack:
+        metrics: "datadog"
+        logs: "datadog_logs"
+        traces: "datadog_apm"
+    expected:
+      status: success
+      cost:
+        retention_policy_defined: true
+        sampling_configured: true
+
+  - name: "dashboards with golden signals"
+    input: "Create Grafana dashboards for our API gateway and checkout service showing the four golden signals."
+    config:
+      mode: "dashboards_only"
+      existing_stack:
+        dashboards: "grafana"
+        metrics: "prometheus"
+      services:
+        - name: "api-gateway"
+          is_user_facing: true
+        - name: "checkout-service"
+          is_user_facing: true
+    expected:
+      status: success
+      dashboards:
+        tool: "Grafana"
+        dashboards_defined_min: 2
+        template_variables: true
+        deploy_annotations: true
+
+  - name: "PII redaction enforced"
+    input: "Our logs must comply with HIPAA. Ensure all PII and PHI is redacted."
+    config:
+      mode: "logging_only"
+      compliance_requirements: ["hipaa"]
+    expected:
+      status: success
+      pillars:
+        logs:
+          pii_redaction: true
+          structured: true
+
+  - name: "on-call integration with PagerDuty"
+    input: "Set up PagerDuty integration with our Alertmanager. We want weekly rotation with follow-the-sun between US and EU teams."
+    config:
+      oncall_tool: "pagerduty"
+      existing_stack:
+        alerting: "alertmanager"
+    expected:
+      status: success
+      oncall:
+        tool: "PagerDuty"
+        escalation_policy: true
+        handoff_document: true
+
+  - name: "out of scope detection"
+    input: "Our API is returning 500 errors right now, help me fix it"
+    expected:
+      status: skipped
+      reason_contains: "out of scope"

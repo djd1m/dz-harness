@@ -1,0 +1,77 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "evidence-wiki",
+    "files": [
+      {
+        "path": ".claude-plugin/marketplace.json",
+        "sha256": "4f6a38b3d520634839677d0a3cf1fbee9037488a89f9721f12244bb2f361e8c2"
+      },
+      {
+        "path": ".claude-plugin/plugin.json",
+        "sha256": "76aaca2de16245142cfec4d17beb771f2722176ba3ad51f082f539051d607801"
+      },
+      {
+        "path": "LICENSE",
+        "sha256": "7d9d87eb9da376f2048c5a16d9a5b95a570f088f2c689a999c0c83ab69a60855"
+      },
+      {
+        "path": "README.md",
+        "sha256": "024ed8174464da6d613b83cb4da95052e0bd3e19765630aacfae9087e9246713"
+      },
+      {
+        "path": "commands/triple-check.md",
+        "sha256": "c320197735cfb3652ed087fc77105d85bc96130a7f79b876bbd42d8ea2269a7e"
+      },
+      {
+        "path": "commands/wiki-generate.md",
+        "sha256": "d98f9ab7f9e26d81910cee4d201c6713d82979cb90427cf711d9fe60e9bcd9aa"
+      },
+      {
+        "path": "governance/README.md",
+        "sha256": "5d2b64e98c1620647ab2d6766309417c69a641f20bd8e873b633405d136e874f"
+      },
+      {
+        "path": "governance/triple-pillar.governance.md",
+        "sha256": "7af2da9bd1aa8f9d1ede37fc9ba0682c496189127d31fc04dabfbc58461a3b35"
+      },
+      {
+        "path": "hooks/README.md",
+        "sha256": "abf49425a59b774eea801f75d9abf5b5c0217688929c23d9247dba4e0f0afd53"
+      },
+      {
+        "path": "hooks/hooks.json",
+        "sha256": "4ba61ac8342d4274104465898ad9136f4aa28e80b0a6c223216ee2640542abfe"
+      },
+      {
+        "path": "hooks/pre-commit-triple-check.ps1",
+        "sha256": "23c5264c16f25a3a0d2bdf622a229a1b3e2ba40a5b01c52e61147a099919e2ad"
+      },
+      {
+        "path": "hooks/pre-commit-triple-check.sh",
+        "sha256": "41b0d4c913985b00b547485d7362380ab87fda2b39427578cef9e3477ba33b47"
+      },
+      {
+        "path": "package.json",
+        "sha256": "5bdcff9127e8e875896347dec6e92f1894a823c37f510fededf9e48261918f76"
+      },
+      {
+        "path": "shards/triple-pillar.shard.md",
+        "sha256": "9ba495f94e34b14274b15ba48fb6febf35ab8fe41d1f45002dca8e341b1dfb3c"
+      },
+      {
+        "path": "skills/concept-wiki-generator/SKILL.md",
+        "sha256": "21fd7688234576e3b70a992001093b0ddd83ab444d61078b7eba54c18550fcd2"
+      },
+      {
+        "path": "templates/concept.template.md",
+        "sha256": "18e61a96342ada45ef9d837fd9a742b1b8cda12e9d8adeafaee71354529a59e9"
+      },
+      {
+        "path": "templates/triple-pillar.config.yaml",
+        "sha256": "2081d197d8f9a6b903e866a32e5b3f0de7ca5342abf74b05a0e3b5b7a79ba0dc"
+      }
+    ]
+  },
+  "signature": "oNyDXhO97JZ7bCU+fTluKImfF9FSWI4Aasac82OScYFMUJDqOLfzeKbR/giqAeu+Ry6zGhIQSvDzlLcKLwxTCw=="
+}

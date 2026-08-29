@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "news-monitor delta manifest",
+  "description": "Structured result of a news-monitor delta run.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["topic", "since", "scanned", "new_items"],
+  "properties": {
+    "topic": { "type": "string" },
+    "profile": { "type": "string" },
+    "since": { "type": "string", "format": "date-time", "description": "watermark cutoff this run diffed against" },
+    "scanned": { "type": "integer", "minimum": 0, "description": "sources scanned (fetch + search)" },
+    "new_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title", "url"],
+        "properties": {
+          "title": { "type": "string" },
+          "url": { "type": "string" },
+          "date": { "type": "string", "format": "date" },
+          "stream": { "type": "string" },
+          "tier": { "type": "integer", "minimum": 1, "maximum": 4 }
+        }
+      }
+    },
+    "new_watermark": { "type": "string", "format": "date-time", "description": "last_run written back for the next run" }
+  }
+}

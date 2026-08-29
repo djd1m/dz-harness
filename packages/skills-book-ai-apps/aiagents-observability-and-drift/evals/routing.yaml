@@ -1,0 +1,37 @@
+skill: aiagents-observability-and-drift
+# Positives cover: metric levels and their triggered actions, alert thresholds, telemetry stack
+# choice, span instrumentation + trace/log correlation, dashboards, PII scrubbing, drift tests,
+# behavioural drift ladder, RACI ownership.
+positives:
+  - "Агент в проде тихо деградировал: ошибок ноль, а качество упало. Чего мы не мониторим?"
+  - "Какие метрики вешать на агента и на что именно алертить по каждой?"
+  - "Подозреваем, что изменился профиль входящих запросов. Как это доказать статистически, а не на глаз?"
+  - "KS-тест, KL-дивергенция или PSI — чем мерить дрейф входных данных?"
+  - "Нужны спаны по узлам агента и связка трейса с логами. Собирать на OTel с Grafana или взять Langfuse?"
+  - "В трассировках агента светятся персональные данные клиентов. На каком этапе их вырезать?"
+  - "What's a sane alert threshold for the hallucination rate on a live agent before we page someone?"
+  - "Кто владеет дашбордом по агенту — продукт, ML или SRE? Нужно закрепить ответственность."
+  - "Хотим панель, по которой дежурный за десять секунд поймёт, что с агентом. Что туда класть?"
+  - "P99 у агента пополз вверх. На каких уровнях смотреть метрики, чтобы понять, где именно тормозит?"
+# Seam-level adversarial positives (round 2): prompts that sit on the boundary with a
+# sibling and are still legitimately owned by THIS skill.
+  - "Клиенты стали чаще переспрашивать агента, хотя технических ошибок ноль. Как это ловить метриками?"
+  - "За полгода агент незаметно поехал: те же промпты, другие ответы. С чего начинать разбор в проде?"
+  - "Нужно понять, на каком шаге агент теряет время. Что инструментировать, чтобы это стало видно?"
+negatives:
+  - prompt: "Надо собрать оценочный набор для агента до релиза — какие кейсы туда класть?"
+    should_activate: "aiagents-evaluation-design"
+  - prompt: "Настрой SLO, golden signals и трассировку для нашего Go-микросервиса заказов."
+    should_activate: "observability"
+  - prompt: "Собери дашборд с продуктовыми метриками за квартал: выручка, удержание, конверсия."
+    should_activate: "metrics-dashboard"
+  - prompt: "Выкатываем новую версию на пять процентов трафика и смотрим, не хуже ли. Как организовать наблюдение за выкаткой?"
+    should_activate: "canary-watch"
+  - prompt: "Смоделируй угрозы для нашей агентной системы и распиши, где перехватывать инъекции."
+    should_activate: "aiagents-agent-security"
+# WAVE-2 PROMOTION: these were soft_negatives while their cluster had no owner.
+# Wave 2 distilled that owner, so each is now a HARD negative against the new sibling.
+  - prompt: "Нужен теневой режим и blue-green для нового агента перед полным переключением."
+    should_activate: "aiagents-release-gates-and-rollout"
+  - prompt: "Постройте нам цикл: сигнал о деградации → разбор причины → оптимизация промпта → бэклог улучшений."
+    should_activate: "aiagents-improvement-loops"

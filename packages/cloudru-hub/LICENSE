@@ -1,0 +1,67 @@
+# LICENSE — @dzhechkov/cloudru-hub
+
+This file has two parts because the shipped work has two provenances. Part 1 covers every
+byte actually contained in this npm package. Part 2 records the licensing status of the
+Hermes engine additions, which this package deliberately does NOT contain.
+
+---
+
+## Part 1 — Code contained in this package (launcher, target adapters, installer, tests)
+##          and the original Go CLI foundation
+
+MIT License
+
+Copyright (c) 2026 Dmitry Zhechkov
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Authorship note (ADR-001 amendment AM-1, recorded 2026-08-09): the original Go CLI
+foundation on which the Hermes engine builds (cli.go / internal/cli) was authored by
+Dmitry Zhechkov, the owner of this repository. The Hermes engine is a DERIVATIVE work
+built on that foundation. This note states the owner's own authorship as fact; it does
+NOT assert, imply, or substitute for any grant by the Hermes engine author.
+
+---
+
+## Part 2 — The Hermes engine additions (the ~144-tool MCP layer) — NOT in this package
+
+This package contains ZERO bytes of the Hermes engine additions: no engine binary, no
+engine Go sources, no engine skill corpus. The engine binary is located at RUNTIME
+(environment variable / config path / a future platform package) and is never bundled
+here. See ADR-002 (distribution form) and the package README.
+
+Redistribution status of the engine additions (the Hermes author's contribution on top
+of the owner's CLI foundation):
+
+GRANT RECORDED (ADR-001 AM-2, exit 2 — 2026-08-12): Тимур, the author of the Hermes
+engine additions (the ~144-tool MCP layer built on the owner's original Go CLI
+foundation), approved publication of this package, as reported by the repository owner
+(Dmitry Zhechkov) on 2026-08-12. The approval is owner-attested; archiving the author's
+written confirmation is a recorded owner follow-up (see the grant record linked below).
+Per the owner's standing attribution condition, publication carries authorship credit:
+the Hermes engine additions are the work of Тимур; the original Go CLI foundation and
+every byte contained in this package are the work of Dmitry Zhechkov (Part 1).
+
+The author did not designate a licence text for the engine additions themselves.
+Accordingly: this package continues to ship ZERO bytes of the engine additions, the MIT
+licence in Part 1 covers ONLY the owner's code, and nothing in this file grants any
+third party rights to the engine additions — their use remains governed by their
+author's own terms.
+
+Grant-Confirmation: https://github.com/djd1m/dz-harness-hub/blob/main/features/hermes-claude-adaptation/03_adr/grant-record-2026-08-12.md

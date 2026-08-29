@@ -1,0 +1,97 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "adapter-openclaude"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "33e7a4fa53175e271890e69fe795d7ba9ffc3a24cba2a4e549bbb4893d3d9384"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/index.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "acbaf7a1cabaee6383e84f233b12288617d89a0a3bee3d0b3395505175f27f28"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/index.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9bec5ad94a8821e5e8f32c230f0535f1d4985aaface9624851b7f031b808115b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/index.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bcf6007ab0a1d5c83bdc9e6f482687a1e1a9bb33aa5a8e1147cd128b7fca1e90"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/index.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "81a8d608296a8770b99e42f0b79e04ceca86081835198748edeec089db916c67"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "c221b40dc0ee09e25838f8678453cec5a592fde8355aec340eb14d5676266897"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/index.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d7211ff16b02eae8334dd9df03a68b66d0ed89d1bffd964744f23f3dd53663af"
+        }
+      ]
+    }
+  ]
+}

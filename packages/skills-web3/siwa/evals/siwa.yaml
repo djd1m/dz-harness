@@ -1,0 +1,71 @@
+name: siwa
+description: Evaluate SIWA (Sign-In With Agent) ERC-8004 authentication skill usage
+version: "1.0"
+
+prompts:
+  - id: create_auth_message
+    input: "Create a SIWA authentication message for app.example.com with trade and read capabilities"
+    expected_actions:
+      - action: create_message
+        params:
+          domain: "app.example.com"
+          resources:
+            - "urn:capability:trade"
+            - "urn:capability:read"
+    expected_output:
+      contains:
+        - "message"
+        - "domain"
+        - "nonce"
+
+  - id: sign_and_authenticate
+    input: "Sign in to app.example.com as my agent"
+    expected_actions:
+      - action: create_message
+      - action: sign_message
+      - action: submit_to_service
+    expected_output:
+      contains:
+        - "signature"
+        - "token"
+
+  - id: verify_signature
+    input: "Verify this SIWA signature from an agent requesting trade access"
+    expected_actions:
+      - action: verify_message
+    expected_output:
+      contains:
+        - "valid"
+        - "address"
+        - "resources"
+
+  - id: nonce_generation
+    input: "Generate a nonce for replay protection"
+    expected_actions:
+      - action: generate_nonce
+    expected_output:
+      contains:
+        - "nonce"
+
+  - id: capability_check
+    input: "Check if the agent has urn:capability:transfer permission"
+    expected_actions:
+      - action: resolve_capabilities
+    expected_output:
+      contains:
+        - "capabilities"
+        - "valid"
+
+  - id: middleware_setup
+    input: "Add SIWA authentication middleware to my Express server"
+    expected_output:
+      contains:
+        - "@buildersgarden/siwa/express"
+        - "siwaMiddleware"
+
+scoring:
+  correct_action: 0.25
+  erc8004_compliance: 0.25
+  nonce_awareness: 0.2
+  capability_handling: 0.15
+  expiration_handling: 0.15

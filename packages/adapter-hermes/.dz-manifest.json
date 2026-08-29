@@ -1,0 +1,41 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "adapter-hermes",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "2141cc520ee15a125bcbd86cc9622cbfa995e6d858d5c37959bcd23f64cd156b"
+      },
+      {
+        "path": "dist/index.d.ts",
+        "sha256": "3f1be15c627797c9069ad51217f813dddd35c38e978ebc5169e8f37a1017a617"
+      },
+      {
+        "path": "dist/index.d.ts.map",
+        "sha256": "26557220bad50c9511422ea217c794a95ce175109e9a1d050588ed261e0c54ff"
+      },
+      {
+        "path": "dist/index.js",
+        "sha256": "663d43492fee080057ea09d963de229f42510e9e8930692bd91ffa1840682bba"
+      },
+      {
+        "path": "dist/index.js.map",
+        "sha256": "54ce8396f736a1bdf1d152b9a9004e42e6cf18d2816184f9780e78e344d05221"
+      },
+      {
+        "path": "package.json",
+        "sha256": "71b0281c9873cb20f7175cd468b58d05087d782008bf6f544de303dd17fa3461"
+      },
+      {
+        "path": "src/index.ts",
+        "sha256": "4d236e33c1268bd4881ce1606e104ee56aaeec33705b83e840698d8355339ef6"
+      }
+    ]
+  },
+  "signature": "xBu3A9m/MgHidqaHGpwzGK1c3/QdScIYY4uirj39PGfoIeMVoBD72ugbN8Ej1CDPbNAWjUCL7GTxNPbawKFlCg=="
+}

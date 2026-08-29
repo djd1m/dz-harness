@@ -1,0 +1,34 @@
+skill: aiagents-single-vs-multi-agent
+# Positives cover: the crossing threshold, the price of crossing, the parsimony test,
+# role/tool partition, coordination schemes, actor-critic.
+positives:
+  - "Наш агент оброс до 20 инструментов и стал путаться в них. Пора разбивать на несколько агентов или ещё можно тянуть одного?"
+  - "The team wants to split our support agent into a triage agent, a research agent and a writer. Is that actually going to help or just add moving parts?"
+  - "Нужен ли нам супервайзер над тремя агентами или пусть договариваются между собой напрямую?"
+  - "Мы собрали мультиагентку — задержка выросла вчетверо и токены улетают. Это нормальная цена или мы что-то не так собрали?"
+  - "How do I decide the coordination pattern — hierarchical levels versus a swarm where any agent can pick up work?"
+  - "Два агента переписываются по кругу и не сходятся к решению. Как раскладывать роли, чтобы такого не было?"
+  - "Хочу добавить агента-критика, который проверяет вывод основного. Это оправдано или лишняя сущность?"
+  - "We already have five agents. Product wants a sixth for 'compliance checks'. What test should I apply before saying yes?"
+  - "Как поделить общий набор инструментов между специализированными агентами, чтобы не было пересечений?"
+  - "Один большой агент с сорока тулзами или дерево специалистов — что выбрать под наш пайплайн?"
+# Seam-level adversarial positives (round 2): prompts that sit on the boundary with a
+# sibling and are still legitimately owned by THIS skill.
+  - "Мы уже сгруппировали инструменты и подключили семантический выбор, но агент всё равно путается. Что дальше по лестнице?"
+  - "Стоит ли отдать проверку результата отдельному агенту или пусть основной перепроверяет сам себя?"
+  - "Сколько агентов для нашей задачи — это уже перебор? Есть какой-то критерий, кроме интуиции?"
+negatives:
+  - prompt: "Нам вообще нужен агент, или тут хватит детерминированного воркфлоу на правилах?"
+    should_activate: "aiagents-agent-fit-and-model-choice"
+  - prompt: "Как разделить память между агентами — общий вектор-стор на всех или у каждого свой?"
+    should_activate: "aiagents-knowledge-and-memory"
+  - prompt: "Хочу поставить агента в бесконечный цикл: сам берёт задачи из бэклога и работает ночью, пока не упрётся."
+    should_activate: "autonomous-loops"
+  - prompt: "Как эксплуатировать флот долгоживущих агентов в энтерпрайзе — жизненный цикл, дежурства, границы доступа?"
+    should_activate: "enterprise-agent-ops"
+# WAVE-2 PROMOTION: these were soft_negatives while their cluster had no owner.
+# Wave 2 distilled that owner, so each is now a HARD negative against the new sibling.
+  - prompt: "На чём гонять обмен сообщениями между агентами — Kafka, брокер или актор-фреймворк?"
+    should_activate: "aiagents-multi-agent-infrastructure"
+  - prompt: "Как спланировать многошаговый флоу внутри одного агента — линейная цепочка или граф с ветвлениями?"
+    should_activate: "aiagents-orchestration-and-planning"

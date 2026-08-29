@@ -1,0 +1,103 @@
+# data-pipeline evaluation
+# Run: aqe eval data-pipeline
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run data-pipeline"
+    expected:
+      status: success
+      summary_contains: "data-pipeline"
+
+  - name: "elt pipeline design for snowflake"
+    input: "Design an ELT pipeline to load data from a PostgreSQL transactional database into Snowflake. We have orders, customers, and products tables. Daily batch is fine."
+    expected:
+      status: success
+      pipeline_paradigm: "elt"
+      pipeline_target_platform: "snowflake"
+      transformations_framework: "dbt"
+      has_quality_checks: true
+      has_sources_count_gte: 3
+
+  - name: "streaming pipeline design"
+    input: "We need a real-time pipeline to consume Kafka events from our payment service and make them available for fraud detection within 30 seconds."
+    expected:
+      status: success
+      pipeline_paradigm: "streaming"
+      pipeline_sla_hours_lte: 0.1
+      summary_contains_any:
+        - "streaming"
+        - "real-time"
+        - "kafka"
+
+  - name: "review existing airflow dag"
+    input: "Review this Airflow DAG. It runs a full refresh of a 200M row table every night, has no retries, no data quality checks, and the database password is hardcoded in the Python file."
+    expected:
+      status: success
+      anti_patterns_found_count_gte: 3
+      anti_patterns_contains_any:
+        - "full refresh"
+        - "hardcoded"
+        - "no monitoring"
+        - "no retries"
+        - "quality"
+
+  - name: "incremental optimization"
+    input: "Our dbt model does a full refresh of fct_events (500M rows) every 6 hours. It takes 3 hours and costs $200 per run. Help me make it incremental."
+    expected:
+      status: success
+      performance_incremental_strategy_present: true
+      summary_contains_any:
+        - "incremental"
+        - "watermark"
+        - "merge"
+
+  - name: "data quality setup"
+    input: "Add data quality checks to our orders staging model. We need uniqueness on order_id, not-null on required fields, accepted values for status, and freshness checks."
+    expected:
+      status: success
+      quality_checks_count_gte: 4
+      quality_checks_types_include:
+        - "uniqueness"
+        - "not_null"
+        - "accepted_values"
+        - "freshness"
+
+  - name: "cdc pipeline design"
+    input: "Set up CDC from our MySQL database to BigQuery using Debezium. We need near-real-time replication of the users and transactions tables."
+    expected:
+      status: success
+      pipeline_sources_type_includes: "cdc"
+      pipeline_target_platform: "bigquery"
+      summary_contains_any:
+        - "cdc"
+        - "debezium"
+        - "change data capture"
+
+  - name: "schema design recommendation"
+    input: "We are building a new analytics warehouse for an e-commerce platform. We have orders, line items, customers, products, and shipments. Help me design the schema."
+    expected:
+      status: success
+      pipeline_target_schema_pattern_present: true
+      transformations_layers_count_gte: 2
+      self_check_grain_defined: true
+
+  - name: "migration from cron to dagster"
+    input: "We currently run 15 SQL scripts via cron jobs. We want to migrate to Dagster. Help plan the migration."
+    expected:
+      status: success
+      orchestration_tool: "dagster"
+      orchestration_has_tasks: true
+      summary_contains_any:
+        - "dagster"
+        - "migration"
+        - "asset"
+
+  - name: "monitoring and alerting setup"
+    input: "Our pipeline has no monitoring. We have had two incidents where stale data went unnoticed for 3 days. Help us set up monitoring and alerting."
+    expected:
+      status: success
+      monitoring_metrics_count_gte: 3
+      monitoring_freshness_sla_present: true
+      monitoring_metrics_types_include:
+        - "freshness"
+        - "row_count"

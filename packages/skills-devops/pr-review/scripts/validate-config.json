@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "pr-review config validator",
+  "description": "Validates configuration inputs for the pr-review skill",
+  "type": "object",
+  "properties": {
+    "pr_number": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "PR number to review"
+    },
+    "pr_url": {
+      "type": "string",
+      "pattern": "^https://github\\.com/.+/pull/[0-9]+",
+      "description": "Full GitHub PR URL"
+    },
+    "base_branch": {
+      "type": "string",
+      "description": "Base branch for comparison"
+    },
+    "head_branch": {
+      "type": "string",
+      "description": "Head branch for comparison"
+    },
+    "max_line_threshold": {
+      "type": "integer",
+      "default": 600,
+      "description": "Lines changed threshold to recommend splitting"
+    },
+    "max_file_threshold": {
+      "type": "integer",
+      "default": 20,
+      "description": "Files changed threshold to recommend splitting"
+    },
+    "severity_filter": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["blocker", "important", "nit"]
+      },
+      "description": "Only report findings of these severities"
+    }
+  },
+  "anyOf": [
+    { "required": ["pr_number"] },
+    { "required": ["pr_url"] },
+    { "required": ["base_branch", "head_branch"] }
+  ]
+}

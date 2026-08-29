@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "google-sheets skill output",
+  "description": "Validates output from Google Sheets MCP tool calls",
+  "type": "object",
+  "properties": {
+    "tool": {
+      "type": "string",
+      "enum": [
+        "read_sheet",
+        "write_sheet",
+        "create_sheet",
+        "format_cells",
+        "add_chart",
+        "pivot_table"
+      ],
+      "description": "The Google Sheets tool that was invoked"
+    },
+    "spreadsheet_id": {
+      "type": "string",
+      "description": "Google Sheets spreadsheet ID"
+    },
+    "spreadsheet_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to the spreadsheet"
+    },
+    "range": {
+      "type": "string",
+      "description": "A1 notation range that was read or written"
+    },
+    "values": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {}
+      },
+      "description": "2D array of cell values (for read_sheet)"
+    },
+    "updated_cells": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of cells updated (for write_sheet)"
+    },
+    "updated_rows": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of rows updated"
+    },
+    "updated_columns": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of columns updated"
+    },
+    "created": {
+      "type": "object",
+      "properties": {
+        "spreadsheet_id": { "type": "string" },
+        "spreadsheet_url": { "type": "string", "format": "uri" },
+        "title": { "type": "string" },
+        "sheets": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "description": "Details of newly created spreadsheet"
+    },
+    "chart_id": {
+      "type": "string",
+      "description": "ID of the created chart"
+    }
+  },
+  "required": ["tool"]
+}

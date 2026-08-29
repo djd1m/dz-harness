@@ -1,0 +1,16 @@
+{
+  "schema": "ha-caveat-types-1",
+  "comment": "ADDITIVE registry (ADR-001): this file may only ADD caveat types on top of the code-level floor in lib/consult-finding-schema.js. Deleting or emptying this file narrows nothing below the floor — the loader unions the two and asserts the union still contains every floor entry.",
+  "types": [
+    "FRESHNESS_UNKNOWN",
+    "conditions_unknown",
+    "GRADE",
+    "study_population",
+    "source_disclaimer",
+    "dose_scope",
+    "population_scope",
+    "timeframe_scope",
+    "contraindication_scope",
+    "measurement_context"
+  ]
+}

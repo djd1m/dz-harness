@@ -1,0 +1,32 @@
+{
+  "name": "loop-designer",
+  "version": "0.1.0",
+  "description": "dz AUTHORS, GATES and READS loops — it never RUNS one. Author agent loops as typed loop-plan/1 plans; the rendered script is executed by the host harness via Workflow({ scriptPath }).",
+  "author": {
+    "name": "Dmitry Zhechkov",
+    "email": "jechkov.dmitriy@gmail.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "loop-plan",
+    "workflow",
+    "multi-agent",
+    "orchestration",
+    "authoring",
+    "gate"
+  ],
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/loop-designer-plugin#readme",
+  "skills": [
+    "./skills/loop-plan-author"
+  ],
+  "commands": [
+    "./commands/init.md",
+    "./commands/validate.md",
+    "./commands/render.md",
+    "./commands/lint.md",
+    "./commands/trace.md"
+  ],
+  "engines": {
+    "claude-code": ">=2.1.0"
+  }
+}

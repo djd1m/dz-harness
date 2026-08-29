@@ -1,0 +1,14 @@
+{
+  "name": "loop-designer-marketplace",
+  "owner": {
+    "name": "Dmitry Zhechkov",
+    "email": "jechkov.dmitriy@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "loop-designer",
+      "source": "./",
+      "description": "Author agent loops as typed loop-plan/1 plans — four patterns, eight invariants, a layer-1 script gate and a run reader. dz AUTHORS, GATES and READS loops — it never RUNS one."
+    }
+  ]
+}

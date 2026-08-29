@@ -1,0 +1,241 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "skills-book-ai-apps",
+    "files": [
+      {
+        "path": "CP4-PACK-REPORT.md",
+        "sha256": "21f5d58946ceeb71b3242a38ed34f1cbf9af2ba354e35faa12d087eab666b5c7"
+      },
+      {
+        "path": "LICENSE",
+        "sha256": "a192693ccc8421546bfb64fd13661e5addc0b69699a93a51525a9efa581d37ae"
+      },
+      {
+        "path": "README.md",
+        "sha256": "35b153b21c9ce4c500db465150b5316bd7a631bb5a61d10bf98ca8308111f4d7"
+      },
+      {
+        "path": "ROUTING-GATE.md",
+        "sha256": "d35fc453e33f01ad8e6aefbc24bed5732cd24b4077d81a95a7cb8d785ee0b850"
+      },
+      {
+        "path": "aiagents-agent-fit-and-model-choice/SKILL.md",
+        "sha256": "3ab925c2cb31669180651ab5a18eeceb562bcef6d8ccb3029d3e77127a43f888"
+      },
+      {
+        "path": "aiagents-agent-fit-and-model-choice/evals/routing.yaml",
+        "sha256": "a55ea039ca89d9306f8915c2a0ccd8321fca8268009214b0c1712219f40889a0"
+      },
+      {
+        "path": "aiagents-agent-fit-and-model-choice/references/knowledge-units.md",
+        "sha256": "8b85a7075dc1e6ae6d9cca4255b4b5ce1145303fd0c9f74fbc05e5467836c18e"
+      },
+      {
+        "path": "aiagents-agent-security/SKILL.md",
+        "sha256": "68919323d4ad339c375465f4e1b58fd1ec5a2a779690dfc372ecfccd3a89dc70"
+      },
+      {
+        "path": "aiagents-agent-security/evals/routing.yaml",
+        "sha256": "d234ecb78e2b5636a0155c16a2c54b602aab138851aa1e365e4dee2f692d29be"
+      },
+      {
+        "path": "aiagents-agent-security/references/knowledge-units.md",
+        "sha256": "6a1e74cd7336708fc58e4964e3d284a62bfb0f22313acfc41899b2a9ad9d13f4"
+      },
+      {
+        "path": "aiagents-agent-ux/SKILL.md",
+        "sha256": "51dda853b3fdd30ac048c2bbc06316af4b9e92af7bedf70b37e32149fd3273d9"
+      },
+      {
+        "path": "aiagents-agent-ux/evals/routing.yaml",
+        "sha256": "b41fa80d3390da872aeebbbf6d61b2b4ab356c9c78836a47873f1abbc6706402"
+      },
+      {
+        "path": "aiagents-agent-ux/references/knowledge-units.md",
+        "sha256": "339d6f71ab4bd86b093254c781828ab9e3bb106c4d2cec1fe75b72bb83c4b395"
+      },
+      {
+        "path": "aiagents-context-engineering/SKILL.md",
+        "sha256": "0654386026f6bf72b186de56bcd9d2e7272d388578e17e444cefa20a0bd5e357"
+      },
+      {
+        "path": "aiagents-context-engineering/evals/routing.yaml",
+        "sha256": "6efb395b1edeaaa49082321f16b8d383f28fc069eaf4fed6f9a98c74617ec275"
+      },
+      {
+        "path": "aiagents-context-engineering/references/knowledge-units.md",
+        "sha256": "13996b237bf48ee1c8b5d3b0312869f93a80b91a60639d921297ec1b6a3f4feb"
+      },
+      {
+        "path": "aiagents-evaluation-design/SKILL.md",
+        "sha256": "5fb2900507f0f7abe6ace3cde5bef112a1f74d85df7418a74a30be3464fc2a76"
+      },
+      {
+        "path": "aiagents-evaluation-design/evals/routing.yaml",
+        "sha256": "9db3ebdc4e2360ea5d93575c3f84fff9f75c4b7b6d6ab91521acef5caad67540"
+      },
+      {
+        "path": "aiagents-evaluation-design/references/knowledge-units.md",
+        "sha256": "127d146e158e7945a313774fc4a8a7250465c5fb74ce52b8410eaac9cb12743f"
+      },
+      {
+        "path": "aiagents-human-in-the-loop/SKILL.md",
+        "sha256": "5699ff45ad751fb5f5fef2f849b07e825a73c5490968cd465a8f20e6a2d62445"
+      },
+      {
+        "path": "aiagents-human-in-the-loop/evals/routing.yaml",
+        "sha256": "c42eba2b583b2ccdbc9e63d0fa69ea274d1ef43412b6f6953bfb8ac280e5194b"
+      },
+      {
+        "path": "aiagents-human-in-the-loop/references/knowledge-units.md",
+        "sha256": "1ca40a20d1f7e2d2e41f61016dd8f04002770cc9a4a66127183bb5a6fd22d4ac"
+      },
+      {
+        "path": "aiagents-improvement-loops/SKILL.md",
+        "sha256": "c119c32b32886378edfd1cfc7db447f4f86ef5bd1c74d11e968a7981c6534f7f"
+      },
+      {
+        "path": "aiagents-improvement-loops/evals/routing.yaml",
+        "sha256": "fbfa4b7e21aefeb9385d27f288b96950b4b15665e8c7c8e850ab11329db05d47"
+      },
+      {
+        "path": "aiagents-improvement-loops/references/knowledge-units.md",
+        "sha256": "e4c93bf67ef858ada75613b6fdbb72fb878d6753acd1e5e3bdef5b2f83be9416"
+      },
+      {
+        "path": "aiagents-knowledge-and-memory/SKILL.md",
+        "sha256": "6104f3ba78d78f09c0a66a99f157a557bcbbda9895add62779ca369e48144586"
+      },
+      {
+        "path": "aiagents-knowledge-and-memory/evals/routing.yaml",
+        "sha256": "110804917423308580b6fdc94531bc7ec12980f80ba8d83f86288a711ee110f8"
+      },
+      {
+        "path": "aiagents-knowledge-and-memory/references/knowledge-units.md",
+        "sha256": "2b58c98a28f5d4e6f0d8ebc408a863e8ef5ccc7e2fd5a7d5d0abc082e5910e1a"
+      },
+      {
+        "path": "aiagents-learning-strategy/SKILL.md",
+        "sha256": "d1cacaab69a977f45ee3860d1dc12321062859bd066a17d060a66cfff9dcf617"
+      },
+      {
+        "path": "aiagents-learning-strategy/evals/routing.yaml",
+        "sha256": "4e60f67f03479ad5fe27ee85cf76f387af6278d9d31db647fbf5ade25ffba881"
+      },
+      {
+        "path": "aiagents-learning-strategy/references/knowledge-units.md",
+        "sha256": "9bc151f7771eb7fd4393dfb455763711e366258faf78f711a8f92808eb05db20"
+      },
+      {
+        "path": "aiagents-multi-agent-infrastructure/SKILL.md",
+        "sha256": "143a063b63cca1d2d76c7e26ea5732bcf8b3e6d992d0082b1a8637443d8c1dae"
+      },
+      {
+        "path": "aiagents-multi-agent-infrastructure/evals/routing.yaml",
+        "sha256": "05fb8e02977add5af9523950396fd6bc1749e83ae0ccdc544bc7796577657d52"
+      },
+      {
+        "path": "aiagents-multi-agent-infrastructure/references/knowledge-units.md",
+        "sha256": "2a36dfcf06d88e34587a4644593ad6a7f92fdb3f2602c242ee833f7137e606cd"
+      },
+      {
+        "path": "aiagents-observability-and-drift/SKILL.md",
+        "sha256": "2a6c6cded7f5966ef3fa28e8e74582c74e387e469b0667cb5bfedd69c43ba497"
+      },
+      {
+        "path": "aiagents-observability-and-drift/evals/routing.yaml",
+        "sha256": "105dbb7b1cba0ee3a68e7fcdfafde870f47d54f9cc0836b4d9e06e8df4bba349"
+      },
+      {
+        "path": "aiagents-observability-and-drift/references/knowledge-units.md",
+        "sha256": "87e0d1d6badd40ba42d91fe7cb1cec50ad73338a43253c1b361659ef21e23083"
+      },
+      {
+        "path": "aiagents-orchestration-and-planning/SKILL.md",
+        "sha256": "45b833dfff38d4e92b1a15b1aae11e1a4def120b3c99aa03e05c8f82696945b2"
+      },
+      {
+        "path": "aiagents-orchestration-and-planning/evals/routing.yaml",
+        "sha256": "53de964da83cf5dade3bec4a934d78d26aacf337d838515bb7dd66f96c18a9e8"
+      },
+      {
+        "path": "aiagents-orchestration-and-planning/references/knowledge-units.md",
+        "sha256": "3f25e5b9803777cec18acaac57e4e2924e2696aa7063167dd1e018399e0df401"
+      },
+      {
+        "path": "aiagents-org-adoption-and-governance/SKILL.md",
+        "sha256": "0311e979468bbbb556f863499fea8ed77cad0d6a98d7b07d1fba3e065db75cc4"
+      },
+      {
+        "path": "aiagents-org-adoption-and-governance/evals/routing.yaml",
+        "sha256": "f9adbb6dc8771a33dc29e4e54d0833a7e4fb6a2a75c02e4434fee840ac75c759"
+      },
+      {
+        "path": "aiagents-org-adoption-and-governance/references/knowledge-units.md",
+        "sha256": "d0474b77d1f8b3ef87b6b7288f931cacd2392b1d3c0c68f58b91120b7fb80602"
+      },
+      {
+        "path": "aiagents-probabilistic-behaviour-checks/SKILL.md",
+        "sha256": "aa2475ea3c0da091e2ce6a4c06111404cf452d758229410a452032a326920800"
+      },
+      {
+        "path": "aiagents-probabilistic-behaviour-checks/evals/routing.yaml",
+        "sha256": "0104eab20d448360486f801bc83e6d6f78651f30293a8e9c0bf11ed757492856"
+      },
+      {
+        "path": "aiagents-probabilistic-behaviour-checks/references/knowledge-units.md",
+        "sha256": "c079d9160f9c868b0a2aa94433844376a155c33d82efb09251f4131b73429174"
+      },
+      {
+        "path": "aiagents-release-gates-and-rollout/SKILL.md",
+        "sha256": "902ecfe1f949fb544e4f9477ab42e9334cb4bd2ce304797e6b95e736fdccf340"
+      },
+      {
+        "path": "aiagents-release-gates-and-rollout/evals/routing.yaml",
+        "sha256": "37a96977ee337dac27b911b1afb75c2359c635d468bd843b6a2c8851f28084b5"
+      },
+      {
+        "path": "aiagents-release-gates-and-rollout/references/knowledge-units.md",
+        "sha256": "99d444c33f6c1aab106b627f1b6429b14d3f8c7811c9475b9821b05d0b4d9096"
+      },
+      {
+        "path": "aiagents-single-vs-multi-agent/SKILL.md",
+        "sha256": "869459a44646c48696befc4df5817da0d573817e99b6b042f3cd434b15915590"
+      },
+      {
+        "path": "aiagents-single-vs-multi-agent/evals/routing.yaml",
+        "sha256": "8c06f8f428a51042ae002b55a9b99fcab0dd2b99a89dcde3b2ee453c5aa6c541"
+      },
+      {
+        "path": "aiagents-single-vs-multi-agent/references/knowledge-units.md",
+        "sha256": "0e7b0f952b51148cfa74a4e8b408ac0dab2bbe06153dba32da8d8987919ac98f"
+      },
+      {
+        "path": "aiagents-tool-design-and-selection/SKILL.md",
+        "sha256": "20c8a1589f8046ab271c02dd75dbae90e743449da676e94126826239c90876de"
+      },
+      {
+        "path": "aiagents-tool-design-and-selection/evals/routing.yaml",
+        "sha256": "5269e62eff55e0412ad25d9cad4b66262f05ee4810fd6212d4aa0dc3cb763e09"
+      },
+      {
+        "path": "aiagents-tool-design-and-selection/references/knowledge-units.md",
+        "sha256": "3a4d5d255e796b1eab777ceb32726a120bd4a1b4d1d3ca0bfde1a2ce10c4fb85"
+      },
+      {
+        "path": "brain/ai-apps.sqlite",
+        "sha256": "a77263f03456d66921716d76f85c08aa42f0f8947ad6d2bc8fd68ce739a3b6d9"
+      },
+      {
+        "path": "package.json",
+        "sha256": "39488502b21db2fdf79d00df1ae1bae09a656a2f8915680684ae93413b73ac05"
+      },
+      {
+        "path": "sources.json",
+        "sha256": "97e9204bf5404baa2d6926b0cdacae61726d695ff37185ae8bbefd991efc4267"
+      }
+    ]
+  },
+  "signature": "ADlkweqV3Ccz7SZI49TprRmlaYHh2/FlYo+Ix8dRBHRcvGCzvfmDovQi9rN+4SrdrXnPTTknW4AfRZIhrLbHCw=="
+}

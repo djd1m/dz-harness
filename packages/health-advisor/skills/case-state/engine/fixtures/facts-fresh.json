@@ -1,0 +1,23 @@
+{
+  "schema": "case-facts-v1",
+  "records": {
+    "7706839459395b2c16b56ca8d68a24fdb8fea6d4b97389201da34e0efa37ae8b": {
+      "key": "7706839459395b2c16b56ca8d68a24fdb8fea6d4b97389201da34e0efa37ae8b",
+      "claim": "Genetically lower LDL-C is associated with a lower lifetime risk of coronary heart disease (Mendelian randomisation).",
+      "claim_hash": "37f78e1372e2f0bea5204f866bfcf6b1e92bd68d5799513f5a119041672c91f6",
+      "source_url": "https://www.jacc.org/doi/10.1016/j.jacc.2012.09.017",
+      "source_kind": "meta_analysis",
+      "first_fetch_date": "2026-02-11",
+      "last_fetch_date": "2026-02-11",
+      "verifications": [
+        {
+          "fetch_date": "2026-02-11",
+          "evidence_class": "FETCH_VERIFIED",
+          "issuer": "dz.pub",
+          "signature": "SIGNATURE-PLACEHOLDER-not-verified-here",
+          "study_population": null
+        }
+      ]
+    }
+  }
+}

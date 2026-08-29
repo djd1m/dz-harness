@@ -1,0 +1,45 @@
+{
+  "name": "obsidian",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "id": "env-check",
+      "type": "env",
+      "description": "Verify OBSIDIAN_API_KEY is set",
+      "required_vars": ["OBSIDIAN_API_KEY"],
+      "error_message": "OBSIDIAN_API_KEY is required. Get it from Obsidian Settings > Local REST API plugin."
+    },
+    {
+      "id": "mcp-server-check",
+      "type": "command",
+      "description": "Verify MCP server package is available",
+      "command": "npx --yes obsidian-mcp-server --version",
+      "timeout_ms": 30000,
+      "error_message": "Cannot locate obsidian-mcp-server. Run: npm install -g obsidian-mcp-server"
+    },
+    {
+      "id": "obsidian-rest-api-check",
+      "type": "command",
+      "description": "Verify Obsidian Local REST API is reachable",
+      "command": "curl -sk https://localhost:27124 -o /dev/null -w '%{http_code}'",
+      "timeout_ms": 5000,
+      "error_message": "Obsidian Local REST API is not reachable. Ensure Obsidian is running and the Local REST API plugin is enabled."
+    },
+    {
+      "id": "output-schema",
+      "type": "json-schema",
+      "description": "Validate tool output against schema",
+      "schema_path": "../schemas/output.json"
+    }
+  ],
+  "mcp_config": {
+    "server_name": "obsidian",
+    "command": "npx",
+    "args": ["obsidian-mcp-server"],
+    "transport": "stdio",
+    "env": {
+      "OBSIDIAN_REST_URL": "${OBSIDIAN_REST_URL:-https://localhost:27124}",
+      "OBSIDIAN_API_KEY": "${OBSIDIAN_API_KEY}"
+    }
+  }
+}

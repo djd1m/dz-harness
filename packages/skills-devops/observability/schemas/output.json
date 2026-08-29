@@ -1,0 +1,482 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "observability output",
+  "description": "Structured output from the observability skill",
+  "type": "object",
+  "required": [
+    "status",
+    "pillars",
+    "instrumentation",
+    "dashboards",
+    "alerting",
+    "slos"
+  ],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "error",
+        "skipped"
+      ]
+    },
+    "pillars": {
+      "type": "object",
+      "required": [
+        "metrics",
+        "logs",
+        "traces"
+      ],
+      "properties": {
+        "metrics": {
+          "type": "object",
+          "required": [
+            "tool",
+            "methodology"
+          ],
+          "properties": {
+            "tool": {
+              "type": "string",
+              "description": "Chosen metrics tool (e.g., Prometheus, Datadog, CloudWatch)"
+            },
+            "methodology": {
+              "type": "string",
+              "enum": [
+                "RED",
+                "USE",
+                "both",
+                "custom"
+              ],
+              "description": "Metrics design methodology"
+            },
+            "custom_metrics": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "type",
+                  "description"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Metric name following naming conventions"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "counter",
+                      "gauge",
+                      "histogram",
+                      "summary"
+                    ],
+                    "description": "Prometheus metric type"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "labels": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Label names for this metric"
+                  },
+                  "unit": {
+                    "type": "string",
+                    "description": "Unit of measurement"
+                  }
+                }
+              },
+              "description": "Custom business or domain-specific metrics"
+            },
+            "cardinality_bounded": {
+              "type": "boolean",
+              "description": "Whether metric label cardinality is bounded (no user IDs, etc.)"
+            }
+          }
+        },
+        "logs": {
+          "type": "object",
+          "required": [
+            "tool",
+            "structured"
+          ],
+          "properties": {
+            "tool": {
+              "type": "string",
+              "description": "Chosen logging tool (e.g., Loki, ELK, Splunk, CloudWatch Logs)"
+            },
+            "structured": {
+              "type": "boolean",
+              "description": "Whether logs use structured JSON format"
+            },
+            "correlation_ids": {
+              "type": "boolean",
+              "description": "Whether correlation IDs are included in log entries"
+            },
+            "pii_redaction": {
+              "type": "boolean",
+              "description": "Whether PII/sensitive data redaction is configured"
+            },
+            "log_levels_defined": {
+              "type": "boolean",
+              "description": "Whether log level usage guidelines are defined"
+            }
+          }
+        },
+        "traces": {
+          "type": "object",
+          "required": [
+            "tool",
+            "instrumentation_type"
+          ],
+          "properties": {
+            "tool": {
+              "type": "string",
+              "description": "Chosen tracing tool (e.g., Jaeger, Tempo, X-Ray, Honeycomb)"
+            },
+            "instrumentation_type": {
+              "type": "string",
+              "enum": [
+                "opentelemetry",
+                "vendor_sdk",
+                "manual",
+                "auto_only"
+              ],
+              "description": "How services are instrumented for tracing"
+            },
+            "sampling_strategy": {
+              "type": "string",
+              "enum": [
+                "always_on",
+                "probabilistic",
+                "rate_limiting",
+                "tail_based",
+                "parent_based"
+              ],
+              "description": "Trace sampling strategy"
+            },
+            "sampling_rate_percent": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 100,
+              "description": "Sampling percentage (null for always_on or tail_based)"
+            },
+            "context_propagation": {
+              "type": "boolean",
+              "description": "Whether trace context is propagated across all service boundaries"
+            },
+            "trace_to_log_correlation": {
+              "type": "boolean",
+              "description": "Whether traces link to associated log entries"
+            }
+          }
+        }
+      }
+    },
+    "instrumentation": {
+      "type": "object",
+      "required": [
+        "sdk",
+        "languages"
+      ],
+      "properties": {
+        "sdk": {
+          "type": "string",
+          "description": "Instrumentation SDK (e.g., OpenTelemetry, Datadog Agent, vendor-specific)"
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Programming languages instrumented"
+        },
+        "auto_instrumentation": {
+          "type": "boolean",
+          "description": "Whether auto-instrumentation is enabled"
+        },
+        "custom_spans": {
+          "type": "boolean",
+          "description": "Whether custom spans are added for business-critical operations"
+        },
+        "collector_configured": {
+          "type": "boolean",
+          "description": "Whether an OTel Collector (or equivalent) is deployed"
+        }
+      }
+    },
+    "dashboards": {
+      "type": "object",
+      "required": [
+        "tool",
+        "dashboards_defined"
+      ],
+      "properties": {
+        "tool": {
+          "type": "string",
+          "description": "Dashboard tool (e.g., Grafana, Datadog, CloudWatch)"
+        },
+        "dashboards_defined": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "type",
+              "file"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Dashboard name"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "golden_signals",
+                  "service_overview",
+                  "infrastructure",
+                  "business_metrics",
+                  "slo_dashboard",
+                  "custom"
+                ],
+                "description": "Dashboard category"
+              },
+              "service": {
+                "type": "string",
+                "description": "Which service this dashboard covers"
+              },
+              "panels_count": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Number of panels. NOT evidence on its own — it is CROSS-CHECKED against the panel count in `file`. Before 2026-08-20 this field was the only thing the schema knew about a dashboard's contents, which meant a self-reported integer certified an artifact nobody opened."
+              },
+              "file": {
+                "type": "string",
+                "description": "Repo-relative path to the dashboard JSON this step actually WROTE. Required, and checked by scripts/check-dashboards.mjs, which opens it. A name and a category are a claim; a file is the artifact."
+              }
+            }
+          },
+          "minItems": 1,
+          "description": "List of dashboards to create"
+        },
+        "template_variables": {
+          "type": "boolean",
+          "description": "Whether dashboards use template variables for reusability"
+        },
+        "deploy_annotations": {
+          "type": "boolean",
+          "description": "Whether deploy events are overlaid on time series"
+        }
+      }
+    },
+    "alerting": {
+      "type": "object",
+      "required": [
+        "tool",
+        "rules"
+      ],
+      "properties": {
+        "tool": {
+          "type": "string",
+          "description": "Alerting tool (e.g., Alertmanager, Datadog Monitors, CloudWatch Alarms)"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "severity",
+              "condition"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Alert rule name"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "P1",
+                  "P2",
+                  "P3",
+                  "P4"
+                ],
+                "description": "Alert severity"
+              },
+              "condition": {
+                "type": "string",
+                "description": "Alert condition expression (PromQL or equivalent)"
+              },
+              "for_duration": {
+                "type": "string",
+                "description": "How long condition must persist before firing (e.g., '5m', '10m')"
+              },
+              "runbook_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Link to the runbook for this alert"
+              },
+              "routing": {
+                "type": "string",
+                "enum": [
+                  "pagerduty",
+                  "opsgenie",
+                  "slack",
+                  "email",
+                  "ticket"
+                ],
+                "description": "Where this alert is routed"
+              }
+            }
+          },
+          "minItems": 1,
+          "description": "Alert rules defined"
+        },
+        "fatigue_prevention": {
+          "type": "object",
+          "properties": {
+            "grouping": {
+              "type": "boolean",
+              "description": "Related alerts are grouped"
+            },
+            "inhibition": {
+              "type": "boolean",
+              "description": "Upstream failures inhibit downstream alerts"
+            },
+            "for_durations_set": {
+              "type": "boolean",
+              "description": "All alerts have persistence durations to avoid transient spikes"
+            },
+            "regular_review": {
+              "type": "boolean",
+              "description": "Monthly alert review process is defined"
+            }
+          }
+        }
+      }
+    },
+    "slos": {
+      "type": "object",
+      "required": [
+        "definitions"
+      ],
+      "properties": {
+        "definitions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "sli_type",
+              "objective_percent",
+              "window"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "SLO name"
+              },
+              "sli_type": {
+                "type": "string",
+                "enum": [
+                  "availability",
+                  "latency",
+                  "quality",
+                  "throughput",
+                  "correctness"
+                ],
+                "description": "Type of SLI measured"
+              },
+              "objective_percent": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "SLO target as percentage (e.g., 99.9)"
+              },
+              "window": {
+                "type": "string",
+                "description": "SLO evaluation window (e.g., '30d', '7d')"
+              },
+              "error_budget_percent": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Error budget as percentage"
+              },
+              "burn_rate_alerts": {
+                "type": "boolean",
+                "description": "Whether burn rate alerts are configured for this SLO"
+              }
+            }
+          },
+          "minItems": 1,
+          "description": "SLO definitions"
+        }
+      }
+    },
+    "oncall": {
+      "type": "object",
+      "properties": {
+        "tool": {
+          "type": "string",
+          "description": "On-call management tool (e.g., PagerDuty, OpsGenie, Grafana OnCall)"
+        },
+        "rotation_type": {
+          "type": "string",
+          "enum": [
+            "weekly",
+            "daily",
+            "follow_the_sun",
+            "custom"
+          ],
+          "description": "On-call rotation schedule type"
+        },
+        "escalation_policy": {
+          "type": "boolean",
+          "description": "Whether an escalation policy is defined"
+        },
+        "handoff_document": {
+          "type": "boolean",
+          "description": "Whether a handoff document template exists"
+        }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "properties": {
+        "estimated_monthly_usd": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Estimated monthly cost in USD"
+        },
+        "retention_policy_defined": {
+          "type": "boolean",
+          "description": "Whether retention policies are configured for all data types"
+        },
+        "sampling_configured": {
+          "type": "boolean",
+          "description": "Whether sampling is configured to control costs"
+        },
+        "recording_rules": {
+          "type": "boolean",
+          "description": "Whether recording rules pre-compute expensive queries"
+        },
+        "tiered_storage": {
+          "type": "boolean",
+          "description": "Whether hot/warm/cold storage tiers are configured"
+        }
+      }
+    }
+  }
+}

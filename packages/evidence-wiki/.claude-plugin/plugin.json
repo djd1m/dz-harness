@@ -1,0 +1,58 @@
+{
+  "name": "evidence-wiki",
+  "version": "0.1.0",
+  "description": "Evidence-disciplined wiki: builds atomic, graph-linked concept pages over your docs and enforces that every factual claim carries an inline source, backed by N independent typed pillars (decision / quantitative / qualitative). Ships commands, a governance shard, and pre-commit hooks.",
+  "author": {
+    "name": "Dmitry Zhechkov",
+    "email": "jechkov.dmitriy@gmail.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "llm-wiki",
+    "knowledge-graph",
+    "evidence-based",
+    "triple-pillar",
+    "documentation",
+    "governance",
+    "adr"
+  ],
+  "homepage": "https://github.com/djd1m/evidence-wiki",
+  "skills": [
+    "./skills/concept-wiki-generator"
+  ],
+  "commands": [
+    "./commands/wiki-generate.md",
+    "./commands/triple-check.md"
+  ],
+  "hooks": "./hooks/hooks.json",
+  "components": {
+    "shards": [
+      "./shards/triple-pillar.shard.md"
+    ],
+    "governance": [
+      "./governance/triple-pillar.governance.md"
+    ],
+    "templates": [
+      "./templates/concept.template.md",
+      "./templates/triple-pillar.config.yaml"
+    ]
+  },
+  "config": {
+    "wiki_dir": "wiki",
+    "concept_dir": "wiki/concepts",
+    "pillar_types": ["adr", "methodology", "research"],
+    "pillar_paths": {
+      "adr": "adrs/*.md",
+      "methodology": "methodologies/*.md",
+      "research": "researches/*/"
+    },
+    "min_pillars_per_concept": 3,
+    "marker_open": "<!-- wiki:see-also-start -->",
+    "marker_close": "<!-- wiki:see-also-end -->",
+    "triple_check_mode": "advisory",
+    "triple_check_missing_threshold": 3
+  },
+  "engines": {
+    "claude-code": ">=0.20.0"
+  }
+}

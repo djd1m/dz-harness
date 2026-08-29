@@ -1,0 +1,237 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "skills-pm"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ae0291a01eae332ee9dace848e0843c1ac7665491439ebadc2fca0e9c7ba3281"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2b27afa7bb68d5c90479ebe8fba2007deec40dea3262f0da46bf9c8e3ddfdd61"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "ab-test-analysis/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "76e60c63a4645165ad193706bac746958884eb55239784fc2a35e56fa28aab0e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "beachhead-segment/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3396fddb268407fb76cbf764b2bd3db853f331afda78ae44d2f260c3bced55a3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "brainstorm-okrs/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "134711decc47bb0bb25a57c7242edbb887c874e872aae9200959744e2808ad26"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "cohort-analysis/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3afbc8c42a88269f4e369246b7c4c5a2e3198d56c87b2c56715147ee705cf663"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "growth-loops/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aa2b88eaa411588501e56eaa3cb8e9fbd084d5b24a617544c625c608f79756aa"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "gtm-strategy/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0accdbf6605350111aa7cb4a84c8251d73ba0d0dae5711cf67ca508280f8b3c0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "market-sizing/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d3cf9d18dad06aa1a950a0d34df80a7636088e54c0629f7ff493e8adde6014d4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "metrics-dashboard/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7144f104a982b96d0847e6c9a906b187593717b7ad62b874890839e8da7ff9e2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "north-star-metric/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "07d1c4e8193e7e602a145bb54615ebc36ce73c37335ac382adcac3b2d2cd29f8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "opportunity-solution-tree/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "79d272d7bc2421b3132f5702ddb5526055b6c505ed02337a56ab930af2d1e937"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "outcome-roadmap/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2fce2fb39a2561c1906254b94b6b7244f03eeaf07ab8ee94ece3ff38cce55760"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "8dcce308095121e3f2c4f05f73e8a57fd081e16736516d47c540c008e6239ef4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "pricing-strategy/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7352fa9be01d7efb4085a00d48a02f9d774c997d8bc91d44d9793ce76d1d782f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "prioritization-frameworks/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "638e73cf0f5a03e5f0e4186940db2c644032ae5616c5d4bcf1b51301fd40a0ad"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "prioritize-features/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4049b0d718158d6626f4a219c877fce09fb08536df30dfd27d84bc6e071b0e86"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "product-strategy/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d2992a470c6f318581c4343a07155c579899eb0a77b46031e6c56ed7ab33a585"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "sources.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "232326006c8218aace36f2505e5365b72d1f861ce3afdda23530827eee0b2f1a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "sprint-plan/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d50731a025c1f9674ec8b04032e172099e88a6267969ae9486bae4371e0034d3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "stakeholder-map/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fc0edb0cb3fbcd1484e3f481d54b9c1a27dde5c4cc0ae3c30fa843d6c10447ed"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "strategy-red-team/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "10b5e670cf6dbd09c73bf999d3d25f514f81fed1c1137ef665761749588071a9"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "skills-news",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "22c5b04b2eee7da8f367c6628a0c258d98d60e64bacb05e535364b57a8b82dcc"
+      },
+      {
+        "path": "goap-research-ed25519/SKILL.md",
+        "sha256": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8"
+      },
+      {
+        "path": "goap-research-ed25519/references/ed25519-verification.md",
+        "sha256": "2742f14b472bff69c83f24d9bac5bf023bd7f9ecc3e659742ac3152a239dd68f"
+      },
+      {
+        "path": "goap-research-ed25519/references/research-actions.md",
+        "sha256": "156d2f8ce342f7013bc758fe7c0d3ad3041b4f67f30dbcf8d59e091cb70d9a9c"
+      },
+      {
+        "path": "goap-research-ed25519/references/source-evaluation.md",
+        "sha256": "d6a19abb6be64dc9e1f539903080029125d2d899da4de3063e75e1afb7e4906f"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/check_report_evidence.py",
+        "sha256": "5053e677f11d00b4dd8365a81eafa1d2c961eebd25c33f72b02455573a934a32"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/ed25519_verifier.py",
+        "sha256": "f4a2ac9e6473201583643fe8abf47560863cec600344dad5c9df06091b4298f5"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/evidence_fetch.py",
+        "sha256": "5f4d7cb5d6fb3106d64130b6606582eb55a4f633ef969cf7890b1de1c179345b"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/fixture_legacy_v1_fact.json",
+        "sha256": "e613de4737145cbfb5f349fbf9f1122801ce3508b62c3a18e2e0cba26b9da5b0"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/fixture_legacy_v2_fact.json",
+        "sha256": "3f552b47c3864e4ff7ae8c72516e98c188592c7f4f7703d09ce88b39f586ad9d"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/fixtures_field_cases.json",
+        "sha256": "e2ee619732ab4a1b57285e57b4349f96b4158b231a5624e5264fadf69edb8983"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/goap_planner.py",
+        "sha256": "f5cbf4784106710b363e7f29bfa538b75f488cb25e1c273ae40de9f4c2a6710b"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/learning_bridge.py",
+        "sha256": "74f8842978ba945ff78c2bd54702415dd87122e61919571e12a19c3cf1e56131"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/population_match.py",
+        "sha256": "bbd1d3346a6fb75d0e8526cb5d2fc8bc8613bb31ab63ffb0958d436d5e009054"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/risk_statement.py",
+        "sha256": "320ffece816e875f65624583846f44dc99461f672a0de7cda42be5ddf29d6de5"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/source_tiers.py",
+        "sha256": "e1aae76fad01693ab35b51466fc4369c04a5ac64230fd307e7b798dc5beeff7a"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/test_ed25519_verifier.py",
+        "sha256": "dcba1ce538ff946d6928f30a7c5cbcc37fddf712b6181f91f94c76e20c117ac5"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/test_evidence_provenance.py",
+        "sha256": "292bfcdcc086934905c77f1543d8400ee483166ff3ce26c79bb526c204320dbb"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/test_goap_planner.py",
+        "sha256": "7942ada069048b7e97bf2b6e920898a58517ccec090069f347399dbf1fc37731"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/test_population_match.py",
+        "sha256": "f33f72c0ba6305af1644e6b1a7f7635d3f33273344f19c14e7dbd2f819af0e7f"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/test_risk_absolute.py",
+        "sha256": "ab353db189650551c374cb772ba4a3a6929e3a2618f2f5c112eca4c3f69e46b6"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/test_signature_v3.py",
+        "sha256": "a04259296df104c9497c7b31d29556cb9a7ad4dd3339cbe3d8d32a4f53950d25"
+      },
+      {
+        "path": "goap-research-ed25519/scripts/test_suite_completeness.py",
+        "sha256": "727c5d5b0dad215957012276ebc146397178255077e762ed7b88a60d8178d2ab"
+      },
+      {
+        "path": "news-digest/SKILL.md",
+        "sha256": "323fe7246946b4754e70258be365d8f5610f9ac40babb9121849e527e614d7a5"
+      },
+      {
+        "path": "news-digest/evals/eval.md",
+        "sha256": "48c389a4b324898d8549f020db2c55e7edafa4ff30026b5931e85dbfc1efbef6"
+      },
+      {
+        "path": "news-digest/references/engine.md",
+        "sha256": "4c73ccda09eac5a51672257fe5ae828c608d9e9a8534b90f88fe8d38da52639c"
+      },
+      {
+        "path": "news-digest/references/output-formats.md",
+        "sha256": "459ef271e08000fcc96cc99e51236389001d7eaf89d8000bb317c6a04c1e4d53"
+      },
+      {
+        "path": "news-digest/references/profiles/_template.md",
+        "sha256": "34967705a36a0db9adae93ed3a23b6a33fd21bd5449378dd919fb15136dc4e0c"
+      },
+      {
+        "path": "news-digest/references/profiles/genai-world.md",
+        "sha256": "19a76dda00cf1d6242c84091566a3dededf6d11080edaa39b7d89e1242843879"
+      },
+      {
+        "path": "news-digest/schemas/output.json",
+        "sha256": "ed2af45d703c976ee3fdf73866d78195f24d9aa2736767cf3ac2f15eccea1f4a"
+      },
+      {
+        "path": "news-digest/scripts/validate-config.json",
+        "sha256": "1d7840fac3d4e56179fe071782577e08f568ec47b0c8b4e9821b0626d84848ff"
+      },
+      {
+        "path": "news-monitor/SKILL.md",
+        "sha256": "30351d38770bf74d1a68fca196cd1c3a34347cf53e67bb175fba278f04e5cb78"
+      },
+      {
+        "path": "news-monitor/evals/eval.md",
+        "sha256": "e8f9ada5924dbe27c5820f07ee23897d2927665a4865c92eb3167943bff86883"
+      },
+      {
+        "path": "news-monitor/references/delta.md",
+        "sha256": "80f408e9e348e49f66b0a7c63613fe021f274075704a843dae437ba592b4fb75"
+      },
+      {
+        "path": "news-monitor/schemas/output.json",
+        "sha256": "394f1113462e5e9b115614ac4fa21400b615e3c94495e7ec698621c01d8b9fbe"
+      },
+      {
+        "path": "news-monitor/scripts/validate-config.json",
+        "sha256": "d8906d52559e4cf8cd6471fc54bed236e64999f0b9de364071dad1dc05605de6"
+      },
+      {
+        "path": "package.json",
+        "sha256": "966db4c964d7bfce1b644b5b05ee811bbf42550410a85b2bff083a094a08cce3"
+      }
+    ]
+  },
+  "signature": "8amCk3o+UkowD8aDJhSR2Z2aQ47eEchJrjAfIYgG0Ogro5LdVB2JMzJ5eAPIAgrISd2lxd6phGj7ehThv8K2Bw=="
+}

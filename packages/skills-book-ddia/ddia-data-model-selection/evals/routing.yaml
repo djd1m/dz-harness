@@ -1,0 +1,33 @@
+skill: ddia-data-model-selection
+
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+# All are about picking the data-model FAMILY, normalize-vs-embed, schema-on-read/write, or query style.
+positives:
+  - "документная или реляционная БД для профиля пользователя?"
+  - "We're modeling orders with line items — store one JSON document or split into tables with joins?"
+  - "нормализовать регион ссылкой на ID или встроить строкой в каждую запись?"
+  - "should we enforce a schema on write or go schema-on-read for these heterogeneous event records?"
+  - "modeling a social graph where anything relates to anything — what data model fits?"
+  - "many-to-many between students and courses — is a document store a bad fit here, should we go relational?"
+  - "выбираем модель данных для нового сервиса: реляционка или документная NoSQL?"
+  - "embed the child aggregate or reference it by foreign key?"
+  - "declarative query vs MapReduce for aggregating over our document collection?"
+  - "graph database or recursive SQL CTE for friend-of-friend traversal on our network?"
+
+# Hard negatives: prompts a naive keyword match ("database", "schema", "model", "query") would wrongly
+# route here, but that actually belong to a sibling DDIA skill or a non-DDIA arsenal skill.
+negatives:
+  - prompt: "LSM-tree or B-tree for this write-heavy table — which storage engine indexes better on disk?"
+    should_activate: "ddia-storage-engine-tradeoffs"
+  - prompt: "how do I evolve the Avro/protobuf schema so old consumers still decode new messages on the wire?"
+    should_activate: "ddia-encoding-and-schema-evolution"
+  - prompt: "single-leader или multi-leader репликация для этого сервиса?"
+    should_activate: "ddia-replication-topology-choice"
+  - prompt: "do we need snapshot isolation or serializable to keep these concurrent writes consistent?"
+    should_activate: "ddia-transaction-isolation-choice"
+  - prompt: "как шардировать эту большую таблицу по ключу, чтобы распределить нагрузку?"
+    should_activate: "ddia-partitioning-strategy"
+  - prompt: "plan a zero-downtime migration to add a column to our huge Postgres users table"
+    should_activate: "database-migration"
+  - prompt: "design the REST resource shape, pagination, and error contract for the /users endpoint"
+    should_activate: "api-design"

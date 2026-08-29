@@ -1,0 +1,33 @@
+skill: 12factor-disposability-fast-startup
+
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+# All are about HOW a process starts and stops: fast boot, graceful SIGTERM drain, returning jobs
+# to the queue, bounded grace windows, and crash-only recovery after a sudden kill.
+positives:
+  - "почему каждый деплой роняет часть активных запросов пользователей?"
+  - "how do I handle SIGTERM so in-flight HTTP requests finish before the process exits?"
+  - "воркер теряет задачу, которую обрабатывал, когда контейнер рестартует — что делать?"
+  - "the process takes almost a minute to boot and that's killing autoscaling — how fast should startup be?"
+  - "on shutdown I want the worker to return its current job to the queue (NACK / release) — right pattern?"
+  - "что произойдёт с задачей, если процесс убьют по SIGKILL после grace-периода?"
+  - "make the web server drain connections gracefully instead of dropping requests on redeploy"
+  - "if the box gets OOM-killed mid-job, can I trust a shutdown handler or do I need crash-only recovery?"
+  - "как сделать так, чтобы любой процесс можно было убить и перезапустить без потери работы?"
+
+# Hard negatives: prompts a naive keyword match ("process", "state", "restart", "queue", "config")
+# would wrongly route here, but that actually belong to a SIBLING 12factor- skill.
+negatives:
+  - prompt: "where should user session state live so any instance can serve a returning visitor?"
+    should_activate: "12factor-stateless-processes"
+  - prompt: "how many web vs worker processes should I run and how do I scale the process formation out?"
+    should_activate: "12factor-concurrency-process-model"
+  - prompt: "how do I connect my app to the job queue / Postgres — where does the connection URL come from?"
+    should_activate: "12factor-backing-services-as-resources"
+  - prompt: "should the DATABASE_URL and API keys live in a config file or in environment variables?"
+    should_activate: "12factor-config-in-environment"
+  - prompt: "run a one-off DB migration / console against the production release — how?"
+    should_activate: "12factor-admin-processes"
+  - prompt: "separate the build, release, and run stages so a release is immutable — how should the pipeline look?"
+    should_activate: "12factor-build-release-run-separation"
+  - prompt: "the app writes logs to a rotating file — is that the right approach for a 12-factor app?"
+    should_activate: "12factor-logs-as-streams"

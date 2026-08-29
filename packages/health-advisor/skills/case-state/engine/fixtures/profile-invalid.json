@@ -1,0 +1,10 @@
+{
+  "schema": "case-profile-v1",
+  "labs": [
+    { "analyteId": "triglycerides", "value": 2.67, "unit": "mmol/L", "observedOn": "2026-04-15" },
+    { "analyteId": "hdl", "value": 1.12, "unit": "mmol/L" }
+  ],
+  "open_questions": [
+    { "id": "no-trigger", "question": "спросить позже", "scope": ["hdl"], "blocking": false, "status": "open" }
+  ]
+}

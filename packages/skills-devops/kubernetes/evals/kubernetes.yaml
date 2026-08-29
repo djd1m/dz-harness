@@ -1,0 +1,169 @@
+# kubernetes evaluation
+# Run: aqe eval kubernetes
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run kubernetes"
+    expected:
+      status: success
+      summary_contains: "kubernetes"
+
+  - name: "new deployment for stateless web app"
+    input: "Deploy a Node.js API to Kubernetes with 3 replicas, Ingress, and TLS."
+    expected:
+      status: success
+      scope: "new_deployment"
+      workload_type: "deployment"
+      manifests_resources_created_contains_any:
+        - "Deployment"
+        - "Service"
+        - "Ingress"
+      networking_tls_enabled: true
+      resource_config_requests_set: true
+      resource_config_limits_set: true
+
+  - name: "statefulset for database"
+    input: "I need to deploy PostgreSQL to Kubernetes with persistent storage per replica."
+    expected:
+      status: success
+      workload_type: "statefulset"
+      summary_contains_any:
+        - "StatefulSet"
+        - "statefulset"
+        - "PostgreSQL"
+        - "persistent"
+      storage_pvc_count_min: 1
+
+  - name: "security review catches root containers"
+    input: "Review this pod spec: containers: [{name: app, image: myapp:latest, securityContext: {runAsUser: 0}}]"
+    expected:
+      status: success
+      scope: "security_hardening"
+      security_findings_min_count: 1
+      anti_patterns_contains_any:
+        - "root"
+        - "latest"
+        - "runAsUser: 0"
+
+  - name: "no resource limits detected"
+    input: "Review this Deployment: containers: [{name: app, image: myapp:1.0}] — no resources block."
+    expected:
+      status: success
+      scope: "manifest_review"
+      anti_patterns_contains_any:
+        - "resource"
+        - "limit"
+        - "request"
+      security_findings_min_count: 1
+
+  - name: "helm chart scaffolding"
+    input: "Create a Helm chart for my microservice with configurable replicas, ingress, and HPA."
+    expected:
+      status: success
+      scope: "helm_chart"
+      helm_chart_name_present: true
+      files_created_min_count: 1
+      summary_contains_any:
+        - "Helm"
+        - "chart"
+
+  - name: "hpa scaling configuration"
+    input: "Set up autoscaling for my Deployment to scale between 3 and 20 replicas based on CPU and memory."
+    expected:
+      status: success
+      scope: "scaling"
+      scaling_min_replicas: 3
+      scaling_max_replicas: 20
+      scaling_scaling_metrics_contains_any:
+        - "cpu"
+        - "memory"
+      resource_config_hpa_enabled: true
+
+  - name: "crashloopbackoff debugging"
+    input: "My pod is in CrashLoopBackOff. kubectl logs shows 'Error: ECONNREFUSED 10.0.5.3:5432'. What should I check?"
+    expected:
+      status: success
+      scope: "troubleshooting"
+      debugging_findings_min_count: 1
+      summary_contains_any:
+        - "CrashLoopBackOff"
+        - "connection"
+        - "database"
+        - "5432"
+
+  - name: "networkpolicy configuration"
+    input: "Lock down my production namespace so only the ingress controller can reach my pods on port 8080, and pods can only reach the database on port 5432."
+    expected:
+      status: success
+      scope: "networking"
+      networking_network_policy_applied: true
+      manifests_resources_created_contains_any:
+        - "NetworkPolicy"
+
+  - name: "gitops argocd setup"
+    input: "Set up ArgoCD to deploy my manifests from a Git repo with auto-sync and self-heal."
+    expected:
+      status: success
+      scope: "gitops"
+      gitops_tool: "argocd"
+      gitops_auto_sync: true
+      gitops_self_heal: true
+
+  - name: "production readiness review"
+    input: "Is my deployment production-ready? It has 1 replica, no PDB, no health probes, and uses the default service account."
+    expected:
+      status: success
+      scope: "production_readiness"
+      anti_patterns_contains_any:
+        - "single replica"
+        - "PDB"
+        - "health"
+        - "probe"
+        - "service account"
+      self_check_failures_min_count: 3
+
+  - name: "workload type selection for daemon"
+    input: "I need to run a log collector on every node in the cluster."
+    expected:
+      status: success
+      workload_type: "daemonset"
+      summary_contains_any:
+        - "DaemonSet"
+        - "daemonset"
+        - "every node"
+
+  - name: "latest tag anti-pattern"
+    input: "Review: image: nginx:latest in my production Deployment."
+    expected:
+      status: success
+      anti_patterns_contains_any:
+        - "latest"
+        - "tag"
+        - "pin"
+      summary_contains_any:
+        - "latest"
+        - "tag"
+        - "version"
+
+  - name: "storage with volume expansion"
+    input: "Set up a StorageClass on AWS EKS with gp3 volumes, encryption, and volume expansion enabled."
+    expected:
+      status: success
+      scope: "storage"
+      storage_storage_class_present: true
+      storage_volume_expansion_enabled: true
+      summary_contains_any:
+        - "StorageClass"
+        - "gp3"
+        - "EBS"
+
+  - name: "keda event-driven scaling"
+    input: "Scale my worker pods based on RabbitMQ queue depth using KEDA."
+    expected:
+      status: success
+      scope: "scaling"
+      scaling_keda_enabled: true
+      summary_contains_any:
+        - "KEDA"
+        - "RabbitMQ"
+        - "queue"

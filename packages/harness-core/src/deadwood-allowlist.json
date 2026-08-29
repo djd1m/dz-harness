@@ -1,0 +1,80 @@
+{
+  "v": 1,
+  "entries": [
+    {
+      "surface": "sign",
+      "kind": "command",
+      "reason": "trust-root signing and verification run only on key or release events; rarity is the design"
+    },
+    {
+      "surface": "delivery-check",
+      "kind": "command",
+      "reason": "release gate invoked per delivery, not as part of ordinary daily command traffic"
+    },
+    {
+      "surface": "deadwood",
+      "kind": "command",
+      "reason": "the measurement command deliberately does not record itself, so its zero count is structural"
+    },
+    {
+      "surface": "no-secrets",
+      "kind": "rule",
+      "reason": "credential safety net whose zero-firing state is the healthy outcome"
+    },
+    {
+      "surface": "no-workspace-star",
+      "kind": "rule",
+      "reason": "publish safety net; zero firings means no broken workspace dependency would ship"
+    },
+    {
+      "surface": "no-skill-drift",
+      "kind": "rule",
+      "reason": "canonical-copy safety net; zero firings means projected skills stayed in sync"
+    },
+    {
+      "surface": "readme-consistency",
+      "kind": "rule",
+      "reason": "documentation drift safety net; zero firings means measured counts stayed aligned"
+    },
+    {
+      "surface": "skills-registrable",
+      "kind": "rule",
+      "reason": "package registration safety net; zero firings means shipped skill layouts stayed loadable"
+    },
+    {
+      "surface": "readme-first",
+      "kind": "rule",
+      "reason": "release documentation safety net; zero firings means behavior changes carried their README update"
+    },
+    {
+      "surface": "agents-md-policy-sync",
+      "kind": "rule",
+      "reason": "governance projection safety net; zero firings means policy copies stayed synchronized"
+    },
+    {
+      "surface": "lockfile-in-sync",
+      "kind": "rule",
+      "reason": "dependency release safety net; zero firings means package manifests and the lockfile agreed"
+    },
+    {
+      "surface": "store-bloat-cap",
+      "kind": "rule",
+      "reason": "learning-store capacity safety net; zero firings means the configured cap was respected"
+    },
+    {
+      "surface": "no-stubs",
+      "kind": "rule",
+      "reason": "incomplete-source safety net; zero firings means no unfinished implementation marker reached publish"
+    },
+    {
+      "surface": "review-round",
+      "kind": "rule",
+      "reason": "independent-review safety net evaluated only for publishable source changes"
+    },
+    {
+      "surface": "licence-hold",
+      "kind": "rule",
+      "reason": "release safety net that fires only while a package has an unresolved licence grant"
+    }
+  ]
+}

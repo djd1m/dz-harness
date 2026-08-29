@@ -1,0 +1,36 @@
+{
+  "schema": "../schemas/output.json",
+  "rules": [
+    {
+      "id": "CADR-001",
+      "description": "File path must be set and match docs/decisions/NNNN-*.md pattern",
+      "path": "file_path",
+      "condition": "matches",
+      "value": "^docs/decisions/[0-9]{4}-[a-z0-9-]+\\.md$",
+      "severity": "error"
+    },
+    {
+      "id": "CADR-002",
+      "description": "ADR number must be a positive integer",
+      "path": "number",
+      "condition": ">=",
+      "value": 1,
+      "severity": "error"
+    },
+    {
+      "id": "CADR-003",
+      "description": "Status must be needs-oversight for auto-captured ADRs",
+      "path": "status",
+      "condition": "==",
+      "value": "needs-oversight",
+      "severity": "warning"
+    },
+    {
+      "id": "CADR-004",
+      "description": "Title must be present and non-empty",
+      "path": "title",
+      "condition": "exists",
+      "severity": "error"
+    }
+  ]
+}

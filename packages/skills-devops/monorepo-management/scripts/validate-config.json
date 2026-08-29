@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "monorepo-management config validator",
+  "description": "Validates configuration inputs for the monorepo-management skill",
+  "type": "object",
+  "properties": {
+    "operation": {
+      "type": "string",
+      "enum": [
+        "setup",
+        "add-package",
+        "dependency-management",
+        "build-pipeline",
+        "changeset-workflow",
+        "publish",
+        "ci-optimization",
+        "debug",
+        "health-check"
+      ],
+      "description": "Type of monorepo operation to perform"
+    },
+    "package_manager": {
+      "type": "string",
+      "enum": ["pnpm", "npm", "yarn", "bun", "auto"],
+      "default": "auto",
+      "description": "Package manager; auto detects from lockfile"
+    },
+    "build_tool": {
+      "type": "string",
+      "enum": ["turborepo", "nx", "lerna", "none", "auto"],
+      "default": "auto",
+      "description": "Build orchestration tool; auto detects from config files"
+    },
+    "workspace_root": {
+      "type": "string",
+      "description": "Path to the monorepo root directory; defaults to current working directory"
+    },
+    "target_package": {
+      "type": "string",
+      "description": "Specific package name to operate on (e.g., @org/utils)"
+    },
+    "new_package": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^@?[a-z0-9-]+(/[a-z0-9-]+)?$",
+          "description": "Package name (e.g., @org/new-pkg)"
+        },
+        "directory": {
+          "type": "string",
+          "enum": ["packages", "apps", "tools"],
+          "default": "packages",
+          "description": "Which workspace directory to place the package in"
+        },
+        "template": {
+          "type": "string",
+          "enum": ["library", "app", "tool", "config", "blank"],
+          "default": "library",
+          "description": "Template for scaffolding the new package"
+        },
+        "dependencies": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Initial workspace dependencies (workspace packages)"
+        }
+      },
+      "required": ["name"]
+    },
+    "publish_options": {
+      "type": "object",
+      "properties": {
+        "dry_run": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run publish in dry-run mode (default: true for safety)"
+        },
+        "access": {
+          "type": "string",
+          "enum": ["public", "restricted"],
+          "default": "public"
+        },
+        "tag": {
+          "type": "string",
+          "default": "latest",
+          "description": "npm dist-tag to publish under"
+        },
+        "provenance": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable npm provenance attestation"
+        }
+      }
+    },
+    "health_check_options": {
+      "type": "object",
+      "properties": {
+        "check_phantom_deps": {
+          "type": "boolean",
+          "default": true
+        },
+        "check_circular_deps": {
+          "type": "boolean",
+          "default": true
+        },
+        "check_version_drift": {
+          "type": "boolean",
+          "default": true
+        },
+        "check_unused_deps": {
+          "type": "boolean",
+          "default": false,
+          "description": "Slow -- requires analyzing imports in every package"
+        },
+        "check_license_compliance": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "ci_options": {
+      "type": "object",
+      "properties": {
+        "ci_system": {
+          "type": "string",
+          "enum": ["github-actions", "gitlab-ci", "circleci", "jenkins", "auto"],
+          "default": "auto"
+        },
+        "enable_remote_cache": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to configure remote caching (Vercel for Turbo, Nx Cloud for Nx)"
+        },
+        "affected_only": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run tasks only for packages affected since base branch"
+        },
+        "base_branch": {
+          "type": "string",
+          "default": "main",
+          "description": "Base branch for affected detection"
+        }
+      }
+    }
+  },
+  "anyOf": [
+    { "required": ["operation"] },
+    { "required": ["target_package"] },
+    { "required": ["new_package"] }
+  ]
+}

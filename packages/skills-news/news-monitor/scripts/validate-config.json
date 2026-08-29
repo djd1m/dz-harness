@@ -1,0 +1,20 @@
+{
+  "description": "Validation rules for news-monitor watermarks and delta items.",
+  "watermark": {
+    "required": ["topic", "last_run", "seen"],
+    "rules": [
+      "last_run is ISO-8601; must be advanced to now at the end of every run",
+      "seen is an array of normalized URLs / stable keys; capped to a rolling window (e.g. 500 entries / 90 days)",
+      "path is .news/monitor-<topic>.json"
+    ]
+  },
+  "item": {
+    "required": ["title", "url"],
+    "rules": [
+      "an item is 'new' only if dated after last_run AND its url/key is not in seen",
+      "dedup same-URL and same-announcement-across-outlets (keep highest source tier)",
+      "never fabricate items; an empty new_items array is a valid result",
+      "tier in 1..4 (1 official … 4 blog)"
+    ]
+  }
+}

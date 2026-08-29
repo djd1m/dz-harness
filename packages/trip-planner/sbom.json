@@ -1,0 +1,517 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "trip-planner"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "31020dabfc6e28b458d63b28162ae367792562dc1d60b1738aef0146d889eb82"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "bin/cli.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a210174d6b63d053f7744757972d31acb0f4d9c59f8dacff7b62872a19ebd31a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "29895a572d22913e330c2dd2340ff967f76879375977c86e78c66df2e68beb15"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/cli.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d9a6243e23f87bf67ffef5c924262f4cc10903c5f4d3d33476d9620a432a3f7e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/trip-planner.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ab7948fbbc8fbe09c7ffd3606281022ac498ea8cbf93e38171939c3934f6caf8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/rules/trip-planner-conventions.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3cad52bd8fa703d6b7566bc502be5ace75acc5f260b68598264d351f6c1b1115"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/shards/trip-planner.shard.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f65c9fac5363b4369eb2de2d76417406457fa09409fc3821d18fa0c44eb047cd"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/explore/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2473e7961845db0d64566cd42627b374d1830664b9e302058a1b1aa466bc7361"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/explore/references/questioning-techniques.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ec0dd00871d3abe950f9cf375216a43043827897166c4165c3fa581839851195"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/explore/references/task-brief-templates.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e9292479e120afce944b747bb7b4a7226c41e9880708d620de3ea4fa4ef0249"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/frontend-design/LICENSE.txt",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/frontend-design/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c9e93c1b95b99a9e120b93d7683afa804713f98ce44bf29ba6d24e9ea1b44aee"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/references/ed25519-verification.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2742f14b472bff69c83f24d9bac5bf023bd7f9ecc3e659742ac3152a239dd68f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/references/research-actions.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "156d2f8ce342f7013bc758fe7c0d3ad3041b4f67f30dbcf8d59e091cb70d9a9c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/references/source-evaluation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d6a19abb6be64dc9e1f539903080029125d2d899da4de3063e75e1afb7e4906f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/check_report_evidence.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5053e677f11d00b4dd8365a81eafa1d2c961eebd25c33f72b02455573a934a32"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/ed25519_verifier.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f4a2ac9e6473201583643fe8abf47560863cec600344dad5c9df06091b4298f5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/evidence_fetch.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5f4d7cb5d6fb3106d64130b6606582eb55a4f633ef969cf7890b1de1c179345b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/fixture_legacy_v1_fact.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e613de4737145cbfb5f349fbf9f1122801ce3508b62c3a18e2e0cba26b9da5b0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/fixture_legacy_v2_fact.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3f552b47c3864e4ff7ae8c72516e98c188592c7f4f7703d09ce88b39f586ad9d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/fixtures_field_cases.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e2ee619732ab4a1b57285e57b4349f96b4158b231a5624e5264fadf69edb8983"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/goap_planner.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f5cbf4784106710b363e7f29bfa538b75f488cb25e1c273ae40de9f4c2a6710b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/learning_bridge.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "74f8842978ba945ff78c2bd54702415dd87122e61919571e12a19c3cf1e56131"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/population_match.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bbd1d3346a6fb75d0e8526cb5d2fc8bc8613bb31ab63ffb0958d436d5e009054"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/risk_statement.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "320ffece816e875f65624583846f44dc99461f672a0de7cda42be5ddf29d6de5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/source_tiers.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e1aae76fad01693ab35b51466fc4369c04a5ac64230fd307e7b798dc5beeff7a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_ed25519_verifier.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dcba1ce538ff946d6928f30a7c5cbcc37fddf712b6181f91f94c76e20c117ac5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_evidence_provenance.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "292bfcdcc086934905c77f1543d8400ee483166ff3ce26c79bb526c204320dbb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_goap_planner.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7942ada069048b7e97bf2b6e920898a58517ccec090069f347399dbf1fc37731"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_population_match.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f33f72c0ba6305af1644e6b1a7f7635d3f33273344f19c14e7dbd2f819af0e7f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_risk_absolute.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ab353db189650551c374cb772ba4a3a6929e3a2618f2f5c112eca4c3f69e46b6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_signature_v3.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a04259296df104c9497c7b31d29556cb9a7ad4dd3339cbe3d8d32a4f53950d25"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_suite_completeness.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "727c5d5b0dad215957012276ebc146397178255077e762ed7b88a60d8178d2ab"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/trip-planner/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "eb13a3e7a642e1ee1ac076d5dd9dc216114ae67ed23b281116a3b9b4ee6cf21e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/trip-planner/evals/basic.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "235f15775202adfe9a1207bb1edc40147a1492abad50b867d8bfb35c879d49c6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/trip-planner/examples/sample-trip-brief.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c01a6b04c845c735b2e13d2c062203dcb59bb2ba474978fdf512b12a21078d80"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/trip-planner/modules/00-intake.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e9221fa6894cae3b48f2a5831a0322c2bd64783d6e03d28b605479de504716d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/trip-planner/modules/01-research.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d38b52c6725c2e5a9b66d770a01f48d39b6f3499a86103eaaf8695ac005e2eb6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/trip-planner/modules/02-itinerary.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5df405b680d5853d7661e6c05cd940825dd37110266c20f7e41db9e439e51da4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/trip-planner/modules/03-site-generation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b3dc4fbd86520fd161c0c9fcb40fb67db20fac1e298c06be7494cc5008d9e3e6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/trip-planner/modules/04-validation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "99d67db3887bba65ce442e2c58800f46ab11ddbd9d307de0c85b0894fd6b7bae"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/trip-planner/references/data-schema.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0265542820988f4b8a548cbd45068032e28431ff47a684fd3d96bd1057c07261"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/trip-planner/references/open-meteo.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fc049fe6203964b8cdff56cb52b851ca68479c55d4e81fd03a60f9ffbe34627b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/trip-planner/references/site-template.html",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c6be97353b27b87727493583e57d5d97b684e77705630a6a9438207abb4499a8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/trip-planner/references/yandex-maps.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d39fd2d7d112bc609ee3ef8a63bf38603d7cad81645e8cee1fd874c111f52897"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/trip-planner/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "22a09b828989d4c8a716b3471f2f08b0538a31b93d902b228f98b3257b18f848"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/trip-planner/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "228f8b6d16ec5da85a7c0cbfb9e3eaa439acf5814b97a3395bc8edace9054bf1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "test/init.test.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bd949bec01cde6970f242d58b15a51c4884b0c3627ed565f534e446a26017a31"
+        }
+      ]
+    }
+  ]
+}

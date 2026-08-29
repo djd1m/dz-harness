@@ -1,0 +1,120 @@
+{
+  "upstream_note": "Skills in this pack come from multiple sources. dz sync-upstream checks each against its origin.",
+  "skills": {
+    "explore": {
+      "upstream_type": "skill",
+      "upstream_package": "@dzhechkov/skills-analyst-manual",
+      "upstream_path": "templates/.claude/skills/explore/SKILL.md",
+      "description": "Adaptive task exploration and clarification"
+    },
+    "goap-research-ed25519": {
+      "upstream_type": "skill",
+      "upstream_package": "@dzhechkov/skills-analyst-manual",
+      "upstream_path": "templates/.claude/skills/goap-research-ed25519/SKILL.md",
+      "description": "GOAP research with Ed25519 cryptographic verification"
+    },
+    "problem-solver-enhanced": {
+      "upstream_type": "skill",
+      "upstream_package": "@dzhechkov/skills-analyst-manual",
+      "upstream_path": "templates/.claude/skills/problem-solver-enhanced/SKILL.md",
+      "description": "Elite 9-module problem solver with TRIZ"
+    },
+    "design-thinking": {
+      "upstream_type": "original",
+      "upstream_path": null,
+      "description": "Original skill — 6-phase DT orchestrator, created in this package"
+    },
+    "feature-adr": {
+      "upstream_type": "skill",
+      "upstream_package": "@dzhechkov/skills-feature-adr",
+      "upstream_path": "templates/.claude/skills/feature-adr/SKILL.md",
+      "description": "11-step feature development pipeline"
+    },
+    "knowledge-extractor": {
+      "upstream_type": "skill",
+      "upstream_package": "@dzhechkov/skills-feature-adr",
+      "upstream_path": "templates/.claude/skills/knowledge-extractor/SKILL.md",
+      "description": "Multi-agent knowledge harvesting system"
+    },
+    "understand-anything-bridge": {
+      "upstream_type": "original",
+      "upstream_path": null,
+      "description": "Original skill — bridges Understand-Anything plugin with harness"
+    },
+    "agentshield-scan": {
+      "upstream_type": "original",
+      "upstream_path": null,
+      "description": "Original skill — wraps ecc-agentshield security scanner"
+    },
+    "skill-crystallizer": {
+      "upstream_type": "inspired",
+      "upstream_repo": "https://github.com/HKUDS/OpenSpace",
+      "upstream_concepts": "CAPTURED (trace→skill), DERIVED (combine), FIX (repair)",
+      "description": "Inspired by OpenSpace (4.7K stars) — auto-create skills from execution traces"
+    },
+    "structured-reasoning": {
+      "upstream_type": "inspired",
+      "upstream_repo": "https://github.com/sockcymbal/enhanced-llm-reasoning-tree-of-thoughts",
+      "upstream_concepts": "Tree-of-Thought, CoT compression, reflection-suppression",
+      "description": "Inspired by ToT/CoT research — reasoning routing primitive"
+    },
+    "reflection-loop": {
+      "upstream_type": "inspired",
+      "upstream_repo": "https://github.com/nibzard/awesome-agentic-patterns",
+      "upstream_concepts": "Reflection pattern — draft→critique→revise cycle",
+      "description": "Inspired by agentic-patterns — standalone critique-revise cycle"
+    },
+    "context-window-management": {
+      "upstream_type": "inspired",
+      "upstream_repo": "https://github.com/nibzard/awesome-agentic-patterns",
+      "upstream_concepts": "Context Window Anxiety Management pattern",
+      "description": "Inspired by agentic-patterns — strategies for context pressure"
+    },
+    "external-comms-gate": {
+      "upstream_type": "inspired",
+      "upstream_repo": "https://github.com/windyroad/agent-plugins",
+      "upstream_concepts": "Outbound communication screening — leak detection before publish",
+      "description": "Inspired by windyroad — screens PR/issue/npm/README content for confidential leaks"
+    },
+    "capture-adr": {
+      "upstream_type": "inspired",
+      "upstream_repo": "https://github.com/windyroad/agent-plugins",
+      "upstream_concepts": "Lightweight mid-conversation ADR capture (MADR 4.0)",
+      "description": "Inspired by windyroad — records implicit architecture decisions as minimal ADRs"
+    },
+    "adversarial-verifier": {
+      "upstream_type": "inspired",
+      "upstream_repo": "https://github.com/visa/visa-vulnerability-agentic-harness",
+      "upstream_concepts": "Stage 6 adversarial verification — refute-by-default, dismissal taxonomy (TRUE_POSITIVE/FALSE_POSITIVE/UNCONFIRMED/GUARDRAIL_BLOCKED/VERIFY_ERROR), N-skeptic voting, confidence floor",
+      "description": "Inspired by Visa VVAH S6 — false-positive killer for findings with explicit dismissal taxonomy"
+    },
+    "skill-advisor": {
+      "version": "1.0.0",
+      "upstream_type": "original",
+      "trust": "original",
+      "description": "Task → recommend skills/sets/packages from the arsenal (semantic, drift-proof; skill version of dz recommend)"
+    },
+    "audit": {
+      "version": "1.0.0",
+      "upstream_type": "inspired",
+      "upstream_repo": "https://github.com/DreamLab-AI/agentbox",
+      "upstream_concepts": "5-phase audit-and-act pattern (parallel recon → synthesis/self-challenge → P0-P3 ranking → approval gate → scoped execution), max-20 cap, gap-analysis tier, staleness cost-guard",
+      "description": "Clean-room whole-codebase deep audit — no text or code copied; rewritten to harness conventions and wired to adversarial-verifier (self-challenge) + capture-adr (ADR-awareness) + agentdb-memory (cross-run learning). Pattern only; agentbox is unlicensed so nothing was canonicalized."
+    },
+    "design-tokens": {
+      "version": "1.0.0",
+      "upstream_type": "inspired",
+      "upstream_repo": "https://github.com/google-labs-code/design.md",
+      "upstream_tool": "@google/design.md (Apache-2.0, alpha)",
+      "upstream_concepts": "DESIGN.md format (YAML token front matter + Markdown rationale), 9 lint rules (broken-ref, contrast-ratio WCAG AA, section-order, orphaned-tokens, …), diff regressions, export to Tailwind v3/v4 + W3C DTCG",
+      "description": "Clean-room wrapper skill (ADR-0002 Phase C) — NO Apache code or text vendored; all prose original. Teaches the DESIGN.md format and wraps the @google/design.md CLI via npx (lint/diff/export/spec), exactly as agentshield-scan wraps ecc-agentshield. Reference-not-vendor: the tool runs via npx, nothing is canonicalized. Intended as the shared, lintable token contract the frontend cluster (clone-website, frontend-design, design-taste-frontend) can converge on — handoffs are manual, not automatic wiring."
+    },
+    "decision-mockups": {
+      "upstream_type": "vendored",
+      "canonical_pack": "@dzhechkov/skills-decision-mockups",
+      "upstream_package": "@dzhechkov/skills-decision-mockups",
+      "upstream_path": "decision-mockups/",
+      "description": "VENDORED MIRROR, not the canon. The skill's home — with its own test suite and the deterministic G0-G14 page gate (references/check_page.py) — is @dzhechkov/skills-decision-mockups; this copy exists so the `meta` preset can keep its promise for anyone who installs only @dzhechkov/skills-meta. Same pattern as goap-research-ed25519 in @dzhechkov/skills-news. HEAL DIRECTION MATTERS: sync with `dz sync-canonical decision-mockups --from packages/@dzhechkov/skills-decision-mockups/decision-mockups`; a bare `dz sync-canonical decision-mockups` resolves the canonical to skills-meta/ and would overwrite the real home from this mirror."
+    }
+  }
+}

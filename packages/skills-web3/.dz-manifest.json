@@ -1,0 +1,217 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "skills-web3",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "5130f858a7f612812e5f7ec5e017fbc1d2f7e675e26853e04ecc5adf4c4dac46"
+      },
+      {
+        "path": "bankr/SKILL.md",
+        "sha256": "735bb809e84b838408dee29bddb7caa632aa286215c8bbf5ee43c080bbb58d50"
+      },
+      {
+        "path": "bankr/evals/bankr.yaml",
+        "sha256": "91e3677b88a770f06d1b9011a53002828ca74003056cc4f7b3b1158ba827c4c8"
+      },
+      {
+        "path": "bankr/schemas/output.json",
+        "sha256": "c7240b3b9ea93b682acb610a44910d10f54efca2c3a5bb4cd6df59c4d8f1166d"
+      },
+      {
+        "path": "bankr/scripts/validate-config.json",
+        "sha256": "6be2b330ea1086d9e21331d6828bdead308242871dcd55b15f3743bb7eaecddf"
+      },
+      {
+        "path": "ens-primary-name/SKILL.md",
+        "sha256": "676290c4676b9544df3c670f14b5d1b95e7013f53563236263e82df62f95d150"
+      },
+      {
+        "path": "ens-primary-name/evals/ens-primary-name.yaml",
+        "sha256": "45330e72c444d93fa64d2d1e443989c01540e590f86c16bea732b5e7eeaa22f8"
+      },
+      {
+        "path": "ens-primary-name/schemas/output.json",
+        "sha256": "ed85643d183c52cca05b7c845a543fd9d78bb6ffb205e4fdc319b476591ff5b3"
+      },
+      {
+        "path": "ens-primary-name/scripts/validate-config.json",
+        "sha256": "428b34329b9a538deef710b5f36753507b55c28b1fcd2f9c7f182038fcfcaf23"
+      },
+      {
+        "path": "erc-8004/SKILL.md",
+        "sha256": "6d9e342d149510081ef284e695783b5961a37ebe139dae6a037e24362acc7ec4"
+      },
+      {
+        "path": "erc-8004/evals/erc-8004.yaml",
+        "sha256": "afecb302e14d956432ba90b28feae62fd023c232c83c92a20f13d59c59e378c3"
+      },
+      {
+        "path": "erc-8004/schemas/output.json",
+        "sha256": "a2fa241ed7cf6505b3c7518ec73bf217cdb4a3af9395024560ac748f465a5709"
+      },
+      {
+        "path": "erc-8004/scripts/validate-config.json",
+        "sha256": "f6ee3cfc485ba118f1bf06f1e18a44bd2f0298eb0c783726cfac5d0776d173a0"
+      },
+      {
+        "path": "hydrex/SKILL.md",
+        "sha256": "30985ff9432d2b9a6fcdf9e0fddff4c4ea11d51b9f96cbfe2409c733fc0199ce"
+      },
+      {
+        "path": "hydrex/evals/hydrex.yaml",
+        "sha256": "275b1063df84cd9d6c399373bcaccce013671b0a26d6ffbce3e50bc30ae8bd6d"
+      },
+      {
+        "path": "hydrex/schemas/output.json",
+        "sha256": "447a2cdcfb055416eb21cb52d1a591a223cbd42d862fba786a71656bce772e6c"
+      },
+      {
+        "path": "hydrex/scripts/validate-config.json",
+        "sha256": "5ebe43188410bebca3637456f1760c1f66d7151000e0e793c20306461829c2e3"
+      },
+      {
+        "path": "neynar/SKILL.md",
+        "sha256": "17971a094eb2e439d759f09ed24f1722fbc6a95c7fa871ded4dbced94ac0244d"
+      },
+      {
+        "path": "neynar/evals/neynar.yaml",
+        "sha256": "f73092e76bf5d4cf3637f4303eeb710a230a024778952ce57126382e6defc3a6"
+      },
+      {
+        "path": "neynar/schemas/output.json",
+        "sha256": "aede8fda1b3597b34940780c91ae5135c51c6f2470d629b5d053bc36ea7bf66f"
+      },
+      {
+        "path": "neynar/scripts/validate-config.json",
+        "sha256": "a29e2f39c076f7e09a497ff81afa65997c28469e0a433f9e851de312c9ca5e4c"
+      },
+      {
+        "path": "package.json",
+        "sha256": "43aab8fb0600243e11c5234700ebf9b882b30cf3ea7258a3bdd8b93231fd39fb"
+      },
+      {
+        "path": "quicknode/SKILL.md",
+        "sha256": "8a52f98e917642632b535dd32fa2c1d9d6bda50608deb01728b96ce52b80b4a3"
+      },
+      {
+        "path": "quicknode/evals/quicknode.yaml",
+        "sha256": "a7ec89256ea7c967a9fb1dce59bb79acae68ecd77466d5f575ee3b78684a1464"
+      },
+      {
+        "path": "quicknode/schemas/output.json",
+        "sha256": "4c6108447ac0568b4fd41272222392eb43d79d69f3dc8b8f7d5fd048acf16f33"
+      },
+      {
+        "path": "quicknode/scripts/validate-config.json",
+        "sha256": "2f0d07a6e51f62d0c9b55a790744d5192ede1774ff18a01875b43617db806478"
+      },
+      {
+        "path": "quotient/SKILL.md",
+        "sha256": "d19f21568cdda9e15609be49b1b745e1bc5c9d55ccfa6649e36d3f30d0ec059e"
+      },
+      {
+        "path": "quotient/evals/quotient.yaml",
+        "sha256": "b99db8fcc682a21843056a0c48faf4bf039192c671d20c964f8e3b549b733799"
+      },
+      {
+        "path": "quotient/schemas/output.json",
+        "sha256": "c4d68c20939d0e607cd2e318d48c07efbaaf090a0f9c359624b2b09b8f7d6c4a"
+      },
+      {
+        "path": "quotient/scripts/validate-config.json",
+        "sha256": "51ba8f59240331c5bea42ccf4ad18600e6c2e49fd7a55038606b6719081743eb"
+      },
+      {
+        "path": "siwa/SKILL.md",
+        "sha256": "00d2220f966c966afc5402825744bba3e0269bf15ab4c5b022ea2fdfb6581894"
+      },
+      {
+        "path": "siwa/evals/siwa.yaml",
+        "sha256": "e72737e16f9a8fc25e91414b3c8537abbc2f8093444936adef0837f444fd6118"
+      },
+      {
+        "path": "siwa/schemas/output.json",
+        "sha256": "793e7f40e8cc7c6635142909f23661ba4e9ca050871b4cc213ba334e7268d858"
+      },
+      {
+        "path": "siwa/scripts/validate-config.json",
+        "sha256": "7f1c171086a8573bebbc066280566334929650c4488560b8139c1d2c65b2595a"
+      },
+      {
+        "path": "sources.json",
+        "sha256": "b514cbeb4e92f2a87706f1518543a3aead5f3760f20239f272ae274110b75567"
+      },
+      {
+        "path": "symbiosis/SKILL.md",
+        "sha256": "6ba6fc6e4e608ea380df2c7242e77b30ee7ef2223032ecfc7c37fc18385fc9b5"
+      },
+      {
+        "path": "symbiosis/evals/symbiosis.yaml",
+        "sha256": "d0a426e24617da0af387eb768c013ae5bd582dd4e1068c97b11552a79933dd95"
+      },
+      {
+        "path": "symbiosis/schemas/output.json",
+        "sha256": "6ac457e62e0fa31f7b47f5dc36dc00a2043f19433cc53a950f3da45d7229b7d6"
+      },
+      {
+        "path": "symbiosis/scripts/validate-config.json",
+        "sha256": "62f91f0de8c910ad008a3b2580a1decb621a21dad404282c0f78c8c8f1dc55d2"
+      },
+      {
+        "path": "trails/SKILL.md",
+        "sha256": "1bb8f7a6f331d8c755540e17c6a8b6465cf9e279ee0c21477d90426ee4deb560"
+      },
+      {
+        "path": "trails/evals/trails.yaml",
+        "sha256": "ff465312bfa2ee70eb59650999b1ba9c7d3cda2dc2560dafc60bb410fe2247aa"
+      },
+      {
+        "path": "trails/schemas/output.json",
+        "sha256": "6d13e811c933efc01122adfa2ce0acd0841ecca57d5f12c94a3bfd38a654fd9a"
+      },
+      {
+        "path": "trails/scripts/validate-config.json",
+        "sha256": "379c7c5029988f32aee043b48ae95eca6cbd4fd91d86ae782035fa7a86171acc"
+      },
+      {
+        "path": "veil/SKILL.md",
+        "sha256": "32f9934b24d96487da1a0d636eddc35893e7eb571f3e6b488fd836b1b1af605c"
+      },
+      {
+        "path": "veil/evals/veil.yaml",
+        "sha256": "208a6c2be97a7cefc04b1606c06867547bd48d5aa7a1c653c122d9748a06cea8"
+      },
+      {
+        "path": "veil/schemas/output.json",
+        "sha256": "815aa89550e9db561a8155d3395f96761fa09a651d221b2f28087a7d24584288"
+      },
+      {
+        "path": "veil/scripts/validate-config.json",
+        "sha256": "da846c6bc84f13e663d3f537e9b8959c91de16d1385f4f4bce0792780c1b875b"
+      },
+      {
+        "path": "zerion/SKILL.md",
+        "sha256": "e9bcffeb87da90ef403e00bd68e60c57c30a82198d62309fd1eae2331c24bfb8"
+      },
+      {
+        "path": "zerion/evals/zerion.yaml",
+        "sha256": "aee5697922efe9d2efd81dbf81badd3f4580f5e2d49f2c25040150a7edc8a5db"
+      },
+      {
+        "path": "zerion/schemas/output.json",
+        "sha256": "85119c01273939486250de712bac709efb9d33a7f7e19598aa7cf49d78d7b71f"
+      },
+      {
+        "path": "zerion/scripts/validate-config.json",
+        "sha256": "e451e9f06b9b0e8ab52009a98315b39ca615269132464dc66ae73cc6c4e8e2a5"
+      }
+    ]
+  },
+  "signature": "ZaYMKcvAN9sQp9cPrRV5g1lp2CMsI1Rrl5Nl4UFdgdYq14itwBg5vhMsm/Ort4Ru7v2tOGSF9b1LQoJtN2lgCw=="
+}

@@ -1,0 +1,120 @@
+name: bankr
+description: Evaluate Bankr AI trading agent platform skill usage
+version: "1.0"
+
+prompts:
+  - id: create_wallet
+    input: "Create a new wallet on Base chain"
+    expected_actions:
+      - namespace: wallet
+        command: create
+        params:
+          chain: "base"
+    expected_output:
+      contains:
+        - "address"
+        - "chain"
+
+  - id: swap_tokens
+    input: "Swap 100 USDC to ETH on Base"
+    expected_actions:
+      - namespace: agent
+        command: swap
+        params:
+          from: "USDC"
+          to: "ETH"
+          amount: 100
+          chain: "base"
+    expected_output:
+      contains:
+        - "taskId"
+        - "status"
+
+  - id: bridge_tokens
+    input: "Bridge 500 USDC from Ethereum to Base"
+    expected_actions:
+      - namespace: agent
+        command: bridge
+        params:
+          token: "USDC"
+          amount: 500
+          from: "ethereum"
+          to: "base"
+    expected_output:
+      contains:
+        - "taskId"
+
+  - id: dca_strategy
+    input: "Set up a daily DCA to buy $100 of ETH on Base"
+    expected_actions:
+      - namespace: agent
+        command: dca
+        params:
+          buy: "ETH"
+          spend: 100
+          frequency: "daily"
+          chain: "base"
+    expected_output:
+      contains:
+        - "taskId"
+        - "status"
+
+  - id: stop_loss
+    input: "Set a stop-loss on ETH at $2800 on Base"
+    expected_actions:
+      - namespace: agent
+        command: stop-loss
+        params:
+          token: "ETH"
+          trigger: 2800
+          chain: "base"
+    expected_output:
+      contains:
+        - "taskId"
+
+  - id: deploy_token
+    input: "Deploy a token called MyToken (MTK) with 1 million supply on Base"
+    expected_actions:
+      - namespace: tokens
+        command: deploy
+        params:
+          name: "MyToken"
+          symbol: "MTK"
+          supply: 1000000
+          chain: "base"
+    expected_output:
+      contains:
+        - "contractAddress"
+        - "txHash"
+
+  - id: portfolio_pnl
+    input: "Show me my portfolio PnL across all chains"
+    expected_actions:
+      - namespace: wallet
+        command: balance
+    expected_output:
+      contains:
+        - "totalValueUsd"
+        - "pnl"
+
+  - id: limit_order
+    input: "Place a limit order to buy ETH at $3000 spending 1000 USDC on Base"
+    expected_actions:
+      - namespace: agent
+        command: limit
+        params:
+          buy: "ETH"
+          at: 3000
+          spend: 1000
+          chain: "base"
+    expected_output:
+      contains:
+        - "taskId"
+
+scoring:
+  correct_namespace: 0.2
+  correct_command: 0.2
+  correct_params: 0.2
+  chain_awareness: 0.15
+  async_task_handling: 0.15
+  safety_awareness: 0.1

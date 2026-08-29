@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Skill Advisor Recommendation Output",
+  "type": "object",
+  "required": ["task", "recommendations", "gaps"],
+  "properties": {
+    "task": {
+      "type": "string",
+      "description": "One-sentence restatement of the user's practical task."
+    },
+    "recommendations": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Ranked list of catalog items to use, best fit first.",
+      "items": {
+        "type": "object",
+        "required": ["name", "type", "fit", "why", "install"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Exact name as it appears in the live `dz registry`. Must exist."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["skill", "preset", "npx-package"]
+          },
+          "fit": {
+            "type": "string",
+            "enum": ["high", "medium", "low"]
+          },
+          "why": {
+            "type": "string",
+            "description": "Rationale: how this item maps to the task's real intent."
+          },
+          "install": {
+            "type": "string",
+            "description": "Install command, must match `type`: skill -> 'dz init --select <name>'; preset -> 'dz setup --preset <name>'; npx-package -> 'npx @dzhechkov/<name> init'."
+          }
+        }
+      }
+    },
+    "pipeline": {
+      "type": "array",
+      "description": "Ordered list of recommended names to run in sequence (for multi-step tasks).",
+      "items": { "type": "string" }
+    },
+    "gaps": {
+      "type": "array",
+      "description": "Honest gaps. Empty array means no significant gaps. Suggest /bto-build or dz scout when nothing fits well.",
+      "items": { "type": "string" }
+    }
+  }
+}

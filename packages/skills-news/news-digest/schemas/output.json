@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "news-digest run manifest",
+  "description": "Structured summary of a single news-digest run, emitted alongside the .md/.docx files.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["topic", "profile", "period", "mode", "sources", "outputs"],
+  "properties": {
+    "topic": { "type": "string", "description": "Subject of the digest, e.g. 'GenAI'." },
+    "profile": { "type": "string", "description": "Profile used, e.g. 'genai-world', or 'ad-hoc'." },
+    "period": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end"],
+      "properties": {
+        "start": { "type": "string", "format": "date" },
+        "end": { "type": "string", "format": "date" }
+      }
+    },
+    "mode": { "type": "string", "enum": ["QUICK", "STANDARD", "QUARTERLY"] },
+    "audience": { "type": "string", "enum": ["leadership", "team", "personal", "general"] },
+    "streams": {
+      "type": "array",
+      "description": "Per-stream coverage outcome.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "findings"],
+        "properties": {
+          "name": { "type": "string" },
+          "findings": { "type": "integer", "minimum": 0 },
+          "status": { "type": "string", "enum": ["covered", "no-updates", "limited-data"] }
+        }
+      }
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Source counts by credibility tier (1 official … 4 blogs).",
+      "required": ["total"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "tier1": { "type": "integer", "minimum": 0 },
+        "tier2": { "type": "integer", "minimum": 0 },
+        "tier3": { "type": "integer", "minimum": 0 },
+        "tier4": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "searches": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "web_search": { "type": "integer", "minimum": 0 },
+        "web_fetch": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["format", "path"],
+        "properties": {
+          "format": { "type": "string", "enum": ["md", "docx"] },
+          "path": { "type": "string" }
+        }
+      }
+    }
+  }
+}

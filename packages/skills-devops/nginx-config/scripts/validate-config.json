@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "nginx-config config validator",
+  "description": "Validates configuration inputs for the nginx-config skill",
+  "type": "object",
+  "properties": {
+    "config_file": {
+      "type": "string",
+      "description": "Path to an existing nginx.conf to review or enhance"
+    },
+    "config_content": {
+      "type": "string",
+      "description": "Raw nginx configuration content pasted inline"
+    },
+    "action": {
+      "type": "string",
+      "enum": ["create", "review", "harden", "add_ssl", "add_rate_limiting", "performance_tune"],
+      "default": "create",
+      "description": "What action to perform on the Nginx configuration"
+    },
+    "domains": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Domain names to configure server blocks for"
+    },
+    "upstreams": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "servers"],
+        "properties": {
+          "name": { "type": "string" },
+          "servers": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "algorithm": {
+            "type": "string",
+            "enum": ["round-robin", "least_conn", "ip_hash", "hash"],
+            "default": "round-robin"
+          }
+        }
+      },
+      "description": "Backend upstream definitions"
+    },
+    "ssl_provider": {
+      "type": "string",
+      "enum": ["letsencrypt", "self-signed", "custom"],
+      "default": "letsencrypt",
+      "description": "SSL certificate provider"
+    },
+    "enable_rate_limiting": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to include rate limiting configuration"
+    },
+    "enable_caching": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to include proxy caching configuration"
+    },
+    "environment": {
+      "type": "string",
+      "enum": ["development", "production"],
+      "default": "production",
+      "description": "Target environment for the configuration"
+    }
+  },
+  "anyOf": [
+    { "required": ["config_file"] },
+    { "required": ["config_content"] },
+    { "required": ["domains"] }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "schema": "document-signal-v1",
+  "_note": "DATA. Rules that fire on the TEXT of a recognized document's HEADER (facility, orderer, method, equipment) — NOT on a patient-declared condition_slot. A match makes affected analytes conditions_unknown (never violated) and opens a BLOCKING question. Patterns are normalized (NFC + lowercase + collapsed whitespace) substrings. Every entry states affects_independence, a disposition, and a source. Do NOT invent citations; a field-observed pattern is source.kind='field-case'.",
+  "document_signals": [
+    {
+      "id": "facility-therapeutic-fasting",
+      "field": "facility",
+      "match": ["голодани", "golod", "разгрузочно-диетическ", "разгрузочно-диетическая терапия", "рдт"],
+      "affects_independence": true,
+      "applies_to": "*",
+      "disposition": "question",
+      "question_text": "Бланк выписан учреждением лечебного голодания/РДТ. Кровь могла быть сдана НЕ натощак в обычном смысле (базовые анализы часто берут в день заезда). Подтвердите фактические условия забора, прежде чем интерпретировать значения.",
+      "source": { "kind": "field-case", "citation": "Step-0 brief, doc 17 (64 of 101 field scans name one therapeutic-fasting clinic; CLAIMED — field case)" }
+    },
+    {
+      "id": "facility-independence-class",
+      "field": "facility",
+      "match": ["спортивн", "спорт-клиник", "наркологи", "санатори", "медкомисси", "медицинская комиссия"],
+      "affects_independence": true,
+      "applies_to": "*",
+      "disposition": "question",
+      "question_text": "Учреждение-заказчик относится к классу с особыми условиями забора (спорт/наркология/санаторий/медкомиссия). Подтвердите условия забора и цель обследования до интерпретации.",
+      "source": { "kind": "field-case", "citation": "Step-0 brief, doc 17 (facility classes whose context affects sampling independence; CLAIMED — field case)" }
+    },
+    {
+      "id": "method-immunoassay-testosterone-confirm-ms",
+      "field": "method",
+      "match": ["иммунохемилюминесц", "иммуноанализ", "immulite", "immunoassay", "хемилюминесц"],
+      "affects_independence": false,
+      "applies_to": ["Total Testosterone", "Testosterone", "Тестостерон общий", "Тестостерон"],
+      "disposition": "question",
+      "requires_low_band": true,
+      "question_text": "Тестостерон у нижней границы измерен иммуноанализом (Immulite/хемилюминесценция). Иммуноанализ у нижних значений менее надёжен — рекомендуется подтверждение масс-спектрометрией (LC-MS/MS) перед выводом об андрогенном дефиците.",
+      "source": { "kind": "field-case", "citation": "Step-0 brief, doc 17 (clinician manually recommended MS confirmation for a low immunoassay testosterone; CLAIMED — field case; general lab-medicine practice)" }
+    }
+  ]
+}

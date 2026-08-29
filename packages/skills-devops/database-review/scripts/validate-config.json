@@ -1,0 +1,45 @@
+{
+  "name": "database-review",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "field": "safety_assessment",
+      "rule": "required",
+      "message": "Safety assessment (safe/caution/unsafe) is required"
+    },
+    {
+      "field": "findings",
+      "rule": "required",
+      "message": "Findings array is required even if empty"
+    },
+    {
+      "field": "findings[].severity",
+      "rule": "enum",
+      "values": ["blocker", "warning", "suggestion"],
+      "message": "Each finding must have a valid severity"
+    },
+    {
+      "field": "deploy_recommendation",
+      "rule": "required",
+      "message": "Deploy recommendation is required"
+    },
+    {
+      "field": "deploy_recommendation.rollback_plan",
+      "rule": "required",
+      "message": "Rollback plan must be specified"
+    },
+    {
+      "field": "database.engine",
+      "rule": "required",
+      "message": "Database engine must be identified"
+    }
+  ],
+  "constraints": [
+    {
+      "rule": "if_blocker_then_unsafe",
+      "condition": "findings.any(severity == 'blocker')",
+      "expected": "safety_assessment != 'safe'",
+      "message": "Cannot be 'safe' when blockers exist"
+    }
+  ]
+}

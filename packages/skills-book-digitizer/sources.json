@@ -1,0 +1,23 @@
+{
+  "upstream_note": "dz-original skill pack (ADR-001, features/book-knowledge-digitizer). Turns a book into an installable skill pack. Declares cross-pack dependencies so dz bundle's cross-skill-dep warning fires honestly.",
+  "cross_pack_dependencies": {
+    "@dzhechkov/skills-meta": [
+      "skill-crystallizer (book-skill-distill delegates scaffold + benchmark by reference)",
+      "knowledge-extractor (book-knowledge-extract reuses its quality-gate discipline by reference)"
+    ]
+  },
+  "runtime_dependencies": {
+    "system": ["poppler-utils (pdftotext, pdfinfo, pdfimages) for book-ingest; tesseract optional for scanned books"],
+    "harness-core": ["indexPatternsToAgentdb + putBookKnowledge/queryBookKnowledge (book-kb-index); skillPackBaseDirs discovery.skillScopes/skillDirs (generated packs)"]
+  },
+  "skills": {
+    "digitize-book": { "upstream_type": "original", "upstream_path": null, "description": "Orchestrator — book → installable pack through 5 checkpoints, resumable" },
+    "book-ingest": { "upstream_type": "original", "upstream_path": null, "description": "Deterministic PDF → chunked corpus + manifest (poppler + heuristics, no LLM)" },
+    "book-knowledge-extract": { "upstream_type": "original", "upstream_path": null, "description": "Corpus → verified Knowledge Units (map-reduce, KU-verify, fidelity regime)" },
+    "book-skill-distill": { "upstream_type": "original", "upstream_path": null, "description": "Verified KUs → decision-moment skills (routing evals, traceability)" },
+    "book-pack-assemble": { "upstream_type": "original", "upstream_path": null, "description": "Skills → installable pack (references/, private-default, collision gate)" },
+    "book-kb-index": { "upstream_type": "original", "upstream_path": null, "description": "KUs → books.sqlite (lexical) + agentdb (vector) KB, upsert not append" },
+    "book-brain-register": { "upstream_type": "original", "upstream_path": null, "description": "Optional terminal stage (CP6) — promote a project's KUs into the durable cross-project brain (~/.dz/brain/) via dz brain add" },
+    "source-brain-ingest": { "upstream_type": "original", "upstream_path": null, "description": "Sibling (ADR §6) — deep-walk a repo/dir into the same KUs → same brain via dz brain add --from-kus --kind repo" }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "name": "hydrex-config-validator",
+  "description": "Validates Hydrex liquidity governance configuration",
+  "rules": [
+    {
+      "field": "rpcUrl",
+      "required": true,
+      "type": "string",
+      "pattern": "^https?://",
+      "description": "Base chain RPC URL for contract interactions"
+    },
+    {
+      "field": "walletAddress",
+      "required": true,
+      "type": "string",
+      "pattern": "^0x[a-fA-F0-9]{40}$",
+      "description": "Wallet address holding HYDX/veHYDX"
+    },
+    {
+      "field": "privateKey",
+      "required": false,
+      "type": "string",
+      "sensitive": true,
+      "description": "Private key for signing transactions (use env var)"
+    },
+    {
+      "field": "apiBaseUrl",
+      "required": false,
+      "type": "string",
+      "description": "Hydrex REST API base URL — TODO: unverified, no public REST API is documented; use @hydrexfi/hydrex-sdk for on-chain reads"
+    },
+    {
+      "field": "voteStrategy",
+      "required": false,
+      "type": "string",
+      "enum": ["yield_maximizer", "tvl_growth", "fee_revenue", "diversified", "mercenary"],
+      "default": "yield_maximizer",
+      "description": "Default vote optimization strategy"
+    },
+    {
+      "field": "autoVote",
+      "required": false,
+      "type": "boolean",
+      "default": false,
+      "description": "Automatically vote each epoch using selected strategy"
+    }
+  ],
+  "_contracts_note": "Addresses below verified from @hydrexfi/hydrex-sdk v1.2.8 and BaseScan. oHydx is not exposed by the SDK and is unverified (resolve via docs.hydrex.fi before use).",
+  "contracts": {
+    "hydx": "0x00000e7efa313F4E11Bfff432471eD9423AC6B30",
+    "veHydx": "0x25B2ED7149fb8A05f6eF9407d9c8F878f59cd1e1",
+    "veHydxLens": "0xF4d3fCA00640F5bEb7480AA113ED7B0C2c366866",
+    "voter": "0xc69E3eF39E3fFBcE2A1c570f8d3ADF76909ef17b",
+    "swapRouter": "0x6f4bE24d7dC93b6ffcBAb3Fd0747c5817Cea3F9e",
+    "ichiVaultDepositGuard": "0x9A0EBEc47c85fD30F1fdc90F57d2b178e84DC8d8",
+    "ichiVaultDeployer": "0x7d11De61c219b70428Bb3199F0DD88bA9E76bfEE",
+    "oHydx": "TODO_UNVERIFIED_resolve_via_docs.hydrex.fi"
+  },
+  "chain": {
+    "name": "base",
+    "chainId": 8453
+  }
+}

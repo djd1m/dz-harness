@@ -1,0 +1,22 @@
+{
+  "description": "Validation rules for itsm-itil tickets and WSJF ranking.",
+  "ticket": {
+    "required": ["id", "type", "state", "title"],
+    "rules": [
+      "type must be one of incident | problem | change",
+      "state must be valid for the type's state machine (see references/lifecycle.md)",
+      "a problem in state 'known-error' MUST have a non-empty workaround",
+      "incidents[] only on problems; problem/change links must reference existing ticket ids",
+      "filename must be docs/<type-plural>/<NNN>-<slug>.<state>.md (or the per-state subdir variant)"
+    ]
+  },
+  "wsjf": {
+    "required_when": "ranking open/known-error problems",
+    "formula": "score = (value + time + risk) / size",
+    "rules": [
+      "value, time, risk, size are relative (e.g. modified Fibonacci 1..20); size > 0",
+      "verifying and parked tickets get score 0 (excluded from active ranking)",
+      "rank descending; ties break by severity then age"
+    ]
+  }
+}

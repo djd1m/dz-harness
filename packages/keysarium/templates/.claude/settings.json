@@ -1,0 +1,37 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'if echo \"$CLAUDE_TOOL_INPUT\" | grep -q '\"researches/\"' && ! echo \"$CLAUDE_TOOL_INPUT\" | grep -qE '\"researches/[a-z0-9_]+/\"'; then echo \"⚠️ BLOCKED: Research files must be inside researches/<case-slug>/ directory\" && exit 1; fi; exit 0'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE \"0[0-8]_.*\\.md\"; then echo \"📋 Artifact created. Remember to update the tracker in README.md\"; fi; exit 0'"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '🔔 Task completed'"
+          }
+        ]
+      }
+    ]
+  }
+}

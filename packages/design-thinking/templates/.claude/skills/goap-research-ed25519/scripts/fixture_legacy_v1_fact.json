@@ -1,0 +1,21 @@
+{
+ "fact": {
+  "claim": "Ference 2012 Mendelian randomization on LDL",
+  "confidence": 0.6,
+  "evidence_class": null,
+  "fetch_date": null,
+  "issuer": "researcher",
+  "issuer_pubkey": "ed25519:DVZqfSVe8GBRSSIK38iOabeJE2YRm1mIUvZCUEGGVGY=",
+  "metadata": {},
+  "parent_citation": null,
+  "parent_hash": null,
+  "research_context": null,
+  "signature": "5g7V4a87VxWpiozUFrPTmCQEkwUVo9rCMFS0nU3ivO1UbDX4PbGteSmKEVdYzhdxumFMkp7tcpy2kQKaBjTLCw==",
+  "source_date": null,
+  "source_hash": "a24eb38dea1b79268072302d9adee7b2e109cb580bb31ff05aa632d390fc694d",
+  "source_url": "https://pubmed.ncbi.nlm.nih.gov/23083789",
+  "timestamp": "2026-08-03T12:16:18.191716Z",
+  "trust_class": "SELF_ATTESTED"
+ },
+ "pubkey_b64": "DVZqfSVe8GBRSSIK38iOabeJE2YRm1mIUvZCUEGGVGY="
+}

@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "retrospective config validator",
+  "description": "Validates configuration inputs for the retrospective skill",
+  "type": "object",
+  "properties": {
+    "format": {
+      "type": "string",
+      "enum": ["start_stop_continue", "4ls", "mad_sad_glad", "sailboat", "timeline"],
+      "default": "start_stop_continue",
+      "description": "Retrospective format to use"
+    },
+    "sprint_id": {
+      "type": "string",
+      "description": "Sprint or project identifier (e.g., 'Sprint 42', 'Q2 2026')"
+    },
+    "date_range": {
+      "type": "object",
+      "properties": {
+        "start": { "type": "string", "format": "date" },
+        "end": { "type": "string", "format": "date" }
+      },
+      "description": "Date range for the retrospective period"
+    },
+    "team_input": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "member": { "type": "string" },
+          "observations": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "description": "Individual team member observations"
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "velocity": { "type": "number" },
+        "planned_points": { "type": "number" },
+        "completed_points": { "type": "number" },
+        "incidents": { "type": "integer" },
+        "deployment_count": { "type": "integer" }
+      },
+      "description": "Sprint metrics for data-driven analysis"
+    },
+    "previous_action_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "description": { "type": "string" },
+          "owner": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["completed", "in_progress", "not_started"]
+          }
+        }
+      },
+      "description": "Action items from the previous retrospective to review"
+    },
+    "previous_retro_url": {
+      "type": "string",
+      "description": "URL or path to the previous retrospective report"
+    },
+    "max_action_items": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5,
+      "default": 3,
+      "description": "Maximum number of action items to generate"
+    }
+  }
+}

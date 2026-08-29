@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "data-pipeline config validator",
+  "description": "Validates configuration inputs for the data-pipeline skill",
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": ["design", "review", "optimize", "add_quality_checks", "migrate_orchestrator", "troubleshoot"],
+      "default": "design",
+      "description": "What the user wants to do with or to the pipeline"
+    },
+    "source_description": {
+      "type": "string",
+      "description": "Free-text description of data sources (databases, APIs, files, streams)"
+    },
+    "target_platform": {
+      "type": "string",
+      "enum": ["snowflake", "bigquery", "redshift", "postgres", "databricks", "clickhouse", "duckdb", "other"],
+      "description": "Target data warehouse or lakehouse platform"
+    },
+    "paradigm": {
+      "type": "string",
+      "enum": ["etl", "elt", "streaming", "hybrid", "auto"],
+      "default": "auto",
+      "description": "Processing paradigm; auto lets the skill recommend one"
+    },
+    "transformation_framework": {
+      "type": "string",
+      "enum": ["dbt", "spark", "pandas", "sql", "flink", "custom", "auto"],
+      "default": "auto",
+      "description": "Framework for transformations; auto lets the skill recommend one"
+    },
+    "orchestrator": {
+      "type": "string",
+      "enum": ["airflow", "prefect", "dagster", "cron", "step_functions", "cloud_composer", "mwaa", "none", "auto"],
+      "default": "auto",
+      "description": "Orchestration tool; auto lets the skill recommend one"
+    },
+    "latency_requirement": {
+      "type": "string",
+      "enum": ["real_time", "near_real_time", "hourly", "daily", "weekly"],
+      "description": "How fresh the data needs to be"
+    },
+    "volume_estimate": {
+      "type": "string",
+      "description": "Estimated data volume (e.g., '10M rows/day', '500 GB/day')"
+    },
+    "existing_dag_path": {
+      "type": "string",
+      "description": "Path to an existing DAG or pipeline file for review or optimization"
+    },
+    "existing_dbt_project": {
+      "type": "string",
+      "description": "Path to an existing dbt project root for review"
+    },
+    "include_quality_checks": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to include data quality check recommendations"
+    },
+    "include_monitoring": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to include monitoring and alerting recommendations"
+    },
+    "schema_pattern": {
+      "type": "string",
+      "enum": ["star", "snowflake", "data_vault", "one_big_table", "activity_schema", "auto"],
+      "default": "auto",
+      "description": "Target schema design pattern; auto lets the skill recommend one"
+    }
+  },
+  "anyOf": [
+    { "required": ["source_description"] },
+    { "required": ["existing_dag_path"] },
+    { "required": ["existing_dbt_project"] }
+  ]
+}

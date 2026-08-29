@@ -1,0 +1,47 @@
+{
+  "name": "google-sheets",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "id": "env-check",
+      "type": "env",
+      "description": "Verify Google credentials are configured",
+      "required_vars_any": [
+        "SERVICE_ACCOUNT_PATH",
+        "GOOGLE_SHEETS_CLIENT_ID"
+      ],
+      "error_message": "Either SERVICE_ACCOUNT_PATH (service account) or GOOGLE_SHEETS_CLIENT_ID (OAuth) must be set"
+    },
+    {
+      "id": "service-account-file",
+      "type": "file",
+      "description": "Verify service account key file exists (when using service account auth)",
+      "path": "${SERVICE_ACCOUNT_PATH}",
+      "conditional_on": "SERVICE_ACCOUNT_PATH",
+      "error_message": "Service account key file not found at path specified in SERVICE_ACCOUNT_PATH"
+    },
+    {
+      "id": "mcp-server-check",
+      "type": "command",
+      "description": "Verify MCP server package is available",
+      "command": "npx --yes mcp-google-sheets --version",
+      "timeout_ms": 30000,
+      "error_message": "Cannot locate mcp-google-sheets. Run: claude mcp add google-sheets -- npx mcp-google-sheets"
+    },
+    {
+      "id": "output-schema",
+      "type": "json-schema",
+      "description": "Validate tool output against schema",
+      "schema_path": "../schemas/output.json"
+    }
+  ],
+  "mcp_config": {
+    "server_name": "google-sheets",
+    "command": "npx",
+    "args": ["mcp-google-sheets"],
+    "transport": "stdio",
+    "env": {
+      "SERVICE_ACCOUNT_PATH": "${SERVICE_ACCOUNT_PATH}"
+    }
+  }
+}

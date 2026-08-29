@@ -1,0 +1,60 @@
+{
+  "name": "context7-validator",
+  "description": "Validates context7 MCP skill configuration and connectivity.",
+  "version": "1.0.0",
+  "checks": [
+    {
+      "id": "schema-valid",
+      "type": "json-schema",
+      "description": "Output conforms to schemas/output.json",
+      "schemaPath": "../schemas/output.json",
+      "severity": "error"
+    },
+    {
+      "id": "npx-available",
+      "type": "command-check",
+      "description": "npx is available to run the MCP server",
+      "command": "npx --version",
+      "severity": "error"
+    },
+    {
+      "id": "mcp-server-installable",
+      "type": "package-check",
+      "description": "MCP server package is resolvable from npm",
+      "package": "@upstash/context7-mcp",
+      "severity": "error"
+    },
+    {
+      "id": "tool-enumeration",
+      "type": "tool-list",
+      "description": "All expected tools are available from the MCP server",
+      "expectedTools": [
+        "resolve_library",
+        "get_library_docs",
+        "search_docs"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "resolve-test",
+      "type": "output-sample",
+      "description": "Can resolve a well-known library",
+      "tool": "resolve_library",
+      "args": { "name": "react" },
+      "expectFields": ["tool", "status", "data"],
+      "severity": "warning"
+    },
+    {
+      "id": "no-auth-required",
+      "type": "env-check",
+      "description": "No authentication required for context7",
+      "variables": [],
+      "severity": "info"
+    }
+  ],
+  "scoring": {
+    "pass": "all error-severity checks pass",
+    "warn": "all error-severity checks pass but warnings present",
+    "fail": "any error-severity check fails"
+  }
+}

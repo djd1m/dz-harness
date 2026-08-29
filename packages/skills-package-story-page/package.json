@@ -1,0 +1,65 @@
+{
+  "name": "@dzhechkov/skills-package-story-page",
+  "version": "0.2.3",
+  "description": "package-story-page — turn one existing package into an evidence-backed, examples-first, self-contained story page for non-specialists.",
+  "license": "MIT",
+  "author": "dzhechko",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "agent-skills",
+    "codex",
+    "claude-code",
+    "package-documentation",
+    "landing-page",
+    "evidence",
+    "storytelling"
+  ],
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
+    "test": "node --test test/*.test.mjs",
+    "extract": "node package-story-page/scripts/extract-package-evidence.mjs",
+    "render": "node package-story-page/scripts/render-story-page.mjs",
+    "verify-page": "node package-story-page/scripts/verify-story-page.mjs",
+    "verify-browser": "node package-story-page/scripts/verify-story-page-browser.mjs"
+  },
+  "files": [
+    "package-story-page/SKILL.md",
+    "package-story-page/evals/opus-receipt.json",
+    "package-story-page/evals/run-pair-routing.mjs",
+    "package-story-page/evals/routing.yaml",
+    "package-story-page/references/evidence-contract.md",
+    "package-story-page/references/story-contract.md",
+    "package-story-page/references/visual-contract.md",
+    "package-story-page/scripts/story-schema.mjs",
+    "package-story-page/scripts/extract-package-evidence.mjs",
+    "package-story-page/scripts/render-story-page.mjs",
+    "package-story-page/scripts/verify-story-semantics.mjs",
+    "package-story-page/scripts/verify-story-page.mjs",
+    "package-story-page/scripts/verify-story-page-browser.mjs",
+    "package-story-page/vendor/entities.LICENSE.txt",
+    "package-story-page/vendor/parse5.LICENSE.txt",
+    "package-story-page/vendor/parse5.bundle.mjs",
+    "package-story-page/vendor/parse5.provenance.json",
+    "test/mutation-registry.json",
+    "test/run-mutation-suite.mjs",
+    "test/semantic-disposition.json",
+    "test/no-litter.test.mjs",
+    "test/story-page.test.mjs",
+    "README.md",
+    "LICENSE",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/skills-package-story-page"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-package-story-page#readme"
+}

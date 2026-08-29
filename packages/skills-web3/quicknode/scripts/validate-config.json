@@ -1,0 +1,49 @@
+{
+  "name": "quicknode",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "id": "chain-supported",
+      "type": "enum",
+      "field": "chain",
+      "values": ["base", "ethereum", "polygon", "solana", "unichain", "arbitrum", "optimism", "bsc", "avalanche"],
+      "required": true,
+      "message": "Chain must be one of the 77+ supported QuickNode networks"
+    },
+    {
+      "id": "rpc-method-valid",
+      "type": "pattern",
+      "field": "method",
+      "pattern": "^(eth_|qn_|get|send)",
+      "required": true,
+      "message": "RPC method must be a valid JSON-RPC method (eth_*, qn_*, Solana methods)"
+    },
+    {
+      "id": "access-mode",
+      "type": "enum",
+      "field": "access_mode",
+      "values": ["x402", "api_key"],
+      "required": false,
+      "message": "Access mode must be x402 or api_key"
+    },
+    {
+      "id": "x402-wallet-funded",
+      "type": "custom",
+      "condition": "access_mode === 'x402'",
+      "check": "cost_usdc >= 0",
+      "message": "x402 mode requires a funded Base USDC wallet"
+    },
+    {
+      "id": "error-handling",
+      "type": "custom",
+      "condition": "error !== undefined",
+      "check": "error.code !== undefined && error.message !== undefined",
+      "message": "Errors must include code and message fields"
+    }
+  ],
+  "environment": {
+    "required_for_x402": ["WALLET_PRIVATE_KEY"],
+    "required_for_api_key": ["QN_ENDPOINT"],
+    "optional": ["QN_API_KEY"]
+  }
+}

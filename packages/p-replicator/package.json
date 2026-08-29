@@ -1,0 +1,83 @@
+{
+  "name": "@dzhechkov/p-replicator",
+  "version": "1.10.3",
+  "description": "P-Replicator — Claude Code toolkit for AI-assisted product development (Vibe Coding). Full /replicate pipeline, 10 modular skills (880K+ chars), /harvest knowledge extraction, swarm agents, quality gates, security patterns, cross-project learning.",
+  "main": "src/cli.js",
+  "bin": {
+    "p-replicator": "bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "templates/",
+    "tests/",
+    "README/",
+    "CHANGELOG.md",
+    "KNOWN_LIMITATIONS.md",
+    "MULTIPLATFORM_ROADMAP.md",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "scripts": {
+    "prepublishOnly": "node --test tests/snapshot/templates.test.js && node ../../../scripts/prepublish-gate.mjs",
+    "test": "node --test tests/unit/utils.test.js tests/unit/adr-scanner-contract.test.js tests/unit/sparc-reconciliation.test.js tests/unit/pipeline-file-ownership.test.js tests/unit/validation-gate-teeth.test.js tests/unit/hooks-project-anchored.test.js tests/unit/statusline-two-roots.test.js tests/unit/external-dependency-check.test.js tests/unit/spec-pseudocode-traceability.test.js tests/unit/sync-templates-guard.test.js tests/unit/db-port-rule.test.js tests/unit/roadmap-one-schema.test.js tests/unit/hooks-report-failures.test.js tests/unit/growth-module-b2b-gate.test.js tests/unit/detect-parse-anchor.test.js tests/unit/statusline-honest-labels.test.js tests/unit/autocommit-deletion.test.js tests/unit/check-ports.test.js tests/unit/adr-decision-coverage.test.js tests/unit/growth-requirements-bridge.test.js tests/unit/check-growth-trace.test.js tests/unit/growth-gate-conditional.test.js tests/unit/module-copy-identity.test.js tests/unit/growth-axes-and-compliance.test.js tests/unit/skill-paths-prebaked.test.js tests/unit/check-docs-complete.test.js tests/unit/absence-is-not-emptiness.test.js tests/unit/guard-forms.test.js tests/unit/generated-guard-templates.test.js tests/unit/shipped-suite-context.test.js tests/unit/assess-scripts.test.js tests/unit/insights-docs-tell-the-truth.test.js tests/e2e/lifecycle.test.js tests/snapshot/templates.test.js",
+    "test:unit": "node --test tests/unit/utils.test.js tests/unit/adr-scanner-contract.test.js tests/unit/sparc-reconciliation.test.js tests/unit/pipeline-file-ownership.test.js tests/unit/validation-gate-teeth.test.js tests/unit/hooks-project-anchored.test.js tests/unit/statusline-two-roots.test.js tests/unit/external-dependency-check.test.js tests/unit/spec-pseudocode-traceability.test.js tests/unit/sync-templates-guard.test.js tests/unit/db-port-rule.test.js tests/unit/roadmap-one-schema.test.js tests/unit/hooks-report-failures.test.js tests/unit/growth-module-b2b-gate.test.js tests/unit/detect-parse-anchor.test.js tests/unit/statusline-honest-labels.test.js tests/unit/autocommit-deletion.test.js tests/unit/check-ports.test.js tests/unit/adr-decision-coverage.test.js tests/unit/growth-requirements-bridge.test.js tests/unit/check-growth-trace.test.js tests/unit/growth-gate-conditional.test.js tests/unit/module-copy-identity.test.js tests/unit/growth-axes-and-compliance.test.js tests/unit/skill-paths-prebaked.test.js tests/unit/check-docs-complete.test.js tests/unit/absence-is-not-emptiness.test.js tests/unit/guard-forms.test.js tests/unit/generated-guard-templates.test.js tests/unit/shipped-suite-context.test.js tests/unit/assess-scripts.test.js tests/unit/insights-docs-tell-the-truth.test.js",
+    "test:e2e": "node --test tests/e2e/lifecycle.test.js",
+    "test:snapshot": "node --test tests/snapshot/templates.test.js",
+    "test:doctor": "node bin/cli.js doctor",
+    "snapshot:baseline": "node tests/snapshot/update-baseline.js"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai",
+    "vibe-coding",
+    "sparc",
+    "prd",
+    "skills",
+    "pipeline",
+    "replicate",
+    "harvest",
+    "knowledge-extraction",
+    "swarm-agents",
+    "quality-gates",
+    "reverse-engineering",
+    "problem-solving",
+    "triz",
+    "bdd",
+    "invest",
+    "smart",
+    "security",
+    "owasp",
+    "documentation",
+    "skill-pack",
+    "modular-skills",
+    "cross-project-learning",
+    "composable-architecture"
+  ],
+  "author": "dzhechko",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/p-replicator"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/p-replicator#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness-hub/issues"
+  },
+  "peerDependencies": {
+    "@dzhechkov/keysarium-core": "^1.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@dzhechkov/keysarium-core": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schema": "profile-required-v1",
+  "_note": "DATA. This file may only ADD to the code-level floor in engine/schema.js (REQUIRED_SECTIONS, REQUIRED_LAB_FIELDS, FORBIDDEN_CURRENT_KEYS). The floor lives in CODE precisely so that deleting or emptying this file cannot disarm the gate — the same shape, and the same reason, as skills/preanalytical-guard/registry/universal.json. The loader unions the two sets and asserts the union still contains every floor entry.",
+  "required_sections": ["schema", "labs", "preanalytical_context", "open_questions"],
+  "required_lab_fields": ["analyteId", "value", "unit", "observedOn"],
+  "forbidden_current_keys": ["current", "latest", "value", "current_labs"],
+  "forbidden_preanalytical_slots": [
+    "collected_at",
+    "fasting_state",
+    "fasting_hours",
+    "fast_washout_hours",
+    "exertion_washout_hours",
+    "sleep_hours_7d_mean",
+    "is_repeat"
+  ],
+  "_forbidden_preanalytical_slots_source": "skills/preanalytical-guard/engine/conditions.js :: SLOTS — the per-draw sampling-condition bundle that skill owns. case-state's `preanalytical_context` carries DATED history facts (a sustained fast, a training block), never per-draw slots; a slot name appearing here would be a SECOND answer to a question another skill already answers. The two lists are NOT imported from one another — a cross-skill require() resolves in the repo and breaks after install (04_domain_model.md M-5) — so their agreement is asserted by test/case-state-profile-validate.test.js with a non-empty positive control, exactly as ADR-005 §5 declares a divergence rather than assuming coherence."
+}

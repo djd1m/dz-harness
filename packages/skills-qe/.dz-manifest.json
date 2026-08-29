@@ -1,0 +1,597 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "skills-qe",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "db6be755138b495d6bee78a83c199bfb5234eba2af91b966ce95a818ff6128f1"
+      },
+      {
+        "path": "brutal-honesty-review/README.md",
+        "sha256": "2a026b4af50b21456e50424fbfa089cb983fbbaa0c68024c8c17c695bea25a57"
+      },
+      {
+        "path": "brutal-honesty-review/SKILL.md",
+        "sha256": "21e41129dac8e99485b501dcb3767d5f4461ce527782fa7bc71f89dabe5bd2bd"
+      },
+      {
+        "path": "brutal-honesty-review/evals/brutal-honesty-review.yaml",
+        "sha256": "855c155d55575e12aab23fb3a5fb2fada74d93974ff755dfedac6f2d5bd41f13"
+      },
+      {
+        "path": "brutal-honesty-review/resources/assessment-rubrics.md",
+        "sha256": "dac09c91c765e2211799cc230738fb72a966f47511edb872306a906e49640cbe"
+      },
+      {
+        "path": "brutal-honesty-review/resources/review-template.md",
+        "sha256": "95182c8605b1d821360257e1c5dbac4300bda333d861785de417cbb84090b25b"
+      },
+      {
+        "path": "brutal-honesty-review/schemas/output.json",
+        "sha256": "2e252a3497b86322e1a6e6bd1aca8708b44389db3a2d81a6f893d467b6351210"
+      },
+      {
+        "path": "brutal-honesty-review/scripts/assess-code.sh",
+        "sha256": "2b10d2972b1379adde9a68ddf8bcdb399b7d65075e458a54523ffd8d99ddc746"
+      },
+      {
+        "path": "brutal-honesty-review/scripts/assess-tests.sh",
+        "sha256": "d33e760a0739e9291f6087adf189f01eb7c4a1136d9128390dd6e3ad8eadda6f"
+      },
+      {
+        "path": "brutal-honesty-review/scripts/validate-config.json",
+        "sha256": "7418284839f89735d01f50eefdb488b013e0076f6003a67683062429c14984c6"
+      },
+      {
+        "path": "package.json",
+        "sha256": "d0f2970d381b147454e6dab0af133f032e557786d7152873218ee5adff1a7363"
+      },
+      {
+        "path": "qcsd-cicd-swarm/SKILL.md",
+        "sha256": "d179c8861cb7b03ecaa959b907e0fb2c423599e3676396507af8e7b5f4d985e5"
+      },
+      {
+        "path": "qcsd-cicd-swarm/evals/qcsd-cicd-swarm.yaml",
+        "sha256": "84fc0a2fda643fd5054e4ebbef45f9790c210c1cf59bde3065dbda2cce310fdb"
+      },
+      {
+        "path": "qcsd-cicd-swarm/schemas/output.json",
+        "sha256": "ed28dbc01eae3b3aa3250ca54a04240f0a949bdcf6510713c24d0b34d60e7433"
+      },
+      {
+        "path": "qcsd-cicd-swarm/scripts/validate-config.json",
+        "sha256": "1fdaa9f68b2380d9760da3710572b41328c7381f7358e0990beb8c4f894a306e"
+      },
+      {
+        "path": "qcsd-cicd-swarm/steps/01-flag-detection.md",
+        "sha256": "29d3612f19a5cdbe756e82d0baf70b31e632e701c93c2664d2c66b736e402047"
+      },
+      {
+        "path": "qcsd-cicd-swarm/steps/02-core-agents.md",
+        "sha256": "d51ae022afeb5037cbea497a916cf3c6fa76902f03cfff3b0b414a500e056eda"
+      },
+      {
+        "path": "qcsd-cicd-swarm/steps/03-batch1-results.md",
+        "sha256": "6af6b97eacd30eb32eaba8e772d090c91a02e0452710fb8197f1aa99cc139f00"
+      },
+      {
+        "path": "qcsd-cicd-swarm/steps/04-conditional-agents.md",
+        "sha256": "67740b1aff9b973b000baa726aa80c1c146475708ec249ff137d57986fb9cfe6"
+      },
+      {
+        "path": "qcsd-cicd-swarm/steps/05-decision-synthesis.md",
+        "sha256": "99d12d1d48cb20e9ea0c6dbf1cf552b99c15a104757ecdd98b388ace238b55a9"
+      },
+      {
+        "path": "qcsd-cicd-swarm/steps/06-report-generation.md",
+        "sha256": "2b04666525e16aed44a7a1b0ca6fb0eaa84d6681c3484507cf314dae86e74fc4"
+      },
+      {
+        "path": "qcsd-cicd-swarm/steps/07-learning-persistence.md",
+        "sha256": "f79f19edea0f95da3581b6bfab737cb0f272c97400197ae3c1441459f0f1ea92"
+      },
+      {
+        "path": "qcsd-cicd-swarm/steps/08-deployment-advisor.md",
+        "sha256": "791ce313b180b4f29b2c7a4990d0301a8cf792433b6e7afc1eb66073ea47cb24"
+      },
+      {
+        "path": "qcsd-cicd-swarm/steps/09-final-output.md",
+        "sha256": "0efe3475d7e647c07abc01df26710b37e8487d84000becc13d06311399195399"
+      },
+      {
+        "path": "qcsd-development-swarm/SKILL.md",
+        "sha256": "1bc81bb59587a6812e1e4d2dc9c3f93db6314b537573e96ed26497cf67bc0462"
+      },
+      {
+        "path": "qcsd-development-swarm/evals/qcsd-development-swarm.yaml",
+        "sha256": "653f31521e40075e4f5b49a9bb6283ca0c0c8184d0e9650e4ea304e1013e08d6"
+      },
+      {
+        "path": "qcsd-development-swarm/schemas/output.json",
+        "sha256": "ee072742cdb0244b1a677267676fe293cd6e3040b8e1ba57a33f91bdab04b919"
+      },
+      {
+        "path": "qcsd-development-swarm/scripts/validate-config.json",
+        "sha256": "bd2e277a3c644cdc4a918d59c27cb2a8032d2b6092032001fa125acf2d064595"
+      },
+      {
+        "path": "qcsd-development-swarm/steps/01-flag-detection.md",
+        "sha256": "86de9e74529b213c872b25d765db20bb6262e897a6572413746cb4325016b4b5"
+      },
+      {
+        "path": "qcsd-development-swarm/steps/02-core-agents.md",
+        "sha256": "9648b00a332f4e03f77cbbb7008aeea138a7d329f1de9a3652c1f821a8c0b8a4"
+      },
+      {
+        "path": "qcsd-development-swarm/steps/03-batch1-results.md",
+        "sha256": "7d277d699a380492ef0ffe9ad3431912605cd3ecd1368a670d54d5f2eb1ab5cc"
+      },
+      {
+        "path": "qcsd-development-swarm/steps/04-conditional-agents.md",
+        "sha256": "400f3f2b86046a08179f1756911d84b5c489ac3f3230452d1cebbf584d831cd7"
+      },
+      {
+        "path": "qcsd-development-swarm/steps/05-decision-synthesis.md",
+        "sha256": "ac03a6c64eae7711f2a692e6566ac0c188963761b1f1977326e7118addca0c29"
+      },
+      {
+        "path": "qcsd-development-swarm/steps/06-report-generation.md",
+        "sha256": "d5c421cd4edaeabd1b454b762496c2a012f8ed02d783372632432e0ff5646077"
+      },
+      {
+        "path": "qcsd-development-swarm/steps/07-learning-persistence.md",
+        "sha256": "74534b24d24165f32cbabeeb2bd872a9d7bcf4d72012f3495c8015ba79bb6e68"
+      },
+      {
+        "path": "qcsd-development-swarm/steps/08-defect-predictor.md",
+        "sha256": "476c9ce4d6e19627ffb49727531a14523b6834a23a4f11ed5d5ac123f6e08e73"
+      },
+      {
+        "path": "qcsd-development-swarm/steps/09-final-output.md",
+        "sha256": "682726c3573aabf567b4d874874554846ac3bd48417af4cfe78ae30adc47724f"
+      },
+      {
+        "path": "qcsd-ideation-swarm/SKILL.md",
+        "sha256": "4f9958206be90609a06e5709d486d71cccfcf79799ef450278b15e26af8c9227"
+      },
+      {
+        "path": "qcsd-ideation-swarm/evals/qcsd-ideation-swarm.yaml",
+        "sha256": "5fa6ca14cc08f2c6092c74812dea402043a1cd4980343f542579ced721a27c66"
+      },
+      {
+        "path": "qcsd-ideation-swarm/schemas/output.json",
+        "sha256": "23fc201df994246c32c18b1b0c755186da0515626e5ff887b333ce6f4706ccc2"
+      },
+      {
+        "path": "qcsd-ideation-swarm/scripts/validate-config.json",
+        "sha256": "626c135503831060c9ef0c13003ef3e2ea3a396f67787d0cf7b17d37a9afe160"
+      },
+      {
+        "path": "qcsd-ideation-swarm/steps/01-flag-detection.md",
+        "sha256": "68a9771fd2ae18716ef4265b0b15a4df4a4f5e2a24a8794da78cc2f784444ba0"
+      },
+      {
+        "path": "qcsd-ideation-swarm/steps/02-core-agents.md",
+        "sha256": "512308d211773383249c485402aa7c36f550dad2fc7a6a73b19ca80162347138"
+      },
+      {
+        "path": "qcsd-ideation-swarm/steps/03-batch1-results.md",
+        "sha256": "ddaf64b2bff27081954577b97968f2ce181c41d3f2386364a2de0b9ec311cd5b"
+      },
+      {
+        "path": "qcsd-ideation-swarm/steps/04-conditional-agents.md",
+        "sha256": "752b00367d4b5cd75fa17cd96cf9c268e032fba47e0d5806aa3bf6539d773f36"
+      },
+      {
+        "path": "qcsd-ideation-swarm/steps/05-decision-synthesis.md",
+        "sha256": "0f87a1997d38803f2ce181e6506e5053b317c461f2718949841790ccc89b76c4"
+      },
+      {
+        "path": "qcsd-ideation-swarm/steps/06-report-generation.md",
+        "sha256": "27ecb7146d1f80806651ff9566065cd5c680f32979ef6a0ea4576360a66fb229"
+      },
+      {
+        "path": "qcsd-ideation-swarm/steps/07-learning-persistence.md",
+        "sha256": "dac7068b81298b58db63ef64a41961b17c70dcb72b1da64c186b31564cb1f2ea"
+      },
+      {
+        "path": "qcsd-ideation-swarm/steps/08-final-output.md",
+        "sha256": "b45df9c32aafbb5382fb86620a2c019294ab5bcdf510c3209b17c4470bf5fff5"
+      },
+      {
+        "path": "qcsd-production-swarm/SKILL.md",
+        "sha256": "9186c0a25c7fd843176dfb7d68c647f99ea8f421e938c6228eb3ced7f6e27e37"
+      },
+      {
+        "path": "qcsd-production-swarm/evals/qcsd-production-swarm.yaml",
+        "sha256": "2b24e39280fcd540da61ae93d1b6c42a8953e8a53e67788b546b17868b4d3754"
+      },
+      {
+        "path": "qcsd-production-swarm/schemas/output.json",
+        "sha256": "690d863f877b503da888ea145fe72beb4d929e3afa426fdf3315a6f9b1cf6edf"
+      },
+      {
+        "path": "qcsd-production-swarm/scripts/validate-config.json",
+        "sha256": "4f9bc93bc280ca167f1c1c0d4eede18654c70bd8d064a0b77e449b43b3fd2d60"
+      },
+      {
+        "path": "qcsd-production-swarm/steps/01-flag-detection.md",
+        "sha256": "7bbbdd1fc74f13c8fcf06ccc7c8f0a86d38f445046cdedcd19a9d3e4d209a723"
+      },
+      {
+        "path": "qcsd-production-swarm/steps/02-core-agents.md",
+        "sha256": "b8b4615e3f3d3eb5394d9ee7cacc1c41762b8a4946c993a33c2ddd740ac0d660"
+      },
+      {
+        "path": "qcsd-production-swarm/steps/03-batch1-results.md",
+        "sha256": "a79b0fff67d5cf870c177191f74fc0e48f3abbfaa122fcd2d57c263f086f5fda"
+      },
+      {
+        "path": "qcsd-production-swarm/steps/04-conditional-agents.md",
+        "sha256": "5197f5243b4df7cc5f154c5bc3c074520ddebfe441301fd6c717fb37fb8e3716"
+      },
+      {
+        "path": "qcsd-production-swarm/steps/05-decision-synthesis.md",
+        "sha256": "a5000f3475bd0cfe23800aa547c1ab0d4974c8b3231187052c7db8dabaca739a"
+      },
+      {
+        "path": "qcsd-production-swarm/steps/06-report-generation.md",
+        "sha256": "0e3b8a6c4adb56f9929bc2d1da808a6d88df023c86cfaf518a697eda6f82eb89"
+      },
+      {
+        "path": "qcsd-production-swarm/steps/07-learning-persistence.md",
+        "sha256": "2990b62c1a9d45447c9cad1ae37f607eec77b3147a91339babd65019917819f1"
+      },
+      {
+        "path": "qcsd-production-swarm/steps/08-feedback-loop.md",
+        "sha256": "546527bb6579d1b603c34115429e8c38ce03c8bb88f1601161db76e0260ea21b"
+      },
+      {
+        "path": "qcsd-production-swarm/steps/09-final-output.md",
+        "sha256": "7968a1faa41dc5a022da5cf425bd42fba85b0a2e209b8a75a05a85328056a941"
+      },
+      {
+        "path": "qcsd-refinement-swarm/SKILL.md",
+        "sha256": "1f5b756cf1de4eebc46cc84feee9a482134b1235b9d3ac0b3c667e30a512b2e9"
+      },
+      {
+        "path": "qcsd-refinement-swarm/evals/qcsd-refinement-swarm.yaml",
+        "sha256": "36f3766b137c9ed8d03c19fb3cdbd78c7a433a65206675ab816da4e73f3a07f0"
+      },
+      {
+        "path": "qcsd-refinement-swarm/schemas/output.json",
+        "sha256": "6276029c3d9ff46efa30c1bdd11a3578b4f11f7727f9306b6cd007c9b063da39"
+      },
+      {
+        "path": "qcsd-refinement-swarm/scripts/validate-config.json",
+        "sha256": "de6840627f436199ba7d9200d79e39880677c56020360f4f1b54893004db17b0"
+      },
+      {
+        "path": "qcsd-refinement-swarm/steps/01-flag-detection.md",
+        "sha256": "9bd3ceb79fdfe898f05c95e41ecbd48f2aa051e92bc271de1c54d3ed1a004ff8"
+      },
+      {
+        "path": "qcsd-refinement-swarm/steps/02-core-agents.md",
+        "sha256": "f8a26e22b1e8d7d79351f47509adcd9a50e828bfb4ae5a4c8c2a4fa59b3546a9"
+      },
+      {
+        "path": "qcsd-refinement-swarm/steps/03-batch1-results.md",
+        "sha256": "deb1ecce12d4960846af4b9856b60b62a28170c6a92323357ee43c9e11899ddc"
+      },
+      {
+        "path": "qcsd-refinement-swarm/steps/04-conditional-agents.md",
+        "sha256": "e76b0831bbfa03cfebe02deea3e8e22417c7f57f897b70c52237fde23e15fd05"
+      },
+      {
+        "path": "qcsd-refinement-swarm/steps/05-decision-synthesis.md",
+        "sha256": "0e3e864dfe1b935f1f6c2df5b9a121cc49155c2f5fb9d2d8122a2f78bd5f696d"
+      },
+      {
+        "path": "qcsd-refinement-swarm/steps/06-report-generation.md",
+        "sha256": "91d98cfffd7e5d6e2244183fd36b08cf646dfeec9261cbe6dd3312de6ca2d892"
+      },
+      {
+        "path": "qcsd-refinement-swarm/steps/07-learning-persistence.md",
+        "sha256": "31d3715ab6d0725644194ca07ca574166675e1d9588cdd9721164b5c7222b948"
+      },
+      {
+        "path": "qcsd-refinement-swarm/steps/08-transformation.md",
+        "sha256": "f62f689158c0fe70c5b6b018197c38dd225b7bff55fee2400ddf54f316ec47b4"
+      },
+      {
+        "path": "qcsd-refinement-swarm/steps/09-final-output.md",
+        "sha256": "e9cea7729fbd910f7ec3465ff1c1008945076bdc6511f5d7cd91c33b1a68ebe5"
+      },
+      {
+        "path": "qe-browser/SKILL.md",
+        "sha256": "ce703369d511a94900dd99ea4b03d9247fca7047e389ef449a977eeea19c13d0"
+      },
+      {
+        "path": "qe-browser/evals/qe-browser.yaml",
+        "sha256": "2905e88387cbe4374cafa87a560401486785c6fbdada985e00078567bbb2e2e0"
+      },
+      {
+        "path": "qe-browser/fixtures/package.json",
+        "sha256": "2c94c9f4435a33a3c620e98f5006e2669ec285d19f38299343d2d177e6c45a0a"
+      },
+      {
+        "path": "qe-browser/fixtures/serve-skills.js",
+        "sha256": "0b66ba5cb80196da1d58ef1c6c56d755274543f81f4baa6fdc50abadb2bf9bec"
+      },
+      {
+        "path": "qe-browser/references/assertion-kinds.md",
+        "sha256": "d5c7dfd3a254fd1e981fbc46d6d013b009b653ed5a0649640890cc27618aed36"
+      },
+      {
+        "path": "qe-browser/references/migration-from-playwright.md",
+        "sha256": "81299635cb51e9e30e1c1bba04983471c73529bb40be5ca33e457b1cfbf21514"
+      },
+      {
+        "path": "qe-browser/schemas/output.json",
+        "sha256": "5ed07d5ebdfa00c926fca2fb9b716871403a891e700eff866aff4f02ac2bd984"
+      },
+      {
+        "path": "qe-browser/scripts/assert.js",
+        "sha256": "f2e8c934d2390e115efab01b20e080c50edca5cd3e6c89565db4ee8841d37d65"
+      },
+      {
+        "path": "qe-browser/scripts/batch.js",
+        "sha256": "3b9b75802169a3582506c1d0ff603c47d1e5eaed6339a3f20e17ee8d87cfc2f9"
+      },
+      {
+        "path": "qe-browser/scripts/check-injection.js",
+        "sha256": "ddac50a2300ff9ea7b2e5fc9228937e39299a438934f2ce945d13b2323f84da7"
+      },
+      {
+        "path": "qe-browser/scripts/intent-score.js",
+        "sha256": "afe01a9c92945edfd3df2b20e9c5a99c18e705f2a74e9aee1fdee690f1d83248"
+      },
+      {
+        "path": "qe-browser/scripts/lib/vibium.js",
+        "sha256": "ff65a59d5e105289cd6926469391c5753ce0cdf136030dab5b67eb87beb7a879"
+      },
+      {
+        "path": "qe-browser/scripts/package.json",
+        "sha256": "2082b5e34160d82473b00358a874b5fc4bf67d47e17c3d93e4bc9eca6ced6b95"
+      },
+      {
+        "path": "qe-browser/scripts/smoke-test.sh",
+        "sha256": "fbda8360466f4325be5fe526215918c3bbdd8460cef4f80f311c49200b3b9da4"
+      },
+      {
+        "path": "qe-browser/scripts/validate-config.json",
+        "sha256": "0d67d7ef359e044c1afa412520c267fe64f982477cf221cf11d99b9b9c776cfc"
+      },
+      {
+        "path": "qe-browser/scripts/visual-diff.js",
+        "sha256": "287ea242648c61f3efed7f89a7b56dbb559473a18625b5904a4adc5e740a952d"
+      },
+      {
+        "path": "qe-chaos-resilience/SKILL.md",
+        "sha256": "5835fe7e2d0139f75205f86e1d3f5c08abfef650a44264ebd6eb3ef4d1926204"
+      },
+      {
+        "path": "qe-chaos-resilience/evals/qe-chaos-resilience.yaml",
+        "sha256": "ed1248a7c4c7ce7d5be51289094b1bc8248dc472953314de0f3393700364881a"
+      },
+      {
+        "path": "qe-chaos-resilience/schemas/output.json",
+        "sha256": "854e30aadc301d5243118eee48e0efe747854d27bdc10d19b9958adeab0b2c14"
+      },
+      {
+        "path": "qe-chaos-resilience/scripts/validate-config.json",
+        "sha256": "648b5ef3eaaa6783de508b652003905f36d0b0ca172aab5ef4096be150c8be73"
+      },
+      {
+        "path": "qe-code-intelligence/SKILL.md",
+        "sha256": "7cea41a3748a4e56d52a8d2d87ac3741ba560a349e6fd8374784918f60efeafd"
+      },
+      {
+        "path": "qe-code-intelligence/evals/qe-code-intelligence.yaml",
+        "sha256": "672036e8975acc60a1f76a58480b47f103f056ed65e920af18ab05d11b3860d9"
+      },
+      {
+        "path": "qe-code-intelligence/schemas/output.json",
+        "sha256": "59ad798fb4b840f68a64f9e2b08b643abfbdfc5c28739545920a4c2f3c72e28b"
+      },
+      {
+        "path": "qe-code-intelligence/scripts/validate-config.json",
+        "sha256": "d48654f8a117a0046dc347d3408dc1e163b38df31b5f5a996415acd62b7aa9f6"
+      },
+      {
+        "path": "qe-coverage-analysis/SKILL.md",
+        "sha256": "1d97eae9c6b2220a170f1ba50ae66b79bfbe9bd1fb0e09953daaab51cd24396c"
+      },
+      {
+        "path": "qe-coverage-analysis/evals/qe-coverage-analysis.yaml",
+        "sha256": "482a89a3f1d7818906fa89a2f80db2e722f1321462fb86c031d5846245781897"
+      },
+      {
+        "path": "qe-coverage-analysis/schemas/output.json",
+        "sha256": "2d53e7675f4a8846249d6d93a0ef56c109f1c1c56ffc9bf2eaf29e3effa3d169"
+      },
+      {
+        "path": "qe-coverage-analysis/scripts/validate-config.json",
+        "sha256": "ee48023424cb990194a7bbbd0fa3175057e3b5db36deffedaabd2e36881f5c8e"
+      },
+      {
+        "path": "qe-defect-intelligence/SKILL.md",
+        "sha256": "c4b9f09b49a8f6dd1f4bcb838d6165ff6c3d329601e7aa5640d7199f5c1194fe"
+      },
+      {
+        "path": "qe-defect-intelligence/evals/qe-defect-intelligence.yaml",
+        "sha256": "ab94e93372d1afd697a87ba85640619ecdf34229415bc4fca6b6a8f2d53c50a5"
+      },
+      {
+        "path": "qe-defect-intelligence/schemas/output.json",
+        "sha256": "8d9519d9a719338d1ed015ac5fed6bae1d77bbc56045923da3f5a339f8c2a88e"
+      },
+      {
+        "path": "qe-defect-intelligence/scripts/validate-config.json",
+        "sha256": "c1485d9220cf20f19b4ea559b9c86ab5fa5cf43473c98a3d3e849b7e93198ff1"
+      },
+      {
+        "path": "qe-iterative-loop/SKILL.md",
+        "sha256": "86020ab16ca3f27a2748667ee8e691dec82cfa17aff2888a488eef1b45a8fd27"
+      },
+      {
+        "path": "qe-iterative-loop/evals/qe-iterative-loop.yaml",
+        "sha256": "cbbb2f22e98ad58cc016c03354892230f9db6f0305f0ba6189f71499ef897aa1"
+      },
+      {
+        "path": "qe-iterative-loop/schemas/output.json",
+        "sha256": "e1c37b7e1adf9739a8145f0ea144492030421ef07cf7485118b6d9e4f4df69e2"
+      },
+      {
+        "path": "qe-iterative-loop/scripts/validate-config.json",
+        "sha256": "71f2184c8ca1376877924e7a9d4f706f854bafb6f24bef67e66d37dff5ced681"
+      },
+      {
+        "path": "qe-learning-optimization/SKILL.md",
+        "sha256": "cd1b2ada74c92f2cda2331ac264b70768d20bd3499375858abfdfe2fdd5ffd62"
+      },
+      {
+        "path": "qe-learning-optimization/evals/qe-learning-optimization.yaml",
+        "sha256": "3e27f31b9c17bb9f6be9164c79badb5b3e9a69f33c61d22e8612acb7ca42b4e1"
+      },
+      {
+        "path": "qe-learning-optimization/schemas/output.json",
+        "sha256": "af6c95f3efb583435cf8efcc0cf1cc439f5932fac41e49a8d2ac08780948ee78"
+      },
+      {
+        "path": "qe-learning-optimization/scripts/validate-config.json",
+        "sha256": "7cee6b2be2fb3d3d271dd9b775fa4bb77614ad0a74f19ddd149d2bfac434c7f1"
+      },
+      {
+        "path": "qe-quality-assessment/SKILL.md",
+        "sha256": "1569f3a62c7edabe3c752c2aa8b1c10d86a813325a7f708323ba86bc4e2f02af"
+      },
+      {
+        "path": "qe-quality-assessment/evals/qe-quality-assessment.yaml",
+        "sha256": "152eb85d39c00cc4073564888dc121f74e1daa17168cbc30470ecd28aaf6c187"
+      },
+      {
+        "path": "qe-quality-assessment/schemas/output.json",
+        "sha256": "8865e45269fc6f89fbd76a60f1525e626d0c303af7cbed15b4f97555afdccd47"
+      },
+      {
+        "path": "qe-quality-assessment/scripts/validate-config.json",
+        "sha256": "65da94713da9ca44df9175252d6c449c4dc3d7970baaee011388bd87ccf66161"
+      },
+      {
+        "path": "qe-requirements-validation/SKILL.md",
+        "sha256": "e2af956e3097a36ac8f796d660a4199cb58857ee65c8db2a8de3b1a2381e4fe8"
+      },
+      {
+        "path": "qe-requirements-validation/evals/qe-requirements-validation.yaml",
+        "sha256": "a9b91439cc538e3ff67114ac416611dd33d86bc4723f4daef7e5967269f9e620"
+      },
+      {
+        "path": "qe-requirements-validation/schemas/output.json",
+        "sha256": "f9771a34032c2e9ecc0da700021254d85b7636d3157d1095071af9c94c8f5607"
+      },
+      {
+        "path": "qe-requirements-validation/scripts/validate-config.json",
+        "sha256": "654ecc8427172a16f287df7e2309b0a8901609096bf4d52a907820e79c65f792"
+      },
+      {
+        "path": "qe-test-execution/SKILL.md",
+        "sha256": "63d9451a010898360dff98041ba4b6e38435c427b29cf1b8e91bc61347a5e887"
+      },
+      {
+        "path": "qe-test-execution/evals/qe-test-execution.yaml",
+        "sha256": "1b6a67e5a16b88a6a8b767563105d0e865384af54bfe62953b05d6b094ce2394"
+      },
+      {
+        "path": "qe-test-execution/schemas/output.json",
+        "sha256": "734d56f76bbe266c5f14ec58872a4c0079ad8b462991081b109fdee7e87271c3"
+      },
+      {
+        "path": "qe-test-execution/scripts/validate-config.json",
+        "sha256": "d1b61b287429601d79f6c8e1e1b3776b805c0e0654eb5da6dfd04507ca1cead5"
+      },
+      {
+        "path": "qe-test-generation/SKILL.md",
+        "sha256": "f95c7d82355d42db37f7c5dda2e17a8ddb8b27082df2bb8ce95007622237f686"
+      },
+      {
+        "path": "qe-test-generation/config.json",
+        "sha256": "2b1156eacce8e2ff03e6a136881507aa80cb7432608bb29b047fed00e13231af"
+      },
+      {
+        "path": "qe-test-generation/evals/qe-test-generation.yaml",
+        "sha256": "21a8389fe7abb2d41edbddc81d3bb06220d619f61bb231812470d4aba9328b20"
+      },
+      {
+        "path": "qe-test-generation/schemas/output.json",
+        "sha256": "50d08fc576568df741c3e6de9f760d66965c37d8acbdddf89b885d8fe9170951"
+      },
+      {
+        "path": "qe-test-generation/scripts/validate-config.json",
+        "sha256": "adf6fe716cf14e30b0fbc117c49787ef8d2b2d61a4c5502cebf994d8432183d3"
+      },
+      {
+        "path": "qe-test-generation/templates/test-scaffold-jest.md",
+        "sha256": "b02fde6445d0d4db58833570c7f7155fc8ff40c5b98316fa30a26dba863530b5"
+      },
+      {
+        "path": "qe-visual-accessibility/SKILL.md",
+        "sha256": "f8df2c0c775d63c89de9f6d80f91dc038264878d8808409b73efa4c8104503f2"
+      },
+      {
+        "path": "qe-visual-accessibility/evals/qe-visual-accessibility.yaml",
+        "sha256": "11f6e785b6a7dfab75de05b043fa8b54387630676efb8e96d73bfce23cfcd0f5"
+      },
+      {
+        "path": "qe-visual-accessibility/schemas/output.json",
+        "sha256": "e59601ba7480d2fb383553e4b0b93d26ba4b7034945fbbb23139788c3def08e4"
+      },
+      {
+        "path": "qe-visual-accessibility/scripts/validate-config.json",
+        "sha256": "97b1e7bf15bba48d24310c2e34b48ff53031a028ec71daeae226911e99d74413"
+      },
+      {
+        "path": "sfdipot-product-factors/SKILL.md",
+        "sha256": "a1273c6b9a09db15648d196c7aa3594a7000307f2a365e2e0b55ec3886919cb7"
+      },
+      {
+        "path": "six-thinking-hats/README.md",
+        "sha256": "77b28909123d6928f873d562dfa50f10cba79f5c43d7d241179d8adf5b35d08a"
+      },
+      {
+        "path": "six-thinking-hats/SKILL.md",
+        "sha256": "c3eb12f7ed4908bd64df234c7417248471426c744ff3319833c5fa852fd47e8a"
+      },
+      {
+        "path": "six-thinking-hats/resources/examples/api-testing-example.md",
+        "sha256": "906aedf89d2da707adc844e8e3578ace88a9baa52778cd78523c954f9aa99866"
+      },
+      {
+        "path": "six-thinking-hats/resources/templates/solo-session-template.md",
+        "sha256": "b54ef848fc1839080dc0d3c0a6fe92ed47cfb4ca261af8bc125e3a3568472ee1"
+      },
+      {
+        "path": "six-thinking-hats/resources/templates/team-session-template.md",
+        "sha256": "dac4072b8ba2f8033a2f65bc8b2457afd106618ec3079a6074395fcf1d75e03b"
+      },
+      {
+        "path": "sources.json",
+        "sha256": "a5fe07c70ff90250b6cd63d67bee230faa374757aad31982b73b6c53dec3b17b"
+      },
+      {
+        "path": "systematic-debugging/SKILL.md",
+        "sha256": "6e43aefdbc8659cd7e6c684c37b0349ecc3df2e4fd5bbefac1673f3f87a92cb7"
+      },
+      {
+        "path": "validate/SKILL.md",
+        "sha256": "7bff4ef76b0736f473056e61f45dbaa9f76043a7e2818776b25f07857b9259a8"
+      }
+    ]
+  },
+  "signature": "SwZ2guUzLWZm2CUHAhefiiBbuDh+WCitbTxqc4vKAv470LJM+2n5omJQgIoe1uusEZ8L5+5e/iczlInwIzhjCA=="
+}

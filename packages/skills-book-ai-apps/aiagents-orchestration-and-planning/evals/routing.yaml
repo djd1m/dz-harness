@@ -1,0 +1,46 @@
+skill: aiagents-orchestration-and-planning
+# Positives cover: what drives a multi-step sequence at all, planner-executor vs step-by-step,
+# chain-length cap, branching + late consolidation, reflection placement before irreversible ops,
+# self-ask decomposition, routing-node tests and terminal-path reachability, up-front vs
+# incremental planning, the deep-research composite, and planning depth against latency.
+positives:
+  - "Бот отвечает ровно на один вопрос за раз. Хотим, чтобы он вёл заявку из пяти шагов до конца — что вообще должно управлять этой последовательностью?"
+  - "Тимлид хочет, чтобы дорогая модель один раз выдала весь список шагов, а отрабатывали их потом дешёвой. Второй разработчик против. Чем такой раскол платится и когда он оправдан?"
+  - "Our agent chain is fourteen calls deep and by step nine it is clearly working off garbage that appeared at step four. Is there a rule for how long such a sequence is allowed to get?"
+  - "Юридическая проверка и финансовая друг от друга не зависят, но решение принимается по обеим сразу. Сейчас это одна длинная последовательность шагов, и мне это не нравится."
+  - "Before the agent touches the payment API I want it to look back at what it just did and still be able to undo it. Where exactly does that step belong?"
+  - "На вопросе типа «кто прожил дольше, X или Y» агент отвечает наугад. Как заставить его сначала разложить это на подвопросы и на каждый сходить в поиск?"
+  - "Half of our routing nodes have never been exercised and I suspect a couple of paths never reach an end state. What should we be checking in a structure like this?"
+  - "Модель выдаёт план на шесть шагов, но уже после второго половина оставшихся пунктов бессмысленна. Продолжать строить план целиком заранее или как-то иначе?"
+  - "Заказчик хочет агента, который неделю сам роет тему и выдаёт отчёт. Это отдельный паттерн или комбинация нескольких, и что там внутри?"
+  - "Ответ нужен почти мгновенно, но и ошибаться нельзя. Насколько глубоко в таком сценарии вообще имеет смысл планировать?"
+# Seam-level positives: they speak the neighbour's vocabulary (tools, agent count, runtime)
+# but the decision they actually ask for is the shape of the flow.
+  - "Инструменты у нас уже описаны — двенадцать штук со схемами, модель выбирает правильный. Но она дёргает их строго друг за другом, хотя три из них ни от чего не зависят. Как перестроить сам ход выполнения?"
+  - "Мне говорят, что нужен мультиагент. По-моему нужен один агент, который сначала расписывает шаги, а потом выполняет их подешевле. Как эта схема называется и когда она уместнее?"
+  - "LangGraph, чекпоинты и Redis у нас уже подняты — с инфраструктурой всё решено. Осталось понять, какой глубины и ветвистости граф вообще имеет смысл рисовать и где ставить узел слияния."
+negatives:
+  - prompt: "Один агент с сорока инструментами начал путаться. Разносить на несколько агентов с супервизором или ещё можно выжать группировку инструментов внутри одного?"
+    should_activate: "aiagents-single-vs-multi-agent"
+  - prompt: "Двадцать агентов должны обмениваться сообщениями между собой. Kafka, Redis Streams или NATS — и нужен ли под это акторный фреймворк?"
+    should_activate: "aiagents-multi-agent-infrastructure"
+  - prompt: "Модель стабильно путает два похожих инструмента. Как переписать их имена и описания, и стоит ли переключить режим выбора на any-required?"
+    should_activate: "aiagents-tool-design-and-selection"
+  - prompt: "Здесь вообще нужен агент, или хватит одного детерминированного скрипта? И если агент — какую модель брать по цене за качество?"
+    should_activate: "aiagents-agent-fit-and-model-choice"
+  - prompt: "На шаге планирования в промпт лезет вся история диалога и уже не влезает в окно. Что там оставить, а что сжать перед вызовом?"
+    should_activate: "aiagents-context-engineering"
+  - prompt: "Хотим объективно сравнить два варианта агента на общем наборе задач. Как собрать этот набор и какие метрики по нему считать?"
+    should_activate: "aiagents-evaluation-design"
+  - prompt: "Агент в проде три месяца, накопились жалобы и повторяющиеся сбои на одном инструменте. Нужен цикл: обнаружили — локализовали причину — переписали промпт — проверили."
+    should_activate: "aiagents-improvement-loops"
+  - prompt: "Помоги мне самому подумать над этой задачей: разворачивать дерево вариантов или идти линейно по шагам?"
+    should_activate: "structured-reasoning"
+  - prompt: "У нас неразрешимый на вид компромисс между стоимостью поддержки и её качеством. Нужен прорывной подход — first principles, ТРИЗ, а не очередное улучшение на пять процентов."
+    should_activate: "problem-solver-enhanced"
+  - prompt: "Хочу, чтобы Claude Code сам крутил цикл правка-тесты, пока сборка не позеленеет. Как устроить такой автономный луп у себя в харнессе?"
+    should_activate: "autonomous-loops"
+  - prompt: "Как нам в команде вообще выстроить работу по agentic-инженерии — eval-first, декомпозиция задач, маршрутизация по стоимости моделей?"
+    should_activate: "agentic-engineering"
+  - prompt: "Ночной ETL: выгрузка из Postgres, набор трансформаций, заливка в витрину. Нужно разобрать схему, оркестрацию и контроль качества данных."
+    should_activate: "data-pipeline"

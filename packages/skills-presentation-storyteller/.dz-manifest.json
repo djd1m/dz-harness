@@ -1,0 +1,185 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "skills-presentation-storyteller",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "9474a06ce5d702a74de7abbef3baa9bc4ab103004990f14fdf1bc80ca9c5341c"
+      },
+      {
+        "path": "bin/cli.js",
+        "sha256": "a210174d6b63d053f7744757972d31acb0f4d9c59f8dacff7b62872a19ebd31a"
+      },
+      {
+        "path": "package.json",
+        "sha256": "106ab7356ba60491f431e256a8c818dbc85d88ed922bdae807f6628ad59a3e98"
+      },
+      {
+        "path": "sources.json",
+        "sha256": "a2095b63366eb02d856ae2617f363e52e41191242fa8b4fcdc32d8a6693e0991"
+      },
+      {
+        "path": "src/cli.js",
+        "sha256": "929cb90eee377b6ab4312723f49465342e9d8e79e3625958b9d0f043776ba850"
+      },
+      {
+        "path": "src/commands/doctor.js",
+        "sha256": "eae4976aaa92f9938d1ddd82473035f2e732b1b6f7dd4c0487e8ece216ef592d"
+      },
+      {
+        "path": "src/commands/init.js",
+        "sha256": "1bef483833394898a0cce465cfb140c6e4fc00fcd842889e6350b85bf424edbd"
+      },
+      {
+        "path": "src/commands/list.js",
+        "sha256": "9ecb13cddfd87a434f8b5081df46a6ede84514dee4f7623eddecd60b788d6b26"
+      },
+      {
+        "path": "src/commands/remove.js",
+        "sha256": "0bedb90ffb9420c3fdb22024bcaa1e03890600a3ef8ae93ba4ce556af8c0a0f4"
+      },
+      {
+        "path": "src/commands/update.js",
+        "sha256": "9e7799963552b8e98b16cc251fc5f74e850192972ef0973952204c3431424ef4"
+      },
+      {
+        "path": "src/utils.js",
+        "sha256": "4f1a9bd07d5a645128f0fe84831b71c5615dbae92c7151e2343e2bd900dd5572"
+      },
+      {
+        "path": "templates/.claude/commands/presentation-storyteller.md",
+        "sha256": "f028058a5e0e71add2d621de29106e618fedae1f722982a9ae4924a1a1b77761"
+      },
+      {
+        "path": "templates/.claude/skills/explore/SKILL.md",
+        "sha256": "2473e7961845db0d64566cd42627b374d1830664b9e302058a1b1aa466bc7361"
+      },
+      {
+        "path": "templates/.claude/skills/explore/references/questioning-techniques.md",
+        "sha256": "ec0dd00871d3abe950f9cf375216a43043827897166c4165c3fa581839851195"
+      },
+      {
+        "path": "templates/.claude/skills/explore/references/task-brief-templates.md",
+        "sha256": "4e9292479e120afce944b747bb7b4a7226c41e9880708d620de3ea4fa4ef0249"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/SKILL.md",
+        "sha256": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/references/ed25519-verification.md",
+        "sha256": "2742f14b472bff69c83f24d9bac5bf023bd7f9ecc3e659742ac3152a239dd68f"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/references/research-actions.md",
+        "sha256": "156d2f8ce342f7013bc758fe7c0d3ad3041b4f67f30dbcf8d59e091cb70d9a9c"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/references/source-evaluation.md",
+        "sha256": "d6a19abb6be64dc9e1f539903080029125d2d899da4de3063e75e1afb7e4906f"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/check_report_evidence.py",
+        "sha256": "5053e677f11d00b4dd8365a81eafa1d2c961eebd25c33f72b02455573a934a32"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/ed25519_verifier.py",
+        "sha256": "f4a2ac9e6473201583643fe8abf47560863cec600344dad5c9df06091b4298f5"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/evidence_fetch.py",
+        "sha256": "5f4d7cb5d6fb3106d64130b6606582eb55a4f633ef969cf7890b1de1c179345b"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/fixture_legacy_v1_fact.json",
+        "sha256": "e613de4737145cbfb5f349fbf9f1122801ce3508b62c3a18e2e0cba26b9da5b0"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/fixture_legacy_v2_fact.json",
+        "sha256": "3f552b47c3864e4ff7ae8c72516e98c188592c7f4f7703d09ce88b39f586ad9d"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/fixtures_field_cases.json",
+        "sha256": "e2ee619732ab4a1b57285e57b4349f96b4158b231a5624e5264fadf69edb8983"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/goap_planner.py",
+        "sha256": "f5cbf4784106710b363e7f29bfa538b75f488cb25e1c273ae40de9f4c2a6710b"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/learning_bridge.py",
+        "sha256": "74f8842978ba945ff78c2bd54702415dd87122e61919571e12a19c3cf1e56131"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/population_match.py",
+        "sha256": "bbd1d3346a6fb75d0e8526cb5d2fc8bc8613bb31ab63ffb0958d436d5e009054"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/risk_statement.py",
+        "sha256": "320ffece816e875f65624583846f44dc99461f672a0de7cda42be5ddf29d6de5"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/source_tiers.py",
+        "sha256": "e1aae76fad01693ab35b51466fc4369c04a5ac64230fd307e7b798dc5beeff7a"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_ed25519_verifier.py",
+        "sha256": "dcba1ce538ff946d6928f30a7c5cbcc37fddf712b6181f91f94c76e20c117ac5"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_evidence_provenance.py",
+        "sha256": "292bfcdcc086934905c77f1543d8400ee483166ff3ce26c79bb526c204320dbb"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_goap_planner.py",
+        "sha256": "7942ada069048b7e97bf2b6e920898a58517ccec090069f347399dbf1fc37731"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_population_match.py",
+        "sha256": "f33f72c0ba6305af1644e6b1a7f7635d3f33273344f19c14e7dbd2f819af0e7f"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_risk_absolute.py",
+        "sha256": "ab353db189650551c374cb772ba4a3a6929e3a2618f2f5c112eca4c3f69e46b6"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_signature_v3.py",
+        "sha256": "a04259296df104c9497c7b31d29556cb9a7ad4dd3339cbe3d8d32a4f53950d25"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_suite_completeness.py",
+        "sha256": "727c5d5b0dad215957012276ebc146397178255077e762ed7b88a60d8178d2ab"
+      },
+      {
+        "path": "templates/.claude/skills/presentation-storyteller/SKILL.md",
+        "sha256": "f6ad6e6020280f17ccc4e7b71b28551310805aa99999b4056ec0ccfead1193d5"
+      },
+      {
+        "path": "templates/.claude/skills/presentation-storyteller/references/example-presentation.md",
+        "sha256": "036f6c0de94fc04b319251c17a6ae903a989e12d51bca527e4e25025350257dd"
+      },
+      {
+        "path": "templates/.claude/skills/presentation-storyteller/references/slide-types.md",
+        "sha256": "c0e38c14c00b68263dbc19ad60430c29a4f76864890576b0974eb275158e2beb"
+      },
+      {
+        "path": "templates/.claude/skills/presentation-storyteller/references/sources-index-template.md",
+        "sha256": "a61c418d51e9b2967f28805bc104f4cd36c548ba0cd21005a2696f02f449bc4b"
+      },
+      {
+        "path": "templates/.claude/skills/presentation-storyteller/references/speaker-script-patterns.md",
+        "sha256": "12dda75598ac65d170a25a8ed2e5573f6692a90d16f2484f8a0e939836674b13"
+      },
+      {
+        "path": "templates/.claude/skills/presentation-storyteller/references/storytelling-frameworks.md",
+        "sha256": "b279a01bf0a62ff8d9385d72bd7b7305c83f4d59b5e0ed1a8535835f85c47649"
+      }
+    ]
+  },
+  "signature": "cHlEz/yFTy1TIHJALA3OfiV+5Jy+s5gGXbBEIsdIA+vTOO6Jbn9y85IqXY7av01b7KrK2lPWWUcp6Q6KSmybCg=="
+}

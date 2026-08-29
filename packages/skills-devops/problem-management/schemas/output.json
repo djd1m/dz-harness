@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "problem-management output",
+  "description": "Structured output: an ITIL Problem Management record produced by the problem-management skill. Adapted from @windyroad/itil (MIT).",
+  "type": "object",
+  "required": ["id", "title", "status", "severity"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable problem identifier, e.g. 'P-21'.",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "description": "Short human-readable problem title.",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["open", "under-investigation", "known-error", "verifying", "closed", "parked"],
+      "description": "Current lifecycle state of the problem."
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low"],
+      "description": "Severity of the problem (drives cost-of-delay)."
+    },
+    "problem_statement": {
+      "type": "string",
+      "description": "One-sentence statement of the symptom (not a guessed cause)."
+    },
+    "proactive": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if discovered proactively (latent defect) with no triggering incident."
+    },
+    "linked_incidents": {
+      "type": "array",
+      "description": "IDs or references of incidents this problem caused. May be empty only when proactive is true.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "owner": {
+      "type": ["string", "null"],
+      "description": "Person or team owning the investigation/fix."
+    },
+    "root_cause": {
+      "type": ["object", "null"],
+      "description": "The confirmed, evidence-backed root cause. Required to enter known-error.",
+      "properties": {
+        "summary": {
+          "type": "string",
+          "description": "Plain-language statement of the confirmed root cause."
+        },
+        "analysis_method": {
+          "type": "string",
+          "enum": ["5-whys", "ishikawa", "fault-tree", "other"],
+          "description": "Technique used to reach the root cause."
+        },
+        "evidence": {
+          "type": "array",
+          "description": "Evidence supporting the root cause: log lines, commit SHAs, metrics, reproduction steps.",
+          "items": { "type": "string" }
+        },
+        "confirmed": {
+          "type": "boolean",
+          "description": "True once the cause is proven (e.g. reproduction), not merely hypothesized."
+        }
+      }
+    },
+    "workaround": {
+      "type": ["string", "null"],
+      "description": "Documented mitigation on-call applies to the incident while the permanent fix is pending. Required to enter known-error."
+    },
+    "wsjf": {
+      "type": "object",
+      "description": "Weighted Shortest Job First scoring. score = cost_of_delay / job_size.",
+      "required": ["cost_of_delay", "job_size", "score"],
+      "properties": {
+        "cost_of_delay": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Value lost by leaving the problem unfixed; derived from impact x likelihood (severity)."
+        },
+        "job_size": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Relative effort to ship the permanent fix (e.g. XS=1..XL=8)."
+        },
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "description": "cost_of_delay / job_size. Higher = work first."
+        }
+      }
+    },
+    "resolution": {
+      "type": ["object", "null"],
+      "description": "How the problem was permanently resolved.",
+      "properties": {
+        "fix_description": {
+          "type": "string",
+          "description": "What was changed to remove the root cause (not the workaround)."
+        },
+        "released_in": {
+          "type": "string",
+          "description": "Version, commit, or deploy where the fix shipped."
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "True once the fix is confirmed to resolve the problem. Required to close."
+        },
+        "verification_evidence": {
+          "type": "string",
+          "description": "Evidence the fix worked: passing reproduction test, clean metrics window, user confirmation."
+        }
+      }
+    },
+    "parked_reason": {
+      "type": ["string", "null"],
+      "description": "Documented reason when status is parked (e.g. upstream-blocked, out-of-appetite, deferred)."
+    }
+  }
+}

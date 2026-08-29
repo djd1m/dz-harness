@@ -1,0 +1,154 @@
+{
+  "name": "@dzhechkov/health-advisor",
+  "version": "1.1.5",
+  "description": "AI-помощник для анализа здоровья",
+  "categories": [
+    {
+      "name": "CLI-команды",
+      "description": "Установка и управление скиллами",
+      "commands": [
+        {
+          "name": "init",
+          "description": "Установить все скиллы (base + extended)",
+          "options": [
+            { "name": "base", "type": "boolean", "description": "Только базовые (оркестратор + модули)" },
+            { "name": "extended", "type": "boolean", "description": "Только 21 мед. скилл из OpenClaw" },
+            { "name": "dir", "type": "string", "description": "Путь установки", "default": ".claude/skills/health-advisor" }
+          ]
+        },
+        {
+          "name": "list",
+          "description": "Показать все скиллы с Trust Tiers",
+          "options": [
+            { "name": "base", "type": "boolean", "description": "Только базовые" },
+            { "name": "extended", "type": "boolean", "description": "Только extended" }
+          ]
+        },
+        {
+          "name": "install",
+          "description": "Установить конкретный скилл",
+          "arguments": [
+            { "name": "skill-name", "type": "string", "required": true, "description": "Имя скилла (напр. clinpgx, pubmed-search)" }
+          ]
+        },
+        {
+          "name": "validate",
+          "description": "BTO Layer 0 валидация установленных скиллов"
+        },
+        {
+          "name": "info",
+          "description": "Детали скилла (файлы, размер, Trust Tier)",
+          "arguments": [
+            { "name": "skill-name", "type": "string", "required": true, "description": "Имя скилла" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Анализы и профиль",
+      "description": "Работа с медицинскими данными",
+      "commands": [
+        {
+          "name": "/ha-intake",
+          "description": "Загрузить и распознать анализы (PDF, фото)",
+          "scenario": "Загрузите файл анализов → скажите Claude: «Загрузи мои анализы»",
+          "options": [
+            { "name": "file", "type": "file", "description": "Файл анализов (PDF, JPG, PNG)" }
+          ]
+        },
+        {
+          "name": "/ha-profile",
+          "description": "Анализ профиля: синдромы, риски, динамика",
+          "scenario": "Скажите Claude: «Проанализируй мой профиль»",
+          "skills": ["lab-results", "health-trend-analyzer", "patiently-ai"]
+        }
+      ]
+    },
+    {
+      "name": "Лекарства",
+      "description": "Исследование и проверка препаратов",
+      "commands": [
+        {
+          "name": "/ha-meds",
+          "description": "Исследование лекарства: профиль, DDI, фармакогеномика",
+          "scenario": "Скажите Claude: «Исследуй лекарство метформин»",
+          "options": [
+            { "name": "drug", "type": "string", "description": "Название лекарства" }
+          ],
+          "skills": ["tooluniverse-drug-research", "drug-interaction-checker", "clinpgx"]
+        }
+      ]
+    },
+    {
+      "name": "Врачи и приём",
+      "description": "Поиск врачей и подготовка к визиту",
+      "commands": [
+        {
+          "name": "/ha-doctors",
+          "description": "Найти врача по специальности и городу",
+          "scenario": "Скажите Claude: «Найди эндокринолога в Москве»",
+          "options": [
+            { "name": "specialty", "type": "string", "description": "Специальность врача" },
+            { "name": "city", "type": "string", "description": "Город", "default": "Москва" }
+          ],
+          "skills": ["multi-search-engine"]
+        },
+        {
+          "name": "/ha-appointment",
+          "description": "Подготовка к приёму: анализы, вопросы, инструкция",
+          "scenario": "Скажите Claude: «Подготовь к приёму у эндокринолога»",
+          "skills": ["emergency-card", "clinical-diagnostic-reasoning", "clinicaltrials-database"]
+        }
+      ]
+    },
+    {
+      "name": "Здоровье и образ жизни",
+      "description": "Тренировки, питание, сон",
+      "commands": [
+        {
+          "name": "/ha-exercise",
+          "description": "Программа тренировок с учётом диагнозов",
+          "scenario": "Скажите Claude: «Составь программу тренировок»",
+          "skills": ["fitness-analyzer", "rehabilitation-analyzer"]
+        },
+        {
+          "name": "/ha-nutrition",
+          "description": "Анализ продукта или рациона",
+          "scenario": "Скажите Claude: «Проанализируй продукт авокадо»",
+          "options": [
+            { "name": "product", "type": "string", "description": "Название продукта или блюда" }
+          ],
+          "skills": ["nutrition-analyzer", "weightloss-analyzer"]
+        },
+        {
+          "name": "/ha-special",
+          "description": "Спецпрактики: голодание, БАДы, альтернативная медицина",
+          "scenario": "Скажите Claude: «Безопасно ли мне 5-дневное голодание?»",
+          "skills": ["deep-research", "pubmed-search"]
+        },
+        {
+          "name": "/ha-monitoring",
+          "description": "План мониторинга: что, когда и где сдавать",
+          "scenario": "Скажите Claude: «Составь план мониторинга на 6 месяцев»",
+          "skills": ["health-trend-analyzer", "sleep-analyzer", "clinical-decision-support"]
+        }
+      ]
+    },
+    {
+      "name": "Исследования",
+      "description": "Глубокий поиск с PubMed ссылками",
+      "commands": [
+        {
+          "name": "research",
+          "description": "Исследование с научными источниками (paranoid mode)",
+          "scenario": "Скажите Claude: «Исследуй влияние омега-3 на триглицериды с PubMed ссылками»",
+          "options": [
+            { "name": "topic", "type": "string", "description": "Тема исследования" },
+            { "name": "depth", "type": "string", "description": "Глубина: quick/standard/comprehensive", "default": "standard" }
+          ],
+          "skills": ["deep-research", "pubmed-search", "multi-search-engine", "goap-research-ed25519"]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Design Thinking Output",
+  "description": "Structured output from the 6-phase Design Thinking protocol",
+  "type": "object",
+  "required": ["project", "tier", "phases", "recommendation"],
+  "properties": {
+    "project": {
+      "type": "string",
+      "description": "Project or product name"
+    },
+    "tier": {
+      "type": "string",
+      "enum": ["S", "M", "L", "XL"],
+      "description": "Complexity tier"
+    },
+    "phases": {
+      "type": "object",
+      "properties": {
+        "empathize": {
+          "type": "object",
+          "properties": {
+            "interviews_count": { "type": "integer", "minimum": 0 },
+            "survey_respondents": { "type": "integer", "minimum": 0 },
+            "jtbd_school": { "type": "string", "enum": ["switch", "odi"] },
+            "jtbd_statements": { "type": "array", "items": { "type": "string" } },
+            "segments": { "type": "array", "items": { "type": "string" } },
+            "push_pull_forces": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "segment": { "type": "string" },
+                  "push": { "type": "array", "items": { "type": "string" } },
+                  "pull": { "type": "array", "items": { "type": "string" } },
+                  "habits": { "type": "array", "items": { "type": "string" } },
+                  "anxieties": { "type": "array", "items": { "type": "string" } }
+                }
+              }
+            },
+            "strategic_analysis": { "type": "array", "items": { "type": "string", "enum": ["pestel", "porter", "swot", "tows"] } },
+            "market_context_summary": { "type": "string" }
+          }
+        },
+        "define": {
+          "type": "object",
+          "properties": {
+            "pov_statement": { "type": "string" },
+            "hmw_questions": { "type": "array", "items": { "type": "string" } },
+            "tools_used": { "type": "array", "items": { "type": "string", "enum": ["jtbd_canvas", "cjm_as_is", "ishikawa", "vsm_as_is"] } },
+            "root_causes": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "ideate": {
+          "type": "object",
+          "properties": {
+            "hadi_hypotheses": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["statement", "metric", "threshold"],
+                "properties": {
+                  "statement": { "type": "string" },
+                  "metric": { "type": "string" },
+                  "threshold": { "type": "string" },
+                  "rationale": { "type": "string" },
+                  "status": { "type": "string", "enum": ["pending", "validated", "invalidated", "inconclusive"] }
+                }
+              }
+            },
+            "business_model": { "type": "string", "enum": ["lean_canvas", "osterwalder_bmc"] },
+            "gtm_strategy": { "type": "boolean" },
+            "gtm_stages": { "type": "array", "items": { "type": "string" } },
+            "selected_hypotheses": { "type": "array", "items": { "type": "string" } },
+            "unit_economics": {
+              "type": "object",
+              "properties": {
+                "ltv": { "type": "number" },
+                "cac": { "type": "number" },
+                "ltv_cac_ratio": { "type": "number" },
+                "cohort_based": { "type": "boolean" },
+                "fully_loaded_cac": { "type": "boolean" }
+              }
+            }
+          }
+        },
+        "prototype": {
+          "type": "object",
+          "properties": {
+            "fidelity": { "type": "string", "enum": ["paper", "wireframe", "clickable", "functional_mvp", "concierge", "wizard_of_oz"] },
+            "mvp_type": { "type": "string" },
+            "iterations_count": { "type": "integer", "minimum": 1 },
+            "cjm_to_be_labeled_as_hypothesis": { "type": "boolean" },
+            "vsm_to_be_labeled_as_projection": { "type": "boolean" },
+            "test_script": { "type": "string" },
+            "success_criteria": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "test": {
+          "type": "object",
+          "properties": {
+            "usability_users": { "type": "integer", "minimum": 0 },
+            "sus_score": { "type": "number", "minimum": 0, "maximum": 100 },
+            "task_completion_rate": { "type": "number", "minimum": 0, "maximum": 100 },
+            "risks_identified": { "type": "integer", "minimum": 0 },
+            "test_iterations": { "type": "integer", "minimum": 1 },
+            "iteration_log": { "type": "array", "items": { "type": "string" } },
+            "decision": { "type": "string", "enum": ["proceed_to_validate", "iterate_more", "pivot", "kill"] }
+          }
+        },
+        "validate": {
+          "type": "object",
+          "properties": {
+            "pilot_conducted": { "type": "boolean" },
+            "pilot_duration": { "type": "string" },
+            "metrics_validated": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["metric", "projected", "actual"],
+                "properties": {
+                  "metric": { "type": "string" },
+                  "projected": { "type": "number" },
+                  "actual": { "type": "number" },
+                  "variance_pct": { "type": "number" },
+                  "status": { "type": "string", "enum": ["ok", "flag"] }
+                }
+              }
+            },
+            "hadi_final_status": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "hypothesis": { "type": "string" },
+                  "status": { "type": "string", "enum": ["validated", "invalidated"] }
+                }
+              }
+            },
+            "risks_materialized": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    },
+    "recommendation": {
+      "type": "string",
+      "enum": ["scale", "iterate", "pivot", "kill"],
+      "description": "Final recommendation based on validation results"
+    },
+    "evidence_integrity": {
+      "type": "object",
+      "properties": {
+        "projections_labeled": { "type": "boolean" },
+        "cohort_based_ltv": { "type": "boolean" },
+        "fully_loaded_cac": { "type": "boolean" },
+        "pilot_duration_sufficient": { "type": "boolean" }
+      }
+    }
+  }
+}

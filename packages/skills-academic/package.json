@@ -1,0 +1,39 @@
+{
+  "name": "@dzhechkov/skills-academic",
+  "version": "0.3.6",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "description": "Academic skill pack \u2014 dissertation review, question generation, document checking for thesis defense (\u0413\u042d\u041a). Contains only evaluation criteria and methodology, no student data.",
+  "license": "MIT",
+  "author": "dzhechko",
+  "keywords": [
+    "agent-skills",
+    "agentskills.io",
+    "skill-pack",
+    "academic",
+    "dissertation",
+    "thesis-defense",
+    "evaluation"
+  ],
+  "files": [
+    "dissertation-review",
+    "question-generator",
+    "document-checker",
+    "defense-evaluator",
+    "answer-assessor",
+    "README.md",
+    "LICENSE",
+    "sources.json",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/skills-academic"
+  }
+}

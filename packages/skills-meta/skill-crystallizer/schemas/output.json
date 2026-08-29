@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Skill Crystallizer Output",
+  "description": "Structured output from the skill crystallization process",
+  "type": "object",
+  "required": ["mode", "skill_name", "status"],
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": ["CAPTURED", "DERIVED", "FIX"],
+      "description": "Crystallization mode used"
+    },
+    "skill_name": {
+      "type": "string",
+      "description": "Name of the created or repaired skill"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["created", "merged", "repaired", "rejected"],
+      "description": "Outcome of the crystallization"
+    },
+    "source_trace": {
+      "type": "object",
+      "properties": {
+        "tools_used": { "type": "array", "items": { "type": "string" } },
+        "steps_count": { "type": "integer", "minimum": 1 },
+        "patterns_identified": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "source_skills": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Source skills for DERIVED mode"
+    },
+    "benchmark_grade": {
+      "type": "string",
+      "enum": ["A", "B", "C", "D", "F"],
+      "description": "Benchmark grade after crystallization"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Why the skill was rejected (if status is rejected)"
+    }
+  }
+}

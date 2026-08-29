@@ -1,0 +1,81 @@
+# redis-patterns evaluation
+# Run: aqe eval redis-patterns
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run redis-patterns"
+    expected:
+      status: success
+      summary_contains: "redis"
+
+  - name: "design cache-aside pattern"
+    input: "Design a cache-aside pattern for user profiles with Redis and PostgreSQL"
+    expected:
+      status: success
+      action_type: "design"
+      caching_strategy: "cache-aside"
+      patterns_used_count_gte: 1
+      patterns_used_any_match:
+        data_structure: "string"
+        has_jitter: true
+      self_check_passed_gte: 8
+
+  - name: "review code with no TTL"
+    input: |
+      Review this Redis code:
+      await redis.set('user:1001', JSON.stringify(user));
+      await redis.set('product:5001', JSON.stringify(product));
+    expected:
+      status: success
+      action_type: "review"
+      review_findings_count_gte: 1
+      review_findings_any_match:
+        finding_contains_any: ["TTL", "expir", "unbounded"]
+        severity: "critical"
+
+  - name: "detect KEYS * usage"
+    input: |
+      Review:
+      const allUsers = await redis.keys('user:*');
+      for (const key of allUsers) {
+        const data = await redis.get(key);
+      }
+    expected:
+      status: success
+      review_findings_any_match:
+        anti_pattern: "keys"
+        finding_contains_any: ["KEYS", "blocking", "SCAN"]
+
+  - name: "rate limiting design"
+    input: "Implement a sliding window rate limiter with Redis — 100 requests per minute per IP"
+    expected:
+      status: success
+      patterns_used_any_match:
+        name_contains: "rate"
+        data_structure: "sorted_set"
+
+  - name: "distributed lock design"
+    input: "Design a distributed lock for payment processing using Redis"
+    expected:
+      status: success
+      patterns_used_any_match:
+        name_contains: "lock"
+      summary_contains_any: ["lock", "Redlock", "distributed"]
+
+  - name: "session storage setup"
+    input: "Set up Redis session storage for an Express.js application with proper security"
+    expected:
+      status: success
+      patterns_used_any_match:
+        name_contains: "session"
+
+  - name: "detect big keys anti-pattern"
+    input: |
+      Review:
+      const bigPayload = JSON.stringify(allProducts); // 50MB array
+      await redis.set('cache:all-products', bigPayload, 'EX', 3600);
+    expected:
+      status: success
+      review_findings_any_match:
+        finding_contains_any: ["big key", "large", "split"]
+        severity_any: ["critical", "warning"]

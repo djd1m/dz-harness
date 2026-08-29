@@ -1,0 +1,41 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "adapter-copilot",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "5dca35d498008bc7276e357af6b7c3c866ddc30d8058af478ade3fb0e98c5fcf"
+      },
+      {
+        "path": "dist/index.d.ts",
+        "sha256": "900cadb0fc8dbf25885b6c4c330ff04af5df135374dda28ce9a8e1e081fa644c"
+      },
+      {
+        "path": "dist/index.d.ts.map",
+        "sha256": "750c33eabfa4105f6968ad676845ff7a5669ec3f3a382bb7d9139c28244d0853"
+      },
+      {
+        "path": "dist/index.js",
+        "sha256": "08051b903dc55f03aa87e8568a4dfc62e5765b16ab899edba81b7afa693a0a29"
+      },
+      {
+        "path": "dist/index.js.map",
+        "sha256": "b1a9e28bce3a638e350a6ca3a3f883565c2a0fbd3dbe903e5d92ef502b398913"
+      },
+      {
+        "path": "package.json",
+        "sha256": "39318dbc970cc74b828e2ac556fe6ca0eb77229cd19d3c7b03b39e9b71e09e4d"
+      },
+      {
+        "path": "src/index.ts",
+        "sha256": "ac55ebb742336bd951d91e7da8ebdfb7388eb00884072e6332c8527eecb8c3a7"
+      }
+    ]
+  },
+  "signature": "qG71CnRKAVwWrmj0CPbOsmoD/rNXkmLbKfnaf+Wg+rSCVx7CeoMRGyTrWRkd7mJcsb5WbTB54ggN9fK5wiByCA=="
+}

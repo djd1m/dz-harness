@@ -1,0 +1,36 @@
+skill: aiagents-evaluation-design
+# Positives cover: metric mix from goals, the eval set as a living spec, case shape,
+# adversarial cases, tool unit tests, planner scoring, memory/learning tests, e2e runs, CI wiring.
+positives:
+  - "Как вообще понять, что наш агент работает хорошо? Сейчас никаких метрик нет вообще."
+  - "Надо собрать набор тест-кейсов для агента. Как его формировать и как он должен расти со временем?"
+  - "Планировщик тянет лишние инструменты сверх нужных. Какой метрикой это померить?"
+  - "How do I unit test each tool the agent can call, separately from the agent as a whole?"
+  - "Как проверить, что модуль памяти реально возвращает то, что нужно, а не случайные куски?"
+  - "У нас офлайн-скоры отличные, а пользователи жалуются. Как перестроить оценку, чтобы она это ловила?"
+  - "Нужны сложные кейсы, на которых агент ломается. Как их придумывать целенаправленно, а не наугад?"
+  - "What should a single eval case actually contain for a multi-turn agent — just input and expected text?"
+  - "Хотим гонять оценку агента на каждый коммит и при смене модели. Как это встроить в процесс?"
+  - "Как мерить качество там, где нет единственно правильного ответа — по смысловой близости к эталону?"
+# Seam-level adversarial positives (round 2): prompts that sit on the boundary with a
+# sibling and are still legitimately owned by THIS skill.
+  - "Поставщик обновляет модель раз в квартал. Что должно быть готово заранее, чтобы поймать просадку агента?"
+  - "Тестировщики пишут кейсы для агента в свободной форме. В каком виде их оформлять, чтобы прогонять автоматически?"
+  - "Как посчитать, что агент вызвал ровно нужные инструменты — ни больше, ни меньше?"
+negatives:
+  - prompt: "Сравни Claude Code и Aider на нашем наборе задач: pass rate, стоимость, время, стабильность."
+    should_activate: "agent-eval"
+  - prompt: "Оцени по стенограмме, насколько полно студент ответил на вопросы комиссии."
+    should_activate: "answer-assessor"
+  - prompt: "Какие метрики качества кода стоит отслеживать по репозиторию — покрытие, сложность, дефекты?"
+    should_activate: "quality-metrics"
+  - prompt: "Составь тест-кейсы по граничным значениям и классам эквивалентности для формы регистрации."
+    should_activate: "test-design-techniques"
+  - prompt: "Что мониторить у агента, который уже месяц крутится в проде, и по чему алертить?"
+    should_activate: "aiagents-observability-and-drift"
+# WAVE-2 PROMOTION: these were soft_negatives while their cluster had no owner.
+# Wave 2 distilled that owner, so each is now a HARD negative against the new sibling.
+  - prompt: "Агент на один и тот же вопрос в разных прогонах отвечает по-разному. Как проверять устойчивость поведения?"
+    should_activate: "aiagents-probabilistic-behaviour-checks"
+  - prompt: "Какие пороги должны быть в гейте перед релизом агента и как катить его канареечно?"
+    should_activate: "aiagents-release-gates-and-rollout"

@@ -1,0 +1,6 @@
+{
+  "upstream": "github.com/affaan-m/ECC",
+  "package": "ecc-universal",
+  "import_command": "dz import-ecc --local-path /path/to/ECC",
+  "note": "Skills imported via dz import-ecc. Frontmatter mapped to agentskills.io format. trust_tier: 0 (Community)."
+}

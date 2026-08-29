@@ -1,0 +1,77 @@
+name: frontend-implementation
+description: Evaluation cases for frontend-implementation skill
+version: "1.0"
+
+cases:
+  - id: basic-component-with-data
+    description: "Build a user list component that fetches data"
+    input:
+      brief: "Create a UserList component that shows users from /api/users"
+      project_context:
+        framework: react
+        styling: tailwind
+        data_fetching: react-query
+        testing: vitest-testing-library
+    expected:
+      components:
+        - type: component
+          name: UserList
+      states_handled:
+        includes: [loading, error, empty]
+      conventions_followed:
+        styling: tailwind
+        data_fetching: react-query
+      tests:
+        min_count: 1
+
+  - id: form-component
+    description: "Build a contact form with validation"
+    input:
+      brief: "Create a ContactForm with name, email, message fields and submit"
+      project_context:
+        framework: react
+        styling: css-modules
+        forms: react-hook-form
+    expected:
+      states_handled:
+        includes: [error, loading, success]
+      components:
+        - type: component
+          name: ContactForm
+
+  - id: half-built-component
+    description: "Finish an existing component that is missing error handling"
+    input:
+      brief: "The ProductCard component renders but crashes when product is null"
+      existing_code: "function ProductCard({ product }) { return <div>{product.name}</div> }"
+    expected:
+      states_handled:
+        includes: [error, empty]
+      concerns:
+        min_count: 0
+
+  - id: convention-detection
+    description: "Must detect and follow existing project patterns"
+    input:
+      brief: "Add a Settings page to the app"
+      project_context:
+        framework: next-app-router
+        styling: tailwind
+        state: zustand
+        file_pattern: "app/settings/page.tsx"
+    expected:
+      conventions_followed:
+        file_structure: present
+        styling: tailwind
+        state_management: zustand
+
+  - id: accessibility-flagging
+    description: "Flag accessibility concerns in implementation"
+    input:
+      brief: "Build a custom dropdown select component"
+      project_context:
+        framework: react
+        styling: tailwind
+    expected:
+      concerns:
+        includes_type: accessibility

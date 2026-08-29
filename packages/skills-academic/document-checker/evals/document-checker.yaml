@@ -1,0 +1,53 @@
+# document-checker evaluation
+# Run: aqe eval document-checker
+
+test_cases:
+  - name: "basic invocation"
+    input: "Проверь комплектность пакета документов"
+    expected:
+      status: success
+      summary_contains: "document-checker"
+
+  - name: "complete package"
+    input: "Проверь пакет документов: ВКР, отзыв руководителя, рецензия и презентация — все на месте"
+    expected:
+      status: success
+      package_status: complete
+      has_fields:
+        - documents
+        - recommendation
+
+  - name: "incomplete package - missing review"
+    input: "Проверь пакет: есть ВКР и презентация, но нет рецензии"
+    expected:
+      status: success
+      package_status: incomplete
+      has_fields:
+        - issues
+      issues_severity_includes: critical
+
+  - name: "title page validation"
+    input: "Проверь титульный лист ВКР"
+    expected:
+      status: success
+      has_fields:
+        - title_page_check
+
+  - name: "topic consistency check"
+    input: "Сравни формулировку темы в ВКР, отзыве и рецензии"
+    expected:
+      status: success
+      has_fields:
+        - topic_consistency
+
+  - name: "full report generation"
+    input: "Сформируй полный отчёт о комплектности пакета документов для защиты"
+    expected:
+      status: success
+      has_fields:
+        - package_status
+        - documents
+        - title_page_check
+        - topic_consistency
+        - issues
+        - recommendation

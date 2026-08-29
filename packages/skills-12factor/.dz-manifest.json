@@ -1,0 +1,173 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "skills-12factor",
+    "files": [
+      {
+        "path": "12factor-admin-processes/SKILL.md",
+        "sha256": "c29dbfbe28357bb66ab316520dd51cc7505de7596fe47619adc5b352975916ac"
+      },
+      {
+        "path": "12factor-admin-processes/evals/routing.yaml",
+        "sha256": "7ace2bcaa8186d8920c6d5001e664e5283cd56dcf87bedba0cc2db5063336c15"
+      },
+      {
+        "path": "12factor-admin-processes/references/knowledge-units.md",
+        "sha256": "f9727b0b94e134c8288c461639f1a745a41ec27f80105817cb66822492161390"
+      },
+      {
+        "path": "12factor-backing-services-as-resources/SKILL.md",
+        "sha256": "b85a1917b8f877842100499b7c54fc832566d3b50e365604da74e75038b662b1"
+      },
+      {
+        "path": "12factor-backing-services-as-resources/evals/routing.yaml",
+        "sha256": "196b3695a1160f70f1dc76f4d816f8f87e430e291240365af5f7f25a6e392e07"
+      },
+      {
+        "path": "12factor-backing-services-as-resources/references/knowledge-units.md",
+        "sha256": "1ae1d323745f8616a0ddc3daa039a0f85f2a70cb0c2712e20b31c4f94af9bfdb"
+      },
+      {
+        "path": "12factor-build-release-run-separation/SKILL.md",
+        "sha256": "b8fb5d559818031115bf0ec25cd9fc6a7df4be63f9389ef2df73b06d215feffb"
+      },
+      {
+        "path": "12factor-build-release-run-separation/evals/routing.yaml",
+        "sha256": "8852d7858557f5655d702af30e86516a64d25f6c4b0a00992ebc7c0b9c46c2f2"
+      },
+      {
+        "path": "12factor-build-release-run-separation/references/knowledge-units.md",
+        "sha256": "17abed6d480c3d3c79c61017cd39434ed0229af853ea5e0b65eb6c18824c0af9"
+      },
+      {
+        "path": "12factor-codebase-repo-mapping/SKILL.md",
+        "sha256": "52cc6cf3d239dbedc403b9a837bb2c3cba879b300c670293c2bfc65ee2739d49"
+      },
+      {
+        "path": "12factor-codebase-repo-mapping/evals/routing.yaml",
+        "sha256": "28a4936f5f489f181cd454b8c6d31c08c25cb7cd7b78957106553dd14a0440ce"
+      },
+      {
+        "path": "12factor-codebase-repo-mapping/references/knowledge-units.md",
+        "sha256": "7e70b0ca82533a22688b04bf5e1eea69cfbb0ea5b45ece447030f8a355ab152d"
+      },
+      {
+        "path": "12factor-concurrency-process-model/SKILL.md",
+        "sha256": "18a8c1a5778670cd3a2be6a35f07a2de9a87dbd787a980126a01099175d86557"
+      },
+      {
+        "path": "12factor-concurrency-process-model/evals/routing.yaml",
+        "sha256": "a91c3fcacc6b6ac0baabc2fe52713106a8a1c7310fbe6d0e1280bcd4633e3f47"
+      },
+      {
+        "path": "12factor-concurrency-process-model/references/knowledge-units.md",
+        "sha256": "a141cb88ab0395ee8c646a261f51fb312ec68875279837125de4d2719b521dea"
+      },
+      {
+        "path": "12factor-config-in-environment/SKILL.md",
+        "sha256": "939cac923d4a94f2ac5fb206fb9269107d5615f8da965248e489820e019c22ec"
+      },
+      {
+        "path": "12factor-config-in-environment/evals/routing.yaml",
+        "sha256": "64bbe7a59a86ad7e3dd2cb991b96197610401b3b608ea1090160bb558054ffd7"
+      },
+      {
+        "path": "12factor-config-in-environment/references/knowledge-units.md",
+        "sha256": "8b36d7290d43cb79e5da7cf9d9041ac2be27b38805bddec6721742066db68a9a"
+      },
+      {
+        "path": "12factor-dev-prod-parity/SKILL.md",
+        "sha256": "820225729667949bec0f8fa47e2f6024fad5352a1e4157d8fb850676520b3283"
+      },
+      {
+        "path": "12factor-dev-prod-parity/evals/routing.yaml",
+        "sha256": "89d7dc665d2b274a0d94cb52c9a643d4e43d1515cda23900a010e8ca63a375a2"
+      },
+      {
+        "path": "12factor-dev-prod-parity/references/knowledge-units.md",
+        "sha256": "bfa4a068c323a26df90a705bd4e9f83962c6baa04f48b97e5bb3bc0a6078bdee"
+      },
+      {
+        "path": "12factor-disposability-fast-startup/SKILL.md",
+        "sha256": "466ea402acba3acbede74b2b4abe5c7c05aae5fee8d15fd5440c37cd54429ea7"
+      },
+      {
+        "path": "12factor-disposability-fast-startup/evals/routing.yaml",
+        "sha256": "e3b90e0ef095e57ab9b97a6235c4df78642f014e5dbd8de6d404262afdd5e368"
+      },
+      {
+        "path": "12factor-disposability-fast-startup/references/knowledge-units.md",
+        "sha256": "a40a7cb22d427d3b2b0aa7cfac3b6027f11874d34b0521fe0041f36b4a3489f2"
+      },
+      {
+        "path": "12factor-explicit-dependencies/SKILL.md",
+        "sha256": "1b7d846ec783b796bfdb0d142aec98005f000f00dbeb4124320d6ad6d8174804"
+      },
+      {
+        "path": "12factor-explicit-dependencies/evals/routing.yaml",
+        "sha256": "ace01cf883606c6218f4b3e33c7aeb2dac94554ecaf4f1335bc9488219147938"
+      },
+      {
+        "path": "12factor-explicit-dependencies/references/knowledge-units.md",
+        "sha256": "d41e845dea5979e67d9db46d08287b6163399099c6ae8bd7577f1d80669d3ebc"
+      },
+      {
+        "path": "12factor-logs-as-streams/SKILL.md",
+        "sha256": "a33b9277ec4572f44665c8238780f7cd9e6dad554b7824c097cf0cffa9e4264d"
+      },
+      {
+        "path": "12factor-logs-as-streams/evals/routing.yaml",
+        "sha256": "5d8eb9030a1f14dc480e93ac578a1da6e93c19c70f1a0697ae9921bb54b1f207"
+      },
+      {
+        "path": "12factor-logs-as-streams/references/knowledge-units.md",
+        "sha256": "d46b5be96a72ee12ed476781d6cd004f4cc0d3c7cfc6e1fafa67238e9fe14fae"
+      },
+      {
+        "path": "12factor-port-binding/SKILL.md",
+        "sha256": "d145529319ab35e3faa6a79da2d83043ca2ca906902e9bde6cd0fbd3ac6e14f3"
+      },
+      {
+        "path": "12factor-port-binding/evals/routing.yaml",
+        "sha256": "0f3887d3d1e79b5c28b698039d168289d7779441b5192e1fad06bc121e7c2cbb"
+      },
+      {
+        "path": "12factor-port-binding/references/knowledge-units.md",
+        "sha256": "9e15335bf582a3426707fdc3475587fb0dbac3944186cadb08ba7befe73251db"
+      },
+      {
+        "path": "12factor-stateless-processes/SKILL.md",
+        "sha256": "e8959ffb69d63a3210b1f891054c540d50fd9c6eb10e3a3d769b4b81aa7c8aa3"
+      },
+      {
+        "path": "12factor-stateless-processes/evals/routing.yaml",
+        "sha256": "a22a215891bfdcfa76e7f101f093130cbce924cde91faf435bc865bac81471d7"
+      },
+      {
+        "path": "12factor-stateless-processes/references/knowledge-units.md",
+        "sha256": "d7b4f4ff97d996693b8b50575d7b24321939f2e25024c108355631984c927812"
+      },
+      {
+        "path": "LICENSE",
+        "sha256": "7e7170e3cebf88a9f60c7b8421418323c09304da1af4d5e90f4da1dc1c8a2661"
+      },
+      {
+        "path": "NOTICE",
+        "sha256": "0a1e98e9dad275138a127e93402735379f11d0de48989a42fc347f1cca282e4d"
+      },
+      {
+        "path": "README.md",
+        "sha256": "cf9332bc0279397125e1d7d260a0a62e08d7646cb67c404c367261ebbccdc79b"
+      },
+      {
+        "path": "package.json",
+        "sha256": "80d6bfecab2a37eebf3c445b95f03c38872de17e95a9495fe77055d25d5b6833"
+      },
+      {
+        "path": "sources.json",
+        "sha256": "80a3265dae2752c14526d53a9bed1d92e05e616dec4691d393d82a6855a5fed2"
+      }
+    ]
+  },
+  "signature": "EkVEQilxcyHIJq+k7Qd2TCoUq6lqf1Olp+HDhpWMIN2/kT60fjykYtf7kms6Bx7+OLYgLuklbMj3tItUgZnMAQ=="
+}

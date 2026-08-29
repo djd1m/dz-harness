@@ -1,0 +1,51 @@
+# test-writer evaluation
+# Run: aqe eval test-writer
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run test-writer"
+    expected:
+      status: success
+      summary_contains: "test-writer"
+
+  - name: "unit test generation"
+    input: "Write unit tests for src/utils/validate.ts"
+    expected:
+      status: success
+      has_fields:
+        - test_file
+        - test_cases
+        - execution
+
+  - name: "boundary value coverage"
+    input: "Write boundary value tests for the clamp(min, max, value) function"
+    expected:
+      status: success
+      test_cases_contain:
+        category: "boundary"
+
+  - name: "error case coverage"
+    input: "Write tests for error cases in the file parser module"
+    expected:
+      status: success
+      test_cases_contain:
+        category: "error"
+
+  - name: "framework detection"
+    input: "Add tests for src/api/handler.ts in a project with vitest"
+    expected:
+      status: success
+      framework: "vitest"
+
+  - name: "tdd mode"
+    input: "Write tests first for a function that validates email addresses"
+    expected:
+      status: success
+      test_cases_min_count: 5
+
+  - name: "untestable code feedback"
+    input: "Write tests for a 500-line function with no parameters that reads globals and calls APIs"
+    expected:
+      status: success
+      has_fields:
+        - refactoring_needed

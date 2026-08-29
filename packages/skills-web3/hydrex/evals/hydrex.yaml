@@ -1,0 +1,89 @@
+name: hydrex
+description: Evaluate Hydrex liquidity governance skill usage
+version: "1.0"
+
+prompts:
+  - id: lock_hydx
+    input: "Lock 10,000 HYDX for 52 weeks to get veHYDX"
+    expected_actions:
+      - action: lock
+        params:
+          amount: "10000"
+          durationWeeks: 52
+    expected_output:
+      contains:
+        - "veHydxBalance"
+        - "lockEnd"
+        - "earningMultiplier"
+
+  - id: vote_on_pools
+    input: "Vote 40% for WETH/USDC pool and 60% for HYDX/WETH pool"
+    expected_actions:
+      - action: vote
+        params:
+          votes:
+            - weight: 4000
+            - weight: 6000
+    validation:
+      total_weight_must_equal: 10000
+    expected_output:
+      contains:
+        - "votes"
+        - "totalWeight"
+
+  - id: optimize_votes
+    input: "Optimize my veHYDX votes for maximum yield this epoch"
+    expected_actions:
+      - action: list_pools
+      - action: optimize_votes
+        params:
+          strategy: "yield_maximizer"
+    expected_output:
+      contains:
+        - "recommendedVotes"
+        - "totalExpectedApy"
+
+  - id: deposit_ichi_vault
+    input: "Deposit 5000 USDC into the WETH/USDC ICHI vault"
+    expected_actions:
+      - action: deposit_vault
+        params:
+          token: "USDC"
+          amount: "5000"
+    expected_output:
+      contains:
+        - "vaultAddress"
+        - "shares"
+
+  - id: claim_and_exercise
+    input: "Claim my oHYDX rewards and exercise them for HYDX"
+    expected_actions:
+      - action: claim_rewards
+      - action: exercise_ohydx
+    expected_output:
+      contains:
+        - "oHydxClaimed"
+        - "hydxReceived"
+        - "discount"
+
+  - id: epoch_awareness
+    input: "When is the next epoch flip and voting deadline?"
+    expected_output:
+      contains:
+        - "Thursday"
+        - "00:00 UTC"
+        - "Wednesday"
+
+  - id: earning_multiplier
+    input: "What APY boost do I get as a veHYDX holder?"
+    expected_output:
+      contains:
+        - "1.3x"
+
+scoring:
+  correct_action: 0.2
+  basis_points_usage: 0.2
+  epoch_awareness: 0.15
+  contract_awareness: 0.15
+  optimization_formula: 0.15
+  earning_power_knowledge: 0.15

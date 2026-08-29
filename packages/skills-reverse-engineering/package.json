@@ -1,0 +1,52 @@
+{
+  "name": "@dzhechkov/skills-reverse-engineering",
+  "version": "0.3.3",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "description": "Reverse Engineering Unicorn — composite skill for Claude Code: reverse-engineer any company into an actionable launch playbook (+ clickable CJM prototype) via a 6-module pipeline with QUICK/DEEP/VERIFIED modes",
+  "main": "src/cli.js",
+  "bin": {
+    "skills-reverse-engineering": "./bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "templates/",
+    "sources.json",
+    "LICENSE",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai",
+    "reverse-engineering",
+    "competitive-intelligence",
+    "launch-playbook",
+    "cjm",
+    "business-model",
+    "jtbd",
+    "go-to-market",
+    "skills",
+    "skill-pack"
+  ],
+  "author": "dzhechko",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/skills-reverse-engineering"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-reverse-engineering#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness-hub/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

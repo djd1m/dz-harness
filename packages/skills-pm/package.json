@@ -1,0 +1,66 @@
+{
+  "name": "@dzhechkov/skills-pm",
+  "version": "0.1.4",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "description": "Product-management skill pack for Claude Code \u2014 18 framework-grounded PM skills (OST, RICE/ICE prioritization, product strategy, pricing, OKRs, North Star / metrics / A-B / cohort, outcome roadmap, stakeholder map, sprint plan, strategy red-team, GTM / growth loops / beachhead, market sizing). Curated (ADR-0002) from phuryn/pm-skills (MIT).",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai",
+    "product-management",
+    "pm",
+    "okr",
+    "opportunity-solution-tree",
+    "rice",
+    "prioritization",
+    "go-to-market",
+    "pricing",
+    "north-star-metric",
+    "skills",
+    "skill-pack"
+  ],
+  "files": [
+    "ab-test-analysis",
+    "beachhead-segment",
+    "brainstorm-okrs",
+    "cohort-analysis",
+    "growth-loops",
+    "gtm-strategy",
+    "market-sizing",
+    "metrics-dashboard",
+    "north-star-metric",
+    "opportunity-solution-tree",
+    "outcome-roadmap",
+    "pricing-strategy",
+    "prioritization-frameworks",
+    "prioritize-features",
+    "product-strategy",
+    "sprint-plan",
+    "stakeholder-map",
+    "strategy-red-team",
+    "sources.json",
+    "README.md",
+    "LICENSE",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "author": "dzhechko",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/skills-pm"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-pm#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness-hub/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

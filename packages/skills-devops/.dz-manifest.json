@@ -1,0 +1,509 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "skills-devops",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "e1969f2b72b4ff42ec8f1dd296db6d62aa2c5535a921e0fd12b49738f63319ed"
+      },
+      {
+        "path": "api-design/SKILL.md",
+        "sha256": "ededddac57e2c5c147eaa5bbc8c73cc76511a5a86b501ab30459a74b46f91e80"
+      },
+      {
+        "path": "api-design/evals/api-design.yaml",
+        "sha256": "8c0d06455b46daf3731816ee183a4d4afe9a420a324f31997ed38d80f0191bbd"
+      },
+      {
+        "path": "api-design/schemas/output.json",
+        "sha256": "386ddce1d34818d524ecb389e74b5662e6bd01eeec470f781666ec381a5edf0f"
+      },
+      {
+        "path": "api-design/scripts/validate-config.json",
+        "sha256": "6ed1892a0af0e487e03c06d1c6ca9b0229772fdebc34ca7ba656f096a146d269"
+      },
+      {
+        "path": "c4-architecture/SKILL.md",
+        "sha256": "622cb77e6884d1cf2f9eeea9f3b179523d95ebce3a455b8897cf8d7fb6cfa4fe"
+      },
+      {
+        "path": "c4-architecture/evals/c4-architecture.yaml",
+        "sha256": "23f63b118c454c08c0ae6f38d276a8d8d67852f16b5853c1b708333761e43b85"
+      },
+      {
+        "path": "c4-architecture/schemas/output.json",
+        "sha256": "d1a13fcc9d84eee5d4d1dc242043b575ad82da985043710f1a9cde76edeb81c3"
+      },
+      {
+        "path": "c4-architecture/scripts/validate-config.json",
+        "sha256": "b0d3f23ff2aa3a739d56adeb2ec1e4389ad6986968e5a4abc8a801dd1faad7df"
+      },
+      {
+        "path": "ci-fix/SKILL.md",
+        "sha256": "4b2f9d5dcf535121b2befe9412f97a5ea7e0d1ab7069ed1c62f9c99fff2cdf5e"
+      },
+      {
+        "path": "ci-fix/evals/ci-fix.yaml",
+        "sha256": "646c9992ff900646098fd74038cdd5082f170eb637aba43bc494a4a79a9d027f"
+      },
+      {
+        "path": "ci-fix/schemas/output.json",
+        "sha256": "98b7ef31a5b1d555d78a2d8ec1408184d78d5ed2bbc915a910b1e3c79e2346f0"
+      },
+      {
+        "path": "ci-fix/scripts/validate-config.json",
+        "sha256": "13c987abfd2e4431fdd0639c678e3871dd56f0fb0d49286428a54c55d9f8e756"
+      },
+      {
+        "path": "codeql-fix/SKILL.md",
+        "sha256": "d7d16a19b7ef360d575723b35139d48e89dc687699f528cfd9af95ea1b867b09"
+      },
+      {
+        "path": "codeql-fix/evals/codeql-fix.yaml",
+        "sha256": "a8ecabea1b7d87aad6586c24e0b8922e2d2a84555ee33db950b64455eeedefaa"
+      },
+      {
+        "path": "codeql-fix/schemas/output.json",
+        "sha256": "c839e34914a3d653b61fbb58675ed0b91b45b7f0eea1abe78daea270aaa3c43a"
+      },
+      {
+        "path": "codeql-fix/scripts/validate-config.json",
+        "sha256": "fc6e15579ba35568e8736db3adb4bcc0492c115da4d3538bcb29dae67f5d4606"
+      },
+      {
+        "path": "data-pipeline/SKILL.md",
+        "sha256": "ab6dfe66a73f3fe6e55232d65c34123b2da6ac8d8947c612153f56ac5db0cfef"
+      },
+      {
+        "path": "data-pipeline/evals/data-pipeline.yaml",
+        "sha256": "87cc64be5710265d119d772e9fd3a502d6370c857d3bd053e00584459934275d"
+      },
+      {
+        "path": "data-pipeline/schemas/output.json",
+        "sha256": "bbfc7a29a9ac69d39136768babcc9b68b0d3851ec12d49f82bd51a06f7c895dd"
+      },
+      {
+        "path": "data-pipeline/scripts/validate-config.json",
+        "sha256": "6bdd64894bc2c4ab864a7e7327f5d730a31d3240636de91a43e4c1b6667c6390"
+      },
+      {
+        "path": "database-migration/SKILL.md",
+        "sha256": "7237328a8c83e89a595fdd99f8178126fd01be5d84ec3b683824d14d7428ca4d"
+      },
+      {
+        "path": "database-migration/evals/database-migration.yaml",
+        "sha256": "fe845c1d8889c341388aa027a2d20b39d3bff496bb51723940166330b2eec986"
+      },
+      {
+        "path": "database-migration/schemas/output.json",
+        "sha256": "2f8a5380dd5f3f0ecf8621b106d137fe5551053cac276fa372aba3d7869822ea"
+      },
+      {
+        "path": "database-migration/scripts/validate-config.json",
+        "sha256": "e76153a558e6e8319b1bf482baa2182548ede266983a17afb8ec46b7c39f39ce"
+      },
+      {
+        "path": "database-review/SKILL.md",
+        "sha256": "df443fbf01c233a981cc84ac6c81025e2fe543aa8cc79e17076115cd40704768"
+      },
+      {
+        "path": "database-review/evals/database-review.yaml",
+        "sha256": "015f46aaf7cfc7b187b8344db5e860743b755607e0c22859a6fe2ccb1190d855"
+      },
+      {
+        "path": "database-review/schemas/output.json",
+        "sha256": "6fe81488ceb1281427804f9c82dc0d5e2cd7d0bc5f0c8bcb33b9f5a583673d94"
+      },
+      {
+        "path": "database-review/scripts/validate-config.json",
+        "sha256": "927ef09134eddf98583d759b25d18d9ac20183fdaabe7473c5ae06b28de7b7e1"
+      },
+      {
+        "path": "debugging/SKILL.md",
+        "sha256": "9f080eff4ef792de5805c69828a811ed0c8db07b77e397a12a5e6b5e16624953"
+      },
+      {
+        "path": "debugging/evals/debugging.yaml",
+        "sha256": "49150a4b32827233245cc2e7a6b6089941081750e0a737617c19163afd619433"
+      },
+      {
+        "path": "debugging/schemas/output.json",
+        "sha256": "4f05776aed4c93db5352861e8fadc4e0f2a663f7a7dd2c00a3908aea7ed4a61d"
+      },
+      {
+        "path": "debugging/scripts/validate-config.json",
+        "sha256": "6f6248359d57611cbb8fa2b433aa304e7e6b34b12559d001ebe9fedd0afbd51f"
+      },
+      {
+        "path": "deploy-on-cloudru-vm/SKILL.md",
+        "sha256": "3b734b65872e8b37dc9dfd6184b7cc19aeac786d1efa293a310d703eb88f87d5"
+      },
+      {
+        "path": "docker-compose/SKILL.md",
+        "sha256": "8b637201c9c3d8ec4e27b9889b288e984e70c0b39acc5a2b006f345d48af7e2f"
+      },
+      {
+        "path": "docker-compose/evals/docker-compose.yaml",
+        "sha256": "48e8cbb3eaab73036ac51c64aed2b00f7083b2a6b239810a365569bd211b080a"
+      },
+      {
+        "path": "docker-compose/schemas/output.json",
+        "sha256": "947ee4f2df5edb95cba751264c888ae9960e182a1add4d0f68f4123f8d0e065e"
+      },
+      {
+        "path": "docker-compose/scripts/validate-config.json",
+        "sha256": "ff39b46903e4127cc7d8e0bb5312153f4e23bf2484134c9e98d0390b0bc24eb5"
+      },
+      {
+        "path": "frontend-implementation/SKILL.md",
+        "sha256": "6c46083f57386632ddfe1c5f4748317ff45361d7576c9e90bb816f5100f38929"
+      },
+      {
+        "path": "frontend-implementation/evals/frontend-implementation.yaml",
+        "sha256": "12f6639a182e859f72dbc1733d567de073c54d147e925c363a0473acfe4f200f"
+      },
+      {
+        "path": "frontend-implementation/schemas/output.json",
+        "sha256": "19c014af594b329828fe37ce59301a20a5e9135d45b74e99795246f0c5c9a307"
+      },
+      {
+        "path": "frontend-implementation/scripts/validate-config.json",
+        "sha256": "622b287597e6dbf708125b845eaf8e45f2ae9122463ce8e47f6d9722360e96c1"
+      },
+      {
+        "path": "git-conflict-resolve/SKILL.md",
+        "sha256": "1abdc14e25b8630dd5e1e675fe7b58bad5e4735865ccea2b14b9a578f7d7fcae"
+      },
+      {
+        "path": "git-conflict-resolve/evals/git-conflict-resolve.yaml",
+        "sha256": "45938d4f86f34c585dbc2f3d100cfd81ee8e112550de23bf89dfcd34b22f465c"
+      },
+      {
+        "path": "git-conflict-resolve/schemas/output.json",
+        "sha256": "9403ff4e53a95d3f153f092d17fed5fd24cc72d552da0e32a6bb09abb1c55ee5"
+      },
+      {
+        "path": "git-conflict-resolve/scripts/validate-config.json",
+        "sha256": "f331d742f4c108a8863c64bcb7c44ab24274f06912aba7bef9e817ec613ffad5"
+      },
+      {
+        "path": "github-actions/SKILL.md",
+        "sha256": "283b4f5d95ec27275ae170b8ea151ba0c74339f01e170278295c592f19a20c0f"
+      },
+      {
+        "path": "github-actions/evals/github-actions.yaml",
+        "sha256": "ab776f26d7c179e003d98daba1ab52f223b41105231d5e73e053082307e75597"
+      },
+      {
+        "path": "github-actions/schemas/output.json",
+        "sha256": "5f7f74b5d36f577237641131cf15b3ec85a0f5fc88ddfaee1a00e6b570c965c7"
+      },
+      {
+        "path": "github-actions/scripts/validate-config.json",
+        "sha256": "d404523aa154039abf30231049677e59638c517f7d60dd7b87d5225f55979604"
+      },
+      {
+        "path": "graphql-schema/SKILL.md",
+        "sha256": "28be982b0e4bbc7961d339ad9ba95692b276314233a399ccfbc9f29020da3368"
+      },
+      {
+        "path": "graphql-schema/evals/graphql-schema.yaml",
+        "sha256": "022df5b65e3e9fedfe08a98b62fad9978f891084881c6eac9f7101841d0fb967"
+      },
+      {
+        "path": "graphql-schema/schemas/output.json",
+        "sha256": "3efa1ab4172755295e487af0ca45372413b284923cfceceb0ce01cc52597626b"
+      },
+      {
+        "path": "graphql-schema/scripts/validate-config.json",
+        "sha256": "304b9455b5b40e2a91c89e4f226ac4be328824c69ea55c3963df421be07264e5"
+      },
+      {
+        "path": "incident-response/SKILL.md",
+        "sha256": "d9c370f99f89cd5aa33a0ff5513dd4dba36d3daad1873e2fcde24115e4f42b42"
+      },
+      {
+        "path": "incident-response/evals/incident-response.yaml",
+        "sha256": "970a29d3a5c374935c6a317f25aa024462a387e89e5c48dcfe9086fe166c6465"
+      },
+      {
+        "path": "incident-response/schemas/output.json",
+        "sha256": "05f70b95bcdafb7e3fc27ae2cf954832b4f9c454c2b33abc091fef42522ab4f9"
+      },
+      {
+        "path": "incident-response/scripts/validate-config.json",
+        "sha256": "a805f3d7ec84d93199c90f1e1f4cd193661c711f92c60ebbc81324b24b639486"
+      },
+      {
+        "path": "itsm-itil/SKILL.md",
+        "sha256": "633f67ce8b513b47484dbadce30f883cd5ae19f87bf2d8a87e6212b77f32aa0f"
+      },
+      {
+        "path": "itsm-itil/evals/eval.md",
+        "sha256": "0763c1a91632e081195b951d012ff393772e03787b06a695fb356e0699fa2a2c"
+      },
+      {
+        "path": "itsm-itil/references/lifecycle.md",
+        "sha256": "f8d60b2dbae38f484ccebbf7a90ca88f0c77c14a09e3582ccc907eb1e3a78f00"
+      },
+      {
+        "path": "itsm-itil/references/templates.md",
+        "sha256": "9eea1171eef1f6cb9ba29bb5ad52d4e2111d378182e8ed5d49cd96e7f032b875"
+      },
+      {
+        "path": "itsm-itil/references/wsjf.md",
+        "sha256": "0869ad8e525b894f8dc9b171b2b6bb393cdbd4d20d24566c5ccfd4149c2f0502"
+      },
+      {
+        "path": "itsm-itil/schemas/output.json",
+        "sha256": "a66afa80ec271d672998ab2397eba9dd52208fb85e6293379e35abce77a5a288"
+      },
+      {
+        "path": "itsm-itil/scripts/validate-config.json",
+        "sha256": "daf0ca825b5a7a9bb10014e20f2203f2ee976fc44425490a46048221f2466144"
+      },
+      {
+        "path": "kubernetes/SKILL.md",
+        "sha256": "5f9d2e0985480433ffc7f8f62487f988fc6bf4b08aa14febb4f8b956ec9840e7"
+      },
+      {
+        "path": "kubernetes/evals/kubernetes.yaml",
+        "sha256": "2d7acc3a61239acf6bd8373fe35115e5f9a7d10fe4b5e12bd316fad3077bc911"
+      },
+      {
+        "path": "kubernetes/schemas/output.json",
+        "sha256": "2125570857bb12f1d058add367908c02a9639cd16823ba7285ff87a33dfc42bc"
+      },
+      {
+        "path": "kubernetes/scripts/validate-config.json",
+        "sha256": "c27dcb473bc189123a58891affd042453a4fbc766458f8b99d49ff46dbd00085"
+      },
+      {
+        "path": "monorepo-management/SKILL.md",
+        "sha256": "73f296a09a613e684e56948bb9b12d5786e885ba7626aeed8a620d892efa8e99"
+      },
+      {
+        "path": "monorepo-management/evals/monorepo-management.yaml",
+        "sha256": "f22ce2eccd927998a48fe0121447c002368b09aac3bc29e21ce2c6847febf1b7"
+      },
+      {
+        "path": "monorepo-management/schemas/output.json",
+        "sha256": "c20a701b64630bfb1f880d3ce2bfbd84851a76e91b67132750757289992f59a9"
+      },
+      {
+        "path": "monorepo-management/scripts/validate-config.json",
+        "sha256": "c3617dfe2692f8182ced6ef2137e5f8381aaf445200961a9ea319cee7dfee331"
+      },
+      {
+        "path": "nginx-config/SKILL.md",
+        "sha256": "19c9ea567f6cd554c7bbd5d1e12a33571f36914ea1543fb0e0400b587eb795e6"
+      },
+      {
+        "path": "nginx-config/evals/nginx-config.yaml",
+        "sha256": "9d2fc4dae0c6da4aebdd19f13877d610e0b08e2c64f1af4fbc92665be63557b0"
+      },
+      {
+        "path": "nginx-config/schemas/output.json",
+        "sha256": "ad06e303bff8527fa4c338047a35acc98e3a2c52cdb8972a791e70dfb310f1bf"
+      },
+      {
+        "path": "nginx-config/scripts/validate-config.json",
+        "sha256": "60b37e72ddb9b53ba0a70d6238fd790c0f436aefac7afbfd5efebf0c33246d4b"
+      },
+      {
+        "path": "observability/SKILL.md",
+        "sha256": "b8baf0a141a5f521e6597d2b69b06ebf4979deec5bd514195e6be6decf9ae754"
+      },
+      {
+        "path": "observability/evals/observability.yaml",
+        "sha256": "529183fce95f7ea4584adfd8529be63d0329c778d570572924771856d0845550"
+      },
+      {
+        "path": "observability/schemas/output.json",
+        "sha256": "0d95619b5004628102ad5fac604ee04ef5975449a53bafc609f68ed9dfade61f"
+      },
+      {
+        "path": "observability/scripts/check-dashboards.mjs",
+        "sha256": "45419c40825128443e8b7be3979d401993c30378c1865add3ebce8845cd87994"
+      },
+      {
+        "path": "observability/scripts/validate-config.json",
+        "sha256": "a644ef13a76453fe5ccca8496ba07231529fa8765de9e80e25d3fab93e5c72b9"
+      },
+      {
+        "path": "package.json",
+        "sha256": "9cd028c087f9f078e3ca0b00865a61ea9522591be79cee3515a7853430be5ffb"
+      },
+      {
+        "path": "playwright-testing/SKILL.md",
+        "sha256": "df1000e7f5ec6bb2931405da5e0f07323f552d4a4484c44b82cbdb324e0bf8d8"
+      },
+      {
+        "path": "playwright-testing/evals/playwright-testing.yaml",
+        "sha256": "0a2cf7877d6760ea3692319ca8dea4311743d4c24f4ce0b61a60404cc9d8ae2c"
+      },
+      {
+        "path": "playwright-testing/schemas/output.json",
+        "sha256": "33b70c83956a8609c860c88e057487e09295528892c4b1a7312f5389748d2cbd"
+      },
+      {
+        "path": "playwright-testing/scripts/validate-config.json",
+        "sha256": "3349d9ef7a8aad93bfdaca0d445183215cb131b90c667f8349c65abf6e9e1b7f"
+      },
+      {
+        "path": "pr-review/SKILL.md",
+        "sha256": "30b9eed70cd3fffae8946524d9e5f28e4e3ec5326f00549380998711a0100970"
+      },
+      {
+        "path": "pr-review/evals/pr-review.yaml",
+        "sha256": "c3dcc4212cdcc26f75cde95d94f999b5cef2b38918084a61234389f08270c9b2"
+      },
+      {
+        "path": "pr-review/schemas/output.json",
+        "sha256": "d8226b404822adafca2c688be73f5f5c514a4829d5fa81e7f0994d9f029a1ddb"
+      },
+      {
+        "path": "pr-review/scripts/validate-config.json",
+        "sha256": "e5df37292a1cd2bc7bc817494e6f07bd38f5821e13f8b6c83fce5327fb248d35"
+      },
+      {
+        "path": "problem-management/SKILL.md",
+        "sha256": "9d2ac277722618d045f9caef4bec45bfd5f13b9f65c163060b3b25a73e4da175"
+      },
+      {
+        "path": "problem-management/evals/basic.md",
+        "sha256": "2d78ecc6dda1b67df5e42904faa4a1f33e7c86fe678f4c43e6ca4582bccecd21"
+      },
+      {
+        "path": "problem-management/schemas/output.json",
+        "sha256": "da2a67eadad840de37f6823e243a617387facddebfa83307174118d5e8aad25c"
+      },
+      {
+        "path": "problem-management/scripts/validate-config.json",
+        "sha256": "e5023392191c4cc4a58c3110d9cc329ab929804b309d8c2844f7e20b5334aaaf"
+      },
+      {
+        "path": "provider-debug/SKILL.md",
+        "sha256": "51255ed46a58cc3947be49d7e2d5e07e901db1911b6600c65c540e539d5b5534"
+      },
+      {
+        "path": "provider-debug/evals/provider-debug.yaml",
+        "sha256": "9d5d90d5a4e3ce0e8f17152c3c3f030a3f7a0edcda465f325367548c2b5da929"
+      },
+      {
+        "path": "provider-debug/schemas/output.json",
+        "sha256": "3695245132759e252ba182a85449d2000f2bc6614f9846d64a296e1e07095a0f"
+      },
+      {
+        "path": "provider-debug/scripts/validate-config.json",
+        "sha256": "034a0cb4bc2bf3e3909d626bd709e87c162f60db9c25e8c2637a18fcce69e629"
+      },
+      {
+        "path": "redis-patterns/SKILL.md",
+        "sha256": "4cf4611ee8f1189784a65ffd557a4d6d404717bc17cad99e0a3c88a5f96d99a7"
+      },
+      {
+        "path": "redis-patterns/evals/redis-patterns.yaml",
+        "sha256": "60b98b3c87fe80f2913f4dfaed790cf2f781ae293db6506f0d999cb26d8dc19f"
+      },
+      {
+        "path": "redis-patterns/schemas/output.json",
+        "sha256": "bdefb327b4711c8dae3e198ae00f5b92f513f264ee22b9cd107fee434e479c11"
+      },
+      {
+        "path": "redis-patterns/scripts/validate-config.json",
+        "sha256": "9a60fb6959c2b0c367f8aefdd63925384f3528abff83ccc5b009bb4a43881f87"
+      },
+      {
+        "path": "retrospective/SKILL.md",
+        "sha256": "50831f624ef97fdbb4d6e134f32c365d3461e8f26dc2a2497069435ee772a2ac"
+      },
+      {
+        "path": "retrospective/evals/retrospective.yaml",
+        "sha256": "099bb294f6f2f8371727a385b7804c080d1fad5f6580675c74a1d8a9c9f0e2bf"
+      },
+      {
+        "path": "retrospective/schemas/output.json",
+        "sha256": "8f6031e0ebbb4470932c769f52545803a9664403dedcb978d250186f44c8e6ff"
+      },
+      {
+        "path": "retrospective/scripts/validate-config.json",
+        "sha256": "84b30f9d2b70c3d288f7eedcfa897bec65f27da5e5eaa5ac4b9d346fbe4326bb"
+      },
+      {
+        "path": "risk-assessment/SKILL.md",
+        "sha256": "9b28270765d9c4469c6551a634f46eae1d831de04177756177f501242759654f"
+      },
+      {
+        "path": "risk-assessment/evals/risk-assessment.yaml",
+        "sha256": "a525ce1f2e3ea6b48c94b0f633f4720271e5d0b4e0a2a8d09e02b6af5afa570c"
+      },
+      {
+        "path": "risk-assessment/schemas/output.json",
+        "sha256": "8a88294f61fc95e88455fb18a8f495799888613162782e700808371530a6e2ce"
+      },
+      {
+        "path": "risk-assessment/scripts/validate-config.json",
+        "sha256": "f106a4c13e9aef46e16178071104d768692eb280807952f6689f6e7745018ca3"
+      },
+      {
+        "path": "security-audit/SKILL.md",
+        "sha256": "a0b80807dedd0b3a74a55608e1834d94ec42397d6e1ed77a4686b521cca220d9"
+      },
+      {
+        "path": "security-audit/evals/security-audit.yaml",
+        "sha256": "b38a48937f4afd9b6f1ad167d6420f80db95dc66d63153600e01fe17af6fc566"
+      },
+      {
+        "path": "security-audit/schemas/output.json",
+        "sha256": "7b5ec479aa9f9137f8397f45f8c9a9645885e0145d2573b8355574346b52bfa5"
+      },
+      {
+        "path": "security-audit/scripts/validate-config.json",
+        "sha256": "04ea0b15daff34a47e12727455d9405484050e2c2d780b47a533b35d90574ad2"
+      },
+      {
+        "path": "sources.json",
+        "sha256": "65e131147e5c38025f08a73ccc16b832718827e781f63d59efc4bf265a11de27"
+      },
+      {
+        "path": "terraform/SKILL.md",
+        "sha256": "b3ffad742dee09ada64bbeef1d4ec082f3050b3f126321325446c42470f6bda9"
+      },
+      {
+        "path": "terraform/evals/terraform.yaml",
+        "sha256": "500e466d7f52bfcb6aadb3776a3ee0e4c258f9df6d707704a3615f8618cb02b9"
+      },
+      {
+        "path": "terraform/schemas/output.json",
+        "sha256": "8baa212dd0ee4562d03b839bfe56980f6bc047523baae315415b3f0179eb22f9"
+      },
+      {
+        "path": "terraform/scripts/validate-config.json",
+        "sha256": "8892c9d9e043411ecc7c7bf354499346fd7815b3f5cb238ea7b0b9839dcaa3e6"
+      },
+      {
+        "path": "test-writer/SKILL.md",
+        "sha256": "4b7022249699e571ba34070ca0e81941e9d04086ef948efd8938031969de4866"
+      },
+      {
+        "path": "test-writer/evals/test-writer.yaml",
+        "sha256": "23373a6e35cbb7684f01f29eea29f8fc9bff6a4288364260fb043b9ebcff0b7e"
+      },
+      {
+        "path": "test-writer/schemas/output.json",
+        "sha256": "c962de84ddbb73d347d36cfbe030859b15840e635798761e5da2d386401ff1a1"
+      },
+      {
+        "path": "test-writer/scripts/validate-config.json",
+        "sha256": "6e3a5adb615c73f6aa6889d4b71f671819508d64f615aef8e6c55019a1165d0e"
+      }
+    ]
+  },
+  "signature": "j0H7H9zGnyBIIdNYfwqOwMZre28P8bJ9NdtXhsBNbrXw48OKFcRfAtgL8004H+7F5PKyf8YdtQVQU93kPb+rDg=="
+}

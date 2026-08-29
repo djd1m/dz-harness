@@ -1,0 +1,297 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "mcp-server-tools"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0c0725641cfa016e74d1b0886c2f6f923afa00226b4330ed0cc8b3096c82d2dd"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/bin.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fb950f944c3999b73525551044a907efb73815969224e25adc1401f35060debf"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/bin.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ea3fa637a34eb03ea0891d4baba4bdea886f3346022ec9fc7a373047ddc7cb2c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/bin.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "61f6052946cd9e30ad99892fa2aaf820abbfb8037654c3b85be9ef0438c42899"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/bin.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c9e81c127d1fd2c48f053dd4e33007c265df9d6097ae0d1e8153d52356d3dee0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/index.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dbb27657d47717374cef7fc5b7d2a0cb743754c3ee607980a825e62dde9193d5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/index.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1a6e4a32379380652b23a6c822ca0c07e96905dbc981854fc23717c5393eccfc"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/index.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2486c3092d815f6b9349a85791c10c0295c4976826487e2c76472471cbdd961d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/index.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6fee1bd16d38582f860a54dd6f048148225035769100fbd0198677978fda10c3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/server.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7ae5b772e85b184279f7a4823f999b2e4acf81f78d2080b03773810c9fc26e75"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/server.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4b42a0b492fca18840e38996d29f6936687b5c9d76d8462a737bf4f87322cb97"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/server.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "74a398f049ff6477dd70b3939c606977b74174a363dacda31c8c336ec5887e1d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/server.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "31d312697ad8fd98688aa07f8141cad4ba18758002bc44eb2f2020ed0fecf36b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/skills.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3259d818374677d057f382906bd049428d3c3a3d2cb998b5c96ff27e8ac6f484"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/skills.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "02a804381b2f23c148977b150cfb54c5c086381389111afc58533b680eaba1a8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/skills.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "23ff6b2ad3e2c99e7a20d2dec80ce1c7910692d2b39e556c955851074ea3ffe0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/skills.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "93944eb9b196b85006e7694ac12b1eabd2a738262787f16f11f013b0bc2507da"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/version.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5cab556c9a89db27703db8dce6bdfdeefae96f5a50c8b84969baf3566f0a0967"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/version.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5636d062a77350f9888ce065c580a699aa69236268a1fffd10cb5c27499f1332"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/version.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3f0d216406ac0de9c3ecb18f88c3aca45bf5c6f1ebaeb892b01ed27c48d79ac6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/version.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "94317552205c1dd8e68cadac442dc4d5346d14386d5a338838ab609b27310def"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "de99bbadc9622935a9cf67afae8f95408cf6344b724d625b70cd18d760b2e71b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/bin.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c391d2e78392ad2cc7a8cede0aeaaaf905fa2ed5af8bf676240f9421d5e75777"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/index.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6f8a8084def0e3fc9b1977fa176b0dd5f9e50c4857b5039c487c61ee3c13d2f8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/server.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0c8f842ea808b35d3e7641eb331f14e7f4619dd16b2a59703a03173a4cfcaea0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/skills.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "84ad0ad925ebaee7b5dba4630e8acccccfe04be9e969850cb216692b73fb79cc"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/version.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1117ba6287394a86cde2406aaafbe486322eeba739ff3ea594e31834f6a57da6"
+        }
+      ]
+    }
+  ]
+}

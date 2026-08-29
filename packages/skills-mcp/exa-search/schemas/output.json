@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "exa-search skill output",
+  "description": "Validates output from Exa Search MCP tool calls",
+  "type": "object",
+  "properties": {
+    "tool": {
+      "type": "string",
+      "enum": [
+        "web_search",
+        "find_similar",
+        "get_contents",
+        "research_paper_search"
+      ],
+      "description": "The Exa tool that was invoked"
+    },
+    "query": {
+      "type": "string",
+      "description": "The search query or reference URL"
+    },
+    "search_type": {
+      "type": "string",
+      "enum": ["neural", "keyword"],
+      "description": "Search mode used"
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "published_date": { "type": "string", "format": "date" },
+          "author": { "type": "string" },
+          "score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Relevance score"
+          },
+          "text": {
+            "type": "string",
+            "description": "Extracted text content (when crawled)"
+          },
+          "highlights": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Key excerpts from the content"
+          }
+        },
+        "required": ["title", "url"]
+      },
+      "maxItems": 100
+    },
+    "autoprompt_string": {
+      "type": "string",
+      "description": "Exa-generated optimized query"
+    }
+  },
+  "required": ["tool"]
+}

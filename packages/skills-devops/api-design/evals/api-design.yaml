@@ -1,0 +1,92 @@
+# api-design evaluation
+# Run: aqe eval api-design
+
+test_cases:
+  - name: "basic REST API design"
+    input: "Design a REST API for a todo app with users and tasks"
+    expected:
+      status: success
+      has_fields:
+        - paradigm
+        - resources
+        - endpoints
+        - error_contract
+        - pagination
+        - versioning
+      paradigm_choice: rest
+      resources_include:
+        - users
+        - tasks
+
+  - name: "paradigm comparison"
+    input: "Should I use REST or GraphQL for a social media feed with nested comments and reactions?"
+    expected:
+      status: success
+      has_fields:
+        - paradigm
+      paradigm_has_justification: true
+
+  - name: "OpenAPI spec generation"
+    input: "Design a REST API for an e-commerce store with products, orders, and customers. Generate the OpenAPI spec."
+    expected:
+      status: success
+      has_fields:
+        - endpoints
+        - openapi_spec
+      openapi_spec_contains:
+        - "openapi"
+        - "paths"
+        - "components"
+        - "schemas"
+
+  - name: "error contract follows RFC 7807"
+    input: "Design error handling for a payment API"
+    expected:
+      status: success
+      has_fields:
+        - error_contract
+      error_contract_format: rfc7807
+      error_types_include:
+        - validation-failed
+        - authentication-required
+        - rate-limit-exceeded
+
+  - name: "review existing API for anti-patterns"
+    input: "Review this API: GET /getUser, POST /createUser, GET /fetchAllProducts with no pagination"
+    expected:
+      status: success
+      has_fields:
+        - anti_patterns_found
+      anti_patterns_include:
+        - "verbs in URLs"
+        - "no pagination"
+
+  - name: "pagination strategy recommendation"
+    input: "Design pagination for an API that serves a real-time activity feed with millions of entries"
+    expected:
+      status: success
+      has_fields:
+        - pagination
+      pagination_strategy: cursor
+
+  - name: "auth and rate limiting design"
+    input: "Design authentication for a public API that supports both free and premium tiers"
+    expected:
+      status: success
+      has_fields:
+        - auth
+      auth_has_rate_limiting: true
+      auth_has_scopes: true
+
+  - name: "self-check completeness"
+    input: "Design a complete REST API for a blog platform with posts, authors, comments, and tags"
+    expected:
+      status: success
+      has_fields:
+        - self_check
+      self_check_all_true:
+        - all_endpoints_documented
+        - rfc7807_errors
+        - versioning_defined
+        - pagination_on_lists
+        - no_verbs_in_urls

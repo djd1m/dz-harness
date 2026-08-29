@@ -1,0 +1,54 @@
+{
+  "schema": "../schemas/output.json",
+  "rules": [
+    {
+      "id": "SA-001",
+      "description": "Every recommended name must exist in the live `dz registry` (no fabricated skill/preset/package names).",
+      "path": "recommendations[*].name",
+      "condition": "exists_in_registry",
+      "severity": "error"
+    },
+    {
+      "id": "SA-002",
+      "description": "Install command must match the item type (skill -> 'dz init --select'; preset -> 'dz setup --preset'; npx-package -> 'npx @dzhechkov/<name> init').",
+      "path": "recommendations[*].install",
+      "condition": "matches_type",
+      "severity": "error"
+    },
+    {
+      "id": "SA-003",
+      "description": "At least one gap-check must be performed (the `gaps` array must be present; empty is allowed only after an explicit check).",
+      "path": "gaps",
+      "condition": "exists",
+      "severity": "error"
+    },
+    {
+      "id": "SA-004",
+      "description": "No fabricated names — each recommendation must be verifiable against the catalog snapshot or live registry output.",
+      "path": "recommendations[*].name",
+      "condition": "no_fabrication",
+      "severity": "error"
+    },
+    {
+      "id": "SA-005",
+      "description": "Multi-step tasks must include an ordered `pipeline` of two or more recommended names.",
+      "path": "pipeline",
+      "condition": "pipeline_for_multistep",
+      "severity": "warning"
+    },
+    {
+      "id": "SA-006",
+      "description": "Each recommendation must carry a non-empty `why` rationale.",
+      "path": "recommendations[*].why",
+      "condition": "non_empty",
+      "severity": "warning"
+    },
+    {
+      "id": "SA-007",
+      "description": "`fit` must be one of high|medium|low and the list should be ranked best-fit first.",
+      "path": "recommendations[*].fit",
+      "condition": "enum_high_medium_low",
+      "severity": "warning"
+    }
+  ]
+}

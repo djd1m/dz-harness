@@ -1,0 +1,62 @@
+{
+  "name": "debugging",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "field": "symptom",
+      "rule": "required",
+      "message": "Symptom description is required"
+    },
+    {
+      "field": "symptom.error_type",
+      "rule": "required",
+      "message": "Error type must be classified"
+    },
+    {
+      "field": "root_cause",
+      "rule": "required",
+      "message": "Root cause must be identified"
+    },
+    {
+      "field": "root_cause.description",
+      "rule": "min_length",
+      "value": 20,
+      "message": "Root cause description must be detailed (min 20 chars)"
+    },
+    {
+      "field": "root_cause.category",
+      "rule": "enum",
+      "values": [
+        "logic_error", "null_reference", "race_condition",
+        "resource_exhaustion", "missing_validation", "incorrect_assumption",
+        "configuration_error", "dependency_issue", "data_integrity", "type_mismatch"
+      ],
+      "message": "Root cause category must be valid"
+    },
+    {
+      "field": "fix",
+      "rule": "required",
+      "message": "Fix must be provided"
+    },
+    {
+      "field": "fix.description",
+      "rule": "min_length",
+      "value": 20,
+      "message": "Fix description must explain why it addresses root cause"
+    },
+    {
+      "field": "verification.steps",
+      "rule": "min_items",
+      "value": 1,
+      "message": "At least one verification step is required"
+    }
+  ],
+  "constraints": [
+    {
+      "rule": "fix_addresses_cause",
+      "condition": "root_cause.location is present",
+      "expected": "fix.changes.any(file matches root_cause.location)",
+      "message": "Fix should include changes at the root cause location"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{"version":3,"file":"hn.d.ts","sourceRoot":"","sources":["../../src/sources/hn.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AAEH,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,aAAa,CAAC;AAe/C,mFAAmF;AACnF,wBAAsB,MAAM,CAAC,OAAO,GAAE;IAAE,WAAW,CAAC,EAAE,MAAM,GAAG,SAAS,CAAC;IAAC,KAAK,CAAC,EAAE,MAAM,GAAG,SAAS,CAAA;CAAO,GAAG,OAAO,CAAC,WAAW,EAAE,CAAC,CA4CnI"}

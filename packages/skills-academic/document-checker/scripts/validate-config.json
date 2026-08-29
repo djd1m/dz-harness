@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "document-checker config validator",
+  "description": "Validates configuration inputs for the document-checker skill",
+  "type": "object",
+  "properties": {
+    "documents_directory": {
+      "type": "string",
+      "description": "Path to directory containing all defense documents"
+    },
+    "thesis_path": {
+      "type": "string",
+      "description": "Path to the thesis document"
+    },
+    "supervisor_review_path": {
+      "type": "string",
+      "description": "Path to the supervisor review"
+    },
+    "external_review_path": {
+      "type": "string",
+      "description": "Path to the external review"
+    },
+    "presentation_path": {
+      "type": "string",
+      "description": "Path to the presentation file"
+    },
+    "antiplagiat_path": {
+      "type": "string",
+      "description": "Path to the antiplagiat report (optional)"
+    },
+    "abstract_path": {
+      "type": "string",
+      "description": "Path to the abstract (optional)"
+    },
+    "check_optional": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to flag missing optional documents as warnings"
+    }
+  },
+  "anyOf": [
+    { "required": ["documents_directory"] },
+    { "required": ["thesis_path"] }
+  ]
+}

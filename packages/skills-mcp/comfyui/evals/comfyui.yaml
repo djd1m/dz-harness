@@ -1,0 +1,45 @@
+# comfyui evaluation
+# Run: aqe eval comfyui
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run comfyui"
+    expected:
+      status: success
+      summary_contains: "comfyui"
+
+  - name: "text to image generation"
+    input: "Generate an image of a sunset over mountains using SDXL, 1024x1024, 25 steps."
+    expected:
+      status: success
+      generation_workflow: "text_to_image"
+      generation_width: 1024
+      generation_height: 1024
+
+  - name: "server not running"
+    input: "Generate an image but ComfyUI is not running at localhost:8188."
+    expected:
+      status: error
+      errors_type_includes: "connection"
+
+  - name: "VRAM management"
+    input: "Check VRAM status and free memory before loading a new SDXL model."
+    expected:
+      status: success
+      execution_has_vram_info: true
+
+  - name: "model selection"
+    input: "List available models and switch to Flux for high-quality generation."
+    expected:
+      status: success
+      summary_contains_any:
+        - "model"
+        - "Flux"
+        - "switch"
+
+  - name: "seed reproducibility"
+    input: "Generate an image with seed 42 and report the exact parameters used so I can reproduce it."
+    expected:
+      status: success
+      generation_seed: 42
+      generation_has_all_params: true

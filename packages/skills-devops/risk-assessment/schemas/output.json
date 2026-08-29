@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "risk-assessment output",
+  "description": "Structured output from the risk-assessment skill",
+  "type": "object",
+  "required": ["status", "summary", "overall_score", "gate_decision"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "needs_more_info"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line summary of the risk assessment result"
+    },
+    "overall_score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 25,
+      "description": "Highest individual risk score across all categories"
+    },
+    "overall_severity": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"],
+      "description": "Human-readable severity label"
+    },
+    "gate_decision": {
+      "type": "string",
+      "enum": ["pass", "warn", "block"],
+      "description": "Pipeline gate decision"
+    },
+    "categories": {
+      "type": "object",
+      "properties": {
+        "security": {
+          "$ref": "#/$defs/category_result"
+        },
+        "performance": {
+          "$ref": "#/$defs/category_result"
+        },
+        "reliability": {
+          "$ref": "#/$defs/category_result"
+        },
+        "compliance": {
+          "$ref": "#/$defs/category_result"
+        }
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["category", "description", "probability", "impact", "score"],
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": ["security", "performance", "reliability", "compliance"]
+          },
+          "description": {
+            "type": "string"
+          },
+          "probability": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "impact": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 25
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical"]
+          },
+          "mitigation": {
+            "type": "string",
+            "description": "Suggested mitigation for this risk"
+          }
+        }
+      }
+    },
+    "secrets": {
+      "type": "object",
+      "properties": {
+        "scan_passed": {
+          "type": "boolean"
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "file": { "type": "string" },
+              "line": { "type": "integer" },
+              "type": { "type": "string" },
+              "pattern": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "properties": {
+        "vulnerabilities_found": {
+          "type": "integer"
+        },
+        "critical": { "type": "integer" },
+        "high": { "type": "integer" },
+        "medium": { "type": "integer" },
+        "low": { "type": "integer" }
+      }
+    },
+    "breaking_changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["api_removal", "signature_change", "schema_change", "config_change", "endpoint_change"]
+          },
+          "description": { "type": "string" },
+          "file": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "category_result": {
+      "type": "object",
+      "properties": {
+        "max_score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 25
+        },
+        "risk_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical", "none"]
+        }
+      }
+    }
+  }
+}

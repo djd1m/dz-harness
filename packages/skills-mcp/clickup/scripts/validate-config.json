@@ -1,0 +1,76 @@
+{
+  "name": "clickup-validator",
+  "description": "Validates clickup MCP skill configuration and connectivity.",
+  "version": "1.0.0",
+  "checks": [
+    {
+      "id": "schema-valid",
+      "type": "json-schema",
+      "description": "Output conforms to schemas/output.json",
+      "schemaPath": "../schemas/output.json",
+      "severity": "error"
+    },
+    {
+      "id": "api-key-configured",
+      "type": "env-check",
+      "description": "ClickUp API key is configured",
+      "variables": [
+        {
+          "name": "CLICKUP_API_KEY",
+          "required": true,
+          "hint": "Get your API key from app.clickup.com/settings/apps (starts with pk_)"
+        },
+        {
+          "name": "CLICKUP_TEAM_ID",
+          "required": false,
+          "hint": "Default team/workspace ID (auto-detected if omitted)"
+        }
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "npx-available",
+      "type": "command-check",
+      "description": "npx is available to run the MCP server",
+      "command": "npx --version",
+      "severity": "error"
+    },
+    {
+      "id": "mcp-server-installable",
+      "type": "package-check",
+      "description": "MCP server package is resolvable from npm",
+      "package": "@taazkareem/clickup-mcp-server",
+      "severity": "error"
+    },
+    {
+      "id": "tool-enumeration",
+      "type": "tool-list",
+      "description": "All expected tools are available from the MCP server",
+      "expectedTools": [
+        "create_task",
+        "update_task",
+        "list_tasks",
+        "add_comment",
+        "create_doc",
+        "start_timer",
+        "stop_timer",
+        "list_spaces",
+        "list_folders"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "api-key-format",
+      "type": "value-format",
+      "description": "API key matches expected ClickUp format",
+      "variable": "CLICKUP_API_KEY",
+      "pattern": "^pk_[a-zA-Z0-9_]+$",
+      "severity": "warning"
+    }
+  ],
+  "scoring": {
+    "pass": "all error-severity checks pass",
+    "warn": "all error-severity checks pass but warnings present",
+    "fail": "any error-severity check fails"
+  }
+}

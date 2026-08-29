@@ -1,0 +1,171 @@
+name: context7
+description: Evaluation suite for the context7 MCP wrapper skill.
+version: "1.0.0"
+skill: context7
+
+setup:
+  mcp_server: "@upstash/context7-mcp"
+  transport: stdio
+  requires_auth: false
+
+evals:
+  - id: resolve-library-react
+    description: Resolve the React library to its Context7 identifier
+    input:
+      tool: resolve_library
+      args:
+        name: "react"
+    expected:
+      status: success
+      data_type: ResolveLibraryResponse
+      constraints:
+        - "data.library.id is present"
+        - "data.library.name contains 'react' (case-insensitive)"
+        - "data.library.id contains 'react'"
+    tags: [smoke, read]
+
+  - id: resolve-library-nextjs
+    description: Resolve Next.js to its Context7 identifier
+    input:
+      tool: resolve_library
+      args:
+        name: "next.js"
+    expected:
+      status: success
+      data_type: ResolveLibraryResponse
+      constraints:
+        - "data.library.id is present"
+        - "data.library.name contains 'next' (case-insensitive)"
+    tags: [smoke, read]
+
+  - id: get-docs-react-hooks
+    description: Get React hooks documentation
+    input:
+      steps:
+        - tool: resolve_library
+          args:
+            name: "react"
+          save_as: resolved
+        - tool: get_library_docs
+          args:
+            libraryId: "{{resolved.data.library.id}}"
+            topic: "hooks useState useEffect"
+    expected:
+      status: success
+      data_type: LibraryDocsResponse
+      constraints:
+        - "data.snippets is an array"
+        - "data.snippets.length > 0"
+        - "at least one snippet contains 'useState' or 'useEffect'"
+    tags: [functional, read]
+
+  - id: get-docs-tailwind-classes
+    description: Get Tailwind CSS utility class documentation
+    input:
+      steps:
+        - tool: resolve_library
+          args:
+            name: "tailwindcss"
+          save_as: resolved
+        - tool: get_library_docs
+          args:
+            libraryId: "{{resolved.data.library.id}}"
+            topic: "flex grid layout"
+    expected:
+      status: success
+      data_type: LibraryDocsResponse
+      constraints:
+        - "data.snippets is an array"
+        - "data.snippets.length > 0"
+        - "snippets contain code examples"
+    tags: [functional, read]
+
+  - id: search-docs-cross-library
+    description: Search across all libraries for a concept
+    input:
+      tool: search_docs
+      args:
+        query: "server-side rendering"
+    expected:
+      status: success
+      data_type: SearchDocsResponse
+      constraints:
+        - "data.results is an array"
+        - "data.results.length > 0"
+        - "results span multiple libraries"
+        - "each result has libraryId and content fields"
+    tags: [functional, read]
+
+  - id: get-docs-drizzle-orm
+    description: Get Drizzle ORM documentation for relations
+    input:
+      steps:
+        - tool: resolve_library
+          args:
+            name: "drizzle-orm"
+          save_as: resolved
+        - tool: get_library_docs
+          args:
+            libraryId: "{{resolved.data.library.id}}"
+            topic: "relations one-to-many"
+    expected:
+      status: success
+      data_type: LibraryDocsResponse
+      constraints:
+        - "data.snippets is an array"
+        - "snippets contain relevant ORM documentation"
+    tags: [functional, read]
+
+  - id: resolve-library-alternatives
+    description: Resolve an ambiguous name and check alternatives
+    input:
+      tool: resolve_library
+      args:
+        name: "router"
+    expected:
+      status: success
+      data_type: ResolveLibraryResponse
+      constraints:
+        - "data.library.id is present"
+        - "data.alternatives is an array"
+    tags: [functional, read]
+
+  - id: error-nonexistent-library
+    description: Resolving a nonexistent library returns appropriate response
+    input:
+      tool: resolve_library
+      args:
+        name: "this-library-definitely-does-not-exist-xyz-999"
+    expected:
+      status: error
+      constraints:
+        - "error.code is present or data.library is null"
+        - "error.message is present"
+    tags: [negative, read]
+
+  - id: get-docs-vitest
+    description: Get Vitest testing framework documentation
+    input:
+      steps:
+        - tool: resolve_library
+          args:
+            name: "vitest"
+          save_as: resolved
+        - tool: get_library_docs
+          args:
+            libraryId: "{{resolved.data.library.id}}"
+            topic: "describe it expect mock"
+    expected:
+      status: success
+      data_type: LibraryDocsResponse
+      constraints:
+        - "data.snippets is an array"
+        - "data.snippets.length > 0"
+    tags: [functional, read]
+
+scoring:
+  pass_threshold: 0.85
+  weights:
+    smoke: 2.0
+    functional: 1.5
+    negative: 1.0

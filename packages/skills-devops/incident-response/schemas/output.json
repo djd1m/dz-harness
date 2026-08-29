@@ -1,0 +1,347 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "incident-response output",
+  "description": "Structured output from the incident-response skill",
+  "type": "object",
+  "required": ["status", "incident", "timeline", "postmortem"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "skipped"]
+    },
+    "incident": {
+      "type": "object",
+      "required": ["severity", "title", "status", "commander"],
+      "properties": {
+        "severity": {
+          "type": "string",
+          "enum": ["SEV1", "SEV2", "SEV3", "SEV4"],
+          "description": "Incident severity level"
+        },
+        "title": {
+          "type": "string",
+          "description": "Short incident title, e.g., 'Payment API 5xx spike'"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["investigating", "identified", "mitigating", "monitoring", "resolved"],
+          "description": "Current incident lifecycle status"
+        },
+        "commander": {
+          "type": "string",
+          "description": "Name or handle of the incident commander"
+        },
+        "comms_lead": {
+          "type": "string",
+          "description": "Name or handle of the communications lead"
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the incident was first detected (ISO 8601)"
+        },
+        "resolved_at": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "When the incident was resolved (null if ongoing)"
+        },
+        "duration_minutes": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Total incident duration in minutes (null if ongoing)"
+        }
+      }
+    },
+    "impact": {
+      "type": "object",
+      "properties": {
+        "users_affected": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Number of unique users impacted"
+        },
+        "users_affected_percentage": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Percentage of total users impacted"
+        },
+        "revenue_impact_usd": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "description": "Estimated revenue impact in USD"
+        },
+        "requests_failed": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Total number of failed requests during the incident"
+        },
+        "error_rate_peak_percentage": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Peak error rate during the incident"
+        },
+        "regions_affected": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "AWS regions or geographic areas impacted"
+        },
+        "services_affected": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Services or endpoints impacted"
+        },
+        "data_impact": {
+          "type": "string",
+          "enum": ["none", "stale_reads", "writes_lost", "corruption", "unknown"],
+          "description": "Impact on data integrity"
+        }
+      }
+    },
+    "timeline": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["timestamp", "event"],
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When this event occurred (ISO 8601)"
+          },
+          "event": {
+            "type": "string",
+            "description": "What happened at this time"
+          },
+          "actor": {
+            "type": "string",
+            "description": "Who performed this action or system that generated the event"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["detection", "escalation", "investigation", "mitigation", "communication", "resolution", "follow_up"],
+            "description": "Category of timeline entry"
+          }
+        }
+      },
+      "description": "Minute-by-minute incident timeline"
+    },
+    "triage": {
+      "type": "object",
+      "properties": {
+        "affected_systems": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of systems identified as affected"
+        },
+        "suspected_cause": {
+          "type": "string",
+          "description": "Initial hypothesis for the root cause"
+        },
+        "recent_changes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["deploy", "config_change", "infra_change", "dependency_update", "traffic_pattern"]
+              },
+              "description": { "type": "string" },
+              "timestamp": { "type": "string", "format": "date-time" },
+              "correlates_with_incident": { "type": "boolean" }
+            }
+          },
+          "description": "Recent changes that may correlate with the incident"
+        }
+      }
+    },
+    "mitigation": {
+      "type": "object",
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": ["rollback", "feature_flag", "scale_up", "failover", "dns_redirect", "circuit_breaker", "rate_limit", "static_fallback", "hotfix", "other"],
+          "description": "Primary mitigation strategy applied"
+        },
+        "description": {
+          "type": "string",
+          "description": "What mitigation was applied and the result"
+        },
+        "applied_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When mitigation was applied"
+        },
+        "effective": {
+          "type": "boolean",
+          "description": "Whether the mitigation restored service"
+        },
+        "time_to_mitigate_minutes": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Minutes from incident start to successful mitigation"
+        }
+      }
+    },
+    "root_cause": {
+      "type": "object",
+      "properties": {
+        "summary": {
+          "type": "string",
+          "description": "1-2 sentence root cause summary"
+        },
+        "five_whys": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["why", "answer"],
+            "properties": {
+              "why": { "type": "string" },
+              "answer": { "type": "string" }
+            }
+          },
+          "minItems": 3,
+          "maxItems": 7,
+          "description": "5 Whys analysis chain"
+        },
+        "contributing_factors": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Factors that contributed to the incident beyond the root cause"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "code_bug",
+            "configuration_error",
+            "infrastructure_failure",
+            "dependency_failure",
+            "capacity_exhaustion",
+            "data_migration",
+            "security_breach",
+            "human_error",
+            "network_issue",
+            "dns_issue",
+            "certificate_expiry",
+            "unknown"
+          ],
+          "description": "Root cause category for trend analysis"
+        }
+      }
+    },
+    "postmortem": {
+      "type": "object",
+      "required": ["summary", "what_went_well", "what_went_wrong", "action_items"],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "description": "2-3 sentence blameless summary of the incident"
+        },
+        "what_went_well": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Things that worked during the response"
+        },
+        "what_went_wrong": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Things that failed or could be improved"
+        },
+        "action_items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["action", "owner", "due_date", "priority"],
+            "properties": {
+              "action": {
+                "type": "string",
+                "description": "Specific action to take"
+              },
+              "owner": {
+                "type": "string",
+                "description": "Single person responsible (not a team)"
+              },
+              "due_date": {
+                "type": "string",
+                "format": "date",
+                "description": "Due date (YYYY-MM-DD)"
+              },
+              "priority": {
+                "type": "string",
+                "enum": ["P0", "P1", "P2", "P3"],
+                "description": "P0=this week, P1=this sprint, P2=this quarter, P3=backlog"
+              },
+              "ticket_url": {
+                "type": "string",
+                "format": "uri",
+                "description": "Link to the tracking ticket (Jira, Linear, GitHub Issue)"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["open", "in_progress", "done", "wont_do"],
+                "description": "Current status of the action item"
+              }
+            }
+          },
+          "minItems": 1,
+          "description": "Concrete follow-up actions with owners and due dates"
+        }
+      }
+    },
+    "communication": {
+      "type": "object",
+      "properties": {
+        "status_page_updated": {
+          "type": "boolean",
+          "description": "Whether the public status page was updated"
+        },
+        "stakeholders_notified": {
+          "type": "boolean",
+          "description": "Whether stakeholders were notified per the cadence"
+        },
+        "updates_sent": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of status updates sent during the incident"
+        },
+        "channels_used": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Communication channels used (Slack, email, status page, etc.)"
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "time_to_detect_minutes": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Minutes from issue start to first alert"
+        },
+        "time_to_acknowledge_minutes": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Minutes from first alert to human acknowledgment"
+        },
+        "time_to_mitigate_minutes": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Minutes from incident start to service restoration"
+        },
+        "time_to_resolve_minutes": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Minutes from incident start to permanent fix deployed"
+        },
+        "escalations": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of escalations during the incident"
+        }
+      }
+    }
+  }
+}

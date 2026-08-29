@@ -1,0 +1,187 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "skills-reasoning"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1425fbf9fd53eaf6c5b73006293d5c2aab50d62f7de4bc289b9417663e9ab3e9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "agents-md-creator/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dbcb63c2f678966b2de30c1fa5e186c3312f59df71c01fa20481afacdbc89a1f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "investigate/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "db7432a23ba94a34056844043c0255ccb22e3e16eabfc2ff591574a0c32ec34f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "karpathy-guidelines/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "20592a9d25b54dcf54f3f2992155eaf4d57fa09dca132b1003947f4fdb5aabf4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "c1f6e5323a16fc3244f79bcd2b97b184051c2b4779b90c4e5b78b11372d67163"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "solid/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5412ae153013ad3ca5cd318b0223c79abc945feea99cd0d12d73f9282aaa82d6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "solid/references/architecture.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "237e0a1e696410ca44aa42772ff6255374b1cfe15cc5411cec26b39e055de7fc"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "solid/references/clean-code.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4fdfef040e9dfecb35daed02948f23c2f8842ec061989deb7eb6ff1ff9ac7a3f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "solid/references/code-smells.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "311d15ba807da53e42714aa3d6ebe53fe49846a2c7ec4e6873f491d139f3f172"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "solid/references/complexity.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0fb844d1186854871dffe185e1e11172e5a054255847939f95c356baa9a6d30b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "solid/references/design-patterns.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3da4c429570f0b65f110515abfc75ac2e757a935aa5b04f9cfd7c2f0a42a83ae"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "solid/references/object-design.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b111d2929dda748547ae0f36fe6c804c67f903dde2edfb4a46cd5b29ef6c5cc6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "solid/references/solid-principles.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "072a9ab259a63b1c018d857f800ff3c3d146704e2cde827e7ec52759887db37c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "solid/references/tdd.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3d8ba447496e8cb11ef7bf06b00eb34b3a89da78cc9f02d3ac0519698086fc12"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "solid/references/testing.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "07a8c2030bd29ffd7a3e96dfc763efcbd8efb08b2cd724f73e6501837fd24477"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "sources.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1d730a147c9cc0444309c0ff5b4a3f61caab5a4cc45b554bdb8de719a58b70d6"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+skill: aiagents-agent-fit-and-model-choice
+# CP3.5 routing evals. Positives = realistic coding-session phrasings (RU+EN) for the
+# sub-decisions this skill owns: is-an-agent-warranted, first-task scoping, model axes,
+# hybrid routing, local-GPU feasibility, framework pick.
+# Written as a developer would type them — deliberately NOT quoting the skill description.
+positives:
+  - "Заказчик хочет «сделайте нам ИИ-агента для обработки заявок». По-моему тут хватит скрипта с правилами — как обосновать?"
+  - "We're about to build an autonomous agent for invoice processing, but honestly a state machine might do the job. How do I decide which level to build at?"
+  - "Бюджет на инференс режут вдвое. Есть смысл посадить рутину на маленькую модель, а сложные шаги оставить топовой?"
+  - "У нас одна RTX 4090 на команду. Влезет ли туда модель, на которой агент будет работать сносно, или сразу идти в облако?"
+  - "Юристы против отправки данных наружу. Как это меняет выбор — открытые веса на своём железе или хостед API?"
+  - "Это первый агент в компании. Как понять, что мы дали ему слишком широкую задачу и он не вывезет?"
+  - "The team is arguing between LangGraph and a homegrown loop. What criteria actually matter when picking the agent framework?"
+  - "Мы платим за флагман, а половина запросов — это «переформулируй письмо». Стоит городить двухуровневую схему?"
+  - "How do I justify to my manager that retrieval over our docs solves this and we don't need a full autonomous agent?"
+  - "Сравниваем две модели: одна на три пункта лучше на бенчмарке, но втрое дороже. Как считать цену за единицу качества?"
+# Seam-level adversarial positives (round 2): prompts that sit on the boundary with a
+# sibling and are still legitimately owned by THIS skill.
+  - "У нас пайплайн из четырёх шагов, три детерминированных и один творческий. Городить агента ради одного шага?"
+  - "Модель на семь миллиардов не тянет наши инструкции, а семидесяти-миллиардная не влезает в бюджет. Куда двигаться?"
+  - "Хотим посадить классификацию на дешёвую модель, а генерацию оставить дорогой. Насколько это вообще рабочая схема?"
+# Hard negatives: each maps to a NOT-clause in this skill's description that names a REAL
+# catalog skill. This skill must NOT win them.
+negatives:
+  - prompt: "Один агент или три специализированных на наш пайплайн обработки документов?"
+    should_activate: "aiagents-single-vs-multi-agent"
+  - prompt: "Какой сейчас идентификатор модели Opus в Anthropic API и сколько стоит миллион входных токенов?"
+    should_activate: "claude-api"
+  - prompt: "Хочу сделать «что-нибудь с ИИ» для отдела продаж, сам ещё не понимаю что именно. Помоги разложить задачу."
+    should_activate: "explore"
+  - prompt: "Дообучать модель под наш домен или хватит примеров в промпте?"
+    should_activate: "aiagents-learning-strategy"
+  - prompt: "Какие барьеры поставить, чтобы автономный агент не выполнил разрушительное действие над продовыми данными?"
+    should_activate: "aiagents-agent-security"
+# Soft boundaries: NOT-clauses pointing at second-wave clusters that have NO owner in the
+# catalog yet (T15 product UX, T16 adoption/compliance). Reported, but excluded from the
+# gate arithmetic — there is no correct skill to route to.
+# WAVE-2 PROMOTION: these were soft_negatives while their cluster had no owner.
+# Wave 2 distilled that owner, so each is now a HARD negative against the new sibling.
+  - prompt: "Каким должен быть интерфейс агента — чат в вебе, кнопка внутри CRM или голос?"
+    should_activate: "aiagents-agent-ux"
+  - prompt: "Как выстроить программу внедрения агентов в компании — полномочия, комплаенс, обучение сотрудников?"
+    should_activate: "aiagents-org-adoption-and-governance"

@@ -1,0 +1,267 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "skills-ecc"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b2351ac8f96594d1ea845290a442695b0abe04e09c2c087d5381ae8ea0dd22e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "agent-architecture-audit/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3f2983f0456526dc7288e5b1b03a30d83985dc5a25ace3276748b2e72fe237cb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "agent-eval/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5897fea9692ea74d1a003060344c135330e18ec036f4f121ba19ce2f2928f423"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "agentic-engineering/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6911ee977a03b5d201cca85e365214bc380114715624fac027826e6e5b52f9ea"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "ai-regression-testing/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b847c68445da7897a253e6dc79cc039aaba90d186feb29c79fa3b63e8034455a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "architecture-decision-records/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "af70528b261e55b654303244c8aa9f3bf249cd67940b81a067cfb1c9c1b51c45"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "autonomous-loops/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "48f5c614872fa21daef4a127ac011d9064b934be64f3a760ff3bbcecc11af811"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "backend-patterns/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4c3b678b258768d3ad3e8338032ec78c3b9b27d23d186fdb544e4037867fcc17"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "benchmark-optimization-loop/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2a7681a3b41bcb7f3f2769c0f03b791847224f5251dae323ef9128fd9eb99255"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "brand-voice/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4f6896e25425635b8d3708bdfd01a799e6b47c1bcf00e90bb3cfb8eeeb9a1886"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "brand-voice/references/voice-profile-schema.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3c5c2b04fd4b68642d2d3279829541bc56d211fdefc3498e86c1486abee8261b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "browser-qa/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e67b9f246e85be743fa7357aa0436b7e31f14e9ddd4f531c8a1b1ae898548b41"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "canary-watch/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8dbfb5c487755b92c45f9a3254ac8622fd3645f54eb26dd98848361a423636fe"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "continuous-agent-loop/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "155a4c2a4d6bd9855c88fb30601cfe7ad1e4d253b1741a9862423821ee76a125"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "data-scraper-agent/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "52532647aaa613cd50cc18acb34c10fbf7538088376d60a270b8be94c9eff9dc"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "django-tdd/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "38e6347c059a1772e91b779c6cf1fdcc8a7beadaa41f3133ca8ee88df77205e0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "docker-patterns/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "77ff10a8042bcefb82ebc41c07bbd7eec93a2150602b85cbea43d1bf14234c6b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "e2e-testing/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "abd8893cc658f15ea9bc3f130a7830bf3ab4ea30814d843681068386176f8b9c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "enterprise-agent-ops/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b1b0deaff0d87bd75d9bf332826d3fda45a3e564c91e88328cd3cee6f8978284"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fastapi-patterns/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "82ea394b04bf6eae33b799828bbea977fb39ec626a785e8b6e14eb8b5805f86a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "flutter-dart-code-review/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "baa98b2efb71a11426d485f24c87416aeb12b2f97e9187d96a0f83941c50b6d4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "git-workflow/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2f2210d4e7d21195ee1193722a4e02ecb46a50e25626645f96d9a4b77cef56dd"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "bc0a9cc09bd09f4ef800a517ad57b43c875dca5ab1c5053eaef6f5ccaf286ab9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "sources.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7a911a61e944715a49f51aed65d85c5d78ec41a11ee774521296d5a17d2ead14"
+        }
+      ]
+    }
+  ]
+}

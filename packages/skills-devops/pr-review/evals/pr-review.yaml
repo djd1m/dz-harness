@@ -1,0 +1,47 @@
+# pr-review evaluation
+# Run: aqe eval pr-review
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run pr-review"
+    expected:
+      status: success
+      summary_contains: "pr-review"
+
+  - name: "review by PR number"
+    input: "Review PR #42 in the current repository"
+    expected:
+      status: success
+      has_fields:
+        - summary
+        - verdict
+        - findings
+
+  - name: "review by URL"
+    input: "Review https://github.com/example/repo/pull/123"
+    expected:
+      status: success
+      has_fields:
+        - summary
+        - verdict
+
+  - name: "branch comparison"
+    input: "Compare feature/auth against main and review the diff"
+    expected:
+      status: success
+      has_fields:
+        - summary
+        - stats
+
+  - name: "large PR split recommendation"
+    input: "Review this PR that changes 45 files and 1200 lines"
+    expected:
+      status: success
+      has_fields:
+        - split_recommendation
+
+  - name: "severity grouping"
+    input: "Review PR #10 and group issues by severity"
+    expected:
+      status: success
+      findings_grouped_by: severity

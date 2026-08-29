@@ -1,0 +1,13 @@
+{
+  "_note": "ADR-0002 Phase B. The design-taste-frontend skill is IMPORTED (MIT) from github.com/Leonxlnx/taste-skill (skills/taste-skill/SKILL.md). Curation (2026-06-29): of the upstream's 14 skills, kept ONLY the core design-taste-frontend; dropped aesthetic variants (minimalist/brutalist/soft — folded into its dials + frontend-design tones), redesign-skill (folded into its audit-first mode), gpt-tasteskill + taste-skill-v1 (platform/old), image-to-code (overlaps clone-website); deferred stitch-skill to ADR-0002 Phase C (it generates DESIGN.md). Body verbatim; only trust_tier frontmatter added. COMPLEMENTS @dzhechkov/skills-feature-adr's frontend-design (general UI) — this one is scoped to landing pages / portfolios / redesigns. dz sync-upstream skips this (no top-level origin block).",
+  "upstream": "https://github.com/Leonxlnx/taste-skill",
+  "license": "MIT",
+  "attribution": "Leonxlnx — taste-skill (MIT)",
+  "skills": {
+    "design-taste-frontend": {
+      "origin": "imported",
+      "upstream_path": "skills/taste-skill/SKILL.md",
+      "complements": "frontend-design (@dzhechkov/skills-feature-adr) — general UI; this is landing/portfolio/redesign-scoped"
+    }
+  }
+}

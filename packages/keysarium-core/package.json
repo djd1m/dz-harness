@@ -1,0 +1,52 @@
+{
+  "name": "@dzhechkov/keysarium-core",
+  "version": "1.1.26",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "description": "Core framework for multi-agent pipelines: governance, memory, orchestration, verification, trust tiers, and multi-platform support",
+  "main": "index.md",
+  "files": [
+    "index.md",
+    "governance/",
+    "memory/",
+    "orchestration/",
+    "verification/",
+    "trust-tiers/",
+    "platform/",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai",
+    "multi-agent",
+    "pipeline",
+    "framework",
+    "governance",
+    "orchestration",
+    "verification",
+    "trust-tiers",
+    "memory",
+    "reward-learning",
+    "keysarium-core"
+  ],
+  "author": "dzhechko",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/keysarium-core"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/keysarium-core#readme",
+  "bugs": {
+    "url": "https://github.com/dzhechko/product-keysarium-2026/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

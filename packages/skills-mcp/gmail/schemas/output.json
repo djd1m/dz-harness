@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "gmail skill output",
+  "description": "Validates output from Gmail MCP tool calls",
+  "type": "object",
+  "properties": {
+    "tool": {
+      "type": "string",
+      "enum": [
+        "gmail_search",
+        "gmail_get",
+        "gmail_send",
+        "gmail_draft",
+        "gmail_label",
+        "gmail_forward",
+        "gmail_autoreply",
+        "gmail_bulk"
+      ],
+      "description": "The Gmail tool that was invoked"
+    },
+    "messages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "thread_id": { "type": "string" },
+          "subject": { "type": "string" },
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "date": { "type": "string", "format": "date-time" },
+          "snippet": { "type": "string" },
+          "body_text": { "type": "string" },
+          "body_html": { "type": "string" },
+          "labels": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "has_attachments": { "type": "boolean" },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "filename": { "type": "string" },
+                "mime_type": { "type": "string" },
+                "size": { "type": "integer" }
+              },
+              "required": ["filename"]
+            }
+          }
+        },
+        "required": ["id"]
+      }
+    },
+    "send_result": {
+      "type": "object",
+      "properties": {
+        "message_id": { "type": "string" },
+        "thread_id": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["sent", "draft_created", "queued"]
+        }
+      }
+    },
+    "bulk_result": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["archive", "delete", "mark_read", "mark_unread", "label"]
+        },
+        "affected_count": { "type": "integer", "minimum": 0 },
+        "label": { "type": "string" }
+      }
+    },
+    "label_result": {
+      "type": "object",
+      "properties": {
+        "message_id": { "type": "string" },
+        "added": { "type": "array", "items": { "type": "string" } },
+        "removed": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+  "required": ["tool"]
+}

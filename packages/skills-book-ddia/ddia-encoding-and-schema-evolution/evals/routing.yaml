@@ -1,0 +1,30 @@
+skill: ddia-encoding-and-schema-evolution
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+positives:
+  - "JSON или Protobuf для внутреннего RPC между нашими сервисами?"
+  - "Avro vs Thrift vs Protobuf for our Kafka + Hadoop pipeline — which binary format?"
+  - "безопасно ли добавить обязательное поле в сообщение при rolling deploy?"
+  - "can I rename a field in this protobuf message without breaking old consumers?"
+  - "какую compatibility нам нужно гарантировать для данных, идущих через брокер сообщений — backward, forward или обе?"
+  - "we're passing records through the DB during a rolling upgrade — do I need forward AND backward compatibility?"
+  - "how should an Avro reader get the writer's schema — embed it, schema registry, or handshake?"
+  - "textual JSON или binary schema-based формат для публичного API наружу?"
+  - "is it safe to remove this optional field and reuse its tag number in Thrift?"
+  - "выбираю формат сериализации для тела сообщения в очереди — что взять?"
+# Hard negatives: prompts that belong to a SIBLING or an existing arsenal skill — this skill must NOT
+# win them. For each, name which skill SHOULD activate.
+negatives:
+  - prompt: "Kafka или RabbitMQ для нашего пайплайна, и batch или stream обработка джойнов?"
+    should_activate: "ddia-batch-and-stream-processing"
+  - prompt: "single vs multi-leader replication — и в каком порядке катить версии по нодам при rolling upgrade?"
+    should_activate: "ddia-replication-topology-choice"
+  - prompt: "RPC call timed out with unknown outcome — is a blind retry safe or do we need idempotency/exactly-once?"
+    should_activate: "ddia-distributed-consistency-consensus"
+  - prompt: "документная или реляционная БД для этого сервиса, нормализовать или встроить схему?"
+    should_activate: "ddia-data-model-selection"
+  - prompt: "LSM или B-дерево, и строчное vs столбцовое хранилище под этот workload?"
+    should_activate: "ddia-storage-engine-tradeoffs"
+  - prompt: "нужно накатить изменение схемы Postgres без даунтайма — expand/contract миграция и rollback план"
+    should_activate: "database-migration"
+  - prompt: "design the REST API versioning strategy, error contract and pagination for our public endpoints"
+    should_activate: "api-design"

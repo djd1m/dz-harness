@@ -1,0 +1,181 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QuotientSkillOutput",
+  "description": "Output schema for Quotient market intelligence API with x402 micropayments",
+  "type": "object",
+  "required": ["endpoint", "result"],
+  "properties": {
+    "endpoint": {
+      "type": "string",
+      "enum": [
+        "markets",
+        "markets_mispriced",
+        "markets_lookup",
+        "intelligence",
+        "signals",
+        "pricing",
+        "openapi"
+      ],
+      "description": "The Quotient API endpoint called"
+    },
+    "result": {
+      "type": "object",
+      "properties": {
+        "success": { "type": "boolean" },
+        "data": {
+          "oneOf": [
+            { "$ref": "#/definitions/MarketsResult" },
+            { "$ref": "#/definitions/MispricedResult" },
+            { "$ref": "#/definitions/IntelligenceResult" },
+            { "$ref": "#/definitions/SignalsResult" },
+            { "$ref": "#/definitions/PricingResult" }
+          ]
+        },
+        "payment": {
+          "$ref": "#/definitions/PaymentInfo"
+        },
+        "error": {
+          "type": "object",
+          "properties": {
+            "code": { "type": "integer" },
+            "message": { "type": "string" }
+          }
+        }
+      },
+      "required": ["success"]
+    }
+  },
+  "definitions": {
+    "MarketsResult": {
+      "type": "object",
+      "properties": {
+        "markets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "category": { "type": "string" },
+              "status": { "type": "string", "enum": ["active", "paused", "delisted"] },
+              "currentPrice": { "type": "number" },
+              "volume24h": { "type": "number" },
+              "marketCap": { "type": "number" },
+              "sentiment": { "type": "number", "minimum": 0, "maximum": 1 },
+              "lastUpdated": { "type": "string", "format": "date-time" }
+            },
+            "required": ["id", "name", "currentPrice"]
+          }
+        },
+        "pagination": {
+          "type": "object",
+          "properties": {
+            "total": { "type": "integer" },
+            "limit": { "type": "integer" },
+            "offset": { "type": "integer" },
+            "hasMore": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "MispricedResult": {
+      "type": "object",
+      "properties": {
+        "mispriced": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "market": { "type": "string" },
+              "name": { "type": "string" },
+              "currentPrice": { "type": "number" },
+              "fairValue": { "type": "number" },
+              "deviation": { "type": "number", "description": "Negative = undervalued, positive = overvalued" },
+              "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+              "signal": { "type": "string", "enum": ["undervalued", "overvalued", "fair"] },
+              "factors": { "type": "array", "items": { "type": "string" } },
+              "updatedAt": { "type": "string", "format": "date-time" }
+            },
+            "required": ["market", "currentPrice", "fairValue", "deviation", "signal"]
+          }
+        }
+      }
+    },
+    "IntelligenceResult": {
+      "type": "object",
+      "properties": {
+        "intelligence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "topic": { "type": "string" },
+              "title": { "type": "string" },
+              "summary": { "type": "string" },
+              "relevance": { "type": "number", "minimum": 0, "maximum": 1 },
+              "sources": { "type": "array", "items": { "type": "string" } },
+              "markets_affected": { "type": "array", "items": { "type": "string" } },
+              "publishedAt": { "type": "string", "format": "date-time" }
+            },
+            "required": ["id", "title", "summary"]
+          }
+        }
+      }
+    },
+    "SignalsResult": {
+      "type": "object",
+      "properties": {
+        "signals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "market": { "type": "string" },
+              "type": { "type": "string", "enum": ["buy", "sell", "hold"] },
+              "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+              "analyst": { "type": "string" },
+              "priceTarget": { "type": "number" },
+              "currentPrice": { "type": "number" },
+              "timeframe": { "type": "string" },
+              "rationale": { "type": "string" },
+              "createdAt": { "type": "string", "format": "date-time" }
+            },
+            "required": ["id", "market", "type", "confidence"]
+          }
+        }
+      }
+    },
+    "PricingResult": {
+      "type": "object",
+      "properties": {
+        "endpoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": { "type": "string" },
+              "method": { "type": "string" },
+              "price": { "type": "string" },
+              "token": { "type": "string" }
+            },
+            "required": ["path", "price"]
+          }
+        },
+        "network": { "type": "string" },
+        "token": { "type": "string" }
+      }
+    },
+    "PaymentInfo": {
+      "type": "object",
+      "properties": {
+        "amount": { "type": "string" },
+        "token": { "type": "string" },
+        "txHash": { "type": "string" },
+        "confirmed": { "type": "boolean" },
+        "network": { "type": "string" }
+      }
+    }
+  }
+}

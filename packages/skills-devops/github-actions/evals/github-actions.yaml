@@ -1,0 +1,176 @@
+# github-actions evaluation
+# Run: aqe eval github-actions
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run github-actions"
+    expected:
+      status: success
+      summary_contains: "workflow"
+
+  - name: "new CI workflow for Node.js"
+    input: "Create a GitHub Actions CI workflow for a Node.js 22 project using pnpm. It should lint, test, and build on every PR."
+    expected:
+      status: success
+      scope: "new_workflow"
+      trigger_types_contains: "pull_request"
+      runner_type: "ubuntu-latest"
+      caching_strategy_method: "setup-action-builtin"
+      concurrency_config_group_defined: true
+      permissions_declared_workflow_level: true
+      self_check_passed_gte: 10
+
+  - name: "matrix build setup"
+    input: "Set up a matrix build that tests on Ubuntu, macOS, and Windows with Node 18, 20, and 22."
+    expected:
+      status: success
+      scope: "matrix_builds"
+      matrix_config_dimensions_contains_any:
+        - "os"
+        - "node"
+      matrix_config_total_combinations_gte: 9
+      matrix_config_fail_fast: false
+
+  - name: "security review catches unpinned actions"
+    input: |
+      Review this workflow for security:
+      steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-node@v4
+        - run: echo "${{ secrets.API_KEY }}"
+    expected:
+      status: success
+      scope: "security_hardening"
+      security_findings_min_count: 2
+      anti_patterns_contains_any:
+        - "pin"
+        - "SHA"
+        - "secret"
+        - "log"
+
+  - name: "caching strategy for Python"
+    input: "How should I cache pip dependencies in GitHub Actions? I have requirements.txt and requirements-dev.txt."
+    expected:
+      status: success
+      scope: "caching"
+      caching_strategy_cache_keys_use_hashfiles: true
+      caching_strategy_restore_keys_defined: true
+      summary_contains_any:
+        - "pip"
+        - "cache"
+        - "hashFiles"
+
+  - name: "release workflow with npm publish"
+    input: "Create a release workflow that triggers on version tags (v*), builds, tests, publishes to npm with provenance, and creates a GitHub release."
+    expected:
+      status: success
+      scope: "release_pipeline"
+      trigger_types_contains: "push"
+      secrets_config_secrets_passed_via_env: true
+      files_created_min_count: 1
+      summary_contains_any:
+        - "release"
+        - "publish"
+        - "npm"
+
+  - name: "reusable workflow design"
+    input: "Factor our CI steps (checkout, setup Node, install, test) into a reusable workflow that multiple repos can call."
+    expected:
+      status: success
+      scope: "reusable_workflows"
+      reusable_workflow_type: "workflow_call"
+      reusable_workflow_inputs_defined_min_count: 1
+      summary_contains_any:
+        - "reusable"
+        - "workflow_call"
+
+  - name: "OIDC for AWS deployment"
+    input: "Set up GitHub Actions to deploy to AWS S3 without storing access keys. Use OIDC."
+    expected:
+      status: success
+      scope: "secrets_config"
+      secrets_config_uses_oidc: true
+      secrets_config_cloud_provider: "aws"
+      permissions_declared_scopes_contains: "id-token:write"
+
+  - name: "PR workflow missing concurrency"
+    input: |
+      Review this PR workflow:
+      name: PR
+      on: pull_request
+      jobs:
+        test:
+          runs-on: ubuntu-latest
+          permissions: write-all
+          steps:
+            - uses: actions/checkout@v4
+            - run: npm test
+    expected:
+      status: success
+      scope: "workflow_review"
+      anti_patterns_contains_any:
+        - "concurrency"
+        - "permissions"
+        - "write-all"
+        - "pin"
+      security_findings_min_count: 2
+
+  - name: "scheduled maintenance job"
+    input: "Create a scheduled workflow that runs every Monday to close stale issues and run npm audit."
+    expected:
+      status: success
+      scope: "scheduled_jobs"
+      trigger_types_contains: "schedule"
+      summary_contains_any:
+        - "schedule"
+        - "Monday"
+        - "stale"
+        - "audit"
+
+  - name: "artifact sharing between jobs"
+    input: "I need to build in one job and deploy the build output in another job. How do I share the files?"
+    expected:
+      status: success
+      scope: "artifacts"
+      actions_used_contains_action_any:
+        - "actions/upload-artifact"
+        - "actions/download-artifact"
+      summary_contains_any:
+        - "artifact"
+        - "upload"
+        - "download"
+
+  - name: "performance optimization"
+    input: "Our CI takes 25 minutes. We run lint, unit tests, integration tests, and e2e tests sequentially in one job. How can we speed it up?"
+    expected:
+      status: success
+      scope: "performance"
+      summary_contains_any:
+        - "parallel"
+        - "split"
+        - "concurrent"
+        - "cache"
+      next_steps_min_count: 2
+
+  - name: "shell injection detection"
+    input: |
+      Is this safe?
+      - run: echo "PR title is ${{ github.event.pull_request.title }}"
+    expected:
+      status: success
+      scope: "security_hardening"
+      security_findings_min_count: 1
+      anti_patterns_contains_any:
+        - "injection"
+        - "interpolat"
+        - "env"
+
+  - name: "composite action vs reusable workflow"
+    input: "Should I use a composite action or a reusable workflow to share our setup steps across repositories?"
+    expected:
+      status: success
+      scope: "reusable_workflows"
+      summary_contains_any:
+        - "composite"
+        - "reusable"
+        - "workflow_call"

@@ -1,0 +1,56 @@
+{
+  "name": "@dzhechkov/skills-mcp",
+  "version": "0.3.9",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
+    "test": "node --test tests/agentdb-skill-honesty.test.js"
+  },
+  "description": "Canonical MCP skill pack — 16 agentic skills wrapping top Model Context Protocol servers for search, email, productivity, analytics, and project management.",
+  "license": "MIT",
+  "author": "dzhechko",
+  "keywords": [
+    "agent-skills",
+    "agentskills.io",
+    "skill-pack",
+    "mcp",
+    "model-context-protocol",
+    "brave-search",
+    "gmail",
+    "exa",
+    "clickup",
+    "posthog",
+    "claude-code"
+  ],
+  "files": [
+    "brave-search",
+    "exa-search",
+    "gmail",
+    "google-sheets",
+    "google-calendar",
+    "google-tasks",
+    "clickup",
+    "reddit",
+    "jina-reader",
+    "agentdb-memory",
+    "comfyui",
+    "context7",
+    "git-mcp",
+    "gitlab",
+    "notion",
+    "obsidian",
+    "README.md",
+    "LICENSE",
+    "sources.json",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/skills-mcp"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-mcp#readme"
+}

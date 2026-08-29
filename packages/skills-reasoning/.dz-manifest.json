@@ -1,0 +1,77 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "skills-reasoning",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "1425fbf9fd53eaf6c5b73006293d5c2aab50d62f7de4bc289b9417663e9ab3e9"
+      },
+      {
+        "path": "agents-md-creator/SKILL.md",
+        "sha256": "dbcb63c2f678966b2de30c1fa5e186c3312f59df71c01fa20481afacdbc89a1f"
+      },
+      {
+        "path": "investigate/SKILL.md",
+        "sha256": "db7432a23ba94a34056844043c0255ccb22e3e16eabfc2ff591574a0c32ec34f"
+      },
+      {
+        "path": "karpathy-guidelines/SKILL.md",
+        "sha256": "20592a9d25b54dcf54f3f2992155eaf4d57fa09dca132b1003947f4fdb5aabf4"
+      },
+      {
+        "path": "package.json",
+        "sha256": "c1f6e5323a16fc3244f79bcd2b97b184051c2b4779b90c4e5b78b11372d67163"
+      },
+      {
+        "path": "solid/SKILL.md",
+        "sha256": "5412ae153013ad3ca5cd318b0223c79abc945feea99cd0d12d73f9282aaa82d6"
+      },
+      {
+        "path": "solid/references/architecture.md",
+        "sha256": "237e0a1e696410ca44aa42772ff6255374b1cfe15cc5411cec26b39e055de7fc"
+      },
+      {
+        "path": "solid/references/clean-code.md",
+        "sha256": "4fdfef040e9dfecb35daed02948f23c2f8842ec061989deb7eb6ff1ff9ac7a3f"
+      },
+      {
+        "path": "solid/references/code-smells.md",
+        "sha256": "311d15ba807da53e42714aa3d6ebe53fe49846a2c7ec4e6873f491d139f3f172"
+      },
+      {
+        "path": "solid/references/complexity.md",
+        "sha256": "0fb844d1186854871dffe185e1e11172e5a054255847939f95c356baa9a6d30b"
+      },
+      {
+        "path": "solid/references/design-patterns.md",
+        "sha256": "3da4c429570f0b65f110515abfc75ac2e757a935aa5b04f9cfd7c2f0a42a83ae"
+      },
+      {
+        "path": "solid/references/object-design.md",
+        "sha256": "b111d2929dda748547ae0f36fe6c804c67f903dde2edfb4a46cd5b29ef6c5cc6"
+      },
+      {
+        "path": "solid/references/solid-principles.md",
+        "sha256": "072a9ab259a63b1c018d857f800ff3c3d146704e2cde827e7ec52759887db37c"
+      },
+      {
+        "path": "solid/references/tdd.md",
+        "sha256": "3d8ba447496e8cb11ef7bf06b00eb34b3a89da78cc9f02d3ac0519698086fc12"
+      },
+      {
+        "path": "solid/references/testing.md",
+        "sha256": "07a8c2030bd29ffd7a3e96dfc763efcbd8efb08b2cd724f73e6501837fd24477"
+      },
+      {
+        "path": "sources.json",
+        "sha256": "1d730a147c9cc0444309c0ff5b4a3f61caab5a4cc45b554bdb8de719a58b70d6"
+      }
+    ]
+  },
+  "signature": "IOU9LOc4qwgkJ2wAMkXSoPSf14nZC42QhwphQoLg6WLtTYUCi0M7H/SMgG1CqVIW5j3WiU+jPg8yZpAnKcMJBQ=="
+}

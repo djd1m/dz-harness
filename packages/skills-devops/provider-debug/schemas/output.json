@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ProviderDebugOutput",
+  "description": "Structured output for provider-debug skill",
+  "type": "object",
+  "required": ["provider", "error_classification", "diagnosis", "fix", "verification"],
+  "properties": {
+    "provider": {
+      "type": "object",
+      "required": ["name", "type"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Provider name (openai, anthropic, google, ollama, lm-studio, azure-openai, etc.)"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["cloud", "local", "proxy", "azure-hosted"]
+        },
+        "model": {
+          "type": "string",
+          "description": "Model identifier being used"
+        },
+        "endpoint": {
+          "type": "string",
+          "description": "API endpoint URL"
+        }
+      }
+    },
+    "error_classification": {
+      "type": "object",
+      "required": ["http_status", "category"],
+      "properties": {
+        "http_status": {
+          "type": ["integer", "null"],
+          "description": "HTTP status code, null if connection-level failure"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "authentication",
+            "authorization",
+            "model_not_found",
+            "invalid_request",
+            "rate_limit",
+            "connection_refused",
+            "timeout",
+            "ssl_error",
+            "empty_response",
+            "content_filter",
+            "context_length",
+            "configuration_error",
+            "provider_outage"
+          ]
+        },
+        "error_message": {
+          "type": "string"
+        },
+        "response_body": {
+          "type": "string"
+        }
+      }
+    },
+    "diagnosis": {
+      "type": "object",
+      "required": ["root_cause", "layer"],
+      "properties": {
+        "root_cause": {
+          "type": "string",
+          "description": "What is actually wrong"
+        },
+        "layer": {
+          "type": "string",
+          "enum": ["network", "authentication", "configuration", "provider", "application"],
+          "description": "Which layer the problem lives in"
+        },
+        "config_checked": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Config files and env vars inspected"
+        }
+      }
+    },
+    "fix": {
+      "type": "object",
+      "required": ["description", "steps"],
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "steps": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "config_changes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "file": { "type": "string" },
+              "change": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "required": ["command", "expected_result"],
+      "properties": {
+        "command": {
+          "type": "string",
+          "description": "Command to verify the fix works"
+        },
+        "expected_result": {
+          "type": "string",
+          "description": "What success looks like"
+        },
+        "status_page": {
+          "type": "string",
+          "description": "Provider status page URL"
+        }
+      }
+    }
+  }
+}

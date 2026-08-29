@@ -1,0 +1,93 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "loop-designer-plugin",
+    "files": [
+      {
+        "path": ".claude-plugin/marketplace.json",
+        "sha256": "abe08315cf78508304330a5eb518f65e68f1bdfdfbcc9ddde14f0a4e995cfc72"
+      },
+      {
+        "path": ".claude-plugin/plugin.json",
+        "sha256": "cae2852bcc41d5f73fbc2098840c87d3f692270de1b644cfd110b1c5857dc3d2"
+      },
+      {
+        "path": ".codex-plugin/plugin.json",
+        "sha256": "93b736e237d579eb2d9500ce8d35cf5e6c8144abeeac06c0b2abe0cc7b31b503"
+      },
+      {
+        "path": ".codex-plugin/skills/loop-plan-author/SKILL.md",
+        "sha256": "45d2377b281d69f44424e67736e09be10a754e638fbd9ae48c2fb0eb8f2b0d32"
+      },
+      {
+        "path": ".codex-plugin/skills/loop-plan-author/references/loop-plan-1-schema.md",
+        "sha256": "a9cc720e0855cc0318286a1007a34c8a59ee012a17ffcc383a22c11dbee13c8b"
+      },
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "879d70d10865809ecd0d6f212d062b78b921e349f59ceb66b996f945e1e746e5"
+      },
+      {
+        "path": "bin/loop-designer.js",
+        "sha256": "c3a28a70c9b4b2a75945bb0279637f36a6ba4e1a4f5a5d7240949fd41f2283f1"
+      },
+      {
+        "path": "commands/init.md",
+        "sha256": "f4eebad267e3e2a774f8ce546e8bd0efca9269bdeed2069437e6e23adbadfbca"
+      },
+      {
+        "path": "commands/lint.md",
+        "sha256": "1654375d0737297329822cf22529273222e36bc11d062cfeed2a8cdf42b6be0a"
+      },
+      {
+        "path": "commands/render.md",
+        "sha256": "0bb5ed7d154064bd396e7d1dc338a54f43eaf31718563777aa426d779ca0e5af"
+      },
+      {
+        "path": "commands/trace.md",
+        "sha256": "4041bf988d3347a16d84ce7562ce8bbd2fa6f641ec0654a9a7f78f37a4ccbe9d"
+      },
+      {
+        "path": "commands/validate.md",
+        "sha256": "fc73a3871892f9e6cf869c4b38406680f4485beee98c1e0a9e5627609b3c5edc"
+      },
+      {
+        "path": "lib/compat.js",
+        "sha256": "c318ab1e784ad6c9b8feda3967f2bf1cb61f0a42463300e68b2b264c3f1f90ae"
+      },
+      {
+        "path": "lib/install-bare.js",
+        "sha256": "a3ead340009e05fe65c5ad789604bf0912f6c378fd08b5130b9e553e98254c40"
+      },
+      {
+        "path": "lib/l2-receipt.js",
+        "sha256": "30e68af5e26c96f9cd5e48b18c97f10f38eb52288b256bcd565e96cfd5bddd83"
+      },
+      {
+        "path": "lib/resolve-dz.js",
+        "sha256": "62944bb533b8997feb5320d5f2e804f86fb7e637064803465a874850ce9f3183"
+      },
+      {
+        "path": "lib/run-verb.js",
+        "sha256": "25f266b59d52a883308cffa2c7acc37e3caf822cb7ecd2d5188ceedf8d909bc3"
+      },
+      {
+        "path": "package.json",
+        "sha256": "d803f4f8310b9bd81472c90920a7e786155e3ec3e4fe4c4975eeb64d28b6f3c8"
+      },
+      {
+        "path": "skills/loop-plan-author/SKILL.md",
+        "sha256": "45d2377b281d69f44424e67736e09be10a754e638fbd9ae48c2fb0eb8f2b0d32"
+      },
+      {
+        "path": "skills/loop-plan-author/references/loop-plan-1-schema.md",
+        "sha256": "a9cc720e0855cc0318286a1007a34c8a59ee012a17ffcc383a22c11dbee13c8b"
+      }
+    ]
+  },
+  "signature": "IJo7bCMFPVRdsPIZljc/dDb712GLNT/Y0wPdi9E6VQaJyi73BzK00KTblC0LtSylzqpJA/GH522Ft33ecOqyDA=="
+}

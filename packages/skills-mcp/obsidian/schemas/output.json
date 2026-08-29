@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "obsidian skill output",
+  "description": "Validates output from Obsidian MCP tool calls",
+  "type": "object",
+  "properties": {
+    "tool": {
+      "type": "string",
+      "enum": [
+        "read_note",
+        "write_note",
+        "search_notes",
+        "edit_note",
+        "list_tags",
+        "update_frontmatter",
+        "list_notes",
+        "get_vault_info"
+      ],
+      "description": "The Obsidian MCP tool that was invoked"
+    },
+    "path": {
+      "type": "string",
+      "description": "Vault-relative path of the note"
+    },
+    "content": {
+      "type": "string",
+      "description": "Markdown content of the note (read/write operations)"
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" },
+          "matches": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "context": { "type": "string" },
+                "match": { "type": "string" }
+              }
+            }
+          }
+        },
+        "required": ["path"]
+      },
+      "description": "Search results with matching notes and context"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tag": { "type": "string" },
+          "count": { "type": "integer", "minimum": 0 }
+        },
+        "required": ["tag", "count"]
+      },
+      "description": "Tag list with occurrence counts"
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" },
+          "name": { "type": "string" },
+          "size": { "type": "integer" }
+        },
+        "required": ["path"]
+      },
+      "description": "List of notes in a directory"
+    },
+    "vault": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "note_count": { "type": "integer", "minimum": 0 },
+        "tag_count": { "type": "integer", "minimum": 0 }
+      },
+      "description": "Vault metadata from get_vault_info"
+    },
+    "success": {
+      "type": "boolean",
+      "description": "Whether the operation completed successfully"
+    }
+  },
+  "required": ["tool"]
+}

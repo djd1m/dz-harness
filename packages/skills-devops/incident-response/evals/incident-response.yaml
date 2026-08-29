@@ -1,0 +1,169 @@
+# incident-response evaluation
+# Run: aqe eval incident-response
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run incident-response"
+    expected:
+      status: success
+      summary_contains: "incident-response"
+
+  - name: "severity classification — full outage"
+    input: "Our entire API is down, no users can log in or make requests. Classify this incident."
+    expected:
+      status: success
+      incident:
+        severity: "SEV1"
+
+  - name: "severity classification — partial degradation"
+    input: "Payment processing is failing for about 30% of users. Other features work fine."
+    expected:
+      status: success
+      incident:
+        severity: "SEV2"
+
+  - name: "severity classification — minor issue"
+    input: "Search results are stale by about 2 hours. Users can still search, just results are outdated."
+    expected:
+      status: success
+      incident:
+        severity: "SEV3"
+
+  - name: "severity classification — cosmetic"
+    input: "There is a typo on the 404 error page. It says 'Pge not found' instead of 'Page not found'."
+    expected:
+      status: success
+      incident:
+        severity: "SEV4"
+
+  - name: "full incident response with timeline"
+    input: "Production API returning 500 errors for 20% of requests since 14:00 UTC. We deployed version 2.3.1 at 13:55 UTC. Error rate is climbing."
+    config:
+      mode: "full"
+      infrastructure: "kubernetes"
+    expected:
+      status: success
+      incident:
+        severity_in: ["SEV1", "SEV2"]
+        status: "investigating"
+      timeline_not_empty: true
+      mitigation:
+        strategy_in: ["rollback", "feature_flag", "scale_up"]
+      postmortem:
+        action_items_min: 1
+        action_items_have_owners: true
+        action_items_have_due_dates: true
+
+  - name: "postmortem generation from context"
+    input: "Write a postmortem for yesterday's outage"
+    config:
+      mode: "postmortem_only"
+      incident_title: "Database connection pool exhaustion"
+      severity: "SEV1"
+      postmortem_context:
+        summary: "Database connection pool was exhausted causing all API requests to timeout for 2 hours"
+        root_cause: "A new background job was leaking database connections by not closing them in the finally block"
+        mitigation_applied: "Killed the background job process and restarted the API servers"
+        users_affected: 45000
+        revenue_impact_usd: 28000
+        timeline_notes:
+          - "09:00 Background job deployed"
+          - "09:45 First timeout alerts"
+          - "09:50 On-call acknowledged"
+          - "10:15 Identified connection leak"
+          - "10:20 Killed background job"
+          - "10:30 Restarted API servers"
+          - "10:45 Metrics recovered"
+          - "11:45 All-clear declared"
+    expected:
+      status: success
+      postmortem:
+        summary_contains: "connection"
+        what_went_well_not_empty: true
+        what_went_wrong_not_empty: true
+        action_items_min: 3
+        action_items_have_owners: true
+        action_items_have_due_dates: true
+      impact:
+        users_affected: 45000
+        revenue_impact_usd: 28000
+
+  - name: "triage mode with diagnostic guidance"
+    input: "CPU at 95% on 3 of 8 app servers, response times degraded. Help me triage."
+    config:
+      mode: "triage_only"
+      infrastructure: "kubernetes"
+      monitoring_stack: ["grafana", "prometheus"]
+    expected:
+      status: success
+      triage:
+        affected_systems_not_empty: true
+        suspected_cause_present: true
+
+  - name: "mitigation prioritized over root cause"
+    input: "Our payment provider is returning timeouts for all requests. Users can't check out."
+    config:
+      mode: "full"
+    expected:
+      status: success
+      mitigation:
+        strategy_in: ["circuit_breaker", "failover", "feature_flag", "static_fallback"]
+        effective_or_recommended: true
+      root_cause:
+        category: "dependency_failure"
+
+  - name: "communication templates included"
+    input: "We have a SEV1 incident. Generate communication templates for Slack and status page."
+    config:
+      include_templates: true
+      communication_channels: ["slack", "statuspage", "email"]
+    expected:
+      status: success
+      communication:
+        stakeholders_notified: true
+        channels_used_contains: ["slack", "statuspage", "email"]
+
+  - name: "action items have required fields"
+    input: "Generate a postmortem for an auth service outage that lasted 90 minutes. Root cause was an expired TLS certificate."
+    config:
+      mode: "postmortem_only"
+      incident_title: "Auth service outage — expired TLS certificate"
+      severity: "SEV1"
+      postmortem_context:
+        summary: "Auth service TLS certificate expired causing all login attempts to fail for 90 minutes"
+        root_cause: "TLS certificate expired, no automated renewal or alerting was in place"
+        mitigation_applied: "Manually renewed the certificate"
+        users_affected: 100000
+    expected:
+      status: success
+      postmortem:
+        action_items_min: 3
+        action_items_all_have:
+          - "action"
+          - "owner"
+          - "due_date"
+          - "priority"
+      root_cause:
+        category: "certificate_expiry"
+        five_whys_min: 3
+
+  - name: "blameless language enforcement"
+    input: "Write a postmortem. The junior developer pushed bad code to production without review."
+    config:
+      mode: "postmortem_only"
+      incident_title: "Unreviewed code push caused production outage"
+      postmortem_context:
+        summary: "A code change was pushed directly to production without code review, causing errors"
+        root_cause: "Code was pushed to main branch bypassing the PR process"
+    expected:
+      status: success
+      postmortem:
+        summary_not_contains: ["blame", "fault", "junior", "negligent", "careless"]
+        what_went_wrong_focuses_on_systems: true
+        action_items_focus_on_process: true
+
+  - name: "out of scope detection"
+    input: "Design a monitoring and alerting system for our microservices"
+    expected:
+      status: skipped
+      reason_contains: "out of scope"

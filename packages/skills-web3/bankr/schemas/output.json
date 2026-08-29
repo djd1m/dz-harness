@@ -1,0 +1,136 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BankrSkillOutput",
+  "description": "Output schema for Bankr AI trading agent platform skill",
+  "type": "object",
+  "required": ["namespace", "command", "result"],
+  "properties": {
+    "namespace": {
+      "type": "string",
+      "enum": ["wallet", "agent", "tokens", "llm", "profile", "api-key"],
+      "description": "The Bankr CLI namespace"
+    },
+    "command": {
+      "type": "string",
+      "description": "The specific command executed"
+    },
+    "result": {
+      "type": "object",
+      "properties": {
+        "success": { "type": "boolean" },
+        "data": {
+          "oneOf": [
+            { "$ref": "#/definitions/WalletResult" },
+            { "$ref": "#/definitions/AgentTaskResult" },
+            { "$ref": "#/definitions/TokenResult" },
+            { "$ref": "#/definitions/PortfolioResult" },
+            { "$ref": "#/definitions/DeployResult" }
+          ]
+        },
+        "error": {
+          "type": "object",
+          "properties": {
+            "code": { "type": "integer" },
+            "message": { "type": "string" }
+          }
+        }
+      },
+      "required": ["success"]
+    },
+    "chain": {
+      "type": "string",
+      "enum": ["base", "polygon", "ethereum", "solana", "unichain", "world-chain", "arbitrum", "bnb"],
+      "description": "Chain context for the operation"
+    }
+  },
+  "definitions": {
+    "WalletResult": {
+      "type": "object",
+      "properties": {
+        "address": { "type": "string" },
+        "chain": { "type": "string" },
+        "balances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "token": { "type": "string" },
+              "symbol": { "type": "string" },
+              "balance": { "type": "string" },
+              "valueUsd": { "type": "number" }
+            }
+          }
+        }
+      }
+    },
+    "AgentTaskResult": {
+      "type": "object",
+      "properties": {
+        "taskId": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "executing", "completed", "failed", "cancelled"] },
+        "type": { "type": "string", "enum": ["swap", "bridge", "limit", "stop-loss", "dca", "twap", "submit"] },
+        "txHash": { "type": "string" },
+        "result": {
+          "type": "object",
+          "properties": {
+            "inputAmount": { "type": "string" },
+            "outputAmount": { "type": "string" },
+            "inputToken": { "type": "string" },
+            "outputToken": { "type": "string" }
+          }
+        }
+      },
+      "required": ["taskId", "status"]
+    },
+    "TokenResult": {
+      "type": "object",
+      "properties": {
+        "tokens": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "address": { "type": "string" },
+              "name": { "type": "string" },
+              "symbol": { "type": "string" },
+              "decimals": { "type": "integer" },
+              "chain": { "type": "string" },
+              "priceUsd": { "type": "number" }
+            }
+          }
+        }
+      }
+    },
+    "PortfolioResult": {
+      "type": "object",
+      "properties": {
+        "totalValueUsd": { "type": "number" },
+        "pnl": {
+          "type": "object",
+          "properties": {
+            "totalPnlUsd": { "type": "number" },
+            "totalPnlPercent": { "type": "number" },
+            "unrealizedPnlUsd": { "type": "number" },
+            "realizedPnlUsd": { "type": "number" }
+          }
+        },
+        "positions": {
+          "type": "array",
+          "items": { "type": "object" }
+        }
+      }
+    },
+    "DeployResult": {
+      "type": "object",
+      "properties": {
+        "contractAddress": { "type": "string" },
+        "txHash": { "type": "string" },
+        "name": { "type": "string" },
+        "symbol": { "type": "string" },
+        "totalSupply": { "type": "string" },
+        "chain": { "type": "string" }
+      },
+      "required": ["contractAddress", "txHash"]
+    }
+  }
+}

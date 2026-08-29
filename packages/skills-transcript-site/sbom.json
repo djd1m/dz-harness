@@ -1,0 +1,247 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "skills-transcript-site"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ea740d8fd497ca3babb8f1daed2d40369365ad0f56eaacf08969533fc8b3f098"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "bin/cli.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a210174d6b63d053f7744757972d31acb0f4d9c59f8dacff7b62872a19ebd31a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "0d4f407e11d02a269cb03077ef36b11fa7dae9094f46d1b5330f9782efb77c3d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/cli.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bd674559f28e6885669a44dea1c7a9d1be45475badb57b8a75cb9d10450c2b69"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/doctor.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "420f2c317d9419f251d3267d407d03eda9665ba3d65d2ead8fb7d09a52cd360d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/init.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fb3d2aeea340032cb3003182434c4587aa77df2f99a590e2ab94578949727f8c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/list.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ce2fdee9cfe92f2a20557ceec7549743e1f31f1d9e8ef6a93369c88df83160fb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/remove.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d6f59d9fb35535d5f3425810d289b1319cf7e4a55960d0379d07bffae413b89c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/update.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "09f6e23d166be36d45afcae555c1a1f121386a5811999fc8726eccd9ea425b7f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/utils.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b945d68dd6603945fa69f9942e331a7309387e6caf2908b07f0813b015be2620"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7527d236cc90934b52975089f86f392b36edf2977cb7323c94921ce6c34678b6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/examples/sample-text-only-site.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8fe215548b4c87e138a50c6bb665f26dc6731c01636e6f0045f96d2a5014ff9c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/examples/sample-transcript-site.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "586f0630e37c4281b927398f89c6e2003e3840b9d5a59dcd8fd348a15f7a8190"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/modules/00-input-analysis.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "863b7cb219b74acef86fc94e38cb54004054db89214cdf7ff9f825c391e14149"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/modules/01-content-parsing.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d3ea9a128bbf89886e8851a4714c0d978cf421dbffaa7b1f80207f6ec6d6dccd"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/modules/02-site-generation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "39856f87c3d184b38a6f285740bbc97ccf86c5d649ded61f4a87ad47f22817a3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/modules/03-interactivity.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "89ee764e9746065029ef52bc80dbca22387be4ea100c894454534d8a326a936a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/modules/04-deploy.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "43d4c975182a4a91b1ff3d9490fb7a065011a309790b6e59f06141efa33267b2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/modules/05-verification.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c052c3c798fcfbf4cdc47065f731b163497ecc2f126a829702156976ada20de1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/references/component-catalog.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d2a9813a0636572911da4b31362ad47bc2396937ff05c5d488109149eeeac5b0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/references/data-schemas.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3557fdc2c1d2be442b3ba33517bba9aa67c4f15f8fc4b597cb119442b44d4bbb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/references/tech-stack.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d9f2eef05deac89c73b3b570f0354a564169d2e223c79d2496e63389c2bad61c"
+        }
+      ]
+    }
+  ]
+}

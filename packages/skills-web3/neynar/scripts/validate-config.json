@@ -1,0 +1,39 @@
+{
+  "name": "neynar-config-validator",
+  "description": "Validates Neynar Farcaster API configuration",
+  "rules": [
+    {
+      "field": "apiKey",
+      "required": true,
+      "type": "string",
+      "minLength": 20,
+      "envFallback": "NEYNAR_API_KEY",
+      "description": "Neynar API key from dev.neynar.com"
+    },
+    {
+      "field": "signerUuid",
+      "required": false,
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "description": "Signer UUID for write operations (posting, reactions, follows)"
+    },
+    {
+      "field": "baseUrl",
+      "required": false,
+      "type": "string",
+      "default": "https://api.neynar.com",
+      "pattern": "^https://",
+      "description": "Neynar API base URL"
+    }
+  ],
+  "requiredHeaders": [
+    {
+      "name": "x-api-key",
+      "source": "apiKey"
+    }
+  ],
+  "rateLimits": {
+    "free": { "requestsPerMinute": 300 },
+    "growth": { "requestsPerMinute": 1000 }
+  }
+}

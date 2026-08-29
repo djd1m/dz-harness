@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "comfyui output",
+  "description": "Structured output from the comfyui skill",
+  "type": "object",
+  "required": ["status", "summary"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "needs_more_info"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line summary of the generation result"
+    },
+    "server": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "ComfyUI server URL"
+        },
+        "connected": {
+          "type": "boolean"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "generation": {
+      "type": "object",
+      "properties": {
+        "workflow": {
+          "type": "string",
+          "description": "Workflow name or type used"
+        },
+        "model": {
+          "type": "string",
+          "description": "Checkpoint model used"
+        },
+        "prompt": {
+          "type": "string",
+          "description": "Positive prompt"
+        },
+        "negative_prompt": {
+          "type": "string",
+          "description": "Negative prompt"
+        },
+        "width": {
+          "type": "integer",
+          "multipleOf": 8
+        },
+        "height": {
+          "type": "integer",
+          "multipleOf": 8
+        },
+        "steps": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cfg_scale": {
+          "type": "number",
+          "minimum": 0
+        },
+        "sampler": {
+          "type": "string"
+        },
+        "seed": {
+          "type": "integer",
+          "description": "Seed used for generation (for reproducibility)"
+        }
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file_path": {
+            "type": "string",
+            "description": "Path to the generated image"
+          },
+          "format": {
+            "type": "string",
+            "enum": ["png", "jpg", "webp"]
+          },
+          "width": { "type": "integer" },
+          "height": { "type": "integer" }
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "properties": {
+        "duration_ms": {
+          "type": "integer",
+          "description": "Execution time in milliseconds"
+        },
+        "queue_position": {
+          "type": "integer"
+        },
+        "vram_used_mb": {
+          "type": "integer"
+        },
+        "vram_total_mb": {
+          "type": "integer"
+        }
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "node": { "type": "string" },
+          "message": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": ["oom", "missing_model", "node_error", "connection", "timeout"]
+          }
+        }
+      }
+    }
+  }
+}

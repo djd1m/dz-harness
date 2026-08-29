@@ -1,0 +1,40 @@
+skill: aiagents-release-gates-and-rollout
+# Positives cover: the promotable-or-not question, mechanism choice for a model swap, shadow,
+# canary share, live experiment design, the per-user-state trap, bandit vs fixed split, pilot
+# expansion, the revert path, and gate shape (block vs escalate).
+positives:
+  - "Завтра выкатываем новую версию агента. По каким признакам мы вообще имеем право сказать да?"
+  - "Меняем модель под планировщиком. Как довести это до живых пользователей, чтобы не собрать жалоб?"
+  - "Ops хочет гонять новую сборку рядом со старой и просто писать в журнал, что она ответила бы. Есть смысл?"
+  - "Скольким пользователям сначала показать новую версию — сотне или всем?"
+  - "The reworked prompt looks better on our test runs. How do I prove that on real users before it becomes the default?"
+  - "У нас агент держит переписку по каждому клиенту. Если половину клиентов перекинуть на вторую версию, что поедет?"
+  - "We have five candidate prompts and every conversation costs real money. A fixed even split feels wasteful."
+  - "Пилот на 50 сотрудниках прошёл нормально. Что должно быть верно, чтобы открыть доступ всей компании?"
+  - "If the new build starts behaving badly at 2am, what exactly is our way back?"
+  - "Какие проверки должны намертво стопорить выкатку, а какие просто звать человека принять решение?"
+# Seam-level positives — they speak a neighbour's vocabulary but ask THIS skill's question.
+  - "Панели по версиям у нас уже есть, latency и ошибки видно. При каком чтении этих панелей поднимать долю новой версии с 5 до 25 процентов?"
+  - "Есть прогоны и метрика полноты выбора инструментов. Какое значение по ней имеет право не пустить сборку дальше?"
+  - "Наш агент по замыслу спрашивает у пользователя подтверждение перед действием. Как тогда вообще прогнать его параллельно с боевым, чтобы пользователь ничего не заметил?"
+negatives:
+  - prompt: "Нужен набор тест-кейсов для агента и способ оценивать ответ там, где единственно верного варианта нет. Из чего его собирать?"
+    should_activate: "aiagents-evaluation-design"
+  - prompt: "Какой порог по P99 и по доле аномальных ответов должен поднимать оповещение у агента в проде, и куда его эскалировать?"
+    should_activate: "aiagents-observability-and-drift"
+  - prompt: "Канарейка показала просадку. Теперь надо понять, почему агент стал хуже выбирать инструмент, и что именно править."
+    should_activate: "aiagents-improvement-loops"
+  - prompt: "Кто в компании отвечает, если агент отправит клиенту неверный расчёт, и нужны ли ему собственные права в CRM под отдельной ролью?"
+    should_activate: "aiagents-org-adoption-and-governance"
+  - prompt: "С какой суммы заявки агент обязан останавливаться и спрашивать подтверждение у человека?"
+    should_activate: "aiagents-human-in-the-loop"
+  - prompt: "Агент на один и тот же по смыслу вопрос то делает обязательный шаг проверки, то пропускает его. Как это проверять, если ответ каждый раз разный?"
+    should_activate: "aiagents-probabilistic-behaviour-checks"
+  - prompt: "After the deploy, verify the /chat endpoint still streams, the JS bundle loads and there are no console errors on the page."
+    should_activate: "canary-watch"
+  - prompt: "Split test ran two weeks: 1240 conversions against 1190. Is that significant, or do we need a bigger sample?"
+    should_activate: "ab-test-analysis"
+  - prompt: "Set the pipeline up so the deploy job runs only after the test matrix passes on main, with the registry token pulled from secrets."
+    should_activate: "github-actions"
+  - prompt: "Прод лежит, каждый второй запрос отдаёт 500, клиенты пишут в чат. Что делаем прямо сейчас?"
+    should_activate: "incident-response"

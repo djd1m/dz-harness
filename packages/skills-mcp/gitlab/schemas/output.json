@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "gitlab output",
+  "description": "Structured output from the gitlab skill",
+  "type": "object",
+  "required": ["status", "summary", "operation"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "needs_more_info"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line summary of the GitLab operation result"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "list_projects", "get_project", "create_project",
+        "list_merge_requests", "create_merge_request", "merge_merge_request", "approve_merge_request",
+        "list_issues", "create_issue", "update_issue",
+        "list_pipelines", "get_pipeline", "retry_pipeline", "cancel_pipeline",
+        "list_wiki_pages", "create_wiki_page",
+        "create_release", "list_tags", "create_tag",
+        "list_milestones", "create_milestone"
+      ],
+      "description": "GitLab operation performed"
+    },
+    "project": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "path": { "type": "string" },
+        "name": { "type": "string" },
+        "url": { "type": "string" }
+      }
+    },
+    "merge_request": {
+      "type": "object",
+      "properties": {
+        "iid": { "type": "integer" },
+        "title": { "type": "string" },
+        "state": {
+          "type": "string",
+          "enum": ["opened", "merged", "closed"]
+        },
+        "source_branch": { "type": "string" },
+        "target_branch": { "type": "string" },
+        "url": { "type": "string" },
+        "author": { "type": "string" },
+        "assignees": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "labels": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "issue": {
+      "type": "object",
+      "properties": {
+        "iid": { "type": "integer" },
+        "title": { "type": "string" },
+        "state": {
+          "type": "string",
+          "enum": ["opened", "closed"]
+        },
+        "url": { "type": "string" },
+        "assignee": { "type": "string" },
+        "labels": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "milestone": { "type": "string" }
+      }
+    },
+    "pipeline": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "status": {
+          "type": "string",
+          "enum": ["created", "waiting_for_resource", "preparing", "pending", "running", "success", "failed", "canceled", "skipped", "manual", "scheduled"]
+        },
+        "ref": { "type": "string" },
+        "url": { "type": "string" },
+        "duration_seconds": { "type": "integer" },
+        "jobs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "status": { "type": "string" },
+              "stage": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "release": {
+      "type": "object",
+      "properties": {
+        "tag_name": { "type": "string" },
+        "name": { "type": "string" },
+        "url": { "type": "string" }
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "title": { "type": "string" },
+          "url": { "type": "string" }
+        }
+      },
+      "description": "List of items returned by list operations"
+    },
+    "items_count": {
+      "type": "integer",
+      "description": "Total count of items returned"
+    }
+  }
+}

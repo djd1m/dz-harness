@@ -1,0 +1,75 @@
+# answer-assessor evaluation
+# Run: aqe eval answer-assessor
+
+test_cases:
+  - name: "basic invocation"
+    input: "Оцени ответы студента на вопросы комиссии"
+    expected:
+      status: success
+      summary_contains: "answer-assessor"
+
+  - name: "confident answers - full scores"
+    input: "Транскрипт Q&A: Вопрос 1 (председатель): Почему выбрана именно эта архитектура? Ответ: Мы сравнили три подхода — микросервисы, монолит и serverless. В главе 3 представлены результаты бенчмарков, микросервисы показали на 40% лучшую масштабируемость. Вопрос 2: Как валидировали модель? Ответ: Использовали кросс-валидацию на 5 фолдах, F1-мера составила 0.87, что описано в разделе 4.2."
+    expected:
+      status: success
+      question_count: 2
+      answers:
+        - completeness: 3
+          depth: 3
+          thesis_link: 3
+      overall_impression: confident
+      grade_impact: raises
+
+  - name: "weak answers - no substance"
+    input: "Транскрипт Q&A: Вопрос: Какие ограничения у вашего подхода? Ответ: Ну... я это не рассматривал в работе. Вопрос: Как соотносятся ваши результаты с аналогами? Ответ: В целом, наши результаты лучше. Вопрос: Можете конкретизировать? Ответ: [пауза] Точные цифры не помню."
+    expected:
+      status: success
+      question_count: 3
+      overall_impression: does_not_command
+      grade_impact: lowers
+
+  - name: "closing remarks - all addressed"
+    input: "Заключительное слово: Хочу прокомментировать замечания. Руководитель отметил недостаточный объём эксперимента — согласен, в будущем планирую расширить выборку до 1000 респондентов. Рецензент указал на отсутствие сравнения с методом X — это справедливо, я изучил метод X после завершения работы и вижу перспективы интеграции. Планирую продолжить исследование в аспирантуре."
+    expected:
+      status: success
+      closing_remarks:
+        present: true
+        supervisor_remarks_addressed: true
+        reviewer_remarks_addressed: true
+        constructive_approach: true
+        future_plans_mentioned: true
+
+  - name: "closing remarks - missing reviewer response"
+    input: "Заключительное слово студента: Спасибо за вопросы. По замечанию руководителя о формулировках — я их исправил в финальной версии. На этом всё."
+    expected:
+      status: success
+      closing_remarks:
+        present: true
+        supervisor_remarks_addressed: true
+        reviewer_remarks_addressed: false
+        future_plans_mentioned: false
+
+  - name: "mixed quality answers"
+    input: "Транскрипт: Вопрос 1: Обоснуйте выбор метрики. Ответ: Мы выбрали RMSE, потому что в разделе 2.3 показано, что для задач регрессии это стандартная метрика, значение составило 0.12. Вопрос 2: Почему не использовали deep learning? Ответ: Ну, в общем, данных было мало... наверное можно было попробовать. Вопрос 3: Какова практическая применимость? Ответ: Система уже внедрена в компании X, об этом есть акт внедрения в приложении Б."
+    expected:
+      status: success
+      question_count: 3
+      has_fields:
+        - answers
+        - average_score
+        - overall_impression
+      overall_impression: uncertain
+      grade_impact: neutral
+
+  - name: "full report generation"
+    input: "Сформируй полную справку по ответам студента на вопросы комиссии и заключительному слову из транскрипта"
+    expected:
+      status: success
+      has_fields:
+        - question_count
+        - answers
+        - closing_remarks
+        - average_score
+        - overall_impression
+        - grade_impact
+        - summary

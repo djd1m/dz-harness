@@ -1,0 +1,1 @@
+{"version":3,"file":"semantic-scholar.d.ts","sourceRoot":"","sources":["../../src/sources/semantic-scholar.ts"],"names":[],"mappings":"AAAA;;;;;;;GAOG;AAEH,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,aAAa,CAAC;AA+B/C,8DAA8D;AAC9D,wBAAsB,mBAAmB,CAAC,OAAO,GAAE;IAAE,WAAW,CAAC,EAAE,MAAM,GAAG,SAAS,CAAC;IAAC,IAAI,CAAC,EAAE,MAAM,GAAG,SAAS,CAAA;CAAO,GAAG,OAAO,CAAC,WAAW,EAAE,CAAC,CA0C/I"}

@@ -1,0 +1,61 @@
+{
+  "schema": "open-questions-v1",
+  "questions": [
+    {
+      "id": "tg-recheck-2026-04",
+      "question": "Если TG держится выше 2.0 ммоль/л, проверить ApoB и Lp(a) в одном заборе",
+      "scope": ["triglycerides", "apolipoprotein-b", "lipoprotein-a"],
+      "preconditions": [
+        { "analyteId": "triglycerides", "op": "gte", "value": 2.0, "unit": "mmol/L" }
+      ],
+      "companion_tests": ["apolipoprotein-b", "lipoprotein-a"],
+      "trigger_date": "2026-10-15",
+      "blocking": true,
+      "status": "open",
+      "opened_on": "2026-04-15",
+      "opened_because": "TG 1.94 → 2.67 mmol/L across two draws"
+    },
+    {
+      "id": "ferritin-recheck-2026-04",
+      "question": "Пересдать ферритин вместе с трансферрином — предыдущий забор был на фоне воспаления",
+      "scope": ["ferritin"],
+      "trigger_date": "2026-10-15",
+      "blocking": true,
+      "status": "open",
+      "opened_on": "2026-04-15",
+      "opened_because": "СРБ был повышен в том же заборе"
+    },
+    {
+      "id": "hdl-lifestyle-2026-04",
+      "question": "Уточнить, изменился ли тренировочный режим — HDL снижается два забора подряд",
+      "scope": ["hdl"],
+      "trigger_date": "2026-10-01",
+      "blocking": false,
+      "status": "open",
+      "opened_on": "2026-04-15",
+      "opened_because": "HDL 1.24 → 1.12 mmol/L"
+    },
+    {
+      "id": "statin-refusal-revisit",
+      "question": "Вернуться к разговору об отказе от статинов после следующей липидограммы",
+      "scope": ["ldl"],
+      "trigger_date": "2027-01-01",
+      "blocking": false,
+      "status": "open",
+      "opened_on": "2026-04-15",
+      "opened_because": "пациент отказался в апреле, договорились вернуться"
+    },
+    {
+      "id": "glucose-precondition-only",
+      "question": "Если глюкоза натощак дойдёт до 6.1 ммоль/л, добавить инсулин и посчитать HOMA-IR",
+      "scope": ["glucose"],
+      "preconditions": [
+        { "analyteId": "glucose", "op": "gte", "value": 6.1, "unit": "mmol/L" }
+      ],
+      "blocking": false,
+      "status": "open",
+      "opened_on": "2026-04-15",
+      "opened_because": "глюкоза 5.3 ммоль/л — верхняя треть интервала"
+    }
+  ]
+}

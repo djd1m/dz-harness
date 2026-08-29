@@ -1,0 +1,128 @@
+name: ens-primary-name
+description: "Evaluate ENS primary name management skill"
+version: "1.0.0"
+
+test_cases:
+  - id: set-primary-base
+    description: "Set primary name on Base"
+    input:
+      operation: set-primary
+      chain: base
+      ens_name: "example.eth"
+      address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+    expected:
+      operation: set-primary
+      chain: base
+      reverse_registrar: "0x0000000000D8e504002cC26E3Ec46D81971C1664"
+      status: success
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_equals
+        field: chain
+        value: base
+      - type: field_present
+        field: tx_hash
+
+  - id: verify-primary-ethereum
+    description: "Verify primary name on Ethereum"
+    input:
+      operation: verify-primary
+      chain: ethereum
+      address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+    expected:
+      operation: verify-primary
+      chain: ethereum
+      ens_name: "vitalik.eth"
+      resolution:
+        bidirectional: true
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: resolution
+
+  - id: set-avatar-https
+    description: "Set avatar with HTTPS URI"
+    input:
+      operation: set-avatar
+      chain: ethereum
+      ens_name: "example.eth"
+      avatar:
+        uri: "https://example.com/avatar.png"
+        format: https
+    expected:
+      operation: set-avatar
+      status: success
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: tx_hash
+
+  - id: set-avatar-nft
+    description: "Set avatar with NFT reference"
+    input:
+      operation: set-avatar
+      chain: ethereum
+      ens_name: "example.eth"
+      avatar:
+        uri: "eip155:1/erc721:0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D/1234"
+        format: erc721-nft
+    expected:
+      operation: set-avatar
+      status: success
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+
+  - id: set-avatar-ipfs
+    description: "Set avatar with IPFS URI"
+    input:
+      operation: set-avatar
+      chain: ethereum
+      ens_name: "example.eth"
+      avatar:
+        uri: "ipfs://QmSomeHash123"
+        format: ipfs
+    expected:
+      operation: set-avatar
+      status: success
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+
+  - id: verify-no-primary
+    description: "Verify address with no primary name set"
+    input:
+      operation: verify-primary
+      chain: base
+      address: "0x0000000000000000000000000000000000000001"
+    expected:
+      operation: verify-primary
+      status: not-found
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_equals
+        field: status
+        value: not-found
+
+  - id: bidirectional-check
+    description: "Verify bidirectional ENS link"
+    input:
+      operation: verify-primary
+      chain: ethereum
+      address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+    expected:
+      resolution:
+        forward:
+          name: "vitalik.eth"
+        reverse:
+          address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+        bidirectional: true
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: resolution.bidirectional

@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "question-generator output",
+  "description": "Structured output from the question-generator skill",
+  "type": "object",
+  "required": ["status", "topic", "questions", "stats"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "skipped"]
+    },
+    "topic": {
+      "type": "string",
+      "description": "Thesis topic"
+    },
+    "key_concepts": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Key concepts extracted from the thesis"
+    },
+    "key_methods": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Key methods used in the thesis"
+    },
+    "key_results": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Key results of the thesis"
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["text", "category", "difficulty", "expected_keywords"],
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Question text in Russian"
+          },
+          "category": {
+            "type": "string",
+            "enum": ["basic", "methodological", "practical", "critical", "related"],
+            "description": "Question category"
+          },
+          "difficulty": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3,
+            "description": "Difficulty level: 1=basic, 2=advanced, 3=expert"
+          },
+          "expected_keywords": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 1,
+            "description": "Expected keywords in the answer"
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "stats": {
+      "type": "object",
+      "properties": {
+        "total_questions": { "type": "integer" },
+        "by_category": {
+          "type": "object",
+          "properties": {
+            "basic": { "type": "integer" },
+            "methodological": { "type": "integer" },
+            "practical": { "type": "integer" },
+            "critical": { "type": "integer" },
+            "related": { "type": "integer" }
+          }
+        },
+        "by_difficulty": {
+          "type": "object",
+          "properties": {
+            "level_1": { "type": "integer" },
+            "level_2": { "type": "integer" },
+            "level_3": { "type": "integer" }
+          }
+        }
+      }
+    }
+  }
+}

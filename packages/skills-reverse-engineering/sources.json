@@ -1,0 +1,33 @@
+{
+  "_note": "Per ADR-0001: reverse-engineering-unicorn is the canonical artifact of THIS pack (drift between keysarium and p-replicator copies resolved here — p-replicator body, which correctly references goap-research-ed25519, + keysarium's trust_tier frontmatter). The explore/goap/problem-solver trio is a TRACKED vendored copy. Re-sync with `dz sync-upstream`.",
+  "skills": {
+    "reverse-engineering-unicorn": {
+      "origin": "dz-original",
+      "canonical_pack": "@dzhechkov/skills-reverse-engineering",
+      "drift_resolution": "p-replicator body (goap-research-ed25519 refs) + keysarium trust_tier; /mnt/skills/{user,public} rewritten to .claude/skills"
+    },
+    "explore": {
+      "origin": "vendored",
+      "canonical_pack": "@dzhechkov/skills-analyst-manual",
+      "upstream_path": "templates/.claude/skills/explore"
+    },
+    "goap-research-ed25519": {
+      "origin": "vendored",
+      "canonical_pack": "@dzhechkov/skills-analyst-manual",
+      "upstream_path": "templates/.claude/skills/goap-research-ed25519"
+    },
+    "problem-solver-enhanced": {
+      "origin": "vendored",
+      "canonical_pack": "@dzhechkov/skills-analyst-manual",
+      "upstream_path": "templates/.claude/skills/problem-solver-enhanced"
+    }
+  },
+  "optional_deps": {
+    "_note": "Referenced only in DEEP/VERIFIED/Post-M6 modes — NOT bundled. Install separately or via a preset.",
+    "frontend-design": { "used_in": "M2.5 (DEEP) CJM prototype", "canonical_pack": "(none yet — vendored in @dzhechkov/keysarium / p-replicator)" },
+    "brutal-honesty-review": { "used_in": "M6 (DEEP) BS-gate", "canonical_pack": "@dzhechkov/skills-qe" },
+    "presentation-storyteller": { "used_in": "Post-M6 pitch deck", "canonical_pack": "@dzhechkov/skills-presentation-storyteller" },
+    "idea2prd-manual": { "used_in": "Post-M6 PRD", "canonical_pack": "@dzhechkov/skills-idea2prd" },
+    "md2pptx": { "used_in": "Post-M6 .md → .pptx", "canonical_pack": "(external / not in monorepo)" }
+  }
+}

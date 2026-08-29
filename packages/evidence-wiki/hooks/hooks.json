@@ -1,0 +1,23 @@
+{
+  "description": "Claude Code hook configuration for evidence-wiki plugin. Advisory PostToolUse triple-check after editing source .md files.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 5000,
+            "command": "f=$(node -e \"let s='';try{s=require('fs').readFileSync(0,'utf8')}catch(e){};let d={};try{d=JSON.parse(s||'{}')}catch(e){};const t=d.tool_input||{},r=d.tool_response||{};process.stdout.write(t.file_path||t.filePath||r.filePath||'')\"); [ -n \"$f\" ] && bash \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-commit-triple-check.sh\" --advisory-single \"$f\" 2>/dev/null; true"
+          }
+        ]
+      }
+    ]
+  },
+  "git_hooks": {
+    "description": "Not auto-installed. To enable git pre-commit triple-check, run one of:",
+    "install_bash": "ln -s \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-commit-triple-check.sh\" .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit",
+    "install_powershell": "Copy-Item \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-commit-triple-check.ps1\" .git/hooks/pre-commit",
+    "install_hookspath": "cp \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-commit-triple-check.sh\" .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit"
+  }
+}

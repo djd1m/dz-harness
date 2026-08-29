@@ -1,0 +1,36 @@
+skill: aiagents-learning-strategy
+# Positives cover: does the agent need learning at all, non-parametric vs parametric class,
+# the fine-tuning bill, and WHERE a proven improvement is anchored (prompt / insight list / weights).
+positives:
+  - "Агент третий раз подряд ошибается на одном и том же типе заявок. Учить его или чинить промпт?"
+  - "У нас есть три тысячи размеченных диалогов. Есть смысл файнтюнить или обойдёмся примерами в промпте?"
+  - "Есть пары «хороший ответ / плохой ответ» от операторов. SFT или DPO под наш случай?"
+  - "We want the agent to actually get better across tasks, not just retry the same one. What kind of mechanism gives that?"
+  - "Куда закреплять найденное улучшение — в системный промпт, в список инсайтов или всё-таки в веса?"
+  - "Сколько реально стоит LoRA-адаптер под нашего агента и когда он отбивается против промптинга?"
+  - "Хотим, чтобы агент сам разбирал свои провалы и делал выводы на будущее. Какой это класс механизма?"
+  - "Is RLVR worth it for an agent whose output we can verify programmatically on every run?"
+  - "Наш агент плохо попадает в вызовы функций. Дообучать под function calling или это лечится описаниями?"
+  - "Prompt engineering versus fine-tuning — how do I make that call with a fixed budget in hand?"
+# Seam-level adversarial positives (round 2): prompts that sit on the boundary with a
+# sibling and are still legitimately owned by THIS skill.
+  - "Мы нашли рабочий приём и держим его в промпте, он отработал на сорока кейсах. Пора зашивать в модель или пусть живёт в промпте?"
+  - "Агент хорош на знакомых задачах и рассыпается на новых. Это вопрос механизма обучения или чего-то ещё?"
+  - "Файнтюн против списка выученных инсайтов — что дешевле поддерживать на горизонте года?"
+negatives:
+  - prompt: "Где физически хранить долгосрочную память агента — вектор-стор, граф или инвертированный индекс?"
+    should_activate: "aiagents-knowledge-and-memory"
+  - prompt: "Как проверить, что после дообучения агент реально стал лучше, а не просто по-другому?"
+    should_activate: "aiagents-evaluation-design"
+  - prompt: "Маленькая модель дешевле, но слабее на бенчмарках. Как выбрать по цене за единицу качества?"
+    should_activate: "aiagents-agent-fit-and-model-choice"
+  - prompt: "Прогони цикл критики и правки над этим моим черновиком архитектуры, пока он не станет достаточно хорош."
+    should_activate: "reflection-loop"
+  - prompt: "Настрой перенос выученных паттернов и подбор гиперпараметров для QE-агентов на новом проекте."
+    should_activate: "qe-learning-optimization"
+  - prompt: "Запусти агента в непрерывном цикле с гейтом качества, пока тесты не позеленеют."
+    should_activate: "continuous-agent-loop"
+# WAVE-2 PROMOTION: these were soft_negatives while their cluster had no owner.
+# Wave 2 distilled that owner, so each is now a HARD negative against the new sibling.
+  - prompt: "Нужен процесс: поймали падение качества → разбор причины → правка промпта → задача в бэклог."
+    should_activate: "aiagents-improvement-loops"

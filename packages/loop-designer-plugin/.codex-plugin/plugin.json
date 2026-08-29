@@ -1,0 +1,12 @@
+{
+  "name": "loop-designer",
+  "version": "0.1.0",
+  "description": "dz AUTHORS, GATES and READS loops — it never RUNS one. Author agent loops as typed loop-plan/1 plans: four patterns, eight invariants INV-1..8, a layer-1 script gate and a run reader. A Codex session can author, validate, render and lint a loop over its shell; it cannot execute one — the rendered script runs only under the Claude Code Workflow runtime.",
+  "author": {
+    "name": "Dmitry Zhechkov",
+    "email": "jechkov.dmitriy@gmail.com"
+  },
+  "license": "MIT",
+  "skills": "./skills/",
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/loop-designer-plugin#readme"
+}

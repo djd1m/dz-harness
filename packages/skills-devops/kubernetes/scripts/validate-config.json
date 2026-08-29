@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "kubernetes config validator",
+  "description": "Validates configuration inputs for the kubernetes skill",
+  "type": "object",
+  "properties": {
+    "task": {
+      "type": "string",
+      "enum": [
+        "new_deployment",
+        "manifest_review",
+        "helm_chart",
+        "scaling",
+        "networking",
+        "security_hardening",
+        "storage",
+        "debugging",
+        "gitops",
+        "production_readiness",
+        "troubleshooting"
+      ],
+      "description": "Primary task to perform"
+    },
+    "workload_type": {
+      "type": "string",
+      "enum": ["deployment", "statefulset", "daemonset", "job", "cronjob", "auto"],
+      "default": "auto",
+      "description": "Workload controller type; auto detects from context"
+    },
+    "cluster_provider": {
+      "type": "string",
+      "enum": ["eks", "gke", "aks", "self-managed", "k3s", "kind", "minikube"],
+      "default": "eks",
+      "description": "Kubernetes cluster provider"
+    },
+    "namespace": {
+      "type": "string",
+      "default": "default",
+      "description": "Target namespace for the workload"
+    },
+    "replicas": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100,
+      "default": 3,
+      "description": "Desired replica count for the workload"
+    },
+    "ingress_controller": {
+      "type": "string",
+      "enum": ["nginx", "traefik", "alb", "istio", "none"],
+      "default": "nginx",
+      "description": "Ingress controller to use"
+    },
+    "tls_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to configure TLS on Ingress"
+    },
+    "cert_manager_issuer": {
+      "type": "string",
+      "default": "letsencrypt-prod",
+      "description": "cert-manager ClusterIssuer name for TLS certificates"
+    },
+    "storage_class": {
+      "type": "string",
+      "description": "StorageClass name for PVCs (e.g., gp3, standard, premium-rwo)"
+    },
+    "storage_size": {
+      "type": "string",
+      "pattern": "^[0-9]+(Mi|Gi|Ti)$",
+      "description": "Storage size for PVCs (e.g., 10Gi, 500Mi)"
+    },
+    "autoscaling": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to enable HPA"
+        },
+        "min_replicas": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 3,
+          "description": "Minimum replicas for HPA"
+        },
+        "max_replicas": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 10,
+          "description": "Maximum replicas for HPA"
+        },
+        "target_cpu": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 70,
+          "description": "Target CPU utilization percentage"
+        },
+        "target_memory": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 80,
+          "description": "Target memory utilization percentage"
+        },
+        "keda_enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to use KEDA for event-driven scaling"
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "properties": {
+        "pod_security_standard": {
+          "type": "string",
+          "enum": ["privileged", "baseline", "restricted"],
+          "default": "restricted",
+          "description": "PodSecurity standard level for the namespace"
+        },
+        "network_policy_enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to create NetworkPolicy resources"
+        },
+        "secrets_backend": {
+          "type": "string",
+          "enum": ["sealed-secrets", "external-secrets", "vault", "sops", "plain"],
+          "default": "sealed-secrets",
+          "description": "Secret management backend"
+        }
+      }
+    },
+    "gitops": {
+      "type": "object",
+      "properties": {
+        "tool": {
+          "type": "string",
+          "enum": ["argocd", "flux", "none"],
+          "default": "argocd",
+          "description": "GitOps tool to configure"
+        },
+        "repo_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Git repository URL for manifests"
+        },
+        "auto_sync": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to enable auto-sync"
+        },
+        "self_heal": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to enable self-heal"
+        }
+      }
+    },
+    "helm": {
+      "type": "object",
+      "properties": {
+        "chart_name": {
+          "type": "string",
+          "description": "Helm chart name"
+        },
+        "create_chart": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to scaffold a new Helm chart"
+        },
+        "values_files": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of values files to use (e.g., values-prod.yaml)"
+        }
+      }
+    },
+    "existing_manifests_path": {
+      "type": "string",
+      "description": "Path to existing Kubernetes manifests for review or debugging"
+    },
+    "image": {
+      "type": "string",
+      "description": "Container image reference (e.g., registry.example.com/myapp:1.4.2)"
+    },
+    "resource_requests": {
+      "type": "object",
+      "properties": {
+        "cpu": {
+          "type": "string",
+          "pattern": "^[0-9]+(m)?$",
+          "description": "CPU request (e.g., 100m, 1)"
+        },
+        "memory": {
+          "type": "string",
+          "pattern": "^[0-9]+(Mi|Gi)$",
+          "description": "Memory request (e.g., 128Mi, 1Gi)"
+        }
+      }
+    },
+    "resource_limits": {
+      "type": "object",
+      "properties": {
+        "cpu": {
+          "type": "string",
+          "pattern": "^[0-9]+(m)?$",
+          "description": "CPU limit (e.g., 500m, 2)"
+        },
+        "memory": {
+          "type": "string",
+          "pattern": "^[0-9]+(Mi|Gi)$",
+          "description": "Memory limit (e.g., 512Mi, 4Gi)"
+        }
+      }
+    }
+  },
+  "anyOf": [
+    { "required": ["task"] },
+    { "required": ["existing_manifests_path"] },
+    { "required": ["image"] }
+  ]
+}

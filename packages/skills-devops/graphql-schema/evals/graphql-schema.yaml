@@ -1,0 +1,111 @@
+# graphql-schema evaluation
+# Run: aqe eval graphql-schema
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run graphql-schema"
+    expected:
+      status: success
+      summary_contains: "graphql"
+
+  - name: "design schema for blog"
+    input: "Design a GraphQL schema for a blog with users, posts, comments, and tags"
+    expected:
+      status: success
+      action_type: "design"
+      types_defined_count_gte: 6
+      types_defined_names_include: ["User", "Post", "Comment"]
+      queries_count_gte: 2
+      mutations_count_gte: 3
+      has_dataloader: true
+      self_check_passed_gte: 10
+
+  - name: "review schema without pagination"
+    input: |
+      Review this GraphQL schema:
+      type Query {
+        users: [User!]!
+        posts: [Post!]!
+      }
+      type User {
+        id: ID!
+        name: String!
+        posts: [Post!]!
+      }
+      type Post {
+        id: ID!
+        title: String!
+        author: User!
+      }
+    expected:
+      status: success
+      action_type: "review"
+      review_findings_count_gte: 3
+      review_findings_any_match:
+        finding_contains_any: ["pagination", "connection", "unbounded"]
+
+  - name: "detect N+1 risk"
+    input: |
+      Review:
+      type Query {
+        posts(first: Int, after: String): PostConnection!
+      }
+      type Post {
+        id: ID!
+        author: User!
+        comments: [Comment!]!
+      }
+    expected:
+      status: success
+      review_findings_any_match:
+        finding_contains_any: ["N+1", "DataLoader", "batch"]
+
+  - name: "detect missing error handling"
+    input: |
+      Review:
+      type Mutation {
+        createUser(email: String!, name: String!): User!
+        deleteUser(id: ID!): Boolean!
+      }
+    expected:
+      status: success
+      review_findings_any_match:
+        finding_contains_any: ["error", "union", "result type", "input type"]
+
+  - name: "detect no rate limiting"
+    input: |
+      Review this Apollo Server setup:
+      const server = new ApolloServer({ schema });
+    expected:
+      status: success
+      review_findings_any_match:
+        finding_contains_any: ["complexity", "depth", "rate limit"]
+
+  - name: "add cursor pagination"
+    input: "Add Relay cursor pagination to my User and Post types"
+    expected:
+      status: success
+      action_type: "add_pagination"
+      types_defined_any_match:
+        kind: "connection"
+        has_pagination: true
+
+  - name: "detect exposed internal errors"
+    input: |
+      Review:
+      const resolvers = {
+        Query: {
+          user: async (_, { id }) => {
+            try {
+              return await db.query('SELECT * FROM users WHERE id = $1', [id]);
+            } catch (err) {
+              throw new Error(err.message);
+            }
+          }
+        }
+      };
+    expected:
+      status: success
+      review_findings_any_match:
+        finding_contains_any: ["internal", "error", "leak", "stack trace"]
+        severity_any: ["critical", "warning"]

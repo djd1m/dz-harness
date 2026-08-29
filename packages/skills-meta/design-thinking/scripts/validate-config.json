@@ -1,0 +1,275 @@
+{
+  "schema": "../schemas/output.json",
+  "required_sections_by_tier": {
+    "S": [
+      "empathize",
+      "define",
+      "test"
+    ],
+    "M": [
+      "empathize",
+      "define",
+      "ideate",
+      "prototype",
+      "test"
+    ],
+    "L": [
+      "empathize",
+      "define",
+      "ideate",
+      "prototype",
+      "test",
+      "validate"
+    ],
+    "XL": [
+      "empathize",
+      "define",
+      "ideate",
+      "prototype",
+      "test",
+      "validate"
+    ]
+  },
+  "rules": [
+    {
+      "id": "DT-001",
+      "description": "Minimum 15 interviews for adequate qualitative saturation",
+      "path": "phases.empathize.interviews_count",
+      "condition": ">=",
+      "value": 15,
+      "severity": "warning"
+    },
+    {
+      "id": "DT-002",
+      "description": "JTBD school must be explicitly chosen (switch or odi, not both)",
+      "path": "phases.empathize.jtbd_school",
+      "condition": "exists",
+      "severity": "error"
+    },
+    {
+      "id": "DT-003",
+      "description": "CJM TO BE must be labeled as hypothesis",
+      "path": "phases.prototype.cjm_to_be_labeled_as_hypothesis",
+      "condition": "==",
+      "value": true,
+      "severity": "error",
+      "applies_to_tiers": [
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "DT-004",
+      "description": "LTV/CAC > 10 is suspicious at early stage",
+      "path": "phases.ideate.unit_economics.ltv_cac_ratio",
+      "condition": "<=",
+      "value": 10,
+      "severity": "warning",
+      "applies_to_tiers": [
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "DT-005",
+      "description": "Minimum 2 prototype iterations required",
+      "path": "phases.prototype.iterations_count",
+      "condition": ">=",
+      "value": 2,
+      "severity": "error",
+      "applies_to_tiers": [
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "DT-006",
+      "description": "LTV must be cohort-based",
+      "path": "phases.ideate.unit_economics.cohort_based",
+      "condition": "==",
+      "value": true,
+      "severity": "warning",
+      "applies_to_tiers": [
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "DT-007",
+      "description": "CAC must be fully-loaded",
+      "path": "phases.ideate.unit_economics.fully_loaded_cac",
+      "condition": "==",
+      "value": true,
+      "severity": "warning",
+      "applies_to_tiers": [
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "DT-008",
+      "description": "Minimum 5 users for usability testing (qualitative discovery)",
+      "path": "phases.test.usability_users",
+      "condition": ">=",
+      "value": 5,
+      "severity": "error"
+    },
+    {
+      "id": "DT-009",
+      "description": "Minimum 2 test iterations",
+      "path": "phases.test.test_iterations",
+      "condition": ">=",
+      "value": 2,
+      "severity": "error",
+      "applies_to_tiers": [
+        "M",
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "DT-010",
+      "description": "VSM TO BE must be labeled as projection",
+      "path": "phases.prototype.vsm_to_be_labeled_as_projection",
+      "condition": "==",
+      "value": true,
+      "severity": "error",
+      "applies_to_tiers": [
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "DT-011",
+      "description": "Pilot must be conducted for L/XL tiers",
+      "path": "phases.validate.pilot_conducted",
+      "condition": "==",
+      "value": true,
+      "severity": "error",
+      "applies_to_tiers": [
+        "L",
+        "XL"
+      ]
+    },
+    {
+      "id": "DT-012",
+      "description": "Minimum 100 survey respondents for quantitative validation",
+      "path": "phases.empathize.survey_respondents",
+      "condition": ">=",
+      "value": 100,
+      "severity": "warning"
+    },
+    {
+      "id": "DT-013",
+      "severity": "warning",
+      "applies_to_tiers": [
+        "M",
+        "L",
+        "XL"
+      ],
+      "description": "A standardized usability instrument (SUS, target >68, or an ISO 9241-11 effectiveness/efficiency/satisfaction scaffold) must be used in Test — ad-hoc custom thresholds alone are insufficient"
+    },
+    {
+      "id": "DT-014",
+      "severity": "warning",
+      "applies_to_tiers": [
+        "M",
+        "L",
+        "XL"
+      ],
+      "description": "Pricing & conversion assumptions feeding unit economics must be empirically grounded (willingness-to-pay interview questions, Van Westendorp PSM, Gabor-Granger, conjoint, or a live A/B price test) or explicitly labeled as UNVALIDATED expert estimates — stated intent ('I would pay X') is not a validated price"
+    },
+    {
+      "id": "DT-015",
+      "severity": "warning",
+      "applies_to_tiers": [
+        "M",
+        "L",
+        "XL"
+      ],
+      "description": "Per-segment economics (ARPU, CAC, COGS) must use a matching segment numerator AND denominator — never divide blended multi-segment revenue by a single-segment user count; per-channel viability must not be masked by a favorable blend"
+    },
+    {
+      "id": "DT-016",
+      "severity": "warning",
+      "applies_to_tiers": [
+        "M",
+        "L",
+        "XL"
+      ],
+      "description": "Every headline ratio (ROI, payback, LTV/CAC) must be reproducible from disclosed inputs, and the same metric must reconcile across sections (channel CAC vs blended CAC) — a single source of truth, no undisclosed formulas"
+    },
+    {
+      "id": "DT-017",
+      "severity": "warning",
+      "applies_to_tiers": [
+        "L",
+        "XL"
+      ],
+      "description": "Load-bearing financial inputs sourced from outside the project (a teammate's workstream, an external benchmark) must be labeled borrowed-and-unvalidated AND carry a sensitivity analysis (at what input value does the model stop converging?)"
+    },
+    {
+      "id": "DT-018",
+      "severity": "warning",
+      "applies_to_tiers": [
+        "L",
+        "XL"
+      ],
+      "description": "A headline NPV/DCF/SOM/unit-economics figure built on un-piloted inputs must be labeled a projection and carry scenario/sensitivity analysis; TAM/SAM/SOM must disclose top-down vs bottom-up method and coefficient sources; SOM must reconcile with the bottom-up operational/financial forecast in the same model (flag order-of-magnitude divergence) and de-duplicate audience overlap when aggregating across platforms; a conversion-rate pilot needs enough conversion EVENTS (~5-10+), not just sessions, before its CR seeds unit economics"
+    },
+    {
+      "id": "DT-019",
+      "severity": "warning",
+      "applies_to_tiers": [
+        "M",
+        "L",
+        "XL"
+      ],
+      "description": "Team-deliverable scoping integrity: in a multi-author product, every load-bearing input inherited from a co-author (interview counts, personas, CJM, prototype, pricing, unit economics) must be labeled team-sourced and the author's own validated contribution delimited; a phase whose execution is delegated to a teammate is neither passed nor failed by THIS author — mark it DELEGATED-UNVERIFIED and do not count it toward a 'validated value proposition' claim (extends DT-017 beyond financials to all inherited empirical evidence)"
+    },
+    {
+      "id": "DT-020",
+      "severity": "warning",
+      "applies_to_tiers": [
+        "M",
+        "L",
+        "XL"
+      ],
+      "description": "Sample-segment alignment & selection bias (independent of the N thresholds in DT-001/DT-012): flag when the empirical sample composition (segment / company-size / recruitment channel) does not match the declared target ICP, or the frame is non-random/self-selected/captive (loyal base, professional community), or a representativeness/selection-bias caveat stated in methods is not propagated into the final conclusions"
+    },
+    {
+      "id": "DT-021",
+      "severity": "warning",
+      "applies_to_tiers": [
+        "L",
+        "XL"
+      ],
+      "description": "Sensitive-data compliance feasibility: products transmitting/storing PII, financial, health-adjacent, or otherwise regulated data must include a legal/regulatory feasibility analysis integrated into the DFV Viability axis (not merely a risk-register line); if a compliance prerequisite (data-localization, on-premise, certification) gates a target segment, it must be sequenced at market entry, not deferred to a later scale phase"
+    },
+    {
+      "id": "DT-022",
+      "severity": "warning",
+      "applies_to_tiers": [
+        "M",
+        "L",
+        "XL"
+      ],
+      "description": "Evidence-to-solution traceability: each load-bearing architecture/NFR/MVP-feature-priority decision must cite the specific empirical pain (interview/CJM/analytics/JTBD) it serves; an asserted 'decisions are linked to pains' claim without a concrete traced example, or a MoSCoW/RICE tier with no stated decider + backing evidence, is flagged as an untraced solution bolt-on (distinct from DFV-scoring, which scores clusters but does not require per-decision citation)"
+    },
+    {
+      "id": "DT-023",
+      "severity": "warning",
+      "applies_to_tiers": [
+        "M",
+        "L",
+        "XL"
+      ],
+      "description": "Threshold value justification & pre-registration integrity: a validation/confirmation threshold (HADI metric target OR a qualitative/survey confirmation cutoff) must be justified by a benchmark, baseline measurement, or recognized qualitative standard (theoretical saturation, inter-rater agreement) — pre-defining a number is necessary but not sufficient; additionally flag goalpost-moving (a hypothesis with a stated numeric pass-bar declared 'confirmed' on substitute/indirect evidence after the bar was missed). Distinct from the 'HADI without pre-defined metrics' anti-pattern, which only catches an absent threshold"
+    }
+  ]
+}

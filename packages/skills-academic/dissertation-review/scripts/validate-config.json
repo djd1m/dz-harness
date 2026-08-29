@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "dissertation-review config validator",
+  "description": "Validates configuration inputs for the dissertation-review skill",
+  "type": "object",
+  "properties": {
+    "thesis_path": {
+      "type": "string",
+      "description": "Path to the thesis document (PDF or text)"
+    },
+    "supervisor_review_path": {
+      "type": "string",
+      "description": "Path to the supervisor review document"
+    },
+    "external_review_path": {
+      "type": "string",
+      "description": "Path to the external reviewer document"
+    },
+    "format": {
+      "type": "string",
+      "enum": ["research", "project", "auto"],
+      "default": "auto",
+      "description": "ВКР format; 'auto' to detect automatically"
+    },
+    "program_profile": {
+      "type": "string",
+      "description": "Master's program profile for relevance check"
+    },
+    "grading_scale": {
+      "type": "string",
+      "enum": ["five_point", "ten_point", "both"],
+      "default": "both",
+      "description": "Which grading scale to use in the output"
+    }
+  },
+  "required": ["thesis_path"]
+}

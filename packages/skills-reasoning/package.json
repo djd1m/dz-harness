@@ -1,0 +1,42 @@
+{
+  "name": "@dzhechkov/skills-reasoning",
+  "version": "0.1.4",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "description": "Generic reasoning & code-quality skill pack \u2014 4 stack-neutral agentic skills: investigate (root-cause without fixing), solid (SOLID/TDD/clean-code), karpathy-guidelines (reduce common LLM coding mistakes), agents-md-creator. Depersonalized from a curated skills archive; zero product coupling.",
+  "license": "MIT",
+  "author": "dzhechko",
+  "keywords": [
+    "agent-skills",
+    "agentskills.io",
+    "skill-pack",
+    "reasoning",
+    "root-cause",
+    "solid",
+    "tdd",
+    "clean-code",
+    "debugging",
+    "claude-code"
+  ],
+  "files": [
+    "investigate",
+    "solid",
+    "karpathy-guidelines",
+    "agents-md-creator",
+    "README.md",
+    "sources.json",
+    "LICENSE",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/skills-reasoning"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-reasoning#readme"
+}

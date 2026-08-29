@@ -1,0 +1,281 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "skills-mcp",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "60e199910e74bb5d6acef80199a95cebece2229bf44158aa6e85ed7e8597a01e"
+      },
+      {
+        "path": "agentdb-memory/SKILL.md",
+        "sha256": "55096874f233cdb2ef8201e4f67a8c1198a2e9fdabe888cccc93270bab7ec25b"
+      },
+      {
+        "path": "agentdb-memory/evals/agentdb-memory.yaml",
+        "sha256": "f91d1989a930715cb59fb8d26986e3f4188ec86eabc0ca566721deaa036e3ea9"
+      },
+      {
+        "path": "agentdb-memory/schemas/output.json",
+        "sha256": "b7ab1e72a1d241a4aef5c677a3fa9c0b0683b0b61039011fbb5bbeb1b5e1a9a7"
+      },
+      {
+        "path": "agentdb-memory/scripts/validate-config.json",
+        "sha256": "755f489e70b33d89079670b87245d5c7567fa4464aced7b95fe86a0eae59fa7a"
+      },
+      {
+        "path": "brave-search/SKILL.md",
+        "sha256": "2a25788fedff58b1da6c24720060c0044ca515efcabcd162b627f7e55442d9dd"
+      },
+      {
+        "path": "brave-search/evals/brave-search.yaml",
+        "sha256": "63fadc316e9e861c04881dead905ed77d3a6f065bcfb2bfba52461e8a7638f47"
+      },
+      {
+        "path": "brave-search/schemas/output.json",
+        "sha256": "306766ba4788b0d4d2500a7dffb89b41c499648cfce5401788593512657aa181"
+      },
+      {
+        "path": "brave-search/scripts/validate-config.json",
+        "sha256": "2acf4e22a527f32e097154d2bfc519918f2593c3dc095d480e6e2bc48398cc4d"
+      },
+      {
+        "path": "clickup/SKILL.md",
+        "sha256": "4200091b87eb96f8686719d7c7cb9a4109ae9d9efdb9540bb654fd04deadd9a1"
+      },
+      {
+        "path": "clickup/evals/clickup.yaml",
+        "sha256": "9577405e8f23192e2807d149dbcc5a67e375a3b0b7b3cc1fb23fbeda8b7e7162"
+      },
+      {
+        "path": "clickup/schemas/output.json",
+        "sha256": "2a26070ace16b913d1fcf377a70a9fd7e3e40e83dd56ead81f08269a4791e608"
+      },
+      {
+        "path": "clickup/scripts/validate-config.json",
+        "sha256": "20c8b75f23c717c402d0acb6b6bffffb0119243fd073668036ce0d7e27830183"
+      },
+      {
+        "path": "comfyui/SKILL.md",
+        "sha256": "9142b2a3f5a1965a6237d20ea436290a8ab0d63ddca812c0cef9b1a9f5d05f89"
+      },
+      {
+        "path": "comfyui/evals/comfyui.yaml",
+        "sha256": "c7804935802bf8e4ec7aa63d7a1167f1a501742fd6960672425d86ef4240f977"
+      },
+      {
+        "path": "comfyui/schemas/output.json",
+        "sha256": "9f2d6c02123b2484e455710a57799dfb636f707312cdb7a3d272104d7d55a3e6"
+      },
+      {
+        "path": "comfyui/scripts/validate-config.json",
+        "sha256": "0d40b57b494f43ab91551c13205636fee0213e369e5b162d9d408056044bc3fe"
+      },
+      {
+        "path": "context7/SKILL.md",
+        "sha256": "ee821f0386bac755cac30b4bbe4a9b041e000d6916b5b18985197c1e83c08585"
+      },
+      {
+        "path": "context7/evals/context7.yaml",
+        "sha256": "9ac1eebb7d570e29622781aaad86f75c43939623316efd0b44f632df38edd140"
+      },
+      {
+        "path": "context7/schemas/output.json",
+        "sha256": "77d8938523f090f9f3c34fcaaf6fe030610a591cad67a6dfbbf278008e5a74c0"
+      },
+      {
+        "path": "context7/scripts/validate-config.json",
+        "sha256": "8feb4b519ec926ad9168f2b3a87e5f63112ea673e731821a51fb1d5fdc57ca6e"
+      },
+      {
+        "path": "exa-search/SKILL.md",
+        "sha256": "a3442bafe3a98bd0a52597175c35f5a9dfb9e2dad8f7c87cf19e747696d3cd8a"
+      },
+      {
+        "path": "exa-search/evals/exa-search.yaml",
+        "sha256": "804a243f2801e82bdce6cd534cb679eac94cf32095c9691d849589432ee893f9"
+      },
+      {
+        "path": "exa-search/schemas/output.json",
+        "sha256": "8d0020aa267bf9c3cc84828f3710f0602d64df89ce442e4ffad79719ebcd5ea8"
+      },
+      {
+        "path": "exa-search/scripts/validate-config.json",
+        "sha256": "c22a1f0088931f379259da06f501cb1e9099776db675841fb7a599aa9daab0d1"
+      },
+      {
+        "path": "git-mcp/SKILL.md",
+        "sha256": "e223bf00356cb3ee3af3390e080e0c285d0d3883ad41c0dff1b591807c3688e9"
+      },
+      {
+        "path": "git-mcp/evals/git-mcp.yaml",
+        "sha256": "14151dd40e9496a1d0fa8a00c5c727fdbb8a086b8ab6294c82a6b45be6debf26"
+      },
+      {
+        "path": "git-mcp/schemas/output.json",
+        "sha256": "680d716bcd8d241b1717370241137a5e71586ca0feb8c56255a8c3684c3b7566"
+      },
+      {
+        "path": "git-mcp/scripts/validate-config.json",
+        "sha256": "24512502139c05261ad1b5e067963da911a953a0a29b44cbafb479e9cead024b"
+      },
+      {
+        "path": "gitlab/SKILL.md",
+        "sha256": "7948abb7e839acc8e79684f7aa1b2957be5c7abd39b476dfc76f698ff0172801"
+      },
+      {
+        "path": "gitlab/evals/gitlab.yaml",
+        "sha256": "e2a23264eea86f85f7a2e1f60c2bcf59364fd0417890e2abf965f0f2a97c96cc"
+      },
+      {
+        "path": "gitlab/schemas/output.json",
+        "sha256": "63c93b465644701d0017fac1823ddc129bb0db09a5c594baa93f7a058e410f3b"
+      },
+      {
+        "path": "gitlab/scripts/validate-config.json",
+        "sha256": "24e89322aba05338da3ffdfeb8f81d7b5d2d5b4dec8ff7011cf4d53de5318901"
+      },
+      {
+        "path": "gmail/SKILL.md",
+        "sha256": "757763fb0c86004c3caa32db0d5d8dcecdf69b5a97d2de1a0cacd07f88b2885f"
+      },
+      {
+        "path": "gmail/evals/gmail.yaml",
+        "sha256": "ce4a510bce479f50833c6bec2a5462474abb909f39359f43b2de6b123eabbd89"
+      },
+      {
+        "path": "gmail/schemas/output.json",
+        "sha256": "9478bc4a9d1cd0959d478285b0e6a1c17d42ddb815d1906948e36b964a066abb"
+      },
+      {
+        "path": "gmail/scripts/validate-config.json",
+        "sha256": "85f1b3ef0c1f7ecaa97ee2122f70f50fb18978d68cd737e3aacac832968cc8ab"
+      },
+      {
+        "path": "google-calendar/SKILL.md",
+        "sha256": "94a4281bdbcbf06b2c64be55362839cb7b997c6649d4e627cdc19d9eafb51c28"
+      },
+      {
+        "path": "google-calendar/evals/google-calendar.yaml",
+        "sha256": "3b65d4c7cfc11762bb36caa89749819132b0dd1a3ebc4ced68b52e975402614c"
+      },
+      {
+        "path": "google-calendar/schemas/output.json",
+        "sha256": "2073598b2d3f850281786bde7f905b54f0e9f5163b551a1ff0dc6681a1861e49"
+      },
+      {
+        "path": "google-calendar/scripts/validate-config.json",
+        "sha256": "ea78be5753b8f324b057970b4d258aff8db150188a55b0ef1db34fec363bbef0"
+      },
+      {
+        "path": "google-sheets/SKILL.md",
+        "sha256": "d343b5b91c3b4b469eb56c53dedeefd76f971d8d4dc55c2af1cc628b5d5b4a83"
+      },
+      {
+        "path": "google-sheets/evals/google-sheets.yaml",
+        "sha256": "a1be3ce26cc3b83c4dbe9cd75aab6910c26167a8ff9b657958c72fd70d2b5032"
+      },
+      {
+        "path": "google-sheets/schemas/output.json",
+        "sha256": "90ef74156fcd5a0880b41f5d0e72094b369db77a7139c76b9dd8d47b23065323"
+      },
+      {
+        "path": "google-sheets/scripts/validate-config.json",
+        "sha256": "1d8ab5387d2a79d19dfc4818f25ccd7027d1ee726d5199e5ccb1d5a736278904"
+      },
+      {
+        "path": "google-tasks/SKILL.md",
+        "sha256": "34b85002cfe1d4f4ff871a4000a0f8e0c23718f29358ecd5534e921f831fb1b2"
+      },
+      {
+        "path": "google-tasks/evals/google-tasks.yaml",
+        "sha256": "c0467313ebf4a67613b6930913d553da52665123bdd18ebff2bd791351b679f6"
+      },
+      {
+        "path": "google-tasks/schemas/output.json",
+        "sha256": "b3c2439f8fb996d7ed357e655caa4a6e9f56377956521f51eaaf28a0852a3a71"
+      },
+      {
+        "path": "google-tasks/scripts/validate-config.json",
+        "sha256": "77b092f11b77570e60815cd67e00ef272d81d40ce5d53ac5e9465b6061dec866"
+      },
+      {
+        "path": "jina-reader/SKILL.md",
+        "sha256": "94cc212b009af5915455360c7ccb9451c0acb7854468c6078f26ba176448134c"
+      },
+      {
+        "path": "jina-reader/evals/jina-reader.yaml",
+        "sha256": "3505bcf714bfcfd83e873d4d09d705a5672239664dd533722ee48155b30d847c"
+      },
+      {
+        "path": "jina-reader/schemas/output.json",
+        "sha256": "9782e89cf2b76d7f68592404a511936b91b1e94241ee40b5e3bf040db6302ab7"
+      },
+      {
+        "path": "jina-reader/scripts/validate-config.json",
+        "sha256": "8b66eceb6bec0fd669f3743653833a2b6ca18fb64bbd2837da94b1ead99f67cd"
+      },
+      {
+        "path": "notion/SKILL.md",
+        "sha256": "35b88120fb5c2cf2fbc4788b2803e5c181a0a10000983241f3a8d0474bcc87b4"
+      },
+      {
+        "path": "notion/evals/notion.yaml",
+        "sha256": "a4024753401c7ea18add2b1b74c9254d633e108962e8c0320abdc17926492361"
+      },
+      {
+        "path": "notion/schemas/output.json",
+        "sha256": "a1054acc031895a3a7b6fed0565047f22eb396b00e02f25ab3686d4c8955cb76"
+      },
+      {
+        "path": "notion/scripts/validate-config.json",
+        "sha256": "d370e05cfca90ebd81a1a652c38016fcbb2cf6d79f35e1f2f62c27ec32446be9"
+      },
+      {
+        "path": "obsidian/SKILL.md",
+        "sha256": "a280c0ce6f9db99cc642fbeb3de3d44054aef5b07aed040f3da0dd4020c65ae8"
+      },
+      {
+        "path": "obsidian/evals/obsidian.yaml",
+        "sha256": "1d037f415f5c8315b4aa0537344bb417bb4fff127bf2c50ec37e73548c39c09d"
+      },
+      {
+        "path": "obsidian/schemas/output.json",
+        "sha256": "f78535f471674f303153d31a2af25b8e121300e6ca6c66c7fba81aa0926ae8c0"
+      },
+      {
+        "path": "obsidian/scripts/validate-config.json",
+        "sha256": "4bea16b42cc324bd8629c35d0d0be1b8c80ed44e8cc2de70311dc9dcf1f14b9d"
+      },
+      {
+        "path": "package.json",
+        "sha256": "02dc66a1d513b5893c107482bcc4fa800552158bd477b233ddb1e9f7897c919c"
+      },
+      {
+        "path": "reddit/SKILL.md",
+        "sha256": "7fc3cc372d1effd8b206531efb4c78a23b7efb1d54a6320367dbebb541b0ac11"
+      },
+      {
+        "path": "reddit/evals/reddit.yaml",
+        "sha256": "8d2fab5450223621a38d47ad09959d5a2a7ac54e0a4f844875163e62df714e2c"
+      },
+      {
+        "path": "reddit/schemas/output.json",
+        "sha256": "6d673e1f2ba8a759ea34f34cf621d63892ef44001a8b1aff29de80648cf16a6e"
+      },
+      {
+        "path": "reddit/scripts/validate-config.json",
+        "sha256": "5c67cf292f7b144c166556b8a8092ab480b8b95fbf8339a793219903be6bb08a"
+      },
+      {
+        "path": "sources.json",
+        "sha256": "36fb991d1d926f4b0aa39f07b60b1b61b726012d74d68f13c44f3e4b371702cd"
+      }
+    ]
+  },
+  "signature": "56geqBe/lc4kbLylJJWDU1HlQvmQSsade9qWrhwBYxxZjpWd/es0jmlY4b/iIIkXFbqtY2zVCSmCeiYGbNcABg=="
+}

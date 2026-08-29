@@ -1,0 +1,42 @@
+{
+  "name": "gmail",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "id": "gogcli-check",
+      "type": "command",
+      "description": "Verify gogcli is installed",
+      "command": "which gogcli-mcp-gmail || which gog",
+      "timeout_ms": 5000,
+      "error_message": "gogcli is not installed. Run: npm install -g gogcli-mcp-gmail (or brew install gogcli on macOS)"
+    },
+    {
+      "id": "auth-check",
+      "type": "command",
+      "description": "Verify Gmail OAuth authentication is configured",
+      "command": "gog auth list --services gmail",
+      "timeout_ms": 10000,
+      "error_message": "No Gmail account authenticated. Run: gog auth add your@gmail.com --services gmail"
+    },
+    {
+      "id": "mcp-server-check",
+      "type": "command",
+      "description": "Verify MCP server binary is available",
+      "command": "which gogcli-mcp-gmail",
+      "timeout_ms": 5000,
+      "error_message": "gogcli-mcp-gmail binary not found. Run: npm install -g gogcli-mcp-gmail"
+    },
+    {
+      "id": "output-schema",
+      "type": "json-schema",
+      "description": "Validate tool output against schema",
+      "schema_path": "../schemas/output.json"
+    }
+  ],
+  "mcp_config": {
+    "server_name": "gogcli-gmail",
+    "command": "gogcli-mcp-gmail",
+    "args": [],
+    "transport": "stdio"
+  }
+}

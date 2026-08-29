@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "redis-patterns config validator",
+  "description": "Validates configuration inputs for the redis-patterns skill",
+  "type": "object",
+  "properties": {
+    "code_file": {
+      "type": "string",
+      "description": "Path to existing code file that uses Redis, for review"
+    },
+    "code_content": {
+      "type": "string",
+      "description": "Raw code content with Redis usage pasted inline"
+    },
+    "action": {
+      "type": "string",
+      "enum": ["design", "review", "implement", "optimize", "monitor"],
+      "default": "design",
+      "description": "What action to perform"
+    },
+    "use_case": {
+      "type": "string",
+      "enum": [
+        "caching",
+        "session-storage",
+        "rate-limiting",
+        "pub-sub",
+        "distributed-lock",
+        "leaderboard",
+        "event-stream",
+        "job-queue",
+        "custom"
+      ],
+      "description": "Primary Redis use case to design for"
+    },
+    "caching_strategy": {
+      "type": "string",
+      "enum": ["cache-aside", "write-through", "write-behind", "read-through"],
+      "description": "Preferred caching strategy if use_case is caching"
+    },
+    "client_library": {
+      "type": "string",
+      "enum": ["ioredis", "redis", "node-redis", "redis-py", "jedis", "go-redis"],
+      "default": "ioredis",
+      "description": "Redis client library to use in code examples"
+    },
+    "redis_version": {
+      "type": "string",
+      "default": "7.x",
+      "description": "Target Redis version"
+    },
+    "cluster_mode": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether Redis Cluster is in use"
+    }
+  },
+  "anyOf": [
+    { "required": ["code_file"] },
+    { "required": ["code_content"] },
+    { "required": ["use_case"] }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "upstream": "github.com/proffesor-for-testing/agentic-qe",
+  "package": "agentic-qe",
+  "version": "3.10.3",
+  "install": "npm install -g agentic-qe && aqe init --auto",
+  "skills": {
+    "qe-browser": {
+      "upstream_type": "skill",
+      "upstream_path": ".claude/skills/qe-browser/SKILL.md",
+      "description": "Browser automation for QE agents using Vibium (WebDriver BiDi)"
+    },
+    "qe-chaos-resilience": {
+      "upstream_type": "agent",
+      "upstream_path": ".claude/agents/v3/qe-chaos-engineer.md",
+      "description": "Controlled fault injection and resilience testing"
+    },
+    "qe-code-intelligence": {
+      "upstream_type": "agent",
+      "upstream_path": ".claude/agents/v3/qe-code-intelligence.md",
+      "description": "Semantic code indexes and dependency graph analysis"
+    },
+    "qe-coverage-analysis": {
+      "upstream_type": "agent",
+      "upstream_path": ".claude/agents/v3/qe-coverage-specialist.md",
+      "description": "O(log n) coverage analysis with risk-weighted gap detection"
+    },
+    "qe-defect-intelligence": {
+      "upstream_type": "agent",
+      "upstream_path": ".claude/agents/v3/qe-defect-predictor.md",
+      "description": "ML-powered defect prediction from code metrics and change patterns"
+    },
+    "qe-iterative-loop": {
+      "upstream_type": "skill",
+      "upstream_path": ".claude/skills/qe-iterative-loop/SKILL.md",
+      "description": "Autonomous red-green-refactor loops for test fixing"
+    },
+    "qe-learning-optimization": {
+      "upstream_type": "agent",
+      "upstream_path": ".claude/agents/v3/qe-metrics-optimizer.md",
+      "related_agents": [".claude/agents/v3/qe-learning-coordinator.md"],
+      "description": "Transfer learning and hyperparameter tuning across test domains"
+    },
+    "qe-quality-assessment": {
+      "upstream_type": "agent",
+      "upstream_path": ".claude/agents/v3/qe-quality-gate.md",
+      "description": "Quality gate evaluation with pass/fail verdicts"
+    },
+    "qe-requirements-validation": {
+      "upstream_type": "agent",
+      "upstream_path": ".claude/agents/v3/qe-requirements-validator.md",
+      "description": "Acceptance criteria validation and BDD scenario generation"
+    },
+    "qe-test-execution": {
+      "upstream_type": "agent",
+      "upstream_path": ".claude/agents/v3/qe-parallel-executor.md",
+      "description": "Parallel test execution with sharding and intelligent retry"
+    },
+    "qe-test-generation": {
+      "upstream_type": "agent",
+      "upstream_path": ".claude/agents/v3/qe-test-architect.md",
+      "description": "AI-powered test generation with multi-framework support"
+    },
+    "qe-visual-accessibility": {
+      "upstream_type": "agent",
+      "upstream_path": ".claude/agents/v3/qe-visual-tester.md",
+      "related_agents": [".claude/agents/v3/qe-accessibility-auditor.md"],
+      "description": "Visual regression testing with axe-core accessibility scans"
+    },
+    "brutal-honesty-review": {
+      "upstream_type": "skill",
+      "upstream_path": ".claude/skills/brutal-honesty-review/SKILL.md",
+      "description": "Linus/Ramsay/Bach code review — unvarnished criticism"
+    },
+    "six-thinking-hats": {
+      "upstream_type": "skill",
+      "upstream_path": ".claude/skills/six-thinking-hats/SKILL.md",
+      "description": "Edward de Bono's 6 hats for testing — facts, risks, benefits, creativity, emotions, process"
+    },
+    "sfdipot-product-factors": {
+      "upstream_type": "agent",
+      "upstream_path": ".claude/agents/v3/qe-product-factors-assessor.md",
+      "description": "James Bach's HTSM SFDIPOT analysis for test strategy generation"
+    },
+    "qcsd-ideation-swarm": {
+      "upstream_type": "skill",
+      "upstream_path": ".claude/skills/qcsd-ideation-swarm/SKILL.md",
+      "description": "HTSM quality criteria + SFDIPOT risk + testability during PI/Sprint planning"
+    },
+    "qcsd-development-swarm": {
+      "upstream_type": "skill",
+      "upstream_path": ".claude/skills/qcsd-development-swarm/SKILL.md",
+      "description": "In-sprint code quality: TDD, complexity, coverage gaps, defect prediction"
+    },
+    "qcsd-cicd-swarm": {
+      "upstream_type": "skill",
+      "upstream_path": ".claude/skills/qcsd-cicd-swarm/SKILL.md",
+      "description": "CI/CD quality gates: regression, flaky tests, deployment readiness"
+    },
+    "qcsd-production-swarm": {
+      "upstream_type": "skill",
+      "upstream_path": ".claude/skills/qcsd-production-swarm/SKILL.md",
+      "description": "Post-release health: DORA metrics, root cause, defect prediction"
+    },
+    "qcsd-refinement-swarm": {
+      "upstream_type": "skill",
+      "upstream_path": ".claude/skills/qcsd-refinement-swarm/SKILL.md",
+      "description": "Sprint refinement: SFDIPOT, BDD scenarios, requirements validation"
+    }
+  }
+}

@@ -1,0 +1,170 @@
+name: veil
+description: "Evaluate Veil privacy-preserving ZK transaction skill"
+version: "1.0.0"
+
+test_cases:
+  - id: generate-keypair
+    description: "Generate a new shielded keypair"
+    input:
+      operation: generate-keypair
+    expected:
+      operation: generate-keypair
+      shielded_address_present: true
+      status: success
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: shielded_address
+
+  - id: check-balances
+    description: "Check shielded ETH and USDC balances"
+    input:
+      operation: balance
+      shielded_address: "veil:base:0xExampleShieldedAddress"
+    expected:
+      operation: balance
+      balances:
+        ETH:
+          available_present: true
+        USDC:
+          available_present: true
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: balances.ETH.available
+      - type: field_present
+        field: balances.USDC.available
+
+  - id: deposit-eth
+    description: "Deposit ETH into shielded pool"
+    input:
+      operation: deposit
+      asset: ETH
+      amount: "0.1"
+      shielded_address: "veil:base:0xExampleShieldedAddress"
+    expected:
+      operation: deposit
+      asset: ETH
+      status: success
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: tx_hash
+
+  - id: deposit-usdc
+    description: "Deposit USDC into shielded pool"
+    input:
+      operation: deposit
+      asset: USDC
+      amount: "100"
+      shielded_address: "veil:base:0xExampleShieldedAddress"
+    expected:
+      operation: deposit
+      asset: USDC
+      status: success
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: tx_hash
+
+  - id: deposit-below-minimum
+    description: "Reject deposit below minimum amount"
+    input:
+      operation: deposit
+      asset: ETH
+      amount: "0.0001"
+      shielded_address: "veil:base:0xExampleShieldedAddress"
+    expected:
+      operation: deposit
+      status: failed
+    assertions:
+      - type: field_equals
+        field: status
+        value: failed
+
+  - id: private-transfer
+    description: "Execute private shielded transfer"
+    input:
+      operation: transfer
+      asset: USDC
+      amount: "10"
+      shielded_address: "veil:base:0xRecipientShieldedAddress"
+    expected:
+      operation: transfer
+      asset: USDC
+      status: success
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: transfer_id
+      - type: field_present
+        field: proof_generation_time_ms
+
+  - id: withdraw-with-relayer
+    description: "Withdraw to public address using relayer"
+    input:
+      operation: withdraw
+      asset: ETH
+      amount: "0.05"
+      public_address: "0xRecipientPublicAddress"
+    expected:
+      operation: withdraw
+      asset: ETH
+      used_relayer: true
+      status: success
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: tx_hash
+      - type: field_equals
+        field: used_relayer
+        value: true
+
+  - id: merge-utxos
+    description: "Merge multiple UTXOs into one"
+    input:
+      operation: merge
+      asset: ETH
+    expected:
+      operation: merge
+      status: success
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+
+  - id: protocol-status
+    description: "Check Veil protocol status"
+    input:
+      operation: status
+    expected:
+      operation: status
+      protocol_status:
+        tvl_min: 0
+        relayer_active: true
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: protocol_status.tvl
+      - type: field_present
+        field: protocol_status.anonymity_set_size
+
+  - id: list-utxos
+    description: "List available UTXOs"
+    input:
+      operation: balance
+      shielded_address: "veil:base:0xExampleShieldedAddress"
+    expected:
+      operation: balance
+      utxos_is_array: true
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: utxos

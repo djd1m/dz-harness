@@ -1,0 +1,78 @@
+# dissertation-review evaluation
+# Run: aqe eval dissertation-review
+
+test_cases:
+  - name: "basic invocation"
+    input: "Проанализируй ВКР"
+    expected:
+      status: success
+      summary_contains: "dissertation-review"
+
+  - name: "research format detection"
+    input: "Оцени исследовательскую ВКР на тему 'Влияние цифровой трансформации на управление знаниями'"
+    expected:
+      status: success
+      has_fields:
+        - format
+        - criteria_scores
+        - recommended_grade
+
+  - name: "project format detection"
+    input: "Оцени проектную ВКР на тему 'Разработка стратегии выхода компании на новый рынок'"
+    expected:
+      status: success
+      format: project
+      has_fields:
+        - criteria_scores
+        - strengths
+        - weaknesses
+
+  - name: "grading on both scales"
+    input: "Дай оценку ВКР по 5-балльной и 10-балльной шкале"
+    expected:
+      status: success
+      has_fields:
+        - recommended_grade
+      recommended_grade_has:
+        - five_point
+        - ten_point
+        - justification
+
+  - name: "strengths and weaknesses"
+    input: "Выдели сильные и слабые стороны работы"
+    expected:
+      status: success
+      has_fields:
+        - strengths
+        - weaknesses
+      min_items:
+        strengths: 1
+        weaknesses: 1
+
+  - name: "reviewer remarks extraction"
+    input: "Прочитай отзыв руководителя и рецензию, выдели замечания"
+    expected:
+      status: success
+      has_fields:
+        - supervisor_remarks
+        - reviewer_remarks
+
+  - name: "methodology assessment"
+    input: "Оцени методологию и корректность применения методов в ВКР"
+    expected:
+      status: success
+      has_fields:
+        - criteria_scores
+      criteria_includes: "методология"
+
+  - name: "full review with summary"
+    input: "Проведи полный анализ ВКР и сформируй итоговую справку"
+    expected:
+      status: success
+      has_fields:
+        - format
+        - criteria_scores
+        - strengths
+        - weaknesses
+        - recommended_grade
+        - summary

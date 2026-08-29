@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "graphql-schema config validator",
+  "description": "Validates configuration inputs for the graphql-schema skill",
+  "type": "object",
+  "properties": {
+    "schema_file": {
+      "type": "string",
+      "description": "Path to an existing .graphql schema file to review"
+    },
+    "schema_content": {
+      "type": "string",
+      "description": "Raw GraphQL SDL content pasted inline"
+    },
+    "action": {
+      "type": "string",
+      "enum": ["design", "review", "add_pagination", "add_auth", "add_error_handling", "optimize"],
+      "default": "design",
+      "description": "What action to perform"
+    },
+    "approach": {
+      "type": "string",
+      "enum": ["schema-first", "code-first"],
+      "default": "schema-first",
+      "description": "Schema design approach to use"
+    },
+    "domain_entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Entity name (e.g., User, Post, Order)"
+          },
+          "fields": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Field names for the entity"
+          },
+          "relationships": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Related entities (e.g., 'hasMany:Post', 'belongsTo:Organization')"
+          }
+        }
+      },
+      "description": "Domain entities to model in the schema"
+    },
+    "framework": {
+      "type": "string",
+      "enum": ["apollo-server", "yoga", "mercurius", "pothos", "nexus", "type-graphql"],
+      "default": "apollo-server",
+      "description": "GraphQL server framework for code examples"
+    },
+    "orm": {
+      "type": "string",
+      "enum": ["prisma", "drizzle", "typeorm", "knex", "none"],
+      "default": "prisma",
+      "description": "ORM used in resolver implementations"
+    },
+    "include_tests": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to generate test examples"
+    }
+  },
+  "anyOf": [
+    { "required": ["schema_file"] },
+    { "required": ["schema_content"] },
+    { "required": ["domain_entities"] }
+  ]
+}

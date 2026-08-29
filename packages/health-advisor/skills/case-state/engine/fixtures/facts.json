@@ -1,0 +1,59 @@
+{
+  "schema": "case-facts-v1",
+  "records": {
+    "7706839459395b2c16b56ca8d68a24fdb8fea6d4b97389201da34e0efa37ae8b": {
+      "key": "7706839459395b2c16b56ca8d68a24fdb8fea6d4b97389201da34e0efa37ae8b",
+      "claim": "Genetically lower LDL-C is associated with a lower lifetime risk of coronary heart disease (Mendelian randomisation).",
+      "claim_hash": "37f78e1372e2f0bea5204f866bfcf6b1e92bd68d5799513f5a119041672c91f6",
+      "source_url": "https://www.jacc.org/doi/10.1016/j.jacc.2012.09.017",
+      "source_kind": "meta_analysis",
+      "first_fetch_date": "2026-02-11",
+      "last_fetch_date": "2026-02-11",
+      "verifications": [
+        {
+          "fetch_date": "2026-02-11",
+          "evidence_class": "FETCH_VERIFIED",
+          "issuer": "dz.pub",
+          "signature": "SIGNATURE-PLACEHOLDER-not-verified-here",
+          "study_population": null
+        }
+      ]
+    },
+    "f9bbd797b510d478e3e9b9b2f7a4b5fc9342e202c3b4a08617fad2f943e97f45": {
+      "key": "f9bbd797b510d478e3e9b9b2f7a4b5fc9342e202c3b4a08617fad2f943e97f45",
+      "claim": "ApoB below 80 mg/dL is the recommended target for patients with documented atherosclerosis.",
+      "claim_hash": "06120846796656ef6fa9970fabe3056e1e75ae2d6774ad8fb585fc22a434d586",
+      "source_url": "https://academic.oup.com/eurheartj/article/example-guideline",
+      "source_kind": "guideline",
+      "first_fetch_date": "2025-06-01",
+      "last_fetch_date": "2025-06-01",
+      "verifications": [
+        {
+          "fetch_date": "2025-06-01",
+          "evidence_class": "FETCH_VERIFIED",
+          "issuer": "dz.pub",
+          "signature": "SIGNATURE-PLACEHOLDER-not-verified-here",
+          "study_population": null
+        }
+      ]
+    },
+    "e294bce4171c97b9ea223cde567c4505fe86d2adf96022d42566142d777cfeee": {
+      "key": "e294bce4171c97b9ea223cde567c4505fe86d2adf96022d42566142d777cfeee",
+      "claim": "Lp(a) concentration is largely genetically determined and stable across adult life.",
+      "claim_hash": "fb051f8755c8ca589aed71bc75382130c421894c48d0d6be7796340e2dd47290",
+      "source_url": "https://example.org/lpa-review",
+      "source_kind": "meta_analysis",
+      "first_fetch_date": null,
+      "last_fetch_date": null,
+      "verifications": [
+        {
+          "fetch_date": null,
+          "evidence_class": "ASSERTED",
+          "issuer": "dz.pub",
+          "signature": "SIGNATURE-PLACEHOLDER-not-verified-here",
+          "study_population": null
+        }
+      ]
+    }
+  }
+}

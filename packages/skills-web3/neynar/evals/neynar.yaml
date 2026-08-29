@@ -1,0 +1,109 @@
+name: neynar
+description: Evaluate Neynar Farcaster social protocol skill usage
+version: "1.0"
+
+prompts:
+  - id: user_lookup
+    input: "Look up the Farcaster user with username dwr.eth"
+    expected_actions:
+      - action: user_lookup
+        endpoint: "/v2/farcaster/user/by_username"
+        params:
+          username: "dwr.eth"
+    expected_output:
+      contains:
+        - "fid"
+        - "username"
+        - "display_name"
+
+  - id: user_bulk_lookup
+    input: "Get profile info for FIDs 3, 194, and 2 in one request"
+    expected_actions:
+      - action: user_bulk_lookup
+        endpoint: "/v2/farcaster/user/bulk"
+        params:
+          fids: "3,194,2"
+    expected_output:
+      contains:
+        - "users"
+
+  - id: feed_trending
+    input: "Show me the top 10 trending casts from the last 24 hours"
+    expected_actions:
+      - action: feed_trending
+        endpoint: "/v2/farcaster/feed/trending"
+        params:
+          limit: 10
+          time_window: "24h"
+    expected_output:
+      contains:
+        - "casts"
+
+  - id: channel_feed
+    input: "Get the latest 25 casts from the base channel"
+    expected_actions:
+      - action: feed_channel
+        endpoint: "/v2/farcaster/feed/channels"
+        params:
+          channel_ids: "base"
+          limit: 25
+    expected_output:
+      contains:
+        - "casts"
+
+  - id: cast_search
+    input: "Search for casts about 'onchain identity' in the ethereum channel"
+    expected_actions:
+      - action: cast_search
+        endpoint: "/v2/farcaster/cast/search"
+        params:
+          q: "onchain identity"
+          channel_id: "ethereum"
+    expected_output:
+      contains:
+        - "casts"
+
+  - id: post_cast
+    input: "Post a cast saying 'Hello from my agent' to the base channel"
+    expected_actions:
+      - action: cast_post
+        endpoint: "/v2/farcaster/cast"
+        method: "POST"
+        requires:
+          - "signer_uuid"
+    expected_output:
+      contains:
+        - "cast"
+        - "hash"
+
+  - id: like_cast
+    input: "Like the cast with hash 0xabcdef1234"
+    expected_actions:
+      - action: reaction_add
+        endpoint: "/v2/farcaster/reaction"
+        method: "POST"
+        body:
+          reaction_type: "like"
+          target: "0xabcdef1234"
+    expected_output:
+      contains:
+        - "reaction_type"
+
+  - id: follow_user
+    input: "Follow the users with FIDs 3 and 194"
+    expected_actions:
+      - action: follow
+        endpoint: "/v2/farcaster/user/follow"
+        method: "POST"
+        body:
+          target_fids: [3, 194]
+    expected_output:
+      contains:
+        - "target_fids"
+
+scoring:
+  correct_endpoint: 0.3
+  correct_method: 0.2
+  correct_params: 0.3
+  auth_awareness: 0.1
+  rate_limit_awareness: 0.1

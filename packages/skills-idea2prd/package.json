@@ -1,0 +1,54 @@
+{
+  "name": "@dzhechkov/skills-idea2prd",
+  "version": "0.1.14",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "description": "Idea2PRD Manual — composite skill for Claude Code: from problem/idea to Vibe-Coding-ready docs (PRD + ADR + DDD + C4 + Pseudocode + Test Scenarios + Completion) with 9 checkpoints",
+  "main": "src/cli.js",
+  "bin": {
+    "skills-idea2prd": "./bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "templates/",
+    "sources.json",
+    "LICENSE",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "ai",
+    "prd",
+    "product-requirements",
+    "idea-to-prd",
+    "ddd",
+    "c4-model",
+    "adr",
+    "pseudocode",
+    "vibe-coding",
+    "checkpoints",
+    "skills",
+    "skill-pack"
+  ],
+  "author": "dzhechko",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/skills-idea2prd"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-idea2prd#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness-hub/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

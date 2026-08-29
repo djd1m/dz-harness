@@ -1,0 +1,27 @@
+Copyright (c) 2026 dzhechko. All rights reserved.
+
+PUBLICLY DISTRIBUTED, PROPRIETARY. Free to install and use; not open-source.
+
+This package contains skills MACHINE-DISTILLED from a third-party copyrighted book —
+«Building Applications with AI Agents» (Michael Albada, русский перевод),
+ISBN 978-601-14-1158-5. The content is derived know-how (paraphrased methodologies, decision
+frameworks, and page-anchored facts) authored by the copyright holder of this package,
+NOT the book's text.
+
+Distribution decision (CP5, owner, 2026-08-18 — recorded in `sources.json → distribution`):
+this pack is published on npm and may be installed and used by anyone, for any purpose,
+including commercially, in their own projects and agent harnesses.
+
+- YOU MAY: install it, use the skills in your work, read and quote the `references/` Knowledge
+  Units with attribution, and depend on the package.
+- YOU MAY NOT: resell it, republish it under another name, or redistribute a modified copy of the
+  pack or its `references/` Knowledge Units as your own work.
+- The underlying methodologies and facts remain the intellectual property of the book's
+  author/publisher. This pack is an index INTO the book, never a substitute for it — buy the book.
+- A mechanical IP gate (word-shingling, w=8) is run over the whole pack before every release:
+  no uncited verbatim run of 8+ words from the source survives (0 violations at 0.2.0). Short
+  quotes are cited with a page anchor. That gate is evidence of discipline, not a licence.
+- Skills ship at trust_tier 1 (machine-distilled, routing-gated at CP3.5, NOT human-reviewed
+  against the cited pages) — verify against the book before relying on them.
+
+No warranty of any kind. Use at your own risk.

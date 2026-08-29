@@ -1,0 +1,25 @@
+skill: 12factor-explicit-dependencies
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+positives:
+  - "Работает у меня локально, но на CI падает с ModuleNotFoundError — что не так с зависимостями?"
+  - "Do I actually need a requirements.txt / Gemfile if the server already has the packages installed?"
+  - "Хочу, чтобы новый разработчик клонировал репо на чистую машину и всё поднялось одной командой."
+  - "Should I use a virtualenv/bundler to isolate dependencies, or is the manifest enough on its own?"
+  - "Наше приложение вызывает imagemagick через subprocess — нужно ли его вендорить внутрь приложения?"
+  - "Our app shells out to curl and it broke on a freshly provisioned host that didn't have it — how to fix properly?"
+  - "Как гарантировать, что dev и prod используют один и тот же набор зависимостей?"
+  - "How do I pin and vendor dependencies so the build is reproducible on any machine?"
+# Hard negatives: prompts owned by a SIBLING 12factor- skill (or an arsenal skill). This skill must NOT win them.
+negatives:
+  - prompt: "Куда положить API-ключи и строку подключения, которые различаются между dev и prod?"
+    should_activate: "12factor-config-in-environment"
+  - prompt: "How do I connect to the Postgres database and swap it for RDS without changing code?"
+    should_activate: "12factor-backing-services-as-resources"
+  - prompt: "We store DB credentials in a committed config file — is that okay?"
+    should_activate: "12factor-config-in-environment"
+  - prompt: "Как разделить стадии сборки, релиза и запуска, чтобы релиз был неизменяемым?"
+    should_activate: "12factor-build-release-run-separation"
+  - prompt: "Our staging and production drift apart — how do we keep environments as similar as possible?"
+    should_activate: "12factor-dev-prod-parity"
+  - prompt: "Plan a zero-downtime migration to add a new indexed column to the users table."
+    should_activate: "database-migration"

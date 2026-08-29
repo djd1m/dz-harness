@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SiwaSkillOutput",
+  "description": "Output schema for SIWA (Sign-In With Agent) ERC-8004 authentication skill",
+  "type": "object",
+  "required": ["action", "result"],
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "create_message",
+        "sign_message",
+        "verify_message",
+        "parse_message",
+        "generate_nonce",
+        "resolve_capabilities",
+        "create_receipt",
+        "verify_receipt"
+      ],
+      "description": "The SIWA action performed"
+    },
+    "result": {
+      "type": "object",
+      "properties": {
+        "success": { "type": "boolean" },
+        "data": {
+          "oneOf": [
+            { "$ref": "#/definitions/MessageResult" },
+            { "$ref": "#/definitions/SignatureResult" },
+            { "$ref": "#/definitions/VerificationResult" },
+            { "$ref": "#/definitions/NonceResult" },
+            { "$ref": "#/definitions/CapabilitiesResult" },
+            { "$ref": "#/definitions/ReceiptResult" }
+          ]
+        },
+        "error": {
+          "type": "object",
+          "properties": {
+            "code": { "type": "string" },
+            "message": { "type": "string" }
+          }
+        }
+      },
+      "required": ["success"]
+    }
+  },
+  "definitions": {
+    "MessageResult": {
+      "type": "object",
+      "properties": {
+        "message": { "type": "string", "description": "The formatted SIWA message string" },
+        "domain": { "type": "string" },
+        "address": { "type": "string" },
+        "chainId": { "type": "integer" },
+        "nonce": { "type": "string" },
+        "issuedAt": { "type": "string", "format": "date-time" },
+        "expirationTime": { "type": "string", "format": "date-time" },
+        "resources": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": ["message", "domain", "address"]
+    },
+    "SignatureResult": {
+      "type": "object",
+      "properties": {
+        "signature": { "type": "string", "description": "Hex-encoded signature" },
+        "address": { "type": "string" },
+        "chain": { "type": "string" }
+      },
+      "required": ["signature", "address"]
+    },
+    "VerificationResult": {
+      "type": "object",
+      "properties": {
+        "valid": { "type": "boolean" },
+        "address": { "type": "string" },
+        "domain": { "type": "string" },
+        "resources": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "expiresAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["valid", "address"]
+    },
+    "NonceResult": {
+      "type": "object",
+      "properties": {
+        "nonce": { "type": "string" },
+        "expiresAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["nonce"]
+    },
+    "CapabilitiesResult": {
+      "type": "object",
+      "properties": {
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "urn": { "type": "string" },
+              "description": { "type": "string" },
+              "valid": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    },
+    "ReceiptResult": {
+      "type": "object",
+      "properties": {
+        "receiptId": { "type": "string" },
+        "action": { "type": "string" },
+        "agent": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "signature": { "type": "string" }
+      },
+      "required": ["receiptId", "agent"]
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "trip-planner itinerary",
+  "type": "object",
+  "required": ["trip", "days"],
+  "properties": {
+    "trip": {
+      "type": "object",
+      "required": ["city", "constraints"],
+      "properties": {
+        "title": { "type": "string" },
+        "city": { "type": "string" },
+        "start": { "type": "string", "description": "YYYY-MM-DD" },
+        "end": { "type": "string", "description": "YYYY-MM-DD" },
+        "party": { "type": "integer", "minimum": 1 },
+        "constraints": { "type": "array", "items": { "type": "string" }, "description": "hard filters" },
+        "lodging": { "type": "object", "properties": {
+          "name": {"type":"string"}, "address": {"type":"string"},
+          "lat": {"type":["number","null"]}, "lon": {"type":["number","null"]} } },
+        "arrival": { "type": "string" },
+        "departure": { "type": "string" }
+      }
+    },
+    "days": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["date", "points"],
+        "properties": {
+          "date": { "type": "string", "description": "YYYY-MM-DD" },
+          "short": { "type": "string" },
+          "title": { "type": "string" },
+          "lat": { "type": ["number","null"] },
+          "lon": { "type": ["number","null"] },
+          "routeMode": { "type": "string", "enum": ["pd", "auto", "mt"] },
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["title", "category"],
+              "properties": {
+                "time": { "type": "string" },
+                "title": { "type": "string" },
+                "category": { "type": "string", "enum": ["экскурсия","музей","прогулка","смотровая","водная","кухня","ресторан","кафе","транспорт","жильё","другое"] },
+                "lat": { "type": ["number","null"], "description": "REQUIRED for map pin; null = coords unverified, never fabricated" },
+                "lon": { "type": ["number","null"] },
+                "desc": { "type": "string" },
+                "cost": { "type": "string" },
+                "booking": { "type": "object", "properties": {
+                  "required": { "type": "boolean" }, "url": { "type": "string" } } },
+                "tips": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

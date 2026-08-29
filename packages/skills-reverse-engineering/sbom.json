@@ -1,0 +1,537 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "skills-reverse-engineering"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "66b6fd445072d1c171d67cdbaa46f305184d77092d4ef7efc82477d33608ad51"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "bin/cli.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a210174d6b63d053f7744757972d31acb0f4d9c59f8dacff7b62872a19ebd31a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "d1a273594afef674586243c4f3c52ce7405b8d8a47cf998f4357a09ca4b02143"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "sources.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7703438737f688e04d09bf9372e2b6ab247e9ddd52e372bb78ad048d91535e6d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/cli.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f4cda43a7d5b5ec98f58e9d9e49b7b0ad0d53461b6cc5bb2df958d8a274de66c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/doctor.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "54fa365d518859c1ee9da50c29129bf469691ff14789a7acae6fd1604901fe1c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/init.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0b5407eeeddcb9ae94eaaeaddbe3a98207e408f7e99144bbf6d3cbe038ae0b24"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/list.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "78e542af26aa714f56a8b86e6b942fda2fca18fd4e0b5c1c9fefa17cd55b0262"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/remove.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dc5db2dea9f63355d99d1a407fdfe3ee7c4d04d8e372499b2d99dc6d440727b3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/update.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e5ffa4ee97a6383a04c02412cf625429cc6f3537d9255d0ce4dbf33d4b6f04b3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/utils.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "11af7d3f56331ed03d13af0f9d4fbb408307c37ff3aad77ba4cbdf610a881aa8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/reverse-engineering-unicorn.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ff88a1990654ed8e9e4282735297a701ba6fd5e8cbcabe37f2661a3e77e90e58"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/explore/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2473e7961845db0d64566cd42627b374d1830664b9e302058a1b1aa466bc7361"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/explore/references/questioning-techniques.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ec0dd00871d3abe950f9cf375216a43043827897166c4165c3fa581839851195"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/explore/references/task-brief-templates.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e9292479e120afce944b747bb7b4a7226c41e9880708d620de3ea4fa4ef0249"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/references/ed25519-verification.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2742f14b472bff69c83f24d9bac5bf023bd7f9ecc3e659742ac3152a239dd68f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/references/research-actions.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "156d2f8ce342f7013bc758fe7c0d3ad3041b4f67f30dbcf8d59e091cb70d9a9c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/references/source-evaluation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d6a19abb6be64dc9e1f539903080029125d2d899da4de3063e75e1afb7e4906f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/check_report_evidence.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5053e677f11d00b4dd8365a81eafa1d2c961eebd25c33f72b02455573a934a32"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/ed25519_verifier.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f4a2ac9e6473201583643fe8abf47560863cec600344dad5c9df06091b4298f5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/evidence_fetch.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5f4d7cb5d6fb3106d64130b6606582eb55a4f633ef969cf7890b1de1c179345b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/fixture_legacy_v1_fact.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e613de4737145cbfb5f349fbf9f1122801ce3508b62c3a18e2e0cba26b9da5b0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/fixture_legacy_v2_fact.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3f552b47c3864e4ff7ae8c72516e98c188592c7f4f7703d09ce88b39f586ad9d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/fixtures_field_cases.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e2ee619732ab4a1b57285e57b4349f96b4158b231a5624e5264fadf69edb8983"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/goap_planner.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f5cbf4784106710b363e7f29bfa538b75f488cb25e1c273ae40de9f4c2a6710b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/learning_bridge.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "74f8842978ba945ff78c2bd54702415dd87122e61919571e12a19c3cf1e56131"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/population_match.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bbd1d3346a6fb75d0e8526cb5d2fc8bc8613bb31ab63ffb0958d436d5e009054"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/risk_statement.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "320ffece816e875f65624583846f44dc99461f672a0de7cda42be5ddf29d6de5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/source_tiers.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e1aae76fad01693ab35b51466fc4369c04a5ac64230fd307e7b798dc5beeff7a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_ed25519_verifier.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dcba1ce538ff946d6928f30a7c5cbcc37fddf712b6181f91f94c76e20c117ac5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_evidence_provenance.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "292bfcdcc086934905c77f1543d8400ee483166ff3ce26c79bb526c204320dbb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_goap_planner.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7942ada069048b7e97bf2b6e920898a58517ccec090069f347399dbf1fc37731"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_population_match.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f33f72c0ba6305af1644e6b1a7f7635d3f33273344f19c14e7dbd2f819af0e7f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_risk_absolute.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ab353db189650551c374cb772ba4a3a6929e3a2618f2f5c112eca4c3f69e46b6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_signature_v3.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a04259296df104c9497c7b31d29556cb9a7ad4dd3339cbe3d8d32a4f53950d25"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_suite_completeness.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "727c5d5b0dad215957012276ebc146397178255077e762ed7b88a60d8178d2ab"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/problem-solver-enhanced/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "031378aa2e10c98928e35de07d454135e73550cd0c49f0cd886d53e4208d6b9f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "20d6b667971f9749d091c1d47e2f75df957f259647cbb861ac54174280096c71"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/examples/noom-cjm-example.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "01d33586e26bf093a57a7a1082bf3bdba3af801bb8348a685c0418f76987a0b0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/examples/noom-module1-example.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7009cf2e2624a1254913ad2e1ff554e7ff675358b0b99bc0632f2e12132663a3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/modules/01-intelligence.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0770bd63a6a1eeb34e873cb101e2ba0cf88d507e9bc03242046eaa837b9f587c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/modules/02-product-customers.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "499bbded50ddd368a62301083e828a42bd0223aa58322b6a952f00086b462972"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/modules/025-cjm-prototype.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "11e2e101c99d42306ac1d0931475c5a8899e929514e41a393b6173e03856cfc3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/modules/03-market-competition.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7c2e7164463371239d92f28153777e40ee0d6dad293d59886a4cf5b306fa3627"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/modules/04-business-finance.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dd08226391d498a82f111f0da665ea7cea1fa8a97683fab11070f879142727f7"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/modules/05-growth-engine.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "84658390dc7beb590f70164b391ace915e42926660bc1015e4be300752b74a37"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/modules/06-playbook-synthesis.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3cd76a218aa9f94e0ff8ff2fc257647540674f68df3883f0de5e76e1cea26d9b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/references/blue-ocean-canvas.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9256455b4b0f2c8c5aecb472e69cfbeda38bed8239120b45b46beec27571f8f9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/references/industry-benchmarks.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d377f4d9e84b8b65860fb4d20ce67d928f8a8fc8ef333658f88c8c54674eed71"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/references/jtbd-canvas.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7938e657af631109ca7b4752002c21ac84a7dad3a35cc522be088f814d102773"
+        }
+      ]
+    }
+  ]
+}

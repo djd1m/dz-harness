@@ -1,0 +1,60 @@
+{
+  "name": "bankr-config-validator",
+  "description": "Validates Bankr AI trading agent platform configuration",
+  "rules": [
+    {
+      "field": "apiKey",
+      "required": true,
+      "type": "string",
+      "minLength": 10,
+      "envFallback": "BANKR_API_KEY",
+      "description": "Bankr API key from terminal.bankr.bot"
+    },
+    {
+      "field": "baseUrl",
+      "required": false,
+      "type": "string",
+      "default": "https://api.bankr.bot/api/v1",
+      "pattern": "^https://",
+      "description": "Bankr REST API base URL"
+    },
+    {
+      "field": "defaultChain",
+      "required": false,
+      "type": "string",
+      "default": "base",
+      "enum": ["base", "polygon", "ethereum", "solana", "unichain", "world-chain", "arbitrum", "bnb"],
+      "description": "Default chain for operations"
+    },
+    {
+      "field": "profile",
+      "required": false,
+      "type": "string",
+      "description": "Agent profile name to use"
+    },
+    {
+      "field": "readOnly",
+      "required": false,
+      "type": "boolean",
+      "default": false,
+      "description": "When true, only read operations are allowed"
+    }
+  ],
+  "requiredHeaders": [
+    {
+      "name": "Authorization",
+      "source": "apiKey",
+      "format": "Bearer {value}"
+    }
+  ],
+  "supportedChains": [
+    { "name": "base", "chainId": 8453 },
+    { "name": "polygon", "chainId": 137 },
+    { "name": "ethereum", "chainId": 1 },
+    { "name": "solana", "chainId": null },
+    { "name": "unichain", "chainId": 130 },
+    { "name": "world-chain", "chainId": 480 },
+    { "name": "arbitrum", "chainId": 42161 },
+    { "name": "bnb", "chainId": 56 }
+  ]
+}

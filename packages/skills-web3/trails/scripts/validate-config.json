@@ -1,0 +1,55 @@
+{
+  "name": "trails-config-validator",
+  "description": "Validates Trails cross-chain DeFi orchestration configuration",
+  "rules": [
+    {
+      "field": "apiKey",
+      "required": true,
+      "type": "string",
+      "minLength": 10,
+      "envFallback": "BANKR_API_KEY",
+      "description": "Bankr API key used for Trails authentication"
+    },
+    {
+      "field": "baseUrl",
+      "required": false,
+      "type": "string",
+      "default": "https://api.sequence.build/rpc/API/trails",
+      "envFallback": "TRAILS_API",
+      "pattern": "^https://",
+      "description": "Trails API base URL"
+    },
+    {
+      "field": "defaultSlippageBps",
+      "required": false,
+      "type": "integer",
+      "default": 50,
+      "minimum": 1,
+      "maximum": 500,
+      "description": "Default slippage tolerance in basis points"
+    },
+    {
+      "field": "timeoutMs",
+      "required": false,
+      "type": "integer",
+      "default": 120000,
+      "minimum": 5000,
+      "maximum": 600000,
+      "description": "Default timeout for WaitIntentReceipt in milliseconds"
+    }
+  ],
+  "requiredHeaders": [
+    {
+      "name": "Authorization",
+      "source": "apiKey",
+      "format": "Bearer {value}"
+    }
+  ],
+  "intentLifecycle": [
+    "QuoteIntent",
+    "CommitIntent",
+    "submit_via_bankr",
+    "ExecuteIntent",
+    "WaitIntentReceipt"
+  ]
+}

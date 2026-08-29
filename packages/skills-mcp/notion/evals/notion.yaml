@@ -1,0 +1,142 @@
+name: notion
+description: Evaluation suite for the notion MCP wrapper skill
+version: "1.0.0"
+
+setup:
+  required_env:
+    - NOTION_API_KEY
+  mcp_server: notion
+
+evals:
+  - id: search-pages-basic
+    description: Search returns pages matching a query
+    tool: search_pages
+    input:
+      query: "test"
+      page_size: 5
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+
+  - id: search-pages-filter-database
+    description: Search with database filter returns only databases
+    tool: search_pages
+    input:
+      query: ""
+      filter:
+        value: "database"
+      page_size: 5
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+      - type: each_item_field_equals
+        field: results
+        item_field: object
+        value: "database"
+
+  - id: create-page-with-content
+    description: Creating a page with title and blocks succeeds
+    tool: create_page
+    input:
+      parent:
+        page_id: "${TEST_PARENT_PAGE_ID}"
+      properties:
+        title:
+          title:
+            - text:
+                content: "MCP Eval Test Page"
+      children:
+        - object: block
+          type: paragraph
+          paragraph:
+            rich_text:
+              - text:
+                  content: "This page was created by the Notion MCP eval suite."
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: page
+      - type: field_present
+        field: page.id
+
+  - id: get-page-properties
+    description: Getting a page returns its properties and metadata
+    tool: get_page
+    input:
+      page_id: "${TEST_PAGE_ID}"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: page
+      - type: field_present
+        field: page.properties
+
+  - id: query-database-no-filter
+    description: Querying a database without filters returns results
+    tool: query_database
+    input:
+      database_id: "${TEST_DATABASE_ID}"
+      page_size: 10
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+
+  - id: query-database-with-filter
+    description: Querying a database with filter returns matching results
+    tool: query_database
+    input:
+      database_id: "${TEST_DATABASE_ID}"
+      filter:
+        property: "Status"
+        select:
+          equals: "Done"
+      page_size: 10
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+
+  - id: append-blocks-to-page
+    description: Appending blocks to a page succeeds
+    tool: append_blocks
+    input:
+      block_id: "${TEST_PAGE_ID}"
+      children:
+        - object: block
+          type: paragraph
+          paragraph:
+            rich_text:
+              - text:
+                  content: "Appended by eval suite."
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: blocks
+
+  - id: get-block-children
+    description: Getting block children returns page content blocks
+    tool: get_block_children
+    input:
+      block_id: "${TEST_PAGE_ID}"
+      page_size: 50
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: blocks
+      - type: array_length_gte
+        field: blocks
+        value: 1
+      - type: each_item_has_field
+        field: blocks
+        required_fields: ["id", "type"]

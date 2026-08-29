@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "comfyui config validator",
+  "description": "Validates configuration inputs for the comfyui skill",
+  "type": "object",
+  "properties": {
+    "server_url": {
+      "type": "string",
+      "default": "http://127.0.0.1:8188",
+      "description": "ComfyUI server URL"
+    },
+    "workflow_path": {
+      "type": "string",
+      "description": "Path to a ComfyUI workflow JSON file to load"
+    },
+    "workflow_type": {
+      "type": "string",
+      "enum": ["text_to_image", "image_to_image", "inpaint", "upscale", "controlnet", "custom"],
+      "default": "text_to_image",
+      "description": "Built-in workflow type to use"
+    },
+    "model": {
+      "type": "string",
+      "description": "Checkpoint model name (e.g., 'sd_xl_base_1.0.safetensors')"
+    },
+    "prompt": {
+      "type": "string",
+      "description": "Positive prompt for image generation"
+    },
+    "negative_prompt": {
+      "type": "string",
+      "default": "low quality, blurry, deformed",
+      "description": "Negative prompt"
+    },
+    "width": {
+      "type": "integer",
+      "multipleOf": 8,
+      "minimum": 64,
+      "maximum": 4096,
+      "default": 1024,
+      "description": "Output image width"
+    },
+    "height": {
+      "type": "integer",
+      "multipleOf": 8,
+      "minimum": 64,
+      "maximum": 4096,
+      "default": 1024,
+      "description": "Output image height"
+    },
+    "steps": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 150,
+      "default": 20,
+      "description": "Number of sampling steps"
+    },
+    "cfg_scale": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 30,
+      "default": 7,
+      "description": "Classifier-free guidance scale"
+    },
+    "sampler": {
+      "type": "string",
+      "enum": ["euler", "euler_ancestral", "dpmpp_2m", "dpmpp_sde", "dpmpp_2m_sde", "lcm", "ddim"],
+      "default": "euler",
+      "description": "Sampling algorithm"
+    },
+    "seed": {
+      "type": "integer",
+      "default": -1,
+      "description": "Random seed (-1 for random)"
+    },
+    "batch_size": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 16,
+      "default": 1,
+      "description": "Number of images to generate"
+    },
+    "input_image": {
+      "type": "string",
+      "description": "Path to input image for img2img or inpainting"
+    }
+  }
+}

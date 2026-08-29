@@ -1,0 +1,49 @@
+{
+  "name": "@dzhechkov/health-advisor",
+  "version": "1.10.4",
+  "description": "AI Health Advisor — 20 base components + 25 extended medical skills for Claude Code",
+  "bin": {
+    "health-advisor": "./bin/health-advisor.js",
+    "ha": "./bin/health-advisor.js"
+  },
+  "keywords": [
+    "claude-code",
+    "health",
+    "medical",
+    "ai",
+    "skills",
+    "pubmed"
+  ],
+  "author": "djd1m",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/health-advisor"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "base/",
+    "skills/",
+    "README.md",
+    "webui.config.json",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "optionalDependencies": {
+    "@dzhechkov/harness-core": "^0.3.150 || ^0.4.0 || ^0.5.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/health-advisor#readme",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
+    "test": "node --test --test-concurrency=4",
+    "test:mutation": "dz mutation-gate --registry test/mutation-registry.json"
+  }
+}

@@ -1,0 +1,193 @@
+# database-migration evaluation
+# Run: aqe eval database-migration
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run database-migration"
+    expected:
+      status: success
+      summary_contains: "database-migration"
+
+  - name: "add nullable column to small table"
+    input: "Add a payment_profile_id UUID column to the users table. Table has 50,000 rows. PostgreSQL 16."
+    config:
+      database: "postgresql"
+      database_version: "16.2"
+      operation: "add_column"
+      table_name: "users"
+      table_row_count: 50000
+      column_details:
+        name: "payment_profile_id"
+        type: "UUID"
+        nullable: true
+    expected:
+      status: success
+      migration_plan:
+        migration_type_in: ["schema", "combined"]
+        steps_min: 1
+        affected_tables_contains: "users"
+      rollback_plan:
+        reversible: true
+        steps_min: 1
+
+  - name: "rename column with expand-contract"
+    input: "Rename the 'amount' column to 'total_amount' on our orders table. 5M rows, PostgreSQL, zero-downtime required."
+    config:
+      database: "postgresql"
+      operation: "rename_column"
+      table_name: "orders"
+      table_row_count: 5000000
+      zero_downtime_required: true
+      column_details:
+        name: "amount"
+        new_name: "total_amount"
+        type: "DECIMAL(10,2)"
+    expected:
+      status: success
+      migration_plan:
+        strategy: "expand_contract"
+        steps_min: 3
+      deployment_order:
+        phases_min: 3
+      rollback_plan:
+        reversible: true
+
+  - name: "large table migration with online DDL"
+    input: "Add a NOT NULL column with default to a 200M-row MySQL table. Cannot have any downtime."
+    config:
+      mode: "large_table"
+      database: "mysql"
+      database_version: "8.0.35"
+      table_name: "events"
+      table_row_count: 200000000
+      operation: "add_column"
+      zero_downtime_required: true
+      column_details:
+        name: "event_category"
+        type: "VARCHAR(50)"
+        nullable: false
+        default_value: "'uncategorized'"
+    expected:
+      status: success
+      large_table_handling:
+        is_large_table: true
+        tool_used_in: ["pt_online_schema_change", "gh_ost", "native_online_ddl"]
+      rollback_plan:
+        reversible: true
+        backup_required: true
+
+  - name: "tool selection for TypeScript project"
+    input: "We have a TypeScript project using PostgreSQL. What migration tool should we use?"
+    config:
+      mode: "tool_selection"
+      application_language: "typescript"
+      database: "postgresql"
+    expected:
+      status: success
+      migration_plan:
+        tool_in: ["knex", "prisma"]
+
+  - name: "data backfill with batching"
+    input: "Backfill the email_address column from the email column on a 10M-row users table."
+    config:
+      mode: "backfill_only"
+      database: "postgresql"
+      table_name: "users"
+      table_row_count: 10000000
+      backfill_context:
+        source_column: "email"
+        target_column: "email_address"
+        batch_size: 5000
+    expected:
+      status: success
+      backfill:
+        required: true
+        batch_size_lte: 10000
+        idempotent: true
+        progress_query_present: true
+      migration_plan:
+        migration_type: "data"
+
+  - name: "rollback plan for irreversible operation"
+    input: "Generate a rollback plan for dropping the legacy_status column from the users table."
+    config:
+      mode: "rollback_only"
+      database: "postgresql"
+      operation: "drop_column"
+      table_name: "users"
+      column_details:
+        name: "legacy_status"
+    expected:
+      status: success
+      rollback_plan:
+        reversible: false
+        irreversible_steps_not_empty: true
+        backup_required: true
+        backup_command_present: true
+        pitr_available: true
+
+  - name: "deployment order with feature flags"
+    input: "Plan the deployment order for adding a NOT NULL constraint to the status column. We use rolling deploys and feature flags."
+    config:
+      database: "postgresql"
+      operation: "add_not_null"
+      table_name: "orders"
+      table_row_count: 1000000
+      column_details:
+        name: "status"
+        type: "VARCHAR(20)"
+        default_value: "'pending'"
+      deployment_strategy: "rolling"
+      feature_flags_available: true
+      zero_downtime_required: true
+    expected:
+      status: success
+      deployment_order:
+        phases_min: 3
+        feature_flags_not_empty: true
+      migration_plan:
+        strategy: "expand_contract"
+
+  - name: "index creation concurrently"
+    input: "Add an index on customer_id column of the orders table. 20M rows, PostgreSQL, must not lock the table."
+    config:
+      database: "postgresql"
+      operation: "add_index"
+      table_name: "orders"
+      table_row_count: 20000000
+      max_lock_time_seconds: 0
+    expected:
+      status: success
+      migration_plan:
+        steps_min: 1
+        steps_contain_concurrently: true
+      rollback_plan:
+        reversible: true
+
+  - name: "testing requirements on prod-size data"
+    input: "We need to change the id column from INT to BIGINT on a 100M-row events table."
+    config:
+      database: "postgresql"
+      operation: "change_type"
+      table_name: "events"
+      table_row_count: 100000000
+      column_details:
+        name: "id"
+        type: "INT"
+        new_type: "BIGINT"
+    expected:
+      status: success
+      testing:
+        tested_on_prod_data: true
+        execution_time_measured: true
+        lock_impact_verified: true
+        rollback_tested: true
+      large_table_handling:
+        is_large_table: true
+        tool_used_in: ["shadow_table", "pg_repack"]
+
+  - name: "out of scope detection"
+    input: "Optimize this slow SELECT query that joins 5 tables"
+    expected:
+      status: skipped
+      reason_contains: "out of scope"

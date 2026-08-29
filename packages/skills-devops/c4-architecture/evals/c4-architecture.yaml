@@ -1,0 +1,58 @@
+# c4-architecture evaluation
+# Run: aqe eval c4-architecture
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run c4-architecture"
+    expected:
+      status: success
+      summary_contains: "c4-architecture"
+
+  - name: "context diagram generation"
+    input: "Generate a C4 context diagram for an e-commerce platform with customers, an admin panel, a payment gateway, and an email service."
+    expected:
+      status: success
+      diagrams_level_includes: "context"
+      diagrams_min_count: 1
+
+  - name: "container diagram generation"
+    input: "Create a C4 container diagram for a microservices system with a React SPA, API gateway, user service, order service, PostgreSQL database, and Redis cache."
+    expected:
+      status: success
+      diagrams_level_includes: "container"
+      format: "mermaid"
+
+  - name: "multi-level generation"
+    input: "Generate C4 diagrams at context, container, and component levels for a CI/CD platform that integrates with GitHub, Docker Hub, and AWS."
+    expected:
+      status: success
+      diagrams_min_count: 3
+
+  - name: "consistency validation"
+    input: "Validate consistency across these C4 diagrams: Level 1 calls it 'API Server', Level 2 calls it 'API Gateway'. Are they consistent?"
+    expected:
+      status: success
+      consistency_valid: false
+      consistency_issues_contains: "naming"
+
+  - name: "structurizr format"
+    input: "Generate C4 diagrams in Structurizr DSL for a system called 'DataPipeline' with Kafka, Spark, and S3."
+    expected:
+      status: success
+      format: "structurizr"
+
+  - name: "component diagram zoom"
+    input: "Zoom into the 'Order Service' container and show its internal components: OrderController, OrderService, OrderRepository, PaymentClient."
+    expected:
+      status: success
+      diagrams_level_includes: "component"
+      diagrams_element_count_min: 4
+
+  - name: "missing information handling"
+    input: "Generate a C4 diagram."
+    expected:
+      status: needs_more_info
+      summary_contains_any:
+        - "system name"
+        - "scope"
+        - "more information"

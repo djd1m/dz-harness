@@ -1,0 +1,41 @@
+{
+  "name": "@dzhechkov/skills-book-ai-apps",
+  "version": "0.2.8",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "description": "Decision-moment skills distilled from «Building Applications with AI Agents» (Albada, рус. пер.) — makes an AI coder apply the book's agent-engineering methodologies. 17 skills over both distillation waves. Machine-distilled (trust_tier 1, routing-gated), book-derived.",
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "dzhechko",
+  "keywords": ["agent-skills", "skill-pack", "claude-code", "ai-agents", "agentic-systems", "book-derived", "dz-digitized", "digitized-monograph"],
+  "files": [
+    "aiagents-agent-fit-and-model-choice",
+    "aiagents-agent-security",
+    "aiagents-agent-ux",
+    "aiagents-context-engineering",
+    "aiagents-evaluation-design",
+    "aiagents-human-in-the-loop",
+    "aiagents-improvement-loops",
+    "aiagents-knowledge-and-memory",
+    "aiagents-learning-strategy",
+    "aiagents-multi-agent-infrastructure",
+    "aiagents-observability-and-drift",
+    "aiagents-orchestration-and-planning",
+    "aiagents-org-adoption-and-governance",
+    "aiagents-probabilistic-behaviour-checks",
+    "aiagents-release-gates-and-rollout",
+    "aiagents-single-vs-multi-agent",
+    "aiagents-tool-design-and-selection",
+    "brain",
+    "sources.json",
+    "README.md",
+    "LICENSE",
+    "ROUTING-GATE.md",
+    "CP4-PACK-REPORT.md",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

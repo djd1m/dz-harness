@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "answer-assessor output",
+  "description": "Structured output from the answer-assessor skill",
+  "type": "object",
+  "required": ["status", "question_count", "answers", "overall_impression", "grade_impact"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "skipped"]
+    },
+    "question_count": {
+      "type": "integer",
+      "description": "Total number of questions asked by the committee"
+    },
+    "qa_duration_minutes": {
+      "type": "number",
+      "description": "Estimated duration of the Q&A session in minutes"
+    },
+    "answers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["question_summary", "completeness", "depth", "thesis_link"],
+        "properties": {
+          "question_summary": {
+            "type": "string",
+            "description": "Brief summary of the question"
+          },
+          "asked_by": {
+            "type": "string",
+            "description": "Who asked the question (if identifiable from transcript)"
+          },
+          "completeness": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3,
+            "description": "Completeness score: 3=full, 2=partial, 1=no answer"
+          },
+          "depth": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3,
+            "description": "Depth score: 3=arguments+data, 2=general, 1=not considered"
+          },
+          "thesis_link": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3,
+            "description": "Link to thesis: 3=specific references, 2=general, 1=none"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": ["confident", "hesitant", "lost"],
+            "description": "Student's confidence level in the answer"
+          },
+          "remarks": {
+            "type": "string",
+            "description": "Additional observations about this answer"
+          }
+        }
+      }
+    },
+    "closing_remarks": {
+      "type": "object",
+      "properties": {
+        "present": {
+          "type": "boolean",
+          "description": "Whether the student gave a closing statement"
+        },
+        "supervisor_remarks_addressed": {
+          "type": "boolean",
+          "description": "Whether supervisor's remarks were addressed"
+        },
+        "reviewer_remarks_addressed": {
+          "type": "boolean",
+          "description": "Whether external reviewer's remarks were addressed"
+        },
+        "constructive_approach": {
+          "type": "boolean",
+          "description": "Whether the student was constructive about remarks"
+        },
+        "future_plans_mentioned": {
+          "type": "boolean",
+          "description": "Whether the student mentioned future development plans"
+        }
+      },
+      "description": "Assessment of the student's closing remarks / final word"
+    },
+    "average_score": {
+      "type": "number",
+      "minimum": 1.0,
+      "maximum": 3.0,
+      "description": "Average score across all answers (scale 1-3)"
+    },
+    "overall_impression": {
+      "type": "string",
+      "enum": ["confident", "uncertain", "does_not_command"],
+      "description": "Overall impression of the student's answers"
+    },
+    "grade_impact": {
+      "type": "string",
+      "enum": ["raises", "neutral", "lowers"],
+      "description": "Impact of Q&A performance on the final grade"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Free-text summary of the Q&A assessment"
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "name": "jina-reader-validator",
+  "description": "Validates jina-reader MCP skill configuration and connectivity.",
+  "version": "1.0.0",
+  "checks": [
+    {
+      "id": "schema-valid",
+      "type": "json-schema",
+      "description": "Output conforms to schemas/output.json",
+      "schemaPath": "../schemas/output.json",
+      "severity": "error"
+    },
+    {
+      "id": "api-key-optional",
+      "type": "env-check",
+      "description": "Jina API key is configured for higher rate limits",
+      "variables": [
+        {
+          "name": "JINA_API_KEY",
+          "required": false,
+          "hint": "Optional API key from jina.ai for higher rate limits"
+        }
+      ],
+      "severity": "info"
+    },
+    {
+      "id": "mcp-server-reachable",
+      "type": "connectivity",
+      "description": "Jina MCP endpoint is reachable",
+      "transport": "http",
+      "url": "https://mcp.jina.ai/mcp",
+      "timeoutMs": 10000,
+      "severity": "error"
+    },
+    {
+      "id": "sse-fallback",
+      "type": "connectivity",
+      "description": "Official Jina SSE fallback endpoint is reachable",
+      "transport": "sse",
+      "url": "https://mcp.jina.ai/sse",
+      "timeoutMs": 10000,
+      "severity": "warning"
+    },
+    {
+      "id": "tool-enumeration",
+      "type": "tool-list",
+      "description": "All expected tools are available from the MCP server",
+      "expectedTools": [
+        "read_url",
+        "extract_data",
+        "search_web"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "response-shape",
+      "type": "output-sample",
+      "description": "Sample URL read returns markdown content",
+      "tool": "read_url",
+      "args": { "url": "https://example.com" },
+      "expectFields": ["tool", "status", "data"],
+      "severity": "warning"
+    }
+  ],
+  "scoring": {
+    "pass": "all error-severity checks pass",
+    "warn": "all error-severity checks pass but warnings present",
+    "fail": "any error-severity check fails"
+  }
+}

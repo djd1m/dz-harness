@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "test-writer output",
+  "description": "Structured output from the test-writer skill",
+  "type": "object",
+  "required": ["status", "summary", "test_file", "test_cases"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "skipped"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "Brief summary of tests written and coverage added"
+    },
+    "test_file": {
+      "type": "string",
+      "description": "Path to the generated test file"
+    },
+    "source_file": {
+      "type": "string",
+      "description": "Path to the source file under test"
+    },
+    "framework": {
+      "type": "string",
+      "description": "Test framework used (vitest, jest, mocha, pytest, etc.)"
+    },
+    "test_cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type", "category"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Behavior-describing test name"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["unit", "integration", "e2e"]
+          },
+          "category": {
+            "type": "string",
+            "enum": ["happy_path", "boundary", "edge_case", "error", "idempotency"]
+          },
+          "passed": {
+            "type": "boolean",
+            "description": "Whether the test passed after execution"
+          }
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "properties": {
+        "total": { "type": "integer" },
+        "passed": { "type": "integer" },
+        "failed": { "type": "integer" },
+        "skipped": { "type": "integer" },
+        "duration_ms": { "type": "integer" }
+      }
+    },
+    "refactoring_needed": {
+      "type": "string",
+      "description": "Present when code needs refactoring to be testable; describes what to change"
+    }
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "database-migration config validator",
+  "description": "Validates configuration inputs for the database-migration skill",
+  "type": "object",
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": ["full", "plan_only", "rollback_only", "tool_selection", "large_table", "backfill_only"],
+      "default": "full",
+      "description": "Which part of the migration procedure to run. 'full' runs all 10 steps. 'plan_only' generates a migration plan without execution guidance. 'rollback_only' generates a rollback plan. 'tool_selection' compares migration tools. 'large_table' focuses on large table strategies. 'backfill_only' focuses on data backfill."
+    },
+    "database": {
+      "type": "string",
+      "enum": ["postgresql", "mysql", "sqlite", "sqlserver", "oracle", "mongodb"],
+      "description": "Target database system"
+    },
+    "database_version": {
+      "type": "string",
+      "description": "Database version (e.g., '16.2' for PostgreSQL, '8.0.35' for MySQL)"
+    },
+    "migration_tool": {
+      "type": "string",
+      "enum": ["knex", "prisma", "flyway", "liquibase", "alembic", "django", "golang_migrate", "dbmate", "raw_sql"],
+      "description": "Migration tool to use. If omitted, the skill will recommend one."
+    },
+    "application_language": {
+      "type": "string",
+      "enum": ["typescript", "javascript", "python", "go", "java", "rust", "csharp", "ruby"],
+      "description": "Primary application language (helps with tool selection)"
+    },
+    "operation": {
+      "type": "string",
+      "enum": [
+        "add_column", "drop_column", "rename_column", "change_type",
+        "add_index", "drop_index", "add_constraint", "drop_constraint",
+        "create_table", "drop_table", "backfill", "partition",
+        "add_not_null", "custom"
+      ],
+      "description": "Primary operation type"
+    },
+    "table_name": {
+      "type": "string",
+      "description": "Name of the table being migrated"
+    },
+    "table_row_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Approximate row count of the table (critical for strategy selection)"
+    },
+    "table_size": {
+      "type": "string",
+      "description": "Approximate table size (e.g., '2.4 GB', '150 MB')"
+    },
+    "column_details": {
+      "type": "object",
+      "description": "Details about the column being added/modified/dropped",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Column name"
+        },
+        "new_name": {
+          "type": "string",
+          "description": "New column name (for rename operations)"
+        },
+        "type": {
+          "type": "string",
+          "description": "Column data type (e.g., 'UUID', 'VARCHAR(255)', 'BIGINT')"
+        },
+        "new_type": {
+          "type": "string",
+          "description": "New column type (for type change operations)"
+        },
+        "nullable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether the column allows NULL values"
+        },
+        "default_value": {
+          "type": "string",
+          "description": "Default value expression (e.g., 'gen_random_uuid()', 'now()', '0')"
+        }
+      }
+    },
+    "zero_downtime_required": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the migration must be performed without application downtime"
+    },
+    "has_replication": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the database has read replicas (affects migration strategy)"
+    },
+    "max_lock_time_seconds": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 5,
+      "description": "Maximum acceptable lock time in seconds"
+    },
+    "deployment_strategy": {
+      "type": "string",
+      "enum": ["rolling", "blue_green", "canary", "recreate"],
+      "description": "Application deployment strategy (affects migration-code coordination)"
+    },
+    "feature_flags_available": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether feature flags are available for safe rollback"
+    },
+    "backup_method": {
+      "type": "string",
+      "enum": ["pg_dump", "mysqldump", "snapshot", "pitr", "none"],
+      "description": "Available backup method for rollback"
+    },
+    "ci_cd_tool": {
+      "type": "string",
+      "enum": ["github_actions", "gitlab_ci", "jenkins", "circleci", "none"],
+      "description": "CI/CD tool for automated migration execution"
+    },
+    "backfill_context": {
+      "type": "object",
+      "description": "Context for data backfill operations",
+      "properties": {
+        "source_column": {
+          "type": "string",
+          "description": "Column to read data from"
+        },
+        "target_column": {
+          "type": "string",
+          "description": "Column to write data to"
+        },
+        "transform": {
+          "type": "string",
+          "description": "Transformation expression (e.g., 'UPPER(email)', 'gen_random_uuid()')"
+        },
+        "where_clause": {
+          "type": "string",
+          "description": "Filter for rows to backfill (e.g., 'status IS NULL')"
+        },
+        "batch_size": {
+          "type": "integer",
+          "minimum": 100,
+          "default": 5000,
+          "description": "Rows per batch"
+        }
+      }
+    }
+  },
+  "if": {
+    "properties": { "mode": { "const": "large_table" } }
+  },
+  "then": {
+    "required": ["database", "table_name", "table_row_count"]
+  }
+}

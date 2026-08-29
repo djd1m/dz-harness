@@ -1,0 +1,62 @@
+# gitlab evaluation
+# Run: aqe eval gitlab
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run gitlab"
+    expected:
+      status: success
+      summary_contains: "gitlab"
+
+  - name: "list projects"
+    input: "List my GitLab projects."
+    expected:
+      status: success
+      operation: "list_projects"
+      items_count_min: 0
+
+  - name: "create merge request"
+    input: "Create a merge request in project 'mygroup/myapp' from branch 'feature/login' to 'main' with title 'Add login page'."
+    expected:
+      status: success
+      operation: "create_merge_request"
+      merge_request_title: "Add login page"
+      merge_request_source_branch: "feature/login"
+      merge_request_target_branch: "main"
+
+  - name: "list issues with filters"
+    input: "List open issues in project 'mygroup/myapp' with label 'bug'."
+    expected:
+      status: success
+      operation: "list_issues"
+
+  - name: "pipeline monitoring"
+    input: "Check the status of the latest pipeline in project 'mygroup/myapp' and retry if it failed."
+    expected:
+      status: success
+      operation_in: ["get_pipeline", "retry_pipeline"]
+
+  - name: "create release"
+    input: "Create a release v1.2.0 in project 'mygroup/myapp' with tag v1.2.0 and release notes describing the new login feature."
+    expected:
+      status: success
+      operation: "create_release"
+      release_tag_name: "v1.2.0"
+
+  - name: "self-hosted instance"
+    input: "Connect to my self-hosted GitLab at https://gitlab.mycompany.com and list projects."
+    expected:
+      status: success
+      summary_contains_any:
+        - "self-hosted"
+        - "gitlab.mycompany.com"
+        - "projects"
+
+  - name: "missing token error"
+    input: "List projects but GITLAB_TOKEN is not set."
+    expected:
+      status: error
+      summary_contains_any:
+        - "token"
+        - "authentication"
+        - "GITLAB_TOKEN"

@@ -1,0 +1,27 @@
+{
+  "_comment": "Поле из практики (CLAIMED — значения и порог приведены так, как они пришли в обращении). Референсный интервал 66-133 мг/дл взят из бланка лаборатории пациента: в этом пакете такого интервала нет ни в одной таблице, поэтому он приходит через labReport.",
+  "rows": [
+    {
+      "test_name": "ApoB",
+      "value": 106,
+      "unit": "mg/dL",
+      "reference_range": "-inf - inf",
+      "status": "normal"
+    },
+    {
+      "test_name": "Transferrin Saturation",
+      "value": 53,
+      "unit": "%",
+      "reference_range": "-inf - inf",
+      "status": "normal"
+    }
+  ],
+  "patientContext": {
+    "sex": "male",
+    "conditions": ["documented_atherosclerosis"]
+  },
+  "labReport": {
+    "ApoB": { "lo": 66, "hi": 133, "unit": "mg/dL" },
+    "Transferrin Saturation": { "lo": 16, "hi": 54, "unit": "%" }
+  }
+}

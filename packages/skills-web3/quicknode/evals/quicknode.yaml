@@ -1,0 +1,119 @@
+name: quicknode
+description: "Evaluate QuickNode blockchain RPC and data access skill"
+version: "1.0.0"
+
+test_cases:
+  - id: x402-eth-balance
+    description: "Get ETH balance on Base via x402 pay-per-request"
+    input:
+      chain: base
+      method: eth_getBalance
+      params: ["0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045", "latest"]
+      access_mode: x402
+    expected:
+      chain: base
+      method: eth_getBalance
+      result_type: string
+      result_pattern: "^0x[a-fA-F0-9]+$"
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: result
+      - type: field_equals
+        field: chain
+        value: base
+
+  - id: api-key-block-number
+    description: "Get current block number via API key"
+    input:
+      chain: ethereum
+      method: eth_blockNumber
+      params: []
+      access_mode: api_key
+    expected:
+      chain: ethereum
+      method: eth_blockNumber
+      result_type: string
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: result
+
+  - id: erc20-token-balance
+    description: "Get USDC balance on Base"
+    input:
+      chain: base
+      method: eth_call
+      params:
+        - to: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+          data: "0x70a08231000000000000000000000000d8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+        - "latest"
+    expected:
+      chain: base
+      method: eth_call
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+
+  - id: gas-estimate
+    description: "Estimate gas for ETH transfer"
+    input:
+      chain: base
+      method: eth_estimateGas
+      params:
+        - from: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+          to: "0x0000000000000000000000000000000000000001"
+          value: "0x2386F26FC10000"
+    expected:
+      parsed:
+        gas_estimate_min: 21000
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+
+  - id: solana-balance
+    description: "Get SOL balance"
+    input:
+      chain: solana
+      method: getBalance
+      params: ["vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg"]
+    expected:
+      chain: solana
+      method: getBalance
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+
+  - id: error-429-handling
+    description: "Handle rate limiting gracefully"
+    input:
+      chain: ethereum
+      method: eth_blockNumber
+      simulate_error: 429
+    expected:
+      error:
+        code: 429
+        message_contains: "rate"
+    assertions:
+      - type: field_present
+        field: error.code
+      - type: field_present
+        field: error.message
+
+  - id: marketplace-nft-api
+    description: "Fetch NFTs via QuickNode NFT API add-on"
+    input:
+      chain: ethereum
+      method: qn_fetchNFTs
+      params:
+        - wallet: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+          page: 1
+          perPage: 10
+    expected:
+      chain: ethereum
+      method: qn_fetchNFTs
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json

@@ -1,0 +1,57 @@
+# risk-assessment evaluation
+# Run: aqe eval risk-assessment
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run risk-assessment"
+    expected:
+      status: success
+      summary_contains: "risk"
+
+  - name: "secret detection - API key"
+    input: "Assess risk of this change: const API_KEY = 'AKIA1234567890EXAMPLE';"
+    expected:
+      status: success
+      gate_decision: "block"
+      secrets_scan_passed: false
+
+  - name: "low risk change"
+    input: "Assess risk: Updated README.md with typo fix and added a comment to utils.ts"
+    expected:
+      status: success
+      overall_severity: "low"
+      gate_decision: "pass"
+
+  - name: "high risk - auth change"
+    input: "Assess risk: Removed password hashing from the login endpoint and changed JWT expiry from 1 hour to 30 days."
+    expected:
+      status: success
+      overall_severity_in: ["high", "critical"]
+      gate_decision_in: ["warn", "block"]
+      categories_security_risk_count_min: 1
+
+  - name: "breaking change detection"
+    input: "Assess risk: Renamed the exported function `getUserById` to `fetchUser` and removed the `limit` parameter from `listUsers`."
+    expected:
+      status: success
+      breaking_changes_min_count: 1
+
+  - name: "dependency vulnerability"
+    input: "Assess risk: Added lodash@3.10.1 as a dependency. This version has known prototype pollution CVEs."
+    expected:
+      status: success
+      dependencies_vulnerabilities_found_min: 1
+      gate_decision_in: ["warn", "block"]
+
+  - name: "performance risk"
+    input: "Assess risk: Changed the user search query from indexed lookup to full table scan with LIKE '%term%' on a 10M row table."
+    expected:
+      status: success
+      categories_performance_risk_count_min: 1
+
+  - name: "multiple risk categories"
+    input: "Assess risk: Added a new endpoint that accepts user file uploads, stores them in S3 without size limits, logs the full request body including auth headers, and drops the 'deleted_at' column from the users table."
+    expected:
+      status: success
+      risks_min_count: 3
+      gate_decision_in: ["warn", "block"]

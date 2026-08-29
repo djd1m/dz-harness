@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "codeql-fix output",
+  "description": "Structured output from the codeql-fix skill",
+  "type": "object",
+  "required": ["status", "summary", "finding", "triage", "fix"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "skipped"]
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line summary of the finding and action taken"
+    },
+    "finding": {
+      "type": "object",
+      "required": ["rule_id", "severity", "file", "line", "tool"],
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "description": "Static analysis rule identifier (e.g., js/sql-injection)"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["critical", "high", "medium", "low"]
+        },
+        "file": {
+          "type": "string",
+          "description": "File path where the finding was flagged"
+        },
+        "line": {
+          "type": "integer",
+          "description": "Line number of the sink"
+        },
+        "tool": {
+          "type": "string",
+          "enum": ["codeql", "semgrep", "snyk", "sonarcloud", "sonarqube", "bandit", "other"],
+          "description": "Which scanner produced the finding"
+        },
+        "data_flow_path": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "step": { "type": "integer" },
+              "file": { "type": "string" },
+              "line": { "type": "integer" },
+              "description": { "type": "string" }
+            }
+          },
+          "description": "Source-to-sink data flow steps"
+        },
+        "cwe": {
+          "type": "string",
+          "description": "CWE identifier (e.g., CWE-89)"
+        }
+      }
+    },
+    "triage": {
+      "type": "object",
+      "required": ["verdict", "reasoning"],
+      "properties": {
+        "verdict": {
+          "type": "string",
+          "enum": ["real", "false_positive"],
+          "description": "Whether the finding represents a real vulnerability"
+        },
+        "reasoning": {
+          "type": "string",
+          "description": "Explanation of why the finding is real or false positive"
+        },
+        "existing_mitigations": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Protections already in place that the tool may have missed"
+        }
+      }
+    },
+    "fix": {
+      "type": "object",
+      "required": ["type", "description"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["code_change", "suppression"],
+          "description": "Whether the fix is a code change or a false-positive suppression"
+        },
+        "description": {
+          "type": "string",
+          "description": "What was changed and why"
+        },
+        "rule_class": {
+          "type": "string",
+          "description": "Vulnerability class (sql_injection, command_injection, xss, etc.)"
+        },
+        "files_changed": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Files modified by the fix"
+        },
+        "new_dependency": {
+          "type": "string",
+          "description": "Present if the fix requires adding a new dependency"
+        },
+        "behavior_change": {
+          "type": "string",
+          "description": "Present if the fix changes user-visible behavior"
+        },
+        "suppression_annotation": {
+          "type": "string",
+          "description": "Present for false-positive suppressions; the annotation added"
+        },
+        "suppression_justification": {
+          "type": "string",
+          "description": "Present for false-positive suppressions; why it is safe to suppress"
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "properties": {
+        "finding_resolved": {
+          "type": "boolean",
+          "description": "Whether the static analysis finding no longer triggers"
+        },
+        "tests_pass": {
+          "type": "boolean",
+          "description": "Whether existing tests still pass after the fix"
+        }
+      }
+    }
+  }
+}

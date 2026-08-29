@@ -1,0 +1,41 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "adapter-agents-md",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "040718d13c6292372aab11de846b49b2c7ef99e93b735bc8e7baa4e33bfe35db"
+      },
+      {
+        "path": "dist/index.d.ts",
+        "sha256": "598a60a29f1f229d6f09b9178528ed7794cf87a654fddec8a5f906dce347550e"
+      },
+      {
+        "path": "dist/index.d.ts.map",
+        "sha256": "b215819b37dbe990a3942e19e8d00b91d13cd9142be0a5b1d7af28753cd12662"
+      },
+      {
+        "path": "dist/index.js",
+        "sha256": "a644c4cb9267c0305ee135e55e082a0c6b9cdda30ce90a7f9b6f9c626d049d30"
+      },
+      {
+        "path": "dist/index.js.map",
+        "sha256": "ebc59b07d6c2dca24ef098e949392a831e6d46f54f66ff5c3bdd0c6a95bfa0b6"
+      },
+      {
+        "path": "package.json",
+        "sha256": "2e04862d0ddeebf99d4263ed872ef0ba482b29f09a5c9a35ab8c6386cd58bd34"
+      },
+      {
+        "path": "src/index.ts",
+        "sha256": "235afb70e56a9b023b989d05784bd2e4810d482517630d97582d31aeef3403d4"
+      }
+    ]
+  },
+  "signature": "bJk3cGffxzgmViwe8KHUaIV/e+JuCE5stHMmLX8Sz+YU4LBl48Xt71Gevzbst4Alb7iibqAOVo4FFhXJEWtxBA=="
+}

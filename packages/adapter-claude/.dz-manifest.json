@@ -1,0 +1,81 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "adapter-claude",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "3abd4b4594ce8140387e3cde949863f3f2d98f20ab9c467fabdff82f050abc91"
+      },
+      {
+        "path": "dist/compile.d.ts",
+        "sha256": "ac30ea08c0f899364b842f149437f88f9232bb3972403fdae5351e229e4f3c99"
+      },
+      {
+        "path": "dist/compile.d.ts.map",
+        "sha256": "d0f51c5b94b7ca1f8f1b81b3c6e913ace5ea465a2d0aebb0902aaf7c3ffa5bd9"
+      },
+      {
+        "path": "dist/compile.js",
+        "sha256": "26fd116ac7f6aa0f8e25d8e37676baa2a809320b11c6b3b9eba9dd056281061d"
+      },
+      {
+        "path": "dist/compile.js.map",
+        "sha256": "ab85c3dd0bb5b4948a1dbb94d9a351a31edaf33357fa372c00d55b8e23f22b07"
+      },
+      {
+        "path": "dist/index.d.ts",
+        "sha256": "b37889a485c9b5e12a1341ee64fe7289df29334a135092f363d330712fb2a3da"
+      },
+      {
+        "path": "dist/index.d.ts.map",
+        "sha256": "5df3bdfe580d6fc94ba606bb821cf5f1b6d889d3baf2388a0380914592d8d59f"
+      },
+      {
+        "path": "dist/index.js",
+        "sha256": "714514a8765865be263c37fa2cfe744f5490a1bed9293a136dac7c564c51043b"
+      },
+      {
+        "path": "dist/index.js.map",
+        "sha256": "887724a54d640ede275c7ef84f2fd8c5c1d7236b15338a7b7df1add8fd9c835a"
+      },
+      {
+        "path": "dist/verify.d.ts",
+        "sha256": "3e0aa3d41d96221aee709c1d51dc62252536f971897b787ad97378e599cf87e9"
+      },
+      {
+        "path": "dist/verify.d.ts.map",
+        "sha256": "96364222b4a6eecba25a91ccd542b2895925b9c15b3352d750da63a77362d7d0"
+      },
+      {
+        "path": "dist/verify.js",
+        "sha256": "e60767282266656ec5cc2b6b0fe1f2f5530640d3dc8b8fe31f4ee7788aa748a3"
+      },
+      {
+        "path": "dist/verify.js.map",
+        "sha256": "456bdecebdb1b038120d60ef8e7190aca7ba4f959607cb2009ff88cc81e806de"
+      },
+      {
+        "path": "package.json",
+        "sha256": "f29d79c02e4fdad968bb35f5d8553e31b2378f232d8f072118a429be1447c43c"
+      },
+      {
+        "path": "src/compile.ts",
+        "sha256": "019562cec27f03cf8fae2d9104392e9658d8b5bf4084752096073dc608052c01"
+      },
+      {
+        "path": "src/index.ts",
+        "sha256": "a200ce85f4c31e5d90865f062153c6b634307074b82ecaceca58997e7687522c"
+      },
+      {
+        "path": "src/verify.ts",
+        "sha256": "ffa51b3ab6d5291c0739dfd0fb60da45002512e68a50a3bd846c41671e6194c8"
+      }
+    ]
+  },
+  "signature": "cpHiiCd86PVxaP4j99z5QsQOrMvfVsPvh11hqZ0X25jIXmi2HsYlxLzJeZvwG1VOP1Ix9p30ewH+7hY9MIaiAQ=="
+}

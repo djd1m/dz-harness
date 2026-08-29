@@ -1,0 +1,28 @@
+{
+  "schema": "../schemas/output.json",
+  "rules": [
+    {
+      "id": "SR-001",
+      "description": "Strategy must be explicitly declared before reasoning begins",
+      "path": "strategy",
+      "condition": "exists",
+      "severity": "error"
+    },
+    {
+      "id": "SR-002",
+      "description": "Tree-of-Thought must have at least 3 branches",
+      "path": "branches",
+      "condition": "min_length",
+      "value": 3,
+      "severity": "error",
+      "applies_to_strategies": ["tree-of-thought"]
+    },
+    {
+      "id": "SR-003",
+      "description": "Confidence must be provided for all conclusions",
+      "path": "confidence",
+      "condition": "exists",
+      "severity": "error"
+    }
+  ]
+}

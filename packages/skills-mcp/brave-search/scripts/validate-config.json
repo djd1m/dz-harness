@@ -1,0 +1,44 @@
+{
+  "name": "brave-search",
+  "version": "1.0.0",
+  "validators": [
+    {
+      "id": "env-check",
+      "type": "env",
+      "description": "Verify BRAVE_API_KEY is set",
+      "required_vars": ["BRAVE_API_KEY"],
+      "error_message": "BRAVE_API_KEY is required. Get one at https://brave.com/search/api"
+    },
+    {
+      "id": "mcp-server-check",
+      "type": "command",
+      "description": "Verify MCP server package is available",
+      "command": "npx --yes @brave/brave-search-mcp-server --version",
+      "timeout_ms": 30000,
+      "error_message": "Cannot locate @brave/brave-search-mcp-server. Run: npm install -g @brave/brave-search-mcp-server"
+    },
+    {
+      "id": "api-key-format",
+      "type": "pattern",
+      "description": "Validate API key format",
+      "var": "BRAVE_API_KEY",
+      "pattern": "^BSA[a-zA-Z0-9_-]{20,}$",
+      "error_message": "BRAVE_API_KEY does not match expected format (should start with BSA)"
+    },
+    {
+      "id": "output-schema",
+      "type": "json-schema",
+      "description": "Validate tool output against schema",
+      "schema_path": "../schemas/output.json"
+    }
+  ],
+  "mcp_config": {
+    "server_name": "brave-search",
+    "command": "npx",
+    "args": ["@brave/brave-search-mcp-server"],
+    "transport": "stdio",
+    "env": {
+      "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+    }
+  }
+}

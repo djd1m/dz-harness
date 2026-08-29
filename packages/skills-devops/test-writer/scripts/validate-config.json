@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "test-writer config validator",
+  "description": "Validates configuration inputs for the test-writer skill",
+  "type": "object",
+  "required": ["target_path"],
+  "properties": {
+    "target_path": {
+      "type": "string",
+      "description": "File or function to write tests for"
+    },
+    "test_type": {
+      "type": "string",
+      "enum": ["unit", "integration", "e2e", "auto"],
+      "default": "auto",
+      "description": "Type of tests to generate; auto picks the best type"
+    },
+    "framework": {
+      "type": "string",
+      "enum": ["vitest", "jest", "mocha", "pytest", "go-test", "auto"],
+      "default": "auto",
+      "description": "Test framework; auto detects from project config"
+    },
+    "strategy": {
+      "type": "string",
+      "enum": ["boundary-value", "equivalence-partition", "decision-table", "state-transition", "comprehensive"],
+      "default": "comprehensive",
+      "description": "Test case generation strategy"
+    },
+    "coverage_target": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Target line coverage percentage"
+    },
+    "tdd_mode": {
+      "type": "boolean",
+      "default": false,
+      "description": "Write tests first without existing implementation"
+    },
+    "output_path": {
+      "type": "string",
+      "description": "Override default test file location"
+    }
+  }
+}

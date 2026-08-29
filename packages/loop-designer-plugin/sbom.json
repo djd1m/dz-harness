@@ -1,0 +1,227 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "loop-designer-plugin"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": ".claude-plugin/marketplace.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "abe08315cf78508304330a5eb518f65e68f1bdfdfbcc9ddde14f0a4e995cfc72"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": ".claude-plugin/plugin.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cae2852bcc41d5f73fbc2098840c87d3f692270de1b644cfd110b1c5857dc3d2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": ".codex-plugin/plugin.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "93b736e237d579eb2d9500ce8d35cf5e6c8144abeeac06c0b2abe0cc7b31b503"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": ".codex-plugin/skills/loop-plan-author/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "45d2377b281d69f44424e67736e09be10a754e638fbd9ae48c2fb0eb8f2b0d32"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": ".codex-plugin/skills/loop-plan-author/references/loop-plan-1-schema.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a9cc720e0855cc0318286a1007a34c8a59ee012a17ffcc383a22c11dbee13c8b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "879d70d10865809ecd0d6f212d062b78b921e349f59ceb66b996f945e1e746e5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "bin/loop-designer.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c3a28a70c9b4b2a75945bb0279637f36a6ba4e1a4f5a5d7240949fd41f2283f1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "commands/init.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f4eebad267e3e2a774f8ce546e8bd0efca9269bdeed2069437e6e23adbadfbca"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "commands/lint.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1654375d0737297329822cf22529273222e36bc11d062cfeed2a8cdf42b6be0a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "commands/render.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0bb5ed7d154064bd396e7d1dc338a54f43eaf31718563777aa426d779ca0e5af"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "commands/trace.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4041bf988d3347a16d84ce7562ce8bbd2fa6f641ec0654a9a7f78f37a4ccbe9d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "commands/validate.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fc73a3871892f9e6cf869c4b38406680f4485beee98c1e0a9e5627609b3c5edc"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "lib/compat.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c318ab1e784ad6c9b8feda3967f2bf1cb61f0a42463300e68b2b264c3f1f90ae"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "lib/install-bare.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a3ead340009e05fe65c5ad789604bf0912f6c378fd08b5130b9e553e98254c40"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "lib/l2-receipt.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "30e68af5e26c96f9cd5e48b18c97f10f38eb52288b256bcd565e96cfd5bddd83"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "lib/resolve-dz.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "62944bb533b8997feb5320d5f2e804f86fb7e637064803465a874850ce9f3183"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "lib/run-verb.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "25f266b59d52a883308cffa2c7acc37e3caf822cb7ecd2d5188ceedf8d909bc3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "d803f4f8310b9bd81472c90920a7e786155e3ec3e4fe4c4975eeb64d28b6f3c8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "skills/loop-plan-author/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "45d2377b281d69f44424e67736e09be10a754e638fbd9ae48c2fb0eb8f2b0d32"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "skills/loop-plan-author/references/loop-plan-1-schema.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a9cc720e0855cc0318286a1007a34c8a59ee012a17ffcc383a22c11dbee13c8b"
+        }
+      ]
+    }
+  ]
+}

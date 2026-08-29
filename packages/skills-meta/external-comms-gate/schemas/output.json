@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "External Comms Gate Output",
+  "type": "object",
+  "required": ["channel", "overall", "recommendation"],
+  "properties": {
+    "channel": {
+      "type": "string",
+      "description": "The outbound channel being screened (e.g. 'github-pr', 'npm-publish', 'changelog')"
+    },
+    "overall": {
+      "type": "string",
+      "enum": ["SAFE", "WARNING", "BLOCK"],
+      "description": "Worst-case classification across all findings"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["classification", "category", "description"],
+        "properties": {
+          "classification": { "type": "string", "enum": ["SAFE", "WARNING", "BLOCK"] },
+          "category": {
+            "type": "string",
+            "enum": ["api-key", "internal-url", "customer-name", "unreleased-feature", "codename", "financial", "pii", "internal-ticket", "other"]
+          },
+          "description": { "type": "string" },
+          "location": { "type": "string", "description": "Line or section reference" },
+          "evidence": { "type": "string", "description": "Redacted excerpt of the flagged content" },
+          "suggestion": { "type": "string", "description": "Recommended redaction or replacement" }
+        }
+      }
+    },
+    "recommendation": {
+      "type": "string",
+      "enum": ["publish", "review", "hold"],
+      "description": "publish=SAFE, review=WARNING, hold=BLOCK"
+    }
+  }
+}

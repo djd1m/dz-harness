@@ -1,0 +1,30 @@
+skill: aiagents-knowledge-and-memory
+# Positives cover: RAG-vs-memory, short/long-term split, the store per layer, the ladder up to
+# GraphRAG, chunking/embedding choices, graph store to production.
+positives:
+  - "Агент напрочь забывает, о чём говорили в прошлом сеансе. Что подключать?"
+  - "Нам достаточно держать всю переписку в окне сеанса или уже пора во внешнее хранилище?"
+  - "BM25 по логам или векторный поиск — что взять под память агента?"
+  - "У нас документы со сложными связями между сущностями, обычный RAG выдаёт мусор. Смотреть в сторону графа?"
+  - "Which chunk size and overlap should I use for our internal wiki so retrieval doesn't cut sentences in half?"
+  - "We prototyped GraphRAG in a notebook and it looked great. What actually changes when we take the graph store to production?"
+  - "Нужно разделить «что агент знает про предметку» и «что он помнит про этого пользователя». Как это разложить по хранилищам?"
+  - "Do I need a real vector database for long-term agent memory, or is a Postgres table with keyword search enough?"
+  - "Агент должен помнить, какие подходы у него уже срабатывали на похожих задачах. Куда это складывать?"
+  - "Эпизодическая, семантическая и рабочая память — нам правда нужны все три слоя или это оверинжиниринг?"
+# Seam-level adversarial positives (round 2): prompts that sit on the boundary with a
+# sibling and are still legitimately owned by THIS skill.
+  - "Складывать историю диалогов в тот же вектор-стор, что и базу знаний, или разносить по разным?"
+  - "Сейчас всё держим в окне на двести тысяч токенов. В какой момент это перестанет работать и что ставить вместо?"
+  - "Поиск по эмбеддингам не вытаскивает связи вида «кто кому подчиняется». Менять индекс или саму структуру хранения?"
+negatives:
+  - prompt: "Как в AgentDB положить паттерн через pattern_store и потом искать по нему семантически?"
+    should_activate: "agentdb-memory"
+  - prompt: "Контекст пухнет, до лимита осталось чуть-чуть. Что выкидывать первым и когда сжимать историю?"
+    should_activate: "context-window-management"
+  - prompt: "Вытащи из этого PDF ключевые тезисы и определения, чтобы я прочитал их за пять минут."
+    should_activate: "knowledge-extractor"
+  - prompt: "Агент раз за разом повторяет одну и ту же ошибку. Дообучать его или это лечится иначе?"
+    should_activate: "aiagents-learning-strategy"
+  - prompt: "Как померить, что поиск возвращает именно те документы, которые нужны для ответа?"
+    should_activate: "aiagents-evaluation-design"

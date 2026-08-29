@@ -1,0 +1,28 @@
+skill: ddia-reliability-scalability-foundations
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+positives:
+  - "Начинаем RFC на новый сервис — какие нефункциональные требования по надёжности и масштабируемости зафиксировать?"
+  - "vertical или horizontal scaling для нашей stateful базы — с чего начать?"
+  - "How should we specify the latency SLO — is a mean response time good enough or do we need percentiles?"
+  - "We keep reporting average latency; the dashboards look fine but users complain. What should we measure instead?"
+  - "предотвращать сбои или терпеть их? стоит ли гонять Chaos Monkey в проде?"
+  - "How many disk failures should we plan for across a 10,000-disk fleet, and what redundancy does that imply?"
+  - "Most of our outages come from human config mistakes — how do we design so faults don't turn into failures?"
+  - "elastic auto-scaling vs manual scaling — our load is pretty spiky, what's the tradeoff?"
+  - "Проектируем ленту: делать fan-out на запись в кэш каждого юзера или мержить на чтении? как выбрать по соотношению чтений/записей?"
+  - "Before we optimize anything, help me frame reliability vs scalability vs maintainability concretely for this system."
+# Hard negatives: prompts that belong to a SIBLING or an existing arsenal skill — this skill must NOT
+# win them. For each, name which skill SHOULD activate.
+negatives:
+  - prompt: "single-leader или multi-leader репликация — что выбрать, чтобы пережить потерю целой машины?"
+    should_activate: "ddia-replication-topology-choice"
+  - prompt: "How should we shard/partition this stateful dataset across the nodes once we scale out?"
+    should_activate: "ddia-partitioning-strategy"
+  - prompt: "What consistency and consensus guarantees do we actually need — linearizability or is eventual fine?"
+    should_activate: "ddia-distributed-consistency-consensus"
+  - prompt: "LSM-tree vs B-tree для нашего движка хранения — что даст лучший write throughput?"
+    should_activate: "ddia-storage-engine-tradeoffs"
+  - prompt: "Set up p99 latency dashboards and alerting in Grafana/Prometheus for the checkout service."
+    should_activate: "observability"
+  - prompt: "Configure a HorizontalPodAutoscaler so the deployment scales out on CPU load."
+    should_activate: "kubernetes"

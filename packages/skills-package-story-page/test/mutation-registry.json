@@ -1,0 +1,904 @@
+{
+  "requireCompletionReceipt": true,
+  "testCommand": "node test/run-mutation-suite.mjs",
+  "$comment": "Seventy-four live authority mutants replace the retired hand-scanner set. Every id is bound to a named owning test whose exact TAP failure is required before a mutant can be PROVEN. The runner verifies a gate-owned scratch repository, copies it to a private ephemeral execution root, and rebinds five local pre-import hashes only in that disposable copy so semantic, bundle, renderer, extractor, and schema guard mutants reach their behavioural assertions. Every clean baseline requires the shipped hashes to be an exact no-op, then runs both the live-Firefox and unit-only lanes; every browser-verifier mutation runs live Firefox and requires an exact non-SKIP TAP receipt. Gate, production, and installed package roots remain read-only. Historical checkpoint dispositions remain in semantic-disposition.json.",
+  "owningTests": {
+    "story-semantic-subset-authority": "closed DOM independently transforms every allowed element and attribute surface",
+    "story-semantic-structure-authority": "sections and story items stay in exact direct owners and brief order",
+    "story-semantic-parse-error-authority": "parse5 repair is rejected by the emitted subset",
+    "story-semantic-item-copy-authority": "authored copy stays bound to each story item",
+    "story-semantic-renderer-regression-authority": "semantic authority rejects a renderer regression even when page canonical is green",
+    "story-semantic-field-order-authority": "authored fields stay in exact DOM reading order",
+    "story-semantic-audience-authority": "authored copy stays bound to each story item",
+    "story-semantic-item-binding-authority": "hidden evidence markers do not satisfy item bindings",
+    "story-semantic-aggregate-copy-authority": "authored copy cannot borrow renderer chrome",
+    "story-semantic-chrome-cardinality-authority": "renderer chrome multiset is cardinality-total for eyebrow package-name collisions",
+    "story-semantic-disclosure-authority": "cross-nested disclosures fail page.controls",
+    "story-semantic-style-source-authority": "style authority hashes exact parse5-located source bytes",
+    "story-semantic-style-raw-slice-authority": "style authority hashes exact parse5-located source bytes",
+    "story-semantic-module-integrity-authority": "semantic integrity gate runs before every changed closure can execute",
+    "story-semantic-bundle-integrity-authority": "semantic integrity gate runs before every changed closure can execute",
+    "story-preimport-support-module-integrity-authority": "semantic integrity gate runs before every changed closure can execute",
+    "story-preimport-extractor-integrity-authority": "semantic integrity gate runs before every changed closure can execute",
+    "story-preimport-schema-integrity-authority": "semantic integrity gate runs before every changed closure can execute",
+    "story-preimport-atomic-order-authority": "semantic integrity gate runs before every changed closure can execute",
+    "story-semantic-import-graph-authority": "static semantic import graph closes exact specifier inventory",
+    "story-semantic-dynamic-import-closure-authority": "static semantic import graph closes exact specifier inventory",
+    "story-semantic-regex-import-ambiguity-authority": "static semantic import graph closes exact specifier inventory",
+    "story-semantic-renderer-isolation-authority": "production semantic graph blocks renderer and package lookup before execution",
+    "story-semantic-package-lookup-isolation-authority": "production semantic graph blocks renderer and package lookup before execution",
+    "story-semantic-external-asset-authority": "external asset inventory covers HTML resource surfaces and changed stylesheet bytes",
+    "story-semantic-unsafe-html-authority": "load-bearing page mutations each turn a named verifier check red",
+    "story-semantic-parser-environment-classification-authority": "module parser environment is fail closed while caller NODE_OPTIONS is stripped",
+    "story-semantic-request-api-compatibility-authority": "module parser environment is fail closed while caller NODE_OPTIONS is stripped",
+    "story-semantic-outer-exception-authority": "unexpected semantic authority exceptions become a named public verdict",
+    "story-semantic-malformed-result-authority": "malformed semantic authority results become a named public verdict",
+    "story-semantic-result-inventory-authority": "malformed semantic authority results become a named public verdict",
+    "story-semantic-independent-inventory-literal-authority": "malformed semantic authority results become a named public verdict",
+    "story-provenance-line-range-lower-bound-authority": "forged provenance positive line-range bounds and package identity turn their named checks red",
+    "story-provenance-numeric-proof-index-authority": "dynamic source checks cannot collide with fixed semantic check ids",
+    "story-semantic-parser-exception-authority": "semantic exceptions become stable named failures",
+    "story-semantic-query-exception-authority": "semantic exceptions become stable named failures",
+    "story-canonical-renderer-exception-authority": "semantic exceptions become stable named failures",
+    "story-semantic-lexical-fail-closed-authority": "defence-in-depth capability scanner recognises its bounded corpus",
+    "story-semantic-active-uri-authority": "semantic link authority rejects active and non-HTTPS URI anchors",
+    "story-semantic-order-authority": "sections and story items stay in exact direct owners and brief order",
+    "story-semantic-input-boundary-authority": "public verifier passes only the normalized brief and exact page to semantic authority",
+    "story-browser-request-verdict-authority": "browser disclosure failures participate in the pass fail decision",
+    "story-semantic-orphan-marker-authority": "orphan semantic markers cannot borrow aggregate source closure",
+    "story-semantic-unexpected-owner-authority": "unexpected story-item owners fail reverse totality",
+    "story-semantic-field-only-marker-authority": "unexpected story-item owners fail reverse totality",
+    "story-semantic-chrome-structure-authority": "status source and renderer chrome text stay in exact structural owners",
+    "story-semantic-visual-authority": "visual direction and kind stay in their exact parse5 section owner",
+    "story-semantic-claim-id-authority": "claim identifiers stay paired with exact story owners",
+    "story-semantic-head-placement-authority": "head title and metadata remain semantically bound to the brief",
+    "story-semantic-anchor-inventory-authority": "semantic link authority rejects active and non-HTTPS URI anchors",
+    "story-semantic-input-limit-exception-polarity-authority": "input budgets fail before parser renderer or schema traversal",
+    "story-shared-brief-digest-authority": "brief digest is stable across object key insertion order",
+    "story-semantic-brief-digest-authority": "brief digest is stable across object key insertion order",
+    "story-semantic-section-tree-authority": "sections and story items stay in exact direct owners and brief order",
+    "story-semantic-item-placement-order-authority": "sections and story items stay in exact direct owners and brief order",
+    "story-semantic-element-inventory-authority": "element inventory is exact and derived from brief cardinalities",
+    "story-semantic-attribute-inventory-authority": "element inventory is exact and derived from brief cardinalities",
+    "story-semantic-initial-open-authority": "class id category and initial disclosure state stay on exact owners",
+    "story-css-linear-block-authority": "CSS policy predicates discriminate independently from exact style authority",
+    "story-css-complexity-ceiling-authority": "CSS policy predicates discriminate independently from exact style authority",
+    "story-dynamic-check-id-uniqueness-authority": "dynamic source checks cannot collide with fixed semantic check ids",
+    "story-budget-json-parse-totality-authority": "input budgets fail before parser renderer or schema traversal",
+    "story-preimport-support-size-authority": "semantic integrity gate runs before every changed closure can execute",
+    "story-semantic-bundle-hash-exemption-authority": "static semantic import graph closes exact specifier inventory",
+    "story-semantic-unexpected-check-preservation-authority": "malformed semantic authority results become a named public verdict",
+    "story-browser-second-origin-authorization-authority": "browser second-origin receipt gates canonical measurement initialization",
+    "story-browser-canonical-measurement-receipt-authority": "browser second-origin receipt gates canonical measurement initialization",
+    "story-browser-second-origin-live-wiring-authority": "headless Firefox measures zero horizontal overflow at the four contract widths and rejects the second-loopback-origin probe",
+    "story-parse5-direct-dom-authority": "valid brief renders deterministically and verifies against current package bytes",
+    "story-extractor-no-follow-authority": "extractor enforces pre-read package source and aggregate byte ceilings",
+    "story-extractor-toctou-authority": "extractor enforces pre-read package source and aggregate byte ceilings",
+    "story-renderer-schema-authority": "valid brief renders deterministically and verifies against current package bytes",
+    "story-css-block-count-ceiling-authority": "CSS policy predicates discriminate independently from exact style authority",
+    "story-parser-bundle-byte-ceiling-authority": "checked-in parser bundle stays within the reviewed byte ceiling"
+  },
+  "entries": [
+    {
+      "id": "story-semantic-subset-authority",
+      "property": "The parse5-owned closed HTML subset is load-bearing.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    pushCheck(checks, 'page.html-subset', htmlSubsetProblems.length === 0,",
+        "replace": "    pushCheck(checks, 'page.html-subset', true,"
+      },
+      "minFailing": 1,
+      "observed": 11,
+      "maxFailing": 11
+    },
+    {
+      "id": "story-semantic-structure-authority",
+      "property": "The explicit parse5-located document tree has a predicate independent from the closed vocabulary.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    pushCheck(checks, 'page.structure', structureProblems.length === 0,",
+        "replace": "    pushCheck(checks, 'page.structure', true,"
+      },
+      "minFailing": 1,
+      "maxFailing": 8
+    },
+    {
+      "id": "story-semantic-parse-error-authority",
+      "property": "parse5 recovery errors remain a distinct named red verdict.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "  pushCheck(checks, 'page.html-parse', parseErrors.length === 0,",
+        "replace": "  pushCheck(checks, 'page.html-parse', true,"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-item-copy-authority",
+      "property": "Exact authored field ownership is load-bearing.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    pushCheck(checks, 'page.item-copy', fieldProblems.length === 0, fieldProblems.length === 0 ? 'every authored field owns one exact structural slot' : fieldProblems.join('; '));",
+        "replace": "    pushCheck(checks, 'page.item-copy', true, 'mutated item-copy authority');"
+      },
+      "minFailing": 1,
+      "maxFailing": 5
+    },
+    {
+      "id": "story-semantic-renderer-regression-authority",
+      "property": "Independent semantic field cardinality, rather than canonical renderer agreement, rejects a renderer regression.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "      if (matches.length !== 1) { fieldProblems.push(`${field.path}: expected one field, got ${matches.length}`); continue; }",
+        "replace": "      if (matches.length !== 1) { continue; }"
+      },
+      "minFailing": 1,
+      "observed": 1,
+      "maxFailing": 1
+    },
+    {
+      "id": "story-semantic-field-order-authority",
+      "property": "Authored field markers remain in exact parse5 DOM reading order and cannot nest.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    const fieldOrderPass = actualFieldOrder.length === expectedFieldOrder.length && fieldOrderMismatch === -1;",
+        "replace": "    const fieldOrderPass = true;"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-semantic-audience-authority",
+      "property": "The authored audience has one exact structural slot owned by hero:story.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    if (!audiencePass) fieldProblems.push('audience: expected one exact value owned by hero:story');",
+        "replace": "    if (false) fieldProblems.push('audience: expected one exact value owned by hero:story');"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-item-binding-authority",
+      "property": "Visible evidence and unknown markers remain bound to their exact story item.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    pushCheck(checks, 'page.item-bindings', bindingProblems.length === 0, bindingProblems.length === 0 ? 'items own exact visible evidence/status markers' : bindingProblems.join('; '));",
+        "replace": "    pushCheck(checks, 'page.item-bindings', true, 'mutated item-binding authority');"
+      },
+      "minFailing": 1,
+      "maxFailing": 5
+    },
+    {
+      "id": "story-semantic-aggregate-copy-authority",
+      "property": "Exact visible authored-copy multisets remain independent from renderer chrome.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    pushCheck(checks, 'page.copy', copyProblems.length === 0,",
+        "replace": "    pushCheck(checks, 'page.copy', true,"
+      },
+      "minFailing": 1,
+      "maxFailing": 5
+    },
+    {
+      "id": "story-semantic-chrome-cardinality-authority",
+      "property": "Renderer chrome consumption rejects every visible occurrence left after the expected authored/chrome multiset is consumed.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "      if (remaining > 0 && /[^\\t\\n\\f\\r ]/u.test(value)) aggregateCopyProblems.push(`${JSON.stringify(value)}: unexpected visible text occurrence x${remaining}`);",
+        "replace": "      if (false) aggregateCopyProblems.push(`${JSON.stringify(value)}: unexpected visible text occurrence x${remaining}`);"
+      },
+      "minFailing": 1,
+      "observed": 2,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-semantic-disclosure-authority",
+      "property": "Native disclosure ownership and non-nesting are load-bearing.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    pushCheck(checks, 'page.controls', disclosureProblems.length === 0, disclosureProblems.length === 0 ? 'native disclosures have exact non-nested owners' : disclosureProblems.join('; '));",
+        "replace": "    pushCheck(checks, 'page.controls', true, 'mutated disclosure authority');"
+      },
+      "minFailing": 1,
+      "maxFailing": 4
+    },
+    {
+      "id": "story-semantic-style-source-authority",
+      "property": "The raw parse5-located source slice, not normalized DOM text, owns the approved CSS digest.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    const stylePass = styleProblem === '' && sha256(Buffer.from(styleText, 'utf8')) === APPROVED_STYLE_SHA256;",
+        "replace": "    const stylePass = styleProblem === '';"
+      },
+      "minFailing": 1,
+      "maxFailing": 4
+    },
+    {
+      "id": "story-semantic-style-raw-slice-authority",
+      "property": "CSS authority hashes the raw parse5-located source slice rather than its HTML-normalized text-node value.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "        styleText = pageText.slice(loc.startTag.endOffset, loc.endTag.startOffset);",
+        "replace": "        styleText = directText(styleNodes[0]);"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-semantic-module-integrity-authority",
+      "property": "Only the reviewed semantic module bytes can load.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "  return actual === expected ? [] : [`${file.path}: expected ${expected}, received ${actual}`];",
+        "replace": "  return file.path === 'scripts/verify-story-semantics.mjs' ? [] : (actual === expected ? [] : [`${file.path}: expected ${expected}, received ${actual}`]);"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-bundle-integrity-authority",
+      "property": "Only the reviewed parser bundle bytes can load.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "  return actual === expected ? [] : [`${file.path}: expected ${expected}, received ${actual}`];",
+        "replace": "  return file.path === 'vendor/parse5.bundle.mjs' ? [] : (actual === expected ? [] : [`${file.path}: expected ${expected}, received ${actual}`]);"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-preimport-support-module-integrity-authority",
+      "property": "Renderer bytes are pinned before any local module evaluates.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "  return actual === expected ? [] : [`${file.path}: expected ${expected}, received ${actual}`];",
+        "replace": "  return file.path === 'scripts/render-story-page.mjs' ? [] : (actual === expected ? [] : [`${file.path}: expected ${expected}, received ${actual}`]);"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-preimport-extractor-integrity-authority",
+      "property": "Extractor bytes are independently pinned before any local module evaluates.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "  return actual === expected ? [] : [`${file.path}: expected ${expected}, received ${actual}`];",
+        "replace": "  return file.path === 'scripts/extract-package-evidence.mjs' ? [] : (actual === expected ? [] : [`${file.path}: expected ${expected}, received ${actual}`]);"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-preimport-schema-integrity-authority",
+      "property": "Shared schema bytes are independently pinned before any local module evaluates.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "  return actual === expected ? [] : [`${file.path}: expected ${expected}, received ${actual}`];",
+        "replace": "  return file.path === 'scripts/story-schema.mjs' ? [] : (actual === expected ? [] : [`${file.path}: expected ${expected}, received ${actual}`]);"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-preimport-atomic-order-authority",
+      "property": "All five pinned inputs pass the complete hash transaction before any local module evaluates.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "const preImportInputPaths = Object.keys(PREIMPORT_PROJECTION_SHA256);",
+        "replace": "await Promise.all([import('./extract-package-evidence.mjs'), import('./render-story-page.mjs'), import('./story-schema.mjs'), import('./verify-story-semantics.mjs')]);\nconst preImportInputPaths = Object.keys(PREIMPORT_PROJECTION_SHA256);"
+      },
+      "minFailing": 1,
+      "observed": 3,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-import-graph-authority",
+      "property": "Only node:crypto and contained relative semantic imports are accepted before load.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "      if (specifier === 'node:crypto') continue;",
+        "replace": "      if (specifier === 'node:crypto' || specifier === 'node:fs') continue;"
+      },
+      "minFailing": 1,
+      "maxFailing": 4
+    },
+    {
+      "id": "story-semantic-dynamic-import-closure-authority",
+      "property": "A parser-valid dynamic import token is rejected even though SourceTextModule omits it from the static request inventory.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "        if (tokens[index + 1]?.value === '(') failures.push(`${path}: dynamic import forbidden`);",
+        "replace": "        if (false) failures.push(`${path}: dynamic import forbidden`);"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-regex-import-ambiguity-authority",
+      "property": "A regex/division ambiguity cannot hide parser-valid dynamic import syntax from the bounded lexer.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "        const ambiguousDynamicImport = /\\bimport\\b[\\s\\S]*\\(/.test(raw);",
+        "replace": "        const ambiguousDynamicImport = false;"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-renderer-isolation-authority",
+      "property": "The semantic import graph cannot reach the canonical renderer.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "      if (/(?:^|\\/)render-story-page\\.mjs$/.test(target)) { failures.push(`${path}: semantic graph reaches canonical renderer`); continue; }",
+        "replace": "      if (/(?:^|\\/)render-story-page\\.mjs$/.test(target)) { continue; }"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-package-lookup-isolation-authority",
+      "property": "The semantic import graph rejects package and bare-specifier lookup before ESM load.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "      if (!specifier.startsWith('./') && !specifier.startsWith('../')) { failures.push(`${path}: forbidden specifier ${specifier}`); continue; }",
+        "replace": "      if (!specifier.startsWith('./') && !specifier.startsWith('../')) { continue; }"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-external-asset-authority",
+      "property": "Resource-bearing HTML surfaces and changed stylesheet bytes fail page.external-assets independently.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    const externalAssetPass = externalAssetProblems.length === 0 && stylePass;",
+        "replace": "    const externalAssetPass = true;"
+      },
+      "minFailing": 1,
+      "maxFailing": 4
+    },
+    {
+      "id": "story-semantic-unsafe-html-authority",
+      "property": "Active elements, attributes, and URI schemes fail page.unsafe-html independently.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    const unsafeHtmlPass = unsafeHtmlProblems.length === 0 && executableUriProblems.length === 0;",
+        "replace": "    const unsafeHtmlPass = true;"
+      },
+      "minFailing": 1,
+      "maxFailing": 4
+    },
+    {
+      "id": "story-semantic-parser-environment-classification-authority",
+      "property": "An unavailable helper parser is a named fail-closed graph failure.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "    if (result?.kind === 'parser-unavailable') return unavailable(result.message ?? 'untyped parser failure');",
+        "replace": "    if (result?.kind === 'parser-unavailable') return { specifiers: null, failure: null };"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-request-api-compatibility-authority",
+      "property": "Static-module requests fall back to dependencySpecifiers when moduleRequests is unavailable.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "  if (Array.isArray(module?.dependencySpecifiers)) {",
+        "replace": "  if (Array.isArray(module?.dependencySpecifiers) && (module.dependencySpecifiers.length === 0 || module.dependencySpecifiers.includes('../vendor/parse5.bundle.mjs'))) {"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-semantic-outer-exception-authority",
+      "property": "An unexpected semantic-authority throw becomes one named public red verdict.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "    add('page.semantic-authority-threw', false, `semantic authority threw: ${error?.message ?? String(error)}`);",
+        "replace": "    add('page.semantic-authority-threw', true, 'mutated outer semantic exception authority');"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-malformed-result-authority",
+      "property": "A malformed semantic-authority result is contained by the same named public verdict.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "    semantic = verifyStorySemantics(brief, html);",
+        "replace": "    semantic = verifyStorySemantics(brief, html); if (semantic?.checks === null || !Array.isArray(semantic?.nodes)) semantic = { checks: EXPECTED_SEMANTIC_CHECK_IDS.map((id) => ({ id, pass: false, detail: 'mutated malformed result' })), styleText: '', nodes: [] };"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-semantic-result-inventory-authority",
+      "property": "The public wrapper requires the complete ordered semantic verdict inventory.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "    if (!semanticInventoryExact) {",
+        "replace": "    if (false) {"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-semantic-independent-inventory-literal-authority",
+      "property": "The wrapper owns an independent literal semantic verdict inventory rather than trusting the audited module's exported oracle.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "    const expectedSemanticInventory = EXPECTED_SEMANTIC_CHECK_IDS;",
+        "replace": "    const expectedSemanticInventory = semanticModule.SEMANTIC_CHECK_IDS;"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-provenance-line-range-lower-bound-authority",
+      "property": "Every provenance line-range endpoint is a positive integer, including the lower bound.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "    && range.every((value) => Number.isInteger(value) && value > 0)",
+        "replace": "    && range.every((value) => Number.isInteger(value) && value >= 0)"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-provenance-numeric-proof-index-authority",
+      "property": "Repeated numeric proof tokens retain distinct stable check IDs by authored index.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "        const proofCheckId = `proof-${proofIndex}`;",
+        "replace": "        const proofCheckId = dynamicCheckComponent(proof?.token, `invalid-${proofIndex}`);"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-parser-exception-authority",
+      "property": "Parser exceptions remain a distinct named red verdict.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    pushCheck(checks, 'page.html-parser-threw', false, `parser threw: ${error?.message ?? String(error)}`);",
+        "replace": "    pushCheck(checks, 'page.html-parser-threw', true, 'mutated parser exception authority');"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-query-exception-authority",
+      "property": "Semantic query exceptions remain a distinct named red verdict.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    pushCheck(checks, 'page.semantic-query-threw', false, `semantic query threw: ${error?.message ?? String(error)}`);",
+        "replace": "    pushCheck(checks, 'page.semantic-query-threw', true, 'mutated query exception authority');"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-canonical-renderer-exception-authority",
+      "property": "Canonical renderer exceptions remain a distinct named red verdict.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "    add('page.canonical-renderer-threw', false, `canonical renderer threw: ${error?.message ?? String(error)}`);",
+        "replace": "    add('page.canonical-renderer-threw', true, 'mutated renderer exception authority');"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-lexical-fail-closed-authority",
+      "property": "The bounded defence-in-depth lexer recognises its named slash-syntax corpus; it is not arbitrary-JavaScript authority.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "    if (!reviewedGeneratedBundle(file) && tokens.some((token) => token.type === 'punct' && token.value === '/')) {",
+        "replace": "    if (false && !reviewedGeneratedBundle(file) && tokens.some((token) => token.type === 'punct' && token.value === '/')) {"
+      },
+      "minFailing": 1,
+      "maxFailing": 4
+    },
+    {
+      "id": "story-semantic-active-uri-authority",
+      "property": "Active and non-HTTPS URI schemes remain independently red.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    pushCheck(checks, 'page.javascript', javascriptProblems.length === 0,",
+        "replace": "    pushCheck(checks, 'page.javascript', true,"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-order-authority",
+      "property": "Exact story section order has its own verdict authority.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    pushCheck(checks, 'story.order', sectionOrderPass,",
+        "replace": "    pushCheck(checks, 'story.order', true,"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-input-boundary-authority",
+      "property": "The public wrapper passes only the normalized brief and exact page to semantic authority in that order.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "    semantic = verifyStorySemantics(brief, html);",
+        "replace": "    semantic = verifyStorySemantics(html, brief);"
+      },
+      "minFailing": 1,
+      "observed": 24,
+      "maxFailing": 24
+    },
+    {
+      "id": "story-browser-request-verdict-authority",
+      "property": "Observed non-story-origin requests participate in the browser verdict.",
+      "file": "package-story-page/scripts/verify-story-page-browser.mjs",
+      "mutation": {
+        "find": "    || result.externalRequestFailures.length > 0);",
+        "replace": "    || false);"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-semantic-orphan-marker-authority",
+      "property": "A rendered evidence or unknown marker without an expected story-item owner is rejected.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "      if (ownerId === null) bindingProblems.push(`${attr(record.marker, 'data-source-id') ?? attr(record.marker, 'data-unknown-id')}: marker has no story-item owner`);",
+        "replace": "      if (false) bindingProblems.push(`${attr(record.marker, 'data-source-id') ?? attr(record.marker, 'data-unknown-id')}: marker has no story-item owner`);"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-unexpected-owner-authority",
+      "property": "Unexpected story-item owners fail reverse totality.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "      if (!expectedOwnerIds.has(ownerId)) bindingProblems.push(`${ownerId}: unexpected story-item owner`);",
+        "replace": "      if (false) bindingProblems.push(`${ownerId}: unexpected story-item owner`);"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-field-only-marker-authority",
+      "property": "Owners that carry authored fields but no evidence contract cannot hide source or unknown markers.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "      else if (!bindingOwnerIds.has(ownerId)) bindingProblems.push(`${ownerId}: marker belongs to an owner without a binding contract`);",
+        "replace": "      else if (false) bindingProblems.push(`${ownerId}: marker belongs to an owner without a binding contract`);"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-chrome-structure-authority",
+      "property": "Renderer chrome text remains bound to its exact DOM slot rather than only a global multiset.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    const chromeProblems = chromeStructureProblems(nodes, brief);",
+        "replace": "    const chromeProblems = [];"
+      },
+      "minFailing": 1,
+      "maxFailing": 4
+    },
+    {
+      "id": "story-semantic-visual-authority",
+      "property": "Every visual kind and direction remains bound to its exact parse5 section owner.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    pushCheck(checks, 'page.visuals', visualProblems.length === 0,",
+        "replace": "    pushCheck(checks, 'page.visuals', true,"
+      },
+      "minFailing": 1,
+      "maxFailing": 4
+    },
+    {
+      "id": "story-semantic-claim-id-authority",
+      "property": "Claim identifiers remain paired with their exact story-item owners.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    const claimsPass = sameMultiset(actualClaimIds, expectedClaimIds)",
+        "replace": "    const claimsPass = true || sameMultiset(actualClaimIds, expectedClaimIds)"
+      },
+      "minFailing": 1,
+      "maxFailing": 4
+    },
+    {
+      "id": "story-semantic-head-placement-authority",
+      "property": "Every meta title and style node remains a direct child of the one exact head.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "      || headOnlyElements.length !== 5\n      || headOnlyElements.some((node) => parentOf(node) !== head[0])",
+        "replace": "      || false\n      || false"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-semantic-anchor-inventory-authority",
+      "property": "Every anchor belongs to one exact emitted role and no extra anchor is accepted.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    for (const link of links) if (!expectedAnchors.has(link)) linkProblems.push(`${attr(link, 'href') ?? ''}: unexpected anchor outside the exact emitted inventory`);",
+        "replace": "    for (const link of []) if (!expectedAnchors.has(link)) linkProblems.push(`${attr(link, 'href') ?? ''}: unexpected anchor outside the exact emitted inventory`);"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-semantic-input-limit-exception-polarity-authority",
+      "property": "Input rejection keeps parser and query exception-class verdicts green as not attempted.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    pushCheck(checks, 'page.html-parser-threw', true, 'parser was not attempted after page input failure');\n    pushCheck(checks, 'page.semantic-query-threw', true, 'semantic query was not attempted after page input failure');",
+        "replace": "    pushCheck(checks, 'page.html-parser-threw', false, 'mutated input-limit polarity');\n    pushCheck(checks, 'page.semantic-query-threw', false, 'mutated input-limit polarity');"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-shared-brief-digest-authority",
+      "property": "Renderer and wrapper digest the recursively key-sorted brief rather than insertion order.",
+      "file": "package-story-page/scripts/story-schema.mjs",
+      "mutation": {
+        "find": "export function canonicalJsonText(value) {",
+        "replace": "export function canonicalJsonText(value) { return JSON.stringify(value);"
+      },
+      "minFailing": 1,
+      "maxFailing": 10
+    },
+    {
+      "id": "story-semantic-brief-digest-authority",
+      "property": "The independent semantic head check uses the same canonical brief contract.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "const canonicalJsonText = (value) => {",
+        "replace": "const canonicalJsonText = (value) => { return JSON.stringify(value);"
+      },
+      "minFailing": 1,
+      "maxFailing": 10
+    },
+    {
+      "id": "story-semantic-section-tree-authority",
+      "property": "All eight story sections remain the exact direct children of the sole main in contract order.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "  if (!sectionTreePass) structure.push(`main section tree is ${directSectionIds.join(',')}, expected exact direct ${SECTION_ORDER.join(',')}`);",
+        "replace": "  if (false) structure.push(`main section tree is ${directSectionIds.join(',')}, expected exact direct ${SECTION_ORDER.join(',')}`);"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-item-placement-order-authority",
+      "property": "Every story item remains in its exact tag, section, parent container, ancestor, and brief order.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "  structure.push(...itemProblems);",
+        "replace": "  structure.push(...[]);"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-element-inventory-authority",
+      "property": "The independently brief-derived exact element multiset rejects every allowed-tag surplus or deficit.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    if (actual !== expected) subset.push(`element inventory ${actual > expected ? 'surplus' : 'deficit'} <${tag}> ${actual > expected ? '+' : ''}${actual - expected}`);",
+        "replace": "    if (false) subset.push(`element inventory ${actual > expected ? 'surplus' : 'deficit'} <${tag}> ${actual > expected ? '+' : ''}${actual - expected}`);"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-attribute-inventory-authority",
+      "property": "Every allowed attribute name has an independently brief-derived exact cardinality, not only an allowed spelling.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "    if (actual !== expected) structure.push(`attribute inventory ${name} is ${actual}, expected ${expected}`);",
+        "replace": "    if (false) structure.push(`attribute inventory ${name} is ${actual}, expected ${expected}`);"
+      },
+      "minFailing": 1,
+      "maxFailing": 1
+    },
+    {
+      "id": "story-semantic-initial-open-authority",
+      "property": "Only the first mechanism disclosure starts open and the sources disclosure starts closed.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "      if (details[0] && (attr(details[0], 'open') !== null) !== shouldBeOpen) {",
+        "replace": "      if (false) {"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-css-linear-block-authority",
+      "property": "CSS policy checks consume the bounded linear block scan instead of an unanchored quadratic selector regex.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "  const blocks = cssBlocks(css);",
+        "replace": "  const blocks = [];"
+      },
+      "minFailing": 1,
+      "observed": 4,
+      "maxFailing": 4
+    },
+    {
+      "id": "story-css-complexity-ceiling-authority",
+      "property": "The CSS block scan fails closed before adversarial nesting can multiply downstream policy work.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "      if (stack.length > CSS_NESTING_LIMIT) return null;",
+        "replace": "      if (false) return null;"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-dynamic-check-id-uniqueness-authority",
+      "property": "Duplicate or colliding source and claim ids receive deterministic unique public check-id components.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "    if ((counts.get(base) ?? 0) > 1 || used.has(candidate)) {",
+        "replace": "    if (false && ((counts.get(base) ?? 0) > 1 || used.has(candidate))) {"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-budget-json-parse-totality-authority",
+      "property": "A malformed serialized budget result becomes a named parse failure rather than escaping verifyStoryPage.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "    return { pass: false, value: null, detail: `${label} serialized JSON cannot be parsed: ${error?.message ?? String(error)}` };",
+        "replace": "    throw error;"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-preimport-support-size-authority",
+      "property": "Every authored pre-import module is size-bounded before its descriptor bytes are hashed or evaluated.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "  bytes: readPreImportBytes(path, path === 'vendor/parse5.bundle.mjs' ? PARSER_BUNDLE_BYTE_LIMIT : PREIMPORT_MODULE_BYTE_LIMIT),",
+        "replace": "  bytes: readPreImportBytes(path, path === 'vendor/parse5.bundle.mjs' ? PARSER_BUNDLE_BYTE_LIMIT : Number.MAX_SAFE_INTEGER),"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-bundle-hash-exemption-authority",
+      "property": "The semantic graph slash exemption requires both the generated bundle path and its pinned exact-byte hash.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "    if (!reviewedGeneratedBundle({ path, source })",
+        "replace": "    if (path !== 'vendor/parse5.bundle.mjs'"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-semantic-unexpected-check-preservation-authority",
+      "property": "Semantic result finalization preserves unexpected public check ids so the wrapper can fail closed on authority drift.",
+      "file": "package-story-page/scripts/verify-story-semantics.mjs",
+      "mutation": {
+        "find": "  return [...expected, ...unexpected];",
+        "replace": "  return expected;"
+      },
+      "minFailing": 1,
+      "maxFailing": 3
+    },
+    {
+      "id": "story-browser-second-origin-authorization-authority",
+      "property": "Canonical browser measurements require an observed and non-forwarded second-origin probe.",
+      "file": "package-story-page/scripts/verify-story-page-browser.mjs",
+      "mutation": {
+        "find": "  if (observed !== true || hits !== 0) {",
+        "replace": "  if (false) {"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-browser-canonical-measurement-receipt-authority",
+      "property": "Canonical measurement initialization has a data dependency on the authorized second-origin receipt.",
+      "file": "package-story-page/scripts/verify-story-page-browser.mjs",
+      "mutation": {
+        "find": "  if (typeof receipt !== 'object' || receipt === null || !authorizedSecondOriginReceipts.has(receipt)) {",
+        "replace": "  if (false) {"
+      },
+      "minFailing": 1,
+      "maxFailing": 1
+    },
+    {
+      "id": "story-browser-second-origin-live-wiring-authority",
+      "property": "The live Firefox path cannot replace the module-issued probe target with shape-compatible constant arguments.",
+      "file": "package-story-page/scripts/verify-story-page-browser.mjs",
+      "mutation": {
+        "find": "    const proxyProbeReceipt = recordingProxy.authorizeRejectedOrigin(probeServer);",
+        "replace": "    const proxyProbeReceipt = recordingProxy.authorizeRejectedOrigin(Object.freeze({ url: probeServer.url, hits: () => 0 }));"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-parse5-direct-dom-authority",
+      "property": "The pinned parse5 bundle must actually parse the supplied document rather than return a shape-compatible empty tree.",
+      "file": "package-story-page/vendor/parse5.bundle.mjs",
+      "mutation": {
+        "find": "  return Parser.parse(html, options);",
+        "replace": "  return Parser.parse('<!doctype html><html><head></head><body></body></html>', options);"
+      },
+      "minFailing": 1,
+      "observed": 27,
+      "maxFailing": 27
+    },
+    {
+      "id": "story-extractor-no-follow-authority",
+      "property": "Bounded evidence reads combine O_RDONLY with O_NOFOLLOW before opening a source path.",
+      "file": "package-story-page/scripts/extract-package-evidence.mjs",
+      "mutation": {
+        "find": "  return values.O_RDONLY | values.O_NOFOLLOW;",
+        "replace": "  return values.O_RDONLY;"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-extractor-toctou-authority",
+      "property": "Bounded evidence reads compare descriptor metadata before and after the read.",
+      "file": "package-story-page/scripts/extract-package-evidence.mjs",
+      "mutation": {
+        "find": "    const after = fstat(descriptor);",
+        "replace": "    const after = before;"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-renderer-schema-authority",
+      "property": "The canonical renderer emits exactly the package-story-brief/1 body schema marker.",
+      "file": "package-story-page/scripts/render-story-page.mjs",
+      "mutation": {
+        "find": "</style></head><body data-story-schema=\"package-story-brief/1\">",
+        "replace": "</style></head><body data-story-schema=\"package-story-brief/2\">"
+      },
+      "minFailing": 1,
+      "maxFailing": 5
+    },
+    {
+      "id": "story-css-block-count-ceiling-authority",
+      "property": "The 4,096-block CSS ceiling is an independently discriminated fail-closed boundary.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "        if (blocks.length > CSS_BLOCK_LIMIT) return null;",
+        "replace": "        if (false) return null;"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    },
+    {
+      "id": "story-parser-bundle-byte-ceiling-authority",
+      "property": "The 524,288-byte parser bundle ceiling remains distinct from support-module size policy.",
+      "file": "package-story-page/scripts/verify-story-page.mjs",
+      "mutation": {
+        "find": "  bytes: readPreImportBytes(path, path === 'vendor/parse5.bundle.mjs' ? PARSER_BUNDLE_BYTE_LIMIT : PREIMPORT_MODULE_BYTE_LIMIT),",
+        "replace": "  bytes: readPreImportBytes(path, path === 'vendor/parse5.bundle.mjs' ? Number.MAX_SAFE_INTEGER : PREIMPORT_MODULE_BYTE_LIMIT),"
+      },
+      "minFailing": 1,
+      "maxFailing": 2
+    }
+  ]
+}

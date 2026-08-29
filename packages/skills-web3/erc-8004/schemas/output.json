@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ERC-8004 Agent Identity Response",
+  "description": "Schema for ERC-8004 on-chain AI agent identity operations",
+  "type": "object",
+  "properties": {
+    "operation": {
+      "type": "string",
+      "enum": ["register", "update", "bridge", "query", "transfer"],
+      "description": "Agent identity operation performed"
+    },
+    "chain": {
+      "type": "string",
+      "enum": ["base", "base-sepolia", "ethereum", "optimism", "arbitrum"],
+      "description": "Chain where operation was performed"
+    },
+    "contract_address": {
+      "type": "string",
+      "pattern": "^0x[a-fA-F0-9]{40}$",
+      "description": "ERC-8004 registry contract address"
+    },
+    "token_id": {
+      "type": "string",
+      "description": "Agent NFT token ID"
+    },
+    "owner": {
+      "type": "string",
+      "pattern": "^0x[a-fA-F0-9]{40}$",
+      "description": "Current owner of the agent identity"
+    },
+    "metadata_uri": {
+      "type": "string",
+      "description": "URI pointing to agent metadata JSON"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Agent name" },
+        "description": { "type": "string", "description": "Agent description" },
+        "version": { "type": "string" },
+        "image": { "type": "string", "description": "Agent avatar URI" },
+        "agent_type": { "type": "string" },
+        "model": { "type": "string" },
+        "capabilities": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "chains": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "reputation": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "On-chain reputation score"
+    },
+    "tx_hash": {
+      "type": "string",
+      "description": "Transaction hash"
+    },
+    "bridge": {
+      "type": "object",
+      "properties": {
+        "source_chain": { "type": "string" },
+        "destination_chain": { "type": "string" },
+        "destination_chain_id": { "type": "integer" },
+        "status": { "type": "string", "enum": ["initiated", "pending", "completed", "failed"] }
+      }
+    },
+    "gas_used": { "type": "integer", "description": "Gas units consumed" },
+    "cost_estimate_usd": { "type": "number", "description": "Estimated cost in USD" }
+  },
+  "required": ["operation", "chain"]
+}

@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "observability config validator",
+  "description": "Validates configuration inputs for the observability skill",
+  "type": "object",
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": ["full", "metrics_only", "logging_only", "tracing_only", "dashboards_only", "alerting_only", "slo_only", "cost_review"],
+      "default": "full",
+      "description": "Which part of the observability procedure to run. 'full' runs all 10 steps."
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Service name"
+          },
+          "language": {
+            "type": "string",
+            "enum": ["typescript", "javascript", "python", "go", "java", "rust", "csharp", "ruby"],
+            "description": "Primary programming language"
+          },
+          "framework": {
+            "type": "string",
+            "description": "Web framework (e.g., express, fastify, flask, gin, spring-boot)"
+          },
+          "is_user_facing": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether this service directly serves user traffic"
+          }
+        }
+      },
+      "description": "Services to instrument and monitor"
+    },
+    "infrastructure": {
+      "type": "string",
+      "enum": ["kubernetes", "ecs", "lambda", "ec2", "heroku", "vercel", "bare_metal", "docker_compose"],
+      "description": "Primary infrastructure platform"
+    },
+    "existing_stack": {
+      "type": "object",
+      "description": "Already deployed observability tools to integrate with",
+      "properties": {
+        "metrics": {
+          "type": "string",
+          "enum": ["prometheus", "datadog", "cloudwatch", "influxdb", "new_relic", "none"],
+          "default": "none"
+        },
+        "logs": {
+          "type": "string",
+          "enum": ["loki", "elasticsearch", "splunk", "cloudwatch_logs", "datadog_logs", "none"],
+          "default": "none"
+        },
+        "traces": {
+          "type": "string",
+          "enum": ["jaeger", "tempo", "xray", "datadog_apm", "honeycomb", "none"],
+          "default": "none"
+        },
+        "dashboards": {
+          "type": "string",
+          "enum": ["grafana", "datadog", "cloudwatch", "kibana", "none"],
+          "default": "none"
+        },
+        "alerting": {
+          "type": "string",
+          "enum": ["alertmanager", "datadog_monitors", "cloudwatch_alarms", "pagerduty", "opsgenie", "none"],
+          "default": "none"
+        }
+      }
+    },
+    "vendor_preference": {
+      "type": "string",
+      "enum": ["open_source", "managed_saas", "aws_native", "no_preference"],
+      "default": "no_preference",
+      "description": "Preference for open-source vs managed vs cloud-native tools"
+    },
+    "budget_monthly_usd": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Monthly budget for observability tooling in USD"
+    },
+    "traffic_rps": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Approximate peak requests per second across all services"
+    },
+    "team_size": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of engineers who will use the observability stack"
+    },
+    "compliance_requirements": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["gdpr", "hipaa", "soc2", "pci_dss", "iso_27001"]
+      },
+      "description": "Compliance requirements that affect logging and data retention"
+    },
+    "slo_targets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["service", "type", "objective"],
+        "properties": {
+          "service": {
+            "type": "string",
+            "description": "Service name"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["availability", "latency", "quality"],
+            "description": "SLO type"
+          },
+          "objective": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Target percentage (e.g., 99.9)"
+          },
+          "latency_threshold_ms": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Latency threshold in ms (required for latency SLOs)"
+          }
+        }
+      },
+      "description": "Pre-defined SLO targets to configure"
+    },
+    "oncall_tool": {
+      "type": "string",
+      "enum": ["pagerduty", "opsgenie", "grafana_oncall", "none"],
+      "default": "none",
+      "description": "On-call management tool to integrate with"
+    },
+    "include_cost_analysis": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to include cost estimation and optimization recommendations"
+    }
+  }
+}

@@ -1,0 +1,217 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "skills-reverse-engineering",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "66b6fd445072d1c171d67cdbaa46f305184d77092d4ef7efc82477d33608ad51"
+      },
+      {
+        "path": "bin/cli.js",
+        "sha256": "a210174d6b63d053f7744757972d31acb0f4d9c59f8dacff7b62872a19ebd31a"
+      },
+      {
+        "path": "package.json",
+        "sha256": "d1a273594afef674586243c4f3c52ce7405b8d8a47cf998f4357a09ca4b02143"
+      },
+      {
+        "path": "sources.json",
+        "sha256": "7703438737f688e04d09bf9372e2b6ab247e9ddd52e372bb78ad048d91535e6d"
+      },
+      {
+        "path": "src/cli.js",
+        "sha256": "f4cda43a7d5b5ec98f58e9d9e49b7b0ad0d53461b6cc5bb2df958d8a274de66c"
+      },
+      {
+        "path": "src/commands/doctor.js",
+        "sha256": "54fa365d518859c1ee9da50c29129bf469691ff14789a7acae6fd1604901fe1c"
+      },
+      {
+        "path": "src/commands/init.js",
+        "sha256": "0b5407eeeddcb9ae94eaaeaddbe3a98207e408f7e99144bbf6d3cbe038ae0b24"
+      },
+      {
+        "path": "src/commands/list.js",
+        "sha256": "78e542af26aa714f56a8b86e6b942fda2fca18fd4e0b5c1c9fefa17cd55b0262"
+      },
+      {
+        "path": "src/commands/remove.js",
+        "sha256": "dc5db2dea9f63355d99d1a407fdfe3ee7c4d04d8e372499b2d99dc6d440727b3"
+      },
+      {
+        "path": "src/commands/update.js",
+        "sha256": "e5ffa4ee97a6383a04c02412cf625429cc6f3537d9255d0ce4dbf33d4b6f04b3"
+      },
+      {
+        "path": "src/utils.js",
+        "sha256": "11af7d3f56331ed03d13af0f9d4fbb408307c37ff3aad77ba4cbdf610a881aa8"
+      },
+      {
+        "path": "templates/.claude/commands/reverse-engineering-unicorn.md",
+        "sha256": "ff88a1990654ed8e9e4282735297a701ba6fd5e8cbcabe37f2661a3e77e90e58"
+      },
+      {
+        "path": "templates/.claude/skills/explore/SKILL.md",
+        "sha256": "2473e7961845db0d64566cd42627b374d1830664b9e302058a1b1aa466bc7361"
+      },
+      {
+        "path": "templates/.claude/skills/explore/references/questioning-techniques.md",
+        "sha256": "ec0dd00871d3abe950f9cf375216a43043827897166c4165c3fa581839851195"
+      },
+      {
+        "path": "templates/.claude/skills/explore/references/task-brief-templates.md",
+        "sha256": "4e9292479e120afce944b747bb7b4a7226c41e9880708d620de3ea4fa4ef0249"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/SKILL.md",
+        "sha256": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/references/ed25519-verification.md",
+        "sha256": "2742f14b472bff69c83f24d9bac5bf023bd7f9ecc3e659742ac3152a239dd68f"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/references/research-actions.md",
+        "sha256": "156d2f8ce342f7013bc758fe7c0d3ad3041b4f67f30dbcf8d59e091cb70d9a9c"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/references/source-evaluation.md",
+        "sha256": "d6a19abb6be64dc9e1f539903080029125d2d899da4de3063e75e1afb7e4906f"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/check_report_evidence.py",
+        "sha256": "5053e677f11d00b4dd8365a81eafa1d2c961eebd25c33f72b02455573a934a32"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/ed25519_verifier.py",
+        "sha256": "f4a2ac9e6473201583643fe8abf47560863cec600344dad5c9df06091b4298f5"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/evidence_fetch.py",
+        "sha256": "5f4d7cb5d6fb3106d64130b6606582eb55a4f633ef969cf7890b1de1c179345b"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/fixture_legacy_v1_fact.json",
+        "sha256": "e613de4737145cbfb5f349fbf9f1122801ce3508b62c3a18e2e0cba26b9da5b0"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/fixture_legacy_v2_fact.json",
+        "sha256": "3f552b47c3864e4ff7ae8c72516e98c188592c7f4f7703d09ce88b39f586ad9d"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/fixtures_field_cases.json",
+        "sha256": "e2ee619732ab4a1b57285e57b4349f96b4158b231a5624e5264fadf69edb8983"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/goap_planner.py",
+        "sha256": "f5cbf4784106710b363e7f29bfa538b75f488cb25e1c273ae40de9f4c2a6710b"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/learning_bridge.py",
+        "sha256": "74f8842978ba945ff78c2bd54702415dd87122e61919571e12a19c3cf1e56131"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/population_match.py",
+        "sha256": "bbd1d3346a6fb75d0e8526cb5d2fc8bc8613bb31ab63ffb0958d436d5e009054"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/risk_statement.py",
+        "sha256": "320ffece816e875f65624583846f44dc99461f672a0de7cda42be5ddf29d6de5"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/source_tiers.py",
+        "sha256": "e1aae76fad01693ab35b51466fc4369c04a5ac64230fd307e7b798dc5beeff7a"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_ed25519_verifier.py",
+        "sha256": "dcba1ce538ff946d6928f30a7c5cbcc37fddf712b6181f91f94c76e20c117ac5"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_evidence_provenance.py",
+        "sha256": "292bfcdcc086934905c77f1543d8400ee483166ff3ce26c79bb526c204320dbb"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_goap_planner.py",
+        "sha256": "7942ada069048b7e97bf2b6e920898a58517ccec090069f347399dbf1fc37731"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_population_match.py",
+        "sha256": "f33f72c0ba6305af1644e6b1a7f7635d3f33273344f19c14e7dbd2f819af0e7f"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_risk_absolute.py",
+        "sha256": "ab353db189650551c374cb772ba4a3a6929e3a2618f2f5c112eca4c3f69e46b6"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_signature_v3.py",
+        "sha256": "a04259296df104c9497c7b31d29556cb9a7ad4dd3339cbe3d8d32a4f53950d25"
+      },
+      {
+        "path": "templates/.claude/skills/goap-research-ed25519/scripts/test_suite_completeness.py",
+        "sha256": "727c5d5b0dad215957012276ebc146397178255077e762ed7b88a60d8178d2ab"
+      },
+      {
+        "path": "templates/.claude/skills/problem-solver-enhanced/SKILL.md",
+        "sha256": "031378aa2e10c98928e35de07d454135e73550cd0c49f0cd886d53e4208d6b9f"
+      },
+      {
+        "path": "templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+        "sha256": "20d6b667971f9749d091c1d47e2f75df957f259647cbb861ac54174280096c71"
+      },
+      {
+        "path": "templates/.claude/skills/reverse-engineering-unicorn/examples/noom-cjm-example.md",
+        "sha256": "01d33586e26bf093a57a7a1082bf3bdba3af801bb8348a685c0418f76987a0b0"
+      },
+      {
+        "path": "templates/.claude/skills/reverse-engineering-unicorn/examples/noom-module1-example.md",
+        "sha256": "7009cf2e2624a1254913ad2e1ff554e7ff675358b0b99bc0632f2e12132663a3"
+      },
+      {
+        "path": "templates/.claude/skills/reverse-engineering-unicorn/modules/01-intelligence.md",
+        "sha256": "0770bd63a6a1eeb34e873cb101e2ba0cf88d507e9bc03242046eaa837b9f587c"
+      },
+      {
+        "path": "templates/.claude/skills/reverse-engineering-unicorn/modules/02-product-customers.md",
+        "sha256": "499bbded50ddd368a62301083e828a42bd0223aa58322b6a952f00086b462972"
+      },
+      {
+        "path": "templates/.claude/skills/reverse-engineering-unicorn/modules/025-cjm-prototype.md",
+        "sha256": "11e2e101c99d42306ac1d0931475c5a8899e929514e41a393b6173e03856cfc3"
+      },
+      {
+        "path": "templates/.claude/skills/reverse-engineering-unicorn/modules/03-market-competition.md",
+        "sha256": "7c2e7164463371239d92f28153777e40ee0d6dad293d59886a4cf5b306fa3627"
+      },
+      {
+        "path": "templates/.claude/skills/reverse-engineering-unicorn/modules/04-business-finance.md",
+        "sha256": "dd08226391d498a82f111f0da665ea7cea1fa8a97683fab11070f879142727f7"
+      },
+      {
+        "path": "templates/.claude/skills/reverse-engineering-unicorn/modules/05-growth-engine.md",
+        "sha256": "84658390dc7beb590f70164b391ace915e42926660bc1015e4be300752b74a37"
+      },
+      {
+        "path": "templates/.claude/skills/reverse-engineering-unicorn/modules/06-playbook-synthesis.md",
+        "sha256": "3cd76a218aa9f94e0ff8ff2fc257647540674f68df3883f0de5e76e1cea26d9b"
+      },
+      {
+        "path": "templates/.claude/skills/reverse-engineering-unicorn/references/blue-ocean-canvas.md",
+        "sha256": "9256455b4b0f2c8c5aecb472e69cfbeda38bed8239120b45b46beec27571f8f9"
+      },
+      {
+        "path": "templates/.claude/skills/reverse-engineering-unicorn/references/industry-benchmarks.md",
+        "sha256": "d377f4d9e84b8b65860fb4d20ce67d928f8a8fc8ef333658f88c8c54674eed71"
+      },
+      {
+        "path": "templates/.claude/skills/reverse-engineering-unicorn/references/jtbd-canvas.md",
+        "sha256": "7938e657af631109ca7b4752002c21ac84a7dad3a35cc522be088f814d102773"
+      }
+    ]
+  },
+  "signature": "llLWcu0+YrLa0Bslt2EPlTRhyXgDIFYY66WrGmwden8RLPvxlTPOxD+HOfSsxCRWBHxqjhKVcDU5GPCN7VuvAw=="
+}

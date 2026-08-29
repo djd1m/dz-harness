@@ -1,0 +1,537 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "skills-web3"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5130f858a7f612812e5f7ec5e017fbc1d2f7e675e26853e04ecc5adf4c4dac46"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "bankr/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "735bb809e84b838408dee29bddb7caa632aa286215c8bbf5ee43c080bbb58d50"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "bankr/evals/bankr.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "91e3677b88a770f06d1b9011a53002828ca74003056cc4f7b3b1158ba827c4c8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "bankr/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c7240b3b9ea93b682acb610a44910d10f54efca2c3a5bb4cd6df59c4d8f1166d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "bankr/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6be2b330ea1086d9e21331d6828bdead308242871dcd55b15f3743bb7eaecddf"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "ens-primary-name/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "676290c4676b9544df3c670f14b5d1b95e7013f53563236263e82df62f95d150"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "ens-primary-name/evals/ens-primary-name.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "45330e72c444d93fa64d2d1e443989c01540e590f86c16bea732b5e7eeaa22f8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "ens-primary-name/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ed85643d183c52cca05b7c845a543fd9d78bb6ffb205e4fdc319b476591ff5b3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "ens-primary-name/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "428b34329b9a538deef710b5f36753507b55c28b1fcd2f9c7f182038fcfcaf23"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "erc-8004/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6d9e342d149510081ef284e695783b5961a37ebe139dae6a037e24362acc7ec4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "erc-8004/evals/erc-8004.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "afecb302e14d956432ba90b28feae62fd023c232c83c92a20f13d59c59e378c3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "erc-8004/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a2fa241ed7cf6505b3c7518ec73bf217cdb4a3af9395024560ac748f465a5709"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "erc-8004/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f6ee3cfc485ba118f1bf06f1e18a44bd2f0298eb0c783726cfac5d0776d173a0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "hydrex/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "30985ff9432d2b9a6fcdf9e0fddff4c4ea11d51b9f96cbfe2409c733fc0199ce"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "hydrex/evals/hydrex.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "275b1063df84cd9d6c399373bcaccce013671b0a26d6ffbce3e50bc30ae8bd6d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "hydrex/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "447a2cdcfb055416eb21cb52d1a591a223cbd42d862fba786a71656bce772e6c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "hydrex/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5ebe43188410bebca3637456f1760c1f66d7151000e0e793c20306461829c2e3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "neynar/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "17971a094eb2e439d759f09ed24f1722fbc6a95c7fa871ded4dbced94ac0244d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "neynar/evals/neynar.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f73092e76bf5d4cf3637f4303eeb710a230a024778952ce57126382e6defc3a6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "neynar/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aede8fda1b3597b34940780c91ae5135c51c6f2470d629b5d053bc36ea7bf66f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "neynar/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a29e2f39c076f7e09a497ff81afa65997c28469e0a433f9e851de312c9ca5e4c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "43aab8fb0600243e11c5234700ebf9b882b30cf3ea7258a3bdd8b93231fd39fb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "quicknode/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8a52f98e917642632b535dd32fa2c1d9d6bda50608deb01728b96ce52b80b4a3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "quicknode/evals/quicknode.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a7ec89256ea7c967a9fb1dce59bb79acae68ecd77466d5f575ee3b78684a1464"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "quicknode/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4c6108447ac0568b4fd41272222392eb43d79d69f3dc8b8f7d5fd048acf16f33"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "quicknode/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2f0d07a6e51f62d0c9b55a790744d5192ede1774ff18a01875b43617db806478"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "quotient/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d19f21568cdda9e15609be49b1b745e1bc5c9d55ccfa6649e36d3f30d0ec059e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "quotient/evals/quotient.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b99db8fcc682a21843056a0c48faf4bf039192c671d20c964f8e3b549b733799"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "quotient/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c4d68c20939d0e607cd2e318d48c07efbaaf090a0f9c359624b2b09b8f7d6c4a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "quotient/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "51ba8f59240331c5bea42ccf4ad18600e6c2e49fd7a55038606b6719081743eb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "siwa/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "00d2220f966c966afc5402825744bba3e0269bf15ab4c5b022ea2fdfb6581894"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "siwa/evals/siwa.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e72737e16f9a8fc25e91414b3c8537abbc2f8093444936adef0837f444fd6118"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "siwa/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "793e7f40e8cc7c6635142909f23661ba4e9ca050871b4cc213ba334e7268d858"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "siwa/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7f1c171086a8573bebbc066280566334929650c4488560b8139c1d2c65b2595a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "sources.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b514cbeb4e92f2a87706f1518543a3aead5f3760f20239f272ae274110b75567"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "symbiosis/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6ba6fc6e4e608ea380df2c7242e77b30ee7ef2223032ecfc7c37fc18385fc9b5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "symbiosis/evals/symbiosis.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d0a426e24617da0af387eb768c013ae5bd582dd4e1068c97b11552a79933dd95"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "symbiosis/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6ac457e62e0fa31f7b47f5dc36dc00a2043f19433cc53a950f3da45d7229b7d6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "symbiosis/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "62f91f0de8c910ad008a3b2580a1decb621a21dad404282c0f78c8c8f1dc55d2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "trails/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1bb8f7a6f331d8c755540e17c6a8b6465cf9e279ee0c21477d90426ee4deb560"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "trails/evals/trails.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ff465312bfa2ee70eb59650999b1ba9c7d3cda2dc2560dafc60bb410fe2247aa"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "trails/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6d13e811c933efc01122adfa2ce0acd0841ecca57d5f12c94a3bfd38a654fd9a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "trails/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "379c7c5029988f32aee043b48ae95eca6cbd4fd91d86ae782035fa7a86171acc"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "veil/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "32f9934b24d96487da1a0d636eddc35893e7eb571f3e6b488fd836b1b1af605c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "veil/evals/veil.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "208a6c2be97a7cefc04b1606c06867547bd48d5aa7a1c653c122d9748a06cea8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "veil/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "815aa89550e9db561a8155d3395f96761fa09a651d221b2f28087a7d24584288"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "veil/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "da846c6bc84f13e663d3f537e9b8959c91de16d1385f4f4bce0792780c1b875b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "zerion/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e9bcffeb87da90ef403e00bd68e60c57c30a82198d62309fd1eae2331c24bfb8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "zerion/evals/zerion.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aee5697922efe9d2efd81dbf81badd3f4580f5e2d49f2c25040150a7edc8a5db"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "zerion/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "85119c01273939486250de712bac709efb9d33a7f7e19598aa7cf49d78d7b71f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "zerion/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e451e9f06b9b0e8ab52009a98315b39ca615269132464dc66ae73cc6c4e8e2a5"
+        }
+      ]
+    }
+  ]
+}

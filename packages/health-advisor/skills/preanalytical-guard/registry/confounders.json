@@ -1,0 +1,63 @@
+{
+  "schema": "confounder-v1",
+  "_note": "DATA. Every entry MUST carry `effect_magnitude` and `source` — engine/schema.js throws at load otherwise. Figures that come from the field case are recorded as source.kind='field-case'; they are CLAIMED, not verified against literature by this repo. Do NOT invent PubMed identifiers to make an entry look literature-backed.",
+  "confounders": [
+    {
+      "id": "fasting-washout-prolonged",
+      "applies_to": ["Total Testosterone", "Testosterone", "Тестостерон общий"],
+      "condition_slot": "fasting_hours",
+      "predicate": { "op": "gte", "value": 48 },
+      "direction": "decreases",
+      "effect_magnitude": { "value": -34, "unit": "%", "at": "56 h fast" },
+      "source": { "kind": "field-case", "citation": "Step-0 brief, ha-slice-b (field case, 2026-08; CLAIMED — not verified against literature by this repo)" },
+      "action": "withhold",
+      "indistinguishable_from": {
+        "axis": ["LH", "FSH"],
+        "claim": "at the SAME LH/FSH profile the fasting artefact is indistinguishable from true deficiency — the pituitary axis cannot tell them apart"
+      }
+    },
+    {
+      "id": "fasting-washout-window-open",
+      "_why": "QE F1 (MEASURED 2026-08-05): `fast_washout_hours` was declared in SamplingConditions and documented as mattering 'as much as the fast', yet NO registry entry read it. `fasting_hours=4, fast_washout_hours=4` — a draw four hours after a 56 h fast ended — evaluated to conditions_verified, interpretable:true, no caveat, and went to the interpretation engine. ADR-002's decision table names washout-violated as a first-class blocked reason; nothing shipped under any name. `fasting_hours` measures the CURRENT fast and answers a different question: the moment a prolonged fast ends, `fasting_hours` resets and the artefact does not.",
+      "applies_to": ["Total Testosterone", "Testosterone", "Тестостерон общий"],
+      "condition_slot": "fast_washout_hours",
+      "predicate": { "op": "lt", "value": 48 },
+      "direction": "decreases",
+      "effect_magnitude": {
+        "value": -34,
+        "unit": "%",
+        "qualifier": "up to",
+        "at": "an OPEN washout window after a prolonged fast — an UPPER BOUND carried over from the fast's own measured figure, not a separate measurement of the residual; the decay curve is unmeasured by this repo"
+      },
+      "source": {
+        "kind": "field-case",
+        "citation": "Step-0 brief, ha-slice-b + references/preanalytical-variation.md — «the washout matters as much as the fast», which is where the 48 h window comes from: it is set EQUAL to the fast threshold of the entry above, on the brief's own words. CLAIMED, and doubly so — neither the window length nor the size of the residual has been measured by this repo. The withhold is therefore justified by the UNKNOWN, not by the number."
+      },
+      "action": "withhold",
+      "indistinguishable_from": {
+        "axis": ["LH", "FSH"],
+        "claim": "a value drawn while the washout window is still open carries the same artefact as one drawn during the fast, and the pituitary axis cannot separate either from true deficiency"
+      }
+    },
+    {
+      "id": "sleep-debt-week",
+      "applies_to": ["Total Testosterone", "Testosterone", "Тестостерон общий"],
+      "condition_slot": "sleep_hours_7d_mean",
+      "predicate": { "op": "lte", "value": 5 },
+      "direction": "decreases",
+      "effect_magnitude": { "value": -12.5, "unit": "%", "ci": [-15, -10] },
+      "source": { "kind": "field-case", "citation": "Step-0 brief, ha-slice-b (5 h/night across a week ⇒ −10…−15 %; CLAIMED — field case)" },
+      "action": "caveat"
+    },
+    {
+      "id": "exertion-washout-ck",
+      "applies_to": ["Creatine Kinase", "CK", "CPK", "КФК", "Креатинкиназа", "Креатинфосфокиназа"],
+      "condition_slot": "exertion_washout_hours",
+      "predicate": { "op": "lt", "value": 168 },
+      "direction": "increases",
+      "effect_magnitude": { "value": 30, "unit": "×ULN (upper bound; highly variable)", "at": "peaks 2–6 d after strenuous eccentric exercise, as high as ~30×ULN in high responders; still elevated up to ≈168 h" },
+      "source": { "kind": "literature", "citation": "Post-exercise CK variability: a literature review (PMC12161516); MDedge, 'How much can exercise raise CK level' — CK rises within 24 h, peaks 2–6 d (as high as ~30×ULN in high responders, but highly variable), normalises over ~7 d; guidance is to avoid strenuous exercise 2–7 d pre-test. Magnitude is an upper bound, not a universal value. SAFETY: a caveat only qualifies interpretation — it never suppresses the number, so a rhabdomyolysis-level CK still surfaces for urgent evaluation. No numeric PubMed ID asserted beyond the PMC handle." },
+      "action": "caveat"
+    }
+  ]
+}

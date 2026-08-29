@@ -1,0 +1,290 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "api-design output",
+  "description": "Structured output from the api-design skill",
+  "type": "object",
+  "required": ["status", "paradigm", "resources", "endpoints", "error_contract", "pagination", "versioning"],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "error", "skipped"]
+    },
+    "paradigm": {
+      "type": "object",
+      "required": ["choice", "justification"],
+      "properties": {
+        "choice": {
+          "type": "string",
+          "enum": ["rest", "graphql", "grpc", "hybrid"],
+          "description": "Chosen API paradigm"
+        },
+        "justification": {
+          "type": "string",
+          "description": "Why this paradigm was selected"
+        },
+        "consumers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["web_frontend", "mobile", "third_party", "internal_service", "cli"]
+          },
+          "description": "Identified API consumers"
+        }
+      }
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "description"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Resource name (plural noun, kebab-case)"
+          },
+          "description": {
+            "type": "string"
+          },
+          "relationships": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "target": {
+                  "type": "string",
+                  "description": "Related resource name"
+                },
+                "cardinality": {
+                  "type": "string",
+                  "enum": ["1:1", "1:N", "N:M"]
+                },
+                "nested": {
+                  "type": "boolean",
+                  "description": "Whether the target is accessed as a sub-resource"
+                }
+              }
+            }
+          },
+          "access": {
+            "type": "string",
+            "enum": ["read-only", "read-write", "append-only"],
+            "default": "read-write"
+          }
+        }
+      }
+    },
+    "endpoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["method", "path", "summary", "status_codes"],
+        "properties": {
+          "method": {
+            "type": "string",
+            "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+          },
+          "path": {
+            "type": "string",
+            "description": "URL path including version prefix (e.g., /v1/users/:id)"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "auth": {
+            "type": "string",
+            "enum": ["required", "optional", "none"],
+            "default": "required"
+          },
+          "idempotent": {
+            "type": "boolean"
+          },
+          "request_body": {
+            "type": "object",
+            "description": "JSON Schema for the request body (if any)"
+          },
+          "response_schema": {
+            "type": "object",
+            "description": "JSON Schema for the success response"
+          },
+          "status_codes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["code", "description"],
+              "properties": {
+                "code": {
+                  "type": "integer"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "pagination": {
+            "type": "string",
+            "enum": ["cursor", "offset", "none"],
+            "description": "Pagination strategy for list endpoints"
+          },
+          "scopes": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Required OAuth2 scopes"
+          }
+        }
+      }
+    },
+    "error_contract": {
+      "type": "object",
+      "required": ["format", "error_types"],
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": ["rfc7807", "custom"],
+          "description": "Error response format standard"
+        },
+        "content_type": {
+          "type": "string",
+          "default": "application/problem+json"
+        },
+        "error_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type_uri", "title", "default_status"],
+            "properties": {
+              "type_uri": {
+                "type": "string",
+                "format": "uri",
+                "description": "Stable URI identifying the error type"
+              },
+              "title": {
+                "type": "string"
+              },
+              "default_status": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    },
+    "pagination": {
+      "type": "object",
+      "required": ["strategy"],
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": ["cursor", "offset"],
+          "description": "Primary pagination strategy"
+        },
+        "default_limit": {
+          "type": "integer",
+          "default": 25
+        },
+        "max_limit": {
+          "type": "integer",
+          "default": 100
+        }
+      }
+    },
+    "versioning": {
+      "type": "object",
+      "required": ["strategy", "current_version"],
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": ["url_path", "header", "accept_header", "query_param"]
+        },
+        "current_version": {
+          "type": "string",
+          "description": "Current API version (e.g., v1)"
+        },
+        "deprecation_policy": {
+          "type": "string",
+          "description": "How long deprecated versions are supported"
+        }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "properties": {
+        "methods": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["bearer_jwt", "bearer_opaque", "api_key", "oauth2", "basic"]
+          }
+        },
+        "scopes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          }
+        },
+        "rate_limiting": {
+          "type": "object",
+          "properties": {
+            "tiers": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "limit": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "openapi_spec": {
+      "type": "string",
+      "description": "Complete OpenAPI 3.1 YAML spec as a string"
+    },
+    "anti_patterns_found": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "description": "Name of the anti-pattern detected"
+          },
+          "location": {
+            "type": "string",
+            "description": "Where in the design the anti-pattern was found"
+          },
+          "recommendation": {
+            "type": "string",
+            "description": "How to fix it"
+          }
+        }
+      },
+      "description": "Anti-patterns detected during review (populated when reviewing existing APIs)"
+    },
+    "self_check": {
+      "type": "object",
+      "description": "Results of the self-check checklist",
+      "properties": {
+        "all_endpoints_documented": { "type": "boolean" },
+        "rfc7807_errors": { "type": "boolean" },
+        "versioning_defined": { "type": "boolean" },
+        "pagination_on_lists": { "type": "boolean" },
+        "auth_per_endpoint": { "type": "boolean" },
+        "rate_limits_defined": { "type": "boolean" },
+        "consistent_naming": { "type": "boolean" },
+        "iso8601_timestamps": { "type": "boolean" },
+        "opaque_ids": { "type": "boolean" },
+        "no_verbs_in_urls": { "type": "boolean" },
+        "max_nesting_two": { "type": "boolean" },
+        "openapi_included": { "type": "boolean" }
+      }
+    }
+  }
+}

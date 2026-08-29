@@ -1,0 +1,43 @@
+# ci-fix evaluation
+# Run: aqe eval ci-fix
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run ci-fix"
+    expected:
+      status: success
+      summary_contains: "ci-fix"
+
+  - name: "build failure diagnosis"
+    input: "CI failed with: error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'."
+    expected:
+      status: success
+      failure_type: "build"
+      root_cause_layer: "code"
+
+  - name: "test failure diagnosis"
+    input: "CI failed: FAIL src/auth.test.ts > login > returns 401 when token is expired - Expected: 401, Received: 200"
+    expected:
+      status: success
+      failure_type: "test"
+
+  - name: "flaky test detection"
+    input: "This test passes locally but fails about 30% of the time in CI. It involves setTimeout and Date.now()."
+    expected:
+      status: success
+      root_cause_is_flaky: true
+
+  - name: "environment mismatch"
+    input: "CI fails with: Error: Cannot find module './Utils'. Works fine on my Mac."
+    expected:
+      status: success
+      root_cause_has_env_mismatch: true
+
+  - name: "cache issue identification"
+    input: "CI worked yesterday with the same code. Today it fails with: Module not found: @company/shared-lib@2.1.0"
+    expected:
+      status: success
+      summary_contains_any:
+        - "cache"
+        - "dependency"
+        - "lockfile"

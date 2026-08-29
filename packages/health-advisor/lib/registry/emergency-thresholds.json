@@ -1,0 +1,132 @@
+{
+  "schema": "ha-emergency-thresholds-1",
+  "comment": "GENERATED FROM the CANONICAL prose source base/skills/references/emergency-thresholds.md (12 rows: 6 Immediate Emergency + 6 Urgent). Parity-tested three ways against BOTH prose tables by test/emergency-thresholds-parity.test.js (INV-11). `action` is READ per row, never inferred from magnitude (INV-11b): a row without an action is a LOAD ERROR, not a default. bounds[] carries 1-2 entries with OR-semantics (a two-sided row is ONE row with two bounds).",
+  "source_of_truth": "base/skills/references/emergency-thresholds.md",
+  "rows": [
+    {
+      "analyte": "Калий (K+)",
+      "unit": "ммоль/л",
+      "bounds": [
+        { "operator": "<", "threshold": 3.0 },
+        { "operator": ">", "threshold": 6.0 }
+      ],
+      "action": "ambulance",
+      "significance": "Аритмия, остановка сердца",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/33081529/"
+    },
+    {
+      "analyte": "Глюкоза",
+      "unit": "ммоль/л",
+      "bounds": [
+        { "operator": "<", "threshold": 3.0 },
+        { "operator": ">", "threshold": 20.0 }
+      ],
+      "action": "ambulance",
+      "significance": "Гипогликемическая/гипергликемическая кома",
+      "source": "https://diabetesjournals.org/care/article/47/Supplement_1/S77/153942/"
+    },
+    {
+      "analyte": "Натрий (Na+)",
+      "unit": "ммоль/л",
+      "bounds": [
+        { "operator": "<", "threshold": 120 },
+        { "operator": ">", "threshold": 160 }
+      ],
+      "action": "ambulance",
+      "significance": "Отёк мозга / судороги",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/24569125/"
+    },
+    {
+      "analyte": "Гемоглобин (Hb)",
+      "unit": "г/л",
+      "bounds": [
+        { "operator": "<", "threshold": 70 }
+      ],
+      "action": "ambulance",
+      "significance": "Тяжёлая анемия, показание к трансфузии",
+      "source": "https://www.who.int/publications/i/item/9789241548065"
+    },
+    {
+      "analyte": "Тропонин I/T",
+      "unit": "нг/мл",
+      "bounds": [
+        { "operator": ">", "threshold": 0.04 }
+      ],
+      "action": "ambulance",
+      "significance": "Подозрение на инфаркт миокарда",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/30153967/"
+    },
+    {
+      "analyte": "Лактат",
+      "unit": "ммоль/л",
+      "bounds": [
+        { "operator": ">", "threshold": 4.0 }
+      ],
+      "action": "ambulance",
+      "significance": "Шок / сепсис / тяжёлая гипоперфузия",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/34599691/"
+    },
+    {
+      "analyte": "D-димер",
+      "unit": "нг/мл",
+      "bounds": [
+        { "operator": ">", "threshold": 500 }
+      ],
+      "action": "doctor_24h",
+      "significance": "Подозрение на ТЭЛА/ТГВ",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/14507948/"
+    },
+    {
+      "analyte": "Тромбоциты",
+      "unit": "x10⁹/л",
+      "bounds": [
+        { "operator": "<", "threshold": 50 }
+      ],
+      "action": "doctor_24h",
+      "significance": "Риск спонтанного кровотечения",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/31461778/"
+    },
+    {
+      "analyte": "Креатинин",
+      "unit": "мкмоль/л",
+      "bounds": [
+        { "operator": ">", "threshold": 350 }
+      ],
+      "action": "doctor_24h",
+      "significance": "Острая почечная недостаточность",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/22890468/"
+    },
+    {
+      "analyte": "АЛТ/АСТ",
+      "unit": "Ед/л",
+      "bounds": [
+        { "operator": ">", "threshold": 500 }
+      ],
+      "action": "doctor_24h",
+      "significance": "Острое повреждение печени",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/30926241/"
+    },
+    {
+      "analyte": "ТТГ",
+      "unit": "мМЕ/л",
+      "bounds": [
+        { "operator": "<", "threshold": 0.01 },
+        { "operator": ">", "threshold": 50 }
+      ],
+      "action": "doctor_24h",
+      "significance": "Тиреотоксический криз / микседематозная кома",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/27521067/"
+    },
+    {
+      "analyte": "Кальций",
+      "unit": "ммоль/л",
+      "bounds": [
+        { "operator": "<", "threshold": 1.8 },
+        { "operator": ">", "threshold": 3.5 }
+      ],
+      "action": "doctor_24h",
+      "significance": "Гипо/гиперкальциемический криз",
+      "source": "https://pubmed.ncbi.nlm.nih.gov/35475520/"
+    }
+  ]
+}

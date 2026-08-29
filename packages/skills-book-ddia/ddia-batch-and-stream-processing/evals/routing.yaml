@@ -1,0 +1,33 @@
+skill: ddia-batch-and-stream-processing
+
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+# Each targets a decision this skill owns: batch-vs-stream, batch join algo, execution engine,
+# Hadoop-vs-MPP, offline graph, broker model, derived-system sync, window/time semantics,
+# stream joins, exactly-once.
+positives:
+  - "batch или stream для near-real-time метрик по кликам?"
+  - "single job scans two huge datasets with no index — reduce-side sort-merge join or a map-side broadcast join?"
+  - "MapReduce цепочка из 60 джобов тормозит на материализации в HDFS — стоит ли перейти на Spark/Flink dataflow?"
+  - "Kafka vs RabbitMQ for our event bus — we need ordering and the ability to replay history"
+  - "как синхронизировать search-индекс с основной БД: двойная запись, CDC или event sourcing?"
+  - "our windowed counters spike after a consumer restart — should we key windows on event time or processing time?"
+  - "tumbling vs session windows for aggregating a user's activity in the stream?"
+  - "how do I actually get exactly-once when the stream processor also writes to a DB and increments a counter?"
+  - "MPP warehouse or a Hadoop/HDFS data lake for our schema-on-read analytics workload?"
+  - "join the activity stream against a slowly-changing dimension table — how do I keep the replay deterministic?"
+
+# Hard negatives: prompts a naive keyword match (Kafka, partition, stream, pipeline, atomic, DB)
+# would wrongly route here, but which belong to a sibling DDIA skill or a non-DDIA arsenal skill.
+negatives:
+  - prompt: "we want to unbundle our monolithic database into a set of specialized derived systems — what's the overall dataflow architecture and how do the pieces compose?"
+    should_activate: "ddia-deriving-data-and-integration"
+  - prompt: "my stream sink writes to Postgres — what isolation level / serializable guarantee does that DB transaction itself need so concurrent writes don't corrupt each other?"
+    should_activate: "ddia-transaction-isolation-choice"
+  - prompt: "a suspected zombie consumer keeps writing stale values after a pause — how do I fence it off with a monotonic token?"
+    should_activate: "ddia-distributed-consistency-consensus"
+  - prompt: "how should I choose the partition key and rebalance partitions to avoid hot spots for our online key-value serving layer?"
+    should_activate: "ddia-partitioning-strategy"
+  - prompt: "set up Airflow orchestration, retries, and alerting for our nightly ETL DAG and wire up data-quality checks"
+    should_activate: "data-pipeline"
+  - prompt: "how do I deploy a Kafka cluster on Kubernetes with StatefulSets, PVCs, and the right CPU/memory limits?"
+    should_activate: "kubernetes"

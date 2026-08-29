@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "defense-evaluator config validator",
+  "description": "Validates configuration inputs for the defense-evaluator skill",
+  "type": "object",
+  "properties": {
+    "transcript_path": {
+      "type": "string",
+      "description": "Path to the defense transcript file (e.g. transcript.txt)"
+    },
+    "thesis_path": {
+      "type": "string",
+      "description": "Path to the thesis document for cross-referencing"
+    },
+    "supervisor_review_path": {
+      "type": "string",
+      "description": "Path to the supervisor review for checking remarks coverage"
+    },
+    "external_review_path": {
+      "type": "string",
+      "description": "Path to the external reviewer report"
+    },
+    "expected_duration_minutes": {
+      "type": "number",
+      "default": 20,
+      "description": "Expected presentation duration in minutes"
+    },
+    "realtime": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the transcript is being updated in real-time"
+    }
+  },
+  "required": ["transcript_path"]
+}

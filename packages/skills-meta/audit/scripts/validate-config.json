@@ -1,0 +1,107 @@
+{
+  "schema": "../schemas/output.json",
+  "required_phases": [
+    "reconnaissance",
+    "synthesis",
+    "ranking",
+    "approval",
+    "execution"
+  ],
+  "rules": [
+    {
+      "id": "AU-001",
+      "description": "The presented findings list must be capped at 20 items so it stays actionable",
+      "path": "findings.length",
+      "condition": "<=",
+      "value": 20,
+      "severity": "error"
+    },
+    {
+      "id": "AU-002",
+      "description": "Every finding must carry a severity band (P0-P3)",
+      "path": "findings[].severity",
+      "condition": "in",
+      "value": ["P0", "P1", "P2", "P3"],
+      "severity": "error"
+    },
+    {
+      "id": "AU-003",
+      "description": "Every finding must carry a category from the closed vocabulary",
+      "path": "findings[].category",
+      "condition": "in",
+      "value": ["Bug", "Security", "Performance", "Refactor", "Dead Code", "UX", "Architecture", "Gap", "Feature"],
+      "severity": "error"
+    },
+    {
+      "id": "AU-004",
+      "description": "Each finding's detail must state the concrete cost of inaction, not just describe the code",
+      "path": "findings[].detail",
+      "condition": "exists",
+      "severity": "error"
+    },
+    {
+      "id": "AU-005",
+      "description": "Code-located findings (Bug/Security/Performance/Dead Code/Refactor) must cite file:line",
+      "path": "findings[].file",
+      "condition": "exists_when_category_in",
+      "value": ["Bug", "Security", "Performance", "Dead Code", "Refactor"],
+      "severity": "warning"
+    },
+    {
+      "id": "AU-006",
+      "description": "Synthesis must run an adversarial self-challenge that drops findings a senior would not flag",
+      "path": "phases.synthesis.self_challenge_applied",
+      "condition": "==",
+      "value": true,
+      "severity": "error"
+    },
+    {
+      "id": "AU-007",
+      "description": "Findings contradicting a locked ADR / CLAUDE.md decision must be dropped, not presented",
+      "path": "phases.synthesis.adr_contradictions_dropped",
+      "condition": "==",
+      "value": true,
+      "severity": "error"
+    },
+    {
+      "id": "AU-008",
+      "description": "No code is written before the user approves items at the Phase 4 gate",
+      "path": "phases.approval.gate_respected",
+      "condition": "==",
+      "value": true,
+      "severity": "error"
+    },
+    {
+      "id": "AU-009",
+      "description": "Execution must keep one approved item to one commit (no bundling)",
+      "path": "phases.execution.one_item_one_commit",
+      "condition": "==",
+      "value": true,
+      "severity": "warning"
+    },
+    {
+      "id": "AU-010",
+      "description": "A staleness check must run first when a prior audit list exists in context",
+      "path": "phases.reconnaissance.staleness_checked",
+      "condition": "==",
+      "value": true,
+      "severity": "warning"
+    },
+    {
+      "id": "AU-011",
+      "description": "Gap-analysis Tier-1 findings (missing foundations blocking end-to-end flows) must rank P0 or P1",
+      "path": "findings[category=Gap,tier=1].severity",
+      "condition": "in",
+      "value": ["P0", "P1"],
+      "severity": "warning"
+    },
+    {
+      "id": "AU-012",
+      "description": "Finder lenses must be discovered from the real project shape, not hardcoded (no assumed frontend on a CLI/library repo)",
+      "path": "phases.reconnaissance.lenses_discovered_from_project",
+      "condition": "==",
+      "value": true,
+      "severity": "warning"
+    }
+  ]
+}

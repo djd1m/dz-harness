@@ -1,0 +1,117 @@
+name: zerion
+description: "Evaluate Zerion wallet data and DeFi analytics skill"
+version: "1.0.0"
+
+test_cases:
+  - id: portfolio-overview
+    description: "Get wallet portfolio overview"
+    input:
+      endpoint: portfolio
+      wallet_address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+      currency: usd
+    expected:
+      endpoint: portfolio
+      portfolio:
+        total_value_min: 0
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: portfolio.total_value
+      - type: field_present
+        field: portfolio.distribution_by_chain
+
+  - id: token-positions
+    description: "Get wallet token positions with filter"
+    input:
+      endpoint: positions
+      wallet_address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+      filter: only_simple
+      sort: "-value"
+    expected:
+      endpoint: positions
+      positions_is_array: true
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: positions
+
+  - id: pnl-analysis
+    description: "Get wallet profit and loss data"
+    input:
+      endpoint: pnl
+      wallet_address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+    expected:
+      endpoint: pnl
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+      - type: field_present
+        field: pnl.total_absolute
+
+  - id: transaction-history
+    description: "Get wallet transaction history filtered by type"
+    input:
+      endpoint: transactions
+      wallet_address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+      type: trade
+      chain: ethereum
+    expected:
+      endpoint: transactions
+      transactions_is_array: true
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+
+  - id: portfolio-chart
+    description: "Get 30-day portfolio chart"
+    input:
+      endpoint: chart
+      wallet_address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+      period: 1m
+    expected:
+      endpoint: chart
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+
+  - id: nft-positions
+    description: "Get wallet NFT positions"
+    input:
+      endpoint: nfts
+      wallet_address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+      chain: ethereum
+    expected:
+      endpoint: nfts
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+
+  - id: swap-quote
+    description: "Get swap quote via Zerion"
+    input:
+      endpoint: swap
+      input_token: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+      output_token: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+      input_amount: "100000000000000000"
+      chain_id: "8453"
+      slippage: 0.5
+    expected:
+      endpoint: swap
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json
+
+  - id: chain-filter
+    description: "Get positions filtered by Base chain"
+    input:
+      endpoint: positions
+      wallet_address: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+      chain: base
+    expected:
+      endpoint: positions
+      chain_filter: base
+    assertions:
+      - type: schema_valid
+        schema: schemas/output.json

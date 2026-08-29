@@ -1,0 +1,257 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "skills-academic"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1987a8cd8dc50fa24fea5ef0837af3b218057e2eda9081c682d1e227172350b7"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "answer-assessor/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d7de6e83058fa2974e029ebddb3748b0e7ede1f5e3aa8e014d9ac67f60a9bd5a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "answer-assessor/evals/answer-assessor.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "12655100902322a2c56988b901ceaba96e60ab889f1529bdcf185555989f0996"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "answer-assessor/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "47a9bc6451f9e4f47a4651221a4916abbab8a3047f7d2c2675bbdce50ca1e959"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "answer-assessor/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "172e35c183489d93302f155093604a896567829feec5913160f84cfc0b17b5d0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "defense-evaluator/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "eba3d09cae83e368672263454caa866c1714267c69d4997fec31d52b68befdea"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "defense-evaluator/evals/defense-evaluator.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fc53e5debe90f89dd91a8faee38316a9a9c7daea0137102509f2744f48c4e5a9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "defense-evaluator/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "97838188a4bfb98732c2adea5ae4cf5dda6c069fecd6e87dacdb7fa7d4eb772e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "defense-evaluator/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c6fe4791cdc6b62e9b52ddb138cc9f873b4da99b8e757cb98bb131b97cde4e7e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dissertation-review/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b768fb846e68ef429006ae0e0c3320f824a18f30e55e2589eeeb17afe462a958"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dissertation-review/evals/dissertation-review.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "63a7cadfabb12189d4d1638c179e1bdee4df04969f89fab114d23c84ea277ee0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dissertation-review/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8f877f6c5ef8cf5ccc8a1519b51529094e7149b3f0e5a72651768c1ed4439928"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dissertation-review/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "43ad13d100f34c560e77cdff37ea542d7b981e84f7bc537955ab85d790f5cc3f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "document-checker/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5fd36011feaeb2a4138d84997da575a89db22d4113f583b505e1d0a5a98cad76"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "document-checker/evals/document-checker.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ed07f33c750679543329310faa60481724010da57a4e8a654df96c669c49dfab"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "document-checker/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cc69f2e59a84d4c59376b796975cd5baf94940e27862d65e84be8d37a7cebeb1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "document-checker/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "67e96e966f19b11e242ffaadf05de4c0a42bb7e2b1d81358e4a38192093ef1f8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "310b8c5ad3e2d7f6c5ade1bde1a5b292dcbdfe41a07148dc30f8346f4dd65d07"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "question-generator/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ec3f61e6e93e417c99a71abac2c5c3d4c40e6a71fac3d5c9fa664df3ae3824d5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "question-generator/evals/question-generator.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a6d1575ee04bfe650efcaac1b082dfe5a0af3a60ac4d7a4b98881ed7a4cced9b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "question-generator/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a81f27899eaca54838c58f9d7c7f2b069ec3aba607df20ac76f330b7fd254f8a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "question-generator/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "10eae060e05ece0e2de18de3ad0c34531fd923b48b943b18a6dba353a7ec74b1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "sources.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d31f2f359acd59876a1bf0f5e9dbe0c70f50b7902a29a39fb51b95c422bee82c"
+        }
+      ]
+    }
+  ]
+}

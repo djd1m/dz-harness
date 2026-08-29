@@ -1,0 +1,179 @@
+name: clickup
+description: Evaluation suite for the clickup MCP wrapper skill.
+version: "1.0.0"
+skill: clickup
+
+setup:
+  mcp_server: "@taazkareem/clickup-mcp-server"
+  transport: stdio
+  requires_auth: true
+  auth_type: api-key
+  env:
+    CLICKUP_API_KEY: "{{env.CLICKUP_API_KEY}}"
+
+evals:
+  - id: list-spaces
+    description: List all spaces in the workspace
+    input:
+      tool: list_spaces
+      args: {}
+    expected:
+      status: success
+      data_type: SpacesResponse
+      constraints:
+        - "data.spaces is an array"
+        - "each space has id and name fields"
+    tags: [smoke, read]
+
+  - id: list-folders
+    description: List folders in a space
+    input:
+      tool: list_folders
+      args:
+        spaceId: "{{default_space_id}}"
+    expected:
+      status: success
+      data_type: FoldersResponse
+      constraints:
+        - "data.folders is an array"
+        - "each folder has id and name fields"
+    tags: [smoke, read]
+
+  - id: create-task-full
+    description: Create a task with all metadata fields
+    input:
+      tool: create_task
+      args:
+        listId: "{{default_list_id}}"
+        name: "Eval test task"
+        description: "Created by clickup skill eval"
+        priority: 2
+        tags: ["eval-test"]
+        due_date: "2026-06-20"
+    expected:
+      status: success
+      data_type: TaskResponse
+      constraints:
+        - "data.task.name == 'Eval test task'"
+        - "data.task.priority.priority is present"
+        - "data.task.url is a valid URL"
+    cleanup:
+      tool: update_task
+      args:
+        taskId: "{{result.data.task.id}}"
+        status: "Closed"
+    tags: [smoke, write]
+
+  - id: update-task-status
+    description: Create a task then update its status
+    input:
+      steps:
+        - tool: create_task
+          args:
+            listId: "{{default_list_id}}"
+            name: "Task to update"
+          save_as: created
+        - tool: update_task
+          args:
+            taskId: "{{created.data.task.id}}"
+            status: "In Progress"
+    expected:
+      status: success
+      constraints:
+        - "data.task.status.status == 'in progress'"
+    cleanup:
+      tool: update_task
+      args:
+        taskId: "{{created.data.task.id}}"
+        status: "Closed"
+    tags: [functional, write]
+
+  - id: add-comment
+    description: Add a markdown comment to a task
+    input:
+      steps:
+        - tool: create_task
+          args:
+            listId: "{{default_list_id}}"
+            name: "Task for comment"
+          save_as: created
+        - tool: add_comment
+          args:
+            taskId: "{{created.data.task.id}}"
+            comment_text: "Code review complete. **LGTM**."
+    expected:
+      status: success
+      data_type: CommentResponse
+      constraints:
+        - "data.comment.id is present"
+        - "data.comment.comment_text contains 'LGTM'"
+    cleanup:
+      tool: update_task
+      args:
+        taskId: "{{created.data.task.id}}"
+        status: "Closed"
+    tags: [functional, write]
+
+  - id: list-tasks-filtered
+    description: List tasks with status filter
+    input:
+      tool: list_tasks
+      args:
+        listId: "{{default_list_id}}"
+        statuses: ["Open", "In Progress"]
+    expected:
+      status: success
+      data_type: TaskListResponse
+      constraints:
+        - "data.tasks is an array"
+        - "each task has id and name fields"
+    tags: [functional, read]
+
+  - id: time-tracking
+    description: Start and stop a timer on a task
+    input:
+      steps:
+        - tool: create_task
+          args:
+            listId: "{{default_list_id}}"
+            name: "Timed task"
+          save_as: created
+        - tool: start_timer
+          args:
+            taskId: "{{created.data.task.id}}"
+          save_as: timer_start
+        - tool: stop_timer
+          args: {}
+    expected:
+      status: success
+      data_type: TimerResponse
+      constraints:
+        - "data.timer.duration >= 0"
+    cleanup:
+      tool: update_task
+      args:
+        taskId: "{{created.data.task.id}}"
+        status: "Closed"
+    tags: [functional, write]
+
+  - id: error-invalid-api-key
+    description: Invalid API key returns authentication error
+    input:
+      tool: list_spaces
+      args: {}
+      env_override:
+        CLICKUP_API_KEY: "pk_invalid_key_12345"
+    expected:
+      status: error
+      constraints:
+        - "error.code is present"
+        - "error.message contains 'auth' or 'unauthorized' (case-insensitive)"
+    tags: [negative, security]
+
+scoring:
+  pass_threshold: 0.85
+  weights:
+    smoke: 2.0
+    functional: 1.5
+    negative: 1.0
+    security: 1.5

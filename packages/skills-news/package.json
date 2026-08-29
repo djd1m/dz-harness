@@ -1,0 +1,37 @@
+{
+  "name": "@dzhechkov/skills-news",
+  "version": "0.1.15",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "description": "News & monitoring skill set — build source-cited news digests (news-digest) and run lightweight delta watches (news-monitor) on any topic, with goap-research-ed25519 bundled as a MANDATORY verified-research backend (GOAP planning + ed25519-signed source provenance). Topic-agnostic via swappable profiles. DZ-original.",
+  "license": "MIT",
+  "author": "dzhechko",
+  "keywords": [
+    "agent-skills",
+    "agentskills.io",
+    "skill-pack",
+    "news",
+    "digest",
+    "monitoring",
+    "research"
+  ],
+  "files": [
+    "news-digest",
+    "news-monitor",
+    "goap-research-ed25519",
+    "README.md",
+    "LICENSE",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/skills-news"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-news#readme"
+}

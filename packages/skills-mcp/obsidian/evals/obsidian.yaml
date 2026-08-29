@@ -1,0 +1,110 @@
+name: obsidian
+description: Evaluation suite for the obsidian MCP wrapper skill
+version: "1.0.0"
+
+setup:
+  required_env:
+    - OBSIDIAN_API_KEY
+  mcp_server: obsidian
+
+evals:
+  - id: get-vault-info
+    description: Vault info returns vault name and note count
+    tool: get_vault_info
+    input: {}
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: vault
+      - type: field_present
+        field: vault.name
+
+  - id: read-note-existing
+    description: Reading an existing note returns its Markdown content
+    tool: read_note
+    input:
+      path: "README.md"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: content
+      - type: field_not_empty
+        field: content
+
+  - id: read-note-missing
+    description: Reading a non-existent note returns an error
+    tool: read_note
+    input:
+      path: "nonexistent/does-not-exist-abc123.md"
+    assertions:
+      - type: returns_error
+        error_contains: "not found"
+
+  - id: search-notes-basic
+    description: Search returns matching notes with context
+    tool: search_notes
+    input:
+      query: "the"
+      context_length: 100
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+      - type: array_length_gte
+        field: results
+        value: 1
+
+  - id: write-and-read-note
+    description: Writing a note and reading it back returns the same content
+    tool: write_note
+    input:
+      path: "_test/eval-write-test.md"
+      content: "---\ntags: [test, eval]\n---\n\n# Eval Test Note\n\nThis is a test note created by the eval suite."
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_equals
+        field: success
+        value: true
+
+  - id: edit-note-surgical
+    description: Surgical edit replaces text without corrupting the file
+    tool: edit_note
+    input:
+      path: "_test/eval-write-test.md"
+      old_text: "This is a test note"
+      new_text: "This is an edited test note"
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_equals
+        field: success
+        value: true
+
+  - id: list-tags
+    description: Listing tags returns tag names with counts
+    tool: list_tags
+    input: {}
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: tags
+
+  - id: update-frontmatter
+    description: Updating frontmatter sets properties without modifying body
+    tool: update_frontmatter
+    input:
+      path: "_test/eval-write-test.md"
+      properties:
+        status: "reviewed"
+        eval_run: true
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_equals
+        field: success
+        value: true

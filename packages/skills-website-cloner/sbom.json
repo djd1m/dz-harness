@@ -1,0 +1,157 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "skills-website-cloner"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1b47b7e23e11bffe0e2bfc8d69272d5e7838865d3c209aa557ebabb4cc675c0c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5af2ce0ab469298d0c8dfac62f7ff7ecf5a19d44a146b277d5295283eb422a47"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "bin/cli.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a210174d6b63d053f7744757972d31acb0f4d9c59f8dacff7b62872a19ebd31a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "3c01e0acc62a2aa22ab5f4d0bffcb78c9df1c7534cb91dcf960fbba1f7c597fd"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "sources.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "07b381b5f65e550aafbe7859d4c6532381f1f811bf5e57e206e667e4b12db95f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/cli.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6411f1d832274aa8e9267a9a073557367583cc57a0658caa46708d9b73efd7f3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/doctor.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b715d93a06e5fdd53b6a8fc215737b3505c76550aae34ce77750695eb3618c8e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/init.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6e494a12a38e3dec2bbe739b0fe7f9cdf60bd66aa54832b45404c88a22d6caf6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/list.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a208e576ebcbc5b6d8e39720d721dfd7eaf651a3d8b8b65c308dde79c14730b9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/remove.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "62a101a8057c3f68a334b324d5f6c5911c59d8268e3073059dd72784267c1b8b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/update.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8d450a9e9fcaf191a8973f06e0e954dc9fd396a5fed22c29d70758e0d606ee03"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/utils.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0e771b8da155ce20051d8afcbc60637f3ebbf003abc6a5ba08ea6e5f095cacbd"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/clone-website.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "77e667b4284f96c63c27775fef61093cffdb98f123746634bba7691978122328"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/clone-website/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b3b4bac20854e18c3d34d6660652a2758c083065818dc00c9c33d1ea8647c00c"
+        }
+      ]
+    }
+  ]
+}

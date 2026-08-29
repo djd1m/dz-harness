@@ -1,0 +1,109 @@
+# nginx-config evaluation
+# Run: aqe eval nginx-config
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run nginx-config"
+    expected:
+      status: success
+      summary_contains: "nginx"
+
+  - name: "create reverse proxy config"
+    input: "Create an Nginx reverse proxy config for app.example.com proxying to localhost:3000"
+    expected:
+      status: success
+      action_type: "create"
+      server_blocks_count_gte: 1
+      server_blocks_any_match:
+        server_name: "app.example.com"
+        has_ssl: true
+      self_check_passed_gte: 8
+
+  - name: "review insecure config"
+    input: |
+      Review this nginx.conf:
+      server {
+          listen 80;
+          location / {
+              proxy_pass http://localhost:3000;
+          }
+      }
+    expected:
+      status: success
+      action_type: "review"
+      review_findings_count_gte: 5
+      review_findings_severities_include: ["critical"]
+
+  - name: "detect missing SSL"
+    input: |
+      Review:
+      server {
+          listen 80;
+          server_name api.example.com;
+          location / {
+              proxy_pass http://localhost:8080;
+          }
+      }
+    expected:
+      status: success
+      review_findings_any_match:
+        finding_contains_any: ["SSL", "HTTPS", "TLS"]
+        severity: "critical"
+
+  - name: "detect open proxy"
+    input: |
+      Review:
+      server {
+          listen 80;
+          location / {
+              proxy_pass http://localhost:3000;
+          }
+      }
+    expected:
+      status: success
+      review_findings_any_match:
+        finding_contains_any: ["server_name", "catch-all", "open proxy"]
+
+  - name: "detect missing security headers"
+    input: |
+      Review:
+      server {
+          listen 443 ssl;
+          server_name app.example.com;
+          ssl_certificate /etc/ssl/cert.pem;
+          ssl_certificate_key /etc/ssl/key.pem;
+          location / {
+              proxy_pass http://localhost:3000;
+          }
+      }
+    expected:
+      status: success
+      review_findings_any_match:
+        finding_contains_any: ["security header", "HSTS", "CSP", "X-Frame"]
+
+  - name: "detect large client_max_body_size"
+    input: |
+      Review:
+      server {
+          listen 443 ssl;
+          server_name upload.example.com;
+          client_max_body_size 0;
+          location / {
+              proxy_pass http://localhost:3000;
+          }
+      }
+    expected:
+      status: success
+      review_findings_any_match:
+        finding_contains_any: ["client_max_body_size", "upload", "unbounded"]
+
+  - name: "load balancing setup"
+    input: "Create an Nginx config that load balances across 3 backend servers (10.0.1.10, 10.0.1.11, 10.0.1.12) on port 8080 using least connections"
+    expected:
+      status: success
+      action_type: "create"
+      upstreams_count_gte: 1
+      upstreams_any_match:
+        algorithm: "least_conn"
+        server_count: 3
+        has_keepalive: true

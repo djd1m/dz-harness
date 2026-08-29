@@ -1,0 +1,148 @@
+name: exa-search
+description: Evaluation suite for the exa-search MCP wrapper skill
+version: "1.0.0"
+
+setup:
+  required_env:
+    - EXA_API_KEY
+  mcp_server: exa
+
+evals:
+  - id: neural-search-basic
+    description: Neural search returns semantically relevant results
+    tool: web_search
+    input:
+      query: "how to implement a rate limiter in Go"
+      type: "neural"
+      num_results: 5
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+      - type: array_length_gte
+        field: results
+        value: 1
+      - type: each_item_has_field
+        field: results
+        required_fields: ["title", "url"]
+
+  - id: keyword-search
+    description: Keyword search returns exact-match results
+    tool: web_search
+    input:
+      query: "ECONNREFUSED errno -111"
+      type: "keyword"
+      num_results: 5
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+
+  - id: search-with-domain-filter
+    description: Domain filter restricts results to specified domains
+    tool: web_search
+    input:
+      query: "MCP server implementation"
+      include_domains: ["github.com"]
+      num_results: 5
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: each_item_matches
+        field: results[].url
+        pattern: "github\\.com"
+
+  - id: search-with-date-filter
+    description: Date filter returns results within time range
+    tool: web_search
+    input:
+      query: "Claude model context protocol"
+      start_published_date: "2025-01-01"
+      num_results: 5
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+
+  - id: search-with-category
+    description: Category filter scopes to content type
+    tool: web_search
+    input:
+      query: "vector database benchmarks"
+      category: "research_paper"
+      num_results: 5
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+
+  - id: find-similar-pages
+    description: find_similar returns pages related to a reference URL
+    tool: find_similar
+    input:
+      url: "https://docs.anthropic.com/en/docs/build-with-claude/mcp"
+      num_results: 5
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+      - type: array_length_gte
+        field: results
+        value: 1
+
+  - id: get-contents-crawl
+    description: get_contents extracts text from a URL
+    tool: get_contents
+    input:
+      urls: ["https://example.com"]
+      text: true
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+      - type: field_not_empty
+        field: "results[0].text"
+
+  - id: get-contents-highlights
+    description: get_contents with highlights returns key excerpts
+    tool: get_contents
+    input:
+      urls: ["https://example.com"]
+      highlights: true
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: "results[0].highlights"
+
+  - id: research-paper-search
+    description: Research paper search returns academic results
+    tool: research_paper_search
+    input:
+      query: "retrieval augmented generation"
+      num_results: 5
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: field_present
+        field: results
+
+  - id: exclude-domains
+    description: Excluded domains are not in results
+    tool: web_search
+    input:
+      query: "JavaScript framework comparison"
+      exclude_domains: ["reddit.com", "stackoverflow.com"]
+      num_results: 10
+    assertions:
+      - type: output_matches_schema
+        schema: ../schemas/output.json
+      - type: no_item_matches
+        field: results[].url
+        pattern: "reddit\\.com|stackoverflow\\.com"

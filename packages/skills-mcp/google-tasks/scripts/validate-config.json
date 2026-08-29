@@ -1,0 +1,77 @@
+{
+  "name": "google-tasks-validator",
+  "description": "Validates google-tasks MCP skill configuration and connectivity.",
+  "version": "1.0.0",
+  "checks": [
+    {
+      "id": "schema-valid",
+      "type": "json-schema",
+      "description": "Output conforms to schemas/output.json",
+      "schemaPath": "../schemas/output.json",
+      "severity": "error"
+    },
+    {
+      "id": "auth-configured",
+      "type": "env-check",
+      "description": "Google OAuth credentials are configured",
+      "variables": [
+        {
+          "name": "GOOGLE_OAUTH_CLIENT_ID",
+          "required": false,
+          "hint": "OAuth client ID from Google Cloud Console (required for self-hosted)"
+        },
+        {
+          "name": "GOOGLE_OAUTH_CLIENT_SECRET",
+          "required": false,
+          "hint": "OAuth client secret from Google Cloud Console (required for self-hosted)"
+        },
+        {
+          "name": "GOOGLE_OAUTH_REFRESH_TOKEN",
+          "required": false,
+          "hint": "OAuth refresh token for Tasks API access (required for self-hosted)"
+        }
+      ],
+      "severity": "warning"
+    },
+    {
+      "id": "mcp-server-reachable",
+      "type": "reference",
+      "description": "Google Tasks MCP server listing (install: @zcaceres/gtasks, stdio)",
+      "url": "https://smithery.ai/server/@zcaceres/gtasks",
+      "timeoutMs": 10000,
+      "severity": "error"
+    },
+    {
+      "id": "tool-enumeration",
+      "type": "tool-list",
+      "description": "All expected tools are available from the MCP server",
+      "expectedTools": [
+        "list_task_lists",
+        "list_tasks",
+        "create_task",
+        "update_task",
+        "complete_task",
+        "delete_task",
+        "move_task"
+      ],
+      "severity": "error"
+    },
+    {
+      "id": "response-shape",
+      "type": "output-sample",
+      "description": "Sample tool response matches expected shape",
+      "tool": "list_task_lists",
+      "args": {},
+      "expectFields": [
+        "tool",
+        "status"
+      ],
+      "severity": "warning"
+    }
+  ],
+  "scoring": {
+    "pass": "all error-severity checks pass",
+    "warn": "all error-severity checks pass but warnings present",
+    "fail": "any error-severity check fails"
+  }
+}

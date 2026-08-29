@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "QuickNode RPC Response",
+  "description": "Schema for QuickNode blockchain RPC responses",
+  "type": "object",
+  "properties": {
+    "chain": {
+      "type": "string",
+      "description": "Target blockchain network",
+      "enum": ["base", "ethereum", "polygon", "solana", "unichain", "arbitrum", "optimism", "bsc", "avalanche"]
+    },
+    "method": {
+      "type": "string",
+      "description": "JSON-RPC method called",
+      "examples": ["eth_getBalance", "eth_call", "eth_estimateGas", "eth_getTransactionReceipt", "getBalance", "getTokenAccountsByOwner"]
+    },
+    "result": {
+      "description": "RPC call result (format varies by method)",
+      "oneOf": [
+        { "type": "string", "description": "Hex-encoded value (balances, block numbers)" },
+        { "type": "object", "description": "Structured result (receipts, token accounts)" },
+        { "type": "null", "description": "Null for not-found queries" }
+      ]
+    },
+    "parsed": {
+      "type": "object",
+      "description": "Human-readable parsed result",
+      "properties": {
+        "balance": { "type": "string", "description": "Decimal balance in native units" },
+        "block_number": { "type": "integer", "description": "Decimal block number" },
+        "gas_estimate": { "type": "integer", "description": "Estimated gas units" },
+        "tx_status": { "type": "string", "enum": ["success", "failed", "pending"] }
+      }
+    },
+    "access_mode": {
+      "type": "string",
+      "enum": ["x402", "api_key"],
+      "description": "Authentication mode used"
+    },
+    "cost_usdc": {
+      "type": "number",
+      "description": "Cost in USDC (x402 mode only)",
+      "minimum": 0
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": { "type": "integer", "description": "JSON-RPC or HTTP error code" },
+        "message": { "type": "string" }
+      }
+    }
+  },
+  "required": ["chain", "method"]
+}

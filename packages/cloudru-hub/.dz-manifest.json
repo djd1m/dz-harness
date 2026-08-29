@@ -1,0 +1,105 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "cloudru-hub",
+    "files": [
+      {
+        "path": "CHANGELOG.md",
+        "sha256": "edc0f1b076a22dc14b863bef8b287c1b9d8618a12b7ecf9f6eb0c497f74361f3"
+      },
+      {
+        "path": "LICENSE",
+        "sha256": "68da42b10dcc095cdfd7249557cee30285664e5dea00dc85475ff047d975616a"
+      },
+      {
+        "path": "README.md",
+        "sha256": "504ce5cd5b6293b3606f861f31406ae89aa6fee45a03c9099d793aa5a456ced1"
+      },
+      {
+        "path": "THIRD_PARTY_NOTICES.md",
+        "sha256": "109cffdaaf9402e88f6cc35a0497ba49db015b329fce87ba20762f34dc95c051"
+      },
+      {
+        "path": "bin/cloudru-hub.js",
+        "sha256": "fcdb6806036feff444611483f4216477c83bc53d28ebca4736370c671f7f72db"
+      },
+      {
+        "path": "data/dialects.json",
+        "sha256": "8007dd5da843074d497617bdf3709cc3dc516a138171781b5ef0aa3ff596fa4d"
+      },
+      {
+        "path": "data/pointer-section.md",
+        "sha256": "6f4557d97b90936ef153dc90eac4bdceb6846b6d08d8aec45c86baac328cca60"
+      },
+      {
+        "path": "data/tools-classification.json",
+        "sha256": "13d6a3e87d767d0015f6b2af0223633fa99e49c69c9a8adcec8f6fce6e46d36e"
+      },
+      {
+        "path": "data/tools-list-snapshot.json",
+        "sha256": "56221fa8170f2b32ab6d3a907261badc07695f47ae9ac4adca4e43d2ea5ee06f"
+      },
+      {
+        "path": "docs/LOCAL-TESTING.md",
+        "sha256": "092142c00295c54866330f2159a13284d04e2f35a749b32dff0ca4f2ab28ea54"
+      },
+      {
+        "path": "package.json",
+        "sha256": "0c1440677dbf69a57d5991a3d0819c8ebf9c27de3fd47c3423f97f35d6221e99"
+      },
+      {
+        "path": "src/classification.js",
+        "sha256": "8c1096273d2a2c9c6336c476096cb1e064184c6876d5466470fb69705ba3f265"
+      },
+      {
+        "path": "src/cli.js",
+        "sha256": "db981ad0078c80ba7a859057638a2576d7f02d87ca2891f8083a92a8147742dd"
+      },
+      {
+        "path": "src/dialects.js",
+        "sha256": "a826cea19ff38e24ad7fd36c6ec85a51e2cd1d985d1fa92941f77bcf353db1de"
+      },
+      {
+        "path": "src/install.js",
+        "sha256": "5d087b289aaf8cd2e1b4cffbd2227eb3bdc7264cddc0877561e08bc0ea6d6fd2"
+      },
+      {
+        "path": "src/resolve.js",
+        "sha256": "5cbd0861c2973fab62271269b10f748b9638e74f40e8ea034f78ac63bed58001"
+      },
+      {
+        "path": "templates/.claude/hooks/cloudru-ssh-guard.cjs",
+        "sha256": "ad8c4ea89b28a366fa72e3507dbef9f774f4f2777e6bd2289a429329ab94cc0c"
+      },
+      {
+        "path": "test/classification.test.mjs",
+        "sha256": "25290e9a8715d13670d617e23cb47c4c2d71b1506a8d98e5b682733b626a18b8"
+      },
+      {
+        "path": "test/dialects.test.mjs",
+        "sha256": "9b83b2e2cbbee4ead33af61db840833ce4aa2dd0cf5a4448d72d5886098639c6"
+      },
+      {
+        "path": "test/hook.test.mjs",
+        "sha256": "d53b58e853b6a37342a3a0fade782bced6283ea2ec376e2ac954b23f9ec68c17"
+      },
+      {
+        "path": "test/install.test.mjs",
+        "sha256": "e986b29346672bf75b384ab6d8657265b8ecb8f62df6563dca317c1fc63fc8fc"
+      },
+      {
+        "path": "test/mutation-registry.json",
+        "sha256": "23baf0c1c20afc5bbbfcd72ae9c553ce8a774c25328609e33f43e11cf4ca5581"
+      },
+      {
+        "path": "test/pack-holds.test.mjs",
+        "sha256": "a083ff619f1d97b3e0e1b95dec6e98b56c4296da5171e2eb41c713dd983c8d69"
+      },
+      {
+        "path": "test/resolve.test.mjs",
+        "sha256": "6b524f69c5ed03aaafab67e734e58092033423b86feade28ad03f516feba2380"
+      }
+    ]
+  },
+  "signature": "wE901DRBN9CH8KrpgeNXwnVanJZcC4giKPry4PxDuNYs+PgAq6e/e1hBmbP+ny1AFIiiBa8T7MmDTo1DDy1UAQ=="
+}

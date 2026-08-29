@@ -1,0 +1,28 @@
+{
+  "schema": "../schemas/output.json",
+  "rules": [
+    {
+      "id": "RL-001",
+      "description": "Maximum 3 reflection rounds allowed",
+      "path": "rounds_completed",
+      "condition": "<=",
+      "value": 3,
+      "severity": "error"
+    },
+    {
+      "id": "RL-002",
+      "description": "Each round must apply at least 1 change (no cosmetic-only rounds)",
+      "path": "rounds[*].changes_applied",
+      "condition": ">=",
+      "value": 1,
+      "severity": "warning"
+    },
+    {
+      "id": "RL-003",
+      "description": "Domain must be explicitly declared for criteria selection",
+      "path": "domain",
+      "condition": "exists",
+      "severity": "error"
+    }
+  ]
+}

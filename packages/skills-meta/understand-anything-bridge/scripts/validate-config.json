@@ -1,0 +1,27 @@
+{
+  "schema": "../schemas/output.json",
+  "rules": [
+    {
+      "id": "UAB-001",
+      "description": "Status must be explicitly set",
+      "path": "status",
+      "condition": "exists",
+      "severity": "error"
+    },
+    {
+      "id": "UAB-002",
+      "description": "Context summary must be provided when graph is found",
+      "path": "context_summary",
+      "condition": "exists",
+      "severity": "error"
+    },
+    {
+      "id": "UAB-003",
+      "description": "Graph stats must have non-zero nodes when status=found",
+      "path": "graph_stats.node_count",
+      "condition": ">=",
+      "value": 1,
+      "severity": "error"
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FrontendImplementationOutput",
+  "description": "Structured output for frontend-implementation skill",
+  "type": "object",
+  "required": ["components", "conventions_followed", "states_handled"],
+  "properties": {
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "file_path", "type"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Component name"
+          },
+          "file_path": {
+            "type": "string",
+            "description": "Path where the component was created/modified"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["page", "component", "layout", "hook", "utility", "context", "test"]
+          },
+          "props": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string" },
+                "type": { "type": "string" },
+                "required": { "type": "boolean" }
+              }
+            }
+          },
+          "dependencies": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Other components or hooks this depends on"
+          }
+        }
+      }
+    },
+    "conventions_followed": {
+      "type": "object",
+      "properties": {
+        "styling": { "type": "string", "description": "Styling approach used" },
+        "state_management": { "type": "string", "description": "State management approach used" },
+        "data_fetching": { "type": "string", "description": "Data fetching pattern used" },
+        "file_structure": { "type": "string", "description": "File organization pattern followed" },
+        "testing": { "type": "string", "description": "Testing approach used" }
+      }
+    },
+    "states_handled": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["loading", "error", "empty", "disabled", "success", "hover", "focus", "selected"]
+      }
+    },
+    "tests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file_path": { "type": "string" },
+          "test_count": { "type": "integer" },
+          "coverage": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "What behaviors are tested"
+          }
+        }
+      }
+    },
+    "design_decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "decision": { "type": "string" },
+          "rationale": { "type": "string" }
+        }
+      }
+    },
+    "concerns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["accessibility", "performance", "responsive", "hardcoded_value", "brief_deviation"]
+          },
+          "description": { "type": "string" }
+        }
+      }
+    }
+  }
+}

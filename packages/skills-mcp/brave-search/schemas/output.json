@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "brave-search skill output",
+  "description": "Validates output from Brave Search MCP tool calls",
+  "type": "object",
+  "properties": {
+    "tool": {
+      "type": "string",
+      "enum": [
+        "brave_web_search",
+        "brave_local_search",
+        "brave_video_search",
+        "brave_image_search",
+        "brave_news_search"
+      ],
+      "description": "The Brave Search tool that was invoked"
+    },
+    "query": {
+      "type": "string",
+      "maxLength": 400,
+      "description": "The search query that was executed"
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "description": { "type": "string" },
+          "age": { "type": "string" },
+          "source": { "type": "string" }
+        },
+        "required": ["title", "url"]
+      },
+      "maxItems": 20
+    },
+    "summary": {
+      "type": "string",
+      "description": "AI-generated summary (when summary=true)"
+    },
+    "local_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "address": { "type": "string" },
+          "phone": { "type": "string" },
+          "rating": { "type": "number", "minimum": 0, "maximum": 5 },
+          "hours": { "type": "string" },
+          "url": { "type": "string", "format": "uri" }
+        },
+        "required": ["name"]
+      }
+    },
+    "total_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Estimated total results available"
+    }
+  },
+  "required": ["tool", "query"]
+}

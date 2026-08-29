@@ -1,0 +1,2467 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "keysarium"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1b64bc03bcb9c05471a15381196d4f8a30879a798a74e5d1fda98c33846b5cb2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.ru.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7fe1563b4f7a4ebe165fc0f9ef7be040db6e6bbd4cd7a98ae753bcf942c3cd40"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "bin/cli.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a210174d6b63d053f7744757972d31acb0f4d9c59f8dacff7b62872a19ebd31a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "60d5df9bae91533c201784ba53a7b6f24405d7fe9ddceddea88110f2ed0d99f4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/cli.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "357db08901be93a254a594ac185756077a919db5488d5dfef6e236e27ceec188"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/doctor.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c378ac7ea4943fdbddb176abdd5dae04a4680919ddc475e3d1dc1dfb8a696287"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/init.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c25118fca72fae774906da099ec4f414fb3ae46694f2c5e5843d73bee0d1b647"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/list.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2f9cf66aca055f18f2149fc551d555e24e0a825c9ea5efa612d6cad05fc354db"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/remove.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ffedc6cd03a694785d8639ce8d0b82a4708c6937650a216a62d5d3d9e0761d74"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/commands/update.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8fb7a602452c228f2841170f09217f5523bd926f64180f4338348bd3a795bb79"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/utils.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c1ba04e4cf8ca75ac3e0da779f5361a87e909acc5527ee982b547c71f5cba208"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/agents/cjm-variant-worker.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1fa078fd614fbb2f023564aa7d37ca0725c91cae44c255e083ad2b6e08bf864b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/agents/discovery-worker.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "244dacfd1b87aabd2c844e15927c6f1f682633af549c58ab1f62dfeb9923dcf2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/agents/parallel-research-orchestrator.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "025b695c9ab686ba45a06eb4b8a72b9081da8b19d42f86875f126e7273734f45"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/agents/presentation-worker.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a134e48ba138c2ee754d21915a7003be457b36e5bb60cc7d4e0d4141d93c5ecf"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/agents/research-worker.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ac14fe9b2765d6a680d78cc7d2d144c69b295460b76c00c39fc051e2ce3a6e81"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/analyst-manual.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9c84b795424197c9fb4ac6be8c444808a8a04cf829434c9b7c5c581a61b5e966"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/architecture-phase.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8af09c9797a5bbc61b0ffd6cfa1928a2a518fe6f2122f5c03cecf06d11a86ed2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/brain-export.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5ec975539f6f00def6e9ac222778cca77cdf3796a8d84c11fa76e4ab722bcc66"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/brain-import.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "01856ce5f93b3c29edc687bdd11c6cda840ad3e6089463afd844efe53cd99e68"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/casarium.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "efe1370bee9ac6e1a599f3bf13e89be9bfd6ff23341d6f90f0513da32a511681"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/cjm-prototype.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c4824204f2cbc876e26f83dd464fdc6bc10cb509017352740cadef363f5d8a57"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/discovery.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "799f57610ed32d52b006492d35b70dcd1c7c2f4e631ab9705188d6c361b33fbb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/dream.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b625e40d0a0ed8e167fa63fefae959b461470531a89f6953339c53dff1c54a07"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/explore-case.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "63827b6ce962a7a89fecc41a6c9493310aee1cf85cd46948e36a25697bfc843d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/feature-adr.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ecfcc5c2924383c60be4e4c2177da848639c274eb90b3ce0526655ef6f1c3591"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/harvest.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4f8bf9b11d2d237f60e423c522295bea72334829ddce43b100f5c6d49dcd7f07"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/init-platform.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b19a2789efda3aa9a0428c753183e62cd54e0e05d40ecadd6d96acf44a240770"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/learning-stats.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b173c270464da5542be8996713c1da47b3a84303715e4465f1df97351f13f549"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/new-research.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "eed6015e9d0ac17a9312fe45cbd02be32f32cbe0967e3cb4cce7de98f70bf832"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/parallel-research.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ea8d247c9f8c583f828b86da52002068e9a5d6996527e1fd9dcf6d1efec042a4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/presentation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "16aeb1ae3eb528ac975290246e1911f6bd663de861a94fb356764e9fee0b6ba4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/research.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6c29ed322577a940b46fe2b8ea5912c2c08ae05f20db131cec3ec1f5a642806b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/solve.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3a9b8812a0847a70e8870d99a7317fc29e336bf788a5ba6bf712c8fb5cc2ee0b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/commands/workers.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ffae45aef0f7280df0bede81b11428db687542c93a6c2f1dbca917848217622b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/rules/agent-swarm.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ecc6c31f4cf0234f48b17d6e89da0b1169f89c8e6ff1b11c6e817b4eadf4b4c4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/rules/anti-patterns.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d69ef6f902e992862cf1b71468acd8662cd56e998ef81f017e0cd0f331265c62"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/rules/background-workers.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4b3f5f48353cebb92ba4993c126cbf9d900d13cf384bed7562e5ebaaa5faa8a6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/rules/checkpoint-protocol.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1dc2865535add12930ffe42c03f68430b449f0b4610a0099594c42991484f88d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/rules/domain-specific.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "261e748da696a24e9e875f15a11539cc21299d56b7e7ec39fd4dc3621af6ce59"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/rules/dream-cycles.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9cc3231dc429f16229ccb3769368eb935f9af95b75135c8c68dab546e71d1750"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/rules/feature-adr-conventions.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "14cf7844951f8b674ef3fb8f329cb4c5cd12d0d738b52884e130d1abec575497"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/rules/feedback-loops.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "44cd2f8737e8f5d64e10cf69b7b7069f21657b666023cd66f84251651a24dbac"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/rules/file-conventions.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8b11a0eefb097b76d125ff199f74101e5f494e82599a2fd483fc395f8b14c64a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/rules/model-routing.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "79b0b8b6ee8d25e989cadbbe1790c6d2cf975d43718a6008faf607173866c9de"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/rules/modular-reuse.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6aa241c7760162e342c90cd6c1dc8437d08aa239de16803bf37204db1e5ecbb7"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/rules/research-quality.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c6a4bf54a6d3106823c7b21459f850259dce7b1e01f2b705c77094580ba8ab67"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/rules/reward-learning.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a1d23c53d0a9ab888169c0c01b999ef327169fc368c767f06c764424f0f9c4e1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/rules/trust-tiers.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9e07ceec3ac4c08f3ab429135c1bc02de96630fe473bd24e8a511b32b253df8c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/settings.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8d412e43a7237473a0af685e244eb92ab058c65ac7ee4b7e7e6a56868081dda4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/shards/feature-adr.shard.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e1663c2aa297ef2eedb777c2ade06462e3fdffd1083112d99743d041b66f6a8e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/shards/phase-0-discovery.shard.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1d742fc7ce75029a58d5dfaa76d381eeb59e8c2b0eac71fdf341236f7cc5da97"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/shards/phase-1-explore.shard.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "08b8999b4e179ef21d63242b6441c60bb475ce1e887c7f787c68cb19ebbfdd2f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/shards/phase-2-research.shard.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7117da259ebc8749df2b8f244fed330ad823ea66806304c79404ad95d12cdd27"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/shards/phase-25-cjm.shard.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b7a43bd7310178ad3378596563266a8ce556efd33b72cfb2f7146e49f9a0bec0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/shards/phase-3-solve.shard.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ecba94291e4e0c8940224e49932ff67db644ceac46bafff68cee52647f578b09"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/shards/phase-4-architecture.shard.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "61af6de1af5c73554de54ab0c07228a77d0d8b34af1ae850fb4089d1f6f577f5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/shards/phase-5-presentation.shard.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cb6e0f966fbab5e5cee21fee648f6bce9e9b772866fc960af7b40aca2ad30af6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/shards/phase-ai-factory.shard.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "776c66777488255fe88e563c440321bb755afd3413c225bc455ee9d2c26c33a4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/ai-factory-mapper/README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "178cade19ed4425817dfd5c7e9721febe8f7f99e0ab2b95917034f0fcafe818e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/ai-factory-mapper/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "41b7bf54bbf050a498277246579bb8becb952f0b525519e439c03b3b9be7f53f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/ai-factory-mapper/assets/report-template.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9273cea8253d29e3cc65fc878f81cb11430be68ef71d761721d3c9e7f110f13d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/ai-factory-mapper/references/catalog.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "01dedd69b6f3a5cb09e7a625cc7f54bbd6dda525e34810cb7b7d44d147fee6eb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/ai-factory-mapper/references/coverage-formula.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4f731501a3adaf2fd53878eca0465188f14a871bdef4d0b202af90c569f61b9c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/ai-factory-mapper/references/decomposition-checklist.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fee6819d15f2d22cb749815991ff9aa9df4862de7af678265a506aeccb3a0e97"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/ai-factory-mapper/references/pattern-library.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9c14438200646fb1590200b18989334600896f97bc57e91eb70d931742c8a54c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/ai-factory-mapper/scripts/build_docx_report.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d59351a76c4727173f678aa2c7381ba8698fb68838d5f9a0a38e8ff529e32265"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/analyst-manual-full/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4733b487b8a2772ada4108561429611308e7a785c43d4dab0de8c9112637f3d0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/edu-site-generator/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c999b07ed76c289e1433cfea0b59abd8723d9c36455f76dc2fd8a3c6cf064bcf"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/edu-site-generator/examples/sample-course-structure.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "316c0b881fea61cc2d63f8ba727fdc86ae3edc96140791f6158cc3bfc5b61df8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/edu-site-generator/modules/00-content-analysis.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6a31b5a4d9e5bb0cbbd834fc823740cc9674cee95ff6cc09f4649921f77c9652"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/edu-site-generator/modules/01-course-structure.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ef9d6c46c7217a60628cf6ffdc3a7cbdb4caf3cc822f1523dba4b92372a5d36e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/edu-site-generator/modules/02-data-generation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5f65ed75ffcb978b7310ee3764bf117cc65693001a72895cfe25126265111489"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/edu-site-generator/modules/03-scaffold.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dbf6b8905fea13f148c0f801c77f2da76ecac471c25ed97145ba20c334fd47f3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/edu-site-generator/modules/04-components.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e2dec347acd49e9df5a91cd6e30cbe22731d31dba5464ac277281751f7fcc39c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/edu-site-generator/modules/05-gamification.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ed3b80c2f84b07ef1e10aaee5d82fb991e715a8d6db7ddca68e50a3977dc7a45"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/edu-site-generator/modules/06-deploy.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d26453077076ef454993bb616230e73076b7be672c322d8f2113073602dbe7aa"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/edu-site-generator/modules/07-verification.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e40aa296081d9c07b0c1d59bab01731b053615381ec12191f33a140686c6f0b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/edu-site-generator/references/component-templates.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "12a2f418785cca2f31ea73db98484d4c725cf2d06514454f2f81188f6f95221b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/edu-site-generator/references/data-schemas.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e6311df1eb5363ca82d9238e3cdb96f959db241618344df02e4c108008ac61f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/edu-site-generator/references/exercise-catalog.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "faa5ea7a79b81b5bea6efa51b0d8980595d47c1c844f53bd0e93f1e6d922cfeb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/edu-site-generator/references/tech-stack.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "35b217de32ebc71016c4710260ab36b8a850f59602f7c8fb37f2092a39218ce8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/explore/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2473e7961845db0d64566cd42627b374d1830664b9e302058a1b1aa466bc7361"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/explore/references/questioning-techniques.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ec0dd00871d3abe950f9cf375216a43043827897166c4165c3fa581839851195"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/explore/references/task-brief-templates.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e9292479e120afce944b747bb7b4a7226c41e9880708d620de3ea4fa4ef0249"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "67eb730c815e6b8f9b9b61084c67ceb85440548f00b21f52187d16e81e3d7af8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/examples/sample-feature-output.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bb74b13f7a22a38bd146bb0baa12da4916214af586e74d721c578bdea750e933"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/modules/00-complexity-router.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a1275bd960ddff1c61352f96d8b7a4249371190766f08d1778f5a54f98350950"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/modules/01-requirements.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e6ea3a224b555d5b7410cf2ddf02a3fb8d009fa01109463353e2b993c318270c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/modules/02-research.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e2506e42251c74485188473acc4586f841afbec3ae7c5eaa8a3d8f73f6e14cc5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/modules/03-adr.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ea03eee136c89267888b8034baa1a1cb0057314a2e745df71654a9ebee5d46b6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/modules/03.5-ideation-swarm.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d48a8d6eebf9760cc8f1a4f19df0e6afc31fcc1284b5eacfb604ad8ced6a0b53"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/modules/04-ddd.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e9504cf1183bc0105167dc06108860882941fcf1b5be79d1978d8212c410ffbb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/modules/05-architecture.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4d20dbc85ea5bb93ca90fd8cd089255bab9c76a912ca3ad954f3a4bb670f3c45"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/modules/06-implementation-plan.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c624e0ade0314ca07913ba64e092d4655f86201856e8188c3e616b2320226c1e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/modules/07-code.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c427a0abacb4bc1d969d9f47739ce2aeff286a66da73eab67bf042d5c4dc9a59"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/modules/08-qe.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ea8fb546acb7f09816d2fc9f9189a86f2400b8cec91c9ba4b82b68a8e32920bb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/modules/09-fleet-qe.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "67a88305ce6ca5b70d235f11c820a319dbdd0dfb50cea4b152c72377be12d2d5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/modules/10-delivery-gate.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6e5ec81366c50da91873b57d52eaa714cbea3a23352b65f6116998a851839b8e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/adr-template.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "32cb1b23cde7a72d4af5683f54f95938acc568b2fec7e6fdd4c215d2e4d00b69"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/agentic-qe/README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fa9488302d0aaa4f3174c387f105f41f3fb5f66b2d9b89de8c27a1ebee3b359c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/agentic-qe/brutal-honesty-review.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "831bb03478dcda3d260fcee31732cceb37e28af4e3d1e5cc252b6602df451e13"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/agentic-qe/chaos-engineering-resilience.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2f6a1371957d8f0d80290c0b7579aa0405010cf24550dd4b8bdf21829696f16d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/agentic-qe/code-goal-planner.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6923711f4630073b9de7314f2aa9a94993c4f40bf29dfa728995e7dc14a497ac"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/agentic-qe/enterprise-integration-testing.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "10d66f5f371dcdb28069baa10a01f63e2ddd07c623e6a5ad354d255a39956f29"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/agentic-qe/mutation-testing.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "293a26497acbf33255b62ed48dc0b9db7419600e2871cb11ce7fc1ebd7a7b15f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/agentic-qe/performance-testing.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ae04d14c552988d0f19d56ba0ad125d477ebcdeca4945ef08e65a808e0c8622d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/agentic-qe/qcsd-ideation-swarm.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b2717c5d95dcca7102cfb995ace206656931e355b2ed536db52b7ff8bb935906"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/agentic-qe/qcsd-production-swarm.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d75d23eaff754d2d8b547fd858dbb70fe2b207c5d055749ec82a0acae2c2c9ef"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-coverage-analysis.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e526595fc48a893518e4d48e12644c40a50fbf86bd17c81ae4638507ed71d77d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-requirements-validation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "53612e7b8141b5c453b40d5583160f07903c530f0fe379899e897ddd4c68abea"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/agentic-qe/regression-testing.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f040fdfa356c99e7a444e26c2c62e3308ed68b6ce498e2a91d5da8d9393c971c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/agentic-qe/risk-based-testing.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "72ab0c133601a8369e9ed1e8a7d9494ec7486e18909062b685caa63ca185aea5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/agentic-qe/security-testing.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "486cb8b560153345b4efcd31ac0b47dc1ece642745add61720937c1bc1717606"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/agentic-qe/shift-left-testing.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e716a9caf2c701c14c4fa69d297047c420494d6d34d392552801025ce81e623a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/agentic-qe/tdd-london-chicago.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "568c6807674aaa5ff47015da8f513485b0f62c71eac0e15f0fc6b96d4aa9370f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/c4-template.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bbe4c4ee3e8736c53ff8364a0f65718ec5a99e1c2901e0677bff06a8d342f0e5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/complexity-matrix.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5cba6a10eeb65071c8c081f897adbcbcda34760d7f361c99d3e1d9243c708b71"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/references/qe-checklist.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "238d8896996dc53559f58b24aa7eca966cc8845c3b9dda6d982c717c657b91e4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/scripts/check-plan-completeness.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "630eb9047258ad0333082f407cd34522e4c278650f22ef6dba1ef897ec5cce71"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/frontend-design/LICENSE.txt",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/frontend-design/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c9e93c1b95b99a9e120b93d7683afa804713f98ce44bf29ba6d24e9ea1b44aee"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/references/ed25519-verification.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2742f14b472bff69c83f24d9bac5bf023bd7f9ecc3e659742ac3152a239dd68f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/references/research-actions.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "156d2f8ce342f7013bc758fe7c0d3ad3041b4f67f30dbcf8d59e091cb70d9a9c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/references/source-evaluation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d6a19abb6be64dc9e1f539903080029125d2d899da4de3063e75e1afb7e4906f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/check_report_evidence.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5053e677f11d00b4dd8365a81eafa1d2c961eebd25c33f72b02455573a934a32"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/ed25519_verifier.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f4a2ac9e6473201583643fe8abf47560863cec600344dad5c9df06091b4298f5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/evidence_fetch.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5f4d7cb5d6fb3106d64130b6606582eb55a4f633ef969cf7890b1de1c179345b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/fixture_legacy_v1_fact.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e613de4737145cbfb5f349fbf9f1122801ce3508b62c3a18e2e0cba26b9da5b0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/fixture_legacy_v2_fact.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3f552b47c3864e4ff7ae8c72516e98c188592c7f4f7703d09ce88b39f586ad9d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/fixtures_field_cases.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e2ee619732ab4a1b57285e57b4349f96b4158b231a5624e5264fadf69edb8983"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/goap_planner.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f5cbf4784106710b363e7f29bfa538b75f488cb25e1c273ae40de9f4c2a6710b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/learning_bridge.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "74f8842978ba945ff78c2bd54702415dd87122e61919571e12a19c3cf1e56131"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/population_match.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bbd1d3346a6fb75d0e8526cb5d2fc8bc8613bb31ab63ffb0958d436d5e009054"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/risk_statement.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "320ffece816e875f65624583846f44dc99461f672a0de7cda42be5ddf29d6de5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/source_tiers.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e1aae76fad01693ab35b51466fc4369c04a5ac64230fd307e7b798dc5beeff7a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_ed25519_verifier.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dcba1ce538ff946d6928f30a7c5cbcc37fddf712b6181f91f94c76e20c117ac5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_evidence_provenance.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "292bfcdcc086934905c77f1543d8400ee483166ff3ce26c79bb526c204320dbb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_goap_planner.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7942ada069048b7e97bf2b6e920898a58517ccec090069f347399dbf1fc37731"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_population_match.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f33f72c0ba6305af1644e6b1a7f7635d3f33273344f19c14e7dbd2f819af0e7f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_risk_absolute.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ab353db189650551c374cb772ba4a3a6929e3a2618f2f5c112eca4c3f69e46b6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_signature_v3.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a04259296df104c9497c7b31d29556cb9a7ad4dd3339cbe3d8d32a4f53950d25"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/goap-research-ed25519/scripts/test_suite_completeness.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "727c5d5b0dad215957012276ebc146397178255077e762ed7b88a60d8178d2ab"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/knowledge-extractor/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "56a397fcd376bf3427373b3e74051c6a5de3a9dc3f66a398a58b9329aaca755b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/knowledge-extractor/modules/01-extract.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "95ffc66908dcc2ef7c27816773de35cbdf2476b7c816066631738c238c792a1a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/knowledge-extractor/modules/02-classify.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c6a9fc61a333cc986dfac0e12ff92d888677cc0855b0c4cdbd4eb90645275523"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/knowledge-extractor/modules/03-gate.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fb7268841e48152dc353b29fae27a6a5e43afc39cef44b7f2eef1f092b3044cf"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/knowledge-extractor/modules/04-integrate.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c449f1d7727326adf45195b56ac55903c2fc17963ec41f96881fcee304420fa8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/knowledge-extractor/references/artifact-categories.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "97cc06cceedabba1d739bf13129f590cda18c75015c2ac643213f540ec2ca1eb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/knowledge-extractor/references/maturity-model.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a21fbef52c606b40441fd96e2ed694d29559c2da0c5097122bfd3537d032e6d9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/knowledge-extractor/references/quality-gates.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e8cf0703125f32a820f6cceb1baa2defd903df482ea7bc1a7470c3f5198c794e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/knowledge-extractor/templates/artifact-card.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2f962bde871068104e80243cb898996af59691de4fad3e13b48f8ed5b73cfe8c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/knowledge-extractor/templates/harvest-report.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2b179bd25e7158e4eb62d07d0ad782c678001042eb520178147125f76b46447f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/presentation-storyteller/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f6ad6e6020280f17ccc4e7b71b28551310805aa99999b4056ec0ccfead1193d5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/presentation-storyteller/references/example-presentation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "036f6c0de94fc04b319251c17a6ae903a989e12d51bca527e4e25025350257dd"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/presentation-storyteller/references/slide-types.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c0e38c14c00b68263dbc19ad60430c29a4f76864890576b0974eb275158e2beb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/presentation-storyteller/references/sources-index-template.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a61c418d51e9b2967f28805bc104f4cd36c548ba0cd21005a2696f02f449bc4b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/presentation-storyteller/references/speaker-script-patterns.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "12dda75598ac65d170a25a8ed2e5573f6692a90d16f2484f8a0e939836674b13"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/presentation-storyteller/references/storytelling-frameworks.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b279a01bf0a62ff8d9385d72bd7b7305c83f4d59b5e0ed1a8535835f85c47649"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/problem-solver-enhanced/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "031378aa2e10c98928e35de07d454135e73550cd0c49f0cd886d53e4208d6b9f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "20d6b667971f9749d091c1d47e2f75df957f259647cbb861ac54174280096c71"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/examples/noom-cjm-example.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "01d33586e26bf093a57a7a1082bf3bdba3af801bb8348a685c0418f76987a0b0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/examples/noom-module1-example.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7009cf2e2624a1254913ad2e1ff554e7ff675358b0b99bc0632f2e12132663a3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/modules/01-intelligence.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0770bd63a6a1eeb34e873cb101e2ba0cf88d507e9bc03242046eaa837b9f587c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/modules/02-product-customers.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "499bbded50ddd368a62301083e828a42bd0223aa58322b6a952f00086b462972"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/modules/025-cjm-prototype.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "11e2e101c99d42306ac1d0931475c5a8899e929514e41a393b6173e03856cfc3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/modules/03-market-competition.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7c2e7164463371239d92f28153777e40ee0d6dad293d59886a4cf5b306fa3627"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/modules/04-business-finance.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dd08226391d498a82f111f0da665ea7cea1fa8a97683fab11070f879142727f7"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/modules/05-growth-engine.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "84658390dc7beb590f70164b391ace915e42926660bc1015e4be300752b74a37"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/modules/06-playbook-synthesis.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3cd76a218aa9f94e0ff8ff2fc257647540674f68df3883f0de5e76e1cea26d9b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/references/blue-ocean-canvas.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9256455b4b0f2c8c5aecb472e69cfbeda38bed8239120b45b46beec27571f8f9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/references/industry-benchmarks.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d377f4d9e84b8b65860fb4d20ce67d928f8a8fc8ef333658f88c8c54674eed71"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/reverse-engineering-unicorn/references/jtbd-canvas.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7938e657af631109ca7b4752002c21ac84a7dad3a35cc522be088f814d102773"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7527d236cc90934b52975089f86f392b36edf2977cb7323c94921ce6c34678b6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/examples/sample-text-only-site.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8fe215548b4c87e138a50c6bb665f26dc6731c01636e6f0045f96d2a5014ff9c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/examples/sample-transcript-site.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "586f0630e37c4281b927398f89c6e2003e3840b9d5a59dcd8fd348a15f7a8190"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/modules/00-input-analysis.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "863b7cb219b74acef86fc94e38cb54004054db89214cdf7ff9f825c391e14149"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/modules/01-content-parsing.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d3ea9a128bbf89886e8851a4714c0d978cf421dbffaa7b1f80207f6ec6d6dccd"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/modules/02-site-generation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "39856f87c3d184b38a6f285740bbc97ccf86c5d649ded61f4a87ad47f22817a3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/modules/03-interactivity.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "89ee764e9746065029ef52bc80dbca22387be4ea100c894454534d8a326a936a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/modules/04-deploy.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "43d4c975182a4a91b1ff3d9490fb7a065011a309790b6e59f06141efa33267b2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/modules/05-verification.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c052c3c798fcfbf4cdc47065f731b163497ecc2f126a829702156976ada20de1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/references/component-catalog.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d2a9813a0636572911da4b31362ad47bc2396937ff05c5d488109149eeeac5b0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/references/data-schemas.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3557fdc2c1d2be442b3ba33517bba9aa67c4f15f8fc4b597cb119442b44d4bbb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/transcript-site-generator/references/tech-stack.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d9f2eef05deac89c73b3b570f0354a564169d2e223c79d2496e63389c2bad61c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/CLAUDE.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fe7c4569e3a8b7465c2ede1e4b764d95beb07417f777ccc2dec10a4fb9237195"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/TOOLKIT_HARVEST.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a188b9bb5585f8f5ce1de08f8865a7d6bb9a3fb684fabeca57113e7171761ac6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/continuous-learning-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "06d6b3f2e89c72cffa488aac5569d87f84f42da3a4904c79b2bae4ae6c69fef5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/edu-site-generator/01-deployment-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fab84f63c8e5f89e2d332a19814c2c42a49924a36400e7007078a146c921e8a8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/edu-site-generator/02-admin-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9c74f6b9f0289d76ea1a278678689d5b210c6da7a5cdf4348e835aed66a901fb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/edu-site-generator/03-user-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "78e728603e5d398889056c4b152a90c4c09d329bf96f96c39d19459de22b534c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/edu-site-generator/04-infrastructure-requirements.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dc583fc9c1f57d95a3f54bf2929f0adf22b574ee3bdb544fe9fc8ef03115a378"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/edu-site-generator/05-architecture.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d53194cbedf6a3b7e62b7eba7bc9b12b556a608bc16caa495262a07f4e42a9af"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/edu-site-generator/06-user-flows.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a1e7f66499bd9936f758ad75e9c8556a040117ab41c918585e80a1222e92aa56"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/feature-adr/01-architecture.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c403fbadf2086291d729f51a0245a3982bf0f3e9ab98bf18f1078bfbdcc033a3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/feature-adr/02-functionality.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ed898aac4e931c1e2ba537aa43272b7addf7765cf6f082c0258efdedf972f1dd"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/feature-adr/03-deployment-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "98b4468359e91c5aebdccef2c53ce49f771a87f43f609a57591fb6968fcbad09"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/feature-adr/04-admin-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "233c67195dc9727655f2f69a014fdbae4ddbdb9bbca5c7bd347c079204e1f6ff"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/feature-adr/05-user-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "da59b505c050e5c4712d8ea507b1c3dcfe475bfa75ab4693dc1d6dc0ba793e6f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/feature-adr/06-user-flows.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9ee9fe9ccbf25a3ef4a92946aaf95e69edfe2f4dca097cf09a021be5e880ca22"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/improvement-directions.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "df7649c930a622ee7467a3a16765196d27634a0ed9f23da36427da0bed79d2d5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/keysarium-core/01-architecture.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ac37fef6440fc813c5bc8431407aadbd912c4d1a4fa2b788222331408c58a484"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/keysarium-core/02-functionality.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4a768dd2b37b1cb030a4e67a81c269ed46e12327cd6ebb790cbf91e80e6b997b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/keysarium-core/03-deployment-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c560c3a8adb6b344c305d3376c09657d1f8540e371e26acc9a1165931f98b82d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/keysarium-core/04-admin-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6de7defa13889e6583a452a0e5d7d73ab64f8341a08625af5d12d726ebbb8b5b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/keysarium-core/05-user-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a579c8da3e00dc45d76b107378b0fc656e8aaad4c19b08a89506bdd2efa87983"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/keysarium-core/06-user-flows.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0a3e2d769e2c4e9c62e54ab001f2a308302bb8beaf0296286c518831c15eab80"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/keysarium/01-deployment-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "11bcea773e2e84f75ee0c67fd9cce108f15bc94a175aec9f8268c2fe2ede7b9f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/keysarium/02-admin-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "abfe96ab001e649b9c1813f7dffabb016d6fe279a058e9eecd9e57a3468c814a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/keysarium/03-user-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1d843e70458b09d535c6b6b33800c7a2de539054966e25bc463d616cc793e62b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/keysarium/04-infrastructure-requirements.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1fb430d68c97fdd03a57119639d299ebcb059b2352e653d179e74fd5c7a614a5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/keysarium/05-architecture.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e167e622ebaffcbfe710d72d47d1c56bd0188de699cdf223cd66bcba2f4b595"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/keysarium/06-user-flows.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bff121a07af83343febd0e1715f51b7b8314e31bc21f5c2f3577954b369700b5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/skills-bto/01-deployment-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "96f1ab721532bc6b38a2583263e50015721bf7b920432232ad90a236bc85b334"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/skills-bto/02-admin-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e9fa284257dee51d29f5fa7baf28780aac5d4b4b5e3e0248402877b080a37515"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/skills-bto/03-user-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2afa935e95dc2c311e1a84a0067c79458e7fb3bbd8f8f20813115c0a9213c508"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/skills-bto/04-infrastructure-requirements.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9396fc706942041e466a1426e6f4bde4606a8f98a2d64c3af46a6959c3f5c25c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/skills-bto/05-architecture.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cef86321b722dd7a75e24f8412c17256cc3c148b29a5d22ce24ee35a5e610a7a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/skills-bto/06-user-flows.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ac47e003c42d2a82e95066f89b3a9471bc5ff18bd1c9775376f99d6dab2b24a9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/transcript-site-generator/01-deployment-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ee4227342004cbbfb9db367ce5000a81620cd9e59b1395fbe0711bc611d37d1a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/transcript-site-generator/02-admin-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "593947787e5de615a95437de93ed23ba07d39efb0a4493ee0f60b135839d3a61"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/transcript-site-generator/03-user-guide.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ca1c2e1a0f4a0f3a93df9b8b0ebe263c04898d6b7e28bc26d374280233a2c91e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/transcript-site-generator/04-infrastructure-requirements.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "795a93f715c314461633a918caadd1eb3423b8bf0a3ca2236651156e2de1cc83"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/transcript-site-generator/05-architecture.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9333060a6585dd72e35a20cf0bc5363b78b9642a445025f2f8748eea09fbcff6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/docs/transcript-site-generator/06-user-flows.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "07c5153a5953e24c86c398d294cddba123126e2dda0748e68cddbbf6e3d86d35"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/agent-patterns.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e440d3d67d8914286f16bdbfc4ada94b2b1a03e16fe815ba7bdb8f8a3c22a734"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/background-workers.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fd7fc51541ab75c717247860b1f6ffd46ec05a6900c061c995b2aa6254c6330b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/domain-templates.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bd61828ae9d029765230e1deab52c3a98d29ee67a44abb37864ad968ef729007"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/dream-engine.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "032411480467c9e6086827da4eebb5be54503f8afd7512e225de5e5a3fc4a7c0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/judge-attestation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e7548e759ee3e2a2f6673479c2a08139f26b432d2bb3edb28bbfe0c9c1ab9b3a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/memory-protocol.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b1d54ee5aee95a040fe51911f1add81c4108a7b3cbe781c9c2159e388fca601"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/phase-utils.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "50f83830f305404d8511730309006a0bb3e96940d86559dc7ac91e00a5f4a6e9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/platform-adapters.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "945d82503951998562f06a31d6686a6526f15d009800c2fc97eaa04521839e24"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/platform-templates/copilot.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "21a69d0dfd062dcba78747e4b4f5d69b9d0e58d1170a13b585d8c2829f74c2d1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/platform-templates/cursor.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "acfec67b42b7fc1b0d092600e3ab066ede87618a25c64fa8f3909cb985409a45"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/platform-templates/opencode.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d093eb0cc533f0459ce745a9ded5cabafca91a96ab09480bb1f04f0038971bbd"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/reward-tracker.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "806dc72d017304c8917a28174e4983fcf91e286414da6af9e6167eca42d7d0bb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/skill-loader.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aa51886cf608f106e7702ea808c2ede8d7fe9a097493b5aea89c9d020259d4a3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/witness-chain.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8d14187d213b2f4422af2699df6c940b54f5f8aba352d2e8070096b604fcba7e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/worker-templates/brain-export.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0949882d82866500f4c03089db34cf029ab2ba12c12c53829cadb3d00a2969a9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/worker-templates/consolidate.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "08714b49c2254dc48530ece03a68c56a4875a59aa389293f5eee2f6414bfdbad"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/worker-templates/dream-cycle.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "79531dac5063292aae69b7b1b52dd0aa244081a88f18aecece1c5cf11f391d2b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/lib/worker-templates/health-check.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2c48f2f75517906933602c2a3bab286108bdbfb34062b5a5f94efbc111697b3c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/researches/.gitkeep",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ]
+    }
+  ]
+}

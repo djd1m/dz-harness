@@ -1,0 +1,24 @@
+{
+  "schema": "case-profile-v1",
+  "labs": [
+    { "analyteId": "triglycerides", "value": 1.94, "unit": "mmol/L", "observedOn": "2025-10-15" },
+    { "analyteId": "triglycerides", "value": 2.67, "unit": "mmol/L", "observedOn": "2026-04-15" },
+    { "analyteId": "hdl", "value": 1.24, "unit": "mmol/L", "observedOn": "2025-10-15" },
+    { "analyteId": "hdl", "value": 1.12, "unit": "mmol/L", "observedOn": "2026-04-15" },
+    { "analyteId": "glucose", "value": 5.3, "unit": "mmol/L", "observedOn": "2025-10-15" },
+    { "analyteId": "ldl", "value": 3.6, "unit": "mmol/L", "observedOn": "2026-04-15" }
+  ],
+  "preanalytical_context": [
+    {
+      "observedOn": "2026-04-10",
+      "kind": "sustained-fast",
+      "note": "5-дневное сухое голодание, завершено 2026-04-12 — забор через 3 дня после выхода"
+    },
+    {
+      "observedOn": "2026-03-01",
+      "kind": "training-block",
+      "note": "интенсивный тренировочный блок, 5 сессий в неделю"
+    }
+  ],
+  "open_questions": { "$ref": "open_questions.json" }
+}

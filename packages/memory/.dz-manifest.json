@@ -1,0 +1,201 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "memory",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "7598ab3dbd07f39d442c5005282323bb6519b56e14b7ae979ef6565ee2dd4a30"
+      },
+      {
+        "path": "dist/backend.d.ts",
+        "sha256": "fe8a5ec858b83c2b6a8f7f242e212bb2e59acda775609e27ef37f5146eb5c455"
+      },
+      {
+        "path": "dist/backend.d.ts.map",
+        "sha256": "f41fade4e6b8d3dcbb730359683d75cb3de2ff9b83b2c8a8c6cfaee1b6f3b514"
+      },
+      {
+        "path": "dist/backend.js",
+        "sha256": "63af272c41a95713da9c544ff91e186e1e215e66ce938b8b046279ae94a8b919"
+      },
+      {
+        "path": "dist/backend.js.map",
+        "sha256": "45d1a1632bc5c276514608c3a77615b78c314d9addd632352c60dc565389d74c"
+      },
+      {
+        "path": "dist/bridge.d.ts",
+        "sha256": "94ae009717c9829eaa1e1526130592b1b68a86033f82ccb92686d13bc741bbcc"
+      },
+      {
+        "path": "dist/bridge.d.ts.map",
+        "sha256": "b29708fe02bd55d36d09e192954a6d648f42097f0870dcd43db3edf83e69512d"
+      },
+      {
+        "path": "dist/bridge.js",
+        "sha256": "9ae4a6d5baca14014d2857196af06ea7b6d2cde721707951cdeadad547c79b89"
+      },
+      {
+        "path": "dist/bridge.js.map",
+        "sha256": "f767581b00912afc6786cf3791ba561ba3b047cd89ba38e66e6b9ef590bb7b9c"
+      },
+      {
+        "path": "dist/cascade.d.ts",
+        "sha256": "0b7c8c4609a418bebc1645b8b253003d978c6353472e2bbdc942074f28923103"
+      },
+      {
+        "path": "dist/cascade.d.ts.map",
+        "sha256": "69665ba798f8a935200dd8e0e68276a8c6ed5154bb6a0b0d0cd420d6e0b90ae3"
+      },
+      {
+        "path": "dist/cascade.js",
+        "sha256": "9cb0c217388c6b35006cec6ab559b3c541f0420a3a16e07e9d783d5e4a4699ee"
+      },
+      {
+        "path": "dist/cascade.js.map",
+        "sha256": "f1783db779e9d3bbbfaafddce954a05a2b90d5bdd5e92afe18592e48d4858516"
+      },
+      {
+        "path": "dist/dreaming.d.ts",
+        "sha256": "54aa894782dead661ae22c0febcb3a59d48bb4820bb9e7432857b742cd802276"
+      },
+      {
+        "path": "dist/dreaming.d.ts.map",
+        "sha256": "c6e730ce87ac42632ef9eb4bb3a504b3c270eb6e7cf02e327394840f15092826"
+      },
+      {
+        "path": "dist/dreaming.js",
+        "sha256": "393e22def63f23eca261f965567ba58ffc90eded8fbc24e6448aa5e828fdbc78"
+      },
+      {
+        "path": "dist/dreaming.js.map",
+        "sha256": "6b192b2bb1a73016d0741365c3c44e129f06a616ae9a0e90d12a90af8c3cb0bb"
+      },
+      {
+        "path": "dist/index.d.ts",
+        "sha256": "9d855df88b28e860102b42a0b899f7a5a561c3e3d8cf3fc48cb3366a15049c30"
+      },
+      {
+        "path": "dist/index.d.ts.map",
+        "sha256": "5a0b747b1858bdaacab8c086a24005ce0ec98d8d4ca60ea42e8c5f79ce9c3719"
+      },
+      {
+        "path": "dist/index.js",
+        "sha256": "8b73ac944a586829e8d73e81d9c3c210dc13124067fb5742c953cc4fda1fcba9"
+      },
+      {
+        "path": "dist/index.js.map",
+        "sha256": "a86663fb3aeccf123b6b2adbc6a9a4a70da9a3887c75514a49d1bf95837253d3"
+      },
+      {
+        "path": "dist/json-backend.d.ts",
+        "sha256": "80d304c83f8a6c0e6b3e91dc02e291cb3e744ee0b7d7bc273b40bd16ad2cb449"
+      },
+      {
+        "path": "dist/json-backend.d.ts.map",
+        "sha256": "95adb5287a060d417ed83d2364d8f63b973790e9885dc29ea7182132f4231b7c"
+      },
+      {
+        "path": "dist/json-backend.js",
+        "sha256": "d53fcda53b7a1d24ccff4c3e1d98794985a9de01c97f6c357eec91ad64c2a341"
+      },
+      {
+        "path": "dist/json-backend.js.map",
+        "sha256": "7e0a073bfc25ae6fea53f29ad518319c31cdac070a1215bfb8a7584cb7ce9c33"
+      },
+      {
+        "path": "dist/reflexion.d.ts",
+        "sha256": "01ceaaee37c402a323cd9afa258ac505f9458048c75c40f2d0f9b5465b784a02"
+      },
+      {
+        "path": "dist/reflexion.d.ts.map",
+        "sha256": "faf6c875ec80a392ddee2d1a38e4ceca33d1c82477b48488a35de0050818aa0e"
+      },
+      {
+        "path": "dist/reflexion.js",
+        "sha256": "97a16866c30a79f6e2e9b0ae43a2d60b3e70c922a78d3325f729e98f8fbbfc0d"
+      },
+      {
+        "path": "dist/reflexion.js.map",
+        "sha256": "c784199286137919544d9fbe957cf8405109111a8748e2409555d408e56e05f0"
+      },
+      {
+        "path": "dist/sqlite-backend.d.ts",
+        "sha256": "bcee527422ab9692082ad26f6276f47f9bce86ed5279439f67a0823da1b93387"
+      },
+      {
+        "path": "dist/sqlite-backend.d.ts.map",
+        "sha256": "784903497cd0ec1e84358c3b96cfc36e34d9077a7626351f8792bc69ad735f68"
+      },
+      {
+        "path": "dist/sqlite-backend.js",
+        "sha256": "ebff426dfa8028097fbdcc350ba698d3c5472dc881dfc82604d8e23408d6f00d"
+      },
+      {
+        "path": "dist/sqlite-backend.js.map",
+        "sha256": "92b0105282fb9069efde0fcb45d5b91c4ae0fd7e65afbdb077443ea9fec0f551"
+      },
+      {
+        "path": "dist/sqlite-probe.d.ts",
+        "sha256": "6a649e48cbaad5c900e2bb95e11f4a1f4e33dc9dd8165cab290659c37dcdb1d6"
+      },
+      {
+        "path": "dist/sqlite-probe.d.ts.map",
+        "sha256": "982ea953e1a80deb38c6c80e1f150f1bd410e97ba83480b7d4f7249e98763562"
+      },
+      {
+        "path": "dist/sqlite-probe.js",
+        "sha256": "b6aaa054f32385874b50bcce779d98c33d16dc2fab73a8bf48691b18fdc25e3e"
+      },
+      {
+        "path": "dist/sqlite-probe.js.map",
+        "sha256": "083e083ff09058e6802bae5d1415b53d39218a6bf1f31cd6d041e10dbeae9c61"
+      },
+      {
+        "path": "package.json",
+        "sha256": "9c5898133bec11759644919c8db1f5218699b1736f73e8bfad60b3688ab844bd"
+      },
+      {
+        "path": "src/backend.ts",
+        "sha256": "77fe67ce082757e38117e8d6a2598d705f6f665a696474608bcfb0f7739ef15e"
+      },
+      {
+        "path": "src/bridge.ts",
+        "sha256": "f1fce2221d78a9cae4063e46cd87d2120aeaad5d31d9c3845cb2a01dd420ae6a"
+      },
+      {
+        "path": "src/cascade.ts",
+        "sha256": "e34c41de72524417a60a530aa988b33b7be7ebc33a4ac415595f448652882ced"
+      },
+      {
+        "path": "src/dreaming.ts",
+        "sha256": "f23084fe7ba68bdf8e913da65c12704a2d2a33ae66e120c712c3c2d59ca83ec8"
+      },
+      {
+        "path": "src/index.ts",
+        "sha256": "34c68dbea4be8c8108dd6aff0e49690484894c56f53967e07c92205b8d57ff64"
+      },
+      {
+        "path": "src/json-backend.ts",
+        "sha256": "ba881b55f48dabe7d95ce87ee1c840180850899f551173cd5940e54a8d6c6cf6"
+      },
+      {
+        "path": "src/reflexion.ts",
+        "sha256": "1e22f854d7f7f216be8b1062f2264be241f3cf46ddd5b0d3b39cd4941c43890c"
+      },
+      {
+        "path": "src/sqlite-backend.ts",
+        "sha256": "b2f4195a9db186e788aebafb50734078c2eec5cf74fdb45dc53ca6ec4d0208e1"
+      },
+      {
+        "path": "src/sqlite-probe.ts",
+        "sha256": "28bc13308f61bc553fc36a9c0efcf382522769de20769f3fcef8c3bbb4734b7e"
+      }
+    ]
+  },
+  "signature": "N0lXbiEP9t1P7mWkLkkplMiCba2h8+iEeGBKuhcI9Kqm5kt5uqZPvq4nO2mIGJXq0PnHsTZC7YcdYybtzx5fCQ=="
+}

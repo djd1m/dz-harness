@@ -1,0 +1,45 @@
+# codeql-fix evaluation
+# Run: aqe eval codeql-fix
+
+test_cases:
+  - name: "basic invocation"
+    input: "Run codeql-fix"
+    expected:
+      status: success
+      summary_contains: "codeql-fix"
+
+  - name: "sql injection fix"
+    input: "CodeQL alert js/sql-injection at src/api/users.ts:42. Data flow: req.query.id -> string concat -> db.query(). Fix it."
+    expected:
+      status: success
+      triage_verdict: "real"
+      fix_type: "code_change"
+      fix_rule_class: "sql_injection"
+
+  - name: "false positive triage"
+    input: "Semgrep flagged javascript.lang.security.detect-eval.detect-eval at build/config.js:10 where we do eval(JSON.stringify(staticConfig)). Is this a false positive?"
+    expected:
+      status: success
+      triage_verdict: "false_positive"
+      fix_type: "suppression"
+
+  - name: "command injection fix"
+    input: "CodeQL alert js/command-injection at src/deploy.ts:88. child_process.exec('git clone ' + repoUrl). Fix it."
+    expected:
+      status: success
+      fix_rule_class: "command_injection"
+
+  - name: "path traversal fix"
+    input: "Snyk found path traversal in src/files/download.ts:23. User-controlled filename passed to fs.readFile."
+    expected:
+      status: success
+      triage_verdict: "real"
+      has_fields:
+        - fix
+
+  - name: "xss fix with framework awareness"
+    input: "SonarCloud flagged XSS in a React component that uses dangerouslySetInnerHTML with user input."
+    expected:
+      status: success
+      triage_verdict: "real"
+      fix_description_contains: "sanitiz"

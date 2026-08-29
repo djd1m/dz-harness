@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Understand-Anything Bridge Output",
+  "type": "object",
+  "required": ["status"],
+  "properties": {
+    "status": { "type": "string", "enum": ["found", "not_found", "error"] },
+    "graph_stats": {
+      "type": "object",
+      "properties": {
+        "node_count": { "type": "integer" },
+        "edge_count": { "type": "integer" },
+        "file_count": { "type": "integer" },
+        "function_count": { "type": "integer" },
+        "class_count": { "type": "integer" }
+      }
+    },
+    "layers": {
+      "type": "object",
+      "properties": {
+        "api": { "type": "integer" },
+        "service": { "type": "integer" },
+        "data": { "type": "integer" },
+        "ui": { "type": "integer" },
+        "utility": { "type": "integer" }
+      }
+    },
+    "domains": { "type": "array", "items": { "type": "string" } },
+    "entry_points": { "type": "array", "items": { "type": "string" } },
+    "hot_spots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file": { "type": "string" },
+          "fan_in": { "type": "integer" }
+        }
+      }
+    },
+    "isolated_nodes": { "type": "array", "items": { "type": "string" } },
+    "diff_impact": {
+      "type": "object",
+      "properties": {
+        "changed_files": { "type": "array", "items": { "type": "string" } },
+        "blast_radius": { "type": "integer" },
+        "blast_radius_pct": { "type": "number" },
+        "recommended_targets": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "context_summary": { "type": "string" },
+    "agentdb_stored": { "type": "boolean" }
+  }
+}

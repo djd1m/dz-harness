@@ -1,0 +1,105 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "skills-academic",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
+        "path": "README.md",
+        "sha256": "1987a8cd8dc50fa24fea5ef0837af3b218057e2eda9081c682d1e227172350b7"
+      },
+      {
+        "path": "answer-assessor/SKILL.md",
+        "sha256": "d7de6e83058fa2974e029ebddb3748b0e7ede1f5e3aa8e014d9ac67f60a9bd5a"
+      },
+      {
+        "path": "answer-assessor/evals/answer-assessor.yaml",
+        "sha256": "12655100902322a2c56988b901ceaba96e60ab889f1529bdcf185555989f0996"
+      },
+      {
+        "path": "answer-assessor/schemas/output.json",
+        "sha256": "47a9bc6451f9e4f47a4651221a4916abbab8a3047f7d2c2675bbdce50ca1e959"
+      },
+      {
+        "path": "answer-assessor/scripts/validate-config.json",
+        "sha256": "172e35c183489d93302f155093604a896567829feec5913160f84cfc0b17b5d0"
+      },
+      {
+        "path": "defense-evaluator/SKILL.md",
+        "sha256": "eba3d09cae83e368672263454caa866c1714267c69d4997fec31d52b68befdea"
+      },
+      {
+        "path": "defense-evaluator/evals/defense-evaluator.yaml",
+        "sha256": "fc53e5debe90f89dd91a8faee38316a9a9c7daea0137102509f2744f48c4e5a9"
+      },
+      {
+        "path": "defense-evaluator/schemas/output.json",
+        "sha256": "97838188a4bfb98732c2adea5ae4cf5dda6c069fecd6e87dacdb7fa7d4eb772e"
+      },
+      {
+        "path": "defense-evaluator/scripts/validate-config.json",
+        "sha256": "c6fe4791cdc6b62e9b52ddb138cc9f873b4da99b8e757cb98bb131b97cde4e7e"
+      },
+      {
+        "path": "dissertation-review/SKILL.md",
+        "sha256": "b768fb846e68ef429006ae0e0c3320f824a18f30e55e2589eeeb17afe462a958"
+      },
+      {
+        "path": "dissertation-review/evals/dissertation-review.yaml",
+        "sha256": "63a7cadfabb12189d4d1638c179e1bdee4df04969f89fab114d23c84ea277ee0"
+      },
+      {
+        "path": "dissertation-review/schemas/output.json",
+        "sha256": "8f877f6c5ef8cf5ccc8a1519b51529094e7149b3f0e5a72651768c1ed4439928"
+      },
+      {
+        "path": "dissertation-review/scripts/validate-config.json",
+        "sha256": "43ad13d100f34c560e77cdff37ea542d7b981e84f7bc537955ab85d790f5cc3f"
+      },
+      {
+        "path": "document-checker/SKILL.md",
+        "sha256": "5fd36011feaeb2a4138d84997da575a89db22d4113f583b505e1d0a5a98cad76"
+      },
+      {
+        "path": "document-checker/evals/document-checker.yaml",
+        "sha256": "ed07f33c750679543329310faa60481724010da57a4e8a654df96c669c49dfab"
+      },
+      {
+        "path": "document-checker/schemas/output.json",
+        "sha256": "cc69f2e59a84d4c59376b796975cd5baf94940e27862d65e84be8d37a7cebeb1"
+      },
+      {
+        "path": "document-checker/scripts/validate-config.json",
+        "sha256": "67e96e966f19b11e242ffaadf05de4c0a42bb7e2b1d81358e4a38192093ef1f8"
+      },
+      {
+        "path": "package.json",
+        "sha256": "310b8c5ad3e2d7f6c5ade1bde1a5b292dcbdfe41a07148dc30f8346f4dd65d07"
+      },
+      {
+        "path": "question-generator/SKILL.md",
+        "sha256": "ec3f61e6e93e417c99a71abac2c5c3d4c40e6a71fac3d5c9fa664df3ae3824d5"
+      },
+      {
+        "path": "question-generator/evals/question-generator.yaml",
+        "sha256": "a6d1575ee04bfe650efcaac1b082dfe5a0af3a60ac4d7a4b98881ed7a4cced9b"
+      },
+      {
+        "path": "question-generator/schemas/output.json",
+        "sha256": "a81f27899eaca54838c58f9d7c7f2b069ec3aba607df20ac76f330b7fd254f8a"
+      },
+      {
+        "path": "question-generator/scripts/validate-config.json",
+        "sha256": "10eae060e05ece0e2de18de3ad0c34531fd923b48b943b18a6dba353a7ec74b1"
+      },
+      {
+        "path": "sources.json",
+        "sha256": "d31f2f359acd59876a1bf0f5e9dbe0c70f50b7902a29a39fb51b95c422bee82c"
+      }
+    ]
+  },
+  "signature": "aGbHNuEHhKvn9U156WsodXC2ZRMf/SL+MVd3YPgfxAUhNrWr38RHwByDJTIl63EC+KZcurULUitnaRa3P1qLDw=="
+}

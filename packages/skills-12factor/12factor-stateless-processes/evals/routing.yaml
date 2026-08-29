@@ -1,0 +1,33 @@
+skill: 12factor-stateless-processes
+
+# Positive prompts: realistic coding-session phrasings (mix RU + EN) where THIS skill must activate.
+# All are about WHERE a process holds state: stateless/share-nothing, session externalization,
+# sticky-session bans, local disk as scratch-only, and build-time asset precompilation.
+positives:
+  - "где хранить сессию пользователя в горизонтально масштабируемом приложении?"
+  - "our users get logged out at random after every deploy — where should sessions live?"
+  - "нужно ли включать sticky sessions / session affinity на балансировщике?"
+  - "is it safe to cache the uploaded file on local disk and read it back on the next request?"
+  - "почему после рестарта процесса слетает состояние, которое я держал в памяти?"
+  - "should the app compile front-end assets on first request and cache them on disk, or at build time?"
+  - "two worker processes need to share intermediate results — can I just use a local file?"
+  - "как правильно хранить корзину пользователя, чтобы её видел любой инстанс?"
+  - "move session state to Redis or Memcached instead of process memory — is that the 12-factor way?"
+
+# Hard negatives: prompts a naive keyword match ("state", "database", "process", "restart", "config")
+# would wrongly route here, but that actually belong to a SIBLING 12factor- skill.
+negatives:
+  - prompt: "how do I connect my app to Postgres — where does the connection URL come from?"
+    should_activate: "12factor-backing-services-as-resources"
+  - prompt: "where should the DATABASE_URL and API keys live — in a config file or environment variables?"
+    should_activate: "12factor-config-in-environment"
+  - prompt: "how many web vs worker processes should I run and how do I scale the process formation out?"
+    should_activate: "12factor-concurrency-process-model"
+  - prompt: "make the process start fast and shut down gracefully on SIGTERM without dropping in-flight work"
+    should_activate: "12factor-disposability-fast-startup"
+  - prompt: "run a one-off DB migration / rails console against the production release — how?"
+    should_activate: "12factor-admin-processes"
+  - prompt: "the app writes logs to a file and rotates them — is that the right approach?"
+    should_activate: "12factor-logs-as-streams"
+  - prompt: "separate the build, release, and run stages so a release is immutable — how should the pipeline look?"
+    should_activate: "12factor-build-release-run-separation"

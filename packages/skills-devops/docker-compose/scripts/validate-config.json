@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "docker-compose config validator",
+  "description": "Validates configuration inputs for the docker-compose skill",
+  "type": "object",
+  "properties": {
+    "compose_file": {
+      "type": "string",
+      "description": "Path to an existing docker-compose.yml to review or enhance"
+    },
+    "compose_content": {
+      "type": "string",
+      "description": "Raw docker-compose.yml content pasted inline"
+    },
+    "stack_type": {
+      "type": "string",
+      "enum": [
+        "node-postgres-redis",
+        "python-mysql-rabbitmq",
+        "nextjs-supabase",
+        "custom"
+      ],
+      "default": "custom",
+      "description": "Predefined stack template to start from"
+    },
+    "action": {
+      "type": "string",
+      "enum": ["create", "review", "harden", "add_healthchecks", "add_resources", "dev_setup"],
+      "default": "create",
+      "description": "What action to perform on the Compose configuration"
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "type"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Service name"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "web-app", "api", "worker",
+              "postgres", "mysql", "mongodb",
+              "redis", "memcached",
+              "rabbitmq", "kafka",
+              "nginx", "traefik", "caddy",
+              "custom"
+            ],
+            "description": "Service type for configuration defaults"
+          },
+          "image": {
+            "type": "string",
+            "description": "Docker image override (otherwise skill picks a sensible default)"
+          },
+          "build_context": {
+            "type": "string",
+            "description": "Build context path if the service uses a Dockerfile"
+          }
+        }
+      },
+      "description": "Services to include in the generated Compose file"
+    },
+    "environment": {
+      "type": "string",
+      "enum": ["development", "production", "both"],
+      "default": "both",
+      "description": "Target environment -- affects hardening, port exposure, and override files"
+    },
+    "include_dockerfile": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether to generate a multi-stage Dockerfile alongside the Compose file"
+    },
+    "include_env_template": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to generate a .env template file"
+    },
+    "runtime": {
+      "type": "string",
+      "enum": ["node", "python", "go", "rust", "java", "dotnet", "ruby", "php"],
+      "description": "Application runtime for Dockerfile generation and healthcheck selection"
+    }
+  },
+  "anyOf": [
+    { "required": ["compose_file"] },
+    { "required": ["compose_content"] },
+    { "required": ["services"] },
+    { "required": ["stack_type"] }
+  ]
+}
