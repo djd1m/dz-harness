@@ -1,8 +1,10 @@
 # Tutorials
 
 Интерактивные обучалки по пакетам harness-hub — по папке на пакет/скилл-сет.
-Каждая собрана фабрикой `@dzhechkov/skills-tutorial-factory` и проверена её гейтами.
+Каждая собрана фабрикой `@dzhechkov/skills-tutorial-factory` и проверена её гейтами
+(структурный Head-First гейт + поведенческая верификация сайта). Колонка «онлайн» — живой
+GitHub Pages, курс открывается в браузере без скачивания.
 
-| Курс | Пакет |
-|---|---|
-| [harness-cli](./harness-cli/) | [@dzhechkov/harness-cli](https://www.npmjs.com/package/@dzhechkov/harness-cli) |
+| Курс | Онлайн | Пакет |
+|---|---|---|
+| [harness-cli](./harness-cli/) | **[открыть курс](https://djd1m.github.io/dz-harness/tutorials/harness-cli/)** | [@dzhechkov/harness-cli](https://www.npmjs.com/package/@dzhechkov/harness-cli) |
