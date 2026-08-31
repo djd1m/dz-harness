@@ -798,5 +798,9 @@
         "href": "https://github.com/djd1m/dz-harness"
       }
     ]
+  },
+  "feedback": {
+    "repo": "djd1m/dz-harness",
+    "packagePath": "packages/harness-cli"
   }
 }
