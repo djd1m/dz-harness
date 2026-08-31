@@ -7,4 +7,5 @@ GitHub Pages, курс открывается в браузере без ска�
 
 | Курс | Онлайн | Пакет |
 |---|---|---|
+| [feature-adr](./feature-adr/) | **[открыть курс](https://djd1m.github.io/dz-harness/tutorials/feature-adr/)** | [@dzhechkov/skills-feature-adr](https://www.npmjs.com/package/@dzhechkov/skills-feature-adr) |
 | [harness-cli](./harness-cli/) | **[открыть курс](https://djd1m.github.io/dz-harness/tutorials/harness-cli/)** | [@dzhechkov/harness-cli](https://www.npmjs.com/package/@dzhechkov/harness-cli) |
