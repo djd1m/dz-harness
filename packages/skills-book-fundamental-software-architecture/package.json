@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-book-fundamental-software-architecture",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Architecture decision gateway distilled from Fundamentals of Software Architecture: 26 protocols, shipped references, and a 315-KU lexical brain slice.",
   "publishConfig": {
     "access": "public"

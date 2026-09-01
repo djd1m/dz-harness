@@ -80,7 +80,7 @@
     {
       "name": "@dzhechkov/harness-core",
       "version": "0.8.10",
-      "files": 686
+      "files": 691
     },
     {
       "name": "@dzhechkov/harness-presets",
@@ -159,7 +159,7 @@
     },
     {
       "name": "@dzhechkov/skills-book-fundamental-software-architecture",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "files": 45
     },
     {

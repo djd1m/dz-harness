@@ -8,10 +8,10 @@ text or source PDF.
 
 ## Install and simplest use
 
-> **Registry status (2026-09-01).** Published — MEASURED, reproducer
-> `npm view @dzhechkov/skills-book-fundamental-software-architecture version` → `0.1.1`
-> (first release 2026-09-01T18:26Z, owner-sanctioned at CP5). The by-name commands below work
-> as written; installing by PATH from a monorepo checkout
+> **Registry status.** Published (first release 2026-09-01, owner-sanctioned at CP5) —
+> MEASURED, reproducer `npm view @dzhechkov/skills-book-fundamental-software-architecture version`
+> answers a version instead of the pre-release `E404`. The by-name commands below work as written;
+> installing by PATH from a monorepo checkout
 > (`dz install ./packages/@dzhechkov/skills-book-fundamental-software-architecture --target codex`)
 > remains a supported alternative for development trees.
 
