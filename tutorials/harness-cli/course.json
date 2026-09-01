@@ -409,6 +409,43 @@
           "Install — первый запуск"
         ],
         "correctAnswer": 0
+      },
+      "diagram": {
+        "kind": "flow",
+        "title": "Шесть фаз пути: от «что вообще есть» до «отдать другим»",
+        "cycle": true,
+        "nodes": [
+          {
+            "id": "discover",
+            "label": "Discover",
+            "note": "что вообще есть — dz list, recommend"
+          },
+          {
+            "id": "install",
+            "label": "Install",
+            "note": "разверни рабочее место — dz init"
+          },
+          {
+            "id": "use",
+            "label": "Use",
+            "note": "работай с агентом, навыки подхватываются сами"
+          },
+          {
+            "id": "create",
+            "label": "Create",
+            "note": "собери свой навык — dz create-skill"
+          },
+          {
+            "id": "maintain",
+            "label": "Maintain",
+            "note": "держи свежим — dz doctor, upgrade"
+          },
+          {
+            "id": "share",
+            "label": "Share",
+            "note": "отдай другим — dz release, publish"
+          }
+        ]
       }
     },
     {
@@ -1063,6 +1100,38 @@
         ],
         "correctAnswer": 1,
         "explanation": "Свежесть ничего не доказывает. Ранг двигают два вопроса: помог ли урок хоть раз и нарастает ли польза."
+      },
+      "diagram": {
+        "kind": "flow",
+        "title": "Путь урока: три шага идут сами, выход из карантина заслуживается",
+        "cycle": false,
+        "nodes": [
+          {
+            "id": "teach",
+            "label": "Записан",
+            "note": "гипотеза, не знание"
+          },
+          {
+            "id": "quarantine",
+            "label": "Карантин",
+            "note": "ставится САМ при записи"
+          },
+          {
+            "id": "stats",
+            "label": "Статистика",
+            "note": "копится САМА в фоне"
+          },
+          {
+            "id": "confirm",
+            "label": "Подтверждён",
+            "note": "ЕДИНСТВЕННЫЙ ручной шаг: показ ≠ польза"
+          },
+          {
+            "id": "rank",
+            "label": "В ранге",
+            "note": "поднимается САМ по окупаемости"
+          }
+        ]
       }
     },
     {
