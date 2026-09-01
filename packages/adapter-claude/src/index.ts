@@ -37,3 +37,4 @@ export const claudeAdapter: Adapter = {
 
 export { compileToClaudeFiles } from './compile.js';
 export { verifyClaudeEmit } from './verify.js';
+export { claudeIntegrationAdapter, planClaudeIntegrations } from './integrations.js';

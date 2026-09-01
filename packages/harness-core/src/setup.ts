@@ -21,6 +21,7 @@ import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 
 import { mergeManagedHookEntries } from './managed-hooks.js';
+import { applyIntegrationFragments, IntegrationApplyError } from './integration-apply.js';
 
 /** Memory backend type. */
 export type MemoryBackend = 'jsonl' | 'agentdb';
@@ -659,11 +660,9 @@ export function runSetup(opts: SetupOptions): SetupResult {
     steps.push({ name: 'Configure hooks', status: 'skipped', detail: '--no-hooks' });
   }
 
-  // Step 5.5: Register agentdb MCP server (if agentdb backend) in **`.mcp.json` at the project
-  // root** — the project-scope location Claude Code actually loads (gap G5: the previously used
-  // `.claude/mcp.json` is NOT read by Claude Code, so the server never got AGENTDB_PATH and the
-  // shared-store invariant silently failed). READ-MERGE-WRITE: only the `agentdb` entry is
-  // managed; every other registered server is preserved (audit code#5 — never clobber).
+  // Step 5.5: Register agentdb MCP through the SAME ownership-aware transaction used by `dz init`.
+  // `.mcp.json` is the project-scope carrier Claude Code actually loads. A known historical dz
+  // agentdb shape is adopted; an ambiguous hand-authored entry is preserved and named as an error.
   if (backend === 'agentdb') {
     const agentdbEntry = {
       command: 'npx',
@@ -675,17 +674,19 @@ export function runSetup(opts: SetupOptions): SetupResult {
       // other: measured 2026-07-09, 5 of 20 samples zero bytes and 4 torn (ADR-001, 2026-08-26).
       env: { AGENTDB_PATH: agentdbMcpStorePath(opts.projectRoot) },
     };
-    const mcpConfigPath = join(opts.projectRoot, '.mcp.json');
     try {
-      const mcpConfig = (existsSync(mcpConfigPath)
-        ? JSON.parse(readFileSync(mcpConfigPath, 'utf-8'))
-        : {}) as { mcpServers?: Record<string, unknown> };
-      const servers = mcpConfig.mcpServers ?? {};
-      const before = JSON.stringify(servers['agentdb']);
-      servers['agentdb'] = agentdbEntry;
-      mcpConfig.mcpServers = servers;
-      if (before !== JSON.stringify(agentdbEntry)) {
-        writeFileSync(mcpConfigPath, JSON.stringify(mcpConfig, null, 2));
+      const applied = applyIntegrationFragments({
+        projectRoot: opts.projectRoot,
+        fragments: [{
+          component: 'mcp',
+          carrierPath: '.mcp.json',
+          scope: 'project',
+          format: 'json',
+          rootKey: 'mcpServers',
+          entries: { agentdb: agentdbEntry },
+        }],
+      });
+      if (applied.written.includes('.mcp.json')) {
         steps.push({
           name: 'Register agentdb MCP',
           status: 'done',
@@ -696,8 +697,10 @@ export function runSetup(opts: SetupOptions): SetupResult {
       } else {
         steps.push({ name: 'Register agentdb MCP', status: 'skipped', detail: 'already registered and current' });
       }
-    } catch {
-      steps.push({ name: 'Register agentdb MCP', status: 'error', detail: '.mcp.json unparseable — fix it and re-run' });
+    } catch (error) {
+      const reason = error instanceof IntegrationApplyError ? error.reasonCode : 'APPLY_FAILED';
+      const detail = error instanceof Error ? error.message : String(error);
+      steps.push({ name: 'Register agentdb MCP', status: 'error', detail: `${reason}: ${detail}` });
     }
     // Migrate off the legacy location: `.claude/mcp.json` is not loaded by Claude Code. If it
     // holds ONLY our old agentdb registration, remove the file; otherwise leave it and warn.

@@ -1,13 +1,22 @@
 {
   "name": "@dzhechkov/skills-book-ai-apps",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
   "description": "Decision-moment skills distilled from «Building Applications with AI Agents» (Albada, рус. пер.) — makes an AI coder apply the book's agent-engineering methodologies. 17 skills over both distillation waves. Machine-distilled (trust_tier 1, routing-gated), book-derived.",
   "license": "SEE LICENSE IN LICENSE",
   "author": "dzhechko",
-  "keywords": ["agent-skills", "skill-pack", "claude-code", "ai-agents", "agentic-systems", "book-derived", "dz-digitized", "digitized-monograph"],
+  "keywords": [
+    "agent-skills",
+    "skill-pack",
+    "claude-code",
+    "ai-agents",
+    "agentic-systems",
+    "book-derived",
+    "dz-digitized",
+    "digitized-monograph"
+  ],
   "files": [
     "aiagents-agent-fit-and-model-choice",
     "aiagents-agent-security",
@@ -37,5 +46,14 @@
   ],
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
+    "directory": "packages/@dzhechkov/skills-book-ai-apps"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-book-ai-apps#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
   }
 }

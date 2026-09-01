@@ -126,6 +126,30 @@ export function readTailInfo(tailText, opts = {}) {
 /** An empty log — what an appender assumes when the file is absent. */
 export const EMPTY_LOG_TAIL = { lastLine: undefined, endsWithNewline: true, unreadable: false };
 /**
+ * THE registry of chained journals — the single list every verification surface reads.
+ *
+ * Why this exists (backlog `bc4ee35c`, W0-chain): the chain machinery was built, and then each
+ * consumer grew its OWN private list of which files carry a chain — `dz doctor` had a two-element
+ * array inline, the score aggregate checked its own file, and nothing checked the rest. Three
+ * surfaces, three lists, and no way to ask "are all the chained journals intact?" So a journal
+ * could be given a chain and STILL be checked by nobody: the mechanism present, the coverage
+ * absent, and no red anywhere to say so.
+ *
+ * MEASURED 2026-09-01: of eight append-only journals under `.dz/`, exactly two carry a chain
+ * (probe: `tail -1 <file>` for a `seq` field). Adding the third must be one line HERE, not one line
+ * in each surface — which is the whole point of a registry, and what its test pins.
+ */
+export const CHAINED_JOURNALS = [
+    {
+        rel: '.dz/recall-usage.jsonl',
+        decides: 'dz compounding — whether a taught lesson is actually paying off',
+    },
+    {
+        rel: '.dz/guard-audit.jsonl',
+        decides: 'dz guard promote — whether a lesson has won twice and may become a rule',
+    },
+];
+/**
  * The exact text to append for a run of records: chained, newline-terminated, and preceded by a
  * newline when the file ends mid-line. THE one place that knows how to extend one of these logs —
  * the recall hook and the guard audit must not each carry their own copy of this reasoning.

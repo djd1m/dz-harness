@@ -17,7 +17,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "a81db2daebbcbbd78f785628758240bd53c4e00ad2a7b54f798ac85eb9bc0752"
+        "sha256": "78e2164a420f0cf1f128e18dc74dd10dc65ad59a0b1c2a60291df5ac338f5943"
       },
       {
         "path": "src/cli.js",
@@ -105,5 +105,5 @@
       }
     ]
   },
-  "signature": "IXL+Wgir4jGB6M+782e7XpQ7c1DPiids5CoVpl77yBOKPzXeeVV4ZMjHQXSyEw2sRFPxIRFV+8KHPsSd9sDKDA=="
+  "signature": "6rG0i1FPe54Vh0iUXB/7DNHAwGT/9SlyuRjVploeJJxN4zObTdLA9eAMflmuVdxAgI/vwU/j1VBmXBuHDP4ZAQ=="
 }

@@ -1,0 +1,88 @@
+{
+  "schema": "book-gateway-family-manifest/1",
+  "book_slug": "fundamental-software-architecture",
+  "gateway_id": "fundamental-software-architecture-guide",
+  "families": [
+    {
+      "index": 1,
+      "id": "fsa-family-choice-and-fit",
+      "title": "Архитектурный выбор и соответствие контексту",
+      "description": "Выделить structural drivers, сравнить компромиссы, выбрать style/topology и проверить соответствие deployment-среде, provider, командам и бизнесу.",
+      "not_for": "DDIA SLO/data measurement, ADR writing, Terraform/Kubernetes, concrete datastore selection or ordinary infrastructure work.",
+      "references": [
+        "fundamental-software-architecture-least-worst-tradeoff",
+        "fundamental-software-architecture-characteristic-driver-sieve",
+        "fundamental-software-architecture-style-topology-fit",
+        "fundamental-software-architecture-open-layer-sinkhole",
+        "fundamental-software-architecture-pipeline-filter-topology",
+        "fundamental-software-architecture-microkernel-plugin-lifecycle",
+        "fundamental-software-architecture-service-based-domain-service",
+        "fundamental-software-architecture-space-based-cache-grid",
+        "fundamental-software-architecture-soa-service-taxonomy",
+        "fundamental-software-architecture-decision-governance-last-moment",
+        "fundamental-software-architecture-constraint-negotiation-availability",
+        "fundamental-software-architecture-environment-topology-alignment"
+      ],
+      "handoffs": ["architecture-decision-records", "capture-adr", "feature-adr", "ddia-reliability-scalability-foundations", "ddia-data-model-selection", "data-pipeline", "terraform", "kubernetes"]
+    },
+    {
+      "index": 2,
+      "id": "fsa-family-boundaries-and-coupling",
+      "title": "Границы, связность и ответственность",
+      "description": "Разложить actors/actions, найти coupling и connascence, выбрать quantum, модульные или микросервисные границы и цену независимого изменения.",
+      "not_for": "Обычный SOLID refactoring, C4 artifact production, database review or backend implementation.",
+      "references": [
+        "fundamental-software-architecture-actor-action-component-decomposition",
+        "fundamental-software-architecture-connascence-refactoring",
+        "fundamental-software-architecture-architecture-quantum-boundary",
+        "fundamental-software-architecture-modular-monolith-mediator",
+        "fundamental-software-architecture-microservice-granularity-isolation",
+        "fundamental-software-architecture-pattern-composition-coupling"
+      ],
+      "handoffs": ["solid", "c4-architecture", "backend-patterns", "database-review", "database-migration"]
+    },
+    {
+      "index": 3,
+      "id": "fsa-family-distributed-interaction",
+      "title": "Распределённые взаимодействия и события",
+      "description": "Проверить цену распределения, семантику payload, coordination/choreography, доставку, порядок и recovery в event-driven приложении.",
+      "not_for": "Broker implementation, DDIA consensus, production streaming pipeline or LLM-agent orchestration.",
+      "references": [
+        "fundamental-software-architecture-distributed-fallacy-audit",
+        "fundamental-software-architecture-event-payload-semantics",
+        "fundamental-software-architecture-event-delivery-recovery",
+        "fundamental-software-architecture-event-mediator-data-topology"
+      ],
+      "handoffs": ["ddia-reliability-scalability-foundations", "ddia-batch-and-stream-processing", "data-pipeline", "aiagents-orchestration-and-planning", "qe-chaos-resilience"]
+    },
+    {
+      "index": 4,
+      "id": "fsa-family-guardrails-and-risk",
+      "title": "Ограничения, проверки и риск",
+      "description": "Превратить архитектурное правило или риск в fitness function, контрольный сигнал, risk storming и условие пересмотра.",
+      "not_for": "Обычный PR risk register, generic QA or observability setup without an architecture rule.",
+      "references": ["fundamental-software-architecture-fitness-function-guardrail", "fundamental-software-architecture-architecture-risk-storming"],
+      "handoffs": ["risk-assessment", "test-writer", "qe-quality-assessment", "observability"]
+    },
+    {
+      "index": 5,
+      "id": "fsa-family-architecture-communication",
+      "routable": false,
+      "mode": "kb-only-handoff",
+      "title": "Коммуникация архитектуры",
+      "description": "Выбрать аудиторию, scope и смысловой слой архитектурного представления до передачи diagram artifact профильному skill.",
+      "not_for": "Drawing C4/Mermaid/PlantUML or a flowchart when no architecture representation decision is requested.",
+      "references": ["fundamental-software-architecture-diagram-semantic-layers"],
+      "handoffs": ["c4-architecture", "decision-mockups", "metrics-dashboard"]
+    },
+    {
+      "index": 6,
+      "id": "fsa-family-organization-and-participation",
+      "title": "Участие архитектора и командные полномочия",
+      "description": "Откалибровать участие архитектора, ownership, независимые work streams и командные права решения вокруг архитектуры.",
+      "not_for": "Stakeholder mapping, sprint planning, generic people management or ordinary retrospective.",
+      "references": ["fundamental-software-architecture-architect-elastic-participation"],
+      "handoffs": ["stakeholder-map", "sprint-plan", "retrospective", "qcsd-cicd-swarm"]
+    }
+  ]
+}

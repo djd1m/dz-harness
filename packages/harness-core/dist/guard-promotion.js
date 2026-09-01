@@ -21,6 +21,22 @@
  * template vocabulary below is the entire executable surface (ADR-002).
  */
 export const TEMPLATES = ['pairing-check', 'absence-check', 'format-match'];
+export function isOffsetIsoTimestamp(value) {
+    if (typeof value !== 'string')
+        return false;
+    const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(Z|[+-](\d{2}):(\d{2}))$/.exec(value);
+    if (match === null || !Number.isFinite(Date.parse(value)))
+        return false;
+    const [, yearText, monthText, dayText, hourText, minuteText, secondText, zone, offsetHourText, offsetMinuteText] = match;
+    const year = Number(yearText);
+    const month = Number(monthText);
+    const day = Number(dayText);
+    const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+    const daysInMonth = [0, 31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month] ?? 0;
+    return day >= 1 && day <= daysInMonth &&
+        Number(hourText) <= 23 && Number(minuteText) <= 59 && Number(secondText) <= 59 &&
+        (zone === 'Z' || (Number(offsetHourText) <= 23 && Number(offsetMinuteText) <= 59));
+}
 /** Params are well-formed for their template (a hand-edited config cannot smuggle a half-rule in). */
 export function validTemplateParams(template, params) {
     if (typeof template !== 'string' || !TEMPLATES.includes(template))
@@ -329,6 +345,21 @@ export function paramsKey(template, params) {
         .map((k) => `${k}=${String(p[k]).trim()}`);
     return `${template}|${parts.join('&')}`;
 }
+/**
+ * Exact-byte discriminator of effective promoted-rule content. The ordered tuple keeps boundaries
+ * unambiguous; only its two-part digest is persisted, so lesson-derived literals are not copied into
+ * observational history. This is correlation identity, not authentication of a locally editable log.
+ */
+export function lessonRuleContentAnchor(template, params) {
+    const ordered = Object.keys(params ?? {})
+        .sort()
+        .map((key) => [key, String(params[key])]);
+    const canonical = JSON.stringify([template, ordered]);
+    return `lesson-rule/v1:${fnv1a32(canonical)}${fnv1a32(`\u0000${canonical}`)}`;
+}
+export function isLessonRuleContentAnchor(value) {
+    return typeof value === 'string' && /^lesson-rule\/v1:[a-f0-9]{16}$/.test(value);
+}
 /** The id of the rule that already covers this candidate, or `null`. */
 export function coveringRule(c, existing) {
     const key = paramsKey(c.template, c.params);
@@ -475,7 +506,7 @@ export function assembleCandidates(facts) {
             continue;
         const uses = Number.isFinite(l.uses) && l.uses >= 0 ? Math.floor(l.uses) : 0;
         const cost = 1 + uses;
-        const base = { lessonId: l.dzId, lessonText: typeof l.text === 'string' ? l.text : '', cost, ruleId: null, template: null, params: null, score: 0, firings: 0, wins: 0, evaluatedPeriods: 0, periods: [], proposedRule: null, firstSeenTs: null, elapsedMs: 0, elapsedRequiredMs };
+        const base = { lessonId: l.dzId, lessonText: typeof l.text === 'string' ? l.text : '', eligible: l.quarantined !== true, cost, ruleId: null, template: null, params: null, score: 0, firings: 0, wins: 0, evaluatedPeriods: 0, periods: [], proposedRule: null, firstSeenTs: null, elapsedMs: 0, elapsedRequiredMs };
         if (l.quarantined === true)
             quarantinedSkipped += 1;
         // (b) CHECKABILITY runs FIRST — not because it outranks trust, but because a refusal that names
@@ -557,7 +588,64 @@ export function assembleCandidates(facts) {
         verdict,
     };
 }
+// ── State (ADR-004) ─────────────────────────────────────────────────────────────────────────────
+/** Enough prospective observations for multi-year monthly reporting without an unbounded journal. */
+export const MAX_PROMOTION_RUN_EVIDENCE = 120;
+/** A larger run is recorded as incomplete, so truncation becomes NOT MEASURED rather than a low count. */
+export const MAX_PROMOTION_RUN_CANDIDATES = 10_000;
+export const MAX_PROMOTION_ACCEPTANCE_EVIDENCE = 10_000;
 export const EMPTY_PROMOTION_STATE = { version: 1, nextAdrSeq: 1, entries: {} };
+const CANDIDATE_VERDICTS = ['promote', 'wait', 'insufficient-data', 'duplicate', 'not-promotable'];
+function normalizePromotionRun(raw) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw))
+        return null;
+    const value = raw;
+    const runId = value['runId'];
+    const ts = value['ts'];
+    const candidates = value['candidates'];
+    if (typeof runId !== 'string' || runId === '' || runId.length > 512)
+        return null;
+    if (!isOffsetIsoTimestamp(ts))
+        return null;
+    if (typeof value['complete'] !== 'boolean' || !Array.isArray(candidates))
+        return null;
+    if (candidates.length > MAX_PROMOTION_RUN_CANDIDATES)
+        return null;
+    const normalized = [];
+    for (const candidate of candidates) {
+        if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate))
+            return null;
+        const item = candidate;
+        const candidateAnchor = item['candidateAnchor'];
+        const ruleContentAnchor = item['ruleContentAnchor'];
+        const verdict = item['verdict'];
+        if (typeof candidateAnchor !== 'string' || candidateAnchor === '' || candidateAnchor.length > 512)
+            return null;
+        if (typeof item['eligible'] !== 'boolean')
+            return null;
+        if (ruleContentAnchor !== null && !isLessonRuleContentAnchor(ruleContentAnchor))
+            return null;
+        if (typeof verdict !== 'string' || !CANDIDATE_VERDICTS.includes(verdict))
+            return null;
+        if (verdict === 'promote' && (item['eligible'] !== true || ruleContentAnchor === null))
+            return null;
+        normalized.push({
+            candidateAnchor,
+            eligible: item['eligible'],
+            ruleContentAnchor: ruleContentAnchor,
+            verdict: verdict,
+        });
+    }
+    return { runId, ts, complete: value['complete'], candidates: normalized };
+}
+function normalizeAcceptance(raw) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw))
+        return null;
+    const value = raw;
+    if (!isLessonRuleContentAnchor(value['ruleContentAnchor']) || !isOffsetIsoTimestamp(value['acceptedTs']))
+        return null;
+    return { ruleContentAnchor: value['ruleContentAnchor'], acceptedTs: value['acceptedTs'] };
+}
 /**
  * Keys that must never become an entry name. `Object.hasOwn` stops a polluted JSON from being READ
  * through the prototype, but it does not stop `entries[key] = …` from WRITING through it: `JSON.parse`
@@ -580,6 +668,51 @@ export function normalizePromotionState(raw) {
     const seqRaw = o['nextAdrSeq'];
     const nextAdrSeq = typeof seqRaw === 'number' && Number.isInteger(seqRaw) && seqRaw >= 1 && seqRaw <= 100_000 ? seqRaw : 1;
     const entries = {};
+    let runs;
+    if (Object.hasOwn(o, 'runs')) {
+        runs = [];
+        if (Array.isArray(o['runs'])) {
+            const seen = new Set();
+            for (const rawRun of o['runs']) {
+                const run = normalizePromotionRun(rawRun);
+                if (run === null || seen.has(run.runId))
+                    continue;
+                seen.add(run.runId);
+                runs.push(run);
+            }
+            runs.sort((a, b) => Date.parse(a.ts) - Date.parse(b.ts) || a.runId.localeCompare(b.runId));
+            if (runs.length > MAX_PROMOTION_RUN_EVIDENCE)
+                runs = runs.slice(-MAX_PROMOTION_RUN_EVIDENCE);
+        }
+    }
+    let truncatedRunPeriods;
+    if (Object.hasOwn(o, 'truncatedRunPeriods')) {
+        truncatedRunPeriods = Array.isArray(o['truncatedRunPeriods'])
+            ? [...new Set(o['truncatedRunPeriods'].filter((period) => typeof period === 'string' && /^\d{4}-(?:0[1-9]|1[0-2])$/.test(period)))].sort().slice(-12)
+            : [];
+    }
+    let acceptances;
+    if (Object.hasOwn(o, 'acceptances')) {
+        acceptances = [];
+        if (Array.isArray(o['acceptances'])) {
+            const byAnchor = new Map();
+            for (const rawAcceptance of o['acceptances']) {
+                const acceptance = normalizeAcceptance(rawAcceptance);
+                if (acceptance === null)
+                    continue;
+                const prior = byAnchor.get(acceptance.ruleContentAnchor);
+                if (prior === undefined || Date.parse(acceptance.acceptedTs) < Date.parse(prior.acceptedTs)) {
+                    byAnchor.set(acceptance.ruleContentAnchor, acceptance);
+                }
+            }
+            acceptances = [...byAnchor.values()]
+                .sort((a, b) => Date.parse(a.acceptedTs) - Date.parse(b.acceptedTs) || a.ruleContentAnchor.localeCompare(b.ruleContentAnchor))
+                .slice(-MAX_PROMOTION_ACCEPTANCE_EVIDENCE);
+        }
+    }
+    const acceptanceHistoryComplete = typeof o['acceptanceHistoryComplete'] === 'boolean'
+        ? o['acceptanceHistoryComplete']
+        : undefined;
     const rawEntries = o['entries'];
     if (rawEntries && typeof rawEntries === 'object' && !Array.isArray(rawEntries)) {
         for (const key of Object.keys(rawEntries)) {
@@ -610,13 +743,21 @@ export function normalizePromotionState(raw) {
                 lastRunTs: str('lastRunTs') ?? '',
                 wins: int('wins'),
                 evaluatedPeriods: int('evaluatedPeriods'),
-                verdict: ['promote', 'wait', 'insufficient-data', 'duplicate', 'not-promotable'].includes(str('verdict')) ? str('verdict') : 'wait',
+                verdict: CANDIDATE_VERDICTS.includes(str('verdict')) ? str('verdict') : 'wait',
                 ...(adrSeq !== undefined ? { adrSeq } : {}),
                 ...(str('appliedTs') !== undefined ? { appliedTs: str('appliedTs') } : {}),
             };
         }
     }
-    return { version: 1, nextAdrSeq, entries };
+    return {
+        version: 1,
+        nextAdrSeq,
+        entries,
+        ...(runs !== undefined ? { runs } : {}),
+        ...(truncatedRunPeriods !== undefined ? { truncatedRunPeriods } : {}),
+        ...(acceptances !== undefined ? { acceptances } : {}),
+        ...(acceptanceHistoryComplete !== undefined ? { acceptanceHistoryComplete } : {}),
+    };
 }
 /**
  * Fold a report into the state journal.
@@ -650,7 +791,80 @@ export function nextPromotionState(prev, report, nowTs, adrSeqs = {}, newlyAlloc
     // Only NEWLY allocated documents advance the sequence — a re-refused candidate rewrites its own
     // file, so counting every path would leave permanent gaps in the numbering.
     const seq = Number.isInteger(newlyAllocated) && newlyAllocated >= 0 ? newlyAllocated : Object.keys(adrSeqs).length;
-    return { version: 1, nextAdrSeq: Math.min(100_000, base.nextAdrSeq + seq), entries };
+    return {
+        version: 1,
+        nextAdrSeq: Math.min(100_000, base.nextAdrSeq + seq),
+        entries,
+        ...(base.runs !== undefined ? { runs: base.runs } : {}),
+        ...(base.truncatedRunPeriods !== undefined ? { truncatedRunPeriods: base.truncatedRunPeriods } : {}),
+        ...(base.acceptances !== undefined ? { acceptances: base.acceptances } : {}),
+        ...(base.acceptanceHistoryComplete !== undefined ? { acceptanceHistoryComplete: base.acceptanceHistoryComplete } : {}),
+    };
+}
+/** Add one prospective observation without changing any promotion decision or candidate report. */
+export function recordPromotionRunEvidence(state, report, nowTs) {
+    const base = normalizePromotionState(state);
+    if (!isOffsetIsoTimestamp(nowTs))
+        return base;
+    const source = Array.isArray(report?.candidates) ? report.candidates : [];
+    const complete = source.length <= MAX_PROMOTION_RUN_CANDIDATES;
+    const candidates = source
+        .slice(0, MAX_PROMOTION_RUN_CANDIDATES)
+        .filter((candidate) => typeof candidate?.lessonId === 'string' && candidate.lessonId !== '')
+        .map((candidate) => ({
+        candidateAnchor: candidate.lessonId,
+        eligible: candidate.eligible === true,
+        ruleContentAnchor: candidate.template !== null && candidate.params !== null
+            ? lessonRuleContentAnchor(candidate.template, candidate.params)
+            : null,
+        verdict: CANDIDATE_VERDICTS.includes(candidate.verdict) ? candidate.verdict : 'wait',
+    }));
+    const fingerprint = fnv1a32(JSON.stringify([nowTs, complete, candidates]));
+    const run = {
+        runId: `${nowTs}#${fingerprint}`,
+        ts: nowTs,
+        complete,
+        candidates,
+    };
+    const runs = [...(base.runs ?? [])];
+    if (!runs.some((item) => item.runId === run.runId))
+        runs.push(run);
+    runs.sort((a, b) => Date.parse(a.ts) - Date.parse(b.ts) || a.runId.localeCompare(b.runId));
+    const removed = runs.slice(0, Math.max(0, runs.length - MAX_PROMOTION_RUN_EVIDENCE));
+    const retained = runs.slice(-MAX_PROMOTION_RUN_EVIDENCE);
+    const truncatedRunPeriods = [...new Set([
+            ...(base.truncatedRunPeriods ?? []),
+            ...removed.map((item) => new Date(Date.parse(item.ts)).toISOString().slice(0, 7)),
+        ])].sort().slice(-12);
+    const retainedAcceptances = base.acceptances ?? (base.runs ?? []).flatMap((priorRun) => priorRun.candidates
+        .filter((candidate) => candidate.verdict === 'promote' && candidate.ruleContentAnchor !== null)
+        .map((candidate) => ({ ruleContentAnchor: candidate.ruleContentAnchor, acceptedTs: priorRun.ts })));
+    const byAnchor = new Map(retainedAcceptances.map((item) => [item.ruleContentAnchor, item]));
+    for (const candidate of candidates) {
+        if (candidate.verdict !== 'promote' || candidate.ruleContentAnchor === null)
+            continue;
+        const prior = byAnchor.get(candidate.ruleContentAnchor);
+        if (prior === undefined || Date.parse(nowTs) < Date.parse(prior.acceptedTs)) {
+            byAnchor.set(candidate.ruleContentAnchor, { ruleContentAnchor: candidate.ruleContentAnchor, acceptedTs: nowTs });
+        }
+    }
+    const allAcceptances = [...byAnchor.values()]
+        .sort((a, b) => Date.parse(a.acceptedTs) - Date.parse(b.acceptedTs) || a.ruleContentAnchor.localeCompare(b.ruleContentAnchor));
+    const acceptanceOverflow = allAcceptances.length > MAX_PROMOTION_ACCEPTANCE_EVIDENCE;
+    const currentAcceptedRuleIds = new Set(report.candidates
+        .filter((candidate) => candidate.verdict === 'promote' && candidate.ruleId !== null)
+        .map((candidate) => candidate.ruleId));
+    const hadUnknownAcceptedRules = base.acceptanceHistoryComplete === undefined &&
+        (Object.values(base.entries).some((entry) => entry.appliedTs !== undefined && !currentAcceptedRuleIds.has(entry.ruleId)) ||
+            (base.truncatedRunPeriods?.length ?? 0) > 0 ||
+            (base.runs ?? []).some((priorRun) => priorRun.complete !== true));
+    return {
+        ...base,
+        runs: retained,
+        truncatedRunPeriods,
+        acceptances: allAcceptances.slice(-MAX_PROMOTION_ACCEPTANCE_EVIDENCE),
+        acceptanceHistoryComplete: base.acceptanceHistoryComplete !== false && !hadUnknownAcceptedRules && !acceptanceOverflow && complete,
+    };
 }
 // ── Rendering ───────────────────────────────────────────────────────────────────────────────────
 const GLYPH = {

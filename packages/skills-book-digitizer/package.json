@@ -1,10 +1,10 @@
 {
   "name": "@dzhechkov/skills-book-digitizer",
-  "version": "0.2.18",
+  "version": "0.2.19",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
-  "description": "Canonical book-digitizer skill pack \u2014 8 skills that turn an engineering book/textbook/monograph into an installable skill pack whose skills make AI coders work within the book's methodologies: digitize-book (orchestrator), book-ingest, book-knowledge-extract, book-skill-distill, book-pack-assemble, book-kb-index, book-brain-register (terminal promote-to-brain, CP6), source-brain-ingest (repo/dir sibling).",
+  "description": "Canonical book-digitizer skill pack — 8 skills that turn an engineering book/textbook/monograph into an installable skill pack whose skills make AI coders work within the book's methodologies: digitize-book (orchestrator), book-ingest, book-knowledge-extract, book-skill-distill, book-pack-assemble, book-kb-index, book-brain-register (terminal promote-to-brain, CP6), source-brain-ingest (repo/dir sibling).",
   "license": "MIT",
   "author": "dzhechko",
   "keywords": [
@@ -39,8 +39,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-book-digitizer"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-book-digitizer#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-book-digitizer#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

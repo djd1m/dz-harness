@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/cloudru-hub",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "licenseHold": {
     "adr": "features/hermes-claude-adaptation/03_adr/001-licence-and-provenance-precondition.md",
     "note": "SATISFIED hold (ADR-001 AM-2, grant recorded 2026-08-12 — see grant-record-2026-08-12.md). The field deliberately STAYS: the dz guard `licence-hold` rule passes a satisfied hold with the trigger in place and keeps verifying LICENSE (no PENDING placeholder, Grant-Confirmation URL), THIRD_PARTY_NOTICES and the SPDX license field on every publish. test/pack-holds.test.mjs goes RED if this field is dropped or the LICENSE grant record is degraded."
@@ -55,12 +55,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/cloudru-hub"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/cloudru-hub#readme",
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/cloudru-hub#readme",
   "bugs": {
-    "url": "https://github.com/djd1m/dz-harness-hub/issues"
+    "url": "https://github.com/djd1m/dz-harness/issues"
   },
   "publishConfig": {
     "access": "public"

@@ -103,7 +103,7 @@ function extractTopics(task) {
     return matched.length > 0 ? matched : ['general'];
 }
 /** Score a skill against extracted topics. */
-function scoreSkill(entry, topics) {
+function scoreSkill(entry, topics, task) {
     const lower = `${entry.id} ${entry.description} ${entry.category}`.toLowerCase();
     let score = 0;
     for (const topic of topics) {
@@ -114,6 +114,27 @@ function scoreSkill(entry, topics) {
                 break;
             }
         }
+    }
+    // Topic points alone are FLAT: every skill of a matching topic scores exactly 10, so dozens tie
+    // and the top-N cut falls arbitrarily among them. Harmless while the catalogue was small; the
+    // moment it grew from 202 to 249 skills (layout fix, 2026-09-01) the right answer started losing
+    // ties to same-topic neighbours. A small tie-break by ACTUAL overlap with the asked task keeps
+    // the topic signal dominant (10 per topic) while letting the skill the user literally described
+    // rise above its topic-mates: an id word is worth more than a description word, because an id
+    // match is rarely accidental.
+    if (task !== undefined && task !== '') {
+        const words = [...new Set(task.toLowerCase().match(/[\p{L}\p{N}]{3,}/gu) ?? [])];
+        const id = entry.id.toLowerCase();
+        const desc = String(entry.description ?? '').toLowerCase();
+        let overlap = 0;
+        for (const w of words) {
+            if (id.includes(w))
+                overlap += 3;
+            else if (desc.includes(w))
+                overlap += 1;
+        }
+        // Capped below one topic point so a tie-break can never outrank a genuine topic match.
+        score += Math.min(overlap, 9);
     }
     return score;
 }
@@ -172,7 +193,7 @@ export function recommend(task, registry, projectRoot) {
     const scored = registry.entries
         .map((e) => ({
         entry: e,
-        score: scoreSkill(e, topics) + (patterns.length ? boostFor(e) : 0),
+        score: scoreSkill(e, topics, task) + (patterns.length ? boostFor(e) : 0),
     }))
         .filter((s) => s.score > 0)
         .sort((a, b) => b.score - a.score);

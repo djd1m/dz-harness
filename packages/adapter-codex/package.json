@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-codex",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "OpenAI Codex CLI platform adapter - compiles canonical skills into the .agents/skills tree.",
   "type": "module",
   "license": "MIT",
@@ -52,8 +52,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/adapter-codex"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/adapter-codex#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-codex#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

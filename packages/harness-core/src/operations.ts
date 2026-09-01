@@ -58,6 +58,17 @@ import type { SkillApplyFailure, SkillLoadFailure } from './skills.js';
 import { TARGETS } from './targets.js';
 import type { TargetName } from './targets.js';
 import {
+  TARGET_INTEGRATIONS,
+  aggregateIntegrationManifests,
+  notRequestedOutcomes,
+  refusedOutcome,
+  staticPolicyOutcomes,
+  type IntegrationOutcome,
+  type IntegrationManifestSource,
+} from './target-integrations.js';
+import { applyIntegrationFragments, IntegrationApplyError, type IntegrationApplyFault } from './integration-apply.js';
+import { verifyTargetIntegration, type IntegrationProcessPort } from './integrations-verify.js';
+import {
   AGENTS_MD_BUDGET_WARN_FRACTION,
   CODEX_PROJECT_DOC_MAX_BYTES,
   POLICY_SOURCES,
@@ -87,6 +98,24 @@ export interface InitOptions {
   readonly select?: readonly string[];
   /** When set, generate platform-specific enrichment files alongside SKILL.md. */
   readonly enrich?: boolean;
+  /** Exact content-bound digest printed by the first integration-aware run. */
+  readonly allowIntegrations?: string;
+  /** Explicit hook opt-out; maps hooks to not-requested. */
+  readonly noHooks?: boolean;
+  /** Explicit skills-only opt-out, even when selected skills carry manifests. */
+  readonly noIntegrations?: boolean;
+  /** Live verification is load-bearing; requesting this flag makes requested integrations refuse. */
+  readonly noVerify?: boolean;
+  /** Injectable process boundary for deterministic integration tests. */
+  readonly integrationProcessPort?: IntegrationProcessPort;
+  /** Test-only fault at the carrier/ownership-journal durability boundary. */
+  readonly integrationApplyFault?: IntegrationApplyFault;
+  /**
+   * Install-level manifest sources. The CLI supplies this only on the first
+   * per-directory run so companion planning, authorization, and probing happen
+   * exactly once across every discovered skill pack.
+   */
+  readonly integrationManifestSources?: readonly IntegrationManifestSource[];
 }
 
 /** Per-skill outcome of {@link runInit}. */
@@ -130,6 +159,10 @@ export interface InitReport {
    * any per-skill loop.
    */
   readonly applyFailures: readonly SkillApplyFailure[];
+  /** Exactly two ordered companion outcomes: MCP, then hooks. */
+  readonly integrations: readonly [IntegrationOutcome, IntegrationOutcome];
+  /** Safe digest used by `--allow-integrations`; absent when no manifest exists. */
+  readonly integrationDigest?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -266,6 +299,8 @@ export interface AgentsMdInitOptions {
   readonly projectRoot: string;
   /** When set, install only these skill ids (a preset selection). */
   readonly select?: readonly string[] | undefined;
+  readonly noHooks?: boolean;
+  readonly noIntegrations?: boolean;
 }
 
 /** The parts of a single-file managed-Markdown target that vary by filename. */
@@ -367,6 +402,28 @@ function runInitSingleFileMd(options: AgentsMdInitOptions, config: SingleFileMdC
   }
   const missing = selection === undefined ? [] : selection.filter((id) => !discovered.has(id));
 
+  let aggregate = { manifest: undefined, digest: undefined } as ReturnType<typeof aggregateIntegrationManifests>;
+  try {
+    if (options.noIntegrations !== true) {
+      aggregate = aggregateIntegrationManifests(picked.map(({ id, skillsDir }) => ({ skillId: id, skillDir: skillsDir })));
+    }
+  } catch (error) {
+    const remediation = error instanceof Error ? error.message : String(error);
+    return {
+      target: config.target,
+      skillsDir: joinedDir,
+      projectRoot: options.projectRoot,
+      skills: [],
+      missing,
+      failures: [],
+      applyFailures: [],
+      integrations: [
+        refusedOutcome(config.target, 'mcp', 'MANIFEST_INVALID', remediation),
+        refusedOutcome(config.target, 'hooks', 'MANIFEST_INVALID', remediation),
+      ],
+    };
+  }
+
   // Skip-and-collect: one unloadable skill must not discard the whole aggregation.
   const failures: SkillLoadFailure[] = [];
   const loaded: { id: string; section: string }[] = [];
@@ -397,7 +454,19 @@ function runInitSingleFileMd(options: AgentsMdInitOptions, config: SingleFileMdC
 
   // No apply failures are possible here: the single write is outside every per-skill
   // loop, so a write error propagates as itself rather than being attributed to a skill.
-  return { target: config.target, skillsDir: joinedDir, projectRoot: options.projectRoot, skills, missing, failures, applyFailures: [] };
+  return {
+    target: config.target,
+    skillsDir: joinedDir,
+    projectRoot: options.projectRoot,
+    skills,
+    missing,
+    failures,
+    applyFailures: [],
+    integrations: options.noIntegrations === true
+      ? notRequestedOutcomes(config.target)
+      : staticPolicyOutcomes(config.target, aggregate.manifest, options.noHooks === true),
+    ...(aggregate.digest !== undefined ? { integrationDigest: aggregate.digest } : {}),
+  };
 }
 
 /**
@@ -546,6 +615,8 @@ export async function runInit(options: InitOptions): Promise<InitReport> {
       skillsDirs: [options.skillsDir],
       projectRoot: options.projectRoot,
       select: options.select,
+      ...(options.noHooks !== undefined ? { noHooks: options.noHooks } : {}),
+      ...(options.noIntegrations !== undefined ? { noIntegrations: options.noIntegrations } : {}),
     });
   }
   // gemini is likewise a flattening single-file target — aggregate into ONE root
@@ -555,6 +626,8 @@ export async function runInit(options: InitOptions): Promise<InitReport> {
       skillsDirs: [options.skillsDir],
       projectRoot: options.projectRoot,
       select: options.select,
+      ...(options.noHooks !== undefined ? { noHooks: options.noHooks } : {}),
+      ...(options.noIntegrations !== undefined ? { noIntegrations: options.noIntegrations } : {}),
     });
   }
 
@@ -568,6 +641,78 @@ export async function runInit(options: InitOptions): Promise<InitReport> {
   const missing = selection === undefined
     ? []
     : selection.filter((id) => !discovered.includes(id));
+  const manifestSources: readonly IntegrationManifestSource[] = options.integrationManifestSources
+    ?? ids.map((id) => ({ skillId: id, skillDir: options.skillsDir }));
+  let aggregate = { manifest: undefined, digest: undefined } as ReturnType<typeof aggregateIntegrationManifests>;
+  try {
+    if (options.noIntegrations !== true) aggregate = aggregateIntegrationManifests(manifestSources);
+  } catch (error) {
+    const remediation = error instanceof Error ? error.message : String(error);
+    return {
+      target: options.target,
+      skillsDir: options.skillsDir,
+      projectRoot: options.projectRoot,
+      skills: [],
+      missing,
+      failures: [],
+      applyFailures: [],
+      integrations: [
+        refusedOutcome(options.target, 'mcp', 'MANIFEST_INVALID', remediation),
+        refusedOutcome(options.target, 'hooks', 'MANIFEST_INVALID', remediation),
+      ],
+    };
+  }
+
+  let integrations: readonly [IntegrationOutcome, IntegrationOutcome] = notRequestedOutcomes(options.target);
+  let eligibleClaudePlan: ReturnType<(typeof TARGET_INTEGRATIONS)['claude-code']['plan']> | undefined;
+  if (aggregate.manifest !== undefined && options.noIntegrations !== true) {
+    if (options.target !== 'claude-code') {
+      integrations = staticPolicyOutcomes(options.target, aggregate.manifest, options.noHooks === true);
+    } else {
+      const mcpRequested = Object.keys(aggregate.manifest.mcpServers ?? {}).length > 0;
+      const hooksRequested = (aggregate.manifest.hooks?.length ?? 0) > 0 && options.noHooks !== true;
+      let mcpOutcome: IntegrationOutcome = { target: options.target, component: 'mcp', status: 'not-requested', registrations: [] };
+      if (mcpRequested) {
+        if (options.noVerify === true) {
+          mcpOutcome = refusedOutcome(options.target, 'mcp', 'NO_QUALIFYING_LIVE_RECEIPT', '--no-verify cannot authorize integration emission; rerun with live verification enabled');
+        } else if (aggregate.digest === undefined || options.allowIntegrations !== aggregate.digest) {
+          mcpOutcome = refusedOutcome(options.target, 'mcp', 'INTEGRATION_AUTHORIZATION_REQUIRED', `rerun with --allow-integrations ${aggregate.digest ?? '<missing-digest>'}`);
+        } else {
+          const plan = TARGET_INTEGRATIONS['claude-code'].plan(aggregate.manifest, { target: 'claude-code' });
+          const refusal = plan.refusals.find((row) => row.component === 'mcp');
+          if (refusal !== undefined) {
+            mcpOutcome = refusedOutcome(options.target, 'mcp', refusal.reasonCode, refusal.remediation);
+          } else {
+            const preflight = verifyTargetIntegration({
+              target: 'claude-code',
+              component: 'mcp',
+              projectRoot: options.projectRoot,
+              phase: 'preflight',
+              ...(options.integrationProcessPort !== undefined ? { processPort: options.integrationProcessPort } : {}),
+            });
+            if (!preflight.ok) {
+              mcpOutcome = refusedOutcome(options.target, 'mcp', preflight.reasonCode ?? 'LIVE_PROBE_FAILED', preflight.remediation ?? 'live preflight did not qualify');
+            } else {
+              eligibleClaudePlan = plan;
+              mcpOutcome = {
+                target: options.target,
+                component: 'mcp',
+                status: 'emitted',
+                registrations: [],
+                carrier: { scope: 'project', path: '.mcp.json' },
+                ...(preflight.runtimeVersion !== undefined ? { runtimeVersion: preflight.runtimeVersion } : {}),
+                ...(preflight.evidenceVersion !== undefined ? { evidenceVersion: preflight.evidenceVersion } : {}),
+              };
+            }
+          }
+        }
+      }
+      const hookOutcome: IntegrationOutcome = hooksRequested
+        ? refusedOutcome(options.target, 'hooks', 'NO_ACTIVATION_RECEIPT', 'record a nonce canary and negative-control activation receipt')
+        : { target: options.target, component: 'hooks', status: 'not-requested', registrations: [] };
+      integrations = [mcpOutcome, hookOutcome];
+    }
+  }
   // Skip-and-collect (D1): one unparseable SKILL.md must not discard the whole install.
   // Same shape as `runVerify`'s long-standing per-id try/catch below.
   //
@@ -602,7 +747,59 @@ export async function runInit(options: InitOptions): Promise<InitReport> {
       applyFailures.push({ id, reason: error instanceof Error ? error.message : String(error) });
     }
   }
-  return { target: options.target, skillsDir: options.skillsDir, projectRoot: options.projectRoot, skills, missing, failures, applyFailures };
+  if (eligibleClaudePlan !== undefined && integrations[0].status === 'emitted') {
+    try {
+      applyIntegrationFragments({
+        projectRoot: options.projectRoot,
+        fragments: eligibleClaudePlan.fragments,
+        ...(options.integrationApplyFault !== undefined ? { injectFault: options.integrationApplyFault } : {}),
+      });
+      const registrations = Object.keys(aggregate.manifest?.mcpServers ?? {});
+      const observed = [];
+      let failedObservation: ReturnType<typeof verifyTargetIntegration> | undefined;
+      for (const registrationId of registrations) {
+        const result = verifyTargetIntegration({
+          target: 'claude-code',
+          component: 'mcp',
+          projectRoot: options.projectRoot,
+          registrationId,
+          phase: 'post-write',
+          ...(options.integrationProcessPort !== undefined ? { processPort: options.integrationProcessPort } : {}),
+        });
+        if (!result.ok) { failedObservation = result; break; }
+        observed.push(...result.registrations);
+      }
+      if (failedObservation !== undefined) {
+        integrations = [
+          {
+            ...refusedOutcome(options.target, 'mcp', failedObservation.reasonCode ?? 'POST_WRITE_REGISTRATION_NOT_OBSERVED', failedObservation.remediation ?? 'registration was written but not observed'),
+            carrier: { scope: 'project', path: '.mcp.json' },
+            applied: true,
+          },
+          integrations[1],
+        ];
+      } else {
+        integrations = [{ ...integrations[0], registrations: observed }, integrations[1]];
+      }
+    } catch (error) {
+      const reasonCode = error instanceof IntegrationApplyError ? error.reasonCode : 'APPLY_FAILED';
+      integrations = [{
+        ...refusedOutcome(options.target, 'mcp', reasonCode, error instanceof Error ? error.message : String(error)),
+        ...(error instanceof IntegrationApplyError && error.applied ? { applied: true } : {}),
+      }, integrations[1]];
+    }
+  }
+  return {
+    target: options.target,
+    skillsDir: options.skillsDir,
+    projectRoot: options.projectRoot,
+    skills,
+    missing,
+    failures,
+    applyFailures,
+    integrations,
+    ...(aggregate.digest !== undefined ? { integrationDigest: aggregate.digest } : {}),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -1186,9 +1383,12 @@ export async function runDoctor(options: { projectRoot: string }): Promise<Docto
   // Silent when a log is absent or has never been chained: an unchained file is legal (FR-5), not a
   // fault, and reporting it would train the reader to ignore this line.
   try {
-    const { verifyEventChainText, classifyChainDefects, EVENT_CHAIN_SCOPE } = await import('./event-chain.js');
-    for (const rel of ['recall-usage.jsonl', 'guard-audit.jsonl']) {
-      const p = join(root, '.dz', rel);
+    const { verifyEventChainText, classifyChainDefects, EVENT_CHAIN_SCOPE, CHAINED_JOURNALS } = await import('./event-chain.js');
+    // W0-chain (bc4ee35c): enumerated from THE registry, never from a list kept here. The inline
+    // array this replaces is why a journal could be given a chain and still be checked by nobody —
+    // the mechanism present, the coverage absent, and no red anywhere to say so.
+    for (const journal of CHAINED_JOURNALS) {
+      const p = join(root, journal.rel);
       if (!existsSync(p)) continue;
       const text = readFileSync(p, 'utf-8');
       const v = verifyEventChainText(text);
@@ -1203,7 +1403,7 @@ export async function runDoctor(options: { projectRoot: string }): Promise<Docto
       // file and false of the present, and a red nobody can act on is a red nobody reads.
       if (age.inRun.length === 0 && age.runRecords > 0) {
         checks.push({
-          name: `evidence chain (.dz/${rel})`,
+          name: `evidence chain (${journal.rel})`,
           ok: true,
           // The COUNT carries the meaning, and is printed first for that reason: "1 record forms an
           // unbroken run" is true and says almost nothing, while 998 says a great deal. Naming the
@@ -1216,7 +1416,7 @@ export async function runDoctor(options: { projectRoot: string }): Promise<Docto
         continue;
       }
       checks.push({
-        name: `evidence chain (.dz/${rel})`,
+        name: `evidence chain (${journal.rel})`,
         ok: false,
         detail: `${named} — with NO sound records after them: learning verdicts computed from this log are unsafe. Scope: ${EVENT_CHAIN_SCOPE}`,
       });

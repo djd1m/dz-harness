@@ -140,7 +140,21 @@ describe('an artifact that is there but says nothing is not verified', () => {
       const zero = run(dir, 'doctor');
       assert.equal(zero.code, 0, 'zero entries must not fail either: ' + zero.out);
 
-      fs.writeFileSync(idx, '# Insights\n\n## 2026-08-27 — a rake\n\nBody.\n');
+      const writer = path.join(dir, '.claude', 'hooks', 'write-insight.cjs');
+      const written = spawnSync(process.execPath, [writer], {
+        cwd: dir,
+        env: { ...process.env, CLAUDE_PROJECT_DIR: dir },
+        input: JSON.stringify({
+          date: '2026-08-30',
+          title: 'Doctor reads writer output',
+          tags: ['doctor'],
+          problem: 'A synthetic fixture could drift from the real writer format.',
+          solution: 'Create the populated state through the installed writer.',
+          references: ['tests/unit/absence-is-not-emptiness.test.js'],
+        }),
+        encoding: 'utf8',
+      });
+      assert.equal(written.status, 0, written.stderr || written.stdout);
       const some = run(dir, 'doctor');
       assert.equal(some.code, 0);
 

@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-opencode",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "OpenCode platform adapter - compiles canonical skills into the .opencode/skills tree.",
   "type": "module",
   "license": "MIT",
@@ -51,8 +51,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/adapter-opencode"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/adapter-opencode#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-opencode#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

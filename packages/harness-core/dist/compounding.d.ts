@@ -14,6 +14,7 @@
  *
  * Everything here is PURE: callers gather facts (files, store rows); this module only computes.
  */
+import { type PromotionAcceptanceEvidence, type PromotionRunEvidence } from './guard-promotion.js';
 /** Deterministic PRNG — same seed, same stream, byte-identical reports. */
 export declare function mulberry32(seed: number): () => number;
 export declare const BOOTSTRAP_RESAMPLES = 5000;
@@ -72,8 +73,57 @@ export interface ReplayInstance {
 export declare function replayableInstances(usage: readonly UsageEvent[], lessonText?: ReadonlyMap<string, string>): ReplayInstance[];
 export interface GuardEvent {
     readonly ts: string;
+    readonly op?: 'publish' | 'teach' | 'consolidate' | 'reindex';
     readonly verdict: string;
     readonly rules: readonly string[];
+    readonly violations?: readonly {
+        readonly rule: string;
+        readonly contentAnchor?: string;
+    }[];
+}
+export type FunnelEvidenceSource<T> = {
+    readonly status: 'measured';
+    readonly rows: readonly T[];
+} | {
+    readonly status: 'not-measured';
+    readonly reason: string;
+};
+export interface LessonToRuleFunnelFacts {
+    readonly promotionRuns: FunnelEvidenceSource<PromotionRunEvidence>;
+    readonly guardAudits: FunnelEvidenceSource<GuardEvent>;
+    readonly promotionAcceptances?: readonly PromotionAcceptanceEvidence[];
+    readonly truncatedPromotionPeriods?: readonly string[];
+    readonly acceptanceHistoryComplete?: boolean;
+}
+export type LessonToRuleStage = 'eligible' | 'attempted' | 'accepted' | 'executions';
+export type FunnelStageMeasurement = {
+    readonly status: 'measured';
+    readonly value: number;
+} | {
+    readonly status: 'not-measured';
+    readonly reason: string;
+};
+export interface LessonToRuleFunnelPeriod {
+    readonly period: string;
+    readonly eligible: FunnelStageMeasurement;
+    readonly attempted: FunnelStageMeasurement;
+    readonly accepted: FunnelStageMeasurement;
+    readonly executions: FunnelStageMeasurement;
+}
+export interface LessonToRuleFunnelFinding {
+    readonly predecessor: LessonToRuleStage;
+    readonly stage: LessonToRuleStage;
+    readonly fromPeriod: string;
+    readonly toPeriod: string;
+    readonly counts: readonly {
+        readonly period: string;
+        readonly predecessor: number;
+        readonly successor: number;
+    }[];
+}
+export interface LessonToRuleFunnelReport {
+    readonly periods: readonly LessonToRuleFunnelPeriod[];
+    readonly findings: readonly LessonToRuleFunnelFinding[];
 }
 /**
  * A raw evidence log, handed over verbatim so the chain verdict has exactly ONE definition
@@ -94,6 +144,8 @@ export interface CompoundingFacts {
     readonly evidenceLogs?: readonly EvidenceLogFact[];
     /** Depth of the command-invocation corpus. `null` means no readable log, never zero-by-default. */
     readonly cmdUsageDepthDays?: number | null;
+    /** Prospective route observations; absence is explicit NOT MEASURED, never an empty funnel. */
+    readonly lessonToRule?: LessonToRuleFunnelFacts;
 }
 export interface PoolPayoff {
     readonly total: number;
@@ -154,9 +206,11 @@ export interface CompoundingReport {
     readonly guardTrajectory: readonly GuardRuleTrajectory[];
     readonly replay: ReplayReadiness;
     readonly instrumentation: InstrumentationHealth;
+    readonly lessonToRuleFunnel: LessonToRuleFunnelReport;
     /** The one-line honest answer. */
     readonly verdict: string;
 }
+export declare function assembleLessonToRuleFunnel(facts: LessonToRuleFunnelFacts, nowTs: string): LessonToRuleFunnelReport;
 export declare function assembleCompoundingReport(facts: CompoundingFacts): CompoundingReport;
 export declare function renderCompoundingReport(r: CompoundingReport): string;
 //# sourceMappingURL=compounding.d.ts.map

@@ -112,7 +112,7 @@ Beyond Level 2 — adapt logic for platform-specific capabilities:
 | `/myinsights`, `/docs`, `/harvest`, `/start`, `/deploy` | ✅ universal | path-translate | **Yes** |
 | 10 skills (sparc-prd-mini, etc.) | ⚠️ Claude-specific composition | inline-compile into commands | **Compromise** — sacrifice runtime-loading |
 | 4 pre-shipped agents | ⚠️ Claude Task-tool specific | translate to platform sub-agents | **Yes if platform supports** |
-| 6 rules | ✅ universal markdown | path-translate | **Yes** |
+| 13 rules | ✅ universal markdown | path-translate | **Yes** |
 | Hooks (SessionStart insights, Stop autocommit) | ❌ Claude-only | bake into commands as instructions | **Compromise** — degraded UX |
 | Statusline dashboard | ❌ Claude-only | optional `progress.md` file? | **Skip** — Claude-exclusive feature |
 | `verify` CLI command | ✅ universal | works as-is | **Yes** (already works) |

@@ -56,6 +56,7 @@ import {
   updateReinforcementState,
   type PatternRecord,
   type RecallHit,
+  type RecallPatternsOptions,
 } from './patterns.js';
 import {
   indexPatternsToAgentdb,
@@ -202,6 +203,8 @@ export interface HybridHit {
   readonly score: number;
   /** lesson-quarantine: set only for a quarantined hit — display marks ⚠q, ranking was damped. */
   readonly quarantined?: boolean;
+  /** Form provenance from the lexical pair merge; semantic ranking never invents it. */
+  readonly matchedForm?: NonNullable<RecallHit['matchedForm']>;
   /**
    * Raw closeness from the semantic leg, when the engine reports a genuine cosine. ABSENT for a
    * lexical-only hit and for an engine whose score is not a cosine — the honest display there is a
@@ -491,7 +494,7 @@ export function isVectorNoise(text: string): boolean {
  * ingest gate — I-6). Score is the record's REAL reward, never a fabricated 1.0.
  */
 export function patternVectorEntry(p: PatternRecord, source = 'dz-teach', opts: { quarantined?: boolean } = {}): VectorEntry | undefined {
-  if (isVectorNoise(p.pattern)) return undefined;
+  if (p.lessonForm === 'class' || isVectorNoise(p.pattern)) return undefined;
   const dzId = patternRecordId(p);
   return {
     dzId,
@@ -501,7 +504,13 @@ export function patternVectorEntry(p: PatternRecord, source = 'dz-teach', opts: 
     tags: ['dz-teach', p.type],
     // FR-8: quarantine rides into the mirror so the HOOK DAEMON (which reads only the mirror's
     // sqlite metadata) can exclude unproven lessons from auto-injection.
-    metadata: { dzId, source, ts: p.ts, domain: p.domain, ...(opts.quarantined === true ? { qStatus: 'quarantined' } : {}) },
+    metadata: {
+      dzId, source, ts: p.ts, domain: p.domain,
+      ...(p.lessonForm !== undefined && p.lessonPairId !== undefined
+        ? { lessonForm: p.lessonForm, lessonPairId: p.lessonPairId }
+        : {}),
+      ...(opts.quarantined === true ? { qStatus: 'quarantined' } : {}),
+    },
   };
 }
 
@@ -525,7 +534,7 @@ export function dreamVectorEntry(d: DreamPattern): VectorEntry | undefined {
 
 /** ACL: stored {@link MemoryRecord} → {@link VectorEntry} (the consolidate-backfill mapper). */
 export function memoryRecordVectorEntry(r: MemoryRecord): VectorEntry | undefined {
-  if (isVectorNoise(r.text)) return undefined;
+  if (r.metadata?.['lessonForm'] === 'class' || isVectorNoise(r.text)) return undefined;
   const state = readReinforcementState(r);
   return {
     dzId: r.id,
@@ -533,7 +542,12 @@ export function memoryRecordVectorEntry(r: MemoryRecord): VectorEntry | undefine
     score: r.score,
     taskType: r.id.startsWith('dream:') ? 'dz-learning' : 'dz-teach',
     tags: ['dz-backfill', r.outcome],
-    metadata: { dzId: r.id, source: r.metadata?.['source'] ?? 'dz-backfill', ts: r.timestamp, skillId: r.skillId },
+    metadata: {
+      dzId: r.id, source: r.metadata?.['source'] ?? 'dz-backfill', ts: r.timestamp, skillId: r.skillId,
+      ...(r.metadata?.['lessonForm'] === 'specific' && typeof r.metadata?.['lessonPairId'] === 'string'
+        ? { lessonForm: 'specific', lessonPairId: r.metadata['lessonPairId'] }
+        : {}),
+    },
     uses: state.uses,
     avgReward: state.avgReward,
   };
@@ -939,6 +953,7 @@ export interface RankedPattern {
   readonly id: string;
   readonly pattern: PatternRecord;
   readonly backend: RecallHit['backend'];
+  readonly matchedForm?: NonNullable<RecallHit['matchedForm']>;
   /**
    * The semantic leg's raw closeness, when the engine reports a real cosine. Rides ALONGSIDE the RRF
    * score and never enters the ranking maths — four things depend on RRF magnitude (the reinforce
@@ -967,11 +982,12 @@ export function mergeHybridHits(
   opts: { readonly limit: number; readonly semanticWeight?: number | undefined },
 ): HybridHit[] {
   const weight = opts.semanticWeight ?? 1;
-  interface Acc { pattern: PatternRecord; lex?: RecallHit['backend']; sem: boolean; score: number; similarity?: number }
+  interface Acc { pattern: PatternRecord; lex?: RecallHit['backend']; sem: boolean; score: number; similarity?: number; matchedForm?: NonNullable<RecallHit['matchedForm']> }
   const acc = new Map<string, Acc>();
   lexical.forEach((h, rank) => {
     const cur = acc.get(h.id) ?? { pattern: h.pattern, sem: false, score: 0 };
     cur.lex = h.backend;
+    if (h.matchedForm !== undefined) cur.matchedForm = h.matchedForm;
     cur.score += 1 / (RRF_K + rank + 1);
     acc.set(h.id, cur);
   });
@@ -997,6 +1013,7 @@ export function mergeHybridHits(
     pattern: v.pattern,
     backend: v.lex !== undefined && v.sem ? ('both' as const) : v.lex ?? ('vector' as const),
     score: v.score,
+    ...(v.matchedForm === undefined ? {} : { matchedForm: v.matchedForm }),
     ...(v.similarity === undefined ? {} : { similarity: v.similarity }),
   });
   // `slice(0, -1)` drops the LAST element instead of returning nothing, so a negative limit used to
@@ -1105,6 +1122,8 @@ export async function recallHybrid(
      * sitting at `pulls === 0` forever. Absent ⇒ `general`; it changes nothing while disarmed.
      */
     readonly domain?: string | undefined;
+    readonly onClassDegraded?: RecallPatternsOptions['onClassDegraded'];
+    readonly classMatcher?: RecallPatternsOptions['classMatcher'];
   } = {},
 ): Promise<HybridRecall> {
   // Config-surface note (QE P3, benign by design): recall resolves the engine directly, while teach
@@ -1116,7 +1135,10 @@ export async function recallHybrid(
   // write-side backend flag.
   const limit = opts.limit ?? 10;
   const mode = opts.mode ?? 'hybrid';
-  const lexical = recallPatterns(projectRoot, query, limit);
+  const lexical = recallPatterns(projectRoot, query, limit, {
+    ...(opts.onClassDegraded === undefined ? {} : { onClassDegraded: opts.onClassDegraded }),
+    ...(opts.classMatcher === undefined ? {} : { classMatcher: opts.classMatcher }),
+  });
   const lexicalBackend: 'sqlite' | 'json' = lexical[0]?.backend === 'sqlite' ? 'sqlite' : 'json';
   const records = loadStoreRecords(projectRoot);
   const idToRecord = new Map<string, MemoryRecord>();
@@ -1223,7 +1245,12 @@ export async function recallHybrid(
         };
   const lexicalOnly = (extra: Partial<Pick<HybridRecall, 'vectorEngine' | 'vectorReason' | 'vectorError'>>): HybridRecall => {
     // `enhance` FIRST: it is what populates `banditReport` (the key is absent while disarmed).
-    const hits = enhance(lexical.map((h, rank) => ({ pattern: h.pattern, backend: h.backend, score: 1 / (RRF_K + rank + 1) })));
+    const hits = enhance(lexical.map((h, rank) => ({
+      pattern: h.pattern,
+      backend: h.backend,
+      score: 1 / (RRF_K + rank + 1),
+      ...(h.matchedForm === undefined ? {} : { matchedForm: h.matchedForm }),
+    })));
     return {
       hits,
       lexicalBackend,
@@ -1333,6 +1360,7 @@ export async function recallHybrid(
     id: identityToId.get(patternIdentityOf(h.pattern)) ?? patternRecordId(h.pattern),
     pattern: h.pattern,
     backend: h.backend,
+    ...(h.matchedForm === undefined ? {} : { matchedForm: h.matchedForm }),
   }));
   const hits = enhance(mergeHybridHits(lex, semantic, { limit, semanticWeight: mode === 'semantic' ? 2 : 1 }));
   markRecallHits(projectRoot, learning, hits, idOf, banditEmission());
@@ -1688,13 +1716,15 @@ export async function harmonizeVectorStore(projectRoot: string, opts: HarmonizeO
   } catch {
     records = [];
   }
-  const items: HarmonizeItem[] = records.map((r) => ({
-    dzId: r.id,
-    text: r.text,
-    reward: r.score,
-    ts: r.timestamp,
-    taskType: r.id.startsWith('dream:') ? 'dz-learning' : 'dz-teach',
-  }));
+  const items: HarmonizeItem[] = records
+    .filter((r) => r.metadata?.['lessonForm'] !== 'class')
+    .map((r) => ({
+      dzId: r.id,
+      text: r.text,
+      reward: r.score,
+      ts: r.timestamp,
+      taskType: r.id.startsWith('dream:') ? 'dz-learning' : 'dz-teach',
+    }));
 
   // 2. GATE: an embedder ⇒ SEMANTIC clustering; absence/failure ⇒ EXACT-text fallback (D4).
   let embed: ((text: string) => Promise<Float32Array>) | undefined;

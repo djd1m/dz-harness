@@ -51,7 +51,7 @@
   ],
   "shippedDefaults": {
     "settings.json": {
-      "hooks": { "SessionStart": [...], "Stop": [...] },
+      "hooks": { "SessionStart": [...], "UserPromptSubmit": [...], "Stop": [...] },
       "statusLine": { "type": "command", "command": "..." }
     }
   }
@@ -180,6 +180,7 @@ node .claude/hooks/state-update.cjs --json '{"currentCommand":"/run", ...}'
   },
   "hooks": {
     "SessionStart": [ /* matchers + hooks */ ],
+    "UserPromptSubmit": [ /* matchers + hooks */ ],
     "Stop": [ /* matchers + hooks */ ],
     "PreToolUse": [ /* user-added */ ],
     "PostToolUse": [ /* user-added */ ]
@@ -220,6 +221,7 @@ node .claude/hooks/state-update.cjs --json '{"currentCommand":"/run", ...}'
 
 **Event types в Claude Code:**
 - `SessionStart` — при начале сессии (stdout инжектится в context)
+- `UserPromptSubmit` — после появления реального пользовательского prompt (structured context)
 - `Stop` — при завершении turn'а (side-effects: commit, log)
 - `PreToolUse`, `PostToolUse` — вокруг tool-вызовов
 
@@ -299,10 +301,14 @@ const COMPONENTS = {
 
 ### `session-insights.cjs`
 
-**Trigger:** `SessionStart` hook.
-**Reads:** `.claude/insights/index.md` (`## YYYY-MM-DD` headings)
-**Writes:** stdout (Claude Code инжектит в session context)
-**Output:** до 3 свежих insights в `## Recent project insights\n\n## ... ## ... ## ...` format
+**Trigger:** hooks `SessionStart` и `UserPromptSubmit`.
+**Reads:** Markdown-источник истины `.claude/insights/index.md`; prompt-time выдача также вызывает
+optional `dz recall` с закреплённым корнем проекта.
+**Writes:** missing-carrier hint на SessionStart либо один context-envelope UserPromptSubmit.
+**Output:** только успешный непустой вывод recall подавляет локальную выдачу. Отсутствующий,
+падающий или пустой recall использует локальный fallback до 3 свежих Markdown-записей; failure
+назван, отсутствие и пустой вывод тихие. Writer сначала сохраняет Markdown и только затем делает
+best-effort идемпотентный дубль через `dz teach`, поэтому отказ проекции не стирает запись.
 
 ### `autocommit-roadmap.cjs` / `autocommit-insights.cjs` / `autocommit-plans.cjs`
 

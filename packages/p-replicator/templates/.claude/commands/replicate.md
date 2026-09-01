@@ -31,6 +31,7 @@ All skills are available locally. Read their SKILL.md when needed:
 | Skill | Path | Phase |
 |-------|------|-------|
 | reverse-engineering-unicorn | `.claude/skills/reverse-engineering-unicorn/SKILL.md` | Phase 0 |
+| clone-website *(EXTERNAL — not pre-shipped)* | `.claude/skills/clone-website/SKILL.md` — install `@dzhechkov/skills-website-cloner` | Phase 0.5 (recon-only) |
 | sparc-prd-mini | `.claude/skills/sparc-prd-mini/SKILL.md` | Phase 1 |
 | explore | `.claude/skills/explore/SKILL.md` | Phase 1 (dependency) |
 | goap-research-ed25519 | `.claude/skills/goap-research-ed25519/SKILL.md` | Phase 1 (dependency) |
@@ -48,10 +49,12 @@ All skills are available locally. Read their SKILL.md when needed:
 ## Pipeline
 
 ```
-INPUT → [PRODUCT DISCOVERY] → PLANNING → VALIDATION → TOOLKIT → FINALIZE
-         (optional)            sparc-prd   requirements  cc-toolkit  commit
-                               -mini       -validator    -generator  & report
+INPUT → [PRODUCT DISCOVERY] → SOURCE PRODUCT → PLANNING → VALIDATION → TOOLKIT → FINALIZE
+         (optional)            PROFILE          sparc-prd   requirements  cc-toolkit  commit
+                               (ALWAYS)         -mini       -validator    -generator  & report
 ```
+
+Фаза 0 пропускается входом `--from-docs`; **Фаза 0.5 выполняется всегда** — потому и отдельная.
 
 **Note:** sparc-prd-mini v2 already includes Explore, Research, and Solve phases
 internally via skill references. The coordinator does NOT duplicate these phases.
@@ -80,6 +83,9 @@ but distinct from generated SPARC outputs.
 ### Modified pipeline flow when triggered
 
 - **Phase 0** (Product Discovery): SKIPPED entirely (no reverse-engineering-unicorn invocation)
+- **Phase 0.5** (Source Product Profile): **RUNS — this entry does NOT skip it**; the skip is Phase 0
+  alone, and a project arriving with someone else's docs is usually a replication. Where those docs
+  describe the source, record `СНЯТ` from them; where they do not, `НЕ ИЗМЕРЕНО` with a reason.
 - **Phase 1** (sparc-prd-mini): MODIFIED
   - Run in **AUTO mode** — do NOT ask interactive clarification questions
   - SKIP internal sub-phases Explore / Research / Solve (their job is to
@@ -142,7 +148,7 @@ above, but applies to ad-hoc feature additions rather than full project bootstra
 
 ### Start
 
-1. Briefly explain the phases (4 main + 1 optional)
+1. Briefly explain the phases (4 main + 1 optional Phase 0 + the mandatory Phase 0.5)
 2. Mention the target architecture (distributed monolith + Docker на VPS)
 3. Determine project type → is Product Discovery needed?
 4. Begin with the relevant phase
@@ -207,6 +213,103 @@ project has no growth requirements, and no consumer may read it that way.
 ═══════════════════════════════════════════════════════════════
 ```
 
+### Phase 0.5: SOURCE PRODUCT PROFILE (обязательная — выполняется ВСЕГДА)
+
+Когда проект воспроизводит существующий продукт, его ОБЛИК — палитра, типографика, плотность,
+компоновка экранов, порядок шагов — сердцевина задачи, а не приятность. Все шесть модулей Фазы 0
+разбирают бизнес, а палитру `025-cjm-prototype.md` НАЗНАЧАЛ по отрасли: конвейер, чья задача
+воспроизвести продукт, выдумывал ему внешность.
+
+**Почему ОТДЕЛЬНАЯ фаза, а не модуль Фазы 0.** Вход `--from-docs` / `--skip-discovery` пропускает
+Фазу 0 целиком. Модуль внутри неё выключился бы ровно для проектов с чужой документацией — то есть
+чаще всего именно для клонов. Поэтому фаза стоит ПОСЛЕ чекпоинта Фазы 0 и от него не зависит.
+
+**Съёмка — навык `clone-website` из ОТДЕЛЬНОГО пакета
+[`@dzhechkov/skills-website-cloner`](https://www.npmjs.com/package/@dzhechkov/skills-website-cloner),
+режим только разведка. ВЫЗЫВАЕТСЯ, НЕ КОПИРУЕТСЯ** — вендорить его сюда запрещено (ADR-0001 +
+`sources.json`): `npx @dzhechkov/skills-website-cloner init`. Навыка нет или браузерный MCP
+недоступен → исход `НЕ ИЗМЕРЕНО (no-browser-mcp)`; фаза всё равно выполняется, конвейер не встаёт.
+
+**Артефакт `docs/source-product-profile.md` — пишется ВСЕГДА, во всех трёх исходах:**
+
+```markdown
+**Источник:** Senja — https://senja.io   (либо `нет`)
+**Статус съёмки:** СНЯТ                  (ось «облик»; ровно одно: СНЯТ | НЕ ИЗМЕРЕНО | ИСТОЧНИКА НЕТ)
+**Причина:** —                           (обязательна при НЕ ИЗМЕРЕНО, из закрытого списка ниже)
+**Статус съёмки (путь):** СНЯТ           (ось «путь»; обязательна, когда строк оси «путь» НЕТ)
+**Причина (путь):** —                    (обязательна при НЕ ИЗМЕРЕНО оси «путь»)
+
+## 🎨 Look Requirements Seed
+
+| ID | Обязательство (ЧЕРНОВИК) | Ось | Источник-экран | Уверенность | Статус |
+|----|---|---|---|---|---|
+| FR-LOOK-001 | [что обязаны воспроизвести] | облик | [URL/скриншот] | [как измерено] | ЧЕРНОВИК |
+```
+
+Закрытый список причин, каждая означает СВОЙ ремонт: `no-browser-mcp` · `no-browser` ·
+`unreachable` · `auth-required` · `out-of-scope` · `bot-protected` · `timeout` ·
+`robots-disallowed`.
+
+`FR-LOOK-<nnn>` — ОДНО семейство: три цифры, по порядку, номер не переиспользуется. Ось (`облик` —
+что видно; `путь` — в каком порядке идут экраны) это КОЛОНКА, а не второе пространство имён: два
+семейства пришлось бы держать в согласии, одно с колонкой — нет. Полные правила строки и то, что
+именно считается заполненной строкой, — в шапке `.claude/hooks/check-look-trace.cjs`.
+
+**Две оси отвечают ПОРОЗНЬ, потому что и отказывают порознь:** лендинг снимается, а прокликивание
+упирается в 403 — один общий статус обязан был бы соврать про одну из осей. Строки оси «путь» и
+есть её ответ; объявление `**Статус съёмки (путь):**` требуется, только когда таких строк НЕТ.
+
+**Инструмент оси «путь» — прокликивание браузером:**
+
+```bash
+node .claude/hooks/capture-source-path.cjs <url> --max-pages 5 --delay-ms 1500
+```
+
+`0` снято, строки `FR-LOOK-nnn` с осью `путь` на stdout · `1` источник открылся, перехода нет
+(одноэкранный продукт — законный `ИСТОЧНИКА НЕТ` для этой оси) · `2` НЕ ИЗМЕРЕНО с причиной из
+списка. Playwright — ВНЕШНЕЕ предусловие (у пакета ноль зависимостей): нет его → честный
+`no-browser`, конвейер не встаёт. Границы съёмки — в `replicate-pipeline.md`, раздел Фазы 0.5;
+они не пожелание, а условие законности.
+
+**ТРИ исхода, и третий — тот, ради которого фаза написана именно так:**
+
+| Исход | Когда | Откуда палитра |
+|---|---|---|
+| `СНЯТ` | облик собран | из источника; отраслевая таблица `025` НЕ применяется |
+| `НЕ ИЗМЕРЕНО` | источник НАЗВАН, снять не удалось (причина из списка) | отраслевая, ПОДПИСАННАЯ как фолбэк |
+| `ИСТОЧНИКА НЕТ` | проект ничего не воспроизводит | отраслевая, ПОДПИСАННАЯ как фолбэк |
+
+Правило `honest-configuration` CFG-I4: недостижимый источник истины даёт UNKNOWN, никогда
+правдоподобное значение. «Источник назван, но не снят» — честное «неизвестно», а не «требований по
+облику нет».
+
+**Ворота фазы — детерминированная проверка, после записи профиля:**
+
+```bash
+node .claude/hooks/check-look-trace.cjs .
+```
+
+`0` все строки доехали до `docs/Specification.md` либо отклонены с причиной · `1` потеря доказана,
+потерянные id названы · `2` **проверка НЕ выполнена** (нет профиля, нет спецификации, шаблон не
+тронут, ось «путь» пуста и не объявлена, либо исход не `СНЯТ`) — это НЕ «всё в порядке». До Фазы 1
+код `2` ожидаем: промоушена ещё не было, и здесь проверка отвечает только на вопрос «профиль
+написан и разбирается ли он».
+
+**Куда это идёт.** Фаза 1 промотирует принятые строки `FR-LOOK-nnn` в `docs/Specification.md` — так
+же, как `FR-GROWTH-nnn`. Фаза НЕ утверждает, что интерфейс похож на источник: она ловит ровно один
+класс потерь — облик посмотрели и забыли. Похожесть доказывает визуальное сравнение.
+
+**Checkpoint:**
+```
+═══════════════════════════════════════════════════════════════
+✅ PHASE 0.5: SOURCE PRODUCT PROFILE
+Источник: [название | нет] · облик: [СНЯТ | НЕ ИЗМЕРЕНО (причина) | ИСТОЧНИКА НЕТ]
+                           · путь:  [СНЯТ | НЕ ИЗМЕРЕНО (причина) | ИСТОЧНИКА НЕТ]
+Обязательств по облику: [N]  (облик: [N] · путь: [N])
+⏸️ "ок" — next | "превью облик" — show profile
+═══════════════════════════════════════════════════════════════
+```
+
 ### Phase 1: PLANNING
 
 Read the skill: `.claude/skills/sparc-prd-mini/SKILL.md`
@@ -233,6 +336,10 @@ Product Context: # From Phase 0 (if applicable)
   differentiation: [from Blue Ocean]
   monetization: [from Unit Economics]
 
+Source Look Context: # From Phase 0.5 (ALWAYS present — one of the three outcomes)
+  capture_status: [СНЯТ | НЕ ИЗМЕРЕНО (причина) | ИСТОЧНИКА НЕТ]
+  look_obligations: [rows of docs/source-product-profile.md, FR-LOOK-nnn]
+
 Security Pattern: # If external integrations
   api_keys_input: "UI Settings > Integrations"
   storage: "Encrypted IndexedDB (AES-GCM 256-bit)"
@@ -256,6 +363,18 @@ Write all 11 documents to `docs/`:
 - `docs/Final_Summary.md`
 - `docs/C4_Diagrams.md` (if applicable)
 - `docs/ADR.md` (if applicable)
+
+**Промоушен семян — один шаг для двух семейств.** Принятые строки `FR-GROWTH-nnn` (из
+`docs/product-discovery-brief.md`) и `FR-LOOK-nnn` (из `docs/source-product-profile.md`) переносятся
+в `docs/Specification.md` — каждая либо как требование, либо как отклонение С ПРИЧИНОЙ в той же
+строке. Молча уронить нельзя: это ловят `check-growth-trace.cjs` и `check-look-trace.cjs`.
+
+**The handoff manifest is WIDER than the two seeds.** Phase 0 ends the brief with
+`## Манифест передачи` — the enumerated outputs of the REAL run, each with a stable `PD-WORD-nnn`
+id. Phase 1 MUST answer for EVERY one: cite it in a Phase-1 document, or reject it WITH A REASON.
+Silence is forbidden, because an output nobody must answer for is written the same way whether it
+was used or dropped. Checked by `node .claude/hooks/check-handoff-manifest.cjs .` — `2` means THE
+CHECK DID NOT RUN, never "all clear".
 
 Git commit: `docs: SPARC documentation for [project-name]`
 
@@ -295,6 +414,7 @@ Created [N] documents in docs/
 
 ```bash
 node .claude/hooks/check-docs-complete.cjs .
+node .claude/hooks/check-external-deps.cjs .
 ```
 
 | Код | Что делать |
@@ -303,6 +423,11 @@ node .claude/hooks/check-docs-complete.cjs .
 | `1` | **НЕ запускайте рой.** Вернитесь в Фазу 1 и допишите названные документы |
 | `2` | проверка не выполнена — почините вызов и повторите; это НЕ «всё в порядке» |
 
+**Инвентарь внешних зависимостей ОБЯЗАН СУЩЕСТВОВАТЬ, и отсутствующий раздел — это НЕ «зависимостей
+нет».** На пустом множестве зелёный вердикт «ни одна внешняя зависимость не UNCONFIRMED и не
+CONTRADICTED» истинен САМ СОБОЙ — вакуумная истина в роли проверки. Продукт, который действительно
+никого не зовёт, пишет это дословно.
+
 Причина, по которой шаг стоит здесь, а не внутри роя: существование файла, его пустота и
 незаполненный шаблон решаются сорока строками кода. Отправлять на этот вопрос рой агентов — значит
 платить вероятностной проверкой за то, что решается детерминированно. Рою остаётся то, ради чего он
@@ -310,6 +435,47 @@ node .claude/hooks/check-docs-complete.cjs .
 
 Ограничение, которое проверка печатает сама: она доказывает, что документы НАПИСАНЫ, а не что они
 верны. Верность — работа роя.
+
+**Шаги 2.1–2.4 — условные критерии приёмки.** Каждый применяется, только если продукт несёт
+соответствующую поверхность; иначе законный ответ — «нет такой поверхности», и он тоже даёт `2`.
+
+**Шаг 2.1 — ВСТРАИВАЕМЫЙ ВИДЖЕТ** — если продукт грузится на ЧУЖИЕ страницы. Отказывает тремя способами,
+невидимыми при проверке на своём origin. Правило — `.claude/rules/embeddable-widget.md`.
+
+```bash
+node .claude/hooks/check-embed-contract.cjs .
+```
+
+`0` проверено · `1` дефект ДОКАЗАН и назван · `2` проверка НЕ ВЫПОЛНЕНА — и это НЕ «в порядке».
+
+**Шаг 2.2 — ДОЛГАЯ ЗАДАЧА** — если одна операция работает МИНУТЫ. «Нет ответа» и «выполняется» — разные
+факты; их неразличимость даёт потерянный результат при списанных деньгах, повтор с нуля и третью
+копию. Правило — `.claude/rules/long-running-job.md`.
+
+```bash
+node .claude/hooks/check-job-contract.cjs .
+```
+
+`0` проверено · `1` дефект ДОКАЗАН и назван · `2` проверка НЕ ВЫПОЛНЕНА — и это НЕ «в порядке».
+
+**Шаг 2.3 — ВХОДЯЩИЕ ВЕБХУКИ** — если в продукт звонят снаружи. Одно событие приходит несколько раз по
+построению, и прислать его может кто угодно. Правило — `.claude/rules/incoming-webhooks.md`.
+
+```bash
+node .claude/hooks/check-webhook-contract.cjs .
+```
+
+`0` проверено · `1` дефект ДОКАЗАН и назван · `2` проверка НЕ ВЫПОЛНЕНА — и это НЕ «в порядке».
+
+**Шаг 2.4 — СТОИМОСТЬ ВЫЗОВОВ МОДЕЛИ** — если продукт зовёт платную модель. Счётчик крутит посетитель, а
+потраченного не вернуть: несконфигурированный потолок обязан валить запуск, а не значить
+бесконечность. Правило — `.claude/rules/model-call-cost.md`.
+
+```bash
+node .claude/hooks/check-model-cost.cjs .
+```
+
+`0` проверено · `1` дефект ДОКАЗАН и назван · `2` проверка НЕ ВЫПОЛНЕНА — и это НЕ «в порядке».
 
 Read the skill: `.claude/skills/requirements-validator/SKILL.md`
 
@@ -328,6 +494,15 @@ Read the skill: `.claude/skills/requirements-validator/SKILL.md`
 
 The sixth lens is the only one that looks OUTSIDE the documents. The other five compare our own
 output with our own output, which cannot discover that a service does not do what we assumed.
+
+**Positive file receipt (required).** Before dispatch, allocate one `RUN_ID` and give every
+validation lens a unique `WORK_UNIT_ID` and absolute `TRACE_PATH`. Each validator must write a
+substantive report fragment ending in `Status: completed` or `Status: failed` to `TRACE_PATH` before
+its one-line pointer. Before AGGREGATE, verify every path is a regular non-symlink file,
+non-whitespace, post-launch, and terminal. Narrative output or silence is not a receipt. Name
+missing, stale, partial, unreadable, duplicate, failed, dead-PID, or probe-error lenses and refuse
+aggregation/completion unless every required receipt is valid and completed. See
+`.claude/rules/swarm-file-evidence.md`.
 
 **Process (iterative, max 3 iterations):**
 
@@ -475,7 +650,7 @@ Read the skill: `.claude/skills/cc-toolkit-generator-enhanced/SKILL.md`
 - **Pre-shipped by `npx p-replicator init` — do NOT overwrite or regenerate:**
   - All 10 skills in `.claude/skills/`
   - All 11 commands: `/replicate`, `/harvest`, `/start`, `/plan`, `/feature`, `/go`, `/run`, `/next`, `/myinsights`, `/docs`, `/deploy`
-  - All 6 rules: `replicate-pipeline`, `skill-interface-protocol`, `git-workflow`, `insights-capture`, `feature-lifecycle`, `docker-ports`
+  - All 13 rules: `cost-of-detection-ladder`, `docker-ports`, `embeddable-widget`, `feature-lifecycle`, `git-workflow`, `honest-configuration`, `incoming-webhooks`, `insights-capture`, `long-running-job`, `model-call-cost`, `replicate-pipeline`, `skill-interface-protocol`, `swarm-file-evidence`
   - All 4 pipeline agents: `replicate-coordinator`, `product-discoverer`, `doc-validator`, `harvest-coordinator`
   - `.claude/settings.json` + cross-platform Node hook scripts in `.claude/hooks/`
 - Phase 3 generates ONLY project-specific artifacts derived from SPARC docs (see below).
@@ -626,6 +801,7 @@ PRINCIPLE: User enters keys via UI → stored encrypted in browser → NEVER sen
 | `ок` | Next phase |
 | `превью [filename]` | View generated file |
 | `превью discovery` | Show Product Discovery Brief |
+| `превью облик` | Show Source Product Profile (Phase 0.5) |
 | `превью validation` | Show Validation Report |
 | `превью toolkit` | Show toolkit structure |
 
@@ -633,6 +809,9 @@ PRINCIPLE: User enters keys via UI → stored encrypted in browser → NEVER sen
 
 ### ALWAYS
 - Read skill SKILL.md before executing its logic
+- Run Phase 0.5 in EVERY run, including `--from-docs`, and write `docs/source-product-profile.md` in
+  all three outcomes — an absent profile and one saying «источника нет» look identical to the next
+  reader and mean different things
 - Checkpoint after each phase
 - Pass Architecture Constraints to sparc-prd-mini
 - Write docs to `docs/` directory (not `/output/`)
@@ -648,4 +827,6 @@ PRINCIPLE: User enters keys via UI → stored encrypted in browser → NEVER sen
 ### CONDITIONAL
 - If external APIs → include security-patterns/ skill + secrets-management.md rule
 - If new product → start with Phase 0 (Product Discovery)
+- If the project replicates an existing product → Phase 0.5's captured look SUPERSEDES the industry
+  palette of `025-cjm-prototype.md`, which is a LABELLED fallback for the other two outcomes only
 - If B2B/Enterprise → strengthen security patterns in validation

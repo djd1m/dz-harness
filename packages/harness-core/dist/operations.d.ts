@@ -9,6 +9,9 @@ import { type CodexHooksPaths, type HooksListHookMetadata } from './codex-hooks.
 import { type CodexHookTrustStatus, type VetoProbeEvidence, type VetoProbeResult } from './codex-hooks-verify.js';
 import type { SkillApplyFailure, SkillLoadFailure } from './skills.js';
 import type { TargetName } from './targets.js';
+import { type IntegrationOutcome, type IntegrationManifestSource } from './target-integrations.js';
+import { type IntegrationApplyFault } from './integration-apply.js';
+import { type IntegrationProcessPort } from './integrations-verify.js';
 import { type AgentsMdBudget, type PolicyDriftFinding, type PolicySource } from './agents-policy.js';
 /** Options for {@link runInit}. */
 export interface InitOptions {
@@ -23,6 +26,24 @@ export interface InitOptions {
     readonly select?: readonly string[];
     /** When set, generate platform-specific enrichment files alongside SKILL.md. */
     readonly enrich?: boolean;
+    /** Exact content-bound digest printed by the first integration-aware run. */
+    readonly allowIntegrations?: string;
+    /** Explicit hook opt-out; maps hooks to not-requested. */
+    readonly noHooks?: boolean;
+    /** Explicit skills-only opt-out, even when selected skills carry manifests. */
+    readonly noIntegrations?: boolean;
+    /** Live verification is load-bearing; requesting this flag makes requested integrations refuse. */
+    readonly noVerify?: boolean;
+    /** Injectable process boundary for deterministic integration tests. */
+    readonly integrationProcessPort?: IntegrationProcessPort;
+    /** Test-only fault at the carrier/ownership-journal durability boundary. */
+    readonly integrationApplyFault?: IntegrationApplyFault;
+    /**
+     * Install-level manifest sources. The CLI supplies this only on the first
+     * per-directory run so companion planning, authorization, and probing happen
+     * exactly once across every discovered skill pack.
+     */
+    readonly integrationManifestSources?: readonly IntegrationManifestSource[];
 }
 /** Per-skill outcome of {@link runInit}. */
 export interface InitSkillResult {
@@ -64,6 +85,10 @@ export interface InitReport {
      * any per-skill loop.
      */
     readonly applyFailures: readonly SkillApplyFailure[];
+    /** Exactly two ordered companion outcomes: MCP, then hooks. */
+    readonly integrations: readonly [IntegrationOutcome, IntegrationOutcome];
+    /** Safe digest used by `--allow-integrations`; absent when no manifest exists. */
+    readonly integrationDigest?: string;
 }
 /** Options for {@link runInitAgentsMd} / {@link runInitGeminiMd}. */
 export interface AgentsMdInitOptions {
@@ -78,6 +103,8 @@ export interface AgentsMdInitOptions {
     readonly projectRoot: string;
     /** When set, install only these skill ids (a preset selection). */
     readonly select?: readonly string[] | undefined;
+    readonly noHooks?: boolean;
+    readonly noIntegrations?: boolean;
 }
 /** The parts of a single-file managed-Markdown target that vary by filename. */
 interface SingleFileMdConfig {

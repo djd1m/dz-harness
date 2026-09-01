@@ -70,11 +70,46 @@ implementation diffs.
 Read: `.claude/skills/sparc-prd-mini/SKILL.md`
 
 Generate per-feature SPARC docs in `docs/features/<feature>/`:
-- `01_specification.md` — requirements + acceptance criteria
-- `02_pseudocode.md` — algorithms + data flow
-- `03_architecture.md` — component placement + dependencies
-- `04_refinement.md` — edge cases + error paths
-- `05_completion.md` — testing + deployment notes
+
+### Phase 1 document role map
+
+`/feature` owns these per-feature filenames. Pass the complete map to `sparc-prd-mini`; the skill
+addresses the documents by role and must not redeclare these names.
+
+```yaml
+TARGET_CATALOG: docs/features/<feature>/
+DOCUMENT_ROLE_MAP:
+  specification: 01_specification.md
+  pseudocode: 02_pseudocode.md
+  architecture: 03_architecture.md
+  refinement: 04_refinement.md
+  completion: 05_completion.md
+```
+
+- `specification` — requirements + acceptance criteria
+- `pseudocode` — algorithms + data flow
+- `architecture` — component placement + dependencies
+- `refinement` — edge cases + error paths
+- `completion` — testing + deployment notes
+
+#### Blocking machine-key traceability gate
+
+After all five role targets are written, but before emitting the Phase 1 checkpoint or starting
+Phase 2, run the installed package utility from the project root:
+
+```bash
+CHECK_PIPELINE_GAPS="$(node -p "require.resolve('@dzhechkov/p-replicator/scripts/check-pipeline-gaps.sh')")" || {
+  printf 'NOT-ESTABLISHED packaged checker could not be resolved\n' >&2
+  exit 2
+}
+bash "$CHECK_PIPELINE_GAPS" "${CLAUDE_PROJECT_DIR:-.}" --traceability
+```
+
+Preserve its status and diagnostic verbatim. Exit `0` is the only advancing result. Exit `1` means
+named `specification->pseudocode` or `pseudocode->specification` gaps and returns to Phase 1 for
+repair. Exit `2` means the role map or document evidence is not established and stops the pipeline
+until that input is repaired. This rule is identical in MANUAL and AUTO modes; never turn either
+non-zero status into a warning.
 
 **Checkpoint:**
 ```
@@ -102,10 +137,47 @@ Output: `docs/features/<feature>/validation-report.md`
 
 1. Read SPARC docs from Phase 1
 2. Identify independent work units
-3. Spawn parallel `Task` tool calls, one per unit
-4. Each Task: implement + write tests + commit
-5. Coordinator merges/integrates after Tasks complete
-6. Run full test suite
+3. Establish the positive file receipt contract below
+4. Spawn parallel `Task` tool calls, one per unit
+5. Each Task: implement + write tests + commit + deliver its trace
+6. Coordinator validates every trace before merge/integration
+7. Run full test suite
+
+#### Canon before dispatch (required)
+
+**The canon MUST be frozen BEFORE dispatch.** Parallel units are N writers deriving names and
+numbers from one source; the collision exists ONLY IN THE UNION, so no worker can see it and no
+receipt can catch it. The coordinator records `docs/dispatch-plan.md` — the canon path and its
+sha256 — or runs the units sequentially.
+
+The same plan MUST assign OWNERSHIP: exactly one writer per file, the coordinator included, and a
+file born by SPLITTING another gets its owner AT CREATION — ownership never travels by itself.
+
+Every EDIT and every VERDICT MUST declare the sha256 of the source it was built on; a
+mismatch with the live file is a refusal WITHOUT mutation — a read copy is a snapshot of the moment
+of reading, not of the file.
+
+Field forms and closed value lists are in the checkers' headers:
+
+```bash
+node .claude/hooks/check-canon.cjs .
+node .claude/hooks/check-file-ownership.cjs .
+node .claude/hooks/check-source-version.cjs .
+```
+
+`0` frozen and intact · `1` a defect is PROVEN and named · `2` **THE CHECK DID NOT RUN**, which is
+never "all clear".
+
+#### Positive file receipt (required)
+
+Before dispatch, allocate one `RUN_ID` and, for every independent unit, a unique `WORK_UNIT_ID`.
+Resolve `TRACE_PATH` to an absolute path unique to `(RUN_ID, WORK_UNIT_ID)` and pass both fields.
+Require the worker to write a substantive body ending in `Status: completed` or `Status: failed` to
+`TRACE_PATH` before returning a one-line pointer. Before integration, verify each path is a regular
+non-symlink file, non-whitespace, post-launch, and terminal. Narrative output or silence is not a
+receipt. Name missing, stale, partial, unreadable, duplicate, failed, dead-PID, or probe-error units
+and refuse merge/completion unless every required receipt is valid and completed. See
+`.claude/rules/swarm-file-evidence.md` for mechanics and the bounded non-atomic-write exception.
 
 ### Phase 4: REVIEW (brutal-honesty-review)
 
@@ -123,6 +195,7 @@ Findings classified by severity. Critical (blocker | high) MUST be fixed.
 
 Skip per-phase user confirmations. Auto-decisions:
 - Phase 1: proceed if all docs exist
+- Phase 1 traceability: proceed only when `check-pipeline-gaps.sh` exits `0`; preserve exit `1`/`2`
 - Phase 2: proceed if 🟢 or 🟡; auto-retry once on 🔴
 - Phase 3: proceed if tests + lint + build green
 - Phase 4: auto-fix `high` if straightforward; halt on `blocker`

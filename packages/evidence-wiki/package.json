@@ -1,10 +1,10 @@
 {
   "name": "@dzhechkov/evidence-wiki",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
-  "description": "Evidence-disciplined wiki plugin \u2014 atomic concept pages where every claim carries inline sources.",
+  "description": "Evidence-disciplined wiki plugin — atomic concept pages where every claim carries inline sources.",
   "license": "MIT",
   "author": "dzhechko",
   "keywords": [
@@ -33,8 +33,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/evidence-wiki"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/evidence-wiki#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/evidence-wiki#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

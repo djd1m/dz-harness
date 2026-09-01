@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-openclaude",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "OpenClaude platform adapter - compiles canonical skills into the .openclaude/skills tree.",
   "type": "module",
   "license": "MIT",
@@ -52,8 +52,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/adapter-openclaude"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/adapter-openclaude#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-openclaude#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

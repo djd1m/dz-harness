@@ -16,6 +16,11 @@
  */
 
 import { EVENT_CHAIN_SCOPE, verifyEventChainText } from './event-chain.js';
+import {
+  isOffsetIsoTimestamp,
+  type PromotionAcceptanceEvidence,
+  type PromotionRunEvidence,
+} from './guard-promotion.js';
 
 // ── Seeded statistics (verbatim-shape port from darwin-mode bench/stats.ts) ──
 
@@ -151,8 +156,52 @@ export function replayableInstances(
 
 export interface GuardEvent {
   readonly ts: string;
+  readonly op?: 'publish' | 'teach' | 'consolidate' | 'reindex';
   readonly verdict: string;
   readonly rules: readonly string[]; // violated rule ids
+  readonly violations?: readonly { readonly rule: string; readonly contentAnchor?: string }[];
+}
+
+export type FunnelEvidenceSource<T> =
+  | { readonly status: 'measured'; readonly rows: readonly T[] }
+  | { readonly status: 'not-measured'; readonly reason: string };
+
+export interface LessonToRuleFunnelFacts {
+  readonly promotionRuns: FunnelEvidenceSource<PromotionRunEvidence>;
+  readonly guardAudits: FunnelEvidenceSource<GuardEvent>;
+  readonly promotionAcceptances?: readonly PromotionAcceptanceEvidence[];
+  readonly truncatedPromotionPeriods?: readonly string[];
+  readonly acceptanceHistoryComplete?: boolean;
+}
+
+export type LessonToRuleStage = 'eligible' | 'attempted' | 'accepted' | 'executions';
+export type FunnelStageMeasurement =
+  | { readonly status: 'measured'; readonly value: number }
+  | { readonly status: 'not-measured'; readonly reason: string };
+
+export interface LessonToRuleFunnelPeriod {
+  readonly period: string;
+  readonly eligible: FunnelStageMeasurement;
+  readonly attempted: FunnelStageMeasurement;
+  readonly accepted: FunnelStageMeasurement;
+  readonly executions: FunnelStageMeasurement;
+}
+
+export interface LessonToRuleFunnelFinding {
+  readonly predecessor: LessonToRuleStage;
+  readonly stage: LessonToRuleStage;
+  readonly fromPeriod: string;
+  readonly toPeriod: string;
+  readonly counts: readonly {
+    readonly period: string;
+    readonly predecessor: number;
+    readonly successor: number;
+  }[];
+}
+
+export interface LessonToRuleFunnelReport {
+  readonly periods: readonly LessonToRuleFunnelPeriod[];
+  readonly findings: readonly LessonToRuleFunnelFinding[];
 }
 
 /**
@@ -175,6 +224,8 @@ export interface CompoundingFacts {
   readonly evidenceLogs?: readonly EvidenceLogFact[];
   /** Depth of the command-invocation corpus. `null` means no readable log, never zero-by-default. */
   readonly cmdUsageDepthDays?: number | null;
+  /** Prospective route observations; absence is explicit NOT MEASURED, never an empty funnel. */
+  readonly lessonToRule?: LessonToRuleFunnelFacts;
 }
 
 // ── The report ──────────────────────────────────────────────────────
@@ -244,11 +295,202 @@ export interface CompoundingReport {
   readonly guardTrajectory: readonly GuardRuleTrajectory[];
   readonly replay: ReplayReadiness;
   readonly instrumentation: InstrumentationHealth;
+  readonly lessonToRuleFunnel: LessonToRuleFunnelReport;
   /** The one-line honest answer. */
   readonly verdict: string;
 }
 
 const APPLY_LEG_STALE_DAYS = 7;
+const FUNNEL_MONTH_LIMIT = 12;
+
+const LESSON_TO_RULE_FUNNEL_POLICY = {
+  unavailable: (reason: string): FunnelStageMeasurement => ({ status: 'not-measured', reason }),
+  successor: (stage: LessonToRuleStage): LessonToRuleStage => stage,
+};
+
+function utcMonth(ts: string): string | null {
+  return isOffsetIsoTimestamp(ts) ? new Date(Date.parse(ts)).toISOString().slice(0, 7) : null;
+}
+
+function monthOffset(period: string, delta: number): string {
+  const [year, month] = period.split('-').map(Number);
+  return new Date(Date.UTC(year!, month! - 1 + delta, 1)).toISOString().slice(0, 7);
+}
+
+function funnelPeriods(facts: LessonToRuleFunnelFacts, nowTs: string): string[] {
+  const evidenceMonths: string[] = [];
+  if (facts.promotionRuns.status === 'measured') {
+    for (const row of facts.promotionRuns.rows) {
+      const period = utcMonth(row.ts);
+      if (period !== null) evidenceMonths.push(period);
+    }
+  }
+  if (facts.guardAudits.status === 'measured') {
+    for (const row of facts.guardAudits.rows) {
+      const period = utcMonth(row.ts);
+      if (period !== null) evidenceMonths.push(period);
+    }
+  }
+  for (const period of facts.truncatedPromotionPeriods ?? []) evidenceMonths.push(period);
+  const current = utcMonth(nowTs) ?? evidenceMonths.sort().at(-1) ?? '1970-01';
+  const floor = monthOffset(current, -(FUNNEL_MONTH_LIMIT - 1));
+  const earliest = evidenceMonths.filter((period) => period >= floor && period <= current).sort()[0] ?? current;
+  const periods: string[] = [];
+  for (let period = earliest; period <= current; period = monthOffset(period, 1)) periods.push(period);
+  return periods;
+}
+
+function promotionMeasurements(
+  facts: LessonToRuleFunnelFacts,
+  period: string,
+): Pick<LessonToRuleFunnelPeriod, 'eligible' | 'attempted' | 'accepted'> {
+  if (facts.promotionRuns.status === 'not-measured') {
+    const unavailable = LESSON_TO_RULE_FUNNEL_POLICY.unavailable(facts.promotionRuns.reason);
+    return { eligible: unavailable, attempted: unavailable, accepted: unavailable };
+  }
+  if (facts.truncatedPromotionPeriods?.includes(period) === true) {
+    const unavailable = LESSON_TO_RULE_FUNNEL_POLICY.unavailable(`promotion-history-pruned:${period}`);
+    return { eligible: unavailable, attempted: unavailable, accepted: unavailable };
+  }
+  const runs = facts.promotionRuns.rows.filter((row) => utcMonth(row.ts) === period);
+  if (runs.length === 0) {
+    const unavailable = LESSON_TO_RULE_FUNNEL_POLICY.unavailable(`promotion-run-not-recorded:${period}`);
+    return { eligible: unavailable, attempted: unavailable, accepted: unavailable };
+  }
+  if (runs.some((row) => row.complete !== true)) {
+    const unavailable = LESSON_TO_RULE_FUNNEL_POLICY.unavailable(`promotion-run-incomplete:${period}`);
+    return { eligible: unavailable, attempted: unavailable, accepted: unavailable };
+  }
+  const eligible = new Set<string>();
+  const attempted = new Set<string>();
+  const accepted = new Set<string>();
+  for (const run of runs) {
+    for (const candidate of run.candidates) {
+      if (candidate.eligible !== true) continue;
+      eligible.add(candidate.candidateAnchor);
+      if (typeof candidate.ruleContentAnchor !== 'string' || candidate.ruleContentAnchor === '') continue;
+      attempted.add(candidate.candidateAnchor);
+      if (candidate.verdict === 'promote') accepted.add(candidate.candidateAnchor);
+    }
+  }
+  return {
+    eligible: { status: 'measured', value: eligible.size },
+    attempted: { status: 'measured', value: attempted.size },
+    accepted: { status: 'measured', value: accepted.size },
+  };
+}
+
+function executionMeasurement(
+  facts: LessonToRuleFunnelFacts,
+  period: string,
+): FunnelStageMeasurement {
+  if (facts.promotionRuns.status === 'not-measured') {
+    return LESSON_TO_RULE_FUNNEL_POLICY.unavailable(facts.promotionRuns.reason);
+  }
+  if (facts.guardAudits.status === 'not-measured') {
+    return LESSON_TO_RULE_FUNNEL_POLICY.unavailable(facts.guardAudits.reason);
+  }
+  const periodAudits = facts.guardAudits.rows.filter((row) => utcMonth(row.ts) === period);
+  if (periodAudits.length === 0) {
+    return LESSON_TO_RULE_FUNNEL_POLICY.unavailable(`guard-audit-not-recorded:${period}`);
+  }
+  const audits = periodAudits.filter((row) => row.op === 'publish');
+  if (audits.length === 0) {
+    return LESSON_TO_RULE_FUNNEL_POLICY.unavailable(`guard-publish-not-recorded:${period}`);
+  }
+  const violations = audits.flatMap((audit) => {
+    const observed: readonly { readonly rule: string; readonly contentAnchor?: string }[] =
+      audit.violations ?? audit.rules.map((rule) => ({ rule }));
+    return observed.map((violation) => ({ ...violation, auditTs: Date.parse(audit.ts) }));
+  });
+  if (violations.some((item) => item.rule.startsWith('promoted-') && !item.contentAnchor)) {
+    return LESSON_TO_RULE_FUNNEL_POLICY.unavailable(`guard-audit-anchor-missing:${period}`);
+  }
+  const acceptances = facts.promotionAcceptances ?? facts.promotionRuns.rows.flatMap((run) =>
+    run.complete !== true
+      ? []
+      : run.candidates
+        .filter((candidate) => candidate.eligible === true && candidate.verdict === 'promote' && candidate.ruleContentAnchor)
+        .map((candidate) => ({ ruleContentAnchor: candidate.ruleContentAnchor!, acceptedTs: run.ts })),
+  );
+  const acceptedAt = new Map<string, number>();
+  for (const acceptance of acceptances) {
+    const acceptedTs = Date.parse(acceptance.acceptedTs);
+    const prior = acceptedAt.get(acceptance.ruleContentAnchor);
+    if (Number.isFinite(acceptedTs) && (prior === undefined || acceptedTs < prior)) {
+      acceptedAt.set(acceptance.ruleContentAnchor, acceptedTs);
+    }
+  }
+  const unattributedPromoted = violations.some((item) =>
+    item.rule.startsWith('promoted-') &&
+    typeof item.contentAnchor === 'string' &&
+    (acceptedAt.get(item.contentAnchor) === undefined || acceptedAt.get(item.contentAnchor)! > item.auditTs),
+  );
+  const acceptanceHistoryComplete = facts.acceptanceHistoryComplete ??
+    facts.promotionRuns.rows.every((run) => run.complete === true);
+  if (unattributedPromoted && !acceptanceHistoryComplete) {
+    return LESSON_TO_RULE_FUNNEL_POLICY.unavailable(`promotion-acceptance-history-incomplete:${period}`);
+  }
+  return {
+    status: 'measured',
+    value: violations.filter((item) =>
+      typeof item.contentAnchor === 'string' &&
+      acceptedAt.has(item.contentAnchor) &&
+      acceptedAt.get(item.contentAnchor)! <= item.auditTs,
+    ).length,
+  };
+}
+
+function funnelFindings(periods: readonly LessonToRuleFunnelPeriod[]): LessonToRuleFunnelFinding[] {
+  const edges: readonly [LessonToRuleStage, LessonToRuleStage][] = [
+    ['eligible', 'attempted'],
+    ['attempted', 'accepted'],
+    ['accepted', 'executions'],
+  ];
+  const findings: LessonToRuleFunnelFinding[] = [];
+  for (const [predecessor, successor] of edges) {
+    let streak: LessonToRuleFunnelPeriod[] = [];
+    const emit = (): void => {
+      if (streak.length < 3) return;
+      const observed = streak.slice(-3);
+      findings.push({
+        predecessor,
+        stage: LESSON_TO_RULE_FUNNEL_POLICY.successor(successor),
+        fromPeriod: observed[0]!.period,
+        toPeriod: observed[2]!.period,
+        counts: observed.map((row) => ({
+          period: row.period,
+          predecessor: (row[predecessor] as { status: 'measured'; value: number }).value,
+          successor: (row[successor] as { status: 'measured'; value: number }).value,
+        })),
+      });
+    };
+    for (const row of periods) {
+      const before = row[predecessor];
+      const after = row[successor];
+      if (before.status === 'measured' && after.status === 'measured' && before.value > 0 && after.value === 0) {
+        streak.push(row);
+      } else {
+        emit();
+        streak = [];
+      }
+    }
+    emit();
+  }
+  return findings;
+}
+
+export function assembleLessonToRuleFunnel(
+  facts: LessonToRuleFunnelFacts,
+  nowTs: string,
+): LessonToRuleFunnelReport {
+  const periods = funnelPeriods(facts, nowTs).map((period): LessonToRuleFunnelPeriod => ({
+    period,
+    ...promotionMeasurements(facts, period),
+    executions: executionMeasurement(facts, period),
+  }));
+  return { periods, findings: funnelFindings(periods) };
+}
 
 export function assembleCompoundingReport(facts: CompoundingFacts): CompoundingReport {
   const { lessons, usage, guard } = facts;
@@ -367,6 +609,14 @@ export function assembleCompoundingReport(facts: CompoundingFacts): CompoundingR
         : null,
   };
 
+  const lessonToRuleFunnel = assembleLessonToRuleFunnel(
+    facts.lessonToRule ?? {
+      promotionRuns: { status: 'not-measured', reason: 'promotion-journal-not-provided' },
+      guardAudits: { status: 'not-measured', reason: 'guard-audit-not-provided' },
+    },
+    facts.nowTs,
+  );
+
   const improvedRules = trajectory.filter((t) => t.improved).length;
   const verdict = [
     `pool: ${injectedEver}/${total} lessons ever injected (${Math.round(pool.writeOnlyRatio * 100)}% write-only under the strict bar)`,
@@ -382,7 +632,43 @@ export function assembleCompoundingReport(facts: CompoundingFacts): CompoundingR
         ]),
   ].join(' · ');
 
-  return { pool, guardTrajectory: trajectory, replay, instrumentation, verdict };
+  return { pool, guardTrajectory: trajectory, replay, instrumentation, lessonToRuleFunnel, verdict };
+}
+
+function renderFunnelMeasurement(stage: LessonToRuleStage, value: FunnelStageMeasurement): string {
+  return value.status === 'measured'
+    ? `${stage} ${value.value}`
+    : `${stage} NOT MEASURED (${value.reason})`;
+}
+
+function renderPromotionMeasurements(row: LessonToRuleFunnelPeriod): string {
+  const { eligible, attempted, accepted } = row;
+  if (
+    eligible.status === 'not-measured' &&
+    attempted.status === 'not-measured' &&
+    accepted.status === 'not-measured' &&
+    eligible.reason === attempted.reason &&
+    eligible.reason === accepted.reason
+  ) {
+    return `eligible/attempted/accepted NOT MEASURED (${eligible.reason})`;
+  }
+  return [
+    renderFunnelMeasurement('eligible', row.eligible),
+    renderFunnelMeasurement('attempted', row.attempted),
+    renderFunnelMeasurement('accepted', row.accepted),
+  ].join(' · ');
+}
+
+function renderFunnelPeriodMeasurements(row: LessonToRuleFunnelPeriod): string {
+  const values = [row.eligible, row.attempted, row.accepted, row.executions] as const;
+  const unavailable = values.filter((value) => value.status === 'not-measured');
+  if (
+    unavailable.length === values.length &&
+    unavailable.every((value) => value.reason === unavailable[0]!.reason)
+  ) {
+    return `eligible/attempted/accepted/executions NOT MEASURED (${unavailable[0]!.reason})`;
+  }
+  return `${renderPromotionMeasurements(row)} · ${renderFunnelMeasurement('executions', row.executions)}`;
 }
 
 export function renderCompoundingReport(r: CompoundingReport): string {
@@ -419,6 +705,19 @@ export function renderCompoundingReport(r: CompoundingReport): string {
       : `${Math.floor(r.instrumentation.cmdUsageDepthDays)}d history`}`,
   );
   if (r.instrumentation.chains.length > 0) out.push(`    scope: ${EVENT_CHAIN_SCOPE}`);
+  out.push('');
+  out.push('  LESSON → RULE FUNNEL (calendar month, observed traffic only):');
+  for (const row of r.lessonToRuleFunnel.periods) {
+    out.push(
+      `    ${row.period} · ${renderFunnelPeriodMeasurements(row)}`,
+    );
+  }
+  for (const finding of r.lessonToRuleFunnel.findings) {
+    const counts = finding.counts
+      .map((row) => `${row.period} ${finding.predecessor} ${row.predecessor} → ${finding.stage} ${row.successor}`)
+      .join('; ');
+    out.push(`    FLOW STOP ${finding.stage} (${finding.fromPeriod}..${finding.toPeriod}): ${counts}`);
+  }
   out.push('');
   out.push(`  VERDICT: ${r.verdict}`);
   return out.join('\n');

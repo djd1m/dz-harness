@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/keysarium-core",
-  "version": "1.1.26",
+  "version": "1.1.27",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
@@ -39,12 +39,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/keysarium-core"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/keysarium-core#readme",
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/keysarium-core#readme",
   "bugs": {
-    "url": "https://github.com/dzhechko/product-keysarium-2026/issues"
+    "url": "https://github.com/djd1m/dz-harness/issues"
   },
   "publishConfig": {
     "access": "public"

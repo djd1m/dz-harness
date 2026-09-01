@@ -59,6 +59,10 @@ function shapeMismatch(kind, payload) {
     }
     return null;
 }
+/** A runner id is missing when absent or blank — the same gap rule the date stamp uses. */
+function isRunnerGap(v) {
+    return v === null || v === undefined || (typeof v === 'string' && v.trim() === '');
+}
 export function decideRecordWrite(input) {
     const { kind, payloadRaw, stage } = input;
     if (kind !== 'ledger' && kind !== 'training-pair') {
@@ -122,6 +126,20 @@ export function decideRecordWrite(input) {
             stamped['date'] = input.timestamp.slice(0, 10);
         if (kind === 'training-pair' && isGap(stamped['ts']))
             stamped['ts'] = input.timestamp;
+    }
+    // WHO ran this. Stamped HERE and nowhere else, for a structural reason: the workflow lives in a
+    // sandbox with no host, no process and no clock, so it cannot name its own runner — but this
+    // command runs outside that sandbox and can. Same seam that already stamps the date.
+    //
+    // The field answers a DIFFERENT question from the zombie-preflight predicate (backlog 4a727ac6):
+    // that one asks "is this job's PARENT still alive", this one asks "which runner produced this
+    // row". Complementary, not duplicate — a future run index joins them, and neither can answer for
+    // the other. Absent identity stays ABSENT: an unknown runner is never invented as 'unknown',
+    // because a fabricated identity is worse than a missing one for anything that later joins on it.
+    // A blank supplied id is a gap too: `'   '` sneaking in as a value would join later as a distinct
+    // runner made of spaces — the same class of harm as inventing 'unknown'.
+    if (kind === 'ledger' && isRunnerGap(stamped['runnerId']) && !isRunnerGap(input.runnerId)) {
+        stamped['runnerId'] = input.runnerId.trim();
     }
     let line;
     try {

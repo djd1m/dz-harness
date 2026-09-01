@@ -32,6 +32,13 @@ import type { VectorEntry } from './vector-tier.js';
 import { rankLessonsByDelta, type LessonHistory } from './safla-delta.js';
 import { withStoreLock, withStoreLockSync, StoreLockTimeoutError, StoreLockCompromisedError } from './store-lock.js';
 import { describeNativeDep, exerciseSqliteOpen, probeNativeDep } from './native-dep-probe.js';
+import {
+  lessonPairIdOf,
+  mergeLessonFormHits,
+  validateClassTemplate,
+  type LessonForm,
+  type LessonMatchedForm,
+} from './lesson-generalization.js';
 
 /** A learned pattern as written by `dz teach` to `.dz/patterns.jsonl`. */
 export interface PatternRecord {
@@ -47,6 +54,12 @@ export interface PatternRecord {
   readonly ts: string;
   /** Origin of the record (e.g. "dz-teach"). */
   readonly source: string;
+  /** Durable role in an optional linked lesson pair. */
+  readonly lessonForm?: LessonForm;
+  /** Stable identity shared by the specific and class rows. */
+  readonly lessonPairId?: string;
+  /** Read-model companion; derived from the linked class row, never persisted on this row. */
+  readonly classForm?: string;
 }
 
 /** A session lifecycle event as written by the session hooks to `.dz/sessions.jsonl`. */
@@ -371,6 +384,25 @@ function sqlitePath(projectRoot: string): string {
   return join(projectRoot, '.dz', 'memory', 'patterns.sqlite');
 }
 
+function classFormMarkerPath(projectRoot: string): string {
+  return join(projectRoot, '.dz', 'memory', '.class-forms-present');
+}
+
+function ensureClassFormMarker(projectRoot: string): void {
+  const marker = classFormMarkerPath(projectRoot);
+  if (existsSync(marker)) return;
+  mkdirSync(dirname(marker), { recursive: true });
+  try {
+    writeFileSync(marker, 'lesson-class-forms/1\n', { flag: 'wx' });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+  }
+}
+
+function classFormIndexPresent(projectRoot: string): boolean {
+  return existsSync(classFormMarkerPath(projectRoot));
+}
+
 /**
  * Open the SQLite store backend if the configured mode allows it AND the native
  * `better-sqlite3` is loadable. Returns `undefined` to fall back to JSON (the
@@ -404,7 +436,11 @@ function tryOpenSqlite(projectRoot: string, mode: SqliteBackendMode): SqliteBack
  * identity, keeping migration/import an idempotent upsert.
  */
 function patternIdentity(p: PatternRecord): string {
-  return `${p.pattern}|${p.ts}|${p.reward}|${p.domain}|${p.type}`;
+  const legacy = `${p.pattern}|${p.ts}|${p.reward}|${p.domain}|${p.type}`;
+  // Existing rows must retain their historical ids; only a complete pair identity changes the key.
+  return p.lessonPairId !== undefined && p.lessonForm !== undefined
+    ? `${legacy}|${p.lessonForm}|${p.lessonPairId}`
+    : legacy;
 }
 
 /** Deterministic store id derived from the full-content {@link patternIdentity}. */
@@ -434,6 +470,9 @@ const PATTERN_TYPES: ReadonlySet<string> = new Set(['rule', 'success-pattern', '
 
 /** Anti-corruption mapping: harness `PatternRecord` → canonical `MemoryRecord`. */
 export function patternToRecord(p: PatternRecord): MemoryRecord {
+  const pairMetadata = p.lessonPairId !== undefined && p.lessonForm !== undefined
+    ? { lessonForm: p.lessonForm, lessonPairId: p.lessonPairId }
+    : {};
   return {
     id: recordId(p),
     skillId: '', // taught patterns are free-text, not tied to one skill
@@ -447,12 +486,18 @@ export function patternToRecord(p: PatternRecord): MemoryRecord {
     // the learn-loop write path.
     outcome: PATTERN_TYPES.has(p.type) ? p.type : 'lesson-learned',
     timestamp: p.ts,
-    metadata: { domain: p.domain ?? 'general', source: p.source ?? 'dz-teach' },
+    metadata: { domain: p.domain ?? 'general', source: p.source ?? 'dz-teach', ...pairMetadata },
   };
 }
 
 /** Anti-corruption mapping: canonical `MemoryRecord` → harness `PatternRecord`. */
 export function recordToPattern(r: MemoryRecord): PatternRecord {
+  const lessonForm = r.metadata?.['lessonForm'];
+  const lessonPairId = r.metadata?.['lessonPairId'];
+  const pair: { lessonForm?: LessonForm; lessonPairId?: string } = (lessonForm === 'specific' || lessonForm === 'class')
+    && typeof lessonPairId === 'string' && lessonPairId !== ''
+    ? { lessonForm, lessonPairId }
+    : {};
   return {
     pattern: r.text,
     type: PATTERN_TYPES.has(r.outcome) ? (r.outcome as PatternRecord['type']) : 'lesson-learned',
@@ -460,6 +505,7 @@ export function recordToPattern(r: MemoryRecord): PatternRecord {
     domain: r.metadata?.['domain'] ?? 'general',
     ts: r.timestamp,
     source: r.metadata?.['source'] ?? 'dz-teach',
+    ...pair,
   };
 }
 
@@ -652,6 +698,10 @@ async function reinforcePatternLocked(projectRoot: string, dzIdOrText: string, o
   const records = loadStoreRecords(projectRoot);
   const rec = records.find((r) => r.id === dzIdOrText || r.text === dzIdOrText);
   if (rec === undefined) return { ok: false, error: `no learned pattern matches ${JSON.stringify(dzIdOrText)}` };
+  const pairId = typeof rec.metadata?.['lessonPairId'] === 'string' ? rec.metadata['lessonPairId'] : undefined;
+  const targets = pairId === undefined
+    ? [rec]
+    : records.filter((record) => record.metadata?.['lessonPairId'] === pairId);
   const prev = readReinforcementState(rec);
   const ts = opts.ts ?? new Date().toISOString();
   const observed = opts.reward !== undefined && Number.isFinite(opts.reward) ? Math.max(0, Math.min(1, opts.reward)) : rec.score;
@@ -667,17 +717,15 @@ async function reinforcePatternLocked(projectRoot: string, dzIdOrText: string, o
   // EXPOSURE (a recall-hit sample) is not confirmation — stats update, quarantine stays (the
   // no-promotion-by-exposure invariant; found by cross-model QE as a live hole: recall-hit
   // flushes were routed through this same function and silently promoted every viewed lesson).
-  const promotedMeta = { ...(rec.metadata ?? {}), ...encodeReinforcementState(nextState) };
-  if (opts.exposure !== true) {
-    delete promotedMeta['qStatus'];
-    delete promotedMeta['quarantinedAt'];
+  for (const target of targets) {
+    const promotedMeta = { ...(target.metadata ?? {}), ...encodeReinforcementState(nextState) };
+    if (opts.exposure !== true) {
+      delete promotedMeta['qStatus'];
+      delete promotedMeta['quarantinedAt'];
+    }
+    const put = await putStoreRecord(projectRoot, { ...target, metadata: promotedMeta });
+    if ('error' in put) return { ok: false, dzId: rec.id, error: put.error };
   }
-  const next: MemoryRecord = {
-    ...rec,
-    metadata: promotedMeta,
-  };
-  const put = await putStoreRecord(projectRoot, next);
-  if ('error' in put) return { ok: false, dzId: rec.id, error: put.error };
   try {
     appendFileSync(join(projectRoot, '.dz', 'sessions.jsonl'), JSON.stringify({ event: 'reinforce', ts, dzId: rec.id, uses: nextState.uses }) + '\n');
   } catch { /* best-effort */ }
@@ -687,14 +735,18 @@ async function reinforcePatternLocked(projectRoot: string, dzIdOrText: string, o
 export async function updateReinforcementState(projectRoot: string, dzId: string, state: ReinforcementState): Promise<ReinforcePatternResult> {
   try {
     return await withStoreLock(projectRoot, async () => {
-      const rec = loadStoreRecords(projectRoot).find((r) => r.id === dzId);
+      const records = loadStoreRecords(projectRoot);
+      const rec = records.find((r) => r.id === dzId);
       if (rec === undefined) return { ok: false, error: `no learned pattern matches ${JSON.stringify(dzId)}` };
-      const next: MemoryRecord = {
-        ...rec,
-        metadata: { ...(rec.metadata ?? {}), ...encodeReinforcementState(state) },
-      };
-      const put = await putStoreRecord(projectRoot, next);
-      if ('error' in put) return { ok: false, dzId, error: put.error };
+      const pairId = typeof rec.metadata?.['lessonPairId'] === 'string' ? rec.metadata['lessonPairId'] : undefined;
+      const targets = pairId === undefined ? [rec] : records.filter((r) => r.metadata?.['lessonPairId'] === pairId);
+      for (const target of targets) {
+        const put = await putStoreRecord(projectRoot, {
+          ...target,
+          metadata: { ...(target.metadata ?? {}), ...encodeReinforcementState(state) },
+        });
+        if ('error' in put) return { ok: false, dzId, error: put.error };
+      }
       return { ok: true, dzId, uses: state.uses };
     });
   } catch (err) {
@@ -724,16 +776,23 @@ export async function promotePatterns(projectRoot: string, dzIds: readonly strin
       const promoted: string[] = [];
       const notFound: string[] = [];
       const notQuarantined: string[] = [];
+      const handled = new Set<string>();
       for (const id of dzIds) {
         const rec = records.find((r) => r.id === id);
         if (rec === undefined) { notFound.push(id); continue; }
-        if (!readQuarantineState(rec).quarantined) { notQuarantined.push(id); continue; }
-        const meta = { ...(rec.metadata ?? {}) };
-        delete meta['qStatus'];
-        delete meta['quarantinedAt'];
-        const put = await putStoreRecord(projectRoot, { ...rec, metadata: meta });
-        if ('error' in put) return { ok: false, promoted, notFound, notQuarantined, error: put.error };
-        promoted.push(id);
+        const pairId = typeof rec.metadata?.['lessonPairId'] === 'string' ? rec.metadata['lessonPairId'] : undefined;
+        const targets = pairId === undefined ? [rec] : records.filter((r) => r.metadata?.['lessonPairId'] === pairId);
+        const pending = targets.filter((target) => !handled.has(target.id) && readQuarantineState(target).quarantined);
+        if (pending.length === 0) { notQuarantined.push(id); continue; }
+        for (const target of pending) {
+          const meta = { ...(target.metadata ?? {}) };
+          delete meta['qStatus'];
+          delete meta['quarantinedAt'];
+          const put = await putStoreRecord(projectRoot, { ...target, metadata: meta });
+          if ('error' in put) return { ok: false, promoted, notFound, notQuarantined, error: put.error };
+          handled.add(target.id);
+          promoted.push(target.id);
+        }
       }
       return { ok: true, promoted, notFound, notQuarantined };
     });
@@ -969,6 +1028,7 @@ function migrationRecords(projectRoot: string): MemoryRecord[] {
  * JSON file is never deleted. Returns the total record count after the write.
  */
 export async function recordPattern(projectRoot: string, p: PatternRecord, opts: { quarantine?: boolean } = {}): Promise<number> {
+  if (p.lessonForm === 'class') ensureClassFormMarker(projectRoot);
   const { sqliteBackend } = readLearningConfig(projectRoot);
   // lesson-quarantine: a fresh lesson is a HYPOTHESIS — mark it when the feature is on. Folded
   // legacy records are NEVER marked (they predate the feature: grandfathered as promoted).
@@ -1001,6 +1061,61 @@ export async function recordPattern(projectRoot: string, p: PatternRecord, opts:
   });
 }
 
+export interface RecordLessonFormsResult {
+  readonly count: number;
+  readonly specific: 'stored';
+  readonly class: 'absent' | 'stored' | 'rejected' | 'failed';
+  readonly reason?: string;
+  readonly records: readonly PatternRecord[];
+}
+
+export async function recordLessonForms(
+  projectRoot: string,
+  specific: PatternRecord,
+  classTemplate?: string,
+  opts: {
+    readonly quarantine?: boolean;
+    readonly writeRecord?: (root: string, record: PatternRecord, options: { quarantine?: boolean }) => Promise<number>;
+  } = {},
+): Promise<RecordLessonFormsResult> {
+  const persist = opts.writeRecord ?? recordPattern;
+  const persistOptions = opts.quarantine === true ? { quarantine: true } : {};
+  const proposed = classTemplate?.trim();
+  if (proposed === undefined || proposed === '') {
+    const count = await persist(projectRoot, specific, persistOptions);
+    return { count, specific: 'stored', class: 'absent', records: [specific] };
+  }
+  const validation = proposed === specific.pattern
+    ? { ok: true as const }
+    : validateClassTemplate(specific.pattern, proposed);
+  if (!validation.ok) {
+    const count = await persist(projectRoot, specific, persistOptions);
+    return { count, specific: 'stored', class: 'rejected', reason: validation.reason, records: [specific] };
+  }
+  const lessonPairId = lessonPairIdOf(specific.pattern, proposed, specific.ts);
+  const specificRow: PatternRecord = { ...specific, lessonForm: 'specific', lessonPairId };
+  const classRow: PatternRecord = {
+    ...specific,
+    pattern: proposed,
+    source: 'dz-teach-class',
+    lessonForm: 'class',
+    lessonPairId,
+  };
+  const firstCount = await persist(projectRoot, specificRow, persistOptions);
+  try {
+    const count = await persist(projectRoot, classRow, persistOptions);
+    return { count, specific: 'stored', class: 'stored', records: [specificRow, classRow] };
+  } catch (error) {
+    return {
+      count: firstCount,
+      specific: 'stored',
+      class: 'failed',
+      reason: error instanceof Error ? error.message : String(error),
+      records: [specificRow],
+    };
+  }
+}
+
 /** Outcome of a {@link recallPatterns} ranked search (or a hybrid merge — see `vector-tier.ts`). */
 export interface RecallHit {
   /** The matched pattern. */
@@ -1013,6 +1128,76 @@ export interface RecallHit {
   readonly backend: 'sqlite' | 'json' | 'vector' | 'both';
   /** lesson-quarantine: set (true) only for a quarantined hit — display marks it ⚠q and ranking damps/sinks it. */
   readonly quarantined?: boolean;
+  /** Which stored formulation caused this logical lesson to rank. */
+  readonly matchedForm?: LessonMatchedForm;
+}
+
+export interface RecallPatternsOptions {
+  readonly onClassDegraded?: (message: string) => void;
+  readonly classMatcher?: typeof validateClassTemplate;
+}
+
+function mergeRecallRows(
+  records: readonly MemoryRecord[],
+  ranked: readonly MemoryRecord[],
+  backend: 'sqlite' | 'json',
+  query: string,
+  limit: number,
+  opts: RecallPatternsOptions,
+): RecallHit[] {
+  const pairRows = new Map<string, { specific?: MemoryRecord; classRow?: MemoryRecord }>();
+  for (const record of records) {
+    const pattern = recordToPattern(record);
+    if (pattern.lessonPairId === undefined || pattern.lessonForm === undefined) continue;
+    const pair = pairRows.get(pattern.lessonPairId) ?? {};
+    if (pattern.lessonForm === 'specific') pair.specific = record;
+    else pair.classRow = record;
+    pairRows.set(pattern.lessonPairId, pair);
+  }
+  const rankedIds = new Set(ranked.map((record) => record.id));
+  const specificHits: Array<{ key: string; value: RecallHit; matchedForm: 'specific' }> = [];
+  const rankedClassRows: MemoryRecord[] = [];
+  const logicalHit = (record: MemoryRecord): RecallHit => {
+    const source = recordToPattern(record);
+    const pair = source.lessonPairId === undefined ? undefined : pairRows.get(source.lessonPairId);
+    const specificRecord = source.lessonForm === 'class' ? pair?.specific : record;
+    const classRecord = source.lessonForm === 'class' ? record : pair?.classRow;
+    const base = recordToPattern(specificRecord ?? record);
+    const pattern = classRecord === undefined ? base : { ...base, classForm: classRecord.text };
+    const quarantined = readQuarantineState(specificRecord ?? record).quarantined
+      || (classRecord !== undefined && readQuarantineState(classRecord).quarantined);
+    return { pattern, backend, ...(quarantined ? { quarantined: true as const } : {}) };
+  };
+  for (const record of ranked) {
+    const pattern = recordToPattern(record);
+    const key = pattern.lessonPairId ?? record.id;
+    if (pattern.lessonForm === 'class') rankedClassRows.push(record);
+    else specificHits.push({ key, value: logicalHit(record), matchedForm: 'specific' });
+  }
+  const finish = (classHits: Array<{ key: string; value: RecallHit; matchedForm: 'class' }>): RecallHit[] =>
+    sinkQuarantined(
+      mergeLessonFormHits(specificHits, classHits, limit * 2).map((hit) => ({ ...hit.value, matchedForm: hit.matchedForm })),
+      limit,
+    );
+  try {
+    const classHits: Array<{ key: string; value: RecallHit; matchedForm: 'class' }> = rankedClassRows.map((record) => {
+      const pattern = recordToPattern(record);
+      return { key: pattern.lessonPairId ?? record.id, value: logicalHit(record), matchedForm: 'class' };
+    });
+    const classMatcher = opts.classMatcher ?? validateClassTemplate;
+    for (const record of records) {
+      const pattern = recordToPattern(record);
+      if (pattern.lessonForm !== 'class' || rankedIds.has(record.id)) continue;
+      if (classMatcher(query, pattern.pattern).ok) {
+        classHits.push({ key: pattern.lessonPairId ?? record.id, value: logicalHit(record), matchedForm: 'class' });
+      }
+    }
+    return finish(classHits);
+  } catch (error) {
+    const message = `class-form search degraded: ${error instanceof Error ? error.message : String(error)}`;
+    try { opts.onClassDegraded?.(message); } catch { /* an advisory sink may not suppress specific recall */ }
+    return finish([]);
+  }
 }
 
 /**
@@ -1021,36 +1206,48 @@ export interface RecallHit {
  * recall — note it is *lexical*, not vector similarity (true embedding/HNSW recall
  * lives in the `agentdb-memory` MCP skill, MCP-host only). Graceful: `[]` on failure.
  */
-export function recallPatterns(projectRoot: string, query: string, limit = 10): RecallHit[] {
+export function recallPatterns(
+  projectRoot: string,
+  query: string,
+  limit = 10,
+  opts: RecallPatternsOptions = {},
+): RecallHit[] {
   const { sqliteBackend } = readLearningConfig(projectRoot);
   if (sqliteBackend !== 'json' && existsSync(sqlitePath(projectRoot))) {
     try {
       const db = SqliteBackend.open(sqlitePath(projectRoot));
       try {
-        return sinkQuarantined(
-          db.querySync({ text: query, limit: limit * 2 }).map((r) => ({
-            pattern: recordToPattern(r),
-            backend: 'sqlite' as const,
-            ...(readQuarantineState(r).quarantined ? { quarantined: true as const } : {}),
-          })),
-          limit,
-        );
+        if (!classFormIndexPresent(projectRoot)) {
+          return sinkQuarantined(
+            db.querySync({ text: query, limit: limit * 2 }).map((r) => ({
+              pattern: recordToPattern(r),
+              backend: 'sqlite' as const,
+              ...(readQuarantineState(r).quarantined ? { quarantined: true as const } : {}),
+            })),
+            limit,
+          );
+        }
+        const records = db.allSync();
+        return mergeRecallRows(records, db.querySync({ text: query, limit: limit * 4 }), 'sqlite', query, limit, opts);
       } finally {
         db.close();
       }
     } catch { /* fall through to JSON */ }
   }
   try {
-    return sinkQuarantined(
-      JsonFileBackend.openSync(storePath(projectRoot))
-        .querySync({ text: query, limit: limit * 2 })
-        .map((r) => ({
+    const backend = JsonFileBackend.openSync(storePath(projectRoot));
+    if (!classFormIndexPresent(projectRoot)) {
+      return sinkQuarantined(
+        backend.querySync({ text: query, limit: limit * 2 }).map((r) => ({
           pattern: recordToPattern(r),
           backend: 'json' as const,
           ...(readQuarantineState(r).quarantined ? { quarantined: true as const } : {}),
         })),
-      limit,
-    );
+        limit,
+      );
+    }
+    const records = backend.allSync();
+    return mergeRecallRows(records, backend.querySync({ text: query, limit: limit * 4 }), 'json', query, limit, opts);
   } catch {
     return [];
   }
@@ -1430,6 +1627,18 @@ export interface RemovePatternsResult {
  */
 export function removePatternsByIds(projectRoot: string, ids: ReadonlySet<string>): RemovePatternsResult {
   if (ids.size === 0) return { removed: 0 };
+  const expandedIds = new Set(ids);
+  const records = loadStoreRecords(projectRoot);
+  const selectedPairs = new Set(
+    records
+      .filter((record) => ids.has(record.id) && typeof record.metadata?.['lessonPairId'] === 'string')
+      .map((record) => record.metadata?.['lessonPairId'] as string),
+  );
+  for (const record of records) {
+    if (typeof record.metadata?.['lessonPairId'] === 'string' && selectedPairs.has(record.metadata['lessonPairId'])) {
+      expandedIds.add(record.id);
+    }
+  }
   let removed = 0;
   const errors: string[] = [];
 
@@ -1440,7 +1649,7 @@ export function removePatternsByIds(projectRoot: string, ids: ReadonlySet<string
       const db = SqliteBackend.open(sqlitePath(projectRoot));
       try {
         for (const r of db.allSync()) {
-          if (ids.has(r.id)) {
+          if (expandedIds.has(r.id)) {
             db.removeSync(r.id);
             removed += 1;
           }
@@ -1463,7 +1672,7 @@ export function removePatternsByIds(projectRoot: string, ids: ReadonlySet<string
       const backend = JsonFileBackend.openSync(storePath(projectRoot));
       let localRemoved = 0;
       for (const r of backend.allSync()) {
-        if (ids.has(r.id)) {
+        if (expandedIds.has(r.id)) {
           backend.removeSync(r.id);
           localRemoved += 1;
         }

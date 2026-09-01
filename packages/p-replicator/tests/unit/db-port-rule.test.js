@@ -100,8 +100,10 @@ describe('a database port is not published to the internet (PR-012)', () => {
       'the limit needs its own heading');
     assert.match(src, /не привязана ни к какому событию — её надо позвать/,
       'a check nobody invokes guarantees nothing, and the rule must say so');
-    assert.match(src, /конфликты с портами, уже занятыми другими контейнерами, она не ищет/,
-      'and name what it does not look at, so nobody infers a wider guarantee');
+    assert.match(src, /соседн(?:ий|его) проект[\s\S]{0,180}интернет/i,
+      'and name the catalog exposure blind spot, so nobody infers a machine-wide guarantee');
+    assert.match(src, /check-ports\.cjs --machine/,
+      'and provide the deliberate machine-snapshot check that answers the wider question');
     assert.match(src, /проверка НЕ\s*\n?ВЫПОЛНЕНА/,
       'and the third exit code must be documented where a reader will look for it');
   });
@@ -138,7 +140,16 @@ describe('a database port is not published to the internet (PR-012)', () => {
     // Historical documents are exempt BY NAME: a changelog entry describing what 1.4 shipped is a
     // true statement about the past, and rewriting it would be falsifying a record.
     const HISTORICAL = /changelog/i;
-    const COUNT_CLAIM = /(\d+)\s+rules\b|(\d+)\s+правил|Rules\s+●(\d+)|\*\*(\d+) rules\*\*/g;
+    // The fifth alternative was added 2026-09-01 with the eleventh rule: README.md's component
+    // table writes `| **Rules** | 10 |`, and `Rules[ \t]+` cannot match it — `Rules` is followed by
+    // `**`, not whitespace. That site sat one number behind the registry and the scan said nothing,
+    // which is the same silent divergence this whole test exists to remove. MEASURED: with the
+    // fourth-alternative regex the sweep reported 22 stale sites and MISSED that row; with the fifth
+    // it reports it too.
+    const COUNT_CLAIM = /(\d+)\s+rules\b|(\d+)\s+правил|Rules[ \t]+(?:●|\()?(\d+)\)?|\*\*(\d+) rules\*\*|\*\*Rules\*\*\s*\|\s*(\d+)/g;
+    const headingThenList = '## Rules\n\n1. First workflow rule';
+    assert.deepEqual([...headingThenList.matchAll(COUNT_CLAIM)], [],
+      '`Rules` heading followed by item 1 is not a claim that the package ships one rule');
     const scanned = [];
     const walk = (dir) => {
       for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -169,13 +180,18 @@ describe('a database port is not published to the internet (PR-012)', () => {
         const before = text.slice(0, hit.index);
         const headings = before.match(/^#{1,3} .*$|^<h[1-3][^>]*>.*$/gm) || [];
         const nearest = headings.length ? headings[headings.length - 1] : '';
-        const historicalSection = /changelog|release notes|version history|история версий|\[?v?\d+\.\d+/i;
-        if (historicalSection.test(nearest)) continue;
+        const headingText = nearest
+          .replace(/^#{1,3}\s*/, '')
+          .replace(/^<h[1-3][^>]*>/i, '')
+          .replace(/<\/h[1-3]>$/i, '')
+          .trim();
+        const historicalSection = /^(?:changelog|release notes|version history|история версий|\[?v?\d+\.\d+)/i;
+        if (historicalSection.test(headingText)) continue;
         // and an explicit past-tense marker on the line itself
         const lineStart = before.lastIndexOf('\n') + 1;
         const line = text.slice(lineStart, text.indexOf('\n', hit.index));
         if (/initial published version|первая опубликованная/i.test(line)) continue;
-        const claimed = Number(hit[1] || hit[2] || hit[3] || hit[4]);
+        const claimed = Number(hit[1] || hit[2] || hit[3] || hit[4] || hit[5]);
         if (claimed !== n) {
           wrong.push(path.relative(PKG_DIR, file) + ': "' + hit[0].trim() + '"');
         }
@@ -212,5 +228,26 @@ describe('a database port is not published to the internet (PR-012)', () => {
       'a .sh among the hooks contradicts the cross-platform promise in settings.json');
     assert.ok(files.filter((f) => f.endsWith('.cjs')).length >= 6,
       'and the six shipped hooks must still be .cjs: ' + JSON.stringify(files));
+  });
+
+  test('P26 — docker-ports disclaimer names exposure and publish-address semantics', () => {
+    const src = read(RULE);
+    assert.match(src, /ЭКСПОЗИЦ/i,
+      'the consequence is security exposure, not an availability-only port conflict');
+    assert.match(src, /соседн(?:ий|его) проект/i,
+      'catalog scope must disclose the neighboring-project blind spot');
+    assert.match(src, /интернет/i, 'the consequence must name internet exposure');
+    assert.match(src, /check-ports\.cjs --machine/,
+      'the rule must give the deliberate machine-snapshot invocation');
+    assert.match(src, /HOST_IP:HOST_PORT:CONTAINER_PORT/,
+      'the three-part syntax is the address-bearing form');
+    assert.match(src, /\$\{DB_PORT:-11432\}:5432/,
+      'the common two-part form is explained directly');
+    assert.match(src, /по умолчанию[\s\S]{0,100}0\.0\.0[\s\S]{0,100}все интерфейсы/i,
+      'omitting HOST_IP defaults publication to all interfaces');
+    assert.match(src, /Redis\/Memcached[\s\S]{0,240}отсутствие[\s\S]{0,160}`1`/i,
+      'the locked catalog authentication consequence is documented');
+    assert.ok(!/конфликты с портами, уже занятыми другими контейнерами, она не ищет/.test(src),
+      'the former availability consequence must not survive as the catalog-scope disclaimer');
   });
 });

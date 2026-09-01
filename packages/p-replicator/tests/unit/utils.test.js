@@ -341,11 +341,12 @@ describe('COMPONENTS.items SSOT', () => {
     }
   });
 
-  test('item counts: 10 skills, 11 commands, 4 agents, 6 rules, 1 settings', () => {
+  test('item counts: 10 skills, 11 commands, 4 agents, 13 rules, 1 settings', () => {
     assert.equal(Object.keys(utils.COMPONENTS.skills.items).length, 10, 'skills count');
     assert.equal(Object.keys(utils.COMPONENTS.commands.items).length, 11, 'commands count (post v1.4: + 9 generic commands)');
     assert.equal(Object.keys(utils.COMPONENTS.agents.items).length, 4, 'agents count');
-    assert.equal(Object.keys(utils.COMPONENTS.rules.items).length, 6, 'rules count (post v1.4: + 3 generic rules; + docker-ports)');
+    assert.equal(Object.keys(utils.COMPONENTS.rules.items).length, 13,
+      'rules count (+ honest failure rules, + embeddable-widget, + incoming-webhooks, + long-running-job, + model-call-cost)');
     assert.ok(utils.COMPONENTS.settings, 'settings component group added in v1.4');
     assert.equal(Object.keys(utils.COMPONENTS.settings.items).length, 1, 'settings.json count');
   });

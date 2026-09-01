@@ -224,6 +224,7 @@ improvements back into toolkit templates for future generations.
 │       ├── git-workflow.md           # ⭐ P0
 │       ├── insights-capture.md      # ⭐ P0
 │       ├── feature-lifecycle.md     # ⭐ P0
+│       ├── swarm-file-evidence.md   # ⭐ P0 — parallel work delivers a FILE
 │       ├── feature-lifecycle-ent.md # {{IF_DDD}} P1
 │       ├── secrets-management.md    # {{IF_EXTERNAL_APIS}}
 │       ├── domain-model.md          # {{IF_DDD}}
@@ -308,6 +309,7 @@ Both include: Parallel Execution Strategy, Swarm Agents, Git Workflow, Available
 | System | Template File | Key Components |
 |--------|--------------|----------------|
 | **/start** | `templates/start-command.md` | 4-phase bootstrap, parallel Tasks, anti-hallucination |
+| **Swarm Evidence** | `templates/swarm-file-evidence.md` | rule body, receipt seam, `check-swarm-receipts.cjs` 0/1/2 |
 | **Insights** | `templates/insights-system.md` | /myinsights, insights-capture rule, Stop hook, index+detail |
 | **Feature Lifecycle** | `templates/feature-lifecycle.md` | /feature (4 phases), 6 skills copy, path rewrite |
 | **Enterprise Lifecycle** | `templates/feature-lifecycle-ent.md` | /feature-ent, idea2prd-manual, goap-research-ed25519 |
@@ -358,6 +360,9 @@ Run in Phase 6 before delivery.
 - [ ] `insights-capture.md` rule with auto-grep pattern
 - [ ] `/feature` — 4-phase lifecycle (plan → validate → implement → review)
 - [ ] `feature-lifecycle.md` rule
+- [ ] `swarm-file-evidence.md` rule + `check-swarm-receipts.cjs`, and every generated artifact that
+      dispatches parallel agents names `WORK_UNIT_ID` + absolute `TRACE_PATH`. A dead worker and a
+      working worker are both silent, so a swarm whose result is a reply cannot tell them apart.
 - [ ] 6 lifecycle skills copied with path rewrite (`/mnt/skills/user/` → `.claude/skills/`)
 - [ ] `git-workflow.md` rule (semantic commits)
 - [ ] `settings.json` — Stop hooks (insights + roadmap + plans) + SessionStart hook

@@ -1,0 +1,1 @@
+{"version":3,"file":"integrations.d.ts","sourceRoot":"","sources":["../src/integrations.ts"],"names":[],"mappings":"AAAA,yDAAyD;AAEzD,OAAO,KAAK,EAEV,4BAA4B,EAC5B,eAAe,EACf,sBAAsB,EACtB,wBAAwB,EACzB,MAAM,iBAAiB,CAAC;AAMzB,wBAAgB,sBAAsB,CACpC,QAAQ,EAAE,4BAA4B,EACtC,QAAQ,EAAE,sBAAsB,GAC/B,eAAe,CAuCjB;AAED,eAAO,MAAM,wBAAwB,EAAE,wBAGtC,CAAC"}

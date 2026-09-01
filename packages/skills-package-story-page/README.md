@@ -136,7 +136,7 @@ npm test
 dz mutation-gate --package . --registry test/mutation-registry.json --rebaseline per-entry
 ```
 
-Version 0.2.3 is staged locally. No npm publication is implied by the repository version.
+Version 0.2.4 is staged locally. No npm publication is implied by the repository version.
 
 ## License
 

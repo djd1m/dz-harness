@@ -72,14 +72,62 @@ Ask for data NOT present in the lab results:
 - Smoking / alcohol status
 - Exercise habits
 - Location (city — for doctor search)
-- What the patient refuses (e.g., "I don't want statins")
+
+## PATIENT VALUES
+
+Collect values as a confirmed, versioned block rather than loose prose. `as_of` is the date on
+which the patient confirmed the block. Ask explicitly about treatment classes they want to avoid,
+preference for non-pharmacological approaches, whether cost is critical, and pregnancy intent when
+applicable. Never infer a preference from silence.
+
+```json
+{
+  "schema": "patient-values-v1",
+  "as_of": "YYYY-MM-DD",
+  "preferences": [
+    {
+      "id": "pv-no-statins",
+      "kind": "avoid",
+      "dimension": "drug_class",
+      "value": "statin",
+      "priority": 1,
+      "statement": "не хочу статины",
+      "reason": null
+    },
+    {
+      "id": "pv-non-pharm",
+      "kind": "prefer",
+      "dimension": "treatment_approach",
+      "value": "non_pharmacological",
+      "priority": 2,
+      "statement": "предпочитаю немедикаментозное",
+      "reason": null
+    },
+    {
+      "id": "pv-cost",
+      "kind": "constraint",
+      "dimension": "cost",
+      "value": "critical",
+      "priority": 3,
+      "statement": "стоимость критична",
+      "reason": null
+    }
+  ],
+  "life_context": { "pregnancy_intent": "planning" }
+}
+```
+
+Allowed `pregnancy_intent` values are `planning`, `pregnant`, `not_planning`, and `unknown`.
+Pregnancy intent is clinical context, not a ranking preference. Before Solve, show the structured
+block back to the patient and reconfirm it when `as_of` is absent, invalid, in the future, or more
+than 30 days old. An omitted block and a confirmed empty block are distinct, and both preserve the
+clinical default order.
 
 **Optional (enhances analysis):**
 - Diet description
 - Sleep quality
 - Stress level
 - Available exercise equipment
-- Budget considerations
 
 ### Step 4: Confirmation
 Present structured profile back to patient:

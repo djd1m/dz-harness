@@ -69,6 +69,37 @@ Generate: src/<files>, tests/<files>, package.json, README.md
 Commits: one per logical group.
 ```
 
+**The canon MUST be frozen BEFORE dispatch.** Package Tasks are N writers deriving model names, enum
+values, route paths and step numbers from one source; the collision exists ONLY IN THE UNION, so no
+worker can see it and no receipt can catch it. Before dispatch the coordinator records
+`docs/dispatch-plan.md` — the canon path and its sha256 — or runs the units sequentially.
+
+The same plan MUST assign OWNERSHIP: exactly one writer per file, the coordinator included, and a
+file born by SPLITTING another gets its owner AT CREATION — ownership never travels by itself.
+
+Every EDIT and every VERDICT MUST declare the sha256 of the source it was built on; a
+mismatch with the live file is a refusal WITHOUT mutation — a read copy is a snapshot of the moment
+of reading, not of the file.
+
+Field forms and closed value lists are in the checkers' headers:
+
+```bash
+node .claude/hooks/check-canon.cjs .
+node .claude/hooks/check-file-ownership.cjs .
+node .claude/hooks/check-source-version.cjs .
+```
+
+`0` frozen and intact · `1` a defect is PROVEN and named · `2` **THE CHECK DID NOT RUN**, which is
+never "all clear".
+
+Before dispatch, allocate one `RUN_ID`, a unique `WORK_UNIT_ID`, and an absolute `TRACE_PATH` for
+each package. Require each Task to write a substantive body ending in `Status: completed` or
+`Status: failed` to `TRACE_PATH` before its one-line pointer. Before Phase 3 integration, verify every
+path is a regular non-symlink file, non-whitespace, post-launch, and terminal. Narrative output or
+silence is not a receipt. Name missing, stale, partial, unreadable, duplicate, failed, dead-PID, or
+probe-error packages and refuse integration/completion unless every required receipt is valid and
+completed. See `.claude/rules/swarm-file-evidence.md`.
+
 ### Phase 3: Integration (sequential)
 
 1. Verify cross-package imports

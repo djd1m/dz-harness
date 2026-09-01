@@ -403,10 +403,17 @@ When designing pipelines, identify parallelism opportunities and use swarm agent
 **Swarm Design Pattern:**
 ```
 1. DECOMPOSE: Break task into independent subtasks
-2. SPAWN: Launch parallel agents via Task tool
-3. AGGREGATE: Collect results, merge, resolve conflicts
-4. VALIDATE: Cross-check aggregate for consistency
+2. ASSIGN:    One WORK_UNIT_ID + one absolute TRACE_PATH per subtask; record the launch instant
+3. SPAWN:     Launch parallel agents via Task tool, each carrying its assignment
+4. RECEIPT:   node .claude/hooks/check-swarm-receipts.cjs <manifest>  (0 ok / 1 undelivered / 2 not run)
+5. AGGREGATE: Collect results FROM THE FILES, merge, resolve conflicts
+6. VALIDATE:  Cross-check aggregate for consistency
 ```
+
+A forged pipeline that skips steps 2 and 4 cannot tell a dead agent from a working one — both are
+silent — so it will report a stage as running when nothing is. See
+`.claude/rules/swarm-file-evidence.md`; the full seam text to paste into the forged pipeline lives
+in `cc-toolkit-generator-enhanced/references/templates/swarm-file-evidence.md` (Section 2).
 
 **Swarm Agent Template:**
 ```markdown

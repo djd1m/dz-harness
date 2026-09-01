@@ -61,7 +61,8 @@ CHECK 3: /start command
   - File exists at .claude/commands/start.md
   - Contains complete project generation instructions
   - Includes all packages from IPM
-  - Uses Task tool for parallelism where appropriate
+  - Uses Task tool for parallelism where appropriate, under the positive file receipt contract
+    (see CHECK 7b — a parallel Task without a TRACE_PATH is a delivery failure)
   - Includes Docker health check verification
   - References actual SPARC/idea2prd docs (not hallucinated paths)
   - IF has_database: includes DB migration + seed steps
@@ -86,6 +87,23 @@ CHECK 7: feature-lifecycle.md rule
   - File exists at .claude/rules/feature-lifecycle.md
   - Documents the 4-phase lifecycle protocol
   - Includes phase skip guidance
+
+CHECK 7b: the swarm file-evidence contract reached the toolkit  [FAIL-CLOSED]
+  - File exists at .claude/rules/swarm-file-evidence.md
+  - File exists at .claude/hooks/check-swarm-receipts.cjs
+  - EVERY generated artifact that dispatches parallel agents names WORK_UNIT_ID and an absolute
+    TRACE_PATH and refuses merge without a terminal receipt. At minimum:
+    [ ] .claude/commands/feature.md          (Phase 3, and Phase 2/4 by reference)
+    [ ] .claude/rules/feature-lifecycle.md   (Implementation)
+    [ ] .claude/commands/start.md            (Phase 2 package Tasks)
+    [ ] .claude/commands/feature-ent.md      IF DDD
+    [ ] .claude/rules/feature-lifecycle-ent.md IF DDD
+    [ ] .claude/commands/go.md, run.md       IF automation commands generated
+  - The check is TEXTUAL and mechanical: grep each file for `TRACE_PATH`. A file that dispatches
+    agents and does not name it FAILS delivery — there is no "the coordinator will remember".
+  - Why fail-closed: a worker that died is silent and a worker that is running is silent, so a
+    toolkit without this contract cannot tell the two apart and will report progress on work that
+    stopped. Shipping that is shipping a defect, not an omission.
 
 CHECK 8: 6 lifecycle skills
   - All 6 skills copied to .claude/skills/:
@@ -433,6 +451,7 @@ Compile the complete file tree of everything produced, annotated with phase and 
 |       |-- git-workflow.md                <- P0 [size] [PASS/FAIL]
 |       |-- insights-capture.md            <- P0 [size] [PASS/FAIL]
 |       |-- feature-lifecycle.md           <- P0 [size] [PASS/FAIL]
+|       |-- swarm-file-evidence.md         <- P0 [size] [PASS/FAIL]
 |       |-- feature-lifecycle-ent.md       <- P1 IF DDD [size] [PASS/FAIL]
 |       |-- secrets-management.md          <- P0 IF external APIs [size] [PASS/FAIL]
 |       |-- domain-model.md                <- P0 IF DDD [size] [PASS/FAIL]
@@ -514,7 +533,6 @@ IF any P0 mandatory check fails:
   TOOLKIT INCOMPLETE -- P0 failures must be fixed
 
   FAILED CHECKS:
-    - [Check N]: [description of what failed and where]
     - [Check N]: [description of what failed and where]
 
   Auto-fix attempted: [Y/N]

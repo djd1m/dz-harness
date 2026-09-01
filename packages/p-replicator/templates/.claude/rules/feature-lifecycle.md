@@ -89,12 +89,21 @@ After 3 retries with 🔴, halt and surface to user.
 **Strategy:** maximum parallelism via `Task` tool.
 
 1. Identify independent work units from Phase 1's Architecture
-2. Spawn one Task per unit
-3. Each Task: read SPARC sections + implement + test + commit
-4. Coordinator merges/integrates after all Tasks complete
+2. Allocate one `RUN_ID`, a unique `WORK_UNIT_ID`, and an absolute `TRACE_PATH` per unit
+3. Spawn one Task per unit; each writes its substantive trace before its one-line pointer
+4. Coordinator validates every trace before merge/integration
 5. Run full test suite
 
 **Quality gate:** tests pass, lint clean, build succeeds.
+
+### Positive file receipt (required)
+
+Each worker must write a substantive body ending in `Status: completed` or `Status: failed` to its unique
+`TRACE_PATH` before returning a one-line report. Before integration, the coordinator verifies every
+path is a regular non-symlink file, non-whitespace, post-launch, and terminal. Narrative output or
+silence is not a receipt. Name missing, stale, partial, unreadable, duplicate, failed, dead-PID, or
+probe-error units and refuse merge/completion unless every required receipt is valid and completed.
+See [`swarm-file-evidence`](./swarm-file-evidence.md) for the write protocol and bounded exception.
 
 ## Phase 4: REVIEW (brutal-honesty-review)
 
@@ -117,6 +126,8 @@ After 3 retries with 🔴, halt and surface to user.
 | Validator verdict ≠ 🔴 (after retries) | 2 | Halt — surface to user |
 | Tests + lint + build | 3 | Re-run, max 3 attempts |
 | No `blocker` findings | 4 | Loop Phase 4 until clean |
+
+Place each gate on the strongest reliable enforcement layer; see [`cost-of-detection-ladder`](./cost-of-detection-ladder.md).
 
 ## Commit Discipline
 

@@ -14,6 +14,7 @@ import { compliantCourse } from './_fixtures.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RENDER = join(__dirname, '..', 'package-tutorial-factory', 'scripts', 'render-site.mjs');
 const VERIFY = join(__dirname, '..', 'package-tutorial-factory', 'scripts', 'verify-site.mjs');
+const GATE = join(__dirname, '..', 'package-tutorial-factory', 'scripts', 'headfirst-gate.mjs');
 
 const tmp = () => mkdtempSync(join(tmpdir(), 'tf-seam-'));
 const run = (script, args) => spawnSync(process.execPath, [script, ...args], { encoding: 'utf-8' });
@@ -50,8 +51,9 @@ test('injection: a </script> payload in course data cannot break out of the data
   const { out, res } = render(dir, course);
   assert.equal(res.status, 0, res.stderr);
   const html = readFileSync(out, 'utf-8');
-  // exactly two script elements: the JSON data block and the runtime
-  assert.equal((html.match(/<\/script>/g) || []).length, 2);
+  // exactly three script elements: course-data JSON + ui-strings JSON + the runtime.
+  // A successful breakout would mint a FOURTH — the count IS the injection assertion.
+  assert.equal((html.match(/<\/script>/g) || []).length, 3);
   const v = run(VERIFY, ['--site', out]);
   assert.equal(v.status, 0, v.stdout);
 });
@@ -221,4 +223,222 @@ test('notebook device: absent everywhere is fine; present in only SOME sections 
   assert.equal(b.res.status, 0);
   const vb = run(VERIFY, ['--site', b.out]);
   assert.equal(vb.status, 1, 'a device on only some sections must fail device-consistency');
+});
+
+// ---- footer: channel links are emitted by default, overridable, and never dangerous ----
+
+test('footer: default channel links (t.me/llm_notes + aicoding.space) are emitted and verify passes', () => {
+  const dir = tmp();
+  const { out, res } = render(dir, compliantCourse());
+  assert.equal(res.status, 0, res.stderr);
+  const html = readFileSync(out, 'utf-8');
+  assert.match(html, /<footer id="site-footer">/);
+  assert.match(html, /href="https:\/\/t\.me\/llm_notes"/);
+  assert.match(html, /href="https:\/\/aicoding\.space"/);
+  const v = run(VERIFY, ['--site', out]);
+  assert.equal(v.status, 0, v.stdout + v.stderr);
+  assert.match(v.stdout, /footer\.renders/);
+  // navigation anchors must NOT trip the self-contained load scan
+  assert.match(v.stdout, /site\.self-contained/);
+  assert.doesNotMatch(v.stdout, /external load/);
+});
+
+test('footer: course.footer.links overrides the defaults', () => {
+  const dir = tmp();
+  const course = { ...compliantCourse(), footer: { links: [{ label: 'My site', href: 'https://example.org' }] } };
+  const { out, res } = render(dir, course);
+  assert.equal(res.status, 0, res.stderr);
+  const html = readFileSync(out, 'utf-8');
+  assert.match(html, /href="https:\/\/example\.org"/);
+  assert.doesNotMatch(html, /t\.me\/llm_notes/);
+});
+
+test('footer: a javascript:/http: link never reaches the page, and an all-invalid override fails verify loudly', () => {
+  const dir = tmp();
+  const course = { ...compliantCourse(), footer: { links: [{ label: 'evil', href: 'javascript:alert(1)' }, { label: 'plain', href: 'http://insecure.example' }] } };
+  const { out, res } = render(dir, course);
+  assert.equal(res.status, 0, res.stderr);
+  const html = readFileSync(out, 'utf-8');
+  // курс целиком лежит инертным JSON-блоком в странице, поэтому проверяем ССЫЛКИ (href=), не весь текст
+  assert.doesNotMatch(html, /href="javascript:/);
+  assert.doesNotMatch(html, /href="http:\/\/insecure\.example/);
+  const v = run(VERIFY, ['--site', out]);
+  // всё отфильтровано → пустой футер → footer.renders обязан упасть, а не молча пройти
+  assert.notEqual(v.status, 0, 'verify must fail loudly on a footer with zero valid links');
+  assert.match(v.stdout, /footer\.renders/);
+});
+
+test('locale: language=ru renders Russian chrome and the verifier drives it in Russian', () => {
+  const dir = tmp();
+  const course = { ...compliantCourse(), language: 'ru' };
+  const { out, res } = render(dir, course);
+  assert.equal(res.status, 0, res.stderr);
+  const html = readFileSync(out, 'utf-8');
+  // таблица локали вшита и содержит русские строки хрома
+  assert.match(html, /<script type="application\/json" id="ui-strings">/);
+  assert.match(html, /Финальный тест/);
+  assert.match(html, /Проверить порядок|Проверить команду/);
+  // верификатор водит сайт по ТОЙ ЖЕ таблице — все проверки держатся на русском хроме
+  const v = run(VERIFY, ['--site', out]);
+  assert.equal(v.status, 0, v.stdout + v.stderr);
+});
+
+test('locale: language=en keeps the English chrome byte-for-byte (no ui-strings override)', () => {
+  const dir = tmp();
+  const { out, res } = render(dir, compliantCourse());
+  assert.equal(res.status, 0, res.stderr);
+  const html = readFileSync(out, 'utf-8');
+  assert.match(html, /<script type="application\/json" id="ui-strings">null<\/script>/);
+  assert.doesNotMatch(html, /Финальный тест/);
+});
+
+test('probe honesty: a theory whose opening carries a markdown link still verifies (url innards are not visible text)', () => {
+  const dir = tmp();
+  const course = compliantCourse();
+  // ссылка в самом начале теории: её URL даёт слова https/npmjs/package, которых в видимом
+  // тексте нет — зонд обязан брать слова из ВИДИМОГО текста, иначе валит корректный рендер
+  course.sections[0].theory = `Курс про [@scope/pkg](https://www.npmjs.com/package/@scope/pkg) — ` + course.sections[0].theory;
+  const { out, res } = render(dir, course);
+  assert.equal(res.status, 0, res.stderr);
+  const html = readFileSync(out, 'utf-8');
+  // ссылка теории рисуется РАНТАЙМОМ (в статическом HTML лежат только данные + скрипт),
+  // поэтому проверяем: (1) разметка доехала в блок данных, (2) верификатор, который РЕАЛЬНО
+  // исполняет страницу, видит секцию отрендеренной — это и есть регрессия, которую ловим
+  assert.match(html, /npmjs\.com/);
+  const v = run(VERIFY, ['--site', out]);
+  assert.equal(v.status, 0, v.stdout + v.stderr);
+  assert.match(v.stdout, /section\..*\.renders/);
+});
+
+test('probe honesty: an inflected Russian concept word still counts as encoded (gate and verifier judge alike)', () => {
+  const dir = tmp();
+  const course = compliantCourse();
+  const s = course.sections[0];
+  // «одиннадцать шагов» в понятии, «одиннадцати шагов» в тексте — русский падеж; собственная
+  // подстрочная проверка верификатора этого не видела и валила корректный рендер
+  s.keyConcept = 'одиннадцать шагов конвейера';
+  s.theory = `Конвейер состоит из одиннадцати шагов, и ${course.persona.name} держит их список перед глазами. ` + s.theory;
+  const { out, res } = render(dir, course);
+  assert.equal(res.status, 0, res.stderr);
+  const v = run(VERIFY, ['--site', out]);
+  assert.equal(v.status, 0, v.stdout + v.stderr);
+});
+
+test('feedback: course.feedback renders a prefilled new-issue link naming the right package', () => {
+  const dir = tmp();
+  const course = { ...compliantCourse(), language: 'ru', feedback: { repo: 'djd1m/dz-harness', packagePath: 'packages/harness-cli' } };
+  const { out, res } = render(dir, course);
+  assert.equal(res.status, 0, res.stderr);
+  const html = readFileSync(out, 'utf-8');
+  assert.match(html, /Что-то работает не так\?/);
+  assert.match(html, /href="https:\/\/github\.com\/djd1m\/dz-harness\/issues\/new\?title=/);
+  // заголовок issue несёт ИМЯ ПАКЕТА — иначе отчёт уедет не в тот адрес
+  assert.match(html, /title=%5Bharness-cli%5D/);
+  const v = run(VERIFY, ['--site', out]);
+  assert.equal(v.status, 0, v.stdout + v.stderr);
+});
+
+test('feedback: a malformed or absent feedback block yields NO link rather than a broken one', () => {
+  const dir = tmp();
+  for (const fb of [undefined, { repo: 'not a repo', packagePath: 'packages/x' }, { repo: 'a/b' }]) {
+    const course = { ...compliantCourse(), feedback: fb };
+    const { out, res } = render(tmp(), course);
+    assert.equal(res.status, 0, res.stderr);
+    assert.doesNotMatch(readFileSync(out, 'utf-8'), /issues\/new/);
+  }
+  void dir;
+});
+
+test('docs: the same feedback block also yields a README link on the public mirror', () => {
+  const dir = tmp();
+  const course = { ...compliantCourse(), language: 'ru', feedback: { repo: 'djd1m/dz-harness', packagePath: 'packages/harness-cli' } };
+  const { out, res } = render(dir, course);
+  assert.equal(res.status, 0, res.stderr);
+  const html = readFileSync(out, 'utf-8');
+  assert.match(html, /Полная документация пакета/);
+  assert.match(html, /href="https:\/\/github\.com\/djd1m\/dz-harness\/blob\/main\/packages\/harness-cli\/README\.md"/);
+  const v = run(VERIFY, ['--site', out]);
+  assert.equal(v.status, 0, v.stdout + v.stderr);
+});
+
+// ---- diagrams: optional by design, strict once declared, and injection-proof by construction ----
+
+const withDiagram = (course, sectionIndex = 0) => {
+  const c = JSON.parse(JSON.stringify(course));
+  c.sections[sectionIndex].diagram = {
+    kind: 'flow',
+    title: 'Три шага',
+    cycle: true,
+    nodes: [
+      { id: 'one', label: 'Первый', note: 'что происходит сначала' },
+      { id: 'two', label: 'Второй', note: 'что потом' },
+      { id: 'three', label: 'Третий' },
+    ],
+  };
+  return c;
+};
+
+test('diagram: a declared flow is drawn with every label, note and caption', () => {
+  const dir = tmp();
+  const { out, res } = render(dir, withDiagram(compliantCourse()));
+  assert.equal(res.status, 0, res.stderr);
+  const v = run(VERIFY, ['--site', out]);
+  assert.equal(v.status, 0, v.stdout + v.stderr);
+  assert.match(v.stdout, /diagram\.renders/);
+  assert.match(v.stdout, /1 diagram\(s\) drawn/);
+});
+
+test('diagram: a course without diagrams stays green — the feature is optional, never required', () => {
+  const dir = tmp();
+  const { out, res } = render(dir, compliantCourse());
+  assert.equal(res.status, 0, res.stderr);
+  const v = run(VERIFY, ['--site', out]);
+  assert.equal(v.status, 0, v.stdout + v.stderr);
+  assert.match(v.stdout, /nothing to draw/);
+});
+
+// THE discriminating test for the security property: markup in a label must reach the page as
+// LETTERS. Cross-model review measured a hand-written SVG pulling the network through <image href>
+// while the verifier stayed green; the answer was to remove author markup entirely. This test goes
+// red the day someone swaps the text insertion back for an HTML one.
+test('diagram: markup inside a label is rendered as text, never as an element', () => {
+  const dir = tmp();
+  const course = withDiagram(compliantCourse());
+  course.sections[0].diagram.nodes[0].label = '<i id="inj">x</i>';
+  const { out, res } = render(dir, course);
+  assert.equal(res.status, 0, res.stderr);
+  const html = readFileSync(out, 'utf-8');
+  // the string exists in the inert data block, but never as a live element in the page shell
+  assert.doesNotMatch(html.replace(/<script type="application\/json"[\s\S]*?<\/script>/, ''), /<i id="inj">/);
+  const v = run(VERIFY, ['--site', out]);
+  assert.equal(v.status, 0, v.stdout + v.stderr);
+});
+
+test('diagram gate: an unknown key is REFUSED rather than silently ignored', () => {
+  const dir = tmp();
+  const course = withDiagram(compliantCourse());
+  course.sections[0].diagram.edges = [['one', 'two']]; // not part of the declared shape
+  const cp = join(dir, 'course.json');
+  writeFileSync(cp, JSON.stringify(course));
+  const g = run(GATE, ['--course', cp]);
+  assert.notEqual(g.status, 0, 'an unknown diagram key must fail the gate');
+  assert.match(g.stdout, /diagram-shape/);
+});
+
+test('diagram gate: one node, a bad id or an over-long label are each refused', () => {
+  const dir = tmp();
+  for (const mutate of [
+    (d) => { d.nodes = [d.nodes[0]]; },
+    (d) => { d.nodes[1].id = 'Not Kebab'; },
+    (d) => { d.nodes[1].label = 'x'.repeat(25); },
+    (d) => { d.kind = 'mindmap'; },
+  ]) {
+    const course = withDiagram(compliantCourse());
+    mutate(course.sections[0].diagram);
+    const cp = join(tmp(), 'course.json');
+    writeFileSync(cp, JSON.stringify(course));
+    const g = run(GATE, ['--course', cp]);
+    assert.notEqual(g.status, 0, `gate must refuse: ${JSON.stringify(course.sections[0].diagram).slice(0, 80)}`);
+  }
+  void dir;
 });

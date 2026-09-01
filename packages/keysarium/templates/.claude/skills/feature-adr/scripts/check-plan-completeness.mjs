@@ -180,7 +180,21 @@ if (adrFiles.length === 0 && TIER_REQUIRES_ADR) {
     const adr = readFileSync(join(adrDir, f), 'utf-8');
     const confIdx = adr.search(/^##+\s*Confirmation/mi);
     if (confIdx < 0) { failures.push(`C2: ${safe(f)} has no Confirmation section`); continue; }
-    const conf = adr.slice(confIdx);
+    // The section ENDS at the next heading of the same or higher level — it does not run to EOF.
+    // Slicing to EOF swallowed every later section, so a `Links` entry citing an existing test as
+    // PRECEDENT was read as this ADR's own Confirmation and demanded of the plan (measured
+    // 2026-08-31 on features/finding-identity-closure: reqe.test.ts, cited under
+    // "Implementation precedent", failed C2 while the real Confirmation test was named correctly).
+    // Deeper subsections stay inside: a Confirmation with ### children is one section.
+    const rest = adr.slice(confIdx);
+    const confLevel = (rest.match(/^(#+)/) || ['', '##'])[1].length;
+    // Search AFTER the Confirmation heading's own line — searching from the heading itself matches
+    // it and collapses the section to nothing, which turns a scoping fix into a gate that reports
+    // "Confirmation names no test file paths" for every ADR (caught by running it).
+    const bodyStart = rest.indexOf('\n') + 1;
+    const afterHeading = rest.slice(bodyStart);
+    const nextHeading = afterHeading.search(new RegExp('^#{1,' + confLevel + '}[^#]', 'm'));
+    const conf = nextHeading < 0 ? rest : rest.slice(0, bodyStart + nextHeading);
     const paths = extractCandidatePaths(conf).filter(isTestPath);
     // UNKNOWN ECOSYSTEM STAYS A FAILURE, never a WARN: a gate that downgrades itself on the one
     // repo it cannot read is a gate that is off exactly where it is needed. The remedy is named

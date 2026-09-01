@@ -1,10 +1,10 @@
 {
   "name": "@dzhechkov/skills-qe",
-  "version": "0.3.13",
+  "version": "0.3.14",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
-  "description": "Curated QE skill pack \u2014 22 skills (20 from agentic-qe + validate & systematic-debugging) for Claude Code agents.",
+  "description": "Curated QE skill pack — 22 skills (20 from agentic-qe + validate & systematic-debugging) for Claude Code agents.",
   "license": "MIT",
   "author": "dzhechko",
   "keywords": [
@@ -52,8 +52,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-qe"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-qe#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-qe#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

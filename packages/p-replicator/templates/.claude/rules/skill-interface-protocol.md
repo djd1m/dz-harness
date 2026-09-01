@@ -73,6 +73,7 @@ Skills with `modules/` subdirectories MUST structure each module with these sect
 
 Modules are numbered (`01-name.md`, `02-name.md`) to indicate execution order.
 SKILL.md acts as orchestrator, referencing modules in sequence.
+Place module checks on the strongest reliable enforcement layer; see [`cost-of-detection-ladder`](./cost-of-detection-ladder.md).
 
 ## 5. Dependency Declaration
 

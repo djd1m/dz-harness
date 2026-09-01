@@ -12,6 +12,7 @@
 export const KNOWN_CLI_FLAGS: readonly string[] = [
   'affected',
   'all',
+  'allow-integrations',
   'allow-same-family',
   'allow-same-family-qe',
   'any',
@@ -26,6 +27,11 @@ export const KNOWN_CLI_FLAGS: readonly string[] = [
   'backfill',
   'base',
   'baseline',
+  // Not dz flags: git arguments this CLI PASSES to `git diff` (volume counters). The derivation
+  // scans every `--name` literal in cli.ts by design — a SUPERSET only softens the unknown-flag
+  // notice, while narrowing the scan risks the expensive failure this guard exists to prevent:
+  // warning at a user who typed a real flag.
+  'binary',
   'body',
   'book',
   'books',
@@ -39,6 +45,7 @@ export const KNOWN_CLI_FLAGS: readonly string[] = [
   'candidates',
   'canonical',
   'category',
+  'class-form',
   'ceiling',
   'channel',
   'check',
@@ -51,6 +58,7 @@ export const KNOWN_CLI_FLAGS: readonly string[] = [
   'commands',
   'commit',
   'compare',
+  'component',
   'config',
   'confirm',
   'confirmed',
@@ -157,7 +165,9 @@ export const KNOWN_CLI_FLAGS: readonly string[] = [
   'no-filters',
   'no-fund',
   'no-guard',
+  'no-ext-diff',
   'no-hooks',
+  'no-integrations',
   'no-index',
   'no-issue',
   'no-memory',

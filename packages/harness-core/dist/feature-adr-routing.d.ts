@@ -271,10 +271,10 @@ export type CodeLandingStatus = 'landed' | 'not-yet-flushed' | 'genuinely-not-la
 export type CodeStageLandingStatus = 'landed' | 'genuinely-not-landed' | 'inconclusive' | 'synchronous';
 /** Bumped whenever the landing protocol's meaning changes. Recorded on every code-stage result so a
  *  pre-protocol checkpoint reads as no-checkpoint instead of resuming into new semantics. */
-export declare const LANDING_PROTOCOL_VERSION = 2;
+export declare const LANDING_PROTOCOL_VERSION = 3;
 /** R6: salted into the code stage's checkpoint hash PARTS (not the schema version — ADR-003 keeps
  *  `CKPT_SCHEMA_VERSION` at 'fa-ckpt-2' deliberately, so ONLY the code stage re-runs). */
-export declare const LANDING_HASH_TOKEN = "landing-v2";
+export declare const LANDING_HASH_TOKEN = "landing-v3";
 /** Why a landing verdict is INCONCLUSIVE. Typed, because "we do not know" needs to say WHICH
  *  unknown — the operator repair differs per reason and a single untyped bucket reads as noise. */
 export type LandingInconclusiveReason = 'empty-plan-block' | 'override-unpollable' | 'no-plan-block' | 'no-baseline' | 'baseline-unverified' | 'probe-failure' | 'malformed-signal';

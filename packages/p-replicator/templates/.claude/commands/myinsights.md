@@ -1,5 +1,5 @@
 ---
-description: Capture and recall development insights. Append a new insight to `.claude/insights/index.md` with structured fields (problem, solution, tags). The three most recent are injected into context at SessionStart.
+description: Capture and recall development insights. Markdown remains the source of truth; UserPromptSubmit uses armed dz recall with a local last-three fallback.
 argument-hint: '[recall <query> | <free-form insight>]'
 ---
 
@@ -10,22 +10,19 @@ argument-hint: '[recall <query> | <free-form insight>]'
 Build a project-local knowledge base of "грабли" (rakes) — errors, workarounds,
 discoveries — so they don't have to be re-learned.
 
-**What actually happens, stated exactly.** The `SessionStart` hook
-(`.claude/hooks/session-insights.cjs`, wired in `.claude/settings.json`) reads
-`.claude/insights/index.md` and injects the **three most recent entries**, by their
-order in the file. It prints them under the heading *"Recent project insights"* —
-which is what they are.
+**What actually happens, stated exactly.** `.claude/insights/index.md` is the Markdown
+source of truth. Capture establishes it first, then the writer makes a best-effort,
+idempotent `dz teach` duplicate. Missing or failed dz never changes the Markdown receipt.
 
-**There is no tag matching, and it is not an omission.** The hook fires at
-`SessionStart`, BEFORE you have said anything, so there is no current task to match
-tags against. Tags remain useful for a human reading or grepping the file, and for
-`/myinsights recall <query>`, which searches on demand — when a query exists.
+On `UserPromptSubmit`, `.claude/hooks/session-insights.cjs` queries with the actual prompt.
+Only a successful, non-empty `dz recall` result from the insight domain suppresses local
+delivery. Absent, failing, or empty recall falls back to the three most recent Markdown
+entries; a present-but-failing recall is named, while ordinary absence and empty output are
+quiet. `SessionStart` only keeps the missing-carrier hint.
 
-**The consequence, so nobody is surprised by it.** The file is append-only and the
-hook takes the LAST three. As a project accumulates entries — `insights-capture.md`
-plans for 50+ — earlier ones stop being injected. Selection by relevance would need
-to happen at a moment when a task is known; that is a separate design question, and
-it is filed rather than quietly implied here.
+**Fallback consequence.** The Markdown file is append-only, and local fallback takes the
+last three entries by file order. In that fallback, earlier ones stop being injected as the
+project grows. The dz path can rank older entries without replacing the durable carrier.
 
 ## Modes
 
@@ -68,22 +65,20 @@ Process:
 
 ## Storage
 
-`.claude/insights/index.md` — chronological log, Markdown format. One file per
-project to keep recall trivial.
+`.claude/insights/index.md` — chronological Markdown source of truth. The optional
+best-effort dz projection is derived from it and can be rebuilt by replay.
 
-## Auto-injection on SessionStart
+## Prompt-time injection on UserPromptSubmit
 
 The default `.claude/settings.json` configures `node .claude/hooks/session-insights.cjs`
-which: (1) reads recent insights, (2) prints them to stdout, (3) Claude Code
-captures stdout and injects into the initial context.
-
-This is what makes insights compounding: every session benefits from past
-mistakes without manual recall.
+for `UserPromptSubmit`. It emits one hook envelope from either armed dz recall or local
+fallback, never both. The same script remains on `SessionStart` only to reveal a missing
+Markdown carrier before the first capture.
 
 ## Related
 
 - `.claude/rules/insights-capture.md` — when/how to capture
 - `.claude/hooks/session-insights.cjs` — session injection
-- `/harvest` — extracts reusable knowledge at project end. **Honest limit:** it does
-  NOT read `.claude/insights/index.md` today (`grep -ci insight` over `harvest.md`
-  returns 0). The capture→harvest link is a stated intention, not a wired path.
+- `/harvest` — quick/full runs and `/myinsights` share the same Markdown carrier at
+  `.claude/insights/index.md`. Harvest capture is a required final persistence gate when the run
+  produced a reusable finding; manual capture remains available at any time. Both stay append-only.

@@ -1,7 +1,7 @@
 {
   "name": "@dzhechkov/skills-edu-site",
-  "version": "1.1.9",
-  "description": "Gamified Educational Site Generator skill pack for Claude Code \u2014 transform documentation into interactive learning SPAs with quizzes, flashcards, achievements, and GitHub Pages deployment",
+  "version": "1.1.10",
+  "description": "Gamified Educational Site Generator skill pack for Claude Code — transform documentation into interactive learning SPAs with quizzes, flashcards, achievements, and GitHub Pages deployment",
   "main": "src/cli.js",
   "bin": {
     "skills-edu-site": "./bin/cli.js"
@@ -33,12 +33,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-edu-site"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-edu-site#readme",
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-edu-site#readme",
   "bugs": {
-    "url": "https://github.com/djd1m/dz-harness-hub/issues"
+    "url": "https://github.com/djd1m/dz-harness/issues"
   },
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",

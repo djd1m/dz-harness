@@ -133,8 +133,8 @@ Use swarm of agents to validate:
 | validator-coherence | All SPARC files | Cross-reference consistency |
 
 **Iterative loop (max 3 iterations):**
-1. Run all validators in parallel (Task tool)
-2. Aggregate gaps and blocked items
+1. Run all validators in parallel (Task tool), under the positive file receipt contract below
+2. Aggregate gaps and blocked items — only from validators whose receipt is terminal-completed
 3. Fix gaps in SPARC documents
 4. Re-validate
 5. Repeat until: no BLOCKED items, average score ≥70
@@ -156,10 +156,24 @@ When SPARC plan is ready for implementation:
    - Implementation agents — parallel Task tool for independent modules
 3. **Make implementation modular** for reuse in other cases and applications
 4. Save frequent commits to GitHub
-5. Spawn concurrent tasks to speed up development
+5. Spawn concurrent tasks to speed up development, under the contract below
+6. Validate every trace before merge or integration
+
+#### Positive file receipt (required)
+
+Before dispatch, allocate one `RUN_ID` and, for every unit, a unique `WORK_UNIT_ID` plus an
+absolute `TRACE_PATH` unique to `(RUN_ID, WORK_UNIT_ID)`; record the launch instant and pass both
+fields to the worker. Each worker must write a substantive body ending in `Status: completed` or
+`Status: failed` to `TRACE_PATH` before it returns its one-line pointer. Before merge, verify every
+path is a regular non-symlink file, non-whitespace, post-launch, and terminal. Narrative output or
+silence is never a receipt. Name missing, stale, partial, unreadable, duplicate, failed, dead-PID,
+or probe-error units and refuse merge, aggregation, or completion until every required receipt is
+valid and completed. Run `node .claude/hooks/check-swarm-receipts.cjs <manifest>` — exit 0 all
+completed, exit 1 undelivered or failed, exit 2 the check did not run. See
+`.claude/rules/swarm-file-evidence.md` for mechanics and the bounded non-atomic-write exception.
 
 **Implementation rules:**
-- Each module gets its own Task for parallel execution
+- Each module gets its own Task for parallel execution, with its own `WORK_UNIT_ID` and `TRACE_PATH`
 - Reference SPARC docs, don't hallucinate code
 - Commit after each logical unit: `feat(<feature-name>): <what>`
 - Run tests in parallel with implementation
@@ -185,8 +199,9 @@ Use swarm of agents for review:
 | testing | Test coverage | Edge cases, missing tests |
 
 Process:
-1. Run brutal-honesty-review on implementation
-2. Fix identified issues (use Task tool for parallel fixes)
+1. Run brutal-honesty-review on implementation — every review agent delivers under the same
+   positive file receipt contract as Phase 3; a reviewer that returned nothing did not review
+2. Fix identified issues (use Task tool for parallel fixes, same contract)
 3. Save frequent commits: `fix(<feature-name>): <what>`
 4. Benchmark after implementation
 5. Re-review critical findings until clean
@@ -265,8 +280,25 @@ Every new feature MUST follow the 4-phase lifecycle:
 - Run tests in parallel with development
 - Format: `feat(<feature-name>): <description>`
 
+#### Positive file receipt (required)
+
+Before dispatch, allocate one `RUN_ID` and, for every unit, a unique `WORK_UNIT_ID` plus an
+absolute `TRACE_PATH` unique to `(RUN_ID, WORK_UNIT_ID)`; record the launch instant and pass both
+fields to the worker. Each worker must write a substantive body ending in `Status: completed` or
+`Status: failed` to `TRACE_PATH` before it returns its one-line pointer. Before merge, verify every
+path is a regular non-symlink file, non-whitespace, post-launch, and terminal. Narrative output or
+silence is never a receipt. Name missing, stale, partial, unreadable, duplicate, failed, dead-PID,
+or probe-error units and refuse merge, aggregation, or completion until every required receipt is
+valid and completed. Run `node .claude/hooks/check-swarm-receipts.cjs <manifest>` — exit 0 all
+completed, exit 1 undelivered or failed, exit 2 the check did not run. See
+`.claude/rules/swarm-file-evidence.md` for mechanics and the bounded non-atomic-write exception.
+
+Why the file and not the reply: a worker that died looks exactly like a worker still running —
+both are silent — so a coordinator can report in good faith that work is under way when none is.
+A named file turns that into a fact a machine can check.
+
 ### Review (Phase 4)
-- Use brutal-honesty-review with swarm of agents
+- Use brutal-honesty-review with swarm of agents, under the same positive file receipt contract
 - No sugar-coating — find real problems
 - Fix all critical and major issues before marking complete
 - Benchmark performance after implementation
@@ -322,6 +354,10 @@ New features use the 4-phase lifecycle: `/feature [name]`
 2. **VALIDATE** — requirements-validator swarm → score ≥70
 3. **IMPLEMENT** — parallel agents from validated docs
 4. **REVIEW** — brutal-honesty-review swarm → fix all criticals
+
+Every swarm phase delivers under `.claude/rules/swarm-file-evidence.md`: each parallel unit writes
+a file at a named `TRACE_PATH`, and an agent's reply is a pointer, never the result. Verify with
+`node .claude/hooks/check-swarm-receipts.cjs <manifest>` before merging anything.
 
 Available lifecycle skills in `.claude/skills/`:
 - `sparc-prd-mini` (orchestrator, delegates to explore, goap-research, problem-solver-enhanced)

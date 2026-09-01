@@ -165,9 +165,10 @@ minimum_evidence_for_recommendation: 3  # Не рекомендовать на �
 │                         ↓                                       │
 │  Phase 3: SOLVE (Medical Recommendations)                       │
 │  → Загрузи: skills/base/problem-solver-enhanced/SKILL.md       │
-│  → Персонализация: привязать к профилю пациента                │
+│  → Собери solve-envelope-v1: clinical lane + patient-values-v1 │
+│  → Выполни canonical merge: base/solve/solve-advice.js         │
 │  → Risk-benefit analysis для КАЖДОЙ рекомендации               │
-│  → Practical actions: дозы, порции, расписание, где купить      │
+│  → Values меняют только порядок приемлемых опций                │
 │  → Output: Personalized Medical Recommendations                 │
 │  → ⏸️ CHECKPOINT 3: "Подтвердите рекомендации"                 │
 │                         ↓                                       │
@@ -191,8 +192,29 @@ minimum_evidence_for_recommendation: 3  # Не рекомендовать на �
 - [Load from sources/patient_profile.md or latest analysis]
 - All conditions, medications, lab values
 - Specific risks and contraindications
-- What the patient refuses (e.g., statins)
+- Confirmed `patient-values-v1` block, including `as_of`; never infer values from silence
 ```
+
+## Phase 3 Solve Handoff
+
+`problem-solver-enhanced` may help propose options, but it is not medically authoritative. Before
+patient values are used, construct a `solve-envelope-v1` whose `clinical` field already contains the
+complete emergency actions, red flags, contraindications, indications, clinical statuses, and baseline
+ranks. Then execute the deterministic merge:
+
+```bash
+# package source tree
+node base/solve/solve-advice.js < solve-envelope.json > solve-advice.md
+
+# fresh installed master skill
+node solve/solve-advice.js < solve-envelope.json > solve-advice.md
+```
+
+This is the supported Phase-3 path and calls `buildSolveAdvice`. The acceptable-option list must be a
+complete input, never a list pre-filtered by refusals, cost, or treatment preference. Emergency actions
+skip values ranking entirely. The generated Markdown, not free-form solver prose, is the values-aware
+patient output because it prints the clinical hierarchy, value audit, exact ranking diff, conflicts,
+and the doctor boundary together.
 
 ## Medical-Specific GOAP Actions
 
@@ -275,5 +297,6 @@ minimum_evidence_for_recommendation: 3  # Не рекомендовать на �
 | Доверие untrusted источникам | Wikipedia, WebMD как единственный источник | Использовать ТОЛЬКО Trusted Issuer Whitelist (tier 1-3) |
 | Пропуск risk-benefit | Рекомендация без анализа рисков | Каждая рекомендация = таблица польза vs вред для ЭТОГО пациента |
 | Игнорирование лекарственных взаимодействий | Рекомендация добавки без проверки совместимости | Проверять взаимодействия со ВСЕМИ текущими препаратами пациента |
+| Ценности пациента применены до clinical safety lane | Generic solver отфильтровал отказанный класс или стоимость скрыла красный флаг | **BLOCK** — полный `solve-envelope-v1` → `base/solve/solve-advice.js`; допустима только перестановка полного множества acceptable options |
 | Рекомендация без дозы | «Принимайте омега-3» без указания мг/день | Всегда указывать конкретную дозу, форму, частоту |
 | Evidence level не указан | Рекомендация без уровня доказательности (1-7) | Каждый вывод = evidence level + источник |

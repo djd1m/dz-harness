@@ -58,6 +58,40 @@ export interface TelemetryField {
   readonly unit: 'ms' | 'tokens' | null;
 }
 
+export type RunOutcome =
+  | 'completed' | 'completed-unverified' | 'refused-repo-root' | 'refused-design'
+  | 'refused-plan' | 'paused-checkpoint' | 'crashed' | 'unclassified';
+
+/** Every member of the closed set, as data for reachability checks. */
+export const RUN_OUTCOMES = [
+  'completed', 'completed-unverified', 'refused-repo-root', 'refused-design',
+  'refused-plan', 'paused-checkpoint', 'crashed', 'unclassified',
+] as const satisfies readonly RunOutcome[];
+
+export function runOutcomeOf(input: {
+  phase: string | null | undefined;
+  gates: Record<string, unknown> | null | undefined;
+}): RunOutcome {
+  if (input.phase === 'repo-root-mismatch') return 'refused-repo-root';
+  if (input.phase === 'design-incomplete') return 'refused-design';
+  if (input.phase === 'plan-gate-failed') return 'refused-plan';
+  if (input.phase === 'checkpoint-after-plan') return 'paused-checkpoint';
+
+  const gates = input.gates;
+  if ((input.phase === null || input.phase === undefined || input.phase === '')
+    && gates !== null && typeof gates === 'object') {
+    const codeCompleted = gates.code === 'produced' || gates.code === 'landed';
+    const qe = gates.qe;
+    if (codeCompleted && typeof qe === 'string' && qe !== 'not-run' && qe !== 'ran' && qe !== '') {
+      return 'completed';
+    }
+    return 'completed-unverified';
+  }
+
+  // A crashed run cannot classify itself; an external consumer assigns that outcome later.
+  return 'unclassified';
+}
+
 /**
  * The vocabulary. Keys are stable identifiers for OUR code to reference; `field` is what goes on
  * disk, so an upstream rename touches the value and never the call sites.
@@ -75,6 +109,7 @@ export const TELEMETRY_FIELDS: Readonly<Record<string, TelemetryField>> = {
   // OpenTelemetry carries elapsed time as span structure, not as an attribute, so there is no
   // upstream name to copy for a JSONL row. Ours, and said so.
   durationMs:    { field: 'dz.duration_ms',             source: 'local', means: 'elapsed wall time of a stage or run', unit: 'ms' },
+  runOutcome:    { field: 'dz.run_outcome',             source: 'local', means: 'terminal outcome of one feature-adr pipeline run', unit: null },
   // Upstream splits usage into input and output and has no TOTAL. Ours are totals, and folding them
   // into input_tokens would silently change the measured quantity (cross-family review).
   totalTokens:   { field: 'dz.total_tokens',            source: 'local', means: 'input + output for a run or stage', unit: 'tokens' },
@@ -122,6 +157,7 @@ export const LOCAL_FIELD_ALIASES: Readonly<Record<string, string>> = {
   grade: 'evaluationLabel',
   runId: 'runId',
   stage: 'stage',
+  outcome: 'runOutcome',
 };
 
 /**

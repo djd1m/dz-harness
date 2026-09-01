@@ -8,6 +8,14 @@
  */
 import { existsSync, mkdirSync, writeFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+/** id→path index built from the registry, so the generator never guesses a layout. */
+function skillPathIndex(registry) {
+    const m = new Map();
+    for (const e of registry.entries)
+        if (e.path !== undefined && e.path !== '')
+            m.set(`${e.pack}/${e.id}`, e.path);
+    return m;
+}
 /** Generate .claude-plugin/ directory from registry. */
 export function generatePlugin(projectRoot, registry, opts = {}) {
     const pluginDir = join(projectRoot, '.claude-plugin');
@@ -35,15 +43,24 @@ export function generatePlugin(projectRoot, registry, opts = {}) {
         'skills-meta': 'Development process — explore, feature-adr, knowledge-extractor',
     };
     const skillPacks = [...packMap.entries()].map(([name, count]) => ({
+        // `pack` is the REAL directory name; `name` is only the display short form. Deriving the key
+        // back by re-adding the `skills-` prefix broke the moment the catalogue learned packs that
+        // never had one (health-advisor, keysarium, …): the lookup missed and their entries listed
+        // zero skills.
+        pack: name,
         name: name.replace('skills-', ''),
         skills: count,
         description: packDescriptions[name] ?? `${count} skills`,
     }));
+    const pathById = skillPathIndex(registry);
     // Explicit skill paths for the full-suite plugin (source `./`): every skill
     // dir across every pack, relative to the repo root. This is what makes
     // `claude plugin details` report the real skill count instead of 0.
     const allSkillPaths = [...packSkillIds.entries()]
-        .flatMap(([pack, ids]) => ids.map((id) => `packages/@dzhechkov/${pack}/${id}`))
+        // Prefer the path the catalogue recorded; `<pack>/<id>` is only a fallback for entries built
+        // before the field existed. Reconstructing it is what produced unresolvable paths for skills
+        // that live under `skills/` or `templates/.claude/skills/`.
+        .flatMap(([pack, ids]) => ids.map((id) => pathById.get(`${pack}/${id}`) ?? `packages/@dzhechkov/${pack}/${id}`))
         .sort();
     const pluginJson = {
         name: 'dz-harness-hub',
@@ -74,12 +91,17 @@ export function generatePlugin(projectRoot, registry, opts = {}) {
             ...skillPacks.map((pack) => ({
                 name: `dz-${pack.name}`,
                 displayName: `DZ ${pack.name.charAt(0).toUpperCase() + pack.name.slice(1)} Skills`,
-                source: `packages/@dzhechkov/skills-${pack.name}`,
+                source: `packages/@dzhechkov/${pack.pack}`,
                 description: `${pack.skills} ${pack.name} skills — ${pack.description}`,
                 keywords: [pack.name],
-                // Skill dirs sit at the pack source root, so they are listed relative
-                // to `source` here (`./<id>`) — required for Claude Code to discover them.
-                skills: (packSkillIds.get(`skills-${pack.name}`) ?? []).slice().sort().map((id) => `./${id}`),
+                // Listed relative to `source` — required for Claude Code to discover them. The path comes
+                // from the catalogue rather than from the assumption "skill dirs sit at the pack root",
+                // which holds for `skills-*` packs and for neither of the two other layouts.
+                skills: (packSkillIds.get(pack.pack) ?? []).slice().sort().map((id) => {
+                    const full = pathById.get(`${pack.pack}/${id}`);
+                    const base = `packages/@dzhechkov/${pack.pack}/`;
+                    return full !== undefined && full.startsWith(base) ? `./${full.slice(base.length)}` : `./${id}`;
+                }),
             })),
         ],
     };

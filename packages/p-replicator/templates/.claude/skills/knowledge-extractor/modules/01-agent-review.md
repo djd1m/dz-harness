@@ -18,6 +18,16 @@ snippets, skills, and hooks that could be reused in other projects.
 Launch 5 parallel agents via Task tool. Each agent independently scans the codebase
 from its perspective.
 
+### Positive file receipt contract
+
+Before dispatch, allocate one `RUN_ID` and give every extraction perspective a unique `WORK_UNIT_ID`
+and absolute `TRACE_PATH`. Each agent must write a substantive raw-findings body ending in
+`Status: completed` or `Status: failed` to `TRACE_PATH` before its one-line pointer. Before the
+Merging Strategy, verify each path is a regular non-symlink file, non-whitespace, post-launch, and
+terminal. Narrative output or silence is not a receipt. Name missing, stale, partial, unreadable,
+duplicate, failed, dead-PID, or probe-error perspectives and refuse synthesis/completion unless every
+required receipt is valid and completed. See `.claude/rules/swarm-file-evidence.md`.
+
 ### Agent: extractor-patterns
 
 **Scope:** Architecture and code patterns
@@ -166,11 +176,12 @@ from its perspective.
 
 After all 5 agents complete:
 
-1. **Deduplicate** — same finding reported by multiple agents → keep richest description
-2. **Cross-reference** — if a pattern is also a template, note both categories
-3. **Sort by confidence** — HIGH reusability first
-4. **Count** — total findings, per-category breakdown
-5. **Include TOOLKIT_HARVEST.md markers** — merge manual markers with auto-discovered
+1. **Validate traces** — read findings only from five valid completed `TRACE_PATH` receipts
+2. **Deduplicate** — same finding reported by multiple agents → keep richest description
+3. **Cross-reference** — if a pattern is also a template, note both categories
+4. **Sort by confidence** — HIGH reusability first
+5. **Count** — total findings, per-category breakdown
+6. **Include TOOLKIT_HARVEST.md markers** — merge manual markers with auto-discovered
 
 ## Output: Raw Findings List
 

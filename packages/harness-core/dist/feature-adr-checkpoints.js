@@ -634,7 +634,7 @@ export function codeStageResultShapeValid(r) {
         return false;
     if (typeof v.landedNote !== 'string')
         return false;
-    if (v.landingProtocol !== 2)
+    if (v.landingProtocol !== 3)
         return false;
     return v.landingStatus === 'landed' || v.landingStatus === 'genuinely-not-landed' || v.landingStatus === 'inconclusive' || v.landingStatus === 'synchronous';
 }

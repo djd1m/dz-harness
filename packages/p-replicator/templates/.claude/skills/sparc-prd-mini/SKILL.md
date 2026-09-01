@@ -86,6 +86,65 @@ Checkpoint после каждой фазы. Пользователь подтв
     └── CLAUDE.md             # AI tools integration guide
 ```
 
+## Document Role Map Contract
+
+The five SPARC documents are addressed by role, never by a caller-specific filename. A caller may
+provide `DOCUMENT_ROLE_MAP`; otherwise the project-level default below applies. The active map must
+contain exactly these roles: `specification`, `pseudocode`, `architecture`, `refinement`, and
+`completion`.
+
+Resolve the active map once before Phase 3. Bind its values as `SPECIFICATION_FILE`,
+`PSEUDOCODE_FILE`, `ARCHITECTURE_FILE`, `REFINEMENT_FILE`, and `COMPLETION_FILE`, respectively. Every
+phase and traceability gate reads or writes those resolved targets. The literal project-level names
+elsewhere in this document describe the default contour; they do not override a supplied map.
+
+### Project-level default
+
+```yaml
+DOCUMENT_ROLE_MAP:
+  specification: Specification.md
+  pseudocode: Pseudocode.md
+  architecture: Architecture.md
+  refinement: Refinement.md
+  completion: Completion.md
+```
+
+### Atomic validation
+
+If a caller supplies `DOCUMENT_ROLE_MAP`, validate the complete map before Phase 3. Missing roles,
+unknown roles, empty filenames, or a mixture of supplied and default values are an unresolved target
+contract: STOP and report the received map plus every missing, unknown, or empty role. Never fill an
+individual role from the project-level default. When the caller also supplies `TARGET_CATALOG`, join
+that catalog with every filename only after the complete role map passes validation.
+
+### FR/NFR/AC machine-key wire format
+
+Machine keys are exact, case-sensitive joins between the `specification` and `pseudocode` roles:
+`FR-<slug>-<n>`, `NFR-<slug>-<n>`, or `AC-<slug>-<n>`. For a feature contour, `<slug>` is the
+lowercase hyphenated feature directory name and `<n>` is one or more decimal digits.
+
+Declare each key in `SPECIFICATION_FILE` only as a level-three Markdown heading:
+
+```markdown
+### FR-order-refund-1
+### NFR-order-refund-2 — bounded latency
+### AC-order-refund-3 - accepted result
+```
+
+Every `### Algorithm:` block in `PSEUDOCODE_FILE` must carry at least one standalone, exact claim;
+repeat the line when one algorithm addresses several keys:
+
+```markdown
+### Algorithm: Validate refund
+
+REQUIREMENT: `FR-order-refund-1`
+REQUIREMENT: `NFR-order-refund-2`
+```
+
+Prose, comments, tables, examples, `REALISES: SC-...`, and nested `SC-FR-*` scenario IDs are not
+machine-key declarations. Duplicate declarations on either role are invalid; matching sets prove
+cross-document linkage only, not that an algorithm semantically implements the requirement.
+
 ## Workflow Architecture
 
 ```
@@ -373,12 +432,12 @@ view(".claude/skills/problem-solver-enhanced/SKILL.md")
 
 **Inputs:** Product Brief (Phase 0) + Research (Phase 1) + Solution (Phase 2)
 
-**Output — Specification.md + PRD.md:**
+**Output — `SPECIFICATION_FILE` + PRD.md:**
 - Executive Summary
 - User Stories with Acceptance Criteria (Gherkin)
 - Feature Matrix (MVP/v1/v2)
 - Non-Functional Requirements (performance, security, scalability)
-- Success Metrics
+- Success Metrics (each naming its value SOURCE — closed list, see Final Summary)
 
 **User Story Format:**
 ```
@@ -430,7 +489,7 @@ view("templates/prd.md")
 
 **Цель:** Определить алгоритмы и data flow.
 
-**Output — Pseudocode.md:**
+**Output — `PSEUDOCODE_FILE`:**
 ```markdown
 ## Data Structures
 
@@ -482,22 +541,24 @@ Response (4xx/5xx):
 
 **Шаг 4.9 — ПОКРЫТИЕ СЦЕНАРИЕВ (обязательный, до чекпойнта).**
 
-Re-read `Specification.md` and collect every `SC-` scenario ID. Collect every algorithm's `REALISES`
-line from `Pseudocode.md`. Write a `## Scenario Coverage` block into `Pseudocode.md` — **in every
+Resolve role `specification` through `DOCUMENT_ROLE_MAP` as `SPECIFICATION_FILE`.
+Resolve role `pseudocode` through `DOCUMENT_ROLE_MAP` as `PSEUDOCODE_FILE`. Re-read `SPECIFICATION_FILE` and
+collect every `SC-` scenario ID. Collect every algorithm's `REALISES` line from `PSEUDOCODE_FILE`.
+Write a `## Scenario Coverage` block into `PSEUDOCODE_FILE` — **in every
 case, including the one where everything is covered**, because an absent block and a block saying
 "all covered" are indistinguishable to the next reader:
 
 ```
 ## Scenario Coverage
 
-Scenarios in Specification.md: [N]  ·  claimed by an algorithm: [M]
+Scenarios in [SPECIFICATION_FILE]: [N]  ·  claimed by an algorithm: [M]
 
 Not claimed by any algorithm:
 | Scenario | Reason |
 |---|---|
 | SC-… | ui-only |
 
-Claimed by an algorithm but absent from Specification.md:
+Claimed by an algorithm but absent from [SPECIFICATION_FILE]:
 | Algorithm | Claimed ID |
 |---|---|
 | [name] | SC-… |
@@ -513,7 +574,7 @@ written out rather than left blank, because an empty table and a forgotten table
 | Reason | Means |
 |---|---|
 | `ui-only` | realised entirely in the interface, no algorithm to write |
-| `external-service` | performed by a third party, see `Architecture.md` → External Dependencies |
+| `external-service` | performed by a third party, see the `architecture` role resolved through `DOCUMENT_ROLE_MAP` → External Dependencies |
 | `out-of-mvp-scope` | deliberately not built yet |
 | `data-only` | satisfied by a schema or constraint, not by a procedure |
 | `config-only` | satisfied by OUR OWN configuration — a server setting, a header, a policy file — with no procedure to write |
@@ -527,6 +588,10 @@ ends name each other. It does NOT establish that the algorithm's steps actually 
 scenario describes — no comparison of names can. So this catches *"nobody wrote anything about this
 scenario"*; it does not catch *"someone wrote a line that mentions it"*. Say so here rather than
 letting a later reader assume the stronger thing.
+
+With the project-level default, `[SPECIFICATION_FILE]` renders as `Specification.md`, including the
+label `Claimed by an algorithm but absent from Specification.md:`. A supplied map renders the same
+label with its resolved `specification` filename.
 
 **[MANUAL] CP4:**
 ```
@@ -559,7 +624,7 @@ view("references/sparc-methodology.md")
 → Секция Architecture для best practices
 ```
 
-**Output — Architecture.md:**
+**Output — `ARCHITECTURE_FILE`:**
 ```markdown
 ## Architecture Overview
 
@@ -660,7 +725,9 @@ example: what an API can do drifts, and a stale fact recorded as evidence is wor
 булевым, когда схема получила перечисление; алгоритм пользуется полем, которого в схеме нет; у
 статуса три значения в одном документе и пять в другом.
 
-Перечитай в `Pseudocode.md` ДВЕ секции — `## Data Structures` и `## Core Algorithms` — и сверь их с
+Resolve role `pseudocode` through `DOCUMENT_ROLE_MAP` as `PSEUDOCODE_FILE`.
+Resolve role `architecture` through `DOCUMENT_ROLE_MAP` as `ARCHITECTURE_FILE`. Перечитай в `PSEUDOCODE_FILE`
+ДВЕ секции — `## Data Structures` и `## Core Algorithms` — и сверь их с
 тем, что выбрано ЗДЕСЬ. Алгоритмы нужны обязательно: расхождение «алгоритм читает поле, которого в
 схеме нет» по одним лишь структурам данных не обнаруживается. Ищи три вида расхождений:
 
@@ -668,16 +735,16 @@ example: what an API can do drifts, and a stale fact recorded as evidence is wor
 - **отсутствующая колонка** — алгоритм читает или пишет поле, которого в схеме нет;
 - **несовпадение набора значений** — у одного и того же поля разное число допустимых значений.
 
-Какую сторону править — решается по РОЛИ документа, а не по старшинству. `Pseudocode.md` держит
-ЛОГИЧЕСКУЮ модель (что означает поле), `Architecture.md` — ФИЗИЧЕСКУЮ (где и как оно лежит).
+Какую сторону править — решается по РОЛИ документа, а не по старшинству. `PSEUDOCODE_FILE` держит
+ЛОГИЧЕСКУЮ модель (что означает поле), `ARCHITECTURE_FILE` — ФИЗИЧЕСКУЮ (где и как оно лежит).
 Поэтому: если эта фаза ввела осознанное физическое ограничение (тип хранилища, индекс, длина) —
-правится `Pseudocode.md`; если выбранная технология НАРУШАЕТ требуемую семантику (теряются значения,
+правится `PSEUDOCODE_FILE`; если выбранная технология НАРУШАЕТ требуемую семантику (теряются значения,
 исчезает состояние, которым пользуется алгоритм) — меняется выбор ЗДЕСЬ, потому что требование
 старше удобства реализации. Секция `## Data Architecture` этого документа остаётся на месте, но
 описывает отображение на хранилище и связи, а НЕ пересказывает список полей: второй экземпляр списка
 становится вторым местом, где начинается расхождение.
 
-Результат записывается в `Architecture.md` ВСЕГДА, отдельным блоком:
+Результат записывается в `ARCHITECTURE_FILE` ВСЕГДА, отдельным блоком:
 
 ```markdown
 ## Reconciliation with Pseudocode
@@ -688,10 +755,13 @@ example: what an API can do drifts, and a stale fact recorded as evidence is wor
 ```
 
 Если сверка не нашла ничего — блок всё равно пишется, и он ОБЯЗАН назвать, что именно
-сверялось: «Расхождений с `Pseudocode.md` не найдено. Сверены сущности: <перечисление>; алгоритмы:
+сверялось: «Расхождений с `[PSEUDOCODE_FILE]` не найдено. Сверены сущности: <перечисление>; алгоритмы:
 <перечисление>.» Одна фраза «расхождений нет» без перечня — это церемония, которую модель напишет
 не глядя; перечень делает утверждение проверяемым. Молчание не является результатом сверки: по нему
 нельзя отличить «сверили и чисто» от «не сверяли».
+
+With the project-level default, `PSEUDOCODE_FILE` is `Pseudocode.md` and `ARCHITECTURE_FILE` is
+`Architecture.md`; a supplied map changes only those resolved filenames, not the reconciliation.
 
 **[MANUAL] CP5:**
 ```
@@ -718,7 +788,7 @@ example: what an API can do drifts, and a stale fact recorded as evidence is wor
 
 **Цель:** Edge cases, тестирование, оптимизация.
 
-**Output — Refinement.md:**
+**Output — `REFINEMENT_FILE`:**
 ```markdown
 ## Edge Cases Matrix
 
@@ -796,7 +866,7 @@ Scenario: [Error case]
 
 **Цель:** Deployment и operational readiness.
 
-**Output — Completion.md + CLAUDE.md:**
+**Output — `COMPLETION_FILE` + CLAUDE.md:**
 
 **Completion.md:**
 ```markdown
@@ -922,8 +992,17 @@ view("templates/CLAUDE.md")
 [Top 3-5 insights from research phase]
 
 ## Success Metrics
-| Metric | Target | Timeline |
-|--------|--------|----------|
+| Metric | Target | Timeline | Источник значения |
+|--------|--------|----------|-------------------|
+
+**Every metric MUST name where its value comes from**, from a CLOSED list: `наш журнал` · `наша БД`
+· `внешний API: <метод>` · `ручное измерение: <как>`. An empty cell and "из аналитики" are BLOCKERS,
+not notes — measurability is otherwise decided by the SHAPE OF A NUMBER rather than by our ability to
+OBTAIN it, so an unobtainable metric passes completeness, measurability and consistency with
+distinction, and the feature gets designed around a promise nobody can keep. Manual measurement is a
+legitimate answer; manual measurement presented as instrumented is not. A metric naming an external
+API MUST produce a row in `## External Dependencies` — that inventory is the only route by which a
+metric ever reaches a lens that looks outside these documents.
 
 ## Timeline & Phases
 | Phase | Features | Timeline |
@@ -1044,7 +1123,7 @@ sparc-prd-mini MANUAL
 
 **Actionability:**
 - [ ] Каждое действие имеет owner и timeline
-- [ ] Метрики успеха измеримы
+- [ ] Метрики успеха измеримы И называют источник значения из закрытого списка
 - [ ] Риски идентифицированы с mitigation планами
 
 ---

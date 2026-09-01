@@ -42,10 +42,10 @@ import { fileURLToPath } from 'node:url';
  * standing test (`test/core-import-floor.test.ts`, F1) fails if the two drift apart,
  * because a guard that says 0.4.7 while npm may install 0.4.2 is worse than no guard.
  */
-// 0.7.0: this CLI reads `HybridRecall.semanticRanked` and `VectorTierStatus.mirroredOther` /
-// `orphaned` / `unmirrored`, none of which exist in 0.6.1 — a lower core would not merely behave
-// differently, it would be missing the fields every recall claim is now derived from.
-export const MIN_CORE = '0.8.4';
+// 0.8.7: the statusline statically imports the ETA parser/estimator surface. An older core fails
+// during ESM linking before runCli can print a useful diagnostic, so the import-free preflight must
+// refuse it first.
+export const MIN_CORE = '0.8.7';
 /** The npm name of the guarded package — one literal, used by every leg below. */
 export const CORE_PACKAGE_NAME = '@dzhechkov/harness-core';
 /**

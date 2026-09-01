@@ -501,7 +501,7 @@ npx @dzhechkov/p-replicator verify
 ```
 
 Should report:
-- ✅ Pre-shipped contract intact (10 skills + 11 commands + 4 agents + 6 rules + settings.json)
+- ✅ Pre-shipped contract intact (10 skills + 11 commands + 4 agents + 13 rules + settings.json)
 - ✅ Post-/replicate hints — many will be absent in Mode 2 (this is normal)
 - 📊 Per-feature artifacts: `docs/features/<id>/01_specification.md`...`05_completion.md`,
   `validation-report.md`, `review-report.md`

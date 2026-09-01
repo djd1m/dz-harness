@@ -94,6 +94,11 @@ function shapeMismatch(kind: RecordKind, payload: Record<string, unknown>): stri
   return null;
 }
 
+/** A runner id is missing when absent or blank — the same gap rule the date stamp uses. */
+function isRunnerGap(v: unknown): boolean {
+  return v === null || v === undefined || (typeof v === 'string' && v.trim() === '');
+}
+
 export function decideRecordWrite(input: {
   kind: RecordKind;
   /** The raw `--row` / `--pair` argument, exactly as the caller passed it. */
@@ -109,6 +114,9 @@ export function decideRecordWrite(input: {
   targetHasPair?: boolean;
   /** Stamped INTO the object before serialising — never rewritten in the shell afterwards (FR-7). */
   timestamp?: string | null;
+  /** Who ran it. Supplied by the CALLER, which lives outside the workflow sandbox and can see the
+   *  host; absent stays absent (see the stamping comment below). */
+  runnerId?: string | null;
   maxChars?: number;
 }): RecordDecision {
   const { kind, payloadRaw, stage } = input;
@@ -173,6 +181,21 @@ export function decideRecordWrite(input: {
     const isGap = (v: unknown): boolean => v === null || v === undefined || (typeof v === 'string' && v.trim() === '');
     if (kind === 'ledger' && isGap(stamped['date'])) stamped['date'] = input.timestamp.slice(0, 10);
     if (kind === 'training-pair' && isGap(stamped['ts'])) stamped['ts'] = input.timestamp;
+  }
+
+  // WHO ran this. Stamped HERE and nowhere else, for a structural reason: the workflow lives in a
+  // sandbox with no host, no process and no clock, so it cannot name its own runner — but this
+  // command runs outside that sandbox and can. Same seam that already stamps the date.
+  //
+  // The field answers a DIFFERENT question from the zombie-preflight predicate (backlog 4a727ac6):
+  // that one asks "is this job's PARENT still alive", this one asks "which runner produced this
+  // row". Complementary, not duplicate — a future run index joins them, and neither can answer for
+  // the other. Absent identity stays ABSENT: an unknown runner is never invented as 'unknown',
+  // because a fabricated identity is worse than a missing one for anything that later joins on it.
+  // A blank supplied id is a gap too: `'   '` sneaking in as a value would join later as a distinct
+  // runner made of spaces — the same class of harm as inventing 'unknown'.
+  if (kind === 'ledger' && isRunnerGap(stamped['runnerId']) && !isRunnerGap(input.runnerId)) {
+    stamped['runnerId'] = (input.runnerId as string).trim();
   }
 
   let line: string;

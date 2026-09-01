@@ -190,7 +190,7 @@ function run(options) {
   console.log(bold('Next steps:'));
   console.log(`  1. Open ${cyan('Claude Code')} in this directory`);
   console.log(`  2. Run ${cyan('/replicate "Your product idea"')} for the full pipeline`);
-  console.log(`  3. Follow 4-5 phases with interactive checkpoints`);
+  console.log(`  3. Follow 5-6 phases with interactive checkpoints (Phase 0 optional, Phase 0.5 always)`);
   console.log('');
   console.log(bold('Available commands after /replicate:'));
   console.log(`     ${cyan('/replicate')}  ${dim('\u2014 Full pipeline: idea \u2192 validated docs \u2192 toolkit')}`);

@@ -1,10 +1,10 @@
 {
   "name": "@dzhechkov/skills-web3",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
-  "description": "Canonical Web3/DeFi skill pack \u2014 12 agentic skills for blockchain RPC, wallet analytics, cross-chain swaps, DeFi, identity, privacy, and social. Canonicalized from gitlawb/banker-skills.",
+  "description": "Canonical Web3/DeFi skill pack — 12 agentic skills for blockchain RPC, wallet analytics, cross-chain swaps, DeFi, identity, privacy, and social. Canonicalized from gitlawb/banker-skills.",
   "license": "MIT",
   "author": "dzhechko",
   "keywords": [
@@ -44,8 +44,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-web3"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-web3#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-web3#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

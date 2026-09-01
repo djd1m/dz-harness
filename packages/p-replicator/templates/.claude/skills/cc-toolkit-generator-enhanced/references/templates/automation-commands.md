@@ -165,6 +165,23 @@ Then evaluate the feature to determine the right pipeline:
 - Run tests in parallel with implementation of unrelated components
 - Never parallelize tasks that have data dependencies
 
+### Positive file receipt (required)
+
+Before dispatch, allocate one `RUN_ID` and, for every unit, a unique `WORK_UNIT_ID` plus an
+absolute `TRACE_PATH` unique to `(RUN_ID, WORK_UNIT_ID)`; record the launch instant and pass both
+fields to the worker. Each worker must write a substantive body ending in `Status: completed` or
+`Status: failed` to `TRACE_PATH` before it returns its one-line pointer. Before merge, verify every
+path is a regular non-symlink file, non-whitespace, post-launch, and terminal. Narrative output or
+silence is never a receipt. Name missing, stale, partial, unreadable, duplicate, failed, dead-PID,
+or probe-error units and refuse merge, aggregation, or completion until every required receipt is
+valid and completed. Run `node .claude/hooks/check-swarm-receipts.cjs <manifest>` — exit 0 all
+completed, exit 1 undelivered or failed, exit 2 the check did not run. See
+`.claude/rules/swarm-file-evidence.md` for mechanics and the bounded non-atomic-write exception.
+
+This matters most in an AUTONOMOUS loop, where nobody is watching: a worker that died is silent and
+a worker that is running is silent, so the loop keeps reporting progress on work that stopped hours
+ago. The file receipt is what turns that into a red exit code instead of a comfortable narrative.
+
 ## Git Strategy
 
 - Commit after each logical unit of work (not giant commits)

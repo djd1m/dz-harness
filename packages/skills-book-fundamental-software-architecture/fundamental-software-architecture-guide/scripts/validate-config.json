@@ -1,0 +1,12 @@
+{
+  "schema": "fundamental-software-architecture/decision-record/1",
+  "required_output": [
+    "decision",
+    "dominant_family",
+    "accepted_downside",
+    "verification_condition",
+    "reconsideration_trigger",
+    "handoff"
+  ],
+  "source_policy": "source_ku_ids and page_anchors are required whenever a shipped reference is used"
+}

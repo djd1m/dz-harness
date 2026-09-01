@@ -31,4 +31,5 @@ export const claudeAdapter = {
 };
 export { compileToClaudeFiles } from './compile.js';
 export { verifyClaudeEmit } from './verify.js';
+export { claudeIntegrationAdapter, planClaudeIntegrations } from './integrations.js';
 //# sourceMappingURL=index.js.map

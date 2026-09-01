@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-agents-md",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "AGENTS.md platform adapter - flattens canonical skills into a single root-level AGENTS.md (plain Markdown, no frontmatter; intentionally lossy, merge-not-overwrite).",
   "type": "module",
   "license": "MIT",
@@ -52,8 +52,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/adapter-agents-md"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/adapter-agents-md#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-agents-md#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

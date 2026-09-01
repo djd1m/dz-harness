@@ -4,267 +4,272 @@
   "packages": [
     {
       "name": "@dzhechkov/adapter-agents-md",
-      "version": "0.1.6",
+      "version": "0.1.7",
       "files": 9
     },
     {
       "name": "@dzhechkov/adapter-claude",
-      "version": "0.2.5",
-      "files": 19
+      "version": "0.2.7",
+      "files": 24
     },
     {
       "name": "@dzhechkov/adapter-codex",
-      "version": "0.2.5",
+      "version": "0.2.6",
       "files": 9
     },
     {
       "name": "@dzhechkov/adapter-copilot",
-      "version": "0.1.6",
+      "version": "0.1.7",
       "files": 9
     },
     {
       "name": "@dzhechkov/adapter-cursor",
-      "version": "0.1.6",
+      "version": "0.1.7",
       "files": 9
     },
     {
       "name": "@dzhechkov/adapter-gemini",
-      "version": "0.1.6",
+      "version": "0.1.7",
       "files": 9
     },
     {
       "name": "@dzhechkov/adapter-hermes",
-      "version": "0.2.5",
+      "version": "0.2.6",
       "files": 9
     },
     {
       "name": "@dzhechkov/adapter-openclaude",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "files": 9
     },
     {
       "name": "@dzhechkov/adapter-opencode",
-      "version": "0.2.5",
+      "version": "0.2.6",
       "files": 9
     },
     {
       "name": "@dzhechkov/adapter-windsurf",
-      "version": "0.1.6",
+      "version": "0.1.7",
       "files": 9
     },
     {
       "name": "@dzhechkov/cloudru-hub",
-      "version": "0.1.10",
+      "version": "0.1.11",
       "files": 26
     },
     {
       "name": "@dzhechkov/core",
-      "version": "0.2.20",
-      "files": 59
+      "version": "0.2.22",
+      "files": 65
     },
     {
       "name": "@dzhechkov/design-thinking",
-      "version": "1.0.13",
+      "version": "1.0.14",
       "files": 57
     },
     {
       "name": "@dzhechkov/evidence-wiki",
-      "version": "0.2.5",
+      "version": "0.2.6",
       "files": 19
     },
     {
       "name": "@dzhechkov/harness-cli",
-      "version": "0.8.5",
+      "version": "0.8.9",
       "files": 41
     },
     {
       "name": "@dzhechkov/harness-core",
-      "version": "0.8.5",
-      "files": 625
+      "version": "0.8.10",
+      "files": 686
     },
     {
       "name": "@dzhechkov/harness-presets",
-      "version": "0.5.17",
+      "version": "0.5.18",
       "files": 14
     },
     {
       "name": "@dzhechkov/health-advisor",
-      "version": "1.10.4",
-      "files": 245
+      "version": "1.10.5",
+      "files": 247
     },
     {
       "name": "@dzhechkov/keysarium",
-      "version": "1.7.3",
+      "version": "1.7.4",
       "files": 247
     },
     {
       "name": "@dzhechkov/keysarium-core",
-      "version": "1.1.26",
+      "version": "1.1.27",
       "files": 24
     },
     {
       "name": "@dzhechkov/loop-designer-plugin",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "files": 23
     },
     {
       "name": "@dzhechkov/mcp-server-tools",
-      "version": "0.2.9",
+      "version": "0.2.10",
       "files": 29
     },
     {
       "name": "@dzhechkov/memory",
-      "version": "0.2.18",
+      "version": "0.2.19",
       "files": 49
     },
     {
       "name": "@dzhechkov/p-replicator",
-      "version": "1.10.3",
-      "files": 210
+      "version": "1.13.0",
+      "files": 267
     },
     {
       "name": "@dzhechkov/scout",
-      "version": "0.8.10",
+      "version": "0.8.11",
       "files": 104
     },
     {
       "name": "@dzhechkov/skills-12factor",
-      "version": "0.1.12",
+      "version": "0.1.13",
       "files": 43
     },
     {
       "name": "@dzhechkov/skills-academic",
-      "version": "0.3.6",
+      "version": "0.3.7",
       "files": 26
     },
     {
       "name": "@dzhechkov/skills-analyst-manual",
-      "version": "1.0.13",
+      "version": "1.0.14",
       "files": 41
     },
     {
       "name": "@dzhechkov/skills-book-ai-apps",
-      "version": "0.2.8",
+      "version": "0.2.9",
       "files": 60
     },
     {
       "name": "@dzhechkov/skills-book-ddia",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "files": 37
     },
     {
       "name": "@dzhechkov/skills-book-digitizer",
-      "version": "0.2.18",
+      "version": "0.2.19",
       "files": 16
     },
     {
+      "name": "@dzhechkov/skills-book-fundamental-software-architecture",
+      "version": "0.1.1",
+      "files": 45
+    },
+    {
       "name": "@dzhechkov/skills-bto",
-      "version": "1.4.4",
+      "version": "1.4.5",
       "files": 39
     },
     {
       "name": "@dzhechkov/skills-decision-mockups",
-      "version": "0.1.6",
+      "version": "0.1.7",
       "files": 15
     },
     {
       "name": "@dzhechkov/skills-devops",
-      "version": "0.3.16",
+      "version": "0.3.17",
       "files": 127
     },
     {
       "name": "@dzhechkov/skills-ecc",
-      "version": "0.1.11",
+      "version": "0.1.12",
       "files": 27
     },
     {
       "name": "@dzhechkov/skills-edu-site",
-      "version": "1.1.9",
+      "version": "1.1.10",
       "files": 26
     },
     {
       "name": "@dzhechkov/skills-feature-adr",
-      "version": "1.5.7",
+      "version": "1.5.9",
       "files": 82
     },
     {
       "name": "@dzhechkov/skills-idea2prd",
-      "version": "0.1.14",
+      "version": "0.1.15",
       "files": 52
     },
     {
       "name": "@dzhechkov/skills-mcp",
-      "version": "0.3.9",
+      "version": "0.3.10",
       "files": 70
     },
     {
       "name": "@dzhechkov/skills-meta",
-      "version": "0.9.54",
-      "files": 139
+      "version": "0.9.55",
+      "files": 140
     },
     {
       "name": "@dzhechkov/skills-news",
-      "version": "0.1.15",
+      "version": "0.1.16",
       "files": 40
     },
     {
       "name": "@dzhechkov/skills-package-story-page",
-      "version": "0.2.3",
+      "version": "0.2.4",
       "files": 27
     },
     {
       "name": "@dzhechkov/skills-pm",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "files": 24
     },
     {
       "name": "@dzhechkov/skills-presentation-storyteller",
-      "version": "0.1.13",
+      "version": "0.1.14",
       "files": 46
     },
     {
       "name": "@dzhechkov/skills-qe",
-      "version": "0.3.13",
+      "version": "0.3.14",
       "files": 149
     },
     {
       "name": "@dzhechkov/skills-reasoning",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "files": 19
     },
     {
       "name": "@dzhechkov/skills-reverse-engineering",
-      "version": "0.3.3",
+      "version": "0.3.4",
       "files": 54
     },
     {
       "name": "@dzhechkov/skills-taste",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "files": 7
     },
     {
       "name": "@dzhechkov/skills-transcript-site",
-      "version": "1.0.8",
+      "version": "1.0.9",
       "files": 24
     },
     {
       "name": "@dzhechkov/skills-tutorial-factory",
-      "version": "0.4.3",
+      "version": "0.7.0",
       "files": 32
     },
     {
       "name": "@dzhechkov/skills-web3",
-      "version": "0.2.8",
+      "version": "0.2.9",
       "files": 54
     },
     {
       "name": "@dzhechkov/skills-website-cloner",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "files": 16
     },
     {
       "name": "@dzhechkov/trip-planner",
-      "version": "1.0.10",
+      "version": "1.0.11",
       "files": 52
     }
   ]

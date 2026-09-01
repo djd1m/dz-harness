@@ -1,0 +1,181 @@
+{
+  "manifest": {
+    "version": 3,
+    "pack": "skills-book-fundamental-software-architecture",
+    "files": [
+      {
+        "path": "CP4-PACK-REPORT.md",
+        "sha256": "3ef5a06efe41f8568ac709ec8c0b1d3f9b29b8a0170d1e62cd5954f453249fc7"
+      },
+      {
+        "path": "LICENSE",
+        "sha256": "27ddc8b3d203cd1e6c312476849f6ddc2a5835e30d3bd4202d52dfdffc536a5e"
+      },
+      {
+        "path": "README.md",
+        "sha256": "34ec09523c512ac80a654f457087c80b5a5de5cc82c3e0beafdbead8015f2902"
+      },
+      {
+        "path": "brain/fundamental-software-architecture.sqlite",
+        "sha256": "c6c53162d283c57a38ed0947de321f9fc9d4a8eb41728823096470ead8b6a3b9"
+      },
+      {
+        "path": "family-manifest.json",
+        "sha256": "8bad44cf4a26a4355bf40206188d634db16f4e57adb5560756625fbf1dc7414d"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/SKILL.md",
+        "sha256": "a16b354407a7f080144cc8a1460b1ded3f1d5c2e056d0a8d2a4d6ba0c4fc1bd9"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/evals/ROUTING-GATE-v2.md",
+        "sha256": "c9ea6c2b9bf16d56b70becd5d42d2778229ecdf905a29d2c861d28908e088f4a"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/evals/cases-families-v2.json",
+        "sha256": "2984616ef58f51157945581652a810b93a36567fbdb09533f0de9dc617b9e283"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/evals/family-catalog.md",
+        "sha256": "abc829d21566814c223726362174707cafddd45337b2d8e2c58a4da073ca7d75"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/evals/gate-summary-v2.json",
+        "sha256": "aa1a3f8da51bb14474e8470e040a7d565d6d8cdbb6ac121d13bda393702c1c2a"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/01-least-worst-tradeoff.md",
+        "sha256": "4f00e8332e41b15792b286cd7d1c3f8e8fa128290ce37289278d0ad6381c533a"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/02-characteristic-driver-sieve.md",
+        "sha256": "831aa30e5c3a336834592c6d39de2bf9625d4755111f6ac4e253009237fce7e1"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/03-fitness-function-guardrail.md",
+        "sha256": "4c088acddb5697eb94b27feb848721fffca538724f9b585448a2239320e2bd29"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/04-connascence-refactoring.md",
+        "sha256": "ff8d7919b729b45b6f3e2252f6a6b23dd42557a0f3f3e843e7950a34084e118f"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/05-architecture-quantum-boundary.md",
+        "sha256": "1e5394601982bc389db09714fa38dd9feb128ab1342b9fc486985e39c5705519"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/06-actor-action-component-decomposition.md",
+        "sha256": "b1db15f0903c8b3be94d197edfc4db6fa310d5d4ea90adb65040afabd1540e42"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/07-style-topology-fit.md",
+        "sha256": "6ee3ea8366d13c0313916e32a06ca5b101d6b0a7025fcde65c516015687cf77c"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/08-distributed-fallacy-audit.md",
+        "sha256": "4b9c27254582e4d479c901c1ad9ab636e6cbb055781d5b57a0add5c462e256ec"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/09-open-layer-sinkhole.md",
+        "sha256": "4b0c8a85d5b7a3b09ad0e9dba3e2d7ca0448e4ad48632becac1dc31a5a9d86e2"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/10-modular-monolith-mediator.md",
+        "sha256": "777e8de807ed8c40180d4f494cbebe86c227e10550aa2949616e70fd8a595897"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/11-pipeline-filter-topology.md",
+        "sha256": "163d7a2da77e32eab85916a04f4cad6261df8122523ea784b900fbd13b4b8bf2"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/12-microkernel-plugin-lifecycle.md",
+        "sha256": "5d5467a81e16ed42b1898f5bb27ace94b98bcc25a93070e8d19059348cb39a15"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/13-service-based-domain-service.md",
+        "sha256": "a8b41467fec7fc4745c149529128e0d87949d642bddac56e36806bb35cf85f8e"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/14-event-payload-semantics.md",
+        "sha256": "e46d4fa9a09bb792af88c9ebeddc638926e44baa638e76dfa7fdfd92cfd3dfd6"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/15-event-delivery-recovery.md",
+        "sha256": "aea9c76e253b1dadb450f65a8a0dedc41feea3c0e975b96821d3a44b66effc64"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/16-event-mediator-data-topology.md",
+        "sha256": "dd8ce683ee7b815ea8b7336b4943fa7a760ab853ecac75f456472cf4c1cf631f"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/17-space-based-cache-grid.md",
+        "sha256": "4bd7c5fe3ff02510d870e3b981a1e5cdab5d4f441d8f1deda6a44d7e1fabbec0"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/18-soa-service-taxonomy.md",
+        "sha256": "db868edeb333e18cc5185e4ca19579b2039820e0d1d523314ded7b6316f09986"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/19-microservice-granularity-isolation.md",
+        "sha256": "61d6d94ce52cdbb1de0b5409f9e2480232f246eb1f1f8950f8a3a67c22006a26"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/20-pattern-composition-coupling.md",
+        "sha256": "6a52f7445b4a7bb681c690139c1cd45ea0bebf4d8a87a7662b344a3a4276819a"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/21-decision-governance-last-moment.md",
+        "sha256": "059553b36a2383593aee8f7718d2e082f45c9127b2c4107c160799bfcef9d2d2"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/22-architecture-risk-storming.md",
+        "sha256": "fd941c3478082b719c7b48177efa37b55250efa6fadcaf075faf1f0e524b2c4e"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/23-diagram-semantic-layers.md",
+        "sha256": "41cac38f457369434979b11edf06230320d489f73ac003610cb1814dd952d007"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/24-architect-elastic-participation.md",
+        "sha256": "7fa483313ba5e14d89f720e9a71827f06a2b0b6680cea2279cb15c6dc4067658"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/25-constraint-negotiation-availability.md",
+        "sha256": "be08f44bfe12c0dbefd5d422f90c8a2593d901d0cff83ed91459981d1b5eda57"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/references/26-environment-topology-alignment.md",
+        "sha256": "46ef13dd6386c5b7562ce90ec913c3ae8bbdc40467d991abd8067582d841feca"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/schemas/output.json",
+        "sha256": "45263cec3fd22a4218dd21231d34c388b0a59642b2ee9122834a3d1dae7bddc0"
+      },
+      {
+        "path": "fundamental-software-architecture-guide/scripts/validate-config.json",
+        "sha256": "394584bad95af26077f9d02490a1087beaae8d81e6a9abaf5dd0feca23f81108"
+      },
+      {
+        "path": "package.json",
+        "sha256": "e87868f7f3df26ebdc806d3f6f2c0075841071543f01875e2772c94f8d71fbf2"
+      },
+      {
+        "path": "route-manifest.json",
+        "sha256": "03f14a20aad3a3a47254e130a204a5b4709807cc5c7288d6731b8f077aacfbc1"
+      },
+      {
+        "path": "scripts/shingling-check.mjs",
+        "sha256": "0f4ff1fbcba61593b73c4cae036c49f9ca22bd2ea561b00ccb16fd273863a915"
+      },
+      {
+        "path": "sources.json",
+        "sha256": "b2a1cd45f5320f0cb7307b4129bf49b3d321f485ff4f258e8e773d04b42e8080"
+      },
+      {
+        "path": "test/pack.test.mjs",
+        "sha256": "bda8c2b4e415dd579250dbe4e57dcf1077268568552619586460a157c9dcc8cb"
+      }
+    ]
+  },
+  "signature": "WIafNbQIkTmPs/2KXE/ySNum6q8IZcUbicbizGcurUT7sv6heZaNqxY18TwEgCIMZgvumHbvNW9sL5yiKAVJCQ=="
+}

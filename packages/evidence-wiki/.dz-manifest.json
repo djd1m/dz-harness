@@ -53,7 +53,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "5bdcff9127e8e875896347dec6e92f1894a823c37f510fededf9e48261918f76"
+        "sha256": "8cec5d818f811066b536906d4299331237bb9b37afaa8b5b7b4bd57b8abcb8c5"
       },
       {
         "path": "shards/triple-pillar.shard.md",
@@ -73,5 +73,5 @@
       }
     ]
   },
-  "signature": "oNyDXhO97JZ7bCU+fTluKImfF9FSWI4Aasac82OScYFMUJDqOLfzeKbR/giqAeu+Ry6zGhIQSvDzlLcKLwxTCw=="
+  "signature": "l1mNJD+YNJA1aUkdUP2NGZaTMWI5eZw047OVeK86REDJWq8VH2FnC+udidsVIYWuoGa77DbY6nl1oGhn0FLQCw=="
 }

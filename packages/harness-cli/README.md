@@ -36,6 +36,19 @@ The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skil
 npm install -g @dzhechkov/harness-cli
 ```
 
+## MCP and hook companion configuration
+
+A skill can request companion configuration through a bounded adjacent `INTEGRATIONS.json`. The
+first integration-aware init prints its aggregate digest; only
+`--allow-integrations <that-digest>` can authorize the exact content. The live registration probe is
+non-executing: it uses target-owned list/get surfaces, never the manifest command or URL.
+
+The measured support matrix currently admits Claude Code `2.1.235` project MCP only. Every other
+target/component pair is a named refusal, except that the existing Codex hook writer can map to
+emitted when its live veto probe reports `ready: true`. Claude `Pending approval` is registration
+with `ready: false`. Use `--no-integrations` for explicit skills-only installation; `--no-verify`
+does not authorize emission.
+
 > **Note:** If you get `EUNSUPPORTEDPROTOCOL workspace:*`, you're inside a pnpm/yarn workspace. Run the install from `/tmp` or `~` instead.
 
 ### Updating an already-installed `dz`
@@ -660,14 +673,25 @@ $ dz compounding
   INSTRUMENTATION: last apply-leg record … — live
   EVIDENCE CHAIN .dz/recall-usage.jsonl: verified · 3 chained · 133 pre-chain (uncovered)
   EVIDENCE CHAIN .dz/guard-audit.jsonl: verified · 3 chained · 82 pre-chain (uncovered)
+  LESSON → RULE FUNNEL (calendar month, observed traffic only):
+    2026-08 · eligible/attempted/accepted/executions NOT MEASURED (promotion-history-not-recorded)
 ```
 
-Three honesty rules are load-bearing:
+Four honesty rules are load-bearing:
 - **a gate without enough data says INSUFFICIENT DATA** — never a verdict (the apply-leg log turned
   out to have been silently dead for 19 days; "no data" is a finding, not a pass);
 - **readiness is not a result** — the replay section says `ready`, never `promote`;
 - **improvement is judged by RATE** (violations per audit), so a quiet afternoon cannot masquerade
-  as progress.
+  as progress;
+- **zero promotions is not itself a finding** — the funnel names a stopped stage only when its
+  predecessor is non-empty and it stays empty for three consecutive measured UTC months. A missing,
+  malformed, unreadable, unobserved, or anchorless source prints `NOT MEASURED (<reason>)`, never 0.
+
+The funnel is prospective: ordinary non-dry `dz guard promote` runs append bounded candidate/status
+observations to the existing `.dz/promotion-state.json`; `--dry-run` still writes nothing. Guard
+firings join by the opaque digest of the exact effective template+params carried in the audit row, never by a
+display rule id alone. Text and `--json` render the same counts/status/findings model and issue no
+overall learning-health verdict.
 
 The prompt queries that make replay possible stay on your machine: `.dz/recall-usage.jsonl` is
 git-ignored, entries are truncated at 200 chars and flagged when truncated (a prefix is not a prompt,
@@ -1840,16 +1864,18 @@ runs a command that MEASURES the declared artifacts itself. It refuses a null re
 never recorded as done), an absent or partially-present artifact set, and a stage that declares nothing
 to witness — so a stage that did not happen can no longer be recorded, which the old mechanism allowed.
 
-## All Commands (83)
+## All Commands (85)
 
-*(83 MEASURED — reproducer: `node --input-type=module -e "import('./dist/index.js').then(m=>console.log(m.DZ_COMMANDS.length))"`; `dz --help` exposes 80 unique top-level names, pinned by `test/command-count.test.ts`.)*
+*(84 MEASURED from the bounded command inventory below; rendered `dz --help` exposes 81 unique
+top-level names, pinned by `test/command-count.test.ts`.)*
 
 ```
 dz setup             --target <name> [--preset <name>] [--select id,id,...] [--skills-dir <dir>] [--memory agentdb] [--no-memory] [--no-hooks] [--install-driver] [--force]
-dz init              --target <name> [--preset <name>] [--select id,id,...] [--force]
+dz init              --target <name> [--preset <name>] [--select id,id,...] [--allow-integrations <sha256:...>] [--no-integrations] [--no-verify] [--force]
+dz integrations-verify --target <name> --component <mcp|hooks> [--project <dir>] [--json]
 dz install           <npm-pkg> [--target <name>] [--project <dir>] [--force]
 dz bundle            [--preset <name> | --select id,...] [--out <dir>] [--skills-dir <dir>] [--force]
-dz teach             "<pattern>" [--reward <0-1>] [--domain <name>] [--type rule|success-pattern|lesson-learned] [--project <dir>] [--to project|global] [--no-mirror] [--guard]   # --project pins the learned store to <dir>/.dz (not the cwd) — pin to a canonical brain; --to picks WHICH store (global = ~/.dz, shared across projects). Session default: export DZ_LEARN=global. Project default: .dz/config.json -> learning.teachTo. An unknown value is REFUSED, never defaulted. Every write prints the path AND what chose it.
+dz teach             "<pattern>" [--class-form "<template with :slot>"] [--reward <0-1>] [--domain <name>] [--type rule|success-pattern|lesson-learned] [--project <dir>] [--to project|global] [--no-mirror] [--guard]   # --class-form is optional and never blocks the specific write; --project pins the learned store to <dir>/.dz; --to picks WHICH store (global = ~/.dz, shared across projects). Every write prints the path AND what chose it.
 dz teach --reinforce "<dzId-or-exact-text>" [--project <dir>] # bump an existing learned pattern instead of writing a near-duplicate
 dz teach --from-json <file> [--project <dir>] [--no-mirror] [--harmonize]   # bulk-import a `dz recall --all --json` export; prints a harmonize dry-run advisory
 dz consolidate       [--sessions-dir <dir>] [--project <dir>] [--no-mirror]
@@ -1865,6 +1891,7 @@ dz teach --harmonize [--apply] [--threshold <0..1>]                # alias of `d
 dz statusline        [--json] [--install]   # compact Claude Code statusline: live self-learning pattern count + brain sources
 dz usage             [--json] [--project <dir>] | --calibrate --session <pct> --weekly <pct> [--model fable=<pct>]   # ESTIMATE Claude usage from fixed reset windows; optional per-model weekly binding; exit 0 ALWAYS
                      --by-stage [--run <id> | --slug <s>] [--epsilon <0..1>] [--write <file.jsonl>] [--json]         # per-stage cost ledger for ONE feature-adr run + reconciliation invariant (BALANCED | DEFECT | INSUFFICIENT_DATA)
+dz chain             [--project <dir>] [--json]   # verify EVERY hash-chained journal in one command; coverage is DERIVED from the CHAINED_JOURNALS registry, so a journal cannot be chained and checked by nobody; an ABSENT journal is NAMED, never omitted; exit 1 on broken/unreadable
 dz claim-check       [paths...] [--json] [--fail-on high|medium|none] [--project <dir>]   # enforce the Integrity Rule: flag untagged/overstated accuracy claims; default scan = READMEs + features' 08_qe_report.md; exit 1 only at/above --fail-on (default high)
 dz lint              [paths...] [--json] [--config <file>] [--registry <file>] [--project <dir>]   # advisory EN/RU prose-style lint; findings exit 0, incomplete input/policy exits 1, usage exits 2
 dz brain list        [--json]                                        # the durable cross-project knowledge brain
@@ -1905,7 +1932,7 @@ dz feature-adr-record  --kind ledger|training-pair --stage <s> [--slug <s>] [--r
 dz mutation-gate [--package <dir>] [--registry <file>] [--test-cmd "<cmd>"] [--only <id[,id]>] [--timeout <ms>] [--rebaseline per-entry|final] [--keep-scratch] [--json]   # the mutation gate: for each NAMED protection in a declarative registry, copy the package to a scratch dir (shadow-repo layout, node_modules symlinked, git-initialized), verify the baseline is green, apply the entry's exact {find, replace} mutation, run the suite, REQUIRE red, restore — and require the red to be ATTRIBUTABLE to the protection: a mutated file that no longer parses is MUTATION_UNPARSEABLE, a failing count far above the entry's bound (maxFailing, default from observed) is OVER_FAILING, and a restored tree that does not reproduce green makes the entry INCONCLUSIVE (flaky suite). A mutation that does not apply, a green suite, or an inconclusive run is a FAILURE — never a skip. exit 0 all proven / 1 gate failed / 2 setup error
 dz delivery-check --slug <slug> [--context-only] [--findings <f.json>] [--strict] [--author <model>] [--json]   # portable Step-10 Delivery Gate: the `manual` form that travels to every shell target — prints the 4-plane review brief (regressions ‖ security ‖ code-quality ‖ product-honesty) + artifact probes; --findings classifies a fed-back review into a fail-closed ready|blocked hand-off (only cross-validated BLOCKER/HIGH count) and writes features/<slug>/10_delivery_review.md; --strict exits 1 on blocked
 dz skills-verify     [--dir <project>] [--expect a,b] [--static] [--strict] [--timeout <s>] [--json]   # does .claude/skills/ actually REGISTER? --static = instant layout scan (CI-safe, no session): flags dirs that can never register; default also starts a real session and reads the authoritative system/init listing. exit 0 pass / 1 fail / 2 inconclusive — an unobservable registration is NEVER a pass
-dz compounding       [--project <dir>] [--json]   # honest learning-loop payoff report: pool write-only ratio, guard repeat-violation trajectory (rate per audit-half), cold-vs-warm replay readiness over unique untruncated prompt events, apply-leg staleness, and EVENT-CHAIN health of the two evidence logs (verified / defects / uncovered pre-chain prefix) — a gate without enough data says INSUFFICIENT_DATA, never a verdict
+dz compounding       [--project <dir>] [--json]   # honest learning-loop payoff report: pool/replay/guard instrumentation plus the monthly eligible→attempted→accepted→executions funnel. A missing source is NOT MEASURED; only a non-empty→empty named edge across three consecutive measured months is a funnel finding; text/JSON carry the same facts and no learning-health verdict
 dz deadwood          [--weeks <n>] [--json]   # advisory zero-usage report for commands and guard-rule firings; safety-net exclusions carry written reasons, skills without an invocation signal are never candidates, and shallow history says INSUFFICIENT_DATA. Human deprecation review only — never deletes or modifies harness surface
 dz epoch-replay --mock  [--n <N>] [--effect <-1..1>] [--tie-rate <0..1>] [--seed <N>] [--slice <name>] [--margin <0..0.5>] [--json]   # $0 synthetic run through the REAL verdict math; labelled SYNTHETIC, same seed = byte-identical
 dz epoch-replay --emit  [--project <dir>] [--limit <N>] [--seed <N>] [--margin <0..0.5>] [--out <file>] [--json]   # cold-vs-warm work order: replayable instances + PRE-REGISTERED blind A/B assignment + the PRE-REGISTERED non-superiority margin + a sha256 integrity digest + emittedAt/corpus fingerprint (raw prompts — defaults into the git-ignored .dz/epoch-replay/)
@@ -1927,7 +1954,7 @@ dz backlog <sub>     add "<idea>" | list | show <id> | goals [--validate] | roul
 dz sign --init --out <path>  |  --pack <dir> --key <path>   # --init: generate the Ed25519 keypair (private OUTSIDE the repo, prints the public key for keys/dz.pub); else sign a pack's manifest + CycloneDX SBOM
 dz sbom --pack <dir> [--out <file>]   # emit the CycloneDX 1.5 SBOM for a pack standalone (file-level bill of materials); print to stdout or write to a file
 dz guard check --op <publish|teach|consolidate|reindex> [--text <s>] [--json] [--force <reason>]   # declarative constraint layer before self-mutating ops: HARD violation → block (exit 1), SOFT → warn; zero-config defaults, .dz/guard.json to customise; dz guard --init | dz guard log (append-only audit). dz publish runs it automatically (--no-guard "<reason>" = logged escape hatch)
-dz guard promote [--dry-run | --apply] [--window-days <N>] [--periods <N>] [--json]   # lesson → guard-rule promotion: ranks lessons by firings × cost, SHADOW-replays each candidate over real commits, and proposes a rule only after TWO consecutive wins AND two window-lengths of REAL elapsed time since first observation (a window with zero firings resets the counter; a thin window is skipped, never a loss; commit dates are author-supplied, so elapsed time is measured by the local clock in .dz/promotion-state.json). Proposes by default (--dry-run writes nothing — and so never starts that clock; --apply installs it SOFT — a promoted rule can never block, and a same-id/different-body clash is a CONFLICT that exits 1 rather than claiming success); promotions AND refusals are recorded in features/guard-promotion/promotions/
+dz guard promote [--dry-run | --apply] [--window-days <N>] [--periods <N>] [--json]   # lesson → guard-rule promotion: ranks lessons by firings × cost, SHADOW-replays each candidate over real commits, and proposes a rule only after TWO consecutive wins AND two window-lengths of REAL elapsed time since first observation. Non-dry runs add bounded prospective funnel evidence to .dz/promotion-state.json without feeding the verdict; --dry-run remains write-free. --apply installs SOFT rules only; promotions/refusals remain under features/guard-promotion/promotions/
 dz feature-adr-setup --guards [--loc-cap <n>] [--apply]   # P3: scaffold DETERMINISTIC guard tests into the project — guards.config.json + a zero-dependency check.mjs runner (LOC cap, secret scan, frozen-file sha256 pins, waivers-with-reasons); wire `node architecture/guards/check.mjs` into CI
 dz publish           [--filter <name>] [--bump-only] [--claim-check <off|warn|error>]   (dry-run by default; pass --yes/--confirm to go live; claim-check gate defaults to warn — surfaces README claim findings, never blocks)
 dz parity            [--target <name>] [--json]   # honest feature×target map COMPUTED from the capability model — full / manual (via which form) / absent, per target
@@ -1955,6 +1982,29 @@ dz roam              [--apply] [--slug <slug>]
 dz import-ecc       [--local-path <dir>] [--select id,id,...] [--limit N] [--output <dir>] [--force]
 dz help
 ```
+
+### Optional class form for a taught lesson
+
+`dz teach` can store the observed lesson and an explicitly proposed class template in the same
+invocation. The class half is optional: omission, a blank value, or syntactic rejection leaves the
+specific write successful and unchanged.
+
+```bash
+dz teach "Use Jira labels for release gates" --class-form "Use :field labels for release gates"
+dz recall "Use GitHub labels for release gates"
+# ... specific: Use Jira labels for release gates · class: Use :field labels for release gates [match: class]
+```
+
+Use the class form when a future reader needs the *why* across structure, interfaces, or
+maintainability. Skip it when scope, risk, time, and cost are low, or standards, policy, or existing
+documentation already cover the choice. `dz` checks only that the `:slot` template syntactically
+covers the specific text; it does not certify that the broader rule is true.
+
+The store keeps two linked, role-labelled rows (`lessonForm` + `lessonPairId`), while ranked recall
+returns one logical lesson with separate `pattern`/`classForm` fields and
+`matchedForm: specific|class|both`. The vector mirror remains specific-text-only in this tranche;
+class attribution comes from the durable lexical path, so a vector score is never mislabeled as a
+class match.
 
 **Closeness, not a rank surrogate (feature `recall-true-closeness`).** Each hit now carries `sim=` —
 the semantic leg's real cosine — with `▲` above the measured relevance floor for the query's language
@@ -2092,9 +2142,19 @@ dz statusline --fa-record --slug my-loop --step build --kind loop
 ```
 
 ```
-📐 feature-adr Step 8 QE · 🎓 224 pool · ↑7 used · +2 new · ↻0 reinforced · 🎓 dz: 224 patterns · 🧠 3 sources
+📐 feature-adr Step 7 Code · ⏱ ~25–47м (p25–p75 по n=5 ранам M; окно 2026-08-24–2026-08-29) · 🎓 224 pool · ↑7 used · +2 new · ↻0 reinforced · 🎓 dz: 224 patterns · 🧠 3 sources
+📐 feature-adr Step 8 QE · ETA: недостаточно истории (n=2 L; окно 2026-08-28–2026-08-29) · 🎓 224 pool · ↑7 used · +2 new · ↻0 reinforced · 🎓 dz: 224 patterns · 🧠 3 sources
 🔁 loop build · 🎓 dz: 224 patterns · 🧠 3 sources
 ```
+
+For a live `/feature-adr` run, the panel derives remaining-stage timing from timestamped
+`features/*/.fa-state/checkpoints.jsonl` runs of the **same tier**. Every estimate prints its
+evidence basis: distinct-run `n`, tier, and date window. A Codex-shaped `code` leg always renders
+as p25–p75 rather than a false-precision point. The floor is three runs for **each** remaining
+`(tier, stage)` bucket; one thin bucket makes the whole result `ETA: недостаточно истории` instead
+of silently shortening the sum. Missing/unreadable checkpoints omit ETA, never `~0м`, and never
+take down the rest of the statusline. `dz statusline --json` includes the typed `eta` verdict for
+custom tooling whenever the live run has enough checkpoint identity to evaluate it.
 
 `--kind <feature-adr|loop>` names the PRODUCER and defaults to `feature-adr`; an unrecognised value
 exits 1 rather than silently weakening panel arbitration. It is load-bearing in two places:
@@ -3545,6 +3605,19 @@ operator field, and never blocks publication; composition drift warns with the e
 `dz plugin --version <published>`. A repository with no complete `.claude-plugin/` showcase is out of
 scope: the rule records an informational skip reason and emits no violation.
 
+Four publish-only `volume-shadow/v1` observations meter the always-loaded corpus without becoming a
+release gate: configured template context, largest-file share, feature-artifact/unified-diff-byte
+ratio, and the tier/lifecycle artifact set. Rules and commands are reported separately from
+conditional full-skill bodies, and their sum is labelled a configured/invokable envelope rather
+than measured per-session cost. Human output uses `[observe]` or `[note]`; JSON and the chained audit
+retain the same operands, units, dated reference starting points, and method identifiers.
+
+All four rules are SOFT-only, including when `.dz/guard.json` requests HARD. An incomplete or capped
+scan, escaping/non-regular input, ambiguous attribution, or zero denominator is a visible typed
+`unknown`, never a clean zero and never a blocker. Source comments and comment density are not
+collected or classified. The observations therefore do not recommend shortening justification;
+they only report volume inside their closed artifact scope.
+
 **`review-round` (HARD, publish)** — a package that bumps its version AND changes source must bring a
 GRADED `features/*/08_qe_report.md` in the same change. The gate had eleven rules and not one asked
 whether anyone but the author had read the code; the cost is on the record (health-advisor slice H:
@@ -3717,6 +3790,12 @@ knowing up front: a brand-new repo waits 14 days for its first promotion however
 and a `--dry-run`-only workflow never promotes, because the run that would start the clock is exactly
 the one that writes nothing. (The `wait` reason spells both out.) This is a guard against accidental
 self-gaming, not a cryptographic one — the state file is local and editable.
+
+Every non-dry run also records a bounded, prospective observation in that same state file for
+`dz compounding`: candidate eligibility, an opaque digest of the exact effective template+params when one
+exists, and the route's authoritative candidate verdict. It stores no lesson/rule body, does not
+feed the promotion decision, and deduplicates an identical run. Legacy state remains readable, but
+months before this observation history existed are `NOT MEASURED`; they are never reconstructed.
 
 **It refuses out loud.** Rule code is never synthesised from lesson text — a lesson that fits no
 template is listed as not-promotable *with the reason*, and the refusals are recorded in
@@ -4317,6 +4396,25 @@ refusal as the honest answer.
 ---
 
 ## Status
+
+`harness-core v0.8.10` · `harness-cli v0.8.9` — **staged, not published:** adds bounded
+`volume-shadow/v1` publish observations with structured human/JSON/audit parity. All four remain
+SOFT-only; incomplete evidence is unknown, and source-comment justification is out of scope.
+
+`harness-core v0.8.9` · `skills-feature-adr v1.5.9` — **staged, not published:** the packaged
+feature-adr workflow performs advisory top-3 micro-recall at the live Step 3 ADR choice and Step 6
+plan-route choice. Every failure is fail-open; versioned `.fa-state/decision-recall.jsonl` rows make
+receipt coverage and repeat-related outcomes derivable offline. The hypothesis is external `[SRC],
+n=1`, books were silent on retrieval timing, and no runtime threshold gates a stage.
+
+`v0.8.8` — **staged, not published.** `dz init` now reports exactly one MCP and one hook outcome,
+adds `integrations-verify`, content-bound authorization, explicit skills-only opt-out, and named
+partial-failure exits; only receipt-proven live registration may be called emitted.
+
+`v0.8.7` — **honest ETA in the live 📐 feature-adr statusline.** The panel scans timestamped
+same-tier checkpoint history only while a fresh run is visible, prints p25–p75 for the code leg,
+and carries `n`, tier, and date window inline. Any remaining stage below n=3 says
+`ETA: недостаточно истории`; absent/unreadable checkpoints fail open without `~0м`.
 
 `v0.8.5` — **`dz restart-advisor`, the 83rd inventory command (80 documented top-level
 help names).** It returns an explicit `restart-advisor/1` recommendation from confined QE-history

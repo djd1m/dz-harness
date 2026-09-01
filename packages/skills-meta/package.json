@@ -1,10 +1,10 @@
 {
   "name": "@dzhechkov/skills-meta",
-  "version": "0.9.54",
+  "version": "0.9.55",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
-  "description": "Canonical meta-skill pack — 20 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups.",
+  "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups.",
   "license": "MIT",
   "author": "dzhechko",
   "keywords": [
@@ -19,7 +19,8 @@
     "problem-solver",
     "knowledge-extractor",
     "loop-designer",
-    "decision-mockups"
+    "decision-mockups",
+    "session-recap"
   ],
   "files": [
     "design-thinking",
@@ -33,6 +34,7 @@
     "skill-crystallizer",
     "structured-reasoning",
     "reflection-loop",
+    "session-recap",
     "context-window-management",
     "external-comms-gate",
     "capture-adr",
@@ -53,8 +55,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-meta"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-meta#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-meta#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

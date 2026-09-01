@@ -19,6 +19,7 @@
  * @packageDocumentation
  */
 import { type MemoryRecord, type DreamPattern } from '@dzhechkov/memory';
+import { validateClassTemplate, type LessonForm, type LessonMatchedForm } from './lesson-generalization.js';
 /** A learned pattern as written by `dz teach` to `.dz/patterns.jsonl`. */
 export interface PatternRecord {
     /** The pattern / rule text. */
@@ -33,6 +34,12 @@ export interface PatternRecord {
     readonly ts: string;
     /** Origin of the record (e.g. "dz-teach"). */
     readonly source: string;
+    /** Durable role in an optional linked lesson pair. */
+    readonly lessonForm?: LessonForm;
+    /** Stable identity shared by the specific and class rows. */
+    readonly lessonPairId?: string;
+    /** Read-model companion; derived from the linked class row, never persisted on this row. */
+    readonly classForm?: string;
 }
 /** A session lifecycle event as written by the session hooks to `.dz/sessions.jsonl`. */
 export interface SessionRecord {
@@ -277,6 +284,19 @@ export declare function loadStorePatternsSync(projectRoot: string): PatternRecor
 export declare function recordPattern(projectRoot: string, p: PatternRecord, opts?: {
     quarantine?: boolean;
 }): Promise<number>;
+export interface RecordLessonFormsResult {
+    readonly count: number;
+    readonly specific: 'stored';
+    readonly class: 'absent' | 'stored' | 'rejected' | 'failed';
+    readonly reason?: string;
+    readonly records: readonly PatternRecord[];
+}
+export declare function recordLessonForms(projectRoot: string, specific: PatternRecord, classTemplate?: string, opts?: {
+    readonly quarantine?: boolean;
+    readonly writeRecord?: (root: string, record: PatternRecord, options: {
+        quarantine?: boolean;
+    }) => Promise<number>;
+}): Promise<RecordLessonFormsResult>;
 /** Outcome of a {@link recallPatterns} ranked search (or a hybrid merge — see `vector-tier.ts`). */
 export interface RecallHit {
     /** The matched pattern. */
@@ -289,6 +309,12 @@ export interface RecallHit {
     readonly backend: 'sqlite' | 'json' | 'vector' | 'both';
     /** lesson-quarantine: set (true) only for a quarantined hit — display marks it ⚠q and ranking damps/sinks it. */
     readonly quarantined?: boolean;
+    /** Which stored formulation caused this logical lesson to rank. */
+    readonly matchedForm?: LessonMatchedForm;
+}
+export interface RecallPatternsOptions {
+    readonly onClassDegraded?: (message: string) => void;
+    readonly classMatcher?: typeof validateClassTemplate;
 }
 /**
  * Ranked recall over the store (Tier-3): SQLite **FTS5** full-text ranking when
@@ -296,7 +322,7 @@ export interface RecallHit {
  * recall — note it is *lexical*, not vector similarity (true embedding/HNSW recall
  * lives in the `agentdb-memory` MCP skill, MCP-host only). Graceful: `[]` on failure.
  */
-export declare function recallPatterns(projectRoot: string, query: string, limit?: number): RecallHit[];
+export declare function recallPatterns(projectRoot: string, query: string, limit?: number, opts?: RecallPatternsOptions): RecallHit[];
 /** Where transcripts come from when `--sessions-dir` isn't given. */
 export type SessionsSource = 'explicit' | 'dz-sessions' | 'claude-transcripts' | 'none';
 /**

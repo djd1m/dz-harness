@@ -110,6 +110,66 @@ function runChecks(course, patternIds) {
   });
   add('structural.one-finaltest-per-section', finalTestOk, finalTestOk ? 'each section has exactly one meaningful in-bounds finalTest' : 'a section is missing a valid finalTest');
 
+  // --- structural.theory-readable: a long theory must be STRUCTURED, not a wall of text.
+  // The renderer supports paragraphs (blank lines), ordered/bullet lists, bold, code and https
+  // links — a 700+ char theory using none of the paragraphing is unreadable by construction
+  // (owner finding 2026-08-31: every dz-cli lesson shipped as one solid block).
+  const wallFail = sections.filter((s) => {
+    const t = String(s.theory || '');
+    if (t.length <= 700) return false;
+    const breaks = (t.match(/\n\n/g) || []).length;
+    return breaks < 2;
+  }).map((s) => s.id);
+  // --- structural.diagram-shape: a diagram is OPTIONAL, but a declared one must be well formed.
+  // Optional on purpose: there is no measured need to require illustrations, and turning optional
+  // into mandatory without measurement is exactly what this project forbids. Strict once declared,
+  // because a silently ignored typo in a key name is a diagram that never appeared and an author
+  // who never learnt why.
+  const DIAGRAM_KINDS = new Set(['flow', 'compare', 'scale', 'parts']);
+  const DIAGRAM_KEYS = new Set(['kind', 'title', 'cycle', 'nodes', 'whole', 'topLabel', 'bottomLabel']);
+  const NODE_KEYS = new Set(['id', 'label', 'note', 'items', 'accent']);
+  const diagramFail = [];
+  for (const s of sections) {
+    const d = s.diagram;
+    if (d === undefined || d === null) continue;
+    const bad = (why) => diagramFail.push(`${s.id}: ${why}`);
+    if (typeof d !== 'object' || Array.isArray(d)) { bad('diagram is not an object'); continue; }
+    for (const k of Object.keys(d)) if (!DIAGRAM_KEYS.has(k)) bad(`unknown key ${JSON.stringify(k)}`);
+    if (!DIAGRAM_KINDS.has(d.kind)) bad(`kind must be one of flow|compare|scale|parts, got ${JSON.stringify(d.kind)}`);
+    // A key that belongs to another kind is a copy-paste leftover, and a leftover that renders
+    // nothing is exactly the silent failure this check exists to prevent.
+    if (d.cycle !== undefined && d.kind !== 'flow') bad('cycle belongs to kind "flow" only');
+    if (d.whole !== undefined && d.kind !== 'parts') bad('whole belongs to kind "parts" only');
+    if ((d.topLabel !== undefined || d.bottomLabel !== undefined) && d.kind !== 'scale') bad('topLabel/bottomLabel belong to kind "scale" only');
+    if (!nonBlank(d.title) || String(d.title).length > 80) bad('title must be 1-80 chars');
+    if (d.cycle !== undefined && typeof d.cycle !== 'boolean') bad('cycle must be a boolean');
+    if (!Array.isArray(d.nodes) || d.nodes.length < 2 || d.nodes.length > 8) bad('nodes must be 2-8');
+    else {
+      const ids = new Set();
+      for (const n of d.nodes) {
+        if (typeof n !== 'object' || n === null) { bad('a node is not an object'); continue; }
+        for (const k of Object.keys(n)) if (!NODE_KEYS.has(k)) bad(`unknown node key ${JSON.stringify(k)}`);
+        if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(String(n.id ?? ''))) bad(`node id must be kebab-case: ${JSON.stringify(n.id)}`);
+        if (ids.has(n.id)) bad(`duplicate node id ${JSON.stringify(n.id)}`);
+        ids.add(n.id);
+        if (!nonBlank(n.label) || String(n.label).length > 24) bad(`node label must be 1-24 chars: ${JSON.stringify(n.label)}`);
+        if (n.note !== undefined && (typeof n.note !== 'string' || n.note.length > 80)) bad('node note must be a string <= 80 chars');
+        if (n.accent !== undefined && typeof n.accent !== 'boolean') bad('node accent must be a boolean');
+        if (n.items !== undefined) {
+          if (d.kind !== 'compare') bad('node items belong to kind "compare" only');
+          else if (!Array.isArray(n.items) || n.items.length === 0 || n.items.length > 5 || !n.items.every((x) => typeof x === 'string' && x.trim() !== '' && x.length <= 60)) bad('items must be 1-5 non-empty strings <= 60 chars');
+        }
+      }
+    }
+  }
+  add('structural.diagram-shape', diagramFail.length === 0, diagramFail.length === 0
+    ? `${sections.filter((s) => s.diagram).length} diagram(s), all well formed (a diagram is optional; a declared one is strict)`
+    : `malformed diagram(s): ${JSON.stringify(diagramFail.slice(0, 6))}`);
+
+  add('structural.theory-readable', wallFail.length === 0, wallFail.length === 0
+    ? 'every long theory is paragraphed (>=2 blank-line breaks over 700 chars)'
+    : `wall-of-text theory (no paragraphing) in: ${JSON.stringify(wallFail)}`);
+
   // --- P5 do-something: MEANINGFUL exercise for the section's type (no blank/null shells)
   const p5Fail = sections.filter((s) => !exerciseNonEmpty(s)).map((s) => s.id);
   add('P5.do-something', p5Fail.length === 0, p5Fail.length === 0 ? 'every section has a meaningful, content-bearing exercise' : `sections with an empty/blank exercise: ${JSON.stringify(p5Fail)}`);

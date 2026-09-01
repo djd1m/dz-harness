@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-cursor",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Cursor platform adapter - transforms canonical skills into per-skill .cursor/rules/<id>.mdc project rules (Cursor's 3-key frontmatter + body; intentionally transforming, not byte-identical).",
   "type": "module",
   "license": "MIT",
@@ -52,8 +52,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/adapter-cursor"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/adapter-cursor#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-cursor#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

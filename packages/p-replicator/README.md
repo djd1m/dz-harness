@@ -11,10 +11,10 @@
 [![License](https://img.shields.io/badge/License-MIT-22c55e.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![Node](https://img.shields.io/badge/node-%E2%89%A516-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
 
-[![Tests](https://img.shields.io/badge/tests-105%2F105-22c55e?style=flat-square)](#test-infrastructure)
+[![Tests](https://img.shields.io/badge/tests-440%20pass%20%7C%203%20skip-22c55e?style=flat-square)](#test-infrastructure)
 [![Skills](https://img.shields.io/badge/skills-10-8b5cf6?style=flat-square)](#skills-reference)
 [![Commands](https://img.shields.io/badge/slash%20commands-11-f59e0b?style=flat-square)](#commands-reference)
-[![Hooks](https://img.shields.io/badge/hooks-6-3b82f6?style=flat-square)](#hooks-system)
+[![Hooks](https://img.shields.io/badge/hooks-10-3b82f6?style=flat-square)](#hooks-system)
 [![SPARC Pipeline](https://img.shields.io/badge/SPARC-5%20phases-ec4899?style=flat-square)](#pipeline-overview--replicate-phases)
 
 <br>
@@ -101,12 +101,13 @@
 
 ## 📖 What is p-replicator?
 
-`@dzhechkov/p-replicator` installs a ready-made `.claude/` toolkit into any project: **11 slash commands**, **10 skills**, **4 agents**, **6 rules**, **9 hook scripts**, and a `settings.json` with pre-configured hooks and a multi-line statusline dashboard.
+`@dzhechkov/p-replicator` installs a ready-made `.claude/` toolkit into any project: **11 slash commands**, **10 skills**, **4 agents**, **13 rules**, **17 hook utilities**, and a `settings.json` with pre-configured hooks and a multi-line statusline dashboard.
 
-The flagship `/replicate` command takes a project through a **5-phase pipeline**:
+The flagship `/replicate` command takes a project through a **6-phase pipeline**:
 
 ```
 Phase 0 (optional)    Product Discovery     reverse-engineering of similar companies
+Phase 0.5 (ALWAYS)    Source Product Profile  capture the LOOK of the product being replicated
 Phase 1               Planning              11 SPARC documents (PRD, Architecture, Pseudocode, ...)
 Phase 2               Validation            5-agent swarm validates against INVEST + SMART
 Phase 3               Toolkit Generation    project-specific agents, rules, skills
@@ -262,8 +263,8 @@ This creates:
 - `.claude/skills/` — 10 pre-shipped skills
 - `.claude/commands/` — 11 slash commands (`/replicate`, `/run`, `/feature`, ...)
 - `.claude/agents/` — 4 pipeline agents
-- `.claude/rules/` — 5 governance rules
-- `.claude/hooks/` — 6 cross-platform Node scripts
+- `.claude/rules/` — 9 governance rules
+- `.claude/hooks/` — 10 cross-platform Node scripts
 - `.claude/settings.json` — hooks + statusline configuration
 - `.p-replicator.json` — install manifest
 
@@ -289,9 +290,9 @@ This creates:
 | **Skills** | 10 | 92 files (880K+ chars — MEASURED via `wc -c` over `templates/.claude/skills`: 880,679). Modular architecture: foundation → composite → master orchestrator |
 | **Commands** | 11 | `/replicate`, `/harvest`, `/start`, `/plan`, `/feature`, `/go`, `/run`, `/next`, `/myinsights`, `/docs`, `/deploy` |
 | **Agents** | 4 | `replicate-coordinator`, `product-discoverer`, `doc-validator`, `harvest-coordinator` |
-| **Rules** | 6 | `replicate-pipeline`, `skill-interface-protocol`, `git-workflow`, `insights-capture`, `feature-lifecycle`, `docker-ports` |
-| **Hooks** | 9 | `session-insights`, `autocommit-{roadmap,insights,plans}`, `statusline`, `state-update`, `check-ports`, `check-growth-trace`, `check-docs-complete` (cross-platform Node) |
-| **Settings** | 1 | `settings.json` with statusLine + SessionStart + Stop hooks pre-configured |
+| **Rules** | 13 | `cost-of-detection-ladder`, `replicate-pipeline`, `skill-interface-protocol`, `git-workflow`, `insights-capture`, `feature-lifecycle`, `docker-ports`, `swarm-file-evidence`, `honest-configuration`, `embeddable-widget`, `incoming-webhooks` |
+| **Hooks** | 15 | Fifteen cross-platform Node utilities: 4 wired to events, 11 invoked deliberately (the harvest insight writer, the status line, and seven `check-*` gates) |
+| **Settings** | 1 | `settings.json` with statusLine + SessionStart + UserPromptSubmit + Stop hooks pre-configured |
 
 After running `/replicate`, the toolkit also generates **project-specific** artifacts:
 
@@ -326,13 +327,15 @@ Discovery Brief was never written to disk at all. Since 1.7.0:
 
 What none of this proves: that anything was built, or that copying a competitor's move is lawful.
 
-## 🔎 The three deliberate checks
+## 🔎 Deliberate checks
 
-Six of the nine hook scripts run themselves. Three do not: they are utilities you invoke when you want
+Six of the nine hook utilities run themselves. Three do not: they are utilities you invoke when you want
 an answer, and they are wired to no event on purpose. A hook of this package is **non-blocking by
 contract** — it can print, never refuse — so a check that must be able to say "no" cannot be one.
+The package also ships the non-hook Bash traceability checker described after those three utilities;
+`/feature` invokes it as a blocking pipeline gate.
 
-Both answer with **three** exit codes, and the third is the one that matters:
+Each answers with **three** exit codes, and the third is the one that matters:
 
 | Code | Meaning |
 |:---:|---|
@@ -346,7 +349,8 @@ why a missing config, a missing docker, or a missing brief is `2` and never `0`.
 ### `check-ports.cjs` — no database faces the internet
 
 ```bash
-node .claude/hooks/check-ports.cjs .
+node .claude/hooks/check-ports.cjs .          # catalog: one Compose project
+node .claude/hooks/check-ports.cjs --machine  # point-in-time snapshot of the current Docker context
 ```
 
 ```
@@ -355,9 +359,25 @@ node .claude/hooks/check-ports.cjs .
      Убрать ports: целиком, либо привязать к 127.0.0.1
 ```
 
-Reads the normalised config (`docker compose config`), so the short port form and `extends` are
-already resolved. Catches `network_mode: host` and services published beside a reverse-proxy too.
-A loopback bind (`127.0.0.1:` or `[::1]:`) is legal and passes — that exception is part of the rule.
+Catalog mode reads one normalised config (`docker compose config`), so the short port form and
+`extends` are already resolved. It catches `network_mode: host` and services published beside a
+reverse-proxy, but it never queries running containers. Its clean receipt is limited to that selected
+catalog. A loopback bind (`127.0.0.1:` or `[::1]:`) is legal in catalog mode — that exception remains
+part of the rule.
+
+For Redis/Memcached, catalog mode also classifies visible authentication configuration: established
+absence of a password is `1`, while a config-bearing volume/custom image that can hide the answer is
+`2`, never a guessed clean result. The catalog loopback exception is applied first and remains legal.
+
+Machine mode enumerates recognised running storage containers in the current Docker context, inspects
+their live bind addresses and Compose ownership labels, and probes live Redis authentication there
+only. Its clean receipt is a point-in-time snapshot, not continuous monitoring and not a claim about
+stopped containers or another Docker context. A live loopback Redis without a password is reported as
+a separate violation even though the catalog loopback exception remains legal.
+
+Both scopes preserve the same contract: `0` means the selected scope was checked clean, `1` means a
+violation was established, and `2` means **the check did not run to completion** (`проверка НЕ
+ВЫПОЛНЕНА`) because Docker/config/permissions or a required runtime observation was unavailable.
 
 **When to run it:** after writing or editing `docker-compose.yml`, and before any deploy.
 
@@ -408,6 +428,144 @@ A conscious rejection **with a reason written down** passes; a silent drop does 
 **What it does NOT prove:** that anything was built, or that copying a competitor's growth move is
 lawful. It proves an obligation was carried forward, nothing more.
 
+### `check-look-trace.cjs` — the source product's LOOK was not captured and dropped
+
+```bash
+node .claude/hooks/check-look-trace.cjs .
+```
+
+```
+❌ часть обязательств по облику потеряна (1 из 2):
+   • FR-LOOK-002 (путь)
+   Каждое надо либо перенести в docs/Specification.md, либо отклонить С ПРИЧИНОЙ — молча уронить нельзя.
+```
+
+When a project reproduces an existing product, that product's LOOK — palette, typography, density,
+screen layout, the order of steps — is the substance of the task. **Phase 0.5 (Source Product
+Profile)** asks that question in every run, including the `--from-docs` entry that skips Phase 0
+entirely, and writes `docs/source-product-profile.md`. This checker asks whether its
+`FR-LOOK-nnn` rows survived into `docs/Specification.md`. A conscious rejection **with a reason
+written down** passes; a silent drop does not.
+
+Exit `2` covers five states, and none of them is a pass: no profile (the phase did not run), no
+Specification, an untouched template table, an EMPTY `путь` axis that was never declared — and the
+two legitimate non-captures, `ИСТОЧНИКА НЕТ` (the project replicates nothing) and `НЕ ИЗМЕРЕНО` (a
+source was NAMED but could not be captured, with a reason from the closed list `no-browser-mcp` |
+`no-browser` | `unreachable` | `auth-required` | `out-of-scope` | `bot-protected` | `timeout` |
+`robots-disallowed`). Per the shipped `honest-configuration` rule (CFG-I4), an unreachable source of
+truth yields UNKNOWN, never a plausible value — a palette invented for a product nobody looked at is
+exactly that plausible value.
+
+**Two axes, one identifier family, separate answers.** `облик` (what is seen) and `путь` (the order
+of screens) are a COLUMN of `FR-LOOK-nnn`, never a second namespace — but they fail apart, so each
+declares its own status: `**Статус съёмки:**` and `**Статус съёмки (путь):**`. The path declaration
+is demanded only when the axis carries no rows; rows are its answer. A proven loss outranks an
+unanswered axis — exit `1` beats exit `2`.
+
+The `облик` capture is done by the canonical `clone-website` skill from the separate
+[`@dzhechkov/skills-website-cloner`](https://www.npmjs.com/package/@dzhechkov/skills-website-cloner)
+package, run recon-only. It is **called, never vendored** (ADR-0001): unavailable prerequisites make
+the outcome `НЕ ИЗМЕРЕНО` with a named reason, they never stall the pipeline.
+
+### `capture-source-path.cjs` — the `путь` axis, clicked through in a browser
+
+```bash
+node .claude/hooks/capture-source-path.cjs https://example.test/ --max-pages 5 --delay-ms 1500
+```
+
+```
+ℹ️  robots.txt прочитан, стартовый путь разрешён
+ℹ️  шаг 2 — экран входа. Останавливаемся: за вход не ходим, это законная последняя точка пути.
+
+✅ СНЯТ: ось «путь», 2 экрана(ов). Доказательства: .p-replicator/source-path-capture
+
+| FR-LOOK-005 | Шаг 1 из 2; стартовый экран; полей формы: 0; заметных призывов: 1 из 2; уровней заголовков: 2 | путь | / | прокликано …, step-01.aria.txt | ЧЕРНОВИК |
+| FR-LOOK-006 | Шаг 2 из 2; достижим одним действием с предыдущего; полей формы: 2; …; это экран входа | путь | /signup | прокликано …, step-02.aria.txt | ЧЕРНОВИК |
+| FR-LOOK-007 | Последовательность экранов до конца снятого пути: 2 экрана(ов), / → /signup; путь упирается в экран входа | путь | / | прокликано …, capture.json | ЧЕРНОВИК |
+
+Замеренные закономерности СТАРТОВОГО экрана (материал для оси «облик», строк не выпускаем):
+  шаг сетки отступов: 4px (доля 0.91) · кеглей: 3 · начертаний: 3 · радиусов: 1 · переменных в :root: 3
+```
+
+`clone-website` captures what is visible at ONE url; a person's route through a product —
+registration, onboarding, first value, paywall — was captured by nothing. This walks it and emits
+rows in the SAME `FR-LOOK-nnn` family, continuing the profile's numbering, on the `путь` axis.
+
+Three outcomes, each with its own exit code: `0` captured · `1` the source opened but has no onward
+step (a one-screen product — a legitimate `ИСТОЧНИКА НЕТ` for this axis, and a PROVEN negative, not
+blindness) · `2` `НЕ ИЗМЕРЕНО` with a reason from the closed list, printed as the exact profile
+lines to paste.
+
+**Playwright is an external prerequisite** — this package ships ZERO dependencies, so the module is
+resolved on the machine at run time (`PLAYWRIGHT_MODULE`, the project, `npm root -g`) and its
+absence is the honest outcome `no-browser`, never a crash:
+`npm i -D playwright && npx playwright install chromium`.
+
+**What it captures, and what it refuses to.** REGULARITIES — the spacing step, the type scale, how
+many hierarchy levels, how many form fields, how many screens to first value — never VALUES to carry
+over, such as this exact purple. Only computed styles and semantic roles (aria, form types,
+accessible names); **never class names** like `sx-ds2y8i`, which bundlers change on every build of
+someone else's site. Third-party CSS and DOM are copyrighted code — a basis for measurement, never
+material to copy — so they are not stored by default, and the evidence directory ships its own
+`.gitignore`. `robots.txt` is read before crawling more than one page, and a refusal is the outcome
+`robots-disallowed`. Authentication and any circumvention are refused outright: a login screen is
+recorded as the legitimate last step and the crawl stops there. One thread, a pause between pages
+(minimum 250 ms), a hard page cap of 12 — exceeding either is clamped out loud.
+
+**When to run it:** inside Phase 0.5, once the source product is named.
+
+**What it does NOT prove:** the designer's intent. It reports "padding 8px ×137", never "a 4pt
+step is the design language"; the reading is yours.
+
+**When to run it:** at the Phase 1 → Phase 2 boundary, beside `check-growth-trace.cjs`. Run at the
+end of Phase 0.5 itself it answers `2` by construction — nothing has been promoted yet — and there
+it only tells you the profile parses.
+
+**What it does NOT prove:** that the interface resembles the source. It proves an obligation was
+carried forward. Resemblance is proven by visual comparison, not by matching identifiers.
+
+### `check-pipeline-gaps.sh` — FR/NFR/AC keys are joins, not decoration
+
+The package owns the checker at `scripts/check-pipeline-gaps.sh`. `/feature` resolves that packaged
+file directly, so an installed consumer runs the same executable without copying it onto the hooks
+surface:
+
+```bash
+CHECK_PIPELINE_GAPS="$(node -p "require.resolve('@dzhechkov/p-replicator/scripts/check-pipeline-gaps.sh')")" || {
+  printf 'NOT-ESTABLISHED packaged checker could not be resolved\n' >&2
+  exit 2
+}
+bash "$CHECK_PIPELINE_GAPS" "${CLAUDE_PROJECT_DIR:-.}" --traceability
+```
+
+The checker reads complete `DOCUMENT_ROLE_MAP` blocks from the installed `/feature` command and
+`sparc-prd-mini` skill. It checks the applicable project-level pair and every immediate
+`docs/features/*/` contour independently. It never rediscovers `01_specification.md` or
+`02_pseudocode.md` by basename.
+
+Accepted specification declarations are level-three headings such as
+`### FR-order-refund-1`, `### NFR-order-refund-2 — latency`, and
+`### AC-order-refund-3 - accepted`. Pseudocode evidence is a standalone
+``REQUIREMENT: `FR-order-refund-1` `` line inside an `### Algorithm:` block. Prose, comments,
+tables, and nested `SC-FR-*` identifiers are ignored. Duplicate or malformed declarations block.
+
+For each contour it runs both sorted differences: specification→pseudocode names requirements with
+no algorithm claim; pseudocode→specification names dangling claims. Every gap is printed with its
+contour, direction, and exact key. Exit `0` means every readable contour was checked and both sets
+match; exit `1` means a named content/traceability gap; exit `2` means the map or filesystem evidence
+was not trustworthy enough to compare. `/feature` preserves both non-zero states before Phase 2.
+
+Symlinked contours or role files are refused rather than followed outside the declared root. Matching
+keys prove cross-document linkage only; they do not prove that an algorithm semantically implements
+the requirement.
+
+**Scope and provenance.** This package executable implements the ADR-owned traceability decision
+only: role-map resolution, project plus immediate-feature traversal, structural FR/NFR/AC
+declarations, both `comm -23` directions, duplicate/malformed/symlink refusal, exact diagnostics,
+and blocking `0/1/2` exits. It deliberately does not carry the old workspace-only PR-001/PR-002/
+PR-004/PR-007, weekly-metric, port, or `[GAP]` umbrella checks. The workspace source is not needed
+by an installed consumer.
+
 ## ✅ Verify the install
 
 After `/replicate`, run:
@@ -418,7 +576,7 @@ npx @dzhechkov/p-replicator verify
 
 The command checks:
 
-- **Pre-shipped contract** (must-have): 10 skills + 11 commands + 4 agents + 6 rules + settings.json + 9 hooks
+- **Pre-shipped contract** (must-have): 10 skills + 11 commands + 4 agents + 13 rules + settings.json + 17 hooks
 - **Post-/replicate hints** (advisory): CLAUDE.md, project-specific agents, feature-roadmap.json, security rules, etc.
 
 **Exit codes:**
@@ -431,7 +589,9 @@ The command checks:
 npx @dzhechkov/p-replicator doctor
 ```
 
-`doctor` verifies pre-shipped contract + Prerequisites (`git on PATH`). Stricter than `verify` for must-have components.
+`doctor` verifies pre-shipped contract + Prerequisites (`git on PATH`). It also prints the
+informational, non-gating insight-flow observation described below. It remains stricter than
+`verify` for must-have components.
 
 ---
 
@@ -615,7 +775,8 @@ while features in scope:
 
 ### `/myinsights` — knowledge capture
 
-Build a project-local knowledge base of "rakes" (development insights) that auto-inject into every session via the SessionStart hook.
+Build a project-local knowledge base of "rakes" (development insights). Markdown remains the source
+of truth; `UserPromptSubmit` uses optional dz recall with a local fallback.
 
 ```bash
 /myinsights                                                  # interactive prompt
@@ -623,11 +784,22 @@ Build a project-local knowledge base of "rakes" (development insights) that auto
 /myinsights recall prisma                                    # search by keyword
 ```
 
-Storage: `.claude/insights/index.md` — markdown log auto-committed by Stop hook.
+Storage: `.claude/insights/index.md` — Markdown log auto-committed by Stop hook. A successful,
+non-empty dz recall result may own prompt-time delivery; absent, failing, or empty recall uses the
+local last-three fallback.
 
 ### `/harvest` — knowledge extraction
 
 Extract reusable patterns from a completed project into a knowledge base. Skill: `knowledge-extractor` (4 modules: agent review → classify → decontextualize → integrate).
+
+Quick and full runs with a reusable finding have a required final persistence gate. The command
+passes one structured record to `.claude/hooks/write-insight.cjs`; normal completion requires a
+`created`, `appended`, or `duplicate` receipt. The writer creates `.claude/insights/index.md` only
+on the first valid write, preserves prior bytes on append, and suppresses an exact normalized replay
+even when its render date changes. It then attempts an idempotent, best-effort `dz teach` projection;
+absence or failure never changes the Markdown receipt. `marker` and findings-free runs do not
+manufacture entries. The deterministic tests cover creation, append preservation, exact-repeat
+idempotence, and optional projection; they do not claim the text is meaningful.
 
 ---
 
@@ -641,7 +813,7 @@ Extract reusable patterns from a completed project into a knowledge base. Skill:
 | `update` | Upgrade files to new version (preserves customizations) | `0` ok, `1` if not installed |
 | `remove` | Delete package-tracked files | `0` ok, `1` if not installed |
 | `list` | List installed components with metadata | `0` |
-| `doctor` | Health check of pre-shipped contract + git PATH | `0` ok, `1` if anything broken |
+| `doctor` | Health check + informational recent fix/insight counts | `0` ok, `1` only if existing health checks find breakage |
 | `verify` | Pre-shipped + post-/replicate verification | `0` ok, `1` if pre-shipped contract violated |
 
 ### Global flags
@@ -732,6 +904,9 @@ Generates 5 SPARC docs in `docs/features/<feature>/`:
 - `04_refinement.md` — edge cases + error paths
 - `05_completion.md` — testing + deployment notes
 
+Before Phase 2, `/feature` runs the installed machine-key checker. Only exit `0` advances; exit `1`
+returns to PLAN with exact FR/NFR/AC gaps, while exit `2` stops on an unresolved role map or document.
+
 ### Phase 2 — VALIDATE (requirements-validator)
 
 Same swarm-of-5 as `/replicate` Phase 2. Verdict 🟢/🟡/🔴 with same retry logic.
@@ -752,7 +927,7 @@ Severity-classified findings. Critical (`blocker` | `high`) MUST be fixed.
 
 ### AUTO mode (called from /go or /run)
 
-- Phase 1: proceed if all docs exist
+- Phase 1: proceed only if all docs exist and the traceability checker exits `0`
 - Phase 2: proceed if 🟢 or 🟡; auto-retry once on 🔴
 - Phase 3: proceed if tests + lint + build green
 - Phase 4: auto-fix `high` if straightforward; halt on `blocker`
@@ -774,7 +949,7 @@ P-Replicator V1.5.x ● user │ Sonnet 4.7
 🚀 Pipeline   /<cmd> ▓▓▓░░░░ 50%  │ Phase: VALIDATE (2/4)  │ Last: /replicate
 🎯 Roadmap    [●●●○○○○○] mvp 3/8   │ Done 5/12  │ ▶ auth-jwt  │ Domain: banking
 📊 SPARC      ●11/11  │ 🟢 78/100  │ Plans ●3  │ ADRs ●2  │ Harvest 2026-05-05
-🛠️ Toolkit    Skills ●10/10 │ Cmds ●11/11 │ Agents ●4+3 │ Rules ●6+2 │ Hooks ●7/7
+🛠️ Toolkit    Skills ●10/10 │ Cmds ●11/11 │ Agents ●4+3 │ Rules ●13+2 │ Hooks ●17/17
 💡 Insights   ●12 (2026-05-06) │ Tests 85/85 ✓ │ MCP ●1/1 │ Settings ✓ │ 🧬 Keysarium ✓
 ```
 
@@ -810,16 +985,29 @@ For internals, see [admin guide](./README/eng/03_admin_guide.md#statusline--dash
 
 ## 🪝 Hooks System
 
-`p-replicator` ships **6 cross-platform Node scripts** in `.claude/hooks/`:
+`p-replicator` ships **11 cross-platform Node utilities** in `.claude/hooks/`. The Bash traceability
+gate described above remains a package script and is resolved directly by `/feature`; it is not a
+Claude Code hook.
 
 | Hook | Event | Purpose |
 |---|---|---|
-| `session-insights.cjs` | SessionStart | Inject 3 recent insights from `.claude/insights/index.md` to stdout (Claude Code captures into context) |
+| `session-insights.cjs` | SessionStart + UserPromptSubmit | Show the missing-carrier hint at start; at prompt time select armed dz recall or the local last-three fallback |
 | `autocommit-roadmap.cjs` | Stop | Auto-commit `.claude/feature-roadmap.json` if changed |
 | `autocommit-insights.cjs` | Stop | Auto-commit `.claude/insights/` if changed |
 | `autocommit-plans.cjs` | Stop | Auto-commit `docs/plans/` if changed |
 | `statusline.cjs` | (statusLine config) | Multi-line dashboard above the prompt |
 | `state-update.cjs` | (utility) | Argv-driven helper for writing `.claude/.p-replicator-state.json` |
+| `write-insight.cjs` | (utility, invoked by `/harvest`) | Establish Markdown, return `created`/`appended`/`duplicate`, then best-effort project the same record through dz |
+| `check-ports.cjs` | (utility, invoke deliberately) | docker-ports Правило №0 against a real Compose config — exits 0/1/2 |
+| `check-docs-complete.cjs` | (utility, invoke deliberately) | Are the Phase-1 documents written and placeholder-free, before the Phase-2 swarm — exits 0/1/2 |
+| `check-growth-trace.cjs` | (utility, invoke deliberately) | Did the M5 `FR-GROWTH-nnn` seed reach `docs/Specification.md` — exits 0/1/2 |
+| `check-look-trace.cjs` | (utility, invoke deliberately) | Did the Phase-0.5 `FR-LOOK-nnn` source-look seed reach `docs/Specification.md` — exits 0/1/2 |
+| `capture-source-path.cjs` | (utility, invoke deliberately) | Phase-0.5 `путь` axis: click through the source product in a browser and emit `FR-LOOK-nnn` rows — exits 0/1/2 |
+
+The four `check-*` utilities and `capture-source-path.cjs` are **not wired to any event**, and that
+is deliberate: a hook of this package is non-blocking by contract (pinned by a test that requires
+exit 0), so a hook could only print — it could never refuse anything. Invoke them where their answer
+changes a decision.
 
 ### Cross-platform discipline
 
@@ -898,7 +1086,14 @@ Pipeline commands optionally call this script (via Bash tool) so statusline show
 
 ### Insights system
 
-**Storage:** `.claude/insights/index.md` (markdown log).
+**Storage:** `.claude/insights/index.md` (Markdown source of truth). The writer persists it before
+an idempotent best-effort `dz teach` duplicate, so removing or breaking `.dz` cannot remove a record.
+
+`/myinsights` captures a record manually; quick/full `/harvest` uses the same carrier through the
+packaged writer. A fresh install intentionally has no `.claude/insights/` directory. The first valid
+write creates it; `init` does not pre-create an empty carrier, so doctor can keep distinguishing
+missing, existing-empty, and populated states. Until that first write, SessionStart prints one line:
+`инсайтов пока нет; /myinsights создаст первую запись`.
 
 **Entry format:**
 
@@ -927,7 +1122,28 @@ What fixed it (1-5 sentences with code if relevant).
 - ✅ `prisma-migration`, `postgres-timezone`, `docker-compose-network`
 - ❌ `bug`, `fix`, `important` (too generic — recall fails)
 
-**Auto-injection:** `SessionStart` hook (`session-insights.cjs`) reads top 3 recent entries to stdout, Claude Code injects into initial session context.
+**Prompt-time injection:** `UserPromptSubmit` passes the real prompt to `session-insights.cjs`. Only a
+successful, non-empty dz recall result from the insight domain suppresses local output. Absent,
+failing, or empty recall uses the local fallback (the last 3 Markdown entries); failure is named,
+absence and empty output are quiet, and one invocation never emits both sources. `SessionStart`
+retains only the missing-carrier hint above.
+
+### Doctor insight-flow observation
+
+Every `doctor` invocation measures one shared period covering the current date and the preceding two
+dates—three calendar days in the process's local timezone—and prints the period with both raw counts:
+`N fix commits and M insight records`.
+
+- Fix commits come from a fresh, bounded read of project git history and count only Conventional
+  Commit subjects beginning with `fix:` or `fix(scope):`.
+- Insight records come from fresh dated `## YYYY-MM-DD — ...` headings in
+  `.claude/insights/index.md`. A missing carrier is a measured count of zero.
+- If the project is not a git repository, has no readable history, or a required source is unreadable,
+  the line says `check NOT performed` and names the source instead of inventing a count.
+
+The observation is informational: it has no threshold, does not interpret the relationship between
+the counts, and does not change `doctor` exit status. Existing installation-health checks remain the
+only owners of exit `0` or `1`.
 
 ---
 
@@ -994,6 +1210,14 @@ Default structure after `init`:
   },
   "hooks": {
     "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-insights.cjs\"", "timeout": 5 }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
       {
         "matcher": "*",
         "hooks": [
@@ -1220,17 +1444,15 @@ npx @dzhechkov/p-replicator@latest init --force
 npx @dzhechkov/p-replicator verify
 ```
 
-### Insights aren't auto-injected into new sessions
+### Insights aren't injected after a prompt
 
 Checks:
 1. `.claude/insights/index.md` exists with entries?
-2. Hook works:
-   ```bash
-   node "${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/session-insights.cjs"    # should print recent insights
-   ```
-3. SessionStart hook configured in `settings.json`?
+2. `UserPromptSubmit` is configured in `.claude/settings.json`?
+3. If dz recall fails, does the hook name degradation and show the local fallback?
+4. If dz is absent or returns empty, does the local fallback appear without a dz error?
 
-If all 3 OK but still nothing — Claude Code may cache. Restart `claude`.
+If all checks are OK but still nothing — Claude Code may cache settings. Restart `claude`.
 
 ### Statusline lags on every command
 
@@ -1296,17 +1518,18 @@ npx @dzhechkov/p-replicator verify
 
 <br>
 
-**Suite:** 105 tests, 36 suites, ~25 sec runtime.
+**Suite command:** `npm test` (plain Node test runner; never watch mode).
 
 | Layer | File | Coverage |
 |---|---|---|
-| **Unit** | `tests/unit/utils.test.js` (54 tests) | Pure functions: createManifest, mergeSettingsJson, removeOrphanHooks, getItemRelativePath, parseToolkit logic |
-| **E2E** | `tests/e2e/lifecycle.test.js` (48 tests) | Full CLI lifecycle, hooks installation, settings merge edge cases, statusline output, --feature-branches docs |
-| **Snapshot** | `tests/snapshot/templates.test.js` (3 tests) | SHA-256 baseline of all 115 files in `templates/` |
+| **Unit** | `tests/unit/*.test.js` | Pure utilities, role-map and traceability contracts, hook behavior, and document consistency |
+| **E2E** | `tests/e2e/*.test.js` | Full CLI lifecycle plus fresh-install execution of the exact `npm pack` insight writer artifact |
+| **Snapshot** | `tests/snapshot/templates.test.js` | SHA-256 baseline of package templates (140 file hashes, MEASURED — `npm run snapshot:baseline`) |
 
 **Meta-tests** verify consistency between documents:
 - `replicate-pipeline.md` mentions every pre-shipped command (no orphan in rule)
 - `replicate.md` Phase 3 doesn't claim "Generate `<pre-shipped>.md`" (no spec drift)
+- Negative/E2E fixtures live under `tests/fixtures/`; `files[]` ships `tests/`, so they are included in the npm package.
 
 **Snapshot baseline** regenerated via `npm run snapshot:baseline` after intentional template changes.
 
@@ -1466,7 +1689,7 @@ npm test
 
 ```bash
 npm run snapshot:baseline    # regenerate baseline if templates/ changed
-npm test                     # all 105 tests must pass
+npm test                     # settled suite: 396 pass + 3 intentional skips
 npm pack --dry-run           # verify tarball contents
 npm publish
 ```

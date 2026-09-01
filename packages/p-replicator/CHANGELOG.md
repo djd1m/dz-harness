@@ -5,6 +5,238 @@ All notable changes to `@dzhechkov/p-replicator` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+**Phase 0.5 gains the instrument for its `путь` axis: the source product is CLICKED THROUGH in a
+browser instead of the axis staying permanently empty.**
+
+Staged, not published — a disk version is not a shipped one.
+
+### Added
+
+- **`.claude/hooks/capture-source-path.cjs`** — the browser click-through. `clone-website` captures
+  what is visible at ONE url; the route a person takes through a product — registration, onboarding,
+  first value, paywall — was captured by nothing, so the `путь` column shipped in 1.13.0 had no way
+  to be filled. This walks it and emits rows in the SAME `FR-LOOK-nnn` family, continuing the
+  profile's numbering. No second identifier family, no second artifact: the axis is a COLUMN.
+
+  Three outcomes, each with its own exit code — `0` captured · `1` the source opened but has no
+  onward step (a one-screen product: a legitimate `ИСТОЧНИКА НЕТ` for this axis, and a PROVEN
+  negative rather than blindness) · `2` `НЕ ИЗМЕРЕНО` with a reason from the closed list, printed as
+  the exact profile lines to paste.
+
+  **The zero-dependency contract is untouched.** Playwright is an EXTERNAL prerequisite exactly like
+  `clone-website`'s browser MCP: the module is resolved on the machine at run time
+  (`PLAYWRIGHT_MODULE` → the project → `npm root -g`) and its absence is the honest outcome
+  `no-browser`, never a crash.
+
+  **The legality boundary is executable, not merely described.** REGULARITIES are captured — the
+  spacing step, the type scale, how many hierarchy levels, how many form fields, how many screens to
+  first value — never VALUES to carry over. Third-party CSS and DOM are copyrighted code, so they
+  are not stored by default (`--keep-dom` warns out loud); the evidence directory ships its own
+  `.gitignore` and a note that it holds someone else's material; `robots.txt` is read before
+  crawling more than one page and a refusal is the outcome `robots-disallowed`; authentication and
+  any circumvention are refused outright, with a login screen recorded as the legitimate last step;
+  the User-Agent is honest, because masquerading as an ordinary browser would itself be
+  circumvention. Politeness is enforced, not advised: one thread, a pause (default 1500 ms, floor
+  250), a hard page cap of 12 — exceeding either is clamped ALOUD.
+
+  **Brittleness is designed out.** Only computed styles and semantic roles (aria, form types,
+  accessible names) are read; class names are read NOWHERE, because bundlers change them on every
+  build of someone else's site.
+
+### Changed
+
+- **Each axis of the Source Product Profile now answers for itself** — `**Статус съёмки:**` for
+  `облик`, `**Статус съёмки (путь):**` for `путь`. They FAIL APART (a landing page captures while
+  the click-through dies on a 403), so one shared status would have to lie about one of them. This
+  is one extra header line in the SAME artifact, not a second document, and the path declaration is
+  demanded only when the axis carries no rows — rows are its answer.
+
+- `check-look-trace.cjs` now refuses an EMPTY, UNDECLARED `путь` axis with exit `2`. Before the
+  instrument existed, silence about the path was unavoidable; now it is a gap, and reading it as
+  clean would bless every profile that only ever looked at one screen. A `НЕ ИЗМЕРЕНО` path axis
+  keeps a fully traced profile at `2` — everything written down is traced, yet half the phase never
+  ran. A declared `ИСТОЧНИКА НЕТ` path axis does NOT block a clean bill, because the trace set is
+  non-empty and an honest answer must stay able to reach `0`. A proven loss outranks an unanswered
+  axis: `1` beats `2`.
+
+- The closed reason list grew by the four ways a CLICK-THROUGH fails, each naming a different
+  repair: `no-browser`, `bot-protected`, `timeout`, `robots-disallowed`. `no-browser-mcp` (the
+  `clone-website` prerequisite) and `no-browser` (a local Playwright) stay separate entries — they
+  are different missing tools, and the matcher is pinned so neither spelling swallows the other.
+
+### Measured
+
+- Nine live runs against a local fixture on 2026-09-01 exercised every outcome: captured,
+  one-screen, `no-browser`, `robots-disallowed` (both an explicit `Disallow` and an unreadable
+  robots.txt), `bot-protected` (403), `auth-required`, `out-of-scope`, `unreachable`. Politeness was
+  measured rather than asserted: at `--delay-ms 2000` the gap between requests was 2613 ms and
+  exactly two pages were fetched under `--max-pages 2`.
+
+- **The spacing step is inferred by SHARE, not by GCD, and that is a measurement, not a preference.**
+  One browser default expressed in `em` (an `h1` at 56px yields a 38px margin) collapses the GCD to
+  1–2 on a site with an honest 4px grid. On the probe histogram 8/12/16/20/24 the share for 4 is
+  0.91 and for 8 is 0.73, so 4 is named and the share is printed alongside — "step 4px, share 0.91"
+  is checkable, "step 4px" is not.
+
+- Six mutations, all discriminating: removing the path-axis gate (4 red), un-naming the instrument
+  in the rule (1), deleting the legality boundary from the rule (1), replacing the share inference
+  with an exact GCD (2), ignoring the politeness delay (1), skipping the robots.txt gate (1).
+
+- The always-loaded corpus grew by +1158.75 estimated tokens (1.33% of the re-pinned preimage),
+  inside the untouched 4037.75 trigger. The instrument's own doctrine lives in its file header,
+  which is not part of that corpus — nothing reads a hook on every run.
+
+## [1.13.0] - 2026-09-01
+
+**MINOR — `/replicate` gains a mandatory Phase 0.5 (Source Product Profile): when a project
+reproduces an existing product, its LOOK is captured on the record instead of being invented.**
+
+Staged, not published — a disk version is not a shipped one.
+
+### Added
+
+- **Phase 0.5 — Source Product Profile**, a phase of its own between the Phase 0 checkpoint and
+  Phase 1. It asks, in every run, whether the project reproduces a NAMED existing product and what
+  that product looks like, and writes `docs/source-product-profile.md` in all three outcomes:
+  `СНЯТ` (captured — a filled `FR-LOOK-nnn` seed table), `ИСТОЧНИКА НЕТ` (the project replicates
+  nothing — a legitimate answer), and `НЕ ИЗМЕРЕНО` (a source was named but could not be captured,
+  with a reason from the closed list `no-browser-mcp` | `unreachable` | `auth-required` |
+  `out-of-scope`).
+
+  It is a SEPARATE phase, not a seventh module of `reverse-engineering-unicorn`, because Phase 0 is
+  skipped entirely by the `--from-docs` / `--skip-discovery` entry. A look-capture inside Phase 0
+  would switch itself off for exactly the projects that arrive with someone else's documentation —
+  which are, more often than not, replications of someone else's product.
+
+  Identifiers are ONE family: `FR-LOOK-<nnn>` with the axis (`облик` / `путь`) as a COLUMN. A second
+  namespace such as `FR-FLOW-nnn` would have to be kept in step with the first; one family with a
+  column does not.
+
+- `.claude/hooks/check-look-trace.cjs` — the deterministic half. Did the Phase-0.5 seed reach
+  `docs/Specification.md`? Three exit codes, and the third is the point: `0` traced (or rejected
+  with a reason), `1` proven loss with the ids NAMED, `2` THE CHECK DID NOT RUN — no profile, no
+  Specification, an untouched template table, a reused id, a row with no axis, or either of the two
+  legitimate non-captures. Per the shipped `honest-configuration` rule (CFG-I4), an unreachable
+  source of truth yields UNKNOWN, never a plausible value.
+
+  The capture itself is performed by the canonical `clone-website` skill from the separate
+  `@dzhechkov/skills-website-cloner` package, run recon-only. It is **called, never vendored**
+  (ADR-0001): the pre-shipped skill contract stays at ten.
+
+### Changed
+
+- `reverse-engineering-unicorn/modules/025-cjm-prototype.md`: the industry palette table
+  (Health→Emerald, Fintech→Blue, …) is now a **labelled FALLBACK**, reachable only through
+  «источника нет» and «облик НЕ ИЗМЕРЕН», with a precedence block above it. A pipeline whose job is
+  to reproduce a product was assigning that product a palette by industry; the guess is not one of
+  two equal options, it is worse than a measurement by exactly the distance between invented and
+  observed. The table stays — it is the right answer when there is no source — and in those states
+  it is signed as a fallback, because an unlabelled palette and a labelled one look identical to the
+  next reader and mean different things.
+- Hook inventory: **11** utilities in `.claude/hooks/` (was 10). `replicate-pipeline.md` had said
+  «Hooks (8 files)» since the ninth and tenth landed — a second-generation lie fixed in the same
+  change, along with the README hook table, which listed only seven of them.
+- `replicate.md`, `rules/replicate-pipeline.md` and `agents/replicate-coordinator.md` — the three
+  places that declare the phase sequence — all carry Phase 0.5 and the same artifact path; a test
+  pins their agreement and the section ORDER.
+
+### Tests
+
+- `tests/unit/check-look-trace.test.js` — 15 behaviour tests over real temporary projects: a filled
+  table with no promotion exits 1 with the lost ids NAMED; an absent profile exits 2, never 0; an
+  untouched bracketed template exits 2 rather than reading as "the phase ran"; each of the three
+  outcomes, the closed reason list, a reused id, a missing axis, and one binary producing all three
+  verdicts in a single run.
+- `tests/unit/look-phase-contract.test.js` — 9 tests pinning the phase in the prose: the Phase 0.5
+  section index lies between the Phase 0 checkpoint and the Phase 1 heading, the three declaring
+  files agree, the industry palette is labelled a fallback with the precedence block ABOVE the
+  table, the capture skill is not vendored, and the advertised hook count matches what ships.
+  MEASURED: three independent mutations (renaming the section heading, unlabelling the table
+  caption, unregistering the hook) each turn the suite red.
+
+## [1.12.0] - 2026-08-31
+
+**MINOR — the pre-shipped rule contract moves from seven rules to nine, and the port check gains a
+second, deliberately chosen scope.**
+
+Note for anyone upgrading from 1.10.4: `1.11.0` was prepared but never published, so this release
+carries its ladder work as well. Read both entries.
+
+### Added
+
+- `check-ports.cjs --machine`: a second scope that inventories the running containers of the current
+  Docker context, recognizes storage through the shared image taxonomy, attributes Compose ownership
+  from labels, and probes Redis auth live. The rule always stated a MACHINE invariant while the check
+  answered for one DIRECTORY — a green receipt was reported on a host where three neighbouring
+  databases sat on `0.0.0.0` and a Redis ran with no password at all. Catalog mode never queries the
+  runtime; the loopback exception stays, and revoking it would be a separate decision.
+- `swarm-file-evidence` rule: every parallel work unit has a named file result. A narrative reply is
+  only a pointer, silence is neither progress nor completion, and a status of `running` beside a dead
+  recorded PID closes the unit as failed rather than reporting work from silence.
+- `honest-configuration` rule: a value governing external output, access, limits, routing, or an
+  authoritative measurement must not become plausible or permissive when its meaning is absent or
+  unproven. `undefined` stays distinct from `''`, the allowlist lives in code while the environment
+  only selects from it, and `0/0` renders unavailable rather than `0%`.
+- The packaged `write-insight.cjs` boundary is the required final persistence gate for quick and full
+  `/harvest` runs carrying a candidate. Its structured-stdin contract lazily creates the Markdown
+  carrier, preserves prior bytes on append, and returns `duplicate` for an exact normalized replay.
+  Runtime behaviour has no `dz` dependency. Until this landed, `/harvest` had no writer at all: a
+  field project ran three days and 69 commits with 19 fixes and zero insights recorded, every
+  surface green.
+- Exact-artifact acceptance installs `npm pack` output into a fresh consumer and exercises
+  absent → create → append → replay → delete → doctor → recreate without checkout substitution.
+- Targeted mutation defenses for receipt enforcement, first-write creation, exact-repeat idempotence
+  and missing-carrier visibility.
+- `doctor` reports the insight FLOW: fix commits against insight records for a named period. It is
+  informational by construction — a low ratio can equally mean the work went smoothly — and it never
+  changes doctor's exit code.
+
+### Changed
+
+- The SessionStart insight hook now prints `инсайтов пока нет; /myinsights создаст первую запись`
+  when the carrier is absent, while remaining exit-zero and non-mutating; empty and read-error states
+  stay distinct from that ordinary missing branch. The hook's silence was the named cause of the
+  three-day invisibility above.
+- The pre-shipped hook/utility contract grows from 9 to 10.
+- Insight delivery delegates to `dz` only when recall is genuinely ARMED. `command -v dz` is not the
+  condition: local output is suppressed only after a successful, non-empty recall carrying
+  `--domain p-replicator-insights`. Absent, failing, and empty recall each fall back to local output,
+  and a failure is named rather than swallowed. Markdown remains the source of truth throughout.
+- `docker-ports.md` now names EXPOSURE as the consequence of a miss instead of port conflicts, and
+  explains that the left-hand side of `${DB_PORT:-11432}:5432` says nothing about the publish
+  address — the address is the third element, defaulting to all interfaces.
+
+### Honest limits
+
+- An unreadable state — no git, not a repository, an unreadable carrier, a config that cannot be
+  parsed — renders as NOT PERFORMED with its reason named, never as a measured zero. A check that
+  answers "clean" about a state it could not read is worse than no check.
+- `--machine` is a snapshot of the current Docker context at the moment it is invoked. It is not
+  continuous monitoring, and it says nothing about stopped containers or another context.
+- The flow check counts; it does not judge whether the captured insights are worth anything.
+
+## [1.11.0] - 2026-08-30
+
+**MINOR — the pre-shipped consumer rule contract moves from six rules to seven.**
+
+### Added
+
+- Added the consumer-local `cost-of-detection-ladder` rule: five enforcement layers, signal-fit
+  check selection, and an owned reaction for every violation.
+- Registered and shipped the ladder as the seventh rule required by `init`, `doctor`, and `verify`,
+  with link-backs from the two ADR-named quality-gate rules.
+
+### Fixed
+
+- Made the backlink contract ignore the ladder link itself when detecting prose allusions, so
+  removing either required link now makes the focused gate fail.
+- Replaced the distribution tautology with an assertion over the actual `npm pack --dry-run --json`
+  file listing.
+- Added a mutation-gate case for removing the seventh-rule requirement, restored the count scanner's
+  cross-line reach, and aligned the signed manifest with the files npm actually packs.
+
 ## [1.10.0] - 2026-08-27
 
 **Every guard in this package can now be shown to fail — and three that could not, now can.**

@@ -457,11 +457,11 @@
       },
       {
         "path": "loop-plan-author/references/loop-plan-1-schema.md",
-        "sha256": "a9cc720e0855cc0318286a1007a34c8a59ee012a17ffcc383a22c11dbee13c8b"
+        "sha256": "397e5fe9a830fb4eb2eaf03ab57bc6e69ca22fbad12d36541a687175cf0cf84e"
       },
       {
         "path": "package.json",
-        "sha256": "c81d7f5796dcd6372e93ca795fd344fadeaaebf8a668a2642fbd257c7c6125c9"
+        "sha256": "4ddc2945266d5ad2cbaab9438483c20ef1a5fea338f72f6fabe98c066d58e708"
       },
       {
         "path": "problem-solver-enhanced/SKILL.md",
@@ -553,5 +553,5 @@
       }
     ]
   },
-  "signature": "rlrgrlwVTwokWqJYqg9SMsNsqoubVSbWd5yYSO+nZvos60YV5wl+HcPz298md6UuP1Ej+xhkGHKzdSF5oPq9Cg=="
+  "signature": "yX1nIXHpRwRFb+NCbe+dRHJ5BgOeIKAW8JMyhMaiY7jkrJ9FvGjnErJbGypVVAgIDlvQ1x8twEwpV4dCCGC6CQ=="
 }

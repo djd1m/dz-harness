@@ -246,6 +246,14 @@ await Task("Vendor Evaluation", {
 
 ---
 
+## Swarm receipts
+
+When review agents run in parallel, each one delivers a FILE at its own absolute `TRACE_PATH`
+ending in `Status: completed` or `Status: failed`, and its reply is only a pointer. A reviewer
+that returned nothing did not review — and it looks exactly like one still reviewing, because
+both are silent. Refuse to aggregate a verdict without every receipt; see
+`.claude/rules/swarm-file-evidence.md`.
+
 ## Agent Coordination Hints
 
 ### Memory Namespace

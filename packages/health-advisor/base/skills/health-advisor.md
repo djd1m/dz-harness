@@ -65,6 +65,23 @@ Health Advisor — комплексный AI-скилл для анализа м
 4. **Лекарственные назначения** — Health Advisor может предложить обсудить препарат с врачом, но НИКОГДА не назначает самостоятельно
 5. **Checkpoint перед финальным отчётом** — подтверждение что пациент понимает, что это не медицинское назначение
 
+## Patient Values Safety Contract
+
+Module 0 records patient values only as a confirmed `patient-values-v1` block. In Solve there are two
+one-way lanes:
+
+1. The clinical lane establishes emergency actions, red flags, contraindications, indications, and
+   the baseline order of clinically acceptable options.
+2. `buildSolveAdvice` from `base/solve/solve-advice.js` may then reorder only that complete acceptable
+   set using validated, current patient values.
+
+The clinical hierarchy is immutable across this merge. A preference can never filter, withhold,
+suppress, or hide an option or safety fact; a red flag always remains first. Refusal of an indicated
+drug class must print both truths together: what the patient refuses and the clinical indication,
+evidence, and consequence of declining. Pregnancy planning is routed back to clinical assessment,
+not ranked as a preference. Every patient-visible Solve document prints the values audit, exact rank
+changes (or an explicit no-change result), and the boundary that values do not replace a doctor.
+
 ## Patient Category Routing
 
 | Категория | Маршрут | Ограничения |
@@ -261,6 +278,7 @@ node /path/to/@dzhechkov/health-advisor/bin/health-advisor.js check
 | Значение аналита из памяти разговора, а не перечитанное из профиля в этом же вызове | В выводе стоит число, для которого в этом же вызове не было `session.readAnalyte()` — оно «уже называлось выше» | **BLOCK** — открыть сеанс `openCase({profilePath, asOf})` и перечитать значение; число из контекста реально, но неизвестного поколения |
 | Вывод при созревшем блокирующем открытом вопросе, который просто НАЗВАН | Вывод в области вопроса выпущен с оговоркой «вопрос tg-recheck учтён» вместо ответа на него | **BLOCK** — «назвал, но не решил» это тихий обход; ответить на вопрос и записать ответ (`questions answer`), флага обхода нет |
 | Цитата факта, свежесть которого не `FRESH`, без баннера | В отчёте есть ссылка на источник, у которого истёк TTL перепроверки или вовсе нет `fetch_date`, и нет строки `⚠ УСТАРЕЛО — НУЖНА ПОВТОРНАЯ ВЫБОРКА` | **BLOCK** — либо перевыбрать источник, либо явный `acknowledgeStale: {reason}`; баннер печатается всегда и не отключается |
+| Ценности пациента как фильтр клинической безопасности | Отказ, стоимость или предпочтение немедикаментозного скрыли красный флаг, противопоказание или показанный вариант; generic solver выдал медицинский порядок в обход merge | **BLOCK** — сначала неизменяемая clinical safety lane, затем только `buildSolveAdvice` из `base/solve/solve-advice.js`; печатать обе стороны отказа и точный diff |
 | Факт без PubMed-ссылки | Медицинское утверждение без `[Author, Journal](pubmed.ncbi...)` | Найти источник или пометить `[UNVERIFIED]` |
 | Пропуск дисклеймера | Выходной документ без строки «не является медицинской рекомендацией» | Добавить в каждый файл |
 | Игнорирование contraindications | Рекомендация тренировок без проверки стресс-теста при атеросклерозе | Проверить Emergency Protocol + Patient Category Routing |

@@ -1,10 +1,10 @@
 {
   "name": "@dzhechkov/skills-taste",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
-  "description": "Anti-slop frontend taste skill for Claude Code \u2014 ships non-templated landing pages, portfolios, and redesigns via tunable dials (design-variance / motion-intensity / visual-density), brief\u2192design-system mapping, hard pre-flight checks, and canonical GSAP motion skeletons. Imported (MIT) from Leonxlnx/taste-skill. Complements (does not replace) frontend-design.",
+  "description": "Anti-slop frontend taste skill for Claude Code — ships non-templated landing pages, portfolios, and redesigns via tunable dials (design-variance / motion-intensity / visual-density), brief→design-system mapping, hard pre-flight checks, and canonical GSAP motion skeletons. Imported (MIT) from Leonxlnx/taste-skill. Complements (does not replace) frontend-design.",
   "keywords": [
     "claude",
     "claude-code",
@@ -34,12 +34,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-taste"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-taste#readme",
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-taste#readme",
   "bugs": {
-    "url": "https://github.com/djd1m/dz-harness-hub/issues"
+    "url": "https://github.com/djd1m/dz-harness/issues"
   },
   "publishConfig": {
     "access": "public"

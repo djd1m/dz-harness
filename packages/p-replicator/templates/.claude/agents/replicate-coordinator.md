@@ -8,9 +8,19 @@ Activated automatically by the `/replicate` command. Do NOT invoke directly.
 
 ## Responsibilities
 
-1. **Phase Management** — ensure correct phase sequence (0 → 1 → 2 → 3 → 4)
+1. **Phase Management** — ensure correct phase sequence (0 → 0.5 → 1 → 2 → 3 → 4).
+   Phase 0 is OPTIONAL and is skipped entirely by the `--from-docs` / `--skip-discovery` entry;
+   **Phase 0.5 (Source Product Profile) is MANDATORY and runs in every case**, which is why it is a
+   separate phase rather than a module inside Phase 0.
 2. **Context Passing** — carry forward outputs between phases:
    - Phase 0 → Phase 1: Product Discovery Brief
+   - Phase 0.5 → Phase 1: Source Product Profile (`docs/source-product-profile.md`) — a capture
+     status PER AXIS (`облик` and `путь` each answer `СНЯТ` / `НЕ ИЗМЕРЕНО` + reason /
+     `ИСТОЧНИКА НЕТ`, because they fail apart) plus the `FR-LOOK-nnn` seed rows of ONE family. A
+     `СНЯТ` profile's palette SUPERSEDES the industry palette of `025-cjm-prototype.md`; in the
+     other two states that table is a LABELLED fallback. The `путь` axis is captured by
+     `.claude/hooks/capture-source-path.cjs` (browser click-through; Playwright is an external
+     prerequisite, and its absence is the outcome `no-browser`, never a stalled run)
    - Phase 1 → Phase 2: 11 SPARC documents
    - Phase 2 → Phase 3: Validated docs + test-scenarios
    - Phase 3 → Phase 4: Complete toolkit

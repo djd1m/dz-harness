@@ -17,7 +17,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "d1a273594afef674586243c4f3c52ce7405b8d8a47cf998f4357a09ca4b02143"
+        "sha256": "de4bd918f3e4bcd0aebcd2cb5bcbe1a38f5529536c156339b2d2fa3e3657d959"
       },
       {
         "path": "sources.json",
@@ -181,7 +181,7 @@
       },
       {
         "path": "templates/.claude/skills/reverse-engineering-unicorn/modules/025-cjm-prototype.md",
-        "sha256": "11e2e101c99d42306ac1d0931475c5a8899e929514e41a393b6173e03856cfc3"
+        "sha256": "d9dd399cbb60d6b5fa9734ad44128a49790ef15bbde25c809d69d5c918601eb3"
       },
       {
         "path": "templates/.claude/skills/reverse-engineering-unicorn/modules/03-market-competition.md",
@@ -213,5 +213,5 @@
       }
     ]
   },
-  "signature": "llLWcu0+YrLa0Bslt2EPlTRhyXgDIFYY66WrGmwden8RLPvxlTPOxD+HOfSsxCRWBHxqjhKVcDU5GPCN7VuvAw=="
+  "signature": "dcxb7VvlZZMv/QqPWwpaNQBrGOYDeoX7tUCKi9vWf46JYRuT+aH2UybFggDKX1JV2xWFjfisWeh5LJTDNnY9Bw=="
 }

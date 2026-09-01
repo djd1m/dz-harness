@@ -199,8 +199,26 @@ UNIFIED RESULT
 1. **Independence** — swarm agents must not depend on each other (or explicitly declare dependencies)
 2. **Clear scope** — each agent has a defined scope and criteria
 3. **Parallel execution** — use Task tool to launch agents concurrently
-4. **Aggregation** — orchestrator merges results, resolves conflicts
+4. **Aggregation** — orchestrator merges results FROM FILES, resolves conflicts
 5. **Iterative** — if aggregate fails quality gate, re-run with fixes (max N iterations)
+6. **Positive file receipt** — every agent's RESULT is a file at a named path, never its reply
+
+#### Positive file receipt (required)
+
+Before dispatch, allocate one `RUN_ID` and, for every unit, a unique `WORK_UNIT_ID` plus an
+absolute `TRACE_PATH` unique to `(RUN_ID, WORK_UNIT_ID)`; record the launch instant and pass both
+fields to the worker. Each worker must write a substantive body ending in `Status: completed` or
+`Status: failed` to `TRACE_PATH` before it returns its one-line pointer. Before merge, verify every
+path is a regular non-symlink file, non-whitespace, post-launch, and terminal. Narrative output or
+silence is never a receipt. Name missing, stale, partial, unreadable, duplicate, failed, dead-PID,
+or probe-error units and refuse merge, aggregation, or completion until every required receipt is
+valid and completed. Run `node .claude/hooks/check-swarm-receipts.cjs <manifest>` — exit 0 all
+completed, exit 1 undelivered or failed, exit 2 the check did not run. See
+`.claude/rules/swarm-file-evidence.md` for mechanics and the bounded non-atomic-write exception.
+
+Why this belongs in the pattern and not in the orchestrator's good intentions: a worker that died
+looks exactly like a worker that is still running, because both are silent. The absence of a
+receipt is indistinguishable from unfinished work and therefore reads as progress.
 
 ### Swarm Design Template
 ```markdown

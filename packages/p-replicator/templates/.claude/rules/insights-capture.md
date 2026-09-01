@@ -1,7 +1,7 @@
 # Insights Capture Rules
 
 When and how to record development "грабли" (rakes) into the project knowledge
-base. Used by `/myinsights` and the `SessionStart` hook
+base. Used by `/myinsights` and the `SessionStart`/`UserPromptSubmit` hook
 (`.claude/hooks/session-insights.cjs`).
 
 ## When to Capture
@@ -53,11 +53,16 @@ Use lowercase, hyphenated, specific tags:
 
 Aim for 2-5 tags per entry.
 
-## Auto-Injection on SessionStart
+## Prompt-Time Injection on UserPromptSubmit
 
-The `SessionStart` hook runs `node .claude/hooks/session-insights.cjs` which
-prints recent insights to stdout. Claude Code captures stdout and injects
-it into the initial session context.
+Markdown at `.claude/insights/index.md` remains the source of truth. After it is
+established, capture makes a best-effort idempotent `dz teach` duplicate; optional dz
+failure cannot undo the file write.
+
+On `UserPromptSubmit`, a successful non-empty `dz recall` result from the insight
+domain is the only state that suppresses local output. Absent, failing, or empty recall
+uses the local fallback of the three most recent Markdown entries, never both sources.
+`SessionStart` retains only the missing-carrier hint.
 
 ## Storage Lifecycle
 

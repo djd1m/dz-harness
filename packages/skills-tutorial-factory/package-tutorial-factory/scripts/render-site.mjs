@@ -204,7 +204,41 @@ button.ghost{background:var(--panel);color:var(--ink);border:1px solid var(--lin
 .score-pill{font-family:var(--mono);font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:2px 10px;color:var(--muted)}
 .score-pill.good{border-color:var(--ok);color:var(--ok)}
 .big-score{font-size:52px;font-weight:800;letter-spacing:-.03em;line-height:1}
+/* diagram: flex row on wide screens, column on a phone; colours come from the theme tokens, so
+   dark mode needs no second rule and the figure can never fight the page it sits on. */
+.diagram{margin:22px 0 26px;padding:18px 16px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius)}
+.dg-track{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px}
+.dg-node{flex:1 1 130px;min-width:120px;background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:10px 12px}
+.dg-node b{display:block;font-size:14px;letter-spacing:.01em}
+.dg-node small{display:block;margin-top:4px;color:var(--muted);font-size:12.5px;line-height:1.45}
+.dg-arrow{align-self:center;color:var(--accent);font-size:18px;line-height:1;flex:0 0 auto}
+.dg-cycle{align-self:center;color:var(--muted);font-size:12.5px;font-style:italic;flex:0 0 auto}
+/* compare — columns of options; on a phone they stack and read as a list */
+.dg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.dg-col{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+.dg-col b{display:block;font-size:14px}
+.dg-col small{display:block;margin-top:4px;color:var(--muted);font-size:12.5px;line-height:1.45}
+.dg-items{margin:8px 0 0;padding-left:16px;font-size:12.5px;color:var(--muted);line-height:1.6}
+.dg-items li{margin:2px 0}
+/* scale — rungs where vertical POSITION is the meaning; the accent marks the load-bearing rung */
+.dg-scale-wrap{display:flex;flex-direction:column;gap:6px}
+.dg-rung{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px}
+.dg-rung-n{font-family:var(--mono);font-size:12px;color:var(--muted);min-width:1.4em}
+.dg-rung b{font-size:14px}
+.dg-rung small{flex:1 1 100%;color:var(--muted);font-size:12.5px;line-height:1.45;margin-top:2px}
+.dg-edge{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:0 2px}
+/* parts — a whole above, its required parts joined by + below */
+.dg-parts-wrap{display:flex;flex-direction:column;gap:9px}
+.dg-whole{font-weight:600;font-size:14px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;text-align:center}
+.dg-plus{align-self:center;color:var(--accent);font-size:17px;flex:0 0 auto}
+.dg-accent{border-color:var(--accent)}
+.diagram figcaption{margin-top:12px;color:var(--muted);font-size:13px;text-align:center}
+@media (max-width:640px){.dg-track{flex-direction:column}.dg-arrow{align-self:flex-start;transform:rotate(90deg);margin-left:14px}}
 .footer-nav{display:flex;gap:10px;margin-top:30px;padding-top:22px;border-top:1px solid var(--line)}
+#site-footer{padding:18px 24px;border-top:1px solid var(--line);background:var(--panel);text-align:center;font-size:13px}
+#site-footer a{color:var(--accent);text-decoration:none}
+#site-footer a:hover{text-decoration:underline}
+#site-footer .footer-sep{margin:0 10px;color:var(--muted)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 @media (max-width:900px){.layout{grid-template-columns:1fr}aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}main{padding:24px 18px 80px}.match-grid{grid-template-columns:1fr}h1{font-size:26px}}
 `;
@@ -218,11 +252,134 @@ if (/<\/script/i.test(JS) || /<\/script/i.test(payload)) {
   throw new Error('render-site: content would close the inline <script> element — refusing to emit');
 }
 
+// UI locale: the chrome strings live HERE, in one place. The runtime (app.src.js) and the
+// verifier (verify-site.mjs) both read the embedded #ui-strings block, so the three can never
+// drift apart. course.language 'ru' selects Russian chrome; anything else keeps English.
+// dz commands themselves are never translated — they are the one legitimate anglicism.
+const UI_RU = {
+  achievement: 'Достижение — ', locked: 'Закрыто: ',
+  flashHint: 'Нажми на карточку, чтобы перевернуть её. Просмотри все карточки, чтобы закрыть раздел.',
+  sideFront: 'лицо', sideBack: 'оборот', seen: 'просмотрено',
+  prev: '← Назад', next: 'Дальше →',
+  matchHint: 'Выбери элемент слева, затем его пару справа.', matched: 'совпало',
+  moveUp: 'Выше', moveDown: 'Ниже',
+  orderRight: 'Точно — именно в таком порядке это и происходит.',
+  orderPartial: '{n} из {len} на своём месте. Зелёные строки верны; переставь остальные.',
+  checkOrder: 'Проверить порядок',
+  builderEmpty: 'собери команду из частей ниже…',
+  builderCorrect: 'Верно — ровно эта команда.', builderNot: 'Пока нет — ты собрал: ', nothing: '(пусто)',
+  checkCommand: 'Проверить команду', clear: 'Очистить',
+  scenarioDone: 'Сценарий пройден — {p} из {n} решений были сильнейшим доступным вариантом.',
+  step: 'Шаг {i} из {n}', seeResult: 'К результату →', nextStep: 'Следующий шаг →',
+  quiz: 'Викторина', quizComplete: '{label}: готово — {r} / {n} верно ({p}%).', tryAgain: 'Ещё раз',
+  question: 'Вопрос {i} из {n}', nextQuestion: 'Следующий вопрос →',
+  brandTag: 'курс в стиле Head First · разделов: {n}', sectionsOf: '{c} / {n} разделов',
+  startHere: 'Начни здесь', finalTest: 'Финальный тест', faqNav: 'Частые вопросы',
+  achievements: 'Достижения — ', settings: 'Настройки',
+  light: '☀️ Светлая', dark: '🌙 Тёмная', resetConfirm: 'Сбросить весь прогресс?', reset: '↺ Сброс',
+  sectionOf: 'Раздел {o} из {n}',
+  patternTitle: 'паттерн Head First, которому служит этот раздел (id в метод-KB)',
+  patternNames: {
+    P1: 'P1 · Сначала образ: понятие ведёт картинка или схема, слова живут внутри неё',
+    P2: 'P2 · Избыточность: ключевая идея закодирована трижды — текст, упражнение, проверка',
+    P3: 'P3 · Разговорный тон: напрямую к читателю, без лекторской сухости',
+    P4: 'P4 · Неожиданность: поворот или «ага-момент», чтобы мысль запомнилась',
+    P5: 'P5 · Сделай сам: к каждой идее — действие; понимание строится руками',
+    P6: 'P6 · Несколько представлений: общая картина + шаги + конкретный артефакт',
+    P7: 'P7 · Разнообразие: тип активности сменяется от раздела к разделу',
+    P8: 'P8 · Истории и выбор: материал как история, читатель взвешивает и решает',
+    P9: 'P9 · Открытые вопросы: вопрос без готового ответа — инсайт добывается работой',
+    P10: 'P10 · Люди, не абстракции: материал держится на живом персонаже',
+    P11: 'P11 · Метапознание: читателя побуждают следить за собственным пониманием',
+    P12: 'P12 · Врезки — это суть: отступления и FAQ обязательны, а не украшение',
+    D1: 'D1 · Сквозной персонаж: одна героиня проходит через весь курс',
+    D2: 'D2 · Рефлексивная четвёрка: сильное/слабое/оценка/итог в конце темы',
+    D3: 'D3 · Реши сам: раздел, где решения принимает читатель',
+    D4: 'D4 · Открытый синтез: задача без единственно верного ответа',
+  },
+  completed: 'пройдено · ',
+  notebookOf: '{name} — блокнот', notebook: 'Блокнот',
+  quartet: 'Рефлексивная четвёрка', strengths: 'Сильное', weaknesses: 'Слабое', rating: 'Оценка', wrapup: 'Итог',
+  doSomething: 'Сделай сам — ', checkYourself: 'Проверь себя', check: 'Проверка',
+  types: { flashcards: 'карточки', matching: 'сопоставление', 'drag-and-drop': 'порядок шагов', ordering: 'порядок шагов', builder: 'конструктор команды', scenario: 'сценарий', simulation: 'сценарий', quiz: 'викторина' },
+  meet: 'Знакомься: ', whatYouLearn: 'Чему ты научишься', startSection1: 'Начать раздел 1 →',
+  finalH1: 'По одному вопросу с каждого раздела',
+  finalLede: 'Порог — {p}%. Вопросов: {n}, по одному из каждого пройденного раздела.',
+  fromSection: 'Из раздела {o} — {t}.',
+  passed: 'Пройдено — ', courseComplete: 'курс завершён.',
+  notYet: 'Пока нет — порог {p}%.',
+  revisit: 'Возвращайся к любому разделу через меню, когда он понадобится.',
+  reread: 'Перечитай разделы, на вопросах которых ошибся, и попробуй ещё раз.',
+  lastSection: '← Последний раздел',
+  faqEyebrow: 'Врезки — это суть', faqH1: 'Вопросы, которые у тебя вот-вот появятся',
+  faqLede: 'Это не украшение: каждый вопрос — реальная ловушка, в которую кто-то уже попал.',
+};
+const uiStrings = (String(course.language || 'en').toLowerCase() === 'ru') ? UI_RU : null;
+const uiPayload = uiStrings ? JSON.stringify(uiStrings) : 'null';
+if (/<\/script/i.test(uiPayload)) {
+  throw new Error('render-site: ui-strings would close the inline <script> element — refusing to emit');
+}
+
+// Footer links: course.footer.links overrides; default = the workshop's public channels.
+// Navigation anchors only (<a href>) — they are NOT external loads, and verify-site's
+// self-contained check deliberately counts loads (src/url()/@import/<link href>), not navigation.
+const DEFAULT_FOOTER_LINKS = [
+  { label: 'Telegram: LLM notes', href: 'https://t.me/llm_notes' },
+  { label: 'aicoding.space', href: 'https://aicoding.space' },
+];
+const footerLinks = (course.footer && Array.isArray(course.footer.links) && course.footer.links.length > 0
+  ? course.footer.links
+  : DEFAULT_FOOTER_LINKS
+).filter((l) => l && typeof l.href === 'string' && /^https:\/\//.test(l.href) && typeof l.label === 'string');
+
+// Feedback link: a reader who hits a defect must be one click from reporting it AGAINST THE RIGHT
+// PACKAGE. course.feedback = { repo: 'owner/name', packagePath: 'packages/<dir>', title?, body? }
+// renders a prefilled new-issue link; absent feedback → no link (never a broken one).
+// Docs link: a course is a GUIDED ENTRY, never the full reference. Whatever the course had no
+// room for lives in the package README — link it, or the reader's next question has nowhere to go.
+// Derived from the same feedback block (repo + packagePath), so one declaration feeds both.
+const dl = course.feedback;
+if (dl && typeof dl.repo === 'string' && /^[\w.-]+\/[\w.-]+$/.test(dl.repo) && typeof dl.packagePath === 'string') {
+  const branch = dl.branch || 'main';
+  footerLinks.push({
+    label: dl.docsLabel || (String(course.language || 'en').toLowerCase() === 'ru' ? 'Полная документация пакета' : 'Full package docs'),
+    href: `https://github.com/${dl.repo}/blob/${branch}/${dl.packagePath.replace(/\/+$/, '')}/README.md`,
+  });
+}
+
+const fb = course.feedback;
+if (fb && typeof fb.repo === 'string' && /^[\w.-]+\/[\w.-]+$/.test(fb.repo) && typeof fb.packagePath === 'string') {
+  const pkgName = fb.packagePath.split('/').filter(Boolean).pop() || fb.packagePath;
+  const title = fb.title || `[${pkgName}] `;
+  const body = fb.body || [
+    `Замечание по итогам курса «${course.courseTitle}».`,
+    '',
+    `Пакет: \`${fb.packagePath}\``,
+    '',
+    '**Что ожидалось:**',
+    '',
+    '**Что произошло:**',
+    '',
+    '**Как воспроизвести:**',
+    '',
+  ].join('\n');
+  const q = `title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+  footerLinks.push({
+    label: fb.label || (String(course.language || 'en').toLowerCase() === 'ru' ? 'Что-то работает не так?' : 'Something not working?'),
+    href: `https://github.com/${fb.repo}/issues/new?${q}`,
+  });
+}
+const FOOTER = `<footer id="site-footer">${footerLinks
+  .map((l) => `<a href="${esc(l.href)}" target="_blank" rel="noopener noreferrer">${esc(l.label)}</a>`)
+  .join('<span class="footer-sep">·</span>')}</footer>`;
+
 const html = `<div class="layout">
   <aside id="aside"></aside>
   <main id="main"></main>
 </div>
+${FOOTER}
 <script type="application/json" id="course-data">${payload}</script>
+<script type="application/json" id="ui-strings">${uiPayload}</script>
 <style>${CSS}</style>
 <script>${JS}</script>
 `;

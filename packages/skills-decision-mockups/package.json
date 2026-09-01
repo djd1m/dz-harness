@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-decision-mockups",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "decision-mockups — build an owner-facing decision page: plain-language explanations, browser-frame before/after mockups, clickable option forks and a copy-answers export that pastes back into the session. Ships a zero-dependency deterministic gate (G0-G14) that blocks publication of a page with a fake fork, an untokenised colour, an external resource, a hand-written counter or a leftover placeholder.",
   "license": "MIT",
   "author": "dzhechko",
@@ -40,11 +40,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-decision-mockups"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-decision-mockups#readme",
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-decision-mockups#readme",
   "bugs": {
-    "url": "https://github.com/djd1m/dz-harness-hub/issues"
+    "url": "https://github.com/djd1m/dz-harness/issues"
   }
 }

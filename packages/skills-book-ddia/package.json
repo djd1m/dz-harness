@@ -1,13 +1,22 @@
 {
   "name": "@dzhechkov/skills-book-ddia",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
-  "description": "Decision-moment skills distilled from «Высоконагруженные приложения» (M. Kleppmann, DDIA рус.) — makes an AI coder apply the book’s data-systems methodologies. Machine-distilled (trust_tier 0), owner-private, book-derived.",
+  "description": "Decision-moment skills distilled from «Высоконагруженные приложения» (M. Kleppmann, DDIA рус.) — makes an AI coder apply the book’s data-systems methodologies. Machine-distilled (trust_tier 0), book-derived (paraphrase, not quotation).",
   "license": "SEE LICENSE IN LICENSE",
   "author": "dzhechko",
-  "keywords": ["agent-skills", "skill-pack", "claude-code", "ddia", "data-intensive", "book-derived", "dz-digitized", "digitized-monograph"],
+  "keywords": [
+    "agent-skills",
+    "skill-pack",
+    "claude-code",
+    "ddia",
+    "data-intensive",
+    "book-derived",
+    "dz-digitized",
+    "digitized-monograph"
+  ],
   "files": [
     ".dz-manifest.json",
     "sbom.json",
@@ -27,6 +36,15 @@
     "ROUTING-GATE.md"
   ],
   "publishConfig": {
-    "access": "restricted"
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
+    "directory": "packages/@dzhechkov/skills-book-ddia"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-book-ddia#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
   }
 }

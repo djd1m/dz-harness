@@ -73,7 +73,7 @@ function getItemRelativePath(comp, itemKey) {
 
 **Design principle:** zero shell dependency.
 
-All 7 hook scripts are pure Node, using `execFileSync('git', [...])`
+All 15 hook scripts are pure Node, using `execFileSync('git', [...])`
 instead of shell pipes. This works equivalently on:
 - Windows cmd.exe (no `2>/dev/null`, no `2>nul` — neither needed)
 - Bash / zsh / Git Bash on Windows

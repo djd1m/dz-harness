@@ -73,6 +73,17 @@ CHECK: feature_ent_available = fileExists(".claude/commands/feature-ent.md")
 Same as `/feature` but with idea2prd-manual + DDD coherence + ADR consistency
 + 7-agent validation + 6-agent review.
 
+### Delegated parallel-work receipt (required)
+
+For any selected pipeline that dispatches parallel work, allocate one `RUN_ID`, a unique
+`WORK_UNIT_ID`, and an absolute `TRACE_PATH` per unit. Require each worker to write a substantive body
+ending in `Status: completed` or `Status: failed` to `TRACE_PATH` before its one-line pointer. Before
+the routed pipeline reports merge, synthesis, or completion, verify each path is a regular non-symlink
+file, non-whitespace, post-launch, and terminal. Narrative output or silence is not a receipt. Name
+missing, stale, partial, unreadable, duplicate, failed, dead-PID, or probe-error units and refuse
+aggregation/completion unless every required receipt is valid and completed. The selected pipeline
+owns the paths; this router never substitutes its own report. See `.claude/rules/swarm-file-evidence.md`.
+
 ## Step 6: Post-Implementation
 
 1. Update roadmap: feature `status: done`, `files: [actually-touched]`

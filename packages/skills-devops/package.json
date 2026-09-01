@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-devops",
-  "version": "0.3.16",
+  "version": "0.3.17",
   "description": "Canonical DevOps skill pack — 30 agentic skills for code review, security, testing, CI/CD, debugging, incident & problem management, ITSM/ITIL, and more. Canonicalized from gitlawb/openclaude-skills (+ dz-original itsm-itil), deploy-to-Cloud.ru-VM.",
   "license": "MIT",
   "author": "dzhechko",
@@ -58,12 +58,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-devops"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-devops#readme",
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-devops#readme",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
     "test": "node --test \"test/*.test.mjs\""
+  },
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
   }
 }

@@ -3,7 +3,7 @@
 The **canonical meta-skill pack** — the development-process skills, packaged as
 [Agent Skills](https://agentskills.io) for distribution and cross-platform use.
 
-The pack contains **20 development-process skills**:
+The pack contains **21 development-process skills**:
 
 | Skill | Files | Purpose |
 |---|---|---|
@@ -19,6 +19,7 @@ The pack contains **20 development-process skills**:
 | `context-window-management` | 4 | Priority-based pruning + checkpoint/restore under context pressure |
 | `external-comms-gate` | 4 | Screens outbound comms for confidential-info leaks |
 | `reflection-loop` | 4 | Standalone critique → revise self-review cycle |
+| `session-recap` | 1 | Mid-session status protocol: mandatory refresh, then exactly four points (the requester's words, proof rather than green tests, human-vs-machine blockers, and owner-tagged next steps), with no new work during the recap. Distinct from `dz recap`, the records-only calendar retrospective. |
 | `skill-advisor` | 4 | Recommends which skills / presets / packages fit a task (meta-advisor) |
 | `skill-crystallizer` | 4 | Auto-creates / combines / repairs skills from traces |
 | `structured-reasoning` | 4 | Reasoning-strategy router (ToT / CoT / compression) |
@@ -42,7 +43,7 @@ The pack contains **20 development-process skills**:
 ## Install
 
 ```bash
-# Via dz CLI (recommended) — the 20 meta skills
+# Via dz CLI (recommended) — the current meta preset; session-recap wiring is deferred
 dz init --target claude-code --preset meta
 
 # Or pick specific skills
@@ -54,8 +55,8 @@ npm install @dzhechkov/skills-meta
 
 ## Canonical vs legacy — the coexistence model
 
-Each skill here is a **byte-identical copy** of its counterpart in the
-repository's `.claude/skills/<name>/` tree. This is deliberate (ADR-002):
+Each canonical skill here is projected into the repository's `.claude/skills/<name>/` tree by the
+root sync command. This is deliberate (ADR-002); `session-recap` follows the same projection path:
 
 - `.claude/skills/` — the **legacy** tree Claude Code reads today. Preserved,
   untouched (ADR-001).

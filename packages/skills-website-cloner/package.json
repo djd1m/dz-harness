@@ -1,10 +1,10 @@
 {
   "name": "@dzhechkov/skills-website-cloner",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
-  "description": "Website Cloner \u2014 skill for Claude Code: reverse-engineer any website into a pixel-perfect Next.js/shadcn/Tailwind clone (browser-MCP extraction \u2192 parallel builder agents in git worktrees \u2192 visual-diff QA). Imported (MIT) from JCodesMore/ai-website-cloner-template.",
+  "description": "Website Cloner — skill for Claude Code: reverse-engineer any website into a pixel-perfect Next.js/shadcn/Tailwind clone (browser-MCP extraction → parallel builder agents in git worktrees → visual-diff QA). Imported (MIT) from JCodesMore/ai-website-cloner-template.",
   "main": "src/cli.js",
   "bin": {
     "skills-website-cloner": "./bin/cli.js"
@@ -39,12 +39,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-website-cloner"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-website-cloner#readme",
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-website-cloner#readme",
   "bugs": {
-    "url": "https://github.com/djd1m/dz-harness-hub/issues"
+    "url": "https://github.com/djd1m/dz-harness/issues"
   },
   "publishConfig": {
     "access": "public"

@@ -54,7 +54,24 @@ Generate:
 {{PACKAGE_FILE_LIST}}
 
 **Commits:** {{PACKAGE_COMMITS}}
+**Receipt:** write the substantive summary to `TRACE_PATH`, terminal line last, then reply one line.
 {{/FOR_EACH_PACKAGE}}
+
+#### Positive file receipt (required)
+
+Before dispatch, allocate one `RUN_ID` and, for every unit, a unique `WORK_UNIT_ID` plus an
+absolute `TRACE_PATH` unique to `(RUN_ID, WORK_UNIT_ID)`; record the launch instant and pass both
+fields to the worker. Each worker must write a substantive body ending in `Status: completed` or
+`Status: failed` to `TRACE_PATH` before it returns its one-line pointer. Before merge, verify every
+path is a regular non-symlink file, non-whitespace, post-launch, and terminal. Narrative output or
+silence is never a receipt. Name missing, stale, partial, unreadable, duplicate, failed, dead-PID,
+or probe-error units and refuse merge, aggregation, or completion until every required receipt is
+valid and completed. Run `node .claude/hooks/check-swarm-receipts.cjs <manifest>` — exit 0 all
+completed, exit 1 undelivered or failed, exit 2 the check did not run. See
+`.claude/rules/swarm-file-evidence.md` for mechanics and the bounded non-atomic-write exception.
+
+Phase 3 may not begin until that check exits 0. A package Task that produced no trace produced no
+package, however confidently it reported.
 
 ### Phase 3: Integration (sequential)
 
@@ -177,7 +194,8 @@ Check Architecture.md for database presence:
 ### Key Principles
 
 1. **Docs as source of truth** — every Task must reference specific docs, never generate from memory
-2. **Maximize parallelism** — independent packages run as parallel Tasks
+2. **Maximize parallelism** — independent packages run as parallel Tasks, each delivering its own
+   file receipt; a Task's reply is a pointer, never the result
 3. **Atomic commits** — one commit per logical change, not one giant commit
 4. **Full integration** — Phase 3 MUST include Docker build + start + health check (+ DB if applicable)
 5. **Error recovery** — git commits after each phase ensure progress is saved

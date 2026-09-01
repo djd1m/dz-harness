@@ -1,0 +1,22 @@
+Copyright (c) 2026 dzhechko. All rights reserved.
+
+PUBLICLY DISTRIBUTED, PROPRIETARY. Free to install and use; not open-source.
+
+This package contains original, machine-assisted reformulations of methodologies and decision
+frameworks derived from the Russian edition of “Fundamentals of Software Architecture” by Mark
+Richards and Neal Ford, ISBN 978-601-12-6107-4. The original English edition is published by
+O'Reilly Media and is copyright © 2020 Mark Richards and Neal Ford. All rights in the source book,
+its translation, figures, examples, trademarks, and trade dress remain with their respective owners.
+
+The owner recorded the public-distribution decision at CP5 in `sources.json`. The source PDF and
+extracted corpus are not included. Before release, a mechanical word-shingling gate compares the
+public artifact with the source corpus and rejects uncited verbatim runs of eight or more words.
+That gate is evidence of transformation discipline, not a licence or legal opinion.
+
+You may install and use this package, including commercially, and quote short attributed passages
+from its original reformulations. You may not resell the package, republish it under another name,
+or redistribute a modified copy of the package or its Knowledge Units as your own work.
+
+This package is not affiliated with or endorsed by Mark Richards, Neal Ford, O'Reilly Media, or the
+publisher of the Russian edition. It is decision support, not a substitute for the book. No warranty
+of any kind is provided.

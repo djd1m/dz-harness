@@ -83,7 +83,7 @@ P-Replicator V1.5.0 ● user │ Sonnet 4.7
 🚀 Pipeline   /<cmd> ▓▓▓░░░░ 50%  │ Phase: VALIDATE (2/4)  │ Last: /replicate
 🎯 Roadmap    [●●●○○○○○] mvp 3/8   │ Done 5/12  │ ▶ auth-jwt  │ Domain: banking
 📊 SPARC      ●11/11  │ 🟢 78/100  │ Plans ●3  │ ADRs ●2  │ Harvest 2026-05-05
-🛠️ Toolkit   Skills ●10/10 │ Cmds ●11/11 │ Agents ●4+3 │ Rules ●6+2 │ Hooks ●7/7
+🛠️ Toolkit   Skills ●10/10 │ Cmds ●11/11 │ Agents ●4+3 │ Rules ●13+2 │ Hooks ●17/17
 💡 Insights   ●12 (2026-05-06) │ Tests 85/85 ✓ │ MCP ●1/1 │ Settings ✓ │ 🧬 Keysarium ✓
 ```
 
@@ -248,7 +248,7 @@ echo ".claude/.last-test.json" >> .gitignore
 
 | Инструмент | Что проверяет | Когда |
 |---|---|---|
-| `npx @dzhechkov/p-replicator doctor` | Pre-shipped contract: 10 skills + 11 commands + 4 agents + 6 rules + settings.json + 7 hooks + git on PATH | После init / при подозрении что что-то сломалось |
+| `npx @dzhechkov/p-replicator doctor` | Pre-shipped contract: 10 skills + 11 commands + 4 agents + 13 rules + settings.json + 17 hooks + git on PATH | После init / при подозрении что что-то сломалось |
 | `npx @dzhechkov/p-replicator verify` | Pre-shipped + post-/replicate hints (CLAUDE.md, planner.md, security.md, feature-roadmap.json, и т.д.) | После каждого `/replicate` для уверенности |
 
 **`doctor` exit codes:**

@@ -1,10 +1,10 @@
 {
   "name": "@dzhechkov/skills-academic",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
-  "description": "Academic skill pack \u2014 dissertation review, question generation, document checking for thesis defense (\u0413\u042d\u041a). Contains only evaluation criteria and methodology, no student data.",
+  "description": "Academic skill pack — dissertation review, question generation, document checking for thesis defense (ГЭК). Contains only evaluation criteria and methodology, no student data.",
   "license": "MIT",
   "author": "dzhechko",
   "keywords": [
@@ -33,7 +33,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-academic"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-academic#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
   }
 }

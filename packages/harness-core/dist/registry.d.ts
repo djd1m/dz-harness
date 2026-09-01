@@ -21,8 +21,32 @@
  * scans (1, 2) never reach. Returns only directories that exist, de-duplicated, in order.
  */
 export declare function skillPackBaseDirs(cwd: string): string[];
-/** List `skills-*` pack directories across all base dirs, de-duplicated by pack name (first wins). */
 export declare function discoverSkillPackDirs(cwd: string): {
+    pack: string;
+    dir: string;
+}[];
+/**
+ * Every directory that CARRIES skills a user can invoke — the catalogue question.
+ *
+ * A third enumerator on purpose, by the same ADR-001 reasoning that split signature verification
+ * from pack discovery. `discoverSkillPackDirs` answers "which SKILL PACKS are here?" and the
+ * `skills-` prefix is the right answer to THAT — AM-1 pins it, and widening it would let a plugin
+ * be counted as a pack. This function asks something else: "what can the assistant actually offer
+ * the user?" — and there the prefix is wrong.
+ *
+ * MEASURED 2026-09-01: 41 skill names existed on disk and were absent from `dz registry` —
+ * every medical skill of `health-advisor` (31 SKILL.md), plus keysarium, p-replicator,
+ * design-thinking, trip-planner, evidence-wiki. That gap is not "fewer results": `skill-advisor`
+ * must check a name against this catalogue and treat an unlisted one as a fabrication, so an
+ * invisible skill turns a hallucination guard into a ban on naming the right answer — asked about
+ * blood tests, a live session answered "there is no medical skill in the DZ catalogue" with 31 of
+ * them on disk. An authoritative denial of existence is worse than an empty result: it closes the
+ * question.
+ *
+ * The double-count AM-1 guards against is handled where it belongs — `buildRegistry` dedupes by
+ * skill id, so a skill reachable through both its canon and a plugin is listed once.
+ */
+export declare function discoverSkillCarryingDirs(cwd: string): {
     pack: string;
     dir: string;
 }[];
@@ -55,6 +79,13 @@ export interface RegistryEntry {
     readonly hasEvals: boolean;
     readonly lineCount: number;
     readonly category: string;
+    /**
+     * Repo-relative path of the skill directory. Stored rather than reconstructed: a skill lives in
+     * one of three layouts (pack root, `skills/`, `templates/.claude/skills/`), so `<pack>/<id>` is
+     * a guess that silently breaks for two of them — the plugin generator built exactly that guess
+     * and produced unresolvable paths the moment the catalogue learned the other layouts.
+     */
+    readonly path?: string;
 }
 /** The full registry. */
 export interface Registry {

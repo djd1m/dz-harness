@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-claude",
-  "version": "0.2.5",
+  "version": "0.2.7",
   "description": "Claude Code platform adapter - compiles canonical skills into the .claude/skills tree.",
   "type": "module",
   "license": "MIT",
@@ -51,8 +51,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/adapter-claude"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/adapter-claude#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-claude#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

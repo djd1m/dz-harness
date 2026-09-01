@@ -1,0 +1,46 @@
+{
+  "schema": "book-skill-pack-sources/1",
+  "distribution": {
+    "state": "public",
+    "decided_by": "owner",
+    "date": "2026-08-19",
+    "rationale": "CP5 owner decision: publish the pack's original, page-anchored reformulations and decision protocols, not the source corpus. The whole public candidate is mechanically checked for uncited 8-word overlap with the book corpus before release.",
+    "note": "The source PDF and extracted corpus remain owner-local. Public distribution does not imply endorsement by the authors, O'Reilly Media, or the Russian-edition publisher. The shingling gate is evidence of transformation discipline, not legal clearance."
+  },
+  "upstream_type": "book",
+  "book": {
+    "slug": "fundamental-software-architecture",
+    "title": "Фундаментальный подход к программной архитектуре",
+    "isbn": "978-601-12-6107-4",
+    "language": "ru",
+    "corpus_version": "025a5805b61bac48",
+    "verified_kus": 315,
+    "verified_ratio": 1.0
+  },
+  "digitizer": {
+    "version": "0.2.14",
+    "extraction_model": "gpt-5.6-sol xhigh",
+    "routing_gate": "CP3.5-v2",
+    "routing_gate_report": "fundamental-software-architecture-guide/evals/ROUTING-GATE-v2.md"
+  },
+  "skills": {
+    "fundamental-software-architecture-guide": {
+      "upstream_type": "book",
+      "derived_from": 263,
+      "references": "always",
+      "corpus": "owner-local",
+      "agentdb": "owner-local"
+    }
+  },
+  "cross_pack_dependencies": {
+    "skill-crystallizer": "validation/authoring aid; not required at runtime",
+    "knowledge-extractor": "provenance stage; not required at runtime"
+  },
+  "brain_slice": {
+    "path": "brain/fundamental-software-architecture.sqlite",
+    "kind": "book",
+    "license": "book-derived-proprietary",
+    "ku_count": 315,
+    "load": "dz brain add --from-pack <this-pack>"
+  }
+}
