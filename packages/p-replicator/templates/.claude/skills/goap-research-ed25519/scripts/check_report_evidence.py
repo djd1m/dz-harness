@@ -561,6 +561,209 @@ def evaluate_population(report_text: str, facts: Sequence[Dict[str, Any]],
     return findings, counts
 
 
+# ---------------------------------------------------------------------------
+# NEGATIVE CONCLUSIONS — the SECOND DIRECTION.
+#
+# Everything above this line walks FROM THE LEDGER TO THE REPORT: for each recorded
+# fact, is it used, and is its use honest? That direction is structurally blind to a
+# claim that HAS NO SOURCE — and the strongest claim a research report can make is
+# exactly that shape: "no competitor has this; the niche is free."
+#
+# MEASURED on this package, 2026-09-01, by TWIN TEST rather than by grep (grep is not
+# trustworthy here — it finds the vocabulary, not the blindness): two runs over ONE
+# ledger, the reports differing by EXACTLY one line, that line being an unsupported
+# negative conclusion. The gate's `--json` output was BYTE-IDENTICAL, both exit 0. So
+# an unbacked negation can neither raise nor lower the finding count: it is outside
+# the field of view by construction, not by oversight.
+#
+# THE MECHANISM: "we did not find it" and "we proved it is not there" arrive in the
+# report in the SAME FORM, and decisions are made on both identically. The first is a
+# property of the SEARCH. The second is a property of the WORLD. Only the second
+# justifies building a product on an empty niche.
+#
+# THE CEILING, and why the obvious version of it is not enough. The first design said
+# a negative conclusion needs an enumerable CORPUS declared exhaustive. A reviewing
+# model called that the weakest part of the proposal and was RIGHT: an exhaustive LIST
+# does not prove an exhaustive SEARCH. Twelve pages read end-to-end still miss the
+# feature if the twelve were the wrong twelve, or if the query never used the vendor's
+# word for it. So the ceiling also requires the SEARCH METHOD, the QUERY COVERAGE, the
+# SAMPLING REFUSALS, and the corpus's TIME BOUNDARY. Without those, a strong "no"
+# writes itself a licence.
+#
+# WHAT THIS SCAN CANNOT DECIDE, stated here and printed in the gate's output: whether
+# the named corpus is the RIGHT corpus for the question. The record's own second case
+# is exactly that — "does product X have feature Y", where the feature is documented
+# only in the help centre and the corpus taken was the sitemap. A sitemap is a
+# perfectly enumerable, perfectly exhaustive corpus, and the wrong one. This scan
+# forces the corpus to be NAMED so a person can judge its fitness; judging it stays
+# layer 3, and pretending otherwise would be the same false closure the whole gate
+# exists to refuse.
+# ---------------------------------------------------------------------------
+
+# A NEGATIVE UNIVERSAL claim: absence asserted across a whole population of products,
+# vendors or sources. Deliberately narrower than "any negation" — `there is no` alone
+# fires on ordinary prose, and an eager gate is not a stricter gate, it is a deleted
+# one. Every pattern here requires the UNIVERSAL, which is what makes the claim strong.
+NEGATIVE_CLAIM_PATTERNS = (
+    r"ни\s+у\s+одного",
+    r"ни\s+один\s+из\s+[^.\n]{0,60}?\s+не\b",
+    r"ни\s+одного\s+из",
+    r"нет\s+ни\s+у\s+кого",
+    r"ниша\s+свободна",
+    r"никто\s+(?:из\s+\w+\s+)?не\s+(?:предлагает|поддерживает|делает|умеет)",
+    r"отсутствует\s+у\s+всех",
+    r"no\s+(?:competitor|vendor|provider|product|tool)s?\s+\w*\s*(?:has|have|offers?|supports?|provides?)",
+    r"none\s+of\s+the\s+\w+\s+(?:has|have|offer|offers|support|supports|provide|provides)",
+    r"nobody\s+(?:offers|supports|provides)",
+    r"the\s+niche\s+is\s+(?:free|open|unoccupied)",
+    r"we\s+found\s+no\s+\w+\s+(?:that|which)",
+)
+
+# The block that licenses such a claim. Both spellings, because a report may be written
+# in either language; the fields must be VISIBLE to a reader, never a hidden attribute.
+NEGATIVE_FIELDS = (
+    ("corpus", ("КОРПУС", "CORPUS")),
+    ("completeness", ("ПОЛНОТА", "COMPLETENESS")),
+    ("method", ("СПОСОБ ПОИСКА", "SEARCH METHOD")),
+    ("boundary", ("ГРАНИЦА КОРПУСА", "CORPUS AS OF")),
+    ("implication", ("СЛЕДСТВИЕ", "IMPLICATION")),
+)
+
+# How far from the claim the licensing block may sit. Wider than MARKER_WINDOW_CHARS
+# because this is a five-line block rather than a parenthetical, and narrower than the
+# document because a basis in the appendix does not reach a sentence on page 2.
+NEGATIVE_WINDOW_CHARS = 900
+
+# CLOSED. Three, because collapsing them would erase the only distinction that matters:
+# an enumerated corpus its own author calls complete is a different epistemic object
+# from a sample, and both differ from not knowing which you have.
+COMPLETENESS_VALUES = {
+    "перечислимо и объявлено исчерпывающим": "exhaustive",
+    "enumerable and declared exhaustive": "exhaustive",
+    "выборка": "sample",
+    "sample": "sample",
+    "неизвестна": "unknown",
+    "unknown": "unknown",
+}
+
+# CLOSED, and the whole point of the feature is that these two are not interchangeable.
+IMPLICATION_VALUES = {
+    "не встретилось": "not-encountered",
+    "not encountered": "not-encountered",
+    "намеренно отсутствует": "deliberately-absent",
+    "deliberately absent": "deliberately-absent",
+}
+
+
+def _negative_field(window: str, spellings: Sequence[str]) -> Optional[str]:
+    """The value of one licensing field inside the window, or None when it is absent.
+
+    An EMPTY value returns '' and is never collapsed into absent: "КОРПУС:" with
+    nothing after it is a different mistake from no КОРПУС line at all, and the two
+    need different repairs.
+    """
+    for spelling in spellings:
+        match = re.search(
+            r"^[\s>*\-]*(?:\*\*)?" + re.escape(spelling) + r"(?:\*\*)?\s*[:：]\s*(.*)$",
+            window, re.IGNORECASE | re.MULTILINE | re.UNICODE)
+        if match:
+            return match.group(1).strip().strip("*`")
+    return None
+
+
+def _closed_value(raw: Optional[str], table: Mapping[str, str]) -> Optional[str]:
+    """Map a field value onto a CLOSED vocabulary, matching on the leading phrase so a
+    author may add detail after it — `выборка — 12 из ~40 страниц` is a sample that
+    says how big, which is better than a bare word and must not be refused for it."""
+    if raw is None:
+        return None
+    lowered = raw.strip().lower()
+    for key, value in table.items():
+        if lowered == key or lowered.startswith(key + " ") or lowered.startswith(key + ",") \
+                or lowered.startswith(key + " —") or lowered.startswith(key + " -") \
+                or lowered.startswith(key + ":"):
+            return value
+    return "unrecognised"
+
+
+def scan_negative_conclusions(report_text: str) -> List[Finding]:
+    """The second direction: from the report's NEGATIVE conclusions back to their basis.
+
+    A claim of universal absence must carry, within its window, the five fields that
+    distinguish a property of the SEARCH from a property of the WORLD — and the strong
+    implication (`намеренно отсутствует`) is admissible only on top of an exhaustive
+    corpus, because an exhaustive list is not an exhaustive search.
+
+    HONEST SCOPE: this matches CLAIM SHAPES and FIELD PRESENCE. It cannot tell whether
+    the named corpus fits the question — a sitemap is enumerable, exhaustive and the
+    wrong place to look for a feature. Naming the corpus is what makes that arguable;
+    judging it is not this gate's to do.
+    """
+    findings: List[Finding] = []
+    seen_spans: List[Tuple[int, int]] = []
+    for pattern in NEGATIVE_CLAIM_PATTERNS:
+        for hit in re.finditer(pattern, report_text, re.IGNORECASE | re.UNICODE):
+            # One sentence, one finding: two patterns matching the same claim describe
+            # one defect, and reporting it twice would inflate the count the twin test
+            # measures.
+            if any(start <= hit.start() < end for start, end in seen_spans):
+                continue
+            line_start = report_text.rfind("\n", 0, hit.start()) + 1
+            line_end = report_text.find("\n", hit.end())
+            line_end = len(report_text) if line_end < 0 else line_end
+            seen_spans.append((line_start, line_end))
+            claim = report_text[line_start:line_end].strip()
+
+            window = report_text[max(0, hit.start() - NEGATIVE_WINDOW_CHARS):
+                                 min(len(report_text), hit.end() + NEGATIVE_WINDOW_CHARS)]
+            values = {name: _negative_field(window, spellings) for name, spellings in NEGATIVE_FIELDS}
+            missing = [spellings[0] for name, spellings in NEGATIVE_FIELDS
+                       if values[name] is None or values[name] == ""]
+            if missing:
+                findings.append(Finding(
+                    kind="NEGATIVE_CONCLUSION_WITHOUT_BASIS", claim=claim, source_url="",
+                    detail=("a claim of universal ABSENCE with no basis beside it — missing: {m}. "
+                            "'we did not find it' and 'we proved it is not there' are written the "
+                            "same way and decided on identically; the first is a property of the "
+                            "SEARCH, the second of the WORLD. Required within {w} chars: {req}"
+                            .format(m=", ".join(missing), w=NEGATIVE_WINDOW_CHARS,
+                                    req=", ".join(s[0] for _, s in NEGATIVE_FIELDS)))))
+                continue
+
+            completeness = _closed_value(values["completeness"], COMPLETENESS_VALUES)
+            implication = _closed_value(values["implication"], IMPLICATION_VALUES)
+            if completeness == "unrecognised":
+                findings.append(Finding(
+                    kind="NEGATIVE_COMPLETENESS_UNRECOGNISED", claim=claim, source_url="",
+                    detail=("ПОЛНОТА is {v!r}, which is outside the closed set {allowed}. An open "
+                            "field here collects a word that sounds thorough and commits to nothing"
+                            .format(v=values["completeness"],
+                                    allowed=sorted(set(COMPLETENESS_VALUES.values()))))))
+                continue
+            if implication == "unrecognised":
+                findings.append(Finding(
+                    kind="NEGATIVE_IMPLICATION_UNRECOGNISED", claim=claim, source_url="",
+                    detail=("СЛЕДСТВИЕ is {v!r}, which is outside the closed set {allowed}. These "
+                            "two are exactly what must not be interchangeable"
+                            .format(v=values["implication"],
+                                    allowed=sorted(set(IMPLICATION_VALUES.values()))))))
+                continue
+
+            # THE CEILING, and the correction that made this record worth shipping: the
+            # strong reading needs an exhaustive corpus UNDER it. A sample can support
+            # "we did not encounter it" and can never support "it is deliberately absent".
+            if implication == "deliberately-absent" and completeness != "exhaustive":
+                findings.append(Finding(
+                    kind="NEGATIVE_CLAIM_EXCEEDS_ITS_CEILING", claim=claim, source_url="",
+                    detail=("СЛЕДСТВИЕ 'намеренно отсутствует' rests on ПОЛНОТА {c!r}. A sample — or "
+                            "an unknown completeness — supports 'не встретилось' and nothing "
+                            "stronger: absence in part of a corpus is absence from the SEARCH, not "
+                            "from the world. Lower the implication, or make the corpus enumerable "
+                            "and declare it exhaustive"
+                            .format(c=values["completeness"]))))
+    return findings
+
+
 def scan_relative_risk(report_text: str) -> List[Finding]:
     """BELT (D-19): refuse a relative figure with no absolute companion in the window.
 
@@ -649,7 +852,9 @@ def render(findings: Sequence[Finding], counts: Dict[str, int]) -> str:
         "  scope: proves the report does not lean on unread sources AND that the ledger's evidence "
         "classes carry intact signatures. It does NOT prove the cited sources support the claims, "
         "and it can only judge claims it recognises as used — paraphrase detection is deliberately "
-        "over-eager, because a missed unread claim is silent while a false alarm is arguable."
+        "over-eager, because a missed unread claim is silent while a false alarm is arguable. "
+        "Negative conclusions are judged in the OTHER direction, from the claim back to its basis; "
+        "that scan proves the basis is STATED, never that the named corpus fits the question."
     )
     return "\n".join(lines)
 
@@ -695,7 +900,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # SLICE C: three independent judgements merged into the SAME findings list — the
     # merge must not lose one, and the existing exit path below is unchanged.
     population_findings, population_counts = evaluate_population(report_text, facts, profile)
-    findings = findings + population_findings + scan_relative_risk(report_text)
+    findings = (findings + population_findings + scan_relative_risk(report_text)
+                + scan_negative_conclusions(report_text))
     if args.json:
         print(
             json.dumps(

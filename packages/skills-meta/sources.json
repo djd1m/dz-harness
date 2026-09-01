@@ -64,6 +64,11 @@
       "upstream_concepts": "Reflection pattern — draft→critique→revise cycle",
       "description": "Inspired by agentic-patterns — standalone critique-revise cycle"
     },
+    "session-recap": {
+      "upstream_type": "original",
+      "upstream_path": null,
+      "description": "Original skill based on Richard Zhuang's refresh-first, four-point mid-session status protocol"
+    },
     "context-window-management": {
       "upstream_type": "inspired",
       "upstream_repo": "https://github.com/nibzard/awesome-agentic-patterns",

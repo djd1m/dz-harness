@@ -817,7 +817,7 @@ export function codeStageResultShapeValid(r: unknown): boolean {
   if (!v.code || typeof v.code !== 'object') return false
   if (typeof v.coderUsed !== 'string') return false
   if (typeof v.landedNote !== 'string') return false
-  if (v.landingProtocol !== 2) return false
+  if (v.landingProtocol !== 3) return false
   return v.landingStatus === 'landed' || v.landingStatus === 'genuinely-not-landed' || v.landingStatus === 'inconclusive' || v.landingStatus === 'synchronous'
 }
 

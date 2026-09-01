@@ -157,6 +157,82 @@ the pack** under the same CP5 licence decision that gates the pack itself: copyr
 sources are publishable. Your whole personal **brain is never published** — it is a local accretion you
 back up, not a distributable.
 
+### 6. Как пользоваться оцифрованной книгой (consuming a digitized book)
+
+Digitizing is half the loop. Four ways to make the book's methodology actually shape your work,
+from one-off to standing. Vocabulary, once: a **KU** (Knowledge Unit) is one page-anchored piece of
+the book's know-how; a **kuId** is its stable id (e.g. `ai-apps-ch09-p238-ku05`); the **slug** is
+the short name the book got at digitization (e.g. `ai-apps`); **CP6** is the pipeline's final
+checkpoint, where you optionally promote a book from the project KB into the machine-wide brain.
+
+Prerequisites for everything below: `dz` installed, the book digitized (scenario 1), and — for the
+`dz brain` commands — the book promoted into the brain (CP6 approved, or a manual
+`dz brain add --project <ingesting-project> --source <slug>`). `dz brain list` shows what made it in.
+
+**M1 — one answer, grounded (chat).** Ask with «обоснуй по книге <slug>», or pull manually:
+
+```bash
+dz brain query "evaluation metrics for language agents" --source ai-apps
+dz brain expand ai-apps-ch09-p238-ku05        # one KU's full stored content
+dz brain ground "how should I eval my agent?" --source ai-apps --budget 800 --text
+```
+
+`query` returns ranked KU hits with source + page anchors; `expand` dereferences one kuId to that
+KU's full stored record (name, problem, content, page anchors); `ground --budget N --text` prints a
+ready-to-paste grounding block with the top KUs inlined within ~N tokens (per `dz brain --help`).
+Where the kuId comes from: the plain `query` output prints citations *without* ids — take it from
+`dz brain query … --json` (`hits[].kuId`) or from the `ground --text` block, where every `[Kn]`
+line carries its kuId as the first field.
+
+**M2 — one pipeline run.** Put the obligation in the run's task description itself, e.g.:
+
+> Дизайн обязан свериться с ai-apps через `dz brain query`; ключевые решения цитируют kuId;
+> расхождение с книгой допустимо только с названной причиной.
+
+No setup; the obligation travels inside the brief, so it works in any pipeline whose agent reads
+the brief and can run shell commands — and it holds for that run only.
+
+**M3 — whole project, while the hook stays installed.** Wire the opt-in grounding hook once
+(Claude Code projects — the hook lands in that project's `.claude/settings.json`):
+
+```bash
+dz brain init --project <dir> --k 5
+```
+
+Prompts with enough lexical overlap with the brain then get top-K KUs (with citations) injected
+mechanically before the agent answers — scenario 4 above is this same hook, including its honesty
+boundary (the hook forces the context, not the completion). Off by default. To disarm: remove the
+`hooks.UserPromptSubmit` entry whose command contains `brain ground` from that project's
+`.claude/settings.json`.
+
+**M4 — one pipeline, standing.** Add a stage-gate line to the rules/instructions file that
+pipeline actually loads — for Claude Code e.g. `.claude/rules/<pipeline>.md`; other harnesses have
+their own equivalent (`AGENTS.md`, a system-prompt file): "the design stage passes only if it cites
+`dz brain query` results (kuIds) or names the reason it diverges." No hook install; scoped to one
+workflow, persisted in that pipeline's rules file.
+
+**The two-store trap (will cost you a 0-hit session).** There are TWO stores:
+`dz brain query|ground|expand` read the **machine-wide brain** (`~/.dz/brain` — only what was
+promoted at CP6 / `dz brain add`), while
+
+```bash
+dz recall --books --book <slug> "<question>"
+```
+
+reads the **project-local** book KB (`.dz/memory/books.sqlite` — only books digitized in THIS
+project). Querying the wrong store answers `0 KU hit(s)` and exits 0 — no error names the mistake.
+Rule of thumb: cross-project answers → `brain`; inside the ingesting project → `recall --books`.
+In doubt, `dz brain list` names what the brain actually holds.
+
+**Worked example.** You digitized "AI Apps" as slug `ai-apps` and want a feature pipeline to design
+evals by the book: (1) `dz brain list` — confirm `ai-apps` is there (if not, promote as above);
+(2) start the pipeline the way you normally do — the launch syntax is your pipeline's own — with
+the M2 obligation line pasted into its task description; (3) the design stage runs
+`dz brain query "evaluation metrics for language agents" --source ai-apps`, cites e.g.
+`[ai-apps гл.9 с.239]` (semantic-similarity metrics over exact match), and expands
+`ai-apps-ch09-p238-ku05` for the full text; (4) if this becomes routine, promote M2 → M4 (a rules
+line) or M3 (the hook).
+
 ## Design guarantees — structural vs. protocol (stated honestly)
 
 Two kinds of guarantee, and the difference matters:

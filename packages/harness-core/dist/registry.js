@@ -7,7 +7,7 @@
  * @packageDocumentation
  */
 import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
-import { basename, dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 /**
  * Resolve every `@dzhechkov` base directory that may hold `skills-*` packs, for a given
@@ -74,6 +74,43 @@ function readSkillDiscoveryConfig(cwd) {
     }
 }
 /** List `skills-*` pack directories across all base dirs, de-duplicated by pack name (first wins). */
+/**
+ * Does this directory actually carry skills? Answers by LOOKING, so a pack is catalogued for what it
+ * contains rather than for how it is named. Bounded on purpose: only the three layouts real packs
+ * use (`skills/<id>/SKILL.md`, `<pack>/<id>/SKILL.md` for a single-skill pack, and a bare
+ * `SKILL.md`), never a full-tree walk — an unbounded scan over `node_modules` would cost more than
+ * the catalogue it builds. Templates are excluded: a template is a stamp for making skills, not an
+ * installed skill, and counting it would list the same name twice.
+ */
+function packCarriesSkills(dir) {
+    const hasSkillMd = (d) => {
+        try {
+            for (const entry of readdirSync(d, { withFileTypes: true })) {
+                if (entry.name === 'templates' || entry.name === 'node_modules')
+                    continue;
+                if (entry.isDirectory() && existsSync(join(d, entry.name, 'SKILL.md')))
+                    return true;
+            }
+        }
+        catch { /* unreadable dir is simply not a skill carrier */ }
+        return false;
+    };
+    try {
+        if (existsSync(join(dir, 'SKILL.md')))
+            return true;
+        if (hasSkillMd(join(dir, 'skills')))
+            return true;
+        // A template pack ships the skills it will roll out into the user's project. From the
+        // catalogue's point of view those skills EXIST — `trip-planner` and `presentation-storyteller`
+        // are installable answers to a task — so hiding them makes the advisor deny a real capability.
+        if (hasSkillMd(join(dir, 'templates', '.claude', 'skills')))
+            return true;
+        return hasSkillMd(dir);
+    }
+    catch {
+        return false;
+    }
+}
 export function discoverSkillPackDirs(cwd) {
     const seen = new Set();
     const out = [];
@@ -94,6 +131,62 @@ export function discoverSkillPackDirs(cwd) {
                 seen.add(e.name);
                 out.push({ pack: e.name, dir: join(base, e.name) });
             }
+        }
+    }
+    return out;
+}
+/**
+ * Every directory that CARRIES skills a user can invoke — the catalogue question.
+ *
+ * A third enumerator on purpose, by the same ADR-001 reasoning that split signature verification
+ * from pack discovery. `discoverSkillPackDirs` answers "which SKILL PACKS are here?" and the
+ * `skills-` prefix is the right answer to THAT — AM-1 pins it, and widening it would let a plugin
+ * be counted as a pack. This function asks something else: "what can the assistant actually offer
+ * the user?" — and there the prefix is wrong.
+ *
+ * MEASURED 2026-09-01: 41 skill names existed on disk and were absent from `dz registry` —
+ * every medical skill of `health-advisor` (31 SKILL.md), plus keysarium, p-replicator,
+ * design-thinking, trip-planner, evidence-wiki. That gap is not "fewer results": `skill-advisor`
+ * must check a name against this catalogue and treat an unlisted one as a fabrication, so an
+ * invisible skill turns a hallucination guard into a ban on naming the right answer — asked about
+ * blood tests, a live session answered "there is no medical skill in the DZ catalogue" with 31 of
+ * them on disk. An authoritative denial of existence is worse than an empty result: it closes the
+ * question.
+ *
+ * The double-count AM-1 guards against is handled where it belongs — `buildRegistry` dedupes by
+ * skill id, so a skill reachable through both its canon and a plugin is listed once.
+ */
+export function discoverSkillCarryingDirs(cwd) {
+    const seen = new Set();
+    const out = [];
+    for (const { pack, dir } of discoverSkillPackDirs(cwd)) {
+        if (!seen.has(pack)) {
+            seen.add(pack);
+            out.push({ pack, dir });
+        }
+    }
+    for (const base of skillPackBaseDirs(cwd)) {
+        let entries;
+        try {
+            entries = readdirSync(base, { withFileTypes: true });
+        }
+        catch {
+            continue;
+        }
+        for (const e of entries) {
+            if (seen.has(e.name))
+                continue;
+            const dir = join(base, e.name);
+            const isDir = e.isDirectory() || (e.isSymbolicLink() && (() => { try {
+                return statSync(dir).isDirectory();
+            }
+            catch {
+                return false;
+            } })());
+            if (!isDir || !packCarriesSkills(dir))
+                continue;
+            seen.add(e.name);
+            out.push({ pack: e.name, dir });
         }
     }
     return out;
@@ -280,6 +373,25 @@ function categoryFromPack(pack) {
     // Course/tutorial manufacturing (skills-tutorial-factory: package → Head-First edu-site course).
     if (pack.includes('tutorial'))
         return 'learning';
+    // Packs that carry skills without the `skills-` prefix, catalogued since 2026-09-01. Each needs a
+    // category or it lands in `other`, and a test rightly forbids that bucket: an uncategorised skill
+    // cannot be filtered for, which is half of being findable.
+    if (pack === 'keysarium' || pack.includes('evidence-wiki'))
+        return 'research';
+    // feature-adr ships its skills as templates, so they were invisible until the layout fix and the
+    // pack never needed a category before. The pipeline that manufactures features is meta-work.
+    if (pack === 'p-replicator' || pack.includes('loop-designer') || pack.includes('feature-adr'))
+        return 'meta';
+    if (pack === 'design-thinking')
+        return 'design';
+    if (pack === 'trip-planner')
+        return 'personal';
+    // Packs whose skills live in `templates/` and were therefore never read until the layout fix.
+    // Each needs a home or it lands in `other`, which a test rightly forbids.
+    if (pack.includes('analyst-manual'))
+        return 'product';
+    if (pack.includes('edu-site') || pack.includes('transcript-site'))
+        return 'learning';
     return 'other';
 }
 /**
@@ -290,21 +402,45 @@ function categoryFromPack(pack) {
  */
 export function buildRegistry(cwd) {
     const entries = [];
-    const packs = discoverSkillPackDirs(cwd);
+    const packs = discoverSkillCarryingDirs(cwd);
+    // A pack keeps its skills in one of three shapes, and reading only the first made 41 real skills
+    // invisible (MEASURED 2026-09-01): the pack root (`skills-*` packs), a `skills/` subdirectory
+    // (health-advisor and friends), and `templates/.claude/skills/` for packs that roll their skills
+    // out into the user's project. The catalogue answers "what can I use", so all three count.
+    const SKILL_LAYOUTS = [[], ['skills'], ['templates', '.claude', 'skills']];
+    const seenSkillIds = new Set();
     for (const { pack, dir: packDir } of packs) {
-        const skillDirs = readdirSync(packDir, { withFileTypes: true })
-            .filter((e) => e.isDirectory() && existsSync(join(packDir, e.name, 'SKILL.md')));
-        for (const skill of skillDirs) {
-            const skillMdPath = join(packDir, skill.name, 'SKILL.md');
+        const found = [];
+        for (const layout of SKILL_LAYOUTS) {
+            const root = layout.length === 0 ? packDir : join(packDir, ...layout);
+            if (!existsSync(root))
+                continue;
+            try {
+                for (const e of readdirSync(root, { withFileTypes: true })) {
+                    if (e.isDirectory() && existsSync(join(root, e.name, 'SKILL.md')))
+                        found.push({ name: e.name, root });
+                }
+            }
+            catch { /* an unreadable layout contributes nothing; the others still count */ }
+        }
+        for (const skill of found) {
+            // One skill id can ship in several packs (frontend-design is bundled by three). The catalogue
+            // answers "is this available", not "in how many packs" — so the first sighting wins and the
+            // list stays a list of capabilities rather than of copies.
+            if (seenSkillIds.has(skill.name))
+                continue;
+            seenSkillIds.add(skill.name);
+            const skillMdPath = join(skill.root, skill.name, 'SKILL.md');
             const content = readFileSync(skillMdPath, 'utf-8');
             const { description, trustTier } = extractFrontmatter(content);
             entries.push({
                 id: skill.name,
                 pack,
+                path: relative(cwd, join(skill.root, skill.name)) || join(skill.root, skill.name),
                 description,
                 trustTier,
-                hasSchema: existsSync(join(packDir, skill.name, 'schemas', 'output.json')),
-                hasEvals: existsSync(join(packDir, skill.name, 'evals')),
+                hasSchema: existsSync(join(skill.root, skill.name, 'schemas', 'output.json')),
+                hasEvals: existsSync(join(skill.root, skill.name, 'evals')),
                 lineCount: content.split('\n').length,
                 category: categoryFromPack(pack),
             });

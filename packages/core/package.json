@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/core",
-  "version": "0.2.20",
+  "version": "0.2.22",
   "description": "Canonical skill + hooks schemas and the platform-adapter contract for the DZ cross-platform harness.",
   "type": "module",
   "license": "MIT",
@@ -56,8 +56,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/core"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/core#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/core#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

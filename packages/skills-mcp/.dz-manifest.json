@@ -253,7 +253,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "02dc66a1d513b5893c107482bcc4fa800552158bd477b233ddb1e9f7897c919c"
+        "sha256": "f2c0ad898d10d858fa0e531119fa6e4d15317b8ea7adb2556722f3838c2d728a"
       },
       {
         "path": "reddit/SKILL.md",
@@ -277,5 +277,5 @@
       }
     ]
   },
-  "signature": "56geqBe/lc4kbLylJJWDU1HlQvmQSsade9qWrhwBYxxZjpWd/es0jmlY4b/iIIkXFbqtY2zVCSmCeiYGbNcABg=="
+  "signature": "dyRw7vnEWcDCLDIjCYrm8vhQBL8NyxLNi/Sk//2V+B2qr8Y44oDALw0TpRa/7KB4Bl74KmoYXOEBgT+RD7/JBQ=="
 }

@@ -206,12 +206,23 @@ OUT: Verdict + score + gap register + iteration count
 ```
 IN:  Task definition + agent table (scope, criteria, independence, output format)
 DO:  1. DECOMPOSE into independent subtasks
-     2. SPAWN parallel agents via Task tool
-     3. Each agent: scoped input -> execute -> structured output
-     4. AGGREGATE: collect, deduplicate, resolve conflicts
-     5. VALIDATE aggregate for consistency
-     6. IF inconsistent: run cross-validation agent (reads all outputs)
-OUT: Unified result + conflict resolution notes
+     2. ASSIGN one WORK_UNIT_ID + one absolute TRACE_PATH per subtask; record launch instant
+     3. SPAWN parallel agents via Task tool, each carrying its assignment
+     4. Each agent: scoped input -> execute -> write substantive body + terminal
+        `Status: completed` / `Status: failed` to TRACE_PATH -> reply one line
+     5. RECEIPT CHECK before merge: regular, non-symlink, non-whitespace, post-launch, terminal
+        (node .claude/hooks/check-swarm-receipts.cjs <manifest>; 0 ok / 1 undelivered / 2 not run)
+     6. AGGREGATE from the files: collect, deduplicate, resolve conflicts
+     7. VALIDATE aggregate for consistency
+     8. IF inconsistent: run cross-validation agent (reads all outputs)
+OUT: Unified result + conflict resolution notes + valid/required receipt ratio
+```
+
+Narrative output and silence are never receipts, and an invalid receipt refuses merge, aggregation
+and completion — a dead agent and a live one are both silent, so only the file separates them. Full
+contract: `.claude/rules/swarm-file-evidence.md`.
+
+```
 ```
 
 **PU Unicorn Example:** `knowledge-extractor` Phase 1 runs 5 agents (extractor-patterns,

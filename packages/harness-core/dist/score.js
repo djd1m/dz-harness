@@ -143,6 +143,87 @@ function evidenceLinePositive(text, re, negationRe = NEGATION_RE) {
     }
     return null;
 }
+/**
+ * The gate's own verdict vocabulary. Anything outside it is UNRECOGNISED, which is why a table of
+ * free-text opinions ("looked fine", "ok") is malformed rather than quietly scored as unproven:
+ * the difference between "the gate ran and found nothing" and "nobody ran the gate" is the whole
+ * point of the field.
+ */
+const MUTATION_VERDICTS = new Set([
+    'PROVEN',
+    'MUTATION_UNPARSEABLE',
+    'MUTATION_LOAD_FATAL',
+    'OVER_FAILING',
+    'INCONCLUSIVE',
+    'SURVIVED',
+    'NOT_PROVEN',
+]);
+const splitRow = (line) => line
+    .trim()
+    .replace(/^\|/, '')
+    .replace(/\|$/, '')
+    .split('|')
+    .map((cell) => cell.trim());
+const isSeparatorRow = (line) => /^\|[\s:|-]+\|?$/.test(line.trim());
+export function readMutationEvidence(text) {
+    const lines = String(text).split('\n');
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line === undefined || !line.trim().startsWith('|'))
+            continue;
+        const header = splitRow(line);
+        // A mutation table is identified by its COLUMNS, not by a heading above it: headings drift
+        // across reports and translations, column names are what the parser actually reads.
+        const verdictCol = header.findIndex((c) => /verdict/i.test(c));
+        if (verdictCol < 0 || !header.some((c) => /mutation|mutant/i.test(c)))
+            continue;
+        let rows = 0;
+        let proven = 0;
+        let recognised = 0;
+        for (let j = i + 1; j < lines.length; j++) {
+            const row = lines[j];
+            if (row === undefined || !row.trim().startsWith('|'))
+                break;
+            if (isSeparatorRow(row))
+                continue;
+            const cells = splitRow(row);
+            rows++;
+            const cell = (cells[verdictCol] ?? '').toUpperCase();
+            // Word-bounded: NOT_PROVEN contains PROVEN as a substring and must never count as one.
+            const token = (cell.match(/\b[A-Z_]{4,}\b/) ?? [])[0] ?? '';
+            if (!MUTATION_VERDICTS.has(token))
+                continue;
+            recognised++;
+            if (token === 'PROVEN')
+                proven++;
+        }
+        if (proven > 0) {
+            return {
+                status: 'proven',
+                proven,
+                rows,
+                evidence: `mutation table: ${proven} of ${rows} row(s) PROVEN`,
+            };
+        }
+        if (rows > 0 && recognised === 0) {
+            return {
+                status: 'malformed',
+                proven: 0,
+                rows,
+                evidence: `mutation table: ${rows} row(s), no recognised gate verdict in the Verdict column — unreadable, not proof`,
+            };
+        }
+        return {
+            status: 'present-unproven',
+            proven: 0,
+            rows,
+            evidence: rows === 0
+                ? 'mutation table present with no data rows — proved nothing'
+                : `mutation table: 0 of ${rows} row(s) PROVEN — proved nothing`,
+        };
+    }
+    return { status: 'absent', proven: 0, rows: 0, evidence: 'no mutation table' };
+}
 // Word-bounded on BOTH sides: "upgrade B-tree" fabricated a B- (Codex QE #1). The lookahead also
 // rejects "Grade B-tree" (letter after the dash) while keeping the real "Grade: A−" formats.
 //
@@ -281,9 +362,21 @@ export function scoreRun(slug, artifacts) {
     //    MUTANTS — "None of the mutants survived", "neither mutant escaped" — which is the proof, not
     //    its denial. The quantifiers would discard exactly the strongest lines this discipline exists
     //    to find. "No discrimination proof was performed" is still caught by the narrow list.
+    //    F30а-3 makes this ADDITIVE: a structured mutation table is counted FIRST (it can be
+    //    verified, prose can only be believed), and the prose path below is left exactly as it was —
+    //    no run that scored `pass` yesterday loses it today. What the table changes is the OTHER
+    //    direction: a table that proves nothing is named in the evidence instead of sitting silently
+    //    beside a winning sentence and reading as corroboration.
+    const mutationEvidence = readMutationEvidence(allText);
     const discr = evidenceLinePositive(allText, /discrimination|§42/i) ??
         evidenceLinePositive(allText, /mutation[s]?\s.*(prov|kill)|mutant[s]?\s.*(kill|red)|RED on the old|goes? RED|failed as expected/i);
-    add('discrimination', 'the property test is proven able to fail', discr !== null ? 'pass' : 'absent', discr ?? 'no discrimination/§42/mutation-proof evidence in any artifact');
+    const discrPasses = mutationEvidence.status === 'proven' || discr !== null;
+    add('discrimination', 'the property test is proven able to fail', discrPasses ? 'pass' : 'absent', mutationEvidence.status === 'proven'
+        ? mutationEvidence.evidence
+        : (discr ??
+            (mutationEvidence.status === 'absent'
+                ? 'no discrimination/§42/mutation-proof evidence in any artifact'
+                : mutationEvidence.evidence)));
     // 3. Cross-model QE — an independent family reviewed it, and a grade exists.
     const grade = extractQeGrade(qeText);
     if (qeText === '') {
@@ -347,7 +440,7 @@ export function scoreRun(slug, artifacts) {
     const summary = `${passed}/${total} disciplines fully evidenced` +
         (grade !== null ? ` · QE grade ${grade}` : ' · no QE grade') +
         (worst.length > 0 ? ` · absent: ${worst.join(', ')}` : '');
-    return { slug, disciplines, qeGrade: grade, passed, total, summary };
+    return { slug, disciplines, qeGrade: grade, mutationEvidence, passed, total, summary };
 }
 const MARK = { pass: '✓', partial: '◐', absent: '✗' };
 export function renderScorecard(card) {
@@ -358,8 +451,187 @@ export function renderScorecard(card) {
         out.push(`  ${MARK[d.verdict]} ${d.title}`);
         out.push(`      ${d.evidence}`);
     }
+    // F30а-3: the table's own verdict is reported INDEPENDENTLY of which path scored `discrimination`.
+    // When prose carries the pass, the discipline's evidence line shows the prose — and a table that
+    // proved nothing would sit in the report unmentioned, beside a sentence claiming the mutants died.
+    // Silence about a hollow table is the failure this feature exists to prevent, so it is stated here
+    // even when it changes no verdict. No table at all stays silent: the common case earns no noise.
+    if (card.mutationEvidence !== undefined && card.mutationEvidence.status !== 'absent') {
+        out.push('');
+        out.push(`  ${card.mutationEvidence.evidence}`);
+    }
     out.push('');
     out.push(`  ${card.summary}`);
+    return out.join('\n');
+}
+function isDisciplineVerdict(value) {
+    return value === 'pass' || value === 'partial' || value === 'absent';
+}
+function scoreAggregateRowFrom(value) {
+    if (typeof value !== 'object' || value === null || Array.isArray(value))
+        return null;
+    const record = value;
+    const disciplinesValue = record['disciplines'];
+    if (!Array.isArray(disciplinesValue))
+        return null;
+    const disciplines = [];
+    const disciplineIds = new Set();
+    for (const value of disciplinesValue) {
+        if (typeof value !== 'object' || value === null || Array.isArray(value))
+            return null;
+        const discipline = value;
+        if (typeof discipline['id'] !== 'string' || discipline['id'].trim() === '')
+            return null;
+        if (!isDisciplineVerdict(discipline['verdict']))
+            return null;
+        if (disciplineIds.has(discipline['id']))
+            return null;
+        disciplineIds.add(discipline['id']);
+        disciplines.push({ id: discipline['id'], verdict: discipline['verdict'] });
+    }
+    const passed = record['passed'];
+    const total = record['total'];
+    const qeGrade = record['qeGrade'];
+    if (typeof record['ts'] !== 'string' || record['ts'].trim() === '')
+        return null;
+    if (typeof record['slug'] !== 'string' || record['slug'].trim() === '')
+        return null;
+    if (typeof record['qeHash'] !== 'string' || record['qeHash'].trim() === '')
+        return null;
+    if (typeof passed !== 'number' || !Number.isSafeInteger(passed) || passed < 0)
+        return null;
+    if (typeof total !== 'number' || !Number.isSafeInteger(total) || total < 0)
+        return null;
+    if (qeGrade !== null && (typeof qeGrade !== 'string' || qeGrade.trim() === ''))
+        return null;
+    if (total !== disciplines.length)
+        return null;
+    if (passed !== disciplines.filter((discipline) => discipline.verdict === 'pass').length)
+        return null;
+    return {
+        ts: record['ts'],
+        slug: record['slug'],
+        qeHash: record['qeHash'],
+        passed,
+        total,
+        qeGrade,
+        disciplines,
+    };
+}
+/**
+ * Parse one score receipt into the deliberately small aggregate schema.
+ *
+ * The caller owns I/O and supplies `ts`; this function is deterministic for the same input. A
+ * syntactically valid but internally inconsistent scorecard is unreadable evidence, not a row the
+ * aggregate should silently bless.
+ */
+export function scoreReceiptToAggregateRow(input) {
+    let parsed;
+    try {
+        parsed = JSON.parse(input.content);
+    }
+    catch {
+        throw new Error('score receipt is not valid JSON');
+    }
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+        throw new Error('score receipt is not a RunScorecard object');
+    }
+    const receipt = parsed;
+    const row = scoreAggregateRowFrom({ ...receipt, ts: input.ts, qeHash: input.qeHash });
+    if (row === null)
+        throw new Error('score receipt has an invalid RunScorecard shape');
+    // Projected here rather than inside scoreAggregateRowFrom so that a MALFORMED mutation field can
+    // never invalidate an otherwise-good row: the field is additive, so its absence — or its
+    // unreadability — costs the row nothing but the field itself.
+    const ev = receipt['mutationEvidence'];
+    if (typeof ev === 'object' && ev !== null && !Array.isArray(ev)) {
+        const proven = ev['proven'];
+        if (typeof proven === 'number' && Number.isFinite(proven) && proven >= 0) {
+            return { ...row, mutationProven: proven };
+        }
+    }
+    return row;
+}
+/** Read only valid aggregate rows; event-chain verification separately names malformed lines. */
+export function readScoreAggregateRows(text) {
+    const rows = [];
+    for (const line of String(text).split('\n')) {
+        if (line.trim() === '')
+            continue;
+        try {
+            const row = scoreAggregateRowFrom(JSON.parse(line));
+            if (row !== null)
+                rows.push(row);
+        }
+        catch {
+            /* A torn line is chain evidence, not a row. verifyEventChainText names it. */
+        }
+    }
+    return rows;
+}
+/** Keep the first occurrence of each `(slug, qeHash)` pair not already present in the aggregate. */
+export function dedupeScoreAggregateRows(candidates, existing) {
+    const seen = new Set(existing.map((row) => `${row.slug}\u0000${row.qeHash}`));
+    const fresh = [];
+    for (const row of candidates) {
+        const key = `${row.slug}\u0000${row.qeHash}`;
+        if (seen.has(key))
+            continue;
+        seen.add(key);
+        fresh.push(row);
+    }
+    return fresh;
+}
+/** Fold the aggregate into an advisory report. No readable rows is a third state, never success. */
+export function buildScoreAggregateReport(rows, unreadableReceipts, appended) {
+    const disciplineCounts = new Map();
+    const gradeCounts = new Map();
+    for (const row of rows) {
+        gradeCounts.set(row.qeGrade, (gradeCounts.get(row.qeGrade) ?? 0) + 1);
+        for (const discipline of row.disciplines) {
+            const counts = disciplineCounts.get(discipline.id) ?? { pass: 0, partial: 0, absent: 0 };
+            counts[discipline.verdict] += 1;
+            disciplineCounts.set(discipline.id, counts);
+        }
+    }
+    const disciplines = [...disciplineCounts.entries()]
+        .sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
+        .map(([id, counts]) => ({ id, ...counts }));
+    const grades = [...gradeCounts.entries()]
+        .sort(([a], [b]) => (a === null ? 1 : b === null ? -1 : a < b ? -1 : a > b ? 1 : 0))
+        .map(([grade, count]) => ({ grade, count }));
+    return {
+        verdict: rows.length === 0 ? 'INSUFFICIENT_DATA' : 'REPORTED',
+        receipts: rows.length + unreadableReceipts.length,
+        appended,
+        unreadable: unreadableReceipts.length,
+        unreadableReceipts: [...unreadableReceipts],
+        disciplines,
+        grades,
+    };
+}
+export function renderScoreAggregateReport(report) {
+    const out = [
+        'dz score --all — chained score-receipt aggregate (descriptive-only, never a gate)',
+        `VERDICT: ${report.verdict}`,
+        `receipts: ${report.receipts}`,
+        `appended: ${report.appended}`,
+        `unreadable: ${report.unreadable}`,
+    ];
+    if (report.unreadableReceipts.length > 0) {
+        out.push(`unreadable receipts: ${report.unreadableReceipts.join(', ')}`);
+    }
+    if (report.verdict === 'INSUFFICIENT_DATA') {
+        out.push('No readable score receipts; no discipline ratio or percentage is reported.');
+        return out.join('\n');
+    }
+    out.push('disciplines:');
+    for (const discipline of report.disciplines) {
+        out.push(`  ${discipline.id}: pass ${discipline.pass} · partial ${discipline.partial} · absent ${discipline.absent}`);
+    }
+    out.push('QE grades:');
+    for (const grade of report.grades)
+        out.push(`  ${grade.grade ?? '(no grade)'}: ${grade.count}`);
     return out.join('\n');
 }
 //# sourceMappingURL=score.js.map

@@ -23,7 +23,11 @@ Research all prescribed medications and supplements — evidence base, risks, al
 - Drug interaction matrix
 
 ### Special Considerations
-- If patient refuses a drug class (e.g., statins) — research alternatives with same level of detail
+- If the patient refuses a drug class (for example, statins), research alternatives with the same
+  level of detail, but DO NOT remove or withhold the indicated class. Preserve in one Solve envelope:
+  the patient's exact preference, the still-applicable indication and evidence, and the clinical
+  consequence of declining it. Alternatives may change the order of clinically acceptable options;
+  they do not cancel the indication.
 - Compare BAD vs registered medication options
 - Note if a medication is not available in patient's country
 - For supplements: check if claims are supported by RCTs, not just marketing

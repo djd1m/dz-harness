@@ -15,6 +15,11 @@ export * from './apply.js';
 export { bundleSkills } from './bundle.js';
 export type { BundleOptions, BundleResult, BundledSkill } from './bundle.js';
 export * from './targets.js';
+export * from './target-integrations.js';
+export * from './integration-evidence.js';
+export * from './integration-apply.js';
+export * from './integrations-verify.js';
+export { redactProbeText, PROBE_REDACTION_MARKER } from './integration-probe-worker.js';
 // Target-parity model (feature target-parity-matrix, ADR-001) — the computed feature×target map.
 export {
   RUNTIME_CAPABILITIES,
@@ -78,8 +83,8 @@ export type { SyncUpstreamReport, UpstreamCheckResult, SourcesManifest, SourcePa
 export { sweepSkillDrift, syncCanonicalSkill } from './skill-drift.js';
 export { SKILL_INSTALL_ROOTS, SKILL_INSTALL_ROOT_BY_TARGET, DEV_SKILL_ROOT, TARGET_ENRICHMENT_ASSETS } from './skill-install-roots.js';
 export { stampCheckpointLine } from './checkpoint-stamp.js';
-export { TELEMETRY_VOCAB_VERSION, TELEMETRY_FIELDS, PROVISIONAL_TELEMETRY_FIELDS, LOCAL_FIELD_ALIASES, telemetryFieldFor } from './telemetry-vocabulary.js';
-export type { TelemetryField, FieldSource } from './telemetry-vocabulary.js';
+export { TELEMETRY_VOCAB_VERSION, TELEMETRY_FIELDS, PROVISIONAL_TELEMETRY_FIELDS, LOCAL_FIELD_ALIASES, RUN_OUTCOMES, telemetryFieldFor, runOutcomeOf } from './telemetry-vocabulary.js';
+export type { TelemetryField, FieldSource, RunOutcome } from './telemetry-vocabulary.js';
 export { planLedgerBackfill, LEDGER_FILL_SOURCE, AMBIGUOUS, resolveLedgerRunId } from './ledger-backfill.js';
 // project-skills root resolution (field report doc-25b): the ONE builder behind both the Step-0
 // probe and the PS_GUIDANCE paragraph, so the two can never look at different roots again.
@@ -87,14 +92,15 @@ export { projectSkillsOneRoot, projectSkillsProbeCommand } from './project-skill
 export type { LedgerBackfillPlan, LedgerBackfillRow, RunCostFacts } from './ledger-backfill.js';
 export type { SweepResult, DriftedSkill, SyncResult, SyncCanonicalOptions } from './skill-drift.js';
 export { benchmarkSkill, benchmarkSkills, compareSkills } from './benchmark.js';
-export { buildRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverVerifiablePackDirs } from './registry.js';
+export { buildRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs } from './registry.js';
 // Package skill-layout resolution (feature dz-install-npx-init) — the ONE seam that knows where an
 // npm package keeps its skills (flat / templates/.claude/skills / skills). `cmdInstall` calls it;
 // `dz init`/`dz registry` are the filed follow-up consumers.
 export * from './package-skill-layouts.js';
 export { recommend } from './recommend.js';
 export { pretrain } from './pretrain.js';
-export { loadPatterns, loadSessions, computePatternBoost, readLearningConfig, readMemoryLearningConfig, BOOST_CAP, recordPattern, loadStorePatternsSync, loadStoreRecords, patternToRecord, recordToPattern, patternRecordId, patternIdentityOf, dreamRecordId, isMirrorableLearning, consolidateSessions, recallPatterns, pruneNoisePatterns, removePatternsByIds, snapshotStore, readReinforcementState, encodeReinforcementState, reinforcePattern, updateReinforcementState, storeStats, lessonDeltaReport, lessonDeltaMap, readQuarantineState, encodeQuarantineState, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns } from './patterns.js';
+export { loadPatterns, loadSessions, computePatternBoost, readLearningConfig, readMemoryLearningConfig, BOOST_CAP, recordPattern, recordLessonForms, loadStorePatternsSync, loadStoreRecords, patternToRecord, recordToPattern, patternRecordId, patternIdentityOf, dreamRecordId, isMirrorableLearning, consolidateSessions, recallPatterns, pruneNoisePatterns, removePatternsByIds, snapshotStore, readReinforcementState, encodeReinforcementState, reinforcePattern, updateReinforcementState, storeStats, lessonDeltaReport, lessonDeltaMap, readQuarantineState, encodeQuarantineState, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns } from './patterns.js';
+export { normalizeLessonForms, validateClassTemplate, lessonPairIdOf, mergeLessonFormHits, mergeLessonMatchedForms } from './lesson-generalization.js';
 export { withStoreLock, withStoreLockSync, storeLockPath, StoreLockTimeoutError, StoreLockCompromisedError, STALE_LOCK_MS, LOCK_TIMEOUT_MS } from './store-lock.js';
 export type { StoreLockOptions } from './store-lock.js';
 export { withNamedLockSync, namedLockPath, isSafeLockName, NamedLockNameError, NamedLockTimeoutError, NamedLockCompromisedError } from './named-lock.js';
@@ -121,7 +127,8 @@ export {
   renderBridgeReport,
 } from './qe-bridge.js';
 export type { BridgeFamily, BridgeFailureReason, BridgeFinding, BridgeSignoff, BridgeParse, BridgeParseOk, BridgeParseFail, BridgeChannels, BridgeAudit, ClaudeResultExtraction, NamedExtract, BridgePromptInput } from './qe-bridge.js';
-export type { PatternRecord, SessionRecord, LearningConfig, MemoryLearningConfig, LoadOptions, ConsolidateResult, ConsolidateOptions, SqliteBackendMode, RecallHit, SessionsSource, PruneNoiseResult, RemovePatternsResult, SnapshotStoreResult, ReinforcementState, ReinforcePatternResult, StoreStats, LessonDeltaReport, LessonDeltaRow, QuarantineState, PromoteResult, QuarantineExpiryCandidate } from './patterns.js';
+export type { PatternRecord, SessionRecord, LearningConfig, MemoryLearningConfig, LoadOptions, ConsolidateResult, ConsolidateOptions, SqliteBackendMode, RecallHit, RecallPatternsOptions, RecordLessonFormsResult, SessionsSource, PruneNoiseResult, RemovePatternsResult, SnapshotStoreResult, ReinforcementState, ReinforcePatternResult, StoreStats, LessonDeltaReport, LessonDeltaRow, QuarantineState, PromoteResult, QuarantineExpiryCandidate } from './patterns.js';
+export type { LessonForm, LessonMatchedForm, LessonFormsInput, LessonFormRankedHit, MergedLessonFormHit } from './lesson-generalization.js';
 export { DEFAULT_REINFORCE_THRESHOLD, NoopLearningBackend, NativeReinforcementBackend, resolveLearningBackend, isLearningSignalBackend, applyLearningSignals, applyLearningSignalsWithDelta, applyLearningSignalsWithTerms } from './learning-backend.js';
 export type { LearningSignalBackend, LearningSignalStats, LearningSample, SignalCandidate, EnhanceContext, TrainingResult, LearningBackendMode, RerankTerm } from './learning-backend.js';
 // lesson-bandit-rerank (I-8): the ACL's public surface only. The vendored engine class is
@@ -186,6 +193,15 @@ export { runSetup, generateHooksConfig, generateAgentdbWriter, writerVersionOf, 
   agentdbStorePath, agentdbMcpStorePath, agentdbStoreSeparationProblem } from './setup.js';
 export { statuslineData, readFeatureAdrState, writeFeatureAdrState, featureAdrStateDir, featureAdrStatePath } from './statusline.js';
 export type { StatuslineData, FeatureAdrState, WriteFeatureAdrStateInput } from './statusline.js';
+export {
+  ETA_MAX_STAGE_MS,
+  estimateEta,
+  extractStageSamples,
+  formatEta,
+  parseCheckpointLines,
+  segmentRun,
+} from './eta.js';
+export type { CheckpointObservation, EtaEstimate, EtaInput, IncompleteCoverageSample, RunSegment, StageDurationSample, StageSample } from './eta.js';
 export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES } from './agentdb-index.js';
 export type { AgentdbSearchHit, AgentdbSearchResult, AgentdbImportRow } from './agentdb-index.js';
 export { DEFAULT_EMBED_MODEL, LEGACY_EMBED_MODEL, DEFAULT_EMBED_DIM, KNOWN_EMBED_DIMS, resolveEmbedModel, readEmbedManifest, writeEmbedManifest, embedManifestPath, legacyEmbedManifest } from './embedding-config.js';
@@ -250,6 +266,50 @@ export { hookDecision, isFenced, isNewLine, ESCAPE_TEACHING } from './claim-chec
 export type { HookDecision, HookDecisionOpts } from './claim-check-hook-policy.js';
 export { step8ClaimGate } from './feature-adr-claim-gate.js';
 export type { Step8ClaimCounts, Step8ClaimGate } from './feature-adr-claim-gate.js';
+export {
+  DEFAULT_CODE_LANDING_CEILING_MS,
+  CODE_LANDING_CEILING_ENV,
+  decideCodeLandingLiveness,
+  extractCodexCompanionJobId,
+  parseCodeLandingLivenessSignal,
+} from './feature-adr-landing.js';
+export type {
+  CodeLandingLivenessVerdict,
+  CodeLandingLivenessReason,
+  CodeLandingLivenessInput,
+  CodeLandingLivenessDecision,
+  CodeLandingLivenessProbe,
+} from './feature-adr-landing.js';
+export {
+  buildDecisionContext,
+  normalizeDecisionRecall,
+  parseDecisionRecallFrame,
+  parseDecisionRecallApplicationProbe,
+  mergeDecisionRecallEvents,
+  reduceDecisionRecallMetrics,
+  summarizeDecisionRecallReceipts,
+  decisionRecallEnterCmd,
+  decisionRecallRunCmd,
+  decisionRecallAppendCmd,
+  decisionRecallApplicationProbeCmd,
+} from './feature-adr-decision-recall.js';
+export type {
+  DecisionRecallKind,
+  DecisionRecallStage,
+  DecisionRecallOutcomeName,
+  DecisionRecallContext,
+  DecisionRecallFrame,
+  DecisionRecallSelection,
+  DecisionRecallOutcome,
+  DecisionRecallEvent,
+  DecisionRecallDisposition,
+  DecisionRecallApplicationProbe,
+  MergedDecisionRecallAttempt,
+  MergedDecisionRecallDecision,
+  MergedDecisionRecallEvents,
+  DecisionRecallRatio,
+  DecisionRecallMetrics,
+} from './feature-adr-decision-recall.js';
 export {
   CHECKPOINT_STAGES,
   STAGE_ARTIFACTS,
@@ -517,6 +577,7 @@ export {
   DEFAULT_REWRITE_ATTEMPTS,
   liveSegmentStart,
   classifyChainDefects,
+  CHAINED_JOURNALS,
 } from './event-chain.js';
 export type {
   ChainFields,
@@ -533,6 +594,7 @@ export type {
   VerifyEventChainOptions,
   ChainDefectAge,
   ChainDefectAges,
+  ChainedJournal,
 } from './event-chain.js';
 export { decideProvenance, environmentCanMintProvenance, publishArgv, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion } from './publish.js';
 export { fetchAllDownloads } from './downloads.js';
@@ -826,6 +888,7 @@ export * from './model-recommender.js';
 export * from './bto-optimize.js';
 export * from './discrimination-gate.js';
 export * from './guard.js';
+export * from './guard-volume.js';
 // Root AGENTS.md policy projection: pure anchor extraction/render/hash drift +
 // the shared-emitter I/O entry point exported from operations.
 export * from './agents-policy.js';
@@ -900,7 +963,8 @@ export {
 } from './epoch-replay.js';
 
 // Run-process scorecard (feature dz-score, Reading C) — scores the DISCIPLINE of a feature-adr run
-// from its artifacts. Descriptive-only, permanently: it never gates.
+// from its artifacts and folds immutable receipts into a chained aggregate. Descriptive-only,
+// permanently: neither the single-run score nor the aggregate gates.
 export * from './score.js';
 export * from './recap.js';
 export * from './provenance.js';
@@ -976,3 +1040,5 @@ export type {
   Register, Domain, OperatorProfile, ProfileReadResult, ProfileSyncResult,
   ProfileDriftVerdict, ProfileDriftResult,
 } from './profile.js';
+export * from './codex-invoke.js';
+export * from './skill-selection.js';

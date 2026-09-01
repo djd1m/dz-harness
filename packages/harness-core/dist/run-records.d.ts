@@ -57,6 +57,9 @@ export declare function decideRecordWrite(input: {
     targetHasPair?: boolean;
     /** Stamped INTO the object before serialising — never rewritten in the shell afterwards (FR-7). */
     timestamp?: string | null;
+    /** Who ran it. Supplied by the CALLER, which lives outside the workflow sandbox and can see the
+     *  host; absent stays absent (see the stamping comment below). */
+    runnerId?: string | null;
     maxChars?: number;
 }): RecordDecision;
 /** The read-back verdict (ADR-002): equal bytes or NOT written. Never inferred from the absence of an error. */

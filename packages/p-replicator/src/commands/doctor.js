@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execFileSync } = require('child_process');
+const { spawnSync } = require('child_process');
 const {
   green, red, yellow, cyan, bold, dim,
   info, success, warn, error: logError,
@@ -18,6 +18,84 @@ const EXPECTED_SKILLS   = Object.keys(COMPONENTS.skills.items);
 const EXPECTED_COMMANDS = Object.keys(COMPONENTS.commands.items);
 const EXPECTED_AGENTS   = Object.keys(COMPONENTS.agents.items);
 const EXPECTED_RULES    = Object.keys(COMPONENTS.rules.items);
+
+const FIX_COMMIT_SUBJECT = /^fix(?:\([^\r\n()]+\))?:/;
+const INSIGHT_RECORD_HEADING = /^##\s+(\d{4}-\d{2}-\d{2})\s+—(?:\s|$)/gm;
+
+function localDate(date) {
+  const year = String(date.getFullYear()).padStart(4, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function insightFlowWindow(referenceTime) {
+  const end = new Date(referenceTime.getFullYear(), referenceTime.getMonth(), referenceTime.getDate());
+  const start = new Date(end);
+  start.setDate(start.getDate() - 2);
+  return { startDate: localDate(start), endDate: localDate(end) };
+}
+
+function notPerformed(window, reason) {
+  return { state: 'not-performed', ...window, reason };
+}
+
+function measureInsightFlow(targetDir, referenceTime) {
+  const window = insightFlowWindow(referenceTime);
+  const gitOptions = {
+    cwd: targetDir,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    timeout: 5000,
+    maxBuffer: 1024 * 1024,
+  };
+
+  const repository = spawnSync('git', ['rev-parse', '--is-inside-work-tree'], gitOptions);
+  if (repository.status !== 0) {
+    if (repository.error && repository.error.code === 'ENOENT') {
+      return notPerformed(window, 'git unavailable');
+    }
+    const gitMarker = path.join(targetDir, '.git');
+    return notPerformed(window,
+      fs.existsSync(gitMarker) ? 'no readable git history' : 'not a git repository');
+  }
+  if (repository.stdout.trim() !== 'true') return notPerformed(window, 'not a git repository');
+
+  const head = spawnSync('git', ['rev-parse', '--verify', 'HEAD'], gitOptions);
+  if (head.status !== 0) {
+    // Unreadable history is unknown, never a measured zero; mutation-gate protects this branch.
+    return {
+      state: 'not-performed',
+      startDate: window.startDate,
+      endDate: window.endDate,
+      reason: 'no readable git history',
+    };
+  }
+
+  const history = spawnSync('git', [
+    'log', '--format=%s',
+    `--since=${window.startDate} 00:00:00`,
+    `--until=${window.endDate} 23:59:59`,
+  ], gitOptions);
+  if (history.status !== 0) {
+    return notPerformed(window, 'git history query failed');
+  }
+  const fixCommits = history.stdout.split(/\r?\n/).filter((subject) =>
+    FIX_COMMIT_SUBJECT.test(subject)).length;
+
+  const insightsIndex = path.join(targetDir, '.claude', 'insights', 'index.md');
+  let insights;
+  try {
+    insights = fs.readFileSync(insightsIndex, 'utf8');
+  } catch (err) {
+    if (err && err.code === 'ENOENT') insights = '';
+    else return notPerformed(window, 'insight carrier is unreadable');
+  }
+  const insightRecords = Array.from(insights.matchAll(INSIGHT_RECORD_HEADING))
+    .filter((match) => match[1] >= window.startDate && match[1] <= window.endDate).length;
+
+  return { state: 'measured', ...window, fixCommits, insightRecords };
+}
 
 function run(options) {
   const { targetDir } = options;
@@ -122,10 +200,10 @@ function run(options) {
 
   // ── 6d) Prerequisites (system tools the package relies on) ──────────────
   console.log(bold('Prerequisites:'));
-  try {
-    execFileSync('git', ['--version'], { stdio: 'pipe' });
+  const gitVersion = spawnSync('git', ['--version'], { encoding: 'utf8' });
+  if (gitVersion.status === 0) {
     pass('git on PATH');
-  } catch {
+  } else {
     fail('git NOT on PATH — autocommit hooks (roadmap, insights, plans) will silently no-op');
   }
   console.log('');
@@ -157,6 +235,18 @@ function run(options) {
     const entries = (fs.readFileSync(insightsIndex, 'utf-8')
       .match(/^##\s+\d{4}-\d{2}-\d{2}/gm) || []).length;
     pass('insights carrier: ' + entries + ' entr' + (entries === 1 ? 'y' : 'ies') + ' recorded');
+  }
+  console.log('');
+
+  const referenceTime = options.now === undefined ? new Date() : new Date(options.now);
+  const insightFlow = measureInsightFlow(targetDir, referenceTime);
+  const flowPeriod = `${insightFlow.startDate} through ${insightFlow.endDate}`;
+  // This evidence is advisory: plain output keeps it outside doctor health accounting.
+  if (insightFlow.state === 'measured') {
+    console.log(`Insight flow (${flowPeriod}): ${insightFlow.fixCommits} fix commits and `
+      + `${insightFlow.insightRecords} insight records`);
+  } else {
+    console.log(`Insight flow (${flowPeriod}): check NOT performed — ${insightFlow.reason}`);
   }
   console.log('');
 

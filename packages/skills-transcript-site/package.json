@@ -1,10 +1,10 @@
 {
   "name": "@dzhechkov/skills-transcript-site",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
-  "description": "Interactive Transcript Site Generator skill pack for Claude Code \u2014 transform transcripts and YouTube videos into SEO-optimized static websites with search, TOC, dark mode, and GitHub Pages deployment",
+  "description": "Interactive Transcript Site Generator skill pack for Claude Code — transform transcripts and YouTube videos into SEO-optimized static websites with search, TOC, dark mode, and GitHub Pages deployment",
   "main": "src/cli.js",
   "bin": {
     "skills-transcript-site": "./bin/cli.js"
@@ -36,12 +36,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-transcript-site"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-transcript-site#readme",
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-transcript-site#readme",
   "bugs": {
-    "url": "https://github.com/dzhechko/product-keysarium-2026/issues"
+    "url": "https://github.com/djd1m/dz-harness/issues"
   },
   "peerDependencies": {
     "@dzhechkov/keysarium-core": "^1.0.0"

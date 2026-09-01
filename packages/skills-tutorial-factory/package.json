@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-tutorial-factory",
-  "version": "0.4.3",
+  "version": "0.7.0",
   "description": "package-tutorial-factory — a meta-skill that turns any harness-hub package into a Head-First-style gamified edu-site learning course. Composes skills-book-digitizer (IP-safe distillation), edu-site-generator (render), and the code-skills-creator meta-factory pattern. Ships a distilled, page-anchored Head First method-KB + a deterministic zero-LLM Head-First checklist gate + an IP shingling gate.",
   "license": "MIT",
   "author": "dzhechko",
@@ -65,11 +65,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-tutorial-factory"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-tutorial-factory#readme",
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-tutorial-factory#readme",
   "bugs": {
-    "url": "https://github.com/djd1m/dz-harness-hub/issues"
+    "url": "https://github.com/djd1m/dz-harness/issues"
   }
 }

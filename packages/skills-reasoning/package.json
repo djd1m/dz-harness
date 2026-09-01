@@ -1,10 +1,10 @@
 {
   "name": "@dzhechkov/skills-reasoning",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
-  "description": "Generic reasoning & code-quality skill pack \u2014 4 stack-neutral agentic skills: investigate (root-cause without fixing), solid (SOLID/TDD/clean-code), karpathy-guidelines (reduce common LLM coding mistakes), agents-md-creator. Depersonalized from a curated skills archive; zero product coupling.",
+  "description": "Generic reasoning & code-quality skill pack — 4 stack-neutral agentic skills: investigate (root-cause without fixing), solid (SOLID/TDD/clean-code), karpathy-guidelines (reduce common LLM coding mistakes), agents-md-creator. Depersonalized from a curated skills archive; zero product coupling.",
   "license": "MIT",
   "author": "dzhechko",
   "keywords": [
@@ -35,8 +35,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-reasoning"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-reasoning#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-reasoning#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

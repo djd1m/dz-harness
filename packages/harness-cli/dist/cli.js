@@ -12,16 +12,16 @@ import { isBooleanFlag } from './boolean-flags.js';
 import { resolveInstallSpec } from './install-spec.js';
 import { execFile, execFileSync, execSync, spawn, spawnSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { homedir, tmpdir } from 'node:os';
+import { homedir, hostname, tmpdir } from 'node:os';
 import { createRequire } from 'node:module';
 import { isDeepStrictEqual } from 'node:util';
-import { createSkill, getSkillInfo, listSkillsDetailed, formatSkillLoadFailures, formatSkillApplyFailures, resolveTargetName, formatTargetProblem, formatTargetAliasNote, TARGET_NAMES_SORTED, runDoctor, runInit, resolvePackageSkillRoots, PACKAGE_SKILL_LAYOUTS, benchmarkSkill, benchmarkSkills, scanMcp, reconcileCapabilities, RECONCILE_BANNER, buildRegistry, discoverSkillPackDirs, discoverVerifiablePackDirs, checkUpstream, compareSkills, checkAllUpstream, sweepSkillDrift, syncCanonicalSkill, checkUpgrades, discoverPackages, discoverSourcePackages, fetchAllDownloads, filterByCategory, pretrain, recommend, generatePlugin, publishPackages, runSetup, runMigrate, searchRegistry, runSync, runVerify, runInitAgentsMd, runInitGeminiMd, runSyncAgentsPolicy, runSyncCodexHooks, resolveCodexHome, withNamedLockSync, 
+import { createSkill, getSkillInfo, listSkillsDetailed, formatSkillLoadFailures, formatSkillApplyFailures, resolveTargetName, formatTargetProblem, formatTargetAliasNote, TARGET_NAMES_SORTED, runDoctor, runInit, discoverSkillIds, resolveSelection, formatSelectRefusal, runIntegrationsVerify, resolvePackageSkillRoots, PACKAGE_SKILL_LAYOUTS, benchmarkSkill, benchmarkSkills, scanMcp, reconcileCapabilities, RECONCILE_BANNER, buildRegistry, discoverSkillPackDirs, discoverVerifiablePackDirs, checkUpstream, compareSkills, checkAllUpstream, sweepSkillDrift, syncCanonicalSkill, checkUpgrades, discoverPackages, discoverSourcePackages, fetchAllDownloads, filterByCategory, pretrain, recommend, generatePlugin, publishPackages, runSetup, runMigrate, searchRegistry, runSync, runVerify, runInitAgentsMd, runInitGeminiMd, runSyncAgentsPolicy, runSyncCodexHooks, resolveCodexHome, withNamedLockSync, 
 // dz workflow run (feature dz-workflow-run): the pure scheduler + the dispatch adapters.
-TRACE_RUNID_RE, WF_RUN_OWNER_HOST, preflight, runWorkflow, makeClaudePDispatcher, makeCodexExecDispatcher, NamedLockTimeoutError, NamedLockCompromisedError, POLICY_SOURCES, detectPolicyDrift, hasPolicyFence, TARGET_NAMES, buildParityMatrix, downgradeForStaleEvidence, findStaleTranscriptEvidence, TARGET_CAPABILITIES, TARGET_SHORT_LABELS, WORKFLOW_TEMPLATES_RETIRED_MESSAGE, parsePlan, isParseErrors, validatePlan, normalizePlan, planDigest, toTraceProjection, renderPlan, mergeRender, lint, lintExitCode, LOOP_BLOBS, parseTrace, assembleTimeline, runInvariants, deriveAttestation, stampAttestation, corroborate, NOT_WITNESSED, renderTimelineHtml, importEcc, recordPattern, resolveLearningBackend, storeStats, consolidateSessions, pruneNoisePatterns, lessonDeltaReport, removePatternsByIds, snapshotStore, recallHybrid, teachGuard, mirrorPatternsToVector, mirrorEntriesToVector, patternVectorEntry, readMemoryLearningConfig, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns, clearAgentdbQuarantine, vectorMirrorEnabled, vectorTierStatus, resolveVectorEngine, reindexVectorStore, harmonizeVectorStore, importRvfCheckpoint, statuslineData, writeFeatureAdrState, computeUsage, deriveCostLedger, planLedgerBackfill, listCostLedgerRuns, resolveLedgerRunId, AMBIGUOUS, stampCheckpointLine, LEDGER_FILL_SOURCE, renderCostLedger, verifyCostLedgerReport, writeCostLedgerJsonl, COST_LEDGER_SCOPE, deriveUsageCalibration, normalizeClaudeUsageModelKey, readUsageLimits, parseWeeklyResetAnchor, claimCheck, summarize, BUNDLED_SLOP_REGISTRY_URL, DEFAULT_SLOP_CONFIG, parseSlopRegistry, slopLint, validateSlopLintConfig, queryBookKnowledge, loadStorePatternsSync, patternRecordId, loadStoreRecords, recordToPattern, bundleSkills, brainHome, listBrain, bookKbPath, promoteProjectToBrain, updateBrainSource, queryBrain, groundPrompt, expandKu, reindexBrainVectors, buildPrimer, exportBrainSlice, importBrainSlice, registerKusToBrain, RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, parseRecallUsageLog, buildRecallUsageReport, EVENT_CHAIN_TAIL_BYTES, EMPTY_LOG_TAIL, readTailInfo, appendChainedLines, verifyEventChainText, buildManifest, buildSbom, resolveTrustRoot, decideVerifyPolicy, generateSigningKeypair, evaluateGuard, resolveRules, auditRecord, guardExitCode, DEFAULT_RULES, parsePnpmLockImporters, scannableStubPath, 
+TRACE_RUNID_RE, WF_RUN_OWNER_HOST, preflight, runWorkflow, makeClaudePDispatcher, makeCodexExecDispatcher, NamedLockTimeoutError, NamedLockCompromisedError, POLICY_SOURCES, detectPolicyDrift, hasPolicyFence, TARGET_NAMES, buildParityMatrix, downgradeForStaleEvidence, findStaleTranscriptEvidence, TARGET_CAPABILITIES, TARGET_SHORT_LABELS, WORKFLOW_TEMPLATES_RETIRED_MESSAGE, parsePlan, isParseErrors, validatePlan, normalizePlan, planDigest, toTraceProjection, renderPlan, mergeRender, lint, lintExitCode, LOOP_BLOBS, parseTrace, assembleTimeline, runInvariants, deriveAttestation, stampAttestation, corroborate, NOT_WITNESSED, renderTimelineHtml, importEcc, recordPattern, recordLessonForms, normalizeLessonForms, resolveLearningBackend, storeStats, consolidateSessions, pruneNoisePatterns, lessonDeltaReport, removePatternsByIds, snapshotStore, recallHybrid, teachGuard, mirrorPatternsToVector, mirrorEntriesToVector, patternVectorEntry, readMemoryLearningConfig, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns, clearAgentdbQuarantine, vectorMirrorEnabled, vectorTierStatus, resolveVectorEngine, reindexVectorStore, harmonizeVectorStore, importRvfCheckpoint, statuslineData, writeFeatureAdrState, CHECKPOINT_STAGES, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, computeUsage, deriveCostLedger, planLedgerBackfill, listCostLedgerRuns, resolveLedgerRunId, AMBIGUOUS, stampCheckpointLine, LEDGER_FILL_SOURCE, renderCostLedger, verifyCostLedgerReport, writeCostLedgerJsonl, COST_LEDGER_SCOPE, deriveUsageCalibration, normalizeClaudeUsageModelKey, readUsageLimits, parseWeeklyResetAnchor, claimCheck, summarize, BUNDLED_SLOP_REGISTRY_URL, DEFAULT_SLOP_CONFIG, parseSlopRegistry, slopLint, validateSlopLintConfig, queryBookKnowledge, loadStorePatternsSync, patternRecordId, patternIdentityOf, mergeLessonMatchedForms, loadStoreRecords, recordToPattern, bundleSkills, brainHome, listBrain, bookKbPath, promoteProjectToBrain, updateBrainSource, queryBrain, groundPrompt, expandKu, reindexBrainVectors, buildPrimer, exportBrainSlice, importBrainSlice, registerKusToBrain, RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, parseRecallUsageLog, buildRecallUsageReport, EVENT_CHAIN_TAIL_BYTES, EMPTY_LOG_TAIL, readTailInfo, appendChainedLines, verifyEventChainText, classifyChainDefects, CHAINED_JOURNALS, buildManifest, buildSbom, resolveTrustRoot, decideVerifyPolicy, generateSigningKeypair, evaluateGuard, resolveRules, auditRecord, guardExitCode, DEFAULT_RULES, parsePnpmLockImporters, scannableStubPath, 
 // guard-promotion (feature guard-promotion, scout idea #1)
-assembleCandidates, renderPromotionReport, renderPromotionAdr, normalizePromotionState, nextPromotionState, globMatch, promotionAdrRelPath, DEFAULT_WINDOW_DAYS, DEFAULT_PERIODS, MAX_CONTENT_FETCHES, BUILTIN_COVERAGE, decideProvenance, isInsideTree, signManifest, verifyManifest, listSignablePackFiles, assertKeyOutsideTree, decidePublishGate, collectPackageFacts, planReleaseGates, selectAffectedPackages, classifyGateExecutions, buildFailureIssue, buildReleaseNotes, releaseTagName, firstOutputLine, formatPublishError, MANIFEST_NAME, SBOM_NAME, buildArchitectureMap, renderMapHuman, findArchitectureDrift, renderDriftReport, scanWorkspacePackages, loadSubsystemManifest, loadProductVision, checkFeatureAgainstArchitecture, renderArchCheck, planProjectSkills, guidanceForStage, renderInjectionReport, analyzeCorpus, renderRakeReport, renderCriticSection, rakeAsLesson, rakeReward, DEFAULT_RAKE_THRESHOLDS, streamSessionEvents, findLatestTranscript, detectProcessRakes, buildRetro, renderRetro, retroLessonText, PROCESS_SIGNATURES, RETRO_DOMAIN, scanForSetup, buildSetupPlan, scaffoldFromSpec, renderScaffoldPreview, readExistingForScaffold, assembleChallengeContext, buildChallengeBrief, planDiscriminationCheck, classifyDiscrimination, classifyExecutionEvidence, pickAdversaryModel, CHALLENGE_QUESTIONS, loadOutcomes, renderOutcomes, statsForKey, selectAutoCost, recordProvisional, finalizeOutcome, harvestStageOutcomes, recommendModels, planFeed, unfedRuns, GRADE_SUCCESS_FLOOR, COST_LADDER, splitScenarios, budgetPlan, selectWinner, proseScopeOk, renderProseDiff, readScenarioIds, DEFAULT_MAX_JUDGE_RUNS, collectDeliveryFacts, planDeliveryCheck, renderDeliveryBrief, classifyDelivery, isUsablePlaneResult, renderDeliveryReview, scanSkillsLayout, declaredPluginSurface, parseInitFacts, verifyRegistration, buildContentProbePrompt, classifyContentProbe, renderContentProbe, findNonRegistrableSkillDirs, assembleCompoundingReport, buildDeadwoodReport, compactCmdUsageIfNeeded, measureCmdUsageDepthDays, recordCommandInvocation, resolveCmdUsageRoot, renderDeadwoodReport, CMD_USAGE_LOG_RELATIVE, banditStats, narrowBanditReport, renderBanditHealth, 
+assembleCandidates, renderPromotionReport, renderPromotionAdr, normalizePromotionState, nextPromotionState, recordPromotionRunEvidence, isLessonRuleContentAnchor, isOffsetIsoTimestamp, globMatch, promotionAdrRelPath, DEFAULT_WINDOW_DAYS, DEFAULT_PERIODS, MAX_CONTENT_FETCHES, BUILTIN_COVERAGE, decideProvenance, isInsideTree, signManifest, verifyManifest, listSignablePackFiles, assertKeyOutsideTree, decidePublishGate, collectPackageFacts, planReleaseGates, selectAffectedPackages, classifyGateExecutions, buildFailureIssue, buildReleaseNotes, releaseTagName, firstOutputLine, formatPublishError, MANIFEST_NAME, SBOM_NAME, buildArchitectureMap, renderMapHuman, findArchitectureDrift, renderDriftReport, scanWorkspacePackages, loadSubsystemManifest, loadProductVision, checkFeatureAgainstArchitecture, renderArchCheck, planProjectSkills, guidanceForStage, renderInjectionReport, analyzeCorpus, renderRakeReport, renderCriticSection, rakeAsLesson, rakeReward, DEFAULT_RAKE_THRESHOLDS, streamSessionEvents, findLatestTranscript, detectProcessRakes, buildRetro, renderRetro, retroLessonText, PROCESS_SIGNATURES, RETRO_DOMAIN, scanForSetup, buildSetupPlan, scaffoldFromSpec, renderScaffoldPreview, readExistingForScaffold, assembleChallengeContext, buildChallengeBrief, planDiscriminationCheck, classifyDiscrimination, classifyExecutionEvidence, pickAdversaryModel, CHALLENGE_QUESTIONS, loadOutcomes, renderOutcomes, statsForKey, selectAutoCost, recordProvisional, finalizeOutcome, harvestStageOutcomes, recommendModels, planFeed, unfedRuns, GRADE_SUCCESS_FLOOR, COST_LADDER, splitScenarios, budgetPlan, selectWinner, proseScopeOk, renderProseDiff, readScenarioIds, DEFAULT_MAX_JUDGE_RUNS, collectDeliveryFacts, planDeliveryCheck, renderDeliveryBrief, classifyDelivery, isUsablePlaneResult, renderDeliveryReview, scanSkillsLayout, declaredPluginSurface, parseInitFacts, verifyRegistration, buildContentProbePrompt, classifyContentProbe, renderContentProbe, findNonRegistrableSkillDirs, assembleCompoundingReport, buildDeadwoodReport, compactCmdUsageIfNeeded, measureCmdUsageDepthDays, recordCommandInvocation, resolveCmdUsageRoot, renderDeadwoodReport, CMD_USAGE_LOG_RELATIVE, banditStats, narrowBanditReport, renderBanditHealth, 
 // Cold-vs-warm EPOCH RUNNER (feature epoch-replay) — orchestrates + scores, never calls a model.
-replayableInstances, buildWorkOrder, buildJudgePrompts, unblindJudgments, verifyWorkOrder, isValidMargin, DIGEST_HONEST_SCOPE, scoreEpochReplay, generateMockOutcomes, renderEpochReplayResult, renderWorkOrderSummary, renderJudgePromptsSummary, WORK_ORDER_KIND, DEFAULT_MOCK_N, DEFAULT_MOCK_SEED, scoreRun, readQeGrade, recapWindow, decideHorizon, withinWindow, buildRecap, renderRecap, parseSourceManifest, tgPostHtmlIssues, tgVisibleLength, decideTgSend, TG_TEXT_LIMIT, countRecallEventsForRun, unknownFlagNotice, mirrorWriterExplanation, appendRecallUsage, closenessLine, anyAboveFloor, decideNameCheck, renderNameCheck, exportedNamesIn, dispatchedCommandsIn, decideSourceProvenance, renderSourceProvenance, REFUSED_HORIZONS, renderScorecard, renderCompoundingReport, readReinforcementState, readQuarantineState, registrationExitCode, renderRegistrationReport, 
+replayableInstances, buildWorkOrder, buildJudgePrompts, unblindJudgments, verifyWorkOrder, isValidMargin, DIGEST_HONEST_SCOPE, scoreEpochReplay, generateMockOutcomes, renderEpochReplayResult, renderWorkOrderSummary, renderJudgePromptsSummary, WORK_ORDER_KIND, DEFAULT_MOCK_N, DEFAULT_MOCK_SEED, scoreRun, readQeGrade, scoreReceiptToAggregateRow, readScoreAggregateRows, dedupeScoreAggregateRows, buildScoreAggregateReport, renderScoreAggregateReport, recapWindow, decideHorizon, withinWindow, buildRecap, renderRecap, parseSourceManifest, tgPostHtmlIssues, tgVisibleLength, decideTgSend, TG_TEXT_LIMIT, countRecallEventsForRun, unknownFlagNotice, mirrorWriterExplanation, appendRecallUsage, closenessLine, anyAboveFloor, decideNameCheck, renderNameCheck, exportedNamesIn, dispatchedCommandsIn, decideSourceProvenance, renderSourceProvenance, REFUSED_HORIZONS, renderScorecard, renderCompoundingReport, readReinforcementState, readQuarantineState, registrationExitCode, renderRegistrationReport, 
 // Smart Backlog (feature smart-backlog) — goal-directed idea pipeline over the Brain vector engine.
 readBacklogConfig, readIdeas, writeIdeas, ideaId, dedupIdea, readGoalMap, readGoalMapDetailed, parseEffort, ensureBacklogGitignored, isSafeId, alignIdea, mirrorIdeaVector, ensureBacklogEmbedForm, readBacklogEmbedFormVersion, recordAbsorption, DEDUP_EMBED_FORM_VERSION, snapshotIdeas, spinRoulette, rankRoulette, seededRng, eligibleIdeas, stageEnrichment, buildJiraDraft, resolveJiraAdapter, makeBacklogIO, harmonizeBacklog, transitionIdeas, editIdea, clearEmbedStale, BACKLOG_BACKENDS, applyDomainBoost, DZ_OWNED_TASK_TYPES, applyExportHoldout, DEFAULT_HELD_OUT_DOMAINS, canonicalDomainKey, readAgentdbRowsByTaskType, heldOutAfterOptIn, renderHoldoutNote, renderSharedStoreAdvice, decideVectorExport, countDisplacedByCut, renderDomainBoostNote, renderDomainCutNote, parseReqeDebt, 
 // qe-bridge (feature qe-bridge-claude, ADR-001): the pure half of the reverse QE bridge.
@@ -40,19 +40,19 @@ export const DZ_COMMANDS = [
     'usage', 'claim-check', 'lint', 'sign', 'sbom', 'guard', 'verify-pack', 'setup',
     'pretrain', 'compose', 'diff', 'recommend', 'upgrade', 'auto-canonicalize',
     'publish', 'release', 'parity', 'registry', 'benchmark', 'mcp-scan',
-    'sync-upstream', 'drift-check', 'hooks-sync', 'agents-sync', 'sync-canonical',
+    'sync-upstream', 'drift-check', 'hooks-sync', 'integrations-verify', 'agents-sync', 'sync-canonical',
     'plugin', 'downloads', 'stats', 'architecture', 'project-skills', 'mr-rakes',
     'retro', 'feature-adr-setup', 'challenge', 'discrimination-check',
     'mutation-gate', 'delivery-check', 'skills-verify', 'compounding', 'deadwood',
     'epoch-replay', 'score', 'recap', 'cadence', 'qe-rounds', 'restart-advisor', 'tg-post',
     'name-check', 'provenance-check', 'feature-adr-record', 'amendment-check', 'contract-check',
     'feature-adr-checkpoint', 'profile', 'reqe', 'qe-bridge', 'backlog', 'routing',
-    'bto-optimize', 'dashboard', 'roam', 'import-ecc',
+    'bto-optimize', 'dashboard', 'roam', 'import-ecc', 'chain',
 ];
 const USAGE = `dz - DZ cross-platform harness CLI
 
 Usage:
-  dz init   --target <name> [--skills-dir <dir>] [--project <dir>] [--preset <name>] [--select id,id,...] [--force] [--enrich] [--no-hooks] [--no-verify]   (--target codex ALSO installs the user-global dz veto+recall hooks and LIVE-verifies them (ADR-001 §8); --no-hooks = skills only; --no-verify skips the live probe and can never report ready)
+  dz init   --target <name> [--skills-dir <dir>] [--project <dir>] [--preset <name>] [--select id,id,...] [--force] [--enrich] [--allow-integrations <sha256:digest>] [--no-integrations] [--no-hooks] [--no-verify]   (integration manifests require exact digest consent; --no-integrations = explicit skills-only)
   dz verify [--skills-dir <dir>] [--target <name>]
   dz sync   [--canonical <dir>] [--project <dir>] [--dry-run] [--force]
   dz update   (alias of sync)
@@ -81,13 +81,14 @@ Usage:
   dz delivery-check --slug <slug> [--context-only] [--findings <f.json>] [--strict] [--author <model>] [--json]   (portable Step-10 Delivery Gate: prints the 4-plane review brief + artifact probes; --findings classifies a fed-back review into a fail-closed ready|blocked hand-off and writes features/<slug>/10_delivery_review.md; --strict exits 1 on blocked)
   dz challenge --plan <plan.md> [--author <model>]   (the deterministic cartridge behind the challenge-panel adversarial plan-gate (R6): assembles the wide brief — plan + architecture/vision.md + testing.md + map.json + degradations.md — and prints the C1-C8 adversary prompt naming the cross-family reviewer to dispatch. exit 0 brief printed / 1 plan missing or empty)
   dz skills-verify [--dir <project>] [--expect a,b] [--static] [--strict] [--json]   (does .claude/skills/ actually REGISTER? --static = instant layout scan for CI; default reads the authoritative system/init listing from a real session. exit 0 pass / 1 fail / 2 inconclusive — never a false pass)
-  dz compounding [--project <dir>] [--json]   (honest learning-loop payoff report: pool write-only ratio, guard repeat-violation trajectory, cold-vs-warm replay readiness, instrumentation health — a gate without enough data says INSUFFICIENT_DATA, never a fake verdict)
+  dz compounding [--project <dir>] [--json]   (honest learning-loop payoff report: pool/replay/guard instrumentation + monthly eligible→attempted→accepted→executions; unavailable is NOT MEASURED, and only a named empty stage after a non-empty predecessor for 3 measured months is a funnel finding)
   dz deadwood [--weeks <n>] [--json]   (advisory zero-usage candidates for human deprecation review; safety-excluded surfaces carry reasons; never deletes or deprecates anything; shallow history says INSUFFICIENT_DATA)
   dz epoch-replay --mock [--n <N>] [--effect <-1..1>] [--tie-rate <0..1>] [--seed <N>] [--slice <name>] [--json]   ($0 synthetic run — exercises the verdict math, NOT evidence)
   dz epoch-replay --emit [--project <dir>] [--limit <N>] [--seed <N>] [--out <file>]   (cold-vs-warm work order: instances + PRE-REGISTERED blind A/B assignment; the runner never calls a model)
   dz epoch-replay --judge <filled-work-order.json> [--out <file>]   (blind judge prompts from the filled plans)
   dz epoch-replay --score <judgments.json> --work-order <file> [--slice <name>] [--json]   (un-blind against the pre-registered assignment → SUPPORTED only when the two 95% Wilson CIs are DISJOINT, else FALSIFIED / INCONCLUSIVE)
   dz score --slug <feature> [--project <dir>] [--json]   (process scorecard for ONE feature-adr run, from its artifacts: ADR confirmation, discrimination, cross-model QE grade, live verification, README-first, learning loop, amendments — descriptive-only, a low score exits 0)
+  dz score --all [--project <dir>] [--json]              (sweep features/*/.fa-state/score-*.json into the append-only chained scorecards aggregate — descriptive-only, always exits 0)
   dz recap [--day|--week|--month] [--at <ISO date>] [--project <dir>] [--json]   (what was done over a window, from records only: deliveries with the grade an independent review STATED — a report naming two grades is reported ambiguous, never guessed — registry publishes, gate verdicts, knowledge reuse. --quarter/--half-year/--year are RECOGNISED and REFUSED with the real span in days: there is one complete quarter and the longest record is 174 days. Every section carries its own data-start date, and "the source was not read" never prints as zero. Contaminated measures — commit count, lines, tokens, learning-event volume, inventory counts, lesson count — are not computed, and the report says so. exit 0 reported / 2 refused)
   dz cadence [--window day|week|month|quarter|halfyear|year] [--json]   (the WHAT-SHIPPED aggregator: graded-shipment cadence by ISO week + npm-publish cadence (recap cache) + guard repeat decay on the FIXED rule set + recall reuse; a window deeper than 2× the record is REFUSED with the depth named (ADR: a cadence from one point is scale forgery); exit 0 report / 2 refused-window / 1 usage)
   dz qe-rounds (--slug <feature> | --feature-dir <abs>) [--ceiling <n>] [--project <dir>] [--json]   (how many Step-8 review rounds has this feature ALREADY had? Reads what dz qe-bridge already wrote — signoff-<runId>.json and failed-*.json under features/<slug>/.fa-state/qe-bridge — and writes nothing itself, so it can answer for runs already past. A round is a runId, not a file; an attempt with no verdict is counted SEPARATELY and never merged; an unreadable record is NAMED and the count is declared a LOWER BOUND. ONE directory, never a union across checkouts. exit 0 under the ceiling / 1 at-or-over — owner decides, the command does not judge whether the rounds were warranted / 2 NOT ESTABLISHED, which is never "zero rounds")
@@ -106,7 +107,7 @@ Usage:
   dz feature-adr-checkpoint (--slug <feature> | --feature-dir <abs>) --stage <s> --input-hash <h> --result <json> [--artifact a,b] [--json]   (record a pipeline stage ONLY after measuring its artifacts on disk; refuses a null result, an absent artifact, or a stage that declares none — the subagent runs a COMMAND instead of hand-writing durable state)
   dz profile [init|show|set|sync] [--json]   (WHO the assistant is talking to — per-user store at ~/.dz/profile.json (0600, NEVER in a project), delivered as a marked block in ~/.claude/CLAUDE.md so it loads in EVERY project, dz installed or not. init = five questions (language, register, deep/weak domains as comma lists — "networking (CCIE; NSX)" keeps the parenthetical as the note, Enter skips — teaches y/n with one re-ask, never a silent default); show ALWAYS prints the store path + age + drift verdict + the rendered block; set register|language|teaches <v> or set deep|weak add|rm <tag> [note] — register accepts the owner's own words (профи / профи лайт / просто), an unknown value is REFUSED naming the accepted set; sync re-writes the block (runs automatically after init/set; foreign content byte-for-byte, timestamped backup before every modifying write). The register changes FORM, never FACTS, and governs dialogue only — never ADRs/commits/QE reports; both rules are baked into the rendered block at every level. exit 0 done / 1 no profile or failed / 2 refused input)
   dz reqe [--slug <feature> [--done --report <f>]] [--json]   (the re-QE debt ledger: a usage-switched run whose Step-8 QE ran on the coder's OWN family records a debt; list debts, print the cross-family review brief, settle FAIL-CLOSED against a graded report — the settlement lands in 08_qe_report.md)
-  dz qe-bridge --family claude --slug <feature> [--coder-family codex|claude] [--model <id>] [--files a,b] [--out <f>] [--timeout <s>] [--allow-same-family] [--json]   (the REVERSE QE bridge: run an INDEPENDENT Claude reviewer over a feature's Step-8 artifacts from ANY host — a Codex session included, plain shell, no Claude agent plane needed — and land a PARSED signoff. The reviewer runs ISOLATED: an EMPTY temp cwd plus --safe-mode --strict-mcp-config --tools '' --no-session-persistence, so no CLAUDE.md/skills/plugins/hooks/MCP load, and the verdict is read from the --output-format json RESULT ENVELOPE — text a session customization printed onto the same stdout can never become a signoff. Probes the model before trusting it; sends SCOPED extracts with a loud 200k-char ceiling (never silent truncation); the grade must AGREE across three LAST-anchored channels (terminal marker line, fenced qe-bridge-signoff JSON, the report's own GRADE line) AND the marker must be the FINAL content — empty, gradeless, self-contradicting or miscounted output is one of 18 NAMED failures with an audit record under features/<slug>/.fa-state/qe-bridge/ (runId, resolved executable + binOverride, prompt sha256, channel offsets, requestedOut, reportWritten, retained raw stdout; 0600 files in a 0700 dir), never a clean review. A --coder-family that contradicts the recorded reqe debt is refused. Writes features/<slug>/08b_reqe_report.md, which dz reqe --done settles unchanged. DISCLOSURE: the extracts you scope are sent to the Claude runtime; the bridge cannot classify secrets. DZ_QE_BRIDGE_CLAUDE_BIN is a TEST SEAM, not a flag. exit 0 signoff parsed (ANY grade — it reports, it does not gate) / 1 named failure / 2 usage)
+  dz qe-bridge --family claude --slug <feature> [--coder-family codex|claude] [--model <id>] [--files a,b] [--out <f>] [--timeout <s>] [--allow-same-family] [--json]   (the REVERSE QE bridge: run an INDEPENDENT Claude reviewer over a feature's Step-8 artifacts from ANY host — a Codex session included, plain shell, no Claude agent plane needed — and land a PARSED signoff. The reviewer runs ISOLATED: an EMPTY temp cwd plus --safe-mode --strict-mcp-config --tools '' --no-session-persistence, so no CLAUDE.md/skills/plugins/hooks/MCP load, and the verdict is read from the --output-format json RESULT ENVELOPE — text a session customization printed onto the same stdout can never become a signoff. Probes the model before trusting it; sends SCOPED extracts with a loud 200k-char ceiling (never silent truncation); the grade must AGREE across three LAST-anchored channels (terminal marker line, fenced qe-bridge-signoff JSON, the report's own GRADE line) AND the marker must be the FINAL content — empty, gradeless, self-contradicting or miscounted output is one of 17 NAMED failures with an audit record under features/<slug>/.fa-state/qe-bridge/ (runId, resolved executable + binOverride, prompt sha256, channel offsets, requestedOut, reportWritten, retained raw stdout; 0600 files in a 0700 dir), never a clean review. A --coder-family that contradicts the recorded reqe debt is refused. Writes features/<slug>/08b_reqe_report.md, which dz reqe --done settles unchanged. DISCLOSURE: the extracts you scope are sent to the Claude runtime; the bridge cannot classify secrets. DZ_QE_BRIDGE_CLAUDE_BIN is a TEST SEAM, not a flag. exit 0 signoff parsed (ANY grade — it reports, it does not gate) / 1 named failure / 2 usage)
   dz mutation-gate [--package <dir>] [--registry <file>] [--test-cmd "<cmd>"] [--only <id[,id]>] [--timeout <ms>] [--rebaseline per-entry|final] [--keep-scratch] [--json]   (prove each NAMED protection has a test that DISCRIMINATES: copy the package to a scratch dir, verify the baseline suite is green, apply each registry mutation, run the suite, REQUIRE red, restore. The red must be BEHAVIOURAL: a mutation that no longer parses is MUTATION_UNPARSEABLE; a red run whose OWN output reports a test FILE failing to load (node --test file-level not-ok with exitCode, vitest Failed Suites) is MUTATION_LOAD_FATAL — the signal comes from the same run as the failing count, never from a separate isolated import; red output whose shape matches no known runner is INCONCLUSIVE (a runner-coverage gap, loud, never PROVEN); a count far above the entry's bound is OVER_FAILING; a restored tree that does not reproduce green makes the entry INCONCLUSIVE (flaky). Mutation writes are realpath-contained to the scratch copy: a symlink escape or a node_modules/ target is refused (exit 2), the real tree is never written. A mutation that does not apply, a green suite, or an inconclusive run is a FAILURE — never a skip. exit 0 all proven / 1 gate failed / 2 setup error)
   dz backlog add "<idea>" [--effort 1-5] [--proposal <text>] [--dry-run] [--project <dir>] [--json]   (capture an idea: semantic dedup against existing ideas via the Brain vector engine (DUPLICATE>=0.92 merges, RELATED links, NEW creates) + GoalMap alignment; --dry-run classifies without writing)
   dz backlog list [--status <s>] [--goal <id>] [--project <dir>] [--json]   (list captured ideas, filterable by status/goal)
@@ -122,7 +123,7 @@ Usage:
   dz backlog jira <id> [--project <dir>] [--json]                          (draft a Jira issue via the configurable adapter (backlog.jira.adapter: jira-mcp|copilot-mcp|none); none writes an auditable jira-outbox/<id>.json stub)
   dz backlog harmonize [--apply] [--threshold <0-1>] [--project <dir>] [--json]   (batch semantic dedup of the backlog ideas; --dry-run default, --apply snapshots first)
   dz setup --target <name> [--preset <name>] [--select id,id,...] [--skills-dir <dir>] [--project <dir>] [--memory agentdb] [--no-memory] [--no-hooks] [--no-verify] [--install-driver] [--force] [--enrich]   (--target codex ALSO installs + LIVE-verifies the codex hooks; an unverified hook exits non-zero WITHOUT aborting the rest of setup)
-  dz teach "<pattern>" [--reward <0-1>] [--domain <name>] [--type rule|success-pattern|lesson-learned] [--project <dir>] [--no-mirror]   (--project pins the learned store to <dir>/.dz, not the cwd — pin to a canonical brain)
+  dz teach "<pattern>" [--class-form "<template with :slot>"] [--reward <0-1>] [--domain <name>] [--type rule|success-pattern|lesson-learned] [--project <dir>] [--no-mirror]   (class form is optional; rejection never blocks the specific write; --project pins the learned store to <dir>/.dz)
   dz teach --from-json <file> [--project <dir>] [--no-mirror]   (bulk-import a 'dz recall --all --json' export — share a learned store across machines)
   dz consolidate [--sessions-dir <dir>] [--project <dir>] [--no-mirror] [--prune-noise [--apply]] [--prune-quarantine [--apply]]   (both prunes: DRY-RUN by default; --apply snapshots then deletes; prune-quarantine = expired unproven lessons ONLY, never coupled to noise)
   dz recall "<query>" [--limit <N>] [--domain <name>] [--semantic | --no-semantic] [--books [--book <slug>]] [--project <dir>] | dz recall --all [--json] | dz recall --usage [--json] | dz recall --forget <dzId>[,<dzId>] [--apply] | dz recall --promote <dzId>[,<dzId>] [--apply]   (--domain <name> BOOSTS lessons of that domain without dropping foreign ones — a shared store keeps its cross-domain transfers; forget/promote: dry-run default; forget snapshots before removing; promote lifts lesson-quarantine)
@@ -145,6 +146,7 @@ Usage:
   dz statusline --fa-record --slug <s> --step "<label>" [--kind <feature-adr|loop>] [--recalled <n>] [--stored <n>] [--mode <m>]   (feature-adr: record live per-run learning state → 📐 panel segment)
   dz usage [--json] [--project <dir>] | dz usage --calibrate --session <pct> --weekly <pct> [--model fable=<pct>] [--project <dir>]  (ESTIMATE Claude usage from fixed reset windows; optional per-model weekly binding; exit 0 ALWAYS; pct=null when limits unconfigured)
   dz usage --by-stage [--run <runId> | --slug <slug>] [--epsilon <0..1>] [--write <file.jsonl>] [--json]   (per-stage cost ledger for ONE feature-adr run + the reconciliation invariant: accounted + unaccounted = run total; verdict BALANCED | DEFECT | INSUFFICIENT_DATA; local transcript ESTIMATES — catches ATTRIBUTION errors, not pricing errors)
+  dz chain [--project <dir>] [--json]   (verify EVERY hash-chained journal in ONE command: coverage is DERIVED from the CHAINED_JOURNALS registry, never typed, so a journal cannot be given a chain and checked by nobody. An ABSENT journal is NAMED absent, never omitted — omission and cleanliness are indistinguishable in a report. Statuses: ok | healed (defects the current unbroken run has outlived — verdicts over present records are sound) | unchained (present, no chained record yet — legal) | absent | broken | unreadable. Exit 1 on broken/unreadable: a verifier that reports damage and exits 0 is one no automation can act on)
   dz claim-check [paths...] [--json] [--fail-on high|medium|none] [--project <dir>]  (enforce the Integrity Rule: flag untagged/overstated accuracy claims; default scan = root README.md + every discovered package's README.md + features/*/08_qe_report.md + docs/**/*.md (historical feature artifacts are NOT scanned — pass paths explicitly); exit 1 only at/above --fail-on, default high)
   dz lint [paths...] [--json] [--config <file>] [--registry <file>] [--project <dir>]  (advisory EN/RU prose-style lint; findings exit 0, incomplete input/policy exits 1, usage exits 2)
   dz pretrain [--project <dir>]
@@ -161,6 +163,7 @@ Usage:
   dz drift-check [--json] [--project <dir>]                             (CI gate: exit 1 if any shared skill drifted between its monorepo copies)
   dz agents-sync [--project <dir>] [--check] [--json]                   (sync/verify the always-on policy fence in root AGENTS.md; exit 0 synced/written, 1 drift, 3 inconclusive)
   dz hooks-sync --target codex [--check] [--verify] [--remove] [--json]  (install/verify the dz veto + recall hooks in $CODEX_HOME/hooks.json; exit 0 armed+trusted, 1 not armed/drift, 3 inconclusive)
+  dz integrations-verify --target <name> --component <mcp|hooks> [--project <dir>] [--json]  (non-executing exact-version registration probe; exit 0 observed / 1 refused)
   dz sync-canonical <skill> [--check] [--from <dir>] [--auto] [--project <dir>]  (heal every copy from skills-meta/<skill> or --from; no canonical + --check = compare copies to each other (exit 1 on drift); no canonical + write = refuse unless --auto (LOUD, picks most-complete copy); --check writes nothing)
   dz plugin [--version <ver>]
   dz downloads
@@ -265,6 +268,35 @@ function discoverSkillsDirs(cwd, explicitSkillsDir) {
 async function installSkills(opts) {
     const { target, projectRoot, cwd, explicitSkillsDir, select, force, enrich } = opts;
     const skillsDirs = discoverSkillsDirs(cwd, explicitSkillsDir);
+    // PREFLIGHT (backlog 9d15b9b6, PR-A) — resolve the REQUEST once, before anything is written.
+    //
+    // Two defects lived in asking each root independently instead of resolving the request: a skill
+    // present in two roots was installed TWICE and counted twice (the field report's `2 skill(s)` was
+    // one skill installed twice), and a skill present in NO root produced a warning and exit 0 —
+    // `0 skill(s)` reading as success. Both are gone once the decision happens here.
+    //
+    // Placement is load-bearing: an exit 1 that arrives after hooks and memory are written leaves a
+    // half-configured project, which is worse than either clean outcome. This runs before the loop
+    // below and before every target adapter.
+    //
+    // Dependency closure is deliberately NOT resolved here — that is PR-B. This preflight fixes the
+    // count and the exit contract, and gives that work a base it can trust.
+    if (select !== undefined) {
+        const roots = skillsDirs.map((dir) => ({ dir, ids: discoverSkillIds(dir) }));
+        const resolution = resolveSelection(select, roots);
+        for (const shadow of resolution.shadowed) {
+            opts.writeErr?.(`dz: skill '${shadow.id}' is offered by ${shadow.alsoIn.length + 1} roots; ` +
+                `installing from ${shadow.chosen} (earlier root wins). Also present in: ${shadow.alsoIn.join(', ')}`);
+        }
+        const refusal = formatSelectRefusal(resolution, roots);
+        if (refusal !== null) {
+            return {
+                selectRefusal: refusal,
+                results: [], dirsSearched: skillsDirs.length, written: 0, skipped: 0,
+                missing: [...resolution.missing], failures: [], applyFailures: [], integrations: [],
+            };
+        }
+    }
     // agents-md and gemini are FLATTENING single-file targets: each must aggregate
     // every selected skill from ALL discovered dirs into ONE root file (AGENTS.md /
     // GEMINI.md) in a single merge. A per-dir runInit loop (like the tree targets
@@ -272,8 +304,8 @@ async function installSkills(opts) {
     // route them through one aggregation.
     if (target === 'agents-md' || target === 'gemini') {
         const report = target === 'gemini'
-            ? runInitGeminiMd({ skillsDirs, projectRoot, ...(select !== undefined ? { select } : {}) })
-            : runInitAgentsMd({ skillsDirs, projectRoot, ...(select !== undefined ? { select } : {}) });
+            ? runInitGeminiMd({ skillsDirs, projectRoot, ...(select !== undefined ? { select } : {}), ...(opts.noHooks !== undefined ? { noHooks: opts.noHooks } : {}), ...(opts.noIntegrations !== undefined ? { noIntegrations: opts.noIntegrations } : {}) })
+            : runInitAgentsMd({ skillsDirs, projectRoot, ...(select !== undefined ? { select } : {}), ...(opts.noHooks !== undefined ? { noHooks: opts.noHooks } : {}), ...(opts.noIntegrations !== undefined ? { noIntegrations: opts.noIntegrations } : {}) });
         const results = report.skills.map((s) => ({
             id: s.id,
             written: s.written.length,
@@ -285,12 +317,20 @@ async function installSkills(opts) {
             written += s.written;
             skipped += s.skipped;
         }
-        return { results, dirsSearched: skillsDirs.length, written, skipped, missing: [...report.missing], failures: [...report.failures], applyFailures: [...report.applyFailures] };
+        return { results, dirsSearched: skillsDirs.length, written, skipped, missing: [...report.missing], failures: [...report.failures], applyFailures: [...report.applyFailures], integrations: [...report.integrations], ...(report.integrationDigest !== undefined ? { integrationDigest: report.integrationDigest } : {}) };
     }
     const results = [];
     const failures = [];
     const applyFailures = [];
-    for (const skillsDir of skillsDirs) {
+    let integrations = [];
+    let integrationDigest;
+    const integrationManifestSources = skillsDirs.flatMap((skillsDir) => {
+        const discovered = discoverSkillIds(skillsDir);
+        return discovered
+            .filter((id) => select === undefined || select.includes(id))
+            .map((skillId) => ({ skillId, skillDir: skillsDir }));
+    });
+    for (const [dirIndex, skillsDir] of skillsDirs.entries()) {
         const r = await runInit({
             target,
             skillsDir,
@@ -298,12 +338,27 @@ async function installSkills(opts) {
             force,
             enrich,
             ...(select !== undefined ? { select } : {}),
+            ...(opts.noHooks !== undefined ? { noHooks: opts.noHooks } : {}),
+            ...(dirIndex === 0
+                ? {
+                    integrationManifestSources,
+                    ...(opts.noIntegrations !== undefined ? { noIntegrations: opts.noIntegrations } : {}),
+                }
+                : { noIntegrations: true }),
+            ...(opts.noVerify !== undefined ? { noVerify: opts.noVerify } : {}),
+            ...(opts.allowIntegrations !== undefined ? { allowIntegrations: opts.allowIntegrations } : {}),
         });
         for (const skill of r.skills) {
             results.push({ id: skill.id, written: skill.written.length, skipped: skill.skipped.length });
         }
         failures.push(...r.failures);
         applyFailures.push(...r.applyFailures);
+        if (r.integrations.some((row) => row.status !== 'not-requested'))
+            integrations = [...r.integrations];
+        else if (integrations.length === 0)
+            integrations = [...r.integrations];
+        if (r.integrationDigest !== undefined)
+            integrationDigest = r.integrationDigest;
     }
     let written = 0;
     let skipped = 0;
@@ -313,7 +368,7 @@ async function installSkills(opts) {
     }
     const installed = new Set(results.map((s) => s.id));
     const missing = select !== undefined ? [...select].filter((id) => !installed.has(id)) : [];
-    return { results, dirsSearched: skillsDirs.length, written, skipped, missing, failures, applyFailures };
+    return { results, dirsSearched: skillsDirs.length, written, skipped, missing, failures, applyFailures, integrations, ...(integrationDigest !== undefined ? { integrationDigest } : {}) };
 }
 /** Warn about preset/select ids that weren't found in any installed pack. */
 function writeMissingSkillsHint(write, missing, presetName) {
@@ -374,19 +429,24 @@ async function cmdInit(options, flags, cwd, write, writeErr) {
         cwd,
         explicitSkillsDir,
         select,
+        writeErr,
         force: flags.has('force'),
         enrich: flags.has('enrich'),
+        noHooks: flags.has('no-hooks'),
+        noIntegrations: flags.has('no-integrations'),
+        noVerify: flags.has('no-verify'),
+        ...(options.get('allow-integrations') !== undefined ? { allowIntegrations: options.get('allow-integrations') } : {}),
     });
-    write(`dz init --target ${target}: ${r.results.length} skill(s), ${r.written} file(s) written, ${r.skipped} skipped`);
-    if (r.dirsSearched > 1) {
-        write(`  (searched ${r.dirsSearched} skill directories)`);
+    // PR-A: an explicit --select that named a skill no root provides is a REFUSAL, not a warning.
+    // Printed and returned here, before any target adapter runs — nothing has been written yet.
+    if (r.selectRefusal !== undefined) {
+        writeErr(r.selectRefusal);
+        return 1;
     }
-    writeMissingSkillsHint(write, r.missing, presetName);
-    // Codex-targeted init DELIVERS the hooks and verifies them (ADR-001 §8). Skills alone are not the
-    // target's harness: the veto + recall legs are what `--target codex` promises.
-    // `--no-hooks` is the documented escape for "skills only" (the same flag `dz setup` already
-    // carries): hook delivery writes USER-GLOBAL config, so a command that only wants skills compiled
-    // must be able to say so — and every test that is about skills says it.
+    // Codex keeps its established user-registry writer, but its result is normalized into the same
+    // two-outcome contract before JSON/human rendering. A write without a live ready observation is
+    // a refusal with applied=true, never a second success channel.
+    let integrationOutcomes = r.integrations;
     let codexHooksOk = true;
     if (target === 'codex' && !flags.has('no-hooks')) {
         const delivery = deliverCodexHooks({ project: projectRoot, verify: !flags.has('no-verify') }, undefined, 'dz init');
@@ -395,7 +455,30 @@ async function cmdInit(options, flags, cwd, write, writeErr) {
             write(line);
         for (const line of delivery.stderr)
             writeErr(line);
+        const hookIndex = integrationOutcomes.findIndex((row) => row.component === 'hooks' && row.status !== 'not-requested');
+        if (hookIndex !== -1) {
+            const hook = normalizeCodexHookOutcome(integrationOutcomes[hookIndex], delivery, flags.has('no-verify'));
+            integrationOutcomes = integrationOutcomes.map((row, index) => index === hookIndex ? hook : row);
+        }
     }
+    if (flags.has('json')) {
+        write(JSON.stringify({ target, skills: { count: r.results.length, written: r.written, skipped: r.skipped }, integrations: integrationOutcomes, integrationDigest: r.integrationDigest ?? null }));
+    }
+    else {
+        write(`dz init --target ${target}: ${r.results.length} skill(s), ${r.written} file(s) written, ${r.skipped} skipped`);
+        if (r.dirsSearched > 1)
+            write(`  (searched ${r.dirsSearched} skill directories)`);
+        for (const outcome of integrationOutcomes) {
+            const label = outcome.component === 'mcp' ? 'MCP' : 'Hooks';
+            const detail = outcome.status === 'refused'
+                ? `${outcome.reasonCode ?? 'LIVE_PROBE_FAILED'}${outcome.remediation ? ` — ${outcome.remediation}` : ''}`
+                : outcome.status === 'emitted'
+                    ? `${outcome.carrier?.path ?? 'registered'}${outcome.registrations.some((row) => row.approval === 'pending') ? '; Pending approval; ready=false' : ''}`
+                    : 'explicitly not requested';
+            write(`${label}: ${outcome.status.toUpperCase()} (${detail})`);
+        }
+    }
+    writeMissingSkillsHint(write, r.missing, presetName);
     // Skip-and-collect must not become skip-and-SILENCE: a skill that failed to load is
     // named on stderr and the command exits 1 (it exited 1 before too — by throwing).
     if (r.failures.length > 0 || r.applyFailures.length > 0) {
@@ -418,7 +501,38 @@ async function cmdInit(options, flags, cwd, write, writeErr) {
             writeErr(line);
         return 1;
     }
-    return codexHooksOk ? 0 : 1;
+    const integrationOk = !integrationOutcomes.some((row) => row.status === 'refused');
+    return codexHooksOk && integrationOk ? 0 : 1;
+}
+function cmdIntegrationsVerify(options, flags, cwd, write, writeErr) {
+    const targetInput = options.get('target');
+    const component = options.get('component');
+    if (targetInput === undefined || (component !== 'mcp' && component !== 'hooks')) {
+        writeErr('dz integrations-verify: requires --target <name> --component <mcp|hooks>');
+        return 1;
+    }
+    const resolution = resolveTargetName(targetInput);
+    if (resolution.kind === 'unknown') {
+        for (const line of formatTargetProblem('dz integrations-verify', resolution))
+            writeErr(line);
+        return 1;
+    }
+    if (resolution.via === 'alias')
+        writeErr(formatTargetAliasNote('dz integrations-verify', targetInput, resolution.target));
+    const result = runIntegrationsVerify({
+        target: resolution.target,
+        component,
+        projectRoot: resolve(cwd, options.get('project') ?? '.'),
+    });
+    if (flags.has('json'))
+        write(JSON.stringify(result));
+    else if (result.ok) {
+        write(`dz integrations-verify: ${resolution.target}/${component} registered (runtime ${result.runtimeVersion ?? 'unknown'}; ready=${result.registrations.every((row) => row.ready === true)})`);
+    }
+    else {
+        writeErr(`dz integrations-verify: ${resolution.target}/${component} REFUSED (${result.reasonCode ?? 'LIVE_PROBE_FAILED'}) — ${result.remediation ?? 'no qualifying receipt'}`);
+    }
+    return result.ok ? 0 : 1;
 }
 async function cmdVerify(options, cwd, write, writeErr) {
     const skillsDir = resolve(cwd, options.get('skills-dir') ?? '.claude/skills');
@@ -1870,6 +1984,150 @@ function cmdStatuslineFaRecord(options, cwd, write) {
     write(`dz statusline: recorded /feature-adr learning state for "${slug}" (${step}) — 🎓 ${state.pool} pool · ↑${state.recalled} used · +${state.stored} new · ↻${state.reinforced ?? 0} reinforced`);
     return 0;
 }
+function statuslineEtaStage(step) {
+    const match = step.match(/\bStep\s*-?\s*(0|[1-9](?:\.5)?)(?:\b|\s)/i);
+    if (match === null)
+        return undefined;
+    const value = Number(match[1]);
+    if (value === 0)
+        return 'router';
+    if (value > 0 && value < 6)
+        return 'design';
+    if (value === 6)
+        return 'plan';
+    if (value === 7)
+        return 'code';
+    if (value === 8)
+        return 'qe';
+    if (value === 9)
+        return 'fleet';
+    return undefined;
+}
+function routerMetadata(router) {
+    const result = router?.result;
+    if (result === null || typeof result !== 'object')
+        return {};
+    const record = result;
+    const tier = typeof record['tier'] === 'string' && record['tier'].length > 0 ? record['tier'] : undefined;
+    const activeSteps = Array.isArray(record['activeSteps'])
+        ? record['activeSteps'].filter((value) => typeof value === 'number' && Number.isFinite(value))
+        : undefined;
+    return {
+        ...(tier !== undefined ? { tier } : {}),
+        ...(activeSteps !== undefined ? { activeSteps } : {}),
+    };
+}
+function activeCheckpointStages(tier, activeSteps) {
+    const stages = new Set();
+    if (activeSteps !== undefined) {
+        for (const step of activeSteps) {
+            if (step === 0)
+                stages.add('router');
+            else if (step > 0 && step < 6)
+                stages.add('design');
+            else if (step === 6)
+                stages.add('plan');
+            else if (step === 7)
+                stages.add('code');
+            else if (step === 8)
+                stages.add('qe');
+            else if (step === 9)
+                stages.add('fleet');
+        }
+    }
+    else if (tier !== undefined) {
+        for (const stage of CHECKPOINT_STAGES) {
+            if (stage !== 'fleet' || tier === 'L' || tier === 'XL')
+                stages.add(stage);
+        }
+    }
+    return CHECKPOINT_STAGES.filter((stage) => stages.has(stage));
+}
+/** All checkpoint I/O for ETA lives in this CLI-only wrapper and degrades per file. */
+function readEtaCorpus(projectRoot, currentSlug) {
+    const trace = process.env['DZ_ETA_TRACE'];
+    if (trace !== undefined && trace.length > 0) {
+        try {
+            appendFileSync(trace, `${JSON.stringify({ projectRoot, currentSlug, ts: new Date().toISOString() })}\n`);
+        }
+        catch { /* a test/debug receipt can never take down the statusline */ }
+    }
+    const samples = [];
+    let currentSegments = [];
+    let hasCurrentCheckpoints = false;
+    let entries = [];
+    try {
+        entries = readdirSync(join(projectRoot, 'features'), { withFileTypes: true });
+    }
+    catch {
+        return {
+            history: [], currentRunSamples: [], currentTier: undefined, activeStages: [],
+            lastCheckpointTsMs: undefined, hasCurrentCheckpoints: false,
+        };
+    }
+    for (const entry of entries) {
+        if (!entry.isDirectory())
+            continue;
+        const checkpointPath = join(projectRoot, 'features', entry.name, '.fa-state', 'checkpoints.jsonl');
+        try {
+            const text = readFileSync(checkpointPath, 'utf8');
+            const observations = parseCheckpointLines(text, entry.name);
+            const segments = segmentRun(observations);
+            samples.push(...extractStageSamples(segments));
+            if (entry.name === currentSlug) {
+                hasCurrentCheckpoints = observations.length > 0;
+                currentSegments = segments;
+            }
+        }
+        catch {
+            // Missing, unreadable, or racing append: this run contributes no evidence.
+        }
+    }
+    const lastSegment = currentSegments.at(-1);
+    const currentRouter = lastSegment?.router;
+    const invocationSegments = currentRouter === undefined
+        ? []
+        : currentSegments.filter((segment) => segment.router === currentRouter);
+    const invocationRunIds = new Set(invocationSegments.map((segment) => segment.runId));
+    const currentRunSamples = extractStageSamples(invocationSegments);
+    const metadata = routerMetadata(currentRouter);
+    const currentTimestamps = invocationSegments
+        .flatMap((segment) => segment.observations)
+        .flatMap((observation) => observation.tsMs === undefined ? [] : [observation.tsMs]);
+    return {
+        history: samples.filter((sample) => !invocationRunIds.has(sample.runId)),
+        currentRunSamples,
+        currentTier: metadata.tier,
+        activeStages: activeCheckpointStages(metadata.tier, metadata.activeSteps),
+        lastCheckpointTsMs: currentTimestamps.length > 0 ? Math.max(...currentTimestamps) : undefined,
+        hasCurrentCheckpoints,
+    };
+}
+function statuslineEta(projectRoot, state, nowMs) {
+    const currentStage = statuslineEtaStage(state.step);
+    if (currentStage === undefined)
+        return undefined;
+    const corpus = readEtaCorpus(projectRoot, state.slug);
+    const currentIndex = CHECKPOINT_STAGES.indexOf(currentStage);
+    const remainingStages = corpus.activeStages.filter((stage) => CHECKPOINT_STAGES.indexOf(stage) >= currentIndex && stage !== 'router');
+    // Preserve honest absence as a machine-readable union member. The text formatter intentionally
+    // omits both variants, but `--json` must still distinguish no file from a file with no tier.
+    const stagesForEstimate = remainingStages.length > 0
+        ? remainingStages
+        : (currentStage === 'router' ? [] : [currentStage]);
+    if (stagesForEstimate.length === 0 && corpus.hasCurrentCheckpoints && corpus.currentTier !== undefined)
+        return undefined;
+    return estimateEta({
+        samples: corpus.history,
+        currentTier: corpus.currentTier,
+        currentStage,
+        remainingStages: stagesForEstimate,
+        currentRunSamples: corpus.currentRunSamples,
+        nowMs,
+        ...(corpus.lastCheckpointTsMs !== undefined ? { lastCheckpointTsMs: corpus.lastCheckpointTsMs } : {}),
+        hasCurrentCheckpoints: corpus.hasCurrentCheckpoints,
+    });
+}
 /**
  * `dz statusline` — render dz's OWN self-learning counts as one compact, emoji-tagged line for
  * Claude Code's status bar (modeled on agentic-qe's "🎓 12 patterns"). Claude Code pipes a JSON
@@ -1889,8 +2147,23 @@ function cmdStatusline(options, flags, cwd, write, readStdin) {
     try {
         const projectRoot = statuslineProjectRoot(readStdin(), options, cwd);
         const data = statuslineData(projectRoot);
+        const fa = data.featureAdr;
+        let eta;
+        let etaFragment;
+        if (fa !== undefined && fa.kind !== 'loop') {
+            try {
+                eta = statuslineEta(projectRoot, fa, Date.now());
+                if (eta !== undefined)
+                    etaFragment = formatEta(eta);
+            }
+            catch {
+                // ETA is advisory: any corpus/resource failure omits only this fragment.
+                eta = undefined;
+                etaFragment = undefined;
+            }
+        }
         if (flags.has('json')) {
-            write(JSON.stringify(data));
+            write(JSON.stringify({ ...data, ...(eta !== undefined ? { eta } : {}) }));
             return 0;
         }
         let line = `🎓 dz: ${data.patterns} patterns${data.usedPatterns !== undefined ? ` · ${data.usedPatterns} used` : ''} · 🧠 ${data.brainSources} sources`;
@@ -1900,14 +2173,13 @@ function cmdStatusline(options, flags, cwd, write, readStdin) {
         if (data.consolidatedAgeH !== undefined)
             line += ` · ⟳ ${data.consolidatedAgeH}h`;
         // Live /feature-adr run in flight → PREPEND the pipeline learning segment to the base dz line.
-        const fa = data.featureAdr;
         if (fa !== undefined) {
             // The producer marker reached data and arbitration in a previous round but not this label, so the bar asserted a pipeline that was not running.
             if (fa.kind === 'loop') {
                 line = `🔁 loop ${fa.step} · ${line}`;
             }
             else {
-                line = `📐 feature-adr ${fa.step} · 🎓 ${fa.pool} pool · ↑${fa.recalled} used · +${fa.stored} new · ↻${fa.reinforced ?? 0} reinforced · ${line}`;
+                line = `📐 feature-adr ${fa.step} · ${etaFragment !== undefined ? `${etaFragment} · ` : ''}🎓 ${fa.pool} pool · ↑${fa.recalled} used · +${fa.stored} new · ↻${fa.reinforced ?? 0} reinforced · ${line}`;
             }
         }
         write(line);
@@ -2494,7 +2766,12 @@ function learningStoreLine(storeRoot, projectOption, target, verb) {
     const reason = teachReasonPhrase(target.reason);
     return storeLocationLine(describeStoreLocation(storeRoot, projectOption, target.store === 'global' ? 'global' : undefined), verb) + (reason ? '  [' + reason + ']' : '');
 }
-async function cmdTeach(options, flags, cwd, write) {
+async function runTeachGuardReinforcement(projectRoot, dzId, reward) {
+    const backend = resolveLearningBackend(projectRoot);
+    backend.addSample({ dzId, kind: 'reinforce', reward, ts: new Date().toISOString() });
+    return backend.train();
+}
+async function cmdTeach(options, flags, cwd, write, writeErr = (line) => { console.error(line); }, interactive = false, guardRunner = teachGuard, reinforceRunner = runTeachGuardReinforcement) {
     // WHICH store this lesson belongs to, and WHO decided (teach-chooses-its-store).
     // `--to` → `DZ_LEARN` → `.dz/config.json` learning.teachTo → project. The owner asked for a
     // per-session choice; for a CLI every invocation is a fresh process, so the only honest session
@@ -2585,26 +2862,39 @@ async function cmdTeach(options, flags, cwd, write) {
             write('dz teach --from-json: expected a JSON array (produced by `dz recall --all --json`)');
             return 1;
         }
-        const existing = new Set(loadStorePatternsSync(storeRoot).map((p) => p.pattern));
+        const importedKey = (p) => p.lessonForm !== undefined && p.lessonPairId !== undefined
+            ? `${p.pattern}\u0000${p.lessonForm}\u0000${p.lessonPairId}`
+            : `legacy\u0000${p.pattern}`;
+        const existing = new Set(loadStorePatternsSync(storeRoot).map(importedKey));
         let imported = 0;
         let skipped = 0;
         const importedRecs = [];
         for (const item of parsed) {
             const p = item;
-            if (!p || typeof p.pattern !== 'string' || p.pattern.trim() === '' || existing.has(p.pattern)) {
+            if (!p || typeof p !== 'object') {
                 skipped += 1;
                 continue;
             }
-            const rec = {
-                pattern: p.pattern,
+            const pair = (p.lessonForm === 'specific' || p.lessonForm === 'class')
+                && typeof p.lessonPairId === 'string' && p.lessonPairId !== ''
+                ? { lessonForm: p.lessonForm, lessonPairId: p.lessonPairId }
+                : {};
+            const candidate = {
+                pattern: typeof p.pattern === 'string' ? p.pattern : '',
                 type: (typeof p.type === 'string' ? p.type : 'lesson-learned'),
                 reward: typeof p.reward === 'number' ? Math.max(0, Math.min(1, p.reward)) : 0.8,
                 domain: typeof p.domain === 'string' ? p.domain : 'general',
                 ts: typeof p.ts === 'string' ? p.ts : new Date().toISOString(),
                 source: 'dz-teach-import',
+                ...pair,
             };
+            if (candidate.pattern.trim() === '' || existing.has(importedKey(candidate))) {
+                skipped += 1;
+                continue;
+            }
+            const rec = candidate;
             await recordPattern(storeRoot, rec);
-            existing.add(p.pattern);
+            existing.add(importedKey(rec));
             importedRecs.push(rec);
             imported += 1;
         }
@@ -2687,23 +2977,32 @@ async function cmdTeach(options, flags, cwd, write) {
     }
     const reward = parseFloat(options.get('reward') ?? '0.8');
     const domain = options.get('domain') ?? 'general';
+    const classWasRequested = options.has('class-form') || flags.has('class-form');
+    const lessonForms = normalizeLessonForms(pattern, options.get('class-form'));
+    let guardedExisting;
     if (flags.has('guard')) {
-        const verdict = await teachGuard(storeRoot, pattern, { reward: Math.max(0, Math.min(1, reward)) });
+        const verdict = await guardRunner(storeRoot, pattern, { reward: Math.max(0, Math.min(1, reward)) });
         if (verdict.action === 'reinforce') {
-            const backend = resolveLearningBackend(storeRoot);
-            backend.addSample({ dzId: verdict.dzId, kind: 'reinforce', reward: Math.max(0, Math.min(1, reward)), ts: new Date().toISOString() });
-            const trained = await backend.train();
-            // HIGH-fix: only claim success when the reinforce actually FLUSHED. With backend 'off'
-            // (NoopLearningBackend) or a flush failure, flushed === 0 — falling through to the plain
-            // teach below so the lesson is NEVER silently discarded (the exact silent-drop the ADR forbids).
-            if (trained.flushed > 0) {
-                write(`↳ reinforced existing pattern ${verdict.dzId} (cos=${verdict.cosine.toFixed(2)}) — not re-added`);
-                const clearedQ = clearAgentdbQuarantine(storeRoot, [verdict.dzId]);
-                if (clearedQ.cleared > 0)
-                    write('  ↳ promoted out of quarantine (mirror updated)');
-                return 0;
+            if (lessonForms.classForm !== undefined) {
+                const existing = loadStoreRecords(storeRoot).find((record) => record.id === verdict.dzId);
+                if (existing !== undefined) {
+                    guardedExisting = { dzId: verdict.dzId, cosine: verdict.cosine, pattern: recordToPattern(existing) };
+                }
+                else {
+                    write(`dz teach --guard: matched pattern ${verdict.dzId} was not found in the lexical store — teaching the lesson normally`);
+                }
             }
-            write(`dz teach --guard: reinforce of ${verdict.dzId} did not flush (backend off or write failure) — teaching the lesson normally instead`);
+            else {
+                const trained = await reinforceRunner(storeRoot, verdict.dzId, Math.max(0, Math.min(1, reward)));
+                if (trained.flushed > 0) {
+                    write(`↳ reinforced existing pattern ${verdict.dzId} (cos=${verdict.cosine.toFixed(2)}) — not re-added`);
+                    const clearedQ = clearAgentdbQuarantine(storeRoot, [verdict.dzId]);
+                    if (clearedQ.cleared > 0)
+                        write('  ↳ promoted out of quarantine (mirror updated)');
+                    return 0;
+                }
+                write(`dz teach --guard: reinforce of ${verdict.dzId} did not flush (backend off or write failure) — teaching the lesson normally instead`);
+            }
         }
     }
     // Distill pattern into actionable rule (claude-smart inspired)
@@ -2716,8 +3015,8 @@ async function cmdTeach(options, flags, cwd, write) {
     // Typed through the shared schema (harness-core owns PatternRecord) so the
     // write side and the read side (recommend's loadPatterns) can never drift —
     // a field rename here is a compile error, not a silently re-muted loop (audit #2).
-    const entry = {
-        pattern,
+    const entry = guardedExisting?.pattern ?? {
+        pattern: lessonForms.specific,
         type: type,
         reward: Math.max(0, Math.min(1, reward)),
         domain,
@@ -2729,9 +3028,47 @@ async function cmdTeach(options, flags, cwd, write) {
     // total count. The lossy `npx agentdb add` dual-write was removed in Tier-1 (audit #6).
     // lesson-quarantine (opt-in): a fresh lesson is a HYPOTHESIS until it earns promotion.
     const quarantineOn = readMemoryLearningConfig(storeRoot).quarantine;
-    const count = await recordPattern(storeRoot, entry, quarantineOn ? { quarantine: true } : {});
-    write(`Learned: "${pattern.slice(0, 60)}${pattern.length > 60 ? '...' : ''}"`);
-    write(`  Domain: ${domain}  Reward: ${reward}  Backend: memory (@dzhechkov/memory)`);
+    const stored = await recordLessonForms(storeRoot, entry, lessonForms.classForm, quarantineOn ? { quarantine: true } : {});
+    let recordsToMirror = stored.records;
+    let commandFailed = stored.class === 'failed';
+    let reinforced = false;
+    if (guardedExisting !== undefined) {
+        let reinforceId = guardedExisting.dzId;
+        if (stored.class === 'stored') {
+            const specificRow = stored.records.find((row) => row.lessonForm === 'specific');
+            if (specificRow !== undefined)
+                reinforceId = patternRecordId(specificRow);
+            if (reinforceId !== guardedExisting.dzId) {
+                const removed = removePatternsByIds(storeRoot, new Set([guardedExisting.dzId]));
+                if (removed.error !== undefined || removed.removed === 0) {
+                    commandFailed = true;
+                    writeErr(`dz teach --guard: class pair stored, but old pattern cleanup failed${removed.error === undefined ? '' : ` — ${removed.error}`}`);
+                }
+            }
+        }
+        else if (stored.class === 'failed') {
+            const partialSpecific = stored.records.find((row) => row.lessonForm === 'specific');
+            if (partialSpecific !== undefined && patternRecordId(partialSpecific) !== guardedExisting.dzId) {
+                const rolledBack = removePatternsByIds(storeRoot, new Set([patternRecordId(partialSpecific)]));
+                if (rolledBack.error !== undefined)
+                    writeErr(`dz teach --guard: partial enrichment rollback failed — ${rolledBack.error}`);
+            }
+            recordsToMirror = [];
+            reinforceId = guardedExisting.dzId;
+        }
+        if (!commandFailed) {
+            const trained = await reinforceRunner(storeRoot, reinforceId, Math.max(0, Math.min(1, reward)));
+            reinforced = trained.flushed > 0;
+            if (reinforced) {
+                const clearedQ = clearAgentdbQuarantine(storeRoot, [reinforceId]);
+                if (clearedQ.cleared > 0)
+                    write('  ↳ promoted out of quarantine (mirror updated)');
+            }
+        }
+    }
+    const count = guardedExisting === undefined ? stored.count : loadStorePatternsSync(storeRoot).length;
+    write(`${guardedExisting !== undefined && stored.class === 'stored' ? 'Enriched' : 'Learned'}: "${pattern.slice(0, 60)}${pattern.length > 60 ? '...' : ''}"`);
+    write(`  Domain: ${entry.domain}  Reward: ${entry.reward}  Backend: memory (@dzhechkov/memory)`);
     write(`  Total patterns: ${count}`);
     // WHERE the write landed. MEASURED before this line existed: teach printed the pattern, the
     // domain, the reward and the backend — and not one word about the path, so a store written to
@@ -2741,6 +3078,24 @@ async function cmdTeach(options, flags, cwd, write) {
     // sees a path, cannot tell what chose it, and has no reason to question it. `default` adds
     // nothing, so the line stays byte-identical for everyone who set nothing.
     write(storeLine('written'));
+    if (stored.class === 'stored')
+        write('  Class form: stored separately and linked to the specific lesson');
+    if (classWasRequested && stored.class === 'absent')
+        write('  Class form: skipped; the specific lesson was saved');
+    if (stored.class === 'rejected')
+        writeErr(`dz teach: class form rejected — ${stored.reason ?? 'invalid class form'}; the specific lesson was saved`);
+    if (stored.class === 'failed')
+        writeErr(`dz teach: specific stored; class failed — ${stored.reason ?? 'unknown storage failure'}`);
+    if (guardedExisting !== undefined && stored.class === 'stored') {
+        write(commandFailed
+            ? '  Guard: class enrichment stored; reinforcement skipped because old-pattern cleanup failed'
+            : reinforced
+                ? `  Guard: enriched existing pattern (cos=${guardedExisting.cosine.toFixed(2)}), then reinforced the linked specific form`
+                : '  Guard: class enrichment stored; reinforcement did not flush');
+    }
+    if (!classWasRequested && interactive) {
+        write('  Rule of one place or of a class? Optional: add --class-form when a future reader needs the why for structure, interfaces, or maintainability; skip when scope, risk, time, and cost are low or standards, policy, or documentation already cover it.');
+    }
     // ADVICE, not a gate. Someone putting medical lessons in a shared store owns both
     // directories and this binary; refusing would be defending a user against themselves,
     // which this design does not attempt. Making the choice INFORMED is the part that is
@@ -2759,8 +3114,8 @@ async function cmdTeach(options, flags, cwd, write) {
         write('  ⚠ quarantined: excluded from auto-inject, damped in recall — promote by confirming it (dz teach --reinforce "<text>") or dz recall --promote <dzId> --apply');
     }
     // The lexical write above is durable — the vector mirror is strictly best-effort (I-3).
-    await emitMirrorQ(storeRoot, [entry], 'dz-teach', quarantineOn);
-    return 0;
+    await emitMirrorQ(storeRoot, recordsToMirror, 'dz-teach', quarantineOn);
+    return commandFailed ? 1 : 0;
 }
 async function cmdConsolidate(options, flags, cwd, write) {
     const projectRoot = resolve(cwd, options.get('project') ?? '.');
@@ -3120,7 +3475,7 @@ async function cmdRecallPromote(options, flags, projectRoot, write) {
         write(`  not found: ${res.notFound.join(', ')}`);
     return 0;
 }
-async function cmdRecall(options, flags, cwd, write) {
+async function cmdRecall(options, flags, cwd, write, writeErr, classMatcher) {
     const projectRoot = resolve(cwd, options.get('project') ?? '.');
     const asJson = flags.has('json');
     const all = flags.has('all');
@@ -3141,7 +3496,15 @@ async function cmdRecall(options, flags, cwd, write) {
         // review could not make correct: a tag set by the writer is decidable, prose is not.
         const allPatterns = loadStorePatternsSync(projectRoot);
         const holdout = applyExportHoldout(allPatterns, heldOutAfterOptIn(options.get('include-domain')));
-        const patterns = holdout.exported;
+        const classByPair = new Map(holdout.exported
+            .filter((row) => row.lessonForm === 'class' && row.lessonPairId !== undefined)
+            .map((row) => [row.lessonPairId, row.pattern]));
+        const patterns = holdout.exported.map((row) => {
+            const classForm = row.lessonForm === 'specific' && row.lessonPairId !== undefined
+                ? classByPair.get(row.lessonPairId)
+                : undefined;
+            return classForm === undefined ? row : { ...row, classForm };
+        });
         const holdoutNote = renderHoldoutNote(holdout);
         // The opt-in is honoured without argument — and named out loud. A flag that silently
         // includes medical lessons in a portable export is a flag whose consequence the user
@@ -3171,7 +3534,15 @@ async function cmdRecall(options, flags, cwd, write) {
             const rawStats = storeStats(projectRoot);
             const topHoldout = applyExportHoldout(rawStats.topUses, heldOutAfterOptIn(options.get('include-domain')));
             const perDomain = Object.fromEntries(Object.entries(rawStats.perDomain).filter(([d]) => !holdout.domains.includes(canonicalDomainKey(d))));
-            const stats = { ...rawStats, topUses: topHoldout.exported, perDomain };
+            const generalizedPairs = new Set(patterns.flatMap((p) => p.lessonPairId === undefined ? [] : [p.lessonPairId]));
+            const unpairedLessons = patterns.filter((p) => p.lessonPairId === undefined).length;
+            const stats = {
+                ...rawStats,
+                topUses: topHoldout.exported,
+                perDomain,
+                generalized: generalizedPairs.size,
+                logicalLessons: generalizedPairs.size + unpairedLessons,
+            };
             const backendStats = resolveLearningBackend(projectRoot).getStats();
             if (asJson) {
                 write(JSON.stringify({ patterns, stats, learning: backendStats, withheld: holdout.withheld.length, withheldDomains: holdout.domains }));
@@ -3185,6 +3556,7 @@ async function cmdRecall(options, flags, cwd, write) {
             write(`  backend: ${backendStats.backend}${backendStats.advisory !== undefined ? ` (${backendStats.advisory})` : ''}`);
             write(`  domains: ${Object.entries(stats.perDomain).map(([k, v]) => `${k}=${v}`).join(', ') || 'none'}`);
             write(`  exact-dup groups: ${stats.exactDupGroups}`);
+            write(`  generalized: ${stats.generalized} of ${stats.logicalLessons} lessons`);
             write(`  re-teach trend: ${stats.teachEvents} teach event(s), ${stats.reinforceEvents} reinforce event(s)`);
             write('  top uses:');
             for (const row of stats.topUses)
@@ -3312,6 +3684,10 @@ async function cmdRecall(options, flags, cwd, write) {
             ? 'lexical'
             : 'hybrid';
     const wantedDomain = options.get('domain');
+    const classRecallOptions = {
+        onClassDegraded: writeErr,
+        ...(classMatcher === undefined ? {} : { classMatcher }),
+    };
     // OVER-FETCH before boosting (Codex QE #5): the boost used to run on hits ALREADY
     // truncated to `limit`, so an exact-domain lesson sitting at rank limit+1 could
     // never receive its promised lift — the feature was weakest in exactly the case it
@@ -3334,8 +3710,8 @@ async function cmdRecall(options, flags, cwd, write) {
     // second occurrence. Foreign stdout is routed to stderr for the duration of the engine call — our
     // own output is written after it returns.
     const result = asJson
-        ? await withForeignStdoutOnStderr(() => recallHybrid(projectRoot, query, { limit: fetchLimit, mode, deferExposures: true, ...(wantedDomain !== undefined ? { domain: wantedDomain } : {}) }))
-        : await recallHybrid(projectRoot, query, { limit: fetchLimit, mode, deferExposures: true, ...(wantedDomain !== undefined ? { domain: wantedDomain } : {}) });
+        ? await withForeignStdoutOnStderr(() => recallHybrid(projectRoot, query, { limit: fetchLimit, mode, deferExposures: true, ...classRecallOptions, ...(wantedDomain !== undefined ? { domain: wantedDomain } : {}) }))
+        : await recallHybrid(projectRoot, query, { limit: fetchLimit, mode, deferExposures: true, ...classRecallOptions, ...(wantedDomain !== undefined ? { domain: wantedDomain } : {}) });
     if (mode === 'semantic' && result.vectorEngine === 'none') {
         // --semantic is an explicit ask — degrading it silently would be dishonest (FR-3).
         const why = result.vectorReason ?? 'no vector engine available — run: dz setup --memory agentdb';
@@ -3369,13 +3745,27 @@ async function cmdRecall(options, flags, cwd, write) {
     let globalHits = [];
     if (readGlobal) {
         const g = asJson
-            ? await withForeignStdoutOnStderr(() => recallHybrid(globalRoot, query, { limit: fetchLimit, mode, deferExposures: true, ...(wantedDomain !== undefined ? { domain: wantedDomain } : {}) }))
-            : await recallHybrid(globalRoot, query, { limit: fetchLimit, mode, deferExposures: true, ...(wantedDomain !== undefined ? { domain: wantedDomain } : {}) });
+            ? await withForeignStdoutOnStderr(() => recallHybrid(globalRoot, query, { limit: fetchLimit, mode, deferExposures: true, ...classRecallOptions, ...(wantedDomain !== undefined ? { domain: wantedDomain } : {}) }))
+            : await recallHybrid(globalRoot, query, { limit: fetchLimit, mode, deferExposures: true, ...classRecallOptions, ...(wantedDomain !== undefined ? { domain: wantedDomain } : {}) });
         globalHits = g.hits;
     }
+    const projectHits = boost ? boost.hits : result.hits;
+    // TWO different keys on purpose, and they must not be unified. The cross-store MERGE key is the
+    // lesson TEXT: the same lesson taught into the project store and the global store is one lesson
+    // shown once, labelled `both`, and those two records legitimately differ in timestamp, reward and
+    // domain. The matchedForm LOOKUP key may be narrower. Folding the merge key into
+    // patternIdentityOf (which includes ts) made two `dz teach` calls of identical text stop
+    // collapsing — it reddened the pre-existing P3 case in recall-reads-both-stores.test.ts.
+    const mergeKey = (hit) => hit.pattern.pattern;
+    const globalByIdentity = new Map(globalHits.map((hit) => [mergeKey(hit), hit]));
     const merged = readGlobal
-        ? mergeStoreHits(boost ? boost.hits : result.hits, globalHits, (h) => h.pattern.pattern)
-        : (boost ? boost.hits : result.hits);
+        ? mergeStoreHits(projectHits, globalHits, mergeKey).map((hit) => {
+            if (hit.origin !== 'both')
+                return hit;
+            const matchedForm = mergeLessonMatchedForms(hit.matchedForm, globalByIdentity.get(mergeKey(hit))?.matchedForm);
+            return matchedForm === undefined ? hit : { ...hit, matchedForm };
+        })
+        : projectHits;
     const hits = merged.slice(0, limit);
     // Computed ONCE, honoured by EVERY return path. It used to live only on the text tail, so the two
     // paths that return earlier — `--json` and the zero-hits branch — still reported success. That
@@ -3422,6 +3812,7 @@ async function cmdRecall(options, flags, cwd, write) {
         // version emitted the number while its own comment promised null (found by independent review).
         write(JSON.stringify(hits.map((h) => ({
             ...h.pattern,
+            ...(h.matchedForm === undefined ? {} : { matchedForm: h.matchedForm }),
             relevance: boost === null && 'score' in h && typeof h.score === 'number' ? h.score : null,
             // The TRUE cosine, as a second companion key — the design named it and the first ship missed
             // it, so a scripted consumer STILL could not threshold (found while recalibrating the floors:
@@ -3488,6 +3879,10 @@ async function cmdRecall(options, flags, cwd, write) {
         // guessing which second one answered.
         write(`  store (read): ${join(globalRoot, '.dz')}  [cross-project]`);
     }
+    const classMatches = hits.filter((h) => h.matchedForm === 'class' || h.matchedForm === 'both').length;
+    if (hits.some((h) => h.pattern.classForm !== undefined)) {
+        write(`  class-form matches: ${classMatches} of ${hits.length}`);
+    }
     let sawQuarantined = false;
     for (const h of hits) {
         const backendTag = vectorOn ? ` ⟨${h.backend}⟩` : '';
@@ -3513,9 +3908,23 @@ async function cmdRecall(options, flags, cwd, write) {
         // 160, not 80: at 80 characters the evidence a reader needs to judge relevance sits in the
         // hidden remainder, and the cosine then appears to describe the visible fragment rather than
         // the whole lesson. `--full` prints it all, still on one line.
-        const width = flags.has('full') ? Number.POSITIVE_INFINITY : 160;
-        const oneLined = oneLine(h.pattern.pattern);
-        const shown = width === Number.POSITIVE_INFINITY ? oneLined : oneLined.slice(0, width);
+        const specificText = oneLine(h.pattern.pattern);
+        const classText = h.pattern.classForm === undefined ? undefined : oneLine(h.pattern.classForm);
+        let shown = specificText;
+        if (classText !== undefined) {
+            const suffix = ` [match: ${h.matchedForm ?? 'specific'}]`;
+            if (flags.has('full')) {
+                shown = `specific: ${specificText} · class: ${classText}${suffix}`;
+            }
+            else {
+                const contentWidth = Math.max(2, 160 - 'specific: '.length - ' · class: '.length - suffix.length);
+                const specificWidth = Math.floor(contentWidth / 2);
+                shown = `specific: ${specificText.slice(0, specificWidth)} · class: ${classText.slice(0, contentWidth - specificWidth)}${suffix}`;
+            }
+        }
+        else if (!flags.has('full')) {
+            shown = shown.slice(0, 160);
+        }
         // WHICH store this hit came from. A merged list that does not say re-creates the fragmentation
         // blindness the store-location line just removed, one level down: the reader would see more
         // results and have no way to tell whether the global store is even connected.
@@ -4489,6 +4898,28 @@ async function cmdSetup(options, flags, cwd, write, writeErr) {
         writeErr(formatTargetAliasNote('dz setup', targetOpt, target));
     const projectRoot = resolve(cwd, options.get('project') ?? '.');
     const presetName = options.get('preset');
+    // PREFLIGHT BEFORE THE FIRST WRITE (backlog 9d15b9b6, PR-A). Step 3 configures the learning
+    // environment and step 4 installs skills, so refusing at step 4 would leave a project that has
+    // memory and hooks but not the skills the operator asked for — a half-configured state worse than
+    // either clean outcome. The request is therefore resolved HERE, before the banner's first step.
+    //
+    // Only an EXPLICIT --select is refused. A preset names skills the package itself ships, so a gap
+    // there is our packaging defect, not the operator's typo, and it is reported by the existing
+    // missing-list rather than by refusing the whole run.
+    const setupSelectRaw = options.get('select');
+    if (setupSelectRaw !== undefined) {
+        const requested = setupSelectRaw.split(',').map((x) => x.trim()).filter((x) => x.length > 0);
+        const roots = discoverSkillsDirs(cwd, options.get('skills-dir')).map((dir) => ({ dir, ids: discoverSkillIds(dir) }));
+        const resolution = resolveSelection(requested, roots);
+        for (const shadow of resolution.shadowed) {
+            writeErr(`dz: skill '${shadow.id}' is offered by ${shadow.alsoIn.length + 1} roots; installing from ${shadow.chosen} (earlier root wins). Also present in: ${shadow.alsoIn.join(', ')}`);
+        }
+        const refusal = formatSelectRefusal(resolution, roots);
+        if (refusal !== null) {
+            writeErr(refusal);
+            return 1;
+        }
+    }
     write(`\n╔══════════════════════════════════════════════════════╗`);
     write(`║           DZ SETUP — Full Environment                ║`);
     write(`╠══════════════════════════════════════════════════════╣`);
@@ -4524,7 +4955,13 @@ async function cmdSetup(options, flags, cwd, write, writeErr) {
         ? selectArg.split(',').map((s) => s.trim()).filter((s) => s.length > 0)
         : getPreset(preset)?.skills;
     const install = select !== undefined && select.length > 0
-        ? await installSkills({ target, projectRoot, cwd, explicitSkillsDir: options.get('skills-dir'), select, force: flags.has('force'), enrich: flags.has('enrich') })
+        ? await installSkills({
+            target, projectRoot, cwd, explicitSkillsDir: options.get('skills-dir'), select,
+            force: flags.has('force'), enrich: flags.has('enrich'), noHooks: flags.has('no-hooks'),
+            noIntegrations: flags.has('no-integrations'),
+            noVerify: flags.has('no-verify'),
+            ...(options.get('allow-integrations') !== undefined ? { allowIntegrations: options.get('allow-integrations') } : {}),
+        })
         : undefined;
     if (install) {
         write(`║     ${String(install.results.length).padStart(2)} skill(s), ${String(install.written).padStart(3)} file(s) written${' '.repeat(15)}║`);
@@ -4534,6 +4971,7 @@ async function cmdSetup(options, flags, cwd, write, writeErr) {
     }
     // Step 5 (ADR-001 §8): DELIVER the codex hooks and verify them live. Non-aborting — the rest of
     // setup has already run and the summary still prints; only the exit code carries the failure.
+    let setupIntegrationOutcomes = install?.integrations ?? [];
     let codexHooksOk = true;
     if (target === 'codex' && !flags.has('no-hooks')) {
         write(`║  5. Delivering codex hooks (live verify)...           ║`);
@@ -4543,6 +4981,11 @@ async function cmdSetup(options, flags, cwd, write, writeErr) {
             write(line);
         for (const line of delivery.stderr)
             writeErr(line);
+        const hookIndex = setupIntegrationOutcomes.findIndex((row) => row.component === 'hooks' && row.status !== 'not-requested');
+        if (hookIndex !== -1) {
+            const hook = normalizeCodexHookOutcome(setupIntegrationOutcomes[hookIndex], delivery, flags.has('no-verify'));
+            setupIntegrationOutcomes = setupIntegrationOutcomes.map((row, index) => index === hookIndex ? hook : row);
+        }
     }
     write(`╠══════════════════════════════════════════════════════╣`);
     write(`║  Setup: ${String(setupResult.completed).padStart(2)} done, ${String(setupResult.skipped).padStart(2)} skipped                     ║`);
@@ -4560,6 +5003,9 @@ async function cmdSetup(options, flags, cwd, write, writeErr) {
     if (install) {
         write(`dz setup: ${install.results.length} skill(s), ${install.written} file(s) written, ${install.skipped} skipped`
             + (install.dirsSearched > 1 ? `  (searched ${install.dirsSearched} skill dirs)` : ''));
+        for (const outcome of setupIntegrationOutcomes) {
+            write(`dz setup integration ${outcome.component}: ${outcome.status.toUpperCase()}${outcome.reasonCode ? ` (${outcome.reasonCode})` : ''}`);
+        }
         writeMissingSkillsHint(write, install.missing, selectArg !== undefined ? undefined : preset);
     }
     // A hook that was written but never witnessed firing is NOT a completed setup (ADR-002 §5): the
@@ -4574,7 +5020,8 @@ async function cmdSetup(options, flags, cwd, write, writeErr) {
     if (erroredSteps.length > 0) {
         write(`\n✗ setup reported ${erroredSteps.length} failed step(s): ${erroredSteps.join(', ')} — exit 1`);
     }
-    return codexHooksOk && erroredSteps.length === 0 ? 0 : 1;
+    const integrationsOk = !setupIntegrationOutcomes.some((row) => row.status === 'refused');
+    return codexHooksOk && erroredSteps.length === 0 && integrationsOk ? 0 : 1;
 }
 function cmdPretrain(options, cwd, write) {
     const projectRoot = resolve(cwd, options.get('project') ?? '.');
@@ -5228,6 +5675,9 @@ function cmdPublish(options, flags, cwd, write) {
                 write(`dz publish: ⚠ guard warn — ${v.rule}: ${v.detail}`);
         else
             write('dz publish: ✓ guard pre-flight passed');
+        for (const observation of guardResult.observations ?? []) {
+            write(`dz publish: ℹ guard observation — ${observation.rule} ${observation.scope}: ${observation.detail} [${observation.status}]`);
+        }
         for (const n of guardResult.notes ?? [])
             write(`dz publish: ℹ guard note — ${n}`); // FN-7: on the record, never blocking
     }
@@ -6421,6 +6871,81 @@ function looksBinaryText(text) {
  * per-file findings (each enriched with its `file`), and applies the exit-code contract.
  * `--json` ALWAYS emits valid JSON `{ok, findings, scanned}`, even on the failure path.
  */
+/**
+ * `dz chain` — verify EVERY hash-chained journal in one command (W0-chain, backlog bc4ee35c).
+ *
+ * The machinery to verify a chain has worked for weeks. What was missing is the ABILITY TO ASK:
+ * verification lived inside two consumers, each carrying its own hardcoded list of which files are
+ * chained, so a journal could be given a chain and still be checked by nobody. Coverage here is
+ * DERIVED from CHAINED_JOURNALS, never typed — adding a journal to the registry adds it to this
+ * report by construction.
+ *
+ * An ABSENT journal is reported as `absent`, not omitted. Omission and cleanliness are
+ * indistinguishable in a report, and that indistinguishability is how the original blind spot
+ * survived; the same reason `broken` exits NON-ZERO rather than merely printing — a verifier that
+ * reports damage and exits 0 is one no automation can act on, and this verb exists to run unattended.
+ *
+ * A journal that exists but carries NO chained records is `unchained`, which is legal (a log may
+ * predate the chain) and therefore does not fail the command. Calling it a defect would train the
+ * reader to ignore the output — the failure mode already measured once on the doctor's own line.
+ */
+function cmdChain(options, flags, cwd, write) {
+    const root = options.get('project') ?? cwd;
+    const journals = CHAINED_JOURNALS.map((journal) => {
+        const path = join(root, journal.rel);
+        if (!existsSync(path)) {
+            return { rel: journal.rel, decides: journal.decides, status: 'absent', chained: 0, defects: 0, detail: 'file not present' };
+        }
+        let text = '';
+        try {
+            text = readFileSync(path, 'utf-8');
+        }
+        catch {
+            // Unreadable is NOT clean. It is the one outcome that must never be quietly folded into
+            // "nothing to report": we did not look, so we know nothing.
+            return { rel: journal.rel, decides: journal.decides, status: 'unreadable', chained: 0, defects: 0, detail: 'file could not be read' };
+        }
+        const v = verifyEventChainText(text);
+        if (v.chained === 0) {
+            return { rel: journal.rel, decides: journal.decides, status: 'unchained', chained: 0, defects: 0, detail: 'present, but no record carries a chain (legal — the log predates chaining)' };
+        }
+        const total = text.split('\n').filter((l) => l.trim() !== '').length;
+        const age = classifyChainDefects(v, total);
+        if (v.ok) {
+            return { rel: journal.rel, decides: journal.decides, status: 'ok', chained: v.chained, defects: 0, detail: `${v.chained} chained record(s), ${v.resets} recorded restart(s)` };
+        }
+        // A break the current unbroken run has already outlived does not make TODAY's records unsound.
+        // Reporting both alike is what made the doctor's equivalent line permanently red for four weeks.
+        const historical = age.inRun.length === 0 && age.runRecords > 0;
+        return {
+            rel: journal.rel,
+            decides: journal.decides,
+            status: historical ? 'healed' : 'broken',
+            chained: v.chained,
+            defects: v.defects.length,
+            detail: historical
+                ? `${v.defects.length} defect(s), all BEFORE the current run — the last ${age.runRecords} record(s) are unbroken, so verdicts over those are sound`
+                : `${v.defects.length} defect(s) with NO sound records after them: verdicts computed from this log are unsafe`,
+        };
+    });
+    const failed = journals.filter((j) => j.status === 'broken' || j.status === 'unreadable');
+    const ok = failed.length === 0;
+    if (flags.has('json')) {
+        write(JSON.stringify({ ok, root, journals }, null, 2));
+        return ok ? 0 : 1;
+    }
+    write(`dz chain — ${journals.length} registered journal(s) under ${root}`);
+    write('');
+    const MARK = { ok: '\u2713', healed: '\u2713', unchained: '\u00b7', absent: '\u00b7', broken: '\u2717', unreadable: '\u2717' };
+    for (const j of journals) {
+        write(`  ${MARK[j.status] ?? '?'} ${j.rel} — ${j.status}`);
+        write(`      ${j.detail}`);
+        write(`      decides: ${j.decides}`);
+    }
+    write('');
+    write(ok ? '  all registered journals are sound for present verdicts' : `  ${failed.length} journal(s) UNSAFE — see above`);
+    return ok ? 0 : 1;
+}
 function cmdClaimCheck(options, _optionLists, flags, cwd, write) {
     // Reject (never silently coerce) an invalid --fail-on.
     const failOnRaw = options.get('fail-on') ?? 'high';
@@ -6904,6 +7429,26 @@ export function codexHooksSyncOptions(input) {
         verify: input.verify !== false,
     };
 }
+/** Map the retained Codex hook writer's one live verdict into the common integration contract. */
+export function normalizeCodexHookOutcome(base, delivery, noVerify = false) {
+    if (delivery.report.ready) {
+        return {
+            target: 'codex', component: 'hooks', status: 'emitted',
+            registrations: [{ id: 'dz-codex-hooks', scope: 'user', registered: delivery.report.installed, approval: delivery.report.trust === 'trusted' ? 'approved' : 'unknown', ready: true }],
+            carrier: { scope: 'user', path: '$CODEX_HOME/hooks.json' },
+            ...(delivery.report.codexVersion !== null ? { runtimeVersion: delivery.report.codexVersion } : {}),
+            evidenceVersion: 'codex-hooks-live-v1',
+        };
+    }
+    return {
+        ...base,
+        target: 'codex', component: 'hooks', status: 'refused',
+        registrations: [{ id: 'dz-codex-hooks', scope: 'user', registered: delivery.report.installed, approval: delivery.report.trust === 'trusted' ? 'approved' : 'unknown', ready: false }],
+        reasonCode: 'CURRENT_LIVE_CHECK_FAILED',
+        remediation: noVerify ? '--no-verify cannot establish ready; rerun with live verification' : 'approve the managed hooks and rerun the live verification',
+        applied: delivery.report.written || delivery.report.installed,
+    };
+}
 /**
  * What the user is told about a sync report — the ONE place the success word can be printed.
  *
@@ -7221,6 +7766,430 @@ function gatherReadmeCounts(root) {
     sitePair('packages/@dzhechkov/sitedoc/src/content/docs/index.mdx', /^\s*tagline: "[^"]*?(\d+) commands/m, 'commands (docs-site index hero tagline vs cli All Commands)');
     return pairs;
 }
+const MAX_VOLUME_FILES_PER_SCOPE = 512;
+const MAX_VOLUME_BYTES_PER_SCOPE = 32 * 1024 * 1024;
+const CYRILLIC_CHARACTER = /\p{Script=Cyrillic}/u;
+function volumePathInside(root, candidate) {
+    return candidate === root || candidate.startsWith(root + sep);
+}
+function cyrillicUtf8Bytes(buffer) {
+    let bytes = 0;
+    for (const character of buffer.toString('utf8')) {
+        if (CYRILLIC_CHARACTER.test(character))
+            bytes += Buffer.byteLength(character, 'utf8');
+    }
+    return bytes;
+}
+function gatherTemplateVolumeTarget(packageDir, target) {
+    const templateRoot = join(packageDir, 'templates', '.claude');
+    if (!existsSync(templateRoot))
+        return undefined;
+    const files = [];
+    const realFiles = new Set();
+    let totalBytes = 0;
+    let failure;
+    let packageReal;
+    let templateReal;
+    try {
+        packageReal = realpathSync(packageDir);
+        templateReal = realpathSync(templateRoot);
+        if (!volumePathInside(packageReal, templateReal)) {
+            failure = { reason: 'template-root-escape', detail: templateRoot };
+        }
+    }
+    catch (error) {
+        return {
+            target,
+            files,
+            collection: { complete: false, reason: 'template-root-unreadable', detail: error instanceof Error ? error.message : String(error) },
+        };
+    }
+    const fail = (reason, detail) => {
+        failure ??= { reason, detail: detail.replace(/\s+/g, ' ').slice(0, 240) };
+    };
+    const addFile = (absolute, kind) => {
+        if (failure !== undefined)
+            return;
+        if (files.length >= MAX_VOLUME_FILES_PER_SCOPE) {
+            fail('template-file-cap-exceeded', `${MAX_VOLUME_FILES_PER_SCOPE} files`);
+            return;
+        }
+        try {
+            const stat = lstatSync(absolute);
+            if (!stat.isFile()) {
+                fail('template-input-not-regular', absolute);
+                return;
+            }
+            const real = realpathSync(absolute);
+            if (!volumePathInside(templateReal, real)) {
+                fail('template-input-escape', absolute);
+                return;
+            }
+            if (realFiles.has(real)) {
+                fail('template-input-duplicate', absolute);
+                return;
+            }
+            if (stat.size <= 0 || stat.size > MAX_VOLUME_BYTES_PER_SCOPE - totalBytes) {
+                fail(stat.size <= 0 ? 'template-input-empty' : 'template-byte-cap-exceeded', absolute);
+                return;
+            }
+            const content = readFileSync(absolute);
+            if (content.byteLength <= 0 || content.byteLength > MAX_VOLUME_BYTES_PER_SCOPE - totalBytes) {
+                fail(content.byteLength <= 0 ? 'template-input-empty' : 'template-byte-cap-exceeded', absolute);
+                return;
+            }
+            realFiles.add(real);
+            totalBytes += content.byteLength;
+            files.push({
+                path: relative(packageDir, absolute).split(sep).join('/'),
+                kind,
+                bytes: content.byteLength,
+                cyrillicUtf8Bytes: cyrillicUtf8Bytes(content),
+            });
+        }
+        catch (error) {
+            fail('template-input-unreadable', `${absolute}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    };
+    const scanFlat = (name) => {
+        const dir = join(templateRoot, name);
+        if (!existsSync(dir) || failure !== undefined)
+            return;
+        try {
+            for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+                if (!entry.name.endsWith('.md'))
+                    continue;
+                addFile(join(dir, entry.name), name);
+            }
+        }
+        catch (error) {
+            fail('template-directory-unreadable', `${dir}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    };
+    const scanSkills = (dir) => {
+        if (!existsSync(dir) || failure !== undefined)
+            return;
+        let entries;
+        try {
+            entries = readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name));
+        }
+        catch (error) {
+            fail('template-directory-unreadable', `${dir}: ${error instanceof Error ? error.message : String(error)}`);
+            return;
+        }
+        for (const entry of entries) {
+            if (failure !== undefined)
+                return;
+            const absolute = join(dir, entry.name);
+            if (entry.isSymbolicLink()) {
+                fail('template-input-not-regular', absolute);
+                return;
+            }
+            if (entry.isDirectory())
+                scanSkills(absolute);
+            else if (entry.name === 'SKILL.md')
+                addFile(absolute, 'skills');
+        }
+    };
+    scanFlat('rules');
+    scanFlat('commands');
+    scanSkills(join(templateRoot, 'skills'));
+    files.sort((a, b) => a.path.localeCompare(b.path));
+    return {
+        target,
+        files,
+        collection: failure === undefined
+            ? { complete: true }
+            : { complete: false, reason: failure.reason, detail: failure.detail },
+    };
+}
+function volumeGitText(root, args, allowedStatuses = [0]) {
+    const result = spawnSync('git', [...args], {
+        cwd: root,
+        encoding: 'utf8',
+        maxBuffer: 32 * 1024 * 1024,
+    });
+    if (result.status === null || !allowedStatuses.includes(result.status)) {
+        throw result.error ?? new Error(`git ${args[0] ?? ''} exited ${String(result.status)}`);
+    }
+    return result.stdout ?? '';
+}
+function parseGuardStatusPaths(root) {
+    const text = volumeGitText(root, ['status', '--porcelain', '-uall']);
+    return text.split('\n').flatMap((line) => {
+        if (line.length < 4)
+            return [];
+        const code = line.slice(0, 2);
+        const raw = line.slice(3).trim();
+        const path = (raw.includes(' -> ') ? raw.split(' -> ')[1] : raw)?.trim();
+        return path ? [{ code, path }] : [];
+    });
+}
+function parseFeatureTier(text) {
+    const match = text.match(/^##\s+Tier:\s*(S|M|L|XL)\s*$/m);
+    return match?.[1];
+}
+function parseFeatureActiveSteps(text) {
+    const section = text.match(/^## Active steps[^\n]*\n([\s\S]*?)(?=^## |(?![\s\S]))/mi)?.[1];
+    if (section === undefined)
+        return undefined;
+    const steps = [...section.matchAll(/\b(?:10|[0-9](?:\.5)?)\b/g)].map((match) => match[0]);
+    return [...new Set(steps)];
+}
+function featureLifecycle(root, slug, assessment) {
+    if (assessment !== undefined && /^Lifecycle:\s*complete\s*$/mi.test(assessment))
+        return { phase: 'complete' };
+    try {
+        const state = JSON.parse(readFileSync(join(root, '.dz', 'feature-adr', 'learning-state', `${slug}.json`), 'utf8'));
+        const match = typeof state.step === 'string' ? state.step.match(/\bStep\s+(\d+(?:\.5)?)/i) : null;
+        if (!match?.[1])
+            return undefined;
+        const current = Number(match[1]);
+        if (!Number.isFinite(current))
+            return undefined;
+        return { phase: 'in-progress', completedThroughStep: current <= 0 ? 0 : Math.ceil(current) - 1 };
+    }
+    catch {
+        return undefined;
+    }
+}
+function gatherFeatureVolumeFact(root, slug) {
+    const featureDir = join(root, 'features', slug);
+    const artifacts = [];
+    const contents = new Map();
+    let totalBytes = 0;
+    let failure;
+    let rootReal;
+    let featureReal;
+    try {
+        rootReal = realpathSync(root);
+        featureReal = realpathSync(featureDir);
+        if (!volumePathInside(rootReal, featureReal))
+            failure = { reason: 'feature-root-escape', detail: featureDir };
+    }
+    catch (error) {
+        return { fact: {
+                slug,
+                artifacts,
+                collection: { complete: false, reason: 'feature-root-unreadable', detail: error instanceof Error ? error.message : String(error) },
+            } };
+    }
+    const fail = (reason, detail) => {
+        failure ??= { reason, detail: detail.replace(/\s+/g, ' ').slice(0, 240) };
+    };
+    const addArtifact = (absolute) => {
+        if (failure !== undefined)
+            return;
+        if (artifacts.length >= MAX_VOLUME_FILES_PER_SCOPE) {
+            fail('feature-file-cap-exceeded', `${MAX_VOLUME_FILES_PER_SCOPE} files`);
+            return;
+        }
+        try {
+            const stat = lstatSync(absolute);
+            if (!stat.isFile()) {
+                fail('feature-input-not-regular', absolute);
+                return;
+            }
+            const real = realpathSync(absolute);
+            if (!volumePathInside(featureReal, real)) {
+                fail('feature-input-escape', absolute);
+                return;
+            }
+            if (stat.size <= 0 || stat.size > MAX_VOLUME_BYTES_PER_SCOPE - totalBytes) {
+                fail(stat.size <= 0 ? 'feature-input-empty' : 'feature-byte-cap-exceeded', absolute);
+                return;
+            }
+            const content = readFileSync(absolute);
+            if (content.byteLength <= 0 || content.byteLength > MAX_VOLUME_BYTES_PER_SCOPE - totalBytes) {
+                fail(content.byteLength <= 0 ? 'feature-input-empty' : 'feature-byte-cap-exceeded', absolute);
+                return;
+            }
+            const path = relative(featureDir, absolute).split(sep).join('/');
+            totalBytes += content.byteLength;
+            contents.set(path, content);
+            artifacts.push({ path, bytes: content.byteLength });
+        }
+        catch (error) {
+            fail('feature-input-unreadable', `${absolute}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    };
+    const scanNested = (dir) => {
+        if (!existsSync(dir) || failure !== undefined)
+            return;
+        let entries;
+        try {
+            entries = readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name));
+        }
+        catch (error) {
+            fail('feature-directory-unreadable', `${dir}: ${error instanceof Error ? error.message : String(error)}`);
+            return;
+        }
+        for (const entry of entries) {
+            if (failure !== undefined)
+                return;
+            const absolute = join(dir, entry.name);
+            if (entry.isSymbolicLink()) {
+                fail('feature-input-not-regular', absolute);
+                return;
+            }
+            if (entry.isDirectory())
+                scanNested(absolute);
+            else
+                addArtifact(absolute);
+        }
+    };
+    try {
+        const entries = readdirSync(featureDir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name));
+        for (const entry of entries) {
+            if (failure !== undefined)
+                break;
+            const absolute = join(featureDir, entry.name);
+            if (entry.name === '03_adr' || entry.name === '07_code_changes') {
+                if (entry.isSymbolicLink() || !entry.isDirectory())
+                    fail('feature-input-not-regular', absolute);
+                else
+                    scanNested(absolute);
+            }
+            else if (entry.name === 'README.md' || /^0[0-9](?:[_.-][^/]*)?\.md$/.test(entry.name)) {
+                addArtifact(absolute);
+            }
+        }
+    }
+    catch (error) {
+        fail('feature-directory-unreadable', `${featureDir}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    artifacts.sort((a, b) => a.path.localeCompare(b.path));
+    const assessment = contents.get('00_complexity_assessment.md')?.toString('utf8');
+    const tier = assessment !== undefined ? parseFeatureTier(assessment) : undefined;
+    const activeSteps = assessment !== undefined ? parseFeatureActiveSteps(assessment) : undefined;
+    const lifecycle = featureLifecycle(root, slug, assessment);
+    const fact = {
+        slug,
+        ...(tier !== undefined ? { tier } : {}),
+        ...(activeSteps !== undefined ? { activeSteps } : {}),
+        namedConsumers: [],
+        ...(lifecycle !== undefined ? { lifecycle } : {}),
+        artifacts,
+        collection: failure === undefined
+            ? { complete: true }
+            : { complete: false, reason: failure.reason, detail: failure.detail },
+    };
+    const manifestText = contents.get('07_code_changes/change_manifest.md')?.toString('utf8');
+    return { fact, ...(manifestText !== undefined ? { manifestText } : {}) };
+}
+function manifestPaths(text, slug) {
+    const paths = new Set();
+    for (const line of text.split('\n')) {
+        const match = line.match(/^\s*-\s+`?([^`]+?)`?(?:\s+[—-]\s+.*)?$/);
+        if (!match?.[1])
+            continue;
+        const path = match[1].trim().replace(/\\/g, '/').replace(/^\.\//, '');
+        if (path === '' || path.startsWith('/') || path.split('/').some((part) => part === '..'))
+            continue;
+        if (path.startsWith(`features/${slug}/`))
+            continue;
+        paths.add(path);
+    }
+    return [...paths].sort();
+}
+function attributableDiff(root, slug, feature, status, changedSlugs) {
+    if (changedSlugs.length !== 1 || changedSlugs[0] !== slug) {
+        return { attributable: false, reason: changedSlugs.length > 1 ? 'ambiguous-feature-attribution' : 'feature-not-attributable' };
+    }
+    if (feature.manifestText === undefined)
+        return { attributable: false, reason: 'change-manifest-unavailable' };
+    const listed = manifestPaths(feature.manifestText, slug);
+    const changedByPath = new Map(status.map((item) => [item.path, item.code]));
+    const changed = listed.filter((path) => changedByPath.has(path));
+    if (changed.length === 0)
+        return { attributable: true, bytes: 0, base: 'HEAD', head: 'working-tree', method: 'git-unified-diff-bytes/v1', excludedFeaturePath: `features/${slug}/**` };
+    const tracked = [];
+    const untracked = [];
+    for (const path of changed) {
+        const absolute = resolve(root, path);
+        if (!volumePathInside(root, absolute))
+            return { attributable: false, reason: 'manifest-path-escape' };
+        if (changedByPath.get(path) === '??') {
+            try {
+                const stat = lstatSync(absolute);
+                const real = realpathSync(absolute);
+                if (!stat.isFile() || !volumePathInside(root, real) || stat.size > MAX_VOLUME_BYTES_PER_SCOPE) {
+                    return { attributable: false, reason: 'untracked-diff-input-refused' };
+                }
+            }
+            catch {
+                return { attributable: false, reason: 'untracked-diff-input-unreadable' };
+            }
+            untracked.push(path);
+        }
+        else {
+            tracked.push(path);
+        }
+    }
+    let bytes = 0;
+    try {
+        if (tracked.length > 0) {
+            const diff = volumeGitText(root, ['diff', '--binary', '--no-ext-diff', 'HEAD', '--', ...tracked]);
+            bytes += Buffer.byteLength(diff, 'utf8');
+        }
+        for (const path of untracked) {
+            const diff = volumeGitText(root, ['diff', '--no-index', '--binary', '--', '/dev/null', resolve(root, path)], [0, 1]);
+            bytes += Buffer.byteLength(diff, 'utf8');
+            if (bytes > MAX_VOLUME_BYTES_PER_SCOPE)
+                return { attributable: false, reason: 'diff-byte-cap-exceeded' };
+        }
+    }
+    catch {
+        return { attributable: false, reason: 'git-diff-failed' };
+    }
+    return {
+        attributable: true,
+        bytes,
+        base: 'HEAD',
+        head: 'working-tree',
+        method: 'git-unified-diff-bytes/v1',
+        excludedFeaturePath: `features/${slug}/**`,
+    };
+}
+function gatherVolumeShadowFacts(root, packages) {
+    const templates = packages
+        .filter((item) => !item.privateFlag)
+        .sort((a, b) => a.name.localeCompare(b.name) || a.dir.localeCompare(b.dir))
+        .flatMap((item) => {
+        const fact = gatherTemplateVolumeTarget(join(root, item.dir), item.name);
+        return fact === undefined ? [] : [fact];
+    });
+    let status;
+    try {
+        status = parseGuardStatusPaths(root);
+    }
+    catch {
+        return templates.length > 0 ? { templates } : {};
+    }
+    const slugs = [...new Set(status.flatMap((item) => {
+            const match = item.path.match(/^features\/([^/]+)\//);
+            return match?.[1] ? [match[1]] : [];
+        }))].sort();
+    const gathered = slugs.slice(0, 32).map((slug) => gatherFeatureVolumeFact(root, slug));
+    const measuredFeatures = gathered.map((feature) => ({
+        ...feature.fact,
+        diff: attributableDiff(root, feature.fact.slug, feature, status, slugs),
+    }));
+    const cappedFeatures = slugs.slice(32).map((slug) => ({
+        slug,
+        artifacts: [],
+        collection: {
+            complete: false,
+            reason: 'feature-scope-cap-exceeded',
+            detail: 'only the first 32 lexicographically sorted changed feature scopes were traversed',
+        },
+    }));
+    const features = [...measuredFeatures, ...cappedFeatures];
+    return {
+        ...(templates.length > 0 ? { templates } : {}),
+        ...(features.length > 0 ? { features } : {}),
+    };
+}
 /** Gather the facts one op needs. All I/O is best-effort — a missing signal skips its rule, never crashes. */
 function gatherGuardFacts(op, root, text, storeCap) {
     const facts = { op };
@@ -7245,16 +8214,42 @@ function gatherGuardFacts(op, root, text, storeCap) {
                 const marketplacePath = join(showcaseDir, 'marketplace.json');
                 const hasPlugin = existsSync(pluginPath);
                 const hasMarketplace = existsSync(marketplacePath);
-                if (hasPlugin !== hasMarketplace) {
-                    let publishedVersion;
-                    if (hasPlugin) {
-                        try {
-                            const partial = JSON.parse(readFileSync(pluginPath, 'utf8'));
-                            if (typeof partial.version === 'string' && partial.version !== '')
-                                publishedVersion = partial.version;
-                        }
-                        catch { /* the half-showcase violation remains valid without a parseable version */ }
+                const manifestFailures = [];
+                const readManifest = (path, file) => {
+                    try {
+                        return JSON.parse(readFileSync(path, 'utf8'));
                     }
+                    catch (error) {
+                        const message = error instanceof Error ? error.message : String(error);
+                        manifestFailures.push({ file, error: message.replace(/\s+/g, ' ').slice(0, 240) });
+                        return undefined;
+                    }
+                };
+                const versionOf = (manifest) => {
+                    if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest))
+                        return undefined;
+                    const version = manifest['version'];
+                    return typeof version === 'string' && version !== '' ? version : undefined;
+                };
+                const publishedPlugin = hasPlugin ? readManifest(pluginPath, 'plugin.json') : undefined;
+                const publishedMarketplace = hasMarketplace ? readManifest(marketplacePath, 'marketplace.json') : undefined;
+                const marketplaceRecord = publishedMarketplace && typeof publishedMarketplace === 'object' && !Array.isArray(publishedMarketplace)
+                    ? publishedMarketplace
+                    : undefined;
+                const marketplacePlugins = marketplaceRecord !== undefined && Array.isArray(marketplaceRecord['plugins'])
+                    ? marketplaceRecord['plugins']
+                    : [];
+                const publishedVersion = versionOf(publishedPlugin)
+                    ?? versionOf(publishedMarketplace)
+                    ?? versionOf(marketplacePlugins[0]);
+                if (manifestFailures.length > 0) {
+                    facts['marketplaceParity'] = {
+                        applicable: true,
+                        manifestFailures,
+                        ...(publishedVersion !== undefined ? { publishedVersion } : {}),
+                    };
+                }
+                else if (hasPlugin !== hasMarketplace) {
                     facts['marketplaceParity'] = {
                         applicable: true,
                         onlyOnePresent: true,
@@ -7265,11 +8260,6 @@ function gatherGuardFacts(op, root, text, storeCap) {
                     facts['marketplaceParity'] = { applicable: false };
                 }
                 else {
-                    const publishedPlugin = JSON.parse(readFileSync(pluginPath, 'utf8'));
-                    const publishedMarketplace = JSON.parse(readFileSync(marketplacePath, 'utf8'));
-                    const publishedVersion = typeof publishedPlugin.version === 'string' && publishedPlugin.version !== ''
-                        ? publishedPlugin.version
-                        : undefined;
                     let scratch;
                     try {
                         const registry = buildRegistry(root);
@@ -7298,7 +8288,7 @@ function gatherGuardFacts(op, root, text, storeCap) {
                 }
             }
         }
-        catch { /* fail-open: malformed/unreadable showcase evidence is not a drift verdict */ }
+        catch { /* fail-open only on unexpected showcase-discovery failure; manifest read/parse errors are structured violations above */ }
         // agents-md-policy-sync: fixed registry, no tree walk. The pure detector
         // recomputes every expected hash from current source text; this gatherer
         // only supplies bytes. Any unexpected gather failure omits the fact, and
@@ -7334,7 +8324,7 @@ function gatherGuardFacts(op, root, text, storeCap) {
         const manifests = [];
         const located = [];
         try {
-            const out = execSync('git ls-files "packages/@dzhechkov/*/package.json"', { cwd: root, encoding: 'utf-8' });
+            const out = volumeGitText(root, ['ls-files', 'packages/@dzhechkov/*/package.json']);
             for (const rel of out.split('\n').map((s) => s.trim()).filter(Boolean)) {
                 try {
                     const m = JSON.parse(readFileSync(join(root, rel), 'utf8'));
@@ -7363,6 +8353,11 @@ function gatherGuardFacts(op, root, text, storeCap) {
             packages.push({ name: m.name ?? '(unnamed)', deps });
         }
         facts['packages'] = packages;
+        facts['volume'] = gatherVolumeShadowFacts(root, located.map(({ dir, m }) => ({
+            dir,
+            name: m.name ?? dir,
+            privateFlag: m.private === true,
+        })));
         // licence-hold (ADR-001, hermes-claude-adaptation): for each pack DECLARING a hold via a
         // `licenseHold` field, hand the raw evidence to the pure checker. Best-effort: an unreadable
         // LICENSE reads as absent (null), which the checker treats as a violation for a publishable
@@ -7639,6 +8634,10 @@ function runGuardEvaluation(root, op, text, overrideReason) {
     }
     catch { /* audit is best-effort, never blocks the verdict */ }
     return result;
+}
+function renderGuardObservation(observation) {
+    const tag = observation.status === 'unknown' ? 'note' : 'observe';
+    return `  [${tag}] ${observation.rule} ${observation.scope}: ${observation.detail} [${observation.status}]`;
 }
 /**
  * The tail facts of an append-only log, read from its END — O(1) in the file size, which is what
@@ -8014,8 +9013,9 @@ function cmdGuardPromote(options, flags, root, write) {
             ...next,
             entries: Object.fromEntries(Object.entries(next.entries).map(([k, v]) => (applied.includes(k) ? [k, { ...v, appliedTs: nowTs }] : [k, v]))),
         };
+        const withEvidence = recordPromotionRunEvidence(withApplied, report, nowTs);
         try {
-            writeJsonAtomic(join(root, PROMOTION_STATE_FILE), withApplied);
+            writeJsonAtomic(join(root, PROMOTION_STATE_FILE), withEvidence);
         }
         catch { /* best-effort */ }
     }
@@ -8124,6 +9124,8 @@ function cmdGuard(options, flags, cwd, write) {
     }
     const glyph = result.verdict === 'block' ? '✗' : result.verdict === 'warn' ? '⚠' : '✓';
     write(`dz guard (${op}): ${glyph} ${result.verdict.toUpperCase()}  [checked: ${result.checked.join(', ') || 'no rules for this op'}]`);
+    for (const observation of result.observations ?? [])
+        write(renderGuardObservation(observation));
     for (const v of result.violations)
         write(`  [${v.severity === 'hard' ? 'BLOCK' : 'warn'}] ${v.rule}: ${v.detail}`);
     for (const n of result.notes ?? [])
@@ -11224,6 +12226,18 @@ function cmdFeatureAdrRecord(options, flags, cwd, write) {
         targetExists: existsSync(target),
         targetHasPair: flags.has('once') && existsSync(target),
         timestamp: new Date().toISOString(),
+        // WHO ran it: `--runner <id>` when the caller knows, otherwise this host. The workflow cannot
+        // supply it — it has no host inside its sandbox — so the identity is resolved here, at the one
+        // seam that runs outside. hostname() can throw on an exotic setup; an unresolvable runner stays
+        // ABSENT rather than becoming the string 'unknown', which would later join as if it were one.
+        runnerId: (options.get('runner') ?? '').trim() !== ''
+            ? (options.get('runner') ?? '').trim()
+            : (() => { try {
+                return hostname();
+            }
+            catch {
+                return null;
+            } })(),
     });
     if (decision.line === null)
         return emit(decision);
@@ -12576,6 +13590,143 @@ async function cmdQeBridge(options, flags, cwd, write) {
         cleanupIsolated();
     }
 }
+function scoreReceiptFiles(root) {
+    const featuresDir = join(root, 'features');
+    let features;
+    try {
+        features = readdirSync(featuresDir, { withFileTypes: true });
+    }
+    catch {
+        return [];
+    }
+    const receipts = [];
+    for (const feature of features) {
+        if (!feature.isDirectory())
+            continue;
+        const stateDir = join(featuresDir, feature.name, '.fa-state');
+        let entries;
+        try {
+            if (lstatSync(stateDir).isSymbolicLink())
+                continue;
+            entries = readdirSync(stateDir, { withFileTypes: true });
+        }
+        catch {
+            continue;
+        }
+        for (const entry of entries) {
+            if (!entry.isFile())
+                continue;
+            const match = /^score-(.+)\.json$/.exec(entry.name);
+            if (match === null || match[1] === undefined || match[1] === '')
+                continue;
+            const path = join(stateDir, entry.name);
+            receipts.push({ path, displayPath: relative(root, path), qeHash: match[1] });
+        }
+    }
+    return receipts.sort((a, b) => a.displayPath < b.displayPath ? -1 : a.displayPath > b.displayPath ? 1 : 0);
+}
+function scoreAggregateChainLine(text) {
+    if (text === '') {
+        return { line: 'chain: NOT_PRESENT — no aggregate evidence file was created', verification: null, defectAges: null };
+    }
+    const verification = verifyEventChainText(text);
+    const defectAges = classifyChainDefects(verification, verification.lines);
+    const kinds = new Map();
+    for (const defect of verification.defects)
+        kinds.set(defect.kind, (kinds.get(defect.kind) ?? 0) + 1);
+    const kindText = [...kinds.entries()].map(([kind, count]) => `${kind}: ${count}`).join(' · ');
+    const line = `chain: ${verification.ok ? 'OK' : 'FAILED'} · ${verification.chained} chained · ` +
+        `${verification.resets} recorded restart(s) · before-run defects ${defectAges.beforeRun.length} · ` +
+        `in-run defects ${defectAges.inRun.length} · current run ${defectAges.runRecords} record(s)` +
+        (kindText === '' ? '' : ` · ${kindText}`) +
+        ` — ${verification.scope}`;
+    return { line, verification, defectAges };
+}
+function cmdScoreAll(options, flags, cwd, write) {
+    const json = flags.has('json');
+    if (options.has('slug')) {
+        write(json
+            ? JSON.stringify({ error: '--all and --slug are mutually exclusive', exitCode: 1 })
+            : 'dz score: --all and --slug are mutually exclusive');
+        return 1;
+    }
+    const root = resolve(cwd, options.get('project') ?? '.');
+    const receiptFiles = scoreReceiptFiles(root);
+    if (receiptFiles.length === 0) {
+        const report = buildScoreAggregateReport([], [], 0);
+        const chain = scoreAggregateChainLine('');
+        if (json)
+            write(JSON.stringify({ ...report, chain: null, aggregatePath: '.dz/feature-adr/scorecards.jsonl', exitCode: 0 }, null, 2));
+        else {
+            write(renderScoreAggregateReport(report));
+            write(chain.line);
+        }
+        return 0;
+    }
+    const ts = new Date().toISOString();
+    const rows = [];
+    const unreadableReceipts = [];
+    for (const receipt of receiptFiles) {
+        try {
+            rows.push(scoreReceiptToAggregateRow({
+                content: readFileSync(receipt.path, 'utf8'),
+                qeHash: receipt.qeHash,
+                ts,
+            }));
+        }
+        catch {
+            unreadableReceipts.push(receipt.displayPath);
+        }
+    }
+    const storeDir = join(root, '.dz', 'feature-adr');
+    const aggregatePath = join(storeDir, 'scorecards.jsonl');
+    let finalText = '';
+    let finalRows = rows;
+    let appended = 0;
+    let storeError = null;
+    try {
+        const result = withNamedLockSync(storeDir, 'scorecards', () => {
+            let existingText = '';
+            try {
+                existingText = readFileSync(aggregatePath, 'utf8');
+            }
+            catch (error) {
+                if (error.code !== 'ENOENT')
+                    throw error;
+            }
+            const fresh = dedupeScoreAggregateRows(rows, readScoreAggregateRows(existingText));
+            const appendText = appendChainedLines(fresh, readTailInfo(existingText));
+            if (appendText !== '')
+                appendFileSync(aggregatePath, appendText, { encoding: 'utf8', mode: 0o600 });
+            const settledText = existingText + appendText;
+            return { text: settledText, rows: readScoreAggregateRows(settledText), appended: fresh.length };
+        });
+        finalText = result.text;
+        finalRows = result.rows;
+        appended = result.appended;
+    }
+    catch (error) {
+        storeError = error instanceof Error ? error.message : String(error);
+    }
+    const report = buildScoreAggregateReport(finalRows, unreadableReceipts, appended);
+    const chain = scoreAggregateChainLine(finalText);
+    if (json) {
+        write(JSON.stringify({
+            ...report,
+            aggregatePath: '.dz/feature-adr/scorecards.jsonl',
+            chain: chain.verification === null ? null : { verification: chain.verification, defectAges: chain.defectAges },
+            storeError,
+            exitCode: 0,
+        }, null, 2));
+    }
+    else {
+        write(renderScoreAggregateReport(report));
+        write(chain.line);
+        if (storeError !== null)
+            write(`store error (nothing was claimed appended): ${storeError}`);
+    }
+    return 0;
+}
 function cmdScore(options, flags, cwd, write) {
     const json = flags.has('json');
     if (flags.has('help')) {
@@ -12584,13 +13735,14 @@ function cmdScore(options, flags, cwd, write) {
             write(JSON.stringify({ help: usage, exitCode: 0 })); // --json stays ONE document even for help
         else {
             write(usage);
+            write('dz score --all [--project <dir>] [--json] — sweep immutable score receipts into the append-only chained aggregate');
             write('  disciplines: ADR confirmation · discrimination · cross-model QE · live verification · README-first · learning loop · amendments');
             write('  descriptive-only, never a gate: a low score exits 0');
         }
         return 0;
     }
     for (const flag of flags) {
-        if (!new Set(['json', 'help']).has(flag)) {
+        if (!new Set(['json', 'help', 'all']).has(flag)) {
             write(json ? JSON.stringify({ error: `unknown option --${flag}`, exitCode: 1 }) : `dz score: unknown option --${flag}\n  allowed: --slug <feature>, --project <dir>, --json`);
             return 1;
         }
@@ -12602,6 +13754,8 @@ function cmdScore(options, flags, cwd, write) {
             return 1;
         }
     }
+    if (flags.has('all'))
+        return cmdScoreAll(options, flags, cwd, write);
     const slug = options.get('slug') ?? '';
     // The delivery-check traversal lesson, upgraded to a WHITELIST: `.` slipped the blacklist and
     // silently aggregated the entire features/ tree as one "run" (Codex QE #2).
@@ -12722,6 +13876,134 @@ function readOptionalText(path) {
         return '';
     }
 }
+function localEvidenceReadReason(resource, error) {
+    const code = error && typeof error === 'object' && 'code' in error ? String(error.code) : '';
+    return code === 'ENOENT' ? `${resource}-missing` : `${resource}-unreadable`;
+}
+function unavailablePromotionEvidence(reason) {
+    return { source: { status: 'not-measured', reason }, acceptances: [], truncatedPeriods: [], acceptanceHistoryComplete: false };
+}
+function readPromotionRunEvidence(root) {
+    let raw;
+    try {
+        raw = JSON.parse(readFileSync(join(root, PROMOTION_STATE_FILE), 'utf-8'));
+    }
+    catch (error) {
+        const reason = error instanceof SyntaxError
+            ? 'promotion-journal-malformed'
+            : localEvidenceReadReason('promotion-journal', error);
+        return unavailablePromotionEvidence(reason);
+    }
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+        return unavailablePromotionEvidence('promotion-journal-malformed');
+    }
+    const record = raw;
+    if (record['version'] !== 1 || !Object.hasOwn(record, 'runs')) {
+        return unavailablePromotionEvidence(record['version'] === 1 ? 'promotion-history-not-recorded' : 'promotion-journal-malformed');
+    }
+    if (!Array.isArray(record['runs'])) {
+        return unavailablePromotionEvidence('promotion-history-malformed');
+    }
+    const state = normalizePromotionState(raw);
+    if (state.runs === undefined || state.runs.length !== record['runs'].length) {
+        return unavailablePromotionEvidence('promotion-history-malformed');
+    }
+    if ((Object.hasOwn(record, 'acceptances') && (!Array.isArray(record['acceptances']) || state.acceptances?.length !== record['acceptances'].length)) ||
+        (Object.hasOwn(record, 'truncatedRunPeriods') && (!Array.isArray(record['truncatedRunPeriods']) || state.truncatedRunPeriods?.length !== record['truncatedRunPeriods'].length)) ||
+        (Object.hasOwn(record, 'acceptanceHistoryComplete') && typeof record['acceptanceHistoryComplete'] !== 'boolean')) {
+        return unavailablePromotionEvidence('promotion-history-malformed');
+    }
+    const derivedAcceptances = state.runs.flatMap((run) => run.candidates
+        .filter((candidate) => candidate.verdict === 'promote' && candidate.ruleContentAnchor !== null)
+        .map((candidate) => ({ ruleContentAnchor: candidate.ruleContentAnchor, acceptedTs: run.ts })));
+    const claimedAcceptanceComplete = state.acceptanceHistoryComplete ??
+        ((state.truncatedRunPeriods?.length ?? 0) === 0 && state.runs.every((run) => run.complete === true));
+    if (claimedAcceptanceComplete && state.acceptances !== undefined && derivedAcceptances.some((derived) => !state.acceptances.some((stored) => stored.ruleContentAnchor === derived.ruleContentAnchor &&
+        Date.parse(stored.acceptedTs) <= Date.parse(derived.acceptedTs)))) {
+        return unavailablePromotionEvidence('promotion-history-malformed');
+    }
+    const acceptancesByAnchor = new Map();
+    for (const acceptance of [...(state.acceptances ?? []), ...derivedAcceptances]) {
+        const prior = acceptancesByAnchor.get(acceptance.ruleContentAnchor);
+        if (prior === undefined || Date.parse(acceptance.acceptedTs) < Date.parse(prior.acceptedTs)) {
+            acceptancesByAnchor.set(acceptance.ruleContentAnchor, acceptance);
+        }
+    }
+    return {
+        source: { status: 'measured', rows: state.runs },
+        acceptances: [...acceptancesByAnchor.values()],
+        truncatedPeriods: state.truncatedRunPeriods ?? [],
+        acceptanceHistoryComplete: claimedAcceptanceComplete,
+    };
+}
+function readGuardAuditEvidence(root) {
+    let text;
+    try {
+        text = readFileSync(join(root, '.dz', 'guard-audit.jsonl'), 'utf-8');
+    }
+    catch (error) {
+        return {
+            source: { status: 'not-measured', reason: localEvidenceReadReason('guard-audit', error) },
+            rows: [],
+            text: null,
+        };
+    }
+    const rows = [];
+    let malformed = false;
+    for (const line of text.split('\n')) {
+        if (line.trim() === '')
+            continue;
+        try {
+            const raw = JSON.parse(line);
+            if (!isOffsetIsoTimestamp(raw['ts']) ||
+                !['publish', 'teach', 'consolidate', 'reindex'].includes(String(raw['op'])) ||
+                !['pass', 'warn', 'block'].includes(String(raw['verdict']))) {
+                malformed = true;
+                continue;
+            }
+            const violations = [];
+            if (!Array.isArray(raw['violations'])) {
+                malformed = true;
+                continue;
+            }
+            for (const item of raw['violations']) {
+                const rule = item && typeof item === 'object' ? item.rule : undefined;
+                if (typeof rule !== 'string' || rule === '' || rule.length > 200) {
+                    malformed = true;
+                    continue;
+                }
+                const anchor = item.contentAnchor;
+                if (anchor !== undefined && !isLessonRuleContentAnchor(anchor)) {
+                    malformed = true;
+                    continue;
+                }
+                violations.push({ rule, ...(typeof anchor === 'string' ? { contentAnchor: anchor } : {}) });
+            }
+            const verdict = raw['verdict'];
+            if ((verdict === 'pass') !== (violations.length === 0))
+                malformed = true;
+            rows.push({
+                ts: raw['ts'],
+                op: raw['op'],
+                verdict,
+                rules: violations.map((item) => item.rule),
+                violations,
+            });
+        }
+        catch {
+            malformed = true;
+        }
+    }
+    return {
+        source: malformed
+            ? { status: 'not-measured', reason: 'guard-audit-malformed' }
+            : !verifyEventChainText(text).ok
+                ? { status: 'not-measured', reason: 'guard-audit-chain-corrupt' }
+                : { status: 'measured', rows },
+        rows,
+        text,
+    };
+}
 function deadwoodAllowlistText() {
     const require = createRequire(import.meta.url);
     const corePackage = require.resolve('@dzhechkov/harness-core/package.json');
@@ -12802,7 +14084,7 @@ function cmdCompounding(options, flags, cwd, write) {
     const json = flags.has('json');
     if (flags.has('help')) {
         write('dz compounding [--project <dir>] [--json] — honest learning-loop payoff report');
-        write('  pool payoff (write-only ratio) · guard repeat-violation trajectory · cold-vs-warm replay readiness · instrumentation health');
+        write('  pool payoff · guard trajectory · replay readiness · instrumentation · monthly eligible→attempted→accepted→executions funnel');
         return 0;
     }
     for (const flag of flags) {
@@ -12831,42 +14113,23 @@ function cmdCompounding(options, flags, cwd, write) {
     }));
     // apply-leg usage events (read records only; aggregate rows carry no query by construction)
     const usage = readRecallUsageEvents(root);
-    // guard audit events
-    const guard = [];
-    try {
-        const text = readFileSync(join(root, '.dz', 'guard-audit.jsonl'), 'utf-8');
-        for (const line of text.split('\n')) {
-            if (line.trim() === '')
-                continue;
-            try {
-                const o = JSON.parse(line);
-                if (typeof o.ts === 'string' && typeof o.verdict === 'string') {
-                    guard.push({
-                        ts: o.ts,
-                        verdict: o.verdict,
-                        rules: Array.isArray(o.violations) ? o.violations.map((v) => (typeof v?.rule === 'string' ? v.rule : '')).filter(Boolean) : [],
-                    });
-                }
-            }
-            catch {
-                /* skip */
-            }
-        }
-    }
-    catch {
-        /* no audit yet */
-    }
+    const promotionEvidence = readPromotionRunEvidence(root);
+    const guardEvidence = readGuardAuditEvidence(root);
+    const guard = [...guardEvidence.rows];
     // The evidence logs themselves, verbatim: the report verifies their hash chains (feature
     // event-chain). Handing over the TEXT rather than a pre-computed verdict keeps one definition of
     // "the chain is intact" — a second copy here is how a gate and its report start disagreeing.
     const evidenceLogs = [];
-    for (const rel of ['.dz/recall-usage.jsonl', '.dz/guard-audit.jsonl']) {
+    for (const rel of ['.dz/recall-usage.jsonl']) {
         try {
             evidenceLogs.push({ log: rel, text: readFileSync(join(root, ...rel.split('/')), 'utf-8') });
         }
         catch {
             /* absent log — reported by its own gate above, not invented here */
         }
+    }
+    if (guardEvidence.text !== null) {
+        evidenceLogs.push({ log: '.dz/guard-audit.jsonl', text: guardEvidence.text });
     }
     const now = new Date();
     const report = assembleCompoundingReport({
@@ -12876,6 +14139,13 @@ function cmdCompounding(options, flags, cwd, write) {
         nowTs: now.toISOString(),
         evidenceLogs,
         cmdUsageDepthDays: cmdUsageDepthDays(root, now),
+        lessonToRule: {
+            promotionRuns: promotionEvidence.source,
+            guardAudits: guardEvidence.source,
+            promotionAcceptances: promotionEvidence.acceptances,
+            truncatedPromotionPeriods: promotionEvidence.truncatedPeriods,
+            acceptanceHistoryComplete: promotionEvidence.acceptanceHistoryComplete,
+        },
     });
     // lesson-bandit-rerank §11: the payoff axis joins THIS report rather than growing a private
     // dashboard — the `rewardEvents : exposureEvents` row asks exactly the question this command
@@ -14359,17 +15629,19 @@ function cmdStats(cwd, write) {
     }
     const dirs = readdirSync(baseDir, { withFileTypes: true }).filter((e) => e.isDirectory());
     const packages = dirs.length;
-    let totalSkills = 0;
-    let skillPacks = 0;
-    for (const dir of dirs) {
-        if (dir.name.startsWith('skills-')) {
-            skillPacks++;
-            const skillDir = join(baseDir, dir.name);
-            const skillDirs = readdirSync(skillDir, { withFileTypes: true })
-                .filter((e) => e.isDirectory() && existsSync(join(skillDir, e.name, 'SKILL.md')));
-            totalSkills += skillDirs.length;
-        }
-    }
+    // Backlog e160aeee. This used to walk the tree ITSELF, and was wrong in two independent ways:
+    // it counted only packages whose NAME starts with `skills-` (health-advisor, p-replicator,
+    // keysarium and trip-planner were therefore invisible), and it knew only ONE of the three skill
+    // layouts. Result: 203 here against 250 from `dz registry` on the same tree — two counters of one
+    // quantity, each unable to refute the other because neither knew the other existed.
+    //
+    // The fix is structural, not arithmetic: there is now ONE enumerator, and both commands ask it.
+    // Pinned by test/stats-registry-parity.test.ts, whose red half is this exact divergence.
+    // The registry already PUBLISHES these totals; recomputing them from `entries` here would be a
+    // third implementation of the same count, which is the very defect being fixed.
+    const registry = buildRegistry(cwd);
+    const totalSkills = registry.totalSkills;
+    const skillPacks = registry.totalPacks;
     const targets = TARGET_NAMES.length;
     const presets = PRESET_NAMES.length;
     write(`dz stats — DZ Harness Hub`);
@@ -14854,7 +16126,28 @@ export async function runCli(argv, io = {}) {
         // let a guard treat "I could not tell you" as "I answered you".
         return version === 'unknown' ? 1 : 0;
     }
-    if (command === '' || command === 'help' || flags.has('help')) {
+    // `-h` is the most-typed help flag and is NOT a command: before the unknown-command contract
+    // landed it fell through to the switch and still printed usage; afterwards it would have died
+    // with exit 2 and an empty stdout (measured regression, cross-model QE M1). It belongs beside
+    // `-v` above — an argv-level flag, resolved before command dispatch.
+    if (argv[0] === '-h') {
+        write(USAGE);
+        return 0;
+    }
+    // A bare `--typo` leaves the command empty, so the usage branch reported SUCCESS on a misspelled
+    // FLAG exactly as it used to on a misspelled VERB (cross-model QE M2): `dz --frobnicate` exited 0
+    // with 30 KB of usage. The refusal is deliberately narrowed to the no-command case, because the
+    // warn-don't-refuse decision above is measured and still stands: with a command present, an
+    // unrecognised name may simply be missing from KNOWN_CLI_FLAGS and refusing would break working
+    // invocations. With NO command there is nothing the flag could belong to, so it is a usage error.
+    if (command === '') {
+        const strayNames = unknownFlagNotice([...flags, ...options.keys()].filter((k) => !k.startsWith('_positional_')), KNOWN_CLI_FLAGS).map((n) => n.name);
+        if (strayNames.length > 0) {
+            writeErr(`dz: unknown option --${strayNames[0]} — run 'dz help' for usage`);
+            return 2;
+        }
+    }
+    if (command === '' || command === 'help' || (flags.has('help') && DZ_COMMANDS.includes(command))) {
         write(USAGE);
         return 0;
     }
@@ -14900,11 +16193,11 @@ export async function runCli(argv, io = {}) {
             case 'bundle':
                 return cmdBundle(options, flags, cwd, write);
             case 'teach':
-                return await cmdTeach(options, flags, cwd, write);
+                return await cmdTeach(options, flags, cwd, write, writeErr, io.interactive ?? process.stdout.isTTY === true, io.teachGuardRunner ?? teachGuard, io.teachReinforceRunner ?? runTeachGuardReinforcement);
             case 'consolidate':
                 return await cmdConsolidate(options, flags, cwd, write);
             case 'recall':
-                return await cmdRecall(options, flags, cwd, write);
+                return await cmdRecall(options, flags, cwd, write, writeErr, io.classMatcher);
             case 'vector':
                 return await cmdVector(options, flags, cwd, write);
             case 'brain':
@@ -14913,6 +16206,8 @@ export async function runCli(argv, io = {}) {
                 return cmdStatusline(options, flags, cwd, write, readStdin);
             case 'usage':
                 return cmdUsage(options, optionLists, flags, cwd, write);
+            case 'chain':
+                return cmdChain(options, flags, cwd, write);
             case 'claim-check':
                 return cmdClaimCheck(options, optionLists, flags, cwd, write);
             case 'lint':
@@ -14957,6 +16252,8 @@ export async function runCli(argv, io = {}) {
                 return cmdDriftCheck(options, flags, cwd, write);
             case 'hooks-sync':
                 return cmdHooksSync(options, flags, cwd, write, writeErr);
+            case 'integrations-verify':
+                return cmdIntegrationsVerify(options, flags, cwd, write, writeErr);
             case 'agents-sync':
                 return cmdAgentsSync(options, flags, cwd, write, writeErr);
             case 'sync-canonical':
@@ -15036,9 +16333,8 @@ export async function runCli(argv, io = {}) {
             case 'import-ecc':
                 return await cmdImportEcc(options, flags, cwd, write);
             default:
-                write(`dz: unknown command ${JSON.stringify(command)}`);
-                write(USAGE);
-                return 1;
+                writeErr(`dz: unknown command ${JSON.stringify(command)} — run 'dz help' for the command list`);
+                return 2;
         }
     }
     catch (error) {

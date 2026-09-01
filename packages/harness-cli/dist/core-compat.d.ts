@@ -39,7 +39,7 @@
  * standing test (`test/core-import-floor.test.ts`, F1) fails if the two drift apart,
  * because a guard that says 0.4.7 while npm may install 0.4.2 is worse than no guard.
  */
-export declare const MIN_CORE = "0.8.4";
+export declare const MIN_CORE = "0.8.7";
 /** The npm name of the guarded package — one literal, used by every leg below. */
 export declare const CORE_PACKAGE_NAME = "@dzhechkov/harness-core";
 /**

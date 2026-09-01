@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/design-thinking",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "Human-centered product design toolkit for Claude Code — Stanford d.school 5-phase Design Thinking + a 6th Validate phase, 25 academically-grounded methodologies (JTBD, CJM, VSM, HADI), chained over explore → goap-research → prototype → usability test → pilot. Bundles the BTO-benchmarked design-thinking orchestrator plus its skill dependencies, a /design-thinking command, governance rule, and context shard.",
   "main": "src/cli.js",
   "bin": {
@@ -46,12 +46,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/design-thinking"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/design-thinking#readme",
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/design-thinking#readme",
   "bugs": {
-    "url": "https://github.com/djd1m/dz-harness-hub/issues"
+    "url": "https://github.com/djd1m/dz-harness/issues"
   },
   "publishConfig": {
     "access": "public"

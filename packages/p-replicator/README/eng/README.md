@@ -6,7 +6,8 @@ product development in Claude Code (Vibe Coding).
 ## What it is
 
 `p-replicator` installs a ready-made `.claude/` toolkit into any project:
-**11 slash commands**, **10 skills**, **4 agents**, **6 rules**, **7 hook
+**11 slash commands**, **10 skills**, **4 agents**, **13 rules**, **15 hook
+**11 slash commands**, **10 skills**, **4 agents**, **13 rules**, **7 hook
 scripts**, and a `settings.json` with pre-configured hooks. The flagship
 `/replicate` command takes a project through a 5-phase pipeline (Discovery →
 Planning → Validation → Toolkit Generation → Finalize), generating SPARC

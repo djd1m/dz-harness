@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3abd4b4594ce8140387e3cde949863f3f2d98f20ab9c467fabdff82f050abc91"
+          "content": "49694b4e786a79148b68915c742c010a1229b618569a98f70ff5a1919ebdcb0f"
         }
       ]
     },
@@ -75,7 +75,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b37889a485c9b5e12a1341ee64fe7289df29334a135092f363d330712fb2a3da"
+          "content": "b9b477cac88328937c3659b09504429a28152c8e4f4acc23fdfd68226f781835"
         }
       ]
     },
@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5df3bdfe580d6fc94ba606bb821cf5f1b6d889d3baf2388a0380914592d8d59f"
+          "content": "d7b6bef004665862b2849212dc8ea5bf17b6778cc54d88061d5cdfef87cdbf4f"
         }
       ]
     },
@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "714514a8765865be263c37fa2cfe744f5490a1bed9293a136dac7c564c51043b"
+          "content": "ba8a1d593b6851a670a8672bbb73626c4cebd9df74d508fcea7a2a1207453008"
         }
       ]
     },
@@ -105,7 +105,47 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "887724a54d640ede275c7ef84f2fd8c5c1d7236b15338a7b7df1add8fd9c835a"
+          "content": "500b61dee4452f4e7f378c8bbf88d396dc652ba30a682287514b65cfcacf013a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/integrations.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "16eba7d19f538dc6738cbe46502463234a0f7a18791f87baa1f842800f3eb2c7"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/integrations.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b099a7ea0661b5b5c2c065c1a2c0f73abb78c7197e486728a7827cab5700e3dc"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/integrations.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "749a493b3af3920d28595496775aaaa4046fc5d9fb2dee814da8fb7e7aa85746"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/integrations.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0de0d78dd7124530a59a741745897b3fc77b6fea02a926b88bb70bf4554933ec"
         }
       ]
     },
@@ -159,7 +199,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "f29d79c02e4fdad968bb35f5d8553e31b2378f232d8f072118a429be1447c43c"
+          "value": "bd6edd44a9f635388be8d807a2d615b14f7a918d1be6313d3e8632f5ee7aa634"
         }
       ]
     },
@@ -179,7 +219,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a200ce85f4c31e5d90865f062153c6b634307074b82ecaceca58997e7687522c"
+          "content": "c707cb119e7a926f18dd7e5bcda33487b68920bd46a6ea116e5261049d61549c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/integrations.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ca2478a093f9af22d0dbe3e791ccd93ad04b42245651e7c25fffff5dd56360df"
         }
       ]
     },

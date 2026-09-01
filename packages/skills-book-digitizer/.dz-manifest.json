@@ -41,7 +41,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "efc76c9c5789317a69db1266fdce548d1fd657dceab9bd48594e891a8754c8ea"
+        "sha256": "a4378095cfcbd8ca8fbfc05d4284a69d87c77d2d48fa6a16c4bf0e9326ec9b83"
       },
       {
         "path": "scripts/book-ingest.mjs",
@@ -61,5 +61,5 @@
       }
     ]
   },
-  "signature": "cpZoYJBdPSyHKeOXDYdK3FrTzZY+70vGZnbBzo1ORkgTec1DiWzc3MSljT2Q92tNJTJNU53/9hkBKCwpURjwCQ=="
+  "signature": "vcwDorE3jB31mDIdi2kwvF9E1CXYa6S2xQsVjRmxO9hJe7ikAMkMm6MHiFOKJNzIRYHBNw4La89ukCkrREyqCg=="
 }

@@ -22,4 +22,5 @@ export declare const ADAPTER_CLAUDE_VERSION = "0.1.0";
 export declare const claudeAdapter: Adapter;
 export { compileToClaudeFiles } from './compile.js';
 export { verifyClaudeEmit } from './verify.js';
+export { claudeIntegrationAdapter, planClaudeIntegrations } from './integrations.js';
 //# sourceMappingURL=index.d.ts.map

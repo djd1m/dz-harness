@@ -140,9 +140,14 @@ Swarm: 5 parallel validators via Task tool
 ├── validator-pseudocode  → Story coverage, implementability
 └── validator-coherence   → Cross-document consistency
 
+Receipt: per .claude/rules/swarm-file-evidence.md — each validator writes its findings
+         to its own absolute TRACE_PATH,
+         terminal `Status: completed` / `Status: failed` last, then replies one line.
+         Aggregation reads the FILES and refuses to score a validator that delivered none —
+         a validator that died is silent exactly like one still working.
 Scoring: 0-100 per validator
-Aggregate: weighted average
-Blocking: score <50 = BLOCKED
+Aggregate: weighted average over terminal-completed receipts only
+Blocking: score <50 = BLOCKED; any missing receipt = BLOCKED
 Iterations: max 3
 
 Verdicts:

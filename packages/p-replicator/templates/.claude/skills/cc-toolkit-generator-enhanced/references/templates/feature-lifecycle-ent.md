@@ -149,8 +149,8 @@ Use swarm of agents to validate:
 | validator-coherence | All docs cross-ref | PRD↔DDD↔ADR↔C4 consistency |
 
 **Iterative loop (max 3 iterations):**
-1. Run all validators in parallel (Task tool)
-2. Aggregate gaps and blocked items
+1. Run all validators in parallel (Task tool), under the positive file receipt contract below
+2. Aggregate gaps and blocked items — only from validators whose receipt is terminal-completed
 3. Fix gaps in documents
 4. Re-validate
 5. Repeat until: no BLOCKED items, average score ≥70
@@ -175,9 +175,24 @@ When documentation is ready for implementation:
 4. Generate tests from Gherkin .feature files
 5. Validate Fitness Functions during implementation
 6. Save frequent commits to GitHub
+7. Validate every trace before merge or integration
+
+#### Positive file receipt (required)
+
+Before dispatch, allocate one `RUN_ID` and, for every unit, a unique `WORK_UNIT_ID` plus an
+absolute `TRACE_PATH` unique to `(RUN_ID, WORK_UNIT_ID)`; record the launch instant and pass both
+fields to the worker. Each worker must write a substantive body ending in `Status: completed` or
+`Status: failed` to `TRACE_PATH` before it returns its one-line pointer. Before merge, verify every
+path is a regular non-symlink file, non-whitespace, post-launch, and terminal. Narrative output or
+silence is never a receipt. Name missing, stale, partial, unreadable, duplicate, failed, dead-PID,
+or probe-error units and refuse merge, aggregation, or completion until every required receipt is
+valid and completed. Run `node .claude/hooks/check-swarm-receipts.cjs <manifest>` — exit 0 all
+completed, exit 1 undelivered or failed, exit 2 the check did not run. See
+`.claude/rules/swarm-file-evidence.md` for mechanics and the bounded non-atomic-write exception.
 
 **Implementation rules:**
-- Each Bounded Context gets its own Task for parallel execution
+- Each Bounded Context gets its own Task for parallel execution, with its own `WORK_UNIT_ID` and
+  `TRACE_PATH`
 - Reference docs (pseudocode, DDD tactical, ADR), don't hallucinate code
 - Commit after each logical unit: `feat(<feature-name>): <what>`
 - Run tests from .feature files in parallel with implementation
@@ -207,8 +222,9 @@ Use swarm of agents for review:
 Process:
 1. Run brutal-honesty-review on implementation
 2. Verify ADR compliance — each decision reflected in code
-3. Verify Fitness Functions pass
-4. Fix identified issues (use Task tool for parallel fixes)
+3. Verify Fitness Functions pass — every review agent delivers under the same positive file
+   receipt contract as Phase 3; a reviewer that returned nothing did not review
+4. Fix identified issues (use Task tool for parallel fixes, same contract)
 5. Save frequent commits: `fix(<feature-name>): <what>`
 6. Benchmark performance after implementation
 7. Re-review critical findings until clean
@@ -302,6 +318,24 @@ Enterprise features with complex domains follow the 4-phase lifecycle:
 
 ### Implementation (Phase 3)
 - One parallel Task per Bounded Context
+
+#### Positive file receipt (required)
+
+Before dispatch, allocate one `RUN_ID` and, for every unit, a unique `WORK_UNIT_ID` plus an
+absolute `TRACE_PATH` unique to `(RUN_ID, WORK_UNIT_ID)`; record the launch instant and pass both
+fields to the worker. Each worker must write a substantive body ending in `Status: completed` or
+`Status: failed` to `TRACE_PATH` before it returns its one-line pointer. Before merge, verify every
+path is a regular non-symlink file, non-whitespace, post-launch, and terminal. Narrative output or
+silence is never a receipt. Name missing, stale, partial, unreadable, duplicate, failed, dead-PID,
+or probe-error units and refuse merge, aggregation, or completion until every required receipt is
+valid and completed. Run `node .claude/hooks/check-swarm-receipts.cjs <manifest>` — exit 0 all
+completed, exit 1 undelivered or failed, exit 2 the check did not run. See
+`.claude/rules/swarm-file-evidence.md` for mechanics and the bounded non-atomic-write exception.
+
+Why the file and not the reply: a worker that died looks exactly like a worker still running —
+both are silent — so a coordinator can report in good faith that a Bounded Context is under way
+when nothing is running. A named file turns that into a fact a machine can check.
+
 - Read pseudocode .pseudo files — don't hallucinate code
 - Enforce aggregate invariants from DDD tactical docs
 - Generate test stubs from Gherkin .feature files
@@ -387,6 +421,10 @@ Complex domain features use the enterprise lifecycle: `/feature-ent [name]`
 2. **VALIDATE** — requirements-validator swarm (7 agents) → score ≥70
 3. **IMPLEMENT** — parallel agents per Bounded Context from validated docs
 4. **REVIEW** — brutal-honesty-review swarm (6 agents) → ADR + fitness verified
+
+Every swarm phase delivers under `.claude/rules/swarm-file-evidence.md`: each parallel unit writes
+a file at a named `TRACE_PATH`, and an agent's reply is a pointer, never the result. Verify with
+`node .claude/hooks/check-swarm-receipts.cjs <manifest>` before merging anything.
 
 Use `/feature` for simple features, `/feature-ent` for complex domain features.
 

@@ -131,7 +131,7 @@ export function isVectorNoise(text) {
  * ingest gate — I-6). Score is the record's REAL reward, never a fabricated 1.0.
  */
 export function patternVectorEntry(p, source = 'dz-teach', opts = {}) {
-    if (isVectorNoise(p.pattern))
+    if (p.lessonForm === 'class' || isVectorNoise(p.pattern))
         return undefined;
     const dzId = patternRecordId(p);
     return {
@@ -142,7 +142,13 @@ export function patternVectorEntry(p, source = 'dz-teach', opts = {}) {
         tags: ['dz-teach', p.type],
         // FR-8: quarantine rides into the mirror so the HOOK DAEMON (which reads only the mirror's
         // sqlite metadata) can exclude unproven lessons from auto-injection.
-        metadata: { dzId, source, ts: p.ts, domain: p.domain, ...(opts.quarantined === true ? { qStatus: 'quarantined' } : {}) },
+        metadata: {
+            dzId, source, ts: p.ts, domain: p.domain,
+            ...(p.lessonForm !== undefined && p.lessonPairId !== undefined
+                ? { lessonForm: p.lessonForm, lessonPairId: p.lessonPairId }
+                : {}),
+            ...(opts.quarantined === true ? { qStatus: 'quarantined' } : {}),
+        },
     };
 }
 /**
@@ -165,7 +171,7 @@ export function dreamVectorEntry(d) {
 }
 /** ACL: stored {@link MemoryRecord} → {@link VectorEntry} (the consolidate-backfill mapper). */
 export function memoryRecordVectorEntry(r) {
-    if (isVectorNoise(r.text))
+    if (r.metadata?.['lessonForm'] === 'class' || isVectorNoise(r.text))
         return undefined;
     const state = readReinforcementState(r);
     return {
@@ -174,7 +180,12 @@ export function memoryRecordVectorEntry(r) {
         score: r.score,
         taskType: r.id.startsWith('dream:') ? 'dz-learning' : 'dz-teach',
         tags: ['dz-backfill', r.outcome],
-        metadata: { dzId: r.id, source: r.metadata?.['source'] ?? 'dz-backfill', ts: r.timestamp, skillId: r.skillId },
+        metadata: {
+            dzId: r.id, source: r.metadata?.['source'] ?? 'dz-backfill', ts: r.timestamp, skillId: r.skillId,
+            ...(r.metadata?.['lessonForm'] === 'specific' && typeof r.metadata?.['lessonPairId'] === 'string'
+                ? { lessonForm: 'specific', lessonPairId: r.metadata['lessonPairId'] }
+                : {}),
+        },
         uses: state.uses,
         avgReward: state.avgReward,
     };
@@ -539,6 +550,8 @@ export function mergeHybridHits(lexical, semantic, opts) {
     lexical.forEach((h, rank) => {
         const cur = acc.get(h.id) ?? { pattern: h.pattern, sem: false, score: 0 };
         cur.lex = h.backend;
+        if (h.matchedForm !== undefined)
+            cur.matchedForm = h.matchedForm;
         cur.score += 1 / (RRF_K + rank + 1);
         acc.set(h.id, cur);
     });
@@ -565,6 +578,7 @@ export function mergeHybridHits(lexical, semantic, opts) {
         pattern: v.pattern,
         backend: v.lex !== undefined && v.sem ? 'both' : v.lex ?? 'vector',
         score: v.score,
+        ...(v.matchedForm === undefined ? {} : { matchedForm: v.matchedForm }),
         ...(v.similarity === undefined ? {} : { similarity: v.similarity }),
     });
     // `slice(0, -1)` drops the LAST element instead of returning nothing, so a negative limit used to
@@ -654,7 +668,10 @@ export async function recallHybrid(projectRoot, query, opts = {}) {
     // write-side backend flag.
     const limit = opts.limit ?? 10;
     const mode = opts.mode ?? 'hybrid';
-    const lexical = recallPatterns(projectRoot, query, limit);
+    const lexical = recallPatterns(projectRoot, query, limit, {
+        ...(opts.onClassDegraded === undefined ? {} : { onClassDegraded: opts.onClassDegraded }),
+        ...(opts.classMatcher === undefined ? {} : { classMatcher: opts.classMatcher }),
+    });
     const lexicalBackend = lexical[0]?.backend === 'sqlite' ? 'sqlite' : 'json';
     const records = loadStoreRecords(projectRoot);
     const idToRecord = new Map();
@@ -762,7 +779,12 @@ export async function recallHybrid(projectRoot, query, opts = {}) {
         };
     const lexicalOnly = (extra) => {
         // `enhance` FIRST: it is what populates `banditReport` (the key is absent while disarmed).
-        const hits = enhance(lexical.map((h, rank) => ({ pattern: h.pattern, backend: h.backend, score: 1 / (RRF_K + rank + 1) })));
+        const hits = enhance(lexical.map((h, rank) => ({
+            pattern: h.pattern,
+            backend: h.backend,
+            score: 1 / (RRF_K + rank + 1),
+            ...(h.matchedForm === undefined ? {} : { matchedForm: h.matchedForm }),
+        })));
         return {
             hits,
             lexicalBackend,
@@ -859,6 +881,7 @@ export async function recallHybrid(projectRoot, query, opts = {}) {
         id: identityToId.get(patternIdentityOf(h.pattern)) ?? patternRecordId(h.pattern),
         pattern: h.pattern,
         backend: h.backend,
+        ...(h.matchedForm === undefined ? {} : { matchedForm: h.matchedForm }),
     }));
     const hits = enhance(mergeHybridHits(lex, semantic, { limit, semanticWeight: mode === 'semantic' ? 2 : 1 }));
     markRecallHits(projectRoot, learning, hits, idOf, banditEmission());
@@ -1185,7 +1208,9 @@ export async function harmonizeVectorStore(projectRoot, opts = {}) {
     catch {
         records = [];
     }
-    const items = records.map((r) => ({
+    const items = records
+        .filter((r) => r.metadata?.['lessonForm'] !== 'class')
+        .map((r) => ({
         dzId: r.id,
         text: r.text,
         reward: r.score,

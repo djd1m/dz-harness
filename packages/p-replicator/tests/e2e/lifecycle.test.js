@@ -328,23 +328,38 @@ describe('e2e: v1.4 pre-shipped generic toolkit', () => {
     } finally { rmRf(dir); }
   });
 
-  test('init installs all 5 generic rules', () => {
+  test('init installs every registered rule and the consumer detection ladder is readable', () => {
     const dir = tmpDir();
     try {
       runCli(['init'], dir);
-      const expected = [
-        'replicate-pipeline',
-        'skill-interface-protocol',
-        'git-workflow',
-        'insights-capture',
-        'feature-lifecycle',
-      ];
+      const { COMPONENTS } = require(path.join(PKG_DIR, 'src', 'utils.js'));
+      const expected = Object.keys(COMPONENTS.rules.items);
+      assert.ok(expected.includes('cost-of-detection-ladder'),
+        'the explicit ladder slug prevents registry-derived omission from self-confirming');
       for (const rule of expected) {
         assert.ok(
           exists(dir, `.claude/rules/${rule}.md`),
-          `${rule}.md should be installed by init (v1.4 pre-shipped)`
+          `${rule}.md should be installed by init`
         );
       }
+      const ladder = fs.readFileSync(
+        path.join(dir, '.claude/rules/cost-of-detection-ladder.md'), 'utf8');
+      assert.match(ladder, /strongest layer that can reliably express the property/i);
+      assert.match(ladder, /\| Reaction \| Owner \|/i);
+    } finally { rmRf(dir); }
+  });
+
+  test('doctor and verify reject a missing registered detection ladder', () => {
+    const dir = tmpDir();
+    try {
+      runCli(['init'], dir);
+      fs.unlinkSync(path.join(dir, '.claude/rules/cost-of-detection-ladder.md'));
+      const doctor = runCli(['doctor'], dir);
+      const verify = runCli(['verify'], dir);
+      assert.notEqual(doctor.exitCode, 0, 'doctor must reject a missing load-bearing rule');
+      assert.notEqual(verify.exitCode, 0, 'verify must reject a missing load-bearing rule');
+      assert.match(doctor.stdout + doctor.stderr, /cost-of-detection-ladder/);
+      assert.match(verify.stdout + verify.stderr, /cost-of-detection-ladder/);
     } finally { rmRf(dir); }
   });
 
@@ -489,6 +504,37 @@ describe('e2e: v1.4.1 cross-platform hooks', () => {
 
 describe('e2e: v1.4.2 settings.json merge on --force', () => {
   const USER_HOOK_COMMAND = 'echo "USER-CUSTOM-HOOK-MARKER-12345"';
+
+  test('P18 - init force adds one p-replicator prompt hook without replacing foreign hooks', () => {
+    const dir = tmpDir();
+    const foreign = 'node foreign-user-prompt-hook.cjs';
+    try {
+      runCli(['init'], dir);
+      const settingsPath = path.join(dir, '.claude/settings.json');
+      const manifestPath = path.join(dir, MANIFEST);
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      settings.hooks.UserPromptSubmit = [{
+        matcher: '*',
+        hooks: [{ type: 'command', command: foreign, timeout: 7 }],
+      }];
+      fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      delete manifest.shippedDefaults['settings.json'].hooks.UserPromptSubmit;
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+
+      assert.equal(runCli(['init', '--force'], dir).exitCode, 0);
+      assert.equal(runCli(['init', '--force'], dir).exitCode, 0);
+      const merged = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      const commands = merged.hooks.UserPromptSubmit
+        .flatMap((matcher) => matcher.hooks || [])
+        .map((hook) => hook.command);
+      assert.equal(commands.filter((command) => command === foreign).length, 1,
+        'the consumer-owned prompt hook must survive both upgrades');
+      assert.equal(commands.filter((command) => command.includes('session-insights.cjs')).length, 1,
+        'the package prompt hook must be added exactly once');
+    } finally { rmRf(dir); }
+  });
 
   test('init --force preserves user-added hooks in settings.json', () => {
     const dir = tmpDir();

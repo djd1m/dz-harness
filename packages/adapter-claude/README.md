@@ -32,7 +32,15 @@ const result = await claudeAdapter.verify(emit);
 `compile` is a **pure function** — it returns the files to write, it does not
 touch the filesystem. Applying an `EmitResult` to disk is the harness's job.
 
+## Companion integrations
+
+`claudeIntegrationAdapter.plan()` is also pure. For a validated `INTEGRATIONS.json` it returns only
+the project-scoped `.mcp.json` fragment supported by the pinned evidence family; it does not write,
+merge, spawn, or contact a manifest URL. `harness-core` performs the ownership-safe transaction and
+the live registration probe. Hook intent is refused until an activation/negative-control receipt
+exists; it is never silently skipped.
+
 ## Status
 
-`0.1.0` — alpha, part of the `extended-a-migration` feature (Phase 2). Additive
-only: this package never modifies existing skills or harness files.
+`0.2.7` — staged, not published. Skill compilation remains lossless; the separate pure integration
+planner emits only the receipt-proven Claude project MCP fragment.

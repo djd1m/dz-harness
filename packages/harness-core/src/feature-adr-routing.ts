@@ -548,15 +548,11 @@ export function codexEffortHint(opts: StageOpts | null | undefined): string {
 
 // ── Step-7.5 CODE landed barrier (Codex out-of-band write flush) ────────────
 
-// Widened 2026-08-28 (MEASURED, not a guess): the dz-deadwood coder job ran 46m11s end to end, and
-// the slop-lint coder was independently confirmed STILL RUNNING (codex-companion status "running",
-// pid alive, mid-TDD-cycle, actively applying file changes) at 16m38s elapsed — a full 8x past the
-// old 120s window. The old window declared "genuinely not landed" and fed Step-8 QE a false empty
-// tree, producing a grade-D report entirely about an absence that was never real. This does not fix
-// the underlying conflation of TIMEOUT with CONFIRMED-ABSENCE (filed as a backlog item — the barrier
-// still cannot see the codex-companion job's own liveness) — it only narrows how often the false
-// negative fires for a realistic M-tier build, at the cost of a longer worst-case wait when the
-// coder truly produced nothing.
+// Widened 2026-08-28 (MEASURED): the dz-deadwood coder ran 46m11s, and slop-lint was still running
+// with its recorded PID alive at 16m38s when the old 120s window had already declared absence.
+// Changed 2026-08-30 (MEASURED: six false verdicts; plus task-mtfhglwk stayed status=running for
+// 8h51m after recorded PID 3639268 disappeared): this is now one git-evidence/backoff window inside
+// the liveness-driven loop, not the whole barrier. The separate hard ceiling bounds a live worker.
 export const DEFAULT_CODE_LANDING_MAX_WAIT_MS = 1_020_000;
 
 export const DEFAULT_CODE_LANDING_BACKOFF_MS = [
@@ -604,11 +600,11 @@ export type CodeStageLandingStatus = 'landed' | 'genuinely-not-landed' | 'inconc
 
 /** Bumped whenever the landing protocol's meaning changes. Recorded on every code-stage result so a
  *  pre-protocol checkpoint reads as no-checkpoint instead of resuming into new semantics. */
-export const LANDING_PROTOCOL_VERSION = 2;
+export const LANDING_PROTOCOL_VERSION = 3;
 
 /** R6: salted into the code stage's checkpoint hash PARTS (not the schema version — ADR-003 keeps
  *  `CKPT_SCHEMA_VERSION` at 'fa-ckpt-2' deliberately, so ONLY the code stage re-runs). */
-export const LANDING_HASH_TOKEN = 'landing-v2';
+export const LANDING_HASH_TOKEN = 'landing-v3';
 
 /** Why a landing verdict is INCONCLUSIVE. Typed, because "we do not know" needs to say WHICH
  *  unknown — the operator repair differs per reason and a single untyped bucket reads as noise. */

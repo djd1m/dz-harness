@@ -1,5 +1,6 @@
 import { type RuleTemplate, type TemplateParams } from './guard-promotion.js';
 import { type StubWaiver } from './no-stubs.js';
+import { type GuardObservation, type VolumeShadowInput } from './guard-volume.js';
 export type GuardSeverity = 'hard' | 'soft';
 export type GuardOp = 'publish' | 'teach' | 'consolidate' | 'reindex';
 export type GuardVerdict = 'pass' | 'warn' | 'block';
@@ -23,6 +24,8 @@ export interface Violation {
     readonly rule: string;
     readonly severity: GuardSeverity;
     readonly detail: string;
+    /** Present for promoted-template firings; ids alone do not prove equal effective rule content. */
+    readonly contentAnchor?: string;
 }
 export interface GuardResult {
     readonly op: GuardOp;
@@ -37,10 +40,14 @@ export interface GuardResult {
      * argument; a note is the cheap fix. Present only when non-empty.
      */
     readonly notes?: readonly string[];
+    /** Versioned shadow measurements. They are evidence only and never enter the verdict reducer. */
+    readonly observations?: readonly GuardObservation[];
 }
 /** Facts the CLI injects; each rule reads only the fields it needs. Missing evidence ⇒ that rule is skipped. */
 export interface GuardFacts {
     readonly op: GuardOp;
+    /** Publish-only raw volume facts. Absence preserves the legacy result shape. */
+    readonly volume?: VolumeShadowInput;
     /** for no-workspace-star: each publishable package's deps map. */
     readonly packages?: readonly {
         readonly name: string;
@@ -48,6 +55,14 @@ export interface GuardFacts {
     }[];
     /** for no-skill-drift: the names that byte-drift between copies (from sweepSkillDrift). */
     readonly drift?: readonly string[];
+    /**
+     * for codex-wrapper-for-value-stage: workflow scripts to scan, as (path, text). Absent ⇒ the
+     * rule reports nothing: a guard with no evidence must stay silent rather than invent a verdict.
+     */
+    readonly workflowScripts?: readonly {
+        readonly path: string;
+        readonly text: string;
+    }[];
     /** for no-secrets: labelled blobs to scan (lesson text, staged files). */
     readonly secretTargets?: readonly {
         readonly label: string;
@@ -81,6 +96,11 @@ export interface GuardFacts {
         readonly diverged?: boolean;
         /** Operator-owned published version, carried only to render the exact repair command. */
         readonly publishedVersion?: string;
+        /** Existing published manifests that could not be read or parsed. */
+        readonly manifestFailures?: readonly {
+            readonly file: 'plugin.json' | 'marketplace.json';
+            readonly error: string;
+        }[];
         /** true ⇒ regeneration was attempted but could not complete. */
         readonly regenerateFailed?: boolean;
     };
@@ -268,6 +288,8 @@ export interface GuardAuditRecord {
     readonly violations: readonly Violation[];
     /** informational notes (FN-7 — e.g. the no-stubs skipped-files note); on the record, never a verdict input. */
     readonly notes?: readonly string[];
+    /** Shadow measurements copied without recomputation from the evaluated result. */
+    readonly observations?: readonly GuardObservation[];
     /** set when the operator overrode a block with `--force <reason>` — the override is logged, never silent. */
     readonly override?: {
         readonly forced: true;

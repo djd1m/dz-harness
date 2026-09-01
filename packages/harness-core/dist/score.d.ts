@@ -32,6 +32,14 @@ export interface RunScorecard {
     readonly disciplines: readonly DisciplineScore[];
     /** Extracted cross-model grade, when one exists (e.g. "A−", "C"). */
     readonly qeGrade: string | null;
+    /**
+     * F30а-3, ADDITIVE: present when the run's artifacts carry a structured mutation table. Optional
+     * on purpose — every scorecard written before this field existed stays a valid RunScorecard, and
+     * `scoreAggregateRowFrom` keeps accepting rows without it. A run with no table reports `absent`
+     * rather than omitting the field, so "the gate never ran" and "an older scorer wrote this row"
+     * stay distinguishable.
+     */
+    readonly mutationEvidence?: MutationEvidence;
     readonly passed: number;
     readonly total: number;
     readonly summary: string;
@@ -67,6 +75,31 @@ export declare const OBSERVABILITY_SECTION = "Observability";
  */
 export declare function observabilityAnswer(architectureMarkdown: string | undefined | null): 'answered' | 'nothing-to-observe' | 'empty' | 'absent';
 export type RunArtifacts = Readonly<Record<string, string>>;
+/**
+ * F30а-3 — structured mutation evidence.
+ *
+ * `discrimination` has always scored PROSE: a sentence the author writes about their own work.
+ * "None of the mutants survived" scores identically whether three mutations ran or zero did, which
+ * makes the strongest discipline in the pipeline rest on the weakest kind of evidence. The mutation
+ * gate already emits a five-valued verdict per registry entry, and only `PROVEN` is proof — so a
+ * table carrying those verdicts can be COUNTED instead of believed.
+ *
+ * The design is defined by what it REFUSES. A table that looks like evidence and proves nothing is
+ * worse than no table, because it buys the appearance of rigour: the empty one, the header-only one,
+ * the one whose every row is INCONCLUSIVE. Each of those returns a non-proving status and is NAMED
+ * in the scorecard evidence, never silently treated as corroboration.
+ */
+export type MutationEvidenceStatus = 'proven' | 'present-unproven' | 'malformed' | 'absent';
+export interface MutationEvidence {
+    readonly status: MutationEvidenceStatus;
+    /** Rows whose verdict is exactly PROVEN. */
+    readonly proven: number;
+    /** Data rows found under the header (0 for the header-only table). */
+    readonly rows: number;
+    /** The line the verdict rests on — evidence must show its work. */
+    readonly evidence: string;
+}
+export declare function readMutationEvidence(text: string): MutationEvidence;
 export type GradeReadStatus = 'unique' | 'ambiguous' | 'none';
 export interface GradeReading {
     readonly status: GradeReadStatus;
@@ -91,4 +124,66 @@ export declare function readQeGrade(qeText: string): GradeReading;
 export declare function extractQeGrade(qeText: string): string | null;
 export declare function scoreRun(slug: string, artifacts: RunArtifacts): RunScorecard;
 export declare function renderScorecard(card: RunScorecard): string;
+/** The append-only projection of one immutable `score-<qeHash>.json` receipt. */
+export interface ScoreAggregateRow {
+    readonly ts: string;
+    readonly slug: string;
+    readonly qeHash: string;
+    readonly passed: number;
+    readonly total: number;
+    readonly qeGrade: string | null;
+    readonly disciplines: readonly {
+        readonly id: string;
+        readonly verdict: DisciplineVerdict;
+    }[];
+    /**
+     * F30а-3, ADDITIVE: rows PROVEN by the mutation gate, when the scorecard carried a table.
+     * `undefined` means the scorecard had no mutation field at all — which is NOT the same as `0`
+     * (a table that ran and proved nothing). Every row written before this field existed keeps
+     * parsing: the aggregate must never lose its history to a schema change.
+     */
+    readonly mutationProven?: number;
+}
+export interface ScoreReceiptInput {
+    readonly content: string;
+    readonly qeHash: string;
+    /** Supplied by the impure caller. Receipt projection never reads a clock. */
+    readonly ts: string;
+}
+/**
+ * Parse one score receipt into the deliberately small aggregate schema.
+ *
+ * The caller owns I/O and supplies `ts`; this function is deterministic for the same input. A
+ * syntactically valid but internally inconsistent scorecard is unreadable evidence, not a row the
+ * aggregate should silently bless.
+ */
+export declare function scoreReceiptToAggregateRow(input: ScoreReceiptInput): ScoreAggregateRow;
+/** Read only valid aggregate rows; event-chain verification separately names malformed lines. */
+export declare function readScoreAggregateRows(text: string): ScoreAggregateRow[];
+/** Keep the first occurrence of each `(slug, qeHash)` pair not already present in the aggregate. */
+export declare function dedupeScoreAggregateRows(candidates: readonly ScoreAggregateRow[], existing: readonly ScoreAggregateRow[]): ScoreAggregateRow[];
+export type ScoreAggregateVerdict = 'REPORTED' | 'INSUFFICIENT_DATA';
+export interface ScoreDisciplineAggregate {
+    readonly id: string;
+    readonly pass: number;
+    readonly partial: number;
+    readonly absent: number;
+}
+export interface ScoreGradeAggregate {
+    readonly grade: string | null;
+    readonly count: number;
+}
+export interface ScoreAggregateReport {
+    readonly verdict: ScoreAggregateVerdict;
+    readonly receipts: number;
+    readonly appended: number;
+    readonly unreadable: number;
+    /** Repo-relative receipt paths: unreadable evidence is always named, never only counted. */
+    readonly unreadableReceipts: readonly string[];
+    readonly disciplines: readonly ScoreDisciplineAggregate[];
+    readonly grades: readonly ScoreGradeAggregate[];
+}
+/** Fold the aggregate into an advisory report. No readable rows is a third state, never success. */
+export declare function buildScoreAggregateReport(rows: readonly ScoreAggregateRow[], unreadableReceipts: readonly string[], appended: number): ScoreAggregateReport;
+export declare function renderScoreAggregateReport(report: ScoreAggregateReport): string;
 //# sourceMappingURL=score.d.ts.map

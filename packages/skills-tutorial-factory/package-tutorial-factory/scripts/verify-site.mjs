@@ -15,6 +15,10 @@
 // specific to any one course.
 
 import { readFileSync } from 'node:fs';
+// ОДИН матчер понятий на весь пакет: гейт и верификатор обязаны судить одинаково. Своя копия
+// логики в верификаторе была слепа к русской морфологии («одиннадцать» vs «одиннадцати») и
+// ложно валила корректно отрендеренную секцию (измерено 2026-08-31, курс feature-adr).
+import { conceptEncodedIn } from './course-schema.mjs';
 import { join, resolve } from 'node:path';
 
 const argv = process.argv.slice(2);
@@ -107,6 +111,14 @@ const jsonMatch = html.match(/<script type="application\/json" id="course-data">
 if (!jsonMatch) fail('no embedded course-data block in the page');
 dataEl.textContent = jsonMatch[1];
 body.appendChild(dataEl);
+// the ui-strings locale block must exist in the shim DOM too — the runtime reads it at boot
+const uiBlock = html.match(/<script type="application\/json" id="ui-strings">([\s\S]*?)<\/script>/);
+if (uiBlock) {
+  const uiElNode = new Node('script');
+  uiElNode.setAttribute('id', 'ui-strings');
+  uiElNode.textContent = uiBlock[1];
+  body.appendChild(uiElNode);
+}
 body.appendChild(Object.assign(new Node('aside'), {}) && (() => { const a = new Node('aside'); a.setAttribute('id', 'aside'); return a; })());
 body.appendChild((() => { const m = new Node('main'); m.setAttribute('id', 'main'); return m; })());
 
@@ -131,6 +143,21 @@ try {
 }
 
 const course = JSON.parse(jsonMatch[1]);
+
+// The UI locale table the RUNTIME uses — the verifier drives the page through the SAME strings,
+// so a localized site is verified in its own language instead of failing on English probes.
+const UI_PROBE_EN = {
+  strengths: 'Strengths', weaknesses: 'Weaknesses', wrapup: 'Wrap-up',
+  next: 'Next \u2192', checkOrder: 'Check the order', checkCommand: 'Check the command',
+  finalTest: 'Final test', passed: 'Passed \u2014 ', reset: 'Reset', faqNav: 'FAQ',
+  completed: 'completed \u00b7 ',
+  doSomething: 'Do something \u2014 ', checkYourself: 'Check yourself', types: {},
+};
+const uiMatch = html.match(/<script type="application\/json" id="ui-strings">([\s\S]*?)<\/script>/);
+const uiOver = uiMatch ? (JSON.parse(uiMatch[1]) || null) : null;
+const T = Object.assign({}, UI_PROBE_EN, uiOver || {});
+const typeLabel = (t) => (T.types && T.types[t]) || t;
+const achRe = new RegExp((T.achievements || 'Achievements \u2014 ').replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(\\d+) / (\\d+)');
 const main = () => document.getElementById('main');
 const aside = () => document.getElementById('aside');
 const text = (n) => (n ? n.textContent : '');
@@ -166,7 +193,7 @@ try {
 {
   const labels = navButtons().map(text);
   const missing = course.sections.filter((s) => !labels.some((l) => l.includes(s.shortTitle)));
-  const hasFinal = labels.some((l) => l.includes('Final test'));
+  const hasFinal = labels.some((l) => l.includes(T.finalTest));
   const good = missing.length === 0 && hasFinal;
   (good ? ok : bad)('nav.lists-every-section', good ? `${course.sections.length} sections + final test in the sidebar` : `missing: ${missing.map((s) => s.id).join(',')} finalTest=${hasFinal}`);
 }
@@ -186,18 +213,23 @@ for (const s of orderedSections) {
   // and the theory itself must actually be there: at least 80% of its first 10 distinctive words
   // (len >= 5) must appear in the rendered text. Word-level survives the markdown-lite transforms;
   // a fixed byte threshold would be tuned to one course's prose length.
-  const theoryWords = [...new Set(String(s.theory || '').toLowerCase().match(/[\p{L}\p{N}]{5,}/gu) || [])].slice(0, 10);
+  // Probe words must come from the VISIBLE text only. A markdown link's URL lands in an href
+  // attribute, never in textContent, so sampling the raw source made url innards (https, npmjs,
+  // package) look like missing theory words and false-failed a correctly rendered section
+  // (measured 2026-08-31 on the feature-adr course, whose intro links its npm page).
+  const theoryVisible = String(s.theory || '').replace(/\[([^\]]+)\]\((https:\/\/[^)\s]+)\)/g, '$1');
+  const theoryWords = [...new Set(theoryVisible.toLowerCase().match(/[\p{L}\p{N}]{5,}/gu) || [])].slice(0, 10);
   const tLower = t.toLowerCase();
   const present = theoryWords.filter((w) => tLower.includes(w)).length;
-  const theoryOk = tLower.includes(s.keyConcept.split(' ')[0].toLowerCase())
+  const theoryOk = conceptEncodedIn(s.keyConcept, t)
     && theoryWords.length > 0 && present >= Math.ceil(theoryWords.length * 0.8);
-  const quartetOk = t.includes('Strengths') && t.includes('Weaknesses') && t.includes('Wrap-up');
+  const quartetOk = t.includes(T.strengths) && t.includes(T.weaknesses) && t.includes(T.wrapup);
   const personaOk = t.includes(course.persona.name);
   const patternOk = t.includes('Head First ' + s.methodPattern);
-  const exerciseOk = t.includes('Do something — ' + s.interactiveType);
+  const exerciseOk = t.includes(T.doSomething + typeLabel(s.interactiveType));
   // the secondary "Check yourself" quiz must RENDER on non-quiz sections that carry quiz data —
   // deleting it wholesale must not verify green (Codex QE #5)
-  const secondaryOk = normType(s.interactiveType) === 'quiz' || !(s.quiz && s.quiz.length) || t.includes('Check yourself');
+  const secondaryOk = normType(s.interactiveType) === 'quiz' || !(s.quiz && s.quiz.length) || t.includes(T.checkYourself);
   const all = theoryOk && quartetOk && personaOk && patternOk && exerciseOk && secondaryOk;
   (all ? ok : bad)(`section.${s.id}.renders`,
     all ? `theory + quartet + persona + ${s.methodPattern} + ${s.interactiveType} exercise`
@@ -246,7 +278,7 @@ function completeSecondaryQuiz(s) {
     const want = s.quiz[q].options[s.quiz[q].correctAnswer];
     const btn = m.querySelectorAll('.opt').find((b) => text(b) === want && !b.disabled);
     if (btn && btn.click()) clicked++;
-    const nxt = m.querySelectorAll('BUTTON').filter((b) => /Next question|See the result/.test(text(b))).pop();
+    const nxt = m.querySelectorAll('BUTTON').filter((b) => text(b).includes(T.nextQuestion || 'Next question') || text(b).includes(T.seeResult || 'See the result')).pop();
     if (nxt) nxt.click();
   }
   return { clicked, total: s.quiz.length };
@@ -257,7 +289,7 @@ function completeSection(s) {
   const m = main();
   const type = normType(s.interactiveType);
   if (type === 'flashcards') {
-    const next = m.querySelectorAll('BUTTON').find((b) => text(b).includes('Next →'));
+    const next = m.querySelectorAll('BUTTON').find((b) => text(b).includes(T.next));
     for (let i = 0; i < s.exercise.cards.length + 1; i++) next.click();
   } else if (type === 'matching') {
     // click each left chip then its correct right chip
@@ -279,19 +311,19 @@ function completeSection(s) {
         rows[at].querySelectorAll('.mini').find((b) => text(b) === '↑').click();
       }
     }
-    m.querySelectorAll('BUTTON').find((b) => text(b).includes('Check the order')).click();
+    m.querySelectorAll('BUTTON').find((b) => text(b).includes(T.checkOrder)).click();
   } else if (type === 'builder') {
     for (const part of s.exercise.correctCommand.split(' ')) {
       const btn = m.querySelectorAll('.part').find((b) => text(b) === part && !b.disabled);
       if (btn) btn.click();
     }
-    m.querySelectorAll('BUTTON').find((b) => text(b).includes('Check the command')).click();
+    m.querySelectorAll('BUTTON').find((b) => text(b).includes(T.checkCommand)).click();
   } else if (type === 'scenario') {
     for (let step = 0; step < s.exercise.steps.length; step++) {
       const best = s.exercise.steps[step].options.find((o) => o.result === 'positive') || s.exercise.steps[step].options[0];
       const btn = m.querySelectorAll('.opt').find((b) => text(b) === best.text && !b.disabled);
       if (btn) btn.click();
-      const nxt = m.querySelectorAll('BUTTON').filter((b) => /Next step|See the result/.test(text(b))).pop();
+      const nxt = m.querySelectorAll('BUTTON').filter((b) => text(b).includes(T.nextStep || 'Next step') || text(b).includes(T.seeResult || 'See the result')).pop();
       if (nxt) nxt.click();
     }
   } else if (type === 'quiz') {
@@ -299,7 +331,7 @@ function completeSection(s) {
       const want = s.quiz[q].options[s.quiz[q].correctAnswer];
       const btn = m.querySelectorAll('.opt').find((b) => text(b) === want && !b.disabled);
       if (btn) btn.click();
-      const nxt = m.querySelectorAll('BUTTON').filter((b) => /Next question|See the result/.test(text(b))).pop();
+      const nxt = m.querySelectorAll('BUTTON').filter((b) => text(b).includes(T.nextQuestion || 'Next question') || text(b).includes(T.seeResult || 'See the result')).pop();
       if (nxt) nxt.click();
     }
   }
@@ -316,7 +348,7 @@ const persistedState = () => { try { return JSON.parse(localStorage.getItem(STOR
 for (const s of orderedSections) {
   const secondary = completeSection(s);
   openSection(s.shortTitle);                      // re-render so the stored score is displayed
-  const pill = main().querySelectorAll('.score-pill').map(text).find((x) => /^completed · /.test(x));
+  const pill = main().querySelectorAll('.score-pill').map(text).find((x) => x.indexOf(T.completed) === 0);
   const scored = pill ? Number((pill.match(/(\d+)%/) || [])[1]) : -1;
   const st = persistedState();
   const stored = st && st.completed && st.completed[s.id] === true && st.scores && st.scores[s.id] === 100;
@@ -346,7 +378,7 @@ const unsatisfiable = course.achievements.filter((a) => !satisfiable(a, true)).m
   const pct = progressPct();
   (pct === 100 ? ok : bad)('progress.reaches-100', `sidebar progress = ${pct}%`);
   const label = text(aside().querySelector('.navhead'));
-  const unlocked = (text(aside()).match(/Achievements — (\d+) \/ (\d+)/) || [])[1];
+  const unlocked = (text(aside()).match(achRe) || [])[1];
   // Expected count is EVALUATED per condition against the driven state (all sections perfect,
   // final not yet taken) — not merely bucketed by type (Codex QE #9): a sections-completed n above
   // the section count or a section-group naming an absent id is UNSATISFIABLE and must not be
@@ -361,7 +393,7 @@ const unsatisfiable = course.achievements.filter((a) => !satisfiable(a, true)).m
 
 // 6. the final test renders one question per section and can be passed
 {
-  const b = navButtons().find((n) => text(n).includes('Final test'));
+  const b = navButtons().find((n) => text(n).includes(T.finalTest));
   b.click();
   const m = main();
   for (let q = 0; q < orderedSections.length; q++) {           // runtime asks in `order` order
@@ -369,16 +401,16 @@ const unsatisfiable = course.achievements.filter((a) => !satisfiable(a, true)).m
     const want = ft.options[ft.correctAnswer];
     const btn = m.querySelectorAll('.opt').find((x) => text(x) === want && !x.disabled);
     if (btn) btn.click();
-    const nxt = m.querySelectorAll('BUTTON').filter((x) => /Next question|See the result/.test(text(x))).pop();
+    const nxt = m.querySelectorAll('BUTTON').filter((x) => text(x).includes(T.nextQuestion || 'Next question') || text(x).includes(T.seeResult || 'See the result')).pop();
     if (nxt) nxt.click();
   }
   const t = text(m);
   const stFinal = persistedState();
-  const passed = t.includes('100%') && /Passed/.test(t) && stFinal.finalScore === 100;
+  const passed = t.includes('100%') && t.includes(T.passed) && stFinal.finalScore === 100;
   (passed ? ok : bad)('finaltest.passable', passed
     ? `all ${orderedSections.length} answered correctly → rendered AND persisted 100%, PASSED`
     : `final test did not record a pass on all-correct answers (persisted finalScore=${stFinal.finalScore})`);
-  const allAch = (text(aside()).match(/Achievements — (\d+) \/ (\d+)/) || [])[1];
+  const allAch = (text(aside()).match(achRe) || [])[1];
   const good = Number(allAch) === expectAfterFinal.length && unsatisfiable.length === 0;
   const unsat = unsatisfiable.length ? ` — UNSATISFIABLE promised achievement(s): ${unsatisfiable.join(', ')}` : '';
   (good ? ok : bad)('achievements.all-unlockable', `${allAch} / ${course.achievements.length} after a perfect run (expected ${expectAfterFinal.length})${unsat}`);
@@ -387,7 +419,7 @@ const unsatisfiable = course.achievements.filter((a) => !satisfiable(a, true)).m
 // 6b. Reset actually resets — rendered progress AND the persisted record (a shared blank template
 // mutated through live state silently turns Reset into a no-op; Codex QE #6).
 {
-  const rb = aside().querySelectorAll('BUTTON').concat(main().querySelectorAll('BUTTON')).find((x) => text(x).includes('Reset'));
+  const rb = aside().querySelectorAll('BUTTON').concat(main().querySelectorAll('BUTTON')).find((x) => text(x).includes(T.reset));
   if (!rb) {
     bad('reset.works', 'no Reset button found');
   } else {
@@ -408,7 +440,7 @@ const unsatisfiable = course.achievements.filter((a) => !satisfiable(a, true)).m
 
 // 7. the FAQ accordion renders every entry
 {
-  const b = navButtons().find((n) => text(n).includes('FAQ'));
+  const b = navButtons().find((n) => text(n).includes(T.faqNav));
   b.click();
   const details = main().querySelectorAll('DETAILS');
   const good = details.length === course.faqData.length;
@@ -421,16 +453,66 @@ const unsatisfiable = course.achievements.filter((a) => !satisfiable(a, true)).m
 // artifact declares no external loads, not that arbitrary future code cannot construct one.
 {
   // A URL as inert TEXT (e.g. in the meta description or prose) is not an external load — only
-  // load-bearing constructs count: src=/href= attributes, css url(), @import (round-2 #10).
+  // load-bearing constructs count: src= attributes, <link href>, css url(), @import (round-2 #10).
+  // An <a href> NAVIGATION anchor loads nothing at render time and is deliberately NOT counted —
+  // the footer's channel links are navigation, and counting them would conflate "self-contained
+  // runtime" with "no outbound links", two different properties.
   const htmlSansData = html.replace(jsonMatch[0], '');
-  const refs = (htmlSansData.match(/\s(src|href)=|url\(|@import/g) || []);
+  const refs = (htmlSansData.match(/\ssrc=|url\(|@import|<link\b[^>]*\shref=/gi) || []);
   const netApis = (appJs.match(/\b(fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon|importScripts|navigator\.serviceWorker)\b|\bimport\s*\(/g) || []);
   const cleanRefs = refs.length === 0;
   const cleanApis = netApis.length === 0;
   (cleanRefs && cleanApis ? ok : bad)('site.self-contained',
     cleanRefs && cleanApis
-      ? 'zero external references outside the data block; runtime uses no network APIs'
-      : `${refs.length} external reference(s) ${refs.slice(0, 3).join(' ')}; ${netApis.length} network API use(s) ${[...new Set(netApis)].slice(0, 3).join(' ')}`);
+      ? 'zero external LOADS outside the data block (navigation anchors excluded by design); runtime uses no network APIs'
+      : `${refs.length} external load(s) ${refs.slice(0, 3).join(' ')}; ${netApis.length} network API use(s) ${[...new Set(netApis)].slice(0, 3).join(' ')}`);
+}
+
+// 8b. diagrams: a declared diagram must actually APPEAR when the page runs, carry every label, and
+// never turn an author's text into markup. The last part is the one that matters: cross-model review
+// measured a hand-written SVG reaching the network through `<image href>` while this verifier stayed
+// green, so the design removed author markup entirely — and this check is what keeps it removed. It
+// goes red the day someone swaps the text insertion for an HTML one.
+{
+  const withDiagram = course.sections.filter((s) => s.diagram && Array.isArray(s.diagram.nodes));
+  if (withDiagram.length === 0) {
+    ok('diagram.renders', 'course declares no diagram — nothing to draw (a diagram is optional)');
+  } else {
+    const problems = [];
+    for (const s of withDiagram) {
+      openSection(s.shortTitle);
+      const figs = main().querySelectorAll('FIGURE').filter((f) => f.classList.contains('diagram'));
+      if (figs.length !== 1) { problems.push(`${s.id}: expected exactly 1 diagram figure, saw ${figs.length}`); continue; }
+      const t = text(figs[0]);
+      for (const n of s.diagram.nodes) {
+        if (!t.includes(String(n.label))) problems.push(`${s.id}: label ${JSON.stringify(n.label)} absent from the rendered figure`);
+      }
+      if (s.diagram.title && !t.includes(String(s.diagram.title))) problems.push(`${s.id}: caption absent`);
+      // Each kind draws its nodes in its own element class; counting only `dg-node` would silently
+      // pass a compare/scale diagram that rendered zero nodes.
+      const nodeBoxes = figs[0].querySelectorAll('DIV').filter((d) => d.classList.contains('dg-node') || d.classList.contains('dg-col') || d.classList.contains('dg-rung'));
+      if (nodeBoxes.length !== s.diagram.nodes.length) problems.push(`${s.id}: ${nodeBoxes.length} boxes for ${s.diagram.nodes.length} nodes`);
+      // markup in a label must remain letters: the guard is the insertion path, not a filter
+      for (const box of nodeBoxes) {
+        if (box.innerHTML !== '' && /<[a-z]/i.test(box.innerHTML)) problems.push(`${s.id}: a node box carries raw markup — labels must go in as TEXT`);
+      }
+    }
+    (problems.length === 0 ? ok : bad)('diagram.renders', problems.length === 0
+      ? `${withDiagram.length} diagram(s) drawn with every label and caption; no label became markup`
+      : problems.slice(0, 4).join(' · '));
+  }
+}
+
+// 9. footer: the site carries its channel links — every anchor is https and none is javascript:.
+{
+  const footerMatch = html.match(/<footer id="site-footer">([\s\S]*?)<\/footer>/);
+  const anchors = footerMatch ? (footerMatch[1].match(/<a\s[^>]*href="([^"]+)"/g) || []) : [];
+  const hrefs = anchors.map((a) => (a.match(/href="([^"]+)"/) || [])[1]).filter(Boolean);
+  const allHttps = hrefs.length > 0 && hrefs.every((h) => /^https:\/\//.test(h));
+  (footerMatch && allHttps ? ok : bad)('footer.renders',
+    footerMatch && allHttps
+      ? `footer present with ${hrefs.length} https link(s): ${hrefs.join(' ')}`
+      : footerMatch ? `footer present but links are not all https: ${hrefs.join(' ') || '(none)'}` : 'no <footer id="site-footer"> in the emitted page');
 }
 
 } catch (e) {

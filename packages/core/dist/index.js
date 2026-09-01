@@ -16,6 +16,7 @@ export const CORE_VERSION = '0.1.0';
 export * from './skill-document.js';
 export * from './skill.schema.js';
 export * from './hooks.schema.js';
+export * from './integration.schema.js';
 export * from './adapter.js';
 export * from './skill-emit.js';
 export * from './agents-md.js';

@@ -5,7 +5,7 @@
     "files": [
       {
         "path": "README.md",
-        "sha256": "1b64bc03bcb9c05471a15381196d4f8a30879a798a74e5d1fda98c33846b5cb2"
+        "sha256": "528eadc80ba88b07084ffeaa917eaa5104124a3f5215b1a22f91b8c85a36c379"
       },
       {
         "path": "README.ru.md",
@@ -17,7 +17,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "60d5df9bae91533c201784ba53a7b6f24405d7fe9ddceddea88110f2ed0d99f4"
+        "sha256": "0183f5f8d4b51603bbeb0991e85b442da1d93aecd80862c35f989a5055e2ef12"
       },
       {
         "path": "src/cli.js",
@@ -481,7 +481,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/scripts/check-plan-completeness.mjs",
-        "sha256": "630eb9047258ad0333082f407cd34522e4c278650f22ef6dba1ef897ec5cce71"
+        "sha256": "cd2d4e05d1b61be5485c9836abdebdb00b5f4085a14f3c71126cc45d4e08fe3b"
       },
       {
         "path": "templates/.claude/skills/frontend-design/LICENSE.txt",
@@ -669,7 +669,7 @@
       },
       {
         "path": "templates/.claude/skills/reverse-engineering-unicorn/modules/025-cjm-prototype.md",
-        "sha256": "11e2e101c99d42306ac1d0931475c5a8899e929514e41a393b6173e03856cfc3"
+        "sha256": "d9dd399cbb60d6b5fa9734ad44128a49790ef15bbde25c809d69d5c918601eb3"
       },
       {
         "path": "templates/.claude/skills/reverse-engineering-unicorn/modules/03-market-competition.md",
@@ -985,5 +985,5 @@
       }
     ]
   },
-  "signature": "RJjA9cFjrmHeEh1AtaKyrBGVs4Yr/lHYYH4HPKQIdVNq1euwTDSFShvlU+s9nS6/m0hAFCr8W/e3p2I0X1mIDQ=="
+  "signature": "FjdCGBhiCjMWO6qXOdkar6VM5dL5RTLaLJLBG3Rn6py0TUI4M4WW2QE1S9NUczIugG3Wr23iYDvFRYOcl3OsDQ=="
 }

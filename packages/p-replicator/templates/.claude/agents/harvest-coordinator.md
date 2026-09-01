@@ -37,8 +37,17 @@ Launch 5 parallel agents via Task tool:
 - Project root path
 - `TOOLKIT_HARVEST.md` content (if exists)
 - Instructions from its module section in `modules/01-agent-review.md`
+- A unique `WORK_UNIT_ID` and absolute `TRACE_PATH` under one coordinator-owned `RUN_ID`
 
-**Merge results:** Deduplicate, cross-reference, sort by reusability confidence.
+Each agent must write a substantive body ending in `Status: completed` or `Status: failed` to its
+unique `TRACE_PATH` before returning a one-line pointer. Before merge, verify every path is a regular
+non-symlink file, non-whitespace, post-launch, and terminal. Narrative output or silence is not a
+receipt. Name missing, stale, partial, unreadable, duplicate, failed, dead-PID, or probe-error agents
+and refuse synthesis/completion unless every required receipt is valid and completed. See
+`.claude/rules/swarm-file-evidence.md`.
+
+**Merge results:** Read only validated completed traces, then deduplicate, cross-reference, and sort
+by reusability confidence.
 
 ## Quality Gate (Phase 3)
 

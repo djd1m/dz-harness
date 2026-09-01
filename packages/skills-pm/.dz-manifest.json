@@ -57,7 +57,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "8dcce308095121e3f2c4f05f73e8a57fd081e16736516d47c540c008e6239ef4"
+        "sha256": "04799f235f120c0d305d20a001479301a0b1fd61bbfb19241ebcd4d2a92d8d73"
       },
       {
         "path": "pricing-strategy/SKILL.md",
@@ -93,5 +93,5 @@
       }
     ]
   },
-  "signature": "JckHXtllPTm0fvtqdTvN8OT0OpAFsu/MsZ4ARnbYkZ5PA8ZxNorQrnqwELDWVuBGIieIsuW0haAj3u780FBkCw=="
+  "signature": "jeicIWkcLSYKJXKVABNkakVAA3pJIMrIg/zymdB3eM020u6CXcp0JEcKU9q5uqLEcyGBmxDXegvLvRzaScDzAQ=="
 }

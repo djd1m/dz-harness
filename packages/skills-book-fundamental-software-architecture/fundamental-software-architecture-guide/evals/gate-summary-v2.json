@@ -1,0 +1,80 @@
+{
+  "schema": "gateway-family-routing-gate/1",
+  "gateway": {
+    "activation": 0.9,
+    "hits": 45,
+    "total": 50,
+    "hard_negative_violations": 0,
+    "hard_negative_exact": 83,
+    "hard_negative_total": 85
+  },
+  "internal": {
+    "activation": 0.98,
+    "hits": 49,
+    "total": 50,
+    "sibling_steal": 0.02,
+    "sibling_steals": 1,
+    "leaks": 0,
+    "seam_exact": 6,
+    "seam_total": 20
+  },
+  "fallbacks": 0,
+  "per_family": [
+    {
+      "id": "fsa-family-boundaries-and-coupling",
+      "global_n": 10,
+      "global_hit": 8,
+      "global_activation": 0.8,
+      "internal_n": 10,
+      "internal_hit": 10,
+      "internal_activation": 1,
+      "sibling_steal": 0,
+      "leak": 0
+    },
+    {
+      "id": "fsa-family-choice-and-fit",
+      "global_n": 10,
+      "global_hit": 10,
+      "global_activation": 1,
+      "internal_n": 10,
+      "internal_hit": 10,
+      "internal_activation": 1,
+      "sibling_steal": 0,
+      "leak": 0
+    },
+    {
+      "id": "fsa-family-distributed-interaction",
+      "global_n": 10,
+      "global_hit": 9,
+      "global_activation": 0.9,
+      "internal_n": 10,
+      "internal_hit": 9,
+      "internal_activation": 0.9,
+      "sibling_steal": 0.1,
+      "leak": 0
+    },
+    {
+      "id": "fsa-family-guardrails-and-risk",
+      "global_n": 10,
+      "global_hit": 8,
+      "global_activation": 0.8,
+      "internal_n": 10,
+      "internal_hit": 10,
+      "internal_activation": 1,
+      "sibling_steal": 0,
+      "leak": 0
+    },
+    {
+      "id": "fsa-family-organization-and-participation",
+      "global_n": 10,
+      "global_hit": 10,
+      "global_activation": 1,
+      "internal_n": 10,
+      "internal_hit": 10,
+      "internal_activation": 1,
+      "sibling_steal": 0,
+      "leak": 0
+    }
+  ],
+  "pass": true
+}

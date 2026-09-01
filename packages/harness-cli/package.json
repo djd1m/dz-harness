@@ -1,7 +1,7 @@
 {
   "name": "@dzhechkov/harness-cli",
-  "version": "0.8.5",
-  "description": "The dz CLI — install AI skills for Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot. 83 commands, 14 presets, 10 platform targets.",
+  "version": "0.8.9",
+  "description": "The dz CLI — install AI skills for Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot. 84 commands, 14 presets, 10 platform targets.",
   "type": "module",
   "license": "MIT",
   "author": "dzhechko",
@@ -80,8 +80,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/harness-cli"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/harness-cli#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/harness-cli#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-windsurf",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Windsurf platform adapter - transforms canonical skills into per-skill .windsurf/rules/<id>.md workspace rules (Windsurf's trigger/description frontmatter + body; intentionally transforming, not byte-identical).",
   "type": "module",
   "license": "MIT",
@@ -51,8 +51,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/adapter-windsurf"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/adapter-windsurf#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-windsurf#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

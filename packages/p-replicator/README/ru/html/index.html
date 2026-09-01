@@ -112,7 +112,7 @@
 <h1 id="dokumentatsiya-dzhechkovp-replicator">Документация @dzhechkov/p-replicator</h1>
 <p>Полный комплект документации к npm-пакету <code>@dzhechkov/p-replicator</code> — toolkit для AI-assisted разработки в Claude Code (Vibe Coding).</p>
 <h2 id="index-chto-eto">Что это</h2>
-<p><code>p-replicator</code> устанавливает в проект готовый набор <code>.claude/</code>-инструментов: <strong>11 slash-команд</strong>, <strong>10 skills</strong>, <strong>4 агента</strong>, <strong>6 правил</strong>, <strong>7 hook-скриптов</strong> и <code>settings.json</code> с pre-configured хуками. Главная команда <code>/replicate</code> проводит проект через 5-фазный pipeline (Discovery → Planning → Validation → Toolkit Generation → Finalize), генерирует SPARC-документацию и project-specific артефакты.</p>
+<p><code>p-replicator</code> устанавливает в проект готовый набор <code>.claude/</code>-инструментов: <strong>11 slash-команд</strong>, <strong>10 skills</strong>, <strong>4 агента</strong>, <strong>13 правил</strong>, <strong>17 hook-скриптов</strong> и <code>settings.json</code> с pre-configured хуками. Главная команда <code>/replicate</code> проводит проект через 5-фазный pipeline (Discovery → Planning → Validation → Toolkit Generation → Finalize), генерирует SPARC-документацию и project-specific артефакты.</p>
 <h2 id="index-navigatsiya">Навигация</h2>
 <div class="table-wrap"><table><thead><tr><th>Раздел</th><th>Описание</th></tr></thead><tbody><tr><td><a href="#quickstart">01_quickstart.md</a></td><td>Установка, первый запуск, проверка</td></tr><tr><td><a href="#user-guide">02_user_guide.md</a></td><td>Все команды и workflow с примерами</td></tr><tr><td><a href="#admin-guide">03_admin_guide.md</a></td><td>Настройка hooks, settings.json, statusline, insights</td></tr><tr><td><a href="#api-reference">04_api_reference.md</a></td><td>CLI-флаги, схемы манифеста, roadmap, state</td></tr><tr><td><a href="#architecture">05_architecture.md</a></td><td>Архитектура: pre-shipped vs generated, SSOT, hooks</td></tr><tr><td><a href="#troubleshooting">06_troubleshooting.md</a></td><td>Решение типичных проблем</td></tr><tr><td><a href="#changelog">07_changelog.md</a></td><td>История версий 1.3.x → 1.5.x</td></tr></tbody></table></div>
 <h2 id="index-yazyki">Языки</h2>
@@ -140,7 +140,7 @@ claude                              # открыть Claude Code
 <p>В корне вашего проекта:</p>
 <pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator init</code></pre>
 <p>Это создаст:</p>
-<ul><li><code>.claude/skills/</code> — 10 предустановленных skills</li><li><code>.claude/commands/</code> — 11 slash-команд (<code>/replicate</code>, <code>/run</code>, <code>/feature</code>, ...)</li><li><code>.claude/agents/</code> — 4 пайплайн-агента</li><li><code>.claude/rules/</code> — 5 governance-правил</li><li><code>.claude/hooks/</code> — 6 cross-platform Node-скриптов</li><li><code>.claude/settings.json</code> — конфигурация hooks + statusline</li><li><code>.p-replicator.json</code> — манифест установки</li></ul>
+<ul><li><code>.claude/skills/</code> — 10 предустановленных skills</li><li><code>.claude/commands/</code> — 11 slash-команд (<code>/replicate</code>, <code>/run</code>, <code>/feature</code>, ...)</li><li><code>.claude/agents/</code> — 4 пайплайн-агента</li><li><code>.claude/rules/</code> — 9 governance-правил</li><li><code>.claude/hooks/</code> — 6 cross-platform Node-скриптов</li><li><code>.claude/settings.json</code> — конфигурация hooks + statusline</li><li><code>.p-replicator.json</code> — манифест установки</li></ul>
 <p>Установка идемпотентна: <code>init</code> не перезапишет существующие файлы без флага <code>--force</code>.</p>
 <h2 id="quickstart-pervyy-zapusk">Первый запуск</h2>
 <pre data-lang="bash"><code class="language-bash">claude                                    # открыть Claude Code в проекте</code></pre>
@@ -186,7 +186,7 @@ mv docs/your-arch.md  docs/Architecture.md
 <p>После <code>/replicate</code> выполните:</p>
 <pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator verify</code></pre>
 <p>Команда проверит:</p>
-<ul><li><strong>Pre-shipped contract</strong> (must-have): 10 skills + 11 commands + 4 agents + 6 rules + settings.json</li><li><strong>Post-/replicate hints</strong> (advisory): CLAUDE.md, project-specific агенты, feature-roadmap.json, security-правила и т.д.</li></ul>
+<ul><li><strong>Pre-shipped contract</strong> (must-have): 10 skills + 11 commands + 4 agents + 13 rules + settings.json</li><li><strong>Post-/replicate hints</strong> (advisory): CLAUDE.md, project-specific агенты, feature-roadmap.json, security-правила и т.д.</li></ul>
 <p>Exit code <code>0</code> означает что pre-shipped контракт цел; warnings показывают что из project-specific артефактов ещё не создано.</p>
 <p>Альтернатива (для общей health-проверки):</p>
 <pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator doctor</code></pre>
@@ -213,7 +213,7 @@ mv docs/your-arch.md  docs/Architecture.md
 │   ├── skills/              # 10 skills
 │   ├── commands/            # 11 slash-команд
 │   ├── agents/              # 4 pipeline-агента
-│   ├── rules/               # 6 правил
+│   ├── rules/               # 13 правил
 │   ├── hooks/               # 6 Node-скриптов
 │   └── settings.json        # hooks + statusline config
 ├── .p-replicator.json       # манифест установки
@@ -429,7 +429,7 @@ claude
 <p>После <code>/feature</code> (или <code>/run</code>) запустите:</p>
 <pre data-lang="bash"><code class="language-bash">npx @dzhechkov/p-replicator verify</code></pre>
 <p>Должен показать:</p>
-<ul><li>✅ Pre-shipped contract intact (10 skills + 11 commands + 4 agents + 6 rules + settings.json)</li><li>✅ Post-/replicate hints — для Mode 2 многие будут отсутствовать (это нормально)</li><li>📊 Per-feature artifacts: <code>docs/features/&lt;id&gt;/01_specification.md</code>...<code>05_completion.md</code>, <code>validation-report.md</code>, <code>review-report.md</code></li></ul>
+<ul><li>✅ Pre-shipped contract intact (10 skills + 11 commands + 4 agents + 13 rules + settings.json)</li><li>✅ Post-/replicate hints — для Mode 2 многие будут отсутствовать (это нормально)</li><li>📊 Per-feature artifacts: <code>docs/features/&lt;id&gt;/01_specification.md</code>...<code>05_completion.md</code>, <code>validation-report.md</code>, <code>review-report.md</code></li></ul>
 <h4 id="user-guide-future-enhancement-m3-v-knownlimitations">Future enhancement (M3 в KNOWN_LIMITATIONS)</h4>
 <p><code>docPaths</code> config в <code>.p-replicator.json</code> для нестандартных путей доков — в roadmap'е. Tier S effort, чисто config + spec-read изменения, без изменений CLI-кода.</p>
 <hr>
@@ -551,7 +551,7 @@ Set DATABASE_URL_SHADOW env var explicitly to a separate database.
 🚀 Pipeline   /&lt;cmd&gt; ▓▓▓░░░░ 50%  │ Phase: VALIDATE (2/4)  │ Last: /replicate
 🎯 Roadmap    [●●●○○○○○] mvp 3/8   │ Done 5/12  │ ▶ auth-jwt  │ Domain: banking
 📊 SPARC      ●11/11  │ 🟢 78/100  │ Plans ●3  │ ADRs ●2  │ Harvest 2026-05-05
-🛠️ Toolkit   Skills ●10/10 │ Cmds ●11/11 │ Agents ●4+3 │ Rules ●6+2 │ Hooks ●7/7
+🛠️ Toolkit   Skills ●10/10 │ Cmds ●11/11 │ Agents ●4+3 │ Rules ●13+2 │ Hooks ●17/17
 💡 Insights   ●12 (2026-05-06) │ Tests 85/85 ✓ │ MCP ●1/1 │ Settings ✓ │ 🧬 Keysarium ✓</code></pre>
 <p><strong>Источники (heuristic + state-file):</strong></p>
 <div class="table-wrap"><table><thead><tr><th>Метрика</th><th>Откуда</th></tr></thead><tbody><tr><td>Pipeline command + phase + progress</td><td><code>.claude/.p-replicator-state.json</code> (state-file)</td></tr><tr><td>Roadmap progress</td><td><code>.claude/feature-roadmap.json</code></td></tr><tr><td>SPARC count</td><td><code>docs/{PRD,Architecture,...}.md</code> files</td></tr><tr><td>Validation score</td><td>regex extract from <code>docs/validation-report.md</code></td></tr><tr><td>Plans count</td><td><code>docs/plans/*.md</code></td></tr><tr><td>ADRs count</td><td><code>docs/ADR.md</code> <code>## ADR-...</code> headings, или <code>docs/adr/*.md</code>, или <code>docs/ddd/adr/*.md</code></td></tr><tr><td>Insights count + last date</td><td><code>## YYYY-MM-DD</code> headings в <code>.claude/insights/index.md</code></td></tr><tr><td>Toolkit counts</td><td>filesystem walk <code>.claude/{skills,commands,agents,rules,hooks}/</code></td></tr><tr><td>Settings status</td><td>deep-equals current vs <code>manifest.shippedDefaults</code> → <code>defaults</code>/<code>merged</code></td></tr><tr><td>MCP servers</td><td><code>.mcp.json</code></td></tr><tr><td>Domain</td><td>keyword grep <code>CLAUDE.md</code> (banking/retail/enterprise/healthcare)</td></tr><tr><td>Last harvest</td><td><code>TOOLKIT_HARVEST.md</code> mtime</td></tr><tr><td>Last test</td><td>optional <code>.claude/.last-test.json</code> cache</td></tr></tbody></table></div>
@@ -638,7 +638,7 @@ echo ".claude/.last-test.json" &gt;&gt; .gitignore</code></pre>
 <p><strong>Auto-commit</strong> через <code>autocommit-roadmap.cjs</code> (Stop hook) при изменениях.</p>
 <hr>
 <h2 id="admin-guide-doctor-verify-dva-raznyh-instrumenta">Doctor + Verify — два разных инструмента</h2>
-<div class="table-wrap"><table><thead><tr><th>Инструмент</th><th>Что проверяет</th><th>Когда</th></tr></thead><tbody><tr><td><code>npx @dzhechkov/p-replicator doctor</code></td><td>Pre-shipped contract: 10 skills + 11 commands + 4 agents + 6 rules + settings.json + 7 hooks + git on PATH</td><td>После init / при подозрении что что-то сломалось</td></tr><tr><td><code>npx @dzhechkov/p-replicator verify</code></td><td>Pre-shipped + post-/replicate hints (CLAUDE.md, planner.md, security.md, feature-roadmap.json, и т.д.)</td><td>После каждого <code>/replicate</code> для уверенности</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>Инструмент</th><th>Что проверяет</th><th>Когда</th></tr></thead><tbody><tr><td><code>npx @dzhechkov/p-replicator doctor</code></td><td>Pre-shipped contract: 10 skills + 11 commands + 4 agents + 13 rules + settings.json + 17 hooks + git on PATH</td><td>После init / при подозрении что что-то сломалось</td></tr><tr><td><code>npx @dzhechkov/p-replicator verify</code></td><td>Pre-shipped + post-/replicate hints (CLAUDE.md, planner.md, security.md, feature-roadmap.json, и т.д.)</td><td>После каждого <code>/replicate</code> для уверенности</td></tr></tbody></table></div>
 <p><strong><code>doctor</code> exit codes:</strong></p>
 <ul><li><code>0</code> — всё в порядке</li><li><code>1</code> — что-то отсутствует из must-have (используйте <code>init --force</code> для repair)</li></ul>
 <p><strong><code>verify</code> exit codes:</strong></p>
@@ -914,7 +914,7 @@ npx @dzhechkov/p-replicator@latest init --force --reset-settings</code></pre>
 <hr>
 <h2 id="architecture-cross-platform-hooks-v141">Cross-platform hooks (v1.4.1)</h2>
 <p><strong>Дизайн-принцип:</strong> zero shell dependency.</p>
-<p>Все 7 hook-скриптов написаны на pure Node, используют <code>execFileSync('git', [...])</code> вместо shell-pipes. Это эквивалентно работает на:</p>
+<p>Все 17 hook-скриптов написаны на pure Node, используют <code>execFileSync('git', [...])</code> вместо shell-pipes. Это эквивалентно работает на:</p>
 <ul><li>Windows cmd.exe (нет <code>2&gt;/dev/null</code>, есть <code>2&gt;nul</code> — не нужен ни тот ни другой)</li><li>Bash / zsh / Git Bash на Windows</li><li>PowerShell</li></ul>
 <p><strong>Pattern для autocommit-скрипта:</strong></p>
 <pre data-lang="javascript"><code class="language-javascript">const fs = require('node:fs');
@@ -1277,7 +1277,7 @@ find docs/ -type f -name "*.md" | wc -l</code></pre>
 <ul><li>🐛 <strong>Cross-platform hooks:</strong> заменены bash-chains на 4 Node-скрипта (<code>session-insights</code>, <code>autocommit-{roadmap,insights,plans}</code>)</li><li>🐛 <strong><code>verify.js</code> SSOT:</strong> <code>kind: 'pre-shipped' | 'project-generated'</code> field + 3 новых project-generated groups</li><li>🐛 <strong>Meta-tests</strong> для <code>replicate.md</code> ↔ <code>replicate-pipeline.md</code> consistency</li><li>🐛 <strong>Critical regression discovered + fixed:</strong> <code>sync-templates.js</code> cleanDir тихо удалял pre-shipped файлы во время <code>npm publish --dry-run</code>. Switched to MERGE mode</li><li>🆕 6th COMPONENTS group: <code>hooks</code> (4 cross-platform Node scripts)</li><li>🆕 <code>getItemRelativePath()</code> helper для централизованного path-derivation</li><li>📊 74 tests, +14 от v1.4.0</li></ul>
 <h2 id="changelog-v140-2026-05-06">v1.4.0 — 2026-05-06</h2>
 <p><strong>Major release — 9 pre-shipped команд + verify command.</strong></p>
-<ul><li>✨ Закрыт корневой источник pain: <code>/replicate</code> Phase 3 больше не пытается генерировать generic команды. Все 11 commands + 5 rules + settings.json + 4 hooks теперь pre-shipped через <code>init</code></li><li>✨ <strong>9 новых pre-shipped команд:</strong> <code>/start</code>, <code>/plan</code>, <code>/feature</code>, <code>/go</code>, <code>/run</code>, <code>/next</code>, <code>/myinsights</code>, <code>/docs</code>, <code>/deploy</code></li><li>✨ <strong>3 новых pre-shipped rules:</strong> <code>git-workflow</code>, <code>insights-capture</code>, <code>feature-lifecycle</code></li><li>✨ <strong>Settings.json shipped</strong> with hooks (SessionStart insights inject + Stop auto-commit)</li><li>✨ <strong><code>verify</code> command</strong> — replaces user's manual verification prompt</li><li>🐛 5 sources of truth divergence (<code>replicate.md</code>, <code>replicate-pipeline.md</code>, cc-toolkit modules, README, cli help) unified via <code>utils.COMPONENTS.items</code></li><li>📊 60 tests, +8 от v1.3.1</li></ul>
+<ul><li>✨ Закрыт корневой источник pain: <code>/replicate</code> Phase 3 больше не пытается генерировать generic команды. Все 11 commands + 13 rules + settings.json + 17 hooks теперь pre-shipped через <code>init</code></li><li>✨ <strong>9 новых pre-shipped команд:</strong> <code>/start</code>, <code>/plan</code>, <code>/feature</code>, <code>/go</code>, <code>/run</code>, <code>/next</code>, <code>/myinsights</code>, <code>/docs</code>, <code>/deploy</code></li><li>✨ <strong>3 новых pre-shipped rules:</strong> <code>git-workflow</code>, <code>insights-capture</code>, <code>feature-lifecycle</code></li><li>✨ <strong>Settings.json shipped</strong> with hooks (SessionStart insights inject + Stop auto-commit)</li><li>✨ <strong><code>verify</code> command</strong> — replaces user's manual verification prompt</li><li>🐛 5 sources of truth divergence (<code>replicate.md</code>, <code>replicate-pipeline.md</code>, cc-toolkit modules, README, cli help) unified via <code>utils.COMPONENTS.items</code></li><li>📊 60 tests, +8 от v1.3.1</li></ul>
 <h2 id="changelog-v131-2026-05-06">v1.3.1 — 2026-05-06</h2>
 <p><strong>Two real bug fixes.</strong></p>
 <ul><li>🐛 <strong><code>cli.js</code> --help showed «1 rule» while <code>EXPECTED_RULES</code> had 2 entries.</strong> SSOT fix: <code>COMPONENTS.&lt;group&gt;.items</code> map is single source of truth for counts, used by doctor/list/cli.js help via dynamic derivation</li><li>🐛 <strong><code>update.js</code> corrupted manifest</strong> — walked user's full <code>.claude/</code>, capturing project-generated files into <code>manifest.files</code>. Subsequent <code>remove</code> would delete them, contradicting documented behavior. Fixed by using <code>getRelativePaths(templateClaude)</code> instead</li><li>🐛 Bonus: <code>update</code> now removes orphan template files (files in old manifest but not in new template) — addresses original v1.3.0 concern about ignored <code>missing[]</code> from <code>diffFiles</code></li><li>📊 52 tests, +7 от v1.3.0</li></ul>

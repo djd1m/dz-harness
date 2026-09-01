@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const RULE_COMPONENTS = require('./rule-components.json');
 
 // ===========================================================================
 // Colors — ANSI escape codes (zero dependencies)
@@ -326,14 +327,7 @@ const COMPONENTS = {
     kind: 'pre-shipped',
     label: 'Rules (pipeline + workflow constraints)',
     group: 'core',
-    items: {
-      'replicate-pipeline':       'Phase sequence, output paths, git discipline, modular skill loading',
-      'skill-interface-protocol': 'view() contract, module interface, maturity tagging, composition rules',
-      'git-workflow':             'Commit/push discipline, branch strategy, semantic messages',
-      'insights-capture':         'When and how to capture development insights to knowledge base',
-      'feature-lifecycle':        '/feature phases (PLAN → VALIDATE → IMPLEMENT → REVIEW), checkpoints, scoring',
-      'docker-ports':             'Правило №0: storage ports are not published outward; loopback bind is the exception',
-    },
+    items: RULE_COMPONENTS,
   },
   settings: {
     src: '.claude/settings.json',
@@ -357,9 +351,23 @@ const COMPONENTS = {
       'autocommit-plans':    'Auto-commit docs/plans/ on Stop hook',
       'statusline':          'Multi-line dashboard (pipeline, roadmap, toolkit) for Claude Code statusLine',
       'state-update':        'Argv-driven helper for pipeline commands to publish current command + phase + progress',
+      'write-insight':       'Validate and append one harvest insight to the project Markdown carrier',
       'check-ports':              'Enforce docker-ports Правило №0 against a real compose (invoke deliberately; exits 0/1/2)',
       'check-growth-trace':       'Did the M5 growth seed reach docs/Specification.md (invoke deliberately; exits 0/1/2)',
+      'check-look-trace':         'Did the Phase-0.5 source-look seed reach docs/Specification.md (invoke deliberately; exits 0/1/2)',
+      'capture-source-path':      'Phase-0.5 «путь» axis: click through the source product in a browser and emit FR-LOOK rows (external Playwright; exits 0/1/2)',
       'check-docs-complete':      'Are Phase-1 documents written and placeholder-free, before the Phase-2 swarm (invoke deliberately; exits 0/1/2)',
+      'check-swarm-receipts':     'Did every parallel work unit deliver its named terminal file, before the coordinator aggregates (invoke deliberately; exits 0/1/2)',
+      'check-embed-contract':     'Was the embeddable widget checked on a FOREIGN origin — cross-origin, style leakage, host CSP (invoke deliberately; exits 0/1/2)',
+      'check-webhook-contract':   'Is the incoming webhook signed, deduplicated by a NAMED repeat key with atomic exclusion, and safe against reordering (invoke deliberately; exits 0/1/2)',
+      'check-job-contract':       'Does long-running work carry a handle issued before the work, three distinguishable states and a retry that continues (invoke deliberately; exits 0/1/2)',
+      'check-model-cost':         'Does every external model call name a ceiling that can BIND — a number, per user and per day, refusing at the limit (invoke deliberately; exits 0/1/2)',
+      'check-canon':              'Before a WRITING fan-out: is the shared canon named, pinned by sha256 and free of colliding ordinals and self-contradicting lists (invoke deliberately; exits 0/1/2)',
+      'check-file-ownership':     'Before a WRITING fan-out: does every written file have exactly one writer — coordinator included — and does a file born by a SPLIT get its owner at creation (invoke deliberately; exits 0/1/2)',
+      'check-source-version':     'Before a merge: does every edit and every verdict declare the sha256 of the source it was built on, and does it still match (invoke deliberately; exits 0/1/2)',
+      'check-handoff-manifest':   'Phase 0 to Phase 1: did every enumerated discovery output get an answer — cited by id, or rejected with a reason (invoke deliberately; exits 0/1/2)',
+      'check-external-deps':      'Does the external-dependency inventory EXIST and carry a verdict per row — an absent section is never «no dependencies» (invoke deliberately; exits 0/1/2)',
+      'check-metric-source':      'Does every success metric name WHERE its value comes from, from a closed list, and does an external-API metric have its inventory row (invoke deliberately; exits 0/1/2)',
     },
   },
   // ─── Project-generated groups (created by /replicate Phase 3) ───────────

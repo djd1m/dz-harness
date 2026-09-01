@@ -21,7 +21,7 @@
       },
       {
         "path": ".codex-plugin/skills/loop-plan-author/references/loop-plan-1-schema.md",
-        "sha256": "a9cc720e0855cc0318286a1007a34c8a59ee012a17ffcc383a22c11dbee13c8b"
+        "sha256": "397e5fe9a830fb4eb2eaf03ab57bc6e69ca22fbad12d36541a687175cf0cf84e"
       },
       {
         "path": "LICENSE",
@@ -77,7 +77,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "d803f4f8310b9bd81472c90920a7e786155e3ec3e4fe4c4975eeb64d28b6f3c8"
+        "sha256": "527a0ea46fe07d78dcf14c09d9f7a3978a563a7f86c90b10bc22083ab6c41483"
       },
       {
         "path": "skills/loop-plan-author/SKILL.md",
@@ -85,9 +85,9 @@
       },
       {
         "path": "skills/loop-plan-author/references/loop-plan-1-schema.md",
-        "sha256": "a9cc720e0855cc0318286a1007a34c8a59ee012a17ffcc383a22c11dbee13c8b"
+        "sha256": "397e5fe9a830fb4eb2eaf03ab57bc6e69ca22fbad12d36541a687175cf0cf84e"
       }
     ]
   },
-  "signature": "IJo7bCMFPVRdsPIZljc/dDb712GLNT/Y0wPdi9E6VQaJyi73BzK00KTblC0LtSylzqpJA/GH522Ft33ecOqyDA=="
+  "signature": "/qeJTQHWvueiuE71U3/6Z/TO1AMqrZBDJqdlJ3zJVpQ0VpWtC/bHsNozFHuxZkkUHu0Sa44B3MIwr3ma5Hz2Dw=="
 }

@@ -115,12 +115,14 @@ const count = (out, key) => {
     }
   });
 
-  test('P4 - files[] does not ship scripts/', () => {
+  test('P4 - files[] ships only the deliberate checker, not the scripts directory', () => {
     // The rejected alternative. Adding scripts/ fixes ONE of the two files and hands users build
     // machinery for no reason; module-copy-identity needs sibling PACKAGES, which no tarball has.
     const pkg = JSON.parse(fs.readFileSync(path.join(PKG, 'package.json'), 'utf-8'));
     assert.ok(!(pkg.files || []).includes('scripts/'),
       'shipping scripts/ was rejected: it fixes one file of two and ships build machinery');
+    assert.ok((pkg.files || []).includes('scripts/check-pipeline-gaps.sh'),
+      'the consumer-facing checker must be named explicitly in files[]');
     assert.ok((pkg.files || []).includes('tests/'),
       'this whole file only matters because tests/ ships — if that changes, revisit');
   });

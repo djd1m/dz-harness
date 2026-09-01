@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/health-advisor",
-  "version": "1.10.4",
+  "version": "1.10.5",
   "description": "AI Health Advisor — 20 base components + 25 extended medical skills for Claude Code",
   "bin": {
     "health-advisor": "./bin/health-advisor.js",
@@ -18,7 +18,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/health-advisor"
   },
   "files": [
@@ -40,10 +40,13 @@
   "publishConfig": {
     "access": "public"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/health-advisor#readme",
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/health-advisor#readme",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
     "test": "node --test --test-concurrency=4",
     "test:mutation": "dz mutation-gate --registry test/mutation-registry.json"
+  },
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
   }
 }

@@ -516,6 +516,10 @@ Invalid signatures are rejected with confidence `0.0`; they are never a recovera
 8. Cross-check claims through ordinary source evaluation.
 9. **Run the report gate before delivering:**
    `python3 scripts/check_report_evidence.py --report <report.md> --facts <facts.json>` — exit 0 required.
+9a. **A NEGATIVE conclusion ("no competitor has this") MUST carry its own basis:** КОРПУС · ПОЛНОТА ·
+   СПОСОБ ПОИСКА · ГРАНИЦА КОРПУСА · СЛЕДСТВИЕ. "We did not find it" is a property of the SEARCH;
+   "it is not there" is a property of the WORLD, and only an exhaustive corpus licenses the second.
+   Form, closed values and the measured reason: `references/negative-results.md`.
 10. Report confidence, evidence-class mix, unsigned claims, rejected signatures, and limitations
     explicitly.
 

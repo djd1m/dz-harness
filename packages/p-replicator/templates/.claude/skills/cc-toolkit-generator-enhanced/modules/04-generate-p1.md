@@ -245,13 +245,15 @@ IF has_ddd:
       - Phase 2: VALIDATE (requirements-validator swarm, 7 agents, score >= 70)
       - Phase 3: IMPLEMENT (parallel agents per Bounded Context)
       - Phase 4: REVIEW (brutal-honesty-review swarm, 6 agents)
+      - Positive file receipt block VERBATIM in Phase 3 (P0 Item 9b installs the rule it cites)
       - Output to docs/features/<feature-name>/ with full subdirectory structure
 
   6b. Generate .claude/rules/feature-lifecycle-ent.md
       - When to use /feature-ent vs /feature decision matrix
       - Enterprise planning rules (full idea2prd-manual, mandatory DDD)
       - Enterprise validation rules (7 agents, extended scope)
-      - Enterprise implementation rules (Task per Bounded Context)
+      - Enterprise implementation rules (Task per Bounded Context, each with its own
+        WORK_UNIT_ID and absolute TRACE_PATH — the positive file receipt block VERBATIM)
       - Enterprise review rules (6 agents, ADR + fitness verification)
 
   6c. Copy skill directories with path rewrite:
@@ -468,6 +470,10 @@ All of the following must pass before proceeding to Phase 5:
 
 - [ ] `/feature-ent` command includes all 4 phases with checkpoints
 - [ ] `feature-lifecycle-ent.md` rule includes decision matrix (/feature vs /feature-ent)
+- [ ] `/feature-ent` Phase 3 and `feature-lifecycle-ent.md` Implementation each carry the positive
+      file receipt block (`WORK_UNIT_ID`, absolute `TRACE_PATH`, terminal `Status:` line, refusal to
+      merge without it) and cite `.claude/rules/swarm-file-evidence.md`. A Bounded-Context agent
+      that died is silent exactly like one still working, so only the file separates them
 - [ ] `idea2prd-manual/` skill copied with ALL path rewrites applied (3 external skill paths)
 - [ ] `goap-research-ed25519/` skill copied completely
 - [ ] No duplicate skill copies (explore, problem-solver-enhanced already in P0)

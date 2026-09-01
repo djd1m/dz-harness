@@ -1,0 +1,43 @@
+{
+  "name": "@dzhechkov/skills-book-fundamental-software-architecture",
+  "version": "0.1.1",
+  "description": "Architecture decision gateway distilled from Fundamentals of Software Architecture: 26 protocols, shipped references, and a 315-KU lexical brain slice.",
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "dzhechko",
+  "scripts": {
+    "test": "node test/pack.test.mjs",
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "keywords": [
+    "agent-skills",
+    "skill-pack",
+    "codex",
+    "claude-code",
+    "software-architecture",
+    "architecture-decisions",
+    "book-derived"
+  ],
+  "files": [
+    "fundamental-software-architecture-guide",
+    "brain",
+    "scripts",
+    "test",
+    "family-manifest.json",
+    "route-manifest.json",
+    "sources.json",
+    "README.md",
+    "LICENSE",
+    "CP4-PACK-REPORT.md",
+    ".dz-manifest.json",
+    "sbom.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/skills-book-fundamental-software-architecture"
+  },
+  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-book-fundamental-software-architecture#readme"
+}

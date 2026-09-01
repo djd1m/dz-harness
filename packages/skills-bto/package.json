@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-bto",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "description": "Build-Benchmark-Test-Optimize skill pack for Claude Code — deterministic benchmarking, quality gates, witness chain, judge attestation, and optimization",
   "main": "src/cli.js",
   "scripts": {
@@ -39,12 +39,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-bto"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-bto#readme",
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-bto#readme",
   "bugs": {
-    "url": "https://github.com/dzhechko/product-keysarium-2026/issues"
+    "url": "https://github.com/djd1m/dz-harness/issues"
   },
   "peerDependencies": {
     "@dzhechkov/keysarium-core": "^1.0.0"

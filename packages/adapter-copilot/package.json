@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-copilot",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "GitHub Copilot platform adapter - compiles canonical skills into .github/instructions/*.instructions.md (intentionally lossy).",
   "type": "module",
   "license": "MIT",
@@ -52,8 +52,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/adapter-copilot"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/adapter-copilot#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-copilot#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

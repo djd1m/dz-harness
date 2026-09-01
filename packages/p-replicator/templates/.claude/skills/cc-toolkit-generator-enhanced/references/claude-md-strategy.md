@@ -73,6 +73,13 @@ These are identical regardless of pipeline.
 - Use `Task` tool for independent subtasks
 - Run tests, linting, type-checking in parallel
 - For complex features: spawn specialized agents
+- **Every parallel unit delivers a FILE, not a reply.** Give each one a unique `WORK_UNIT_ID` and an
+  absolute `TRACE_PATH`; it writes a substantive body ending in `Status: completed` or
+  `Status: failed` there before its one-line pointer. A dead worker and a working worker are both
+  silent, so silence is never progress. Verify before merging with
+  `node .claude/hooks/check-swarm-receipts.cjs <manifest>` (0 = all completed, 1 = a unit is
+  undelivered or failed, 2 = the check did not run). Full contract:
+  `.claude/rules/swarm-file-evidence.md`.
 
 ## Swarm Agents
 | Scenario | Agents | Parallelism |

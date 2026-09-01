@@ -39,7 +39,8 @@ From the Instrument Map this module uses:
 > gate in `.claude/rules/replicate-pipeline.md` ("What Gets Generated vs Pre-shipped").
 > For these items, **VERIFY they exist — do NOT regenerate or overwrite them:**
 > - Commands: `start.md` (Item 4), `myinsights.md` (Item 5), `feature.md` (Item 6)
-> - Rules: `git-workflow.md` (Item 7), `insights-capture.md` (Item 8), `feature-lifecycle.md` (Item 9)
+> - Rules: `git-workflow.md` (Item 7), `insights-capture.md` (Item 8), `feature-lifecycle.md` (Item 9),
+>   `swarm-file-evidence.md` (Item 9b)
 > - Config: `.claude/settings.json` + `.claude/hooks/` scripts (Item 10)
 >
 > Treat their "Generate `.claude/...`" instructions as "confirm present; enhance content
@@ -238,6 +239,11 @@ Key generation steps:
 **Critical rule:** /start MUST reference actual docs in `docs/`, never hallucinate
 code from memory. Every Phase 2 Task includes explicit doc references.
 
+**Second critical rule:** Phase 2 dispatches parallel Tasks, so the generated command MUST carry
+the "Positive file receipt (required)" block from the template. Every package Task gets its own
+`WORK_UNIT_ID` and absolute `TRACE_PATH`, and Phase 3 may not begin until
+`node .claude/hooks/check-swarm-receipts.cjs <manifest>` exits 0 (see Item 9b).
+
 **Output path:** `.claude/commands/start.md`
 
 ---
@@ -291,6 +297,8 @@ Phase 3: IMPLEMENT (swarm + parallel tasks)
   Read validated SPARC docs as source of truth
   Use @planner, @architect, implementation agents
   Modular design for reuse
+  Positive file receipt: one WORK_UNIT_ID + absolute TRACE_PATH per unit,
+    terminal Status: line last, verified before merge (see Item 9b)
   Commit per logical unit: feat(<feature-name>): <what>
 
 Phase 4: REVIEW (brutal-honesty-review, swarm)
@@ -364,6 +372,38 @@ Generate `.claude/rules/feature-lifecycle.md` with:
 - Skip rules table (when to skip phases)
 
 **Output path:** `.claude/rules/feature-lifecycle.md`
+
+The generated rule MUST carry the "Positive file receipt (required)" block from Section 3 of the
+template verbatim. A lifecycle that dispatches parallel agents without it is INCOMPLETE, and
+`06-package-deliver.md` CHECK 7b fails delivery on it.
+
+---
+
+#### Item 9b: swarm-file-evidence.md rule
+
+**Template:** `view() references/templates/swarm-file-evidence.md` (Section 1)
+> CRITICAL: COPY the full template. Do NOT compress or summarize.
+
+Generate `.claude/rules/swarm-file-evidence.md` — the contract that makes a parallel unit's result
+a FILE rather than a reply.
+
+**Why this item exists, in one paragraph you should not skip:** a worker that died looks exactly
+like a worker that is still running, because both are silent. Silence therefore reads as "in
+progress", and a coordinator can report in good faith that a review is running when no review
+exists — the absence of a receipt is indistinguishable from unfinished work. Declaring the result
+to be a file at a named path collapses that ambiguity: no file, no work, and a machine can say so.
+
+- **Do NOT overwrite** an existing `.claude/rules/swarm-file-evidence.md` — a project created by
+  `npx @dzhechkov/p-replicator init` already has it, pre-shipped and protected by the
+  do-not-overwrite gate.
+- Generate it when the path is ABSENT, which is the case for every toolkit produced into a project
+  this package never initialised. That is the whole point of this item: the cure has to travel with
+  the generated toolkit, not only with the installer.
+- Also copy `templates/.claude/hooks/check-swarm-receipts.cjs` (or regenerate it from
+  Section 3 of the template) so the contract has its deterministic half — text alone is layer 2 and
+  fails silently.
+
+**Output path:** `.claude/rules/swarm-file-evidence.md` (+ `.claude/hooks/check-swarm-receipts.cjs`)
 
 ---
 
@@ -559,6 +599,8 @@ Generate items in this order to resolve dependencies:
 4. Item 7: git-workflow.md (rule, no deps)
 5. Item 8: insights-capture.md (rule, no deps)
 6. Item 9: feature-lifecycle.md (rule, references skills from step 1)
+6b. Item 9b: swarm-file-evidence.md (rule + check-swarm-receipts.cjs; every later item that
+    dispatches parallel agents references it, so it must exist before them)
 7. Item 4: /start command (references docs, rules, skills)
 8. Item 5: /myinsights command (references insights-capture rule)
 9. Item 6: /feature command (references lifecycle skills, rules)
@@ -587,6 +629,8 @@ P0 Mandatory Generated:
   [x] .claude/rules/git-workflow.md   0.8 KB
   [x] .claude/rules/insights-capture.md  1.9 KB
   [x] .claude/rules/feature-lifecycle.md 2.4 KB
+  [x] .claude/rules/swarm-file-evidence.md 2.6 KB
+  [x] .claude/hooks/check-swarm-receipts.cjs (0/1/2)
   [x] .claude/settings.json           1.2 KB
   [x] 6 lifecycle skills copied       (sparc-prd-mini, explore,
        goap-research, problem-solver-enhanced,
@@ -659,6 +703,7 @@ This module reads the following reference/template files during execution:
 | `view() references/templates/start-command.md` | /start command template with placeholder fill instructions | Item 4: /start |
 | `view() references/templates/feature-lifecycle.md` | Skill copying protocol (Sec 1), /feature command template (Sec 2), feature-lifecycle rule template (Sec 3), CLAUDE.md integration (Sec 4) | Items 6, 9, 11-16 |
 | `view() references/templates/insights-system.md` | /myinsights command template (Sec 1), insights-capture rule template (Sec 2), Stop hook template (Sec 3), CLAUDE.md integration (Sec 4) | Items 5, 8, 10 |
+| `view() references/templates/swarm-file-evidence.md` | swarm-file-evidence rule body (Sec 1), the positive file receipt seam to paste into every dispatch site (Sec 2), the `check-swarm-receipts.cjs` 0/1/2 checker + manifest shape (Sec 3), placement map (Sec 4) | Items 4, 6, 9, 9b |
 
 These files are part of the cc-toolkit-generator-enhanced skill at:
 `.claude/skills/cc-toolkit-generator-enhanced/references/`

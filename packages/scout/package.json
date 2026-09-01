@@ -1,7 +1,7 @@
 {
   "name": "@dzhechkov/scout",
-  "version": "0.8.10",
-  "description": "GitHub ecosystem intelligence \u2014 discover agent-skill repos, detect formats, score relevance, generate intelligence reports.",
+  "version": "0.8.11",
+  "description": "GitHub ecosystem intelligence — discover agent-skill repos, detect formats, score relevance, generate intelligence reports.",
   "type": "module",
   "license": "MIT",
   "author": "dzhechko",
@@ -46,8 +46,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/scout"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/scout#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/scout#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

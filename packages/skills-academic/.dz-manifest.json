@@ -77,7 +77,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "310b8c5ad3e2d7f6c5ade1bde1a5b292dcbdfe41a07148dc30f8346f4dd65d07"
+        "sha256": "6c24b639f479e307b779e300289335fe1e36e3a1807a864e96677ebaeeefedfa"
       },
       {
         "path": "question-generator/SKILL.md",
@@ -101,5 +101,5 @@
       }
     ]
   },
-  "signature": "aGbHNuEHhKvn9U156WsodXC2ZRMf/SL+MVd3YPgfxAUhNrWr38RHwByDJTIl63EC+KZcurULUitnaRa3P1qLDw=="
+  "signature": "V4j6wDETpvBu0zpDdWfM7WbbVFiRkCkhXkNQcInaZyO0Uj3EBaN5zypXgRHHmhnEPk6f7zeXzcMrjJH094J3Dg=="
 }

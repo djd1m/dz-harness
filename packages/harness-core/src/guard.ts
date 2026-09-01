@@ -11,8 +11,16 @@
 // PURE: `evaluateGuard` operates over INJECTED FACTS (package.json deps, a drift result, lesson text, README
 // counts, store size) that the CLI gathers. No filesystem here → deterministic + unit-testable without a repo.
 
-import { type RuleTemplate, type TemplateParams, type ChangeSet, templateFires, validTemplateParams } from './guard-promotion.js';
+import { lessonRuleContentAnchor, type RuleTemplate, type TemplateParams, type ChangeSet, templateFires, validTemplateParams } from './guard-promotion.js';
 import { STUB_MARKERS, STUB_PHRASES, checkNoStubs, type StubWaiver } from './no-stubs.js';
+import {
+  VOLUME_SHADOW_RULE_IDS,
+  evaluateVolumeShadow,
+  unknownVolumeShadow,
+  type GuardObservation,
+  type VolumeShadowInput,
+  type VolumeShadowResult,
+} from './guard-volume.js';
 
 export type GuardSeverity = 'hard' | 'soft';
 export type GuardOp = 'publish' | 'teach' | 'consolidate' | 'reindex';
@@ -39,6 +47,8 @@ export interface Violation {
   readonly rule: string;
   readonly severity: GuardSeverity;
   readonly detail: string;
+  /** Present for promoted-template firings; ids alone do not prove equal effective rule content. */
+  readonly contentAnchor?: string;
 }
 
 export interface GuardResult {
@@ -54,15 +64,24 @@ export interface GuardResult {
    * argument; a note is the cheap fix. Present only when non-empty.
    */
   readonly notes?: readonly string[];
+  /** Versioned shadow measurements. They are evidence only and never enter the verdict reducer. */
+  readonly observations?: readonly GuardObservation[];
 }
 
 /** Facts the CLI injects; each rule reads only the fields it needs. Missing evidence ⇒ that rule is skipped. */
 export interface GuardFacts {
   readonly op: GuardOp;
+  /** Publish-only raw volume facts. Absence preserves the legacy result shape. */
+  readonly volume?: VolumeShadowInput;
   /** for no-workspace-star: each publishable package's deps map. */
   readonly packages?: readonly { readonly name: string; readonly deps: Readonly<Record<string, string>> }[];
   /** for no-skill-drift: the names that byte-drift between copies (from sweepSkillDrift). */
   readonly drift?: readonly string[];
+  /**
+   * for codex-wrapper-for-value-stage: workflow scripts to scan, as (path, text). Absent ⇒ the
+   * rule reports nothing: a guard with no evidence must stay silent rather than invent a verdict.
+   */
+  readonly workflowScripts?: readonly { readonly path: string; readonly text: string }[];
   /** for no-secrets: labelled blobs to scan (lesson text, staged files). */
   readonly secretTargets?: readonly { readonly label: string; readonly text: string }[];
   /** for readme-consistency: labelled (a,b) count pairs that must be equal. */
@@ -84,6 +103,11 @@ export interface GuardFacts {
     readonly diverged?: boolean;
     /** Operator-owned published version, carried only to render the exact repair command. */
     readonly publishedVersion?: string;
+    /** Existing published manifests that could not be read or parsed. */
+    readonly manifestFailures?: readonly {
+      readonly file: 'plugin.json' | 'marketplace.json';
+      readonly error: string;
+    }[];
     /** true ⇒ regeneration was attempted but could not complete. */
     readonly regenerateFailed?: boolean;
   };
@@ -282,7 +306,12 @@ export const DEFAULT_RULES: readonly GuardRule[] = [
   { id: 'readme-first', severity: 'soft', ops: ['publish'], description: 'a package with a staged version bump must update its own README.md in the same change (README-first)' },
   { id: 'routing-store-stale', severity: 'soft', ops: ['publish'], description: 'harvested routing telemetry has been applied to the auto-cost outcome store' },
   { id: 'marketplace-parity', severity: 'soft', ops: ['publish'], description: 'the published .claude-plugin/ showcase composition matches a fresh regeneration from the live registry (version excluded — an operator field)' },
+  { id: 'template-context-token-weight', severity: 'soft', ops: ['publish'], description: 'observe the UTF-8-byte estimated token weight of each selected template context corpus; measured starting points are advisory only' },
+  { id: 'template-context-largest-file-share', severity: 'soft', ops: ['publish'], description: 'observe the largest template file share on the same estimated-token basis as its corpus total; advisory only' },
+  { id: 'feature-artifact-diff-ratio', severity: 'soft', ops: ['publish'], description: 'observe feature artifact bytes against attributable unified-diff bytes, explicitly a proxy; advisory only' },
+  { id: 'feature-tier-artifact-set', severity: 'soft', ops: ['publish'], description: 'observe artifacts due for the recorded feature tier, active steps, consumers, and lifecycle; advisory only' },
   { id: 'agents-md-policy-sync', severity: 'soft', ops: ['publish'], description: 'proves the AGENTS.md copy is in SYNC with its source — not that the runtime read or obeyed it; heal drift with dz agents-sync' },
+  { id: 'codex-wrapper-for-value-stage', severity: 'hard', ops: ['publish'], description: 'a workflow stage routed to the fire-and-forget codex wrapper must not have its return value consumed — the wrapper answers with a dispatch stub, never with the model' },
   { id: 'lockfile-in-sync', severity: 'soft', ops: ['publish'], description: 'every workspace @dzhechkov/* dependency spec matches the specifier pnpm-lock.yaml records for that importer (a dep bump without a lockfile refresh breaks CI with ERR_PNPM_OUTDATED_LOCKFILE). SOFT-ONLY — a config cannot promote it to HARD' },
   { id: 'store-bloat-cap', severity: 'soft', ops: ['teach', 'consolidate'], description: 'the learned store is within its size cap' },
   // Description ASSEMBLED from STUB_MARKERS so guard.ts itself stays clean under the scan it defines
@@ -397,6 +426,19 @@ const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[
     const hasPublishedVersion = typeof fact.publishedVersion === 'string' && fact.publishedVersion !== '';
     const fix = `dz plugin --version ${hasPublishedVersion ? fact.publishedVersion : 'X.Y.Z'}`;
     const fixHint = hasPublishedVersion ? '' : ' (substitute the published version for X.Y.Z)';
+    const manifestFailures = Array.isArray(fact.manifestFailures)
+      ? fact.manifestFailures.filter((failure) => failure
+        && (failure.file === 'plugin.json' || failure.file === 'marketplace.json')
+        && typeof failure.error === 'string'
+        && failure.error !== '')
+      : [];
+    if (manifestFailures.length > 0) {
+      return manifestFailures.map((failure) => ({
+        rule: 'marketplace-parity',
+        severity: 'soft',
+        detail: `.claude-plugin/${failure.file} exists but could not be read or parsed: ${failure.error} — run \`${fix}\`${fixHint} and commit the result`,
+      }));
+    }
     if (fact.onlyOnePresent === true) {
       return [{
         rule: 'marketplace-parity',
@@ -473,6 +515,40 @@ const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[
       severity: 'soft',
       detail: `${drifted.length} AGENTS.md policy section(s) are out of sync: ${drifted.slice(0, 8).join(', ')}${drifted.length > 8 ? '…' : ''} — heal with: dz agents-sync`,
     }];
+  },
+  /**
+   * The fire-and-forget wrapper returns a DISPATCH STUB, so a stage whose deliverable is its
+   * return value gets a receipt instead of an answer. MEASURED 2026-08-31: eight stages of one
+   * research swarm each returned "Codex Task started in the background as task-…", downstream
+   * agents built on those stubs, and no artifact was produced. The misuse is visible in the
+   * program text — the stage's result is assigned to a name that a later prompt interpolates —
+   * so it belongs on layer 1 rather than in a rule nobody re-reads.
+   */
+  'codex-wrapper-for-value-stage': (f, sev) => {
+    const scripts = f.workflowScripts;
+    if (scripts === undefined || scripts.length === 0) return [];
+    const out: Violation[] = [];
+    for (const s of scripts) {
+      const text = String(s.text ?? '');
+      // Find `const <name> = await agent(… codex:codex-rescue …)` and ask whether <name> is later
+      // interpolated into another prompt. Assignment alone is not the defect: a stage may keep its
+      // handle for logging. Consumption in a prompt is what proves the VALUE was the deliverable.
+      const re = /(?:const|let)\s+([A-Za-z_$][\w$]*)\s*=\s*await\s+agent\(([\s\S]{0,4000}?)\)\s*(?:\n|;)/g;
+      for (const m of text.matchAll(re)) {
+        const name = String(m[1]);
+        const call = String(m[2]);
+        if (!/codex:codex-rescue/.test(call)) continue;
+        const consumed = new RegExp('\\$\\{\\s*(?:String\\()?' + name.replace(/[.*+?^{}()|[\]\\]/g, '\\$&') + '\\b');
+        if (consumed.test(text)) {
+          out.push({
+            rule: 'codex-wrapper-for-value-stage',
+            severity: sev,
+            detail: `${s.path}: stage "${name}" is routed to codex:codex-rescue AND its result is interpolated into another prompt — the wrapper returns a dispatch stub, so that prompt would receive a receipt, not an answer. Invoke codex synchronously (dz codex / codex exec) for a stage whose deliverable is its return value.`,
+          });
+        }
+      }
+    }
+    return out;
   },
   'lockfile-in-sync': (f, _sev) => {
     // The 2026-07-28 CI break, mechanized: an overnight dep bump edited package.json and left
@@ -568,7 +644,13 @@ const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[
  * may not understand a file, and "I might be wrong" plus "block the publish" is the wrong pair. Disabling
  * such a rule stays allowed — only the promotion is refused.
  */
-export const SOFT_ONLY_RULES: readonly string[] = ['lockfile-in-sync', 'agents-md-policy-sync', 'routing-store-stale', 'marketplace-parity'];
+export const SOFT_ONLY_RULES: readonly string[] = [
+  'lockfile-in-sync',
+  'agents-md-policy-sync',
+  'routing-store-stale',
+  'marketplace-parity',
+  ...VOLUME_SHADOW_RULE_IDS,
+];
 
 /**
  * A well-formed PROMOTED rule: an id the engine does not know, made enforceable by a template +
@@ -594,7 +676,12 @@ function templateChecker(rule: GuardRule & { template: RuleTemplate; params: Tem
     const r = templateFires(rule.template, rule.params, change);
     if (Object.hasOwn(r, 'undecidable') || !(r as { fired?: boolean }).fired) return [];
     // A promoted rule is ALWAYS soft, whatever severity reaches this point (belt to resolveRules' braces).
-    return [{ rule: rule.id, severity: 'soft', detail: `${(r as { detail?: string }).detail ?? 'template rule fired'} (promoted rule — advisory)` }];
+    return [{
+      rule: rule.id,
+      severity: 'soft',
+      detail: `${(r as { detail?: string }).detail ?? 'template rule fired'} (promoted rule — advisory)`,
+      contentAnchor: lessonRuleContentAnchor(rule.template, rule.params),
+    }];
   };
 }
 
@@ -653,8 +740,32 @@ export function evaluateGuard(facts: GuardFacts, rules: readonly GuardRule[] = D
   );
   const violations: Violation[] = [];
   const checked: string[] = [];
+  const observations: GuardObservation[] = [];
+  let volumeResult: VolumeShadowResult | undefined;
+  let volumeEvaluated = false;
+  const volume = (): VolumeShadowResult => {
+    if (volumeEvaluated) return volumeResult ?? { observations: [], signals: [], notes: [] };
+    volumeEvaluated = true;
+    try {
+      volumeResult = evaluateVolumeShadow(facts.volume);
+    } catch (error) {
+      volumeResult = unknownVolumeShadow(
+        'volume-evaluator-failure',
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+    return volumeResult;
+  };
   for (const r of active) {
     checked.push(r.id);
+    if ((VOLUME_SHADOW_RULE_IDS as readonly string[]).includes(r.id)) {
+      const emission = volume();
+      observations.push(...emission.observations.filter((item) => item.rule === r.id));
+      violations.push(...emission.signals
+        .filter((signal) => signal.rule === r.id)
+        .map((signal) => ({ rule: signal.rule, severity: 'soft' as const, detail: signal.detail })));
+      continue;
+    }
     // A promoted (template) rule has no built-in checker by design — it is enforceable through the
     // shared `templateFires` predicate instead. Without this branch a promoted rule written into
     // `.dz/guard.json` would be INERT: present in the config, listed as checked, enforcing nothing —
@@ -702,7 +813,17 @@ export function evaluateGuard(facts: GuardFacts, rules: readonly GuardRule[] = D
       notes.push('agents-md-policy-sync: this repository carries a dz:policies fence but its canonical policy sources are unreadable — the advisory rule could not compare, and that gap is on the record, not a silent pass');
     }
   }
-  return { op, verdict, violations, checked, ...(notes.length > 0 ? { notes } : {}) };
+  for (const item of observations) {
+    if (item.status === 'unknown') notes.push(`${item.rule} ${item.scope}: ${item.detail}`);
+  }
+  return {
+    op,
+    verdict,
+    violations,
+    checked,
+    ...(notes.length > 0 ? { notes } : {}),
+    ...(observations.length > 0 ? { observations } : {}),
+  };
 }
 
 /** An append-only audit record. `ts` is injected by the caller (no wall-clock here → deterministic tests). */
@@ -713,6 +834,8 @@ export interface GuardAuditRecord {
   readonly violations: readonly Violation[];
   /** informational notes (FN-7 — e.g. the no-stubs skipped-files note); on the record, never a verdict input. */
   readonly notes?: readonly string[];
+  /** Shadow measurements copied without recomputation from the evaluated result. */
+  readonly observations?: readonly GuardObservation[];
   /** set when the operator overrode a block with `--force <reason>` — the override is logged, never silent. */
   readonly override?: { readonly forced: true; readonly reason: string };
 }
@@ -725,6 +848,7 @@ export function auditRecord(result: GuardResult, ts: string, override?: { reason
     verdict: result.verdict,
     violations: result.violations,
     ...(Array.isArray(result.notes) && result.notes.length > 0 ? { notes: result.notes } : {}),
+    ...(Array.isArray(result.observations) && result.observations.length > 0 ? { observations: result.observations } : {}),
     ...(override && typeof override.reason === 'string' ? { override: { forced: true, reason: override.reason } } : {}),
   };
 }

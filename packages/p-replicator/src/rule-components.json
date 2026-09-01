@@ -1,0 +1,15 @@
+{
+  "cost-of-detection-ladder": "Five enforcement layers, signal-fit check selection, and required reactions",
+  "replicate-pipeline": "Phase sequence, output paths, git discipline, modular skill loading",
+  "skill-interface-protocol": "view() contract, module interface, maturity tagging, composition rules",
+  "git-workflow": "Commit/push discipline, branch strategy, semantic messages",
+  "insights-capture": "When and how to capture development insights to knowledge base",
+  "feature-lifecycle": "/feature phases (PLAN → VALIDATE → IMPLEMENT → REVIEW), checkpoints, scoring",
+  "docker-ports": "Правило №0: storage ports are not published outward; loopback bind is the exception",
+  "swarm-file-evidence": "Parallel work delivers named terminal file receipts; narrative and silence are not results",
+  "honest-configuration": "Required external values refuse absent, degenerate, unknown, or unreachable meanings",
+  "embeddable-widget": "A widget runs on someone else's page: cross-origin requests, style isolation, host CSP — and the check belongs on a FOREIGN origin",
+  "incoming-webhooks": "Событие приходит дважды и от кого угодно: названный ключ повторности с атомарным исключением, подпись до разбора сырого тела, порядок доставки не гарантирован",
+  "long-running-job": "Work that takes minutes needs a handle issued before it starts, three distinguishable states, and a retry that continues instead of restarting",
+  "model-call-cost": "External model calls are billed per call and triggered by strangers: a ceiling is a NUMBER, reaching it REFUSES, and an unconfigured ceiling fails the boot"
+}

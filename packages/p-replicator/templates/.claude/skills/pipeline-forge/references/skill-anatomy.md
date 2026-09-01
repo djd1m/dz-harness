@@ -203,7 +203,6 @@ INPUT → PHASE 1 → PHASE 2 → ... → OUTPUT
 ## Anti-Patterns
 
 ❌ [What NOT to do — reason]
-❌ [What NOT to do — reason]
 ```
 
 ### 10. Quality Standards (RECOMMENDED)

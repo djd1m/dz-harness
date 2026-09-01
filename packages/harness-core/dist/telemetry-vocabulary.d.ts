@@ -54,6 +54,13 @@ export interface TelemetryField {
      */
     readonly unit: 'ms' | 'tokens' | null;
 }
+export type RunOutcome = 'completed' | 'completed-unverified' | 'refused-repo-root' | 'refused-design' | 'refused-plan' | 'paused-checkpoint' | 'crashed' | 'unclassified';
+/** Every member of the closed set, as data for reachability checks. */
+export declare const RUN_OUTCOMES: readonly ["completed", "completed-unverified", "refused-repo-root", "refused-design", "refused-plan", "paused-checkpoint", "crashed", "unclassified"];
+export declare function runOutcomeOf(input: {
+    phase: string | null | undefined;
+    gates: Record<string, unknown> | null | undefined;
+}): RunOutcome;
 /**
  * The vocabulary. Keys are stable identifiers for OUR code to reference; `field` is what goes on
  * disk, so an upstream rename touches the value and never the call sites.

@@ -52,6 +52,16 @@ node package-tutorial-factory/scripts/extract-brief.mjs --pkg ../harness-cli
 
 # 3. Gate it — deterministic Head First checklist (fix the COURSE if it fails, never the gate)
 node package-tutorial-factory/scripts/headfirst-gate.mjs --course /tmp/course.json --json /tmp/gate.json
+
+# 4. Render + drive-verify. Since v0.5.0 every emitted site carries a footer with the workshop's
+#    channel links (default: t.me/llm_notes + aicoding.space). Override per course:
+#      "footer": { "links": [{ "label": "My site", "href": "https://example.org" }] }
+#    Links are https-only by construction (javascript:/http: entries are filtered out), and a
+#    footer whose every link was filtered FAILS verify-site loudly (footer.renders) instead of
+#    silently vanishing. The self-contained check counts external LOADS (src / <link href> /
+#    url() / @import) — navigation anchors are excluded by design, so the footer never trips it.
+node package-tutorial-factory/scripts/render-site.mjs --course /tmp/course.json
+node package-tutorial-factory/scripts/verify-site.mjs --site site/index.html   # 29 behavioural checks
 ```
 
 Expected gate output on a compliant course:
@@ -208,7 +218,66 @@ methods are not copyrightable); no verbatim book expression is redistributed. Se
 
 ## Changelog
 
-- **0.4.3** — `package-tutorial-factory` is now a genuinely self-contained portable skill: its
+- **0.7.0** — **four diagram kinds, because content has four shapes.** 0.6.0 shipped only `flow`,
+  and the result was measurable: 2 diagrams in a 14-section course, 5 in a 17-section one — not
+  because the criterion was strict, but because anything that was not a sequence had nothing to be
+  drawn with. Added `compare` (a choice: columns with gains and costs), `scale` (a gradient where
+  vertical position IS the meaning — the detection-cost ladder finally has a picture) and `parts`
+  (a whole and the parts that must all be present). The authoring criterion is rewritten from "is
+  there a sequence" to **"must the reader hold a structure the text is forced to deliver linearly"**,
+  with a removal question before shipping — take the diagram away, and if only prettiness is lost it
+  was not needed. Gate knows each kind's own keys and refuses a leftover from another kind; verifier
+  counts nodes across all three node shapes, so a compare/scale diagram that drew nothing cannot pass
+  silently. Re-authored both shipped courses: 9 diagrams in harness-cli, 13 in feature-adr. 90/90.
+
+- **0.6.0** — **diagrams**. A section may declare `diagram` as DATA (`kind:"flow"`, title, 2–8
+  nodes with label/note, optional `cycle`) and the runtime draws it from theme tokens: a row on a
+  wide screen, a column under 640px, dark mode for free. Optional by design — there is no measured
+  need to require illustrations — but strict once declared: the new gate check
+  `structural.diagram-shape` REFUSES an unknown key rather than ignoring it, because a silently
+  dropped typo is a diagram that never appeared. `verify-site` gains `diagram.renders`, which drives
+  the page and asserts every label, note and caption is on screen.
+  There is NO author markup: labels go in as text, so `<script>` in a label renders as those
+  letters. That is the answer to a cross-model finding — a hand-written SVG was measured pulling the
+  network through `<image href>` while the verifier stayed green — and the security test is
+  mutation-proven: swapping the text insertion for an HTML one turns it red. 90/90.
+
+- **0.5.3** — course-level links + two probe-honesty fixes. `course.feedback` `{repo, packagePath,
+  branch?}` now renders TWO footer links from one declaration: a prefilled **new-issue** link whose
+  title names the exact package, and a **package README** link on the public mirror; a malformed or
+  absent block yields NO link rather than a broken one. Verifier honesty: theory probe words are
+  sampled from the VISIBLE text (a markdown link's URL lands in an href and is not missing prose),
+  and the concept probe now shares the GATE's morphology-aware matcher instead of a substring test
+  that failed on Russian inflection (`одиннадцать` vs `одиннадцати`) — both measured false-failures
+  on real courses. Authoring module gains the Russian language-quality rules (no calques, anglicisms
+  only where they are terms) and the literary-stage model chain **Fable → gpt-5.6-sol → any, named
+  in the report**, with the gate re-run after every literary pass. 85/85.
+
+- **0.5.2** — authoring surface upgrade, driven by owner findings on the first production course:
+  the markdown-lite renderer now supports `- ` bullet lists and `[label](https://…)` links
+  (https-only, `rel="noopener"`); a new deterministic gate check `structural.theory-readable`
+  fails any 700+ char theory with fewer than 2 paragraph breaks (RED-proven against the
+  pre-restructure course — all 8 sections failed, the restructured ones pass); pattern chips get
+  per-pattern Russian tooltips (P1–P12/D1–D4 explained on hover); the authoring module now
+  REQUIRES structured theory and npm/repository links for published target packages. 80/80.
+
+- **0.5.1** — UI locale seam: every chrome string (menu, buttons, exercise labels, achievements,
+  final-test copy) now lives in ONE table inside `render-site.mjs`, embedded into the page as an
+  inert `#ui-strings` JSON block chosen by `course.language` (`ru` → full Russian chrome; anything
+  else keeps English byte-for-byte). The runtime AND `verify-site` both read that embedded table —
+  one source, no drift — so a localized site is driven and verified in its own language (probes
+  included: buttons, `completed ·` pill, achievements counter). dz commands are never translated.
+  Two new roundtrip tests (ru-chrome drive-through, en-unchanged), 80/80.
+
+- **0.5.0** — every rendered site now carries a channel footer (default links: `t.me/llm_notes` +
+  `aicoding.space`; per-course override via `course.footer.links`; https-only filter — a
+  `javascript:`/`http:` entry never reaches the page). `verify-site` gains the `footer.renders`
+  check (29 behavioural checks; an all-filtered footer fails loudly) and its self-contained scan
+  now honestly counts external *loads* (`src`, `<link href>`, `url()`, `@import`) rather than
+  every `href=`, so navigation anchors no longer conflate "self-contained runtime" with
+  "no outbound links". Three new seam tests (default / override / hostile link), 78/78.
+
+- **0.4.4** — `package-tutorial-factory` is now a genuinely self-contained portable skill: its
   method KB and all eight runtime assets live inside the canonical skill directory, direct commands
   resolve through the installed `SKILL_ROOT`, and clean Codex/Claude projections carry the same
   19-file closure. The package intentionally includes its eight deterministic test/fixture files so the source and

@@ -207,6 +207,7 @@ const MASTER_RESOURCES = [
   { src: 'skills/references',                   dest: 'references',                      dir: true },
   { src: 'modules',                             dest: 'modules',                         dir: true },
   { src: 'prompts',                             dest: 'prompts',                         dir: true },
+  { src: 'solve',                               dest: 'solve',                           dir: true },
   // AM-1 (§3.1 correction): MASTER_RESOURCES is the LOAD-BEARING list — installFlat/init copies
   // ONLY this. A BASE_SKILLS/BASE_FILES entry alone ships NOTHING (installBase is never called by
   // init). assets/ and formats/ land two levels deep → resources, never registered skills.

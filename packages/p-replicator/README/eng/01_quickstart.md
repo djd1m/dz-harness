@@ -22,7 +22,7 @@ This creates:
 - `.claude/skills/` — 10 pre-shipped skills
 - `.claude/commands/` — 11 slash commands (`/replicate`, `/run`, `/feature`, ...)
 - `.claude/agents/` — 4 pipeline agents
-- `.claude/rules/` — 5 governance rules
+- `.claude/rules/` — 9 governance rules
 - `.claude/hooks/` — 6 cross-platform Node scripts
 - `.claude/settings.json` — hooks + statusline configuration
 - `.p-replicator.json` — install manifest
@@ -162,7 +162,7 @@ npx @dzhechkov/p-replicator verify
 
 The command checks:
 
-- **Pre-shipped contract** (must-have): 10 skills + 11 commands + 4 agents + 6 rules + settings.json
+- **Pre-shipped contract** (must-have): 10 skills + 11 commands + 4 agents + 13 rules + settings.json
 - **Post-/replicate hints** (advisory): CLAUDE.md, project-specific agents,
   feature-roadmap.json, security rules, etc.
 
@@ -225,7 +225,7 @@ your-project/
 │   ├── skills/              # 10 skills
 │   ├── commands/            # 11 slash commands
 │   ├── agents/              # 4 pipeline agents
-│   ├── rules/               # 6 rules
+│   ├── rules/               # 13 rules
 │   ├── hooks/               # 6 Node scripts
 │   └── settings.json        # hooks + statusline config
 ├── .p-replicator.json       # install manifest

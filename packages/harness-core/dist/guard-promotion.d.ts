@@ -33,6 +33,7 @@
  */
 export type RuleTemplate = 'pairing-check' | 'absence-check' | 'format-match';
 export declare const TEMPLATES: readonly RuleTemplate[];
+export declare function isOffsetIsoTimestamp(value: unknown): value is string;
 export interface TemplateParams {
     /** pairing-check: the glob whose presence in a change ARMS the rule. */
     readonly when?: string;
@@ -176,6 +177,13 @@ export declare const BUILTIN_COVERAGE: Readonly<Record<string, {
 }>>;
 /** Order-insensitive, whitespace-insensitive params key for equality. */
 export declare function paramsKey(template: RuleTemplate, params: TemplateParams): string;
+/**
+ * Exact-byte discriminator of effective promoted-rule content. The ordered tuple keeps boundaries
+ * unambiguous; only its two-part digest is persisted, so lesson-derived literals are not copied into
+ * observational history. This is correlation identity, not authentication of a locally editable log.
+ */
+export declare function lessonRuleContentAnchor(template: RuleTemplate, params: TemplateParams): string;
+export declare function isLessonRuleContentAnchor(value: unknown): value is string;
 /** A rule already present in the engine or the config, in the shape the dedup check consumes. */
 export interface ExistingRuleView {
     readonly id: string;
@@ -240,6 +248,8 @@ export interface LessonInput {
 export interface PromotionCandidate {
     readonly lessonId: string;
     readonly lessonText: string;
+    /** False only for quarantined hypotheses; classification alone never makes them eligible. */
+    readonly eligible: boolean;
     readonly ruleId: string | null;
     readonly template: RuleTemplate | null;
     readonly params: TemplateParams | null;
@@ -315,6 +325,27 @@ export declare function promotedRuleObject(c: ClassifiedLesson, ruleId: string, 
  * ties never reorder between runs.
  */
 export declare function assembleCandidates(facts: PromotionFacts): PromotionReport;
+/** Enough prospective observations for multi-year monthly reporting without an unbounded journal. */
+export declare const MAX_PROMOTION_RUN_EVIDENCE = 120;
+/** A larger run is recorded as incomplete, so truncation becomes NOT MEASURED rather than a low count. */
+export declare const MAX_PROMOTION_RUN_CANDIDATES = 10000;
+export declare const MAX_PROMOTION_ACCEPTANCE_EVIDENCE = 10000;
+export interface PromotionRunCandidateEvidence {
+    readonly candidateAnchor: string;
+    readonly eligible: boolean;
+    readonly ruleContentAnchor: string | null;
+    readonly verdict: CandidateVerdict;
+}
+export interface PromotionRunEvidence {
+    readonly runId: string;
+    readonly ts: string;
+    readonly complete: boolean;
+    readonly candidates: readonly PromotionRunCandidateEvidence[];
+}
+export interface PromotionAcceptanceEvidence {
+    readonly ruleContentAnchor: string;
+    readonly acceptedTs: string;
+}
 export interface PromotionStateEntry {
     readonly ruleId: string;
     readonly lessonId: string;
@@ -336,6 +367,14 @@ export interface PromotionState {
     readonly version: 1;
     readonly nextAdrSeq: number;
     readonly entries: Readonly<Record<string, PromotionStateEntry>>;
+    /** Optional so a legacy v1 state remains distinguishable from a recorded zero-candidate run. */
+    readonly runs?: readonly PromotionRunEvidence[];
+    /** Months whose oldest whole run records were pruned; their promote counts are not measurable. */
+    readonly truncatedRunPeriods?: readonly string[];
+    /** Compact durable join provenance, independent of bounded per-run retention. */
+    readonly acceptances?: readonly PromotionAcceptanceEvidence[];
+    /** False means an unmatched promoted firing may belong to pre-feature or pruned provenance. */
+    readonly acceptanceHistoryComplete?: boolean;
 }
 export declare const EMPTY_PROMOTION_STATE: PromotionState;
 /**
@@ -353,6 +392,8 @@ export declare function normalizePromotionState(raw: unknown): PromotionState;
  * lesson: "a learning loop's write path can promote by EXPOSURE without anyone noticing.")
  */
 export declare function nextPromotionState(prev: PromotionState, report: PromotionReport, nowTs: string, adrSeqs?: Readonly<Record<string, number>>, newlyAllocated?: number): PromotionState;
+/** Add one prospective observation without changing any promotion decision or candidate report. */
+export declare function recordPromotionRunEvidence(state: PromotionState, report: PromotionReport, nowTs: string): PromotionState;
 export declare function renderPromotionReport(r: PromotionReport, limit?: number): string;
 /**
  * The mini-ADR for one decision. Written for PROMOTIONS and REJECTIONS alike (ADR-G008 requires

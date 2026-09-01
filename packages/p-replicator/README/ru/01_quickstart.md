@@ -22,7 +22,7 @@ npx @dzhechkov/p-replicator init
 - `.claude/skills/` — 10 предустановленных skills
 - `.claude/commands/` — 11 slash-команд (`/replicate`, `/run`, `/feature`, ...)
 - `.claude/agents/` — 4 пайплайн-агента
-- `.claude/rules/` — 5 governance-правил
+- `.claude/rules/` — 9 governance-правил
 - `.claude/hooks/` — 6 cross-platform Node-скриптов
 - `.claude/settings.json` — конфигурация hooks + statusline
 - `.p-replicator.json` — манифест установки
@@ -162,7 +162,7 @@ npx @dzhechkov/p-replicator verify
 
 Команда проверит:
 
-- **Pre-shipped contract** (must-have): 10 skills + 11 commands + 4 agents + 6 rules + settings.json
+- **Pre-shipped contract** (must-have): 10 skills + 11 commands + 4 agents + 13 rules + settings.json
 - **Post-/replicate hints** (advisory): CLAUDE.md, project-specific агенты,
   feature-roadmap.json, security-правила и т.д.
 
@@ -225,7 +225,7 @@ npx @dzhechkov/p-replicator doctor
 │   ├── skills/              # 10 skills
 │   ├── commands/            # 11 slash-команд
 │   ├── agents/              # 4 pipeline-агента
-│   ├── rules/               # 6 правил
+│   ├── rules/               # 13 правил
 │   ├── hooks/               # 6 Node-скриптов
 │   └── settings.json        # hooks + statusline config
 ├── .p-replicator.json       # манифест установки

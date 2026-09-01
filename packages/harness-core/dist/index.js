@@ -10,6 +10,11 @@ export * from './skills.js';
 export * from './apply.js';
 export { bundleSkills } from './bundle.js';
 export * from './targets.js';
+export * from './target-integrations.js';
+export * from './integration-evidence.js';
+export * from './integration-apply.js';
+export * from './integrations-verify.js';
+export { redactProbeText, PROBE_REDACTION_MARKER } from './integration-probe-worker.js';
 // Target-parity model (feature target-parity-matrix, ADR-001) — the computed feature×target map.
 export { RUNTIME_CAPABILITIES, TARGET_CAPABILITIES, PARITY_FEATURES, TARGET_SHORT_LABELS, GATE_FEATURE_IDS, computeParity, buildParityMatrix, CAPABILITY_EVIDENCE, findUnbackedCapabilities, findStaleTranscriptEvidence, newestRecordedRuntimeVersion, downgradeForStaleEvidence, } from './parity.js';
 export * from './operations.js';
@@ -43,20 +48,21 @@ export { checkUpstream, checkAllUpstream, discoverSourcePackages, loadSourcesMan
 export { sweepSkillDrift, syncCanonicalSkill } from './skill-drift.js';
 export { SKILL_INSTALL_ROOTS, SKILL_INSTALL_ROOT_BY_TARGET, DEV_SKILL_ROOT, TARGET_ENRICHMENT_ASSETS } from './skill-install-roots.js';
 export { stampCheckpointLine } from './checkpoint-stamp.js';
-export { TELEMETRY_VOCAB_VERSION, TELEMETRY_FIELDS, PROVISIONAL_TELEMETRY_FIELDS, LOCAL_FIELD_ALIASES, telemetryFieldFor } from './telemetry-vocabulary.js';
+export { TELEMETRY_VOCAB_VERSION, TELEMETRY_FIELDS, PROVISIONAL_TELEMETRY_FIELDS, LOCAL_FIELD_ALIASES, RUN_OUTCOMES, telemetryFieldFor, runOutcomeOf } from './telemetry-vocabulary.js';
 export { planLedgerBackfill, LEDGER_FILL_SOURCE, AMBIGUOUS, resolveLedgerRunId } from './ledger-backfill.js';
 // project-skills root resolution (field report doc-25b): the ONE builder behind both the Step-0
 // probe and the PS_GUIDANCE paragraph, so the two can never look at different roots again.
 export { projectSkillsOneRoot, projectSkillsProbeCommand } from './project-skills-root.js';
 export { benchmarkSkill, benchmarkSkills, compareSkills } from './benchmark.js';
-export { buildRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverVerifiablePackDirs } from './registry.js';
+export { buildRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs } from './registry.js';
 // Package skill-layout resolution (feature dz-install-npx-init) — the ONE seam that knows where an
 // npm package keeps its skills (flat / templates/.claude/skills / skills). `cmdInstall` calls it;
 // `dz init`/`dz registry` are the filed follow-up consumers.
 export * from './package-skill-layouts.js';
 export { recommend } from './recommend.js';
 export { pretrain } from './pretrain.js';
-export { loadPatterns, loadSessions, computePatternBoost, readLearningConfig, readMemoryLearningConfig, BOOST_CAP, recordPattern, loadStorePatternsSync, loadStoreRecords, patternToRecord, recordToPattern, patternRecordId, patternIdentityOf, dreamRecordId, isMirrorableLearning, consolidateSessions, recallPatterns, pruneNoisePatterns, removePatternsByIds, snapshotStore, readReinforcementState, encodeReinforcementState, reinforcePattern, updateReinforcementState, storeStats, lessonDeltaReport, lessonDeltaMap, readQuarantineState, encodeQuarantineState, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns } from './patterns.js';
+export { loadPatterns, loadSessions, computePatternBoost, readLearningConfig, readMemoryLearningConfig, BOOST_CAP, recordPattern, recordLessonForms, loadStorePatternsSync, loadStoreRecords, patternToRecord, recordToPattern, patternRecordId, patternIdentityOf, dreamRecordId, isMirrorableLearning, consolidateSessions, recallPatterns, pruneNoisePatterns, removePatternsByIds, snapshotStore, readReinforcementState, encodeReinforcementState, reinforcePattern, updateReinforcementState, storeStats, lessonDeltaReport, lessonDeltaMap, readQuarantineState, encodeQuarantineState, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns } from './patterns.js';
+export { normalizeLessonForms, validateClassTemplate, lessonPairIdOf, mergeLessonFormHits, mergeLessonMatchedForms } from './lesson-generalization.js';
 export { withStoreLock, withStoreLockSync, storeLockPath, StoreLockTimeoutError, StoreLockCompromisedError, STALE_LOCK_MS, LOCK_TIMEOUT_MS } from './store-lock.js';
 export { withNamedLockSync, namedLockPath, isSafeLockName, NamedLockNameError, NamedLockTimeoutError, NamedLockCompromisedError } from './named-lock.js';
 export { QE_BRIDGE_SCHEMA, QE_BRIDGE_FAILURE_SCHEMA, CLAUDE_BRIDGE_PROMPT_CEILING_CHARS, KNOWN_CLAUDE, BRIDGE_MARKER, BRIDGE_FENCE_LABEL, BRIDGE_EXTRACT_END, isSafeClaudeId, CLAUDE_ISOLATION_ARGS, BRIDGE_FAILURE_REASONS, extractClaudeResult, buildBridgeSignoffRecord, claudeProbeArgs, interpretClaudeProbe, claudeReviewArgs, defangSignoffEchoes, buildBridgePrompt, parseBridgeOutput, buildBridgeFailureRecord, renderBridgeReport, } from './qe-bridge.js';
@@ -68,6 +74,7 @@ export { resolveBanditConfig, payoffTermsFor, recordReward, recordExposures, con
 export { DEFAULT_VECTOR_TIMEOUT_MS, DEFAULT_HARMONIZE_THRESHOLD, REINFORCE_RRF_CAP, BANDIT_RRF_CAP, withVectorTimeout, isVectorNoise, patternVectorEntry, dreamVectorEntry, memoryRecordVectorEntry, readVectorEngineMode, readHarmonizeThreshold, vectorMirrorEnabled, mirrorWriterReason, mirrorWriterExplanation, resolveVectorEngine, mirrorEntriesToVector, mirrorPatternsToVector, backfillVectorMirror, mergeHybridHits, recallHybrid, teachGuard, vectorTierStatus, reindexVectorStore, harmonizeVectorStore, selectClusterKeeper, importRvfCheckpoint, } from './vector-tier.js';
 export { runSetup, generateHooksConfig, generateAgentdbWriter, writerVersionOf, AGENTDB_WRITER_VERSION, agentdbStorePath, agentdbMcpStorePath, agentdbStoreSeparationProblem } from './setup.js';
 export { statuslineData, readFeatureAdrState, writeFeatureAdrState, featureAdrStateDir, featureAdrStatePath } from './statusline.js';
+export { ETA_MAX_STAGE_MS, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, } from './eta.js';
 export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES } from './agentdb-index.js';
 export { DEFAULT_EMBED_MODEL, LEGACY_EMBED_MODEL, DEFAULT_EMBED_DIM, KNOWN_EMBED_DIMS, resolveEmbedModel, readEmbedManifest, writeEmbedManifest, embedManifestPath, legacyEmbedManifest } from './embedding-config.js';
 export { putBookKnowledge, queryBookKnowledge, bookKbPath } from './book-kb.js';
@@ -77,6 +84,8 @@ export { claimCheck, summarize, decideClaimCheckText, severityCounts, isGated } 
 export { BUNDLED_SLOP_REGISTRY_URL, DEFAULT_SLOP_CONFIG, parseSlopRegistry, slopLint, validateSlopLintConfig, } from './slop-lint.js';
 export { hookDecision, isFenced, isNewLine, ESCAPE_TEACHING } from './claim-check-hook-policy.js';
 export { step8ClaimGate } from './feature-adr-claim-gate.js';
+export { DEFAULT_CODE_LANDING_CEILING_MS, CODE_LANDING_CEILING_ENV, decideCodeLandingLiveness, extractCodexCompanionJobId, parseCodeLandingLivenessSignal, } from './feature-adr-landing.js';
+export { buildDecisionContext, normalizeDecisionRecall, parseDecisionRecallFrame, parseDecisionRecallApplicationProbe, mergeDecisionRecallEvents, reduceDecisionRecallMetrics, summarizeDecisionRecallReceipts, decisionRecallEnterCmd, decisionRecallRunCmd, decisionRecallAppendCmd, decisionRecallApplicationProbeCmd, } from './feature-adr-decision-recall.js';
 export { CHECKPOINT_STAGES, STAGE_ARTIFACTS, CHECKPOINT_MAX_RESULT_CHARS, CHECKPOINT_LS_SENTINEL, CKPT_SCHEMA_VERSION, fnv1a, fnv1a64, checkpointInputHash, resumeMode, decideCheckpointResume, serializeCheckpoint, decideCheckpointWrite, parseCheckpointRead, checkpointReadCmd, checkpointAppendCmd, TRAINPAIR_SCHEMA_VERSION, TRAINPAIR_MAX_IO_CHARS, TRAINPAIR_PRIVACY_NOTE, trainingPairFamily, buildTrainingPair, serializeTrainingPair, trainingPairPath, trainingPairAppendCmd, 
 // operator-profile (ADR-001 Decision 5): the profile block never reaches .dz/fa-training/.
 redactProfileBlock, TP_PROFILE_MARKER_START, TP_PROFILE_MARKER_END, TP_PROFILE_REDACTED, 
@@ -100,7 +109,7 @@ export { CODEX_MANAGED_HOOKS, DZ_HOOK_HELPER_VERSION, DZ_HOOK_TIMEOUT_SECONDS, D
 export { DZ_VETO_MARKER, DZ_VETO_WARN_MARKER, RUNTIME_BLOCK_PHRASE, classifyTrust, classifyVetoProbe, isReadyVerdict, verifyExitCode, } from './codex-hooks-verify.js';
 export { SHELL_VETO_RULE_ID, resolveVetoMode, vetoShellCommand } from './shell-veto-policy.js';
 export { generateCodexHelpers, generateCodexRecallHelper, generateCodexVetoHelper } from './codex-hooks-assets.js';
-export { EVENT_CHAIN_SCOPE, EVENT_CHAIN_GENESIS_HASH, EVENT_CHAIN_TAIL_BYTES, EVENT_CHAIN_FIELD_OVERHEAD_BYTES, EVENT_CHAIN_LEDGER_KIND, EVENT_CHAIN_DEFECT_KINDS, fnv1a32, chainHashOf, chainLinesOf, lastChainLine, readTailInfo, appendChainedLines, EMPTY_LOG_TAIL, nextChainFields, withChainFields, chainRecordLines, chainRewrite, defaultEventWeight, eventWeightOfText, verifyEventChain, verifyEventChainText, renderEventChainVerification, rewriteSnapshot, rewriteSnapshotUnchanged, guardedRewrite, DEFAULT_REWRITE_ATTEMPTS, liveSegmentStart, classifyChainDefects, } from './event-chain.js';
+export { EVENT_CHAIN_SCOPE, EVENT_CHAIN_GENESIS_HASH, EVENT_CHAIN_TAIL_BYTES, EVENT_CHAIN_FIELD_OVERHEAD_BYTES, EVENT_CHAIN_LEDGER_KIND, EVENT_CHAIN_DEFECT_KINDS, fnv1a32, chainHashOf, chainLinesOf, lastChainLine, readTailInfo, appendChainedLines, EMPTY_LOG_TAIL, nextChainFields, withChainFields, chainRecordLines, chainRewrite, defaultEventWeight, eventWeightOfText, verifyEventChain, verifyEventChainText, renderEventChainVerification, rewriteSnapshot, rewriteSnapshotUnchanged, guardedRewrite, DEFAULT_REWRITE_ATTEMPTS, liveSegmentStart, classifyChainDefects, CHAINED_JOURNALS, } from './event-chain.js';
 export { decideProvenance, environmentCanMintProvenance, publishArgv, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion } from './publish.js';
 export { fetchAllDownloads } from './downloads.js';
 export { discoverInstalled, checkUpgrades } from './upgrade.js';
@@ -155,6 +164,7 @@ export * from './model-recommender.js';
 export * from './bto-optimize.js';
 export * from './discrimination-gate.js';
 export * from './guard.js';
+export * from './guard-volume.js';
 // Root AGENTS.md policy projection: pure anchor extraction/render/hash drift +
 // the shared-emitter I/O entry point exported from operations.
 export * from './agents-policy.js';
@@ -179,7 +189,8 @@ export * from './cmd-usage.js';
 // there, so this star-export must not re-export them again (duplicate-export error).
 export { WILSON_Z, MIN_INSTANCES, FALSIFY_NO_LIFT_MIN_N, NO_LIFT_MARGIN, MARGIN_MAX, MARGIN_MIN_EXCLUSIVE, DIGEST_HONEST_SCOPE, WORK_ORDER_KIND, WORK_ORDER_VERSION, DEFAULT_WORD_MIN, DEFAULT_WORD_MAX, DEFAULT_MOCK_N, DEFAULT_MOCK_SEED, wilsonInterval, liftInterval, corpusFingerprint, isValidMargin, workOrderDigest, verifyWorkOrder, buildWorkOrder, buildJudgePrompts, unblindJudgments, scoreEpochReplay, generateMockOutcomes, renderEpochReplayResult, renderWorkOrderSummary, renderJudgePromptsSummary, } from './epoch-replay.js';
 // Run-process scorecard (feature dz-score, Reading C) — scores the DISCIPLINE of a feature-adr run
-// from its artifacts. Descriptive-only, permanently: it never gates.
+// from its artifacts and folds immutable receipts into a chained aggregate. Descriptive-only,
+// permanently: neither the single-run score nor the aggregate gates.
 export * from './score.js';
 export * from './recap.js';
 export * from './provenance.js';
@@ -209,4 +220,6 @@ export { probeNativeDep, describeNativeDep, exerciseSqliteOpen } from './native-
 // per-user 0600 store under homedir(), rendered into a marked block in ~/.claude/CLAUDE.md
 // (layer 2 — loaded in every project, no dz required). The register changes FORM, never FACTS.
 export { renderProfileBlock, readProfile, writeProfile, validateProfile, profileStorePath, claudeMdPath, syncProfileBlock, checkProfileDrift, mergeProfileBlock, extractProfileBlock, wrapProfileBlock, parseRegister, registerOwnerWord, profileAgeDays, parseDomainList, domainListText, parseYesNo, PROFILE_MARKER_START, PROFILE_MARKER_END, REGISTERS, } from './profile.js';
+export * from './codex-invoke.js';
+export * from './skill-selection.js';
 //# sourceMappingURL=index.js.map

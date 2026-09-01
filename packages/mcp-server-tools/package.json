@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/mcp-server-tools",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "MCP server exposing DZ harness operations (skill list/get/compile, harness verify) over stdio.",
   "type": "module",
   "license": "MIT",
@@ -68,8 +68,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/mcp-server-tools"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/mcp-server-tools#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/mcp-server-tools#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

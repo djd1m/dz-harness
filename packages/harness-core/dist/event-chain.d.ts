@@ -161,6 +161,36 @@ export declare function readTailInfo(tailText: string, opts?: {
 /** An empty log — what an appender assumes when the file is absent. */
 export declare const EMPTY_LOG_TAIL: LogTail;
 /**
+ * ONE journal whose records are hash-chained, and the decision that rests on it.
+ *
+ * `decides` is not documentation garnish: it is the reason integrity matters HERE and not
+ * everywhere. A chain costs nothing to read and something to maintain, so a journal earns one by
+ * being the basis of a verdict — where a lost or duplicated record is a WRONG ANSWER WITH NO
+ * SYMPTOM. A journal nobody decides on does not need a chain, and saying so keeps the registry from
+ * growing into a list of every file we happen to append to.
+ */
+export interface ChainedJournal {
+    /** Path relative to the project root. */
+    readonly rel: string;
+    /** The verdict that would silently go wrong if a record were lost or duplicated. */
+    readonly decides: string;
+}
+/**
+ * THE registry of chained journals — the single list every verification surface reads.
+ *
+ * Why this exists (backlog `bc4ee35c`, W0-chain): the chain machinery was built, and then each
+ * consumer grew its OWN private list of which files carry a chain — `dz doctor` had a two-element
+ * array inline, the score aggregate checked its own file, and nothing checked the rest. Three
+ * surfaces, three lists, and no way to ask "are all the chained journals intact?" So a journal
+ * could be given a chain and STILL be checked by nobody: the mechanism present, the coverage
+ * absent, and no red anywhere to say so.
+ *
+ * MEASURED 2026-09-01: of eight append-only journals under `.dz/`, exactly two carry a chain
+ * (probe: `tail -1 <file>` for a `seq` field). Adding the third must be one line HERE, not one line
+ * in each surface — which is the whole point of a registry, and what its test pins.
+ */
+export declare const CHAINED_JOURNALS: readonly ChainedJournal[];
+/**
  * The exact text to append for a run of records: chained, newline-terminated, and preceded by a
  * newline when the file ends mid-line. THE one place that knows how to extend one of these logs —
  * the recall hook and the guard audit must not each carry their own copy of this reasoning.

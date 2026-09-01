@@ -10,6 +10,7 @@ platform-neutral contracts that every other `@dzhechkov/*` package depends on.
 | `skill.schema` | `CanonicalSkillFrontmatter`, `ClaudeSkillFrontmatter` | Two-layer Zod schema for `SKILL.md` frontmatter |
 | `hooks.schema` | `HookSchema` | Shape of lifecycle hooks |
 | `adapter` | `Adapter`, `Platform`, `EmitResult`, … | The contract every `@dzhechkov/adapter-*` implements |
+| `integration.schema` | `HarnessIntegrationManifestV1Schema`, `integrationManifestDigest`, outcome types | Bounded `INTEGRATIONS.json` parsing, canonical digests, and the MCP/hooks result vocabulary consumed by live registration probes |
 | `agents-md` | `mergeAgentsMd`, `mergeGeminiMd`, `mergePolicyBlock`, fence constants | One parameterized managed-Markdown merge path for skill and always-on policy blocks; authored bytes outside each fence are preserved |
 
 ## Two-layer skill schema
@@ -46,10 +47,17 @@ Expected result: the team notes remain byte-for-byte, followed by one
 `<!-- dz:policies BEGIN … -->` / `<!-- dz:policies END -->` block. Repeating the call is
 idempotent; a `dz:skills` block, when present, remains independent.
 
+## Companion integration intent
+
+`INTEGRATIONS.json` is strict, versioned, size/depth/count bounded, and rejects literal-looking
+credentials. It represents intent only: parsing never runs a command or performs network I/O.
+Harness orchestration binds the canonical digest to operator authorization and requires separate
+live evidence before an adapter may emit a target carrier.
+
 ## Status
 
-`0.2.17` — staged, not published. This change parameterizes the existing managed-Markdown
-helper for the independent `dz:policies` fence; it does not fork a second merger.
+`0.2.22` — staged, not published. Adds the bounded integration manifest and the shared
+`emitted` / `refused` / `not-requested` contract used by evidence-gated target adapters.
 
 ## Scripts
 

@@ -6,7 +6,8 @@ toolkit для AI-assisted разработки в Claude Code (Vibe Coding).
 ## Что это
 
 `p-replicator` устанавливает в проект готовый набор `.claude/`-инструментов:
-**11 slash-команд**, **10 skills**, **4 агента**, **6 правил**, **7 hook-скриптов**
+**11 slash-команд**, **10 skills**, **4 агента**, **13 правил**, **15 hook-скриптов**
+**11 slash-команд**, **10 skills**, **4 агента**, **13 правил**, **7 hook-скриптов**
 и `settings.json` с pre-configured хуками. Главная команда `/replicate`
 проводит проект через 5-фазный pipeline (Discovery → Planning → Validation →
 Toolkit Generation → Finalize), генерирует SPARC-документацию и project-specific

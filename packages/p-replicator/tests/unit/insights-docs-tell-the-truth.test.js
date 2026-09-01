@@ -1,26 +1,19 @@
 'use strict';
 
-// Two shipped documents promised something the hook does not do — and, as written, CANNOT do.
-//
-// `myinsights.md` said insights are injected "when their tags match the current task". The hook
-// runs on SessionStart, BEFORE the user has said anything, so there is no current task to match
-// tags against. MEASURED: `session-insights.cjs:33` is `sections.slice(-3)` — the last three by
-// file order, and no tag matching exists anywhere in the package.
-//
-// The hook's own printed heading, "Recent project insights", was already honest. Only the documents
-// around it were not.
-//
-// This test exists because a promise removed from prose comes back. It pins the CODE and the DOC to
-// each other: if selection ever becomes relevance-based, this test is where the doc must change too.
-
 const { test, describe } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
 const TPL = path.join(__dirname, '..', '..', 'templates', '.claude');
+const PKG = path.join(__dirname, '..', '..');
 const CMD = path.join(TPL, 'commands', 'myinsights.md');
 const HOOK = path.join(TPL, 'hooks', 'session-insights.cjs');
+const RULE = path.join(TPL, 'rules', 'insights-capture.md');
+const HARVEST = path.join(TPL, 'commands', 'harvest.md');
+const README = path.join(PKG, 'README.md');
+const API_EN = path.join(PKG, 'README', 'eng', '04_api_reference.md');
+const API_RU = path.join(PKG, 'README', 'ru', '04_api_reference.md');
 
 const read = (f) => fs.readFileSync(f, 'utf-8');
 /** Prose with code fences and comments removed — a MENTION of a claim is not the claim. */
@@ -40,12 +33,13 @@ describe('the insights documents describe the hook that exists', () => {
 
   test('P2 - the document states what the hook actually selects', () => {
     const doc = read(CMD);
-    assert.match(doc, /three most recent/i, 'the real selection must be named');
-    assert.match(doc, /by their\s*\n?order in the file/i, 'and how it is ordered');
-    assert.match(doc, /There is no tag matching, and it is not an omission/,
-      'and WHY there is none, or a future reader files it as a bug');
-    assert.match(doc, /BEFORE you have said anything/,
-      'the reason must be the timing, which is the load-bearing fact');
+    assert.match(doc, /UserPromptSubmit/, 'selection must occur after the real prompt exists');
+    assert.match(doc, /successful,? non-empty.*dz recall/is,
+      'the value-armed recall condition must be named');
+    assert.match(doc, /falls back.*three most recent/is,
+      'the local last-three fallback must remain visible');
+    assert.match(doc, /only.*suppresses.*local/is,
+      'binary presence alone must not read as readiness');
   });
 
   test('P3 - the code and the doc agree, asserted against the CODE', () => {
@@ -60,25 +54,52 @@ describe('the insights documents describe the hook that exists', () => {
   });
 
   test('P4 - the consequence of last-three is stated, not left to be discovered', () => {
-    // The file is append-only and the hook takes the last three, so a long-lived project stops
-    // seeing its earlier entries. insights-capture.md plans for 50+.
     const doc = read(CMD);
     assert.match(doc, /append-only/, 'the growth behaviour must be named');
-    assert.match(doc, /earlier ones stop being injected/,
+    assert.match(doc, /fallback.*earlier ones stop being injected/is,
       'and its consequence, in plain words');
-    const rule = read(path.join(TPL, 'rules', 'insights-capture.md'));
+    const rule = read(RULE);
     assert.match(rule, /50 entries|> 50/,
       'the rule really does plan for a size the hook cannot show — that is the point');
   });
 
-  test('P5 - the /harvest link is described as an intention, not a wired path', () => {
-    // MEASURED: `grep -ci insight` over harvest.md returns 0. The command promised harvest
-    // "extracts reusable patterns from insights", which nothing does.
+  test('P5 - /harvest and /myinsights name their executable shared-carrier contract', () => {
     const doc = read(CMD);
-    assert.match(doc, /does\s*\n?\s*NOT read `\.claude\/insights\/index\.md` today/,
-      'the unwired link must be admitted where it is claimed');
-    const harvest = read(path.join(TPL, 'commands', 'harvest.md'));
-    assert.equal((harvest.match(/insight/gi) || []).length, 0,
-      'if harvest ever DOES read insights, this admission must be removed — that is the trigger');
+    const harvest = read(HARVEST);
+    assert.doesNotMatch(doc, /does\s*\n?\s*NOT read `\.claude\/insights\/index\.md` today/,
+      'the old unwired admission became false once harvest acquired a writer');
+    assert.match(doc, /share the same Markdown carrier/i,
+      'manual and harvest capture must be described as one carrier, not two stores');
+    assert.match(harvest, /REQUIRED INSIGHT PERSISTENCE GATE/,
+      'the relationship must be executable wiring, not a prose aspiration');
+    assert.match(harvest, /\.claude\/hooks\/write-insight\.cjs/,
+      'the shipped writer boundary must be named exactly');
+    assert.match(harvest, /\.claude\/insights\/index\.md/,
+      'the command and /myinsights must converge on the same Markdown source of truth');
+    assert.match(harvest, /Only `created`, `appended`, or `duplicate`/,
+      'normal completion must be bound to the three canonical writer receipts');
+    assert.match(harvest, /writer exits non-zero.*MUST NOT\s+report.*completed/is,
+      'an unestablished write must remain a blocking harvest outcome');
+  });
+
+  test('P6 - docs describe prompt-time armed recall and Markdown authority', () => {
+    const hook = read(HOOK);
+    assert.match(hook, /recall\.kind === 'ok'/,
+      'the docs cannot claim armed recall without the production predicate');
+    assert.doesNotMatch(hook, /command\s+-v\s+dz/,
+      'binary discovery must not become the suppression condition');
+
+    const docs = [read(CMD), read(RULE), read(HARVEST), read(README), read(API_EN), read(API_RU)];
+    for (const [index, doc] of docs.entries()) {
+      assert.match(doc, /Markdown/i, `behavior document ${index + 1} omits Markdown authority`);
+      assert.match(doc, /best-effort/i, `behavior document ${index + 1} omits optional teach`);
+    }
+    for (const doc of [docs[0], docs[1], docs[3], docs[4], docs[5]]) {
+      assert.match(doc, /UserPromptSubmit/, 'prompt-time delivery must be named');
+      assert.match(doc, /(?:non-empty|непуст(?:ой|ого)).*(?:recall|вывод)/is,
+        'successful non-empty output must be the documented arming condition');
+      assert.match(doc, /(?:local|локальн).*(?:fallback|фолб[эе]к)/is,
+        'absent/failing/empty recall must retain local delivery');
+    }
   });
 });

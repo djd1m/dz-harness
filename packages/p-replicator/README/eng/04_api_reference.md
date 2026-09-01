@@ -51,7 +51,7 @@ Formal reference: CLI commands, flags, JSON schemas.
   ],
   "shippedDefaults": {
     "settings.json": {
-      "hooks": { "SessionStart": [...], "Stop": [...] },
+      "hooks": { "SessionStart": [...], "UserPromptSubmit": [...], "Stop": [...] },
       "statusLine": { "type": "command", "command": "..." }
     }
   }
@@ -176,6 +176,7 @@ node .claude/hooks/state-update.cjs --json '{"currentCommand":"/run", ...}'
   },
   "hooks": {
     "SessionStart": [ /* matchers + hooks */ ],
+    "UserPromptSubmit": [ /* matchers + hooks */ ],
     "Stop": [ /* matchers + hooks */ ],
     "PreToolUse": [ /* user-added */ ],
     "PostToolUse": [ /* user-added */ ]
@@ -216,6 +217,7 @@ Each entry:
 
 **Event types in Claude Code:**
 - `SessionStart` — at session start (stdout injected into context)
+- `UserPromptSubmit` — after the real user prompt is available (structured context injection)
 - `Stop` — at turn end (side-effects: commit, log)
 - `PreToolUse`, `PostToolUse` — around tool calls
 
@@ -268,10 +270,14 @@ Used by `verify`, `doctor`, `list` for uniform path resolution.
 
 ### `session-insights.cjs`
 
-**Trigger:** `SessionStart` hook.
-**Reads:** `.claude/insights/index.md` (`## YYYY-MM-DD` headings)
-**Writes:** stdout (Claude Code injects into session context)
-**Output:** up to 3 recent insights as `## Recent project insights\n\n## ... ## ... ## ...`
+**Trigger:** `SessionStart` and `UserPromptSubmit` hooks.
+**Reads:** the Markdown source of truth at `.claude/insights/index.md`; prompt-time delivery also
+invokes optional `dz recall` with the project root pinned.
+**Writes:** the missing-carrier hint at SessionStart, or one UserPromptSubmit context envelope.
+**Output:** only a successful, non-empty dz recall result suppresses local output. Absent, failing,
+or empty recall uses the local fallback of up to 3 recent Markdown entries; failure is named and the
+other two states are quiet. The writer establishes Markdown first and only then attempts a
+best-effort, idempotent `dz teach` duplicate, so projection failure cannot erase the record.
 
 ### `autocommit-roadmap.cjs` / `autocommit-insights.cjs` / `autocommit-plans.cjs`
 

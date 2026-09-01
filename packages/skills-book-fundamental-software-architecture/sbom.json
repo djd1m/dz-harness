@@ -1,0 +1,447 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "skills-book-fundamental-software-architecture"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "CP4-PACK-REPORT.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3ef5a06efe41f8568ac709ec8c0b1d3f9b29b8a0170d1e62cd5954f453249fc7"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "27ddc8b3d203cd1e6c312476849f6ddc2a5835e30d3bd4202d52dfdffc536a5e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "34ec09523c512ac80a654f457087c80b5a5de5cc82c3e0beafdbead8015f2902"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "brain/fundamental-software-architecture.sqlite",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c6c53162d283c57a38ed0947de321f9fc9d4a8eb41728823096470ead8b6a3b9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "family-manifest.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8bad44cf4a26a4355bf40206188d634db16f4e57adb5560756625fbf1dc7414d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a16b354407a7f080144cc8a1460b1ded3f1d5c2e056d0a8d2a4d6ba0c4fc1bd9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/evals/ROUTING-GATE-v2.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c9ea6c2b9bf16d56b70becd5d42d2778229ecdf905a29d2c861d28908e088f4a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/evals/cases-families-v2.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2984616ef58f51157945581652a810b93a36567fbdb09533f0de9dc617b9e283"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/evals/family-catalog.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "abc829d21566814c223726362174707cafddd45337b2d8e2c58a4da073ca7d75"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/evals/gate-summary-v2.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aa1a3f8da51bb14474e8470e040a7d565d6d8cdbb6ac121d13bda393702c1c2a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/01-least-worst-tradeoff.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4f00e8332e41b15792b286cd7d1c3f8e8fa128290ce37289278d0ad6381c533a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/02-characteristic-driver-sieve.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "831aa30e5c3a336834592c6d39de2bf9625d4755111f6ac4e253009237fce7e1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/03-fitness-function-guardrail.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4c088acddb5697eb94b27feb848721fffca538724f9b585448a2239320e2bd29"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/04-connascence-refactoring.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ff8d7919b729b45b6f3e2252f6a6b23dd42557a0f3f3e843e7950a34084e118f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/05-architecture-quantum-boundary.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1e5394601982bc389db09714fa38dd9feb128ab1342b9fc486985e39c5705519"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/06-actor-action-component-decomposition.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b1db15f0903c8b3be94d197edfc4db6fa310d5d4ea90adb65040afabd1540e42"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/07-style-topology-fit.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6ee3ea8366d13c0313916e32a06ca5b101d6b0a7025fcde65c516015687cf77c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/08-distributed-fallacy-audit.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4b9c27254582e4d479c901c1ad9ab636e6cbb055781d5b57a0add5c462e256ec"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/09-open-layer-sinkhole.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4b0c8a85d5b7a3b09ad0e9dba3e2d7ca0448e4ad48632becac1dc31a5a9d86e2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/10-modular-monolith-mediator.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "777e8de807ed8c40180d4f494cbebe86c227e10550aa2949616e70fd8a595897"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/11-pipeline-filter-topology.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "163d7a2da77e32eab85916a04f4cad6261df8122523ea784b900fbd13b4b8bf2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/12-microkernel-plugin-lifecycle.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5d5467a81e16ed42b1898f5bb27ace94b98bcc25a93070e8d19059348cb39a15"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/13-service-based-domain-service.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a8b41467fec7fc4745c149529128e0d87949d642bddac56e36806bb35cf85f8e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/14-event-payload-semantics.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e46d4fa9a09bb792af88c9ebeddc638926e44baa638e76dfa7fdfd92cfd3dfd6"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/15-event-delivery-recovery.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aea9c76e253b1dadb450f65a8a0dedc41feea3c0e975b96821d3a44b66effc64"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/16-event-mediator-data-topology.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dd8ce683ee7b815ea8b7336b4943fa7a760ab853ecac75f456472cf4c1cf631f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/17-space-based-cache-grid.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4bd7c5fe3ff02510d870e3b981a1e5cdab5d4f441d8f1deda6a44d7e1fabbec0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/18-soa-service-taxonomy.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "db868edeb333e18cc5185e4ca19579b2039820e0d1d523314ded7b6316f09986"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/19-microservice-granularity-isolation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "61d6d94ce52cdbb1de0b5409f9e2480232f246eb1f1f8950f8a3a67c22006a26"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/20-pattern-composition-coupling.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6a52f7445b4a7bb681c690139c1cd45ea0bebf4d8a87a7662b344a3a4276819a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/21-decision-governance-last-moment.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "059553b36a2383593aee8f7718d2e082f45c9127b2c4107c160799bfcef9d2d2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/22-architecture-risk-storming.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fd941c3478082b719c7b48177efa37b55250efa6fadcaf075faf1f0e524b2c4e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/23-diagram-semantic-layers.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "41cac38f457369434979b11edf06230320d489f73ac003610cb1814dd952d007"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/24-architect-elastic-participation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7fa483313ba5e14d89f720e9a71827f06a2b0b6680cea2279cb15c6dc4067658"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/25-constraint-negotiation-availability.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "be08f44bfe12c0dbefd5d422f90c8a2593d901d0cff83ed91459981d1b5eda57"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/references/26-environment-topology-alignment.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "46ef13dd6386c5b7562ce90ec913c3ae8bbdc40467d991abd8067582d841feca"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "45263cec3fd22a4218dd21231d34c388b0a59642b2ee9122834a3d1dae7bddc0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "fundamental-software-architecture-guide/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "394584bad95af26077f9d02490a1087beaae8d81e6a9abaf5dd0feca23f81108"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "e87868f7f3df26ebdc806d3f6f2c0075841071543f01875e2772c94f8d71fbf2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "route-manifest.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "03f14a20aad3a3a47254e130a204a5b4709807cc5c7288d6731b8f077aacfbc1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "scripts/shingling-check.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0f4ff1fbcba61593b73c4cae036c49f9ca22bd2ea561b00ccb16fd273863a915"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "sources.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b2a1cd45f5320f0cb7307b4129bf49b3d321f485ff4f258e8e773d04b42e8080"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "test/pack.test.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bda8c2b4e415dd579250dbe4e57dcf1077268568552619586460a157c9dcc8cb"
+        }
+      ]
+    }
+  ]
+}

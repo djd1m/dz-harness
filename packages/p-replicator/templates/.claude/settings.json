@@ -1,12 +1,24 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "_comment": "Default hooks + statusline shipped by @dzhechkov/p-replicator init. Cross-platform Node scripts (no bash dependencies). Auto-commits roadmap/insights/plans on Stop, injects relevant insights on SessionStart. Statusline displays pipeline+roadmap+toolkit dashboard above the prompt. Project-specific hooks (DDD, fitness functions, etc.) are merged in by /replicate Phase 3.",
+  "_comment": "Default hooks + statusline shipped by @dzhechkov/p-replicator init. Cross-platform Node scripts (no bash dependencies). Auto-commits roadmap/insights/plans on Stop, keeps missing-carrier visibility on SessionStart, and selects insights on UserPromptSubmit. Statusline displays pipeline+roadmap+toolkit dashboard above the prompt. Project-specific hooks (DDD, fitness functions, etc.) are merged in by /replicate Phase 3.",
   "statusLine": {
     "type": "command",
     "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/statusline.cjs\""
   },
   "hooks": {
     "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-insights.cjs\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
       {
         "matcher": "*",
         "hooks": [

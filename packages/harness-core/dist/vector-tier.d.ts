@@ -32,7 +32,7 @@
  * @packageDocumentation
  */
 import type { DreamPattern, MemoryRecord } from '@dzhechkov/memory';
-import { type PatternRecord, type RecallHit } from './patterns.js';
+import { type PatternRecord, type RecallHit, type RecallPatternsOptions } from './patterns.js';
 import { type BanditRecallReport } from './lesson-payoff.js';
 /** Which adapter sits behind the port. */
 export type VectorEngineKind = 'agentdb' | 'rvf';
@@ -147,6 +147,8 @@ export interface HybridHit {
     readonly score: number;
     /** lesson-quarantine: set only for a quarantined hit — display marks ⚠q, ranking was damped. */
     readonly quarantined?: boolean;
+    /** Form provenance from the lexical pair merge; semantic ranking never invents it. */
+    readonly matchedForm?: NonNullable<RecallHit['matchedForm']>;
     /**
      * Raw closeness from the semantic leg, when the engine reports a genuine cosine. ABSENT for a
      * lexical-only hit and for an engine whose score is not a cosine — the honest display there is a
@@ -477,6 +479,7 @@ export interface RankedPattern {
     readonly id: string;
     readonly pattern: PatternRecord;
     readonly backend: RecallHit['backend'];
+    readonly matchedForm?: NonNullable<RecallHit['matchedForm']>;
     /**
      * The semantic leg's raw closeness, when the engine reports a real cosine. Rides ALONGSIDE the RRF
      * score and never enters the ranking maths — four things depend on RRF magnitude (the reinforce
@@ -520,6 +523,8 @@ export declare function recallHybrid(projectRoot: string, query: string, opts?: 
      * sitting at `pulls === 0` forever. Absent ⇒ `general`; it changes nothing while disarmed.
      */
     readonly domain?: string | undefined;
+    readonly onClassDegraded?: RecallPatternsOptions['onClassDegraded'];
+    readonly classMatcher?: RecallPatternsOptions['classMatcher'];
 }): Promise<HybridRecall>;
 export declare function teachGuard(projectRoot: string, text: string, opts?: VectorServiceOptions & {
     readonly reward?: number | undefined;

@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-package-story-page",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "package-story-page — turn one existing package into an evidence-backed, examples-first, self-contained story page for non-specialists.",
   "license": "MIT",
   "author": "dzhechko",
@@ -58,8 +58,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-package-story-page"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-package-story-page#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-package-story-page#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

@@ -1,0 +1,612 @@
+[
+  {
+    "id": "fsa-family-choice-and-fit#pos1",
+    "suite": "route-positive",
+    "route": "fsa-family-choice-and-fit",
+    "language": "ru",
+    "seam": false,
+    "prompt": "До реализации выбираем modular monolith или распределённую topology. Сравни structural drivers, принятую отрицательную сторону и сигнал пересмотра; ADR писать не нужно.",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-choice-and-fit#pos2",
+    "suite": "route-positive",
+    "route": "fsa-family-choice-and-fit",
+    "language": "ru",
+    "seam": true,
+    "prompt": "Есть две архитектурные семьи с разными ценами эксплуатации. Помоги выбрать по контексту, а спорные критерии проверить одинаковым POC до реализации.",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-choice-and-fit#pos3",
+    "suite": "route-positive",
+    "route": "fsa-family-choice-and-fit",
+    "language": "ru",
+    "seam": false,
+    "prompt": "Бизнес требует доступность и быстрый запуск одновременно. Сузь требование до архитектурно значимого ограничения и покажи, какую цену выбора мы принимаем.",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-choice-and-fit#pos4",
+    "suite": "route-positive",
+    "route": "fsa-family-choice-and-fit",
+    "language": "ru",
+    "seam": true,
+    "prompt": "Старый архитектурный выбор скопирован из другого продукта. Контекст изменился; проведи повторный выбор по drivers, topology и сроку пересмотра.",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-choice-and-fit#pos5",
+    "suite": "route-positive",
+    "route": "fsa-family-choice-and-fit",
+    "language": "ru",
+    "seam": false,
+    "prompt": "Команды, provider и deployment-среда тянут решение в разные стороны. Сопоставь topology с окружением и выбери вариант до написания конфигурации.",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-choice-and-fit#pos6",
+    "suite": "route-positive",
+    "route": "fsa-family-choice-and-fit",
+    "language": "en",
+    "seam": false,
+    "prompt": "Before implementation, choose between a modular monolith and a distributed topology. Compare structural drivers, accepted downside, and the signal that should reopen the decision; do not write an ADR.",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-choice-and-fit#pos7",
+    "suite": "route-positive",
+    "route": "fsa-family-choice-and-fit",
+    "language": "en",
+    "seam": true,
+    "prompt": "Two architecture families have different operational costs. Help choose one for this context and define a fair POC for uncertain criteria before implementation.",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-choice-and-fit#pos8",
+    "suite": "route-positive",
+    "route": "fsa-family-choice-and-fit",
+    "language": "en",
+    "seam": false,
+    "prompt": "The business asks for availability and fast delivery at once. Narrow this into an architecture-driving constraint and state the price of the choice.",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-choice-and-fit#pos9",
+    "suite": "route-positive",
+    "route": "fsa-family-choice-and-fit",
+    "language": "en",
+    "seam": true,
+    "prompt": "An old architecture was copied from another product, but the context changed. Reassess the choice using drivers, topology fit, and an expiry condition.",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-choice-and-fit#pos10",
+    "suite": "route-positive",
+    "route": "fsa-family-choice-and-fit",
+    "language": "en",
+    "seam": false,
+    "prompt": "Teams, provider limits, deployment shape, and business direction pull in different directions. Decide which topology fits the environment before writing infrastructure.",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-choice-and-fit#neg1",
+    "suite": "route-seam",
+    "route": "fsa-family-choice-and-fit",
+    "declared_not_owner": "fsa-family-choice-and-fit",
+    "prompt": "Правило «модули домена не зависят от UI» постоянно нарушают. Спроектируй автоматическую проверку с сигналом, порогом, запуском в CI и понятным действием при сбое.",
+    "expected": "fsa-family-guardrails-and-risk"
+  },
+  {
+    "id": "fsa-family-choice-and-fit#neg2",
+    "suite": "route-seam",
+    "route": "fsa-family-choice-and-fit",
+    "declared_not_owner": "fsa-family-choice-and-fit",
+    "prompt": "Для API уже выбран p99 не выше 300 мс. Преврати этот приоритет в постоянно исполняемую защиту и определи владельца пересмотра порога.",
+    "expected": "fsa-family-guardrails-and-risk"
+  },
+  {
+    "id": "fsa-family-choice-and-fit#neg3",
+    "suite": "route-seam",
+    "route": "fsa-family-choice-and-fit",
+    "declared_not_owner": "fsa-family-choice-and-fit",
+    "prompt": "Draw a C4 container diagram for the current system; no architecture choice is being made.",
+    "expected": "c4-architecture"
+  },
+  {
+    "id": "fsa-family-choice-and-fit#neg4",
+    "suite": "route-seam",
+    "route": "fsa-family-choice-and-fit",
+    "declared_not_owner": "fsa-family-choice-and-fit",
+    "prompt": "Set reliability and scalability baselines with SLO, p95/p99 and load profile before choosing a topology.",
+    "expected": "ddia-reliability-scalability-foundations"
+  },
+  {
+    "id": "fsa-family-boundaries-and-coupling#pos1",
+    "suite": "route-positive",
+    "route": "fsa-family-boundaries-and-coupling",
+    "language": "ru",
+    "seam": false,
+    "prompt": "До реализации сгруппируй actors и actions по ответственностям, но не превращай результат автоматически в физические сервисы.",
+    "expected": "fsa-family-boundaries-and-coupling"
+  },
+  {
+    "id": "fsa-family-boundaries-and-coupling#pos2",
+    "suite": "route-positive",
+    "route": "fsa-family-boundaries-and-coupling",
+    "language": "ru",
+    "seam": true,
+    "prompt": "Код меняется по нескольким причинам и разные области связаны совместными изменениями. Найди архитектурные границы ответственности и coupling до refactoring diff.",
+    "expected": "fsa-family-boundaries-and-coupling"
+  },
+  {
+    "id": "fsa-family-boundaries-and-coupling#pos3",
+    "suite": "route-positive",
+    "route": "fsa-family-boundaries-and-coupling",
+    "language": "ru",
+    "seam": false,
+    "prompt": "Определи independently changeable architecture quantum по runtime, данным и статическим связям; число deployment units пока не задано.",
+    "expected": "fsa-family-boundaries-and-coupling"
+  },
+  {
+    "id": "fsa-family-boundaries-and-coupling#pos4",
+    "suite": "route-positive",
+    "route": "fsa-family-boundaries-and-coupling",
+    "language": "ru",
+    "seam": true,
+    "prompt": "Общий deployable unit должен сохранить модульность при общей схеме данных. Сравни границы модульного монолита и цену mediator.",
+    "expected": "fsa-family-boundaries-and-coupling"
+  },
+  {
+    "id": "fsa-family-boundaries-and-coupling#pos5",
+    "suite": "route-positive",
+    "route": "fsa-family-boundaries-and-coupling",
+    "language": "ru",
+    "seam": false,
+    "prompt": "Нужно решить, где заканчивается крупный доменный сервис и начинается отдельная изолируемая единица; сравни транзакции, ownership и частоту изменений.",
+    "expected": "fsa-family-boundaries-and-coupling"
+  },
+  {
+    "id": "fsa-family-boundaries-and-coupling#pos6",
+    "suite": "route-positive",
+    "route": "fsa-family-boundaries-and-coupling",
+    "language": "en",
+    "seam": false,
+    "prompt": "Before implementation, group actors and actions by responsibility without turning every box into a physical service.",
+    "expected": "fsa-family-boundaries-and-coupling"
+  },
+  {
+    "id": "fsa-family-boundaries-and-coupling#pos7",
+    "suite": "route-positive",
+    "route": "fsa-family-boundaries-and-coupling",
+    "language": "en",
+    "seam": true,
+    "prompt": "Several areas change together for different reasons. Identify defensible responsibility and coupling boundaries before producing a refactoring diff.",
+    "expected": "fsa-family-boundaries-and-coupling"
+  },
+  {
+    "id": "fsa-family-boundaries-and-coupling#pos8",
+    "suite": "route-positive",
+    "route": "fsa-family-boundaries-and-coupling",
+    "language": "en",
+    "seam": false,
+    "prompt": "Determine the independently changeable architecture quantum from runtime, data, and static relationships; the number of deployables is not known yet.",
+    "expected": "fsa-family-boundaries-and-coupling"
+  },
+  {
+    "id": "fsa-family-boundaries-and-coupling#pos9",
+    "suite": "route-positive",
+    "route": "fsa-family-boundaries-and-coupling",
+    "language": "en",
+    "seam": true,
+    "prompt": "One deployable must remain modular while the data schema is shared. Compare modular-monolith boundaries and the cost of a mediator.",
+    "expected": "fsa-family-boundaries-and-coupling"
+  },
+  {
+    "id": "fsa-family-boundaries-and-coupling#pos10",
+    "suite": "route-positive",
+    "route": "fsa-family-boundaries-and-coupling",
+    "language": "en",
+    "seam": false,
+    "prompt": "Decide where a large domain service ends and an isolated unit begins by comparing transactions, ownership, and change frequency.",
+    "expected": "fsa-family-boundaries-and-coupling"
+  },
+  {
+    "id": "fsa-family-boundaries-and-coupling#neg1",
+    "suite": "route-seam",
+    "route": "fsa-family-boundaries-and-coupling",
+    "declared_not_owner": "fsa-family-boundaries-and-coupling",
+    "prompt": "Выбираем между общей библиотекой и отдельным сервисом для Java- и Python-команд. Помоги сравнить цену изменений, задержку и повторное использование, а спорные пункты проверить одинаковым экспериментом.",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-boundaries-and-coupling#neg2",
+    "suite": "route-seam",
+    "route": "fsa-family-boundaries-and-coupling",
+    "declared_not_owner": "fsa-family-boundaries-and-coupling",
+    "prompt": "Три года назад мы выбрали очередь для другого продукта. Теперь появились требования локализации данных и маленькая команда — как заново проверить, годится ли прежнее решение?",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-boundaries-and-coupling#neg3",
+    "suite": "route-seam",
+    "route": "fsa-family-boundaries-and-coupling",
+    "declared_not_owner": "fsa-family-boundaries-and-coupling",
+    "prompt": "Draw a C4 container diagram for the current system; no architecture choice is being made.",
+    "expected": "c4-architecture"
+  },
+  {
+    "id": "fsa-family-boundaries-and-coupling#neg4",
+    "suite": "route-seam",
+    "route": "fsa-family-boundaries-and-coupling",
+    "declared_not_owner": "fsa-family-boundaries-and-coupling",
+    "prompt": "Set reliability and scalability baselines with SLO, p95/p99 and load profile before choosing a topology.",
+    "expected": "ddia-reliability-scalability-foundations"
+  },
+  {
+    "id": "fsa-family-distributed-interaction#pos1",
+    "suite": "route-positive",
+    "route": "fsa-family-distributed-interaction",
+    "language": "ru",
+    "seam": false,
+    "prompt": "До реализации реши, где request остаётся синхронным, а где нужен domain event; отдельно назови семантику и цену отказа.",
+    "expected": "fsa-family-distributed-interaction"
+  },
+  {
+    "id": "fsa-family-distributed-interaction#pos2",
+    "suite": "route-positive",
+    "route": "fsa-family-distributed-interaction",
+    "language": "ru",
+    "seam": true,
+    "prompt": "Для события нужно выбрать ID, snapshot или delta и понять, какой контекст должен пережить публикацию. Это архитектурный выбор payload, не кодирование брокера.",
+    "expected": "fsa-family-distributed-interaction"
+  },
+  {
+    "id": "fsa-family-distributed-interaction#pos3",
+    "suite": "route-positive",
+    "route": "fsa-family-distributed-interaction",
+    "language": "ru",
+    "seam": false,
+    "prompt": "Есть окна потери между commit, publish, receive и обработкой. Сравни delivery/recovery policy и условие пересмотра до настройки брокера.",
+    "expected": "fsa-family-distributed-interaction"
+  },
+  {
+    "id": "fsa-family-distributed-interaction#pos4",
+    "suite": "route-positive",
+    "route": "fsa-family-distributed-interaction",
+    "language": "ru",
+    "seam": true,
+    "prompt": "Happy path стабилен, но редкие ветви развиваются независимо. Сравни orchestration и choreography в event-driven приложении, не LLM-агентов.",
+    "expected": "fsa-family-distributed-interaction"
+  },
+  {
+    "id": "fsa-family-distributed-interaction#pos5",
+    "suite": "route-positive",
+    "route": "fsa-family-distributed-interaction",
+    "language": "ru",
+    "seam": false,
+    "prompt": "Распределение добавляет сетевые и failure boundaries. Проведи архитектурный preflight и реши, оправдана ли цена, не выполняя chaos experiment.",
+    "expected": "fsa-family-distributed-interaction"
+  },
+  {
+    "id": "fsa-family-distributed-interaction#pos6",
+    "suite": "route-positive",
+    "route": "fsa-family-distributed-interaction",
+    "language": "en",
+    "seam": false,
+    "prompt": "Before implementation, decide where a request stays synchronous and where a domain event is justified; state the failure semantics and accepted cost.",
+    "expected": "fsa-family-distributed-interaction"
+  },
+  {
+    "id": "fsa-family-distributed-interaction#pos7",
+    "suite": "route-positive",
+    "route": "fsa-family-distributed-interaction",
+    "language": "en",
+    "seam": true,
+    "prompt": "An event must carry an ID, snapshot, or delta. Decide what context consumers need after publication; this is a payload architecture choice, not broker code.",
+    "expected": "fsa-family-distributed-interaction"
+  },
+  {
+    "id": "fsa-family-distributed-interaction#pos8",
+    "suite": "route-positive",
+    "route": "fsa-family-distributed-interaction",
+    "language": "en",
+    "seam": false,
+    "prompt": "There are loss windows between commit, publish, receive, and handling. Compare delivery and recovery policies before configuring a broker.",
+    "expected": "fsa-family-distributed-interaction"
+  },
+  {
+    "id": "fsa-family-distributed-interaction#pos9",
+    "suite": "route-positive",
+    "route": "fsa-family-distributed-interaction",
+    "language": "en",
+    "seam": true,
+    "prompt": "The happy path is stable while rare branches evolve independently. Compare orchestration and choreography in an event-driven application, not LLM agents.",
+    "expected": "fsa-family-distributed-interaction"
+  },
+  {
+    "id": "fsa-family-distributed-interaction#pos10",
+    "suite": "route-positive",
+    "route": "fsa-family-distributed-interaction",
+    "language": "en",
+    "seam": false,
+    "prompt": "Distribution adds network and failure boundaries. Run an architecture preflight and decide whether its cost is justified without running a chaos experiment.",
+    "expected": "fsa-family-distributed-interaction"
+  },
+  {
+    "id": "fsa-family-distributed-interaction#neg1",
+    "suite": "route-seam",
+    "route": "fsa-family-distributed-interaction",
+    "declared_not_owner": "fsa-family-distributed-interaction",
+    "prompt": "Выбираем между общей библиотекой и отдельным сервисом для Java- и Python-команд. Помоги сравнить цену изменений, задержку и повторное использование, а спорные пункты проверить одинаковым экспериментом.",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-distributed-interaction#neg2",
+    "suite": "route-seam",
+    "route": "fsa-family-distributed-interaction",
+    "declared_not_owner": "fsa-family-distributed-interaction",
+    "prompt": "Три года назад мы выбрали очередь для другого продукта. Теперь появились требования локализации данных и маленькая команда — как заново проверить, годится ли прежнее решение?",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-distributed-interaction#neg3",
+    "suite": "route-seam",
+    "route": "fsa-family-distributed-interaction",
+    "declared_not_owner": "fsa-family-distributed-interaction",
+    "prompt": "Draw a C4 container diagram for the current system; no architecture choice is being made.",
+    "expected": "c4-architecture"
+  },
+  {
+    "id": "fsa-family-distributed-interaction#neg4",
+    "suite": "route-seam",
+    "route": "fsa-family-distributed-interaction",
+    "declared_not_owner": "fsa-family-distributed-interaction",
+    "prompt": "Set reliability and scalability baselines with SLO, p95/p99 and load profile before choosing a topology.",
+    "expected": "ddia-reliability-scalability-foundations"
+  },
+  {
+    "id": "fsa-family-guardrails-and-risk#pos1",
+    "suite": "route-positive",
+    "route": "fsa-family-guardrails-and-risk",
+    "language": "ru",
+    "seam": false,
+    "prompt": "Архитектурное правило «домены не зависят от UI» нарушается. Спроектируй fitness function, сигнал, порог и действие при сбое.",
+    "expected": "fsa-family-guardrails-and-risk"
+  },
+  {
+    "id": "fsa-family-guardrails-and-risk#pos2",
+    "suite": "route-positive",
+    "route": "fsa-family-guardrails-and-risk",
+    "language": "ru",
+    "seam": true,
+    "prompt": "Команда оценивает архитектурный риск по-разному. Проведи risk storming с независимыми находками, консенсусом и владельцем меры.",
+    "expected": "fsa-family-guardrails-and-risk"
+  },
+  {
+    "id": "fsa-family-guardrails-and-risk#pos3",
+    "suite": "route-positive",
+    "route": "fsa-family-guardrails-and-risk",
+    "language": "ru",
+    "seam": false,
+    "prompt": "Нужно превратить выбранное архитектурное свойство в исполняемую проверку с частотой, scope и условием пересмотра.",
+    "expected": "fsa-family-guardrails-and-risk"
+  },
+  {
+    "id": "fsa-family-guardrails-and-risk#pos4",
+    "suite": "route-positive",
+    "route": "fsa-family-guardrails-and-risk",
+    "language": "ru",
+    "seam": true,
+    "prompt": "Тренд риска ухудшается после каждой итерации. Определи evidence, threshold и момент, когда архитектурное решение нужно открыть заново.",
+    "expected": "fsa-family-guardrails-and-risk"
+  },
+  {
+    "id": "fsa-family-guardrails-and-risk#pos5",
+    "suite": "route-positive",
+    "route": "fsa-family-guardrails-and-risk",
+    "language": "ru",
+    "seam": false,
+    "prompt": "Ограничение доступности спорное и дорогое. Сформулируй проверяемую fitness function и отдели архитектурный guardrail от обычного PR risk register.",
+    "expected": "fsa-family-guardrails-and-risk"
+  },
+  {
+    "id": "fsa-family-guardrails-and-risk#pos6",
+    "suite": "route-positive",
+    "route": "fsa-family-guardrails-and-risk",
+    "language": "en",
+    "seam": false,
+    "prompt": "An architecture rule forbids domain packages from depending on UI. Design the fitness function, signal, threshold, and failure action.",
+    "expected": "fsa-family-guardrails-and-risk"
+  },
+  {
+    "id": "fsa-family-guardrails-and-risk#pos7",
+    "suite": "route-positive",
+    "route": "fsa-family-guardrails-and-risk",
+    "language": "en",
+    "seam": true,
+    "prompt": "The team rates one architecture risk differently. Run risk storming with independent findings, consensus, and an owner for the mitigation.",
+    "expected": "fsa-family-guardrails-and-risk"
+  },
+  {
+    "id": "fsa-family-guardrails-and-risk#pos8",
+    "suite": "route-positive",
+    "route": "fsa-family-guardrails-and-risk",
+    "language": "en",
+    "seam": false,
+    "prompt": "Turn a chosen architecture property into an executable check with scope, cadence, and a reconsideration condition.",
+    "expected": "fsa-family-guardrails-and-risk"
+  },
+  {
+    "id": "fsa-family-guardrails-and-risk#pos9",
+    "suite": "route-positive",
+    "route": "fsa-family-guardrails-and-risk",
+    "language": "en",
+    "seam": true,
+    "prompt": "Risk trend worsens after each iteration. Define evidence, threshold, and the point at which the architecture decision must be reopened.",
+    "expected": "fsa-family-guardrails-and-risk"
+  },
+  {
+    "id": "fsa-family-guardrails-and-risk#pos10",
+    "suite": "route-positive",
+    "route": "fsa-family-guardrails-and-risk",
+    "language": "en",
+    "seam": false,
+    "prompt": "A costly availability constraint is disputed. Define a testable architecture guardrail and keep it distinct from an ordinary PR risk register.",
+    "expected": "fsa-family-guardrails-and-risk"
+  },
+  {
+    "id": "fsa-family-guardrails-and-risk#neg1",
+    "suite": "route-seam",
+    "route": "fsa-family-guardrails-and-risk",
+    "declared_not_owner": "fsa-family-guardrails-and-risk",
+    "prompt": "Выбираем между общей библиотекой и отдельным сервисом для Java- и Python-команд. Помоги сравнить цену изменений, задержку и повторное использование, а спорные пункты проверить одинаковым экспериментом.",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-guardrails-and-risk#neg2",
+    "suite": "route-seam",
+    "route": "fsa-family-guardrails-and-risk",
+    "declared_not_owner": "fsa-family-guardrails-and-risk",
+    "prompt": "Три года назад мы выбрали очередь для другого продукта. Теперь появились требования локализации данных и маленькая команда — как заново проверить, годится ли прежнее решение?",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-guardrails-and-risk#neg3",
+    "suite": "route-seam",
+    "route": "fsa-family-guardrails-and-risk",
+    "declared_not_owner": "fsa-family-guardrails-and-risk",
+    "prompt": "Draw a C4 container diagram for the current system; no architecture choice is being made.",
+    "expected": "c4-architecture"
+  },
+  {
+    "id": "fsa-family-guardrails-and-risk#neg4",
+    "suite": "route-seam",
+    "route": "fsa-family-guardrails-and-risk",
+    "declared_not_owner": "fsa-family-guardrails-and-risk",
+    "prompt": "Set reliability and scalability baselines with SLO, p95/p99 and load profile before choosing a topology.",
+    "expected": "ddia-reliability-scalability-foundations"
+  },
+  {
+    "id": "fsa-family-organization-and-participation#pos1",
+    "suite": "route-positive",
+    "route": "fsa-family-organization-and-participation",
+    "language": "ru",
+    "seam": false,
+    "prompt": "Не планируй sprint и не делай stakeholder map. Реши, где архитектор должен участвовать, а где ownership передаётся команде.",
+    "expected": "fsa-family-organization-and-participation"
+  },
+  {
+    "id": "fsa-family-organization-and-participation#pos2",
+    "suite": "route-positive",
+    "route": "fsa-family-organization-and-participation",
+    "language": "ru",
+    "seam": true,
+    "prompt": "Архитектурное решение спорное, но команда хочет самостоятельность. Определи независимые work streams, точки участия архитектора и права решения.",
+    "expected": "fsa-family-organization-and-participation"
+  },
+  {
+    "id": "fsa-family-organization-and-participation#pos3",
+    "suite": "route-positive",
+    "route": "fsa-family-organization-and-participation",
+    "language": "ru",
+    "seam": false,
+    "prompt": "Нужно откалибровать участие архитектора от hands-on до advisory для сложного системного выбора; опиши evidence и границы полномочий.",
+    "expected": "fsa-family-organization-and-participation"
+  },
+  {
+    "id": "fsa-family-organization-and-participation#pos4",
+    "suite": "route-positive",
+    "route": "fsa-family-organization-and-participation",
+    "language": "ru",
+    "seam": true,
+    "prompt": "Команды разделены по функциям, а изменения идут по end-to-end потокам. Сопоставь ownership и архитектурное решение, не составляя план спринта.",
+    "expected": "fsa-family-organization-and-participation"
+  },
+  {
+    "id": "fsa-family-organization-and-participation#pos5",
+    "suite": "route-positive",
+    "route": "fsa-family-organization-and-participation",
+    "language": "ru",
+    "seam": false,
+    "prompt": "После принятия архитектурного решения нужно определить, что остаётся у design authority, а что команда меняет самостоятельно.",
+    "expected": "fsa-family-organization-and-participation"
+  },
+  {
+    "id": "fsa-family-organization-and-participation#pos6",
+    "suite": "route-positive",
+    "route": "fsa-family-organization-and-participation",
+    "language": "en",
+    "seam": false,
+    "prompt": "Do not plan a sprint or map stakeholders. Decide where the architect participates and where ownership is handed to the team.",
+    "expected": "fsa-family-organization-and-participation"
+  },
+  {
+    "id": "fsa-family-organization-and-participation#pos7",
+    "suite": "route-positive",
+    "route": "fsa-family-organization-and-participation",
+    "language": "en",
+    "seam": true,
+    "prompt": "The architecture choice is disputed but the team needs autonomy. Define independent work streams, architect touchpoints, and decision rights.",
+    "expected": "fsa-family-organization-and-participation"
+  },
+  {
+    "id": "fsa-family-organization-and-participation#pos8",
+    "suite": "route-positive",
+    "route": "fsa-family-organization-and-participation",
+    "language": "en",
+    "seam": false,
+    "prompt": "Calibrate the architect from hands-on to advisory participation for a difficult system choice; state evidence and authority boundaries.",
+    "expected": "fsa-family-organization-and-participation"
+  },
+  {
+    "id": "fsa-family-organization-and-participation#pos9",
+    "suite": "route-positive",
+    "route": "fsa-family-organization-and-participation",
+    "language": "en",
+    "seam": true,
+    "prompt": "Teams are organized by specialty while changes follow end-to-end flows. Align ownership with the architecture choice without writing a sprint plan.",
+    "expected": "fsa-family-organization-and-participation"
+  },
+  {
+    "id": "fsa-family-organization-and-participation#pos10",
+    "suite": "route-positive",
+    "route": "fsa-family-organization-and-participation",
+    "language": "en",
+    "seam": false,
+    "prompt": "After an architecture decision, define what remains with design authority and what the team may change independently.",
+    "expected": "fsa-family-organization-and-participation"
+  },
+  {
+    "id": "fsa-family-organization-and-participation#neg1",
+    "suite": "route-seam",
+    "route": "fsa-family-organization-and-participation",
+    "declared_not_owner": "fsa-family-organization-and-participation",
+    "prompt": "Выбираем между общей библиотекой и отдельным сервисом для Java- и Python-команд. Помоги сравнить цену изменений, задержку и повторное использование, а спорные пункты проверить одинаковым экспериментом.",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-organization-and-participation#neg2",
+    "suite": "route-seam",
+    "route": "fsa-family-organization-and-participation",
+    "declared_not_owner": "fsa-family-organization-and-participation",
+    "prompt": "Три года назад мы выбрали очередь для другого продукта. Теперь появились требования локализации данных и маленькая команда — как заново проверить, годится ли прежнее решение?",
+    "expected": "fsa-family-choice-and-fit"
+  },
+  {
+    "id": "fsa-family-organization-and-participation#neg3",
+    "suite": "route-seam",
+    "route": "fsa-family-organization-and-participation",
+    "declared_not_owner": "fsa-family-organization-and-participation",
+    "prompt": "Draw a C4 container diagram for the current system; no architecture choice is being made.",
+    "expected": "c4-architecture"
+  },
+  {
+    "id": "fsa-family-organization-and-participation#neg4",
+    "suite": "route-seam",
+    "route": "fsa-family-organization-and-participation",
+    "declared_not_owner": "fsa-family-organization-and-participation",
+    "prompt": "Set reliability and scalability baselines with SLO, p95/p99 and load profile before choosing a topology.",
+    "expected": "ddia-reliability-scalability-foundations"
+  }
+]

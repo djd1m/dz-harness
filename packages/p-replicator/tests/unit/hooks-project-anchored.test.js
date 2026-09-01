@@ -65,14 +65,15 @@ function project() {
 }
 
 /** Run one hook FROM THE SUBDIRECTORY — the only place this defect is visible. */
-function runFromSub(p, hook, { withEnv = true, args = [] } = {}) {
+function runFromSub(p, hook, { withEnv = true, args = [], input, envOverrides = {} } = {}) {
   const env = { ...process.env };
   if (withEnv) env.CLAUDE_PROJECT_DIR = p.root;
   else delete env.CLAUDE_PROJECT_DIR;
+  Object.assign(env, envOverrides);
   try {
     const stdout = execFileSync(process.execPath,
       [path.join(p.root, '.claude', 'hooks', hook + '.cjs'), ...args],
-      { cwd: p.sub, env, encoding: 'utf8', stdio: 'pipe' });
+      { cwd: p.sub, env, encoding: 'utf8', stdio: 'pipe', input });
     return { code: 0, stdout: stdout || '' };
   } catch (err) {
     return { code: err.status ?? 1, stdout: err.stdout?.toString() ?? '' };
@@ -138,11 +139,74 @@ describe('hooks resolve against the project, not the drifting cwd (PR-013)', () 
       fs.mkdirSync(path.join(p.root, '.claude', 'insights'), { recursive: true });
       fs.writeFileSync(path.join(p.root, '.claude', 'insights', 'index.md'),
         '## Insight one\n\nbody one\n');
-      const r = runFromSub(p, 'session-insights', { withEnv: false });
+      const r = runFromSub(p, 'session-insights', {
+        withEnv: false,
+        envOverrides: { PATH: '' },
+        input: JSON.stringify({ hook_event_name: 'UserPromptSubmit', prompt: 'anchor' }),
+      });
       assert.equal(r.code, 0, 'the hook must stay non-blocking');
       assert.match(r.stdout, /Insight one/,
         'with no env var and cwd in a subdirectory, the hook must still read the ROOT index');
     } finally { fs.rmSync(p.root, { recursive: true, force: true }); }
+  });
+
+  test('P8 - missing store triggers exactly one no-insights hint without creating the carrier', () => {
+    const p = project();
+    const hint = 'инсайтов пока нет; /myinsights создаст первую запись\n';
+    const index = path.join(p.root, '.claude', 'insights', 'index.md');
+    try {
+      const missing = runFromSub(p, 'session-insights');
+      assert.equal(missing.code, 0, 'the missing state stays advisory');
+      assert.equal(missing.stdout, hint, 'the genuine missing branch prints exactly one line');
+      assert.equal(fs.existsSync(path.dirname(index)), false,
+        'the reader must not blur missing into empty by creating the carrier');
+
+      fs.mkdirSync(path.dirname(index), { recursive: true });
+      fs.writeFileSync(index, '');
+      const empty = runFromSub(p, 'session-insights');
+      assert.equal(empty.code, 0);
+      assert.equal(empty.stdout, '', 'an existing empty carrier is not the missing branch');
+
+      fs.writeFileSync(index, '## 2026-08-30 — existing\n\nBody.\n');
+      const populated = runFromSub(p, 'session-insights');
+      assert.equal(populated.code, 0);
+      assert.equal(populated.stdout, '',
+        'SessionStart must not inject populated insights before a prompt exists');
+      assert.doesNotMatch(populated.stdout, /инсайтов пока нет/);
+
+      fs.rmSync(index);
+      fs.mkdirSync(index);
+      const unreadable = runFromSub(p, 'session-insights');
+      assert.equal(unreadable.code, 0, 'read errors remain never-blocking');
+      assert.equal(unreadable.stdout, '',
+        'an unrelated read failure must not be laundered into the ordinary missing state');
+    } finally { fs.rmSync(p.root, { recursive: true, force: true }); }
+  });
+
+  test('P9 - SessionStart preserves only missing-carrier visibility', () => {
+    const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'p-rep-start-state-')));
+    const hook = path.join(TPL, 'hooks', 'session-insights.cjs');
+    delete require.cache[require.resolve(hook)];
+    const { emitInsights } = require(hook);
+    const run = () => {
+      const output = [];
+      emitInsights(root, { write: (chunk) => output.push(chunk) }, {
+        rawEvent: JSON.stringify({ hook_event_name: 'SessionStart' }),
+      });
+      return output;
+    };
+    try {
+      assert.deepEqual(run(), ['инсайтов пока нет; /myinsights создаст первую запись\n']);
+      assert.equal(fs.existsSync(path.join(root, '.claude', 'insights')), false,
+        'the callable production branch must remain read-only on an absent root');
+
+      const index = path.join(root, '.claude', 'insights', 'index.md');
+      fs.mkdirSync(path.dirname(index), { recursive: true });
+      fs.writeFileSync(index, '');
+      assert.deepEqual(run(), [], 'an empty carrier is not a missing-carrier warning');
+      fs.writeFileSync(index, '## 2026-08-30 — populated\n\nBody.\n');
+      assert.deepEqual(run(), [], 'populated delivery waits for UserPromptSubmit');
+    } finally { fs.rmSync(root, { recursive: true, force: true }); }
   });
 
   test('P5 — EFFECT from a subdirectory: the roadmap is actually committed', () => {

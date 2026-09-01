@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/harness-presets",
-  "version": "0.5.17",
+  "version": "0.5.18",
   "description": "Named skill-set presets for dz init (meta, qe-engineer).",
   "type": "module",
   "license": "MIT",
@@ -46,8 +46,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/harness-presets"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/harness-presets#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/harness-presets#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

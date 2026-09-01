@@ -5,6 +5,7 @@
  */
 import { spawn, type ChildProcess } from 'node:child_process';
 import { runSyncCodexHooks, type CodexHooksSyncReport, type BridgeFamily } from '@dzhechkov/harness-core';
+import type { RecallPatternsOptions, TeachGuardResult, IntegrationOutcome } from '@dzhechkov/harness-core';
 /** Literal command inventory, pinned against the main dispatch switch by a layer-1 test. */
 export declare const DZ_COMMANDS: readonly string[];
 /** Output sink + working directory — injectable so the CLI is testable. */
@@ -29,6 +30,18 @@ export interface CliIo {
      * command that needs it (`brain ground`), and never when stdin is a TTY (nothing piped).
      */
     readonly stdin?: string;
+    /** Human-terminal rendering seam; production defaults to stdout TTY detection. */
+    readonly interactive?: boolean;
+    /** Fault seam proving that class-form recall degrades to specific recall with a stderr receipt. */
+    readonly classMatcher?: RecallPatternsOptions['classMatcher'];
+    /** Guard decision seam; production always uses the real vector-backed teach guard. */
+    readonly teachGuardRunner?: (projectRoot: string, text: string, opts: {
+        readonly reward?: number;
+    }) => Promise<TeachGuardResult>;
+    /** Reinforcement flush seam paired with `teachGuardRunner`; production uses the configured backend. */
+    readonly teachReinforceRunner?: (projectRoot: string, dzId: string, reward: number) => Promise<{
+        readonly flushed: number;
+    }>;
     /**
      * Test seam for `dz release`: overrides subprocess execution for gate steps and the
      * gh/git side channels (production leaves it unset → real `execSync`, stdio piped).
@@ -86,6 +99,10 @@ export interface CodexHooksSummary {
     readonly stdout: readonly string[];
     readonly stderr: readonly string[];
 }
+/** Map the retained Codex hook writer's one live verdict into the common integration contract. */
+export declare function normalizeCodexHookOutcome(base: IntegrationOutcome, delivery: CodexHooksSummary & {
+    readonly report: CodexHooksSyncReport;
+}, noVerify?: boolean): IntegrationOutcome;
 /**
  * What the user is told about a sync report — the ONE place the success word can be printed.
  *

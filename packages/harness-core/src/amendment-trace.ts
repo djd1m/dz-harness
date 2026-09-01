@@ -339,7 +339,18 @@ export const AMENDMENT_VACUITY_NOTE =
  * are named later than ideation guesses); the SUBJECT may not.
  */
 export function amendmentSubject(raw: string): string {
-  const withoutPointer = raw.split(/→\s*tests?\s/)[0] ?? '';
+  // BOTH arrows, for the same reason extractTestIds accepts both: the corpus carries `->` and `→`
+  // from two authors, and splitting on only one leaves the whole Confirmation sentence inside the
+  // "subject". Two documents that word their Confirmation differently — which they are entitled to,
+  // since only the SUBJECT must survive verbatim — then read as a subject change. MEASURED
+  // 2026-08-30 on os-matrix-pack-smoke: all 9 amendments resolved to real tests, yet all 9 reported
+  // "the plan describes a DIFFERENT change"; the ideation used `->` throughout.
+  // The pointer region starts at `Confirmation:` — everything from there on is HOW the amendment is
+  // proven (which fixture, which arrow form, which test name), and the rule says only the pointer may
+  // differ between the two documents. Splitting at the arrow alone left the Confirmation PROSE inside
+  // the subject, so two documents describing the same fixture in different words read as a subject
+  // change. Both arrows are still handled, for corpora that omit the `Confirmation:` lead-in.
+  const withoutPointer = raw.split(/Confirmation\s*:/i)[0]?.split(/(?:\u2192|->)\s*tests?\s/)[0] ?? '';
   // Strip ONLY the row's furniture: bullet/table marks, the bold id, an optional `(source)` tag and
   // a colon. An earlier version consumed up to 80 characters after the id, which ate the SUBJECT
   // itself whenever a row carried no `(source):` tag — the checker then compared two truncations

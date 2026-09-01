@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-analyst-manual",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
@@ -38,12 +38,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-analyst-manual"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-analyst-manual#readme",
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-analyst-manual#readme",
   "bugs": {
-    "url": "https://github.com/dzhechko/product-keysarium-2026/issues"
+    "url": "https://github.com/djd1m/dz-harness/issues"
   },
   "peerDependencies": {
     "@dzhechkov/keysarium-core": "^1.0.0"

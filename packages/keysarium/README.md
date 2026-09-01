@@ -18,7 +18,7 @@ Full 7-phase pipeline for AI case studies, hackathons, and casariums. Provides s
 > the teach protocol. See `skills/goap-research-ed25519/SKILL.md`.
 
 ## Growth engine (reverse-engineering-unicorn M5)
-### What M5 produces, since 0.2.0 / 1.7.3 / 1.6.0
+### What M5 produces, since 0.2.0 / 1.7.4 / 1.6.0
 
 M5 no longer ends as analysis. Three changes, in the order they matter:
 

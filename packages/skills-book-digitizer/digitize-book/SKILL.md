@@ -100,6 +100,29 @@ cross-project brain is an IP decision, exactly like CP5, so `--trusted` never gr
 | Mirror chapters 1:1 as skills | breaks triggering + context | skills = decision moments (CP3) |
 | Publish the generated pack by default | it's book-derived; distribution is the owner's | `private` default + CP5 |
 
+## After digitization: consumption modes
+
+Four ways the digitized book gets USED — name them in the final hand-over, and print the ready M1
+query for the new slug (`dz brain query "<a KU name>" --source <slug>`):
+
+- **M1 chat, one answer:** `dz brain query "<q>" --source <slug>` → `dz brain expand <kuId>`
+  (the kuId comes from `query --json` `hits[].kuId` or the `ground --text` block — the plain query
+  output prints citations without ids); or `dz brain ground "<prompt>" --source <slug> --budget <N>
+  --text` for a paste-ready grounding block.
+- **M2 one pipeline run:** an obligation line in the run's own task description («дизайн обязан
+  свериться с <slug> через `dz brain query`, цитаты с kuId, расхождение — только с названной причиной»).
+- **M3 project-wide, while the hook stays installed:** `dz brain init --project <dir> --k <N>`
+  (Claude Code — writes `.claude/settings.json`); disarm = remove the `UserPromptSubmit` entry whose
+  command contains `brain ground` from that file.
+- **M4 one pipeline, standing:** the same obligation as a stage-gate line in the rules/instructions
+  file that pipeline actually loads (Claude Code: `.claude/rules/<pipeline>.md`).
+- **Two stores — never confuse:** `dz brain query|ground|expand` read the machine-wide brain
+  (`~/.dz/brain`, CP6/`dz brain add` promotions only); `dz recall --books --book <slug> "<q>"` reads
+  THIS project's `.dz/memory/books.sqlite`. The wrong store answers `0 KU hit(s)` with exit 0 — no
+  error names the mistake.
+
+Full user-facing walkthrough: the pack README, «Как пользоваться оцифрованной книгой».
+
 ## Self-check
 
 - [ ] Resumed from the manifest (no completed phase re-run)?
@@ -107,7 +130,7 @@ cross-project brain is an IP decision, exactly like CP5, so `--trusted` never gr
 - [ ] CP6 honored — brain promotion was an explicit opt-in (default project-local; never auto-approved, even under `--trusted`)?
 - [ ] Only verified KUs fed distill; every skill claim traces to a KU?
 - [ ] Pack is `private` unless a CP5 decision says otherwise; brain kept private (never distributed)?
-- [ ] User got: install command + how the new skills trigger?
+- [ ] User got: install command + how the new skills trigger + the consumption modes (M1 query printed for the new slug)?
 
 ## Examples
 

@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/trip-planner",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Travel-itinerary → interactive mobile site generator. Turns a city + dates + constraints into a self-contained, one-handed HTML itinerary with maps, weather, booking links, verified contacts and review evidence for every named venue, and constraint-filtered restaurants.",
   "main": "src/cli.js",
   "bin": {
@@ -43,12 +43,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/trip-planner"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/trip-planner#readme",
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/trip-planner#readme",
   "bugs": {
-    "url": "https://github.com/djd1m/dz-harness-hub/issues"
+    "url": "https://github.com/djd1m/dz-harness/issues"
   },
   "publishConfig": {
     "access": "public"

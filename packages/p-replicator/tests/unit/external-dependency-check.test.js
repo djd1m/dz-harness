@@ -7,9 +7,8 @@
 // contact-with-reality defect in this pipeline; everything else it checks, it can check by reading
 // its own output.
 //
-// TWO honesty constraints bind this suite, both from the field report:
-//   1. check-pipeline-gaps.sh, which the report cites, DOES NOT EXIST. P7 keeps it uncited.
-//   2. No external fact may be baked in. What an API can do DRIFTS: a fixture asserting one would
+// One honesty constraint binds this suite from the field report:
+//   No external fact may be baked in. What an API can do DRIFTS: a fixture asserting one would
 //      fail when the world changes and pass when our own rule breaks. P6 asserts the ABSENCE of
 //      vendor names, and no assertion here mentions a capability of any real service.
 
@@ -188,22 +187,23 @@ describe('the pipeline asks whether the outside world can do what a requirement 
       'doc-validator.md says ' + stated[1] + ' but tables ' + inAgent.size);
   });
 
-  test('P7 — nothing cites check-pipeline-gaps.sh, which does not exist', () => {
-    // The report cites it. MEASURED — a repo-wide find returns nothing. Pointing a reader at a
-    // script that is not there is a worse failure than the gap it was cited to close.
-    for (const f of [SPARC, REPLICATE]) {
-      assert.ok(!read(f).includes('check-pipeline-gaps'),
-        f + ' references a script that does not exist in this repository');
-    }
-    // The premise, asserted rather than assumed: if someone ever ADDS the script, this goes red and
-    // whoever added it has to revisit the rule instead of leaving a stale prohibition behind.
+  test('P7 — check-pipeline-gaps is package-owned and deliberately wired', () => {
     const pkgRoot = path.join(__dirname, '..', '..');
-    const candidates = ['check-pipeline-gaps.sh', path.join('scripts', 'check-pipeline-gaps.sh'),
-      path.join('bin', 'check-pipeline-gaps.sh')];
-    for (const c of candidates) {
-      assert.ok(!fs.existsSync(path.join(pkgRoot, c)),
-        'the script now exists at ' + c + ' — this rule was written on the premise that it does '
-        + 'not, so revisit it rather than deleting this assertion');
-    }
+    const canonical = path.join(pkgRoot, 'scripts', 'check-pipeline-gaps.sh');
+    const projection = path.join(TPL, 'hooks', 'check-pipeline-gaps.sh');
+    const pkg = JSON.parse(fs.readFileSync(path.join(pkgRoot, 'package.json'), 'utf8'));
+    assert.ok(fs.statSync(canonical).isFile(), 'the package canon must exist');
+    assert.equal(fs.existsSync(projection), false,
+      'the Node-only hooks surface must not duplicate the packaged shell utility');
+    assert.ok(pkg.files.includes('scripts/check-pipeline-gaps.sh'),
+      'the exact checker path must be in the npm allowlist');
+    assert.match(read('commands/feature.md'),
+      /require\.resolve\('@dzhechkov\/p-replicator\/scripts\/check-pipeline-gaps\.sh'\)/,
+      '/feature must resolve the checker from the installed package');
+    assert.doesNotMatch(read('commands/feature.md'), /\.claude\/hooks\/check-pipeline-gaps\.sh/);
+    assert.match(read(SPARC), /FR\/NFR\/AC machine-key wire format/,
+      'the authoring skill must define the wire format consumed by the checker');
+    assert.ok(!read('settings.json').includes('check-pipeline-gaps'),
+      'the deliberate blocking gate must not be registered as a non-blocking event hook');
   });
 });

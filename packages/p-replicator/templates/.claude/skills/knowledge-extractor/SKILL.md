@@ -138,6 +138,10 @@ Read module: `modules/01-agent-review.md`
 
 **Goal:** Find all extractable knowledge in the project using parallel agents.
 
+Each extractor delivers a FILE at its own absolute `TRACE_PATH` (terminal `Status:` line last),
+never a reply — see `.claude/rules/swarm-file-evidence.md` and the assignment table in
+`modules/01-agent-review.md`. A dead extractor and a working one are both silent.
+
 **Swarm Strategy — 5 parallel extraction agents:**
 
 | Agent | Scope | What It Looks For |

@@ -15,6 +15,7 @@
  * Everything here is PURE: callers gather facts (files, store rows); this module only computes.
  */
 import { EVENT_CHAIN_SCOPE, verifyEventChainText } from './event-chain.js';
+import { isOffsetIsoTimestamp, } from './guard-promotion.js';
 // ── Seeded statistics (verbatim-shape port from darwin-mode bench/stats.ts) ──
 /** Deterministic PRNG — same seed, same stream, byte-identical reports. */
 export function mulberry32(seed) {
@@ -99,6 +100,181 @@ export function replayableInstances(usage, lessonText = new Map()) {
     return [...byKey.entries()].map(([id, e]) => ({ id, query: e.query, lessons: e.lessons, class: null }));
 }
 const APPLY_LEG_STALE_DAYS = 7;
+const FUNNEL_MONTH_LIMIT = 12;
+const LESSON_TO_RULE_FUNNEL_POLICY = {
+    unavailable: (reason) => ({ status: 'not-measured', reason }),
+    successor: (stage) => stage,
+};
+function utcMonth(ts) {
+    return isOffsetIsoTimestamp(ts) ? new Date(Date.parse(ts)).toISOString().slice(0, 7) : null;
+}
+function monthOffset(period, delta) {
+    const [year, month] = period.split('-').map(Number);
+    return new Date(Date.UTC(year, month - 1 + delta, 1)).toISOString().slice(0, 7);
+}
+function funnelPeriods(facts, nowTs) {
+    const evidenceMonths = [];
+    if (facts.promotionRuns.status === 'measured') {
+        for (const row of facts.promotionRuns.rows) {
+            const period = utcMonth(row.ts);
+            if (period !== null)
+                evidenceMonths.push(period);
+        }
+    }
+    if (facts.guardAudits.status === 'measured') {
+        for (const row of facts.guardAudits.rows) {
+            const period = utcMonth(row.ts);
+            if (period !== null)
+                evidenceMonths.push(period);
+        }
+    }
+    for (const period of facts.truncatedPromotionPeriods ?? [])
+        evidenceMonths.push(period);
+    const current = utcMonth(nowTs) ?? evidenceMonths.sort().at(-1) ?? '1970-01';
+    const floor = monthOffset(current, -(FUNNEL_MONTH_LIMIT - 1));
+    const earliest = evidenceMonths.filter((period) => period >= floor && period <= current).sort()[0] ?? current;
+    const periods = [];
+    for (let period = earliest; period <= current; period = monthOffset(period, 1))
+        periods.push(period);
+    return periods;
+}
+function promotionMeasurements(facts, period) {
+    if (facts.promotionRuns.status === 'not-measured') {
+        const unavailable = LESSON_TO_RULE_FUNNEL_POLICY.unavailable(facts.promotionRuns.reason);
+        return { eligible: unavailable, attempted: unavailable, accepted: unavailable };
+    }
+    if (facts.truncatedPromotionPeriods?.includes(period) === true) {
+        const unavailable = LESSON_TO_RULE_FUNNEL_POLICY.unavailable(`promotion-history-pruned:${period}`);
+        return { eligible: unavailable, attempted: unavailable, accepted: unavailable };
+    }
+    const runs = facts.promotionRuns.rows.filter((row) => utcMonth(row.ts) === period);
+    if (runs.length === 0) {
+        const unavailable = LESSON_TO_RULE_FUNNEL_POLICY.unavailable(`promotion-run-not-recorded:${period}`);
+        return { eligible: unavailable, attempted: unavailable, accepted: unavailable };
+    }
+    if (runs.some((row) => row.complete !== true)) {
+        const unavailable = LESSON_TO_RULE_FUNNEL_POLICY.unavailable(`promotion-run-incomplete:${period}`);
+        return { eligible: unavailable, attempted: unavailable, accepted: unavailable };
+    }
+    const eligible = new Set();
+    const attempted = new Set();
+    const accepted = new Set();
+    for (const run of runs) {
+        for (const candidate of run.candidates) {
+            if (candidate.eligible !== true)
+                continue;
+            eligible.add(candidate.candidateAnchor);
+            if (typeof candidate.ruleContentAnchor !== 'string' || candidate.ruleContentAnchor === '')
+                continue;
+            attempted.add(candidate.candidateAnchor);
+            if (candidate.verdict === 'promote')
+                accepted.add(candidate.candidateAnchor);
+        }
+    }
+    return {
+        eligible: { status: 'measured', value: eligible.size },
+        attempted: { status: 'measured', value: attempted.size },
+        accepted: { status: 'measured', value: accepted.size },
+    };
+}
+function executionMeasurement(facts, period) {
+    if (facts.promotionRuns.status === 'not-measured') {
+        return LESSON_TO_RULE_FUNNEL_POLICY.unavailable(facts.promotionRuns.reason);
+    }
+    if (facts.guardAudits.status === 'not-measured') {
+        return LESSON_TO_RULE_FUNNEL_POLICY.unavailable(facts.guardAudits.reason);
+    }
+    const periodAudits = facts.guardAudits.rows.filter((row) => utcMonth(row.ts) === period);
+    if (periodAudits.length === 0) {
+        return LESSON_TO_RULE_FUNNEL_POLICY.unavailable(`guard-audit-not-recorded:${period}`);
+    }
+    const audits = periodAudits.filter((row) => row.op === 'publish');
+    if (audits.length === 0) {
+        return LESSON_TO_RULE_FUNNEL_POLICY.unavailable(`guard-publish-not-recorded:${period}`);
+    }
+    const violations = audits.flatMap((audit) => {
+        const observed = audit.violations ?? audit.rules.map((rule) => ({ rule }));
+        return observed.map((violation) => ({ ...violation, auditTs: Date.parse(audit.ts) }));
+    });
+    if (violations.some((item) => item.rule.startsWith('promoted-') && !item.contentAnchor)) {
+        return LESSON_TO_RULE_FUNNEL_POLICY.unavailable(`guard-audit-anchor-missing:${period}`);
+    }
+    const acceptances = facts.promotionAcceptances ?? facts.promotionRuns.rows.flatMap((run) => run.complete !== true
+        ? []
+        : run.candidates
+            .filter((candidate) => candidate.eligible === true && candidate.verdict === 'promote' && candidate.ruleContentAnchor)
+            .map((candidate) => ({ ruleContentAnchor: candidate.ruleContentAnchor, acceptedTs: run.ts })));
+    const acceptedAt = new Map();
+    for (const acceptance of acceptances) {
+        const acceptedTs = Date.parse(acceptance.acceptedTs);
+        const prior = acceptedAt.get(acceptance.ruleContentAnchor);
+        if (Number.isFinite(acceptedTs) && (prior === undefined || acceptedTs < prior)) {
+            acceptedAt.set(acceptance.ruleContentAnchor, acceptedTs);
+        }
+    }
+    const unattributedPromoted = violations.some((item) => item.rule.startsWith('promoted-') &&
+        typeof item.contentAnchor === 'string' &&
+        (acceptedAt.get(item.contentAnchor) === undefined || acceptedAt.get(item.contentAnchor) > item.auditTs));
+    const acceptanceHistoryComplete = facts.acceptanceHistoryComplete ??
+        facts.promotionRuns.rows.every((run) => run.complete === true);
+    if (unattributedPromoted && !acceptanceHistoryComplete) {
+        return LESSON_TO_RULE_FUNNEL_POLICY.unavailable(`promotion-acceptance-history-incomplete:${period}`);
+    }
+    return {
+        status: 'measured',
+        value: violations.filter((item) => typeof item.contentAnchor === 'string' &&
+            acceptedAt.has(item.contentAnchor) &&
+            acceptedAt.get(item.contentAnchor) <= item.auditTs).length,
+    };
+}
+function funnelFindings(periods) {
+    const edges = [
+        ['eligible', 'attempted'],
+        ['attempted', 'accepted'],
+        ['accepted', 'executions'],
+    ];
+    const findings = [];
+    for (const [predecessor, successor] of edges) {
+        let streak = [];
+        const emit = () => {
+            if (streak.length < 3)
+                return;
+            const observed = streak.slice(-3);
+            findings.push({
+                predecessor,
+                stage: LESSON_TO_RULE_FUNNEL_POLICY.successor(successor),
+                fromPeriod: observed[0].period,
+                toPeriod: observed[2].period,
+                counts: observed.map((row) => ({
+                    period: row.period,
+                    predecessor: row[predecessor].value,
+                    successor: row[successor].value,
+                })),
+            });
+        };
+        for (const row of periods) {
+            const before = row[predecessor];
+            const after = row[successor];
+            if (before.status === 'measured' && after.status === 'measured' && before.value > 0 && after.value === 0) {
+                streak.push(row);
+            }
+            else {
+                emit();
+                streak = [];
+            }
+        }
+        emit();
+    }
+    return findings;
+}
+export function assembleLessonToRuleFunnel(facts, nowTs) {
+    const periods = funnelPeriods(facts, nowTs).map((period) => ({
+        period,
+        ...promotionMeasurements(facts, period),
+        executions: executionMeasurement(facts, period),
+    }));
+    return { periods, findings: funnelFindings(periods) };
+}
 export function assembleCompoundingReport(facts) {
     const { lessons, usage, guard } = facts;
     // 1. Pool payoff — the "loops need all three legs" question, quantified.
@@ -212,6 +388,10 @@ export function assembleCompoundingReport(facts) {
             ? Math.max(0, facts.cmdUsageDepthDays)
             : null,
     };
+    const lessonToRuleFunnel = assembleLessonToRuleFunnel(facts.lessonToRule ?? {
+        promotionRuns: { status: 'not-measured', reason: 'promotion-journal-not-provided' },
+        guardAudits: { status: 'not-measured', reason: 'guard-audit-not-provided' },
+    }, facts.nowTs);
     const improvedRules = trajectory.filter((t) => t.improved).length;
     const verdict = [
         `pool: ${injectedEver}/${total} lessons ever injected (${Math.round(pool.writeOnlyRatio * 100)}% write-only under the strict bar)`,
@@ -226,7 +406,36 @@ export function assembleCompoundingReport(facts) {
                     : 'evidence chain: CORRUPT — the numbers above are computed from a damaged log',
             ]),
     ].join(' · ');
-    return { pool, guardTrajectory: trajectory, replay, instrumentation, verdict };
+    return { pool, guardTrajectory: trajectory, replay, instrumentation, lessonToRuleFunnel, verdict };
+}
+function renderFunnelMeasurement(stage, value) {
+    return value.status === 'measured'
+        ? `${stage} ${value.value}`
+        : `${stage} NOT MEASURED (${value.reason})`;
+}
+function renderPromotionMeasurements(row) {
+    const { eligible, attempted, accepted } = row;
+    if (eligible.status === 'not-measured' &&
+        attempted.status === 'not-measured' &&
+        accepted.status === 'not-measured' &&
+        eligible.reason === attempted.reason &&
+        eligible.reason === accepted.reason) {
+        return `eligible/attempted/accepted NOT MEASURED (${eligible.reason})`;
+    }
+    return [
+        renderFunnelMeasurement('eligible', row.eligible),
+        renderFunnelMeasurement('attempted', row.attempted),
+        renderFunnelMeasurement('accepted', row.accepted),
+    ].join(' · ');
+}
+function renderFunnelPeriodMeasurements(row) {
+    const values = [row.eligible, row.attempted, row.accepted, row.executions];
+    const unavailable = values.filter((value) => value.status === 'not-measured');
+    if (unavailable.length === values.length &&
+        unavailable.every((value) => value.reason === unavailable[0].reason)) {
+        return `eligible/attempted/accepted/executions NOT MEASURED (${unavailable[0].reason})`;
+    }
+    return `${renderPromotionMeasurements(row)} · ${renderFunnelMeasurement('executions', row.executions)}`;
 }
 export function renderCompoundingReport(r) {
     const out = [];
@@ -258,6 +467,17 @@ export function renderCompoundingReport(r) {
         : `${Math.floor(r.instrumentation.cmdUsageDepthDays)}d history`}`);
     if (r.instrumentation.chains.length > 0)
         out.push(`    scope: ${EVENT_CHAIN_SCOPE}`);
+    out.push('');
+    out.push('  LESSON → RULE FUNNEL (calendar month, observed traffic only):');
+    for (const row of r.lessonToRuleFunnel.periods) {
+        out.push(`    ${row.period} · ${renderFunnelPeriodMeasurements(row)}`);
+    }
+    for (const finding of r.lessonToRuleFunnel.findings) {
+        const counts = finding.counts
+            .map((row) => `${row.period} ${finding.predecessor} ${row.predecessor} → ${finding.stage} ${row.successor}`)
+            .join('; ');
+        out.push(`    FLOW STOP ${finding.stage} (${finding.fromPeriod}..${finding.toPeriod}): ${counts}`);
+    }
     out.push('');
     out.push(`  VERDICT: ${r.verdict}`);
     return out.join('\n');

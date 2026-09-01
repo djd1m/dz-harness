@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Fundamental Software Architecture decision record",
+  "type": "object",
+  "required": ["decision", "dominant_family", "accepted_downside", "verification_condition", "reconsideration_trigger", "handoff"],
+  "properties": {
+    "decision": { "type": "string", "minLength": 1 },
+    "dominant_family": { "type": "string", "minLength": 1 },
+    "accepted_downside": { "type": "string", "minLength": 1 },
+    "verification_condition": { "type": "string", "minLength": 1 },
+    "reconsideration_trigger": { "type": "string", "minLength": 1 },
+    "handoff": { "type": "string", "minLength": 1 },
+    "source_ku_ids": { "type": "array", "items": { "type": "string" } },
+    "page_anchors": { "type": "array", "items": { "type": "integer", "minimum": 1 } }
+  },
+  "additionalProperties": false
+}

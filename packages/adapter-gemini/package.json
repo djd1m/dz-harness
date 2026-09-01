@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-gemini",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "GEMINI.md platform adapter - flattens canonical skills into a single root-level GEMINI.md (plain Markdown, no frontmatter, hierarchical; read by Gemini CLI + Code Assist; intentionally lossy, merge-not-overwrite).",
   "type": "module",
   "license": "MIT",
@@ -54,8 +54,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/adapter-gemini"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/adapter-gemini#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-gemini#readme",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  }
 }

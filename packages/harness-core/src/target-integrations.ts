@@ -1,0 +1,225 @@
+/** Exhaustive target companion policy and once-per-install manifest aggregation. */
+
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+import { claudeIntegrationAdapter } from '@dzhechkov/adapter-claude';
+import {
+  INTEGRATION_MANIFEST_MAX_BYTES,
+  INTEGRATION_REGISTRATION_MAX_COUNT,
+  canonicalIntegrationJson,
+  integrationManifestDigest,
+  parseHarnessIntegrationManifestJson,
+  type HarnessIntegrationManifestV1,
+  type IntegrationComponent,
+  type IntegrationPlan,
+  type IntegrationReasonCode,
+  type IntegrationStatus,
+  type TargetIntegrationAdapter,
+} from '@dzhechkov/core';
+
+import { TARGET_NAMES, type TargetName } from './targets.js';
+
+export interface RegistrationObservation {
+  readonly id: string;
+  readonly scope: 'project' | 'user' | 'plugin';
+  readonly registered: boolean;
+  readonly approval?: 'pending' | 'approved' | 'unknown';
+  readonly ready?: boolean;
+}
+
+export interface IntegrationOutcome {
+  readonly target: TargetName;
+  readonly component: IntegrationComponent;
+  readonly status: IntegrationStatus;
+  readonly registrations: readonly RegistrationObservation[];
+  readonly carrier?: { readonly scope: 'project' | 'user' | 'plugin'; readonly path: string };
+  readonly runtimeVersion?: string;
+  readonly evidenceVersion?: string;
+  readonly reasonCode?: IntegrationReasonCode;
+  readonly remediation?: string;
+  /** True when carrier bytes may precede a failed live check or ownership-journal commit. */
+  readonly applied?: boolean;
+}
+
+export type IntegrationPolicyCell =
+  | { readonly disposition: 'receipt'; readonly reasonCode?: never; readonly receiptVersion: string }
+  | { readonly disposition: 'legacy-post-write'; readonly reasonCode: 'CURRENT_LIVE_CHECK_FAILED' }
+  | { readonly disposition: 'refused'; readonly reasonCode: IntegrationReasonCode };
+
+export interface TargetIntegrationPolicy {
+  readonly mcp: IntegrationPolicyCell;
+  readonly hooks: IntegrationPolicyCell;
+}
+
+const refusedAdapter = (target: TargetName): TargetIntegrationAdapter => ({
+  target,
+  plan(manifest): IntegrationPlan {
+    const refusals: IntegrationPlan['refusals'][number][] = [];
+    if (Object.keys(manifest.mcpServers ?? {}).length > 0) {
+      refusals.push({ component: 'mcp', reasonCode: TARGET_INTEGRATION_POLICY[target].mcp.reasonCode ?? 'NO_QUALIFYING_LIVE_RECEIPT', remediation: 'run dz integrations-verify for this exact target product and version' });
+    }
+    if ((manifest.hooks?.length ?? 0) > 0) {
+      refusals.push({ component: 'hooks', reasonCode: TARGET_INTEGRATION_POLICY[target].hooks.reasonCode ?? 'NO_QUALIFYING_LIVE_RECEIPT', remediation: 'run dz integrations-verify with a hook canary and negative control' });
+    }
+    return { fragments: [], refusals };
+  },
+});
+
+/** Closed 10×2 policy. No fallback/default is permitted. */
+export const TARGET_INTEGRATION_POLICY: Record<TargetName, TargetIntegrationPolicy> = {
+  'claude-code': {
+    mcp: { disposition: 'receipt', receiptVersion: '2.1.235' },
+    hooks: { disposition: 'refused', reasonCode: 'NO_ACTIVATION_RECEIPT' },
+  },
+  codex: {
+    mcp: { disposition: 'refused', reasonCode: 'PROJECT_CARRIER_NOT_OBSERVED' },
+    hooks: { disposition: 'legacy-post-write', reasonCode: 'CURRENT_LIVE_CHECK_FAILED' },
+  },
+  cursor: {
+    mcp: { disposition: 'refused', reasonCode: 'TARGET_BINARY_UNAVAILABLE' },
+    hooks: { disposition: 'refused', reasonCode: 'TARGET_BINARY_UNAVAILABLE' },
+  },
+  copilot: {
+    mcp: { disposition: 'refused', reasonCode: 'TARGET_BINARY_UNAVAILABLE' },
+    hooks: { disposition: 'refused', reasonCode: 'TARGET_BINARY_UNAVAILABLE' },
+  },
+  windsurf: {
+    mcp: { disposition: 'refused', reasonCode: 'PRODUCT_SURFACE_AMBIGUOUS' },
+    hooks: { disposition: 'refused', reasonCode: 'TARGET_BINARY_UNAVAILABLE' },
+  },
+  gemini: {
+    mcp: { disposition: 'refused', reasonCode: 'NO_QUALIFYING_LIVE_RECEIPT' },
+    hooks: { disposition: 'refused', reasonCode: 'NO_QUALIFYING_LIVE_RECEIPT' },
+  },
+  opencode: {
+    mcp: { disposition: 'refused', reasonCode: 'TARGET_BINARY_UNAVAILABLE' },
+    hooks: { disposition: 'refused', reasonCode: 'TARGET_BINARY_UNAVAILABLE' },
+  },
+  openclaude: {
+    mcp: { disposition: 'refused', reasonCode: 'PROJECT_CARRIER_NOT_DOCUMENTED' },
+    hooks: { disposition: 'refused', reasonCode: 'TARGET_BINARY_UNAVAILABLE' },
+  },
+  hermes: {
+    mcp: { disposition: 'refused', reasonCode: 'LIVE_PROBE_TIMEOUT' },
+    hooks: { disposition: 'refused', reasonCode: 'NO_ACTIVATION_RECEIPT' },
+  },
+  'agents-md': {
+    mcp: { disposition: 'refused', reasonCode: 'NO_RUNTIME_SURFACE' },
+    hooks: { disposition: 'refused', reasonCode: 'NO_RUNTIME_SURFACE' },
+  },
+};
+
+export const TARGET_INTEGRATIONS: Record<TargetName, TargetIntegrationAdapter> = Object.fromEntries(
+  TARGET_NAMES.map((target) => [target, target === 'claude-code' ? claudeIntegrationAdapter : refusedAdapter(target)]),
+) as Record<TargetName, TargetIntegrationAdapter>;
+
+export interface IntegrationManifestSource {
+  readonly skillId: string;
+  readonly skillDir: string;
+}
+
+export interface IntegrationManifestAggregate {
+  readonly manifest: HarnessIntegrationManifestV1 | undefined;
+  readonly digest: string | undefined;
+  readonly sourcePaths: readonly string[];
+}
+
+export class IntegrationManifestError extends Error {
+  readonly code = 'MANIFEST_INVALID';
+  constructor(readonly manifestPath: string, message: string) {
+    super(`${manifestPath}: ${message}`);
+    this.name = 'IntegrationManifestError';
+  }
+}
+
+/** Load, validate and aggregate every adjacent manifest before target effects. */
+export function aggregateIntegrationManifests(
+  sources: readonly IntegrationManifestSource[],
+): IntegrationManifestAggregate {
+  const manifests: { path: string; value: HarnessIntegrationManifestV1 }[] = [];
+  for (const source of sources) {
+    const path = join(source.skillDir, source.skillId, 'INTEGRATIONS.json');
+    if (!existsSync(path)) continue;
+    try {
+      manifests.push({ path, value: parseHarnessIntegrationManifestJson(readFileSync(path, 'utf8')) });
+    } catch (error) {
+      throw new IntegrationManifestError(path, error instanceof Error ? error.message : String(error));
+    }
+  }
+  if (manifests.length === 0) return { manifest: undefined, digest: undefined, sourcePaths: [] };
+
+  const mcp = Object.create(null) as Record<string, NonNullable<HarnessIntegrationManifestV1['mcpServers']>[string]>;
+  const hooks = new Map<string, NonNullable<HarnessIntegrationManifestV1['hooks']>[number]>();
+  for (const source of manifests) {
+    for (const [id, intent] of Object.entries(source.value.mcpServers ?? {})) {
+      const previous = mcp[id];
+      if (previous !== undefined && canonicalIntegrationJson(previous) !== canonicalIntegrationJson(intent)) {
+        throw new IntegrationManifestError(source.path, `conflicting MCP registration id ${JSON.stringify(id)}`);
+      }
+      mcp[id] = intent;
+    }
+    for (const hook of source.value.hooks ?? []) {
+      const previous = hooks.get(hook.id);
+      if (previous !== undefined && canonicalIntegrationJson(previous) !== canonicalIntegrationJson(hook)) {
+        throw new IntegrationManifestError(source.path, `conflicting hook registration id ${JSON.stringify(hook.id)}`);
+      }
+      hooks.set(hook.id, hook);
+    }
+  }
+  const aggregate = {
+    version: 1 as const,
+    ...(Object.keys(mcp).length > 0 ? { mcpServers: Object.fromEntries(Object.entries(mcp).sort(([a], [b]) => a.localeCompare(b))) } : {}),
+    ...(hooks.size > 0 ? { hooks: [...hooks.values()].sort((a, b) => a.id.localeCompare(b.id)) } : {}),
+  } satisfies HarnessIntegrationManifestV1;
+  const count = Object.keys(aggregate.mcpServers ?? {}).length + (aggregate.hooks?.length ?? 0);
+  if (count > INTEGRATION_REGISTRATION_MAX_COUNT) {
+    throw new IntegrationManifestError('<aggregate>', `final aggregate has ${count} registrations; maximum is ${INTEGRATION_REGISTRATION_MAX_COUNT}`);
+  }
+  const aggregateBytes = Buffer.byteLength(canonicalIntegrationJson(aggregate), 'utf8');
+  if (aggregateBytes > INTEGRATION_MANIFEST_MAX_BYTES) {
+    throw new IntegrationManifestError('<aggregate>', `final aggregate exceeds ${INTEGRATION_MANIFEST_MAX_BYTES} UTF-8 bytes`);
+  }
+  return {
+    manifest: aggregate,
+    digest: integrationManifestDigest([aggregate]),
+    sourcePaths: manifests.map((source) => source.path),
+  };
+}
+
+export function notRequestedOutcomes(target: TargetName): readonly [IntegrationOutcome, IntegrationOutcome] {
+  return [
+    { target, component: 'mcp', status: 'not-requested', registrations: [] },
+    { target, component: 'hooks', status: 'not-requested', registrations: [] },
+  ];
+}
+
+export function refusedOutcome(
+  target: TargetName,
+  component: IntegrationComponent,
+  reasonCode: IntegrationReasonCode,
+  remediation: string,
+): IntegrationOutcome {
+  return { target, component, status: 'refused', registrations: [], reasonCode, remediation };
+}
+
+/** Static synchronous outcomes for Gemini/agents-md and other refusal-only seams. */
+export function staticPolicyOutcomes(
+  target: TargetName,
+  manifest: HarnessIntegrationManifestV1 | undefined,
+  noHooks = false,
+): readonly [IntegrationOutcome, IntegrationOutcome] {
+  if (manifest === undefined) return notRequestedOutcomes(target);
+  const mcpRequested = Object.keys(manifest.mcpServers ?? {}).length > 0;
+  const hooksRequested = (manifest.hooks?.length ?? 0) > 0 && !noHooks;
+  const mcpCell = TARGET_INTEGRATION_POLICY[target].mcp;
+  const hookCell = TARGET_INTEGRATION_POLICY[target].hooks;
+  return [
+    mcpRequested
+      ? refusedOutcome(target, 'mcp', mcpCell.reasonCode ?? 'NO_QUALIFYING_LIVE_RECEIPT', 'run dz integrations-verify for an exact-version receipt')
+      : { target, component: 'mcp', status: 'not-requested', registrations: [] },
+    hooksRequested
+      ? refusedOutcome(target, 'hooks', hookCell.reasonCode ?? 'NO_ACTIVATION_RECEIPT', 'run dz integrations-verify with a hook canary and negative control')
+      : { target, component: 'hooks', status: 'not-requested', registrations: [] },
+  ];
+}
