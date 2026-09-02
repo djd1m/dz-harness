@@ -1,0 +1,4 @@
+{
+  "sanctionRequired": true,
+  "confidentialSlugPatterns": ["^talk-", "^workshop-", "^genai-", "^health-", "^ha-", "^tg-post"]
+}

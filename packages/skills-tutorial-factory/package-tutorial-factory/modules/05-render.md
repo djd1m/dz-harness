@@ -10,6 +10,22 @@ node "$SKILL_ROOT/scripts/render-site.mjs" --course <dir>/course.json          #
 node "$SKILL_ROOT/scripts/verify-site.mjs" --site <dir>/site/index.html        # DRIVE it: exit 0 = it works
 ```
 
+Before reading the course object, the renderer calls the shared `course-source-stamp.mjs` writer.
+It derives the package from the tutorial README's npm link (or an explicit `--package`) and obtains
+the version with `npm view`; a local `package.json` is never a version authority. On success it writes:
+
+```json
+"source": {
+  "package": "@scope/published-package",
+  "version": "1.2.3",
+  "authoredTs": "2026-09-02T12:00:00.000Z"
+}
+```
+
+No hand edit is required. If npm is unavailable, render remains usable but leaves `source.version`
+absent and reports the condition; downstream classification therefore cannot call the course shipped.
+`mirrorReceipt` is optional and stays absent unless a real mirror-manifest receipt is supplied.
+
 One dependency-free HTML file (opens over file://, zero network) with the full edu-site primitive
 set: sections in order, the 6 exercise types, per-section quiz, achievements, final test with pass
 threshold, FAQ, persisted progress. Deterministic: same course, same bytes — render is CI-able.

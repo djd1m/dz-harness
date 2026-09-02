@@ -23,6 +23,7 @@
     "gate": "node package-tutorial-factory/scripts/headfirst-gate.mjs",
     "extract": "node package-tutorial-factory/scripts/extract-brief.mjs",
     "shingle": "node package-tutorial-factory/scripts/shingling-check.mjs",
+    "stamp": "node package-tutorial-factory/scripts/course-source-stamp.mjs",
     "render": "node package-tutorial-factory/scripts/render-site.mjs",
     "verify-site": "node package-tutorial-factory/scripts/verify-site.mjs"
   },
@@ -41,6 +42,7 @@
     "package-tutorial-factory/scripts/app.src.js",
     "package-tutorial-factory/scripts/brain-friendliness-prompt.mjs",
     "package-tutorial-factory/scripts/course-schema.mjs",
+    "package-tutorial-factory/scripts/course-source-stamp.mjs",
     "package-tutorial-factory/scripts/extract-brief.mjs",
     "package-tutorial-factory/scripts/headfirst-gate.mjs",
     "package-tutorial-factory/scripts/render-site.mjs",
@@ -54,6 +56,7 @@
     "test/honest-scope.test.mjs",
     "test/ip-shingling.test.mjs",
     "test/render-site.test.mjs",
+    "test/course-source-stamp.test.mjs",
     "package.json",
     "README.md",
     "LICENSE",

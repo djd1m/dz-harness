@@ -156,6 +156,20 @@ export function scanSecrets(text) {
             hits.add(p.name);
     return [...hits].map((name) => ({ name }));
 }
+function secretWaiverState(waivers) {
+    const waived = new Set();
+    let reasonless = 0;
+    for (const waiver of Array.isArray(waivers) ? waivers : []) {
+        if (!waiver || typeof waiver !== 'object' || typeof waiver.path !== 'string' || waiver.path.trim() === '')
+            continue;
+        const reason = typeof waiver.reason === 'string' ? waiver.reason.trim() : '';
+        if (reason.length > 0)
+            waived.add(waiver.path);
+        else
+            reasonless++;
+    }
+    return { waived, reasonless };
+}
 /** Per-rule pure checkers. Each returns the violations it found (empty ⇒ clean). Missing evidence ⇒ []. */
 const CHECKERS = {
     'no-workspace-star': (f, sev) => {
@@ -175,7 +189,10 @@ const CHECKERS = {
     },
     'no-secrets': (f, sev) => {
         const out = [];
+        const waived = secretWaiverState(f.secretWaivers).waived;
         for (const t of f.secretTargets ?? []) {
+            if (waived.has(t.label))
+                continue;
             for (const hit of scanSecrets(t.text)) {
                 out.push({ rule: 'no-secrets', severity: sev, detail: `${t.label}: looks like a ${hit.name} — do not teach/publish a credential` });
             }
@@ -468,6 +485,10 @@ const CHECKERS = {
         return out;
     },
 };
+/** Per-rule evidence predicates. No entry preserves the rule's existing checked behaviour exactly. */
+const HAS_INPUT = {
+    'no-secrets': (f) => Array.isArray(f.secretTargets) && f.secretTargets.length > 0,
+};
 /**
  * Rules that may NEVER be promoted to HARD, whatever a config says. A rule whose evidence comes from a
  * deliberately tolerant parser must not be able to BLOCK an operation: the parser's own design admits it
@@ -567,6 +588,7 @@ export function evaluateGuard(facts, rules = DEFAULT_RULES) {
     const active = (Array.isArray(rules) ? rules : []).filter((r) => !!r && typeof r === 'object' && typeof r.id === 'string' && r.enabled !== false && Array.isArray(r.ops) && r.ops.includes(op));
     const violations = [];
     const checked = [];
+    const notEstablished = [];
     const observations = [];
     let volumeResult;
     let volumeEvaluated = false;
@@ -583,6 +605,13 @@ export function evaluateGuard(facts, rules = DEFAULT_RULES) {
         return volumeResult;
     };
     for (const r of active) {
+        const hasInput = HAS_INPUT[r.id];
+        if (hasInput !== undefined && !hasInput(facts)) {
+            // A rule with nothing to measure cannot produce a positive receipt. Keep the verdict unchanged,
+            // but record the missing input explicitly instead of calling the rule checked.
+            notEstablished.push(r.id);
+            continue;
+        }
         checked.push(r.id);
         if (VOLUME_SHADOW_RULE_IDS.includes(r.id)) {
             const emission = volume();
@@ -622,6 +651,16 @@ export function evaluateGuard(facts, rules = DEFAULT_RULES) {
             notes.push(`no-stubs: ${skipped} changed scannable file(s) not scanned (deleted/oversize/unreadable/beyond the file cap) — the stub scan is fail-open, so this is a coverage gap on the record, not a violation`);
         }
     }
+    if (checked.includes('no-secrets') || notEstablished.includes('no-secrets')) {
+        const reasonless = secretWaiverState(facts.secretWaivers).reasonless;
+        if (reasonless > 0) {
+            notes.push(`no-secrets: ${reasonless} reasonless secret waiver(s) ignored — add a non-empty reason or remove the entry`);
+        }
+        const skipped = facts.secretScan?.skipped;
+        if (typeof skipped === 'number' && Number.isFinite(skipped) && skipped > 0) {
+            notes.push(`no-secrets: ${skipped} packed inventory item(s) not scanned (oversize/unreadable/binary) — the secret scan is fail-open, so this is a coverage gap on the record, not a violation`);
+        }
+    }
     if (checked.includes('review-round') && facts.reviewRound?.gathered === false) {
         // A HARD gate that passes SILENTLY when it could not gather its evidence is a gate you cannot
         // tell from one that checked and approved (raised by cross-family review). It still does not
@@ -650,6 +689,7 @@ export function evaluateGuard(facts, rules = DEFAULT_RULES) {
         verdict,
         violations,
         checked,
+        notEstablished,
         ...(notes.length > 0 ? { notes } : {}),
         ...(observations.length > 0 ? { observations } : {}),
     };

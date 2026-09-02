@@ -77,7 +77,10 @@ modules/06-verify-handoff.md     — read-only verify: gate PASS + IP clean + KB
 5. **Render** — read `$SKILL_ROOT/modules/05-render.md`. Run
    `node "$SKILL_ROOT/scripts/render-site.mjs" --course course.json` then
    `node "$SKILL_ROOT/scripts/verify-site.mjs" --site site/index.html` — both must exit 0 (the site is driven,
-   not just emitted). `edu-site-generator` / markdown only on explicit caller opt-in.
+   not just emitted). Render also stamps `course.source` from the target package name and the live npm
+   registry version; authors never hand-edit that block. A registry outage leaves `version` absent and
+   visible rather than substituting a local package version. `edu-site-generator` / markdown only on
+   explicit caller opt-in.
    **Checkpoint `review-course`.**
 6. **Verify & hand off** — read `$SKILL_ROOT/modules/06-verify-handoff.md`. Re-run the gate + shingling; confirm
    the KB resolved and no corpus path shipped; optionally record provenance with `dz teach`.
@@ -91,6 +94,9 @@ modules/06-verify-handoff.md     — read-only verify: gate PASS + IP clean + KB
 - **Cost-of-detection ladder (ADR-003).** Structural properties live in the deterministic gate
   (layer 1); only tone/surprise/story go to the cross-model review (layer 3). Never push a
   script-checkable property up to "the reviewer will notice."
+- **Source provenance.** A render carries `source.package`, registry-backed `source.version`, and
+  `source.authoredTs`. `source.mirrorReceipt` is optional and is emitted only when a real mirror
+  receipt is available; neither the renderer nor an author invents one.
 
 ## Anti-patterns
 

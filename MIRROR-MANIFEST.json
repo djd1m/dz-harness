@@ -80,7 +80,7 @@
     {
       "name": "@dzhechkov/harness-core",
       "version": "0.8.11",
-      "files": 691
+      "files": 696
     },
     {
       "name": "@dzhechkov/harness-presets",
@@ -173,6 +173,11 @@
       "files": 15
     },
     {
+      "name": "@dzhechkov/skills-demo-publisher",
+      "version": "0.1.1",
+      "files": 54
+    },
+    {
       "name": "@dzhechkov/skills-devops",
       "version": "0.3.17",
       "files": 127
@@ -189,9 +194,8 @@
     },
     {
       "name": "@dzhechkov/skills-feature-adr",
-      "version": "1.5.8",
-      "files": 82,
-      "note": "published tarball 1.5.8 (disk 1.5.9 is staged, not published)"
+      "version": "1.5.9",
+      "files": 82
     },
     {
       "name": "@dzhechkov/skills-idea2prd",
@@ -256,7 +260,7 @@
     {
       "name": "@dzhechkov/skills-tutorial-factory",
       "version": "0.7.0",
-      "files": 32
+      "files": 34
     },
     {
       "name": "@dzhechkov/skills-web3",

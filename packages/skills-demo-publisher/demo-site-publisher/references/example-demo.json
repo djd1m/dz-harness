@@ -1,0 +1,16 @@
+{
+  "slug": "first-run",
+  "title": "Первый запуск",
+  "purpose": "Показать основной путь пользователя",
+  "lang": "ru",
+  "baseUrl": "http://127.0.0.1:4173",
+  "cards": { "intro": "Первый запуск", "outro": "Готово" },
+  "scenarios": [
+    {
+      "id": "01-open-page",
+      "title": "Открываем страницу",
+      "caption": "Переходим к продукту",
+      "steps": [{ "goto": "/" }, { "tap": "[data-testid=primary-action]" }]
+    }
+  ]
+}

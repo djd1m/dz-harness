@@ -51,12 +51,20 @@ export interface Violation {
   readonly contentAnchor?: string;
 }
 
+/** A publish-secret waiver: exact repo-relative path, with a mandatory explanation. */
+interface SecretWaiver {
+  readonly path?: string;
+  readonly reason?: string;
+}
+
 export interface GuardResult {
   readonly op: GuardOp;
   readonly verdict: GuardVerdict;
   readonly violations: readonly Violation[];
   /** ids of the rules that ran for this op (so a report can show what was checked, not just what failed). */
   readonly checked: readonly string[];
+  /** ids of the rules that ran for this op but received no input to examine. */
+  readonly notEstablished: readonly string[];
   /**
    * Informational notes (FN-7): things a rule wants ON THE RECORD that are NOT violations and never
    * touch the verdict — e.g. "no-stubs: N changed scannable file(s) not scanned". A fail-open skip
@@ -84,6 +92,10 @@ export interface GuardFacts {
   readonly workflowScripts?: readonly { readonly path: string; readonly text: string }[];
   /** for no-secrets: labelled blobs to scan (lesson text, staged files). */
   readonly secretTargets?: readonly { readonly label: string; readonly text: string }[];
+  /** for no-secrets: exact path waivers; entries without a non-empty reason are ignored and noted. */
+  readonly secretWaivers?: readonly SecretWaiver[];
+  /** Publish secret-scan coverage gaps; skips are informational and never verdict inputs. */
+  readonly secretScan?: { readonly skipped: number };
   /** for readme-consistency: labelled (a,b) count pairs that must be equal. */
   readonly counts?: readonly { readonly label: string; readonly a: number; readonly b: number }[];
   /** for store-bloat-cap: current learned-store size vs its cap. */
@@ -346,6 +358,18 @@ export function scanSecrets(text: unknown): { readonly name: string }[] {
   return [...hits].map((name) => ({ name }));
 }
 
+function secretWaiverState(waivers: readonly SecretWaiver[] | undefined): { waived: ReadonlySet<string>; reasonless: number } {
+  const waived = new Set<string>();
+  let reasonless = 0;
+  for (const waiver of Array.isArray(waivers) ? waivers : []) {
+    if (!waiver || typeof waiver !== 'object' || typeof waiver.path !== 'string' || waiver.path.trim() === '') continue;
+    const reason = typeof waiver.reason === 'string' ? waiver.reason.trim() : '';
+    if (reason.length > 0) waived.add(waiver.path);
+    else reasonless++;
+  }
+  return { waived, reasonless };
+}
+
 /** Per-rule pure checkers. Each returns the violations it found (empty ⇒ clean). Missing evidence ⇒ []. */
 const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[]> = {
   'no-workspace-star': (f, sev) => {
@@ -365,7 +389,9 @@ const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[
   },
   'no-secrets': (f, sev) => {
     const out: Violation[] = [];
+    const waived = secretWaiverState(f.secretWaivers).waived;
     for (const t of f.secretTargets ?? []) {
+      if (waived.has(t.label)) continue;
       for (const hit of scanSecrets(t.text)) {
         out.push({ rule: 'no-secrets', severity: sev, detail: `${t.label}: looks like a ${hit.name} — do not teach/publish a credential` });
       }
@@ -638,6 +664,11 @@ const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[
   },
 };
 
+/** Per-rule evidence predicates. No entry preserves the rule's existing checked behaviour exactly. */
+const HAS_INPUT: Partial<Record<string, (f: GuardFacts) => boolean>> = {
+  'no-secrets': (f) => Array.isArray(f.secretTargets) && f.secretTargets.length > 0,
+};
+
 /**
  * Rules that may NEVER be promoted to HARD, whatever a config says. A rule whose evidence comes from a
  * deliberately tolerant parser must not be able to BLOCK an operation: the parser's own design admits it
@@ -740,6 +771,7 @@ export function evaluateGuard(facts: GuardFacts, rules: readonly GuardRule[] = D
   );
   const violations: Violation[] = [];
   const checked: string[] = [];
+  const notEstablished: string[] = [];
   const observations: GuardObservation[] = [];
   let volumeResult: VolumeShadowResult | undefined;
   let volumeEvaluated = false;
@@ -757,6 +789,13 @@ export function evaluateGuard(facts: GuardFacts, rules: readonly GuardRule[] = D
     return volumeResult;
   };
   for (const r of active) {
+    const hasInput = HAS_INPUT[r.id];
+    if (hasInput !== undefined && !hasInput(facts)) {
+      // A rule with nothing to measure cannot produce a positive receipt. Keep the verdict unchanged,
+      // but record the missing input explicitly instead of calling the rule checked.
+      notEstablished.push(r.id);
+      continue;
+    }
     checked.push(r.id);
     if ((VOLUME_SHADOW_RULE_IDS as readonly string[]).includes(r.id)) {
       const emission = volume();
@@ -795,6 +834,16 @@ export function evaluateGuard(facts: GuardFacts, rules: readonly GuardRule[] = D
       notes.push(`no-stubs: ${skipped} changed scannable file(s) not scanned (deleted/oversize/unreadable/beyond the file cap) — the stub scan is fail-open, so this is a coverage gap on the record, not a violation`);
     }
   }
+  if (checked.includes('no-secrets') || notEstablished.includes('no-secrets')) {
+    const reasonless = secretWaiverState(facts.secretWaivers).reasonless;
+    if (reasonless > 0) {
+      notes.push(`no-secrets: ${reasonless} reasonless secret waiver(s) ignored — add a non-empty reason or remove the entry`);
+    }
+    const skipped = facts.secretScan?.skipped;
+    if (typeof skipped === 'number' && Number.isFinite(skipped) && skipped > 0) {
+      notes.push(`no-secrets: ${skipped} packed inventory item(s) not scanned (oversize/unreadable/binary) — the secret scan is fail-open, so this is a coverage gap on the record, not a violation`);
+    }
+  }
   if (checked.includes('review-round') && facts.reviewRound?.gathered === false) {
     // A HARD gate that passes SILENTLY when it could not gather its evidence is a gate you cannot
     // tell from one that checked and approved (raised by cross-family review). It still does not
@@ -821,6 +870,7 @@ export function evaluateGuard(facts: GuardFacts, rules: readonly GuardRule[] = D
     verdict,
     violations,
     checked,
+    notEstablished,
     ...(notes.length > 0 ? { notes } : {}),
     ...(observations.length > 0 ? { observations } : {}),
   };

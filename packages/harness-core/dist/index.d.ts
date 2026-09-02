@@ -130,6 +130,7 @@ export { generateCodexHelpers, generateCodexRecallHelper, generateCodexVetoHelpe
 export { EVENT_CHAIN_SCOPE, EVENT_CHAIN_GENESIS_HASH, EVENT_CHAIN_TAIL_BYTES, EVENT_CHAIN_FIELD_OVERHEAD_BYTES, EVENT_CHAIN_LEDGER_KIND, EVENT_CHAIN_DEFECT_KINDS, fnv1a32, chainHashOf, chainLinesOf, lastChainLine, readTailInfo, appendChainedLines, EMPTY_LOG_TAIL, nextChainFields, withChainFields, chainRecordLines, chainRewrite, defaultEventWeight, eventWeightOfText, verifyEventChain, verifyEventChainText, renderEventChainVerification, rewriteSnapshot, rewriteSnapshotUnchanged, guardedRewrite, DEFAULT_REWRITE_ATTEMPTS, liveSegmentStart, classifyChainDefects, CHAINED_JOURNALS, } from './event-chain.js';
 export type { ChainFields, LogTail, EventChainLedger, RewriteSnapshot, GuardedRewriteIo, GuardedRewriteResult, GuardedRewriteStatus, RewriteProposal, EventChainDefect, EventChainDefectKind, EventChainVerification, VerifyEventChainOptions, ChainDefectAge, ChainDefectAges, ChainedJournal, } from './event-chain.js';
 export { decideProvenance, environmentCanMintProvenance, publishArgv, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion } from './publish.js';
+export * from './course-staleness.js';
 export { fetchAllDownloads } from './downloads.js';
 export type { PackageDownloads, DownloadsReport } from './downloads.js';
 export { discoverInstalled, checkUpgrades } from './upgrade.js';

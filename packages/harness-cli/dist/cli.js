@@ -19,7 +19,7 @@ import { createSkill, getSkillInfo, listSkillsDetailed, formatSkillLoadFailures,
 // dz workflow run (feature dz-workflow-run): the pure scheduler + the dispatch adapters.
 TRACE_RUNID_RE, WF_RUN_OWNER_HOST, preflight, runWorkflow, makeClaudePDispatcher, makeCodexExecDispatcher, NamedLockTimeoutError, NamedLockCompromisedError, POLICY_SOURCES, detectPolicyDrift, hasPolicyFence, TARGET_NAMES, buildParityMatrix, downgradeForStaleEvidence, findStaleTranscriptEvidence, TARGET_CAPABILITIES, TARGET_SHORT_LABELS, WORKFLOW_TEMPLATES_RETIRED_MESSAGE, parsePlan, isParseErrors, validatePlan, normalizePlan, planDigest, toTraceProjection, renderPlan, mergeRender, lint, lintExitCode, LOOP_BLOBS, parseTrace, assembleTimeline, runInvariants, deriveAttestation, stampAttestation, corroborate, NOT_WITNESSED, renderTimelineHtml, importEcc, recordPattern, recordLessonForms, normalizeLessonForms, resolveLearningBackend, storeStats, consolidateSessions, pruneNoisePatterns, lessonDeltaReport, removePatternsByIds, snapshotStore, recallHybrid, teachGuard, mirrorPatternsToVector, mirrorEntriesToVector, patternVectorEntry, readMemoryLearningConfig, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns, clearAgentdbQuarantine, vectorMirrorEnabled, vectorTierStatus, resolveVectorEngine, reindexVectorStore, harmonizeVectorStore, importRvfCheckpoint, statuslineData, writeFeatureAdrState, CHECKPOINT_STAGES, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, computeUsage, deriveCostLedger, planLedgerBackfill, listCostLedgerRuns, resolveLedgerRunId, AMBIGUOUS, stampCheckpointLine, LEDGER_FILL_SOURCE, renderCostLedger, verifyCostLedgerReport, writeCostLedgerJsonl, COST_LEDGER_SCOPE, deriveUsageCalibration, normalizeClaudeUsageModelKey, readUsageLimits, parseWeeklyResetAnchor, claimCheck, summarize, BUNDLED_SLOP_REGISTRY_URL, DEFAULT_SLOP_CONFIG, parseSlopRegistry, slopLint, validateSlopLintConfig, queryBookKnowledge, loadStorePatternsSync, patternRecordId, patternIdentityOf, mergeLessonMatchedForms, loadStoreRecords, recordToPattern, bundleSkills, brainHome, listBrain, bookKbPath, promoteProjectToBrain, updateBrainSource, queryBrain, groundPrompt, expandKu, reindexBrainVectors, buildPrimer, exportBrainSlice, importBrainSlice, registerKusToBrain, RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, parseRecallUsageLog, buildRecallUsageReport, EVENT_CHAIN_TAIL_BYTES, EMPTY_LOG_TAIL, readTailInfo, appendChainedLines, verifyEventChainText, classifyChainDefects, CHAINED_JOURNALS, buildManifest, buildSbom, resolveTrustRoot, decideVerifyPolicy, generateSigningKeypair, evaluateGuard, resolveRules, auditRecord, guardExitCode, DEFAULT_RULES, parsePnpmLockImporters, scannableStubPath, 
 // guard-promotion (feature guard-promotion, scout idea #1)
-assembleCandidates, renderPromotionReport, renderPromotionAdr, normalizePromotionState, nextPromotionState, recordPromotionRunEvidence, isLessonRuleContentAnchor, isOffsetIsoTimestamp, globMatch, promotionAdrRelPath, DEFAULT_WINDOW_DAYS, DEFAULT_PERIODS, MAX_CONTENT_FETCHES, BUILTIN_COVERAGE, decideProvenance, isInsideTree, signManifest, verifyManifest, listSignablePackFiles, assertKeyOutsideTree, decidePublishGate, collectPackageFacts, planReleaseGates, selectAffectedPackages, classifyGateExecutions, buildFailureIssue, buildReleaseNotes, releaseTagName, firstOutputLine, formatPublishError, MANIFEST_NAME, SBOM_NAME, buildArchitectureMap, renderMapHuman, findArchitectureDrift, renderDriftReport, scanWorkspacePackages, loadSubsystemManifest, loadProductVision, checkFeatureAgainstArchitecture, renderArchCheck, planProjectSkills, guidanceForStage, renderInjectionReport, analyzeCorpus, renderRakeReport, renderCriticSection, rakeAsLesson, rakeReward, DEFAULT_RAKE_THRESHOLDS, streamSessionEvents, findLatestTranscript, detectProcessRakes, buildRetro, renderRetro, retroLessonText, PROCESS_SIGNATURES, RETRO_DOMAIN, scanForSetup, buildSetupPlan, scaffoldFromSpec, renderScaffoldPreview, readExistingForScaffold, assembleChallengeContext, buildChallengeBrief, planDiscriminationCheck, classifyDiscrimination, classifyExecutionEvidence, pickAdversaryModel, CHALLENGE_QUESTIONS, loadOutcomes, renderOutcomes, statsForKey, selectAutoCost, recordProvisional, finalizeOutcome, harvestStageOutcomes, recommendModels, planFeed, unfedRuns, GRADE_SUCCESS_FLOOR, COST_LADDER, splitScenarios, budgetPlan, selectWinner, proseScopeOk, renderProseDiff, readScenarioIds, DEFAULT_MAX_JUDGE_RUNS, collectDeliveryFacts, planDeliveryCheck, renderDeliveryBrief, classifyDelivery, isUsablePlaneResult, renderDeliveryReview, scanSkillsLayout, declaredPluginSurface, parseInitFacts, verifyRegistration, buildContentProbePrompt, classifyContentProbe, renderContentProbe, findNonRegistrableSkillDirs, assembleCompoundingReport, buildDeadwoodReport, compactCmdUsageIfNeeded, measureCmdUsageDepthDays, recordCommandInvocation, resolveCmdUsageRoot, renderDeadwoodReport, CMD_USAGE_LOG_RELATIVE, banditStats, narrowBanditReport, renderBanditHealth, 
+assembleCandidates, renderPromotionReport, renderPromotionAdr, normalizePromotionState, nextPromotionState, recordPromotionRunEvidence, isLessonRuleContentAnchor, isOffsetIsoTimestamp, globMatch, promotionAdrRelPath, DEFAULT_WINDOW_DAYS, DEFAULT_PERIODS, MAX_CONTENT_FETCHES, BUILTIN_COVERAGE, decideProvenance, isInsideTree, signManifest, verifyManifest, listPackFiles, listSignablePackFiles, assertKeyOutsideTree, decidePublishGate, collectPackageFacts, planReleaseGates, selectAffectedPackages, classifyGateExecutions, buildFailureIssue, buildReleaseNotes, releaseTagName, firstOutputLine, formatPublishError, MANIFEST_NAME, SBOM_NAME, buildArchitectureMap, renderMapHuman, findArchitectureDrift, renderDriftReport, scanWorkspacePackages, loadSubsystemManifest, loadProductVision, checkFeatureAgainstArchitecture, renderArchCheck, planProjectSkills, guidanceForStage, renderInjectionReport, analyzeCorpus, renderRakeReport, renderCriticSection, rakeAsLesson, rakeReward, DEFAULT_RAKE_THRESHOLDS, streamSessionEvents, findLatestTranscript, detectProcessRakes, buildRetro, renderRetro, retroLessonText, PROCESS_SIGNATURES, RETRO_DOMAIN, scanForSetup, buildSetupPlan, scaffoldFromSpec, renderScaffoldPreview, readExistingForScaffold, assembleChallengeContext, buildChallengeBrief, planDiscriminationCheck, classifyDiscrimination, classifyExecutionEvidence, pickAdversaryModel, CHALLENGE_QUESTIONS, loadOutcomes, renderOutcomes, statsForKey, selectAutoCost, recordProvisional, finalizeOutcome, harvestStageOutcomes, recommendModels, planFeed, unfedRuns, GRADE_SUCCESS_FLOOR, COST_LADDER, splitScenarios, budgetPlan, selectWinner, proseScopeOk, renderProseDiff, readScenarioIds, DEFAULT_MAX_JUDGE_RUNS, collectDeliveryFacts, planDeliveryCheck, renderDeliveryBrief, classifyDelivery, isUsablePlaneResult, renderDeliveryReview, scanSkillsLayout, declaredPluginSurface, parseInitFacts, verifyRegistration, buildContentProbePrompt, classifyContentProbe, renderContentProbe, findNonRegistrableSkillDirs, assembleCompoundingReport, buildDeadwoodReport, compactCmdUsageIfNeeded, measureCmdUsageDepthDays, recordCommandInvocation, resolveCmdUsageRoot, renderDeadwoodReport, CMD_USAGE_LOG_RELATIVE, banditStats, narrowBanditReport, renderBanditHealth, 
 // Cold-vs-warm EPOCH RUNNER (feature epoch-replay) — orchestrates + scores, never calls a model.
 replayableInstances, buildWorkOrder, buildJudgePrompts, unblindJudgments, verifyWorkOrder, isValidMargin, DIGEST_HONEST_SCOPE, scoreEpochReplay, generateMockOutcomes, renderEpochReplayResult, renderWorkOrderSummary, renderJudgePromptsSummary, WORK_ORDER_KIND, DEFAULT_MOCK_N, DEFAULT_MOCK_SEED, scoreRun, readQeGrade, scoreReceiptToAggregateRow, readScoreAggregateRows, dedupeScoreAggregateRows, buildScoreAggregateReport, renderScoreAggregateReport, recapWindow, decideHorizon, withinWindow, buildRecap, renderRecap, parseSourceManifest, tgPostHtmlIssues, tgVisibleLength, decideTgSend, TG_TEXT_LIMIT, countRecallEventsForRun, unknownFlagNotice, mirrorWriterExplanation, appendRecallUsage, closenessLine, anyAboveFloor, decideNameCheck, renderNameCheck, exportedNamesIn, dispatchedCommandsIn, decideSourceProvenance, renderSourceProvenance, REFUSED_HORIZONS, renderScorecard, renderCompoundingReport, readReinforcementState, readQuarantineState, registrationExitCode, renderRegistrationReport, 
 // Smart Backlog (feature smart-backlog) — goal-directed idea pipeline over the Brain vector engine.
@@ -5679,6 +5679,18 @@ function cmdPublish(options, flags, cwd, write) {
             return 1;
         }
     }
+    const filterStr = options.get('filter');
+    // SAFETY: trim + drop empty segments (mirrors --select at the top of cmdInit).
+    // Parse before the guard pre-flight so its packed-secret scan uses the SAME scoped package set
+    // that publishPackages receives below; an empty resulting list remains an explicit error.
+    let filter;
+    if (filterStr !== undefined) {
+        filter = filterStr.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
+        if (filter.length === 0) {
+            write('dz publish: --filter requires a non-empty comma-separated list of package-name substrings');
+            return 1;
+        }
+    }
     // dz guard pre-flight (ADR-002 option A): publish is the most dangerous, least-reversible self-mutation, so
     // it ALWAYS runs the declarative guard first. A HARD violation refuses the publish; `--no-guard "<reason>"`
     // is the logged escape hatch (the override lands in .dz/guard-audit.jsonl — visible, never silent).
@@ -5693,7 +5705,7 @@ function cmdPublish(options, flags, cwd, write) {
             write('dz publish: --no-guard requires a reason (it is logged): --no-guard "hotfix, guard re-run after"');
             return 1;
         }
-        const guardResult = runGuardEvaluation(guardRoot, 'publish', undefined, noGuard);
+        const guardResult = runGuardEvaluation(guardRoot, 'publish', undefined, noGuard, filter);
         if (guardResult.verdict === 'block' && noGuard === undefined) {
             write('dz publish: ✗ BLOCKED by dz guard (HARD invariant violated):');
             for (const v of guardResult.violations.filter((x) => x.severity === 'hard'))
@@ -5738,21 +5750,6 @@ function cmdPublish(options, flags, cwd, write) {
     }
     const claimCheckOpt = claimCheckRaw ?? 'warn';
     const bumpOnly = flags.has('bump-only');
-    const filterStr = options.get('filter');
-    // SAFETY: trim + drop empty segments (mirrors --select at the top of cmdInit).
-    // Without this, `--filter ""` (e.g. an unset shell var) or a stray comma yields
-    // [''] / ['', 'core'], and publishPackages matches with name.includes(''), which
-    // is true for EVERY package — silently turning a scoped publish into a
-    // whole-monorepo publish. An empty resulting list is an explicit error, never
-    // "match all".
-    let filter;
-    if (filterStr !== undefined) {
-        filter = filterStr.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
-        if (filter.length === 0) {
-            write('dz publish: --filter requires a non-empty comma-separated list of package-name substrings');
-            return 1;
-        }
-    }
     // SAFETY: dry-run is the DEFAULT. A real publish requires an EXPLICIT opt-in
     // via --yes, --confirm, or --no-dry-run. Without one, we never bump or publish.
     const wantsLive = flags.has('yes') || flags.has('confirm') || flags.has('no-dry-run');
@@ -7752,7 +7749,9 @@ const DEFAULT_STORE_CAP = 5000;
  * the rule reports nothing for them — a pre-flight must never become a filesystem sweep.
  */
 const MAX_STUB_SCAN_FILES = 400;
-/** Read the optional `.dz/guard.json` — `{ rules?: [...], storeCap?: number, stubWaivers?: [...] }`. Missing/broken ⇒ defaults. */
+/** Maximum packed-file size read by the publish secret scan. */
+const SECRET_SCAN_MAX_BYTES = 512 * 1024;
+/** Read the optional `.dz/guard.json` — `{ rules?, storeCap?, stubWaivers?, secretWaivers? }`. Missing/broken ⇒ defaults. */
 function loadGuardConfig(root) {
     const p = join(root, '.dz', 'guard.json');
     if (!existsSync(p))
@@ -8224,8 +8223,9 @@ function gatherVolumeShadowFacts(root, packages) {
     };
 }
 /** Gather the facts one op needs. All I/O is best-effort — a missing signal skips its rule, never crashes. */
-function gatherGuardFacts(op, root, text, storeCap) {
+function gatherGuardFacts(op, root, text, storeCap, publishFilter) {
     const facts = { op };
+    const publishPackageRoots = [];
     if (op === 'publish') {
         // Advisory I/O: unreadable telemetry or fed state is absence of evidence, never a fabricated
         // stale finding and never a publish blocker.
@@ -8372,6 +8372,11 @@ function gatherGuardFacts(op, root, text, storeCap) {
         for (const m of manifests)
             if (m.name && typeof m.version === 'string')
                 versionByName.set(m.name, m.version);
+        publishPackageRoots.push(...located
+            .filter(({ dir, m }) => m.private !== true && (publishFilter === undefined
+            || publishFilter.length === 0
+            || publishFilter.some((filter) => (m.name ?? '').includes(filter) || dir.includes(filter))))
+            .map(({ dir }) => dir));
         const pnpmWorkspace = existsSync(join(root, 'pnpm-workspace.yaml'));
         const packages = [];
         for (const m of manifests) {
@@ -8617,15 +8622,60 @@ function gatherGuardFacts(op, root, text, storeCap) {
         catch { /* not a git repo — every template rule stays silent (fail-open) */ }
         // no-stubs config waivers: `.dz/guard.json` `stubWaivers: [{path, reason}]` — path-keyed, reason
         // MANDATORY (the feature-adr-setup --guards shape; the pure checker refuses a reasonless entry).
-        const stubWaivers = loadGuardConfig(root).stubWaivers;
+        const guardConfig = loadGuardConfig(root);
+        const stubWaivers = guardConfig.stubWaivers;
         if (Array.isArray(stubWaivers))
             facts['stubWaivers'] = stubWaivers;
+        const secretWaivers = guardConfig.secretWaivers;
+        if (Array.isArray(secretWaivers))
+            facts['secretWaivers'] = secretWaivers;
     }
     if (op === 'consolidate') {
         try {
             facts['drift'] = sweepSkillDrift(root, { scope: 'installs', allowlist: readDriftAllowlist(root) }).drifted.map((d) => d.name);
         }
         catch { /* skip */ }
+    }
+    if (op === 'publish') {
+        const secretTargets = [];
+        let skipped = 0;
+        for (const dir of publishPackageRoots) {
+            const packageRoot = join(root, dir);
+            let packed;
+            try {
+                packed = listPackFiles(packageRoot);
+            }
+            catch {
+                skipped++;
+                continue;
+            }
+            for (const rel of packed) {
+                const absolute = join(packageRoot, rel);
+                try {
+                    const stat = lstatSync(absolute);
+                    if (!stat.isFile() || stat.size > SECRET_SCAN_MAX_BYTES) {
+                        skipped++;
+                        continue;
+                    }
+                    const content = readFileSync(absolute);
+                    if (content.subarray(0, 8 * 1024).includes(0)) {
+                        skipped++;
+                        continue;
+                    }
+                    secretTargets.push({
+                        label: relative(root, absolute).split(sep).join('/'),
+                        text: content.toString('utf8'),
+                    });
+                }
+                catch {
+                    skipped++;
+                }
+            }
+        }
+        if (secretTargets.length > 0)
+            facts['secretTargets'] = secretTargets;
+        if (skipped > 0)
+            facts['secretScan'] = { skipped };
     }
     if (op === 'teach' || op === 'consolidate') {
         if (op === 'teach' && text)
@@ -8646,13 +8696,13 @@ function gatherGuardFacts(op, root, text, storeCap) {
  * shared by `dz guard check` and the `dz publish` pre-flight (ADR-002 option A) so they can never disagree.
  * `overrideReason` (when the caller forces through a block) is logged, never silent.
  */
-function runGuardEvaluation(root, op, text, overrideReason) {
+function runGuardEvaluation(root, op, text, overrideReason, publishFilter) {
     const cfg = loadGuardConfig(root);
     // Number.isFinite, not just > 0: a config `storeCap: 1e400` parses to Infinity, passes `> 0`, and would
     // silently DISABLE the cap (count <= Infinity always). Non-finite ⇒ fall back to the default.
     const storeCap = typeof cfg.storeCap === 'number' && Number.isFinite(cfg.storeCap) && cfg.storeCap > 0 ? cfg.storeCap : DEFAULT_STORE_CAP;
     const rules = resolveRules(Array.isArray(cfg.rules) ? cfg.rules : undefined);
-    const facts = gatherGuardFacts(op, root, text, storeCap);
+    const facts = gatherGuardFacts(op, root, text, storeCap, publishFilter);
     const result = evaluateGuard(facts, rules);
     // audit (append-only). ts is real time here (a CLI, not the sandboxed workflow).
     try {

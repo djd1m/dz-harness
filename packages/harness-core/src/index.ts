@@ -598,6 +598,7 @@ export type {
   ChainedJournal,
 } from './event-chain.js';
 export { decideProvenance, environmentCanMintProvenance, publishArgv, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion } from './publish.js';
+export * from './course-staleness.js';
 export { fetchAllDownloads } from './downloads.js';
 export type { PackageDownloads, DownloadsReport } from './downloads.js';
 export { discoverInstalled, checkUpgrades } from './upgrade.js';

@@ -20,6 +20,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { stampSource } from './course-source-stamp.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2);
@@ -27,6 +28,10 @@ const opt = (n, d) => { const i = argv.indexOf(`--${n}`); return i >= 0 ? argv[i
 
 const coursePath = resolve(opt('course', 'course.json'));
 const outPath = resolve(opt('out', join(dirname(coursePath), 'site', 'index.html')));
+
+if (!argv.includes('--no-stamp')) {
+  stampSource(coursePath, { package: opt('package', undefined) });
+}
 
 const course = JSON.parse(readFileSync(coursePath, 'utf-8'));
 
@@ -327,10 +332,16 @@ const DEFAULT_FOOTER_LINKS = [
   { label: 'Telegram: LLM notes', href: 'https://t.me/llm_notes' },
   { label: 'aicoding.space', href: 'https://aicoding.space' },
 ];
-const footerLinks = (course.footer && Array.isArray(course.footer.links) && course.footer.links.length > 0
-  ? course.footer.links
-  : DEFAULT_FOOTER_LINKS
-).filter((l) => l && typeof l.href === 'string' && /^https:\/\//.test(l.href) && typeof l.label === 'string');
+// The channel links are the SITE's identity, not the course's decoration, so an authored
+// `course.footer` EXTENDS them, it never replaces them. MEASURED 2026-09-02: six of eight courses
+// in one batch authored their own footer and every one of them silently dropped the Telegram and
+// aicoding links, because this was an either/or. A course cannot opt out of the site's own footer;
+// duplicates (an author who wrote the channel link out by hand) are removed by href.
+const authored = (course.footer && Array.isArray(course.footer.links) ? course.footer.links : []);
+const seenHref = new Set(DEFAULT_FOOTER_LINKS.map((l) => l.href));
+const footerLinks = DEFAULT_FOOTER_LINKS
+  .concat(authored.filter((l) => l && typeof l.href === 'string' && !seenHref.has(l.href)))
+  .filter((l) => l && typeof l.href === 'string' && /^https:\/\//.test(l.href) && typeof l.label === 'string');
 
 // Feedback link: a reader who hits a defect must be one click from reporting it AGAINST THE RIGHT
 // PACKAGE. course.feedback = { repo: 'owner/name', packagePath: 'packages/<dir>', title?, body? }
