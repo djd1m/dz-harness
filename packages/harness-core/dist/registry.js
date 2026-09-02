@@ -371,8 +371,9 @@ function categoryFromPack(pack) {
     // (e.g. AOSA) should be added here or carry a `book`/digitized marker.
     if (pack.includes('book') || pack.includes('12factor'))
         return 'knowledge';
-    // Course/tutorial manufacturing (skills-tutorial-factory: package → Head-First edu-site course).
-    if (pack.includes('tutorial'))
+    // Learning and demo-site manufacturing: tutorial packs teach; the demo publisher records a
+    // product journey and emits a Pages-ready explanatory site.
+    if (pack.includes('tutorial') || pack.includes('demo-publisher'))
         return 'learning';
     // Packs that carry skills without the `skills-` prefix, catalogued since 2026-09-01. Each needs a
     // category or it lands in `other`, and a test rightly forbids that bucket: an uncategorised skill

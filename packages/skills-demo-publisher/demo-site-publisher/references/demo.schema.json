@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Demo scenario document",
+  "type": "object",
+  "required": ["slug", "title", "baseUrl", "scenarios"],
+  "properties": {
+    "slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$", "maxLength": 40 },
+    "title": { "type": "string", "minLength": 1 },
+    "purpose": { "type": "string" },
+    "lang": { "type": "string", "default": "ru" },
+    "baseUrl": { "type": "string", "format": "uri" },
+    "cards": { "type": "object" },
+    "scenarios": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "required": ["id", "title", "caption", "steps"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[0-9]{2}-[a-z0-9]+(?:-[a-z0-9]+)*$" },
+          "title": { "type": "string", "minLength": 1 },
+          "caption": { "type": "string", "minLength": 1 },
+          "steps": { "type": "array", "minItems": 1 }
+        }
+      }
+    }
+  }
+}

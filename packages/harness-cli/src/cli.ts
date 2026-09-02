@@ -259,6 +259,7 @@ import {
   isInsideTree,
   signManifest,
   verifyManifest,
+  listPackFiles,
   listSignablePackFiles,
   assertKeyOutsideTree,
   decidePublishGate,
@@ -6339,6 +6340,19 @@ function cmdPublish(options: Map<string, string>, flags: Set<string>, cwd: strin
     }
   }
 
+  const filterStr = options.get('filter');
+  // SAFETY: trim + drop empty segments (mirrors --select at the top of cmdInit).
+  // Parse before the guard pre-flight so its packed-secret scan uses the SAME scoped package set
+  // that publishPackages receives below; an empty resulting list remains an explicit error.
+  let filter: string[] | undefined;
+  if (filterStr !== undefined) {
+    filter = filterStr.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
+    if (filter.length === 0) {
+      write('dz publish: --filter requires a non-empty comma-separated list of package-name substrings');
+      return 1;
+    }
+  }
+
   // dz guard pre-flight (ADR-002 option A): publish is the most dangerous, least-reversible self-mutation, so
   // it ALWAYS runs the declarative guard first. A HARD violation refuses the publish; `--no-guard "<reason>"`
   // is the logged escape hatch (the override lands in .dz/guard-audit.jsonl — visible, never silent).
@@ -6350,7 +6364,7 @@ function cmdPublish(options: Map<string, string>, flags: Set<string>, cwd: strin
       write('dz publish: --no-guard requires a reason (it is logged): --no-guard "hotfix, guard re-run after"');
       return 1;
     }
-    const guardResult = runGuardEvaluation(guardRoot, 'publish', undefined, noGuard);
+    const guardResult = runGuardEvaluation(guardRoot, 'publish', undefined, noGuard, filter);
     if (guardResult.verdict === 'block' && noGuard === undefined) {
       write('dz publish: ✗ BLOCKED by dz guard (HARD invariant violated):');
       for (const v of guardResult.violations.filter((x) => x.severity === 'hard')) write(`  [BLOCK] ${v.rule}: ${v.detail}`);
@@ -6391,21 +6405,6 @@ function cmdPublish(options: Map<string, string>, flags: Set<string>, cwd: strin
   const claimCheckOpt = (claimCheckRaw as 'off' | 'warn' | 'error' | undefined) ?? 'warn';
 
   const bumpOnly = flags.has('bump-only');
-  const filterStr = options.get('filter');
-  // SAFETY: trim + drop empty segments (mirrors --select at the top of cmdInit).
-  // Without this, `--filter ""` (e.g. an unset shell var) or a stray comma yields
-  // [''] / ['', 'core'], and publishPackages matches with name.includes(''), which
-  // is true for EVERY package — silently turning a scoped publish into a
-  // whole-monorepo publish. An empty resulting list is an explicit error, never
-  // "match all".
-  let filter: string[] | undefined;
-  if (filterStr !== undefined) {
-    filter = filterStr.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
-    if (filter.length === 0) {
-      write('dz publish: --filter requires a non-empty comma-separated list of package-name substrings');
-      return 1;
-    }
-  }
 
   // SAFETY: dry-run is the DEFAULT. A real publish requires an EXPLICIT opt-in
   // via --yes, --confirm, or --no-dry-run. Without one, we never bump or publish.
@@ -8448,8 +8447,11 @@ const DEFAULT_STORE_CAP = 5000;
  */
 const MAX_STUB_SCAN_FILES = 400;
 
-/** Read the optional `.dz/guard.json` — `{ rules?: [...], storeCap?: number, stubWaivers?: [...] }`. Missing/broken ⇒ defaults. */
-function loadGuardConfig(root: string): { rules?: unknown[]; storeCap?: number; stubWaivers?: unknown[]; reviewRound?: { minGrade?: unknown } } {
+/** Maximum packed-file size read by the publish secret scan. */
+const SECRET_SCAN_MAX_BYTES = 512 * 1024;
+
+/** Read the optional `.dz/guard.json` — `{ rules?, storeCap?, stubWaivers?, secretWaivers? }`. Missing/broken ⇒ defaults. */
+function loadGuardConfig(root: string): { rules?: unknown[]; storeCap?: number; stubWaivers?: unknown[]; secretWaivers?: unknown[]; reviewRound?: { minGrade?: unknown } } {
   const p = join(root, '.dz', 'guard.json');
   if (!existsSync(p)) return {};
   try {
@@ -8880,8 +8882,9 @@ function gatherVolumeShadowFacts(
 }
 
 /** Gather the facts one op needs. All I/O is best-effort — a missing signal skips its rule, never crashes. */
-function gatherGuardFacts(op: string, root: string, text: string | undefined, storeCap: number): Record<string, unknown> {
+function gatherGuardFacts(op: string, root: string, text: string | undefined, storeCap: number, publishFilter?: readonly string[]): Record<string, unknown> {
   const facts: Record<string, unknown> = { op };
+  const publishPackageRoots: string[] = [];
   if (op === 'publish') {
     // Advisory I/O: unreadable telemetry or fed state is absence of evidence, never a fabricated
     // stale finding and never a publish blocker.
@@ -9013,6 +9016,13 @@ function gatherGuardFacts(op: string, root: string, text: string | undefined, st
     } catch { /* not a git repo */ }
     const versionByName = new Map<string, string>();
     for (const m of manifests) if (m.name && typeof m.version === 'string') versionByName.set(m.name, m.version);
+    publishPackageRoots.push(...located
+      .filter(({ dir, m }) => m.private !== true && (
+        publishFilter === undefined
+        || publishFilter.length === 0
+        || publishFilter.some((filter) => (m.name ?? '').includes(filter) || dir.includes(filter))
+      ))
+      .map(({ dir }) => dir));
     const pnpmWorkspace = existsSync(join(root, 'pnpm-workspace.yaml'));
     const packages: { name: string; deps: Record<string, string> }[] = [];
     for (const m of manifests) {
@@ -9213,11 +9223,39 @@ function gatherGuardFacts(op: string, root: string, text: string | undefined, st
 
     // no-stubs config waivers: `.dz/guard.json` `stubWaivers: [{path, reason}]` — path-keyed, reason
     // MANDATORY (the feature-adr-setup --guards shape; the pure checker refuses a reasonless entry).
-    const stubWaivers = loadGuardConfig(root).stubWaivers;
+    const guardConfig = loadGuardConfig(root);
+    const stubWaivers = guardConfig.stubWaivers;
     if (Array.isArray(stubWaivers)) facts['stubWaivers'] = stubWaivers;
+    const secretWaivers = guardConfig.secretWaivers;
+    if (Array.isArray(secretWaivers)) facts['secretWaivers'] = secretWaivers;
   }
   if (op === 'consolidate') {
     try { facts['drift'] = sweepSkillDrift(root, { scope: 'installs', allowlist: readDriftAllowlist(root) }).drifted.map((d) => d.name); } catch { /* skip */ }
+  }
+  if (op === 'publish') {
+    const secretTargets: { label: string; text: string }[] = [];
+    let skipped = 0;
+    for (const dir of publishPackageRoots) {
+      const packageRoot = join(root, dir);
+      let packed: string[];
+      try { packed = listPackFiles(packageRoot); }
+      catch { skipped++; continue; }
+      for (const rel of packed) {
+        const absolute = join(packageRoot, rel);
+        try {
+          const stat = lstatSync(absolute);
+          if (!stat.isFile() || stat.size > SECRET_SCAN_MAX_BYTES) { skipped++; continue; }
+          const content = readFileSync(absolute);
+          if (content.subarray(0, 8 * 1024).includes(0)) { skipped++; continue; }
+          secretTargets.push({
+            label: relative(root, absolute).split(sep).join('/'),
+            text: content.toString('utf8'),
+          });
+        } catch { skipped++; }
+      }
+    }
+    if (secretTargets.length > 0) facts['secretTargets'] = secretTargets;
+    if (skipped > 0) facts['secretScan'] = { skipped };
   }
   if (op === 'teach' || op === 'consolidate') {
     if (op === 'teach' && text) facts['secretTargets'] = [{ label: 'lesson', text }];
@@ -9233,13 +9271,13 @@ function gatherGuardFacts(op: string, root: string, text: string | undefined, st
  * shared by `dz guard check` and the `dz publish` pre-flight (ADR-002 option A) so they can never disagree.
  * `overrideReason` (when the caller forces through a block) is logged, never silent.
  */
-function runGuardEvaluation(root: string, op: string, text: string | undefined, overrideReason: string | undefined): ReturnType<typeof evaluateGuard> {
+function runGuardEvaluation(root: string, op: string, text: string | undefined, overrideReason: string | undefined, publishFilter?: readonly string[]): ReturnType<typeof evaluateGuard> {
   const cfg = loadGuardConfig(root);
   // Number.isFinite, not just > 0: a config `storeCap: 1e400` parses to Infinity, passes `> 0`, and would
   // silently DISABLE the cap (count <= Infinity always). Non-finite ⇒ fall back to the default.
   const storeCap = typeof cfg.storeCap === 'number' && Number.isFinite(cfg.storeCap) && cfg.storeCap > 0 ? cfg.storeCap : DEFAULT_STORE_CAP;
   const rules = resolveRules(Array.isArray(cfg.rules) ? (cfg.rules as never[]) : undefined);
-  const facts = gatherGuardFacts(op, root, text, storeCap);
+  const facts = gatherGuardFacts(op, root, text, storeCap, publishFilter);
   const result = evaluateGuard(facts as never, rules);
   // audit (append-only). ts is real time here (a CLI, not the sandboxed workflow).
   try {

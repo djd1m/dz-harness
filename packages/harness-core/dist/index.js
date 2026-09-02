@@ -112,6 +112,7 @@ export { SHELL_VETO_RULE_ID, resolveVetoMode, vetoShellCommand } from './shell-v
 export { generateCodexHelpers, generateCodexRecallHelper, generateCodexVetoHelper } from './codex-hooks-assets.js';
 export { EVENT_CHAIN_SCOPE, EVENT_CHAIN_GENESIS_HASH, EVENT_CHAIN_TAIL_BYTES, EVENT_CHAIN_FIELD_OVERHEAD_BYTES, EVENT_CHAIN_LEDGER_KIND, EVENT_CHAIN_DEFECT_KINDS, fnv1a32, chainHashOf, chainLinesOf, lastChainLine, readTailInfo, appendChainedLines, EMPTY_LOG_TAIL, nextChainFields, withChainFields, chainRecordLines, chainRewrite, defaultEventWeight, eventWeightOfText, verifyEventChain, verifyEventChainText, renderEventChainVerification, rewriteSnapshot, rewriteSnapshotUnchanged, guardedRewrite, DEFAULT_REWRITE_ATTEMPTS, liveSegmentStart, classifyChainDefects, CHAINED_JOURNALS, } from './event-chain.js';
 export { decideProvenance, environmentCanMintProvenance, publishArgv, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion } from './publish.js';
+export * from './course-staleness.js';
 export { fetchAllDownloads } from './downloads.js';
 export { discoverInstalled, checkUpgrades } from './upgrade.js';
 // Verified-release engine (feature release-verified, ADR-001) — pure VERIFY-phase planner +

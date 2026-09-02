@@ -21,7 +21,7 @@ const run = (script, args) => spawnSync(process.execPath, [script, ...args], { e
 const render = (dir, course, out = join(dir, 'site', 'index.html')) => {
   const cp = join(dir, 'course.json');
   writeFileSync(cp, JSON.stringify(course));
-  return { out, res: run(RENDER, ['--course', cp, '--out', out]) };
+  return { out, res: run(RENDER, ['--course', cp, '--out', out, '--no-stamp']) };
 };
 
 test('roundtrip: gated fixture course renders and the driven verifier passes every check', () => {

@@ -1,0 +1,6 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><title>Каталог</title>
+<style>body{font:24px system-ui;margin:3rem;background:#f7f8fb;color:#18202a}button,input{font:inherit;padding:.7rem 1rem}.card{max-width:720px;padding:2rem;background:white;border-radius:18px;box-shadow:0 8px 30px #0002}</style></head>
+<body><main class="card"><h1>Каталог</h1><label>Имя <input data-testid="name"></label>
+<button data-testid="primary-action">Показать результат</button><p data-testid="result" hidden>Готово: карточка открыта</p></main>
+<script>document.querySelector('button').addEventListener('click',()=>document.querySelector('[data-testid=result]').hidden=false)</script></body></html>

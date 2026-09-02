@@ -1,0 +1,13 @@
+{
+  "slug": "smoke-demo",
+  "title": "Проверка продукта",
+  "purpose": "Проверить полный локальный путь",
+  "lang": "ru",
+  "baseUrl": "http://127.0.0.1:1",
+  "cards": { "intro": "Проверка продукта", "outro": "Сценарии завершены" },
+  "scenarios": [
+    { "id": "01-open", "title": "Открытие", "caption": "Открываем каталог → карточка", "steps": [{ "goto": "/" }, { "tap": "[data-testid=primary-action]" }] },
+    { "id": "02-form", "title": "Форма", "caption": "Заполняем русское имя", "steps": [{ "goto": "/" }, { "fill": "[data-testid=name]", "text": "Анна" }] },
+    { "id": "03-result", "title": "Результат", "caption": "Проверяем готовый результат", "steps": [{ "goto": "/" }, { "click": "[data-testid=primary-action]" }, { "wait": "[data-testid=result]" }] }
+  ]
+}

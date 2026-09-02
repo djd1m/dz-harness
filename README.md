@@ -1,6 +1,6 @@
 # @dzhechkov packages — public mirror
 
-Read-only mirror of the published surface of 54 npm packages under the
+Read-only mirror of the published surface of 55 npm packages under the
 `@dzhechkov` scope. Each `packages/<name>/` directory contains exactly the files that
 package's npm tarball ships — nothing more. The development monorepo is private; this mirror
 exists so the `repository`/`homepage` links on npmjs.com resolve instead of 404ing.
@@ -43,10 +43,11 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/skills-book-fundamental-software-architecture` | 0.1.2 |
 | `@dzhechkov/skills-bto` | 1.4.5 |
 | `@dzhechkov/skills-decision-mockups` | 0.1.7 |
+| `@dzhechkov/skills-demo-publisher` | 0.1.1 |
 | `@dzhechkov/skills-devops` | 0.3.17 |
 | `@dzhechkov/skills-ecc` | 0.1.12 |
 | `@dzhechkov/skills-edu-site` | 1.1.10 |
-| `@dzhechkov/skills-feature-adr` | 1.5.8 |
+| `@dzhechkov/skills-feature-adr` | 1.5.9 |
 | `@dzhechkov/skills-idea2prd` | 0.1.15 |
 | `@dzhechkov/skills-mcp` | 0.3.10 |
 | `@dzhechkov/skills-meta` | 0.9.55 |

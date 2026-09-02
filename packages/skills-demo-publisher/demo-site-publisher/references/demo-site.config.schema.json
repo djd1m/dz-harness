@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Demo site configuration",
+  "type": "object",
+  "required": ["set", "title"],
+  "properties": {
+    "set": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "title": { "type": "string", "minLength": 1 },
+    "webm": { "type": "boolean" },
+    "budget": {
+      "type": "object",
+      "properties": {
+        "maxFileMB": { "type": "number", "exclusiveMinimum": 0, "maximum": 100 },
+        "maxSetMB": { "type": "number", "exclusiveMinimum": 0 },
+        "maxClipSeconds": { "type": "number", "exclusiveMinimum": 0 },
+        "maxMontageSeconds": { "type": "number", "exclusiveMinimum": 0 },
+        "maxRepoMB": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "encode": {
+      "type": "object",
+      "properties": {
+        "crf": { "type": "number", "minimum": 26, "maximum": 40 },
+        "fps": { "const": 30 },
+        "viewport": {
+          "type": "object", "required": ["width", "height"],
+          "properties": { "width": { "type": "integer" }, "height": { "type": "integer" } }
+        }
+      }
+    }
+  }
+}

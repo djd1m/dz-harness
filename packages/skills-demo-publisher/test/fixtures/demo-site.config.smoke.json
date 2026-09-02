@@ -1,0 +1,7 @@
+{
+  "set": "local-smoke",
+  "title": "Локальные демонстрации",
+  "webm": false,
+  "budget": { "maxFileMB": 20, "maxSetMB": 100, "maxClipSeconds": 32, "maxMontageSeconds": 240, "maxRepoMB": 900 },
+  "encode": { "crf": 26, "fps": 30, "viewport": { "width": 1280, "height": 800 } }
+}

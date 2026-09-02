@@ -27,12 +27,19 @@ export interface Violation {
     /** Present for promoted-template firings; ids alone do not prove equal effective rule content. */
     readonly contentAnchor?: string;
 }
+/** A publish-secret waiver: exact repo-relative path, with a mandatory explanation. */
+interface SecretWaiver {
+    readonly path?: string;
+    readonly reason?: string;
+}
 export interface GuardResult {
     readonly op: GuardOp;
     readonly verdict: GuardVerdict;
     readonly violations: readonly Violation[];
     /** ids of the rules that ran for this op (so a report can show what was checked, not just what failed). */
     readonly checked: readonly string[];
+    /** ids of the rules that ran for this op but received no input to examine. */
+    readonly notEstablished: readonly string[];
     /**
      * Informational notes (FN-7): things a rule wants ON THE RECORD that are NOT violations and never
      * touch the verdict — e.g. "no-stubs: N changed scannable file(s) not scanned". A fail-open skip
@@ -68,6 +75,12 @@ export interface GuardFacts {
         readonly label: string;
         readonly text: string;
     }[];
+    /** for no-secrets: exact path waivers; entries without a non-empty reason are ignored and noted. */
+    readonly secretWaivers?: readonly SecretWaiver[];
+    /** Publish secret-scan coverage gaps; skips are informational and never verdict inputs. */
+    readonly secretScan?: {
+        readonly skipped: number;
+    };
     /** for readme-consistency: labelled (a,b) count pairs that must be equal. */
     readonly counts?: readonly {
         readonly label: string;
@@ -302,4 +315,5 @@ export declare function auditRecord(result: GuardResult, ts: string, override?: 
 }): GuardAuditRecord;
 /** The exit-code contract: a block is non-zero unless forced; a warn/pass is zero. */
 export declare function guardExitCode(result: GuardResult, forced: boolean): number;
+export {};
 //# sourceMappingURL=guard.d.ts.map
