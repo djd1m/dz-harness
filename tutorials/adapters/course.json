@@ -1,0 +1,1494 @@
+{
+  "language": "ru",
+  "courseTitle": "Слой адаптеров dz: один навык — десять редакторов",
+  "courseDescription": "Практический курс о том, как навыки из dz попадают в твой редактор и чем ты за это платишь. Вместе с Костей ты разберёшь, что такое цель (--target), какой контракт общий у всех десяти адаптеров, на какие три измеренных класса они делятся, развернёшь один и тот же навык в два редактора и сравнишь результат, а в конце прочитаешь карту dz parity — включая те клетки, где она честно признаётся, что не измеряла.",
+  "persona": {
+    "name": "Костя",
+    "description": "Костя — тимлид небольшой команды, в которой каждый сидит в своём редакторе: он сам в Claude Code, фронтендер в Cursor, дата-инженер в Gemini CLI, ревьюер в Copilot. Двенадцать навыков написаны один раз — и Костя идёт на шаг впереди тебя: сначала ошибается сам, потом показывает измерение."
+  },
+  "finalTestPassThreshold": 70,
+  "topics": [
+    {
+      "id": "why-adapters",
+      "title": "1. Зачем нужен слой адаптеров?",
+      "keyConcepts": [
+        "адаптер — компилятор навыка под конкретный редактор"
+      ],
+      "suggestedExercise": "flashcards",
+      "methodPattern": "P3",
+      "source": "packages/@dzhechkov/core/src/adapter.ts"
+    },
+    {
+      "id": "what-is-a-target",
+      "title": "2. Что такое цель: dz init --target",
+      "keyConcepts": [
+        "цель --target — имя в реестре dz, а не имя платформы"
+      ],
+      "suggestedExercise": "builder",
+      "methodPattern": "P5",
+      "source": "packages/@dzhechkov/harness-core/src/targets.ts"
+    },
+    {
+      "id": "the-emit-contract",
+      "title": "3. Общий контракт: compile, verify и EmitResult",
+      "keyConcepts": [
+        "compile и verify — чистые функции, возвращающие EmitResult"
+      ],
+      "suggestedExercise": "matching",
+      "methodPattern": "D4",
+      "source": "packages/@dzhechkov/core/src/adapter.ts:68"
+    },
+    {
+      "id": "three-classes",
+      "title": "4. Три класса адаптеров — и как их измерить",
+      "keyConcepts": [
+        "класс адаптера определяется измерением исходников, а не именем"
+      ],
+      "suggestedExercise": "drag-and-drop",
+      "methodPattern": "P6",
+      "source": "packages/@dzhechkov/adapter-*/package.json + src/index.ts"
+    },
+    {
+      "id": "lossless-skill-tree",
+      "title": "5. Побайтовая пятёрка: один движок, пять корней",
+      "keyConcepts": [
+        "побайтовый перенос: SKILL.md доезжает без единого изменённого байта"
+      ],
+      "suggestedExercise": "quiz",
+      "methodPattern": "P2",
+      "source": "packages/@dzhechkov/core/src/skill-emit.ts"
+    },
+    {
+      "id": "transforming-targets",
+      "title": "6. Трансформирующие цели: Cursor и Windsurf",
+      "keyConcepts": [
+        "трансформирующая цель заменяет каноническую шапку своей"
+      ],
+      "suggestedExercise": "scenario",
+      "methodPattern": "P8",
+      "source": "packages/@dzhechkov/adapter-cursor/src/index.ts"
+    },
+    {
+      "id": "flattening-targets",
+      "title": "7. Уплощающие цели: всё в один файл",
+      "keyConcepts": [
+        "уплощающая цель сводит все навыки в один файл"
+      ],
+      "suggestedExercise": "flashcards",
+      "methodPattern": "P4",
+      "source": "packages/@dzhechkov/adapter-gemini/src/index.ts"
+    },
+    {
+      "id": "two-editors-one-skill",
+      "title": "8. Практика: один навык в два редактора и diff",
+      "keyConcepts": [
+        "один навык в две цели: diff показывает, чем они отличаются"
+      ],
+      "suggestedExercise": "builder",
+      "methodPattern": "P1",
+      "source": "измеренный прогон dz init --target claude-code / cursor"
+    },
+    {
+      "id": "copilot-odd-one",
+      "title": "9. Copilot: потерянный, но пофайловый",
+      "keyConcepts": [
+        "Copilot теряет адресность: инструкция на навык, но всегда включённая"
+      ],
+      "suggestedExercise": "quiz",
+      "methodPattern": "P9",
+      "source": "packages/@dzhechkov/adapter-copilot/src/index.ts"
+    },
+    {
+      "id": "loss-as-warning",
+      "title": "10. Потеря всплывает предупреждением — или отказом",
+      "keyConcepts": [
+        "потеря всплывает предупреждением, а под strict — отказом"
+      ],
+      "suggestedExercise": "matching",
+      "methodPattern": "P12",
+      "source": "packages/@dzhechkov/core/src/adapter.ts (контракт Adapter)"
+    },
+    {
+      "id": "adapter-claude-integrations",
+      "title": "11. adapter-claude: эталон и планировщик спутников",
+      "keyConcepts": [
+        "adapter-claude — эталон побайтовости и планировщик спутниковой конфигурации"
+      ],
+      "suggestedExercise": "drag-and-drop",
+      "methodPattern": "P10",
+      "source": "packages/@dzhechkov/adapter-claude/src/integrations.ts"
+    },
+    {
+      "id": "dz-parity",
+      "title": "12. dz parity: честная карта возможностей и целей",
+      "keyConcepts": [
+        "паритет — вычисленная карта: что работает на цели и в какой форме"
+      ],
+      "suggestedExercise": "scenario",
+      "methodPattern": "D2",
+      "source": "packages/@dzhechkov/harness-core/src/parity.ts"
+    },
+    {
+      "id": "parity-honest-gaps",
+      "title": "13. Где карта честно неполна",
+      "keyConcepts": [
+        "непроверенное не помечается поддержанным: пустая клетка значит «не измерено»"
+      ],
+      "suggestedExercise": "builder",
+      "methodPattern": "P11",
+      "source": "packages/@dzhechkov/harness-core/src/parity.ts (контракт честности)"
+    },
+    {
+      "id": "choose-your-target",
+      "title": "14. Твой выбор: какой потерей ты платишь",
+      "keyConcepts": [
+        "выбор цели — решение о том, какой потерей ты платишь"
+      ],
+      "suggestedExercise": "scenario",
+      "methodPattern": "D3",
+      "source": "сводка курса: три класса + dz parity"
+    }
+  ],
+  "sections": [
+    {
+      "id": "why-adapters",
+      "order": 1,
+      "title": "1. Зачем нужен слой адаптеров?",
+      "shortTitle": "Зачем адаптеры",
+      "description": "Один навык, десять редакторов — и почему это работа компилятора, а не копипасты.",
+      "icon": "🧩",
+      "interactiveType": "flashcards",
+      "methodPattern": "P3",
+      "keyConcept": "адаптер — компилятор навыка под конкретный редактор",
+      "source": "packages/@dzhechkov/core/src/adapter.ts",
+      "theory": "Костя — тимлид, и у него ровно та же проблема, с которой ты сюда пришёл. Он написал двенадцать навыков в dz. Сам сидит в Claude Code. Фронтендер — в Cursor. Дата-инженер — в Gemini CLI. Ревьюер живёт внутри GitHub Copilot. Вопрос Кости звучал так: «я напишу навык один раз — что увидит каждый из них?»\n\nСначала два слова, чтобы дальше говорить на одном языке.\n\n- **Навык (skill)** — это папка с файлом `SKILL.md`: YAML-шапка (`name`, `description`) плюс тело в Markdown. Тело — инструкция агенту, шапка — метаданные, по которым его находят.\n- **Адаптер (adapter)** — это **компилятор**: на входе один канонический навык, на выходе — файлы ровно в том виде, в каком их читает конкретный редактор.\n\n**Вот вся идея курса одной фразой: навык — один источник истины, а у каждого редактора свой формат; адаптер — компилятор из одного во многие.** Не десять инструментов, а один компилятор с десятью выходами.\n\nПочему не копировать файлы руками? Потому что копия — это не «то же самое в другом месте». Cursor читает `.cursor/rules/` и игнорирует файлы с неправильным расширением. Gemini читает ОДИН файл в корне. Copilot вообще не сканирует каталог навыков. Костя, копируя руками, через неделю не помнил бы, какая копия свежая, — а главное, не знал бы, что именно потерялось по дороге.\n\nВсе десять адаптеров лежат на npm рядом друг с другом — например [@dzhechkov/adapter-claude](https://www.npmjs.com/package/@dzhechkov/adapter-claude) и [@dzhechkov/adapter-cursor](https://www.npmjs.com/package/@dzhechkov/adapter-cursor); исходники — в публичном зеркале [github.com/djd1m/dz-harness](https://github.com/djd1m/dz-harness).",
+      "reflection": {
+        "strengths": "Один источник истины вместо десяти копий; добавить редактор — значит добавить адаптер, а не переписать навыки; потери описаны, а не случайны.",
+        "weaknesses": "Появляется прослойка, которую надо понимать: «почему у меня в Cursor другая шапка» — вопрос не к редактору, а к адаптеру.",
+        "rating": "5/5 за воспроизводимость, 3/5 за прозрачность на первый взгляд",
+        "wrapup": "Адаптер — компилятор: один навык на входе, формат конкретного редактора на выходе."
+      },
+      "exercise": {
+        "cards": [
+          {
+            "front": "Что такое адаптер в dz одной фразой?",
+            "back": "Компилятор: берёт один канонический навык и выдаёт файлы в формате конкретного редактора."
+          },
+          {
+            "front": "Что такое навык (skill)?",
+            "back": "Папка с SKILL.md: YAML-шапка (name, description) плюс тело в Markdown — инструкция для агента."
+          },
+          {
+            "front": "Почему копирование руками не заменяет адаптер?",
+            "back": "У каждого редактора свой путь и свой формат шапки; копия либо не читается, либо молча теряет часть навыка."
+          },
+          {
+            "front": "Сколько адаптеров в семействе и от чего они зависят?",
+            "back": "Десять. Измерено по package.json: каждый зависит ровно от одного пакета @dzhechkov/core и ни один не объявляет bin."
+          }
+        ]
+      },
+      "quiz": [
+        {
+          "id": "why-adapters-q1",
+          "question": "Костя говорит: «адаптер — это просто копировальщик файлов в другую папку». Что он упускает?",
+          "options": [
+            "Ничего, это точное описание",
+            "Адаптер — компилятор: он ещё и переписывает формат под редактор, а иногда теряет часть навыка",
+            "Адаптер работает только с Claude Code",
+            "Адаптер — это облачный сервис"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Перенос — только половина. Вторая половина — превращение канонического формата в формат цели, и у этого превращения бывает цена."
+        }
+      ],
+      "finalTest": {
+        "id": "final-why-adapters",
+        "sectionId": "why-adapters",
+        "question": "Что такое адаптер в dz?",
+        "options": [
+          "Компилятор одного канонического навыка в формат конкретного редактора",
+          "Плагин, который запускает навык вместо агента",
+          "Хранилище промптов в облаке",
+          "Отдельная CLI-утилита со своим bin"
+        ],
+        "correctAnswer": 0
+      }
+    },
+    {
+      "id": "what-is-a-target",
+      "order": 2,
+      "title": "2. Что такое цель: dz init --target",
+      "shortTitle": "Цель (--target)",
+      "description": "Десять имён целей, таблица псевдонимов и ловушка claude против claude-code.",
+      "icon": "🎯",
+      "interactiveType": "builder",
+      "methodPattern": "P5",
+      "keyConcept": "цель --target — имя в реестре dz, а не имя платформы",
+      "source": "packages/@dzhechkov/harness-core/src/targets.ts",
+      "theory": "Костя разворачивает навыки одной командой:\n\n```\ndz init --target claude-code --skills-dir ./skills --project .\n```\n\nИЗМЕРЕНО, вывод дословно: `dz init --target claude-code: 1 skill(s), 1 file(s) written, 0 skipped`, код возврата 0.\n\n**Цель (target) — это имя в реестре dz, по которому выбирается адаптер.** Имён ровно десять, и команда их сама перечисляет: `agents-md`, `claude-code`, `codex`, `copilot`, `cursor`, `gemini`, `hermes`, `openclaude`, `opencode`, `windsurf`.\n\nА теперь ловушка, на которой Костя споткнулся первым. Внутри адаптера платформа называется `claude`, а имя цели — `claude-code`. Оба работают, но по-разному: `--target claude` проходит через таблицу псевдонимов, и dz честно об этом печатает — ИЗМЕРЕНО: `dz init: --target \"claude\" → claude-code (alias)`. Псевдонимы — это ДАННЫЕ, одна строка таблицы, а не ветвление в коде: `claude` и `cc` → `claude-code`, `agents` → `agents-md`, `gpt` и `openai` → `codex`.\n\n**Опечатка не молчит.** ИЗМЕРЕНО: `--target cursur` даёт `unknown --target \"cursur\" — did you mean \"cursor\"?` и полный список допустимых имён. Это важнее, чем кажется: цель, набранная с ошибкой, могла бы «успешно» ничего не развернуть.\n\nУстановка самого dz и ссылки: [@dzhechkov/harness-cli](https://www.npmjs.com/package/@dzhechkov/harness-cli), исходники — [github.com/djd1m/dz-harness](https://github.com/djd1m/dz-harness).",
+      "reflection": {
+        "strengths": "Одно имя цели вместо десяти разных команд; псевдонимы прощают привычные написания; опечатка ловится и подсказывает.",
+        "weaknesses": "Имя цели и имя платформы внутри кода не совпадают (claude-code против claude) — это надо просто запомнить.",
+        "rating": "4/5 за удобство, 5/5 за то, что ошибка громкая",
+        "wrapup": "Цель — это ключ реестра: --target claude-code выбирает адаптер, а не описывает твою модель."
+      },
+      "exercise": {
+        "instruction": "Собери команду, которой Костя разворачивает навыки из каталога ./skills в текущий проект для Claude Code. Помни: имя цели — claude-code.",
+        "parts": [
+          "dz init",
+          "--target claude-code",
+          "--skills-dir ./skills",
+          "--project ."
+        ],
+        "correctCommand": "dz init --target claude-code --skills-dir ./skills --project .",
+        "hints": [
+          "Флаг называется --target, и он принимает имя цели из реестра, а не имя модели.",
+          "--target claude тоже сработает, но dz напечатает, что это псевдоним claude-code."
+        ]
+      },
+      "quiz": [
+        {
+          "id": "what-is-a-target-q1",
+          "question": "Что произойдёт при `dz init --target cursur`?",
+          "options": [
+            "Развернётся Cursor — dz исправит опечатку молча",
+            "dz откажется и подскажет: unknown --target «cursur» — did you mean «cursor»?",
+            "Развернётся цель по умолчанию",
+            "Команда зависнет"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Неизвестное имя цели — громкий отказ с подсказкой и полным списком, а не тихий выбор чего-нибудь."
+        }
+      ],
+      "finalTest": {
+        "id": "final-what-is-a-target",
+        "sectionId": "what-is-a-target",
+        "question": "Как называется цель Claude Code в флаге --target?",
+        "options": [
+          "claude-code (а claude — её псевдоним)",
+          "anthropic",
+          "claude-3",
+          "code"
+        ],
+        "correctAnswer": 0
+      }
+    },
+    {
+      "id": "the-emit-contract",
+      "order": 3,
+      "title": "3. Общий контракт: compile, verify и EmitResult",
+      "shortTitle": "Контракт эмиссии",
+      "description": "Один интерфейс на десять адаптеров: чистые функции, относительные пути и строгий режим.",
+      "icon": "📜",
+      "interactiveType": "matching",
+      "methodPattern": "D4",
+      "keyConcept": "compile и verify — чистые функции, возвращающие EmitResult",
+      "source": "packages/@dzhechkov/core/src/adapter.ts:68",
+      "theory": "Костя открыл три адаптера подряд и увидел одно и то же. Не случайность: все десять реализуют один интерфейс `Adapter` из `@dzhechkov/core` (`src/adapter.ts:68`) — три члена и больше ничего:\n\n1. `platform` — имя платформы, для которой этот адаптер эмитит;\n2. `compile(skill, ctx)` — возвращает `EmitResult { files, warnings }`;\n3. `verify(emitResult)` — возвращает `VerifyResult { ok, errors, warnings }`.\n\n**И `compile`, и `verify` — чистые функции.** Чистая функция (pure function) — это функция, которая на одном и том же входе всегда даёт один и тот же выход и не делает ничего снаружи: не пишет файлы, не ходит в сеть, не смотрит на часы. Зачем это здесь: адаптер можно проверить целиком без файловой системы, а его вывод воспроизводим — тот же навык всегда компилируется в те же байты.\n\nЗапись на диск — забота вызывающей стороны, а не адаптера. Отсюда второе правило, записанное прямо в комментарии контракта: **пути в `files[]` относительны `ctx.targetRoot`, и адаптер НЕ должен приклеивать корень сам** — иначе получится `<root>/<root>/…` или абсолютный путь, который хост отвергнет.\n\nТретий член контекста — `ctx.strict`. Смысл: «не применяй потерю молча — откажись». Про него будет отдельная секция, но запомни сейчас: строгий режим превращает предупреждение в отказ.\n\nИ измеренная мелочь, которая многое объясняет: у всех десяти пакетов ровно одна зависимость — `@dzhechkov/core`, и ни один не объявляет `bin`. Адаптер не самостоятельная утилита; он всегда вызывается через `dz init --target`.",
+      "reflection": {
+        "strengths": "Один интерфейс на десять пакетов: прочитал один адаптер — прочитал все; чистота даёт тесты без файловой системы и воспроизводимый вывод.",
+        "weaknesses": "Контракт узкий: всё, что не «файлы плюс предупреждения», приходится решать снаружи адаптера — как и вышло со слиянием AGENTS.md.",
+        "rating": "5/5 за проверяемость, 4/5 за выразительность",
+        "wrapup": "compile и verify — чистые функции; EmitResult несёт файлы и предупреждения, а писать их будет хост."
+      },
+      "exercise": {
+        "pairs": [
+          {
+            "left": "compile(skill, ctx)",
+            "right": "Чистая функция: возвращает EmitResult { files, warnings }, на диск не пишет"
+          },
+          {
+            "left": "verify(emitResult)",
+            "right": "Чистая проверка: VerifyResult { ok, errors, warnings } — и предупреждения о потере несёт дальше"
+          },
+          {
+            "left": "ctx.targetRoot",
+            "right": "Корень, относительно которого заданы пути; адаптер его НЕ приклеивает"
+          },
+          {
+            "left": "ctx.strict",
+            "right": "Строгий режим: вместо предупреждения о потере — отказ компилировать"
+          },
+          {
+            "left": "platform",
+            "right": "Имя платформы адаптера — claude, cursor, gemini и так далее"
+          }
+        ]
+      },
+      "quiz": [
+        {
+          "id": "the-emit-contract-q1",
+          "question": "Почему compile ничего не пишет на диск?",
+          "options": [
+            "Потому что нет прав на запись",
+            "Потому что это чистая функция: её результат EmitResult воспроизводим и проверяем без файловой системы",
+            "Потому что запись делает сам редактор",
+            "Потому что файлы пишет verify"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Чистота — не украшение: она даёт тесты без диска и гарантию, что тот же навык даст те же байты."
+        }
+      ],
+      "finalTest": {
+        "id": "final-the-emit-contract",
+        "sectionId": "the-emit-contract",
+        "question": "Что возвращает compile у любого адаптера dz?",
+        "options": [
+          "EmitResult: список файлов и список предупреждений",
+          "Число записанных байт",
+          "Путь к каталогу проекта",
+          "Ничего — он пишет файлы сам"
+        ],
+        "correctAnswer": 0
+      },
+      "diagram": {
+        "kind": "parts",
+        "title": "Контракт Adapter: убери часть — и адаптер перестаёт быть адаптером",
+        "whole": "interface Adapter",
+        "nodes": [
+          {
+            "id": "platform",
+            "label": "platform",
+            "note": "имя цели, для которой этот адаптер эмитит"
+          },
+          {
+            "id": "compile",
+            "label": "compile()",
+            "note": "навык → EmitResult { files, warnings }; на диск не пишет",
+            "accent": true
+          },
+          {
+            "id": "verify",
+            "label": "verify()",
+            "note": "проверяет результат и несёт предупреждения дальше"
+          }
+        ]
+      }
+    },
+    {
+      "id": "three-classes",
+      "order": 4,
+      "title": "4. Три класса адаптеров — и как их измерить",
+      "shortTitle": "Три класса",
+      "description": "Побайтовые, трансформирующие, уплощающие: классификация из исходников, а не из названий.",
+      "icon": "🗂️",
+      "interactiveType": "drag-and-drop",
+      "methodPattern": "P6",
+      "keyConcept": "класс адаптера определяется измерением исходников, а не именем",
+      "source": "packages/@dzhechkov/adapter-*/package.json + src/index.ts",
+      "theory": "Костя попробовал угадать класс по названию и ошибся на первом же пакете. Смотри сам: `adapter-openclaude` звучит как «ещё один вариант Claude» — а по коду это тонкая обёртка над `emitSkillTree` с корнем `.openclaude/skills`, то есть чистый побайтовый перенос. **Класс адаптера измеряется по исходникам, а не выводится из имени.**\n\nИзмерение дало ровно три класса:\n\n1. **Побайтовые адаптеры дерева навыков** — пять штук: `claude`, `codex`, `opencode`, `hermes`, `openclaude`. Все пять — тонкие обёртки над одним движком `emitSkillTree` из core; отличие ровно одно — константа корневого каталога.\n2. **Трансформирующие** — два: `cursor`, `windsurf`. Файл на навык, но в СВОЁМ формате шапки.\n3. **Уплощающие и потерянные** — три: `copilot`, `gemini`, `agents-md`. Структура, которой у цели нет, выбрасывается.\n\nКак измерять самому, по шагам: прочитать `description` в `package.json`; открыть `src/index.ts`; посмотреть, ЧТО импортируется из core (`emitSkillTree` — побайтовый; `renderCursorMdc` или `renderGeminiMdSection` — не побайтовый); посмотреть путь эмита; прочитать текст строки-предупреждения `lossy`, если она есть. Пять шагов, и класс назван по коду.\n\nЕщё один измеренный факт, который выглядит подсказкой: версии разложились по классам — `0.2.x` у побайтовой пятёрки, `0.1.x` у остальных. **Честная оговорка: это вывод из номеров версий, а не из журнала изменений** — считай это гипотезой, а не доказательством общей ревизии API.\n\nВсе десять на npm: [adapter-claude](https://www.npmjs.com/package/@dzhechkov/adapter-claude), [adapter-codex](https://www.npmjs.com/package/@dzhechkov/adapter-codex), [adapter-opencode](https://www.npmjs.com/package/@dzhechkov/adapter-opencode), [adapter-hermes](https://www.npmjs.com/package/@dzhechkov/adapter-hermes), [adapter-openclaude](https://www.npmjs.com/package/@dzhechkov/adapter-openclaude), [adapter-cursor](https://www.npmjs.com/package/@dzhechkov/adapter-cursor), [adapter-windsurf](https://www.npmjs.com/package/@dzhechkov/adapter-windsurf), [adapter-copilot](https://www.npmjs.com/package/@dzhechkov/adapter-copilot), [adapter-gemini](https://www.npmjs.com/package/@dzhechkov/adapter-gemini), [adapter-agents-md](https://www.npmjs.com/package/@dzhechkov/adapter-agents-md).",
+      "reflection": {
+        "strengths": "Классов всего три, и каждый проверяется за минуту чтением src/index.ts; классификация держится на коде, а не на маркетинге.",
+        "weaknesses": "Границы не идеальны: copilot формально уплощающий, но файл у него на каждый навык — класс говорит о ЧЁМ потеря, а не о её размере.",
+        "rating": "5/5 за проверяемость, 3/5 за чистоту границ",
+        "wrapup": "Три класса: побайтовые, трансформирующие, уплощающие — и определяются они измерением, а не именем."
+      },
+      "exercise": {
+        "instruction": "Разложи по порядку пять шагов, которыми Костя определяет класс любого адаптера, не веря названию.",
+        "items": [
+          {
+            "id": "desc",
+            "label": "Прочитать description в package.json"
+          },
+          {
+            "id": "src",
+            "label": "Открыть src/index.ts адаптера"
+          },
+          {
+            "id": "imports",
+            "label": "Посмотреть, что импортируется из core: emitSkillTree или render*"
+          },
+          {
+            "id": "path",
+            "label": "Посмотреть путь эмита: каталог навыка, файл правила или один файл в корне"
+          },
+          {
+            "id": "lossy",
+            "label": "Прочитать строку-предупреждение lossy, если она есть"
+          }
+        ],
+        "correctOrder": [
+          "desc",
+          "src",
+          "imports",
+          "path",
+          "lossy"
+        ]
+      },
+      "quiz": [
+        {
+          "id": "three-classes-q1",
+          "question": "К какому классу относится adapter-openclaude и почему?",
+          "options": [
+            "Уплощающий — по названию видно, что это один файл",
+            "Побайтовый: в src/index.ts он вызывает emitSkillTree с корнем .openclaude/skills",
+            "Трансформирующий — у него своя шапка",
+            "Определить нельзя без запуска"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Имя обмануло бы; импорт emitSkillTree и корень каталога отвечают точно."
+        }
+      ],
+      "finalTest": {
+        "id": "final-three-classes",
+        "sectionId": "three-classes",
+        "question": "Сколько классов адаптеров дало измерение исходников и какие они?",
+        "options": [
+          "Три: побайтовые, трансформирующие, уплощающие",
+          "Два: рабочие и сломанные",
+          "Десять — по одному на каждый адаптер",
+          "Один: все адаптеры одинаковы"
+        ],
+        "correctAnswer": 0
+      },
+      "diagram": {
+        "kind": "compare",
+        "title": "Три измеренных класса адаптеров",
+        "nodes": [
+          {
+            "id": "lossless",
+            "label": "Побайтовые",
+            "note": "5: claude, codex, opencode, hermes, openclaude",
+            "items": [
+              "каталог на каждый навык",
+              "SKILL.md без изменённых байт",
+              "активы переносятся"
+            ],
+            "accent": true
+          },
+          {
+            "id": "transforming",
+            "label": "Трансформирующие",
+            "note": "2: cursor, windsurf",
+            "items": [
+              "файл на каждый навык",
+              "своя шапка вместо канонической",
+              "активы не переносятся"
+            ]
+          },
+          {
+            "id": "flattening",
+            "label": "Уплощающие",
+            "note": "3: copilot, gemini, agents-md",
+            "items": [
+              "gemini и agents-md — один файл на всё",
+              "copilot — файл на навык, но всегда включён",
+              "шапка и границы навыков исчезают"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "lossless-skill-tree",
+      "order": 5,
+      "title": "5. Побайтовая пятёрка: один движок, пять корней",
+      "shortTitle": "Побайтовые",
+      "description": "emitSkillTree и доказательство, что SKILL.md доезжает без единого изменённого байта.",
+      "icon": "🧬",
+      "interactiveType": "quiz",
+      "methodPattern": "P2",
+      "keyConcept": "побайтовый перенос: SKILL.md доезжает без единого изменённого байта",
+      "source": "packages/@dzhechkov/core/src/skill-emit.ts",
+      "theory": "Костя ожидал пять разных реализаций. Их пять — но код в них почти одинаковый, и это по замыслу.\n\nВсе пять зовут один движок `emitSkillTree` из core. Разница между адаптерами — одна константа, корневой каталог:\n\n- `claude` → `.claude/skills`\n- `codex` → `.agents/skills`\n- `opencode` → `.opencode/skills`\n- `hermes` → `.hermes/skills`\n- `openclaude` → `.openclaude/skills`\n\n**Побайтовый перенос (lossless) означает буквально это: содержимое `SKILL.md` — текст документа дословно, поэтому эмиссия ничего не теряет.** Меняется только место файла, не его байты.\n\nИЗМЕРЕНО прямо для этого курса. Канонический навык `hello-adapters` развёрнут командой `dz init --target claude-code`; затем:\n\n```\n$ diff canon/hello-adapters/SKILL.md proj-claude/.claude/skills/hello-adapters/SKILL.md\n$ echo $?\n0\n$ sha256sum canon/.../SKILL.md proj-claude/.../SKILL.md\n3c8f59dd00e6d737552eb01e28e04c7567af1617dfa15112e4fe6fce561f7c82  (оба файла)\n```\n\nПустой `diff` и один и тот же sha256 — это и есть побайтовость, предъявленная, а не обещанная.\n\nЧто отсюда следует практически: круговой рейс. Скомпилировал навык в цель, разобрал обратно — получил исходник. Активы (`scripts/`, `references/`) переносятся тоже, а не остаются дома. И движок защищается на входе: небезопасный идентификатор навыка или путь актива с `..` — ошибка, а не запись мимо каталога.",
+      "reflection": {
+        "strengths": "Никаких сюрпризов: то, что ты написал, то агент и прочитает; активы едут вместе; проверяется одной командой diff.",
+        "weaknesses": "Работает только там, где редактор УЖЕ понимает формат agentskills.io; для всех остальных этот класс недоступен в принципе.",
+        "rating": "5/5 за точность, 2/5 за охват редакторов",
+        "wrapup": "Побайтовый адаптер меняет адрес навыка и не трогает ни одного его байта."
+      },
+      "quiz": [
+        {
+          "id": "lossless-q1",
+          "question": "Чем пять побайтовых адаптеров отличаются друг от друга в коде?",
+          "options": [
+            "Каждый реализует свой алгоритм преобразования",
+            "Практически ничем, кроме константы корневого каталога — движок emitSkillTree общий",
+            "Разными версиями Markdown",
+            "Один пишет YAML, другой JSON"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Пять тонких обёрток над одним движком: отличие — корень (.claude/skills, .agents/skills и так далее)."
+        },
+        {
+          "id": "lossless-q2",
+          "question": "Как Костя ДОКАЗАЛ, что перенос побайтовый, а не просто похожий?",
+          "options": [
+            "Открыл оба файла и посмотрел глазами",
+            "Сравнил diff (пустой, код возврата 0) и sha256sum — одинаковая сумма у канона и у эмита",
+            "Поверил README",
+            "Посчитал число строк"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Побайтовость — утверждение о байтах, и доказывается оно суммой, а не впечатлением."
+        }
+      ],
+      "finalTest": {
+        "id": "final-lossless-skill-tree",
+        "sectionId": "lossless-skill-tree",
+        "question": "Что гарантирует побайтовый (lossless) адаптер дерева навыков?",
+        "options": [
+          "SKILL.md приходит к цели без единого изменённого байта — меняется только путь",
+          "Навык становится меньше по размеру",
+          "Шапка переписывается в формат цели",
+          "Все навыки складываются в один файл"
+        ],
+        "correctAnswer": 0
+      }
+    },
+    {
+      "id": "transforming-targets",
+      "order": 6,
+      "title": "6. Трансформирующие цели: Cursor и Windsurf",
+      "shortTitle": "Трансформирующие",
+      "description": "Своя шапка вместо канонической, файл на навык — и почему расширение решает всё.",
+      "icon": "🔀",
+      "interactiveType": "scenario",
+      "methodPattern": "P8",
+      "keyConcept": "трансформирующая цель заменяет каноническую шапку своей",
+      "source": "packages/@dzhechkov/adapter-cursor/src/index.ts",
+      "theory": "Фронтендер пожаловался: «правило не подхватывается». Костя полез разбираться и нашёл ответ в одной строке комментария адаптера.\n\nCursor читает проектные правила из `.cursor/rules/` — **один файл на правило, и расширение обязано быть `.mdc`: обычный `.md` в этом каталоге Cursor игнорирует.** Адаптер поэтому пишет ровно `.cursor/rules/<id>.mdc`.\n\n**Трансформирующая цель — это цель, у которой своя шапка**, и адаптер заменяет нашу целиком. Каноническая шапка навыка несёт около 26 проектных ключей; Cursor понимает три: `description`, необязательный `globs` и `alwaysApply`. Всё остальное не переезжает — и это решение, а не недоделка: оба адаптера прямо говорят «не побайтовый» и исключены из набора проверок побайтового равенства.\n\nИЗМЕРЕНО. Тот же навык, что в предыдущей секции, скомпилирован в Cursor. Тело — слово в слово то же. Шапка — другая:\n\n```\n---\ndescription: \"Демонстрационный навык для курса про адаптеры …\"\nalwaysApply: false\n---\n```\n\n`alwaysApply: false` — это не «выключено». Это **правило по запросу агента**: оно подтягивается, когда модель сочтёт его уместным, вместо того чтобы вливаться в каждый ход. Экономия контекста прямо здесь.\n\nWindsurf — та же идея с тремя отличиями: каталог `.windsurf/rules/`, обычный `.md` (не `.mdc`), и ключ активации называется `trigger` (`always_on | manual | model_decision | glob`) вместо `alwaysApply`. Адаптер эмитит `trigger: model_decision` — тот же смысл «по запросу агента».\n\nИ оба `verify` проверяют ровно несущее: у Cursor — что `description` стоит в ВЕДУЩЕЙ шапке, а не где-то в теле; у Windsurf — что есть `trigger`, потому что без него редактор просто не знает, когда включать правило.",
+      "reflection": {
+        "strengths": "Навык становится родным для редактора: правило по запросу агента не съедает контекст в каждом ходе; verify проверяет именно тот ключ, без которого правило мёртво.",
+        "weaknesses": "Каноническая шапка теряется целиком, активы (scripts/) не переносятся, и обратно из .mdc исходный навык не восстановить.",
+        "rating": "4/5 за интеграцию с редактором, 2/5 за обратимость",
+        "wrapup": "Трансформирующая цель сохраняет тело навыка и заменяет шапку своей — ценой активов и обратимости."
+      },
+      "exercise": {
+        "title": "Правило не подхватывается в Cursor",
+        "scenario": "Фронтендер Кости положил навык в Cursor руками, и редактор его не видит. Костя ведёт разбор по шагам.",
+        "steps": [
+          {
+            "description": "Первое, что Костя просит проверить в трансформирующей цели Cursor:",
+            "options": [
+              {
+                "text": "Расширение файла: в .cursor/rules/ должен лежать .mdc, а .md там игнорируется",
+                "feedback": "Верно. Это первое и самое частое: обычный .md в этом каталоге Cursor просто не читает."
+              },
+              {
+                "text": "Переустановить Cursor",
+                "feedback": "Дорого и мимо: адаптер прямо документирует требование к расширению .mdc."
+              },
+              {
+                "text": "Переписать тело навыка",
+                "feedback": "Тело как раз доезжает без изменений — проблема не в нём."
+              }
+            ]
+          },
+          {
+            "description": "Файл действительно .mdc, но правило всё равно не включается. Что смотреть дальше?",
+            "options": [
+              {
+                "text": "Ведущую шапку: есть ли description — именно это проверяет verify адаптера",
+                "feedback": "Да. verify требует description в ВЕДУЩЕЙ шапке, а не где-то в теле."
+              },
+              {
+                "text": "Права на файл",
+                "feedback": "Проверить можно, но контракт адаптера указывает на шапку."
+              },
+              {
+                "text": "Версию Node.js",
+                "feedback": "К активации правила в редакторе она отношения не имеет."
+              }
+            ]
+          },
+          {
+            "description": "Всё на месте, но правило не влезает в каждый ход. Костя объясняет почему:",
+            "options": [
+              {
+                "text": "Так и задумано: alwaysApply: false — правило по запросу агента, а не всегда включённое",
+                "feedback": "Точно. Это экономия контекста, а не поломка."
+              },
+              {
+                "text": "Это баг адаптера",
+                "feedback": "Нет: значение false выбрано осознанно и описано в адаптере."
+              },
+              {
+                "text": "Нужно перекомпилировать в Claude Code",
+                "feedback": "Не поможет: поведение задаётся ключом активации Cursor."
+              }
+            ]
+          }
+        ]
+      },
+      "quiz": [
+        {
+          "id": "transforming-q1",
+          "question": "Что именно теряет трансформирующая цель вроде Cursor?",
+          "options": [
+            "Тело навыка",
+            "Каноническую шапку (~26 ключей заменяются на 3) и активы scripts/",
+            "Название навыка",
+            "Ничего не теряет"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Тело переезжает дословно; исчезают каноническая шапка и бандлы активов."
+        }
+      ],
+      "finalTest": {
+        "id": "final-transforming-targets",
+        "sectionId": "transforming-targets",
+        "question": "Чем трансформирующая цель отличается от побайтовой?",
+        "options": [
+          "Она заменяет каноническую шапку навыка своей и потому не байт-в-байт",
+          "Она работает быстрее",
+          "Она складывает все навыки в один файл",
+          "Она вообще не пишет файлов"
+        ],
+        "correctAnswer": 0
+      },
+      "diagram": {
+        "kind": "compare",
+        "title": "Cursor и Windsurf: одна идея, три отличия",
+        "nodes": [
+          {
+            "id": "cursor",
+            "label": "Cursor",
+            "note": ".cursor/rules/<id>.mdc",
+            "items": [
+              "расширение обязано быть .mdc",
+              "ключ активации: alwaysApply: false",
+              "шапка из трёх ключей"
+            ],
+            "accent": true
+          },
+          {
+            "id": "windsurf",
+            "label": "Windsurf",
+            "note": ".windsurf/rules/<id>.md",
+            "items": [
+              "обычный .md, не .mdc",
+              "ключ активации: trigger",
+              "trigger, description, globs"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "flattening-targets",
+      "order": 7,
+      "title": "7. Уплощающие цели: всё в один файл",
+      "shortTitle": "Уплощающие",
+      "description": "GEMINI.md и AGENTS.md: что именно исчезает — и почему твои заметки всё-таки выживают.",
+      "icon": "🗜️",
+      "interactiveType": "flashcards",
+      "methodPattern": "P4",
+      "keyConcept": "уплощающая цель сводит все навыки в один файл",
+      "source": "packages/@dzhechkov/adapter-gemini/src/index.ts",
+      "theory": "Костя развернул два навыка в Gemini и пересчитал файлы. Их оказалось не два. Один.\n\nИЗМЕРЕНО, вывод дословно: `dz init --target gemini: 2 skill(s), 1 file(s) written, 0 skipped`, а `find` по проекту вернул ровно одну строку — `GEMINI.md`.\n\n**Уплощающая цель (flattening) — это цель, у которой нет ни каталога навыков, ни шапки: всё сводится в ОДИН файл в корне проекта.** `GEMINI.md` читают Gemini CLI и Code Assist; `AGENTS.md` — договорённость, которую понимают около пятнадцати инструментов (Cursor, Zed, Warp, Aider, goose, RooCode, Junie, Devin, Windsurf и другие).\n\nЧто теряется — поимённо, из текста самого предупреждения адаптера:\n\n- YAML-шапка навыка;\n- **постепенное раскрытие** (progressive disclosure) — режим, при котором агент читает подробности навыка только когда к нему обратился; в плоском файле всё лежит открытым всегда;\n- границы между навыками как отдельными файлами;\n- активы `scripts/` и прочие — они не переносятся вовсе.\n\n**А теперь неожиданное.** Костя дописал в `GEMINI.md` руками свои заметки после управляемого блока и запустил `dz init` ещё раз. Заметки остались на месте. Управляемая часть обёрнута маркерами `<!-- dz:skills BEGIN (managed by dz — do not edit) -->` … `<!-- dz:skills END -->`, и стратегия записи — **слияние, а не перезапись**: dz меняет только то, что между маркерами.\n\nЕщё одна тонкость для тех, кто полезет в код: `compile` уплощающего адаптера отдаёт СЕКЦИЮ одного навыка по пути `GEMINI.md`. Сборка всех секций и слияние с твоим файлом происходят слоем выше — адаптер один навык видит, а файл целиком собирает не он.",
+      "reflection": {
+        "strengths": "Работает там, где у редактора вообще нет понятия навыка; один файл читают полтора десятка инструментов; ручные заметки переживают повторный запуск.",
+        "weaknesses": "Исчезают шапка, постепенное раскрытие, границы навыков и активы; на двадцати навыках один файл становится тяжёлым и всегда включённым.",
+        "rating": "5/5 за охват инструментов, 2/5 за сохранность структуры",
+        "wrapup": "Уплощающая цель обменивает структуру навыка на совместимость: один файл вместо дерева."
+      },
+      "exercise": {
+        "cards": [
+          {
+            "front": "Что делает уплощающая цель с десятью навыками?",
+            "back": "Сводит их в ОДИН файл в корне: GEMINI.md или AGENTS.md. Измерено: 2 навыка → 1 файл."
+          },
+          {
+            "front": "Что именно теряется при уплощении?",
+            "back": "YAML-шапка, постепенное раскрытие, границы между навыками и активы scripts/ — всё названо в предупреждении адаптера."
+          },
+          {
+            "front": "Что такое постепенное раскрытие (progressive disclosure)?",
+            "back": "Режим, при котором агент читает подробности навыка только при обращении к нему; в плоском файле всё открыто всегда."
+          },
+          {
+            "front": "Почему ручные заметки в GEMINI.md переживают dz init?",
+            "back": "Управляемая часть обёрнута маркерами dz:skills BEGIN/END, а стратегия записи — слияние, а не перезапись."
+          },
+          {
+            "front": "Сколько инструментов читают AGENTS.md?",
+            "back": "Около пятнадцати: Cursor, Zed, Warp, Aider, goose, Gemini CLI, RooCode, Junie, Devin, Windsurf и другие."
+          }
+        ]
+      },
+      "quiz": [
+        {
+          "id": "flattening-q1",
+          "question": "Костя дописал свои заметки в GEMINI.md и снова запустил dz init. Что с ними будет?",
+          "options": [
+            "Файл перезапишется, заметки пропадут",
+            "Заметки останутся: dz меняет только блок между маркерами dz:skills BEGIN и END",
+            "dz откажется работать",
+            "Заметки уедут внутрь управляемого блока"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Стратегия записи уплощающих целей — слияние, а не перезапись; ИЗМЕРЕНО повторным запуском."
+        }
+      ],
+      "finalTest": {
+        "id": "final-flattening-targets",
+        "sectionId": "flattening-targets",
+        "question": "Что происходит с десятью навыками на уплощающей цели вроде GEMINI.md?",
+        "options": [
+          "Они сводятся в один файл в корне, теряя шапку, границы и активы",
+          "Каждый получает свой каталог",
+          "Они компилируются побайтово",
+          "Переносятся только первые три"
+        ],
+        "correctAnswer": 0
+      }
+    },
+    {
+      "id": "two-editors-one-skill",
+      "order": 8,
+      "title": "8. Практика: один навык в два редактора и diff",
+      "shortTitle": "Два редактора",
+      "description": "Полный проход руками: развернуть один и тот же навык в Claude Code и Cursor и сравнить.",
+      "icon": "🔬",
+      "interactiveType": "builder",
+      "methodPattern": "P1",
+      "keyConcept": "один навык в две цели: diff показывает, чем они отличаются",
+      "source": "измеренный прогон dz init --target claude-code / cursor",
+      "theory": "Это тот проход, после которого Костя перестал задавать вопросы. Повтори его целиком — он занимает минуту.\n\n**Шаг 1. Один канонический навык.** Каталог `canon/hello-adapters/` с файлом `SKILL.md`: шапка `name` и `description`, тело в Markdown.\n\n**Шаг 2. Развернуть в две цели.**\n\n```\ndz init --target claude-code --skills-dir ./canon --project ./proj-claude\ndz init --target cursor      --skills-dir ./canon --project ./proj-cursor\n```\n\nИЗМЕРЕНО: обе команды напечатали `1 skill(s), 1 file(s) written, 0 skipped`.\n\n**Шаг 3. Посмотреть раскладку.** `find` по обоим проектам дал две строки:\n\n```\nproj-claude/.claude/skills/hello-adapters/SKILL.md\nproj-cursor/.cursor/rules/hello-adapters.mdc\n```\n\nСлева — каталог на навык. Справа — один файл, и расширение другое.\n\n**Шаг 4. Сравнить.** У Claude Code `diff` с каноном пустой, sha256 совпадает (`3c8f59dd00e6…`) — байт в байт. У Cursor тело совпадает слово в слово, а шапка заменена на `description` + `alwaysApply: false`.\n\n**Вывод словами, чтобы его можно было пересказать: тело инструкции доезжает до обоих редакторов одинаково, а цена цели видна ровно в двух местах — в шапке и в раскладке файлов.** Именно поэтому `diff` здесь не формальность: это самый дешёвый способ увидеть, чем ты заплатил за совместимость.",
+      "reflection": {
+        "strengths": "Минута работы даёт полное понимание слоя; diff и sha256 — доказательство, а не впечатление; проход воспроизводится на любой паре целей.",
+        "weaknesses": "На одном навыке не видно эффектов масштаба: уплощение начинает мешать только когда навыков десятки.",
+        "rating": "5/5 за наглядность, 3/5 за полноту картины",
+        "wrapup": "Разверни один навык в две цели и сделай diff — это самый быстрый способ увидеть цену цели."
+      },
+      "exercise": {
+        "instruction": "Собери команду, которой Костя разворачивает тот же канонический каталог во ВТОРУЮ цель — Cursor — чтобы потом сравнить результат через diff.",
+        "parts": [
+          "dz init",
+          "--target cursor",
+          "--skills-dir ./canon",
+          "--project ./proj-cursor"
+        ],
+        "correctCommand": "dz init --target cursor --skills-dir ./canon --project ./proj-cursor",
+        "hints": [
+          "Каталог-источник тот же самый — в этом весь смысл сравнения.",
+          "Отличается ровно одно: имя цели в --target. Потом сравниваешь выход через diff."
+        ]
+      },
+      "quiz": [
+        {
+          "id": "two-editors-q1",
+          "question": "После развёртывания одного навыка в claude-code и cursor что покажет diff тел файлов?",
+          "options": [
+            "Тело совпадёт, а отличия будут в шапке и в раскладке файлов",
+            "Всё будет различаться",
+            "Файлы будут идентичны целиком",
+            "diff не применим к таким файлам"
+          ],
+          "correctAnswer": 0,
+          "explanation": "ИЗМЕРЕНО: тело слово в слово то же; отличия — шапка (.mdc против SKILL.md) и путь."
+        }
+      ],
+      "finalTest": {
+        "id": "final-two-editors-one-skill",
+        "sectionId": "two-editors-one-skill",
+        "question": "Какой самый дешёвый способ увидеть цену конкретной цели?",
+        "options": [
+          "Развернуть один навык в две цели и сделать diff результатов",
+          "Прочитать README целиком",
+          "Спросить у модели",
+          "Сравнить номера версий адаптеров"
+        ],
+        "correctAnswer": 0
+      },
+      "diagram": {
+        "kind": "flow",
+        "title": "Один навык — две цели — один diff",
+        "nodes": [
+          {
+            "id": "canon",
+            "label": "Канон",
+            "note": "canon/hello-adapters/SKILL.md — один источник истины"
+          },
+          {
+            "id": "claude",
+            "label": "dz init claude-code",
+            "note": ".claude/skills/hello-adapters/SKILL.md"
+          },
+          {
+            "id": "cursor",
+            "label": "dz init cursor",
+            "note": ".cursor/rules/hello-adapters.mdc"
+          },
+          {
+            "id": "diff",
+            "label": "diff и sha256sum",
+            "note": "тело совпало, шапка и раскладка — нет",
+            "accent": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "copilot-odd-one",
+      "order": 9,
+      "title": "9. Copilot: потерянный, но пофайловый",
+      "shortTitle": "Copilot",
+      "description": "Странный случай: файл на каждый навык — и при этом самая заметная потеря.",
+      "icon": "🐙",
+      "interactiveType": "quiz",
+      "methodPattern": "P9",
+      "keyConcept": "Copilot теряет адресность: инструкция на навык, но всегда включённая",
+      "source": "packages/@dzhechkov/adapter-copilot/src/index.ts",
+      "theory": "Костя ждал, что Copilot окажется похож на Cursor. Оказалось — нет, и разница поучительная.\n\n**GitHub Copilot не сканирует каталог навыков вообще.** У него нет такого механизма. Зато он сам читает инструкции репозитория из `.github/instructions/*.instructions.md`. Поэтому адаптер пишет туда — файл на каждый навык, `<id>.instructions.md`.\n\nФормально Copilot в классе потерянных — вместе с `gemini` и `agents-md`. Но, в отличие от них, у него файл ОТДЕЛЬНЫЙ на каждый навык. Тогда в чём же потеря? Вот в чём, поимённо:\n\n1. `applyTo: \"**\"` — инструкция **всегда включена** для всех файлов; постепенного раскрытия нет;\n2. команды вызова навыка у Copilot нет — навык нельзя позвать по имени;\n3. `scripts/` кладутся в отдельный корень `.github/copilot-skills/<id>/` как справочные: Copilot их не исполняет.\n\n**Открытый вопрос, на который стоит потратить минуту:** «потерянный» и «трансформирующий» — это не про РАЗМЕР потери, а про то, ЧТО именно исчезает. Cursor теряет шапку, но сохраняет адресность: правило подтягивается по решению агента. Copilot сохраняет отдельный файл, но теряет адресность: инструкция висит всегда. Какая потеря дороже?\n\nЧестный ответ Кости: зависит от числа навыков. На трёх навыках всегда включённая инструкция — мелочь. На тридцати — это тридцать инструкций в каждом ходе, и цена уже не мелочь.",
+      "reflection": {
+        "strengths": "Работает на платформе, у которой понятия навыка нет вовсе; файл на навык оставляет читаемую структуру в репозитории.",
+        "weaknesses": "Инструкция всегда включена (applyTo: «**»), позвать навык по имени нельзя, скрипты лежат мёртвым грузом как справочные.",
+        "rating": "3/5 за практичность, 5/5 за честность описания потери",
+        "wrapup": "Copilot платит не размером потери, а её видом: отдельный файл есть, адресности нет."
+      },
+      "quiz": [
+        {
+          "id": "copilot-q1",
+          "question": "Почему адаптер Copilot пишет в .github/instructions/, а не в каталог навыков?",
+          "options": [
+            "Так короче путь",
+            "Потому что Copilot вообще не сканирует каталог навыков — у него есть только механизм инструкций репозитория",
+            "Потому что так требует npm",
+            "Потому что в каталог навыков нет прав записи"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Форма цели диктует форму эмиссии: механизма скана навыков у Copilot нет, значит и дерева навыков быть не может."
+        },
+        {
+          "id": "copilot-q2",
+          "question": "Что означает applyTo: «**» в эмитированной инструкции Copilot?",
+          "options": [
+            "Инструкция включена всегда и для всех файлов — постепенного раскрытия нет",
+            "Инструкция выключена",
+            "Инструкция применяется только к Markdown",
+            "Это комментарий"
+          ],
+          "correctAnswer": 0,
+          "explanation": "Это и есть главная потеря Copilot: адресность, а не структура файла."
+        }
+      ],
+      "finalTest": {
+        "id": "final-copilot-odd-one",
+        "sectionId": "copilot-odd-one",
+        "question": "Чем потеря Copilot отличается от потери Cursor?",
+        "options": [
+          "Copilot сохраняет файл на навык, но теряет адресность: инструкция всегда включена",
+          "Copilot теряет тело навыка",
+          "Copilot складывает всё в один файл",
+          "Copilot ничего не теряет"
+        ],
+        "correctAnswer": 0
+      }
+    },
+    {
+      "id": "loss-as-warning",
+      "order": 10,
+      "title": "10. Потеря всплывает предупреждением — или отказом",
+      "shortTitle": "Потеря громкая",
+      "description": "Правило контракта: молчаливой потери не бывает, а strict превращает предупреждение в отказ.",
+      "icon": "⚠️",
+      "interactiveType": "matching",
+      "methodPattern": "P12",
+      "keyConcept": "потеря всплывает предупреждением, а под strict — отказом",
+      "source": "packages/@dzhechkov/core/src/adapter.ts (контракт Adapter)",
+      "theory": "Костя спросил ровно то, что должен был спросить: «а как я УЗНАЮ, что цель что-то потеряла?»\n\nОтвет записан в самом контракте `Adapter`: компиляция **может** быть с потерями — но потеря обязана всплыть предупреждением, **никогда молча**. Это не пожелание в документации, это то, как написан каждый непобайтовый адаптер.\n\nМеханика одинаковая у всех:\n\n1. адаптер собирает строку `lossy` с ИМЕНЕМ навыка и перечислением того, что исчезает;\n2. если `ctx.strict !== true` — строка едет в `warnings` результата;\n3. если `ctx.strict === true` — компиляция ОТКАЗЫВАЕТСЯ: `refusing lossy compile under strict mode`.\n\n**Строгий режим — это выключатель «лучше не собрать, чем собрать тихо неправильно».** Он нужен там, где потеря недопустима: в конвейере сборки, а не на твоём ноутбуке.\n\nВторое место, где это видно, — `verify`. Он не просто проверяет структуру: он ПЕРЕНОСИТ предупреждения дальше — `const warnings = [...emit.warnings]`. Комментарий в адаптере объясняет зачем прямым текстом: чтобы `dz verify --target cursor` никогда не отчитался «чисто», не сказав про потерю.\n\n**Сноска здесь не украшение (и это общее правило хорошего инструмента): предупреждение — часть контракта, а не примечание внизу экрана.** Проверь себя прямо сейчас: если ты не можешь назвать, что теряет твоя цель, — ты цель не выбрал, ты взял первую попавшуюся.",
+      "reflection": {
+        "strengths": "Потеря никогда не молчит; strict даёт жёсткий режим для конвейера; verify тащит предупреждения дальше, а не глотает их.",
+        "weaknesses": "Предупреждение всё-таки надо прочитать: краткая сводка на экране показывает результат, а подробности живут в результате verify.",
+        "rating": "5/5 за честность модели, 3/5 за заметность в повседневной работе",
+        "wrapup": "Потеря всплывает предупреждением; под strict адаптер отказывается компилировать вовсе."
+      },
+      "exercise": {
+        "pairs": [
+          {
+            "left": "ctx.strict === true",
+            "right": "Отказ: refusing lossy compile under strict mode — потеря запрещена"
+          },
+          {
+            "left": "ctx.strict не задан",
+            "right": "Предупреждение в EmitResult.warnings — потеря разрешена, но названа"
+          },
+          {
+            "left": "verify адаптера",
+            "right": "Переносит предупреждения дальше, чтобы отчёт не выглядел чистым"
+          },
+          {
+            "left": "Строка lossy у cursor",
+            "right": "«Каноническая шапка заменена, scripts/ и другие активы не переносятся»"
+          },
+          {
+            "left": "Строка lossy у copilot",
+            "right": "«Всегда включённая инструкция: нет постепенного раскрытия и команды вызова»"
+          }
+        ]
+      },
+      "quiz": [
+        {
+          "id": "loss-as-warning-q1",
+          "question": "Что делает адаптер с потерей, если ctx.strict === true?",
+          "options": [
+            "Пишет предупреждение и продолжает",
+            "Отказывается компилировать: refusing lossy compile under strict mode",
+            "Игнорирует strict",
+            "Молча пропускает навык"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Строгий режим — «лучше не собрать, чем собрать тихо неправильно»."
+        }
+      ],
+      "finalTest": {
+        "id": "final-loss-as-warning",
+        "sectionId": "loss-as-warning",
+        "question": "Как контракт адаптеров требует обходиться с потерей при компиляции?",
+        "options": [
+          "Она всплывает предупреждением, а под strict превращается в отказ — молча никогда",
+          "Она просто игнорируется",
+          "О ней сообщает редактор",
+          "Потерь не бывает"
+        ],
+        "correctAnswer": 0
+      }
+    },
+    {
+      "id": "adapter-claude-integrations",
+      "order": 11,
+      "title": "11. adapter-claude: эталон и планировщик спутников",
+      "shortTitle": "adapter-claude",
+      "description": "Единственный адаптер с четырьмя файлами: почему он и база сравнения, и планировщик MCP.",
+      "icon": "🛰️",
+      "interactiveType": "drag-and-drop",
+      "methodPattern": "P10",
+      "keyConcept": "adapter-claude — эталон побайтовости и планировщик спутниковой конфигурации",
+      "source": "packages/@dzhechkov/adapter-claude/src/integrations.ts",
+      "theory": "Костя пробежал `find` по исходникам всех десяти пакетов и заметил аномалию: у девяти адаптеров ровно один файл `src/index.ts`. У `adapter-claude` их четыре — `index.ts`, `compile.ts`, `verify.ts` и `integrations.ts`. Значит, он делает что-то ещё.\n\n**Роль первая — эталон.** Формат Claude Code и есть канонический формат agentskills.io, поэтому именно этот адаптер служит базой побайтового сравнения для остальных. Когда где-то говорится «исключён из набора проверок побайтового равенства» — равенство измеряется относительно него.\n\n**Роль вторая — спутниковая конфигурация.** `claudeIntegrationAdapter` планирует то, что живёт рядом с навыками: MCP-серверы и хуки. Он тоже ничего не пишет — он возвращает ПЛАН из двух частей:\n\n- фрагменты-носители: например, файл `.mcp.json`, корневой ключ `mcpServers`, область `project`;\n- отказы — с кодом причины и подсказкой, что сделать.\n\n**И вот главное, ради чего эта секция вообще есть: отказ здесь ИМЕННОЙ, из закрытого словаря.** `INTENT_NOT_EXPRESSIBLE` — «квитанция доказывает только локальную команду stdio, без env и url», то есть намерение нельзя выразить честно. `NO_ACTIVATION_RECEIPT` — «для хуков нужна канарейка с одноразовым значением и отрицательный контроль», то есть нет доказательства, что хук реально сработал. Словарь причин закрыт и живёт в `core/src/adapter.ts` — придумать новую причину на месте нельзя.\n\nИЗМЕРЕНО на реальном прогоне: `dz init` без явного согласия печатает `MCP: NOT-REQUESTED` и `Hooks: NOT-REQUESTED`. Спутниковая конфигурация не приезжает сама — её надо запросить, и согласие на манифест интеграций требует точной контрольной суммы.",
+      "reflection": {
+        "strengths": "Один пакет закрывает и эталон побайтовости, и планирование MCP/хуков; отказы именные, из закрытого словаря — их нельзя размыть.",
+        "weaknesses": "Асимметрия: спутниковая конфигурация есть только у этой цели, остальные девять её не планируют — паритет по этой линии неполный.",
+        "rating": "5/5 за строгость отказов, 3/5 за равномерность по целям",
+        "wrapup": "adapter-claude — база побайтового сравнения плюс планировщик спутниковой конфигурации с именными отказами."
+      },
+      "exercise": {
+        "instruction": "Разложи по порядку, как adapter-claude обрабатывает запрос на спутниковую конфигурацию MCP.",
+        "items": [
+          {
+            "id": "manifest",
+            "label": "Прочитать манифест интеграций: какие MCP-серверы и хуки заявлены"
+          },
+          {
+            "id": "check",
+            "label": "Проверить каждое намерение: выразимо ли оно тем, что доказано квитанцией"
+          },
+          {
+            "id": "refuse",
+            "label": "Невыразимое — в отказы с кодом причины (например, INTENT_NOT_EXPRESSIBLE)"
+          },
+          {
+            "id": "fragment",
+            "label": "Выразимое — во фрагмент-носитель: .mcp.json, ключ mcpServers"
+          },
+          {
+            "id": "plan",
+            "label": "Вернуть ПЛАН — фрагменты плюс отказы; запись делает слой выше"
+          }
+        ],
+        "correctOrder": [
+          "manifest",
+          "check",
+          "refuse",
+          "fragment",
+          "plan"
+        ]
+      },
+      "quiz": [
+        {
+          "id": "adapter-claude-q1",
+          "question": "Чем adapter-claude отличается от остальных девяти по составу исходников?",
+          "options": [
+            "Ничем",
+            "У него четыре файла вместо одного: помимо compile/verify он несёт планировщик интеграций MCP и хуков",
+            "Он написан на другом языке",
+            "У него нет verify"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Измерено find по src/: девять адаптеров — один index.ts, adapter-claude — четыре файла."
+        }
+      ],
+      "finalTest": {
+        "id": "final-adapter-claude-integrations",
+        "sectionId": "adapter-claude-integrations",
+        "question": "Какие две роли несёт adapter-claude?",
+        "options": [
+          "Эталон побайтового сравнения и планировщик спутниковой конфигурации (MCP, хуки)",
+          "Только компиляция навыков",
+          "Запуск модели и биллинг",
+          "Публикация пакетов в npm"
+        ],
+        "correctAnswer": 0
+      }
+    },
+    {
+      "id": "dz-parity",
+      "order": 12,
+      "title": "12. dz parity: честная карта возможностей и целей",
+      "shortTitle": "dz parity",
+      "description": "Двенадцать возможностей на десять целей, вычисленные из модели, а не написанные руками.",
+      "icon": "🗺️",
+      "interactiveType": "scenario",
+      "methodPattern": "D2",
+      "keyConcept": "паритет — вычисленная карта: что работает на цели и в какой форме",
+      "source": "packages/@dzhechkov/harness-core/src/parity.ts",
+      "theory": "Костя дошёл до вопроса, который рано или поздно задают все: «ладно, навыки доехали — а остальной харнес?» Для этого есть одна команда.\n\n```\ndz parity\n```\n\nОна печатает таблицу: двенадцать возможностей харнеса по строкам, десять целей по столбцам. **Ключевое свойство: таблица не написана руками — она ВЫЧИСЛЕНА из модели возможностей** (`harness-core/src/parity.ts`). Рукописная копия такой таблицы была бы вторым источником расхождения: код меняется, документ отстаёт, и читатель верит документу.\n\nТри знака в клетках:\n\n- `✓` — полностью: возможность работает сама;\n- `◐` — вручную: возможность ДОСТУПНА, но ведёшь её ты;\n- `—` — недоступно на этой цели.\n\n**`◐` — не «сломано».** Это самая частая ошибка чтения. ИЗМЕРЕНО: у Cursor конвейер `feature-adr` стоит как `◐` — «интерактивный навык, ведёшь руками», а не «не работает».\n\nИЗМЕРЕНО из живого прогона: у всех десяти целей `✓` на строках «dz CLI (all commands)» и «Skill packs (compiled per target)» — базовая совместимость полная. Живая статусная панель `✓` только у `claude-code`, у остальных `—`. MCP-память: `✓` у `claude-code`, `◐` у `codex`, `—` у остальных восьми.\n\nЧитается это как компромисс, а не как рейтинг: чем ближе цель к родному формату, тем больше возможностей едет автоматом; чем дальше — тем больше остаётся на твоих руках.",
+      "reflection": {
+        "strengths": "Одна команда отвечает на «что я потеряю, если перееду»; таблица вычислена из кода, поэтому не может отстать от него.",
+        "weaknesses": "Полнота таблицы ограничена тем, что реально проверено: строки, где улик нет, выглядят скромнее, чем цель на самом деле умеет.",
+        "rating": "5/5 за отсутствие дрейфа, 3/5 за полноту покрытия целей",
+        "wrapup": "dz parity — вычисленная карта: какая возможность на какой цели работает и в какой форме."
+      },
+      "exercise": {
+        "title": "Куда посадить нового участника команды",
+        "scenario": "К Косте выходит новый разработчик. Он привык к Cursor. Костя решает, что ему обещать и что честно сказать заранее.",
+        "steps": [
+          {
+            "description": "Первое, что Костя делает перед разговором:",
+            "options": [
+              {
+                "text": "Запускает dz parity и смотрит колонку cursor",
+                "feedback": "Верно. Карта вычислена из модели — это самый быстрый честный ответ."
+              },
+              {
+                "text": "Ищет в README таблицу совместимости",
+                "feedback": "Мимо: рукописной таблицы намеренно не существует, чтобы она не расходилась с кодом."
+              },
+              {
+                "text": "Спрашивает в чате команды",
+                "feedback": "Получишь мнение вместо измерения."
+              }
+            ]
+          },
+          {
+            "description": "В колонке cursor напротив feature-adr стоит ◐. Как Костя это озвучивает?",
+            "options": [
+              {
+                "text": "«Конвейер доступен, но ведёшь его руками — как интерактивный навык»",
+                "feedback": "Точно: ◐ означает «работает, но ты за рулём», а не «сломано»."
+              },
+              {
+                "text": "«Конвейера у тебя не будет»",
+                "feedback": "Неверно и обидно: ◐ — это доступно вручную, знак недоступности другой."
+              },
+              {
+                "text": "«Всё работает как у меня»",
+                "feedback": "Это обещание, которого карта не даёт: у claude-code там ✓, а не ◐."
+              }
+            ]
+          },
+          {
+            "description": "Новичок спрашивает про живую статусную панель. Что показывает карта?",
+            "options": [
+              {
+                "text": "— у cursor: этой возможности на цели нет",
+                "feedback": "Да, ИЗМЕРЕНО: панель ✓ только у claude-code."
+              },
+              {
+                "text": "◐: можно включить руками",
+                "feedback": "Нет, в этой строке у cursor стоит именно знак недоступности."
+              },
+              {
+                "text": "✓, как у всех",
+                "feedback": "Полный знак там только у claude-code."
+              }
+            ]
+          }
+        ]
+      },
+      "quiz": [
+        {
+          "id": "dz-parity-q1",
+          "question": "Что означает ◐ в таблице dz parity?",
+          "options": [
+            "Возможность недоступна",
+            "Возможность доступна, но ведёшь её руками",
+            "Возможность в разработке",
+            "Улика устарела"
+          ],
+          "correctAnswer": 1,
+          "explanation": "◐ — это «работает, но за рулём ты»; знак недоступности — прочерк."
+        }
+      ],
+      "finalTest": {
+        "id": "final-dz-parity",
+        "sectionId": "dz-parity",
+        "question": "Откуда берётся таблица dz parity?",
+        "options": [
+          "Она вычислена из модели возможностей в коде, а не написана руками",
+          "Её ведёт вручную мейнтейнер в README",
+          "Её присылает каждый редактор по API",
+          "Она генерируется моделью при каждом запуске"
+        ],
+        "correctAnswer": 0
+      },
+      "diagram": {
+        "kind": "scale",
+        "title": "Четыре знака паритета",
+        "topLabel": "работает само, руки не нужны",
+        "bottomLabel": "на этой цели не работает",
+        "nodes": [
+          {
+            "id": "full",
+            "label": "✓ полностью",
+            "note": "возможность работает сама, без ручного ведения",
+            "accent": true
+          },
+          {
+            "id": "manual",
+            "label": "◐ вручную",
+            "note": "доступно, но конвейер ведёшь ты"
+          },
+          {
+            "id": "unknown",
+            "label": "? улика устарела",
+            "note": "клетка перестала утверждать, пока её не перепроверят"
+          },
+          {
+            "id": "none",
+            "label": "— недоступно",
+            "note": "этой возможности на цели нет"
+          }
+        ]
+      }
+    },
+    {
+      "id": "parity-honest-gaps",
+      "order": 13,
+      "title": "13. Где карта честно неполна",
+      "shortTitle": "Честные пробелы",
+      "description": "Пустая клетка значит «не измерено», а знак вопроса — «улика устарела».",
+      "icon": "🕳️",
+      "interactiveType": "builder",
+      "methodPattern": "P11",
+      "keyConcept": "непроверенное не помечается поддержанным: пустая клетка значит «не измерено»",
+      "source": "packages/@dzhechkov/harness-core/src/parity.ts (контракт честности)",
+      "theory": "Это секция, ради которой Костя и просил курс. Карта паритета полезна ровно настолько, насколько честно она признаётся в незнании.\n\n**Контракт честности записан в самом модуле: флаг возможности утверждает только то, что ПРОВЕРЕНО, и у каждого флага в коде рядом стоит источник. Неизвестная поддержка НЕ отмечается.** Обоснование там же: ложно обещанная возможность хуже, чем консервативно отмеченная как отсутствующая.\n\nОтсюда следствие, которое надо читать правильно. У семи целей — `opencode`, `hermes`, `openclaude`, `copilot`, `cursor`, `gemini`, `windsurf` — в модели ровно две возможности: `shell` и `skills`, с комментарием «консервативная первая версия: эмиссия навыков подтверждена адаптерами, более богатые среды не доказаны». **Это надо читать как «не измерено», а не как «нет».**\n\nИ есть четвёртый знак, которого нет в общей таблице, — `?`. ИЗМЕРЕНО:\n\n```\n$ dz parity --target codex\n? Self-learning: automatic apply-leg  … INCONCLUSIVE: stale evidence for hooks-prompt\n⚠ hooks-prompt: улика записана на codex-cli 0.147.0, свежайшая запись — 0.148.0\n```\n\nЧто здесь произошло: возможность когда-то была ДОКАЗАНА живой пробой, но проба относится к старой версии инструмента, а с тех пор появилась новая. Модель не стала утверждать по инерции — она понизила клетку до «неубедительно», пока не перепроверят. **Важная тонкость: `inconclusive` — это уровень ОТЧЁТА, а не модели. Модель по-прежнему знает, что было доказано; отчёт отказывается это предъявлять как действующее.**\n\nПроверь себя одним вопросом: когда ты в следующий раз увидишь пустую клетку в чьей-нибудь таблице совместимости — ты сможешь сказать, это «не умеет» или «не проверяли»? В большинстве таблиц ответа нет. Здесь он есть, и в этом вся ценность.",
+      "reflection": {
+        "strengths": "Карта умеет сказать «не знаю»: устаревшая улика понижает клетку сама, а неизмеренное никогда не выдаётся за поддержанное.",
+        "weaknesses": "Цена честности — заниженная картина: цель может уметь больше, чем показано, просто это ещё не проверяли живой пробой.",
+        "rating": "5/5 за честность, 3/5 за полноту",
+        "wrapup": "Пустая клетка значит «не измерено», знак вопроса — «улика устарела»; ни то, ни другое не значит «не умеет»."
+      },
+      "exercise": {
+        "instruction": "Собери команду, которой Костя смотрит подробности по одной цели и видит, какие клетки помечены как неубедительные из-за устаревшей улики.",
+        "parts": [
+          "dz parity",
+          "--target codex"
+        ],
+        "correctCommand": "dz parity --target codex",
+        "hints": [
+          "Без --target ты получишь общую таблицу; подробности с причинами живут в разрезе одной цели.",
+          "Именно в этом выводе появляется знак ?, а под таблицей — строка с версиями улики."
+        ]
+      },
+      "quiz": [
+        {
+          "id": "parity-honest-gaps-q1",
+          "question": "У cursor в модели только shell и skills. Как это правильно прочитать?",
+          "options": [
+            "Cursor больше ничего не умеет",
+            "Остальное не измерено: контракт запрещает отмечать непроверенное как поддержанное",
+            "Модель устарела и её надо переписать",
+            "Cursor не поддерживается"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Консервативность здесь осознанная: ложно обещанная возможность хуже честно пустой клетки."
+        }
+      ],
+      "finalTest": {
+        "id": "final-parity-honest-gaps",
+        "sectionId": "parity-honest-gaps",
+        "question": "Что означает знак ? в выводе dz parity --target codex?",
+        "options": [
+          "Улика устарела: клетка понижена до неубедительной, пока её не перепроверят",
+          "Возможность в разработке",
+          "Ошибка команды",
+          "Возможность работает частично"
+        ],
+        "correctAnswer": 0
+      }
+    },
+    {
+      "id": "choose-your-target",
+      "order": 14,
+      "title": "14. Твой выбор: какой потерей ты платишь",
+      "shortTitle": "Твой выбор",
+      "description": "Финальная развилка: подобрать цель под свою команду и назвать цену вслух.",
+      "icon": "🧭",
+      "interactiveType": "scenario",
+      "methodPattern": "D3",
+      "keyConcept": "выбор цели — решение о том, какой потерей ты платишь",
+      "source": "сводка курса: три класса + dz parity",
+      "theory": "Теперь роль твоя, а не Костина. Костя уже прошёл этот выбор и вот к чему пришёл.\n\n**Правило одной фразой: цель выбирают не по названию редактора, а по тому, какую потерю ты готов принять.** Три ответа, три цены:\n\n1. **Редактор понимает формат agentskills.io** (Claude Code, Codex, OpenCode, Hermes, OpenClaude) — бери побайтовую цель. Цена: ноль. Ограничение: список редакторов короткий.\n2. **Редактор имеет свой формат правил** (Cursor, Windsurf) — бери трансформирующую. Цена: каноническая шапка и активы `scripts/`. Приобретение: правило по запросу агента, экономия контекста.\n3. **У редактора вообще нет понятия навыка** (Copilot, Gemini CLI, всё семейство AGENTS.md) — бери уплощающую. Цена: шапка, постепенное раскрытие, границы навыков, активы. Приобретение: работает почти везде.\n\nДве проверки перед тем, как объявить выбор сделанным:\n\n- запусти `dz parity --target <имя>` и прочитай, что уедет автоматом, а что останется на руках;\n- разверни ОДИН навык и сделай `diff` — секция 8 занимает минуту и отвечает точнее любого README.\n\nИ последнее, что стоит унести из курса целиком. Слой адаптеров ценен не тем, что «работает везде» — так не бывает. Он ценен тем, что **каждая потеря названа по имени, всплывает предупреждением и может быть запрещена строгим режимом.** Инструмент, который честно говорит, чем ты платишь, лучше инструмента, который обещает бесплатно.",
+      "reflection": {
+        "strengths": "Выбор сводится к трём вариантам с названной ценой; обе проверки дешёвые и делаются за минуту.",
+        "weaknesses": "Правило не решает смешанный случай: команда на четырёх редакторах платит четырьмя разными потерями одновременно, и общего оптимума тут нет.",
+        "rating": "5/5 за применимость, 3/5 за охват смешанных команд",
+        "wrapup": "Выбор цели — это решение о том, какой потерей ты платишь; назови её вслух, и выбор станет обоснованным."
+      },
+      "exercise": {
+        "title": "Разложи команду по целям",
+        "scenario": "У тебя четверо: ты в Claude Code, дизайнер в Cursor, дата-инженер в Gemini CLI, ревьюер в Copilot. Один канонический набор навыков. Реши, что каждому обещать.",
+        "steps": [
+          {
+            "description": "Себе в Claude Code ты обещаешь:",
+            "options": [
+              {
+                "text": "Побайтовый перенос: SKILL.md доедет без изменений, активы тоже",
+                "feedback": "Верно — это родной формат, цена нулевая."
+              },
+              {
+                "text": "Потерю шапки",
+                "feedback": "Нет, это цена трансформирующей цели, а не побайтовой."
+              },
+              {
+                "text": "Один общий файл",
+                "feedback": "Нет, это уплощающая цель."
+              }
+            ]
+          },
+          {
+            "description": "Дизайнеру в Cursor ты честно говоришь, что он потеряет:",
+            "options": [
+              {
+                "text": "Каноническую шапку и активы scripts/ — но получит правило по запросу агента",
+                "feedback": "Точно: цена названа, приобретение тоже."
+              },
+              {
+                "text": "Ничего не потеряет",
+                "feedback": "Обещание, которого адаптер не даёт: он прямо помечен как не побайтовый."
+              },
+              {
+                "text": "Потеряет тело навыка",
+                "feedback": "Тело как раз доезжает слово в слово."
+              }
+            ]
+          },
+          {
+            "description": "Дата-инженеру в Gemini CLI и ревьюеру в Copilot — что общего в их потере?",
+            "options": [
+              {
+                "text": "Оба теряют постепенное раскрытие: инструкции включены всегда",
+                "feedback": "Да, это общая черта уплощающего класса, хотя раскладка файлов у них разная."
+              },
+              {
+                "text": "Оба получают по каталогу на навык",
+                "feedback": "Нет: у Gemini один файл на всё, у Copilot файл на навык, но каталога навыков нет ни у кого из них."
+              },
+              {
+                "text": "Оба теряют только активы",
+                "feedback": "Потеря шире: уходят ещё шапка и постепенное раскрытие."
+              }
+            ]
+          },
+          {
+            "description": "Последний шаг перед тем, как объявить выбор сделанным:",
+            "options": [
+              {
+                "text": "Развернуть один навык в каждую цель и сравнить diff, потом свериться с dz parity",
+                "feedback": "Именно так: измерение вместо обещания — это и есть весь курс одной строкой."
+              },
+              {
+                "text": "Написать в чат, что всё готово",
+                "feedback": "Слишком рано: ни одной квитанции ты пока не видел."
+              },
+              {
+                "text": "Довериться номерам версий адаптеров",
+                "feedback": "Версии — гипотеза, а не доказательство; курс это отдельно оговаривал."
+              }
+            ]
+          }
+        ]
+      },
+      "quiz": [
+        {
+          "id": "choose-your-target-q1",
+          "question": "По какому критерию выбирается цель, если следовать курсу?",
+          "options": [
+            "По популярности редактора",
+            "По тому, какой потерей ты готов заплатить — и она у каждого класса названа",
+            "По номеру версии адаптера",
+            "По алфавиту"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Три класса — три названные цены; выбор сводится к тому, какая из них для тебя приемлема."
+        }
+      ],
+      "finalTest": {
+        "id": "final-choose-your-target",
+        "sectionId": "choose-your-target",
+        "question": "Как курс формулирует выбор цели?",
+        "options": [
+          "Это решение о том, какой потерей ты платишь за совместимость",
+          "Это выбор самого быстрого адаптера",
+          "Это выбор самой свежей версии пакета",
+          "Это выбор редактора вместо навыка"
+        ],
+        "correctAnswer": 0
+      }
+    }
+  ],
+  "achievements": [
+    {
+      "id": "first-step",
+      "title": "Первый шаг",
+      "description": "Пройдена первая секция — слой адаптеров перестал быть чёрным ящиком.",
+      "icon": "👣",
+      "conditionRef": {
+        "type": "sections-completed",
+        "n": 1
+      }
+    },
+    {
+      "id": "halfway",
+      "title": "Экватор",
+      "description": "Семь секций позади — половина карты адаптеров пройдена.",
+      "icon": "⛰️",
+      "conditionRef": {
+        "type": "sections-completed",
+        "n": 7
+      }
+    },
+    {
+      "id": "perfectionist",
+      "title": "Перфекционист",
+      "description": "Секция пройдена без единой ошибки.",
+      "icon": "💯",
+      "conditionRef": {
+        "type": "perfect-section"
+      }
+    },
+    {
+      "id": "full-course",
+      "title": "Полный курс",
+      "description": "Все четырнадцать секций пройдены — слой адаптеров освоен целиком.",
+      "icon": "🎓",
+      "conditionRef": {
+        "type": "all-sections"
+      }
+    },
+    {
+      "id": "test-passed",
+      "title": "Финальный рубеж",
+      "description": "Финальный тест сдан на 70% и выше.",
+      "icon": "🏆",
+      "conditionRef": {
+        "type": "final-test-pass",
+        "min": 70
+      }
+    },
+    {
+      "id": "klassifikator",
+      "title": "Классификатор",
+      "description": "Секция про три класса пройдена — теперь класс адаптера ты определяешь по коду, а не по имени.",
+      "icon": "🗂️",
+      "conditionRef": {
+        "type": "section-group",
+        "ids": [
+          "three-classes"
+        ]
+      }
+    },
+    {
+      "id": "dvoynoy-emit",
+      "title": "Двойная эмиссия",
+      "description": "Практика пройдена: один навык развёрнут в две цели и сравнён через diff.",
+      "icon": "🔬",
+      "conditionRef": {
+        "type": "section-group",
+        "ids": [
+          "two-editors-one-skill"
+        ]
+      }
+    },
+    {
+      "id": "poteri-po-imenam",
+      "title": "Потери по именам",
+      "description": "Все три секции про классы потерь пройдены — ты можешь назвать цену любой цели.",
+      "icon": "⚠️",
+      "conditionRef": {
+        "type": "section-group",
+        "ids": [
+          "transforming-targets",
+          "flattening-targets",
+          "copilot-odd-one"
+        ]
+      }
+    },
+    {
+      "id": "chestnyy-paritet",
+      "title": "Честный паритет",
+      "description": "Обе секции про dz parity пройдены — ты отличаешь «не умеет» от «не измеряли».",
+      "icon": "🗺️",
+      "conditionRef": {
+        "type": "section-group",
+        "ids": [
+          "dz-parity",
+          "parity-honest-gaps"
+        ]
+      }
+    }
+  ],
+  "faqData": [
+    {
+      "question": "Я поставил навыки в Cursor, а шапка выглядит совсем иначе — это баг?",
+      "answer": "Нет, это заявленное поведение трансформирующей цели. Cursor понимает три ключа (description, необязательный globs, alwaysApply), поэтому каноническая шапка заменяется целиком. Тело навыка при этом переезжает слово в слово — проверь diff тел, он будет пустым."
+    },
+    {
+      "question": "Почему --target claude работает, если в списке написано claude-code?",
+      "answer": "Через таблицу псевдонимов, и dz об этом печатает: «dz init: --target \"claude\" → claude-code (alias)». Псевдонимы — данные, не логика: claude и cc ведут на claude-code, agents — на agents-md, gpt и openai — на codex."
+    },
+    {
+      "question": "Я дописал свои заметки в AGENTS.md — их затрёт следующий dz init?",
+      "answer": "Нет, если они за пределами управляемого блока. dz меняет только то, что между маркерами dz:skills BEGIN и dz:skills END; стратегия записи — слияние, а не перезапись. Измерено повторным запуском: дописанные вручную строки остались на месте."
+    },
+    {
+      "question": "Как узнать, что именно теряет моя цель, не читая исходники?",
+      "answer": "Потеря обязана всплыть предупреждением — это записано в контракте адаптера, и verify переносит предупреждения дальше. Если потеря вообще недопустима, включай строгий режим: под ним адаптер откажется компилировать с сообщением refusing lossy compile under strict mode."
+    },
+    {
+      "question": "В dz parity у моей цели почти пустая колонка. Значит, она мало что умеет?",
+      "answer": "Не обязательно. Контракт честности запрещает отмечать непроверенное как поддержанное, поэтому пустая клетка значит «не измерено», а не «не умеет». Отдельно есть знак ?: он означает, что улика устарела — например, записана на codex-cli 0.147.0, а свежайшая запись 0.148.0."
+    },
+    {
+      "question": "Можно ли из скомпилированного файла восстановить исходный навык?",
+      "answer": "У побайтовых целей — да: SKILL.md совпадает с каноном байт в байт, что проверяется diff и sha256sum. У трансформирующих и уплощающих — нет: каноническая шапка заменена или выброшена. Именно поэтому канонический каталог навыков остаётся единственным источником истины."
+    },
+    {
+      "question": "Адаптер — это отдельная утилита, которую можно запустить?",
+      "answer": "Нет. Измерено по package.json: ни один из десяти адаптеров не объявляет bin, и у каждого ровно одна зависимость — @dzhechkov/core. Адаптеры всегда вызываются через dz init --target <имя>."
+    }
+  ],
+  "footer": {
+    "links": [
+      {
+        "label": "npm: @dzhechkov/adapter-claude",
+        "href": "https://www.npmjs.com/package/@dzhechkov/adapter-claude"
+      },
+      {
+        "label": "npm: @dzhechkov/harness-cli",
+        "href": "https://www.npmjs.com/package/@dzhechkov/harness-cli"
+      },
+      {
+        "label": "GitHub (зеркало)",
+        "href": "https://github.com/djd1m/dz-harness"
+      },
+      {
+        "label": "Telegram: LLM notes",
+        "href": "https://t.me/llm_notes"
+      },
+      {
+        "label": "aicoding.space",
+        "href": "https://aicoding.space"
+      }
+    ]
+  },
+  "feedback": {
+    "repo": "djd1m/dz-harness",
+    "packagePath": "packages/adapter-claude"
+  }
+}

@@ -1,0 +1,985 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Слой адаптеров dz: один навык — десять редакторов</title>
+<meta name="description" content="Практический курс о том, как навыки из dz попадают в твой редактор и чем ты за это платишь. Вместе с Костей ты разберёшь, что такое цель (--target), какой контракт общий у всех дес">
+</head>
+<body>
+<div class="layout">
+  <aside id="aside"></aside>
+  <main id="main"></main>
+</div>
+<footer id="site-footer"><a href="https://t.me/llm_notes" target="_blank" rel="noopener noreferrer">Telegram: LLM notes</a><span class="footer-sep">·</span><a href="https://aicoding.space" target="_blank" rel="noopener noreferrer">aicoding.space</a><span class="footer-sep">·</span><a href="https://www.npmjs.com/package/@dzhechkov/adapter-claude" target="_blank" rel="noopener noreferrer">npm: @dzhechkov/adapter-claude</a><span class="footer-sep">·</span><a href="https://www.npmjs.com/package/@dzhechkov/harness-cli" target="_blank" rel="noopener noreferrer">npm: @dzhechkov/harness-cli</a><span class="footer-sep">·</span><a href="https://github.com/djd1m/dz-harness" target="_blank" rel="noopener noreferrer">GitHub (зеркало)</a><span class="footer-sep">·</span><a href="https://github.com/djd1m/dz-harness/blob/main/packages/adapter-claude/README.md" target="_blank" rel="noopener noreferrer">Полная документация пакета</a><span class="footer-sep">·</span><a href="https://github.com/djd1m/dz-harness/issues/new?title=%5Badapter-claude%5D%20&amp;body=%D0%97%D0%B0%D0%BC%D0%B5%D1%87%D0%B0%D0%BD%D0%B8%D0%B5%20%D0%BF%D0%BE%20%D0%B8%D1%82%D0%BE%D0%B3%D0%B0%D0%BC%20%D0%BA%D1%83%D1%80%D1%81%D0%B0%20%C2%AB%D0%A1%D0%BB%D0%BE%D0%B9%20%D0%B0%D0%B4%D0%B0%D0%BF%D1%82%D0%B5%D1%80%D0%BE%D0%B2%20dz%3A%20%D0%BE%D0%B4%D0%B8%D0%BD%20%D0%BD%D0%B0%D0%B2%D1%8B%D0%BA%20%E2%80%94%20%D0%B4%D0%B5%D1%81%D1%8F%D1%82%D1%8C%20%D1%80%D0%B5%D0%B4%D0%B0%D0%BA%D1%82%D0%BE%D1%80%D0%BE%D0%B2%C2%BB.%0A%0A%D0%9F%D0%B0%D0%BA%D0%B5%D1%82%3A%20%60packages%2Fadapter-claude%60%0A%0A**%D0%A7%D1%82%D0%BE%20%D0%BE%D0%B6%D0%B8%D0%B4%D0%B0%D0%BB%D0%BE%D1%81%D1%8C%3A**%0A%0A**%D0%A7%D1%82%D0%BE%20%D0%BF%D1%80%D0%BE%D0%B8%D0%B7%D0%BE%D1%88%D0%BB%D0%BE%3A**%0A%0A**%D0%9A%D0%B0%D0%BA%20%D0%B2%D0%BE%D1%81%D0%BF%D1%80%D0%BE%D0%B8%D0%B7%D0%B2%D0%B5%D1%81%D1%82%D0%B8%3A**%0A" target="_blank" rel="noopener noreferrer">Что-то работает не так?</a></footer>
+<script type="application/json" id="course-data">{"language":"ru","courseTitle":"Слой адаптеров dz: один навык — десять редакторов","courseDescription":"Практический курс о том, как навыки из dz попадают в твой редактор и чем ты за это платишь. Вместе с Костей ты разберёшь, что такое цель (--target), какой контракт общий у всех десяти адаптеров, на какие три измеренных класса они делятся, развернёшь один и тот же навык в два редактора и сравнишь результат, а в конце прочитаешь карту dz parity — включая те клетки, где она честно признаётся, что не измеряла.","persona":{"name":"Костя","description":"Костя — тимлид небольшой команды, в которой каждый сидит в своём редакторе: он сам в Claude Code, фронтендер в Cursor, дата-инженер в Gemini CLI, ревьюер в Copilot. Двенадцать навыков написаны один раз — и Костя идёт на шаг впереди тебя: сначала ошибается сам, потом показывает измерение."},"finalTestPassThreshold":70,"topics":[{"id":"why-adapters","title":"1. Зачем нужен слой адаптеров?","keyConcepts":["адаптер — компилятор навыка под конкретный редактор"],"suggestedExercise":"flashcards","methodPattern":"P3","source":"packages/@dzhechkov/core/src/adapter.ts"},{"id":"what-is-a-target","title":"2. Что такое цель: dz init --target","keyConcepts":["цель --target — имя в реестре dz, а не имя платформы"],"suggestedExercise":"builder","methodPattern":"P5","source":"packages/@dzhechkov/harness-core/src/targets.ts"},{"id":"the-emit-contract","title":"3. Общий контракт: compile, verify и EmitResult","keyConcepts":["compile и verify — чистые функции, возвращающие EmitResult"],"suggestedExercise":"matching","methodPattern":"D4","source":"packages/@dzhechkov/core/src/adapter.ts:68"},{"id":"three-classes","title":"4. Три класса адаптеров — и как их измерить","keyConcepts":["класс адаптера определяется измерением исходников, а не именем"],"suggestedExercise":"drag-and-drop","methodPattern":"P6","source":"packages/@dzhechkov/adapter-*/package.json + src/index.ts"},{"id":"lossless-skill-tree","title":"5. Побайтовая пятёрка: один движок, пять корней","keyConcepts":["побайтовый перенос: SKILL.md доезжает без единого изменённого байта"],"suggestedExercise":"quiz","methodPattern":"P2","source":"packages/@dzhechkov/core/src/skill-emit.ts"},{"id":"transforming-targets","title":"6. Трансформирующие цели: Cursor и Windsurf","keyConcepts":["трансформирующая цель заменяет каноническую шапку своей"],"suggestedExercise":"scenario","methodPattern":"P8","source":"packages/@dzhechkov/adapter-cursor/src/index.ts"},{"id":"flattening-targets","title":"7. Уплощающие цели: всё в один файл","keyConcepts":["уплощающая цель сводит все навыки в один файл"],"suggestedExercise":"flashcards","methodPattern":"P4","source":"packages/@dzhechkov/adapter-gemini/src/index.ts"},{"id":"two-editors-one-skill","title":"8. Практика: один навык в два редактора и diff","keyConcepts":["один навык в две цели: diff показывает, чем они отличаются"],"suggestedExercise":"builder","methodPattern":"P1","source":"измеренный прогон dz init --target claude-code / cursor"},{"id":"copilot-odd-one","title":"9. Copilot: потерянный, но пофайловый","keyConcepts":["Copilot теряет адресность: инструкция на навык, но всегда включённая"],"suggestedExercise":"quiz","methodPattern":"P9","source":"packages/@dzhechkov/adapter-copilot/src/index.ts"},{"id":"loss-as-warning","title":"10. Потеря всплывает предупреждением — или отказом","keyConcepts":["потеря всплывает предупреждением, а под strict — отказом"],"suggestedExercise":"matching","methodPattern":"P12","source":"packages/@dzhechkov/core/src/adapter.ts (контракт Adapter)"},{"id":"adapter-claude-integrations","title":"11. adapter-claude: эталон и планировщик спутников","keyConcepts":["adapter-claude — эталон побайтовости и планировщик спутниковой конфигурации"],"suggestedExercise":"drag-and-drop","methodPattern":"P10","source":"packages/@dzhechkov/adapter-claude/src/integrations.ts"},{"id":"dz-parity","title":"12. dz parity: честная карта возможностей и целей","keyConcepts":["паритет — вычисленная карта: что работает на цели и в какой форме"],"suggestedExercise":"scenario","methodPattern":"D2","source":"packages/@dzhechkov/harness-core/src/parity.ts"},{"id":"parity-honest-gaps","title":"13. Где карта честно неполна","keyConcepts":["непроверенное не помечается поддержанным: пустая клетка значит «не измерено»"],"suggestedExercise":"builder","methodPattern":"P11","source":"packages/@dzhechkov/harness-core/src/parity.ts (контракт честности)"},{"id":"choose-your-target","title":"14. Твой выбор: какой потерей ты платишь","keyConcepts":["выбор цели — решение о том, какой потерей ты платишь"],"suggestedExercise":"scenario","methodPattern":"D3","source":"сводка курса: три класса + dz parity"}],"sections":[{"id":"why-adapters","order":1,"title":"1. Зачем нужен слой адаптеров?","shortTitle":"Зачем адаптеры","description":"Один навык, десять редакторов — и почему это работа компилятора, а не копипасты.","icon":"🧩","interactiveType":"flashcards","methodPattern":"P3","keyConcept":"адаптер — компилятор навыка под конкретный редактор","source":"packages/@dzhechkov/core/src/adapter.ts","theory":"Костя — тимлид, и у него ровно та же проблема, с которой ты сюда пришёл. Он написал двенадцать навыков в dz. Сам сидит в Claude Code. Фронтендер — в Cursor. Дата-инженер — в Gemini CLI. Ревьюер живёт внутри GitHub Copilot. Вопрос Кости звучал так: «я напишу навык один раз — что увидит каждый из них?»\n\nСначала два слова, чтобы дальше говорить на одном языке.\n\n- **Навык (skill)** — это папка с файлом `SKILL.md`: YAML-шапка (`name`, `description`) плюс тело в Markdown. Тело — инструкция агенту, шапка — метаданные, по которым его находят.\n- **Адаптер (adapter)** — это **компилятор**: на входе один канонический навык, на выходе — файлы ровно в том виде, в каком их читает конкретный редактор.\n\n**Вот вся идея курса одной фразой: навык — один источник истины, а у каждого редактора свой формат; адаптер — компилятор из одного во многие.** Не десять инструментов, а один компилятор с десятью выходами.\n\nПочему не копировать файлы руками? Потому что копия — это не «то же самое в другом месте». Cursor читает `.cursor/rules/` и игнорирует файлы с неправильным расширением. Gemini читает ОДИН файл в корне. Copilot вообще не сканирует каталог навыков. Костя, копируя руками, через неделю не помнил бы, какая копия свежая, — а главное, не знал бы, что именно потерялось по дороге.\n\nВсе десять адаптеров лежат на npm рядом друг с другом — например [@dzhechkov/adapter-claude](https://www.npmjs.com/package/@dzhechkov/adapter-claude) и [@dzhechkov/adapter-cursor](https://www.npmjs.com/package/@dzhechkov/adapter-cursor); исходники — в публичном зеркале [github.com/djd1m/dz-harness](https://github.com/djd1m/dz-harness).","reflection":{"strengths":"Один источник истины вместо десяти копий; добавить редактор — значит добавить адаптер, а не переписать навыки; потери описаны, а не случайны.","weaknesses":"Появляется прослойка, которую надо понимать: «почему у меня в Cursor другая шапка» — вопрос не к редактору, а к адаптеру.","rating":"5/5 за воспроизводимость, 3/5 за прозрачность на первый взгляд","wrapup":"Адаптер — компилятор: один навык на входе, формат конкретного редактора на выходе."},"exercise":{"cards":[{"front":"Что такое адаптер в dz одной фразой?","back":"Компилятор: берёт один канонический навык и выдаёт файлы в формате конкретного редактора."},{"front":"Что такое навык (skill)?","back":"Папка с SKILL.md: YAML-шапка (name, description) плюс тело в Markdown — инструкция для агента."},{"front":"Почему копирование руками не заменяет адаптер?","back":"У каждого редактора свой путь и свой формат шапки; копия либо не читается, либо молча теряет часть навыка."},{"front":"Сколько адаптеров в семействе и от чего они зависят?","back":"Десять. Измерено по package.json: каждый зависит ровно от одного пакета @dzhechkov/core и ни один не объявляет bin."}]},"quiz":[{"id":"why-adapters-q1","question":"Костя говорит: «адаптер — это просто копировальщик файлов в другую папку». Что он упускает?","options":["Ничего, это точное описание","Адаптер — компилятор: он ещё и переписывает формат под редактор, а иногда теряет часть навыка","Адаптер работает только с Claude Code","Адаптер — это облачный сервис"],"correctAnswer":1,"explanation":"Перенос — только половина. Вторая половина — превращение канонического формата в формат цели, и у этого превращения бывает цена."}],"finalTest":{"id":"final-why-adapters","sectionId":"why-adapters","question":"Что такое адаптер в dz?","options":["Компилятор одного канонического навыка в формат конкретного редактора","Плагин, который запускает навык вместо агента","Хранилище промптов в облаке","Отдельная CLI-утилита со своим bin"],"correctAnswer":0}},{"id":"what-is-a-target","order":2,"title":"2. Что такое цель: dz init --target","shortTitle":"Цель (--target)","description":"Десять имён целей, таблица псевдонимов и ловушка claude против claude-code.","icon":"🎯","interactiveType":"builder","methodPattern":"P5","keyConcept":"цель --target — имя в реестре dz, а не имя платформы","source":"packages/@dzhechkov/harness-core/src/targets.ts","theory":"Костя разворачивает навыки одной командой:\n\n```\ndz init --target claude-code --skills-dir ./skills --project .\n```\n\nИЗМЕРЕНО, вывод дословно: `dz init --target claude-code: 1 skill(s), 1 file(s) written, 0 skipped`, код возврата 0.\n\n**Цель (target) — это имя в реестре dz, по которому выбирается адаптер.** Имён ровно десять, и команда их сама перечисляет: `agents-md`, `claude-code`, `codex`, `copilot`, `cursor`, `gemini`, `hermes`, `openclaude`, `opencode`, `windsurf`.\n\nА теперь ловушка, на которой Костя споткнулся первым. Внутри адаптера платформа называется `claude`, а имя цели — `claude-code`. Оба работают, но по-разному: `--target claude` проходит через таблицу псевдонимов, и dz честно об этом печатает — ИЗМЕРЕНО: `dz init: --target \"claude\" → claude-code (alias)`. Псевдонимы — это ДАННЫЕ, одна строка таблицы, а не ветвление в коде: `claude` и `cc` → `claude-code`, `agents` → `agents-md`, `gpt` и `openai` → `codex`.\n\n**Опечатка не молчит.** ИЗМЕРЕНО: `--target cursur` даёт `unknown --target \"cursur\" — did you mean \"cursor\"?` и полный список допустимых имён. Это важнее, чем кажется: цель, набранная с ошибкой, могла бы «успешно» ничего не развернуть.\n\nУстановка самого dz и ссылки: [@dzhechkov/harness-cli](https://www.npmjs.com/package/@dzhechkov/harness-cli), исходники — [github.com/djd1m/dz-harness](https://github.com/djd1m/dz-harness).","reflection":{"strengths":"Одно имя цели вместо десяти разных команд; псевдонимы прощают привычные написания; опечатка ловится и подсказывает.","weaknesses":"Имя цели и имя платформы внутри кода не совпадают (claude-code против claude) — это надо просто запомнить.","rating":"4/5 за удобство, 5/5 за то, что ошибка громкая","wrapup":"Цель — это ключ реестра: --target claude-code выбирает адаптер, а не описывает твою модель."},"exercise":{"instruction":"Собери команду, которой Костя разворачивает навыки из каталога ./skills в текущий проект для Claude Code. Помни: имя цели — claude-code.","parts":["dz init","--target claude-code","--skills-dir ./skills","--project ."],"correctCommand":"dz init --target claude-code --skills-dir ./skills --project .","hints":["Флаг называется --target, и он принимает имя цели из реестра, а не имя модели.","--target claude тоже сработает, но dz напечатает, что это псевдоним claude-code."]},"quiz":[{"id":"what-is-a-target-q1","question":"Что произойдёт при `dz init --target cursur`?","options":["Развернётся Cursor — dz исправит опечатку молча","dz откажется и подскажет: unknown --target «cursur» — did you mean «cursor»?","Развернётся цель по умолчанию","Команда зависнет"],"correctAnswer":1,"explanation":"Неизвестное имя цели — громкий отказ с подсказкой и полным списком, а не тихий выбор чего-нибудь."}],"finalTest":{"id":"final-what-is-a-target","sectionId":"what-is-a-target","question":"Как называется цель Claude Code в флаге --target?","options":["claude-code (а claude — её псевдоним)","anthropic","claude-3","code"],"correctAnswer":0}},{"id":"the-emit-contract","order":3,"title":"3. Общий контракт: compile, verify и EmitResult","shortTitle":"Контракт эмиссии","description":"Один интерфейс на десять адаптеров: чистые функции, относительные пути и строгий режим.","icon":"📜","interactiveType":"matching","methodPattern":"D4","keyConcept":"compile и verify — чистые функции, возвращающие EmitResult","source":"packages/@dzhechkov/core/src/adapter.ts:68","theory":"Костя открыл три адаптера подряд и увидел одно и то же. Не случайность: все десять реализуют один интерфейс `Adapter` из `@dzhechkov/core` (`src/adapter.ts:68`) — три члена и больше ничего:\n\n1. `platform` — имя платформы, для которой этот адаптер эмитит;\n2. `compile(skill, ctx)` — возвращает `EmitResult { files, warnings }`;\n3. `verify(emitResult)` — возвращает `VerifyResult { ok, errors, warnings }`.\n\n**И `compile`, и `verify` — чистые функции.** Чистая функция (pure function) — это функция, которая на одном и том же входе всегда даёт один и тот же выход и не делает ничего снаружи: не пишет файлы, не ходит в сеть, не смотрит на часы. Зачем это здесь: адаптер можно проверить целиком без файловой системы, а его вывод воспроизводим — тот же навык всегда компилируется в те же байты.\n\nЗапись на диск — забота вызывающей стороны, а не адаптера. Отсюда второе правило, записанное прямо в комментарии контракта: **пути в `files[]` относительны `ctx.targetRoot`, и адаптер НЕ должен приклеивать корень сам** — иначе получится `\u003croot\u003e/\u003croot\u003e/…` или абсолютный путь, который хост отвергнет.\n\nТретий член контекста — `ctx.strict`. Смысл: «не применяй потерю молча — откажись». Про него будет отдельная секция, но запомни сейчас: строгий режим превращает предупреждение в отказ.\n\nИ измеренная мелочь, которая многое объясняет: у всех десяти пакетов ровно одна зависимость — `@dzhechkov/core`, и ни один не объявляет `bin`. Адаптер не самостоятельная утилита; он всегда вызывается через `dz init --target`.","reflection":{"strengths":"Один интерфейс на десять пакетов: прочитал один адаптер — прочитал все; чистота даёт тесты без файловой системы и воспроизводимый вывод.","weaknesses":"Контракт узкий: всё, что не «файлы плюс предупреждения», приходится решать снаружи адаптера — как и вышло со слиянием AGENTS.md.","rating":"5/5 за проверяемость, 4/5 за выразительность","wrapup":"compile и verify — чистые функции; EmitResult несёт файлы и предупреждения, а писать их будет хост."},"exercise":{"pairs":[{"left":"compile(skill, ctx)","right":"Чистая функция: возвращает EmitResult { files, warnings }, на диск не пишет"},{"left":"verify(emitResult)","right":"Чистая проверка: VerifyResult { ok, errors, warnings } — и предупреждения о потере несёт дальше"},{"left":"ctx.targetRoot","right":"Корень, относительно которого заданы пути; адаптер его НЕ приклеивает"},{"left":"ctx.strict","right":"Строгий режим: вместо предупреждения о потере — отказ компилировать"},{"left":"platform","right":"Имя платформы адаптера — claude, cursor, gemini и так далее"}]},"quiz":[{"id":"the-emit-contract-q1","question":"Почему compile ничего не пишет на диск?","options":["Потому что нет прав на запись","Потому что это чистая функция: её результат EmitResult воспроизводим и проверяем без файловой системы","Потому что запись делает сам редактор","Потому что файлы пишет verify"],"correctAnswer":1,"explanation":"Чистота — не украшение: она даёт тесты без диска и гарантию, что тот же навык даст те же байты."}],"finalTest":{"id":"final-the-emit-contract","sectionId":"the-emit-contract","question":"Что возвращает compile у любого адаптера dz?","options":["EmitResult: список файлов и список предупреждений","Число записанных байт","Путь к каталогу проекта","Ничего — он пишет файлы сам"],"correctAnswer":0},"diagram":{"kind":"parts","title":"Контракт Adapter: убери часть — и адаптер перестаёт быть адаптером","whole":"interface Adapter","nodes":[{"id":"platform","label":"platform","note":"имя цели, для которой этот адаптер эмитит"},{"id":"compile","label":"compile()","note":"навык → EmitResult { files, warnings }; на диск не пишет","accent":true},{"id":"verify","label":"verify()","note":"проверяет результат и несёт предупреждения дальше"}]}},{"id":"three-classes","order":4,"title":"4. Три класса адаптеров — и как их измерить","shortTitle":"Три класса","description":"Побайтовые, трансформирующие, уплощающие: классификация из исходников, а не из названий.","icon":"🗂️","interactiveType":"drag-and-drop","methodPattern":"P6","keyConcept":"класс адаптера определяется измерением исходников, а не именем","source":"packages/@dzhechkov/adapter-*/package.json + src/index.ts","theory":"Костя попробовал угадать класс по названию и ошибся на первом же пакете. Смотри сам: `adapter-openclaude` звучит как «ещё один вариант Claude» — а по коду это тонкая обёртка над `emitSkillTree` с корнем `.openclaude/skills`, то есть чистый побайтовый перенос. **Класс адаптера измеряется по исходникам, а не выводится из имени.**\n\nИзмерение дало ровно три класса:\n\n1. **Побайтовые адаптеры дерева навыков** — пять штук: `claude`, `codex`, `opencode`, `hermes`, `openclaude`. Все пять — тонкие обёртки над одним движком `emitSkillTree` из core; отличие ровно одно — константа корневого каталога.\n2. **Трансформирующие** — два: `cursor`, `windsurf`. Файл на навык, но в СВОЁМ формате шапки.\n3. **Уплощающие и потерянные** — три: `copilot`, `gemini`, `agents-md`. Структура, которой у цели нет, выбрасывается.\n\nКак измерять самому, по шагам: прочитать `description` в `package.json`; открыть `src/index.ts`; посмотреть, ЧТО импортируется из core (`emitSkillTree` — побайтовый; `renderCursorMdc` или `renderGeminiMdSection` — не побайтовый); посмотреть путь эмита; прочитать текст строки-предупреждения `lossy`, если она есть. Пять шагов, и класс назван по коду.\n\nЕщё один измеренный факт, который выглядит подсказкой: версии разложились по классам — `0.2.x` у побайтовой пятёрки, `0.1.x` у остальных. **Честная оговорка: это вывод из номеров версий, а не из журнала изменений** — считай это гипотезой, а не доказательством общей ревизии API.\n\nВсе десять на npm: [adapter-claude](https://www.npmjs.com/package/@dzhechkov/adapter-claude), [adapter-codex](https://www.npmjs.com/package/@dzhechkov/adapter-codex), [adapter-opencode](https://www.npmjs.com/package/@dzhechkov/adapter-opencode), [adapter-hermes](https://www.npmjs.com/package/@dzhechkov/adapter-hermes), [adapter-openclaude](https://www.npmjs.com/package/@dzhechkov/adapter-openclaude), [adapter-cursor](https://www.npmjs.com/package/@dzhechkov/adapter-cursor), [adapter-windsurf](https://www.npmjs.com/package/@dzhechkov/adapter-windsurf), [adapter-copilot](https://www.npmjs.com/package/@dzhechkov/adapter-copilot), [adapter-gemini](https://www.npmjs.com/package/@dzhechkov/adapter-gemini), [adapter-agents-md](https://www.npmjs.com/package/@dzhechkov/adapter-agents-md).","reflection":{"strengths":"Классов всего три, и каждый проверяется за минуту чтением src/index.ts; классификация держится на коде, а не на маркетинге.","weaknesses":"Границы не идеальны: copilot формально уплощающий, но файл у него на каждый навык — класс говорит о ЧЁМ потеря, а не о её размере.","rating":"5/5 за проверяемость, 3/5 за чистоту границ","wrapup":"Три класса: побайтовые, трансформирующие, уплощающие — и определяются они измерением, а не именем."},"exercise":{"instruction":"Разложи по порядку пять шагов, которыми Костя определяет класс любого адаптера, не веря названию.","items":[{"id":"desc","label":"Прочитать description в package.json"},{"id":"src","label":"Открыть src/index.ts адаптера"},{"id":"imports","label":"Посмотреть, что импортируется из core: emitSkillTree или render*"},{"id":"path","label":"Посмотреть путь эмита: каталог навыка, файл правила или один файл в корне"},{"id":"lossy","label":"Прочитать строку-предупреждение lossy, если она есть"}],"correctOrder":["desc","src","imports","path","lossy"]},"quiz":[{"id":"three-classes-q1","question":"К какому классу относится adapter-openclaude и почему?","options":["Уплощающий — по названию видно, что это один файл","Побайтовый: в src/index.ts он вызывает emitSkillTree с корнем .openclaude/skills","Трансформирующий — у него своя шапка","Определить нельзя без запуска"],"correctAnswer":1,"explanation":"Имя обмануло бы; импорт emitSkillTree и корень каталога отвечают точно."}],"finalTest":{"id":"final-three-classes","sectionId":"three-classes","question":"Сколько классов адаптеров дало измерение исходников и какие они?","options":["Три: побайтовые, трансформирующие, уплощающие","Два: рабочие и сломанные","Десять — по одному на каждый адаптер","Один: все адаптеры одинаковы"],"correctAnswer":0},"diagram":{"kind":"compare","title":"Три измеренных класса адаптеров","nodes":[{"id":"lossless","label":"Побайтовые","note":"5: claude, codex, opencode, hermes, openclaude","items":["каталог на каждый навык","SKILL.md без изменённых байт","активы переносятся"],"accent":true},{"id":"transforming","label":"Трансформирующие","note":"2: cursor, windsurf","items":["файл на каждый навык","своя шапка вместо канонической","активы не переносятся"]},{"id":"flattening","label":"Уплощающие","note":"3: copilot, gemini, agents-md","items":["gemini и agents-md — один файл на всё","copilot — файл на навык, но всегда включён","шапка и границы навыков исчезают"]}]}},{"id":"lossless-skill-tree","order":5,"title":"5. Побайтовая пятёрка: один движок, пять корней","shortTitle":"Побайтовые","description":"emitSkillTree и доказательство, что SKILL.md доезжает без единого изменённого байта.","icon":"🧬","interactiveType":"quiz","methodPattern":"P2","keyConcept":"побайтовый перенос: SKILL.md доезжает без единого изменённого байта","source":"packages/@dzhechkov/core/src/skill-emit.ts","theory":"Костя ожидал пять разных реализаций. Их пять — но код в них почти одинаковый, и это по замыслу.\n\nВсе пять зовут один движок `emitSkillTree` из core. Разница между адаптерами — одна константа, корневой каталог:\n\n- `claude` → `.claude/skills`\n- `codex` → `.agents/skills`\n- `opencode` → `.opencode/skills`\n- `hermes` → `.hermes/skills`\n- `openclaude` → `.openclaude/skills`\n\n**Побайтовый перенос (lossless) означает буквально это: содержимое `SKILL.md` — текст документа дословно, поэтому эмиссия ничего не теряет.** Меняется только место файла, не его байты.\n\nИЗМЕРЕНО прямо для этого курса. Канонический навык `hello-adapters` развёрнут командой `dz init --target claude-code`; затем:\n\n```\n$ diff canon/hello-adapters/SKILL.md proj-claude/.claude/skills/hello-adapters/SKILL.md\n$ echo $?\n0\n$ sha256sum canon/.../SKILL.md proj-claude/.../SKILL.md\n3c8f59dd00e6d737552eb01e28e04c7567af1617dfa15112e4fe6fce561f7c82  (оба файла)\n```\n\nПустой `diff` и один и тот же sha256 — это и есть побайтовость, предъявленная, а не обещанная.\n\nЧто отсюда следует практически: круговой рейс. Скомпилировал навык в цель, разобрал обратно — получил исходник. Активы (`scripts/`, `references/`) переносятся тоже, а не остаются дома. И движок защищается на входе: небезопасный идентификатор навыка или путь актива с `..` — ошибка, а не запись мимо каталога.","reflection":{"strengths":"Никаких сюрпризов: то, что ты написал, то агент и прочитает; активы едут вместе; проверяется одной командой diff.","weaknesses":"Работает только там, где редактор УЖЕ понимает формат agentskills.io; для всех остальных этот класс недоступен в принципе.","rating":"5/5 за точность, 2/5 за охват редакторов","wrapup":"Побайтовый адаптер меняет адрес навыка и не трогает ни одного его байта."},"quiz":[{"id":"lossless-q1","question":"Чем пять побайтовых адаптеров отличаются друг от друга в коде?","options":["Каждый реализует свой алгоритм преобразования","Практически ничем, кроме константы корневого каталога — движок emitSkillTree общий","Разными версиями Markdown","Один пишет YAML, другой JSON"],"correctAnswer":1,"explanation":"Пять тонких обёрток над одним движком: отличие — корень (.claude/skills, .agents/skills и так далее)."},{"id":"lossless-q2","question":"Как Костя ДОКАЗАЛ, что перенос побайтовый, а не просто похожий?","options":["Открыл оба файла и посмотрел глазами","Сравнил diff (пустой, код возврата 0) и sha256sum — одинаковая сумма у канона и у эмита","Поверил README","Посчитал число строк"],"correctAnswer":1,"explanation":"Побайтовость — утверждение о байтах, и доказывается оно суммой, а не впечатлением."}],"finalTest":{"id":"final-lossless-skill-tree","sectionId":"lossless-skill-tree","question":"Что гарантирует побайтовый (lossless) адаптер дерева навыков?","options":["SKILL.md приходит к цели без единого изменённого байта — меняется только путь","Навык становится меньше по размеру","Шапка переписывается в формат цели","Все навыки складываются в один файл"],"correctAnswer":0}},{"id":"transforming-targets","order":6,"title":"6. Трансформирующие цели: Cursor и Windsurf","shortTitle":"Трансформирующие","description":"Своя шапка вместо канонической, файл на навык — и почему расширение решает всё.","icon":"🔀","interactiveType":"scenario","methodPattern":"P8","keyConcept":"трансформирующая цель заменяет каноническую шапку своей","source":"packages/@dzhechkov/adapter-cursor/src/index.ts","theory":"Фронтендер пожаловался: «правило не подхватывается». Костя полез разбираться и нашёл ответ в одной строке комментария адаптера.\n\nCursor читает проектные правила из `.cursor/rules/` — **один файл на правило, и расширение обязано быть `.mdc`: обычный `.md` в этом каталоге Cursor игнорирует.** Адаптер поэтому пишет ровно `.cursor/rules/\u003cid\u003e.mdc`.\n\n**Трансформирующая цель — это цель, у которой своя шапка**, и адаптер заменяет нашу целиком. Каноническая шапка навыка несёт около 26 проектных ключей; Cursor понимает три: `description`, необязательный `globs` и `alwaysApply`. Всё остальное не переезжает — и это решение, а не недоделка: оба адаптера прямо говорят «не побайтовый» и исключены из набора проверок побайтового равенства.\n\nИЗМЕРЕНО. Тот же навык, что в предыдущей секции, скомпилирован в Cursor. Тело — слово в слово то же. Шапка — другая:\n\n```\n---\ndescription: \"Демонстрационный навык для курса про адаптеры …\"\nalwaysApply: false\n---\n```\n\n`alwaysApply: false` — это не «выключено». Это **правило по запросу агента**: оно подтягивается, когда модель сочтёт его уместным, вместо того чтобы вливаться в каждый ход. Экономия контекста прямо здесь.\n\nWindsurf — та же идея с тремя отличиями: каталог `.windsurf/rules/`, обычный `.md` (не `.mdc`), и ключ активации называется `trigger` (`always_on | manual | model_decision | glob`) вместо `alwaysApply`. Адаптер эмитит `trigger: model_decision` — тот же смысл «по запросу агента».\n\nИ оба `verify` проверяют ровно несущее: у Cursor — что `description` стоит в ВЕДУЩЕЙ шапке, а не где-то в теле; у Windsurf — что есть `trigger`, потому что без него редактор просто не знает, когда включать правило.","reflection":{"strengths":"Навык становится родным для редактора: правило по запросу агента не съедает контекст в каждом ходе; verify проверяет именно тот ключ, без которого правило мёртво.","weaknesses":"Каноническая шапка теряется целиком, активы (scripts/) не переносятся, и обратно из .mdc исходный навык не восстановить.","rating":"4/5 за интеграцию с редактором, 2/5 за обратимость","wrapup":"Трансформирующая цель сохраняет тело навыка и заменяет шапку своей — ценой активов и обратимости."},"exercise":{"title":"Правило не подхватывается в Cursor","scenario":"Фронтендер Кости положил навык в Cursor руками, и редактор его не видит. Костя ведёт разбор по шагам.","steps":[{"description":"Первое, что Костя просит проверить в трансформирующей цели Cursor:","options":[{"text":"Расширение файла: в .cursor/rules/ должен лежать .mdc, а .md там игнорируется","feedback":"Верно. Это первое и самое частое: обычный .md в этом каталоге Cursor просто не читает."},{"text":"Переустановить Cursor","feedback":"Дорого и мимо: адаптер прямо документирует требование к расширению .mdc."},{"text":"Переписать тело навыка","feedback":"Тело как раз доезжает без изменений — проблема не в нём."}]},{"description":"Файл действительно .mdc, но правило всё равно не включается. Что смотреть дальше?","options":[{"text":"Ведущую шапку: есть ли description — именно это проверяет verify адаптера","feedback":"Да. verify требует description в ВЕДУЩЕЙ шапке, а не где-то в теле."},{"text":"Права на файл","feedback":"Проверить можно, но контракт адаптера указывает на шапку."},{"text":"Версию Node.js","feedback":"К активации правила в редакторе она отношения не имеет."}]},{"description":"Всё на месте, но правило не влезает в каждый ход. Костя объясняет почему:","options":[{"text":"Так и задумано: alwaysApply: false — правило по запросу агента, а не всегда включённое","feedback":"Точно. Это экономия контекста, а не поломка."},{"text":"Это баг адаптера","feedback":"Нет: значение false выбрано осознанно и описано в адаптере."},{"text":"Нужно перекомпилировать в Claude Code","feedback":"Не поможет: поведение задаётся ключом активации Cursor."}]}]},"quiz":[{"id":"transforming-q1","question":"Что именно теряет трансформирующая цель вроде Cursor?","options":["Тело навыка","Каноническую шапку (~26 ключей заменяются на 3) и активы scripts/","Название навыка","Ничего не теряет"],"correctAnswer":1,"explanation":"Тело переезжает дословно; исчезают каноническая шапка и бандлы активов."}],"finalTest":{"id":"final-transforming-targets","sectionId":"transforming-targets","question":"Чем трансформирующая цель отличается от побайтовой?","options":["Она заменяет каноническую шапку навыка своей и потому не байт-в-байт","Она работает быстрее","Она складывает все навыки в один файл","Она вообще не пишет файлов"],"correctAnswer":0},"diagram":{"kind":"compare","title":"Cursor и Windsurf: одна идея, три отличия","nodes":[{"id":"cursor","label":"Cursor","note":".cursor/rules/\u003cid\u003e.mdc","items":["расширение обязано быть .mdc","ключ активации: alwaysApply: false","шапка из трёх ключей"],"accent":true},{"id":"windsurf","label":"Windsurf","note":".windsurf/rules/\u003cid\u003e.md","items":["обычный .md, не .mdc","ключ активации: trigger","trigger, description, globs"]}]}},{"id":"flattening-targets","order":7,"title":"7. Уплощающие цели: всё в один файл","shortTitle":"Уплощающие","description":"GEMINI.md и AGENTS.md: что именно исчезает — и почему твои заметки всё-таки выживают.","icon":"🗜️","interactiveType":"flashcards","methodPattern":"P4","keyConcept":"уплощающая цель сводит все навыки в один файл","source":"packages/@dzhechkov/adapter-gemini/src/index.ts","theory":"Костя развернул два навыка в Gemini и пересчитал файлы. Их оказалось не два. Один.\n\nИЗМЕРЕНО, вывод дословно: `dz init --target gemini: 2 skill(s), 1 file(s) written, 0 skipped`, а `find` по проекту вернул ровно одну строку — `GEMINI.md`.\n\n**Уплощающая цель (flattening) — это цель, у которой нет ни каталога навыков, ни шапки: всё сводится в ОДИН файл в корне проекта.** `GEMINI.md` читают Gemini CLI и Code Assist; `AGENTS.md` — договорённость, которую понимают около пятнадцати инструментов (Cursor, Zed, Warp, Aider, goose, RooCode, Junie, Devin, Windsurf и другие).\n\nЧто теряется — поимённо, из текста самого предупреждения адаптера:\n\n- YAML-шапка навыка;\n- **постепенное раскрытие** (progressive disclosure) — режим, при котором агент читает подробности навыка только когда к нему обратился; в плоском файле всё лежит открытым всегда;\n- границы между навыками как отдельными файлами;\n- активы `scripts/` и прочие — они не переносятся вовсе.\n\n**А теперь неожиданное.** Костя дописал в `GEMINI.md` руками свои заметки после управляемого блока и запустил `dz init` ещё раз. Заметки остались на месте. Управляемая часть обёрнута маркерами `\u003c!-- dz:skills BEGIN (managed by dz — do not edit) --\u003e` … `\u003c!-- dz:skills END --\u003e`, и стратегия записи — **слияние, а не перезапись**: dz меняет только то, что между маркерами.\n\nЕщё одна тонкость для тех, кто полезет в код: `compile` уплощающего адаптера отдаёт СЕКЦИЮ одного навыка по пути `GEMINI.md`. Сборка всех секций и слияние с твоим файлом происходят слоем выше — адаптер один навык видит, а файл целиком собирает не он.","reflection":{"strengths":"Работает там, где у редактора вообще нет понятия навыка; один файл читают полтора десятка инструментов; ручные заметки переживают повторный запуск.","weaknesses":"Исчезают шапка, постепенное раскрытие, границы навыков и активы; на двадцати навыках один файл становится тяжёлым и всегда включённым.","rating":"5/5 за охват инструментов, 2/5 за сохранность структуры","wrapup":"Уплощающая цель обменивает структуру навыка на совместимость: один файл вместо дерева."},"exercise":{"cards":[{"front":"Что делает уплощающая цель с десятью навыками?","back":"Сводит их в ОДИН файл в корне: GEMINI.md или AGENTS.md. Измерено: 2 навыка → 1 файл."},{"front":"Что именно теряется при уплощении?","back":"YAML-шапка, постепенное раскрытие, границы между навыками и активы scripts/ — всё названо в предупреждении адаптера."},{"front":"Что такое постепенное раскрытие (progressive disclosure)?","back":"Режим, при котором агент читает подробности навыка только при обращении к нему; в плоском файле всё открыто всегда."},{"front":"Почему ручные заметки в GEMINI.md переживают dz init?","back":"Управляемая часть обёрнута маркерами dz:skills BEGIN/END, а стратегия записи — слияние, а не перезапись."},{"front":"Сколько инструментов читают AGENTS.md?","back":"Около пятнадцати: Cursor, Zed, Warp, Aider, goose, Gemini CLI, RooCode, Junie, Devin, Windsurf и другие."}]},"quiz":[{"id":"flattening-q1","question":"Костя дописал свои заметки в GEMINI.md и снова запустил dz init. Что с ними будет?","options":["Файл перезапишется, заметки пропадут","Заметки останутся: dz меняет только блок между маркерами dz:skills BEGIN и END","dz откажется работать","Заметки уедут внутрь управляемого блока"],"correctAnswer":1,"explanation":"Стратегия записи уплощающих целей — слияние, а не перезапись; ИЗМЕРЕНО повторным запуском."}],"finalTest":{"id":"final-flattening-targets","sectionId":"flattening-targets","question":"Что происходит с десятью навыками на уплощающей цели вроде GEMINI.md?","options":["Они сводятся в один файл в корне, теряя шапку, границы и активы","Каждый получает свой каталог","Они компилируются побайтово","Переносятся только первые три"],"correctAnswer":0}},{"id":"two-editors-one-skill","order":8,"title":"8. Практика: один навык в два редактора и diff","shortTitle":"Два редактора","description":"Полный проход руками: развернуть один и тот же навык в Claude Code и Cursor и сравнить.","icon":"🔬","interactiveType":"builder","methodPattern":"P1","keyConcept":"один навык в две цели: diff показывает, чем они отличаются","source":"измеренный прогон dz init --target claude-code / cursor","theory":"Это тот проход, после которого Костя перестал задавать вопросы. Повтори его целиком — он занимает минуту.\n\n**Шаг 1. Один канонический навык.** Каталог `canon/hello-adapters/` с файлом `SKILL.md`: шапка `name` и `description`, тело в Markdown.\n\n**Шаг 2. Развернуть в две цели.**\n\n```\ndz init --target claude-code --skills-dir ./canon --project ./proj-claude\ndz init --target cursor      --skills-dir ./canon --project ./proj-cursor\n```\n\nИЗМЕРЕНО: обе команды напечатали `1 skill(s), 1 file(s) written, 0 skipped`.\n\n**Шаг 3. Посмотреть раскладку.** `find` по обоим проектам дал две строки:\n\n```\nproj-claude/.claude/skills/hello-adapters/SKILL.md\nproj-cursor/.cursor/rules/hello-adapters.mdc\n```\n\nСлева — каталог на навык. Справа — один файл, и расширение другое.\n\n**Шаг 4. Сравнить.** У Claude Code `diff` с каноном пустой, sha256 совпадает (`3c8f59dd00e6…`) — байт в байт. У Cursor тело совпадает слово в слово, а шапка заменена на `description` + `alwaysApply: false`.\n\n**Вывод словами, чтобы его можно было пересказать: тело инструкции доезжает до обоих редакторов одинаково, а цена цели видна ровно в двух местах — в шапке и в раскладке файлов.** Именно поэтому `diff` здесь не формальность: это самый дешёвый способ увидеть, чем ты заплатил за совместимость.","reflection":{"strengths":"Минута работы даёт полное понимание слоя; diff и sha256 — доказательство, а не впечатление; проход воспроизводится на любой паре целей.","weaknesses":"На одном навыке не видно эффектов масштаба: уплощение начинает мешать только когда навыков десятки.","rating":"5/5 за наглядность, 3/5 за полноту картины","wrapup":"Разверни один навык в две цели и сделай diff — это самый быстрый способ увидеть цену цели."},"exercise":{"instruction":"Собери команду, которой Костя разворачивает тот же канонический каталог во ВТОРУЮ цель — Cursor — чтобы потом сравнить результат через diff.","parts":["dz init","--target cursor","--skills-dir ./canon","--project ./proj-cursor"],"correctCommand":"dz init --target cursor --skills-dir ./canon --project ./proj-cursor","hints":["Каталог-источник тот же самый — в этом весь смысл сравнения.","Отличается ровно одно: имя цели в --target. Потом сравниваешь выход через diff."]},"quiz":[{"id":"two-editors-q1","question":"После развёртывания одного навыка в claude-code и cursor что покажет diff тел файлов?","options":["Тело совпадёт, а отличия будут в шапке и в раскладке файлов","Всё будет различаться","Файлы будут идентичны целиком","diff не применим к таким файлам"],"correctAnswer":0,"explanation":"ИЗМЕРЕНО: тело слово в слово то же; отличия — шапка (.mdc против SKILL.md) и путь."}],"finalTest":{"id":"final-two-editors-one-skill","sectionId":"two-editors-one-skill","question":"Какой самый дешёвый способ увидеть цену конкретной цели?","options":["Развернуть один навык в две цели и сделать diff результатов","Прочитать README целиком","Спросить у модели","Сравнить номера версий адаптеров"],"correctAnswer":0},"diagram":{"kind":"flow","title":"Один навык — две цели — один diff","nodes":[{"id":"canon","label":"Канон","note":"canon/hello-adapters/SKILL.md — один источник истины"},{"id":"claude","label":"dz init claude-code","note":".claude/skills/hello-adapters/SKILL.md"},{"id":"cursor","label":"dz init cursor","note":".cursor/rules/hello-adapters.mdc"},{"id":"diff","label":"diff и sha256sum","note":"тело совпало, шапка и раскладка — нет","accent":true}]}},{"id":"copilot-odd-one","order":9,"title":"9. Copilot: потерянный, но пофайловый","shortTitle":"Copilot","description":"Странный случай: файл на каждый навык — и при этом самая заметная потеря.","icon":"🐙","interactiveType":"quiz","methodPattern":"P9","keyConcept":"Copilot теряет адресность: инструкция на навык, но всегда включённая","source":"packages/@dzhechkov/adapter-copilot/src/index.ts","theory":"Костя ждал, что Copilot окажется похож на Cursor. Оказалось — нет, и разница поучительная.\n\n**GitHub Copilot не сканирует каталог навыков вообще.** У него нет такого механизма. Зато он сам читает инструкции репозитория из `.github/instructions/*.instructions.md`. Поэтому адаптер пишет туда — файл на каждый навык, `\u003cid\u003e.instructions.md`.\n\nФормально Copilot в классе потерянных — вместе с `gemini` и `agents-md`. Но, в отличие от них, у него файл ОТДЕЛЬНЫЙ на каждый навык. Тогда в чём же потеря? Вот в чём, поимённо:\n\n1. `applyTo: \"**\"` — инструкция **всегда включена** для всех файлов; постепенного раскрытия нет;\n2. команды вызова навыка у Copilot нет — навык нельзя позвать по имени;\n3. `scripts/` кладутся в отдельный корень `.github/copilot-skills/\u003cid\u003e/` как справочные: Copilot их не исполняет.\n\n**Открытый вопрос, на который стоит потратить минуту:** «потерянный» и «трансформирующий» — это не про РАЗМЕР потери, а про то, ЧТО именно исчезает. Cursor теряет шапку, но сохраняет адресность: правило подтягивается по решению агента. Copilot сохраняет отдельный файл, но теряет адресность: инструкция висит всегда. Какая потеря дороже?\n\nЧестный ответ Кости: зависит от числа навыков. На трёх навыках всегда включённая инструкция — мелочь. На тридцати — это тридцать инструкций в каждом ходе, и цена уже не мелочь.","reflection":{"strengths":"Работает на платформе, у которой понятия навыка нет вовсе; файл на навык оставляет читаемую структуру в репозитории.","weaknesses":"Инструкция всегда включена (applyTo: «**»), позвать навык по имени нельзя, скрипты лежат мёртвым грузом как справочные.","rating":"3/5 за практичность, 5/5 за честность описания потери","wrapup":"Copilot платит не размером потери, а её видом: отдельный файл есть, адресности нет."},"quiz":[{"id":"copilot-q1","question":"Почему адаптер Copilot пишет в .github/instructions/, а не в каталог навыков?","options":["Так короче путь","Потому что Copilot вообще не сканирует каталог навыков — у него есть только механизм инструкций репозитория","Потому что так требует npm","Потому что в каталог навыков нет прав записи"],"correctAnswer":1,"explanation":"Форма цели диктует форму эмиссии: механизма скана навыков у Copilot нет, значит и дерева навыков быть не может."},{"id":"copilot-q2","question":"Что означает applyTo: «**» в эмитированной инструкции Copilot?","options":["Инструкция включена всегда и для всех файлов — постепенного раскрытия нет","Инструкция выключена","Инструкция применяется только к Markdown","Это комментарий"],"correctAnswer":0,"explanation":"Это и есть главная потеря Copilot: адресность, а не структура файла."}],"finalTest":{"id":"final-copilot-odd-one","sectionId":"copilot-odd-one","question":"Чем потеря Copilot отличается от потери Cursor?","options":["Copilot сохраняет файл на навык, но теряет адресность: инструкция всегда включена","Copilot теряет тело навыка","Copilot складывает всё в один файл","Copilot ничего не теряет"],"correctAnswer":0}},{"id":"loss-as-warning","order":10,"title":"10. Потеря всплывает предупреждением — или отказом","shortTitle":"Потеря громкая","description":"Правило контракта: молчаливой потери не бывает, а strict превращает предупреждение в отказ.","icon":"⚠️","interactiveType":"matching","methodPattern":"P12","keyConcept":"потеря всплывает предупреждением, а под strict — отказом","source":"packages/@dzhechkov/core/src/adapter.ts (контракт Adapter)","theory":"Костя спросил ровно то, что должен был спросить: «а как я УЗНАЮ, что цель что-то потеряла?»\n\nОтвет записан в самом контракте `Adapter`: компиляция **может** быть с потерями — но потеря обязана всплыть предупреждением, **никогда молча**. Это не пожелание в документации, это то, как написан каждый непобайтовый адаптер.\n\nМеханика одинаковая у всех:\n\n1. адаптер собирает строку `lossy` с ИМЕНЕМ навыка и перечислением того, что исчезает;\n2. если `ctx.strict !== true` — строка едет в `warnings` результата;\n3. если `ctx.strict === true` — компиляция ОТКАЗЫВАЕТСЯ: `refusing lossy compile under strict mode`.\n\n**Строгий режим — это выключатель «лучше не собрать, чем собрать тихо неправильно».** Он нужен там, где потеря недопустима: в конвейере сборки, а не на твоём ноутбуке.\n\nВторое место, где это видно, — `verify`. Он не просто проверяет структуру: он ПЕРЕНОСИТ предупреждения дальше — `const warnings = [...emit.warnings]`. Комментарий в адаптере объясняет зачем прямым текстом: чтобы `dz verify --target cursor` никогда не отчитался «чисто», не сказав про потерю.\n\n**Сноска здесь не украшение (и это общее правило хорошего инструмента): предупреждение — часть контракта, а не примечание внизу экрана.** Проверь себя прямо сейчас: если ты не можешь назвать, что теряет твоя цель, — ты цель не выбрал, ты взял первую попавшуюся.","reflection":{"strengths":"Потеря никогда не молчит; strict даёт жёсткий режим для конвейера; verify тащит предупреждения дальше, а не глотает их.","weaknesses":"Предупреждение всё-таки надо прочитать: краткая сводка на экране показывает результат, а подробности живут в результате verify.","rating":"5/5 за честность модели, 3/5 за заметность в повседневной работе","wrapup":"Потеря всплывает предупреждением; под strict адаптер отказывается компилировать вовсе."},"exercise":{"pairs":[{"left":"ctx.strict === true","right":"Отказ: refusing lossy compile under strict mode — потеря запрещена"},{"left":"ctx.strict не задан","right":"Предупреждение в EmitResult.warnings — потеря разрешена, но названа"},{"left":"verify адаптера","right":"Переносит предупреждения дальше, чтобы отчёт не выглядел чистым"},{"left":"Строка lossy у cursor","right":"«Каноническая шапка заменена, scripts/ и другие активы не переносятся»"},{"left":"Строка lossy у copilot","right":"«Всегда включённая инструкция: нет постепенного раскрытия и команды вызова»"}]},"quiz":[{"id":"loss-as-warning-q1","question":"Что делает адаптер с потерей, если ctx.strict === true?","options":["Пишет предупреждение и продолжает","Отказывается компилировать: refusing lossy compile under strict mode","Игнорирует strict","Молча пропускает навык"],"correctAnswer":1,"explanation":"Строгий режим — «лучше не собрать, чем собрать тихо неправильно»."}],"finalTest":{"id":"final-loss-as-warning","sectionId":"loss-as-warning","question":"Как контракт адаптеров требует обходиться с потерей при компиляции?","options":["Она всплывает предупреждением, а под strict превращается в отказ — молча никогда","Она просто игнорируется","О ней сообщает редактор","Потерь не бывает"],"correctAnswer":0}},{"id":"adapter-claude-integrations","order":11,"title":"11. adapter-claude: эталон и планировщик спутников","shortTitle":"adapter-claude","description":"Единственный адаптер с четырьмя файлами: почему он и база сравнения, и планировщик MCP.","icon":"🛰️","interactiveType":"drag-and-drop","methodPattern":"P10","keyConcept":"adapter-claude — эталон побайтовости и планировщик спутниковой конфигурации","source":"packages/@dzhechkov/adapter-claude/src/integrations.ts","theory":"Костя пробежал `find` по исходникам всех десяти пакетов и заметил аномалию: у девяти адаптеров ровно один файл `src/index.ts`. У `adapter-claude` их четыре — `index.ts`, `compile.ts`, `verify.ts` и `integrations.ts`. Значит, он делает что-то ещё.\n\n**Роль первая — эталон.** Формат Claude Code и есть канонический формат agentskills.io, поэтому именно этот адаптер служит базой побайтового сравнения для остальных. Когда где-то говорится «исключён из набора проверок побайтового равенства» — равенство измеряется относительно него.\n\n**Роль вторая — спутниковая конфигурация.** `claudeIntegrationAdapter` планирует то, что живёт рядом с навыками: MCP-серверы и хуки. Он тоже ничего не пишет — он возвращает ПЛАН из двух частей:\n\n- фрагменты-носители: например, файл `.mcp.json`, корневой ключ `mcpServers`, область `project`;\n- отказы — с кодом причины и подсказкой, что сделать.\n\n**И вот главное, ради чего эта секция вообще есть: отказ здесь ИМЕННОЙ, из закрытого словаря.** `INTENT_NOT_EXPRESSIBLE` — «квитанция доказывает только локальную команду stdio, без env и url», то есть намерение нельзя выразить честно. `NO_ACTIVATION_RECEIPT` — «для хуков нужна канарейка с одноразовым значением и отрицательный контроль», то есть нет доказательства, что хук реально сработал. Словарь причин закрыт и живёт в `core/src/adapter.ts` — придумать новую причину на месте нельзя.\n\nИЗМЕРЕНО на реальном прогоне: `dz init` без явного согласия печатает `MCP: NOT-REQUESTED` и `Hooks: NOT-REQUESTED`. Спутниковая конфигурация не приезжает сама — её надо запросить, и согласие на манифест интеграций требует точной контрольной суммы.","reflection":{"strengths":"Один пакет закрывает и эталон побайтовости, и планирование MCP/хуков; отказы именные, из закрытого словаря — их нельзя размыть.","weaknesses":"Асимметрия: спутниковая конфигурация есть только у этой цели, остальные девять её не планируют — паритет по этой линии неполный.","rating":"5/5 за строгость отказов, 3/5 за равномерность по целям","wrapup":"adapter-claude — база побайтового сравнения плюс планировщик спутниковой конфигурации с именными отказами."},"exercise":{"instruction":"Разложи по порядку, как adapter-claude обрабатывает запрос на спутниковую конфигурацию MCP.","items":[{"id":"manifest","label":"Прочитать манифест интеграций: какие MCP-серверы и хуки заявлены"},{"id":"check","label":"Проверить каждое намерение: выразимо ли оно тем, что доказано квитанцией"},{"id":"refuse","label":"Невыразимое — в отказы с кодом причины (например, INTENT_NOT_EXPRESSIBLE)"},{"id":"fragment","label":"Выразимое — во фрагмент-носитель: .mcp.json, ключ mcpServers"},{"id":"plan","label":"Вернуть ПЛАН — фрагменты плюс отказы; запись делает слой выше"}],"correctOrder":["manifest","check","refuse","fragment","plan"]},"quiz":[{"id":"adapter-claude-q1","question":"Чем adapter-claude отличается от остальных девяти по составу исходников?","options":["Ничем","У него четыре файла вместо одного: помимо compile/verify он несёт планировщик интеграций MCP и хуков","Он написан на другом языке","У него нет verify"],"correctAnswer":1,"explanation":"Измерено find по src/: девять адаптеров — один index.ts, adapter-claude — четыре файла."}],"finalTest":{"id":"final-adapter-claude-integrations","sectionId":"adapter-claude-integrations","question":"Какие две роли несёт adapter-claude?","options":["Эталон побайтового сравнения и планировщик спутниковой конфигурации (MCP, хуки)","Только компиляция навыков","Запуск модели и биллинг","Публикация пакетов в npm"],"correctAnswer":0}},{"id":"dz-parity","order":12,"title":"12. dz parity: честная карта возможностей и целей","shortTitle":"dz parity","description":"Двенадцать возможностей на десять целей, вычисленные из модели, а не написанные руками.","icon":"🗺️","interactiveType":"scenario","methodPattern":"D2","keyConcept":"паритет — вычисленная карта: что работает на цели и в какой форме","source":"packages/@dzhechkov/harness-core/src/parity.ts","theory":"Костя дошёл до вопроса, который рано или поздно задают все: «ладно, навыки доехали — а остальной харнес?» Для этого есть одна команда.\n\n```\ndz parity\n```\n\nОна печатает таблицу: двенадцать возможностей харнеса по строкам, десять целей по столбцам. **Ключевое свойство: таблица не написана руками — она ВЫЧИСЛЕНА из модели возможностей** (`harness-core/src/parity.ts`). Рукописная копия такой таблицы была бы вторым источником расхождения: код меняется, документ отстаёт, и читатель верит документу.\n\nТри знака в клетках:\n\n- `✓` — полностью: возможность работает сама;\n- `◐` — вручную: возможность ДОСТУПНА, но ведёшь её ты;\n- `—` — недоступно на этой цели.\n\n**`◐` — не «сломано».** Это самая частая ошибка чтения. ИЗМЕРЕНО: у Cursor конвейер `feature-adr` стоит как `◐` — «интерактивный навык, ведёшь руками», а не «не работает».\n\nИЗМЕРЕНО из живого прогона: у всех десяти целей `✓` на строках «dz CLI (all commands)» и «Skill packs (compiled per target)» — базовая совместимость полная. Живая статусная панель `✓` только у `claude-code`, у остальных `—`. MCP-память: `✓` у `claude-code`, `◐` у `codex`, `—` у остальных восьми.\n\nЧитается это как компромисс, а не как рейтинг: чем ближе цель к родному формату, тем больше возможностей едет автоматом; чем дальше — тем больше остаётся на твоих руках.","reflection":{"strengths":"Одна команда отвечает на «что я потеряю, если перееду»; таблица вычислена из кода, поэтому не может отстать от него.","weaknesses":"Полнота таблицы ограничена тем, что реально проверено: строки, где улик нет, выглядят скромнее, чем цель на самом деле умеет.","rating":"5/5 за отсутствие дрейфа, 3/5 за полноту покрытия целей","wrapup":"dz parity — вычисленная карта: какая возможность на какой цели работает и в какой форме."},"exercise":{"title":"Куда посадить нового участника команды","scenario":"К Косте выходит новый разработчик. Он привык к Cursor. Костя решает, что ему обещать и что честно сказать заранее.","steps":[{"description":"Первое, что Костя делает перед разговором:","options":[{"text":"Запускает dz parity и смотрит колонку cursor","feedback":"Верно. Карта вычислена из модели — это самый быстрый честный ответ."},{"text":"Ищет в README таблицу совместимости","feedback":"Мимо: рукописной таблицы намеренно не существует, чтобы она не расходилась с кодом."},{"text":"Спрашивает в чате команды","feedback":"Получишь мнение вместо измерения."}]},{"description":"В колонке cursor напротив feature-adr стоит ◐. Как Костя это озвучивает?","options":[{"text":"«Конвейер доступен, но ведёшь его руками — как интерактивный навык»","feedback":"Точно: ◐ означает «работает, но ты за рулём», а не «сломано»."},{"text":"«Конвейера у тебя не будет»","feedback":"Неверно и обидно: ◐ — это доступно вручную, знак недоступности другой."},{"text":"«Всё работает как у меня»","feedback":"Это обещание, которого карта не даёт: у claude-code там ✓, а не ◐."}]},{"description":"Новичок спрашивает про живую статусную панель. Что показывает карта?","options":[{"text":"— у cursor: этой возможности на цели нет","feedback":"Да, ИЗМЕРЕНО: панель ✓ только у claude-code."},{"text":"◐: можно включить руками","feedback":"Нет, в этой строке у cursor стоит именно знак недоступности."},{"text":"✓, как у всех","feedback":"Полный знак там только у claude-code."}]}]},"quiz":[{"id":"dz-parity-q1","question":"Что означает ◐ в таблице dz parity?","options":["Возможность недоступна","Возможность доступна, но ведёшь её руками","Возможность в разработке","Улика устарела"],"correctAnswer":1,"explanation":"◐ — это «работает, но за рулём ты»; знак недоступности — прочерк."}],"finalTest":{"id":"final-dz-parity","sectionId":"dz-parity","question":"Откуда берётся таблица dz parity?","options":["Она вычислена из модели возможностей в коде, а не написана руками","Её ведёт вручную мейнтейнер в README","Её присылает каждый редактор по API","Она генерируется моделью при каждом запуске"],"correctAnswer":0},"diagram":{"kind":"scale","title":"Четыре знака паритета","topLabel":"работает само, руки не нужны","bottomLabel":"на этой цели не работает","nodes":[{"id":"full","label":"✓ полностью","note":"возможность работает сама, без ручного ведения","accent":true},{"id":"manual","label":"◐ вручную","note":"доступно, но конвейер ведёшь ты"},{"id":"unknown","label":"? улика устарела","note":"клетка перестала утверждать, пока её не перепроверят"},{"id":"none","label":"— недоступно","note":"этой возможности на цели нет"}]}},{"id":"parity-honest-gaps","order":13,"title":"13. Где карта честно неполна","shortTitle":"Честные пробелы","description":"Пустая клетка значит «не измерено», а знак вопроса — «улика устарела».","icon":"🕳️","interactiveType":"builder","methodPattern":"P11","keyConcept":"непроверенное не помечается поддержанным: пустая клетка значит «не измерено»","source":"packages/@dzhechkov/harness-core/src/parity.ts (контракт честности)","theory":"Это секция, ради которой Костя и просил курс. Карта паритета полезна ровно настолько, насколько честно она признаётся в незнании.\n\n**Контракт честности записан в самом модуле: флаг возможности утверждает только то, что ПРОВЕРЕНО, и у каждого флага в коде рядом стоит источник. Неизвестная поддержка НЕ отмечается.** Обоснование там же: ложно обещанная возможность хуже, чем консервативно отмеченная как отсутствующая.\n\nОтсюда следствие, которое надо читать правильно. У семи целей — `opencode`, `hermes`, `openclaude`, `copilot`, `cursor`, `gemini`, `windsurf` — в модели ровно две возможности: `shell` и `skills`, с комментарием «консервативная первая версия: эмиссия навыков подтверждена адаптерами, более богатые среды не доказаны». **Это надо читать как «не измерено», а не как «нет».**\n\nИ есть четвёртый знак, которого нет в общей таблице, — `?`. ИЗМЕРЕНО:\n\n```\n$ dz parity --target codex\n? Self-learning: automatic apply-leg  … INCONCLUSIVE: stale evidence for hooks-prompt\n⚠ hooks-prompt: улика записана на codex-cli 0.147.0, свежайшая запись — 0.148.0\n```\n\nЧто здесь произошло: возможность когда-то была ДОКАЗАНА живой пробой, но проба относится к старой версии инструмента, а с тех пор появилась новая. Модель не стала утверждать по инерции — она понизила клетку до «неубедительно», пока не перепроверят. **Важная тонкость: `inconclusive` — это уровень ОТЧЁТА, а не модели. Модель по-прежнему знает, что было доказано; отчёт отказывается это предъявлять как действующее.**\n\nПроверь себя одним вопросом: когда ты в следующий раз увидишь пустую клетку в чьей-нибудь таблице совместимости — ты сможешь сказать, это «не умеет» или «не проверяли»? В большинстве таблиц ответа нет. Здесь он есть, и в этом вся ценность.","reflection":{"strengths":"Карта умеет сказать «не знаю»: устаревшая улика понижает клетку сама, а неизмеренное никогда не выдаётся за поддержанное.","weaknesses":"Цена честности — заниженная картина: цель может уметь больше, чем показано, просто это ещё не проверяли живой пробой.","rating":"5/5 за честность, 3/5 за полноту","wrapup":"Пустая клетка значит «не измерено», знак вопроса — «улика устарела»; ни то, ни другое не значит «не умеет»."},"exercise":{"instruction":"Собери команду, которой Костя смотрит подробности по одной цели и видит, какие клетки помечены как неубедительные из-за устаревшей улики.","parts":["dz parity","--target codex"],"correctCommand":"dz parity --target codex","hints":["Без --target ты получишь общую таблицу; подробности с причинами живут в разрезе одной цели.","Именно в этом выводе появляется знак ?, а под таблицей — строка с версиями улики."]},"quiz":[{"id":"parity-honest-gaps-q1","question":"У cursor в модели только shell и skills. Как это правильно прочитать?","options":["Cursor больше ничего не умеет","Остальное не измерено: контракт запрещает отмечать непроверенное как поддержанное","Модель устарела и её надо переписать","Cursor не поддерживается"],"correctAnswer":1,"explanation":"Консервативность здесь осознанная: ложно обещанная возможность хуже честно пустой клетки."}],"finalTest":{"id":"final-parity-honest-gaps","sectionId":"parity-honest-gaps","question":"Что означает знак ? в выводе dz parity --target codex?","options":["Улика устарела: клетка понижена до неубедительной, пока её не перепроверят","Возможность в разработке","Ошибка команды","Возможность работает частично"],"correctAnswer":0}},{"id":"choose-your-target","order":14,"title":"14. Твой выбор: какой потерей ты платишь","shortTitle":"Твой выбор","description":"Финальная развилка: подобрать цель под свою команду и назвать цену вслух.","icon":"🧭","interactiveType":"scenario","methodPattern":"D3","keyConcept":"выбор цели — решение о том, какой потерей ты платишь","source":"сводка курса: три класса + dz parity","theory":"Теперь роль твоя, а не Костина. Костя уже прошёл этот выбор и вот к чему пришёл.\n\n**Правило одной фразой: цель выбирают не по названию редактора, а по тому, какую потерю ты готов принять.** Три ответа, три цены:\n\n1. **Редактор понимает формат agentskills.io** (Claude Code, Codex, OpenCode, Hermes, OpenClaude) — бери побайтовую цель. Цена: ноль. Ограничение: список редакторов короткий.\n2. **Редактор имеет свой формат правил** (Cursor, Windsurf) — бери трансформирующую. Цена: каноническая шапка и активы `scripts/`. Приобретение: правило по запросу агента, экономия контекста.\n3. **У редактора вообще нет понятия навыка** (Copilot, Gemini CLI, всё семейство AGENTS.md) — бери уплощающую. Цена: шапка, постепенное раскрытие, границы навыков, активы. Приобретение: работает почти везде.\n\nДве проверки перед тем, как объявить выбор сделанным:\n\n- запусти `dz parity --target \u003cимя\u003e` и прочитай, что уедет автоматом, а что останется на руках;\n- разверни ОДИН навык и сделай `diff` — секция 8 занимает минуту и отвечает точнее любого README.\n\nИ последнее, что стоит унести из курса целиком. Слой адаптеров ценен не тем, что «работает везде» — так не бывает. Он ценен тем, что **каждая потеря названа по имени, всплывает предупреждением и может быть запрещена строгим режимом.** Инструмент, который честно говорит, чем ты платишь, лучше инструмента, который обещает бесплатно.","reflection":{"strengths":"Выбор сводится к трём вариантам с названной ценой; обе проверки дешёвые и делаются за минуту.","weaknesses":"Правило не решает смешанный случай: команда на четырёх редакторах платит четырьмя разными потерями одновременно, и общего оптимума тут нет.","rating":"5/5 за применимость, 3/5 за охват смешанных команд","wrapup":"Выбор цели — это решение о том, какой потерей ты платишь; назови её вслух, и выбор станет обоснованным."},"exercise":{"title":"Разложи команду по целям","scenario":"У тебя четверо: ты в Claude Code, дизайнер в Cursor, дата-инженер в Gemini CLI, ревьюер в Copilot. Один канонический набор навыков. Реши, что каждому обещать.","steps":[{"description":"Себе в Claude Code ты обещаешь:","options":[{"text":"Побайтовый перенос: SKILL.md доедет без изменений, активы тоже","feedback":"Верно — это родной формат, цена нулевая."},{"text":"Потерю шапки","feedback":"Нет, это цена трансформирующей цели, а не побайтовой."},{"text":"Один общий файл","feedback":"Нет, это уплощающая цель."}]},{"description":"Дизайнеру в Cursor ты честно говоришь, что он потеряет:","options":[{"text":"Каноническую шапку и активы scripts/ — но получит правило по запросу агента","feedback":"Точно: цена названа, приобретение тоже."},{"text":"Ничего не потеряет","feedback":"Обещание, которого адаптер не даёт: он прямо помечен как не побайтовый."},{"text":"Потеряет тело навыка","feedback":"Тело как раз доезжает слово в слово."}]},{"description":"Дата-инженеру в Gemini CLI и ревьюеру в Copilot — что общего в их потере?","options":[{"text":"Оба теряют постепенное раскрытие: инструкции включены всегда","feedback":"Да, это общая черта уплощающего класса, хотя раскладка файлов у них разная."},{"text":"Оба получают по каталогу на навык","feedback":"Нет: у Gemini один файл на всё, у Copilot файл на навык, но каталога навыков нет ни у кого из них."},{"text":"Оба теряют только активы","feedback":"Потеря шире: уходят ещё шапка и постепенное раскрытие."}]},{"description":"Последний шаг перед тем, как объявить выбор сделанным:","options":[{"text":"Развернуть один навык в каждую цель и сравнить diff, потом свериться с dz parity","feedback":"Именно так: измерение вместо обещания — это и есть весь курс одной строкой."},{"text":"Написать в чат, что всё готово","feedback":"Слишком рано: ни одной квитанции ты пока не видел."},{"text":"Довериться номерам версий адаптеров","feedback":"Версии — гипотеза, а не доказательство; курс это отдельно оговаривал."}]}]},"quiz":[{"id":"choose-your-target-q1","question":"По какому критерию выбирается цель, если следовать курсу?","options":["По популярности редактора","По тому, какой потерей ты готов заплатить — и она у каждого класса названа","По номеру версии адаптера","По алфавиту"],"correctAnswer":1,"explanation":"Три класса — три названные цены; выбор сводится к тому, какая из них для тебя приемлема."}],"finalTest":{"id":"final-choose-your-target","sectionId":"choose-your-target","question":"Как курс формулирует выбор цели?","options":["Это решение о том, какой потерей ты платишь за совместимость","Это выбор самого быстрого адаптера","Это выбор самой свежей версии пакета","Это выбор редактора вместо навыка"],"correctAnswer":0}}],"achievements":[{"id":"first-step","title":"Первый шаг","description":"Пройдена первая секция — слой адаптеров перестал быть чёрным ящиком.","icon":"👣","conditionRef":{"type":"sections-completed","n":1}},{"id":"halfway","title":"Экватор","description":"Семь секций позади — половина карты адаптеров пройдена.","icon":"⛰️","conditionRef":{"type":"sections-completed","n":7}},{"id":"perfectionist","title":"Перфекционист","description":"Секция пройдена без единой ошибки.","icon":"💯","conditionRef":{"type":"perfect-section"}},{"id":"full-course","title":"Полный курс","description":"Все четырнадцать секций пройдены — слой адаптеров освоен целиком.","icon":"🎓","conditionRef":{"type":"all-sections"}},{"id":"test-passed","title":"Финальный рубеж","description":"Финальный тест сдан на 70% и выше.","icon":"🏆","conditionRef":{"type":"final-test-pass","min":70}},{"id":"klassifikator","title":"Классификатор","description":"Секция про три класса пройдена — теперь класс адаптера ты определяешь по коду, а не по имени.","icon":"🗂️","conditionRef":{"type":"section-group","ids":["three-classes"]}},{"id":"dvoynoy-emit","title":"Двойная эмиссия","description":"Практика пройдена: один навык развёрнут в две цели и сравнён через diff.","icon":"🔬","conditionRef":{"type":"section-group","ids":["two-editors-one-skill"]}},{"id":"poteri-po-imenam","title":"Потери по именам","description":"Все три секции про классы потерь пройдены — ты можешь назвать цену любой цели.","icon":"⚠️","conditionRef":{"type":"section-group","ids":["transforming-targets","flattening-targets","copilot-odd-one"]}},{"id":"chestnyy-paritet","title":"Честный паритет","description":"Обе секции про dz parity пройдены — ты отличаешь «не умеет» от «не измеряли».","icon":"🗺️","conditionRef":{"type":"section-group","ids":["dz-parity","parity-honest-gaps"]}}],"faqData":[{"question":"Я поставил навыки в Cursor, а шапка выглядит совсем иначе — это баг?","answer":"Нет, это заявленное поведение трансформирующей цели. Cursor понимает три ключа (description, необязательный globs, alwaysApply), поэтому каноническая шапка заменяется целиком. Тело навыка при этом переезжает слово в слово — проверь diff тел, он будет пустым."},{"question":"Почему --target claude работает, если в списке написано claude-code?","answer":"Через таблицу псевдонимов, и dz об этом печатает: «dz init: --target \"claude\" → claude-code (alias)». Псевдонимы — данные, не логика: claude и cc ведут на claude-code, agents — на agents-md, gpt и openai — на codex."},{"question":"Я дописал свои заметки в AGENTS.md — их затрёт следующий dz init?","answer":"Нет, если они за пределами управляемого блока. dz меняет только то, что между маркерами dz:skills BEGIN и dz:skills END; стратегия записи — слияние, а не перезапись. Измерено повторным запуском: дописанные вручную строки остались на месте."},{"question":"Как узнать, что именно теряет моя цель, не читая исходники?","answer":"Потеря обязана всплыть предупреждением — это записано в контракте адаптера, и verify переносит предупреждения дальше. Если потеря вообще недопустима, включай строгий режим: под ним адаптер откажется компилировать с сообщением refusing lossy compile under strict mode."},{"question":"В dz parity у моей цели почти пустая колонка. Значит, она мало что умеет?","answer":"Не обязательно. Контракт честности запрещает отмечать непроверенное как поддержанное, поэтому пустая клетка значит «не измерено», а не «не умеет». Отдельно есть знак ?: он означает, что улика устарела — например, записана на codex-cli 0.147.0, а свежайшая запись 0.148.0."},{"question":"Можно ли из скомпилированного файла восстановить исходный навык?","answer":"У побайтовых целей — да: SKILL.md совпадает с каноном байт в байт, что проверяется diff и sha256sum. У трансформирующих и уплощающих — нет: каноническая шапка заменена или выброшена. Именно поэтому канонический каталог навыков остаётся единственным источником истины."},{"question":"Адаптер — это отдельная утилита, которую можно запустить?","answer":"Нет. Измерено по package.json: ни один из десяти адаптеров не объявляет bin, и у каждого ровно одна зависимость — @dzhechkov/core. Адаптеры всегда вызываются через dz init --target \u003cимя\u003e."}],"footer":{"links":[{"label":"npm: @dzhechkov/adapter-claude","href":"https://www.npmjs.com/package/@dzhechkov/adapter-claude"},{"label":"npm: @dzhechkov/harness-cli","href":"https://www.npmjs.com/package/@dzhechkov/harness-cli"},{"label":"GitHub (зеркало)","href":"https://github.com/djd1m/dz-harness"},{"label":"Telegram: LLM notes","href":"https://t.me/llm_notes"},{"label":"aicoding.space","href":"https://aicoding.space"}]},"feedback":{"repo":"djd1m/dz-harness","packagePath":"packages/adapter-claude"}}</script>
+<script type="application/json" id="ui-strings">{"achievement":"Достижение — ","locked":"Закрыто: ","flashHint":"Нажми на карточку, чтобы перевернуть её. Просмотри все карточки, чтобы закрыть раздел.","sideFront":"лицо","sideBack":"оборот","seen":"просмотрено","prev":"← Назад","next":"Дальше →","matchHint":"Выбери элемент слева, затем его пару справа.","matched":"совпало","moveUp":"Выше","moveDown":"Ниже","orderRight":"Точно — именно в таком порядке это и происходит.","orderPartial":"{n} из {len} на своём месте. Зелёные строки верны; переставь остальные.","checkOrder":"Проверить порядок","builderEmpty":"собери команду из частей ниже…","builderCorrect":"Верно — ровно эта команда.","builderNot":"Пока нет — ты собрал: ","nothing":"(пусто)","checkCommand":"Проверить команду","clear":"Очистить","scenarioDone":"Сценарий пройден — {p} из {n} решений были сильнейшим доступным вариантом.","step":"Шаг {i} из {n}","seeResult":"К результату →","nextStep":"Следующий шаг →","quiz":"Викторина","quizComplete":"{label}: готово — {r} / {n} верно ({p}%).","tryAgain":"Ещё раз","question":"Вопрос {i} из {n}","nextQuestion":"Следующий вопрос →","brandTag":"курс в стиле Head First · разделов: {n}","sectionsOf":"{c} / {n} разделов","startHere":"Начни здесь","finalTest":"Финальный тест","faqNav":"Частые вопросы","achievements":"Достижения — ","settings":"Настройки","light":"☀️ Светлая","dark":"🌙 Тёмная","resetConfirm":"Сбросить весь прогресс?","reset":"↺ Сброс","sectionOf":"Раздел {o} из {n}","patternTitle":"паттерн Head First, которому служит этот раздел (id в метод-KB)","patternNames":{"P1":"P1 · Сначала образ: понятие ведёт картинка или схема, слова живут внутри неё","P2":"P2 · Избыточность: ключевая идея закодирована трижды — текст, упражнение, проверка","P3":"P3 · Разговорный тон: напрямую к читателю, без лекторской сухости","P4":"P4 · Неожиданность: поворот или «ага-момент», чтобы мысль запомнилась","P5":"P5 · Сделай сам: к каждой идее — действие; понимание строится руками","P6":"P6 · Несколько представлений: общая картина + шаги + конкретный артефакт","P7":"P7 · Разнообразие: тип активности сменяется от раздела к разделу","P8":"P8 · Истории и выбор: материал как история, читатель взвешивает и решает","P9":"P9 · Открытые вопросы: вопрос без готового ответа — инсайт добывается работой","P10":"P10 · Люди, не абстракции: материал держится на живом персонаже","P11":"P11 · Метапознание: читателя побуждают следить за собственным пониманием","P12":"P12 · Врезки — это суть: отступления и FAQ обязательны, а не украшение","D1":"D1 · Сквозной персонаж: одна героиня проходит через весь курс","D2":"D2 · Рефлексивная четвёрка: сильное/слабое/оценка/итог в конце темы","D3":"D3 · Реши сам: раздел, где решения принимает читатель","D4":"D4 · Открытый синтез: задача без единственно верного ответа"},"completed":"пройдено · ","notebookOf":"{name} — блокнот","notebook":"Блокнот","quartet":"Рефлексивная четвёрка","strengths":"Сильное","weaknesses":"Слабое","rating":"Оценка","wrapup":"Итог","doSomething":"Сделай сам — ","checkYourself":"Проверь себя","check":"Проверка","types":{"flashcards":"карточки","matching":"сопоставление","drag-and-drop":"порядок шагов","ordering":"порядок шагов","builder":"конструктор команды","scenario":"сценарий","simulation":"сценарий","quiz":"викторина"},"meet":"Знакомься: ","whatYouLearn":"Чему ты научишься","startSection1":"Начать раздел 1 →","finalH1":"По одному вопросу с каждого раздела","finalLede":"Порог — {p}%. Вопросов: {n}, по одному из каждого пройденного раздела.","fromSection":"Из раздела {o} — {t}.","passed":"Пройдено — ","courseComplete":"курс завершён.","notYet":"Пока нет — порог {p}%.","revisit":"Возвращайся к любому разделу через меню, когда он понадобится.","reread":"Перечитай разделы, на вопросах которых ошибся, и попробуй ещё раз.","lastSection":"← Последний раздел","faqEyebrow":"Врезки — это суть","faqH1":"Вопросы, которые у тебя вот-вот появятся","faqLede":"Это не украшение: каждый вопрос — реальная ловушка, в которую кто-то уже попал."}</script>
+<style>
+:root{
+  --bg:#f7f7f5; --panel:#ffffff; --ink:#191917; --muted:#6b6b63; --line:#e2e2dc;
+  --accent:#c1502e; --accent-soft:#fdf0eb; --ok:#2f7d5d; --bad:#b4402c; --warn:#a2702a;
+  --paper:#fffbef; --paper-line:#e6dcc0;
+  --code-bg:#f0efeb; --shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px -12px rgba(0,0,0,.18);
+  --radius:12px; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+html.dark{
+  --bg:#15150f; --panel:#1e1e1a; --ink:#eeeee6; --muted:#9d9d92; --line:#33332c;
+  --accent:#e8825c; --accent-soft:#2e211b; --ok:#6cc79b; --bad:#e2765d; --warn:#d5a35a;
+  --paper:#221f17; --paper-line:#40382a;
+  --code-bg:#26261f; --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65;font-size:16px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.12em .38em;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.55}
+pre code{background:none;padding:0;font-size:inherit}
+.layout{display:grid;grid-template-columns:296px 1fr;min-height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--line);padding:20px 16px 40px;position:sticky;top:0;height:100vh;overflow-y:auto}
+main{padding:34px 40px 96px;max-width:940px;width:100%}
+.brand{font-weight:700;font-size:15px;letter-spacing:-.01em;margin-bottom:4px}
+.brand small{display:block;font-weight:400;color:var(--muted);font-size:12.5px;letter-spacing:0;margin-top:4px}
+.progress-wrap{margin:18px 0 14px}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .45s cubic-bezier(.2,.8,.3,1)}
+.progress-label{font-size:12px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between}
+nav ul{list-style:none;margin:0;padding:0}
+nav li{margin:1px 0}
+nav button{width:100%;text-align:left;background:none;border:0;padding:8px 10px;border-radius:9px;cursor:pointer;color:var(--ink);font:inherit;font-size:13.5px;display:flex;gap:9px;align-items:center}
+nav button:hover{background:var(--accent-soft)}
+nav button[aria-current="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+nav .tick{font-size:12px;color:var(--ok);width:14px;flex:0 0 14px}
+.navhead{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:18px 0 7px;font-weight:600}
+.ach-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.ach{aspect-ratio:1;display:grid;place-items:center;font-size:17px;border:1px solid var(--line);border-radius:9px;background:var(--bg);opacity:.32;cursor:help;filter:grayscale(1)}
+.ach.on{opacity:1;filter:none;border-color:var(--accent);background:var(--accent-soft)}
+.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);font-weight:700}
+h1{font-size:33px;line-height:1.18;letter-spacing:-.022em;margin:.28em 0 .18em}
+h2{font-size:20px;letter-spacing:-.012em;margin:2em 0 .5em}
+.lede{color:var(--muted);font-size:16.5px;margin-bottom:22px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);margin:20px 0}
+.theory p{margin:0 0 1.05em}
+.theory ol{padding-left:1.3em}
+.theory li{margin:.35em 0}
+.pattern-chip{display:inline-block;font-family:var(--mono);font-size:11.5px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);border-radius:99px;padding:2px 9px;font-weight:600}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px}
+/* the persona's notebook — an optional recurring visual device (one margin note per section,
+   in the persona's own voice). Deliberately unlike .reflect: warm paper, torn-in edge, a slight tilt,
+   ruled lines. It is how the reader SEES the character change across the sections. */
+.notebook{position:relative;margin:22px 0;padding:15px 22px 16px;background:var(--paper);
+  border:1px solid var(--paper-line);border-left:5px solid var(--accent);
+  border-radius:3px 14px 14px 3px;box-shadow:var(--shadow);transform:rotate(-.32deg)}
+.notebook::after{content:"";position:absolute;left:0;right:0;bottom:0;top:44px;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,transparent 0,transparent 25px,var(--paper-line) 25px,var(--paper-line) 26px);opacity:.5}
+.notebook h3{display:flex;flex-wrap:wrap;gap:9px;align-items:baseline;margin:0 0 9px;font-size:12px;
+  text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.notebook .when{font-family:var(--mono);font-size:11px;letter-spacing:0;text-transform:none;
+  color:var(--accent);border:1px solid var(--accent);border-radius:99px;padding:1px 9px}
+.notebook p{position:relative;z-index:1;margin:0;font-size:15.5px;line-height:1.62;font-style:italic}
+.notebook p::before{content:"\201C"}
+.notebook p::after{content:"\201D"}
+.reflect{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 var(--radius) var(--radius) 0;padding:16px 20px;margin:22px 0}
+.reflect h3{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent)}
+.reflect dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14.5px}
+.reflect dt{font-weight:700;color:var(--muted);white-space:nowrap}
+.reflect dd{margin:0}
+button.btn{font:inherit;font-size:14px;font-weight:600;background:var(--accent);color:#fff;border:0;border-radius:9px;padding:9px 17px;cursor:pointer}
+button.btn:hover{filter:brightness(1.07)}
+button.btn[disabled]{opacity:.45;cursor:not-allowed;filter:none}
+button.ghost{background:var(--panel);color:var(--ink);border:1px solid var(--line)}
+.opt{display:block;width:100%;text-align:left;font:inherit;font-size:14.5px;background:var(--panel);border:1.5px solid var(--line);border-radius:10px;padding:11px 14px;margin:7px 0;cursor:pointer;color:var(--ink)}
+.opt:hover{border-color:var(--accent)}
+.opt.correct{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 11%,transparent)}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 11%,transparent)}
+.opt.chosen{font-weight:600}
+.opt[disabled]{cursor:default}
+.explain{font-size:14px;border-radius:9px;padding:11px 14px;margin:8px 0 4px;background:var(--code-bg);border-left:3px solid var(--muted)}
+.explain.good{border-color:var(--ok)}
+.explain.bad{border-color:var(--bad)}
+.explain.mid{border-color:var(--warn)}
+.flash{perspective:1200px;margin:16px 0}
+.flash-inner{position:relative;min-height:172px;border:1.5px solid var(--line);border-radius:var(--radius);background:var(--panel);display:grid;place-items:center;padding:26px;text-align:center;cursor:pointer;font-size:17px;transition:transform .12s}
+.flash-inner:active{transform:scale(.995)}
+.flash-inner .side{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);position:absolute;top:11px;left:14px}
+.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:14px}
+.chip{display:block;width:100%;text-align:left;font:inherit;font-size:14px;background:var(--panel);border:1.5px solid var(--line);border-radius:9px;padding:10px 13px;margin:6px 0;cursor:pointer;color:var(--ink)}
+.chip.sel{border-color:var(--accent);background:var(--accent-soft)}
+.chip.done{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 11%,transparent);cursor:default;opacity:.75}
+.chip.miss{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.order-item{display:flex;align-items:center;gap:10px;background:var(--panel);border:1.5px solid var(--line);border-radius:9px;padding:9px 12px;margin:6px 0;font-size:14.5px}
+.order-item .grab{cursor:grab;color:var(--muted);font-size:13px;letter-spacing:-2px}
+.order-item.ok{border-color:var(--ok)}
+.order-item.no{border-color:var(--bad)}
+.order-item .idx{font-family:var(--mono);font-size:12px;color:var(--muted);width:18px}
+.mini{background:none;border:1px solid var(--line);border-radius:7px;width:26px;height:26px;cursor:pointer;color:var(--ink);font-size:12px;line-height:1}
+.mini:hover{border-color:var(--accent);color:var(--accent)}
+.build-line{font-family:var(--mono);font-size:14px;background:var(--code-bg);border:1.5px dashed var(--line);border-radius:9px;padding:13px 15px;min-height:48px;display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.build-line .tok{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:2px 8px;cursor:pointer}
+.part{font-family:var(--mono);font-size:13.5px;background:var(--panel);border:1.5px solid var(--line);border-radius:8px;padding:6px 11px;cursor:pointer;color:var(--ink)}
+.part:hover{border-color:var(--accent)}
+.part[disabled]{opacity:.35;cursor:not-allowed}
+.hint{font-size:13.5px;color:var(--muted);margin:7px 0 0;padding-left:20px;position:relative}
+.hint::before{content:"💡";position:absolute;left:0}
+.faq details{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin:8px 0;padding:0 16px}
+.faq summary{cursor:pointer;padding:13px 0;font-weight:600;font-size:15px;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:"▸ ";color:var(--accent)}
+.faq details[open] summary::before{content:"▾ "}
+.faq .a{padding:0 0 14px;font-size:14.5px;color:var(--muted)}
+.toast{position:fixed;right:22px;bottom:22px;background:var(--panel);border:1.5px solid var(--accent);border-radius:12px;box-shadow:var(--shadow);padding:13px 17px;display:flex;gap:12px;align-items:center;max-width:340px;z-index:50;animation:pop .35s cubic-bezier(.2,1.3,.4,1)}
+@keyframes pop{from{transform:translateY(14px) scale(.96);opacity:0}}
+.toast .ic{font-size:24px}
+.toast b{display:block;font-size:14.5px}
+.toast small{color:var(--muted);font-size:12.5px}
+.score-pill{font-family:var(--mono);font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:2px 10px;color:var(--muted)}
+.score-pill.good{border-color:var(--ok);color:var(--ok)}
+.big-score{font-size:52px;font-weight:800;letter-spacing:-.03em;line-height:1}
+/* diagram: flex row on wide screens, column on a phone; colours come from the theme tokens, so
+   dark mode needs no second rule and the figure can never fight the page it sits on. */
+.diagram{margin:22px 0 26px;padding:18px 16px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius)}
+.dg-track{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px}
+.dg-node{flex:1 1 130px;min-width:120px;background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:10px 12px}
+.dg-node b{display:block;font-size:14px;letter-spacing:.01em}
+.dg-node small{display:block;margin-top:4px;color:var(--muted);font-size:12.5px;line-height:1.45}
+.dg-arrow{align-self:center;color:var(--accent);font-size:18px;line-height:1;flex:0 0 auto}
+.dg-cycle{align-self:center;color:var(--muted);font-size:12.5px;font-style:italic;flex:0 0 auto}
+/* compare — columns of options; on a phone they stack and read as a list */
+.dg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.dg-col{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+.dg-col b{display:block;font-size:14px}
+.dg-col small{display:block;margin-top:4px;color:var(--muted);font-size:12.5px;line-height:1.45}
+.dg-items{margin:8px 0 0;padding-left:16px;font-size:12.5px;color:var(--muted);line-height:1.6}
+.dg-items li{margin:2px 0}
+/* scale — rungs where vertical POSITION is the meaning; the accent marks the load-bearing rung */
+.dg-scale-wrap{display:flex;flex-direction:column;gap:6px}
+.dg-rung{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px}
+.dg-rung-n{font-family:var(--mono);font-size:12px;color:var(--muted);min-width:1.4em}
+.dg-rung b{font-size:14px}
+.dg-rung small{flex:1 1 100%;color:var(--muted);font-size:12.5px;line-height:1.45;margin-top:2px}
+.dg-edge{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:0 2px}
+/* parts — a whole above, its required parts joined by + below */
+.dg-parts-wrap{display:flex;flex-direction:column;gap:9px}
+.dg-whole{font-weight:600;font-size:14px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;text-align:center}
+.dg-plus{align-self:center;color:var(--accent);font-size:17px;flex:0 0 auto}
+.dg-accent{border-color:var(--accent)}
+.diagram figcaption{margin-top:12px;color:var(--muted);font-size:13px;text-align:center}
+@media (max-width:640px){.dg-track{flex-direction:column}.dg-arrow{align-self:flex-start;transform:rotate(90deg);margin-left:14px}}
+.footer-nav{display:flex;gap:10px;margin-top:30px;padding-top:22px;border-top:1px solid var(--line)}
+#site-footer{padding:18px 24px;border-top:1px solid var(--line);background:var(--panel);text-align:center;font-size:13px}
+#site-footer a{color:var(--accent);text-decoration:none}
+#site-footer a:hover{text-decoration:underline}
+#site-footer .footer-sep{margin:0 10px;color:var(--muted)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (max-width:900px){.layout{grid-template-columns:1fr}aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}main{padding:24px 18px 80px}.match-grid{grid-template-columns:1fr}h1{font-size:26px}}
+</style>
+<script>'use strict';
+// app.src.js — the course SPA runtime, inlined verbatim into site/index.html by render-site.mjs.
+// Kept as a standalone file so `node --check app.src.js` is a real syntax gate (a template-literal
+// escape bug is invisible until the browser runs it, which is exactly how this file came to exist).
+// No imports, no external requests: it reads the course object embedded in the page.
+// Fully course-agnostic: every visible string is either structural UI or course data
+// (optional fields: introNote, introHeading, outro.{pass,next}, exercise.successFeedback,
+// per-section notebook). Canonical home: skills-tutorial-factory/package-tutorial-factory/scripts/ (origin:
+// features/harness-cli-course/, frozen).
+
+var COURSE = JSON.parse(document.getElementById('course-data').textContent);
+// UI chrome strings. EN defaults live here; a localized table (chosen by course.language) is
+// embedded by render-site.mjs as #ui-strings and MERGES over the defaults — one source, no drift.
+var UI_EN = {
+  achievement: 'Achievement — ', locked: 'Locked: ',
+  flashHint: 'Click the card to flip it. See every card to clear this section.',
+  sideFront: 'front', sideBack: 'back', seen: 'seen',
+  prev: '\u2190 Prev', next: 'Next \u2192',
+  matchHint: 'Click an item on the left, then its match on the right.', matched: 'matched',
+  moveUp: 'Move up', moveDown: 'Move down',
+  orderRight: 'Exactly right \u2014 that is the order it happens in.',
+  orderPartial: '{n} of {len} in the right place. Green rows are correct; move the others.',
+  checkOrder: 'Check the order',
+  builderEmpty: 'click the parts below to build the command\u2026',
+  builderCorrect: 'Correct \u2014 that is the exact command.', builderNot: 'Not yet \u2014 you built: ', nothing: '(nothing)',
+  checkCommand: 'Check the command', clear: 'Clear',
+  scenarioDone: 'Scenario complete \u2014 {p} of {n} calls were the strongest available option.',
+  step: 'Step {i} of {n}', seeResult: 'See the result \u2192', nextStep: 'Next step \u2192',
+  quiz: 'Quiz', quizComplete: '{label} complete \u2014 {r} / {n} correct ({p}%).', tryAgain: 'Try again',
+  question: 'Question {i} of {n}', nextQuestion: 'Next question \u2192',
+  brandTag: 'a Head First\u2013style course \u00b7 {n} sections', sectionsOf: '{c} / {n} sections',
+  startHere: 'Start here', finalTest: 'Final test', faqNav: 'FAQ',
+  achievements: 'Achievements \u2014 ', settings: 'Settings',
+  light: '\u2600\ufe0f Light', dark: '\ud83c\udf19 Dark', resetConfirm: 'Reset all progress?', reset: '\u21ba Reset',
+  sectionOf: 'Section {o} of {n}',
+  patternTitle: 'the Head First pattern this section serves (method-KB id)',
+  completed: 'completed \u00b7 ',
+  notebookOf: "{name}'s notebook", notebook: 'Notebook',
+  quartet: 'The reflective quartet', strengths: 'Strengths', weaknesses: 'Weaknesses', rating: 'Rating', wrapup: 'Wrap-up',
+  doSomething: 'Do something \u2014 ', checkYourself: 'Check yourself', check: 'Check',
+  types: {},
+  meet: 'Meet ', whatYouLearn: 'What you will learn', startSection1: 'Start section 1 \u2192',
+  finalH1: 'One question per section',
+  finalLede: 'Pass mark is {p}%. {n} questions, one drawn from each section you just worked through.',
+  fromSection: 'From section {o} \u2014 {t}.',
+  passed: 'Passed \u2014 ', courseComplete: 'course complete.',
+  notYet: 'Not yet \u2014 pass mark is {p}%.',
+  revisit: 'Revisit any section from the sidebar whenever you need it.',
+  reread: 'Re-read the sections behind the questions you missed, then try again.',
+  lastSection: '\u2190 Last section',
+  faqEyebrow: 'Sidebars are core', faqH1: 'Questions you are about to have',
+  faqLede: 'These are not decoration. Each one is a real trap someone already fell into.'
+};
+var T = UI_EN;
+try {
+  var uiEl = document.getElementById('ui-strings');
+  var uiOver = uiEl ? JSON.parse(uiEl.textContent) : null;
+  if (uiOver) T = Object.assign({}, UI_EN, uiOver);
+} catch (e) { /* keep EN */ }
+function fmt(tpl, vars) {
+  return String(tpl).replace(/\{(\w+)\}/g, function (m, k) {
+    return Object.prototype.hasOwnProperty.call(vars, k) ? String(vars[k]) : m;
+  });
+}
+function typeLabel(t) { return (T.types && T.types[t]) || t; }
+var SECTIONS = COURSE.sections.slice().sort(function (a, b) { return a.order - b.order; });
+var KEY = 'dz-course:' + (COURSE.courseTitle || 'course');
+var PASS = COURSE.finalTestPassThreshold || 70;
+
+// fresh() returns a NEW object each call — a shared `blank` template gets its nested objects
+// mutated through the live state, which silently turns Reset into a no-op (Codex QE #6).
+function fresh() { return { completed: {}, scores: {}, unlocked: [], finalScore: null, dark: false }; }
+var S = load();
+function load() {
+  try { return Object.assign(fresh(), JSON.parse(localStorage.getItem(KEY) || '{}')); }
+  catch (e) { return fresh(); }
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* private mode */ } }
+
+function $(s, r) { return (r || document).querySelector(s); }
+function el(tag, attrs, kids) {
+  var n = document.createElement(tag);
+  attrs = attrs || {};
+  for (var k in attrs) {
+    if (!Object.prototype.hasOwnProperty.call(attrs, k)) continue;
+    var v = attrs[k];
+    if (v === null || v === undefined) continue;
+    if (k === 'class') n.className = v;
+    else if (k === 'html') n.innerHTML = v;
+    else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v);
+  }
+  var list = [].concat(kids || []);
+  for (var i = 0; i < list.length; i++) {
+    var c = list[i];
+    if (c === null || c === undefined || c === false) continue;
+    n.appendChild(typeof c === 'object' ? c : document.createTextNode(String(c)));
+  }
+  return n;
+}
+function escHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// --- markdown-lite: fenced code, inline code, **bold**, ordered lists, paragraphs --------------
+var FENCE = '```';
+function md(src) {
+  var out = [];
+  var blocks = String(src).split(/\n\n+/);
+  for (var b = 0; b < blocks.length; b++) {
+    var block = blocks[b];
+    if (block.indexOf(FENCE) === 0) {
+      var body = block
+        .replace(new RegExp('^' + FENCE + '[a-z]*\\n?'), '')
+        .replace(new RegExp('\\n?' + FENCE + '$'), '');
+      out.push('<pre><code>' + escHtml(body) + '</code></pre>');
+      continue;
+    }
+    var lines = block.split('\n');
+    var allNumbered = lines.length > 0 && lines.every(function (l) { return /^\s*\d+\.\s/.test(l); });
+    if (allNumbered) {
+      out.push('<ol>' + lines.map(function (l) {
+        return '<li>' + inline(l.replace(/^\s*\d+\.\s/, '')) + '</li>';
+      }).join('') + '</ol>');
+      continue;
+    }
+    var allBullets = lines.length > 0 && lines.every(function (l) { return /^\s*[-\u2022]\s/.test(l); });
+    if (allBullets) {
+      out.push('<ul>' + lines.map(function (l) {
+        return '<li>' + inline(l.replace(/^\s*[-\u2022]\s/, '')) + '</li>';
+      }).join('') + '</ul>');
+      continue;
+    }
+    out.push('<p>' + inline(block).replace(/\n/g, '<br>') + '</p>');
+  }
+  return out.join('');
+}
+function inline(s) {
+  return escHtml(s)
+    .replace(/`([^`]+)`/g, function (m, c) { return '<code>' + c + '</code>'; })
+    .replace(/\[([^\]]+)\]\((https:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+}
+
+// --- achievements ------------------------------------------------------------------------------
+function completedCount() {
+  return SECTIONS.filter(function (s) { return S.completed[s.id]; }).length;
+}
+function evalCondition(cr) {
+  if (!cr) return false;
+  switch (cr.type) {
+    case 'sections-completed': return completedCount() >= cr.n;
+    case 'all-sections': return completedCount() >= SECTIONS.length;
+    case 'perfect-section': return Object.keys(S.scores).some(function (k) { return S.scores[k] >= 100; });
+    case 'final-test-pass': return S.finalScore !== null && S.finalScore >= cr.min;
+    case 'section-group': return cr.ids.every(function (id) { return !!S.completed[id]; });
+    default: return false;
+  }
+}
+var toastTimer = null;
+function toast(a) {
+  var old = $('.toast');
+  if (old) old.remove();
+  var t = el('div', { class: 'toast', role: 'status' }, [
+    el('span', { class: 'ic' }, a.icon || '🏆'),
+    el('div', {}, [el('b', {}, T.achievement + a.title), el('small', {}, a.description)])
+  ]);
+  document.body.appendChild(t);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.remove(); }, 5200);
+}
+function syncAchievements() {
+  for (var i = 0; i < COURSE.achievements.length; i++) {
+    var a = COURSE.achievements[i];
+    if (S.unlocked.indexOf(a.id) === -1 && evalCondition(a.conditionRef)) {
+      S.unlocked.push(a.id);
+      save();
+      toast(a);
+    }
+  }
+}
+function setScore(id, pct) {
+  var prev = S.scores[id];
+  S.scores[id] = (prev === undefined) ? pct : Math.max(prev, pct);
+  S.completed[id] = true;
+  save();
+  syncAchievements();
+  renderAside();
+}
+
+// --- the 6 edu-site interactive types -----------------------------------------------------------
+function exFlashcards(sec, done) {
+  var cards = sec.exercise.cards;
+  var i = 0, back = false;
+  var seen = {};
+  var wrap = el('div', {});
+  var face = el('div', { class: 'flash-inner', role: 'button', tabindex: '0' });
+  var counter = el('span', { class: 'score-pill' });
+  function draw() {
+    seen[i] = true;
+    var n = Object.keys(seen).length;
+    face.innerHTML = '<span class="side">' + (back ? T.sideBack : T.sideFront) + '</span>' + md(back ? cards[i].back : cards[i].front);
+    counter.textContent = (i + 1) + ' / ' + cards.length + ' · ' + n + ' ' + T.seen;
+    if (n === cards.length) done(100);
+  }
+  face.addEventListener('click', function () { back = !back; draw(); });
+  face.addEventListener('keydown', function (e) {
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); back = !back; draw(); }
+  });
+  wrap.appendChild(el('p', { class: 'hint' }, T.flashHint));
+  wrap.appendChild(el('div', { class: 'flash' }, [face]));
+  wrap.appendChild(el('div', { class: 'row' }, [
+    el('button', { class: 'btn ghost', onclick: function () { i = (i - 1 + cards.length) % cards.length; back = false; draw(); } }, T.prev),
+    el('button', { class: 'btn', onclick: function () { i = (i + 1) % cards.length; back = false; draw(); } }, T.next),
+    el('span', { class: 'spacer', style: 'flex:1' }),
+    counter
+  ]));
+  draw();
+  return wrap;
+}
+
+function exMatching(sec, done) {
+  var pairs = sec.exercise.pairs;
+  var order = pairs.map(function (p, i) { return i; });
+  // deterministic, non-identity shuffle of the right column
+  var rights = order.slice().sort(function (a, b) {
+    return (pairs[a].right.length % 7) - (pairs[b].right.length % 7) || b - a;
+  });
+  var sel = null;
+  var solved = {};
+  var solvedCount = 0;
+  var wrap = el('div', {});
+  var status = el('span', { class: 'score-pill' });
+  var L = el('div', {});
+  var R = el('div', {});
+  function refresh() {
+    status.textContent = solvedCount + ' / ' + pairs.length + ' ' + T.matched;
+    if (solvedCount === pairs.length) done(100);
+  }
+  order.forEach(function (i) {
+    var b = el('button', { class: 'chip' }, pairs[i].left);
+    b.setAttribute('data-i', String(i));
+    b.addEventListener('click', function () {
+      if (solved[i]) return;
+      var kids = L.children;
+      for (var q = 0; q < kids.length; q++) kids[q].classList.remove('sel');
+      b.classList.add('sel');
+      sel = i;
+    });
+    L.appendChild(b);
+  });
+  rights.forEach(function (i) {
+    var b = el('button', { class: 'chip' }, pairs[i].right);
+    b.setAttribute('data-i', String(i));
+    b.addEventListener('click', function () {
+      if (solved[i] || sel === null) return;
+      if (sel === i) {
+        solved[i] = true;
+        solvedCount++;
+        b.classList.add('done');
+        b.classList.remove('sel');
+        var lb = L.querySelector('[data-i="' + i + '"]');
+        if (lb) { lb.classList.add('done'); lb.classList.remove('sel'); }
+        sel = null;
+        refresh();
+      } else {
+        b.classList.add('miss');
+        setTimeout(function () { b.classList.remove('miss'); }, 320);
+      }
+    });
+    R.appendChild(b);
+  });
+  wrap.appendChild(el('p', { class: 'hint' }, T.matchHint));
+  wrap.appendChild(el('div', { class: 'match-grid' }, [L, R]));
+  wrap.appendChild(el('div', { class: 'row' }, [el('span', { class: 'spacer', style: 'flex:1' }), status]));
+  refresh();
+  return wrap;
+}
+
+function exDragOrder(sec, done) {
+  var ex = sec.exercise;
+  var byId = {};
+  ex.items.forEach(function (it) { byId[it.id] = it; });
+  var cur = ex.items.map(function (it) { return it.id; }).slice().reverse();
+  var wrap = el('div', {});
+  var list = el('div', {});
+  var status = el('div', {});
+  function move(k, d) {
+    var j = cur.indexOf(k), t = j + d;
+    if (t < 0 || t >= cur.length) return;
+    cur.splice(j, 1);
+    cur.splice(t, 0, k);
+    draw(false);
+  }
+  function draw(checked) {
+    list.innerHTML = '';
+    cur.forEach(function (id, n) {
+      var right = checked ? (ex.correctOrder[n] === id) : null;
+      list.appendChild(el('div', { class: 'order-item' + (right === true ? ' ok' : right === false ? ' no' : '') }, [
+        el('span', { class: 'idx' }, (n + 1) + '.'),
+        el('span', { class: 'grab' }, '⣿'),
+        el('span', { style: 'flex:1' }, byId[id].label),
+        el('button', { class: 'mini', title: T.moveUp, onclick: function () { move(id, -1); } }, '↑'),
+        el('button', { class: 'mini', title: T.moveDown, onclick: function () { move(id, 1); } }, '↓')
+      ]));
+    });
+  }
+  wrap.appendChild(el('p', { class: 'hint' }, ex.instruction));
+  wrap.appendChild(list);
+  draw(false);
+  wrap.appendChild(el('div', { class: 'row', style: 'margin-top:12px' }, [
+    el('button', { class: 'btn', onclick: function () {
+      draw(true);
+      var n = cur.filter(function (id, k) { return ex.correctOrder[k] === id; }).length;
+      var pct = Math.round(100 * n / cur.length);
+      status.innerHTML = '';
+      status.appendChild(el('div', { class: 'explain ' + (pct === 100 ? 'good' : 'mid') },
+        pct === 100
+          ? T.orderRight
+          : fmt(T.orderPartial, { n: n, len: cur.length })));
+      if (pct === 100) done(100);
+    } }, T.checkOrder)
+  ]));
+  wrap.appendChild(status);
+  return wrap;
+}
+
+function exBuilder(sec, done) {
+  var ex = sec.exercise;
+  var built = [];
+  var hintsShown = 0;
+  var wrap = el('div', {});
+  var line = el('div', { class: 'build-line' });
+  var parts = el('div', { class: 'row', style: 'margin-top:12px' });
+  var status = el('div', {});
+  function drawLine() {
+    line.innerHTML = '';
+    if (!built.length) {
+      line.appendChild(el('span', { style: 'color:var(--muted)' }, T.builderEmpty));
+    }
+    built.forEach(function (p, i) {
+      line.appendChild(el('span', { class: 'tok', title: 'remove', onclick: function () { built.splice(i, 1); drawLine(); drawParts(); } }, p));
+    });
+  }
+  function drawParts() {
+    parts.innerHTML = '';
+    ex.parts.forEach(function (p) {
+      var budget = ex.parts.filter(function (x) { return x === p; }).length;
+      var used = built.filter(function (x) { return x === p; }).length >= budget;
+      parts.appendChild(el('button', {
+        class: 'part',
+        disabled: used ? 'disabled' : null,
+        onclick: function () { built.push(p); drawLine(); drawParts(); }
+      }, p));
+    });
+  }
+  wrap.appendChild(el('p', { class: 'hint' }, ex.instruction));
+  wrap.appendChild(line);
+  wrap.appendChild(parts);
+  wrap.appendChild(el('div', { class: 'row', style: 'margin-top:12px' }, [
+    el('button', { class: 'btn', onclick: function () {
+      var got = built.join(' ').replace(/\s+/g, ' ').trim();
+      var want = ex.correctCommand.replace(/\s+/g, ' ').trim();
+      status.innerHTML = '';
+      if (got === want) {
+        status.appendChild(el('div', { class: 'explain good' },
+          ex.successFeedback || T.builderCorrect));
+        done(100);
+      } else {
+        status.appendChild(el('div', { class: 'explain bad' }, T.builderNot + (got || T.nothing)));
+        var h = ex.hints && ex.hints[Math.min(hintsShown, ex.hints.length - 1)];
+        hintsShown++;
+        if (h) status.appendChild(el('p', { class: 'hint' }, h));
+      }
+    } }, T.checkCommand),
+    el('button', { class: 'btn ghost', onclick: function () { built = []; drawLine(); drawParts(); status.innerHTML = ''; } }, T.clear)
+  ]));
+  wrap.appendChild(status);
+  drawLine();
+  drawParts();
+  return wrap;
+}
+
+function exScenario(sec, done) {
+  var ex = sec.exercise;
+  var step = 0, points = 0;
+  var wrap = el('div', {});
+  var body = el('div', {});
+  wrap.appendChild(el('h3', { style: 'margin:0 0 6px;font-size:17px' }, ex.title));
+  wrap.appendChild(el('div', { class: 'lede', style: 'margin-bottom:4px', html: md(ex.scenario) }));
+  function draw() {
+    body.innerHTML = '';
+    if (step >= ex.steps.length) {
+      var pct = Math.round(100 * points / ex.steps.length);
+      body.appendChild(el('div', { class: 'explain ' + (pct >= 67 ? 'good' : 'mid') },
+        fmt(T.scenarioDone, { p: points, n: ex.steps.length })));
+      done(Math.max(pct, 60));
+      return;
+    }
+    var st = ex.steps[step];
+    body.appendChild(el('div', { class: 'score-pill', style: 'display:inline-block;margin-bottom:8px' },
+      fmt(T.step, { i: step + 1, n: ex.steps.length })));
+    body.appendChild(el('p', { style: 'font-weight:600;margin:.2em 0 .6em', html: inline(st.description) }));
+    st.options.forEach(function (o) {
+      var btn = el('button', { class: 'opt' }, o.text);
+      btn.addEventListener('click', function () {
+        var opts = body.querySelectorAll('.opt');
+        for (var q = 0; q < opts.length; q++) opts[q].disabled = true;
+        btn.classList.add('chosen');
+        if (o.result === 'positive') { btn.classList.add('correct'); points++; }
+        else if (o.result === 'negative') { btn.classList.add('wrong'); }
+        body.appendChild(el('div', { class: 'explain ' + (o.result === 'positive' ? 'good' : o.result === 'negative' ? 'bad' : 'mid') }, o.feedback));
+        body.appendChild(el('div', { class: 'row', style: 'margin-top:10px' }, [
+          el('button', { class: 'btn', onclick: function () { step++; draw(); } },
+            (step + 1 >= ex.steps.length) ? T.seeResult : T.nextStep)
+        ]));
+      });
+      body.appendChild(btn);
+    });
+  }
+  wrap.appendChild(body);
+  draw();
+  return wrap;
+}
+
+function exQuiz(sec, done, questions, label) {
+  var qs = questions || (sec && sec.quiz) || [];
+  var i = 0, right = 0;
+  var wrap = el('div', {});
+  var body = el('div', {});
+  function draw() {
+    body.innerHTML = '';
+    if (i >= qs.length) {
+      var pct = Math.round(100 * right / qs.length);
+      body.appendChild(el('div', { class: 'explain ' + (pct >= 70 ? 'good' : 'mid') },
+        fmt(T.quizComplete, { label: label || T.quiz, r: right, n: qs.length, p: pct })));
+      body.appendChild(el('div', { class: 'row', style: 'margin-top:10px' }, [
+        el('button', { class: 'btn ghost', onclick: function () { i = 0; right = 0; draw(); } }, T.tryAgain)
+      ]));
+      done(pct);
+      return;
+    }
+    var q = qs[i];
+    body.appendChild(el('div', { class: 'score-pill', style: 'display:inline-block;margin-bottom:8px' },
+      fmt(T.question, { i: i + 1, n: qs.length })));
+    body.appendChild(el('p', { style: 'font-weight:600;margin:.2em 0 .6em', html: inline(q.question) }));
+    q.options.forEach(function (o, k) {
+      var btn = el('button', { class: 'opt' }, o);
+      btn.addEventListener('click', function () {
+        var opts = body.querySelectorAll('.opt');
+        for (var n = 0; n < opts.length; n++) {
+          opts[n].disabled = true;
+          if (n === q.correctAnswer) opts[n].classList.add('correct');
+        }
+        btn.classList.add('chosen');
+        if (k === q.correctAnswer) right++; else btn.classList.add('wrong');
+        if (q.explanation) {
+          body.appendChild(el('div', { class: 'explain ' + (k === q.correctAnswer ? 'good' : 'bad') }, q.explanation));
+        }
+        body.appendChild(el('div', { class: 'row', style: 'margin-top:10px' }, [
+          el('button', { class: 'btn', onclick: function () { i++; draw(); } },
+            (i + 1 >= qs.length) ? T.seeResult : T.nextQuestion)
+        ]));
+      });
+      body.appendChild(btn);
+    });
+  }
+  wrap.appendChild(body);
+  draw();
+  return wrap;
+}
+
+var RENDERERS = {
+  flashcards: exFlashcards,
+  matching: exMatching,
+  'drag-and-drop': exDragOrder,
+  ordering: exDragOrder,
+  builder: exBuilder,
+  scenario: exScenario,
+  simulation: exScenario,
+  quiz: exQuiz
+};
+
+// --- views ---------------------------------------------------------------------------------------
+var view = { kind: 'intro', i: 0 };
+
+function renderAside() {
+  var a = $('#aside');
+  a.innerHTML = '';
+  a.appendChild(el('div', { class: 'brand' }, [
+    COURSE.courseTitle,
+    el('small', {}, fmt(T.brandTag, { n: SECTIONS.length }))
+  ]));
+  var pct = Math.round(100 * completedCount() / SECTIONS.length);
+  a.appendChild(el('div', { class: 'progress-wrap' }, [
+    el('div', { class: 'bar' }, [el('i', { style: 'width:' + pct + '%' })]),
+    el('div', { class: 'progress-label' }, [
+      el('span', {}, fmt(T.sectionsOf, { c: completedCount(), n: SECTIONS.length })),
+      el('span', {}, pct + '%')
+    ])
+  ]));
+  var ul = el('ul', {});
+  ul.appendChild(el('li', {}, [el('button', {
+    'aria-current': view.kind === 'intro' ? 'true' : 'false',
+    onclick: function () { go({ kind: 'intro' }); }
+  }, [el('span', { class: 'tick' }, ''), '🧭 ' + T.startHere])]));
+  SECTIONS.forEach(function (s, k) {
+    ul.appendChild(el('li', {}, [el('button', {
+      'aria-current': (view.kind === 'section' && view.i === k) ? 'true' : 'false',
+      onclick: function () { go({ kind: 'section', i: k }); }
+    }, [
+      el('span', { class: 'tick' }, S.completed[s.id] ? '✓' : ''),
+      s.icon + ' ' + s.order + '. ' + s.shortTitle
+    ])]));
+  });
+  ul.appendChild(el('li', {}, [el('button', {
+    'aria-current': view.kind === 'final' ? 'true' : 'false',
+    onclick: function () { go({ kind: 'final' }); }
+  }, [el('span', { class: 'tick' }, (S.finalScore !== null && S.finalScore >= PASS) ? '✓' : ''), '🎯 ' + T.finalTest])]));
+  ul.appendChild(el('li', {}, [el('button', {
+    'aria-current': view.kind === 'faq' ? 'true' : 'false',
+    onclick: function () { go({ kind: 'faq' }); }
+  }, [el('span', { class: 'tick' }, ''), '❓ ' + T.faqNav])]));
+  a.appendChild(el('nav', {}, [ul]));
+
+  a.appendChild(el('div', { class: 'navhead' }, T.achievements + S.unlocked.length + ' / ' + COURSE.achievements.length));
+  var grid = el('div', { class: 'ach-grid' });
+  COURSE.achievements.forEach(function (ac) {
+    var on = S.unlocked.indexOf(ac.id) !== -1;
+    grid.appendChild(el('div', {
+      class: 'ach' + (on ? ' on' : ''),
+      title: on ? (ac.title + ' — ' + ac.description) : (T.locked + ac.description)
+    }, ac.icon));
+  });
+  a.appendChild(grid);
+
+  a.appendChild(el('div', { class: 'navhead' }, T.settings));
+  a.appendChild(el('div', { class: 'row' }, [
+    el('button', { class: 'btn ghost', onclick: function () { S.dark = !S.dark; save(); applyTheme(); } },
+      S.dark ? T.light : T.dark),
+    el('button', { class: 'btn ghost', onclick: function () {
+      if (window.confirm(T.resetConfirm)) { S = Object.assign(fresh(), { dark: S.dark }); save(); go(view); }
+    } }, T.reset)
+  ]));
+}
+
+// --- diagram: a flow drawn from DATA, never from author markup ------------------------------------
+// Every label goes in through textContent, so a `<script>` in a label is shown as those letters and
+// nothing else — the injection seam simply does not exist rather than being filtered.
+function renderDiagram(d) {
+  if (!d || !Array.isArray(d.nodes) || d.nodes.length < 2) return null;
+  var kinds = { flow: dgFlow, compare: dgCompare, scale: dgScale, parts: dgParts };
+  var draw = kinds[d.kind];
+  if (!draw) return null;
+  var fig = el('figure', { class: 'diagram dg-' + d.kind });
+  fig.appendChild(draw(d));
+  if (d.title) fig.appendChild(el('figcaption', {}, String(d.title)));
+  return fig;
+}
+
+// flow — a sequence: each step leads to the next, optionally closing the circle.
+function dgFlow(d) {
+  var track = el('div', { class: 'dg-track' });
+  d.nodes.forEach(function (n, i) {
+    if (i > 0) track.appendChild(el('span', { class: 'dg-arrow', 'aria-hidden': 'true' }, '→'));
+    track.appendChild(dgBox(n));
+  });
+  if (d.cycle === true) track.appendChild(el('span', { class: 'dg-cycle' }, '↻ и снова'));
+  return track;
+}
+
+// compare — options side by side: the reader is choosing, not walking a path.
+function dgCompare(d) {
+  var grid = el('div', { class: 'dg-grid' });
+  d.nodes.forEach(function (n) {
+    var col = el('div', { class: 'dg-col' + (n.accent === true ? ' dg-accent' : '') }, [el('b', {}, String(n.label == null ? '' : n.label))]);
+    if (n.note) col.appendChild(el('small', {}, String(n.note)));
+    if (Array.isArray(n.items)) {
+      var ul = el('ul', { class: 'dg-items' });
+      n.items.forEach(function (it) { ul.appendChild(el('li', {}, String(it))); });
+      col.appendChild(ul);
+    }
+    grid.appendChild(col);
+  });
+  return grid;
+}
+
+// scale — rungs where POSITION carries meaning: higher is cheaper/louder, lower is weaker/silent.
+function dgScale(d) {
+  var wrap = el('div', { class: 'dg-scale-wrap' });
+  if (d.topLabel) wrap.appendChild(el('div', { class: 'dg-edge' }, String(d.topLabel)));
+  d.nodes.forEach(function (n, i) {
+    var rung = el('div', { class: 'dg-rung' + (n.accent === true ? ' dg-accent' : '') }, [
+      el('span', { class: 'dg-rung-n' }, String(i + 1)),
+      el('b', {}, String(n.label == null ? '' : n.label)),
+    ]);
+    if (n.note) rung.appendChild(el('small', {}, String(n.note)));
+    wrap.appendChild(rung);
+  });
+  if (d.bottomLabel) wrap.appendChild(el('div', { class: 'dg-edge' }, String(d.bottomLabel)));
+  return wrap;
+}
+
+// parts — a whole and its required parts: removing one breaks the whole, order is irrelevant.
+function dgParts(d) {
+  var wrap = el('div', { class: 'dg-parts-wrap' });
+  if (d.whole) wrap.appendChild(el('div', { class: 'dg-whole' }, String(d.whole)));
+  var row = el('div', { class: 'dg-track' });
+  d.nodes.forEach(function (n, i) {
+    if (i > 0) row.appendChild(el('span', { class: 'dg-plus', 'aria-hidden': 'true' }, '+'));
+    row.appendChild(dgBox(n));
+  });
+  wrap.appendChild(row);
+  return wrap;
+}
+
+function dgBox(n) {
+  var box = el('div', { class: 'dg-node' + (n.accent === true ? ' dg-accent' : '') }, [el('b', {}, String(n.label == null ? '' : n.label))]);
+  if (n.note) box.appendChild(el('small', {}, String(n.note)));
+  return box;
+}
+
+function sectionView(k) {
+  var s = SECTIONS[k];
+  var m = $('#main');
+  m.innerHTML = '';
+  m.appendChild(el('div', { class: 'meta-row' }, [
+    el('span', { class: 'eyebrow' }, fmt(T.sectionOf, { o: s.order, n: SECTIONS.length })),
+    el('span', { class: 'pattern-chip', title: (T.patternNames && T.patternNames[s.methodPattern]) || T.patternTitle }, 'Head First ' + s.methodPattern),
+    S.completed[s.id] ? el('span', { class: 'score-pill good' }, T.completed + (S.scores[s.id] || 0) + '%') : null
+  ]));
+  m.appendChild(el('h1', {}, s.icon + '  ' + s.title));
+  m.appendChild(el('p', { class: 'lede' }, s.description));
+  m.appendChild(el('div', { class: 'card theory', html: md(s.theory) }));
+  var dg = renderDiagram(s.diagram);
+  if (dg !== null) m.appendChild(dg);
+
+  // The persona's notebook — the second recurring visual device. One hand-written margin note per
+  // section, in the persona's own voice, stamped with when it was written: the reader watches the
+  // character grow across the course instead of being told that she did.
+  if (s.notebook && s.notebook.note) {
+    m.appendChild(el('div', { class: 'notebook' }, [
+      el('h3', {}, [
+        ((COURSE.persona && COURSE.persona.name) ? fmt(T.notebookOf, { name: COURSE.persona.name }) : T.notebook),
+        s.notebook.when ? el('span', { class: 'when' }, s.notebook.when) : null
+      ]),
+      el('p', { html: inline(s.notebook.note) })
+    ]));
+  }
+
+  var r = s.reflection;
+  m.appendChild(el('div', { class: 'reflect' }, [
+    el('h3', {}, T.quartet),
+    el('dl', {}, [
+      el('dt', {}, T.strengths), el('dd', {}, r.strengths),
+      el('dt', {}, T.weaknesses), el('dd', {}, r.weaknesses),
+      el('dt', {}, T.rating), el('dd', {}, String(r.rating)),
+      el('dt', {}, T.wrapup), el('dd', {}, r.wrapup)
+    ])
+  ]));
+
+  m.appendChild(el('h2', {}, T.doSomething + typeLabel(s.interactiveType)));
+  var exCard = el('div', { class: 'card' });
+  var rend = RENDERERS[s.interactiveType] || exQuiz;
+  exCard.appendChild(rend(s, function (pct) { setScore(s.id, pct); }));
+  m.appendChild(exCard);
+
+  if (s.interactiveType !== 'quiz' && s.quiz && s.quiz.length) {
+    m.appendChild(el('h2', {}, T.checkYourself));
+    var qc = el('div', { class: 'card' });
+    qc.appendChild(exQuiz(s, function (pct) { setScore(s.id, Math.max(pct, S.scores[s.id] || 0)); }, s.quiz, T.check));
+    m.appendChild(qc);
+  }
+
+  m.appendChild(el('div', { class: 'footer-nav' }, [
+    k > 0
+      ? el('button', { class: 'btn ghost', onclick: function () { go({ kind: 'section', i: k - 1 }); } }, '← ' + SECTIONS[k - 1].shortTitle)
+      : el('button', { class: 'btn ghost', onclick: function () { go({ kind: 'intro' }); } }, '\u2190 ' + T.startHere),
+    el('span', { class: 'spacer', style: 'flex:1' }),
+    el('button', { class: 'btn', onclick: function () {
+      // Partial credit BY DESIGN: skimming to the next section grants 60%, never 100% — the
+      // perfect-section achievement and a full score still require doing the exercise.
+      if (!S.completed[s.id]) setScore(s.id, S.scores[s.id] || 60);
+      go(k + 1 < SECTIONS.length ? { kind: 'section', i: k + 1 } : { kind: 'final' });
+    } }, k + 1 < SECTIONS.length ? (SECTIONS[k + 1].shortTitle + ' →') : T.finalTest + ' \u2192')
+  ]));
+}
+
+function introView() {
+  var m = $('#main');
+  m.innerHTML = '';
+  m.appendChild(el('span', { class: 'eyebrow' }, T.startHere));
+  m.appendChild(el('h1', {}, COURSE.courseTitle));
+  m.appendChild(el('p', { class: 'lede' }, COURSE.courseDescription));
+  m.appendChild(el('div', { class: 'card' }, [
+    el('h2', { style: 'margin-top:0' }, T.meet + COURSE.persona.name),
+    el('p', {}, COURSE.persona.description),
+    // Optional course-authored honesty/context note (introNote). No fabricated default: if the
+    // author wrote nothing, nothing is shown.
+    COURSE.introNote ? el('p', { style: 'color:var(--muted);font-size:14.5px' }, COURSE.introNote) : null
+  ]));
+  m.appendChild(el('h2', {}, COURSE.introHeading || T.whatYouLearn));
+  SECTIONS.forEach(function (s, k) {
+    m.appendChild(el('div', {
+      class: 'card', style: 'margin:10px 0;padding:16px 20px;cursor:pointer',
+      onclick: function () { go({ kind: 'section', i: k }); }
+    }, [
+      el('div', { class: 'meta-row' }, [
+        el('strong', { style: 'font-size:16px' }, s.icon + '  ' + s.title),
+        el('span', { class: 'pattern-chip' }, s.methodPattern),
+        S.completed[s.id] ? el('span', { class: 'score-pill good' }, '✓') : null
+      ]),
+      el('div', { style: 'color:var(--muted);font-size:14.5px' }, s.description)
+    ]));
+  });
+  m.appendChild(el('div', { class: 'footer-nav' }, [
+    el('span', { class: 'spacer', style: 'flex:1' }),
+    el('button', { class: 'btn', onclick: function () { go({ kind: 'section', i: 0 }); } }, T.startSection1)
+  ]));
+}
+
+function finalView() {
+  var m = $('#main');
+  m.innerHTML = '';
+  m.appendChild(el('span', { class: 'eyebrow' }, T.finalTest));
+  m.appendChild(el('h1', {}, '🎯 ' + T.finalH1));
+  m.appendChild(el('p', { class: 'lede' },
+    fmt(T.finalLede, { p: PASS, n: SECTIONS.length })));
+  var qs = SECTIONS.map(function (s) {
+    return {
+      id: s.finalTest.id,
+      question: s.finalTest.question,
+      options: s.finalTest.options,
+      correctAnswer: s.finalTest.correctAnswer,
+      explanation: fmt(T.fromSection, { o: s.order, t: s.shortTitle })
+    };
+  });
+  var result = el('div', {});
+  var card = el('div', { class: 'card' });
+  card.appendChild(exQuiz(null, function (pct) {
+    S.finalScore = Math.max(S.finalScore === null ? 0 : S.finalScore, pct);
+    save();
+    syncAchievements();
+    renderAside();
+    result.innerHTML = '';
+    result.appendChild(el('div', { class: 'card', style: 'text-align:center' }, [
+      el('div', { class: 'big-score', style: 'color:' + (pct >= PASS ? 'var(--ok)' : 'var(--bad)') }, pct + '%'),
+      // 'Passed' is STRUCTURAL (verify-site keys on it); the flavour after the dash is course data.
+      el('p', { style: 'font-weight:600;margin:.5em 0 .2em' },
+        pct >= PASS ? T.passed + ((COURSE.outro && COURSE.outro.pass) || T.courseComplete) : fmt(T.notYet, { p: PASS })),
+      el('p', { style: 'color:var(--muted);font-size:14.5px' },
+        pct >= PASS
+          ? ((COURSE.outro && COURSE.outro.next) || T.revisit)
+          : T.reread)
+    ]));
+  }, qs, T.finalTest));
+  m.appendChild(card);
+  m.appendChild(result);
+  m.appendChild(el('div', { class: 'footer-nav' }, [
+    el('button', { class: 'btn ghost', onclick: function () { go({ kind: 'section', i: SECTIONS.length - 1 }); } }, T.lastSection),
+    el('span', { class: 'spacer', style: 'flex:1' }),
+    el('button', { class: 'btn ghost', onclick: function () { go({ kind: 'faq' }); } }, T.faqNav + ' \u2192')
+  ]));
+}
+
+function faqView() {
+  var m = $('#main');
+  m.innerHTML = '';
+  m.appendChild(el('span', { class: 'eyebrow' }, T.faqEyebrow));
+  m.appendChild(el('h1', {}, '❓ ' + T.faqH1));
+  m.appendChild(el('p', { class: 'lede' }, T.faqLede));
+  var box = el('div', { class: 'faq' });
+  COURSE.faqData.forEach(function (f) {
+    box.appendChild(el('details', {}, [
+      el('summary', {}, f.question),
+      el('div', { class: 'a', html: md(f.answer) })
+    ]));
+  });
+  m.appendChild(box);
+  m.appendChild(el('div', { class: 'footer-nav' }, [
+    el('button', { class: 'btn ghost', onclick: function () { go({ kind: 'intro' }); } }, '\u2190 ' + T.startHere),
+    el('span', { class: 'spacer', style: 'flex:1' })
+  ]));
+}
+
+function applyTheme() {
+  document.documentElement.classList.toggle('dark', !!S.dark);
+  renderAside();
+}
+
+function go(v) {
+  view = v;
+  if (v.kind === 'section') sectionView(v.i);
+  else if (v.kind === 'final') finalView();
+  else if (v.kind === 'faq') faqView();
+  else introView();
+  renderAside();
+  window.scrollTo(0, 0);
+}
+
+document.title = COURSE.courseTitle;
+applyTheme();
+syncAchievements();
+go({ kind: 'intro' });
+</script>
+</body>
+</html>
