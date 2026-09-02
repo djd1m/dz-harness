@@ -1672,5 +1672,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-book-ddia"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-book-ddia",
+    "version": "0.1.5",
+    "stampedBy": "backfill"
   }
 }

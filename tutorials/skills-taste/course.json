@@ -1428,5 +1428,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-taste"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-taste",
+    "version": "0.1.5",
+    "stampedBy": "backfill"
   }
 }

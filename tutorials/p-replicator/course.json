@@ -1416,5 +1416,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/p-replicator"
+  },
+  "source": {
+    "package": "@dzhechkov/p-replicator",
+    "version": "1.13.2",
+    "stampedBy": "backfill"
   }
 }

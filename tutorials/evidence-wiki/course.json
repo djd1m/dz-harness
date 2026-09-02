@@ -1557,5 +1557,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/evidence-wiki"
+  },
+  "source": {
+    "package": "@dzhechkov/evidence-wiki",
+    "version": "0.2.6",
+    "stampedBy": "backfill"
   }
 }

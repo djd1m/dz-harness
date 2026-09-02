@@ -1420,5 +1420,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/health-advisor"
+  },
+  "source": {
+    "package": "@dzhechkov/health-advisor",
+    "version": "1.10.5",
+    "stampedBy": "backfill"
   }
 }

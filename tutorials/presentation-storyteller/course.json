@@ -1513,5 +1513,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-presentation-storyteller"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-presentation-storyteller",
+    "version": "0.1.14",
+    "stampedBy": "backfill"
   }
 }

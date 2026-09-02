@@ -1654,5 +1654,10 @@
       "question": "Что делать, если после установки слэш-команда не появилась?",
       "answer": "Начни с `npx @dzhechkov/skills-idea2prd doctor` — он отвечает на вопрос «цела ли установка» раньше, чем ты начнёшь искать причину в ассистенте. Затем `list`, чтобы увидеть, что реально установлено в `.claude/skills/`."
     }
-  ]
+  ],
+  "source": {
+    "package": "@dzhechkov/skills-idea2prd",
+    "version": "0.1.15",
+    "stampedBy": "backfill"
+  }
 }

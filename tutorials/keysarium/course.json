@@ -1644,5 +1644,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/keysarium"
+  },
+  "source": {
+    "package": "@dzhechkov/keysarium",
+    "version": "1.7.4",
+    "stampedBy": "backfill"
   }
 }

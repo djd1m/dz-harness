@@ -1593,5 +1593,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-qe"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-qe",
+    "version": "0.3.14",
+    "stampedBy": "backfill"
   }
 }

@@ -1582,5 +1582,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/scout"
+  },
+  "source": {
+    "package": "@dzhechkov/scout",
+    "version": "0.8.11",
+    "stampedBy": "backfill"
   }
 }

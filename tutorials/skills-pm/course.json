@@ -1622,5 +1622,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-pm"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-pm",
+    "version": "0.1.5",
+    "stampedBy": "backfill"
   }
 }

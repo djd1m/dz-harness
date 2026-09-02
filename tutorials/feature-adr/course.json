@@ -2233,5 +2233,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-feature-adr"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-feature-adr",
+    "version": "1.5.8",
+    "stampedBy": "backfill"
   }
 }

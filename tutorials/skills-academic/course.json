@@ -1598,5 +1598,10 @@
  "feedback": {
   "repo": "djd1m/dz-harness",
   "packagePath": "packages/skills-academic"
+ },
+ "source": {
+  "package": "@dzhechkov/skills-academic",
+  "version": "0.3.7",
+  "stampedBy": "backfill"
  }
 }

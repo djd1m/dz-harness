@@ -1363,5 +1363,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-analyst-manual"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-analyst-manual",
+    "version": "1.0.14",
+    "stampedBy": "backfill"
   }
 }
