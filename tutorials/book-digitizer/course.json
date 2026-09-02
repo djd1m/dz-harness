@@ -1600,5 +1600,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-book-digitizer"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-book-digitizer",
+    "version": "0.2.19",
+    "stampedBy": "backfill"
   }
 }

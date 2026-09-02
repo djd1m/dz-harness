@@ -1507,5 +1507,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-bto"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-bto",
+    "version": "1.4.5",
+    "stampedBy": "backfill"
   }
 }

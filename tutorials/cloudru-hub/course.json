@@ -887,5 +887,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/cloudru-hub"
+  },
+  "source": {
+    "package": "@dzhechkov/cloudru-hub",
+    "version": "0.1.11",
+    "stampedBy": "backfill"
   }
 }

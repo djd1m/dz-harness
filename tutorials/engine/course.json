@@ -1278,5 +1278,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/harness-core"
+  },
+  "source": {
+    "package": "@dzhechkov/harness-core",
+    "version": "0.8.11",
+    "stampedBy": "backfill"
   }
 }

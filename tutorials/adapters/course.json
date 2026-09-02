@@ -1490,5 +1490,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/adapter-claude"
+  },
+  "source": {
+    "package": "@dzhechkov/adapter-claude",
+    "version": "0.2.7",
+    "stampedBy": "backfill"
   }
 }

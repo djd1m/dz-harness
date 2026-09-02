@@ -1557,5 +1557,10 @@
         "href": "https://www.npmjs.com/package/@dzhechkov/loop-designer-plugin"
       }
     ]
+  },
+  "source": {
+    "package": "@dzhechkov/loop-designer-plugin",
+    "version": "0.1.5",
+    "stampedBy": "backfill"
   }
 }

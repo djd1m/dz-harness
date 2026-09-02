@@ -2110,5 +2110,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/harness-cli"
+  },
+  "source": {
+    "package": "@dzhechkov/harness-cli",
+    "version": "0.8.10",
+    "stampedBy": "backfill"
   }
 }

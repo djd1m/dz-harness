@@ -1488,5 +1488,10 @@
  "feedback": {
   "repo": "djd1m/dz-harness",
   "packagePath": "packages/skills-tutorial-factory"
+ },
+ "source": {
+  "package": "@dzhechkov/skills-tutorial-factory",
+  "version": "0.7.0",
+  "stampedBy": "backfill"
  }
 }

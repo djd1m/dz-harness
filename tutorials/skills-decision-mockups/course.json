@@ -1033,5 +1033,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-decision-mockups"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-decision-mockups",
+    "version": "0.1.7",
+    "stampedBy": "backfill"
   }
 }

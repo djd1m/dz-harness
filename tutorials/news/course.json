@@ -1496,5 +1496,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-news"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-news",
+    "version": "0.1.16",
+    "stampedBy": "backfill"
   }
 }

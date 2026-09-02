@@ -1384,5 +1384,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-book-fundamental-software-architecture"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-book-fundamental-software-architecture",
+    "version": "0.1.2",
+    "stampedBy": "backfill"
   }
 }

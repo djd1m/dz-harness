@@ -1119,5 +1119,10 @@
   "feedback": {
     "repo": "dzhechko/dz-harness",
     "packagePath": "packages/skills-transcript-site"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-transcript-site",
+    "version": "1.0.9",
+    "stampedBy": "backfill"
   }
 }

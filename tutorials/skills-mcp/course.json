@@ -1644,5 +1644,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-mcp"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-mcp",
+    "version": "0.3.10",
+    "stampedBy": "backfill"
   }
 }

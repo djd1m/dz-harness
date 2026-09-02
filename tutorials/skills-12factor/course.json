@@ -1435,5 +1435,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-12factor"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-12factor",
+    "version": "0.1.13",
+    "stampedBy": "backfill"
   }
 }

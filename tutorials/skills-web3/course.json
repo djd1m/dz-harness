@@ -1726,5 +1726,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-web3"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-web3",
+    "version": "0.2.9",
+    "stampedBy": "backfill"
   }
 }

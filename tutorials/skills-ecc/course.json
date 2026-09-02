@@ -962,5 +962,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-ecc"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-ecc",
+    "version": "0.1.12",
+    "stampedBy": "backfill"
   }
 }

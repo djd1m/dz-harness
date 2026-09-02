@@ -1581,5 +1581,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-book-ai-apps"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-book-ai-apps",
+    "version": "0.2.9",
+    "stampedBy": "backfill"
   }
 }

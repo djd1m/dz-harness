@@ -1391,5 +1391,10 @@
   "feedback": {
     "repo": "djd1m/dz-harness",
     "packagePath": "packages/skills-package-story-page"
+  },
+  "source": {
+    "package": "@dzhechkov/skills-package-story-page",
+    "version": "0.2.4",
+    "stampedBy": "backfill"
   }
 }
