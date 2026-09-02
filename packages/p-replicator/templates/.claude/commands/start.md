@@ -92,13 +92,11 @@ node .claude/hooks/check-source-version.cjs .
 `0` frozen and intact · `1` a defect is PROVEN and named · `2` **THE CHECK DID NOT RUN**, which is
 never "all clear".
 
-Before dispatch, allocate one `RUN_ID`, a unique `WORK_UNIT_ID`, and an absolute `TRACE_PATH` for
-each package. Require each Task to write a substantive body ending in `Status: completed` or
-`Status: failed` to `TRACE_PATH` before its one-line pointer. Before Phase 3 integration, verify every
-path is a regular non-symlink file, non-whitespace, post-launch, and terminal. Narrative output or
-silence is not a receipt. Name missing, stale, partial, unreadable, duplicate, failed, dead-PID, or
-probe-error packages and refuse integration/completion unless every required receipt is valid and
-completed. See `.claude/rules/swarm-file-evidence.md`.
+Assign each package a unique `WORK_UNIT_ID` and unique absolute `TRACE_PATH`. Its Task MUST write a
+substantive body ending in `Status: completed` or `Status: failed` to `TRACE_PATH` before its one-line
+pointer. Before Phase 3 integration, verify a regular, non-symlink, substantive, post-launch file with
+a terminal status. Narrative/chat/silence is never a receipt; any invalid receipt MUST block
+integration/completion. Full rule: `.claude/rules/swarm-file-evidence.md`.
 
 ### Phase 3: Integration (sequential)
 

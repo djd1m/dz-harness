@@ -74,12 +74,12 @@
     },
     {
       "name": "@dzhechkov/harness-cli",
-      "version": "0.8.9",
+      "version": "0.8.10",
       "files": 41
     },
     {
       "name": "@dzhechkov/harness-core",
-      "version": "0.8.10",
+      "version": "0.8.11",
       "files": 691
     },
     {
@@ -119,8 +119,8 @@
     },
     {
       "name": "@dzhechkov/p-replicator",
-      "version": "1.13.0",
-      "files": 267
+      "version": "1.13.2",
+      "files": 282
     },
     {
       "name": "@dzhechkov/scout",
@@ -189,8 +189,9 @@
     },
     {
       "name": "@dzhechkov/skills-feature-adr",
-      "version": "1.5.9",
-      "files": 82
+      "version": "1.5.8",
+      "files": 82,
+      "note": "published tarball 1.5.8 (disk 1.5.9 is staged, not published)"
     },
     {
       "name": "@dzhechkov/skills-idea2prd",

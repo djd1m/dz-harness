@@ -65,11 +65,14 @@ Always flag these terms and suggest specific replacements:
 **Score <50 = BLOCKED from development.** Provide rewrite suggestions.
 
 **Blocking floor — the weakest link decides, never the average.** Independently of the score, a
-requirement is BLOCKED if `Testable = 0` (no acceptance criteria) or `Completeness = 0` (rubric "No
-AC"). A story can total 72/100 with neither, and 72 reads as "minor fixes" in the table above. A non-zero `Testable` or `Completeness` REQUIRES quoting the acceptance criteria it scores — no quote
-means 0, because the agent that scores is the agent the floor binds. The
-floor is closed at those two: `Measurable` and `Traceability` are deliberately excluded — see
-`references/scoring-system.md` → "Blocking floor" for the worked case and the reason.
+requirement is BLOCKED if `Testable = 0` (no acceptance criteria), `Completeness = 0` (rubric "No
+AC"), or `Traceability = 0` (no AC has a named scenario in the Criterion scenarios table). A story can
+total 72/100 with no acceptance criteria, and 72 reads as "minor fixes" in the table above. A
+non-zero `Testable` or `Completeness` REQUIRES quoting the acceptance criteria it scores; a non-zero
+`Traceability` REQUIRES quoting the Criterion scenarios table or referencing its document and heading.
+No artifact means 0, because the agent that scores is the agent the floor binds. The floor is closed
+at those three; `Measurable` is deliberately excluded — see `references/scoring-system.md` →
+"Blocking floor" for the worked cases and the reason.
 
 ## Output Format
 
@@ -77,6 +80,7 @@ floor is closed at those two: `Measurable` and `Traceability` are deliberately e
 
 ```markdown
 # Requirements Testability Analysis
+Spec revision: sha256:<digest of 01_specification.md>
 
 ## Summary
 - Stories analyzed: X
@@ -89,6 +93,11 @@ floor is closed at those two: `Measurable` and `Traceability` are deliberately e
 |-------|-------|-------|--------|-------|--------|
 | US-001 | ... | 92/100 | 6/6 ✓ | 5/5 ✓ | READY |
 | US-002 | ... | 45/100 | 3/6 ✗ | 2/5 ✗ | BLOCKED |
+
+## Criterion scenarios
+| Criterion | Scenario |
+|-----------|----------|
+| AC-example-1 | Successful example flow |
 
 ## Detailed Analysis: US-002 (BLOCKED)
 
@@ -109,6 +118,10 @@ floor is closed at those two: `Measurable` and `Traceability` are deliberately e
 - Rewrite: "As a [user], I want [specific action] within [time], so that [benefit]"
 - Add AC: "Given X, when Y, then Z within 200ms"
 ```
+
+Compute the revision line from the specification bytes with
+`sha256sum docs/features/<f>/01_specification.md`. The `## Criterion scenarios` table is the artifact
+the Traceability score keys on: it maps each AC id to a named scenario.
 
 ### Security Acceptance Criteria (scoring: +5 present / -10 missing, see Scoring Bonus below)
 

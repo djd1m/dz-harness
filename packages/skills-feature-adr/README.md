@@ -106,26 +106,6 @@ ARCHITECTURE → IMPLEMENTATION →  CODE   →   QE    →  FLEET QE
 # Full protocols + 6 extra skills, up to 7 fleet QE agents
 ```
 
-### Advisory micro-recall at two decision points (v1.5.9, staged)
-
-The workflow makes one bounded decision-local recall attempt immediately before the live Step 3
-ADR-alternative choice and one immediately before the live Step 6 plan-route choice. Each attempt
-asks for at most three lessons, uses a decision-specific lesson-bandit context, has a 15-second
-whole-attempt ceiling, and is never retried. The Step 6 Codex-to-Claude fallback reuses the same
-snapshot instead of recalling again.
-
-This is strictly advisory. Empty output, timeout, command/parse/transport failure, an unwritable
-receipt, or an unestablished application probe leaves the original stage prompt, dispatch count,
-result, and verdict unchanged. There is no hard gate or runtime effectiveness threshold.
-
-The append-only evidence lives at
-`features/<slug>/.fa-state/decision-recall.jsonl`: versioned `entered`, `recalled`, `applied`, and
-optional `owner-label` rows. Post-hoc analysis can derive `receipted / eligible`, outcome counts,
-`applied / selected`, owner-label coverage, repeat-hit numerator/denominator, irrelevant injections,
-and explicit uncounted/unknown populations. The motivating timing observation remains external
-`[SRC], n=1`; the required book queries were silent on retrieval timing, so this instrumentation is
-a falsifiable hypothesis, not a claim that decision-point recall is needed or effective here.
-
 ### The K2 plan gate runs on ANY repo, not just JS/TS ones (v1.5.0)
 
 Between Step 6 and Step 7 the pipeline runs a machine plan-completeness gate (K2). Until v1.5.0 it
@@ -1132,11 +1112,6 @@ deliberately excluded — "skeleton first" is nonsense there.
 ---
 
 ## Status
-
-`1.5.9` — **staged, not published: advisory decision-point micro-recall.** Step 3 ADR selection and
-Step 6 plan routing each make one top-3, 15-second, no-retry attempt inside the live checkpoint thunk.
-All recall/receipt/probe failures preserve the original dispatch. Versioned `.fa-state` receipts make
-coverage and repeat-related outcomes countable offline; no threshold controls the workflow.
 
 `1.5.4` — **Step 5 now asks how the shipped feature will be watched.** The architecture artifact must
 carry a section headed exactly `Observability` answering what the feature logs, what it counts, what a

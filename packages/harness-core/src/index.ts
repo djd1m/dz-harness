@@ -93,6 +93,7 @@ export type { LedgerBackfillPlan, LedgerBackfillRow, RunCostFacts } from './ledg
 export type { SweepResult, DriftedSkill, SyncResult, SyncCanonicalOptions } from './skill-drift.js';
 export { benchmarkSkill, benchmarkSkills, compareSkills } from './benchmark.js';
 export { buildRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs } from './registry.js';
+export { tokenize, stemToken, stems } from './stem.js';
 // Package skill-layout resolution (feature dz-install-npx-init) — the ONE seam that knows where an
 // npm package keeps its skills (flat / templates/.claude/skills / skills). `cmdInstall` calls it;
 // `dz init`/`dz registry` are the filed follow-up consumers.

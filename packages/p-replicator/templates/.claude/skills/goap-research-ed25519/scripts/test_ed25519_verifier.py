@@ -14,6 +14,7 @@ test_*.py`, so a module that stops being collected fails BY NAME.
 """
 
 import copy
+import hashlib
 import sys
 
 # Import NOTHING local before this line: a stray __pycache__ inside this vendored
@@ -23,6 +24,8 @@ sys.dont_write_bytecode = True
 import unittest
 
 import ed25519_verifier as ev
+import evidence_fetch as ef
+import quote_provenance as qp
 
 
 def _pop():
@@ -161,6 +164,63 @@ class Ed25519VerifierSecurityTests(unittest.TestCase):
 
         self.assertFalse(reordered_ok)
         self.assertIn("Invalid", reordered_error)
+
+    def test_schema_v4_signs_quote_provenance_and_tamper_fails(self):
+        signer = ev.Ed25519Verifier(auto_generate_keypair=True)
+        body = b"The source explicitly recommends gradual refeeding."
+        record = ef.FetchRecord(
+            url="https://example.test/source",
+            final_url="https://example.test/source",
+            status=200,
+            sha256_body=hashlib.sha256(body).hexdigest(),
+            bytes_len=len(body),
+            fetched_at="2026-09-02T00:00:00Z",
+            content_type="text/plain; charset=utf-8",
+            witness=ef._FETCH_WITNESS,
+        )
+        quote = qp.QuoteRecord(
+            quote="The source explicitly recommends gradual refeeding",
+            acquisition="raw-fetch",
+            source_url=record.final_url,
+            sha256_body=record.sha256_body,
+            locator="paragraph 1",
+            excerpt_id="quote.json",
+        )
+        fact = signer.create_fetched_fact(
+            claim=quote.quote,
+            fetch_record=record,
+            issuer="researcher",
+            study_population=_pop(),
+            quote=quote,
+        )
+
+        result = signer.verify_fact(fact)
+        self.assertTrue(result.verified, result.error)
+        self.assertEqual(ev.fact_schema_version(fact), ev.QUOTE_ATTESTED_MIN_SCHEMA)
+        self.assertIn("quote", result.signed_fields)
+        self.assertIn("acquisition", result.signed_fields)
+        self.assertIn("sha256_body", result.signed_fields)
+
+        tampered = copy.deepcopy(fact)
+        tampered.quote = "The source recommends immediate supplementation"
+        self.assertFalse(signer.verify_fact(tampered).verified)
+
+    def test_non_fetch_factory_cannot_claim_raw_fetch_acquisition(self):
+        signer = ev.Ed25519Verifier(auto_generate_keypair=True)
+        quote = qp.QuoteRecord(
+            quote="A raw quote",
+            acquisition="raw-fetch",
+            source_url="https://example.test/source",
+            sha256_body="a" * 64,
+        )
+        with self.assertRaisesRegex(ValueError, "requires create_fetched_fact"):
+            signer.create_listing_fact(
+                claim=quote.quote,
+                source_url=quote.source_url,
+                reason="listing only",
+                study_population=_pop(),
+                quote=quote,
+            )
 
 
 if __name__ == "__main__":

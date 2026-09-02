@@ -21,7 +21,7 @@ import json
 import os
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Tuple
 
 try:
     from cryptography.exceptions import InvalidSignature
@@ -87,6 +87,11 @@ FACT_SCHEMA_V2 = "fact-v2"
 # rebuilds a different text than the one that was signed.
 FACT_SCHEMA_V3 = "fact-v3"
 
+# v4 covers quote provenance. The verdict is deliberately absent: "verbatim" is
+# derived only by quote_provenance.verify_verbatim() against captured source bytes.
+FACT_SCHEMA_V4 = "fact-v4"
+QUOTE_ATTESTED_MIN_SCHEMA = 4
+
 # The source-tier ceiling applies FROM this schema ONWARD (ADR-005 / D-20).
 # Written as a LOWER BOUND, never as an equality: `!= 2` meant "applies to exactly
 # the schema that introduced it", which silently switched the third ceiling off the
@@ -96,7 +101,7 @@ TIER_CEILING_MIN_SCHEMA = 2
 
 # The schemas this verifier can reconstruct a signed message for. A version outside
 # this tuple is REFUSED, never approximated to the nearest known one (QE G6).
-KNOWN_SCHEMA_VERSIONS = (1, 2, 3)
+KNOWN_SCHEMA_VERSIONS = (1, 2, 3, 4)
 
 # `VerificationResult.schema_version` when the fact's own version could not be
 # identified at all. Not 1: reporting an unidentifiable record as "legacy v1" is the
@@ -166,6 +171,13 @@ class SignedFact:
     # record cannot report on it, and a record we cannot parse is one we cannot warn
     # about. The mandatory-ness lives on the five CREATION paths, not here.
     study_population: Optional[Dict[str, Any]] = None
+    # Quote-provenance inputs, never an author-writable verdict. They are all inside
+    # the v4 canonical message; None preserves the byte-identical v1-v3 paths.
+    quote: Optional[str] = None
+    acquisition: Optional[str] = None
+    sha256_body: Optional[str] = None
+    locator: Optional[str] = None
+    excerpt_id: Optional[str] = None
     # Self-describing schema version. Signed indirectly, via the "schema" marker in
     # the v3 message: stripping it makes the verifier rebuild a different text.
     schema_version: Optional[int] = None
@@ -339,6 +351,38 @@ def canonical_fact_message_v3(fact: SignedFact) -> str:
     )
 
 
+def canonical_fact_message_v4(fact: SignedFact) -> str:
+    """v3 plus every input that binds a quote to its captured source excerpt.
+
+    No verdict is signed or stored. A signature can prove these provenance inputs
+    were not edited; only a later byte comparison can decide whether they earn the
+    closed ``verbatim-confirmed`` verdict.
+    """
+    return canonical_json(
+        {
+            "schema": FACT_SCHEMA_V4,
+            "acquisition": fact.acquisition,
+            "claim": fact.claim,
+            "confidence": format(round(float(fact.confidence or 0.0), 4), ".4f"),
+            "evidence_class": fact.evidence_class,
+            "excerpt_id": fact.excerpt_id,
+            "fetch_date": fact.fetch_date,
+            "issuer": fact.issuer,
+            "locator": fact.locator,
+            "metadata": _canonical_metadata(fact.metadata),
+            "quote": fact.quote,
+            "research_context": fact.research_context,
+            "sha256_body": fact.sha256_body,
+            "source_date": fact.source_date,
+            "source_hash": fact.source_hash,
+            "source_url": fact.source_url,
+            "study_population": fact.study_population,
+            "timestamp": fact.timestamp,
+            "trust_class": fact.trust_class,
+        }
+    )
+
+
 class SchemaVersionError(ValueError):
     """A fact whose schema cannot be identified. A subclass of ValueError so callers
     that already handle malformed facts keep working."""
@@ -387,6 +431,8 @@ def schema_version_of_mapping(data: Any) -> int:
                 f"cannot be identified cannot be verified against any message"
             )
         return version
+    if data.get("quote") is not None:
+        return 4
     if data.get("study_population") is not None:
         return 3
     if data.get("evidence_class") is not None:
@@ -410,6 +456,7 @@ def fact_schema_version(fact: SignedFact) -> int:
     """
     return schema_version_of_mapping({
         "schema_version": fact.schema_version,
+        "quote": fact.quote,
         "study_population": fact.study_population,
         "evidence_class": fact.evidence_class,
     })
@@ -441,6 +488,8 @@ def canonical_fact_message(fact: SignedFact) -> str:
     Adding v4 is one new branch, and the refusal is what forces that branch to exist.
     """
     version = fact_schema_version(fact)
+    if version == 4:
+        return canonical_fact_message_v4(fact)
     if version == 3:
         return canonical_fact_message_v3(fact)
     if version == 2:
@@ -550,6 +599,51 @@ def _require_study_population(value: Any) -> Dict[str, Any]:
             f"reproduce byte-for-byte is a key that is not really signed"
         ) from None
     return value
+
+
+def _quote_fields(
+    value: Any,
+    *,
+    allow_raw_fetch: bool,
+    expected_source_url: Optional[str] = None,
+    expected_sha256_body: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Validate a QuoteRecord-shaped value without accepting a caller verdict."""
+    if value is None:
+        return {}
+    if hasattr(value, "to_dict") and not isinstance(value, Mapping):
+        value = value.to_dict()
+    if not isinstance(value, Mapping):
+        raise ValueError(f"quote must be a QuoteRecord or JSON object, got {type(value).__name__}")
+    try:
+        from quote_provenance import QuoteRecord
+        record = QuoteRecord(
+            quote=value.get("quote"),
+            acquisition=value.get("acquisition"),
+            source_url=value.get("source_url"),
+            sha256_body=value.get("sha256_body"),
+            locator=value.get("locator"),
+            excerpt_id=value.get("excerpt_id"),
+        )
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"invalid quote provenance: {exc}") from None
+    if record.acquisition == "raw-fetch" and not allow_raw_fetch:
+        raise ValueError(
+            "acquisition 'raw-fetch' requires create_fetched_fact and an authentic FetchRecord"
+        )
+    if expected_source_url is not None and record.source_url != expected_source_url:
+        raise ValueError(
+            f"quote source_url {record.source_url!r} does not match FetchRecord.final_url {expected_source_url!r}"
+        )
+    if expected_sha256_body is not None and record.sha256_body != expected_sha256_body:
+        raise ValueError("quote sha256_body does not match FetchRecord.sha256_body")
+    return {
+        "quote": record.quote,
+        "acquisition": record.acquisition,
+        "sha256_body": record.sha256_body,
+        "locator": record.locator,
+        "excerpt_id": record.excerpt_id,
+    }
 
 
 def fact_content_hash(fact: SignedFact) -> str:
@@ -750,6 +844,7 @@ class Ed25519Verifier:
         research_context: Optional[str] = None,
         *,
         study_population: Any,
+        quote: Any = None,
     ) -> SignedFact:
         """Create a researcher self-attested fact. This never grants issuer trust.
 
@@ -766,6 +861,7 @@ class Ed25519Verifier:
         source_hash = hashlib.sha256(source_content.encode("utf-8")).hexdigest()
         timestamp = datetime.utcnow().isoformat() + "Z"
         public_key_b64 = self.get_public_key_b64()
+        quote_fields = _quote_fields(quote, allow_raw_fetch=False)
         fact = SignedFact(
             claim=claim,
             source_url=source_url,
@@ -779,7 +875,8 @@ class Ed25519Verifier:
             research_context=research_context,
             metadata=metadata or {},
             study_population=population,
-            schema_version=3,
+            schema_version=4 if quote_fields else 3,
+            **quote_fields,
         )
         fact.signature, _ = self.sign_content(canonical_fact_message(fact))
         return fact
@@ -805,12 +902,14 @@ class Ed25519Verifier:
         base_confidence: float,
         *,
         study_population: Any,
+        quote_fields: Optional[Dict[str, Any]] = None,
     ) -> SignedFact:
         if self._private_key is None or self._public_key is None:
             raise ValueError("No keypair loaded.")
         if evidence_class not in EVIDENCE_CLASSES:
             raise ValueError(f"unknown evidence_class {evidence_class!r}; expected one of {EVIDENCE_CLASSES}")
         population = _require_study_population(study_population)
+        quote_fields = dict(quote_fields or {})
         fact = SignedFact(
             claim=claim,
             source_url=source_url,
@@ -827,7 +926,8 @@ class Ed25519Verifier:
             fetch_date=fetch_date,
             source_date=source_date,
             study_population=population,
-            schema_version=3,
+            schema_version=4 if quote_fields else 3,
+            **quote_fields,
         )
         # ORDERING IS LOAD-BEARING: `confidence` is clamped by the evidence ceiling
         # ABOVE, before signing. Signing first and clamping after would put a number
@@ -845,6 +945,7 @@ class Ed25519Verifier:
         research_context: Optional[str] = None,
         *,
         study_population: Any,
+        quote: Any = None,
     ) -> SignedFact:
         """FETCH_VERIFIED — requires proof the request actually happened.
 
@@ -874,6 +975,12 @@ class Ed25519Verifier:
                 f"create_fetched_fact refuses a non-2xx fetch (status {getattr(fetch_record, 'status')}) — "
                 "an error page is not the source it stands for"
             )
+        quote_fields = _quote_fields(
+            quote,
+            allow_raw_fetch=True,
+            expected_source_url=getattr(fetch_record, "final_url"),
+            expected_sha256_body=getattr(fetch_record, "sha256_body"),
+        )
         meta = dict(metadata or {})
         meta.setdefault("fetch_status", int(getattr(fetch_record, "status")))
         meta.setdefault("fetch_bytes", getattr(fetch_record, "bytes_len", None))
@@ -891,6 +998,7 @@ class Ed25519Verifier:
             research_context=research_context,
             base_confidence=0.60,
             study_population=study_population,
+            quote_fields=quote_fields,
         )
 
     def create_listing_fact(
@@ -905,6 +1013,7 @@ class Ed25519Verifier:
         research_context: Optional[str] = None,
         *,
         study_population: Any,
+        quote: Any = None,
     ) -> SignedFact:
         """LISTING_ONLY — the URL is known but this script did not fetch it, or a
         body was supplied by hand. `reason` is MANDATORY and stored verbatim: a
@@ -912,6 +1021,7 @@ class Ed25519Verifier:
         """
         if not reason or not reason.strip():
             raise ValueError("create_listing_fact requires a non-empty reason (why was this not fetched?)")
+        quote_fields = _quote_fields(quote, allow_raw_fetch=False)
         meta = dict(metadata or {})
         meta["evidence_note"] = reason.strip()
         digest = hashlib.sha256((source_content or "").encode("utf-8")).hexdigest()
@@ -929,6 +1039,7 @@ class Ed25519Verifier:
             research_context=research_context,
             base_confidence=0.50,
             study_population=study_population,
+            quote_fields=quote_fields,
         )
 
     def create_asserted_fact(
@@ -940,12 +1051,14 @@ class Ed25519Verifier:
         research_context: Optional[str] = None,
         *,
         study_population: Any,
+        quote: Any = None,
     ) -> SignedFact:
         """ASSERTED — stated from model memory, source never opened. Confidence is
         0.0 by construction: this is not weak evidence, it is no evidence. Such a
         fact exists so it can be RECORDED and then refused by the report gate,
         rather than quietly becoming a sentence in a medical document.
         """
+        quote_fields = _quote_fields(quote, allow_raw_fetch=False)
         return self._sign_evidence_fact(
             claim=claim,
             source_url=source_url,
@@ -958,6 +1071,7 @@ class Ed25519Verifier:
             research_context=research_context,
             base_confidence=0.0,
             study_population=study_population,
+            quote_fields=quote_fields,
         )
 
     def create_issuer_signed_fact(
@@ -970,6 +1084,7 @@ class Ed25519Verifier:
         research_context: Optional[str] = None,
         *,
         study_population: Any,
+        quote: Any = None,
     ) -> SignedFact:
         """Create a fact intended to verify against the active pinned key for issuer."""
         if self._public_key is None:
@@ -977,6 +1092,7 @@ class Ed25519Verifier:
         population = _require_study_population(study_population)
         source_hash = hashlib.sha256(source_content.encode("utf-8")).hexdigest()
         timestamp = datetime.utcnow().isoformat() + "Z"
+        quote_fields = _quote_fields(quote, allow_raw_fetch=False)
         fact = SignedFact(
             claim=claim,
             source_url=source_url,
@@ -990,7 +1106,8 @@ class Ed25519Verifier:
             research_context=research_context,
             metadata=metadata or {},
             study_population=population,
-            schema_version=3,
+            schema_version=4 if quote_fields else 3,
+            **quote_fields,
         )
         fact.signature, _ = self.sign_content(canonical_fact_message(fact))
         return fact

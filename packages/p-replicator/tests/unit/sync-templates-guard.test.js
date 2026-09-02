@@ -2,8 +2,9 @@
 
 // scripts/sync-templates.js copies <found root>/.claude/{skills,commands,agents,rules,hooks} over
 // templates/.claude/ — the directory that becomes the npm tarball. It finds its source by walking up
-// to five parents and taking the FIRST one containing .claude/skills, which inside a monorepo is the
-// MONOREPO, whose .claude/skills holds a whole different toolkit.
+// to five parents, stopping at the package repository boundary, and taking the FIRST one containing
+// .claude/skills, which inside a monorepo is the MONOREPO, whose .claude/skills holds a whole
+// different toolkit.
 //
 // Nothing had fired only because package.json's prepublishOnly points at the publish gate, not here.
 // "Safe because dead" is not a safety property: a dead script can be revived by anyone who does not
@@ -61,7 +62,11 @@ const DECLARATION = 'p-replicator-sync-source: v1';
  *  with its own templates/.claude tree. `marker` decides whether the root claims to be the source. */
 function fixture(opts) {
   const o = opts || {};
-  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'p-rep-sync-')));
+  const parent = o.parent || os.tmpdir();
+  const root = fs.realpathSync(fs.mkdtempSync(path.join(parent, 'p-rep-sync-')));
+  const boundary = o.boundary === undefined ? 'dir' : o.boundary;
+  if (boundary === 'dir') fs.mkdirSync(path.join(root, '.git'));
+  if (boundary === 'file') fs.writeFileSync(path.join(root, '.git'), 'gitdir: /nonexistent\n');
   if (o.rootHasClaude !== false) {
     fs.mkdirSync(path.join(root, '.claude', 'skills', 'intruder'), { recursive: true });
     fs.writeFileSync(path.join(root, '.claude', 'skills', 'intruder', 'SKILL.md'),
@@ -206,6 +211,44 @@ describe.skip = describe.skip || (() => {});
       assert.match(r.out, /Not in repo context — skipping sync/,
         'and keep its existing message — this feature adds a guard, it does not rewrite the script');
     } finally { cleanup(f.root); }
+  });
+
+  test('P10 — a .claude/skills ABOVE the repository boundary is not a candidate root', () => {
+    const grandparent = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'p-rep-intruder-')));
+    fs.mkdirSync(path.join(grandparent, '.claude', 'skills', 'intruder'), { recursive: true });
+    fs.writeFileSync(path.join(grandparent, '.claude', 'skills', 'intruder', 'SKILL.md'),
+      '# outside the fixture repository\n');
+    try {
+      const bounded = fixture({ parent: grandparent, rootHasClaude: false, boundary: 'dir' });
+      try {
+        const r = runScript(bounded.pkg);
+        assert.equal(r.code, 0, 'the repository boundary must stop the walk: ' + r.out);
+        assert.match(r.out, /Not in repo context — skipping sync/);
+      } finally { cleanup(bounded.root); }
+
+      const unbounded = fixture({ parent: grandparent, rootHasClaude: false, boundary: false });
+      try {
+        const r = runScript(unbounded.pkg);
+        assert.equal(r.code, 1, 'without a boundary the outside candidate must still be found');
+        assert.match(r.out, /REFUSING to sync/,
+          'the contrast proves the boundary, rather than the host /tmp state, caused the skip');
+      } finally { cleanup(unbounded.root); }
+    } finally { cleanup(grandparent); }
+  });
+
+  test('P11 — a .git FILE (worktree) is a boundary too', () => {
+    const grandparent = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'p-rep-intruder-')));
+    fs.mkdirSync(path.join(grandparent, '.claude', 'skills', 'intruder'), { recursive: true });
+    fs.writeFileSync(path.join(grandparent, '.claude', 'skills', 'intruder', 'SKILL.md'),
+      '# outside the fixture worktree\n');
+    try {
+      const f = fixture({ parent: grandparent, rootHasClaude: false, boundary: 'file' });
+      try {
+        const r = runScript(f.pkg);
+        assert.equal(r.code, 0, 'a worktree .git file must stop the walk: ' + r.out);
+        assert.match(r.out, /Not in repo context — skipping sync/);
+      } finally { cleanup(f.root); }
+    } finally { cleanup(grandparent); }
   });
 
   test('P5 — no helper tells a reader to run it', () => {

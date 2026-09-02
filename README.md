@@ -23,8 +23,8 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/core` | 0.2.22 |
 | `@dzhechkov/design-thinking` | 1.0.14 |
 | `@dzhechkov/evidence-wiki` | 0.2.6 |
-| `@dzhechkov/harness-cli` | 0.8.9 |
-| `@dzhechkov/harness-core` | 0.8.10 |
+| `@dzhechkov/harness-cli` | 0.8.10 |
+| `@dzhechkov/harness-core` | 0.8.11 |
 | `@dzhechkov/harness-presets` | 0.5.18 |
 | `@dzhechkov/health-advisor` | 1.10.5 |
 | `@dzhechkov/keysarium` | 1.7.4 |
@@ -32,7 +32,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/loop-designer-plugin` | 0.1.5 |
 | `@dzhechkov/mcp-server-tools` | 0.2.10 |
 | `@dzhechkov/memory` | 0.2.19 |
-| `@dzhechkov/p-replicator` | 1.13.0 |
+| `@dzhechkov/p-replicator` | 1.13.2 |
 | `@dzhechkov/scout` | 0.8.11 |
 | `@dzhechkov/skills-12factor` | 0.1.13 |
 | `@dzhechkov/skills-academic` | 0.3.7 |
@@ -40,13 +40,13 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/skills-book-ai-apps` | 0.2.9 |
 | `@dzhechkov/skills-book-ddia` | 0.1.5 |
 | `@dzhechkov/skills-book-digitizer` | 0.2.19 |
-| `@dzhechkov/skills-book-fundamental-software-architecture` | 0.1.1 |
+| `@dzhechkov/skills-book-fundamental-software-architecture` | 0.1.2 |
 | `@dzhechkov/skills-bto` | 1.4.5 |
 | `@dzhechkov/skills-decision-mockups` | 0.1.7 |
 | `@dzhechkov/skills-devops` | 0.3.17 |
 | `@dzhechkov/skills-ecc` | 0.1.12 |
 | `@dzhechkov/skills-edu-site` | 1.1.10 |
-| `@dzhechkov/skills-feature-adr` | 1.5.9 |
+| `@dzhechkov/skills-feature-adr` | 1.5.8 |
 | `@dzhechkov/skills-idea2prd` | 0.1.15 |
 | `@dzhechkov/skills-mcp` | 0.3.10 |
 | `@dzhechkov/skills-meta` | 0.9.55 |

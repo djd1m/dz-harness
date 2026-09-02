@@ -98,12 +98,11 @@ After 3 retries with 🔴, halt and surface to user.
 
 ### Positive file receipt (required)
 
-Each worker must write a substantive body ending in `Status: completed` or `Status: failed` to its unique
-`TRACE_PATH` before returning a one-line report. Before integration, the coordinator verifies every
-path is a regular non-symlink file, non-whitespace, post-launch, and terminal. Narrative output or
-silence is not a receipt. Name missing, stale, partial, unreadable, duplicate, failed, dead-PID, or
-probe-error units and refuse merge/completion unless every required receipt is valid and completed.
-See [`swarm-file-evidence`](./swarm-file-evidence.md) for the write protocol and bounded exception.
+Each unit gets a unique `WORK_UNIT_ID` and unique absolute `TRACE_PATH`. Its worker MUST write a
+substantive body ending in `Status: completed` or `Status: failed` to `TRACE_PATH` before its one-line
+pointer. Before integration, the coordinator MUST verify a regular, non-symlink, substantive,
+post-launch file with a terminal status. Narrative/chat/silence is never a receipt; any invalid receipt
+MUST block merge/completion. Full rule and bounded exception: [`rules/swarm-file-evidence.md`](./swarm-file-evidence.md).
 
 ## Phase 4: REVIEW (brutal-honesty-review)
 

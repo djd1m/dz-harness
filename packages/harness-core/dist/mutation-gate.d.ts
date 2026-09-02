@@ -77,6 +77,10 @@ export interface MutationObservation {
     readonly rebaselineExitCode?: number | null;
     /** named no-exit reason for the restored-tree attribution run, when it produced none. */
     readonly rebaselineFailureReason?: string;
+    /** parsed failing files from a RED restored-tree run; absent when no red rebaseline ran. */
+    readonly rebaselineAttribution?: BaselineAttribution;
+    /** bounded log proving an internal runner failure received at most one retry. */
+    readonly internalAttemptLog?: string;
 }
 export interface MutationEntryResult {
     readonly id: string;
@@ -102,6 +106,26 @@ export interface MutationEntryResult {
     /** human sentence for the report line — names the undefended property on a green suite. */
     readonly detail: string;
 }
+export type InternalRunnerAttemptOutcome = 'completed' | 'runner-internal-error';
+export interface InternalRunnerAttempt {
+    readonly attempt: 1 | 2;
+    readonly outcome: InternalRunnerAttemptOutcome;
+    readonly detail: string;
+}
+export interface InternalRunnerRetryResult<T> {
+    /** The completed attempt's value. null means both attempts threw internally. */
+    readonly value: T | null;
+    readonly attempts: readonly InternalRunnerAttempt[];
+    /** Closed by construction: a runner receives either zero retries or exactly one. */
+    readonly internalRetries: 0 | 1;
+    /** Named reason consumed by the existing no-exit → INCONCLUSIVE arm. */
+    readonly failureReason?: `runner-internal-error: ${string}`;
+}
+/**
+ * Run one internal runner invocation. Only a THROWN internal error is retried; normal green/red
+ * observations and ordinary no-exit observations are values and therefore never retried.
+ */
+export declare function runWithOneInternalRetry<T>(runner: () => T): InternalRunnerRetryResult<T>;
 export interface ParsedRegistry {
     readonly registry: MutationRegistry | null;
     /** every defect found — ANY error makes the registry unusable (a half-valid registry that runs
@@ -215,50 +239,29 @@ export interface RunFailureClassification {
  * and never silently passes on output it cannot read.
  */
 export declare function classifyRunFailure(rawOutput: string): RunFailureClassification;
+export type BaselineAttributionSource = 'node-test' | 'vitest' | 'unparseable';
+export interface BaselineAttribution {
+    readonly parsedFrom: BaselineAttributionSource;
+    /** Package-relative failing paths, in first-seen order. */
+    readonly failingFiles: readonly string[];
+    /** Failing paths that match a registry file exactly (or by package-relative suffix). */
+    readonly covered: readonly string[];
+    /** Failing paths with no matching registry file. */
+    readonly extraneous: readonly string[];
+}
+/** Parse the failing FILE paths already exposed by supported node --test and vitest shapes. */
+export declare function attributeBaselineRedness(rawOutput: string, registryFiles: readonly string[]): BaselineAttribution;
+export type BaselineFailureReason = 'runner-internal-error' | 'runner-no-exit' | 'extraneous-red-in-allowlist' | 'baseline-red-covered-files' | 'baseline-red-files-unparseable';
 export interface BaselineResult {
     readonly ok: boolean;
     readonly detail: string;
+    readonly reason?: BaselineFailureReason;
 }
 /**
  * A RED baseline in the scratch copy is a SETUP error, never a mutation result: every subsequent
  * "red under mutation" would be noise, and every "green" a lie about an unrunnable copy.
  */
-export declare function classifyBaseline(exitCode: number | null, runFailureReason?: string): BaselineResult;
-/**
- * Classify one entry's observation.
- *
- * PRECEDENCE LATTICE (checked top to bottom; each verdict is justified by what it invalidates
- * BELOW it — a verdict may only outrank another when it makes that other's evidence meaningless):
- *   1. NOT_APPLIED            — nothing was mutated, so no run observation means anything;
- *   2. MUTATION_UNPARSEABLE   — the mutated file is not even syntactically a module; a non-parsing
- *                               file never RUNS, so no load- or count-signal can exist (which is
- *                               why it sits above MUTATION_LOAD_FATAL);
- *   3. MUTATION_LOAD_FATAL    — the run happened, but its own output says a test FILE died at
- *                               load: the redness is structural and every count from that same run
- *                               is non-attributable — so it outranks every count-based verdict AND
- *                               the flaky-rebaseline check (a structurally-broken run needs no
- *                               attribution analysis);
- *   4. INCONCLUSIVE (no exit) — the run produced nothing to classify at all;
- *   5. RECEIPT_MISMATCH       — the harness declared its own receipt contract broken, which
- *                               invalidates BOTH the green reading and every count-based reading
- *                               of the same run;
- *   6. UNDEFENDED (exit 0)    — the disjoint GREEN arm: mutually exclusive with every red-based
- *                               verdict below;
- *   7. INCONCLUSIVE (unrecognised output) — red, but the shape is unreadable: counts parsed out of
- *                               unrecognised output must not reach BELOW_MIN/OVER_FAILING/PROVEN;
- *   8. INCONCLUSIVE (flaky rebaseline)    — red, readable, but not attributable;
- *   9. BELOW_MIN → 10. OVER_FAILING       — reliable-count contract checks, both failing;
- *  11. PROVEN                 — applied, red, behavioural, attributable, within bounds.
- *
- * THE DROP DECISION (SPEC §Reporting, decided here + justified): `failing < observed` but still
- * `>= minFailing` is a LOUD WARNING, not a failure. Two reasons, both load-bearing:
- *   • the count is a BEST-EFFORT secondary parsed from runner output — making it verdict-deciding
- *    would let a count-parse failure flip red/green, which the design decisions forbid;
- *   • `observed` is a historical measurement, `minFailing` is the entry's declared CONTRACT. A
- *     contract violation fails (BELOW_MIN — only ever on a reliable count); history drifting down
- *     while the contract still holds is the early warning, reported loudly so a human re-pins
- *     `observed` or investigates — silently normalising it would erase the signal.
- */
+export declare function classifyBaseline(exitCode: number | null, runFailureReason?: string, attribution?: BaselineAttribution): BaselineResult;
 export declare function classifyMutationOutcome(obs: MutationObservation): MutationEntryResult;
 /** Exit contract: 0 all proven · 1 any entry failed (or red baseline) · (2 = usage/setup, CLI-side). */
 export declare function mutationGateExitCode(results: readonly MutationEntryResult[], baselineOk: boolean): number;

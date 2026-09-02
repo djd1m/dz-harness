@@ -55,13 +55,11 @@ Gate 5: PERSIST INSIGHT — quick/full must receive a valid writer receipt befor
 
 ### Phase 1 positive file receipts (required)
 
-Before the five-agent dispatch, allocate one `RUN_ID`, then assign every perspective a unique
-`WORK_UNIT_ID` and absolute `TRACE_PATH`. Require each agent to write a substantive body ending in
-`Status: completed` or `Status: failed` to `TRACE_PATH` before returning a one-line pointer. Before
-classification or synthesis, verify every path is a regular non-symlink file, non-whitespace,
-post-launch, and terminal. Narrative output or silence is not a receipt. Name missing, stale, partial,
-unreadable, duplicate, failed, dead-PID, or probe-error perspectives and refuse harvest completion
-unless every required receipt is valid and completed. See `.claude/rules/swarm-file-evidence.md`.
+Assign each perspective a unique `WORK_UNIT_ID` and unique absolute `TRACE_PATH`. Its agent MUST write
+a substantive body ending in `Status: completed` or `Status: failed` to `TRACE_PATH` before its one-line
+pointer. Before classification/synthesis, verify a regular, non-symlink, substantive, post-launch file
+with a terminal status. Narrative/chat/silence is never a receipt; any invalid receipt MUST block
+harvest completion. Full rule: `.claude/rules/swarm-file-evidence.md`.
 
 ## REQUIRED INSIGHT PERSISTENCE GATE (quick/full only)
 

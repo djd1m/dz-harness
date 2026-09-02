@@ -19,6 +19,39 @@
 //   3. Never mutate the working tree (enforced by the executor: scratch copy only).
 //   4. The gate has its own discrimination proof (the deliberately-undefended fixture in
 //      harness-cli/test/fixtures/mutation-gate-undefended — excluded from any real registry).
+function internalRunnerErrorHead(error) {
+    const raw = error instanceof Error ? error.message : String(error);
+    const firstLine = raw.split(/\r?\n/, 1)[0]?.trim() || 'unknown internal runner error';
+    return Array.from(firstLine).slice(0, 160).join('');
+}
+/**
+ * Run one internal runner invocation. Only a THROWN internal error is retried; normal green/red
+ * observations and ordinary no-exit observations are values and therefore never retried.
+ */
+export function runWithOneInternalRetry(runner) {
+    const attempts = [];
+    for (const attempt of [1, 2]) {
+        try {
+            const value = runner();
+            attempts.push({ attempt, outcome: 'completed', detail: `attempt ${attempt}: completed` });
+            return { value, attempts, internalRetries: attempt === 1 ? 0 : 1 };
+        }
+        catch (error) {
+            const head = internalRunnerErrorHead(error);
+            attempts.push({
+                attempt,
+                outcome: 'runner-internal-error',
+                detail: `attempt ${attempt}: runner-internal-error: ${head}`,
+            });
+        }
+    }
+    return {
+        value: null,
+        attempts,
+        internalRetries: 1,
+        failureReason: 'runner-internal-error: persistent after 2/2 attempts',
+    };
+}
 // ── Registry parsing — declarative DATA, validated loudly ─────────────────────────────────────
 const SAFE_ID = /^[a-z0-9][a-z0-9-]{0,79}$/;
 /** same shape as discrimination-gate's path rule: package-relative, no traversal, no metacharacters. */
@@ -355,17 +388,81 @@ export function classifyRunFailure(rawOutput) {
         evidence: 'output matches neither node --test (TAP + # duration_ms) nor vitest (RUN v / Test Files) — no classifier for this runner; structural-vs-behavioural redness cannot be told apart, so the verdict may not be PROVEN',
     };
 }
+function normaliseReportedFile(raw) {
+    let value = raw.trim().replace(/^['"]|['"]$/g, '').replace(/:\d+(?::\d+)?$/, '');
+    value = value.replace(/\\/g, '/');
+    const testSegment = value.lastIndexOf('/test/');
+    if (testSegment >= 0)
+        value = value.slice(testSegment + 1);
+    if (!value.includes('/') || !/\.(?:test|spec)\.[cm]?[jt]sx?$/.test(value))
+        return null;
+    return value;
+}
+/** Parse the failing FILE paths already exposed by supported node --test and vitest shapes. */
+export function attributeBaselineRedness(rawOutput, registryFiles) {
+    const output = stripSgr(rawOutput);
+    const files = [];
+    const add = (raw) => {
+        const file = normaliseReportedFile(raw);
+        if (file !== null && !files.includes(file))
+            files.push(file);
+    };
+    const vitestMatches = [...output.matchAll(/^\s*FAIL\s+(\S+)/gm)];
+    for (const match of vitestMatches)
+        add(match[1] ?? '');
+    const tapMatches = [...output.matchAll(/^not ok \d+\s+-\s+(.+)$/gm)];
+    for (const match of tapMatches)
+        add(match[1] ?? '');
+    for (const match of output.matchAll(/^\s*location:\s*['"]([^'"]+)['"]\s*$/gm)) {
+        add(match[1] ?? '');
+    }
+    const parsedFrom = files.length === 0
+        ? 'unparseable'
+        : vitestMatches.length > 0 ? 'vitest' : 'node-test';
+    if (parsedFrom === 'unparseable') {
+        return { parsedFrom, failingFiles: [], covered: [], extraneous: [] };
+    }
+    const normalisedRegistry = registryFiles
+        .map((file) => normaliseReportedFile(file) ?? file.replace(/\\/g, '/'));
+    const covered = files.filter((file) => normalisedRegistry.some((registryFile) => file === registryFile || file.endsWith(`/${registryFile}`) || registryFile.endsWith(`/${file}`)));
+    const extraneous = files.filter((file) => !covered.includes(file));
+    return { parsedFrom, failingFiles: files, covered, extraneous };
+}
 /**
  * A RED baseline in the scratch copy is a SETUP error, never a mutation result: every subsequent
  * "red under mutation" would be noise, and every "green" a lie about an unrunnable copy.
  */
-export function classifyBaseline(exitCode, runFailureReason) {
+export function classifyBaseline(exitCode, runFailureReason, attribution) {
     if (exitCode === 0)
         return { ok: true, detail: 'baseline suite green in the scratch copy' };
     if (exitCode === null) {
-        return { ok: false, detail: `baseline suite produced no exit code (${runFailureReason ?? 'unknown timeout/spawn failure'}) — the copy is not runnable; fix the copy, do not read this as a mutation result` };
+        const internal = runFailureReason?.startsWith('runner-internal-error:') === true;
+        return {
+            ok: false,
+            reason: internal ? 'runner-internal-error' : 'runner-no-exit',
+            detail: `baseline INCONCLUSIVE — suite produced no exit code (${runFailureReason ?? 'unknown timeout/spawn failure'}) — the copy is not runnable; do not read this as a mutation result`,
+        };
     }
-    return { ok: false, detail: `baseline suite RED (exit ${exitCode}) in the UNMUTATED scratch copy — a broken copy cannot prove anything; fix the copy (node_modules link? path-dependent test?) before trusting any verdict` };
+    if (attribution === undefined || attribution.parsedFrom === 'unparseable') {
+        return {
+            ok: false,
+            reason: 'baseline-red-files-unparseable',
+            detail: `baseline suite RED (exit ${exitCode}) in the UNMUTATED scratch copy — failing files: unparseable from runner output — the broken copy cannot prove anything`,
+        };
+    }
+    const failing = `failing files: ${attribution.failingFiles.join(', ')}`;
+    if (attribution.extraneous.length > 0 && attribution.covered.length === 0) {
+        return {
+            ok: false,
+            reason: 'extraneous-red-in-allowlist',
+            detail: `baseline suite RED (exit ${exitCode}) in the UNMUTATED scratch copy — ${failing} — extraneous red in the testCommand allowlist; the registry entries themselves are not disproven`,
+        };
+    }
+    return {
+        ok: false,
+        reason: 'baseline-red-covered-files',
+        detail: `baseline suite RED (exit ${exitCode}) in the UNMUTATED scratch copy — ${failing} — broken-copy baseline redness touches registry-covered files; fix the copy before evaluating mutations`,
+    };
 }
 // ── Classification (rules 1 + 2, and the drop decision) ───────────────────────────────────────
 /**
@@ -403,7 +500,7 @@ export function classifyBaseline(exitCode, runFailureReason) {
  *     while the contract still holds is the early warning, reported loudly so a human re-pins
  *     `observed` or investigates — silently normalising it would erase the signal.
  */
-export function classifyMutationOutcome(obs) {
+function classifyMutationOutcomeWithoutAttemptLog(obs) {
     const e = obs.entry;
     const minFailing = e.minFailing ?? 1;
     const base = {
@@ -499,12 +596,15 @@ export function classifyMutationOutcome(obs) {
     // not come back green, so the suite is flaky and an unrelated neighbour may be what went red.
     // Not attributable ⇒ INCONCLUSIVE (a failure, never a pass).
     if (obs.rebaselineExitCode !== undefined && obs.rebaselineExitCode !== 0) {
+        const failing = obs.rebaselineAttribution === undefined || obs.rebaselineAttribution.parsedFrom === 'unparseable'
+            ? 'failing files: unparseable from runner output'
+            : `failing files: ${obs.rebaselineAttribution.failingFiles.join(', ')}`;
         return {
             ...base,
             applied: true,
             verdict: 'INCONCLUSIVE',
             drop: false,
-            detail: `suite red under the mutation BUT the restored baseline did not reproduce green (${obs.rebaselineExitCode === null ? `no exit code: ${obs.rebaselineFailureReason ?? 'unknown timeout / spawn failure'}` : `exit ${obs.rebaselineExitCode}`}) — the suite is flaky; the redness is not attributable to the protection and may be an unrelated neighbour`,
+            detail: `suite red under the mutation BUT the restored baseline did not reproduce green (${obs.rebaselineExitCode === null ? `no exit code: ${obs.rebaselineFailureReason ?? 'unknown timeout / spawn failure'}` : `exit ${obs.rebaselineExitCode}`}) — mutation did not revert / flaky restored-tree route; ${failing}; the redness is not attributable to the protection`,
         };
     }
     if (obs.failingCount !== null && obs.failingCount < minFailing) {
@@ -539,6 +639,12 @@ export function classifyMutationOutcome(obs) {
             ? `suite red (${obs.failingCount} failing vs ${e.observed} observed when written) — COVERAGE DROP: still defended, but fewer tests notice; investigate or re-pin observed`
             : `suite red under the mutation (${obs.failingCount === null ? 'failing count unavailable — exit code is the verdict' : `${obs.failingCount} failing`}) — the test discriminates`,
     };
+}
+export function classifyMutationOutcome(obs) {
+    const result = classifyMutationOutcomeWithoutAttemptLog(obs);
+    if (obs.internalAttemptLog === undefined)
+        return result;
+    return { ...result, detail: `${result.detail}; ${obs.internalAttemptLog}` };
 }
 /** Verdicts that fail the gate. INCONCLUSIVE and NOT_APPLIED fail (inconclusive ≠ pass). */
 const FAILING_VERDICTS = new Set(['UNDEFENDED', 'RECEIPT_MISMATCH', 'NOT_APPLIED', 'BELOW_MIN', 'MUTATION_UNPARSEABLE', 'MUTATION_LOAD_FATAL', 'OVER_FAILING', 'INCONCLUSIVE']);

@@ -14,15 +14,7 @@ description: >
 
 ## Architecture
 
-```
-sparc-prd-mini/
-├── SKILL.md                              # Оркестратор (этот файл)
-├── references/
-│   └── sparc-methodology.md              # SPARC framework (своё, уникальное)
-└── templates/
-    ├── prd.md                            # PRD template
-    └── CLAUDE.md                         # AI integration guide template
-```
+`SKILL.md` (оркестратор) + `references/sparc-methodology.md` (SPARC framework) + `templates/prd.md`, `templates/CLAUDE.md`.
 
 ## External Dependencies (view at runtime)
 
@@ -32,59 +24,23 @@ sparc-prd-mini/
 | Phase 1: Research | `goap-research-ed25519` | `.claude/skills/goap-research-ed25519/SKILL.md` | GOAP A* + OODA → Research Findings |
 | Phase 2: Solve | `problem-solver-enhanced` | `.claude/skills/problem-solver-enhanced/SKILL.md` | 9 modules + TRIZ → Solution Strategy |
 
-**Принцип:** Каждый внешний скилл — Single Source of Truth. Обновление оригинала автоматически подхватывается здесь.
-
-**Fallbacks (если скилл недоступен):**
-- `explore` недоступен → встроенные Socratic questions (3-5 вопросов)
-- `goap-research-ed25519` недоступен → прямой web_search по ключевым темам
-- `problem-solver-enhanced` недоступен → First Principles + SCQA only
+**Принцип:** внешний скилл — Single Source of Truth. **Fallbacks:** explore → встроенные Socratic questions (3-5); goap-research → прямой web_search; problem-solver → First Principles + SCQA.
 
 ## When to Use
 
-**Trigger Patterns:**
-- "sparc-prd-mini" / "PRD mini"
-- "создай PRD" / "подготовь документацию"
-- "vibe coding документация"
-- "SPARC документация"
-- "PRD auto" / "PRD manual" / "PRD с checkpoint"
-- "документация для разработки"
+**Trigger Patterns:** "sparc-prd-mini" / "PRD mini" / "создай PRD" / "SPARC документация" / "PRD auto|manual|с checkpoint" / "документация для разработки".
 
 ## Operating Modes
 
-### AUTO Mode (Default)
-```
-Триггеры: "auto", "автоматически", "без остановок"
-```
-Все 8 фаз выполняются последовательно без промежуточных подтверждений.
+### AUTO Mode (Default) — триггеры "auto", "автоматически", "без остановок": все 8 фаз подряд, без подтверждений.
 
-### MANUAL Mode
-```
-Триггеры: "manual", "пошагово", "с checkpoint", "с проверками"
-```
-Checkpoint после каждой фазы. Пользователь подтверждает или корректирует.
+### MANUAL Mode — триггеры "manual", "пошагово", "с checkpoint": checkpoint после каждой фазы, пользователь подтверждает или корректирует.
 
-**Определение режима:**
-1. Явно указан → использовать указанный
-2. Задача простая → предложить AUTO
-3. Задача сложная → предложить MANUAL
-4. Неясно → спросить
+**Определение режима:** явный → использовать; простая задача → предложить AUTO; сложная → MANUAL; неясно → спросить.
 
 ## Output Documents (11 files)
 
-```
-/output/[product-name]-sparc/
-├── PRD.md                    # Product Requirements Document
-├── Solution_Strategy.md      # Problem analysis (First Principles + TRIZ)
-├── Specification.md          # Requirements, user stories, acceptance criteria
-├── Pseudocode.md             # Algorithms, data flow, API contracts
-├── Architecture.md           # System design, tech stack, diagrams
-├── Refinement.md             # Edge cases, testing, optimization
-├── Completion.md             # Deployment, CI/CD, monitoring
-├── Research_Findings.md      # Market and technology research
-├── Final_Summary.md          # Executive summary
-└── .claude/
-    └── CLAUDE.md             # AI tools integration guide
-```
+`/output/[product-name]-sparc/`: PRD.md · Solution_Strategy.md · Specification.md · Pseudocode.md · Architecture.md · Refinement.md · Completion.md · Research_Findings.md · Final_Summary.md · `.claude/CLAUDE.md` (+ каталог) — 11 файлов.
 
 ## Document Role Map Contract
 
@@ -147,48 +103,13 @@ cross-document linkage only, not that an algorithm semantically implements the r
 
 ## Workflow Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  INPUT: Описание продукта/идеи                                  │
-│                         ↓                                       │
-│  MODE SELECTION: AUTO или MANUAL                                │
-│                         ↓                                       │
-│  GATE: Оценка ясности задачи                                    │
-│  → Ясна? → Пропустить Explore (уведомить)                       │
-│  → Не ясна? → Phase 0: Explore                                  │
-│                         ↓                                       │
-│  Phase 0: EXPLORE         → Product Brief                       │
-│  view(explore)                                                  │
-│  [MANUAL: ⏸️ CP0]                                                │
-│                         ↓                                       │
-│  Phase 1: RESEARCH        → Research_Findings.md                │
-│  view(goap-research-ed25519)                                    │
-│  [MANUAL: ⏸️ CP1]                                                │
-│                         ↓                                       │
-│  Phase 2: SOLVE           → Solution_Strategy.md                │
-│  view(problem-solver-enhanced)                                  │
-│  [MANUAL: ⏸️ CP2]                                                │
-│                         ↓                                       │
-│  Phase 3: SPECIFICATION   → Specification.md + PRD.md           │
-│  [MANUAL: ⏸️ CP3]         (собственная логика)                   │
-│                         ↓                                       │
-│  Phase 4: PSEUDOCODE      → Pseudocode.md                       │
-│  [MANUAL: ⏸️ CP4]         (собственная логика)                   │
-│                         ↓                                       │
-│  Phase 5: ARCHITECTURE    → Architecture.md                     │
-│  [MANUAL: ⏸️ CP5]         (собственная логика)                   │
-│                         ↓                                       │
-│  Phase 6: REFINEMENT      → Refinement.md                       │
-│  [MANUAL: ⏸️ CP6]         (собственная логика)                   │
-│                         ↓                                       │
-│  Phase 7: COMPLETION      → Completion.md + CLAUDE.md           │
-│  [MANUAL: ⏸️ CP7]         (собственная логика)                   │
-│                         ↓                                       │
-│  SYNTHESIS                → Final_Summary.md                    │
-│                         ↓                                       │
-│  OUTPUT: 11 файлов                                              │
-└─────────────────────────────────────────────────────────────────┘
-```
+`INPUT → mode (AUTO|MANUAL) → clarity gate → P0? → P1 → P2 → P3 → P4 → P5 → P6 → P7 → SYNTHESIS`.
+If the task is clear, skip P0 and notify the user; otherwise run it. MANUAL pauses at CP0–CP7.
+
+P0→`view(explore)`→Product Brief; P1→`view(goap-research-ed25519)`→`Research_Findings.md`;
+P2→`view(problem-solver-enhanced)`→`Solution_Strategy.md`; P3→`Specification.md`+`PRD.md`;
+P4→`Pseudocode.md`; P5→`Architecture.md`; P6→`Refinement.md`; P7→`Completion.md`+`CLAUDE.md`;
+SYNTHESIS→`Final_Summary.md`; final package totals 11 files.
 
 ---
 
@@ -208,15 +129,7 @@ cross-document linkage only, not that an algorithm semantically implements the r
 - Непонятны ключевые функции
 - Противоречивые требования
 
-**При пропуске Explore:**
-```
-⚡ Фаза Explore пропущена — задача достаточно ясна.
-Сформирован Product Brief на основе вашего запроса.
-[показать Product Brief]
-
-[AUTO: переходим к Research...]
-[MANUAL: ⏸️ CHECKPOINT 0 — подтвердите или скорректируйте]
-```
+**При пропуске Explore:** сообщить «⚡ Фаза Explore пропущена — задача достаточно ясна», показать Product Brief; AUTO → сразу Research, MANUAL → CHECKPOINT 0.
 
 ---
 
@@ -228,47 +141,12 @@ view(".claude/skills/explore/SKILL.md")
 → Scope: уточнить продукт, аудиторию, features, constraints
 ```
 
-**Output — Product Brief:**
-```markdown
-## Product Brief
+**Output — Product Brief:** `## Product Brief` with Product Name, Problem Statement, Target Users,
+Core Value Proposition; `### Key Features (MVP)` numbered Feature 1–3; `### Technical Context` with
+Platform `[Web/Mobile/Desktop/API]`, Stack Preferences, Integrations, Constraints; `### Success
+Criteria` with Criteria 1–2.
 
-**Product Name:** [Название]
-**Problem Statement:** [Какую проблему решаем]
-**Target Users:** [Целевая аудитория]
-**Core Value Proposition:** [Ключевая ценность]
-
-### Key Features (MVP)
-1. [Feature 1]
-2. [Feature 2]
-3. [Feature 3]
-
-### Technical Context
-- Platform: [Web/Mobile/Desktop/API]
-- Stack Preferences: [Если есть]
-- Integrations: [Внешние системы]
-- Constraints: [Ограничения]
-
-### Success Criteria
-- [Критерий 1]
-- [Критерий 2]
-```
-
-**[MANUAL] CP0:**
-```
-═══════════════════════════════════════════════════════════════
-⏸️ CHECKPOINT 0: Product Brief Complete
-
-[показать Product Brief]
-
-Команды:
-• "ок" → перейти к Research
-• "уточни X" → уточнить аспект
-• "добавь Y" → добавить feature/requirement
-• "измени Z" → изменить параметр
-
-Ваше решение?
-═══════════════════════════════════════════════════════════════
-```
+**[MANUAL] CP0:** show Product Brief; `ок` → Research; `уточни X`, `добавь Y`, `измени Z` edit it.
 
 ---
 
@@ -286,63 +164,15 @@ view(".claude/skills/goap-research-ed25519/SKILL.md")
 - User Research (поведенческие паттерны, боли)
 - Integration Research (APIs, compatibility)
 
-**Output — Research_Findings.md:**
-```markdown
-## Research Findings
+**Output — `Research_Findings.md`:** `## Research Findings` with Executive Summary (2–3 sentences),
+Research Objective, Methodology (GOAP plan + sources), Market Analysis, Competitive Landscape table
+`Competitor | Strengths | Weaknesses | Differentiation`, Technology Assessment, User Insights (all
+findings use inline citations), Confidence Assessment (High = 3+ sources; Medium = 2; Low = needs
+research), numbered Sources with URLs/reliability ratings, and Research Path Log with actions and
+replanning decisions.
 
-### Executive Summary
-[Ключевые находки в 2-3 предложениях]
-
-### Research Objective
-[Исходные вопросы]
-
-### Methodology
-[GOAP план, источники]
-
-### Market Analysis
-[Findings с inline citations]
-
-### Competitive Landscape
-| Competitor | Strengths | Weaknesses | Differentiation |
-|------------|-----------|------------|-----------------|
-
-### Technology Assessment
-[Findings с inline citations]
-
-### User Insights
-[Findings с inline citations]
-
-### Confidence Assessment
-- **High confidence:** [claims with 3+ sources]
-- **Medium confidence:** [claims with 2 sources]
-- **Low confidence:** [areas needing more research]
-
-### Sources
-[Нумерованный список с URLs и reliability ratings]
-
-### Research Path Log
-[Выполненные действия, replanning decisions]
-```
-
-**[MANUAL] CP1:**
-```
-═══════════════════════════════════════════════════════════════
-⏸️ CHECKPOINT 1: Research Complete
-
-**Ключевые находки:**
-[краткое summary]
-
-**Источники:** [число] sources, avg reliability [X.X]
-
-Команды:
-• "ок" → перейти к Solve
-• "глубже X" → исследовать тему детальнее
-• "добавь источники по Y" → найти больше источников
-• "сравни A и B" → сравнительный анализ
-
-Ваше решение?
-═══════════════════════════════════════════════════════════════
-```
+**[MANUAL] CP1:** show key findings plus source count and average reliability `[X.X]`; `ок` → Solve;
+`глубже X`, `добавь источники по Y`, `сравни A и B` refine research.
 
 ---
 
@@ -365,64 +195,14 @@ view(".claude/skills/problem-solver-enhanced/SKILL.md")
 8. OODA Loop — Observe, Orient, Decide, Act
 9. Solution Synthesis — интеграция
 
-**Output — Solution_Strategy.md:**
-```markdown
-## Solution Strategy
+**Output — `Solution_Strategy.md`:** `## Solution Strategy` with SCQA (Situation, Complication,
+Question, Answer); First Principles; Root Cause Analysis (5 Whys: Answers 1–4, then Root Cause at
+5); Game Theory (players, interests, Nash equilibrium); Second-Order Effects; TRIZ table
+`Contradiction | TRIZ Principle | Resolution`; Recommended Approach; Risk table
+`Risk | Probability | Impact | Mitigation`.
 
-### Problem Statement (SCQA)
-- **Situation:** [Стабильный контекст]
-- **Complication:** [Что изменилось/проблема]
-- **Question:** [Ключевой вопрос]
-- **Answer:** [Предлагаемое решение]
-
-### First Principles Analysis
-[Фундаментальные истины и выводы]
-
-### Root Cause Analysis (5 Whys)
-1. Why? → [Answer 1]
-2. Why? → [Answer 2]
-3. Why? → [Answer 3]
-4. Why? → [Answer 4]
-5. Why? → [Root Cause]
-
-### Game Theory Analysis
-[Key players, interests, Nash equilibrium]
-
-### Second-Order Effects
-[Consequences of consequences]
-
-### Contradictions Resolved (TRIZ)
-| Contradiction | TRIZ Principle | Resolution |
-|---------------|----------------|------------|
-
-### Recommended Approach
-[Детальное описание стратегии]
-
-### Risk Assessment
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-```
-
-**[MANUAL] CP2:**
-```
-═══════════════════════════════════════════════════════════════
-⏸️ CHECKPOINT 2: Solution Strategy Complete
-
-**Рекомендуемый подход:**
-[краткое summary]
-
-**Ключевые TRIZ решения:**
-[список]
-
-Команды:
-• "ок" → перейти к Specification
-• "альтернатива для X" → другой подход
-• "углуби анализ Y" → детальнее по модулю
-• "добавь stakeholder Z" → расширить game theory
-
-Ваше решение?
-═══════════════════════════════════════════════════════════════
-```
+**[MANUAL] CP2:** show recommended approach and key TRIZ resolutions; `ок` → Specification;
+`альтернатива для X`, `углуби анализ Y`, `добавь stakeholder Z` revise the strategy.
 
 ---
 
@@ -465,23 +245,9 @@ view("templates/prd.md")
 → Заполнить шаблон данными из Phase 0-2
 ```
 
-**[MANUAL] CP3:**
-```
-═══════════════════════════════════════════════════════════════
-⏸️ CHECKPOINT 3: Specification Complete
-
-**User Stories:** [число] total, [число] MVP
-**NFRs:** Performance, Security, Scalability defined
-
-Команды:
-• "ок" → перейти к Pseudocode
-• "добавь user story для X" → добавить
-• "уточни acceptance criteria Y" → уточнить
-• "измени приоритет Z" → изменить
-
-Ваше решение?
-═══════════════════════════════════════════════════════════════
-```
+**[MANUAL] CP3:** show total/MVP story counts and whether Performance, Security, Scalability NFRs
+are defined; `ок` → Pseudocode; `добавь user story для X`, `уточни acceptance criteria Y`,
+`измени приоритет Z` revise the specification.
 
 ---
 
@@ -489,64 +255,20 @@ view("templates/prd.md")
 
 **Цель:** Определить алгоритмы и data flow.
 
-**Output — `PSEUDOCODE_FILE`:**
-```markdown
-## Data Structures
-
-### [Entity Name]
-type EntityName = {
-  id: UUID
-  field1: Type
-  field2: Type
-  created_at: Timestamp
-}
-
-## Core Algorithms
-
-### Algorithm: [Name]
-REALISES: [SC-… ids this algorithm implements, comma-separated]
-INPUT: [parameters]
-OUTPUT: [result]
-
-STEPS:
-1. [step]
-2. [step]
-3. IF [condition]:
-     [action]
-   ELSE:
-     [action]
-4. RETURN [result]
-
-COMPLEXITY: O(n)
-
-## API Contracts
-
-### Endpoint: [Method] /path
-Request:
-  Headers: { Authorization: Bearer <token> }
-  Body: { field1: type, field2: type }
-
-Response (200):
-  { data: type, meta: { ... } }
-
-Response (4xx/5xx):
-  { error: { code: string, message: string } }
-
-## State Transitions
-[Mermaid diagram]
-
-## Error Handling Strategy
-[Error categories and responses]
-```
+**Output — `PSEUDOCODE_FILE`:** required blocks are `## Data Structures` (each entity names `id:
+UUID`, fields and `created_at: Timestamp`); `## Core Algorithms`, where every block has:
+`### Algorithm: [Name]` · `REALISES: [SC-… ids this algorithm implements]` · `INPUT:` · `OUTPUT:` ·
+numbered `STEPS` with IF/ELSE and RETURN · `COMPLEXITY: O(n)`; `## API Contracts` (method/path,
+Authorization Bearer header, body, Response
+`200` data/meta, Response `4xx/5xx` error code/message); `## State Transitions` Mermaid; `## Error
+Handling Strategy` categories/responses.
 
 **Шаг 4.9 — ПОКРЫТИЕ СЦЕНАРИЕВ (обязательный, до чекпойнта).**
 
-Resolve role `specification` through `DOCUMENT_ROLE_MAP` as `SPECIFICATION_FILE`.
-Resolve role `pseudocode` through `DOCUMENT_ROLE_MAP` as `PSEUDOCODE_FILE`. Re-read `SPECIFICATION_FILE` and
-collect every `SC-` scenario ID. Collect every algorithm's `REALISES` line from `PSEUDOCODE_FILE`.
-Write a `## Scenario Coverage` block into `PSEUDOCODE_FILE` — **in every
-case, including the one where everything is covered**, because an absent block and a block saying
-"all covered" are indistinguishable to the next reader:
+Resolve role `specification` through `DOCUMENT_ROLE_MAP` as `SPECIFICATION_FILE`; Resolve role `pseudocode` through `DOCUMENT_ROLE_MAP` as `PSEUDOCODE_FILE`. Re-read `SPECIFICATION_FILE` and
+collect every `SC-` ID; collect every algorithm's `REALISES` claim from `PSEUDOCODE_FILE`.
+Write a `## Scenario Coverage` block into `PSEUDOCODE_FILE` — in every
+case, including the one where everything is covered:
 
 ```
 ## Scenario Coverage
@@ -558,16 +280,14 @@ Not claimed by any algorithm:
 |---|---|
 | SC-… | ui-only |
 
-Claimed by an algorithm but absent from [SPECIFICATION_FILE]:
+Claimed by an algorithm but absent from Specification.md:
 | Algorithm | Claimed ID |
 |---|---|
 | [name] | SC-… |
 ```
 
-**Both tables are required, and both may be the single word `none`.** A traceability check that runs
-one way only is half a check: without the second table an algorithm can declare `REALISES: SC-US-009-3`
-for a scenario nobody ever wrote, and the dangling reference reads exactly like coverage. `none` is
-written out rather than left blank, because an empty table and a forgotten table look identical.
+Both tables are required, and both may be the single word `none`; the reverse table catches a dangling
+`REALISES: SC-US-009-3`. Blank is not `none`.
 
 **Reasons are a CLOSED list of five**, and nothing else is accepted:
 
@@ -579,38 +299,17 @@ written out rather than left blank, because an empty table and a forgotten table
 | `data-only` | satisfied by a schema or constraint, not by a procedure |
 | `config-only` | satisfied by OUR OWN configuration — a server setting, a header, a policy file — with no procedure to write |
 
-Free text is NOT a reason, and `N/A` is NOT a reason. A field that accepts anything records nothing:
-the whole value of the list is that an unclaimed scenario has to be one of a small number of
-recognisable things, and if it is none of them, the gap is real and belongs in the algorithms.
+Free text is NOT a reason, and `N/A` is NOT a reason. A field that accepts anything records nothing;
+anything outside the closed list is a real algorithm gap.
 
-**What this establishes, and what it does not.** It establishes that a CLAIM exists and that its two
-ends name each other. It does NOT establish that the algorithm's steps actually perform the check the
-scenario describes — no comparison of names can. So this catches *"nobody wrote anything about this
-scenario"*; it does not catch *"someone wrote a line that mentions it"*. Say so here rather than
-letting a later reader assume the stronger thing.
+This proves only a mutual naming CLAIM. It does NOT establish that the algorithm's steps actually perform the check:
+it catches "nobody wrote anything about this scenario", not a wrong implementation
+that merely mentions the ID.
 
-With the project-level default, `[SPECIFICATION_FILE]` renders as `Specification.md`, including the
-label `Claimed by an algorithm but absent from Specification.md:`. A supplied map renders the same
-label with its resolved `specification` filename.
+The default label names `Specification.md`; a supplied map substitutes its resolved filename.
 
-**[MANUAL] CP4:**
-```
-═══════════════════════════════════════════════════════════════
-⏸️ CHECKPOINT 4: Pseudocode Complete
-
-**Data Structures:** [число] entities
-**Algorithms:** [число] core algorithms
-**API Endpoints:** [число] endpoints
-
-Команды:
-• "ок" → перейти к Architecture
-• "оптимизируй алгоритм X" → улучшить
-• "добавь edge case Y" → добавить обработку
-• "измени структуру Z" → изменить
-
-Ваше решение?
-═══════════════════════════════════════════════════════════════
-```
+**[MANUAL] CP4:** show entity/core-algorithm/API-endpoint counts; `ок` → Architecture;
+`оптимизируй алгоритм X`, `добавь edge case Y`, `измени структуру Z` revise pseudocode.
 
 ---
 
@@ -624,62 +323,22 @@ view("references/sparc-methodology.md")
 → Секция Architecture для best practices
 ```
 
-**Output — `ARCHITECTURE_FILE`:**
-```markdown
-## Architecture Overview
+**Output — `ARCHITECTURE_FILE`:** required blocks are `## Architecture Overview` with style
+`[Monolith / Microservices / Serverless / Hybrid]` and a Mermaid high-level diagram covering Client
+(Web App, Mobile App), API (API Gateway, Service A, Service B), and Data (Database, Cache); `##
+Component Breakdown`; `## Technology Stack` table `Layer | Technology | Rationale` with Frontend,
+Backend, Database, Cache, Queue, Infrastructure; `## External Dependencies` as follows.
 
-### Architecture Style
-[Monolith / Microservices / Serverless / Hybrid]
-
-### High-Level Diagram
-```mermaid
-graph TB
-  subgraph Client
-    A[Web App]
-    B[Mobile App]
-  end
-  subgraph API
-    C[API Gateway]
-    D[Service A]
-    E[Service B]
-  end
-  subgraph Data
-    F[(Database)]
-    G[(Cache)]
-  end
-```
-
-## Component Breakdown
-[Detailed component descriptions]
-
-## Technology Stack
-
-| Layer | Technology | Rationale |
-|-------|------------|-----------|
-| Frontend | | |
-| Backend | | |
-| Database | | |
-| Cache | | |
-| Queue | | |
-| Infrastructure | | |
-
-## External Dependencies
-
-Every capability this product needs from someone else's service. One row per capability, not one row
-per vendor: "sends email" and "reports bounces" are two questions, and a provider can do one without
-the other.
+Record one row per external capability, not vendor: "sends email" and "reports bounces" are two
+questions because a provider may do only one.
 
 | Capability needed | Provider / API | Evidence | Verdict | Requirements relying on it |
 |---|---|---|---|---|
 | [what the product needs it to DO] | [service] | [link to the provider's own docs naming this capability] · checked [YYYY-MM-DD] | CONFIRMED | [REQ ids] |
 
-**Evidence — what counts, and what does not.** Evidence is a link to the PROVIDER'S OWN documentation
-that names the specific capability, plus the date it was checked, plus **a short verbatim QUOTE from
-that page stating the capability**. These do NOT count, and each is a way this check gets faked: a
-landing page or marketing page; a pricing page; recollection — "the model knows this API supports
-it"; and **a URL nobody opened** — a plausible-looking link is the cheapest possible forgery, which
-is exactly why the quote is required and the link alone is not enough. A capability nobody could cite
-is not confirmed, and saying so is the point of the middle verdict.
+Evidence MUST be the PROVIDER'S OWN documentation naming the capability, check date, and a short
+verbatim QUOTE. These do NOT count: landing page, marketing page, pricing page, recollection ("the
+model knows this API supports it"), or a URL nobody opened. An uncited capability is not confirmed.
 
 **Verdicts — exactly three, because two would hide a difference that matters:**
 
@@ -689,60 +348,75 @@ is not confirmed, and saying so is the point of the middle verdict.
 | UNCONFIRMED | nobody could produce a citation | the REQUIREMENTS in that row's last column cannot enter Phase 3 — defer, remove or replace them. Unrelated work continues; the run is 🟡 CAVEATS at best and the row is NAMED in the report |
 | CONTRADICTED | the provider's own docs say it cannot | 🔴 NEEDS WORK — the requirement rests on something that is not there |
 
-`UNCONFIRMED` is not a failure to be hidden; it is the honest state of a project on a machine with no
-web access. Collapsing it into CONFIRMED overstates what is known; collapsing it into CONTRADICTED
-blocks work that may be perfectly fine — and would push people to write a citation that isn't one,
-which is how a gate becomes theatre.
+`UNCONFIRMED` is the honest no-citation/no-web state: it is neither CONFIRMED nor CONTRADICTED. It
+does not pass free: **scope the consequence to the REQUIREMENT, not the run**. Listed requirements
+cannot enter Phase 3 until deferred, removed, or rewritten onto confirmable ground; unrelated work
+continues. Otherwise an all-UNCONFIRMED inventory would make feasibility optional behind a caveat.
 
-But it does not pass for free either. **The consequence is scoped to the REQUIREMENT, not to the
-run:** the requirements listed in an `UNCONFIRMED` row do not enter Phase 3 until they are deferred,
-removed, or rewritten onto something confirmable. Everything not resting on that capability proceeds.
-Without this scoping an inventory of nothing but `UNCONFIRMED` rows would reach Phase 3 with a
-caveat, and external feasibility would never have to be established at all — the check would be
-optional in practice while looking mandatory on paper.
+With none, write exactly: *"No external dependencies — this product calls no third-party service."*
+An empty section and an absent section are indistinguishable, and only one of them means anything —
+that is why the sentence is prescribed verbatim.
+
+Row names are PLACEHOLDERS: NEVER copy a provider/capability from an example; APIs drift.
+
+Then add `## External Dependencies
+
+Every capability this product needs from someone else's service. One row per capability, not one row
+per vendor: "sends email" and "reports bounces" are two questions, and a provider can do one without
+the other.
+
+| Capability needed | Provider / API | Evidence | Verdict | Requirements relying on it |
+|---|---|---|---|---|
+| [what the product needs it to DO] | [service] | [link to the provider's own docs naming this capability] · checked [YYYY-MM-DD] | CONFIRMED | [REQ ids] |
+
+**Evidence — what counts.** A link to the PROVIDER'S OWN documentation naming the capability,
+plus the date it was checked, plus **a short verbatim QUOTE from that page stating the capability**. These do NOT count (each a known fake): a landing page or marketing page; a pricing page; recollection ("the model knows"); **a URL nobody opened** — a plausible link
+is the cheapest forgery, which is why the quote is required.
+
+**Verdicts — exactly three, because two would hide a difference that matters:**
+
+| Verdict | Means | Consequence in Phase 2 |
+|---|---|---|
+| CONFIRMED | cited, and the citation names this capability | none |
+| UNCONFIRMED | nobody could produce a citation | the REQUIREMENTS in that row's last column cannot enter Phase 3 — defer, remove or replace them. Unrelated work continues; the run is 🟡 CAVEATS at best and the row is NAMED in the report |
+| CONTRADICTED | the provider's own docs say it cannot | 🔴 NEEDS WORK — the requirement rests on something that is not there |
+
+`UNCONFIRMED` is the honest offline state — never collapse it into CONFIRMED (overstates) or
+CONTRADICTED (invites fake citations; a gate becomes theatre). Nor is it free: **the consequence is
+scoped to the REQUIREMENT, not the run** — requirements in an `UNCONFIRMED` row do not enter Phase 3
+until deferred, removed, or rewritten onto something confirmable; unrelated work proceeds. Without
+this scoping an all-`UNCONFIRMED` inventory would pass with a caveat and the check would be optional
+in practice while looking mandatory on paper.
 
 **If this product has no external dependencies**, write exactly that: *"No external dependencies —
 this product calls no third-party service."* An empty section and an absent section are
 indistinguishable, and only one of them means anything.
 
-Names in the row above are PLACEHOLDERS. Do not copy a real provider or a real capability from any
-example: what an API can do drifts, and a stale fact recorded as evidence is worse than none.
+Row names are PLACEHOLDERS — never copy a real provider/capability from an example: API facts drift,
+and a stale fact recorded as evidence is worse than none.
 
-## Data Architecture
-[Data models, relationships, storage strategy]
-
-## Security Architecture
-[Authentication, authorization, encryption]
-
-## Scalability Considerations
-[Horizontal/vertical scaling, bottlenecks]
-```
+## Data Architecture` (models, relationships, storage), `## Security Architecture`
+(authentication, authorization, encryption), and `## Scalability Considerations`
+(horizontal/vertical scaling, bottlenecks).
 
 **Шаг 5.9 — СВЕРКА С ПСЕВДОКОДОМ (обязательный, до чекпойнта).**
 
-Фаза 4 написала модель данных ДО того, как эта фаза выбрала хранилище и технологии, и до сих пор
-ничто их не сверяло. Именно отсюда берутся расхождения, которые всплывают уже в коде: поле осталось
-булевым, когда схема получила перечисление; алгоритм пользуется полем, которого в схеме нет; у
-статуса три значения в одном документе и пять в другом.
-
-Resolve role `pseudocode` through `DOCUMENT_ROLE_MAP` as `PSEUDOCODE_FILE`.
-Resolve role `architecture` through `DOCUMENT_ROLE_MAP` as `ARCHITECTURE_FILE`. Перечитай в `PSEUDOCODE_FILE`
-ДВЕ секции — `## Data Structures` и `## Core Algorithms` — и сверь их с
-тем, что выбрано ЗДЕСЬ. Алгоритмы нужны обязательно: расхождение «алгоритм читает поле, которого в
-схеме нет» по одним лишь структурам данных не обнаруживается. Ищи три вида расхождений:
+Фаза 4 определила логическую модель до выбора хранилища.
+Resolve role `pseudocode` through `DOCUMENT_ROLE_MAP` as `PSEUDOCODE_FILE`;
+Resolve role `architecture` through `DOCUMENT_ROLE_MAP` as `ARCHITECTURE_FILE`;
+re-read ДВЕ секции `PSEUDOCODE_FILE` — `## Data Structures` и
+`## Core Algorithms` — then compare with `ARCHITECTURE_FILE`. Algorithms are mandatory: structures alone
+cannot expose a read/write of a missing field. This catches boolean→enum drift, a missing algorithm
+field, or a status with 3 values in one document and 5 in another. Find all three mismatch kinds:
 
 - **смена типа** — поле объявлено одним типом, а хранилище требует другого (булево против перечисления);
 - **отсутствующая колонка** — алгоритм читает или пишет поле, которого в схеме нет;
 - **несовпадение набора значений** — у одного и того же поля разное число допустимых значений.
 
-Какую сторону править — решается по РОЛИ документа, а не по старшинству. `PSEUDOCODE_FILE` держит
-ЛОГИЧЕСКУЮ модель (что означает поле), `ARCHITECTURE_FILE` — ФИЗИЧЕСКУЮ (где и как оно лежит).
-Поэтому: если эта фаза ввела осознанное физическое ограничение (тип хранилища, индекс, длина) —
-правится `PSEUDOCODE_FILE`; если выбранная технология НАРУШАЕТ требуемую семантику (теряются значения,
-исчезает состояние, которым пользуется алгоритм) — меняется выбор ЗДЕСЬ, потому что требование
-старше удобства реализации. Секция `## Data Architecture` этого документа остаётся на месте, но
-описывает отображение на хранилище и связи, а НЕ пересказывает список полей: второй экземпляр списка
-становится вторым местом, где начинается расхождение.
+Fix by document ROLE: `PSEUDOCODE_FILE` owns LOGICAL meaning; `ARCHITECTURE_FILE` owns PHYSICAL
+storage. A deliberate storage constraint (type/index/length) updates pseudocode; a technology that
+BREAKS required semantics is changed HERE. `## Data Architecture` describes mapping/relationships,
+NEVER a second field list.
 
 Результат записывается в `ARCHITECTURE_FILE` ВСЕГДА, отдельным блоком:
 
@@ -754,33 +428,14 @@ Resolve role `architecture` through `DOCUMENT_ROLE_MAP` as `ARCHITECTURE_FILE`. 
 | … | смена типа / отсутствующая колонка / несовпадение набора значений | … |
 ```
 
-Если сверка не нашла ничего — блок всё равно пишется, и он ОБЯЗАН назвать, что именно
-сверялось: «Расхождений с `[PSEUDOCODE_FILE]` не найдено. Сверены сущности: <перечисление>; алгоритмы:
-<перечисление>.» Одна фраза «расхождений нет» без перечня — это церемония, которую модель напишет
-не глядя; перечень делает утверждение проверяемым. Молчание не является результатом сверки: по нему
-нельзя отличить «сверили и чисто» от «не сверяли».
+If clean, the block is still REQUIRED and MUST say: «Расхождений с `[PSEUDOCODE_FILE]` не найдено.
+Сверены сущности: <перечисление>; алгоритмы: <перечисление>.» Bare «расхождений нет» or silence is
+not evidence.
 
-With the project-level default, `PSEUDOCODE_FILE` is `Pseudocode.md` and `ARCHITECTURE_FILE` is
-`Architecture.md`; a supplied map changes only those resolved filenames, not the reconciliation.
+Defaults are `Pseudocode.md`/`Architecture.md`; a supplied map changes filenames only.
 
-**[MANUAL] CP5:**
-```
-═══════════════════════════════════════════════════════════════
-⏸️ CHECKPOINT 5: Architecture Complete
-
-**Style:** [architecture style]
-**Components:** [число] components
-**Tech Stack:** [key technologies]
-
-Команды:
-• "ок" → перейти к Refinement
-• "альтернатива для X" → другая технология
-• "углуби безопасность" → детальнее security
-• "добавь диаграмму Y" → добавить
-
-Ваше решение?
-═══════════════════════════════════════════════════════════════
-```
+**CHECKPOINT 5** — **[MANUAL] CP5:** show architecture style, component count, and key technologies; `ок` → Refinement;
+`альтернатива для X`, `углуби безопасность`, `добавь диаграмму Y` revise architecture.
 
 ---
 
@@ -788,77 +443,15 @@ With the project-level default, `PSEUDOCODE_FILE` is `Pseudocode.md` and `ARCHIT
 
 **Цель:** Edge cases, тестирование, оптимизация.
 
-**Output — `REFINEMENT_FILE`:**
-```markdown
-## Edge Cases Matrix
+**Output — `REFINEMENT_FILE`:** `## Edge Cases Matrix` table `Scenario | Input | Expected | Handling`
+with every row: Empty input, Max size, Concurrent access, Network failure; `## Testing Strategy`
+with Unit (coverage/critical paths), Integration (interactions/contracts), E2E (journeys/flows),
+Performance (load/benchmarks); `## Test Cases` Gherkin Happy path and Error case, each Given/When/Then;
+Performance Optimizations (caching/indexing/lazy loading); Security Hardening (input validation/rate
+limiting/audit logs); Accessibility (WCAG/keyboard); Technical Debt (shortcuts/refactoring).
 
-| Scenario | Input | Expected | Handling |
-|----------|-------|----------|----------|
-| Empty input | | | |
-| Max size | | | |
-| Concurrent access | | | |
-| Network failure | | | |
-
-## Testing Strategy
-
-### Unit Tests
-[Coverage targets, critical paths]
-
-### Integration Tests
-[Service interactions, API contracts]
-
-### E2E Tests
-[User journeys, critical flows]
-
-### Performance Tests
-[Load testing, benchmarks]
-
-## Test Cases
-
-### Feature: [Name]
-```gherkin
-Scenario: [Happy path]
-  Given [setup]
-  When [action]
-  Then [assertion]
-
-Scenario: [Error case]
-  Given [setup]
-  When [invalid action]
-  Then [error handling]
-```
-
-## Performance Optimizations
-[Caching, indexing, lazy loading]
-
-## Security Hardening
-[Input validation, rate limiting, audit logs]
-
-## Accessibility (a11y)
-[WCAG compliance, keyboard navigation]
-
-## Technical Debt Items
-[Known shortcuts, future refactoring]
-```
-
-**[MANUAL] CP6:**
-```
-═══════════════════════════════════════════════════════════════
-⏸️ CHECKPOINT 6: Refinement Complete
-
-**Edge Cases:** [число] scenarios
-**Test Cases:** [число] tests
-**Optimizations:** [список]
-
-Команды:
-• "ок" → перейти к Completion
-• "добавь тест для X" → добавить test case
-• "углуби edge case Y" → расширить
-• "оптимизируй Z" → добавить оптимизацию
-
-Ваше решение?
-═══════════════════════════════════════════════════════════════
-```
+**[MANUAL] CP6:** show edge-case/test counts and optimizations; `ок` → Completion;
+`добавь тест для X`, `углуби edge case Y`, `оптимизируй Z` revise refinement.
 
 ---
 
@@ -868,72 +461,13 @@ Scenario: [Error case]
 
 **Output — `COMPLETION_FILE` + CLAUDE.md:**
 
-**Completion.md:**
-```markdown
-## Deployment Plan
-
-### Pre-Deployment Checklist
-- [ ] All tests passing
-- [ ] Security audit complete
-- [ ] Documentation updated
-- [ ] Rollback plan tested
-
-### Deployment Sequence
-1. [Step 1]
-2. [Step 2]
-3. [Step 3]
-
-### Rollback Procedure
-[Steps to rollback if issues]
-
-## CI/CD Configuration
-
-```yaml
-stages:
-  - test
-  - build
-  - deploy
-
-test:
-  script:
-    - npm test
-    - npm run lint
-
-deploy:
-  script:
-    - npm run build
-    - deploy.sh
-```
-
-## Monitoring & Alerting
-
-### Key Metrics
-| Metric | Threshold | Alert |
-|--------|-----------|-------|
-| Response time p99 | > 500ms | PagerDuty |
-| Error rate | > 1% | Slack |
-| CPU usage | > 80% | Email |
-
-## Logging Strategy
-[Log levels, retention, aggregation]
-
-## Handoff Checklists
-
-### For Development Team
-- [ ] Repository access
-- [ ] Development environment setup
-- [ ] Code review guidelines
-
-### For QA Team
-- [ ] Test environment access
-- [ ] Test data setup
-- [ ] Bug reporting process
-
-### For Operations Team
-- [ ] Production access
-- [ ] Runbooks
-- [ ] Escalation procedures
-```
+**Completion.md required content:** Deployment Plan with Pre-Deployment checklist (all tests passing,
+security audit complete, docs updated, rollback tested), Deployment Sequence Steps 1–3, and Rollback
+Procedure; CI/CD stages `test → build → deploy` running `npm test`, `npm run lint`, `npm run build`,
+`deploy.sh`; Monitoring table preserving `Response time p99 | > 500ms | PagerDuty`, `Error rate | >
+1% | Slack`, `CPU usage | > 80% | Email`; Logging levels/retention/aggregation; Handoff checklists:
+Development (repository access, environment setup, review guidelines), QA (test environment, test
+data, bug reporting), Operations (production access, runbooks, escalation).
 
 **CLAUDE.md:**
 ```
@@ -941,57 +475,19 @@ view("templates/CLAUDE.md")
 → Заполнить шаблон данными из всех предыдущих фаз
 ```
 
-**[MANUAL] CP7:**
-```
-═══════════════════════════════════════════════════════════════
-⏸️ CHECKPOINT 7: Completion Ready
-
-**Deployment:** Plan + rollback ready
-**Monitoring:** [число] metrics configured
-**Handoffs:** Dev, QA, Ops checklists
-
-Команды:
-• "ок" / "финиш" → создать Final Package
-• "добавь мониторинг X" → добавить метрику
-• "углуби rollback" → расширить план
-• "измени CI/CD" → изменить pipeline
-
-Ваше решение?
-═══════════════════════════════════════════════════════════════
-```
+**[MANUAL] CP7:** show deployment/rollback readiness, monitoring metric count, and Dev/QA/Ops
+handoffs; `ок`/`финиш` → Final Package; `добавь мониторинг X`, `углуби rollback`, `измени CI/CD`
+revise completion.
 
 ---
 
 ### SYNTHESIS: Final Summary
 
-**Output — Final_Summary.md:**
-```markdown
-# [Product Name] - Executive Summary
+**Output — `Final_Summary.md`:** title `[Product Name] - Executive Summary`; Overview (3–5
+sentences); Problem & Solution; primary/secondary Target Users; MVP Features 1–3 with value;
+Technical Approach (Architecture, Tech Stack, Key Differentiators); top 3–5 Research Highlights;
+Success Metrics table:
 
-## Overview
-[3-5 sentences describing the product and its value]
-
-## Problem & Solution
-**Problem:** [What problem we're solving]
-**Solution:** [How we're solving it]
-
-## Target Users
-[Primary and secondary personas]
-
-## Key Features (MVP)
-1. [Feature 1] - [value proposition]
-2. [Feature 2] - [value proposition]
-3. [Feature 3] - [value proposition]
-
-## Technical Approach
-- **Architecture:** [style]
-- **Tech Stack:** [key technologies]
-- **Key Differentiators:** [technical advantages]
-
-## Research Highlights
-[Top 3-5 insights from research phase]
-
-## Success Metrics
 | Metric | Target | Timeline | Источник значения |
 |--------|--------|----------|-------------------|
 
@@ -1004,63 +500,21 @@ legitimate answer; manual measurement presented as instrumented is not. A metric
 API MUST produce a row in `## External Dependencies` — that inventory is the only route by which a
 metric ever reaches a lens that looks outside these documents.
 
-## Timeline & Phases
-| Phase | Features | Timeline |
-|-------|----------|----------|
-| MVP | | |
-| v1.0 | | |
-| v2.0 | | |
-
-## Risks & Mitigations
-| Risk | Mitigation |
-|------|------------|
-
-## Immediate Next Steps
-1. [Action 1]
-2. [Action 2]
-3. [Action 3]
-
-## Documentation Package
-- PRD.md - Product Requirements
-- Solution_Strategy.md - Problem Analysis
-- Specification.md - Detailed Requirements
-- Pseudocode.md - Algorithms & Data Flow
-- Architecture.md - System Design
-- Refinement.md - Testing & Edge Cases
-- Completion.md - Deployment & Operations
-- Research_Findings.md - Market & Tech Research
-- CLAUDE.md - AI Integration Guide
-```
+Then add Timeline table with MVP, v1.0, v2.0; Risks/Mitigations table; Immediate Next Steps Actions
+1–3; Documentation Package mapping every member: `PRD.md` Product Requirements,
+`Solution_Strategy.md` Problem Analysis, `Specification.md` Detailed Requirements, `Pseudocode.md`
+Algorithms & Data Flow, `Architecture.md` System Design, `Refinement.md` Testing & Edge Cases,
+`Completion.md` Deployment & Operations, `Research_Findings.md` Market & Tech Research, `CLAUDE.md`
+AI Integration Guide.
 
 ---
 
 ## Final Package Output
 
-```
-═══════════════════════════════════════════════════════════════
-📦 SPARC DOCUMENTATION PACKAGE COMPLETE
-
-/output/[product-name]-sparc/
-├── PRD.md                    ✅ Product Requirements
-├── Solution_Strategy.md      ✅ Problem Analysis
-├── Specification.md          ✅ Detailed Requirements
-├── Pseudocode.md             ✅ Algorithms & Data Flow
-├── Architecture.md           ✅ System Design
-├── Refinement.md             ✅ Testing & Edge Cases
-├── Completion.md             ✅ Deployment & Operations
-├── Research_Findings.md      ✅ Market & Tech Research
-├── Final_Summary.md          ✅ Executive Summary
-└── .claude/
-    └── CLAUDE.md             ✅ AI Integration Guide
-
-Total: 11 files
-
-🚀 READY FOR VIBE CODING
-
-[AUTO mode]: Все документы созданы автоматически
-[MANUAL mode]: Все документы проверены на checkpoints
-═══════════════════════════════════════════════════════════════
-```
+Report `📦 SPARC DOCUMENTATION PACKAGE COMPLETE`, path `/output/[product-name]-sparc/`, and the full
+tree from **Output Documents (11 files)** with ✅ descriptions. End with `Total: 11 files`, `🚀 READY
+FOR VIBE CODING`, then `[AUTO mode]: Все документы созданы автоматически` or `[MANUAL mode]: Все
+документы проверены на checkpoints`.
 
 ---
 
@@ -1146,23 +600,8 @@ sparc-prd-mini MANUAL
 
 При старте, если режим не указан:
 
-```
-═══════════════════════════════════════════════════════════════
-🎯 SPARC PRD Mini v2 - Mode Selection
-
-Доступные режимы:
-
-📌 AUTO — автономная генерация всех 11 документов
-   Быстро, без промежуточных остановок
-   Команда: "auto" / "автоматически"
-
-📌 MANUAL — пошаговая генерация с checkpoint'ами
-   Контроль на каждой фазе, возможность коррекции
-   Команда: "manual" / "пошагово" / "с проверками"
-
-Какой режим предпочитаете?
-═══════════════════════════════════════════════════════════════
-```
+Ask: `🎯 SPARC PRD Mini v2 — AUTO` (`auto`/`автоматически`: all 11 documents, no intermediate
+stops) or `MANUAL` (`manual`/`пошагово`/`с проверками`: checkpoint each phase, corrections allowed)?
 
 ---
 

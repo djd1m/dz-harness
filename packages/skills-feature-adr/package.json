@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-feature-adr",
-  "version": "1.5.9",
+  "version": "1.5.8",
   "description": "Adaptive Feature Development skill pack for Claude Code — 11-step pipeline with Complexity Router (S/M/L/XL), ADR-driven architecture, 15 agentic-qe skills, multi-agent fleet QE. Supports --full-qe, --full-qe-extended, --with-learning, and --knowledge-extractor modes.",
   "bin": {
     "skills-feature-adr": "./bin/cli.js"
@@ -15,11 +15,6 @@
     ".dz-manifest.json",
     "sbom.json"
   ],
-  "scripts": {
-    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
-    "test": "node --test \"test/**/*.test.js\"",
-    "prepack": "node -e \"const fs=require('fs');const bad=['.claude','.skills-feature-adr.json'].filter(p=>fs.existsSync(p));if(bad.length){console.error('prepack guard: stray init artifacts in package dir: '+bad.join(', ')+' — remove before packing');process.exit(1)}\""
-  },
   "keywords": [
     "claude",
     "claude-code",
@@ -64,5 +59,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "scripts": {
+    "test": "node --test \"test/**/*.test.js\""
   }
 }

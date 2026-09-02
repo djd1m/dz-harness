@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/harness-core",
-  "version": "0.8.10",
+  "version": "0.8.11",
   "description": "Shared harness logic - skill loading, additive apply, and the init/sync/verify/doctor operations.",
   "type": "module",
   "license": "MIT",

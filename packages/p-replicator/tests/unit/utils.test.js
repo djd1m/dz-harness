@@ -635,3 +635,40 @@ describe('COMPONENTS.hooks (v1.5.0)', () => {
       `expected >= 6 hook scripts (post v1.5.0), got ${hookCount}`);
   });
 });
+
+describe('mergeHookMatchers — identity survives the user respelling of a variable (a1ef0e41)', () => {
+  // MEASURED (backlog a1ef0e41): a user who hand-rewrote `$CLAUDE_PROJECT_DIR` into
+  // `${CLAUDE_PROJECT_DIR}` got every event hook DOUBLED on the next update, because the
+  // byte-equality Set saw two strings for one command. Both spellings expand identically in sh.
+  const shipped = (cmd) => [{ matcher: '*', hooks: [{ type: 'command', command: cmd }] }];
+
+  test('${VAR} respelling of a shipped $VAR hook does not double on merge', () => {
+    const user = shipped('node "${CLAUDE_PROJECT_DIR}/.claude/hooks/session-insights.cjs"');
+    const tpl = shipped('node "$CLAUDE_PROJECT_DIR/.claude/hooks/session-insights.cjs"');
+    const merged = utils.mergeHookMatchers(user, tpl);
+    assert.equal(merged[0].hooks.length, 1, 'one command, two spellings — must stay ONE hook');
+    // The USER's own spelling survives; the stored command is never rewritten.
+    assert.match(merged[0].hooks[0].command, /\$\{CLAUDE_PROJECT_DIR\}/);
+  });
+
+  test('whitespace-run respelling does not double either', () => {
+    const user = shipped('node  a.cjs   --flag');
+    const tpl = shipped('node a.cjs --flag');
+    assert.equal(utils.mergeHookMatchers(user, tpl)[0].hooks.length, 1);
+  });
+
+  test('genuinely different commands still both survive (dedup must not over-collapse)', () => {
+    const user = shipped('node a.cjs');
+    const tpl = shipped('node b.cjs');
+    assert.equal(utils.mergeHookMatchers(user, tpl)[0].hooks.length, 2);
+  });
+
+  test('MUTATION: byte-equality dedup (the old code) goes red on the respelling case', () => {
+    // The RED half in miniature: with canonicalization stripped, the two spellings differ.
+    const oldDedup = (a, b) => new Set(a.map((h) => h.command)).has(b.command);
+    const userHook = { command: 'node "${X}/y.cjs"' };
+    const tplHook = { command: 'node "$X/y.cjs"' };
+    assert.equal(oldDedup([userHook], tplHook), false,
+      'byte equality cannot see through the respelling — this is the measured doubling');
+  });
+});

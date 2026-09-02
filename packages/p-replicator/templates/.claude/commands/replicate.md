@@ -86,17 +86,10 @@ but distinct from generated SPARC outputs.
 - **Phase 0.5** (Source Product Profile): **RUNS — this entry does NOT skip it**; the skip is Phase 0
   alone, and a project arriving with someone else's docs is usually a replication. Where those docs
   describe the source, record `СНЯТ` from them; where they do not, `НЕ ИЗМЕРЕНО` with a reason.
-- **Phase 1** (sparc-prd-mini): MODIFIED
-  - Run in **AUTO mode** — do NOT ask interactive clarification questions
-  - SKIP internal sub-phases Explore / Research / Solve (their job is to
-    generate the answers that already exist in user docs)
-  - READ all files in user-provided path as pre-filled context
-  - Generate the 11 standardized SPARC documents in `docs/`, mapping content
-    from existing docs to appropriate slots (PRD, Solution_Strategy,
-    Specification, Pseudocode, Architecture, Refinement, Completion,
-    Research_Findings, Final_Summary, C4_Diagrams, ADR)
-  - For SPARC slots without source content in existing docs, mark with a
-    `[GAP: needs <description>]` placeholder rather than asking the user
+- **Phase 1** (sparc-prd-mini): MODIFIED — **AUTO mode** (no interactive questions); SKIP
+  Explore/Research/Solve (they generate answers the user docs already hold); READ the user path as
+  pre-filled context; generate the 11 SPARC documents in `docs/`, mapping existing content to slots;
+  a slot with no source content gets `[GAP: needs <description>]` instead of a question
 - **Phase 2** (validation): runs UNCHANGED (validates the generated SPARC docs)
 - **Phase 3** (toolkit generation): runs UNCHANGED
 - **Phase 4** (finalize): runs UNCHANGED
@@ -238,10 +231,13 @@ project has no growth requirements, and no consumer may read it that way.
 **Причина:** —                           (обязательна при НЕ ИЗМЕРЕНО, из закрытого списка ниже)
 **Статус съёмки (путь):** СНЯТ           (ось «путь»; обязательна, когда строк оси «путь» НЕТ)
 **Причина (путь):** —                    (обязательна при НЕ ИЗМЕРЕНО оси «путь»)
+**Происхождение:** прокликано            (закрытый список: прокликано | сторонний-разбор | вручную | не снято)
+**Источник разбора:** —                  (обязательны при сторонний-разбор; дата — из разметки
+**Дата стороннего снимка:** —             источника, не из пересказа)
 
 ## 🎨 Look Requirements Seed
 
-| ID | Обязательство (ЧЕРНОВИК) | Ось | Источник-экран | Уверенность | Статус |
+| ID | Обязательство | Ось | Источник-экран | Уверенность | Статус (ЧЕРНОВИК \| ГИПОТЕЗА \| ПОДТВЕРЖДЕНО \| УСТАРЕЛО) |
 |----|---|---|---|---|---|
 | FR-LOOK-001 | [что обязаны воспроизвести] | облик | [URL/скриншот] | [как измерено] | ЧЕРНОВИК |
 ```
@@ -436,46 +432,21 @@ CONTRADICTED» истинен САМ СОБОЙ — вакуумная исти�
 Ограничение, которое проверка печатает сама: она доказывает, что документы НАПИСАНЫ, а не что они
 верны. Верность — работа роя.
 
-**Шаги 2.1–2.4 — условные критерии приёмки.** Каждый применяется, только если продукт несёт
-соответствующую поверхность; иначе законный ответ — «нет такой поверхности», и он тоже даёт `2`.
+**Шаги 2.1–2.4 — условные критерии приёмки.** Запускайте только проверки поверхностей продукта;
+отсутствующая поверхность законно даёт `2`.
 
-**Шаг 2.1 — ВСТРАИВАЕМЫЙ ВИДЖЕТ** — если продукт грузится на ЧУЖИЕ страницы. Отказывает тремя способами,
-невидимыми при проверке на своём origin. Правило — `.claude/rules/embeddable-widget.md`.
+| Шаг / поверхность | Зачем | Правило | Команда |
+|---|---|---|---|
+| 2.0 Чужой разбор | ГИПОТЕЗА без датированного живого подтверждения не промотируется | `.claude/rules/replicate-pipeline.md` | `node .claude/hooks/check-look-origin.cjs .` |
+| 2.1 Встраиваемый виджет на ЧУЖОЙ странице | три origin-невидимых отказа | `.claude/rules/embeddable-widget.md` | `node .claude/hooks/check-embed-contract.cjs .` |
+| 2.2 Долгая задача (МИНУТЫ) | «нет ответа» ≠ «выполняется»: иначе потерянный оплаченный результат, повтор с нуля и третья копия | `.claude/rules/long-running-job.md` | `node .claude/hooks/check-job-contract.cjs .` |
+| 2.3 Входящий вебхук | событие повторяется и может прийти от кого угодно | `.claude/rules/incoming-webhooks.md` | `node .claude/hooks/check-webhook-contract.cjs .` |
+| 2.4 Платная модель | потраченного не вернуть; несконфигурированный потолок ОБЯЗАН валить запуск, не означать бесконечность | `.claude/rules/model-call-cost.md` | `node .claude/hooks/check-model-cost.cjs .` |
 
-```bash
-node .claude/hooks/check-embed-contract.cjs .
-```
+У каждого стража три кода: `0` проверено · `1` дефект ДОКАЗАН и назван · `2` проверка НЕ ВЫПОЛНЕНА — и это НЕ «в порядке»: код 2 никогда не читается как успех, у него в выводе названа причина, и она попадает в отчёт фазы дословно.
 
-`0` проверено · `1` дефект ДОКАЗАН и назван · `2` проверка НЕ ВЫПОЛНЕНА — и это НЕ «в порядке».
-
-**Шаг 2.2 — ДОЛГАЯ ЗАДАЧА** — если одна операция работает МИНУТЫ. «Нет ответа» и «выполняется» — разные
-факты; их неразличимость даёт потерянный результат при списанных деньгах, повтор с нуля и третью
-копию. Правило — `.claude/rules/long-running-job.md`.
-
-```bash
-node .claude/hooks/check-job-contract.cjs .
-```
-
-`0` проверено · `1` дефект ДОКАЗАН и назван · `2` проверка НЕ ВЫПОЛНЕНА — и это НЕ «в порядке».
-
-**Шаг 2.3 — ВХОДЯЩИЕ ВЕБХУКИ** — если в продукт звонят снаружи. Одно событие приходит несколько раз по
-построению, и прислать его может кто угодно. Правило — `.claude/rules/incoming-webhooks.md`.
-
-```bash
-node .claude/hooks/check-webhook-contract.cjs .
-```
-
-`0` проверено · `1` дефект ДОКАЗАН и назван · `2` проверка НЕ ВЫПОЛНЕНА — и это НЕ «в порядке».
-
-**Шаг 2.4 — СТОИМОСТЬ ВЫЗОВОВ МОДЕЛИ** — если продукт зовёт платную модель. Счётчик крутит посетитель, а
-потраченного не вернуть: несконфигурированный потолок обязан валить запуск, а не значить
-бесконечность. Правило — `.claude/rules/model-call-cost.md`.
-
-```bash
-node .claude/hooks/check-model-cost.cjs .
-```
-
-`0` проверено · `1` дефект ДОКАЗАН и назван · `2` проверка НЕ ВЫПОЛНЕНА — и это НЕ «в порядке».
+Для каждой команды: `0` проверено · `1` дефект ДОКАЗАН и назван · `2` проверка НЕ ВЫПОЛНЕНА — и это
+НЕ «в порядке».
 
 Read the skill: `.claude/skills/requirements-validator/SKILL.md`
 
@@ -495,13 +466,11 @@ Read the skill: `.claude/skills/requirements-validator/SKILL.md`
 The sixth lens is the only one that looks OUTSIDE the documents. The other five compare our own
 output with our own output, which cannot discover that a service does not do what we assumed.
 
-**Positive file receipt (required).** Before dispatch, allocate one `RUN_ID` and give every
-validation lens a unique `WORK_UNIT_ID` and absolute `TRACE_PATH`. Each validator must write a
-substantive report fragment ending in `Status: completed` or `Status: failed` to `TRACE_PATH` before
-its one-line pointer. Before AGGREGATE, verify every path is a regular non-symlink file,
-non-whitespace, post-launch, and terminal. Narrative output or silence is not a receipt. Name
-missing, stale, partial, unreadable, duplicate, failed, dead-PID, or probe-error lenses and refuse
-aggregation/completion unless every required receipt is valid and completed. See
+**Positive file receipt (required).** Assign each validation lens a unique `WORK_UNIT_ID` and unique
+absolute `TRACE_PATH`. Its validator MUST write a substantive fragment ending in `Status: completed`
+or `Status: failed` to `TRACE_PATH` before its one-line pointer. Before AGGREGATE, verify a regular,
+non-symlink, substantive, post-launch file with a terminal status. Narrative/chat/silence is never a
+receipt; any invalid receipt MUST block aggregation/completion. Full rule:
 `.claude/rules/swarm-file-evidence.md`.
 
 **Process (iterative, max 3 iterations):**
@@ -647,12 +616,9 @@ Read the skill: `.claude/skills/cc-toolkit-generator-enhanced/SKILL.md`
 **IMPORTANT (Claude Code adaptation, post v1.4):**
 - Scan `docs/` directory for SPARC documents (NOT `/mnt/user-data/uploads/`)
 - Generate files IN-PLACE into the project (NOT into output directory)
-- **Pre-shipped by `npx p-replicator init` — do NOT overwrite or regenerate:**
-  - All 10 skills in `.claude/skills/`
-  - All 11 commands: `/replicate`, `/harvest`, `/start`, `/plan`, `/feature`, `/go`, `/run`, `/next`, `/myinsights`, `/docs`, `/deploy`
-  - All 13 rules: `cost-of-detection-ladder`, `docker-ports`, `embeddable-widget`, `feature-lifecycle`, `git-workflow`, `honest-configuration`, `incoming-webhooks`, `insights-capture`, `long-running-job`, `model-call-cost`, `replicate-pipeline`, `skill-interface-protocol`, `swarm-file-evidence`
-  - All 4 pipeline agents: `replicate-coordinator`, `product-discoverer`, `doc-validator`, `harvest-coordinator`
-  - `.claude/settings.json` + cross-platform Node hook scripts in `.claude/hooks/`
+- The toolkit pre-shipped by `npx p-replicator init` is enumerated in
+  `.claude/rules/replicate-pipeline.md`; do NOT overwrite or regenerate any listed skill, command,
+  rule, agent, setting, or hook.
 - Phase 3 generates ONLY project-specific artifacts derived from SPARC docs (see below).
 
 **Generate these project-specific files:**
@@ -734,22 +700,9 @@ git commit -m "chore: initial project setup from SPARC documentation"
 ═══════════════════════════════════════════════════════════════
 ✅ REPLICATE COMPLETE: [project-name]
 
-📁 Project structure:
-├── CLAUDE.md                     # Project context
-├── DEVELOPMENT_GUIDE.md          # Dev lifecycle guide
-├── README.md                     # Quick start
-├── docs/                         # [N] SPARC documents
-│   ├── validation-report.md      # Validation results
-│   ├── test-scenarios.md         # BDD scenarios
-│   └── features/                 # For future features
-├── .claude/
-│   ├── commands/                 # /start, /feature, /plan, /go, /run, /deploy, /myinsights
-│   ├── agents/                   # planner, code-reviewer, architect
-│   ├── skills/                   # 8 shared + project-specific skills
-│   ├── rules/                    # git-workflow, security, coding-style, ...
-│   └── settings.json             # Hooks (insights auto-commit)
-├── docker-compose.yml            # Scaffold
-└── Dockerfile                    # Scaffold
+📁 Project structure: CLAUDE.md · DEVELOPMENT_GUIDE.md · README.md · docs/ ([N] SPARC документов,
+validation-report.md, test-scenarios.md, features/) · .claude/ (commands, agents, skills, rules,
+settings.json) · docker-compose.yml · Dockerfile
 
 🚀 Next steps:
 1. Run /start to bootstrap the project

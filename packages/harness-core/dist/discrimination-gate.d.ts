@@ -47,12 +47,58 @@ export interface ClassifyResultRow {
     readonly tipOutcome?: TipOutcome;
     readonly tipEvidence?: ExecutionEvidence;
 }
+/** A CLOSED runner selection derived from the target package, never a command copied from package.json. */
+export type RunnerSelection = {
+    readonly kind: 'vitest';
+    readonly command: 'npx vitest run';
+    readonly runnerName: 'vitest';
+    readonly how: 'scripts.test' | 'dev-dependency';
+} | {
+    readonly kind: 'node-test';
+    readonly command: 'node --test';
+    readonly runnerName: 'node --test';
+    readonly how: 'scripts.test';
+} | {
+    readonly kind: 'unsupported';
+    readonly runnerName: string;
+    readonly scriptsTest: string | null;
+};
+export type PlannedRunnerSelection = RunnerSelection | {
+    readonly kind: 'explicit';
+    readonly command: string;
+    readonly runnerName: string;
+    readonly how: 'explicit-flag';
+};
+export interface BaseRefResolution {
+    readonly requestedRef: string;
+    readonly resolvedRef: string;
+    readonly how: 'explicit-ref' | 'merge-base';
+}
+/**
+ * Select one of the two runner families this instrument can measure honestly.
+ *
+ * The package script is used only for classification. Its flags and shell text are never spliced
+ * into a command: a wrapper or a third runner family is an explicit unsupported result. Vitest in
+ * devDependencies is the sole tie-break when scripts.test is absent; it still maps to the fixed
+ * command template below.
+ */
+export declare function selectRunner(scriptsTest: string | null, devDeps: readonly string[]): RunnerSelection;
+/** Resolve an audited pre-feature ref supplied by the executor. HEAD never wins over a merge-base. */
+export declare function resolveDiscriminationBaseRef(requestedRef: string, mergeBaseRef?: string): BaseRefResolution;
 export interface DiscriminationPlanInput {
     /** the git ref of pre-feature HEAD — the "base" the property test must fail against. */
     readonly baseRef: string;
+    /** merge-base already measured by the executor; mandatory to displace a sweeping HEAD. */
+    readonly mergeBaseRef?: string;
     /** property test(s) mapped from the ADR Confirmation. Empty ⇒ CANNOT_ISOLATE. */
     readonly propertyTests: readonly PropertyTestRef[];
-    /** test-runner command template; sanitized. Default `npx vitest run`. */
+    /** repo-relative directory owning the TARGET package.json; `.` when the repository root owns it. */
+    readonly packageDir?: string;
+    /** TARGET package.json scripts.test. It is classified, never executed verbatim. */
+    readonly packageTestScript?: string | null;
+    /** TARGET package devDependency names, used only for the documented vitest tie-break. */
+    readonly packageDevDependencies?: readonly string[];
+    /** explicit safe escape hatch. Absence derives from packageTestScript; unsafe input refuses. */
     readonly runner?: string;
 }
 export interface DiscriminationPlan {
@@ -60,8 +106,16 @@ export interface DiscriminationPlan {
     readonly runnable: boolean;
     /** why not runnable, when `runnable` is false. */
     readonly reason?: string;
+    /** Plan-time state. REFUSE is non-passing; PENDING says execution evidence is still required. */
+    readonly verdict: 'PENDING' | 'REFUSE';
+    /** A plan alone has measured nothing; in particular every refusal is false. */
+    readonly measurementValid: false;
+    readonly primaryAction: PrimaryAction;
     /** the sanitized base ref actually used. */
     readonly baseRef: string;
+    readonly baseRefResolution: BaseRefResolution;
+    readonly runnerSelection: PlannedRunnerSelection;
+    readonly packageDir: string;
     /** the accepted, sanitized targets. */
     readonly targets: readonly PropertyTestRef[];
     /** refs rejected by sanitation, with the reason — surfaced so a rejection is never silent. */
@@ -70,12 +124,18 @@ export interface DiscriminationPlan {
         readonly reason: string;
     }[];
     /**
-     * Ordered shell steps the caller runs: add a detached worktree at baseRef, copy each NEW property test
-     * file into it (they do not exist at base), run the runner over the targets, then remove the worktree.
+     * Ordered shell steps the caller runs: add the complete detached revision at baseRef, run the selected
+     * package-scoped command over positional targets, then remove the worktree. No lone-file tree is valid.
      * `{{WORKTREE}}` is a placeholder the caller substitutes with a fresh temp dir path it owns — the engine
      * never invents a filesystem path. Commands use only sanitized tokens.
      */
     readonly commands: readonly string[];
+    /** The detached worktree itself supplies the complete revision; no lone-file copy is an isolation tree. */
+    readonly isolation: {
+        readonly materialization: 'full-revision-tree';
+        readonly revision: string;
+        readonly overlays: readonly string[];
+    };
 }
 export interface ClassifyInput {
     readonly propertyTests: readonly PropertyTestRef[];

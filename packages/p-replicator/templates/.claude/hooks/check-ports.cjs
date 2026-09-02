@@ -43,12 +43,12 @@ const SUBPROCESS_OPTIONS = {
 // called `rediscommander/redis-commander` storage (it is a web UI), and missed
 // `mcr.microsoft.com/mssql/server` on its standard 1433 entirely. So: take the image NAME —
 // the last path component, without registry, tag or digest — and anchor to it.
-const STORAGE_NAMES = /^(postgres|postgresql|pgvector|mysql|mariadb|percona|mongo|mongodb|redis|valkey|keydb|elasticsearch|opensearch|minio|rabbitmq|memcached|clickhouse|cassandra|scylla|neo4j|influxdb|timescaledb|mssql|sqlserver|couchdb|etcd)$/i;
+const STORAGE_NAMES = /^(postgres|postgresql|pgvector|mysql|mariadb|percona|mongo|mongodb|redis|valkey|keydb|elasticsearch|opensearch|minio|rabbitmq|memcached|clickhouse|cassandra|scylla|neo4j|influxdb|timescaledb|mssql|sqlserver|couchdb|etcd|qdrant)$/i;
 const STORAGE_PORT = new Set([5432, 3306, 27017, 6379, 9200, 9300, 5672, 11211, 9000, 8123,
-  1433, 9042, 7687, 8086, 2379, 5984]);
+  1433, 9042, 7687, 8086, 2379, 5984, 6333]);
 const PASSWORD_STORAGE_NAMES = /^(postgres|mysql|mariadb|mongo)$/i;
 const NO_PASSWORD_STORAGE_NAMES = /^(redis|valkey|keydb|memcached)$/i;
-const PROXY_NAMES = /^(caddy|nginx|traefik|haproxy|envoy)$/i;
+const PROXY_NAMES = /^(caddy|nginx|traefik|haproxy|envoy|openresty)$/i;
 
 const PASSWORD_STORAGE_EXPOSURE = 'хранилище опубликовано наружу: слабый или подобранный пароль '
   + 'вместе с возможностями сервера (например, COPY … TO PROGRAM) даёт путь к компрометации. '
@@ -251,6 +251,26 @@ const isStorage = (svc) =>
   isStorageImage(svc.image) || svc.ports.some((p) => STORAGE_PORT.has(Number(p.target)));
 const isProxy = (svc) => imageParts(svc.image).some((part) => PROXY_NAMES.test(part));
 
+function unrecognizedServiceText(svc) {
+  const publicPorts = svc.ports
+    .filter((port) => port.published && !isLoopback(port.hostIp))
+    .map((port) => port.published);
+  const surfaces = [];
+  if (svc.networkMode === 'host') surfaces.push('network_mode: host');
+  if (publicPorts.length === 1) surfaces.push('порт ' + publicPorts[0] + ' наружу');
+  if (publicPorts.length > 1) surfaces.push('порты ' + publicPorts.join(', ') + ' наружу');
+  return svc.name + (surfaces.length ? ' (' + surfaces.join('; ') + ')' : '');
+}
+
+function catalogScopeText(services, storage, proxies) {
+  const unrecognized = services.filter((svc) => !isStorage(svc) && !isProxy(svc));
+  const counts = 'из ' + services.length + ' сервисов распознано хранилищ ' + storage.length
+    + ', reverse-proxy ' + proxies.length;
+  if (!unrecognized.length) return counts + '; все сервисы распознаны в этой области проверки';
+  return counts + '; НЕ распознаны и не проверялись: '
+    + unrecognized.map(unrecognizedServiceText).join(', ');
+}
+
 function storageExposureMessage(image) {
   const name = imageName(image);
   if (NO_PASSWORD_STORAGE_NAMES.test(name)) {
@@ -338,6 +358,8 @@ function checkCatalog(arg) {
 
   const bad = [];
   const unknown = [];
+  const storage = services.filter(isStorage);
+  const proxies = services.filter(isProxy);
 
   for (const svc of services) {
     // network_mode: host publishes everything the container listens on, with no ports: entry at all.
@@ -371,7 +393,6 @@ function checkCatalog(arg) {
 
   // Behind a reverse-proxy the proxy is the only door; anything published beside it can be reached
   // directly, bypassing everything the proxy guarantees.
-  const proxies = services.filter(isProxy);
   if (proxies.length) {
     for (const svc of services) {
       if (isProxy(svc)) continue;
@@ -389,8 +410,8 @@ function checkCatalog(arg) {
     process.exit(2);
   }
   if (bad.length) process.exit(1);
-  say('✅ каталог ' + file
-    + ' проверен: ни одно хранилище не публикует порт наружу, обходов reverse-proxy нет');
+  say('✅ каталог ' + file + ' проверен в заявленной области: '
+    + catalogScopeText(services, storage, proxies));
   process.exit(0);
 }
 

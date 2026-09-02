@@ -355,6 +355,8 @@ const COMPONENTS = {
       'check-ports':              'Enforce docker-ports Правило №0 against a real compose (invoke deliberately; exits 0/1/2)',
       'check-growth-trace':       'Did the M5 growth seed reach docs/Specification.md (invoke deliberately; exits 0/1/2)',
       'check-look-trace':         'Did the Phase-0.5 source-look seed reach docs/Specification.md (invoke deliberately; exits 0/1/2)',
+      'check-look-origin':        'Did a third-party-analysis HYPOTHESIS row reach Specification.md without dated live confirmation (invoke deliberately; exits 0/1/2)',
+      'check-review-contract':    'Does review-report.md answer every AC id, disclose the reviewer family and name the spec revision it judged (exits 0/1/2)',
       'capture-source-path':      'Phase-0.5 «путь» axis: click through the source product in a browser and emit FR-LOOK rows (external Playwright; exits 0/1/2)',
       'check-docs-complete':      'Are Phase-1 documents written and placeholder-free, before the Phase-2 swarm (invoke deliberately; exits 0/1/2)',
       'check-swarm-receipts':     'Did every parallel work unit deliver its named terminal file, before the coordinator aggregates (invoke deliberately; exits 0/1/2)',
@@ -511,6 +513,19 @@ function removeOrphanHooks(existing, oldTemplate, newTemplate) {
   return cleaned;
 }
 
+/**
+ * Canonical form of a hook command for DEDUP ONLY (backlog a1ef0e41 — MEASURED: a user who
+ * hand-rewrote `$CLAUDE_PROJECT_DIR` into `${CLAUDE_PROJECT_DIR}` got every event hook DOUBLED on
+ * the next update, because the byte-equality Set saw two different strings for one command).
+ * Both spellings expand identically in sh, so for identity purposes they ARE the same command:
+ * `${VAR}` collapses to `$VAR`, and whitespace runs collapse to one space. The STORED command is
+ * never rewritten — the user's own spelling always survives; only the comparison key changes.
+ */
+function canonicalHookCommand(command) {
+  if (typeof command !== 'string') return command;
+  return command.replace(/\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g, '$$$1').replace(/\s+/g, ' ').trim();
+}
+
 function mergeHookMatchers(existing, template) {
   // Clone the existing array; we'll mutate per-entry hook arrays via reference.
   const result = existing.map((m) => ({ ...m, hooks: [...(m.hooks || [])] }));
@@ -521,10 +536,12 @@ function mergeHookMatchers(existing, template) {
       result.push({ ...tplEntry, hooks: [...(tplEntry.hooks || [])] });
       continue;
     }
-    // Same matcher — append template hooks not already present (compare by command)
-    const existingCmds = new Set(target.hooks.map((h) => h.command));
+    // Same matcher — append template hooks not already present. Identity is the CANONICAL
+    // command (see canonicalHookCommand), so a user's `${VAR}` respelling of a shipped `$VAR`
+    // hook no longer reads as a different hook and doubles on every update.
+    const existingCmds = new Set(target.hooks.map((h) => canonicalHookCommand(h.command)));
     for (const tplHook of tplEntry.hooks || []) {
-      if (!existingCmds.has(tplHook.command)) {
+      if (!existingCmds.has(canonicalHookCommand(tplHook.command))) {
         target.hooks.push(tplHook);
       }
     }
