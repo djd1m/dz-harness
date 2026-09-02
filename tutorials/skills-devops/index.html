@@ -1,0 +1,985 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>skills-devops: тридцать навыков для дежурного инженера</title>
+<meta name="description" content="Практический курс по пакету @dzhechkov/skills-devops для того, кто впервые подключает навыки к своему AI-агенту. Вместе с Тимуром ты установишь пакет, поймёшь, как навык включается">
+</head>
+<body>
+<div class="layout">
+  <aside id="aside"></aside>
+  <main id="main"></main>
+</div>
+<footer id="site-footer"><a href="https://t.me/llm_notes" target="_blank" rel="noopener noreferrer">Telegram: LLM notes</a><span class="footer-sep">·</span><a href="https://aicoding.space" target="_blank" rel="noopener noreferrer">aicoding.space</a><span class="footer-sep">·</span><a href="https://www.npmjs.com/package/@dzhechkov/skills-devops" target="_blank" rel="noopener noreferrer">npm: @dzhechkov/skills-devops</a><span class="footer-sep">·</span><a href="https://github.com/djd1m/dz-harness" target="_blank" rel="noopener noreferrer">GitHub (зеркало)</a><span class="footer-sep">·</span><a href="https://github.com/gitlawb/openclaude-skills" target="_blank" rel="noopener noreferrer">Источник 10 навыков: gitlawb/openclaude-skills</a><span class="footer-sep">·</span><a href="https://github.com/djd1m/dz-harness/blob/main/packages/skills-devops/README.md" target="_blank" rel="noopener noreferrer">Полная документация пакета</a><span class="footer-sep">·</span><a href="https://github.com/djd1m/dz-harness/issues/new?title=%5Bskills-devops%5D%20&amp;body=%D0%97%D0%B0%D0%BC%D0%B5%D1%87%D0%B0%D0%BD%D0%B8%D0%B5%20%D0%BF%D0%BE%20%D0%B8%D1%82%D0%BE%D0%B3%D0%B0%D0%BC%20%D0%BA%D1%83%D1%80%D1%81%D0%B0%20%C2%ABskills-devops%3A%20%D1%82%D1%80%D0%B8%D0%B4%D1%86%D0%B0%D1%82%D1%8C%20%D0%BD%D0%B0%D0%B2%D1%8B%D0%BA%D0%BE%D0%B2%20%D0%B4%D0%BB%D1%8F%20%D0%B4%D0%B5%D0%B6%D1%83%D1%80%D0%BD%D0%BE%D0%B3%D0%BE%20%D0%B8%D0%BD%D0%B6%D0%B5%D0%BD%D0%B5%D1%80%D0%B0%C2%BB.%0A%0A%D0%9F%D0%B0%D0%BA%D0%B5%D1%82%3A%20%60packages%2Fskills-devops%60%0A%0A**%D0%A7%D1%82%D0%BE%20%D0%BE%D0%B6%D0%B8%D0%B4%D0%B0%D0%BB%D0%BE%D1%81%D1%8C%3A**%0A%0A**%D0%A7%D1%82%D0%BE%20%D0%BF%D1%80%D0%BE%D0%B8%D0%B7%D0%BE%D1%88%D0%BB%D0%BE%3A**%0A%0A**%D0%9A%D0%B0%D0%BA%20%D0%B2%D0%BE%D1%81%D0%BF%D1%80%D0%BE%D0%B8%D0%B7%D0%B2%D0%B5%D1%81%D1%82%D0%B8%3A**%0A" target="_blank" rel="noopener noreferrer">Что-то работает не так?</a></footer>
+<script type="application/json" id="course-data">{"language":"ru","courseTitle":"skills-devops: тридцать навыков для дежурного инженера","courseDescription":"Практический курс по пакету @dzhechkov/skills-devops для того, кто впервые подключает навыки к своему AI-агенту. Вместе с Тимуром ты установишь пакет, поймёшь, как навык включается по фразе и где проходят его границы, разберёшь протоколы ревью, аудита безопасности, тестов и починки CI, проведёшь миграцию базы без простоя, увидишь, как гейт дашбордов перестал верить самоотчёту, разведёшь инцидент и проблему, задеплоишь репозиторий на ВМ Cloud.ru и узнаешь, что именно покрывает подпись пакета.","persona":{"name":"Тимур","description":"Тимур — дежурный инженер платформенной команды из шести человек. Сети, облако и Kubernetes — его стихия, а вот навыки для AI-агента он подключает впервые. Каждую секцию он проходит на шаг впереди тебя: сначала наступает на грабли сам, потом показывает, где они лежали."},"finalTestPassThreshold":70,"footer":{"links":[{"label":"npm: @dzhechkov/skills-devops","href":"https://www.npmjs.com/package/@dzhechkov/skills-devops"},{"label":"GitHub (зеркало)","href":"https://github.com/djd1m/dz-harness"},{"label":"Источник 10 навыков: gitlawb/openclaude-skills","href":"https://github.com/gitlawb/openclaude-skills"}]},"feedback":{"repo":"djd1m/dz-harness","packagePath":"packages/skills-devops"},"topics":[{"id":"why-skills-devops","title":"1. Зачем агенту пакет навыков?","keyConcepts":["пакет из 30 навыков для DevOps-задач"],"suggestedExercise":"flashcards","methodPattern":"P3","source":"README.md"},{"id":"install-three-ways","title":"2. Установка: пресет, точечный выбор, npm","keyConcepts":["команда dz init --preset devops"],"suggestedExercise":"builder","methodPattern":"P5","source":"README.md#install"},{"id":"auto-activation-triggers","title":"3. Навык включается по фразе","keyConcepts":["триггерные фразы навыка"],"suggestedExercise":"matching","methodPattern":"P6","source":"README.md#how-to-use"},{"id":"skill-boundaries","title":"4. Границы навыка: «когда НЕ использовать»","keyConcepts":["границы навыка: когда не использовать"],"suggestedExercise":"scenario","methodPattern":"D3","source":"pr-review/SKILL.md"},{"id":"pr-review-severity","title":"5. pr-review: находки по серьёзности","keyConcepts":["группировка находок по серьёзности"],"suggestedExercise":"drag-and-drop","methodPattern":"P2","source":"pr-review/SKILL.md"},{"id":"security-audit-exploit-path","title":"6. security-audit: находка без пути эксплуатации — не находка","keyConcepts":["путь эксплуатации для каждой находки"],"suggestedExercise":"quiz","methodPattern":"P9","source":"security-audit/SKILL.md"},{"id":"test-writer-must-fail","title":"7. test-writer: тест, который не падает, ничего не проверяет","keyConcepts":["тест должен падать на сломанном коде"],"suggestedExercise":"flashcards","methodPattern":"P11","source":"test-writer/SKILL.md"},{"id":"ci-fix-root-cause","title":"8. ci-fix и debugging: причина, а не симптом","keyConcepts":["чинить причину, а не симптом"],"suggestedExercise":"scenario","methodPattern":"P4","source":"ci-fix/SKILL.md"},{"id":"db-migration-expand-contract","title":"9. database-migration: expand-contract без простоя","keyConcepts":["expand-contract: миграция без простоя"],"suggestedExercise":"drag-and-drop","methodPattern":"D4","source":"database-migration/SKILL.md"},{"id":"observability-dashboard-gate","title":"10. observability: гейт открывает файл, а не верит числу","keyConcepts":["гейт открывает файл дашборда, а не верит числу"],"suggestedExercise":"matching","methodPattern":"P1","source":"README.md#0-3-9-the-dashboard-step-stopped-certify"},{"id":"incident-vs-problem","title":"11. Инцидент, проблема, известная ошибка","keyConcepts":["инцидент восстанавливает сервис, проблема убирает причину"],"suggestedExercise":"scenario","methodPattern":"P8","source":"itsm-itil/SKILL.md"},{"id":"deploy-cloudru-vm","title":"12. deploy-on-cloudru-vm: от ссылки на репозиторий до URL","keyConcepts":["cloudru-vm verify после deploy"],"suggestedExercise":"builder","methodPattern":"P10","source":"deploy-on-cloudru-vm/SKILL.md"},{"id":"signature-and-trust","title":"13. Подпись, канонический источник и ярусы доверия","keyConcepts":["подпись покрывает только файлы из тарбола"],"suggestedExercise":"quiz","methodPattern":"P12","source":"README.md#signature-scope-this-release"}],"sections":[{"id":"why-skills-devops","order":1,"title":"1. Зачем агенту пакет навыков?","shortTitle":"Зачем пакет","description":"Что такое skills-devops одной фразой и откуда взялись тридцать навыков.","icon":"🧰","interactiveType":"flashcards","keyConcept":"пакет из 30 навыков для DevOps-задач","methodPattern":"P3","source":"README.md","theory":"Тимур — дежурный инженер платформенной команды. Сети и облако он знает наизусть, а навыки для AI-агента подключает впервые. Спросил он ровно то, что сейчас думаешь ты: «зачем агенту отдельный пакет, если он и так всё умеет?»\n\nОтвет короткий: **@dzhechkov/skills-devops — это пакет из 30 навыков для DevOps-задач.** Навык — это файл `SKILL.md` с пошаговой процедурой, разделами «когда использовать» и «когда НЕ использовать» и описанием формата результата. Агент без навыка отвечает по памяти; агент с навыком идёт по протоколу, который кто-то уже проверил на живых задачах.\n\nОткуда взялись тридцать навыков:\n\n- 10 канонизированы из проекта [gitlawb/openclaude-skills](https://github.com/gitlawb/openclaude-skills) (лицензия MIT): `pr-review`, `security-audit`, `test-writer`, `ci-fix`, `codeql-fix`, `database-review`, `debugging`, `frontend-implementation`, `git-conflict-resolve`, `provider-debug`;\n- 20 написаны в самом хабе — от `github-actions` и `kubernetes` до `incident-response`, `problem-management` и `deploy-on-cloudru-vm`.\n\nПакет живёт на npm: [страница @dzhechkov/skills-devops](https://www.npmjs.com/package/@dzhechkov/skills-devops); исходники — в [зеркале на GitHub](https://github.com/djd1m/dz-harness). В `package.json` на момент написания курса стоит версия 0.3.17.\n\n**Компромисс:** ты получаешь проверенные протоколы вместо импровизации, но платишь контекстом агента — навыки многословны. Измерено: `observability/SKILL.md` — 818 строк, `pr-review/SKILL.md` — 80. Агент загружает навык целиком, когда тот срабатывает.\n\n💬 **Просто попроси.** Команды в этом курсе нужны, чтобы ты понимал, что происходит под капотом. В Claude Code достаточно сказать «проверь этот PR» — и навык `pr-review` включится сам. Тимур за первую неделю ни разу не набрал имя навыка руками.","reflection":{"strengths":"Тридцать протоколов с явными границами применения вместо ответов по памяти; десять навыков унаследованы из открытого проекта, двадцать написаны под этот хаб.","weaknesses":"Навыки длинные (observability — 818 строк), и каждый срабатывающий навык съедает контекст агента; польза видна только на задачах, где импровизация дорого стоит.","rating":"5/5 за воспроизводимость, 3/5 за цену контекста","wrapup":"Пакет навыков — это библиотека проверенных протоколов: агент перестаёт отвечать по памяти и начинает идти по шагам."},"exercise":{"cards":[{"front":"Что такое @dzhechkov/skills-devops одной фразой?","back":"Пакет из 30 навыков для DevOps-задач: ревью, безопасность, тесты, CI/CD, базы, инфраструктура, эксплуатация."},{"front":"Что такое «навык» технически?","back":"Файл SKILL.md с пошаговой процедурой, разделами «когда использовать / когда НЕ использовать» и форматом результата."},{"front":"Откуда взялись первые 10 навыков пакета?","back":"Канонизированы из открытого проекта gitlawb/openclaude-skills (MIT); остальные 20 написаны в самом хабе."},{"front":"Чем агент с навыком отличается от агента без навыка?","back":"Без навыка агент отвечает по памяти; с навыком — идёт по протоколу, проверенному на живых задачах."},{"front":"Чем платишь за пакет навыков?","back":"Контекстом: сработавший навык загружается целиком, а observability/SKILL.md — это 818 строк."}]},"quiz":[{"id":"why-q1","question":"Тимур говорит: «агент и так всё умеет, пакет навыков ничего не добавит». Что он упускает?","options":["Ничего — он прав","Навык заменяет ответ по памяти протоколом с явными шагами и границами «когда НЕ использовать»","Навыки работают только в Cursor","Пакет нужен только ради красивого вывода"],"correctAnswer":1,"explanation":"Разница не в знаниях, а в дисциплине: навык фиксирует порядок шагов, правила и формат результата."}],"finalTest":{"id":"final-why-skills-devops","sectionId":"why-skills-devops","question":"Что такое @dzhechkov/skills-devops?","options":["Пакет из 30 навыков для DevOps-задач: протоколы для ревью, безопасности, тестов, CI/CD, баз и эксплуатации","Облачный сервис мониторинга","Замена Terraform","Набор шаблонов docker-compose"],"correctAnswer":0},"diagram":{"kind":"parts","title":"Из чего собран пакет skills-devops","whole":"30 навыков","nodes":[{"id":"review","label":"Ревью и качество","note":"pr-review, security-audit, test-writer, codeql-fix"},{"id":"fix","label":"Починка","note":"ci-fix, debugging, git-conflict-resolve, provider-debug"},{"id":"infra","label":"Инфраструктура","note":"docker-compose, kubernetes, terraform, nginx-config, github-actions"},{"id":"data","label":"Данные","note":"database-migration, database-review, data-pipeline, redis-patterns"},{"id":"ops","label":"Эксплуатация","note":"observability, incident-response, problem-management, itsm-itil","accent":true},{"id":"deploy","label":"Деплой","note":"deploy-on-cloudru-vm — от ссылки на репозиторий до URL"}]}},{"id":"install-three-ways","order":2,"title":"2. Установка: пресет, точечный выбор, npm","shortTitle":"Установка","description":"Три команды из README и чем они отличаются.","icon":"📦","interactiveType":"builder","keyConcept":"команда dz init --preset devops","methodPattern":"P5","source":"README.md#install","theory":"Хватит вступлений — Тимур уже открыл терминал, открывай и ты.\n\nREADME пакета даёт три способа установки, и это не три синонима, а три разных решения:\n\n1. **Пресет целиком.** `dz init --target claude-code --preset devops` — все тридцать навыков за один вызов. Тимур начал именно так.\n2. **Точечный выбор.** `dz init --target claude-code --select pr-review,security-audit,test-writer` — только названные навыки, через запятую.\n3. **Пакет напрямую.** `npm install @dzhechkov/skills-devops` — как обычная зависимость, без раскладки под платформу.\n\n**Грабли Тимура — не повторяй.** Он поставил пресет целиком в проект, где нужны были только ревью и тесты, и агент стал предлагать `kubernetes` на каждый вопрос про контейнеры. Пресет — быстрый старт; точечный выбор — чистый проект.\n\nФлаг `--target` — это платформа, под которую dz раскладывает файлы навыков. В README примеры даны для `claude-code`; сам dz умеет и другие цели, но это уже курс про harness-cli, а не про этот пакет.\n\n**Компромисс:** пресет ставится за минуту, но тащит лишнее; точечный выбор чист, но требует знать имена навыков (их ты найдёшь в следующей секции); npm-установка даёт версию и README, но не раскладывает файлы под агента.\n\n💬 **Просто попроси.** «Поставь DevOps-навыки в этот проект» → ассистент выполнит `dz init --target claude-code --preset devops`; «добавь только ревью PR» → `--select pr-review`.","reflection":{"strengths":"Три способа под три сценария: быстрый старт пресетом, чистота точечного выбора, версионирование через npm.","weaknesses":"Пресет ставит лишнее; для --select надо знать имена; npm install сам по себе не раскладывает навыки под платформу.","rating":"4/5","wrapup":"Старт с пресета, потом точечные добавки — команда dz init --preset devops разворачивает весь пакет, --select берёт ровно нужное."},"exercise":{"instruction":"Собери команду, которой Тимур ставит весь пакет DevOps-навыков в проект под Claude Code (пресет целиком).","parts":["dz","init","--target","claude-code","--preset","devops"],"correctCommand":"dz init --target claude-code --preset devops","hints":["Начни с dz init — это команда, которая разворачивает навыки","Платформа задаётся флагом --target, набор целиком — флагом --preset"]},"quiz":[{"id":"install-q1","question":"Тимуру нужны только pr-review и test-writer, без остальных 28 навыков. Какая команда?","options":["dz init --target claude-code --preset devops","dz init --target claude-code --select pr-review,test-writer","npm install pr-review test-writer","dz sync --force"],"correctAnswer":1,"explanation":"--select принимает имена навыков через запятую и ставит только их; пресет притащил бы все тридцать."}],"finalTest":{"id":"final-install-three-ways","sectionId":"install-three-ways","question":"Что делает команда dz init --target claude-code --preset devops?","options":["Разворачивает все 30 навыков пакета devops под платформу Claude Code","Удаляет ранее установленные навыки","Публикует пакет в npm","Запускает ревью текущего PR"],"correctAnswer":0},"diagram":{"kind":"compare","title":"Три способа установить skills-devops","nodes":[{"id":"preset","label":"Пресет","note":"dz init --preset devops","items":["все 30 навыков за минуту","тащит лишнее в маленький проект"],"accent":true},{"id":"select","label":"Точечно","note":"dz init --select a,b,c","items":["ровно нужные навыки","имена надо знать заранее"]},{"id":"npm","label":"npm install","note":"как обычную зависимость","items":["версия и README рядом","не раскладывает файлы под агента"]}]}},{"id":"auto-activation-triggers","order":3,"title":"3. Навык включается по фразе","shortTitle":"Триггеры","description":"Автоактивация: фраза задачи совпадает с триггерами из SKILL.md.","icon":"🎯","interactiveType":"matching","keyConcept":"триггерные фразы навыка","methodPattern":"P6","source":"README.md#how-to-use","theory":"Пакет стоит. Тимур пишет агенту «посмотри PR #42» — и вдруг видит в ответе структурированное ревью с вердиктом и цитатами `file:line`. Он ничего не включал. Что произошло?\n\nСработала **автоактивация**: навыки включаются сами, когда твоя задача совпадает с их триггерными фразами. Триггеры описаны в шапке каждого `SKILL.md` — в поле `description` и в разделе «When to use». README приводит три примера:\n\n- «Review this PR» → `pr-review`;\n- «Set up Terraform modules for AWS» → `terraform`;\n- «Fix the failing CI pipeline» → `ci-fix`.\n\nТри взгляда на одно и то же, чтобы уложилось:\n\n1. **Общая картина.** Ты называешь намерение, а не имя навыка. Имена в пакете можно вообще не помнить.\n2. **По шагам.** Агент читает фразу → сверяет с триггерами → загружает `SKILL.md` → идёт по его процедуре → отвечает в формате из раздела «Output Format».\n3. **Конкретный артефакт.** Триггеры навыка `deploy-on-cloudru-vm` в его шапке — «задеплой в cloud.ru», «deploy this repo to a VM», «дай ссылку на подключение». Русские фразы там прописаны явно.\n\nДве команды, чтобы смотреть в каталог руками: `dz info \u003cskill-id\u003e` показывает точные триггеры и файлы навыка, `dz registry search \u003cслово\u003e` ищет навык по слову.\n\n**Компромисс:** автоактивация избавляет от заучивания имён, но зависит от формулировки — фраза мимо триггеров оставит агента без навыка, и он ответит по памяти, не сказав об этом. Тимур теперь формулирует задачу словами из области: «ревью», «инцидент», «миграция».","reflection":{"strengths":"Имена навыков можно не помнить — работает намерение; триггеры лежат в самом SKILL.md и видны через dz info.","weaknesses":"Фраза мимо триггеров тихо оставляет агента без навыка; надо формулировать задачу словами предметной области.","rating":"4/5","wrapup":"Триггерные фразы навыка — это его дверной звонок: назови задачу их словами, и навык откроет сам."},"exercise":{"pairs":[{"left":"Триггерная фраза: «Review this PR»","right":"pr-review"},{"left":"Триггерная фраза: «Fix the failing CI pipeline»","right":"ci-fix"},{"left":"Триггерная фраза: «Set up Terraform modules for AWS»","right":"terraform"},{"left":"Триггерная фраза: «задеплой в cloud.ru, дай ссылку на подключение»","right":"deploy-on-cloudru-vm"},{"left":"Триггерная фраза: «why does this keep happening»","right":"problem-management"},{"left":"Команда: посмотреть точные триггеры и файлы навыка","right":"dz info \u003cskill-id\u003e"}]},"quiz":[{"id":"triggers-q1","question":"Где записаны триггерные фразы, по которым включается навык?","options":["В отдельной базе данных dz","В шапке SKILL.md — поле description и раздел «When to use»","В настройках Claude Code","Нигде, агент угадывает"],"correctAnswer":1,"explanation":"Триггеры — часть самого навыка; dz info \u003cskill-id\u003e показывает их без чтения файла."}],"finalTest":{"id":"final-auto-activation-triggers","sectionId":"auto-activation-triggers","question":"Как включается навык из пакета skills-devops?","options":["Автоматически: задача совпадает с триггерными фразами из шапки SKILL.md","Только командой dz run \u003cskill\u003e","Только если навык прописан в CLAUDE.md","Вручную, копированием файла в чат"],"correctAnswer":0},"diagram":{"kind":"flow","title":"Как фраза превращается в протокол","nodes":[{"id":"say","label":"Ты называешь задачу","note":"«проверь PR #42»"},{"id":"match","label":"Сверка с триггерами","note":"description + When to use в SKILL.md","accent":true},{"id":"load","label":"Загрузка навыка","note":"SKILL.md целиком уходит в контекст"},{"id":"run","label":"Процедура по шагам","note":"ответ в формате Output Format"}]}},{"id":"skill-boundaries","order":4,"title":"4. Границы навыка: «когда НЕ использовать»","shortTitle":"Границы","description":"Каждый навык знает соседей и передаёт задачу дальше — реши за Тимура, кому.","icon":"🚧","interactiveType":"scenario","keyConcept":"границы навыка: когда не использовать","methodPattern":"D3","source":"pr-review/SKILL.md","theory":"У каждого навыка в пакете есть раздел **«When NOT to use»** — и это не отписка, а карта передач. Навык знает своих соседей и говорит, кому отдать задачу, если она не его.\n\nТимур сначала не поверил, что это важно. Потом попросил `pr-review` «найти дыры в безопасности» — и получил обычное ревью с одной строчкой про секреты. Открыл `SKILL.md` — а там прямо написано: «security-focused review only → use `security-audit`».\n\nНесколько границ из самих файлов навыков:\n\n- `pr-review`: не для создания PR, не для починки CI (→ `ci-fix`), не для чисто security-ревью (→ `security-audit`);\n- `security-audit`: не для общего ревью (→ `pr-review`), не для одной конкретной SAST-находки (→ `codeql-fix`);\n- `debugging`: не для ошибок сборки и компиляции (→ `ci-fix`), не для проектирования мониторинга (→ `observability`);\n- `observability`: не для живого инцидента (→ `incident-response`), не для отладки конкретного бага (→ `debugging`);\n- `problem-management`: «система лежит ПРЯМО СЕЙЧАС → `incident-response`»; сначала восстановить, потом искать причину.\n\nТеперь ты в роли Тимура: в упражнении три ситуации, и в каждой надо выбрать навык. Единственно верного ответа нет только в одном месте — где задача сидит на границе двух навыков; там важно объяснить, почему ты отдал её именно так.\n\n**Компромисс:** границы навыка делают ответ предсказуемым, но требуют один раз прочитать разделы «When NOT to use» — иначе ты будешь спрашивать у ревьюера то, что умеет аудитор.","reflection":{"strengths":"Каждый навык явно называет соседей — задача редко попадает не туда; предсказуемый формат ответа.","weaknesses":"Границы надо знать: фраза «найди дыры» уходит в pr-review, хотя нужен security-audit; пограничные задачи требуют твоего решения.","rating":"4/5","wrapup":"Границы навыка — «когда НЕ использовать» — это карта передач: прочитай её один раз, и задачи начнут попадать в нужный протокол."},"exercise":{"title":"Три задачи Тимура — какой навык берёт каждую?","scenario":"Тимур дежурит. За час приходят три запроса, и в каждом надо решить, чей это навык: границы «когда не использовать» подскажут.","steps":[{"description":"Задача 1. CodeQL прислал одно предупреждение: js/sql-injection в файле orders.ts, строка 118. Что просить у агента?","options":[{"text":"Полный аудит безопасности всего сервиса (security-audit)","result":"negative","feedback":"Слишком широко: security-audit сам говорит «конкретную SAST-находку → codeql-fix». Ты получишь обход восьми категорий вместо точечной починки."},{"text":"Разобрать эту находку: реальный поток или ложная тревога, и минимальный фикс (codeql-fix)","result":"positive","feedback":"Именно так. codeql-fix читает путь данных от источника до стока, решает «реально / ложно» и пишет самый маленький фикс без рефакторинга вокруг."},{"text":"Обычное ревью PR (pr-review)","result":"negative","feedback":"pr-review посмотрит на безопасность одним пунктом из восьми и сам отправит тебя к профильному навыку."}]},{"description":"Задача 2. Сборка в CI красная: TypeScript ругается на тип в новом файле. Локально всё зелёное.","options":[{"text":"debugging — это же ошибка","result":"negative","feedback":"debugging прямо пишет: «build/compile error, not a runtime error → use ci-fix». Ошибка сборки — не ошибка выполнения."},{"text":"ci-fix — найти настоящую строку отказа и сравнить окружения","result":"positive","feedback":"Верно. ci-fix классифицирует отказ как Build failure и первым делом сверяет версии инструментов: «локально зелёное» — типичный признак разницы в окружении."},{"text":"github-actions — переписать workflow","result":"neutral","feedback":"Не запрещено, но преждевременно: github-actions сам оговаривает, что отказ из-за логики тестов или кода — это ci-fix. Workflow трогают, когда причина в нём."}]},{"description":"Задача 3. Пограничная. Сервис лежит третий раз за месяц по одной и той же причине — пул соединений. Что первым?","options":[{"text":"problem-management — раз повторяется, ищем корень","result":"negative","feedback":"Ловушка границы: problem-management сам пишет «система лежит ПРЯМО СЕЙЧАС → incident-response». Сначала восстановить сервис, потом причина."},{"text":"incident-response сейчас, problem-management после восстановления","result":"positive","feedback":"Да: два навыка, две фазы. Инцидент — про время восстановления; проблема — про устранение причины. Их разделение — тема секции 11."},{"text":"observability — поставить алерт на пул","result":"neutral","feedback":"Полезно, но не первым: observability отправляет живой инцидент в incident-response. Алерт — действие из постмортема."}]}]},"quiz":[{"id":"boundaries-q1","question":"Куда pr-review отправляет задачу «нужно только security-ревью»?","options":["В ci-fix","В security-audit","В test-writer","Никуда — делает сам"],"correctAnswer":1,"explanation":"Раздел «When NOT to use» в pr-review прямо называет security-audit для чисто security-задач."}],"finalTest":{"id":"final-skill-boundaries","sectionId":"skill-boundaries","question":"Зачем в каждом навыке пакета есть раздел «When NOT to use»?","options":["Он задаёт границы навыка: говорит, когда не использовать его и какому соседнему навыку отдать задачу","Это юридическая оговорка лицензии","Он отключает навык в CI","Это список устаревших команд"],"correctAnswer":0},"diagram":{"kind":"compare","title":"Три навыка про безопасность — кто за что","nodes":[{"id":"pr","label":"pr-review","note":"общее ревью PR","items":["8 измерений, безопасность — одно из них","отдаёт глубокое security → security-audit"]},{"id":"sec","label":"security-audit","note":"аудит всего изменения","items":["8 категорий уязвимостей","путь эксплуатации у каждой находки","одна SAST-находка → codeql-fix"],"accent":true},{"id":"cql","label":"codeql-fix","note":"одна конкретная находка","items":["реальный поток или ложная тревога","самый маленький фикс, без рефакторинга"]}]}},{"id":"pr-review-severity","order":5,"title":"5. pr-review: находки по серьёзности","shortTitle":"pr-review","description":"Десять шагов протокола ревью и три уровня: Blocker, Important, Nit.","icon":"🔍","interactiveType":"drag-and-drop","keyConcept":"группировка находок по серьёзности","methodPattern":"P2","source":"pr-review/SKILL.md","theory":"Первый навык, который Тимур прочитал целиком, — `pr-review`. Всего 80 строк, а порядок в голове наводит на неделю вперёд.\n\nПротокол — десять шагов, и порядок в нём не случаен:\n\n1. Получить diff (`gh pr diff \u003cnumber\u003e` или `git diff \u003cbase\u003e...\u003chead\u003e`).\n2. Понять объём: сколько файлов, сколько строк, какие области.\n3. Прочитать изменённый код **в контексте** — 30–50 строк вокруг каждого изменения; diff в отрыве от файла не ревьюят.\n4. Проверить каждое изменение по восьми измерениям: корректность, обработка ошибок, крайние случаи, имена, тесты, безопасность, производительность, ломающие изменения.\n5. **Сгруппировать находки по серьёзности** — это сердце протокола.\n6. Написать ревью: точный `file:line`, цитата кода, что не так и почему, конкретное исправление.\n7. Резюме PR в 2–3 предложения.\n8. Вердикт: Approve / Request changes / Comment.\n9. Проверка полноты: миграция, документация, changelog — всё, что описание обещает, а diff не доставляет.\n10. Большой PR (\u003e600 строк или 20+ файлов) — сказать, что его надо разбить, и предложить как.\n\nТри уровня серьёзности:\n\n- **Blocker** — чинить до слияния: баги, потеря данных, дыры безопасности, сломанные тесты;\n- **Important** — стоит починить до слияния: пропущенная обработка ошибок, путаные имена, нет тестов на новое поведение;\n- **Nit** — приятно, но не блокирует: стиль, мелкая читаемость, опечатки.\n\n**Правило, которое Тимур переписал себе на стикер:** каждый комментарий обязан быть действенным. «Это можно сделать лучше» — не комментарий. «Переименуй `x` в `userCount`, потому что на строке 47 это счётчик» — комментарий.\n\n**Компромисс:** группировка находок по серьёзности заставляет ревьюера решать, что реально блокирует, — это дольше, чем вывалить список; зато автор PR видит, с чего начинать, и не тонет в Nit.","reflection":{"strengths":"Чтение в контексте (30–50 строк), восемь измерений проверки, три уровня серьёзности и правило действенности каждого комментария; большой PR ревьюер просит разбить.","weaknesses":"Десять шагов — это медленно для однострочной правки; без описания PR навык просит его сначала, а не ревьюит вслепую.","rating":"5/5","wrapup":"Группировка находок по серьёзности — Blocker / Important / Nit — превращает список замечаний в план действий для автора."},"exercise":{"instruction":"Тимур ревьюит PR по протоколу pr-review. Расставь шаги в правильном порядке — от получения diff до вердикта.","items":[{"id":"step-diff","label":"Получить diff: gh pr diff \u003cnumber\u003e"},{"id":"step-scope","label":"Понять объём: файлы, строки, области"},{"id":"step-context","label":"Прочитать изменения в контексте — 30–50 строк вокруг"},{"id":"step-dimensions","label":"Проверить по восьми измерениям"},{"id":"step-severity","label":"Сгруппировать находки по серьёзности: Blocker / Important / Nit"},{"id":"step-write","label":"Написать ревью с цитатами file:line и конкретными исправлениями"},{"id":"step-verdict","label":"Дать вердикт: Approve / Request changes / Comment"}],"correctOrder":["step-diff","step-scope","step-context","step-dimensions","step-severity","step-write","step-verdict"]},"quiz":[{"id":"prreview-q1","question":"PR на 900 строк в 25 файлах. Что делает pr-review?","options":["Отказывается ревьюить","Ревьюит, но прямо говорит, что PR надо разбить, и предлагает, на какие части","Ревьюит только первые 600 строк","Автоматически одобряет, если тесты зелёные"],"correctAnswer":1,"explanation":"Порог из навыка — \u003e600 строк или 20+ файлов: ревью всё равно делается, но с явным предложением разбить."},{"id":"prreview-q2","question":"Какой из комментариев ревью считается действенным по правилам pr-review?","options":["«Это можно сделать лучше»","«Переименуй x в userCount, потому что на строке 47 это счётчик»","«Не нравится»","«Подумай ещё»"],"correctAnswer":1,"explanation":"Действенный комментарий называет что, где и почему; остальные варианты — оценка без действия."}],"finalTest":{"id":"final-pr-review-severity","sectionId":"pr-review-severity","question":"Как pr-review организует найденные замечания?","options":["Группировка находок по серьёзности: Blocker, Important, Nit — с цитатой file:line у каждой","В алфавитном порядке файлов","По автору строки","Только по количеству строк"],"correctAnswer":0},"diagram":{"kind":"scale","title":"Три уровня серьёзности в pr-review","topLabel":"Блокирует слияние","bottomLabel":"Не блокирует","nodes":[{"id":"blocker","label":"Blocker","note":"баги, потеря данных, дыры безопасности, сломанные тесты","accent":true},{"id":"important","label":"Important","note":"нет обработки ошибок, путаные имена, нет тестов на новое"},{"id":"nit","label":"Nit","note":"стиль, читаемость, опечатки"}]}},{"id":"security-audit-exploit-path","order":6,"title":"6. security-audit: находка без пути эксплуатации — не находка","shortTitle":"security-audit","description":"Восемь категорий, четыре уровня серьёзности и одно жёсткое правило.","icon":"🛡️","interactiveType":"quiz","keyConcept":"путь эксплуатации для каждой находки","methodPattern":"P9","source":"security-audit/SKILL.md","theory":"Вопрос без лёгкого ответа, с которого Тимур начал читать `security-audit`: **чем аудит безопасности отличается от списка страхов?**\n\nНавык отвечает одним правилом: у каждой находки должен быть **путь эксплуатации**. Не «здесь теоретически может быть уязвимость», а четыре конкретных поля:\n\n- **Input trigger** — какой именно ввод пошлёт атакующий;\n- **Path** — через какие функции он пройдёт от точки входа до опасного стока;\n- **Impact** — что атакующий получит: данные, привилегии, выполнение кода, отказ в обслуживании;\n- **Fix** — конкретное изменение кода.\n\nПример из самого навыка: «отправка `name='; DROP TABLE users; --` в `/api/users` выполнит произвольный SQL, потому что значение подставляется в запрос на строке 42» — это находка. «Стоит подумать о санитизации» — нет.\n\nПорядок работы — семь шагов: сначала границы доверия (откуда приходят чужие данные), потом обход восьми категорий — инъекции, аутентификация и авторизация, секреты, файловые операции, сетевые операции, десериализация, XXE/SSRF, зависимости. Дальше — документирование каждой находки по четырём полям, серьёзность, проверка защит фреймворка (шаблонизатор уже экранирует? CSRF-middleware есть?) и честное признание существующих защит.\n\nЧетыре уровня серьёзности: **Critical** — удалённое выполнение кода, обход аутентификации; **High** — SQL-инъекция, хранимый XSS, повышение привилегий; **Medium** — CSRF, открытый редирект, утечка версий; **Low** — отсутствующие заголовки, болтливые ошибки.\n\nИ ещё одно правило, которое Тимур не ожидал увидеть: **если уязвимостей нет — сказать об этом прямо.** Выдумывать находки, чтобы оправдать аудит, запрещено.\n\n**Компромисс:** требование пути эксплуатации отсекает шум и делает каждую находку проверяемой, но аудитор может пропустить реальную слабость, для которой пока не сумел построить конкретный сценарий; навык честно ставит порог именно здесь.","reflection":{"strengths":"Каждая находка проверяема: ввод, путь, последствие, фикс; восемь категорий дают полноту обхода; пустой результат разрешено называть пустым.","weaknesses":"Слабость без построенного сценария не попадёт в отчёт; обход восьми категорий по каждому файлу — долго для большого изменения.","rating":"5/5 за честность, 3/5 за скорость","wrapup":"Путь эксплуатации для каждой находки — граница между аудитом и списком страхов: нет конкретного ввода и стока — нет находки."},"exercise":{},"quiz":[{"id":"secaudit-q1","question":"Что делает замечание аудита настоящей находкой по правилам security-audit?","options":["Ссылка на номер CWE","Конкретный путь эксплуатации: какой ввод, через какие функции, какое последствие, какой фикс","Фраза «стоит подумать о санитизации»","Упоминание в новостях об уязвимости"],"correctAnswer":1,"explanation":"Правило навыка: не можешь описать ввод атакующего — это не находка."},{"id":"secaudit-q2","question":"Аудит прошёл, уязвимостей не нашлось. Что должен сделать агент?","options":["Найти хоть что-то, чтобы оправдать аудит","Прямо сказать, что находок нет, и перечислить существующие защиты","Понизить порог серьёзности","Промолчать"],"correctAnswer":1,"explanation":"«Do not invent issues to justify the audit» — правило из Key Rules навыка."},{"id":"secaudit-q3","question":"К какому уровню серьёзности навык относит SQL-инъекцию, доступную обычному пользователю?","options":["Low","Medium","High","Critical"],"correctAnswer":2,"explanation":"High — SQL-инъекция, хранимый XSS, повышение привилегий; Critical — удалённое выполнение кода и обход аутентификации без особого доступа."},{"id":"secaudit-q4","question":"Тимур нашёл в шаблоне вывод пользовательской строки и хочет записать XSS. Что навык велит проверить сначала?","options":["Ничего — записывать сразу","Экранирует ли шаблонизатор вывод по умолчанию (защиты фреймворка)","Версию Node.js","Наличие тестов"],"correctAnswer":1,"explanation":"Шаг 6 навыка: перед тем как флагать XSS, проверь автоэкранирование; перед CSRF — наличие middleware."}],"finalTest":{"id":"final-security-audit-exploit-path","sectionId":"security-audit-exploit-path","question":"Какое требование security-audit предъявляет к каждой находке?","options":["Путь эксплуатации: конкретный ввод, путь через код до стока, последствие и фикс","Ссылка на CVE","Согласование с командой безопасности","Оценка в story points"],"correctAnswer":0},"diagram":{"kind":"scale","title":"Четыре уровня серьёзности security-audit","topLabel":"Эксплуатируется без особого доступа","bottomLabel":"Теоретически, с трудом","nodes":[{"id":"critical","label":"Critical","note":"RCE, обход аутентификации, массовая утечка","accent":true},{"id":"high","label":"High","note":"SQL-инъекция, хранимый XSS, повышение привилегий"},{"id":"medium","label":"Medium","note":"CSRF, открытый редирект, утечка версий, нет rate limit"},{"id":"low","label":"Low","note":"нет security-заголовков, болтливые ошибки"}]}},{"id":"test-writer-must-fail","order":7,"title":"7. test-writer: тест, который не падает, ничего не проверяет","shortTitle":"test-writer","description":"Одиннадцать шагов, и один из них — сломать код и убедиться, что тест это заметил.","icon":"🧪","interactiveType":"flashcards","keyConcept":"тест должен падать на сломанном коде","methodPattern":"P11","source":"test-writer/SKILL.md","theory":"Остановись на секунду и ответь себе честно: когда ты последний раз ломал код специально, чтобы посмотреть, покраснеет ли тест? Тимур ответил «никогда» — и именно поэтому седьмой шаг `test-writer` стал для него главным.\n\nНавык начинается с принципа: **покрытие — инструмент, а не цель.** Каждый тест существует потому, что без него уйдёт конкретный баг. Не можешь назвать этот баг — удали тест.\n\nОдиннадцать шагов, ключевые из них:\n\n1. Точно определить, что тестируешь: публичный API, входы, выходы, побочные эффекты.\n2. Выбрать самый узкий тип: unit для чистых функций, integration для базы и файлов, e2e — только для критичных путей вроде входа и оплаты.\n3. Перечислить случаи: счастливый путь, граничные значения, крайние случаи, ошибки, идемпотентность.\n4. Тестировать контракт, а не реализацию: утверждения о результате, а не о внутренних вызовах.\n5. Фикстуры под задачу, а не одна гигантская на всё.\n7. **Проверить, что тест падает на сломанном коде.** Сломай реализацию — мысленно или по-настоящему — и убедись, что тест это ловит. Тест, зелёный при любой реализации, ничего не стоит.\n10. Имя теста описывает поведение системы: «returns 401 when token is expired», а не «test auth».\n\nОриентиры по времени из навыка: unit-тест — до 100 мс, интеграционный — до 2 с; дольше — значит, тест проверяет слишком многое за раз.\n\nИ последнее правило, про которое легко забыть: **тесты надо запустить.** Навык не разрешает заявлять «проходят», не запустив.\n\n**Компромисс:** проверка «падает ли тест на сломанном коде» удваивает время на каждый тест, зато отсекает самый дорогой класс тестов — те, что годами зелёные и никого не защищают.","reflection":{"strengths":"Каждый тест оправдан конкретным багом; контракт вместо реализации; проверка, что тест краснеет на сломанном коде; имена описывают поведение.","weaknesses":"Ломать код ради проверки теста — лишнее время; ориентиры 100 мс / 2 с не всем стекам подходят буквально.","rating":"5/5","wrapup":"Тест должен падать на сломанном коде — иначе он не защита, а зелёная лампочка."},"exercise":{"cards":[{"front":"Как test-writer проверяет, что тест чего-то стоит?","back":"Сломать реализацию и убедиться, что тест падает на сломанном коде. Зелёный при любой реализации тест — бесполезен."},{"front":"Когда тест надо удалить по правилам test-writer?","back":"Когда нельзя назвать конкретный баг, который без него уйдёт. Покрытие — инструмент, а не цель."},{"front":"Тестировать контракт или реализацию?","back":"Контракт: результат и наблюдаемые побочные эффекты. Утверждения о внутренних вызовах ломаются при каждом рефакторинге."},{"front":"Ориентиры по времени одного теста","back":"Unit — до 100 мс, интеграционный — до 2 с. Дольше — тест проверяет слишком многое."},{"front":"Хорошее имя теста","back":"Описывает поведение системы: «returns 401 when token is expired». Плохое — «test auth»."},{"front":"Можно ли написать тесты и сказать «проходят», не запустив?","back":"Нет. Правило навыка: всегда запусти тесты после написания; заявлять успех без проверки запрещено."}]},"quiz":[{"id":"testwriter-q1","question":"Тимур написал тест, он зелёный. Что велит сделать седьмой шаг test-writer?","options":["Закоммитить","Сломать реализацию и проверить, что тест падает на сломанном коде","Добавить ещё утверждений","Переименовать в test_ok"],"correctAnswer":1,"explanation":"Тест, который не может покраснеть, ничего не проверяет — это и есть проверка ценности теста."}],"finalTest":{"id":"final-test-writer-must-fail","sectionId":"test-writer-must-fail","question":"Какое требование test-writer предъявляет к каждому новому тесту?","options":["Тест должен падать на сломанном коде — иначе он ничего не проверяет","Тест должен занимать не меньше 20 строк","Тест должен использовать общую фикстуру проекта","Тест должен проверять и реализацию, и контракт"],"correctAnswer":0}},{"id":"ci-fix-root-cause","order":8,"title":"8. ci-fix и debugging: причина, а не симптом","shortTitle":"ci-fix","description":"Красный CI: как найти настоящую строку отказа и не спрятать проблему.","icon":"🚨","interactiveType":"scenario","keyConcept":"чинить причину, а не симптом","methodPattern":"P4","source":"ci-fix/SKILL.md","theory":"Сюрприз, с которого начал Тимур: самый быстрый способ сделать CI зелёным — и самый запрещённый в этом пакете — одна строка. `|| true`. Или `continue-on-error: true`. Или `--no-verify`. Навык `ci-fix` перечисляет все три и запрещает каждую: они не чинят, они прячут.\n\nВместо этого — десять шагов, из которых пять решают исход:\n\n1. **Найти настоящую строку отказа.** Лог на тысячи строк; ищи `Error`, `FAIL`, `exit code`, `panic`. Первый настоящий отказ — причина, всё после него может быть каскадом.\n2. **Классифицировать:** сборка, тест, линтер, деплой или инфраструктура (диск, OOM, сеть). От класса зависит, кого чинить — код или окружение.\n3. **Воспроизвести локально** с теми же версиями инструментов.\n4. **Сверить окружения.** Linux против macOS, регистр в путях, версия Node из `.nvmrc`, `TZ=UTC` в CI, параллельный запуск тестов, локаль.\n5. **Чинить причину, а не симптом.** Тест падает из-за часового пояса — сделай его независимым от пояса, а не пропускай. Не хватает зависимости — добавь в `package.json`, а не в CI-скрипт. Ошибка типа — почини тип, а не ставь `@ts-ignore`.\n\nРодственный навык `debugging` говорит то же самое про ошибки выполнения: воспроизведи → прочитай ошибку целиком (стек читают снизу вверх; код выхода 137 — OOM, 139 — segfault) → сузь бисекцией → сформулируй опровержимую гипотезу → одно изменение за раз → почини на правильном слое. Запрещены заплатки: null-проверка в каждом вызывающем, `try-catch` вокруг всего, «магические» повторы, тихие значения по умолчанию.\n\nИ ещё одно, что Тимур раньше не делал: **проверь, не красный ли `main` сам по себе.** Если да — отказ старше твоего PR, и чинить его в PR — трата времени.\n\n**Компромисс:** чинить причину дольше, чем спрятать симптом, — иногда на часы; зато спрятанный отказ вернётся в другом месте, дальше от причины и дороже.","reflection":{"strengths":"Первая настоящая строка отказа вместо шума; классификация решает, что чинить; сверка окружений ловит «локально зелёное»; явный запрет прятать отказ.","weaknesses":"Воспроизведение с теми же версиями требует времени и иногда невозможно; для перемежающихся тестов навык разрешает retry с TODO — временную меру.","rating":"5/5","wrapup":"Чинить причину, а не симптом: || true и continue-on-error делают CI зелёным и оставляют баг живым."},"exercise":{"title":"Красный CI у Тимура: четыре развилки","scenario":"Ночной прогон упал. Лог — 4 000 строк. Тимур дежурит, до утра три часа. Проведи его по протоколу ci-fix — на каждой развилке есть быстрый путь и правильный.","steps":[{"description":"Развилка 1. Открыт лог. С чего начать?","options":[{"text":"Прочитать последние 50 строк — там же и упало","result":"negative","feedback":"В конце лога чаще каскад. Навык велит искать ПЕРВЫЙ настоящий отказ по словам Error / FAIL / exit code — всё после него может быть следствием."},{"text":"Найти первую строку с Error / FAIL / exit code и прочитать сообщение целиком","result":"positive","feedback":"Да. Первый настоящий отказ — причина; предупреждения и прогресс-бары загрузки — шум."},{"text":"Перезапустить прогон — вдруг само","result":"negative","feedback":"Если тест перемежающийся, ты потеряешь свидетельство; если нет — потеряешь десять минут. Сначала строка отказа."}]},{"description":"Развилка 2. Нашлось: тест на форматирование даты падает в CI, локально зелёный. Что это по классификации?","options":[{"text":"Test failure — и, судя по «локально зелёный», разница окружений: в CI TZ=UTC","result":"positive","feedback":"Верно. Часовой пояс — один из перечисленных в навыке источников расхождения CI и локальной машины, наряду с локалью, версией Node и регистром путей."},{"text":"Infra failure — раннер сломан","result":"negative","feedback":"Инфраструктурный отказ — это диск, OOM, сеть. Упавшее утверждение в тесте — Test failure."},{"text":"Lint failure","result":"negative","feedback":"Линтер ругается на стиль, а тут не сошлось значение. Классификация задаёт, что чинить — здесь код теста или окружение."}]},{"description":"Развилка 3. Причина ясна. Как чинить?","options":[{"text":"Пропустить тест: it.skip — утром разберёмся","result":"negative","feedback":"Это симптом, спрятанный за зелёным. Утром «разберёмся» превратится в «оно и так работает»."},{"text":"Добавить continue-on-error: true на этот шаг","result":"negative","feedback":"Навык запрещает именно это: || true, continue-on-error и --no-verify не чинят, они прячут."},{"text":"Сделать тест независимым от часового пояса — чинить причину, а не симптом","result":"positive","feedback":"Именно так: тест с зафиксированной зоной или UTC-датой падать перестанет по-честному."}]},{"description":"Развилка 4. Фикс запушен. Когда можно сказать «починил»?","options":[{"text":"Сразу — локально же зелёное","result":"negative","feedback":"Локально было зелёное и до фикса. Шаг 6 навыка: не отмечать починенным, пока свежий прогон CI не зелёный."},{"text":"После свежего прогона CI на этом же коммите","result":"positive","feedback":"Да: доказательство — зелёный прогон в том окружении, где было красное."}]}]},"quiz":[{"id":"cifix-q1","question":"Что из перечисленного ci-fix прямо запрещает добавлять, чтобы сделать CI зелёным?","options":["timeout-minutes","|| true, continue-on-error: true, --no-verify","fail-fast: false","cache: npm"],"correctAnswer":1,"explanation":"Все три прячут отказ вместо починки; остальные варианты — нормальные настройки workflow."},{"id":"cifix-q2","question":"Что означает код выхода 137 по навыку debugging?","options":["Segfault","Процесс убит по нехватке памяти (OOM)","Файл не найден","Успех"],"correctAnswer":1,"explanation":"137 — OOM-kill, 139 — segfault, 1 — общий отказ; коды выхода несут смысл, их читают."}],"finalTest":{"id":"final-ci-fix-root-cause","sectionId":"ci-fix-root-cause","question":"Главное правило ci-fix и debugging при починке отказа?","options":["Чинить причину, а не симптом: не пропускать тест, не ставить || true, не глушить ошибку","Сначала перезапустить прогон три раза","Всегда откатывать последний коммит","Добавить retry на все сетевые вызовы"],"correctAnswer":0},"diagram":{"kind":"flow","title":"Путь ci-fix от красного к честному зелёному","nodes":[{"id":"line","label":"Строка отказа","note":"первый Error / FAIL, не конец лога"},{"id":"class","label":"Классификация","note":"build / test / lint / deploy / infra"},{"id":"repro","label":"Воспроизвести","note":"те же версии инструментов"},{"id":"env","label":"Сверить окружения","note":"OS, TZ, локаль, версия Node, параллелизм"},{"id":"cause","label":"Починить причину","note":"не симптом: без skip и || true","accent":true},{"id":"verify","label":"Свежий прогон CI","note":"починено, когда зелёное там, где было красное"}]}},{"id":"db-migration-expand-contract","order":9,"title":"9. database-migration: expand-contract без простоя","shortTitle":"Миграции","description":"Почему нельзя переименовать колонку одной командой и как это делают за шесть шагов.","icon":"🗄️","interactiveType":"drag-and-drop","keyConcept":"expand-contract: миграция без простоя","methodPattern":"D4","source":"database-migration/SKILL.md","theory":"Тимуру прилетела задача на вид пустяковая: переименовать колонку `email` в `email_address` в таблице `users`. Одна строка SQL — `ALTER TABLE users RENAME COLUMN email TO email_address`. Он уже занёс руку. И тут навык `database-migration` показал ему, что будет через секунду после этой строки: старые экземпляры приложения, которые ещё не перезапущены, начнут падать — колонки `email` больше нет.\n\nОснова навыка — паттерн **expand-contract: миграция без простоя**, где ломающее изменение никогда не делается за один шаг. Вот он в коде, ровно как в `SKILL.md`:\n\n1. **EXPAND** — добавить новую колонку: `ALTER TABLE users ADD COLUMN email_address VARCHAR(255);` (для nullable-колонки в PostgreSQL это мгновенно, без блокировки).\n2. **BACKFILL** — скопировать данные пачками: `UPDATE users SET email_address = email WHERE email_address IS NULL;` — на большой таблице по 5–10 тысяч строк за раз, с паузами.\n3. **DUAL-WRITE** — выкатить код, который пишет в обе колонки.\n4. **SWITCH-READ** — выкатить код, который читает из новой.\n5. **STOP-WRITE** — выкатить код, который пишет только в новую.\n6. **CONTRACT** — `ALTER TABLE users DROP COLUMN email;` — только когда ни одна версия кода её не читает.\n\nПорядок деплоя следует из паттерна: расширение схемы — до кода, сжатие — после кода, и никогда одновременно.\n\nЕщё три правила из навыка, которые Тимур записал:\n\n- индексы в PostgreSQL создают только `CREATE INDEX CONCURRENTLY` — обычный `CREATE INDEX` блокирует таблицу;\n- у каждой миграции есть план отката, написанный ДО запуска; `DROP COLUMN` и `DROP TABLE` необратимы — восстановить можно только из бэкапа;\n- миграцию тестируют на данных производственного размера: пять секунд на 100 строках превращаются в 45 минут блокировки на 50 миллионах.\n\n**Компромисс:** expand-contract растягивает одно переименование на несколько деплоев и дней, зато ни одна версия приложения ни на секунду не видит схему, которой не ожидает.","reflection":{"strengths":"Ни один экземпляр приложения не видит неожиданную схему; каждый шаг обратим до самого CONTRACT; бэкфилл пачками не блокирует таблицу.","weaknesses":"Одно переименование — несколько деплоев и дней; код временно пишет в две колонки; требует дисциплины в порядке выкладки.","rating":"5/5","wrapup":"Expand-contract — миграция без простоя: сначала добавь и наполни, потом переключи код, и только потом удаляй старое."},"exercise":{"instruction":"Тимур переименовывает колонку email → email_address без простоя по паттерну expand-contract. Расставь шесть шагов миграции в правильном порядке.","items":[{"id":"expand","label":"EXPAND: ALTER TABLE users ADD COLUMN email_address"},{"id":"backfill","label":"BACKFILL: UPDATE … SET email_address = email WHERE email_address IS NULL, пачками"},{"id":"dual-write","label":"DUAL-WRITE: код пишет в обе колонки"},{"id":"switch-read","label":"SWITCH-READ: код читает из новой колонки"},{"id":"stop-write","label":"STOP-WRITE: код пишет только в новую"},{"id":"contract","label":"CONTRACT: ALTER TABLE users DROP COLUMN email"}],"correctOrder":["expand","backfill","dual-write","switch-read","stop-write","contract"]},"quiz":[{"id":"dbmig-q1","question":"Почему нельзя переименовать колонку одной командой RENAME COLUMN на живой системе?","options":["PostgreSQL этого не умеет","Старые экземпляры приложения, ещё не перезапущенные, начнут падать — колонки с прежним именем уже нет","Это слишком медленно","Нужны права суперпользователя"],"correctAnswer":1,"explanation":"Во время выкладки одновременно живут старая и новая версии кода; схема обязана подходить обеим — отсюда expand-contract."},{"id":"dbmig-q2","question":"Как навык велит создавать индекс в PostgreSQL на рабочей таблице?","options":["CREATE INDEX","CREATE INDEX CONCURRENTLY","REINDEX","Через триггер"],"correctAnswer":1,"explanation":"CONCURRENTLY не блокирует таблицу; обычный CREATE INDEX — блокирует."}],"finalTest":{"id":"final-db-migration-expand-contract","sectionId":"db-migration-expand-contract","question":"Что такое expand-contract в database-migration?","options":["Паттерн миграции без простоя: сначала добавить новое и наполнить, потом переключить код, в конце удалить старое","Сжатие таблицы для экономии места","Автоматический откат при ошибке","Способ ускорить UPDATE"],"correctAnswer":0},"diagram":{"kind":"flow","title":"Три фазы expand-contract","nodes":[{"id":"expand","label":"EXPAND","note":"добавить колонку, старую не трогать"},{"id":"migrate","label":"MIGRATE","note":"бэкфилл, двойная запись, переключить чтение","accent":true},{"id":"contract","label":"CONTRACT","note":"удалить старую, когда её никто не читает"}]}},{"id":"observability-dashboard-gate","order":10,"title":"10. observability: гейт открывает файл, а не верит числу","shortTitle":"Гейт дашбордов","description":"История версии 0.3.9: как один шаг из десяти сертифицировал самоотчёт и что с этим сделали.","icon":"📊","interactiveType":"matching","keyConcept":"гейт открывает файл дашборда, а не верит числу","methodPattern":"P1","source":"README.md#0-3-9-the-dashboard-step-stopped-certify","theory":"Посмотри сначала на схему «до» и «после» рядом с текстом, а потом читай, как Тимур сам наступил на левую половину.\n\nНавык `observability` — десять шагов, и девять из них выдают запускаемый артефакт: конфиг OpenTelemetry, правило алерта, SLO в YAML. Шаг 6 — дашборды — до версии 0.3.9 выдавал только таблицу и советы по компоновке. А выходная схема требовала число `panels_count`. Вот что проходило валидацию с нулём построенных панелей:\n\n`{ \"name\": \"Payments\", \"type\": \"golden_signals\", \"panels_count\": 6 }`\n\nДетерминированный прибор сертифицировал число, которое кто-то напечатал. README называет это инверсией, ради предотвращения которой существует лестница стоимости обнаружения: гейт, что падает на испорченном артефакте, но молчит на отсутствующем — здесь он даже до «испорченного» не доходил, потому что ничего не открывал.\n\nЧто изменилось в 0.3.9:\n\n- поле `file` стало **обязательным** — путь к JSON дашборда, который шаг реально записал;\n- `scripts/check-dashboards.mjs` **открывает** каждый файл: валидный JSON, непустой `panels`, и `panels_count` сверяется с реальной длиной, а не принимается на веру;\n- сам шаг 6 показывает, какой файл писать, и называет три недекоративные вещи в нём: `\"datasource\": \"${DS_PROM}\"` — переменная-шаблон, а не литеральный uid; `\"unit\": \"s\"` — потому что метрика оканчивается на `_seconds`; `sum by (le)` внутри `histogram_quantile` — усреднять готовый квантиль по инстансам арифметически бессмысленно.\n\nЗапуск: `node observability/scripts/check-dashboards.mjs \u003coutput.json\u003e --root \u003crepo\u003e` — коды выхода `0 PASS · 1 FAIL · 3 NOT-ESTABLISHED`, и **NOT-ESTABLISHED никогда не считается проходом**: гейт, который не смог запуститься, обязан сказать это вслух.\n\nРавно важно, чего гейт НЕ доказывает — README ограничивает его честно: он не проверяет правильность запросов, не знает, испускаются ли метрики вообще, и не защищает от намеренного обмана. Четыре раунда ревью были лестницей: regex по тексту обошли через `\\u0064`, `panels:[null]` — через `panels:[{}]`. Если автору отчёта нельзя доверять, это не тот прибор.\n\n**Компромисс:** гейт, который открывает файл, ловит небрежного автора («заявил шесть панелей, построил ноль») и стоит одну команду, но ложится в структурный пол — смысл панелей всё ещё судит человек или кросс-модельное ревью.","reflection":{"strengths":"Гейт открывает артефакт вместо доверия числу; NOT-ESTABLISHED не маскируется под проход; границы того, что гейт доказывает, записаны явно.","weaknesses":"Не проверяет правильность запросов и живость метрик; не защищает от намеренного обмана — и честно говорит об этом.","rating":"5/5 за честность границ","wrapup":"Гейт открывает файл дашборда, а не верит числу: заявленное количество панелей сверяется с реальной длиной массива."},"exercise":{"pairs":[{"left":"Поле file в dashboards_defined","right":"Обязательно с 0.3.9: путь к JSON дашборда, который шаг реально записал"},{"left":"panels_count","right":"Сверяется с реальной длиной массива panels — гейт открывает файл, а не верит числу"},{"left":"Код выхода 3 NOT-ESTABLISHED","right":"Гейт не смог запуститься; никогда не считается проходом"},{"left":"\"datasource\": \"${DS_PROM}\"","right":"Переменная-шаблон вместо литерального uid — иначе дашборд пуст в любом другом Grafana"},{"left":"\"unit\": \"s\"","right":"Метрика оканчивается на _seconds; показать её в миллисекундах — ошибка в 1000 раз"},{"left":"sum by (le) внутри histogram_quantile","right":"Метка le обязательна; усреднять готовый квантиль по инстансам бессмысленно"}]},"quiz":[{"id":"obs-q1","question":"Что именно ловил дефект шага 6 до версии 0.3.9?","options":["Неправильные PromQL-запросы","Самоотчёт: panels_count: 6 проходил валидацию при нуле построенных панелей, потому что файл никто не открывал","Отсутствие алертов","Слишком длинный SKILL.md"],"correctAnswer":1,"explanation":"Схема требовала два поля-строки и число; ни одно из них не было артефактом, который можно открыть."},{"id":"obs-q2","question":"Гейт check-dashboards вернул код 3. Как это читать?","options":["Прошёл","Не смог запуститься — и это не проход","Три дашборда найдено","Предупреждение, можно игнорировать"],"correctAnswer":1,"explanation":"NOT-ESTABLISHED — отдельный вердикт именно для того, чтобы сломанный гейт не читался как зелёный."}],"finalTest":{"id":"final-observability-dashboard-gate","sectionId":"observability-dashboard-gate","question":"Что изменилось в шаге дашбордов навыка observability в версии 0.3.9?","options":["Гейт открывает файл дашборда, а не верит числу: поле file обязательно, panels_count сверяется с реальным массивом panels","Шаг удалён из навыка","Дашборды теперь строятся автоматически в Grafana Cloud","panels_count стал необязательным"],"correctAnswer":0},"diagram":{"kind":"compare","title":"Шаг 6 навыка observability: до и после 0.3.9","nodes":[{"id":"before","label":"До 0.3.9","note":"схема требовала name, type и число","items":["panels_count: 6 при нуле панелей — PASS","ничего не открывалось","прибор сертифицировал самоотчёт"]},{"id":"after","label":"После 0.3.9","note":"check-dashboards.mjs открывает каждый file","items":["file обязателен","panels_count сверяется с реальной длиной","0 PASS · 1 FAIL · 3 NOT-ESTABLISHED"],"accent":true}]}},{"id":"incident-vs-problem","order":11,"title":"11. Инцидент, проблема, известная ошибка","shortTitle":"Инцидент/проблема","description":"Три навыка эксплуатации — incident-response, problem-management, itsm-itil — и одна цепочка тикетов.","icon":"🔥","interactiveType":"scenario","keyConcept":"инцидент восстанавливает сервис, проблема убирает причину","methodPattern":"P8","source":"itsm-itil/SKILL.md","theory":"История одного дежурства. В 14:12 Тимуру прилетает алерт: checkout отдаёт 500-е, третий раз за месяц. Что он делает первым — ищет причину или восстанавливает сервис?\n\nТри навыка пакета отвечают на этот вопрос хором: **инцидент восстанавливает сервис, проблема убирает причину.** Это две разные работы в разное время.\n\n- `incident-response` — про инцидент: подтвердить, классифицировать (SEV1 — полный отказ или потеря данных, SEV2 — сломана крупная функция, SEV3 — есть обходной путь, SEV4 — косметика), собрать роли, триаж, **смягчить до поиска причины** (откат, флаг, масштабирование), сообщать по расписанию, и только потом — разбор причины и постмортем в течение 48 часов, без поиска виноватых.\n- `problem-management` — про проблему: одна проблема может быть причиной многих инцидентов. Запись проходит состояния `open → under-investigation → known-error → verifying → closed` (плюс `parked` для отложенных). **Известная ошибка** (known-error) — это подтверждённая с доказательствами причина ПЛЮС записанный обходной путь; без обходного пути статус остаётся «в расследовании». Закрыть можно только проверенный фикс.\n- `itsm-itil` — связка: четыре типа записей (инцидент, проблема, известная ошибка, изменение/RFC) как Markdown-тикеты прямо в репозитории — `docs/incidents/`, `docs/problems/`, `docs/changes/` — со ссылками друг на друга.\n\nЧто чинить первым, когда проблем несколько, решает **WSJF** — Weighted Shortest Job First: `WSJF = Cost of Delay / Job Size`. Пример из навыка: известная ошибка «5xx на checkout» — стоимость задержки 20, размер работы 2, WSJF 10; «редкая гонка при ротации логов» — 8 / 8 = 1. Первой чинят первую, хотя вторая звучит страшнее.\n\nВ упражнении Тимур проходит эту цепочку от алерта до закрытия — реши за него на каждом шаге.\n\n**Компромисс:** разделение инцидента и проблемы требует двух записей вместо одной и дисциплины переводить статусы; зато пять «разных отказов» перестают маскировать один незакрытый дефект, а обходной путь ждёт дежурного в известной ошибке, а не в чьей-то памяти.","reflection":{"strengths":"Восстановление до причины спасает пользователей; известная ошибка хранит обходной путь для дежурного; WSJF ранжирует по цене задержки на единицу усилий, а не по громкости.","weaknesses":"Две записи и явная машина состояний — дисциплина, которую легко забросить; WSJF требует честно оценивать и стоимость задержки, и размер работы.","rating":"5/5","wrapup":"Инцидент восстанавливает сервис, проблема убирает причину: сначала откатить, потом расследовать, обходной путь записать в известную ошибку, очередь ранжировать по WSJF."},"exercise":{"title":"Дежурство Тимура: от алерта до закрытой проблемы","scenario":"14:12, checkout отдаёт 500-е, третий раз за месяц. Проведи Тимура по цепочке инцидент → проблема → известная ошибка → изменение.","steps":[{"description":"Шаг 1. Алерт горит. Первое действие?","options":[{"text":"Открыть логи и искать корневую причину, раз уже третий раз","result":"negative","feedback":"Пользователи страдают, пока ты копаешь. incident-response: смягчение ДО причины. Причина подождёт — постмортем на это и нужен."},{"text":"Откатить последний деплой / включить флаг, объявить инцидент с SEV и владельцем","result":"positive","feedback":"Верно: инцидент — про время восстановления. Откат за минуты возвращает сервис; расследование — потом."}]},{"description":"Шаг 2. Сервис восстановлен. Инцидент повторяется третий раз. Что дальше?","options":[{"text":"Закрыть инцидент и жить дальше","result":"negative","feedback":"Тогда четвёртый раз придёт по расписанию. itsm-itil: повторяющийся или необъяснённый инцидент → завести проблему и привязать к ней все три инцидента."},{"text":"Завести проблему, привязать к ней три инцидента, взять в расследование","result":"positive","feedback":"Да: одна проблема — причина многих инцидентов. Связка показывает, что «три отказа» — один незакрытый дефект."}]},{"description":"Шаг 3. Расследование показало: пул соединений никогда не дренируется. Обходной путь — держать 4 реплики. Постоянный фикс — двухнедельный рефакторинг. Какой статус проблемы?","options":[{"text":"closed — причина же найдена","result":"negative","feedback":"Закрыть можно только ПРОВЕРЕННЫЙ фикс. Причина найдена, фикс не выпущен — это не закрытие."},{"text":"known-error: причина подтверждена доказательствами, обходной путь записан","result":"positive","feedback":"Именно. Известная ошибка — причина плюс обходной путь. Теперь дежурный в следующий раз прочитает «4 реплики» в записи, а не будет расследовать заново."},{"text":"known-error, но обходной путь записывать не буду — и так все знают","result":"negative","feedback":"Без обходного пути известной ошибки не бывает — навык оставляет статус under-investigation. «Все знают» заканчивается в первую смену новичка."}]},{"description":"Шаг 4. В очереди три известные ошибки: checkout (стоимость задержки 20, размер 2), ночной OOM (12, размер 3), гонка ротации логов (8, размер 8). Что первым?","options":[{"text":"Гонку логов — самая страшная","result":"negative","feedback":"WSJF = 8 / 8 = 1 — последняя в очереди. Страшно звучит, дорого чинить, редко случается."},{"text":"Checkout: WSJF = 20 / 2 = 10 — выше всех","result":"positive","feedback":"Да: цена задержки на единицу усилий. Малая работа с высокой ценой задержки бьёт большую работу."},{"text":"Ту, за которую громче просят","result":"negative","feedback":"«Не ранжируй по громкости» — прямой антипаттерн из itsm-itil и problem-management."}]}]},"quiz":[{"id":"itsm-q1","question":"Чем известная ошибка (known-error) отличается от проблемы в расследовании?","options":["Ничем, это синонимы","У известной ошибки причина подтверждена доказательствами И записан обходной путь; фикс ещё не выпущен","Известная ошибка — это закрытая проблема","Известная ошибка — это инцидент с SEV1"],"correctAnswer":1,"explanation":"Оба условия обязательны: без обходного пути статус остаётся under-investigation."},{"id":"itsm-q2","question":"Как считается WSJF в problem-management?","options":["Impact × Likelihood","Cost of Delay / Job Size","Job Size / Cost of Delay","Severity + Priority"],"correctAnswer":1,"explanation":"Стоимость задержки делится на размер работы; выше — раньше в очереди."}],"finalTest":{"id":"final-incident-vs-problem","sectionId":"incident-vs-problem","question":"Как пакет разводит инцидент и проблему?","options":["Инцидент восстанавливает сервис (incident-response, смягчение до причины); проблема убирает причину (problem-management, известная ошибка, WSJF)","Инцидент — для SEV1, проблема — для SEV2 и ниже","Инцидент заводит менеджер, проблему — инженер","Это одна и та же запись в разных статусах"],"correctAnswer":0},"diagram":{"kind":"flow","title":"Цепочка записей itsm-itil","nodes":[{"id":"incident","label":"Инцидент","note":"восстановить сервис сейчас — incident-response"},{"id":"problem","label":"Проблема","note":"повторяется → найти причину — problem-management"},{"id":"known-error","label":"Известная ошибка","note":"причина + обходной путь, фикс не выпущен","accent":true},{"id":"change","label":"Изменение (RFC)","note":"фикс через risk-assessment и pr-review"},{"id":"closed","label":"verifying → closed","note":"закрывается только проверенный фикс"}]}},{"id":"deploy-cloudru-vm","order":12,"title":"12. deploy-on-cloudru-vm: от ссылки на репозиторий до URL","shortTitle":"Деплой на ВМ","description":"Пять шагов протокола и правило: успех объявляется после verify, а не по коду выхода deploy.","icon":"🚀","interactiveType":"builder","keyConcept":"cloudru-vm verify после deploy","methodPattern":"P10","source":"deploy-on-cloudru-vm/SKILL.md","theory":"Тимур получает от коллеги ссылку на репозиторий и просьбу: «разверни на ВМ в Cloud.ru и дай ссылку». Раньше это был вечер. С навыком `deploy-on-cloudru-vm` — один разговор с агентом.\n\nРазделение труда, как его описывает сам навык: CLI [`cloudru-vm`](https://github.com/djd1m/cloudru-vm-cli) (MIT, Go) берёт docker-compose-проект и делает всё тяжёлое — аутентификация → создание ВМ → плавающий IP → SFTP → `docker compose up -d` → health-check. Навык поставляет то, чего CLI намеренно не делает: анализ репозитория, синтез compose, сбор учётных данных и честную проверку.\n\nПять шагов протокола:\n\n1. **Клонировать и понять репозиторий.** Есть ли рабочий compose? Только Dockerfile? Ничего — тогда определить стек по `package.json` / `requirements.txt` / `go.mod`, порт, переменные окружения, внешние сервисы.\n2. **Обеспечить docker-compose.yml.** Есть — использовать; только Dockerfile — обернуть; ничего — синтезировать оба файла. Синтезированное **показать пользователю до деплоя**; секреты — спросить, никогда не выдумывать.\n3. **Собрать четыре учётные данные Cloud.ru:** `CLOUDRU_KEY_ID` + `CLOUDRU_SECRET`, `CLOUDRU_PROJECT_ID`, `CLOUDRU_REGION` (подсказать через `cloudru-vm list-zones`), `CLOUDRU_IMAGE_ID` (через `cloudru-vm list-images --json`, предпочесть Ubuntu LTS). Чего нет — спросить по имени, всё сразу.\n4. **Задеплоить:** `cloudru-vm deploy -f docker-compose.yml --json`. Повторный запуск с неизменённым хэшем compose пропускает создание ВМ.\n5. **Проверить честно и передать подключение.** `cloudru-vm status`, потом `cloudru-vm verify` — HTTP-проверка открытых портов; если упало — `cloudru-vm logs -n 50`.\n\n**Правило, ради которого Тимур запомнил этот навык:** успех не объявляется по коду выхода `deploy`. Приложение может подняться и быть сломанным — плохой env, непрошедшие миграции. Отчёт пользователю — только после `verify`, или ровно то, что упало, с выдержкой из логов.\n\nВ конце Тимур отдаёт коллеге три строки: `App: http://\u003cpublic-ip\u003e:\u003cport\u003e`, `SSH: ssh -i .cloudru-vm/id_ed25519 user1@\u003cpublic-ip\u003e` и команды `status | logs -f | destroy`. И напоминает: каталог `.cloudru-vm/` содержит приватный ssh-ключ — в git ему не место.\n\n**Компромисс:** протокол задаёт лишние вопросы (учётные данные, подтверждение синтезированного compose) и не подходит для Kubernetes-образных нагрузок — это одна ВМ с compose; зато ни один секрет не выдуман и ни один «успех» не объявлен по коду выхода.","reflection":{"strengths":"От ссылки до URL за один разговор; секреты спрашиваются, а не выдумываются; синтезированный compose показывается до деплоя; успех — только после verify.","weaknesses":"Одна ВМ с docker compose — не для многосервисных автомасштабируемых нагрузок; CLI привязан к Cloud.ru; cloudru-vm пока ставится через go install или сборку из исходников.","rating":"4/5","wrapup":"Задеплоил — не значит работает: cloudru-vm verify после deploy, и только потом URL пользователю."},"exercise":{"instruction":"Собери команду, которой Тимур запускает деплой compose-проекта на ВМ Cloud.ru с машинно-читаемым выводом (шаг 4 протокола). Помни: после неё обязателен cloudru-vm verify.","parts":["cloudru-vm","deploy","-f","docker-compose.yml","--json"],"correctCommand":"cloudru-vm deploy -f docker-compose.yml --json","hints":["Начни с имени CLI — cloudru-vm — и подкоманды deploy","Файл compose передаётся флагом -f; --json даёт вывод для разбора; verify — отдельной командой после"]},"quiz":[{"id":"cloudru-q1","question":"cloudru-vm deploy завершился с кодом 0. Можно отдавать пользователю URL?","options":["Да, код 0 — успех","Нет: сначала cloudru-vm verify; приложение может подняться и быть сломанным","Только после перезагрузки ВМ","Только если compose был синтезирован"],"correctAnswer":1,"explanation":"Правило навыка: не объявлять успех по коду выхода deploy; отчёт — после verify или с выдержкой из logs."},{"id":"cloudru-q2","question":"Не хватает CLOUDRU_PROJECT_ID. Что делает навык?","options":["Подставляет значение по умолчанию","Спрашивает у пользователя — этот идентификатор нельзя обнаружить автоматически","Берёт из первого попавшегося проекта","Пропускает шаг"],"correctAnswer":1,"explanation":"Ключ, секрет и project id — спросить; регион и образ навык может подсказать через list-zones / list-images."}],"finalTest":{"id":"final-deploy-cloudru-vm","sectionId":"deploy-cloudru-vm","question":"Когда навык deploy-on-cloudru-vm разрешает сообщить пользователю об успешном деплое?","options":["Только после cloudru-vm verify — проверки HTTP-портов после deploy, а не по коду выхода deploy","Сразу после cloudru-vm deploy с кодом 0","После создания ВМ","После git clone"],"correctAnswer":0},"diagram":{"kind":"flow","title":"Пять шагов deploy-on-cloudru-vm","nodes":[{"id":"analyze","label":"Понять репозиторий","note":"compose? Dockerfile? стек, порт, env"},{"id":"compose","label":"Обеспечить compose","note":"использовать / обернуть / синтезировать и показать"},{"id":"creds","label":"Четыре учётные данные","note":"ключ+секрет, project id, регион, образ — спросить"},{"id":"deploy","label":"cloudru-vm deploy","note":"-f docker-compose.yml --json"},{"id":"verify","label":"cloudru-vm verify","note":"успех только здесь; иначе logs -n 50","accent":true}]}},{"id":"signature-and-trust","order":13,"title":"13. Подпись, канонический источник и ярусы доверия","shortTitle":"Подпись","description":"Три «боковых» темы README, без которых пакет нельзя обновлять спокойно.","icon":"🔏","interactiveType":"quiz","keyConcept":"подпись покрывает только файлы из тарбола","methodPattern":"P12","source":"README.md#signature-scope-this-release","theory":"Три темы, которые в README выглядят приложениями, а на деле решают, можно ли пакету доверять и как его обновлять. Тимур пропустил их при первом чтении — и через неделю получил от проверки подписи слово TAMPERED.\n\n**1. Что покрывает подпись.** Манифест `.dz-manifest.json` пакета покрывает ровно те файлы, которые пакет ОТГРУЖАЕТ — как их сообщает `npm pack` — а не всё, что лежит в рабочем дереве автора. Раньше подписывались и файлы, исключённые из `files[]` (обычно `CHANGELOG.md`), и у каждого получателя проверка говорила «в манифесте есть, в пакете нет» — пакет читался как подделанный. Переподписать в любой более ранний момент не помогло бы: этих файлов в тарболе никогда не было. Содержимое при этом не менялось — изменилось только описание.\n\n**2. Канонический источник.** Этот пакет — канонический источник DevOps-навыков (ADR-001 / ADR-002). Раскладка под платформу — через `dz sync --canonical packages/skills-devops --project .`. Запись **аддитивна**: существующие файлы никогда не перезаписываются без `--force`. Значит, твои локальные правки навыка переживут обновление — и значит, обновления не приедут, пока ты сам не скажешь `--force`.\n\n**3. Ярусы доверия.** В шапке каждого `SKILL.md` есть `trust_tier`. У десяти канонизированных навыков и большинства оригинальных — `2` («Validated»): есть `schemas/output.json`, `scripts/validate-config.json`, `evals/\u003cskill\u003e.yaml`. У `deploy-on-cloudru-vm` и `itsm-itil` — `1` («Structured»), и у первого прямо записан путь наверх: «Run /bto-test to promote to Tier 2». Ярус — не оценка полезности, а степень проверенности.\n\nИ последнее из README, что Тимур пересказывает коллегам: 0.3.9 вышла после **чистого независимого раунда** — шесть раундов кросс-семейного ревью дали C, C, D, C, затем A без находок; десять дефектов в 115 строках нового гейта закрыты, каждый закреплён тестом с тем самым входом, который его вызвал. Задержку сняли потому, что условие выполнено, а не потому, что терпение кончилось.\n\n**Компромисс:** подпись только по тарболу и аддитивная синхронизация делают обновление предсказуемым, но требуют от тебя знать про `--force` и про то, что README в разделе Status может отставать от `package.json` (там сейчас 0.3.17).","reflection":{"strengths":"Подпись описывает ровно отгружаемое; аддитивная синхронизация бережёт локальные правки; ярус доверия виден в шапке каждого навыка.","weaknesses":"Без --force обновления навыка не приедут поверх твоих правок; раздел Status в README отстаёт от версии в package.json.","rating":"4/5","wrapup":"Подпись покрывает только файлы из тарбола, sync не перезаписывает без --force, а trust_tier говорит, насколько навык проверен."},"exercise":{},"quiz":[{"id":"sig-q1","question":"Почему до исправления подписи получатели видели TAMPERED на нетронутом пакете?","options":["Пакет действительно был изменён","Подпись покрывала файлы, исключённые из files[] (например CHANGELOG.md), которых в тарболе никогда не было","Ключ подписи истёк","npm повреждал архив"],"correctAnswer":1,"explanation":"Проверка сверяла манифест с тарболом и находила «в манифесте есть, в пакете нет». Теперь подпись покрывает только файлы из тарбола."},{"id":"sig-q2","question":"Тимур правил pr-review/SKILL.md локально и запускает dz sync --canonical. Что произойдёт с его правками?","options":["Будут перезаписаны свежей версией","Останутся: запись аддитивна, существующие файлы не перезаписываются без --force","Будут слиты автоматически","dz откажется запускаться"],"correctAnswer":1,"explanation":"Аддитивность — правило README: --force нужен явно, чтобы затереть существующий файл."},{"id":"sig-q3","question":"Что означает trust_tier: 1 «Structured» у deploy-on-cloudru-vm?","options":["Навык бесполезен","Навык структурирован, но ещё не прошёл валидацию до яруса 2; путь наверх записан в шапке","Навык устарел","Навык платный"],"correctAnswer":1,"explanation":"Ярус — степень проверенности, а не полезности; в шапке навыка: «Run /bto-test to promote to Tier 2»."},{"id":"sig-q4","question":"Почему 0.3.9 была выпущена именно тогда?","options":["Кончилось терпение","После чистого независимого раунда: серия C, C, D, C и затем A без находок; десять дефектов закрыты тестами","По расписанию релизов","Потому что версия давно не менялась"],"correctAnswer":1,"explanation":"README прямо формулирует: задержку сняли потому, что условие выполнено, а не потому, что терпение кончилось."}],"finalTest":{"id":"final-signature-and-trust","sectionId":"signature-and-trust","question":"Что покрывает подпись пакета skills-devops после исправления области подписи?","options":["Подпись покрывает только файлы из тарбола — то, что реально отгружает npm pack","Все файлы рабочего дерева автора","Только README.md","Только SKILL.md каждого навыка"],"correctAnswer":0},"diagram":{"kind":"compare","title":"Что описывает подпись: до и после","nodes":[{"id":"before","label":"Раньше","note":"манифест по рабочему дереву автора","items":["включал CHANGELOG.md вне files[]","у получателя: «в манифесте есть, в пакете нет»","пакет читался как TAMPERED"]},{"id":"after","label":"Теперь","note":"манифест ровно по npm pack","items":["только файлы из тарбола","содержимое не менялось — только описание","проверка у получателя сходится"],"accent":true}]}}],"achievements":[{"id":"first-step","title":"Первый шаг","description":"Пройдена первая секция — пакет навыков больше не незнакомец.","icon":"👣","conditionRef":{"type":"sections-completed","n":1}},{"id":"halfway","title":"Экватор","description":"Семь секций позади — больше половины курса.","icon":"⛰️","conditionRef":{"type":"sections-completed","n":7}},{"id":"perfectionist","title":"Перфекционист","description":"Секция пройдена без единой ошибки.","icon":"💯","conditionRef":{"type":"perfect-section"}},{"id":"full-course","title":"Полный курс","description":"Все тринадцать секций пройдены — тридцать навыков разложены по полкам.","icon":"🎓","conditionRef":{"type":"all-sections"}},{"id":"test-passed","title":"Финальный рубеж","description":"Финальный тест сдан на 70% и выше.","icon":"🏆","conditionRef":{"type":"final-test-pass","min":70}},{"id":"reviewer","title":"Ревьюер с путём эксплуатации","description":"Пройдены секции про pr-review и security-audit: находки по серьёзности и ни одной без пути эксплуатации.","icon":"🔍","conditionRef":{"type":"section-group","ids":["pr-review-severity","security-audit-exploit-path"]}},{"id":"root-causer","title":"Чинит причину","description":"Пройдены секции про ci-fix и инцидент/проблему: симптомы больше не прячутся за зелёным.","icon":"🔥","conditionRef":{"type":"section-group","ids":["ci-fix-root-cause","incident-vs-problem"]}},{"id":"zero-downtime","title":"Без простоя","description":"Секция про expand-contract пройдена — колонки больше не переименовываются одной командой.","icon":"🗄️","conditionRef":{"type":"section-group","ids":["db-migration-expand-contract"]}},{"id":"honest-gate","title":"Не верит числу","description":"Пройдены секции про гейт дашбордов и деплой на ВМ: успех объявляется после проверки, а не по самоотчёту.","icon":"📊","conditionRef":{"type":"section-group","ids":["observability-dashboard-gate","deploy-cloudru-vm"]}}],"faqData":[{"question":"Как поставить пакет и как обновиться?","answer":"Впервые: dz init --target claude-code --preset devops (все 30 навыков) или --select с именами через запятую. Обновление канонического источника: dz sync --canonical packages/skills-devops --project . — запись аддитивна, существующие файлы не перезаписываются без --force. Страница пакета: https://www.npmjs.com/package/@dzhechkov/skills-devops"},{"question":"Мне нужен навык, но я не знаю его имени. Что делать?","answer":"Назови задачу словами предметной области — навыки включаются по триггерным фразам из шапки SKILL.md. Посмотреть каталог руками: dz registry search \u003cслово\u003e; посмотреть точные триггеры и файлы навыка: dz info \u003cskill-id\u003e."},{"question":"pr-review, security-audit и codeql-fix — в чём разница?","answer":"pr-review — общее ревью PR, безопасность там одно из восьми измерений. security-audit — аудит всего изменения по восьми категориям, с путём эксплуатации у каждой находки. codeql-fix — одна конкретная SAST-находка: реальна ли она и какой минимальный фикс. Каждый навык в разделе «When NOT to use» сам отправляет тебя к соседу."},{"question":"Сервис лежит прямо сейчас. Какой навык?","answer":"incident-response: восстановить сервис (откат, флаг, масштабирование) до поиска причины. Когда сервис восстановлен и инцидент повторяется — problem-management: проблема, известная ошибка с обходным путём, очередь по WSJF. itsm-itil связывает их в Markdown-тикеты в репозитории."},{"question":"Что проверяет гейт check-dashboards и чего он не проверяет?","answer":"Проверяет: каждый заявленный file существует, парсится как JSON, содержит хотя бы одну панель с типом; panels_count совпадает с реальной длиной. Не проверяет: правильность запросов, наличие метрик в живом источнике, устойчивость к намеренному обману. Коды выхода: 0 PASS, 1 FAIL, 3 NOT-ESTABLISHED — и последний никогда не проход."},{"question":"Какая версия пакета актуальна?","answer":"В package.json на момент написания курса — 0.3.17. Раздел Status в README пакета отстаёт (там v0.3.0), а история версии 0.3.9 с гейтом дашбордов и областью подписи описана в самом README. Смотри версию в package.json или на странице npm."},{"question":"Что такое trust_tier в шапке навыка?","answer":"Степень проверенности, а не полезности. 2 «Validated» — есть schemas/output.json, scripts/validate-config.json и evals/\u003cskill\u003e.yaml. 1 «Structured» — навык структурирован, но валидацию до яруса 2 ещё не прошёл; у deploy-on-cloudru-vm путь наверх записан прямо в шапке."}]}</script>
+<script type="application/json" id="ui-strings">{"achievement":"Достижение — ","locked":"Закрыто: ","flashHint":"Нажми на карточку, чтобы перевернуть её. Просмотри все карточки, чтобы закрыть раздел.","sideFront":"лицо","sideBack":"оборот","seen":"просмотрено","prev":"← Назад","next":"Дальше →","matchHint":"Выбери элемент слева, затем его пару справа.","matched":"совпало","moveUp":"Выше","moveDown":"Ниже","orderRight":"Точно — именно в таком порядке это и происходит.","orderPartial":"{n} из {len} на своём месте. Зелёные строки верны; переставь остальные.","checkOrder":"Проверить порядок","builderEmpty":"собери команду из частей ниже…","builderCorrect":"Верно — ровно эта команда.","builderNot":"Пока нет — ты собрал: ","nothing":"(пусто)","checkCommand":"Проверить команду","clear":"Очистить","scenarioDone":"Сценарий пройден — {p} из {n} решений были сильнейшим доступным вариантом.","step":"Шаг {i} из {n}","seeResult":"К результату →","nextStep":"Следующий шаг →","quiz":"Викторина","quizComplete":"{label}: готово — {r} / {n} верно ({p}%).","tryAgain":"Ещё раз","question":"Вопрос {i} из {n}","nextQuestion":"Следующий вопрос →","brandTag":"курс в стиле Head First · разделов: {n}","sectionsOf":"{c} / {n} разделов","startHere":"Начни здесь","finalTest":"Финальный тест","faqNav":"Частые вопросы","achievements":"Достижения — ","settings":"Настройки","light":"☀️ Светлая","dark":"🌙 Тёмная","resetConfirm":"Сбросить весь прогресс?","reset":"↺ Сброс","sectionOf":"Раздел {o} из {n}","patternTitle":"паттерн Head First, которому служит этот раздел (id в метод-KB)","patternNames":{"P1":"P1 · Сначала образ: понятие ведёт картинка или схема, слова живут внутри неё","P2":"P2 · Избыточность: ключевая идея закодирована трижды — текст, упражнение, проверка","P3":"P3 · Разговорный тон: напрямую к читателю, без лекторской сухости","P4":"P4 · Неожиданность: поворот или «ага-момент», чтобы мысль запомнилась","P5":"P5 · Сделай сам: к каждой идее — действие; понимание строится руками","P6":"P6 · Несколько представлений: общая картина + шаги + конкретный артефакт","P7":"P7 · Разнообразие: тип активности сменяется от раздела к разделу","P8":"P8 · Истории и выбор: материал как история, читатель взвешивает и решает","P9":"P9 · Открытые вопросы: вопрос без готового ответа — инсайт добывается работой","P10":"P10 · Люди, не абстракции: материал держится на живом персонаже","P11":"P11 · Метапознание: читателя побуждают следить за собственным пониманием","P12":"P12 · Врезки — это суть: отступления и FAQ обязательны, а не украшение","D1":"D1 · Сквозной персонаж: одна героиня проходит через весь курс","D2":"D2 · Рефлексивная четвёрка: сильное/слабое/оценка/итог в конце темы","D3":"D3 · Реши сам: раздел, где решения принимает читатель","D4":"D4 · Открытый синтез: задача без единственно верного ответа"},"completed":"пройдено · ","notebookOf":"{name} — блокнот","notebook":"Блокнот","quartet":"Рефлексивная четвёрка","strengths":"Сильное","weaknesses":"Слабое","rating":"Оценка","wrapup":"Итог","doSomething":"Сделай сам — ","checkYourself":"Проверь себя","check":"Проверка","types":{"flashcards":"карточки","matching":"сопоставление","drag-and-drop":"порядок шагов","ordering":"порядок шагов","builder":"конструктор команды","scenario":"сценарий","simulation":"сценарий","quiz":"викторина"},"meet":"Знакомься: ","whatYouLearn":"Чему ты научишься","startSection1":"Начать раздел 1 →","finalH1":"По одному вопросу с каждого раздела","finalLede":"Порог — {p}%. Вопросов: {n}, по одному из каждого пройденного раздела.","fromSection":"Из раздела {o} — {t}.","passed":"Пройдено — ","courseComplete":"курс завершён.","notYet":"Пока нет — порог {p}%.","revisit":"Возвращайся к любому разделу через меню, когда он понадобится.","reread":"Перечитай разделы, на вопросах которых ошибся, и попробуй ещё раз.","lastSection":"← Последний раздел","faqEyebrow":"Врезки — это суть","faqH1":"Вопросы, которые у тебя вот-вот появятся","faqLede":"Это не украшение: каждый вопрос — реальная ловушка, в которую кто-то уже попал."}</script>
+<style>
+:root{
+  --bg:#f7f7f5; --panel:#ffffff; --ink:#191917; --muted:#6b6b63; --line:#e2e2dc;
+  --accent:#c1502e; --accent-soft:#fdf0eb; --ok:#2f7d5d; --bad:#b4402c; --warn:#a2702a;
+  --paper:#fffbef; --paper-line:#e6dcc0;
+  --code-bg:#f0efeb; --shadow:0 1px 2px rgba(0,0,0,.05),0 8px 24px -12px rgba(0,0,0,.18);
+  --radius:12px; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+html.dark{
+  --bg:#15150f; --panel:#1e1e1a; --ink:#eeeee6; --muted:#9d9d92; --line:#33332c;
+  --accent:#e8825c; --accent-soft:#2e211b; --ok:#6cc79b; --bad:#e2765d; --warn:#d5a35a;
+  --paper:#221f17; --paper-line:#40382a;
+  --code-bg:#26261f; --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65;font-size:16px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:.12em .38em;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.55}
+pre code{background:none;padding:0;font-size:inherit}
+.layout{display:grid;grid-template-columns:296px 1fr;min-height:100vh}
+aside{background:var(--panel);border-right:1px solid var(--line);padding:20px 16px 40px;position:sticky;top:0;height:100vh;overflow-y:auto}
+main{padding:34px 40px 96px;max-width:940px;width:100%}
+.brand{font-weight:700;font-size:15px;letter-spacing:-.01em;margin-bottom:4px}
+.brand small{display:block;font-weight:400;color:var(--muted);font-size:12.5px;letter-spacing:0;margin-top:4px}
+.progress-wrap{margin:18px 0 14px}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .45s cubic-bezier(.2,.8,.3,1)}
+.progress-label{font-size:12px;color:var(--muted);margin-top:6px;display:flex;justify-content:space-between}
+nav ul{list-style:none;margin:0;padding:0}
+nav li{margin:1px 0}
+nav button{width:100%;text-align:left;background:none;border:0;padding:8px 10px;border-radius:9px;cursor:pointer;color:var(--ink);font:inherit;font-size:13.5px;display:flex;gap:9px;align-items:center}
+nav button:hover{background:var(--accent-soft)}
+nav button[aria-current="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+nav .tick{font-size:12px;color:var(--ok);width:14px;flex:0 0 14px}
+.navhead{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:18px 0 7px;font-weight:600}
+.ach-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.ach{aspect-ratio:1;display:grid;place-items:center;font-size:17px;border:1px solid var(--line);border-radius:9px;background:var(--bg);opacity:.32;cursor:help;filter:grayscale(1)}
+.ach.on{opacity:1;filter:none;border-color:var(--accent);background:var(--accent-soft)}
+.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);font-weight:700}
+h1{font-size:33px;line-height:1.18;letter-spacing:-.022em;margin:.28em 0 .18em}
+h2{font-size:20px;letter-spacing:-.012em;margin:2em 0 .5em}
+.lede{color:var(--muted);font-size:16.5px;margin-bottom:22px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);margin:20px 0}
+.theory p{margin:0 0 1.05em}
+.theory ol{padding-left:1.3em}
+.theory li{margin:.35em 0}
+.pattern-chip{display:inline-block;font-family:var(--mono);font-size:11.5px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent);border-radius:99px;padding:2px 9px;font-weight:600}
+.meta-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px}
+/* the persona's notebook — an optional recurring visual device (one margin note per section,
+   in the persona's own voice). Deliberately unlike .reflect: warm paper, torn-in edge, a slight tilt,
+   ruled lines. It is how the reader SEES the character change across the sections. */
+.notebook{position:relative;margin:22px 0;padding:15px 22px 16px;background:var(--paper);
+  border:1px solid var(--paper-line);border-left:5px solid var(--accent);
+  border-radius:3px 14px 14px 3px;box-shadow:var(--shadow);transform:rotate(-.32deg)}
+.notebook::after{content:"";position:absolute;left:0;right:0;bottom:0;top:44px;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,transparent 0,transparent 25px,var(--paper-line) 25px,var(--paper-line) 26px);opacity:.5}
+.notebook h3{display:flex;flex-wrap:wrap;gap:9px;align-items:baseline;margin:0 0 9px;font-size:12px;
+  text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.notebook .when{font-family:var(--mono);font-size:11px;letter-spacing:0;text-transform:none;
+  color:var(--accent);border:1px solid var(--accent);border-radius:99px;padding:1px 9px}
+.notebook p{position:relative;z-index:1;margin:0;font-size:15.5px;line-height:1.62;font-style:italic}
+.notebook p::before{content:"\201C"}
+.notebook p::after{content:"\201D"}
+.reflect{border-left:3px solid var(--accent);background:var(--accent-soft);border-radius:0 var(--radius) var(--radius) 0;padding:16px 20px;margin:22px 0}
+.reflect h3{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent)}
+.reflect dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14.5px}
+.reflect dt{font-weight:700;color:var(--muted);white-space:nowrap}
+.reflect dd{margin:0}
+button.btn{font:inherit;font-size:14px;font-weight:600;background:var(--accent);color:#fff;border:0;border-radius:9px;padding:9px 17px;cursor:pointer}
+button.btn:hover{filter:brightness(1.07)}
+button.btn[disabled]{opacity:.45;cursor:not-allowed;filter:none}
+button.ghost{background:var(--panel);color:var(--ink);border:1px solid var(--line)}
+.opt{display:block;width:100%;text-align:left;font:inherit;font-size:14.5px;background:var(--panel);border:1.5px solid var(--line);border-radius:10px;padding:11px 14px;margin:7px 0;cursor:pointer;color:var(--ink)}
+.opt:hover{border-color:var(--accent)}
+.opt.correct{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 11%,transparent)}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 11%,transparent)}
+.opt.chosen{font-weight:600}
+.opt[disabled]{cursor:default}
+.explain{font-size:14px;border-radius:9px;padding:11px 14px;margin:8px 0 4px;background:var(--code-bg);border-left:3px solid var(--muted)}
+.explain.good{border-color:var(--ok)}
+.explain.bad{border-color:var(--bad)}
+.explain.mid{border-color:var(--warn)}
+.flash{perspective:1200px;margin:16px 0}
+.flash-inner{position:relative;min-height:172px;border:1.5px solid var(--line);border-radius:var(--radius);background:var(--panel);display:grid;place-items:center;padding:26px;text-align:center;cursor:pointer;font-size:17px;transition:transform .12s}
+.flash-inner:active{transform:scale(.995)}
+.flash-inner .side{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);position:absolute;top:11px;left:14px}
+.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:14px}
+.chip{display:block;width:100%;text-align:left;font:inherit;font-size:14px;background:var(--panel);border:1.5px solid var(--line);border-radius:9px;padding:10px 13px;margin:6px 0;cursor:pointer;color:var(--ink)}
+.chip.sel{border-color:var(--accent);background:var(--accent-soft)}
+.chip.done{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 11%,transparent);cursor:default;opacity:.75}
+.chip.miss{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.order-item{display:flex;align-items:center;gap:10px;background:var(--panel);border:1.5px solid var(--line);border-radius:9px;padding:9px 12px;margin:6px 0;font-size:14.5px}
+.order-item .grab{cursor:grab;color:var(--muted);font-size:13px;letter-spacing:-2px}
+.order-item.ok{border-color:var(--ok)}
+.order-item.no{border-color:var(--bad)}
+.order-item .idx{font-family:var(--mono);font-size:12px;color:var(--muted);width:18px}
+.mini{background:none;border:1px solid var(--line);border-radius:7px;width:26px;height:26px;cursor:pointer;color:var(--ink);font-size:12px;line-height:1}
+.mini:hover{border-color:var(--accent);color:var(--accent)}
+.build-line{font-family:var(--mono);font-size:14px;background:var(--code-bg);border:1.5px dashed var(--line);border-radius:9px;padding:13px 15px;min-height:48px;display:flex;flex-wrap:wrap;gap:7px;align-items:center}
+.build-line .tok{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:2px 8px;cursor:pointer}
+.part{font-family:var(--mono);font-size:13.5px;background:var(--panel);border:1.5px solid var(--line);border-radius:8px;padding:6px 11px;cursor:pointer;color:var(--ink)}
+.part:hover{border-color:var(--accent)}
+.part[disabled]{opacity:.35;cursor:not-allowed}
+.hint{font-size:13.5px;color:var(--muted);margin:7px 0 0;padding-left:20px;position:relative}
+.hint::before{content:"💡";position:absolute;left:0}
+.faq details{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin:8px 0;padding:0 16px}
+.faq summary{cursor:pointer;padding:13px 0;font-weight:600;font-size:15px;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:"▸ ";color:var(--accent)}
+.faq details[open] summary::before{content:"▾ "}
+.faq .a{padding:0 0 14px;font-size:14.5px;color:var(--muted)}
+.toast{position:fixed;right:22px;bottom:22px;background:var(--panel);border:1.5px solid var(--accent);border-radius:12px;box-shadow:var(--shadow);padding:13px 17px;display:flex;gap:12px;align-items:center;max-width:340px;z-index:50;animation:pop .35s cubic-bezier(.2,1.3,.4,1)}
+@keyframes pop{from{transform:translateY(14px) scale(.96);opacity:0}}
+.toast .ic{font-size:24px}
+.toast b{display:block;font-size:14.5px}
+.toast small{color:var(--muted);font-size:12.5px}
+.score-pill{font-family:var(--mono);font-size:12.5px;border:1px solid var(--line);border-radius:99px;padding:2px 10px;color:var(--muted)}
+.score-pill.good{border-color:var(--ok);color:var(--ok)}
+.big-score{font-size:52px;font-weight:800;letter-spacing:-.03em;line-height:1}
+/* diagram: flex row on wide screens, column on a phone; colours come from the theme tokens, so
+   dark mode needs no second rule and the figure can never fight the page it sits on. */
+.diagram{margin:22px 0 26px;padding:18px 16px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius)}
+.dg-track{display:flex;flex-wrap:wrap;align-items:stretch;gap:10px}
+.dg-node{flex:1 1 130px;min-width:120px;background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:10px 12px}
+.dg-node b{display:block;font-size:14px;letter-spacing:.01em}
+.dg-node small{display:block;margin-top:4px;color:var(--muted);font-size:12.5px;line-height:1.45}
+.dg-arrow{align-self:center;color:var(--accent);font-size:18px;line-height:1;flex:0 0 auto}
+.dg-cycle{align-self:center;color:var(--muted);font-size:12.5px;font-style:italic;flex:0 0 auto}
+/* compare — columns of options; on a phone they stack and read as a list */
+.dg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.dg-col{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:11px 13px}
+.dg-col b{display:block;font-size:14px}
+.dg-col small{display:block;margin-top:4px;color:var(--muted);font-size:12.5px;line-height:1.45}
+.dg-items{margin:8px 0 0;padding-left:16px;font-size:12.5px;color:var(--muted);line-height:1.6}
+.dg-items li{margin:2px 0}
+/* scale — rungs where vertical POSITION is the meaning; the accent marks the load-bearing rung */
+.dg-scale-wrap{display:flex;flex-direction:column;gap:6px}
+.dg-rung{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px}
+.dg-rung-n{font-family:var(--mono);font-size:12px;color:var(--muted);min-width:1.4em}
+.dg-rung b{font-size:14px}
+.dg-rung small{flex:1 1 100%;color:var(--muted);font-size:12.5px;line-height:1.45;margin-top:2px}
+.dg-edge{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:0 2px}
+/* parts — a whole above, its required parts joined by + below */
+.dg-parts-wrap{display:flex;flex-direction:column;gap:9px}
+.dg-whole{font-weight:600;font-size:14px;padding:8px 12px;background:var(--accent-soft);border-radius:8px;text-align:center}
+.dg-plus{align-self:center;color:var(--accent);font-size:17px;flex:0 0 auto}
+.dg-accent{border-color:var(--accent)}
+.diagram figcaption{margin-top:12px;color:var(--muted);font-size:13px;text-align:center}
+@media (max-width:640px){.dg-track{flex-direction:column}.dg-arrow{align-self:flex-start;transform:rotate(90deg);margin-left:14px}}
+.footer-nav{display:flex;gap:10px;margin-top:30px;padding-top:22px;border-top:1px solid var(--line)}
+#site-footer{padding:18px 24px;border-top:1px solid var(--line);background:var(--panel);text-align:center;font-size:13px}
+#site-footer a{color:var(--accent);text-decoration:none}
+#site-footer a:hover{text-decoration:underline}
+#site-footer .footer-sep{margin:0 10px;color:var(--muted)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (max-width:900px){.layout{grid-template-columns:1fr}aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}main{padding:24px 18px 80px}.match-grid{grid-template-columns:1fr}h1{font-size:26px}}
+</style>
+<script>'use strict';
+// app.src.js — the course SPA runtime, inlined verbatim into site/index.html by render-site.mjs.
+// Kept as a standalone file so `node --check app.src.js` is a real syntax gate (a template-literal
+// escape bug is invisible until the browser runs it, which is exactly how this file came to exist).
+// No imports, no external requests: it reads the course object embedded in the page.
+// Fully course-agnostic: every visible string is either structural UI or course data
+// (optional fields: introNote, introHeading, outro.{pass,next}, exercise.successFeedback,
+// per-section notebook). Canonical home: skills-tutorial-factory/package-tutorial-factory/scripts/ (origin:
+// features/harness-cli-course/, frozen).
+
+var COURSE = JSON.parse(document.getElementById('course-data').textContent);
+// UI chrome strings. EN defaults live here; a localized table (chosen by course.language) is
+// embedded by render-site.mjs as #ui-strings and MERGES over the defaults — one source, no drift.
+var UI_EN = {
+  achievement: 'Achievement — ', locked: 'Locked: ',
+  flashHint: 'Click the card to flip it. See every card to clear this section.',
+  sideFront: 'front', sideBack: 'back', seen: 'seen',
+  prev: '\u2190 Prev', next: 'Next \u2192',
+  matchHint: 'Click an item on the left, then its match on the right.', matched: 'matched',
+  moveUp: 'Move up', moveDown: 'Move down',
+  orderRight: 'Exactly right \u2014 that is the order it happens in.',
+  orderPartial: '{n} of {len} in the right place. Green rows are correct; move the others.',
+  checkOrder: 'Check the order',
+  builderEmpty: 'click the parts below to build the command\u2026',
+  builderCorrect: 'Correct \u2014 that is the exact command.', builderNot: 'Not yet \u2014 you built: ', nothing: '(nothing)',
+  checkCommand: 'Check the command', clear: 'Clear',
+  scenarioDone: 'Scenario complete \u2014 {p} of {n} calls were the strongest available option.',
+  step: 'Step {i} of {n}', seeResult: 'See the result \u2192', nextStep: 'Next step \u2192',
+  quiz: 'Quiz', quizComplete: '{label} complete \u2014 {r} / {n} correct ({p}%).', tryAgain: 'Try again',
+  question: 'Question {i} of {n}', nextQuestion: 'Next question \u2192',
+  brandTag: 'a Head First\u2013style course \u00b7 {n} sections', sectionsOf: '{c} / {n} sections',
+  startHere: 'Start here', finalTest: 'Final test', faqNav: 'FAQ',
+  achievements: 'Achievements \u2014 ', settings: 'Settings',
+  light: '\u2600\ufe0f Light', dark: '\ud83c\udf19 Dark', resetConfirm: 'Reset all progress?', reset: '\u21ba Reset',
+  sectionOf: 'Section {o} of {n}',
+  patternTitle: 'the Head First pattern this section serves (method-KB id)',
+  completed: 'completed \u00b7 ',
+  notebookOf: "{name}'s notebook", notebook: 'Notebook',
+  quartet: 'The reflective quartet', strengths: 'Strengths', weaknesses: 'Weaknesses', rating: 'Rating', wrapup: 'Wrap-up',
+  doSomething: 'Do something \u2014 ', checkYourself: 'Check yourself', check: 'Check',
+  types: {},
+  meet: 'Meet ', whatYouLearn: 'What you will learn', startSection1: 'Start section 1 \u2192',
+  finalH1: 'One question per section',
+  finalLede: 'Pass mark is {p}%. {n} questions, one drawn from each section you just worked through.',
+  fromSection: 'From section {o} \u2014 {t}.',
+  passed: 'Passed \u2014 ', courseComplete: 'course complete.',
+  notYet: 'Not yet \u2014 pass mark is {p}%.',
+  revisit: 'Revisit any section from the sidebar whenever you need it.',
+  reread: 'Re-read the sections behind the questions you missed, then try again.',
+  lastSection: '\u2190 Last section',
+  faqEyebrow: 'Sidebars are core', faqH1: 'Questions you are about to have',
+  faqLede: 'These are not decoration. Each one is a real trap someone already fell into.'
+};
+var T = UI_EN;
+try {
+  var uiEl = document.getElementById('ui-strings');
+  var uiOver = uiEl ? JSON.parse(uiEl.textContent) : null;
+  if (uiOver) T = Object.assign({}, UI_EN, uiOver);
+} catch (e) { /* keep EN */ }
+function fmt(tpl, vars) {
+  return String(tpl).replace(/\{(\w+)\}/g, function (m, k) {
+    return Object.prototype.hasOwnProperty.call(vars, k) ? String(vars[k]) : m;
+  });
+}
+function typeLabel(t) { return (T.types && T.types[t]) || t; }
+var SECTIONS = COURSE.sections.slice().sort(function (a, b) { return a.order - b.order; });
+var KEY = 'dz-course:' + (COURSE.courseTitle || 'course');
+var PASS = COURSE.finalTestPassThreshold || 70;
+
+// fresh() returns a NEW object each call — a shared `blank` template gets its nested objects
+// mutated through the live state, which silently turns Reset into a no-op (Codex QE #6).
+function fresh() { return { completed: {}, scores: {}, unlocked: [], finalScore: null, dark: false }; }
+var S = load();
+function load() {
+  try { return Object.assign(fresh(), JSON.parse(localStorage.getItem(KEY) || '{}')); }
+  catch (e) { return fresh(); }
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* private mode */ } }
+
+function $(s, r) { return (r || document).querySelector(s); }
+function el(tag, attrs, kids) {
+  var n = document.createElement(tag);
+  attrs = attrs || {};
+  for (var k in attrs) {
+    if (!Object.prototype.hasOwnProperty.call(attrs, k)) continue;
+    var v = attrs[k];
+    if (v === null || v === undefined) continue;
+    if (k === 'class') n.className = v;
+    else if (k === 'html') n.innerHTML = v;
+    else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v);
+  }
+  var list = [].concat(kids || []);
+  for (var i = 0; i < list.length; i++) {
+    var c = list[i];
+    if (c === null || c === undefined || c === false) continue;
+    n.appendChild(typeof c === 'object' ? c : document.createTextNode(String(c)));
+  }
+  return n;
+}
+function escHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// --- markdown-lite: fenced code, inline code, **bold**, ordered lists, paragraphs --------------
+var FENCE = '```';
+function md(src) {
+  var out = [];
+  var blocks = String(src).split(/\n\n+/);
+  for (var b = 0; b < blocks.length; b++) {
+    var block = blocks[b];
+    if (block.indexOf(FENCE) === 0) {
+      var body = block
+        .replace(new RegExp('^' + FENCE + '[a-z]*\\n?'), '')
+        .replace(new RegExp('\\n?' + FENCE + '$'), '');
+      out.push('<pre><code>' + escHtml(body) + '</code></pre>');
+      continue;
+    }
+    var lines = block.split('\n');
+    var allNumbered = lines.length > 0 && lines.every(function (l) { return /^\s*\d+\.\s/.test(l); });
+    if (allNumbered) {
+      out.push('<ol>' + lines.map(function (l) {
+        return '<li>' + inline(l.replace(/^\s*\d+\.\s/, '')) + '</li>';
+      }).join('') + '</ol>');
+      continue;
+    }
+    var allBullets = lines.length > 0 && lines.every(function (l) { return /^\s*[-\u2022]\s/.test(l); });
+    if (allBullets) {
+      out.push('<ul>' + lines.map(function (l) {
+        return '<li>' + inline(l.replace(/^\s*[-\u2022]\s/, '')) + '</li>';
+      }).join('') + '</ul>');
+      continue;
+    }
+    out.push('<p>' + inline(block).replace(/\n/g, '<br>') + '</p>');
+  }
+  return out.join('');
+}
+function inline(s) {
+  return escHtml(s)
+    .replace(/`([^`]+)`/g, function (m, c) { return '<code>' + c + '</code>'; })
+    .replace(/\[([^\]]+)\]\((https:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+}
+
+// --- achievements ------------------------------------------------------------------------------
+function completedCount() {
+  return SECTIONS.filter(function (s) { return S.completed[s.id]; }).length;
+}
+function evalCondition(cr) {
+  if (!cr) return false;
+  switch (cr.type) {
+    case 'sections-completed': return completedCount() >= cr.n;
+    case 'all-sections': return completedCount() >= SECTIONS.length;
+    case 'perfect-section': return Object.keys(S.scores).some(function (k) { return S.scores[k] >= 100; });
+    case 'final-test-pass': return S.finalScore !== null && S.finalScore >= cr.min;
+    case 'section-group': return cr.ids.every(function (id) { return !!S.completed[id]; });
+    default: return false;
+  }
+}
+var toastTimer = null;
+function toast(a) {
+  var old = $('.toast');
+  if (old) old.remove();
+  var t = el('div', { class: 'toast', role: 'status' }, [
+    el('span', { class: 'ic' }, a.icon || '🏆'),
+    el('div', {}, [el('b', {}, T.achievement + a.title), el('small', {}, a.description)])
+  ]);
+  document.body.appendChild(t);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.remove(); }, 5200);
+}
+function syncAchievements() {
+  for (var i = 0; i < COURSE.achievements.length; i++) {
+    var a = COURSE.achievements[i];
+    if (S.unlocked.indexOf(a.id) === -1 && evalCondition(a.conditionRef)) {
+      S.unlocked.push(a.id);
+      save();
+      toast(a);
+    }
+  }
+}
+function setScore(id, pct) {
+  var prev = S.scores[id];
+  S.scores[id] = (prev === undefined) ? pct : Math.max(prev, pct);
+  S.completed[id] = true;
+  save();
+  syncAchievements();
+  renderAside();
+}
+
+// --- the 6 edu-site interactive types -----------------------------------------------------------
+function exFlashcards(sec, done) {
+  var cards = sec.exercise.cards;
+  var i = 0, back = false;
+  var seen = {};
+  var wrap = el('div', {});
+  var face = el('div', { class: 'flash-inner', role: 'button', tabindex: '0' });
+  var counter = el('span', { class: 'score-pill' });
+  function draw() {
+    seen[i] = true;
+    var n = Object.keys(seen).length;
+    face.innerHTML = '<span class="side">' + (back ? T.sideBack : T.sideFront) + '</span>' + md(back ? cards[i].back : cards[i].front);
+    counter.textContent = (i + 1) + ' / ' + cards.length + ' · ' + n + ' ' + T.seen;
+    if (n === cards.length) done(100);
+  }
+  face.addEventListener('click', function () { back = !back; draw(); });
+  face.addEventListener('keydown', function (e) {
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); back = !back; draw(); }
+  });
+  wrap.appendChild(el('p', { class: 'hint' }, T.flashHint));
+  wrap.appendChild(el('div', { class: 'flash' }, [face]));
+  wrap.appendChild(el('div', { class: 'row' }, [
+    el('button', { class: 'btn ghost', onclick: function () { i = (i - 1 + cards.length) % cards.length; back = false; draw(); } }, T.prev),
+    el('button', { class: 'btn', onclick: function () { i = (i + 1) % cards.length; back = false; draw(); } }, T.next),
+    el('span', { class: 'spacer', style: 'flex:1' }),
+    counter
+  ]));
+  draw();
+  return wrap;
+}
+
+function exMatching(sec, done) {
+  var pairs = sec.exercise.pairs;
+  var order = pairs.map(function (p, i) { return i; });
+  // deterministic, non-identity shuffle of the right column
+  var rights = order.slice().sort(function (a, b) {
+    return (pairs[a].right.length % 7) - (pairs[b].right.length % 7) || b - a;
+  });
+  var sel = null;
+  var solved = {};
+  var solvedCount = 0;
+  var wrap = el('div', {});
+  var status = el('span', { class: 'score-pill' });
+  var L = el('div', {});
+  var R = el('div', {});
+  function refresh() {
+    status.textContent = solvedCount + ' / ' + pairs.length + ' ' + T.matched;
+    if (solvedCount === pairs.length) done(100);
+  }
+  order.forEach(function (i) {
+    var b = el('button', { class: 'chip' }, pairs[i].left);
+    b.setAttribute('data-i', String(i));
+    b.addEventListener('click', function () {
+      if (solved[i]) return;
+      var kids = L.children;
+      for (var q = 0; q < kids.length; q++) kids[q].classList.remove('sel');
+      b.classList.add('sel');
+      sel = i;
+    });
+    L.appendChild(b);
+  });
+  rights.forEach(function (i) {
+    var b = el('button', { class: 'chip' }, pairs[i].right);
+    b.setAttribute('data-i', String(i));
+    b.addEventListener('click', function () {
+      if (solved[i] || sel === null) return;
+      if (sel === i) {
+        solved[i] = true;
+        solvedCount++;
+        b.classList.add('done');
+        b.classList.remove('sel');
+        var lb = L.querySelector('[data-i="' + i + '"]');
+        if (lb) { lb.classList.add('done'); lb.classList.remove('sel'); }
+        sel = null;
+        refresh();
+      } else {
+        b.classList.add('miss');
+        setTimeout(function () { b.classList.remove('miss'); }, 320);
+      }
+    });
+    R.appendChild(b);
+  });
+  wrap.appendChild(el('p', { class: 'hint' }, T.matchHint));
+  wrap.appendChild(el('div', { class: 'match-grid' }, [L, R]));
+  wrap.appendChild(el('div', { class: 'row' }, [el('span', { class: 'spacer', style: 'flex:1' }), status]));
+  refresh();
+  return wrap;
+}
+
+function exDragOrder(sec, done) {
+  var ex = sec.exercise;
+  var byId = {};
+  ex.items.forEach(function (it) { byId[it.id] = it; });
+  var cur = ex.items.map(function (it) { return it.id; }).slice().reverse();
+  var wrap = el('div', {});
+  var list = el('div', {});
+  var status = el('div', {});
+  function move(k, d) {
+    var j = cur.indexOf(k), t = j + d;
+    if (t < 0 || t >= cur.length) return;
+    cur.splice(j, 1);
+    cur.splice(t, 0, k);
+    draw(false);
+  }
+  function draw(checked) {
+    list.innerHTML = '';
+    cur.forEach(function (id, n) {
+      var right = checked ? (ex.correctOrder[n] === id) : null;
+      list.appendChild(el('div', { class: 'order-item' + (right === true ? ' ok' : right === false ? ' no' : '') }, [
+        el('span', { class: 'idx' }, (n + 1) + '.'),
+        el('span', { class: 'grab' }, '⣿'),
+        el('span', { style: 'flex:1' }, byId[id].label),
+        el('button', { class: 'mini', title: T.moveUp, onclick: function () { move(id, -1); } }, '↑'),
+        el('button', { class: 'mini', title: T.moveDown, onclick: function () { move(id, 1); } }, '↓')
+      ]));
+    });
+  }
+  wrap.appendChild(el('p', { class: 'hint' }, ex.instruction));
+  wrap.appendChild(list);
+  draw(false);
+  wrap.appendChild(el('div', { class: 'row', style: 'margin-top:12px' }, [
+    el('button', { class: 'btn', onclick: function () {
+      draw(true);
+      var n = cur.filter(function (id, k) { return ex.correctOrder[k] === id; }).length;
+      var pct = Math.round(100 * n / cur.length);
+      status.innerHTML = '';
+      status.appendChild(el('div', { class: 'explain ' + (pct === 100 ? 'good' : 'mid') },
+        pct === 100
+          ? T.orderRight
+          : fmt(T.orderPartial, { n: n, len: cur.length })));
+      if (pct === 100) done(100);
+    } }, T.checkOrder)
+  ]));
+  wrap.appendChild(status);
+  return wrap;
+}
+
+function exBuilder(sec, done) {
+  var ex = sec.exercise;
+  var built = [];
+  var hintsShown = 0;
+  var wrap = el('div', {});
+  var line = el('div', { class: 'build-line' });
+  var parts = el('div', { class: 'row', style: 'margin-top:12px' });
+  var status = el('div', {});
+  function drawLine() {
+    line.innerHTML = '';
+    if (!built.length) {
+      line.appendChild(el('span', { style: 'color:var(--muted)' }, T.builderEmpty));
+    }
+    built.forEach(function (p, i) {
+      line.appendChild(el('span', { class: 'tok', title: 'remove', onclick: function () { built.splice(i, 1); drawLine(); drawParts(); } }, p));
+    });
+  }
+  function drawParts() {
+    parts.innerHTML = '';
+    ex.parts.forEach(function (p) {
+      var budget = ex.parts.filter(function (x) { return x === p; }).length;
+      var used = built.filter(function (x) { return x === p; }).length >= budget;
+      parts.appendChild(el('button', {
+        class: 'part',
+        disabled: used ? 'disabled' : null,
+        onclick: function () { built.push(p); drawLine(); drawParts(); }
+      }, p));
+    });
+  }
+  wrap.appendChild(el('p', { class: 'hint' }, ex.instruction));
+  wrap.appendChild(line);
+  wrap.appendChild(parts);
+  wrap.appendChild(el('div', { class: 'row', style: 'margin-top:12px' }, [
+    el('button', { class: 'btn', onclick: function () {
+      var got = built.join(' ').replace(/\s+/g, ' ').trim();
+      var want = ex.correctCommand.replace(/\s+/g, ' ').trim();
+      status.innerHTML = '';
+      if (got === want) {
+        status.appendChild(el('div', { class: 'explain good' },
+          ex.successFeedback || T.builderCorrect));
+        done(100);
+      } else {
+        status.appendChild(el('div', { class: 'explain bad' }, T.builderNot + (got || T.nothing)));
+        var h = ex.hints && ex.hints[Math.min(hintsShown, ex.hints.length - 1)];
+        hintsShown++;
+        if (h) status.appendChild(el('p', { class: 'hint' }, h));
+      }
+    } }, T.checkCommand),
+    el('button', { class: 'btn ghost', onclick: function () { built = []; drawLine(); drawParts(); status.innerHTML = ''; } }, T.clear)
+  ]));
+  wrap.appendChild(status);
+  drawLine();
+  drawParts();
+  return wrap;
+}
+
+function exScenario(sec, done) {
+  var ex = sec.exercise;
+  var step = 0, points = 0;
+  var wrap = el('div', {});
+  var body = el('div', {});
+  wrap.appendChild(el('h3', { style: 'margin:0 0 6px;font-size:17px' }, ex.title));
+  wrap.appendChild(el('div', { class: 'lede', style: 'margin-bottom:4px', html: md(ex.scenario) }));
+  function draw() {
+    body.innerHTML = '';
+    if (step >= ex.steps.length) {
+      var pct = Math.round(100 * points / ex.steps.length);
+      body.appendChild(el('div', { class: 'explain ' + (pct >= 67 ? 'good' : 'mid') },
+        fmt(T.scenarioDone, { p: points, n: ex.steps.length })));
+      done(Math.max(pct, 60));
+      return;
+    }
+    var st = ex.steps[step];
+    body.appendChild(el('div', { class: 'score-pill', style: 'display:inline-block;margin-bottom:8px' },
+      fmt(T.step, { i: step + 1, n: ex.steps.length })));
+    body.appendChild(el('p', { style: 'font-weight:600;margin:.2em 0 .6em', html: inline(st.description) }));
+    st.options.forEach(function (o) {
+      var btn = el('button', { class: 'opt' }, o.text);
+      btn.addEventListener('click', function () {
+        var opts = body.querySelectorAll('.opt');
+        for (var q = 0; q < opts.length; q++) opts[q].disabled = true;
+        btn.classList.add('chosen');
+        if (o.result === 'positive') { btn.classList.add('correct'); points++; }
+        else if (o.result === 'negative') { btn.classList.add('wrong'); }
+        body.appendChild(el('div', { class: 'explain ' + (o.result === 'positive' ? 'good' : o.result === 'negative' ? 'bad' : 'mid') }, o.feedback));
+        body.appendChild(el('div', { class: 'row', style: 'margin-top:10px' }, [
+          el('button', { class: 'btn', onclick: function () { step++; draw(); } },
+            (step + 1 >= ex.steps.length) ? T.seeResult : T.nextStep)
+        ]));
+      });
+      body.appendChild(btn);
+    });
+  }
+  wrap.appendChild(body);
+  draw();
+  return wrap;
+}
+
+function exQuiz(sec, done, questions, label) {
+  var qs = questions || (sec && sec.quiz) || [];
+  var i = 0, right = 0;
+  var wrap = el('div', {});
+  var body = el('div', {});
+  function draw() {
+    body.innerHTML = '';
+    if (i >= qs.length) {
+      var pct = Math.round(100 * right / qs.length);
+      body.appendChild(el('div', { class: 'explain ' + (pct >= 70 ? 'good' : 'mid') },
+        fmt(T.quizComplete, { label: label || T.quiz, r: right, n: qs.length, p: pct })));
+      body.appendChild(el('div', { class: 'row', style: 'margin-top:10px' }, [
+        el('button', { class: 'btn ghost', onclick: function () { i = 0; right = 0; draw(); } }, T.tryAgain)
+      ]));
+      done(pct);
+      return;
+    }
+    var q = qs[i];
+    body.appendChild(el('div', { class: 'score-pill', style: 'display:inline-block;margin-bottom:8px' },
+      fmt(T.question, { i: i + 1, n: qs.length })));
+    body.appendChild(el('p', { style: 'font-weight:600;margin:.2em 0 .6em', html: inline(q.question) }));
+    q.options.forEach(function (o, k) {
+      var btn = el('button', { class: 'opt' }, o);
+      btn.addEventListener('click', function () {
+        var opts = body.querySelectorAll('.opt');
+        for (var n = 0; n < opts.length; n++) {
+          opts[n].disabled = true;
+          if (n === q.correctAnswer) opts[n].classList.add('correct');
+        }
+        btn.classList.add('chosen');
+        if (k === q.correctAnswer) right++; else btn.classList.add('wrong');
+        if (q.explanation) {
+          body.appendChild(el('div', { class: 'explain ' + (k === q.correctAnswer ? 'good' : 'bad') }, q.explanation));
+        }
+        body.appendChild(el('div', { class: 'row', style: 'margin-top:10px' }, [
+          el('button', { class: 'btn', onclick: function () { i++; draw(); } },
+            (i + 1 >= qs.length) ? T.seeResult : T.nextQuestion)
+        ]));
+      });
+      body.appendChild(btn);
+    });
+  }
+  wrap.appendChild(body);
+  draw();
+  return wrap;
+}
+
+var RENDERERS = {
+  flashcards: exFlashcards,
+  matching: exMatching,
+  'drag-and-drop': exDragOrder,
+  ordering: exDragOrder,
+  builder: exBuilder,
+  scenario: exScenario,
+  simulation: exScenario,
+  quiz: exQuiz
+};
+
+// --- views ---------------------------------------------------------------------------------------
+var view = { kind: 'intro', i: 0 };
+
+function renderAside() {
+  var a = $('#aside');
+  a.innerHTML = '';
+  a.appendChild(el('div', { class: 'brand' }, [
+    COURSE.courseTitle,
+    el('small', {}, fmt(T.brandTag, { n: SECTIONS.length }))
+  ]));
+  var pct = Math.round(100 * completedCount() / SECTIONS.length);
+  a.appendChild(el('div', { class: 'progress-wrap' }, [
+    el('div', { class: 'bar' }, [el('i', { style: 'width:' + pct + '%' })]),
+    el('div', { class: 'progress-label' }, [
+      el('span', {}, fmt(T.sectionsOf, { c: completedCount(), n: SECTIONS.length })),
+      el('span', {}, pct + '%')
+    ])
+  ]));
+  var ul = el('ul', {});
+  ul.appendChild(el('li', {}, [el('button', {
+    'aria-current': view.kind === 'intro' ? 'true' : 'false',
+    onclick: function () { go({ kind: 'intro' }); }
+  }, [el('span', { class: 'tick' }, ''), '🧭 ' + T.startHere])]));
+  SECTIONS.forEach(function (s, k) {
+    ul.appendChild(el('li', {}, [el('button', {
+      'aria-current': (view.kind === 'section' && view.i === k) ? 'true' : 'false',
+      onclick: function () { go({ kind: 'section', i: k }); }
+    }, [
+      el('span', { class: 'tick' }, S.completed[s.id] ? '✓' : ''),
+      s.icon + ' ' + s.order + '. ' + s.shortTitle
+    ])]));
+  });
+  ul.appendChild(el('li', {}, [el('button', {
+    'aria-current': view.kind === 'final' ? 'true' : 'false',
+    onclick: function () { go({ kind: 'final' }); }
+  }, [el('span', { class: 'tick' }, (S.finalScore !== null && S.finalScore >= PASS) ? '✓' : ''), '🎯 ' + T.finalTest])]));
+  ul.appendChild(el('li', {}, [el('button', {
+    'aria-current': view.kind === 'faq' ? 'true' : 'false',
+    onclick: function () { go({ kind: 'faq' }); }
+  }, [el('span', { class: 'tick' }, ''), '❓ ' + T.faqNav])]));
+  a.appendChild(el('nav', {}, [ul]));
+
+  a.appendChild(el('div', { class: 'navhead' }, T.achievements + S.unlocked.length + ' / ' + COURSE.achievements.length));
+  var grid = el('div', { class: 'ach-grid' });
+  COURSE.achievements.forEach(function (ac) {
+    var on = S.unlocked.indexOf(ac.id) !== -1;
+    grid.appendChild(el('div', {
+      class: 'ach' + (on ? ' on' : ''),
+      title: on ? (ac.title + ' — ' + ac.description) : (T.locked + ac.description)
+    }, ac.icon));
+  });
+  a.appendChild(grid);
+
+  a.appendChild(el('div', { class: 'navhead' }, T.settings));
+  a.appendChild(el('div', { class: 'row' }, [
+    el('button', { class: 'btn ghost', onclick: function () { S.dark = !S.dark; save(); applyTheme(); } },
+      S.dark ? T.light : T.dark),
+    el('button', { class: 'btn ghost', onclick: function () {
+      if (window.confirm(T.resetConfirm)) { S = Object.assign(fresh(), { dark: S.dark }); save(); go(view); }
+    } }, T.reset)
+  ]));
+}
+
+// --- diagram: a flow drawn from DATA, never from author markup ------------------------------------
+// Every label goes in through textContent, so a `<script>` in a label is shown as those letters and
+// nothing else — the injection seam simply does not exist rather than being filtered.
+function renderDiagram(d) {
+  if (!d || !Array.isArray(d.nodes) || d.nodes.length < 2) return null;
+  var kinds = { flow: dgFlow, compare: dgCompare, scale: dgScale, parts: dgParts };
+  var draw = kinds[d.kind];
+  if (!draw) return null;
+  var fig = el('figure', { class: 'diagram dg-' + d.kind });
+  fig.appendChild(draw(d));
+  if (d.title) fig.appendChild(el('figcaption', {}, String(d.title)));
+  return fig;
+}
+
+// flow — a sequence: each step leads to the next, optionally closing the circle.
+function dgFlow(d) {
+  var track = el('div', { class: 'dg-track' });
+  d.nodes.forEach(function (n, i) {
+    if (i > 0) track.appendChild(el('span', { class: 'dg-arrow', 'aria-hidden': 'true' }, '→'));
+    track.appendChild(dgBox(n));
+  });
+  if (d.cycle === true) track.appendChild(el('span', { class: 'dg-cycle' }, '↻ и снова'));
+  return track;
+}
+
+// compare — options side by side: the reader is choosing, not walking a path.
+function dgCompare(d) {
+  var grid = el('div', { class: 'dg-grid' });
+  d.nodes.forEach(function (n) {
+    var col = el('div', { class: 'dg-col' + (n.accent === true ? ' dg-accent' : '') }, [el('b', {}, String(n.label == null ? '' : n.label))]);
+    if (n.note) col.appendChild(el('small', {}, String(n.note)));
+    if (Array.isArray(n.items)) {
+      var ul = el('ul', { class: 'dg-items' });
+      n.items.forEach(function (it) { ul.appendChild(el('li', {}, String(it))); });
+      col.appendChild(ul);
+    }
+    grid.appendChild(col);
+  });
+  return grid;
+}
+
+// scale — rungs where POSITION carries meaning: higher is cheaper/louder, lower is weaker/silent.
+function dgScale(d) {
+  var wrap = el('div', { class: 'dg-scale-wrap' });
+  if (d.topLabel) wrap.appendChild(el('div', { class: 'dg-edge' }, String(d.topLabel)));
+  d.nodes.forEach(function (n, i) {
+    var rung = el('div', { class: 'dg-rung' + (n.accent === true ? ' dg-accent' : '') }, [
+      el('span', { class: 'dg-rung-n' }, String(i + 1)),
+      el('b', {}, String(n.label == null ? '' : n.label)),
+    ]);
+    if (n.note) rung.appendChild(el('small', {}, String(n.note)));
+    wrap.appendChild(rung);
+  });
+  if (d.bottomLabel) wrap.appendChild(el('div', { class: 'dg-edge' }, String(d.bottomLabel)));
+  return wrap;
+}
+
+// parts — a whole and its required parts: removing one breaks the whole, order is irrelevant.
+function dgParts(d) {
+  var wrap = el('div', { class: 'dg-parts-wrap' });
+  if (d.whole) wrap.appendChild(el('div', { class: 'dg-whole' }, String(d.whole)));
+  var row = el('div', { class: 'dg-track' });
+  d.nodes.forEach(function (n, i) {
+    if (i > 0) row.appendChild(el('span', { class: 'dg-plus', 'aria-hidden': 'true' }, '+'));
+    row.appendChild(dgBox(n));
+  });
+  wrap.appendChild(row);
+  return wrap;
+}
+
+function dgBox(n) {
+  var box = el('div', { class: 'dg-node' + (n.accent === true ? ' dg-accent' : '') }, [el('b', {}, String(n.label == null ? '' : n.label))]);
+  if (n.note) box.appendChild(el('small', {}, String(n.note)));
+  return box;
+}
+
+function sectionView(k) {
+  var s = SECTIONS[k];
+  var m = $('#main');
+  m.innerHTML = '';
+  m.appendChild(el('div', { class: 'meta-row' }, [
+    el('span', { class: 'eyebrow' }, fmt(T.sectionOf, { o: s.order, n: SECTIONS.length })),
+    el('span', { class: 'pattern-chip', title: (T.patternNames && T.patternNames[s.methodPattern]) || T.patternTitle }, 'Head First ' + s.methodPattern),
+    S.completed[s.id] ? el('span', { class: 'score-pill good' }, T.completed + (S.scores[s.id] || 0) + '%') : null
+  ]));
+  m.appendChild(el('h1', {}, s.icon + '  ' + s.title));
+  m.appendChild(el('p', { class: 'lede' }, s.description));
+  m.appendChild(el('div', { class: 'card theory', html: md(s.theory) }));
+  var dg = renderDiagram(s.diagram);
+  if (dg !== null) m.appendChild(dg);
+
+  // The persona's notebook — the second recurring visual device. One hand-written margin note per
+  // section, in the persona's own voice, stamped with when it was written: the reader watches the
+  // character grow across the course instead of being told that she did.
+  if (s.notebook && s.notebook.note) {
+    m.appendChild(el('div', { class: 'notebook' }, [
+      el('h3', {}, [
+        ((COURSE.persona && COURSE.persona.name) ? fmt(T.notebookOf, { name: COURSE.persona.name }) : T.notebook),
+        s.notebook.when ? el('span', { class: 'when' }, s.notebook.when) : null
+      ]),
+      el('p', { html: inline(s.notebook.note) })
+    ]));
+  }
+
+  var r = s.reflection;
+  m.appendChild(el('div', { class: 'reflect' }, [
+    el('h3', {}, T.quartet),
+    el('dl', {}, [
+      el('dt', {}, T.strengths), el('dd', {}, r.strengths),
+      el('dt', {}, T.weaknesses), el('dd', {}, r.weaknesses),
+      el('dt', {}, T.rating), el('dd', {}, String(r.rating)),
+      el('dt', {}, T.wrapup), el('dd', {}, r.wrapup)
+    ])
+  ]));
+
+  m.appendChild(el('h2', {}, T.doSomething + typeLabel(s.interactiveType)));
+  var exCard = el('div', { class: 'card' });
+  var rend = RENDERERS[s.interactiveType] || exQuiz;
+  exCard.appendChild(rend(s, function (pct) { setScore(s.id, pct); }));
+  m.appendChild(exCard);
+
+  if (s.interactiveType !== 'quiz' && s.quiz && s.quiz.length) {
+    m.appendChild(el('h2', {}, T.checkYourself));
+    var qc = el('div', { class: 'card' });
+    qc.appendChild(exQuiz(s, function (pct) { setScore(s.id, Math.max(pct, S.scores[s.id] || 0)); }, s.quiz, T.check));
+    m.appendChild(qc);
+  }
+
+  m.appendChild(el('div', { class: 'footer-nav' }, [
+    k > 0
+      ? el('button', { class: 'btn ghost', onclick: function () { go({ kind: 'section', i: k - 1 }); } }, '← ' + SECTIONS[k - 1].shortTitle)
+      : el('button', { class: 'btn ghost', onclick: function () { go({ kind: 'intro' }); } }, '\u2190 ' + T.startHere),
+    el('span', { class: 'spacer', style: 'flex:1' }),
+    el('button', { class: 'btn', onclick: function () {
+      // Partial credit BY DESIGN: skimming to the next section grants 60%, never 100% — the
+      // perfect-section achievement and a full score still require doing the exercise.
+      if (!S.completed[s.id]) setScore(s.id, S.scores[s.id] || 60);
+      go(k + 1 < SECTIONS.length ? { kind: 'section', i: k + 1 } : { kind: 'final' });
+    } }, k + 1 < SECTIONS.length ? (SECTIONS[k + 1].shortTitle + ' →') : T.finalTest + ' \u2192')
+  ]));
+}
+
+function introView() {
+  var m = $('#main');
+  m.innerHTML = '';
+  m.appendChild(el('span', { class: 'eyebrow' }, T.startHere));
+  m.appendChild(el('h1', {}, COURSE.courseTitle));
+  m.appendChild(el('p', { class: 'lede' }, COURSE.courseDescription));
+  m.appendChild(el('div', { class: 'card' }, [
+    el('h2', { style: 'margin-top:0' }, T.meet + COURSE.persona.name),
+    el('p', {}, COURSE.persona.description),
+    // Optional course-authored honesty/context note (introNote). No fabricated default: if the
+    // author wrote nothing, nothing is shown.
+    COURSE.introNote ? el('p', { style: 'color:var(--muted);font-size:14.5px' }, COURSE.introNote) : null
+  ]));
+  m.appendChild(el('h2', {}, COURSE.introHeading || T.whatYouLearn));
+  SECTIONS.forEach(function (s, k) {
+    m.appendChild(el('div', {
+      class: 'card', style: 'margin:10px 0;padding:16px 20px;cursor:pointer',
+      onclick: function () { go({ kind: 'section', i: k }); }
+    }, [
+      el('div', { class: 'meta-row' }, [
+        el('strong', { style: 'font-size:16px' }, s.icon + '  ' + s.title),
+        el('span', { class: 'pattern-chip' }, s.methodPattern),
+        S.completed[s.id] ? el('span', { class: 'score-pill good' }, '✓') : null
+      ]),
+      el('div', { style: 'color:var(--muted);font-size:14.5px' }, s.description)
+    ]));
+  });
+  m.appendChild(el('div', { class: 'footer-nav' }, [
+    el('span', { class: 'spacer', style: 'flex:1' }),
+    el('button', { class: 'btn', onclick: function () { go({ kind: 'section', i: 0 }); } }, T.startSection1)
+  ]));
+}
+
+function finalView() {
+  var m = $('#main');
+  m.innerHTML = '';
+  m.appendChild(el('span', { class: 'eyebrow' }, T.finalTest));
+  m.appendChild(el('h1', {}, '🎯 ' + T.finalH1));
+  m.appendChild(el('p', { class: 'lede' },
+    fmt(T.finalLede, { p: PASS, n: SECTIONS.length })));
+  var qs = SECTIONS.map(function (s) {
+    return {
+      id: s.finalTest.id,
+      question: s.finalTest.question,
+      options: s.finalTest.options,
+      correctAnswer: s.finalTest.correctAnswer,
+      explanation: fmt(T.fromSection, { o: s.order, t: s.shortTitle })
+    };
+  });
+  var result = el('div', {});
+  var card = el('div', { class: 'card' });
+  card.appendChild(exQuiz(null, function (pct) {
+    S.finalScore = Math.max(S.finalScore === null ? 0 : S.finalScore, pct);
+    save();
+    syncAchievements();
+    renderAside();
+    result.innerHTML = '';
+    result.appendChild(el('div', { class: 'card', style: 'text-align:center' }, [
+      el('div', { class: 'big-score', style: 'color:' + (pct >= PASS ? 'var(--ok)' : 'var(--bad)') }, pct + '%'),
+      // 'Passed' is STRUCTURAL (verify-site keys on it); the flavour after the dash is course data.
+      el('p', { style: 'font-weight:600;margin:.5em 0 .2em' },
+        pct >= PASS ? T.passed + ((COURSE.outro && COURSE.outro.pass) || T.courseComplete) : fmt(T.notYet, { p: PASS })),
+      el('p', { style: 'color:var(--muted);font-size:14.5px' },
+        pct >= PASS
+          ? ((COURSE.outro && COURSE.outro.next) || T.revisit)
+          : T.reread)
+    ]));
+  }, qs, T.finalTest));
+  m.appendChild(card);
+  m.appendChild(result);
+  m.appendChild(el('div', { class: 'footer-nav' }, [
+    el('button', { class: 'btn ghost', onclick: function () { go({ kind: 'section', i: SECTIONS.length - 1 }); } }, T.lastSection),
+    el('span', { class: 'spacer', style: 'flex:1' }),
+    el('button', { class: 'btn ghost', onclick: function () { go({ kind: 'faq' }); } }, T.faqNav + ' \u2192')
+  ]));
+}
+
+function faqView() {
+  var m = $('#main');
+  m.innerHTML = '';
+  m.appendChild(el('span', { class: 'eyebrow' }, T.faqEyebrow));
+  m.appendChild(el('h1', {}, '❓ ' + T.faqH1));
+  m.appendChild(el('p', { class: 'lede' }, T.faqLede));
+  var box = el('div', { class: 'faq' });
+  COURSE.faqData.forEach(function (f) {
+    box.appendChild(el('details', {}, [
+      el('summary', {}, f.question),
+      el('div', { class: 'a', html: md(f.answer) })
+    ]));
+  });
+  m.appendChild(box);
+  m.appendChild(el('div', { class: 'footer-nav' }, [
+    el('button', { class: 'btn ghost', onclick: function () { go({ kind: 'intro' }); } }, '\u2190 ' + T.startHere),
+    el('span', { class: 'spacer', style: 'flex:1' })
+  ]));
+}
+
+function applyTheme() {
+  document.documentElement.classList.toggle('dark', !!S.dark);
+  renderAside();
+}
+
+function go(v) {
+  view = v;
+  if (v.kind === 'section') sectionView(v.i);
+  else if (v.kind === 'final') finalView();
+  else if (v.kind === 'faq') faqView();
+  else introView();
+  renderAside();
+  window.scrollTo(0, 0);
+}
+
+document.title = COURSE.courseTitle;
+applyTheme();
+syncAchievements();
+go({ kind: 'intro' });
+</script>
+</body>
+</html>
