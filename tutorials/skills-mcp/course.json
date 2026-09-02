@@ -1,0 +1,1648 @@
+{
+  "language": "ru",
+  "courseTitle": "MCP-навыки: агент выходит в мир",
+  "courseDescription": "Практический курс по @dzhechkov/skills-mcp — 16 навыков-инструкций к MCP-серверам: поиск, почта, календарь, таблицы, задачи, Notion и Obsidian, git и GitLab, ComfyUI и самообучающаяся память AgentDB. Вместе с Леной ты поймёшь, чем навык отличается от сервера, соберёшь связку «сервер + навык + агент», разберёшься с транспортами и ключами, научишься подбирать поисковый навык под вопрос, безопасно работать с почтой и доводить правку до слияния — и узнаешь, почему самая честная страница пакета говорит «измерено, не запомнено».",
+  "persona": {
+    "name": "Лена",
+    "description": "Лена — техлид команды из трёх человек. Её утро начинается одинаково: разгрести почту, найти в вебе ответ на вчерашний вопрос, завести задачи в ClickUp и переписать итоги в Notion. Она хочет, чтобы всё это делал агент, а не она. В каждой секции Лена наступает на грабли первой — и показывает тебе, как их обойти."
+  },
+  "finalTestPassThreshold": 70,
+  "topics": [
+    {
+      "id": "skill-is-not-the-server",
+      "title": "1. Навык — это не сервер",
+      "keyConcepts": [
+        "навык — это инструкция к MCP-серверу, а не сам сервер"
+      ],
+      "suggestedExercise": "flashcards",
+      "methodPattern": "P3",
+      "source": "README.md"
+    },
+    {
+      "id": "install-preset-select-npm",
+      "title": "2. Три способа установить навыки",
+      "keyConcepts": [
+        "dz init --preset mcp ставит все 16 навыков разом"
+      ],
+      "suggestedExercise": "builder",
+      "methodPattern": "P5",
+      "source": "README.md#install"
+    },
+    {
+      "id": "two-halves-server-then-skill",
+      "title": "3. Две половины запуска",
+      "keyConcepts": [
+        "claude mcp add регистрирует сервер, dz init — навык"
+      ],
+      "suggestedExercise": "drag-and-drop",
+      "methodPattern": "P6",
+      "source": "README.md#quick-setup-claude-code"
+    },
+    {
+      "id": "auto-activation-by-triggers",
+      "title": "4. Навык включается сам",
+      "keyConcepts": [
+        "триггерные фразы во frontmatter SKILL.md"
+      ],
+      "suggestedExercise": "scenario",
+      "methodPattern": "P8",
+      "source": "README.md#how-to-use"
+    },
+    {
+      "id": "transport-stdio-vs-http",
+      "title": "5. stdio или http: где живёт сервер",
+      "keyConcepts": [
+        "транспорт stdio или http"
+      ],
+      "suggestedExercise": "matching",
+      "methodPattern": "P1",
+      "source": "exa-search/SKILL.md#mcp-server"
+    },
+    {
+      "id": "keys-and-least-privilege",
+      "title": "6. Ключи: сколько прав давать",
+      "keyConcepts": [
+        "минимальные права для токена"
+      ],
+      "suggestedExercise": "quiz",
+      "methodPattern": "P9",
+      "source": "gitlab/SKILL.md#token-scopes"
+    },
+    {
+      "id": "search-family-pick-the-tool",
+      "title": "7. Пять поисковых навыков — какой брать",
+      "keyConcepts": [
+        "подбор поискового навыка под задачу"
+      ],
+      "suggestedExercise": "matching",
+      "methodPattern": "P2",
+      "source": "brave-search/SKILL.md#tools"
+    },
+    {
+      "id": "gmail-draft-before-send",
+      "title": "8. Почта: черновик, потом отправка",
+      "keyConcepts": [
+        "черновик gmail_draft перед отправкой"
+      ],
+      "suggestedExercise": "scenario",
+      "methodPattern": "D3",
+      "source": "gmail/SKILL.md#tips"
+    },
+    {
+      "id": "google-trio-three-auths",
+      "title": "9. Три Google — три разных входа",
+      "keyConcepts": [
+        "три разных способа авторизации Google"
+      ],
+      "suggestedExercise": "flashcards",
+      "methodPattern": "P4",
+      "source": "google-sheets/SKILL.md#environment-variables"
+    },
+    {
+      "id": "notion-clickup-share-first",
+      "title": "10. Notion и ClickUp: сначала открыть доступ",
+      "keyConcepts": [
+        "интеграция Notion должна быть подключена к страницам"
+      ],
+      "suggestedExercise": "builder",
+      "methodPattern": "P12",
+      "source": "notion/SKILL.md#notion-api-key-setup"
+    },
+    {
+      "id": "git-to-merge-request",
+      "title": "11. От ветки до слияния",
+      "keyConcepts": [
+        "путь merge request: ветка, коммит, push, пайплайн, слияние"
+      ],
+      "suggestedExercise": "drag-and-drop",
+      "methodPattern": "D4",
+      "source": "git-mcp/SKILL.md#tools"
+    },
+    {
+      "id": "agentdb-measured-not-remembered",
+      "title": "12. Память агента: измерено, не запомнено",
+      "keyConcepts": [
+        "измерено, не запомнено: tools/list вместо старого списка"
+      ],
+      "suggestedExercise": "quiz",
+      "methodPattern": "P11",
+      "source": "agentdb-memory/SKILL.md#core-tools-grouped-by-capability"
+    },
+    {
+      "id": "local-app-bridges-obsidian-comfyui",
+      "title": "13. Мост к приложению на твоей машине",
+      "keyConcepts": [
+        "MCP-сервер как мост к локальному приложению"
+      ],
+      "suggestedExercise": "matching",
+      "methodPattern": "P10",
+      "source": "obsidian/SKILL.md#obsidian-rest-api-plugin-setup"
+    }
+  ],
+  "sections": [
+    {
+      "id": "skill-is-not-the-server",
+      "order": 1,
+      "title": "1. Навык — это не сервер",
+      "shortTitle": "Навык ≠ сервер",
+      "description": "Что лежит в @dzhechkov/skills-mcp на самом деле — и почему после установки пакета почта сама не прочитается.",
+      "icon": "🧩",
+      "interactiveType": "flashcards",
+      "keyConcept": "навык — это инструкция к MCP-серверу, а не сам сервер",
+      "methodPattern": "P3",
+      "source": "README.md",
+      "theory": "Лена поставила пакет, открыла Claude Code и сказала: «найди в почте письмо от бухгалтерии». Агент ответил, что не умеет читать почту. Лена решила, что пакет сломан. Пакет цел — сломано было её ожидание, и оно, скорее всего, совпадает с твоим.\n\n**Навык — это инструкция к MCP-серверу, а не сам сервер.** MCP (Model Context Protocol) — протокол, по которому агент вызывает внешние инструменты: поиск, почту, календарь. Сервер — отдельная программа, которая эти инструменты реально выполняет. А навык из этого пакета — файл `SKILL.md`: он объясняет агенту, какой сервер поставить, какие у него инструменты, какие параметры, когда что вызывать и на какие грабли не наступать.\n\nПакет [@dzhechkov/skills-mcp на npm](https://www.npmjs.com/package/@dzhechkov/skills-mcp) — это **16 таких инструкций** для шестнадцати серверов: поиск (brave-search, exa-search, jina-reader, context7, reddit), почта и календарь (gmail, google-calendar), таблицы и задачи (google-sheets, google-tasks, clickup), знание (notion, obsidian), код (git-mcp, gitlab), картинки (comfyui) и самообучающаяся память (agentdb-memory). Исходники — в [зеркале на GitHub](https://github.com/djd1m/dz-harness).\n\nЗначит, рабочая связка всегда из трёх частей:\n\n- **сервер** — программа, которую ты добавляешь командой `claude mcp add …`;\n- **навык** — инструкция, которую раскладывает `dz init`;\n- **агент** — тот, кто читает инструкцию и вызывает сервер.\n\nУбери любую часть — и ничего не заработает. Лена убрала первую: сервер Gmail она не добавляла, поэтому агенту было нечего вызывать, сколько бы инструкций у него ни лежало.\n\n**Компромисс:** такое разделение честнее, чем «поставил пакет — всё работает», но требует понимать, где кончается навык и начинается сервер. Зато один и тот же навык годится для Claude Code, Claude Desktop, Cursor и VS Code — в SKILL.md есть блоки конфигурации для каждого.\n\n💬 **Скажи словами.** Как только связка собрана, команды больше не нужны: «найди письмо от бухгалтерии» — и агент сам возьмёт `gmail_search`. Команды в этом курсе — чтобы ты понимал, что происходит под капотом.",
+      "reflection": {
+        "strengths": "Один навык описывает сервер для четырёх клиентов сразу (Claude Code, Claude Desktop, Cursor, VS Code); 16 серверов покрыты одной установкой; инструкция лежит рядом с агентом, а не в закладках браузера.",
+        "weaknesses": "Пакет ничего не делает сам — без добавленного сервера навык лишь описывает то, чего нет; новичок легко принимает описание за возможность.",
+        "rating": "5/5 за переносимость, 3/5 за первое впечатление",
+        "wrapup": "Навык — инструкция к серверу; сервер ставится отдельно; агент читает первое и вызывает второе."
+      },
+      "exercise": {
+        "cards": [
+          {
+            "front": "Что такое навык из пакета skills-mcp?",
+            "back": "Файл SKILL.md — инструкция агенту к конкретному MCP-серверу: как поставить, какие инструменты, когда вызывать. Не сам сервер."
+          },
+          {
+            "front": "Что такое MCP-сервер?",
+            "back": "Отдельная программа, которая реально выполняет инструменты (поиск, почта, календарь). Агент вызывает её по протоколу MCP."
+          },
+          {
+            "front": "Из каких трёх частей состоит рабочая связка?",
+            "back": "Сервер (claude mcp add), навык-инструкция (dz init) и агент, который читает инструкцию и вызывает сервер."
+          },
+          {
+            "front": "Сколько навыков в пакете и что они покрывают?",
+            "back": "16: поиск, почта и календарь, таблицы и задачи, знание (Notion, Obsidian), код (git, GitLab), картинки (ComfyUI), память (AgentDB)."
+          },
+          {
+            "front": "Почему у Лены агент «не умел читать почту» сразу после установки пакета?",
+            "back": "Потому что пакет дал только инструкцию. Сервер Gmail она не добавила — агенту было нечего вызывать."
+          }
+        ]
+      },
+      "quiz": [
+        {
+          "id": "skill-not-server-q1",
+          "question": "Лена поставила @dzhechkov/skills-mcp и ждёт, что агент прочитает почту. Чего не хватает?",
+          "options": [
+            "Ничего — нужно просто перезапустить Claude Code",
+            "MCP-сервера Gmail: навык лишь инструкция к серверу, а сам сервер добавляется отдельно",
+            "Платной подписки на пакет",
+            "Русской локализации навыка"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Навык описывает сервер, но не заменяет его. Без claude mcp add агенту нечего вызывать."
+        }
+      ],
+      "finalTest": {
+        "id": "final-skill-is-not-the-server",
+        "sectionId": "skill-is-not-the-server",
+        "question": "Что такое навык в пакете @dzhechkov/skills-mcp?",
+        "options": [
+          "Инструкция агенту к конкретному MCP-серверу; сам сервер ставится отдельно",
+          "Сам MCP-сервер, упакованный в npm",
+          "Плагин для браузера",
+          "Набор API-ключей"
+        ],
+        "correctAnswer": 0
+      },
+      "diagram": {
+        "kind": "parts",
+        "title": "Рабочая связка: убери одну часть — и не заработает",
+        "whole": "агент читает почту, ищет, заводит задачи",
+        "nodes": [
+          {
+            "id": "server",
+            "label": "MCP-сервер",
+            "note": "программа, выполняющая инструменты — claude mcp add"
+          },
+          {
+            "id": "skill",
+            "label": "Навык SKILL.md",
+            "note": "инструкция: как поставить, что вызывать, где грабли",
+            "accent": true
+          },
+          {
+            "id": "agent",
+            "label": "Агент",
+            "note": "читает инструкцию, вызывает сервер"
+          }
+        ]
+      }
+    },
+    {
+      "id": "install-preset-select-npm",
+      "order": 2,
+      "title": "2. Три способа установить навыки",
+      "shortTitle": "Установка",
+      "description": "Пресет mcp, точечный --select и голый npm install — что выбирает Лена и почему.",
+      "icon": "📦",
+      "interactiveType": "builder",
+      "keyConcept": "dz init --preset mcp ставит все 16 навыков разом",
+      "methodPattern": "P5",
+      "source": "README.md#install",
+      "theory": "Лена открыла README и увидела три команды установки. «Какая правильная?» — правильные все три, но для разных ситуаций. Выбирай по тому, что ты знаешь заранее.\n\n1. **Пресет — если хочешь всё.** `dz init --target claude-code --preset mcp` ставит все 16 навыков разом. Пресет `mcp` — именованный набор в каталоге dz (пакет harness-presets), и его состав — ровно этот пакет.\n2. **Точечно — если знаешь имена.** `dz init --target claude-code --select brave-search,exa-search,gmail` кладёт только перечисленные. Имена — из таблицы Skill Inventory в README.\n3. **Голый npm — если dz не нужен.** `npm install @dzhechkov/skills-mcp` просто скачает папки с SKILL.md в `node_modules`; раскладывать их по проекту придётся самому.\n\nЛена выбрала пресет — и правильно для первой недели: пока не знаешь, что понадобится, дешевле иметь все инструкции под рукой. Инструкции ничего не стоят в работе: навык **активируется только когда задача совпала с его триггерами** (об этом — секция 4), а лишние просто лежат.\n\nЧто реально стоит ресурсов — серверы, а их пресет не добавляет. Так что «поставить все 16 навыков» ≠ «запустить 16 серверов»: серверы ты добавишь по одному, когда дойдёшь до каждого.\n\n**Компромисс:** пресет быстр, но прячет от тебя список; `--select` прозрачен, но требует знать имена; `npm install` не зависит от dz вовсе, но и не раскладывает ничего. Лена через месяц пересобрала арсенал через `--select` — когда уже знала, чем пользуется.\n\n💬 **Скажи словами.** «Поставь мне все MCP-навыки» → ассистент выполнит `dz init --preset mcp`. Лена так и сделала — команду она увидела уже в ответе.",
+      "reflection": {
+        "strengths": "Одна команда — 16 инструкций; --select даёт точный состав; npm-путь работает без dz.",
+        "weaknesses": "Пресет не показывает, что именно положил; ни один из способов не добавляет серверы — это отдельный шаг, и README говорит об этом только в Quick Setup.",
+        "rating": "4/5",
+        "wrapup": "Не знаешь, что нужно — пресет; знаешь имена — --select; серверы в любом случае добавляются отдельно."
+      },
+      "exercise": {
+        "instruction": "Собери команду, которой Лена ставит все 16 MCP-навыков разом под Claude Code (пресет mcp).",
+        "parts": [
+          "dz",
+          "init",
+          "--target",
+          "claude-code",
+          "--preset",
+          "mcp"
+        ],
+        "correctCommand": "dz init --target claude-code --preset mcp",
+        "hints": [
+          "Начни с dz init — это команда раскладки навыков",
+          "Платформа задаётся флагом --target, набор — флагом --preset"
+        ]
+      },
+      "quiz": [
+        {
+          "id": "install-q1",
+          "question": "Лена выполнила dz init --preset mcp. Сколько MCP-серверов теперь запущено?",
+          "options": [
+            "Все 16",
+            "Ни одного — пресет раскладывает инструкции, серверы добавляются отдельно",
+            "Только те, для которых есть API-ключ",
+            "Один, по умолчанию brave-search"
+          ],
+          "correctAnswer": 1,
+          "explanation": "dz init кладёт SKILL.md-файлы. Серверы регистрирует claude mcp add — по одному."
+        }
+      ],
+      "finalTest": {
+        "id": "final-install-preset-select-npm",
+        "sectionId": "install-preset-select-npm",
+        "question": "Что делает dz init --target claude-code --preset mcp?",
+        "options": [
+          "Ставит все 16 навыков пакета разом; серверы при этом не добавляет",
+          "Запускает 16 MCP-серверов",
+          "Удаляет старые навыки",
+          "Публикует пакет в npm"
+        ],
+        "correctAnswer": 0
+      },
+      "diagram": {
+        "kind": "compare",
+        "title": "Три способа установки: что получаешь и чем платишь",
+        "nodes": [
+          {
+            "id": "preset",
+            "label": "Пресет mcp",
+            "note": "все 16 разом",
+            "items": [
+              "одна команда",
+              "ничего не надо знать",
+              "список скрыт"
+            ],
+            "accent": true
+          },
+          {
+            "id": "select",
+            "label": "--select",
+            "note": "только названные",
+            "items": [
+              "точный состав",
+              "имена надо знать"
+            ]
+          },
+          {
+            "id": "npm",
+            "label": "npm install",
+            "note": "папки в node_modules",
+            "items": [
+              "без dz",
+              "раскладка на тебе"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "two-halves-server-then-skill",
+      "order": 3,
+      "title": "3. Две половины запуска",
+      "shortTitle": "Две половины",
+      "description": "Quick Setup из README: сервер регистрирует claude mcp add, инструкцию кладёт dz init — и порядок имеет значение.",
+      "icon": "🔌",
+      "interactiveType": "drag-and-drop",
+      "keyConcept": "claude mcp add регистрирует сервер, dz init — навык",
+      "methodPattern": "P6",
+      "source": "README.md#quick-setup-claude-code",
+      "theory": "После секции 1 Лена поняла, чего не хватает, и открыла раздел Quick Setup. Там шесть строк `claude mcp add` и одна `dz init`. Это и есть вся механика: **claude mcp add регистрирует сервер, dz init — навык.** Две половины, и обе обязательны.\n\nВот те самые строки из README — обрати внимание, что они разные по форме:\n\n- `claude mcp add brave-search -- npx @brave/brave-search-mcp-server` — локальный сервер, запускается через npx;\n- `claude mcp add --transport http exa https://mcp.exa.ai/mcp` — размещённый сервер, ходим по HTTP;\n- `claude mcp add gogcli-gmail -- gogcli-mcp-gmail` — локальный, но не через npx: бинарник ставится заранее;\n- `claude mcp add clickup -- npx @taazkareem/clickup-mcp-server`;\n- `claude mcp add context7 -- npx @upstash/context7-mcp`;\n- `claude mcp add --transport http jina https://mcp.jina.ai/mcp`.\n\nВсё после `--` — команда запуска сервера; всё до — имя, под которым Claude Code его запомнит. Потом одна строка `dz init --target claude-code --preset mcp` кладёт инструкции.\n\nПорядок на самом деле такой: **выбрать сервер → добавить его → дать ему ключ (если нужен) → положить навык → проверить**. Проверка — `claude mcp list`: если сервера в списке нет, первая половина не сделана, и никакой навык этого не исправит. Лена сначала запускала `dz init` и удивлялась тишине; теперь она начинает с `claude mcp list` и смотрит, кого не хватает.\n\n**Компромисс:** две команды вместо одной — лишний шаг, зато каждую половину можно менять независимо: сервер обновится через npx, навык — через `dz upgrade`, и они не сломают друг друга.\n\n💬 **Скажи словами.** «Подключи Brave Search» → ассистент выполнит `claude mcp add brave-search -- npx @brave/brave-search-mcp-server` и сам спросит про ключ. Лена перестала вспоминать синтаксис `--` уже на второй день.",
+      "reflection": {
+        "strengths": "Две независимые половины обновляются порознь; claude mcp list даёт мгновенную проверку; шесть готовых строк в README покрывают самый частый набор.",
+        "weaknesses": "README показывает строки только для шести серверов из шестнадцати — за остальными идти в SKILL.md каждого навыка; порядок половин нигде не назван явно.",
+        "rating": "4/5",
+        "wrapup": "Сначала claude mcp add (сервер), потом dz init (навык), потом claude mcp list (проверка)."
+      },
+      "exercise": {
+        "instruction": "Лена подключает Brave Search с нуля. Расставь шаги в правильном порядке — от выбора сервера до проверки.",
+        "items": [
+          {
+            "id": "pick",
+            "label": "Открыть brave-search/SKILL.md и найти строку установки сервера"
+          },
+          {
+            "id": "add",
+            "label": "Зарегистрировать сервер: claude mcp add brave-search -- npx @brave/brave-search-mcp-server"
+          },
+          {
+            "id": "key",
+            "label": "Передать серверу ключ BRAVE_API_KEY"
+          },
+          {
+            "id": "init",
+            "label": "Положить навык: dz init --target claude-code --preset mcp"
+          },
+          {
+            "id": "check",
+            "label": "Проверить, что сервер в списке: claude mcp list"
+          }
+        ],
+        "correctOrder": [
+          "pick",
+          "add",
+          "key",
+          "init",
+          "check"
+        ]
+      },
+      "quiz": [
+        {
+          "id": "two-halves-q1",
+          "question": "В строке claude mcp add brave-search -- npx @brave/brave-search-mcp-server что стоит после «--»?",
+          "options": [
+            "Имя, под которым Claude Code запомнит сервер",
+            "Команда запуска самого сервера",
+            "Путь к SKILL.md",
+            "API-ключ"
+          ],
+          "correctAnswer": 1,
+          "explanation": "До «--» — имя сервера в Claude Code; после — команда, которой он запускается."
+        },
+        {
+          "id": "two-halves-q2",
+          "question": "dz init отработал, но агент говорит, что инструмента нет. Что проверить первым?",
+          "options": [
+            "Версию npm",
+            "claude mcp list — зарегистрирован ли сервер",
+            "Права на папку проекта",
+            "Что в SKILL.md нет опечаток"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Навык положен, сервера нет — первая половина не сделана."
+        }
+      ],
+      "finalTest": {
+        "id": "final-two-halves-server-then-skill",
+        "sectionId": "two-halves-server-then-skill",
+        "question": "Как распределены роли между claude mcp add и dz init?",
+        "options": [
+          "claude mcp add регистрирует сервер, dz init кладёт навык-инструкцию",
+          "Обе команды делают одно и то же",
+          "dz init регистрирует сервер, claude mcp add кладёт навык",
+          "claude mcp add нужен только для платных серверов"
+        ],
+        "correctAnswer": 0
+      },
+      "diagram": {
+        "kind": "flow",
+        "title": "Пять шагов от выбора сервера до проверки",
+        "nodes": [
+          {
+            "id": "pick",
+            "label": "Выбрать",
+            "note": "строка установки — в SKILL.md навыка"
+          },
+          {
+            "id": "add",
+            "label": "claude mcp add",
+            "note": "регистрирует сервер",
+            "accent": true
+          },
+          {
+            "id": "key",
+            "label": "Ключ",
+            "note": "если сервер его требует"
+          },
+          {
+            "id": "init",
+            "label": "dz init",
+            "note": "кладёт навык-инструкцию"
+          },
+          {
+            "id": "list",
+            "label": "claude mcp list",
+            "note": "сервер в списке — связка собрана"
+          }
+        ]
+      }
+    },
+    {
+      "id": "auto-activation-by-triggers",
+      "order": 4,
+      "title": "4. Навык включается сам",
+      "shortTitle": "Триггеры",
+      "description": "Как агент понимает, что пора брать gmail, а не notion — и что делать, если он выбрал не то.",
+      "icon": "🎯",
+      "interactiveType": "scenario",
+      "keyConcept": "триггерные фразы во frontmatter SKILL.md",
+      "methodPattern": "P8",
+      "source": "README.md#how-to-use",
+      "theory": "Связка собрана. Лена ничего не вызывает руками — она пишет «найди в почте счёт от подрядчика», и агент берёт `gmail`. Пишет «сделай страницу в Notion из этих заметок» — берёт `notion`. Кто решает, какой навык брать?\n\nРешает совпадение. У каждого навыка в шапке `SKILL.md` (это frontmatter — блок метаданных в начале файла) есть описание и **триггерные фразы**: слова и обороты, при которых навык уместен. Агент сравнивает твою задачу с ними и подгружает подходящую инструкцию. Ни команды, ни меню — только слова.\n\nДва инструмента, когда совпадение не сработало:\n\n1. `dz info <skill-id>` — показывает точные триггеры и файлы навыка. Лена так узнала, что `exa-search` реагирует на «семантический поиск» и «исследование компании», а `brave-search` — на «свежие новости» и «местные заведения».\n2. `dz registry search <term>` — ищет навык по слову в каталоге. Полезно, когда не помнишь имя.\n\nЕсть и обратная сторона: два навыка могут претендовать на одну задачу. «Поищи в вебе» подходит и brave, и exa, и jina. Тогда агент выберет по описанию — а ты можешь подсказать: «поищи в Exa, нужен именно смысловой поиск». Уточнение словами дешевле, чем правка триггеров.\n\n**Компромисс:** авто-активация избавляет от заучивания имён, но делает выбор непрозрачным — пока не заглянешь в `dz info`. Лена держит за правило: если агент взял не тот навык дважды подряд, она смотрит триггеры обоих и уточняет формулировку.\n\n💬 **Скажи словами.** Это и есть вся секция: слова — единственный интерфейс. «Какие триггеры у gmail?» → ассистент выполнит `dz info gmail`.",
+      "reflection": {
+        "strengths": "Ноль команд для пользователя; триггеры лежат в самом навыке и читаются командой dz info; уточнить выбор можно одной фразой.",
+        "weaknesses": "Пересечения триггеров (три поисковых навыка) решаются по описанию, а не по правилу; ошибка выбора видна только по результату.",
+        "rating": "4/5",
+        "wrapup": "Навык выбирается по совпадению задачи с триггерами из SKILL.md; dz info показывает их, уточнение словами их обходит."
+      },
+      "exercise": {
+        "title": "Агент взял не тот навык — что делает Лена?",
+        "scenario": "Лена попросила «поищи, что пишут про наш продукт», а агент открыл brave-search и принёс новости, хотя она хотела обсуждения на Reddit. Проведи её от промаха до попадания.",
+        "steps": [
+          {
+            "description": "Шаг 1. Почему агент выбрал brave-search, а не reddit?",
+            "options": [
+              {
+                "text": "Задача совпала с триггерными фразами brave-search лучше, чем с триггерами reddit — про Reddit в запросе не было ни слова",
+                "result": "positive",
+                "feedback": "Верно. Агент сравнивает задачу с триггерами из frontmatter каждого SKILL.md; «поищи, что пишут» — общий поиск, и brave его выиграл."
+              },
+              {
+                "text": "brave-search стоит первым по алфавиту",
+                "result": "negative",
+                "feedback": "Порядок в каталоге не участвует в выборе. Решает совпадение с триггерными фразами."
+              },
+              {
+                "text": "reddit не установлен",
+                "feedback": "Возможно, но проверяется одной командой claude mcp list. В сценарии Лены он установлен — дело в формулировке."
+              }
+            ]
+          },
+          {
+            "description": "Шаг 2. Как посмотреть, на какие фразы вообще реагирует reddit?",
+            "options": [
+              {
+                "text": "dz info reddit — покажет триггеры и файлы навыка",
+                "result": "positive",
+                "feedback": "Да. dz info читает frontmatter SKILL.md и печатает триггерные фразы — именно то, с чем агент сравнивал задачу."
+              },
+              {
+                "text": "Открыть node_modules и читать SKILL.md глазами",
+                "feedback": "Сработает, но dz info делает то же самое одной командой и не требует знать путь."
+              },
+              {
+                "text": "Переустановить пакет",
+                "result": "negative",
+                "feedback": "Переустановка ничего не изменит: триггеры те же, формулировка та же."
+              }
+            ]
+          },
+          {
+            "description": "Шаг 3. Как добиться нужного выбора в следующий раз?",
+            "options": [
+              {
+                "text": "Сказать явно: «поищи обсуждения нашего продукта на Reddit, в r/SaaS и r/startups»",
+                "result": "positive",
+                "feedback": "Именно так. Слово «Reddit» и имена сабреддитов совпадают с триггерами навыка reddit — уточнение словами дешевле любой правки."
+              },
+              {
+                "text": "Удалить brave-search, чтобы не мешал",
+                "result": "negative",
+                "feedback": "Тогда завтра Лена лишится свежих новостей. Проблема не в лишнем навыке, а в неточной формулировке."
+              }
+            ]
+          }
+        ]
+      },
+      "quiz": [
+        {
+          "id": "triggers-q1",
+          "question": "Что определяет, какой навык подгрузит агент?",
+          "options": [
+            "Порядок навыков в пресете",
+            "Совпадение задачи с триггерными фразами во frontmatter SKILL.md",
+            "Дата установки навыка",
+            "Размер файла SKILL.md"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Триггеры лежат в шапке каждого навыка; агент сравнивает с ними твою формулировку."
+        }
+      ],
+      "finalTest": {
+        "id": "final-auto-activation-by-triggers",
+        "sectionId": "auto-activation-by-triggers",
+        "question": "Какой командой посмотреть точные триггерные фразы навыка gmail?",
+        "options": [
+          "dz info gmail",
+          "claude mcp add gmail",
+          "npm view gmail",
+          "dz init --select gmail"
+        ],
+        "correctAnswer": 0
+      }
+    },
+    {
+      "id": "transport-stdio-vs-http",
+      "order": 5,
+      "title": "5. stdio или http: где живёт сервер",
+      "shortTitle": "Транспорт",
+      "description": "Почему exa и jina добавляются с --transport http, а brave и git — через npx, и что это меняет для тебя.",
+      "icon": "🛰️",
+      "interactiveType": "matching",
+      "keyConcept": "транспорт stdio или http",
+      "methodPattern": "P1",
+      "source": "exa-search/SKILL.md#mcp-server",
+      "theory": "Лена заметила, что строки `claude mcp add` бывают двух видов, и спросила: «а почему exa — по адресу, а brave — через npx?» Ответ — **транспорт: stdio или http.** Это то, ПО ЧЕМУ агент разговаривает с сервером.\n\n- **stdio** — сервер запускается у тебя на машине как процесс, а агент пишет ему в стандартный ввод и читает стандартный вывод. Так работают brave-search, git-mcp, gitlab, notion, obsidian, comfyui, clickup, context7, gmail, google-calendar, google-sheets, google-tasks, reddit, agentdb-memory. Признак в команде: `-- npx <пакет>` или `-- <бинарник>`.\n- **http** — сервер размещён у поставщика, у тебя ничего не запускается; агент ходит по URL. Так работают exa (`https://mcp.exa.ai/mcp`) и jina (`https://mcp.jina.ai/mcp`). Признак: `--transport http <url>`.\n\nИногда один сервер даёт оба варианта. У `exa-search` в SKILL.md две установки: размещённая (`claude mcp add --transport http exa https://mcp.exa.ai/mcp`, рекомендована) и локальная (`claude mcp add exa-search -- npx exa-mcp-server`). У jina — ещё и SSE-вариант (`--transport sse https://mcp.jina.ai/sse`). У gitlab заявлены stdio, SSE и Streamable HTTP.\n\nЧто это меняет для Лены:\n\n1. **Ключ.** У stdio ключ передаётся серверу через переменную окружения (`-e BRAVE_API_KEY=…`); у http — в заголовке запроса (`x-api-key` в конфигурации Claude Desktop для exa).\n2. **Зависимости.** stdio требует, чтобы npx или бинарник были на машине; http — только сеть.\n3. **Обновления.** stdio-сервер обновляется через npx при следующем запуске; http-сервер обновляет поставщик, ты этого не видишь.\n\n**Компромисс:** stdio держит данные локально и работает без интернета там, где сервер локальный (git, obsidian, comfyui), но требует установки; http ставится одной строкой и не занимает машину, но твои запросы уходят к поставщику. Лена выбрала http для exa и jina и stdio для всего, что трогает её файлы.",
+      "reflection": {
+        "strengths": "Форма команды сразу выдаёт транспорт; http-серверы ставятся без зависимостей; stdio держит данные на машине.",
+        "weaknesses": "Ключи передаются по-разному в зависимости от транспорта; http-сервер обновляется без твоего ведома; для одного и того же сервера SKILL.md может давать два-три варианта — придётся выбирать.",
+        "rating": "4/5",
+        "wrapup": "stdio — процесс у тебя, ключ через окружение; http — сервер у поставщика, ключ в заголовке; вид строки claude mcp add говорит, что перед тобой."
+      },
+      "exercise": {
+        "pairs": [
+          {
+            "left": "claude mcp add --transport http exa https://mcp.exa.ai/mcp",
+            "right": "Транспорт http: сервер размещён у поставщика, ключ уходит в заголовке"
+          },
+          {
+            "left": "claude mcp add brave-search -- npx @brave/brave-search-mcp-server",
+            "right": "Транспорт stdio: процесс на твоей машине, ключ через переменную окружения"
+          },
+          {
+            "left": "claude mcp add jina-reader --transport sse https://mcp.jina.ai/sse",
+            "right": "Транспорт SSE: второй сетевой вариант того же сервера jina"
+          },
+          {
+            "left": "claude mcp add gogcli-gmail -- gogcli-mcp-gmail",
+            "right": "Транспорт stdio без npx: бинарник gogcli-mcp-gmail ставится заранее"
+          }
+        ]
+      },
+      "quiz": [
+        {
+          "id": "transport-q1",
+          "question": "В SKILL.md exa-search две установки — размещённая по http и локальная через npx. Какая рекомендована?",
+          "options": [
+            "Локальная через npx exa-mcp-server",
+            "Размещённая: claude mcp add --transport http exa https://mcp.exa.ai/mcp",
+            "Обе одновременно",
+            "Ни одна — exa работает без сервера"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Заголовок раздела в SKILL.md: «Claude Code (hosted — recommended)»."
+        }
+      ],
+      "finalTest": {
+        "id": "final-transport-stdio-vs-http",
+        "sectionId": "transport-stdio-vs-http",
+        "question": "Чем транспорт stdio отличается от http в этом пакете?",
+        "options": [
+          "stdio — сервер-процесс на твоей машине; http — сервер у поставщика, агент ходит по URL",
+          "stdio быстрее, http надёжнее",
+          "stdio только для платных серверов",
+          "Ничем — это синонимы"
+        ],
+        "correctAnswer": 0
+      },
+      "diagram": {
+        "kind": "compare",
+        "title": "Два транспорта: где процесс, куда уходит ключ",
+        "nodes": [
+          {
+            "id": "stdio",
+            "label": "stdio",
+            "note": "-- npx <пакет> или -- <бинарник>",
+            "items": [
+              "процесс у тебя",
+              "ключ через окружение",
+              "нужен npx или бинарник",
+              "данные локально"
+            ],
+            "accent": true
+          },
+          {
+            "id": "http",
+            "label": "http / sse",
+            "note": "--transport http <url>",
+            "items": [
+              "сервер у поставщика",
+              "ключ в заголовке",
+              "нужна только сеть",
+              "обновляется без тебя"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "keys-and-least-privilege",
+      "order": 6,
+      "title": "6. Ключи: сколько прав давать",
+      "shortTitle": "Ключи",
+      "description": "Куда класть BRAVE_API_KEY, что значит -e у clickup, и почему Лена отозвала свой первый токен GitLab.",
+      "icon": "🔑",
+      "interactiveType": "quiz",
+      "keyConcept": "минимальные права для токена",
+      "methodPattern": "P9",
+      "source": "gitlab/SKILL.md#token-scopes",
+      "theory": "Первый токен GitLab Лена сделала со скоупом `api` — «чтобы точно всё работало». Через неделю она его отозвала и сделала новый с `read_api` + `read_repository`. Что изменилось за неделю? Она прочитала SKILL.md до конца.\n\nКлючи в этом пакете передаются серверу тремя способами — и все три описаны в SKILL.md каждого навыка:\n\n1. **Флаг `-e` в claude mcp add** — `claude mcp add clickup -e CLICKUP_API_KEY=pk_xxx -- npx @taazkareem/clickup-mcp-server`. Ключ уходит в окружение процесса сервера.\n2. **Блок `env` в конфигурации** — `claude_desktop_config.json`, `.cursor/mcp.json`, `.vscode/mcp.json`: `\"env\": { \"BRAVE_API_KEY\": \"…\" }`. В VS Code можно `${input:clickupApiKey}` — тогда редактор спросит ключ, а не хранит его в файле.\n3. **Заголовок для http-серверов** — `\"headers\": { \"x-api-key\": \"…\" }` у размещённого exa.\n\nТеперь про то, СКОЛЬКО прав давать. У gitlab в SKILL.md есть таблица скоупов: `api` — полный доступ, `read_api` — только чтение, `read_repository` — файлы репозитория, `write_repository` — push, merge, ветки. И прямо сказано: **минимальные права для токена** — `read_api` + `read_repository`, если нужно только читать; `api` — только когда действительно нужны записи. Это принцип минимальных привилегий: токен умеет ровно то, что ты от агента ждёшь, и ни на йоту больше.\n\nЗачем это Лене? Агент — не она. Он может неверно понять задачу, а токен с `api` позволит ему слить merge request, который она хотела лишь посмотреть. Токен с `read_api` такого не позволит физически — отказ на стороне GitLab, до ущерба.\n\nГде ключей нет вовсе — тоже полезно знать: context7 («Auth: None required»), jina для базового использования, reddit в анонимном режиме (~10 запросов в минуту; `REDDIT_CLIENT_ID` / `REDDIT_CLIENT_SECRET` поднимают лимит), agentdb (всё локально, в одном `.db`-файле).\n\n**Компромисс:** узкий токен придётся расширять, когда задачи вырастут — это лишняя итерация. Зато ошибка агента с узким токеном — отказ, а с широким — инцидент.\n\n💬 **Скажи словами.** «Подключи GitLab, только на чтение» → ассистент напомнит про скоупы `read_api` + `read_repository` и попросит токен — вставлять его в чат не нужно, положи в окружение.",
+      "reflection": {
+        "strengths": "Три способа передать ключ покрывают все четыре клиента; таблица скоупов gitlab даёт готовый минимальный набор; несколько серверов работают вообще без ключа.",
+        "weaknesses": "Ключ в блоке env лежит открытым текстом в конфиге — ${input:…} есть только у VS Code; узкий токен приходится расширять, когда задачи растут.",
+        "rating": "5/5 за принцип, 3/5 за удобство хранения",
+        "wrapup": "Ключ — через -e, env или заголовок, никогда в чат; права — минимальные: read_api + read_repository, пока не нужна запись."
+      },
+      "exercise": {},
+      "quiz": [
+        {
+          "id": "keys-q1",
+          "question": "Лене нужно, чтобы агент читал merge request-ы GitLab, но не сливал их. Какие скоупы токена?",
+          "options": [
+            "api — чтобы точно всё работало",
+            "read_api + read_repository — минимальные права для чтения",
+            "write_repository",
+            "Скоупы не нужны — токен и так только читает"
+          ],
+          "correctAnswer": 1,
+          "explanation": "SKILL.md gitlab: read_api + read_repository для чтения; api — только когда нужны записи."
+        },
+        {
+          "id": "keys-q2",
+          "question": "Как передать ключ ClickUp серверу в Claude Code одной строкой?",
+          "options": [
+            "Вставить ключ в SKILL.md",
+            "claude mcp add clickup -e CLICKUP_API_KEY=pk_xxx -- npx @taazkareem/clickup-mcp-server",
+            "Написать ключ агенту в чат",
+            "Положить ключ в package.json"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Флаг -e кладёт переменную в окружение процесса сервера — так написано в clickup/SKILL.md."
+        },
+        {
+          "id": "keys-q3",
+          "question": "Какой из этих серверов работает без ключа вообще?",
+          "options": [
+            "brave-search",
+            "context7",
+            "clickup",
+            "gitlab"
+          ],
+          "correctAnswer": 1,
+          "explanation": "context7/SKILL.md: «Auth: None required». brave, clickup и gitlab требуют ключ или токен."
+        },
+        {
+          "id": "keys-q4",
+          "question": "Почему минимальные права для токена важнее именно для агента, чем для человека?",
+          "options": [
+            "Агент быстрее печатает",
+            "Агент может неверно понять задачу — узкий токен превращает такую ошибку в отказ, а не в инцидент",
+            "Агентам GitLab выдаёт другие токены",
+            "Это требование npm"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Отказ на стороне GitLab происходит до ущерба; широкий токен позволил бы действие, которого ты не хотел."
+        }
+      ],
+      "finalTest": {
+        "id": "final-keys-and-least-privilege",
+        "sectionId": "keys-and-least-privilege",
+        "question": "Что означает принцип минимальных прав для токена в этом пакете?",
+        "options": [
+          "Токен получает ровно те скоупы, что нужны задаче: read_api + read_repository для чтения, api только для записи",
+          "Токен всегда со скоупом api, чтобы не переделывать",
+          "Токен хранится в SKILL.md",
+          "Ключи вообще не нужны"
+        ],
+        "correctAnswer": 0
+      },
+      "diagram": {
+        "kind": "scale",
+        "title": "Скоупы токена GitLab: чем выше, тем больше может натворить ошибка агента",
+        "topLabel": "широко · ошибка = инцидент",
+        "bottomLabel": "узко · ошибка = отказ",
+        "nodes": [
+          {
+            "id": "api",
+            "label": "api",
+            "note": "полный доступ ко всем операциям"
+          },
+          {
+            "id": "write",
+            "label": "write_repository",
+            "note": "push, merge, ветки"
+          },
+          {
+            "id": "read-repo",
+            "label": "read_repository",
+            "note": "файлы репозитория"
+          },
+          {
+            "id": "read-api",
+            "label": "read_api",
+            "note": "только чтение: list, view — старт Лены",
+            "accent": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "search-family-pick-the-tool",
+      "order": 7,
+      "title": "7. Пять поисковых навыков — какой брать",
+      "shortTitle": "Поиск",
+      "description": "brave, exa, jina, context7, reddit: пять разных вопросов, а не пять одинаковых поисков.",
+      "icon": "🔎",
+      "interactiveType": "matching",
+      "keyConcept": "подбор поискового навыка под задачу",
+      "methodPattern": "P2",
+      "source": "brave-search/SKILL.md#tools",
+      "theory": "У Лены пять поисковых навыков, и первую неделю она звала все «поиском». Потом заметила, что они отвечают на разные вопросы. **Подбор поискового навыка под задачу** — не про то, какой лучше, а про то, какой вопрос ты задаёшь.\n\n- **brave-search — «что есть в вебе прямо сейчас?»** Пять инструментов: `brave_web_search`, `brave_local_search` (заведения: адрес, часы, рейтинг), `brave_video_search`, `brave_image_search`, `brave_news_search`. Параметры: `count` 1–20, `freshness` — `pd` (день), `pw` (неделя), `pm` (месяц), `py` (год), `summary: true` — сводка от ИИ. Запрос не длиннее 400 символов.\n- **exa-search — «найди по смыслу»**. `web_search` с `type: neural` (понимает намерение) или `keyword` (точное совпадение), `num_results` 1–100, `category`: `company`, `research_paper`, `news`, `github`, `tweet`, `pdf`; `find_similar` — страницы, похожие на данный URL.\n- **jina-reader — «прочитай мне эту страницу»**. `read_url` превращает любой URL в чистый markdown, `extract_data` вынимает структуру по схеме, `search_web` ищет и отдаёт результаты уже markdown-ом.\n- **context7 — «как сейчас выглядит API этой библиотеки?»** `resolve_library` → `get_library_docs` → актуальная документация вместо памяти модели; `search_docs` — по всем библиотекам сразу.\n- **reddit — «что об этом говорят люди?»** `search_posts`, `get_post`, `get_comments`, `list_subreddit` (hot, new, top, rising), `search_subreddit`, `get_user_posts`.\n\nЦепочка, которую Лена собрала за один вечер: exa нашёл статьи по смыслу («как строить MCP-сервер на TypeScript», `category: github`), jina прочитал лучшую из них в markdown, context7 проверил, что сигнатуры в статье не устарели, reddit показал, на что жалуются те, кто уже пробовал. Четыре навыка — один вопрос, разложенный на четыре.\n\n**Компромисс:** пять навыков означают пять ключей и пять наборов триггеров; агент иногда возьмёт brave там, где ты ждал exa (секция 4). Зато каждый отвечает на свой вопрос лучше универсального поиска — и ты это чувствуешь по первому же результату.\n\n💬 **Скажи словами.** «Найди свежие новости про X за неделю» → `brave_news_search` с `freshness: pw`. «Найди похожие на эту страницу» → `find_similar` из exa. Слово «похожие» и слово «свежие» уже выбирают навык за тебя.",
+      "reflection": {
+        "strengths": "Пять навыков = пять типов вопросов, у каждого свои параметры (freshness, category, neural/keyword); цепочка из них закрывает исследование целиком.",
+        "weaknesses": "Пять ключей и пересекающиеся триггеры; универсального «поиска» нет — приходится понимать, какой вопрос задаёшь.",
+        "rating": "5/5 за покрытие, 3/5 за простоту выбора",
+        "wrapup": "brave — что есть сейчас, exa — по смыслу, jina — прочитай, context7 — как выглядит API, reddit — что говорят люди."
+      },
+      "exercise": {
+        "pairs": [
+          {
+            "left": "Задача: свежие новости за последнюю неделю",
+            "right": "brave_news_search с freshness: pw"
+          },
+          {
+            "left": "Задача: найти статьи по смыслу, только с GitHub",
+            "right": "exa web_search, type: neural, category: github"
+          },
+          {
+            "left": "Задача: прочитать одну страницу как чистый markdown",
+            "right": "jina read_url"
+          },
+          {
+            "left": "Задача: актуальная документация по хуку библиотеки",
+            "right": "context7 resolve_library → get_library_docs"
+          },
+          {
+            "left": "Задача: на что жалуются пользователи в r/nextjs",
+            "right": "reddit search_subreddit"
+          },
+          {
+            "left": "Задача: страницы, похожие на данный URL",
+            "right": "exa find_similar"
+          }
+        ]
+      },
+      "quiz": [
+        {
+          "id": "search-q1",
+          "question": "Лене нужны публикации по смыслу запроса, а не по точным словам. Какой навык и режим — верный подбор под задачу?",
+          "options": [
+            "brave_web_search с summary: true",
+            "exa web_search с type: neural",
+            "jina read_url",
+            "reddit get_comments"
+          ],
+          "correctAnswer": 1,
+          "explanation": "В exa режим neural понимает намерение; keyword — точное совпадение. brave ищет по вебу, но не «по смыслу»."
+        },
+        {
+          "id": "search-q2",
+          "question": "Какой параметр brave_web_search ограничивает результаты последним месяцем?",
+          "options": [
+            "count: 30",
+            "freshness: pm",
+            "category: news",
+            "type: keyword"
+          ],
+          "correctAnswer": 1,
+          "explanation": "freshness: pd — день, pw — неделя, pm — месяц, py — год."
+        }
+      ],
+      "finalTest": {
+        "id": "final-search-family-pick-the-tool",
+        "sectionId": "search-family-pick-the-tool",
+        "question": "В чём смысл подбора поискового навыка под задачу?",
+        "options": [
+          "Каждый из пяти отвечает на свой тип вопроса: brave — что есть сейчас, exa — по смыслу, jina — прочитай, context7 — API, reddit — что говорят люди",
+          "Все пять одинаковы, выбирай любой",
+          "Нужен только brave-search, остальные — дубли",
+          "Выбирает не пользователь, а npm"
+        ],
+        "correctAnswer": 0
+      }
+    },
+    {
+      "id": "gmail-draft-before-send",
+      "order": 8,
+      "title": "8. Почта: черновик, потом отправка",
+      "shortTitle": "Gmail",
+      "description": "gog auth, синтаксис поиска Gmail, gmail_draft вместо gmail_send и один опасный gmail_bulk.",
+      "icon": "✉️",
+      "interactiveType": "scenario",
+      "keyConcept": "черновик gmail_draft перед отправкой",
+      "methodPattern": "D3",
+      "source": "gmail/SKILL.md#tips",
+      "theory": "Почта — первое, ради чего Лена вообще взялась за пакет. И первое, где агент может натворить необратимое: письмо не вернёшь, удалённое не восстановишь. Поэтому у навыка `gmail` в SKILL.md есть раздел Tips, и его главная строка — **черновик gmail_draft перед отправкой**, когда не уверен.\n\nСначала подключение — здесь оно самое длинное в пакете, потому что сервер не через npx:\n\n1. Поставить gogcli — CLI для сервисов Google: `brew install gogcli` на macOS или скачать бинарник `gog` для Linux (команда есть в SKILL.md).\n2. Поставить сам сервер: `npm install -g gogcli-mcp-gmail`.\n3. Авторизоваться: `gog auth add your@gmail.com --services gmail` — откроется браузер, ты выдаёшь права на чтение, отправку и изменение.\n4. Зарегистрировать: `claude mcp add gogcli-gmail -- gogcli-mcp-gmail`.\n\nВосемь инструментов: `gmail_search` (синтаксис тот же, что в строке поиска Gmail: `from:`, `to:`, `subject:`, `is:unread`, `has:attachment`, `newer_than:7d`, `older_than:30d`; `max_results` 1–100), `gmail_get` (письмо целиком по id), `gmail_send`, `gmail_draft`, `gmail_label`, `gmail_forward`, `gmail_autoreply` и `gmail_bulk` — массовое действие над всем, что нашёл запрос: `archive`, `delete`, `mark_read`, `mark_unread`, `label`.\n\nТри привычки из раздела Tips, которые Лена сделала своими:\n\n- **Сначала искать, потом писать** — чтобы не заводить второй тред там, где есть первый.\n- **Черновик, когда не уверен** — `gmail_draft`, прочитать глазами, потом отправить. Особенно для писем наружу.\n- **bulk — только с проверенным запросом**: сперва `gmail_search` с тем же `query`, посмотреть, что попало, и лишь затем `gmail_bulk`. Пример из SKILL.md безопасен именно поэтому: `category:promotions is:read older_than:30d` + `archive` — архив, не удаление.\n\n**Компромисс:** черновик и предварительный поиск — два лишних шага на каждое письмо; зато отправка, которую агент понял неверно, остаётся в черновиках, а не в чужом ящике.\n\n💬 **Скажи словами.** «Набросай ответ подрядчику, но не отправляй» — агент возьмёт `gmail_draft`. Слова «не отправляй» — самый дешёвый предохранитель в этом пакете.",
+      "reflection": {
+        "strengths": "Полный набор из восьми операций; синтаксис поиска совпадает с привычной строкой Gmail; в SKILL.md явно прописаны предохранители — черновик, поиск-до-отправки, осторожный bulk.",
+        "weaknesses": "Самая длинная установка в пакете (gogcli + npm + OAuth + claude mcp add); gmail_bulk с действием delete необратим и полагается только на дисциплину пользователя.",
+        "rating": "4/5",
+        "wrapup": "Ищи до того, как писать; черновик gmail_draft, когда не уверен; bulk — только после того, как тот же query проверен поиском."
+      },
+      "exercise": {
+        "title": "Лена разбирает почту с агентом — три решения",
+        "scenario": "Утро. Лене нужно ответить подрядчику, найти счёт от бухгалтерии и прибраться в рекламе. Каждый шаг — выбор, который делает она.",
+        "steps": [
+          {
+            "description": "Шаг 1. Ответ подрядчику важный, формулировка спорная. Что попросить у агента?",
+            "options": [
+              {
+                "text": "Набросать черновик через gmail_draft, прочитать и отправить самой",
+                "result": "positive",
+                "feedback": "Так советует раздел Tips в SKILL.md: gmail_draft, когда не уверен; черновик перед отправкой — отправленное не вернёшь."
+              },
+              {
+                "text": "Сразу gmail_send — экономим время",
+                "result": "negative",
+                "feedback": "Письмо уйдёт в том виде, как агент понял задачу. Если понял неверно — исправлять поздно."
+              },
+              {
+                "text": "Переслать через gmail_forward самой себе",
+                "feedback": "Ничего не сломает, но и не решает: письма подрядчику так и нет. Черновик — прямой путь."
+              }
+            ]
+          },
+          {
+            "description": "Шаг 2. Нужен счёт от бухгалтерии за последнюю неделю, непрочитанный. Какой запрос для gmail_search?",
+            "options": [
+              {
+                "text": "from:бухгалтерия is:unread newer_than:7d",
+                "result": "positive",
+                "feedback": "Верно: синтаксис тот же, что в строке поиска Gmail — from:, is:unread, newer_than:7d."
+              },
+              {
+                "text": "Прочитать всю папку через gmail_get по каждому письму",
+                "result": "negative",
+                "feedback": "gmail_get берёт одно письмо по id. Сначала gmail_search, потом gmail_get нужного."
+              },
+              {
+                "text": "Попросить gmail_autoreply отвечать бухгалтерии",
+                "result": "negative",
+                "feedback": "Автоответ — для отпуска, а не для поиска счёта."
+              }
+            ]
+          },
+          {
+            "description": "Шаг 3. Прибраться в рекламе: старые прочитанные промо-письма. Как безопасно?",
+            "options": [
+              {
+                "text": "Сначала gmail_search с query category:promotions is:read older_than:30d, посмотреть, что попало, затем gmail_bulk с action archive",
+                "result": "positive",
+                "feedback": "Именно так, и это пример из SKILL.md: запрос проверен поиском, действие — archive, а не delete."
+              },
+              {
+                "text": "Сразу gmail_bulk с action delete по запросу is:read",
+                "result": "negative",
+                "feedback": "is:read — это ВСЯ прочитанная почта, и delete необратим. bulk только с проверенным узким запросом и, если можно, archive."
+              }
+            ]
+          }
+        ]
+      },
+      "quiz": [
+        {
+          "id": "gmail-q1",
+          "question": "Что советует раздел Tips навыка gmail, когда ты не уверен в письме?",
+          "options": [
+            "Отправить и извиниться потом",
+            "Сделать черновик gmail_draft и перечитать перед отправкой",
+            "Отправить через gmail_forward",
+            "Выключить сервер"
+          ],
+          "correctAnswer": 1,
+          "explanation": "«Use gmail_draft when unsure; review before sending» — прямая рекомендация SKILL.md."
+        }
+      ],
+      "finalTest": {
+        "id": "final-gmail-draft-before-send",
+        "sectionId": "gmail-draft-before-send",
+        "question": "Какой порядок действий с почтой безопасен по SKILL.md gmail?",
+        "options": [
+          "Сначала поиск, при сомнении — черновик gmail_draft, bulk только с проверенным запросом",
+          "Сразу gmail_send, потом поиск",
+          "gmail_bulk delete по is:read раз в неделю",
+          "Автоответ на всё"
+        ],
+        "correctAnswer": 0
+      },
+      "diagram": {
+        "kind": "flow",
+        "title": "Безопасный путь письма: поиск → черновик → отправка",
+        "nodes": [
+          {
+            "id": "search",
+            "label": "gmail_search",
+            "note": "есть ли уже тред? тот же синтаксис, что в Gmail"
+          },
+          {
+            "id": "draft",
+            "label": "gmail_draft",
+            "note": "черновик: прочитать глазами",
+            "accent": true
+          },
+          {
+            "id": "send",
+            "label": "gmail_send",
+            "note": "только после черновика"
+          }
+        ]
+      }
+    },
+    {
+      "id": "google-trio-three-auths",
+      "order": 9,
+      "title": "9. Три Google — три разных входа",
+      "shortTitle": "Google ×3",
+      "description": "Календарь, Таблицы и Задачи — один аккаунт, а способы авторизации у серверов не совпадают.",
+      "icon": "📅",
+      "interactiveType": "flashcards",
+      "keyConcept": "три разных способа авторизации Google",
+      "methodPattern": "P4",
+      "source": "google-sheets/SKILL.md#environment-variables",
+      "theory": "Лена подключила календарь, обрадовалась и пошла подключать таблицы тем же способом. Не сработало. Потом задачи — снова по-другому. Сюрприз пакета: у трёх навыков одного и того же Google **три разных способа авторизации**, потому что за ними три разных сервера от трёх разных авторов.\n\n1. **google-calendar** (`@cocal/google-calendar-mcp`): переменная `GOOGLE_OAUTH_CREDENTIALS` — путь к JSON-файлу OAuth-клиента из Google Cloud (тип «Desktop app», например `gcp-oauth.keys.json`). После `claude mcp add google-calendar -- npx @cocal/google-calendar-mcp` нужно попросить агента пройти вход в Google — и только потом вызывать `list_events` или `create_event`.\n2. **google-sheets** (`mcp-google-sheets`): по умолчанию сервисный аккаунт — `SERVICE_ACCOUNT_PATH` к JSON-ключу; необязательный `DRIVE_FOLDER_ID` ограничивает доступ одной папкой Диска. Альтернатива — OAuth через `GOOGLE_SHEETS_CLIENT_ID`, `GOOGLE_SHEETS_CLIENT_SECRET`, `TOKEN_PATH`.\n3. **google-tasks** (`@zcaceres/gtasks`): проще всего через Smithery — `npx -y @smithery/cli install @zcaceres/gtasks --client claude`; вручную — клонировать репозиторий, `npm run build`, затем один раз `npm run start auth` (браузер, OAuth), после чего ключи лягут в `.gdrive-server-credentials.json`.\n\nЗаметь ещё одно расхождение, которое стоит знать: таблица Skill Inventory в README подписывает эти три сервера как «Smithery (googlecalendar)», «Smithery (googlesheets)», «Smithery (googletasks)», а SKILL.md называет конкретные пакеты. Источник истины — SKILL.md: там строка установки, там переменные. Таблица — краткая подпись, и она отстала (измерено чтением обоих файлов, 2026-09-02).\n\nЧто умеют, когда вошли:\n\n- календарь: `list_events` (диапазон `time_min`/`time_max`, `query`, `single_events` раскрывает повторяющиеся), `create_event` — с участниками, местом и RRULE для повторов;\n- таблицы: `read_sheet` (диапазон в A1-нотации, `value_render_option: FORMULA` покажет формулы, а не значения), `write_sheet` (`USER_ENTERED` разбирает формулы, `RAW` пишет как есть);\n- задачи: `list_task_lists`, `list_tasks`, `create_task`, `update_task`, `complete_task`, `delete_task`, `move_task`.\n\n**Компромисс:** три входа — втрое больше настройки, чем хотелось бы, и `DRIVE_FOLDER_ID` — единственное место, где можно сузить доступ. Зато каждый сервер выбран за полноту инструментов, а не за единообразие входа.\n\n💬 **Скажи словами.** «Поставь встречу с Алисой на завтра в 14:00 и повторяй каждую среду» → `create_event` с RRULE. Лена ни разу не писала RRULE руками — только читала, что агент собрал.",
+      "reflection": {
+        "strengths": "Три полноценных сервера с богатыми инструментами (RRULE, формулы, перемещение задач); DRIVE_FOLDER_ID позволяет ограничить таблицы одной папкой.",
+        "weaknesses": "Три несовместимых способа входа; для google-tasks вручную нужна сборка из исходников; таблица README подписывает серверы иначе, чем SKILL.md.",
+        "rating": "4/5 за инструменты, 2/5 за единообразие входа",
+        "wrapup": "Календарь — OAuth-файл клиента, таблицы — сервисный аккаунт (или OAuth), задачи — Smithery или сборка + npm run start auth; источник истины — SKILL.md, не таблица README."
+      },
+      "exercise": {
+        "cards": [
+          {
+            "front": "Как авторизуется google-calendar?",
+            "back": "GOOGLE_OAUTH_CREDENTIALS — путь к JSON OAuth-клиента (Desktop app), затем попросить агента пройти вход в Google."
+          },
+          {
+            "front": "Как авторизуется google-sheets по умолчанию?",
+            "back": "Сервисный аккаунт: SERVICE_ACCOUNT_PATH к JSON-ключу; DRIVE_FOLDER_ID сужает доступ до одной папки."
+          },
+          {
+            "front": "Как авторизуется google-tasks при ручной установке?",
+            "back": "Клонировать репозиторий, npm run build, один раз npm run start auth — ключи лягут в .gdrive-server-credentials.json."
+          },
+          {
+            "front": "Почему у трёх навыков одного Google три разных способа авторизации?",
+            "back": "За ними три разных сервера от трёх разных авторов: @cocal/google-calendar-mcp, mcp-google-sheets, @zcaceres/gtasks."
+          },
+          {
+            "front": "Что источник истины про сервер — таблица README или SKILL.md?",
+            "back": "SKILL.md: там строка установки и переменные. Таблица README подписывает эти три как «Smithery (…)» и отстала."
+          },
+          {
+            "front": "Чем USER_ENTERED отличается от RAW в write_sheet?",
+            "back": "USER_ENTERED разбирает формулы как при вводе руками; RAW пишет строку как есть."
+          }
+        ]
+      },
+      "quiz": [
+        {
+          "id": "google-q1",
+          "question": "Лена настроила google-calendar через GOOGLE_OAUTH_CREDENTIALS и хочет тем же файлом поднять google-sheets. Что произойдёт?",
+          "options": [
+            "Всё заработает — Google один",
+            "Не заработает: google-sheets ждёт SERVICE_ACCOUNT_PATH (или свой OAuth), у него другой сервер и другой способ авторизации",
+            "Заработает только чтение",
+            "Сервер сам сконвертирует файл"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Три навыка — три сервера, три способа входа. Переменные из SKILL.md каждого не взаимозаменяемы."
+        }
+      ],
+      "finalTest": {
+        "id": "final-google-trio-three-auths",
+        "sectionId": "google-trio-three-auths",
+        "question": "Почему у google-calendar, google-sheets и google-tasks разные способы авторизации?",
+        "options": [
+          "За ними три разных сервера от разных авторов — у каждого свой способ входа, описанный в его SKILL.md",
+          "Это ошибка пакета, скоро исправят",
+          "Google требует разные аккаунты",
+          "Они одинаковые, просто по-разному названы"
+        ],
+        "correctAnswer": 0
+      },
+      "diagram": {
+        "kind": "compare",
+        "title": "Три Google — три входа",
+        "nodes": [
+          {
+            "id": "cal",
+            "label": "Календарь",
+            "note": "@cocal/google-calendar-mcp",
+            "items": [
+              "GOOGLE_OAUTH_CREDENTIALS",
+              "файл OAuth-клиента",
+              "вход через агента"
+            ]
+          },
+          {
+            "id": "sheets",
+            "label": "Таблицы",
+            "note": "mcp-google-sheets",
+            "items": [
+              "SERVICE_ACCOUNT_PATH",
+              "DRIVE_FOLDER_ID сужает",
+              "или OAuth-пара"
+            ],
+            "accent": true
+          },
+          {
+            "id": "tasks",
+            "label": "Задачи",
+            "note": "@zcaceres/gtasks",
+            "items": [
+              "Smithery CLI",
+              "или сборка из исходников",
+              "npm run start auth"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "notion-clickup-share-first",
+      "order": 10,
+      "title": "10. Notion и ClickUp: сначала открыть доступ",
+      "shortTitle": "Notion/ClickUp",
+      "description": "Почему ключ Notion работает, а страниц агент не видит — и как ClickUp закрывает дневной цикл Лены.",
+      "icon": "📚",
+      "interactiveType": "builder",
+      "keyConcept": "интеграция Notion должна быть подключена к страницам",
+      "methodPattern": "P12",
+      "source": "notion/SKILL.md#notion-api-key-setup",
+      "theory": "Лена завела интеграцию в Notion, скопировала секрет (начинается с `ntn_`), положила в `NOTION_API_KEY`, зарегистрировала сервер — и `search_pages` вернул пустоту. Ключ верный, сервер жив, страниц нет. Она прочитала пятый пункт раздела Notion API Key Setup — и всё встало на место.\n\nПятый пункт: **интеграция Notion должна быть подключена к страницам.** Ключ даёт интеграции право существовать, но не даёт ей ни одной страницы. Каждую страницу или базу нужно расшарить интеграции вручную: меню «⋯» на странице → Connections → выбрать свою интеграцию. Это не мелочь в сноске — это причина пустого ответа, и в SKILL.md она стоит в основной последовательности настройки.\n\nПорядок из SKILL.md целиком:\n\n1. [notion.so/my-integrations](https://www.notion.so/my-integrations) → New integration, имя вроде «Claude MCP».\n2. Выбрать workspace и права: читать, обновлять, вставлять содержимое.\n3. Скопировать Internal Integration Secret (`ntn_…`) в `NOTION_API_KEY`.\n4. `claude mcp add notion -- npx @notionhq/notion-mcp-server`.\n5. Расшарить нужные страницы и базы интеграции через Connections.\n\nИнструменты: `search_pages` (по заголовку или содержимому, фильтр `page`/`database`), `get_page`, `create_page` (родитель — `page_id` или `database_id`, свойства и блоки-дети) и дальше по работе с базами и блоками.\n\nClickUp закрывает вторую половину утра Лены — задачи. Сервер `@taazkareem/clickup-mcp-server`, ключ через `-e CLICKUP_API_KEY=pk_…` (секция 6). Инструменты: `create_task` (исполнители, приоритет, срок, теги), `update_task`, `list_tasks` с фильтрами по статусу и исполнителю, `add_comment` с markdown, `create_doc`, `start_timer`/`stop_timer`, `list_spaces`, `list_folders`. Пример из SKILL.md — стендап одной фразой: «все задачи из Sprint 42 в статусе In Progress, сгруппируй по исполнителю, покажи учтённое время».\n\n**Компромисс:** ручной шаринг страниц в Notion — самое частое место, где «всё настроено, а не работает»; зато интеграция видит ровно то, что ты ей открыл, — это та же минимальность прав из секции 6, только на уровне страниц.\n\n💬 **Скажи словами.** «Сохрани итоги встречи страницей в Notion под проектом X и заведи в ClickUp три задачи из списка действий» — два навыка в одной фразе; Лена так закрывает каждую ретро.",
+      "reflection": {
+        "strengths": "Notion и ClickUp вместе закрывают цикл «обсудили → записали → завели задачи»; шаринг страниц даёт интеграции доступ ровно к нужному; ClickUp умеет время и комментарии, не только задачи.",
+        "weaknesses": "Пустой ответ Notion при верном ключе сбивает с толку, пока не дочитаешь до пятого пункта; шаринг — ручной, на каждую новую страницу.",
+        "rating": "4/5",
+        "wrapup": "Ключ Notion — право существовать, Connections — право видеть: подключи интеграцию к страницам, иначе search_pages пуст."
+      },
+      "exercise": {
+        "instruction": "Собери команду, которой Лена регистрирует сервер Notion в Claude Code (после этого ей ещё предстоит подключить интеграцию к страницам).",
+        "parts": [
+          "claude",
+          "mcp",
+          "add",
+          "notion",
+          "-- npx",
+          "@notionhq/notion-mcp-server"
+        ],
+        "correctCommand": "claude mcp add notion -- npx @notionhq/notion-mcp-server",
+        "hints": [
+          "Форма та же, что у brave-search: имя, потом разделитель -- и команда запуска",
+          "Пакет сервера — @notionhq/notion-mcp-server, запускается через npx"
+        ]
+      },
+      "quiz": [
+        {
+          "id": "notion-q1",
+          "question": "Ключ NOTION_API_KEY верный, сервер в claude mcp list, но search_pages возвращает пустоту. Что забыла Лена?",
+          "options": [
+            "Перезапустить компьютер",
+            "Подключить интеграцию к страницам через меню ⋯ → Connections",
+            "Купить платный план Notion",
+            "Добавить --transport http"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Пункт 5 раздела Notion API Key Setup: интеграция видит только страницы, которые ей расшарили."
+        }
+      ],
+      "finalTest": {
+        "id": "final-notion-clickup-share-first",
+        "sectionId": "notion-clickup-share-first",
+        "question": "Что нужно сделать после регистрации сервера Notion, чтобы агент увидел страницы?",
+        "options": [
+          "Подключить интеграцию к нужным страницам и базам через Connections — ключ сам по себе доступа к страницам не даёт",
+          "Ничего — ключ открывает весь workspace",
+          "Добавить страницы в SKILL.md",
+          "Переустановить пакет"
+        ],
+        "correctAnswer": 0
+      }
+    },
+    {
+      "id": "git-to-merge-request",
+      "order": 11,
+      "title": "11. От ветки до слияния",
+      "shortTitle": "Git/GitLab",
+      "description": "17 инструментов git-mcp и MR-цикл gitlab — как Лена доводит правку до слияния, не открывая браузер.",
+      "icon": "🌿",
+      "interactiveType": "drag-and-drop",
+      "keyConcept": "путь merge request: ветка, коммит, push, пайплайн, слияние",
+      "methodPattern": "D4",
+      "source": "git-mcp/SKILL.md#tools",
+      "theory": "У Лены два навыка про код, и она путала их первые дни. Разница простая: `git-mcp` — то, что происходит в репозитории на диске; `gitlab` — то, что происходит на сервере GitLab вокруг репозитория. Вместе они дают **путь merge request: ветка, коммит, push, пайплайн, слияние** — целиком через агента.\n\n**git-mcp** (`claude mcp add git -- npx @cyanheads/git-mcp-server`) — 17 инструментов, каждый с параметром `repo_path` (или общий `GIT_DEFAULT_PATH` в окружении): `git_status`, `git_diff` (цель `HEAD`, `main..feature`, `--staged`, можно сузить до файла), `git_log` (`max_count`, `branch`, `author`, `since`, `file_path`), `git_commit` (список файлов — застейджит их сам), `git_branch`, `git_merge`, `git_rebase`, `git_stash`, `git_cherry_pick`, `git_clone`, `git_fetch`, `git_pull`, `git_push`, `git_reset`, `git_tag`, `git_worktree`, `git_remote`. Число 17 — это ровно столько заголовков `### git_…` в SKILL.md; таблица README говорит то же.\n\n**gitlab** (`claude mcp add gitlab -- npx @zereight/mcp-gitlab`, токен из секции 6, `GITLAB_URL` для своего инстанса): проекты, `create_merge_request`, `list_merge_requests`, `approve_merge_request`, `merge_merge_request`, задачи (`create_issue`, `update_issue`), пайплайны (`list_pipelines`, `get_pipeline`, `retry_pipeline`, `cancel_pipeline`), wiki, релизы, теги, вехи.\n\nПуть Лены от правки до слияния, без единой вкладки браузера:\n\n1. `git_branch` — новая ветка.\n2. `git_commit` с именами файлов — застейджит и закоммитит.\n3. `git_push` — ветка на сервере.\n4. `create_merge_request` — MR из ветки в main.\n5. `get_pipeline` — дождаться зелёного; если красный — `retry_pipeline`.\n6. `approve_merge_request` → `merge_merge_request` — только если у токена есть право на запись.\n\nШаг шесть — то место, где секция 6 возвращается: с `read_api` агент дойдёт до пятого шага и остановится. Лена так и оставила: слияние она нажимает сама, с отдельным токеном, — не потому что агент плох, а потому что необратимое действие она хочет видеть глазами.\n\n**Компромисс:** два сервера вместо одного — два ключа, два набора триггеров; зато граница между «диск» и «сервер» совпадает с границей прав, и её легко удерживать.\n\n💬 **Скажи словами.** «Заведи ветку fix-login, закоммить оба файла и открой MR в main» — три инструмента git-mcp и один gitlab в одной фразе.",
+      "reflection": {
+        "strengths": "17 инструментов git закрывают весь локальный цикл, включая worktree и cherry-pick; gitlab добавляет MR, пайплайны и релизы; путь от ветки до слияния проходится одной фразой.",
+        "weaknesses": "Два навыка легко перепутать; слияние — необратимо, и защита от него только в скоупах токена; для self-hosted нужно не забыть GITLAB_URL.",
+        "rating": "5/5 за покрытие, 4/5 за безопасность (держится на токене)",
+        "wrapup": "git-mcp — диск, gitlab — сервер; путь ветка → коммит → push → MR → пайплайн → слияние, и последний шаг упирается в права токена."
+      },
+      "exercise": {
+        "instruction": "Расставь шаги пути merge request так, как их проходит Лена — от новой ветки до слияния.",
+        "items": [
+          {
+            "id": "branch",
+            "label": "git_branch — создать ветку под правку"
+          },
+          {
+            "id": "commit",
+            "label": "git_commit — застейджить файлы и закоммитить"
+          },
+          {
+            "id": "push",
+            "label": "git_push — отправить ветку на сервер"
+          },
+          {
+            "id": "mr",
+            "label": "create_merge_request — открыть MR в main"
+          },
+          {
+            "id": "pipeline",
+            "label": "get_pipeline — дождаться зелёного пайплайна"
+          },
+          {
+            "id": "merge",
+            "label": "merge_merge_request — слить (нужны права на запись)"
+          }
+        ],
+        "correctOrder": [
+          "branch",
+          "commit",
+          "push",
+          "mr",
+          "pipeline",
+          "merge"
+        ]
+      },
+      "quiz": [
+        {
+          "id": "git-q1",
+          "question": "Сколько инструментов у git-mcp и откуда это число?",
+          "options": [
+            "10 — так написано в CHANGELOG",
+            "17 — столько заголовков ### git_… в SKILL.md, и README называет ту же цифру",
+            "35 — как у agentdb",
+            "Неизвестно, список не опубликован"
+          ],
+          "correctAnswer": 1,
+          "explanation": "git_status … git_remote — 17 заголовков; README: «17 git tools»."
+        },
+        {
+          "id": "git-q2",
+          "question": "Агент с токеном read_api дошёл до create_merge_request и остановился. Почему?",
+          "options": [
+            "Сервер упал",
+            "read_api — только чтение; создание MR и слияние требуют api или write_repository",
+            "Ветка не запушена",
+            "Не хватает GIT_DEFAULT_PATH"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Граница прав токена (секция 6) — это и граница того, что агент может сделать на сервере."
+        }
+      ],
+      "finalTest": {
+        "id": "final-git-to-merge-request",
+        "sectionId": "git-to-merge-request",
+        "question": "Как распределены роли между git-mcp и gitlab на пути merge request?",
+        "options": [
+          "git-mcp — ветка, коммит, push на диске; gitlab — MR, пайплайн, слияние на сервере",
+          "Оба делают одно и то же",
+          "gitlab работает только с GitHub",
+          "git-mcp создаёт merge request, gitlab делает коммиты"
+        ],
+        "correctAnswer": 0
+      },
+      "diagram": {
+        "kind": "flow",
+        "title": "Путь merge request: где кончается git-mcp и начинается gitlab",
+        "nodes": [
+          {
+            "id": "branch",
+            "label": "git_branch",
+            "note": "git-mcp: диск"
+          },
+          {
+            "id": "commit",
+            "label": "git_commit",
+            "note": "git-mcp: диск"
+          },
+          {
+            "id": "push",
+            "label": "git_push",
+            "note": "git-mcp: диск → сервер"
+          },
+          {
+            "id": "mr",
+            "label": "create_merge_request",
+            "note": "gitlab: сервер",
+            "accent": true
+          },
+          {
+            "id": "pipe",
+            "label": "get_pipeline",
+            "note": "gitlab: ждать зелёного"
+          },
+          {
+            "id": "merge",
+            "label": "merge_merge_request",
+            "note": "gitlab: нужны права на запись"
+          }
+        ]
+      }
+    },
+    {
+      "id": "agentdb-measured-not-remembered",
+      "order": 12,
+      "title": "12. Память агента: измерено, не запомнено",
+      "shortTitle": "AgentDB",
+      "description": "35 инструментов AgentDB, 23 мёртвых имени в прошлой версии навыка и мост к dz recall — самая честная страница пакета.",
+      "icon": "🧠",
+      "interactiveType": "quiz",
+      "keyConcept": "измерено, не запомнено: tools/list вместо старого списка",
+      "methodPattern": "P11",
+      "source": "agentdb-memory/SKILL.md#core-tools-grouped-by-capability",
+      "theory": "Лена попросила агента «запомнить, как мы починили N+1 в GraphQL». Агент вызвал инструмент из старой версии навыка — и получил «no such tool». Это не её ошибка, и SKILL.md теперь говорит об этом прямо.\n\n`agentdb-memory` — самообучающаяся векторная память: `claude mcp add agentdb -- npx agentdb@latest mcp start`, без ключей, всё в одном локальном `.db`-файле (SQLite). Сервер регистрирует **35 инструментов — измерено на agentdb 3.0.0-alpha.20, 2026-08-26**. И вот история, ради которой эта секция существует: предыдущая версия страницы перечисляла 26 имён, из которых существовали только 3. Имена были придуманы по аналогии — к каждому приписали префикс `agentdb_`, а префикс носят только инструменты хранилища. 23 мёртвых имени в опубликованном пакете.\n\nЛечение — не новый список (он сгниёт так же), а принцип **измерено, не запомнено: tools/list вместо старого списка.** SKILL.md даёт способ проверить самому: запустить stdio-процесс сервера, послать две строки JSON-RPC — сначала `initialize`, затем `tools/list` — и прочитать ответ на второй. Сначала `initialize`: голый `tools/list` не отвечает ничем. Если имя со страницы не нашлось — список сдвинулся, ты не ошибся (навык ставит `@latest` на alpha-пакет, поверхность движется).\n\nЧто в 35 — по группам из SKILL.md:\n\n- хранилище (12): `agentdb_init`, `agentdb_insert`, `agentdb_search` (HNSW — быстрый поиск ближайших векторов), `agentdb_pattern_store`, `agentdb_pattern_search`, `agentdb_stats` и другие;\n- Reflexion (3): `reflexion_store` — задача + исход + самокритика + награда, `reflexion_retrieve`;\n- причинный граф (3): `causal_add_edge`, `causal_query`, `causal_traverse`;\n- библиотека навыков (3): `skill_create`, `skill_search`;\n- обучение и RL (10): `learning_feedback` — сигнал «пригодилось ли», от него следующий поиск лучше;\n- опыт и аудит (4): `recall_with_certificate` — воспоминание с проверяемым сертификатом происхождения.\n\nМост к dz, ради которого Лена его поставила: `dz recall --all --json` выгружает всё, чему научился харнес, `agentdb_pattern_store` кладёт каждую запись с эмбеддингом, `agentdb_pattern_search` ищет по смыслу — «как мы обходили N+1?» найдёт запись и с другой формулировкой. Лексический recall остаётся в CLI, семантический — здесь.\n\nЕсть и страж, а не только слова: тест пакета `tests/agentdb-skill-honesty.test.js` проверяет, что число в README равно числу строк в таблицах SKILL.md, что штамп «Measured, not remembered» стоит над таблицами, что ни один пример не зовёт имя, которого нет в таблице. Число нельзя поправить в одном месте и забыть в другом — тест упадёт.\n\n**Компромисс:** `@latest` на alpha означает, что имена будут дрейфовать и дальше — цена за свежесть. Зато страница теперь говорит, как проверить её саму, и это единственная честная форма документации для движущейся цели.",
+      "reflection": {
+        "strengths": "Память без ключей и облака; 35 инструментов с датой и версией измерения; способ проверить список самому; мост к dz recall; тест, который держит число и штамп в согласии.",
+        "weaknesses": "@latest на alpha-пакете — имена дрейфуют; первый запуск npx может минутами качать пакет и молчать; прошлая версия навыка уже один раз обманула 23 именами.",
+        "rating": "5/5 за честность, 3/5 за стабильность имён",
+        "wrapup": "Не верь списку — измерь: initialize, потом tools/list; имя не нашлось — список сдвинулся, ты не ошибся."
+      },
+      "exercise": {},
+      "quiz": [
+        {
+          "id": "agentdb-q1",
+          "question": "Агент вызвал инструмент из SKILL.md agentdb-memory, а сервер ответил «no such tool». Что советует сама страница?",
+          "options": [
+            "Переустановить пакет skills-mcp",
+            "Измерить самому: послать initialize, затем tools/list — список сдвинулся, ты не ошибся",
+            "Добавить префикс agentdb_ к имени",
+            "Откатить agentdb до 2.x"
+          ],
+          "correctAnswer": 1,
+          "explanation": "«Measured, not remembered»: страница даёт команду проверки вместо доверия списку. Префикс agentdb_ — как раз тот приём, что породил 23 мёртвых имени."
+        },
+        {
+          "id": "agentdb-q2",
+          "question": "Сколько инструментов зарегистрировал сервер, и как это число получено?",
+          "options": [
+            "41 — из старого README",
+            "35 — ответ сервера на tools/list, agentdb 3.0.0-alpha.20, 2026-08-26",
+            "26 — из прошлой версии страницы",
+            "80+ — как у comfyui"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Число измерено и датировано в самом SKILL.md; тест пакета сверяет его с README."
+        },
+        {
+          "id": "agentdb-q3",
+          "question": "Почему предыдущая версия страницы содержала 23 несуществующих имени?",
+          "options": [
+            "Сервер удалил инструменты специально",
+            "Имена придумали по аналогии, приписав префикс agentdb_ всем, хотя его носят только инструменты хранилища",
+            "Опечатки при переводе",
+            "Это были платные инструменты"
+          ],
+          "correctAnswer": 1,
+          "explanation": "SKILL.md: «Only the store-level tools carry the agentdb_ prefix» — именно так старый список ушёл в небытие."
+        },
+        {
+          "id": "agentdb-q4",
+          "question": "Что делает мост dz recall --all --json → agentdb_pattern_store?",
+          "options": [
+            "Удаляет уроки из dz",
+            "Переносит выученные харнесом записи в векторный индекс, чтобы искать их по смыслу через agentdb_pattern_search",
+            "Публикует уроки в npm",
+            "Заменяет dz recall навсегда"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Лексический recall остаётся в CLI; семантический — в MCP-сессии над теми же записями."
+        }
+      ],
+      "finalTest": {
+        "id": "final-agentdb-measured-not-remembered",
+        "sectionId": "agentdb-measured-not-remembered",
+        "question": "Что значит принцип «измерено, не запомнено» на странице agentdb-memory?",
+        "options": [
+          "Список инструментов — ответ сервера на tools/list с версией и датой, и страница говорит, как повторить измерение самому",
+          "Список выучен наизусть автором",
+          "Инструменты хранятся в памяти агента",
+          "Число 35 взято из README"
+        ],
+        "correctAnswer": 0
+      },
+      "diagram": {
+        "kind": "flow",
+        "title": "Проверь список сам: два сообщения — один честный ответ",
+        "nodes": [
+          {
+            "id": "start",
+            "label": "Запустить сервер",
+            "note": "npx agentdb@latest mcp start — первый раз может качать минутами"
+          },
+          {
+            "id": "init",
+            "label": "initialize",
+            "note": "обязательно первым — иначе тишина"
+          },
+          {
+            "id": "list",
+            "label": "tools/list",
+            "note": "ответ на id: 2 — настоящий список",
+            "accent": true
+          },
+          {
+            "id": "compare",
+            "label": "Сверить со страницей",
+            "note": "имя не нашлось → список сдвинулся, не ты"
+          }
+        ]
+      }
+    },
+    {
+      "id": "local-app-bridges-obsidian-comfyui",
+      "order": 13,
+      "title": "13. Мост к приложению на твоей машине",
+      "shortTitle": "Obsidian/ComfyUI",
+      "description": "Obsidian и ComfyUI: MCP-сервер здесь — не сервис, а мост к программе, которая должна быть уже запущена.",
+      "icon": "🌉",
+      "interactiveType": "matching",
+      "keyConcept": "MCP-сервер как мост к локальному приложению",
+      "methodPattern": "P10",
+      "source": "obsidian/SKILL.md#obsidian-rest-api-plugin-setup",
+      "theory": "Последние два навыка Лена подключала вечером — и оба «не ответили». Сервер в `claude mcp list` есть, ключ на месте, а инструмент возвращает ошибку соединения. Общая причина: это **MCP-сервер как мост к локальному приложению** — он ничего не делает сам, а пересылает вызовы программе, которая должна быть уже запущена у тебя.\n\n**obsidian** (`claude mcp add obsidian -- npx obsidian-mcp-server`): мост к твоему хранилищу заметок через плагин Local REST API. Порядок из SKILL.md:\n\n1. Obsidian → Settings → Community Plugins → Browse → найти «Local REST API» → установить.\n2. Включить плагин и взять из его настроек API-ключ → `OBSIDIAN_API_KEY` (обязателен).\n3. Плагин слушает `https://localhost:27124` — это значение по умолчанию для `OBSIDIAN_REST_URL`.\n\nИнструменты: `read_note` (путь внутри хранилища, например `Daily Notes/2026-06-03.md`), `write_note` (создать или перезаписать; frontmatter — часть содержимого), `search_notes` (по тексту или тегу, `context_length` — сколько символов вокруг совпадения показать).\n\n**comfyui** (`claude mcp add comfyui -- npx comfyui-mcp`): мост к ComfyUI — генерации изображений. Требуется запущенный ComfyUI на `http://127.0.0.1:8188` (или свой `COMFYUI_URL`) и хотя бы одна скачанная модель. Сервер даёт 80+ инструментов: `execute_workflow`, `text_to_image`, `image_to_image`, `inpaint`, `list_models`, `switch_model`, `queue_status`, `vram_status`, `free_vram`, `upscale_image`. Раздел Procedure в SKILL.md строг: проверить, что ComfyUI доступен, до любой генерации — и **не пытаться запускать ComfyUI программно**; разрешение под модель (SDXL — 1024×1024, SD 1.5 — 512×512); `vram_status` перед загрузкой модели, `free_vram` при нехватке; всегда сообщать seed — без него результат не повторить.\n\nОбщее у обоих: если Obsidian закрыт или ComfyUI не запущен, мост ведёт в пустоту. Проверка — не `claude mcp list` (сервер-мост там будет), а само приложение: открыт ли Obsidian с включённым плагином, отвечает ли `127.0.0.1:8188`.\n\nНа этом арсенал Лены собран целиком: почта, календарь, таблицы, задачи, пять поисков, знание в Notion и Obsidian, код в git и GitLab, картинки, память. Ни одной команды она не набирает — только говорит. А когда что-то не отвечает, у неё есть карта: сервер (секция 3) → ключ (6) → доступ (10) → приложение (13).\n\n**Компромисс:** мост зависит от приложения — ещё один движущийся элемент; зато данные никуда не уходят: заметки остаются в твоём хранилище, картинки — на твоей видеокарте.\n\n💬 **Скажи словами.** «Найди в заметках всё про MCP-сервер и допиши итоги в сегодняшнюю» — `search_notes` + `write_note`. «Сгенерируй превью, seed запиши» — и Лена получает путь к файлу, параметры и seed, как требует Procedure.",
+      "reflection": {
+        "strengths": "Данные остаются на машине; Obsidian подключается за три шага; comfyui несёт в SKILL.md строгую процедуру (проверка доступности, VRAM, seed), которая экономит часы.",
+        "weaknesses": "Мост молчит, если приложение не запущено, а claude mcp list этого не покажет; у comfyui 80+ инструментов — легко потеряться; ComfyUI нужно запускать руками.",
+        "rating": "4/5",
+        "wrapup": "Мост к локальному приложению отвечает только когда приложение живо: Obsidian с плагином Local REST API на 27124, ComfyUI на 8188 — проверяй их, а не список серверов."
+      },
+      "exercise": {
+        "pairs": [
+          {
+            "left": "obsidian: что должно быть включено в самом Obsidian",
+            "right": "Плагин Local REST API — он слушает https://localhost:27124 и выдаёт OBSIDIAN_API_KEY"
+          },
+          {
+            "left": "comfyui: что должно быть запущено до генерации",
+            "right": "Сам ComfyUI на http://127.0.0.1:8188 (или COMFYUI_URL) с хотя бы одной моделью"
+          },
+          {
+            "left": "Сервер в claude mcp list есть, а инструмент даёт ошибку соединения",
+            "right": "Мост к локальному приложению ведёт в пустоту: приложение закрыто — проверь его, а не список"
+          },
+          {
+            "left": "comfyui: что сделать перед загрузкой большой модели",
+            "right": "vram_status, при нехватке — free_vram"
+          },
+          {
+            "left": "comfyui: что обязательно сообщить после генерации",
+            "right": "seed — без него результат не повторить"
+          }
+        ]
+      },
+      "quiz": [
+        {
+          "id": "local-q1",
+          "question": "obsidian-mcp-server в claude mcp list, ключ верный, а read_note возвращает ошибку соединения. Что проверить?",
+          "options": [
+            "Версию npm",
+            "Открыт ли Obsidian и включён ли плагин Local REST API на 27124 — сервер лишь мост к локальному приложению",
+            "Скоупы токена",
+            "Транспорт http"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Мост отвечает только когда приложение живо; список серверов этого не покажет."
+        },
+        {
+          "id": "local-q2",
+          "question": "Что запрещает раздел Procedure навыка comfyui?",
+          "options": [
+            "Использовать SDXL",
+            "Запускать ComfyUI программно — если он не запущен, надо попросить пользователя",
+            "Сообщать seed",
+            "Проверять VRAM"
+          ],
+          "correctAnswer": 1,
+          "explanation": "«Do not attempt to start ComfyUI programmatically» — приложение запускает человек."
+        }
+      ],
+      "finalTest": {
+        "id": "final-local-app-bridges-obsidian-comfyui",
+        "sectionId": "local-app-bridges-obsidian-comfyui",
+        "question": "Что общего у навыков obsidian и comfyui?",
+        "options": [
+          "Оба — MCP-сервер как мост к локальному приложению, которое должно быть уже запущено: Obsidian с плагином на 27124, ComfyUI на 8188",
+          "Оба размещены в облаке по http",
+          "Оба не требуют никакой настройки",
+          "Оба ищут в вебе"
+        ],
+        "correctAnswer": 0
+      },
+      "diagram": {
+        "kind": "parts",
+        "title": "Мост работает, только когда все три части живы",
+        "whole": "агент читает заметку / генерирует картинку",
+        "nodes": [
+          {
+            "id": "app",
+            "label": "Приложение",
+            "note": "Obsidian с плагином · ComfyUI на 8188 — запускаешь ты",
+            "accent": true
+          },
+          {
+            "id": "bridge",
+            "label": "Сервер-мост",
+            "note": "obsidian-mcp-server · comfyui-mcp"
+          },
+          {
+            "id": "key",
+            "label": "Ключ / URL",
+            "note": "OBSIDIAN_API_KEY · COMFYUI_URL"
+          }
+        ]
+      }
+    }
+  ],
+  "achievements": [
+    {
+      "id": "first-step",
+      "title": "Первый шаг",
+      "description": "Пройдена первая секция — навык и сервер больше не путаются.",
+      "icon": "👣",
+      "conditionRef": {
+        "type": "sections-completed",
+        "n": 1
+      }
+    },
+    {
+      "id": "halfway",
+      "title": "Экватор",
+      "description": "Семь секций из тринадцати позади — связка собрана, ключи розданы.",
+      "icon": "⛰️",
+      "conditionRef": {
+        "type": "sections-completed",
+        "n": 7
+      }
+    },
+    {
+      "id": "perfectionist",
+      "title": "Перфекционист",
+      "description": "Секция пройдена без единой ошибки.",
+      "icon": "💯",
+      "conditionRef": {
+        "type": "perfect-section"
+      }
+    },
+    {
+      "id": "full-course",
+      "title": "Полный курс",
+      "description": "Все тринадцать секций пройдены — арсенал Лены теперь и твой.",
+      "icon": "🎓",
+      "conditionRef": {
+        "type": "all-sections"
+      }
+    },
+    {
+      "id": "test-passed",
+      "title": "Финальный рубеж",
+      "description": "Финальный тест сдан на 70% и выше.",
+      "icon": "🏆",
+      "conditionRef": {
+        "type": "final-test-pass",
+        "min": 70
+      }
+    },
+    {
+      "id": "assembler",
+      "title": "Сборщик связки",
+      "description": "Пройдены три секции про установку: навык ≠ сервер, три способа установки, две половины запуска.",
+      "icon": "🔌",
+      "conditionRef": {
+        "type": "section-group",
+        "ids": [
+          "skill-is-not-the-server",
+          "install-preset-select-npm",
+          "two-halves-server-then-skill"
+        ]
+      }
+    },
+    {
+      "id": "keymaster",
+      "title": "Хранитель ключей",
+      "description": "Секции про транспорт и минимальные права пройдены — ты знаешь, куда уходит ключ и сколько прав ему давать.",
+      "icon": "🔑",
+      "conditionRef": {
+        "type": "section-group",
+        "ids": [
+          "transport-stdio-vs-http",
+          "keys-and-least-privilege"
+        ]
+      }
+    },
+    {
+      "id": "careful-mailer",
+      "title": "Осторожный почтальон",
+      "description": "Секция про Gmail пройдена — черновик перед отправкой стал привычкой.",
+      "icon": "✉️",
+      "conditionRef": {
+        "type": "section-group",
+        "ids": [
+          "gmail-draft-before-send"
+        ]
+      }
+    },
+    {
+      "id": "merge-pilot",
+      "title": "Пилот слияния",
+      "description": "Секция про git и GitLab пройдена — путь от ветки до merge request проходится одной фразой.",
+      "icon": "🌿",
+      "conditionRef": {
+        "type": "section-group",
+        "ids": [
+          "git-to-merge-request"
+        ]
+      }
+    },
+    {
+      "id": "honest-memory",
+      "title": "Честная память",
+      "description": "Секция про AgentDB пройдена — ты измеряешь список инструментов, а не веришь странице.",
+      "icon": "🧠",
+      "conditionRef": {
+        "type": "section-group",
+        "ids": [
+          "agentdb-measured-not-remembered"
+        ]
+      }
+    }
+  ],
+  "faqData": [
+    {
+      "question": "Таблица README называет сервер «Smithery (googlecalendar)», а SKILL.md — @cocal/google-calendar-mcp. Кому верить?",
+      "answer": "SKILL.md: там строка установки, транспорт и переменные окружения — то, что реально выполняется. Таблица Skill Inventory — краткая подпись, и для google-calendar, google-sheets, google-tasks, notion и reddit она отстала от SKILL.md (сверено чтением обоих файлов 2026-09-02). При расхождении открывай dz info <skill-id>."
+    },
+    {
+      "question": "Нужно ли ставить все 16 серверов, если я поставил пресет mcp?",
+      "answer": "Нет. Пресет кладёт 16 инструкций, а они ничего не стоят в работе — навык активируется только по совпадению с триггерами. Серверы добавляй по одному командой claude mcp add, когда доходишь до задачи. Ресурсы тратят серверы, а не навыки."
+    },
+    {
+      "question": "Куда класть API-ключи и токены?",
+      "answer": "Никогда в SKILL.md и не в чат. Для stdio-серверов — флаг -e в claude mcp add или блок env в конфиге клиента; для http-серверов — заголовок (x-api-key у exa). В VS Code можно ${input:…}, чтобы ключ не лежал в файле. Права — минимальные: у gitlab read_api + read_repository, пока не нужна запись."
+    },
+    {
+      "question": "Имя инструмента из SKILL.md сервер не знает. Что делать?",
+      "answer": "Измерить: послать серверу initialize, затем tools/list, и сверить ответ со страницей. Для agentdb-memory это описано прямо в навыке — сервер ставится с @latest на alpha-пакет, имена дрейфуют; список сдвинулся, ты не ошибся."
+    },
+    {
+      "question": "Сервер есть в claude mcp list, ключ верный, а инструмент возвращает пустоту или ошибку соединения. Где искать?",
+      "answer": "По карте из курса: Notion — интеграция не подключена к страницам (меню ⋯ → Connections); Obsidian — не открыт или не включён плагин Local REST API на 27124; ComfyUI — не запущен на 8188. Список серверов не показывает состояние приложения за мостом."
+    },
+    {
+      "question": "Работает ли пакет с Cursor и VS Code, а не только с Claude Code?",
+      "answer": "Инструкции — да: в SKILL.md у clickup, context7, jina-reader, reddit, google-tasks есть готовые блоки для .cursor/mcp.json и .vscode/mcp.json, у остальных — для claude_desktop_config.json. Раскладка навыков под другую платформу — через dz init --target <платформа>."
+    },
+    {
+      "question": "README говорит «v0.3.0», а package.json — 0.3.10, и CHANGELOG кончается на 0.1.0 с десятью навыками. Какая версия настоящая?",
+      "answer": "Настоящая — та, что на npm: https://www.npmjs.com/package/@dzhechkov/skills-mcp. В дереве пакета package.json показывает 0.3.10, строка Status в README и CHANGELOG отстали (измерено чтением файлов 2026-09-02). Число навыков считай по таблице Skill Inventory — их 16."
+    }
+  ],
+  "footer": {
+    "links": [
+      {
+        "label": "npm: @dzhechkov/skills-mcp",
+        "href": "https://www.npmjs.com/package/@dzhechkov/skills-mcp"
+      },
+      {
+        "label": "GitHub (зеркало)",
+        "href": "https://github.com/djd1m/dz-harness"
+      }
+    ]
+  },
+  "feedback": {
+    "repo": "djd1m/dz-harness",
+    "packagePath": "packages/skills-mcp"
+  }
+}
