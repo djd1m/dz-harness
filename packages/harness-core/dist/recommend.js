@@ -15,37 +15,38 @@
 import { pretrain } from './pretrain.js';
 import { computePatternBoost, loadPatterns, loadStoreRecords, readLearningConfig, readReinforcementState, recordToPattern } from './patterns.js';
 import { resolveLearningBackend } from './learning-backend.js';
+import { stems } from './stem.js';
 /** Topic → keywords mapping for task decomposition. */
 const TOPIC_KEYWORDS = {
-    'api': ['api', 'rest', 'graphql', 'endpoint', 'openapi', 'swagger', 'http', 'grpc'],
-    'testing': ['test', 'testing', 'tdd', 'unit test', 'integration test', 'e2e', 'coverage', 'spec'],
-    'ci-cd': ['ci/cd', 'ci cd', 'pipeline', 'github actions', 'gitlab', 'jenkins', 'deploy', 'continuous integration', 'continuous delivery'],
-    'security': ['security', 'audit', 'vulnerability', 'owasp', 'injection', 'auth', 'codeql', 'sast'],
-    'database': ['database', 'migration', 'schema', 'sql', 'postgres', 'mysql', 'query', 'index'],
-    'kubernetes': ['kubernetes', 'k8s', 'helm', 'pod', 'deployment', 'container', 'cluster', 'service mesh'],
-    'docker': ['docker', 'compose', 'container', 'dockerfile', 'image', 'registry'],
-    'terraform': ['terraform', 'iac', 'infrastructure', 'cloud', 'aws', 'gcp', 'azure', 'provision'],
-    'monitoring': ['monitoring', 'observability', 'metrics', 'logs', 'traces', 'alerting', 'slo', 'grafana', 'prometheus'],
-    'incident': ['incident', 'outage', 'postmortem', 'oncall', 'pagerduty', 'sev1', 'downtime'],
-    'monorepo': ['monorepo', 'workspace', 'pnpm', 'turborepo', 'nx', 'changeset', 'lerna'],
-    'review': ['review', 'pull request', 'code review', 'merge', ' pr ', 'pr '],
-    'debug': ['debug', 'error', 'crash', 'stack trace', 'bug', 'fix', 'troubleshoot'],
-    'frontend': ['frontend', 'react', 'vue', 'component', 'ui', 'css', 'tailwind'],
-    'git': ['git', 'merge', 'rebase', 'conflict', 'branch', 'cherry-pick'],
-    'web3': ['web3', 'blockchain', 'defi', 'crypto', 'ethereum', 'solana', 'nft', 'token', 'swap', 'wallet'],
-    'search': ['search', 'brave', 'exa', 'web search', 'find information'],
-    'email': ['email', 'gmail', 'inbox', 'send email', 'mail'],
-    'productivity': ['sheets', 'calendar', 'tasks', 'todo', 'schedule', 'meeting', 'clickup', 'project management'],
-    'data': ['data', 'etl', 'elt', 'pipeline', 'transform', 'dbt', 'airflow', 'warehouse'],
-    'social': ['farcaster', 'reddit', 'social', 'community'],
-    'research': ['research', 'explore', 'casarium', 'competitor', 'market', 'analysis'],
-    'docs': ['documentation', 'docs', 'context7', 'library', 'reference'],
-    'scrape': ['scrape', 'crawl', 'extract', 'jina', 'content', 'markdown'],
-    'design-thinking': ['design thinking', 'user research', 'prototype', 'empathize', 'jtbd', 'jobs to be done', 'cjm', 'customer journey', 'vsm', 'value stream', 'hadi', 'lean canvas', 'usability', 'product discovery', 'mvp'],
-    'product': ['product', 'feature', 'roadmap', 'prd', 'requirements', 'sprint', 'backlog'],
-    'academic': ['thesis', 'dissertation', 'defense', 'ВКР', 'защита', 'ГЭК', 'рецензия', 'academic'],
-    'quality': ['quality', 'qa', 'qe', 'quality engineering', 'test strategy', 'coverage'],
-    'health': ['health', 'medical', 'clinical', 'diagnosis', 'drug', 'lab', 'patient'],
+    'api': ['api', 'rest', 'graphql', 'endpoint', 'openapi', 'swagger', 'http', 'grpc', 'апи', 'эндпоинт', 'интерфейс api', 'http запрос'],
+    'testing': ['test', 'testing', 'tdd', 'unit test', 'integration test', 'e2e', 'coverage', 'spec', 'тест', 'тестирование', 'автотест', 'покрытие тестами'],
+    'ci-cd': ['ci/cd', 'ci cd', 'pipeline', 'github actions', 'gitlab', 'jenkins', 'deploy', 'continuous integration', 'continuous delivery', 'непрерывная интеграция', 'непрерывную интеграцию', 'непрерывная доставка', 'пайплайн сборки', 'автодеплой'],
+    'security': ['security', 'audit', 'vulnerability', 'owasp', 'injection', 'auth', 'codeql', 'sast', 'безопасность', 'уязвимость', 'аудит безопасности', 'авторизация'],
+    'database': ['database', 'migration', 'schema', 'sql', 'postgres', 'mysql', 'query', 'index', 'база данных', 'миграция базы', 'схема данных', 'запрос к базе'],
+    'kubernetes': ['kubernetes', 'k8s', 'helm', 'pod', 'deployment', 'container', 'cluster', 'service mesh', 'кубернетес', 'кластер кубернетес', 'оркестрация контейнеров', 'хелм чарт'],
+    'docker': ['docker', 'compose', 'container', 'dockerfile', 'image', 'registry', 'докер', 'докерфайл', 'образ контейнера', 'докер композ'],
+    'terraform': ['terraform', 'iac', 'infrastructure', 'cloud', 'aws', 'gcp', 'azure', 'provision', 'терраформ', 'инфраструктура как код', 'облачная инфраструктура', 'провижининг'],
+    'monitoring': ['monitoring', 'observability', 'metrics', 'logs', 'traces', 'alerting', 'slo', 'grafana', 'prometheus', 'мониторинг', 'наблюдаемость', 'метрика', 'трассировка', 'оповещение'],
+    'incident': ['incident', 'outage', 'postmortem', 'oncall', 'pagerduty', 'sev1', 'downtime', 'инцидент', 'авария', 'простой сервиса', 'постмортем', 'дежурство'],
+    'monorepo': ['monorepo', 'workspace', 'pnpm', 'turborepo', 'nx', 'changeset', 'lerna', 'монорепо', 'рабочее пространство', 'турборепо', 'чейнджсет'],
+    'review': ['review', 'pull request', 'code review', 'merge', ' pr ', 'pr ', 'repo', 'repository review', 'ревью', 'код ревью', 'чужой репозиторий', 'разбор кода'],
+    'debug': ['debug', 'error', 'crash', 'stack trace', 'bug', 'fix', 'troubleshoot', 'отладка', 'ошибка', 'баг', 'падение', 'не работает'],
+    'frontend': ['frontend', 'react', 'vue', 'component', 'ui', 'css', 'tailwind', 'фронтенд', 'пользовательский интерфейс', 'компонент интерфейса', 'верстка'],
+    'git': ['git', 'merge', 'rebase', 'conflict', 'branch', 'cherry-pick', 'гит', 'слияние веток', 'ребейз', 'конфликт git', 'ветка git'],
+    'web3': ['web3', 'blockchain', 'defi', 'crypto', 'ethereum', 'solana', 'nft', 'token', 'swap', 'wallet', 'блокчейн', 'криптовалюта', 'эфириум', 'токен', 'криптокошелек'],
+    'search': ['search', 'brave', 'exa', 'web search', 'find information', 'поиск', 'веб поиск', 'найти информацию', 'искать в интернете'],
+    'email': ['email', 'gmail', 'inbox', 'send email', 'mail', 'электронная почта', 'электронную почту', 'отправить письмо', 'входящие письма', 'почтовый ящик'],
+    'productivity': ['sheets', 'calendar', 'tasks', 'todo', 'schedule', 'meeting', 'clickup', 'project management', 'календарь', 'список дел', 'расписание', 'встреча', 'управление проектом'],
+    'data': ['data', 'etl', 'elt', 'pipeline', 'transform', 'dbt', 'airflow', 'warehouse', 'обработка данных', 'хранилище данных', 'преобразование данных', 'конвейер данных'],
+    'social': ['farcaster', 'reddit', 'social', 'community', 'соцсеть', 'сообщество', 'реддит', 'социальные сети'],
+    'research': ['research', 'explore', 'casarium', 'competitor', 'market', 'analysis', 'исследование', 'рынок', 'конкурент', 'анализ рынка'],
+    'docs': ['documentation', 'docs', 'context7', 'library', 'reference', 'документация', 'документацию', 'справочник', 'руководство', 'описание библиотеки'],
+    'scrape': ['scrape', 'crawl', 'extract', 'jina', 'content', 'markdown', 'скрапинг', 'парсинг сайта', 'извлечь контент', 'обход сайта'],
+    'design-thinking': ['design thinking', 'user research', 'prototype', 'empathize', 'jtbd', 'jobs to be done', 'cjm', 'customer journey', 'vsm', 'value stream', 'hadi', 'lean canvas', 'usability', 'product discovery', 'mvp', 'дизайн мышление', 'исследование пользователей', 'прототип продукта', 'путь клиента', 'ценностный поток'],
+    'product': ['product', 'feature', 'roadmap', 'prd', 'requirements', 'sprint', 'backlog', 'продукт', 'функция продукта', 'дорожная карта', 'требования', 'спринт', 'бэклог'],
+    'academic': ['thesis', 'dissertation', 'defense', 'ВКР', 'защита', 'ГЭК', 'рецензия', 'academic', 'диссертация', 'дипломная работа', 'научная работа'],
+    'quality': ['quality', 'qa', 'qe', 'quality engineering', 'test strategy', 'coverage', 'качество', 'обеспечение качества', 'инженерия качества', 'стратегия тестирования'],
+    'health': ['health', 'medical', 'clinical', 'diagnosis', 'drug', 'lab', 'patient', 'blood', 'blood test', 'lab results', 'анализ', 'кровь', 'здоровье', 'врач', 'диагноз', 'лаборатория', 'симптом'],
 };
 /** Command knowledge base — what each command does and when to use it. */
 const COMMAND_KB = [
@@ -88,28 +89,45 @@ const TOOLKIT_KB = [
     { name: 'agentic-qe', npmPackage: 'agentic-qe', install: 'npm install -g agentic-qe && aqe init --auto', description: 'Full QE platform — 94 skills + 55 agents + MCP server', topics: ['quality', 'testing'] },
     { name: 'skills-analyst-manual', npmPackage: '@dzhechkov/skills-analyst-manual', install: 'npx @dzhechkov/skills-analyst-manual init', description: '3-phase analyst composite (explore → research → solve)', topics: ['research', 'product'] },
 ];
+const CYRILLIC_KEYWORD = /\p{Script=Cyrillic}/u;
+function containsStemSequence(textStems, keywordStems) {
+    if (keywordStems.length === 0 || keywordStems.length > textStems.length)
+        return false;
+    return textStems.some((_, start) => keywordStems.every((keywordStem, offset) => textStems[start + offset] === keywordStem));
+}
+function keywordMatches(lowerText, textStems, keyword) {
+    const normalizedKeyword = keyword.normalize('NFC').toLowerCase().replaceAll('ё', 'е');
+    // Preserve the old raw-substring behavior for the pre-existing Latin dictionary,
+    // including deliberately padded ` pr `. New Cyrillic rows use token/stem equality,
+    // so a word such as `протест` cannot accidentally activate the `тест` topic.
+    const rawMatch = !CYRILLIC_KEYWORD.test(normalizedKeyword) && lowerText.includes(normalizedKeyword);
+    return rawMatch || containsStemSequence(textStems, stems(normalizedKeyword));
+}
 /** Extract topics from a task description. */
 function extractTopics(task) {
-    const lower = task.toLowerCase();
+    const lower = task.normalize('NFC').toLowerCase().replaceAll('ё', 'е');
+    const taskStems = stems(task);
     const matched = [];
     for (const [topic, keywords] of Object.entries(TOPIC_KEYWORDS)) {
         for (const kw of keywords) {
-            if (lower.includes(kw)) {
+            if (keywordMatches(lower, taskStems, kw)) {
                 matched.push(topic);
                 break;
             }
         }
     }
-    return matched.length > 0 ? matched : ['general'];
+    return matched;
 }
 /** Score a skill against extracted topics. */
 function scoreSkill(entry, topics, task) {
-    const lower = `${entry.id} ${entry.description} ${entry.category}`.toLowerCase();
+    const text = `${entry.id} ${entry.description} ${entry.category}`;
+    const lower = text.normalize('NFC').toLowerCase().replaceAll('ё', 'е');
+    const textStems = stems(text);
     let score = 0;
     for (const topic of topics) {
         const keywords = TOPIC_KEYWORDS[topic] ?? [topic];
         for (const kw of keywords) {
-            if (lower.includes(kw)) {
+            if (keywordMatches(lower, textStems, kw)) {
                 score += 10;
                 break;
             }
@@ -126,11 +144,14 @@ function scoreSkill(entry, topics, task) {
         const words = [...new Set(task.toLowerCase().match(/[\p{L}\p{N}]{3,}/gu) ?? [])];
         const id = entry.id.toLowerCase();
         const desc = String(entry.description ?? '').toLowerCase();
+        const idStems = new Set(stems(entry.id));
+        const descStems = new Set(stems(String(entry.description ?? '')));
         let overlap = 0;
         for (const w of words) {
-            if (id.includes(w))
+            const wordStem = stems(w)[0];
+            if (id.includes(w) || (wordStem !== undefined && idStems.has(wordStem)))
                 overlap += 3;
-            else if (desc.includes(w))
+            else if (desc.includes(w) || (wordStem !== undefined && descStems.has(wordStem)))
                 overlap += 1;
         }
         // Capped below one topic point so a tie-break can never outrank a genuine topic match.
@@ -138,15 +159,12 @@ function scoreSkill(entry, topics, task) {
     }
     return score;
 }
-/** Generate recommendation from a task and registry.
- *  When task is too generic (only 'general' topic), falls back to pretrain
- *  to analyze the actual project and recommend based on tech stack.
- */
+/** Generate recommendations from task topics, or visibly-labelled project-stack topics on a miss. */
 export function recommend(task, registry, projectRoot) {
     let topics = extractTopics(task);
-    let pretrainFallback = false;
-    // Fallback: if task is too generic, use pretrain to detect project stack
-    if (topics.length === 1 && topics[0] === 'general' && projectRoot) {
+    let topicSource = topics.length > 0 ? 'task' : 'none';
+    // Fallback: if no task keyword matched, use pretrain only as explicitly stack-derived advice.
+    if (topics.length === 0 && projectRoot) {
         const analysis = pretrain(projectRoot);
         const pretrainTopics = [];
         const techNames = analysis.techs.map((t) => t.name.toLowerCase());
@@ -168,8 +186,23 @@ export function recommend(task, registry, projectRoot) {
             pretrainTopics.push('testing');
         if (pretrainTopics.length > 0) {
             topics = [...new Set(pretrainTopics)];
-            pretrainFallback = true;
+            topicSource = 'project-stack';
         }
+    }
+    const pretrainFallback = topicSource === 'project-stack';
+    if (topicSource === 'none') {
+        return {
+            task,
+            topics: [],
+            skills: [],
+            presets: [],
+            toolkits: [],
+            commands: [],
+            installCommand: '',
+            plan: [],
+            topicSource,
+            pretrainFallback,
+        };
     }
     // Learned-pattern read-back (audit #2): reward-rank taught patterns into a
     // bounded, monotonic boost. Gated on the rollout flag; when memory is empty or
@@ -272,6 +305,17 @@ export function recommend(task, registry, projectRoot) {
         plan.push(`${plan.length + 1}. Ops: observability skill for monitoring + incident-response for runbooks`);
     }
     plan.push(`${plan.length + 1}. Use your agent normally — skills auto-activate on matching tasks`);
-    return { task, topics, skills, presets, toolkits, commands, installCommand, plan, pretrainFallback };
+    return {
+        task,
+        topics,
+        skills,
+        presets,
+        toolkits,
+        commands,
+        installCommand,
+        plan,
+        topicSource,
+        pretrainFallback,
+    };
 }
 //# sourceMappingURL=recommend.js.map

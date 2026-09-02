@@ -34,7 +34,7 @@ import ipaddress
 import socket
 from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 from urllib import error as urlerror
 from urllib import request as urlrequest
 from urllib.parse import urlparse
@@ -201,39 +201,40 @@ class _CappedRedirectHandler(urlrequest.HTTPRedirectHandler):
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
-def fetch_source(
+def fetch_source_returning_body(
     url: str,
     timeout: int = DEFAULT_TIMEOUT_SECONDS,
     max_bytes: int = DEFAULT_MAX_BYTES,
     _allow_private: bool = False,
-) -> "FetchRecord | FetchFailure":
-    """Perform the request and return proof of it, or a NAMED failure.
+) -> Tuple["FetchRecord | FetchFailure", Optional[bytes]]:
+    """Perform the request and return ``(proof-or-failure, captured-body)``.
 
     Never raises for network conditions: an unreachable source is a normal state
     of the world, and the caller's correct response is to degrade the evidence
     class, not to abort the research. `_allow_private` is for the test server
-    only — the library never sets it.
+    only — the library never sets it. Failures always carry ``None`` as the body,
+    so no truncated or error body can cross the witness boundary.
     """
     try:
         max_bytes = int(max_bytes)
     except (TypeError, ValueError):
-        return FetchFailure(url=str(url), reason="max_bytes is not an integer", attempted_at=_now_iso())
+        return FetchFailure(url=str(url), reason="max_bytes is not an integer", attempted_at=_now_iso()), None
     if max_bytes <= 0 or max_bytes > HARD_MAX_BYTES:
         return FetchFailure(
             url=str(url),
             reason=f"max_bytes must be in 1..{HARD_MAX_BYTES}; refusing an unbounded read",
             attempted_at=_now_iso(),
-        )
+        ), None
     try:
         _validate_url(url, allow_private=_allow_private)
     except FetchRefused as exc:
-        return FetchFailure(url=str(url), reason=str(exc), attempted_at=_now_iso())
+        return FetchFailure(url=str(url), reason=str(exc), attempted_at=_now_iso()), None
 
     opener = urlrequest.build_opener(_CappedRedirectHandler(allow_private=_allow_private))
     try:
         req = urlrequest.Request(url, headers={"User-Agent": USER_AGENT})
     except ValueError as exc:
-        return FetchFailure(url=str(url), reason=f"malformed request: {exc}", attempted_at=_now_iso())
+        return FetchFailure(url=str(url), reason=f"malformed request: {exc}", attempted_at=_now_iso()), None
     try:
         with opener.open(req, timeout=timeout) as response:
             # Read ONE byte past the cap so truncation is detectable rather than
@@ -245,22 +246,22 @@ def fetch_source(
                     url=url,
                     reason=f"response exceeds max_bytes={max_bytes}; refusing to hash a truncated body",
                     attempted_at=_now_iso(),
-                )
+                ), None
             status = getattr(response, "status", None) or response.getcode()
             final_url = response.geturl()
             content_type = response.headers.get("Content-Type") if response.headers else None
     except urlerror.HTTPError as exc:
         # An HTTP error still carries a status — report it as a failure with the
         # status named, because a 403/404 page is not the source it stands for.
-        return FetchFailure(url=url, reason=f"HTTP {exc.code} {exc.reason}", attempted_at=_now_iso())
+        return FetchFailure(url=url, reason=f"HTTP {exc.code} {exc.reason}", attempted_at=_now_iso()), None
     except (urlerror.URLError, socket.timeout, TimeoutError, OSError, UnicodeError) as exc:
-        return FetchFailure(url=str(url), reason=f"network error: {exc}", attempted_at=_now_iso())
+        return FetchFailure(url=str(url), reason=f"network error: {exc}", attempted_at=_now_iso()), None
     except FetchRefused as exc:
-        return FetchFailure(url=url, reason=str(exc), attempted_at=_now_iso())
+        return FetchFailure(url=url, reason=str(exc), attempted_at=_now_iso()), None
     except (http.client.HTTPException, ValueError) as exc:
         # InvalidURL, bad chunking, control characters in the URL — a NAMED
         # failure, never an exception in the caller's face (Codex QE #11).
-        return FetchFailure(url=str(url), reason=f"protocol/URL error: {exc}", attempted_at=_now_iso())
+        return FetchFailure(url=str(url), reason=f"protocol/URL error: {exc}", attempted_at=_now_iso()), None
 
     record = FetchRecord(
         url=url,
@@ -273,5 +274,21 @@ def fetch_source(
         witness=_FETCH_WITNESS,  # only real fetches carry it
     )
     if not record.ok:
-        return FetchFailure(url=url, reason=f"non-2xx status {record.status}", attempted_at=record.fetched_at)
-    return record
+        return FetchFailure(url=url, reason=f"non-2xx status {record.status}", attempted_at=record.fetched_at), None
+    return record, body
+
+
+def fetch_source(
+    url: str,
+    timeout: int = DEFAULT_TIMEOUT_SECONDS,
+    max_bytes: int = DEFAULT_MAX_BYTES,
+    _allow_private: bool = False,
+) -> "FetchRecord | FetchFailure":
+    """Compatibility wrapper: return the existing record/failure shape only."""
+    result, _ = fetch_source_returning_body(
+        url,
+        timeout=timeout,
+        max_bytes=max_bytes,
+        _allow_private=_allow_private,
+    )
+    return result

@@ -55,6 +55,7 @@ export { planLedgerBackfill, LEDGER_FILL_SOURCE, AMBIGUOUS, resolveLedgerRunId }
 export { projectSkillsOneRoot, projectSkillsProbeCommand } from './project-skills-root.js';
 export { benchmarkSkill, benchmarkSkills, compareSkills } from './benchmark.js';
 export { buildRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs } from './registry.js';
+export { tokenize, stemToken, stems } from './stem.js';
 // Package skill-layout resolution (feature dz-install-npx-init) — the ONE seam that knows where an
 // npm package keeps its skills (flat / templates/.claude/skills / skills). `cmdInstall` calls it;
 // `dz init`/`dz registry` are the filed follow-up consumers.

@@ -14,7 +14,7 @@
 [![Tests](https://img.shields.io/badge/tests-440%20pass%20%7C%203%20skip-22c55e?style=flat-square)](#test-infrastructure)
 [![Skills](https://img.shields.io/badge/skills-10-8b5cf6?style=flat-square)](#skills-reference)
 [![Commands](https://img.shields.io/badge/slash%20commands-11-f59e0b?style=flat-square)](#commands-reference)
-[![Hooks](https://img.shields.io/badge/hooks-10-3b82f6?style=flat-square)](#hooks-system)
+[![Hooks](https://img.shields.io/badge/hooks-24-3b82f6?style=flat-square)](#hooks-system)
 [![SPARC Pipeline](https://img.shields.io/badge/SPARC-5%20phases-ec4899?style=flat-square)](#pipeline-overview--replicate-phases)
 
 <br>
@@ -101,13 +101,29 @@
 
 ## 📖 What is p-replicator?
 
-`@dzhechkov/p-replicator` installs a ready-made `.claude/` toolkit into any project: **11 slash commands**, **10 skills**, **4 agents**, **13 rules**, **17 hook utilities**, and a `settings.json` with pre-configured hooks and a multi-line statusline dashboard.
+`@dzhechkov/p-replicator` installs a ready-made `.claude/` toolkit into any project: **11 slash commands**, **10 skills**, **4 agents**, **13 rules**, **24 hook utilities**, and a `settings.json` with pre-configured hooks and a multi-line statusline dashboard.
 
 The flagship `/replicate` command takes a project through a **6-phase pipeline**:
 
 ```
 Phase 0 (optional)    Product Discovery     reverse-engineering of similar companies
 Phase 0.5 (ALWAYS)    Source Product Profile  capture the LOOK of the product being replicated
+
+> **Third-party design analyses enter as HYPOTHESES (v1.13).** A ready-made DESIGN.md from a
+> library like styles.refero.design is a claim, not a measurement: the profile header now carries
+> `**Происхождение:**` (closed list: `прокликано | сторонний-разбор | вручную | не снято`), and a
+> `сторонний-разбор` row REQUIRES the analysis source + its own capture date (read from the
+> source's markup, e.g. `extractedAt` — never from a tool's paraphrase). Hypothesis rows never
+> reach `Specification.md` without a DATED live confirmation; the gate is
+> `node .claude/hooks/check-look-origin.cjs .` (exit `0` verified · `1` a promoted hypothesis is
+> NAMED · `2` the check did not run — never "all clear").
+>
+> **Quoted evidence is now byte-verifiable (v1.13).** In `goap-research-ed25519`, every quote
+> carries a closed acquisition method (`raw-fetch | tool-summary | search-listing | manual`), and
+> the "verbatim" verdict can ONLY be produced by `verify_verbatim` comparing the quote against a
+> captured source excerpt (sha256-bound, self-gitignoring store) — a report cannot attest its own
+> quotes, and a tool paraphrase is categorically capped below "verbatim". A quoted phrase absent
+> from its stored source is a named violation.
 Phase 1               Planning              11 SPARC documents (PRD, Architecture, Pseudocode, ...)
 Phase 2               Validation            5-agent swarm validates against INVEST + SMART
 Phase 3               Toolkit Generation    project-specific agents, rules, skills
@@ -240,6 +256,24 @@ EOF
 
 Full recipe: see [User Guide](./README/eng/02_user_guide.md#feature-workflow-in-an-existing-project-mode-2) ([RU](./README/ru/02_user_guide.md#feature-workflow-в-существующем-проекте-mode-2)).
 
+### Three traceability gates
+
+Byte-level formats of the three reports (`validation-report.md`, `05_completion.md`, `review-report.md`) live in `templates/.claude/skills/requirements-validator/references/feature-report-contracts.md`; `/feature` names them per phase, the gates below enforce them. The shared `brutal-honesty-review` skill stays byte-identical to its canonical copy — the specification contract is a `/feature` obligation, not a change to the generic reviewer.
+
+`/feature` refuses silent traceability loss at validation, implementation, and review. The
+requirements score also has a `Traceability = 0` blocking floor: without a `## Criterion scenarios`
+table mapping every AC id to a named scenario, a high average cannot advance the story.
+
+| Check | Command | Expected pass | Example named gap |
+|---|---|---|---|
+| Machine-key traceability and the scoring floor's input | `bash "$CHECK_PIPELINE_GAPS" "${CLAUDE_PROJECT_DIR:-.}" --traceability` | `PASS traceability: 3 AC ids mapped to 3 scenarios` | `GAP AC-checkout-2: no named scenario in 02_pseudocode.md` |
+| Validation report is bound to the current specification bytes | `bash "$CHECK_PIPELINE_GAPS" "${CLAUDE_PROJECT_DIR:-.}" --report-revision` | `PASS report-revision: validation-report.md matches 01_specification.md` | `GAP report-revision: validation=4f27c19c9b20 specification=8ab35d68e021` |
+| Every criterion names a real test file and title | `bash "$CHECK_PIPELINE_GAPS" "${CLAUDE_PROJECT_DIR:-.}" --completion` | `PASS completion: 3 AC ids covered by tests` | `GAP AC-checkout-2: test title not found in tests/checkout.test.js` |
+| Review discloses its family and answers the exact specification revision | `node "${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/check-review-contract.cjs" "${CLAUDE_PROJECT_DIR:-.}" "checkout"` | `PASS review-contract feature=checkout AC-ids=3 rows=3` | `GAP AC-checkout-2 has no Spec conformance row` |
+
+All four commands use the same fail-closed convention: exit `0` passes, exit `1` prints every named
+gap, and exit `2` means the inputs could not be established. Neither non-zero result is a warning.
+
 ---
 
 ## 📦 Installation
@@ -264,7 +298,7 @@ This creates:
 - `.claude/commands/` — 11 slash commands (`/replicate`, `/run`, `/feature`, ...)
 - `.claude/agents/` — 4 pipeline agents
 - `.claude/rules/` — 9 governance rules
-- `.claude/hooks/` — 10 cross-platform Node scripts
+- `.claude/hooks/` — 24 cross-platform Node scripts
 - `.claude/settings.json` — hooks + statusline configuration
 - `.p-replicator.json` — install manifest
 
@@ -576,7 +610,7 @@ npx @dzhechkov/p-replicator verify
 
 The command checks:
 
-- **Pre-shipped contract** (must-have): 10 skills + 11 commands + 4 agents + 13 rules + settings.json + 17 hooks
+- **Pre-shipped contract** (must-have): 10 skills + 11 commands + 4 agents + 13 rules + settings.json + 25 hooks
 - **Post-/replicate hints** (advisory): CLAUDE.md, project-specific agents, feature-roadmap.json, security rules, etc.
 
 **Exit codes:**

@@ -8,6 +8,15 @@ import { runSyncCodexHooks, type CodexHooksSyncReport, type BridgeFamily } from 
 import type { RecallPatternsOptions, TeachGuardResult, IntegrationOutcome } from '@dzhechkov/harness-core';
 /** Literal command inventory, pinned against the main dispatch switch by a layer-1 test. */
 export declare const DZ_COMMANDS: readonly string[];
+export interface MutationGateRunnerObservation {
+    readonly exitCode: number | null;
+    readonly output: string;
+    readonly failureReason?: string;
+}
+export type MutationGateRunner = (command: string, options: {
+    readonly cwd: string;
+    readonly timeoutMs: number;
+}) => MutationGateRunnerObservation;
 /** Output sink + working directory — injectable so the CLI is testable. */
 export interface CliIo {
     readonly cwd?: string;
@@ -56,6 +65,8 @@ export interface CliIo {
      * offline, hermetically — mirrors the {@link CliIo.releaseRunner} idiom.
      */
     readonly installRunner?: (command: string, cwd: string) => void;
+    /** Fault seam for proving mutation-gate catches and retries thrown runner internals. */
+    readonly mutationGateRunner?: MutationGateRunner;
 }
 /** Injected subprocess runner used by `dz release` (see {@link CliIo.releaseRunner}). */
 export type ReleaseExecRunner = (cmd: string, opts: {

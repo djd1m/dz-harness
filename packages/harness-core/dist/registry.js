@@ -9,6 +9,7 @@
 import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { stems } from './stem.js';
 /**
  * Resolve every `@dzhechkov` base directory that may hold `skills-*` packs, for a given
  * working directory. Ordered by precedence (first wins on pack-name collision):
@@ -458,7 +459,26 @@ export function buildRegistry(cwd) {
 /** Search registry by query (matches id and description, case-insensitive). */
 export function searchRegistry(registry, query) {
     const q = query.toLowerCase();
-    return registry.entries.filter((e) => e.id.toLowerCase().includes(q) || e.description.toLowerCase().includes(q) || e.category.includes(q));
+    const queryStems = stems(query);
+    return registry.entries.filter((e) => {
+        const indexedText = `${e.id} ${e.description} ${e.category}`;
+        const rawMatch = e.id.toLowerCase().includes(q)
+            || e.description.toLowerCase().includes(q)
+            || e.category.toLowerCase().includes(q);
+        if (rawMatch)
+            return true;
+        const indexedStems = new Set(stems(indexedText));
+        const equalStemMatch = queryStems.length > 0 && queryStems.every((stem) => indexedStems.has(stem));
+        if (equalStemMatch)
+            return true;
+        // A singular raw query can already match its root inside a longer token (`анализ`
+        // inside `проанализируй`). Its inflected twin must inherit that existing hit or the
+        // preserved raw tier makes parity impossible. Limit this compatibility leg to one
+        // long stem; short common prefixes stay on exact stem equality.
+        const singleStem = queryStems.length === 1 ? queryStems[0] : undefined;
+        const foldedIndex = indexedText.normalize('NFC').toLowerCase().replaceAll('ё', 'е');
+        return singleStem !== undefined && singleStem.length >= 5 && foldedIndex.includes(singleStem);
+    });
 }
 /** Filter registry by category. */
 export function filterByCategory(registry, category) {

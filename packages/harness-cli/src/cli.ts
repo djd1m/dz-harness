@@ -487,6 +487,7 @@ import {
   // Mutation gate (feature ha-mutation-gate) — break each named protection, run the suite, require red.
   parseMutationRegistry,
   applyMutationToText,
+  attributeBaselineRedness,
   countFailingTests,
   detectSuiteCompletionReceipt,
   detectSuiteReceiptMismatch,
@@ -496,6 +497,7 @@ import {
   mutationGateExitCode,
   summarizeMutationResults,
   renderMutationReport,
+  runWithOneInternalRetry,
   TRACE_BUNDLE_LEDGER_PATH,
   TRACE_BUNDLE_SCHEMA,
   TRACE_BUNDLE_RUN_META_FILE,
@@ -728,6 +730,17 @@ Workflows: author loop-plan/1 plans with dz workflow init/validate/render; gate 
 Targets: ${TARGET_NAMES.join(', ')}
 Presets: ${PRESET_NAMES.join(', ')}`;
 
+export interface MutationGateRunnerObservation {
+  readonly exitCode: number | null;
+  readonly output: string;
+  readonly failureReason?: string;
+}
+
+export type MutationGateRunner = (
+  command: string,
+  options: { readonly cwd: string; readonly timeoutMs: number },
+) => MutationGateRunnerObservation;
+
 /** Output sink + working directory — injectable so the CLI is testable. */
 export interface CliIo {
   readonly cwd?: string;
@@ -772,6 +785,8 @@ export interface CliIo {
    * offline, hermetically — mirrors the {@link CliIo.releaseRunner} idiom.
    */
   readonly installRunner?: (command: string, cwd: string) => void;
+  /** Fault seam for proving mutation-gate catches and retries thrown runner internals. */
+  readonly mutationGateRunner?: MutationGateRunner;
 }
 
 /** Injected subprocess runner used by `dz release` (see {@link CliIo.releaseRunner}). */
@@ -5700,7 +5715,7 @@ function cmdPretrain(options: Map<string, string>, cwd: string, write: Write): n
   return 0;
 }
 
-function cmdRecommend(options: Map<string, string>, cwd: string, write: Write): number {
+function cmdRecommend(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): number {
   const task = options.get('_positional_0');
   if (!task) {
     write('dz recommend: task description required');
@@ -5710,17 +5725,41 @@ function cmdRecommend(options: Map<string, string>, cwd: string, write: Write): 
 
   const registry = buildRegistry(cwd);
   const report = recommend(task, registry, cwd);
+  if (flags.has('json')) {
+    write(JSON.stringify(report, null, 2));
+    return 0;
+  }
 
   write(`\n╔══════════════════════════════════════════════════════════════╗`);
   write(`║                 DZ RECOMMEND — Task Advisor                 ║`);
   write(`╠══════════════════════════════════════════════════════════════╣`);
   write(`║  Task: ${report.task.slice(0, 52).padEnd(52)}║`);
-  const topicSuffix = report.pretrainFallback ? ' (via pretrain)' : '';
-  write(`║  Topics: ${(report.topics.join(', ') + topicSuffix).slice(0, 50).padEnd(50)}║`);
+  if (report.topicSource === 'task') {
+    write(`║  Topics: ${report.topics.join(', ').slice(0, 50).padEnd(50)}║`);
+  } else if (report.topicSource === 'project-stack') {
+    write(`║  Topics: ${'not matched in the question'.padEnd(50)}║`);
+  } else {
+    write(`║  Topics: ${'not recognized — no recommendations'.padEnd(50)}║`);
+  }
   write(`╠══════════════════════════════════════════════════════════════╣`);
 
+  if (report.topicSource === 'project-stack') {
+    write(`⚠ Тема запроса не распознана — подбор ниже сделан по СТЕКУ ПРОЕКТА, не по вашему вопросу.`);
+    write(`  (topic not recognized — recommendations reflect the project stack, not the question)`);
+    write(`PROJECT-STACK SUGGESTIONS`);
+  } else if (report.topicSource === 'none') {
+    write(`Тема запроса не распознана; рекомендаций нет.`);
+    write(`Переформулируйте задачу или используйте dz registry search <слово> / /skill-advisor.`);
+    write(`╚══════════════════════════════════════════════════════════════╝`);
+    return 0;
+  }
+
+  const stackDerived = report.topicSource === 'project-stack';
+
   if (report.presets.length > 0) {
-    write(`║  RECOMMENDED PRESETS                                        ║`);
+    write(stackDerived
+      ? `║  PROJECT-STACK PRESETS                                      ║`
+      : `║  RECOMMENDED PRESETS                                        ║`);
     for (const p of report.presets) {
       const matched = p.matchedSkills.length > 0 ? ` (${p.matchedSkills.slice(0, 3).join(', ')})` : '';
       write(`║    ${p.name.padEnd(15)} ${String(p.skills).padStart(2)} skills  coverage: ${String(p.coverage).padStart(2)} topics${matched.padEnd(15)}║`);
@@ -5729,7 +5768,9 @@ function cmdRecommend(options: Map<string, string>, cwd: string, write: Write): 
   }
 
   if (report.skills.length > 0) {
-    write(`║  RECOMMENDED SKILLS (top ${Math.min(report.skills.length, 8)})${' '.repeat(35)}║`);
+    write(stackDerived
+      ? `║  PROJECT-STACK SKILLS (top ${Math.min(report.skills.length, 8)})${' '.repeat(35)}║`
+      : `║  RECOMMENDED SKILLS (top ${Math.min(report.skills.length, 8)})${' '.repeat(35)}║`);
     for (const s of report.skills.slice(0, 8)) {
       const desc = s.description.length > 35 ? s.description.slice(0, 32) + '...' : s.description;
       write(`║    ${s.id.padEnd(24)} ${desc.padEnd(36)}║`);
@@ -5738,7 +5779,9 @@ function cmdRecommend(options: Map<string, string>, cwd: string, write: Write): 
   }
 
   if (report.toolkits.length > 0) {
-    write(`║  FULL PIPELINE (npx toolkits)                               ║`);
+    write(stackDerived
+      ? `║  PROJECT-STACK PIPELINE (npx toolkits)                      ║`
+      : `║  FULL PIPELINE (npx toolkits)                               ║`);
     for (const tk of report.toolkits) {
       const desc = tk.description.length > 44 ? tk.description.slice(0, 41) + '...' : tk.description;
       write(`║    ${tk.name.padEnd(16)} ${desc.padEnd(44)}║`);
@@ -5749,13 +5792,17 @@ function cmdRecommend(options: Map<string, string>, cwd: string, write: Write): 
   }
 
   write(`╠══════════════════════════════════════════════════════════════╣`);
-  write(`║  STEP-BY-STEP PLAN                                         ║`);
+  write(stackDerived
+    ? `║  PROJECT-STACK PLAN                                         ║`
+    : `║  STEP-BY-STEP PLAN                                         ║`);
   for (const step of report.plan) {
     const line = step.length > 60 ? step.slice(0, 57) + '...' : step;
     write(`║    ${line.padEnd(58)}║`);
   }
   write(`╠══════════════════════════════════════════════════════════════╣`);
-  write(`║  QUICK INSTALL                                              ║`);
+  write(stackDerived
+    ? `║  PROJECT-STACK QUICK INSTALL                                ║`
+    : `║  QUICK INSTALL                                              ║`);
   const cmd = report.installCommand.length > 58 ? report.installCommand.slice(0, 55) + '...' : report.installCommand;
   write(`║    ${cmd.padEnd(58)}║`);
   write(`╚══════════════════════════════════════════════════════════════╝`);
@@ -10254,9 +10301,74 @@ function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>
   const timeoutOpt = Number(options.get('timeout') ?? '300000');
   const timeoutMs = Number.isFinite(timeoutOpt) && timeoutOpt > 0 ? timeoutOpt : 300000;
 
-  const plan = planDiscriminationCheck(runnerOpt !== undefined ? { baseRef, propertyTests, runner: runnerOpt } : { baseRef, propertyTests });
+  // Runner honesty (feature instrument-honesty, ADR-001): the runner is selected from the TARGET
+  // package's own scripts.test, never from a global default. The package dir is the nearest
+  // ancestor of the FIRST named test that carries a package.json — walked here, at the seam,
+  // because the pure half deliberately takes the script text as data and never touches the fs.
+  let packageTestScript: string | null = null;
+  let packageDevDependencies: string[] = [];
+  let packageDir = repoRoot;
+  {
+    const firstTest = propertyTests[0]?.file;
+    // QE-1 (instrument-honesty, HIGH): this walk runs on the RAW --test argument, BEFORE the
+    // engine's sanitation — a `../` traversal made it read an arbitrary package.json OUTSIDE the
+    // repo and echo its scripts.test verbatim into the JSON output (MEASURED with a planted
+    // marker file). Containment first: a start point outside the repo root never gets walked,
+    // the script stays null, and the engine's own path sanitation then refuses the test path.
+    const walkStart = firstTest !== undefined ? resolve(cwd, dirname(firstTest)) : undefined;
+    if (firstTest !== undefined && walkStart !== undefined
+      && (walkStart === resolve(repoRoot) || walkStart.startsWith(resolve(repoRoot) + sep))) {
+      let probe = walkStart;
+      // walk up to the repo root looking for package.json (bounded by the fs root either way)
+      for (;;) {
+        if (existsSync(join(probe, 'package.json'))) { packageDir = probe; break; }
+        const parent = dirname(probe);
+        if (parent === probe || probe === repoRoot) break;
+        probe = parent;
+      }
+      try {
+        const pkg = JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf-8')) as {
+          scripts?: Record<string, string>; devDependencies?: Record<string, string>;
+        };
+        packageTestScript = typeof pkg.scripts?.test === 'string' ? pkg.scripts.test : null;
+        packageDevDependencies = Object.keys(pkg.devDependencies ?? {});
+      } catch { /* unreadable package.json → selection falls through to the honest REFUSE */ }
+    }
+  }
+  // The pure half's path sanitation expects a REPO-RELATIVE package dir ('.'-rooted), not an
+  // absolute one — an absolute path is refused as unsafe-package-dir by design.
+  const packageDirRel = relative(repoRoot, packageDir) || '.';
+  const planInput = runnerOpt !== undefined
+    ? { baseRef, propertyTests, runner: runnerOpt, packageTestScript, packageDevDependencies, packageDir: packageDirRel }
+    : { baseRef, propertyTests, packageTestScript, packageDevDependencies, packageDir: packageDirRel };
+  const plan = planDiscriminationCheck(planInput);
 
   if (!plan.runnable) {
+    // QE-2 (instrument-honesty, MEDIUM): a runner REFUSE used to be reported through the generic
+    // "no property test to check"/map-a-test framing — the operator-facing surface re-created the
+    // exact "instrument gap misread as test gap" class ADR-001 names as the reason three duplicate
+    // backlog entries existed. The plan's own named reason is the verdict; the generic classify
+    // stays only for the genuinely-empty-target case.
+    const runnerRefusal = typeof plan.reason === 'string' && plan.reason.startsWith('unsupported-runner');
+    if (runnerRefusal) {
+      const refusal = {
+        aggregate: 'CANNOT_ISOLATE',
+        measurementValid: false,
+        primaryAction: plan.primaryAction ?? 'fix-runner-invocation',
+        finding: {
+          severity: 'high',
+          verdict: 'CANNOT_ISOLATE',
+          files: plan.targets.map((t) => t.file),
+          detail: `runner refused: ${plan.reason} — the INSTRUMENT could not run, nothing was measured; `
+            + `declare scripts.test in the target package (or pass --runner) and re-run. `
+            + `This is NOT a statement about the tests.`,
+        },
+      };
+      if (flags.has('json')) { write(JSON.stringify({ plan, results: [], perTest: [], ...refusal }, null, 2)); return 0; }
+      write(`discrimination-check: REFUSED (${plan.reason})`);
+      write(`  → ${refusal.finding.detail}`);
+      return 0;
+    }
     // No safe target to run → this is the existing "property untested" finding (empty propertyTests classify).
     const result = classifyDiscrimination({ propertyTests: [], results: [] });
     if (flags.has('json')) { write(JSON.stringify({ plan, results: [], ...result }, null, 2)); return 0; }
@@ -10345,10 +10457,24 @@ function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>
 
         // t.file + t.name already passed the engine's strict sanitation (no quotes/metacharacters/leading-dash);
         // still quote + `--` so a path can never be read as a runner option or split a word.
+        // Runner honesty (ADR-001): the run executes FROM the target package dir with a
+        // package-relative path — a root-cwd `npx vitest run packages/...` loads the ROOT config
+        // (none) and reds unclassifiably, which is exactly the CANNOT_ISOLATE artifact this
+        // feature removes. The plan's own commands encode the same cd; this body mirrors it.
+        const pkgRel = plan.packageDir === '.' ? '' : plan.packageDir;
+        const fileInPkg = pkgRel !== '' && t.file.startsWith(pkgRel + '/') ? t.file.slice(pkgRel.length + 1) : t.file;
+        const execDirBase = pkgRel === '' ? worktree : join(worktree, pkgRel);
+        const execDirTip = pkgRel === '' ? repoRoot : join(repoRoot, pkgRel);
         const nameArg = t.name ? ` -t '${t.name}'` : '';
-        const cmd = `${runner}${nameArg} -- '${t.file}'`;
-        const base = runCapturedTest(cmd, worktree, timeoutMs);
-        const evidence = classifyExecutionEvidence(base.output, base.exitCode, t.file);
+        // NO `--` before the path: MEASURED 2026-09-02 — `npx vitest run -- 'file'` IGNORES the
+        // filter and runs the whole suite (5269 tests), which is the exact whole-repo artifact
+        // this feature removes (QE ha-intake-archive F5). The path is engine-sanitized (no
+        // leading dash, no metacharacters), so it can never be read as an option.
+        const cmd = `${runner}${nameArg} '${fileInPkg}'`;
+        const base = runCapturedTest(cmd, execDirBase, timeoutMs);
+        // The classifier's targetSeen is a substring probe: the run now prints PACKAGE-relative
+        // paths, so it must be probed with the same form, or every hit reads as target-unseen.
+        const evidence = classifyExecutionEvidence(base.output, base.exitCode, fileInPkg);
         const outcome = discriminationOutcomeOf(base.exitCode, evidence);
         const row: Record<string, unknown> = t.name !== undefined
           ? { file: t.file, name: t.name, outcome, evidence }
@@ -10360,8 +10486,8 @@ function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>
         // base rows per the matrix; running it is cheap and only ever on an already-broken path.
         // Do NOT "simplify" this to evidenced-error-only — that silently breaks Confirmation 17.
         if (base.exitCode !== null && base.exitCode !== 0 && evidence.failureKind !== 'assertions') {
-          const tip = runCapturedTest(cmd, repoRoot, timeoutMs);
-          const tipEvidence = classifyExecutionEvidence(tip.output, tip.exitCode, t.file);
+          const tip = runCapturedTest(cmd, execDirTip, timeoutMs);
+          const tipEvidence = classifyExecutionEvidence(tip.output, tip.exitCode, fileInPkg);
           row['tipOutcome'] = discriminationOutcomeOf(tip.exitCode, tipEvidence);
           row['tipEvidence'] = tipEvidence;
           // R15, named honestly: the base run is isolated in a worktree, but the tip runs in the LIVE
@@ -10485,9 +10611,9 @@ function nameFor(t: { file: string; name?: string }, outcome: 'pass' | 'fail' | 
  *
  * Exit codes: 0 every entry PROVEN · 1 the gate ran and failed (undefended / not-applied /
  * below-min / unparseable / load-fatal / over-failing / inconclusive entry) · 2 usage or setup
- * error (missing registry, red BASELINE — a red unmutated copy proves nothing and must not be
- * read as a mutation result — or an entry whose file RESOLVES outside the scratch copy: a
+ * error (missing registry or an entry whose file RESOLVES outside the scratch copy: a
  * symlink escape is refused before anything is written, SPEC rule 3).
+ * A RED/no-exit baseline is a measured failing verdict (exit 1), never a usage error.
  */
 /**
  * Route-a guard for `dz mutation-gate`: parse-check a MUTATED file as its own language BEFORE the
@@ -10496,7 +10622,14 @@ function nameFor(t: { file: string; name?: string }, outcome: 'pass' | 'fail' | 
  * redness says nothing about the named protection. Returns `{error}` when a parser ran and the
  * text does not parse; `{skipped}` (reported loudly, never silently) when no parser is available.
  */
-function parseCheckMutatedFile(absFile: string, text: string): { error?: string; skipped?: string } {
+interface MutationParseCheckResult {
+  readonly error?: string;
+  readonly skipped?: string;
+  readonly internalFailureReason?: string;
+  readonly internalAttempts?: ReturnType<typeof runWithOneInternalRetry>['attempts'];
+}
+
+function parseCheckMutatedFile(absFile: string, text: string): MutationParseCheckResult {
   interface TsLike {
     transpileModule(t: string, o: { reportDiagnostics: boolean; compilerOptions: Record<string, unknown> }): { diagnostics?: { category: number; code: number; messageText: unknown }[] };
     flattenDiagnosticMessageText(m: unknown, s: string): string;
@@ -10520,17 +10653,34 @@ function parseCheckMutatedFile(absFile: string, text: string): { error?: string;
       try { JSON.parse(text); return {}; } catch (e) { return { error: String((e as Error).message).slice(0, 200) }; }
     }
     if (ext === '.js' || ext === '.cjs' || ext === '.mjs' || ext === '') {
-      try {
-        // `node --check` on the file IN PLACE, so the nearest package.json decides the module goal.
-        execFileSync(process.execPath, ['--check', absFile], { stdio: 'pipe' });
-        return {};
-      } catch (e) {
-        const err = e as { stderr?: Buffer | string };
-        const stderrLines = String(err.stderr ?? '').split('\n').map((l) => l.trim()).filter((l) => l !== '');
-        // prefer the actual `SyntaxError: …` line over node's trailing version footer.
-        const msg = [...stderrLines].reverse().find((l) => l.includes('Error')) ?? stderrLines.at(-1) ?? 'node --check failed';
-        return { error: msg.slice(0, 200) };
+      const checked = runWithOneInternalRetry<MutationParseCheckResult>(() => {
+        try {
+          // `node --check` on the file IN PLACE, so the nearest package.json decides the module goal.
+          execFileSync(process.execPath, ['--check', absFile], { stdio: 'pipe' });
+          return {};
+        } catch (e) {
+          const err = e as { code?: unknown; status?: unknown; stderr?: Buffer | string; message?: string };
+          // A launched parser that exits non-zero with a SyntaxError is a parse verdict. A child
+          // launch/internal error (EPERM, ENOENT, Node's thrown internal) is runner infrastructure
+          // and must take the bounded retry → INCONCLUSIVE route instead of masquerading as bad JS.
+          if (typeof err.code === 'string' || typeof err.status !== 'number') throw e;
+          const stderrLines = String(err.stderr ?? '').split('\n').map((line) => line.trim()).filter((line) => line !== '');
+          const msg = [...stderrLines].reverse().find((line) => line.includes('Error'))
+            ?? stderrLines.at(-1)
+            ?? err.message
+            ?? 'node --check failed';
+          return { error: msg.slice(0, 200) };
+        }
+      });
+      if (checked.value === null) {
+        return {
+          internalFailureReason: checked.failureReason ?? 'runner-internal-error: persistent after 2/2 attempts',
+          internalAttempts: checked.attempts,
+        };
       }
+      return checked.internalRetries === 1
+        ? { ...checked.value, internalAttempts: checked.attempts }
+        : checked.value;
     }
     return { skipped: `no parser for '${ext}' files — parse-check unavailable` };
   } catch (e) {
@@ -10538,7 +10688,13 @@ function parseCheckMutatedFile(absFile: string, text: string): { error?: string;
   }
 }
 
-function cmdMutationGate(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): number {
+function cmdMutationGate(
+  options: Map<string, string>,
+  flags: Set<string>,
+  cwd: string,
+  write: Write,
+  injectedRunner?: MutationGateRunner,
+): number {
   const json = flags.has('json');
   const fail = (what: string): number => {
     write(json ? JSON.stringify({ error: what, exitCode: 2 }) : `dz mutation-gate: ${what}`);
@@ -10609,6 +10765,11 @@ function cmdMutationGate(options: Map<string, string>, flags: Set<string>, cwd: 
   const results: MutationEntryResult[] = [];
   const observations: MutationObservation[] = [];
   const warnings: string[] = [];
+  const internalRetries: {
+    readonly phase: 'baseline' | 'parse-check' | 'mutation' | 'rebaseline' | 'final-rebaseline';
+    readonly entryId?: string;
+    readonly attempts: ReturnType<typeof runWithOneInternalRetry>['attempts'];
+  }[] = [];
   let baseline: ReturnType<typeof classifyBaseline>;
   try {
     if (gitTop !== null && gitTop !== pkgDir && resolve(pkgDir).startsWith(resolve(gitTop) + sep)) {
@@ -10648,7 +10809,11 @@ function cmdMutationGate(options: Map<string, string>, flags: Set<string>, cwd: 
     const realScratchRoot = realpathSync(copyDir);
     const requireCompletionReceipt = parsed.registry.requireCompletionReceipt === true;
 
-    const runSuite = (): { exitCode: number | null; output: string; failureReason?: string } => {
+    type SuiteRun = MutationGateRunnerObservation & { readonly internalAttemptLog?: string };
+    const invokeSuite = (): MutationGateRunnerObservation => {
+      if (injectedRunner !== undefined) {
+        return injectedRunner(testCmd, { cwd: copyDir, timeoutMs: timeout });
+      }
       const run = spawnSync(testCmd, {
         cwd: copyDir,
         shell: true,
@@ -10660,6 +10825,12 @@ function cmdMutationGate(options: Map<string, string>, flags: Set<string>, cwd: 
       const errorCode = run.error && 'code' in run.error && typeof run.error.code === 'string'
         ? run.error.code
         : undefined;
+      // Node may populate both `error` and a numeric `status` for an internal spawn failure. The
+      // error wins except for the two already-named resource observations: a status alongside
+      // EPERM/Unreachable-code is not a suite verdict and takes the one-retry internal-error path.
+      if (run.error !== undefined && errorCode !== 'ETIMEDOUT' && errorCode !== 'ENOBUFS') {
+        throw run.error;
+      }
       const signal = typeof run.signal === 'string' ? run.signal : undefined;
       let failureReason: string | undefined;
       if (typeof run.status !== 'number') {
@@ -10671,22 +10842,62 @@ function cmdMutationGate(options: Map<string, string>, flags: Set<string>, cwd: 
       }
       return {
         exitCode: typeof run.status === 'number' ? run.status : null,
-        // Receipt markers may be on stderr. Preserve both streams even on exit 0; stdout-only
-        // collection would silently lose a green-run marker.
         output: `${String(run.stdout ?? '')}\n${String(run.stderr ?? '')}`,
         ...(failureReason !== undefined ? { failureReason } : {}),
+      };
+    };
+
+    const runSuite = (
+      phase: 'baseline' | 'mutation' | 'rebaseline' | 'final-rebaseline',
+      entryId?: string,
+    ): SuiteRun => {
+      const retried = runWithOneInternalRetry(invokeSuite);
+      const loggedAttempts = retried.attempts.map((attempt) => {
+        if (attempt.outcome !== 'completed' || retried.value === null) return attempt;
+        const outcome = retried.value.exitCode === null
+          ? `no exit code (${retried.value.failureReason ?? 'unnamed failure'})`
+          : `exit ${retried.value.exitCode}`;
+        return { ...attempt, detail: `attempt ${attempt.attempt}: completed — ${outcome}` };
+      });
+      if (retried.internalRetries === 1) {
+        const record = entryId === undefined
+          ? { phase, attempts: loggedAttempts }
+          : { phase, entryId, attempts: loggedAttempts };
+        internalRetries.push(record);
+        if (!json) write(`mutation-gate: internal retry — ${loggedAttempts.map((attempt) => attempt.detail).join('; ')}`);
+      }
+      const internalAttemptLog = retried.internalRetries === 1
+        ? loggedAttempts.map((attempt) => attempt.detail).join('; ')
+        : undefined;
+      if (retried.value !== null) {
+        return {
+          ...retried.value,
+          ...(internalAttemptLog !== undefined ? { internalAttemptLog } : {}),
+        };
+      }
+      return {
+        exitCode: null,
+        output: '',
+        failureReason: retried.failureReason ?? 'runner-internal-error: persistent after 2/2 attempts',
+        ...(internalAttemptLog !== undefined ? { internalAttemptLog } : {}),
       };
     };
 
     // Baseline BEFORE any mutation: a red copy proves nothing, and reading it as a mutation
     // result would be this gate shipping the defect class it exists to catch.
     if (!json) write(`mutation-gate: baseline suite in scratch copy of ${pkgDir} …`);
-    const base = runSuite();
-    baseline = classifyBaseline(base.exitCode, base.failureReason);
+    const base = runSuite('baseline');
+    baseline = classifyBaseline(
+      base.exitCode,
+      base.failureReason,
+      base.exitCode !== null && base.exitCode !== 0
+        ? attributeBaselineRedness(base.output, entries.map((entry) => entry.file))
+        : undefined,
+    );
     if (!baseline.ok) {
-      if (json) { write(JSON.stringify({ packageDir: pkgDir, registryPath, testCommand: testCmd, baseline, results: [], exitCode: 2 }, null, 2)); return 2; }
+      if (json) { write(JSON.stringify({ packageDir: pkgDir, registryPath, testCommand: testCmd, baseline, results: [], internalRetries, exitCode: 1 }, null, 2)); return 1; }
       write(renderMutationReport([], baseline, pkgDir));
-      return 2;
+      return 1;
     }
 
     for (const entry of entries) {
@@ -10721,8 +10932,10 @@ function cmdMutationGate(options: Map<string, string>, flags: Set<string>, cwd: 
         return fail(`entry '${entry.id}': ${entry.file} resolves to ${realTarget ?? '<unresolvable>'} — OUTSIDE the scratch copy (${realScratchRoot}). A path component is a symlink escaping the scratch tree, so writing the mutation would mutate the REAL working tree (SPEC rule 3). Refused; nothing was written.`);
       }
       if (!json) write(`mutation-gate: ${entry.id} — mutating ${entry.file}, running suite …`);
-      let run: { exitCode: number | null; output: string; failureReason?: string } | null = null;
+      let run: SuiteRun | null = null;
       let parseError: string | undefined;
+      let parseInternalFailureReason: string | undefined;
+      let parseInternalAttemptLog: string | undefined;
       try {
         writeFileSync(filePath, applied.text);
         // Route-a guard: the mutated file must still PARSE — a load failure reddens the whole
@@ -10732,10 +10945,16 @@ function cmdMutationGate(options: Map<string, string>, flags: Set<string>, cwd: 
           warnings.push(`${entry.id}: parse-check SKIPPED — ${check.skipped}`);
           if (!json) write(`mutation-gate: WARNING ${entry.id}: parse-check skipped — ${check.skipped}`);
         }
+        if (check.internalAttempts !== undefined) {
+          internalRetries.push({ phase: 'parse-check', entryId: entry.id, attempts: check.internalAttempts });
+          parseInternalAttemptLog = check.internalAttempts.map((attempt) => attempt.detail).join('; ');
+          if (!json) write(`mutation-gate: internal retry — ${parseInternalAttemptLog}`);
+        }
+        parseInternalFailureReason = check.internalFailureReason;
         if (check.error !== undefined) {
           parseError = check.error; // no suite run: the verdict is MUTATION_UNPARSEABLE regardless
-        } else {
-          run = runSuite();
+        } else if (parseInternalFailureReason === undefined) {
+          run = runSuite('mutation', entry.id);
         }
       } finally {
         writeFileSync(filePath, sourceText); // restore the COPY so the next entry starts pristine
@@ -10769,13 +10988,26 @@ function cmdMutationGate(options: Map<string, string>, flags: Set<string>, cwd: 
       // those verdicts outrank the rebaseline check, so the extra suite run would buy nothing.
       let rebaselineExitCode: number | null | undefined;
       let rebaselineFailureReason: string | undefined;
+      let rebaselineAttribution: ReturnType<typeof attributeBaselineRedness> | undefined;
+      let rebaselineInternalAttemptLog: string | undefined;
       if (rebaselineMode === 'per-entry' && run !== null && run.exitCode !== null && run.exitCode !== 0
         && fileLoadFailure === undefined && outputUnrecognised === undefined && receiptMismatch === undefined) {
         if (!json) write(`mutation-gate: ${entry.id} — re-baselining the restored tree …`);
-        const rebaselineRun = runSuite();
+        const rebaselineRun = runSuite('rebaseline', entry.id);
         rebaselineExitCode = rebaselineRun.exitCode;
         rebaselineFailureReason = rebaselineRun.failureReason;
+        rebaselineInternalAttemptLog = rebaselineRun.internalAttemptLog;
+        if (rebaselineRun.exitCode !== null && rebaselineRun.exitCode !== 0) {
+          rebaselineAttribution = attributeBaselineRedness(
+            rebaselineRun.output,
+            entries.map((candidate) => candidate.file),
+          );
+        }
       }
+      const entryRunFailureReason = run?.failureReason ?? parseInternalFailureReason;
+      const entryInternalAttemptLog = [parseInternalAttemptLog, run?.internalAttemptLog, rebaselineInternalAttemptLog]
+        .filter((log): log is string => log !== undefined)
+        .join('; ');
       const obs: MutationObservation = {
         entry,
         occurrences: 1,
@@ -10785,9 +11017,11 @@ function cmdMutationGate(options: Map<string, string>, flags: Set<string>, cwd: 
         ...(fileLoadFailure !== undefined ? { fileLoadFailure } : {}),
         ...(outputUnrecognised !== undefined ? { outputUnrecognised } : {}),
         ...(receiptMismatch !== undefined ? { receiptMismatch } : {}),
-        ...(run?.failureReason !== undefined ? { runFailureReason: run.failureReason } : {}),
+        ...(entryRunFailureReason !== undefined ? { runFailureReason: entryRunFailureReason } : {}),
+        ...(entryInternalAttemptLog !== '' ? { internalAttemptLog: entryInternalAttemptLog } : {}),
         ...(rebaselineExitCode !== undefined ? { rebaselineExitCode } : {}),
         ...(rebaselineFailureReason !== undefined ? { rebaselineFailureReason } : {}),
+        ...(rebaselineAttribution !== undefined ? { rebaselineAttribution } : {}),
       };
       observations.push(obs);
       results.push(classifyMutationOutcome(obs));
@@ -10800,7 +11034,7 @@ function cmdMutationGate(options: Map<string, string>, flags: Set<string>, cwd: 
     // MUTATION_LOAD_FATAL / RECEIPT_MISMATCH untouched.
     if (rebaselineMode === 'final') {
       if (!json) write('mutation-gate: final re-baseline of the restored tree …');
-      const finalRun = runSuite();
+      const finalRun = runSuite('final-rebaseline');
       const finalExit = finalRun.exitCode;
       if (finalExit !== 0) {
         const what = finalExit === null ? `no exit code: ${finalRun.failureReason ?? 'unknown timeout / spawn failure'}` : `exit ${finalExit}`;
@@ -10810,6 +11044,12 @@ function cmdMutationGate(options: Map<string, string>, flags: Set<string>, cwd: 
           ...obs,
           rebaselineExitCode: finalExit,
           ...(finalRun.failureReason !== undefined ? { rebaselineFailureReason: finalRun.failureReason } : {}),
+          ...(finalRun.internalAttemptLog !== undefined
+            ? { internalAttemptLog: [obs.internalAttemptLog, finalRun.internalAttemptLog].filter((log): log is string => log !== undefined).join('; ') }
+            : {}),
+          ...(finalExit !== null && finalExit !== 0
+            ? { rebaselineAttribution: attributeBaselineRedness(finalRun.output, entries.map((entry) => entry.file)) }
+            : {}),
         }));
         results.length = 0;
         results.push(...reclassified);
@@ -10825,7 +11065,7 @@ function cmdMutationGate(options: Map<string, string>, flags: Set<string>, cwd: 
 
   const exitCode = mutationGateExitCode(results, baseline.ok);
   if (json) {
-    write(JSON.stringify({ packageDir: pkgDir, registryPath, testCommand: testCmd, rebaselineMode, baseline, results, summary: summarizeMutationResults(results), warnings, exitCode }, null, 2));
+    write(JSON.stringify({ packageDir: pkgDir, registryPath, testCommand: testCmd, rebaselineMode, baseline, results, summary: summarizeMutationResults(results), warnings, internalRetries, exitCode }, null, 2));
     return exitCode;
   }
   write(renderMutationReport(results, baseline, pkgDir));
@@ -16487,7 +16727,7 @@ export async function runCli(argv: string[], io: CliIo = {}): Promise<number> {
       case 'diff':
         return cmdDiff(options, cwd, write);
       case 'recommend':
-        return cmdRecommend(options, cwd, write);
+        return cmdRecommend(options, flags, cwd, write);
       case 'upgrade':
         return cmdUpgrade(options, flags, cwd, write, writeErr);
       case 'auto-canonicalize':
@@ -16536,8 +16776,20 @@ export async function runCli(argv: string[], io: CliIo = {}): Promise<number> {
         return cmdChallenge(options, flags, cwd, write);
       case 'discrimination-check':
         return cmdDiscriminationCheck(options, flags, cwd, write);
-      case 'mutation-gate':
-        return cmdMutationGate(options, flags, cwd, write);
+      case 'mutation-gate': {
+        try {
+          return cmdMutationGate(options, flags, cwd, write, io.mutationGateRunner);
+        } catch (error) {
+          const raw = error instanceof Error ? error.message : String(error);
+          const head = Array.from(raw.split(/\r?\n/, 1)[0]?.trim() || 'unknown internal error').slice(0, 160).join('');
+          if (flags.has('json')) {
+            write(JSON.stringify({ verdict: 'INCONCLUSIVE', reason: 'runner-internal-error', error: head, exitCode: 1 }));
+          } else {
+            write(`mutation-gate: INTERNAL ERROR (${head}) — verdict INCONCLUSIVE, exit 1`);
+          }
+          return 1;
+        }
+      }
       case 'delivery-check':
         return cmdDeliveryCheck(options, flags, cwd, write);
       case 'skills-verify':

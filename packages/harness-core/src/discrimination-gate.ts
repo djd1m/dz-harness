@@ -137,12 +137,103 @@ export interface ClassifyResultRow {
   readonly tipEvidence?: ExecutionEvidence;
 }
 
+/** A CLOSED runner selection derived from the target package, never a command copied from package.json. */
+export type RunnerSelection =
+  | {
+      readonly kind: 'vitest';
+      readonly command: 'npx vitest run';
+      readonly runnerName: 'vitest';
+      readonly how: 'scripts.test' | 'dev-dependency';
+    }
+  | {
+      readonly kind: 'node-test';
+      readonly command: 'node --test';
+      readonly runnerName: 'node --test';
+      readonly how: 'scripts.test';
+    }
+  | {
+      readonly kind: 'unsupported';
+      readonly runnerName: string;
+      readonly scriptsTest: string | null;
+    };
+
+export type PlannedRunnerSelection =
+  | RunnerSelection
+  | {
+      readonly kind: 'explicit';
+      readonly command: string;
+      readonly runnerName: string;
+      readonly how: 'explicit-flag';
+    };
+
+export interface BaseRefResolution {
+  readonly requestedRef: string;
+  readonly resolvedRef: string;
+  readonly how: 'explicit-ref' | 'merge-base';
+}
+
+/**
+ * Select one of the two runner families this instrument can measure honestly.
+ *
+ * The package script is used only for classification. Its flags and shell text are never spliced
+ * into a command: a wrapper or a third runner family is an explicit unsupported result. Vitest in
+ * devDependencies is the sole tie-break when scripts.test is absent; it still maps to the fixed
+ * command template below.
+ */
+export function selectRunner(scriptsTest: string | null, devDeps: readonly string[]): RunnerSelection {
+  const script = typeof scriptsTest === 'string' && scriptsTest.trim() ? scriptsTest.trim() : null;
+  const tokens = script?.split(/\s+/) ?? [];
+  const hasShellControl = script !== null && /[\0`$;&|<>()\n\r]/.test(script);
+
+  if (!hasShellControl) {
+    const vitestOffset =
+      tokens[0] === 'vitest'
+        ? 0
+        : tokens[0] === 'npx' && tokens[1] === 'vitest'
+          ? 1
+          : tokens[0] === 'pnpm' && tokens[1] === 'exec' && tokens[2] === 'vitest'
+            ? 2
+            : -1;
+    if (vitestOffset >= 0) {
+      return { kind: 'vitest', command: 'npx vitest run', runnerName: 'vitest', how: 'scripts.test' };
+    }
+    if (tokens[0] === 'node' && tokens[1] === '--test') {
+      return { kind: 'node-test', command: 'node --test', runnerName: 'node --test', how: 'scripts.test' };
+    }
+  }
+
+  const deps = Array.isArray(devDeps) ? devDeps : [];
+  if (script === null && deps.some((dep) => dep === 'vitest')) {
+    return { kind: 'vitest', command: 'npx vitest run', runnerName: 'vitest', how: 'dev-dependency' };
+  }
+
+  return { kind: 'unsupported', runnerName: tokens[0] ?? 'none', scriptsTest: script };
+}
+
+/** Resolve an audited pre-feature ref supplied by the executor. HEAD never wins over a merge-base. */
+export function resolveDiscriminationBaseRef(requestedRef: string, mergeBaseRef?: string): BaseRefResolution {
+  const requested = typeof requestedRef === 'string' ? requestedRef.trim() : '';
+  const mergeBase = typeof mergeBaseRef === 'string' ? mergeBaseRef.trim() : '';
+  if (requested === 'HEAD' && mergeBase) {
+    return { requestedRef: requested, resolvedRef: mergeBase, how: 'merge-base' };
+  }
+  return { requestedRef: requested, resolvedRef: requested, how: 'explicit-ref' };
+}
+
 export interface DiscriminationPlanInput {
   /** the git ref of pre-feature HEAD — the "base" the property test must fail against. */
   readonly baseRef: string;
+  /** merge-base already measured by the executor; mandatory to displace a sweeping HEAD. */
+  readonly mergeBaseRef?: string;
   /** property test(s) mapped from the ADR Confirmation. Empty ⇒ CANNOT_ISOLATE. */
   readonly propertyTests: readonly PropertyTestRef[];
-  /** test-runner command template; sanitized. Default `npx vitest run`. */
+  /** repo-relative directory owning the TARGET package.json; `.` when the repository root owns it. */
+  readonly packageDir?: string;
+  /** TARGET package.json scripts.test. It is classified, never executed verbatim. */
+  readonly packageTestScript?: string | null;
+  /** TARGET package devDependency names, used only for the documented vitest tie-break. */
+  readonly packageDevDependencies?: readonly string[];
+  /** explicit safe escape hatch. Absence derives from packageTestScript; unsafe input refuses. */
   readonly runner?: string;
 }
 
@@ -151,19 +242,33 @@ export interface DiscriminationPlan {
   readonly runnable: boolean;
   /** why not runnable, when `runnable` is false. */
   readonly reason?: string;
+  /** Plan-time state. REFUSE is non-passing; PENDING says execution evidence is still required. */
+  readonly verdict: 'PENDING' | 'REFUSE';
+  /** A plan alone has measured nothing; in particular every refusal is false. */
+  readonly measurementValid: false;
+  readonly primaryAction: PrimaryAction;
   /** the sanitized base ref actually used. */
   readonly baseRef: string;
+  readonly baseRefResolution: BaseRefResolution;
+  readonly runnerSelection: PlannedRunnerSelection;
+  readonly packageDir: string;
   /** the accepted, sanitized targets. */
   readonly targets: readonly PropertyTestRef[];
   /** refs rejected by sanitation, with the reason — surfaced so a rejection is never silent. */
   readonly rejected: readonly { readonly file: string; readonly reason: string }[];
   /**
-   * Ordered shell steps the caller runs: add a detached worktree at baseRef, copy each NEW property test
-   * file into it (they do not exist at base), run the runner over the targets, then remove the worktree.
+   * Ordered shell steps the caller runs: add the complete detached revision at baseRef, run the selected
+   * package-scoped command over positional targets, then remove the worktree. No lone-file tree is valid.
    * `{{WORKTREE}}` is a placeholder the caller substitutes with a fresh temp dir path it owns — the engine
    * never invents a filesystem path. Commands use only sanitized tokens.
    */
   readonly commands: readonly string[];
+  /** The detached worktree itself supplies the complete revision; no lone-file copy is an isolation tree. */
+  readonly isolation: {
+    readonly materialization: 'full-revision-tree';
+    readonly revision: string;
+    readonly overlays: readonly string[];
+  };
 }
 
 export interface ClassifyInput {
@@ -228,7 +333,6 @@ const SAFE_REF = /^[A-Za-z0-9_][A-Za-z0-9_./~^@{}-]{0,199}$/;
  * relative file, and anything exotic is safer rejected (and surfaced) than quoted-and-hoped.
  */
 const UNSAFE_PATH = /(^\/)|(^[A-Za-z]:)|(^~)|(^-)|(\/-)|(\.\.(\/|\\|$))|[\0`$;&|<>*?"'\n\r\t \\]/;
-const DEFAULT_RUNNER = 'npx vitest run';
 /** a runner must be a plain command with flags — no shell metacharacters that could chain a second command. */
 const UNSAFE_RUNNER = /[\0`$;&|<>()\n\r]/;
 
@@ -244,15 +348,42 @@ function sanitizeName(name: string): string | null {
  * ordered worktree commands. Returns `runnable:false` with a reason when there is nothing safe to run.
  */
 export function planDiscriminationCheck(input: DiscriminationPlanInput): DiscriminationPlan {
-  const baseRef = typeof input.baseRef === 'string' ? input.baseRef.trim() : '';
+  const requestedBaseRef = typeof input.baseRef === 'string' ? input.baseRef.trim() : '';
+  const baseRefResolution = resolveDiscriminationBaseRef(requestedBaseRef, input.mergeBaseRef);
+  const baseRef = baseRefResolution.resolvedRef;
+  const packageDirRaw = typeof input.packageDir === 'string' ? input.packageDir.trim().replace(/\/$/, '') : '.';
+  const packageDir = packageDirRaw || '.';
   const rejected: { file: string; reason: string }[] = [];
+  const explicitRunner = typeof input.runner === 'string' && input.runner.trim() ? input.runner.trim() : null;
+  const runnerName = explicitRunner?.split(/\s+/)[0] ?? 'none';
+  const runnerSelection: PlannedRunnerSelection = explicitRunner
+    ? { kind: 'explicit', command: explicitRunner, runnerName, how: 'explicit-flag' }
+    : selectRunner(input.packageTestScript ?? null, input.packageDevDependencies ?? []);
+  const isolation = { materialization: 'full-revision-tree', revision: baseRef, overlays: [] } as const;
 
-  if (!SAFE_REF.test(baseRef)) {
-    return { runnable: false, reason: 'unsafe-or-missing-base-ref', baseRef, targets: [], rejected, commands: [] };
+  const refuse = (reason: string, action: PrimaryAction = 'fix-runner-invocation'): DiscriminationPlan => ({
+    runnable: false,
+    reason,
+    verdict: 'REFUSE',
+    measurementValid: false,
+    primaryAction: action,
+    baseRef,
+    baseRefResolution,
+    runnerSelection,
+    packageDir,
+    targets: [],
+    rejected,
+    commands: [],
+    isolation,
+  });
+
+  if (!SAFE_REF.test(requestedBaseRef) || !SAFE_REF.test(baseRef)) {
+    return refuse('unsafe-or-missing-base-ref');
   }
 
-  const runnerRaw = typeof input.runner === 'string' && input.runner.trim() ? input.runner.trim() : DEFAULT_RUNNER;
-  const runner = UNSAFE_RUNNER.test(runnerRaw) ? DEFAULT_RUNNER : runnerRaw;
+  if (packageDir !== '.' && UNSAFE_PATH.test(packageDir)) {
+    return refuse('unsafe-package-dir');
+  }
 
   const targets: PropertyTestRef[] = [];
   const seen = new Set<string>();
@@ -260,6 +391,10 @@ export function planDiscriminationCheck(input: DiscriminationPlanInput): Discrim
     const file = t && typeof t.file === 'string' ? t.file.trim() : '';
     if (!file) { rejected.push({ file: String(t?.file ?? ''), reason: 'empty-path' }); continue; }
     if (UNSAFE_PATH.test(file)) { rejected.push({ file, reason: 'unsafe-path' }); continue; }
+    if (packageDir !== '.' && !file.startsWith(`${packageDir}/`)) {
+      rejected.push({ file, reason: 'outside-target-package' });
+      continue;
+    }
     const name = t && typeof t.name === 'string' ? sanitizeName(t.name) : null;
     if (t && typeof t.name === 'string' && name === null) { rejected.push({ file, reason: 'unsafe-test-name' }); continue; }
     const key = `${file}|${name ?? ''}`;
@@ -269,22 +404,51 @@ export function planDiscriminationCheck(input: DiscriminationPlanInput): Discrim
   }
 
   if (targets.length === 0) {
-    return { runnable: false, reason: 'no-isolable-test', baseRef, targets, rejected, commands: [] };
+    const plan = refuse('no-isolable-test', 'map-a-test');
+    return { ...plan, targets };
+  }
+
+  if (explicitRunner !== null && UNSAFE_RUNNER.test(explicitRunner)) {
+    const plan = refuse(`unsafe-runner:${runnerName}`);
+    return { ...plan, targets };
+  }
+
+  if (runnerSelection.kind === 'unsupported') {
+    const plan = refuse(`unsupported-runner:${runnerSelection.runnerName}`);
+    return { ...plan, targets };
   }
 
   // `{{WORKTREE}}` is substituted by the caller with a temp dir IT owns; the engine never invents a path.
-  // Paths are already metacharacter-free (UNSAFE_PATH), but quote them + use `--` so a leading-dash or spaced
-  // path can never become a runner option or split a word — belt-and-suspenders over the sanitation above.
+  // `git worktree add` materialises the complete base revision. No lone property-test copy is emitted:
+  // a copied test without its sibling source/config tree is not an isolated revision and cannot measure.
   const commands: string[] = [`git worktree add --detach {{WORKTREE}} ${baseRef}`];
-  for (const t of targets) {
-    commands.push(`mkdir -p "{{WORKTREE}}/$(dirname -- '${t.file}')" && cp -- '${t.file}' "{{WORKTREE}}/${t.file}"`);
-  }
-  const fileArgs = [...new Set(targets.map((t) => t.file))].map((f) => `'${f}'`).join(' ');
-  const nameFilters = targets.filter((t) => t.name).map((t) => `-t '${t.name}'`).join(' ');
-  commands.push(`( cd {{WORKTREE}} && ${runner}${nameFilters ? ' ' + nameFilters : ''} -- ${fileArgs} )`);
+  const relativeToPackage = (file: string): string => (packageDir === '.' ? file : file.slice(packageDir.length + 1));
+  const fileArgs = [...new Set(targets.map((t) => relativeToPackage(t.file)))].map((f) => `'${f}'`).join(' ');
+  const testNames = targets.filter((t) => t.name).map((t) => t.name as string);
+  const nameFilters =
+    runnerSelection.kind === 'node-test'
+      ? testNames.map((name) => `--test-name-pattern '${name}'`).join(' ')
+      : testNames.map((name) => `-t '${name}'`).join(' ');
+  const runner = runnerSelection.command;
+  const runnerArgs = `${runner}${nameFilters ? ` ${nameFilters}` : ''} ${fileArgs}`;
+  const worktreePackageDir = packageDir === '.' ? '{{WORKTREE}}' : `{{WORKTREE}}/${packageDir}`;
+  commands.push(`( cd "${worktreePackageDir}" && ${runnerArgs} )`);
   commands.push(`git worktree remove --force {{WORKTREE}}`);
 
-  return { runnable: true, baseRef, targets, rejected, commands };
+  return {
+    runnable: true,
+    verdict: 'PENDING',
+    measurementValid: false,
+    primaryAction: 'none',
+    baseRef,
+    baseRefResolution,
+    runnerSelection,
+    packageDir,
+    targets,
+    rejected,
+    commands,
+    isolation,
+  };
 }
 
 

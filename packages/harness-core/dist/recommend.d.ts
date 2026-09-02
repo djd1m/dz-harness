@@ -54,12 +54,11 @@ export interface RecommendationReport {
     readonly commands: readonly CommandRecommendation[];
     readonly installCommand: string;
     readonly plan: readonly string[];
-    /** Set when task was too generic and pretrain was used as fallback. */
+    /** Provenance of the topics used for ranking. */
+    readonly topicSource: 'task' | 'project-stack' | 'none';
+    /** @deprecated Compatibility alias; true exactly when topicSource is project-stack. */
     readonly pretrainFallback?: boolean;
 }
-/** Generate recommendation from a task and registry.
- *  When task is too generic (only 'general' topic), falls back to pretrain
- *  to analyze the actual project and recommend based on tech stack.
- */
+/** Generate recommendations from task topics, or visibly-labelled project-stack topics on a miss. */
 export declare function recommend(task: string, registry: Registry, projectRoot?: string): RecommendationReport;
 //# sourceMappingURL=recommend.d.ts.map

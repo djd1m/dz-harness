@@ -58,7 +58,8 @@ class SuiteCompletenessTests(unittest.TestCase):
         """The specific omission AM-14 caught, pinned by name so it cannot recur."""
         collected = _collected()
         for required in ("test_ed25519_verifier", "test_evidence_provenance", "test_goap_planner",
-                         "test_signature_v3", "test_population_match", "test_risk_absolute"):
+                         "test_signature_v3", "test_population_match", "test_quote_provenance",
+                         "test_risk_absolute"):
             self.assertIn(required, collected)
 
     def test_no_enumerated_run_command_is_reintroduced(self):

@@ -31,7 +31,7 @@ Total Score = INVEST Score (50%) + SMART Score (30%) + Quality Score (20%)
 
 | Criterion | Weight | Points | Calculation |
 |-----------|--------|--------|-------------|
-| Traceability | 10% | 0-10 | 10 if linked to tests, 5 if partial, 0 if none |
+| Traceability | 10% | 0-10 | 10 if every AC id has a named scenario in the Criterion scenarios table; 5 if some do (the uncovered AC ids MUST be listed by name); 0 if none do, or the block is absent ⇒ the floor applies |
 | Completeness | 10% | 0-10 | See completeness rubric below |
 
 ### Completeness Rubric
@@ -56,12 +56,13 @@ Total Score = INVEST Score (50%) + SMART Score (30%) + Quality Score (20%)
 ### Blocking floor (overrides the total, both directions)
 
 **The weakest link decides, never the average.** A requirement is BLOCKED — whatever its total says —
-if either of these is zero:
+if any of these is zero:
 
 | Criterion | Zero means | Why it vetoes |
 |-----------|-----------|---------------|
 | `Testable` (INVEST, 8) | no acceptance criteria exist | the gate exists to block untestable requirements |
 | `Completeness` (Quality, 10) | "No AC" on the rubric above | nothing states what "done" is |
+| `Traceability` (Quality, 10) | no AC has a named scenario in the Criterion scenarios table | a story can otherwise pass validation with no scenario or test on any criterion |
 
 Without this floor the total alone lets an untestable requirement through. Worked case: a story with
 NO acceptance criteria and NO test links loses `Testable` 8, `Completeness` 10 and `Traceability` 10,
@@ -76,10 +77,18 @@ criteria AND is bound by the floor, so a score is not evidence of anything — r
 > the actual text, with its document and heading. `Testable = 4` means the AC exist and are vague:
 > quote them. **No quote ⇒ the score is 0 ⇒ the floor applies.**
 
-**The floor is CLOSED at these two.** `Measurable` and `Traceability` are deliberately NOT on it: a
-requirement with no number is often correct ("the user can export the report as PDF" is specific,
-testable and unmeasurable), so vetoing on `Measurable` would turn a false pass into a false block.
-Widening this list needs the same kind of worked case as the one above.
+> A non-zero `Traceability` REQUIRES the Criterion scenarios table (AC id → named scenario) quoted,
+> or referenced by document and heading. **No table ⇒ the score is 0 ⇒ the floor applies.**
+
+Measured worked case: story FR-009 had 27 criteria with no IDs, more than 10 of them uncovered by
+any scenario, and passed validation. Its validation report 3.1 was written against document revision
+2; only a human noticed. With no named AC-id → scenario artifact, `Traceability = 0` and the floor
+blocks that contour instead of letting its total hide the missing coverage.
+
+**The floor is CLOSED at these three.** `Measurable` is deliberately NOT on it: a requirement with no
+number is often correct ("the user can export the report as PDF" is specific, testable and
+unmeasurable), so vetoing on `Measurable` would turn a false pass into a false block. Widening this
+list needs the same kind of worked case as the ones above.
 
 ## Quality Gate Rules
 

@@ -368,6 +368,38 @@ describe('the look-trace checker answers three questions, and never confuses two
     assert.match(claimed.out, /объявлена СНЯТ, но в таблице нет ни одной строки/, claimed.out);
   });
 
+  test('P22 - a traced draft plus an unpromoted hypothesis is exit 0 with an informational count', () => {
+    const hypothesis = '| FR-LOOK-002 | Гипотеза о пути регистрации | путь | DESIGN.md#flow | сторонний снимок | ГИПОТЕЗА |';
+    const r = check({
+      [PROFILE]: profile({ rows: [ROW1, hypothesis] }),
+      [SPEC]: '# Specification\nFR-LOOK-001 берём.\n',
+    });
+    assert.equal(r.code, 0, 'an unpromoted hypothesis is not a lost captured row: ' + r.out);
+    assert.match(r.out, /строк-гипотез вне промоушена: 1/, r.out);
+    assert.match(r.out, /check-look-origin\.cjs/, r.out);
+  });
+
+  test('P23 - a lost draft is exit 1 while the hypothesis is not named as lost', () => {
+    const hypothesis = '| FR-LOOK-002 | Гипотеза о пути регистрации | путь | DESIGN.md#flow | сторонний снимок | ГИПОТЕЗА |';
+    const r = check({
+      [PROFILE]: profile({ rows: [ROW1, hypothesis] }), [SPEC]: '# Specification\n',
+    });
+    assert.equal(r.code, 1, 'the promotable draft is still a proved loss: ' + r.out);
+    const bullets = r.out.split('\n').filter((line) => line.includes('•')).join('\n');
+    assert.match(bullets, /FR-LOOK-001/, 'the lost draft must be named: ' + r.out);
+    assert.ok(!/FR-LOOK-002/.test(bullets), 'the hypothesis must not be named as lost: ' + r.out);
+  });
+
+  test('P24 - an all-hypothesis profile is exit 2, never a clean 0', () => {
+    const hypothesis = '| FR-LOOK-002 | Гипотеза о пути регистрации | путь | DESIGN.md#flow | сторонний снимок | ГИПОТЕЗА |';
+    const stale = '| FR-LOOK-003 | Устаревшая палитра | облик | DESIGN.md#palette | сторонний снимок | УСТАРЕЛО |';
+    const r = check({
+      [PROFILE]: profile({ rows: [hypothesis, stale] }), [SPEC]: '# Specification\n',
+    });
+    assert.equal(r.code, 2, 'zero promotable rows is not a clean tracing receipt: ' + r.out);
+    assert.match(r.out, /все строки — гипотезы, промоушен ещё не имел права случиться/, r.out);
+  });
+
   test('P15 - it is a hooks component wired to NO event, and the three counts agree', () => {
     const { COMPONENTS } = require(path.join(PKG, 'src', 'utils.js'));
     assert.ok(COMPONENTS.hooks.items['check-look-trace'],

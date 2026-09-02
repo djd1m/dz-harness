@@ -42,6 +42,17 @@ record of something recited from memory. That combination is legal, expressible,
 | `ASSERTED` | Stated from model memory, source never opened | Nothing about the source | `0.0` |
 | *(absent)* | Fact predates this axis | Evidence is **unknown** — neither asserted nor verified | no ceiling of its own |
 
+For quoted text, the acquisition method is a separate closed vocabulary. The author-facing names
+map exactly to the stored values; only the verifier can emit the verdict after comparing captured bytes.
+
+| Stored method | Author-facing name | Verbatim ceiling |
+|---|---|---|
+| `raw-fetch` | `сырая-загрузка` | eligible only after a matching captured excerpt |
+| `tool-summary` | `пересказ-инструментом` | never verbatim, even when the words happen to match |
+| `search-listing` | `из-поисковой-выдачи` | eligible only after reconciliation against a captured excerpt |
+| `manual` | `вручную` | eligible only after reconciliation against a captured excerpt |
+| *(absent/other)* | `method-unknown` | never verbatim |
+
 **`FETCH_VERIFIED` cannot be self-declared.** It is minted only by `create_fetched_fact()`, which
 requires a `FetchRecord` — the byte hash, HTTP status and date of a request that actually happened.
 The manual constructors (`create_listing_fact`, `create_asserted_fact`) have no way to produce it.
@@ -54,7 +65,7 @@ Provenance, not truth.
 ### The report gate
 
 ```bash
-python3 scripts/check_report_evidence.py --report report.md --facts facts.json [--profile patient.json]
+python3 scripts/check_report_evidence.py --report report.md --facts facts.json [--profile patient.json] [--excerpts evidence_excerpts]
 ```
 
 `ASSERTED` claims must not appear in a report at all. `LISTING_ONLY` claims may appear only with a
@@ -197,12 +208,10 @@ mkdir ~/health-research && cd ~/health-research     # medical work lives here
 Do not run medical investigations inside a shared code repository. If you already have,
 the prompt log is `.dz/recall-usage.jsonl` and the lessons are in `.health-brain/`.
 
-Choosing the shared store anyway is not blocked — it is ADVISED against. `dz teach
---domain health-research` into a shared store prints what follows from the choice and
-the command that does it the other way; `dz recall --all --json --include-domain
-health-research` hands the data over and says how much of it is medical. Both end with
-"Nothing was blocked — this is your call." The data is yours; our job is that the choice
-is knowing rather than accidental.
+Choosing the shared store anyway is ADVISED against, never blocked: both `dz teach --domain
+health-research` and `dz recall --all --json --include-domain health-research` print what follows
+from the choice and end with "Nothing was blocked — this is your call" — the choice must be
+knowing, not accidental.
 Step 1 is what makes a lesson safe to keep: a rule about a method has nowhere to put a
 person. But note what that is and is not — it is a discipline, performed by you and
 asserted with `--confirm-method`, which nothing verifies. The property that holds
@@ -501,15 +510,22 @@ Invalid signatures are rejected with confidence `0.0`; they are never a recovera
 4. Extract claims and source URLs.
 5. **Fetch each source through the tool, not by hand:**
    ```python
-   from evidence_fetch import fetch_source, FetchRecord
-   record = fetch_source(url)                      # real HTTP, stdlib only
+   from evidence_fetch import fetch_source_returning_body, FetchRecord
+   from quote_provenance import QuoteRecord, capture_excerpt, write_excerpt
+   record, body = fetch_source_returning_body(url) # real HTTP, captured bytes
    if isinstance(record, FetchRecord):
-       fact = verifier.create_fetched_fact(claim, record, issuer, source_date="2024-03-01")
+       captured = capture_excerpt(body, quoted_text, record)
+       write_excerpt("evidence_excerpts", captured)
+       quoted = QuoteRecord(quoted_text, "raw-fetch", record.final_url,
+                            record.sha256_body, locator, captured["excerpt_id"])
+       fact = verifier.create_fetched_fact(claim, record, issuer, quote=quoted)
    else:                                            # offline, 404, oversize, refused scheme…
        fact = verifier.create_listing_fact(claim, url, reason=record.reason)
    ```
    A claim you never opened a source for is `verifier.create_asserted_fact(claim)` — record it
    honestly and let the gate refuse it. Never hand-label a class you did not earn.
+5a. **When quoting verbatim, capture at fetch time as shown above.** No captured source bytes means
+   no verbatim verdict; `tool-summary` can never earn one even when its words happen to match.
 6. Add facts to the research ledger; issuer-signed facts only when a pinned issuer key actually
    signed the message.
 7. Verify facts and citation chains.
@@ -525,18 +541,13 @@ Invalid signatures are rejected with confidence `0.0`; they are never a recovera
 
 ## Output Expectations
 
-Reports should include:
-
-- Research objective and GOAP plan executed.
-- Findings with source URLs.
-- Verification status per claim on BOTH axes: trust (`ISSUER_SIGNED` / `SELF_ATTESTED` /
-  `UNVERIFIED`) and evidence (`FETCH_VERIFIED` / `LISTING_ONLY` / `ASSERTED` / unknown-legacy).
-- The evidence-class mix as a count — the share of `ASSERTED` should be zero.
-- A visible marker next to every `LISTING_ONLY` claim ("source not opened directly — verify").
-- Chain integrity result when citation chains are used.
-- Unsigned and rejected claims.
-- Explicit caveat that cryptographic provenance is not truth verification, and that
-  `FETCH_VERIFIED` means the bytes arrived — not that the source is right.
+Reports include: the objective + executed GOAP plan; findings with source URLs; per-claim status on
+BOTH axes — trust (`ISSUER_SIGNED`/`SELF_ATTESTED`/`UNVERIFIED`) and evidence
+(`FETCH_VERIFIED`/`LISTING_ONLY`/`ASSERTED`/unknown-legacy); the evidence-class mix as a count
+(the `ASSERTED` share should be zero); a visible marker on every `LISTING_ONLY` claim ("source not
+opened directly — verify"); chain integrity when chains are used; unsigned and rejected claims; the
+explicit caveat that cryptographic provenance is not truth verification — `FETCH_VERIFIED` means
+the bytes arrived, not that the source is right.
 
 ## Implementation
 

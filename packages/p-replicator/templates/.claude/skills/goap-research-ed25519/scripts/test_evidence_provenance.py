@@ -30,6 +30,7 @@ import ed25519_verifier as ev
 import evidence_fetch as ef
 import source_tiers as st
 import check_report_evidence as gate
+import quote_provenance as qp
 
 
 def _verifier():
@@ -307,15 +308,63 @@ class FetchTests(unittest.TestCase):
             def log_message(self, *args):  # silence
                 pass
 
-        cls.server = HTTPServer(("127.0.0.1", 0), Handler)
-        cls.port = cls.server.server_address[1]
-        cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
-        cls.thread.start()
+        cls._original_build_opener = None
+        try:
+            cls.server = HTTPServer(("127.0.0.1", 0), Handler)
+        except PermissionError:
+            # Managed coding sandboxes can forbid even loopback sockets. Preserve
+            # every existing fetch assertion with a response-level fallback; on a
+            # normal host the real HTTPServer path above remains the path exercised.
+            cls.server = None
+            cls.port = 80
+            cls._original_build_opener = ef.urlrequest.build_opener
+
+            class Response:
+                def __init__(self, body, url, status=200, content_type="text/plain"):
+                    self.body = body
+                    self.url = url
+                    self.status = status
+                    self.headers = {"Content-Type": content_type}
+
+                def __enter__(self):
+                    return self
+
+                def __exit__(self, *unused):
+                    return False
+
+                def read(self, limit):
+                    return self.body[:limit]
+
+                def getcode(self):
+                    return self.status
+
+                def geturl(self):
+                    return self.url
+
+            class Opener:
+                def open(self, request, timeout=None):
+                    url = request.full_url
+                    if url.endswith("/ok"):
+                        return Response(b"hello evidence", url)
+                    if url.endswith("/redirect"):
+                        return Response(b"hello evidence", url[:-len("redirect")] + "ok")
+                    if url.endswith("/big"):
+                        return Response(b"x" * 4096, url)
+                    raise ef.urlerror.HTTPError(url, 404, "Not Found", {}, None)
+
+            ef.urlrequest.build_opener = lambda *unused: Opener()
+        else:
+            cls.port = cls.server.server_address[1]
+            cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
+            cls.thread.start()
 
     @classmethod
     def tearDownClass(cls):
-        cls.server.shutdown()
-        cls.server.server_close()
+        if cls.server is not None:
+            cls.server.shutdown()
+            cls.server.server_close()
+        if cls._original_build_opener is not None:
+            ef.urlrequest.build_opener = cls._original_build_opener
 
     def _url(self, path):
         return f"http://127.0.0.1:{self.port}{path}"
@@ -327,6 +376,15 @@ class FetchTests(unittest.TestCase):
         self.assertEqual(record.status, 200)
         self.assertEqual(record.sha256_body, hashlib.sha256(b"hello evidence").hexdigest())
         self.assertTrue(record.fetched_at.endswith("Z"))
+
+    def test_body_returning_seam_preserves_the_compatibility_record(self):
+        from unittest import mock
+        fixed_time = "2026-09-02T00:00:00Z"
+        with mock.patch.object(ef, "_now_iso", return_value=fixed_time):
+            seam_record, body = ef.fetch_source_returning_body(self._url("/ok"), _allow_private=True)
+            wrapper_record = ef.fetch_source(self._url("/ok"), _allow_private=True)
+        self.assertEqual(body, b"hello evidence")
+        self.assertEqual(seam_record.to_dict(), wrapper_record.to_dict())
 
     def test_redirect_is_followed_and_final_url_recorded(self):
         record = ef.fetch_source(self._url("/redirect"), _allow_private=True)
@@ -445,6 +503,81 @@ class ReportGateTests(unittest.TestCase):
                 json.dump([self._fact("claim about iron overload", "ASSERTED")], fh)
             self.assertEqual(gate.main(["--report", report_path, "--facts", facts_path]), 1)
             self.assertEqual(gate.main(["--report", report_path, "--facts", os.path.join(tmp, "nope.json")]), 2)
+
+
+class QuoteProvenanceGateTests(unittest.TestCase):
+    """ADR quote-provenance Confirmation: source bytes, never author status, decide."""
+
+    quote = "The source explicitly recommends gradual refeeding"
+    source_url = "https://example.test/source"
+
+    def _fixture(self, directory, excerpt_text, **fact_overrides):
+        body_hash = ev.hashlib.sha256(excerpt_text.encode("utf-8")).hexdigest()
+        excerpt_id = "quote.json"
+        excerpt = {
+            "sha256_body": body_hash,
+            "fetched_at": "2026-09-02T00:00:00Z",
+            "source_url": self.source_url,
+            "excerpt": excerpt_text,
+            "excerpt_offset": 0,
+            "radius_chars": 500,
+            "encoding": "utf-8",
+            "content_type": "text/plain; charset=utf-8",
+            "sha256_excerpt": ev.hashlib.sha256(excerpt_text.encode("utf-8")).hexdigest(),
+        }
+        with open(os.path.join(directory, excerpt_id), "w", encoding="utf-8") as handle:
+            json.dump(excerpt, handle)
+        fact = {
+            "claim": self.quote,
+            "source_url": self.source_url,
+            "evidence_class": "FETCH_VERIFIED",
+            "schema_version": 4,
+            "quote": self.quote,
+            "acquisition": "raw-fetch",
+            "sha256_body": body_hash,
+            "locator": "paragraph 1",
+            "excerpt_id": excerpt_id,
+        }
+        fact.update(fact_overrides)
+        return fact
+
+    def test_report_quote_absent_from_source_body_is_named_violation(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            fact = self._fixture(tmp, "The source discusses measured recovery outcomes.")
+            findings, _ = gate.evaluate_quotes(f'The report says "{self.quote}".', [fact], tmp)
+        self.assertEqual([finding.kind for finding in findings], ["QUOTE_NOT_IN_SOURCE"])
+        self.assertIn(self.quote, findings[0].detail)
+
+    def test_report_quote_present_in_source_body_passes(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            fact = self._fixture(tmp, f"Methods. {self.quote}. Results.")
+            findings, counts = gate.evaluate_quotes(f'The report says "{self.quote}".', [fact], tmp)
+        self.assertEqual(findings, [])
+        self.assertEqual(counts["quote-verbatim-confirmed"], 1)
+
+    def test_author_supplied_verbatim_status_is_ignored_and_downgraded(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            fact = self._fixture(
+                tmp,
+                "The source discusses measured recovery outcomes.",
+                verbatim_status="verbatim",
+            )
+            findings, _ = gate.evaluate_quotes(f'The report says "{self.quote}".', [fact], tmp)
+        self.assertEqual([finding.kind for finding in findings], ["QUOTE_NOT_IN_SOURCE"])
+        self.assertIn("not-in-excerpt", findings[0].detail)
+
+    def test_unreadable_excerpt_store_never_reads_as_clean(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            fact = self._fixture(tmp, self.quote)
+            with open(os.path.join(tmp, fact["excerpt_id"]), "w", encoding="utf-8") as handle:
+                handle.write("not json")
+            findings, counts = gate.evaluate_quotes(f'The report says "{self.quote}".', [fact], tmp)
+        self.assertEqual([finding.kind for finding in findings], ["QUOTES_UNCHECKED"])
+        self.assertEqual(counts["quote-unchecked"], 1)
 
 
 

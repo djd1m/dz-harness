@@ -360,9 +360,8 @@ Run in Phase 6 before delivery.
 - [ ] `insights-capture.md` rule with auto-grep pattern
 - [ ] `/feature` — 4-phase lifecycle (plan → validate → implement → review)
 - [ ] `feature-lifecycle.md` rule
-- [ ] `swarm-file-evidence.md` rule + `check-swarm-receipts.cjs`, and every generated artifact that
-      dispatches parallel agents names `WORK_UNIT_ID` + absolute `TRACE_PATH`. A dead worker and a
-      working worker are both silent, so a swarm whose result is a reply cannot tell them apart.
+- [ ] `swarm-file-evidence.md` rule + `check-swarm-receipts.cjs`; every generated artifact that
+      dispatches parallel agents names `WORK_UNIT_ID` + absolute `TRACE_PATH` (the rule carries why)
 - [ ] 6 lifecycle skills copied with path rewrite (`/mnt/skills/user/` → `.claude/skills/`)
 - [ ] `git-workflow.md` rule (semantic commits)
 - [ ] `settings.json` — Stop hooks (insights + roadmap + plans) + SessionStart hook

@@ -35,12 +35,35 @@ const RULES = ['honest-configuration', 'swarm-file-evidence'];
  * `ESTIMATED_TRIGGER` NOT be raised under any result — a red gate telling the truth is worth more
  * than a green one bought by moving the line.
  *
- * Preimage = the `embeddable-widget` pin (backlog 23ed5f5c), which is the last state preceding all
- * three merged rules. Reproducer: measureCorpus() over templates/.claude/{rules,commands}/*.md plus
- * every SKILL.md under skills/, run on the commit that shipped embeddable-widget.
+ * The previous preimage was the `embeddable-widget` pin (backlog 23ed5f5c), the last state before
+ * those three merged rules. Feature `corpus-budget-compression` earned a fresh preimage on
+ * 2026-09-01/02: P5 passed against that OLD pin on the settled tree with live
+ * {files:34, bytes:356321, estimatedTokens:95940.35}, a measured delta of 3988.50 below the
+ * unchanged 4037.75 trigger.
+ * Reproducer: measureCorpus() over templates/.claude/{rules,commands}/*.md plus every SKILL.md.
+ * `ESTIMATED_TRIGGER` was not touched. *
+ * Re-pinned 2026-09-02 for feature `traceability-floor-and-contract` (three /feature gates + the
+ * Traceability floor). Preimage = the tree at its parent commit d126adec^ (HEAD~1 of the feature),
+ * measured {files:34, bytes:372385, estimatedTokens:99956.35}. Against the PREVIOUS pin that state
+ * already sat at a delta of 4016.00 — the four night features between the two pins (check-ports
+ * receipts, design-analysis-hypothesis, quote-provenance, heal-bhr-drift) each fitted the trigger
+ * and none re-pinned, so 21.75 tokens of headroom remained and any new gate line would have tripped
+ * P5: the "ceiling nobody chose" this comment warns about, observed live. The feature's OWN delta
+ * against its true preimage is 715.75 tokens (feature.md gate mandates + validator report contract +
+ * the hook's inventory line), after its byte-level formats were moved to
+ * requirements-validator/references/feature-report-contracts.md. `ESTIMATED_TRIGGER` unchanged.
  */
-const FRESH_BEFORE = { files: 31, bytes: 356009, estimatedTokens: 91951.85 };
+const FRESH_BEFORE = { files: 34, bytes: 372385, estimatedTokens: 99956.35 };
 const ESTIMATED_TRIGGER = 4037.75;
+// Measured 2026-09-01 before corpus-budget-compression. Modules and references are outside
+// measureCorpus(); a 0-byte allowance makes any relocation growth visible instead of budget-free.
+// Re-measured 2026-09-02 (features/traceability-floor-and-contract): +1 file, +4265 bytes —
+// requirements-validator/references/feature-report-contracts.md (the byte-level formats of the
+// three /feature report gates; invocation-time material, the gates are the machine half) and the
+// Traceability floor row + FR-009 worked case in references/scoring-system.md. Not a relocation:
+// the always-loaded corpus measured by P5 GREW in the same change (feature.md gates), it did not shrink.
+const UNMEASURED_SKILL_SURFACES_BEFORE = { files: 60, bytes: 642574 };
+const UNMEASURED_SKILL_SURFACES_GROWTH_ALLOWANCE = 0;
 const SEAMS = [
   ['commands/feature.md', 'both'],
   ['rules/feature-lifecycle.md', 'both'],
@@ -186,6 +209,29 @@ function walkSkills(dir, out) {
     if (entry.isDirectory()) walkSkills(file, out);
     else if (entry.name === 'SKILL.md') out.push(file);
   }
+}
+
+function walkAllFiles(dir, out) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
+    const file = path.join(dir, entry.name);
+    if (entry.isDirectory()) walkAllFiles(file, out);
+    else out.push(file);
+  }
+}
+
+function measureUnmeasuredSkillSurfaces(root) {
+  const files = [];
+  const skills = path.join(root, 'skills');
+  for (const skill of fs.readdirSync(skills, { withFileTypes: true }).filter((entry) => entry.isDirectory())) {
+    for (const surface of ['modules', 'references']) {
+      const dir = path.join(skills, skill.name, surface);
+      if (fs.existsSync(dir)) walkAllFiles(dir, files);
+    }
+  }
+  return files.reduce((total, file) => ({
+    files: total.files + 1,
+    bytes: total.bytes + fs.readFileSync(file).length,
+  }), { files: 0, bytes: 0 });
 }
 
 function measureCorpus(root) {
@@ -530,4 +576,14 @@ test('P10 - fresh init pack registry manifest and SBOM carry both rules', () => 
     assert.equal(component?.hashes.find((entry) => entry.alg === 'SHA-256')?.content, digest,
       `SBOM missing or stale for ${relative}`);
   }
+});
+
+test('P11 - unmeasured skill surfaces did not absorb the compressed corpus', () => {
+  const live = measureUnmeasuredSkillSurfaces(ROOT);
+  assert.equal(live.files, UNMEASURED_SKILL_SURFACES_BEFORE.files,
+    'unmeasured skill module/reference inventory changed; re-measure and justify the new surface');
+  assert.ok(live.bytes <= UNMEASURED_SKILL_SURFACES_BEFORE.bytes
+    + UNMEASURED_SKILL_SURFACES_GROWTH_ALLOWANCE,
+  `unmeasured skill modules/references grew from ${UNMEASURED_SKILL_SURFACES_BEFORE.bytes}`
+    + ` to ${live.bytes} bytes; always-loaded text may have been relocated outside measureCorpus()`);
 });

@@ -11,7 +11,7 @@ evidence axis is lost if "don't include unread claims" stays a sentence in
 SKILL.md that a tired model skips at 2am.
 
 Usage:
-    python3 check_report_evidence.py --report report.md --facts facts.json [--json]
+    python3 check_report_evidence.py --report report.md --facts facts.json [--excerpts DIR] [--json]
 
 Exit codes:
     0  clean — no ASSERTED used, every used LISTING_ONLY carries a marker
@@ -30,10 +30,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from dataclasses import dataclass
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
+
+import quote_provenance as quote_provenance
 
 EVIDENCE_FETCH_VERIFIED = "FETCH_VERIFIED"
 EVIDENCE_LISTING_ONLY = "LISTING_ONLY"
@@ -55,6 +58,17 @@ LISTING_MARKERS = (
 # How far from the claim's mention the marker may sit. A marker in the appendix
 # does not warn the reader of a sentence on page 2.
 MARKER_WINDOW_CHARS = 400
+
+# Report quotes are paired to a fact through the existing generous claim scanner,
+# but the verdict itself is an exact normalized comparison in quote_provenance.
+# Keeping those two polarities separate is load-bearing: generosity is safe for
+# finding a claim and unsafe for granting "verbatim".
+QUOTE_MIN_SIGNIFICANT_CHARS = 15
+QUOTE_PATTERNS = (
+    re.compile(r'«([^»\n]+)»', re.UNICODE),
+    re.compile(r'"([^"\n]+)"', re.UNICODE),
+    re.compile(r'„([^“\n]+)“', re.UNICODE),
+)
 
 # ---------------------------------------------------------------------------
 # SLICE C ADDITIONS (ADR-001 §5, ADR-002 §3) — ADDITIVE ONLY.
@@ -367,6 +381,118 @@ def evaluate(report_text: str, facts: Sequence[Dict[str, Any]]) -> Tuple[List[Fi
                     detail=f"evidence_class {evidence!r} is not one of FETCH_VERIFIED/LISTING_ONLY/ASSERTED",
                 )
             )
+    return findings, counts
+
+
+def _quoted_spans(report_text: str) -> List[Tuple[str, int, int]]:
+    spans: List[Tuple[str, int, int]] = []
+    occupied: List[Tuple[int, int]] = []
+    for pattern in QUOTE_PATTERNS:
+        for match in pattern.finditer(report_text):
+            start, end = match.span(1)
+            if any(left <= start < right or left < end <= right for left, right in occupied):
+                continue
+            span = match.group(1).strip()
+            significant = len(re.sub(r"[^\w\d]", "", span, flags=re.UNICODE))
+            if significant < QUOTE_MIN_SIGNIFICANT_CHARS:
+                continue
+            occupied.append(match.span(0))
+            spans.append((span, start, end))
+    return sorted(spans, key=lambda item: item[1])
+
+
+def _quote_finding_kind(verdict: str) -> str:
+    if verdict == "not-in-excerpt":
+        return "QUOTE_NOT_IN_SOURCE"
+    if verdict == "method-ineligible":
+        return "QUOTE_METHOD_INELIGIBLE"
+    return "QUOTE_NO_EXCERPT"
+
+
+def evaluate_quotes(
+    report_text: str,
+    facts: Sequence[Dict[str, Any]],
+    excerpt_dir: str,
+) -> Tuple[List[Finding], Dict[str, int]]:
+    """Grade report quotations only from captured excerpt bytes, never metadata.
+
+    ``claim_positions`` is deliberately used only to associate report text with a
+    fact. Its word-overlap fallback NEVER reaches ``verify_verbatim``: the latter
+    performs the exact normalized substring comparison that alone can confirm.
+    """
+    findings: List[Finding] = []
+    counts = {f"quote-{verdict}": 0 for verdict in quote_provenance.VERBATIM_VERDICTS}
+    counts.update({f"quote-acquisition-{method}": 0 for method in quote_provenance.ACQUISITION_METHODS})
+    counts["quote-acquisition-unknown"] = 0
+    counts["quote-total"] = 0
+    counts["quote-unchecked"] = 0
+    spans = _quoted_spans(report_text)
+    seen_pairs = set()
+
+    for fact_index, fact in enumerate(facts):
+        recorded_quote = fact.get("quote")
+        if not isinstance(recorded_quote, str) or not recorded_quote.strip():
+            continue
+        acquisition = quote_provenance.read_acquisition(fact.get("acquisition"))
+        claim = str(fact.get("claim", ""))
+        positions = claim_positions(report_text, claim) or claim_positions(report_text, recorded_quote)
+        normalized_recorded = quote_provenance.normalize_text(recorded_quote)
+        candidates = [
+            (span, start, end) for span, start, end in spans
+            if quote_provenance.normalize_text(span) == normalized_recorded
+            and any(abs(start - position) <= MARKER_WINDOW_CHARS for position in positions)
+        ]
+        for span, start, _ in candidates:
+            pair = (fact_index, start)
+            if pair in seen_pairs:
+                continue
+            seen_pairs.add(pair)
+            counts["quote-total"] += 1
+            method_key = (
+                f"quote-acquisition-{acquisition}"
+                if acquisition in quote_provenance.ACQUISITION_METHODS
+                else "quote-acquisition-unknown"
+            )
+            counts[method_key] += 1
+            locator = fact.get("locator") or "(no locator)"
+            source_url = str(fact.get("source_url", ""))
+
+            try:
+                schema_version = int(fact.get("schema_version"))
+            except (TypeError, ValueError):
+                schema_version = 0
+            if schema_version < 4:
+                verdict = quote_provenance.METHOD_UNKNOWN if acquisition == quote_provenance.METHOD_UNKNOWN else "no-excerpt"
+                counts[f"quote-{verdict}"] += 1
+                findings.append(Finding(
+                    kind="QUOTE_NO_EXCERPT", claim=span, source_url=source_url,
+                    detail=(f"quote {span!r} at {locator} is carried by schema v{schema_version or 'unknown'}; "
+                            "quote provenance is not inside its signed message, so verbatim is unverified")))
+                continue
+
+            try:
+                excerpt_rec = quote_provenance.load_excerpt(excerpt_dir, fact.get("excerpt_id"))
+            except quote_provenance.ExcerptStoreError as exc:
+                counts["quote-unchecked"] += 1
+                findings.append(Finding(
+                    kind="QUOTES_UNCHECKED", claim=span, source_url=source_url,
+                    detail=f"quote {span!r} at {locator} could not be checked: {exc}"))
+                continue
+
+            verdict = quote_provenance.verify_verbatim(span, excerpt_rec, fact)
+            counts[f"quote-{verdict}"] += 1
+            if verdict == "verbatim-confirmed":
+                continue
+            reason = {
+                "not-in-excerpt": "is absent from the single stored excerpt leaf; joining excerpts is forbidden",
+                "no-excerpt": "has no decodable captured excerpt",
+                "method-ineligible": f"uses acquisition method {acquisition!r}, whose ceiling forbids verbatim regardless of content",
+                "hash-mismatch": "has an excerpt/body/source hash mismatch; author-constructed material grants nothing",
+                quote_provenance.METHOD_UNKNOWN: "has an absent or unknown acquisition method; legacy method-unknown never grants verbatim",
+            }[verdict]
+            findings.append(Finding(
+                kind=_quote_finding_kind(verdict), claim=span, source_url=source_url,
+                detail=f"quote {span!r} at {locator} {reason} (verdict: {verdict})"))
     return findings, counts
 
 
@@ -822,6 +948,30 @@ def render_population_and_risk(counts: Dict[str, int], profile_supplied: bool) -
     return "\n".join(lines)
 
 
+def render_quotes(counts: Dict[str, int]) -> str:
+    """One compact, auditable line for the independent quote-verdict axis."""
+    return (
+        "  quotes: {total} checked — confirmed {confirmed} / absent {absent} / no-excerpt {missing} / "
+        "method-ineligible {ineligible} / hash-mismatch {mismatch} / method-unknown {unknown} / "
+        "unchecked {unchecked}; methods raw-fetch {raw} / tool-summary {tool} / search-listing {search} / "
+        "manual {manual} / unknown {method_unknown}"
+    ).format(
+        total=counts.get("quote-total", 0),
+        confirmed=counts.get("quote-verbatim-confirmed", 0),
+        absent=counts.get("quote-not-in-excerpt", 0),
+        missing=counts.get("quote-no-excerpt", 0),
+        ineligible=counts.get("quote-method-ineligible", 0),
+        mismatch=counts.get("quote-hash-mismatch", 0),
+        unknown=counts.get("quote-method-unknown", 0),
+        unchecked=counts.get("quote-unchecked", 0),
+        raw=counts.get("quote-acquisition-raw-fetch", 0),
+        tool=counts.get("quote-acquisition-tool-summary", 0),
+        search=counts.get("quote-acquisition-search-listing", 0),
+        manual=counts.get("quote-acquisition-manual", 0),
+        method_unknown=counts.get("quote-acquisition-unknown", 0),
+    )
+
+
 def render(findings: Sequence[Finding], counts: Dict[str, int]) -> str:
     lines: List[str] = []
     total = sum(counts.values())
@@ -865,6 +1015,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--facts", required=True, help="path to facts.json")
     parser.add_argument("--json", action="store_true", help="emit machine-readable JSON")
     parser.add_argument("--pins", help="JSON file of {issuer: pubkey_b64} so ISSUER_SIGNED facts can be checked")
+    parser.add_argument(
+        "--excerpts",
+        help="captured excerpt directory (default: evidence_excerpts beside the facts ledger)",
+    )
     # SLICE C: OPTIONAL on purpose. Making it mandatory would break every documented
     # invocation for a check that cannot always apply; letting its absence pass
     # silently would be "inconclusive reads as pass". Its absence is PRINTED instead.
@@ -902,12 +1056,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     population_findings, population_counts = evaluate_population(report_text, facts, profile)
     findings = (findings + population_findings + scan_relative_risk(report_text)
                 + scan_negative_conclusions(report_text))
+    excerpt_dir = args.excerpts or os.path.join(os.path.dirname(os.path.abspath(args.facts)), "evidence_excerpts")
+    quote_findings, quote_counts = evaluate_quotes(report_text, facts, excerpt_dir)
+    findings += quote_findings
     if args.json:
         print(
             json.dumps(
                 {
                     "ok": not findings,
-                    "counts": dict(counts, **population_counts),
+                    "counts": dict(counts, **population_counts, **quote_counts),
                     "populationChecked": profile is not None,
                     "findings": [f.__dict__ for f in findings],
                     "exitCode": 1 if findings else 0,
@@ -918,6 +1075,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     else:
         print(render(findings, counts))
         print(render_population_and_risk(population_counts, profile is not None))
+        print(render_quotes(quote_counts))
     return 1 if findings else 0
 
 

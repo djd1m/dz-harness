@@ -344,7 +344,7 @@ npm install -g @dzhechkov/harness-cli    # install the CLI
 dz help                                   # see all commands
 dz pretrain                                # analyze project files → recommend by tech stack
 dz recommend "build API and deploy to K8s" # keyword match → skills + toolkits
-dz recommend "work on this project"        # generic? → auto-runs pretrain → recommends by stack
+dz recommend "work on this project"        # unmatched? → labels suggestions as PROJECT-STACK, not task-derived
 dz stats                                  # 54 packages, 201 skills, 10 targets, 14 presets
 dz dashboard                              # visual panel — packages, adapters, skill packs
 dz registry                               # browse all 179 skills by category
@@ -352,6 +352,24 @@ dz registry search kubernetes             # find specific skills
 dz registry --category devops             # filter by domain
 dz downloads                              # npm weekly download stats
 ```
+
+Russian and English word forms share the same lexical search tier; both the query and the
+catalogue text are normalized. The current workspace reproducer prints the same count for the
+two Russian forms (the catalogue count may grow, but the pair must stay equal):
+
+```console
+$ dz registry search "анализы"
+Search: "анализы" — 8 result(s)
+$ dz registry search "анализ"
+Search: "анализ" — 8 result(s)
+
+$ dz recommend "пришли анализы крови, хочу разобраться"
+║  Topics: health
+```
+
+`dz recommend --json` reports `topicSource` as `task`, `project-stack`, or `none`. When no topic
+matches, human output explicitly says that any suggestions came from the project stack; if the
+stack also yields nothing, it prints that no recommendations were found.
 
 ### Phase 2: Install (set up your workspace)
 
@@ -1904,7 +1922,7 @@ dz brain primer      <slug> [--json]                                # print a so
 dz brain export      --source <slug> --out <file>                   # write a portable per-book KB slice (ships inside the pack, §8.1)
 dz brain update      <slug> [--project <dir>] [--json]              # non-destructive refresh: re-mirror a re-ingested source, evict stale corpus
 dz pretrain          [--project <dir>]
-dz recommend         "<task description>"
+dz recommend         "<task description>" [--json]  (RU/EN lexical topics; explicit task/project-stack/none provenance)
 dz compose           <preset1+preset2+...> [--target <name>]
 dz diff              <skill-dir>
 dz upgrade           [--target <name>] [--project <dir>]
@@ -3471,7 +3489,9 @@ dz registry search <query>               # search by keyword
 dz registry --category <cat>             # browse one category
 dz init --target claude-code --select skill-advisor   # interactive advisor skill
 ```
-Verify: `dz registry` lists them. Gotcha: `recommend` is lexical/keyword ranking, not an LLM.
+Verify: `dz registry` lists them. Gotcha: `recommend` is lexical/keyword ranking, not an LLM;
+word forms are normalized, but paraphrases still belong to `/skill-advisor`. A fallback is labeled
+`PROJECT-STACK SUGGESTIONS` and never presented as a match to the question.
 
 **"Install just ONE skill, not a whole preset."**
 ```bash
@@ -4397,11 +4417,13 @@ refusal as the honest answer.
 
 ## Status
 
-`harness-core v0.8.10` · `harness-cli v0.8.9` — **staged, not published:** adds bounded
+`harness-core v0.8.11` · `harness-cli v0.8.10` — **published 2026-09-02** (core 0.8.11 also carries
+the Russian-catalogue stemming, the fixed `discrimination-check` / `mutation-gate` seams, `dz chain` and
+`dz score --all`; see the harness-core README status): adds bounded
 `volume-shadow/v1` publish observations with structured human/JSON/audit parity. All four remain
 SOFT-only; incomplete evidence is unknown, and source-comment justification is out of scope.
 
-`harness-core v0.8.9` · `skills-feature-adr v1.5.9` — **staged, not published:** the packaged
+`harness-core v0.8.10` · `skills-feature-adr v1.5.9` — **staged, not published:** the packaged
 feature-adr workflow performs advisory top-3 micro-recall at the live Step 3 ADR choice and Step 6
 plan-route choice. Every failure is fail-open; versioned `.fa-state/decision-recall.jsonl` rows make
 receipt coverage and repeat-related outcomes derivable offline. The hypothesis is external `[SRC],

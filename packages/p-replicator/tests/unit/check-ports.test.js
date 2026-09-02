@@ -374,11 +374,16 @@ describe('the storage-port rule finally has a check that can fail', () => {
         'postgres', 'postgresql', 'pgvector', 'mysql', 'mariadb', 'percona', 'mongo', 'mongodb',
         'redis', 'valkey', 'keydb', 'elasticsearch', 'opensearch', 'minio', 'rabbitmq',
         'memcached', 'clickhouse', 'cassandra', 'scylla', 'neo4j', 'influxdb', 'timescaledb',
-        'mssql', 'sqlserver', 'couchdb', 'etcd',
+        'mssql', 'sqlserver', 'couchdb', 'etcd', 'qdrant',
       ]);
       assert.deepEqual([...portsMatch[1].matchAll(/\d+/g)].map((match) => Number(match[0])), [
         5432, 3306, 27017, 6379, 9200, 9300, 5672, 11211, 9000, 8123, 1433, 9042, 7687,
-        8086, 2379, 5984,
+        8086, 2379, 5984, 6333,
+      ]);
+      const proxiesMatch = source.match(/const PROXY_NAMES = \/\^\(([^)]+)\)\$\/i;/);
+      assert.ok(proxiesMatch, 'the existing PROXY_NAMES literal must remain readable');
+      assert.deepEqual(proxiesMatch[1].split('|'), [
+        'caddy', 'nginx', 'traefik', 'haproxy', 'envoy', 'openresty',
       ]);
 
       const seen = [
@@ -574,6 +579,45 @@ describe('the storage-port rule finally has a check that can fail', () => {
       'machine success must be a point-in-time current-context receipt');
     assert.ok(!/ни одно хранилище не публикует/.test(machine.result.stdout),
       'the former scope-free receipt is not a machine-wide claim');
+  });
+
+  test('P29 — qdrant exposure extends the recognized storage class', () => {
+    const qdrant = fakeDockerCheck({ compose: 'services:\n  qdrant:\n'
+      + '    image: qdrant/qdrant:latest\n'
+      + '    ports:\n      - target: 6333\n        published: 6333\n' }, ['$PROJECT']);
+    assert.equal(qdrant.result.status, 1,
+      'qdrant/qdrant:latest on 6333 must not retain the old green receipt: '
+      + qdrant.result.stdout + qdrant.result.stderr);
+    assert.match(qdrant.result.stdout, /qdrant/);
+    assert.match(qdrant.result.stdout, /6333/);
+    assert.doesNotMatch(qdrant.result.stdout, /✅/);
+  });
+
+  test('P30 — openresty makes a directly published app a proxy bypass', () => {
+    const bypass = fakeDockerCheck({ compose: 'services:\n  gateway:\n'
+      + '    image: openresty/openresty:alpine\n'
+      + '    ports:\n      - target: 80\n        published: 80\n'
+      + '  app:\n    image: node:22\n'
+      + '    ports:\n      - target: 3000\n        published: 3000\n' }, ['$PROJECT']);
+    assert.equal(bypass.result.status, 1,
+      'OpenResty must establish the reverse-proxy class before bypass analysis: '
+      + bypass.result.stdout + bypass.result.stderr);
+    assert.match(bypass.result.stdout, /app/);
+    assert.match(bypass.result.stdout, /reverse-proxy.*gateway/i);
+    assert.doesNotMatch(bypass.result.stdout, /✅/);
+  });
+
+  test('P31 — honest exit 0 receipt counts scope and names an unchecked published app', () => {
+    const catalog = fakeDockerCheck({ compose: 'services:\n  db:\n    image: postgres:16\n'
+      + '  web:\n    image: node:22\n'
+      + '    ports:\n      - target: 3000\n        published: 3000\n' }, ['$PROJECT']);
+    assert.equal(catalog.result.status, 0, catalog.result.stdout + catalog.result.stderr);
+    assert.match(catalog.result.stdout,
+      /из 2 сервисов распознано хранилищ 1, reverse-proxy 0/i);
+    assert.match(catalog.result.stdout,
+      /НЕ распознаны и не проверялись: web \(порт 3000 наружу\)/i);
+    assert.doesNotMatch(catalog.result.stdout, /ни одно хранилище не публикует/i,
+      'a roster-scoped check must not certify an absolute class claim');
   });
 
   test('P19 — catalog mode preserves P12 and never invokes machine or runtime Docker commands',

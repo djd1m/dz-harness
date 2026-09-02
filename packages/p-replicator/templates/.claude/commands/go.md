@@ -75,14 +75,12 @@ Same as `/feature` but with idea2prd-manual + DDD coherence + ADR consistency
 
 ### Delegated parallel-work receipt (required)
 
-For any selected pipeline that dispatches parallel work, allocate one `RUN_ID`, a unique
-`WORK_UNIT_ID`, and an absolute `TRACE_PATH` per unit. Require each worker to write a substantive body
-ending in `Status: completed` or `Status: failed` to `TRACE_PATH` before its one-line pointer. Before
-the routed pipeline reports merge, synthesis, or completion, verify each path is a regular non-symlink
-file, non-whitespace, post-launch, and terminal. Narrative output or silence is not a receipt. Name
-missing, stale, partial, unreadable, duplicate, failed, dead-PID, or probe-error units and refuse
-aggregation/completion unless every required receipt is valid and completed. The selected pipeline
-owns the paths; this router never substitutes its own report. See `.claude/rules/swarm-file-evidence.md`.
+For parallel work, assign each unit a unique `WORK_UNIT_ID` and unique absolute `TRACE_PATH`. The worker
+MUST write a substantive body ending in `Status: completed` or `Status: failed` to `TRACE_PATH` before
+its one-line pointer. Before merge/synthesis/completion, the selected pipeline MUST verify a regular,
+non-symlink, substantive, post-launch file with a terminal status. Narrative/chat/silence is never a
+receipt; any invalid receipt MUST block merge/completion, and this router never substitutes its report.
+Full rule: `.claude/rules/swarm-file-evidence.md`.
 
 ## Step 6: Post-Implementation
 

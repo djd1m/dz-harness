@@ -48,6 +48,7 @@ export type { LedgerBackfillPlan, LedgerBackfillRow, RunCostFacts } from './ledg
 export type { SweepResult, DriftedSkill, SyncResult, SyncCanonicalOptions } from './skill-drift.js';
 export { benchmarkSkill, benchmarkSkills, compareSkills } from './benchmark.js';
 export { buildRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs } from './registry.js';
+export { tokenize, stemToken, stems } from './stem.js';
 export * from './package-skill-layouts.js';
 export { recommend } from './recommend.js';
 export { pretrain } from './pretrain.js';
