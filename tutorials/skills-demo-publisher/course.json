@@ -1412,14 +1412,6 @@
       {
         "label": "GitHub (зеркало)",
         "href": "https://github.com/djd1m/dz-harness"
-      },
-      {
-        "label": "Лимиты GitHub Pages",
-        "href": "https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits"
-      },
-      {
-        "label": "Крупные файлы в GitHub",
-        "href": "https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github"
       }
     ]
   },
