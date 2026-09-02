@@ -217,7 +217,7 @@
       "keyConcept": "пресет reasoning ставит все четыре навыка разом",
       "methodPattern": "P5",
       "source": "README.md#install",
-      "theory": "Костя не любит длинные инструкции по установке, и здесь ему повезло: способов ровно три, и все помещаются в четыре строки.\n\n1. **Весь пак пресетом** — `dz init --target claude-code --preset reasoning`. Пресет `reasoning` собирает все четыре навыка разом, это дорога по умолчанию.\n2. **Один навык точечно** — `dz init --target claude-code --select karpathy-guidelines`. Берёшь ровно то, чего не хватает.\n3. **Голым npm** — `npm install @dzhechkov/skills-reasoning`; файлы навыков копируются в твой `.claude/skills/`.\n\nСтраница пакета: [npm: @dzhechkov/skills-reasoning](https://www.npmjs.com/package/@dzhechkov/skills-reasoning), исходники и зеркало — [GitHub: dz-harness-hub](https://github.com/djd1m/dz-harness).\n\n**Одно правило, которое стоит запомнить сразу.** Ищешь `systematic-debugging`? Его здесь нет и не будет: он уже живёт в [@dzhechkov/skills-qe](https://www.npmjs.com/package/@dzhechkov/skills-qe), и пак сознательно не дублирует чужие навыки. Костя потратил полчаса на поиск, прежде чем прочитал эту строчку в README — не повторяй.\n\n**Компромисс:** пресет ставит четыре навыка вместо одного нужного, и агент читает описания всех четырёх. Взамен ты не собираешь арсенал по кусочкам и не гадаешь, что забыл.",
+      "theory": "Костя не любит длинные инструкции по установке, и здесь ему повезло: способов ровно три, и все помещаются в четыре строки.\n\n1. **Весь пак пресетом** — `dz init --target claude-code --preset reasoning`. Пресет `reasoning` собирает все четыре навыка разом, это дорога по умолчанию.\n2. **Один навык точечно** — `dz init --target claude-code --select karpathy-guidelines`. Берёшь ровно то, чего не хватает.\n3. **Голым npm** — `npm install @dzhechkov/skills-reasoning`; файлы навыков копируются в твой `.claude/skills/`.\n\nСтраница пакета: [npm: @dzhechkov/skills-reasoning](https://www.npmjs.com/package/@dzhechkov/skills-reasoning), исходники и зеркало — [GitHub: dz-harness](https://github.com/djd1m/dz-harness).\n\n**Одно правило, которое стоит запомнить сразу.** Ищешь `systematic-debugging`? Его здесь нет и не будет: он уже живёт в [@dzhechkov/skills-qe](https://www.npmjs.com/package/@dzhechkov/skills-qe), и пак сознательно не дублирует чужие навыки. Костя потратил полчаса на поиск, прежде чем прочитал эту строчку в README — не повторяй.\n\n**Компромисс:** пресет ставит четыре навыка вместо одного нужного, и агент читает описания всех четырёх. Взамен ты не собираешь арсенал по кусочкам и не гадаешь, что забыл.",
       "reflection": {
         "strengths": "Один пресет разворачивает весь пак; точечный выбор доступен тем же флагом; чистая установка через npm работает без CLI.",
         "weaknesses": "Пресет ставит и то, что тебе сегодня не нужно; ожидание найти в паке systematic-debugging не оправдается — он в другом пакете.",
@@ -1456,7 +1456,7 @@
         "href": "https://www.npmjs.com/package/@dzhechkov/skills-reasoning"
       },
       {
-        "label": "GitHub: dz-harness-hub",
+        "label": "GitHub: dz-harness",
         "href": "https://github.com/djd1m/dz-harness"
       },
       {
