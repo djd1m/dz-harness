@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="description" content="30-минутный доклад о dz harness-cli с живой демонстрацией в Codex">
+  <title>Не промпт, а система — dz + Codex за 30 минут</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f4f1e8;
+      --muted: #a8b1b8;
+      --paper: #0b1116;
+      --panel: #111a21;
+      --line: #2b3942;
+      --acid: #c7ff4a;
+      --cyan: #54d8ff;
+      --coral: #ff8066;
+      --shadow: 0 18px 60px rgba(0,0,0,.34);
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      text-rendering: optimizeLegibility;
+    }
+    button, a { font: inherit; }
+    button { color: inherit; }
+    a { color: var(--cyan); text-underline-offset: .18em; }
+    :focus-visible { outline: 3px solid var(--acid); outline-offset: 4px; }
+    .grain {
+      position: fixed; inset: 0; pointer-events: none; opacity: .13; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.38'/%3E%3C/svg%3E");
+    }
+    .topbar {
+      position: fixed; inset: 0 0 auto; height: 58px; display: flex; align-items: center;
+      justify-content: space-between; padding: 0 28px; border-bottom: 1px solid var(--line);
+      background: rgba(11,17,22,.95); z-index: 30;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 760; letter-spacing: -.02em; }
+    .brand-mark { width: 28px; height: 28px; display: grid; place-items: center; color: #071014; background: var(--acid); border-radius: 3px; font-size: 14px; }
+    .top-actions { display: flex; align-items: center; gap: 10px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .icon-btn {
+      min-height: 34px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel);
+      padding: 6px 10px; cursor: pointer;
+    }
+    .icon-btn:hover { border-color: var(--cyan); color: var(--ink); }
+    .timer.running { color: var(--acid); border-color: #718f2e; }
+    .progress { position: fixed; top: 57px; left: 0; height: 3px; width: 100%; z-index: 31; background: #151f26; }
+    .progress > span { display: block; width: 0; height: 100%; background: var(--acid); transition: width .28s ease; }
+    main { position: fixed; inset: 61px 0 68px; z-index: 1; }
+    .slide {
+      position: absolute; inset: 0; display: none; overflow: auto; padding: clamp(24px,4vw,64px) clamp(24px,6.5vw,100px);
+      align-items: center; animation: arrive .34s ease both;
+    }
+    .slide.active { display: grid; }
+    .slide.compact { padding-top: 32px; padding-bottom: 32px; }
+    .slide.dense { padding-top: 22px; padding-bottom: 22px; }
+    .slide.dense .eyebrow { margin-bottom: 10px; }
+    .slide.dense h2 { font-size: clamp(34px,4.3vw,62px); margin-bottom: 18px; }
+    .slide.dense pre { font-size: clamp(12px,1.08vw,16px); line-height: 1.4; padding: 17px 20px; }
+    .slide.dense .callout { margin-top: 14px; }
+    @keyframes arrive { from { opacity: 1; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+    .slide-inner { width: min(1220px,100%); margin: auto; }
+    .eyebrow { color: var(--acid); font-size: clamp(12px,1.1vw,16px); text-transform: uppercase; letter-spacing: .14em; font-weight: 800; margin: 0 0 18px; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: clamp(50px,7.6vw,118px); line-height: .91; letter-spacing: -.065em; margin-bottom: 28px; max-width: 1050px; }
+    h2 { font-size: clamp(38px,5.4vw,78px); line-height: .98; letter-spacing: -.052em; margin-bottom: 30px; max-width: 1040px; }
+    h3 { font-size: clamp(20px,2vw,30px); line-height: 1.1; letter-spacing: -.025em; margin-bottom: 12px; }
+    .lead { max-width: 870px; font-size: clamp(21px,2.35vw,34px); line-height: 1.28; color: #dce3e5; }
+    .muted { color: var(--muted); }
+    .acid { color: var(--acid); }
+    .cyan { color: var(--cyan); }
+    .coral { color: var(--coral); }
+    .strike { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--coral); }
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; }
+    .chip { border: 1px solid var(--line); border-radius: 999px; padding: 8px 13px; color: #d7dde0; background: #0d151b; }
+    .grid-2, .grid-3, .flow, .demo-grid { display: grid; gap: clamp(14px,2vw,26px); }
+    .grid-2 { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .grid-3 { grid-template-columns: repeat(3,minmax(0,1fr)); }
+    .demo-grid { grid-template-columns: minmax(0,1.25fr) minmax(260px,.75fr); align-items: start; }
+    .card { padding: clamp(18px,2.3vw,30px); border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: var(--shadow); }
+    .card.accent { border-top: 4px solid var(--acid); }
+    .card.cyan-card { border-top: 4px solid var(--cyan); }
+    .card.coral-card { border-top: 4px solid var(--coral); }
+    .card p:last-child, .card ul:last-child { margin-bottom: 0; }
+    .big-number { font: 800 clamp(42px,5vw,80px)/.9 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: -.06em; color: var(--acid); }
+    ul.clean { list-style: none; padding: 0; margin: 0; }
+    ul.clean li { position: relative; padding-left: 25px; margin: 12px 0; color: #dce2e4; font-size: clamp(17px,1.65vw,24px); line-height: 1.35; }
+    ul.clean li::before { content: "→"; position: absolute; left: 0; color: var(--acid); font-weight: 800; }
+    .flow { grid-template-columns: repeat(5,minmax(0,1fr)); align-items: stretch; }
+    .flow .step { position: relative; padding: 18px; min-height: 150px; border: 1px solid var(--line); background: var(--panel); }
+    .flow .step:not(:last-child)::after { content: "→"; position: absolute; right: -21px; top: 50%; z-index: 2; color: var(--acid); font-size: 24px; transform: translateY(-50%); }
+    .step b { display: block; margin-bottom: 8px; color: var(--cyan); }
+    .step span { color: var(--muted); line-height: 1.3; }
+    .comparison { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; gap: 18px; }
+    .versus { display: grid; place-items: center; color: var(--coral); font-weight: 900; font-size: 22px; }
+    pre {
+      position: relative; margin: 0; overflow: auto; padding: 22px 24px; border: 1px solid #334650;
+      border-radius: 7px; background: #05090c; color: #d7f6ff; font: 500 clamp(13px,1.22vw,18px)/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap; tab-size: 2;
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .code-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .09em; }
+    .copy { border: 0; background: transparent; color: var(--cyan); cursor: pointer; padding: 4px 0; }
+    .copy.done { color: var(--acid); }
+    .callout { margin-top: 22px; padding: 16px 19px; border-left: 4px solid var(--acid); background: #131d1b; font-size: clamp(16px,1.45vw,21px); line-height: 1.4; }
+    .agenda { display: grid; grid-template-columns: 115px 1fr; gap: 0 22px; align-items: stretch; }
+    .agenda > * { padding: 13px 0; border-bottom: 1px solid var(--line); }
+    .agenda time { color: var(--acid); font: 700 18px/1.4 ui-monospace, monospace; }
+    .agenda div { font-size: clamp(17px,1.55vw,23px); }
+    .terminal-head { display: flex; gap: 6px; margin: -8px 0 13px; }
+    .terminal-head i { width: 10px; height: 10px; border-radius: 50%; background: #53616a; }
+    .terminal-head i:first-child { background: var(--coral); }
+    .terminal-head i:last-child { background: var(--acid); }
+    .proof { display: grid; grid-template-columns: auto 1fr; gap: 11px 14px; align-items: start; font-size: clamp(16px,1.35vw,20px); }
+    .proof b { color: var(--acid); }
+    .bottom {
+      position: fixed; inset: auto 0 0; height: 68px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px; border-top: 1px solid var(--line); background: rgba(11,17,22,.97); z-index: 30;
+    }
+    .nav { display: flex; align-items: center; gap: 8px; }
+    .nav button { width: 42px; height: 38px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel); cursor: pointer; font-size: 20px; }
+    .nav button:hover:not(:disabled) { border-color: var(--acid); }
+    .nav button:disabled { opacity: .3; cursor: not-allowed; }
+    .slide-no { font: 700 14px/1 ui-monospace, monospace; color: var(--muted); }
+    .hint { color: #77858d; font-size: 13px; }
+    .notes-panel {
+      position: fixed; z-index: 60; right: 18px; bottom: 82px; width: min(520px,calc(100vw - 36px)); max-height: 58vh;
+      overflow: auto; padding: 22px; border: 1px solid #60737d; border-radius: 8px; background: #111a21; box-shadow: 0 24px 90px rgba(0,0,0,.7);
+    }
+    .notes-panel[hidden] { display: none; }
+    .notes-panel h3 { color: var(--acid); font-size: 18px; }
+    .notes-panel p { color: #d5dcdf; line-height: 1.5; }
+    .notes { display: none; }
+    .overview {
+      position: fixed; inset: 0; z-index: 70; background: rgba(5,9,12,.97); padding: 40px; overflow: auto;
+    }
+    .overview[hidden] { display: none; }
+    .overview-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 12px; max-width: 1400px; margin: 0 auto; }
+    .overview button { min-height: 135px; padding: 18px; text-align: left; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--panel); cursor: pointer; }
+    .overview button:hover { border-color: var(--acid); }
+    .overview small { display: block; margin-bottom: 10px; color: var(--acid); }
+    .overview strong { display: block; font-size: 18px; }
+    .source-list { columns: 2; column-gap: 38px; font-size: clamp(14px,1.2vw,18px); }
+    .source-list li { break-inside: avoid; margin: 0 0 12px; color: var(--muted); }
+    .source-list a { color: #d9e1e4; }
+    @media (max-width: 850px) {
+      .grid-2, .grid-3, .demo-grid, .comparison { grid-template-columns: 1fr; }
+      .flow { grid-template-columns: 1fr 1fr; }
+      .flow .step:not(:last-child)::after, .versus { display: none; }
+      .slide { align-items: start; }
+      .hint { display: none; }
+      .source-list { columns: 1; }
+    }
+    @media (max-width: 560px) {
+      .topbar, .bottom { padding-left: 14px; padding-right: 14px; }
+      .top-actions .label { display: none; }
+      .slide { padding: 25px 18px; }
+      .flow { grid-template-columns: 1fr; }
+      .agenda { grid-template-columns: 80px 1fr; gap: 0 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+    @media print {
+      html,body { overflow: visible; background: white; color: black; }
+      .topbar,.bottom,.progress,.grain,.notes-panel,.overview { display: none !important; }
+      main { position: static; }
+      .slide,.slide.active { position: relative; display: block; min-height: 100vh; page-break-after: always; color: #111; background: white; }
+      .card,pre,.flow .step { box-shadow: none; color: #111; background: #f7f7f7; }
+    }
+  </style>
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">dz</span><span>Harness × Codex</span></div>
+    <div class="top-actions">
+      <button class="icon-btn" id="overviewBtn" title="Все слайды (O)"><span class="label">Обзор</span> O</button>
+      <button class="icon-btn" id="notesBtn" title="Заметки спикера (N)"><span class="label">Заметки</span> N</button>
+      <button class="icon-btn timer" id="timerBtn" title="Старт / пауза таймера (T)">00:00</button>
+    </div>
+  </header>
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+
+  <main id="deck" aria-live="polite">
+    <section class="slide active" data-title="Не промпт, а система" data-time="0:00">
+      <div class="slide-inner">
+        <p class="eyebrow">30 минут · 1 идея · 1 live demo</p>
+        <h1>Не промпт.<br><span class="acid">Система.</span></h1>
+        <p class="lead">Как за несколько команд превратить Codex из «умного собеседника» в воспроизводимого проектного агента с помощью <strong>dz harness-cli</strong>.</p>
+        <div class="chips"><span class="chip">Codex</span><span class="chip">skills</span><span class="chip">quality gates</span><span class="chip">self-contained demo</span></div>
+      </div>
+      <aside class="notes"><p><strong>1 минута.</strong> Откройте с вопроса: «Кто уже ловил ситуацию, когда агент красиво сказал “готово”, а проверять пришлось всё самому?» Обещание доклада: не каталог команд, а одна рабочая модель и маленький доказуемый показ.</p></aside>
+    </section>
+
+    <section class="slide" data-title="Маршрут" data-time="1:00">
+      <div class="slide-inner">
+        <p class="eyebrow">Маршрут · 1–3–1</p>
+        <h2>Одна проблема.<br>Три слоя. Один показ.</h2>
+        <div class="agenda">
+          <time>00–06</time><div>Почему сильной модели недостаточно</div>
+          <time>06–15</time><div>Что добавляет harness и где здесь <code>dz</code></div>
+          <time>15–26</time><div>Live: собираем проектный арсенал для Codex</div>
+          <time>26–30</time><div>Как перенести подход в свой проект</div>
+        </div>
+      </div>
+      <aside class="notes"><p><strong>1 минута.</strong> Покажите маршрут и сразу снимите ожидание полного курса. Мы сознательно берём только то, что можно унести и повторить завтра.</p></aside>
+    </section>
+
+    <section class="slide compact" data-title="Проблема" data-time="3:00">
+      <div class="slide-inner">
+        <p class="eyebrow">Проблема</p>
+        <h2>Модель умеет.<br><span class="coral">Проект не помнит.</span></h2>
+        <div class="comparison">
+          <article class="card coral-card">
+            <h3>Prompt-only</h3>
+            <ul class="clean">
+              <li>правила живут в голове оператора</li>
+              <li>контекст собирается заново</li>
+              <li>«готово» означает уверенность модели</li>
+            </ul>
+          </article>
+          <div class="versus">≠</div>
+          <article class="card accent">
+            <h3>Harness-first</h3>
+            <ul class="clean">
+              <li>правила лежат рядом с кодом</li>
+              <li>навыки подключаются воспроизводимо</li>
+              <li>«готово» привязано к проверке</li>
+            </ul>
+          </article>
+        </div>
+        <div class="callout"><strong>Тезис:</strong> качество работы агента — свойство не только модели, но и среды вокруг неё.</div>
+      </div>
+      <aside class="notes"><p><strong>3 минуты.</strong> Дайте один свой пример переобъяснения требований между сессиями. Harness — это не «ещё один большой промпт», а инструкции, инструменты, состояние и обратная связь, которые живут дольше одного ответа.</p></aside>
+    </section>
+
+    <section class="slide" data-title="Что такое dz" data-time="6:00">
+      <div class="slide-inner">
+        <p class="eyebrow">Ментальная модель</p>
+        <h2><code>dz</code> = package manager<br>+ <span class="cyan">cross-compiler</span></h2>
+        <div class="flow">
+          <div class="step"><b>Намерение</b><span>«что должен уметь агент?»</span></div>
+          <div class="step"><b>Skill</b><span>канонические инструкции и ресурсы</span></div>
+          <div class="step"><b>dz</b><span>выбор, сборка, проверка</span></div>
+          <div class="step"><b>Target</b><span>формат конкретного harness</span></div>
+          <div class="step"><b>Codex</b><span><code>.agents/skills/</code></span></div>
+        </div>
+        <p class="lead muted" style="margin-top:28px">Описываем способность один раз — доставляем в формат нужной платформы.</p>
+      </div>
+      <aside class="notes"><p><strong>3 минуты.</strong> Главное различие: пакетный менеджер отвечает «что установить и откуда», кросс-компилятор — «в каком формате это поймёт конкретный агент». В локальной справке dz перечислены 10 target-платформ; сегодня берём только Codex.</p></aside>
+    </section>
+
+    <section class="slide dense" data-title="Полка инструментов" data-time="9:00">
+      <div class="slide-inner">
+        <p class="eyebrow">Полка · доказательство, не каталог</p>
+        <h2>Одна кузница.<br>Разный материал.</h2>
+        <div class="grid-2">
+          <article class="card accent"><h3>Тону в лентах</h3><p><code>news</code></p><p class="muted">Дайджест со ссылками и памятью прошлых выпусков.</p></article>
+          <article class="card cyan-card"><h3>Прочитал — не применяю</h3><p><code>book-digitizer</code></p><p class="muted">Книга превращается в навыки для решений агента.</p></article>
+          <article class="card coral-card"><h3>Есть сырая идея</h3><p><code>design-thinking</code></p><p class="muted">Потребности отделяются от красивых догадок.</p></article>
+          <article class="card"><h3>Пакет непонятен людям</h3><p><code>package-story-page</code></p><p class="muted">Код и README становятся короткой проверяемой историей.</p></article>
+        </div>
+        <div class="callout">Не показываем весь каталог. Берём один инструмент и вскрываем его до винтиков.</div>
+      </div>
+      <aside class="notes"><p><strong>3 минуты.</strong> Полка отвечает только на вопрос «эта кузница делает что-то полезное?». Не открывайте четыре курса: одна строка на пример и дальше. Для установки есть три глубины: отдельный skill, preset роли и полный npm-toolkit; сегодня берём минимальный вариант.</p></aside>
+    </section>
+
+    <section class="slide compact" data-title="Codex target" data-time="12:00">
+      <div class="slide-inner">
+        <p class="eyebrow">Target: Codex</p>
+        <h2>Инструкции становятся<br><span class="acid">частью проекта</span></h2>
+        <div class="demo-grid">
+          <div>
+            <div class="code-label"><span>На диске</span></div>
+            <pre>project/
+├── AGENTS.md
+├── .agents/
+│   └── skills/
+│       ├── design-taste-frontend/
+│       │   └── SKILL.md
+│       ├── package-story-page/
+│       │   └── SKILL.md
+│       └── presentation-storyteller/
+│           └── SKILL.md
+└── src/</pre>
+          </div>
+          <article class="card">
+            <h3>Что меняется</h3>
+            <ul class="clean">
+              <li>skill можно ревьюить как код</li>
+              <li>состав арсенала виден на диске</li>
+              <li>следующая сессия получает те же правила</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+      <aside class="notes"><p><strong>2 минуты.</strong> Покажите физический путь. Это важный «ага»-момент: никакой магии в облаке — Codex читает проектные навыки из <code>.agents/skills</code>, а <code>AGENTS.md</code> задаёт постоянные границы.</p></aside>
+    </section>
+
+    <section class="slide" data-title="Лестница обнаружения" data-time="14:00">
+      <div class="slide-inner">
+        <p class="eyebrow">Главная идея</p>
+        <h2>Где живёт правило —<br>там его <span class="acid">судьба</span></h2>
+        <div class="flow">
+          <div class="step"><b>Чат</b><span>забылось после ответа</span></div>
+          <div class="step"><b>Память</b><span>может не попасть в контекст</span></div>
+          <div class="step"><b>Skill</b><span>сработает при верном маршруте</span></div>
+          <div class="step"><b>Pipeline</b><span>шаг нельзя тихо пропустить</span></div>
+          <div class="step"><b>Gate / CI</b><span>нарушение останавливает работу</span></div>
+        </div>
+        <div class="callout">Не «модель поумнее», а обязательный checklist. Следующий показ проверит именно пожарную сигнализацию.</div>
+      </div>
+      <aside class="notes"><p><strong>2 минуты.</strong> Это центральный экран. Пройдите слева направо: одно и то же правило становится всё менее вероятностным. Короткая аналогия из прежнего семинара: сложность B‑17 победили не более умным пилотом, а обязательным предполётным списком. В live-demo мы сначала увидим зелёный gate, затем специально устроим дым.</p></aside>
+    </section>
+
+    <section class="slide" data-title="Стек демонстрации" data-time="16:00">
+      <div class="slide-inner">
+        <p class="eyebrow">Live demo · цель</p>
+        <h2>За 8 минут: от пакета<br>к <span class="cyan">понятной story-page</span></h2>
+        <div class="grid-3">
+          <article class="card"><h3><code>package-story-page</code></h3><p class="muted">Извлекает честную историю продукта из README, package.json и кода.</p></article>
+          <article class="card"><h3><code>design-taste-frontend</code></h3><p class="muted">Убирает шаблонный «AI look» и задаёт осознанный визуальный характер.</p></article>
+          <article class="card"><h3><code>presentation-storyteller</code></h3><p class="muted">Держит повествовательную дугу, источники и речь спикера.</p></article>
+        </div>
+        <div class="callout"><strong>Контракт показа:</strong> Codex создаёт автономный HTML и исполняемый gate — затем мы докажем, что gate умеет краснеть.</div>
+      </div>
+      <aside class="notes"><p><strong>1 минута.</strong> Переключитесь в терминал. Цель демонстрации — увидеть не красоту финального сайта, а три вещи: skills появились на диске, Codex назвал критерии до кода, проверка была реально выполнена.</p></aside>
+    </section>
+
+    <section class="slide dense" data-title="Demo: подготовка" data-time="17:00">
+      <div class="slide-inner">
+        <p class="eyebrow">Live demo · шаг 1/3</p>
+        <h2>Изолируем показ.<br>Ставим skills.</h2>
+        <div class="code-label"><span>Терминал · выполнить до запуска Codex</span><button class="copy" data-copy="setup">Копировать</button></div>
+        <pre id="setup"># Из корня dz-harness; основное дерево останется нетронутым
+git worktree add ../dz-talk-demo HEAD
+cd ../dz-talk-demo
+
+# Установка skills без изменения пользовательских hooks
+dz init --target codex \
+  --select design-taste-frontend,package-story-page,presentation-storyteller \
+  --project . --no-hooks --no-verify
+
+dz list --skills-dir .agents/skills
+codex</pre>
+        <div class="callout"><strong>Говорим вслух:</strong> worktree — страховка показа; <code>--no-hooks</code> не меняет глобальную конфигурацию зрителя.</div>
+      </div>
+      <aside class="notes"><p><strong>2 минуты.</strong> Не устанавливайте npm-пакет во время выступления: сделайте это заранее и начните с <code>dz --version</code>. Если worktree уже создан, просто войдите в него. После <code>dz list</code> покажите три каталога skills.</p></aside>
+    </section>
+
+    <section class="slide dense" data-title="Demo: промпт" data-time="19:00">
+      <div class="slide-inner">
+        <p class="eyebrow">Live demo · шаг 2/3</p>
+        <h2>Просим результат.<br>И доказательство.</h2>
+        <div class="code-label"><span>Вставить в Codex</span><button class="copy" data-copy="demoPrompt">Копировать</button></div>
+        <pre id="demoPrompt">Изучи packages/@dzhechkov/harness-cli/package.json и README.md.
+Используй установленные skills package-story-page,
+design-taste-frontend и presentation-storyteller.
+
+Создай два файла: out/live-demo/index.html — автономную
+русскоязычную story-page о dz для нового разработчика —
+и out/live-demo/verify.mjs — детерминированную проверку.
+Ограничения страницы: без CDN и сборки, 5 экранов,
+клавиатурная навигация, видимый CTA с точной командой для Codex.
+Проверка обязана именованно проверять эти ограничения и выходить
+с кодом 1, если найден внешний script src или stylesheet href.
+
+До редактирования назови 4 критерия готовности.
+После редактирования запусти проверку HTML и сообщи:
+1) какие файлы созданы; 2) какую команду запускал;
+3) её exit code; 4) что осталось непроверенным.</pre>
+        <p class="muted" style="margin-top:18px">Не диктуем макет. Фиксируем аудиторию, артефакт, ограничения и evidence contract.</p>
+      </div>
+      <aside class="notes"><p><strong>5 минут.</strong> Пока Codex работает, подсветите четыре части запроса: реальные источники в репозитории; явно названные skills; узкая форма результата; формат доказательства. Если прошло 90 секунд без файла — прервите и попросите показать текущий план и незавершённый артефакт. Не превращайте задержку в театральное «всё точно работает».</p></aside>
+    </section>
+
+    <section class="slide dense" data-title="Demo: проверка" data-time="24:00">
+      <div class="slide-inner">
+        <p class="eyebrow">Live demo · шаг 3/3</p>
+        <h2>Финал — это<br><span class="acid">квитанция</span></h2>
+        <div class="demo-grid">
+          <div>
+            <div class="code-label"><span>Проверяем проверку: green → red → green</span><button class="copy" data-copy="verify">Копировать</button></div>
+            <pre id="verify"># 1. Штатная страница — GREEN
+node out/live-demo/verify.mjs
+
+# 2. Пускаем «дым»: внешний script — нужен RED
+cp out/live-demo/index.html /tmp/dz-live-demo-index.html
+sed -i 's#&lt;/body&gt;#&lt;script src="https://example.com/demo.js"&gt;&lt;/script&gt;&lt;/body&gt;#' out/live-demo/index.html
+node out/live-demo/verify.mjs
+
+# 3. Возвращаем байты — снова GREEN
+cp /tmp/dz-live-demo-index.html out/live-demo/index.html
+node out/live-demo/verify.mjs
+git status --short</pre>
+          </div>
+          <article class="card accent">
+            <h3>Смотрим не на красноречие</h3>
+            <div class="proof">
+              <b>01</b><span>файл реально существует</span>
+              <b>02</b><span>gate зелёный на норме</span>
+              <b>03</b><span>gate красный на нарушении</span>
+              <b>04</b><span>после восстановления снова зелёный</span>
+            </div>
+          </article>
+        </div>
+        <div class="callout"><strong>Зелёная проверка ничего не стоит, пока вы не видели её красной.</strong></div>
+      </div>
+      <aside class="notes"><p><strong>2 минуты.</strong> Первый запуск обязан быть зелёным. Затем одной строкой добавьте внешний script: gate обязан назвать нарушение и вернуть ненулевой код. Восстановите точные байты и получите зелёный снова. Честно скажите: этот мини-gate проверяет форму и самодостаточность, но не визуальное качество на разных экранах.</p></aside>
+    </section>
+
+    <section class="slide compact" data-title="От навыка к системе" data-time="26:00">
+      <div class="slide-inner">
+        <p class="eyebrow">После демо</p>
+        <h2>Skill отвечает «как».<br>Harness удерживает <span class="cyan">цикл</span>.</h2>
+        <div class="flow">
+          <div class="step"><b>Discover</b><span><code>registry search</code></span></div>
+          <div class="step"><b>Install</b><span><code>init / setup</code></span></div>
+          <div class="step"><b>Use</b><span>Codex применяет skill</span></div>
+          <div class="step"><b>Verify</b><span><code>guard / doctor</code></span></div>
+          <div class="step"><b>Learn</b><span><code>teach / recall</code></span></div>
+        </div>
+        <div class="grid-2" style="margin-top:24px">
+          <article class="card"><h3>Для существующего проекта</h3><p class="muted">Сначала <code>dz architecture</code> и минимальный набор skills. Не устанавливайте весь каталог «на всякий случай».</p></article>
+          <article class="card"><h3>Для повторяемой работы</h3><p class="muted">Правило усиливают: рекомендация → skill → детерминированный gate → CI.</p></article>
+        </div>
+      </div>
+      <aside class="notes"><p><strong>2 минуты.</strong> Соедините demo с большой картиной курса: каталог помогает найти способность, target доставляет её, проверки удерживают честность, память переносит реальные уроки между сессиями. Это путь от разовой удачи к системе.</p></aside>
+    </section>
+
+    <section class="slide" data-title="Три вывода" data-time="28:00">
+      <div class="slide-inner">
+        <p class="eyebrow">Забрать с собой</p>
+        <h2>Три правила на завтра</h2>
+        <div class="grid-3">
+          <article class="card accent"><div class="big-number">1</div><h3>Храните способность</h3><p class="muted">Не переобъясняйте процесс в каждом промпте — оформляйте повторяемое решение как skill.</p></article>
+          <article class="card cyan-card"><div class="big-number">2</div><h3>Ставьте минимум</h3><p class="muted">Выбирайте skills под текущую задачу и компилируйте под реальный target.</p></article>
+          <article class="card coral-card"><div class="big-number">3</div><h3>Требуйте квитанцию</h3><p class="muted">Слово «готово» начинается после воспроизводимой команды проверки.</p></article>
+        </div>
+      </div>
+      <aside class="notes"><p><strong>1 минута.</strong> Проговорите выводы медленно. Финальная формула: модель предлагает, harness ограничивает и снабжает, проверка решает, можно ли доверять результату.</p></aside>
+    </section>
+
+    <section class="slide" data-title="Вопросы и источники" data-time="29:00">
+      <div class="slide-inner">
+        <p class="eyebrow">Финиш · 29:00</p>
+        <h2>Вопросы?</h2>
+        <div class="grid-2">
+          <article class="card accent">
+            <h3>Попробовать за 60 секунд</h3>
+            <pre>npm i -g @dzhechkov/harness-cli@latest
+dz registry search "ваша задача"
+dz init --target codex --select &lt;skill-id&gt;</pre>
+            <p style="margin-top:16px"><a href="https://djd1m.github.io/dz-harness/tutorials/" target="_blank" rel="noreferrer">Все интерактивные курсы ↗</a></p>
+          </article>
+          <article class="card">
+            <h3>Материалы, на которых собран доклад</h3>
+            <ul class="source-list">
+              <li><a href="https://github.com/djd1m/dz-harness/tree/main/tutorials/harness-cli">harness-cli</a></li>
+              <li><a href="https://github.com/djd1m/dz-harness/tree/main/tutorials/engine">engine</a></li>
+              <li><a href="https://github.com/djd1m/dz-harness/tree/main/tutorials/adapters">adapters</a></li>
+              <li><a href="https://github.com/djd1m/dz-harness/tree/main/tutorials/skills-package-story-page">package-story-page</a></li>
+              <li><a href="https://github.com/djd1m/dz-harness/tree/main/tutorials/presentation-storyteller">presentation-storyteller</a></li>
+              <li><a href="https://github.com/djd1m/dz-harness/tree/main/tutorials/skills-taste">skills-taste</a></li>
+              <li><a href="https://github.com/djd1m/dz-harness/tree/main/tutorials/evidence-wiki">evidence-wiki</a></li>
+              <li><a href="https://github.com/djd1m/dz-harness/tree/main/tutorials/loop-designer">loop-designer</a></li>
+            </ul>
+          </article>
+        </div>
+        <div class="chips" aria-label="Продолжить знакомство">
+          <a class="chip" href="https://djd1m.github.io/dz-harness/dashboard/" target="_blank" rel="noreferrer">Живой harness-backlog ↗</a>
+          <a class="chip" href="https://djd1m.github.io/dz-harness/tutorials/" target="_blank" rel="noreferrer">Все обучалки по пакетам ↗</a>
+          <a class="chip" href="https://djd1m.github.io/dz-harness/tutorials/harness-architecture/" target="_blank" rel="noreferrer">Архитектура harness-hub ↗</a>
+        </div>
+      </div>
+      <aside class="notes"><p><strong>1 минута + вопросы.</strong> Оставьте на экране QR/ссылку, если добавите её перед публикацией. Все утверждения о поведении команд лучше сверять с <code>dz --help</code> установленной версии: CLI развивается быстрее слайдов.</p></aside>
+    </section>
+  </main>
+
+  <footer class="bottom">
+    <span class="hint">← → / Space · N заметки · O обзор · T таймер · F fullscreen</span>
+    <div class="nav">
+      <button id="prev" aria-label="Предыдущий слайд">←</button>
+      <span class="slide-no" id="slideNo">01 / 14</span>
+      <button id="next" aria-label="Следующий слайд">→</button>
+    </div>
+  </footer>
+
+  <aside class="notes-panel" id="notesPanel" hidden aria-live="polite"><h3>Заметки спикера</h3><div id="notesContent"></div></aside>
+  <div class="overview" id="overview" hidden>
+    <div style="max-width:1400px;margin:0 auto 22px;display:flex;justify-content:space-between;align-items:center">
+      <div><p class="eyebrow" style="margin-bottom:5px">Навигация</p><h3 style="margin:0">Все слайды</h3></div>
+      <button class="icon-btn" id="overviewClose">Закрыть · Esc</button>
+    </div>
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+
+  <script>
+    (() => {
+      const slides = [...document.querySelectorAll('.slide')];
+      const progress = document.getElementById('progressBar');
+      const slideNo = document.getElementById('slideNo');
+      const prev = document.getElementById('prev');
+      const next = document.getElementById('next');
+      const notesPanel = document.getElementById('notesPanel');
+      const notesContent = document.getElementById('notesContent');
+      const notesBtn = document.getElementById('notesBtn');
+      const overview = document.getElementById('overview');
+      const overviewGrid = document.getElementById('overviewGrid');
+      const timerBtn = document.getElementById('timerBtn');
+      let current = Math.max(0, Math.min(slides.length - 1, Number(location.hash.slice(1)) - 1 || 0));
+      let timerStarted = null;
+      let elapsed = 0;
+      let timerHandle = null;
+
+      function pad(n) { return String(n).padStart(2, '0'); }
+      function renderTimer() {
+        const total = elapsed + (timerStarted ? Date.now() - timerStarted : 0);
+        const seconds = Math.floor(total / 1000);
+        timerBtn.textContent = `${pad(Math.floor(seconds / 60))}:${pad(seconds % 60)}`;
+      }
+      function toggleTimer() {
+        if (timerStarted) {
+          elapsed += Date.now() - timerStarted;
+          timerStarted = null;
+          clearInterval(timerHandle);
+          timerHandle = null;
+          timerBtn.classList.remove('running');
+        } else {
+          timerStarted = Date.now();
+          timerHandle = setInterval(renderTimer, 500);
+          timerBtn.classList.add('running');
+        }
+        renderTimer();
+      }
+      function render() {
+        slides.forEach((slide, i) => {
+          slide.classList.toggle('active', i === current);
+          slide.setAttribute('aria-hidden', i === current ? 'false' : 'true');
+        });
+        progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+        slideNo.textContent = `${pad(current + 1)} / ${pad(slides.length)}`;
+        prev.disabled = current === 0;
+        next.disabled = current === slides.length - 1;
+        location.hash = String(current + 1);
+        document.title = `${slides[current].dataset.title} — dz × Codex`;
+        const note = slides[current].querySelector('.notes');
+        notesContent.innerHTML = note ? note.innerHTML : '<p>Заметок для этого слайда нет.</p>';
+      }
+      function go(to) { current = Math.max(0, Math.min(slides.length - 1, to)); render(); }
+      function toggleNotes() {
+        notesPanel.hidden = !notesPanel.hidden;
+        notesBtn.setAttribute('aria-pressed', String(!notesPanel.hidden));
+      }
+      function toggleOverview(force) {
+        overview.hidden = typeof force === 'boolean' ? !force : !overview.hidden;
+      }
+      function copyText(id, button) {
+        const text = document.getElementById(id).innerText;
+        const done = () => { button.textContent = 'Скопировано'; button.classList.add('done'); setTimeout(() => { button.textContent = 'Копировать'; button.classList.remove('done'); }, 1500); };
+        if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(done);
+        else {
+          const area = document.createElement('textarea'); area.value = text; document.body.append(area); area.select(); document.execCommand('copy'); area.remove(); done();
+        }
+      }
+      slides.forEach((slide, i) => {
+        const button = document.createElement('button');
+        button.innerHTML = `<small>${pad(i + 1)} · ${slide.dataset.time}</small><strong>${slide.dataset.title}</strong>`;
+        button.addEventListener('click', () => { go(i); overview.hidden = true; });
+        overviewGrid.append(button);
+      });
+      document.querySelectorAll('[data-copy]').forEach(button => button.addEventListener('click', () => copyText(button.dataset.copy, button)));
+      prev.addEventListener('click', () => go(current - 1));
+      next.addEventListener('click', () => go(current + 1));
+      notesBtn.addEventListener('click', toggleNotes);
+      timerBtn.addEventListener('click', toggleTimer);
+      document.getElementById('overviewBtn').addEventListener('click', () => toggleOverview());
+      document.getElementById('overviewClose').addEventListener('click', () => { overview.hidden = true; });
+      addEventListener('hashchange', () => { const hash = Number(location.hash.slice(1)); if (hash && hash !== current + 1) go(hash - 1); });
+      addEventListener('keydown', event => {
+        const target = event.target instanceof Element ? event.target : null;
+        if (target?.matches('input,textarea,select,[contenteditable="true"]')) return;
+        if (event.key === ' ' && target?.matches('button,a')) return;
+        if (['ArrowRight','ArrowDown','PageDown',' '].includes(event.key)) { event.preventDefault(); go(current + 1); }
+        if (['ArrowLeft','ArrowUp','PageUp'].includes(event.key)) { event.preventDefault(); go(current - 1); }
+        if (event.key === 'Home') go(0);
+        if (event.key === 'End') go(slides.length - 1);
+        if (event.key.toLowerCase() === 'n') toggleNotes();
+        if (event.key.toLowerCase() === 'o') toggleOverview();
+        if (event.key.toLowerCase() === 't') toggleTimer();
+        if (event.key.toLowerCase() === 'f') document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
+        if (event.key === 'Escape') { overview.hidden = true; notesPanel.hidden = true; }
+      });
+      render();
+    })();
+  </script>
+</body>
+</html>
