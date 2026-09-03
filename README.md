@@ -7,6 +7,10 @@ exists so the `repository`/`homepage` links on npmjs.com resolve instead of 404i
 
 Issues and questions: use this repository's issue tracker.
 
+## Presentations
+
+- [Harness CLI + Codex: от промпта к проверяемому результату](presentations/harness-cli-30-min/)
+
 | Package | Version |
 |---|---|
 | `@dzhechkov/adapter-agents-md` | 0.1.7 |
