@@ -24,17 +24,25 @@ h2{font-size:17px;margin:0 0 4px}
 .big b{display:block;font-size:26px;color:var(--ink);font-variant-numeric:tabular-nums}
 footer{color:var(--muted);font-size:13.5px;margin-top:28px}
 footer a{color:var(--accent)}
+.picker{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:0 0 18px}
+.picker label{font-size:13.5px;color:var(--muted)}
+.picker input[type=range]{flex:1;min-width:160px;accent-color:var(--accent)}
+.picker output{font-variant-numeric:tabular-nums;font-weight:600;min-width:96px}
+.picker button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:8px;padding:5px 12px;font:inherit;font-size:13.5px;cursor:pointer}
+.picker button:hover{border-color:var(--accent);color:var(--accent)}
 .note{border-left:3px solid var(--line);padding-left:14px;color:var(--muted);font-size:14px;margin:16px 0 0}
 </style></head><body><main>
 
 <h1>Как строится harness-hub</h1>
 <p class="lede">Снимок очереди задач. Тексты задач наружу не выходят — только счётчики и распределения.</p>
-<p class="meta">Снимок 2026-09-03 · наблюдение ведётся с 2026-09-03 · точек в ряду: 1</p>
+<p class="meta" id="meta">Снимок 2026-09-03 · наблюдение ведётся с 2026-09-03 · точек в ряду: 1</p>
+
+<p class="hint">В ряду одна точка — переключать пока нечего. Следующие появятся по одной в день.</p>
 
 <section>
   <h2>Сейчас</h2>
   <p class="hint">Записей всего и сколько из них доведены до конца — отгружены или отброшены.</p>
-  <div class="big">
+  <div class="big" id="big">
     <div><b>681</b>записей</div>
     <div><b>326</b>завершено</div>
     <div><b>2</b>дней медиана до завершения</div>
@@ -43,34 +51,36 @@ footer a{color:var(--accent)}
 
 <section>
   <h2>По статусу</h2>
-  <div class="row"><span class="lbl">shipped</span><span class="bar"><i style="width:80%"></i></span><span class="num">285</span></div>
+  <div id="status"><div class="row"><span class="lbl">shipped</span><span class="bar"><i style="width:80%"></i></span><span class="num">285</span></div>
   <div class="row"><span class="lbl">new</span><span class="bar"><i style="width:100%"></i></span><span class="num">355</span></div>
-  <div class="row"><span class="lbl">dropped</span><span class="bar"><i style="width:12%"></i></span><span class="num">41</span></div>
+  <div class="row"><span class="lbl">dropped</span><span class="bar"><i style="width:12%"></i></span><span class="num">41</span></div></div>
 </section>
 
 <section>
   <h2>Сколько идея ждёт завершения</h2>
   <p class="hint">Дни от появления записи до её закрытия. Показаны корзины, а не отдельные значения: крайнее значение — это всегда одна конкретная запись, и публиковать его значит указать на неё.</p>
-  <div class="row"><span class="lbl">&lt;1 дн.</span><span class="bar"><i style="width:100%"></i></span><span class="num">129</span></div>
+  <div id="ttt"><div class="row"><span class="lbl">&lt;1 дн.</span><span class="bar"><i style="width:100%"></i></span><span class="num">129</span></div>
   <div class="row"><span class="lbl">1-3 дн.</span><span class="bar"><i style="width:50%"></i></span><span class="num">64</span></div>
   <div class="row"><span class="lbl">3-7 дн.</span><span class="bar"><i style="width:69%"></i></span><span class="num">89</span></div>
   <div class="row"><span class="lbl">7-14 дн.</span><span class="bar"><i style="width:2%"></i></span><span class="num">3</span></div>
-  <div class="row"><span class="lbl">14+ дн.</span><span class="bar"><i style="width:15%"></i></span><span class="num">19</span></div>
+  <div class="row"><span class="lbl">14+ дн.</span><span class="bar"><i style="width:15%"></i></span><span class="num">19</span></div></div>
 </section>
 
 <section>
   <h2>По оценке трудоёмкости</h2>
   <p class="hint">От 1 — мелкая правка, до 5 — работа на несколько дней.</p>
-  <div class="row"><span class="lbl">1</span><span class="bar"><i style="width:39%"></i></span><span class="num">111</span></div>
+  <div id="effort"><div class="row"><span class="lbl">1</span><span class="bar"><i style="width:39%"></i></span><span class="num">111</span></div>
   <div class="row"><span class="lbl">2</span><span class="bar"><i style="width:83%"></i></span><span class="num">237</span></div>
   <div class="row"><span class="lbl">3</span><span class="bar"><i style="width:100%"></i></span><span class="num">286</span></div>
   <div class="row"><span class="lbl">4</span><span class="bar"><i style="width:10%"></i></span><span class="num">30</span></div>
-  <div class="row"><span class="lbl">5</span><span class="bar"><i style="width:6%"></i></span><span class="num">17</span></div>
+  <div class="row"><span class="lbl">5</span><span class="bar"><i style="width:6%"></i></span><span class="num">17</span></div></div>
 </section>
 
 <section><h2>По направлениям</h2><p class="hint">Разрез не показан: разрез пропущен: 1 групп(ы) ниже порога 2, их сумма 1 тоже ниже порога. Показать его значило бы указать на конкретную запись.</p></section>
 
 <p class="note">Что здесь <b>нельзя</b> прочитать: какие именно задачи в очереди, о чём они и кто их завёл. Наружу выходят только числа, и проверяет это отдельная застава — она разбирает страницу перед выкладкой и отказывает, если встречает что-то кроме перечисленных полей.</p>
+
+<p class="note">Публикуется <b>каждый день без задержки</b>: точка ряда уходит наружу в день своего снятия, ни одно число не придерживается и не сглаживается задним числом.</p>
 
 <p class="note">Ряд начинается 2026-09-03. Всё, что было раньше, в него не входит: история переходов до этой даты не хранилась, и дорисовывать её задним числом было бы выдумкой.</p>
 
@@ -78,4 +88,57 @@ footer a{color:var(--accent)}
   <a href="https://t.me/llm_notes">Telegram: LLM notes</a> · <a href="https://aicoding.space">aicoding.space</a><br>
   Собрано из приватной очереди задач: наружу уходят агрегаты, тексты остаются на машине.
 </footer>
-</main></body></html>
+</main>
+
+<script type="application/json" id="series">{"2026-09-03":{"schema":"backlog-public/1","snapshotDate":"2026-09-03","totals":{"records":681,"terminal":326},"statusCounts":{"shipped":285,"new":355,"dropped":41},"effortCounts":{"1":111,"2":237,"3":286,"4":30,"5":17},"categoryCounts":null,"categorySkipReason":"разрез пропущен: 1 групп(ы) ниже порога 2, их сумма 1 тоже ниже порога","ttt":{"medianDays":2,"buckets":{"\u003c1":129,"1-3":64,"3-7":89,"7-14":3,"14+":19}},"receipt":{"checkedFields":13,"checkedGroups":15,"appliedRules":["MIN_GROUP=2","терминальность по статусу, не по наличию отметки","порядковые статистики не публикуются","разрез по целям пропущен"]}}}</script>
+<script>
+/* ПЕРЕКЛЮЧАТЕЛЬ ДНЕЙ. Страница отрисована СЕРВЕРОМ на последней точке и полностью читается без
+   скриптов — если они отключены, виден свежий день, а не пустой каркас. Скрипт только
+   ПЕРЕРИСОВЫВАЕТ уже показанное по выбору читателя; он не ходит в сеть и ничего не считает
+   заново: все точки уже лежат в странице. */
+(function () {
+  var raw = document.getElementById('series');
+  var picker = document.getElementById('day');
+  if (!raw || !picker) return;
+  var points; try { points = JSON.parse(raw.textContent); } catch (e) { return; }
+  var days = Object.keys(points).sort();
+  var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  var bar = function (label, n, max) {
+    return '<div class="row"><span class="lbl">' + esc(label) + '</span><span class="bar"><i style="width:'
+      + (max > 0 ? Math.round((n / max) * 100) : 0) + '%"></i></span><span class="num">' + n + '</span></div>';
+  };
+  var fill = function (id, obj, suffix) {
+    var el = document.getElementById(id); if (!el) return;
+    var vals = Object.keys(obj).map(function (k) { return obj[k]; });
+    var max = Math.max.apply(null, vals.concat([1]));
+    el.innerHTML = Object.keys(obj).map(function (k) { return bar(k + (suffix || ''), obj[k], max); }).join('');
+  };
+  var render = function (i) {
+    var d = days[i], p = points[d]; if (!p) return;
+    document.getElementById('dayout').textContent = d;
+    document.getElementById('meta').textContent =
+      'Снимок ' + d + ' · наблюдение ведётся с ' + days[0] + ' · точек в ряду: ' + days.length;
+    document.getElementById('big').innerHTML =
+      '<div><b>' + p.totals.records + '</b>записей</div>'
+      + '<div><b>' + p.totals.terminal + '</b>завершено</div>'
+      + '<div><b>' + (p.ttt.medianDays === null ? '—' : p.ttt.medianDays) + '</b>дней медиана до завершения</div>';
+    fill('status', p.statusCounts);
+    fill('ttt', p.ttt.buckets, ' дн.');
+    fill('effort', p.effortCounts);
+  };
+  picker.addEventListener('input', function () { render(Number(picker.value)); });
+  var play = document.getElementById('play'), timer = null;
+  if (play) play.addEventListener('click', function () {
+    if (timer) { clearInterval(timer); timer = null; play.textContent = '▶ проиграть'; return; }
+    play.textContent = '❚❚ стоп';
+    var i = 0; picker.value = 0; render(0);
+    timer = setInterval(function () {
+      i += 1;
+      if (i >= days.length) { clearInterval(timer); timer = null; play.textContent = '▶ проиграть'; return; }
+      picker.value = i; render(i);
+    }, 700);
+  });
+})();
+</script>
+</body></html>
