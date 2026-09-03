@@ -70,6 +70,8 @@
     h2 { font-size: clamp(38px,5.4vw,78px); line-height: .98; letter-spacing: -.052em; margin-bottom: 30px; max-width: 1040px; }
     h3 { font-size: clamp(20px,2vw,30px); line-height: 1.1; letter-spacing: -.025em; margin-bottom: 12px; }
     .lead { max-width: 870px; font-size: clamp(21px,2.35vw,34px); line-height: 1.28; color: #dce3e5; }
+    .author-line { margin: 20px 0 0; color: var(--muted); font-size: clamp(16px,1.35vw,20px); }
+    .author-line strong { color: var(--ink); }
     .muted { color: var(--muted); }
     .acid { color: var(--acid); }
     .cyan { color: var(--cyan); }
@@ -190,6 +192,7 @@
         <p class="eyebrow">30 минут · 1 идея · 1 live demo</p>
         <h1>Не промпт.<br><span class="acid">Система.</span></h1>
         <p class="lead">Как за несколько команд превратить Codex из «умного собеседника» в воспроизводимого проектного агента с помощью <strong>dz harness-cli</strong>.</p>
+        <p class="author-line"><strong>Жечков Дмитрий</strong> · <a href="https://t.me/llm_notes" target="_blank" rel="noreferrer">t.me/llm_notes</a></p>
         <div class="chips"><span class="chip">Codex</span><span class="chip">skills</span><span class="chip">quality gates</span><span class="chip">self-contained demo</span></div>
       </div>
       <aside class="notes"><p><strong>1 минута.</strong> Откройте с вопроса: «Кто уже ловил ситуацию, когда агент красиво сказал “готово”, а проверять пришлось всё самому?» Обещание доклада: не каталог команд, а одна рабочая модель и маленький доказуемый показ.</p></aside>
@@ -471,6 +474,8 @@ dz init --target codex --select &lt;skill-id&gt;</pre>
           </article>
         </div>
         <div class="chips" aria-label="Продолжить знакомство">
+          <span class="chip">Автор: Жечков Дмитрий</span>
+          <a class="chip" href="https://t.me/llm_notes" target="_blank" rel="noreferrer">Telegram · llm_notes ↗</a>
           <a class="chip" href="https://djd1m.github.io/dz-harness/dashboard/" target="_blank" rel="noreferrer">Живой harness-backlog ↗</a>
           <a class="chip" href="https://djd1m.github.io/dz-harness/tutorials/" target="_blank" rel="noreferrer">Все обучалки по пакетам ↗</a>
           <a class="chip" href="https://djd1m.github.io/dz-harness/tutorials/harness-architecture/" target="_blank" rel="noreferrer">Архитектура harness-hub ↗</a>
