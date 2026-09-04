@@ -48,31 +48,31 @@
       "schema": "backlog-public/1",
       "snapshotDate": "2026-09-04",
       "totals": {
-        "records": 705,
-        "terminal": 349
+        "records": 714,
+        "terminal": 362
       },
       "statusCounts": {
-        "shipped": 307,
-        "new": 356,
+        "shipped": 320,
+        "new": 352,
         "dropped": 42
       },
       "effortCounts": {
-        "1": 115,
-        "2": 250,
-        "3": 292,
+        "1": 118,
+        "2": 252,
+        "3": 296,
         "4": 31,
         "5": 17
       },
       "categoryCounts": null,
       "categorySkipReason": "разрез пропущен: 1 групп(ы) ниже порога 2, их сумма 1 тоже ниже порога",
       "ttt": {
-        "medianDays": 2.01,
+        "medianDays": 2.03,
         "buckets": {
-          "<1": 140,
+          "<1": 145,
           "1-3": 64,
           "3-7": 89,
           "7-14": 5,
-          "14+": 29
+          "14+": 37
         }
       },
       "receipt": {
