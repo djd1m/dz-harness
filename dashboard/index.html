@@ -36,6 +36,12 @@ footer a{color:var(--accent)}
 <h1>Как строится harness-hub</h1>
 <p class="lede">Снимок очереди задач. Тексты задач наружу не выходят — только счётчики и распределения.</p>
 <p class="meta" id="meta">Снимок 2026-09-04 · наблюдение ведётся с 2026-09-03 · точек в ряду: 2</p>
+<!-- ДАТА ПОКАЗА — ОТДЕЛЬНЫМ ЭЛЕМЕНТОМ, и это не косметика (ADR-001 D3).
+     (1) Она проставляется ПУБЛИКАТОРОМ в момент выкладки: на момент сборки публикации ещё не
+         было, и любая дата здесь была бы предсказанием. Значение ниже — честное «пока никогда».
+     (2) Она НЕ внутри #meta, потому что переключатель дней перерисовывает #meta целиком
+         (см. обработчик ползунка ниже) и стёр бы её при первом же движении. -->
+<p class="meta" id="published">Показано: 2026-09-04 08:06 UTC</p>
 
 <div class="picker">
   <label for="day">Показать день:</label>
@@ -49,36 +55,36 @@ footer a{color:var(--accent)}
   <h2>Сейчас</h2>
   <p class="hint">Записей всего и сколько из них доведены до конца — отгружены или отброшены.</p>
   <div class="big" id="big">
-    <div><b>705</b>записей</div>
-    <div><b>349</b>завершено</div>
-    <div><b>2.01</b>дней медиана до завершения</div>
+    <div><b>714</b>записей</div>
+    <div><b>362</b>завершено</div>
+    <div><b>2.03</b>дней медиана до завершения</div>
   </div>
 </section>
 
 <section>
   <h2>По статусу</h2>
-  <div id="status"><div class="row"><span class="lbl">shipped</span><span class="bar"><i style="width:86%"></i></span><span class="num">307</span></div>
-  <div class="row"><span class="lbl">new</span><span class="bar"><i style="width:100%"></i></span><span class="num">356</span></div>
+  <div id="status"><div class="row"><span class="lbl">shipped</span><span class="bar"><i style="width:91%"></i></span><span class="num">320</span></div>
+  <div class="row"><span class="lbl">new</span><span class="bar"><i style="width:100%"></i></span><span class="num">352</span></div>
   <div class="row"><span class="lbl">dropped</span><span class="bar"><i style="width:12%"></i></span><span class="num">42</span></div></div>
 </section>
 
 <section>
   <h2>Сколько идея ждёт завершения</h2>
   <p class="hint">Дни от появления записи до её закрытия. Показаны корзины, а не отдельные значения: крайнее значение — это всегда одна конкретная запись, и публиковать его значит указать на неё.</p>
-  <div id="ttt"><div class="row"><span class="lbl">&lt;1 дн.</span><span class="bar"><i style="width:100%"></i></span><span class="num">140</span></div>
-  <div class="row"><span class="lbl">1-3 дн.</span><span class="bar"><i style="width:46%"></i></span><span class="num">64</span></div>
-  <div class="row"><span class="lbl">3-7 дн.</span><span class="bar"><i style="width:64%"></i></span><span class="num">89</span></div>
-  <div class="row"><span class="lbl">7-14 дн.</span><span class="bar"><i style="width:4%"></i></span><span class="num">5</span></div>
-  <div class="row"><span class="lbl">14+ дн.</span><span class="bar"><i style="width:21%"></i></span><span class="num">29</span></div></div>
+  <div id="ttt"><div class="row"><span class="lbl">&lt;1 дн.</span><span class="bar"><i style="width:100%"></i></span><span class="num">145</span></div>
+  <div class="row"><span class="lbl">1-3 дн.</span><span class="bar"><i style="width:44%"></i></span><span class="num">64</span></div>
+  <div class="row"><span class="lbl">3-7 дн.</span><span class="bar"><i style="width:61%"></i></span><span class="num">89</span></div>
+  <div class="row"><span class="lbl">7-14 дн.</span><span class="bar"><i style="width:3%"></i></span><span class="num">5</span></div>
+  <div class="row"><span class="lbl">14+ дн.</span><span class="bar"><i style="width:26%"></i></span><span class="num">37</span></div></div>
 </section>
 
 <section>
   <h2>По оценке трудоёмкости</h2>
   <p class="hint">От 1 — мелкая правка, до 5 — работа на несколько дней.</p>
-  <div id="effort"><div class="row"><span class="lbl">1</span><span class="bar"><i style="width:39%"></i></span><span class="num">115</span></div>
-  <div class="row"><span class="lbl">2</span><span class="bar"><i style="width:86%"></i></span><span class="num">250</span></div>
-  <div class="row"><span class="lbl">3</span><span class="bar"><i style="width:100%"></i></span><span class="num">292</span></div>
-  <div class="row"><span class="lbl">4</span><span class="bar"><i style="width:11%"></i></span><span class="num">31</span></div>
+  <div id="effort"><div class="row"><span class="lbl">1</span><span class="bar"><i style="width:40%"></i></span><span class="num">118</span></div>
+  <div class="row"><span class="lbl">2</span><span class="bar"><i style="width:85%"></i></span><span class="num">252</span></div>
+  <div class="row"><span class="lbl">3</span><span class="bar"><i style="width:100%"></i></span><span class="num">296</span></div>
+  <div class="row"><span class="lbl">4</span><span class="bar"><i style="width:10%"></i></span><span class="num">31</span></div>
   <div class="row"><span class="lbl">5</span><span class="bar"><i style="width:6%"></i></span><span class="num">17</span></div></div>
 </section>
 
@@ -96,7 +102,7 @@ footer a{color:var(--accent)}
 </footer>
 </main>
 
-<script type="application/json" id="series">{"2026-09-03":{"schema":"backlog-public/1","snapshotDate":"2026-09-03","totals":{"records":689,"terminal":331},"statusCounts":{"shipped":290,"new":358,"dropped":41},"effortCounts":{"1":112,"2":240,"3":289,"4":31,"5":17},"categoryCounts":null,"categorySkipReason":"разрез пропущен: 1 групп(ы) ниже порога 2, их сумма 1 тоже ниже порога","ttt":{"medianDays":1.99,"buckets":{"\u003c1":134,"1-3":64,"3-7":89,"7-14":3,"14+":19}},"receipt":{"checkedFields":13,"checkedGroups":15,"appliedRules":["MIN_GROUP=2","терминальность по статусу, не по наличию отметки","наружу не уходит величина, привязанная к одной записи","разрез по целям пропущен"]}},"2026-09-04":{"schema":"backlog-public/1","snapshotDate":"2026-09-04","totals":{"records":705,"terminal":349},"statusCounts":{"shipped":307,"new":356,"dropped":42},"effortCounts":{"1":115,"2":250,"3":292,"4":31,"5":17},"categoryCounts":null,"categorySkipReason":"разрез пропущен: 1 групп(ы) ниже порога 2, их сумма 1 тоже ниже порога","ttt":{"medianDays":2.01,"buckets":{"\u003c1":140,"1-3":64,"3-7":89,"7-14":5,"14+":29}},"receipt":{"checkedFields":13,"checkedGroups":15,"appliedRules":["MIN_GROUP=2","терминальность по статусу, не по наличию отметки","наружу не уходит величина, привязанная к одной записи","разрез по целям пропущен"]}}}</script>
+<script type="application/json" id="series">{"2026-09-03":{"schema":"backlog-public/1","snapshotDate":"2026-09-03","totals":{"records":689,"terminal":331},"statusCounts":{"shipped":290,"new":358,"dropped":41},"effortCounts":{"1":112,"2":240,"3":289,"4":31,"5":17},"categoryCounts":null,"categorySkipReason":"разрез пропущен: 1 групп(ы) ниже порога 2, их сумма 1 тоже ниже порога","ttt":{"medianDays":1.99,"buckets":{"\u003c1":134,"1-3":64,"3-7":89,"7-14":3,"14+":19}},"receipt":{"checkedFields":13,"checkedGroups":15,"appliedRules":["MIN_GROUP=2","терминальность по статусу, не по наличию отметки","наружу не уходит величина, привязанная к одной записи","разрез по целям пропущен"]}},"2026-09-04":{"schema":"backlog-public/1","snapshotDate":"2026-09-04","totals":{"records":714,"terminal":362},"statusCounts":{"shipped":320,"new":352,"dropped":42},"effortCounts":{"1":118,"2":252,"3":296,"4":31,"5":17},"categoryCounts":null,"categorySkipReason":"разрез пропущен: 1 групп(ы) ниже порога 2, их сумма 1 тоже ниже порога","ttt":{"medianDays":2.03,"buckets":{"\u003c1":145,"1-3":64,"3-7":89,"7-14":5,"14+":37}},"receipt":{"checkedFields":13,"checkedGroups":15,"appliedRules":["MIN_GROUP=2","терминальность по статусу, не по наличию отметки","наружу не уходит величина, привязанная к одной записи","разрез по целям пропущен"]}}}</script>
 <script>
 /* ПЕРЕКЛЮЧАТЕЛЬ ДНЕЙ. Страница отрисована СЕРВЕРОМ на последней точке и полностью читается без
    скриптов — если они отключены, виден свежий день, а не пустой каркас. Скрипт только
