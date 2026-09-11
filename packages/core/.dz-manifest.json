@@ -172,6 +172,22 @@
         "sha256": "9364b7e909471211cc9274ca0d8cd79786f94ca2c0fef6cadb6b9bd83975e7a0"
       },
       {
+        "path": "dist/vitest.dz-debris.shared.d.ts",
+        "sha256": "dd330528cfadc311f21e8973d405b330580b2261dac7a1199488920ea8e5d652"
+      },
+      {
+        "path": "dist/vitest.dz-debris.shared.d.ts.map",
+        "sha256": "f07b5ed7c61114938ef646d740ab28ba141ccf7d99a7446ef9376bd81339f777"
+      },
+      {
+        "path": "dist/vitest.dz-debris.shared.js",
+        "sha256": "f458215812fe2beb620ea694933350c9f8bd3c7e09e64ba6b82401fc5206487f"
+      },
+      {
+        "path": "dist/vitest.dz-debris.shared.js.map",
+        "sha256": "53534facc0666b9cb3eeb881ef1054fce20752c16eb7402a1ad8a74c396af7d8"
+      },
+      {
         "path": "dist/windsurf.d.ts",
         "sha256": "1099ea0815e323ac707810a8e12033fe05bf2ded555d08e9fae726c8c7a9ab22"
       },
@@ -205,7 +221,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "6b719e901b7127b591f62e854143634ac9d6714530e10b121277de23bc031711"
+        "sha256": "5d9a4d305a14424da0f805e42c5854e73c5ad6f36b8344ba0abf5291267039b6"
       },
       {
         "path": "src/adapter.ts",
@@ -261,5 +277,5 @@
       }
     ]
   },
-  "signature": "bcpHVsUWmOCw360q44phkKQFF01+CO0S9AERttzPazvGa+gyNinsS2BXcAD5wJeIHN5k4AGEeTe2Fx1S15Z8DA=="
+  "signature": "caQzWgghNh3BNSgbjDthEBzuzqlJ2ZGX1bEWlPrWHbAm3bC+06D3jEGZ//gBU7WxHzmjHLu1oR8R1YupekiVCg=="
 }

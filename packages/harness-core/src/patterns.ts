@@ -60,6 +60,29 @@ export interface PatternRecord {
   readonly lessonPairId?: string;
   /** Read-model companion; derived from the linked class row, never persisted on this row. */
   readonly classForm?: string;
+  /**
+   * Address of this record IN THE STORE IT CAME FROM — `MemoryRecord.id`, carried so that
+   * `dz recall --forget` / `--promote` can be driven from `dz recall --all --json`, which their own
+   * help text already tells the reader to use. Deriving it instead is the trap `cmdRecallForget`
+   * already warns about: MEASURED on this store, `patternRecordId(recordToPattern(r))` reproduces
+   * the id for 535 of 537 records and hands a plausible WRONG address for the other two (a
+   * `dream:`-written row and one on an older scheme) — and a wrong id makes `--forget` report
+   * success while deleting nothing. So the id travels rather than being recomputed.
+   *
+   * VALID ONLY IN THE ISSUING STORE. `dz teach --from-json` must never adopt it: an id names a
+   * DIFFERENT record on the receiving machine, so an adopted id would point `--forget` at the wrong
+   * lesson. The importer builds its candidate from named fields (never a spread), and a test pins
+   * that — the property is what keeps the portable export safe to accept from anyone.
+   */
+  readonly dzId?: string;
+  /**
+   * Quarantine marker (feature lesson-quarantine): the lesson is a HYPOTHESIS, not knowledge.
+   * Present ONLY when true — absence means promoted, matching `readQuarantineState`'s AM-1
+   * fail-safe, so a missing field is never read as a claim about the record. Carried because
+   * `--promote` addresses exactly the quarantined rows and had no way to name them from an export.
+   * Like `dzId`, it is a fact about the ISSUING store and is not adopted on import.
+   */
+  readonly quarantined?: boolean;
 }
 
 /** A session lifecycle event as written by the session hooks to `.dz/sessions.jsonl`. */
@@ -498,6 +521,15 @@ export function recordToPattern(r: MemoryRecord): PatternRecord {
     && typeof lessonPairId === 'string' && lessonPairId !== ''
     ? { lessonForm, lessonPairId }
     : {};
+  // The id and the quarantine marker travel with the row. Both are facts about THIS store, and
+  // both were previously dropped here — the single place the whole `--all --json` export is built
+  // (`loadStorePatternsSync` = `loadStoreRecordsSync().map(recordToPattern)`), which is why
+  // `--forget`'s own "find them with `dz recall --all --json`" hint pointed at a file that could
+  // not answer. `quarantined` is emitted only when true, so absence keeps meaning "promoted".
+  const addressing: { dzId?: string; quarantined?: boolean } = {
+    ...(typeof r.id === 'string' && r.id !== '' ? { dzId: r.id } : {}),
+    ...(readQuarantineState(r).quarantined ? { quarantined: true } : {}),
+  };
   return {
     pattern: r.text,
     type: PATTERN_TYPES.has(r.outcome) ? (r.outcome as PatternRecord['type']) : 'lesson-learned',
@@ -506,6 +538,7 @@ export function recordToPattern(r: MemoryRecord): PatternRecord {
     ts: r.timestamp,
     source: r.metadata?.['source'] ?? 'dz-teach',
     ...pair,
+    ...addressing,
   };
 }
 
@@ -607,6 +640,24 @@ export function loadStoreRecords(projectRoot: string): MemoryRecord[] {
   } catch {
     return [];
   }
+}
+
+/** Find the earliest lesson whose normalized text and optional domain match exactly. */
+export function findExactLesson(
+  records: readonly MemoryRecord[],
+  text: string,
+  domain?: string,
+): { id: string; quarantined: boolean } | null {
+  const normalizedText = text.trim().replace(/\s+/g, ' ');
+  let earliest: MemoryRecord | undefined;
+  for (const record of records) {
+    if (record.text.trim().replace(/\s+/g, ' ') !== normalizedText) continue;
+    if (domain !== undefined && record.metadata?.['domain'] !== domain) continue;
+    if (earliest === undefined || record.timestamp < earliest.timestamp) earliest = record;
+  }
+  return earliest === undefined
+    ? null
+    : { id: earliest.id, quarantined: earliest.metadata?.['qStatus'] === 'quarantined' };
 }
 
 /** Write one record through the backend cascade. CALLER HOLDS THE STORE LOCK — every

@@ -8,6 +8,7 @@
  */
 
 import type { RepoProfile } from '../types.js';
+import { SourceRefusal, fetchWithBudget, isSourceRefusal } from './source-outcome.js';
 
 const SMITHERY_API = 'https://registry.smithery.ai/servers';
 
@@ -25,15 +26,16 @@ export async function scanSmithery(options: { limit?: number | undefined; query?
   const limit = options.limit ?? 25;
   const query = options.query ?? '';
 
+  // ОДНО обращение — правило частичного успеха не нужно: отказ здесь и есть отказ источника.
   try {
     const url = query
       ? `${SMITHERY_API}?q=${encodeURIComponent(query)}&pageSize=${limit}`
       : `${SMITHERY_API}?pageSize=${limit}`;
 
-    const resp = await fetch(url, {
+    // Прежде `if (!resp.ok) return []` превращал ответ реестра кодом ошибки в «серверов нет».
+    const resp = await fetchWithBudget(url, {
       headers: { Accept: 'application/json', 'User-Agent': 'dz-scout/0.5.0' },
     });
-    if (!resp.ok) return [];
     const data = (await resp.json()) as { servers?: SmitheryServer[] } | SmitheryServer[];
 
     const servers = Array.isArray(data) ? data : (data.servers ?? []);
@@ -55,7 +57,10 @@ export async function scanSmithery(options: { limit?: number | undefined; query?
       firstSeen: new Date().toISOString(),
       lastSeen: new Date().toISOString(),
     }));
-  } catch {
-    return [];
+  } catch (err) {
+    // Перехватил — обработай по типу или пробрось. Наш отказ уходит наверх нетронутым: его форма
+    // и есть измерение. Чужое исключение становится `failed`, а не пустотой.
+    if (isSourceRefusal(err)) throw err;
+    throw new SourceRefusal('failed', `smithery: обращение не состоялось — ${err instanceof Error ? err.message : String(err)}`);
   }
 }

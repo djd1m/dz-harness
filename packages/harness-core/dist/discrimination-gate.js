@@ -70,20 +70,60 @@ export const CANNOT_ISOLATE_REASONS = Object.keys(CANNOT_ISOLATE_REASON_SET);
 export function selectRunner(scriptsTest, devDeps) {
     const script = typeof scriptsTest === 'string' && scriptsTest.trim() ? scriptsTest.trim() : null;
     const tokens = script?.split(/\s+/) ?? [];
-    const hasShellControl = script !== null && /[\0`$;&|<>()\n\r]/.test(script);
-    if (!hasShellControl) {
-        const vitestOffset = tokens[0] === 'vitest'
-            ? 0
-            : tokens[0] === 'npx' && tokens[1] === 'vitest'
-                ? 1
-                : tokens[0] === 'pnpm' && tokens[1] === 'exec' && tokens[2] === 'vitest'
-                    ? 2
-                    : -1;
-        if (vitestOffset >= 0) {
-            return { kind: 'vitest', command: 'npx vitest run', runnerName: 'vitest', how: 'scripts.test' };
+    /**
+     * СОСТАВНОЙ СКРИПТ — НЕ НЕПОДДЕРЖИВАЕМЫЙ РАННЁР (правка 2026-09-04).
+     *
+     * Пакет, добавивший в `scripts.test` предварительный шаг (`tsc -p … && vitest run`), ТИХО
+     * терял эту заставу целиком: `&&` попадал под общий запрет управляющих символов, и гейт
+     * отказывался с `unsupported-runner:tsc`. ИЗМЕРЕНО 2026-09-04 на этом дереве: 33 простых
+     * скрипта и один составной — и это ровно тот пакет, куда в ту же ночь добавили заставу типов.
+     * То есть починка в одном месте молча выключала проверку в другом.
+     *
+     * ЧТО ПРИ ЭТОМ НЕ ОСЛАБЛЕНО: скрипт ПО-ПРЕЖНЕМУ НИКОГДА НЕ ИСПОЛНЯЕТСЯ. Из него только
+     * ОПОЗНАЁТСЯ раннёр, а запускается наша собственная КОНСТАНТНАЯ команда (`npx vitest run` /
+     * `node --test`). Поэтому разрешён ровно один разделитель — `&&`; любой другой управляющий
+     * символ (`;`, `|`, `$`, обратная кавычка, перенаправление, подоболочка) отказывает как раньше.
+     */
+    const SEGMENT_SEPARATOR = /\s*&&\s*/;
+    const hasForbiddenControl = script !== null && /[\0`$;|<>()\n\r]/.test(script);
+    const hasSingleAmp = script !== null && /(^|[^&])&([^&]|$)/.test(script);
+    if (!hasForbiddenControl && !hasSingleAmp) {
+        const segments = (script ?? '').split(SEGMENT_SEPARATOR).map((seg) => seg.trim()).filter(Boolean);
+        const recognised = [];
+        const skipped = [];
+        for (const seg of segments) {
+            const t = seg.split(/\s+/);
+            const vitestOffset = t[0] === 'vitest'
+                ? 0
+                : t[0] === 'npx' && t[1] === 'vitest'
+                    ? 1
+                    : t[0] === 'pnpm' && t[1] === 'exec' && t[2] === 'vitest'
+                        ? 2
+                        : -1;
+            if (vitestOffset >= 0) {
+                recognised.push({ kind: 'vitest', command: 'npx vitest run', runnerName: 'vitest', how: 'scripts.test' });
+            }
+            else if (t[0] === 'node' && t[1] === '--test') {
+                recognised.push({ kind: 'node-test', command: 'node --test', runnerName: 'node --test', how: 'scripts.test' });
+            }
+            else {
+                skipped.push(seg);
+            }
         }
-        if (tokens[0] === 'node' && tokens[1] === '--test') {
-            return { kind: 'node-test', command: 'node --test', runnerName: 'node --test', how: 'scripts.test' };
+        // Два разных раннёра в одном скрипте — не выбор, а неопределённость: угадывать который из них
+        // «настоящий» значило бы измерять не то, что думает автор.
+        const kinds = new Set(recognised.map((r) => r.kind));
+        const first = recognised[0];
+        if (first !== undefined && kinds.size === 1) {
+            // ПРОПУЩЕННЫЕ ШАГИ НАЗЫВАЮТСЯ, А НЕ ЗАМАЛЧИВАЮТСЯ. Скрипт вида `npm run build && vitest run`
+            // опознаётся, но сборка НЕ выполняется — и если тесты без неё не грузятся, красное будет
+            // СТРУКТУРНЫМ. Гейт такое красное и так не засчитывает за дискриминацию
+            // (`classifyRunFailure` → 'file-load'), но читатель квитанции обязан видеть причину, а не
+            // гадать. Молчаливый пропуск подготовки — это ровно тот «успех из тишины», от которого весь
+            // этот механизм и защищает.
+            return (skipped.length > 0 && (first.kind === 'vitest' || first.kind === 'node-test'))
+                ? { ...first, skippedPreparation: skipped }
+                : first;
         }
     }
     const deps = Array.isArray(devDeps) ? devDeps : [];
@@ -92,13 +132,33 @@ export function selectRunner(scriptsTest, devDeps) {
     }
     return { kind: 'unsupported', runnerName: tokens[0] ?? 'none', scriptsTest: script };
 }
-/** Resolve an audited pre-feature ref supplied by the executor. HEAD never wins over a merge-base. */
-export function resolveDiscriminationBaseRef(requestedRef, mergeBaseRef) {
+/**
+ * Resolve an audited pre-feature ref supplied by the executor. HEAD never wins over a merge-base.
+ *
+ * `supplied` says whether a human passed `--base`. When it is UNKNOWN, a bare `HEAD` is labelled
+ * `default-head`: the fail-safe direction is to UNDERSTATE provenance, never to overstate it — a
+ * receipt claiming human audit is the one a later reader will cite as proof.
+ */
+export function resolveDiscriminationBaseRef(requestedRef, mergeBaseRef, supplied) {
     const requested = typeof requestedRef === 'string' ? requestedRef.trim() : '';
     const mergeBase = typeof mergeBaseRef === 'string' ? mergeBaseRef.trim() : '';
     if (requested === 'HEAD' && mergeBase) {
         return { requestedRef: requested, resolvedRef: mergeBase, how: 'merge-base' };
     }
+    // The label follows the PROVENANCE, not the spelling of the ref. The first version keyed the
+    // downgrade off `requested === 'HEAD'`, and cross-family QE produced the breaker:
+    // `resolveDiscriminationBaseRef('main', undefined, false)` — a ref we KNOW nobody supplied —
+    // came back `explicit-ref`. That is the overstatement this whole change exists to remove, so
+    // keying on the ref was an assumption about callers dressed as a property.
+    if (supplied === true)
+        return { requestedRef: requested, resolvedRef: requested, how: 'explicit-ref' };
+    if (supplied === false)
+        return { requestedRef: requested, resolvedRef: requested, how: 'default-ref' };
+    // Provenance UNKNOWN — and only here is anything inferred, from the one ref that is ever a
+    // default. A real ref had to be typed by someone; `HEAD` is what a tool falls back to. The
+    // inference errs toward understating, which is the direction that cannot forge evidence.
+    if (requested === 'HEAD')
+        return { requestedRef: requested, resolvedRef: requested, how: 'default-ref' };
     return { requestedRef: requested, resolvedRef: requested, how: 'explicit-ref' };
 }
 /** git-ref-safe characters only; rejects shell metacharacters and traversal that would break out of a token. */
@@ -126,7 +186,7 @@ function sanitizeName(name) {
  */
 export function planDiscriminationCheck(input) {
     const requestedBaseRef = typeof input.baseRef === 'string' ? input.baseRef.trim() : '';
-    const baseRefResolution = resolveDiscriminationBaseRef(requestedBaseRef, input.mergeBaseRef);
+    const baseRefResolution = resolveDiscriminationBaseRef(requestedBaseRef, input.mergeBaseRef, input.baseRefSupplied);
     const baseRef = baseRefResolution.resolvedRef;
     const packageDirRaw = typeof input.packageDir === 'string' ? input.packageDir.trim().replace(/\/$/, '') : '.';
     const packageDir = packageDirRaw || '.';
@@ -297,7 +357,8 @@ export function classifyExecutionEvidence(rawOutput, exitCode, targetFile) {
     const base = {
         exitCode,
         runner: toEvidenceRunner(red.runner),
-        failureKind: red.kind,
+        // This gate has no infrastructure policy; preserve its existing unrecognised-run behavior.
+        failureKind: red.kind === 'runner-infrastructure' ? 'unrecognised' : red.kind,
         testsExecuted: countFailingTests(raw),
         targetSeen,
     };

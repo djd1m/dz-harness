@@ -343,7 +343,15 @@ Security Pattern: # If external integrations
   server_side: "No key storage on backend"
 ```
 
-**Mode:** MANUAL (checkpoint at each phase inside sparc-prd-mini)
+**Mode:** MANUAL — checkpoint at each phase inside `sparc-prd-mini`.
+
+> **Решение владельца 2026-09-03: MANUAL остаётся.** Ночью 2026-09-03 строка была изменена на AUTO
+> как устранение противоречия: навык `sparc-prd-mini` объявляет AUTO своим режимом по умолчанию
+> (`SKILL.md:35`), а эта команда навязывала MANUAL. Противоречие реально, но владелец разрешил его
+> в другую сторону: остановки на фазах — не накладной расход, а точки, где он может отказаться от
+> рамки до того, как она станет кодом. ИЗМЕРЕНО, чтобы цена решения была известна: остановок до
+> первой строки кода тринадцать — пять в этом файле и восемь внутри навыка. Их сохраняют
+> сознательно.
 
 **Output location:** `docs/` directory (NOT `/output/` — write directly into the project)
 

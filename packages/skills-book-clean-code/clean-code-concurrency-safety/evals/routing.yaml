@@ -1,0 +1,7 @@
+positives: ["Is this shared-memory race safe?","Protect this in-process counter","Avoid deadlock between locks","Choose executor queue or synchronized block","Test flaky thread interleaving","Safely stop an in-process worker thread and its blocking queue","Проверь shared-memory обновление между двумя worker threads: может ли их check-then-act interleaving создать race condition?","Проверь atomicity ++","Как избежать livelock?","Инструментируй редкий schedule"]
+hard_negatives:
+  - {prompt: "Scale this web process horizontally", owner: 12factor-concurrency-process-model}
+  - {prompt: "Choose database transaction isolation", owner: ddia-transaction-isolation-choice}
+  - {prompt: "Improve unit test readability", owner: clean-code-test-suite-feedback}
+  - {prompt: "Handle SIGTERM, crash-only restart, and process startup", owner: 12factor-disposability-fast-startup}
+  - {prompt: "Choose where application state lives across processes", owner: 12factor-stateless-processes}

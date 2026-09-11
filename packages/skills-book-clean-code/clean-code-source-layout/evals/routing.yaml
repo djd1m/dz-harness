@@ -1,0 +1,18 @@
+positives:
+  - "Reorder this source file top-down"
+  - "Расставь функции рядом с вызовами"
+  - "Format this module consistently"
+  - "Fix indentation and blank-line layout"
+  - "Приведи этот исходный файл к общей командной разметке: единые отступы, whitespace и переносы строк без изменения поведения"
+  - "Reduce visual noise in this source file by reorganizing blank lines, indentation, and declaration grouping so the module reads top-down"
+  - "Сделай модуль читаемым как статью"
+  - "Где объявить локальную переменную?"
+  - "Keep caller before callee"
+  - "Переставь методы и поля рядом с caller/callee, чтобы сократить вертикальный поиск в классе"
+hard_negatives:
+  - prompt: "Name this public method"
+    owner: clean-code-intent-and-comment-contract
+  - prompt: "Refactor fillResult(input, output) so the caller receives a return value with the complete observable effect instead of passing an output parameter"
+    owner: clean-code-function-contracts
+  - prompt: "Review and approve this completed implementation diff for regressions before merge"
+    owner: pr-review

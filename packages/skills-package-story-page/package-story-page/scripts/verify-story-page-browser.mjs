@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
-import { readFileSync, realpathSync } from 'node:fs';
+import { accessSync, constants, existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import { createServer as createHttpServer, request as httpRequest } from 'node:http';
 import { createServer as createNetServer } from 'node:net';
-import { resolve } from 'node:path';
+import { homedir, tmpdir } from 'node:os';
+import { join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const delay = (ms) => new Promise((resolveDelay) => setTimeout(resolveDelay, ms));
@@ -163,6 +164,7 @@ async function webdriver(base, path, method = 'GET', body) {
 
 async function waitForDriver(base, child) {
   for (let attempt = 0; attempt < 80; attempt += 1) {
+    if (child.spawnError) throw child.spawnError;
     if (child.exitCode !== null) throw new Error(`geckodriver exited ${child.exitCode}`);
     try {
       await webdriver(base, '/status');
@@ -172,6 +174,48 @@ async function waitForDriver(base, child) {
     }
   }
   throw new Error('geckodriver did not become ready');
+}
+
+class BrowserCheckNotRunError extends Error {
+  constructor(reason) {
+    super(`BROWSER CHECK NOT RUN — ${reason}`);
+    this.name = 'BrowserCheckNotRunError';
+  }
+}
+
+function createWritableProfileRoot(sitePath) {
+  const snapCommon = join(homedir(), 'snap', 'firefox', 'common');
+  const checkedRoots = [resolve(process.cwd()), resolve(sitePath, '..')];
+  for (const candidate of [snapCommon, tmpdir()]) {
+    const root = resolve(candidate);
+    if (checkedRoots.some((checkedRoot) => root === checkedRoot || root.startsWith(`${checkedRoot}${sep}`))) continue;
+    try {
+      if (!existsSync(root)) continue;
+      accessSync(root, constants.W_OK);
+      return mkdtempSync(join(root, 'dz-story-browser-profile-'));
+    } catch {
+      // Try the next outside-tree directory; startup remains fail-closed if none is usable.
+    }
+  }
+  throw new BrowserCheckNotRunError('no writable outside-tree Firefox profile root is available');
+}
+
+async function stopDriver(child) {
+  if (child.exitCode !== null || child.signalCode !== null) return;
+  const closed = new Promise((resolveClose) => child.once('close', resolveClose));
+  child.kill('SIGTERM');
+  await Promise.race([closed, delay(2000)]);
+  if (child.exitCode === null && child.signalCode === null) {
+    child.kill('SIGKILL');
+    await Promise.race([closed, delay(2000)]);
+  }
+}
+
+function driverStartupReason(error, driverLog) {
+  const logLines = driverLog.trim().split(/\r?\n/).filter(Boolean);
+  const explicit = logLines.find((line) => line.includes('geckodriver: error:'));
+  if (explicit) return explicit.slice(explicit.indexOf('geckodriver: error:'));
+  return logLines.at(-1) ?? error.message;
 }
 
 async function execute(base, sessionId, script, args = []) {
@@ -282,22 +326,26 @@ export async function verifyBrowserLayout(sitePath, widths = [320, 390, 768, 144
   }
   const port = await freePort();
   const base = `http://127.0.0.1:${port}`;
-  const child = spawn(process.env.GECKODRIVER ?? 'geckodriver', ['--host', '127.0.0.1', '--port', String(port)], {
+  const profileRoot = createWritableProfileRoot(sitePath);
+  const child = spawn(process.env.GECKODRIVER ?? 'geckodriver', [
+    '--host', '127.0.0.1', '--port', String(port), '--profile-root', profileRoot,
+  ], {
     stdio: ['ignore', 'pipe', 'pipe'],
     env: { ...process.env, MOZ_DISABLE_NONLOCAL_CONNECTIONS: '1' },
   });
   let driverLog = '';
-  let childError = null;
+  child.spawnError = null;
   child.stdout.on('data', (chunk) => { driverLog += chunk; });
   child.stderr.on('data', (chunk) => { driverLog += chunk; });
-  child.once('error', (error) => { childError = error; });
+  child.once('error', (error) => { child.spawnError = error; });
+  let driverReady = false;
   let sessionId = null;
   let siteServer = null;
   let probeServer = null;
   let recordingProxy = null;
   try {
     await waitForDriver(base, child);
-    if (childError) throw childError;
+    driverReady = true;
     probeServer = await serveProbeTarget();
     siteServer = await serveSite(sitePath, probeServer.url);
     const storyOrigin = new URL(siteServer.url).origin;
@@ -509,13 +557,18 @@ export async function verifyBrowserLayout(sitePath, widths = [320, 390, 768, 144
     const failures = classifyBrowserFailures(results);
     return { schema: 'package-story-browser-verification/1', pass: failures.length === 0, results, failures };
   } catch (error) {
+    if (!driverReady) {
+      await delay(0);
+      throw new BrowserCheckNotRunError(driverStartupReason(error, driverLog));
+    }
     throw new Error(`${error.message}${driverLog ? `\ngeckodriver:\n${driverLog.slice(-4000)}` : ''}`);
   } finally {
     if (sessionId) await webdriver(base, `/session/${sessionId}`, 'DELETE').catch(() => {});
     if (siteServer) await new Promise((resolveClose) => siteServer.server.close(resolveClose));
     if (probeServer) await new Promise((resolveClose) => probeServer.server.close(resolveClose));
     if (recordingProxy) await new Promise((resolveClose) => recordingProxy.server.close(resolveClose));
-    child.kill('SIGTERM');
+    await stopDriver(child);
+    rmSync(profileRoot, { recursive: true, force: true });
   }
 }
 

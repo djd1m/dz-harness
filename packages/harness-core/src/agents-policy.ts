@@ -40,7 +40,16 @@ export const POLICY_SOURCES: readonly PolicySource[] = [
     file: 'CLAUDE.md',
     heading: 'Test execution: never watch',
     why: 'A watch-mode test run hangs an unattended coding session.',
-    operativeClause: 'npm test -- --run',
+    // Была `npm test -- --run` — эта команда в корне НЕ СУЩЕСТВУЕТ (Missing script: test), и
+    // 2026-09-03 канон исправлен. Несущей стала команда, которая есть.
+    operativeClause: 'npm run test:all',
+  },
+  {
+    id: 'backlog-coverage',
+    file: 'CLAUDE.md',
+    heading: 'Backlog coverage',
+    why: 'Работа, не закрытая в этом же ходу, иначе не оставляет следа нигде, кроме переписки, которая прокручивается.',
+    operativeClause: 'ALWAYS say out loud which records you filed',
   },
   {
     id: 'data-protection',
@@ -101,7 +110,26 @@ export interface ExtractPolicyBlocksResult {
   readonly missing: readonly string[];
 }
 
-export type PolicyDriftStatus = 'ok' | 'stale' | 'missing-stamp' | 'missing-anchor' | 'orphan-stamp';
+export type PolicyDriftStatus =
+  | 'ok'
+  | 'stale'
+  | 'missing-stamp'
+  | 'missing-anchor'
+  | 'orphan-stamp'
+  /**
+   * Секция `<!-- dz:policy id=X -->` найдена в ФАЙЛЕ-ИСТОЧНИКЕ, но не объявлена в `POLICY_SOURCES`.
+   *
+   * ЗАЧЕМ ОТДЕЛЬНЫЙ СТАТУС. `orphan-stamp` смотрит в другую сторону — штамп в проекции без
+   * источника. Обратный случай не покрывался ничем, и это давало ЛОЖНОЕ ЗЕЛЁНОЕ: реестр
+   * `POLICY_SOURCES` ведётся руками, поэтому секция, дописанная в CLAUDE.md и не вписанная в него,
+   * молча не попадала в AGENTS.md, а `dz agents-sync --check` отвечал «in sync».
+   *
+   * ИЗМЕРЕНО 2026-09-03 на живом случае: добавил в канон секцию `backlog-coverage`, прогнал
+   * `agents-sync` — «in sync — 9 policy section(s), 9250 bytes», ровно те же число секций и байт,
+   * что до правки, ни на единицу не изменившиеся. Правило, ради которого всё делалось, до агентов
+   * не доехало, а прибор доложил успех.
+   */
+  | 'unregistered-section';
 
 export interface PolicyDriftFinding {
   readonly id: string;
@@ -318,6 +346,22 @@ export function detectPolicyDrift(
   const sourceIds = new Set(sources.map((source) => source.id));
   for (const stamp of [...stamps.filter((entry) => !sourceIds.has(entry.id)), ...duplicateStamps]) {
     findings.push({ id: stamp.id, file: stamp.file, status: 'orphan-stamp', expectedSha: null, actualSha: stamp.sha });
+  }
+
+  // Секции канона, о которых реестр не знает. Ищем во ВСЕХ переданных файлах-источниках, а не
+  // только в тех, что уже объявлены: файл может целиком отсутствовать в реестре.
+  {
+    const declared = new Set(sources.map((source) => source.id));
+    const seen = new Set<string>();
+    for (const [file, text] of sourceFiles) {
+      if (typeof text !== 'string') continue;
+      for (const m of text.matchAll(/<!-- dz:policy id=([a-z0-9-]+) -->/g)) {
+        const id = m[1]!;
+        if (declared.has(id) || seen.has(id)) continue;
+        seen.add(id);
+        findings.push({ id, file, status: 'unregistered-section', expectedSha: null, actualSha: null });
+      }
+    }
   }
 
   if (typeof agentsMdText === 'string') {

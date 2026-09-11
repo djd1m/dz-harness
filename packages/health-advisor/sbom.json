@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "884236f9b66a843c3230f6fbb5253ba5c87afb78d1d4374590875e96bf6ed6f6"
+          "content": "aaba277ec6c479e924c397ce1289662841d57bca243c91544390f36f093ce13c"
         }
       ]
     },
@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8353c44ed543493d38c9a1d0e4a870a3a78af83429a268a981c0b4dfbbcaaf28"
+          "content": "82eee756b2b91705e898eab543d24c21750f28218b50666688d2776be4f85114"
         }
       ]
     },
@@ -125,7 +125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4be3480278178f81d190312ca5ac5725826e10806bb663c468702415524da55e"
+          "content": "924b7902b0213080626592beb0fada0d50eefbc216f5066ee898917093aa5588"
         }
       ]
     },
@@ -205,7 +205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f330d7fc7a0365a30db339c19b4971e8f45f9166dcdb23d1d07f24b158da0151"
+          "content": "ad96c69e9a0a3200afe290c75218c51b34af7c8790b5546dddc46819137ff305"
         }
       ]
     },
@@ -495,7 +495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "624b34af4f9e433e60993c2c591102c37a975c45bf8d4fc7dba0c178b7f3e5cc"
+          "content": "b56fb70bcd4f39125a62dbc8c5f7c05558c532b2f2b27c26abb91d811c7d682a"
         }
       ]
     },
@@ -505,7 +505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "387ceb6089c6a653b3d046682e4c4f47534ac2c5c5683aa4259dc8e9be3f190a"
+          "content": "a3a9b671dbd24003f6c9f9423c11609b23401b698aaaa89ec7b39dceac7fc227"
         }
       ]
     },
@@ -536,6 +536,26 @@
         {
           "alg": "SHA-256",
           "content": "5a85bfa08a90f6dbe5834eb74ce46830004aeef449b1517517dfa8f6d8c2a713"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "base/solve/patient-values.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5751534a9238ae20866c9189359877419dadc3f6a62d62949605a906124350ed"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "base/solve/solve-advice.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "78a983eb9580c3b9435e64fa3ab5801b36e681d6f490a723385ef374d98eda2c"
         }
       ]
     },
@@ -815,7 +835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bb8cc6ad3b381def8c6bb7016f249f5ad6c660cb3e815eea313842321093b2dc"
+          "content": "3deab6cffc4c9c8a5846a27d8def72a751e9f61db2f128e9442639d01aef4763"
         }
       ]
     },
@@ -919,7 +939,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "8828ea2368b16435a9ad6e9c47de8ca208f4577687151898a35d80c5ffc73099"
+          "value": "fd398c5581bc46bd769173a44e405cea9ae1b9107b3cd6869a9b3f2c0b505bcd"
         }
       ]
     },

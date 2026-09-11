@@ -215,14 +215,14 @@ are project-agnostic and can be enhanced (read by Phase 3) but never recreated.
 [`incoming-webhooks`](incoming-webhooks.md), [`long-running-job`](long-running-job.md),
 [`model-call-cost`](model-call-cost.md)
 
-**Hooks (25 files in `.claude/hooks/`, cross-platform Node).** Only four are wired to an
+**Hooks (26 files in `.claude/hooks/`, cross-platform Node).** Only four are wired to an
 event in `.claude/settings.json`; the rest are utilities you invoke deliberately, and the
 difference matters — a hook of this package is NON-BLOCKING by contract and can only print.
 
 *Wired to an event (4):* `session-insights.cjs` (SessionStart) · `autocommit-roadmap.cjs`,
 `autocommit-insights.cjs`, `autocommit-plans.cjs` (Stop)
 
-*Invoked deliberately, wired to nothing (21):* `statusline.cjs` (a statusLine, not a hook) ·
+*Invoked deliberately, wired to nothing (22):* `statusline.cjs` (a statusLine, not a hook) ·
 `state-update.cjs` (argv utility) · `write-insight.cjs` (harvest carrier writer) ·
 `check-ports.cjs` (docker-ports Правило №0, exits 0/1/2) ·
 `check-docs-complete.cjs` (are the Phase-1 documents written, exits 0/1/2) ·
@@ -236,7 +236,7 @@ safe against reordering, exits 0/1/2)
 `check-job-contract.cjs` (does long-running work have a handle, three states and a resuming retry, exits 0/1/2)
 `check-model-cost.cjs` (does every external model call name a binding spend ceiling, exits 0/1/2) ·
 `check-review-contract.cjs` (does review-report.md answer every AC id and name the spec revision it judged, exits 0/1/2)
-`check-canon.cjs` (before a WRITING fan-out: is the shared canon named and pinned, exits 0/1/2)
+`check-canon.cjs` · `check-dangling-refs.cjs` (before a WRITING fan-out: is the shared canon named and pinned, exits 0/1/2)
 `check-file-ownership.cjs` (one writer per file, and a split-born file owned at creation, exits 0/1/2)
 `check-source-version.cjs` (does every edit and verdict declare the source version it was built on, exits 0/1/2)
 `check-handoff-manifest.cjs` (did every enumerated Phase-0 output get an answer from Phase 1, exits 0/1/2)

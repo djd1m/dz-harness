@@ -3,6 +3,137 @@
 Shared logic for the DZ harness — the engine behind `@dzhechkov/harness-cli`
 and any other consumer.
 
+## Test execution
+
+`npx vitest run` uses two projects and returns one combined verdict: `parallel` runs the ordinary
+suites concurrently, while `serial` runs process-spawning and real-time suites one file at a time.
+The serial paths in `test/serial-suites.txt` are regenerated from
+`test/serial-suites-census.test.ts`, which scans test sources for process and timing markers,
+including `execSync(` and `execFile(`, and fails when the list and census differ.
+
+`findExactLesson(records, text, domain?)` finds the earliest lesson whose trimmed,
+whitespace-collapsed text matches exactly (case-sensitive), optionally within one metadata domain,
+and reports whether that existing lesson is quarantined.
+
+`countLearningStoreRowsReadonly()` reports the mirror as TWO figures, deliberately not one.
+`vectorRows` stays the whole mirror (lessons + backlog ideas + book units) because the store guard
+reads it as an integrity signal against a recorded high-water mark; narrowing it would present a
+healthy store as a collapse. `vectorLessonRows` counts mirrored LESSONS only (`dz-teach` and
+`dz-learning`) and is the figure comparable with `lexicalRows`. It survives the metadata fallback
+path whenever `task_type` is still readable, and is absent when the mirror cannot be decomposed —
+absent means "unknown", which the panel must report rather than treat as agreement.
+If a readonly guard count meets another SQLite writer, the guard reports `busy`: the write is not
+refused, health is explicitly not measured for that run, and the high-water mark does not move.
+`statuslineData().patternMirror` is absent on equal counts AND when there is no mirror at all —
+nothing to compare, and a permanently-lit indicator on every project without a vector tier would
+carry no information. It is `{ state: 'different', lexical, vector }` on divergence, and
+`{ state: 'unavailable' }` only when the mirror EXISTS but cannot be read or decomposed: that is a
+tool failure and it is worth saying out loud. `statuslineData().brainKuCounts` carries the KU volume of each brain source in
+brain order; an empty array means the volumes could not be listed, never that the sources are empty.
+
+## Core boundary checks
+
+Run `npx vitest run test/core-boundary.test.ts` from this package. Rule A scans top-level
+`src/*.ts` (excluding `*.generated.ts`) for `process.argv` and `process.exit` in code using
+TypeScript's AST. Comments and literal text are excluded; expressions inside template
+interpolations are code. The scanner is internal to this test and is not exported from `index.ts`.
+
+`rule A: debt` remains red while existing violations remain; it has no exceptions.
+`rule A: scanner` separately compares the measured locations with the pinned requirements list.
+The corrected list contains two debts: `brain.ts:995` and `integration-probe-worker.ts:304`.
+Measured with `npx vitest run test/core-boundary.test.ts -t 'rule A: (scanner|debt)'`: the scanner
+test passes and the debt test fails with those locations. `integration-probe-worker.ts:308`
+uses `process.exitCode`, and `setup.ts:172` is template text; neither violates rule A.
+No debt is repaired by this change.
+
+The IO ratchet pins **57 files / 66 imports** in `test/core-boundary-ratchet.json`, measured with
+`npx vitest run test/core-boundary.test.ts -t 'IO ratchet'`. It counts import declarations,
+import-equals, dynamic imports and `require(...)` for `node:fs`, `node:child_process`, `node:https`,
+their bare forms (`fs`, `child_process`, `https`) and subpaths (such as `node:fs/promises`),
+excluding mentions inside comments and strings. The expanded set was remeasured and the totals
+remain unchanged on this tree. Both totals may decrease;
+neither may increase. Updating the baseline requires an explicit edit; tests never rewrite it.
+A source file that cannot be read aborts the measurement instead of counting as zero.
+
+Subpath membership has a separate test, `IO imports: subpath-only source belongs to the IO set`:
+the growth ratchet alone cannot detect an undercount. The current `src/loop-lint.ts` has no imports
+from the configured IO modules, so it cannot serve as a live witness for subpath membership.
+The causal probe replaces ``specifier.text === name || specifier.text.startsWith(`${name}/`)``
+with `specifier.text === name` in a temporary copy of the scanner and runs
+`npx vitest run test/core-boundary.test.ts -t 'IO imports: subpath-only|IO ratchet'`.
+The membership test fails, the ratchet passes; restoring the scanner makes both pass.
+
+Rules B and C are **measurement only**: the test prints direct `child_process`/`https` imports in
+`harness-cli/src/cli.ts`; a pure directory has not been designated, so rule C is not measurable.
+Neither rule is enforced by assertions.
+
+Mutation entries `rule-a-tokenizer-not-regex` and `ratchet-refuses-unreadable` were both PROVEN
+(respectively 2 and 1 failing tests under mutation) after fresh core and CLI builds:
+
+```bash
+npm run build && npm --prefix ../harness-cli run build
+node ../harness-cli/dist/bin.js mutation-gate --only rule-a-tokenizer-not-regex,ratchet-refuses-unreadable --test-cmd "npx vitest run test/core-boundary.test.ts -t '^(?!.*rule A: debt)'" --json
+```
+
+Only the intentionally red debt test is excluded from that gate's baseline. The scanner accuracy
+test remains included.
+
+## Shared Markdown masking
+
+`maskMarkdown` in `src/markdown-masker.ts` is the single implementation used by amendment-trace
+and swarm-brief; the standalone plan-completeness gate carries a byte-identical `.mjs` copy.
+It blanks fenced blocks and HTML comments while preserving UTF-16 offsets and newlines.
+It is not a complete CommonMark parser. Reader policies remain explicit: amendment-trace restores
+unclosed blocks; swarm-brief and K2 hide them through EOF. Brief also retains list barriers and
+nested-comment ambiguity diagnostics through the line callbacks. Its `inlineComments` policy also
+retains comments after prose, while paired backtick runs on the same line protect code-span delimiters.
+
+The four-space indented-code gap is **not closed** for amendment-trace or K2 in this feature.
+Its single implementation address is `src/markdown-masker.ts`. Contrary to the original plan's
+premise, swarm-brief already masked indented code; its `indentedCode` option preserves that behavior.
+The default remains off. Future work must decide the other readers' policy at this one address.
+Regenerate every gate copy from this source and run `npx vitest run test/markdown-masker.test.ts`
+from this package; byte equality is tested, including the installed and packaged gate locations.
+
+## Per-turn admission debt (`session-retro.ts`)
+
+The engine behind `dz retro` and `dz retro --scan-tail`: it turns a session transcript into events,
+detects recurring PROCESS rakes, and folds an **admission debt** — an error narrated in chat with no
+`dz teach` behind it.
+
+Public surface used by the CLI: `streamSessionEvents`, `parseSessionJsonl`, `detectProcessRakes`,
+`buildRetro`, `renderRetro`, `renderDrill`, `retroLessonText`, `foldAdmissionDebt`, `runRetroTailScan`,
+`retroSentinelIsFresh`, `renderRetroDebtDirective`, `findLatestTranscript`, **`resolveScanTailTranscript`**
+(new), plus the types `SessionEvent`, `RetroPendingSentinel`, `TailScanOutcome` and **`ScanTailSource`**
+(new), and the constants `RETRO_DEBT_MARKER`, `RETRO_PENDING_FILE`, `RETRO_SCAN_STATE_FILE`,
+`RETRO_SCAN_LOCK_NAME`, `PROCESS_SIGNATURES`, `DEFAULT_DRILL_THRESHOLD`.
+
+`SessionEvent` carries an optional `toolUseId` — `tool_use.id` on a call, `tool_result.tool_use_id` on
+its result — which is the pairing key the debt fold needs to tell WHICH command a result belongs to.
+
+Load-bearing properties, each pinned by a test that goes RED when the property is mutated out
+(`test/session-retro.test.ts`, `test/retro-scan-tail-source.test.ts`, registry ids in
+`test/mutation-registry.json`):
+- **Block order survives parsing.** An admission text block is emitted BEFORE the `tool_use` of the same
+  message, so admitting and teaching in one turn reads as settled (`retro-p1-1-block-order`).
+- **Only an executed Bash teach can pay.** A `tool_result` echoing the phrase, an `echo`/`grep` decoy, or
+  a non-Bash tool call never settles anything (`retro-p1-2-bash-only-teach`).
+- **A newline is a command boundary.** The dominant field form (`DZ=…\n$DZ teach … --project $B`) pays;
+  every decoy still stays armed (`retro-adr5-newline-boundary`).
+- **The RECEIPT settles, not the command text.** A teach with a `tool_use_id` is registered by its call
+  and cleared only by that call's own result carrying a line `dz teach` prints on a real write — so
+  `exit 0\ndz teach "never runs"` pays nothing (`retro-r1-teach-receipt-required`).
+- **Every awaiting teach is retained.** Two parallel teach calls cannot cancel each other out; if both
+  results come back receipt-less the debt stays armed (`retro-r3-retain-awaiting-teaches`).
+- **An admission is a confession, not a bug-fix report.** The Russian branch is an allowlist of verb and
+  adverb forms, so «Я ошибку валидации исправил» — a NOUN in a completion report — arms nothing
+  (`retro-r3-admission-verb-only`).
+- **The scan never guesses its transcript.** `resolveScanTailTranscript` takes an explicit flag, then a
+  positional path, then the Stop hook's stdin `transcript_path`; with none it returns
+  `{path: null, reason}` rather than the newest file on disk.
+- **No lost update.** The whole read→fold→write tail-scan transaction runs under the `retro-scan` named
+  lock beside the store it guards; contention advances nothing (`retro-p1-3-unlocked-scan`).
+
 ## Lesson payoff (bandit re-rank)
 
 `lesson-bandit.ts` / `lesson-payoff.ts` add a **payoff axis** to lesson recall: a Beta posterior per
@@ -29,6 +160,34 @@ The engine is vendored (215 lines, MIT, zero imports) rather than imported: its 
 in `agentdb`'s exports map, and a ranking feature that quietly stops ranking looks exactly like one
 that works.
 
+## Per-stage Codex model matrix
+
+With `primary: 'codex'`, the budget table always selects models by stage. The
+optional `RoutingEnv.complexityTier` (`S`, `M`, `L`, or `XL`) affects only planning;
+the workflow twins read it from `args.tier`. Omitting the tier selects S/M planning:
+flagship (workhorse in eco). Explicit model overrides retain their existing precedence.
+
+| Stage | Normal / hybrid Codex axis | Eco Codex axis |
+|---|---|---|
+| Router | Terra · medium | Luna · medium |
+| Requirements | Sol · medium | Terra · medium |
+| Research (evidence collection) | Terra · medium | Luna · medium |
+| ADR | Astra · high | Sol · high |
+| QCSD / ideation | Sol · high | Terra · high |
+| DDD | Sol · high | Terra · high |
+| Architecture | Astra · high | Sol · high |
+| Plan · S/M | Sol · high | Terra · high |
+| Plan · L/XL | Astra · high | Sol · high |
+| Code | Sol · high | Terra · high |
+| QE | Claude Sonnet (independent family) | Claude Sonnet (independent family) |
+| Fleet | Sol · high | Terra · high |
+
+`CODEX_TIERS` names roles: **premium** (`gpt-6-astra`) for consequential decisions;
+**flagship** (`gpt-5.6-sol`) for direct work; **workhorse** (`gpt-5.6-terra`) for
+evidence; **high-volume** (`gpt-5.6-luna`) for mechanics. Eco lowers each selected
+Codex tier by one level; these are capability assignments, not measured prices.
+Claude-primary cells and the cross-family QE rule retain their existing behavior.
+
 ## What it provides
 
 ### Evidence-gated companion integrations
@@ -49,10 +208,11 @@ explicit skills-only short circuit. `--no-verify` cannot authorize emission. A C
 |---|---|---|
 | `skills` | `loadSkillFromDir`, `listSkills`, `listSkillsDetailed`, `describeSkillLoadFailure`, `formatSkillLoadFailures`, `formatSkillApplyFailures`, `discoverSkillIds` | Read skill directories into `CanonicalSkill` objects. **Two listing functions, deliberately:** `listSkills` THROWS on the first unloadable skill and always will — it is a published export, and silently turning it into a skip-and-collect function would downgrade every unknown third-party consumer from fail-closed to fail-silent without their consent (an incomplete catalogue reported as complete); a pinned regression test asserts it still throws. `listSkillsDetailed` is the total variant callers ask for BY NAME: it returns `{skills, failures}` with a per-id `try/catch`, so one unparseable `SKILL.md` never hides the ones after it (order-independence is the tested property — the offender first, middle or last yields the same counts). Every failure is NAMED — `describeSkillLoadFailure` is the single place a pathless parser throw becomes `{id, absolute path, verbatim reason, first line}`, because the parser is handed only TEXT and can never supply a path. `formatSkillLoadFailures` renders that list for stderr in one of two modes chosen by the CALLER (absolute paths for `dz list`/`dz sync`; relative-to-package for `dz install`, where a `node_modules/**` path is not actionable) |
 | `apply` | `applyEmitResult` | Write an adapter `EmitResult` to disk — **additively** |
+| `repo-boundary` | `isRepoBoundary`, `RepoBoundaryIo` | A repository boundary is a `.git` directory with a real `HEAD` file or a worktree `gitdir:` redirect; an empty or unrelated `.git` entry is not a boundary, so `dz` run from a directory such as `/tmp` with a stray empty `.git` no longer treats it as a project root (and no longer creates a `.dz` store there). Named locks are unchanged: `<root>/.dz/locks/<name>.lock`, a pure function of the root. |
 | `targets` | `TARGETS`, `TargetName`, `isTargetName`, `resolveTargetName`, `TARGET_ALIASES`, `TARGET_NAMES_SORTED`, `formatTargetProblem`, `formatTargetAliasNote`, `normalizeTargetToken` | `--target` name → platform adapter, plus the resolution layer in front of it. `isTargetName`/`TARGETS`/`TARGET_NAMES` are UNCHANGED: `boundaries.json` names `isTargetName` as the scanned `--target` validation boundary, and every resolution ends in exactly that guard — the boundary is routed THROUGH, never relocated. `resolveTargetName` is total and pure, with fixed precedence: exact canonical → normalised canonical (case/padding/separators: `Claude_Code`, `claudecode`) → an explicit `TARGET_ALIASES` row → unique normalised prefix → Levenshtein ≤ 3 strictly better than the runner-up → nothing. **Aliases ACCEPT; prefix and Levenshtein only SUGGEST** — an alias row is an owner decision recorded in DATA (adding one is one line and zero control flow), while a fuzzy match is a guess, and installing to the wrong target on a guess is worse than one round-trip. An ambiguous prefix (`co` → `codex`/`copilot`) is terminal with NO suggestion, for the same reason. `formatTargetProblem` renders the two-line refusal, keeping the literal `--target must be one of:` substring that shipped assertions pin |
 | `agents-policy` | `POLICY_SOURCES`, `extractPolicyBlocks`, `renderPolicySections`, `detectPolicyDrift`, `measureAgentsMdBudget` | Pure anchored policy extraction, 12-hex source stamps, drift classification and Codex project-doc byte-budget measurement. The stamps prove source/target synchronization only; they do not prove that a runtime read or obeyed the text |
 | `sign` | `listPackFiles`, `listSignablePackFiles`, `verifyManifest`, `verifySbomAgainstManifest` | Shared node_modules/.git exclusions; verify sees MORE than sign (smuggled symlinks still fail). After authenticating the Ed25519 manifest, verification derives the canonical CycloneDX document from those signed entries and requires the no-follow `sbom.json` read to match it exactly. Current/v3 signing refuses malformed, duplicate-key, or precision-losing root `package.json` JSON and preserves object order throughout `exports`, `imports`, and `typesVersions`, so condition-order entry-point changes cannot hide behind packer-noise canonicalisation. Readers retain v1/v2 compatibility |
-| `guard` | `evaluateGuard`, `resolveRules`, `scanSecrets`, `DEFAULT_RULES`, `parsePnpmLockImporters` | Declarative HARD/SOFT constraint engine behind `dz guard` (publish/teach/consolidate pre-flight; fail-closed). The SOFT `lockfile-in-sync` rule compares each workspace package's `@dzhechkov/*` dep specs against the specifier `pnpm-lock.yaml` records for that importer — the `ERR_PNPM_OUTDATED_LOCKFILE` CI break, caught at publish. Its lockfile reader (`parsePnpmLockImporters`) is a pure RECOGNISE-OR-REFUSE parser (no YAML dependency): it reads only the `lockfileVersion: 9`+ importer layout and returns `undefined` for a legacy v5/v6 file, a truncated one, or any shape that leaves an importer with zero specifiers — because a half-parse reports every real dependency as "not recorded". The rule FAILS OPEN on that `undefined` (no violation) and is pinned SOFT-only via `SOFT_ONLY_RULES`, so no config can turn a parser that admits uncertainty into a publish blocker. The HARD `licence-hold` rule (+ `LICENCE_HOLD_PENDING_MARKER`) is the machine side of a declared licence precondition (`package.json.licenseHold`, ADR-001 hermes-claude-adaptation): silent while the pack stays `private:true` (the npm layer refuses it), it HARD-blocks publish the moment the pack becomes publishable with the hold unsatisfied — LICENSE absent/empty or still carrying the `<!-- PENDING:` grant placeholder, no `Grant-Confirmation: <url>` line, empty THIRD_PARTY_NOTICES, or a non-SPDX license field |
+| `guard` | `evaluateGuard`, `resolveRules`, `scanSecrets`, `DEFAULT_RULES`, `parsePnpmLockImporters` | Declarative HARD/SOFT constraint engine behind `dz guard` (publish/teach/consolidate pre-flight; fail-closed). The SOFT `signature-fresh` rule warns before publish when a changed pack no longer verifies against its signed `.dz-manifest.json`; all manifest, key, and filesystem reads remain in the CLI fact gatherer. The SOFT `lockfile-in-sync` rule compares each workspace package's `@dzhechkov/*` dep specs against the specifier `pnpm-lock.yaml` records for that importer — the `ERR_PNPM_OUTDATED_LOCKFILE` CI break, caught at publish. Its lockfile reader (`parsePnpmLockImporters`) is a pure RECOGNISE-OR-REFUSE parser (no YAML dependency): it reads only the `lockfileVersion: 9`+ importer layout and returns `undefined` for a legacy v5/v6 file, a truncated one, or any shape that leaves an importer with zero specifiers — because a half-parse reports every real dependency as "not recorded". The rule FAILS OPEN on that `undefined` (no violation) and is pinned SOFT-only via `SOFT_ONLY_RULES`, so no config can turn a parser that admits uncertainty into a publish blocker. The HARD `licence-hold` rule (+ `LICENCE_HOLD_PENDING_MARKER`) is the machine side of a declared licence precondition (`package.json.licenseHold`, ADR-001 hermes-claude-adaptation): silent while the pack stays `private:true` (the npm layer refuses it), it HARD-blocks publish the moment the pack becomes publishable with the hold unsatisfied — LICENSE absent/empty or still carrying the `<!-- PENDING:` grant placeholder, no `Grant-Confirmation: <url>` line, empty THIRD_PARTY_NOTICES, or a non-SPDX license field |
 | `slop-lint` | `slopLint`, `parseSlopRegistry`, `validateSlopLintConfig`, `DEFAULT_SLOP_CONFIG`, `BUNDLED_SLOP_REGISTRY_URL` | Pure deterministic EN/RU lexical-density and structural-style analysis behind advisory `dz lint`. It excludes protected Markdown, requires at least two distinct registered marker IDs in one paragraph, divides marker hits by `max(visibleWords, wordFloor)`, and reports bullet walls or registered three-adjective stacks independently. Under the default `4`/`2`/`25` policy, the distinct-ID floor owns paragraphs through 50 words and density is the dilution cap from 51 words onward. The core performs no file, network, clock, locale, or process I/O; policy/config failures are typed diagnostics rather than empty clean results. |
 | `stem` | `tokenize`, `stemToken`, `stems` | Zero-dependency EN/RU word-form normalisation (light suffix stripping applied to BOTH sides of a match) behind registry search and `recommend`, so «анализы» finds «анализ»; a RU topic dictionary maps Russian queries onto catalogue topics, and an unmapped topic is reported as a miss rather than silently widened. |
 | `course-staleness` | `classifyCourseStaleness`, `CourseStalenessState`, `CourseStalenessInput`, `CourseStalenessResult` | Pure tutorial/package parity classifier. It distinguishes `S0 SHIPPED`, `S3 TUTORIAL_STALE`, `S4 PACKAGE_BEHIND`, malformed/mismatched/unknown registry inputs, and—load-bearing—`E2 UNSTAMPED`; an absent source stamp can never collapse into shipped. The caller supplies registry facts, so classification performs no file, process, clock, or network I/O. |
@@ -71,12 +231,77 @@ explicit skills-only short circuit. `--no-verify` cannot authorize emission. A C
 | `feature-adr-training-pairs` (in `feature-adr-checkpoints`) | `buildTrainingPair`, `serializeTrainingPair`, `trainingPairPath`, `trainingPairAppendCmd`, `modelFamily`, `TRAINPAIR_SCHEMA_VERSION`, `TRAINPAIR_MAX_IO_CHARS`, `TRAINPAIR_PRIVACY_NOTE` | The PURE half of feature-adr TRAINING-PAIR capture (backlog 70e0f083): every checkpointed stage emits one SFT-ready JSONL record — STAGE INPUT (full prompt/context) → STAGE OUTPUT (artifact/result) → EVALUATION {QE grade, gradedBy, lessonsInjected} with provenance {model, FAMILY ∈ claude/codex, role} — to `.dz/fa-training/<slug>/<stage>.jsonl` (one file per stage), raw material for future local-model fine-tuning. FAMILY is load-bearing: the downstream dataset must honour the cross-model rule (QE pairs from a DIFFERENT family than the coder). Oversize guard: input+output over 48k chars is TRUNCATED with a named marker + full-text fnv1a64 — never silently dropped, never unbounded. A stage without a QE grade (router) records `grade:null` honestly. Deterministic: `ts` is passed in (the workflow fills it shell-side). Capture is default-ON in the workflow, opt-out `args.captureTrainingPairs:false`, non-blocking (a capture failure never fails the run). PRIVACY: pairs may contain target-repo code; the capture dir carries a README note; NOT gitignored by explicit owner decision. RU: тренировочные пары вход→выход→оценка с каждого прогона feature-adr — сырьё для будущей локальной модели |
 | `reqe` | `shouldEmitReqeDebt`, `buildReqeDebt`, `parseReqeDebt`, `buildReqeBrief`, `extractReportGrade`, `settleReqeDebt`, `renderReqeList`, `REQE_SCOPE` | The pure half of `dz reqe` — the re-QE debt ledger: when feature-adr's usage-adaptive override made Step-8 QE run on the coder's OWN family (the cross-model guard consciously suspended, FR-2.9), the run records a debt in `features/<slug>/.fa-state/reqe-due.json`. Emission is the NARROW case only (same-family + the ` (usage-switched)` label — never every switch, never the no-override Claude belt); settlement is FAIL-CLOSED: an existing, non-trivial report naming exactly ONE line-anchored grade (`GRADE A-F` boilerplate and `A through F` ranges refused, ambiguity refused), never the run's own 08_qe_report.md. Debts carry the emitting run's stamp so an old settlement never immunizes a fresh run. HONEST SCOPE printed everywhere: nothing re-runs QE automatically; the validator proves procedural soundness, not authorship. RU: снятый под лимитом гард «кодер не ревьюит сам себя» становится долгом на диске, а не памяткой |
 | `trace-bundle` | `buildBundle`, `serializeBundle`, `parseBundle`, `selectLedgerRows`, `resolveRunMeta`, `foldAttribution`, `planImport` | The PURE half of `dz workflow-trace export/import` — one run's telemetry as one movable file. No fs, no clock, no randomness: it DECIDES and the caller does the I/O, which is what makes the fail-closed import testable without ever pointing a test at a real project (`planImport` returns the refusals as a VALUE, not as a side effect). Run addressing is the existing one, reused rather than rebuilt. Carries EVENTS, not aggregates: the single derived value travels alongside the records it was folded from, marked derived and naming its rule, so deleting it loses nothing but convenience — last-writer-wins by timestamp is a stated CHOICE, not a truth. `resolveRunMeta` reads the harness's own workflow records and judges each RECORD, not the slug: one historical sibling must not poison a usable one (MEASURED: 1 slug of 32 was being thrown away whole). Its reason set is closed and exactly one value is ACTIONABLE — `layout-unrecognised` means the harness layout changed; `predates-model-routing` means history. That split exists because the actionable reason fired on 3 of 32 slugs of untouched data, and an alarm that sounds on normal operation is not an alarm. RECOGNISE-OR-REFUSE: a record whose fields are gone yields a reason and NO data, never a half-parse that would report a model-blind run as model-known |
-| `statusline` | `statuslineData`, `readFeatureAdrState`, `writeFeatureAdrState`, `featureAdrStateDir`, `featureAdrStatePath`, `FeatureAdrState` | The live self-learning panel behind `dz statusline`, plus the LIVE-RUN segment two producers share. Each producer owns a per-slug slot under `.dz/feature-adr/learning-state/` and stamps `kind: 'feature-adr' \| 'loop'` (absent ⇒ `feature-adr`, so legacy states keep their meaning); `readFeatureAdrState` arbitrates by `(kind rank, ts)` — a fresh `feature-adr` state OUTRANKS any `loop` state, because a generated loop writes zero recalled/stored counters far more often and plain freshest-wins would empty the panel of the very thing it exists to show. Candidates are stat'ed and ordered newest-first BEFORE the bounded slice, so truncation can only ever drop the least-recent slot — a cap over an unsorted listing could hide the live slot behind older ones (MEASURED: 81 slots, the live one invisible). The render path is strictly READ-ONLY (~300 ms budget); housekeeping — a 24 h prune — belongs to the write path alone. Hostile slugs are sanitized to one bounded filename component and cannot escape the directory. Nothing older than 30 minutes is surfaced |
+| `statusline` | `statuslineData`, `readFeatureAdrState`, `writeFeatureAdrState`, `writeFeatureAdrStateDetailed`, `renderFeatureAdrPhaseLine`, `featureAdrStateDir`, `featureAdrStatePath`, `FeatureAdrState`, `WriteFeatureAdrStateInput`, `WriteFeatureAdrStateResult` | The live self-learning panel behind `dz statusline`, plus the LIVE-RUN segment two producers share. Each producer owns a per-slug slot under `.dz/feature-adr/learning-state/` and stamps `kind: 'feature-adr' \| 'loop'` (absent ⇒ `feature-adr`, so legacy states keep their meaning); `readFeatureAdrState` arbitrates by `(kind rank, ts)` — a fresh `feature-adr` state OUTRANKS any `loop` state, because a generated loop writes zero recalled/stored counters far more often and plain freshest-wins would empty the panel of the very thing it exists to show. Candidates are stat'ed and ordered newest-first BEFORE the bounded slice, so truncation can only ever drop the least-recent slot — a cap over an unsorted listing could hide the live slot behind older ones (MEASURED: 81 slots, the live one invisible). The render path is strictly READ-ONLY (~300 ms budget); housekeeping — a 24 h prune — belongs to the write path alone. Hostile slugs are sanitized to one bounded filename component and cannot escape the directory. Nothing older than 30 minutes is surfaced |
+
+`writeFeatureAdrStateDetailed` scopes its monotonic guard by equal, non-empty `runId` values;
+different ids open a new phase and two absent ids retain legacy behavior. The staged workflow mints
+and carries such an id in its shell command, and the CLI adapter forwards every non-empty `--run-id`
+into this core input. Empty or omitted values are still absent from state, preserving the legacy
+compatibility path.
 | `operations` | `runInit`, `runSync`, `runVerify`, `runDoctor` | The harness operations, returning structured reports. `InitReport` and `SyncReport` carry an additive, always-present `failures: readonly SkillLoadFailure[]` (empty when nothing failed): a single unloadable `SKILL.md` used to throw out of the whole loop, so `dz init`/`dz install`/`dz sync` reported NOTHING at all. They now skip, collect and name — skipping without a record would only trade a loud failure for a silent one. `runDoctor` is deliberately untouched: it was never a throw site, and a negative test asserts it gained no `failures` field |
 | `release` | `collectPackageFacts`, `selectAffectedPackages`, `planReleaseGates`, `classifyGateExecutions`, `buildFailureIssue`, `firstOutputLine` | Pure verified-release engine behind `dz release`: plans 4 HARD gates (tests / `pnpm audit --prod` / `node --check` / bin smoke-boot) as DATA and classifies injected results fail-closed — an unbuilt package (declared `build` script, no dist JS) is a `MISSING_DIST` failure, a template-only pack is a named `SKIP_NO_ARTIFACTS` skip, `selectAffectedPackages` fail-opens to the full set when the changed-file list is unavailable |
 | `parity` | `TARGET_CAPABILITIES`, `PARITY_FEATURES`, `computeParity`, `buildParityMatrix` | Declarative target-parity model behind `dz parity`: verified capability flags per target × feature FORMS with requirements; the feature×target matrix is always COMPUTED (never hand-written), and the model must classify exactly `TARGET_NAMES` — an unclassified new target refuses to compile |
 | `delivery-check` | `PLANE_SPECS`, `collectDeliveryFacts`, `planDeliveryCheck`, `renderDeliveryBrief`, `classifyDelivery`, `renderDeliveryReview` | Pure portable Step-10 Delivery Gate engine behind `dz delivery-check`: the four review planes as shared DATA (prose-identical to the workflow's inline `planePrompts`, held by a drift-guard test), a deterministic plan/classify over injected facts+findings, and the FAIL-CLOSED hand-off verdict — `ready` only off complete, cross-validated, clean evidence; classification reads only numeric severity counts so injected instruction-like text cannot move the verdict. No `child_process`; the only fs is `existsSync` in `collectDeliveryFacts` |
 | `skills-verify` | `scanSkillsLayout`, `parseInitFacts`, `verifyRegistration`, `registrationExitCode`, `renderRegistrationReport` | Pure registration-gate engine behind `dz skills-verify`: a static scan of `.claude/skills/` (which dirs CAN register + the shapes that never can) and a **sealed** verdict over one atomic evidence bundle (`RegistrationEvidence` = the whole scan + a tagged probe result + a provenance record). Cardinality and parse integrity are derived INSIDE from the raw `system/init` stream, so no caller can omit or falsify them. FAIL-CLOSED: an unobservable registration is `inconclusive`, never `pass`; a plugin-shaped container is advisory and its fate is decided by whether the session says that plugin LOADED, never by the layout. Also exports `findNonRegistrableSkillDirs` — the publish-time guard fact behind the `skills-registrable` rule (a pack counts only if it already has one registrable skill; a dir is flagged only when a `SKILL.md` exists inside but below depth 1 — the discriminator was chosen after MEASURING the real packs, since a naive rule flagged ~40 healthy dirs across 9 npx toolkits). Plugin containers are attributed by `init.plugins[].path`, never by directory name; a container whose plugin did not load FAILS, one that loaded PASSES with an advisory that its individual skills are unverified (modelling Claude Code's command-name resolution produced a new wrong verdict in every review round — the gap is disclosed, not guessed). Sees SLASH COMMANDS too: `InitFacts.slash_commands` carries the session's command listing (MEASURED on Claude Code 2.1.233 — `system/init` emits `slash_commands`, and a plugin command registers as `<plugin>:<file basename>`, not as its frontmatter name), `RegistrationEvidence.expectedCommands` names what must appear, and an ABSENT `slash_commands` key is `inconclusive` exactly like an absent `skills` key — never an empty list, because schema drift and "the commands did not load" are different facts. `declaredPluginSurface(dir)` derives the expected names from a plugin's own manifest so a gate run cannot drift from the manifest it checks, and returns `null` (never an empty, vacuously-passing expectation) for an unreadable one. Also ships the ADVISORY content layer (`buildContentProbePrompt` / `classifyContentProbe`): registration is not usability, so an extra model turn asks for a VERBATIM quote as evidence — advisory by construction, it never gates. No `child_process` — the CLI owns the probe |
+
+### Mutation registry: entry-scoped refusal and declared gaps
+
+Run outcomes distinguish **green**, **tests-failed**, **runner-infrastructure**, and
+**unknown-nonzero**. The existing API keeps its names: the exit code identifies green;
+`classifyRunFailure(output)` classifies nonzero runs as `assertions` (tests-failed),
+`runner-infrastructure`, or `unrecognised` (unknown-nonzero), with `file-load` retained for
+collection/import failures. Callers must check the exit code before classifying a red run.
+
+`runner-infrastructure` requires both an explicitly parsed zero failing-test count and the
+Vitest pattern `[vitest-worker]: Timeout calling "<method>"`. Its closed reason is
+`worker-rpc-timeout`; evidence names the actual RPC method. A missing count or a zero without
+that pattern remains `unrecognised`. Existing assertion and collection checks take precedence;
+the `node --test` / TAP classification is unchanged.
+
+**`runner-infrastructure` is NOT green.** It renames a red run, it never passes one: a run that
+carries it still fails, and no caller may treat it as success. The point is that the operator is
+told *what* broke — the runner's own worker RPC, with zero failing tests — instead of reading a
+bare nonzero exit code and guessing. `discrimination-gate` deliberately narrows the new kind back
+to `unrecognised` at its intake: that gate has no infrastructure policy, so its behaviour stays
+byte-identical, and the narrowing is a single commented line rather than a silent widening of its
+own `EvidenceFailureKind` vocabulary.
+
+**Infrastructure is not green.** The baseline and restored-baseline reports name the cause
+through `attributeBaselineRedness`; the baseline stays an error and the restored run stays
+`INCONCLUSIVE`. Under mutation, the parsed zero fails the minimum-failing-test contract
+(`BELOW_MIN`), never `PROVEN`. Unknown nonzero runs also remain failures. This identifies a
+runner timeout; it does not fix the contention that caused it or suppress unhandled errors.
+
+`parseMutationRegistry` keeps valid mutation entries executable when a neighbouring entry is malformed.
+The malformed row becomes `ENTRY_INVALID`, is counted as `entryInvalid`, and still makes the aggregate
+gate verdict fail. Invalid JSON or an invalid registry envelope remains a setup error; entry-scoped
+handling does not reinterpret a document that cannot be parsed.
+
+An unexecutable protection can be declared in the registry without supplying a mutation:
+
+```json
+{
+  "id": "workflow-outside-package",
+  "property": "The workflow keeps its cross-family QE guard.",
+  "file": "../../../.claude/workflows/feature-adr.js",
+  "uncoverable": true,
+  "reason": "The mutation executor is confined to its package scratch copy."
+}
+```
+
+The reason must be a non-empty string. A reason-bearing declaration becomes `COVERAGE_GAP`, is counted
+separately as `coverageGaps`, runs no mutation, and — since the owner's decision of 2026-09-09
+(option A) — does **not** fail the aggregate verdict. A declared gap is a DEBT, not a breakage: some
+protections are uncoverable by construction (the orchestrator script lives outside every package),
+so failing on them would pin this package's gate red forever, and a lamp that is always on is read
+exactly like a lamp that is off. What the mechanism owes is COUNTABILITY, and the summary delivers
+it: gaps get their own line, their own per-entry verdict, and a `⚠` marker distinct from a failure's
+`✗`, so a gap can never be mistaken for a proven protection. `ENTRY_INVALID` still fails — a
+malformed entry is a broken claim rather than a declared one, and its author can fix it today.
+This is an author's
+visible declaration, not measured proof that the stated reason is correct. In particular, declaring an
+outside-package file does not make that path mutable: an ordinary mutation entry with the same path is
+still `ENTRY_INVALID`, and the executor's package boundary is unchanged.
 
 ## The additive guarantee
 
@@ -234,6 +459,67 @@ inconclusive until re-probed). Both are load-bearing:
 `runtime: 'claude-code' | 'codex'` (absent ⇒ `claude-code`), and the compaction aggregate carries a
 `runtimes` set union so provenance survives the lossy path.
 
+## Destructive-command guard (`classifyDestructive` / `decideDestructiveHook`)
+
+A pre-execution veto on the ONE class of loss the harness has actually suffered: a literal shell
+deletion aimed at its own stores. `classifyDestructive(command)` is pure and returns one of three
+verdicts — `refuse` (a deletion verb with a literal operand inside `.dz/`, `.agentic-qe/`, or a
+database file such as `*.db` / `*.sqlite`), `allow`, or `undecidable` (the operand is built by the
+shell: `$var`, `$(…)`, globs, a `bash -c` string that itself expands something). Every refusal names
+the path AND the rule id from `DESTRUCTIVE_RULES`; `undecidable` is printed, never silently mapped
+to either side.
+
+The scope is narrow by DECIDABILITY, not by taste — MEASURED by
+`bash scratchpad/corpus2.sh r17` on a 20 938-command corpus of real session commands: 35 refusals
+(0.167 %), 45 undecidable, the rest allowed; both verdict lists are byte-identical to R16. Four
+limits are printed with every verdict
+so nobody reads more into it than it does: (1) it sees the command text, never the filesystem;
+(2) an operand assembled at runtime is `undecidable`; (3) only the four deletion verbs `rm`, `rmdir`, `unlink`, `shred` are heads — `git rm`, `find -delete`
+and a `>` truncation are deliberately outside the scope;
+(4) quotes are decoded ONLY under a deletion verb or a table-declared shell command carrier:
+shell `-c`, npm/npx `-c`/`--call`, or pnpm's global `-c`/`--shell-mode` before `exec`. Under any
+other head the quoted text is text ABOUT a command, and heredoc / comment bodies are never read.
+
+Wrapper command location is declared once in `COMMAND_WRAPPER_STRATEGIES`: first positional argv,
+option value, shell `-c` string, or named external script, together with `execution: argv|shell`.
+R17 removed the two parallel wrapper registries that let npm/npx/pnpm shell carriers fall between
+branches. The same round restores function bodies after brace-expanding call words and respects
+`POSIXLY_CORRECT` when deciding whether a late `--help` is a mode or an operand.
+
+`decideDestructiveHook(payload, host)` in `destructive-guard-hook.ts` is the host adapter. Both
+hosts call the SAME function: Claude Code through `.claude/hooks/destructive-guard.cjs`
+(`PreToolUse` on `Bash`, exit 2 + `DZ-DESTRUCTIVE-REFUSE:` on stderr), and Codex through the
+emitted veto helper (`hooks-sync --target codex`, helper version 6). The helper loads the decider
+with `import()` — on Node < 20.19 a CommonJS `require()` of this ESM package throws
+`ERR_REQUIRE_ESM`, and the previous body turned that into a silent exit 0 (MEASURED: exit 0, empty
+stderr). A decider that fails to load now prints ONE `DZ-DESTRUCTIVE-WARN: guard not loaded —
+<reason>` line and records `destructive-not-loaded` in `helper-errors.jsonl`; it still fails open,
+but never quietly.
+
+The Claude hook has three operating states:
+
+| State | Behaviour |
+| --- | --- |
+| Full: the decider loads and returns a readable verdict | Existing policy: refuse with exit 2, allow silently, or pass an undecidable command with its warning and limits. The built-in literal check does not participate. |
+| Narrow: no decider loads | Refuse textual literal recursive `rm` commands (for example `rm -rf .dz`); pass everything else with exactly one `DZ-DESTRUCTIVE-WARN:` stderr line on **every** invocation, including repeated commands. The line explicitly names partial protection, the observed loading failure, and how to restore full protection. Bootstrap commands such as `npm ci`, `npm install`, `npm run build`, and `pnpm install` can run. |
+| Runtime failure: loading unexpectedly rejects, or the loaded decider throws/returns an unreadable verdict | Existing behaviour: exit 0 with a warning; this is not an established safety verdict. |
+
+The narrow check recognises the literal `rm` word followed by short options containing `r`/`R`
+or `--recursive`. It is a textual pattern, not a shell parser: quoting, substitutions and nested
+shell constructs are not interpreted, so crafted deletion can pass and quoted command-like text
+can be refused. Non-recursive deletion such as `rm .dz/agentdb.db` also passes in this state.
+Missing build output does **not** imply that the project contains no valuable data. Full protection
+requires a working decider: build harness-core in this repository, or reinstall the CLI and repeat
+`dz setup --target claude-code` for a consumer installation. The Codex helper's loading-failure
+behaviour described above is unchanged.
+
+The registry currently contains 121 `guard-*` entries. R17's exhaustive anchor census identifies
+the anchors displaced by the source refactor; new/repointed entries are staged separately under
+`scratchpad/` until the owner lands the registry mutation. `dz mutation-gate` proves each accepted
+protection by making at least one named test red; each
+protection, when deleted from the source, turns at least one named test red. Design record:
+`features/destructive-command-guard/03_adr/001-narrow-by-decidability.md`.
+
 ## Run a plan without the Claude host
 
 `runWorkflow` (`workflow-run.ts`) is the PURE scheduler behind `dz workflow run`: it INTERPRETS a
@@ -253,6 +539,26 @@ join, a gate redo and a typed pause are steps of the loop, not agents, and appea
 equivalence proved by the committed `pkg-audit-1` fixture covers a bounded fanout, an all-activated
 join, a dep chain and a gate — and NOT the gate redo route, the typed terminal route, the typed
 pause or the file deliverable.
+
+## Live publish success requires a registry receipt
+
+On the live `publishPackages` path, `status: 'published'` means the registry returned the exact new
+`name@version`, not merely that the `pnpm publish` subprocess exited zero. The publisher uses
+90 probes × 10 s (15 min); measured registry visibility lag was 3 to >5 min on 2026-09-10. It
+reports `registryProbes` on confirmation and restores
+the package bump if no receipt arrives. Dry-run and bump-only do not make a publication and never run
+this receipt probe; their existing statuses retain their preview/staging meaning. Registry probes run
+`npm view … --prefer-online`, because the publisher itself warms the packument cache before publishing
+(measured 2026-09-10: 30 misses on a landed package; the cache diagnosis itself comes from the npm
+cacache index read afterwards, not from a network trace). Known limit: an `offline` or `prefer-offline`
+setting in any `.npmrc` wins over `--prefer-online` (npm checks those first), so such an environment
+still probes a stale cache.
+
+Every live receipt attempt is retained in the package result as `probeLog`; an exhausted probe cycle
+keeps the same complete log on its `error` result, including captured stdout/stderr, exit code, and
+elapsed milliseconds. Within one publish batch, a package whose workspace dependency already ended in
+`error` is held before its version bump or any network action; the dependent result names the failed
+dependency and carries its reason.
 
 ## The publish gate asks whether anyone but the author read the code
 
@@ -322,6 +628,7 @@ bytes and an injected evidence reader:
 
 ```ts
 import {
+  checkConfirmationFiles,
   extractContractChecklist,
   renderContractChecklist,
   parseContractVerdictReport,
@@ -329,9 +636,14 @@ import {
 } from '@dzhechkov/harness-core';
 ```
 
-- `extractContractChecklist(source)` reads the exact `## Acceptance criteria` / `AC-N: ...`
-  vocabulary and one exact `## Confirmation` pair from each canonical direct ADR Markdown file. It
-  emits ordered `contract-checklist/1` items with contiguous `CC-N` ids or no partial contract.
+- `extractContractChecklist(source)` reads `## Acceptance criteria` or `## Критерии приёмки` with
+  `AC-N: ...` rows and one `## Confirmation…`-prefixed pair from each canonical direct ADR Markdown file. It
+  emits ordered `contract-checklist/1` items with contiguous `CC-N` ids or no partial contract. Empty ADR input
+  remains an `adr-input-empty` refusal unless the caller explicitly supplies `adrsOptional: true`; even then, a
+  combined contract with no acceptance criteria remains a `contract-empty` refusal.
+- `checkConfirmationFiles(adrTexts, exists)` is the pure half of the single mandatory Step-8 ADR
+  gate: every parsed Confirmation test path must resolve to a readable regular file. Missing paths
+  fail; parse/read errors are refused; a feature with no ADR returns the explicit `no-adr` skip.
 - `renderContractChecklist(checklist)` serializes one deterministic fenced `contract-checklist`
   block for a future producer integration.
 - `parseContractVerdictReport(text)` accepts one `## Contract checklist` fenced JSON object with
@@ -344,6 +656,17 @@ import {
 This is a structural assurance boundary. It proves grammar, identity completeness, evidence
 containment/uniqueness, polarity, and grade coherence. It does not judge whether a quote semantically
 proves a criterion, execute a cited test, replace ADR Confirmation, or replace independent QE.
+The remaining 13-point ADR fitness checklist, discrimination check, and mutation check stay advisory;
+the Confirmation file-existence/readability check alone forces a non-passing Step-8 verdict.
+
+## Feature tier API
+
+`feature-tier.ts` is the dependency-free boundary for reading a feature tier from its complexity
+assessment. `parseFeatureTier(text)` recognizes the measured English `Tier` and Russian `Тир`
+Markdown forms and returns `S`, `M`, `L`, `XL`, or `null` when no unambiguous tier is established.
+`readFeatureTier(read, slug)` requests
+`features/<slug>/00_complexity_assessment.md` through the caller-supplied reader and delegates to the
+same parser; filesystem access therefore remains in the adapter that owns it.
 
 ## Restart advisor API
 
@@ -387,9 +710,189 @@ decision domain: justification is neither scored nor offered as a trimming targe
 
 ## Status
 
+`dz guard check --op publish` now warns when either release line disagrees with the core/CLI package versions, and a registry-confirmed live core or CLI publish synchronizes the first such line in both release READMEs: each README is rewritten atomically; the pair is not one transaction (dry-run and bump-only never write them).
+
+`0.8.12` — **staged, not published.** The `/feature-adr` phase panel + per-phase ledger telemetry,
+with the four cross-family review findings of the feature's first landing closed with proof: a
+monotone step guard on the write path, the `fa-phase-slot` named lock around the whole slot
+transition (plus a refusal REASON the CLI can print), and `kind`-carrying ledger rows made invisible
+to every cost reader (`planLedgerBackfill`, `selectLedgerRows`, `assembleTimeline`). See the phase
+telemetry paragraph above. Seven named guards in this package are `DEFENDED` under `dz mutation-gate`.
+
+`0.8.28` — **registry probe budget 90 × 10 s (15 min)** after the measured visibility lag. MEASURED on this release: the registry confirmed core at probe 32 (~5.3 min) — the previous 30-probe budget would have rolled the bump back a third time.
+
+`0.8.27` — **every registry probe is on the record** (`probeLog`: code, stderr, ms — in the report and in `--json`), and a batch never publishes a dependent after its dependency failed. MEASURED on this release: the registry answered `E404 No match found for version 0.8.27` for 18 probes (~3 min) before confirming — a registry-side visibility lag, not a client cache; `0.8.26`'s `--prefer-online` was therefore not the fix.
+
+`0.8.25` — **`published` means the registry answered, not the child exit code** (30 probes × 10 s, never on `--dry-run`/`--bump-only`); `dz runs-clean` (plan by default, `--apply` removes only merged + clean + older than retention, a dirty worktree is never removed by any flag) and `dz runs --settle` / the `stalled` state; `contract-check` reads the feature tier (an S feature without `03_adr` is established, not "unreadable"); `dz teach` with an exact re-teach reinforces instead of duplicating.
+
+`0.8.24` — **the run verdict, the routing table, the panel and the registry all stopped overstating
+what they know.** `classifyRunFailure` gains the kind `runner-infrastructure` with the closed reason
+`worker-rpc-timeout`: it is claimed only when the parsed failing-test count is exactly zero AND the
+runner's own worker-RPC pattern is present, so a nonzero exit with no explanation stays
+`unrecognised` rather than being guessed at — and the new kind is narrowed back to `unrecognised` at
+`discrimination-gate`'s intake by one commented line, because that gate has no policy for it and its
+behaviour must not change. `budgetTable`'s Codex half is now PER-STAGE (premium for ADR and
+architecture, flagship for direct work, workhorse for evidence gathering), with `CODEX_TIERS.premium
+= gpt-6-astra` and an optional `RoutingEnv.complexityTier` whose absence means S/M rather than
+switching the matrix off. `countLearningStoreRowsReadonly` reports the mirror as TWO figures:
+`vectorRows` stays the whole mirror because the store guard reads it as an integrity signal against
+a recorded high-water mark, while the new `vectorLessonRows` is the lesson-only count the panel
+compares with the lexical tier. `statuslineData` gains `patternMirror` (absent on parity AND when
+there is no mirror at all; `unavailable` only when a mirror EXISTS and cannot be read or decomposed)
+and `brainKuCounts`. Registry entries may declare `uncoverable: true` with a mandatory `reason`:
+such an entry becomes `COVERAGE_GAP`, is counted separately, carries a `⚠` marker distinct from a
+failure's `✗`, and — by owner decision — does not fail the aggregate verdict, while `ENTRY_INVALID`
+still does.
+
 Unreleased — adds the pure `course-staleness` classifier. Missing provenance is explicitly
 `E2 UNSTAMPED` and is tested not to equal `S0 SHIPPED`; version ordering uses the existing semver
 comparator while all registry and filesystem I/O remains outside the classifier.
+
+`0.8.15` — **staged, not published.** `amendment-trace.ts` now keeps the `CP-` prefix in the
+amendment id: `AM-CP-N` and `AM-N` are DISTINCT ids, so a challenge-panel row appended by the
+feature-adr workflow can no longer collide with the ideation's `AM-N`. Until this release the prefix
+was matched by a non-capturing group and thrown away at id construction, and the subject guard —
+which exists because comparing ids alone let a plan swap one change for another under the same id —
+fired on plans whose subject WAS carried verbatim. MEASURED TWICE on 2026-09-05, on two independent
+worktrees: the authors of `run-registry-liveness` and `core-boundary-guard` each re-numbered or
+refused the `AM-CP-N` form to get past the instrument. K2 (`check-plan-completeness.mjs`) has always
+kept the whole token and REQUIRES those rows inside `## Amendments`, so the pipeline's own gate was
+forcing rows into the position this module misread — two tools, one text, two contracts. The
+`amendmentSubject` furniture stripper learned the prefix too, so a CP row's subject is its text
+rather than its own id. **JSON surface (`dz amendment-check --json`):** no field is renamed, but a
+consumer that keyed on `AM-\d+` will now see the id VALUE `AM-CP-<n>` where a colliding `AM-<n>`
+used to appear. Backlog `a7d0aece023774a0`; the prefix-drop mutant is registered as
+`amendment-trace-cp-prefix-is-identity` and reported PROVEN with 7 failing tests under
+`dz mutation-gate --only amendment-trace-cp-prefix-is-identity --test-cmd "npx vitest run
+test/amendment-trace.test.ts test/amendment-grammar-agreement.test.ts test/score.test.ts"`. The
+registry-wide `testCommand` reports the SAME failing count and answers INCONCLUSIVE on a loaded
+machine for this entry AND for an untouched control entry, both for the same reason —
+`test/eta.test.ts` times out at 5 s in the re-baseline — so that verdict is a property of the
+runner, not of this protection. The Russian challenge-panel placeholder `названный кодером при реализации — заменить на имя реального теста` is classified as a placeholder rather than as a missing file name.
+
+**QE fix round (same `0.8.15`, cross-family review 2026-09-06).** The release note above claimed to
+end the two-reader disagreement; the review found a THIRD reader with a THIRD contract, and it is
+closed here. (1) `score.ts` scanned plans and QE reports with its own `/AM-\d+/g`, which does not
+match `AM-CP-1` at all (MEASURED — `'AM-CP-1'.match(/AM-\d+/g)` → `null`), so a plan whose
+amendments were all challenge-panel rows scored an EMPTY planned set and the whole
+`amendment-confirmation` discipline was skipped with no `absent` and no `partial` — a check that
+silently checked nothing. Coverage one line below was `qeText.includes(id)`, so a planned `AM-1` read
+as covered by a report that only ever mentions `AM-10` (MEASURED — `'AM-10'.includes('AM-1')` →
+`true`). Both are closed by ONE exported reader, `amendmentIdsIn` / `mentionsAmendmentId`, living
+beside the row grammar in `amendment-trace.ts` and pinned against K2's token by
+`test/amendment-grammar-agreement.test.ts`; narrowing it back is the registered mutant
+`amendment-token-cp-prefix-shared-reader` (PROVEN, 4 failing). (2) `decideAmendmentOutcome` now tells
+an explicit "None" from a silent grammar failure: a `## Amendments` section that declares
+`None`/`нет`/`n/a` and parses zero rows is a **skip** (exit 0, stated reason), where it used to
+return NOT-ESTABLISHED (exit 3) on a plan that was complete — MEASURED on this feature's own plan
+(backlog `ce2da797e17a7a7f`). The skip is GUARDED: it never fires while an ideation amendment the
+plan dropped is outstanding, so an absence can still never silence a real gap. Blast radius over the
+363-feature census: exactly 2 features move `not-established` → `skip`
+(`amendment-trace-cp-prefix`, `doctor-insight-flow-check`), both plans declaring None in prose. (3)
+**Cross-family round 2** found the explicit-None contract half-honoured: the pipeline's own Step-8
+module documents the INLINE form `## Amendments: None`
+(`.claude/skills/feature-adr/modules/08-qe.md:166`), and there `amendmentSection` ate `: None` as
+part of the heading and returned an EMPTY body, so the skip branch never ran and the gate still
+answered NOT-ESTABLISHED (exit 3) — MEASURED on the built module: section `""`, `saysNone false`,
+exit 3. The declaration is now read from BOTH homes, the section body and the heading suffix, and it
+must BE a declaration: a separator (`:` or a dash), then a WHOLE remainder from the closed set
+`None`/`N/A`/`нет`, optionally with a full stop. Before that exact comparison, an optional
+whitespace-separated CommonMark closing hash sequence is removed as heading furniture. That rule
+was chosen from the corpus, not invented — the 363 features carry
+`## Amendments (carried verbatim into the plan)` (8×), `## Amendments — conditions before
+plan/code`, `## Amendments applied before Step 6`, `## Amendments and confirmation obligations`, and
+none of them may read as "none". Registered mutant `amendment-explicit-none-on-the-heading`
+(refreshed against the current return path; PROVEN, 5 failing). Census: **zero** features use the inline form today, so the tally is unchanged
+at `fail 48 · pass 82 · skip 200 · not-established 33` over 363 — this half of the fix honours a
+DOCUMENTED contract rather than moving a live verdict. (7) **Cross-family round 6** replaced the mask
+with a BLOCK READER, and the reason is the shape of the previous five rounds rather than any single
+defect: `<!--` and `-->` written inside INLINE CODE SPANS in ordinary prose were read as a comment
+spanning a real section, so `amendmentSection` returned null and the gate answered skip/exit 0
+(MEASURED). Each mask had been born to close the previous one's hole — the signature of reading at
+the wrong level. `maskNonRendered` is now one length-preserving block scan implementing CommonMark
+§4.5 (fenced code), §4.6 type 2 (`<!-- … -->`, whose START CONDITION is line-start after at most
+three spaces — which is what makes a code-spanned delimiter a non-event by construction) and §4.2
+(headings matched only in what survives); §6.1 code spans are deliberately not parsed, because no
+inline construct may open a block. NOT implemented, so the gap is auditable: indented code blocks,
+HTML block types 1 and 3–7, block quotes and list containers, tabs as indentation, link reference
+definitions. One deliberate deviation: an UNCLOSED block is reverted rather than run to end of
+document, because hiding a real section would turn the gate into exit 0. Also in this round: a
+document that opens more than one RENDERED `## Amendments` section at the same depth or shallower is
+NOT-ESTABLISHED with a named reason, never a skip — a stale `## Amendments: None` above the real
+section used to answer for it. The depth rule is corpus-derived: counting a `###` subsection as a
+rival moved `p16-non-js-portability` from an honest `fail` to `not-established`, which is a
+regression dressed as caution. Registered mutants `amendment-comment-start-is-a-block-condition` and
+`amendment-duplicate-sections-are-not-established` (PROVEN, 1 failing each); fourteen `amendment-*`
+entries are 12/12 proven with 0 drops among 12/12 anchored. STILL OPEN and named: K2
+(`check-plan-completeness.mjs`) keeps the old any-run-of-three fence closer, so on a `````md` fence
+containing a ```` ``` ```` line K2 now FAILS a plan this checker reads correctly — one reader for both
+consumers is a feature, not a fix round (six copies, three published packages, standalone
+execution). (4) **Cross-family round 3** found the skip
+FORGEABLE and one of its spellings unreachable, both in the same reader. A plan may SHOW the form it
+is allowed to write, and a fenced `## Amendments: None` above the real section won the raw heading
+search: the fence's own body parsed as zero rows and the gate exited 0 WITHOUT LOOKING at the real
+section, which carried an unresolvable `AM-1` — the new false pass NFR-3 forbids. Headings, section
+boundaries and rows are now found in a length-preserving FENCE MASK and sliced from the original, so
+an example illustrates the form and never answers for the document; an UNCLOSED fence is reverted
+rather than trusted, because losing an example is cheap and hiding a real section would manufacture
+the very skip the mask exists to prevent. In the same reader, JavaScript's `\b` was wrong in BOTH
+directions at once: Cyrillic is not `\w`, so `нет` was REJECTED against the contract these READMEs
+print, while a hyphen IS a word boundary, so a body opening `none-blocking follow-ups` was ACCEPTED
+and exited 0. The current reader is stronger: the whole heading remainder or first paragraph must
+match the closed set, so both longer-word and qualified-sentence forms are refused.
+Registered mutants `amendment-explicit-none-not-forgeable-by-a-fence` (PROVEN, 2 failing) and
+the stable registry id `amendment-none-declaration-unicode-guard` (retargeted from the deleted
+constant to the current exact reader; PROVEN, 6 failing). Census after: 363 features,
+`fail 48 · pass 82 · skip 200 · not-established 33` — and this time not one feature moved even in
+its per-verdict COUNTS, so the masking cost the corpus nothing. (5) **Cross-family round 4** found two defects
+in that fence mask itself, both again exit-0 answers over unresolved work. The mask was used for
+FINDING and not for READING: row starts were located in the mask while each row's text was sliced
+from the original, so a testless `AM-1` followed by a fenced example carrying a complete
+`→ test … in …` pointer borrowed that pointer, resolved, and the gate answered **pass** (MEASURED —
+`{"ids":["AM-1"],"testIds":[["a_long_enough_test_id"]],"verdicts":["AM-1:resolved"],"outcome":"pass","exit":0}`).
+Every semantic read of a row — pointer, file, retraction, subject — now goes through a masked slice
+of the SAME length carried on the row itself (`AmendmentRow.scan`, a new required field). And the
+mask closed a fence on any run of three or more, while CommonMark §4.5 closes only on a run of the
+SAME character at least as long as the opener: a standalone ` ``` ` line inside a ` ```` ` fence
+re-opened the document mid-fence and a fenced `## Amendments: None` was selected again (MEASURED —
+`{"saysNone":true,"outcome":"skip","exit":0}` with the real section's amendment never parsed). Both
+reproducers now answer `fail`, exit 1. Registered mutants
+`amendment-row-pointers-read-the-masked-slice`, `amendment-retraction-reads-the-masked-slice` and
+`amendment-fence-closer-must-match-the-opener` (PROVEN, 1 failing each); the eight `amendment-*`
+entries are 8/8 proven with 0 coverage drops among 8/8 anchored. Census unchanged again: 363
+features, `fail 48 · pass 82 · skip 200 · not-established 33`, zero features moved even in their
+per-verdict counts. HONEST LIMIT: the subject read shares the fix but has no discriminating test —
+a fenced example can only APPEND to a row, and subject comparison is containment-tolerant in both
+directions, so no fixture flips a verdict; the read is corrected, not proven. (6) **Cross-family round 5** raised the first two
+P1s of this feature. An HTML-commented template — `<!-- … ## Amendments: None … -->` kept above the
+real section, as plans legitimately do — was still read as the document's own declaration, so the
+gate answered skip/exit 0 with the real section's unresolved `AM-1` never parsed (MEASURED —
+`{"ids":[],"saysNone":true,"outcome":"skip","exit":0}`). The mask now blanks fences AND HTML
+comments, both length-preserving, fences first; an unclosed comment is left visible for the same
+reason an unclosed fence is reverted — masking may lose a comment, never hide a section. Fourth
+instance of one class, after the fenced heading, the fenced row and the fenced pointer. Second P1:
+round 4 made `AmendmentRow.scan` REQUIRED, which breaks any downstream constructor of a row the
+previous release accepted — a legacy row reaching `amendmentsMissingFromPlan` threw
+`TypeError: Cannot read properties of undefined (reading 'split')`. The field is **optional** again
+and every semantic read goes through a fallback to `raw`, so a hand-built or deserialised row is
+read slightly more generously instead of crashing. Registered mutants
+`amendment-html-comment-is-not-a-declaration` (PROVEN, 1) and `amendment-row-scan-falls-back-to-raw`
+(PROVEN, 3); the ten `amendment-*` entries are 10/10 proven, 0 drops among 10/10 anchored. Census
+unchanged again — 363 features, zero moved, counts included — and zero of the 397 plan/ideation
+documents on disk hold a commented `## Amendments` heading today, so this too closes a forgery route
+rather than moving a live verdict.
+
+**Cross-family rounds 7–8 (same staged `0.8.15`).** The exported declaration predicate now accepts
+only a whole first paragraph or heading remainder from the closed set `None`/`N/A`/`нет`, optionally
+with a full stop; qualified text such as `None of the required rows has been written yet.` is not an
+absence declaration. The companion exported ambiguity predicate scans rendered text below the
+section heading: when a declaration exists, zero rows parse, and AM-like content remains, the
+decision is NOT-ESTABLISHED rather than skip. Round 8 also removes an optional whitespace-separated
+CommonMark closing hash sequence before the exact heading comparison, so
+`## Amendments: None ##` is accepted while `## Amendments: None##` remains text. The focused mutation
+reproducer for the two refreshed declaration entries plus the closing-hash and ambiguity entries
+reported 4/4 PROVEN (5, 6, 1 and 1 failing tests respectively) with no NOT_APPLIED or UNDEFENDED:
+`dz mutation-gate --package . --only amendment-explicit-none-on-the-heading,amendment-none-declaration-unicode-guard,amendment-explicit-none-closing-hashes,amendment-explicit-none-ambiguity-fails-closed --test-cmd "npx vitest run test/amendment-trace.test.ts"`.
 
 `0.8.11` — **published 2026-09-02.** Russian catalogue: `stem.ts` word-form normalisation on both sides of
 registry search plus a RU topic dictionary with an observable miss in `recommend` (feature
@@ -439,6 +942,30 @@ closed. `CheckpointEntry` gains an optional `ts` and `stampCheckpointLine` appli
 deliberately OUTSIDE the blob-mirrored serializer, because the sandboxed workflow has no `Date` and a
 clock has no business in a function the clockless copy also runs. An absent stamp reads as UNKNOWN,
 never zero; a malformed one is dropped, because a wrong instant is worse than an absent one.
+**Phase telemetry, and why `planLedgerBackfill` now skips rows (v0.8.12).** `writeFeatureAdrState`
+stores a `tier` and a `phaseStartTs` on the slot, and on a step-label CHANGE appends ONE
+`{"kind":"phase",…,"wallSec","ts"}` row to the EXISTING `.dz/feature-adr/run-cost-ledger.jsonl`
+(never creating one). `renderFeatureAdrPhaseLine` turns the slot alone into the panel's second line.
+Three properties are load-bearing and each has a `dz mutation-gate` entry:
+- **Monotone.** A plain `Step <n>` label going BACKWARDS against a slot younger than 90 minutes is
+  absorbed — counters land, the step and phase clock stand, no phase row. `⛔`/`⏸` labels and a
+  stale slot are the two escape hatches for a legitimate regression.
+- **Serialized.** The whole read → compare → append → write transaction runs inside
+  `withNamedLockSync(root, 'fa-phase-slot', …)`; pattern counting and directory housekeeping stay
+  outside it. A lock timeout REFUSES the write. `writeFeatureAdrStateDetailed` returns
+  `{state}` or `{refused:'<reason>'}` so a caller can be LOUD about it (`writeFeatureAdrState` is the
+  back-compatible façade returning `state | undefined`). `WriteFeatureAdrStateInput._unsafeSkipLock`
+  and `._unsafeHoldMs` are **TEST-ONLY seams** for that lock's own RED half — no shipped caller sets
+  them, and `statusline-phase-lock.test.ts` asserts neither is spellable from the CLI.
+- **Never a cost claim.** `kind`-carrying rows are telemetry. `isNonRunRow` is exported from
+  `ledger-backfill` and used by all three cost readers, so one definition covers them:
+  `planLedgerBackfill` skips such rows in claimant counting AND in filling (reporting
+  `skipped:'non-run-row'`), `selectLedgerRows` no longer pulls them into a run's evidence bundle
+  through its slug fallback, and `assembleTimeline` no longer labels them `cost` in a run timeline.
+  The last two were MEASURED leaking on 2026-09-06 — running each consumer with and without a phase
+  row changed its output — not assumed clean. `cadence` is untouched: it needs a string `date`,
+  which a phase row never carries.
+
 `planLedgerBackfill` + `resolveLedgerRunId` let the run-cost ledger fill itself from the host's own
 workflow record: a run id is resolved at WRITE time (the only moment it is unambiguous), a slug is
 the fallback only when it names exactly ONE run, and a run claimed by more than one row fills
@@ -517,8 +1044,9 @@ manifest was stale against its own shipped files. No behaviour changes.
 lexical hit under `--semantic`, `HybridRecall` gains `semanticCandidates` / `semanticRanked`, and
 `VectorTierStatus` gains `mirrorWriterEnabled`, `unmirrored`, `mirroredOther` and `orphaned`.
 **`mirrored` CHANGES MEANING** to the pattern scope only — a consumer comparing it against a
-full-store count must be updated. `0.6.1` — two new pure modules behind two new commands. `amendment-trace.ts` resolves every `AM-N`
-amendment row to a test found INSIDE the file the row names — matched against the file's parsed TEST
+full-store count must be updated. `0.6.1` — two new pure modules behind two new commands. `amendment-trace.ts` resolves every `AM-N` and
+`AM-CP-N` amendment row (two DISTINCT ids since `0.8.15`: a challenge-panel `AM-CP-1` never collides
+with the ideation's `AM-1`) to a test found INSIDE the file the row names — matched against the file's parsed TEST
 TITLES, because whole-file matching was forgeable by two comment lines whose letters spell the id, and
 because an existing FILE never stands in for an existing TEST. `run-records.ts` decides whether a
 run-cost row or a training pair may be written: it refuses bad JSON, a wrong-kind payload, an EMPTY
@@ -576,3 +1104,205 @@ normaliser rather than keeping a copy of the rule). Four `TARGET_ALIASES` rows w
 UNREACHABLE — `claude_code`, `claudecode`, `agentsmd`, `agents.md` all normalise onto a canonical name
 and were resolved by precedence step 2 before the table was ever consulted; every one of those inputs
 still resolves, so the deletion is observably a no-op.
+
+## Публичный снимок бэклога — `buildPublicSnapshot` / `assertPublicSafe`
+
+Две функции, отдающие наружу агрегаты очереди задач так, чтобы тексты задач не покидали машину.
+
+```ts
+import { buildPublicSnapshot, assertPublicSafe } from '@dzhechkov/harness-core';
+
+const built = buildPublicSnapshot(records, '2026-09-03');   // чистая: записи + дата, без файлов и часов
+if (!built.ok) throw new Error(`${built.code}: ${built.reason}`);
+
+const verdict = assertPublicSafe(JSON.stringify(built.snapshot));  // независимая застава на выходе
+if (!verdict.ok) throw new Error(`${verdict.code}: ${verdict.reason}`);
+```
+
+**Порождение, а не фильтрация.** Публичный объект не проверяется после сборки — он собирается
+перечислением разрешённых агрегатов, и приватное поле ни разу не читается на пути к выходу.
+Проверяющий поверх готового файла ловит то, о чём подумали, и пропускает поле, которое добавят
+завтра.
+
+**Застава несёт СВОЮ копию перечня** и не импортирует схему у порождения: иначе одна ошибка
+проходила бы обе проверки. Она проверяет БАЙТЫ, а не разобранный объект — измерено, что
+`{"receipt":{"text":"…"},"receipt":{…}}` проходит разбор чистым, а наружу уезжают оба ключа.
+
+**Чего в схеме нет намеренно:** максимума, минимума и процентилей. Крайнее значение по определению
+принадлежит ровно одной записи, то есть указывает на неё. Вместо них медиана и гистограмма, и порог
+малых групп применяется к каждой корзине.
+
+Пять каналов утечки закрыты по итогу трёх проходов кросс-семейного ревью: вложенное поле
+разрешённого ключа, пустой объект как чистый снимок, дубликат ключа в байтах, свободная строка в
+массиве правил, приватный текст в имени ключа словаря. Каждый воспроизведён прогоном до починки.
+
+## Журнал переходов статуса — `appendTransition` / `readTransitions`
+
+Запись бэклога хранит ровно один переход, последний. Журнал `.dz/backlog/status-log.jsonl` копит
+все: строка на переход, дозапись без чтения файла целиком.
+
+```ts
+import { appendTransition, readTransitions } from '@dzhechkov/harness-core';
+appendTransition(root, { id, from: 'new', to: 'shipped', ts, by: 'backlog ship' });
+```
+
+Никогда не бросает: журнал — наблюдение, а не гейт, и его поломка не должна ронять команду, которая
+меняла статус. Битая строка при чтении пропускается — файл дозаписывается конкурентно.
+
+## Контракт вывода роя — `checkSwarmBrief` / `SWARM_BRIEF_CONTRACT`
+
+Разбирает бриф роя агентов и отвечает, объявлен ли в нём контракт вывода: куда писать
+(`OUTPUT_DIR`), какие единицы работы (`UNITS`) и какая из них сборочная (`ASSEMBLY_UNIT`).
+Заведён после инцидента, где рой получил бриф «пришли один отчёт в конце», умер посреди работы,
+и восстанавливать оказалось нечего.
+
+Вся ценность модуля в одном свойстве: **вердикт нельзя подделать текстом, который он же и судит.**
+Отсюда форма проверок — не «есть ли такие слова», а «объявлено ли это ОДНОЗНАЧНО»:
+
+- объявление внутри забора кода или HTML-комментария не считается объявлением; закрывающий забор
+  обязан быть не короче открывающего, а комментарий, пытающийся вложиться, даёт отказ, а не тихое
+  открытие после внутреннего `-->`;
+- украшенный ключ (жирный, цитата, обратные кавычки) **считается** в счётчик повторов: спрятать
+  одно объявление за оформлением и получить тихий выбор другого нельзя — будет отказ по
+  неоднозначности;
+- перечень единиц никогда не усекается молча. Пустая строка или любая строка-не-пункт, за которой в
+  том же блоке ещё есть пункты, — отказ, **называющий эту строку**; так же считается заслонённая
+  строка. Причина: `units` — тот самый машинный перечень, с которым потом сверяют каталог, и тихая
+  потеря его хвоста делает сверку ложно-успешной;
+- строка-не-пункт ПОСЛЕ последнего пункта — нормальное окончание списка, а не нарушение: проверка,
+  изобретающая нарушения, хуже отсутствующей;
+- `OUTPUT_DIR` проверяется как ПУТЬ: абсолютный, переход вверх, обратная косая, управляющие байты и
+  сегменты, не являющиеся именами, отвергаются;
+- имя `plan` зарезервировано — его файл есть файл плана, который рой пишет первым;
+- длина имени единицы ограничена, число единиц ограничено, проверка дубликатов линейная;
+- любое значение из брифа, доходящее до терминала, обезврежено: байт `ESC` не перерисует строку
+  отказа в «OK».
+
+Все перечисленные защиты имеют записи в реестре мутаций и доказаны прогоном
+(`dz mutation-gate … → 7/7 proven, verdict PASS`).
+
+Честный предел, который печатается вместе с зелёным ответом: проверка удостоверяет, что бриф
+ОБЪЯВИЛ контракт, а не что рой ему последует.
+
+## Двухфазная строка стадии — intent до модели, outcome после
+
+Резолвер моделей теперь возвращает не только `StageOpts`, но и **причину**: `resolveStageDecision(stage, env)
+→ {opts, spec, reason}`, где `reason` — закрытое перечисление из **двадцати** (20) значений:
+восемь веток резолвера, две деградации спецификации и десять причин уровня диспатча, которых чистый
+резолвер знать не может. Канонический порядок совпадает с экспортом `STAGE_DECISION_REASONS`:
+
+<!-- stage-decision-reasons:start -->
+- `usage-override`
+- `explicit-models`
+- `routing-not-requested`
+- `coder-knob-codex`
+- `planner-knob-codex`
+- `qe-cross-family`
+- `budget-table-cell`
+- `default-models`
+- `codex-id-substituted`
+- `spec-unrecognised`
+- `coder-fallback`
+- `codex-unsupported-at-dispatch`
+- `fallback-after-no-deliverable`
+- `precision-second-pass`
+- `auto-cost`
+- `qe-same-family-degraded`
+- `challenge-panel`
+- `codex-probe-failed`
+- `codex-refused-before-dispatch`
+- `fallback-rung`
+<!-- stage-decision-reasons:end -->
+
+Причины первых двух групп вычисляются резолвером; причины последней группы описывают выбор текущей
+ступени, включая откаты, второй precision-проход, challenge panel и learned-cost. `fallback-rung`
+намеренно не пересказывает исход предыдущей ступени: тот уже принадлежит её собственной строке outcome.
+В staged workflow общий блок Claude-плана задаёт причину условно на шве dispatch: только
+`planIsCodex === true` означает, что перед ним уже была Codex-попытка и потому ставится
+`fallback-rung`; при первичном выборе Claude сохраняется исходная причина маршрута.
+Отдельно стоит `codex-refused-before-dispatch`: id ответил на пробу, но ступень так и не построила
+диспатч (непригодный ref области ревью, небезопасный id, отклонённый exec-план). Ни один агент не
+запускался, поэтому следующая ступень — НЕ `fallback-after-no-deliverable`: та причина утверждает, что
+ступень отработала и ничего не отдала. Исход ступени трёхзначен (`dispatched` / `probe-failed` /
+`refused-before-dispatch`) и остаётся на holder этой конкретной попытки; булев флаг сваливал всякий
+не-пробный отказ в ветку «оно запускалось».
+Исход принадлежит КОНКРЕТНОМУ вызову, а не модулю: дизайн-стадии идут конкурентно
+(`await parallel(designThunks)`), и общая переменная, прочитанная после `await`, содержала бы то,
+что записал последний сосед — измерено: стадия, чей собственный диспатч Codex ОТРАБОТАЛ, объявляла
+свой откат как `codex-probe-failed`, позаимствовав факт у соседки. Отдельный случай — рантайм не
+знает типа агента `codex:codex-rescue`: это тоже отказ ДО запуска, и он докладывается уже имевшейся
+причиной `codex-unsupported-at-dispatch`, а не «ступень отработала и ничего не отдала».
+`resolveStageDecision` не эмитит ни одну из десяти — это закреплено тестом. `resolveStageModel`
+остался тонкой обёрткой с байт-идентичным результатом. Чистые `renderStageIntentLine` и
+`renderStageOutcomeLine` проецируются генератором в оба зеркальных скрипта. Единственный шов
+`dispatchAgent` печатает `▸ code · opus · budget table cell · intent` непосредственно перед
+`agent(...)`, а после окончательного исхода той же попытки — `◆ code · opus · outcome: dispatched`
+либо точный отказ/провал пробы. Только outcome добавляется в `dispatchOutcomes`, авторитетный отчёт
+«кто-что-делал»; intent остаётся живым предупреждением. Свёрнутые стадии (`research`, `ddd`) отдельных
+строк не получают — у них нет отдельного диспатча.
+
+
+### Run registry
+
+`dz runs --project <repo> [--json]` reads `.dz/runs/registry.jsonl`. The feature-adr workflow
+appends `started`, a `heartbeat` at each phase boundary, and `finished` through `dz runs-record`.
+Each invocation allocates its own run ID. Pass Workflow `args.runPid` for an explicit host PID,
+and `args.parentRunId` when nesting runs; otherwise the writer resolves the Claude ancestor PID
+and refuses if it cannot establish one. The courier checks the write response. Registry failures
+log `run registry: <event> UNVERIFIED — <reason>` and mark the registry outcome `unverified`;
+the workflow continues. Finalization runs on normal returns and exceptions; host termination
+can leave a started run without finished.
+
+`live` requires a responding PID. `orphaned` requires a recorded finish or confirmed absent PID;
+missing parents, inaccessible PID probes and unreadable registries remain `inconclusive`, with
+a reason. A confirmed live PID with a heartbeat older than `--stall-minutes` (default 120)
+is `stalled`; a missing heartbeat remains `live`. Stalled parents remain alive for their children. Completed runs display
+`finished`; a child of a finished parent is `orphaned`. An unreadable registry exits 1.
+Before the first run, an absent registry reports `нет реестра: .dz/runs/registry.jsonl ещё не создан (ни одного прогона)`
+and exits 0 (`status: "missing"` in JSON).
+
+The core exports `appendRunEvent`, `readRunRegistry`, `probePid`, `liveness`, `liveParents`, and
+`runRecordCommand`. Appends preserve event identity and bound diagnostic `reason` text below
+PIPE_BUF with `truncated: true`; oversized identity fields are refused.
+
+### Day-file action journal
+
+`JOURNAL_KINDS`, `formatLine`, `parseLine`, `selectWindow`, and `appendWitnessed` support
+`dz journal` over the existing `docs/journal/YYYY-MM-DD.md` files. The first `·` separates
+time from category; the last separates the reference, preserving middle dots in event text.
+Malformed events retain their raw line and `unparsed` status. The injected `JournalIo` writer
+re-reads the appended tail and throws if verification fails. Windows use UTC; a week is seven
+calendar days ending on the selected date.
+
+
+### Run cleanup and settlement
+
+`dz runs --settle` appends `finished` with outcome `died` only for confirmed absent PIDs.
+A second invocation reports `nothing to settle`. `inconclusive` is preserved. Use
+`dz runs --stall-minutes 150` to change the heartbeat threshold; `stalled` only changes the display.
+
+```bash
+dz runs-clean --project /path/to/repo                 # inspect the plan first
+dz runs-clean --project /path/to/repo --retention-days 7 --json
+# After reviewing the plan, explicitly apply:
+dz runs-clean --project /path/to/repo --retention-days 7 --apply
+```
+
+Only non-main worktrees merged into `main`, clean, and strictly older than the retention
+(default 2 days, measured from their latest commit) qualify. Detached worktrees use their HEAD's
+ancestry. Dirty worktrees stay, with the file count and first five paths printed. Unknown merge
+or commit-age facts stay; unreadable status refuses cleanup. Removal uses Git without force and
+is reported successful only after rereading the worktree list.
+
+With `--apply`, whole finished or confirmed-dead run histories whose newest event exceeds retention
+move to `.dz/runs/registry.archive.jsonl`; live and inconclusive runs stay in `registry.jsonl`.
+CLI appends, settlement, and archive read/plan/rewrite share the named `run-registry-archive` lock
+under `.dz/runs`. Archive writes append before temp-file rename; a crash between those operations
+can duplicate archive events on retry. A worktree removal that already succeeded (and was confirmed by
+re-listing) is not undone when the archive step fails afterwards: the command exits 1 and the printed lines
+name what did happen — `git worktree remove` has no rollback. Direct API writers must coordinate with that same lock.
+
+Core APIs: `settleDeadRuns` and `planRegistryArchive` are pure registry decisions;
+`planWorktreeCleanup` accepts injected `WorktreeFact` values and returns remove/keep decisions;
+`renderCleanupPlan` renders them. `worktreeRemovalsToApply` selects removals only when apply is true.
+No process is terminated and no branch is deleted.

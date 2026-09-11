@@ -29,7 +29,7 @@ export interface MutationRegistry {
     readonly requireCompletionReceipt?: boolean;
     readonly entries: readonly MutationRegistryEntry[];
 }
-export type MutationVerdict = 'PROVEN' | 'UNDEFENDED' | 'RECEIPT_MISMATCH' | 'NOT_APPLIED' | 'BELOW_MIN' | 'MUTATION_UNPARSEABLE' | 'MUTATION_LOAD_FATAL' | 'OVER_FAILING' | 'INCONCLUSIVE';
+export type MutationVerdict = 'PROVEN' | 'ENTRY_INVALID' | 'COVERAGE_GAP' | 'UNDEFENDED' | 'RECEIPT_MISMATCH' | 'NOT_APPLIED' | 'BELOW_MIN' | 'MUTATION_UNPARSEABLE' | 'MUTATION_LOAD_FATAL' | 'OVER_FAILING' | 'INCONCLUSIVE';
 export interface MutationObservation {
     readonly entry: MutationRegistryEntry;
     /** how many times `find` occurred in the file text (1 = applied). Missing file ⇒ 0. */
@@ -128,8 +128,10 @@ export interface InternalRunnerRetryResult<T> {
 export declare function runWithOneInternalRetry<T>(runner: () => T): InternalRunnerRetryResult<T>;
 export interface ParsedRegistry {
     readonly registry: MutationRegistry | null;
-    /** every defect found — ANY error makes the registry unusable (a half-valid registry that runs
-     *  its valid half reports a partial scan as a full one). */
+    /** Per-entry outcomes that need no mutation run: malformed entries and declared gaps. */
+    readonly entryResults: readonly MutationEntryResult[];
+    /** Every defect found. Envelope/JSON defects make registry null; entry defects are also
+     *  represented as ENTRY_INVALID while valid neighbours remain executable. */
     readonly errors: readonly string[];
 }
 /** Parse + validate a registry JSON text. Accepts a bare array or `{testCommand?, requireCompletionReceipt?, entries}`. */
@@ -197,8 +199,10 @@ export interface RunFailureClassification {
      *                  carried no classifiable failure): a runner-coverage gap of this tool — the
      *                  verdict must be INCONCLUSIVE, never PROVEN.
      */
-    readonly kind: 'file-load' | 'assertions' | 'unrecognised';
-    /** for 'file-load': the evidence line; for 'unrecognised': what could not be classified. */
+    readonly kind: 'file-load' | 'assertions' | 'runner-infrastructure' | 'unrecognised';
+    /** Closed reason set for an identified runner failure with zero failing tests. */
+    readonly reason?: 'worker-rpc-timeout';
+    /** Evidence of the load/infrastructure failure, or what could not be classified. */
     readonly evidence?: string;
 }
 /**
@@ -242,6 +246,8 @@ export declare function classifyRunFailure(rawOutput: string): RunFailureClassif
 export type BaselineAttributionSource = 'node-test' | 'vitest' | 'unparseable';
 export interface BaselineAttribution {
     readonly parsedFrom: BaselineAttributionSource;
+    /** Identified infrastructure failure from the same output; absent for all existing outcomes. */
+    readonly infrastructureFailure?: RunFailureClassification;
     /** Package-relative failing paths, in first-seen order. */
     readonly failingFiles: readonly string[];
     /** Failing paths that match a registry file exactly (or by package-relative suffix). */
@@ -251,7 +257,7 @@ export interface BaselineAttribution {
 }
 /** Parse the failing FILE paths already exposed by supported node --test and vitest shapes. */
 export declare function attributeBaselineRedness(rawOutput: string, registryFiles: readonly string[]): BaselineAttribution;
-export type BaselineFailureReason = 'runner-internal-error' | 'runner-no-exit' | 'extraneous-red-in-allowlist' | 'baseline-red-covered-files' | 'baseline-red-files-unparseable';
+export type BaselineFailureReason = 'worker-rpc-timeout' | 'runner-internal-error' | 'runner-no-exit' | 'extraneous-red-in-allowlist' | 'baseline-red-covered-files' | 'baseline-red-files-unparseable';
 export interface BaselineResult {
     readonly ok: boolean;
     readonly detail: string;
@@ -263,11 +269,14 @@ export interface BaselineResult {
  */
 export declare function classifyBaseline(exitCode: number | null, runFailureReason?: string, attribution?: BaselineAttribution): BaselineResult;
 export declare function classifyMutationOutcome(obs: MutationObservation): MutationEntryResult;
-/** Exit contract: 0 all proven · 1 any entry failed (or red baseline) · (2 = usage/setup, CLI-side). */
+/** Exit contract: 0 all runnable entries proven · 1 a runnable entry failed (or red baseline) ·
+ *  2 no mutation-eligible entry exists, so the registry/selection is unusable as a run. */
 export declare function mutationGateExitCode(results: readonly MutationEntryResult[], baselineOk: boolean): number;
 export interface MutationGateSummary {
     readonly total: number;
     readonly proven: number;
+    readonly entryInvalid: number;
+    readonly coverageGaps: number;
     readonly undefended: number;
     readonly receiptMismatch: number;
     readonly notApplied: number;

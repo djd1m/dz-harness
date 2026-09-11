@@ -1,0 +1,8 @@
+positives: ["Why is this existing suite hard to read as a design and behavioural contract?","Read this existing suite as feedback for behavioural clarity; this is not a cross-suite risk-weighted coverage program","Make this existing test suite FIRST, independent, and fast","Analyze a recurring failure pattern in this existing suite to improve fixtures or scenario clarity","In this existing suite, simplify a brittle fixture so its setup makes the production behaviour and design feedback clear without changing the scenario","Inspect this existing suite's setup, fixtures, and assertions as feedback on whether the production code is clear to use","Проверь существующий Clean-Code suite как feedback о дизайне","Почему процент coverage не объясняет пробел в поведенческом сценарии существующего suite?","В существующем тесте перестрой setup-operation-check и формулировки assertions, чтобы он оставался читаемым feedback о поведении production code, а не проектируй новый тест","Проверь читаемость существующего теста на boundary case, а не проектируй новый тест"]
+hard_negatives:
+  - {prompt: "Write unit tests for this new feature", owner: test-writer}
+  - {prompt: "Design an in-process shared-memory race reproduction with controlled thread interleavings for a worker queue", owner: clean-code-concurrency-safety}
+  - {prompt: "Run a risk-weighted coverage program across multiple suites", owner: qe-coverage-analysis}
+  - {prompt: "Analyze defect patterns across many test runs", owner: qe-defect-intelligence}
+  - {prompt: "Design new boundary test cases for a new API", owner: test-design-techniques}
+  - {prompt: "Implement a new feature end to end", owner: feature-adr}

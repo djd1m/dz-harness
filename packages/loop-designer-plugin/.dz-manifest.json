@@ -61,7 +61,7 @@
       },
       {
         "path": "lib/install-bare.js",
-        "sha256": "a3ead340009e05fe65c5ad789604bf0912f6c378fd08b5130b9e553e98254c40"
+        "sha256": "e93b15a069dc480d3696480e953e0eec9d7d3a0ba0ff2c9e594101907ade8d1b"
       },
       {
         "path": "lib/l2-receipt.js",
@@ -77,7 +77,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "527a0ea46fe07d78dcf14c09d9f7a3978a563a7f86c90b10bc22083ab6c41483"
+        "sha256": "951b2099c4659d5518dfe123625cadb14f9692afc40dac6971155983c6355fb6"
       },
       {
         "path": "skills/loop-plan-author/SKILL.md",
@@ -89,5 +89,5 @@
       }
     ]
   },
-  "signature": "/qeJTQHWvueiuE71U3/6Z/TO1AMqrZBDJqdlJ3zJVpQ0VpWtC/bHsNozFHuxZkkUHu0Sa44B3MIwr3ma5Hz2Dw=="
+  "signature": "1lans0OVBJtPHJWkk79iHBKnV+nOVLQxhnUKXntGSesavOUW2gb9Rz0F2/Os/6G8YpDY8CFOvbqcjBliDsSgBg=="
 }

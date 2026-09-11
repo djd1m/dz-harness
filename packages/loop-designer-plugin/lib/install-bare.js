@@ -20,7 +20,7 @@
  *    installed body is byte-identical to the canon, with no derived transform to drift.
  */
 
-import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { copyFileSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, readlinkSync, rmSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -40,8 +40,20 @@ function skillFiles(root) {
   const walk = (dir, prefix) => {
     for (const entry of readdirSync(dir).sort()) {
       const full = join(dir, entry);
-      if (statSync(full).isDirectory()) walk(full, prefix === '' ? entry : `${prefix}/${entry}`);
-      else out.push(prefix === '' ? entry : `${prefix}/${entry}`);
+      const rel = prefix === '' ? entry : `${prefix}/${entry}`;
+      // ОБХОД НЕ ПАДАЕТ НА БИТОЙ ССЫЛКЕ. `statSync` идёт ПО ссылке и бросает, если цели нет — а
+      // именно битая ссылка в месте назначения и есть тот случай, ради которого этот обход теперь
+      // делается. Запись о ней ОБЯЗАНА появиться в списке: иначе она не попадёт ни в конфликты, ни
+      // в устаревшие, и установка пойдёт СКВОЗЬ неё.
+      let isDir = false;
+      try {
+        isDir = lstatSync(full).isSymbolicLink() ? false : statSync(full).isDirectory();
+      } catch {
+        out.push(rel);   // не смогли рассмотреть — считаем файлом и НЕ теряем из виду
+        continue;
+      }
+      if (isDir) walk(full, rel);
+      else out.push(rel);
     }
   };
   walk(root, '');
@@ -66,14 +78,81 @@ function skillFiles(root) {
  * @returns {{ ok: boolean, installDir: string, written: string[], conflicts: string[],
  *             stale: string[], removedStale: string[], reason?: string }}
  */
+/** Цель ссылки, если путь — символическая ссылка (в том числе БИТАЯ); иначе null. */
+function symlinkAt(p) {
+  try {
+    return lstatSync(p).isSymbolicLink() ? String(readlinkSyncSafe(p)) : null;
+  } catch {
+    return null;
+  }
+}
+
+function readlinkSyncSafe(p) {
+  try {
+    // eslint-disable-next-line n/no-sync
+    return readlinkSync(p);
+  } catch {
+    return '(цель не читается)';
+  }
+}
+
+/** Существует ли путь ИЛИ является ссылкой (в том числе битой). */
+function pathExistsOrIsLink(p) {
+  try {
+    lstatSync(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Удалить пустые каталоги под корнем. Возвращает удалённые пути; сам корень не трогается. */
+function pruneEmptyDirs(dir, root) {
+  const removed = [];
+  let entries;
+  try {
+    entries = readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return removed;
+  }
+  for (const e of entries) {
+    if (!e.isDirectory()) continue;
+    const child = join(dir, e.name);
+    removed.push(...pruneEmptyDirs(child, root));
+    try {
+      if (readdirSync(child).length === 0) {
+        // `rmSync` без `recursive` на КАТАЛОГЕ бросает ERR_FS_EISDIR, и в try/catch это выглядело
+        // как «удалили» — каталог оставался. Пустоту мы уже проверили строкой выше, поэтому
+        // рекурсивное удаление здесь безопасно и делает то, что обещает.
+        rmSync(child, { recursive: true, force: true });
+        removed.push(child);
+      }
+    } catch { /* исчез сам — нечего удалять */ }
+  }
+  return removed;
+}
+
 export function installBareSkill(projectDir, options = {}) {
   const source = options.sourceDir ?? packagedSkillDir();
   const installDir = join(projectDir, '.claude', 'skills', BARE_SKILL_DIR);
   const files = skillFiles(source);
 
+  // КАТАЛОГ УСТАНОВКИ САМ НЕ ДОЛЖЕН БЫТЬ ССЫЛКОЙ. Иначе весь набор уезжает туда, куда она
+  // указывает, и «установлено в .claude/skills/…» становится ложью о месте.
+  const installLink = symlinkAt(installDir);
+  if (installLink) {
+    return {
+      ok: false, installDir, written: [], conflicts: [], stale: [], removedStale: [],
+      reason: `${installDir} — символическая ссылка на ${installLink}; установка ушла бы за пределы каталога назначения, и ничего не написано`,
+    };
+  }
+
   const destFiles = existsSync(installDir) ? skillFiles(installDir) : [];
   const sourceSet = new Set(files);
-  const conflicts = files.filter((rel) => existsSync(join(installDir, rel)));
+  // СУЩЕСТВОВАНИЕ ПРОВЕРЯЕТСЯ lstat'ом, А НЕ existsSync. `existsSync` идёт ПО ссылке и отвечает
+  // false для БИТОЙ ссылки — такая цель не попадала в конфликты, и запись шла СКВОЗЬ неё, создавая
+  // файл за пределами каталога установки (подтверждено исполнением, Codex-ревью Q4).
+  const conflicts = files.filter((rel) => pathExistsOrIsLink(join(installDir, rel)));
   const stale = destFiles.filter((rel) => !sourceSet.has(rel));
 
   if ((conflicts.length > 0 || stale.length > 0) && options.force !== true) {
@@ -102,10 +181,16 @@ export function installBareSkill(projectDir, options = {}) {
   for (const rel of files) {
     const target = join(installDir, rel);
     mkdirSync(dirname(target), { recursive: true });
+    // ССЫЛКА В МЕСТЕ НАЗНАЧЕНИЯ СНИМАЕТСЯ ДО ЗАПИСИ. `copyFileSync` пишет СКВОЗЬ ссылку — байты
+    // канона уехали бы наружу, а отчёт сказал бы, что всё легло на место.
+    if (symlinkAt(target) !== null) rmSync(target, { force: true });
     copyFileSync(join(source, rel), target);
     written.push(target);
   }
-  return { ok: true, installDir, written, conflicts, stale, removedStale };
+  // ПУСТЫЕ КАТАЛОГИ ПРОШЛОГО СОСТАВА НЕ ПЕРЕЖИВАЮТ УСТАНОВКУ: каталог, чьи файлы объявлены
+  // устаревшими и удалены, оставался на месте и выглядел частью набора.
+  const removedDirs = pruneEmptyDirs(installDir, installDir);
+  return { ok: true, installDir, written, conflicts, stale, removedStale, removedDirs };
 }
 
 /**

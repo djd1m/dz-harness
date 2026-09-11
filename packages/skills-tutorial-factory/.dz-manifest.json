@@ -9,11 +9,11 @@
       },
       {
         "path": "README.md",
-        "sha256": "9a2f1d5dd595fa776345890646774233f438031014425184f795de1d2a92c538"
+        "sha256": "680b41e50794ab96c94999ba95d76043f561162d0a1ef56a7d4c29cb9ab0c4f0"
       },
       {
         "path": "package-tutorial-factory/SKILL.md",
-        "sha256": "beb707558bc63fc109f65e146599b1338bbe1529124b8b70defb87af629f80af"
+        "sha256": "f655c9899d6b9dd722a6c46287ca71f7d377e1c7fb2e920eb5334a6a0aa20a18"
       },
       {
         "path": "package-tutorial-factory/modules/00-orchestrator.md",
@@ -37,7 +37,7 @@
       },
       {
         "path": "package-tutorial-factory/modules/05-render.md",
-        "sha256": "fdbce32b30123336d19d863131d97acbaea4edcbf0ca22a7326ec8fff017b97b"
+        "sha256": "315a21a3d4b47dac4269c2fecf532984504039892c17d39d64352dd3243c306f"
       },
       {
         "path": "package-tutorial-factory/modules/06-verify-handoff.md",
@@ -77,7 +77,7 @@
       },
       {
         "path": "package-tutorial-factory/scripts/render-site.mjs",
-        "sha256": "c2458503263190c8f18b4608115e46eab174d734f30ec29904c056beb1c9ba39"
+        "sha256": "dbe95eccc014dd2537a76f548b47ebe16c0ca6bad433d91bfd8964676e5978b4"
       },
       {
         "path": "package-tutorial-factory/scripts/shingling-check.mjs",
@@ -89,7 +89,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "cd7bd97a581db7e4078aeb6742e04de3a90bc4245cd714f36cbc8c68f1401ba4"
+        "sha256": "941f778237b7c286d132174fd4c93df4a779eca238da8c859ccb49c0d85cf74d"
       },
       {
         "path": "test/_fixtures.mjs",
@@ -121,9 +121,9 @@
       },
       {
         "path": "test/render-site.test.mjs",
-        "sha256": "191f3234e180bd5a77cf8eae87c4e662898a04229c3bf886390447e97abac9e0"
+        "sha256": "554c6eb286595738acbe49a965a5c467998f7bff3491165c0f414afe44c576a2"
       }
     ]
   },
-  "signature": "c+fvvZkFxYoz5RHnQYzsajp+wbXCwXVwrou3v43zhhsa/K68rh848tQKE79+Q6+FCvVS8vsPgbbtUQ6zhCiCCw=="
+  "signature": "DplsPKc6MZe1FHiVlbXhRNfv9niq72F61hfEDNLL//9VwzS6jw7TUqUxgSumbbbx/p4hJ/UyUAfocbc46bE9BA=="
 }

@@ -8,6 +8,7 @@
  */
 
 import type { RepoProfile } from '../types.js';
+import { SourceRefusal, fetchWithBudget, isSourceRefusal } from './source-outcome.js';
 import { detectFormats, recommend } from '../analyzer.js';
 import type { GitHubSearchItem } from '../types.js';
 
@@ -41,10 +42,11 @@ export async function scanOssInsightTrending(options: {
 
   try {
     const url = `${OSSINSIGHT_API}?period=${period}&language=${encodeURIComponent(language)}`;
-    const resp = await fetch(url, {
+    // Прежде код ошибки читался как «в тренде ничего нет» — самый обидный вид молчания:
+    // пустой раздел выглядит как измеренная тишина рынка.
+    const resp = await fetchWithBudget(url, {
       headers: { Accept: 'application/json', 'User-Agent': 'dz-scout/0.4.0' },
     });
-    if (!resp.ok) return [];
 
     const json = (await resp.json()) as { data: { rows: OssRow[] } };
     const rows = json.data?.rows ?? [];
@@ -101,7 +103,8 @@ export async function scanOssInsightTrending(options: {
     }
 
     return results;
-  } catch {
-    return [];
+  } catch (err) {
+    if (isSourceRefusal(err)) throw err;
+    throw new SourceRefusal('failed', `ossinsight: обращение не состоялось — ${err instanceof Error ? err.message : String(err)}`);
   }
 }

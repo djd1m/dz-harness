@@ -20,7 +20,6 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { stampSource } from './course-source-stamp.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2);
@@ -29,9 +28,23 @@ const opt = (n, d) => { const i = argv.indexOf(`--${n}`); return i >= 0 ? argv[i
 const coursePath = resolve(opt('course', 'course.json'));
 const outPath = resolve(opt('out', join(dirname(coursePath), 'site', 'index.html')));
 
-if (!argv.includes('--no-stamp')) {
-  stampSource(coursePath, { package: opt('package', undefined) });
-}
+// ШТАМП ИСТОЧНИКА ЗДЕСЬ БОЛЬШЕ НЕ ЗОВЁТСЯ (решение владельца 2026-09-03, вариант А).
+//
+// Он остаётся на шве ПУБЛИКАЦИИ — в scripts/publish-tutorial.mjs, где стоит fail-closed и где
+// он и нужен: наружу выкладывает только публикатор. В отрисовщике он был избыточен и ломал
+// общий инструмент сразу тремя способами:
+//   1. ХОДИЛ В СЕТЬ на каждую отрисовку (`npm view <пакет> version`) — сборка страницы стала
+//      зависеть от достижимости реестра;
+//   2. БРОСАЛ, если у каталога курса нет README со ссылкой на npm-пакет — то есть курс, не
+//      привязанный к пакету, отрисовать было нельзя;
+//   3. ПРАВИЛ ВХОДНОЙ ФАЙЛ, дописывая поле в course.json.
+//
+// Плюс он импортировал node:child_process, чем нарушал закреплённый тестом офлайновый договор
+// фабрики: её скрипты не порождают процессов. Внести файл в исключения значило бы обойти
+// настоящий страж.
+//
+// ИЗМЕРЕНО 2026-09-03: три красных теста (permission-jail, documented commands, closure mutants)
+// падали именно на этом.
 
 const course = JSON.parse(readFileSync(coursePath, 'utf-8'));
 
@@ -345,6 +358,10 @@ const footerLinks = DEFAULT_FOOTER_LINKS
 
 // Feedback link: a reader who hits a defect must be one click from reporting it AGAINST THE RIGHT
 // PACKAGE. course.feedback = { repo: 'owner/name', packagePath: 'packages/<dir>', title?, body? }
+// packagePath — путь В ПУБЛИЧНОМ ЗЕРКАЛЕ, где каталоги пакетов лежат БЕЗ префикса области
+// (`packages/scout`, не `packages/@dzhechkov/scout`). ИЗМЕРЕНО 2026-09-02: с префиксом ссылка
+// на README отдаёт 404 — так уехали 9 курсов, чинились вручную по одному. Нормализуем здесь,
+// у ЕДИНСТВЕННОГО потребителя поля, чтобы правка не зависела от памяти автора курса.
 // renders a prefilled new-issue link; absent feedback → no link (never a broken one).
 // Docs link: a course is a GUIDED ENTRY, never the full reference. Whatever the course had no
 // room for lives in the package README — link it, or the reader's next question has nowhere to go.
@@ -354,7 +371,7 @@ if (dl && typeof dl.repo === 'string' && /^[\w.-]+\/[\w.-]+$/.test(dl.repo) && t
   const branch = dl.branch || 'main';
   footerLinks.push({
     label: dl.docsLabel || (String(course.language || 'en').toLowerCase() === 'ru' ? 'Полная документация пакета' : 'Full package docs'),
-    href: `https://github.com/${dl.repo}/blob/${branch}/${dl.packagePath.replace(/\/+$/, '')}/README.md`,
+    href: `https://github.com/${dl.repo}/blob/${branch}/${dl.packagePath.replace(/\/+$/, '').replace(/^packages\/@[^/]+\//, 'packages/')}/README.md`,
   });
 }
 
@@ -410,4 +427,8 @@ ${html}</body>
 
 mkdirSync(dirname(outPath), { recursive: true });
 writeFileSync(outPath, full);
-console.log(`site → ${outPath}  (${full.length} bytes, ${course.sections.length} sections, ${course.achievements.length} achievements)`);
+// БАЙТЫ, А НЕ СИМВОЛЫ. `full.length` считает единицы строки; для кириллического курса это
+// расходится с файлом на треть. ИЗМЕРЕНО 2026-09-03: печаталось «132258 bytes» при фактических
+// 180829 байтах — тот же класс, что чинили в обоих публикаторах (запись aa8e9230). Подпись,
+// называющая не ту величину, врёт даже когда вердикт верен.
+console.log(`site → ${outPath}  (${Buffer.byteLength(full, 'utf-8')} bytes, ${course.sections.length} sections, ${course.achievements.length} achievements)`);

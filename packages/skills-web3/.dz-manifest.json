@@ -93,7 +93,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "14983713339577b4dc73aac81d5bea64b169691d99dc1249d2eb57c19afbf149"
+        "sha256": "472f3490a04a65625b1bd7d4d9d9ce7a560efab49f7d57586e69d347b93e689e"
       },
       {
         "path": "quicknode/SKILL.md",
@@ -213,5 +213,5 @@
       }
     ]
   },
-  "signature": "DG0pnWOeil0I+Lv18XzPKopma0rh3Eq9JYfeEBgRWNUirfgRLt2xsvcL3TEKJl6p7unQ2gbwYxw3XHzCOJEkDA=="
+  "signature": "xQQ1RyjGNnMs/huYyybpwUGm/sGbPxESsGwf24KQOu7imt+WjbJ/4asjvhu9LC2fYTp1dK4t3A+luL/4k2MbDg=="
 }

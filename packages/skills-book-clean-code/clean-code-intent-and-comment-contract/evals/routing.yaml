@@ -1,0 +1,24 @@
+positives:
+  - "Переименуй неясный code-идентификатор переменной или метода"
+  - "Does this code comment add non-obvious intent or repeat the code?"
+  - "Проверь Javadoc-контракт публичного Java-метода в исходнике"
+  - "How should this code method name reveal its domain intent?"
+  - "Убери misleading type prefix из идентификатора в коде"
+  - "Нужен ли здесь комментарий о риске или несводимом ограничении кода?"
+  - "Удали историю изменений из VCS header исходного файла"
+  - "Сделай доменный словарь code-имён"
+  - "Почему имя метода в коде требует расшифровки?"
+  - "Приведи Javadoc-комментарий к контракту вызова Java-метода"
+hard_negatives:
+  - prompt: "Refactor one method’s boolean selector into two explicitly named operations with distinct caller contracts"
+    owner: clean-code-function-contracts
+  - prompt: "Review this finished diff for regressions"
+    owner: pr-review
+  - prompt: "Edit prose documentation for this API guide"
+    owner: technical-writing
+  - prompt: "Change the header of this UI page"
+    owner: frontend-implementation
+  - prompt: "Choose the exception or null contract for an external client"
+    owner: clean-code-error-and-boundary-handling
+  - prompt: "Review this architecture for a generic SOLID violation"
+    owner: solid

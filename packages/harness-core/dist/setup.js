@@ -16,9 +16,10 @@
  * @packageDocumentation
  */
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
-import { join } from 'node:path';
-import { execSync } from 'node:child_process';
+import { basename, dirname, join } from 'node:path';
+import { execSync, spawnSync } from 'node:child_process';
 import { mergeManagedHookEntries } from './managed-hooks.js';
+import { CLAUDE_DESTRUCTIVE_HOOK_COMMAND, CLAUDE_DESTRUCTIVE_HOOK_MATCHER, CLAUDE_DESTRUCTIVE_HOOK_RELPATH, generateClaudeDestructiveHook, isDzManagedHookBody, } from './claude-hooks-assets.js';
 import { applyIntegrationFragments, IntegrationApplyError } from './integration-apply.js';
 /**
  * Absolute path to the store the generated session-hook writer opens NATIVELY (better-sqlite3).
@@ -209,6 +210,91 @@ export function commandsOf(entry) {
         return e.hooks.map((h) => String(h?.command ?? ''));
     return [String(e?.command ?? '')];
 }
+/**
+ * Prove the installed hook WORKS, by running it (feature `destructive-command-guard`, review
+ * round 4, P2).
+ *
+ * Presence is not proof and a successful write is not proof either: the body must load its decider
+ * (which lives in another package directory), and that resolution is exactly what broke in the
+ * global-install layout one round ago. So the receipt is POSITIVE and end-to-end — the file is
+ * spawned with a payload it is obliged to refuse, and only `exit 2` carrying our marker counts.
+ * Anything else — a crash, a silent pass, a missing file, a spawn that could not happen — is `ok:
+ * false` with the observation named, never an assumption about the cause.
+ *
+ * The registry entry is written only when this returns `ok`. A hook that is registered but cannot
+ * run is worse than no hook at all: the breakage lands on EVERY Bash call instead of on none.
+ *
+ * SAFETY PRECONDITION (round 11): this SPAWNS the file, so the caller must only ever call it on a
+ * body dz owns — one carrying the ownership marker, or one dz has just written itself. Calling it
+ * on a preserved foreign body turns `dz setup` into a runner for whatever a cloned repository
+ * committed at that path.
+ */
+export function probeInstalledGuard(hookPath, opts = {}) {
+    const payload = JSON.stringify({
+        hook_event_name: 'PreToolUse',
+        tool_name: 'Bash',
+        tool_input: { command: 'rm -rf .agentic-qe' },
+    });
+    let run;
+    try {
+        // DZ_GUARD_TRUSTED_ONLY makes the hook resolve its decision module from the INSTALLED
+        // harness-core alone. Without it the probe imports the project's own copy first, so a cloned
+        // repository that commits `packages/@dzhechkov/harness-core/dist/destructive-guard-hook.js`
+        // gets its top-level JavaScript executed by `dz setup` — the round-11 protection ("a foreign
+        // BODY is never spawned") one resolution step further in (cross-family review, gpt-5.6-sol,
+        // round 13). MEASURED before the fix: the planted module's marker reached stderr and its
+        // decider answered `allow`.
+        const env = { ...process.env, DZ_GUARD_TRUSTED_ONLY: '1' };
+        if (opts.projectRoot !== undefined)
+            env.CLAUDE_PROJECT_DIR = opts.projectRoot;
+        run = spawnSync(process.execPath, [hookPath], {
+            input: payload,
+            encoding: 'utf-8',
+            timeout: 15_000,
+            env,
+        });
+    }
+    catch (err) {
+        return { ok: false, detail: `не удалось запустить хук: ${String(err.message)}` };
+    }
+    if (run.error !== undefined)
+        return { ok: false, detail: `не удалось запустить хук: ${run.error.message}` };
+    const firstLine = String(run.stderr ?? '').split('\n')[0] ?? '';
+    if (run.status !== 2 || !firstLine.includes('DZ-DESTRUCTIVE:')) {
+        return {
+            ok: false,
+            detail: `установленный хук НЕ отказал на контрольной команде (код выхода ${String(run.status)}; ${firstLine || 'пустой stderr'})`,
+        };
+    }
+    return { ok: true, detail: 'живая проба: отказ на контрольной команде, код выхода 2' };
+}
+/**
+ * The destructive-command guard's registry entry (feature `destructive-command-guard`, task T8).
+ *
+ * Emitted for EVERY backend, because the guard has nothing to do with where learning memory is
+ * stored. MEASURED 2026-09-05, before this existed: `dz setup --target claude-code` into a clean
+ * project wrote no `PreToolUse` key at all and created no `.claude/hooks/` — the guard we document
+ * protected only our own checkout.
+ */
+const CLAUDE_DESTRUCTIVE_HOOK_TIMEOUT_MS = 5000;
+const LEGACY_CLAUDE_DESTRUCTIVE_HOOK_COMMANDS = new Set([
+    `node "\${CLAUDE_PROJECT_DIR:-.}/${CLAUDE_DESTRUCTIVE_HOOK_RELPATH}"`,
+]);
+/** Attribute only commands dz actually emitted, never arbitrary text that mentions the path. */
+function isManagedClaudeDestructiveHookCommand(command) {
+    return command === CLAUDE_DESTRUCTIVE_HOOK_COMMAND
+        || LEGACY_CLAUDE_DESTRUCTIVE_HOOK_COMMANDS.has(command);
+}
+function destructiveGuardHookEntry() {
+    return {
+        matcher: CLAUDE_DESTRUCTIVE_HOOK_MATCHER,
+        hooks: [{
+                type: 'command',
+                command: CLAUDE_DESTRUCTIVE_HOOK_COMMAND,
+                timeout: CLAUDE_DESTRUCTIVE_HOOK_TIMEOUT_MS,
+            }],
+    };
+}
 export function generateHooksConfig(projectRoot, backend) {
     const dzDir = join(projectRoot, '.dz');
     if (backend === 'agentdb') {
@@ -229,6 +315,7 @@ export function generateHooksConfig(projectRoot, backend) {
                 SessionStart: [{ hooks: [{ type: 'command', command: `node ${JSON.stringify(writer)} start` }] }],
                 SessionEnd: [{ hooks: [{ type: 'command', command: `node ${JSON.stringify(writer)} end` }] }],
                 PreCompact: [{ hooks: [{ type: 'command', command: `node ${JSON.stringify(writer)} precompact`, runInBackground: true }] }],
+                PreToolUse: [destructiveGuardHookEntry()],
             },
         }, null, 2);
     }
@@ -244,6 +331,7 @@ export function generateHooksConfig(projectRoot, backend) {
             SessionStart: [{ hooks: [{ type: 'command', command: jsonlCmd('start') }] }],
             SessionEnd: [{ hooks: [{ type: 'command', command: jsonlCmd('end') }] }],
             PreCompact: [{ hooks: [{ type: 'command', command: jsonlCmd('precompact'), runInBackground: true }] }],
+            PreToolUse: [destructiveGuardHookEntry()],
         },
     }, null, 2);
 }
@@ -568,7 +656,116 @@ export function runSetup(opts) {
     if (!opts.noHooks) {
         const settingsDir = join(opts.projectRoot, '.claude');
         const settingsPath = join(settingsDir, 'settings.json');
+        // The BODY goes in first, and the ENTRY goes in only after a LIVE receipt that the body runs
+        // and refuses. Written from the INSTALLED package, never copied out of our repository — a
+        // consumer has no `packages/@dzhechkov/...` above their project.
+        //
+        // Round 4, P2: these two used to be independent. A failed write was recorded as an error and
+        // the entry was merged anyway, so a consumer whose install failed got a `PreToolUse` entry
+        // pointing at something that is not a runnable hook — and that breaks EVERY Bash call, not one.
+        //
+        // Round 5, P1: the write was also UNCONDITIONAL. Setup is additive everywhere else — the
+        // settings merge keeps the user's own hooks, `.gitignore` is appended to, an existing skill is
+        // skipped — and this path overwrote a well-known filename with no ownership check, so a
+        // consumer's hand-authored `.claude/hooks/destructive-guard.cjs` was destroyed by a routine
+        // run. A body we wrote carries a MARKER; a file without it is the consumer's, and only an
+        // explicit `--force` may replace it, after a timestamped backup.
+        const hookPath = join(opts.projectRoot, ...CLAUDE_DESTRUCTIVE_HOOK_RELPATH.split('/'));
+        let installError = null;
+        let preserved = null;
+        let backupPath = null;
+        // Unreadable (absent, or something that is not a file at all) is NOT a claim of ownership: it
+        // falls through to the write, whose failure the round-4 receipt below already reports.
+        let current = null;
+        try {
+            current = readFileSync(hookPath, 'utf-8');
+        }
+        catch {
+            current = null;
+        }
+        const foreign = current !== null && !isDzManagedHookBody(current);
+        if (foreign && opts.force !== true) {
+            preserved =
+                'файл на этом пути не наш (нет маркера dz) — ОСТАВЛЕН нетронутым и НЕ ЗАПУСКАЛСЯ; запись в settings.json на этот путь тоже не трогаем (ни своей не добавляем, ни вашу не снимаем); заменить: dz setup --force';
+        }
+        else {
+            try {
+                if (foreign && current !== null) {
+                    // Same shape as the codex `hooks.json` backup: the original beside the original, stamped,
+                    // so `--force` is recoverable rather than merely loud.
+                    backupPath = `${hookPath}.bak-${new Date().toISOString().replace(/[:.]/g, '-')}`;
+                    writeFileSync(backupPath, current);
+                }
+                mkdirSync(dirname(hookPath), { recursive: true });
+                writeFileSync(hookPath, generateClaudeDestructiveHook(), { mode: 0o755 });
+            }
+            catch (err) {
+                installError = String(err.message);
+            }
+        }
+        const foreignBodyKept = preserved !== null;
+        // The receipt SPAWNS the file, so it may only ever be taken on a body dz owns.
+        //
+        // Round 11, P1 SECURITY — correcting my own round-5 sentence, "the receipt is taken from the
+        // file that IS there". Combined with round 6, which preserves a body dz does not own, that made
+        // `dz setup` EXECUTE whatever a repository had committed at this path: clone a hostile repo,
+        // run the documented setup command, and its `.claude/hooks/destructive-guard.cjs` ran — with
+        // none of the host's hook-trust prompting in between. MEASURED: a foreign body writing a marker
+        // file had written it by the time setup returned.
+        //
+        // So a preserved foreign body is NOT probed, NOT registered, and NOT run. `--force` is consent
+        // to REPLACE it (our body is written above, before this line) — never consent to execute it.
+        // The receipt is still taken whether or not the write threw, because a failed write over an
+        // OLDER BODY OF OURS leaves something we may legitimately run.
+        const receipt = foreignBodyKept
+            ? { ok: false, detail: 'проба не проводилась — запускать чужой файл не наше право' }
+            : probeInstalledGuard(hookPath);
+        // Round 8, P2: ownership of the ENTRY follows ownership of the BODY, never the filename.
+        //
+        // Round 6 preserved a consumer's hook file; attribution of its registry entry stayed path-only,
+        // so a routine run deleted the registration of the very file it had just decided not to touch —
+        // their hook left on disk and switched off (MEASURED: their `PreToolUse` entry came back `[]`).
+        // The reverse was just as wrong: a foreign body that happened to refuse made dz ADD an entry
+        // for somebody else's file (MEASURED), taking responsibility for code it may neither read as
+        // its own nor replace.
+        //
+        // So when a foreign body is kept, dz stands down from the whole event: it adds nothing, and
+        // `isManaged` below stops claiming an entry that points at that path. Whether the foreign hook
+        // refuses is not merely the consumer's business — it is a question dz no longer ASKS, because
+        // asking meant running their file (round 11). All of it is said in one line rather than left
+        // for them to find by diffing settings.json.
+        const guardArmed = receipt.ok && !foreignBodyKept;
+        // The receipt is taken from the file that IS at the path — ours, or the one we preserved. A
+        // foreign hook that demonstrably refuses is registered on its own merits; a foreign hook that
+        // does not refuse gets no entry, exactly like a failed install (round 4).
+        const notes = [
+            preserved === null ? '' : `${preserved}; `,
+            backupPath === null ? '' : `прежний файл сохранён: ${basename(backupPath)}; `,
+            installError === null ? '' : `${installError}; `,
+        ].join('');
+        steps.push(guardArmed
+            ? { name: 'Install destructive guard', status: 'done', detail: `${notes}${CLAUDE_DESTRUCTIVE_HOOK_RELPATH} — ${receipt.detail}` }
+            : {
+                name: 'Install destructive guard',
+                status: preserved === null ? 'error' : 'skipped',
+                detail: `${notes}${receipt.detail} — запись в settings.json НЕ добавлена`,
+            });
         const generated = JSON.parse(generateHooksConfig(opts.projectRoot, backend));
+        // No working body ⇒ no entry, and the EVENT KEY STAYS — as an empty managed list when nothing
+        // else of ours belongs there.
+        //
+        // CORRECTION OF RECORD (round 7, P1). The round-5 version DELETED the key and this comment
+        // claimed the merge would then also drop a guard entry left by an earlier setup. That was
+        // asserted without measuring and it is false: `mergeManagedHookEntries` iterates
+        // `Object.keys(managed)`, so an event absent from the managed input is copied through
+        // UNTOUCHED — a project whose guard used to be armed kept invoking it on every Bash call while
+        // the report said the entry was not added. Handing the event an EMPTY list is what makes the
+        // merge EXAMINE it: our entries are dropped by `isManaged`, the user's are preserved in order,
+        // and nothing is appended. The round-5 test passed for the wrong reason — its project had no
+        // pre-existing settings.json, so there was no stale entry for the claim to be wrong about.
+        if (!guardArmed) {
+            generated.hooks['PreToolUse'] = (generated.hooks['PreToolUse'] ?? []).filter((entry) => !entry.hooks.some((h) => isManagedClaudeDestructiveHookCommand(h.command)));
+        }
         if (!existsSync(settingsPath)) {
             mkdirSync(settingsDir, { recursive: true });
             writeFileSync(settingsPath, JSON.stringify({ hooks: generated.hooks }, null, 2));
@@ -577,16 +774,36 @@ export function runSetup(opts) {
         else {
             try {
                 const existing = JSON.parse(readFileSync(settingsPath, 'utf-8'));
-                // ONE merge implementation, shared with the Codex target (AM-3 / G-E). The Claude path's
-                // historical SUBSTRING attribution is passed IN verbatim rather than reimplemented, so the
-                // emitted bytes, the report tail string and the no-write path all stay identical (AM-37).
+                // ONE merge implementation, shared with the Codex target (AM-3 / G-E). Claude's exact
+                // command attribution is passed in rather than reimplemented, so emitted bytes, report
+                // tail text, and the no-write path stay on the shared merge contract (AM-37).
+                const isManagedCommand = (cmd) => cmd.includes('agentdb add') ||
+                    cmd.includes('agentdb-writer.mjs') ||
+                    cmd.includes('sessions.jsonl') ||
+                    // Ours ONLY while the body at that path is ours (round 8, P2). Without the
+                    // path clause a second `dz setup` would append a duplicate guard entry instead of
+                    // replacing the first; without the ownership clause it would delete the entry a
+                    // consumer wrote for their own preserved hook.
+                    (!foreignBodyKept && isManagedClaudeDestructiveHookCommand(cmd));
                 const plan = mergeManagedHookEntries((existing['hooks'] ?? {}), generated.hooks, {
                     // Drop dz-generated entries (any vintage, either shape) — keep the user's own hooks
                     // untouched. Flat dz entries (≤0.3.43) are dropped too, migrating them to the valid
                     // matcher-group shape appended below.
-                    isManaged: (entry) => commandsOf(entry).some((cmd) => cmd.includes('agentdb add') || cmd.includes('agentdb-writer.mjs') || cmd.includes('sessions.jsonl')),
+                    isManaged: (entry) => commandsOf(entry).some(isManagedCommand),
                     isLegacy: (entry) => !Array.isArray(entry?.hooks) ||
                         commandsOf(entry).some((cmd) => cmd.includes('agentdb add')),
+                    // Ownership is per HANDLER, not per matcher group. A user's handler may deliberately
+                    // share the Bash group with dz's guard; replacing ours must retain their handler object
+                    // and every surrounding group field byte-for-byte through JSON serialization.
+                    retainForeign: (entry) => {
+                        const grouped = entry;
+                        if (!Array.isArray(grouped?.hooks))
+                            return null;
+                        const kept = grouped.hooks.filter((hook) => !isManagedCommand(String(hook?.command ?? '')));
+                        return kept.length === 0
+                            ? null
+                            : { ...entry, hooks: kept };
+                    },
                     reportLabel: backend,
                 });
                 if (plan.changed) {

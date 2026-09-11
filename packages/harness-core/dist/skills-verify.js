@@ -120,6 +120,84 @@ export function looksLikeSkillDir(dir) {
     return walk(dir, 1);
 }
 /**
+ * Read `allowed-tools` from the FRONT MATTER only.
+ *
+ * Scanning the whole file would turn `allowed-tools: *` written inside a skill's own documentation
+ * into a violation — and a gate that INVENTS violations is worse than no gate: it teaches people to
+ * ignore it. So the parse stops at the closing `---`.
+ *
+ * Both YAML spellings are accepted, because both appear in this tree: an inline list
+ * (`allowed-tools: Read, Write`) and a flow sequence (`allowed-tools: [Read, Write]`). Quotes are
+ * stripped before the wildcard test — `allowed-tools: "*"` grants exactly as much as a bare one.
+ */
+export function parseAllowedTools(markdown) {
+    const lines = markdown.split(/\r?\n/);
+    if (lines[0]?.trim() !== '---')
+        return { state: 'absent' };
+    let raw = null;
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i] ?? '';
+        if (line.trim() === '---')
+            break; // конец заголовка
+        const m = /^allowed-tools:(.*)$/.exec(line);
+        if (m) {
+            raw = m[1] ?? '';
+            break;
+        }
+    }
+    if (raw === null)
+        return { state: 'absent' };
+    // ЯВНО ПУСТОЙ МАССИВ — НЕ ТО ЖЕ, ЧТО ПУСТОЕ ПОЛЕ. `allowed-tools: []` — это утверждение
+    // («никаких инструментов»), а `allowed-tools:` — незаполненное поле, которое ВЫГЛЯДИТ
+    // ограничением и ничего не ограничивает. Свалить их в одно состояние значило бы сказать про
+    // первый случай неправду в тексте предупреждения.
+    const trimmed = raw.trim();
+    if (trimmed === '')
+        return { state: 'empty' };
+    const bracketed = /^\[(.*)\]$/s.exec(trimmed);
+    const body = (bracketed ? bracketed[1] ?? '' : trimmed).trim();
+    if (body === '')
+        return { state: 'listed', values: [], wildcard: false };
+    const values = body.split(',')
+        .map((v) => v.trim().replace(/^["']|["']$/g, '').trim())
+        .filter((v) => v !== '');
+    return { state: 'listed', values, wildcard: values.includes('*') };
+}
+/**
+ * Privilege findings for one skill directory.
+ *
+ * WHY THIS FAILS RATHER THAN WARNS. The advisory carve-out in this module exists for layout classes
+ * whose support this gate CANNOT observe (workspace trust). A wildcard grant is not that: the text
+ * is right there in the file, the reading is unambiguous, and nothing about the environment can make
+ * it narrow. It is also a pure regression guard — MEASURED 2026-09-03: zero wildcards exist in this
+ * tree, so introducing it breaks no one.
+ */
+function scanSkillPrivileges(dir, label, findings, advisories) {
+    let text;
+    try {
+        text = readFileSync(join(dir, 'SKILL.md'), 'utf8');
+    }
+    catch {
+        return; // нечитаемый файл — забота других проверок этого же слоя, не этой
+    }
+    const tools = parseAllowedTools(text);
+    if (tools.state === 'empty') {
+        advisories.push({
+            dir: label,
+            kind: 'empty-allowed-tools',
+            detail: 'allowed-tools is present but empty — it looks like a restriction and grants everything; either list the tools or drop the key',
+        });
+        return;
+    }
+    if (tools.state === 'listed' && tools.wildcard) {
+        findings.push({
+            dir: label,
+            kind: 'wildcard-allowed-tools',
+            detail: `allowed-tools grants every tool via "*" (${tools.values.join(', ')}) — name the tools this skill actually needs`,
+        });
+    }
+}
+/**
  * A directory registers only if `SKILL.md` is a regular FILE. `existsSync` also answers true for a
  * DIRECTORY named SKILL.md, which registers nothing yet suppressed every other check (QE2 #4).
  */
@@ -275,6 +353,10 @@ export function scanSkillsLayout(projectDir) {
         // `buried-skill-md` findings for it killed the layout anyway, which was the over-claim (QE4 #1).
         const isPluginContainer = hasPluginManifest(dir);
         const bucket = isPluginContainer ? advisories : findings;
+        // Права проверяются у КАЖДОГО навыка с читаемым SKILL.md, включая одно-навыковый плагин: щедрая
+        // выдача не становится безопаснее оттого, что навык лежит в контейнере.
+        if (registers)
+            scanSkillPrivileges(dir, name, findings, advisories);
         if (registers && !isPluginContainer) {
             registrable.push(name);
         }

@@ -38,7 +38,7 @@ const read = (rel) => fs.readFileSync(path.join(PKG, rel), 'utf8');
 /** Is a usable python3 present? Reported honestly rather than silently skipped past. */
 function python() {
   for (const bin of ['python3', 'python']) {
-    const probe = spawnSync(bin, ['--version'], { encoding: 'utf8' });
+    const probe = spawnSync(bin, ['--version'], { encoding: 'utf8', env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1' } });
     if (probe.status === 0) return bin;
   }
   return null;
@@ -61,7 +61,7 @@ function gate(reportText) {
     const facts = path.join(dir, 'facts.json');
     fs.writeFileSync(report, reportText);
     fs.writeFileSync(facts, ledger());
-    const r = spawnSync(PY, [GATE, '--report', report, '--facts', facts, '--json'], { encoding: 'utf8' });
+    const r = spawnSync(PY, [GATE, '--report', report, '--facts', facts, '--json'], { encoding: 'utf8', env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1' } });
     const raw = (r.stdout || '').trim();
     let parsed = null;
     try { parsed = JSON.parse(raw); } catch { /* left null, asserted by the caller */ }
@@ -231,7 +231,7 @@ describe('отрицательный вывод — the second direction of the 
       const report = path.join(dir, 'report.md');
       fs.writeFileSync(report, BASE + NEGATIVE);
       const r = spawnSync(PY, [GATE, '--report', report, '--facts', path.join(dir, 'absent.json'),
-        '--json'], { encoding: 'utf8' });
+        '--json'], { encoding: 'utf8', env: { ...process.env, PYTHONDONTWRITEBYTECODE: '1' } });
       assert.equal(r.status, 2, 'a gate that could not read its inputs has cleared nothing');
     } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   });

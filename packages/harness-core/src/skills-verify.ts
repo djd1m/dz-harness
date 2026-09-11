@@ -23,7 +23,9 @@ import { basename, isAbsolute, join, resolve } from 'node:path';
 export type SkillIssueKind =
   | 'no-skill-md'          // a skill dir with no SKILL.md at depth 1 → never registers
   | 'buried-skill-md'      // a SKILL.md at depth >= 2 → the loader does not scan that deep
-  | 'plugin-manifest-trap'; // .claude-plugin/plugin.json under .claude/skills → does NOT auto-register
+  | 'plugin-manifest-trap' // .claude-plugin/plugin.json under .claude/skills → does NOT auto-register
+  | 'wildcard-allowed-tools' // `allowed-tools: *` → every tool granted; a FINDING (see below)
+  | 'empty-allowed-tools';   // `allowed-tools:` with no value → looks restrictive, restricts nothing
 
 export interface SkillLayoutFinding {
   readonly dir: string;
@@ -168,6 +170,98 @@ export function looksLikeSkillDir(dir: string): boolean {
     return false;
   };
   return walk(dir, 1);
+}
+
+/**
+ * What a SKILL.md's front matter says about the tools it may use.
+ *
+ * Three states, and they are NOT the same thing:
+ *   `absent`   — no `allowed-tools` key. The skill honestly inherits; this is the ordinary case
+ *                (7 170 SKILL.md files in this tree, MEASURED 2026-09-03).
+ *   `empty`    — the key is present with no value. It LOOKS like a restriction and restricts
+ *                nothing. Reported, never failed: 70 files are in this state today, and a gate
+ *                that goes red on the day it is introduced gets switched off — taking the
+ *                wildcard check down with it.
+ *   `listed`   — actual values, which may include a wildcard.
+ */
+export type AllowedToolsState =
+  | { readonly state: 'absent' }
+  | { readonly state: 'empty' }
+  | { readonly state: 'listed'; readonly values: readonly string[]; readonly wildcard: boolean };
+
+/**
+ * Read `allowed-tools` from the FRONT MATTER only.
+ *
+ * Scanning the whole file would turn `allowed-tools: *` written inside a skill's own documentation
+ * into a violation — and a gate that INVENTS violations is worse than no gate: it teaches people to
+ * ignore it. So the parse stops at the closing `---`.
+ *
+ * Both YAML spellings are accepted, because both appear in this tree: an inline list
+ * (`allowed-tools: Read, Write`) and a flow sequence (`allowed-tools: [Read, Write]`). Quotes are
+ * stripped before the wildcard test — `allowed-tools: "*"` grants exactly as much as a bare one.
+ */
+export function parseAllowedTools(markdown: string): AllowedToolsState {
+  const lines = markdown.split(/\r?\n/);
+  if (lines[0]?.trim() !== '---') return { state: 'absent' };
+  let raw: string | null = null;
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i] ?? '';
+    if (line.trim() === '---') break;                       // конец заголовка
+    const m = /^allowed-tools:(.*)$/.exec(line);
+    if (m) { raw = m[1] ?? ''; break; }
+  }
+  if (raw === null) return { state: 'absent' };
+
+  // ЯВНО ПУСТОЙ МАССИВ — НЕ ТО ЖЕ, ЧТО ПУСТОЕ ПОЛЕ. `allowed-tools: []` — это утверждение
+  // («никаких инструментов»), а `allowed-tools:` — незаполненное поле, которое ВЫГЛЯДИТ
+  // ограничением и ничего не ограничивает. Свалить их в одно состояние значило бы сказать про
+  // первый случай неправду в тексте предупреждения.
+  const trimmed = raw.trim();
+  if (trimmed === '') return { state: 'empty' };
+  const bracketed = /^\[(.*)\]$/s.exec(trimmed);
+  const body = (bracketed ? bracketed[1] ?? '' : trimmed).trim();
+  if (body === '') return { state: 'listed', values: [], wildcard: false };
+
+  const values = body.split(',')
+    .map((v) => v.trim().replace(/^["']|["']$/g, '').trim())
+    .filter((v) => v !== '');
+  return { state: 'listed', values, wildcard: values.includes('*') };
+}
+
+/**
+ * Privilege findings for one skill directory.
+ *
+ * WHY THIS FAILS RATHER THAN WARNS. The advisory carve-out in this module exists for layout classes
+ * whose support this gate CANNOT observe (workspace trust). A wildcard grant is not that: the text
+ * is right there in the file, the reading is unambiguous, and nothing about the environment can make
+ * it narrow. It is also a pure regression guard — MEASURED 2026-09-03: zero wildcards exist in this
+ * tree, so introducing it breaks no one.
+ */
+function scanSkillPrivileges(
+  dir: string, label: string, findings: SkillLayoutFinding[], advisories: SkillLayoutFinding[],
+): void {
+  let text: string;
+  try {
+    text = readFileSync(join(dir, 'SKILL.md'), 'utf8');
+  } catch {
+    return;   // нечитаемый файл — забота других проверок этого же слоя, не этой
+  }
+  const tools = parseAllowedTools(text);
+  if (tools.state === 'empty') {
+    advisories.push({
+      dir: label,
+      kind: 'empty-allowed-tools',
+      detail: 'allowed-tools is present but empty — it looks like a restriction and grants everything; either list the tools or drop the key',
+    });
+    return;
+  }
+  if (tools.state === 'listed' && tools.wildcard) {
+    findings.push({
+      dir: label,
+      kind: 'wildcard-allowed-tools',
+      detail: `allowed-tools grants every tool via "*" (${tools.values.join(', ')}) — name the tools this skill actually needs`,
+    });
+  }
 }
 
 /**
@@ -331,6 +425,10 @@ export function scanSkillsLayout(projectDir: string): StaticScan {
     // `buried-skill-md` findings for it killed the layout anyway, which was the over-claim (QE4 #1).
     const isPluginContainer = hasPluginManifest(dir);
     const bucket = isPluginContainer ? advisories : findings;
+
+    // Права проверяются у КАЖДОГО навыка с читаемым SKILL.md, включая одно-навыковый плагин: щедрая
+    // выдача не становится безопаснее оттого, что навык лежит в контейнере.
+    if (registers) scanSkillPrivileges(dir, name, findings, advisories);
 
     if (registers && !isPluginContainer) {
       registrable.push(name);

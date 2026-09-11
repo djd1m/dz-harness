@@ -9,9 +9,16 @@ O'Reilly Media and is copyright © 2020 Mark Richards and Neal Ford. All rights 
 its translation, figures, examples, trademarks, and trade dress remain with their respective owners.
 
 The owner recorded the public-distribution decision at CP5 in `sources.json`. The source PDF and
-extracted corpus are not included. Before release, a mechanical word-shingling gate compares the
-public artifact with the source corpus and rejects uncited verbatim runs of eight or more words.
-That gate is evidence of transformation discipline, not a licence or legal opinion.
+extracted corpus are not included. This package SHIPS a mechanical word-shingling gate
+(`scripts/shingling-check.mjs`) that compares a public artifact with a source corpus and rejects
+uncited verbatim runs of eight or more words. HONEST CORRECTION, replacing an earlier claim in this
+file that the gate runs before release: no run of that gate against THIS pack is recorded anywhere —
+not in `sources.json`, not in `CP4-PACK-REPORT.md`, not in `test/pack.test.mjs` — and the gate is not
+invoked by `prepublishOnly`. The corpus it would need is owner-local and is not distributed, so the
+run cannot be reproduced from this package either. The paraphrase discipline behind these
+reformulations is therefore authorial and reviewed, not mechanically attested for this pack; the
+sibling pack `@dzhechkov/skills-book-ai-apps` carries dated runs of the same gate and its LICENSE
+states them. Treat this paragraph as a description of what exists, not as a licence or legal opinion.
 
 You may install and use this package, including commercially, and quote short attributed passages
 from its original reformulations. You may not resell the package, republish it under another name,

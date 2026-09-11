@@ -9,7 +9,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const MUTATION_TARGET_SHA256 = Object.freeze({
   'package-story-page/scripts/verify-story-page.mjs': '92c0fd2271555853a66494e9cdd2e96842e7d8376258447340e27f652a34dd12',
   'package-story-page/scripts/verify-story-semantics.mjs': '13f703cd21051adf934b8be404f902a3ebba260c4ff6b26645016ef142989300',
-  'package-story-page/scripts/verify-story-page-browser.mjs': '83ebb3f2fd9d3d195d7937dc3223db8bcaa3f74b6d8766e403e4b08c60c37bd4',
+  'package-story-page/scripts/verify-story-page-browser.mjs': 'be77bf90bb0420c7da02540b8a9e2e417bb0864cb02693f63d5d1e656c1fcd27',
   'package-story-page/scripts/story-schema.mjs': 'dfd7dbfa0ee87fa56f5cbaad1c66434632046571e1fcb96678512f6ab9dd5074',
   'package-story-page/vendor/parse5.bundle.mjs': '67ad160b1d7dc6a36314459390148ad4699732f4c503e90790e6fced5c11c528',
   'package-story-page/scripts/extract-package-evidence.mjs': 'ee175aa24fde44dba2df4b42f6d91a6060b29f0f2934d136c5b090d22d1c8efa',

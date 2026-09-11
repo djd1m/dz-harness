@@ -10,8 +10,43 @@ import { createRequire } from 'node:module';
 export const HARNESS_CORE_VERSION: string =
   (createRequire(import.meta.url)('../package.json') as { version: string }).version;
 
+export { REPOSITORY_ORIGIN } from './repository-origin.js';
+
 export * from './skills.js';
 export * from './apply.js';
+export {
+  buildPublicSnapshot,
+  assertPublicSafe,
+  applyDeltaRule,
+  HOLD_CAP_DAYS,
+  PUBLIC_SCHEMA,
+  MIN_GROUP,
+  TTT_BUCKETS,
+  type PrivateRecord,
+  type PublicSnapshot,
+  type BuildResult,
+  type RefusalCode,
+  type EgressVerdict,
+  type DeltaOutcome,
+} from './backlog-public.js';
+
+export {
+  appendTransition,
+  readTransitions,
+  transitionLogPath,
+  type TransitionRow,
+} from './backlog-transitions.js';
+
+export {
+  decideStop,
+  hasProgress,
+  BLOCK_BUDGET,
+  FRESH_HUMAN_MINUTES,
+  type LeadShift,
+  type ProgressEvidence,
+  type StopDecision,
+} from './lead-shift-gate.js';
+
 export { bundleSkills } from './bundle.js';
 export type { BundleOptions, BundleResult, BundledSkill } from './bundle.js';
 export * from './targets.js';
@@ -75,6 +110,7 @@ export * from './trace-bundle.js';
 export { BLOBS as LOOP_BLOBS, LOOP_BLOB_NAMES, BLOB_COVERAGE_MANIFEST } from './loop-blobs.generated.js';
 export type { LoopBlob } from './loop-blobs.generated.js';
 export * from './sign.js';
+export * from './swarm-brief.js';
 export * from './skill-schema.js';
 export { createSkill } from './create-skill.js';
 export type { CreateSkillOptions, CreateSkillResult } from './create-skill.js';
@@ -89,6 +125,8 @@ export { planLedgerBackfill, LEDGER_FILL_SOURCE, AMBIGUOUS, resolveLedgerRunId }
 // project-skills root resolution (field report doc-25b): the ONE builder behind both the Step-0
 // probe and the PS_GUIDANCE paragraph, so the two can never look at different roots again.
 export { projectSkillsOneRoot, projectSkillsProbeCommand } from './project-skills-root.js';
+export { isRepoBoundary } from './repo-boundary.js';
+export type { RepoBoundaryIo } from './repo-boundary.js';
 export type { LedgerBackfillPlan, LedgerBackfillRow, RunCostFacts } from './ledger-backfill.js';
 export type { SweepResult, DriftedSkill, SyncResult, SyncCanonicalOptions } from './skill-drift.js';
 export { benchmarkSkill, benchmarkSkills, compareSkills } from './benchmark.js';
@@ -100,7 +138,7 @@ export { tokenize, stemToken, stems } from './stem.js';
 export * from './package-skill-layouts.js';
 export { recommend } from './recommend.js';
 export { pretrain } from './pretrain.js';
-export { loadPatterns, loadSessions, computePatternBoost, readLearningConfig, readMemoryLearningConfig, BOOST_CAP, recordPattern, recordLessonForms, loadStorePatternsSync, loadStoreRecords, patternToRecord, recordToPattern, patternRecordId, patternIdentityOf, dreamRecordId, isMirrorableLearning, consolidateSessions, recallPatterns, pruneNoisePatterns, removePatternsByIds, snapshotStore, readReinforcementState, encodeReinforcementState, reinforcePattern, updateReinforcementState, storeStats, lessonDeltaReport, lessonDeltaMap, readQuarantineState, encodeQuarantineState, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns } from './patterns.js';
+export { loadPatterns, loadSessions, computePatternBoost, readLearningConfig, readMemoryLearningConfig, BOOST_CAP, recordPattern, recordLessonForms, loadStorePatternsSync, loadStoreRecords, findExactLesson, patternToRecord, recordToPattern, patternRecordId, patternIdentityOf, dreamRecordId, isMirrorableLearning, consolidateSessions, recallPatterns, pruneNoisePatterns, removePatternsByIds, snapshotStore, readReinforcementState, encodeReinforcementState, reinforcePattern, updateReinforcementState, storeStats, lessonDeltaReport, lessonDeltaMap, readQuarantineState, encodeQuarantineState, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns } from './patterns.js';
 export { normalizeLessonForms, validateClassTemplate, lessonPairIdOf, mergeLessonFormHits, mergeLessonMatchedForms } from './lesson-generalization.js';
 export { withStoreLock, withStoreLockSync, storeLockPath, StoreLockTimeoutError, StoreLockCompromisedError, STALE_LOCK_MS, LOCK_TIMEOUT_MS } from './store-lock.js';
 export type { StoreLockOptions } from './store-lock.js';
@@ -192,8 +230,32 @@ export type {
 } from './vector-tier.js';
 export { runSetup, generateHooksConfig, generateAgentdbWriter, writerVersionOf, AGENTDB_WRITER_VERSION,
   agentdbStorePath, agentdbMcpStorePath, agentdbStoreSeparationProblem } from './setup.js';
-export { statuslineData, readFeatureAdrState, writeFeatureAdrState, featureAdrStateDir, featureAdrStatePath } from './statusline.js';
-export type { StatuslineData, FeatureAdrState, WriteFeatureAdrStateInput } from './statusline.js';
+export { countLearningStoreRowsReadonly } from './store-counts.js';
+export type { LearningStoreRowCounts } from './store-counts.js';
+export {
+  STORE_GUARD_VERSION,
+  STORE_COLLAPSE_MAX_FRACTION,
+  STORE_COLLAPSE_LAST_ROWS,
+  storeGuardPath,
+  storeSnapshotPath,
+  readStoreMark,
+  writeStoreMark,
+  resetStoreMark,
+  checkStoreHealth,
+} from './store-guard.js';
+export type {
+  StoreMark,
+  StoreHealth,
+  StoreHealthInput,
+  StoreHealthVerdict,
+  StoreCountSnapshot,
+  StoreCountSource,
+  StoreMarkObservation,
+  StoreMarkWriteOptions,
+  StoreResetReceipt,
+} from './store-guard.js';
+export { statuslineData, readFeatureAdrState, writeFeatureAdrState, featureAdrStateDir, featureAdrStatePath, writeFeatureAdrStateDetailed, renderFeatureAdrPhaseLine } from './statusline.js';
+export type { StatuslineData, StatuslineStoreHealth, FeatureAdrState, WriteFeatureAdrStateInput, WriteFeatureAdrStateResult } from './statusline.js';
 export {
   ETA_MAX_STAGE_MS,
   estimateEta,
@@ -362,6 +424,10 @@ export {
   amendmentsMissingFromPlan,
   amendmentSubject,
   extractTestTitles,
+  amendmentIdsIn,
+  amendmentSectionCount,
+  amendmentDeclarationAmbiguity,
+  mentionsAmendmentId,
 } from './amendment-trace.js';
 export {
   RECORD_MAX_LINE_CHARS,
@@ -372,7 +438,7 @@ export {
 export { decidePublishSigning, decidePostSigningVerification, decideSignableSet, publishSigningLine, signableSetLine } from './publish-signing.js';
 export type { PublishSigningVerdict, PublishSigningDecision, SignableSetDecision } from './publish-signing.js';
 export type { RecordKind, RecordVerdict, RecordDecision } from './run-records.js';
-export type { AmendmentRow, AmendmentVerdict, AmendmentResolution, AmendmentOutcome, AmendmentDecision, PlanCoverageGap } from './amendment-trace.js';
+export type { AmendmentAmbiguity, AmendmentRow, AmendmentVerdict, AmendmentResolution, AmendmentOutcome, AmendmentDecision, PlanCoverageGap } from './amendment-trace.js';
 // contract-checklist (ADR-001): pure extraction, canonical rendering, typed report parsing, and
 // exact per-item verification. Filesystem discovery/containment stays in harness-cli.
 export {
@@ -402,6 +468,7 @@ export type {
   ContractVerificationCounts,
   ContractVerification,
 } from './contract-checklist.js';
+export * from './feature-tier.js';
 export {
   DOMAIN_LIFT_EXACT,
   DOMAIN_LIFT_RELATED,
@@ -597,7 +664,8 @@ export type {
   ChainDefectAges,
   ChainedJournal,
 } from './event-chain.js';
-export { decideProvenance, environmentCanMintProvenance, publishArgv, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion } from './publish.js';
+export { decideProvenance, environmentCanMintProvenance, publishArgv, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, rewriteWorkspaceSpecs, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion } from './publish.js';
+export { RELEASE_LINE_RE, findReleaseLine, rewriteReleaseLine } from './release-line.js';
 export * from './course-staleness.js';
 export { fetchAllDownloads } from './downloads.js';
 export type { PackageDownloads, DownloadsReport } from './downloads.js';
@@ -779,10 +847,17 @@ export {
   codexQeDeclineReason,
   codexDeclineReason,
   parseCodexReviewResult,
+  resolveStageDecision,
+  effectiveSpec,
+  specFamily,
+  qeReasonForFamilies,
+  STAGE_DECISION_REASONS,
 } from './feature-adr-routing.js';
 export type {
   StageOpts,
   RoutingEnv,
+  StageDecision,
+  StageDecisionReason,
   CrossFamilyQeReport,
   ModeBScopeVerdict,
   PartitionedFindings,
@@ -813,6 +888,15 @@ export type {
   CodexQeDeclineDetail,
   CodexReviewResult,
 } from './feature-adr-routing.js';
+export {
+  STAGE_LINE_BLOB_VERSION,
+  STAGE_LINE_REASON_LABELS,
+  STAGE_LINE_BARRIER_STAGES,
+  renderStageIntentLine,
+  renderStageOutcomeLine,
+  renderStageLine,
+} from './stage-line.js';
+export type { StageLineDecision, StageLineOutcome, StageLineOutcomeState } from './stage-line.js';
 export {
   PARSER_SAFE_REGION_START,
   PARSER_SAFE_REGION_END,
@@ -1044,3 +1128,41 @@ export type {
 } from './profile.js';
 export * from './codex-invoke.js';
 export * from './skill-selection.js';
+
+// destructive-guard (feature destructive-command-guard, ADR-001) — pure pre-execution verdict on a
+// shell command. Refuses ONLY on a literal path into a protected store; `undecidable` is never
+// passed off as `refuse`.
+export { classifyDestructive, DESTRUCTIVE_RULES } from './destructive-guard.js';
+export type { DestructiveVerdict } from './destructive-guard.js';
+
+// The CONSUMER half (task T8): one decision for both hosts — the Claude PreToolUse hook
+// (`.claude/hooks/destructive-guard.cjs`) and the emitted Codex veto helper call the SAME function,
+// so a refusal is worded identically on both runtimes.
+export {
+  decideDestructiveHook,
+  DESTRUCTIVE_REFUSE_MARKER,
+  DESTRUCTIVE_WARN_MARKER,
+} from './destructive-guard-hook.js';
+export type { DestructiveHookDecision, DestructiveHookHost } from './destructive-guard-hook.js';
+
+// Delivery of the guard into OTHER projects (task T8, review round 3): the installable Claude hook
+// body + its registry entry, and the locator that lets an emitted body find the installation that
+// wrote it. Both hosts' bodies resolve harness-core by PATH, never by bare specifier.
+export {
+  generateClaudeDestructiveHook,
+  CLAUDE_DESTRUCTIVE_HOOK_COMMAND,
+  CLAUDE_DESTRUCTIVE_HOOK_MATCHER,
+  CLAUDE_DESTRUCTIVE_HOOK_RELPATH,
+  DZ_CLAUDE_HOOK_VERSION,
+} from './claude-hooks-assets.js';
+export type { ClaudeHookAssetOptions } from './claude-hooks-assets.js';
+export { harnessCoreDistDir, harnessCoreModuleDir } from './harness-core-location.js';
+
+export { maskMarkdown } from './markdown-masker.js';
+export * from './confirmation-file-gate.js';
+
+export * from './run-registry.js';
+
+export { JOURNAL_KINDS, formatLine, parseLine, selectWindow, appendWitnessed } from './journal.js';
+export type { JournalKind, JournalEvent, JournalLine, JournalIo } from './journal.js';
+export * from './run-cleanup.js';

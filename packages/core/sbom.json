@@ -431,6 +431,46 @@
     },
     {
       "type": "file",
+      "name": "dist/vitest.dz-debris.shared.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dd330528cfadc311f21e8973d405b330580b2261dac7a1199488920ea8e5d652"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/vitest.dz-debris.shared.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f07b5ed7c61114938ef646d740ab28ba141ccf7d99a7446ef9376bd81339f777"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/vitest.dz-debris.shared.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f458215812fe2beb620ea694933350c9f8bd3c7e09e64ba6b82401fc5206487f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/vitest.dz-debris.shared.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "53534facc0666b9cb3eeb881ef1054fce20752c16eb7402a1ad8a74c396af7d8"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "dist/windsurf.d.ts",
       "hashes": [
         {
@@ -519,7 +559,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "6b719e901b7127b591f62e854143634ac9d6714530e10b121277de23bc031711"
+          "value": "5d9a4d305a14424da0f805e42c5854e73c5ad6f36b8344ba0abf5291267039b6"
         }
       ]
     },

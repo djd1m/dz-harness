@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+          "content": "ec1ddbebcf25c3eb0423b8d7d5ebcdf9adda31455ac7257b3d156978880866cf"
         }
       ]
     },
@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "db656fad1737e98dc639d06388a5f4ac00fa4024b195c673c3deef2ede3a40d5"
+          "content": "6607aa77d7ff798e36d9eb129f1260b912ccce5dbf6bfa390a4c68e1f158398b"
         }
       ]
     },
@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "454794ad9738157ca422201aaedf99704a2c525e32d48ee2dac533d498bf1271"
+          "content": "5d168189752313c0592f291f57187feab46445478bb3c6d1f6b9330de4205c83"
         }
       ]
     },
@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cd2cfc484dd9d0bcb1063be0f55e12dbd6b49e2642568bd7ad2a5f045b83be5b"
+          "content": "88ddbf29e0b97f22ad8c8cb65fae8202098627decf4f4d0bdbb24374be7e273c"
         }
       ]
     },
@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ce07c1e9270067794d744c59cdacd083e22ff3a2e38f10b7b41e3397b3ad2ff5"
+          "content": "5a772e4d7d6c1515d31645b689e2bd92d1c1c42625ea0f439981c2d5b0f8dd0d"
         }
       ]
     },
@@ -115,7 +115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0969e281fe2684f4143a3bf4b8cfd42894809a29d0d7f59afe0b90447c1a0cd4"
+          "content": "a4f6ad121c0e81336e517b10ba656af428cc07d9f41fdc00967d1cd0122be1ee"
         }
       ]
     },
@@ -125,7 +125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "21b330f7ea9942f8356ca69990a7324b9441ac1247f0d8b45aafdc71b70b1ed6"
+          "content": "ef3852bb748f37d4e78a9a973505c3993eae2b996cc0cdd0659f531aa76621f4"
         }
       ]
     },
@@ -135,7 +135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dcf63e22be659557cc6be3f3d339da93d31dcd2e7ed14e653de7d254e1f151c5"
+          "content": "9d0a6cc044810b31d261b36913e3f63445f5e96550176fedd0faf606d8cbcd75"
         }
       ]
     },
@@ -145,7 +145,47 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e232d50c27c05c95d479db0d2b861a042355db56cb8f570d371b5f0a4766e05e"
+          "content": "3049258ffd0972b6a748eda703221911dd33e3450486c1dec0f598a431faa038"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/command-inventory.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "152bdaf3aabeed5d579432be6597f2a5866fb70a2cf1961c1756722b3fec827e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/command-inventory.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "17a8834ab57b6727779312025b612ecca0e1ce4b48c4d111674cc8a633c112af"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/command-inventory.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cff82b1185024a68126dca6c52eae394bc4ac236785673e54ecbc7d5864c4bba"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/command-inventory.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1c77452f22d0bff37809a57c98e98de37b815879330dff5ce4b17b4afa42240c"
         }
       ]
     },
@@ -195,7 +235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7f2301a59931e768865a58b7681882dc3b6d9b19b4d6ba2d6836e153c15c39f0"
+          "content": "0b1c9584afba354756cf063df029c851cd1ccf34f613b9d1a10ba8769a100821"
         }
       ]
     },
@@ -205,7 +245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f90807882ce10b96cb22af34d9a612a87f8e3869c338ebed666f9f7677bb651c"
+          "content": "9ae1bd30f3c96ce9f1eddcd6d1aca95ae9cae7341157b655c0b96417bec8024a"
         }
       ]
     },
@@ -215,7 +255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d492db6c67df4c7d78cdf50bcfb55da9609e2891178d5fdd1fa91ef973d81a62"
+          "content": "100dff8ee9a0da5fd2e7118ea8bf95f44c2e217a884e4eada2f1e33f1348ade1"
         }
       ]
     },
@@ -225,7 +265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6a5a693bc1035cc67ea572e609d4e2fb05580c9268821e25ba8d278e61635033"
+          "content": "c1b84b471f6f22fb2556073a8357e51d0ef53481a1e5be8e33541403f908776f"
         }
       ]
     },
@@ -285,7 +325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bcc70b16fc530e09a764852e6d57f4858161244555b0d270fca8335b0a800a49"
+          "content": "703058c8bbf0307ab29f12f8355c8984508f38214c32ab85da790446f0cb9699"
         }
       ]
     },
@@ -295,7 +335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc11bc77b47cd80ca6f0efb0f4d991ddc6060fe59bd30824178cc9c8add6bcaf"
+          "content": "6bae6e7f551b6024e3212655f4c5a8f9e426ae0858ff3e65f08d0539bb617028"
         }
       ]
     },
@@ -305,7 +345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1b5a6a740581a5ba0aa26533648ffa603411ac0ba5d9c243bd5005593e7ce11c"
+          "content": "9edabc481a2545ac56ddfdfba82623cd3ac1cf8a37551b5ff43930bf5f2ef48f"
         }
       ]
     },
@@ -339,7 +379,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "8c3f7e57b7bd8fc7534c60ca0de986466095b9c09d526077cf81c8010afe30ba"
+          "value": "52e0e71990b14cf8dc5b07046c30d6d9807f7cec1cdef4463ac6bd155b0312d4"
         }
       ]
     },
@@ -359,7 +399,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8d9fe5f91b143cbecafacf69489f284ab312f277b8f84da0558ee572e4203b41"
+          "content": "f8f029ad790f43d28fcc1e520c4f74ee39b3a9591d71619546165149a914b054"
         }
       ]
     },
@@ -369,7 +409,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d235206d3cc7989890de5f9b5374755bb0a729ed2bfb63050b51a7d11dad9a8c"
+          "content": "f34208b28b53697118db5370f82c6aaab883bb7be10d99789a96a39a06acfac7"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/command-inventory.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a20358964708e3b0911b6aca39eb116b96c2972e512ef04fb9538f45fb82f075"
         }
       ]
     },
@@ -389,7 +439,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ece9dc7be312c38212e72440493221dc816ea109d1ba8842d2ed3410445b65a1"
+          "content": "e1ae4d6fcbbe51dd8c2c618b13f2c3dcd2e143004ffcb858e94add64d4f426bc"
         }
       ]
     },
@@ -409,7 +459,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6365829621a8f3b50381310f4c62ae5a5c4c1625587acf2b73d3f3486ecfc791"
+          "content": "f00496dde83db529d8dde54cf1a5a0048c4c08c49c085e035ad1c90d6a602b30"
         }
       ]
     }

@@ -10,6 +10,10 @@ import { decidePublishSigning, decidePostSigningVerification } from './publish-s
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import { claimCheck } from './claim-check.js';
+import { rewriteReleaseLine } from './release-line.js';
+// MEASURED 2026-09-10: registry answered E404 for ~3 min (19 probes); earlier the same day > 5 min.
+export const REGISTRY_PROBE_BUDGET = 90;
+export const REGISTRY_PROBE_INTERVAL_MS = 10_000;
 /** Is `p` inside `dir`? Used to refuse a signing key that lives in the repository working tree. */
 function isInsideDir(p, dir) {
     const rel = pathRelative(pathResolve(dir), pathResolve(p));
@@ -38,14 +42,9 @@ export function compareVersions(a, b) {
     const [b0 = 0, b1 = 0, b2 = 0] = core(b);
     return a0 - b0 || a1 - b1 || a2 - b2;
 }
-/**
- * The version already published to npm for `name`, or `undefined` if the package
- * has never been published (or npm is unreachable). Used to bump from
- * max(local, published) so a locally-reverted version can't collide (audit #10).
- */
-function publishedVersion(name) {
+function publishedVersion(name, exec = execSync) {
     try {
-        const out = execSync(`npm view ${name} version`, { stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf-8', timeout: 20000 }).trim();
+        const out = exec(`npm view ${name} version --prefer-online`, { stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf-8', timeout: 20000 }).trim();
         return /^\d+\.\d+\.\d+/.test(out) ? out : undefined;
     }
     catch {
@@ -53,8 +52,8 @@ function publishedVersion(name) {
     }
 }
 /** The higher of the local version and the npm-published version (audit #10). */
-function maxPublished(name, localVersion) {
-    const pub = publishedVersion(name);
+function maxPublished(name, localVersion, exec = execSync) {
+    const pub = publishedVersion(name, exec);
     return pub !== undefined && compareVersions(pub, localVersion) > 0 ? pub : localVersion;
 }
 // ── workspace-floor preflight (feature workspace-dep-protocol, Codex P1) ─────
@@ -64,6 +63,31 @@ function maxPublished(name, localVersion) {
 // and a later `--filter`ed publish of just the dependent would ship a floor nobody can install —
 // the publish itself succeeds, and every consumer `npm install` then fails with ETARGET. Staged is
 // not shipped; this preflight makes the difference a refusal instead of a broken release.
+/**
+ * Mirror pnpm's package-time expansion of the three shorthand workspace dependency specs.
+ * Pure by construction: callers provide both the source bytes and the sibling version table.
+ */
+export function rewriteWorkspaceSpecs(pkgJsonText, siblingVersions) {
+    const pkg = JSON.parse(pkgJsonText);
+    const fields = ['dependencies', 'peerDependencies', 'optionalDependencies', 'devDependencies'];
+    for (const field of fields) {
+        const candidate = pkg[field];
+        if (candidate === null || typeof candidate !== 'object' || Array.isArray(candidate))
+            continue;
+        const table = candidate;
+        for (const [dep, spec] of Object.entries(table)) {
+            if (typeof spec !== 'string')
+                continue;
+            const match = /^workspace:([*^~])$/.exec(spec);
+            const version = siblingVersions.get(dep);
+            if (match === null || version === undefined)
+                continue;
+            const marker = match[1];
+            table[dep] = marker === '*' ? version : `${marker}${version}`;
+        }
+    }
+    return JSON.stringify(pkg, null, 2) + '\n';
+}
 /**
  * Pure half: which `workspace:`-declared deps of a package would pack to a floor that is neither
  * being published in this batch nor already on the registry?
@@ -98,14 +122,22 @@ export function findUnpublishedWorkspaceFloors(opts) {
     }
     return missing;
 }
-/** Registry probe: is exactly `name@version` published? Empty output / 404 / offline ⇒ no. */
-function versionPublished(name, version) {
+/** Registry probe: preserve the complete answer while checking for the exact `name@version`. */
+export function probeVersion(name, version, exec = execSync) {
+    const started = Date.now();
     try {
-        const out = execSync(`npm view ${name}@${version} version`, { stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf-8', timeout: 20000 }).trim();
-        return out === version;
+        const out = exec(`npm view ${name}@${version} version --prefer-online`, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf-8', timeout: 20000 });
+        return { ok: out.trim() === version, stdout: out, stderr: '', code: 0, ms: Date.now() - started };
     }
-    catch {
-        return false;
+    catch (err) {
+        const failure = err;
+        return {
+            ok: false,
+            stdout: String(failure.stdout ?? ''),
+            stderr: String(failure.stderr ?? failure.message),
+            code: failure.status ?? null,
+            ms: Date.now() - started,
+        };
     }
 }
 /**
@@ -432,6 +464,11 @@ export function publishPackages(monorepoRoot, opts = {}) {
     // Decide ONCE, before the batch: `--provenance` in an incapable environment must fail here, not on
     // package 7 of 45 (recalled lesson: a failed publish that retries with a bump orphans version numbers).
     const publishCmd = publishArgv(opts.provenance ?? 'auto', process.env);
+    const exec = opts.exec ?? execSync;
+    const probe = opts.probe ?? ((name, version) => probeVersion(name, version, exec));
+    const sleep = opts.sleep ?? ((milliseconds) => {
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds);
+    });
     const packages = discoverPackages(monorepoRoot);
     const results = [];
     const filtered = opts.filter && opts.filter.length > 0
@@ -446,14 +483,38 @@ export function publishPackages(monorepoRoot, opts = {}) {
     // has no published floor, and static membership would still have covered its dependents).
     const workspaceVersions = new Map(packages.map((p) => [p.name, p.version]));
     const landedInBatch = new Set();
+    const failedInBatch = new Set();
     const armFloorPreflight = opts.bumpOnly !== true && (opts.dryRun !== true || opts.probeFloor !== undefined);
-    const probeFloor = opts.probeFloor ?? versionPublished;
+    const probeFloor = opts.probeFloor ?? ((name, version) => probeVersion(name, version).ok);
     for (const pkg of ordered) {
         const oldVersion = pkg.version;
+        const pkgJsonPath = join(pkg.dir, 'package.json');
+        const originalPkgJson = readFileSync(pkgJsonPath, 'utf-8');
+        const manifest = JSON.parse(originalPkgJson);
+        const workspaceDependencies = [
+            ...Object.keys(manifest.dependencies ?? {}),
+            ...Object.keys(manifest.peerDependencies ?? {}),
+        ];
+        const failedDependency = workspaceDependencies.find((dep) => failedInBatch.has(dep));
+        if (failedDependency !== undefined) {
+            const reason = results.find((result) => result.name === failedDependency && result.status === 'error')?.error
+                ?? 'unknown error';
+            const failedVersion = workspaceVersions.get(failedDependency);
+            const floor = failedVersion === undefined ? '' : `; failed workspace floor ${failedDependency}@${failedVersion}`;
+            results.push({
+                name: pkg.name,
+                oldVersion,
+                newVersion: oldVersion,
+                status: 'error',
+                error: `dependency ${failedDependency} failed in this batch: ${reason}${floor}`,
+            });
+            failedInBatch.add(pkg.name);
+            continue;
+        }
         // Bump from max(local, npm-published) so a locally-reverted version can't
         // collide with an already-published one (audit #10). Dry-run stays offline
         // (local only) to keep previews fast and network-free.
-        const base = opts.dryRun ? oldVersion : maxPublished(pkg.name, oldVersion);
+        const base = opts.dryRun ? oldVersion : maxPublished(pkg.name, oldVersion, exec);
         const newVersion = bumpPatch(base);
         // Preflight: refuse to publish a pack whose `files` whitelist would silently
         // drop a skill dir from the tarball (the bug that shipped skills-meta without
@@ -468,13 +529,13 @@ export function publishPackages(monorepoRoot, opts = {}) {
                 status: 'error',
                 error: `would drop ${unpackaged.length} skill(s) not in package.json "files": ${unpackaged.join(', ')}. Add them to "files" before publishing.`,
             });
+            failedInBatch.add(pkg.name);
             continue;
         }
         // Workspace-floor preflight (Codex P1, feature workspace-dep-protocol): a `workspace:^` dep
         // packs to `^<sibling's DISK version>` — refuse if that floor is neither in this batch nor on
         // the registry, or the publish succeeds and every consumer install dies with ETARGET.
         if (armFloorPreflight) {
-            const manifest = JSON.parse(readFileSync(join(pkg.dir, 'package.json'), 'utf-8'));
             const unpublishedFloors = findUnpublishedWorkspaceFloors({ dependencies: manifest.dependencies, peerDependencies: manifest.peerDependencies, workspaceVersions, batch: landedInBatch, probe: probeFloor });
             if (unpublishedFloors.length > 0) {
                 results.push({
@@ -484,6 +545,7 @@ export function publishPackages(monorepoRoot, opts = {}) {
                     status: 'error',
                     error: `workspace floor(s) not published: ${unpublishedFloors.map((f) => `${f.name}@${f.version}`).join(', ')}. Publish the sibling(s) first or include them in --filter — a staged disk version is not a shipped one.`,
                 });
+                failedInBatch.add(pkg.name);
                 continue;
             }
         }
@@ -512,6 +574,7 @@ export function publishPackages(monorepoRoot, opts = {}) {
                             error: `claim-check: ${high} high-severity claim(s) in README.md — tag MEASURED with a reproducer or CLAIMED/SYNTHETIC before publishing.`,
                             claimCheck: claimCheckSummary,
                         });
+                        failedInBatch.add(pkg.name);
                         continue;
                     }
                 }
@@ -521,13 +584,26 @@ export function publishPackages(monorepoRoot, opts = {}) {
             }
         }
         if (opts.dryRun) {
-            results.push({ name: pkg.name, oldVersion, newVersion, status: 'skipped', claimCheck: claimCheckSummary });
-            landedInBatch.add(pkg.name); // preview: this package passed its gates and WOULD land
+            // NOT a statement that the package would publish cleanly — only that the gates checked ABOVE
+            // this line passed. Everything below it (build, re-sign, pack, the package's own
+            // `prepublishOnly`, the registry itself) is untouched by a dry run and is named as such.
+            const NOT_VERIFIED_BY_DRY_RUN = Object.freeze([
+                'prepublishOnly пакета (его собственный гейт публикации)',
+                'сборка dist из исходников',
+                'пере-подпись манифеста после бампа',
+                'содержимое тарбола (npm pack)',
+                'ответ реестра npm',
+            ]);
+            results.push({
+                name: pkg.name, oldVersion, newVersion, status: 'skipped',
+                claimCheck: claimCheckSummary,
+                notVerified: NOT_VERIFIED_BY_DRY_RUN,
+            });
+            landedInBatch.add(pkg.name);
             continue;
         }
-        const pkgJsonPath = join(pkg.dir, 'package.json');
-        const originalPkgJson = readFileSync(pkgJsonPath, 'utf-8');
         let originalReadme;
+        const probeLog = [];
         try {
             // Bump version in package.json
             writeFileSync(pkgJsonPath, originalPkgJson.replace(`"version": "${oldVersion}"`, `"version": "${newVersion}"`));
@@ -539,9 +615,12 @@ export function publishPackages(monorepoRoot, opts = {}) {
                 continue;
             }
             // Build if has build script
-            const parsed = JSON.parse(readFileSync(pkgJsonPath, 'utf-8'));
-            if (parsed.scripts?.['build']) {
-                execSync('pnpm build', { cwd: pkg.dir, stdio: 'pipe', encoding: 'utf-8' });
+            if (manifest.scripts?.['build']) {
+                const buildOptions = { cwd: pkg.dir, stdio: 'pipe', encoding: 'utf-8' };
+                if (opts.exec)
+                    opts.exec('pnpm build', buildOptions);
+                else
+                    execSync('pnpm build', buildOptions);
             }
             // Re-sign AFTER the bump, the README sync and the build, and BEFORE the tarball is built.
             // publish MUTATES the pack — a signature taken at any earlier moment describes files that no
@@ -559,6 +638,7 @@ export function publishPackages(monorepoRoot, opts = {}) {
             });
             if (signing.blocking) {
                 results.push({ name: pkg.name, oldVersion, newVersion, status: 'error', error: signing.reason, claimCheck: claimCheckSummary });
+                failedInBatch.add(pkg.name);
                 try {
                     writeFileSync(pkgJsonPath, originalPkgJson);
                 }
@@ -608,6 +688,7 @@ export function publishPackages(monorepoRoot, opts = {}) {
                 catch (err) {
                     restoreSignature();
                     results.push({ name: pkg.name, oldVersion, newVersion, status: 'error', error: `re-signing failed: ${err.message}`, claimCheck: claimCheckSummary });
+                    failedInBatch.add(pkg.name);
                     try {
                         writeFileSync(pkgJsonPath, originalPkgJson);
                     }
@@ -629,6 +710,7 @@ export function publishPackages(monorepoRoot, opts = {}) {
                 if (after.blocking) {
                     restoreSignature();
                     results.push({ name: pkg.name, oldVersion, newVersion, status: 'error', error: after.reason, claimCheck: claimCheckSummary });
+                    failedInBatch.add(pkg.name);
                     try {
                         writeFileSync(pkgJsonPath, originalPkgJson);
                     }
@@ -643,13 +725,41 @@ export function publishPackages(monorepoRoot, opts = {}) {
                 }
             }
             // Publish
-            execSync(publishCmd, {
+            const publishOptions = {
                 cwd: pkg.dir,
                 stdio: 'pipe',
                 encoding: 'utf-8',
                 env: { ...process.env },
-            });
-            results.push({ name: pkg.name, oldVersion, newVersion, status: 'published', claimCheck: claimCheckSummary });
+            };
+            if (opts.exec)
+                opts.exec(publishCmd, publishOptions);
+            else
+                execSync(publishCmd, publishOptions);
+            let registryProbes = 0;
+            let confirmed = false;
+            while (registryProbes < REGISTRY_PROBE_BUDGET) {
+                registryProbes++;
+                const probed = probe(pkg.name, newVersion);
+                const outcome = typeof probed === 'boolean'
+                    ? { ok: probed, stdout: '', stderr: '', code: null, ms: 0 }
+                    : probed;
+                probeLog.push({ attempt: registryProbes, ...outcome });
+                if (outcome.ok) {
+                    confirmed = true;
+                    break;
+                }
+                if (registryProbes < REGISTRY_PROBE_BUDGET)
+                    sleep(REGISTRY_PROBE_INTERVAL_MS);
+            }
+            if (!confirmed) {
+                const last = probeLog[probeLog.length - 1];
+                const output = last.stderr || last.stdout;
+                const firstLine = output.split(/\r?\n/, 1)[0]?.trim() || '(empty)';
+                throw new Error(`registry did not confirm ${pkg.name}@${newVersion} after ${registryProbes} probes ` +
+                    `(${Math.round(registryProbes * REGISTRY_PROBE_INTERVAL_MS / 60_000)} min); ` +
+                    `last probe: code ${String(last.code)}, ${last.ms}ms, ${firstLine}`);
+            }
+            results.push({ name: pkg.name, oldVersion, newVersion, status: 'published', registryProbes, probeLog, claimCheck: claimCheckSummary });
             landedInBatch.add(pkg.name); // only an ACTUAL publish covers dependents (Codex P1)
         }
         catch (err) {
@@ -673,8 +783,64 @@ export function publishPackages(monorepoRoot, opts = {}) {
                 newVersion,
                 status: 'error',
                 error: formatPublishError(err),
+                ...(probeLog.length > 0 ? { probeLog } : {}),
                 claimCheck: claimCheckSummary,
             });
+            failedInBatch.add(pkg.name);
+        }
+    }
+    const releaseLineSynced = [];
+    const warnings = [];
+    const releasePackageNames = new Set(['@dzhechkov/harness-core', '@dzhechkov/harness-cli']);
+    const releasePackagePublished = results.some((result) => result.status === 'published' && releasePackageNames.has(result.name));
+    if (releasePackagePublished && opts.dryRun !== true && opts.bumpOnly !== true) {
+        const currentVersion = (name) => {
+            const landed = results.find((result) => result.name === name && result.status === 'published');
+            if (landed !== undefined)
+                return landed.newVersion;
+            const pkg = packages.find((candidate) => candidate.name === name);
+            if (pkg === undefined)
+                return null;
+            try {
+                const parsed = JSON.parse(readFileSync(pathJoin(pkg.dir, 'package.json'), 'utf8'));
+                return typeof parsed.version === 'string' ? parsed.version : null;
+            }
+            catch {
+                return null;
+            }
+        };
+        const coreVersion = currentVersion('@dzhechkov/harness-core');
+        const cliVersion = currentVersion('@dzhechkov/harness-cli');
+        if (coreVersion === null || cliVersion === null) {
+            warnings.push('release-line sync skipped: could not read both harness-core and harness-cli package versions');
+        }
+        else {
+            const readmes = [
+                { path: 'README.md', absolute: pathJoin(monorepoRoot, 'README.md') },
+                {
+                    path: 'packages/@dzhechkov/harness-cli/README.md',
+                    absolute: pathJoin(monorepoRoot, 'packages', '@dzhechkov', 'harness-cli', 'README.md'),
+                },
+            ];
+            for (const readme of readmes) {
+                try {
+                    const original = readFileSync(readme.absolute, 'utf8');
+                    const updated = rewriteReleaseLine(original, coreVersion, cliVersion);
+                    if (updated === null) {
+                        warnings.push(`release-line sync skipped ${readme.path}: release line not found`);
+                        continue;
+                    }
+                    if (updated === original)
+                        continue;
+                    const tmp = readme.absolute + '.sync-tmp';
+                    writeFileSync(tmp, updated);
+                    renameSync(tmp, readme.absolute);
+                    releaseLineSynced.push(readme.path);
+                }
+                catch (error) {
+                    warnings.push(`release-line sync failed ${readme.path}: ${error instanceof Error ? error.message : String(error)}`);
+                }
+            }
         }
     }
     return {
@@ -683,6 +849,8 @@ export function publishPackages(monorepoRoot, opts = {}) {
         skipped: results.filter((r) => r.status === 'skipped').length,
         errors: results.filter((r) => r.status === 'error').length,
         dryRun: opts.dryRun === true,
+        releaseLineSynced,
+        ...(warnings.length > 0 ? { warnings } : {}),
     };
 }
 //# sourceMappingURL=publish.js.map

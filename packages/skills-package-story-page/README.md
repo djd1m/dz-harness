@@ -13,15 +13,16 @@ installation, cost, security, or FAQ copy.
 - zero-runtime-dependency local extraction and rendering scripts plus a pinned, reproducibly built
   parse5 semantic verifier whose bundle, provenance, and upstream licence texts ship inside the skill;
 - one self-contained HTML output with no remote fonts, images, scripts, or runtime fetch;
-- deterministic mutation and injection tests, including seventy-four live production mutants for the parse5
+- deterministic mutation and injection tests, including seventy-five live production mutants for the parse5
   subset, item copy/bindings, disclosure ownership, raw-source CSS digest, pre-import integrity gate,
-  raw-slice authority, semantic input boundary, browser request verdict, and orphan-marker guard. The
+  raw-slice authority, semantic input boundary, browser request verdict, named browser-startup failure,
+  and orphan-marker guard. The
   checked-in mutation runner verifies a gate-owned scratch, copies it to a private ephemeral execution
   root, and rebinds hashes only in that disposable copy. Every clean baseline executes both the live-
   Firefox and unit-only lanes; browser-verifier mutations execute live Firefox. The retired 26-mutant hand-scanner set has an
   explicit disposition ledger alongside 29 checkpoint-check rows (55 disposition rows total), instead
   of pretending those dead guards still protect the product. Historical 27/30 live-registry checkpoints
-  are not disposition counts; the current live registry contains 74 guards.
+  are not disposition counts; the current live registry contains 75 guards.
 
 ## Run directly
 
@@ -43,6 +44,10 @@ zero cross-origin requests from the canonical page can count as evidence. Canoni
 only the module-issued opaque receipt for that observation; a structurally identical object cannot forge it.
 The recording proxy reads the exact module-issued probe target and its live hit count itself, so the call
 site cannot substitute `true, 0` for the observation.
+The driver profile root is created outside the checked package tree, using Firefox Snap's writable
+per-user common directory when present and the system temporary directory otherwise, and is removed
+after the driver exits. If geckodriver cannot start, the command exits nonzero with
+`BROWSER CHECK NOT RUN — <driver reason>`; instrument unavailability is never reported as a pass.
 Its bounded RU and EN lane
 uses real Enter/Space input, checks stable accessible names before and after activation, and measures
 the declared 320/390/768/1440 viewports after a clean completed navigation.

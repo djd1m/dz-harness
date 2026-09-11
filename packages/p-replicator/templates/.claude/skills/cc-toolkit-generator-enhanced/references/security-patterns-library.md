@@ -49,6 +49,28 @@ ALWAYS use parameterized set_config():
   `SET LOCAL key = '${value}'`. Applies to all session-level config.
 ```
 
+**Шесть строк к S-01 и S-02, каждая ловит отдельный способ обойти изоляцию арендаторов:**
+
+```
+RULE: BYPASSRLS on the service role is NOT a safety net — it is the removal of one.
+      Under it a FORGOTTEN tenant filter returns other tenants' rows SILENTLY,
+      with no error to notice. Reserve it for migrations, never for request paths.
+RULE: SET LOCAL ROLE, never SET ROLE. Plain SET ROLE outlives the transaction and
+      leaks into whatever the pooled connection serves next.
+RULE: current_setting('app.tenant_id', true) — the second argument makes a missing
+      setting return NULL instead of raising. Without it an unset tenant is an
+      exception you will catch and swallow; with it, it is a value you can test for.
+RULE: Tests MUST NOT run as a superuser. A superuser bypasses RLS unconditionally,
+      so every policy test passes and proves nothing.
+RULE: A table carrying a policy but no CROSS-TENANT test counts as UNPROTECTED.
+      The policy is a claim; the test is the evidence.
+```
+
+**Почему они здесь, а не отдельным разделом.** Каждая — способ, которым изоляция ЕСТЬ в коде и
+НЕ РАБОТАЕТ на прогоне. Все пять отказывают молча: под `BYPASSRLS` нет ошибки, у суперпользователя
+нет ошибки, у утёкшей роли нет ошибки. Молчаливый отказ защиты — единственный вид, который доживает
+до продакшена, потому что громкий чинят в первый же день.
+
 ---
 
 ### S-03: Fail-Fast Secret Validation at Startup
@@ -156,6 +178,29 @@ RULE: Security posture MUST match environment:
 NEVER: same security config across all environments
 NEVER: expose stack traces in production error responses
 ```
+
+---
+
+### S-08: Image Type Comes From CONTENT, Never From `Content-Type`
+
+**Pattern:**
+```
+RULE: An uploaded image's type is decided by INSPECTING ITS BYTES, never by the
+      Content-Type header or the file extension — both are attacker-supplied.
+RULE: SVG is REJECTED WHOLESALE for user uploads. It is a script-bearing document
+      that happens to render as a picture; sanitising it is a losing arms race.
+RULE: Serve user-supplied files with `X-Content-Type-Options: nosniff`, so a browser
+      cannot re-decide the type you already decided.
+
+NEVER: trust `req.file.mimetype` as the type
+NEVER: allow `image/svg+xml` through an "allowed image types" list
+NEVER: serve uploads from the same origin as the application without nosniff
+```
+
+**Why all three, and not just the first.** Sniffing the bytes stops a `.png` that is really a
+script. It does NOT stop SVG, because an SVG genuinely IS an image by content and genuinely CAN
+carry script. And neither stops a browser that ignores your decision and sniffs for itself — that
+is what the header is for. Drop any one of the three and the other two leave a path open.
 
 ---
 

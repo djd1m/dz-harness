@@ -54,7 +54,7 @@ export interface LedgerBackfillRow {
     readonly key: LedgerFillKey | null;
     readonly filled: readonly string[];
     /** Why nothing was filled. `null` when something was. */
-    readonly skipped: 'no-join-key' | 'no-host-record' | 'ambiguous-slug' | 'shared-run-claim' | 'already-complete' | 'malformed-line' | 'host-record-empty' | null;
+    readonly skipped: 'no-join-key' | 'no-host-record' | 'ambiguous-slug' | 'shared-run-claim' | 'already-complete' | 'malformed-line' | 'host-record-empty' | 'non-run-row' | null;
 }
 export interface LedgerBackfillPlan {
     /** The ledger's lines after the fill — same count, same order, one JSON object per line. */
@@ -69,6 +69,16 @@ export interface LedgerBackfillPlan {
         derived: number;
     }[];
 }
+/**
+ * fa-phase-statusline QE fix (P2, cross-family review of 656d6903): the ledger now carries
+ * per-PHASE telemetry rows (`kind:"phase"`, schema `feature-adr-phase/1`) alongside its run rows.
+ * The header's contract: the one-line-one-run invariant applies ONLY to rows WITHOUT a `kind`
+ * field, so any row that carries one is NOT a run row and must be invisible to the backfill —
+ * both to claimant counting (several phase rows under a slug were making a real cost row
+ * `shared-run-claim`, unfillable forever) and to filling (exactly one phase row under a slug could
+ * receive the whole run's token total — a fabrication by attribution).
+ */
+export declare const isNonRunRow: (r: Record<string, unknown>) => boolean;
 /**
  * Plan the fill. PURE: takes the ledger's raw lines and a runId→facts lookup, returns the new lines.
  * Nothing is read or written here — the caller owns the file and the atomic replace.

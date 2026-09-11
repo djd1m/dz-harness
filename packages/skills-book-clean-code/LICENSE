@@ -1,0 +1,29 @@
+Copyright (c) 2026 dzhechko. All rights reserved.
+
+PUBLICLY DISTRIBUTED, PROPRIETARY. Free to install and use; not open-source.
+
+This package contains skills MACHINE-DISTILLED from a third-party copyrighted book —
+«Чистый код: создание, анализ и рефакторинг» (Robert C. Martin, русский перевод),
+ISBN 978-5-49807-381-1. The content is derived know-how (paraphrased methodologies, decision
+frameworks, and page-anchored facts) authored by the copyright holder of this package,
+NOT the book's text.
+
+Distribution decision (CP5, owner, 2026-09-11 — recorded in `sources.json → distribution`):
+this pack is published on npm and may be installed and used by anyone, for any purpose,
+including commercially, in their own projects and agent harnesses.
+
+- YOU MAY: install it, use the skills in your work, read and quote the `brain/` Knowledge
+  Units with attribution, and depend on the package.
+- YOU MAY NOT: resell it, republish it under another name, or redistribute a modified copy of the
+  pack or its `brain/` Knowledge Units as your own work.
+- The underlying methodologies and facts remain the intellectual property of the book's
+  author/publisher. This pack is an index INTO the book, never a substitute for it — buy the book.
+- A mechanical IP gate (word-shingling, w=8, max cited quote 25 words) HAS BEEN RUN over this pack
+  on the exact bytes being published, 2026-09-11: the nine skills plus README (19 markdown files,
+  32 045 shingles) and the shipped `brain/clean-code.sqlite` slice (all 259 KU texts dumped,
+  6 670 shingles), both against the owner-local corpus of the book. Both runs reported 0 uncited
+  verbatim runs of 8+ words. HONEST LIMIT: the gate is NOT wired into the release path —
+  `prepublishOnly` does not invoke it — so it is run by decision, not by machinery, and a release
+  that changed content without a fresh run is covered only by the last dated run above.
+- Skills ship at trust_tier 1 (machine-distilled, NOT human-reviewed line by line): verify
+  against the cited pages before acting on a claim.

@@ -17,7 +17,7 @@
       },
       {
         "path": "brutal-honesty-review/SKILL.md",
-        "sha256": "21e41129dac8e99485b501dcb3767d5f4461ce527782fa7bc71f89dabe5bd2bd"
+        "sha256": "f49957f8bac6b55ab49bb953867b1aa3d6d658f4a1d24eddec5b05a71a07da54"
       },
       {
         "path": "brutal-honesty-review/evals/brutal-honesty-review.yaml",
@@ -25,7 +25,7 @@
       },
       {
         "path": "brutal-honesty-review/resources/assessment-rubrics.md",
-        "sha256": "dac09c91c765e2211799cc230738fb72a966f47511edb872306a906e49640cbe"
+        "sha256": "b64894e1ddf8b9da7f2f146c737d35215e7281e3d8be10891d4a9b8aa2bd6d07"
       },
       {
         "path": "brutal-honesty-review/resources/review-template.md",
@@ -49,7 +49,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "18cb418d86dfdaeeb953a3364568e43aa81834181ec6a5e5f010b47c420be7bb"
+        "sha256": "b2dd1013da98f13fbf79a596656ca653ec1795b145f37fdb755b54af5cbfb5f4"
       },
       {
         "path": "qcsd-cicd-swarm/SKILL.md",
@@ -593,5 +593,5 @@
       }
     ]
   },
-  "signature": "0MLlDNBycBXW6tHZFSbkxfPMgrIDsfRpQ8+FNNU1rNQHCHeKq8zfRv6FLQcy3W51KpkoC3SIP7Cw9u1S+gooAQ=="
+  "signature": "sUpiNk8QCH0f2R7M6wQrHC8hZiUlgRP9kdhnmL82lcIS770rOHBbTI/svl2DWIJos9GQ4H0NkdSXQ40aLWaBAA=="
 }

@@ -173,11 +173,35 @@ export class ScoutMemory {
         }
     }
     /** Compute diff between current scan and stored history. */
-    diff(currentRepos) {
+    /**
+     * Разность с прошлым прогоном.
+     *
+     * `health` — состояние КАЖДОГО источника в этом прогоне (`statusBySource` из `scanAllSources`).
+     * Без него исчезновения НЕ ВЫВОДЯТСЯ ВООБЩЕ, и причина возвращается полем: отличить «пропало из
+     * мира» от «источник сегодня не ответил» без состояния источников НЕЛЬЗЯ, а показывать первое
+     * вместо второго значит печатать ложь под видом наблюдения. Прежняя редакция делала ровно это —
+     * считала исчезнувшим всё, чего нет в выборке.
+     *
+     * Отказ по умолчанию выбран сознательно: старый вызывающий, не передавший состояние, получает
+     * ПУСТУЮ корзину с названной причиной, а не прежнюю ложь.
+     */
+    diff(currentRepos, health) {
         const currentNames = new Set(currentRepos.map((r) => r.fullName));
         const previousNames = new Set(this.history.keys());
         const newRepos = currentRepos.filter((r) => !previousNames.has(r.fullName));
-        const goneRepos = [...previousNames].filter((name) => !currentNames.has(name));
+        const answered = (name) => {
+            if (health === undefined)
+                return false;
+            const record = this.history.get(name);
+            const source = record?.source;
+            if (typeof source !== 'string' || source === '')
+                return false; // происхождение неизвестно — не наше дело судить
+            // Собственное свойство: унаследованное `ok` открыло бы заставу данными.
+            return Object.hasOwn(health, source) && health[source] === 'ok';
+        };
+        const goneRepos = health === undefined
+            ? []
+            : [...previousNames].filter((name) => !currentNames.has(name) && answered(name));
         const changedScore = [];
         for (const repo of currentRepos) {
             const prev = this.history.get(repo.fullName);
@@ -192,6 +216,9 @@ export class ScoutMemory {
         return {
             newRepos,
             goneRepos,
+            ...(health === undefined
+                ? { goneOmittedReason: 'состояние источников не передано: без него «пропало из мира» неотличимо от «источник не ответил», и исчезновения не выводятся' }
+                : {}),
             changedScore,
             totalPrevious: previousNames.size,
             totalCurrent: currentRepos.length,
@@ -221,11 +248,17 @@ export class ScoutMemory {
             lines.push('');
         }
         if (d.goneRepos.length > 0) {
-            lines.push(`### ❌ Gone (${d.goneRepos.length})`, '');
+            lines.push(`### ❌ Не наблюдалось (${d.goneRepos.length})`, '');
+            lines.push('_Источник ответил и не показал эти записи. Это НЕ доказательство удаления._', '');
             for (const name of d.goneRepos.slice(0, 10)) {
                 lines.push(`- ${name}`);
             }
             lines.push('');
+        }
+        else if (d.goneOmittedReason !== undefined) {
+            // Молчание объясняется вслух: читатель, не увидевший раздела, иначе прочтёт это как
+            // «ничего не пропало», а верный ответ — «мы не в состоянии это утверждать».
+            lines.push('### ❌ Не наблюдалось — раздел не показан', '', `_${d.goneOmittedReason}._`, '');
         }
         if (d.changedScore.length > 0) {
             lines.push(`### 📈 Score Changed (${d.changedScore.length})`, '');

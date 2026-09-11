@@ -195,7 +195,6 @@ controls the course text.** So the promises are deliberately narrowed:
 - `package-tutorial-factory/references/method-to-edusite-map.md`
 - `package-tutorial-factory/scripts/app.src.js`
 - `package-tutorial-factory/scripts/brain-friendliness-prompt.mjs`
-- `package-tutorial-factory/scripts/course-source-stamp.mjs`
 - `package-tutorial-factory/scripts/course-schema.mjs`
 - `package-tutorial-factory/scripts/extract-brief.mjs`
 - `package-tutorial-factory/scripts/headfirst-gate.mjs`

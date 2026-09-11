@@ -1,0 +1,337 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "name": "skills-book-clean-code"
+    }
+  },
+  "components": [
+    {
+      "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "63e7e01483c83864ee6100eb78abf6bd0c706b7a6e8a1a557cd775817287390d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "README.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e8ea80b2a309644708237b917c1e620c4df3c475ff33d5ada61b0765d4d92064"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "brain/clean-code.sqlite",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "31b8ab12fa833d61b291a8c0fa273393dbd389b4a351707dcd936df8c1dbc224"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-architecture-assembly/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7a44fd147a40ac860d62ecfdef4eaa111065b6b853eb2df058911f670ae69c5d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-architecture-assembly/evals/routing.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7341d05d38808f519b84b224ef6fb80fa35e4bfbba5f7a33ea622ad45fd6e770"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-architecture-assembly/references/knowledge.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9413880951290d9e2f2e7e9a522dc86a7275fd6c2771bd452f75917f1424c356"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-concurrency-safety/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d7a0297f85f1f4d16ee8587c70e2ef315d368262f22bdbadc1e00b395395cfb7"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-concurrency-safety/evals/routing.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2c69cfe88493b0bde7e2c3a0a5f5b3571e50522b47b2dd88e5d4865e74636a6c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-concurrency-safety/references/knowledge.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "76339f722469e504b62256b9615f530cef4d8f542ed91d9bbbb5dbd898b22c6c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-error-and-boundary-handling/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bb8991ae7b830f2dcdbd81253cc2f29254eed02ab5b0ba5c900a91b858da4b6e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-error-and-boundary-handling/evals/routing.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c1f73abe365f0c6b087d00c8671ee3c0da9156f4bfe12105a280886459167113"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-error-and-boundary-handling/references/knowledge.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "873bf2ad3a48f400aa5105d667cb63ef4a3f97d887a7d5ec68c85b640934bb28"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-function-contracts/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "15f17d1f8e025d57de81e2d0f1954a5922bd615bcb8cfbf0c973359e4b417fe4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-function-contracts/evals/routing.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dca630bad9297507e1a4407fd368e234c8dacd3a97ce3b2f430f48236be8fb7c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-function-contracts/references/knowledge.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7d6e3dbbaa99a58653a82f1a758f01d9752d7d6f6a87d1a16d94fd8feabea491"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-intent-and-comment-contract/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8c2e6b508ca70985e96a050e4867a3d6d69853ec2feb235a6b6aba6ec4cdc8d7"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-intent-and-comment-contract/evals/routing.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ce677af2727e965b8fc75ce5c7e1db09e63bd3391efc5396783e0d999ca83625"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-intent-and-comment-contract/references/knowledge.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b92e68c6c06209ff63afb488eb54a840501315a73c7dc7938440c58677c117b1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-legacy-refactoring-loop/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d08138fb7530f41fbd4c4ee8a8d510691009acd2ccdbbe61160cb74eabd23029"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-legacy-refactoring-loop/evals/routing.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6cc4b69b5d71abed9ebe0bbb0fd1ad1c5ea819097600946b67cc74c625177970"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-legacy-refactoring-loop/references/knowledge.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "851819acae14f204cf8289083d2faa7588d55fb327a37c2f65ccf63f33061ab1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-object-data-ownership/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b8daebdf396e4409a4b67271951a523ffe6ecb8220f6ee3569c88f3e7bc6d537"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-object-data-ownership/evals/routing.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "884d6fc8cfa3646417593ba6cfec02e496e8ba6b09784a6de2a28fd4721209b0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-object-data-ownership/references/knowledge.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "14ab11246b23e0150ba6e6db86c1bea73536858224ac308282bc1ef5fe5efc79"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-source-layout/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "da342f0c72ffb640f9f6706047dc17e113c361d56f8cf6521b2204af0d8f21a5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-source-layout/evals/routing.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "89cec3b8cccffa54b0333bc3babf0def70d3df73a5b785a24265dc1061787c2f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-source-layout/references/knowledge.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f269b7d50a58c26060d1653690522542b00c43b042ef724301ff871353c75e4e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-test-suite-feedback/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "98305f9f7a1d434d299ec7d38955c2c917d319452f35935dcb25b06bed033e43"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-test-suite-feedback/evals/routing.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d693769c643d874b822ac454b2a06069ad9bc3c7b1551117d73259a97c3c9a03"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "clean-code-test-suite-feedback/references/knowledge.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2209b4938b9cd9cfb515707361337dda73169e8f8e55326b99ebf15f34389849"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "properties": [
+        {
+          "name": "dz:digest-basis",
+          "value": "package-json-ordered-conditions-v2"
+        },
+        {
+          "name": "dz:canonical-json-sha256-v2",
+          "value": "c6a82d911bf190941ee80c0a892d3f906746a22d46c1558104662c7f25e50759"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "sources.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7a8a3153c15f349af3c9a9eabaf46db250f4f896220d913a0dafd77da114a0f1"
+        }
+      ]
+    }
+  ]
+}

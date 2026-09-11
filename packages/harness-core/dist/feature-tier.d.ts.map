@@ -1,0 +1,1 @@
+{"version":3,"file":"feature-tier.d.ts","sourceRoot":"","sources":["../src/feature-tier.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,WAAW,EAAE,MAAM,mBAAmB,CAAC;AA0BrD,wBAAgB,gBAAgB,CAAC,IAAI,EAAE,MAAM,GAAG,WAAW,GAAG,IAAI,CAqBjE;AAED,wBAAgB,eAAe,CAC7B,IAAI,EAAE,CAAC,GAAG,EAAE,MAAM,KAAK,MAAM,GAAG,IAAI,EACpC,IAAI,EAAE,MAAM,GACX,WAAW,GAAG,IAAI,CAGpB"}

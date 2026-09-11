@@ -52,6 +52,8 @@ export interface MutationRegistry {
 
 export type MutationVerdict =
   | 'PROVEN' // mutation applied, suite went red, failing count (when known) >= minFailing
+  | 'ENTRY_INVALID' // this registry entry is malformed; valid neighbours still run, but the gate fails
+  | 'COVERAGE_GAP' // author-declared, reason-bearing gap; no mutation ran and the gate fails
   | 'UNDEFENDED' // mutation applied, suite stayed GREEN — the property has no discriminating test
   | 'RECEIPT_MISMATCH' // the suite harness declared a receipt error, or an opted-in completion receipt was absent — neither the exit code nor failing count may be read as discrimination
   | 'NOT_APPLIED' // `find` occurred 0 or >1 times — code drifted; nothing was tested (rule 1)
@@ -201,9 +203,41 @@ const UNSAFE_FILE = /(^\/)|(^[A-Za-z]:)|(^~)|(^-)|(\/-)|(\.\.(\/|\\|$))|[\0`$;&|
 
 export interface ParsedRegistry {
   readonly registry: MutationRegistry | null;
-  /** every defect found — ANY error makes the registry unusable (a half-valid registry that runs
-   *  its valid half reports a partial scan as a full one). */
+  /** Per-entry outcomes that need no mutation run: malformed entries and declared gaps. */
+  readonly entryResults: readonly MutationEntryResult[];
+  /** Every defect found. Envelope/JSON defects make registry null; entry defects are also
+   *  represented as ENTRY_INVALID while valid neighbours remain executable. */
   readonly errors: readonly string[];
+}
+
+function preclassifiedEntryResult(
+  index: number,
+  raw: Record<string, unknown>,
+  verdict: 'ENTRY_INVALID' | 'COVERAGE_GAP',
+  detail: string,
+  idOverride?: string,
+): MutationEntryResult {
+  const rawId = typeof raw['id'] === 'string' ? raw['id'] : '';
+  const id = idOverride ?? (SAFE_ID.test(rawId) ? rawId : `entry-${index + 1}-invalid`);
+  const property = typeof raw['property'] === 'string' && raw['property'].trim() !== ''
+    ? raw['property'].trim()
+    : `Registry entry ${index + 1}`;
+  const file = typeof raw['file'] === 'string' && raw['file'].trim() !== ''
+    ? raw['file'].trim()
+    : '<not provided>';
+  return {
+    id,
+    property,
+    file,
+    applied: false,
+    occurrences: 0,
+    exitCode: null,
+    failingCount: null,
+    verdict,
+    drop: false,
+    dropComparable: false,
+    detail,
+  };
 }
 
 /** Parse + validate a registry JSON text. Accepts a bare array or `{testCommand?, requireCompletionReceipt?, entries}`. */
@@ -212,7 +246,7 @@ export function parseMutationRegistry(text: string): ParsedRegistry {
   try {
     raw = JSON.parse(text);
   } catch (e) {
-    return { registry: null, errors: [`registry is not valid JSON: ${String((e as Error).message).slice(0, 120)}`] };
+    return { registry: null, entryResults: [], errors: [`registry is not valid JSON: ${String((e as Error).message).slice(0, 120)}`] };
   }
 
   let entriesRaw: unknown;
@@ -225,39 +259,69 @@ export function parseMutationRegistry(text: string): ParsedRegistry {
     entriesRaw = obj.entries;
     if (obj.testCommand !== undefined) {
       if (typeof obj.testCommand !== 'string' || obj.testCommand.trim() === '') {
-        return { registry: null, errors: ['testCommand must be a non-empty string when present'] };
+        return { registry: null, entryResults: [], errors: ['testCommand must be a non-empty string when present'] };
       }
       testCommand = obj.testCommand.trim();
     }
     if (obj.requireCompletionReceipt !== undefined) {
       if (typeof obj.requireCompletionReceipt !== 'boolean') {
-        return { registry: null, errors: ['requireCompletionReceipt must be a boolean when present'] };
+        return { registry: null, entryResults: [], errors: ['requireCompletionReceipt must be a boolean when present'] };
       }
       requireCompletionReceipt = obj.requireCompletionReceipt;
     }
   }
   if (!Array.isArray(entriesRaw)) {
-    return { registry: null, errors: ['registry must be an array of entries or {testCommand?, requireCompletionReceipt?, entries: [...]}'] };
+    return { registry: null, entryResults: [], errors: ['registry must be an array of entries or {testCommand?, requireCompletionReceipt?, entries: [...]}'] };
   }
   if (entriesRaw.length === 0) {
     // An empty registry "passes" by testing nothing — the same silent hole as a skipped mutation.
-    return { registry: null, errors: ['registry has no entries — an empty registry proves nothing and is refused'] };
+    return { registry: null, entryResults: [], errors: ['registry has no entries — an empty registry proves nothing and is refused'] };
   }
 
   const errors: string[] = [];
   const entries: MutationRegistryEntry[] = [];
+  const entryResults: MutationEntryResult[] = [];
   const seen = new Set<string>();
   entriesRaw.forEach((e: unknown, i: number) => {
     const at = `entries[${i}]`;
-    if (!e || typeof e !== 'object') { errors.push(`${at}: not an object`); return; }
+    const rawForResult = e && typeof e === 'object' ? e as Record<string, unknown> : {};
+    const reject = (detail: string, idOverride?: string): void => {
+      errors.push(detail);
+      entryResults.push(preclassifiedEntryResult(i, rawForResult, 'ENTRY_INVALID', detail, idOverride));
+    };
+    if (!e || typeof e !== 'object') { reject(`${at}: not an object`); return; }
     const o = e as Record<string, unknown>;
     const id = typeof o['id'] === 'string' ? o['id'] : '';
-    if (!SAFE_ID.test(id)) { errors.push(`${at}: id must be kebab-case [a-z0-9-], got ${JSON.stringify(o['id'])}`); return; }
-    if (seen.has(id)) { errors.push(`${at}: duplicate id '${id}'`); return; }
+    if (!SAFE_ID.test(id)) { reject(`${at}: id must be kebab-case [a-z0-9-], got ${JSON.stringify(o['id'])}`); return; }
+    if (seen.has(id)) { reject(`${at}: duplicate id '${id}'`, `entry-${i + 1}-invalid`); return; }
     seen.add(id);
-    if (typeof o['property'] !== 'string' || o['property'].trim() === '') { errors.push(`${id}: property (the claimed sentence) is required`); return; }
+    if (typeof o['property'] !== 'string' || o['property'].trim() === '') { reject(`${id}: property (the claimed sentence) is required`); return; }
+
+    if (o['uncoverable'] !== undefined && o['uncoverable'] !== true) {
+      reject(`${id}: uncoverable must be true when present`);
+      return;
+    }
+    if (o['uncoverable'] === true) {
+      const reason = typeof o['reason'] === 'string' ? o['reason'].trim() : '';
+      if (reason === '') {
+        reject(`${id}: reason is required when uncoverable is true`);
+        return;
+      }
+      const declaredFile = typeof o['file'] === 'string' ? o['file'].trim() : '';
+      if (declaredFile === '' || /[\u0000-\u001f\u007f]/.test(declaredFile)) {
+        reject(`${id}: file must be a non-empty single-line path for an uncoverable declaration`);
+        return;
+      }
+      entryResults.push(preclassifiedEntryResult(
+        i,
+        o,
+        'COVERAGE_GAP',
+        `declared uncoverable: ${reason} — author declaration, not a measurement; no mutation ran`,
+      ));
+      return;
+    }
     const file = typeof o['file'] === 'string' ? o['file'] : '';
-    if (file === '' || UNSAFE_FILE.test(file)) { errors.push(`${id}: file must be a plain package-relative path, got ${JSON.stringify(o['file'])}`); return; }
+    if (file === '' || UNSAFE_FILE.test(file)) { reject(`${id}: file must be a plain package-relative path, got ${JSON.stringify(o['file'])}`); return; }
     // A registry file under node_modules/ is refused OUTRIGHT (F-2): the registry names protections
     // in the package's OWN code — a dependency's file is not this package's protection — and the
     // scratch copy intentionally SHARES node_modules with the real tree (symlinked for
@@ -265,19 +329,19 @@ export function parseMutationRegistry(text: string): ParsedRegistry {
     // the real working tree (SPEC rule 3). The executor's realpath containment is the belt; this
     // is the cheaper layer-1 refusal for the case that is always a mistake.
     if (file.split('/').includes('node_modules')) {
-      errors.push(`${id}: file targets node_modules/ (${JSON.stringify(file)}) — refused: a dependency file is not this package's protection, and the scratch copy shares node_modules with the REAL tree (rule 3: never mutate the working tree)`);
+      reject(`${id}: file targets node_modules/ (${JSON.stringify(file)}) — refused: a dependency file is not this package's protection, and the scratch copy shares node_modules with the REAL tree (rule 3: never mutate the working tree)`);
       return;
     }
     const mut = o['mutation'] as { find?: unknown; replace?: unknown } | undefined;
     if (!mut || typeof mut !== 'object' || typeof mut.find !== 'string' || mut.find.length === 0 || typeof mut.replace !== 'string') {
-      errors.push(`${id}: mutation must be {find: <non-empty string>, replace: <string>}`);
+      reject(`${id}: mutation must be {find: <non-empty string>, replace: <string>}`);
       return;
     }
-    if (mut.find === mut.replace) { errors.push(`${id}: mutation.replace equals mutation.find — a no-op mutation tests nothing`); return; }
+    if (mut.find === mut.replace) { reject(`${id}: mutation.replace equals mutation.find — a no-op mutation tests nothing`); return; }
     let minFailing = 1;
     if (o['minFailing'] !== undefined) {
       if (typeof o['minFailing'] !== 'number' || !Number.isInteger(o['minFailing']) || o['minFailing'] < 1) {
-        errors.push(`${id}: minFailing must be a positive integer`);
+        reject(`${id}: minFailing must be a positive integer`);
         return;
       }
       minFailing = o['minFailing'];
@@ -285,7 +349,7 @@ export function parseMutationRegistry(text: string): ParsedRegistry {
     let observed: number | undefined;
     if (o['observed'] !== undefined) {
       if (typeof o['observed'] !== 'number' || !Number.isInteger(o['observed']) || o['observed'] < 1) {
-        errors.push(`${id}: observed must be a positive integer when present`);
+        reject(`${id}: observed must be a positive integer when present`);
         return;
       }
       observed = o['observed'];
@@ -293,11 +357,11 @@ export function parseMutationRegistry(text: string): ParsedRegistry {
     let maxFailing: number | undefined;
     if (o['maxFailing'] !== undefined) {
       if (typeof o['maxFailing'] !== 'number' || !Number.isInteger(o['maxFailing']) || o['maxFailing'] < 1) {
-        errors.push(`${id}: maxFailing must be a positive integer when present`);
+        reject(`${id}: maxFailing must be a positive integer when present`);
         return;
       }
       if (o['maxFailing'] < minFailing) {
-        errors.push(`${id}: maxFailing (${o['maxFailing']}) must be >= minFailing (${minFailing}) — a contradictory bound can never pass`);
+        reject(`${id}: maxFailing (${o['maxFailing']}) must be >= minFailing (${minFailing}) — a contradictory bound can never pass`);
         return;
       }
       maxFailing = o['maxFailing'];
@@ -314,14 +378,14 @@ export function parseMutationRegistry(text: string): ParsedRegistry {
     entries.push(entry);
   });
 
-  if (errors.length > 0) return { registry: null, errors };
   return {
     registry: {
       ...(testCommand !== undefined ? { testCommand } : {}),
       ...(requireCompletionReceipt !== undefined ? { requireCompletionReceipt } : {}),
       entries,
     },
-    errors: [],
+    entryResults,
+    errors,
   };
 }
 
@@ -385,6 +449,18 @@ export function countFailingTests(rawOutput: string): number | null {
   if (jest && jest[1] !== undefined) return Number(jest[1]);
   const notOk = output.match(/^not ok\b/gm);
   if (notOk !== null && notOk.length > 0) return notOk.length;
+  // Zero requires a complete, recognised vitest summary, never the absence of failure text.
+  // Keep TAP and every existing positive-count path above this additional fallback.
+  if (detectRunnerKind(output) === 'vitest') {
+    const zero = /^[ \t]*Tests[ \t]+(\d+[ \t]+(?:passed|skipped|todo)(?:[ \t]*\|[ \t]*\d+[ \t]+(?:passed|skipped|todo))*)[ \t]+\((\d+)\)[ \t]*\r?$/m.exec(output);
+    if (zero !== null) {
+      const counts = [...zero[1]!.matchAll(/(\d+)[ \t]+(?:passed|skipped|todo)/g)]
+        .map((match) => Number(match[1]));
+      const total = Number(zero[2]);
+      if (Number.isSafeInteger(total) && total > 0 && counts.every(Number.isSafeInteger)
+        && counts.reduce((sum, count) => sum + count, 0) === total) return 0;
+    }
+  }
   return null;
 }
 
@@ -447,8 +523,10 @@ export interface RunFailureClassification {
    *                  carried no classifiable failure): a runner-coverage gap of this tool — the
    *                  verdict must be INCONCLUSIVE, never PROVEN.
    */
-  readonly kind: 'file-load' | 'assertions' | 'unrecognised';
-  /** for 'file-load': the evidence line; for 'unrecognised': what could not be classified. */
+  readonly kind: 'file-load' | 'assertions' | 'runner-infrastructure' | 'unrecognised';
+  /** Closed reason set for an identified runner failure with zero failing tests. */
+  readonly reason?: 'worker-rpc-timeout';
+  /** Evidence of the load/infrastructure failure, or what could not be classified. */
   readonly evidence?: string;
 }
 
@@ -541,6 +619,15 @@ export function classifyRunFailure(rawOutput: string): RunFailureClassification 
     if (/^\s*Tests\s+[^|\n]*?\d+\s+failed/m.test(output) || /\bFailed Tests\s+\d+\b/.test(output)) {
       return { runner: 'vitest', kind: 'assertions' };
     }
+    const workerTimeout = /\[vitest-worker\]: Timeout calling "([^"\r\n]+)"/.exec(output);
+    if (countFailingTests(output) === 0 && workerTimeout !== null) {
+      return {
+        runner: 'vitest',
+        kind: 'runner-infrastructure',
+        reason: 'worker-rpc-timeout',
+        evidence: `vitest worker RPC timeout (${workerTimeout[1]}), 0 failing tests`,
+      };
+    }
     return { runner: 'vitest', kind: 'unrecognised', evidence: 'red vitest run with neither Failed Suites nor failed tests in the output — the redness has no classifiable source (unhandled error outside any test?)' };
   }
 
@@ -557,6 +644,8 @@ export type BaselineAttributionSource = 'node-test' | 'vitest' | 'unparseable';
 
 export interface BaselineAttribution {
   readonly parsedFrom: BaselineAttributionSource;
+  /** Identified infrastructure failure from the same output; absent for all existing outcomes. */
+  readonly infrastructureFailure?: RunFailureClassification;
   /** Package-relative failing paths, in first-seen order. */
   readonly failingFiles: readonly string[];
   /** Failing paths that match a registry file exactly (or by package-relative suffix). */
@@ -599,6 +688,10 @@ export function attributeBaselineRedness(
     ? 'unparseable'
     : vitestMatches.length > 0 ? 'vitest' : 'node-test';
   if (parsedFrom === 'unparseable') {
+    const failure = classifyRunFailure(output);
+    if (failure.kind === 'runner-infrastructure') {
+      return { parsedFrom, failingFiles: [], covered: [], extraneous: [], infrastructureFailure: failure };
+    }
     return { parsedFrom, failingFiles: [], covered: [], extraneous: [] };
   }
 
@@ -611,6 +704,7 @@ export function attributeBaselineRedness(
 }
 
 export type BaselineFailureReason =
+  | 'worker-rpc-timeout'
   | 'runner-internal-error'
   | 'runner-no-exit'
   | 'extraneous-red-in-allowlist'
@@ -639,6 +733,14 @@ export function classifyBaseline(
       ok: false,
       reason: internal ? 'runner-internal-error' : 'runner-no-exit',
       detail: `baseline INCONCLUSIVE — suite produced no exit code (${runFailureReason ?? 'unknown timeout/spawn failure'}) — the copy is not runnable; do not read this as a mutation result`,
+    };
+  }
+  const infrastructure = attribution?.infrastructureFailure;
+  if (infrastructure?.kind === 'runner-infrastructure') {
+    return {
+      ok: false,
+      ...(infrastructure.reason !== undefined ? { reason: infrastructure.reason } : {}),
+      detail: `baseline suite RED (exit ${exitCode}) in the UNMUTATED scratch copy — runner infrastructure failure: ${infrastructure.reason} — ${infrastructure.evidence}; the broken copy cannot prove anything`,
     };
   }
   if (attribution === undefined || attribution.parsedFrom === 'unparseable') {
@@ -804,7 +906,10 @@ function classifyMutationOutcomeWithoutAttemptLog(obs: MutationObservation): Mut
   // not come back green, so the suite is flaky and an unrelated neighbour may be what went red.
   // Not attributable ⇒ INCONCLUSIVE (a failure, never a pass).
   if (obs.rebaselineExitCode !== undefined && obs.rebaselineExitCode !== 0) {
-    const failing = obs.rebaselineAttribution === undefined || obs.rebaselineAttribution.parsedFrom === 'unparseable'
+    const infrastructure = obs.rebaselineAttribution?.infrastructureFailure;
+    const failing = infrastructure?.kind === 'runner-infrastructure'
+      ? `runner infrastructure failure: ${infrastructure.reason} — ${infrastructure.evidence}`
+      : obs.rebaselineAttribution === undefined || obs.rebaselineAttribution.parsedFrom === 'unparseable'
       ? 'failing files: unparseable from runner output'
       : `failing files: ${obs.rebaselineAttribution.failingFiles.join(', ')}`;
     return {
@@ -858,13 +963,36 @@ export function classifyMutationOutcome(obs: MutationObservation): MutationEntry
   return { ...result, detail: `${result.detail}; ${obs.internalAttemptLog}` };
 }
 
-/** Verdicts that fail the gate. INCONCLUSIVE and NOT_APPLIED fail (inconclusive ≠ pass). */
-const FAILING_VERDICTS: ReadonlySet<MutationVerdict> = new Set(['UNDEFENDED', 'RECEIPT_MISMATCH', 'NOT_APPLIED', 'BELOW_MIN', 'MUTATION_UNPARSEABLE', 'MUTATION_LOAD_FATAL', 'OVER_FAILING', 'INCONCLUSIVE']);
+/**
+ * Verdicts that fail the gate. INCONCLUSIVE and NOT_APPLIED fail (inconclusive ≠ pass).
+ *
+ * COVERAGE_GAP is deliberately NOT here (owner decision 2026-09-09, option A). A declared gap is a
+ * DEBT, not a breakage: the orchestrator script is uncoverable by construction, so failing on gaps
+ * would make this package's gate red FOREVER — and a lamp that is always on is read exactly like a
+ * lamp that is off. What the mechanism owes is COUNTABILITY, and the summary delivers it: gaps are
+ * counted on their own line, carry their own per-entry verdict, and can never be mistaken for a
+ * proven protection. ENTRY_INVALID stays failing — a malformed entry is a broken claim, not a
+ * declared one, and it has an author who can fix it today.
+ */
+const FAILING_VERDICTS: ReadonlySet<MutationVerdict> = new Set([
+  'ENTRY_INVALID',
+  'UNDEFENDED',
+  'RECEIPT_MISMATCH',
+  'NOT_APPLIED',
+  'BELOW_MIN',
+  'MUTATION_UNPARSEABLE',
+  'MUTATION_LOAD_FATAL',
+  'OVER_FAILING',
+  'INCONCLUSIVE',
+]);
 
-/** Exit contract: 0 all proven · 1 any entry failed (or red baseline) · (2 = usage/setup, CLI-side). */
+/** Exit contract: 0 all runnable entries proven · 1 a runnable entry failed (or red baseline) ·
+ *  2 no mutation-eligible entry exists, so the registry/selection is unusable as a run. */
 export function mutationGateExitCode(results: readonly MutationEntryResult[], baselineOk: boolean): number {
+  const hasRunnableEntry = results.some((result) =>
+    result.verdict !== 'ENTRY_INVALID' && result.verdict !== 'COVERAGE_GAP');
+  if (!hasRunnableEntry) return 2;
   if (!baselineOk) return 1;
-  if (results.length === 0) return 1; // nothing ran ⇒ nothing proven
   return results.some((r) => FAILING_VERDICTS.has(r.verdict)) ? 1 : 0;
 }
 
@@ -873,6 +1001,8 @@ export function mutationGateExitCode(results: readonly MutationEntryResult[], ba
 export interface MutationGateSummary {
   readonly total: number;
   readonly proven: number;
+  readonly entryInvalid: number;
+  readonly coverageGaps: number;
   readonly undefended: number;
   readonly receiptMismatch: number;
   readonly notApplied: number;
@@ -892,6 +1022,8 @@ export function summarizeMutationResults(results: readonly MutationEntryResult[]
   return {
     total: results.length,
     proven: results.filter((r) => r.verdict === 'PROVEN').length,
+    entryInvalid: results.filter((r) => r.verdict === 'ENTRY_INVALID').length,
+    coverageGaps: results.filter((r) => r.verdict === 'COVERAGE_GAP').length,
     undefended: results.filter((r) => r.verdict === 'UNDEFENDED').length,
     receiptMismatch: results.filter((r) => r.verdict === 'RECEIPT_MISMATCH').length,
     notApplied: results.filter((r) => r.verdict === 'NOT_APPLIED').length,
@@ -907,6 +1039,10 @@ export function summarizeMutationResults(results: readonly MutationEntryResult[]
 
 const VERDICT_MARK: Record<MutationVerdict, string> = {
   PROVEN: '✓',
+  ENTRY_INVALID: '✗',
+  // Пробел — объявленный ДОЛГ, а не отказ (вариант А владельца 2026-09-09): свой значок, чтобы
+  // строку нельзя было прочитать как провал защиты.
+  COVERAGE_GAP: '⚠',
   UNDEFENDED: '✗',
   RECEIPT_MISMATCH: '✗',
   NOT_APPLIED: '✗',
@@ -932,9 +1068,9 @@ export function renderMutationReport(
     if (r.verdict !== 'PROVEN' || r.drop) lines.push(`      ${r.detail}`);
   }
   const s = summarizeMutationResults(results);
-  lines.push(`  summary: ${s.proven}/${s.total} proven · ${s.undefended} undefended · ${s.receiptMismatch} receipt-mismatch · ${s.notApplied} not-applied · ${s.belowMin} below-min · ${s.unparseable} unparseable · ${s.loadFatal} load-fatal · ${s.overFailing} over-failing · ${s.inconclusive} inconclusive · ${s.drops} coverage drop(s) among ${s.dropComparable}/${s.total} observed-anchored entries (a drop is undetectable without an \`observed\` anchor)`);
+  lines.push(`  summary: ${s.proven}/${s.total} proven · ${s.entryInvalid} entry-invalid · ${s.coverageGaps} coverage-gap · ${s.undefended} undefended · ${s.receiptMismatch} receipt-mismatch · ${s.notApplied} not-applied · ${s.belowMin} below-min · ${s.unparseable} unparseable · ${s.loadFatal} load-fatal · ${s.overFailing} over-failing · ${s.inconclusive} inconclusive · ${s.drops} coverage drop(s) among ${s.dropComparable}/${s.total} observed-anchored entries (a drop is undetectable without an \`observed\` anchor)`);
   lines.push(mutationGateExitCode(results, baseline.ok) === 0
     ? '  verdict: PASS — every named protection has a test that goes red when the protection is deleted'
-    : '  verdict: FAIL — at least one named protection is undefended, unmutable, or unproven');
+    : '  verdict: FAIL — at least one named protection is invalid, undefended, unmutable, or unproven');
   return lines.join('\n');
 }

@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-feature-adr",
-  "version": "1.5.9",
+  "version": "1.5.10",
   "description": "Adaptive Feature Development skill pack for Claude Code — 11-step pipeline with Complexity Router (S/M/L/XL), ADR-driven architecture, 15 agentic-qe skills, multi-agent fleet QE. Supports --full-qe, --full-qe-extended, --with-learning, and --knowledge-extractor modes.",
   "bin": {
     "skills-feature-adr": "./bin/cli.js"
@@ -47,7 +47,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/djd1m/dz-harness.git",
+    "url": "git+https://github.com/djd1m/dz-harness-hub.git",
     "directory": "packages/@dzhechkov/skills-feature-adr"
   },
   "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-feature-adr#readme",

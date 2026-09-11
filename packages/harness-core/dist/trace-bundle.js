@@ -7,6 +7,7 @@
  * Keeping those decisions independent of the host makes a refusal a value rather than a partially
  * completed mutation.
  */
+import { isNonRunRow } from './ledger-backfill.js';
 import { traceValidateEvent } from './loop-trace.js';
 /** The version is part of the wire contract: readers refuse versions they do not understand. */
 export const TRACE_BUNDLE_SCHEMA = 'trace-bundle/1';
@@ -58,6 +59,14 @@ function normalizedSlot(value, absentReason) {
 /**
  * Select only rows attributable to this logical run. Slug fallback is deliberately disabled when
  * a row carries any run id: otherwise a foreign loop run sharing a slug leaks into the slice.
+ *
+ * fa-phase-statusline AM-4 (MEASURED on `main` 2026-09-05, not inherited from the review): a
+ * `kind:"phase"` telemetry row carries a `slug` and NO `runId`, so before this filter the slug
+ * fallback matched it and every phase row of the slug entered the bundle. That is worse than a
+ * cosmetic leak — `planImport` writes `bundle.ledger.lines` back into a DESTINATION ledger, so a
+ * telemetry row would arrive there as a row of an imported run. The ledger header's contract is the
+ * same one `planLedgerBackfill` reads: the one-line-one-run invariant applies only to rows WITHOUT
+ * `kind`, so a row that carries one is never a run row.
  */
 export function selectLedgerRows(lines, identity) {
     const selected = [];
@@ -82,6 +91,8 @@ export function selectLedgerRows(lines, identity) {
         }
         if (!isObject(row))
             continue;
+        if (isNonRunRow(row))
+            continue; // telemetry (kind:"phase"), never a run row — AM-4
         const rowRunId = row['runId'];
         const carriesRunId = nonEmptyString(rowRunId);
         const byRunId = carriesRunId && targetRunId !== null && rowRunId === targetRunId;

@@ -53,6 +53,24 @@ export interface GuardResult {
 /** Facts the CLI injects; each rule reads only the fields it needs. Missing evidence ⇒ that rule is skipped. */
 export interface GuardFacts {
     readonly op: GuardOp;
+    /** Signature evidence gathered by the CLI. The pure evaluator never reads manifests or keys. */
+    readonly signedPacks?: readonly {
+        readonly name: string;
+        readonly dir: string;
+        readonly changed: boolean;
+        readonly ok: boolean | null;
+        readonly failures: readonly string[];
+        readonly note?: string;
+    }[];
+    /** Release-line evidence gathered by the CLI; absence means the rule was not established. */
+    readonly releaseLines?: {
+        readonly readmes: readonly {
+            readonly path: string;
+            readonly text: string | null;
+        }[];
+        readonly coreVersion: string | null;
+        readonly cliVersion: string | null;
+    };
     /** Publish-only raw volume facts. Absence preserves the legacy result shape. */
     readonly volume?: VolumeShadowInput;
     /** for no-workspace-star: each publishable package's deps map. */
@@ -60,6 +78,49 @@ export interface GuardFacts {
         readonly name: string;
         readonly deps: Readonly<Record<string, string>>;
     }[];
+    /**
+     * for sibling-dep-protocol: КАЖДАЯ зависимость на соседний пакет монорепозитория, как она
+     * записана НА ДИСКЕ (без подстановки версии), с полем, в котором она объявлена. Поле нужно:
+     * `dependencies` и `devDependencies` обязаны идти через workspace-протокол, а `peerDependencies`
+     * и `optionalDependencies` — НЕТ, и это не послабление, а разная семантика (см. правило).
+     */
+    /**
+     * for plugin-manifest-audit: каждый найденный `.claude-plugin/plugin.json` и объявленные им
+     * поля. `parseError` заполнен ⇒ манифест не разобрался; остальные поля тогда не смотрят.
+     */
+    readonly pluginManifests?: readonly {
+        readonly path: string;
+        readonly parseError?: string;
+        readonly name?: string;
+        readonly version?: string;
+        readonly description?: string;
+        /** Имена навыков, ОБЪЯВЛЕННЫЕ манифестом. */
+        readonly declaredSkills?: readonly string[];
+        /** Имена навыков, НАЙДЕННЫЕ на диске рядом с манифестом. */
+        readonly skillsOnDisk?: readonly string[];
+    }[];
+    readonly siblingDeps?: readonly {
+        readonly name: string;
+        readonly field: string;
+        readonly dep: string;
+        readonly spec: string;
+    }[];
+    /**
+     * for backlog-covers-features: каталоги фич, дата их ПЕРВОГО коммита, тексты записей бэклога и
+     * базовая дата. Базовая дата обязательна и делает правило зелёным на приходе: 336 существующих
+     * каталогов заведены до правила, и краснеть на них — значит учить себя игнорировать (ИЗМЕРЕНО
+     * 2026-09-03: без базы 236 нарушений, в окне 7 дней — 48). Отсутствие факта ⇒ правило молчит:
+     * страж без улик не выдумывает вердикт.
+     */
+    readonly featureBacklog?: {
+        readonly baseline: string;
+        readonly features: readonly {
+            readonly slug: string;
+            readonly createdIso: string;
+            readonly waiver?: string;
+        }[];
+        readonly backlogTexts: readonly string[];
+    };
     /** for no-skill-drift: the names that byte-drift between copies (from sweepSkillDrift). */
     readonly drift?: readonly string[];
     /**
@@ -127,6 +188,7 @@ export interface GuardFacts {
         readonly name: string;
         readonly versionBumped: boolean;
         readonly readmeChanged: boolean;
+        readonly versionUnknown?: boolean;
     }[];
     /**
      * for review-round: per publishable package, does this change bump a version AND touch SOURCE, and
@@ -264,6 +326,39 @@ export declare const SECRET_PATTERNS: readonly {
 export declare function scanSecrets(text: unknown): {
     readonly name: string;
 }[];
+/** Per-rule pure checkers. Each returns the violations it found (empty ⇒ clean). Missing evidence ⇒ []. */
+/**
+ * Какие каталоги фич заведены после базовой даты и НЕ названы ни одной записью бэклога.
+ *
+ * БАЗОВАЯ ДАТА — не украшение, а условие осмысленности. ИЗМЕРЕНО 2026-09-03: без неё правило даёт
+ * 236 нарушений из 336 каталогов, а в окне «последние 7 дней» — 48 из 85. Проверка, изобретающая
+ * полсотни нарушений в первый день, учит людей себя игнорировать, то есть хуже отсутствующей.
+ * База делает правило зелёным на приходе и красным ровно на новом.
+ *
+ * ДАТА ПЕРВОГО КОММИТА, А НЕ mtime. Время правки меняет любой посторонний процесс — пересборка,
+ * перенос, чтение с обновлением. Дата появления каталога в истории неподвижна. ЧЕСТНАЯ ГРАНИЦА:
+ * функция ДОВЕРЯЕТ переданной строке и происхождение её не подтверждает — обязанность подать
+ * именно git-дату лежит на вызывающем (сбор фактов в cli.ts). Здесь проверяется только то, что
+ * строка вообще разбирается в дату.
+ *
+ * ЧТО ИМЕННО ПРОВЕРЯЕТСЯ В ОГОВОРКЕ — сказано точно, потому что ревью 2026-09-03 поймало
+ * расхождение обещания с кодом. Машинно проверяется РОВНО одно: строка непуста после обрезки
+ * пробелов. Осмысленность причины машинно не проверяема, и оговорка `x` пройдёт. Это сознательная
+ * граница слоя: гейт заставляет РЕШЕНИЕ БЫТЬ ЗАПИСАННЫМ, а качество формулировки остаётся делом
+ * человека — ровно как у освобождений заставы секретов и списка исключений дрейфа.
+ *
+ * БАЗА ВКЛЮЧИТЕЛЬНА: каталог, заведённый В САМ день базы, правилом контролируется («не раньше
+ * базы», а не «после базы»).
+ *
+ * ЧЕГО ЭТА ПРОВЕРКА НЕ ЛОВИТ, названо честно: работу БЕЗ каталога фичи — разбор, ремонт, рой,
+ * обещание «вернёмся». Машинного следа у них нет, и они остаются на слое 2 (текст правила в
+ * CLAUDE.md). Утверждать, что правило покрыто целиком, было бы ложной гарантией.
+ */
+export declare function backlogCoversFeatures(features: readonly {
+    readonly slug: string;
+    readonly createdIso: string;
+    readonly waiver?: string;
+}[], backlogTexts: readonly string[], baseline: string): readonly string[];
 /**
  * Rules that may NEVER be promoted to HARD, whatever a config says. A rule whose evidence comes from a
  * deliberately tolerant parser must not be able to BLOCK an operation: the parser's own design admits it

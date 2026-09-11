@@ -20,8 +20,22 @@ export { scanGitHub, buildSearchQuery } from './scanner.js';
 export { analyzeRepo, computeRelevanceScore, detectFormats, recommend } from './analyzer.js';
 export { generateReport } from './reporter.js';
 export { OUR_PACKAGES, OUR_SKILL_IDS, isNovelSkill } from './inventory.js';
+export { DISCOVERY_KINDS, VERDICT_VALUES, fromRepoProfile } from './discovery.js';
+export type {
+  Discovery, DiscoveryKind, DiscoveryVerdict,
+  RepositoryDiscovery, ReleaseDiscovery, CommitDiscovery, PublicationDiscovery, PostDiscovery,
+} from './discovery.js';
 export { deepAnalyze } from './deep-analyzer.js';
 export type { DeepAnalysisReport, DeepRepoAnalysis, DeepSkillAnalysis, GapEntry } from './deep-analyzer.js';
+export {
+  DIFF_BUCKETS, OVERLAP_MS, ConcurrentRunError,
+  advanceWatermark, applyOutcomes, commitRun, diffDiscoveries, emptyWatermarkState,
+  readCommittedRun, watermarkKey, withRunLock,
+} from './source-watermark.js';
+export type {
+  CommittedRun, DiffBucket, DiscoveryDiff, ObservedItem,
+  SourceRunOutcome, SourceWatermark, WatermarkState,
+} from './source-watermark.js';
 export { scanAllSources } from './sources/index.js';
 export type { TaggedProfile, SourceTag, SourceStatus, SourceHealth } from './sources/index.js';
 export { scanNpm } from './sources/npm.js';

@@ -354,6 +354,7 @@ const COMPONENTS = {
       'write-insight':       'Validate and append one harvest insight to the project Markdown carrier',
       'check-ports':              'Enforce docker-ports Правило №0 against a real compose (invoke deliberately; exits 0/1/2)',
       'check-growth-trace':       'Did the M5 growth seed reach docs/Specification.md (invoke deliberately; exits 0/1/2)',
+      'check-dangling-refs':      'Does shipped prose reference a file that does not exist? (invoke deliberately; exits 0 within baseline, 1 above it, 2 when .claude is absent)',
       'check-look-trace':         'Did the Phase-0.5 source-look seed reach docs/Specification.md (invoke deliberately; exits 0/1/2)',
       'check-look-origin':        'Did a third-party-analysis HYPOTHESIS row reach Specification.md without dated live confirmation (invoke deliberately; exits 0/1/2)',
       'check-review-contract':    'Does review-report.md answer every AC id, disclose the reviewer family and name the spec revision it judged (exits 0/1/2)',

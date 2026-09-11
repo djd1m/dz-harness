@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dc985b443d8ac9d4091b09367330f7f610c35572d99f635855989fd893c5e6ac"
+          "content": "889d62c5dfafb53c0664867f0882e5712e47eb8aa7a44c6db46d082e693ed58d"
         }
       ]
     },
@@ -69,7 +69,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "d57357d1feb9f111d0674f1c307a4d15a41cb005074351d37ebaf7dc1afe3575"
+          "value": "c85b72b83c3a66b3caaccd200693e10d5460dd95bb4fa9c9edd9602237dcb584"
         }
       ]
     },
@@ -629,7 +629,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "630eb9047258ad0333082f407cd34522e4c278650f22ef6dba1ef897ec5cce71"
+          "content": "cbe70a524f6ce7987b5e3961ee412b92c24c00d84066d438c759659d656efaa2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/scripts/markdown-masker.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "82c3c48c25f400f3a64d1caba3d47357f3db87460f0746f88706f901eb6ff689"
         }
       ]
     },
@@ -789,7 +799,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f287a73bdf8c11c99eedbc071c6babb3201a6cec7d644d65f20ece3cd4ca51c1"
+          "content": "5837a57349fece3feedd7ed02d85fb1743f9f2f847f0e9fc1e47143ac703eb84"
         }
       ]
     },

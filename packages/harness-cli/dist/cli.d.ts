@@ -4,6 +4,7 @@
  * @packageDocumentation
  */
 import { spawn, type ChildProcess } from 'node:child_process';
+import { type JournalIo } from '@dzhechkov/harness-core';
 import { runSyncCodexHooks, type CodexHooksSyncReport, type BridgeFamily } from '@dzhechkov/harness-core';
 import type { RecallPatternsOptions, TeachGuardResult, IntegrationOutcome } from '@dzhechkov/harness-core';
 /** Literal command inventory, pinned against the main dispatch switch by a layer-1 test. */
@@ -67,6 +68,8 @@ export interface CliIo {
     readonly installRunner?: (command: string, cwd: string) => void;
     /** Fault seam for proving mutation-gate catches and retries thrown runner internals. */
     readonly mutationGateRunner?: MutationGateRunner;
+    /** Read-back fault seam; production uses the real filesystem. */
+    readonly journalIo?: JournalIo;
 }
 /** Injected subprocess runner used by `dz release` (see {@link CliIo.releaseRunner}). */
 export type ReleaseExecRunner = (cmd: string, opts: {
@@ -78,6 +81,40 @@ export type ReleaseExecRunner = (cmd: string, opts: {
     stderr: string;
     timedOut?: boolean;
 };
+type Write = (line: string) => void;
+/**
+ * Команда npm для установки пакета В ЦЕЛЕВОЙ КАТАЛОГ, а не куда решит npm.
+ *
+ * ЗАЧЕМ `--prefix`. Без него npm при отсутствии `package.json` в текущем каталоге поднимается по
+ * дереву до первого найденного и мутирует ЕГО — а `dz` потом ищет пакет в
+ * `<цель>/node_modules` и не находит. Место установки и место проверки были двумя независимыми
+ * предположениями, и совпадали они только по удаче.
+ *
+ * ИЗМЕРЕНО 2026-09-03 (полевой случай владельца): установка в каталог без `package.json`
+ * записала в `/home`, где лежит ЧУЖОЙ проект; ручной откат вернул `package.json`, а запись
+ * `extraneous` в `/home/package-lock.json` пережила откат.
+ *
+ * ПОЧЕМУ НЕ ОТКАЗ (ADR-001, вариант A отвергнут). Отказ запретил бы законный сценарий: проект
+ * внутри монорепо, намеренно не имеющий своего `package.json` и опирающийся на родительский
+ * воркспейс. `--prefix` согласует установку с проверкой ПО ПОСТРОЕНИЮ и сценарий сохраняет.
+ *
+ * ЧИСТАЯ: ни файловой системы, ни запуска npm — проверяется без обоих. Путь экранируется, потому
+ * что каталоги с пробелом в имени встречаются в наших же тестах.
+ */
+export declare function buildInstallArgs(npmSpec: string, projectRoot: string): readonly string[];
+/**
+ * Та же команда СТРОКОЙ — только для показа человеку и для тестового шва.
+ *
+ * НЕ ДЛЯ ИСПОЛНЕНИЯ, и это не стилистическая оговорка. `JSON.stringify` НЕ является экранированием
+ * для оболочки: внутри двойных кавычек оболочка по-прежнему выполняет `$(...)` и обратные кавычки.
+ * ИЗМЕРЕНО 2026-09-03 — `execSync('echo ' + JSON.stringify('pkg$(touch ФАЙЛ)'))` создал файл.
+ * Прежняя редакция этого комментария утверждала «путь экранируется»; это было неверно, и находку
+ * предъявило кросс-семейное ревью (gpt-5.6-sol), а я подтвердил её пробой.
+ *
+ * Боевой путь исполняется через `execFileSync` массивом аргументов — оболочки в цепочке нет вовсе,
+ * поэтому подставлять некуда. Это структурное лечение, а не более хитрое экранирование.
+ */
+export declare function buildInstallCommand(npmSpec: string, projectRoot: string): string;
 /**
  * Run `fn` with anything written to STDOUT by code we do not own routed to STDERR instead.
  *
@@ -133,6 +170,12 @@ export declare function __wfKillGroupTestSeam(): {
     killAll: () => number[];
     size: () => number;
 };
+/** Git effects are injected; the core owns eligibility and the explicit apply boundary. */
+export declare function cmdRunsClean(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write, exec?: (command: string, options: {
+    cwd: string;
+    encoding: 'utf8';
+    stdio: ['ignore', 'pipe', 'pipe'];
+}) => string | Buffer): number;
 export interface ClaudeBridgeRun {
     stdout: string;
     stderr: string;
@@ -188,4 +231,5 @@ export declare function runChildBridge(bin: string, argv: string[], opts: {
     envExtra?: readonly string[];
 }): Promise<ClaudeBridgeRun>;
 export declare function runCli(argv: string[], io?: CliIo): Promise<number>;
+export {};
 //# sourceMappingURL=cli.d.ts.map

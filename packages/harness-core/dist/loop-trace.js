@@ -22,6 +22,7 @@
  * READER HALF (below) — parseTrace / assembleTimeline / runInvariants / renderTimelineHtml,
  * consumed by `dz workflow-trace` and by the fitness suite (same runInvariants, two call sites).
  */
+import { isNonRunRow } from './ledger-backfill.js';
 /** Blob version stamp for the emitter half (read by scripts/gen-loop-blobs.mjs). */
 export const LOOP_TRACE_BLOB_VERSION = '1.1.0';
 export const LOOP_TRACE_SCHEMA_VERSION = 1;
@@ -759,11 +760,24 @@ export function assembleTimeline(input) {
         }
     }
     if (input.ledger) {
+        // The source is declared even when every row is filtered out: the file WAS read, and saying so
+        // is the difference between "no cost rows" and "no ledger".
         sources.push('ledger');
         for (const line of input.ledger.split('\n')) {
             const t = line.trim();
-            if (t !== '')
-                rows.push({ seq: 0, kind: 'ledger', label: 'cost', detail: t.slice(0, 160), wallTime: null });
+            if (t === '')
+                continue;
+            // AM-4: `kind`-carrying rows are per-phase TELEMETRY, not cost. Labelling one `cost` in a run
+            // timeline states a cost claim the row does not make — MEASURED 2026-09-06 as a real defect,
+            // not a hypothetical. A malformed line is still shown: unparseable is not "not a cost row".
+            try {
+                const parsed = JSON.parse(t);
+                if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
+                    && isNonRunRow(parsed))
+                    continue;
+            }
+            catch { /* unparseable → keep it visible, exactly as before */ }
+            rows.push({ seq: 0, kind: 'ledger', label: 'cost', detail: t.slice(0, 160), wallTime: null });
         }
     }
     if (Array.isArray(input.usageEvents)) {

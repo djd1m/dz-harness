@@ -23,7 +23,76 @@
  */
 /** Brace-matched interface extraction. A regex-only scan truncates at the first nested brace
  * (inline object fields are everywhere in this file), so bodies are cut by depth counting. */
-export function parseInterfaceGraph(source) {
+/**
+ * Убрать из текста КОММЕНТАРИИ и СОДЕРЖИМОЕ строковых литералов, сохранив длину и переводы строк.
+ *
+ * ЗАЧЕМ, с воспроизведёнными случаями (ИЗМЕРЕНО 2026-09-04, бэклог f23e97dc). Разбор считал скобки
+ * и точки с запятой по СЫРОМУ тексту, и четыре конструкции давали ТИХО НЕВЕРНЫЙ граф — а граф
+ * решает, достижим ли интерфейс, то есть живой он или мёртвый:
+ *
+ *   • `interface X { note: "смотри Y"; }` — упоминание Y ВНУТРИ строки становилось НАСТОЯЩИМ
+ *     ребром. Мёртвый интерфейс выглядел живым: ложно-зелёное в проверке достижимости.
+ *   • `interface X { note: "a; ref: Y"; }` — точка с запятой внутри строки резала запись, и
+ *     появлялось призрачное поле `ref` со своим ребром.
+ *   • `interface X { // закрывает } раньше\n ref: Y; }` — закрывающая скобка в комментарии
+ *     обрезала тело, и настоящее ребро ТЕРЯЛОСЬ: живой интерфейс выглядел мёртвым.
+ *   • `interface X { kind: "{"; ref: Y; }` — открывающая скобка в строке раздувала тело так, что
+ *     интерфейс вовсе исчезал из графа.
+ *
+ * ДЛИНА СОХРАНЯЕТСЯ НАМЕРЕННО: разбор ниже работает индексами по этому же тексту, и замена на
+ * строку другой длины сдвинула бы каждую последующую позицию. Переводы строк сохраняются, чтобы
+ * номера строк оставались верными, если их когда-нибудь понадобится сообщить.
+ */
+function stripCommentsAndStrings(source) {
+    const out = source.split('');
+    const blank = (from, to) => {
+        for (let i = from; i < to && i < out.length; i += 1) {
+            if (out[i] !== '\n')
+                out[i] = ' ';
+        }
+    };
+    let i = 0;
+    while (i < source.length) {
+        const two = source.slice(i, i + 2);
+        if (two === '//') {
+            const end = source.indexOf('\n', i);
+            blank(i, end === -1 ? source.length : end);
+            i = end === -1 ? source.length : end;
+            continue;
+        }
+        if (two === '/*') {
+            const end = source.indexOf('*/', i + 2);
+            const stop = end === -1 ? source.length : end + 2;
+            blank(i, stop);
+            i = stop;
+            continue;
+        }
+        const ch = source[i];
+        if (ch === '"' || ch === "'" || ch === '`') {
+            let j = i + 1;
+            while (j < source.length) {
+                if (source[j] === '\\') {
+                    j += 2;
+                    continue;
+                } // экранированный символ не закрывает строку
+                if (source[j] === ch)
+                    break;
+                j += 1;
+            }
+            // Гасится СОДЕРЖИМОЕ, а кавычки остаются: тип `"a" | "b"` обязан выглядеть как тип, а не
+            // как склеенное слово.
+            blank(i + 1, Math.min(j, source.length));
+            i = Math.min(j + 1, source.length);
+            continue;
+        }
+        i += 1;
+    }
+    return out.join('');
+}
+export function parseInterfaceGraph(rawSource) {
+    // Комментарии и содержимое строк гасятся ДО подсчёта скобок: иначе `}` в комментарии обрезает
+    // тело, `{` в строке его раздувает, а имя интерфейса внутри строки становится ребром графа.
+    const source = stripCommentsAndStrings(rawSource);
     const names = new Set();
     const headRe = /(?:^|\n)\s*(?:export\s+)?interface\s+([A-Za-z_$][\w$]*)/g;
     for (let m = headRe.exec(source); m !== null; m = headRe.exec(source))

@@ -80,6 +80,8 @@ export interface RoutingEnv {
     readonly budget?: unknown;
     /** The productive family for design + code; absent defaults to Claude. */
     readonly primary?: 'claude' | 'codex';
+    /** Run tier affects planning only; absent uses the S/M flagship tier (ADR-001). */
+    readonly complexityTier?: 'S' | 'M' | 'L' | 'XL';
 }
 /** A probe reading. `null` on a pct ⇔ that limit is unconfigured (unknown — never a guess). */
 export interface UsageSignal {
@@ -131,7 +133,7 @@ export declare function topCodexId(env: RoutingEnv): string;
 export declare function decideUsageAction(prevOverride: boolean, signal: UsageSignal | null, threshold: number): UsageDecision;
 /** Known codex ids. Adding a new id (e.g. `'gpt-5.7'`) is a DATA-ONLY change. */
 export declare const KNOWN_CODEX: Record<string, number>;
-export type CodexTier = 'flagship' | 'workhorse' | 'high-volume';
+export type CodexTier = 'premium' | 'flagship' | 'workhorse' | 'high-volume';
 /**
  * Capability tiers are routing data, separate from {@link KNOWN_CODEX}'s spellability role.
  * The allowlist is not an availability check — probe every id before every run
@@ -235,6 +237,91 @@ export declare function qeShouldUseCodex(env: RoutingEnv): boolean;
  *   4. `code`/`qe` `null` sentinels resolve via the coder / cross-model rules
  */
 export declare function resolveStageModel(stage: string, env: RoutingEnv): StageOpts;
+/**
+ * The CLOSED vocabulary of the stage announcement line (historical feature name
+ * stage-line-before-dispatch, ADR-001). Exported as a VALUE so a widened union fails a test rather than passing silently — a
+ * type-only union is invisible at runtime. TWENTY members in three groups:
+ *
+ *  1-8   RESOLVER BRANCHES — the branch of `resolveStageDecision` that chose the spec.
+ *  9-10  SPEC DEGRADATIONS — the two ways `specToOpts` cannot use what a branch chose (an unknown
+ *        codex id substituted for `CODEX_MODEL`; an unrecognised name falling back to
+ *        session-inherited). They evaluate LAST and therefore WIN the label: that the model named
+ *        by the branch is not the model that will run is the one fact the line must never hide.
+ *  11-20 DISPATCH OVERRIDES — facts a PURE resolve cannot know, emitted only by the workflow at the
+ *        dispatch site, and the reason the count grew from ten (cross-family review of 3fc406db):
+ *          `coder-fallback`                — the codex-fallback LADDER, not the resolver, decides
+ *            which family runs first: the resolver picks Codex, the runtime tries Claude first and
+ *            only reaches Codex if Claude returns null. Each rung is a real dispatch and gets its
+ *            own line, so the reader is never told Codex is running while Claude is.
+ *          `codex-unsupported-at-dispatch` — the stage refuses the codex wrapper outright (a
+ *            data-returning stage; the wrapper stubs, per the codex-routing-honesty ADR), so a
+ *            resolved codex spec is discarded and the dispatch runs Claude.
+ *          `fallback-after-no-deliverable`  — a previous RUNG of this stage ran and produced nothing
+ *            usable (a Codex plan/design artifact that never landed; a Codex reviewer that returned
+ *            no verdict), so the next rung dispatches. Each rung is a real dispatch and is announced
+ *            on its own, because `modelsUsed` was already being rewritten there and the line was not.
+ *          `precision-second-pass`          — the optional A-normal L/XL Claude precision reviewer that
+ *            runs AFTER the recall-oriented primary QE pass. It is a separate dispatch with its own
+ *            `modelsUsed.qe2` entry, chosen by `qePrecisionPassSpec`, not by the stage resolver.
+ *          `qe-same-family-degraded`         — the QE branch resolved a reviewer of the SAME family as
+ *            the coder. It happens when the coder is Claude and codex is unavailable: `resolveQeSpec`
+ *            falls back to Claude `opus` rather than blocking, so cross-family review is LOST at that
+ *            moment. The branch used to emit `qe-cross-family` regardless, and the line then claimed
+ *            "the coder never self-reviews" about a Claude-on-Claude review. The reason is now DERIVED
+ *            from the resolved families, never assumed from the branch.
+ *          `challenge-panel`                — the Step-6 adversarial plan gate. Its adversary is chosen
+ *            as the OTHER family than the plan's AUTHOR, and its cross-validator re-checks the
+ *            findings; both are substantive model reviews that decide the gate's verdict, not probes.
+ *          `codex-refused-before-dispatch`   — an id ANSWERED the probe, but the rung then declined to
+ *            build a dispatch at all: an unusable review scope ref (`codexReviewCommand` returns
+ *            `cmd:null`), an unsafe id at command-build time, or a declined exec plan. No agent ran,
+ *            so the next rung is NOT a `fallback-after-no-deliverable` — that reason asserts a rung
+ *            RAN and produced nothing, which is a false dispatch claim. Rounds 16-17 modelled this
+ *            outcome with a BOOLEAN `probeFailed`, whose else-branch swallowed every non-probe
+ *            refusal into the "it ran" bucket; the outcome is three-valued and is now carried as such.
+ *          `codex-probe-failed`             — a DIRECT `agent()` dispatch resolved to codex, but no id
+ *            answered the probe. `safeCodexAgent` refuses by returning null; a direct path has no
+ *            wrapper to return from, so it falls back to Claude and says so rather than dispatching
+ *            an unprobed spec while the line claims a model nothing verified.
+ *          `fallback-rung`                  — the CURRENT attempt is a fallback. The prior attempt's
+ *            exact outcome is emitted on that prior rung's outcome line and is never copied into
+ *            this attempt's intent.
+ *          `auto-cost`                      — learned-cost routing chose this model. `resolveAutoCost`
+ *            REWRITES `args.models[stage]` from the `auto-cost` token to the selected concrete model
+ *            BEFORE the resolver runs, so the explicit-models branch fires and the line would credit
+ *            an operator who never named that model. The selection is recovered from the run's own
+ *            auto-cost ledger, so the line reports the branch that actually decided.
+ *        `resolveStageDecision` NEVER returns ANY of these ten — asserted by its own test. A resolver
+ *        that could emit them would be claiming resolver authority over a runtime fact.
+ */
+export declare const STAGE_DECISION_REASONS: readonly StageDecisionReason[];
+export type StageDecisionReason = 'usage-override' | 'explicit-models' | 'routing-not-requested' | 'coder-knob-codex' | 'planner-knob-codex' | 'qe-cross-family' | 'budget-table-cell' | 'default-models' | 'codex-id-substituted' | 'spec-unrecognised' | 'coder-fallback' | 'codex-unsupported-at-dispatch' | 'fallback-after-no-deliverable' | 'precision-second-pass' | 'auto-cost' | 'qe-same-family-degraded' | 'challenge-panel' | 'codex-probe-failed' | 'codex-refused-before-dispatch' | 'fallback-rung';
+/** What the resolver decided AND why. `spec` is the EFFECTIVE spec (derived from `opts`), never the
+ * requested-but-substituted one — a line naming a model the run did not use would be worse than no
+ * line at all. */
+export interface StageDecision {
+    readonly opts: StageOpts;
+    readonly spec: string | null;
+    readonly reason: StageDecisionReason;
+}
+/** The model FAMILY a resolved spec belongs to. */
+export declare function specFamily(spec: string | null | undefined): 'codex' | 'claude';
+/**
+ * The QE branch's reason, DERIVED from the families that actually resolved rather than assumed from
+ * the branch. `resolveQeSpec` degrades to a Claude reviewer when codex is unavailable (it must never
+ * block), and a Claude coder then gets a Claude reviewer — cross-family review is lost, and saying
+ * otherwise would assert the one property that just failed.
+ */
+export declare function qeReasonForFamilies(coderCodex: boolean, qeSpec: string | null | undefined): StageDecisionReason;
+/** The compact spec that `opts` actually represents. Inverse of `specToOpts` over the applied opts. */
+export declare function effectiveSpec(opts: StageOpts): string | null;
+/**
+ * Resolve a stage to its `agent()` opts fragment AND the branch that decided it (ADR-001: the
+ * reason lives where the decision is made — otherwise it is a copy, and copies drift).
+ * `resolveStageModel` is now a thin wrapper over `.opts`, so the opts are byte-identical by
+ * construction, not by a second reading of the same rules.
+ */
+export declare function resolveStageDecision(stage: string, env: RoutingEnv): StageDecision;
 /**
  * Does a DESIGN/PLAN stage (one that writes an artifact FILE a later stage then reads) need a
  * Codex-landed barrier before its consumer runs?
@@ -549,7 +636,16 @@ export interface CodexExecPlanResult {
 }
 /** Decide, before spending an agent, whether Codex can honestly serve this stage. */
 export declare function codexExecPlan(input: CodexExecPlanInput): CodexExecPlanResult;
-/** A model id is user input (`args.codexModel`) and lands in a shell command. Shell-safe ids only. */
+/**
+ * A model id is user input (`args.codexModel`) and lands in a shell command. Shell-safe ids only.
+ *
+ * The `typeof` guard is LOAD-BEARING, not defensive noise (MEASURED 2026-09-05 while building the
+ * concurrent-probe test): `RegExp.test` coerces, so `test(null)` tested the string `'null'` — which
+ * matches this very pattern. `safeCodexAgent` passes `null` for the default `codexModel: 'auto'`, so
+ * the probe ladder collapsed from `[flagship, gpt-5.5]` to the single literal id `"null"`, asked for
+ * a model that cannot exist, and reported Codex UNAVAILABLE on the default path. Every 'auto' codex
+ * route silently degraded to Claude, for a reason nothing in the run could show.
+ */
 export declare function isSafeCodexId(id: string): boolean;
 /**
  * A liveness probe. The allowlist says a name is spellable; only this says it answers.

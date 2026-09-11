@@ -7,6 +7,7 @@
  */
 
 import type { RepoProfile } from '../types.js';
+import { SourceRefusal, fetchWithBudget, isSourceRefusal } from './source-outcome.js';
 
 const GLAMA_API = 'https://glama.ai/api/mcp/v1/servers/';
 
@@ -31,23 +32,36 @@ export async function scanGlama(options: { limit?: number } = {}): Promise<RepoP
       `https://glama.ai/api/mcp/servers?limit=${limit}`,
     ];
 
+    // ЗДЕСЬ ОБЩЕЕ ПРАВИЛО ЧАСТИЧНОГО УСПЕХА НЕ ПРИМЕНЯЕТСЯ, и это осознанно. Три адреса — не три
+    // части одного опроса, а ПРОБЫ одного и того же: у Glama форма API менялась, и 404 на первом
+    // варианте — ожидаемый ход поиска, а не потеря данных. Поэтому источник считается отказавшим
+    // только если отказали ВСЕ пробы; ответ хотя бы одной — измерение, даже если он пуст.
     let servers: GlamaServer[] = [];
+    let answered = false;
+    const refusals: SourceRefusal[] = [];
     for (const url of urls) {
       try {
-        const resp = await fetch(url, {
+        const resp = await fetchWithBudget(url, {
           headers: { Accept: 'application/json', 'User-Agent': 'dz-scout/0.5.0' },
         });
-        if (!resp.ok) continue;
         const data = await resp.json() as any;
+        answered = true;
         const items = Array.isArray(data) ? data :
                       data.servers ? data.servers :
                       data.data ? data.data :
                       data.items ? data.items : [];
         if (items.length > 0) { servers = items; break; }
-      } catch { continue; }
+      } catch (err) {
+        refusals.push(isSourceRefusal(err)
+          ? err
+          : new SourceRefusal('failed', `glama ${url}: обращение не состоялось — ${err instanceof Error ? err.message : String(err)}`));
+        continue;
+      }
     }
 
-    if (servers.length === 0) return [];
+    const firstRefusal = refusals[0];
+    if (!answered && firstRefusal !== undefined) throw firstRefusal;
+    if (servers.length === 0) return [];   // ответили и ничего не показали — измеренный ноль
 
     return servers.map((s) => ({
       fullName: `glama/${s.slug ?? s.name}`,
@@ -66,7 +80,8 @@ export async function scanGlama(options: { limit?: number } = {}): Promise<RepoP
       firstSeen: new Date().toISOString(),
       lastSeen: new Date().toISOString(),
     }));
-  } catch {
-    return [];
+  } catch (err) {
+    if (isSourceRefusal(err)) throw err;
+    throw new SourceRefusal('failed', `glama: обращение не состоялось — ${err instanceof Error ? err.message : String(err)}`);
   }
 }

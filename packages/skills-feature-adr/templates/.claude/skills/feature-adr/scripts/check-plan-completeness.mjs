@@ -51,6 +51,7 @@
 // the feature's own `00_complexity_assessment.md` acid-case table (rows shaped `| A<N> | … |`), or
 // supplied explicitly with `--acid=T1,T2,…`. If neither establishes a corpus, C4 is SKIPPED-with-note
 // (a feature that declared no acid cases cannot be failed for not naming them).
+import { maskMarkdown } from './markdown-masker.mjs';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { isAbsolute, join, resolve } from 'node:path';
 
@@ -319,21 +320,7 @@ else for (const t of acidTokens) if (!new RegExp(`\\b${t.replace(/[.*+?^${}()|[\
   // `## Amendments` could become the section heading, and a fenced example row could either open a
   // phantom amendment or hand a real testless one someone else's marker. Third fence-blindness
   // found in a checker today, so it is closed here by construction rather than by care.
-  const rawLines = plan.split('\n');
-  const planLines = [];
-  {
-    let fence = null;
-    for (const line of rawLines) {
-      const open = /^ {0,3}(```+|~~~+)/.exec(line);
-      if (fence === null && open) { fence = open[1][0]; planLines.push(''); continue; }
-      if (fence !== null) {
-        planLines.push('');
-        if (new RegExp('^ {0,3}' + fence + '{3,}\\s*$').test(line)) fence = null;
-        continue;
-      }
-      planLines.push(line);
-    }
-  }
+  const planLines = maskMarkdown(plan, { unclosed: 'mask' }).split('\n');
   let sectionStart = -1, sectionEnd = -1, cursor = 0;
   for (const pl of planLines) {
     // The SAME heading shape amendment-trace.ts accepts: up to three leading spaces, two to four

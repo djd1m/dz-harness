@@ -1,0 +1,20 @@
+positives:
+  - "Split this function into one operation"
+  - "Reduce method arity"
+  - "Split render(boolean detailed) into two named operations whose contracts expose the alternative behaviours; remove the selector flag"
+  - "Command query separation for this API"
+  - "Hidden side effect in this method"
+  - "Make call order explicit"
+  - "Убери output parameter из функции: верни результат вместо записи в аргумент"
+  - "Сделай сигнатуру понятнее"
+  - "Раздели processOrder: оставь в нём одну высокоуровневую ответственность, вынеси низкоуровневый parsing в отдельную операцию и сохрани в каждой один уровень абстракции"
+  - "Назови в имени и сигнатуре метода полный наблюдаемый эффект, включая выполняемую mutation"
+hard_negatives:
+  - prompt: "Given this domain data and calculation, decide which local class should own the operation and its representation"
+    owner: clean-code-object-data-ownership
+  - prompt: "Review this diff after implementation"
+    owner: pr-review
+  - prompt: "Refactor this design to satisfy generic SOLID principles"
+    owner: solid
+  - prompt: "Choose the exception or null boundary for an API client"
+    owner: clean-code-error-and-boundary-handling

@@ -55,12 +55,12 @@
     {
       "name": "@dzhechkov/cloudru-hub",
       "version": "0.1.11",
-      "files": 26
+      "files": 27
     },
     {
       "name": "@dzhechkov/core",
       "version": "0.2.22",
-      "files": 65
+      "files": 69
     },
     {
       "name": "@dzhechkov/design-thinking",
@@ -74,13 +74,13 @@
     },
     {
       "name": "@dzhechkov/harness-cli",
-      "version": "0.8.10",
-      "files": 41
+      "version": "0.8.21",
+      "files": 47
     },
     {
       "name": "@dzhechkov/harness-core",
-      "version": "0.8.11",
-      "files": 696
+      "version": "0.8.29",
+      "files": 807
     },
     {
       "name": "@dzhechkov/harness-presets",
@@ -95,7 +95,7 @@
     {
       "name": "@dzhechkov/keysarium",
       "version": "1.7.4",
-      "files": 247
+      "files": 248
     },
     {
       "name": "@dzhechkov/keysarium-core",
@@ -120,12 +120,12 @@
     {
       "name": "@dzhechkov/p-replicator",
       "version": "1.13.2",
-      "files": 282
+      "files": 286
     },
     {
       "name": "@dzhechkov/scout",
       "version": "0.8.11",
-      "files": 104
+      "files": 119
     },
     {
       "name": "@dzhechkov/skills-12factor",
@@ -144,8 +144,13 @@
     },
     {
       "name": "@dzhechkov/skills-book-ai-apps",
-      "version": "0.2.9",
+      "version": "0.2.10",
       "files": 60
+    },
+    {
+      "name": "@dzhechkov/skills-book-clean-code",
+      "version": "0.1.1",
+      "files": 34
     },
     {
       "name": "@dzhechkov/skills-book-ddia",
@@ -159,7 +164,7 @@
     },
     {
       "name": "@dzhechkov/skills-book-fundamental-software-architecture",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "files": 45
     },
     {
@@ -194,8 +199,8 @@
     },
     {
       "name": "@dzhechkov/skills-feature-adr",
-      "version": "1.5.9",
-      "files": 82
+      "version": "1.5.10",
+      "files": 83
     },
     {
       "name": "@dzhechkov/skills-idea2prd",
@@ -210,7 +215,7 @@
     {
       "name": "@dzhechkov/skills-meta",
       "version": "0.9.55",
-      "files": 140
+      "files": 141
     },
     {
       "name": "@dzhechkov/skills-news",
@@ -260,7 +265,7 @@
     {
       "name": "@dzhechkov/skills-tutorial-factory",
       "version": "0.7.0",
-      "files": 34
+      "files": 32
     },
     {
       "name": "@dzhechkov/skills-web3",

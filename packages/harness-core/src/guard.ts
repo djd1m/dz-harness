@@ -21,6 +21,7 @@ import {
   type VolumeShadowInput,
   type VolumeShadowResult,
 } from './guard-volume.js';
+import { findReleaseLine } from './release-line.js';
 
 export type GuardSeverity = 'hard' | 'soft';
 export type GuardOp = 'publish' | 'teach' | 'consolidate' | 'reindex';
@@ -79,10 +80,64 @@ export interface GuardResult {
 /** Facts the CLI injects; each rule reads only the fields it needs. Missing evidence ⇒ that rule is skipped. */
 export interface GuardFacts {
   readonly op: GuardOp;
+  /** Signature evidence gathered by the CLI. The pure evaluator never reads manifests or keys. */
+  readonly signedPacks?: readonly {
+    readonly name: string;
+    readonly dir: string;
+    readonly changed: boolean;
+    readonly ok: boolean | null;
+    readonly failures: readonly string[];
+    readonly note?: string;
+  }[];
+  /** Release-line evidence gathered by the CLI; absence means the rule was not established. */
+  readonly releaseLines?: {
+    readonly readmes: readonly { readonly path: string; readonly text: string | null }[];
+    readonly coreVersion: string | null;
+    readonly cliVersion: string | null;
+  };
   /** Publish-only raw volume facts. Absence preserves the legacy result shape. */
   readonly volume?: VolumeShadowInput;
   /** for no-workspace-star: each publishable package's deps map. */
   readonly packages?: readonly { readonly name: string; readonly deps: Readonly<Record<string, string>> }[];
+  /**
+   * for sibling-dep-protocol: КАЖДАЯ зависимость на соседний пакет монорепозитория, как она
+   * записана НА ДИСКЕ (без подстановки версии), с полем, в котором она объявлена. Поле нужно:
+   * `dependencies` и `devDependencies` обязаны идти через workspace-протокол, а `peerDependencies`
+   * и `optionalDependencies` — НЕТ, и это не послабление, а разная семантика (см. правило).
+   */
+  /**
+   * for plugin-manifest-audit: каждый найденный `.claude-plugin/plugin.json` и объявленные им
+   * поля. `parseError` заполнен ⇒ манифест не разобрался; остальные поля тогда не смотрят.
+   */
+  readonly pluginManifests?: readonly {
+    readonly path: string;
+    readonly parseError?: string;
+    readonly name?: string;
+    readonly version?: string;
+    readonly description?: string;
+    /** Имена навыков, ОБЪЯВЛЕННЫЕ манифестом. */
+    readonly declaredSkills?: readonly string[];
+    /** Имена навыков, НАЙДЕННЫЕ на диске рядом с манифестом. */
+    readonly skillsOnDisk?: readonly string[];
+  }[];
+  readonly siblingDeps?: readonly {
+    readonly name: string;
+    readonly field: string;
+    readonly dep: string;
+    readonly spec: string;
+  }[];
+  /**
+   * for backlog-covers-features: каталоги фич, дата их ПЕРВОГО коммита, тексты записей бэклога и
+   * базовая дата. Базовая дата обязательна и делает правило зелёным на приходе: 336 существующих
+   * каталогов заведены до правила, и краснеть на них — значит учить себя игнорировать (ИЗМЕРЕНО
+   * 2026-09-03: без базы 236 нарушений, в окне 7 дней — 48). Отсутствие факта ⇒ правило молчит:
+   * страж без улик не выдумывает вердикт.
+   */
+  readonly featureBacklog?: {
+    readonly baseline: string;
+    readonly features: readonly { readonly slug: string; readonly createdIso: string; readonly waiver?: string }[];
+    readonly backlogTexts: readonly string[];
+  };
   /** for no-skill-drift: the names that byte-drift between copies (from sweepSkillDrift). */
   readonly drift?: readonly string[];
   /**
@@ -126,7 +181,7 @@ export interface GuardFacts {
   /** for skills-registrable: per skill pack, dirs that would ship un-registrable (no depth-1 SKILL.md). */
   readonly skillPacks?: readonly { readonly name: string; readonly nonRegistrable: readonly string[] }[];
   /** for readme-first: per publishable package, is a version bump staged without a README change? */
-  readonly readmeFirst?: readonly { readonly name: string; readonly versionBumped: boolean; readonly readmeChanged: boolean }[];
+  readonly readmeFirst?: readonly { readonly name: string; readonly versionBumped: boolean; readonly readmeChanged: boolean; readonly versionUnknown?: boolean }[];
   /**
    * for review-round: per publishable package, does this change bump a version AND touch SOURCE, and
    * did it bring a GRADED QE report with it? `undefined` (the whole fact absent) means the tree could
@@ -308,12 +363,110 @@ function unquoteYaml(s: string): string {
   return t;
 }
 
+function inspectReleaseLines(
+  evidence: NonNullable<GuardFacts['releaseLines']>,
+  severity: GuardSeverity,
+): {
+  readonly violations: Violation[];
+  readonly observations: GuardObservation[];
+} {
+  const expected = evidence.coreVersion !== null && evidence.cliVersion !== null
+    ? { core: evidence.coreVersion, cli: evidence.cliVersion }
+    : null;
+  const violations: Violation[] = [];
+  const observations: GuardObservation[] = [];
+
+  for (const readme of evidence.readmes) {
+    if (readme.text === null) {
+      observations.push({
+        schemaVersion: 'volume-shadow/v1', rule: 'release-line-in-sync' as never,
+        metric: 'release-line-version-sync', scope: readme.path, status: 'unknown', value: null,
+        unit: 'artifact_set', signal: false, operands: {}, method: 'release-line-regex/v1',
+        detail: 'файл не прочитан',
+      });
+      continue;
+    }
+    const found = findReleaseLine(readme.text);
+    if (found === null) {
+      observations.push({
+        schemaVersion: 'volume-shadow/v1', rule: 'release-line-in-sync' as never,
+        metric: 'release-line-version-sync', scope: readme.path, status: 'unknown', value: null,
+        unit: 'artifact_set', signal: false, operands: {}, method: 'release-line-regex/v1',
+        detail: 'строка релиза не найдена',
+      });
+      continue;
+    }
+    if (expected === null) {
+      const missing = [
+        ...(evidence.coreVersion === null ? ['harness-core package.json version'] : []),
+        ...(evidence.cliVersion === null ? ['harness-cli package.json version'] : []),
+      ];
+      observations.push({
+        schemaVersion: 'volume-shadow/v1', rule: 'release-line-in-sync' as never,
+        metric: 'release-line-version-sync', scope: readme.path, status: 'unknown', value: [found.core, found.cli],
+        unit: 'artifact_set', signal: false, operands: { actual: [found.core, found.cli] },
+        method: 'release-line-regex/v1', detail: `${missing.join(' и ')} не прочитана или не имеет форму N.N.N`,
+      });
+      continue;
+    }
+    const mismatch = found.core !== expected.core || found.cli !== expected.cli;
+    const detail = mismatch
+      ? `${readme.path}: строка релиза говорит core v${found.core}/cli v${found.cli}, package.json — v${expected.core}/v${expected.cli}`
+      : `${readme.path}: строка релиза совпадает с package.json (${expected.core}/${expected.cli})`;
+    observations.push({
+      schemaVersion: 'volume-shadow/v1', rule: 'release-line-in-sync' as never,
+      metric: 'release-line-version-sync', scope: readme.path,
+      status: mismatch ? 'outside-reference' : 'within-reference', value: [found.core, found.cli],
+      unit: 'artifact_set', signal: mismatch,
+      operands: { actual: [found.core, found.cli], expected: [expected.core, expected.cli] },
+      method: 'release-line-regex/v1', detail,
+    });
+    if (mismatch) violations.push({ rule: 'release-line-in-sync', severity, detail });
+  }
+  return { violations, observations };
+}
+
+function inspectSignatureFresh(
+  evidence: NonNullable<GuardFacts['signedPacks']>,
+  severity: GuardSeverity,
+): {
+  readonly violations: Violation[];
+  readonly observations: GuardObservation[];
+} {
+  const violations: Violation[] = [];
+  const observations: GuardObservation[] = [];
+  for (const pack of evidence) {
+    if (!pack.changed) continue;
+    if (pack.ok === false) {
+      const firstFailure = pack.failures[0] ?? 'verification failed without a named reason';
+      violations.push({
+        rule: 'signature-fresh',
+        severity,
+        detail: `${pack.name}: files changed but the signed manifest is stale (${firstFailure}) — re-sign: dz sign --pack ${pack.dir} --key <key>`,
+      });
+    } else if (pack.ok === true) {
+      observations.push({
+        schemaVersion: 'volume-shadow/v1', rule: 'signature-fresh' as never,
+        metric: 'signed-manifest-freshness', scope: pack.name, status: 'within-reference', value: 1,
+        unit: 'artifact_set', signal: false, operands: { changed: 1, verified: 1 },
+        method: 'verify-manifest/v1', detail: `${pack.name}: ${pack.note ?? 'changed files still match its signed manifest'}`,
+      });
+    }
+  }
+  return { violations, observations };
+}
+
 /** The built-in rule set (works with no config). Ops are the mutating operations each rule guards. */
 export const DEFAULT_RULES: readonly GuardRule[] = [
   { id: 'no-workspace-star', severity: 'hard', ops: ['publish'], description: 'a published package.json must carry no workspace:* dep (npm ships it verbatim → the install breaks)' },
+  { id: 'plugin-manifest-audit', severity: 'hard', ops: ['publish'], description: 'every .claude-plugin/plugin.json parses and declares a non-empty name, description and a STRICT N.N.N version' },
+  { id: 'sibling-dep-protocol', severity: 'hard', ops: ['publish'], description: 'a dependencies/devDependencies entry on a sibling @dzhechkov package must use the workspace: protocol on disk (peer/optional deps are deliberately exempt — a range is their point)' },
   { id: 'no-skill-drift', severity: 'hard', ops: ['publish', 'consolidate'], description: 'no unexpected byte-drift between shared skill copies' },
+  { id: 'backlog-covers-features', severity: 'soft', ops: ['publish', 'consolidate'], description: 'каталог фичи, заведённый после базовой даты, назван записью бэклога — либо несёт именованную оговорку с причиной' },
   { id: 'no-secrets', severity: 'hard', ops: ['teach', 'publish'], description: 'no private key or API token in lesson text or a published file' },
   { id: 'readme-consistency', severity: 'soft', ops: ['publish'], description: 'README counts agree (CJM header vs All Commands, etc.)' },
+  { id: 'release-line-in-sync', severity: 'soft', ops: ['publish'], description: 'root and harness-cli README release lines agree with the harness-core and harness-cli package versions' },
+  { id: 'signature-fresh', severity: 'soft', ops: ['publish'], description: 'a pack whose files changed in this diff still verifies against its signed .dz-manifest.json — a stale signature is named before publish, not at the gate' },
   { id: 'skills-registrable', severity: 'soft', ops: ['publish'], description: 'every skill directory in a skill pack has a depth-1 SKILL.md (a buried or missing one ships un-registrable — the health-advisor 1.2.0 class)' },
   { id: 'readme-first', severity: 'soft', ops: ['publish'], description: 'a package with a staged version bump must update its own README.md in the same change (README-first)' },
   { id: 'routing-store-stale', severity: 'soft', ops: ['publish'], description: 'harvested routing telemetry has been applied to the auto-cost outcome store' },
@@ -371,6 +524,78 @@ function secretWaiverState(waivers: readonly SecretWaiver[] | undefined): { waiv
 }
 
 /** Per-rule pure checkers. Each returns the violations it found (empty ⇒ clean). Missing evidence ⇒ []. */
+/**
+ * Какие каталоги фич заведены после базовой даты и НЕ названы ни одной записью бэклога.
+ *
+ * БАЗОВАЯ ДАТА — не украшение, а условие осмысленности. ИЗМЕРЕНО 2026-09-03: без неё правило даёт
+ * 236 нарушений из 336 каталогов, а в окне «последние 7 дней» — 48 из 85. Проверка, изобретающая
+ * полсотни нарушений в первый день, учит людей себя игнорировать, то есть хуже отсутствующей.
+ * База делает правило зелёным на приходе и красным ровно на новом.
+ *
+ * ДАТА ПЕРВОГО КОММИТА, А НЕ mtime. Время правки меняет любой посторонний процесс — пересборка,
+ * перенос, чтение с обновлением. Дата появления каталога в истории неподвижна. ЧЕСТНАЯ ГРАНИЦА:
+ * функция ДОВЕРЯЕТ переданной строке и происхождение её не подтверждает — обязанность подать
+ * именно git-дату лежит на вызывающем (сбор фактов в cli.ts). Здесь проверяется только то, что
+ * строка вообще разбирается в дату.
+ *
+ * ЧТО ИМЕННО ПРОВЕРЯЕТСЯ В ОГОВОРКЕ — сказано точно, потому что ревью 2026-09-03 поймало
+ * расхождение обещания с кодом. Машинно проверяется РОВНО одно: строка непуста после обрезки
+ * пробелов. Осмысленность причины машинно не проверяема, и оговорка `x` пройдёт. Это сознательная
+ * граница слоя: гейт заставляет РЕШЕНИЕ БЫТЬ ЗАПИСАННЫМ, а качество формулировки остаётся делом
+ * человека — ровно как у освобождений заставы секретов и списка исключений дрейфа.
+ *
+ * БАЗА ВКЛЮЧИТЕЛЬНА: каталог, заведённый В САМ день базы, правилом контролируется («не раньше
+ * базы», а не «после базы»).
+ *
+ * ЧЕГО ЭТА ПРОВЕРКА НЕ ЛОВИТ, названо честно: работу БЕЗ каталога фичи — разбор, ремонт, рой,
+ * обещание «вернёмся». Машинного следа у них нет, и они остаются на слое 2 (текст правила в
+ * CLAUDE.md). Утверждать, что правило покрыто целиком, было бы ложной гарантией.
+ */
+export function backlogCoversFeatures(
+  features: readonly { readonly slug: string; readonly createdIso: string; readonly waiver?: string }[],
+  backlogTexts: readonly string[],
+  baseline: string,
+): readonly string[] {
+  // ДАТЫ СРАВНИВАЮТСЯ ЧИСЛАМИ, А НЕ СТРОКАМИ. Кросс-семейное ревью 2026-09-03 (gpt-5.6-sol, Grade D)
+  // предъявило три входа, на которых строковое сравнение ISO даёт неверный ответ, и я воспроизвёл их
+  // прогоном: `"   "` (пробелы лексикографически меньше любой даты — каталог освобождался),
+  // `"2026-09-02T23:30:00-02:00"` (фактически ПОЗЖЕ базы, строково раньше), и разные формы записи
+  // одной даты. Разбор в число снимает весь класс разом.
+  const baseMs = Date.parse(baseline);
+  const blob = backlogTexts.join('\n').toLowerCase();
+  const out: string[] = [];
+  for (const f of features) {
+    if (typeof f.slug !== 'string' || f.slug.trim() === '') continue;
+    // НЕРАЗБИРАЕМАЯ ИЛИ ОТСУТСТВУЮЩАЯ ДАТА — НЕ ОСВОБОЖДЕНИЕ. Каталог, чью дату появления не удалось
+    // установить, считается новым: это отказ в сторону строгости. Обратный выбор превращал бы порчу
+    // входа в способ обойти правило.
+    const bornMs = typeof f.createdIso === 'string' ? Date.parse(f.createdIso.trim()) : Number.NaN;
+    const born = Number.isFinite(bornMs) ? bornMs : Number.POSITIVE_INFINITY;
+    if (Number.isFinite(baseMs) && born < baseMs) continue;
+    if (typeof f.waiver === 'string' && f.waiver.trim() !== '') continue;
+    if (mentionsSlug(blob, f.slug)) continue;
+    out.push(f.slug);
+  }
+  return out;
+}
+
+/**
+ * Назван ли slug в тексте КАК ОТДЕЛЬНОЕ СЛОВО.
+ *
+ * Голый `includes` засчитывал совпадение внутри чужого слова: slug `log` считался покрытым записью
+ * «обновить catalog schema», а `api` — записью «починить capitalization report» (примеры из
+ * кросс-семейного ревью 2026-09-03, воспроизведены прогоном). Ложное покрытие опаснее ложного
+ * срабатывания: оно ТИХО гасит правило ровно там, где оно нужно.
+ *
+ * Границей считается всё, кроме латинской буквы, цифры, подчёркивания и дефиса — дефис входит в
+ * слово, потому что сами slug'и кебабные и `date-layers` не должен совпасть внутри
+ * `dashboard-date-layers`.
+ */
+function mentionsSlug(haystackLower: string, slug: string): boolean {
+  const s = slug.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(^|[^a-z0-9_-])${s}($|[^a-z0-9_-])`).test(haystackLower);
+}
+
 const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[]> = {
   'no-workspace-star': (f, sev) => {
     const out: Violation[] = [];
@@ -383,9 +608,140 @@ const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[
     }
     return out;
   },
+  'plugin-manifest-audit': (f, sev) => {
+    /**
+     * ЗНАЧЕНИЕ ЕСТЬ, ТОЛЬКО ЕСЛИ ОНО ВИДНО. `trim()` не убирает нулевой ширины пробел и его
+     * родню, поэтому описание из одного `\u200B` проходило как заполненное — назвал независимый
+     * ревьюер 2026-09-04. Считается видимым лишь то, что остаётся после удаления пробельных И
+     * невидимых символов.
+     */
+    const visible = (v: unknown): v is string =>
+      typeof v === 'string' && v.replace(/[\s\u00a0\u180e\u200b-\u200f\u2028\u2029\u202a-\u202e\u2060-\u2064\ufeff]/g, '') !== '';
+    /** Путь состава в сравнимом виде: `./skills/a` и `skills/a` — один каталог, а не два. */
+    const normPath = (v: unknown): string | null =>
+      typeof v === 'string'
+        ? v.normalize('NFC').replace(/^\.\//, '').replace(/\/+$/, '').replace(/\/{2,}/g, '/')
+        : null;
+    // ПРОВЕРКА ПАСПОРТА НА ВХОДЕ. Правило `marketplace-parity` отвечает на другой вопрос — совпадает
+    // ли витрина со свежей регенерацией. Если ГЕНЕРАТОР выдаст пустое описание или версию `1.0`,
+    // parity будет доволен: копия совпадает с оригиналом, оба неверны. Здесь проверяется САМО
+    // содержимое.
+    //
+    // ЧЕГО ЗДЕСЬ НЕТ И ПОЧЕМУ: приёма «имя манифеста равно имени каталога». ИЗМЕРЕНО 2026-09-04 на
+    // 10 манифестах дерева — расхождение ровно одно и оно НАМЕРЕННОЕ: пакет называется
+    // `loop-designer-plugin`, а плагин внутри него — `loop-designer`. Имя плагина есть
+    // опубликованная личность и законно отличается от имени каталога, поэтому такая проверка
+    // краснела бы на верном коде. Правило, изобретающее нарушения, учит людей себя игнорировать.
+    // Ведущие нули запрещены (`01.2.3` — не строгая форма), и значение НЕ обрезается: пробел
+    // вокруг версии в манифесте есть дефект манифеста, а не мелочь, которую следует простить.
+    const STRICT_SEMVER = /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/;
+    const out: Violation[] = [];
+    for (const m of f.pluginManifests ?? []) {
+      if (m.parseError !== undefined) {
+        out.push({ rule: 'plugin-manifest-audit', severity: sev, detail: `${m.path}: манифест не разобрался — ${m.parseError}` });
+        continue;   // остальные поля у неразобранного манифеста не существуют
+      }
+      for (const field of ['name', 'description', 'version'] as const) {
+        // СОБСТВЕННОЕ свойство: манифест, чьи поля приходят из прототипа, ничего не объявил.
+        const value = Object.hasOwn(m, field) ? (m as Record<string, unknown>)[field] : undefined;
+        if (!visible(value)) {
+          out.push({ rule: 'plugin-manifest-audit', severity: sev, detail: `${m.path}: поле ${field} пусто или отсутствует` });
+        }
+      }
+      const rawVersion = Object.hasOwn(m, 'version') ? (m as Record<string, unknown>)['version'] : undefined;
+      if (visible(rawVersion) && !STRICT_SEMVER.test(rawVersion)) {
+        out.push({ rule: 'plugin-manifest-audit', severity: sev, detail: `${m.path}: version = ${JSON.stringify(rawVersion)} — нужна строгая форма N.N.N без ведущих нулей и без пробелов` });
+      }
+      // ИНВЕНТАРИЗАЦИЯ В ОБЕ СТОРОНЫ: всё, что записано в накладной, лежит на складе, И всё, что
+      // лежит на складе, вписано в накладную. Одна сторона ловит обещание без товара, другая —
+      // товар, о котором никто не узнает. Класс, который эта пара закрывает: «счётчики поправили,
+      // файлы не тронули».
+      //
+      // Обе стороны проверяются ТОЛЬКО когда обе улики есть: манифест без поля `skills` не
+      // объявляет состава вовсе, и требовать от него совпадения значило бы выдумать обязательство.
+      const declared = Array.isArray(m.declaredSkills) ? m.declaredSkills : undefined;
+      const onDisk = Array.isArray(m.skillsOnDisk) ? m.skillsOnDisk : undefined;
+      // ПОЛОВИНА УЛИК — НЕ УЛИКИ. Прежде состав, объявленный без осмотра диска, ТИХО пропускался,
+      // а правило продолжало числиться проверенным: то самое «успех из тишины», против которого
+      // оно и заведено (назвал независимый ревьюер 2026-09-04).
+      if ((declared === undefined) !== (onDisk === undefined)) {
+        out.push({
+          rule: 'plugin-manifest-audit', severity: sev,
+          detail: `${m.path}: есть только одна половина улик о составе (${declared !== undefined ? 'объявленное без осмотра диска' : 'осмотр диска без объявленного'}) — сверить нечем`,
+        });
+      } else if (declared !== undefined && onDisk !== undefined) {
+        const normList = (xs: readonly unknown[]): string[] => xs.map(normPath).filter((x): x is string => x !== null && x !== '');
+        // Элемент не-строка — не путь. Молча его пропустить значило бы сверять неполные списки.
+        const badDeclared = declared.filter((x) => normPath(x) === null).length;
+        const badOnDisk = onDisk.filter((x) => normPath(x) === null).length;
+        if (badDeclared > 0 || badOnDisk > 0) {
+          out.push({ rule: 'plugin-manifest-audit', severity: sev, detail: `${m.path}: в составе есть элементы, которые не являются путями (объявлено ${badDeclared}, на диске ${badOnDisk})` });
+        }
+        const have = new Set(normList(onDisk));
+        const said = new Set(normList(declared));
+        const missing = [...said].filter((n) => !have.has(n));
+        const undeclared = [...have].filter((n) => !said.has(n));
+        if (missing.length > 0) {
+          out.push({ rule: 'plugin-manifest-audit', severity: sev, detail: `${m.path}: объявлены, но НЕ найдены на диске: ${missing.join(', ')}` });
+        }
+        if (undeclared.length > 0) {
+          out.push({ rule: 'plugin-manifest-audit', severity: sev, detail: `${m.path}: лежат на диске, но НЕ объявлены: ${undeclared.join(', ')}` });
+        }
+      }
+    }
+    return out;
+  },
+  'sibling-dep-protocol': (f, sev) => {
+    // ПАРА К `no-workspace-star`, а не противоречие ему: они говорят о РАЗНЫХ МОМЕНТАХ. На ДИСКЕ
+    // сиблинг-зависимость обязана быть `workspace:` — тогда pnpm подставит реальную версию при
+    // паковке. В ОПУБЛИКОВАННОМ манифесте `workspace:` быть не должно — npm отправляет его
+    // дословно и ломает установку. Одно правило охраняет вход, другое выход.
+    //
+    // ОБЪЁМ СУЖЕН ИЗМЕРЕНИЕМ, а не осторожностью. Запись бэклога требовала протокол для ЛЮБОЙ
+    // сиблинг-зависимости. Замер 2026-09-03 (56 пакетов, 60 сиблинг-зависимостей) показал 8
+    // исключений — и ВСЕ восемь оказались `peerDependencies` (7) и `optionalDependencies` (1), где
+    // диапазон и есть смысл записи: peer-зависимость объявляет, чему обязан удовлетворять
+    // ПОТРЕБИТЕЛЬ, а `workspace:` при паковке превращается в точный пин, враждебный потребителю.
+    // Одна из восьми — намеренная схема «dz как ОБНАРУЖИВАЕМАЯ необязательная зависимость».
+    // То есть правило в исходной формулировке сломало бы работающий замысел; здесь оно охраняет
+    // ровно те два поля, где протокол уместен, и на них нарушений сегодня НОЛЬ.
+    const out: Violation[] = [];
+    for (const d of f.siblingDeps ?? []) {
+      // Поля читаются как ПРИМИТИВНЫЕ строки. Объект с унаследованным `startsWith`, всегда
+      // возвращающим true, прежде проходил мимо правила — назвал независимый ревьюер 2026-09-04.
+      const field = typeof d?.field === 'string' ? d.field : '';
+      const spec = typeof d?.spec === 'string' ? d.spec : null;
+      if (field !== 'dependencies' && field !== 'devDependencies') continue;
+      if (spec === null) {
+        out.push({ rule: 'sibling-dep-protocol', severity: sev, detail: `${String(d?.name)}: ${field}.${String(d?.dep)} — спецификатор не строка, сверить нечем` });
+        continue;
+      }
+      if (spec.startsWith('workspace:')) continue;
+      out.push({
+        rule: 'sibling-dep-protocol',
+        severity: sev,
+        detail: `${d.name}: ${field}.${d.dep} = "${spec}" — a sibling package must be referenced through the workspace: protocol on disk, so pnpm substitutes the real version at pack time`,
+      });
+    }
+    return out;
+  },
   'no-skill-drift': (f, sev) => {
     const drifted = Array.isArray(f.drift) ? f.drift.filter((d) => typeof d === 'string') : [];
     return drifted.length === 0 ? [] : [{ rule: 'no-skill-drift', severity: sev, detail: `${drifted.length} skill(s) drift between copies: ${drifted.slice(0, 8).join(', ')}${drifted.length > 8 ? '…' : ''} — heal with dz sync-canonical` }];
+  },
+  'backlog-covers-features': (f, sev) => {
+    const ev = f.featureBacklog;
+    if (!ev) return [];
+    const uncovered = backlogCoversFeatures(ev.features, ev.backlogTexts, ev.baseline);
+    if (uncovered.length === 0) return [];
+    return [{
+      rule: 'backlog-covers-features',
+      severity: sev,
+      detail: `${uncovered.length} фич(и) заведены после ${ev.baseline} и не названы ни одной записью бэклога: `
+        + `${uncovered.slice(0, 8).join(', ')}${uncovered.length > 8 ? '…' : ''}`
+        + ` — заведи запись (dz backlog add) ЛИБО впиши оговорку в features/<slug>/README.md строкой`
+        + ` "Backlog: не заведено — <причина>". Оговорка без причины не считается.`,
+    }];
   },
   'no-secrets': (f, sev) => {
     const out: Violation[] = [];
@@ -666,7 +1022,18 @@ const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[
 
 /** Per-rule evidence predicates. No entry preserves the rule's existing checked behaviour exactly. */
 const HAS_INPUT: Partial<Record<string, (f: GuardFacts) => boolean>> = {
+  // `!== undefined` пропускал `null`: правило объявлялось проверенным и возвращало чисто по
+  // ветке «улик нет». Это буквально отсутствие улик, отчитанное как проверка (назвал независимый
+  // ревьюер 2026-09-04).
+  'backlog-covers-features': (f) => typeof f.featureBacklog === 'object' && f.featureBacklog !== null,
+  // Страж без улик не выдумывает вердикт: в дереве без сиблинг-зависимостей правилу нечего
+  // сказать, и «прошло» тут значило бы «не смотрели».
+  'sibling-dep-protocol': (f) => Array.isArray(f.siblingDeps) && f.siblingDeps.length > 0,
+  // Дерево без плагин-манифестов правилу нечего сказать: «прошло» тут значило бы «не смотрели».
+  'plugin-manifest-audit': (f) => Array.isArray(f.pluginManifests) && f.pluginManifests.length > 0,
   'no-secrets': (f) => Array.isArray(f.secretTargets) && f.secretTargets.length > 0,
+  'release-line-in-sync': (f) => typeof f.releaseLines === 'object' && f.releaseLines !== null,
+  'signature-fresh': (f) => Array.isArray(f.signedPacks),
 };
 
 /**
@@ -790,13 +1157,50 @@ export function evaluateGuard(facts: GuardFacts, rules: readonly GuardRule[] = D
   };
   for (const r of active) {
     const hasInput = HAS_INPUT[r.id];
-    if (hasInput !== undefined && !hasInput(facts)) {
+    // ПРЕДИКАТ УЛИК ИСПОЛНЯЕТСЯ ПОД ЗАЩИТОЙ. Прежде он стоял вне `try`, и факт с бросающим
+    // геттером ронял весь страж вместо того, чтобы стать отказом (назвал независимый ревьюер
+    // 2026-09-04). Гейт, падающий на враждебном входе, не даёт вердикта вообще.
+    let inputPresent: boolean;
+    try {
+      inputPresent = hasInput === undefined ? true : hasInput(facts);
+    } catch (error) {
+      violations.push({
+        rule: r.id, severity: r.severity,
+        detail: `улики правила нечитаемы (${error instanceof Error ? error.message : String(error)}) — правило считается НАРУШЕННЫМ, а не пройденным`,
+      });
+      checked.push(r.id);
+      continue;
+    }
+    if (!inputPresent) {
       // A rule with nothing to measure cannot produce a positive receipt. Keep the verdict unchanged,
       // but record the missing input explicitly instead of calling the rule checked.
       notEstablished.push(r.id);
       continue;
     }
     checked.push(r.id);
+    if (r.id === 'readme-first') {
+      for (const p of facts.readmeFirst ?? []) {
+        if (p?.versionUnknown !== true) continue;
+        observations.push({
+          schemaVersion: 'volume-shadow/v1', rule: 'readme-first' as never,
+          metric: 'package-version-changed-from-head', scope: p.name, status: 'unknown', value: null,
+          unit: 'artifact_set', signal: false, operands: {}, method: 'git-show-head-package-version/v1',
+          detail: `${p.name}: package version could not be compared with HEAD; readme-first stayed advisory and emitted no violation`,
+        });
+      }
+    }
+    if (r.id === 'release-line-in-sync') {
+      const inspection = inspectReleaseLines(facts.releaseLines!, r.severity);
+      observations.push(...inspection.observations);
+      violations.push(...inspection.violations);
+      continue;
+    }
+    if (r.id === 'signature-fresh') {
+      const inspection = inspectSignatureFresh(facts.signedPacks!, r.severity);
+      observations.push(...inspection.observations);
+      violations.push(...inspection.violations);
+      continue;
+    }
     if ((VOLUME_SHADOW_RULE_IDS as readonly string[]).includes(r.id)) {
       const emission = volume();
       observations.push(...emission.observations.filter((item) => item.rule === r.id));

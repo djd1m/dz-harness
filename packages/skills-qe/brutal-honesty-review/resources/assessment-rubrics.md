@@ -21,12 +21,22 @@
 |-------|----------|---------|
 | 🔴 **Failing** | Crashes on invalid input | Uncaught exceptions, panics |
 | 🟡 **Passing** | Returns error codes/exceptions | `try/catch`, error returns |
-| 🟢 **Excellent** | Graceful degradation + logging | Circuit breakers, retry logic |
+| 🟢 **Excellent** | Graceful degradation + logging — **но НЕ для значения, которое продукт ОТДАЁТ наружу** | Circuit breakers, retry logic |
+
+> **Оговорка к высшей оценке, и она несущая.** Мягкая деградация заслуживает 🟢 для НЕДОСТУПНОСТИ
+> (сервис не ответил — вернём кэш, попробуем позже) и заслуживает 🔴 для ЗНАЧЕНИЯ, которое уходит
+> потребителю (цена, остаток, право доступа, результат расчёта). Подставить приблизительное вместо
+> точного и записать это в журнал — значит выдать неверный ответ и назвать это устойчивостью.
+> Правильный исход для значения — ОТКАЗ С НАЗВАННОЙ ПРИЧИНОЙ, а не правдоподобная замена.
+>
+> Оговорка появилась потому, что прежняя формулировка прямо ПООЩРЯЛА механизм, который в разборе
+> реальных отказов назван причиной каждого происшествия высшей категории: подстановка запасного
+> значения там, где честный ответ — «не знаю».
 
 ### Concurrency Safety
 | Level | Criteria | Example |
 |-------|----------|---------|
-| 🔴 **Failing** | Race conditions, deadlocks | Shared mutable state, no locks |
+| 🔴 **Failing** | Race conditions, deadlocks; **а также: последовательный тест, поданный как доказательство параллельной безопасности** | Shared mutable state, no locks; «тест проходит» при одном писателе |
 | 🟡 **Passing** | Thread-safe with locks | Proper mutex usage |
 | 🟢 **Excellent** | Lock-free or proven safe | Immutable data, atomic operations |
 

@@ -54,8 +54,12 @@ const RULE_TEXT =
 
 /** `codex:gpt-5.5:xhigh (usage-switched)` → `gpt-5.5`; claude ids pass through; unknown → null. */
 export function normalizeModelId(raw: unknown): string | null {
-  if (typeof raw !== 'string' || raw === '') return null;
-  let id = raw.replace(/ \(usage-switched\)$/, '').trim();
+  if (typeof raw !== 'string' || raw.trim() === '') return null;
+  // ОБРЕЗКА ИДЁТ ПЕРВОЙ. Прежде метка снималась якорем `$` по СЫРОЙ строке, и один хвостовой
+  // пробел — `codex:gpt-5.5:xhigh (usage-switched) ` — делал весь образец неопознанным (null),
+  // то есть телеметрия молча теряла запись. ИЗМЕРЕНО 2026-09-04: без пробела «gpt-5.5», с
+  // пробелом null.
+  let id = raw.trim().replace(/\s*\(usage-switched\)$/, '').trim();
   const codex = /^codex:([^:]+)(?::[a-z]+)?$/.exec(id);
   if (codex !== null) id = codex[1]!;
   return COST_LADDER.some((r) => r.id === id) ? id : null;
@@ -94,7 +98,14 @@ export function harvestStageOutcomes(records: readonly unknown[]): Harvest {
     if (grade === null) { skipped.noGrade += 1; continue; }
     // Full canonical JSON is intentional: the former 40-character prefix merged distinct records
     // whose stage names shared a long prefix, manufacturing idempotency across different runs.
-    const runId = typeof source['runId'] === 'string' ? source['runId'] : `models:${JSON.stringify(modelsUsed)}`;
+    // ПУСТОЙ runId — НЕ ИДЕНТИФИКАТОР. Прежде проверка была `typeof === 'string'`, и пустая строка
+    // принималась: ВСЕ такие записи схлопывались в один «прогон», а число прогонов и признак
+    // «скормлено» считались по нему. Отсутствующий и пустой теперь одинаково уходят на запасной
+    // ключ по составу моделей.
+    const rawRunId = source['runId'];
+    const runId = typeof rawRunId === 'string' && rawRunId.trim() !== ''
+      ? rawRunId.trim()
+      : `models:${JSON.stringify(modelsUsed)}`;
     const ts = typeof source['timestamp'] === 'string' ? source['timestamp'] : null;
     const tier = typeof result['tier'] === 'string' && result['tier'] !== '' ? result['tier'] : 'unknown';
     let contributed = false;

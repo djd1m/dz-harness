@@ -11,8 +11,25 @@ import { join as pathJoin, relative as pathRelative, resolve as pathResolve } fr
 import { decidePublishSigning, decidePostSigningVerification } from './publish-signing.js';
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
+// Structural twin of node's ExecSyncOptionsWithStringEncoding — a type-only import of node:child_process
+// still counts as an IO import for the core-boundary ratchet (measured 66 → 67), so the shape is spelled here.
+type ExecSyncOptionsWithStringEncoding = NonNullable<Parameters<typeof execSync>[1]> & { encoding: 'utf-8' };
 
 import { claimCheck } from './claim-check.js';
+import { rewriteReleaseLine } from './release-line.js';
+
+export type ProbeOutcome = {
+  readonly attempt: number;
+  readonly ok: boolean;
+  readonly stdout: string;
+  readonly stderr: string;
+  readonly code: number | null;
+  readonly ms: number;
+};
+
+// MEASURED 2026-09-10: registry answered E404 for ~3 min (19 probes); earlier the same day > 5 min.
+export const REGISTRY_PROBE_BUDGET = 90;
+export const REGISTRY_PROBE_INTERVAL_MS = 10_000;
 
 /** Result for a single package publish attempt. */
 export interface PublishResult {
@@ -21,12 +38,27 @@ export interface PublishResult {
   readonly newVersion: string;
   readonly status: 'published' | 'skipped' | 'error';
   readonly error?: string | undefined;
+  /** Live publish only: how many registry probes were needed to confirm the exact new version. */
+  readonly registryProbes?: number | undefined;
+  /** Live publish only: complete evidence from every registry receipt probe. */
+  readonly probeLog?: readonly ProbeOutcome[] | undefined;
   /**
    * Pre-publish claim-check summary for this package's README, present only when the
    * opt-in `claimCheck` gate ran (`'warn'`/`'block'`). Additive: absent by default so an
    * unmodified `publishPackages` call is byte-compatible with pre-gate behavior.
    */
   readonly claimCheck?: { readonly findings: number; readonly high: number } | undefined;
+  /**
+   * DRY-RUN ONLY, and the reason it exists is a measured incident. A dry run short-circuits
+   * BEFORE build, sign and pack (see the `opts.dryRun` branch below), so the package's own
+   * `prepublishOnly` gate never executes. On 2026-09-02 a clean dry run was read as evidence that
+   * publication would succeed; the real gate was RED — a stale signature baseline plus six
+   * `__pycache__/*.pyc` files already signed into the manifest. A preview that names only what it
+   * DID check reads as a pass for everything it skipped, which is the same failure class as a gate
+   * that infers success from silence. So a dry-run result carries the list of gates it did NOT run,
+   * and the CLI prints it. Absent on a real publish, where every gate actually ran.
+   */
+  readonly notVerified?: readonly string[] | undefined;
 }
 
 /** Full publish report. */
@@ -36,6 +68,10 @@ export interface PublishReport {
   readonly skipped: number;
   readonly errors: number;
   readonly dryRun: boolean;
+  /** Repo-relative README paths whose first joint core/CLI release line was rewritten. */
+  readonly releaseLineSynced: readonly string[];
+  /** Post-publication sync failures are warnings: registry-confirmed packages cannot be unpublished. */
+  readonly warnings?: readonly string[] | undefined;
 }
 
 /** Is `p` inside `dir`? Used to refuse a signing key that lives in the repository working tree. */
@@ -74,9 +110,11 @@ export function compareVersions(a: string, b: string): number {
  * has never been published (or npm is unreachable). Used to bump from
  * max(local, published) so a locally-reverted version can't collide (audit #10).
  */
-function publishedVersion(name: string): string | undefined {
+type PublishExec = (command: string, options: ExecSyncOptionsWithStringEncoding) => string;
+
+function publishedVersion(name: string, exec: PublishExec = execSync): string | undefined {
   try {
-    const out = execSync(`npm view ${name} version`, { stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf-8', timeout: 20000 }).trim();
+    const out = exec(`npm view ${name} version --prefer-online`, { stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf-8', timeout: 20000 }).trim();
     return /^\d+\.\d+\.\d+/.test(out) ? out : undefined;
   } catch {
     return undefined; // 404 (never published) or offline → fall back to local
@@ -84,8 +122,8 @@ function publishedVersion(name: string): string | undefined {
 }
 
 /** The higher of the local version and the npm-published version (audit #10). */
-function maxPublished(name: string, localVersion: string): string {
-  const pub = publishedVersion(name);
+function maxPublished(name: string, localVersion: string, exec: PublishExec = execSync): string {
+  const pub = publishedVersion(name, exec);
   return pub !== undefined && compareVersions(pub, localVersion) > 0 ? pub : localVersion;
 }
 
@@ -96,6 +134,32 @@ function maxPublished(name: string, localVersion: string): string {
 // and a later `--filter`ed publish of just the dependent would ship a floor nobody can install —
 // the publish itself succeeds, and every consumer `npm install` then fails with ETARGET. Staged is
 // not shipped; this preflight makes the difference a refusal instead of a broken release.
+
+/**
+ * Mirror pnpm's package-time expansion of the three shorthand workspace dependency specs.
+ * Pure by construction: callers provide both the source bytes and the sibling version table.
+ */
+export function rewriteWorkspaceSpecs(
+  pkgJsonText: string,
+  siblingVersions: ReadonlyMap<string, string>,
+): string {
+  const pkg = JSON.parse(pkgJsonText) as Record<string, unknown>;
+  const fields = ['dependencies', 'peerDependencies', 'optionalDependencies', 'devDependencies'] as const;
+  for (const field of fields) {
+    const candidate = pkg[field];
+    if (candidate === null || typeof candidate !== 'object' || Array.isArray(candidate)) continue;
+    const table = candidate as Record<string, unknown>;
+    for (const [dep, spec] of Object.entries(table)) {
+      if (typeof spec !== 'string') continue;
+      const match = /^workspace:([*^~])$/.exec(spec);
+      const version = siblingVersions.get(dep);
+      if (match === null || version === undefined) continue;
+      const marker = match[1]!;
+      table[dep] = marker === '*' ? version : `${marker}${version}`;
+    }
+  }
+  return JSON.stringify(pkg, null, 2) + '\n';
+}
 
 /**
  * Pure half: which `workspace:`-declared deps of a package would pack to a floor that is neither
@@ -141,13 +205,25 @@ export function findUnpublishedWorkspaceFloors(opts: {
   return missing;
 }
 
-/** Registry probe: is exactly `name@version` published? Empty output / 404 / offline ⇒ no. */
-function versionPublished(name: string, version: string): boolean {
+/** Registry probe: preserve the complete answer while checking for the exact `name@version`. */
+export function probeVersion(
+  name: string,
+  version: string,
+  exec: PublishExec = execSync,
+): Omit<ProbeOutcome, 'attempt'> {
+  const started = Date.now();
   try {
-    const out = execSync(`npm view ${name}@${version} version`, { stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf-8', timeout: 20000 }).trim();
-    return out === version;
-  } catch {
-    return false;
+    const out = exec(`npm view ${name}@${version} version --prefer-online`, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf-8', timeout: 20000 });
+    return { ok: out.trim() === version, stdout: out, stderr: '', code: 0, ms: Date.now() - started };
+  } catch (err) {
+    const failure = err as Error & { status?: number | null; stdout?: unknown; stderr?: unknown };
+    return {
+      ok: false,
+      stdout: String(failure.stdout ?? ''),
+      stderr: String(failure.stderr ?? failure.message),
+      code: failure.status ?? null,
+      ms: Date.now() - started,
+    };
   }
 }
 
@@ -530,11 +606,22 @@ export function publishPackages(
      * preflight under dry-run, which is how the wiring test drives it without network.
      */
     probeFloor?: ((name: string, version: string) => boolean) | undefined;
+    /** Subprocess injection for tests; the default is Node's synchronous executor. */
+    exec?: PublishExec | undefined;
+    /** Post-publish receipt probe. The default asks npm for exactly `name@version`. */
+    probe?: ((name: string, version: string) => boolean | Omit<ProbeOutcome, 'attempt'>) | undefined;
+    /** Pause injection between receipt probes. The default blocks for the requested milliseconds. */
+    sleep?: ((milliseconds: number) => void) | undefined;
   } = {},
 ): PublishReport {
   // Decide ONCE, before the batch: `--provenance` in an incapable environment must fail here, not on
   // package 7 of 45 (recalled lesson: a failed publish that retries with a bump orphans version numbers).
   const publishCmd = publishArgv(opts.provenance ?? 'auto', process.env);
+  const exec = opts.exec ?? execSync;
+  const probe = opts.probe ?? ((name: string, version: string) => probeVersion(name, version, exec));
+  const sleep = opts.sleep ?? ((milliseconds: number): void => {
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds);
+  });
 
   const packages = discoverPackages(monorepoRoot);
   const results: PublishResult[] = [];
@@ -551,15 +638,43 @@ export function publishPackages(
   // has no published floor, and static membership would still have covered its dependents).
   const workspaceVersions = new Map(packages.map((p) => [p.name, p.version]));
   const landedInBatch = new Set<string>();
+  const failedInBatch = new Set<string>();
   const armFloorPreflight = opts.bumpOnly !== true && (opts.dryRun !== true || opts.probeFloor !== undefined);
-  const probeFloor = opts.probeFloor ?? versionPublished;
+  const probeFloor = opts.probeFloor ?? ((name: string, version: string) => probeVersion(name, version).ok);
 
   for (const pkg of ordered) {
     const oldVersion = pkg.version;
+    const pkgJsonPath = join(pkg.dir, 'package.json');
+    const originalPkgJson = readFileSync(pkgJsonPath, 'utf-8');
+    const manifest = JSON.parse(originalPkgJson) as {
+      dependencies?: Record<string, string>;
+      peerDependencies?: Record<string, string>;
+      scripts?: Record<string, string>;
+    };
+    const workspaceDependencies = [
+      ...Object.keys(manifest.dependencies ?? {}),
+      ...Object.keys(manifest.peerDependencies ?? {}),
+    ];
+    const failedDependency = workspaceDependencies.find((dep) => failedInBatch.has(dep));
+    if (failedDependency !== undefined) {
+      const reason = results.find((result) => result.name === failedDependency && result.status === 'error')?.error
+        ?? 'unknown error';
+      const failedVersion = workspaceVersions.get(failedDependency);
+      const floor = failedVersion === undefined ? '' : `; failed workspace floor ${failedDependency}@${failedVersion}`;
+      results.push({
+        name: pkg.name,
+        oldVersion,
+        newVersion: oldVersion,
+        status: 'error',
+        error: `dependency ${failedDependency} failed in this batch: ${reason}${floor}`,
+      });
+      failedInBatch.add(pkg.name);
+      continue;
+    }
     // Bump from max(local, npm-published) so a locally-reverted version can't
     // collide with an already-published one (audit #10). Dry-run stays offline
     // (local only) to keep previews fast and network-free.
-    const base = opts.dryRun ? oldVersion : maxPublished(pkg.name, oldVersion);
+    const base = opts.dryRun ? oldVersion : maxPublished(pkg.name, oldVersion, exec);
     const newVersion = bumpPatch(base);
 
     // Preflight: refuse to publish a pack whose `files` whitelist would silently
@@ -575,6 +690,7 @@ export function publishPackages(
         status: 'error',
         error: `would drop ${unpackaged.length} skill(s) not in package.json "files": ${unpackaged.join(', ')}. Add them to "files" before publishing.`,
       });
+      failedInBatch.add(pkg.name);
       continue;
     }
 
@@ -582,7 +698,6 @@ export function publishPackages(
     // packs to `^<sibling's DISK version>` — refuse if that floor is neither in this batch nor on
     // the registry, or the publish succeeds and every consumer install dies with ETARGET.
     if (armFloorPreflight) {
-      const manifest = JSON.parse(readFileSync(join(pkg.dir, 'package.json'), 'utf-8')) as { dependencies?: Record<string, string>; peerDependencies?: Record<string, string> };
       const unpublishedFloors = findUnpublishedWorkspaceFloors({ dependencies: manifest.dependencies, peerDependencies: manifest.peerDependencies, workspaceVersions, batch: landedInBatch, probe: probeFloor });
       if (unpublishedFloors.length > 0) {
         results.push({
@@ -592,6 +707,7 @@ export function publishPackages(
           status: 'error',
           error: `workspace floor(s) not published: ${unpublishedFloors.map((f) => `${f.name}@${f.version}`).join(', ')}. Publish the sibling(s) first or include them in --filter — a staged disk version is not a shipped one.`,
         });
+        failedInBatch.add(pkg.name);
         continue;
       }
     }
@@ -621,6 +737,7 @@ export function publishPackages(
               error: `claim-check: ${high} high-severity claim(s) in README.md — tag MEASURED with a reproducer or CLAIMED/SYNTHETIC before publishing.`,
               claimCheck: claimCheckSummary,
             });
+            failedInBatch.add(pkg.name);
             continue;
           }
         } catch {
@@ -630,14 +747,27 @@ export function publishPackages(
     }
 
     if (opts.dryRun) {
-      results.push({ name: pkg.name, oldVersion, newVersion, status: 'skipped', claimCheck: claimCheckSummary });
-      landedInBatch.add(pkg.name); // preview: this package passed its gates and WOULD land
+      // NOT a statement that the package would publish cleanly — only that the gates checked ABOVE
+      // this line passed. Everything below it (build, re-sign, pack, the package's own
+      // `prepublishOnly`, the registry itself) is untouched by a dry run and is named as such.
+      const NOT_VERIFIED_BY_DRY_RUN = Object.freeze([
+        'prepublishOnly пакета (его собственный гейт публикации)',
+        'сборка dist из исходников',
+        'пере-подпись манифеста после бампа',
+        'содержимое тарбола (npm pack)',
+        'ответ реестра npm',
+      ]);
+      results.push({
+        name: pkg.name, oldVersion, newVersion, status: 'skipped',
+        claimCheck: claimCheckSummary,
+        notVerified: NOT_VERIFIED_BY_DRY_RUN,
+      });
+      landedInBatch.add(pkg.name);
       continue;
     }
 
-    const pkgJsonPath = join(pkg.dir, 'package.json');
-    const originalPkgJson = readFileSync(pkgJsonPath, 'utf-8');
     let originalReadme: string | undefined;
+    const probeLog: ProbeOutcome[] = [];
     try {
       // Bump version in package.json
       writeFileSync(pkgJsonPath, originalPkgJson.replace(`"version": "${oldVersion}"`, `"version": "${newVersion}"`));
@@ -651,9 +781,10 @@ export function publishPackages(
       }
 
       // Build if has build script
-      const parsed = JSON.parse(readFileSync(pkgJsonPath, 'utf-8')) as { scripts?: Record<string, string> };
-      if (parsed.scripts?.['build']) {
-        execSync('pnpm build', { cwd: pkg.dir, stdio: 'pipe', encoding: 'utf-8' });
+      if (manifest.scripts?.['build']) {
+        const buildOptions = { cwd: pkg.dir, stdio: 'pipe' as const, encoding: 'utf-8' as const };
+        if (opts.exec) opts.exec('pnpm build', buildOptions);
+        else execSync('pnpm build', buildOptions);
       }
 
       // Re-sign AFTER the bump, the README sync and the build, and BEFORE the tarball is built.
@@ -672,6 +803,7 @@ export function publishPackages(
       });
       if (signing.blocking) {
         results.push({ name: pkg.name, oldVersion, newVersion, status: 'error', error: signing.reason, claimCheck: claimCheckSummary });
+        failedInBatch.add(pkg.name);
         try { writeFileSync(pkgJsonPath, originalPkgJson); } catch { /* best-effort restore */ }
         if (originalReadme !== undefined) {
           try { writeFileSync(pathJoin(pkg.dir, 'README.md'), originalReadme); } catch { /* best-effort restore */ }
@@ -706,6 +838,7 @@ export function publishPackages(
         } catch (err) {
           restoreSignature();
           results.push({ name: pkg.name, oldVersion, newVersion, status: 'error', error: `re-signing failed: ${(err as Error).message}`, claimCheck: claimCheckSummary });
+          failedInBatch.add(pkg.name);
           try { writeFileSync(pkgJsonPath, originalPkgJson); } catch { /* best-effort restore */ }
           if (originalReadme !== undefined) {
             try { writeFileSync(pathJoin(pkg.dir, 'README.md'), originalReadme); } catch { /* best-effort restore */ }
@@ -721,6 +854,7 @@ export function publishPackages(
         if (after.blocking) {
           restoreSignature();
           results.push({ name: pkg.name, oldVersion, newVersion, status: 'error', error: after.reason, claimCheck: claimCheckSummary });
+          failedInBatch.add(pkg.name);
           try { writeFileSync(pkgJsonPath, originalPkgJson); } catch { /* best-effort restore */ }
           if (originalReadme !== undefined) {
             try { writeFileSync(pathJoin(pkg.dir, 'README.md'), originalReadme); } catch { /* best-effort restore */ }
@@ -730,14 +864,42 @@ export function publishPackages(
       }
 
       // Publish
-      execSync(publishCmd, {
+      const publishOptions = {
         cwd: pkg.dir,
-        stdio: 'pipe',
-        encoding: 'utf-8',
+        stdio: 'pipe' as const,
+        encoding: 'utf-8' as const,
         env: { ...process.env },
-      });
+      };
+      if (opts.exec) opts.exec(publishCmd, publishOptions);
+      else execSync(publishCmd, publishOptions);
 
-      results.push({ name: pkg.name, oldVersion, newVersion, status: 'published', claimCheck: claimCheckSummary });
+      let registryProbes = 0;
+      let confirmed = false;
+      while (registryProbes < REGISTRY_PROBE_BUDGET) {
+        registryProbes++;
+        const probed = probe(pkg.name, newVersion);
+        const outcome: Omit<ProbeOutcome, 'attempt'> = typeof probed === 'boolean'
+          ? { ok: probed, stdout: '', stderr: '', code: null, ms: 0 }
+          : probed;
+        probeLog.push({ attempt: registryProbes, ...outcome });
+        if (outcome.ok) {
+          confirmed = true;
+          break;
+        }
+        if (registryProbes < REGISTRY_PROBE_BUDGET) sleep(REGISTRY_PROBE_INTERVAL_MS);
+      }
+      if (!confirmed) {
+        const last = probeLog[probeLog.length - 1]!;
+        const output = last.stderr || last.stdout;
+        const firstLine = output.split(/\r?\n/, 1)[0]?.trim() || '(empty)';
+        throw new Error(
+          `registry did not confirm ${pkg.name}@${newVersion} after ${registryProbes} probes ` +
+          `(${Math.round(registryProbes * REGISTRY_PROBE_INTERVAL_MS / 60_000)} min); ` +
+          `last probe: code ${String(last.code)}, ${last.ms}ms, ${firstLine}`,
+        );
+      }
+
+      results.push({ name: pkg.name, oldVersion, newVersion, status: 'published', registryProbes, probeLog, claimCheck: claimCheckSummary });
       landedInBatch.add(pkg.name); // only an ACTUAL publish covers dependents (Codex P1)
     } catch (err) {
       // The version was written BEFORE build+publish; on any failure restore the
@@ -754,8 +916,61 @@ export function publishPackages(
         newVersion,
         status: 'error',
         error: formatPublishError(err),
+        ...(probeLog.length > 0 ? { probeLog } : {}),
         claimCheck: claimCheckSummary,
       });
+      failedInBatch.add(pkg.name);
+    }
+  }
+
+  const releaseLineSynced: string[] = [];
+  const warnings: string[] = [];
+  const releasePackageNames = new Set(['@dzhechkov/harness-core', '@dzhechkov/harness-cli']);
+  const releasePackagePublished = results.some(
+    (result) => result.status === 'published' && releasePackageNames.has(result.name),
+  );
+  if (releasePackagePublished && opts.dryRun !== true && opts.bumpOnly !== true) {
+    const currentVersion = (name: string): string | null => {
+      const landed = results.find((result) => result.name === name && result.status === 'published');
+      if (landed !== undefined) return landed.newVersion;
+      const pkg = packages.find((candidate) => candidate.name === name);
+      if (pkg === undefined) return null;
+      try {
+        const parsed = JSON.parse(readFileSync(pathJoin(pkg.dir, 'package.json'), 'utf8')) as { version?: unknown };
+        return typeof parsed.version === 'string' ? parsed.version : null;
+      } catch {
+        return null;
+      }
+    };
+    const coreVersion = currentVersion('@dzhechkov/harness-core');
+    const cliVersion = currentVersion('@dzhechkov/harness-cli');
+    if (coreVersion === null || cliVersion === null) {
+      warnings.push('release-line sync skipped: could not read both harness-core and harness-cli package versions');
+    } else {
+      const readmes = [
+        { path: 'README.md', absolute: pathJoin(monorepoRoot, 'README.md') },
+        {
+          path: 'packages/@dzhechkov/harness-cli/README.md',
+          absolute: pathJoin(monorepoRoot, 'packages', '@dzhechkov', 'harness-cli', 'README.md'),
+        },
+      ] as const;
+      for (const readme of readmes) {
+        try {
+          const original = readFileSync(readme.absolute, 'utf8');
+          const updated = rewriteReleaseLine(original, coreVersion, cliVersion);
+          if (updated === null) {
+            warnings.push(`release-line sync skipped ${readme.path}: release line not found`);
+            continue;
+          }
+          if (updated === original) continue;
+          const tmp = readme.absolute + '.sync-tmp';
+          writeFileSync(tmp, updated);
+          renameSync(tmp, readme.absolute);
+          releaseLineSynced.push(readme.path);
+        } catch (error) {
+          warnings.push(`release-line sync failed ${readme.path}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+      }
     }
   }
 
@@ -765,5 +980,7 @@ export function publishPackages(
     skipped: results.filter((r) => r.status === 'skipped').length,
     errors: results.filter((r) => r.status === 'error').length,
     dryRun: opts.dryRun === true,
+    releaseLineSynced,
+    ...(warnings.length > 0 ? { warnings } : {}),
   };
 }

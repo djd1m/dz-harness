@@ -458,3 +458,11 @@ carried that file and the last four in a row did not.
 
 `1.5.40` — the bundled `feature-adr` Step-8 module now describes the amendment gate as the command
 `dz amendment-check` instead of a judgement the reviewer is asked to make. Text only; no pipeline change.
+
+### Shared Markdown masking in feature-adr gates
+
+The standalone plan-completeness gate ships with `markdown-masker.mjs`, copied byte-for-byte from
+harness-core's `src/markdown-masker.ts`. It runs without a core build. Amendment checks, swarm briefs
+and K2 share the parser while retaining their existing unclosed-block and indentation policies.
+The four-space indented-code gap remains open for amendment checks and K2; swarm briefs retain their
+existing masking of indented code. Versions are unchanged in this staged change.

@@ -1,3 +1,4 @@
+import { probePid } from './run-registry.js';
 /** Pure decisions for the Step-7.5 Codex companion liveness barrier. */
 export declare const DEFAULT_CODE_LANDING_CEILING_MS = 7200000;
 export declare const CODE_LANDING_CEILING_ENV = "DZ_FEATURE_ADR_CODE_LANDING_CEILING_MS";
@@ -5,7 +6,8 @@ export type CodeLandingLivenessVerdict = 'coder-running' | 'landed' | 'genuinely
 export type CodeLandingLivenessReason = 'recorded-pid-alive' | 'recorded-pid-absent' | 'terminal-companion' | 'ceiling-exceeded' | 'companion-probe-error' | 'unparseable-companion-status' | 'recorded-pid-unavailable' | 'git-evidence-unavailable' | 'reported-zero-touched-files';
 export interface CodeLandingLivenessInput {
     readonly companionStatus: unknown;
-    readonly recordedPidAlive: boolean | null;
+    readonly recordedPidAlive?: boolean | null;
+    readonly recordedPid?: number;
     readonly targetsChanged: boolean | null;
     readonly elapsedMs: number;
     readonly ceilingMs: number;
@@ -22,7 +24,7 @@ export interface CodeLandingLivenessDecision {
     readonly verdict: CodeLandingLivenessVerdict;
     readonly reason: CodeLandingLivenessReason;
 }
-export declare function decideCodeLandingLiveness(input: CodeLandingLivenessInput): CodeLandingLivenessDecision;
+export declare function decideCodeLandingLiveness(input: CodeLandingLivenessInput, pidProbe?: typeof probePid): CodeLandingLivenessDecision;
 export declare function extractCodexCompanionJobId(text: unknown): string | null;
 export interface CodeLandingLivenessProbe {
     readonly companionStatus: string;

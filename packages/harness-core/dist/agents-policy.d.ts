@@ -28,7 +28,21 @@ export interface ExtractPolicyBlocksResult {
     /** Registry ids whose source is absent/null or whose begin/end anchor is malformed. */
     readonly missing: readonly string[];
 }
-export type PolicyDriftStatus = 'ok' | 'stale' | 'missing-stamp' | 'missing-anchor' | 'orphan-stamp';
+export type PolicyDriftStatus = 'ok' | 'stale' | 'missing-stamp' | 'missing-anchor' | 'orphan-stamp'
+/**
+ * Секция `<!-- dz:policy id=X -->` найдена в ФАЙЛЕ-ИСТОЧНИКЕ, но не объявлена в `POLICY_SOURCES`.
+ *
+ * ЗАЧЕМ ОТДЕЛЬНЫЙ СТАТУС. `orphan-stamp` смотрит в другую сторону — штамп в проекции без
+ * источника. Обратный случай не покрывался ничем, и это давало ЛОЖНОЕ ЗЕЛЁНОЕ: реестр
+ * `POLICY_SOURCES` ведётся руками, поэтому секция, дописанная в CLAUDE.md и не вписанная в него,
+ * молча не попадала в AGENTS.md, а `dz agents-sync --check` отвечал «in sync».
+ *
+ * ИЗМЕРЕНО 2026-09-03 на живом случае: добавил в канон секцию `backlog-coverage`, прогнал
+ * `agents-sync` — «in sync — 9 policy section(s), 9250 bytes», ровно те же число секций и байт,
+ * что до правки, ни на единицу не изменившиеся. Правило, ради которого всё делалось, до агентов
+ * не доехало, а прибор доложил успех.
+ */
+ | 'unregistered-section';
 export interface PolicyDriftFinding {
     readonly id: string;
     readonly file: string;

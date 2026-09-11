@@ -105,6 +105,34 @@ export declare function writerVersionOf(content: string): number;
  * emitted (Claude Code silently ignores flat entries — the writer-hooks bug; migrated on setup).
  */
 export declare function commandsOf(entry: unknown): string[];
+export interface GuardInstallReceipt {
+    /** True ONLY when the installed file was RUN and refused a command it must refuse. */
+    readonly ok: boolean;
+    /** What was observed — an exit code and the first line it printed, or why it could not run. */
+    readonly detail: string;
+}
+/**
+ * Prove the installed hook WORKS, by running it (feature `destructive-command-guard`, review
+ * round 4, P2).
+ *
+ * Presence is not proof and a successful write is not proof either: the body must load its decider
+ * (which lives in another package directory), and that resolution is exactly what broke in the
+ * global-install layout one round ago. So the receipt is POSITIVE and end-to-end — the file is
+ * spawned with a payload it is obliged to refuse, and only `exit 2` carrying our marker counts.
+ * Anything else — a crash, a silent pass, a missing file, a spawn that could not happen — is `ok:
+ * false` with the observation named, never an assumption about the cause.
+ *
+ * The registry entry is written only when this returns `ok`. A hook that is registered but cannot
+ * run is worse than no hook at all: the breakage lands on EVERY Bash call instead of on none.
+ *
+ * SAFETY PRECONDITION (round 11): this SPAWNS the file, so the caller must only ever call it on a
+ * body dz owns — one carrying the ownership marker, or one dz has just written itself. Calling it
+ * on a preserved foreign body turns `dz setup` into a runner for whatever a cloned repository
+ * committed at that path.
+ */
+export declare function probeInstalledGuard(hookPath: string, opts?: {
+    projectRoot?: string;
+}): GuardInstallReceipt;
 export declare function generateHooksConfig(projectRoot: string, backend: MemoryBackend): string;
 export declare function runSetup(opts: SetupOptions): SetupResult;
 //# sourceMappingURL=setup.d.ts.map

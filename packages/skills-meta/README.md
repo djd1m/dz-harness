@@ -158,3 +158,11 @@ The pack's `.dz-manifest.json` now covers exactly the files this package SHIPS, 
 could not fix that: those files were never in the tarball.
 
 Nothing about the shipped content changed in this release — only what the signature describes.
+
+### Shared Markdown masking in feature-adr gates
+
+The standalone plan-completeness gate ships with `markdown-masker.mjs`, copied byte-for-byte from
+harness-core's `src/markdown-masker.ts`. It runs without a core build. Amendment checks, swarm briefs
+and K2 share the parser while retaining their existing unclosed-block and indentation policies.
+The four-space indented-code gap remains open for amendment checks and K2; swarm briefs retain their
+existing masking of indented code. Versions are unchanged in this staged change.
