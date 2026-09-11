@@ -14,7 +14,7 @@ process markers, including `execSync(` and `execFile(`, and fails when the list 
 
 > **`dz` is a package manager + cross-compiler for your AI agent harness.** Write a skill once in one canonical form; `dz` installs it into any agent's harness, holds it to a quality bar, and lets the harness learn over time.
 
-**The problem.** You accumulate ~179 skills (design-thinking, QE, devops, web3, MCP, academic…). Five pains follow:
+**The problem.** You accumulate 260 skills (design-thinking, QE, devops, web3, MCP, academic…). Five pains follow:
 
 1. **Every agent wants a different layout.** Claude Code reads `.claude/skills/`, Codex `.codex/`, OpenCode/Hermes/OpenClaude their own. Hand-maintaining N copies is sync hell.
 2. **Skills arrive from many upstream repos** — they must be *canonicalized* (brought to one form) and kept in sync without losing provenance.
@@ -353,9 +353,9 @@ dz help                                   # see all commands
 dz pretrain                                # analyze project files → recommend by tech stack
 dz recommend "build API and deploy to K8s" # keyword match → skills + toolkits
 dz recommend "work on this project"        # unmatched? → labels suggestions as PROJECT-STACK, not task-derived
-dz stats                                  # 54 packages, 201 skills, 10 targets, 14 presets
+dz stats                                  # 58 packages, 260 skills, 10 targets, 14 presets
 dz dashboard                              # visual panel — packages, adapters, skill packs
-dz registry                               # browse all 179 skills by category
+dz registry                               # browse all 260 skills by category
 dz registry search kubernetes             # find specific skills
 dz registry --category devops             # filter by domain
 dz downloads                              # npm weekly download stats
@@ -503,11 +503,35 @@ dz release                                      # gates for the whole workspace;
 dz publish --dry-run                            # preview
 dz publish --filter skills-devops               # publish specific package
 dz publish                                      # publish all changed packages
+dz publish --yes --mirror-cmd "node scripts/publish-mirror.mjs"  # live publish + required mirror receipt
+dz publish --yes --no-mirror                    # explicit one-run mirror opt-out
 
 # Export portable, self-contained skill bundles for a generic consumer (e.g. a LangGraph app):
 dz bundle --preset news --out ./dist            # → ./dist/skills/<id>/ (SKILL.md + references/scripts/assets)
 dz bundle --select news-digest,goap-research-ed25519 --out ./dist
 ```
+
+For a live sweep that publishes at least one package, `dz publish` can run a command-hook epilogue.
+Set it for one invocation with `--mirror-cmd`, or persist the command in `.dz/config.json`:
+
+```json
+{
+  "publish": {
+    "mirrorCommand": "node scripts/publish-mirror.mjs"
+  }
+}
+```
+
+The CLI exports `DZ_PUBLISHED=name@version,…` and appends `--expect name@version,… --json`. It marks
+the mirror `confirmed` only when the command returns JSON containing the live-manifest receipt;
+`unconfirmed`, `skipped`, and `not-configured` remain separate report states. If npm publication
+failed, the command returns exit `1`. If npm publication landed but a configured mirror was not
+confirmed, it returns exit `3` and prints a usable `re-run:` command. `--dry-run`, `--no-mirror`,
+`--bump-only`, and a live sweep with zero published packages do not execute the hook. A malformed or
+unreadable `.dz/config.json` leaves the mirror `not-configured`, returns the ordinary publish exit code,
+and prints `⚠ mirror: .dz/config.json unreadable — …`; an explicit `--mirror-cmd` still takes precedence.
+The repository wrapper prints human-readable output by default; `scripts/publish-mirror.mjs --json`
+prints exactly one JSON document (the `dz publish` epilogue always selects this mode).
 
 ---
 
@@ -2050,7 +2074,7 @@ dz verify-pack --pack <dir> [--pubkey <path>]   # signature check of a pack: fai
 dz guard check --op <publish|teach|consolidate|reindex> [--text <s>] [--json] [--force <reason>]   # declarative constraint layer before self-mutating ops: HARD violation → block (exit 1), SOFT → warn; zero-config defaults, .dz/guard.json to customise; dz guard --init | dz guard log (append-only audit). dz publish runs it automatically (--no-guard "<reason>" = logged escape hatch)
 dz guard promote [--dry-run | --apply] [--window-days <N>] [--periods <N>] [--json]   # lesson → guard-rule promotion: ranks lessons by firings × cost, SHADOW-replays each candidate over real commits, and proposes a rule only after TWO consecutive wins AND two window-lengths of REAL elapsed time since first observation. Non-dry runs add bounded prospective funnel evidence to .dz/promotion-state.json without feeding the verdict; --dry-run remains write-free. --apply installs SOFT rules only; promotions/refusals remain under features/guard-promotion/promotions/
 dz feature-adr-setup --guards [--loc-cap <n>] [--apply]   # P3: scaffold DETERMINISTIC guard tests into the project — guards.config.json + a zero-dependency check.mjs runner (LOC cap, secret scan, frozen-file sha256 pins, waivers-with-reasons); wire `node architecture/guards/check.mjs` into CI
-dz publish           [--filter <name>] [--bump-only] [--claim-check <off|warn|error>]   (dry-run by default; pass --yes/--confirm to go live; claim-check gate defaults to warn — surfaces README claim findings, never blocks)
+dz publish           [--filter <name>] [--bump-only] [--claim-check <off|warn|error>] [--mirror-cmd <cmd>|--no-mirror]   (dry-run by default; pass --yes/--confirm to go live; a configured mirror must return a live receipt or the published run exits 3; config: publish.mirrorCommand)
 dz parity            [--target <name>] [--json]   # honest feature×target map COMPUTED from the capability model — full / manual (via which form) / absent, per target
 dz release           [--filter <name>] [--affected] [--audit-dev] [--tag] [--publish] [--json] [--dry-run] [--no-issue]   # VERIFIED release: 4 HARD gates in front of dz publish — package test suites, pnpm audit --prod >=high (--audit-dev widens), node --check of every dist/bin file (unbuilt package with a build script ⇒ MISSING_DIST fail), bin smoke-boot "node <bin> --help" (temp cwd + timeout); --affected narrows to git-touched packages (fail-open); any red gate STOPS the release (exit 1) + best-effort gh issue; green ⇒ re-sign reminder, then the ready dz publish command (never with --yes injected)
 dz auto-canonicalize --source <github-url> --pack <skills-pack>
@@ -4714,23 +4738,19 @@ refusal as the honest answer.
 
 ## Status
 
-`harness-core v0.8.29` · `harness-cli v0.8.21` — **this release: the release itself is checked
-before it is pressed, and the repository boundary is honest.** (1) `dz guard` gains two rules:
-`release-line-in-sync` — the version line in the root README and the CLI README must name the
-versions `package.json` carries, and `dz publish` now rewrites those lines itself; `signature-fresh` —
-a changed pack whose Ed25519 manifest was signed over older bytes is named BEFORE publication
-(`workspace:` specs are rewritten before hashing, exactly as the pack is published). (2) `readme-first`
-compares the `version` field against HEAD instead of "package.json changed", so a repository-field
-edit no longer reads as a release. (3) All 56 workspace `package.json` files carry the real
-`repository` origin, pinned by a test. (4) Suites that spawn processes or hold real locks run in a
-serial vitest project (`test/serial-suites.txt`, audited by a census test); the CLI suite dropped from
-~6 minutes to ~2m20 once the in-process marketplace guard left the worker-RPC path. (5) `isRepoBoundary`:
-a `.git` directory is a repository boundary only with a real `HEAD` (or a worktree `gitdir:` file), so
-`dz` run from `/tmp` beside a stray empty `.git` no longer adopts it as a project and no longer creates
-`/tmp/.dz`. A planned fallback lock location was MEASURED unsound (two processes could hold two
-different locks for one root) and withdrawn before release — named locks stay `<root>/.dz/locks`, a
-pure function of the root. (6) `dz amendment-check` recognises the Russian challenge-panel placeholder
-as a stub.
+`harness-core v0.8.30` · `harness-cli v0.8.22` — **this release: the store guard tells "busy" from "broken",
+and a publish is not finished until the public mirror confirms it.** (1) The learning-store guard used to
+turn ANY read failure into `unreadable` and refuse the write; a neighbour holding the SQLite write lock
+(`SQLITE_BUSY`) or a store still being initialised (`no such table`) now gets bounded retries and, if still
+busy, the verdict `busy` = **NOT MEASURED** — the write proceeds under the store lock, the high-water mark
+is left untouched, and both the text panel and `dz statusline --json` say so from one verdict. MEASURED:
+eight barrier-synchronised `dz teach` writers from two worktrees no longer lose a lesson to a false
+refusal. (2) `dz publish` gained a mirror epilogue: after a live sweep lands at least one package it runs
+`publish.mirrorCommand` from `.dz/config.json` (or `--mirror-cmd`), passes the published versions, and reads
+a JSON receipt whose proof is the live raw `MIRROR-MANIFEST.json` carrying those versions. Publication
+errors stay exit `1`; packages published but the mirror NOT confirmed exit **`3`** with the exact `re-run:`
+command; dry runs, `--no-mirror`, `--bump-only` and zero-package sweeps never invoke the hook, and each of
+those states is named in the report. This is the first release published THROUGH that epilogue.
 
 `dz guard check --op publish` now warns when either release line disagrees with the core/CLI package versions, and a registry-confirmed live core or CLI publish synchronizes the first such line in both release READMEs: each README is rewritten atomically; the pair is not one transaction (dry-run and bump-only never write them).
 

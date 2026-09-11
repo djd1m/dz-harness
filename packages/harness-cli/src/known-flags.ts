@@ -324,4 +324,5 @@ export const KNOWN_CLI_FLAGS: readonly string[] = [
   'write',
   'year',
   'yes',
+  'mirror-cmd', // dz publish epilogue (mirror-push-on-publish)
 ];

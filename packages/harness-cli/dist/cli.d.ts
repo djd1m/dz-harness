@@ -59,6 +59,8 @@ export interface CliIo {
      * without spawning anything.
      */
     readonly releaseRunner?: ReleaseExecRunner;
+    /** Post-publish mirror command seam; production uses synchronous shell execution. */
+    readonly publishMirrorRunner?: PublishMirrorRunner;
     /**
      * Test seam for `dz install`: overrides the `npm install` subprocess (production leaves
      * it unset → real `execSync`, stdio piped). A stub runner that pre-stages a fixture
@@ -81,6 +83,10 @@ export type ReleaseExecRunner = (cmd: string, opts: {
     stderr: string;
     timedOut?: boolean;
 };
+export type PublishMirrorRunner = (command: string, options: {
+    readonly cwd: string;
+    readonly env: NodeJS.ProcessEnv;
+}) => string;
 type Write = (line: string) => void;
 /**
  * Команда npm для установки пакета В ЦЕЛЕВОЙ КАТАЛОГ, а не куда решит npm.

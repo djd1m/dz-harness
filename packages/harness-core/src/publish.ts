@@ -61,6 +61,27 @@ export interface PublishResult {
   readonly notVerified?: readonly string[] | undefined;
 }
 
+/** Positive read-back evidence returned by the configured public-mirror command. */
+export interface MirrorReceipt {
+  readonly manifestUrl: string;
+  readonly confirmedAt: string;
+  readonly waitedMs: number;
+}
+
+/**
+ * State of the optional post-publish mirror epilogue. This is report data only: harness-core does
+ * not execute the hook or perform mirror I/O.
+ */
+export interface MirrorEpilogue {
+  readonly status: 'confirmed' | 'unconfirmed' | 'skipped' | 'not-configured';
+  readonly command: string;
+  readonly commit?: string | undefined;
+  readonly receipt?: MirrorReceipt | undefined;
+  readonly error?: string | undefined;
+  readonly reason?: string | undefined;
+  readonly warning?: string | undefined;
+}
+
 /** Full publish report. */
 export interface PublishReport {
   readonly packages: readonly PublishResult[];
@@ -72,6 +93,8 @@ export interface PublishReport {
   readonly releaseLineSynced: readonly string[];
   /** Post-publication sync failures are warnings: registry-confirmed packages cannot be unpublished. */
   readonly warnings?: readonly string[] | undefined;
+  /** CLI-owned command-hook outcome after a live publish; no transport logic lives in core. */
+  readonly mirror?: MirrorEpilogue | undefined;
 }
 
 /** Is `p` inside `dir`? Used to refuse a signing key that lives in the repository working tree. */

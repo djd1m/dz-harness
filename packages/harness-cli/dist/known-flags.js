@@ -324,5 +324,6 @@ export const KNOWN_CLI_FLAGS = [
     'write',
     'year',
     'yes',
+    'mirror-cmd', // dz publish epilogue (mirror-push-on-publish)
 ];
 //# sourceMappingURL=known-flags.js.map
