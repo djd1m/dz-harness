@@ -1,0 +1,19 @@
+{
+  "$comment": "Raise a package baseline only together with a new measuredAt date and a fresh npm run test:coverage measurement.",
+  "measuredAt": "2026-09-11",
+  "command": "npm run test:coverage",
+  "packages": {
+    "harness-core": {
+      "lines": 92,
+      "statements": 92,
+      "functions": 96,
+      "branches": 85
+    },
+    "harness-cli": {
+      "lines": 64,
+      "statements": 64,
+      "functions": 75,
+      "branches": 73
+    }
+  }
+}

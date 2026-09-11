@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/harness-core",
-  "version": "0.8.29",
+  "version": "0.8.30",
   "description": "Shared harness logic - skill loading, additive apply, and the init/sync/verify/doctor operations.",
   "type": "module",
   "license": "MIT",
@@ -32,6 +32,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",

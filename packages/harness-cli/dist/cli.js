@@ -104,7 +104,7 @@ Usage:
   dz upgrade [--target <name>] [--pubkey <path>] [--require-signing]   (a TAMPERED pack aborts the upgrade)
   dz sign   --pack <dir> --key <path-outside-repo>          (Ed25519 manifest + CycloneDX SBOM for a pack)
   dz verify-pack --pack <dir> [--pubkey <path>]             (signature check; fail-closed; key from the repo, never the pack)
-  dz publish [--filter <name>] [--bump-only] [--claim-check <off|warn|error>] [--require-signing] [--provenance|--no-provenance]   (dry-run by default; pass --yes/--confirm/--no-dry-run to go live; claim-check gate default warn — surfaces README claim findings, never blocks; error fails an offending package)
+  dz publish [--filter <name>] [--bump-only] [--claim-check <off|warn|error>] [--mirror-cmd <cmd>|--no-mirror] [--require-signing] [--provenance|--no-provenance]   (dry-run by default; pass --yes/--confirm/--no-dry-run to go live; claim-check gate default warn — surfaces README claim findings, never blocks; error fails an offending package)
   dz release [--filter <name>] [--tag] [--publish] [--json] [--dry-run] [--no-issue]   (VERIFIED release: 4 HARD gates in FRONT of dz publish — full package test suites, audit >=high, node --check of every dist/bin file, bin smoke-boot via "node <bin> --help" — any red gate STOPS the release (exit 1) + best-effort gh issue; all green ⇒ re-sign reminder, then prints the ready dz publish command (or chains with --publish); never duplicates publish's own gates)
   dz parity [--target <name>] [--json]   (the honest feature×target map, COMPUTED from the capability model — which harness feature is full / manual / absent on each of the ${TARGET_NAMES.length} targets, and via which form)
   dz delivery-check --slug <slug> [--context-only] [--findings <f.json>] [--strict] [--author <model>] [--json]   (portable Step-10 Delivery Gate: prints the 4-plane review brief + artifact probes; --findings classifies a fed-back review into a fail-closed ready|blocked hand-off and writes features/<slug>/10_delivery_review.md; --strict exits 1 on blocked)
@@ -6150,7 +6150,33 @@ function cmdSbom(options, flags, cwd, write) {
     write(out);
     return 0;
 }
-function cmdPublish(options, flags, cwd, writeOutput) {
+function mirrorCommandFromConfig(cwd) {
+    const configPath = join(cwd, '.dz', 'config.json');
+    if (!existsSync(configPath))
+        return {};
+    try {
+        const config = JSON.parse(readFileSync(configPath, 'utf8'));
+        const command = typeof config.publish?.mirrorCommand === 'string' ? config.publish.mirrorCommand.trim() : '';
+        return command === '' ? {} : { command };
+    }
+    catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        return { warning: `.dz/config.json unreadable — ${reason}` };
+    }
+}
+function mirrorShellToken(value) {
+    if (value === '')
+        return "''";
+    if (!/^[A-Za-z0-9@/.,+_-]+$/.test(value))
+        throw new Error('published package/version list is not shell-safe');
+    return value;
+}
+function mirrorFailureMessage(error) {
+    if (error instanceof Error && error.message.trim() !== '')
+        return error.message.trim().split(/\r?\n/, 1)[0] ?? 'mirror command failed';
+    return String(error);
+}
+function cmdPublish(options, flags, cwd, writeOutput, mirrorRunner) {
     const json = flags.has('json');
     // Under --json stdout carries exactly one JSON document, so every human line — guard notes, refusals,
     // progress — goes to stderr instead of being dropped: a refusal that prints nothing is the silent
@@ -6158,9 +6184,9 @@ function cmdPublish(options, flags, cwd, writeOutput) {
     const write = json ? (line) => { process.stderr.write(`${line}\n`); } : writeOutput;
     // Reject unknown flags/options so a typo (e.g. `--dry-rum`) can NEVER be
     // silently swallowed and flip the command into live-publish mode.
-    const allowedFlags = new Set(['dry-run', 'no-dry-run', 'yes', 'confirm', 'bump-only', 'help', 'require-signing', 'provenance', 'no-provenance', 'json']);
-    const allowedOptions = new Set(['filter', 'claim-check', 'no-guard', 'sign-key']);
-    const allowedHelp = '  allowed: --dry-run (default), --yes/--confirm/--no-dry-run (go live), --bump-only, --filter <substr>, --claim-check <off|warn|error>, --no-guard "<reason>" (skip the guard pre-flight; logged)';
+    const allowedFlags = new Set(['dry-run', 'no-dry-run', 'yes', 'confirm', 'bump-only', 'help', 'require-signing', 'provenance', 'no-provenance', 'json', 'no-mirror']);
+    const allowedOptions = new Set(['filter', 'claim-check', 'no-guard', 'sign-key', 'mirror-cmd']);
+    const allowedHelp = '  allowed: --dry-run (default), --yes/--confirm/--no-dry-run (go live), --bump-only, --filter <substr>, --claim-check <off|warn|error>, --mirror-cmd <cmd>, --no-mirror, --no-guard "<reason>" (skip the guard pre-flight; logged)';
     for (const flag of flags) {
         if (!allowedFlags.has(flag)) {
             write(`dz publish: unknown option --${flag}`);
@@ -6342,7 +6368,7 @@ function cmdPublish(options, flags, cwd, writeOutput) {
     // longer exist. Default to the same path `dz sign --init` writes, so the ordinary operator needs no
     // new flag; `--sign-key` overrides it.
     const signKey = (options.get('sign-key') ?? join(homedir(), '.dz', 'keys', 'dz.key')).trim();
-    const report = publishPackages(cwd, {
+    const publishReport = publishPackages(cwd, {
         provenance,
         dryRun,
         filter,
@@ -6424,9 +6450,82 @@ function cmdPublish(options, flags, cwd, writeOutput) {
             }
         },
     });
+    const configMirror = mirrorCommandFromConfig(cwd);
+    const configuredCommand = (options.get('mirror-cmd') ?? configMirror.command ?? '').trim();
+    const publishedVersions = publishReport.packages
+        .filter((pkg) => pkg.status === 'published')
+        .map((pkg) => `${pkg.name}@${pkg.newVersion}`);
+    const expected = publishedVersions.join(',');
+    const fullMirrorCommand = configuredCommand === ''
+        ? ''
+        : `${configuredCommand} --expect ${mirrorShellToken(expected)} --json`;
+    let mirror;
+    // This exact conjunction is the Step-7/8 mutation anchor: an epilogue is eligible only after a
+    // live sweep that actually landed at least one package. Other explicit skip states are handled
+    // before command resolution so each reason remains distinguishable in text and JSON.
+    const mirrorEligible = !dryRun && publishReport.published >= 1;
+    if (bumpOnly) {
+        mirror = { status: 'skipped', command: fullMirrorCommand, reason: 'bump-only' };
+    }
+    else if (!mirrorEligible) {
+        mirror = {
+            status: 'skipped',
+            command: fullMirrorCommand,
+            reason: dryRun ? 'dry-run' : 'published=0',
+        };
+    }
+    else if (flags.has('no-mirror')) {
+        mirror = { status: 'skipped', command: fullMirrorCommand, reason: '--no-mirror' };
+    }
+    else if (configMirror.warning !== undefined && options.get('mirror-cmd') === undefined) {
+        mirror = { status: 'not-configured', command: '', warning: configMirror.warning };
+    }
+    else if (configuredCommand === '') {
+        mirror = { status: 'not-configured', command: '' };
+    }
+    else {
+        const runMirror = mirrorRunner
+            ?? ((command, runnerOptions) => execSync(command, {
+                cwd: runnerOptions.cwd,
+                env: runnerOptions.env,
+                encoding: 'utf8',
+                stdio: 'pipe',
+            }));
+        try {
+            const stdout = runMirror(fullMirrorCommand, {
+                cwd,
+                env: { ...process.env, DZ_PUBLISHED: expected },
+            });
+            const parsed = JSON.parse(stdout);
+            if (parsed.ok !== true)
+                throw new Error(typeof parsed.error === 'string' ? parsed.error : 'mirror command returned ok:false');
+            if (typeof parsed.commit !== 'string' || parsed.commit === '')
+                throw new Error('mirror command returned no commit');
+            if (typeof parsed.receipt?.manifestUrl !== 'string'
+                || typeof parsed.receipt.confirmedAt !== 'string'
+                || typeof parsed.receipt.waitedMs !== 'number') {
+                throw new Error('mirror command returned no live-manifest receipt');
+            }
+            mirror = {
+                status: 'confirmed',
+                command: fullMirrorCommand,
+                commit: parsed.commit,
+                receipt: {
+                    manifestUrl: parsed.receipt.manifestUrl,
+                    confirmedAt: parsed.receipt.confirmedAt,
+                    waitedMs: parsed.receipt.waitedMs,
+                },
+            };
+        }
+        catch (error) {
+            mirror = { status: 'unconfirmed', command: fullMirrorCommand, error: mirrorFailureMessage(error) };
+        }
+    }
+    const report = { ...publishReport, mirror };
+    const exitCode = report.errors > 0 ? 1 : mirror.status === 'unconfirmed' ? 3 : 0;
     if (json) {
         writeOutput(JSON.stringify(report));
-        return report.errors > 0 ? 1 : 0;
+        return exitCode;
     }
     write(`\ndz publish${dryRun ? ' --dry-run' : ''}${bumpOnly ? ' --bump-only' : ''}${claimCheckOpt !== 'warn' ? ` --claim-check ${claimCheckOpt}` : ''}`);
     write(`  Published: ${report.published}  Skipped: ${report.skipped}  Errors: ${report.errors}\n`);
@@ -6473,7 +6572,24 @@ function cmdPublish(options, flags, cwd, writeOutput) {
         write(`  ⚠ warning: ${warning}`);
     for (const path of report.releaseLineSynced ?? [])
         write(`  ↳ release line synced: ${path}`);
-    return report.errors > 0 ? 1 : 0;
+    if (mirror.status === 'confirmed') {
+        write(`  ✓ mirror: confirmed — ${mirror.commit} (${mirror.receipt?.manifestUrl})`);
+    }
+    else if (mirror.status === 'not-configured') {
+        if (mirror.warning !== undefined)
+            write(`  ⚠ mirror: ${mirror.warning}`);
+        else
+            write('  ℹ mirror: not configured');
+    }
+    else if (mirror.status === 'skipped') {
+        write(`  ℹ mirror: skipped (${mirror.reason})`);
+    }
+    else {
+        write(`  ✗ mirror: unconfirmed — ${mirror.error}`);
+        const rerun = mirror.command || 'configure publish.mirrorCommand, then run it';
+        write(`dz publish: published, mirror NOT confirmed — ${mirror.error}; re-run: ${rerun}`);
+    }
+    return exitCode;
 }
 /* ------------------------------------------------------------------ */
 /*  dz parity — the honest feature×target map (target-parity-matrix,   */
@@ -18000,7 +18116,7 @@ export async function runCli(argv, io = {}) {
             case 'auto-canonicalize':
                 return await cmdAutoCanonicalize(options, cwd, write);
             case 'publish':
-                return cmdPublish(options, flags, cwd, write);
+                return cmdPublish(options, flags, cwd, write, io.publishMirrorRunner);
             case 'release':
                 return cmdRelease(options, flags, cwd, write, io.releaseRunner);
             case 'parity':

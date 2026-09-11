@@ -3,27 +3,55 @@
  *
  * Import this in each Tier-A package's vitest.config.ts:
  * ```ts
- * import { coverageConfig } from '@dzhechkov/core/vitest-coverage';
- * export default defineConfig({ test: { ...coverageConfig } });
+ * import { coverageConfigFor } from '@dzhechkov/core/vitest-coverage';
+ * export default defineConfig({ test: { ...coverageConfigFor('harness-core') } });
  * ```
  *
  * @packageDocumentation
  */
 
-/** Shared coverage settings for all Tier-A packages. */
+import { createRequire } from 'node:module';
+
+type CoveragePackage = 'harness-core' | 'harness-cli';
+type CoverageThresholds = Record<'lines' | 'statements' | 'functions' | 'branches', number>;
+
+const coverageBaseline = createRequire(import.meta.url)('../src/coverage-baseline.json') as {
+  packages: Record<CoveragePackage, CoverageThresholds>;
+};
+
+const sharedCoverage = {
+  provider: 'v8' as const,
+  enabled: false, // enabled via --coverage flag, not by default
+  reportOnFailure: true,
+  include: ['src/**/*.ts'],
+  exclude: ['src/**/*.test.ts', 'src/**/*.d.ts', 'src/**/vitest.coverage.shared.ts'],
+  reporter: ['text', 'json-summary', 'json'],
+  reportsDirectory: './coverage',
+};
+
+/** Shared coverage settings with the measured ratchet for a Tier-A package. */
+export function coverageConfigFor(packageName: CoveragePackage) {
+  if (!Object.hasOwn(coverageBaseline.packages, packageName)) {
+    // An unknown package would otherwise get `{...undefined}` — EMPTY thresholds, i.e. no ratchet at all (review 2026-09-11).
+    throw new Error(`coverageConfigFor: no coverage baseline for package ${String(packageName)} — add it to coverage-baseline.json with a measured run`);
+  }
+  return {
+    coverage: {
+      ...sharedCoverage,
+      thresholds: { ...coverageBaseline.packages[packageName] },
+    },
+  };
+}
+
+/** Compatibility settings for packages that do not yet have a measured baseline. */
 export const coverageConfig = {
   coverage: {
-    provider: 'v8' as const,
-    enabled: false, // enabled via --coverage flag, not by default
-    include: ['src/**/*.ts'],
-    exclude: ['src/**/*.test.ts', 'src/**/*.d.ts', 'src/**/vitest.coverage.shared.ts'],
+    ...sharedCoverage,
     thresholds: {
       lines: 95,
       functions: 90,
       branches: 80,
       statements: 95,
     },
-    reporter: ['text', 'json-summary', 'json'],
-    reportsDirectory: './coverage',
   },
 };
