@@ -14,7 +14,7 @@
  * FAIL-CLOSED: anything that prevents an honest observation yields `inconclusive`, never `pass`.
  */
 /** The three non-registrable shapes, all observed in the health-advisor 1.2.0 defect. */
-export type SkillIssueKind = 'no-skill-md' | 'buried-skill-md' | 'plugin-manifest-trap';
+export type SkillIssueKind = 'no-skill-md' | 'buried-skill-md' | 'plugin-manifest-trap' | 'wildcard-allowed-tools' | 'empty-allowed-tools';
 export interface SkillLayoutFinding {
     readonly dir: string;
     readonly kind: SkillIssueKind;
@@ -69,6 +69,39 @@ export interface StaticScan {
  * npx-toolkit packages (reproducer: the pack survey in features/skills-verify/08_qe_report.md).
  */
 export declare function looksLikeSkillDir(dir: string): boolean;
+/**
+ * What a SKILL.md's front matter says about the tools it may use.
+ *
+ * Three states, and they are NOT the same thing:
+ *   `absent`   — no `allowed-tools` key. The skill honestly inherits; this is the ordinary case
+ *                (7 170 SKILL.md files in this tree, MEASURED 2026-09-03).
+ *   `empty`    — the key is present with no value. It LOOKS like a restriction and restricts
+ *                nothing. Reported, never failed: 70 files are in this state today, and a gate
+ *                that goes red on the day it is introduced gets switched off — taking the
+ *                wildcard check down with it.
+ *   `listed`   — actual values, which may include a wildcard.
+ */
+export type AllowedToolsState = {
+    readonly state: 'absent';
+} | {
+    readonly state: 'empty';
+} | {
+    readonly state: 'listed';
+    readonly values: readonly string[];
+    readonly wildcard: boolean;
+};
+/**
+ * Read `allowed-tools` from the FRONT MATTER only.
+ *
+ * Scanning the whole file would turn `allowed-tools: *` written inside a skill's own documentation
+ * into a violation — and a gate that INVENTS violations is worse than no gate: it teaches people to
+ * ignore it. So the parse stops at the closing `---`.
+ *
+ * Both YAML spellings are accepted, because both appear in this tree: an inline list
+ * (`allowed-tools: Read, Write`) and a flow sequence (`allowed-tools: [Read, Write]`). Quotes are
+ * stripped before the wildcard test — `allowed-tools: "*"` grants exactly as much as a bare one.
+ */
+export declare function parseAllowedTools(markdown: string): AllowedToolsState;
 /**
  * Walk `<projectDir>/.claude/skills/` and report what can register and what cannot.
  * Deterministic, needs no Claude session — safe for CI.

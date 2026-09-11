@@ -104,19 +104,55 @@ function site({ robots = null, forbid = [] } = {}) {
     if (!body) { res.writeHead(404); return res.end('nf'); }
     res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); res.end(body);
   });
-  return { srv, hits, listen: () => new Promise((r) => srv.listen(0, '127.0.0.1', () => r(srv.address().port))) };
+  // `close()` НЕ закрывает сервер, пока жив хоть один keep-alive сокет: он ждёт их естественной
+  // смерти. ИЗМЕРЕНО 2026-09-03 — тест P20 после этого не завершался вовсе, и полоса вместе с ним
+  // висела дольше десятиминутного потолка вызова. `closeAllConnections()` рвёт живые сокеты, то
+  // есть закрывает сервер ДЕТЕРМИНИРОВАННО, а не при удаче. `shutdown()` возвращает обещание,
+  // поэтому вызывающий может дождаться закрытия вместо того, чтобы надеяться на него.
+  const shutdown = () => new Promise((r) => {
+    if (typeof srv.closeAllConnections === 'function') srv.closeAllConnections();
+    srv.close(() => r());
+  });
+  return {
+    srv, hits, shutdown,
+    listen: () => new Promise((r) => srv.listen(0, '127.0.0.1', () => r(srv.address().port))),
+  };
 }
 
 /** АСИНХРОННЫЙ запуск — см. измерение в шапке файла. */
+/**
+ * Потолок времени на один запуск инструмента.
+ *
+ * ИЗМЕРЕНО 2026-09-03: без него полоса `npm run test:browser` не завершалась ВООБЩЕ — убита по
+ * внешнему таймауту дважды, на 400 с и на 560 с. Ждущий вечно тест не отличим от идущего долго, и
+ * снаружи оба выглядят как «ещё работает». Потолок превращает зависание в ИМЕНОВАННЫЙ отказ, то
+ * есть в результат, который можно прочитать.
+ *
+ * Значение выбрано не на глаз: браузерные сценарии этого файла на живой машине укладываются в
+ * единицы секунд, а сценарии ОТСУТСТВИЯ браузера обязаны отвечать почти мгновенно — им нечего
+ * запускать. 20 секунд оставляют десятикратный запас медленному сценарию и всё равно ловят
+ * зависание за время, которое человек готов ждать.
+ */
+const RUN_TIMEOUT_MS = 20_000;
+
 function run(args, env) {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, [TOOL, ...args], {
       env: { ...process.env, ...(PW ? { PLAYWRIGHT_MODULE: PW } : {}), ...env },
     });
     let out = '';
+    let settled = false;
+    const finish = (code) => { if (settled) return; settled = true; clearTimeout(timer); resolve({ code, out }); };
+    const timer = setTimeout(() => {
+      out += `\n[ТАЙМАУТ ТЕСТА] инструмент не завершился за ${RUN_TIMEOUT_MS} мс и был убит; ` +
+             'это НЕ «не удалось проверить», а именованный отказ: зависание есть дефект.\n';
+      child.kill('SIGKILL');
+      finish('timeout');
+    }, RUN_TIMEOUT_MS);
     child.stdout.on('data', (d) => { out += d; });
     child.stderr.on('data', (d) => { out += d; });
-    child.on('close', (code) => resolve({ code, out }));
+    child.on('close', (code) => finish(code));
+    child.on('error', (e) => { out += String(e && e.message); finish('spawn-error'); });
   });
 }
 
@@ -340,7 +376,7 @@ describe('ось «путь»: детерминированная половин
 
 describe('ось «путь»: живые прогоны браузером по локальной оснастке', { skip: LIVE_SKIP }, () => {
   test('P14 - СНЯТ: путь прокликан, строки выданы, нумерация продолжена', async () => {
-    const { srv, listen } = site();
+    const { srv, listen, shutdown } = site();
     const port = await listen();
     const dir = tmp();
     try {
@@ -358,11 +394,11 @@ describe('ось «путь»: живые прогоны браузером по
       // И измеренные закономерности стартового экрана, а не значения чужого оформления.
       assert.match(r.out, /шаг сетки отступов: 4px/, 'сетка 4px обязана вывестись: ' + r.out);
       assert.match(r.out, /брейкпоинты из настоящих @media: 768, 1024/, r.out);
-    } finally { srv.close(); fs.rmSync(dir, { recursive: true, force: true }); }
+    } finally { await shutdown(); fs.rmSync(dir, { recursive: true, force: true }); }
   });
 
   test('P15 - доказательства помечены чужим материалом и закрыты своим .gitignore', async () => {
-    const { srv, listen } = site();
+    const { srv, listen, shutdown } = site();
     const port = await listen();
     const dir = tmp();
     try {
@@ -379,11 +415,11 @@ describe('ось «путь»: живые прогоны браузером по
         'DOM по умолчанию не сохраняется: ' + files.join(', '));
       assert.ok(files.some((f) => f.endsWith('.aria.txt')), 'семантический слепок — наш вывод');
       assert.ok(files.includes('capture.json'), 'измерения сохраняются');
-    } finally { srv.close(); fs.rmSync(dir, { recursive: true, force: true }); }
+    } finally { await shutdown(); fs.rmSync(dir, { recursive: true, force: true }); }
   });
 
   test('P16 - ВЕЖЛИВОСТЬ: один поток, пауза выдержана, потолок страниц соблюдён', async () => {
-    const { srv, hits, listen } = site();
+    const { srv, hits, listen, shutdown } = site();
     const port = await listen();
     const dir = tmp();
     try {
@@ -397,13 +433,17 @@ describe('ось «путь»: живые прогоны браузером по
         'пауза между экранами обязана выдерживаться, измерено ' + (pages[1].t - pages[0].t) + ' мс');
       assert.match(pages[0].ua, new RegExp(lib.ROBOTS_AGENT),
         'User-Agent честный: маскировка под обычный браузер была бы обходом защиты');
-    } finally { srv.close(); fs.rmSync(dir, { recursive: true, force: true }); }
+    } finally { await shutdown(); fs.rmSync(dir, { recursive: true, force: true }); }
   });
 
   test('P17 - robots.txt спрашивается ПЕРЕД обходом, и запрет — это исход', async () => {
+    // Закрытие серверов — в `finally`: упавшая проверка не должна превращаться в зависание
+    // (см. измерение в P18 ниже; там это стоило полосе всего её бюджета).
     const dir = tmp();
+    const deny = site({ robots: 'User-agent: *\nDisallow: /\n' });
+    const broken = site({ robots: 500 });
+    const one = site({ robots: 'User-agent: *\nDisallow: /\n' });
     try {
-      const deny = site({ robots: 'User-agent: *\nDisallow: /\n' });
       const p1 = await deny.listen();
       const r1 = await run([`http://127.0.0.1:${p1}/`, '--project', dir, '--out', 'e',
         '--max-pages', '3']);
@@ -411,53 +451,62 @@ describe('ось «путь»: живые прогоны браузером по
       assert.match(r1.out, /НЕ ИЗМЕРЕНО: robots-disallowed/, r1.out);
       assert.equal(deny.hits.filter((h) => h.url !== '/robots.txt').length, 0,
         'ни одной страницы не тронуто: robots.txt читается ДО обхода, а не после');
-      deny.srv.close();
 
       // Нечитаемый robots.txt — запрет, а не разрешение: «не смогли спросить» ≠ «нам разрешили».
-      const broken = site({ robots: 500 });
       const p2 = await broken.listen();
       const r2 = await run([`http://127.0.0.1:${p2}/`, '--project', dir, '--out', 'e',
         '--max-pages', '3']);
       assert.equal(r2.code, 2, r2.out);
       assert.match(r2.out, /robots-disallowed/, r2.out);
       assert.match(r2.out, /трактуется как запрет/, r2.out);
-      broken.srv.close();
 
       // ОДНА страница — не обход, robots.txt не запрашивается вовсе.
-      const one = site({ robots: 'User-agent: *\nDisallow: /\n' });
       const p3 = await one.listen();
       const r3 = await run([`http://127.0.0.1:${p3}/lonely`, '--project', dir, '--out', 'e',
         '--max-pages', '1']);
       assert.equal(one.hits.filter((h) => h.url === '/robots.txt').length, 0,
         'обхода нет — robots.txt не спрашивается: ' + r3.out);
-      one.srv.close();
-    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+    } finally {
+      await deny.shutdown();
+      await broken.shutdown();
+      await one.shutdown();
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   test('P18 - 403 и экран входа — исходы с НАЗВАННОЙ причиной, никогда не обход', async () => {
+    // ЗАКРЫТИЕ СЕРВЕРОВ СТОИТ В `finally`, И ЭТО НЕ СТИЛЬ, А ПОЧИНКА ЗАВИСАНИЯ.
+    // ИЗМЕРЕНО 2026-09-03: закрытие стояло ПОСЛЕ проверок, поэтому первая же упавшая проверка
+    // выбрасывала исключение до него, сервер оставался слушать, и `node --test` ждал опустошения
+    // цикла событий ВЕЧНО. Снаружи это выглядело как «полоса идёт долго»: она не шла, она висела —
+    // убита по внешнему потолку на 400 с и на 560 с. Сам P18 в одиночку отрабатывает за секунды.
+    // Общая форма: ресурс, удерживающий цикл событий, закрывается в `finally`, иначе падение
+    // проверки превращается в зависание, а зависание неотличимо от долгой работы.
     const dir = tmp();
+    const blocked = site({ forbid: ['/'] });
+    const walled = site();
     try {
-      const blocked = site({ forbid: ['/'] });
       const p1 = await blocked.listen();
       const r1 = await run([`http://127.0.0.1:${p1}/`, '--project', dir, '--out', 'e',
         '--max-pages', '1']);
       assert.equal(r1.code, 2, r1.out);
       assert.match(r1.out, /НЕ ИЗМЕРЕНО: bot-protected/, r1.out);
       assert.match(r1.out, /ЗАПРЕЩЕНО/, 'и запрет на обход защиты обязан быть сказан: ' + r1.out);
-      blocked.srv.close();
 
-      const walled = site();
       const p2 = await walled.listen();
       const r2 = await run([`http://127.0.0.1:${p2}/signup`, '--project', dir, '--out', 'e',
         '--max-pages', '2']);
       assert.equal(r2.code, 2, 'стартовый экран за входом — не «снято»: ' + r2.out);
       assert.match(r2.out, /НЕ ИЗМЕРЕНО: auth-required/, r2.out);
-      walled.srv.close();
-    } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+    } finally {
+      await blocked.shutdown();
+      await walled.shutdown();
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   test('P19 - ИСТОЧНИКА НЕТ: экран открылся, перехода нет — доказанный отрицательный ответ', async () => {
-    const { srv, listen } = site();
+    const { srv, listen, shutdown } = site();
     const port = await listen();
     const dir = tmp();
     try {
@@ -468,13 +517,13 @@ describe('ось «путь»: живые прогоны браузером по
       assert.match(r.out, /\*\*Статус съёмки \(путь\):\*\* ИСТОЧНИКА НЕТ/,
         'и печатает готовую строку профиля: ' + r.out);
       assert.ok(!/FR-LOOK-\d{3} \|/.test(r.out), 'строк не выпускается — записывать нечего: ' + r.out);
-    } finally { srv.close(); fs.rmSync(dir, { recursive: true, force: true }); }
+    } finally { await shutdown(); fs.rmSync(dir, { recursive: true, force: true }); }
   });
 
   test('P20 - один двоичный файл выдаёт все три исхода в одном прогоне', async () => {
     // Каждый случай выше утверждает ОДНО направление, поэтому реализация с постоянным ответом
     // прошла бы подмножество. Тот же исполняемый файл обязан выдать 0, 1 и 2.
-    const { srv, listen } = site();
+    const { srv, listen, shutdown } = site();
     const port = await listen();
     const dir = tmp();
     try {
@@ -487,6 +536,6 @@ describe('ось «путь»: живые прогоны браузером по
           '--max-pages', '1'])).code,
       ];
       assert.deepEqual(seen, [0, 1, 2], 'ожидались снято/пути-нет/не-измерено: ' + JSON.stringify(seen));
-    } finally { srv.close(); fs.rmSync(dir, { recursive: true, force: true }); }
+    } finally { await shutdown(); fs.rmSync(dir, { recursive: true, force: true }); }
   });
 });

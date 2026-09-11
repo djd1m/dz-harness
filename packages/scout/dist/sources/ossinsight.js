@@ -6,6 +6,7 @@
  *
  * @packageDocumentation
  */
+import { SourceRefusal, fetchWithBudget, isSourceRefusal } from './source-outcome.js';
 import { detectFormats, recommend } from '../analyzer.js';
 const OSSINSIGHT_API = 'https://api.ossinsight.io/v1/trends/repos/';
 /** Fetch trending repos from OSSInsight, filtered by agent-skill signals. */
@@ -15,11 +16,11 @@ export async function scanOssInsightTrending(options = {}) {
     const max = options.maxResults ?? 100;
     try {
         const url = `${OSSINSIGHT_API}?period=${period}&language=${encodeURIComponent(language)}`;
-        const resp = await fetch(url, {
+        // Прежде код ошибки читался как «в тренде ничего нет» — самый обидный вид молчания:
+        // пустой раздел выглядит как измеренная тишина рынка.
+        const resp = await fetchWithBudget(url, {
             headers: { Accept: 'application/json', 'User-Agent': 'dz-scout/0.4.0' },
         });
-        if (!resp.ok)
-            return [];
         const json = (await resp.json());
         const rows = json.data?.rows ?? [];
         // Filter for agent-skill-related repos by description keywords
@@ -70,8 +71,10 @@ export async function scanOssInsightTrending(options = {}) {
         }
         return results;
     }
-    catch {
-        return [];
+    catch (err) {
+        if (isSourceRefusal(err))
+            throw err;
+        throw new SourceRefusal('failed', `ossinsight: обращение не состоялось — ${err instanceof Error ? err.message : String(err)}`);
     }
 }
 //# sourceMappingURL=ossinsight.js.map

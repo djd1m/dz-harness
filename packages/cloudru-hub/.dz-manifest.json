@@ -45,7 +45,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "9586c2e63291e19031382f57b2f81d9a0f7d2917fc026e1e704f94b9108b5931"
+        "sha256": "c35d586a3fa760f2f254ae682627553299cc94cb2467e23cc67f71ec495d6783"
       },
       {
         "path": "src/classification.js",
@@ -88,8 +88,12 @@
         "sha256": "e986b29346672bf75b384ab6d8657265b8ecb8f62df6563dca317c1fc63fc8fc"
       },
       {
+        "path": "test/mutation-registry-freshness.test.mjs",
+        "sha256": "99cc5dd9f32ffbfbde09361940190f41b2efd682f687b3db67b5a3b943e66f47"
+      },
+      {
         "path": "test/mutation-registry.json",
-        "sha256": "23baf0c1c20afc5bbbfcd72ae9c553ce8a774c25328609e33f43e11cf4ca5581"
+        "sha256": "e56ee7b4ba160f28687423ca113d1bfbcbfdd351fe9d31ad5a19b4d0069dbe3a"
       },
       {
         "path": "test/pack-holds.test.mjs",
@@ -101,5 +105,5 @@
       }
     ]
   },
-  "signature": "9P/sD1TpPufbI6AICc2ZFNvrH/ocQ3yhouKsAJDL9TRzhAdgWZOUT4zlrnY79ayaxB514EBVH1ITn1q5Sqh0Ag=="
+  "signature": "NsNQEqRf9JGDcSJZsxHg1Wqy9c/r40/bEQeJhTXEEcfOMwCKB8f0/OkTYDBMdQBWAQzUbInrzD3+BuSAHs44AQ=="
 }

@@ -4,6 +4,20 @@
  *
  * @packageDocumentation
  */
+import { execSync } from 'node:child_process';
+type ExecSyncOptionsWithStringEncoding = NonNullable<Parameters<typeof execSync>[1]> & {
+    encoding: 'utf-8';
+};
+export type ProbeOutcome = {
+    readonly attempt: number;
+    readonly ok: boolean;
+    readonly stdout: string;
+    readonly stderr: string;
+    readonly code: number | null;
+    readonly ms: number;
+};
+export declare const REGISTRY_PROBE_BUDGET = 90;
+export declare const REGISTRY_PROBE_INTERVAL_MS = 10000;
 /** Result for a single package publish attempt. */
 export interface PublishResult {
     readonly name: string;
@@ -11,6 +25,10 @@ export interface PublishResult {
     readonly newVersion: string;
     readonly status: 'published' | 'skipped' | 'error';
     readonly error?: string | undefined;
+    /** Live publish only: how many registry probes were needed to confirm the exact new version. */
+    readonly registryProbes?: number | undefined;
+    /** Live publish only: complete evidence from every registry receipt probe. */
+    readonly probeLog?: readonly ProbeOutcome[] | undefined;
     /**
      * Pre-publish claim-check summary for this package's README, present only when the
      * opt-in `claimCheck` gate ran (`'warn'`/`'block'`). Additive: absent by default so an
@@ -20,6 +38,17 @@ export interface PublishResult {
         readonly findings: number;
         readonly high: number;
     } | undefined;
+    /**
+     * DRY-RUN ONLY, and the reason it exists is a measured incident. A dry run short-circuits
+     * BEFORE build, sign and pack (see the `opts.dryRun` branch below), so the package's own
+     * `prepublishOnly` gate never executes. On 2026-09-02 a clean dry run was read as evidence that
+     * publication would succeed; the real gate was RED — a stale signature baseline plus six
+     * `__pycache__/*.pyc` files already signed into the manifest. A preview that names only what it
+     * DID check reads as a pass for everything it skipped, which is the same failure class as a gate
+     * that infers success from silence. So a dry-run result carries the list of gates it did NOT run,
+     * and the CLI prints it. Absent on a real publish, where every gate actually ran.
+     */
+    readonly notVerified?: readonly string[] | undefined;
 }
 /** Full publish report. */
 export interface PublishReport {
@@ -28,11 +57,26 @@ export interface PublishReport {
     readonly skipped: number;
     readonly errors: number;
     readonly dryRun: boolean;
+    /** Repo-relative README paths whose first joint core/CLI release line was rewritten. */
+    readonly releaseLineSynced: readonly string[];
+    /** Post-publication sync failures are warnings: registry-confirmed packages cannot be unpublished. */
+    readonly warnings?: readonly string[] | undefined;
 }
 /** Bump patch version: 0.3.11 → 0.3.12 */
 export declare function bumpPatch(version: string): string;
 /** Compare two x.y.z(-pre) versions by their core triple: >0 if a>b, <0 if a<b. */
 export declare function compareVersions(a: string, b: string): number;
+/**
+ * The version already published to npm for `name`, or `undefined` if the package
+ * has never been published (or npm is unreachable). Used to bump from
+ * max(local, published) so a locally-reverted version can't collide (audit #10).
+ */
+type PublishExec = (command: string, options: ExecSyncOptionsWithStringEncoding) => string;
+/**
+ * Mirror pnpm's package-time expansion of the three shorthand workspace dependency specs.
+ * Pure by construction: callers provide both the source bytes and the sibling version table.
+ */
+export declare function rewriteWorkspaceSpecs(pkgJsonText: string, siblingVersions: ReadonlyMap<string, string>): string;
 /**
  * Pure half: which `workspace:`-declared deps of a package would pack to a floor that is neither
  * being published in this batch nor already on the registry?
@@ -57,6 +101,8 @@ export declare function findUnpublishedWorkspaceFloors(opts: {
     name: string;
     version: string;
 }[];
+/** Registry probe: preserve the complete answer while checking for the exact `name@version`. */
+export declare function probeVersion(name: string, version: string, exec?: PublishExec): Omit<ProbeOutcome, 'attempt'>;
 /**
  * `execSync` throws an Error whose `.message` is only `Command failed: <cmd>` — the child's real output
  * (the `npm ERR!` lines that say WHY a publish failed) sits on `.stdout` / `.stderr` and was being
@@ -217,5 +263,12 @@ export declare function publishPackages(monorepoRoot: string, opts?: {
      * preflight under dry-run, which is how the wiring test drives it without network.
      */
     probeFloor?: ((name: string, version: string) => boolean) | undefined;
+    /** Subprocess injection for tests; the default is Node's synchronous executor. */
+    exec?: PublishExec | undefined;
+    /** Post-publish receipt probe. The default asks npm for exactly `name@version`. */
+    probe?: ((name: string, version: string) => boolean | Omit<ProbeOutcome, 'attempt'>) | undefined;
+    /** Pause injection between receipt probes. The default blocks for the requested milliseconds. */
+    sleep?: ((milliseconds: number) => void) | undefined;
 }): PublishReport;
+export {};
 //# sourceMappingURL=publish.d.ts.map

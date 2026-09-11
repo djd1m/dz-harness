@@ -1,0 +1,9 @@
+positives: ["Safely clean a legacy module whose behavior is not fully understood","Create a characterization-test scaffold before changing legacy code","Untangle duplicate behavior in a legacy module after observing current behavior, one reversible step","Make one behavior-preserving cleanup step in incompletely understood legacy code","Characterize an old module before changing its observed behavior","Refactor inherited legacy code incrementally with existing test feedback","Очисти legacy-код без переписи при неполном понимании поведения","Сохрани поведение при малом шаге в legacy-коде с неполным пониманием","Убери legacy smell малыми шагами после проверки текущего поведения","Сделай следующий малый behavior-preserving шаг в legacy после test scaffold"]
+hard_negatives:
+  - {prompt: "Implement this new feature end to end: write an ADR, choose the architecture, then deliver it with tests", owner: feature-adr}
+  - {prompt: "Review this completed diff", owner: pr-review}
+  - {prompt: "Apply a generic refactoring pattern to remove duplication", owner: refactoring-patterns}
+  - {prompt: "Assess this design against generic SOLID and TDD guidance", owner: solid}
+  - {prompt: "Rename this unclear code identifier or comment", owner: clean-code-intent-and-comment-contract}
+  - {prompt: "Choose a narrow function contract and its visible effect", owner: clean-code-function-contracts}
+  - {prompt: "Decide which local object owns this data operation", owner: clean-code-object-data-ownership}

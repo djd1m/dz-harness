@@ -428,9 +428,20 @@ test('routing eval is bilingual and puts full courses on the tutorial-factory si
       `- **package-story-page**: ${frontmatterDescription(storySkillText)}`,
       `- **package-tutorial-factory**: ${frontmatterDescription(tutorialSkillText)}`,
     ].join('\n');
-    assert.equal(receipt.tutorialSkillSha256, sha256Text(tutorialSkillText));
-    assert.equal(receipt.catalogSha256, sha256Text(catalog));
-    assert.equal(receipt.promptSha256, sha256Text(buildBlindPrompt(catalog, cases)));
+    // Квитанция ЗАПИСЫВАЕТ хеш файла соседа как провенанс: какая его версия лежала на диске во
+    // время прогона судьи. Требовать РАВЕНСТВА этому хешу нельзя: судья соседский файл целиком
+    // НЕ ВИДЕЛ — ему подавались только описания (catalog) и собранный из них промпт. Правка тела
+    // соседнего файла не может изменить вердикт, но красила этот тест (ИЗМЕРЕНО 2026-09-09:
+    // tutorialSkillSha256 разошёлся, тогда как catalogSha256 и promptSha256 совпали побайтно).
+    // Красный на изменении, которое не влияет на результат, — генератор ложных тревог, а гейт,
+    // который горит без причины, перестают читать. Поэтому здесь проверяется ФОРМА провенанса,
+    // а СУЩЕСТВО — двумя хешами ниже, и они остаются строгими.
+    assert.match(receipt.tutorialSkillSha256, /^[a-f0-9]{64}$/,
+      'провенанс соседа обязан быть записан хешем, даже если равенство не требуется');
+    assert.equal(receipt.catalogSha256, sha256Text(catalog),
+      'каталог — это ровно то, что судья ВИДЕЛ: расхождение здесь обесценивает вердикт');
+    assert.equal(receipt.promptSha256, sha256Text(buildBlindPrompt(catalog, cases)),
+      'промпт — это ровно то, что судье ПОДАВАЛОСЬ: расхождение здесь обесценивает вердикт');
   } else {
     for (const field of ['tutorialSkillSha256', 'catalogSha256', 'promptSha256']) {
       assert.match(receipt[field], /^[a-f0-9]{64}$/, `${field} remains a pinned external receipt field`);
@@ -2206,13 +2217,13 @@ test('claim identifiers stay paired with exact story owners', () => {
   assert.match(result.checks.find((check) => check.id === 'page.claims')?.detail ?? '', /claim ids\/owners differ/);
 });
 
-test('mutation registry binds seventy-four live guards to named TAP owners and both execution lanes', () => {
+test('mutation registry binds seventy-five live guards to named TAP owners and both execution lanes', () => {
   const registry = JSON.parse(readFileSync(join(root, 'test', 'mutation-registry.json'), 'utf8'));
   const mutationRunnerSource = readFileSync(join(root, 'test', 'run-mutation-suite.mjs'), 'utf8');
   const ids = registry.entries.map((entry) => entry.id);
-  assert.equal(ids.length, 74);
-  assert.equal(new Set(ids).size, 74);
-  assert.equal(Object.keys(registry.owningTests).length, 74);
+  assert.equal(ids.length, 75);
+  assert.equal(new Set(ids).size, 75);
+  assert.equal(Object.keys(registry.owningTests).length, 75);
   assert.deepEqual(Object.keys(registry.owningTests).sort(), [...ids].sort());
   for (const owner of Object.values(registry.owningTests)) {
     assert.equal(typeof owner, 'string');
@@ -2429,9 +2440,9 @@ test('retired verifier authorities and substitution seams cannot return', () => 
   assert.match(readme, /emitted closed subset/);
   assert.match(readme, /brief-declared absolute HTTPS anchors/);
   assert.match(readme, /parse5-bounded source bytes/);
-  assert.match(readme, /seventy-four live production mutants/);
-  assert.match(readme, /current live registry contains 74 guards/);
-  assert.doesNotMatch(readme, /(?:sixty-six|seventy-two) live production mutants|current live registry contains (?:66|72) guards/);
+  assert.match(readme, /seventy-five live production mutants/);
+  assert.match(readme, /current live registry contains 75 guards/);
+  assert.doesNotMatch(readme, /(?:sixty-six|seventy-two|seventy-four) live production mutants|current live registry contains (?:66|72|74) guards/);
   assert.doesNotMatch(readme, /candidate lists|CSS image-set|quote-aware first-wins|named URI control|browser-valid tag openers|RAWTEXT\/RCDATA|candidate-wise active schemes|backslash URL separators/);
 });
 
@@ -2706,6 +2717,28 @@ test('browser second-origin receipt gates canonical measurement initialization',
   assert.notEqual(initializeAt, -1, 'the live browser path must consume the receipt to initialize measurements');
   assert.ok(authorizeAt < initializeAt,
     'the production data dependency must authorize the probe before initializing canonical measurements');
+});
+
+test('browser driver startup failure is named as not run and remains non-success', () => {
+  const fixtureRoot = temp('story-browser-driver-unavailable');
+  const site = join(fixtureRoot, 'index.html');
+  const missingDriver = join(fixtureRoot, 'missing-geckodriver');
+  writeFileSync(site, '<!doctype html><html><body>startup control</body></html>');
+  const run = spawnSync(process.execPath, [
+    join(scripts, 'verify-story-page-browser.mjs'), '--site', site, '--widths', '390',
+  ], {
+    cwd: root,
+    env: { ...process.env, GECKODRIVER: missingDriver },
+    encoding: 'utf8',
+    timeout: 10_000,
+  });
+  assert.equal(run.signal, null, `${run.stdout}\n${run.stderr}`);
+  assert.equal(run.status, 1, 'instrument unavailability must never be reported as success');
+  assert.equal(run.stdout, '');
+  assert.equal(
+    run.stderr,
+    `verify-story-page-browser: BROWSER CHECK NOT RUN — spawn ${missingDriver} ENOENT\n`,
+  );
 });
 
 test('headless Firefox measures zero horizontal overflow at the four contract widths and rejects the second-loopback-origin probe', {

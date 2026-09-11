@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "9daed6c12ffb9872de465506153f40672a556e66e7a8407791db0d2776cf73ea"
+        "sha256": "a4d18b136e0c7df66da49a8f635d38e172d59051920e0f9c4dfccb5043ac40b4"
       },
       {
         "path": "adversarial-verifier/SKILL.md",
@@ -321,7 +321,11 @@
       },
       {
         "path": "feature-adr/scripts/check-plan-completeness.mjs",
-        "sha256": "630eb9047258ad0333082f407cd34522e4c278650f22ef6dba1ef897ec5cce71"
+        "sha256": "cbe70a524f6ce7987b5e3961ee412b92c24c00d84066d438c759659d656efaa2"
+      },
+      {
+        "path": "feature-adr/scripts/markdown-masker.mjs",
+        "sha256": "82c3c48c25f400f3a64d1caba3d47357f3db87460f0746f88706f901eb6ff689"
       },
       {
         "path": "goap-research-ed25519/SKILL.md",
@@ -461,7 +465,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "4ddc2945266d5ad2cbaab9438483c20ef1a5fea338f72f6fabe98c066d58e708"
+        "sha256": "abb56718176e8eb5d3743a9b02df678060c976e649986f27f643edfcabe18815"
       },
       {
         "path": "problem-solver-enhanced/SKILL.md",
@@ -482,6 +486,10 @@
       {
         "path": "reflection-loop/scripts/validate-config.json",
         "sha256": "20cf28f6b99e2d1b8778aa27b101ddce6378202a58a8e0b18609ce5015f8d9af"
+      },
+      {
+        "path": "session-recap/SKILL.md",
+        "sha256": "034ea8329399faec054bb17457314e2f442abbe5c873b4967fa882c4a7deb504"
       },
       {
         "path": "skill-advisor/SKILL.md",
@@ -517,7 +525,7 @@
       },
       {
         "path": "sources.json",
-        "sha256": "c82f0df1cfd6f878d17b89c2e88030258a9bb8cefc4fbceab1253c1dd26d34b6"
+        "sha256": "7daf137e917ec9469b5ec482a959128786ce5d8c5b451c9938ef91917952bc1a"
       },
       {
         "path": "structured-reasoning/SKILL.md",
@@ -553,5 +561,5 @@
       }
     ]
   },
-  "signature": "yX1nIXHpRwRFb+NCbe+dRHJ5BgOeIKAW8JMyhMaiY7jkrJ9FvGjnErJbGypVVAgIDlvQ1x8twEwpV4dCCGC6CQ=="
+  "signature": "Yi2CTdr+s0DlUyR2B/bBUTgg3EdU4KlEFPIL7AZN8t1DSyllwT60JEmLqQs88izgKOCRQwP8gye4YPMQ4gtVDA=="
 }

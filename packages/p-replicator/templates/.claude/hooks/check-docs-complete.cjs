@@ -43,7 +43,14 @@ const DOCS = [
   // practice — and blocking on it would have refused every project that ran like that one.
   // The discrepancy is filed; until it is settled this reports rather than refuses.
   { file: 'Final_Summary.md', optional: true, expected: true },
+  // Both entries below were made optional with no recorded reason — the gap the dated-receipt
+  // guard (`tests/unit/optional-doc-idiom.test.js`) found. What would SETTLE it is unmeasured:
+  // whether real projects produce them. So `expected` is deliberately NOT set on either — calling
+  // them expected asserts something nobody measured, calling them dispensable retires a promise
+  // silently. The receipts record the state; they do not resolve it.
+  // MEASURED 2026-09-03: promised twice by `commands/replicate.md`, required by nothing here.
   { file: 'C4_Diagrams.md', optional: true },
+  // MEASURED 2026-09-03: promised SEVEN times by `commands/replicate.md`, required by nothing here.
   { file: 'ADR.md', optional: true },
 ];
 

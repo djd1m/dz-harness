@@ -1,7 +1,7 @@
 {
   "requireCompletionReceipt": true,
   "testCommand": "node test/run-mutation-suite.mjs",
-  "$comment": "Seventy-four live authority mutants replace the retired hand-scanner set. Every id is bound to a named owning test whose exact TAP failure is required before a mutant can be PROVEN. The runner verifies a gate-owned scratch repository, copies it to a private ephemeral execution root, and rebinds five local pre-import hashes only in that disposable copy so semantic, bundle, renderer, extractor, and schema guard mutants reach their behavioural assertions. Every clean baseline requires the shipped hashes to be an exact no-op, then runs both the live-Firefox and unit-only lanes; every browser-verifier mutation runs live Firefox and requires an exact non-SKIP TAP receipt. Gate, production, and installed package roots remain read-only. Historical checkpoint dispositions remain in semantic-disposition.json.",
+  "$comment": "Seventy-five live authority mutants replace the retired hand-scanner set. Every id is bound to a named owning test whose exact TAP failure is required before a mutant can be PROVEN. The runner verifies a gate-owned scratch repository, copies it to a private ephemeral execution root, and rebinds five local pre-import hashes only in that disposable copy so semantic, bundle, renderer, extractor, and schema guard mutants reach their behavioural assertions. Every clean baseline requires the shipped hashes to be an exact no-op, then runs both the live-Firefox and unit-only lanes; every browser-verifier mutation runs live Firefox and requires an exact non-SKIP TAP receipt. Gate, production, and installed package roots remain read-only. Historical checkpoint dispositions remain in semantic-disposition.json.",
   "owningTests": {
     "story-semantic-subset-authority": "closed DOM independently transforms every allowed element and attribute surface",
     "story-semantic-structure-authority": "sections and story items stay in exact direct owners and brief order",
@@ -45,6 +45,7 @@
     "story-semantic-order-authority": "sections and story items stay in exact direct owners and brief order",
     "story-semantic-input-boundary-authority": "public verifier passes only the normalized brief and exact page to semantic authority",
     "story-browser-request-verdict-authority": "browser disclosure failures participate in the pass fail decision",
+    "story-browser-startup-unavailable-authority": "browser driver startup failure is named as not run and remains non-success",
     "story-semantic-orphan-marker-authority": "orphan semantic markers cannot borrow aggregate source closure",
     "story-semantic-unexpected-owner-authority": "unexpected story-item owners fail reverse totality",
     "story-semantic-field-only-marker-authority": "unexpected story-item owners fail reverse totality",
@@ -545,6 +546,17 @@
       },
       "minFailing": 1,
       "maxFailing": 2
+    },
+    {
+      "id": "story-browser-startup-unavailable-authority",
+      "property": "A browser driver that cannot start is named as not run and remains a failing instrument outcome.",
+      "file": "package-story-page/scripts/verify-story-page-browser.mjs",
+      "mutation": {
+        "find": "    super(`BROWSER CHECK NOT RUN — ${reason}`);",
+        "replace": "    super(reason);"
+      },
+      "minFailing": 1,
+      "maxFailing": 1
     },
     {
       "id": "story-semantic-orphan-marker-authority",

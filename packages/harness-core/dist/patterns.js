@@ -371,6 +371,15 @@ export function recordToPattern(r) {
         && typeof lessonPairId === 'string' && lessonPairId !== ''
         ? { lessonForm, lessonPairId }
         : {};
+    // The id and the quarantine marker travel with the row. Both are facts about THIS store, and
+    // both were previously dropped here — the single place the whole `--all --json` export is built
+    // (`loadStorePatternsSync` = `loadStoreRecordsSync().map(recordToPattern)`), which is why
+    // `--forget`'s own "find them with `dz recall --all --json`" hint pointed at a file that could
+    // not answer. `quarantined` is emitted only when true, so absence keeps meaning "promoted".
+    const addressing = {
+        ...(typeof r.id === 'string' && r.id !== '' ? { dzId: r.id } : {}),
+        ...(readQuarantineState(r).quarantined ? { quarantined: true } : {}),
+    };
     return {
         pattern: r.text,
         type: PATTERN_TYPES.has(r.outcome) ? r.outcome : 'lesson-learned',
@@ -379,6 +388,7 @@ export function recordToPattern(r) {
         ts: r.timestamp,
         source: r.metadata?.['source'] ?? 'dz-teach',
         ...pair,
+        ...addressing,
     };
 }
 export function readQuarantineState(r) {
@@ -469,6 +479,22 @@ export function loadStoreRecords(projectRoot) {
     catch {
         return [];
     }
+}
+/** Find the earliest lesson whose normalized text and optional domain match exactly. */
+export function findExactLesson(records, text, domain) {
+    const normalizedText = text.trim().replace(/\s+/g, ' ');
+    let earliest;
+    for (const record of records) {
+        if (record.text.trim().replace(/\s+/g, ' ') !== normalizedText)
+            continue;
+        if (domain !== undefined && record.metadata?.['domain'] !== domain)
+            continue;
+        if (earliest === undefined || record.timestamp < earliest.timestamp)
+            earliest = record;
+    }
+    return earliest === undefined
+        ? null
+        : { id: earliest.id, quarantined: earliest.metadata?.['qStatus'] === 'quarantined' };
 }
 /** Write one record through the backend cascade. CALLER HOLDS THE STORE LOCK — every
  * caller (reinforce / updateReinforcementState / promote) wraps its whole read-modify-write

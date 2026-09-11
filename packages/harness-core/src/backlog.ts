@@ -16,6 +16,7 @@
  * records live in a dedicated `.dz/backlog/ideas.jsonl`, never in `.dz/memory/patterns.*`.
  */
 
+import { appendTransition } from './backlog-transitions.js';
 import { createHash } from 'node:crypto';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -578,7 +579,15 @@ export function transitionIdeas(
   if (dryRun || toMutate.length === 0) {
     return { ok: true, dryRun, changes, errors: [], written: false };
   }
+  // Журнал переходов пишется РЯДОМ со сменой статуса, а не отдельной командой. Запись хранит
+  // ровно ОДИН переход — последний, — поэтому промежуточные существуют только здесь, в момент,
+  // когда они происходят. Пропустить эту строку значит потерять их навсегда: восстановить нечем.
+  const journal: { id: string; from: string | null; to: string; ts: string; reason?: string }[] = [];
   for (const p of toMutate) {
+    journal.push({
+      id: String(p.obj.id ?? ''), from: p.status ?? null, to: target, ts: nowIso,
+      ...(opts.reason !== undefined && opts.reason !== '' ? { reason: opts.reason } : {}),
+    });
     p.obj.status = target;
     p.obj.statusTs = nowIso;
     if (opts.reason !== undefined && opts.reason !== '') p.obj.statusReason = opts.reason;
@@ -593,6 +602,9 @@ export function transitionIdeas(
     try { unlinkSync(tmp); } catch { /* best-effort litter cleanup — never mask the original failure */ }
     return { ok: false, dryRun, changes: [], errors: [`store write failed: ${(e as Error).message}`], written: false };
   }
+  // Журнал пишется ПОСЛЕ успешной записи стора, а не до: переход, которого не случилось, не должен
+  // остаться в летописи. Обратный порядок дал бы записи о переходах, отменённых упавшей записью.
+  for (const row of journal) appendTransition(projectRoot, { ...row, by: `backlog ${target === 'shipped' ? 'ship' : target === 'dropped' ? 'drop' : 'reopen'}` });
   return { ok: true, dryRun, changes, errors: [], written: true };
 }
 

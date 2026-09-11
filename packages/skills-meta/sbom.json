@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9daed6c12ffb9872de465506153f40672a556e66e7a8407791db0d2776cf73ea"
+          "content": "a4d18b136e0c7df66da49a8f635d38e172d59051920e0f9c4dfccb5043ac40b4"
         }
       ]
     },
@@ -805,7 +805,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "630eb9047258ad0333082f407cd34522e4c278650f22ef6dba1ef897ec5cce71"
+          "content": "cbe70a524f6ce7987b5e3961ee412b92c24c00d84066d438c759659d656efaa2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/scripts/markdown-masker.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "82c3c48c25f400f3a64d1caba3d47357f3db87460f0746f88706f901eb6ff689"
         }
       ]
     },
@@ -1159,7 +1169,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "4ddc2945266d5ad2cbaab9438483c20ef1a5fea338f72f6fabe98c066d58e708"
+          "value": "abb56718176e8eb5d3743a9b02df678060c976e649986f27f643edfcabe18815"
         }
       ]
     },
@@ -1210,6 +1220,16 @@
         {
           "alg": "SHA-256",
           "content": "20cf28f6b99e2d1b8778aa27b101ddce6378202a58a8e0b18609ce5015f8d9af"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "session-recap/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "034ea8329399faec054bb17457314e2f442abbe5c873b4967fa882c4a7deb504"
         }
       ]
     },
@@ -1299,7 +1319,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c82f0df1cfd6f878d17b89c2e88030258a9bb8cefc4fbceab1253c1dd26d34b6"
+          "content": "7daf137e917ec9469b5ec482a959128786ce5d8c5b451c9938ef91917952bc1a"
         }
       ]
     },

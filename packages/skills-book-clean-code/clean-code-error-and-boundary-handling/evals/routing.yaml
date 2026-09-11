@@ -1,0 +1,6 @@
+positives: ["Design an exception/null/empty-result contract for this internal application service call","At this service boundary, choose a caller-visible absence contract: return null or an empty collection, and keep ordinary absence out of exception handling","Translate third-party SDK errors in a local wrapper","Which application exception should callers catch at this service boundary?","Create a local facade that translates external API errors and hides vendor types","Нужен ли checked exception в контракте внутреннего сервисного вызова?","Переведи ошибки внешнего SDK в исключения локального wrapper","Убери null из контракта метода внутреннего сервиса","Добавь в catch диагностический контекст: операция, входные данные и cause","Напиши learning test, чтобы установить контракт wrapper над внешним SDK"]
+hard_negatives:
+  - {prompt: "Write an integration test", owner: test-writer}
+  - {prompt: "Debug a reproducible local exception and stack trace in development; this is not an active production incident", owner: debugging}
+  - {prompt: "Choose a generic API testing strategy: unit, integration, or end-to-end", owner: api-testing-patterns}
+  - {prompt: "Which local class should own this data?", owner: clean-code-object-data-ownership}

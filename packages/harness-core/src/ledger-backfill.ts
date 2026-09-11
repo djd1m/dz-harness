@@ -59,7 +59,7 @@ export interface LedgerBackfillRow {
   readonly key: LedgerFillKey | null;
   readonly filled: readonly string[];
   /** Why nothing was filled. `null` when something was. */
-  readonly skipped: 'no-join-key' | 'no-host-record' | 'ambiguous-slug' | 'shared-run-claim' | 'already-complete' | 'malformed-line' | 'host-record-empty' | null;
+  readonly skipped: 'no-join-key' | 'no-host-record' | 'ambiguous-slug' | 'shared-run-claim' | 'already-complete' | 'malformed-line' | 'host-record-empty' | 'non-run-row' | null;
 }
 
 export interface LedgerBackfillPlan {
@@ -74,6 +74,17 @@ export interface LedgerBackfillPlan {
 const FILLABLE = ['tokens', 'minutes', 'agents'] as const;
 
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+
+/**
+ * fa-phase-statusline QE fix (P2, cross-family review of 656d6903): the ledger now carries
+ * per-PHASE telemetry rows (`kind:"phase"`, schema `feature-adr-phase/1`) alongside its run rows.
+ * The header's contract: the one-line-one-run invariant applies ONLY to rows WITHOUT a `kind`
+ * field, so any row that carries one is NOT a run row and must be invisible to the backfill —
+ * both to claimant counting (several phase rows under a slug were making a real cost row
+ * `shared-run-claim`, unfillable forever) and to filling (exactly one phase row under a slug could
+ * receive the whole run's token total — a fabrication by attribution).
+ */
+export const isNonRunRow = (r: Record<string, unknown>): boolean => typeof r['kind'] === 'string' && r['kind'] !== '';
 
 /**
  * Plan the fill. PURE: takes the ledger's raw lines and a runId→facts lookup, returns the new lines.
@@ -100,6 +111,7 @@ export function planLedgerBackfill(input: {
       const parsed: unknown = JSON.parse(raw);
       if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) continue;
       const r = parsed as Record<string, unknown>;
+      if (isNonRunRow(r)) continue; // phase rows are telemetry, never claimants
       if (FILLABLE.every((f) => isNum(r[f]))) continue;
       const rid = typeof r['runId'] === 'string' && r['runId'] !== '' ? r['runId'] : null;
       const slg = typeof r['slug'] === 'string' && r['slug'] !== '' ? r['slug'] : null;
@@ -129,6 +141,13 @@ export function planLedgerBackfill(input: {
 
     const runId = typeof row['runId'] === 'string' && row['runId'] !== '' ? row['runId'] : null;
     const slug = typeof row['slug'] === 'string' && row['slug'] !== '' ? row['slug'] : null;
+    if (isNonRunRow(row)) {
+      // A `kind`-carrying row (per-phase telemetry) has no run cost to fill — pass through
+      // unchanged and SAY so, never let it receive a run's numbers.
+      outLines.push(raw);
+      rows.push({ index, runId, slug, key: null, filled: [], skipped: 'non-run-row' });
+      return;
+    }
     const missing = FILLABLE.filter((f) => !isNum(row[f]));
     if (missing.length === 0) {
       outLines.push(raw);

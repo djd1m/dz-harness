@@ -10,7 +10,16 @@ node "$SKILL_ROOT/scripts/render-site.mjs" --course <dir>/course.json          #
 node "$SKILL_ROOT/scripts/verify-site.mjs" --site <dir>/site/index.html        # DRIVE it: exit 0 = it works
 ```
 
-Before reading the course object, the renderer calls the shared `course-source-stamp.mjs` writer.
+The renderer does NOT stamp the course, and no factory script does.
+
+Source attribution belongs to the PUBLISH seam — the repository's tutorial publisher, outside this
+skill — where it is fail-closed and where it belongs, because that publisher is the only path that
+goes outward.
+
+Owner decision 2026-09-03: calling the stamp from the renderer made rendering a NETWORK operation,
+made it THROW for any course directory whose README carries no npm package link, and MUTATED the
+input course file. It also broke this factory's offline contract, which a test pins: factory scripts
+spawn no processes. The writer was moved out of the factory entirely.
 It derives the package from the tutorial README's npm link (or an explicit `--package`) and obtains
 the version with `npm view`; a local `package.json` is never a version authority. On success it writes:
 

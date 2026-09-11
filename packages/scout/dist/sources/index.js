@@ -15,6 +15,7 @@ import { scanSemanticScholar } from './semantic-scholar.js';
 import { scanArxiv } from './arxiv.js';
 import { scanEcc } from './ecc.js';
 import { scanAgentbox } from './agentbox.js';
+import { isSourceRefusal } from './source-outcome.js';
 /** Aggregate results from all sources, deduplicated by fullName. */
 export async function scanAllSources(options = {}) {
     const results = [];
@@ -31,7 +32,11 @@ export async function scanAllSources(options = {}) {
     };
     const failed = (source, err) => {
         const raw = err instanceof Error ? err.message : String(err);
-        statuses[source] = { health: 'failed', reason: raw.split('\n')[0]?.slice(0, 160) ?? 'unknown failure' };
+        const reason = raw.split('\n')[0]?.slice(0, 160) ?? 'unknown failure';
+        // ФОРМА ОТКАЗА ЧИТАЕТСЯ ИЗ ИСКЛЮЧЕНИЯ, А НЕ УГАДЫВАЕТСЯ. Переведённый источник бросает
+        // типизированный отказ и приносит свою форму нетронутой; непереведённый бросает обычную
+        // ошибку и по-прежнему становится `failed`. Различие видно по ТИПУ, а не по надежде.
+        statuses[source] = isSourceRefusal(err) ? { health: err.kind, reason } : { health: 'failed', reason };
     };
     function addResults(items, source) {
         for (const item of items) {

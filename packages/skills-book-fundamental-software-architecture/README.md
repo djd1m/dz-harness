@@ -120,6 +120,17 @@ paraphrased decision support, not a replacement for the book. Buy the book for t
 figures, examples, and context. Generic diagramming, REST/OpenAPI/GraphQL/gRPC contract design, ETL,
 deployment, incidents, and team ceremonies remain outside this gateway’s scope.
 
+**IP gate — what is and is not attested (2026-09-02).** The pack ships a deterministic
+word-shingling gate at `scripts/shingling-check.mjs`, which rejects uncited verbatim runs of eight
+or more words against a source corpus. No run of it against THIS pack is recorded: `sources.json`
+has no `shingling_gate` field (the sibling pack `@dzhechkov/skills-book-ai-apps` does),
+`CP4-PACK-REPORT.md` has no gate section, and `test/pack.test.mjs` has six tests, none about
+shingling. Nothing invokes it at release either — `prepublishOnly` runs the shared publish gate,
+which has no shingling step. The corpus it would need is owner-local and is not distributed, so the
+run cannot be reproduced from this package. The LICENSE previously said the gate runs before
+release; it now says this instead. The paraphrase discipline here is authorial and reviewed, not
+mechanically attested.
+
 ## Copilot note
 
 Copilot-style always-on instruction loading can be expensive; install the subset or use the gateway

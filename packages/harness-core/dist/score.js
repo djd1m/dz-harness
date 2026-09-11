@@ -19,6 +19,7 @@
  *
  * PURE: the CLI reads the artifact files; this module only classifies.
  */
+import { amendmentIdsIn } from './amendment-trace.js';
 /** The artifact texts of one run, keyed by RELATIVE path under `features/<slug>/`. */
 /**
  * The exact heading Step 5 asks for, and the exact heading the check looks for — ONE constant, so
@@ -425,11 +426,21 @@ export function scoreRun(slug, artifacts) {
     // 7. Amendment confirmation — only when amendments EXIST; their absence is not a failure.
     //    Born in the PLAN/ideation: a stray "AM-7" in QE prose (e.g. another feature's test name)
     //    must not conjure the discipline (caught by the very first dogfood run).
-    const plannedAm = [...new Set(planText.match(/AM-\d+/g) ?? [])].sort();
+    // ONE reader of the `AM-*` token, shared with the row grammar and pinned against K2's by
+    // test/amendment-grammar-agreement.test.ts. It used to be a THIRD private contract here —
+    // `/AM-\d+/g`, which does not match `AM-CP-1` at all (MEASURED 2026-09-06:
+    // `'AM-CP-1'.match(/AM-\d+/g)` → `null`), so a plan whose amendments were all challenge-panel
+    // rows scored `plannedAm = []` and this whole discipline was skipped silently — no `absent`, no
+    // `partial`, just a smaller denominator. A check that silently checks nothing is the class the
+    // amendment gate exists to remove, and it had reappeared in the scorer.
+    const plannedAm = amendmentIdsIn(planText).sort();
     if (plannedAm.length > 0) {
-        // One stray AM-9 in QE must not satisfy AM-1..AM-2 (Codex QE #3): coverage is id-by-id.
-        const covered = plannedAm.filter((id) => qeText.includes(id));
-        const missing = plannedAm.filter((id) => !qeText.includes(id));
+        // One stray AM-9 in QE must not satisfy AM-1..AM-2 (Codex QE #3): coverage is id-by-id — and
+        // `includes` was not id-by-id: a planned `AM-1` read as covered by a report mentioning only
+        // `AM-10` (MEASURED — `'AM-10'.includes('AM-1')` → `true`). A substring is not an id.
+        const mentionedInQe = new Set(amendmentIdsIn(qeText));
+        const covered = plannedAm.filter((id) => mentionedInQe.has(id));
+        const missing = plannedAm.filter((id) => !mentionedInQe.has(id));
         add('amendment-confirmation', 'amendments carried into QE with confirmation', missing.length === 0 ? 'pass' : covered.length > 0 ? 'partial' : 'partial', missing.length === 0
             ? `all planned amendments reach QE: ${plannedAm.join(', ')}`
             : `planned ${plannedAm.join(', ')} — QE never mentions ${missing.join(', ')}`);

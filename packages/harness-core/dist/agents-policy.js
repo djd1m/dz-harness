@@ -28,7 +28,16 @@ export const POLICY_SOURCES = [
         file: 'CLAUDE.md',
         heading: 'Test execution: never watch',
         why: 'A watch-mode test run hangs an unattended coding session.',
-        operativeClause: 'npm test -- --run',
+        // Была `npm test -- --run` — эта команда в корне НЕ СУЩЕСТВУЕТ (Missing script: test), и
+        // 2026-09-03 канон исправлен. Несущей стала команда, которая есть.
+        operativeClause: 'npm run test:all',
+    },
+    {
+        id: 'backlog-coverage',
+        file: 'CLAUDE.md',
+        heading: 'Backlog coverage',
+        why: 'Работа, не закрытая в этом же ходу, иначе не оставляет следа нигде, кроме переписки, которая прокручивается.',
+        operativeClause: 'ALWAYS say out loud which records you filed',
     },
     {
         id: 'data-protection',
@@ -241,6 +250,23 @@ export function detectPolicyDrift(sourceFiles, agentsMdText, sources = POLICY_SO
     const sourceIds = new Set(sources.map((source) => source.id));
     for (const stamp of [...stamps.filter((entry) => !sourceIds.has(entry.id)), ...duplicateStamps]) {
         findings.push({ id: stamp.id, file: stamp.file, status: 'orphan-stamp', expectedSha: null, actualSha: stamp.sha });
+    }
+    // Секции канона, о которых реестр не знает. Ищем во ВСЕХ переданных файлах-источниках, а не
+    // только в тех, что уже объявлены: файл может целиком отсутствовать в реестре.
+    {
+        const declared = new Set(sources.map((source) => source.id));
+        const seen = new Set();
+        for (const [file, text] of sourceFiles) {
+            if (typeof text !== 'string')
+                continue;
+            for (const m of text.matchAll(/<!-- dz:policy id=([a-z0-9-]+) -->/g)) {
+                const id = m[1];
+                if (declared.has(id) || seen.has(id))
+                    continue;
+                seen.add(id);
+                findings.push({ id, file, status: 'unregistered-section', expectedSha: null, actualSha: null });
+            }
+        }
     }
     if (typeof agentsMdText === 'string') {
         const beginCount = markerCount(agentsMdText, POLICY_BLOCK_BEGIN);

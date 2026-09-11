@@ -46,10 +46,12 @@
       "property": "Post-grant (ADR-001 AM-2) the pack must REMAIN publishable — a stray private:true would silently kill every future publish while CI stays green, so the publishable-state assertion must go red on it. (The Grant-Confirmation URL protection itself lives in LICENSE, which the gate cannot mutate — extensionless file, no parser; its layer-1 coverage is the pack-holds LICENSE assertions plus the dz guard licence-hold rule, both reading LICENSE directly on every run/publish.)",
       "file": "package.json",
       "mutation": {
-        "find": "  \"version\": \"0.1.4\",",
-        "replace": "  \"version\": \"0.1.4\",\n  \"private\": true,"
+        "find": "  \"publishConfig\": {",
+        "replace": "  \"private\": true,\n  \"publishConfig\": {"
       },
-      "minFailing": 1
+      "minFailing": 1,
+      "observed": 1,
+      "maxFailing": 1
     },
     {
       "id": "licence-block-guard-trigger-declared",

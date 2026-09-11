@@ -1,0 +1,7 @@
+positives: ["Where in runtime code should the composition root wire dependencies?","Choose DI, factory, or aspect to wire a runtime adapter into domain code","Separate application object-graph composition from runtime request handling","When should we commit this in-code DI/factory assembly choice?","Assemble runtime infrastructure adapters around domain code in one composition root","Defer an irreversible DI/factory/aspect wiring decision until runtime constraints are observed","В каком composition root связать доменные объекты и runtime adapters?","Выбери DI или factory для сборки object graph при запуске приложения","Изолируй cross-cutting concern через aspect при сборке приложения","Проверь composition-root wiring: домен не создаёт infrastructure adapters"]
+hard_negatives:
+  - {prompt: "Given an Order’s line-item data and total calculation, decide whether Order or PriceBreakdown should own the behaviour and representation", owner: clean-code-object-data-ownership}
+  - {prompt: "Choose a distributed architecture style", owner: fundamental-software-architecture-guide}
+  - {prompt: "Choose the build, release, or run stage for deployment", owner: 12factor-build-release-run-separation}
+  - {prompt: "Design the public REST API shape", owner: api-design}
+  - {prompt: "Review this database schema and query design", owner: database-review}

@@ -8,8 +8,8 @@
  * obvious way to write it and the wrong one.
  *
  * What differs between the targets is ONLY the attribution predicate, so that is the parameter:
- * the Claude path passes its historical substring list verbatim (bytes must not move — AM-3), the
- * Codex path passes sha-over-manifest (ADR-001 §3: dz never deletes what it cannot prove it wrote).
+ * the Claude path passes its historical command identities, the Codex path passes sha-over-manifest
+ * (ADR-001 §3), and both salvage foreign handlers that share a matcher group with an owned handler.
  *
  * The plan (AM-37) is explicit that the extracted block has **three** outputs, not one: the merged
  * body, the REPORT tail string, and the no-write path (`changed === false`). A golden test on the
@@ -61,10 +61,9 @@ export interface MergeManagedHookOptions {
      * Per-HANDLER salvage for an entry `isManaged` claimed. Given an OWNED entry, return it rebuilt
      * from only the handlers that are NOT ours, or `null` when every handler was ours.
      *
-     * Optional, and absent means the historical whole-entry behaviour — the Claude path passes
-     * nothing and is byte-identical to before (AM-3). The Codex path passes it because attribution at
-     * matcher-group granularity deleted a foreign handler that merely shared a group with dz's
-     * (independent review, finding 6).
+     * Optional, and absent means the historical whole-entry behaviour. Both live registry paths pass
+     * it because attribution at matcher-group granularity would delete a foreign handler that merely
+     * shared a group with dz's (Codex finding 6; Claude delivery review round 19).
      */
     readonly retainForeign?: (entry: ManagedHookEntry, event: string) => ManagedHookEntry | null;
     /** e.g. `'agentdb'` → `merged agentdb hooks (user hooks preserved)`. */

@@ -33,8 +33,28 @@ import { mergeManagedHookEntries } from './managed-hooks.js';
  * 3 — fix round 2: the note's `commandSynopsis` is a binary NAME or `(redacted)` — an
  * env-assignment first token (`SECRET=xyz ssh …`) carried the credential the redaction removed
  * everywhere else (R2-8).
+ * 4 — the destructive-command guard (feature `destructive-command-guard`, ADR-001, task T8): the
+ * veto helper consults `destructive-guard-hook.js` BEFORE the shell veto and blocks
+ * unconditionally on a literal path into a protected store. A changed body changes codex's
+ * `currentHash`, so the entry must be re-trusted — re-run `dz setup --target codex`.
+ * 5 — round 2 of the cross-family review, MEASURED: the helper's module loader was `require()`, and
+ * every file in this package's `dist/` is an ES module, so on Node below 20.19 / 22.12 the load
+ * threw ERR_REQUIRE_ESM, the catch returned `null`, and the helper exited 0 with an EMPTY stderr on
+ * `rm -rf .agentic-qe` — absent AND mute on a Node the package claims to support. The loader is now
+ * `import()`, `main` is async, and a decider that still cannot load says so on one line instead of
+ * staying silent. A changed body ⇒ a changed `currentHash` ⇒ re-trust.
+ * 6 — round 3, MEASURED: the body's module candidates were both PROJECT-relative, so in the
+ * documented global install (`npm i -g @dzhechkov/harness-cli`) an ordinary target repository
+ * resolved neither — every shell call reached `guard not loaded` and was ALLOWED, while the tests
+ * hid it by symlinking the package into the temp project. The emitting installation's absolute
+ * dist path is now baked in as the LAST candidate. A changed body ⇒ re-trust.
+ * 7 — round 9, MEASURED: when the decider THREW (or returned a shape the helper could not read),
+ * the helper wrote a note and printed NOTHING — stderr came back empty, so in the transcript the
+ * run was indistinguishable from a clean allow. The Claude hook already failed open loudly here.
+ * Now it prints ONE line, `DZ-DESTRUCTIVE-WARN: classifier threw — <message>`, and still exits 0.
+ * A changed body ⇒ re-trust.
  */
-export const DZ_HOOK_HELPER_VERSION = 3;
+export const DZ_HOOK_HELPER_VERSION = 7;
 /** Seconds. Probe-proven (spike S2): `timeout` is honored, the unset default is 600 s. */
 export const DZ_HOOK_TIMEOUT_SECONDS = 5;
 /** The wide matcher (AM-8). Narrowing needs a recorded live probe; the guard keys on the payload. */

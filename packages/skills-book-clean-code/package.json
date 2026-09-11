@@ -1,0 +1,46 @@
+{
+  "name": "@dzhechkov/skills-book-clean-code",
+  "version": "0.1.1",
+  "description": "Nine decision-moment skills and a portable 259-KU knowledge slice distilled from «Чистый код» (Robert C. Martin, рус. пер.). Machine-distilled (trust_tier 1), book-derived; ships our own page-anchored reformulations, never the book text.",
+  "license": "SEE LICENSE IN LICENSE",
+  "author": "dzhechko",
+  "keywords": [
+    "agent-skills",
+    "skill-pack",
+    "claude-code",
+    "clean-code",
+    "refactoring",
+    "code-quality",
+    "book-derived",
+    "dz-digitized",
+    "digitized-monograph"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/djd1m/dz-harness-hub.git",
+    "directory": "packages/@dzhechkov/skills-book-clean-code"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "files": [
+    "clean-code-intent-and-comment-contract",
+    "clean-code-source-layout",
+    "clean-code-function-contracts",
+    "clean-code-object-data-ownership",
+    "clean-code-error-and-boundary-handling",
+    "clean-code-test-suite-feedback",
+    "clean-code-legacy-refactoring-loop",
+    "clean-code-architecture-assembly",
+    "clean-code-concurrency-safety",
+    "brain",
+    "sources.json",
+    "README.md",
+    "LICENSE",
+    ".dz-manifest.json",
+    "sbom.json"
+  ]
+}

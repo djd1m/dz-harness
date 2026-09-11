@@ -15,6 +15,10 @@ function runPython(source, args = []) {
   const result = spawnSync("python3", ["-c", source, ...args], {
     cwd: scriptsDir,
     encoding: "utf8",
+    // PYTHONDONTWRITEBYTECODE: a test run must not leave __pycache__/*.pyc inside templates/.
+    // Measured 2026-09-02: six .pyc files were signed into a package manifest and packed for
+    // publication because `npm test` spawned python3 here without it.
+    env: { ...process.env, PYTHONDONTWRITEBYTECODE: "1" },
   });
   assert.equal(result.status, 0, result.stderr || result.stdout);
   return result.stdout.trim();

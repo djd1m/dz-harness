@@ -279,7 +279,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "c9186f299be209dd8aecd28229225dece4fdb76e6750a0d43c31ae19cbeda387"
+          "value": "26459fe36a9f3a8aca2fd159bccb067727d6b61ccfd937d87b0eb907df632491"
         }
       ]
     },
@@ -379,7 +379,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "86ed569a58e07f5aa2d31f6b932019345bc33abc00f5185601eb1f6ef9ce3815"
+          "content": "90d7b12ca01b7ee2cfee6aac68ca11431fa1a507ddfbac155c5d9802d9d91a1e"
         }
       ]
     },
@@ -509,7 +509,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "165d7b3c0606be6817893b53cbfc5ca55c7b81cbe35cbdd0dccf8679d702e81a"
+          "content": "f176d8ec871459b5a8d2111b8527331f34340d6e169da8cc7792953e3e334774"
         }
       ]
     },
@@ -585,11 +585,21 @@
     },
     {
       "type": "file",
+      "name": "templates/.claude/hooks/check-dangling-refs.cjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8f012876b1af110a1093319d36a2f84208a15780dbb8abb5a43eb4aeb8f76865"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "templates/.claude/hooks/check-docs-complete.cjs",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "27c05c2adcedc806e395b30b455243193a4fbd0968ce96e415679e1f78db951a"
+          "content": "0f516df0882c9da53d166a1b4e30ff1fc37bd5a2027c7e5fbdab6cba116ca828"
         }
       ]
     },
@@ -769,7 +779,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "50c08decec3e80ed325f50d7b062fbe0add47e8594002fcc165248492242ab56"
+          "content": "bac385da01dd9f1548d0db48a2acdada5e89a7822a7f0ecfb61cb74ff4cda138"
         }
       ]
     },
@@ -789,7 +799,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f15309ee8f1494478ff7678380dbe8fc8eecd154be36d57c9090cd17126a07da"
+          "content": "d2e7da3d56c8d4c6d1aa58e793fa0d5eecd65a5c01be38dfa0dc434273306838"
         }
       ]
     },
@@ -799,7 +809,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "59eb430f29dd762e8b76ad6d1177fe8b5b250de007856c743387cb88ee157942"
+          "content": "a9e5bb9a797ea4ef4c0671cee2cbec95f2557f8b9e1d20b84bbcee7ce4c21162"
         }
       ]
     },
@@ -819,7 +829,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4e926f84f244feb6824114a0624733738669c93e0508693fa2afa4e9a35c2aa3"
+          "content": "a7d0adf6bc63b942d3dec339b3ae68972c3dedc0b48a91d27653309c7da7f11f"
         }
       ]
     },
@@ -889,7 +899,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "13bf073273820addeb87167402495b2f683cefac70a9f6cb07b6e054b1851e0f"
+          "content": "9c4bbaa9ac628ec5d4e44d3ace6eec0b5bd602b5dccc5d36f123d73be448f159"
         }
       ]
     },
@@ -959,7 +969,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dac09c91c765e2211799cc230738fb72a966f47511edb872306a906e49640cbe"
+          "content": "b64894e1ddf8b9da7f2f146c737d35215e7281e3d8be10891d4a9b8aa2bd6d07"
         }
       ]
     },
@@ -1169,7 +1179,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5f1d650c426cbd2c9536b385306605ea62a5a520ee4566d23ca7254409c672a5"
+          "content": "4a7fae9ea1870c30b71c923fd5d3626a8926c5e960209fad709f4b8e0534fc80"
         }
       ]
     },
@@ -2179,7 +2189,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2e442fcb5f39de9f94c2284d385368f2e984bb17998556c41ac9f4f676a6134e"
+          "content": "31801798e099c5e43e60de29c3487a586fe6b906b2135ea1060861567d36fdfb"
         }
       ]
     },
@@ -2259,7 +2269,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "771ee1bb495fe4a60b2fa58cc8009e52610c38145059532d3e158581fdb66d93"
+          "content": "cce205634906882d7b8dc9c54dbbfc89abcafe59dd0ff5d0a9ef595e8e1c5356"
         }
       ]
     },
@@ -2270,6 +2280,16 @@
         {
           "alg": "SHA-256",
           "content": "df1aad467e0ed38471dad55547c1af6115ec9daaa5c40e9142e4ce67fedcb1bf"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "tests/unit/check-dangling-refs.test.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8571d325047e0624d273b2058ca55732360ede48e433750a86aa79b3aba9b273"
         }
       ]
     },
@@ -2579,7 +2599,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b8e6513e09e774b83b2f05ac42d35c4849ef81b58e600e442dd22cf1071d02f3"
+          "content": "5996879d9fdf6e194f40b32fff525bf9f257bbfb90719438e21850b15150ded1"
         }
       ]
     },
@@ -2589,7 +2609,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "176115fafdca146eff0ebf87361fe6d0f26c7c3621cda03da0140ab72ba9f1ac"
+          "content": "f42d66af4e430e5915b7e8daec9bb2c9a5df9f43960863443ec0076d99f6ad67"
         }
       ]
     },
@@ -2669,7 +2689,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ffbcfdf638941511dc78c048d5056812e63af203cdf7c9bc757a22540cca14e"
+          "content": "6c6a470d22d12ff46301c4ae61ba7a2563c4ff8a3a2d5b3a84c81c6b8c11b067"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "tests/unit/optional-doc-idiom.test.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f25338f5928e9d1cba82cdc88506d46256f2b567d7524f159512cb8e06b21f06"
         }
       ]
     },
@@ -2689,7 +2719,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e9f50ec67b8dde73d609c1df6bbeafa7eaf23f3ae62785362b57d09e3b7e6c70"
+          "content": "a6e5416318e22107e728e8800716d4697ff4b8edf00f6fc16019754afe03bbb1"
         }
       ]
     },
@@ -2799,7 +2829,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "abc54e0e00138ecc6d75e0cbc496cbd888cd97b1ed567b7d23557f0674b5c161"
+          "content": "f27e812e6ea45e3cc5b21a531e0b3e95517ad7419431ed4fa8dd27628d33faff"
         }
       ]
     },
@@ -2820,6 +2850,16 @@
         {
           "alg": "SHA-256",
           "content": "d4f42a26b67b2fa1dfa8db9984c301a7d7e91657e5e2cdabb1bab307c766138d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "tests/unit/verdict-vocabulary.test.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "55982f29de66852d085b561195b495d348a649079f5799658de3b43b697d0532"
         }
       ]
     }

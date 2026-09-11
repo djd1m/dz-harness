@@ -22,7 +22,7 @@ export interface LoopBlob {
     exports: string[];
     code: string;
 }
-export declare const LOOP_BLOB_NAMES: readonly ["checkpoints", "training-pairs", "model-resolver", "usage-probes", "codex-dispatch", "challenge-panel", "trace", "loop-semantics", "ha-consult-router"];
+export declare const LOOP_BLOB_NAMES: readonly ["run-registry", "checkpoints", "training-pairs", "model-resolver", "usage-probes", "codex-dispatch", "challenge-panel", "stage-line", "trace", "loop-semantics", "ha-consult-router"];
 /** Workflow files the regen-diff gate covers TODAY (AM-5 honest scope): exactly the files
  * carrying BEGIN BLOB markers. Stage B (whole-file regeneration of feature-adr.js) is a
  * tracked dz-backlog item, deliberately NOT claimed here. */

@@ -8,8 +8,8 @@
  * obvious way to write it and the wrong one.
  *
  * What differs between the targets is ONLY the attribution predicate, so that is the parameter:
- * the Claude path passes its historical substring list verbatim (bytes must not move — AM-3), the
- * Codex path passes sha-over-manifest (ADR-001 §3: dz never deletes what it cannot prove it wrote).
+ * the Claude path passes its historical command identities, the Codex path passes sha-over-manifest
+ * (ADR-001 §3), and both salvage foreign handlers that share a matcher group with an owned handler.
  *
  * The plan (AM-37) is explicit that the extracted block has **three** outputs, not one: the merged
  * body, the REPORT tail string, and the no-write path (`changed === false`). A golden test on the

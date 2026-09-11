@@ -1,16 +1,18 @@
+import { probePid } from './run-registry.js';
 /** Pure decisions for the Step-7.5 Codex companion liveness barrier. */
 export const DEFAULT_CODE_LANDING_CEILING_MS = 7_200_000;
 export const CODE_LANDING_CEILING_ENV = 'DZ_FEATURE_ADR_CODE_LANDING_CEILING_MS';
-export function decideCodeLandingLiveness(input) {
+export function decideCodeLandingLiveness(input, pidProbe = probePid) {
     const status = typeof input.companionStatus === 'string' ? input.companionStatus.trim().toLowerCase() : '';
     const elapsedMs = Number.isFinite(input.elapsedMs) ? Math.max(0, input.elapsedMs) : 0;
     const ceilingMs = Number.isFinite(input.ceilingMs) && input.ceilingMs > 0 ? input.ceilingMs : DEFAULT_CODE_LANDING_CEILING_MS;
+    const recordedPidAlive = input.recordedPidAlive === undefined ? (input.recordedPid === undefined ? null : pidProbe(input.recordedPid)) : input.recordedPidAlive;
     const live = status === 'running' || status === 'queued';
     const terminal = status === 'completed' || status === 'failed' || status === 'cancelled';
-    if (live && input.recordedPidAlive === false) {
+    if (live && recordedPidAlive === false) {
         return { verdict: 'dead-worker', reason: 'recorded-pid-absent' };
     }
-    if (live && input.recordedPidAlive === true) {
+    if (live && recordedPidAlive === true) {
         if (elapsedMs >= ceilingMs)
             return { verdict: 'inconclusive', reason: 'ceiling-exceeded' };
         return { verdict: 'coder-running', reason: 'recorded-pid-alive' };

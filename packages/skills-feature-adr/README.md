@@ -345,14 +345,17 @@ Workflow({ scriptPath: '.claude/workflows/feature-adr.js',
 ```
 
 Omit the Codex knobs entirely for today's all-Claude behavior. The run result reports
-`plannerUsed` / `coderUsed` / `qeReviewerUsed` / `codexModel` / `modelsUsed` so you can see who did what.
+`plannerUsed` / `coderUsed` / `qeReviewerUsed` / `codexModel` / `modelsUsed` as a legacy routing
+summary. `dispatchOutcomes` is the authoritative who-did-what ledger: it contains only settled
+attempts, never pre-dispatch intent.
 
-**Live model visibility in `/workflows`:** each stage's agent label is decorated with its *resolved*
-model — e.g. `adr · codex:gpt-5.5:xhigh`, `plan · opus` — so you see which model actually ran a stage in
-the live progress tree, not just in the final report. This matters because a Codex stage's auto
-model-badge shows the `codex:codex-rescue` Claude wrapper (the session model), never `codex`; the label
-text is the honest signal. A Claude fallback appears as its own distinct node (never mislabeled as Codex),
-and a routing-off run adds no suffix (byte-identical to today).
+**Live model visibility in `/workflows`:** each stage prints a two-phase line. `▸ ... · intent`
+appears before the target model starts and names the resolved model and selection reason;
+`◆ ... · outcome: ...` appears only after that attempt settles. Only the latter enters `dispatchOutcomes`.
+This matters because a Codex stage's auto
+model-badge shows the `codex:codex-rescue` Claude wrapper (the session model), never `codex`; the
+two-phase lines are the honest signal. A Claude fallback appears as its own distinct attempt (never
+mislabeled as Codex), and a routing-off intent explicitly says `routing not requested`.
 
 ### Per-stage model routing — `args.models`
 
@@ -695,7 +698,7 @@ sufficiency + honesty, overengineering, silent decisions, runtime consistency, s
   `dz challenge --plan <plan.md>` or the `challenge-panel` skill; scaffold the degradations registry via
   `dz feature-adr-setup --from-spec <spec with {"degradations":true}> --apply`.
 
-### ADR quality gate (Step 3 generates → Step 8 enforces)
+### ADR quality review + Confirmation file gate (Step 3 generates → Step 8 checks)
 
 Step 3 and Step 8 share an ADR best-practices contract distilled from the
 [architecture-decision-record monograph](https://github.com/architecture-decision-record/architecture-decision-record):
@@ -706,12 +709,17 @@ Step 3 and Step 8 share an ADR best-practices contract distilled from the
   links + after-action review, a **`## Confirmation`** stanza (method, monitoring, success metric, owner)
   naming the load-bearing property, and a **`## Links`** traceability block. Template weight is tier-mapped:
   S/M → Nygard/ITD-lightweight, L/XL → MADR + Confirmation.
-- **Step 8** runs a **13-point ADR fitness checklist** (`qe-code-reviewer`) against every generated ADR and
-  **fails the gate** on any miss — decision-shaped title, controlled-vocabulary Status + reversibility,
+- **Step 8** runs a **13-point advisory ADR fitness checklist** (`qe-code-reviewer`) against every generated ADR —
+  decision-shaped title, controlled-vocabulary Status + reversibility,
   neutral Context-before-Decision, symmetric options, driver-mapped rationale, concrete/testable decision,
   negative consequences, traceability links, no placeholder, and **rejects explainer-masquerading-as-ADR**.
-  The **Confirmation→test link is load-bearing**: if the named safety property has no automated test the ADR
-  grades no better than C.
+  Those judgment-based items remain findings; they do not independently force the workflow verdict.
+- The **one mandatory gate** runs after Step 7.5 and before the QE verdict: every test-file path named
+  under an ADR heading beginning with `## Confirmation` must exist as a readable regular file. Missing
+  files or unreadable/unparseable paths force a non-passing Step-8 grade while the independent QE review
+  still runs. A feature with no ADR prints `пропущено: ADR нет, проверять нечего` and is not failed.
+  `dz discrimination-check` and `dz mutation-gate` remain advisory: existence does not prove that a test
+  actually discriminates the load-bearing property.
 
 The pipeline **dog-foods** this: a harness test runs the gate against feature-adr's own generated ADR, so a
 Step-3↔Step-8 drift fails CI rather than shipping.
@@ -1133,6 +1141,19 @@ deliberately excluded — "skeleton first" is nonsense there.
 
 ## Status
 
+`1.5.10` — **staged, not published: every finished phase reports to the 📐 live panel, whatever the
+checkpoint does.** The packaged workflow's `withCheckpoint` computes the next phase label from STAGE
+COMPLETION alone, before any checkpoint branch, so `args.checkpoints:false`, an oversize or
+unserializable result, a stage with no declared artifact, and a refused persist predicate all still
+move the panel. On the common path the `dz statusline --fa-record` command RIDES the existing
+ckpt-write agent — **zero new agents** — joined by `;`, never `&&`: with `&&`, a checkpoint write
+that legitimately refuses short-circuits the phase report away while the workflow has already
+recorded that it ran, and the panel silently stops on a run that is still progressing. Only where no
+checkpoint agent is dispatched at all does the stage spend one extra effort-low `fa-phase:<stage>`
+dispatch, announced in the log. A dead or partial stage reports nothing — the panel must never claim
+progress a stage did not make. Requires `@dzhechkov/harness-cli >= 0.8.11` for the `--tier` flag and
+the second-line panel; the two workflow twins stay byte-identical (`gen-loop-blobs --check`).
+
 `1.5.9` — **staged, not published: advisory decision-point micro-recall.** Step 3 ADR selection and
 Step 6 plan routing each make one top-3, 15-second, no-retry attempt inside the live checkpoint thunk.
 All recall/receipt/probe failures preserve the original dispatch. Versioned `.fa-state` receipts make
@@ -1185,3 +1206,21 @@ Also in this release, both halves of the K2 plan-completeness gate that field us
   installed in the workspace was never found (`NOT-ESTABLISHED`, exit 3, the coding step never ran).
   New `args.workspace` pins it, the shipped call site passes it, each candidate is now labelled in the
   audit line, and a `K2_GATE_NOTE` fires when the two collapse onto one path.
+
+## Двухфазная строка диспатча (шаблон воркфлоу)
+
+Шаблон `.claude/workflows/feature-adr.js` печатает две разные строки без флага: намерение
+`▸ <стадия> · <модель> · <причина выбора> · intent` непосредственно до запуска модели и итог
+`◆ <стадия> · <модель> · outcome: <исход>` после окончательного состояния той же ступени.
+Даже долгий или бросивший исключение запуск заранее виден человеку; при этом только итог попадает в
+`dispatchOutcomes` отчёта. Причина отказа остаётся у outcome отказавшей ступени, а intent следующего
+fallback получает нейтральную причину `fallback-rung`. Регион `stage-line` принадлежит генератору
+`gen-loop-blobs` и не правится руками.
+
+### Shared Markdown masking in feature-adr gates
+
+The standalone plan-completeness gate ships with `markdown-masker.mjs`, copied byte-for-byte from
+harness-core's `src/markdown-masker.ts`. It runs without a core build. Amendment checks, swarm briefs
+and K2 share the parser while retaining their existing unclosed-block and indentation policies.
+The four-space indented-code gap remains open for amendment checks and K2; swarm briefs retain their
+existing masking of indented code. Versions are unchanged in this staged change.

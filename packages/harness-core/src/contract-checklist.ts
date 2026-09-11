@@ -21,6 +21,7 @@ export interface ContractSourceArtifact {
 export interface ContractChecklistSource {
   readonly requirements: ContractSourceArtifact;
   readonly adrs: readonly ContractSourceArtifact[];
+  readonly adrsOptional?: boolean;
 }
 
 export interface ContractItem {
@@ -127,6 +128,7 @@ export interface ContractVerification {
 }
 
 const REQUIREMENTS_HEADING = '## Acceptance criteria';
+const REQUIREMENTS_HEADINGS = [REQUIREMENTS_HEADING, '## Критерии приёмки'] as const;
 const CONFIRMATION_HEADING = '## Confirmation';
 const VERDICT_HEADING = '## Contract checklist';
 const REQUIREMENTS_FORMAT_LINE = 'Format: Every acceptance criterion below is exactly one physical line matching `^AC-([1-9][0-9]*): (\\S.*)$`; identifiers are contiguous from `AC-1`, and only the literal H2 `## Acceptance criteria` establishes this source section.';
@@ -139,10 +141,11 @@ function linesOf(text: string): string[] {
   return text.replace(/\r\n?/g, '\n').split('\n');
 }
 
-function h2Indexes(lines: readonly string[], heading: string): number[] {
+function h2Indexes(lines: readonly string[], heading: string | ((line: string) => boolean)): number[] {
   const indexes: number[] = [];
   for (let index = 0; index < lines.length; index++) {
-    if (lines[index] === heading) indexes.push(index);
+    const line = lines[index] ?? '';
+    if (typeof heading === 'string' ? line === heading : heading(line)) indexes.push(index);
   }
   return indexes;
 }
@@ -176,7 +179,9 @@ function acceptanceItems(
   diagnostics: ContractDiagnostic[],
 ): PendingContractItem[] {
   const lines = linesOf(artifact.text);
-  const headings = h2Indexes(lines, REQUIREMENTS_HEADING);
+  const headings = h2Indexes(lines, (line) => REQUIREMENTS_HEADINGS.includes(
+    line as (typeof REQUIREMENTS_HEADINGS)[number],
+  ));
   if (headings.length !== 1) {
     diagnostics.push(diagnostic(
       headings.length === 0 ? 'requirements-section-missing' : 'requirements-section-duplicate',
@@ -275,7 +280,8 @@ function confirmationItem(
     return null;
   }
   const lines = linesOf(artifact.text);
-  const headings = h2Indexes(lines, CONFIRMATION_HEADING);
+  const headings = h2Indexes(lines, (line) => line === CONFIRMATION_HEADING
+    || line.startsWith(`${CONFIRMATION_HEADING} `));
   if (headings.length !== 1) {
     diagnostics.push(diagnostic(
       headings.length === 0 ? 'confirmation-section-missing' : 'confirmation-section-duplicate',
@@ -349,7 +355,7 @@ export function extractContractChecklist(input: ContractChecklistSource): Contra
   const requirements = acceptanceItems(input.requirements, diagnostics);
   validateAcceptanceIds(requirements, input.requirements, diagnostics);
 
-  if (input.adrs.length === 0) {
+  if (input.adrs.length === 0 && input.adrsOptional !== true) {
     diagnostics.push(diagnostic(
       'adr-input-empty',
       'at least one direct canonical ADR Markdown file is required',

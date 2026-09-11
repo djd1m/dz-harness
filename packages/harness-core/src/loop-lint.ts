@@ -22,7 +22,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { toLintProjection, JOIN_POLICIES, QUORUM_RE, type LoopPlan, type LintProjection } from './loop-plan.js';
+import { toLintProjection, stepIdent, JOIN_POLICIES, QUORUM_RE, type LoopPlan, type LintProjection } from './loop-plan.js';
 import type { LoopBlob } from './loop-blobs.generated.js';
 
 export type LintVerdict = 'pass' | 'fail' | 'inconclusive';
@@ -584,6 +584,29 @@ export const TOOL_PERIMETER_ENTRY_RE = /^[a-z][a-z0-9-]*(:[a-z][a-z0-9-]*)+$/;
  * exactly where cfr-pipeline runs it. Plan-less scripts report `inconclusive` (`no-plan-binding`)
  * like every other plan-anchored rule — never a silent pass.
  */
+/**
+ * Текст массива промпта одного шага: содержимое `const P_<ident> = [ … ]` со сбалансированными
+ * скобками. `null`, если такого массива в скрипте нет.
+ *
+ * Скобки считаются, а не ищется первая `]`: строки договора содержат запятые и текст, а соседний
+ * шаг начинается сразу за концом массива — обрыв по первой скобке склеил бы соседей.
+ */
+function promptArrayRegion(code: string, ident: string): string | null {
+  const head = new RegExp(`const\\s+P_${ident.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*=\\s*\\[`).exec(code);
+  if (head === null) return null;
+  const open = head.index + head[0].length - 1;
+  let depth = 0;
+  for (let i = open; i < code.length; i += 1) {
+    const ch = code[i];
+    if (ch === '[') depth += 1;
+    else if (ch === ']') {
+      depth -= 1;
+      if (depth === 0) return code.slice(open + 1, i);
+    }
+  }
+  return null;   // массив не закрыт — область не установлена, и выдумывать её нельзя
+}
+
 function ruleToolPerimeterDeclared(ctx: Ctx): LintFinding[] {
   if (ctx.projection === null) return noPlan('tool-perimeter-declared');
   const sev: LintSeverity = ctx.mode === 'require-plan' ? 'fail' : 'warn';
@@ -604,13 +627,35 @@ function ruleToolPerimeterDeclared(ctx: Ctx): LintFinding[] {
       }
       seen.add(entry);
     }
-    // script cross-check: the rendered contract line must agree with the DECLARED array — a plan
-    // edit that never re-rendered would otherwise pass on the plan half alone.
-    if (f.tools.length > 0) {
-      const expected = 'declared MCP tool allowlist (plan tools): ' + f.tools.join(', ') + ' — use NOTHING outside it.';
-      if (!ctx.script.includes(expected)) {
-        out.push({ rule: 'tool-perimeter-declared', severity: sev, message: `step ${f.id}: the rendered script carries no contract line matching the declared perimeter [${f.tools.join(', ')}] — the script is stale against the plan, or the perimeter is decorative`, anchor: f.id });
+    // ПЕРЕКРЁСТНАЯ ПРОВЕРКА СО СКРИПТОМ — В ОБЛАСТИ ЭТОГО ШАГА И БЕЗ КОММЕНТАРИЕВ.
+    //
+    // Три слабости прежней редакции, все ПОДТВЕРЖДЕНЫ ревью (бэклог 6b351420) и воспроизведены:
+    //   (а) проверка шла только при `tools.length > 0` — сжатие периметра до `[]` без ре-рендера
+    //       оставляло в скрипте СТАРУЮ строку договора, и правило молчало;
+    //   (б) `ctx.script.includes` искал ГЛОБАЛЬНО — потерянная строка одного шага удовлетворялась
+    //       одинаковым периметром ДРУГОГО шага;
+    //   (в) искали в `ctx.script`, а не в `ctx.code`, поэтому строка договора, перенесённая в
+    //       `//`-комментарий, проходила как настоящая.
+    //
+    // ОБЛАСТЬ ШАГА — ЭТО ЕГО МАССИВ ПРОМПТА `const P_<ident> = [ … ]`, а НЕ область между
+    // маркерами `BEGIN/END step:<id>`. Измерено на отрендеренном плане: строка договора шага
+    // `lane`, раздаваемого веером, лежит в области шага `fan` — привязка к маркерам дала бы
+    // ложное нарушение на каждом веерном шаге.
+    const PERIMETER_PREFIX = 'declared MCP tool allowlist (plan tools): ';
+    const region = promptArrayRegion(ctx.code, stepIdent(f.id));
+    if (region === null && f.tools.length > 0) {
+      // Периметр ОБЪЯВЛЕН, а сверять его не с чем: у шага нет массива промпта в скрипте. Для шага
+      // с ПУСТЫМ периметром отсутствие области — не находка: противоречить там нечему, и краснеть
+      // на всяком ненарендеренном скрипте значило бы изобретать нарушения.
+      out.push({ rule: 'tool-perimeter-declared', severity: sev, message: `step ${f.id}: the script carries no \`const P_${stepIdent(f.id)} = [ … ]\` prompt array — a declared perimeter [${f.tools.join(', ')}] cannot be cross-checked against it at all`, anchor: f.id });
+    } else if (region !== null && f.tools.length > 0) {
+      const expected = PERIMETER_PREFIX + f.tools.join(', ') + ' — use NOTHING outside it.';
+      if (!region.includes(expected)) {
+        out.push({ rule: 'tool-perimeter-declared', severity: sev, message: `step ${f.id}: the step's own prompt carries no contract line matching the declared perimeter [${f.tools.join(', ')}] — the script is stale against the plan, or the perimeter is decorative`, anchor: f.id });
       }
+    } else if (region !== null && region.includes(PERIMETER_PREFIX)) {
+      // Периметр сжали до пустого, а строка договора осталась: скрипт разрешает больше, чем план.
+      out.push({ rule: 'tool-perimeter-declared', severity: sev, message: `step ${f.id}: the plan declares an EMPTY tool perimeter, but the step's prompt still carries a tool-allowlist contract line — the script was not re-rendered and grants more than the plan allows`, anchor: f.id });
     }
   }
   return out;

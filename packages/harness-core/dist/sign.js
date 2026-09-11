@@ -492,7 +492,24 @@ export function verifyManifest(root, signed, pubKeyPem) {
             continue;
         }
         if (digest !== entry.sha256) {
-            failures.push({ path: entry.path, reason: 'content does not match its signed hash' });
+            // ПРИЧИНА НАЗЫВАЕТСЯ ТОЧНО, А НЕ ОБОБЩЁННО. Для файла, который переписывает упаковщик,
+            // расхождение чаще означает НЕ подделку, а сверку двух РАЗНЫХ объектов: манифест снят с
+            // байтов упакованного пакета, а здесь читается исходный каталог. ИЗМЕРЕНО 2026-09-03: так
+            // расходятся ВСЕ 56 подписанных пакетов, ни один не проверяется — на свежеподписанном
+            // манифест хранит cd7bd97a…, а хэш байтов с диска при любой версии канонизации даёт
+            // 40d926ff…, потому что pnpm вырезает из package.json блок scripts.
+            //
+            // Вердикт НЕ меняется: расхождение остаётся расхождением и выход остаётся ненулевым.
+            // Меняется только прочтение — «подделали» против «сверяете не то». Полное лечение (два
+            // режима проверки: исходный каталог упаковывать, установленный сверять напрямую) —
+            // запись бэклога 58dc4d58, решение владельца получено, работа не сделана.
+            const packerRewritten = CANONICALISED_PACK_FILES.has(entry.path);
+            failures.push({
+                path: entry.path,
+                reason: packerRewritten
+                    ? 'content does not match its signed hash — NOTE: this file is rewritten by the packer, so a mismatch here may mean the manifest was built from PACKED bytes while a SOURCE directory is being verified, not tampering (backlog 58dc4d58)'
+                    : 'content does not match its signed hash',
+            });
         }
     }
     // Bidirectional, always: hashing only what the manifest lists lets an attacker ADD a file.

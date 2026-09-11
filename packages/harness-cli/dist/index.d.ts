@@ -6,6 +6,8 @@
 /** Package version. Kept in sync with `package.json`. */
 export declare const HARNESS_CLI_VERSION: string;
 export { DZ_COMMANDS, runCli } from './cli.js';
+export { commandInventory, declaredCommands, dispatchedCommands, documentedCommands, stripNonCode, validateExceptionList, INTERNAL_ENTRY_POINTS, PSEUDO_COMMANDS, } from './command-inventory.js';
+export type { CommandException, CommandInventory } from './command-inventory.js';
 export type { CliIo, ReleaseExecRunner } from './cli.js';
 export { codexHooksSummary, codexHooksSyncOptions, deliverCodexHooks, normalizeCodexHookOutcome } from './cli.js';
 export { withForeignStdoutOnStderr } from './cli.js';

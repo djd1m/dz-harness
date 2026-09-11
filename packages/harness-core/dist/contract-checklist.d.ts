@@ -17,6 +17,7 @@ export interface ContractSourceArtifact {
 export interface ContractChecklistSource {
     readonly requirements: ContractSourceArtifact;
     readonly adrs: readonly ContractSourceArtifact[];
+    readonly adrsOptional?: boolean;
 }
 export interface ContractItem {
     readonly id: string;

@@ -3,6 +3,7 @@
  *
  * @packageDocumentation
  */
+import { SourceRefusal, fetchWithBudget, isSourceRefusal, refuseIfNothingMeasured } from './sources/source-outcome.js';
 import { createRateLimitState, getDelay, markRetry, markSuccess, shouldRetry, updateFromHeaders, } from './rate-limiter.js';
 const DEFAULT_TOPICS = [
     'agent-skills',
@@ -28,12 +29,17 @@ async function fetchPage(query, page, token) {
     };
     if (token)
         headers['Authorization'] = `Bearer ${token}`;
-    const resp = await fetch(url, { headers });
-    if (!resp.ok) {
-        if (resp.status === 403 || resp.status === 429) {
-            throw new Error(`rate-limited: ${resp.status}`);
-        }
-        throw new Error(`GitHub API error: ${resp.status} ${resp.statusText}`);
+    // Форма отказа сохраняется, а не сворачивается в общую ошибку: «исчерпан лимит», «не ответил за
+    // срок» и «обращение не состоялось» лечатся по-разному, и различает их только вызывающий.
+    // Бюджета времени здесь раньше не было ВООБЩЕ — обращение могло висеть до конца прогона.
+    let resp;
+    try {
+        resp = await fetchWithBudget(url, { headers });
+    }
+    catch (err) {
+        if (isSourceRefusal(err))
+            throw err;
+        throw new SourceRefusal('failed', `${url}: обращение не состоялось — ${err instanceof Error ? err.message : String(err)}`);
     }
     const data = (await resp.json());
     return { items: data.items, totalCount: data.total_count, headers: resp.headers };
@@ -47,6 +53,8 @@ export async function scanGitHub(options = {}) {
     const seen = new Set();
     const allItems = [];
     let totalCount = 0;
+    const refusals = [];
+    let measuredTopics = 0;
     for (const topic of topics) {
         const query = buildSearchQuery(topic, options.since);
         const maxPages = Math.ceil(perTopic / PER_PAGE);
@@ -63,6 +71,7 @@ export async function scanGitHub(options = {}) {
                 const result = await fetchPage(query, page, options.token);
                 updateFromHeaders(state, result.headers);
                 markSuccess(state);
+                measuredTopics += 1;
                 totalCount += result.totalCount;
                 for (const item of result.items) {
                     if (!seen.has(item.full_name)) {
@@ -81,13 +90,20 @@ export async function scanGitHub(options = {}) {
                     page--;
                     continue;
                 }
-                // Skip this topic on persistent failure, continue with next
+                // Тема брошена после исчерпания повторов. Прежде это был молчаливый `break`: тема,
+                // упавшая наглухо, просто давала меньше находок, и отличить «по теме ничего нет» от
+                // «мы её не смогли прочитать» было нельзя. Форма отказа теперь сохраняется, а судьбу
+                // источника решает общее правило частичного успеха ниже.
+                refusals.push(isSourceRefusal(error)
+                    ? error
+                    : new SourceRefusal('failed', `github «${topic}»: обращение не состоялось — ${error instanceof Error ? error.message : String(error)}`));
                 break;
             }
         }
         if (allItems.length >= maxResults)
             break;
     }
+    refuseIfNothingMeasured(measuredTopics, refusals, 'scanGitHub');
     return { items: allItems.slice(0, maxResults), totalCount };
 }
 //# sourceMappingURL=scanner.js.map

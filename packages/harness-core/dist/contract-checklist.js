@@ -7,6 +7,7 @@
 export const CONTRACT_CHECKLIST_SCHEMA = 'contract-checklist/1';
 export const CONTRACT_VERDICT_SCHEMA = 'contract-checklist-verdict/1';
 const REQUIREMENTS_HEADING = '## Acceptance criteria';
+const REQUIREMENTS_HEADINGS = [REQUIREMENTS_HEADING, '## Критерии приёмки'];
 const CONFIRMATION_HEADING = '## Confirmation';
 const VERDICT_HEADING = '## Contract checklist';
 const REQUIREMENTS_FORMAT_LINE = 'Format: Every acceptance criterion below is exactly one physical line matching `^AC-([1-9][0-9]*): (\\S.*)$`; identifiers are contiguous from `AC-1`, and only the literal H2 `## Acceptance criteria` establishes this source section.';
@@ -20,7 +21,8 @@ function linesOf(text) {
 function h2Indexes(lines, heading) {
     const indexes = [];
     for (let index = 0; index < lines.length; index++) {
-        if (lines[index] === heading)
+        const line = lines[index] ?? '';
+        if (typeof heading === 'string' ? line === heading : heading(line))
             indexes.push(index);
     }
     return indexes;
@@ -37,7 +39,7 @@ function diagnostic(code, message, fields = {}) {
 }
 function acceptanceItems(artifact, diagnostics) {
     const lines = linesOf(artifact.text);
-    const headings = h2Indexes(lines, REQUIREMENTS_HEADING);
+    const headings = h2Indexes(lines, (line) => REQUIREMENTS_HEADINGS.includes(line));
     if (headings.length !== 1) {
         diagnostics.push(diagnostic(headings.length === 0 ? 'requirements-section-missing' : 'requirements-section-duplicate', `expected exactly one ${REQUIREMENTS_HEADING} section; found ${headings.length}`, { artifact: artifact.path, section: REQUIREMENTS_HEADING, observed: headings.length }));
         return [];
@@ -100,7 +102,8 @@ function confirmationItem(artifact, diagnostics) {
         return null;
     }
     const lines = linesOf(artifact.text);
-    const headings = h2Indexes(lines, CONFIRMATION_HEADING);
+    const headings = h2Indexes(lines, (line) => line === CONFIRMATION_HEADING
+        || line.startsWith(`${CONFIRMATION_HEADING} `));
     if (headings.length !== 1) {
         diagnostics.push(diagnostic(headings.length === 0 ? 'confirmation-section-missing' : 'confirmation-section-duplicate', `expected exactly one ${CONFIRMATION_HEADING} section; found ${headings.length}`, { artifact: artifact.path, section: CONFIRMATION_HEADING, observed: headings.length }));
         return null;
@@ -160,7 +163,7 @@ export function extractContractChecklist(input) {
     const diagnostics = [];
     const requirements = acceptanceItems(input.requirements, diagnostics);
     validateAcceptanceIds(requirements, input.requirements, diagnostics);
-    if (input.adrs.length === 0) {
+    if (input.adrs.length === 0 && input.adrsOptional !== true) {
         diagnostics.push(diagnostic('adr-input-empty', 'at least one direct canonical ADR Markdown file is required', { section: CONFIRMATION_HEADING, observed: 0 }));
     }
     const adrBasename = (path) => path.replace(/\\/g, '/').split('/').at(-1) ?? '';

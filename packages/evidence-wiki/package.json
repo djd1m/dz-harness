@@ -33,7 +33,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/djd1m/dz-harness.git",
+    "url": "git+https://github.com/djd1m/dz-harness-hub.git",
     "directory": "packages/@dzhechkov/evidence-wiki"
   },
   "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/evidence-wiki#readme",

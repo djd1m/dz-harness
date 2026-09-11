@@ -29,9 +29,7 @@ export interface GraphField {
 /** interface name → its fields (index signatures like `[xKey: \`x-${string}\`]` are excluded:
  * they open no named-interface edge and are the extension escape hatch by design). */
 export type InterfaceGraph = ReadonlyMap<string, readonly GraphField[]>;
-/** Brace-matched interface extraction. A regex-only scan truncates at the first nested brace
- * (inline object fields are everywhere in this file), so bodies are cut by depth counting. */
-export declare function parseInterfaceGraph(source: string): InterfaceGraph;
+export declare function parseInterfaceGraph(rawSource: string): InterfaceGraph;
 /** Every interface reachable from `root` (inclusive), via any field's declared-interface refs —
  * arrays, unions and nullables all count: `LoopStep[]`, `RetryProfile | null` open the same edge. */
 export declare function reachableInterfaces(graph: InterfaceGraph, root: string): string[];

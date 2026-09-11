@@ -15,6 +15,7 @@
  * `dz recall`'s lesson namespace (ADR-005 T-005b, the discriminating isolation test). Structured
  * records live in a dedicated `.dz/backlog/ideas.jsonl`, never in `.dz/memory/patterns.*`.
  */
+import { appendTransition } from './backlog-transitions.js';
 import { createHash } from 'node:crypto';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -407,7 +408,15 @@ export function transitionIdeas(projectRoot, verb, prefixes, opts = {}) {
     if (dryRun || toMutate.length === 0) {
         return { ok: true, dryRun, changes, errors: [], written: false };
     }
+    // Журнал переходов пишется РЯДОМ со сменой статуса, а не отдельной командой. Запись хранит
+    // ровно ОДИН переход — последний, — поэтому промежуточные существуют только здесь, в момент,
+    // когда они происходят. Пропустить эту строку значит потерять их навсегда: восстановить нечем.
+    const journal = [];
     for (const p of toMutate) {
+        journal.push({
+            id: String(p.obj.id ?? ''), from: p.status ?? null, to: target, ts: nowIso,
+            ...(opts.reason !== undefined && opts.reason !== '' ? { reason: opts.reason } : {}),
+        });
         p.obj.status = target;
         p.obj.statusTs = nowIso;
         if (opts.reason !== undefined && opts.reason !== '')
@@ -428,6 +437,10 @@ export function transitionIdeas(projectRoot, verb, prefixes, opts = {}) {
         catch { /* best-effort litter cleanup — never mask the original failure */ }
         return { ok: false, dryRun, changes: [], errors: [`store write failed: ${e.message}`], written: false };
     }
+    // Журнал пишется ПОСЛЕ успешной записи стора, а не до: переход, которого не случилось, не должен
+    // остаться в летописи. Обратный порядок дал бы записи о переходах, отменённых упавшей записью.
+    for (const row of journal)
+        appendTransition(projectRoot, { ...row, by: `backlog ${target === 'shipped' ? 'ship' : target === 'dropped' ? 'drop' : 'reopen'}` });
     return { ok: true, dryRun, changes, errors: [], written: true };
 }
 /* ── Edit a captured idea's TEXT (idea 1fde7bf6) ─────────────────────────────────────────────

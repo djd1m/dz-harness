@@ -365,9 +365,9 @@ corpus_version `120bf49aec034522`, extraction/verification/judge models. No `ori
 is the immutable upstream; `dz sync-upstream` skips book packs).
 
 Gates below were MEASURED on 2026-08-18/19 against the content published as `0.2.2` (`0.2.1` was
-the CP5 publish; `0.2.2` added the CP6 knowledge slice). `0.2.9` re-ships that same content — the
+the CP5 publish; `0.2.2` added the CP6 knowledge slice). `0.2.10` re-ships that same content — the
 only change is this README and a signature that matches the shipped bytes — so the figures carry
-over unchanged; they were not re-run for `0.2.9`:
+over unchanged; they were not re-run for `0.2.10`:
 
 - **KU verification** — the canon is UNCHANGED by wave 2: 223 canon KUs, 202 true / 21 partial /
   0 false (cross-family judge `gpt-5.6-sol`, 0 Claude fallbacks). This pack now consumes 207
@@ -381,6 +381,11 @@ over unchanged; they were not re-run for `0.2.9`:
   (8 702 shingles). The wave-2 figures below are the same gate at assembly time. Leg 1 over 37 md files / 154 743 shingles; leg 2 over the
   17 `evals/routing.yaml` copied to `*.md` (8 702 shingles) — the checker walks only `*.md`, so the
   yaml has to be checked explicitly. Both legs against the same 101 988 corpus 8-grams.
+  **Honest limit (2026-09-02):** the gate is run by DECISION, not by machinery — `prepublishOnly`
+  invokes `scripts/prepublish-gate.mjs`, which contains no shingling step (reproducer:
+  `grep -c -iE 'shingl|verbatim|corpus' scripts/prepublish-gate.mjs` → `0`). The LICENSE previously
+  said the gate runs "before every release"; it now states the dated runs above instead. Any release
+  whose content changed without a fresh run is covered only by the last dated run.
 - **Routing (CP3.5)** — re-run on the FULL 17-skill catalog: `97.7% activation (216/221)`,
   `1.8% sibling-steal`, `0/152` hard-negative violations, `0/373` judge fallbacks, judge
   `codex exec -m gpt-5.6-sol` (reproducer:
@@ -408,7 +413,7 @@ The **first published version was `0.2.1`** (2026-08-19) — `dz publish` bumps 
 so the wave-2 content staged as `0.2.0` is what shipped under that tag; `0.2.0` itself was never
 published. `0.2.2` (2026-08-19) added the CP6 knowledge slice.
 
-**`0.2.1` and `0.2.2` are deprecated on npm — install `0.2.9` or later.** Both were published
+**`0.2.1` and `0.2.2` are deprecated on npm — install `0.2.10` or later.** Both were published
 through `dz publish`, which signs the pack BEFORE it bumps the version and rewrites version strings
 in the README. The consequence is measurable on the registry tarball, not just in theory: `dz
 verify-pack` on the unpacked `0.2.2` reports `README.md: content does not match its signed hash` and
@@ -417,9 +422,9 @@ this file into false ones (it claimed `0.2.2` was the first published version, a
 distinct version numbers into one). The pack CONTENT — skills, KUs, brain slice, gates — was never
 in question; what was broken is the claim about it and the signature over it.
 
-`0.2.9` carries this corrected README and a signature made over the exact bytes that ship. It was
+`0.2.10` carries this corrected README and a signature made over the exact bytes that ship. It was
 published with a raw `npm publish` from the pack directory, deliberately: this pack declares **no
-dependencies at all** (verify with `npm view @dzhechkov/skills-book-ai-apps@0.2.9 dependencies`), so
+dependencies at all** (verify with `npm view @dzhechkov/skills-book-ai-apps@0.2.10 dependencies`), so
 the workspace-`*` leak that `dz publish` exists to prevent cannot occur here. For any pack that DOES
 carry internal dependencies, `dz publish` remains the only safe route.
 

@@ -230,14 +230,28 @@ describe('the per-feature traceability gap is a named negative fixture (PR-021)'
     const pkg = JSON.parse(read(PACKAGE_JSON));
     const unitFiles = fs.readdirSync(path.join(PACKAGE_ROOT, 'tests', 'unit'));
 
-    assert.deepEqual(unregisteredUnitTests(unitFiles, pkg.scripts['test:unit']), [],
-      'test:unit has a file on disk that it never executes');
-    assert.deepEqual(unregisteredUnitTests(unitFiles, pkg.scripts.test), [],
-      'test has a unit file on disk that it never executes');
+    // Registration is checked against the UNION of the declared lanes, not against `test:unit`
+    // alone. A unit file may legitimately live in a slower lane — `test:browser` drives a real
+    // browser and ran for over 6m40s inside the 9m20s `npm test`, pushing the whole suite against
+    // the 10-minute call ceiling (measured 2026-09-03). What must NEVER happen is a file that runs
+    // in NO lane, because that is how "we made the suite fast" turns into "we stopped testing it".
+    // So the union is what the guard accepts, and the lane list itself is asserted below: dropping
+    // `test:browser` from package.json turns this test red rather than silently shrinking coverage.
+    const LANES = ['test:unit', 'test:browser'];
+    for (const lane of LANES) {
+      assert.ok(typeof pkg.scripts[lane] === 'string' && pkg.scripts[lane].length > 0,
+        `lane ${lane} must exist in package.json — a lane that vanishes takes its tests with it`);
+    }
+    const unionScript = LANES.map((l) => pkg.scripts[l]).join(' ');
+
+    assert.deepEqual(unregisteredUnitTests(unitFiles, unionScript), [],
+      'a unit file on disk runs in NO declared lane');
+    assert.deepEqual(unregisteredUnitTests(unitFiles, `${pkg.scripts.test} ${pkg.scripts['test:browser']}`), [],
+      'a unit file runs in neither `test` nor `test:browser`');
 
     const probe = '__unregistered-probe.test.js';
     assert.deepEqual(
-      unregisteredUnitTests([...unitFiles, probe], pkg.scripts['test:unit']),
+      unregisteredUnitTests([...unitFiles, probe], unionScript),
       [probe],
       'the registration guard must fire on a real injected unregistered filename',
     );

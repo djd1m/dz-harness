@@ -16,12 +16,21 @@ export const meta = {
   ],
 }
 
+// Finalize on every normal return and on a caught runtime error; a killed host cannot finalize.
+let finishRunRegistry = null
+let registryOutcome = 'errored'
+try {
 const A = typeof args === 'string' ? JSON.parse(args) : (args || {})
 const SLUG = A.slug || 'feature'
 const DESC = A.description || ''
 const CODE_HINT = A.code || '(discover from the description)'
 const MODE = A.mode || 'full-qe-extended'
 const STOP_AFTER = A.stopAfter || null
+// fa-phase-statusline (ADR-001 D2): tier holder for the ckpt-side phase-start fa-records. The real
+// tier variable initializes only AFTER the router stage (TDZ — reading it from the router's own
+// ckpt write would throw), so the holder starts from args and is refreshed once the router returns;
+// the router branch inside withCheckpoint reads the freshly returned result.tier directly.
+const FA_TIER = { v: typeof A.tier === 'string' ? A.tier : '' }
 // PORTABLE: project root comes from args.repo (default '.', i.e. the cwd the workflow's agents run in),
 // never a hardcoded path — so this ships inside @dzhechkov/skills-feature-adr and runs in any project.
 // The monorepo passes args.repo + args.dzBin explicitly to target its dev build.
@@ -81,7 +90,7 @@ function pickAbsolutePathLine(text) {
 async function probeSessionCwd(tag) {
   let cwd = null
   for (let attempt = 1; attempt <= 2 && !cwd; attempt++) {
-    const pwdOut = await agent('Run EXACTLY this via Bash and reply with ONLY the absolute path it prints, nothing else: pwd -P', { label: tag + ':' + attempt, phase: 'Route', model: 'haiku', effort: 'low' })
+    const pwdOut = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with ONLY the absolute path it prints, nothing else: pwd -P', { label: tag + ':' + attempt, phase: 'Route', model: 'haiku', effort: 'low' })
     cwd = pickAbsolutePathLine(pwdOut === null ? null : String(pwdOut))
     if (!cwd) log(tag + ': attempt ' + attempt + ' could not resolve the absolute root (pwd agent returned no absolute path)')
   }
@@ -365,7 +374,7 @@ const resumedStages = []
 async function loadCheckpoints(phaseName) {
   if (!CHECKPOINTS_ON) return
   const readCmd = 'cat ' + shq(CKPT_FILE) + ' 2>/dev/null || true; echo ' + shq(CKPT_LS_SENTINEL) + '; cd ' + shq(FDIR) + ' 2>/dev/null && find . -maxdepth 2 -type f 2>/dev/null | sed "s|^\\./||" || true'
-  const readOut = await agent('Run EXACTLY this via Bash and return its stdout VERBATIM (it may be empty) with NO code fences and NO commentary: ' + readCmd, { label: 'ckpt:read', phase: phaseName, effort: 'low' })
+  const readOut = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and return its stdout VERBATIM (it may be empty) with NO code fences and NO commentary: ' + readCmd, { label: 'ckpt:read', phase: phaseName, effort: 'low' })
   const raw = String(readOut == null ? '' : readOut)
   // LINE-ANCHORED sentinel: a sentinel string INSIDE a recorded result shares its line with JSON
   // syntax (stringify never emits raw newlines) and can never split the stream (Codex QE #10).
@@ -409,6 +418,33 @@ async function withCheckpoint(stage, phaseName, inputHash, runFn, ckptOpts) {
   // never checkpoint a dead/partial stage: null/undefined, or a parallel() array holding any null
   const partial = Array.isArray(result) && result.some(function (x) { return x === null || x === undefined })
   const persistable = (typeof o.persist === 'function') ? (result !== null && result !== undefined && o.persist(result)) : true
+  // fa-phase-statusline (ADR-001 D2 + ADR-002 C4): a COMPLETED stage reports the NEXT phase's start
+  // to the live panel — the completion of stage N IS the start of stage N+1. The report is derived
+  // from STAGE COMPLETION alone, computed HERE, before any checkpoint branch, so it cannot die with
+  // checkpoint persistence: args.checkpoints:false, an oversize/unserializable result, no declared
+  // artifact or a refused persist predicate lose the checkpoint (their own honest logs) but never
+  // the panel. In the common path the command RIDES the ckpt-write agent (zero extra agents); only
+  // when no ckpt agent is dispatched does it get its own minimal effort-low dispatch. Design
+  // siblings all map to the Plan label (last-write-wins makes the final state correct; the
+  // premature label is the stated price of zero agents). The terminal label 'done' makes the
+  // renderer drop the line the moment the run finishes. A dead/partial stage reports NOTHING — the
+  // slot must never claim progress a stage did not make.
+  var faNext = null
+  if (result !== null && result !== undefined && !partial) {
+    if (stage === 'router') faNext = 'Step 1 Design'
+    else if (stage.indexOf('design') === 0) faNext = 'Step 6 Plan'
+    else if (stage === 'plan') faNext = 'Step 7 Code'
+    else if (stage === 'code') faNext = 'Step 8 QE'
+    else if (stage === 'qe') faNext = (FA_TIER.v === 'L' || FA_TIER.v === 'XL') ? 'Step 9 Fleet QE' : 'done'
+    else if (stage === 'fleet') faNext = 'done'
+  }
+  const faTier = (stage === 'router' && result && typeof result.tier === 'string') ? result.tier : FA_TIER.v
+  const faRunIdFile = FDIR + '/.fa-state/run-id'
+  const faMintRunId = stage === 'router'
+    ? ('mkdir -p ' + shq(FDIR + '/.fa-state') + ' 2>/dev/null || true; date +%s%3N > ' + shq(faRunIdFile) + ' 2>/dev/null || true; ')
+    : ''
+  const faRecordCmd = faNext === null ? null : (faMintRunId + DZ + ' statusline --fa-record --slug ' + shq(SLUG) + ' --step ' + shq(faNext) + (faTier ? ' --tier ' + shq(faTier) : '') + ' --mode ' + shq(MODE) + ' --project ' + shq(REPO) + ' --run-id "$(cat ' + shq(faRunIdFile) + ' 2>/dev/null || true)"')
+  var faReported = false
   if (CHECKPOINTS_ON && result !== null && result !== undefined && !partial && persistable) {
     let line = null
     try { line = JSON.stringify({ stage: stage, inputHash: inputHash, result: result }) } catch (err) { line = null }
@@ -429,7 +465,15 @@ async function withCheckpoint(stage, phaseName, inputHash, runFn, ckptOpts) {
         const ckptArtifacts = (ckptRaw === null || ckptRaw === undefined) ? null : (Array.isArray(ckptRaw) ? ckptRaw : [ckptRaw])
         if (ckptArtifacts && ckptArtifacts.length > 0) {
           const ckptCmd = DZ + ' feature-adr-checkpoint --feature-dir ' + shq(FDIR) + ' --stage ' + shq(stage) + ' --input-hash ' + shq(inputHash) + ' --result ' + shq(JSON.stringify(result)) + ' --artifact ' + shq(ckptArtifacts.join(','))
-          await agent('Run EXACTLY this one shell command via your Bash tool and reply with only its stdout: ' + ckptCmd, { label: 'ckpt:write:' + stage, phase: phaseName, effort: 'low' })
+          // the phase-start report (faRecordCmd, computed above) RIDES this ckpt agent — zero extra
+          // agents on the common path. [AM-1] Joined with ';', NEVER '&&': with '&&' a checkpoint
+          // command that fails at run time silently drops the phase report while faReported would
+          // still claim one ran. ';' makes the two commands independent, which is what "derived from
+          // stage completion, not from persistence" (ADR-002 C4) means at the shell level.
+          // The dispatch seam itself is the stage-line one (newRung): the announcement must come
+          // from where the dispatch happens, so riding the report on it cannot forge provenance.
+          await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and reply with only its stdout: ' + ckptCmd + (faRecordCmd !== null ? '; ' + faRecordCmd : ''), { label: 'ckpt:write:' + stage, phase: phaseName, effort: 'low' })
+          faReported = faRecordCmd !== null
         } else {
           log('checkpoint: ' + stage + ' declares no artifact to witness — not checkpointed (nothing verifiable is not recorded; the stage re-runs on resume)')
         }
@@ -440,6 +484,14 @@ async function withCheckpoint(stage, phaseName, inputHash, runFn, ckptOpts) {
     }
   } else if (CHECKPOINTS_ON && result !== null && result !== undefined && !partial && !persistable) {
     log('checkpoint: ' + stage + ' result NOT persisted (persist predicate refused' + (result && result.landingStatus ? ', landingStatus=' + result.landingStatus + (result.landingReason ? ' reason=' + result.landingReason : '') : '') + ' — only an ESTABLISHED landing may resume; an inconclusive/not-landed/mislabeled code stage never does)')
+  }
+  // ADR-002 C4: no ckpt agent carried the report (checkpoints off, oversize/unserializable result,
+  // refused persist predicate, or no declared artifact) → the completed stage still reports its
+  // transition on its own minimal dispatch, and says so, so a silent panel is never mistaken for a
+  // silent pipeline. Best-effort like every panel write — never blocks.
+  if (faRecordCmd !== null && !faReported) {
+    log('fa-phase: ' + stage + ' reported on its own dispatch — no ckpt agent carried it')
+    await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and report its stdout verbatim — do nothing else, do not summarize: ' + faRecordCmd, { label: 'fa-phase:' + stage, phase: phaseName, effort: 'low' })
   }
   return result
 }
@@ -641,7 +693,7 @@ async function prepareDecisionRecall(context, phaseName, label) {
   let attemptId = context.logicalDecisionId + ':0:0'
   let enteredWritten = false
   try {
-    const enterOut = await agent('Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, no commentary:\n' + decisionRecallEnterCmd(FDIR, context), { label: label + ':enter', phase: phaseName, effort: 'low' })
+    const enterOut = await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, no commentary:\n' + decisionRecallEnterCmd(FDIR, context), { label: label + ':enter', phase: phaseName, effort: 'low' })
     const entered = drEnterReceipt(enterOut)
     if (entered) { attemptId = entered.attemptId; enteredWritten = entered.written }
     else drFailure(context.stage, 'enter-frame-unestablished', enterOut)
@@ -650,7 +702,7 @@ async function prepareDecisionRecall(context, phaseName, label) {
 
   let normalized = fallback
   try {
-    const runOut = await agent('Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, no commentary:\n' + decisionRecallRunCmd({ dzBin: DZ, brain: BRAIN, slug: SLUG, context: context, timeoutSeconds: 15 }), { label: label + ':run', phase: phaseName, effort: 'low' })
+    const runOut = await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, no commentary:\n' + decisionRecallRunCmd({ dzBin: DZ, brain: BRAIN, slug: SLUG, context: context, timeoutSeconds: 15 }), { label: label + ':run', phase: phaseName, effort: 'low' })
     normalized = normalizeDecisionRecall(parseDecisionRecallFrame(runOut))
   } catch (e) {
     normalized = drFallback('transport-error', e && e.message ? e.message : String(e))
@@ -665,7 +717,7 @@ async function prepareDecisionRecall(context, phaseName, label) {
   try {
     const appendCmd = decisionRecallAppendCmd(FDIR, recalledEvent)
     if (appendCmd !== null) {
-      const appendOut = await agent('Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, no commentary:\n' + appendCmd, { label: label + ':receipt', phase: phaseName, effort: 'low' })
+      const appendOut = await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, no commentary:\n' + appendCmd, { label: label + ':receipt', phase: phaseName, effort: 'low' })
       recalledWritten = String(appendOut === null || appendOut === undefined ? '' : appendOut).trim() === 'FA-DECISION-RECALL-APPEND-OK'
     }
   } catch (e) { recalledWritten = false }
@@ -686,7 +738,7 @@ async function finishDecisionRecall(prepared, artifactAbs, artifactRel, phaseNam
   let probe = { established: true, dispositions: [] }
   if (lessonIds.length > 0) {
     try {
-      const probeOut = await agent('Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, no commentary:\n' + decisionRecallApplicationProbeCmd(artifactAbs, lessonIds), { label: label + ':application-probe', phase: phaseName, effort: 'low' })
+      const probeOut = await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, no commentary:\n' + decisionRecallApplicationProbeCmd(artifactAbs, lessonIds), { label: label + ':application-probe', phase: phaseName, effort: 'low' })
       probe = parseDecisionRecallApplicationProbe(probeOut, lessonIds)
     } catch (e) { probe = { established: false, dispositions: lessonIds.map(function (lessonRef) { return { lessonRef: lessonRef, status: 'unknown', evidence: null } }) } }
     if (!probe.established) drFailure(prepared.context.stage, 'application-probe-unestablished', null)
@@ -699,7 +751,7 @@ async function finishDecisionRecall(prepared, artifactAbs, artifactRel, phaseNam
   try {
     const appendCmd = decisionRecallAppendCmd(FDIR, appliedEvent)
     if (appendCmd === null) { drFailure(prepared.context.stage, 'applied-receipt-unserializable', null); return }
-    const appendOut = await agent('Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, no commentary:\n' + appendCmd, { label: label + ':application-receipt', phase: phaseName, effort: 'low' })
+    const appendOut = await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, no commentary:\n' + appendCmd, { label: label + ':application-receipt', phase: phaseName, effort: 'low' })
     if (String(appendOut === null || appendOut === undefined ? '' : appendOut).trim() !== 'FA-DECISION-RECALL-APPEND-OK') drFailure(prepared.context.stage, 'applied-receipt-unwritten', appendOut)
   } catch (e) { drFailure(prepared.context.stage, 'applied-receipt-transport-error', e && e.message ? e.message : String(e)) }
 }
@@ -880,7 +932,7 @@ async function capturePairs(stage, phaseName, records, resumeGuardStage) {
         const cmdOne = DZ + ' feature-adr-record --kind training-pair --slug ' + shq(SLUG) + ' --stage ' + shq(stage)
           + ' --project ' + shq(REPO) + ' --mark ' + shq(markStage + '-' + fnv1a64(stage + '\0' + lines.join('\n')) + '-' + i)
           + ' --once --pair ' + shq(lines[i]) + ' --json'
-        const out = await agent('Run this command via your Bash tool and reply with only its stdout: ' + cmdOne, { label: 'trainpair:backfill:' + stage, phase: phaseName, effort: 'low' })
+        const out = await dispatchAgent(newRung(), 'Run this command via your Bash tool and reply with only its stdout: ' + cmdOne, { label: 'trainpair:backfill:' + stage, phase: phaseName, effort: 'low' })
         const readback = String(out == null ? '' : out)
         const m = /"verdict"\s*:\s*"(written|duplicate|skipped)"/.exec(readback)
         if (m === null) {
@@ -904,7 +956,7 @@ async function capturePairs(stage, phaseName, records, resumeGuardStage) {
     for (const line of lines) {
       const cmdOne = DZ + ' feature-adr-record --kind training-pair --slug ' + shq(SLUG) + ' --stage ' + shq(stage)
         + ' --project ' + shq(REPO) + ' --pair ' + shq(line) + ' --json'
-      const out = await agent('Run this command via your Bash tool and reply with only its stdout: ' + cmdOne, { label: 'trainpair:' + stage, phase: phaseName, effort: 'low' })
+      const out = await dispatchAgent(newRung(), 'Run this command via your Bash tool and reply with only its stdout: ' + cmdOne, { label: 'trainpair:' + stage, phase: phaseName, effort: 'low' })
       const readback = String(out == null ? '' : out)
       if (!/"verdict"\s*:\s*"(written|duplicate|skipped)"/.test(readback)) {
         allWritten = false
@@ -948,7 +1000,7 @@ async function appendRunCostRow(stage, phaseName, outcome) {
     // re-reading the tail. A courier could do none of those three.
     const cmd = DZ + ' feature-adr-record --kind ledger --stage ' + shq(stage) + ' --project ' + shq(REPO)
       + ' --row ' + shq(line) + ' --json'
-    const out = await agent('Run this command via your Bash tool and reply with only its stdout: ' + cmd, { label: 'ledger:append', phase: phaseName, effort: 'low' })
+    const out = await dispatchAgent(newRung(), 'Run this command via your Bash tool and reply with only its stdout: ' + cmd, { label: 'ledger:append', phase: phaseName, effort: 'low' })
     const readback = String(out == null ? '' : out)
     if (!/"verdict"\s*:\s*"written"/.test(readback)) {
       // ADR-003: SECONDARY — never fails the run — but the failure now SURVIVES it.
@@ -964,7 +1016,7 @@ async function autoScore(qeHash) {
   try {
     const scoreQ = shq(FDIR + '/.fa-state/score-' + qeHash + '.json')
     const scoreCmd = 'if [ -e ' + scoreQ + ' ]; then echo SCORE-EXISTS; else mkdir -p ' + shq(FDIR + '/.fa-state') + ' && score_tmp=$(mktemp ' + shq(FDIR + '/.fa-state/score-' + qeHash + '.tmp.XXXXXX') + ') && trap \'rm -f "$score_tmp"\' EXIT HUP INT TERM && dz score --slug ' + shq(SLUG) + ' --project ' + shq(REPO) + ' --json > "$score_tmp" && [ -s "$score_tmp" ] && head -c 1 "$score_tmp" | grep -q "{" && mv -n "$score_tmp" ' + scoreQ + ' && if cmp -s "$score_tmp" ' + scoreQ + ' 2>/dev/null; then echo SCORE-EXISTS; else cat ' + scoreQ + '; fi; fi'
-    const out = await agent('Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, nothing else: ' + scoreCmd, { label: 'score:auto', phase: 'QE', effort: 'low' })
+    const out = await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, nothing else: ' + scoreCmd, { label: 'score:auto', phase: 'QE', effort: 'low' })
     const readback = String(out == null ? '' : out)
     if (/SCORE-EXISTS/.test(readback)) {
       log('auto-score: receipt already exists for ' + qeHash + ' — not overwritten')
@@ -1035,9 +1087,28 @@ const PLANNER = (A.planner === 'codex') ? 'codex' : 'claude'
 // block threads workflow-local state (MODELS/knobs) through shapes the generic blobs do not carry;
 // regeneration via model-resolver/usage-probes/codex-dispatch blobs is the tracked Stage-B item.
 const MODELS = (A.models && typeof A.models === 'object') ? A.models : {}
-const KNOWN_CODEX = { 'auto': 1, 'gpt-5.5': 1, 'gpt-5.6': 1, 'gpt-5.6-luna': 1, 'gpt-5.6-terra': 1, 'gpt-5.6-sol': 1 }
+// R8-P0: the learned-cost LEDGER is run STATE and is declared with the rest of it, ABOVE every
+// reader. It used to sit 26 lines BELOW stageReason, which reads it while building routerOpts —
+// a temporal dead zone that threw ReferenceError: Cannot access 'AUTOCOST' before initialization
+// on EVERY normal invocation, before the router ever dispatched. It survived seven cross-family
+// review rounds and 305 green tests because every twin lifts functions out of the bytes and none
+// of them executes this file's top level in declaration order. R8-P0 now does.
+const AUTOCOST = {}
+// R7-1: resolveAutoCost REWRITES MODELS[stage] from the 'auto-cost' token to the model it selected,
+// BEFORE the resolver runs, so the explicit-models branch fires and the line would credit an
+// operator who never named that model. The ledger is written by that same selection, so the origin
+// is recoverable without touching the resolver.
+// R8-2: and ONLY that branch may be relabelled. resolveAutoCost rewrites exactly explicit-models;
+// a stage configured with auto-cost whose model is later replaced by the usage-adaptive override
+// resolves to usage-override, and announcing "learned-cost routing" there would name a chooser
+// that did not choose. Every other branch keeps its own reason.
+function stageReason(stage, decision) {
+  if (decision.reason === 'explicit-models' && AUTOCOST[stage]) return 'auto-cost'
+  return decision.reason
+}
+const KNOWN_CODEX = { 'auto': 1, 'gpt-5.5': 1, 'gpt-5.6': 1, 'gpt-5.6-luna': 1, 'gpt-5.6-terra': 1, 'gpt-5.6-sol': 1, 'gpt-6-astra': 1 }
 // The allowlist is not an availability check — probe every id before every run; ids drift in both directions.
-const CODEX_TIERS = { flagship: 'gpt-5.6-sol', workhorse: 'gpt-5.6-terra', 'high-volume': 'gpt-5.6-luna' }
+const CODEX_TIERS = { premium: 'gpt-6-astra', flagship: 'gpt-5.6-sol', workhorse: 'gpt-5.6-terra', 'high-volume': 'gpt-5.6-luna' }
 const CLAUDE_NAMES = { fable: 1, opus: 1, sonnet: 1, haiku: 1 }
 const VALID_REASONING = { none: 1, minimal: 1, low: 1, medium: 1, high: 1, xhigh: 1, max: 1 }
 const DEFAULT_MODELS = { router: 'fable', requirements: 'sonnet', research: 'sonnet', adr: 'opus', ideation: 'sonnet', ddd: 'opus', architecture: 'opus', plan: 'sonnet', code: null, qe: null, fleet: 'sonnet' }
@@ -1048,6 +1119,9 @@ const BUDGET_MODE = resolveBudgetMode(A.budget)
 const PRIMARY = (A.primary === 'codex') ? 'codex' : 'claude'
 const routingRequested = (Object.keys(MODELS).length > 0) || (A.primary !== undefined) || (A.budget !== undefined) || (PLANNER === 'codex') || (CODER === 'codex' || CODER === 'codex-fallback') || (QE_REVIEWER === 'codex' || QE_REVIEWER === 'codex-fallback') || (A.usageAdaptive === true)
 const modelsUsed = {}
+// Authoritative who-did-what report. The legacy modelsUsed map is a lossy routing/provenance
+// summary; intent lines are deliberately NOT stored here. Only final concrete-rung outcomes enter.
+const dispatchOutcomes = []
 
 // ── USAGE-ADAPTIVE ROUTING (pre-emptive codex switch at >= usageThreshold, default 70%) ──
 // At every phase boundary a minimal haiku probe runs 'dz usage --json'; when SESSION or WEEKLY
@@ -1097,7 +1171,7 @@ const PROBE_SCHEMA = { type: 'object', additionalProperties: false, required: ['
 async function usageProbe(phaseName) {
   if (!USAGE_ADAPTIVE) return
   const probePrompt = 'Run EXACTLY this one shell command via your Bash tool and return ONLY its parsed JSON fields sessionPct and weeklyPct (numbers or null), nothing else, do not summarize: ' + DZ + ' usage --json --project ' + REPO
-  const r = await agent(probePrompt, { label: 'usage:probe', phase: phaseName, model: 'haiku', effort: 'low', schema: PROBE_SCHEMA })
+  const r = await dispatchAgent(newRung(), probePrompt, { label: 'usage:probe', phase: phaseName, model: 'haiku', effort: 'low', schema: PROBE_SCHEMA })
   const d = decideUsageAction(usageOverride, r, USAGE_THRESHOLD)
   if (d.action === 'switch') log('usage: session ' + (r ? r.sessionPct : null) + '% / week ' + (r ? r.weeklyPct : null) + '% >= ' + USAGE_THRESHOLD + '% — switching remaining stages to codex:' + topCodexId())
   if (d.action === 'fail-safe-switch') log('usage: probe died (agent-null — often MEANS limits) — fail-safe switching remaining stages to codex:' + topCodexId())
@@ -1172,9 +1246,26 @@ function budgetTable(primary, mode) {
     codexHalf = { ...ROUTING_TABLES.claude.codex[mode.codex], qe: A.codexAvailable === false ? 'opus' : qeSpec }
   } else {
     const normal = mode.codex === 'normal'
-    const id = codexIdForTier(normal ? 'flagship' : 'workhorse')
-    const design = 'codex:' + id + ':' + (normal ? 'high' : 'medium')
-    codexHalf = { requirements: design, research: design, adr: design, ideation: design, ddd: design, architecture: design, plan: 'codex:' + id + ':' + (normal ? 'high' : 'low'), code: 'codex:' + id + ':medium' }
+    // Тир берётся из FA_TIER.v, а НЕ из A.tier: A.tier несёт только ЯВНО переданный аргумент,
+    // а обычный прогон узнаёт свой размер от нулевого шага (роутера), который кладёт его сюда
+    // на строке FA_TIER.v = tier. Читая A.tier, ячейка плана никогда не поднималась до
+    // премиального яруса в обычном прогоне — матрица работала наполовину (ИЗМЕРЕНО 2026-09-09).
+    const largePlan = FA_TIER.v === 'L' || FA_TIER.v === 'XL'
+    const work = 'codex:' + codexIdForTier(normal ? 'flagship' : 'workhorse') + ':high'
+    const evidence = 'codex:' + codexIdForTier(normal ? 'workhorse' : 'high-volume') + ':medium'
+    codexHalf = {
+      router: evidence,
+      requirements: 'codex:' + codexIdForTier(normal ? 'flagship' : 'workhorse') + ':medium',
+      research: evidence,
+      adr: 'codex:' + codexIdForTier(normal ? 'premium' : 'flagship') + ':high',
+      ideation: work,
+      ddd: work,
+      architecture: 'codex:' + codexIdForTier(normal ? 'premium' : 'flagship') + ':high',
+      plan: largePlan ? 'codex:' + codexIdForTier(normal ? 'premium' : 'flagship') + ':high' : work,
+      code: work,
+      fleet: work,
+    }
+
   }
   return { ...claudeHalf, ...codexHalf }
 }
@@ -1222,6 +1313,19 @@ function resolveQeSpec() {
   return resolveQeSpecForCoder(coderIsCodex())
 }
 
+function specFamily(spec) {
+  return (spec && String(spec).split(':')[0] === 'codex') ? 'codex' : 'claude'
+}
+
+// R9-1: the QE reason is DERIVED from the families that actually resolved, never assumed from the
+// branch. resolveQeSpec degrades to a Claude reviewer when codex is unavailable (it must never
+// block), and a Claude coder then gets a Claude reviewer — cross-family review is LOST, and the line
+// used to claim the coder never self-reviews about exactly that review.
+function qeReasonForFamilies(coderCodex, qeSpec) {
+  if (specFamily(qeSpec) === (coderCodex ? 'codex' : 'claude')) return 'qe-same-family-degraded'
+  return 'qe-cross-family'
+}
+
 // qeShouldUseCodex: the load-bearing cross-model gate — the model that wrote the code must NEVER self-QE.
 // (1) explicit MODELS.qe wins; (2) legacy QE_REVIEWER==='codex' knob honored ONLY when coder is NOT codex
 // (a codex coder + qeReviewer:'codex' would be codex-self-QE); (3) else the cross-model default decides.
@@ -1234,31 +1338,83 @@ function qeShouldUseCodex() {
   return routingRequested && resolveQeSpec().split(':')[0] === 'codex'
 }
 
-function resolveStageModel(stage) {
+// stage-line-before-dispatch (ADR-001): the branch that CHOSE the model is now RETURNED, not
+// thrown away, so the line printed before a dispatch and the dispatch itself read ONE value —
+// a second computation of the same rules would be a copy, and copies drift.
+// Still a hand-maintained mirror of src/feature-adr-routing.ts (stage 2 pending, ADR-004 D4): these
+// resolvers thread the workflow-local MODELS/knob consts that the generic blobs do not carry. Only
+// renderStageLine below is generator-projected. A drift test compares these bodies to the module's.
+function effectiveSpec(opts) {
+  if (opts && opts.agentType === 'codex:codex-rescue') return 'codex:' + opts.codexModel + ':' + opts._reasoning
+  if (opts && opts.model) return opts.model
+  return null
+}
+
+// R12-2: compare the EFFECTIVE id with the REQUESTED one instead of re-deriving the condition.
+// specToOpts replaces an unknown id with CODEX_MODEL, and when that default is ITSELF unknown the
+// replacement is the same string — a sweep found 22 outcomes announcing a substitution while
+// dispatching the very id the operator asked for. Comparing the applied value cannot do that.
+function specDegradation(spec, opts) {
+  if (!spec) return null
+  const parts = String(spec).split(':')
+  const head = parts[0] || ''
+  if (head === 'codex') {
+    const requested = parts[1] || CODEX_MODEL
+    if (opts.codexModel !== requested) return 'codex-id-substituted'
+    return null
+  }
+  if (!CLAUDE_NAMES[head]) return 'spec-unrecognised'
+  return null
+}
+
+function decisionFor(base, spec, opts) {
+  const deg = specDegradation(spec, opts)
+  if (deg !== null) return { opts: opts, spec: effectiveSpec(opts), reason: deg }
+  return { opts: opts, spec: effectiveSpec(opts), reason: base }
+}
+
+function decideFromSpec(base, stage, spec) {
+  if (stage === 'code' && (spec === null || spec === undefined)) {
+    const s = resolveCoderSpec()
+    return decisionFor(base, s, specToOpts(s))
+  }
+  if (stage === 'qe' && (spec === null || spec === undefined)) {
+    const s = resolveQeSpec()
+    return decisionFor(base, s, specToOpts(s))
+  }
+  return decisionFor(base, spec, specToOpts(spec))
+}
+
+function resolveStageDecision(stage) {
   if (usageOverride) {
     const r = (usageReasoning && usageReasoning[stage]) || STAGE_EFFORT.override[stage] || 'medium'
-    const o = specToOpts('codex:' + topCodexId() + ':' + r)
+    const s = 'codex:' + topCodexId() + ':' + r
+    const o = specToOpts(s)
     o._usageSwitched = true
-    return o
+    return decisionFor('usage-override', s, o)
   }
-  let spec = MODELS[stage]
-  if (spec === undefined) {
-    if (!routingRequested) return {}
-    if (stage === 'code' && (CODER === 'codex' || CODER === 'codex-fallback')) {
-      return specToOpts(resolveCoderSpec())
-    }
-    if (stage === 'plan' && PLANNER === 'codex') {
-      return specToOpts('codex:' + CODEX_MODEL + ':high')
-    }
-    if (stage === 'qe') {
-      return specToOpts(resolveQeSpec())
-    }
-    const cell = budgetTable(PRIMARY, BUDGET_MODE)[stage]
-    spec = cell !== undefined ? cell : DEFAULT_MODELS[stage]
+  const spec = MODELS[stage]
+  if (spec !== undefined) return decideFromSpec('explicit-models', stage, spec)
+  if (!routingRequested) return { opts: {}, spec: null, reason: 'routing-not-requested' }
+  if (stage === 'code' && (CODER === 'codex' || CODER === 'codex-fallback')) {
+    const s = resolveCoderSpec()
+    return decisionFor('coder-knob-codex', s, specToOpts(s))
   }
-  if (stage === 'code' && (spec === null || spec === undefined)) return specToOpts(resolveCoderSpec())
-  if (stage === 'qe' && (spec === null || spec === undefined)) return specToOpts(resolveQeSpec())
-  return specToOpts(spec)
+  if (stage === 'plan' && PLANNER === 'codex') {
+    const s = 'codex:' + CODEX_MODEL + ':high'
+    return decisionFor('planner-knob-codex', s, specToOpts(s))
+  }
+  if (stage === 'qe') {
+    const s = resolveQeSpec()
+    return decisionFor(qeReasonForFamilies(coderIsCodex(), s), s, specToOpts(s))
+  }
+  const cell = budgetTable(PRIMARY, BUDGET_MODE)[stage]
+  if (cell !== undefined) return decideFromSpec('budget-table-cell', stage, cell)
+  return decideFromSpec('default-models', stage, DEFAULT_MODELS[stage])
+}
+
+function resolveStageModel(stage) {
+  return resolveStageDecision(stage).opts
 }
 
 function mergeOpts(base, extra) {
@@ -1268,7 +1424,7 @@ function mergeOpts(base, extra) {
   return out
 }
 
-// modelLabel: record the resolved spec for a stage in modelsUsed (for the run report / who-did-what).
+// modelLabel: render the resolved spec used by the legacy modelsUsed routing/provenance summary.
 function modelLabel(opts) {
   if (opts && opts.agentType === 'codex:codex-rescue') {
     const base = 'codex:' + opts.codexModel + ':' + opts._reasoning
@@ -1285,6 +1441,151 @@ function stageLabel(baseLabel, opts) {
   const m = modelLabel(opts)
   if (!m || m === 'session') return baseLabel
   return baseLabel + ' · ' + m
+}
+
+// stage-line-before-dispatch (ADR-001): two renderers. The sole dispatch seam emits intent before
+// agent(...) and outcome only after the same attempt settles. GENERATOR-PROJECTED
+// from packages/@dzhechkov/harness-core/src/stage-line.ts by scripts/gen-loop-blobs.mjs — do NOT
+// hand-edit the region below; edit the canonical source and regenerate. loop-blobs-regen.test.ts
+// byte-checks these exact bytes against the registry.
+// ── BEGIN BLOB stage-line@2.0.0 sha256:3b921b7b8a38edc8ed7ec544eb792e1f14db1872b87d9bcf3c2daa5839c90675 src=packages/@dzhechkov/harness-core/src/stage-line.ts ──
+const STAGE_LINE_REASON_LABELS = {
+    'usage-override': 'usage override (Claude limit pressure)',
+    'explicit-models': 'explicit args.models',
+    'routing-not-requested': 'routing not requested',
+    'coder-knob-codex': 'coder knob = codex',
+    'planner-knob-codex': 'planner knob = codex',
+    'qe-cross-family': 'cross-family QE (the coder never self-reviews)',
+    'budget-table-cell': 'budget table cell',
+    'default-models': 'default models table',
+    'codex-id-substituted': 'unknown codex id — substituted',
+    'spec-unrecognised': 'unrecognised spec — session-inherited',
+    'coder-fallback': 'coder fallback ladder',
+    'codex-unsupported-at-dispatch': 'codex unsupported at this dispatch — Claude',
+    'fallback-after-no-deliverable': 'fallback — the previous rung delivered nothing',
+    'precision-second-pass': 'independent precision second pass',
+    'auto-cost': 'learned-cost routing',
+    'qe-same-family-degraded': 'same-family QE — cross-family review NOT obtained',
+    'challenge-panel': 'adversarial plan-gate panel',
+    'codex-probe-failed': 'codex probe found no usable id — Claude',
+    'codex-refused-before-dispatch': 'codex refused before dispatching — nothing ran',
+    'fallback-rung': 'fallback rung (prior outcome reported separately)',
+};
+const STAGE_LINE_BARRIER_STAGES = {
+    code: 1,
+    plan: 1,
+    requirements: 1,
+    adr: 1,
+    ideation: 1,
+    architecture: 1,
+};
+function renderStagePrefix(stage, decision) {
+    let model = 'session';
+    if (decision && decision.spec)
+        model = decision.spec;
+    return '▸ ' + stage + ' · ' + model;
+}
+function renderStageIntentLine(stage, decision) {
+    let signature = '';
+    if (decision) {
+        const labelled = STAGE_LINE_REASON_LABELS[decision.reason];
+        if (labelled)
+            signature = labelled;
+    }
+    if (!signature) {
+        signature = 'unlabelled branch';
+        if (decision && decision.reason)
+            signature = 'unlabelled branch: ' + decision.reason;
+    }
+    let line = renderStagePrefix(stage, decision) + ' · ' + signature;
+    if (STAGE_LINE_BARRIER_STAGES[stage] && decision && decision.opts && decision.opts.agentType === 'codex:codex-rescue') {
+        line = line + ' · landed barrier';
+    }
+    return line + ' · intent';
+}
+function renderStageOutcomeLine(stage, decision, outcome) {
+    let model = 'session';
+    if (decision && decision.spec)
+        model = decision.spec;
+    let label = 'dispatched';
+    if (outcome && outcome.state === 'probe-failed')
+        label = 'probe found no usable model';
+    else if (outcome && outcome.state === 'refused-before-dispatch')
+        label = 'refused before dispatch';
+    let line = '◆ ' + stage + ' · ' + model + ' · outcome: ' + label;
+    if (outcome && outcome.state === 'refused-before-dispatch' && outcome.reason === 'codex-unsupported-at-dispatch') {
+        line = line + ' · codex agent type unsupported';
+    }
+    else if (outcome && outcome.state === 'refused-before-dispatch' && outcome.reason) {
+        line = line + ' · reason: ' + outcome.reason;
+    }
+    return line;
+}
+function renderStageLine(stage, decision) {
+    const intent = renderStageIntentLine(stage, decision);
+    return intent.slice(0, intent.length - ' · intent'.length);
+}
+// ── END BLOB stage-line@2.0.0 ──
+
+// ── THE TWO-PHASE ANNOUNCEMENT/DISPATCH SEAM (stage-line-before-dispatch, ADR-001) ──
+// Every runtime agent() call is below, inside dispatchAgent. The intent line is emitted immediately
+// before the call; the outcome line is emitted only after this SAME holder settles. Helper calls
+// carry no _stage and remain silent. Only outcomes enter dispatchOutcomes (who-did-what).
+function requireRung(rung) {
+  if (!rung || typeof rung !== 'object' || !Object.prototype.hasOwnProperty.call(rung, 'state')) {
+    throw new Error('stage announcement requires an explicit per-attempt outcome holder')
+  }
+  return rung
+}
+
+function stageLineDecision(opts) {
+  const o = opts || {}
+  let reason = o._reason
+  if (!reason) reason = 'routing-not-requested'
+  return { opts: o, spec: effectiveSpec(o), reason: reason }
+}
+
+function announceStageIntent(opts, rung) {
+  requireRung(rung)
+  const o = opts || {}
+  if (!o._stage || rung.intentAnnounced) return
+  log(renderStageIntentLine(o._stage, stageLineDecision(o)))
+  rung.intentAnnounced = true
+}
+
+function announceStageOutcome(opts, rung) {
+  requireRung(rung)
+  const o = opts || {}
+  if (!o._stage || rung.outcomeAnnounced) return
+  if (!rung.intentAnnounced) throw new Error('stage outcome cannot precede its intent')
+  const decision = stageLineDecision(o)
+  const line = renderStageOutcomeLine(o._stage, decision, { state: rung.state, reason: rung.reason })
+  log(line)
+  dispatchOutcomes.push({ stage: o._stage, model: modelLabel(o), state: rung.state, reason: rung.reason || null, line: line })
+  rung.outcomeAnnounced = true
+}
+
+function settleUndispatchedStage(opts, rung, state, reason) {
+  announceStageIntent(opts, rung)
+  noteRung(rung, state, reason)
+  announceStageOutcome(opts, rung)
+  return null
+}
+
+async function dispatchAgent(rung, prompt, opts, announcementOpts) {
+  const lineOpts = announcementOpts || opts
+  announceStageIntent(lineOpts, rung)
+  try {
+    const result = await agent(prompt, opts)
+    noteRung(rung, 'dispatched')
+    announceStageOutcome(lineOpts, rung)
+    return result
+  } catch (err) {
+    if (isAgentTypeMissingError(err)) noteRung(rung, 'refused-before-dispatch', opts && opts.agentType === 'codex:codex-rescue' ? 'codex-unsupported-at-dispatch' : null)
+    else noteRung(rung, 'dispatched')
+    announceStageOutcome(lineOpts, rung)
+    throw err
+  }
 }
 
 // needsLandedBarrier — mirror of harness-core's pure gate (feature-adr-routing.ts). TRUE only when a
@@ -1334,7 +1635,11 @@ function codexExecPlan(stage, promptChars, probedId, scoped) {
 
 // A model id is user input (args.codexModel) and lands in a shell command the agent runs. Cross-model
 // review (codex exec, 2026-07-10) found it interpolated unquoted. Plain ids only, quoted anyway.
-function isSafeCodexId(id) { return /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(String(id)) }
+// R9-X: the typeof guard is LOAD-BEARING. RegExp.test coerces, so test(null) tested the string
+// 'null' — which matches this pattern — and safeCodexAgent passes null for codexModel:'auto'.
+// The ladder collapsed to the single literal id "null", the probe asked for a model that cannot
+// exist, and Codex was reported unavailable on the DEFAULT path.
+function isSafeCodexId(id) { return typeof id === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(id) }
 const TIMEOUT_BINS = { timeout: true, gtimeout: true }
 
 // Which binary bounds a dispatched run. timeout(1) is GNU coreutils and is NOT on macOS; brew's
@@ -1659,18 +1964,60 @@ function isAgentTypeMissingError(err) {
   return /agent type .*not found|unknown agent type|no such agent/i.test(msg)
 }
 
+// R5-1 (cross-family review round 4): codexModel:'auto' is a REQUEST, not an answer. The
+// dispatcher resolves it by probe, ANNOUNCES the probed id and dispatches it — while modelsUsed was
+// built from the untouched label opts and kept the literal 'auto'. A successful run therefore printed
+// codex:gpt-5.6-sol:high and reported codex:auto:high: two computations of one fact, the exact
+// shape ADR-001 exists to forbid. This resolver is the ONE resolution both now read.
+// It probes with null DELIBERATELY: that is byte-for-byte the argument safeCodexAgent computes for
+// an 'auto' opts, so both hit the SAME memoized cache key — no second probe agent, and no way for the
+// recorded id to drift from the dispatched one. A pinned id and a non-codex label are returned
+// untouched, so an all-Claude run spends nothing.
+async function codexLabelOptsForDispatch(labelOpts) {
+  if (!labelOpts || labelOpts.agentType !== 'codex:codex-rescue') return labelOpts
+  // R14-3: derive the requested id EXACTLY as safeCodexAgent does, instead of special-casing 'auto'.
+  // The old short circuit returned any non-'auto' value untouched, so a malformed args.codexModel
+  // (non-string, or characters the id guard refuses) was RECORDED as-is while the dispatcher rejected
+  // it and ran the flagship ladder — the line announced the probed fallback and modelsUsed kept the
+  // unsafe original. Mirroring the derivation makes the two the same computation, and the shared
+  // cache key keeps it at one probe.
+  const requestedId = labelOpts.codexModel !== 'auto' ? labelOpts.codexModel : null
+  const probed = await probeCodexId(requestedId)
+  // R15-3: a failed probe is SIGNALLED. Returning the original opts let a DIRECT agent() caller
+  // dispatch an unprobed codex spec while the line claimed a model nothing had verified —
+  // safeCodexAgent refuses in that situation by returning null, and the direct paths were asymmetric.
+  if (!probed) return mergeOpts(labelOpts, { _codexProbeFailed: true })
+  return mergeOpts(labelOpts, { codexModel: probed })
+}
+
+// R15-3/R24: a direct path whose Codex probe fails settles that Codex attempt with its own
+// intent/outcome pair, then gives any later Claude rung the neutral fallback-rung selection reason.
+async function directCodexOrClaude(labelOpts, lineOpts) {
+  const resolved = await codexLabelOptsForDispatch(labelOpts)
+  if (!resolved || resolved.agentType !== 'codex:codex-rescue') return { opts: resolved, reason: null }
+  if (resolved._codexProbeFailed) {
+    settleUndispatchedStage(mergeOpts(labelOpts, lineOpts || {}), newRung(), 'probe-failed')
+    return { opts: {}, reason: 'fallback-rung' }
+  }
+  return { opts: resolved, reason: null }
+}
+
 // CX-3: a workflow naming an agent type the harness lacks must FALL BACK, not die. Any other error
 // still propagates — we do not hide real bugs behind a fallback.
-async function safeCodexAgent(prompt, opts) {
+async function safeCodexAgent(prompt, opts, rung) {
   let dispatchOpts = opts
   if (opts && opts.agentType === 'codex:codex-rescue') {
     const requestedId = opts.codexModel !== 'auto' ? opts.codexModel : null
     const probed = await probeCodexId(requestedId)
-    if (!probed) return null
+    if (!probed) return settleUndispatchedStage(opts, rung, 'probe-failed')
     dispatchOpts = mergeOpts(opts, { codexModel: probed })
   }
-  try { return await agent(prompt, dispatchOpts) }
+  try { return await dispatchAgent(rung, prompt, dispatchOpts) }
   catch (err) {
+    // R19: the runtime REJECTED the codex agent type, so no Codex agent ever ran. Returning null
+    // without correcting the outcome left the rung marked 'dispatched', and the fallback below then
+    // reported a Codex rung that ran and delivered nothing. It is a refusal, and the enum already
+    // carries the precise reason for a runtime that cannot host this agent type.
     if (isAgentTypeMissingError(err)) { log('codex: agent type unavailable — falling back to Claude (' + String(err) + ')'); return null }
     throw err
   }
@@ -1689,7 +2036,7 @@ let _timeoutBin
 async function probeTimeoutBin() {
   if (_timeoutBin !== undefined) return _timeoutBin
   const cmd = 'command -v timeout >/dev/null 2>&1 && echo timeout || { command -v gtimeout >/dev/null 2>&1 && echo gtimeout || echo NONE; }'
-  const out = await agent('Run EXACTLY this via Bash and reply with its stdout only: ' + cmd, { label: 'probe:timeout-bin', phase: 'Route', model: 'haiku', effort: 'low' })
+  const out = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with its stdout only: ' + cmd, { label: 'probe:timeout-bin', phase: 'Route', model: 'haiku', effort: 'low' })
   const t = String(out === null || out === undefined ? '' : out).trim()
   _timeoutBin = TIMEOUT_BINS[t] === true ? t : null
   if (_timeoutBin === null) log('codex: NEITHER timeout(1) NOR gtimeout is on PATH — every codex dispatch would exit 127; on macOS: brew install coreutils')
@@ -1697,26 +2044,35 @@ async function probeTimeoutBin() {
   return _timeoutBin
 }
 
-async function probeCodexId(requestedId) {
+// R9-2: the cache holds the IN-FLIGHT PROMISE, not only the settled value. The design fan runs four
+// thunks under parallel(); with a value-only cache each of them entered the probe, and with
+// intermittent answers one caller could record codex:auto while another dispatched a concrete id —
+// the line and modelsUsed disagreeing again, this time by a race. One key, one promise, one probe.
+function probeCodexId(requestedId) {
   const requested = isSafeCodexId(requestedId) ? String(requestedId) : null
   const raw = requested ? [requested] : ((CODEX_MODEL && CODEX_MODEL !== 'auto') ? [CODEX_MODEL, CODEX_TIERS.flagship, 'gpt-5.5'] : [CODEX_TIERS.flagship, 'gpt-5.5'])
   const cacheKey = raw.join('|')
   if (Object.prototype.hasOwnProperty.call(_probedCodexIds, cacheKey)) return _probedCodexIds[cacheKey]
+  const pending = probeCodexIdUncached(raw)
+  _probedCodexIds[cacheKey] = pending
+  return pending
+}
+
+async function probeCodexIdUncached(raw) {
   const ids = raw.filter(isSafeCodexId)
   for (const id of ids) {
     // The probe is built with the SAME binary the real dispatch will use, so a machine that cannot
     // bound a run fails here rather than mid-QE.
     const tbin = await probeTimeoutBin()
-    if (tbin === null) { _probedCodexIds[cacheKey] = null; return null }
+    if (tbin === null) return null
     const cmd = codexProbeCommand(id, tbin)
     if (!cmd) { log('codex: refusing unsafe model id ' + id); continue }
-    const out = await agent('Run EXACTLY this via Bash and reply with its stdout only: ' + cmd + ' — if it fails or times out reply with exactly ' + CODEX_UNAVAILABLE, { label: 'probe:' + id, phase: 'Route', model: 'haiku', effort: 'low' })
+    const out = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with its stdout only: ' + cmd + ' — if it fails or times out reply with exactly ' + CODEX_UNAVAILABLE, { label: 'probe:' + id, phase: 'Route', model: 'haiku', effort: 'low' })
     if (out && /\bOK\b/.test(String(out)) && String(out).indexOf(CODEX_UNAVAILABLE) === -1) {
-      log('codex: probed ' + id + ' — available'); _probedCodexIds[cacheKey] = id; return id
+      log('codex: probed ' + id + ' — available'); return id
     }
     log('codex: probed ' + id + ' — NOT available')
   }
-  _probedCodexIds[cacheKey] = null
   return null
 }
 
@@ -1724,6 +2080,59 @@ async function probeCodexId(requestedId) {
 // The last reason a codex exec dispatch declined, so a caller can REPORT it instead of leaving the
 // degradation to a log line nobody reads (P16, 2026-08-20).
 let lastCodexDecline = null
+// R18: the outcome of a Codex RUNG is THREE-valued, and the stage line of the NEXT rung must be
+// chosen from it. Rounds 16-17 carried a boolean probeFailed, whose else-branch asserted
+// "a rung ran and delivered nothing" — a false dispatch claim in every non-probe refusal
+// (an unusable review scope ref, an unsafe id at command-build time, a declined exec plan).
+//   'dispatched'              an agent really ran; a null from it means it delivered nothing.
+//   'probe-failed'            no model id answered; nothing was dispatched.
+//   'refused-before-dispatch' an id answered, but no dispatch was ever built.
+//
+// R19: and the outcome is a PER-INVOCATION VALUE, never module state. The design stages run
+// CONCURRENTLY (await parallel(designThunks)), so a module-level variable read after an await
+// holds whatever the last sibling wrote. MEASURED on the real designStage before this fix: with one
+// stage's probe failing and another's dispatch succeeding, the second announced its Claude fallback
+// as 'codex-probe-failed' — a fact it had borrowed from the first. Every helper now takes the
+// caller's own holder; there is nothing left to share.
+//
+// The reason field overrides the state->reason mapping when the runtime knows something sharper
+// three states can express (a rejected agent type is a refusal, but 'codex-unsupported-at-dispatch'
+// says WHY, and that reason is already in the closed enum).
+function newRung() { return { state: 'pending', reason: null, intentAnnounced: false, outcomeAnnounced: false } }
+function noteRung(rung, state, reason) { if (rung) { rung.state = state; rung.reason = reason || null } return null }
+// The ONE mapping from a rung outcome to legacy provenance text. Never feed this result into another
+// rung's intent: the prior attempt already owns an outcome line with its exact state and reason.
+function codexRungReason(rung) {
+  if (rung && rung.reason) return rung.reason
+  const state = rung ? rung.state : 'dispatched'
+  if (state === 'probe-failed') return 'codex-probe-failed'
+  if (state === 'refused-before-dispatch') return 'codex-refused-before-dispatch'
+  return 'fallback-after-no-deliverable'
+}
+// Legacy provenance is rendered from the SAME complete outcome as that rung's outcome line.
+// In particular, a runtime that rejected codex:codex-rescue never becomes "codex not-landed".
+function codexFallbackProvenance(rung, landedFailure, noDeliverable) {
+  const reason = codexRungReason(rung)
+  let text = 'claude-fallback after ' + landedFailure
+  if (reason === 'codex-probe-failed') text = 'claude after (codex probe found no usable id)'
+  else if (reason === 'codex-unsupported-at-dispatch') text = 'claude after (codex unsupported at dispatch)'
+  else if (reason === 'codex-refused-before-dispatch') text = 'claude after (codex refused before dispatch)'
+  if (noDeliverable) text = text + '; no deliverable'
+  return ' (' + text + ')'
+}
+// A code-stage refusal has no later Claude rung to own the label. Preserve the attempt's completed
+// outcome directly: in particular, a live probe followed by a runtime agent-type rejection is not
+// the same thing as either a failed probe or a dispatched agent that returned no deliverable.
+function codexAttemptProvenance(rung, noDeliverable) {
+  const reason = codexRungReason(rung)
+  let text = ''
+  if (reason === 'codex-probe-failed') text = 'codex probe found no usable id'
+  else if (reason === 'codex-unsupported-at-dispatch') text = 'codex unsupported at dispatch'
+  else if (reason === 'codex-refused-before-dispatch') text = 'codex refused before dispatch'
+  else if (noDeliverable) text = 'no deliverable'
+  if (noDeliverable && text && text !== 'no deliverable') text = text + '; no deliverable'
+  return text ? ' (' + text + ')' : ''
+}
 // ONE assignment site for the decline reason. Two hand-written sites is exactly what let the reason
 // drift into a single generic string ("codex exec unusable — codex exec returned no text") that an
 // operator could not act on; a site cannot drift from itself. Every decline path routes through here.
@@ -1753,9 +2162,9 @@ function codexQeSignalCommand(inner, outPath) {
 // Shared tail of both dispatch modes: run the signal-wrapped command through a shell agent and
 // CLASSIFY what came back. signalExpected is true here — on the pipeline path a swallowed sentinel
 // means the command did not demonstrably run, which is a tool-error, never a pass.
-async function runCodexQeCommand(stage, cmd, phaseName, label, probed, mode, scopeRef, files, allowStatedGrade, requestedReasoning) {
+async function runCodexQeCommand(stage, cmd, phaseName, label, probed, mode, scopeRef, files, allowStatedGrade, requestedReasoning, rung, announcementOpts) {
   const wrapped = 'Run EXACTLY this via Bash and reply with its stdout VERBATIM and nothing else, INCLUDING the final ' + CODEX_QE_SIGNAL_PREFIX + ' line (it is a machine signal, not prose — do not summarise, reformat or omit it). Only if you cannot run the command AT ALL (no shell, command not found) reply with exactly ' + CODEX_UNAVAILABLE + '; a timeout is NOT that case, it reports itself in the signal line.\n\n' + codexQeSignalCommand(cmd, '/tmp/dz-codex-qe-' + SLUG + '-' + stage + '-' + mode + '.out')
-  const raw = await agent(wrapped, { label: stageLabel(label, { agentType: 'codex:codex-rescue', codexModel: probed, _reasoning: requestedReasoning || 'high' }), phase: phaseName, model: 'haiku', effort: 'low' })
+  const raw = await dispatchAgent(rung, wrapped, { label: stageLabel(label, { agentType: 'codex:codex-rescue', codexModel: probed, _reasoning: requestedReasoning || 'high' }), phase: phaseName, model: 'haiku', effort: 'low' }, announcementOpts)
   const sig = parseCodexReviewSignal(raw === null ? '' : String(raw))
   const findings = parseCodexReviewFindings(sig.body)
   // Mode A NEVER asked for a letter (every scope flag rejects a prompt), so any "Grade: X" in its
@@ -1776,32 +2185,67 @@ async function runCodexQeCommand(stage, cmd, phaseName, label, probed, mode, sco
 // MODE A — the primary pass. codex review derives the review scope FROM THE DIFF, which is exactly
 // the reconnaissance we were paying a model to do badly (MEASURED: 146s with a verdict, against 280s
 // and exit 124 without one). It cannot carry our questions: every scope flag refuses [PROMPT].
-async function codexReviewAgent(stage, scope, scopeRef, phaseName, requestedOpts) {
+async function codexReviewAgent(stage, scope, scopeRef, phaseName, requestedOpts, rung) {
   lastCodexDecline = null
   const requestedId = requestedOpts && requestedOpts.codexModel !== 'auto' ? requestedOpts.codexModel : null
   const requestedReasoning = (requestedOpts && requestedOpts._reasoning) || 'high'
   const probed = await probeCodexId(requestedId)
-  if (!probed) return noteCodexDecline(stage, 'unavailable', { reason: 'no codex model id answered the probe' })
+  if (!probed) { settleUndispatchedStage(requestedOpts, rung, 'probe-failed'); return noteCodexDecline(stage, 'unavailable', { reason: 'no codex model id answered the probe' }) }
+  const announcementOpts = mergeOpts(requestedOpts || {}, { codexModel: probed, _stage: stage })
   const built = codexReviewCommand({ scope: scope, ref: scopeRef, modelId: probed, reasoning: requestedReasoning, timeoutSeconds: CODEX_REVIEW_TIMEOUT_SECONDS, timeoutBin: await probeTimeoutBin(), repo: REPO })
-  if (built.cmd === null) return noteCodexDecline(stage, 'tool-error', { exit: 2, detail: built.reason })
-  return await runCodexQeCommand(stage, built.cmd, phaseName, stage + ':codex-review', probed, 'A', built.scope + (scopeRef ? ' ' + scopeRef : ''), [], false, requestedReasoning)
+  // R18: an id ANSWERED and this rung still dispatches nothing (a missing or unsafe scope ref).
+  // The outcome is recorded as a REFUSAL so the belt below cannot report it as a rung that ran.
+  if (built.cmd === null) { settleUndispatchedStage(announcementOpts, rung, 'refused-before-dispatch', built.reason); return noteCodexDecline(stage, 'tool-error', { exit: 2, detail: built.reason }) }
+  // R4-F2a: AFTER the command exists. An unusable scope ref (commit/base with a missing or unsafe
+  // ref) returns cmd:null and dispatches NOTHING — announcing above printed a line for a review that
+  // never ran. The reason travels from requestedOpts so it is not silently defaulted either.
+  return await runCodexQeCommand(stage, built.cmd, phaseName, stage + ':codex-review', probed, 'A', built.scope + (scopeRef ? ' ' + scopeRef : ''), [], false, requestedReasoning, rung, announcementOpts)
 }
 
 // MODE B — the narrowed follow-up. Carries OUR questions over files we name, and is refused outright
 // when the prompt was not built by scopedQePrompt (see codexExecPlan).
-async function codexExecAgent(stage, prompt, phaseName, scoped, files, requestedOpts) {
+// R11-1: the challenge panel's deliverable is its RETURN VALUE (a verdict JSON), so it must never
+// ride codex:codex-rescue — that wrapper is fire-and-forget and may hand back a background-job stub,
+// which sanitizeChallengeVerdict then rejects, degrading the promised cross-family panel to Claude
+// for no reason. codexDispatchMode('challenge') === 'exec' states this in the repo's own contract.
+// My round-10 fix was half right: the adversary genuinely was not routed to Codex, but reaching for
+// the wrapper swapped one dishonest dispatch for another. This is the synchronous path: probe the
+// id, honour the dispatch-mode contract, announce the PROBED id, run codex exec through a shell
+// agent, and return the model's own stdout — parsed by the caller, never synthesised here.
+async function codexExecPanel(prompt, requestedOpts, rung) {
+  const requestedId = (requestedOpts && requestedOpts.codexModel !== 'auto') ? requestedOpts.codexModel : null
+  const requestedReasoning = (requestedOpts && requestedOpts._reasoning) || 'high'
+  const probed = await probeCodexId(requestedId)
+  const announcementOpts = mergeOpts(requestedOpts || {}, { codexModel: probed || requestedId || 'auto', _stage: 'challenge' })
+  const plan = codexExecPlan('challenge', prompt.length, probed, true)
+  if (plan.mode !== 'exec') { log('Challenge panel: codex exec unavailable (' + plan.reason + ')'); return settleUndispatchedStage(announcementOpts, rung, probed ? 'refused-before-dispatch' : 'probe-failed', probed ? plan.reason : null) }
+  const inner = codexExecCommand({ modelId: probed, reasoning: requestedReasoning, prompt: prompt, timeoutBin: await probeTimeoutBin(), timeoutSeconds: CODEX_EXEC_TIMEOUT_SECONDS, repo: REPO })
+  if (inner === null) { log('Challenge panel: refusing an unsafe codex id ' + String(probed)); return settleUndispatchedStage(announcementOpts, rung, 'refused-before-dispatch', 'unsafe codex id ' + String(probed)) }
+  // R18: announced BELOW both refusals. The panel used to print its line right after the exec plan
+  // and could still refuse the id underneath it, so the challenge stage claimed an adversary
+  // dispatch that never occurred and the Claude review below was labelled a fallback after a rung
+  // that had produced nothing — when in truth no rung had run at all.
+  return await dispatchAgent(rung, 'Run EXACTLY this via Bash and return its stdout VERBATIM, with no commentary:\n' + inner, { label: 'challenge:codex-exec', phase: 'Plan' }, announcementOpts)
+}
+
+async function codexExecAgent(stage, prompt, phaseName, scoped, files, requestedOpts, rung) {
   lastCodexDecline = null
   const requestedId = requestedOpts && requestedOpts.codexModel !== 'auto' ? requestedOpts.codexModel : null
   const requestedReasoning = (requestedOpts && requestedOpts._reasoning) || 'high'
   const probed = await probeCodexId(requestedId)
+  const announcementOpts = mergeOpts(requestedOpts || {}, { codexModel: probed || requestedId || 'auto', _stage: stage })
   const plan = codexExecPlan(stage, prompt.length, probed, scoped)
-  if (plan.mode !== 'exec') return noteCodexDecline(stage, 'unavailable', { reason: plan.reason })
+  if (plan.mode !== 'exec') { settleUndispatchedStage(announcementOpts, rung, probed ? 'refused-before-dispatch' : 'probe-failed', probed ? plan.reason : null); return noteCodexDecline(stage, 'unavailable', { reason: plan.reason }) }
   // Was JSON.stringify(...) — DOUBLE quotes, in which the shell still expands a command substitution, and the
   // prompt carries the user's own feature description. Single-quoted through codexSq closes that
   // as a side effect of pinning the working directory.
   const inner = codexExecCommand({ modelId: probed, reasoning: requestedReasoning, prompt: prompt, timeoutBin: await probeTimeoutBin(), timeoutSeconds: CODEX_EXEC_TIMEOUT_SECONDS, repo: REPO })
-  if (inner === null) return noteCodexDecline(stage, 'unavailable', { reason: 'unsafe codex id ' + String(probed) })
-  return await runCodexQeCommand(stage, inner, phaseName, stage + ':codex-exec', probed, 'B', 'declared-targets(' + (files || []).length + ' declared, <=' + SCOPED_QE_MAX_FILES + ' reviewed)', files || [], true, requestedReasoning)
+  if (inner === null) { settleUndispatchedStage(announcementOpts, rung, 'refused-before-dispatch', 'unsafe codex id ' + String(probed)); return noteCodexDecline(stage, 'unavailable', { reason: 'unsafe codex id ' + String(probed) }) }
+  // R4-F2b: mode B runs ONLY after mode A produced no verdict, so it is a fallback rung and a real
+  // dispatch of its own. It had no line at all.
+  // R18: and the line now sits BELOW the unsafe-id refusal. Announcing above it printed a dispatch
+  // for a rung that then refused to build a command — the false claim this round removes.
+  return await runCodexQeCommand(stage, inner, phaseName, stage + ':codex-exec', probed, 'B', 'declared-targets(' + (files || []).length + ' declared, <=' + SCOPED_QE_MAX_FILES + ' reviewed)', files || [], true, requestedReasoning, rung, announcementOpts)
 }
 
 // Widened 2026-08-28 (MEASURED): slop-lint was still running at 16m38s when the old 120s window had
@@ -1818,17 +2262,18 @@ const CODE_LANDING_CEILING_ENV = 'DZ_FEATURE_ADR_CODE_LANDING_CEILING_MS'
 const CODEX_COMPANION_SCRIPT = '/root/.claude/plugins/cache/openai-codex/codex/1.0.5/scripts/codex-companion.mjs'
 const CODEX_COMPANION_STATE_ROOT = '/root/.claude/plugins/data/codex-openai-codex/state'
 
-function decideCodeLandingLiveness(input) {
+function decideCodeLandingLiveness(input, pidProbe) {
   const status = typeof input.companionStatus === 'string' ? input.companionStatus.trim().toLowerCase() : ''
   const elapsedMs = Number.isFinite(input.elapsedMs) ? Math.max(0, input.elapsedMs) : 0
   const ceilingMs = Number.isFinite(input.ceilingMs) && input.ceilingMs > 0 ? input.ceilingMs : DEFAULT_CODE_LANDING_CEILING_MS
+  const recordedPidAlive = input.recordedPidAlive === undefined ? (input.recordedPid === undefined ? null : pidProbe(input.recordedPid)) : input.recordedPidAlive
   const live = status === 'running' || status === 'queued'
   const terminal = status === 'completed' || status === 'failed' || status === 'cancelled'
 
-  if (live && input.recordedPidAlive === false) {
+  if (live && recordedPidAlive === false) {
     return { verdict: 'dead-worker', reason: 'recorded-pid-absent' }
   }
-  if (live && input.recordedPidAlive === true) {
+  if (live && recordedPidAlive === true) {
     if (elapsedMs >= ceilingMs) return { verdict: 'inconclusive', reason: 'ceiling-exceeded' }
     return { verdict: 'coder-running', reason: 'recorded-pid-alive' }
   }
@@ -2334,7 +2779,8 @@ function codeLandingLivenessProbeCmd(repo, plan, baselineAbsPath, jobId, waitSec
     // cannot answer) — a different event from an expired window, and the only one with a cure.
     // Unreadable stays 'unknown', which the verdict treats as no evidence, never as a clean exit.
     'tf=unknown; if [ -f "$state" ]; then if grep -q \'"touchedFiles": *\\[ *\\]\' "$state"; then tf=0; elif grep -q \'"touchedFiles"\' "$state"; then tf=1; fi; fi; ' +
-    'if [ -n "$pid" ]; then if ps -p "$pid" -o pid= >/dev/null 2>&1; then pid_alive=true; else pid_alive=false; fi; fi; fi; fi; ' +
+    // Replaces ps -p "$pid": the CLI uses the shared probePid; inaccessible stays unknown.
+    'if [ -n "$pid" ]; then pid_alive=$(' + DZ + ' runs --probe-pid "$pid"); case "$pid_alive" in true|false|unknown) :;; *) pid_alive=unknown;; esac; fi; fi; fi; ' +
     'echo "CODEX-LIVENESS-SIGNAL companion=$companion pid-alive=$pid_alive targets-changed=$target elapsed-ms=$elapsed_ms ceiling-ms=$ceiling_ms start-ms=$start_ms touched-files=$tf"; ' +
     'printf "%s\n" "$landing" | head -40; rm -rf "$sc"'
   )
@@ -2564,20 +3010,70 @@ function refusalNoteFor(planGate, slug) {
 // codex-rescue returns finalMessage text, not StructuredOutput; success is proven by the file landing —
 // (b) add a FOREGROUND hint so the codex runtime blocks until the write completes, (c) poll the
 // artifact, and (d) fall back to a Claude agent if it never lands (never blocks the pipeline).
+// R6-2: the DISPLAY label and the REPORT key are not the same name for every design stage — the
+// ideation stage is labelled 'qcsd' in the live panel but reported under modelsUsed.ideation. The
+// fallback below wrote modelsUsed[baseLabel], i.e. modelsUsed['qcsd'], a key nothing reads, so a
+// Codex artifact that failed its landed probe and was rewritten by CLAUDE still reported Codex.
+// The display label stays 'qcsd' (it is pinned by the live-label drift guard); only the write is mapped.
+// R7-3: ONE design dispatch can own TWO report keys — on L/XL the requirements agent also writes
+// 02_research.md (modelsUsed.research) and the architecture agent also writes the domain model
+// (modelsUsed.ddd). A provenance update that touched only the carrier left the folded alias still
+// claiming Codex after Claude had rewritten the artifact. The display label stays 'qcsd' (it is
+// pinned by the live-label drift guard); only the WRITE is mapped, and now to a LIST.
+const DESIGN_REPORT_KEYS = { requirements: ['requirements', 'research'], adr: ['adr'], qcsd: ['ideation'], architecture: ['architecture', 'ddd'] }
+function designReportKeys(baseLabel) {
+  if (baseLabel && DESIGN_REPORT_KEYS[baseLabel]) return DESIGN_REPORT_KEYS[baseLabel]
+  if (baseLabel) return [baseLabel]
+  return []
+}
+// The single writer of design provenance. Every path that learns who ACTUALLY produced the artifact
+// goes through here, so no caller can update one key and forget its alias.
+function setDesignProvenance(baseLabel, label) {
+  const keys = designReportKeys(baseLabel)
+  for (const k of keys) if (modelsUsed[k] !== undefined) modelsUsed[k] = label
+}
+
 async function designStage(promptText, opts, artifactPath, baseLabel) {
-  if (!needsLandedBarrier(opts)) return await agent(promptText, opts)
+  if (!needsLandedBarrier(opts)) { return await dispatchAgent(newRung(), promptText, opts) }
   const codexOpts = {}
   for (const k in opts) if (k !== 'schema') codexOpts[k] = opts[k]
-  const res = await safeCodexAgent(promptText + codexEffortHint(codexOpts) + ' IMPORTANT: run the Codex task in FOREGROUND (synchronous — do NOT pass --background) so this call blocks until the file is fully written to disk.', codexOpts)
-  const probe = await agent('Confirm a Codex OUT-OF-BAND artifact write has LANDED before the next stage reads it. Run EXACTLY this via Bash and return its stdout verbatim, nothing else:\n' + landedProbeCmd(artifactPath), { label: 'design:confirm-landed', phase: 'Design', effort: 'low' })
+  // R7-2: the probe lives HERE, on the live dispatch path — not at the top level. MEASURED: four
+  // unconditional top-level awaits spent 1 real probe on a tier-S run whose codex design stage is
+  // never dispatched, and 1 on a fully RESUMED fan that dispatches nothing at all — a fresh probe
+  // whose answer could then be attributed to a stored artifact it never produced. A stage that does
+  // not run now costs nothing, and provenance is written by the dispatch that earned it.
+  const dispatchedModel = await codexLabelOptsForDispatch(codexOpts)
+  // R16-3: a probe that answered nothing is NOT a rung that ran and delivered nothing. Keep the two
+  // apart in the provenance and in the line — 'fallback — the previous rung delivered nothing'
+  // asserts a dispatch that, on this path, never happened.
+  const designProbeFailed = !!dispatchedModel._codexProbeFailed
+  setDesignProvenance(baseLabel, designProbeFailed ? (modelLabel(dispatchedModel) + ' (codex probe found no usable id)') : modelLabel(dispatchedModel))
+  // R19: created per INVOCATION. designStage runs inside the parallel design fan, so a
+  // holder any wider than this call would be read across siblings.
+  const designRungHolder = newRung()
+  const res = await safeCodexAgent(promptText + codexEffortHint(codexOpts) + ' IMPORTANT: run the Codex task in FOREGROUND (synchronous — do NOT pass --background) so this call blocks until the file is fully written to disk.', codexOpts, designRungHolder)
+  const probe = await dispatchAgent(newRung(), 'Confirm a Codex OUT-OF-BAND artifact write has LANDED before the next stage reads it. Run EXACTLY this via Bash and return its stdout verbatim, nothing else:\n' + landedProbeCmd(artifactPath), { label: 'design:confirm-landed', phase: 'Design', effort: 'low' })
   if (res && probe && /landed=/.test(String(probe))) return { wrote: [artifactPath], summary: String(res).slice(0, 300) }
   log('design artifact did not land on codex (' + artifactPath + ') — falling back to Claude')
   const fallbackOpts = {}
-  const fb = await agent(promptText, mergeOpts({ label: stageLabel((baseLabel || 'design') + ':claude-fb', fallbackOpts), phase: 'Design', schema: ARTIFACT }, fallbackOpts))
+  // R18: ONE mapping for the whole class. The boolean below still writes the provenance TEXT (a
+  // separate sentence, unchanged), but the LINE's reason now comes from the rung's three-valued
+  // outcome so no branch here can silently re-flatten it back to "the previous rung ran".
+  const designRung = designProbeFailed ? { state: 'probe-failed', reason: null } : designRungHolder
+  setDesignProvenance(baseLabel, modelLabel(fallbackOpts) + codexFallbackProvenance(designRung, 'codex not-landed', false))
+  const fb = await dispatchAgent(newRung(), promptText, mergeOpts({ label: stageLabel((baseLabel || 'design') + ':claude-fb', fallbackOpts), phase: 'Design', schema: ARTIFACT }, fallbackOpts), mergeOpts(fallbackOpts, { _stage: opts._stage, _reason: 'fallback-rung' }))
   // d926ee89: the fallback used to keep CODEX provenance — modelsUsed, the checkpoint label and the
   // training-pair family all still said codex after Claude wrote the artifact. The WRITER is the
   // provenance; overwrite it here, at the one place that knows the fallback fired.
-  if (fb && baseLabel && modelsUsed[baseLabel] !== undefined) modelsUsed[baseLabel] = modelLabel(fallbackOpts) + ' (claude-fallback after codex not-landed)'
+  // R12-3: the DISPATCH claims the provenance, not the deliverable. A codex rung that returned null
+  // followed by an announced Claude rung that ALSO returned null used to leave modelsUsed on the
+  // Codex request, so design-incomplete reported Codex while the only dispatch anyone was told about
+  // was Claude. A dead rung still owns the report — it just says it delivered nothing.
+  // R17-1: the no-deliverable fact is ADDED to whatever was true about the codex rung, never
+  // substituted for it. This write used to be unconditional, so in the one scenario where no Codex
+  // dispatch could have happened — a refused probe — it overwrote the accurate probe-failure
+  // provenance with 'claude-fallback after codex not-landed' and claimed an attempt that never was.
+  if (!fb) setDesignProvenance(baseLabel, modelLabel(fallbackOpts) + codexFallbackProvenance(designRung, 'codex not-landed', true))
   return fb
 }
 
@@ -2588,6 +3084,33 @@ const ARTIFACT = { type: 'object', additionalProperties: false, required: ['wrot
 // agent directly from `dz project-skills` (never threaded through a model → fidelity preserved).
 const PROJECT_SKILLS = { type: 'object', additionalProperties: false, required: ['hasManifest', 'report'], properties: { hasManifest: { type: 'boolean' }, report: { type: 'string' } } }
 const QE = { type: 'object', additionalProperties: false, required: ['grade', 'gaps', 'codeTestsAdequate', 'docTestsPresent'], properties: { grade: { type: 'string' }, codeTestsAdequate: { type: 'boolean' }, docTestsPresent: { type: 'boolean' }, gaps: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['sev', 'what'], properties: { sev: { type: 'string' }, what: { type: 'string' } } } }, claimCheck: { type: 'object', additionalProperties: false, properties: { findings: { type: 'number' }, high: { type: 'number' }, medium: { type: 'number' } } } } }
+const CONFIRMATION_FILE_GATE = { type: 'object', additionalProperties: false, required: ['verdict', 'missing', 'checked', 'reason'], properties: { verdict: { type: 'string', enum: ['pass', 'fail', 'skipped', 'refused'] }, missing: { type: 'array', items: { type: 'string' } }, checked: { type: 'array', items: { type: 'string' } }, reason: { type: 'string' } } }
+
+function normalizeConfirmationFileGate(raw) {
+  if (!raw || typeof raw !== 'object') return { verdict: 'refused', missing: [], checked: [], reason: 'confirmation-file gate agent returned no readable result' }
+  const verdict = raw.verdict
+  if (verdict !== 'pass' && verdict !== 'fail' && verdict !== 'skipped' && verdict !== 'refused') return { verdict: 'refused', missing: [], checked: [], reason: 'confirmation-file gate returned an invalid verdict' }
+  return {
+    verdict: verdict,
+    missing: Array.isArray(raw.missing) ? raw.missing.map(function (x) { return String(x) }) : [],
+    checked: Array.isArray(raw.checked) ? raw.checked.map(function (x) { return String(x) }) : [],
+    reason: typeof raw.reason === 'string' ? raw.reason : ''
+  }
+}
+
+function enforceConfirmationFileGate(qe, gate) {
+  if (!qe || typeof qe !== 'object') return qe
+  const out = Object.assign({}, qe, { confirmationFileGate: gate })
+  if (gate.verdict !== 'fail' && gate.verdict !== 'refused') return out
+  const what = gate.verdict === 'fail'
+    ? 'confirmation file gate FAIL — missing: ' + gate.missing.join(', ')
+    : 'confirmation file gate REFUSED — ' + gate.reason
+  const gaps = Array.isArray(out.gaps) ? out.gaps.slice() : []
+  if (!gaps.some(function (g) { return g && g.what === what })) gaps.push({ sev: 'HIGH', what: what })
+  out.gaps = gaps
+  out.grade = String(out.grade || '').trim().toUpperCase() === 'D' ? 'D' : 'C'
+  return out
+}
 const ADR_TEMPLATE_GUIDE = 'ADR best-practices for Step 3: emit exactly one decision per ADR with the invariant core Title, Status, Context, Decision, Consequences. Template weight is tier-routed: S/M use Nygard/ITD-lightweight form but still include decision drivers, considered options, rationale, consequences, and Confirmation; L/XL use MADR structure plus an NHS Wales Confirmation stanza. Confirmation MUST name verification method, monitoring, success metric, and owner, and its load-bearing safety property MUST be tied to a Step-8 automated test/fitness function. Use status vocabulary proposed/accepted/rejected/deprecated/superseded plus a reversibility clause. Context must be neutral and appear before Decision. Considered Options must include rejected options with symmetric pros/cons. Rationale points must map to stated drivers and explain why losers were rejected. Consequences must include positive and negative outcomes/accepted downsides, follow-up ADR links, an after-action review schedule, and supersession discipline: supersession mints a new ADR and never edits accepted/rejected ADR content in place. Decision must be concrete/testable with exact names, versions, formats, paths, commands, or APIs. Reject explainer-masquerading-as-ADR: a domain overview with no concrete Decision is not an ADR. File names under 03_adr MUST be sequential NNN-{decision-slug}.md with lowercase kebab-case, dateless, ticketless slugs (the auto-001 ADR tracks the feature slug, so the present-tense imperative signal lives in the ADR Title; model-named additional ADRs use imperative slugs). Add a ## Links traceability block (requirements, driving use case, related ADRs) and a one-line provenance note (model-generated, edited for clarity); for a long ADR include a top-of-file table of contents.'
 const ADR_FITNESS_CHECKLIST = 'ADR fitness checklist for Step 8: read every ' + FDIR + '/03_adr/NNN-*.md ADR and fail the QE gate for any miss. Required checks: (1) filename is 03_adr/NNN-{decision-slug}.md where the slug is lowercase kebab-case, imperative, dateless, and ticketless; (2) title is decision-shaped and the ADR records one decision only; (3) Status is non-empty controlled vocabulary proposed/accepted/rejected/deprecated/superseded and includes a reversibility/revisit clause; (4) Context is neutral, problem-first, and appears before Decision; (5) Decision Drivers are stated and ranked/weighted; (6) Considered Options include the chosen and rejected options, each with symmetric pros and cons; (7) Rationale maps each point back to a driver and explains why rejected options lost; (8) Decision is concrete/testable with exact names, versions, formats, paths, commands, or APIs; (9) Consequences include positive and negative outcomes/accepted downsides, follow-up ADR links, and an after-action review schedule; (10) Confirmation names verification method, monitoring, success metric, and owner, then links the load-bearing safety property to an automated test/fitness function; (11) no placeholder text, template hints, raw generation scaffolding, or fake Markdown structure; (12) reject explainer-masquerading-as-ADR: describing a space with no concrete Decision is a blocker; (13) a Related/Links traceability block maps the ADR to its requirements, driving use case, and related ADRs. The ADR Confirmation check is load-bearing: assert the named safety property has a test that DISCRIMINATES — a real test by file/name that would go RED if the protection were deleted (the discrimination + mutation gates below are the proof; a test that would still pass with the protection deleted is documentation, not a gate); if absent, grade no better than C and record a blocker gap.'
 // §42 test-discrimination gate (feature step8-discrimination-gate, grounded in cve-bench/evaluate.mjs). Asserting
@@ -2619,8 +3142,55 @@ const AMENDMENT_RULE = 'AMENDMENT CONFIRMATION DISCIPLINE (every amendment is a 
 const AMENDMENT_GATE = 'AMENDMENT GATE (P2): do NOT judge this yourself — RUN the check and report what it says. Via Bash run EXACTLY `' + DZ + ' amendment-check --slug ' + SLUG + ' --json` (add `--feature-dir ' + FDIR + '` if the slug does not resolve from your CWD). Parse the JSON and report `amendments: {outcome, counts, reasons}` in your return object. outcome `pass` or `skip` clears the gate; `fail` is a HIGH gap and every reason must be quoted verbatim into the QE report; `not-established` means the check could not be run or the grammar matched nothing — that is NEVER a pass, report it as inconclusive with the tool error. Empty stdout, a crash, or a missing `dz` is `not-established`, not a clean gate. This check proves each amendment RESOLVES to a real test; it does NOT prove the test discriminates — vacuity stays with the discrimination gate above. ' +
   'IO-ON-PURE-PATH + FIXTURE-SWAP HUNT (P5): in the test diff, hunt for replacements of broken/unbound fixtures with healthy ones — the old fixture was probably a NEGATIVE CONTROL proving a path was I/O-free; each such swap requires a compensating negative resource-down test. If the code diff adds I/O (DB/network/file) to a previously-pure path — especially startup/lifespan/health — require a negative resource-down test (broken/unbound resource → the path degrades per its declared contract: fail-open for advisory, explicit fail-fast for load-bearing). Missing → HIGH gap.'
 
+// ── BEGIN BLOB run-registry@1.0.0 sha256:a4187c278260e8f8285fc494da2a6d82923efe4465fabba20ce1d3141df7fef3 src=packages/@dzhechkov/harness-core/src/run-registry.ts ──
+function runRecordCommand(dz, root, event, runId, slug, pid, parentRunId, outcome) {
+    const quote = (s) => "'" + s.replace(/'/g, "'\\''") + "'";
+    let cmd = dz + ' runs-record --project ' + quote(root) + ' --event ' + quote(event) + (runId ? ' --run-id ' + quote(runId) : '');
+    if (event === 'started') {
+        cmd += ' --kind feature-adr --slug ' + quote(slug);
+        cmd += ' --pid ' + quote(pid === null ? 'host' : String(pid));
+        if (parentRunId)
+            cmd += ' --parent-run-id ' + quote(parentRunId);
+    }
+    if (event === 'finished')
+        cmd += ' --outcome ' + quote(outcome);
+    return cmd + ' --json';
+}
+// ── END BLOB run-registry ──
+
+// Run registry: the courier executes the CLI because the sandbox has no filesystem.
+let registryRunId = ''
+let registryPhase = 'Router'
+async function recordRegistryEvent(event, phaseName, outcome) {
+  registryPhase = phaseName
+  if (event !== 'started' && !registryRunId) return
+  try {
+    const cmd = runRecordCommand(DZ, REPO, event, registryRunId, SLUG,
+      A.runPid === undefined ? null : A.runPid, A.parentRunId || null, outcome || '')
+    const out = await dispatchAgent(newRung(), 'Run EXACTLY this command via Bash and return ONLY its stdout: ' + cmd,
+      { label: 'runs-record:' + event + ':' + phaseName, phase: phaseName, effort: 'low' })
+    let receipt = null
+    try { receipt = typeof out === 'string' ? JSON.parse(out.trim()) : out } catch { /* unverified below */ }
+    if (!receipt || receipt.status !== 'written' || receipt.event !== event ||
+        typeof receipt.runId !== 'string' || !receipt.runId || (registryRunId && receipt.runId !== registryRunId)) {
+      registryOutcome = 'unverified'
+      log('run registry: ' + event + ' UNVERIFIED — ' + (receipt && receipt.reason ? String(receipt.reason) : String(out)))
+      return
+    }
+    if (event === 'started') registryRunId = receipt.runId
+  } catch (error) {
+    registryOutcome = 'unverified'
+    log('run registry: ' + event + ' UNVERIFIED — ' + String(error))
+  }
+}
+finishRunRegistry = async function () {
+  await recordRegistryEvent('finished', registryPhase, registryOutcome)
+}
+await recordRegistryEvent('started', 'Router')
+
 // Step 0: Router + MANDATORY self-learning recall
 phase('Router')
+await recordRegistryEvent('heartbeat', 'Router')
 
 // W1 (backlog 848853a0): REPO must be the git TOPLEVEL. Both measured incidents were a REPO
 // pointing INSIDE the repository (packages/@dzhechkov/health-advisor) — artifacts then scatter
@@ -2630,7 +3200,7 @@ phase('Router')
 // Canonicalization happens INSIDE the probe shell (cross-family review B-: JS-side string compare
 // would false-refuse a symlinked root) — both sides come from the same cd'd shell, `pwd -P` vs
 // rev-parse, so aliasing and spelling cancel out.
-const wrootOut = await agent('Run EXACTLY this via Bash and return its stdout VERBATIM, nothing else: cd ' + shq(REPO) + " && echo \"WROOT:$(git rev-parse --show-toplevel 2>/dev/null || echo none):HERE:$(pwd -P)\"", { label: 'router:repo-root', phase: 'Router', effort: 'low' })
+const wrootOut = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and return its stdout VERBATIM, nothing else: cd ' + shq(REPO) + " && echo \"WROOT:$(git rev-parse --show-toplevel 2>/dev/null || echo none):HERE:$(pwd -P)\"", { label: 'router:repo-root', phase: 'Router', effort: 'low' })
 const wrootM = /WROOT:(.+):HERE:(.+)/.exec(String(wrootOut === null || wrootOut === undefined ? '' : wrootOut))
 const wrootTop = wrootM === null ? null : wrootM[1].trim()
 const wrootHere = wrootM === null ? null : wrootM[2].trim()
@@ -2641,6 +3211,7 @@ else if (wrootTop !== wrootHere) {
   log('REPO ROOT MISMATCH: REPO canonicalizes to ' + wrootHere + ' but the git toplevel is ' + wrootTop + ' — refusing before any design spend (the measured incident class: artifacts scattered into a subdirectory features/)')
   const repoRootMismatchGates = {}
   const repoRootMismatchOutcome = runOutcomeOf({ phase: 'repo-root-mismatch', gates: repoRootMismatchGates })
+if (registryOutcome !== 'unverified') registryOutcome = repoRootMismatchOutcome
   return { phase: 'repo-root-mismatch', outcome: repoRootMismatchOutcome, repo: REPO, repoCanonical: wrootHere, gitToplevel: wrootTop, cure: 'invoke with args.repo=' + wrootTop + ' (or run from the repository root)' }
 }
 await loadCheckpoints('Router')
@@ -2649,16 +3220,33 @@ const routerTierDirective = A.tier
   ? ' (4) TIER OVERRIDE — THE CALLER FORCED TIER ' + A.tier + '. This run EXECUTES ' + A.tier + ' regardless of what you classify, so `00_complexity_assessment.md` MUST record `Effective tier: ' + A.tier + ' (forced by the caller)` as the tier of record, and your own classification separately as `Router recommendation: <your tier>` with its decisive criterion. Recording only your own would put a tier in the file that the run did not run — the same defect as recording none. Size the acid table for the EFFECTIVE tier.'
   : ''
 const routerPrompt = 'You are Step 0 (Complexity Router) of the /feature-adr pipeline. TWO jobs. (1) MANDATORY SELF-LEARNING RECALL (never skip — run BOTH Bash commands VERBATIM, do not summarize instead of running them): the learned patterns live in the CANONICAL BRAIN store at `' + BRAIN + '` — pin every recall to it. Via your Bash tool run EXACTLY `' + DZ_RECALL('<the key domain terms of this feature>') + '` (and `' + DZ_RECALL('<the key domain terms of this feature>') + ' --all` if narrow) to load relevant LEARNED PATTERNS from the brain. Preserve recalled pattern TEXT, reward, domain, and any visible id in the rationale as a concrete list so Step 8 can compare candidate lessons against it. Then run `dz statusline --fa-record --slug ' + SLUG + ' --step "Step 0 recall" --recalled <count> --mode ' + MODE + ' --project ' + REPO + '`. Summarize the top 3 applicable patterns in the rationale. (2) Classify S/M/L/XL + active steps. Feature: "' + DESC + '". Code: ' + CODE_HINT + '. S=1-3 files (0,1,6,7,8; if an ADR is explicitly forced, use Nygard as the lightweight fallback); M=4-10 (0,1,3,3.5,5,6,7,8; Nygard/ITD-light ADR); L=11-30 (all+9; MADR+Confirmation ADRs); XL=30+ (full+9; MADR+Confirmation ADRs). ADR template-weight rule: S/M -> Nygard/ITD-light; L/XL -> MADR + NHS Wales Confirmation, while every generated ADR still carries the invariant core. (3) WRITE THE ARTIFACT — a deliverable, not a note to yourself. Create ' + FDIR + '/00_complexity_assessment.md BEFORE returning: the TIER and the DECISIVE criterion for it (not a restatement of the bands); the ACTIVE STEPS list; the recalled patterns folded in; and an ACID-CASE TABLE with rows shaped EXACTLY `| A<n> | <the bad input> | <what must happen> |` for every input this feature must REFUSE. The K2 gate reads those rows by that exact shape and checks the plan names each token, so a loose shape silently disables the check. If this feature genuinely has no acid cases, say so in prose and write NO table — an honest absence is a skip, an absent FILE is a missing input, and the gate tells those apart. Without this file the tier is recorded NOWHERE while the run is alive (MEASURED 2026-08-21: 66 of 199 features had it) and C4 has nothing to read. Return {tier, activeSteps, rationale} with the recalled patterns folded into rationale.' + routerTierDirective
-const routerModel = resolveStageModel('router')
-const routerOpts = mergeOpts({ label: stageLabel('router+recall', routerModel), phase: 'Router', schema: ROUTER, effort: 'low' }, routerModel)
-modelsUsed.router = modelLabel(routerOpts)
+// ADR-001: ONE resolve feeds BOTH the announcement and the dispatch. Resolving twice printed a
+// spec-degradation warning twice and broke the invariant the line exists to hold.
+const routerDecision = resolveStageDecision('router')
+const routerModel = routerDecision.opts
+// R14-2: router dispatches through a BARE agent(), never safeCodexAgent, so nothing probed its id.
+// With models.router='codex' and codexModel='auto' both the line and modelsUsed said `auto` rather
+// than the id that would run. The router always dispatches, so resolving here costs the same one
+// memoized probe the dispatch itself would make.
+// R15-2: the REQUEST is recorded here so a RESUMED router still reports what it was given; the
+// concrete id is resolved inside the checkpoint callback below, so a resumed stage spends no probe
+// and today's probed id is never attributed to an artifact an earlier model produced. Same
+// discipline R7-2 established for the design fan.
+modelsUsed.router = modelLabel(routerModel)
 // router checkpoint: its result (tier + recalled-pattern rationale) seeds every downstream hash.
 // The Step-0 RECALL is part of the stage — a resumed router restores the SAME recalled patterns the
 // original run applied (fresh lessons taught since then enter on the next live run, not mid-resume).
 const routerHash = ckptHash('router', [DESC, CODE_HINT, MODE, A.tier === undefined ? null : A.tier, BRAIN, MODELS.router === undefined ? null : MODELS.router, CODEX_MODEL, PRIMARY, BUDGET_MODE, usageOverride, ROUTER_CONTRACT_TOKEN])
-const router = await withCheckpoint('router', 'Router', routerHash, async () => agent(routerPrompt + codexEffortHint(routerOpts), routerOpts))
+const router = await withCheckpoint('router', 'Router', routerHash, async () => {
+  const routerDirect = await directCodexOrClaude(routerModel, { _stage: 'router', _reason: stageReason('router', routerDecision) })
+  const routerDispatchModel = routerDirect.opts
+  const routerOpts = mergeOpts({ label: stageLabel('router+recall', routerDispatchModel), phase: 'Router', schema: ROUTER, effort: 'low', _stage: 'router', _reason: routerDirect.reason || stageReason('router', routerDecision) }, routerDispatchModel)
+  modelsUsed.router = modelLabel(routerDispatchModel)
+  return dispatchAgent(newRung(), routerPrompt + codexEffortHint(routerOpts), routerOpts)
+})
 if (resumedStages.indexOf('router') !== -1) modelsUsed.router = modelsUsed.router + ' (resumed)'
 let tier = A.tier || (router ? router.tier : 'M')
+FA_TIER.v = tier // fa-phase-statusline: from here every ckpt-side fa-record carries the real tier
 // Outer completion state starts absent so the plan-only ledger row can report null honestly.
 let coderUsed = null
 let qe = null
@@ -2676,13 +3264,13 @@ await capturePairs('router', 'Router', [{ input: routerPrompt, output: router, e
 // no-op (ZERO agent calls) when no stage is 'auto-cost'. Order matters: resolve `code` FIRST so `qe` can be
 // forced to the CROSS-family of the coder (the named cross-model-QE guard). Escalate-on-fail across runs is
 // automatic: a gate-FAIL recorded below down-ranks the model so the NEXT run's select picks the next rung.
-const AUTOCOST = {}
+
 function acFamOf(spec) { return /codex|gpt|openai/i.test(String(spec)) ? 'openai' : 'claude' }
 function acConcrete(model) { return CLAUDE_NAMES[model] ? model : ('codex:' + model + ':high') }
 function acBareId(spec) { var s = String(spec || ''); return s.indexOf('codex:') === 0 ? (s.split(':')[1] || s) : s }
 async function resolveAutoCost(stage, familyArg) {
   const famFlag = familyArg ? (' --family ' + familyArg) : ''
-  const out = await agent('Run EXACTLY this via Bash and reply with ONLY its stdout (a single JSON line), nothing else: ' + DZ + ' routing --select --stage ' + stage + ' --tier ' + tier + famFlag, { label: 'auto-cost:select:' + stage, phase: 'Route', effort: 'low' })
+  const out = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with ONLY its stdout (a single JSON line), nothing else: ' + DZ + ' routing --select --stage ' + stage + ' --tier ' + tier + famFlag, { label: 'auto-cost:select:' + stage, phase: 'Route', effort: 'low' })
   let pick = null
   try { pick = JSON.parse(String(out).replace(/^[^{]*/, '').replace(/[^}]*$/, '')) } catch { pick = null }
   if (!pick || !pick.model) { log('auto-cost ' + stage + ': no candidate model — leaving session-inherited'); MODELS[stage] = undefined; return }
@@ -2703,13 +3291,13 @@ if (autoCostStages.length > 0) {
 // GUARANTEED fa-panel write (the router, being low-effort + multi-job, tends to skip the fa-record
 // Bash call). A dedicated single-command agent reliably lights up the live /feature-adr panel at the
 // most visible moment. Uses the workspace bin (PATH-independent). Best-effort — never blocks.
-if (resumedStages.indexOf('router') === -1) await agent('Run EXACTLY this one shell command via your Bash tool and report its stdout verbatim — do nothing else, do not summarize: ' + DZ + ' statusline --fa-record --slug ' + SLUG + ' --step "Step 0 recall" --recalled auto --run fa:' + SLUG + ' --count-project ' + BRAIN + ' --stored 0 --mode ' + MODE + ' --project ' + REPO, { label: 'fa-record:step0', phase: 'Router', effort: 'low' })
+if (resumedStages.indexOf('router') === -1) await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and report its stdout verbatim — do nothing else, do not summarize: ' + DZ + ' statusline --fa-record --slug ' + SLUG + ' --step "Step 0 recall" --recalled auto --run fa:' + SLUG + ' --count-project ' + BRAIN + ' --stored 0 --mode ' + MODE + ' --project ' + REPO, { label: 'fa-record:step0', phase: 'Router', effort: 'low' })
 
 // R1 product-architecture-lens (ADR-001 Decision 3): forward-looking сверка of THIS feature vs the LIVE
 // product map + vision. NON-BLOCKING/soft by design — it LOGS {signal,confidence} so a real command
 // duplication or vision-boundary tension is visible at Step 0; the hard-stop call stays the user's (a
 // false gate kills trust — the claim-check lesson). Best-effort; never blocks the run.
-await agent('Run EXACTLY this one shell command via your Bash tool and report its stdout verbatim — do nothing else, do not summarize: cd ' + REPO + ' && ' + DZ + ' architecture --check --slug ' + SLUG + " --desc '" + DESC.replace(/'/g, "'\\''") + "'", { label: 'arch-сverka:step0', phase: 'Router', effort: 'low' })
+await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and report its stdout verbatim — do nothing else, do not summarize: cd ' + REPO + ' && ' + DZ + ' architecture --check --slug ' + SLUG + " --desc '" + DESC.replace(/'/g, "'\\''") + "'", { label: 'arch-сverka:step0', phase: 'Router', effort: 'low' })
 
 // R2 polymorphic-feature-adr (ADR-001): probe the project skill manifest ONCE at Step 0. Returns only
 // {hasManifest, report} (small, reliable). NO manifest ⇒ PS_GUIDANCE returns '' for every stage, so the
@@ -2742,7 +3330,7 @@ function projectSkillsProbeCommand(dzBin, repo, workspace) {
 const PS_CMD = projectSkillsProbeCommand(DZ, REPO, WS !== null ? WS : (BRAIN !== REPO ? BRAIN : null))
 let POLY = { hasManifest: false, report: '' }
 try {
-  const psProbe = await agent('Run EXACTLY this one shell command via your Bash tool: ' + PS_CMD + '. It prints one JSON line {hasManifest, design, code, qe, report}. Return ONLY {hasManifest, report} from it (drop the big design/code/qe strings).', { label: 'project-skills:step0', phase: 'Router', effort: 'low', schema: PROJECT_SKILLS })
+  const psProbe = await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool: ' + PS_CMD + '. It prints one JSON line {hasManifest, design, code, qe, report}. Return ONLY {hasManifest, report} from it (drop the big design/code/qe strings).', { label: 'project-skills:step0', phase: 'Router', effort: 'low', schema: PROJECT_SKILLS })
   if (psProbe && typeof psProbe === 'object') POLY = psProbe
 } catch (e) { /* fail-open — generic run */ }
 if (POLY.hasManifest) log('Project skills: manifest active — folding project guidance into design/code/qe')
@@ -2755,19 +3343,40 @@ const PS_GUIDANCE = (stage) => POLY.hasManifest
 
 // Steps 1-5: Design (tier-gated thunks built explicitly - no inline ternary-null)
 phase('Design')
+await recordRegistryEvent('heartbeat', 'Design')
 await usageProbe('Design')
 const designThunks = []
 const reqExtra = isLplus ? ' Also write ' + FDIR + '/02_research.md (codebase patterns + external analogues; read the repo for the closest existing implementation to mirror).' : ''
 // Resolve per-stage model opts up-front (parser-safe: no inline resolveStageModel inside the thunk arrays).
 // research folds into requirements, ddd folds into architecture (single shared call) — recorded for reporting.
-const reqModel = resolveStageModel('requirements')
-const adrModel = resolveStageModel('adr')
-const qcsdModel = resolveStageModel('ideation')
-const archModel = resolveStageModel('architecture')
-const reqOpts = mergeOpts({ label: stageLabel('requirements', reqModel), phase: 'Design', schema: ARTIFACT }, reqModel)
-const adrOpts = mergeOpts({ label: stageLabel('adr', adrModel), phase: 'Design', schema: ARTIFACT }, adrModel)
-const qcsdOpts = mergeOpts({ label: stageLabel('qcsd', qcsdModel), phase: 'Design', schema: ARTIFACT }, qcsdModel)
-const archOpts = mergeOpts({ label: stageLabel('architecture', archModel), phase: 'Design', schema: ARTIFACT }, archModel)
+// Every design stage is RESOLVED here (modelsUsed below needs all four regardless of tier), but the
+// ADR/ideation/architecture stages are only DISPATCHED on tier M+ — so their announcements live
+// beside their thunks inside the same isMplus branch. On tier S they must stay silent: a run that
+// declares three dispatches it never makes misdescribes itself (cross-family review of 3fc406db).
+const reqDecision = resolveStageDecision('requirements')
+const adrDecision = resolveStageDecision('adr')
+const qcsdDecision = resolveStageDecision('ideation')
+const archDecision = resolveStageDecision('architecture')
+const reqModel = reqDecision.opts
+const adrModel = adrDecision.opts
+const qcsdModel = qcsdDecision.opts
+const archModel = archDecision.opts
+// R6-1 (cross-family review round 5): an EXPLICIT models.<stage> spec — bare 'codex' or
+// 'codex:auto:*' — never passes through codexIdForTier (that helper serves only the budget-table
+// branch), so it reaches here as codexModel:'auto'. designStage dispatches through safeCodexAgent,
+// which probes and dispatches a CONCRETE id; the intent and final outcome use that same id, while the live label and modelsUsed were
+// built from the unresolved opts: the run announced codex:gpt-5.6-sol:high and reported
+// codex:auto:high. The dispatch opts deliberately keep the UNRESOLVED model so safeCodexAgent's own
+// probeCodexId(null) hits the same memoized cache key — one probe, and the two can no longer drift.
+// These carry the REQUEST. A codex design stage cannot know its concrete id without probing, and
+// probing here would charge stages that the tier gate or a checkpoint will skip (R7-2). The live
+// dispatch inside designStage resolves it and overwrites the provenance; the announced line, printed
+// from the dispatch opts, always shows the id that ran. A stage that never dispatches therefore
+// reports the request it was given rather than a concrete model it never used.
+const reqOpts = mergeOpts({ _stage: 'requirements', _reason: stageReason('requirements', reqDecision), label: stageLabel('requirements', reqModel), phase: 'Design', schema: ARTIFACT }, reqModel)
+const adrOpts = mergeOpts({ _stage: 'adr', _reason: stageReason('adr', adrDecision), label: stageLabel('adr', adrModel), phase: 'Design', schema: ARTIFACT }, adrModel)
+const qcsdOpts = mergeOpts({ _stage: 'ideation', _reason: stageReason('ideation', qcsdDecision), label: stageLabel('qcsd', qcsdModel), phase: 'Design', schema: ARTIFACT }, qcsdModel)
+const archOpts = mergeOpts({ _stage: 'architecture', _reason: stageReason('architecture', archDecision), label: stageLabel('architecture', archModel), phase: 'Design', schema: ARTIFACT }, archModel)
 modelsUsed.requirements = modelLabel(reqOpts)
 modelsUsed.research = modelLabel(reqOpts)
 modelsUsed.adr = modelLabel(adrOpts)
@@ -2906,7 +3515,7 @@ const designFan = await parallel(designThunks)
 let fanChecks = ''
 for (const rel of designArtifacts) fanChecks += (rel.endsWith('/') ? 'ls ' + shq(rel) + ' 2>/dev/null | grep -q "^001-.*\\.md$" && echo ' + shq('HAVE:' + rel) + '; ' : '[ -f ' + shq(rel) + ' ] && echo ' + shq('HAVE:' + rel) + '; ')
 const fanLsCmd = 'cd ' + shq(FDIR) + ' 2>/dev/null && { ' + fanChecks + 'echo ' + shq(FAN_LS_SENTINEL) + '; } || true'
-const fanLsOut = await agent('Run EXACTLY this via Bash and return its stdout VERBATIM (it may be empty) with NO code fences and NO commentary: ' + fanLsCmd, { label: 'design:artifact-probe', phase: 'Design', effort: 'low' })
+const fanLsOut = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and return its stdout VERBATIM (it may be empty) with NO code fences and NO commentary: ' + fanLsCmd, { label: 'design:artifact-probe', phase: 'Design', effort: 'low' })
 // The transcript is validated STRICTLY, not scanned. Round 7 measured the difference: an agent that
 // narrates ("Expected output when present: HAVE:01_requirements.md … Actual stdout: …") emits a line
 // byte-identical to the real token, and a parser that merely LOOKED for the token passed a design whose
@@ -2976,8 +3585,9 @@ if (!fanVerdict.complete) {
   // (coderUsed/qe are the outer bindings, both still null here, so the row reports null honestly.)
   const designIncompleteGates = { design: fanVerdict.reason === 'probe-not-established' ? 'not-established' : 'incomplete', plan: 'not-run', planCompleteness: 'not-run', challengePanel: 'not-run', code: 'not-run', qe: 'not-run' }
   const designIncompleteOutcome = runOutcomeOf({ phase: 'design-incomplete', gates: designIncompleteGates })
+if (registryOutcome !== 'unverified') registryOutcome = designIncompleteOutcome
   await appendRunCostRow('design-gate', 'Design', designIncompleteOutcome)
-  return { tier: tier, phase: 'design-incomplete', outcome: designIncompleteOutcome, slug: SLUG, artifactsDir: FDIR, missingSubstages: fanVerdict.missingSubstages, missingArtifacts: fanVerdict.missingArtifacts, reason: fanVerdict.reason, modelsUsed: modelsUsed, gates: designIncompleteGates, resumedStages: resumedStages, checkpointing: CHECKPOINTS_ON ? RESUME_MODE : 'off', trainingPairs: CAPTURE_PAIRS ? TP_DIR : 'off', captureFailures: captureFailures, recordFailures: recordFailures, decisionRecallFailures: decisionRecallFailures, usageEvents: usageEvents, usageThreshold: USAGE_THRESHOLD, polymorphism: POLY.hasManifest ? POLY.report : null, note: 'REFUSED at the Step-5/6 boundary: ' + what + ', so the design is incomplete and Step 6 was NOT dispatched. Planning off a partial design produces a plan with no ADR behind it. ' + repair + ' If a sibling died on a Claude limit, add usage-adaptive routing or route that stage to Codex first (args.models). To rebuild the whole design from scratch instead, re-invoke with args.resume=\'never\'.' }
+  return { tier: tier, phase: 'design-incomplete', outcome: designIncompleteOutcome, slug: SLUG, artifactsDir: FDIR, missingSubstages: fanVerdict.missingSubstages, missingArtifacts: fanVerdict.missingArtifacts, reason: fanVerdict.reason, modelsUsed: modelsUsed, dispatchOutcomes: dispatchOutcomes, gates: designIncompleteGates, resumedStages: resumedStages, checkpointing: CHECKPOINTS_ON ? RESUME_MODE : 'off', trainingPairs: CAPTURE_PAIRS ? TP_DIR : 'off', captureFailures: captureFailures, recordFailures: recordFailures, decisionRecallFailures: decisionRecallFailures, usageEvents: usageEvents, usageThreshold: USAGE_THRESHOLD, polymorphism: POLY.hasManifest ? POLY.report : null, note: 'REFUSED at the Step-5/6 boundary: ' + what + ', so the design is incomplete and Step 6 was NOT dispatched. Planning off a partial design produces a plan with no ADR behind it. ' + repair + ' If a sibling died on a Claude limit, add usage-adaptive routing or route that stage to Codex first (args.models). To rebuild the whole design from scratch instead, re-invoke with args.resume=\'never\'.' }
 }
 
 // Step 6: Plan — optionally routed to Codex's top model (opt-in via args.planner='codex').
@@ -2985,13 +3595,15 @@ if (!fanVerdict.complete) {
 // the codex:codex-rescue runtime and GRACEFULLY FALL BACK to the default (Claude) planner if Codex is
 // unavailable/errors — the pipeline never blocks on Codex.
 phase('Plan')
+await recordRegistryEvent('heartbeat', 'Plan')
 await usageProbe('Plan')
 const planPrompt = 'Step 6 (SPARC-GOAP implementation plan) of /feature-adr for "' + DESC + '" (' + SLUG + ', tier ' + tier + '). Given the requirements + ADR + architecture in ' + FDIR + ', decompose into milestones + concrete tasks with success metrics. Write ' + FDIR + '/06_implementation_plan.md. END the plan with a trailing `EXPECTED_CODE_TARGETS:` block listing, one per line as `- <repo-relative path>`, EVERY production/test/config/doc file Step 7 is expected to create or modify. This block is machine-read by the Step-7.5 landing barrier: only paths it ESTABLISHES can ever count as landed, so an absent or unpollable block makes the barrier verdict INCONCLUSIVE. List only real targets outside features/, .dz/, .agentic-qe/ and roam/. The K2 plan-completeness gate blocks Step 7 until the plan satisfies these too, so write them in as you author, not afterwards: (C1) every ADR under 03_adr/ is cited as `ADR-<n>` by the task that implements it; (C2) every test path named in an ADR Confirmation stanza appears verbatim in the plan, bound to the task that writes it; (C4) every acid token `A<n>` from 00_complexity_assessment.md is named verbatim, bound to its owning task and to the test that proves the refusal. If any corrections from Step 3.5 (a CONDITIONAL verdict) or other sources are folded into this plan, carry them in a `## Amendments` section. ' + AMENDMENT_RULE + ' Return wrote[] + summary.' + ABSOLUTE_PATH_NOTE + WRITE_DISCIPLINE
 const planContext = buildDecisionContext({ slug: SLUG, decisionKind: 'plan-route-selection', description: DESC, tier: tier, codeHint: CODE_HINT, upstreamDigest: fnv1a64(JSON.stringify(design === undefined ? null : design)) })
 let planRecallCapture = { promptBlock: '', selected: [] }
 // Resolve the plan model. args.models.plan wins; else the planner:'codex' knob (via routingRequested +
 // DEFAULT_MODELS/coder-fold) or the DEFAULT_MODELS.plan ('sonnet') under routing; else {} (BC).
-const planModel = resolveStageModel('plan')
+const planDecision = resolveStageDecision('plan')
+const planModel = planDecision.opts
 const planIsCodex = (planModel.agentType === 'codex:codex-rescue') || (MODELS.plan === undefined && PLANNER === 'codex')
 // plan checkpoint: keyed on the design fan's RESULT (a stale design invalidates the plan) + the
 // planner spec. Covers the standard L/XL two-phase flow: the stop-after-plan re-invoke resumes
@@ -3001,27 +3613,41 @@ const planComposite = await withCheckpoint('plan', 'Plan', planHash, async () =>
 const prepared = await prepareDecisionRecall(planContext, 'Plan', 'decision-recall:step6')
 const finalPlanPrompt = planPrompt + prepared.promptBlock
 let plan = null
+// Declared in the ENCLOSING scope because the codex branch SETS it and the fallback branch READS it;
+// declaring it inside the codex branch was a ReferenceError the scope guard caught.
+let planCodexProbeFailed = false
+// R18: the plan rung's three-valued outcome, in the enclosing scope for the same reason as the
+// boolean beside it — the codex rung sets it, the Claude planner below reads it.
+let planCodexRung = newRung()
 if (planIsCodex) {
   const planCodexLabelOpts = (planModel.agentType === 'codex:codex-rescue') ? planModel : specToOpts('codex:' + CODEX_MODEL + ':high')
-  modelsUsed.plan = modelLabel(planCodexLabelOpts)
-  const codexPlanOpts = mergeOpts({ label: stageLabel('plan:codex', planCodexLabelOpts), phase: 'Plan', agentType: 'codex:codex-rescue' }, planCodexLabelOpts)
-  const codexPlan = await safeCodexAgent(finalPlanPrompt + codexEffortHint(codexPlanOpts) + ' IMPORTANT: run the Codex task in FOREGROUND (synchronous — do NOT pass --background) so this call blocks until 06_implementation_plan.md is fully written to disk.', codexPlanOpts)
+  const planCodexResolved = await codexLabelOptsForDispatch(planCodexLabelOpts)
+  planCodexProbeFailed = !!planCodexResolved._codexProbeFailed
+  modelsUsed.plan = modelLabel(planCodexResolved) + (planCodexProbeFailed ? ' (codex probe found no usable id)' : '')
+  const codexPlanOpts = mergeOpts({ label: stageLabel('plan:codex', planCodexLabelOpts), phase: 'Plan', agentType: 'codex:codex-rescue', _stage: 'plan', _reason: stageReason('plan', planDecision) }, planCodexLabelOpts)
+  const planRungHolder = newRung()
+  const codexPlan = await safeCodexAgent(finalPlanPrompt + codexEffortHint(codexPlanOpts) + ' IMPORTANT: run the Codex task in FOREGROUND (synchronous — do NOT pass --background) so this call blocks until 06_implementation_plan.md is fully written to disk.', codexPlanOpts, planRungHolder)
   // Codex-landed barrier for the plan artifact: a stub return is NOT proof the file was written
   // (codex writes out-of-band). Require the artifact to LAND; otherwise fall through to the Claude planner.
-  const planLanded = codexPlan ? await agent('Confirm the Codex plan write has LANDED. Run EXACTLY this via Bash and return its stdout verbatim, nothing else:\n' + landedProbeCmd(FDIR + '/06_implementation_plan.md'), { label: 'plan:confirm-landed', phase: 'Plan', effort: 'low' }) : null
+  const planLanded = codexPlan ? await dispatchAgent(newRung(), 'Confirm the Codex plan write has LANDED. Run EXACTLY this via Bash and return its stdout verbatim, nothing else:\n' + landedProbeCmd(FDIR + '/06_implementation_plan.md'), { label: 'plan:confirm-landed', phase: 'Plan', effort: 'low' }) : null
   if (codexPlan && planLanded && /landed=/.test(String(planLanded))) {
     plan = { wrote: [FDIR + '/06_implementation_plan.md'], summary: String(codexPlan).slice(0, 500), planner: 'codex' }
     log('Plan: Codex (top model) — artifact landed')
   } else {
     log('Plan: Codex plan did not land — falling back to the default planner')
   }
+  planCodexRung = planCodexProbeFailed ? { state: 'probe-failed', reason: null } : planRungHolder
 }
 if (plan === null && planIsCodex) reactiveBelt('Plan')
 if (plan === null) {
   const claudePlanModel = planIsCodex ? {} : planModel
-  const claudePlanOpts = mergeOpts({ label: stageLabel(planIsCodex ? 'plan:claude-fb' : 'plan', claudePlanModel), phase: 'Plan', schema: ARTIFACT }, claudePlanModel)
-  modelsUsed.plan = planIsCodex ? 'claude-fallback' : modelLabel(claudePlanOpts)
-  const claudePlan = await agent(finalPlanPrompt, claudePlanOpts)
+  const claudePlanOpts = mergeOpts({ label: stageLabel(planIsCodex ? 'plan:claude-fb' : 'plan', claudePlanModel), phase: 'Plan', schema: ARTIFACT, _stage: 'plan', _reason: planIsCodex ? 'fallback-rung' : stageReason('plan', planDecision) }, claudePlanModel)
+  // R11-2: the MODEL is the provenance; 'claude-fallback' is a role, and a role that REPLACES the
+  // model leaves the report unreconcilable with the line (which said `session`) and drops the actual
+  // fallback model entirely. Both sides now derive from claudePlanOpts, so they cannot drift.
+  modelsUsed.plan = modelLabel(claudePlanOpts) + (planIsCodex ? codexFallbackProvenance(planCodexRung, 'codex plan not-landed', false) : '')
+  // R16-3: only a rung that RAN can have delivered nothing; a refused probe never dispatched.
+  const claudePlan = await dispatchAgent(newRung(), finalPlanPrompt, claudePlanOpts)
   plan = claudePlan ? { wrote: claudePlan.wrote, summary: claudePlan.summary, planner: planIsCodex ? 'claude-fallback' : 'claude' } : null
 }
 if (plan === null) return null
@@ -3061,21 +3687,46 @@ async function runChallengePanel(planRel, plannerName) {
   const dzChallenge = 'cd ' + shq(REPO) + ' && ' + shq(DZ) + ' challenge --plan ' + shq(planRel) + ' --author ' + shq(plannerName || 'claude')
   // Preflight (QE #11): the plan artifact must EXIST and be non-empty, else an adversary hallucinates a
   // verdict on a missing file. Surface a loud status instead of a fake review.
-  const pre = await agent('Run EXACTLY this via Bash and reply with ONLY its stdout: ' + 'cd ' + shq(REPO) + ' && (test -s ' + shq(planRel) + ' && echo PLAN_OK || echo PLAN_MISSING)', { label: 'challenge:preflight', phase: 'Plan', effort: 'low' })
+  const pre = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with ONLY its stdout: ' + 'cd ' + shq(REPO) + ' && (test -s ' + shq(planRel) + ' && echo PLAN_OK || echo PLAN_MISSING)', { label: 'challenge:preflight', phase: 'Plan', effort: 'low' })
   if (!/PLAN_OK/.test(String(pre || ''))) { log('Challenge panel: plan artifact missing/empty (' + planRel + ') — panel skipped'); return { status: 'no-plan', adversary: null, findings: [], summary: '', note: 'Challenge panel skipped — the implementation plan artifact was missing or empty.' } }
   let verdict = null
   let adversary = authorIsCodex ? 'claude' : 'codex'
+  // R18: the panel's rung OUTCOME, declared here because the Claude adversary below is a SIBLING of
+  // the codex block that sets it, not its child. 'dispatched' is the honest default for the
+  // author=Codex path, where no codex panel rung is attempted at all.
+  let panelOutcome = newRung()
   if (!authorIsCodex) {
     // author=Claude → Codex adversary (cross-family). Compact prompt: Codex reads the files itself (no 24k
     // brief inlined). safeCodexAgent is the honest exec path; null/invalid ⇒ loud Claude fallback below.
-    const cx = await safeCodexAgent('You are a FRESH adversarial reviewer of an implementation plan you did NOT write. Read these files: ' + planRel + ' , architecture/vision.md , architecture/testing.md , architecture/map.json , architecture/degradations.md (relative to repo ' + REPO + '). BREAK the plan, do not confirm it. Answer C1 arch-anti-cement (deviating from a pattern in the degradations registry is NOT a finding), C2 prod-ready, C3 test sufficiency+honesty both ways, C4 overengineering, C5 silent decisions, C6 runtime consistency, C7 scope>1.5x, C8 executability. Output ONLY minified JSON {"findings":[{"c","severity":"P0|P1|P2","title","why","where"}],"summary"}.', { label: 'challenge:codex-adversary', phase: 'Plan' })
+    // R10-X: these opts used to be { label, phase } ONLY — no agentType — so safeCodexAgent's codex
+    // branch never engaged: zero probes, a plain Claude agent produced the review, and the panel
+    // still reported adversary:'codex'. The plan gate's cross-family guarantee was fictional and the
+    // false family landed in the run's own result. Now it asks for the wrapper, so the probe runs and
+    // announceStage prints the id that will actually review.
+    const cxOpts = mergeOpts({ label: 'challenge:codex-adversary', phase: 'Plan', _stage: 'challenge', _reason: 'challenge-panel' }, specToOpts('codex:' + CODEX_MODEL + ':high'))
+    // R13-1: the panel ANNOUNCED a concrete probed id while modelsUsed carried nothing, so the L/XL
+    // checkpoint report printed a dispatch it never recorded. Each rung claims its own provenance at
+    // dispatch (the memoized probe gives the same id the line prints), and a rung that delivered
+    // nothing says so instead of vanishing.
+    modelsUsed.challenge = modelLabel(await codexLabelOptsForDispatch(cxOpts))
+    const panelRungHolder = newRung()
+    const cx = await codexExecPanel('You are a FRESH adversarial reviewer of an implementation plan you did NOT write. Read these files: ' + planRel + ' , architecture/vision.md , architecture/testing.md , architecture/map.json , architecture/degradations.md (relative to repo ' + REPO + '). BREAK the plan, do not confirm it. Answer C1 arch-anti-cement (deviating from a pattern in the degradations registry is NOT a finding), C2 prod-ready, C3 test sufficiency+honesty both ways, C4 overengineering, C5 silent decisions, C6 runtime consistency, C7 scope>1.5x, C8 executability. Output ONLY minified JSON {"findings":[{"c","severity":"P0|P1|P2","title","why","where"}],"summary"}.', cxOpts, panelRungHolder)
+    panelOutcome = panelRungHolder
     if (cx) { try { verdict = sanitizeChallengeVerdict(JSON.parse(String(cx).replace(/^[^{]*/, '').replace(/[^}]*$/, ''))) } catch { verdict = null } }
+    // R18: a rung that REFUSED before dispatching did not deliver nothing — it never ran. Saying
+    // '(no deliverable)' here recorded a Codex adversary that does not exist.
+    if (!verdict) modelsUsed.challenge = modelLabel(await codexLabelOptsForDispatch(cxOpts)) + (panelOutcome.state === 'dispatched' ? ' (no deliverable)' : ' (' + panelOutcome.state + ' — nothing was dispatched)')
     if (!verdict) { log('Challenge panel: Codex adversary unavailable/unparseable/invalid — falling back to a FRESH Claude panel (NOT cross-family; run `dz challenge` + codex manually for a cross-family pass)'); adversary = 'claude-fallback' }
   }
   if (!verdict) {
     // Claude adversary (fresh instance ≠ the author): loads the WIDE brief via dz, then answers the schema.
-    const raw = await agent('You are a FRESH adversarial reviewer. You did NOT write this plan. First run EXACTLY this via Bash to load the wide challenge brief (plan + vision + testing + map + degradations + the C1-C8 questions): ' + dzChallenge + '\nThen BREAK the plan per C1-C8 (do NOT confirm it): a finding is a concrete failing input/condition, never a general worry; deviating from a pattern in the degradations registry is NOT a finding. Return the verdict.', { label: 'challenge:claude-adversary', phase: 'Plan', schema: CHALLENGE_SCHEMA })
+    // R10-1: the Claude adversary is a substantive model review, not a helper. When it follows a
+    // codex adversary that delivered nothing, it is also a fallback rung and says so.
+    const claudeAdvOpts = { label: 'challenge:claude-adversary', phase: 'Plan', schema: CHALLENGE_SCHEMA, _stage: 'challenge', _reason: authorIsCodex ? 'challenge-panel' : 'fallback-rung' }
+    modelsUsed.challenge = modelLabel(claudeAdvOpts)
+    const raw = await dispatchAgent(newRung(), 'You are a FRESH adversarial reviewer. You did NOT write this plan. First run EXACTLY this via Bash to load the wide challenge brief (plan + vision + testing + map + degradations + the C1-C8 questions): ' + dzChallenge + '\nThen BREAK the plan per C1-C8 (do NOT confirm it): a finding is a concrete failing input/condition, never a general worry; deviating from a pattern in the degradations registry is NOT a finding. Return the verdict.', claudeAdvOpts)
     verdict = sanitizeChallengeVerdict(raw)
+    if (!verdict) modelsUsed.challenge = modelLabel(claudeAdvOpts) + ' (no deliverable)'
   }
   if (!verdict) { log('Challenge panel: no usable verdict from any adversary — surfacing unavailable status (advisory)'); return { status: 'adversary-unavailable', adversary: adversary, findings: [], summary: '', note: 'Challenge panel could not produce a verdict — run `dz challenge` + the panel manually.' } }
   // Cross-validate P0/P1 by INDEX (QE #5: never by title — duplicate titles cross-contaminate). Deterministic
@@ -3086,7 +3737,10 @@ async function runChallengePanel(planRel, plannerName) {
   let status = 'ok'
   if (pp.length > 0) {
     const numbered = pp.map((f, i) => ({ i: i, c: f.c, severity: f.severity, title: f.title, why: f.why }))
-    const cv = await agent('Independently CROSS-VALIDATE these adversarial plan findings against the plan at ' + planRel + ' (repo ' + REPO + '). For EACH by its "i" index, decide if it is REAL and reachable, or FP/theory. Default to real=false when uncertain. Findings JSON (with stable index i): ' + JSON.stringify(numbered) + '\nReturn {"results":[{"i":<the index>,"real":true|false}...]} covering EVERY index exactly once.', { label: 'challenge:cross-validate', phase: 'Plan', schema: { type: 'object', additionalProperties: false, required: ['results'], properties: { results: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['i', 'real'], properties: { i: { type: 'number' }, real: { type: 'boolean' } } } } } } })
+    const cvOpts = { label: 'challenge:cross-validate', phase: 'Plan', _stage: 'challenge-validate', _reason: 'challenge-panel', schema: { type: 'object', additionalProperties: false, required: ['results'], properties: { results: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['i', 'real'], properties: { i: { type: 'number' }, real: { type: 'boolean' } } } } } } }
+    modelsUsed['challenge-validate'] = modelLabel(cvOpts)
+    const cv = await dispatchAgent(newRung(), 'Independently CROSS-VALIDATE these adversarial plan findings against the plan at ' + planRel + ' (repo ' + REPO + '). For EACH by its "i" index, decide if it is REAL and reachable, or FP/theory. Default to real=false when uncertain. Findings JSON (with stable index i): ' + JSON.stringify(numbered) + '\nReturn {"results":[{"i":<the index>,"real":true|false}...]} covering EVERY index exactly once.', cvOpts)
+    if (!cv) modelsUsed['challenge-validate'] = modelLabel(cvOpts) + ' (no deliverable)'
     const realByIndex = new Map((cv && Array.isArray(cv.results) ? cv.results : []).map((r) => [Number(r.i), r.real === true]))
     // QE #8: a validator OUTAGE (missing indices) must NOT read as "clean" — do not silently drop the P0/P1.
     const covered = pp.every((_, i) => realByIndex.has(i))
@@ -3110,7 +3764,7 @@ async function runChallengePanel(planRel, plannerName) {
 // '' with no reason, so a whole-block typo was indistinguishable from "no block declared" — and both
 // degraded the barrier to "any code change counts".
 if (plan) {
-  const planTextForTargets = await agent('Read ' + FDIR + '/06_implementation_plan.md and return ONLY its `EXPECTED_CODE_TARGETS:` block verbatim (the header line plus the list lines under it). If there is no such block, return exactly: (no block)', { label: 'plan:targets-block', phase: 'Plan', effort: 'low' })
+  const planTextForTargets = await dispatchAgent(newRung(), 'Read ' + FDIR + '/06_implementation_plan.md and return ONLY its `EXPECTED_CODE_TARGETS:` block verbatim (the header line plus the list lines under it). If there is no such block, return exactly: (no block)', { label: 'plan:targets-block', phase: 'Plan', effort: 'low' })
   const targetsCheck = validateExpectedTargetsBlock(planTextForTargets)
   if (!targetsCheck.present) log('Step-6/7 boundary: the plan declares NO EXPECTED_CODE_TARGETS block — a codex-coded Step 7 would produce an INCONCLUSIVE landing verdict')
   else log('Step-6/7 boundary: EXPECTED_CODE_TARGETS accepted=' + targetsCheck.accepted.length + ' rejected=' + targetsCheck.rejected.length)
@@ -3128,7 +3782,7 @@ if (plan) {
 // plan straight into Step 7. The gate is forced NOT-ESTABLISHED without probing the tree at all.
 let planGate = { verdict: 'not-established', exit: null, reason: 'plan-stage-null', output: 'The Step-6 plan stage returned no result for THIS run (agent died, or produced nothing). Any 06_implementation_plan.md present on disk belongs to an earlier run and cannot vouch for this one, so the gate refuses without reading it.' }
 if (plan) {
-  const planGateOut = await agent('Run EXACTLY this shell snippet via your Bash tool, as ONE command, and return its stdout VERBATIM, nothing else — do not summarize it, do not judge the plan yourself, do not omit the K2_GATE_SCRIPT / K2_GATE_TRIED lines or the trailing K2_EXIT line:\n' + planCompletenessGateCmd(REPO, 'features/' + SLUG, tier, { gateScript: GATE_SCRIPT_ARG, workspace: WS === null ? undefined : WS }), { label: 'plan:k2-gate', phase: 'Plan', effort: 'low' })
+  const planGateOut = await dispatchAgent(newRung(), 'Run EXACTLY this shell snippet via your Bash tool, as ONE command, and return its stdout VERBATIM, nothing else — do not summarize it, do not judge the plan yourself, do not omit the K2_GATE_SCRIPT / K2_GATE_TRIED lines or the trailing K2_EXIT line:\n' + planCompletenessGateCmd(REPO, 'features/' + SLUG, tier, { gateScript: GATE_SCRIPT_ARG, workspace: WS === null ? undefined : WS }), { label: 'plan:k2-gate', phase: 'Plan', effort: 'low' })
   planGate = parsePlanGateVerdict(planGateOut)
 }
 log('K2 plan-completeness gate: ' + planGate.verdict + ' (exit=' + (planGate.exit === null ? 'unknown' : planGate.exit) + ', reason=' + planGate.reason + ')')
@@ -3137,8 +3791,9 @@ if (planGate.verdict !== 'pass') {
   // checkpoint deliberately: an incomplete plan is not something to steer, it is something to fix.
   const planGateFailedGates = { plan: (plan ? 'produced' : 'missing'), planCompleteness: planGate.verdict, challengePanel: 'not-run', code: 'not-run', qe: 'not-run' }
   const planGateFailedOutcome = runOutcomeOf({ phase: 'plan-gate-failed', gates: planGateFailedGates })
+if (registryOutcome !== 'unverified') registryOutcome = planGateFailedOutcome
   await appendRunCostRow('plan-gate', 'Plan', planGateFailedOutcome)
-  return { tier: tier, phase: 'plan-gate-failed', outcome: planGateFailedOutcome, slug: SLUG, artifactsDir: FDIR, planner: (plan ? plan.planner : null), plan: (plan ? plan.summary : null), modelsUsed: modelsUsed, planGate: planGate, gates: planGateFailedGates, resumedStages: resumedStages, checkpointing: CHECKPOINTS_ON ? RESUME_MODE : 'off', trainingPairs: CAPTURE_PAIRS ? TP_DIR : 'off', captureFailures: captureFailures, recordFailures: recordFailures, decisionRecallFailures: decisionRecallFailures, usageEvents: usageEvents, usageThreshold: USAGE_THRESHOLD, polymorphism: POLY.hasManifest ? POLY.report : null, note: refusalNoteFor(planGate, SLUG) }
+  return { tier: tier, phase: 'plan-gate-failed', outcome: planGateFailedOutcome, slug: SLUG, artifactsDir: FDIR, planner: (plan ? plan.planner : null), plan: (plan ? plan.summary : null), modelsUsed: modelsUsed, dispatchOutcomes: dispatchOutcomes, planGate: planGate, gates: planGateFailedGates, resumedStages: resumedStages, checkpointing: CHECKPOINTS_ON ? RESUME_MODE : 'off', trainingPairs: CAPTURE_PAIRS ? TP_DIR : 'off', captureFailures: captureFailures, recordFailures: recordFailures, decisionRecallFailures: decisionRecallFailures, usageEvents: usageEvents, usageThreshold: USAGE_THRESHOLD, polymorphism: POLY.hasManifest ? POLY.report : null, note: refusalNoteFor(planGate, SLUG) }
 }
 
 // Hybrid checkpoint for L/XL
@@ -3149,12 +3804,14 @@ if (stopHere) {
   // they re-invoke. Marked `(planned)` since the stages haven't executed yet.
   const codePlanned = modelLabel(resolveStageModel('code'))
   const qePlanned = qeShouldUseCodex() ? modelLabel(resolveStageModel('qe')) : modelLabel(mergeOpts({ agentType: 'qe-code-reviewer' }, resolveStageModel('qe')))
-  const plannedModels = mergeOpts(modelsUsed, { code: codePlanned + ' (planned)', qe: qePlanned + ' (planned)' })
-  if (isLplus) plannedModels.fleet = modelLabel(resolveStageModel('fleet')) + ' (planned)'
   // R6 врезка: adversarial plan-gate (advise). Panel ≠ plan author; wrapped so a panel failure never blocks the checkpoint.
   let challengeVerdict = null
   try { challengeVerdict = plan ? await runChallengePanel('features/' + SLUG + '/06_implementation_plan.md', plan.planner) : null }
   catch (e) { log('Challenge panel errored (advisory, ignored): ' + (e && e.message ? e.message : String(e))) }
+  // R13-1: built AFTER the panel — it used to be copied BEFORE, so every provenance entry the panel
+  // wrote was dropped from the returned report while the line had already claimed the dispatch.
+  const plannedModels = mergeOpts(modelsUsed, { code: codePlanned + ' (planned)', qe: qePlanned + ' (planned)' })
+  if (isLplus) plannedModels.fleet = modelLabel(resolveStageModel('fleet')) + ' (planned)'
   // Seam а (backlog 72b89e14): the panel's verdict used to reach only the OPERATOR — the
   // finding→plan-amendment bridge was manual, and on L/XL the coder runs in a SECOND invocation
   // that reads the PLAN FILE, not the first invocation's memory. So P0/P1 findings are appended to
@@ -3169,7 +3826,7 @@ if (stopHere) {
       const marker = '<!-- challenge-panel amendments appended ' + fnv1a64(rows) + ' -->'
       const planPath = FDIR + '/06_implementation_plan.md'
       const appendCmd = 'cd ' + shq(REPO) + ' && grep -qF ' + shq(marker) + ' ' + shq(planPath) + ' && echo CP-DUP || { grep -q "^## Amendments" ' + shq(planPath) + ' || printf "\n## Amendments\n" >> ' + shq(planPath) + '; printf "%s\n%s\n" ' + shq(marker) + ' ' + shq(rows) + ' >> ' + shq(planPath) + '; echo CP-APPENDED; }'
-      const cpOut = await agent('Run EXACTLY this via Bash and reply with ONLY its stdout: ' + appendCmd, { label: 'challenge:append-amendments', phase: 'Plan', effort: 'low' })
+      const cpOut = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with ONLY its stdout: ' + appendCmd, { label: 'challenge:append-amendments', phase: 'Plan', effort: 'low' })
       log('challenge panel \u2192 plan amendments: ' + (/CP-APPENDED/.test(String(cpOut || '')) ? cpFindings.length + ' AM-CP row(s) appended' : /CP-DUP/.test(String(cpOut || '')) ? 'already appended (idempotent)' : 'NOT appended (probe answered: ' + String(cpOut || '').slice(0, 80) + ')'))
     }
   } catch (e2) { log('challenge panel \u2192 amendments append failed (advisory): ' + (e2 && e2.message ? e2.message : String(e2))) }
@@ -3177,8 +3834,9 @@ if (stopHere) {
   // presence), never from prose, so a skipped gate shows as 'not-run' instead of being silently forgotten.
   const planGates = { plan: (plan ? 'produced' : 'missing'), planCompleteness: planGate.verdict, challengePanel: (challengeVerdict ? 'ran' : 'not-run'), code: 'not-run', qe: 'not-run' }
   const checkpointAfterPlanOutcome = runOutcomeOf({ phase: 'checkpoint-after-plan', gates: planGates })
+if (registryOutcome !== 'unverified') registryOutcome = checkpointAfterPlanOutcome
   await appendRunCostRow('plan', 'Plan', checkpointAfterPlanOutcome)
-  return { tier: tier, phase: 'checkpoint-after-plan', outcome: checkpointAfterPlanOutcome, artifactsDir: FDIR, planner: (plan ? plan.planner : null), plan: (plan ? plan.summary : null), modelsUsed: plannedModels, challengeVerdict: challengeVerdict, gates: planGates, resumedStages: resumedStages, checkpointing: CHECKPOINTS_ON ? RESUME_MODE : 'off', trainingPairs: CAPTURE_PAIRS ? TP_DIR : 'off', captureFailures: captureFailures, recordFailures: recordFailures, decisionRecallFailures: decisionRecallFailures, usageEvents: usageEvents, usageThreshold: USAGE_THRESHOLD, polymorphism: POLY.hasManifest ? POLY.report : null, note: 'L/XL checkpoint - review the ADR + plan (+ the planned code/qe/fleet models) + the challenge panel verdict (advisory) + the gates line, then re-invoke with args.stopAfter="none" to implement + QE (durable checkpoints make the re-invoke resume router+design+plan instead of re-running them). Present the gates map as a `🚦 Gates:` line in the checkpoint banner, rendering the planCompleteness entry as `K2 plan-completeness ✓` (pass) / `✗` (fail) / `inconclusive`.' }
+  return { tier: tier, phase: 'checkpoint-after-plan', outcome: checkpointAfterPlanOutcome, artifactsDir: FDIR, planner: (plan ? plan.planner : null), plan: (plan ? plan.summary : null), modelsUsed: plannedModels, dispatchOutcomes: dispatchOutcomes, challengeVerdict: challengeVerdict, gates: planGates, resumedStages: resumedStages, checkpointing: CHECKPOINTS_ON ? RESUME_MODE : 'off', trainingPairs: CAPTURE_PAIRS ? TP_DIR : 'off', captureFailures: captureFailures, recordFailures: recordFailures, decisionRecallFailures: decisionRecallFailures, usageEvents: usageEvents, usageThreshold: USAGE_THRESHOLD, polymorphism: POLY.hasManifest ? POLY.report : null, note: 'L/XL checkpoint - review the ADR + plan (+ the planned code/qe/fleet models) + the challenge panel verdict (advisory) + the gates line, then re-invoke with args.stopAfter="none" to implement + QE (durable checkpoints make the re-invoke resume router+design+plan instead of re-running them). Present the gates map as a `🚦 Gates:` line in the checkpoint banner, rendering the planCompleteness entry as `K2 plan-completeness ✓` (pass) / `✗` (fail) / `inconclusive`.' }
 }
 
 // Step 7: Code (optional Codex fallback on Claude-limit exhaustion)
@@ -3192,14 +3850,14 @@ if (stopHere) {
 let preCodeTargets = filterPollableCodePaths(Array.isArray(A.expectedCodeTargets) ? A.expectedCodeTargets : [])
 let preCodeBaseline = null
 if (QE_SCOPE === 'uncommitted') {
-  const planPeek = await agent('Read the EXPECTED_CODE_TARGETS: block of ' + FDIR + '/06_implementation_plan.md and return it VERBATIM; if there is no such block reply with exactly NONE.', { label: 'qe:baseline-targets', phase: 'Code', effort: 'low' })
+  const planPeek = await dispatchAgent(newRung(), 'Read the EXPECTED_CODE_TARGETS: block of ' + FDIR + '/06_implementation_plan.md and return it VERBATIM; if there is no such block reply with exactly NONE.', { label: 'qe:baseline-targets', phase: 'Code', effort: 'low' })
   if (planPeek && String(planPeek).indexOf('EXPECTED_CODE_TARGETS:') >= 0) {
     const peeked = filterPollableCodePaths(extractExpectedCodeTargetsFromText(String(planPeek)))
     if (peeked.length > 0) preCodeTargets = peeked
   }
   const baseCmd = changeSetProbeCmd({ scope: 'uncommitted', paths: preCodeTargets, quote: shq })
   if (baseCmd) {
-    const baseOut = await agent('Run EXACTLY this via Bash from ' + REPO + ' and return its stdout VERBATIM with NO commentary: cd ' + shq(REPO) + ' && ' + baseCmd, { label: 'qe:baseline-hash', phase: 'Code', effort: 'low' })
+    const baseOut = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash from ' + REPO + ' and return its stdout VERBATIM with NO commentary: cd ' + shq(REPO) + ' && ' + baseCmd, { label: 'qe:baseline-hash', phase: 'Code', effort: 'low' })
     // An EMPTY relay reply is not a measurement. parseHashProbe seeds every declared path with null
     // and returns a valid-looking snapshot, so a failed baseline would later compare null -> hash for
     // every target and hand Mode B a change set of files Step 7 never touched (cross-family review of
@@ -3213,6 +3871,8 @@ if (QE_SCOPE === 'uncommitted') {
 }
 
 phase('Code')
+
+await recordRegistryEvent('heartbeat', 'Code')
 await usageProbe('Code')
 // GATE-ANSWERED preamble. MEASURED 2026-08-31 (job task-mtgrlrq7, feature storage-auth-classes):
 // a Codex coder exited status=completed, exit 0, touchedFiles=[] because it ASKED the routing
@@ -3225,10 +3885,16 @@ const codePrompt = 'GATE-ANSWERED — the routing questions are already settled 
 // CODER knob drives it (with its codex-fallback null-guard). resolveStageModel('code') folds both via the
 // code:null sentinel → resolveCoderSpec(). A Claude resolution merges {model} onto the Claude branch;
 // under the BC omit-path it is {} (byte-identical).
-const codeModel = resolveStageModel('code')
+const codeDecision = resolveStageDecision('code')
+const codeModel = codeDecision.opts
 const codeIsCodexFirst = (codeModel.agentType === 'codex:codex-rescue') && (MODELS.code !== undefined || CODER !== 'codex-fallback')
 const codeClaudeModel = codeIsCodexFirst ? {} : (codeModel.agentType ? {} : codeModel)
-const codeClaudeOpts = mergeOpts({ label: stageLabel('code', codeClaudeModel), phase: 'Code', schema: ARTIFACT, effort: 'high' }, codeClaudeModel)
+// The coder is a LADDER, not a single choice: under codex-fallback the resolver picks Codex but the
+// FIRST (often only) dispatch is Claude. Announce what is about to run, not what was resolved —
+// otherwise the line names Codex, and a landed barrier, for a synchronous Claude dispatch.
+let codeFirstDecision = codeDecision
+if (!codeIsCodexFirst && codeModel.agentType) codeFirstDecision = { opts: codeClaudeModel, spec: effectiveSpec(codeClaudeModel), reason: 'coder-fallback' }
+const codeClaudeOpts = mergeOpts({ label: stageLabel('code', codeClaudeModel), phase: 'Code', schema: ARTIFACT, effort: 'high', _stage: 'code', _reason: stageReason('code', codeFirstDecision) }, codeClaudeModel)
 // code checkpoint: COMPOSITE — the branchy claude/codex/fallback block sets three interdependent
 // values (code result, coderUsed, codexCodeText); resume must restore all of them together or the
 // barrier/QE/auto-cost logic downstream would see an inconsistent trio. codexCodeText is capped for
@@ -3244,14 +3910,28 @@ let codexJobId = null
 // QE F2: null until a capture attempt is PARSED. A barrier that never captured must not poll.
 let baselineCapture = null
 if (!codeIsCodexFirst) {
-  code = await agent(codePrompt, codeClaudeOpts)
-  if (code) { coderUsed = 'claude'; modelsUsed.code = modelLabel(codeClaudeOpts) }
+  // R14-1: claimed at DISPATCH. The later `return null` exits only this withCheckpoint CALLBACK — the
+  // run continues and can return `completed-unverified`, so a success-only write left the report with
+  // no provenance for a dispatch it had announced. (My round-13 register called this `aborts`; that
+  // was wrong — measured, the return is inside the callback, not the run.)
+  modelsUsed.code = modelLabel(codeClaudeOpts)
+  code = await dispatchAgent(newRung(), codePrompt, codeClaudeOpts)
+  if (code) { coderUsed = 'claude' }
+  else modelsUsed.code = modelLabel(codeClaudeOpts) + ' (no deliverable)'
 }
 if (code === null && !codeIsCodexFirst) reactiveBelt('Code')
 if (code === null && (codeIsCodexFirst || CODER === 'codex-fallback')) {
   if (CODER === 'codex-fallback' && !codeIsCodexFirst) log('Code: Claude unavailable (limit?) — falling back to Codex ' + CODEX_MODEL)
   const codeCodexLabelOpts = codeModel.agentType ? codeModel : specToOpts('codex:' + CODEX_MODEL + ':high')
-  const codeCodexOpts = mergeOpts({ label: stageLabel('code:codex', codeCodexLabelOpts), phase: 'Code', agentType: 'codex:codex-rescue' }, codeCodexLabelOpts)
+  // R4-F1: a codex-FIRST coder reached this dispatch WITHOUT any fallback — the resolver's own branch
+  // chose it. Only the second rung of the ladder is a fallback. A hard-coded 'coder-fallback' here
+  // announced "coder fallback ladder" for a run where nothing had fallen back, and threw away
+  // coder-knob-codex / explicit-models.
+  let codeCodexReason = 'coder-fallback'
+  if (codeIsCodexFirst) codeCodexReason = stageReason('code', codeDecision)
+  // Rung 2 is a SECOND real dispatch, so it gets its own intent before launch and outcome after. Guarded
+  // on !codeIsCodexFirst: a codex-FIRST run already accounts for this very dispatch above.
+  const codeCodexOpts = mergeOpts({ label: stageLabel('code:codex', codeCodexLabelOpts), phase: 'Code', agentType: 'codex:codex-rescue', _stage: 'code', _reason: codeCodexReason }, codeCodexLabelOpts)
   const codexExpectedTargetsHint = '\n\nBecause this is running on Codex, include a final EXPECTED_CODE_TARGETS: block listing the repo-relative production/test files you expect to create or modify. List only real code/test/config/docs targets outside features/, .dz/, .agentic-qe/, and roam/. Example:\nEXPECTED_CODE_TARGETS:\n- packages/example/src/file.ts\n- packages/example/test/file.test.ts'
   // R5 / ADR-003 Condition 2: capture the pre-coder tree state IMMEDIATELY before the dispatch, so
   // "this path is dirty" can later be told apart from "the coder wrote this path". H8: in the
@@ -3260,12 +3940,17 @@ if (code === null && (codeIsCodexFirst || CODER === 'codex-fallback')) {
   // QE F2: the capture's stdout is a SIGNAL that must be parsed, not a formality. A capture that
   // failed leaves no usable baseline, and a barrier run against no baseline can only answer
   // 'inconclusive' — which is the honest outcome, reached deliberately here instead of by accident.
-  const baselineOut = await agent('Capture the pre-Step-7 code baseline. Run EXACTLY this via Bash and return its stdout verbatim, nothing else:\n' + preCodeBaselineCaptureCmd(REPO, BASELINE_PREFIX), { label: 'code:baseline', phase: 'Code', effort: 'low' })
+  const baselineOut = await dispatchAgent(newRung(), 'Capture the pre-Step-7 code baseline. Run EXACTLY this via Bash and return its stdout verbatim, nothing else:\n' + preCodeBaselineCaptureCmd(REPO, BASELINE_PREFIX), { label: 'code:baseline', phase: 'Code', effort: 'low' })
   baselineCapture = parseBaselineCapture(baselineOut, BASELINE_PREFIX)
   if (!baselineCapture.ok) log('Step 7.5 baseline: capture did NOT succeed (reason=' + baselineCapture.reason + ') — the barrier verdict can only be INCONCLUSIVE for this run')
   else log('Step 7.5 baseline: captured ' + baselineCapture.entries + ' pre-existing dirty path(s) into ' + baselineCapture.path + ', cksum=' + baselineCapture.cksum)
-  const codexCode = await safeCodexAgent(codePrompt + CODEX_HINT + codexEffortHint(codeCodexOpts) + codexExpectedTargetsHint, codeCodexOpts)
-  if (codexCode) { codexCodeText = String(codexCode); codexJobId = extractCodexCompanionJobId(codexCodeText); code = { wrote: [FDIR + '/07_code_changes/change_manifest.md'], summary: codexCodeText.slice(0, 500) }; coderUsed = codeIsCodexFirst ? 'codex' : 'codex-fallback'; modelsUsed.code = modelLabel(codeCodexLabelOpts) }
+  // Resolve the requested id before dispatch, but finalize provenance only from the completed
+  // per-attempt holder below. A runtime may accept the probed model and still reject the agent type.
+  const codeCodexResolved = await codexLabelOptsForDispatch(codeCodexLabelOpts)
+  const codeCodexRungHolder = newRung()
+  const codexCode = await safeCodexAgent(codePrompt + CODEX_HINT + codexEffortHint(codeCodexOpts) + codexExpectedTargetsHint, codeCodexOpts, codeCodexRungHolder)
+  modelsUsed.code = modelLabel(codeCodexResolved) + codexAttemptProvenance(codeCodexRungHolder, !codexCode)
+  if (codexCode) { codexCodeText = String(codexCode); codexJobId = extractCodexCompanionJobId(codexCodeText); code = { wrote: [FDIR + '/07_code_changes/change_manifest.md'], summary: codexCodeText.slice(0, 500) }; coderUsed = codeIsCodexFirst ? 'codex' : 'codex-fallback' }
 }
 if (code === null) return null
 // Step 7.5 landing barrier runs INSIDE the checkpointed stage (Codex QE #3): the checkpoint may
@@ -3289,7 +3974,7 @@ let expectedTargets = filterPollableCodePaths(Array.isArray(A.expectedCodeTarget
   // the configuration where the cross-family rule routes QE to Codex (coder Claude ⇒ reviewer Codex).
   // Mode B was therefore dead in the default path and alive only in the narrow one where it was
   // dangerous. Named by the cross-family review of qe-scoped-review (HIGH-3).
-  const planBlock = await agent('Read the EXPECTED_CODE_TARGETS: block of ' + FDIR + '/06_implementation_plan.md and return it VERBATIM (the `EXPECTED_CODE_TARGETS:` line plus the list lines under it), nothing else. If the file or the block does not exist, return exactly: (no block)', { label: 'code:plan-block', phase: 'Code', effort: 'low' })
+  const planBlock = await dispatchAgent(newRung(), 'Read the EXPECTED_CODE_TARGETS: block of ' + FDIR + '/06_implementation_plan.md and return it VERBATIM (the `EXPECTED_CODE_TARGETS:` line plus the list lines under it), nothing else. If the file or the block does not exist, return exactly: (no block)', { label: 'code:plan-block', phase: 'Code', effort: 'low' })
   const planBlockText = (planBlock && String(planBlock).indexOf('EXPECTED_CODE_TARGETS:') >= 0) ? String(planBlock) : null
   const sourcing = sourceExpectedCodeTargets(A.expectedCodeTargets, planBlockText, codexCodeText)
   scrapeDiagnostic = sourcing.scrapeDiagnostic
@@ -3312,7 +3997,7 @@ if (needsCodeLandedBarrier(coderUsed)) {
     fallbackWindow = true
     log('Step 7.5 barrier: no companion jobId was parsed — falling back to the legacy widened fixed window')
     const barrierCmd = codeLandingProbeCmd(REPO, barrierPlan, baselinePath)
-    const probe = await agent('Confirm the Codex Step-7 edits have LANDED in the working tree BEFORE QE runs (Codex writes out-of-band). A path counts only if it is one of the declared expected paths AND it is NEWLY changed relative to the pre-code baseline; unrelated or already-dirty files never count. Run EXACTLY this via Bash and return its stdout verbatim, nothing else:\n' + barrierCmd, { label: 'code:confirm-landed', phase: 'Code' })
+    const probe = await dispatchAgent(newRung(), 'Confirm the Codex Step-7 edits have LANDED in the working tree BEFORE QE runs (Codex writes out-of-band). A path counts only if it is one of the declared expected paths AND it is NEWLY changed relative to the pre-code baseline; unrelated or already-dirty files never count. Run EXACTLY this via Bash and return its stdout verbatim, nothing else:\n' + barrierCmd, { label: 'code:confirm-landed', phase: 'Code' })
     const signal = parseLandingSignal(probe)
     landingStatus = signal.status
     landingReason = signal.reason === undefined ? null : signal.reason
@@ -3326,7 +4011,7 @@ if (needsCodeLandedBarrier(coderUsed)) {
       const remainingSeconds = lastLivenessProbe === null ? scheduledWait : Math.max(0, Math.floor((lastLivenessProbe.ceilingMs - lastLivenessProbe.elapsedMs) / 1000))
       const waitSeconds = Math.min(scheduledWait, remainingSeconds)
       const livenessCmd = codeLandingLivenessProbeCmd(REPO, barrierPlan, baselinePath, codexJobId, waitSeconds, livenessStartMs)
-      const probe = await agent('Poll Codex Step-7 JOB LIVENESS and declared-target git evidence before QE. Run EXACTLY this via Bash and return stdout verbatim, nothing else:\n' + livenessCmd, { label: 'code:confirm-landed', phase: 'Code', effort: 'low' })
+      const probe = await dispatchAgent(newRung(), 'Poll Codex Step-7 JOB LIVENESS and declared-target git evidence before QE. Run EXACTLY this via Bash and return stdout verbatim, nothing else:\n' + livenessCmd, { label: 'code:confirm-landed', phase: 'Code', effort: 'low' })
       probeText = String(probe === null || probe === undefined ? '' : probe).slice(0, 1500)
       const parsed = parseCodeLandingLivenessSignal(probe)
       if (parsed !== null) { lastLivenessProbe = parsed; livenessStartMs = parsed.startMs }
@@ -3401,6 +4086,7 @@ if (resumedStages.indexOf('code') !== -1 && landedNote !== '') {
 
 // Step 8: QE (brutal-honesty, agentic-qe) + MANDATORY teach
 phase('QE')
+await recordRegistryEvent('heartbeat', 'QE')
 
 // ── Writer-quiescence probe (feature qe-writer-quiescence, backlog 700b46a4) ─────────────────────
 // Step-8 used to grade a MOVING tree (crossrt-1: a background worker wrote AFTER the verdict,
@@ -3435,23 +4121,40 @@ function decideWriterQuiescence(probeText, requiredQuiet) {
 const wqPaths = [FDIR].concat(Array.isArray(expectedTargets) ? expectedTargets : []).filter((p) => typeof p === 'string' && p !== '' && p.indexOf("'") < 0 && p.charAt(0) !== '-')
 const wqTargets = wqPaths.map((p) => "'" + p + "'").join(' ')
 const wqScript = 'cd ' + shq(REPO) + ' && quiet=0; n=0; while [ $n -lt 9 ]; do n=$((n+1)); sleep 20; out=$(find ' + wqTargets + " -type f -newermt '-25 seconds' 2>&1 >/tmp/wq-list.$$); st=$?; if [ $st -ne 0 ] || [ -n \"$out\" ]; then c=ERR; else c=$(wc -l < /tmp/wq-list.$$); fi; rm -f /tmp/wq-list.$$; echo \"WQ-WINDOW $n changed=$c\"; if [ \"$c\" = \"0\" ]; then quiet=$((quiet+1)); if [ $quiet -ge 3 ]; then echo \"WQ-DONE quiet\"; exit 0; fi; else quiet=0; fi; done; echo \"WQ-DONE budget\""
-const wqProbe = await agent('Run EXACTLY this via Bash and return its stdout VERBATIM with NO commentary (it takes ~1-3 minutes of sleeping; that is the point): ' + wqScript, { label: 'qe:writer-quiescence', phase: 'QE', effort: 'low' })
+const wqProbe = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and return its stdout VERBATIM with NO commentary (it takes ~1-3 minutes of sleeping; that is the point): ' + wqScript, { label: 'qe:writer-quiescence', phase: 'QE', effort: 'low' })
 const writerQuiescence = decideWriterQuiescence(wqProbe)
 log('Step 8 writer-quiescence: ' + writerQuiescence.verdict + ' (windows: ' + (writerQuiescence.windows.join(',') || 'none') + ')')
 const wqNote = writerQuiescence.verdict === 'quiet'
   ? ' WRITER-QUIESCENCE: quiet (' + writerQuiescence.note + ').'
   : ' WRITER-QUIESCENCE GATE (MANDATORY to acknowledge): ' + writerQuiescence.note + ' State this standing explicitly in 08_qe_report.md next to the grade.'
+const confirmationGatePrompt = 'STEP-8 CONFIRMATION FILE GATE. You are the shell because this workflow sandbox has no filesystem API. Work under repo ' + REPO + ' and inspect only direct canonical ADR Markdown files in ' + FDIR + '/03_adr/NNN-*.md. If 03_adr is absent or has zero direct ADR files, return verdict=skipped, reason="ADR нет, проверять нечего", missing=[], checked=[]. Otherwise read every ADR. Find its unique H2 whose line starts with `## Confirmation` (the suffix may be Russian), extract EVERY repo-relative test-file path named in that section, and refuse if the section/path cannot be parsed. For every extracted path run shell checks from ' + REPO + ': missing (`test -e` is false) goes in missing; an existing path that is not a readable regular file (`test -f`, `test -r`, and an actual read) returns verdict=refused with the exact path and reason. Never turn an unreadable path, directory, parse failure, empty stdout, or tool error into skipped. If missing is non-empty return verdict=fail; otherwise pass. This gate proves ONLY file existence/readability; do not enforce the other ADR checklist items. Return exactly {verdict, missing, checked, reason}.'
+const confirmationGateRaw = await dispatchAgent(newRung(), confirmationGatePrompt, { label: 'qe:confirmation-files', phase: 'QE', effort: 'low', schema: CONFIRMATION_FILE_GATE })
+const confirmationFileGate = normalizeConfirmationFileGate(confirmationGateRaw)
+const confirmationGateLine = confirmationFileGate.verdict === 'skipped'
+  ? 'Confirmation file gate: пропущено: ADR нет, проверять нечего'
+  : confirmationFileGate.verdict === 'pass'
+    ? 'Confirmation file gate: PASS — checked ' + confirmationFileGate.checked.join(', ')
+    : confirmationFileGate.verdict === 'fail'
+      ? 'Confirmation file gate: FAIL — missing ' + confirmationFileGate.missing.join(', ')
+      : 'Confirmation file gate: REFUSED — ' + confirmationFileGate.reason
+log(confirmationGateLine)
+const confirmationGateNote = ' MANDATORY CONFIRMATION FILE GATE RESULT: `' + confirmationGateLine + '`. Write that as a separate line in 08_qe_report.md. The independent QE review MUST still run. If the gate verdict is fail or refused, the final Step-8 grade cannot be A or B; the workflow also enforces that after the reviewer returns. This gate proves only existence/readability; all other ADR checklist items remain advisory.'
 await usageProbe('QE')
-const qePrompt = 'Step 8 (QE - brutal-honesty review, agentic-qe) of /feature-adr for "' + DESC + '" (' + SLUG + '). Adversarially review the SHIPPED code (read it): correctness, edge cases, error handling, and the LOAD-BEARING property the ADR named (ASSERT it has a test that DISCRIMINATES - the recurring lesson: a test that would still pass with the protection deleted is documentation, not a gate). Run this ADR gate before final grading: ' + ADR_FITNESS_CHECKLIST + ' ' + DISCRIMINATION_GATE + ' ' + MUTATION_GATE + ' ' + NO_STUBS_GATE + ' ' + AMENDMENT_GATE + ' Grade A/B/C/D honestly. Assess code-test adequacy + doc-test presence. List CONFIRMED gaps with severity. Write ' + FDIR + '/08_qe_report.md with the primary findings under the exact heading `## Primary QE pass` and an ADR Fitness Checklist section showing PASS/FAIL per ADR and evidence for the Confirmation-linked test. MANDATORY SELF-LEARNING STORE (close the loop, never skip): compare every candidate lesson against the Step-0 recalled LEARNED patterns above. Teach ONLY lessons NOT covered by Step-0 recall. On overlap, run `dz teach --reinforce "<recalled pattern id or exact text>" --project ' + BRAIN + '` instead of minting a near-duplicate; if --reinforce is unavailable, skip the duplicate teach and report `reinforced existing pattern <id>` in the QE report. Store every genuinely new lesson in the CANONICAL BRAIN store at `' + BRAIN + '` so it is NOT lost to a target repo you may have cd`d into. Via Bash run EXACTLY `' + DZ_TEACH('<a durable reusable lesson from this feature - a rule/pattern/pitfall, NOT a checkpoint echo>', '<0.7-0.95>', '<area>') + '` for each genuine NEW lesson (1-3 max, high-signal) — the `cd ' + BRAIN + ' &&` prefix + `--project ' + BRAIN + '` pin guarantee the lesson lands in the brain regardless of your CWD. Then run `' + DZ + ' statusline --fa-record --slug ' + SLUG + ' --step "Step 8 QE" --recalled auto --run fa:' + SLUG + ' --count-project ' + BRAIN + ' --stored <count taught> --reinforced <count reinforced> --mode ' + MODE + ' --project ' + REPO + '` (run it verbatim via Bash, do not skip). Do NOT teach trivia or invent gaps. AUTHORING-TIME CLAIM-CHECK (Deliverable of claim-check-authoring-time): after writing ' + FDIR + '/08_qe_report.md, run EXACTLY `dz claim-check ' + FDIR + '/08_qe_report.md --json --fail-on none` via Bash, parse the {ok, findings, scanned} JSON, and report claimCheck: {findings: N, high: N, medium: N} (counts by severity) in your return object. TAG EVERY QUANTITATIVE CLAIM you write in the report using the convention the checker recognizes as honest — write "1131 tests pass (MEASURED — `npx vitest run`)", never a bare "1131 tests pass" — and where you QUOTE a forbidden phrase as an example (e.g. the retracted "100% passing" framing), backtick the literal so it reads as code, not an assertion, so your own compliant report scans clean. Return {grade, gaps, codeTestsAdequate, docTestsPresent, claimCheck}.' + ABSOLUTE_PATH_NOTE + landedNote + wqNote + PS_GUIDANCE('qe')
+const qePrompt = 'Step 8 (QE - brutal-honesty review, agentic-qe) of /feature-adr for "' + DESC + '" (' + SLUG + '). Adversarially review the SHIPPED code (read it): correctness, edge cases, error handling, and the LOAD-BEARING property the ADR named (ASSERT it has a test that DISCRIMINATES - the recurring lesson: a test that would still pass with the protection deleted is documentation, not a gate). Run this ADR gate before final grading: ' + ADR_FITNESS_CHECKLIST + ' ' + DISCRIMINATION_GATE + ' ' + MUTATION_GATE + ' ' + NO_STUBS_GATE + ' ' + AMENDMENT_GATE + ' Grade A/B/C/D honestly. Assess code-test adequacy + doc-test presence. List CONFIRMED gaps with severity. Write ' + FDIR + '/08_qe_report.md with the primary findings under the exact heading `## Primary QE pass` and an ADR Fitness Checklist section showing PASS/FAIL per ADR and evidence for the Confirmation-linked test. MANDATORY SELF-LEARNING STORE (close the loop, never skip): compare every candidate lesson against the Step-0 recalled LEARNED patterns above. Teach ONLY lessons NOT covered by Step-0 recall. On overlap, run `dz teach --reinforce "<recalled pattern id or exact text>" --project ' + BRAIN + '` instead of minting a near-duplicate; if --reinforce is unavailable, skip the duplicate teach and report `reinforced existing pattern <id>` in the QE report. Store every genuinely new lesson in the CANONICAL BRAIN store at `' + BRAIN + '` so it is NOT lost to a target repo you may have cd`d into. Via Bash run EXACTLY `' + DZ_TEACH('<a durable reusable lesson from this feature - a rule/pattern/pitfall, NOT a checkpoint echo>', '<0.7-0.95>', '<area>') + '` for each genuine NEW lesson (1-3 max, high-signal) — the `cd ' + BRAIN + ' &&` prefix + `--project ' + BRAIN + '` pin guarantee the lesson lands in the brain regardless of your CWD. Then run `' + DZ + ' statusline --fa-record --slug ' + SLUG + ' --step "Step 8 QE" --recalled auto --run fa:' + SLUG + ' --count-project ' + BRAIN + ' --stored <count taught> --reinforced <count reinforced> --mode ' + MODE + ' --project ' + REPO + '` (run it verbatim via Bash, do not skip). Do NOT teach trivia or invent gaps. AUTHORING-TIME CLAIM-CHECK (Deliverable of claim-check-authoring-time): after writing ' + FDIR + '/08_qe_report.md, run EXACTLY `dz claim-check ' + FDIR + '/08_qe_report.md --json --fail-on none` via Bash, parse the {ok, findings, scanned} JSON, and report claimCheck: {findings: N, high: N, medium: N} (counts by severity) in your return object. TAG EVERY QUANTITATIVE CLAIM you write in the report using the convention the checker recognizes as honest — write "1131 tests pass (MEASURED — `npx vitest run`)", never a bare "1131 tests pass" — and where you QUOTE a forbidden phrase as an example (e.g. the retracted "100% passing" framing), backtick the literal so it reads as code, not an assertion, so your own compliant report scans clean. Return {grade, gaps, codeTestsAdequate, docTestsPresent, claimCheck}.' + ABSOLUTE_PATH_NOTE + landedNote + wqNote + confirmationGateNote + PS_GUIDANCE('qe')
 // CROSS-MODEL QE (load-bearing): resolveStageModel('qe') derives the OTHER family than the resolved
 // coder when args.models.qe is unset (coder-codex ⇒ opus; coder-Claude ⇒ codex, or opus if codex absent).
 // An explicit args.models.qe wins. A Claude qe spec is merged onto the qe-code-reviewer base (role
 // PRESERVED); a codex qe spec REPLACES agentType with codex:codex-rescue (as today). The codex-null→
 // Claude guard is retained as the runtime belt so codex-unavailable never blocks.
-let qeModel = resolveStageModel('qe')
+let qeDecision = resolveStageDecision('qe')
+let qeModel = qeDecision.opts
 // A codex-fallback coder can finish on either family. Default QE follows the ACTUAL runner, not the
 // pre-code knob; only an explicit models.qe is allowed to opt out of cross-family review.
 if (MODELS.qe === undefined && routingRequested) qeModel = specToOpts(resolveQeSpecForCoder(tpFamily(coderUsed) === 'codex'))
+// Same cross-family RULE, re-applied to the measured coder family — hence the same reason token.
+// This is the ONE stage whose decision the resolver structurally cannot finish: the actual runner is
+// only known after Step 7. The announcement is printed below, over the CORRECTED decision.
+if (MODELS.qe === undefined && routingRequested) qeDecision = { opts: qeModel, spec: effectiveSpec(qeModel), reason: qeReasonForFamilies(tpFamily(coderUsed) === 'codex', effectiveSpec(qeModel)) }
 // Single tested source of truth (feature-adr-routing.ts:qeShouldUseCodex) — closes the self-QE hole where
 // the legacy qeReviewer='codex' knob used to re-route QE back to codex even when the CODER was codex.
 if (MODELS.qe === undefined && QE_REVIEWER === 'codex' && coderIsCodex()) log('QE: coder is codex — enforcing cross-model Claude QE (ignoring qeReviewer=codex to avoid self-review)')
@@ -3461,31 +4164,57 @@ if (MODELS.qe === undefined && QE_REVIEWER === 'codex' && coderIsCodex()) log('Q
 // as cross-family). The resolved agentType is the truth; either signal routes the codex branch.
 const qeIsCodex = !!(qeModel && qeModel.agentType === 'codex:codex-rescue')
 const qeClaudeModel = qeIsCodex ? {} : qeModel
-const qeClaudeOpts = mergeOpts({ label: stageLabel('qe:brutal', qeClaudeModel), phase: 'QE', agentType: 'qe-code-reviewer', schema: QE }, qeClaudeModel)
+const qeClaudeOpts = mergeOpts({ label: stageLabel('qe:brutal', qeClaudeModel), phase: 'QE', agentType: 'qe-code-reviewer', schema: QE, _stage: 'qe', _reason: stageReason('qe', qeDecision) }, qeClaudeModel)
 const qe2Spec = qePrecisionPassSpec(PRIMARY, BUDGET_MODE, tier)
 // qe checkpoint: COMPOSITE (verdict + reviewer identity) keyed on the CODE stage's result — a re-coded
 // feature always re-QEs. The teach/fa-record side effects belong to the stage: a resumed QE does not
 // re-teach (the original run already stored its lessons — replaying teach would double-store).
 // R6: the review SCOPE is part of what a QE verdict is about, so it enters the hash — a resume must
 // not present a verdict obtained over one scope as if it had been obtained over another.
-const qeHash = ckptHash('qe', [fnv1a64(JSON.stringify(codeStage === undefined ? null : codeStage)), tier, DESC, QE_REVIEWER, MODELS.qe === undefined ? null : MODELS.qe, CODEX_MODEL, coderUsed, PRIMARY, BUDGET_MODE, qe2Spec, POLY.hasManifest, fnv1a64(String(POLY.report || '')), usageOverride, QE_SCOPE, QE_SCOPE_REF])
+const qeHash = ckptHash('qe', [fnv1a64(JSON.stringify(codeStage === undefined ? null : codeStage)), tier, DESC, QE_REVIEWER, MODELS.qe === undefined ? null : MODELS.qe, CODEX_MODEL, coderUsed, PRIMARY, BUDGET_MODE, qe2Spec, POLY.hasManifest, fnv1a64(String(POLY.report || '')), usageOverride, QE_SCOPE, QE_SCOPE_REF, confirmationFileGate])
 let crossFamilyQeReport = null
 const qeStage = await withCheckpoint('qe', 'QE', qeHash, async () => {
 let qe = null
 let qeReviewerUsed = 'claude'
+// Enclosing scope for the same reason as planCodexProbeFailed: the codex rung sets it, the Claude
+// belt reads it to tell a refused probe from a reviewer that ran and returned nothing.
+let qeCodexProbeFailed = false
+// R18: the codex QE rung's THREE-valued outcome, in the same enclosing scope and for the same
+// reason as qeCodexProbeFailed — the codex block sets it, the Claude belt below reads it. The
+// boolean above cannot express "an id answered but nothing was dispatched" (an unusable
+// QE_SCOPE_REF makes codexReviewCommand return cmd:null), and the belt then reported a rung that
+// ran and delivered nothing.
+let qeCodexRung = newRung()
 if (!qeIsCodex) {
-  qe = await agent(qePrompt, qeClaudeOpts)
-  if (qe) {
-    qeReviewerUsed = 'claude'
-    const cfCl = crossFamilyQe({ requestedSpec: modelLabel(qeModel), actualLabel: modelLabel(qeClaudeOpts), coderFamily: tpFamily(coderUsed), reviewerFamily: 'claude', declineReason: null })
-    modelsUsed.qe = cfCl.label
-    crossFamilyQeReport = cfCl.report
-  }
+  // R14-1: the callback's `return null` does not stop the run, so provenance is claimed at DISPATCH.
+  // It goes through crossFamilyQe, never a bare modelLabel — the honest-label guard forbids a QE
+  // entry that does not say which family reviewed, and it correctly rejected the first shape of this
+  // fix. The SAME verdict object then serves the success branch, so there is still one call here.
+  const cfCl = crossFamilyQe({ requestedSpec: modelLabel(qeModel), actualLabel: modelLabel(qeClaudeOpts), coderFamily: tpFamily(coderUsed), reviewerFamily: 'claude', declineReason: null })
+  modelsUsed.qe = cfCl.label
+  qe = await dispatchAgent(newRung(), qePrompt, qeClaudeOpts)
+  if (qe) { qeReviewerUsed = 'claude'; crossFamilyQeReport = cfCl.report }
+  else modelsUsed.qe = cfCl.label + ' (no deliverable)'
 }
 if (qe === null && !qeIsCodex) reactiveBelt('QE')
 if (qe === null && (qeIsCodex || QE_REVIEWER === 'codex-fallback')) {
   if (QE_REVIEWER === 'codex-fallback' && !qeIsCodex) log('QE: Claude unavailable (limit?) — falling back to Codex ' + CODEX_MODEL)
-  const qeCodexLabelOpts = qeModel.agentType ? qeModel : specToOpts('codex:' + CODEX_MODEL + ':high')
+  // R5-2: reaching this branch with !qeIsCodex means the cross-family rule had routed QE to Claude
+  // and that FIRST rung returned null. This dispatch is therefore a fallback AND — with a codex coder
+  // — the coder's own family, so announcing "cross-family QE (the coder never self-reviews)" would
+  // assert the very property that is being lost. The honest label for a rung after a dead rung.
+  let qeCodexReason = stageReason('qe', qeDecision)
+  if (!qeIsCodex) qeCodexReason = 'fallback-rung'
+  const qeCodexLabelOpts = mergeOpts(qeModel.agentType ? qeModel : specToOpts('codex:' + CODEX_MODEL + ':high'), { _stage: 'qe', _reason: qeCodexReason })
+  // R5-1: the id modelsUsed will report, resolved by the SAME memoized probe the dispatch uses.
+  const qeCodexResolved = await codexLabelOptsForDispatch(qeCodexLabelOpts)
+  qeCodexProbeFailed = !!qeCodexResolved._codexProbeFailed
+  const qeCodexDispatchLabel = modelLabel(qeCodexResolved)
+  // R16-1: the codex QE rung records its attempt HERE. The only dispatch-time write used to sit
+  // inside `if (!qeIsCodex)`, so a codex-routed QE whose modes and belt all returned null printed
+  // `▸ qe` lines and left modelsUsed.qe unassigned entirely. The marker is provisional: the success
+  // paths below overwrite it, and if nothing succeeds it stays and says so.
+  modelsUsed.qe = qeCodexDispatchLabel + (qeCodexProbeFailed ? ' (codex probe found no usable id)' : ' (no verdict)')
   // ADR-001: QE's deliverable is its RETURN VALUE, so it dispatches SYNCHRONOUSLY, never through the
   // fire-and-forget wrapper, and the verdict is PARSED, never synthesised (the deleted
   // {grade:'codex-review', gaps: []} turned a stub into a clean review).
@@ -3513,7 +4242,7 @@ if (qe === null && (qeIsCodex || QE_REVIEWER === 'codex-fallback')) {
       if (probeCmd === null) {
         log('QE: change set UNMEASURABLE for scope ' + QE_SCOPE + (QE_SCOPE_REF ? '' : ' (no ref given)') + ' — a scoped review will refuse rather than ask a different question')
       } else {
-        const chgOut = await agent('Run EXACTLY this via Bash and return its stdout VERBATIM with NO commentary: cd ' + shq(REPO) + ' && ' + probeCmd, { label: 'qe:measure-changed', phase: 'QE', effort: 'low' })
+        const chgOut = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and return its stdout VERBATIM with NO commentary: cd ' + shq(REPO) + ' && ' + probeCmd, { label: 'qe:measure-changed', phase: 'QE', effort: 'low' })
         if (chgOut !== null && chgOut !== undefined) {
           if (QE_SCOPE === 'uncommitted') {
             // CONTENT, not dirtiness: only a hash that MOVED since the baseline is this run's doing.
@@ -3526,7 +4255,9 @@ if (qe === null && (qeIsCodex || QE_REVIEWER === 'codex-fallback')) {
         }
       }
     }
-  let codexQe = await codexReviewAgent('qe', QE_SCOPE, QE_SCOPE_REF, 'QE', qeCodexLabelOpts)
+  const qeRungHolder = newRung()
+  let qeLastRungHolder = qeRungHolder
+  let codexQe = await codexReviewAgent('qe', QE_SCOPE, QE_SCOPE_REF, 'QE', qeCodexLabelOpts, qeRungHolder)
   // SCOPE THE VERDICT to this feature. Findings about other dirty work are real and are kept, but they
   // may not decide THIS feature's grade. When the change set is unmeasured the partition is 'unscoped'
   // and the grade stands exactly as the reviewer gave it — attributing nothing is the honest move.
@@ -3565,14 +4296,17 @@ if (qe === null && (qeIsCodex || QE_REVIEWER === 'codex-fallback')) {
       // mode-B bookkeeping note would hide why the independent review did not happen.
       log('QE: mode B not constructible — no declared changed files to scope it to; keeping mode A reason')
     } else {
-      codexQe = await codexExecAgent('qe', modeBPrompt + CODEX_HINT + codexEffortHint(qeCodexLabelOpts), 'QE', true, modeBFiles, qeCodexLabelOpts)
+      const modeBRungHolder = newRung()
+      qeLastRungHolder = modeBRungHolder
+      const modeBLabelOpts = mergeOpts(qeCodexLabelOpts, { _reason: 'fallback-rung' })
+      codexQe = await codexExecAgent('qe', modeBPrompt + CODEX_HINT + codexEffortHint(modeBLabelOpts), 'QE', true, modeBFiles, modeBLabelOpts, modeBRungHolder)
       if (codexQe === null) lastCodexDecline = 'mode A: ' + String(modeADecline) + ' | mode B: ' + String(lastCodexDecline)
     }
   }
   if (codexQe) {
     // gaps come from what the reviewer ACTUALLY found; gradeSource says whether the letter was
     // STATED by the reviewer or DERIVED from its findings, because mode A cannot be asked for one.
-    qe = { grade: codexQe.grade, gaps: codexQe.findings, codeTestsAdequate: null, docTestsPresent: null, summary: String(codexQe.text).slice(0, 1500), gradeSource: codexQe.gradeSource, qeScope: { mode: codexQe.mode, ref: codexQe.scopeRef, files: codexQe.files } }
+    qe = enforceConfirmationFileGate({ grade: codexQe.grade, gaps: codexQe.findings, codeTestsAdequate: null, docTestsPresent: null, summary: String(codexQe.text).slice(0, 1500), gradeSource: codexQe.gradeSource, qeScope: { mode: codexQe.mode, ref: codexQe.scopeRef, files: codexQe.files } }, confirmationFileGate)
     qeReviewerUsed = qeIsCodex ? 'codex' : 'codex-fallback'
     log('QE: cross-family review by codex, mode ' + codexQe.mode + ' (scope ' + codexQe.scopeRef + ', grade ' + codexQe.grade + ' ' + codexQe.gradeSource + ', ' + codexQe.elapsedSeconds + 's)')
     // ARTIFACT SCRIBE. The old dispatch handed Codex the whole Step-8 prompt, so the reviewer itself
@@ -3587,20 +4321,20 @@ if (qe === null && (qeIsCodex || QE_REVIEWER === 'codex-fallback')) {
       // with no 08_qe_report.md at all. Named by cross-family review of b6973199. The verdict itself
       // is real (Codex produced it), so a failed transcription DEGRADES the run rather than voiding
       // it — but it must be visible, and it must never read as a clean QE.
-      const scribePrompt = 'Step 8 (QE) of /feature-adr for "' + DESC + '" (' + SLUG + '). The independent cross-family review has ALREADY BEEN DONE, by Codex. You are the SCRIBE, not the reviewer: RECORD it, do NOT re-grade it, do NOT soften it, do NOT add a verdict of your own, and do NOT mark anything resolved that the reviewer flagged. The grade is ' + codexQe.grade + ' and it is FINAL.\n\nWrite ' + FDIR + '/08_qe_report.md with: (1) the grade ' + codexQe.grade + ' stated verbatim; (2) HOW it was obtained — dispatch mode ' + codexQe.mode + ', scope ' + codexQe.scopeRef + ', wall-clock ' + codexQe.elapsedSeconds + 's, gradeSource ' + codexQe.gradeSource + ' (a DERIVED grade means the reviewer could not be asked for a letter and it was computed from the severities it reported — say so plainly); (3) the reviewer text below, verbatim, under the exact heading `## Primary QE pass`; (4) an ADR Fitness Checklist section with PASS/FAIL per ADR and the evidence pointer for the Confirmation-linked test.\n\nREVIEWER TEXT (verbatim, do not edit or summarise):\n' + String(codexQe.text) + '\n\nMANDATORY SELF-LEARNING STORE (close the loop, never skip): compare candidate lessons against the Step-0 recalled LEARNED patterns. Teach ONLY lessons NOT already covered; on overlap run `dz teach --reinforce "<recalled pattern id or exact text>" --project ' + BRAIN + '` instead of minting a near-duplicate. Via Bash run EXACTLY `' + DZ_TEACH('<a durable reusable lesson from this feature - a rule/pattern/pitfall, NOT a checkpoint echo>', '<0.7-0.95>', '<area>') + '` for each genuine NEW lesson (1-3 max, high-signal). Then run `' + DZ + ' statusline --fa-record --slug ' + SLUG + ' --step "Step 8 QE" --recalled auto --run fa:' + SLUG + ' --count-project ' + BRAIN + ' --stored <count taught> --reinforced <count reinforced> --mode ' + MODE + ' --project ' + REPO + '` verbatim via Bash. Finally run EXACTLY `dz claim-check ' + FDIR + '/08_qe_report.md --json --fail-on none` via Bash and TAG every quantitative claim you write the way the checker recognises as honest.' + ABSOLUTE_PATH_NOTE
+      const scribePrompt = 'Step 8 (QE) of /feature-adr for "' + DESC + '" (' + SLUG + '). The independent cross-family review has ALREADY BEEN DONE, by Codex. You are the SCRIBE, not the reviewer: RECORD it, do NOT re-grade it, do NOT soften it, do NOT add a verdict of your own, and do NOT mark anything resolved that the reviewer flagged. The reviewer grade was ' + codexQe.grade + '; the final Step-8 grade after the deterministic Confirmation file gate is ' + qe.grade + ' and it is FINAL: the file gate can only LOWER a reviewer grade, never raise it, and nothing after this point may change it.\n\nWrite ' + FDIR + '/08_qe_report.md with: (1) the final grade ' + qe.grade + ' stated verbatim; (2) HOW it was obtained — reviewer grade ' + codexQe.grade + ', dispatch mode ' + codexQe.mode + ', scope ' + codexQe.scopeRef + ', wall-clock ' + codexQe.elapsedSeconds + 's, gradeSource ' + codexQe.gradeSource + ' (a DERIVED grade means the reviewer could not be asked for a letter and it was computed from the severities it reported — say so plainly); (3) the reviewer text below, verbatim, under the exact heading `## Primary QE pass`; (4) an ADR Fitness Checklist section with PASS/FAIL per ADR and the evidence pointer for the Confirmation-linked test; (5) this gate receipt as a separate line: `' + confirmationGateLine + '`.\n\nREVIEWER TEXT (verbatim, do not edit or summarise):\n' + String(codexQe.text) + '\n\nMANDATORY SELF-LEARNING STORE (close the loop, never skip): compare candidate lessons against the Step-0 recalled LEARNED patterns. Teach ONLY lessons NOT already covered; on overlap run `dz teach --reinforce "<recalled pattern id or exact text>" --project ' + BRAIN + '` instead of minting a near-duplicate. Via Bash run EXACTLY `' + DZ_TEACH('<a durable reusable lesson from this feature - a rule/pattern/pitfall, NOT a checkpoint echo>', '<0.7-0.95>', '<area>') + '` for each genuine NEW lesson (1-3 max, high-signal). Then run `' + DZ + ' statusline --fa-record --slug ' + SLUG + ' --step "Step 8 QE" --recalled auto --run fa:' + SLUG + ' --count-project ' + BRAIN + ' --stored <count taught> --reinforced <count reinforced> --mode ' + MODE + ' --project ' + REPO + '` verbatim via Bash. Finally run EXACTLY `dz claim-check ' + FDIR + '/08_qe_report.md --json --fail-on none` via Bash and TAG every quantitative claim you write the way the checker recognises as honest.' + ABSOLUTE_PATH_NOTE
       // WITNESS THE REWRITE, not the existence. On a re-QE or a resume with the same slug an OLD
       // 08_qe_report.md is already sitting there, and an existence probe reports that stale file as
       // landed — so a scribe that wrote nothing still marked the new verdict recorded, and the stage
       // checkpointed against someone else's report. Named by cross-family review of the 2026-08-21
       // wave. Same shape as the change-set fix above: snapshot before, compare after.
       const qeReportHash = async function () {
-        const out = await agent('Run EXACTLY this via Bash and reply with only its stdout: cd ' + shq(FDIR) + ' 2>/dev/null && sha256sum -- 08_qe_report.md 2>/dev/null || true', { label: 'qe:scribe-hash', phase: 'QE', effort: 'low' })
+        const out = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with only its stdout: cd ' + shq(FDIR) + ' 2>/dev/null && sha256sum -- 08_qe_report.md 2>/dev/null || true', { label: 'qe:scribe-hash', phase: 'QE', effort: 'low' })
         if (out === null || out === undefined) return null
         const m = /([0-9a-f]{64})/.exec(String(out))
         return m ? m[1] : 'ABSENT'
       }
       const qeReportBefore = await qeReportHash()
-      await agent(scribePrompt, { label: 'qe:scribe', phase: 'QE', effort: 'low' })
+      await dispatchAgent(newRung(), scribePrompt, { label: 'qe:scribe', phase: 'QE', effort: 'low' })
       // A hash that MOVED proves this run wrote it. Unchanged means the scribe produced nothing —
       // whether the file was absent or was last run's report makes no difference to that verdict.
       // A null on either side is UNMEASURED, and unmeasured is not recorded.
@@ -3612,33 +4346,37 @@ if (qe === null && (qeIsCodex || QE_REVIEWER === 'codex-fallback')) {
       let qeReportWritten = await rewritten()
       if (!qeReportWritten) {
         log('QE: 08_qe_report.md was not REWRITTEN by this run (before=' + String(qeReportBefore).slice(0, 12) + ') — retrying the scribe once; the verdict stands, only the record is missing')
-        await agent(scribePrompt, { label: 'qe:scribe-retry', phase: 'QE', effort: 'low' })
+        await dispatchAgent(newRung(), scribePrompt, { label: 'qe:scribe-retry', phase: 'QE', effort: 'low' })
         qeReportWritten = await rewritten()
       }
       if (!qeReportWritten) log('QE: 08_qe_report.md STILL missing after a retry — the grade ' + codexQe.grade + ' is real but UNRECORDED; the qe checkpoint will refuse and the run reports qeReportWritten:false')
       qe.qeReportWritten = qeReportWritten
-      const cfOk = crossFamilyQe({ requestedSpec: modelLabel(qeModel), actualLabel: modelLabel(qeCodexLabelOpts), coderFamily: tpFamily(coderUsed), reviewerFamily: 'codex', declineReason: null })
+      const cfOk = crossFamilyQe({ requestedSpec: modelLabel(qeModel), actualLabel: qeCodexDispatchLabel, coderFamily: tpFamily(coderUsed), reviewerFamily: 'codex', declineReason: null })
       modelsUsed.qe = cfOk.label
       crossFamilyQeReport = cfOk.report
   } else {
     log('QE: codex produced no verdict — the Claude belt below will run (cross-family QE did NOT happen: ' + String(lastCodexDecline) + ')')
   }
+  // ONE capture site for both codex QE modes: whichever rung ran last left its outcome here.
+  qeCodexRung = qeLastRungHolder
 }
 // Belt: if a codex-first QE returned null (codex unavailable), fall back to a Claude reviewer — never block.
 if (qe === null && qeIsCodex) {
   log('QE: Codex unavailable — falling back to a Claude reviewer (cross-model belt)')
   const qeBeltModel = routingRequested ? { model: 'opus' } : {}
-  const qeBeltOpts = mergeOpts({ label: stageLabel('qe:brutal:claude-fb', qeBeltModel), phase: 'QE', agentType: 'qe-code-reviewer', schema: QE }, qeBeltModel)
-  qe = await agent(qePrompt, qeBeltOpts)
-  if (qe) {
-    qeReviewerUsed = 'claude'
-    // HONEST LABEL: a bare 'opus' here reads exactly like a deliberate Claude review. It is not —
-    // it is the cross-family property being LOST (P16, 2026-08-20), and the label must say so.
-    const cfBelt = crossFamilyQe({ requestedSpec: modelLabel(qeModel), actualLabel: modelLabel(qeBeltOpts), coderFamily: tpFamily(coderUsed), reviewerFamily: 'claude', declineReason: lastCodexDecline })
-    modelsUsed.qe = cfBelt.label
-    crossFamilyQeReport = cfBelt.report
-  }
+  const qeBeltOpts = mergeOpts({ label: stageLabel('qe:brutal:claude-fb', qeBeltModel), phase: 'QE', agentType: 'qe-code-reviewer', schema: QE, _stage: 'qe', _reason: 'fallback-rung' }, qeBeltModel)
+  // HONEST LABEL: a bare 'opus' here reads exactly like a deliberate Claude review. It is not —
+  // it is the cross-family property being LOST (P16, 2026-08-20), and the label must say so.
+  // R17-2: computed and RECORDED before the await. The only write used to sit inside `if (qe)`, so a
+  // belt that returned null left the preceding Codex label standing and omitted the Claude dispatch
+  // that had just been announced. The same verdict object still serves the success branch.
+  const cfBelt = crossFamilyQe({ requestedSpec: modelLabel(qeModel), actualLabel: modelLabel(qeBeltOpts), coderFamily: tpFamily(coderUsed), reviewerFamily: 'claude', declineReason: lastCodexDecline })
+  modelsUsed.qe = cfBelt.label
+  qe = await dispatchAgent(newRung(), qePrompt, qeBeltOpts)
+  if (qe) { qeReviewerUsed = 'claude'; crossFamilyQeReport = cfBelt.report }
+  else modelsUsed.qe = cfBelt.label + ' (no deliverable)'
 }
+qe = enforceConfirmationFileGate(qe, confirmationFileGate)
 // A-normal L/XL only: Sonnet is the recall-oriented primary reviewer; Opus is a SECOND,
 // independent precision pass. It is advisory but real — never a table-only half-wire — and its
 // provenance stays separate in both the return object and 08_qe_report.md.
@@ -3649,14 +4387,21 @@ if (qe !== null && qe2Spec !== null) {
   const qe2ReportState = async function (label) {
     const report = shq(FDIR + '/08_qe_report.md')
     const cmd = 'p=' + report + '; h=$(sha256sum -- "$p" 2>/dev/null | awk "{print \\$1}"); [ -n "$h" ] || h=ABSENT; a=$(grep -cFx "## Primary QE pass" "$p" 2>/dev/null || true); b=$(grep -cFx "## Precision QE pass — Claude Opus" "$p" 2>/dev/null || true); c=$(grep -c "Combined Step-8 grade" "$p" 2>/dev/null || true); echo "QE2-REPORT sha=$h primary=$a precision=$b combined=$c"'
-    const out = await agent('Run EXACTLY this via Bash and return only its stdout: ' + cmd, { label: label, phase: 'QE', effort: 'low' })
+    const out = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and return only its stdout: ' + cmd, { label: label, phase: 'QE', effort: 'low' })
     const m = /QE2-REPORT sha=([0-9a-f]{64}|ABSENT) primary=(\d+) precision=(\d+) combined=(\d+)/.exec(String(out || ''))
     return m ? { sha: m[1], primary: Number(m[2]), precision: Number(m[3]), combined: Number(m[4]) } : null
   }
   const qe2Before = await qe2ReportState('qe:precision-before')
   const qe2Prompt = 'Step 8 precision QE second pass for "' + DESC + '" (' + SLUG + '). This is an INDEPENDENT precision-oriented review after the recall-oriented primary pass. First inspect the shipped code, tests, requirements, architecture, and every ADR and form your own findings WITHOUT consulting 08_qe_report.md. Only after your review is complete, open ' + FDIR + '/08_qe_report.md and APPEND (never replace) your findings under the exact heading `## Precision QE pass — Claude Opus`. Preserve `## Primary QE pass` as a separate provenance section. Grade A/B/C/D honestly. The primary grade was ' + primaryGrade + '; state a `Combined Step-8 grade` equal to the worse of that grade and your precision grade. Return {grade, gaps, codeTestsAdequate, docTestsPresent}.' + ABSOLUTE_PATH_NOTE + landedNote + wqNote
-  const qe2Opts = mergeOpts({ label: stageLabel('qe:precision', qe2Model), phase: 'QE', agentType: 'qe-code-reviewer', schema: QE }, qe2Model)
-  qe2 = await agent(qe2Prompt, qe2Opts)
+  const qe2Opts = mergeOpts({ label: stageLabel('qe:precision', qe2Model), phase: 'QE', agentType: 'qe-code-reviewer', schema: QE, _stage: 'qe2', _reason: 'precision-second-pass' }, qe2Model)
+  // R4-F4: an INDEPENDENT second reviewer, dispatched later and recorded separately in modelsUsed.qe2.
+  // It is its own stage identity, never folded into qe — otherwise the run reports a reviewer nobody
+  // was told about.
+  // R13-2: claimed at DISPATCH. The run completes on the primary verdict even when this reviewer
+  // returns null, so a success-only write let the report silently omit a reviewer it had announced.
+  modelsUsed.qe2 = modelLabel(qe2Model)
+  qe2 = await dispatchAgent(newRung(), qe2Prompt, qe2Opts)
+  if (!qe2) modelsUsed.qe2 = modelLabel(qe2Model) + ' (no deliverable)'
   if (qe2) {
     const qe2After = await qe2ReportState('qe:precision-after')
     const qe2Recorded = !!(qe2Before && qe2After && qe2After.sha !== 'ABSENT' && qe2After.sha !== qe2Before.sha && qe2After.primary > 0 && qe2After.precision > qe2Before.precision && qe2After.combined > 0)
@@ -3719,7 +4464,7 @@ let reqeDue = false
     // LOUDLY, and reqeDue stays true in the result either way.
     const dueQ = shq(FDIR + '/.fa-state/reqe-due.json')
     const emitCmd = 'if [ -e ' + dueQ + ' ]; then echo REQE-EXISTS; elif grep -qs ' + shq(qeHash) + ' ' + shq(FDIR + '/.fa-state') + '/reqe-settled*.json 2>/dev/null; then echo REQE-SETTLED-THIS-RUN; else mkdir -p ' + shq(FDIR + '/.fa-state') + ' && printf %s ' + shq(JSON.stringify(reqeDebt)) + ' | sed "s/\\"emittedAt\\":null/\\"emittedAt\\":\\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\\"/" | (set -C; cat > ' + dueQ + ') && cat ' + dueQ + '; fi'
-    const emitOut = await agent('Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, nothing else: ' + emitCmd, { label: 'reqe:emit', phase: 'QE', effort: 'low' })
+    const emitOut = await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, nothing else: ' + emitCmd, { label: 'reqe:emit', phase: 'QE', effort: 'low' })
     const emitText = String(emitOut || '')
     if (/REQE-SETTLED-THIS-RUN/.test(emitText)) log('re-QE debt: THIS run’s debt was already settled — not re-opened')
     else if (/REQE-EXISTS/.test(emitText)) log('re-QE debt: already recorded for ' + SLUG + ' — not overwritten')
@@ -3756,18 +4501,18 @@ if (Object.keys(AUTOCOST).length > 0 && resumedStages.indexOf('qe') === -1) {
     const pickRan = pickIsCodex ? (coderUsed === 'codex') : (coderUsed === 'claude')
     if (pickRan && code) {
       const codePassed = !!(qe && /^[AB]$/i.test(String(qe.grade || '').trim()))
-      await agent('Run EXACTLY this via Bash and reply with ONLY its stdout: ' + DZ + ' routing --record-provisional --stage code --tier ' + AUTOCOST.code.tier + ' --model ' + codeMid, { label: 'auto-cost:record:code', phase: recPhase, effort: 'low' })
-      await agent('Run EXACTLY this via Bash and reply with ONLY its stdout: ' + DZ + ' routing --finalize --stage code --tier ' + AUTOCOST.code.tier + ' --model ' + codeMid + ' --success ' + (codePassed ? 'true' : 'false'), { label: 'auto-cost:finalize:code', phase: recPhase, effort: 'low' })
+      await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with ONLY its stdout: ' + DZ + ' routing --record-provisional --stage code --tier ' + AUTOCOST.code.tier + ' --model ' + codeMid, { label: 'auto-cost:record:code', phase: recPhase, effort: 'low' })
+      await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with ONLY its stdout: ' + DZ + ' routing --finalize --stage code --tier ' + AUTOCOST.code.tier + ' --model ' + codeMid + ' --success ' + (codePassed ? 'true' : 'false'), { label: 'auto-cost:finalize:code', phase: recPhase, effort: 'low' })
     } else {
       // the picked model did not deliver (fallback fired or produced nothing) → record it as a failure.
       log('auto-cost code: picked model ' + codeMid + ' did not deliver (coderUsed=' + coderUsed + ') — recording a failure')
-      await agent('Run EXACTLY this via Bash and reply with ONLY its stdout: ' + DZ + ' routing --finalize --stage code --tier ' + AUTOCOST.code.tier + ' --model ' + codeMid + ' --success false', { label: 'auto-cost:finalize:code-fail', phase: recPhase, effort: 'low' })
+      await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with ONLY its stdout: ' + DZ + ' routing --finalize --stage code --tier ' + AUTOCOST.code.tier + ' --model ' + codeMid + ' --success false', { label: 'auto-cost:finalize:code-fail', phase: recPhase, effort: 'low' })
     }
   }
   // PLAN: provisional only (its gate is landing, already enforced upstream); guarded by the plan result var.
   const planMid = acBareId(MODELS.plan)
   if (AUTOCOST.plan && plan && planMid) {
-    await agent('Run EXACTLY this via Bash and reply with ONLY its stdout: ' + DZ + ' routing --record-provisional --stage plan --tier ' + AUTOCOST.plan.tier + ' --model ' + planMid, { label: 'auto-cost:record:plan', phase: recPhase, effort: 'low' })
+    await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with ONLY its stdout: ' + DZ + ' routing --record-provisional --stage plan --tier ' + AUTOCOST.plan.tier + ' --model ' + planMid, { label: 'auto-cost:record:plan', phase: recPhase, effort: 'low' })
   }
   // QE: gate (ii) = produced a PARSEABLE verdict with a grade (qe non-null). A qe that named no grade fell back
   // and is not the auto-cost pick, so record only when the picked reviewer actually delivered a verdict. Its
@@ -3777,10 +4522,10 @@ if (Object.keys(AUTOCOST).length > 0 && resumedStages.indexOf('qe') === -1) {
     const qePickIsCodex = /codex|gpt/i.test(String(MODELS.qe))
     const qePickRan = qePickIsCodex ? (qeReviewerUsed === 'codex') : (qeReviewerUsed === 'claude')
     if (qePickRan && qe && String(qe.grade || '').trim() !== '') {
-      await agent('Run EXACTLY this via Bash and reply with ONLY its stdout: ' + DZ + ' routing --record-provisional --stage qe --tier ' + AUTOCOST.qe.tier + ' --model ' + qeMid, { label: 'auto-cost:record:qe', phase: recPhase, effort: 'low' })
-      await agent('Run EXACTLY this via Bash and reply with ONLY its stdout: ' + DZ + ' routing --finalize --stage qe --tier ' + AUTOCOST.qe.tier + ' --model ' + qeMid + ' --success true', { label: 'auto-cost:finalize:qe', phase: recPhase, effort: 'low' })
+      await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with ONLY its stdout: ' + DZ + ' routing --record-provisional --stage qe --tier ' + AUTOCOST.qe.tier + ' --model ' + qeMid, { label: 'auto-cost:record:qe', phase: recPhase, effort: 'low' })
+      await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with ONLY its stdout: ' + DZ + ' routing --finalize --stage qe --tier ' + AUTOCOST.qe.tier + ' --model ' + qeMid + ' --success true', { label: 'auto-cost:finalize:qe', phase: recPhase, effort: 'low' })
     } else {
-      await agent('Run EXACTLY this via Bash and reply with ONLY its stdout: ' + DZ + ' routing --finalize --stage qe --tier ' + AUTOCOST.qe.tier + ' --model ' + qeMid + ' --success false', { label: 'auto-cost:finalize:qe-fail', phase: recPhase, effort: 'low' })
+      await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with ONLY its stdout: ' + DZ + ' routing --finalize --stage qe --tier ' + AUTOCOST.qe.tier + ' --model ' + qeMid + ' --success false', { label: 'auto-cost:finalize:qe-fail', phase: recPhase, effort: 'low' })
     }
   }
 }
@@ -3789,26 +4534,48 @@ if (Object.keys(AUTOCOST).length > 0 && resumedStages.indexOf('qe') === -1) {
 let fleet = 'skipped (S/M)'
 if (isLplus) {
   phase('FleetQE')
+  await recordRegistryEvent('heartbeat', 'FleetQE')
   await usageProbe('FleetQE')
-  const fleetModel = resolveStageModel('fleet')
+  const fleetDecision = resolveStageDecision('fleet')
+  const fleetModel = fleetDecision.opts
+  // R15-2 discipline: the REQUEST is recorded here so a resumed fleet stage still reports what it
+  // was given; the concrete id is resolved inside the runFn, where the dispatch actually happens.
   modelsUsed.fleet = modelLabel(mergeOpts({}, fleetModel))
-  const fleetTraceOpts = mergeOpts({ label: stageLabel('fleet:trace', fleetModel), phase: 'FleetQE', agentType: 'qe-requirements-validator' }, fleetModel)
-  const fleetCovOpts = mergeOpts({ label: stageLabel('fleet:cov', fleetModel), phase: 'FleetQE', agentType: 'qe-coverage-specialist' }, fleetModel)
-  const fleetTracePrompt = 'Step 9 fleet-QE (requirements traceability + risk) for ' + SLUG + ': map ADR decisions to code to tests; flag orphans + high risk. Write ' + FDIR + '/09_fleet_qe_assessment.md.' + codexEffortHint(fleetTraceOpts)
-  const fleetCovPrompt = 'Step 9 fleet-QE (coverage + regression) for ' + SLUG + ': risk-weighted coverage gaps + regression selection for the changed files. Append to ' + FDIR + '/09_fleet_qe_assessment.md.' + codexEffortHint(fleetCovOpts)
-  const fleetThunks = [
-    () => agent(fleetTracePrompt, fleetTraceOpts),
-    () => agent(fleetCovPrompt, fleetCovOpts),
-  ]
+  const fleetTracePrompt = 'Step 9 fleet-QE (requirements traceability + risk) for ' + SLUG + ': map ADR decisions to code to tests; flag orphans + high risk. Write ' + FDIR + '/09_fleet_qe_assessment.md.'
+  const fleetCovPrompt = 'Step 9 fleet-QE (coverage + regression) for ' + SLUG + ': risk-weighted coverage gaps + regression selection for the changed files. Append to ' + FDIR + '/09_fleet_qe_assessment.md.'
+  // R15-1: the opts now live inside the runFn (they need the probe), so the effort hint is appended
+  // THERE. These holders default to the base prompt so a RESUMED fleet still records real input for
+  // the training pair instead of an empty string.
+  let fleetTraceFull = fleetTracePrompt
+  let fleetCovFull = fleetCovPrompt
   const fleetHash = ckptHash('fleet', [fnv1a64(JSON.stringify(qeStage === undefined ? null : qeStage)), tier, MODELS.fleet === undefined ? null : MODELS.fleet, CODEX_MODEL, PRIMARY, BUDGET_MODE, usageOverride])
   fleet = await withCheckpoint('fleet', 'FleetQE', fleetHash, async () => {
+    // Each plane is its own dispatch and therefore owns its own holder and line.
+    // R14-2: the fan resolves its codex id HERE — inside
+    // the live runFn, so a resumed fleet stage still spends nothing.
+    // R15-1: and the OPTS AND THUNKS are built AFTER that resolution. Round 14 resolved the model but
+    // left the thunks closed over the unresolved fleetTraceOpts/fleetCovOpts, so both agents received
+    // codexModel:'auto' while the line and modelsUsed named a concrete id. Resolving without
+    // delivering the resolution is not a fix.
+    const fleetDirect = await directCodexOrClaude(fleetModel, { _stage: 'fleet', _reason: stageReason('fleet', fleetDecision) })
+    const fleetDispatchModel = fleetDirect.opts
+    const fleetReason = fleetDirect.reason || stageReason('fleet', fleetDecision)
+    const fleetTraceOpts = mergeOpts({ label: stageLabel('fleet:trace', fleetDispatchModel), phase: 'FleetQE', agentType: 'qe-requirements-validator', _stage: 'fleet:trace', _reason: fleetReason }, fleetDispatchModel)
+    const fleetCovOpts = mergeOpts({ label: stageLabel('fleet:cov', fleetDispatchModel), phase: 'FleetQE', agentType: 'qe-coverage-specialist', _stage: 'fleet:coverage', _reason: fleetReason }, fleetDispatchModel)
+    fleetTraceFull = fleetTracePrompt + codexEffortHint(fleetTraceOpts)
+    fleetCovFull = fleetCovPrompt + codexEffortHint(fleetCovOpts)
+    const fleetThunks = [
+      () => dispatchAgent(newRung(), fleetTraceFull, fleetTraceOpts),
+      () => dispatchAgent(newRung(), fleetCovFull, fleetCovOpts),
+    ]
+    modelsUsed.fleet = modelLabel(fleetDispatchModel)
     const fleetRuns = await parallel(fleetThunks)
     return fleetRuns.every(function (x) { return x !== null && x !== undefined }) ? 'run' : null
   })
   if (fleet === null) fleet = 'failed (a fleet agent died — not checkpointed)'
   // training pair: the fleet result is a status string; its REAL output lives in the 09 artifact —
   // the pair points at it. No per-stage grade (grade:null honestly).
-  if (fleet === 'run') await capturePairs('fleet', 'FleetQE', [{ input: fleetTracePrompt + '\n\n---\n\n' + fleetCovPrompt, output: { fleet: fleet, artifact: FDIR + '/09_fleet_qe_assessment.md' }, evaluation: { grade: null, gradedBy: null, lessonsInjected: [] }, provenance: { model: String(modelsUsed.fleet || ''), family: tpFamily(modelsUsed.fleet), role: 'fleet-qe' } }])
+  if (fleet === 'run') await capturePairs('fleet', 'FleetQE', [{ input: fleetTraceFull + '\n\n---\n\n' + fleetCovFull, output: { fleet: fleet, artifact: FDIR + '/09_fleet_qe_assessment.md' }, evaluation: { grade: null, gradedBy: null, lessonsInjected: [] }, provenance: { model: String(modelsUsed.fleet || ''), family: tpFamily(modelsUsed.fleet), role: 'fleet-qe' } }])
 }
 
 // ── Step 10 (OPT-IN): Delivery Gate — post-implementation full review of the LANDED feature ──
@@ -3826,6 +4593,7 @@ let delivery = null
 if (DELIVERY_ON) {
   try {
     phase('Delivery')
+    await recordRegistryEvent('heartbeat', 'Delivery')
     await usageProbe('Delivery')
     // QE-D#2: cross-family is judged against the ACTUAL coder (coderUsed — the code stage already ran), and
     // codex PLANES are unsupported in v1: a plane is a data-returning schema stage, and the codex wrapper
@@ -3836,13 +4604,32 @@ if (DELIVERY_ON) {
     const coderWasCodex = /codex|gpt/i.test(String(coderUsed || ''))
     const crossFamily = coderWasCodex
     let dModel = {}
-    if (A.models && A.models.delivery) {
-      if (String(A.models.delivery).split(':')[0] === 'codex') {
-        log('Delivery gate: codex planes are NOT supported (data-returning stage — the codex wrapper stubs; honesty ADR); running Claude planes; crossFamily recorded against the actual coder')
-      } else {
-        dModel = resolveStageModel('delivery')
-      }
+    // The planes are ALWAYS dispatched once the gate is on, so the line is always printed — it used
+    // to be nested in the explicit-model branch, leaving `deliveryGate:true` with no line at all.
+    // The decision is built from the opts the planes actually receive: on the codex-refused path
+    // that is session-inherited Claude, and saying `explicit args.models` there would name a model
+    // this stage structurally cannot run.
+    let dDecision = resolveStageDecision('delivery')
+    // R4-F3: key the codex refusal on the RESOLVED opts, not on args.models. The usage-adaptive
+    // override routes EVERY stage to codex without touching args.models, so a delivery gate under
+    // limit pressure resolved to codex, kept dModel = {}, and announced a Codex model while all four
+    // planes ran session-inherited Claude — the line, the planes and modelsUsed all disagreed.
+    if (needsLandedBarrier(dDecision.opts)) {
+      log('Delivery gate: codex planes are NOT supported (data-returning stage — the codex wrapper stubs; honesty ADR); running Claude planes; crossFamily recorded against the actual coder')
+      dDecision = { opts: {}, spec: null, reason: 'codex-unsupported-at-dispatch' }
+    } else {
+      dModel = dDecision.opts
     }
+    // Announced from dModel — the exact opts every plane receives, and the exact opts modelsUsed reads.
+    // R14-2: the plane fan is a bare agent() fan too, so its codex id is resolved here — and the
+    // resolved value REPLACES dModel, because the planes, the cross-validator, the line and
+    // modelsUsed must all receive the same opts. Announcing a resolved model the planes do not get
+    // would re-open exactly the R4-F3 hole this line was written to close.
+    // R15-3: a direct fan too — refuse codex honestly when the probe found nothing.
+    const deliveryDirect = await directCodexOrClaude(dModel, { _stage: 'delivery', _reason: stageReason('delivery', dDecision) })
+    const deliveryDispatchModel = deliveryDirect.opts
+    dModel = deliveryDispatchModel
+    const deliveryReason = deliveryDirect.reason || stageReason('delivery', dDecision)
     if (!crossFamily) log('Delivery gate: planes run on the CODER\'s own family (Claude coder; codex planes unsupported in v1) — crossFamily=false recorded in the result and review doc')
     modelsUsed.delivery = modelLabel(mergeOpts({}, dModel)) + (crossFamily ? '' : ' (same-family — degraded)')
     const DELIVERY_SCHEMA = { type: 'object', additionalProperties: false, required: ['findings'], properties: { findings: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['severity', 'title', 'where', 'why'], properties: { severity: { type: 'string' }, title: { type: 'string' }, where: { type: 'string' }, why: { type: 'string' } } } } } }
@@ -3866,7 +4653,7 @@ if (DELIVERY_ON) {
       ['code-quality', 'PLANE 3 — CODE QUALITY: god-object growth, duplicated parallel implementations vs the reuse map, dead/unreachable safeguards (code paths that can never fire), error handling that swallows, complexity without a named reason.'],
       ['product-honesty', 'PLANE 4 — PRODUCT HONESTY + COMMON SENSE (the plane Step-8 lacks): claims in docs/READMEs/reports not backed by behavior; FABRICATED COMPLETENESS (output presented as complete when a source was unavailable); a feature that does less than its description; user-facing text that misleads about limits or degradation.'],
     ]
-    const planeThunks = planePrompts.map(([pl, focus]) => () => agent(dBase + focus + ' Return the findings object.' + codexEffortHint(dModel), mergeOpts({ label: stageLabel('delivery:' + pl, dModel), phase: 'Delivery', schema: DELIVERY_SCHEMA }, dModel)))
+    const planeThunks = planePrompts.map(([pl, focus]) => () => dispatchAgent(newRung(), dBase + focus + ' Return the findings object.' + codexEffortHint(dModel), mergeOpts({ label: stageLabel('delivery:' + pl, dModel), phase: 'Delivery', schema: DELIVERY_SCHEMA, _stage: 'delivery:' + pl, _reason: deliveryReason }, dModel)))
     const planeResults = await parallel(planeThunks)
     // QE-D#1: a null/malformed plane result is a FAILED PLANE, not an empty-finding plane — a hand-off can
     // never be 'ready' off partial coverage. QE-D#5: sanitize where/why + truncate + dedupe across planes.
@@ -3903,7 +4690,8 @@ if (DELIVERY_ON) {
     if (bh.length > 0) {
       const numbered = bh.map((f, i) => ({ i: i, plane: f.plane, severity: f.severity, title: f.title, where: f.where, why: f.why }))
       const CV_SCHEMA = { type: 'object', additionalProperties: false, required: ['results'], properties: { results: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['i', 'real'], properties: { i: { type: 'number' }, real: { type: 'boolean' } } } } } }
-      const cv = await agent('Independently CROSS-VALIDATE these delivery-gate findings against the ACTUAL code in repo ' + REPO + ' (read the files). For EACH by its "i" index decide real (reachable, evidenced) vs FP/theory; default real=false when uncertain.' + DATA_NOTE + ' Findings: ' + JSON.stringify(numbered), mergeOpts({ label: stageLabel('delivery:cross-validate', dModel), phase: 'Delivery', schema: CV_SCHEMA }, dModel))
+      const deliveryCvRung = newRung()
+      const cv = await dispatchAgent(deliveryCvRung, 'Independently CROSS-VALIDATE these delivery-gate findings against the ACTUAL code in repo ' + REPO + ' (read the files). For EACH by its "i" index decide real (reachable, evidenced) vs FP/theory; default real=false when uncertain.' + DATA_NOTE + ' Findings: ' + JSON.stringify(numbered), mergeOpts({ label: stageLabel('delivery:cross-validate', dModel), phase: 'Delivery', schema: CV_SCHEMA, _stage: 'delivery:cross-validate', _reason: stageReason('delivery', dDecision) }, dModel))
       const realByIndex = new Map((cv && Array.isArray(cv.results) ? cv.results : []).map((r) => [Number(r.i), r.real === true]))
       if (!bh.every((_, i) => realByIndex.has(i))) {
         if (dStatus === 'ok') dStatus = 'cross-validation-incomplete'
@@ -3923,9 +4711,9 @@ if (DELIVERY_ON) {
     // (v1 has NO waiver mechanism — the criterion is a plain "0 HIGH", not "0 unwaived HIGH".)
     const inline = confirmed.slice(0, 30)
     const more = confirmed.length - inline.length
-    await agent('Write ' + FDIR + '/10_delivery_review.md consolidating this Step-10 Delivery Gate result (do not re-review).' + DATA_NOTE + ' status=' + dStatus + ', hand-off=' + handoff + ', crossFamily=' + crossFamily + ', findings JSON (top ' + inline.length + (more > 0 ? ' of ' + confirmed.length : '') + '): ' + JSON.stringify(inline) + '. Structure: ## Verdict (hand-off: ' + handoff + '; crossFamily: ' + crossFamily + (crossFamily ? '' : ' — planes ran on the coder\'s own family; run an independent cross-family review for the full guarantee') + '), ## Findings (a table: severity | plane | title | where | why | crossValidated' + (more > 0 ? '; note "+' + more + ' more findings (see workflow return)"' : '') + '), ## Hand-off criterion (machine-checkable rows: "0 BLOCKER: ' + (blockers === 0 ? 'PASS' : 'FAIL (' + blockers + ')') + '", "0 HIGH: ' + (highs === 0 ? 'PASS' : 'FAIL (' + highs + ')') + '" (waivers: not in v1), plus rows the owner fills ONLY if an MR flow exists: "CI terminal: —", "draft→ready: —"), ## Note (ADVISORY — findings only; nothing was posted anywhere; the owner decides).', { label: 'delivery:consolidate', phase: 'Delivery', effort: 'low' })
+    await dispatchAgent(newRung(), 'Write ' + FDIR + '/10_delivery_review.md consolidating this Step-10 Delivery Gate result (do not re-review).' + DATA_NOTE + ' status=' + dStatus + ', hand-off=' + handoff + ', crossFamily=' + crossFamily + ', findings JSON (top ' + inline.length + (more > 0 ? ' of ' + confirmed.length : '') + '): ' + JSON.stringify(inline) + '. Structure: ## Verdict (hand-off: ' + handoff + '; crossFamily: ' + crossFamily + (crossFamily ? '' : ' — planes ran on the coder\'s own family; run an independent cross-family review for the full guarantee') + '), ## Findings (a table: severity | plane | title | where | why | crossValidated' + (more > 0 ? '; note "+' + more + ' more findings (see workflow return)"' : '') + '), ## Hand-off criterion (machine-checkable rows: "0 BLOCKER: ' + (blockers === 0 ? 'PASS' : 'FAIL (' + blockers + ')') + '", "0 HIGH: ' + (highs === 0 ? 'PASS' : 'FAIL (' + highs + ')') + '" (waivers: not in v1), plus rows the owner fills ONLY if an MR flow exists: "CI terminal: —", "draft→ready: —"), ## Note (ADVISORY — findings only; nothing was posted anywhere; the owner decides).', { label: 'delivery:consolidate', phase: 'Delivery', effort: 'low' })
     // QE-D#3: verify the artifact actually LANDED — a verdict without its review doc must say so.
-    const dProbe = await agent('Run EXACTLY this via Bash and reply with ONLY its stdout: (test -s ' + shq(FDIR + '/10_delivery_review.md') + ' && echo REVIEW_OK || echo REVIEW_MISSING)', { label: 'delivery:artifact-probe', phase: 'Delivery', effort: 'low' })
+    const dProbe = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with ONLY its stdout: (test -s ' + shq(FDIR + '/10_delivery_review.md') + ' && echo REVIEW_OK || echo REVIEW_MISSING)', { label: 'delivery:artifact-probe', phase: 'Delivery', effort: 'low' })
     const dArtifact = /REVIEW_OK/.test(String(dProbe || '')) ? 'written' : 'missing'
     if (dArtifact === 'missing') log('Delivery gate: 10_delivery_review.md did NOT land — the verdict below exists only in this return value')
     delivery = { handoff: handoff, status: dStatus, crossFamily: crossFamily, artifact: dArtifact, blockers: blockers, highs: highs, findings: confirmed }
@@ -3938,7 +4726,7 @@ if (DELIVERY_ON) {
 // R1 product-architecture-lens (FR-3): refresh architecture/map.json at the END of a COMPLETE run so the
 // NEXT feature's Step-0 сверка sees what this run added. Best-effort, non-blocking. (Not reached on the
 // L/XL checkpoint-after-plan return above — no code has landed there yet.)
-await agent('Run EXACTLY this one shell command via your Bash tool and report its stdout verbatim — do nothing else, do not summarize: cd ' + REPO + ' && ' + DZ + ' architecture --json > architecture/map.json && echo arch-map-updated', { label: 'arch-map:refresh', phase: (isLplus ? 'FleetQE' : 'QE'), effort: 'low' })
+await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and report its stdout verbatim — do nothing else, do not summarize: cd ' + REPO + ' && ' + DZ + ' architecture --json > architecture/map.json && echo arch-map-updated', { label: 'arch-map:refresh', phase: (isLplus ? 'FleetQE' : 'QE'), effort: 'low' })
 
 // W4 (backlog 848853a0, the carrier defect): promise tags used to be STAMPED unconditionally —
 // two consecutive runs with an EMPTY Step 7 were tagged «implemented». A tag is now EARNED by its
@@ -3987,6 +4775,7 @@ const finalGates = {
   // DERIVED from the barrier's machine verdict, not from "is there a result object". A codex run
   // whose barrier came back INCONCLUSIVE used to render exactly like a clean synchronous one.
   code: (codeStage === null || codeStage === undefined || !code ? 'missing' : (codeStage.landingStatus === 'synchronous' ? 'produced' : (codeStage.landingStatus === 'landed' ? 'landed' : (codeStage.landingStatus === 'inconclusive' ? 'inconclusive' : 'not-landed')))),
+  confirmationFiles: confirmationFileGate.verdict,
   qe: (qe ? (qe.grade || 'ran') : 'not-run'),
   claimCheck: (qe && qe.claimCheck ? (qe.claimCheck.high > 0 ? 'high-findings' : 'clean') : 'not-run'),
   fleet: (isLplus ? (fleet ? 'ran' : 'not-run') : 'n/a'),
@@ -4001,6 +4790,7 @@ await appendRunCostRow('full', (isLplus ? 'FleetQE' : 'QE'), finalOutcome)
 // time) hit SCORE-EXISTS and froze the failed attempt's 0/N forever. An unfinished run is simply
 // not scored; the resume that finishes the work scores it.
 const score = finalOutcome === 'completed' ? await autoScore(qeHash) : null
+if (registryOutcome !== 'unverified') registryOutcome = finalOutcome
 return {
   slug: SLUG, tier: tier, mode: MODE, artifactsDir: FDIR,
   outcome: finalOutcome,
@@ -4018,6 +4808,7 @@ return {
   qeReviewerUsed: qeReviewerUsed,
   codexModel: CODEX_MODEL,
   modelsUsed: modelsUsed,
+  dispatchOutcomes: dispatchOutcomes,
   usageEvents: usageEvents,
   usageThreshold: USAGE_THRESHOLD,
   selfLearning: 'recall@Step0 + teach@Step8 (mandatory)',
@@ -4032,9 +4823,16 @@ return {
   crossFamilyQe: crossFamilyQeReport,
   qeReportWritten: (qe && typeof qe.qeReportWritten === 'boolean') ? qe.qeReportWritten : null,
   claimGate: claimGate,
+  confirmationFileGate: confirmationFileGate,
   autoCost: Object.keys(AUTOCOST).length ? AUTOCOST : null,
   // P4 (checkpoint-gate-line): DERIVED gate map for the final banner — from actual run state, never prose.
   gates: finalGates,
   delivery: delivery,
   promiseTags: tags,
+}
+} finally {
+  if (finishRunRegistry) {
+    try { await finishRunRegistry() }
+    catch (error) { registryOutcome = 'unverified'; log('run registry: finished UNVERIFIED — ' + String(error)) }
+  }
 }

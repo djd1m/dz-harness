@@ -53,11 +53,14 @@ export type RunnerSelection = {
     readonly command: 'npx vitest run';
     readonly runnerName: 'vitest';
     readonly how: 'scripts.test' | 'dev-dependency';
+    /** Сегменты составного `scripts.test`, которые НЕ будут выполнены. См. `selectRunner`. */
+    readonly skippedPreparation?: readonly string[];
 } | {
     readonly kind: 'node-test';
     readonly command: 'node --test';
     readonly runnerName: 'node --test';
     readonly how: 'scripts.test';
+    readonly skippedPreparation?: readonly string[];
 } | {
     readonly kind: 'unsupported';
     readonly runnerName: string;
@@ -72,7 +75,17 @@ export type PlannedRunnerSelection = RunnerSelection | {
 export interface BaseRefResolution {
     readonly requestedRef: string;
     readonly resolvedRef: string;
-    readonly how: 'explicit-ref' | 'merge-base';
+    /**
+     * WHERE THE BASE CAME FROM, and it is part of the evidence, not decoration.
+     *
+     * `explicit-ref` is a claim about a HUMAN action — someone typed `--base <ref>`. It used to be
+     * written for a HEAD the tool had chosen by itself, so a receipt could not distinguish a base
+     * that was audited from one that was defaulted (MEASURED 2026-09-04:
+     * `resolveDiscriminationBaseRef('HEAD')` and `resolveDiscriminationBaseRef('abc123^')` returned
+     * the same `how`). This gate's whole output is cited later as proof; a receipt that overstates
+     * how its base was chosen forges the provenance of that proof.
+     */
+    readonly how: 'explicit-ref' | 'merge-base' | 'default-ref';
 }
 /**
  * Select one of the two runner families this instrument can measure honestly.
@@ -83,11 +96,23 @@ export interface BaseRefResolution {
  * command template below.
  */
 export declare function selectRunner(scriptsTest: string | null, devDeps: readonly string[]): RunnerSelection;
-/** Resolve an audited pre-feature ref supplied by the executor. HEAD never wins over a merge-base. */
-export declare function resolveDiscriminationBaseRef(requestedRef: string, mergeBaseRef?: string): BaseRefResolution;
+/**
+ * Resolve an audited pre-feature ref supplied by the executor. HEAD never wins over a merge-base.
+ *
+ * `supplied` says whether a human passed `--base`. When it is UNKNOWN, a bare `HEAD` is labelled
+ * `default-head`: the fail-safe direction is to UNDERSTATE provenance, never to overstate it — a
+ * receipt claiming human audit is the one a later reader will cite as proof.
+ */
+export declare function resolveDiscriminationBaseRef(requestedRef: string, mergeBaseRef?: string, supplied?: boolean): BaseRefResolution;
 export interface DiscriminationPlanInput {
     /** the git ref of pre-feature HEAD — the "base" the property test must fail against. */
     readonly baseRef: string;
+    /**
+     * Did a human pass `--base`? Carried so the receipt can say WHERE the base came from. Absent
+     * reads as "not supplied" for a bare HEAD, which understates provenance rather than claiming an
+     * audit that may not have happened.
+     */
+    readonly baseRefSupplied?: boolean;
     /** merge-base already measured by the executor; mandatory to displace a sweeping HEAD. */
     readonly mergeBaseRef?: string;
     /** property test(s) mapped from the ADR Confirmation. Empty ⇒ CANNOT_ISOLATE. */

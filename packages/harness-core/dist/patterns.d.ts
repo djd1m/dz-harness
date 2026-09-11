@@ -40,6 +40,29 @@ export interface PatternRecord {
     readonly lessonPairId?: string;
     /** Read-model companion; derived from the linked class row, never persisted on this row. */
     readonly classForm?: string;
+    /**
+     * Address of this record IN THE STORE IT CAME FROM — `MemoryRecord.id`, carried so that
+     * `dz recall --forget` / `--promote` can be driven from `dz recall --all --json`, which their own
+     * help text already tells the reader to use. Deriving it instead is the trap `cmdRecallForget`
+     * already warns about: MEASURED on this store, `patternRecordId(recordToPattern(r))` reproduces
+     * the id for 535 of 537 records and hands a plausible WRONG address for the other two (a
+     * `dream:`-written row and one on an older scheme) — and a wrong id makes `--forget` report
+     * success while deleting nothing. So the id travels rather than being recomputed.
+     *
+     * VALID ONLY IN THE ISSUING STORE. `dz teach --from-json` must never adopt it: an id names a
+     * DIFFERENT record on the receiving machine, so an adopted id would point `--forget` at the wrong
+     * lesson. The importer builds its candidate from named fields (never a spread), and a test pins
+     * that — the property is what keeps the portable export safe to accept from anyone.
+     */
+    readonly dzId?: string;
+    /**
+     * Quarantine marker (feature lesson-quarantine): the lesson is a HYPOTHESIS, not knowledge.
+     * Present ONLY when true — absence means promoted, matching `readQuarantineState`'s AM-1
+     * fail-safe, so a missing field is never read as a claim about the record. Carried because
+     * `--promote` addresses exactly the quarantined rows and had no way to name them from an export.
+     * Like `dzId`, it is a fact about the ISSUING store and is not adopted on import.
+     */
+    readonly quarantined?: boolean;
 }
 /** A session lifecycle event as written by the session hooks to `.dz/sessions.jsonl`. */
 export interface SessionRecord {
@@ -174,6 +197,11 @@ export declare function encodeReinforcementState(state: ReinforcementState): Rec
  * vector tier's backfill diff + dzId→record resolution surface. Graceful: `[]` on any failure.
  */
 export declare function loadStoreRecords(projectRoot: string): MemoryRecord[];
+/** Find the earliest lesson whose normalized text and optional domain match exactly. */
+export declare function findExactLesson(records: readonly MemoryRecord[], text: string, domain?: string): {
+    id: string;
+    quarantined: boolean;
+} | null;
 export interface ReinforcePatternResult {
     readonly ok: boolean;
     readonly dzId?: string;

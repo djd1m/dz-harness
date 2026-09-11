@@ -183,6 +183,21 @@ const REPRODUCER_HINTS = [
     'npm test', 'vitest', 'npm run', 'git rev', 'commit',
     'test output', 'coverage report', 'measured on',
 ];
+/**
+ * ЯКОРЬ СТРАНИЦЫ ПЕРВОИСТОЧНИКА — ЭТО ПРОВЕНАНС, а не украшение.
+ *
+ * Числу, взятому из книги, страница даёт то же, что репродьюсер даёт измерению: адрес, по которому
+ * его можно проверить. Требовать рядом `MEASURED` бессмысленно — мы ничего не мерили, мы
+ * процитировали; а `CLAIMED` было бы слабее правды, потому что источник НАЗВАН точнее, чем словом.
+ *
+ * ИЗМЕРЕНО 2026-09-04 на книжных пакетах: 333 находки, из них 86 несут якорь на самой строке и ещё
+ * 58 — в абзаце, то есть 144 из 333 (43%) — ложные. Их цена не в них самих: автор, видящий звон на
+ * каждую цитату, перестаёт реагировать на сигнализацию, и она пропустит настоящую находку.
+ *
+ * ГРАНИЦА ОСЛАБЛЕНИЯ, названная явно: якорь снимает требование ТЕГА и ничего больше. Утверждение
+ * «идеальная точность / 100%» он НЕ лицензирует — та ветка стоит выше и до якоря не доходит.
+ */
+const PAGE_ANCHOR_RE = /\[\s*(?:p|pp|с|стр)\.?\s?\d+/i;
 const PERCENT_RE = /\b(\d{1,3}(?:\.\d+)?)\s?%/g;
 // "perfect" / "100%" framing is the specific retracted claim — always high severity.
 // NOTE: no trailing \b after "%": "%"→" " is non-word→non-word, so a trailing \b
@@ -259,8 +274,15 @@ export function claimCheck(text) {
         // number and is not a taggable claim (ADR-263 F11).
         if (!hasPercent && !HAS_NUMBER_RE.test(lower.replace(LABEL_TOKEN_RE, ' ')))
             return;
-        // A metric/percent with no honesty tag at all.
-        if (!tagged) {
+        // A metric/percent with no honesty tag at all — unless the paragraph carries a SOURCE PAGE
+        // anchor, which is provenance of a different and stricter kind (see PAGE_ANCHOR_RE).
+        // ЯКОРЬ НЕ ЛИЦЕНЗИРУЕТ РАМКУ «ИДЕАЛЬНО / 100%» — и проверяется это по ФОРМЕ строки, а не по
+        // ветке `perfect` выше: та требует РАСПОЗНАННОГО метрического слова, а словарь метрик
+        // англоязычный. Русское «100% точности [p.77]» до этой оговорки уходило в тишину: ветка
+        // `perfect` его не видела, а якорь снимал требование тега. Поймано СВОИМ ЖЕ тестом.
+        const perfectShape = PERFECT_WORD_RE.test(line) || PERFECT_PCT_RE.test(line);
+        const pageAnchored = PAGE_ANCHOR_RE.test(para) && !perfectShape;
+        if (!tagged && !pageAnchored) {
             findings.push({
                 severity: 'medium',
                 line: i + 1,

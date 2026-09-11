@@ -22,6 +22,7 @@ import {
 import { dirname, join, resolve } from 'node:path';
 
 import { withNamedLockSync } from './named-lock.js';
+import { isRepoBoundary } from './repo-boundary.js';
 
 export const CMD_USAGE_LOG_RELATIVE = '.dz/cmd-usage.jsonl';
 export const CMD_USAGE_LOG_MAX_BYTES = 1_048_576;
@@ -154,18 +155,48 @@ interface RuleUsage {
   readonly outOfRange: number;
 }
 
+const REPO_BOUNDARY_IO = {
+  exists: (path: string): boolean => existsSync(path),
+  isDirectory: (path: string): boolean => {
+    try { return statSync(path).isDirectory(); } catch { return false; }
+  },
+  readText: (path: string): string | null => {
+    try { return readFileSync(path, 'utf8'); } catch { return null; }
+  },
+};
+
 /** Walk up to the nearest `.dz` directory without ever making telemetry throw. */
 export function resolveCmdUsageRoot(startDir: string): string {
   try {
     let dir = resolve(startDir);
+    let nearestStore: string | null = null;
     for (let level = 0; level < 64; level += 1) {
-      try {
-        if (statSync(join(dir, '.dz')).isDirectory()) return dir;
-      } catch {
-        /* not here; keep walking */
+      // Ближайший `.dz` запоминается, но НЕ возвращается сразу — см. объяснение ниже.
+      if (nearestStore === null) {
+        try {
+          if (statSync(join(dir, '.dz')).isDirectory()) nearestStore = dir;
+        } catch { /* not here; keep walking */ }
+      }
+      // ГРАНИЦА РЕПОЗИТОРИЯ ВЫИГРЫВАЕТ У БЛИЖАЙШЕГО СКЛАДА, и вот почему.
+      //
+      // ИЗМЕРЕНО 2026-09-03: прогон `dz`, чей рабочий каталог оказался внутри пакета, создал там
+      // `.dz/` — и с того момента поиск останавливался на нём. Итог: 1149 записей об использовании
+      // команд уехали в склад внутри пакета вместо корневого, где их 17 265. Журнал разошёлся
+      // надвое молча, и обнаружил это только тест, требовавший корень монорепо.
+      //
+      // Тот же класс, что чинился в p-replicator неделей раньше, но зеркально: там поиск шёл ВЫШЕ
+      // границы репозитория, здесь останавливается НИЖЕ неё. Общее правило одно — у поиска корня
+      // должна быть НАЗВАННАЯ граница, а не первое попавшееся совпадение.
+      const atBoundary = isRepoBoundary(dir, REPO_BOUNDARY_IO, join)
+        || existsSync(join(dir, 'pnpm-workspace.yaml'));
+      if (atBoundary) {
+        try {
+          if (statSync(join(dir, '.dz')).isDirectory()) return dir;
+        } catch { /* граница без склада — отдаём ближайший найденный */ }
+        return nearestStore ?? startDir;
       }
       const parent = dirname(dir);
-      if (parent === dir) return startDir;
+      if (parent === dir) return nearestStore ?? startDir;
       dir = parent;
     }
   } catch {

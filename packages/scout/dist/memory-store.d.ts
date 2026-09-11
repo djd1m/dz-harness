@@ -28,7 +28,15 @@ export interface ScanRecord {
 /** Diff between two scans. */
 export interface ScanDiff {
     readonly newRepos: readonly RepoProfile[];
+    /**
+     * Записи, которых сегодня НЕ ВИДНО, и только у источников, которые ОТВЕТИЛИ.
+     *
+     * Пусто и `goneOmittedReason` заполнено ⇒ исчезновения не выводились вовсе. Это не то же самое,
+     * что «ничего не пропало»: различие несущее, и потому оно выражено полем, а не догадкой.
+     */
     readonly goneRepos: readonly string[];
+    /** Почему исчезновения не выводились. Отсутствует, когда они выводились. */
+    readonly goneOmittedReason?: string;
     readonly changedScore: readonly {
         fullName: string;
         oldScore: number;
@@ -71,7 +79,19 @@ export declare class ScoutMemory {
     /** Record a user decision for a repo (integrate/monitor/skip). */
     recordDecision(fullName: string, decision: string): void;
     /** Compute diff between current scan and stored history. */
-    diff(currentRepos: readonly RepoProfile[]): ScanDiff;
+    /**
+     * Разность с прошлым прогоном.
+     *
+     * `health` — состояние КАЖДОГО источника в этом прогоне (`statusBySource` из `scanAllSources`).
+     * Без него исчезновения НЕ ВЫВОДЯТСЯ ВООБЩЕ, и причина возвращается полем: отличить «пропало из
+     * мира» от «источник сегодня не ответил» без состояния источников НЕЛЬЗЯ, а показывать первое
+     * вместо второго значит печатать ложь под видом наблюдения. Прежняя редакция делала ровно это —
+     * считала исчезнувшим всё, чего нет в выборке.
+     *
+     * Отказ по умолчанию выбран сознательно: старый вызывающий, не передавший состояние, получает
+     * ПУСТУЮ корзину с названной причиной, а не прежнюю ложь.
+     */
+    diff(currentRepos: readonly RepoProfile[], health?: Readonly<Record<string, string>>): ScanDiff;
     /** Save last report for offline access. */
     saveReport(report: IntelligenceReport): void;
     /** Load last saved report. Returns null if none. */

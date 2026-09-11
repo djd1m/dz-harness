@@ -243,17 +243,34 @@ test('footer: default channel links (t.me/llm_notes + aicoding.space) are emitte
   assert.doesNotMatch(v.stdout, /external load/);
 });
 
-test('footer: course.footer.links overrides the defaults', () => {
+test('footer: authored links EXTEND the site links, they never replace them', () => {
+  // КОНТРАКТ ИЗМЕНИЛСЯ 2026-09-02, а этот набор остался на прежнем и держал пакет красным.
+  // Прежняя редакция утверждала «course.footer.links ЗАМЕЩАЕТ умолчания». Причина смены записана в
+  // самом рендерере и измерена: шесть курсов из восьми в одной партии завели свой футер и КАЖДЫЙ
+  // молча выронил ссылки на канал и сайт, потому что поведение было «или-или». Ссылки площадки —
+  // личность САЙТА, а не украшение курса, и курс не может от них отписаться.
   const dir = tmp();
   const course = { ...compliantCourse(), footer: { links: [{ label: 'My site', href: 'https://example.org' }] } };
   const { out, res } = render(dir, course);
   assert.equal(res.status, 0, res.stderr);
   const html = readFileSync(out, 'utf-8');
-  assert.match(html, /href="https:\/\/example\.org"/);
-  assert.doesNotMatch(html, /t\.me\/llm_notes/);
+  assert.match(html, /href="https:\/\/example\.org"/, 'авторская ссылка обязана попасть на страницу');
+  assert.match(html, /t\.me\/llm_notes/, 'ссылка площадки обязана ПЕРЕЖИТЬ авторский футер');
+  assert.match(html, /aicoding\.space/);
 });
 
-test('footer: a javascript:/http: link never reaches the page, and an all-invalid override fails verify loudly', () => {
+test('footer: an author who repeats a site link by hand does not get it twice', () => {
+  // Дубликаты снимаются по href — иначе честная попытка «сохраню ссылки, добавлю свою» давала бы
+  // футер с двумя одинаковыми пунктами.
+  const dir = tmp();
+  const course = { ...compliantCourse(), footer: { links: [{ label: 'Telegram again', href: 'https://t.me/llm_notes' }] } };
+  const { out, res } = render(dir, course);
+  assert.equal(res.status, 0, res.stderr);
+  const html = readFileSync(out, 'utf-8');
+  assert.equal((html.match(/href="https:\/\/t\.me\/llm_notes"/g) || []).length, 1);
+});
+
+test('footer: a javascript:/http: link never reaches the page, and the site links survive an all-invalid override', () => {
   const dir = tmp();
   const course = { ...compliantCourse(), footer: { links: [{ label: 'evil', href: 'javascript:alert(1)' }, { label: 'plain', href: 'http://insecure.example' }] } };
   const { out, res } = render(dir, course);
@@ -262,9 +279,26 @@ test('footer: a javascript:/http: link never reaches the page, and an all-invali
   // курс целиком лежит инертным JSON-блоком в странице, поэтому проверяем ССЫЛКИ (href=), не весь текст
   assert.doesNotMatch(html, /href="javascript:/);
   assert.doesNotMatch(html, /href="http:\/\/insecure\.example/);
+  // Всё авторское отфильтровано — но футер НЕ пуст: ссылки площадки на месте, и verify проходит.
+  assert.match(html, /t\.me\/llm_notes/);
   const v = run(VERIFY, ['--site', out]);
-  // всё отфильтровано → пустой футер → footer.renders обязан упасть, а не молча пройти
-  assert.notEqual(v.status, 0, 'verify must fail loudly on a footer with zero valid links');
+  assert.equal(v.status, 0, v.stdout + v.stderr);
+  assert.match(v.stdout, /footer\.renders/);
+});
+
+test('footer: ПУСТОЙ футер всё равно валит verify громко — свойство не потерялось со сменой контракта', () => {
+  // Через авторский футер пустоты теперь не добиться, и без этого теста свойство «футер без ссылок
+  // — это отказ» перестало бы проверяться вообще. Пустоту строим прямо в отрендеренной странице:
+  // проверяется ВЕРИФИКАТОР, а не путь, которым пустота возникла.
+  const dir = tmp();
+  const { out, res } = render(dir, compliantCourse());
+  assert.equal(res.status, 0, res.stderr);
+  const html = readFileSync(out, 'utf-8');
+  const emptied = html.replace(/<footer id="site-footer">[\s\S]*?<\/footer>/, '<footer id="site-footer"></footer>');
+  assert.notEqual(emptied, html, 'подмена обязана лечь — иначе тест проверяет не то, что думает');
+  writeFileSync(out, emptied);
+  const v = run(VERIFY, ['--site', out]);
+  assert.notEqual(v.status, 0, 'verify must fail loudly on a footer with zero links');
   assert.match(v.stdout, /footer\.renders/);
 });
 

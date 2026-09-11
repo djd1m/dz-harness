@@ -90,7 +90,7 @@ export function decideUsageAction(prevOverride, signal, threshold) {
 }
 // ── Data tables (data-only extensibility — gpt-5.6-ready) ───────────────────
 /** Known codex ids. Adding a new id (e.g. `'gpt-5.7'`) is a DATA-ONLY change. */
-export const KNOWN_CODEX = { auto: 1, 'gpt-5.5': 1, 'gpt-5.6': 1, 'gpt-5.6-luna': 1, 'gpt-5.6-terra': 1, 'gpt-5.6-sol': 1 };
+export const KNOWN_CODEX = { auto: 1, 'gpt-5.5': 1, 'gpt-5.6': 1, 'gpt-5.6-luna': 1, 'gpt-5.6-terra': 1, 'gpt-5.6-sol': 1, 'gpt-6-astra': 1 };
 /**
  * Capability tiers are routing data, separate from {@link KNOWN_CODEX}'s spellability role.
  * The allowlist is not an availability check — probe every id before every run
@@ -98,6 +98,9 @@ export const KNOWN_CODEX = { auto: 1, 'gpt-5.5': 1, 'gpt-5.6': 1, 'gpt-5.6-luna'
  * timescale of days (probed 2026-08-18: 3 ids HTTP 400; probed 2026-08-29: all 3 exit 0).
  */
 export const CODEX_TIERS = {
+    // Astra is the premium tier for consequential decisions; Sol remains the flagship.
+    // The owner's live probe (2026-09-09) confirmed gpt-6-astra, not gpt-5.6-astra.
+    premium: 'gpt-6-astra',
     flagship: 'gpt-5.6-sol',
     workhorse: 'gpt-5.6-terra',
     'high-volume': 'gpt-5.6-luna',
@@ -203,16 +206,20 @@ export function budgetTable(primary, mode, env) {
     }
     else {
         const normal = mode.codex === 'normal';
-        const design = codexCell(normal ? 'flagship' : 'workhorse', normal ? 'high' : 'medium', env);
+        const largePlan = env.complexityTier === 'L' || env.complexityTier === 'XL';
+        const work = codexCell(normal ? 'flagship' : 'workhorse', 'high', env);
+        const evidence = codexCell(normal ? 'workhorse' : 'high-volume', 'medium', env);
         codexHalf = {
-            requirements: design,
-            research: design,
-            adr: design,
-            ideation: design,
-            ddd: design,
-            architecture: design,
-            plan: codexCell(normal ? 'flagship' : 'workhorse', normal ? 'high' : 'low', env),
-            code: codexCell(normal ? 'flagship' : 'workhorse', 'medium', env),
+            router: evidence,
+            requirements: codexCell(normal ? 'flagship' : 'workhorse', 'medium', env),
+            research: evidence,
+            adr: codexCell(normal ? 'premium' : 'flagship', 'high', env),
+            ideation: work,
+            ddd: work,
+            architecture: codexCell(normal ? 'premium' : 'flagship', 'high', env),
+            plan: largePlan ? codexCell(normal ? 'premium' : 'flagship', 'high', env) : work,
+            code: work,
+            fleet: work,
         };
     }
     return { ...claudeHalf, ...codexHalf };
@@ -365,34 +372,191 @@ export function qeShouldUseCodex(env) {
  *   4. `code`/`qe` `null` sentinels resolve via the coder / cross-model rules
  */
 export function resolveStageModel(stage, env) {
+    return resolveStageDecision(stage, env).opts;
+}
+/**
+ * The CLOSED vocabulary of the stage announcement line (historical feature name
+ * stage-line-before-dispatch, ADR-001). Exported as a VALUE so a widened union fails a test rather than passing silently — a
+ * type-only union is invisible at runtime. TWENTY members in three groups:
+ *
+ *  1-8   RESOLVER BRANCHES — the branch of `resolveStageDecision` that chose the spec.
+ *  9-10  SPEC DEGRADATIONS — the two ways `specToOpts` cannot use what a branch chose (an unknown
+ *        codex id substituted for `CODEX_MODEL`; an unrecognised name falling back to
+ *        session-inherited). They evaluate LAST and therefore WIN the label: that the model named
+ *        by the branch is not the model that will run is the one fact the line must never hide.
+ *  11-20 DISPATCH OVERRIDES — facts a PURE resolve cannot know, emitted only by the workflow at the
+ *        dispatch site, and the reason the count grew from ten (cross-family review of 3fc406db):
+ *          `coder-fallback`                — the codex-fallback LADDER, not the resolver, decides
+ *            which family runs first: the resolver picks Codex, the runtime tries Claude first and
+ *            only reaches Codex if Claude returns null. Each rung is a real dispatch and gets its
+ *            own line, so the reader is never told Codex is running while Claude is.
+ *          `codex-unsupported-at-dispatch` — the stage refuses the codex wrapper outright (a
+ *            data-returning stage; the wrapper stubs, per the codex-routing-honesty ADR), so a
+ *            resolved codex spec is discarded and the dispatch runs Claude.
+ *          `fallback-after-no-deliverable`  — a previous RUNG of this stage ran and produced nothing
+ *            usable (a Codex plan/design artifact that never landed; a Codex reviewer that returned
+ *            no verdict), so the next rung dispatches. Each rung is a real dispatch and is announced
+ *            on its own, because `modelsUsed` was already being rewritten there and the line was not.
+ *          `precision-second-pass`          — the optional A-normal L/XL Claude precision reviewer that
+ *            runs AFTER the recall-oriented primary QE pass. It is a separate dispatch with its own
+ *            `modelsUsed.qe2` entry, chosen by `qePrecisionPassSpec`, not by the stage resolver.
+ *          `qe-same-family-degraded`         — the QE branch resolved a reviewer of the SAME family as
+ *            the coder. It happens when the coder is Claude and codex is unavailable: `resolveQeSpec`
+ *            falls back to Claude `opus` rather than blocking, so cross-family review is LOST at that
+ *            moment. The branch used to emit `qe-cross-family` regardless, and the line then claimed
+ *            "the coder never self-reviews" about a Claude-on-Claude review. The reason is now DERIVED
+ *            from the resolved families, never assumed from the branch.
+ *          `challenge-panel`                — the Step-6 adversarial plan gate. Its adversary is chosen
+ *            as the OTHER family than the plan's AUTHOR, and its cross-validator re-checks the
+ *            findings; both are substantive model reviews that decide the gate's verdict, not probes.
+ *          `codex-refused-before-dispatch`   — an id ANSWERED the probe, but the rung then declined to
+ *            build a dispatch at all: an unusable review scope ref (`codexReviewCommand` returns
+ *            `cmd:null`), an unsafe id at command-build time, or a declined exec plan. No agent ran,
+ *            so the next rung is NOT a `fallback-after-no-deliverable` — that reason asserts a rung
+ *            RAN and produced nothing, which is a false dispatch claim. Rounds 16-17 modelled this
+ *            outcome with a BOOLEAN `probeFailed`, whose else-branch swallowed every non-probe
+ *            refusal into the "it ran" bucket; the outcome is three-valued and is now carried as such.
+ *          `codex-probe-failed`             — a DIRECT `agent()` dispatch resolved to codex, but no id
+ *            answered the probe. `safeCodexAgent` refuses by returning null; a direct path has no
+ *            wrapper to return from, so it falls back to Claude and says so rather than dispatching
+ *            an unprobed spec while the line claims a model nothing verified.
+ *          `fallback-rung`                  — the CURRENT attempt is a fallback. The prior attempt's
+ *            exact outcome is emitted on that prior rung's outcome line and is never copied into
+ *            this attempt's intent.
+ *          `auto-cost`                      — learned-cost routing chose this model. `resolveAutoCost`
+ *            REWRITES `args.models[stage]` from the `auto-cost` token to the selected concrete model
+ *            BEFORE the resolver runs, so the explicit-models branch fires and the line would credit
+ *            an operator who never named that model. The selection is recovered from the run's own
+ *            auto-cost ledger, so the line reports the branch that actually decided.
+ *        `resolveStageDecision` NEVER returns ANY of these ten — asserted by its own test. A resolver
+ *        that could emit them would be claiming resolver authority over a runtime fact.
+ */
+export const STAGE_DECISION_REASONS = [
+    'usage-override',
+    'explicit-models',
+    'routing-not-requested',
+    'coder-knob-codex',
+    'planner-knob-codex',
+    'qe-cross-family',
+    'budget-table-cell',
+    'default-models',
+    'codex-id-substituted',
+    'spec-unrecognised',
+    'coder-fallback',
+    'codex-unsupported-at-dispatch',
+    'fallback-after-no-deliverable',
+    'precision-second-pass',
+    'auto-cost',
+    'qe-same-family-degraded',
+    'challenge-panel',
+    'codex-probe-failed',
+    'codex-refused-before-dispatch',
+    'fallback-rung',
+];
+/** The model FAMILY a resolved spec belongs to. */
+export function specFamily(spec) {
+    return (spec && String(spec).split(':')[0] === 'codex') ? 'codex' : 'claude';
+}
+/**
+ * The QE branch's reason, DERIVED from the families that actually resolved rather than assumed from
+ * the branch. `resolveQeSpec` degrades to a Claude reviewer when codex is unavailable (it must never
+ * block), and a Claude coder then gets a Claude reviewer — cross-family review is lost, and saying
+ * otherwise would assert the one property that just failed.
+ */
+export function qeReasonForFamilies(coderCodex, qeSpec) {
+    if (specFamily(qeSpec) === (coderCodex ? 'codex' : 'claude'))
+        return 'qe-same-family-degraded';
+    return 'qe-cross-family';
+}
+/** The compact spec that `opts` actually represents. Inverse of `specToOpts` over the applied opts. */
+export function effectiveSpec(opts) {
+    if (opts && opts.agentType === 'codex:codex-rescue')
+        return 'codex:' + opts.codexModel + ':' + opts._reasoning;
+    if (opts && opts.model)
+        return opts.model;
+    return null;
+}
+/**
+ * Did `specToOpts` DEGRADE this spec? It NAMES what specToOpts already did — it changes nothing.
+ *
+ * The codex arm compares the EFFECTIVE id against the REQUESTED one rather than re-deriving the
+ * condition. MEASURED 2026-09-05: re-deriving claimed a substitution whenever the requested id was
+ * unknown — but `specToOpts` replaces it with `CODEX_MODEL`, and when that default is ITSELF unknown
+ * the replacement is the same string. A sweep over 11 stages x 4 specs x 4 defaults found 22 such
+ * outcomes, each announcing a substitution while dispatching the very id the operator asked for.
+ * Comparing the applied value cannot make that mistake.
+ */
+function specDegradation(spec, opts, env) {
+    if (!spec)
+        return null;
+    const parts = String(spec).split(':');
+    const head = parts[0] || '';
+    if (head === 'codex') {
+        const requested = parts[1] || env.CODEX_MODEL;
+        if (opts.codexModel !== requested)
+            return 'codex-id-substituted';
+        return null;
+    }
+    if (!CLAUDE_NAMES[head])
+        return 'spec-unrecognised';
+    return null;
+}
+/** Wrap resolved opts into a decision, letting a spec DEGRADATION rename the branch (see above). */
+function decisionFor(base, spec, opts, env) {
+    const deg = specDegradation(spec, opts, env);
+    if (deg !== null)
+        return { opts: opts, spec: effectiveSpec(opts), reason: deg };
+    return { opts: opts, spec: effectiveSpec(opts), reason: base };
+}
+/** The two `null` SENTINEL fall-throughs (`code`/`qe` whose chosen spec is `null` ⇒ derive it),
+ * shared by the explicit-models and table paths so the branch that CHOSE the spec keeps the label. */
+function decideFromSpec(base, stage, spec, env) {
+    if (stage === 'code' && (spec === null || spec === undefined)) {
+        const s = resolveCoderSpec(env);
+        return decisionFor(base, s, specToOpts(s, env), env);
+    }
+    if (stage === 'qe' && (spec === null || spec === undefined)) {
+        const s = resolveQeSpec(env);
+        return decisionFor(base, s, specToOpts(s, env), env);
+    }
+    return decisionFor(base, spec, specToOpts(spec, env), env);
+}
+/**
+ * Resolve a stage to its `agent()` opts fragment AND the branch that decided it (ADR-001: the
+ * reason lives where the decision is made — otherwise it is a copy, and copies drift).
+ * `resolveStageModel` is now a thin wrapper over `.opts`, so the opts are byte-identical by
+ * construction, not by a second reading of the same rules.
+ */
+export function resolveStageDecision(stage, env) {
     if (env.usageOverride) {
         const r = (env.usageReasoning && env.usageReasoning[stage]) || STAGE_EFFORT.override[stage] || 'medium';
-        const o = specToOpts('codex:' + topCodexId(env) + ':' + r, env);
+        const s = 'codex:' + topCodexId(env) + ':' + r;
+        const o = specToOpts(s, env);
         o._usageSwitched = true;
-        return o;
+        return decisionFor('usage-override', s, o, env);
     }
-    let spec = env.MODELS[stage];
-    if (spec === undefined) {
-        if (!routingRequested(env))
-            return {};
-        if (stage === 'code' && (env.CODER === 'codex' || env.CODER === 'codex-fallback')) {
-            return specToOpts(resolveCoderSpec(env), env);
-        }
-        if (stage === 'plan' && env.PLANNER === 'codex') {
-            return specToOpts('codex:' + env.CODEX_MODEL + ':high', env);
-        }
-        if (stage === 'qe') {
-            return specToOpts(resolveQeSpec(env), env);
-        }
-        const resolvedPrimary = env.primary || 'claude';
-        const cell = budgetTable(resolvedPrimary, resolveBudgetMode(env.budget), env)[stage];
-        spec = cell !== undefined ? cell : DEFAULT_MODELS[stage];
+    const spec = env.MODELS[stage];
+    if (spec !== undefined)
+        return decideFromSpec('explicit-models', stage, spec, env);
+    if (!routingRequested(env))
+        return { opts: {}, spec: null, reason: 'routing-not-requested' };
+    if (stage === 'code' && (env.CODER === 'codex' || env.CODER === 'codex-fallback')) {
+        const s = resolveCoderSpec(env);
+        return decisionFor('coder-knob-codex', s, specToOpts(s, env), env);
     }
-    if (stage === 'code' && (spec === null || spec === undefined))
-        return specToOpts(resolveCoderSpec(env), env);
-    if (stage === 'qe' && (spec === null || spec === undefined))
-        return specToOpts(resolveQeSpec(env), env);
-    return specToOpts(spec, env);
+    if (stage === 'plan' && env.PLANNER === 'codex') {
+        const s = 'codex:' + env.CODEX_MODEL + ':high';
+        return decisionFor('planner-knob-codex', s, specToOpts(s, env), env);
+    }
+    if (stage === 'qe') {
+        const s = resolveQeSpec(env);
+        return decisionFor(qeReasonForFamilies(coderIsCodex(env), s), s, specToOpts(s, env), env);
+    }
+    const resolvedPrimary = env.primary || 'claude';
+    const cell = budgetTable(resolvedPrimary, resolveBudgetMode(env.budget), env)[stage];
+    if (cell !== undefined)
+        return decideFromSpec('budget-table-cell', stage, cell, env);
+    return decideFromSpec('default-models', stage, DEFAULT_MODELS[stage], env);
 }
 /**
  * Does a DESIGN/PLAN stage (one that writes an artifact FILE a later stage then reads) need a
@@ -1191,9 +1355,18 @@ export function codexExecPlan(input) {
     }
     return { mode: 'exec', reason: 'codex exec on ' + input.probedId };
 }
-/** A model id is user input (`args.codexModel`) and lands in a shell command. Shell-safe ids only. */
+/**
+ * A model id is user input (`args.codexModel`) and lands in a shell command. Shell-safe ids only.
+ *
+ * The `typeof` guard is LOAD-BEARING, not defensive noise (MEASURED 2026-09-05 while building the
+ * concurrent-probe test): `RegExp.test` coerces, so `test(null)` tested the string `'null'` — which
+ * matches this very pattern. `safeCodexAgent` passes `null` for the default `codexModel: 'auto'`, so
+ * the probe ladder collapsed from `[flagship, gpt-5.5]` to the single literal id `"null"`, asked for
+ * a model that cannot exist, and reported Codex UNAVAILABLE on the default path. Every 'auto' codex
+ * route silently degraded to Claude, for a reason nothing in the run could show.
+ */
 export function isSafeCodexId(id) {
-    return /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(id);
+    return typeof id === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/.test(id);
 }
 /**
  * A liveness probe. The allowlist says a name is spellable; only this says it answers.

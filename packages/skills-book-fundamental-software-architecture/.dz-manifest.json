@@ -9,11 +9,11 @@
       },
       {
         "path": "LICENSE",
-        "sha256": "27ddc8b3d203cd1e6c312476849f6ddc2a5835e30d3bd4202d52dfdffc536a5e"
+        "sha256": "dd354011ab5ad0da66edc70726c95c30a5e8df0e3eb2dd58d806c9544cdb55c6"
       },
       {
         "path": "README.md",
-        "sha256": "45c0829fbd1f1c3ec5c2c2a6a611a2676e2902c937e003da57086bb70e54c661"
+        "sha256": "4476ec908e614ba706db2b1badabd17bff61a954024f382dc5b50c96dba89459"
       },
       {
         "path": "brain/fundamental-software-architecture.sqlite",
@@ -157,7 +157,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "04ca80d964f6c9d60e73af671e82d112eae6dabda1cee5736377f1d800f67a21"
+        "sha256": "7d490ff83cdbaf5907bac1520f53b2fd819d7cf40dcc03ccd1a4a70e5be9b6a5"
       },
       {
         "path": "route-manifest.json",
@@ -177,5 +177,5 @@
       }
     ]
   },
-  "signature": "Qc1V8VyQQsj8G/5wUzbYkD0TerGJ7XsOcvRyZqwUHePu8UwegnSi1H5IfWsv7MYBC3REDrFY78VSHUN+FSeXAQ=="
+  "signature": "enwH5hdjEGSkW0qeQyFTPNqOzXtTdGdC6Mi2nEpcGOMMZVqCn/HJktoOvpu6bPnDBftf3rk5lSWLnbUQRJyyDw=="
 }

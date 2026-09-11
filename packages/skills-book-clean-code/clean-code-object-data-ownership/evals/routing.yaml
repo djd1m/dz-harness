@@ -1,0 +1,5 @@
+positives: ["Object or data structure here?","Which class owns this method?","Move behavior to natural owner","Извлеки ответственность из класса","Remove train-wreck access","Rename an implementation-centric abstraction to reveal its local ownership or representation contract","Для расчёта по данным заказа реши, должен ли он жить в Order или PriceBreakdown с учётом данных и причины изменения","Скрыть внутреннее представление","Choose DTO or domain object","Проверь связность класса"]
+hard_negatives:
+  - {prompt: "Where is the composition root?", owner: clean-code-architecture-assembly}
+  - {prompt: "Choose a system architecture style", owner: fundamental-software-architecture-guide}
+  - {prompt: "Assess this design against generic SOLID principles", owner: solid}

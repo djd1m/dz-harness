@@ -11,11 +11,14 @@ import { request as httpsRequest } from 'node:https';
 import { KNOWN_CLI_FLAGS } from './known-flags.js';
 import { isBooleanFlag } from './boolean-flags.js';
 import { resolveInstallSpec } from './install-spec.js';
+import { dispatchedCommands, documentedCommands } from './command-inventory.js';
 import { execFile, execFileSync, execSync, spawn, spawnSync, type ChildProcess } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
 import { homedir, hostname, tmpdir } from 'node:os';
 import { createRequire } from 'node:module';
 import { isDeepStrictEqual } from 'node:util';
+import { JOURNAL_KINDS, formatLine, parseLine, selectWindow, appendWitnessed, type JournalKind, type JournalIo } from '@dzhechkov/harness-core';
+import { appendRunEvent, readRunRegistry, liveParents, liveness, probePid, settleDeadRuns, planRegistryArchive, planWorktreeCleanup, renderCleanupPlan, worktreeRemovalsToApply, type WorktreeFact, type RunEvent } from '@dzhechkov/harness-core';
 
 import {
   createSkill,
@@ -146,8 +149,17 @@ import {
   reindexVectorStore,
   harmonizeVectorStore,
   importRvfCheckpoint,
+  renderFeatureAdrPhaseLine,
   statuslineData,
+  countLearningStoreRowsReadonly,
+  readStoreMark,
+  writeStoreMark,
+  resetStoreMark,
+  checkStoreHealth,
+  storeGuardPath,
+  storeSnapshotPath,
   writeFeatureAdrState,
+  writeFeatureAdrStateDetailed,
   CHECKPOINT_STAGES,
   estimateEta,
   extractStageSamples,
@@ -157,6 +169,9 @@ import {
   type CheckpointStage,
   type EtaEstimate,
   type FeatureAdrState,
+  type StoreHealth,
+  type StoreMark,
+  type StoreCountSnapshot,
   type RunSegment,
   type StageSample,
   computeUsage,
@@ -187,7 +202,11 @@ import {
   patternRecordId,
   patternIdentityOf,
   mergeLessonMatchedForms,
+  SWARM_BRIEF_CONTRACT,
+  checkSwarmBrief,
+  visibleText,
   loadStoreRecords,
+  findExactLesson,
   recordToPattern,
   bundleSkills,
   brainHome,
@@ -219,6 +238,7 @@ import {
   resolveTrustRoot,
   decideVerifyPolicy,
   generateSigningKeypair,
+  appendTransition,
   evaluateGuard,
   resolveRules,
   auditRecord,
@@ -259,6 +279,8 @@ import {
   isInsideTree,
   signManifest,
   verifyManifest,
+  hashPackBytes,
+  rewriteWorkspaceSpecs,
   listPackFiles,
   listSignablePackFiles,
   assertKeyOutsideTree,
@@ -294,12 +316,14 @@ import {
   DEFAULT_RAKE_THRESHOLDS,
   streamSessionEvents,
   findLatestTranscript,
+  resolveScanTailTranscript,
   detectProcessRakes,
   buildRetro,
   renderRetro,
   retroLessonText,
   PROCESS_SIGNATURES,
   RETRO_DOMAIN,
+  runRetroTailScan,
   scanForSetup,
   buildSetupPlan,
   scaffoldFromSpec,
@@ -508,6 +532,8 @@ import {
   planImport,
   decideCheckpointWrite,
   amendmentSection,
+  amendmentSectionCount,
+  amendmentDeclarationAmbiguity,
   planSaysNoAmendments,
   parseAmendments,
   resolveAmendments,
@@ -516,6 +542,7 @@ import {
   amendmentsMissingFromPlan,
   AMENDMENT_VACUITY_NOTE,
   extractContractChecklist,
+  readFeatureTier,
   parseContractVerdictReport,
   verifyContractVerdicts,
   decideSignableSet,
@@ -570,11 +597,36 @@ import type { ProvenanceMode, PackVerdict, ClaudeUsageModel, PatternRecord, Reca
 import { getPreset, PRESET_NAMES } from '@dzhechkov/harness-presets';
 import { scanGitHub, analyzeRepo, generateReport, deepAnalyze, scanAllSources, ScoutMemory } from '@dzhechkov/scout';
 
+/**
+ * Область, по которой гейт дрейфа собирает факты. ПОЛНАЯ, а не только корни установки.
+ *
+ * ПОЧЕМУ. Под областью `installs` сравниваются лишь корни установки (`.claude/skills`,
+ * `.agents/skills` и далее). Навык, чьи копии лежат в РАЗНЫХ корнях — канон в `packages/`, живая
+ * копия в `.claude/skills` — имеет там ОДНУ копию, а одну копию не с чем сравнивать: она
+ * отбрасывается как не дублированная. То есть главный класс расхождения был для гейта невидим.
+ *
+ * ИЗМЕРЕНО 2026-09-03: `brutal-honesty-review` разошёлся ровно так (канон в skills-qe, копия в
+ * бандле p-replicator, живая в .claude/skills), и гейт не мог увидеть это В ПРИНЦИПЕ. Я тогда
+ * написал в отчёте «гейт разблокирован» — он никогда не был на этом заблокирован.
+ *
+ * Узкая область давала 19 дублирующихся навыков, полная даёт 211. Безопасность расширения
+ * проверена ДО правки: с полной областью и списком исключений дрейфа сегодня НОЛЬ.
+ */
+const DRIFT_SWEEP_SCOPE = 'all' as const;
+
+/**
+ * Базовая дата правила `backlog-covers-features`. Каталоги фич, заведённые ДО неё, правило не
+ * трогает: они появились раньше самого правила. ИЗМЕРЕНО 2026-09-03 — без базы правило даёт 236
+ * нарушений из 336 каталогов, и проверка, изобретающая полсотни нарушений в первый день, учит
+ * людей себя игнорировать. Дата = день, когда правило принято владельцем.
+ */
+const BACKLOG_COVERAGE_BASELINE = '2026-09-03';
+
 /** Literal command inventory, pinned against the main dispatch switch by a layer-1 test. */
 export const DZ_COMMANDS: readonly string[] = [
   'init', 'verify', 'sync', 'update', 'list', 'create-skill', 'info', 'scout',
   'workflow', 'workflow-lint', 'workflow-trace', 'migrate', 'doctor', 'install',
-  'bundle', 'teach', 'consolidate', 'recall', 'vector', 'brain', 'statusline',
+  'bundle', 'teach', 'consolidate', 'recall', 'vector', 'brain', 'statusline', 'store-guard',
   'usage', 'claim-check', 'lint', 'sign', 'sbom', 'guard', 'verify-pack', 'setup',
   'pretrain', 'compose', 'diff', 'recommend', 'upgrade', 'auto-canonicalize',
   'publish', 'release', 'parity', 'registry', 'benchmark', 'mcp-scan',
@@ -583,12 +635,15 @@ export const DZ_COMMANDS: readonly string[] = [
   'retro', 'feature-adr-setup', 'challenge', 'discrimination-check',
   'mutation-gate', 'delivery-check', 'skills-verify', 'compounding', 'deadwood',
   'epoch-replay', 'score', 'recap', 'cadence', 'qe-rounds', 'restart-advisor', 'tg-post',
-  'name-check', 'provenance-check', 'feature-adr-record', 'amendment-check', 'contract-check',
+  'name-check', 'brief-check', 'provenance-check', 'journal', 'feature-adr-record', 'runs', 'runs-record', 'runs-clean', 'amendment-check', 'contract-check',
   'feature-adr-checkpoint', 'profile', 'reqe', 'qe-bridge', 'backlog', 'routing',
   'bto-optimize', 'dashboard', 'roam', 'import-ecc', 'chain',
 ];
 
 const USAGE = `dz - DZ cross-platform harness CLI
+  dz runs [--settle] [--stall-minutes N] [--json] [--project <dir>] [--probe-pid <pid>]   (run registry: live, stalled, orphaned, inconclusive or finished; PID probe prints true|false|unknown)
+  dz runs-record --event started|heartbeat|finished [--run-id <id>] [--kind <kind>] [--slug <slug>] [--pid <pid|host>] [--parent-run-id <id>] [--outcome <outcome>] [--reason <text>] [--project <dir>] [--json]   (append run event; started can allocate a run ID; host resolves the Claude ancestor PID)
+  dz runs-clean [--apply] [--retention-days N] [--project <dir>] [--json]   (plan cleanup of old clean merged worktrees and completed/dead registry events; apply explicitly)
 
 Usage:
   dz init   --target <name> [--skills-dir <dir>] [--project <dir>] [--preset <name>] [--select id,id,...] [--force] [--enrich] [--allow-integrations <sha256:digest>] [--no-integrations] [--no-hooks] [--no-verify]   (integration manifests require exact digest consent; --no-integrations = explicit skills-only)
@@ -634,21 +689,23 @@ Usage:
   dz restart-advisor --slug <s> [--threshold C|D] [--rounds N] [--json]   (read-only advisory decision over features/<slug>/.fa-state/checkpoints.jsonl and .dz/fa-training/<slug>/qe.jsonl. Defaults: threshold D, rounds 2 — both origins are printed. Equal sources corroborate; conflicts, torn/unreadable evidence, gaps, and unsafe paths are NOT ESTABLISHED. RECOMMENDATION ONLY: autoAction=false; never invokes feature-adr, deletes a stage, or writes advisor state. exit 0 established recommendation/no-recommendation / 2 NOT ESTABLISHED or invalid input / 1 unexpected runtime failure)
   dz tg-post --draft <file.html> [--manifest <sources.json>] [--channel <@name|id>] [--send --yes] [--night] [--preview] [--json]   (the sender for an APPROVED channel post, per the accepted genai-tweets-channel ADRs: HTML mode only — never MarkdownV2; link preview OFF by default (x.com previews in Telegram are broken); the 00:00-06:00 MSK quiet window refuses without an explicit --night. DEFAULT IS A DRY-RUN: it validates the draft (tag balance, allowed tags, bare &/<, the 4096 visible-character limit with the overshoot counted) and runs the provenance gate over --manifest IN-PROCESS — a draft with no manifest is refused as unchecked, and anything but ALLOWED refuses. A real send needs --send --yes, stating ADR-004's manual-publishing decision out loud each time. The token comes from TELEGRAM_BOT_TOKEN or telegram.tokenFile in .dz/config.json and is never printed. exit 0 sent or clean dry-run / 1 refused or Telegram error / 2 usage)
   dz name-check [--command <n>] [--module <basename>] [--export <a,b>] [--project <dir>] [--json]   (is this name free, BEFORE a line of code? Scans workspace SOURCE — never dist, because a stale build answers 'free' confidently. Checks a dz command name against the dispatcher AND the help block, a module basename against every package's src/, and exported identifiers against every declaration in the workspace. exit 0 all free / 1 at least one taken, naming where / 2 nothing asked or the scan did not run — an empty sweep is never a clean bill. Honest limit, printed on the passing path: it reads declarations, so a re-export under a different name stays the build's job)
+  dz brief-check <file> [--json]   (does a swarm brief declare OUTPUT_DIR, UNITS and ASSEMBLY_UNIT? parsed as DATA, refused by name; verifies the brief DECLARED the contract, not that the agent follows it. exit 0 ok / 1 refused / 2 unreadable)
   dz provenance-check --manifest <sources.json> [--project <dir>] [--json]   (nothing goes out citing a source that may not leave this machine. Checks PROVENANCE, not words: every claim names its source, and only a KNOWN kind that resolves safely is cleared. Repo paths go through 'git -C <root> check-ignore' over the RESOLVED path — a symlink into an ignored directory is REFUSED (git classifies the string and never dereferences, MEASURED), and the verdict does not change with your working directory. Store records must be named in the git-TRACKED provenance-public.json, so declaring one public is a reviewable commit rather than a field inside an ignored store. An undeclared kind is refused, never inferred from the path's shape. exit 0 allowed / 1 blocked / 3 NOT ESTABLISHED — an empty manifest, an unreadable one, or an oracle that did not run is never a pass. It proves what was CITED: it cannot see a paraphrase with no citation, nor confidential text pasted by hand into an allowed file)
   dz project-skills [--project <dir>] [--json] [--stages-json]   (polymorphic feature-adr: resolve architecture/project-skills.json — fixed roles product-vision/critic/brand/impl-bar plus an open extra[] — into per-stage guidance. READ-ONLY. --project names the root explicitly, so it works from any cwd; without it the manifest is read from the current repo. No manifest ⇒ a byte-identical generic run)
   dz discrimination-check --slug <slug> [--base <ref>] [--json]   (does the ADR's named test actually DISCRIMINATE? Re-runs it on a worktree at the pre-feature commit, where it MUST go red. A test that passes with the feature removed proves nothing; dz amendment-check proves the test exists, this proves it bites)
   dz guard [check|promote|init] [--json] [--force]   (HARD/SOFT repo rules — readme-first, lockfile-in-sync, claim tagging — run automatically as a pre-flight inside dz publish. HARD blocks, SOFT warns)
   dz architecture [--check --slug <s> --desc <text>] [--project <dir>] [--revise]   (the live product map + vision: --check is the soft Step-0 сверка of a new feature against them, reporting {signal,confidence} rather than blocking)
   dz sbom [--pack <name>] [--out <file>]   (CycloneDX software bill of materials for the workspace, or for one pack with --pack)
-  dz amendment-check --slug <slug> | --feature-dir <dir> | --all [--json]   (the deterministic Step-8 amendment gate: every AM-N row must resolve to a test found INSIDE the file the row names; the PLAN is authoritative when it carries rows, and an ideation amendment the plan drops is a failure. exit 0 pass/skip, 1 fail, 3 NOT-ESTABLISHED — a section that parsed ZERO rows is never a pass. --all is a CENSUS and always exits 0. Does NOT prove non-vacuity — that is dz discrimination-check)
+  dz amendment-check --slug <slug> | --feature-dir <dir> | --all [--json]   (the deterministic Step-8 amendment gate: every AM-N / AM-CP-N row must resolve to a test found INSIDE the file the row names (the challenge-panel prefix is part of the id: AM-CP-1 is never AM-1); the PLAN is authoritative when it carries rows, and an ideation amendment the plan drops is a failure. exit 0 pass/skip, 1 fail, 3 NOT-ESTABLISHED — a section that parsed ZERO rows is never a pass, UNLESS the plan explicitly declares \"None\"/\"нет\", which is an answer and reports skip. --all is a CENSUS and always exits 0. Does NOT prove non-vacuity — that is dz discrimination-check)
   dz contract-check --slug <s> [--json]   (read-only retrospective feature contract gate: extracts canonical AC-N + ADR Confirmation items, requires one artifact-anchored met|unmet|not-testable verdict per CC-N, and rejects A/B with unmet. exit 0 pass / 1 readable contract or verdict violation / 2 invalid invocation or unreadable/not-established artifacts)
+  dz journal add --kind decision|verdict|run|error|block "<text>" [--ref <trace>] [--at <ISO>] [--quote <file>] [--commit-quote]; dz journal show [--day|--week] [--at <date>] [--kind <kind>] [--json]   (UTC day files, witnessed append; quotes stay local unless explicitly staged)
   dz feature-adr-record --kind ledger|training-pair --stage <s> [--slug <s>] [--row|--pair <json>] [--mark <n>] [--once] [--json]   (the witnessed writer for the run-cost ledger and training pairs: the payload arrives as an ARGUMENT, never as shell; a malformed or wrong-kind payload is REFUSED before any write; the timestamp is stamped before serialising; the append is verified by re-reading the tail. exit 0 written|duplicate|skipped, 2 refused, 3 not-verified — a record failure is never blocking)
   dz feature-adr-checkpoint (--slug <feature> | --feature-dir <abs>) --stage <s> --input-hash <h> --result <json> [--artifact a,b] [--json]   (record a pipeline stage ONLY after measuring its artifacts on disk; refuses a null result, an absent artifact, or a stage that declares none — the subagent runs a COMMAND instead of hand-writing durable state)
   dz profile [init|show|set|sync] [--json]   (WHO the assistant is talking to — per-user store at ~/.dz/profile.json (0600, NEVER in a project), delivered as a marked block in ~/.claude/CLAUDE.md so it loads in EVERY project, dz installed or not. init = five questions (language, register, deep/weak domains as comma lists — "networking (CCIE; NSX)" keeps the parenthetical as the note, Enter skips — teaches y/n with one re-ask, never a silent default); show ALWAYS prints the store path + age + drift verdict + the rendered block; set register|language|teaches <v> or set deep|weak add|rm <tag> [note] — register accepts the owner's own words (профи / профи лайт / просто), an unknown value is REFUSED naming the accepted set; sync re-writes the block (runs automatically after init/set; foreign content byte-for-byte, timestamped backup before every modifying write). The register changes FORM, never FACTS, and governs dialogue only — never ADRs/commits/QE reports; both rules are baked into the rendered block at every level. exit 0 done / 1 no profile or failed / 2 refused input)
   dz reqe [--slug <feature> [--done --report <f>]] [--json]   (the re-QE debt ledger: a usage-switched run whose Step-8 QE ran on the coder's OWN family records a debt; list debts, print the cross-family review brief, settle FAIL-CLOSED against a graded report — the settlement lands in 08_qe_report.md)
   dz qe-bridge --family claude --slug <feature> [--coder-family codex|claude] [--model <id>] [--files a,b] [--out <f>] [--timeout <s>] [--allow-same-family] [--json]   (the REVERSE QE bridge: run an INDEPENDENT Claude reviewer over a feature's Step-8 artifacts from ANY host — a Codex session included, plain shell, no Claude agent plane needed — and land a PARSED signoff. The reviewer runs ISOLATED: an EMPTY temp cwd plus --safe-mode --strict-mcp-config --tools '' --no-session-persistence, so no CLAUDE.md/skills/plugins/hooks/MCP load, and the verdict is read from the --output-format json RESULT ENVELOPE — text a session customization printed onto the same stdout can never become a signoff. Probes the model before trusting it; sends SCOPED extracts with a loud 200k-char ceiling (never silent truncation); the grade must AGREE across three LAST-anchored channels (terminal marker line, fenced qe-bridge-signoff JSON, the report's own GRADE line) AND the marker must be the FINAL content — empty, gradeless, self-contradicting or miscounted output is one of 17 NAMED failures with an audit record under features/<slug>/.fa-state/qe-bridge/ (runId, resolved executable + binOverride, prompt sha256, channel offsets, requestedOut, reportWritten, retained raw stdout; 0600 files in a 0700 dir), never a clean review. A --coder-family that contradicts the recorded reqe debt is refused. Writes features/<slug>/08b_reqe_report.md, which dz reqe --done settles unchanged. DISCLOSURE: the extracts you scope are sent to the Claude runtime; the bridge cannot classify secrets. DZ_QE_BRIDGE_CLAUDE_BIN is a TEST SEAM, not a flag. exit 0 signoff parsed (ANY grade — it reports, it does not gate) / 1 named failure / 2 usage)
   dz mutation-gate [--package <dir>] [--registry <file>] [--test-cmd "<cmd>"] [--only <id[,id]>] [--timeout <ms>] [--rebaseline per-entry|final] [--keep-scratch] [--json]   (prove each NAMED protection has a test that DISCRIMINATES: copy the package to a scratch dir, verify the baseline suite is green, apply each registry mutation, run the suite, REQUIRE red, restore. The red must be BEHAVIOURAL: a mutation that no longer parses is MUTATION_UNPARSEABLE; a red run whose OWN output reports a test FILE failing to load (node --test file-level not-ok with exitCode, vitest Failed Suites) is MUTATION_LOAD_FATAL — the signal comes from the same run as the failing count, never from a separate isolated import; red output whose shape matches no known runner is INCONCLUSIVE (a runner-coverage gap, loud, never PROVEN); a count far above the entry's bound is OVER_FAILING; a restored tree that does not reproduce green makes the entry INCONCLUSIVE (flaky). Mutation writes are realpath-contained to the scratch copy: a symlink escape or a node_modules/ target is refused (exit 2), the real tree is never written. A mutation that does not apply, a green suite, or an inconclusive run is a FAILURE — never a skip. exit 0 all proven / 1 gate failed / 2 setup error)
-  dz backlog add "<idea>" [--effort 1-5] [--proposal <text>] [--dry-run] [--project <dir>] [--json]   (capture an idea: semantic dedup against existing ideas via the Brain vector engine (DUPLICATE>=0.92 merges, RELATED links, NEW creates) + GoalMap alignment; --dry-run classifies without writing)
+  dz backlog add "<idea>" [--effort 1-5] [--proposal <text>] [--dry-run] [--allow-cold-start] [--project <dir>] [--json]   (capture an idea: semantic dedup against existing ideas via the Brain vector engine (DUPLICATE>=0.92 merges, RELATED links, NEW creates) + GoalMap alignment; --dry-run classifies without writing)
   dz backlog list [--status <s>] [--goal <id>] [--project <dir>] [--json]   (list captured ideas, filterable by status/goal)
   dz backlog show <id> [--project <dir>] [--json]                          (full record for one idea)
   dz backlog goals [--validate] [--project <dir>] [--json]                 (list/validate the compass at .dz/backlog/goals.json)
@@ -662,7 +719,7 @@ Usage:
   dz backlog jira <id> [--project <dir>] [--json]                          (draft a Jira issue via the configurable adapter (backlog.jira.adapter: jira-mcp|copilot-mcp|none); none writes an auditable jira-outbox/<id>.json stub)
   dz backlog harmonize [--apply] [--threshold <0-1>] [--project <dir>] [--json]   (batch semantic dedup of the backlog ideas; --dry-run default, --apply snapshots first)
   dz setup --target <name> [--preset <name>] [--select id,id,...] [--skills-dir <dir>] [--project <dir>] [--memory agentdb] [--no-memory] [--no-hooks] [--no-verify] [--install-driver] [--force] [--enrich]   (--target codex ALSO installs + LIVE-verifies the codex hooks; an unverified hook exits non-zero WITHOUT aborting the rest of setup)
-  dz teach "<pattern>" [--class-form "<template with :slot>"] [--reward <0-1>] [--domain <name>] [--type rule|success-pattern|lesson-learned] [--project <dir>] [--no-mirror]   (class form is optional; rejection never blocks the specific write; --project pins the learned store to <dir>/.dz)
+  dz teach "<pattern>" [--class-form "<template with :slot>"] [--reward <0-1>] [--domain <name>] [--type rule|success-pattern|lesson-learned] [--project <dir>] [--no-mirror] [--allow-cold-start]   (class form is optional; rejection never blocks the specific write; --project pins the learned store to <dir>/.dz)
   dz teach --from-json <file> [--project <dir>] [--no-mirror]   (bulk-import a 'dz recall --all --json' export — share a learned store across machines)
   dz consolidate [--sessions-dir <dir>] [--project <dir>] [--no-mirror] [--prune-noise [--apply]] [--prune-quarantine [--apply]]   (both prunes: DRY-RUN by default; --apply snapshots then deletes; prune-quarantine = expired unproven lessons ONLY, never coupled to noise)
   dz recall "<query>" [--limit <N>] [--domain <name>] [--semantic | --no-semantic] [--books [--book <slug>]] [--project <dir>] | dz recall --all [--json] | dz recall --usage [--json] | dz recall --forget <dzId>[,<dzId>] [--apply] | dz recall --promote <dzId>[,<dzId>] [--apply]   (--domain <name> BOOSTS lessons of that domain without dropping foreign ones — a shared store keeps its cross-domain transfers; forget/promote: dry-run default; forget snapshots before removing; promote lifts lesson-quarantine)
@@ -682,7 +739,8 @@ Usage:
   dz brain expand <kuId> [--source <slug>] [--json]                    (full-content lookup for a citation kuId; --json emits the full KU object)
   dz brain init  [--project <dir>] [--k <N>]                           (wire the grounding hook into .claude/settings.json — opt-in)
   dz statusline [--json] [--install] [--project <dir>]                 (live self-learning panel for Claude Code's status bar; reads the CC JSON payload from STDIN)
-  dz statusline --fa-record --slug <s> --step "<label>" [--kind <feature-adr|loop>] [--recalled <n>] [--stored <n>] [--mode <m>]   (feature-adr: record live per-run learning state → 📐 panel segment)
+  dz store-guard [--status|--reset] [--yes] [--project <dir>]          (show the monotonic external high-water mark; --reset is the only lowering path and requires confirmation or --yes)
+  dz statusline --fa-record --slug <s> --step "<label>" [--kind <feature-adr|loop>] [--tier <S|M|L|XL>] [--run-id <id>] [--recalled <n>] [--stored <n>] [--mode <m>]   (feature-adr: record live per-run learning state + phase → 📐 SECOND-LINE phase panel; the monotone guard absorbs a backwards plain "Step <n>" only within the same non-empty run id, while an absent/empty id retains legacy fresh-slot behavior — prefix the label with ⛔ or ⏸ to record a legitimate regression)
   dz usage [--json] [--project <dir>] | dz usage --calibrate --session <pct> --weekly <pct> [--model fable=<pct>] [--project <dir>]  (ESTIMATE Claude usage from fixed reset windows; optional per-model weekly binding; exit 0 ALWAYS; pct=null when limits unconfigured)
   dz usage --by-stage [--run <runId> | --slug <slug>] [--epsilon <0..1>] [--write <file.jsonl>] [--json]   (per-stage cost ledger for ONE feature-adr run + the reconciliation invariant: accounted + unaccounted = run total; verdict BALANCED | DEFECT | INSUFFICIENT_DATA; local transcript ESTIMATES — catches ATTRIBUTION errors, not pricing errors)
   dz chain [--project <dir>] [--json]   (verify EVERY hash-chained journal in ONE command: coverage is DERIVED from the CHAINED_JOURNALS registry, never typed, so a journal cannot be given a chain and checked by nobody. An ABSENT journal is NAMED absent, never omitted — omission and cleanliness are indistinguishable in a report. Statuses: ok | healed (defects the current unbroken run has outlived — verdicts over present records are sound) | unchained (present, no chained record yet — legal) | absent | broken | unreadable. Exit 1 on broken/unreadable: a verifier that reports damage and exits 0 is one no automation can act on)
@@ -710,6 +768,10 @@ Usage:
   dz dashboard
   dz roam   [--apply] [--slug <slug>]
   dz import-ecc [--local-path <dir>] [--select id,id,...] [--limit N] [--output <dir>] [--force]
+  dz retro   [transcript-path] [--json] [--threshold N] [--no-teach] [--project <dir>] [--install-hook]   (per-session retrospective + co-learning: mines the session transcript for recurring PROCESS rakes, drills you, and teaches the same lesson to the store)
+  dz feature-adr-setup [--plan] [--from-spec <spec.json>] [--guards [--loc-cap <n>]] [--gates [--target <name>]] [--apply] [--json]   (scaffold the project-awareness files feature-adr reads — vision / map / testing / project-skills — plus the deterministic project guards and the portable delivery gates; --guards and --gates work STANDALONE or with --from-spec, and --apply writes for all three; without --apply everything is a preview)
+  dz mr-rakes [--json] [--candidate N] [--confirmed N] [--teach] [--gen-critic <path> [--apply]]   (experimental: mine the review corpus — features' QE reports + REVIEW files — for RECURRING mistakes and close them into self-learning)
+  dz bto-optimize --split | --plan | --select | --scope-check | --diff [--json]   (experimental: deterministic tune/holdout split, budget plan and holdout-no-regress winner selection behind the /bto-optimize skill)
   dz help
 
 Global: --version | -v [--json]   (prints this CLI's own semver on one line, exit 0; "unknown" + exit 1 when unresolvable)
@@ -788,6 +850,8 @@ export interface CliIo {
   readonly installRunner?: (command: string, cwd: string) => void;
   /** Fault seam for proving mutation-gate catches and retries thrown runner internals. */
   readonly mutationGateRunner?: MutationGateRunner;
+  /** Read-back fault seam; production uses the real filesystem. */
+  readonly journalIo?: JournalIo;
 }
 
 /** Injected subprocess runner used by `dz release` (see {@link CliIo.releaseRunner}). */
@@ -1397,7 +1461,7 @@ async function cmdScout(options: Map<string, string>, flags: Set<string>, cwd: s
 
   try {
     const scanTopics = topicsArg ? topicsArg.split(',').map((t) => t.trim()) : undefined;
-    const { results: repos, totalBySource } = await scanAllSources({
+    const { results: repos, totalBySource, statusBySource } = await scanAllSources({
       token,
       topics: scanTopics,
       since,
@@ -1411,10 +1475,16 @@ async function cmdScout(options: Map<string, string>, flags: Set<string>, cwd: s
       .join(', ');
     write(`Sources: ${sourceLines}`);
 
-    // Memory: diff with previous scan
+    // Memory: diff with previous scan.
+    //
+    // СОСТОЯНИЕ ИСТОЧНИКОВ ПЕРЕДАЁТСЯ ОБЯЗАТЕЛЬНО. Без него разность не выводит исчезновений
+    // вообще — и это правильно: источник, ответивший кодом ошибки, раньше делал ВСЕ свои записи
+    // «пропавшими» на экране, то есть отчёт печатал факт о нашей сети как факт о мире.
     if (showDiff || memory.size > 0) {
-      const diff = memory.diff(repos);
-      if (diff.newRepos.length > 0 || diff.goneRepos.length > 0 || diff.changedScore.length > 0) {
+      const health: Record<string, string> = {};
+      for (const [source, status] of Object.entries(statusBySource)) health[source] = status.health;
+      const diff = memory.diff(repos, health);
+      if (diff.newRepos.length > 0 || diff.goneRepos.length > 0 || diff.changedScore.length > 0 || diff.goneOmittedReason !== undefined) {
         write(memory.diffMarkdown(diff));
       } else if (memory.size > 0) {
         write(`\nNo changes since last scan (${memory.size} repos tracked).\n`);
@@ -2217,6 +2287,49 @@ function cmdBundle(options: Map<string, string>, flags: Set<string>, cwd: string
   return 0;
 }
 
+/**
+ * Команда npm для установки пакета В ЦЕЛЕВОЙ КАТАЛОГ, а не куда решит npm.
+ *
+ * ЗАЧЕМ `--prefix`. Без него npm при отсутствии `package.json` в текущем каталоге поднимается по
+ * дереву до первого найденного и мутирует ЕГО — а `dz` потом ищет пакет в
+ * `<цель>/node_modules` и не находит. Место установки и место проверки были двумя независимыми
+ * предположениями, и совпадали они только по удаче.
+ *
+ * ИЗМЕРЕНО 2026-09-03 (полевой случай владельца): установка в каталог без `package.json`
+ * записала в `/home`, где лежит ЧУЖОЙ проект; ручной откат вернул `package.json`, а запись
+ * `extraneous` в `/home/package-lock.json` пережила откат.
+ *
+ * ПОЧЕМУ НЕ ОТКАЗ (ADR-001, вариант A отвергнут). Отказ запретил бы законный сценарий: проект
+ * внутри монорепо, намеренно не имеющий своего `package.json` и опирающийся на родительский
+ * воркспейс. `--prefix` согласует установку с проверкой ПО ПОСТРОЕНИЮ и сценарий сохраняет.
+ *
+ * ЧИСТАЯ: ни файловой системы, ни запуска npm — проверяется без обоих. Путь экранируется, потому
+ * что каталоги с пробелом в имени встречаются в наших же тестах.
+ */
+export function buildInstallArgs(npmSpec: string, projectRoot: string): readonly string[] {
+  return ['install', npmSpec, '--prefix', projectRoot, '--save-dev', '--no-fund', '--no-audit'];
+}
+
+/**
+ * Та же команда СТРОКОЙ — только для показа человеку и для тестового шва.
+ *
+ * НЕ ДЛЯ ИСПОЛНЕНИЯ, и это не стилистическая оговорка. `JSON.stringify` НЕ является экранированием
+ * для оболочки: внутри двойных кавычек оболочка по-прежнему выполняет `$(...)` и обратные кавычки.
+ * ИЗМЕРЕНО 2026-09-03 — `execSync('echo ' + JSON.stringify('pkg$(touch ФАЙЛ)'))` создал файл.
+ * Прежняя редакция этого комментария утверждала «путь экранируется»; это было неверно, и находку
+ * предъявило кросс-семейное ревью (gpt-5.6-sol), а я подтвердил её пробой.
+ *
+ * Боевой путь исполняется через `execFileSync` массивом аргументов — оболочки в цепочке нет вовсе,
+ * поэтому подставлять некуда. Это структурное лечение, а не более хитрое экранирование.
+ */
+export function buildInstallCommand(npmSpec: string, projectRoot: string): string {
+  // ЗНАЧЕНИЯ в кавычках, ФЛАГИ без — та же форма, что печаталась до этой фичи, чтобы читатель
+  // (и закреплённые тесты) видели знакомую строку. Кавычки здесь — ЧИТАЕМОСТЬ, а не безопасность:
+  // безопасность даёт отсутствие оболочки на боевом пути.
+  return `npm install ${JSON.stringify(npmSpec)} --prefix ${JSON.stringify(projectRoot)}`
+    + ' --save-dev --no-fund --no-audit';
+}
+
 async function cmdInstall(
   options: Map<string, string>,
   flags: Set<string>,
@@ -2268,14 +2381,36 @@ async function cmdInstall(
 
   const projectRoot = resolve(cwd, options.get('project') ?? '.');
 
+  // ПРЕДПОСЫЛКА НАЗЫВАЕТСЯ ДО ПОБОЧНОГО ЭФФЕКТА, А НЕ ПОСЛЕ (ADR-001, FR-2).
+  //
+  // Проверка стоит ЗДЕСЬ, до развилки installRunner/execSync, и это не стилистика. Поставить её
+  // внутрь ветки execSync значило бы оставить боевой путь непокрытым при зелёных тестах — ровно
+  // то состояние, из которого фича и родилась.
+  const hasOwnManifest = existsSync(join(projectRoot, 'package.json'));
+  if (!hasOwnManifest) {
+    write(`dz install: ${projectRoot} — не npm-проект (нет своего package.json).`);
+    write(`  Ставлю ЛОКАЛЬНО в него: npm получит --prefix, package.json и node_modules появятся здесь.`);
+    write(`  Без --prefix npm поднялся бы по дереву и записал в ЧУЖОЙ проект выше — измерено 2026-09-03.`);
+  }
+
   // Step 1: npm install the package (installRunner is the CliIo test seam — unset in production)
   write(`Installing ${specResolution.npmSpec}${specResolution.kind === 'name' ? '' : ` (${specResolution.kind} → node_modules/${specResolution.dirName})`}...`);
-  const installCmd = `npm install ${JSON.stringify(specResolution.npmSpec)} --save-dev --no-fund --no-audit`;
+  const installCmd = buildInstallCommand(specResolution.npmSpec, projectRoot);
   try {
     if (installRunner) installRunner(installCmd, projectRoot);
-    else execSync(installCmd, { cwd: projectRoot, stdio: 'pipe', encoding: 'utf-8' });
+    // БЕЗ ОБОЛОЧКИ. execFileSync с массивом аргументов не запускает shell, поэтому имя пакета или
+    // путь с `$(...)` подставить нечему. Строка выше — для показа и для тестового шва, не для
+    // исполнения (см. докстринг buildInstallCommand).
+    else execFileSync('npm', [...buildInstallArgs(specResolution.npmSpec, projectRoot)], { cwd: projectRoot, stdio: 'pipe', encoding: 'utf-8' });
   } catch (err) {
     write(`dz install: npm install failed — ${err instanceof Error ? err.message : String(err)}`);
+    // НЕАТОМАРНЫЙ ОТКАЗ НАЗЫВАЕТСЯ ВСЛУХ (ADR-001, FR-4). Названо кросс-семейной проверкой
+    // 2026-09-03: npm мог успеть изменить package.json, файл замков и node_modules и упасть уже
+    // после этого. Отката у нас нет — и молчать об этом хуже, чем не откатывать: пользователь
+    // считает каталог нетронутым. Полевой случай: ручной откат вернул package.json, а запись
+    // extraneous в файле замков пережила его.
+    write(`  npm мог успеть изменить файлы ДО падения — проверьте ${join(projectRoot, 'package.json')},`);
+    write(`  ${join(projectRoot, 'package-lock.json')} и ${join(projectRoot, 'node_modules')}: отката dz не делает.`);
     return 1;
   }
 
@@ -2536,7 +2671,7 @@ function cmdStatuslineInstall(options: Map<string, string>, cwd: string, write: 
  * `--kind <feature-adr|loop>` identifies the producer, defaults to `feature-adr`, and rejects any
  * other value rather than silently weakening panel arbitration.
  */
-function cmdStatuslineFaRecord(options: Map<string, string>, cwd: string, write: Write): number {
+function cmdStatuslineFaRecord(options: Map<string, string>, cwd: string, write: Write, writeErr: WriteErr): number {
   const slug = (options.get('slug') ?? '').trim();
   const step = (options.get('step') ?? '').trim();
 
@@ -2596,19 +2731,44 @@ function cmdStatuslineFaRecord(options: Map<string, string>, cwd: string, write:
     return 1;
   }
 
+  // fa-phase-statusline (acid A1): --tier drives done/total on the phase line — an invalid tier is
+  // REJECTED before anything is written (nothing slotted, nothing ledgered), never silently dropped.
+  const tierRaw = options.get('tier');
+  const tier = tierRaw?.trim();
+  if (tier !== undefined && tier !== 'S' && tier !== 'M' && tier !== 'L' && tier !== 'XL') {
+    write(`dz statusline --fa-record: --tier must be S, M, L or XL (got "${tierRaw}")`);
+    write('  Example: dz statusline --fa-record --slug add-user-auth --step "Step 7 Code" --tier M');
+    return 1;
+  }
+
   const mode = options.get('mode');
+  const runId = options.get('run-id')?.trim();
   const projectRoot = resolve(cwd, options.get('project') ?? '.');
-  const state = writeFeatureAdrState(projectRoot, {
+  const outcome = writeFeatureAdrStateDetailed(projectRoot, {
     kind: kindRaw, slug, step, recalled, stored,
     ...(reinforced > 0 ? { reinforced } : {}),
     ...(mode !== undefined && mode.trim() !== '' ? { mode: mode.trim() } : {}),
+    ...(tier !== undefined ? { tier } : {}),
+    ...(runId !== undefined && runId !== '' ? { runId } : {}),
   });
+  const state = outcome.state;
 
   if (state === undefined) {
+    // [AM-5] A REFUSED slot write is LOUD. A held `fa-phase-slot` lock or an unwritable `.dz` used
+    // to return a bare `undefined`, and a caller reading silence as success is exactly the
+    // "absence of a receipt is not success" class. The reason goes to stderr — diagnosis, not
+    // data — and the EXIT CODE is unchanged for a refusal, because the panel must never break the
+    // pipeline that is only reporting to it.
+    if (outcome.refused !== undefined) {
+      writeErr(`fa-record: slot write refused (${slug}): ${outcome.refused}`);
+      return 0;
+    }
     write(`dz statusline --fa-record: could not write learning state under ${projectRoot}/.dz/feature-adr/`);
     return 1;
   }
-  write(`dz statusline: recorded /feature-adr learning state for "${slug}" (${step}) — 🎓 ${state.pool} pool · ↑${state.recalled} used · +${state.stored} new · ↻${state.reinforced ?? 0} reinforced`);
+  // state.step, not the flag: the monotonic guard may have kept a LATER step against a stale
+  // duplicate record (fa-phase-statusline P1) — print what actually stands in the slot.
+  write(`dz statusline: recorded /feature-adr learning state for "${slug}" (${state.step}) — 🎓 ${state.pool} pool · ↑${state.recalled} used · +${state.stored} new · ↻${state.reinforced ?? 0} reinforced`);
   return 0;
 }
 
@@ -2760,8 +2920,12 @@ function statuslineEta(projectRoot: string, state: FeatureAdrState, nowMs: numbe
  * least a minimal `dz` even on total failure.
  *
  * Flags: `--install` wires it into settings.json; `--fa-record` records a live `/feature-adr`
- * learning state (WRITES — see {@link cmdStatuslineFaRecord}); `--json` prints the raw data object;
- * default prints the status line (with a 📐 pipeline segment prepended when a fresh run is in flight).
+ * learning state (WRITES — see {@link cmdStatuslineFaRecord}); `--json` prints the raw data object
+ * (plus `featureAdrLine`, the rendered phase line, when a fresh /feature-adr run is in flight);
+ * default prints the status line, with the 📐 phase panel as its OWN SECOND LINE (format B —
+ * fa-phase-statusline ADR-001 D1; Claude Code renders every stdout line of a statusline command).
+ * The ETA fragment main shipped for that panel rides the SECOND line with it (fa-phase-statusline ADR-001 D1) — the panel
+ * moved, the estimate was not dropped.
  */
 function cmdStatusline(
   options: Map<string, string>,
@@ -2769,12 +2933,14 @@ function cmdStatusline(
   cwd: string,
   write: Write,
   readStdin: () => string,
+  writeErr: WriteErr,
 ): number {
   if (flags.has('install')) return cmdStatuslineInstall(options, cwd, write);
-  if (flags.has('fa-record')) return cmdStatuslineFaRecord(options, cwd, write);
+  if (flags.has('fa-record')) return cmdStatuslineFaRecord(options, cwd, write, writeErr);
 
   try {
     const projectRoot = statuslineProjectRoot(readStdin(), options, cwd);
+    warnLearningStoreRead(projectRoot, writeErr, 'dz statusline');
     const data = statuslineData(projectRoot);
     const fa = data.featureAdr;
     let eta: EtaEstimate | undefined;
@@ -2790,27 +2956,66 @@ function cmdStatusline(
       }
     }
 
+    // fa-phase-statusline (ADR-001 D1): the phase line renders from the slot ALONE — a pure
+    // function over data.featureAdr, computed once here for both the plain and --json surfaces.
+    const phaseLine = fa !== undefined ? renderFeatureAdrPhaseLine(fa) : undefined;
+
     if (flags.has('json')) {
-      write(JSON.stringify({ ...data, ...(eta !== undefined ? { eta } : {}) }));
+      write(JSON.stringify({
+        ...data,
+        ...(eta !== undefined ? { eta } : {}),
+        ...(phaseLine !== undefined ? { featureAdrLine: phaseLine } : {}),
+      }));
       return 0;
     }
 
-    let line = `🎓 dz: ${data.patterns} patterns${data.usedPatterns !== undefined ? ` · ${data.usedPatterns} used` : ''} · 🧠 ${data.brainSources} sources`;
+    // ТЕКСТ ПАНЕЛИ — ПО-АНГЛИЙСКИ по просьбе владельца 2026-09-09: строка статуса узкая,
+    // английские слова в ней короче русских при той же ясности. Комментарии остаются русскими.
+    const breakdown = data.patternBreakdown;
+    let line = breakdown === undefined
+      ? `🎓 dz: ${data.patterns} patterns`
+      : `🎓 dz: ${data.patterns} (${breakdown.active} active${breakdown.quarantined > 0
+        ? ` · ${breakdown.quarantined} quarantined${breakdown.attention ? ' ⚠' : ''}`
+        : ''})${breakdown.tierDelta !== undefined ? ` ⚠ tiers Δ${breakdown.tierDelta}` : ''}`;
+    // Показатель зеркала печатается и здесь: `dz statusline` — та же панель, и показатель,
+    // живущий только во вспомогательном скрипте, для этой поверхности просто не существовал.
+    if (data.patternMirror?.state === 'unavailable') line += ' (mirror unreadable ⚠)';
+    else if (data.patternMirror?.state === 'different') line += ` (mirror ${data.patternMirror.vector} ⚠)`;
+    if (data.storeHealth?.verdict === 'collapsed') {
+      line += ` ⛔ COLLAPSE: was ${data.storeHealth.previousMax ?? '?'} · dz store-guard --reset`;
+    } else if (data.storeHealth?.verdict === 'cold-start-over-existing') {
+      line += ` ⛔ STORE EMPTY: was ${data.storeHealth.previousMax ?? '?'} · restore from snapshots ${data.storeHealth.snapshotPath ?? ''}`.trimEnd();
+    } else if (data.storeHealth?.verdict === 'unreadable') {
+      line += ` ⛔ STORE UNREADABLE${data.storeHealth.unreadableFiles !== undefined && data.storeHealth.unreadableFiles.length > 0
+        ? `: ${data.storeHealth.unreadableFiles.join(', ')}` : ''}`;
+    } else if (data.storeHealth?.verdict === 'busy') {
+      line += ' ⏳ STORE BUSY';
+    } else if (data.storeHealth?.verdict === 'source-changed') {
+      line += ' ⚠ store source changed';
+    }
+    // Рядом с числом источников — объём каждого через «/» (просьба владельца 2026-09-09):
+    // четыре источника по 300 единиц и четыре по три — разные корпуса, а число одно и то же.
+    const ku = data.brainKuCounts.length > 0 ? ` (${data.brainKuCounts.join('/')})` : '';
+    line += `${data.usedPatterns !== undefined ? ` · ${data.usedPatterns} used` : ''} · 🧠 ${data.brainSources} sources${ku}`;
     const branch = statuslineGitBranch(projectRoot);
     if (branch !== undefined) line += ` · ⎇ ${branch}`;
     if (data.consolidatedAgeH !== undefined) line += ` · ⟳ ${data.consolidatedAgeH}h`;
 
-    // Live /feature-adr run in flight → PREPEND the pipeline learning segment to the base dz line.
-    if (fa !== undefined) {
-      // The producer marker reached data and arbitration in a previous round but not this label, so the bar asserted a pipeline that was not running.
-      if (fa.kind === 'loop') {
-        line = `🔁 loop ${fa.step} · ${line}`;
-      } else {
-        line = `📐 feature-adr ${fa.step} · ${etaFragment !== undefined ? `${etaFragment} · ` : ''}🎓 ${fa.pool} pool · ↑${fa.recalled} used · +${fa.stored} new · ↻${fa.reinforced ?? 0} reinforced · ${line}`;
-      }
+    // Live loop run in flight → PREPEND its segment to the base dz line (unchanged). A live
+    // /feature-adr run no longer glues into line 1: its 📐 segment IS the second line (format B) —
+    // Claude Code renders every stdout line of a statusline command (fa-phase-statusline ADR-001 D1).
+    if (fa !== undefined && fa.kind === 'loop') {
+      line = `🔁 loop ${fa.step} · ${line}`;
     }
 
     write(line);
+    // fa-phase-statusline ADR-001 D1: the phase panel moved to line 2 and TOOK main's ETA fragment with it. The move is
+    // the point of format B (ADR-001 D1); dropping the estimate would have been a silent
+    // regression of a feature `main` shipped while this branch was stranded, so it rides here
+    // instead. A phase line that renders (fresh, non-terminal, non-loop slot) is the only gate.
+    if (phaseLine !== undefined) {
+      write(`${phaseLine}${etaFragment !== undefined ? ` · ${etaFragment}` : ''}`);
+    }
     return 0;
   } catch {
     // A garbled status bar is worse than a terse one — print SOMETHING minimal, never throw.
@@ -3433,13 +3638,304 @@ function learningStoreLine(
   ) + (reason ? '  [' + reason + ']' : '');
 }
 
+function inspectLearningStore(
+  projectRoot: string,
+  countOptions?: { readonly busyTimeoutMs?: number; readonly attempts?: number },
+): {
+  mark: StoreMark | undefined;
+  health: StoreHealth;
+  rows: ReturnType<typeof countLearningStoreRowsReadonly>;
+} {
+  const mark = readStoreMark(projectRoot);
+  const rows = countLearningStoreRowsReadonly(projectRoot, countOptions);
+  return { mark, rows, health: checkStoreHealth({ projectRoot, ...rows, mark }) };
+}
+
+function shellQuote(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+function storeGuardResetCommand(projectRoot: string): string {
+  return `dz store-guard --reset --project ${shellQuote(projectRoot)}`;
+}
+
+function lexicalSourceLines(rows: ReturnType<typeof countLearningStoreRowsReadonly>): string[] {
+  return [
+    `  lexical selected: ${rows.lexicalSourcePath} (${rows.lexicalSource}, ${rows.lexicalRows} rows)`,
+    ...(rows.lexicalIgnoredSourcePath === undefined ? [] : [
+      `  lexical ignored: ${rows.lexicalIgnoredSourcePath} (${rows.lexicalIgnoredRows} rows)`,
+    ]),
+  ];
+}
+
+function storeGuardRecoveryLines(
+  projectRoot: string,
+  mark: StoreMark | undefined,
+  health: StoreHealth,
+  rows?: ReturnType<typeof countLearningStoreRowsReadonly>,
+): string[] {
+  const snapshots = storeSnapshotPath(projectRoot);
+  const markPath = storeGuardPath(projectRoot);
+  let lexicalSnapshot: 'sqlite' | 'jsonl' | undefined;
+  let vectorSnapshot = false;
+  try {
+    const names = existsSync(snapshots) ? readdirSync(snapshots) : [];
+    const hasSqlite = names.some((name) => /^lexical\..+\.sqlite$/.test(name));
+    const hasJsonl = names.some((name) => /^lexical\..+\.jsonl$/.test(name));
+    const preferred = mark?.lexicalSource === 'sqlite' || mark?.lexicalSource === 'jsonl'
+      ? mark.lexicalSource
+      : rows?.lexicalSource;
+    if (preferred === 'jsonl' && hasJsonl) lexicalSnapshot = 'jsonl';
+    else if (preferred === 'sqlite' && hasSqlite) lexicalSnapshot = 'sqlite';
+    else if (hasSqlite) lexicalSnapshot = 'sqlite';
+    else if (hasJsonl) lexicalSnapshot = 'jsonl';
+    vectorSnapshot = names.some((name) => /^vector\..+\.sqlite$/.test(name));
+  } catch {
+    lexicalSnapshot = undefined;
+    vectorSnapshot = false;
+  }
+  const lines = [
+    `dz store guard: REFUSED — ${health.reason}`,
+    `  mark: ${markPath}`,
+    ...(mark === undefined ? [] : [`  recorded rows: lexical=${mark.lexicalMax} (${mark.lexicalSource}), vector=${mark.vectorMax}`]),
+    ...(rows === undefined ? [] : lexicalSourceLines(rows)),
+  ];
+  if (lexicalSnapshot !== undefined && vectorSnapshot) {
+    const lexicalDestination = lexicalSnapshot === 'sqlite'
+      ? join(projectRoot, '.dz', 'memory', 'patterns.sqlite')
+      : join(projectRoot, '.dz', 'patterns.jsonl');
+    lines.push(
+      `  snapshots: ${snapshots}/`,
+      `  restore: mkdir -p ${shellQuote(dirname(lexicalDestination))} && cp ${shellQuote(join(snapshots, `lexical.<timestamp>.${lexicalSnapshot}`))} ${shellQuote(lexicalDestination)} && cp ${shellQuote(join(snapshots, 'vector.<timestamp>.sqlite'))} ${shellQuote(join(projectRoot, '.dz', 'agentdb.db'))}`,
+    );
+  } else {
+    lines.push(
+      `  snapshots: none found in ${snapshots}/`,
+      `  create one manually: scripts/dz-store-snapshot.sh --project ${shellQuote(projectRoot)}`,
+    );
+  }
+  lines.push(
+    `  accept current counts: ${storeGuardResetCommand(projectRoot)}`,
+    '  continue intentionally: set DZ_ALLOW_COLD_START=1 or pass --allow-cold-start',
+  );
+  return lines;
+}
+
+function observedRows(
+  rows: ReturnType<typeof countLearningStoreRowsReadonly>,
+): StoreCountSnapshot | undefined {
+  return typeof rows.lexicalRows === 'number' && typeof rows.vectorRows === 'number'
+    ? { lexicalRows: rows.lexicalRows, vectorRows: rows.vectorRows, lexicalSource: rows.lexicalSource }
+    : undefined;
+}
+
+interface MarkRefreshOptions {
+  readonly reader?: boolean;
+}
+
+/** Mark maintenance is diagnostic: the store operation already completed and must keep its exit code. */
+function refreshLearningStoreMark(
+  projectRoot: string,
+  writeErr: WriteErr,
+  command: string,
+  options: MarkRefreshOptions = {},
+): void {
+  try {
+    const rows = countLearningStoreRowsReadonly(projectRoot);
+    const counts = observedRows(rows);
+    if (counts === undefined) {
+      const busy = rows.lexicalRows === 'busy' || rows.vectorRows === 'busy';
+      writeErr(`⚠ dz store guard: ${options.reader ? 'reader observation' : 'store operation'} completed but the external mark was not updated — ${busy ? 'store busy; health not measured this run' : 'a store tier is unreadable'}`);
+      return;
+    }
+    writeStoreMark(projectRoot, {
+      ...counts,
+      observedAt: new Date().toISOString(),
+      command,
+    }, options.reader ? { timeoutMs: 0 } : {});
+  } catch (error) {
+    if (options.reader && error instanceof NamedLockTimeoutError) return;
+    writeErr(`⚠ dz store guard: ${options.reader ? 'reader observation' : 'store operation'} completed but the external mark could not be updated — ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+function storeGuardResetReminder(projectRoot: string, writeErr: WriteErr, command: string): void {
+  try {
+    const rows = countLearningStoreRowsReadonly(projectRoot);
+    const mark = readStoreMark(projectRoot);
+    writeErr(`⚠ DZ STORE GUARD — ${command}: store now lexical=${rows.lexicalRows}, vector=${rows.vectorRows}; maximum remains lexical=${mark?.lexicalMax ?? 'none'}, vector=${mark?.vectorMax ?? 'none'}; reconcile explicitly: ${storeGuardResetCommand(projectRoot)}`);
+    for (const line of lexicalSourceLines(rows)) writeErr(line);
+  } catch (error) {
+    writeErr(`⚠ DZ STORE GUARD — ${command}: store changed; inspect it and reconcile explicitly with ${storeGuardResetCommand(projectRoot)} (${error instanceof Error ? error.message : String(error)})`);
+  }
+}
+
+/** Fail closed for store writers, except for an explicit per-process/per-command override. */
+function allowLearningStoreWrite(
+  projectRoot: string,
+  flags: Set<string>,
+  writeErr: WriteErr,
+  command: string,
+): boolean {
+  let inspection: ReturnType<typeof inspectLearningStore>;
+  try {
+    inspection = inspectLearningStore(projectRoot, { busyTimeoutMs: 250, attempts: 3 });
+  } catch (error) {
+    const health: StoreHealth = {
+      verdict: 'unreadable',
+      reason: `cannot read the external mark (${error instanceof Error ? error.message : String(error)})`,
+    };
+    for (const line of storeGuardRecoveryLines(projectRoot, undefined, health)) writeErr(line);
+    return false;
+  }
+  if (inspection.health.verdict === 'no-mark' || inspection.health.verdict === 'ok') {
+    // The successful write path records the resulting counts. Refreshing here as
+    // well would emit the same telemetry failure twice when the external mark is
+    // unavailable, and would receipt a source transition before the command's
+    // own row had landed.
+    return true;
+  }
+  if (inspection.health.verdict === 'busy') {
+    writeErr(`dz store guard: NOT MEASURED — ${inspection.health.reason}`);
+    return true;
+  }
+  if (inspection.health.verdict === 'source-changed') {
+    const counts = observedRows(inspection.rows);
+    if (counts === undefined) return false;
+    writeErr(`⚠ DZ STORE GUARD WARNING — SOURCE CHANGED: ${inspection.health.reason}; ${storeGuardResetCommand(projectRoot)}`);
+    for (const line of lexicalSourceLines(inspection.rows)) writeErr(line);
+    try {
+      // Consume the single migration allowance BEFORE the store write. If the
+      // following command fails, the safe result is a consumed allowance that
+      // requires an explicit reset, never a silently reusable permission.
+      writeStoreMark(projectRoot, { ...counts, observedAt: new Date().toISOString(), command }, {
+        expectedPreviousLexicalSource: inspection.mark?.lexicalSource ?? 'unknown',
+      });
+      return true;
+    } catch (error) {
+      writeErr(`dz store guard: REFUSED — source-change allowance could not be recorded: ${error instanceof Error ? error.message : String(error)}`);
+      return false;
+    }
+  }
+
+  const allowed = process.env.DZ_ALLOW_COLD_START === '1' || flags.has('allow-cold-start');
+  if (allowed) {
+    const label = inspection.health.verdict.replaceAll('-', ' ').toUpperCase();
+    writeErr(`⚠ DZ STORE GUARD WARNING — ${label}: ${inspection.health.reason}; explicit cold-start override accepted`);
+    return true;
+  }
+  for (const line of storeGuardRecoveryLines(projectRoot, inspection.mark, inspection.health, inspection.rows)) writeErr(line);
+  return false;
+}
+
+/** Readers warn on damage and bootstrap/refresh a healthy non-empty store mark. */
+function warnLearningStoreRead(projectRoot: string, writeErr: WriteErr, command: string): void {
+  try {
+    const { health, rows, mark } = inspectLearningStore(projectRoot);
+    if (health.verdict === 'collapsed' || health.verdict === 'cold-start-over-existing' || health.verdict === 'unreadable'
+      || health.verdict === 'source-changed') {
+      writeErr(`⚠ DZ STORE GUARD WARNING — ${health.verdict.replaceAll('-', ' ').toUpperCase()}: ${health.reason}`);
+      for (const line of lexicalSourceLines(rows)) writeErr(line);
+      return;
+    }
+    if (health.verdict === 'busy') return;
+    const counts = observedRows(rows);
+    if (counts !== undefined && counts.lexicalRows + counts.vectorRows > 0
+      && (mark === undefined || mark.lexicalLast !== counts.lexicalRows || mark.vectorLast !== counts.vectorRows
+        || mark.lexicalSource !== counts.lexicalSource
+        || mark.lexicalMax < counts.lexicalRows || mark.vectorMax < counts.vectorRows)) {
+      refreshLearningStoreMark(projectRoot, writeErr, command, { reader: true });
+    }
+  } catch (error) {
+    writeErr(`⚠ DZ STORE GUARD WARNING — external mark unreadable: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+async function cmdStoreGuard(
+  options: Map<string, string>, flags: Set<string>, cwd: string, write: Write, writeErr: WriteErr,
+  stdinText: string | undefined, interactive: boolean,
+): Promise<number> {
+  const projectRoot = resolve(cwd, options.get('project') ?? '.');
+  const path = storeGuardPath(projectRoot);
+  const reset = flags.has('reset');
+  const status = flags.has('status') || options.has('status');
+  if (reset && status) {
+    writeErr('dz store-guard: --status and --reset are mutually exclusive');
+    return 2;
+  }
+  if (reset) {
+    const rows = countLearningStoreRowsReadonly(projectRoot);
+    const counts = observedRows(rows);
+    if (counts === undefined) {
+      writeErr(`dz store-guard: REFUSED — cannot reset from an unreadable store; mark: ${path}`);
+      return 1;
+    }
+    try {
+      const previous = readStoreMark(projectRoot);
+      const beforeLexical = previous?.lexicalMax ?? counts.lexicalRows;
+      const beforeVector = previous?.vectorMax ?? counts.vectorRows;
+      writeErr('⚠ dz store-guard --reset: manual operator decision required; this lowers the recorded high-water evidence');
+      writeErr(`  old maximum: lexical=${beforeLexical}, vector=${beforeVector}`);
+      writeErr(`  new observed: lexical=${counts.lexicalRows} (${counts.lexicalSource}), vector=${counts.vectorRows}`);
+      for (const line of lexicalSourceLines(rows)) writeErr(line);
+      let answer = stdinText?.trim().split(/\r?\n/, 1)[0]?.trim().toLowerCase() ?? '';
+      if (!flags.has('yes') && answer === '' && interactive && process.stdin.isTTY) {
+        const { createInterface } = await import('node:readline/promises');
+        const rl = createInterface({ input: process.stdin, output: process.stderr });
+        try { answer = (await rl.question('  type yes to continue: ')).trim().toLowerCase(); }
+        finally { rl.close(); }
+      }
+      if (!flags.has('yes') && !['y', 'yes', 'да'].includes(answer)) {
+        writeErr(`dz store-guard: REFUSED — reset was not confirmed; re-run with --yes or answer yes`);
+        return 1;
+      }
+      const current = countLearningStoreRowsReadonly(projectRoot);
+      const currentCounts = observedRows(current);
+      if (currentCounts === undefined || !isDeepStrictEqual(currentCounts, counts)) {
+        writeErr('dz store-guard: REFUSED — store counts changed after confirmation; inspect and confirm again');
+        return 1;
+      }
+      const mark = resetStoreMark(projectRoot, {
+        ...counts,
+        observedAt: new Date().toISOString(),
+        command: 'dz store-guard --reset',
+      });
+      write(`dz store-guard: RESET — accepted lexical=${mark.lexicalMax}, vector=${mark.vectorMax}`);
+      write(`  mark: ${path}`);
+      write(`  receipt: ${mark.resetAt?.at} — ${mark.resetAt?.reason}`);
+      return 0;
+    } catch (error) {
+      writeErr(`dz store-guard: reset failed — ${error instanceof Error ? error.message : String(error)}; mark: ${path}`);
+      return 1;
+    }
+  }
+  try {
+    const inspection = inspectLearningStore(projectRoot);
+    write(`dz store-guard: ${inspection.health.verdict.toUpperCase()} — ${inspection.health.reason}`);
+    write(`  mark: ${path}`);
+    write(`  current rows: lexical=${inspection.rows.lexicalRows}, vector=${inspection.rows.vectorRows}`);
+    for (const line of lexicalSourceLines(inspection.rows)) write(line);
+    write(`  recorded: ${inspection.mark === undefined ? 'none' : JSON.stringify(inspection.mark)}`);
+    return 0;
+  } catch (error) {
+    writeErr(`dz store-guard: mark unreadable — ${error instanceof Error ? error.message : String(error)}; mark: ${path}`);
+    return 1;
+  }
+}
+
 async function runTeachGuardReinforcement(
   projectRoot: string,
   dzId: string,
   reward: number,
+  preserveQuarantine = false,
 ): Promise<{ readonly flushed: number }> {
   const backend = resolveLearningBackend(projectRoot);
-  backend.addSample({ dzId, kind: 'reinforce', reward, ts: new Date().toISOString() });
+  backend.addSample({
+    dzId,
+    kind: preserveQuarantine ? 'recall-hit' : 'reinforce',
+    reward,
+    ts: new Date().toISOString(),
+  });
   return backend.train();
 }
 
@@ -3447,7 +3943,7 @@ async function cmdTeach(
   options: Map<string, string>, flags: Set<string>, cwd: string, write: Write,
   writeErr: WriteErr = (line) => { console.error(line); }, interactive = false,
   guardRunner: (projectRoot: string, text: string, opts: { readonly reward?: number }) => Promise<TeachGuardResult> = teachGuard,
-  reinforceRunner: (projectRoot: string, dzId: string, reward: number) => Promise<{ readonly flushed: number }> = runTeachGuardReinforcement,
+  reinforceRunner: (projectRoot: string, dzId: string, reward: number, preserveQuarantine?: boolean) => Promise<{ readonly flushed: number }> = runTeachGuardReinforcement,
 ): Promise<number> {
   // WHICH store this lesson belongs to, and WHO decided (teach-chooses-its-store).
   // `--to` → `DZ_LEARN` → `.dz/config.json` learning.teachTo → project. The owner asked for a
@@ -3466,6 +3962,12 @@ async function cmdTeach(
   // repo's own store holds 361 records written under that behaviour, and every other user's store
   // is the same. Only an explicit choice moves it.
   const { storeRoot, target: teachTarget } = resolved;
+  const teachWillWrite = flags.has('harmonize')
+    ? false
+    : options.has('from-json')
+      || (options.get('reinforce') ?? '').trim() !== ''
+      || (options.get('_positional_0') ?? '').trim() !== '';
+  if (teachWillWrite && !allowLearningStoreWrite(storeRoot, flags, writeErr, 'dz teach')) return 1;
   // The verb is per OUTCOME, not per command: a harmonize dry-run and a failed --reinforce READ
   // the store and change nothing, so saying "written" there is a false claim about what happened
   // (cross-family QE round 2, 2026-08-27).
@@ -3502,10 +4004,11 @@ async function cmdTeach(
     // Suppressed under --json: this line ahead of the report made stdout unparseable, which is a
     // worse defect than the invisibility it was closing (measured live, cross-family QE round 2).
     if (!flags.has('json')) write(storeLine(flags.has('apply') ? 'written' : 'read'));
-    return runHarmonize(storeRoot, options, flags, write, {
+    const code = await runHarmonize(storeRoot, options, flags, write, writeErr, {
       store: join(storeRoot, '.dz'),
       storeChosenBy: teachTarget.reason,
     });
+    return code;
   }
 
   // Bulk import: `dz teach --from-json <file>` ingests a `dz recall --all --json`
@@ -3601,6 +4104,7 @@ async function cmdTeach(
       const report = await harmonizeVectorStore(storeRoot, {});
       write(`  ℹ ${imported} imported — ${report.clusters.length} near-duplicate cluster(s): review with dz vector harmonize (dry-run); merge with dz vector harmonize --apply after backup`);
     }
+    if (imported > 0) refreshLearningStoreMark(storeRoot, writeErr, 'dz teach --from-json');
     return 0;
   }
 
@@ -3621,6 +4125,7 @@ async function cmdTeach(
       const clearedQ = clearAgentdbQuarantine(storeRoot, [reinforce]);
       if (clearedQ.cleared > 0) write(`  ↳ promoted out of quarantine (mirror updated)`);
       write(storeLine('written'));
+      refreshLearningStoreMark(storeRoot, writeErr, 'dz teach --reinforce');
       return 0;
     }
     // HIGH-fix: a no-match must NOT auto-teach the raw argument — callers pass dzIds or truncated
@@ -3668,10 +4173,21 @@ async function cmdTeach(
           write(`↳ reinforced existing pattern ${verdict.dzId} (cos=${verdict.cosine.toFixed(2)}) — not re-added`);
           const clearedQ = clearAgentdbQuarantine(storeRoot, [verdict.dzId]);
           if (clearedQ.cleared > 0) write('  ↳ promoted out of quarantine (mirror updated)');
+          refreshLearningStoreMark(storeRoot, writeErr, 'dz teach --guard');
           return 0;
         }
         write(`dz teach --guard: reinforce of ${verdict.dzId} did not flush (backend off or write failure) — teaching the lesson normally instead`);
       }
+    }
+  }
+
+  if (!flags.has('guard')) {
+    const exact = findExactLesson(loadStoreRecords(storeRoot), pattern, domain);
+    if (exact !== null) {
+      await reinforceRunner(storeRoot, exact.id, Math.max(0, Math.min(1, reward)), exact.quarantined);
+      write(`Reinforced existing: ${exact.id} (exact text)${exact.quarantined ? ' [quarantined]' : ''}`);
+      write(`  Total patterns: ${loadStorePatternsSync(storeRoot).length}`);
+      return 0;
     }
   }
 
@@ -3781,10 +4297,16 @@ async function cmdTeach(
   }
   // The lexical write above is durable — the vector mirror is strictly best-effort (I-3).
   await emitMirrorQ(storeRoot, recordsToMirror, 'dz-teach', quarantineOn);
+  if (stored.records.length > 0) {
+    write(`  ID: ${stored.records.map((record) => patternRecordId(record)).join(', ')}`);
+    refreshLearningStoreMark(storeRoot, writeErr, 'dz teach');
+  }
   return commandFailed ? 1 : 0;
 }
 
-async function cmdConsolidate(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): Promise<number> {
+async function cmdConsolidate(
+  options: Map<string, string>, flags: Set<string>, cwd: string, write: Write, writeErr: WriteErr,
+): Promise<number> {
   const projectRoot = resolve(cwd, options.get('project') ?? '.');
   const sessionsDirOpt = options.get('sessions-dir');
   const pruneNoise = flags.has('prune-noise');
@@ -3803,6 +4325,8 @@ async function cmdConsolidate(options: Map<string, string>, flags: Set<string>, 
     if (res.error !== undefined) { write(`dz consolidate --prune-quarantine: ${res.error}`); return 1; }
     write(`dz consolidate --prune-quarantine: removed ${res.removed} expired quarantined lesson(s)`);
     if (res.snapshot !== undefined) write(`  snapshot: ${res.snapshot}`);
+    refreshLearningStoreMark(projectRoot, writeErr, 'dz consolidate --prune-quarantine --apply');
+    storeGuardResetReminder(projectRoot, writeErr, 'dz consolidate --prune-quarantine --apply');
     return 0;
   }
 
@@ -3900,6 +4424,10 @@ async function cmdConsolidate(options: Map<string, string>, flags: Set<string>, 
     }
   } catch { /* best-effort — the ranking is advisory, never fails the consolidate */ }
 
+  refreshLearningStoreMark(projectRoot, writeErr, 'dz consolidate');
+  if (pruneNoise && applyPrune) {
+    storeGuardResetReminder(projectRoot, writeErr, 'dz consolidate --prune-noise --apply');
+  }
   return 0;
 }
 
@@ -4012,6 +4540,7 @@ async function cmdRecallForget(
   flags: Set<string>,
   projectRoot: string,
   write: Write,
+  writeErr: WriteErr,
 ): Promise<number> {
   const raw = options.get('forget') ?? '';
   const ids = new Set(raw.split(',').map((s) => s.trim()).filter((s) => s !== ''));
@@ -4040,7 +4569,7 @@ async function cmdRecallForget(
     return 0;
   }
 
-  const dest = join(projectRoot, '.dz', `patterns-pre-forget-${Date.now()}.json`);
+  const dest = join(storeSnapshotPath(projectRoot), `forget-${Date.now()}.json`);
   const snap = snapshotStore(projectRoot, dest);
   if (snap.error !== undefined) {
     write(`dz recall --forget: snapshot failed (${snap.error}) — nothing removed; the store is not versioned`);
@@ -4051,6 +4580,8 @@ async function cmdRecallForget(
   write(`  snapshot: ${snap.path} (${snap.count} record(s))`);
   if (result.error !== undefined) write(`  ⚠ ${result.error}`);
   write('  the vector mirror still holds them — run `dz vector reindex` to resync');
+  refreshLearningStoreMark(projectRoot, writeErr, 'dz recall --forget --apply');
+  storeGuardResetReminder(projectRoot, writeErr, 'dz recall --forget --apply');
   return 0;
 }
 
@@ -4142,10 +4673,15 @@ async function cmdRecall(
   classMatcher?: RecallPatternsOptions['classMatcher'],
 ): Promise<number> {
   const projectRoot = resolve(cwd, options.get('project') ?? '.');
+  warnLearningStoreRead(projectRoot, writeErr, 'dz recall');
+  const globalRootForGuard = globalStoreRoot();
+  if (!sameStore(projectRoot, globalRootForGuard) && existsSync(join(globalRootForGuard, '.dz', 'memory'))) {
+    warnLearningStoreRead(globalRootForGuard, writeErr, 'dz recall');
+  }
   const asJson = flags.has('json');
   const all = flags.has('all');
   if (flags.has('usage')) return cmdRecallUsage(options, flags, projectRoot, write);
-  if (options.has('forget')) return cmdRecallForget(options, flags, projectRoot, write);
+  if (options.has('forget')) return cmdRecallForget(options, flags, projectRoot, write, writeErr);
   if (options.has('promote')) return cmdRecallPromote(options, flags, projectRoot, write);
 
   // --all: dump the entire learned store (backend-agnostic, via loadStorePatternsSync).
@@ -4707,7 +5243,7 @@ function renderHarmonize(report: HarmonizeReport, write: Write): void {
  * `--apply` + `--dry-run` together is rejected; `--threshold` must be in `(0, 1]`; no flag ⇒ dry-run.
  */
 async function runHarmonize(
-  projectRoot: string, options: Map<string, string>, flags: Set<string>, write: Write,
+  projectRoot: string, options: Map<string, string>, flags: Set<string>, write: Write, writeErr: WriteErr,
   /**
    * Where this harmonize is pointed and what chose it. Under `--json` the human store line is
    * suppressed to keep stdout ONE document, so the destination has to travel INSIDE that document
@@ -4731,6 +5267,10 @@ async function runHarmonize(
     }
   }
   const report = await harmonizeVectorStore(projectRoot, { apply, ...(threshold !== undefined ? { threshold } : {}) });
+  if (apply && report.error === undefined) {
+    refreshLearningStoreMark(projectRoot, writeErr, 'dz vector harmonize --apply');
+    storeGuardResetReminder(projectRoot, writeErr, 'dz vector harmonize --apply');
+  }
   if (flags.has('json')) {
     write(JSON.stringify(storeAnnotation !== undefined ? { ...report, ...storeAnnotation } : report));
     return report.error !== undefined ? 1 : 0;
@@ -4739,7 +5279,9 @@ async function runHarmonize(
   return report.error !== undefined ? 1 : 0;
 }
 
-async function cmdVector(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): Promise<number> {
+async function cmdVector(
+  options: Map<string, string>, flags: Set<string>, cwd: string, write: Write, writeErr: WriteErr,
+): Promise<number> {
   const projectRoot = resolve(cwd, options.get('project') ?? '.');
   const sub = options.get('_positional_0');
 
@@ -4794,6 +5336,10 @@ async function cmdVector(options: Map<string, string>, flags: Set<string>, cwd: 
   if (sub === 'reindex') {
     const report = await reindexVectorStore(projectRoot);
     if (flags.has('json')) {
+      if (report.error === undefined) {
+        refreshLearningStoreMark(projectRoot, writeErr, 'dz vector reindex');
+        storeGuardResetReminder(projectRoot, writeErr, 'dz vector reindex');
+      }
       write(JSON.stringify(report));
       return report.error !== undefined ? 1 : 0;
     }
@@ -4811,6 +5357,8 @@ async function cmdVector(options: Map<string, string>, flags: Set<string>, cwd: 
       write(`  ⚠ still in the previous embedding space: ${report.staleTaskTypes.join(', ')}`);
       if (report.staleTaskTypes.includes('book-knowledge')) write('    run \`dz brain reindex\` to rebuild the brain\'s book vectors');
     }
+    refreshLearningStoreMark(projectRoot, writeErr, 'dz vector reindex');
+    storeGuardResetReminder(projectRoot, writeErr, 'dz vector reindex');
     return 0;
   }
 
@@ -4867,7 +5415,7 @@ async function cmdVector(options: Map<string, string>, flags: Set<string>, cwd: 
   // harmonize (alias: dz teach --harmonize) — SEMANTIC dedup of the learned store, NON-DESTRUCTIVE:
   // dry-run by default (previews clusters, writes nothing); --apply drops after a restorable backup.
   if (sub === 'harmonize') {
-    return runHarmonize(projectRoot, options, flags, write);
+    return runHarmonize(projectRoot, options, flags, write, writeErr);
   }
 
   // import <file.rvf> — the missing HALF of the RVF cycle: UPSERT-BY-dzId, never overwrites.
@@ -4879,6 +5427,7 @@ async function cmdVector(options: Map<string, string>, flags: Set<string>, cwd: 
     }
     const report = await importRvfCheckpoint(projectRoot, resolve(cwd, src), {});
     if (flags.has('json')) {
+      if (report.error === undefined) refreshLearningStoreMark(projectRoot, writeErr, 'dz vector import');
       write(JSON.stringify(report));
       return report.error !== undefined ? 1 : 0;
     }
@@ -4891,6 +5440,7 @@ async function cmdVector(options: Map<string, string>, flags: Set<string>, cwd: 
     if (report.skippedOrphans > 0) {
       write('  ↳ orphan vectors have no local pattern — import the text first: dz teach --from-json <recall-export.json>, then re-run dz vector import');
     }
+    refreshLearningStoreMark(projectRoot, writeErr, 'dz vector import');
     return 0;
   }
 
@@ -6318,10 +6868,15 @@ function cmdSbom(options: Map<string, string>, flags: Set<string>, cwd: string, 
   return 0;
 }
 
-function cmdPublish(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): number {
+function cmdPublish(options: Map<string, string>, flags: Set<string>, cwd: string, writeOutput: Write): number {
+  const json = flags.has('json');
+  // Under --json stdout carries exactly one JSON document, so every human line — guard notes, refusals,
+  // progress — goes to stderr instead of being dropped: a refusal that prints nothing is the silent
+  // failure this repo forbids (QE P2 2026-09-10).
+  const write: Write = json ? (line) => { process.stderr.write(`${line}\n`); } : writeOutput;
   // Reject unknown flags/options so a typo (e.g. `--dry-rum`) can NEVER be
   // silently swallowed and flip the command into live-publish mode.
-  const allowedFlags = new Set(['dry-run', 'no-dry-run', 'yes', 'confirm', 'bump-only', 'help', 'require-signing', 'provenance', 'no-provenance']);
+  const allowedFlags = new Set(['dry-run', 'no-dry-run', 'yes', 'confirm', 'bump-only', 'help', 'require-signing', 'provenance', 'no-provenance', 'json']);
   const allowedOptions = new Set(['filter', 'claim-check', 'no-guard', 'sign-key']);
   const allowedHelp = '  allowed: --dry-run (default), --yes/--confirm/--no-dry-run (go live), --bump-only, --filter <substr>, --claim-check <off|warn|error>, --no-guard "<reason>" (skip the guard pre-flight; logged)';
   for (const flag of flags) {
@@ -6583,6 +7138,11 @@ function cmdPublish(options: Map<string, string>, flags: Set<string>, cwd: strin
     },
   });
 
+  if (json) {
+    writeOutput(JSON.stringify(report));
+    return report.errors > 0 ? 1 : 0;
+  }
+
   write(`\ndz publish${dryRun ? ' --dry-run' : ''}${bumpOnly ? ' --bump-only' : ''}${claimCheckOpt !== 'warn' ? ` --claim-check ${claimCheckOpt}` : ''}`);
   write(`  Published: ${report.published}  Skipped: ${report.skipped}  Errors: ${report.errors}\n`);
   for (const pkg of report.packages) {
@@ -6590,15 +7150,48 @@ function cmdPublish(options: Map<string, string>, flags: Set<string>, cwd: strin
     // A one-line preview inline; on error the FULL captured npm error prints below (truncating a publish
     // failure to 60 chars is how a release stays undiagnosable — the reason lives past char 60).
     const detail = pkg.error && pkg.status !== 'error' ? ` (${pkg.error.slice(0, 60)})` : '';
-    write(`  ${icon} ${pkg.name.padEnd(35)} ${pkg.oldVersion} → ${pkg.newVersion}  ${pkg.status}${detail}`);
+    const receipt = pkg.status === 'published' && pkg.registryProbes !== undefined
+      ? ` (confirmed by registry after ${pkg.registryProbes} probes)`
+      : '';
+    write(`  ${icon} ${pkg.name.padEnd(35)} ${pkg.oldVersion} → ${pkg.newVersion}  ${pkg.status}${receipt}${detail}`);
     if (pkg.status === 'error' && pkg.error) {
       for (const line of pkg.error.split('\n')) write(`      ${line}`);
+    }
+    const probeLog = (pkg as typeof pkg & {
+      readonly probeLog?: readonly {
+        readonly attempt: number;
+        readonly stdout: string;
+        readonly stderr: string;
+        readonly code: number | null;
+        readonly ms: number;
+      }[];
+    }).probeLog;
+    if (pkg.status === 'error' && probeLog && probeLog.length > 0) {
+      for (const probe of probeLog.slice(-3)) {
+        const output = probe.stderr || probe.stdout;
+        const firstLine = output.split(/\r?\n/, 1)[0]?.trim() || '(empty)';
+        write(`      probe ${probe.attempt}: code ${String(probe.code)}, ${probe.ms}ms — ${firstLine}`);
+      }
+    }
+    // The rollback branch cannot tell "publish failed" from "publish landed, registry never answered":
+    // both restore package.json. The operator can — one registry query — so say what to check.
+    if (pkg.status === 'error' && pkg.error?.startsWith('registry did not confirm')) {
+      write(`      ↳ disk bump rolled back; if \`npm view ${pkg.name}@${pkg.newVersion} version\` answers, the publish DID land — re-apply the bump by hand`);
     }
     // Surface warn-mode findings that did not block the publish.
     if (pkg.claimCheck && pkg.claimCheck.findings > 0 && pkg.status !== 'error') {
       write(`      ⚠ claim-check: ${pkg.claimCheck.findings} finding(s) (${pkg.claimCheck.high} high) in README.md`);
     }
+    // A dry run stops before build/sign/pack, so it says NOTHING about the gates below that line.
+    // Printing what it did not check is what keeps a clean preview from reading as a clean publish
+    // (measured 2026-09-02: a clean dry run preceded a RED real gate).
+    if (pkg.notVerified && pkg.notVerified.length > 0) {
+      write(`      ⓘ холостой прогон НЕ проверял (${pkg.notVerified.length}):`);
+      for (const item of pkg.notVerified) write(`         · ${item}`);
+    }
   }
+  for (const warning of report.warnings ?? []) write(`  ⚠ warning: ${warning}`);
+  for (const path of report.releaseLineSynced ?? []) write(`  ↳ release line synced: ${path}`);
   return report.errors > 0 ? 1 : 0;
 }
 
@@ -8356,7 +8949,18 @@ function cmdAgentsSync(
       const effect = flags.has('check') ? 'AGENTS.md would change' : 'AGENTS.md was not rewritten';
       writeErr(`dz agents-sync: DRIFT — ${drifted.length} stale/missing section(s); ${effect}`);
       for (const finding of drifted) writeErr(`  ${finding.id}: ${finding.file} (${finding.status})`);
-      if (drifted.some((finding) => finding.id === 'dz:policies')) {
+      const unregistered = drifted.filter((finding) => finding.status === 'unregistered-section');
+      if (unregistered.length > 0) {
+        // ПОДСКАЗКА, ВЕДУЩАЯ НЕ ТУДА, ХУЖЕ ОТСУТСТВУЮЩЕЙ. Повторный `dz agents-sync` эту находку
+        // НЕ лечит: реестр POLICY_SOURCES ведётся руками, и секция, не вписанная в него, не
+        // попадёт в проекцию сколько ни синхронизируй. Раньше здесь печаталась общая подсказка —
+        // читатель прогнал бы её и снова увидел ту же ошибку.
+        writeErr('→ heal with: объяви секцию в POLICY_SOURCES (packages/@dzhechkov/harness-core/src/agents-policy.ts):');
+        for (const finding of unregistered) {
+          writeErr(`     { id: '${finding.id}', file: '${finding.file}', heading: '…', why: '…', operativeClause: '…' }`);
+        }
+        writeErr('   затем: dz agents-sync');
+      } else if (drifted.some((finding) => finding.id === 'dz:policies')) {
         writeErr('→ heal with: repair duplicate/unmatched dz:policies markers, then run dz agents-sync');
       } else {
         writeErr('→ heal with: dz agents-sync');
@@ -8477,6 +9081,51 @@ function gatherReadmeCounts(root: string): { label: string; a: number; b: number
   // (target repo without sitedoc — missing-evidence contract). But a file that EXISTS and no longer
   // matches its anchored pattern emits a MISMATCH pair (a: -1) — silent non-extraction is the exact
   // disease this contour cures (AM-1 applies to the guard path too, not only the CI test).
+  // ЗНАЧКИ ПРОТИВ ДЕРЕВА, а не только README против README (бэклог 9cb30764).
+  //
+  // Прежде правило сверяло только числа МЕЖДУ документами: два согласованных документа могли
+  // хором утверждать одно и то же неверное число, и правило молчало. Значок «пакетов: 52» стоял
+  // при 55 публикуемых на диске — ИЗМЕРЕНО 2026-09-03. Меню обещает 32 блюда, официант
+  // перечисляет 30, кухня готовит 38, и никто в ресторане не знает правду.
+  //
+  // Сверяются только числа, ВЫЧИСЛИМЫЕ ИЗ ДЕРЕВА. Значок «опубликовано в npm» сюда НЕ входит и
+  // это сказано вслух: его источник — реестр, а не рабочая копия, и пара, которая делает вид, что
+  // проверила его, была бы хуже отсутствующей.
+  const badge = (s: string, name: string): number | null => {
+    const m = s.match(new RegExp(`img\\.shields\\.io/badge/${name}-(\\d+)`));
+    return m && m[1] ? Number(m[1]) : null;
+  };
+  const publishablePackages = ((): number | null => {
+    const dir = join(root, 'packages', '@dzhechkov');
+    if (!existsSync(dir)) return null;
+    let n = 0;
+    for (const name of readdirSync(dir)) {
+      const pj = join(dir, name, 'package.json');
+      if (!existsSync(pj)) continue;
+      try {
+        const j = JSON.parse(readFileSync(pj, 'utf8')) as { private?: unknown };
+        if (j.private !== true) n += 1;
+      } catch { /* нечитаемый манифест — не считается ни в одну сторону */ }
+    }
+    return n;
+  })();
+  const pkgBadge = badge(rootMd, 'packages');
+  if (pkgBadge !== null && publishablePackages !== null) {
+    pairs.push({ label: 'packages (root badge vs publishable package.json on disk)', a: pkgBadge, b: publishablePackages });
+  }
+  const presetBadge = badge(rootMd, 'presets');
+  if (presetBadge !== null) {
+    pairs.push({ label: 'presets (root badge vs PRESET_NAMES in the build)', a: presetBadge, b: PRESET_NAMES.length });
+  }
+  const targetBadge = badge(rootMd, 'targets');
+  if (targetBadge !== null) {
+    pairs.push({ label: 'targets (root badge vs TARGET_NAMES in the build)', a: targetBadge, b: TARGET_NAMES.length });
+  }
+  const cmdBadge = badge(rootMd, 'CLI%20commands');
+  if (cmdBadge !== null && cliAll !== null) {
+    pairs.push({ label: 'commands (root badge vs cli All Commands)', a: cmdBadge, b: cliAll });
+  }
+
   const sitePair = (rel: string, re: RegExp, label: string): void => {
     if (cliAll === null || !existsSync(join(root, rel))) return;
     const found = num(read(rel), re);
@@ -9001,21 +9650,52 @@ function gatherGuardFacts(op: string, root: string, text: string | undefined, st
     // a resolvable workspace dep becomes its real semver (safe → the rule passes); an UNRESOLVABLE one (points at
     // no workspace package, or not a pnpm workspace) stays `workspace:*` so the rule catches a dep that WOULD ship
     // raw. That is the genuinely dangerous case the rule exists for.
-    type Manifest = { name?: string; version?: string; private?: boolean; license?: string; licenseHold?: unknown; dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
+    type Manifest = { name?: string; version?: string; private?: boolean; license?: string; licenseHold?: unknown; dependencies?: Record<string, string>; devDependencies?: Record<string, string>; peerDependencies?: Record<string, string>; optionalDependencies?: Record<string, string> };
     const manifests: Manifest[] = [];
-    const located: { dir: string; m: Manifest }[] = [];
+    const located: { dir: string; m: Manifest; text: string }[] = [];
     try {
       const out = volumeGitText(root, ['ls-files', 'packages/@dzhechkov/*/package.json']);
       for (const rel of out.split('\n').map((s) => s.trim()).filter(Boolean)) {
         try {
-          const m = JSON.parse(readFileSync(join(root, rel), 'utf8')) as Manifest;
+          const packageJsonText = readFileSync(join(root, rel), 'utf8');
+          const m = JSON.parse(packageJsonText) as Manifest;
           manifests.push(m);
-          located.push({ dir: rel.replace(/\/package\.json$/, ''), m });
+          located.push({ dir: rel.replace(/\/package\.json$/, ''), m, text: packageJsonText });
         } catch { /* skip unreadable */ }
       }
     } catch { /* not a git repo */ }
     const versionByName = new Map<string, string>();
     for (const m of manifests) if (m.name && typeof m.version === 'string') versionByName.set(m.name, m.version);
+    // release-line-in-sync: filesystem access belongs in the CLI gatherer. The core evaluator receives
+    // only immutable evidence, so evaluateGuard(facts) stays deterministic and independent of cwd.
+    const coreManifestPath = join(root, 'packages', '@dzhechkov', 'harness-core', 'package.json');
+    const cliManifestPath = join(root, 'packages', '@dzhechkov', 'harness-cli', 'package.json');
+    if (existsSync(coreManifestPath) || existsSync(cliManifestPath)) {
+      const readText = (path: string): string | null => {
+        try { return readFileSync(path, 'utf8'); } catch { return null; }
+      };
+      const readVersion = (path: string): string | null => {
+        const raw = readText(path);
+        if (raw === null) return null;
+        try {
+          const parsed = JSON.parse(raw) as { version?: unknown };
+          return typeof parsed.version === 'string' && /^\d+\.\d+\.\d+$/.test(parsed.version)
+            ? parsed.version
+            : null;
+        } catch { return null; }
+      };
+      facts['releaseLines'] = {
+        coreVersion: readVersion(coreManifestPath),
+        cliVersion: readVersion(cliManifestPath),
+        readmes: [
+          { path: 'README.md', text: readText(join(root, 'README.md')) },
+          {
+            path: 'packages/@dzhechkov/harness-cli/README.md',
+            text: readText(join(root, 'packages', '@dzhechkov', 'harness-cli', 'README.md')),
+          },
+        ],
+      };
+    }
     publishPackageRoots.push(...located
       .filter(({ dir, m }) => m.private !== true && (
         publishFilter === undefined
@@ -9036,6 +9716,82 @@ function gatherGuardFacts(op: string, root: string, text: string | undefined, st
       packages.push({ name: m.name ?? '(unnamed)', deps });
     }
     facts['packages'] = packages;
+    // sibling-dep-protocol: сырые спеки, БЕЗ подстановки версии. Подставленная версия выглядела бы
+    // как обычный диапазон, и правило потеряло бы ровно то, что проверяет.
+    const siblingDeps: { name: string; field: string; dep: string; spec: string }[] = [];
+    for (const m of manifests) {
+      if (m.private === true) continue;
+      const fields = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies'] as const;
+      for (const field of fields) {
+        const table = (m as unknown as Record<string, unknown>)[field];
+        if (typeof table !== 'object' || table === null) continue;
+        for (const [dep, spec] of Object.entries(table as Record<string, unknown>)) {
+          if (!dep.startsWith('@dzhechkov/') || typeof spec !== 'string') continue;
+          siblingDeps.push({ name: m.name ?? '(unnamed)', field, dep, spec });
+        }
+      }
+    }
+    facts['siblingDeps'] = siblingDeps;
+    // plugin-manifest-audit: каждый `.claude-plugin/plugin.json` в дереве. Обход ограничен по
+    // глубине и не заходит в node_modules/dist — чужие манифесты не наши, и краснеть на них
+    // значило бы отчитываться о том, чего мы не публикуем.
+    const pluginManifests: { path: string; parseError?: string; name?: string; version?: string; description?: string }[] = [];
+    const walkPlugins = (dir: string, depth: number): void => {
+      if (depth > 4) return;
+      let entries: Dirent[];
+      try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }
+      for (const e of entries) {
+        // `out/` — СГЕНЕРИРОВАННОЕ публичное зеркало: те же манифесты, скопированные. Дефект в нём
+        // есть дефект генератора, и он уже сообщается по источнику; вторая копия только удвоила бы
+        // одну и ту же находку.
+        if (!e.isDirectory() || e.name === 'node_modules' || e.name === 'dist' || e.name === 'out') continue;
+        const full = join(dir, e.name);
+        if (e.name === '.claude-plugin') {
+          const manifest = join(full, 'plugin.json');
+          if (!existsSync(manifest)) continue;
+          try {
+            const j = JSON.parse(readFileSync(manifest, 'utf8')) as Record<string, unknown>;
+            const pick = (k: string): string | undefined => (typeof j[k] === 'string' ? j[k] as string : undefined);
+            // Состав навыков — ОБЕ стороны инвентаризации, и ТОЛЬКО для коробки ОДНОГО ПАКЕТА.
+            //
+            // Корневая витрина сюда НЕ входит, и это не упрощение: её состав собирается из всего
+            // монорепозитория через реестр, «что лежит на складе» для неё — не обход одного дерева,
+            // а весь реестр, и ровно это уже проверяет `marketplace-parity` регенерацией. Первая
+            // редакция этой проверки обошла корень с ограничением глубины и выдала 27 ЛОЖНЫХ
+            // «объявлено, но не найдено» — навыки лежали глубже границы обхода (ИЗМЕРЕНО 2026-09-04,
+            // поймано до коммита прогоном стража на этом же дереве).
+            //
+            // Сравниваются ПУТИ, как их объявил манифест, а не имена: два навыка с одинаковым
+            // именем в разных подкаталогах — законная вещь, и сведение к имени их бы склеило.
+            const boxRoot = dirname(full);
+            const isRepoRoot = resolve(boxRoot) === resolve(root);
+            const declaredSkills = Array.isArray(j['skills']) && !isRepoRoot
+              ? (j['skills'] as unknown[]).filter((x): x is string => typeof x === 'string')
+                  .map((rel) => rel.replace(/^\.\//, '').replace(/\/+$/, '')).filter(Boolean)
+              : undefined;
+            const skillsOnDisk = declaredSkills === undefined ? undefined : findSkillDirs(boxRoot);
+            pluginManifests.push({
+              path: relative(root, manifest),
+              ...(pick('name') !== undefined ? { name: pick('name')! } : {}),
+              ...(pick('version') !== undefined ? { version: pick('version')! } : {}),
+              ...(pick('description') !== undefined ? { description: pick('description')! } : {}),
+              ...(declaredSkills !== undefined ? { declaredSkills } : {}),
+              ...(skillsOnDisk !== undefined ? { skillsOnDisk } : {}),
+            });
+          } catch (error) {
+            pluginManifests.push({
+              path: relative(root, manifest),
+              parseError: (error instanceof Error ? error.message : String(error)).replace(/\s+/g, ' ').slice(0, 200),
+            });
+          }
+          continue;
+        }
+        if (e.name.startsWith('.')) continue;
+        walkPlugins(full, depth + 1);
+      }
+    };
+    walkPlugins(root, 0);
+    facts['pluginManifests'] = pluginManifests;
     facts['volume'] = gatherVolumeShadowFacts(root, located.map(({ dir, m }) => ({
       dir,
       name: m.name ?? dir,
@@ -9063,23 +9819,173 @@ function gatherGuardFacts(op: string, root: string, text: string | undefined, st
       }
       facts['licenceHold'] = holds;
     } catch { /* unreadable tree — the rule reports nothing rather than inventing a violation */ }
-    try { facts['drift'] = sweepSkillDrift(root, { scope: 'installs', allowlist: readDriftAllowlist(root) }).drifted.map((d) => d.name); } catch { /* skip */ }
-    facts['counts'] = gatherReadmeCounts(root);
-    // readme-first: from the WORKING-TREE diff (publishes happen pre-commit here), per package: does the
-    // change set contain its package.json (the version-bump signal) without its README.md?
+    try { facts['drift'] = sweepSkillDrift(root, { scope: DRIFT_SWEEP_SCOPE, allowlist: readDriftAllowlist(root) }).drifted.map((d) => d.name); } catch { /* skip */ }
+    // backlog-covers-features: каталоги фич, дата их ПОЯВЛЕНИЯ В ИСТОРИИ (не mtime — его двигает
+    // любой посторонний процесс), оговорки из README фичи и тексты записей бэклога. Базовая дата
+    // делает правило зелёным на приходе: 336 существующих каталогов заведены до правила.
+    // Нечитаемое дерево ⇒ факт НЕ выставляется ⇒ правило молчит, а не выдумывает вердикт.
     try {
-      const status = execSync('git status --porcelain -- "packages/@dzhechkov/"', { cwd: root, encoding: 'utf-8' });
-      const perPack = new Map<string, { pkgJson: boolean; readme: boolean }>();
-      for (const line of status.split('\n')) {
-        const m = line.match(/packages\/@dzhechkov\/([^/]+)\/(.+)$/);
+      const featDir = join(root, 'features');
+      if (existsSync(featDir)) {
+        const slugs = readdirSync(featDir, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name);
+        const features = slugs.map((slug) => {
+          let createdIso = '';
+          try {
+            createdIso = execSync(`git log --diff-filter=A --format=%aI -1 -- ${JSON.stringify('features/' + slug)}`,
+              { cwd: root, encoding: 'utf-8' }).trim().split('\n').filter(Boolean).pop() ?? '';
+          } catch { /* нет в истории — функция засчитает как новый, это верный дефолт */ }
+          let waiver: string | undefined;
+          for (const f of ['README.md', '07_code_changes/change_manifest.md']) {
+            try {
+              const m = readFileSync(join(featDir, slug, f), 'utf-8')
+                .match(/^\s*Backlog:\s*не заведено\s*[—-]\s*(.+)$/m);
+              if (m && m[1] && m[1].trim() !== '') { waiver = m[1].trim(); break; }
+            } catch { /* нет файла — не оговорка */ }
+          }
+          return { slug, createdIso, waiver };
+        });
+        const backlogTexts: string[] = [];
+        try {
+          for (const line of readFileSync(join(root, '.dz', 'backlog', 'ideas.jsonl'), 'utf-8').split('\n')) {
+            if (line.trim() === '') continue;
+            try { const o = JSON.parse(line) as { text?: unknown }; if (typeof o.text === 'string') backlogTexts.push(o.text); } catch { /* рваная строка */ }
+          }
+        } catch { /* стора нет */ }
+        if (backlogTexts.length > 0) {
+          facts['featureBacklog'] = { baseline: BACKLOG_COVERAGE_BASELINE, features, backlogTexts };
+        }
+      }
+    } catch { /* нечитаемо — правило молчит */ }
+    facts['counts'] = gatherReadmeCounts(root);
+    // One package-scoped WORKING-TREE diff feeds both readme-first and signature-fresh. A second
+    // porcelain call could observe a different tree and let the two publish guards disagree.
+    let changedPackageFiles: string[] | undefined;
+    // readme-first: from the WORKING-TREE diff (publishes happen pre-commit here), per package: did
+    // the version FIELD change from HEAD without its README.md changing? A package.json edit alone
+    // says nothing about version; repository/metadata-only edits must not manufacture a bump.
+    try {
+      const status = execSync('git status --porcelain -uall -- "packages/@dzhechkov/"', { cwd: root, encoding: 'utf-8' });
+      changedPackageFiles = status
+        .split('\n')
+        .map((line) => line.slice(3).trim())
+        .map((path) => (path.includes(' -> ') ? path.split(' -> ')[1]!.trim() : path))
+        .filter(Boolean);
+      const perPack = new Map<string, { readme: boolean }>();
+      for (const rel of changedPackageFiles) {
+        const m = rel.match(/^packages\/@dzhechkov\/([^/]+)\/(.+)$/);
         if (!m || !m[1] || !m[2]) continue;
-        const e = perPack.get(m[1]) ?? { pkgJson: false, readme: false };
-        if (m[2] === 'package.json') e.pkgJson = true;
+        const e = perPack.get(m[1]) ?? { readme: false };
         if (m[2] === 'README.md') e.readme = true;
         perPack.set(m[1], e);
       }
-      facts['readmeFirst'] = [...perPack.entries()].map(([name, e]) => ({ name: '@dzhechkov/' + name, versionBumped: e.pkgJson, readmeChanged: e.readme }));
+      const readVersion = (raw: string): string => {
+        const version = (JSON.parse(raw) as { version?: unknown }).version;
+        if (typeof version !== 'string') throw new Error('package version is unreadable');
+        return version;
+      };
+      facts['readmeFirst'] = [...perPack.entries()].map(([name, e]) => {
+        const packagePath = `packages/@dzhechkov/${name}/package.json`;
+        let versionBumped = false;
+        let versionUnknown = false;
+        try {
+          const treeVersion = readVersion(readFileSync(join(root, packagePath), 'utf8'));
+          try {
+            const headVersion = readVersion(execFileSync('git', ['show', `HEAD:${packagePath}`], {
+              cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+            }));
+            versionBumped = treeVersion !== headVersion;
+          } catch {
+            try {
+              const trackedAtHead = execFileSync('git', ['ls-tree', '--name-only', 'HEAD', '--', packagePath], {
+                cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+              }).trim() === packagePath;
+              if (trackedAtHead) versionUnknown = true;
+              else versionBumped = true;
+            } catch {
+              versionUnknown = true;
+            }
+          }
+        } catch {
+          versionUnknown = true;
+        }
+        return {
+          name: '@dzhechkov/' + name,
+          versionBumped,
+          readmeChanged: e.readme,
+          ...(versionUnknown ? { versionUnknown: true } : {}),
+        };
+      });
     } catch { /* not a git repo — rule skips */ }
+
+    // signature-fresh: verify only signed packs whose non-signature files changed in the same
+    // porcelain listing above. Manifest/SBOM churn is the remedy, not another reason to verify.
+    // The trust key and every byte read here stay in the CLI; the guard core receives facts only.
+    const trustRootPath = join(root, TRUST_ROOT_REL);
+    if (changedPackageFiles !== undefined && existsSync(trustRootPath)) {
+      try {
+        const trustRootPem = readFileSync(trustRootPath, 'utf8');
+        const signedPacks: {
+          name: string;
+          dir: string;
+          changed: boolean;
+          ok: boolean | null;
+          failures: string[];
+          note?: string;
+        }[] = [];
+        for (const { dir, m, text: packageJsonText } of located) {
+          const manifestPath = join(root, dir, MANIFEST_NAME);
+          if (!existsSync(manifestPath)) continue;
+          const prefix = dir + '/';
+          const changedPackFiles = new Set(changedPackageFiles
+            .filter((rel) => rel.startsWith(prefix))
+            .map((rel) => rel.slice(prefix.length))
+            .filter((packRel) => packRel !== MANIFEST_NAME && packRel !== SBOM_NAME));
+          const changed = changedPackFiles.size > 0;
+          let ok: boolean | null = null;
+          let failures: string[] = [];
+          let note: string | undefined;
+          if (changed) {
+            try {
+              const signed = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
+                manifest?: { files?: readonly { path?: unknown; sha256?: unknown }[] };
+              };
+              const verified = verifyManifest(join(root, dir), signed as never, trustRootPem);
+              // A source checkout contains dev files outside package.json#files. They are absent
+              // from the tarball by design, so an unchanged "present but not signed" source file
+              // is not evidence about signature freshness. A changed/new unsigned file stays loud.
+              const relevantFailures = verified.failures.filter((failure) =>
+                failure.reason !== 'present in the pack but not signed' || changedPackFiles.has(failure.path));
+              ok = verified.ok || relevantFailures.length === 0;
+              if (!ok && relevantFailures.length > 0 && relevantFailures.every(({ path }) => path === 'package.json')) {
+                const signedPackageHash = signed.manifest?.files?.find(({ path }) => path === 'package.json')?.sha256;
+                if (typeof signedPackageHash === 'string') {
+                  const rewritten = rewriteWorkspaceSpecs(packageJsonText, versionByName);
+                  // MEASURED 2026-09-10 on keysarium/skills-meta/core: pnpm also removes only
+                  // prepublishOnly from the packed scripts table. Keep that I/O-adapter concern
+                  // outside the workspace-only core helper.
+                  const packedShape = JSON.parse(rewritten) as Record<string, unknown>;
+                  const scripts = packedShape['scripts'];
+                  if (scripts !== null && typeof scripts === 'object' && !Array.isArray(scripts)) {
+                    delete (scripts as Record<string, unknown>)['prepublishOnly'];
+                  }
+                  const rewrittenHash = hashPackBytes('package.json', Buffer.from(JSON.stringify(packedShape, null, 2) + '\n'), (signed.manifest as { version?: number } | undefined)?.version);
+                  if (rewrittenHash === signedPackageHash) {
+                    ok = true;
+                    note = 'package.json matches after workspace rewrite';
+                  }
+                }
+              }
+              failures = relevantFailures.slice(0, 3).map((failure) => `${failure.path}: ${failure.reason}`);
+            } catch (error) {
+              ok = false;
+              failures = [`${MANIFEST_NAME}: ${error instanceof Error ? error.message : String(error)}`];
+            }
+          }
+          signedPacks.push({ name: m.name ?? dir, dir, changed, ok, failures, ...(note !== undefined ? { note } : {}) });
+        }
+        facts['signedPacks'] = signedPacks;
+      } catch { /* unreadable trust root — absence of evidence, so the rule is not established */ }
+    }
 
     // review-round: the same WORKING-TREE diff, asked a different question — does a package that
     // bumps its version and changes SOURCE bring a GRADED QE report with it? Scoped to source so a
@@ -9230,7 +10136,7 @@ function gatherGuardFacts(op: string, root: string, text: string | undefined, st
     if (Array.isArray(secretWaivers)) facts['secretWaivers'] = secretWaivers;
   }
   if (op === 'consolidate') {
-    try { facts['drift'] = sweepSkillDrift(root, { scope: 'installs', allowlist: readDriftAllowlist(root) }).drifted.map((d) => d.name); } catch { /* skip */ }
+    try { facts['drift'] = sweepSkillDrift(root, { scope: DRIFT_SWEEP_SCOPE, allowlist: readDriftAllowlist(root) }).drifted.map((d) => d.name); } catch { /* skip */ }
   }
   if (op === 'publish') {
     const secretTargets: { label: string; text: string }[] = [];
@@ -10076,15 +10982,52 @@ async function cmdMrRakes(options: Map<string, string>, flags: Set<string>, cwd:
  *   --threshold N       drill threshold (default 2 — anti-noise: a first-seen rake accrues, never drills)
  *   --no-teach          drill only; do NOT write the store (skip the agent side)
  *   --project <dir>     pin the teach ledger
- *   --install-hook      print the opt-in SessionEnd hook to add (non-destructive)
+ *   --install-hook      print the opt-in hook set to add (non-destructive): Stop scan-tail +
+ *                       PreCompact/SessionEnd full retro (feature narrated-error-must-be-taught)
+ *   --scan-tail         per-turn Stop-hook mode: incremental admission-debt scan, O(new bytes) —
+ *                       writes/clears .dz/retro-pending.json; no ledger, no teach, no git subprocess
+ *   --transcript <p>    the transcript --scan-tail must read. Without it the Stop hook's own stdin
+ *                       payload (`transcript_path`) is used; with neither, the scan REFUSES
+ *                       (NOT-ESTABLISHED) rather than guessing the newest file on disk
  */
-async function cmdRetro(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): Promise<number> {
+async function cmdRetro(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write, readStdin: () => string = () => ''): Promise<number> {
+  if (flags.has('scan-tail')) {
+    // Per-turn primary detector (ADR-001 D2). Cost budget IS the design: no `git rev-parse`
+    // subprocess (hooks run with cwd = project root; CLAUDE_PROJECT_DIR pins it), no store open,
+    // O(new bytes) via the persisted offset. Always exit 0 — a Stop hook must never fail a turn.
+    const root = process.env['CLAUDE_PROJECT_DIR'] ?? cwd;
+    // WHICH transcript. Round 3, P1-3: this used to fall back to `findLatestTranscript(root)`, so with
+    // several sessions and their subagents alive at once it scanned whichever file had the newest
+    // mtime — routinely another session's, advancing that session's offset and never seeing this
+    // turn's admission. The Stop hook hands the exact path on stdin; with no path from any source the
+    // answer is a stated refusal, never a guess. Still exit 0: a Stop hook must never fail a turn.
+    const picked = resolveScanTailTranscript({
+      flag: options.get('transcript'),
+      positional: options.get('_positional_0'),
+      stdin: readStdin(),
+    });
+    if (picked.path === null) {
+      const reason = picked.reason ?? 'no transcript path';
+      if (flags.has('json')) write(JSON.stringify({ status: 'not-established', source: 'none', reason, scannedBytes: 0, offset: 0 }));
+      else write(`retro scan-tail: NOT-ESTABLISHED — ${reason}. Wire the hook as \`dz retro --scan-tail\` (Claude Code pipes the payload on stdin) or pass \`--transcript <path>\`.`);
+      return 0;
+    }
+    const outcome = runRetroTailScan(join(root, '.dz'), picked.path);
+    if (flags.has('json')) write(JSON.stringify({ ...outcome, source: picked.source }));
+    else if (outcome.status === 'pending') write(`retro scan-tail: unpaid admission — .dz/retro-pending.json armed («${(outcome.snippet ?? '').slice(0, 60)}…»)`);
+    return 0;
+  }
+
   let repoRoot = cwd;
   try { repoRoot = execSync('git rev-parse --show-toplevel', { cwd, encoding: 'utf-8' }).trim() || cwd; } catch { /* not git */ }
 
   if (flags.has('install-hook')) {
-    write('Add this opt-in SessionEnd hook to .claude/settings.json (runs a retro when a session ends):');
-    write(JSON.stringify({ hooks: { SessionEnd: [{ hooks: [{ type: 'command', command: 'dz retro' }] }] } }, null, 2));
+    write('Add these opt-in hooks to .claude/settings.json (per-turn debt scan + retro at compaction AND session end — PreCompact covers the crash/disconnect sessions SessionEnd never sees):');
+    write(JSON.stringify({ hooks: {
+      Stop: [{ hooks: [{ type: 'command', command: 'dz retro --scan-tail', timeout: 10000, continueOnError: true }] }],
+      PreCompact: [{ hooks: [{ type: 'command', command: 'dz retro', timeout: 60000, continueOnError: true }] }],
+      SessionEnd: [{ hooks: [{ type: 'command', command: 'dz retro', timeout: 60000, continueOnError: true }] }],
+    } }, null, 2));
     return 0;
   }
 
@@ -10321,6 +11264,43 @@ function cmdChallenge(options: Map<string, string>, flags: Set<string>, cwd: str
  * decide (dz's rule — a false gate kills trust). Exit code is 0 on a clean run regardless of verdict; 2 only on
  * a usage/setup error, so a caller distinguishes "gate ran" from "gate could not run".
  */
+/**
+ * Есть ли в этом каталоге НЕЗАКОММИЧЕННЫЕ правки. Это и отличает «фича ещё в рабочем дереве»
+ * (тогда `HEAD` — законная предфичевая база) от «фича уже закоммичена» (тогда `HEAD` её содержит).
+ *
+ * Не удалось спросить git — возвращается null, и вызывающий обязан считать положение НЕ
+ * УСТАНОВЛЕННЫМ, а не выбрать удобный ответ.
+ */
+/**
+ * Каталоги с `SKILL.md` внутри коробки ОДНОГО пакета — то, что РЕАЛЬНО лежит на складе.
+ * Возвращаются ПУТИ относительно коробки, как их объявляет манифест, а не имена.
+ */
+function findSkillDirs(boxRoot: string): string[] {
+  const found = new Set<string>();
+  const walk = (dir: string, depth: number): void => {
+    if (depth > 4) return;
+    let entries: Dirent[];
+    try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      if (!e.isDirectory() || e.name === 'node_modules' || e.name === 'dist' || e.name.startsWith('.')) continue;
+      const full = join(dir, e.name);
+      if (existsSync(join(full, 'SKILL.md'))) found.add(relative(boxRoot, full));
+      walk(full, depth + 1);
+    }
+  };
+  walk(boxRoot, 0);
+  return [...found];
+}
+
+function hasUncommittedChangesIn(repoRoot: string, dir: string): boolean | null {
+  try {
+    const out = execSync(`git status --porcelain -- ${JSON.stringify(dir)}`, { cwd: repoRoot, encoding: 'utf-8' });
+    return out.split('\n').some((line) => line.trim() !== '');
+  } catch {
+    return null;
+  }
+}
+
 function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): number {
   let repoRoot = cwd;
   try { repoRoot = execSync('git rev-parse --show-toplevel', { cwd, encoding: 'utf-8' }).trim() || cwd; } catch { /* not git */ }
@@ -10333,7 +11313,22 @@ function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>
   const nameFilter = options.get('name');
   const propertyTests = testArg.split(',').map((s) => s.trim()).filter(Boolean).map((file) =>
     nameFilter !== undefined && nameFilter.trim() !== '' ? { file, name: nameFilter.trim() } : { file });
-  const baseRef = options.get('base') ?? 'HEAD';
+  /**
+   * УМОЛЧАНИЕ БАЗЫ РАЗЛИЧАЕТ ДВА РАЗНЫХ ПОЛОЖЕНИЯ, потому что они и правда разные.
+   *
+   * В штатном ходе конвейера правка Шага 7 ЕЩЁ НЕ ЗАКОММИЧЕНА, и тогда `HEAD` — настоящая
+   * предфичевая база; так конвейер и зовёт гейт (`--base HEAD`, причина записана в его тексте).
+   *
+   * Но если фича УЖЕ ЗАКОММИЧЕНА, `HEAD` её содержит, и гейт сравнивает фичу С САМОЙ СОБОЙ.
+   * ИЗМЕРЕНО 2026-09-04: такой прогон дал уверенное `NON_DISCRIMINATING` с советом «усилить тест»
+   * на тестах, которые дискриминируют; тот же прогон с верной базой дал `DISCRIMINATES_VIA_ERROR`.
+   * Находка выглядела как утверждение О ТЕСТАХ, и автор пошёл бы чинить исправное.
+   *
+   * Различить эти положения можно ДЕТЕРМИНИРОВАННО: есть ли незакоммиченные правки в пакете, чьи
+   * тесты названы. Есть — `HEAD` законен и используется как раньше. Нет — база не установлена, и
+   * гейт ОТКАЗЫВАЕТСЯ (exit 3), вместо того чтобы измерять относительно самого себя.
+   */
+  const explicitBase = options.get('base');
   const runnerOpt = options.get('runner');
   // R11: a hung runner is a loud non-answer, never a pass. Same default + parse shape as mutation-gate.
   const timeoutOpt = Number(options.get('timeout') ?? '300000');
@@ -10376,9 +11371,35 @@ function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>
   // The pure half's path sanitation expects a REPO-RELATIVE package dir ('.'-rooted), not an
   // absolute one — an absolute path is refused as unsafe-package-dir by design.
   const packageDirRel = relative(repoRoot, packageDir) || '.';
+
+  // Умолчание базы решается ЗДЕСЬ, потому что только здесь известен пакет, чьи тесты названы.
+  let baseRef: string;
+  if (explicitBase !== undefined && explicitBase.trim() !== '') {
+    baseRef = explicitBase.trim();
+  } else {
+    const dirty = hasUncommittedChangesIn(repoRoot, packageDirRel);
+    if (dirty !== true) {
+      write('dz discrimination-check: NOT-ESTABLISHED — предфичевая база не установлена.');
+      write(dirty === null
+        ? `  Не удалось спросить git о состоянии ${packageDirRel}; выбирать удобный ответ вместо этого нельзя.`
+        : `  В ${packageDirRel} нет незакоммиченных правок, значит фича УЖЕ в HEAD, и сравнение шло бы с самой собой.`);
+      write('  Гейт сравнивает поведение ДО и ПОСЛЕ фичи; без базы сравнивать не с чем, а HEAD здесь');
+      write('  дал бы уверенное NON_DISCRIMINATING на исправных тестах (ИЗМЕРЕНО 2026-09-04).');
+      write('  Передайте --base <коммит перед фичей>, например `<sha коммита фичи>^`.');
+      return 3;
+    }
+    // Штатный ход конвейера: правка Шага 7 ещё в рабочем дереве, HEAD — настоящая предфичевая база.
+    baseRef = 'HEAD';
+    write(`dz discrimination-check: база не задана; в ${packageDirRel} есть незакоммиченные правки, беру HEAD как предфичевую базу.`);
+  }
+
+  // Провенанс базы едет в квитанцию вместе с самой базой: «явно указано» — утверждение о действии
+  // человека, и писать его для HEAD, выбранного инструментом, значит подделывать происхождение
+  // доказательства, на которое сошлются позже.
+  const baseRefSupplied = explicitBase !== undefined && explicitBase.trim() !== '';
   const planInput = runnerOpt !== undefined
-    ? { baseRef, propertyTests, runner: runnerOpt, packageTestScript, packageDevDependencies, packageDir: packageDirRel }
-    : { baseRef, propertyTests, packageTestScript, packageDevDependencies, packageDir: packageDirRel };
+    ? { baseRef, baseRefSupplied, propertyTests, runner: runnerOpt, packageTestScript, packageDevDependencies, packageDir: packageDirRel }
+    : { baseRef, baseRefSupplied, propertyTests, packageTestScript, packageDevDependencies, packageDir: packageDirRel };
   const plan = planDiscriminationCheck(planInput);
 
   if (!plan.runnable) {
@@ -10758,13 +11779,33 @@ function cmdMutationGate(
   }
 
   let entries: readonly MutationRegistryEntry[] = parsed.registry.entries;
+  let entryResults: readonly MutationEntryResult[] = parsed.entryResults;
   const only = options.get('only');
   if (only !== undefined) {
     const ids = only.split(',').map((s) => s.trim()).filter(Boolean);
-    const known = new Set(entries.map((e) => e.id));
+    const known = new Set([
+      ...entries.map((entry) => entry.id),
+      ...entryResults.map((result) => result.id),
+    ]);
     const unknown = ids.filter((id) => !known.has(id));
     if (unknown.length > 0) return fail(`--only names unknown entry id(s): ${unknown.join(', ')}`);
     entries = entries.filter((e) => ids.includes(e.id));
+    entryResults = entryResults.filter((result) => ids.includes(result.id));
+  }
+
+  if (entries.length === 0) {
+    const scope = only === undefined ? 'registry' : 'selected registry entries';
+    const error = `${scope} has no runnable entries after validation — nothing can be run; the registry is unusable`;
+    const summary = summarizeMutationResults(entryResults);
+    if (json) {
+      write(JSON.stringify({ error, registryPath, results: entryResults, summary, exitCode: 2 }, null, 2));
+    } else {
+      write(`dz mutation-gate: ${error}`);
+      for (const result of entryResults) {
+        write(`  - ${result.id}: ${result.verdict} — ${result.detail}`);
+      }
+    }
+    return 2;
   }
 
   const testCmdRaw = options.get('test-cmd') ?? parsed.registry.testCommand ?? 'npm test';
@@ -10800,7 +11841,7 @@ function cmdMutationGate(
   let gitTop: string | null = null;
   try { gitTop = execSync('git rev-parse --show-toplevel', { cwd: pkgDir, stdio: 'pipe', encoding: 'utf-8' }).trim() || null; } catch { /* not in a git repo */ }
   let copyDir = join(scratchParent, 'pkg');
-  const results: MutationEntryResult[] = [];
+  const results: MutationEntryResult[] = [...entryResults];
   const observations: MutationObservation[] = [];
   const warnings: string[] = [];
   const internalRetries: {
@@ -10933,8 +11974,8 @@ function cmdMutationGate(
         : undefined,
     );
     if (!baseline.ok) {
-      if (json) { write(JSON.stringify({ packageDir: pkgDir, registryPath, testCommand: testCmd, baseline, results: [], internalRetries, exitCode: 1 }, null, 2)); return 1; }
-      write(renderMutationReport([], baseline, pkgDir));
+      if (json) { write(JSON.stringify({ packageDir: pkgDir, registryPath, testCommand: testCmd, baseline, results, internalRetries, exitCode: 1 }, null, 2)); return 1; }
+      write(renderMutationReport(results, baseline, pkgDir));
       return 1;
     }
 
@@ -12280,9 +13321,24 @@ function nameCheckScan(repoRoot: string): NameFacts {
         // Command names come from the dispatcher AND from the help block: a name that dispatches but
         // is undocumented is still taken, and so is the reverse.
         if (f.name === 'cli.ts') {
-          for (const c of dispatchedCommandsIn(text)) commands.add(c);
-          const help = /^\s{2}dz ([a-z][a-z0-9-]*)/gm;
-          for (let m = help.exec(text); m !== null; m = help.exec(text)) if (m[1] !== undefined) commands.add(m[1]);
+          // ONE enumeration, every consumer derives (ADR-001, feature command-count-triad). This
+          // scan's question is "is the name TAKEN?", so taken = dispatched ∪ documented, which is
+          // legitimately LARGER than the canonical command count — but it must be the SAME parse
+          // the layer-1 parity test uses, not a second private regex that agrees by coincidence.
+          // The any-indent `dispatchedCommandsIn` fallback stays for a cli.ts WITHOUT a main
+          // `switch (command)` (none in this workspace today): a partial sweep would answer "free"
+          // about a taken name, and that is the one answer this command may never give.
+          let mainSwitchParsed = false;
+          try {
+            for (const c of dispatchedCommands(text)) commands.add(c);
+            for (const c of documentedCommands(text)) commands.add(c);
+            mainSwitchParsed = true;
+          } catch { /* no main switch here — fall back to the broad regexes below */ }
+          if (!mainSwitchParsed) {
+            for (const c of dispatchedCommandsIn(text)) commands.add(c);
+            const help = /^\s{2}dz ([a-z][a-z0-9-]*)/gm;
+            for (let m = help.exec(text); m !== null; m = help.exec(text)) if (m[1] !== undefined) commands.add(m[1]);
+          }
         }
       }
     }
@@ -12294,6 +13350,71 @@ function nameCheckScan(repoRoot: string): NameFacts {
   // operator can see whether it looked at a workspace or at a directory of the right shape.
   if (files === 0) return { commands: new Set(), modules: new Map(), exports: new Map(), scanFailed: true };
   return { commands, modules, exports: exportsFound, scanned: { packages, files, exports: exportsFound.size, commands: commands.size } };
+}
+
+/**
+ * `dz brief-check <файл>` — проверить бриф роя на контракт вывода (ADR-001 swarm-brief-output-contract).
+ *
+ * Разбирает объявления брифа как ДАННЫЕ и отказывает поимённо: «бриф неверен» не говорит автору,
+ * что чинить, поэтому каждое нарушение называет ключ и причину.
+ *
+ * ЧЕСТНЫЙ ПРЕДЕЛ печатается ВМЕСТЕ С ЗЕЛЁНЫМ ответом: проверено, что бриф ОБЪЯВИЛ каталог и
+ * единицы, а не что агент им последует. Зелёная проверка, читаемая как гарантия поведения, хуже
+ * её отсутствия.
+ */
+function cmdBriefCheck(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): number {
+  const json = flags.has('json');
+  /**
+   * ВЕТКА «ПРОВЕРИТЬ НЕ УДАЛОСЬ» ТОЖЕ ОБЯЗАНА ОТВЕТИТЬ JSON-ом (находка 11).
+   *
+   * `--json` печатал человеческую строку на несуществующем файле, и потребитель, читающий вывод как
+   * JSON, получал ошибку разбора вместо структурного «не проверено». Признак `checked` — тот же
+   * трихотомический вердикт, что и коды выхода, только для машины: не «бриф плох», а «мы про него
+   * ничего не установили».
+   */
+  const unchecked = (reason: string, detail: string): number => {
+    if (json) write(JSON.stringify({ ok: false, checked: false, reason, detail }));
+    else write(detail);
+    return 2;
+  };
+  // Только позиционный аргумент: `--file` был необъявленным псевдонимом, и страж дрейфа флагов
+  // справедливо на него указал — лишняя поверхность, которой нет в справке.
+  const file = options.get('_positional_0');
+  if (file === undefined || file.trim() === '') {
+    const code = unchecked('no-file', 'dz brief-check: name the brief file — dz brief-check <file> [--json]');
+    if (!json) write('  A brief must declare: ' + SWARM_BRIEF_CONTRACT.map((c: { key: string }) => c.key).join(', '));
+    return code;
+  }
+  let text: string;
+  try {
+    text = readFileSync(resolve(cwd, file), 'utf-8');
+  } catch {
+    // Нечитаемый файл — НЕ «бриф плох»: мы про него ничего не установили. Отдельный код выхода,
+    // чтобы отказ прибора не смешивался с отказом брифа.
+    return unchecked('unreadable', `dz brief-check: cannot read ${visibleText(file)}`);
+  }
+  const result = checkSwarmBrief(text);
+  if (json) {
+    // `checked: true` — вторая половина того же различителя: потребитель отличает «проверено и
+    // отвергнуто» от «проверить не удалось» полем, а не отсутствием поля.
+    write(JSON.stringify({ ...result, checked: true }));
+    return result.ok ? 0 : 1;
+  }
+  if (result.ok) {
+    // ЗНАЧЕНИЯ ИЗ БРИФА ОБЕЗВРЕЖИВАЮТСЯ И В ЗЕЛЁНОЙ СТРОКЕ (находка 10). Отказ их уже обезвредил,
+    // но подделывается ровно эта строка: управляющая последовательность в имени каталога стирает
+    // предыдущий вывод и печатает поверх него подделку.
+    write(`dz brief-check: OK — dir ${visibleText(result.outputDir ?? '')}, ${result.units.length} unit(s), assembly "${visibleText(result.assemblyUnit ?? '')}"`);
+    write('  LIMIT: this verifies the brief DECLARED the contract, not that the agent will follow it —');
+    write('  only comparing the directory against the unit list on an orchestrator tick can show that.');
+    write('  A filled-in template and an unedited one both pass: the parse cannot tell them apart.');
+    return 0;
+  }
+  write(`dz brief-check: REFUSED — ${result.violations.length} violation(s)`);
+  // Ядро уже обезвредило значения в причинах; повтор на слое печати — не суеверие, а граница:
+  // печатающий слой не обязан знать, кто именно из его источников уже почистил текст.
+  for (const v of result.violations) write(`  ${v.rule}: ${visibleText(v.detail)}`);
+  return 1;
 }
 
 function cmdNameCheck(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): number {
@@ -12769,6 +13890,206 @@ function cmdLedgerBackfill(options: Map<string, string>, flags: Set<string>, cwd
   return 0;
 }
 
+const runRegistryIO = {
+  append: (path: string, line: string): void => withNamedLockSync(dirname(path), 'run-registry-archive', () => appendFileSync(path, line, 'utf8')),
+  read: (path: string): string => readFileSync(path, 'utf8'),
+  mkdir: (dir: string): void => { mkdirSync(dir, { recursive: true }); },
+};
+
+function cmdRuns(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): number {
+  if (options.has('probe-pid')) {
+    const result = probePid(Number(options.get('probe-pid')));
+    write(result === null ? 'unknown' : String(result));
+    return 0;
+  }
+  const root = resolve(options.get('project') ?? cwd);
+  const minutes = Number(options.get('stall-minutes') ?? 120);
+  if (!Number.isFinite(minutes) || minutes < 0) {
+    write(flags.has('json') ? JSON.stringify({ status: 'refused', reason: 'stall-minutes must be a finite non-negative number' }) : 'stall-minutes must be a finite non-negative number');
+    return 2;
+  }
+  const opts = { stallMs: minutes * 60_000 };
+  let settled: RunEvent[] = [];
+  if (flags.has('settle')) {
+    settled = withNamedLockSync(join(root, '.dz', 'runs'), 'run-registry-archive', () => {
+      const events = settleDeadRuns(readRunRegistry(root, runRegistryIO), Date.now(), probePid);
+      // Already holding the shared archive/append lock across read-plan-append.
+      const unlockedIO = { ...runRegistryIO, append: (path: string, line: string): void => appendFileSync(path, line, 'utf8') };
+      for (const event of events) appendRunEvent(root, event, unlockedIO);
+      return events;
+    });
+    if (!flags.has('json')) {
+      for (const event of settled) write(`settled ${event.runId} — died (${event.reason})`);
+      if (!settled.length) write('nothing to settle');
+    }
+  }
+  const registry = readRunRegistry(root, runRegistryIO);
+  if (registry.status === 'missing') {
+    write(flags.has('json') ? JSON.stringify(registry) : 'нет реестра: .dz/runs/registry.jsonl ещё не создан (ни одного прогона)');
+    return 0;
+  }
+  const now = Date.now();
+  const parents = liveParents(registry, now, probePid, opts);
+  const rows = registry.runs.map((run, i) => {
+    const parent = parents[i]!.liveness;
+    const own = liveness(run, now, probePid, opts);
+    const decision = registry.status !== 'readable' ? parent :
+      run.finished ? { state: 'finished', reason: run.outcome } :
+      parent.state !== 'live' && parent.state !== 'stalled' ? parent : own;
+    return { ...run, state: decision.state, reason: decision.reason,
+      parentLiveness: parent, heartbeatAgeMs: run.heartbeat ? now - Date.parse(run.heartbeat) : null };
+  });
+  if (flags.has('json')) write(JSON.stringify({ ...registry, runs: rows, ...(flags.has('settle') ? { settled } : {}) }));
+  else {
+    if (registry.status !== 'readable') write('inconclusive — ' + registry.reason);
+    write('runId | kind | slug | pid | parent | liveness | heartbeat age');
+    for (const row of rows) write([row.runId, row.kind, row.slug, row.pid, row.parentRunId ?? '—',
+      row.state, row.heartbeatAgeMs === null ? '—' : `${row.heartbeatAgeMs}ms`].join(' | ') + ' — ' + row.reason);
+  }
+  return registry.status === 'readable' ? 0 : 1;
+}
+
+/** Git effects are injected; the core owns eligibility and the explicit apply boundary. */
+export function cmdRunsClean(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write,
+  exec: (command: string, options: { cwd: string; encoding: 'utf8'; stdio: ['ignore', 'pipe', 'pipe'] }) => string | Buffer = execSync): number {
+  const root = resolve(options.get('project') ?? cwd);
+  const json = flags.has('json');
+  const messages: string[] = [];
+  const say = (line: string): void => { messages.push(line); if (!json) write(line); };
+  try {
+    const days = Number(options.get('retention-days') ?? 2);
+    if (!Number.isFinite(days) || days < 0) throw new Error('retention-days must be a finite non-negative number');
+    const now = Date.now(), retentionMs = days * 86400000;
+    const git = (command: string, dir = root): string => String(exec(command, { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }));
+    // Git C-quotes paths containing controls/non-ASCII bytes. Decode octal UTF-8 as well.
+    const unquote = (value: string): string => {
+      if (!value.startsWith('"')) return value;
+      const bytes: number[] = [];
+      const body = value.slice(1, -1);
+      const escapes: Record<string, string> = { a: '\x07', b: '\b', t: '\t', n: '\n', v: '\v', f: '\f', r: '\r', '"': '"', '\\': '\\' };
+      for (let i = 0; i < body.length; i++) {
+        if (body[i] === '\\') {
+          const octal = /^[0-7]{1,3}/.exec(body.slice(i + 1));
+          if (octal) { bytes.push(parseInt(octal[0], 8)); i += octal[0].length; }
+          else { i++; bytes.push(...Buffer.from(escapes[body[i]!] ?? body[i]!)); }
+        } else {
+          const cp = String.fromCodePoint(body.codePointAt(i)!);
+          bytes.push(...Buffer.from(cp)); i += cp.length - 1;
+        }
+      }
+      return Buffer.from(bytes).toString('utf8');
+    };
+    const list = (): Array<{ path: string; branch: string | null; detached: boolean; sha: string }> => {
+      const text = git('git worktree list --porcelain');
+      const trees = text.trimEnd().split(/\n\n+/).filter(Boolean).map(block => {
+        const lines = block.split('\n');
+        const path = lines.find(line => line.startsWith('worktree '))?.slice(9);
+        const sha = lines.find(line => line.startsWith('HEAD '))?.slice(5);
+        if (!path || !sha) throw new Error('unreadable worktree entry: ' + block);
+        return { path: unquote(path), sha,
+          branch: lines.find(line => line.startsWith('branch '))?.slice(7) ?? null,
+          detached: lines.includes('detached') };
+      });
+      if (!trees.length) throw new Error('empty git worktree list');
+      return trees;
+    };
+    const trees = list();
+    const facts: WorktreeFact[] = trees.map((tree, index) => {
+      // Any unreadable status aborts before removal; unknown cleanliness is never clean.
+      const dirtyFiles = git('git status --short --untracked-files=all', tree.path).split('\n').filter(Boolean)
+        .map(line => unquote(line.slice(3)));
+      let merged: boolean | null = null;
+      try { git(`git merge-base --is-ancestor ${shellQuote(tree.branch ?? tree.sha)} main`); merged = true; }
+      catch (error) { if ((error as { status?: number }).status === 1) merged = false; }
+      let lastCommitTs: number | null = null;
+      try {
+        const raw = git('git log -1 --format=%ct', tree.path).trim();
+        if (/^\d+$/.test(raw) && Number.isFinite(Number(raw) * 1000)) lastCommitTs = Number(raw) * 1000;
+      } catch { /* unknown age keeps the worktree */ }
+      return { path: tree.path, branch: tree.branch?.replace(/^refs\/heads\//, '') ?? null,
+        detached: tree.detached, isMain: index === 0 || tree.branch === 'refs/heads/main', merged, dirtyFiles, lastCommitTs };
+    });
+    const plan = planWorktreeCleanup(facts, { now, retentionMs });
+    for (const line of renderCleanupPlan(plan)) say(line);
+    let code = 0;
+    for (const fact of worktreeRemovalsToApply(plan, flags.has('apply'))) {
+      let failure: string | undefined;
+      try { git(`git worktree remove ${shellQuote(fact.path)}`); }
+      catch (error) { failure = String(error); }
+      try {
+        if (!list().some(tree => tree.path === fact.path)) say(`removed ${fact.path} (confirmed)`);
+        else { say(`NOT removed ${fact.path}` + (failure ? ` — ${failure}` : '')); code = 1; }
+      } catch (error) { say(`NOT removed ${fact.path} — confirmation unavailable: ${String(error)}`); code = 1; }
+    }
+    const archiveRegistry = (): { archive: RunEvent[]; keep: RunEvent[] } => {
+      const registry = readRunRegistry(root, runRegistryIO);
+      if (registry.status === 'inconclusive') throw new Error(registry.reason);
+      const archivePlan = planRegistryArchive(registry, { now, retentionMs, probe: probePid });
+      if (flags.has('apply') && archivePlan.archive.length > 0) {
+        const dir = join(root, '.dz', 'runs');
+        const encode = (events: RunEvent[]): string => events.map(ev => JSON.stringify(ev) + '\n').join('');
+        const temp = join(dir, `registry.${randomBytes(8).toString('hex')}.tmp`);
+        try {
+          writeFileSync(temp, encode(archivePlan.keep), { flag: 'wx', mode: 0o600 });
+          appendFileSync(join(dir, 'registry.archive.jsonl'), encode(archivePlan.archive));
+          renameSync(temp, join(dir, 'registry.jsonl'));
+        } finally { if (existsSync(temp)) unlinkSync(temp); }
+      }
+      return archivePlan;
+    };
+    const archive = flags.has('apply')
+      ? withNamedLockSync(join(root, '.dz', 'runs'), 'run-registry-archive', archiveRegistry)
+      : archiveRegistry();
+    say(`${flags.has('apply') ? 'archived' : 'archive'} ${archive.archive.length} registry event(s)`);
+    if (json) write(JSON.stringify({ ...plan, applied: flags.has('apply'), archive, messages, ok: code === 0 }));
+    return code;
+  } catch (error) {
+    const reason = String(error);
+    if (json) write(JSON.stringify({ ok: false, reason, messages }));
+    else write('runs-clean refused: ' + reason);
+    return 1;
+  }
+}
+
+function cmdRunsRecord(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): number {
+  try {
+    const event = options.get('event') as RunEvent['event'];
+    const runId = options.get('run-id') ?? (event === 'started' ? randomBytes(16).toString('hex') : '');
+    const ev: RunEvent = { event, runId, ts: new Date().toISOString() };
+    if (event === 'started') {
+      const kind = options.get('kind');
+      const slug = options.get('slug');
+      Object.assign(ev, { ...(kind === undefined ? {} : { kind }), ...(slug === undefined ? {} : { slug }) });
+      const rawPid = options.get('pid');
+      if (rawPid === 'host') {
+        // The shell agent is transient. Walk to the nearest Claude host, never guess from age.
+        let candidate = process.ppid;
+        const seen = new Set<number>();
+        while (candidate > 1 && !seen.has(candidate)) {
+          seen.add(candidate);
+          const row = execFileSync('ps', ['-p', String(candidate), '-o', 'ppid=', '-o', 'comm='], { encoding: 'utf8' }).trim();
+          const match = /^(\d+)\s+(.+)$/.exec(row);
+          if (!match) break;
+          if (/^claude(?:$|[- ])/.test(basename(match[2]!))) { ev.pid = candidate; break; }
+          candidate = Number(match[1]);
+        }
+        if (ev.pid === undefined) throw new Error('Claude host PID unavailable; pass explicit --pid (Workflow args.runPid)');
+      } else ev.pid = Number(rawPid);
+      const parentRunId = options.get('parent-run-id');
+      Object.assign(ev, { ...(parentRunId === undefined ? {} : { parentRunId }) });
+    }
+    const outcome = event === 'finished' ? options.get('outcome') : undefined;
+    const reason = options.get('reason');
+    Object.assign(ev, { ...(outcome === undefined ? {} : { outcome }), ...(reason === undefined ? {} : { reason }) });
+    appendRunEvent(resolve(options.get('project') ?? cwd), ev, runRegistryIO);
+    write(flags.has('json') ? JSON.stringify({ status: 'written', ...ev }) : `written ${event} ${runId}`);
+    return 0;
+  } catch (error) {
+    write(flags.has('json') ? JSON.stringify({ status: 'refused', reason: String(error) }) : `refused: ${String(error)}`);
+    return 2;
+  }
+}
+
 function cmdFeatureAdrRecord(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): number {
   const json = flags.has('json');
   // `--backfill` is a different verb on the same store: it fills the ledger's null cost fields from
@@ -12895,7 +14216,7 @@ type ContractDiskRead =
 
 type ContractDirectoryRead =
   | { readonly ok: true; readonly realPath: string }
-  | { readonly ok: false; readonly diagnostic: ContractDiagnostic };
+  | { readonly ok: false; readonly reason: 'missing' | 'unreadable'; readonly diagnostic: ContractDiagnostic };
 
 function contractRepoRoot(cwd: string): string {
   let root = cwd;
@@ -12954,7 +14275,18 @@ function contractDirectoryConfined(repoRoot: string, absolute: string, artifact:
   } catch {
     return {
       ok: false,
+      reason: 'unreadable',
       diagnostic: { code: 'repository-unreadable', message: 'repository root cannot be resolved', artifact: '.' },
+    };
+  }
+  try {
+    lstatSync(absolute);
+  } catch (error) {
+    const missing = (error as NodeJS.ErrnoException).code === 'ENOENT';
+    return {
+      ok: false,
+      reason: missing ? 'missing' : 'unreadable',
+      diagnostic: { code: 'adr-directory-unreadable', message: `required ADR directory cannot be resolved: ${artifact}`, artifact },
     };
   }
   try {
@@ -12962,6 +14294,7 @@ function contractDirectoryConfined(repoRoot: string, absolute: string, artifact:
   } catch {
     return {
       ok: false,
+      reason: 'unreadable',
       diagnostic: { code: 'adr-directory-unreadable', message: `required ADR directory cannot be resolved: ${artifact}`, artifact },
     };
   }
@@ -12969,6 +14302,7 @@ function contractDirectoryConfined(repoRoot: string, absolute: string, artifact:
   if (rel === '' || rel.startsWith(`..${sep}`) || rel === '..' || isAbsolute(rel)) {
     return {
       ok: false,
+      reason: 'unreadable',
       diagnostic: { code: 'artifact-outside-repository', message: `artifact resolves outside the repository: ${artifact}`, artifact },
     };
   }
@@ -12978,6 +14312,7 @@ function contractDirectoryConfined(repoRoot: string, absolute: string, artifact:
   } catch {
     return {
       ok: false,
+      reason: 'unreadable',
       diagnostic: { code: 'adr-directory-unreadable', message: `required ADR directory is not readable: ${artifact}`, artifact },
     };
   }
@@ -13038,34 +14373,64 @@ function cmdContractCheck(
 
   const adrDirRel = `features/${slug}/03_adr`;
   const adrDirectory = contractDirectoryConfined(repoRoot, join(featureDir, '03_adr'), adrDirRel);
-  if (!adrDirectory.ok) return emitEarly('not-established', 2, [adrDirectory.diagnostic]);
-  const adrDir = adrDirectory.realPath;
+  const informationalDiagnostics: ContractDiagnostic[] = [];
   let adrNames: string[];
-  try {
-    adrNames = readdirSync(adrDir, { withFileTypes: true })
-      .filter((entry) => entry.name.endsWith('.md') && (entry.isFile() || entry.isSymbolicLink()))
-      .map((entry) => entry.name)
-      .sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
-  } catch {
-    return emitEarly('not-established', 2, [{
-      code: 'adr-directory-unreadable',
-      message: `required ADR directory cannot be read: ${adrDirRel}`,
-      artifact: adrDirRel,
-    }]);
-  }
-  if (adrNames.length === 0) {
-    return emitEarly('not-established', 2, [{
-      code: 'adr-artifacts-missing',
-      message: `no direct ADR Markdown artifacts exist under ${adrDirRel}`,
-      artifact: adrDirRel,
-      observed: 0,
-    }]);
+  let adrDir: string | null = null;
+  let adrsOptional: true | undefined;
+  if (!adrDirectory.ok) {
+    if (adrDirectory.reason !== 'missing') return emitEarly('not-established', 2, [adrDirectory.diagnostic]);
+    const tier = readFeatureTier((rel) => {
+      const assessment = contractReadConfined(repoRoot, join(repoRoot, rel), rel);
+      return assessment.ok ? assessment.text : null;
+    }, slug);
+    if (tier === 'S') {
+      adrNames = [];
+      adrsOptional = true;
+      informationalDiagnostics.push({
+        code: 'adr-not-required-for-tier',
+        message: 'ADR artifacts are not required for an S-tier feature',
+        artifact: adrDirRel,
+      });
+    } else if (tier !== null) {
+      return emitEarly('not-established', 2, [{
+        code: 'adr-directory-missing',
+        message: `required ADR directory is missing for ${tier}-tier feature: ${adrDirRel}`,
+        artifact: adrDirRel,
+      }]);
+    } else {
+      return emitEarly('not-established', 2, [{
+        ...adrDirectory.diagnostic,
+        message: `${adrDirectory.diagnostic.message}; feature tier is unreadable`,
+      }]);
+    }
+  } else {
+    adrDir = adrDirectory.realPath;
+    try {
+      adrNames = readdirSync(adrDir, { withFileTypes: true })
+        .filter((entry) => entry.name.endsWith('.md') && (entry.isFile() || entry.isSymbolicLink()))
+        .map((entry) => entry.name)
+        .sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+    } catch {
+      return emitEarly('not-established', 2, [{
+        code: 'adr-directory-unreadable',
+        message: `required ADR directory cannot be read: ${adrDirRel}`,
+        artifact: adrDirRel,
+      }]);
+    }
+    if (adrNames.length === 0) {
+      return emitEarly('not-established', 2, [{
+        code: 'adr-artifacts-missing',
+        message: `no direct ADR Markdown artifacts exist under ${adrDirRel}`,
+        artifact: adrDirRel,
+        observed: 0,
+      }]);
+    }
   }
   const adrs: Array<{ path: string; text: string }> = [];
   const adrReadErrors: ContractDiagnostic[] = [];
   for (const name of adrNames) {
     const rel = `features/${slug}/03_adr/${name}`;
-    const read = contractReadConfined(repoRoot, join(adrDir, name), rel);
+    const read = contractReadConfined(repoRoot, join(adrDir!, name), rel);
     if (read.ok) adrs.push({ path: rel, text: read.text });
     else adrReadErrors.push(read.diagnostic);
   }
@@ -13074,6 +14439,7 @@ function cmdContractCheck(
   const extracted = extractContractChecklist({
     requirements: { path: requirementsRel, text: requirementsRead.text },
     adrs,
+    ...(adrsOptional === true ? { adrsOptional: true } : {}),
   });
   if (!extracted.ok) return emitEarly('fail', 1, extracted.diagnostics);
 
@@ -13115,7 +14481,7 @@ function cmdContractCheck(
   });
   const verification = {
     ...rawVerification,
-    diagnostics: rawVerification.diagnostics.map(withReportArtifact),
+    diagnostics: [...informationalDiagnostics, ...rawVerification.diagnostics.map(withReportArtifact)],
     items: rawVerification.items.map((item) => ({
       ...item,
       diagnostics: item.diagnostics.map(withReportArtifact),
@@ -13143,7 +14509,7 @@ function cmdContractCheck(
   for (const entry of verification.diagnostics) writeErr(contractDiagnosticLine(entry));
   const summary = verification.outcome === 'pass'
     ? `${verification.counts.met} contract item(s) met`
-    : `${verification.diagnostics.length} contract or evidence violation(s)`;
+    : `${rawVerification.diagnostics.length} contract or evidence violation(s)`;
   write(`contract-check: ${verification.outcome === 'pass' ? 'PASS' : 'FAIL'} — ${summary}`);
   return verification.exitCode;
 }
@@ -13179,12 +14545,24 @@ function cmdAmendmentCheck(options: Map<string, string>, flags: Set<string>, cwd
     // Paths in an amendment row are repo-relative, so they resolve against the repo root — not
     // against the feature directory, and not against wherever the caller happened to stand.
     const resolutions = resolveAmendments(rows, { readFile: (rel) => readOr(resolve(cwd, rel)) });
+    // A document that opens `## Amendments` twice cannot have its first heading answer for the
+    // rest (Codex round 6, P2). Counted per document and taken at its worst — one contradictory
+    // input is enough to make the run inconclusive.
+    const sectionCount = Math.max(
+      ideation === null ? 0 : amendmentSectionCount(ideation),
+      plan === null ? 0 : amendmentSectionCount(plan),
+    );
     const decision = decideAmendmentOutcome({
       sectionPresent,
       rows,
       resolutions,
       planSaysNone: plan !== null && planSaysNoAmendments(plan),
       missingFromPlan,
+      sectionCount,
+      // Fail-closed: measured on the document the rows would have come from (the plan when it has
+      // a section, otherwise the ideation report).
+      ambiguity: (plan !== null ? amendmentDeclarationAmbiguity(plan) : null)
+        ?? (ideation !== null ? amendmentDeclarationAmbiguity(ideation) : null),
     });
     return { slug, decision, resolutions };
   };
@@ -15497,7 +16875,9 @@ function cmdDeliveryCheck(options: Map<string, string>, flags: Set<string>, cwd:
 /* ------------------------------------------------------------------ */
 
 /** Thin dispatcher — ALL logic lives in harness-core/src/backlog.ts (05 architecture: handlers stay dumb). */
-async function cmdBacklog(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): Promise<number> {
+async function cmdBacklog(
+  options: Map<string, string>, flags: Set<string>, cwd: string, write: Write, writeErr: WriteErr,
+): Promise<number> {
   const projectRoot = resolve(cwd, options.get('project') ?? '.');
   const json = flags.has('json');
   const sub = options.get('_positional_0');
@@ -15515,6 +16895,7 @@ async function cmdBacklog(options: Map<string, string>, flags: Set<string>, cwd:
     const eff = parseEffort(options.get('effort'), cfg.roulette.defaultEffort);
     if (eff.adjusted && !json && eff.note !== undefined) write(`dz backlog: ${eff.note}`);
     const dryRun = flags.has('dry-run');
+    if (!dryRun && !allowLearningStoreWrite(projectRoot, flags, writeErr, 'dz backlog add')) return 1;
     // Embed-form migration (register-inflation fix): v1 vectors are FULL-TEXT embeds, v2 queries are
     // bounded excerpts — comparing across the forms is a query-vs-row space split. Re-mirror once
     // (idempotent upsert), before the dedup search. Dry-run writes nothing, so it only WARNS.
@@ -15543,6 +16924,7 @@ async function cmdBacklog(options: Map<string, string>, flags: Set<string>, cwd:
       const ideas = readIdeas(projectRoot);
       const match = ideas.find((i) => i.id === verdict.matchedId);
       let absorbErr: string | undefined;
+      let didWrite = false;
       if (!dryRun && match !== undefined) {
         const snap = snapshotIdeas(projectRoot, join(projectRoot, '.dz', 'backlog', `ideas.pre-merge-${Date.now()}.jsonl`));
         if (snap.error !== undefined) return emitErr(snap.error);
@@ -15558,7 +16940,9 @@ async function cmdBacklog(options: Map<string, string>, flags: Set<string>, cwd:
         }).error;
         match.uses += 1;
         writeIdeas(projectRoot, ideas);
+        didWrite = true;
       }
+      if (didWrite) refreshLearningStoreMark(projectRoot, writeErr, 'dz backlog add');
       if (json) write(JSON.stringify({ action: 'duplicate', matchedId: verdict.matchedId, cosine: verdict.cosine, ...(verdict.containment !== undefined ? { containment: verdict.containment } : {}), ...(verdict.subsetMatch === true ? { subsetMatch: true } : {}), ...(topMatch !== undefined ? { topMatch } : {}), ...(eff.note !== undefined ? { effortNote: eff.note } : {}), ...(dryRun ? {} : { absorbedLogged: absorbErr === undefined, ...(absorbErr !== undefined ? { absorbedLogError: absorbErr } : {}) }), exitCode: 0 }, null, 2));
       else {
         const via = verdict.subsetMatch === true
@@ -15614,6 +16998,7 @@ async function cmdBacklog(options: Map<string, string>, flags: Set<string>, cwd:
     ideas.push(rec);
     writeIdeas(projectRoot, ideas);
     const mirror = await mirrorIdeaVector(projectRoot, rec); // best-effort — never blocks capture
+    refreshLearningStoreMark(projectRoot, writeErr, 'dz backlog add');
     if (json) write(JSON.stringify({ action: verdict.action, idea: rec, related: verdict.relatedIds, ...(verdict.demoted !== undefined ? { demoted: verdict.demoted } : {}), ...(topMatch !== undefined ? { topMatch } : {}), ...(eff.note !== undefined ? { effortNote: eff.note } : {}), gitignore: ignore, exitCode: 0 }, null, 2));
     else {
       write(`dz backlog: ${verdict.action.toUpperCase()} — captured ${rec.id}`);
@@ -15780,8 +17165,18 @@ async function cmdBacklog(options: Map<string, string>, flags: Set<string>, cwd:
     if (commitId !== undefined) {
       // Validated above (safe id + known id) BEFORE any early return.
       const idx = ideas.findIndex((i) => i.id === commitId);
+      // ОТМЕТКА ВРЕМЕНИ И ЖУРНАЛ ставятся ЗДЕСЬ, а не «где-нибудь потом».
+      // Измерено 2026-09-02: `grep -c statusTs cli.ts` давал НОЛЬ — оба пути смены статуса в этом
+      // файле меняли поле и не отмечали, когда. Отсюда 22 терминальные записи без отметки и
+      // невычислимое «сколько идея пробыла в работе».
+      const spinFrom = ideas[idx]!.status;
+      const spinTs = new Date().toISOString();
       ideas[idx]!.status = 'in-progress';
+      ideas[idx]!.statusTs = spinTs;
       writeIdeas(projectRoot, ideas);
+      if (!appendTransition(projectRoot, { id: commitId, from: spinFrom, to: 'in-progress', ts: spinTs, by: 'backlog roulette --commit' })) {
+        write('dz backlog: переход НЕ записан в журнал — наблюдение потеряно (сам статус изменён)');
+      }
       pick = ideas[idx]!;
       committed = true;
     }
@@ -15845,6 +17240,7 @@ async function cmdBacklog(options: Map<string, string>, flags: Set<string>, cwd:
         if (mirror.mirrored > 0 && mirror.error === undefined && clearEmbedStale(projectRoot, report.id)) embed = 'ok';
         else embed = 'stale';
       } else embed = 'stale';
+      refreshLearningStoreMark(projectRoot, writeErr, 'dz backlog edit');
     }
     if (json) {
       write(JSON.stringify({ verb: 'edit', ...report, embed, exitCode: report.ok ? (embed === 'stale' ? 1 : 0) : 1 }, null, 2));
@@ -15872,9 +17268,15 @@ async function cmdBacklog(options: Map<string, string>, flags: Set<string>, cwd:
     const goalMap = readGoalMap(projectRoot);
     const related = ideas.filter((i) => rec.relatedIds.includes(i.id));
     const staging = stageEnrichment(projectRoot, rec, related, goalMap);
+    const enrichFrom = rec.status;
+    const enrichTs = new Date().toISOString();
     rec.status = 'enriched';
+    rec.statusTs = enrichTs;
     rec.enrichedPath = `features/${staging.slug}`;
     writeIdeas(projectRoot, ideas);
+    if (!appendTransition(projectRoot, { id: rec.id, from: enrichFrom, to: 'enriched', ts: enrichTs, by: 'backlog enrich' })) {
+      write('dz backlog: переход НЕ записан в журнал — наблюдение потеряно (сам статус изменён)');
+    }
     if (json) write(JSON.stringify({ slug: staging.slug, scaffoldPath: staging.scaffoldPath, handoff: 'idea2prd-manual', exitCode: 0 }, null, 2));
     else {
       write(`dz backlog enrich: staged ${rec.id} → ${staging.scaffoldPath}`);
@@ -15914,6 +17316,10 @@ async function cmdBacklog(options: Map<string, string>, flags: Set<string>, cwd:
     if (form.action === 'migrated' && !json) write(`dz backlog: re-embedded ${form.remirrored} idea vector(s) into the bounded dedup embed form (v${form.version})`);
     else if (form.action === 'deferred' && !json) write(`dz backlog: ⚠ embed-form migration deferred (${form.error ?? 'unknown error'})`);
     const report = await harmonizeBacklog(projectRoot, { apply, ...(thr !== undefined ? { threshold: Number(thr) } : {}) });
+    if (apply) {
+      refreshLearningStoreMark(projectRoot, writeErr, 'dz backlog harmonize --apply');
+      storeGuardResetReminder(projectRoot, writeErr, 'dz backlog harmonize --apply');
+    }
     if (json) {
       write(JSON.stringify({ ...report, exitCode: 0 }, null, 2));
       return 0;
@@ -16598,6 +18004,94 @@ async function cmdProfile(options: Map<string, string>, flags: Set<string>, writ
   return fail(2, `dz profile: unknown subcommand ${JSON.stringify(sub)} — accepted: init | show | set | sync`);
 }
 
+function cmdJournal(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write, injectedIo?: JournalIo): number {
+  try {
+    const verb = options.get('_positional_0');
+    if (verb !== 'add' && verb !== 'show') throw new Error('Ожидается journal add или journal show');
+    const kindRaw = options.get('kind');
+    if ((verb === 'add' || kindRaw !== undefined) && !JOURNAL_KINDS.includes(kindRaw as JournalKind)) {
+      write(`Категория должна быть одной из: ${JOURNAL_KINDS.join(', ')}`);
+      return 1;
+    }
+    if (flags.has('day') && flags.has('week')) throw new Error('Выберите --day или --week');
+    const root = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+    const dir = join(root, 'docs', 'journal');
+    // A journal symlink must never redirect an append or a quote outside this repository.
+    for (const path of [join(root, 'docs'), dir, join(dir, 'quotes')]) {
+      if (existsSync(path) && lstatSync(path).isSymbolicLink()) throw new Error(`Символическая ссылка запрещена: ${path}`);
+    }
+    const at = options.get('at') ?? (verb === 'add' ? new Date().toISOString() : new Date().toISOString().slice(0, 10));
+    let date = at;
+    let time = '';
+    if (verb === 'add') {
+      if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(at)) throw new Error('--at ожидает ISO с часовым поясом');
+      selectWindow([], at.slice(0, 10), false);
+      const stamp = new Date(at).toISOString();
+      date = stamp.slice(0, 10); time = stamp.slice(11, 16);
+    }
+    selectWindow([], date, false);
+    if (verb === 'show') {
+      const days = existsSync(dir) ? readdirSync(dir).filter(n => /^\d{4}-\d{2}-\d{2}\.md$/.test(n)).map(n => n.slice(0, 10)) : [];
+      const rows = selectWindow(days, date, flags.has('week')).flatMap(day => {
+        return readFileSync(join(dir, `${day}.md`), 'utf8').split('\n').filter(line => line.startsWith('- '))
+          .map(raw => ({ day, ...parseLine(raw) }));
+      }).filter(row => row.status === 'unparsed' || kindRaw === undefined || row.kind === kindRaw);
+      if (flags.has('json')) write(JSON.stringify(rows));
+      else for (const row of rows) write(row.status === 'unparsed' ? `[unparsed] ${row.raw}` : row.raw);
+      return 0;
+    }
+    const text = options.get('_positional_1') ?? '';
+    let ref = options.get('ref') ?? '';
+    const event = { time, kind: kindRaw as JournalKind, text, ref };
+    formatLine(event); // validate before any journal/quote write
+    if (options.has('_positional_2')) throw new Error('Текст должен быть одним аргументом');
+    if (flags.has('commit-quote') && !options.has('quote')) throw new Error('--commit-quote требует --quote');
+    return withNamedLockSync(root, 'journal', () => {
+      const path = join(dir, `${date}.md`);
+      if (existsSync(path) && lstatSync(path).isSymbolicLink()) throw new Error(`Символическая ссылка запрещена: ${path}`);
+      const previous = existsSync(path) ? readFileSync(path, 'utf8') : '';
+      if (previous.split('\n').map(parseLine).some(row => row.status === 'parsed' && row.time === time && row.text === text.trim())) {
+        write('уже записано'); return 0;
+      }
+      const quote = options.get('quote');
+      if (quote !== undefined) {
+        const content = readFileSync(resolve(cwd, quote), 'utf8');
+        const quotes = join(dir, 'quotes');
+        const exclude = execFileSync('git', ['rev-parse', '--git-path', 'info/exclude'], { cwd: root, encoding: 'utf8' }).trim();
+        const excludePath = resolve(root, exclude);
+        const ignored = existsSync(excludePath) ? readFileSync(excludePath, 'utf8') : '';
+        if (!ignored.split('\n').includes('/docs/journal/quotes/')) {
+          mkdirSync(dirname(excludePath), { recursive: true });
+          appendFileSync(excludePath, `${ignored.endsWith('\n') || !ignored ? '' : '\n'}/docs/journal/quotes/\n`);
+        }
+        mkdirSync(quotes, { recursive: true });
+        const tracked = new Set(execFileSync('git', ['ls-files', '-z', '--', 'docs/journal/quotes/'], { cwd: root, encoding: 'utf8' }).split('\0'));
+        let n = 1;
+        while (existsSync(join(quotes, `${date}-${n}.md`)) || tracked.has(`docs/journal/quotes/${date}-${n}.md`)) n++;
+        const quoteRef = `docs/journal/quotes/${date}-${n}.md`;
+        const quotePath = join(root, quoteRef);
+        writeFileSync(quotePath, content, { flag: 'wx' });
+        if (readFileSync(quotePath, 'utf8') !== content) throw new Error('Цитата не засвидетельствована');
+        if (flags.has('commit-quote')) {
+          execFileSync('git', ['add', '-f', '--', quoteRef], { cwd: root, stdio: 'pipe' });
+        }
+        ref = ref ? `${ref}; ${quoteRef}` : quoteRef;
+      }
+      mkdirSync(dir, { recursive: true });
+      if (!existsSync(path)) writeFileSync(path, `# Журнал действий — ${date}\n\n## Решения · вердикты · запуски и падения · ошибки · блокировки (UTC)\n\n`, { flag: 'wx' });
+      else if (previous && !previous.endsWith('\n')) appendFileSync(path, '\n');
+      const fs: JournalIo = injectedIo ?? { read: p => readFileSync(p, 'utf8'), append: (p, s) => appendFileSync(p, s) };
+      const line = formatLine({ ...event, ref });
+      appendWitnessed(fs, path, line);
+      write(`записано и засвидетельствовано: ${line}`);
+      return 0;
+    });
+  } catch (error) {
+    write(`dz journal: ${error instanceof Error ? error.message : String(error)}`);
+    return 1;
+  }
+}
+
 export async function runCli(argv: string[], io: CliIo = {}): Promise<number> {
   const cwd = io.cwd ?? process.cwd();
   const write: Write = io.write ?? ((line) => { console.log(line); });
@@ -16731,15 +18225,25 @@ export async function runCli(argv: string[], io: CliIo = {}): Promise<number> {
           io.teachReinforceRunner ?? runTeachGuardReinforcement,
         );
       case 'consolidate':
-        return await cmdConsolidate(options, flags, cwd, write);
+        return await cmdConsolidate(options, flags, cwd, write, writeErr);
       case 'recall':
         return await cmdRecall(options, flags, cwd, write, writeErr, io.classMatcher);
       case 'vector':
-        return await cmdVector(options, flags, cwd, write);
+        return await cmdVector(options, flags, cwd, write, writeErr);
       case 'brain':
         return await cmdBrain(options, flags, cwd, write, readStdin);
       case 'statusline':
-        return cmdStatusline(options, flags, cwd, write, readStdin);
+        return cmdStatusline(options, flags, cwd, write, readStdin, writeErr);
+      case 'store-guard':
+        return await cmdStoreGuard(
+          options,
+          flags,
+          cwd,
+          write,
+          writeErr,
+          io.stdin,
+          io.interactive ?? process.stdin.isTTY === true,
+        );
       case 'usage':
         return cmdUsage(options, optionLists, flags, cwd, write);
       case 'chain':
@@ -16807,7 +18311,7 @@ export async function runCli(argv: string[], io: CliIo = {}): Promise<number> {
       case 'mr-rakes':
         return await cmdMrRakes(options, flags, cwd, write);
       case 'retro':
-        return await cmdRetro(options, flags, cwd, write);
+        return await cmdRetro(options, flags, cwd, write, readStdin);
       case 'feature-adr-setup':
         return cmdFeatureAdrSetup(options, flags, cwd, write, writeErr);
       case 'challenge':
@@ -16852,10 +18356,20 @@ export async function runCli(argv: string[], io: CliIo = {}): Promise<number> {
         return cmdTgPost(options, flags, cwd, write);
       case 'name-check':
         return cmdNameCheck(options, flags, cwd, write);
+      case 'brief-check':
+        return cmdBriefCheck(options, flags, cwd, write);
       case 'provenance-check':
         return cmdProvenanceCheck(options, flags, cwd, write);
+      case 'journal':
+        return cmdJournal(options, flags, cwd, write, io.journalIo);
       case 'feature-adr-record':
         return cmdFeatureAdrRecord(options, flags, cwd, write);
+      case 'runs':
+        return cmdRuns(options, flags, cwd, write);
+      case 'runs-clean':
+        return cmdRunsClean(options, flags, cwd, write);
+      case 'runs-record':
+        return cmdRunsRecord(options, flags, cwd, write);
       case 'amendment-check':
         return cmdAmendmentCheck(options, flags, cwd, write);
       case 'contract-check':
@@ -16869,7 +18383,7 @@ export async function runCli(argv: string[], io: CliIo = {}): Promise<number> {
       case 'qe-bridge':
         return await cmdQeBridge(options, flags, cwd, write);
       case 'backlog':
-        return await cmdBacklog(options, flags, cwd, write);
+        return await cmdBacklog(options, flags, cwd, write, writeErr);
       case 'routing':
         return cmdRouting(options, flags, cwd, write);
       case 'bto-optimize':

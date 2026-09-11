@@ -31,6 +31,7 @@
  *
  * @packageDocumentation
  */
+import { SourceRefusal, fetchWithBudget, isSourceRefusal } from './source-outcome.js';
 const MCP_REGISTRY_API = 'https://registry.modelcontextprotocol.io/v0/servers';
 /** Derive the best available canonical URL for a server entry. */
 function deriveUrl(server) {
@@ -106,16 +107,17 @@ export async function scanMcpRegistry(options = {}) {
         const url = search
             ? `${MCP_REGISTRY_API}?search=${encodeURIComponent(search)}&limit=${limit}`
             : `${MCP_REGISTRY_API}?limit=${limit}`;
-        const resp = await fetch(url, {
+        // Прежде `if (!resp.ok) return []` превращал ответ реестра кодом ошибки в «серверов нет».
+        const resp = await fetchWithBudget(url, {
             headers: { Accept: 'application/json', 'User-Agent': 'dz-scout/0.5.0' },
         });
-        if (!resp.ok)
-            return [];
         const data = (await resp.json());
         return parseMcpRegistryResponse(data);
     }
-    catch {
-        return [];
+    catch (err) {
+        if (isSourceRefusal(err))
+            throw err;
+        throw new SourceRefusal('failed', `mcp-registry: обращение не состоялось — ${err instanceof Error ? err.message : String(err)}`);
     }
 }
 //# sourceMappingURL=mcp-registry.js.map
