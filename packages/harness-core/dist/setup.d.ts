@@ -29,6 +29,14 @@ export interface SetupOptions {
     readonly force?: boolean | undefined;
     /** Also deploy the operating-instructions "driver" skill + agent docs. */
     readonly installDriver?: boolean | undefined;
+    /**
+     * Absolute directory holding the BUILT harness-core modules, baked into the generated apply-leg
+     * hooks as the first resolve candidate (ADR-001 Decision 2, feature `setup-installs-apply-leg`).
+     * The CLI computes this from ITS OWN `@dzhechkov/harness-core` resolution (the installation
+     * actually running `dz setup`); when core's own `runSetup` is called without it (e.g. a direct
+     * programmatic call, or a test), it falls back to resolving ITSELF via {@link harnessCoreDistDir}.
+     */
+    readonly coreDistDir?: string | undefined;
 }
 /** Setup result. */
 export interface SetupResult {

@@ -559,7 +559,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "5d9a4d305a14424da0f805e42c5854e73c5ad6f36b8344ba0abf5291267039b6"
+          "value": "6b719e901b7127b591f62e854143634ac9d6714530e10b121277de23bc031711"
         }
       ]
     },
@@ -580,6 +580,16 @@
         {
           "alg": "SHA-256",
           "content": "1d94050c71928db3dbeec901ed564beeb08c27ea43e7785a7f2d58aed92f38b8"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/coverage-baseline.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dc5db1a377458abe229a0b0ee72a97697a1600544c959effcdac4be57eb844cf"
         }
       ]
     },
@@ -659,7 +669,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "edc6148604c90d1c3cd756b764c655930fd9c5a422fe79b5e32c76c1eb77cef7"
+          "content": "757e33f504688b0aeb4c87333a1e23af06871f00c92148f746a1cb8259e0f334"
         }
       ]
     },
@@ -669,7 +679,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "312f383d3e3f1c3d47a4360c4c53591532a19d96a62a17b2134e5029ef95c9c2"
+          "content": "8405db5b8ccf6b8437921cf019a0a5d34a08497cea8ba135cc3f430e5addacc8"
         }
       ]
     },

@@ -41,7 +41,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-idea2prd"
   },
   "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-idea2prd#readme",

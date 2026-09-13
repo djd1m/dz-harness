@@ -81,7 +81,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "31de846fce346084ac0277c488f08ccd40e4b27ad574fed174aaedf9a185a0b5"
+        "sha256": "c8ecd950725e20b55b4a7ba503c0d348d5f238db49f6d1aba82dc6af8b0ef25b"
       },
       {
         "path": "test/mutation-registry.json",
@@ -105,5 +105,5 @@
       }
     ]
   },
-  "signature": "Qv0IKf17T0y+/P8nBkqHWlEqxsanGvFQLHt2zz9qT78gwX9t8AKIFtIF11Rm7ShyRHwawQewU1OZiMgctYynBw=="
+  "signature": "QDntL5zPsGxRAQ9I0ufQBWDStZRh6DOKctQpgkrd73W7JkQQKOOjngir8NGcnmBcITe/oAOrQAJX3VmYE/3RDQ=="
 }

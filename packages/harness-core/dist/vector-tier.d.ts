@@ -389,6 +389,14 @@ export type TeachGuardResult = {
 export declare function withVectorTimeout<T>(promise: Promise<T>, ms: number, onTimeout: () => T): Promise<T>;
 /** Text that must never be embedded: bare-approval echoes + tool telemetry (V-3 / ADR-002). */
 export declare function isVectorNoise(text: string): boolean;
+/** One source of truth for records admitted to the vector mirror and its lexical comparison set. */
+export declare function isMirrorableRecord(record: Pick<PatternRecord, 'pattern' | 'lessonForm'>): boolean;
+export interface MirrorQuarantineMetadata {
+    readonly qStatus?: 'quarantined';
+    readonly quarantinedAt?: string;
+}
+/** Pure lexical-record → vector-metadata projection used by every learned-pattern mirror writer. */
+export declare function mirrorQuarantineOf(record: Pick<PatternRecord, 'quarantined' | 'ts'> | Pick<MemoryRecord, 'metadata' | 'timestamp'>): MirrorQuarantineMetadata;
 /**
  * ACL: taught {@link PatternRecord} → {@link VectorEntry}. Returns `undefined` for noise (the
  * ingest gate — I-6). Score is the record's REAL reward, never a fabricated 1.0.
@@ -427,7 +435,16 @@ export type MirrorWriterState = 'on'
 /** The config is readable and simply does not enable a mirror. */
  | 'not-enabled'
 /** The config explicitly turns the vector tier off. */
- | 'engine-off';
+ | 'engine-off'
+/**
+ * `.dz/config.json` has a TOP-LEVEL `backend` key (`{"backend":"agentdb"}`) instead of the real
+ * shape (`{"memory":{"backend":"agentdb"}}`) — issue #10 defect 6, AM-6 (feature
+ * `setup-installs-apply-leg`). `dz setup` never emits this shape (it always nests under
+ * `memory`), so this is a hand-written or foreign-tool-written config; distinguished from
+ * `not-enabled` because the reader typed the RIGHT intent in the WRONG place, and "no mirror
+ * configured" sends them to add a setting that is already there, just misplaced.
+ */
+ | 'legacy-shape';
 /**
  * The mirror writer's state AND its real cause.
  *

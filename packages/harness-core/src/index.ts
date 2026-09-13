@@ -182,6 +182,8 @@ export {
   BANDIT_RRF_CAP,
   withVectorTimeout,
   isVectorNoise,
+  isMirrorableRecord,
+  mirrorQuarantineOf,
   patternVectorEntry,
   dreamVectorEntry,
   memoryRecordVectorEntry,
@@ -208,6 +210,7 @@ export type {
   VectorEngineKind,
   VectorEngineMode,
   VectorEntry,
+  MirrorQuarantineMetadata,
   VectorHit,
   ImportVectorRow,
   MirrorReceipt,
@@ -230,7 +233,30 @@ export type {
 } from './vector-tier.js';
 export { runSetup, generateHooksConfig, generateAgentdbWriter, writerVersionOf, AGENTDB_WRITER_VERSION,
   agentdbStorePath, agentdbMcpStorePath, agentdbStoreSeparationProblem } from './setup.js';
-export { countLearningStoreRowsReadonly } from './store-counts.js';
+// apply-leg (feature setup-installs-apply-leg, ADR-001): the third self-learning leg (APPLY) as a
+// versioned generator + the ONE measurement dz doctor/parity both read (Decision 3).
+export {
+  APPLY_LEG_VERSION,
+  applyLegVersionOf,
+  bakedCoreDistDirOf,
+  recallHookSource,
+  embedDaemonSource,
+  applyLegHookEntries,
+  applyLegStatus,
+  applyLegReasonMessage,
+  resolveIdleMs,
+  IDLE_MS_INT32_MAX,
+} from './apply-leg.js';
+export type {
+  ApplyLegHookEntry,
+  ApplyLegHelperStatus,
+  ApplyLegHookPresence,
+  ApplyLegStatus,
+  ApplyLegNotInstalledReason,
+  ResolvedIdleMs,
+} from './apply-leg.js';
+export { countLearningStoreRowsReadonly, quarantineTierParity } from './store-counts.js';
+export type { QuarantineTierRow, QuarantineTierParity } from './store-counts.js';
 export type { LearningStoreRowCounts } from './store-counts.js';
 export {
   STORE_GUARD_VERSION,
@@ -265,12 +291,14 @@ export {
   segmentRun,
 } from './eta.js';
 export type { CheckpointObservation, EtaEstimate, EtaInput, IncompleteCoverageSample, RunSegment, StageDurationSample, StageSample } from './eta.js';
-export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES } from './agentdb-index.js';
+export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema } from './agentdb-index.js';
 export type { AgentdbSearchHit, AgentdbSearchResult, AgentdbImportRow } from './agentdb-index.js';
 export { DEFAULT_EMBED_MODEL, LEGACY_EMBED_MODEL, DEFAULT_EMBED_DIM, KNOWN_EMBED_DIMS, resolveEmbedModel, readEmbedManifest, writeEmbedManifest, embedManifestPath, legacyEmbedManifest } from './embedding-config.js';
 export type { EmbedModelConfig, EmbedModelSource, EmbedManifest } from './embedding-config.js';
 export { putBookKnowledge, queryBookKnowledge, bookKbPath } from './book-kb.js';
 export type { BookKU, BookKUHit } from './book-kb.js';
+export { applyReadonlyPragmas, classifySqliteReadFailure, warnOnce } from './sqlite-read-helpers.js';
+export type { PragmaTarget, SqliteReadFailureKind } from './sqlite-read-helpers.js';
 export {
   brainHome,
   brainBooksPath,
@@ -296,6 +324,24 @@ export {
 } from './brain.js';
 export type { BrainQueryResult, BrainRegistry, BrainSource } from './brain.js';
 export type { AgentdbRow, AgentdbIndexResult } from './agentdb-index.js';
+// AM-5 (agentdb-snapshot-lock fix-round): `rotatePreReindexSnapshotsUnlocked` is package-internal
+// ONLY — the public API is `rotatePreReindexSnapshots`, which takes the snapshot lock. Exporting
+// the unlocked primitive from this barrel would hand callers outside the package a way to rotate
+// snapshots with NO mutual exclusion at all, defeating the whole point of this feature.
+export { listPreReindexSnapshots, planSnapshotRotation, rotatePreReindexSnapshots, scanSnapshotDir } from './agentdb-snapshot-rotation.js';
+export type { SnapshotFile, SnapshotFamily, SnapshotRotationPlan, SnapshotRotationReport, RotateSnapshotsOptions } from './agentdb-snapshot-rotation.js';
+export { snapshotSqliteDatabase, restoreSqliteSnapshot } from './agentdb-snapshot.js';
+export type { SnapshotMethod, SnapshotOutcome, SnapshotDbCtor } from './agentdb-snapshot.js';
+export {
+  withAgentdbSnapshotLock,
+  writeReindexMarker,
+  markReindexMarkerRecoveryRequired,
+  clearReindexMarker,
+  readLiveReindexMarkers,
+  reindexMarkerPath,
+  REINDEX_MARKER_TTL_MS,
+} from './agentdb-reindex-marker.js';
+export type { ReindexMarker } from './agentdb-reindex-marker.js';
 export { generatePlugin } from './plugin.js';
 export type { PluginManifest } from './plugin.js';
 export type { SetupOptions, SetupResult, SetupStep } from './setup.js';
@@ -905,6 +951,7 @@ export {
 export type { ParserSafeRegionVerdict, ParserSafeRegionRefusal } from './parser-safe-region.js';
 export {
   CLAUDE_USAGE_MODELS,
+  computeSpendReport,
   computeUsage,
   deriveUsageCalibration,
   fixedBlockWindowFor,
@@ -912,10 +959,12 @@ export {
   normalizeClaudeUsageModelKey,
   parseWeeklyResetAnchor,
   readUsageLimits,
+  spendReport,
+  spendInvariantViolations,
   weeklyWindowFor,
 } from './usage.js';
 export { claudeProjectsRoot, rawTokenMixOf, weightedTokensOf } from './usage.js';
-export type { RawTokenMix } from './usage.js';
+export type { RawTokenMix, SpendReport } from './usage.js';
 // Per-stage cost ledger + reconciliation invariant (feature cost-ledger, ADR-001/002/003).
 export {
   COST_LEDGER_SCOPE,
@@ -1073,8 +1122,8 @@ export * from './backlog.js';
 export * from './no-stubs.js';
 export { quiescenceProbeScript, decideWriterQuiescence, WQ_WINDOW_SECONDS, WQ_MAX_WINDOWS, WQ_REQUIRED_QUIET } from './writer-quiescence.js';
 export type { WriterQuiescenceDecision } from './writer-quiescence.js';
-export { decideCadenceWindow, isoWeekOf, weeklyBuckets, guardRepeatDecay, buildCadenceReport, CADENCE_WINDOW_DAYS } from './cadence.js';
-export type { CadenceWindow, CadenceReport, CadenceWindowDecision } from './cadence.js';
+export { decideCadenceWindow, isoWeekOf, weeklyBuckets, guardRepeatDecay, summarizeRounds, buildCadenceReport, CADENCE_WINDOW_DAYS } from './cadence.js';
+export type { CadenceWindow, CadenceReport, CadenceWindowDecision, RoundsSummary } from './cadence.js';
 export { readQeRounds, countQeRounds, QE_ROUNDS_DEFAULT_CEILING } from './qe-rounds.js';
 export type { QeRound, QeFailedAttempt, QeRoundsReport, QeRoundsStatus } from './qe-rounds.js';
 export {
@@ -1165,4 +1214,8 @@ export * from './run-registry.js';
 
 export { JOURNAL_KINDS, formatLine, parseLine, selectWindow, appendWitnessed } from './journal.js';
 export type { JournalKind, JournalEvent, JournalLine, JournalIo } from './journal.js';
+export { openRound, closeRound, listRounds } from './round.js';
+export type { RoundState, RoundExecState, RoundLedgerRow } from './round.js';
+export { parseCodexTokens, classifyRoundExecOutcome, buildRoundExecRow } from './round-exec.js';
+export type { RoundExecOutcome, RoundExecLedgerRow } from './round-exec.js';
 export * from './run-cleanup.js';

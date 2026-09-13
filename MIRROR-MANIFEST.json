@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-09-11T18:14:17.066Z",
+  "builtAt": "2026-09-13T08:42:20.874Z",
   "builtFrom": "dz-harness-hub (private monorepo)",
   "rule": "each package mirrors exactly its npm-pack tarball inventory — the already-public surface",
   "requested": 56,
@@ -198,8 +198,8 @@
     },
     {
       "name": "@dzhechkov/harness-core",
-      "version": "0.8.30",
-      "files": 807
+      "version": "0.8.31",
+      "files": 842
     },
     {
       "name": "@dzhechkov/harness-presets",
@@ -234,7 +234,7 @@
     {
       "name": "@dzhechkov/memory",
       "version": "0.2.19",
-      "files": 49
+      "files": 54
     },
     {
       "name": "@dzhechkov/p-replicator",

@@ -53,6 +53,20 @@ export interface GuardResult {
 /** Facts the CLI injects; each rule reads only the fields it needs. Missing evidence ⇒ that rule is skipped. */
 export interface GuardFacts {
     readonly op: GuardOp;
+    /** Package-code commits since the last round receipt; gathered by the CLI, never by core. */
+    readonly codeCommitsSinceLastRound?: {
+        readonly commits: number | null;
+        readonly since: string | null;
+        /** false is the explicit `.dz/config.json` `rounds.traced` waiver. */
+        readonly enabled?: boolean;
+    };
+    /** Open focused rounds are gathered from `.dz/rounds/` by the CLI; core receives facts only. */
+    readonly openRounds?: readonly {
+        readonly slug: string;
+        readonly round: number;
+        readonly ageMinutes: number;
+        readonly pidAlive: boolean | null;
+    }[];
     /** Signature evidence gathered by the CLI. The pure evaluator never reads manifests or keys. */
     readonly signedPacks?: readonly {
         readonly name: string;

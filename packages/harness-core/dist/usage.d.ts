@@ -147,6 +147,58 @@ export interface UsageEstimate {
         readonly weeklyPct: number | null;
     };
 }
+export interface SpendReport {
+    readonly days: ReadonlyArray<{
+        readonly date: string;
+        readonly weightedTokens: number;
+        readonly input: number;
+        readonly output: number;
+        readonly cacheRead: number;
+        readonly cacheWrite: number;
+        readonly events: number;
+    }>;
+    readonly total7d: {
+        readonly weightedTokens: number;
+        readonly input: number;
+        readonly output: number;
+        readonly cacheRead: number;
+        readonly cacheWrite: number;
+        readonly events: number;
+    };
+    readonly byModel: Readonly<Record<string, {
+        readonly weightedTokens: number;
+        readonly sharePct: number;
+    }>>;
+    /**
+     * Per-day model breakdown — same events, same `unknown` fallback as {@link byModel}, just not
+     * yet collapsed across the window. One entry per day in `days` (same order), so a caller can
+     * read "today by model" as `daysByModel.at(-1)`. FR-1/FR-2: `Σ daysByModel[i].models ===
+     * days[i].weightedTokens` for every day, checked by {@link spendInvariantViolations}.
+     */
+    readonly daysByModel: ReadonlyArray<{
+        readonly date: string;
+        readonly models: Readonly<Record<string, number>>;
+    }>;
+}
+type ParsedSpendEvent = {
+    readonly ts: number;
+    readonly model: ClaudeUsageModel | null;
+    readonly raw: RawTokenMix;
+    readonly weightedTokens: number;
+};
+/** Aggregate already-parsed transcript events into UTC calendar days. Pure: no fs, env, or clock reads. */
+export declare function spendReport(events: readonly ParsedSpendEvent[], options: {
+    readonly nowMs: number;
+    readonly days: number;
+}): SpendReport;
+/**
+ * FR-2 invariant checker: for every day, `Σ daysByModel[day].models === days[day].weightedTokens`;
+ * and `Σ byModel[*].weightedTokens === total7d.weightedTokens`. Pure, no fs/clock. Returns a
+ * human-readable violation per mismatch; an empty array means the invariant holds. The tolerance is
+ * relative ({@link invariantTolerance}), and a `NaN`/`Infinity` on either side of a comparison is
+ * ALWAYS a violation ({@link isNonFiniteMismatch}) — never a silent pass.
+ */
+export declare function spendInvariantViolations(report: SpendReport): string[];
 export interface UsageCalibrationInput {
     readonly sessionPct?: unknown;
     readonly weeklyPct?: unknown;
@@ -195,6 +247,8 @@ export declare function claudeProjectsRoot(): string;
  * absent/corrupt/partial config ⇒ `{}` or only valid fields.
  */
 export declare function readUsageLimits(projectRoot: string): UsageLimits;
+/** Read local transcript events once, then delegate all aggregation to the pure spendReport. */
+export declare function computeSpendReport(now?: number, days?: number): SpendReport;
 /**
  * Estimate SESSION + WEEKLY token usage from the local Claude transcript store. NEVER throws;
  * READONLY; `projectRoot` scopes ONLY the config (limits) read — measurement is account-wide
@@ -202,4 +256,5 @@ export declare function readUsageLimits(projectRoot: string): UsageLimits;
  */
 export declare function computeUsage(projectRoot: string, now?: number): UsageEstimate;
 export declare function deriveUsageCalibration(current: UsageEstimate, before: UsageLimits, input: UsageCalibrationInput): UsageCalibrationPlan;
+export {};
 //# sourceMappingURL=usage.d.ts.map

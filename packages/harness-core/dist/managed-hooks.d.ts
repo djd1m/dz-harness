@@ -77,8 +77,17 @@ export interface MergeManagedHookOptions {
  * - Events absent from `managed` are copied through untouched (including unknown ones), and their
  *   entries still count toward `foreignPreserved` — the number answers "how many of the user's
  *   entries did this registry hold and keep", not "how many survived the touched events".
- * - Within a touched event, non-ours entries keep their relative order and object identity, then
- *   the managed entries are appended.
+ * - Within a touched event, non-ours entries keep their relative order and object identity.
+ * - A CURRENT (non-legacy) managed entry that is already byte-identical to one of the fresh managed
+ *   targets stays IN PLACE rather than being dropped and re-appended at the tail (fix round 1,
+ *   feature `setup-installs-apply-leg`, review Codex C MEDIUM finding "идемпотентность Configure
+ *   hooks для чужой записи, добавленной ПОСЛЕ writer-а"). Before this, an already-installed managed
+ *   entry was unconditionally removed and the fresh target re-appended at the tail on EVERY run —
+ *   invisible while it was the only entry in its event, but a genuinely foreign entry a user added
+ *   AFTER it would get silently outrun to the front on the very next `dz setup` (MEASURED: `[writer,
+ *   foreign]` → next run → `[foreign, writer]`). Any managed entry that does NOT exactly match a
+ *   remaining target (stale content, a legacy shape, or a mixed matcher-group carrying a foreign
+ *   handler) still gets dropped/salvaged and the fresh target appended at the tail exactly as before.
  * - `merge(merge(x)) === merge(x)`.
  */
 export declare function mergeManagedHookEntries(existingHooks: Record<string, ManagedHookEntry[]> | undefined, managed: Record<string, ManagedHookEntry[]>, options: MergeManagedHookOptions): HookMergePlan;

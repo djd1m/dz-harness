@@ -11,6 +11,8 @@
  *
  * @packageDocumentation
  */
+import { type SnapshotRotationReport } from './agentdb-snapshot-rotation.js';
+import { type SnapshotMethod } from './agentdb-snapshot.js';
 /** One record to index. `text` is stored as `approach` AND embedded (`${taskType}: ${text}`). */
 export interface AgentdbRow {
     readonly taskType: string;
@@ -29,6 +31,33 @@ export interface AgentdbIndexResult {
 }
 /** Resolve the shared store path: explicit opt → AGENTDB_PATH env → `<project>/.dz/agentdb.db`. */
 export declare function resolveAgentdbPath(projectRoot: string, dbPath?: string): string;
+/**
+ * Create (or verify) an EMPTY AgentDB-schema store at `resolveAgentdbPath(projectRoot, dbPath)`,
+ * without indexing any rows (AM-4, feature `setup-installs-apply-leg`, dz-harness-hub issue #10
+ * defect 4).
+ *
+ * WHY THIS EXISTS: before this, `.dz/agentdb.db` came into being only as a side effect of the
+ * SessionEnd/PreCompact writer's first `dz consolidate` — so a project that had run
+ * `dz setup --memory agentdb` but not yet completed one full session had `memory.backend=agentdb`
+ * configured with NO database file at all, and any lesson taught in that window before the first
+ * consolidate had nothing to mirror into (the apply leg's daemon reads THIS file — see
+ * `dz-embed-daemon.mjs`). `dz setup`'s "Install apply-leg" step now calls this directly so the
+ * store exists from the moment setup finishes, not from the moment a session happens to end.
+ *
+ * SYNCHRONOUS deliberately: `runSetup` is a synchronous function (a `child_process.execSync`
+ * install already precedes every write it does), and creating an empty schema needs only
+ * `better-sqlite3` — never the async `EmbeddingService` {@link indexPatternsToAgentdb} loads for a
+ * real write. Reuses {@link REASONING_BANK_SCHEMA} verbatim — the ONE schema string every writer in
+ * this module execs — so this path can never drift into declaring a second, competing schema.
+ *
+ * Best-effort, like every setup step: a project without `better-sqlite3` installed yet (or one
+ * whose native binary is unusable) gets `{ok:false, error}` and setup reports it in the step detail
+ * rather than throwing — the writer/daemon still self-heal on the next session either way.
+ */
+export declare function ensureAgentdbSchema(projectRoot: string, dbPath?: string): {
+    readonly ok: boolean;
+    readonly error?: string;
+};
 /**
  * Index `rows` into the shared AgentDB vector store. Returns `{indexed:0}` for an empty input and
  * `{indexed:0, error}` when `agentdb`/`better-sqlite3` cannot be resolved from the project.
@@ -192,6 +221,12 @@ export declare function reindexAgentdbRows(projectRoot: string, rows: readonly A
     dbPath?: string;
     taskTypes?: readonly string[];
     backupPath?: string;
+    keepSnapshots?: number;
+    /** Force the fallback snapshot path — test-only injection for AC-2 (FR-2). */
+    snapshotStrategy?: 'vacuum-into' | 'copy+wal';
+    /** agentdb-snapshot-lock: test/tuning-only override for the snapshot-lock acquisition deadline
+     * — omitted, the lock uses its ordinary default timeout. */
+    lockTimeoutMs?: number;
 }): Promise<{
     reembedded: number;
     model?: string;
@@ -200,5 +235,15 @@ export declare function reindexAgentdbRows(projectRoot: string, rows: readonly A
     error?: string;
     /** Task types left in the OLD embedding space because this reindex does not own them. */
     staleTaskTypes?: string[];
+    /** Pre-reindex snapshot rotation outcome — present ONLY on a successful reindex (FR-6). */
+    snapshots?: SnapshotRotationReport;
+    /** How the pre-reindex snapshot was actually taken — always named when a snapshot ran (FR-2). */
+    snapshotMethod?: SnapshotMethod;
+    /** Present only for a fallback method — the reason `vacuum-into` did not run (FR-2). */
+    snapshotNote?: string;
+    /** AM-3: present whenever a rollback was attempted — 'restored' is the only success signal. */
+    rollback?: 'restored' | 'failed';
+    /** AM-3: present only when `rollback === 'failed'` — why the restore did not fully complete. */
+    rollbackError?: string;
 }>;
 //# sourceMappingURL=agentdb-index.d.ts.map

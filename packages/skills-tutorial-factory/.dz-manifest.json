@@ -89,7 +89,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "941f778237b7c286d132174fd4c93df4a779eca238da8c859ccb49c0d85cf74d"
+        "sha256": "cd7bd97a581db7e4078aeb6742e04de3a90bc4245cd714f36cbc8c68f1401ba4"
       },
       {
         "path": "test/_fixtures.mjs",
@@ -125,5 +125,5 @@
       }
     ]
   },
-  "signature": "DplsPKc6MZe1FHiVlbXhRNfv9niq72F61hfEDNLL//9VwzS6jw7TUqUxgSumbbbx/p4hJ/UyUAfocbc46bE9BA=="
+  "signature": "coN+YGPl5WyXTJZEMFEgAj4EaD5uodKuegEdQoSh05sLVgFq7cV51W9ygMvv9bh3uKaWigpaI01jfcYfBvL/BA=="
 }

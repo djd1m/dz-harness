@@ -54,19 +54,36 @@ export interface StatuslineData {
     readonly patterns: number;
     /** Absent on parity; missing/unreadable mirror is explicitly unavailable. */
     readonly patternMirror?: {
-        readonly state: 'different';
-        readonly lexical: number;
+        readonly state: 'in-sync' | 'different';
+        readonly lexicalMirrorable: number;
         readonly vector: number;
+        readonly excluded: {
+            readonly class: number;
+            readonly noise: number;
+        };
     } | {
         readonly state: 'unavailable';
     };
+    /** Vector-mirror inventory; absence is explicit instead of being encoded as a missing field. */
+    readonly mirror: {
+        readonly available: boolean;
+        readonly rows: number;
+        readonly lessons: number;
+        readonly pending: number;
+        readonly source: 'agentdb';
+    };
     /** Exact lexical-tier availability split; omitted when the enhanced readonly count cannot be established. */
     readonly patternBreakdown?: {
-        readonly source: 'lexical';
+        readonly source: 'lexical' | 'lexical+mirror';
         readonly active: number;
         readonly quarantined: number;
         /** True once quarantine contains at least one third of the lexical pool. */
         readonly attention: boolean;
+        /** Exact label drift by dzId; present only when both tiers expose readable identities. */
+        readonly tierParity?: {
+            readonly lexicalOnly: number;
+            readonly mirrorOnly: number;
+        };
         /** Absolute lexical/vector quarantine-label delta, present only above the tolerated drift threshold. */
         readonly tierDelta?: number;
     };

@@ -373,7 +373,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "fd398c5581bc46bd769173a44e405cea9ae1b9107b3cd6869a9b3f2c0b505bcd"
+        "sha256": "8828ea2368b16435a9ad6e9c47de8ca208f4577687151898a35d80c5ffc73099"
       },
       {
         "path": "skills/case-state/SKILL.md",
@@ -985,5 +985,5 @@
       }
     ]
   },
-  "signature": "lwH2y6DkAcuDK/SQMFoluagi2EnNx4gOGqM3mZr6paKoFLm60FhQYbawbixSpG1MwNDn3y0t95eB2fFZwJuyDQ=="
+  "signature": "cHqkcz9jLPwJegNUqANgJZ0JQamaZzqTrWhiVeZqVWkcDaEA9l64FVroI0pLif9Mg20UiVRIkSatj2BbAEf9Bg=="
 }

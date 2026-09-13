@@ -14,7 +14,9 @@ import { join, dirname } from 'node:path';
 import { existsSync, mkdirSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
+import { openSqliteReadOnly } from '@dzhechkov/memory';
 import { describeNativeDep, exerciseSqliteOpen, probeNativeDep } from './native-dep-probe.js';
+import { applyReadonlyPragmas } from './sqlite-read-helpers.js';
 /** Default lexical store path — a `memory/` sibling of the pattern store, never `agentdb.db`. */
 export function bookKbPath(projectRoot) {
     return join(projectRoot, '.dz', 'memory', 'books.sqlite');
@@ -56,6 +58,60 @@ async function openDb(projectRoot, dbPath) {
     db.pragma('busy_timeout = 5000');
     db.exec(SCHEMA);
     return db;
+}
+/**
+ * Open `books.sqlite` for READING ONLY (ADR-001, Решение 2) — no `mkdirSync`, no `exec(SCHEMA)`,
+ * no `pragma journal_mode`. Same native-dependency probe and resolution as {@link openDb} above
+ * (a silently different `better-sqlite3` module instance would be the class of bug
+ * `sqlite-readonly.ts`'s `OpenReadOnlyOptions` doc warns about), so `absent`/`unusable` still
+ * return `{error}` — the "instrument did not run" contract is unchanged.
+ *
+ * Critical for FR-6/Риск-4: any OTHER failure (a genuinely unreadable store) must still THROW,
+ * exactly like `openDb`. This function is called from `queryBookKnowledge` OUTSIDE its `try` —
+ * do not wrap the call in a `try` here or there; that would turn "store unreadable" (exit 1)
+ * into "instrument didn't run" (exit 3), which is the regression `books-recall-honesty.test.ts`
+ * pins against (measured 2026-08-27).
+ */
+async function openDbForRead(projectRoot, dbPath) {
+    const verdict = probeNativeDep(projectRoot, 'better-sqlite3', exerciseSqliteOpen, 'sqlite-open');
+    if (verdict.state === 'absent') {
+        return { error: 'better-sqlite3 not installed in project (run: dz setup --memory agentdb)' };
+    }
+    if (verdict.state === 'unusable')
+        return { error: describeNativeDep(verdict) };
+    let sqliteUrl;
+    try {
+        const req = createRequire(join(projectRoot, 'package.json'));
+        sqliteUrl = pathToFileURL(req.resolve('better-sqlite3')).href;
+    }
+    catch {
+        return { error: 'better-sqlite3 not installed in project (run: dz setup --memory agentdb)' };
+    }
+    const path = dbPath ?? bookKbPath(projectRoot);
+    // NO mkdirSync, NO exec(SCHEMA), NO pragma journal_mode — this is the read path (FR-1); anything
+    // past this point that throws is meant to throw (see the doc comment above).
+    const { default: Database } = (await import(sqliteUrl));
+    const handle = openSqliteReadOnly(path, { Database: Database });
+    const db = handle.db;
+    // FR-1 (readonly-residuals): a throwing pragma must not leak the connection or a tmp-copy —
+    // applyReadonlyPragmas closes + cleans up before rethrowing.
+    applyReadonlyPragmas(handle, path);
+    return {
+        pragma: db.pragma.bind(db),
+        exec: db.exec.bind(db),
+        prepare: db.prepare.bind(db),
+        transaction: db.transaction.bind(db),
+        close: () => {
+            // `cleanup()` in `finally` — the tmp-copy must be removed even if `db.close()` throws
+            // (fix round 1, MEDIUM #3; matches `SqliteReadOnlyStore.close()` in `sqlite-readonly.ts`).
+            try {
+                db.close();
+            }
+            finally {
+                handle.cleanup();
+            }
+        },
+    };
 }
 /**
  * Upsert a batch of KUs for a book. Idempotent per (book, kuId): existing rows for the same
@@ -113,7 +169,7 @@ export async function queryBookKnowledge(projectRoot, query, opts = {}) {
     const path = opts.dbPath ?? bookKbPath(projectRoot);
     if (!existsSync(path))
         return { hits: [] };
-    const opened = await openDb(projectRoot, opts.dbPath);
+    const opened = await openDbForRead(projectRoot, opts.dbPath);
     if ('error' in opened)
         return { hits: [], error: opened.error };
     const db = opened;

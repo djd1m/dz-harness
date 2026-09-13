@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/harness-core",
-  "version": "0.8.30",
+  "version": "0.8.31",
   "description": "Shared harness logic - skill loading, additive apply, and the init/sync/verify/doctor operations.",
   "type": "module",
   "license": "MIT",
@@ -74,7 +74,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/harness-core"
   },
   "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/harness-core#readme",

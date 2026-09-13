@@ -30,6 +30,8 @@ export interface MutationRegistryEntry {
   readonly file: string;
   /** exact text surgery: `find` must occur EXACTLY ONCE in the file (rule 1). */
   readonly mutation: { readonly find: string; readonly replace: string };
+  /** test files that discriminate this entry; a named registry self-check must remain runnable. */
+  readonly tests?: readonly string[];
   /** how many tests MUST go red under the mutation (default 1). */
   readonly minFailing?: number;
   /** how many actually did at the time of writing — makes a coverage DROP visible. */
@@ -40,6 +42,34 @@ export interface MutationRegistryEntry {
    * (broken export surface, dead import) reddens the whole suite; that is not discrimination.
    */
   readonly maxFailing?: number;
+}
+
+/** Registry integrity tests add the same unrelated failure to every ordinary mutant run. */
+export const REGISTRY_SELFCHECK_TESTS = [
+  'test/mutation-registry-freshness.test.ts',
+  'test/mutation-registry-anchors.test.ts',
+] as const;
+
+export interface MutationTestCommand {
+  readonly testCommand: string;
+  readonly excluded: readonly string[];
+}
+
+/** Build the mutant-only command; baseline commands remain unchanged in the executor. */
+export function buildMutationTestCommand(
+  testCommand: string,
+  entry: Pick<MutationRegistryEntry, 'tests'>,
+): MutationTestCommand {
+  const entryTests = new Set(entry.tests ?? []);
+  const commandTokens = testCommand.split(/\s+/);
+  const excluded = REGISTRY_SELFCHECK_TESTS.filter(
+    (testFile) => commandTokens.includes(testFile) && !entryTests.has(testFile),
+  );
+  const excludedSet = new Set<string>(excluded);
+  return {
+    testCommand: commandTokens.filter((token) => !excludedSet.has(token)).join(' '),
+    excluded,
+  };
 }
 
 export interface MutationRegistry {
@@ -112,6 +142,24 @@ export interface MutationObservation {
   readonly rebaselineFailureReason?: string;
   /** parsed failing files from a RED restored-tree run; absent when no red rebaseline ran. */
   readonly rebaselineAttribution?: BaselineAttribution;
+  /** bounded stdout+stderr tail supplied by the executor for a RED restored-tree run. */
+  readonly rebaselineOutputTail?: string;
+  /**
+   * path to the FULL stdout+stderr the executor saved for a RED baseline/rebaseline run (gate
+   * stability, 2026-09-12) — the bounded tail above is a diagnostic teaser; a multi-entry gate run
+   * that goes INCONCLUSIVE/OVER_FAILING needs the whole log to attribute the redness, and the tail
+   * alone was measured to hand back three lines of an unrelated neighbour's stderr. Absent when the
+   * run was green (nothing written) or the executor could not write the file.
+   */
+  readonly outputPath?: string;
+  /**
+   * set (to the caught error's message) when the executor tried and FAILED to save the full RED
+   * output — EACCES/ENOSPC/EROFS/ENOTDIR and the like (fix-round-1, HIGH/MEDIUM review findings,
+   * 2026-09-12). Mutually exclusive with `outputPath`: a red run either saved (path) or did not
+   * (error), never both, and a green run has neither. Absent/undefined = not attempted (green) or
+   * the save succeeded.
+   */
+  readonly outputError?: string;
   /** bounded log proving an internal runner failure received at most one retry. */
   readonly internalAttemptLog?: string;
 }
@@ -137,6 +185,12 @@ export interface MutationEntryResult {
    * of letting the reader assume it covers every entry.
    */
   readonly dropComparable: boolean;
+  /** full bounded restored-tree output tail for machine-readable reports. */
+  readonly rebaselineOutputTail?: string;
+  /** path to the full saved output for a RED baseline/rebaseline run; see MutationObservation. */
+  readonly outputPath?: string;
+  /** the save FAILED for a RED run; see MutationObservation.outputError. Mutually exclusive with `outputPath`. */
+  readonly outputError?: string;
   /** human sentence for the report line — names the undefended property on a green suite. */
   readonly detail: string;
 }
@@ -371,6 +425,9 @@ export function parseMutationRegistry(text: string): ParsedRegistry {
       property: o['property'].trim(),
       file,
       mutation: { find: mut.find, replace: mut.replace },
+      ...(Array.isArray(o['tests']) && o['tests'].every((test) => typeof test === 'string')
+        ? { tests: o['tests'] as string[] }
+        : {}),
       minFailing,
       ...(observed !== undefined ? { observed } : {}),
       ...(maxFailing !== undefined ? { maxFailing } : {}),
@@ -718,6 +775,19 @@ export interface BaselineResult {
 }
 
 /**
+ * `; full output: <path>` when the executor saved the full red-run output, `; full output NOT
+ * saved: <error>` when it tried and failed (fix-round-1 MEDIUM finding — an EACCES/ENOSPC/EROFS
+ * during the save must not vanish silently), else '' — byte-identical to the pre-gate-stability
+ * text when neither is known (NFR-1). `outputPath` takes precedence if somehow both are set (the
+ * callers never set both).
+ */
+function outputPathSuffix(outputPath?: string, outputError?: string): string {
+  if (outputPath !== undefined) return `; full output: ${outputPath}`;
+  if (outputError !== undefined) return `; full output NOT saved: ${outputError}`;
+  return '';
+}
+
+/**
  * A RED baseline in the scratch copy is a SETUP error, never a mutation result: every subsequent
  * "red under mutation" would be noise, and every "green" a lie about an unrunnable copy.
  */
@@ -725,14 +795,17 @@ export function classifyBaseline(
   exitCode: number | null,
   runFailureReason?: string,
   attribution?: BaselineAttribution,
+  outputPath?: string,
+  outputError?: string,
 ): BaselineResult {
   if (exitCode === 0) return { ok: true, detail: 'baseline suite green in the scratch copy' };
+  const pathSuffix = outputPathSuffix(outputPath, outputError);
   if (exitCode === null) {
     const internal = runFailureReason?.startsWith('runner-internal-error:') === true;
     return {
       ok: false,
       reason: internal ? 'runner-internal-error' : 'runner-no-exit',
-      detail: `baseline INCONCLUSIVE — suite produced no exit code (${runFailureReason ?? 'unknown timeout/spawn failure'}) — the copy is not runnable; do not read this as a mutation result`,
+      detail: `baseline INCONCLUSIVE — suite produced no exit code (${runFailureReason ?? 'unknown timeout/spawn failure'}) — the copy is not runnable; do not read this as a mutation result${pathSuffix}`,
     };
   }
   const infrastructure = attribution?.infrastructureFailure;
@@ -740,14 +813,14 @@ export function classifyBaseline(
     return {
       ok: false,
       ...(infrastructure.reason !== undefined ? { reason: infrastructure.reason } : {}),
-      detail: `baseline suite RED (exit ${exitCode}) in the UNMUTATED scratch copy — runner infrastructure failure: ${infrastructure.reason} — ${infrastructure.evidence}; the broken copy cannot prove anything`,
+      detail: `baseline suite RED (exit ${exitCode}) in the UNMUTATED scratch copy — runner infrastructure failure: ${infrastructure.reason} — ${infrastructure.evidence}; the broken copy cannot prove anything${pathSuffix}`,
     };
   }
   if (attribution === undefined || attribution.parsedFrom === 'unparseable') {
     return {
       ok: false,
       reason: 'baseline-red-files-unparseable',
-      detail: `baseline suite RED (exit ${exitCode}) in the UNMUTATED scratch copy — failing files: unparseable from runner output — the broken copy cannot prove anything`,
+      detail: `baseline suite RED (exit ${exitCode}) in the UNMUTATED scratch copy — failing files: unparseable from runner output — the broken copy cannot prove anything${pathSuffix}`,
     };
   }
   const failing = `failing files: ${attribution.failingFiles.join(', ')}`;
@@ -755,13 +828,13 @@ export function classifyBaseline(
     return {
       ok: false,
       reason: 'extraneous-red-in-allowlist',
-      detail: `baseline suite RED (exit ${exitCode}) in the UNMUTATED scratch copy — ${failing} — extraneous red in the testCommand allowlist; the registry entries themselves are not disproven`,
+      detail: `baseline suite RED (exit ${exitCode}) in the UNMUTATED scratch copy — ${failing} — extraneous red in the testCommand allowlist; the registry entries themselves are not disproven${pathSuffix}`,
     };
   }
   return {
     ok: false,
     reason: 'baseline-red-covered-files',
-    detail: `baseline suite RED (exit ${exitCode}) in the UNMUTATED scratch copy — ${failing} — broken-copy baseline redness touches registry-covered files; fix the copy before evaluating mutations`,
+    detail: `baseline suite RED (exit ${exitCode}) in the UNMUTATED scratch copy — ${failing} — broken-copy baseline redness touches registry-covered files; fix the copy before evaluating mutations${pathSuffix}`,
   };
 }
 
@@ -814,6 +887,9 @@ function classifyMutationOutcomeWithoutAttemptLog(obs: MutationObservation): Mut
     failingCount: obs.failingCount,
     // an `observed` anchor is the ONLY thing that makes a drop detectable at all (round-7 honesty)
     dropComparable: e.observed !== undefined,
+    ...(obs.rebaselineOutputTail !== undefined ? { rebaselineOutputTail: obs.rebaselineOutputTail } : {}),
+    ...(obs.outputPath !== undefined ? { outputPath: obs.outputPath } : {}),
+    ...(obs.outputError !== undefined ? { outputError: obs.outputError } : {}),
   };
 
   if (obs.occurrences !== 1) {
@@ -864,7 +940,7 @@ function classifyMutationOutcomeWithoutAttemptLog(obs: MutationObservation): Mut
       applied: true,
       verdict: 'INCONCLUSIVE',
       drop: false,
-      detail: `suite produced NO exit code under the mutation (${obs.runFailureReason ?? 'unknown timeout / spawn failure'}) — inconclusive is a FAILURE, never a pass`,
+      detail: `suite produced NO exit code under the mutation (${obs.runFailureReason ?? 'unknown timeout / spawn failure'}) — inconclusive is a FAILURE, never a pass${outputPathSuffix(obs.outputPath, obs.outputError)}`,
     };
   }
 
@@ -898,7 +974,7 @@ function classifyMutationOutcomeWithoutAttemptLog(obs: MutationObservation): Mut
       applied: true,
       verdict: 'INCONCLUSIVE',
       drop: false,
-      detail: `suite red but the runner output is UNRECOGNISED (${obs.outputUnrecognised.slice(0, 220)}) — this tool has no classifier for the output shape, so file-load redness cannot be told from assertion redness; INCONCLUSIVE is a FAILURE, never a pass (run the gate with a node --test or vitest test command, or extend classifyRunFailure)`,
+      detail: `suite red but the runner output is UNRECOGNISED (${obs.outputUnrecognised.slice(0, 220)}) — this tool has no classifier for the output shape, so file-load redness cannot be told from assertion redness; INCONCLUSIVE is a FAILURE, never a pass (run the gate with a node --test or vitest test command, or extend classifyRunFailure)${outputPathSuffix(obs.outputPath, obs.outputError)}`,
     };
   }
 
@@ -912,12 +988,15 @@ function classifyMutationOutcomeWithoutAttemptLog(obs: MutationObservation): Mut
       : obs.rebaselineAttribution === undefined || obs.rebaselineAttribution.parsedFrom === 'unparseable'
       ? 'failing files: unparseable from runner output'
       : `failing files: ${obs.rebaselineAttribution.failingFiles.join(', ')}`;
+    const outputTailDetail = obs.rebaselineOutputTail === undefined
+      ? ''
+      : `; output tail (first 3 lines):\n${obs.rebaselineOutputTail.split(/\r?\n/).slice(0, 3).join('\n')}`;
     return {
       ...base,
       applied: true,
       verdict: 'INCONCLUSIVE',
       drop: false,
-      detail: `suite red under the mutation BUT the restored baseline did not reproduce green (${obs.rebaselineExitCode === null ? `no exit code: ${obs.rebaselineFailureReason ?? 'unknown timeout / spawn failure'}` : `exit ${obs.rebaselineExitCode}`}) — mutation did not revert / flaky restored-tree route; ${failing}; the redness is not attributable to the protection`,
+      detail: `suite red under the mutation BUT the restored baseline did not reproduce green (${obs.rebaselineExitCode === null ? `no exit code: ${obs.rebaselineFailureReason ?? 'unknown timeout / spawn failure'}` : `exit ${obs.rebaselineExitCode}`}) — mutation did not revert / flaky restored-tree route; ${failing}${outputTailDetail}; the redness is not attributable to the protection${outputPathSuffix(obs.outputPath, obs.outputError)}`,
     };
   }
 

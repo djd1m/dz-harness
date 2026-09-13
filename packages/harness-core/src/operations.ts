@@ -1360,6 +1360,58 @@ export async function runDoctor(options: { projectRoot: string }): Promise<Docto
     }
   } catch { /* doctor never throws on a diagnostic */ }
 
+  // APPLY-LEG INSTALLED (feature `setup-installs-apply-leg`, ADR-001 Decision 3). Deliberately
+  // OUTSIDE the `existsSync(writerPath)` guard below, for the same reason the Codex apply-leg block
+  // above is: MEASURED 2026-09-12, `dz parity` printed a static "✓ automatic apply-leg" for
+  // `learning-apply` regardless of what the project actually had installed — a capability read off
+  // a table, not off the project. `applyLegStatus` is the ONE measurement; this check and
+  // `dz parity`'s `learning-apply` cell both read it, so they cannot disagree.
+  try {
+    const { applyLegStatus, applyLegReasonMessage } = await import('./apply-leg.js');
+    let configuredBackend: 'agentdb' | 'jsonl' | 'unknown' = 'unknown';
+    try {
+      const cfg = JSON.parse(readFileSync(join(root, '.dz', 'config.json'), 'utf-8')) as { memory?: { backend?: string } };
+      if (cfg.memory?.backend === 'agentdb') configuredBackend = 'agentdb';
+      else if (cfg.memory?.backend === 'jsonl') configuredBackend = 'jsonl';
+    } catch { /* no .dz/config.json yet — nothing to check */ }
+
+    if (configuredBackend === 'agentdb') {
+      // `applyLegStatus` is the ONE measurement, `installed` already folds in version + structural
+      // hook wiring (fix round 1, HIGH findings 1/2) — a stale-versioned or unreadable helper is
+      // `installed:false` with a `reason`, never a separate ad-hoc re-check of the same facts here.
+      const status = applyLegStatus(root);
+      if (!status.installed) {
+        if (status.reason === 'stale-version') {
+          // Distinct row name from "apply-leg installed", exactly as `AGENTDB_WRITER_VERSION`'s own
+          // staleness check does — `dz parity` reads the SAME `applyLegReasonMessage` for its
+          // `learning-apply` remedy note, so the two instruments cannot disagree about WHY.
+          checks.push({ name: 'apply-leg version', ok: false, detail: applyLegReasonMessage(status) });
+        } else if (status.reason === 'unreadable') {
+          // Q3 (fix round 1): an EXISTING-but-unreadable helper used to be swallowed by this whole
+          // block's outer catch (silence) — now a named, non-OK row, not folded into "not installed".
+          checks.push({ name: 'apply-leg unreadable', ok: false, detail: applyLegReasonMessage(status) });
+        } else {
+          checks.push({
+            name: 'apply-leg installed',
+            ok: false,
+            detail: 'NOT INSTALLED — run: dz setup --target claude-code --memory agentdb',
+          });
+        }
+      }
+      // Liveness (embed.sock) stays the existing check below, gated on the writer file — installed
+      // implies the recall hook + settings entries exist; whether the daemon is CURRENTLY alive is
+      // a separate, already-covered fact.
+    } else if (configuredBackend === 'jsonl') {
+      checks.push({
+        name: 'apply-leg',
+        ok: true,
+        detail: 'apply-leg unavailable on jsonl backend (needs --memory agentdb)',
+      });
+    }
+    // configuredBackend === 'unknown' (no .dz/config.json yet): nothing to check — a project that
+    // never ran `dz setup` gets no apply-leg opinion, same as every other doctor check here.
+  } catch { /* doctor never throws on a diagnostic */ }
+
   const writerPath = join(root, '.dz', 'agentdb-writer.mjs');
   if (existsSync(writerPath)) {
     const { writerVersionOf, AGENTDB_WRITER_VERSION } = await import('./setup.js');
@@ -1516,6 +1568,43 @@ export async function runDoctor(options: { projectRoot: string }): Promise<Docto
       });
     }
   } catch { /* advisory only — the vector tier must never fail doctor */ }
+
+  // Mirror writer state (issue #10 defect 6, AM-9, feature setup-installs-apply-leg): the SAME
+  // reason `dz vector status` and `dz teach` both read (`mirrorWriterReason`) — one function, so a
+  // "legacy-shape" config (a top-level `backend` key instead of `memory.backend`) cannot be silent
+  // in doctor while `dz teach` is silent too. Informational only (`ok:true`): a mirror that is OFF
+  // by explicit config (`engine-off`) or simply unconfigured (`no-config`) is not a doctor FAILURE,
+  // it is a fact worth naming once per run rather than never.
+  try {
+    const { mirrorWriterReason: reasonFn, mirrorWriterExplanation: explainFn } = await import('./vector-tier.js');
+    const mirror = reasonFn(root);
+    // 'no-config' is the honest quiet baseline (a project that never ran `dz setup` at all) — every
+    // OTHER state means `.dz/config.json` exists and has an opinion worth naming, legacy-shape
+    // included, so THAT is the line this check exists to stop being silent about.
+    if (mirror.state !== 'no-config') {
+      checks.push({
+        name: 'mirror writer',
+        ok: true,
+        detail: `${mirror.enabled ? 'ON' : 'OFF'} (${explainFn(mirror.state)})`,
+      });
+    }
+  } catch { /* advisory only — the vector tier must never fail doctor */ }
+
+  // Quarantine labels have their own identity parity: equal aggregate counts can still describe
+  // disjoint dzIds. Informational only; the lexical store is authoritative and reindex projects it.
+  try {
+    const { countLearningStoreRowsReadonly } = await import('./store-counts.js');
+    const parity = countLearningStoreRowsReadonly(root).quarantineTierParity;
+    if (parity !== undefined) {
+      const drift = parity.lexicalOnly + parity.mirrorOnly;
+      checks.push({
+        name: 'quarantine tier parity',
+        ok: true,
+        detail: `quarantine tiers: both ${parity.both} · lexical-only ${parity.lexicalOnly} · mirror-only ${parity.mirrorOnly}` +
+          (drift > 0 ? ' — run dz vector reindex to project' : ''),
+      });
+    }
+  } catch { /* advisory only — unreadable identities leave the line absent */ }
 
   // 10. AQE store integrity (observability item 3/5). `.agentic-qe/integrity-log.jsonl` is the
   // best-attested log in this repo — a UserPromptSubmit hook runs a REAL `PRAGMA quick_check`,

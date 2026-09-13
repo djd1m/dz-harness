@@ -28,7 +28,7 @@
  * @packageDocumentation
  */
 
-import { existsSync, lstatSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -200,6 +200,173 @@ export interface UsageEstimate {
   readonly estimatesNotForRouting?: { readonly sessionPct: number | null; readonly weeklyPct: number | null };
 }
 
+export interface SpendReport {
+  readonly days: ReadonlyArray<{
+    readonly date: string;
+    readonly weightedTokens: number;
+    readonly input: number;
+    readonly output: number;
+    readonly cacheRead: number;
+    readonly cacheWrite: number;
+    readonly events: number;
+  }>;
+  readonly total7d: {
+    readonly weightedTokens: number;
+    readonly input: number;
+    readonly output: number;
+    readonly cacheRead: number;
+    readonly cacheWrite: number;
+    readonly events: number;
+  };
+  readonly byModel: Readonly<Record<string, {
+    readonly weightedTokens: number;
+    readonly sharePct: number;
+  }>>;
+  /**
+   * Per-day model breakdown — same events, same `unknown` fallback as {@link byModel}, just not
+   * yet collapsed across the window. One entry per day in `days` (same order), so a caller can
+   * read "today by model" as `daysByModel.at(-1)`. FR-1/FR-2: `Σ daysByModel[i].models ===
+   * days[i].weightedTokens` for every day, checked by {@link spendInvariantViolations}.
+   */
+  readonly daysByModel: ReadonlyArray<{
+    readonly date: string;
+    readonly models: Readonly<Record<string, number>>;
+  }>;
+}
+
+type ParsedSpendEvent = {
+  readonly ts: number;
+  readonly model: ClaudeUsageModel | null;
+  readonly raw: RawTokenMix;
+  readonly weightedTokens: number;
+};
+
+const DAY_MS = 24 * HOUR_MS;
+
+function emptySpendTotal(): SpendReport['total7d'] {
+  return { weightedTokens: 0, input: 0, output: 0, cacheRead: 0, cacheWrite: 0, events: 0 };
+}
+
+/** Aggregate already-parsed transcript events into UTC calendar days. Pure: no fs, env, or clock reads. */
+export function spendReport(
+  events: readonly ParsedSpendEvent[],
+  options: { readonly nowMs: number; readonly days: number },
+): SpendReport {
+  if (!Number.isFinite(options.nowMs) || !Number.isInteger(options.days) || options.days <= 0) {
+    return { days: [], total7d: emptySpendTotal(), byModel: {}, daysByModel: [] };
+  }
+  const now = new Date(options.nowMs);
+  const todayStart = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const startMs = todayStart - (options.days - 1) * DAY_MS;
+  const days = Array.from({ length: options.days }, (_, index) => ({
+    date: new Date(startMs + index * DAY_MS).toISOString().slice(0, 10),
+    ...emptySpendTotal(),
+  }));
+  const daysByDate = new Map(days.map((day) => [day.date, day]));
+  const modelTotals = new Map<string, number>();
+  // Per-day model totals (FR-1) — same fallback-to-'unknown' rule as `modelTotals`, kept in a
+  // separate Map-of-Maps so the two aggregates stay independently derivable from the SAME loop
+  // (one pass over events, not two) and therefore can never drift apart by construction.
+  const dayModelTotals = new Map<string, Map<string, number>>(days.map((day) => [day.date, new Map()]));
+
+  for (const event of events) {
+    if (!Number.isFinite(event.ts) || event.ts < startMs || event.ts > options.nowMs) continue;
+    const date = new Date(event.ts).toISOString().slice(0, 10);
+    const day = daysByDate.get(date);
+    if (!day) continue;
+    day.weightedTokens += event.weightedTokens;
+    day.input += event.raw.input;
+    day.output += event.raw.output;
+    day.cacheRead += event.raw.cacheRead;
+    day.cacheWrite += event.raw.cacheWrite;
+    day.events += 1;
+    const model = event.model ?? 'unknown';
+    modelTotals.set(model, (modelTotals.get(model) ?? 0) + event.weightedTokens);
+    const dayModels = dayModelTotals.get(date);
+    if (dayModels) dayModels.set(model, (dayModels.get(model) ?? 0) + event.weightedTokens);
+  }
+
+  const total7d = days.reduce<SpendReport['total7d']>((total, day) => ({
+    weightedTokens: total.weightedTokens + day.weightedTokens,
+    input: total.input + day.input,
+    output: total.output + day.output,
+    cacheRead: total.cacheRead + day.cacheRead,
+    cacheWrite: total.cacheWrite + day.cacheWrite,
+    events: total.events + day.events,
+  }), emptySpendTotal());
+  const byModel: Record<string, { weightedTokens: number; sharePct: number }> = {};
+  for (const [model, weightedTokens] of [...modelTotals].sort(([a], [b]) => a.localeCompare(b))) {
+    byModel[model] = {
+      weightedTokens,
+      sharePct: total7d.weightedTokens > 0
+        ? Math.round((weightedTokens / total7d.weightedTokens) * 1000) / 10
+        : 0,
+    };
+  }
+  const daysByModel = days.map((day) => {
+    const models: Record<string, number> = {};
+    const totals = dayModelTotals.get(day.date);
+    if (totals) {
+      for (const [model, weightedTokens] of [...totals].sort(([a], [b]) => a.localeCompare(b))) {
+        models[model] = weightedTokens;
+      }
+    }
+    return { date: day.date, models };
+  });
+  return { days, total7d, byModel, daysByModel };
+}
+
+/**
+ * Fix-round-1 (Codex review, LOW #4): a mismatch is judged on a tolerance that SCALES with the
+ * magnitude being compared — `max(1e-6, 1e-9·max(|a|,|b|))`. A fixed absolute `1e-6` is too tight
+ * for large sums, where float addition accumulates noise proportional to magnitude, and it is
+ * blind to corruption: `Math.abs(NaN - x) > 1e-6` is `false`, so a NaN/Infinity sum used to read as
+ * "invariant holds" instead of the loud failure a corrupted report deserves.
+ */
+function invariantTolerance(a: number, b: number): number {
+  return Math.max(1e-6, 1e-9 * Math.max(Math.abs(a), Math.abs(b)));
+}
+
+/** `true` when `a`/`b` cannot be meaningfully compared (either is `NaN` or `±Infinity`). */
+function isNonFiniteMismatch(a: number, b: number): boolean {
+  return !Number.isFinite(a) || !Number.isFinite(b);
+}
+
+/**
+ * FR-2 invariant checker: for every day, `Σ daysByModel[day].models === days[day].weightedTokens`;
+ * and `Σ byModel[*].weightedTokens === total7d.weightedTokens`. Pure, no fs/clock. Returns a
+ * human-readable violation per mismatch; an empty array means the invariant holds. The tolerance is
+ * relative ({@link invariantTolerance}), and a `NaN`/`Infinity` on either side of a comparison is
+ * ALWAYS a violation ({@link isNonFiniteMismatch}) — never a silent pass.
+ */
+export function spendInvariantViolations(report: SpendReport): string[] {
+  const violations: string[] = [];
+  const modelsByDate = new Map(report.daysByModel.map((entry) => [entry.date, entry.models]));
+  for (const day of report.days) {
+    const models = modelsByDate.get(day.date) ?? {};
+    const sum = Object.values(models).reduce((a, b) => a + b, 0);
+    const nonFinite = isNonFiniteMismatch(sum, day.weightedTokens);
+    if (nonFinite || Math.abs(sum - day.weightedTokens) > invariantTolerance(sum, day.weightedTokens)) {
+      violations.push(
+        `day ${day.date}: Σ daysByModel=${sum} !== days.weightedTokens=${day.weightedTokens}` +
+          (nonFinite ? ' (non-finite sum — NaN/Infinity corrupts the invariant)' : ''),
+      );
+    }
+  }
+  const byModelSum = Object.values(report.byModel).reduce((a, row) => a + row.weightedTokens, 0);
+  const byModelNonFinite = isNonFiniteMismatch(byModelSum, report.total7d.weightedTokens);
+  if (
+    byModelNonFinite ||
+    Math.abs(byModelSum - report.total7d.weightedTokens) > invariantTolerance(byModelSum, report.total7d.weightedTokens)
+  ) {
+    violations.push(
+      `Σ byModel=${byModelSum} !== total7d.weightedTokens=${report.total7d.weightedTokens}` +
+        (byModelNonFinite ? ' (non-finite sum — NaN/Infinity corrupts the invariant)' : ''),
+    );
+  }
+  return violations;
+}
+
 export interface UsageCalibrationInput {
   readonly sessionPct?: unknown;
   readonly weeklyPct?: unknown;
@@ -359,23 +526,44 @@ export function normalizeClaudeUsageModelKey(raw: unknown): ClaudeUsageModel | n
   return (CLAUDE_USAGE_MODELS as readonly string[]).includes(key) ? (key as ClaudeUsageModel) : null;
 }
 
-/** Recursive .jsonl collector under a subagents tree — bounded depth, lstat-guarded. */
-function walkTranscriptTree(dir: string, depthLeft: number, out: Array<{ path: string; mtimeMs: number }>): void {
+/** Resolve one directory without revisiting a real path. Broken links and non-directories are skipped. */
+function resolveDirectoryOnce(dir: string, visited: Set<string>): string | null {
+  try {
+    const entry = lstatSync(dir);
+    if (!entry.isDirectory() && !entry.isSymbolicLink()) return null;
+    const realDir = realpathSync(dir);
+    if (entry.isSymbolicLink() && !statSync(realDir).isDirectory()) return null;
+    if (visited.has(realDir)) return null;
+    visited.add(realDir);
+    return realDir;
+  } catch {
+    return null;
+  }
+}
+
+/** Recursive .jsonl collector under a subagents tree — bounded depth and real-path deduplicated. */
+function walkTranscriptTree(
+  dir: string,
+  depthLeft: number,
+  out: Array<{ path: string; mtimeMs: number }>,
+  visited: Set<string>,
+): void {
   if (depthLeft <= 0) return;
+  const realDir = resolveDirectoryOnce(dir, visited);
+  if (realDir === null) return;
   let entries: string[];
   try {
-    if (!lstatSync(dir).isDirectory()) return; // symlinked dir ⇒ not walked
-    entries = readdirSync(dir);
+    entries = readdirSync(realDir);
   } catch {
     return;
   }
   for (const e of entries) {
-    const p = join(dir, e);
+    const p = join(realDir, e);
     if (e.endsWith('.jsonl')) {
       const m = regularFileMtime(p);
       if (m !== null) out.push({ path: p, mtimeMs: m });
     } else {
-      walkTranscriptTree(p, depthLeft - 1, out);
+      walkTranscriptTree(p, depthLeft - 1, out, visited);
     }
   }
 }
@@ -476,6 +664,7 @@ interface Sample {
   readonly tokens: number;
   readonly key: string; // dedup key: message.id + ':' + requestId
   readonly model: ClaudeUsageModel | null;
+  readonly raw: RawTokenMix;
 }
 
 /**
@@ -498,6 +687,7 @@ function regularFileMtime(p: string): number | null {
 
 function listTranscriptFiles(root: string): Array<{ path: string; mtimeMs: number }> {
   const out: Array<{ path: string; mtimeMs: number }> = [];
+  const visitedDirectories = new Set<string>();
   let dirs: string[];
   try {
     if (!existsSync(root)) return out;
@@ -507,12 +697,11 @@ function listTranscriptFiles(root: string): Array<{ path: string; mtimeMs: numbe
   }
   for (const d of dirs) {
     const projDir = join(root, d);
+    const realProjDir = resolveDirectoryOnce(projDir, visitedDirectories);
+    if (realProjDir === null) continue;
     let files: string[];
     try {
-      // lstat, not stat: a symlinked project directory would otherwise be walked (Codex #3).
-      const st = lstatSync(projDir);
-      if (!st.isDirectory()) continue;
-      files = readdirSync(projDir);
+      files = readdirSync(realProjDir);
     } catch {
       continue;
     }
@@ -523,12 +712,12 @@ function listTranscriptFiles(root: string): Array<{ path: string; mtimeMs: numbe
       // `subagents/workflows/wf_*/agent-*.jsonl` — one level deeper than the first fix reached —
       // and that blind spot alone hid 283.62M weighted tokens across 551 files (MEASURED
       // 2026-08-24, 7-day window, this machine). Depth 4 covers today's deepest layout plus one
-      // future level; lstat at EVERY step keeps symlinked directories unwalked.
+      // future level; each real directory is visited once, so symlink aliases and loops stay bounded.
       if (!f.endsWith('.jsonl')) {
-        walkTranscriptTree(join(projDir, f, 'subagents'), 4, out);
+        walkTranscriptTree(join(realProjDir, f, 'subagents'), 4, out, visitedDirectories);
         continue;
       }
-      const p = join(projDir, f);
+      const p = join(realProjDir, f);
       const mt = regularFileMtime(p);
       if (mt !== null) out.push({ path: p, mtimeMs: mt });
     }
@@ -596,6 +785,7 @@ function extractSamples(path: string, scanCutoff: number, into: Sample[], seen: 
     // Prefer the TTL breakdown when present (5m 1.25x / 1h 2x); fall back to the flat field at the
     // 5m rate. Reading only the flat field scored a nested-only record as ZERO.
     // ONE estimator, shared with the per-stage cost ledger (feature `cost-ledger`, ADR-002).
+    const raw = rawTokenMixOf(usage);
     const tokens = weightedTokensOf(usage);
     if (tokens <= 0) continue;
     // Dedup: streamed assistant messages repeat their usage object across chunks.
@@ -611,8 +801,45 @@ function extractSamples(path: string, scanCutoff: number, into: Sample[], seen: 
         : `anon:${ts}:${n(usage.input_tokens)}:${n(usage.cache_creation_input_tokens)}:${n(usage.cache_read_input_tokens)}:${n(usage.output_tokens)}:${String(rec.message?.model ?? rec.model ?? '')}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    into.push({ ts, tokens, key, model: normalizeClaudeUsageModel(rec.message?.model ?? rec.model) });
+    into.push({ ts, tokens, key, model: normalizeClaudeUsageModel(rec.message?.model ?? rec.model), raw });
   }
+}
+
+function scanSamples(scanCutoff: number): { samples: Sample[]; scanFileCount: number } {
+  const samples: Sample[] = [];
+  const seen = new Set<string>();
+  let scanFileCount = 0;
+  try {
+    const files = listTranscriptFiles(claudeProjectsRoot());
+    for (const file of files) {
+      if (file.mtimeMs < scanCutoff) continue;
+      scanFileCount += 1;
+      extractSamples(file.path, scanCutoff, samples, seen);
+    }
+  } catch {
+    // Best-effort transcript reads collapse to an empty report.
+  }
+  return { samples, scanFileCount };
+}
+
+/** Read local transcript events once, then delegate all aggregation to the pure spendReport. */
+export function computeSpendReport(now?: number, days = 7): SpendReport {
+  const MAX_TIME = 8.64e15;
+  const nowMs = now === undefined || !Number.isFinite(now) || Math.abs(now) > MAX_TIME ? Date.now() : now;
+  const today = new Date(nowMs);
+  const todayStart = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+  const validDays = Number.isInteger(days) && days > 0 ? days : 7;
+  const scanCutoff = todayStart - (validDays - 1) * DAY_MS - MTIME_SLACK_MS;
+  const { samples } = scanSamples(scanCutoff);
+  return spendReport(
+    samples.map((sample) => ({
+      ts: sample.ts,
+      model: sample.model,
+      raw: sample.raw,
+      weightedTokens: sample.tokens,
+    })),
+    { nowMs, days: validDays },
+  );
 }
 
 function activeSessionBlock(
@@ -686,20 +913,7 @@ export function computeUsage(projectRoot: string, now?: number): UsageEstimate {
   const weeklyScanCutoff = weeklyWindow?.startedAtMs ?? nowMs;
   const scanCutoff = Math.min(sessionScanCutoff, weeklyScanCutoff) - MTIME_SLACK_MS;
 
-  const samples: Sample[] = [];
-  const seen = new Set<string>();
-  let scanFileCount = 0;
-  try {
-    const files = listTranscriptFiles(claudeProjectsRoot());
-    for (const f of files) {
-      // mtime prefilter: a file last written before every relevant cutoff cannot contribute.
-      if (f.mtimeMs < scanCutoff) continue;
-      scanFileCount += 1;
-      extractSamples(f.path, scanCutoff, samples, seen);
-    }
-  } catch {
-    // total scan failure ⇒ fall through with empty samples (nulls), never throw
-  }
+  const { samples, scanFileCount } = scanSamples(scanCutoff);
 
   let weeklyTokens = 0;
   const weeklyTokensByModel: Partial<Record<ClaudeUsageModel, number>> = {};
