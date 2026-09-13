@@ -78,16 +78,27 @@ export { DEFAULT_REINFORCE_THRESHOLD, NoopLearningBackend, NativeReinforcementBa
 // deliberately NOT exported — `selectArm`'s "pick one and commit" is authority this domain denies
 // the ranker, and a foreign, invariant-blind API has no business on our safety-critical seam.
 export { resolveBanditConfig, payoffTermsFor, recordReward, recordExposures, contextKeyFor, banditStats, renderBanditHealth, narrowBanditReport, loadBanditState, banditStatePath, banditStateDir, freshBanditEnvelope, makeRewardEvent, classifySignal, BANDIT_LOCK_NAME, BANDIT_STATE_SCHEMA } from './lesson-payoff.js';
-export { DEFAULT_VECTOR_TIMEOUT_MS, DEFAULT_HARMONIZE_THRESHOLD, REINFORCE_RRF_CAP, BANDIT_RRF_CAP, withVectorTimeout, isVectorNoise, patternVectorEntry, dreamVectorEntry, memoryRecordVectorEntry, readVectorEngineMode, readHarmonizeThreshold, vectorMirrorEnabled, mirrorWriterReason, mirrorWriterExplanation, resolveVectorEngine, mirrorEntriesToVector, mirrorPatternsToVector, backfillVectorMirror, mergeHybridHits, recallHybrid, teachGuard, vectorTierStatus, reindexVectorStore, harmonizeVectorStore, selectClusterKeeper, importRvfCheckpoint, } from './vector-tier.js';
+export { DEFAULT_VECTOR_TIMEOUT_MS, DEFAULT_HARMONIZE_THRESHOLD, REINFORCE_RRF_CAP, BANDIT_RRF_CAP, withVectorTimeout, isVectorNoise, isMirrorableRecord, mirrorQuarantineOf, patternVectorEntry, dreamVectorEntry, memoryRecordVectorEntry, readVectorEngineMode, readHarmonizeThreshold, vectorMirrorEnabled, mirrorWriterReason, mirrorWriterExplanation, resolveVectorEngine, mirrorEntriesToVector, mirrorPatternsToVector, backfillVectorMirror, mergeHybridHits, recallHybrid, teachGuard, vectorTierStatus, reindexVectorStore, harmonizeVectorStore, selectClusterKeeper, importRvfCheckpoint, } from './vector-tier.js';
 export { runSetup, generateHooksConfig, generateAgentdbWriter, writerVersionOf, AGENTDB_WRITER_VERSION, agentdbStorePath, agentdbMcpStorePath, agentdbStoreSeparationProblem } from './setup.js';
-export { countLearningStoreRowsReadonly } from './store-counts.js';
+// apply-leg (feature setup-installs-apply-leg, ADR-001): the third self-learning leg (APPLY) as a
+// versioned generator + the ONE measurement dz doctor/parity both read (Decision 3).
+export { APPLY_LEG_VERSION, applyLegVersionOf, bakedCoreDistDirOf, recallHookSource, embedDaemonSource, applyLegHookEntries, applyLegStatus, applyLegReasonMessage, resolveIdleMs, IDLE_MS_INT32_MAX, } from './apply-leg.js';
+export { countLearningStoreRowsReadonly, quarantineTierParity } from './store-counts.js';
 export { STORE_GUARD_VERSION, STORE_COLLAPSE_MAX_FRACTION, STORE_COLLAPSE_LAST_ROWS, storeGuardPath, storeSnapshotPath, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, } from './store-guard.js';
 export { statuslineData, readFeatureAdrState, writeFeatureAdrState, featureAdrStateDir, featureAdrStatePath, writeFeatureAdrStateDetailed, renderFeatureAdrPhaseLine } from './statusline.js';
 export { ETA_MAX_STAGE_MS, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, } from './eta.js';
-export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES } from './agentdb-index.js';
+export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema } from './agentdb-index.js';
 export { DEFAULT_EMBED_MODEL, LEGACY_EMBED_MODEL, DEFAULT_EMBED_DIM, KNOWN_EMBED_DIMS, resolveEmbedModel, readEmbedManifest, writeEmbedManifest, embedManifestPath, legacyEmbedManifest } from './embedding-config.js';
 export { putBookKnowledge, queryBookKnowledge, bookKbPath } from './book-kb.js';
+export { applyReadonlyPragmas, classifySqliteReadFailure, warnOnce } from './sqlite-read-helpers.js';
 export { brainHome, brainBooksPath, brainAgentdbPath, brainRegistryPath, readRegistry, writeRegistry, listBrain, promoteProjectToBrain, updateBrainSource, queryBrain, searchBrainVectors, reindexBrainVectors, rerankHits, groundPrompt, expandKu, buildPrimer, writePrimer, readBookKus, exportBrainSlice, importBrainSlice, registerKusToBrain, } from './brain.js';
+// AM-5 (agentdb-snapshot-lock fix-round): `rotatePreReindexSnapshotsUnlocked` is package-internal
+// ONLY — the public API is `rotatePreReindexSnapshots`, which takes the snapshot lock. Exporting
+// the unlocked primitive from this barrel would hand callers outside the package a way to rotate
+// snapshots with NO mutual exclusion at all, defeating the whole point of this feature.
+export { listPreReindexSnapshots, planSnapshotRotation, rotatePreReindexSnapshots, scanSnapshotDir } from './agentdb-snapshot-rotation.js';
+export { snapshotSqliteDatabase, restoreSqliteSnapshot } from './agentdb-snapshot.js';
+export { withAgentdbSnapshotLock, writeReindexMarker, markReindexMarkerRecoveryRequired, clearReindexMarker, readLiveReindexMarkers, reindexMarkerPath, REINDEX_MARKER_TTL_MS, } from './agentdb-reindex-marker.js';
 export { generatePlugin } from './plugin.js';
 export { claimCheck, summarize, decideClaimCheckText, severityCounts, isGated } from './claim-check.js';
 export { BUNDLED_SLOP_REGISTRY_URL, DEFAULT_SLOP_CONFIG, parseSlopRegistry, slopLint, validateSlopLintConfig, } from './slop-lint.js';
@@ -161,7 +172,7 @@ isSafeSlug, hasUnsafePathChars, hasDotDotSegment,
 CODEX_REVIEW_TIMEOUT_SECONDS, CODEX_REVIEW_DEFAULT_EFFORT, CODEX_TIMEOUT, CODEX_QE_SIGNAL_PREFIX, CODEX_QE_DECLINE_KINDS, SCOPED_QE_MAX_FILES, SCOPED_QE_MAX_QUESTIONS, SCOPED_QE_MAX_PATH_CHARS, SCOPED_QE_MAX_QUESTION_CHARS, SCOPED_QE_PROMPT_MAX_CHARS, isSafeCodexRef, codexReviewCommand, codexExecCommand, codexReviewMissedItsFiles, CODEX_EXEC_TIMEOUT_SECONDS, timeoutBinOrDefault, TIMEOUT_BINS, codexQeSignalCommand, scopedQePrompt, parseCodexReviewSignal, parseCodexReviewFindings, gradeFromReviewFindings, classifyCodexQeOutcome, codexQeDeclineReason, codexDeclineReason, parseCodexReviewResult, resolveStageDecision, effectiveSpec, specFamily, qeReasonForFamilies, STAGE_DECISION_REASONS, } from './feature-adr-routing.js';
 export { STAGE_LINE_BLOB_VERSION, STAGE_LINE_REASON_LABELS, STAGE_LINE_BARRIER_STAGES, renderStageIntentLine, renderStageOutcomeLine, renderStageLine, } from './stage-line.js';
 export { PARSER_SAFE_REGION_START, PARSER_SAFE_REGION_END, checkParserSafeRegion, } from './parser-safe-region.js';
-export { CLAUDE_USAGE_MODELS, computeUsage, deriveUsageCalibration, fixedBlockWindowFor, normalizeClaudeUsageModel, normalizeClaudeUsageModelKey, parseWeeklyResetAnchor, readUsageLimits, weeklyWindowFor, } from './usage.js';
+export { CLAUDE_USAGE_MODELS, computeSpendReport, computeUsage, deriveUsageCalibration, fixedBlockWindowFor, normalizeClaudeUsageModel, normalizeClaudeUsageModelKey, parseWeeklyResetAnchor, readUsageLimits, spendReport, spendInvariantViolations, weeklyWindowFor, } from './usage.js';
 export { claudeProjectsRoot, rawTokenMixOf, weightedTokensOf } from './usage.js';
 // Per-stage cost ledger + reconciliation invariant (feature cost-ledger, ADR-001/002/003).
 export { COST_LEDGER_SCOPE, COST_LEDGER_DEFECT_KINDS, COST_LEDGER_VERDICTS, DEFAULT_COST_LEDGER_EPSILON, extractCostSamples, parseWorkflowRunRecord, buildCostLedger, verifyCostLedgerReport, stageCostAggregates, renderCostLedger, costLedgerJsonl, listCostLedgerRuns, deriveCostLedger, deriveStageCostAggregates, writeCostLedgerJsonl, } from './cost-ledger.js';
@@ -222,7 +233,7 @@ export * from './backlog.js';
 // CHANGE-SET, wired as the `no-stubs` SOFT publish guard rule + the feature-adr Step-8 QE item.
 export * from './no-stubs.js';
 export { quiescenceProbeScript, decideWriterQuiescence, WQ_WINDOW_SECONDS, WQ_MAX_WINDOWS, WQ_REQUIRED_QUIET } from './writer-quiescence.js';
-export { decideCadenceWindow, isoWeekOf, weeklyBuckets, guardRepeatDecay, buildCadenceReport, CADENCE_WINDOW_DAYS } from './cadence.js';
+export { decideCadenceWindow, isoWeekOf, weeklyBuckets, guardRepeatDecay, summarizeRounds, buildCadenceReport, CADENCE_WINDOW_DAYS } from './cadence.js';
 export { readQeRounds, countQeRounds, QE_ROUNDS_DEFAULT_CEILING } from './qe-rounds.js';
 export { adviseRestart, decideRestartRecommendation, parseCheckpointQeHistory, parseTrainingPairQeHistory, renderRestartDecisionLog, RESTART_ADVISOR_SCHEMA, RESTART_ADVISOR_MAX_DIAGNOSTICS, RESTART_ADVISOR_MAX_EVIDENCE, } from './restart-advisor.js';
 export { describeStoreLocation, storeLocationLine } from './store-location.js';
@@ -252,5 +263,7 @@ export { maskMarkdown } from './markdown-masker.js';
 export * from './confirmation-file-gate.js';
 export * from './run-registry.js';
 export { JOURNAL_KINDS, formatLine, parseLine, selectWindow, appendWitnessed } from './journal.js';
+export { openRound, closeRound, listRounds } from './round.js';
+export { parseCodexTokens, classifyRoundExecOutcome, buildRoundExecRow } from './round-exec.js';
 export * from './run-cleanup.js';
 //# sourceMappingURL=index.js.map

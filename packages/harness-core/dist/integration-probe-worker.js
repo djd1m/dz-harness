@@ -1,8 +1,5 @@
 /** Isolated bounded subprocess runner used by integration registration probes. */
 import { spawn } from 'node:child_process';
-import { realpathSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { resolve } from 'node:path';
 export const PROBE_REDACTION_MARKER = '[REDACTED]';
 export const PROBE_TRUNCATION_MARKER = '[TRUNCATED]';
 const WORKER_INPUT_MAX_BYTES = 64 * 1024;
@@ -244,7 +241,9 @@ export function runProbeWorker(request) {
         const child = spawn(request.command, [...request.args], {
             cwd: request.cwd,
             detached: process.platform !== 'win32',
-            env: process.env,
+            // Strip our own entry marker: a probed command (or its descendants) that imports this module must never
+            // run main() — review 2026-09-11 (Sonnet MEDIUM).
+            env: Object.fromEntries(Object.entries(process.env).filter(([key]) => key !== 'DZ_INTEGRATION_PROBE_WORKER')),
             stdio: ['ignore', 'pipe', 'pipe'],
             windowsHide: true,
         });
@@ -324,8 +323,7 @@ async function main() {
     const request = validateRequest(JSON.parse(Buffer.concat(chunks).toString('utf8')));
     process.stdout.write(`${JSON.stringify(await runProbeWorker(request))}\n`);
 }
-const invokedPath = process.argv[1];
-if (invokedPath !== undefined && realpathSync(resolve(invokedPath)) === realpathSync(fileURLToPath(import.meta.url))) {
+if (process.env.DZ_INTEGRATION_PROBE_WORKER === '1') {
     main().catch((error) => {
         process.stderr.write(`integration probe worker failed: ${error instanceof Error ? error.message : String(error)}\n`);
         process.exitCode = 1;

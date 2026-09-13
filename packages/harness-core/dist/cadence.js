@@ -4,7 +4,7 @@
  * caught a «year» digest standing on 174 days of data — scale forgery by aggregation; an
  * aggregator that silently computes any requested period repeats it mechanically.
  *
- * Four sources, every degradation NAMED in the report, never a silent zero:
+ * Five sources, every degradation NAMED in the report, never a silent zero:
  *  - graded shipments: features/<slug>/08_qe_report.md through the hardened readQeGrade
  *    (prefix-negation aware, all measured real-world grade forms); ungraded reports are a COLUMN;
  *  - npm publishes: the dz recap registry-time cache (third-party timestamps);
@@ -12,6 +12,8 @@
  *    start (the data-driven birth proxy — the no-stubs class of «zero repeats because the rule is
  *    young» is excluded by construction);
  *  - knowledge reuse: recall events per bucket from .dz/recall-usage.jsonl.
+ *  - focused round outcomes and execution receipts from the run-cost ledger; package commit counts
+ *    are injected by the CLI so this module never acquires a git/process dependency.
  */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -59,6 +61,60 @@ export function weeklyBuckets(events, windowStartMs, nowMs) {
     }
     return out;
 }
+const ROUND_OUTCOMES = [
+    'shipped', 'refuted', 'blocked', 'abandoned',
+    'done', 'timeout', 'session-limit', 'model-refused', 'failed', 'empty',
+];
+/** Pure round-ledger projection over a closed time window. Unknown outcomes stay visible. */
+export function summarizeRounds(rows, window) {
+    const byStage = { round: 0, 'round-exec': 0 };
+    const byOutcome = Object.fromEntries(ROUND_OUTCOMES.map((outcome) => [outcome, 0]));
+    const unfinished = [];
+    let total = 0;
+    let minutes = 0;
+    let tokens = 0;
+    let tokensUnknown = 0;
+    let malformed = 0;
+    for (const candidate of rows) {
+        if (candidate === null || typeof candidate !== 'object' || Array.isArray(candidate))
+            continue;
+        const row = candidate;
+        const stage = row['stage'];
+        if (stage !== 'round' && stage !== 'round-exec')
+            continue;
+        const date = typeof row['date'] === 'string' ? row['date'] : '';
+        const ts = Date.parse(date);
+        if (!Number.isFinite(ts) || ts < window.windowStartMs || ts > window.nowMs)
+            continue;
+        total += 1;
+        byStage[stage] += 1;
+        const rawOutcome = typeof row['outcome'] === 'string' ? row['outcome'].trim() : '';
+        if (ROUND_OUTCOMES.includes(rawOutcome)) {
+            byOutcome[rawOutcome] += 1;
+        }
+        else {
+            malformed += 1;
+        }
+        if (typeof row['minutes'] === 'number' && Number.isFinite(row['minutes']) && row['minutes'] >= 0)
+            minutes += row['minutes'];
+        if (typeof row['tokens'] === 'number' && Number.isFinite(row['tokens']) && row['tokens'] >= 0)
+            tokens += row['tokens'];
+        else
+            tokensUnknown += 1;
+        if (rawOutcome !== 'shipped' && rawOutcome !== 'done') {
+            const reason = typeof row['reason'] === 'string' && row['reason'].trim() !== '' ? row['reason'].trim() : null;
+            unfinished.push({
+                slug: typeof row['slug'] === 'string' && row['slug'].trim() !== '' ? row['slug'].trim() : 'unknown',
+                round: typeof row['round'] === 'number' && Number.isInteger(row['round']) ? row['round'] : 0,
+                stage,
+                outcome: rawOutcome === '' ? 'malformed' : rawOutcome,
+                reason,
+                date,
+            });
+        }
+    }
+    return { total, byStage, byOutcome, unfinished, minutes, tokens, tokensUnknown, malformed };
+}
 /**
  * Repeat decay over the FIXED set: only rules with at least one event BEFORE the window start
  * qualify (their existence predates the window); newborn rules are EXCLUDED by construction and
@@ -97,7 +153,7 @@ function safeJsonl(path) {
     return out;
 }
 /** Build the full report. `now` injectable — the refusal decision must be testable. */
-export function buildCadenceReport(root, window, now) {
+export function buildCadenceReport(root, window, now, commitsInWindow) {
     const nowMs = typeof now === 'number' && isFinite(now) ? now : Date.now();
     // Shipment events: graded 08 reports, dated by the run-cost ledger (fallback: report mtime is
     // NOT used — an mtime moves on every touch; an undatable report lands in `ungraded`... no: in
@@ -211,12 +267,20 @@ export function buildCadenceReport(root, window, now) {
             recallWeekly[wk] = (recallWeekly[wk] ?? 0) + 1;
         }
     const recallDegraded = recallRows.length === 0 ? 'no recall-usage events — the reuse leg has nothing to stand on' : null;
+    const rounds = summarizeRounds(ledger, { windowStartMs: windowStart, nowMs });
+    const roundCommits = typeof commitsInWindow === 'number' && Number.isFinite(commitsInWindow) && commitsInWindow >= 0
+        ? commitsInWindow
+        : null;
+    const roundsDegraded = commitsInWindow === null
+        ? 'git unavailable — commits(packages/) not measured'
+        : null;
     return {
         window, decision, depthDays,
         shipments: { graded: gradedWeekly, ungraded, gradedTotal, byGrade },
         npmPublishes: { weekly: npmWeekly, degraded: npmDegraded },
         guard: { ...guard, degraded: guardDegraded },
         recalls: { weekly: recallWeekly, degraded: recallDegraded },
+        rounds: { ...rounds, commitsInWindow: roundCommits, degraded: roundsDegraded },
     };
 }
 //# sourceMappingURL=cadence.js.map

@@ -2,10 +2,16 @@
 import { createRequire } from 'node:module';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import type { MemoryRecord } from '@dzhechkov/memory';
+import { patternRecordId, recordToPattern } from './patterns.js';
+import { isMirrorableRecord } from './vector-tier.js';
 
 interface ReadonlyCountDb {
   pragma: (s: string) => void;
-  prepare: (q: string) => { get: (...a: unknown[]) => unknown };
+  prepare: (q: string) => {
+    get: (...a: unknown[]) => unknown;
+    all: (...a: unknown[]) => unknown[];
+  };
   close: () => void;
 }
 
@@ -14,6 +20,91 @@ export type StoreRowCount = number | 'unreadable' | 'busy';
 export interface StoreCountOptions {
   readonly busyTimeoutMs?: number;
   readonly attempts?: number;
+}
+
+export interface QuarantineTierRow {
+  readonly id?: string;
+  readonly dzId?: string;
+  /** Content-addressed alias used by the teach-time mirror before a lexical row is re-keyed. */
+  readonly patternRecordId?: string;
+  readonly quarantined?: boolean;
+  readonly qStatus?: unknown;
+  readonly metadata?: Record<string, unknown> | string | null;
+}
+
+export interface QuarantineTierParity {
+  readonly both: number;
+  readonly lexicalOnly: number;
+  readonly mirrorOnly: number;
+  readonly ids: {
+    readonly both: readonly string[];
+    readonly lexicalOnly: readonly string[];
+    readonly mirrorOnly: readonly string[];
+  };
+}
+
+function rowMetadata(row: QuarantineTierRow): Record<string, unknown> {
+  if (typeof row.metadata === 'object' && row.metadata !== null) return row.metadata;
+  if (typeof row.metadata !== 'string') return {};
+  try {
+    const parsed = JSON.parse(row.metadata) as unknown;
+    return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
+      ? parsed as Record<string, unknown>
+      : {};
+  } catch {
+    return {};
+  }
+}
+
+interface QuarantineIdentity {
+  readonly primary: string;
+  readonly aliases: ReadonlySet<string>;
+}
+
+function quarantineIdentities(rows: readonly QuarantineTierRow[]): QuarantineIdentity[] {
+  const identities = new Map<string, QuarantineIdentity>();
+  for (const row of rows) {
+    const metadata = rowMetadata(row);
+    const quarantined = row.quarantined === true
+      || row.qStatus === 'quarantined'
+      || metadata['qStatus'] === 'quarantined';
+    if (!quarantined) continue;
+    const candidates = [row.dzId, metadata['dzId'], row.id, row.patternRecordId]
+      .filter((id): id is string => typeof id === 'string' && id !== '');
+    const primary = candidates[0];
+    if (primary === undefined) continue;
+    identities.set(primary, { primary, aliases: new Set(candidates) });
+  }
+  return [...identities.values()];
+}
+
+/** Pure dual-key comparison for active quarantine labels in the lexical and mirror tiers. */
+export function quarantineTierParity(
+  lexicalRows: readonly QuarantineTierRow[],
+  mirrorRows: readonly QuarantineTierRow[],
+): QuarantineTierParity {
+  const lexical = quarantineIdentities(lexicalRows);
+  const mirror = quarantineIdentities(mirrorRows);
+  const lexicalKeys = new Set(lexical.flatMap((identity) => [...identity.aliases]));
+  const mirrorKeys = new Set(mirror.flatMap((identity) => [...identity.aliases]));
+  const both = [...new Set(lexical.flatMap((identity) => {
+    const matched = [...identity.aliases].find((id) => mirrorKeys.has(id));
+    return matched === undefined ? [] : [matched];
+  }))].sort();
+  const lexicalOnly = lexical
+    .filter((identity) => ![...identity.aliases].some((id) => mirrorKeys.has(id)))
+    .map((identity) => identity.primary)
+    .sort();
+  const mirrorOnly = mirror
+    .filter((identity) => ![...identity.aliases].some((id) => lexicalKeys.has(id)))
+    .map((identity) => identity.primary)
+    .sort();
+  return {
+    both: both.length,
+    lexicalOnly: lexicalOnly.length,
+    mirrorOnly: mirrorOnly.length,
+    ids: { both, lexicalOnly, mirrorOnly },
+  };
 }
 
 type DatabaseRequire = (id: string) => unknown;
@@ -45,6 +136,13 @@ function normalizedOptions(options: StoreCountOptions): { busyTimeoutMs: number;
 
 export interface LearningStoreRowCounts {
   readonly lexicalRows: StoreRowCount;
+  /** Lexical rows accepted by the same class/noise gate as the vector mirror writer. */
+  readonly lexicalMirrorableRows?: number;
+  /** Mirrorable lexical rows whose current qStatus is quarantined. */
+  readonly lexicalMirrorableQuarantinedRows?: number;
+  /** Mutually exclusive exclusion buckets; class takes precedence over noise. */
+  readonly lexicalExcludedClassRows?: number;
+  readonly lexicalExcludedNoiseRows?: number;
   /** Exact active quarantine labels in the selected lexical SQLite tier; absent for fallback/error paths. */
   readonly lexicalQuarantinedRows?: number;
   /** Physical lexical population counted; jsonl and SQLite maxima are not comparable. */
@@ -71,6 +169,8 @@ export interface LearningStoreRowCounts {
   readonly vectorQuarantinedRows?: number;
   /** Present when the vector store file exists, including when its count is unreadable. */
   readonly vectorSourcePath?: string;
+  /** Exact qStatus parity by dzId; absent when either tier cannot establish quarantine ids. */
+  readonly quarantineTierParity?: QuarantineTierParity;
 }
 
 function countJsonlRowsReadonly(path: string): number | 'unreadable' {
@@ -133,8 +233,132 @@ export function countSqliteRowsReadonly(
 interface SqliteRowsWithQuarantine {
   readonly rows: number;
   readonly quarantinedRows?: number;
+  readonly mirrorableRows?: number;
+  readonly mirrorableQuarantinedRows?: number;
+  readonly excludedClassRows?: number;
+  readonly excludedNoiseRows?: number;
   /** Только для зеркала: подсчёт уроков внутри общего объёма. */
   readonly lessonRows?: number;
+  readonly quarantinedIdentities?: readonly QuarantineTierRow[];
+}
+
+function lexicalMirrorPopulation(db: ReadonlyCountDb): Pick<
+  SqliteRowsWithQuarantine,
+  'mirrorableRows' | 'mirrorableQuarantinedRows' | 'excludedClassRows' | 'excludedNoiseRows' | 'quarantinedIdentities'
+> | undefined {
+  let rows: unknown[];
+  let idsEstablished = true;
+  try {
+    rows = db.prepare('SELECT id, skill_id, text, score, outcome, timestamp, metadata FROM memory_records').all();
+  } catch {
+    try {
+      rows = db.prepare('SELECT id, text, metadata FROM memory_records').all();
+    } catch {
+      idsEstablished = false;
+      try {
+        rows = db.prepare('SELECT text, metadata FROM memory_records').all();
+      } catch {
+        try {
+          // Legacy/minimal schemas can still establish the class exclusion. With no text column there
+          // is no observable noise payload, so every non-class row stays in the comparable population.
+          rows = db.prepare("SELECT '' AS text, metadata FROM memory_records").all();
+        } catch {
+          return undefined;
+        }
+      }
+    }
+  }
+
+  let mirrorableRows = 0;
+  let mirrorableQuarantinedRows = 0;
+  let excludedClassRows = 0;
+  let excludedNoiseRows = 0;
+  const quarantinedRows: QuarantineTierRow[] = [];
+  for (const value of rows) {
+    const row = value as {
+      id?: unknown;
+      skill_id?: unknown;
+      text?: unknown;
+      score?: unknown;
+      outcome?: unknown;
+      timestamp?: unknown;
+      metadata?: unknown;
+    };
+    let metadata: Record<string, unknown> = {};
+    if (typeof row.metadata === 'string') {
+      try {
+        const parsed = JSON.parse(row.metadata) as unknown;
+        if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+          metadata = parsed as Record<string, unknown>;
+        }
+      } catch { /* malformed metadata carries no class/quarantine claim */ }
+    }
+    const text = typeof row.text === 'string' ? row.text : '';
+    const lessonForm = metadata['lessonForm'] === 'class' ? 'class' as const : undefined;
+    const record = { pattern: text, ...(lessonForm === undefined ? {} : { lessonForm }) };
+    if (!isMirrorableRecord(record)) {
+      if (lessonForm === 'class') excludedClassRows += 1;
+      else excludedNoiseRows += 1;
+      continue;
+    }
+    mirrorableRows += 1;
+    if (metadata['qStatus'] === 'quarantined') {
+      mirrorableQuarantinedRows += 1;
+      if (typeof row.id !== 'string' || row.id === '') {
+        idsEstablished = false;
+        continue;
+      }
+      let derivedId: string | undefined;
+      if (typeof row.text === 'string'
+        && typeof row.score === 'number'
+        && typeof row.outcome === 'string'
+        && typeof row.timestamp === 'string') {
+        const stringMetadata = Object.fromEntries(
+          Object.entries(metadata).filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
+        );
+        const record: MemoryRecord = {
+          id: row.id,
+          skillId: typeof row.skill_id === 'string' ? row.skill_id : '',
+          text: row.text,
+          score: row.score,
+          outcome: row.outcome,
+          timestamp: row.timestamp,
+          metadata: stringMetadata,
+        };
+        derivedId = patternRecordId(recordToPattern(record));
+      }
+      quarantinedRows.push({
+        id: row.id,
+        ...(derivedId === undefined ? {} : { patternRecordId: derivedId }),
+        qStatus: 'quarantined',
+      });
+    }
+  }
+  return {
+    mirrorableRows,
+    mirrorableQuarantinedRows,
+    excludedClassRows,
+    excludedNoiseRows,
+    ...(idsEstablished ? { quarantinedIdentities: quarantinedRows } : {}),
+  };
+}
+
+function vectorQuarantinedIds(db: ReadonlyCountDb): readonly QuarantineTierRow[] | undefined {
+  try {
+    const rows = db.prepare(`SELECT metadata FROM reasoning_patterns
+      WHERE task_type IN ('dz-teach', 'dz-learning')
+        AND json_valid(metadata)
+        AND json_extract(metadata, '$.qStatus') = 'quarantined'`).all() as Array<{ metadata?: unknown }>;
+    const rowsWithIds: QuarantineTierRow[] = [];
+    for (const row of rows) {
+      const metadata = rowMetadata({ metadata: typeof row.metadata === 'string' ? row.metadata : null });
+      if (typeof metadata['dzId'] !== 'string' || metadata['dzId'] === '') return undefined;
+      rowsWithIds.push({ dzId: metadata['dzId'], qStatus: 'quarantined' });
+    }
+    return rowsWithIds;
+  } catch {
+    return undefined;
+  }
 }
 
 /** One aggregate query on the healthy path; an unsupported metadata shape falls back to total-only. */
@@ -168,9 +392,13 @@ function countSqliteRowsWithQuarantineReadonly(
             FROM reasoning_patterns`;
           const row = db.prepare(sql).get() as { cnt?: unknown; quarantined?: unknown; lessons?: unknown };
           if (typeof row?.cnt !== 'number' || typeof row.quarantined !== 'number') return 'unreadable';
+          const lexical = table === 'memory_records' ? lexicalMirrorPopulation(db) : undefined;
+          const quarantinedRows = table === 'reasoning_patterns' ? vectorQuarantinedIds(db) : undefined;
           return {
             rows: row.cnt,
             quarantinedRows: row.quarantined,
+            ...(lexical ?? {}),
+            ...(quarantinedRows === undefined ? {} : { quarantinedIdentities: quarantinedRows }),
             ...(typeof row.lessons === 'number' ? { lessonRows: row.lessons } : {}),
           };
         } catch (error) {
@@ -247,8 +475,23 @@ export function countLearningStoreRowsReadonly(
   const ignoredJsonl = lexicalSource === 'sqlite' && existsSync(jsonlPath)
     ? countJsonlRowsReadonly(jsonlPath)
     : undefined;
+  const quarantineParity = typeof lexicalSqlite === 'object'
+    && lexicalSqlite.quarantinedIdentities !== undefined
+    && typeof vectorSqlite === 'object'
+    && vectorSqlite.quarantinedIdentities !== undefined
+    ? quarantineTierParity(
+      lexicalSqlite.quarantinedIdentities,
+      vectorSqlite.quarantinedIdentities,
+    )
+    : undefined;
   return {
     lexicalRows,
+    ...(typeof lexicalSqlite !== 'object' || lexicalSqlite.mirrorableRows === undefined ? {} : {
+      lexicalMirrorableRows: lexicalSqlite.mirrorableRows,
+      lexicalMirrorableQuarantinedRows: lexicalSqlite.mirrorableQuarantinedRows ?? 0,
+      lexicalExcludedClassRows: lexicalSqlite.excludedClassRows ?? 0,
+      lexicalExcludedNoiseRows: lexicalSqlite.excludedNoiseRows ?? 0,
+    }),
     ...(typeof lexicalSqlite !== 'object' || lexicalSqlite.quarantinedRows === undefined ? {} : {
       lexicalQuarantinedRows: lexicalSqlite.quarantinedRows,
     }),
@@ -267,5 +510,6 @@ export function countLearningStoreRowsReadonly(
       vectorQuarantinedRows: vectorSqlite.quarantinedRows,
     }),
     ...(vectorExists ? { vectorSourcePath: vectorPath } : {}),
+    ...(quarantineParity === undefined ? {} : { quarantineTierParity: quarantineParity }),
   };
 }

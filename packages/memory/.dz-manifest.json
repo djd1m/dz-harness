@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "181ebe32f45a413af10268ebd958c8d553fcc7b2019da63816bcf6515615b303"
+        "sha256": "39dc8b8cc40cc51b5dd9de6573a99f63f71d8c301c7fd6f4e03e4ff38a662c3a"
       },
       {
         "path": "dist/backend.d.ts",
@@ -77,19 +77,19 @@
       },
       {
         "path": "dist/index.d.ts",
-        "sha256": "9d855df88b28e860102b42a0b899f7a5a561c3e3d8cf3fc48cb3366a15049c30"
+        "sha256": "c4e8be344baf02933c8e453bdba9ec3f95062d28672c8d0dabdd8035ef39e58e"
       },
       {
         "path": "dist/index.d.ts.map",
-        "sha256": "5a0b747b1858bdaacab8c086a24005ce0ec98d8d4ca60ea42e8c5f79ce9c3719"
+        "sha256": "9576e873ac4003f6b217e0eff04f2cd5f8633397e004164abe7f10f9d7886511"
       },
       {
         "path": "dist/index.js",
-        "sha256": "8b73ac944a586829e8d73e81d9c3c210dc13124067fb5742c953cc4fda1fcba9"
+        "sha256": "b6f72385ca8f3fbde2a5c11cf0deb98f58ea9836d216377e6585dc22b4b629b5"
       },
       {
         "path": "dist/index.js.map",
-        "sha256": "a86663fb3aeccf123b6b2adbc6a9a4a70da9a3887c75514a49d1bf95837253d3"
+        "sha256": "92e221dc762befc999d234a173b09b2e5c09c7e927518fccdd8bbebe15923712"
       },
       {
         "path": "dist/json-backend.d.ts",
@@ -125,19 +125,19 @@
       },
       {
         "path": "dist/sqlite-backend.d.ts",
-        "sha256": "bcee527422ab9692082ad26f6276f47f9bce86ed5279439f67a0823da1b93387"
+        "sha256": "c077c7e0b1001aaf46d7312dbf572eb497fadc1dc69e8ff6750c1e324ec854f5"
       },
       {
         "path": "dist/sqlite-backend.d.ts.map",
-        "sha256": "784903497cd0ec1e84358c3b96cfc36e34d9077a7626351f8792bc69ad735f68"
+        "sha256": "0df025e4853d8420efc87d2b7aa8ea9f36e5b9a0a0be4351a7eb7614caf62b4c"
       },
       {
         "path": "dist/sqlite-backend.js",
-        "sha256": "ebff426dfa8028097fbdcc350ba698d3c5472dc881dfc82604d8e23408d6f00d"
+        "sha256": "4f2a5c61fc27a8aa39f1adfb06215af80bbde0236f1f2a7f73ab65d3ab3f3652"
       },
       {
         "path": "dist/sqlite-backend.js.map",
-        "sha256": "92b0105282fb9069efde0fcb45d5b91c4ae0fd7e65afbdb077443ea9fec0f551"
+        "sha256": "4106d2a7cfa2ad50ea5497dab8ad18d2102019f05e5a3aca2469ab2ec325ce48"
       },
       {
         "path": "dist/sqlite-probe.d.ts",
@@ -156,8 +156,24 @@
         "sha256": "083e083ff09058e6802bae5d1415b53d39218a6bf1f31cd6d041e10dbeae9c61"
       },
       {
+        "path": "dist/sqlite-readonly.d.ts",
+        "sha256": "58f6de024b2cd030c79fa056353537eb595f443868cdc1351d06be28c2dda367"
+      },
+      {
+        "path": "dist/sqlite-readonly.d.ts.map",
+        "sha256": "09688dd92c8d5956865795394ebc47d69108997281a891aa54ce81d5a00c6e36"
+      },
+      {
+        "path": "dist/sqlite-readonly.js",
+        "sha256": "7dbb93d4bd754e761e73b82ea7cd944743d41b44e4d376af871145555e136f45"
+      },
+      {
+        "path": "dist/sqlite-readonly.js.map",
+        "sha256": "03ddeec35c1389f249b0595f2612b8c3f86e5069b4c3f1be1e30eb6f6949bf1c"
+      },
+      {
         "path": "package.json",
-        "sha256": "bb82221c7f322dcaef4949ba541e6e6fa10e399c3bf536cde20037a25330f5dd"
+        "sha256": "7a8dd2d7096e52f1f96317a019282bd5777ef5ece3ae3b76329e45ec2e4254e3"
       },
       {
         "path": "src/backend.ts",
@@ -177,7 +193,7 @@
       },
       {
         "path": "src/index.ts",
-        "sha256": "34c68dbea4be8c8108dd6aff0e49690484894c56f53967e07c92205b8d57ff64"
+        "sha256": "9152ce2677f8b209bb26a90cf15b1f97dccd7e5fcdcc95e7cf417a698798fc56"
       },
       {
         "path": "src/json-backend.ts",
@@ -189,13 +205,17 @@
       },
       {
         "path": "src/sqlite-backend.ts",
-        "sha256": "b2f4195a9db186e788aebafb50734078c2eec5cf74fdb45dc53ca6ec4d0208e1"
+        "sha256": "08b618bf7fd351120aac5c4140ae84c2d207c45d708dc42a98f175a99938a11c"
       },
       {
         "path": "src/sqlite-probe.ts",
         "sha256": "28bc13308f61bc553fc36a9c0efcf382522769de20769f3fcef8c3bbb4734b7e"
+      },
+      {
+        "path": "src/sqlite-readonly.ts",
+        "sha256": "c973b0eeae5567af4c519c178ccb48d496fa1cf2ad226363b26ecc2e7d11dc45"
       }
     ]
   },
-  "signature": "Uk2Q3PbjswtbR26dyk03E7aEMYoA+/EW3SLT7n0aQkvOOKHRD26ifSZatrI0Dxt7QxiV/B69ZEyfdL5qgzkOBQ=="
+  "signature": "XoSHKXn4F5F2/G4ivuv8bIcoEtvQ+X1s9nfnl0GJEen/JrBO/eVMK8mV+KyYJN9g/nsTVMPb0UfgKrK10N6oDQ=="
 }

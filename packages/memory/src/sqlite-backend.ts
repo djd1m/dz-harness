@@ -13,6 +13,8 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 import type { MemoryBackend, MemoryQuery, MemoryRecord } from './backend.js';
+import { openSqliteReadOnly, SqliteReadOnlyStore } from './sqlite-readonly.js';
+import type { OpenReadOnlyOptions, ReadOnlyStore } from './sqlite-readonly.js';
 
 const require = createRequire(import.meta.url);
 
@@ -117,14 +119,14 @@ const FTS5_SQL = `
 `;
 
 /** FTS5 query — matching records with their relevance rank (lower = better). */
-const FTS5_SEARCH_SQL = `
+export const FTS5_SEARCH_SQL = `
   SELECT mr.*, fts.rank AS _rank FROM memory_fts fts
   JOIN memory_records mr ON mr.rowid = fts.rowid
   WHERE memory_fts MATCH ?
   ORDER BY fts.rank
 `;
 
-const FTS5_SEARCH_SKILL_SQL = `
+export const FTS5_SEARCH_SKILL_SQL = `
   SELECT mr.*, fts.rank AS _rank FROM memory_fts fts
   JOIN memory_records mr ON mr.rowid = fts.rowid
   WHERE memory_fts MATCH ? AND mr.skill_id = ?
@@ -138,9 +140,94 @@ const UPSERT_SQL = `
 
 const DELETE_SQL = 'DELETE FROM memory_records WHERE id = ?';
 
-const ALL_SQL = 'SELECT * FROM memory_records';
-const COUNT_SQL = 'SELECT COUNT(*) as cnt FROM memory_records';
-const BY_SKILL_SQL = 'SELECT * FROM memory_records WHERE skill_id = ?';
+export const ALL_SQL = 'SELECT * FROM memory_records';
+export const COUNT_SQL = 'SELECT COUNT(*) as cnt FROM memory_records';
+export const BY_SKILL_SQL = 'SELECT * FROM memory_records WHERE skill_id = ?';
+
+/**
+ * The FTS5-ranked / keyword-overlap search decision, extracted from `querySync` so a
+ * read-only backend (which prepares the same statements but never runs `INIT_SQL`/`FTS5_SQL`)
+ * can share it byte-for-byte instead of forking its own copy. A forked copy is exactly the
+ * class of bug documented above (lines 24-29): a reader whose ranking diverges from the
+ * writer's silently regresses recall. Behaviorally IDENTICAL to the body it replaced — same
+ * sort order, same `stemOf` prefixes, same `relevance > 0` filter, same `terms.length > 0`
+ * branch. `@internal` — exported only so `sqlite-readonly.ts` can call it; not part of the
+ * package's public surface (see `index.ts`, which does not re-export it).
+ *
+ * @internal
+ */
+export function searchPreparedRecords(
+  stmts: { fts?: any; ftsSkill?: any; all: any; bySkill: any },
+  hasFts5: boolean,
+  query: MemoryQuery,
+): MemoryRecord[] {
+  const limit = query.limit ?? DEFAULT_LIMIT;
+
+  // FTS5 path — use SQLite full-text search when available and text query provided
+  if (hasFts5 && query.text !== undefined && query.text.trim().length > 0) {
+    try {
+      // FTS5 query syntax: simple terms joined by spaces (implicit AND → OR with ranking)
+      // Each token also contributes its prefix-stem as `stem*` (see stemOf): the exact word and
+      // its inflections all match, and a row holding the exact token matches BOTH disjuncts, so
+      // bm25 ranks it at or above a prefix-only row. Tokens are \p{L}\p{N}-only — safe to
+      // interpolate; the star is appended HERE, never taken from user text.
+      const ftsQuery = tokenize(query.text)
+        .flatMap((t) => {
+          const stem = stemOf(t);
+          return stem === null ? [t] : [t, stem + '*'];
+        })
+        .join(' OR ');
+      if (ftsQuery.length > 0) {
+        let rows: any[];
+        if (query.skillId !== undefined) {
+          rows = stmts.ftsSkill!.all(ftsQuery, query.skillId);
+        } else {
+          rows = stmts.fts!.all(ftsQuery);
+        }
+        // Rank by FTS5 relevance FIRST (lower rank = better match), with score
+        // then timestamp as a true tiebreak between equally-relevant rows. Score
+        // must NOT be primary — that would discard FTS5's relevance signal and
+        // diverge from the JSON backend (which also ranks relevance-primary).
+        const ranked = rows
+          .map((row) => ({ record: rowToRecord(row), rank: row._rank as number }))
+          .sort(
+            (a, b) =>
+              a.rank - b.rank ||
+              b.record.score - a.record.score ||
+              b.record.timestamp.localeCompare(a.record.timestamp),
+          );
+        return ranked.slice(0, limit).map((entry) => entry.record);
+      }
+    } catch {
+      // FTS5 query failed (e.g., special chars) — fall through to keyword approach
+    }
+  }
+
+  // Keyword overlap fallback
+  const terms = query.text !== undefined ? tokenize(query.text) : [];
+  let rows: any[];
+  if (query.skillId !== undefined) {
+    rows = stmts.bySkill.all(query.skillId);
+  } else {
+    rows = stmts.all.all();
+  }
+
+  const records = rows.map(rowToRecord);
+  const ranked = records
+    .map((record) => ({ record, relevance: relevanceOf(record, terms) }))
+    .sort(
+      (a, b) =>
+        b.relevance - a.relevance ||
+        b.record.score - a.record.score ||
+        b.record.timestamp.localeCompare(a.record.timestamp),
+    );
+  // The SAME guard the JSON backend applies, so a store's answers never depend on which backend is
+  // installed. This is the keyword FALLBACK; the FTS5 path above already returns zero honestly and
+  // is untouched. With no usable terms there was nothing to match on, so the store still comes back
+  // ranked by confidence — that distinction is the whole decision (ADR-001).
+  const filtered = terms.length > 0 ? ranked.filter((entry) => entry.relevance > 0) : ranked;
+  return filtered.slice(0, limit).map((entry) => entry.record);
+}
 
 /** Options for SqliteBackend. */
 export interface SqliteBackendOptions {
@@ -204,6 +291,32 @@ export class SqliteBackend implements MemoryBackend {
     return new SqliteBackend(db);
   }
 
+  /**
+   * Open a SQLite database for READING ONLY (ADR-001, Решение 2). Never runs `INIT_SQL`,
+   * `FTS5_SQL`, or the FTS rebuild — the writer's `constructor` above stays untouched byte
+   * for byte. Presence of the FTS5 table is discovered by reading `sqlite_master`, not by
+   * attempting to (re)create it. `put`/`putMany`/`remove`/`removeSync` on the returned store
+   * throw `read-only backend: <method> is not available`.
+   */
+  static openReadOnly(filePath: string, opts?: OpenReadOnlyOptions): ReadOnlyStore {
+    const handle = openSqliteReadOnly(filePath, opts);
+    try {
+      return new SqliteReadOnlyStore(handle);
+    } catch (err) {
+      // The constructor prepares statements (`sqlite_master` lookup, ALL/COUNT/BY_SKILL) against
+      // an ALREADY-OPEN handle — if any of that throws (e.g. a valid SQLite file missing
+      // `memory_records`), the handle must not leak: close the connection and remove a tmp-copy
+      // before rethrowing (fix round 1, HIGH #2).
+      try {
+        handle.db.close();
+      } catch {
+        // already failing on the caller's side — a close failure here must not mask the real cause
+      }
+      handle.cleanup();
+      throw err;
+    }
+  }
+
   put(record: MemoryRecord): Promise<void> {
     this.upsertStmt.run(
       record.id,
@@ -227,72 +340,11 @@ export class SqliteBackend implements MemoryBackend {
    * path (a recommender / `dz recall`) can query the store without an async ripple.
    */
   querySync(query: MemoryQuery): MemoryRecord[] {
-    const limit = query.limit ?? DEFAULT_LIMIT;
-
-    // FTS5 path — use SQLite full-text search when available and text query provided
-    if (this.hasFts5 && query.text !== undefined && query.text.trim().length > 0) {
-      try {
-        // FTS5 query syntax: simple terms joined by spaces (implicit AND → OR with ranking)
-        // Each token also contributes its prefix-stem as `stem*` (see stemOf): the exact word and
-        // its inflections all match, and a row holding the exact token matches BOTH disjuncts, so
-        // bm25 ranks it at or above a prefix-only row. Tokens are \p{L}\p{N}-only — safe to
-        // interpolate; the star is appended HERE, never taken from user text.
-        const ftsQuery = tokenize(query.text)
-          .flatMap((t) => {
-            const stem = stemOf(t);
-            return stem === null ? [t] : [t, stem + '*'];
-          })
-          .join(' OR ');
-        if (ftsQuery.length > 0) {
-          let rows: any[];
-          if (query.skillId !== undefined) {
-            rows = this.ftsSearchSkillStmt!.all(ftsQuery, query.skillId);
-          } else {
-            rows = this.ftsSearchStmt!.all(ftsQuery);
-          }
-          // Rank by FTS5 relevance FIRST (lower rank = better match), with score
-          // then timestamp as a true tiebreak between equally-relevant rows. Score
-          // must NOT be primary — that would discard FTS5's relevance signal and
-          // diverge from the JSON backend (which also ranks relevance-primary).
-          const ranked = rows
-            .map((row) => ({ record: rowToRecord(row), rank: row._rank as number }))
-            .sort(
-              (a, b) =>
-                a.rank - b.rank ||
-                b.record.score - a.record.score ||
-                b.record.timestamp.localeCompare(a.record.timestamp),
-            );
-          return ranked.slice(0, limit).map((entry) => entry.record);
-        }
-      } catch {
-        // FTS5 query failed (e.g., special chars) — fall through to keyword approach
-      }
-    }
-
-    // Keyword overlap fallback
-    const terms = query.text !== undefined ? tokenize(query.text) : [];
-    let rows: any[];
-    if (query.skillId !== undefined) {
-      rows = this.bySkillStmt.all(query.skillId);
-    } else {
-      rows = this.allStmt.all();
-    }
-
-    const records = rows.map(rowToRecord);
-    const ranked = records
-      .map((record) => ({ record, relevance: relevanceOf(record, terms) }))
-      .sort(
-        (a, b) =>
-          b.relevance - a.relevance ||
-          b.record.score - a.record.score ||
-          b.record.timestamp.localeCompare(a.record.timestamp),
-      );
-    // The SAME guard the JSON backend applies, so a store's answers never depend on which backend is
-    // installed. This is the keyword FALLBACK; the FTS5 path above already returns zero honestly and
-    // is untouched. With no usable terms there was nothing to match on, so the store still comes back
-    // ranked by confidence — that distinction is the whole decision (ADR-001).
-    const filtered = terms.length > 0 ? ranked.filter((entry) => entry.relevance > 0) : ranked;
-    return filtered.slice(0, limit).map((entry) => entry.record);
+    return searchPreparedRecords(
+      { fts: this.ftsSearchStmt, ftsSkill: this.ftsSearchSkillStmt, all: this.allStmt, bySkill: this.bySkillStmt },
+      this.hasFts5,
+      query,
+    );
   }
 
   all(): Promise<MemoryRecord[]> {
@@ -343,7 +395,7 @@ export class SqliteBackend implements MemoryBackend {
 }
 
 /** Convert a raw SQLite row to a MemoryRecord. */
-function rowToRecord(row: any): MemoryRecord {
+export function rowToRecord(row: any): MemoryRecord {
   return {
     id: row.id,
     skillId: row.skill_id,

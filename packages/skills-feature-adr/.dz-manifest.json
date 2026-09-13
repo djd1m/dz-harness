@@ -25,7 +25,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "c85b72b83c3a66b3caaccd200693e10d5460dd95bb4fa9c9edd9602237dcb584"
+        "sha256": "e376fe73743953ad7f0b7525e22f815ea949450fe7ea784f89d1e61bcc62ce6f"
       },
       {
         "path": "src/cli.js",
@@ -317,7 +317,7 @@
       },
       {
         "path": "templates/.claude/workflows/feature-adr.js",
-        "sha256": "5837a57349fece3feedd7ed02d85fb1743f9f2f847f0e9fc1e47143ac703eb84"
+        "sha256": "22416f105c1b988c07f6cb9002a507b54b07842b5b4bb109b7e300ff52272603"
       },
       {
         "path": "templates/lib/memory-protocol.md",
@@ -329,5 +329,5 @@
       }
     ]
   },
-  "signature": "cmIGGoei0kyeFKqqa5UJNsXeZTmUBT+1UiVwsOHiopcfyhBF8vCHD2icZuwW0yZVtZ4RQDR8GQTo5JppKjZmDQ=="
+  "signature": "PvRNGyEByw4hlLu20ggkjmPhobeauo5bu7BdTE/qrx0c3Djq8VxxMt2tXzZvAhDIRoABCQ5Tt8ti635pwtKNBA=="
 }

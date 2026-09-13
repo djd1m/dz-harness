@@ -11,6 +11,8 @@ export interface MutationRegistryEntry {
         readonly find: string;
         readonly replace: string;
     };
+    /** test files that discriminate this entry; a named registry self-check must remain runnable. */
+    readonly tests?: readonly string[];
     /** how many tests MUST go red under the mutation (default 1). */
     readonly minFailing?: number;
     /** how many actually did at the time of writing — makes a coverage DROP visible. */
@@ -22,6 +24,14 @@ export interface MutationRegistryEntry {
      */
     readonly maxFailing?: number;
 }
+/** Registry integrity tests add the same unrelated failure to every ordinary mutant run. */
+export declare const REGISTRY_SELFCHECK_TESTS: readonly ["test/mutation-registry-freshness.test.ts", "test/mutation-registry-anchors.test.ts"];
+export interface MutationTestCommand {
+    readonly testCommand: string;
+    readonly excluded: readonly string[];
+}
+/** Build the mutant-only command; baseline commands remain unchanged in the executor. */
+export declare function buildMutationTestCommand(testCommand: string, entry: Pick<MutationRegistryEntry, 'tests'>): MutationTestCommand;
 export interface MutationRegistry {
     /** optional suite command override for the whole registry (default `npm test`). */
     readonly testCommand?: string;
@@ -79,6 +89,24 @@ export interface MutationObservation {
     readonly rebaselineFailureReason?: string;
     /** parsed failing files from a RED restored-tree run; absent when no red rebaseline ran. */
     readonly rebaselineAttribution?: BaselineAttribution;
+    /** bounded stdout+stderr tail supplied by the executor for a RED restored-tree run. */
+    readonly rebaselineOutputTail?: string;
+    /**
+     * path to the FULL stdout+stderr the executor saved for a RED baseline/rebaseline run (gate
+     * stability, 2026-09-12) — the bounded tail above is a diagnostic teaser; a multi-entry gate run
+     * that goes INCONCLUSIVE/OVER_FAILING needs the whole log to attribute the redness, and the tail
+     * alone was measured to hand back three lines of an unrelated neighbour's stderr. Absent when the
+     * run was green (nothing written) or the executor could not write the file.
+     */
+    readonly outputPath?: string;
+    /**
+     * set (to the caught error's message) when the executor tried and FAILED to save the full RED
+     * output — EACCES/ENOSPC/EROFS/ENOTDIR and the like (fix-round-1, HIGH/MEDIUM review findings,
+     * 2026-09-12). Mutually exclusive with `outputPath`: a red run either saved (path) or did not
+     * (error), never both, and a green run has neither. Absent/undefined = not attempted (green) or
+     * the save succeeded.
+     */
+    readonly outputError?: string;
     /** bounded log proving an internal runner failure received at most one retry. */
     readonly internalAttemptLog?: string;
 }
@@ -103,6 +131,12 @@ export interface MutationEntryResult {
      * of letting the reader assume it covers every entry.
      */
     readonly dropComparable: boolean;
+    /** full bounded restored-tree output tail for machine-readable reports. */
+    readonly rebaselineOutputTail?: string;
+    /** path to the full saved output for a RED baseline/rebaseline run; see MutationObservation. */
+    readonly outputPath?: string;
+    /** the save FAILED for a RED run; see MutationObservation.outputError. Mutually exclusive with `outputPath`. */
+    readonly outputError?: string;
     /** human sentence for the report line — names the undefended property on a green suite. */
     readonly detail: string;
 }
@@ -267,7 +301,7 @@ export interface BaselineResult {
  * A RED baseline in the scratch copy is a SETUP error, never a mutation result: every subsequent
  * "red under mutation" would be noise, and every "green" a lie about an unrunnable copy.
  */
-export declare function classifyBaseline(exitCode: number | null, runFailureReason?: string, attribution?: BaselineAttribution): BaselineResult;
+export declare function classifyBaseline(exitCode: number | null, runFailureReason?: string, attribution?: BaselineAttribution, outputPath?: string, outputError?: string): BaselineResult;
 export declare function classifyMutationOutcome(obs: MutationObservation): MutationEntryResult;
 /** Exit contract: 0 all runnable entries proven · 1 a runnable entry failed (or red baseline) ·
  *  2 no mutation-eligible entry exists, so the registry/selection is unusable as a run. */

@@ -70,15 +70,30 @@ export interface StatuslineData {
   readonly patterns: number;
   /** Absent on parity; missing/unreadable mirror is explicitly unavailable. */
   readonly patternMirror?:
-    | { readonly state: 'different'; readonly lexical: number; readonly vector: number }
+    | {
+      readonly state: 'in-sync' | 'different';
+      readonly lexicalMirrorable: number;
+      readonly vector: number;
+      readonly excluded: { readonly class: number; readonly noise: number };
+    }
     | { readonly state: 'unavailable' };
+  /** Vector-mirror inventory; absence is explicit instead of being encoded as a missing field. */
+  readonly mirror: {
+    readonly available: boolean;
+    readonly rows: number;
+    readonly lessons: number;
+    readonly pending: number;
+    readonly source: 'agentdb';
+  };
   /** Exact lexical-tier availability split; omitted when the enhanced readonly count cannot be established. */
   readonly patternBreakdown?: {
-    readonly source: 'lexical';
+    readonly source: 'lexical' | 'lexical+mirror';
     readonly active: number;
     readonly quarantined: number;
     /** True once quarantine contains at least one third of the lexical pool. */
     readonly attention: boolean;
+    /** Exact label drift by dzId; present only when both tiers expose readable identities. */
+    readonly tierParity?: { readonly lexicalOnly: number; readonly mirrorOnly: number };
     /** Absolute lexical/vector quarantine-label delta, present only above the tolerated drift threshold. */
     readonly tierDelta?: number;
   };
@@ -663,14 +678,38 @@ export function statuslineData(projectRoot: string, now: number = Date.now()): S
   // зеркалом не пользуется, он горел бы всегда, а вечно горящий показатель не несёт сведений.
   // Зеркало ЕСТЬ, но прочитать или разложить его не удалось: это отказ инструмента, и он горит.
   const mirrorLessons = storeRows?.vectorLessonRows;
+  const mirrorRows = storeRows?.vectorRows;
   const mirrorAbsent = storeRows !== undefined && storeRows.vectorSourcePath === undefined;
+  const lexicalMirrorable = storeRows?.lexicalMirrorableRows;
+  const excluded = {
+    class: storeRows?.lexicalExcludedClassRows ?? 0,
+    noise: storeRows?.lexicalExcludedNoiseRows ?? 0,
+  };
+  const mirrorAvailable = storeRows?.vectorSourcePath !== undefined
+    && typeof mirrorRows === 'number'
+    && mirrorLessons !== undefined;
   const patternMirror: StatuslineData['patternMirror'] = mirrorAbsent
     ? undefined
-    : storeRows === undefined || storeRows.vectorRows === 'unreadable' || mirrorLessons === undefined
+    : storeRows === undefined || storeRows.vectorRows === 'unreadable' || storeRows.vectorRows === 'busy'
+      || mirrorLessons === undefined || lexicalMirrorable === undefined
       ? { state: 'unavailable' }
-      : mirrorLessons !== patterns
-        ? { state: 'different', lexical: patterns, vector: mirrorLessons }
-        : undefined;
+      : {
+        state: mirrorLessons !== lexicalMirrorable ? 'different' : 'in-sync',
+        lexicalMirrorable,
+        vector: mirrorLessons,
+        excluded,
+      };
+  const mirror: StatuslineData['mirror'] = {
+    available: mirrorAvailable,
+    rows: typeof mirrorRows === 'number' ? mirrorRows : 0,
+    lessons: mirrorAvailable ? mirrorLessons : 0,
+    pending: mirrorAbsent && lexicalMirrorable !== undefined
+      ? lexicalMirrorable
+      : mirrorAvailable && lexicalMirrorable !== undefined
+        ? Math.max(0, lexicalMirrorable - mirrorLessons)
+        : 0,
+    source: 'agentdb',
+  };
 
   let patternBreakdown: StatuslineData['patternBreakdown'];
   try {
@@ -678,14 +717,22 @@ export function statuslineData(projectRoot: string, now: number = Date.now()): S
       && typeof storeRows.lexicalRows === 'number'
       && typeof storeRows.lexicalQuarantinedRows === 'number') {
       const quarantined = storeRows.lexicalQuarantinedRows;
-      const tierDelta = typeof storeRows.vectorQuarantinedRows === 'number'
-        ? Math.abs(quarantined - storeRows.vectorQuarantinedRows)
+      const tierDelta = mirrorAvailable
+        && typeof storeRows.lexicalMirrorableQuarantinedRows === 'number'
+        && typeof storeRows.vectorQuarantinedRows === 'number'
+        ? Math.abs(storeRows.lexicalMirrorableQuarantinedRows - storeRows.vectorQuarantinedRows)
         : undefined;
       patternBreakdown = {
-        source: 'lexical',
+        source: mirrorAvailable ? 'lexical+mirror' : 'lexical',
         active: storeRows.lexicalRows - quarantined,
         quarantined,
         attention: quarantined > 0 && quarantined * 3 >= storeRows.lexicalRows,
+        ...(storeRows.quarantineTierParity === undefined ? {} : {
+          tierParity: {
+            lexicalOnly: storeRows.quarantineTierParity.lexicalOnly,
+            mirrorOnly: storeRows.quarantineTierParity.mirrorOnly,
+          },
+        }),
         ...(tierDelta !== undefined && tierDelta > QUARANTINE_TIER_DRIFT_TOLERANCE ? { tierDelta } : {}),
       };
     }
@@ -723,6 +770,7 @@ export function statuslineData(projectRoot: string, now: number = Date.now()): S
 
   return {
     patterns,
+    mirror,
     ...(patternMirror !== undefined ? { patternMirror } : {}),
     ...(patternBreakdown !== undefined ? { patternBreakdown } : {}),
     ...(usedPatterns !== undefined ? { usedPatterns } : {}),

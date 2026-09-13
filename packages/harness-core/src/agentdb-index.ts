@@ -12,10 +12,19 @@
  * @packageDocumentation
  */
 
-import { existsSync, mkdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { existsSync, mkdirSync, copyFileSync, realpathSync } from 'node:fs';
+import { join, dirname, resolve, relative, isAbsolute, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
+
+import { openSqliteReadOnly } from '@dzhechkov/memory';
+
+import { applyReadonlyPragmas } from './sqlite-read-helpers.js';
+import { rotatePreReindexSnapshotsUnlocked, type SnapshotRotationReport } from './agentdb-snapshot-rotation.js';
+import { snapshotSqliteDatabase, restoreSqliteSnapshot, type SnapshotMethod, type SnapshotDbCtor } from './agentdb-snapshot.js';
+import { withAgentdbSnapshotLock, writeReindexMarker, clearReindexMarker, markReindexMarkerRecoveryRequired, reindexMarkerPath, msFromBackupPath } from './agentdb-reindex-marker.js';
+import { NamedLockTimeoutError } from './named-lock.js';
+import type { StoreLockOptions } from './store-lock.js';
 // The backlog dedup embed form (PURE, zero-dep — no cycle): dz-backlog rows must be embedded in the
 // SAME bounded form the dedup query uses, including through the reindex path.
 import { BACKLOG_TASK_TYPE, dedupEmbedText } from './backlog-embed.js';
@@ -83,6 +92,48 @@ CREATE TABLE IF NOT EXISTS pattern_embeddings (
   embedding BLOB NOT NULL,
   FOREIGN KEY (pattern_id) REFERENCES reasoning_patterns(id) ON DELETE CASCADE
 );`;
+
+/**
+ * Create (or verify) an EMPTY AgentDB-schema store at `resolveAgentdbPath(projectRoot, dbPath)`,
+ * without indexing any rows (AM-4, feature `setup-installs-apply-leg`, dz-harness-hub issue #10
+ * defect 4).
+ *
+ * WHY THIS EXISTS: before this, `.dz/agentdb.db` came into being only as a side effect of the
+ * SessionEnd/PreCompact writer's first `dz consolidate` — so a project that had run
+ * `dz setup --memory agentdb` but not yet completed one full session had `memory.backend=agentdb`
+ * configured with NO database file at all, and any lesson taught in that window before the first
+ * consolidate had nothing to mirror into (the apply leg's daemon reads THIS file — see
+ * `dz-embed-daemon.mjs`). `dz setup`'s "Install apply-leg" step now calls this directly so the
+ * store exists from the moment setup finishes, not from the moment a session happens to end.
+ *
+ * SYNCHRONOUS deliberately: `runSetup` is a synchronous function (a `child_process.execSync`
+ * install already precedes every write it does), and creating an empty schema needs only
+ * `better-sqlite3` — never the async `EmbeddingService` {@link indexPatternsToAgentdb} loads for a
+ * real write. Reuses {@link REASONING_BANK_SCHEMA} verbatim — the ONE schema string every writer in
+ * this module execs — so this path can never drift into declaring a second, competing schema.
+ *
+ * Best-effort, like every setup step: a project without `better-sqlite3` installed yet (or one
+ * whose native binary is unusable) gets `{ok:false, error}` and setup reports it in the step detail
+ * rather than throwing — the writer/daemon still self-heal on the next session either way.
+ */
+export function ensureAgentdbSchema(projectRoot: string, dbPath?: string): { readonly ok: boolean; readonly error?: string } {
+  try {
+    const req = createRequire(join(projectRoot, 'package.json'));
+    const Database = req('better-sqlite3') as new (p: string) => NativeDb;
+    const dbFile = resolveAgentdbPath(projectRoot, dbPath);
+    mkdirSync(dirname(dbFile), { recursive: true });
+    const db = new Database(dbFile);
+    try {
+      db.pragma('journal_mode = WAL');
+      db.exec(REASONING_BANK_SCHEMA);
+    } finally {
+      db.close();
+    }
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: `agentdb schema init failed: ${err instanceof Error ? err.message : String(err)}` };
+  }
+}
 
 /**
  * Index `rows` into the shared AgentDB vector store. Returns `{indexed:0}` for an empty input and
@@ -286,9 +337,35 @@ function openReadonly(projectRoot: string, dbPath?: string): { db: ReadonlyDb } 
     return { error: DEPS_MISSING };
   }
   try {
-    const db = new Database(dbFile, { readonly: true }); // WAL readers are safe next to the MCP server
-    db.pragma('busy_timeout = 5000');
-    return { db };
+    // ADR-001: `{ readonly: true }` alone still fails `unable to open database file` on a
+    // directory that cannot create `-wal`/`-shm` — the ladder in `openSqliteReadOnly` falls
+    // back to a tmp copy instead, so this "best-effort, never throws" contract keeps working
+    // from a read-only-mounted sandbox too. `close()` on the returned handle removes the copy.
+    const handle = openSqliteReadOnly(dbFile, { Database });
+    const db = handle.db as ReadonlyDb;
+    // FR-1 (readonly-residuals): a throwing pragma must not leak the connection or a tmp-copy —
+    // applyReadonlyPragmas closes + cleans up before rethrowing.
+    applyReadonlyPragmas(handle, dbFile);
+    return {
+      // `ReadonlyDb` (above) intentionally exposes only `pragma`/`prepare`/`close` — the real
+      // better-sqlite3 instance underneath also has `transaction`/`exec`/etc, but no caller in
+      // this file uses them (confirmed, fix round 1, Q4/#8), so they stay hidden by the type on
+      // purpose. Widening `ReadonlyDb` to add a method should be a deliberate decision, not an
+      // incidental leak through `db as ReadonlyDb` above.
+      db: {
+        pragma: db.pragma.bind(db),
+        prepare: db.prepare.bind(db),
+        close: () => {
+          // `cleanup()` in `finally` — the tmp-copy must be removed even if `db.close()` throws
+          // (fix round 1, MEDIUM #3; matches `SqliteReadOnlyStore.close()` in `sqlite-readonly.ts`).
+          try {
+            db.close();
+          } finally {
+            handle.cleanup();
+          }
+        },
+      },
+    };
   } catch (err) {
     return { error: `open failed: ${err instanceof Error ? err.message : String(err)}` };
   }
@@ -761,7 +838,17 @@ export function bumpAgentdbUses(
 export async function reindexAgentdbRows(
   projectRoot: string,
   rows: readonly AgentdbRow[],
-  opts: { dbPath?: string; taskTypes?: readonly string[]; backupPath?: string } = {},
+  opts: {
+    dbPath?: string;
+    taskTypes?: readonly string[];
+    backupPath?: string;
+    keepSnapshots?: number;
+    /** Force the fallback snapshot path — test-only injection for AC-2 (FR-2). */
+    snapshotStrategy?: 'vacuum-into' | 'copy+wal';
+    /** agentdb-snapshot-lock: test/tuning-only override for the snapshot-lock acquisition deadline
+     * — omitted, the lock uses its ordinary default timeout. */
+    lockTimeoutMs?: number;
+  } = {},
 ): Promise<{
   reembedded: number;
   model?: string;
@@ -770,52 +857,196 @@ export async function reindexAgentdbRows(
   error?: string;
   /** Task types left in the OLD embedding space because this reindex does not own them. */
   staleTaskTypes?: string[];
+  /** Pre-reindex snapshot rotation outcome — present ONLY on a successful reindex (FR-6). */
+  snapshots?: SnapshotRotationReport;
+  /** How the pre-reindex snapshot was actually taken — always named when a snapshot ran (FR-2). */
+  snapshotMethod?: SnapshotMethod;
+  /** Present only for a fallback method — the reason `vacuum-into` did not run (FR-2). */
+  snapshotNote?: string;
+  /** AM-3: present whenever a rollback was attempted — 'restored' is the only success signal. */
+  rollback?: 'restored' | 'failed';
+  /** AM-3: present only when `rollback === 'failed'` — why the restore did not fully complete. */
+  rollbackError?: string;
 }> {
   const dbFile = resolveAgentdbPath(projectRoot, opts.dbPath);
-  const backupPath = opts.backupPath ?? `${dbFile}.pre-reindex-${Date.now()}.bak`;
-  if (existsSync(dbFile)) {
-    try {
-      const { copyFileSync } = await import('node:fs');
-      copyFileSync(dbFile, backupPath);
-      if (existsSync(`${dbFile}.embed-manifest.json`)) {
-        copyFileSync(`${dbFile}.embed-manifest.json`, `${backupPath}.embed-manifest.json`);
-      }
-    } catch (err) {
-      return { reembedded: 0, backupPath, error: `snapshot failed — reindex aborted: ${err instanceof Error ? err.message : String(err)}` };
+  const ms = Date.now();
+  const backupPath = opts.backupPath ?? `${dbFile}.pre-reindex-${ms}.bak`;
+  // agentdb-snapshot-lock: test/tuning-only override for every lock acquisition this call makes
+  // (snapshot, rollback, success-path rotation) — omitted, each uses its ordinary default timeout.
+  const lockOpts: StoreLockOptions = opts.lockTimeoutMs !== undefined ? { timeoutMs: opts.lockTimeoutMs } : {};
+
+  // AM-5: opts.backupPath must resolve INSIDE dirname(dbFile) — normalized via `resolve`, checked via
+  // `relative` so neither a `..`-escaping relative path nor a foreign absolute path can steer the
+  // snapshot (and its `-wal`/`-shm`/manifest siblings) outside the db's own directory. No snapshot is
+  // attempted when this check fails — the reindex aborts before sqlite is even resolved.
+  if (opts.backupPath !== undefined) {
+    // Lead edit after re-review (Codex C): the boundary is PHYSICAL, not lexical — a symlinked
+    // parent (`<dbDir>/link/x.bak` with `link` pointing outside) is resolved with realpath before the
+    // comparison. A parent that does not exist yet cannot be a symlink, so the lexical path stands.
+    const physical = (p: string): string => { try { return realpathSync(p); } catch { return p; } };
+    const dbDir = physical(resolve(dirname(dbFile)));
+    const candidate = resolve(opts.backupPath);
+    const rel = relative(dbDir, join(physical(dirname(candidate)), basename(candidate)));
+    if (rel.startsWith('..') || isAbsolute(rel)) {
+      return { reembedded: 0, error: `opts.backupPath must stay inside ${dbDir}, got: ${opts.backupPath}` };
     }
   }
+
+  // FR-3: sqlite resolves BEFORE any snapshot is taken — an unavailable dependency must abort with
+  // no new `pre-reindex-*` file on disk, not a snapshot immediately followed by a DEPS_MISSING error.
   let sqliteUrl: string;
   try {
     const req = createRequire(join(projectRoot, 'package.json'));
     sqliteUrl = pathToFileURL(req.resolve('better-sqlite3')).href;
   } catch {
-    return { reembedded: 0, backupPath, error: DEPS_MISSING };
+    return { reembedded: 0, error: DEPS_MISSING };
   }
+  let Database: new (p: string) => UpsertDb;
+  try {
+    ({ default: Database } = (await import(sqliteUrl)) as { default: new (p: string) => UpsertDb });
+  } catch {
+    return { reembedded: 0, error: DEPS_MISSING };
+  }
+
+  let snapshotMethod: SnapshotMethod | undefined;
+  let snapshotNote: string | undefined;
+  // exactOptionalPropertyTypes: an optional field must be OMITTED, never assigned `undefined` —
+  // spread `snapMeta()` in at every return site instead of naming the two fields directly. A
+  // function (not a value computed once) so a return that runs BEFORE the snapshot fully finishes
+  // (the manifest-copy failure below) still reports whatever method was already determined —
+  // FR-2/"absence of a receipt is not success": snapshotMethod is named whenever a snapshot ran,
+  // even one that failed on a LATER best-effort step.
+  const snapMeta = (): { snapshotMethod?: SnapshotMethod; snapshotNote?: string } => ({
+    ...(snapshotMethod !== undefined ? { snapshotMethod } : {}),
+    ...(snapshotNote !== undefined ? { snapshotNote } : {}),
+  });
+
+  // AM-2 (fix-round after Codex review Grade D): the reindex-in-progress marker is written INSIDE
+  // the SAME critical section as the snapshot itself, under ONE lock acquisition — never before it.
+  // A lock timeout now throws before EITHER the snapshot OR the marker exist, so a busy lock leaves
+  // the directory byte-identical (previously the marker was written unconditionally BEFORE the
+  // lock was even attempted, so a busy lock still left a transient marker on disk for the life of
+  // this call). AM-1: the marker write is attempted FIRST inside the callback, before any snapshot
+  // — a live marker from a still-running reindex refuses this call "без снимка" (no snapshot ever
+  // taken for the refused attempt; nothing has been deleted yet, so there is nothing to roll back).
+  // AM-4: the marker's `ms` is recomputed from the ACTUAL `backupPath` filename — decoupled from the
+  // `ms` variable above, which only seeds the DEFAULT backupPath. A non-standard `opts.backupPath`
+  // (no `.pre-reindex-<n>.bak` suffix) names no family, so the marker carries `ms: null`.
+  const markerMs = msFromBackupPath(backupPath);
+  let markerToken: string;
+  try {
+    const markerResult = withAgentdbSnapshotLock(dbFile, () => {
+      const written = writeReindexMarker(dbFile, { ms: markerMs, pid: process.pid, startedAt: Date.now(), backupPath });
+      if (!written.ok) return written; // AM-1: refuse before touching the database at all
+      // FR-1/FR-2 (agentdb-snapshot-lock): the critical section under the lock is exactly the file
+      // operations below (`VACUUM INTO`/copy + the manifest-sibling copy, plus the marker write
+      // above) — short and synchronous. Re-embedding (the long, unlocked part of a reindex) happens
+      // well after this block returns.
+      // Lead edit after re-review (Codex D, finding 2): a snapshot that THROWS inside this section
+      // must not leave the just-written marker behind until the TTL — clear it (we own the token)
+      // and rethrow so the outer catch reports the snapshot failure as before.
+      try {
+      if (existsSync(dbFile)) {
+        const outcome = snapshotSqliteDatabase(
+          Database as unknown as SnapshotDbCtor,
+          dbFile,
+          backupPath,
+          opts.snapshotStrategy !== undefined ? { strategy: opts.snapshotStrategy } : {},
+        );
+        snapshotMethod = outcome.method;
+        snapshotNote = outcome.note;
+        if (existsSync(`${dbFile}.embed-manifest.json`)) {
+          copyFileSync(`${dbFile}.embed-manifest.json`, `${backupPath}.embed-manifest.json`);
+        }
+      }
+      } catch (snapErr) {
+        clearReindexMarker(dbFile, written.token);
+        throw snapErr;
+      }
+      return written;
+    }, lockOpts);
+    if (!markerResult.ok) {
+      return { reembedded: 0, backupPath, ...snapMeta(), error: markerResult.error };
+    }
+    markerToken = markerResult.token;
+  } catch (err) {
+    // FR-4: a busy snapshot lock is reported distinctly ("snapshot lock busy: …") and aborts with
+    // NO snapshot, NO marker and NO change to the database — `fn` above never ran, so nothing was
+    // written (AM-2).
+    if (err instanceof NamedLockTimeoutError) {
+      return { reembedded: 0, error: `snapshot lock busy: ${err.message}` };
+    }
+    return { reembedded: 0, backupPath, ...snapMeta(), error: `snapshot failed — reindex aborted: ${err instanceof Error ? err.message : String(err)}` };
+  }
+
+  // AM-3: the marker is cleared in `finally` below only when no rollback was needed, or the
+  // rollback SUCCEEDED. A FAILED rollback leaves the marker in place as "requires manual recovery"
+  // — its family may be the only intact copy of the pre-reindex state, and clearing the marker here
+  // would let a concurrent `dz brain snapshots --prune` remove it right out from under an operator
+  // who has not yet acted on the advice named in the returned error.
+  let rollbackFailed = false;
+  try {
+
   const model = resolveEmbedModel(projectRoot);
-  if ('error' in model) return { reembedded: 0, backupPath, error: model.error };
+  if ('error' in model) return { reembedded: 0, backupPath, ...snapMeta(), error: model.error };
   const oldVersion = readEmbedManifest(dbFile)?.version ?? 1;
   const version = Math.max(oldVersion + 1, 2);
+
+  const markerPath = reindexMarkerPath(dbFile);
+  /** AM-3: names both paths a failed rollback leaves an operator to reconcile by hand. */
+  const rollbackFailNote = (): string =>
+    `snapshot at ${backupPath} was not confirmed restored; marker at ${markerPath} is left in place — requires manual recovery`;
 
   /**
    * Undo a half-done reindex. The DELETE has already run and the manifest may already name the new
    * model, so leaving the store as-is would be WORSE than before we started: a manifest that claims a
-   * space the rows are not in. Restore both from the snapshot taken above. Best-effort and never
-   * throws — the caller is already returning an error.
+   * space the rows are not in. Restore both from the snapshot taken above. FR-4: the caller of
+   * `rollback()` has ALREADY closed every write connection this function opened (both the DELETE's
+   * `db.close()` in the `finally` below and `indexPatternsToAgentdb`'s own `finally { db.close() }`)
+   * before this runs.
+   *
+   * AM-3: never throws, but never silently reports a failed restore as a success either — "absence of
+   * a receipt is not success" applies to a rollback exactly as much as to a forward operation. Returns
+   * `{ restored: 'restored' }` or `{ restored: 'failed', error }`; the caller folds `error` into the
+   * top-level `error` string as "; rollback failed: …" and surfaces `rollback`/`rollbackError`.
    */
-  const rollback = async (): Promise<void> => {
+  const rollback = async (): Promise<{ restored: 'restored' | 'failed'; error?: string }> => {
     try {
-      const { copyFileSync } = await import('node:fs');
-      if (existsSync(backupPath)) copyFileSync(backupPath, dbFile);
-      const manifestBak = `${backupPath}.embed-manifest.json`;
-      if (existsSync(manifestBak)) copyFileSync(manifestBak, `${dbFile}.embed-manifest.json`);
-    } catch {
-      /* the snapshot path is still reported to the caller */
+      // Lead edit after re-review: a snapshot that WAS taken but is now missing is a FAILED rollback,
+      // never a silently "restored" one. Only the no-snapshot case (the db did not exist) has nothing to restore.
+      if (!existsSync(backupPath) && snapshotMethod !== undefined) {
+        return { restored: 'failed', error: `rollback failed: snapshot missing at ${backupPath}` };
+      }
+      // FR-1/FR-2 (agentdb-snapshot-lock): the restore + manifest-copy are the file operations this
+      // lock guards. The caller has ALREADY closed every write connection before `rollback()` runs
+      // (see the doc comment above), so this critical section stays exactly as short as the forward
+      // snapshot's.
+      return withAgentdbSnapshotLock(dbFile, (): { restored: 'restored' | 'failed'; error?: string } => {
+        if (existsSync(backupPath)) {
+          if (snapshotMethod === undefined) {
+            // Structurally should not happen (a backup file with no recorded method), but AM-1's whole
+            // point is: never guess the method from file presence. Fail loudly instead.
+            return { restored: 'failed', error: 'rollback failed: snapshot method unknown, refusing to guess -wal handling' };
+          }
+          const outcome = restoreSqliteSnapshot(dbFile, backupPath, snapshotMethod);
+          if (!outcome.ok) {
+            return { restored: 'failed', error: `rollback failed: ${outcome.error ?? 'restore failed'}` };
+          }
+        }
+        const manifestBak = `${backupPath}.embed-manifest.json`;
+        if (existsSync(manifestBak)) copyFileSync(manifestBak, `${dbFile}.embed-manifest.json`);
+        return { restored: 'restored' };
+      }, lockOpts);
+    } catch (err) {
+      if (err instanceof NamedLockTimeoutError) {
+        return { restored: 'failed', error: `rollback failed: lock busy: ${err.message}` };
+      }
+      return { restored: 'failed', error: `rollback failed: ${err instanceof Error ? err.message : String(err)}` };
     }
   };
 
   let stale: string[] = [];
   try {
-    const { default: Database } = (await import(sqliteUrl)) as { default: new (p: string) => UpsertDb };
     mkdirSync(dirname(dbFile), { recursive: true });
     const db = new Database(dbFile);
     try {
@@ -851,19 +1082,71 @@ export async function reindexAgentdbRows(
 
     const indexed = await indexPatternsToAgentdb(projectRoot, rows, { dbPath: dbFile });
     if (indexed.error !== undefined) {
-      await rollback();
-      return { reembedded: 0, backupPath, error: indexed.error };
+      const rb = await rollback();
+      if (rb.restored === 'failed') rollbackFailed = true; // AM-3: the `finally` below must not clear the marker
+      return {
+        reembedded: 0,
+        backupPath,
+        ...snapMeta(),
+        rollback: rb.restored,
+        ...(rb.error !== undefined ? { rollbackError: rb.error } : {}),
+        error: rb.restored === 'failed' ? `${indexed.error}; ${rb.error}; ${rollbackFailNote()}` : indexed.error,
+      };
+    }
+    // FR-1/FR-6: rotation runs ONLY on this success path — an `error` return above never reaches
+    // here, so old snapshots are never touched while they might be the only working copy left.
+    // NFR-2: calls the UNLOCKED primitive under OUR OWN `withAgentdbSnapshotLock` — never the public
+    // `rotatePreReindexSnapshots` wrapper, which would try to take the same named lock a second time.
+    const keepSnapshots = opts.keepSnapshots ?? 3;
+    let snapshots: SnapshotRotationReport;
+    try {
+      snapshots = withAgentdbSnapshotLock(
+        dbFile,
+        () => rotatePreReindexSnapshotsUnlocked(dbFile, { keep: keepSnapshots, protectPath: backupPath }),
+        lockOpts,
+      );
+    } catch (err) {
+      if (!(err instanceof NamedLockTimeoutError)) throw err;
+      snapshots = { kept: [], removed: [], removedBytes: 0, keep: keepSnapshots, errors: [`lock busy: ${err.message}`] };
     }
     return {
       reembedded: indexed.indexed,
       model: model.model,
       version,
       backupPath,
+      ...snapMeta(),
       ...(stale.length > 0 ? { staleTaskTypes: stale } : {}),
+      snapshots,
     };
   } catch (err) {
-    await rollback();
-    return { reembedded: 0, backupPath, error: `reindex failed: ${err instanceof Error ? err.message : String(err)}` };
+    const rb = await rollback();
+    if (rb.restored === 'failed') rollbackFailed = true; // AM-3: the `finally` below must not clear the marker
+    const baseError = `reindex failed: ${err instanceof Error ? err.message : String(err)}`;
+    return {
+      reembedded: 0,
+      backupPath,
+      ...snapMeta(),
+      rollback: rb.restored,
+      ...(rb.error !== undefined ? { rollbackError: rb.error } : {}),
+      error: rb.restored === 'failed' ? `${baseError}; ${rb.error}; ${rollbackFailNote()}` : baseError,
+    };
+  }
+  } finally {
+    // AM-3: never clear a marker left behind by a FAILED rollback (see the comment above
+    // `rollbackFailed`'s declaration) — every other path (no rollback needed, or a rollback that
+    // actually restored) clears it exactly as before.
+    // Lead edit after re-review (Codex D, findings 3/4): every marker mutation runs under the snapshot
+    // lock, so compare-and-delete and stale replacement can never interleave with another owner.
+    // A failed rollback flags the marker as recovery-required instead (never expires, refuses reindex).
+    try {
+      withAgentdbSnapshotLock(dbFile, () => {
+        if (rollbackFailed) markReindexMarkerRecoveryRequired(dbFile, markerToken, 'rollback failed — restore the snapshot manually');
+        else clearReindexMarker(dbFile, markerToken);
+      }, lockOpts);
+    } catch {
+      /* lock busy at cleanup: the marker stays; a live one expires by TTL, a recovery-required one is
+         re-flagged on the next attempt — never throw out of finally over the real result */
+    }
   }
 }
 

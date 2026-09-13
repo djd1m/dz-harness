@@ -49,7 +49,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "b2dd1013da98f13fbf79a596656ca653ec1795b145f37fdb755b54af5cbfb5f4"
+        "sha256": "18cb418d86dfdaeeb953a3364568e43aa81834181ec6a5e5f010b47c420be7bb"
       },
       {
         "path": "qcsd-cicd-swarm/SKILL.md",
@@ -593,5 +593,5 @@
       }
     ]
   },
-  "signature": "sUpiNk8QCH0f2R7M6wQrHC8hZiUlgRP9kdhnmL82lcIS770rOHBbTI/svl2DWIJos9GQ4H0NkdSXQ40aLWaBAA=="
+  "signature": "BGJPcH4Js3hmRV9p1fRW9fW40XGyWxdfR5QocvMdIAXX3Z5HyZ4MyjF6ouiNj9Q7wqoKvLTQbDWv9cZEfhTLDg=="
 }

@@ -57,6 +57,14 @@ export declare function decideRecordWrite(input: {
     targetHasPair?: boolean;
     /** Stamped INTO the object before serialising — never rewritten in the shell afterwards (FR-7). */
     timestamp?: string | null;
+    /**
+     * ledger-stage-minutes FR-2/FR-3: the `ts` of the LAST ledger row that shares this row's `runId`,
+     * found by the CALLER (the CLI reads the file; this function stays pure). Absent/null means "no
+     * such row, or it had no `ts`" — both collapse to the same honest `unavailable`, never a guess.
+     */
+    previousRowTs?: string | null;
+    /** The runId this row WILL carry after write-time resolution, when the payload itself has none. */
+    effectiveRunId?: string | null;
     /** Who ran it. Supplied by the CALLER, which lives outside the workflow sandbox and can see the
      *  host; absent stays absent (see the stamping comment below). */
     runnerId?: string | null;

@@ -18,19 +18,20 @@ import { createRequire } from 'node:module';
 import { isDeepStrictEqual } from 'node:util';
 import { JOURNAL_KINDS, formatLine, parseLine, selectWindow, appendWitnessed } from '@dzhechkov/harness-core';
 import { appendRunEvent, readRunRegistry, liveParents, liveness, probePid, settleDeadRuns, planRegistryArchive, planWorktreeCleanup, renderCleanupPlan, worktreeRemovalsToApply } from '@dzhechkov/harness-core';
+import { openRound, closeRound, listRounds, parseCodexTokens, classifyRoundExecOutcome, buildRoundExecRow, } from '@dzhechkov/harness-core';
 import { createSkill, getSkillInfo, listSkillsDetailed, formatSkillLoadFailures, formatSkillApplyFailures, resolveTargetName, formatTargetProblem, formatTargetAliasNote, TARGET_NAMES_SORTED, runDoctor, runInit, discoverSkillIds, resolveSelection, formatSelectRefusal, runIntegrationsVerify, resolvePackageSkillRoots, PACKAGE_SKILL_LAYOUTS, benchmarkSkill, benchmarkSkills, scanMcp, reconcileCapabilities, RECONCILE_BANNER, buildRegistry, discoverSkillPackDirs, discoverVerifiablePackDirs, checkUpstream, compareSkills, checkAllUpstream, sweepSkillDrift, syncCanonicalSkill, checkUpgrades, discoverPackages, discoverSourcePackages, fetchAllDownloads, filterByCategory, pretrain, recommend, generatePlugin, publishPackages, runSetup, runMigrate, searchRegistry, runSync, runVerify, runInitAgentsMd, runInitGeminiMd, runSyncAgentsPolicy, runSyncCodexHooks, resolveCodexHome, withNamedLockSync, 
 // dz workflow run (feature dz-workflow-run): the pure scheduler + the dispatch adapters.
-TRACE_RUNID_RE, WF_RUN_OWNER_HOST, preflight, runWorkflow, makeClaudePDispatcher, makeCodexExecDispatcher, NamedLockTimeoutError, NamedLockCompromisedError, POLICY_SOURCES, detectPolicyDrift, hasPolicyFence, TARGET_NAMES, buildParityMatrix, downgradeForStaleEvidence, findStaleTranscriptEvidence, TARGET_CAPABILITIES, TARGET_SHORT_LABELS, WORKFLOW_TEMPLATES_RETIRED_MESSAGE, parsePlan, isParseErrors, validatePlan, normalizePlan, planDigest, toTraceProjection, renderPlan, mergeRender, lint, lintExitCode, LOOP_BLOBS, parseTrace, assembleTimeline, runInvariants, deriveAttestation, stampAttestation, corroborate, NOT_WITNESSED, renderTimelineHtml, importEcc, recordPattern, recordLessonForms, normalizeLessonForms, resolveLearningBackend, storeStats, consolidateSessions, pruneNoisePatterns, lessonDeltaReport, removePatternsByIds, snapshotStore, recallHybrid, teachGuard, mirrorPatternsToVector, mirrorEntriesToVector, patternVectorEntry, readMemoryLearningConfig, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns, clearAgentdbQuarantine, vectorMirrorEnabled, vectorTierStatus, resolveVectorEngine, reindexVectorStore, harmonizeVectorStore, importRvfCheckpoint, renderFeatureAdrPhaseLine, statuslineData, countLearningStoreRowsReadonly, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, storeGuardPath, storeSnapshotPath, writeFeatureAdrState, writeFeatureAdrStateDetailed, CHECKPOINT_STAGES, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, computeUsage, deriveCostLedger, planLedgerBackfill, listCostLedgerRuns, resolveLedgerRunId, AMBIGUOUS, stampCheckpointLine, LEDGER_FILL_SOURCE, renderCostLedger, verifyCostLedgerReport, writeCostLedgerJsonl, COST_LEDGER_SCOPE, deriveUsageCalibration, normalizeClaudeUsageModelKey, readUsageLimits, parseWeeklyResetAnchor, claimCheck, summarize, BUNDLED_SLOP_REGISTRY_URL, DEFAULT_SLOP_CONFIG, parseSlopRegistry, slopLint, validateSlopLintConfig, queryBookKnowledge, loadStorePatternsSync, patternRecordId, patternIdentityOf, mergeLessonMatchedForms, SWARM_BRIEF_CONTRACT, checkSwarmBrief, visibleText, loadStoreRecords, findExactLesson, recordToPattern, bundleSkills, brainHome, listBrain, bookKbPath, promoteProjectToBrain, updateBrainSource, queryBrain, groundPrompt, expandKu, reindexBrainVectors, buildPrimer, exportBrainSlice, importBrainSlice, registerKusToBrain, RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, parseRecallUsageLog, buildRecallUsageReport, EVENT_CHAIN_TAIL_BYTES, EMPTY_LOG_TAIL, readTailInfo, appendChainedLines, verifyEventChainText, classifyChainDefects, CHAINED_JOURNALS, buildManifest, buildSbom, resolveTrustRoot, decideVerifyPolicy, generateSigningKeypair, appendTransition, evaluateGuard, resolveRules, auditRecord, guardExitCode, DEFAULT_RULES, parsePnpmLockImporters, scannableStubPath, 
+TRACE_RUNID_RE, WF_RUN_OWNER_HOST, preflight, runWorkflow, makeClaudePDispatcher, makeCodexExecDispatcher, NamedLockTimeoutError, NamedLockCompromisedError, POLICY_SOURCES, detectPolicyDrift, hasPolicyFence, TARGET_NAMES, buildParityMatrix, computeParity, PARITY_FEATURES, downgradeForStaleEvidence, findStaleTranscriptEvidence, TARGET_CAPABILITIES, TARGET_SHORT_LABELS, applyLegStatus, applyLegReasonMessage, resolveAgentdbPath, WORKFLOW_TEMPLATES_RETIRED_MESSAGE, parsePlan, isParseErrors, validatePlan, normalizePlan, planDigest, toTraceProjection, renderPlan, mergeRender, lint, lintExitCode, LOOP_BLOBS, parseTrace, assembleTimeline, runInvariants, deriveAttestation, stampAttestation, corroborate, NOT_WITNESSED, renderTimelineHtml, importEcc, recordPattern, recordLessonForms, normalizeLessonForms, resolveLearningBackend, storeStats, consolidateSessions, pruneNoisePatterns, lessonDeltaReport, removePatternsByIds, snapshotStore, recallHybrid, teachGuard, mirrorPatternsToVector, mirrorEntriesToVector, patternVectorEntry, readMemoryLearningConfig, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns, clearAgentdbQuarantine, vectorMirrorEnabled, vectorTierStatus, resolveVectorEngine, reindexVectorStore, harmonizeVectorStore, importRvfCheckpoint, renderFeatureAdrPhaseLine, statuslineData, countLearningStoreRowsReadonly, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, storeGuardPath, storeSnapshotPath, writeFeatureAdrState, writeFeatureAdrStateDetailed, CHECKPOINT_STAGES, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, computeSpendReport, deriveCostLedger, planLedgerBackfill, listCostLedgerRuns, resolveLedgerRunId, AMBIGUOUS, stampCheckpointLine, LEDGER_FILL_SOURCE, renderCostLedger, verifyCostLedgerReport, writeCostLedgerJsonl, COST_LEDGER_SCOPE, spendReport, claimCheck, summarize, BUNDLED_SLOP_REGISTRY_URL, DEFAULT_SLOP_CONFIG, parseSlopRegistry, slopLint, validateSlopLintConfig, queryBookKnowledge, loadStorePatternsSync, patternRecordId, patternIdentityOf, mergeLessonMatchedForms, SWARM_BRIEF_CONTRACT, checkSwarmBrief, visibleText, loadStoreRecords, findExactLesson, recordToPattern, bundleSkills, brainHome, brainAgentdbPath, listPreReindexSnapshots, rotatePreReindexSnapshots, scanSnapshotDir, listBrain, bookKbPath, promoteProjectToBrain, updateBrainSource, queryBrain, groundPrompt, expandKu, reindexBrainVectors, buildPrimer, exportBrainSlice, importBrainSlice, registerKusToBrain, RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, parseRecallUsageLog, buildRecallUsageReport, EVENT_CHAIN_TAIL_BYTES, EMPTY_LOG_TAIL, readTailInfo, appendChainedLines, verifyEventChainText, classifyChainDefects, CHAINED_JOURNALS, buildManifest, buildSbom, resolveTrustRoot, decideVerifyPolicy, generateSigningKeypair, appendTransition, evaluateGuard, resolveRules, auditRecord, guardExitCode, DEFAULT_RULES, parsePnpmLockImporters, scannableStubPath, 
 // guard-promotion (feature guard-promotion, scout idea #1)
 assembleCandidates, renderPromotionReport, renderPromotionAdr, normalizePromotionState, nextPromotionState, recordPromotionRunEvidence, isLessonRuleContentAnchor, isOffsetIsoTimestamp, globMatch, promotionAdrRelPath, DEFAULT_WINDOW_DAYS, DEFAULT_PERIODS, MAX_CONTENT_FETCHES, BUILTIN_COVERAGE, decideProvenance, isInsideTree, signManifest, verifyManifest, hashPackBytes, rewriteWorkspaceSpecs, listPackFiles, listSignablePackFiles, assertKeyOutsideTree, decidePublishGate, collectPackageFacts, planReleaseGates, selectAffectedPackages, classifyGateExecutions, buildFailureIssue, buildReleaseNotes, releaseTagName, firstOutputLine, formatPublishError, MANIFEST_NAME, SBOM_NAME, buildArchitectureMap, renderMapHuman, findArchitectureDrift, renderDriftReport, scanWorkspacePackages, loadSubsystemManifest, loadProductVision, checkFeatureAgainstArchitecture, renderArchCheck, planProjectSkills, guidanceForStage, renderInjectionReport, analyzeCorpus, renderRakeReport, renderCriticSection, rakeAsLesson, rakeReward, DEFAULT_RAKE_THRESHOLDS, streamSessionEvents, findLatestTranscript, resolveScanTailTranscript, detectProcessRakes, buildRetro, renderRetro, retroLessonText, PROCESS_SIGNATURES, RETRO_DOMAIN, runRetroTailScan, scanForSetup, buildSetupPlan, scaffoldFromSpec, renderScaffoldPreview, readExistingForScaffold, assembleChallengeContext, buildChallengeBrief, planDiscriminationCheck, classifyDiscrimination, classifyExecutionEvidence, pickAdversaryModel, CHALLENGE_QUESTIONS, loadOutcomes, renderOutcomes, statsForKey, selectAutoCost, recordProvisional, finalizeOutcome, harvestStageOutcomes, recommendModels, planFeed, unfedRuns, GRADE_SUCCESS_FLOOR, COST_LADDER, splitScenarios, budgetPlan, selectWinner, proseScopeOk, renderProseDiff, readScenarioIds, DEFAULT_MAX_JUDGE_RUNS, collectDeliveryFacts, planDeliveryCheck, renderDeliveryBrief, classifyDelivery, isUsablePlaneResult, renderDeliveryReview, scanSkillsLayout, declaredPluginSurface, parseInitFacts, verifyRegistration, buildContentProbePrompt, classifyContentProbe, renderContentProbe, findNonRegistrableSkillDirs, assembleCompoundingReport, buildDeadwoodReport, compactCmdUsageIfNeeded, measureCmdUsageDepthDays, recordCommandInvocation, resolveCmdUsageRoot, renderDeadwoodReport, CMD_USAGE_LOG_RELATIVE, banditStats, narrowBanditReport, renderBanditHealth, 
 // Cold-vs-warm EPOCH RUNNER (feature epoch-replay) — orchestrates + scores, never calls a model.
-replayableInstances, buildWorkOrder, buildJudgePrompts, unblindJudgments, verifyWorkOrder, isValidMargin, DIGEST_HONEST_SCOPE, scoreEpochReplay, generateMockOutcomes, renderEpochReplayResult, renderWorkOrderSummary, renderJudgePromptsSummary, WORK_ORDER_KIND, DEFAULT_MOCK_N, DEFAULT_MOCK_SEED, scoreRun, readQeGrade, scoreReceiptToAggregateRow, readScoreAggregateRows, dedupeScoreAggregateRows, buildScoreAggregateReport, renderScoreAggregateReport, recapWindow, decideHorizon, withinWindow, buildRecap, renderRecap, parseSourceManifest, tgPostHtmlIssues, tgVisibleLength, decideTgSend, TG_TEXT_LIMIT, countRecallEventsForRun, unknownFlagNotice, mirrorWriterExplanation, appendRecallUsage, closenessLine, anyAboveFloor, decideNameCheck, renderNameCheck, exportedNamesIn, dispatchedCommandsIn, decideSourceProvenance, renderSourceProvenance, REFUSED_HORIZONS, renderScorecard, renderCompoundingReport, readReinforcementState, readQuarantineState, registrationExitCode, renderRegistrationReport, 
+replayableInstances, buildWorkOrder, buildJudgePrompts, unblindJudgments, verifyWorkOrder, isValidMargin, DIGEST_HONEST_SCOPE, scoreEpochReplay, generateMockOutcomes, renderEpochReplayResult, renderWorkOrderSummary, renderJudgePromptsSummary, WORK_ORDER_KIND, DEFAULT_MOCK_N, DEFAULT_MOCK_SEED, scoreRun, readQeGrade, scoreReceiptToAggregateRow, readScoreAggregateRows, dedupeScoreAggregateRows, buildScoreAggregateReport, renderScoreAggregateReport, recapWindow, decideHorizon, withinWindow, buildRecap, renderRecap, parseSourceManifest, tgPostHtmlIssues, tgVisibleLength, decideTgSend, TG_TEXT_LIMIT, countRecallEventsForRun, unknownFlagNotice, mirrorWriterExplanation, mirrorWriterReason, appendRecallUsage, closenessLine, anyAboveFloor, decideNameCheck, renderNameCheck, exportedNamesIn, dispatchedCommandsIn, decideSourceProvenance, renderSourceProvenance, REFUSED_HORIZONS, renderScorecard, renderCompoundingReport, readReinforcementState, readQuarantineState, registrationExitCode, renderRegistrationReport, 
 // Smart Backlog (feature smart-backlog) — goal-directed idea pipeline over the Brain vector engine.
 readBacklogConfig, readIdeas, writeIdeas, ideaId, dedupIdea, readGoalMap, readGoalMapDetailed, parseEffort, ensureBacklogGitignored, isSafeId, alignIdea, mirrorIdeaVector, ensureBacklogEmbedForm, readBacklogEmbedFormVersion, recordAbsorption, DEDUP_EMBED_FORM_VERSION, snapshotIdeas, spinRoulette, rankRoulette, seededRng, eligibleIdeas, stageEnrichment, buildJiraDraft, resolveJiraAdapter, makeBacklogIO, harmonizeBacklog, transitionIdeas, editIdea, clearEmbedStale, BACKLOG_BACKENDS, applyDomainBoost, DZ_OWNED_TASK_TYPES, applyExportHoldout, DEFAULT_HELD_OUT_DOMAINS, canonicalDomainKey, readAgentdbRowsByTaskType, heldOutAfterOptIn, renderHoldoutNote, renderSharedStoreAdvice, decideVectorExport, countDisplacedByCut, renderDomainBoostNote, renderDomainCutNote, parseReqeDebt, 
 // qe-bridge (feature qe-bridge-claude, ADR-001): the pure half of the reverse QE bridge.
 KNOWN_CLAUDE, isSafeClaudeId, claudeProbeArgs, claudeReviewArgs, interpretClaudeProbe, modelFamily, buildBridgePrompt, parseBridgeOutput, buildBridgeFailureRecord, buildBridgeSignoffRecord, renderBridgeReport, isSafeSlug, hasUnsafePathChars, hasDotDotSegment, buildReqeBrief, settleReqeDebt, renderReqeList, REQE_SCOPE, 
 // Mutation gate (feature ha-mutation-gate) — break each named protection, run the suite, require red.
-parseMutationRegistry, applyMutationToText, attributeBaselineRedness, countFailingTests, detectSuiteCompletionReceipt, detectSuiteReceiptMismatch, classifyBaseline, classifyRunFailure, classifyMutationOutcome, mutationGateExitCode, summarizeMutationResults, renderMutationReport, runWithOneInternalRetry, TRACE_BUNDLE_LEDGER_PATH, TRACE_BUNDLE_SCHEMA, TRACE_BUNDLE_RUN_META_FILE, buildBundle, serializeBundle, parseBundle, planImport, decideCheckpointWrite, amendmentSection, amendmentSectionCount, amendmentDeclarationAmbiguity, planSaysNoAmendments, parseAmendments, resolveAmendments, decideAmendmentOutcome, amendmentVerdictLine, amendmentsMissingFromPlan, AMENDMENT_VACUITY_NOTE, extractContractChecklist, readFeatureTier, parseContractVerdictReport, verifyContractVerdicts, decideSignableSet, signableSetLine, decideRecordWrite, decideReadBack, recordVerdictLine, buildCadenceReport, tgVisibleSha256, CADENCE_WINDOW_DAYS, readQeRounds, QE_ROUNDS_DEFAULT_CEILING, adviseRestart, describeStoreLocation, storeLocationLine, resolveTeachTarget, teachReasonPhrase, readTeachToConfig, TeachTargetError, mergeStoreHits, sameStore, globalStoreRoot, storeCountLabel, 
+REGISTRY_SELFCHECK_TESTS, buildMutationTestCommand, parseMutationRegistry, applyMutationToText, attributeBaselineRedness, countFailingTests, detectSuiteCompletionReceipt, detectSuiteReceiptMismatch, classifyBaseline, classifyRunFailure, classifyMutationOutcome, mutationGateExitCode, summarizeMutationResults, renderMutationReport, runWithOneInternalRetry, TRACE_BUNDLE_LEDGER_PATH, TRACE_BUNDLE_SCHEMA, TRACE_BUNDLE_RUN_META_FILE, buildBundle, serializeBundle, parseBundle, planImport, decideCheckpointWrite, amendmentSection, amendmentSectionCount, amendmentDeclarationAmbiguity, planSaysNoAmendments, parseAmendments, resolveAmendments, decideAmendmentOutcome, amendmentVerdictLine, amendmentsMissingFromPlan, AMENDMENT_VACUITY_NOTE, extractContractChecklist, readFeatureTier, parseContractVerdictReport, verifyContractVerdicts, decideSignableSet, signableSetLine, decideRecordWrite, decideReadBack, recordVerdictLine, buildCadenceReport, tgVisibleSha256, CADENCE_WINDOW_DAYS, readQeRounds, QE_ROUNDS_DEFAULT_CEILING, adviseRestart, describeStoreLocation, storeLocationLine, resolveTeachTarget, teachReasonPhrase, readTeachToConfig, TeachTargetError, mergeStoreHits, sameStore, globalStoreRoot, storeCountLabel, 
 // operator-profile (ADR-001): per-user 0600 store + marked block in ~/.claude/CLAUDE.md
 renderProfileBlock, readProfile, writeProfile, syncProfileBlock, checkProfileDrift, parseRegister, registerOwnerWord, profileAgeDays, parseDomainList, domainListText, parseYesNo, REGISTERS, } from '@dzhechkov/harness-core';
 import { getPreset, PRESET_NAMES } from '@dzhechkov/harness-presets';
@@ -73,7 +74,7 @@ export const DZ_COMMANDS = [
     'epoch-replay', 'score', 'recap', 'cadence', 'qe-rounds', 'restart-advisor', 'tg-post',
     'name-check', 'brief-check', 'provenance-check', 'journal', 'feature-adr-record', 'runs', 'runs-record', 'runs-clean', 'amendment-check', 'contract-check',
     'feature-adr-checkpoint', 'profile', 'reqe', 'qe-bridge', 'backlog', 'routing',
-    'bto-optimize', 'dashboard', 'roam', 'import-ecc', 'chain',
+    'bto-optimize', 'dashboard', 'roam', 'import-ecc', 'chain', 'round',
 ];
 const USAGE = `dz - DZ cross-platform harness CLI
   dz runs [--settle] [--stall-minutes N] [--json] [--project <dir>] [--probe-pid <pid>]   (run registry: live, stalled, orphaned, inconclusive or finished; PID probe prints true|false|unknown)
@@ -134,7 +135,8 @@ Usage:
   dz amendment-check --slug <slug> | --feature-dir <dir> | --all [--json]   (the deterministic Step-8 amendment gate: every AM-N / AM-CP-N row must resolve to a test found INSIDE the file the row names (the challenge-panel prefix is part of the id: AM-CP-1 is never AM-1); the PLAN is authoritative when it carries rows, and an ideation amendment the plan drops is a failure. exit 0 pass/skip, 1 fail, 3 NOT-ESTABLISHED — a section that parsed ZERO rows is never a pass, UNLESS the plan explicitly declares \"None\"/\"нет\", which is an answer and reports skip. --all is a CENSUS and always exits 0. Does NOT prove non-vacuity — that is dz discrimination-check)
   dz contract-check --slug <s> [--json]   (read-only retrospective feature contract gate: extracts canonical AC-N + ADR Confirmation items, requires one artifact-anchored met|unmet|not-testable verdict per CC-N, and rejects A/B with unmet. exit 0 pass / 1 readable contract or verdict violation / 2 invalid invocation or unreadable/not-established artifacts)
   dz journal add --kind decision|verdict|run|error|block "<text>" [--ref <trace>] [--at <ISO>] [--quote <file>] [--commit-quote]; dz journal show [--day|--week] [--at <date>] [--kind <kind>] [--json]   (UTC day files, witnessed append; quotes stay local unless explicitly staged)
-  dz feature-adr-record --kind ledger|training-pair --stage <s> [--slug <s>] [--row|--pair <json>] [--mark <n>] [--once] [--json]   (the witnessed writer for the run-cost ledger and training pairs: the payload arrives as an ARGUMENT, never as shell; a malformed or wrong-kind payload is REFUSED before any write; the timestamp is stamped before serialising; the append is verified by re-reading the tail. exit 0 written|duplicate|skipped, 2 refused, 3 not-verified — a record failure is never blocking)
+  dz feature-adr-record --kind ledger|training-pair --stage <s> [--slug <s>] [--row|--pair <json>] [--run-id <id>] [--mark <n>] [--once] [--json]   (the witnessed writer for the run-cost ledger and training pairs: the payload arrives as an ARGUMENT, never as shell; a malformed or wrong-kind payload is REFUSED before any write; for a ledger row, 'ts' is ALWAYS the actual write instant (ledger-stage-minutes FR-1) — a payload-supplied 'ts' is never trusted for the delta below, and is preserved as 'payloadTs' rather than discarded; --run-id fills the payload's runId ONLY when it is a gap — absent, null, '', or non-string, the same 'missing when absent or blank' rule runnerId uses — and stamps runIdSource:'cli-flag' when it does; for an auto:true ledger row that carries a runId — from the payload, from --run-id, or resolved at write time — the append also carries minutesSincePrev/minutesSource:'ledger-ts-delta' measured against the LAST row of the same run found by a best-effort reverse scan that reports 'unavailable' (never a guess) on a missing prior row OR a corrupt/non-object ledger line anywhere between it and the file's end (ledger-corrupt-line); minutes itself stays untouched. New fields (ts, minutesSincePrev, minutesSource) are always appended after every existing key, never reordering one. The append is verified by re-reading the tail. exit 0 written|duplicate|skipped, 2 refused, 3 not-verified — a record failure is never blocking)
+  dz round open --slug <s> --round <n|auto> --topic <text> [--project <brain>] [--run <id>] [--owner-pid <n>|--owner-run <runId>] [--force] [--json]; dz round exec --slug <s> --round <n> --brief <file> [--log <file>] [--model gpt-5.6-sol] [--effort high] [--timeout-min 30] [--json]; dz round close --slug <s> --round <n> --outcome shipped|refuted|blocked|abandoned [--reason <text>] [--lesson teach:<id>...]|[--no-new-knowledge <reason>] [--tokens N] [--agents N] [--coder <spec>] [--reviewer <spec>] [--note <text>] [--no-cost] [--json]; dz round status [--older-than <minutes>] [--json]   (focused rounds outside feature-adr: open tracks the parent process by default, an explicit pid, or a registered run; live/stalled run owners stay live and missing registry evidence stays unknown; open --force refuses a live or unknown owner and archives a known-dead owner's state; recall precedes work, then the witnessed ledger is trusted only after reading it back)
   dz feature-adr-checkpoint (--slug <feature> | --feature-dir <abs>) --stage <s> --input-hash <h> --result <json> [--artifact a,b] [--json]   (record a pipeline stage ONLY after measuring its artifacts on disk; refuses a null result, an absent artifact, or a stage that declares none — the subagent runs a COMMAND instead of hand-writing durable state)
   dz profile [init|show|set|sync] [--json]   (WHO the assistant is talking to — per-user store at ~/.dz/profile.json (0600, NEVER in a project), delivered as a marked block in ~/.claude/CLAUDE.md so it loads in EVERY project, dz installed or not. init = five questions (language, register, deep/weak domains as comma lists — "networking (CCIE; NSX)" keeps the parenthetical as the note, Enter skips — teaches y/n with one re-ask, never a silent default); show ALWAYS prints the store path + age + drift verdict + the rendered block; set register|language|teaches <v> or set deep|weak add|rm <tag> [note] — register accepts the owner's own words (профи / профи лайт / просто), an unknown value is REFUSED naming the accepted set; sync re-writes the block (runs automatically after init/set; foreign content byte-for-byte, timestamped backup before every modifying write). The register changes FORM, never FACTS, and governs dialogue only — never ADRs/commits/QE reports; both rules are baked into the rendered block at every level. exit 0 done / 1 no profile or failed / 2 refused input)
   dz reqe [--slug <feature> [--done --report <f>]] [--json]   (the re-QE debt ledger: a usage-switched run whose Step-8 QE ran on the coder's OWN family records a debt; list debts, print the cross-family review brief, settle FAIL-CLOSED against a graded report — the settlement lands in 08_qe_report.md)
@@ -167,7 +169,8 @@ Usage:
   dz brain query "<q>" [--source <slug>] [--limit <N>] [--any] [--rerank] [--json]  (cross-source recall; --any = OR match; --rerank reorders top-K)
   dz brain add   [--source <slug>] [--project <dir>] [--from-slice <f>|--from-pack <p>|--from-kus <f> --slug <s>] [--kind <k>] [--license <spdx>] [--json]   (grow the brain: promote this project, or import a slice/pack/KU-array)
   dz brain update <slug> [--project <dir>] [--json]                    (non-destructive refresh: re-mirror a re-ingested source into the brain)
-  dz brain reindex [--json]                                            (snapshot, re-embed book-KU brain vectors, stamp current model)
+  dz brain reindex [--json]                                            (snapshot, re-embed book-KU brain vectors, stamp current model; also rotates old pre-reindex snapshots)
+  dz brain snapshots [--keep <N>] [--prune] [--json] [--project <dir>] (list — or, with --prune, rotate — pre-reindex snapshot families of the home brain, or of <dir>/.dz/agentdb.db; default keep 3)
   dz brain primer <slug> [--json]                                     (print a source's capability card — KU-type histogram + top decision moments)
   dz brain export --source <slug> --out <file>                        (export ONE source as a portable, lexical-only books.sqlite slice)
   dz brain ground [<prompt>] [--k <N>] [--source <slug>] [--text] [--budget <N>] [--full]  (UserPromptSubmit hook; --budget inlines top-K KUs within ~N tokens; --full = ~8000)
@@ -176,7 +179,7 @@ Usage:
   dz statusline [--json] [--install] [--project <dir>]                 (live self-learning panel for Claude Code's status bar; reads the CC JSON payload from STDIN)
   dz store-guard [--status|--reset] [--yes] [--project <dir>]          (show the monotonic external high-water mark; --reset is the only lowering path and requires confirmation or --yes)
   dz statusline --fa-record --slug <s> --step "<label>" [--kind <feature-adr|loop>] [--tier <S|M|L|XL>] [--run-id <id>] [--recalled <n>] [--stored <n>] [--mode <m>]   (feature-adr: record live per-run learning state + phase → 📐 SECOND-LINE phase panel; the monotone guard absorbs a backwards plain "Step <n>" only within the same non-empty run id, while an absent/empty id retains legacy fresh-slot behavior — prefix the label with ⛔ or ⏸ to record a legitimate regression)
-  dz usage [--json] [--project <dir>] | dz usage --calibrate --session <pct> --weekly <pct> [--model fable=<pct>] [--project <dir>]  (ESTIMATE Claude usage from fixed reset windows; optional per-model weekly binding; exit 0 ALWAYS; pct=null when limits unconfigured)
+  dz usage [--json] [--project <dir>]  (7-day UTC spend from local Claude Code + subagent transcripts; provider-limit routing disabled by design)
   dz usage --by-stage [--run <runId> | --slug <slug>] [--epsilon <0..1>] [--write <file.jsonl>] [--json]   (per-stage cost ledger for ONE feature-adr run + the reconciliation invariant: accounted + unaccounted = run total; verdict BALANCED | DEFECT | INSUFFICIENT_DATA; local transcript ESTIMATES — catches ATTRIBUTION errors, not pricing errors)
   dz chain [--project <dir>] [--json]   (verify EVERY hash-chained journal in ONE command: coverage is DERIVED from the CHAINED_JOURNALS registry, never typed, so a journal cannot be given a chain and checked by nobody. An ABSENT journal is NAMED absent, never omitted — omission and cleanliness are indistinguishable in a report. Statuses: ok | healed (defects the current unbroken run has outlived — verdicts over present records are sound) | unchained (present, no chained record yet — legal) | absent | broken | unreadable. Exit 1 on broken/unreadable: a verifier that reports damage and exits 0 is one no automation can act on)
   dz claim-check [paths...] [--json] [--fail-on high|medium|none] [--project <dir>]  (enforce the Integrity Rule: flag untagged/overstated accuracy claims; default scan = root README.md + every discovered package's README.md + features/*/08_qe_report.md + docs/**/*.md (historical feature artifacts are NOT scanned — pass paths explicitly); exit 1 only at/above --fail-on, default high)
@@ -2315,12 +2318,13 @@ function cmdStatusline(options, flags, cwd, write, readStdin, writeErr) {
             : `🎓 dz: ${data.patterns} (${breakdown.active} active${breakdown.quarantined > 0
                 ? ` · ${breakdown.quarantined} quarantined${breakdown.attention ? ' ⚠' : ''}`
                 : ''})${breakdown.tierDelta !== undefined ? ` ⚠ tiers Δ${breakdown.tierDelta}` : ''}`;
-        // Показатель зеркала печатается и здесь: `dz statusline` — та же панель, и показатель,
-        // живущий только во вспомогательном скрипте, для этой поверхности просто не существовал.
-        if (data.patternMirror?.state === 'unavailable')
-            line += ' (mirror unreadable ⚠)';
-        else if (data.patternMirror?.state === 'different')
-            line += ` (mirror ${data.patternMirror.vector} ⚠)`;
+        // Зеркало — самостоятельный источник панели. Отсутствие печатается явно; нечитаемый файл
+        // сохраняет прежнее отдельное состояние, чтобы отказ инструмента не выглядел как настройка off.
+        line += data.patternMirror?.state === 'unavailable'
+            ? ' · mirror: unreadable ⚠'
+            : data.mirror.available
+                ? ` · mirror: ${data.mirror.lessons} lessons (pending ${data.mirror.pending})`
+                : ' · mirror: absent';
         if (data.storeHealth?.verdict === 'collapsed') {
             line += ` ⛔ COLLAPSE: was ${data.storeHealth.previousMax ?? '?'} · dz store-guard --reset`;
         }
@@ -2365,156 +2369,6 @@ function cmdStatusline(options, flags, cwd, write, readStdin, writeErr) {
     catch {
         // A garbled status bar is worse than a terse one — print SOMETHING minimal, never throw.
         write('dz');
-        return 0;
-    }
-}
-function isJsonRecord(value) {
-    return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-function usageConfigPath(projectRoot) {
-    return join(projectRoot, '.dz', 'config.json');
-}
-function readProjectConfigForUsage(projectRoot) {
-    const path = usageConfigPath(projectRoot);
-    try {
-        if (!existsSync(path))
-            return { config: {} };
-        const parsed = JSON.parse(readFileSync(path, 'utf-8'));
-        if (isJsonRecord(parsed))
-            return { config: parsed };
-        return { config: {}, warning: 'existing config is not a JSON object; writing a minimal config' };
-    }
-    catch {
-        return { config: {}, warning: 'existing config could not be parsed; writing a minimal config' };
-    }
-}
-function applyUsageCalibrationToConfig(config, plan) {
-    const next = { ...config };
-    const memory = isJsonRecord(next['memory']) ? { ...next['memory'] } : {};
-    const usage = isJsonRecord(memory['usage']) ? { ...memory['usage'] } : {};
-    for (const change of plan.changes) {
-        if (change.key === 'session') {
-            usage['sessionTokenLimit'] = change.after;
-        }
-        else if (change.key === 'weekly') {
-            usage['weeklyTokenLimit'] = change.after;
-        }
-        else {
-            const model = normalizeClaudeUsageModelKey(change.key);
-            if (model) {
-                const existingByModel = isJsonRecord(usage['weeklyTokenLimitByModel']) ? { ...usage['weeklyTokenLimitByModel'] } : {};
-                existingByModel[model] = change.after;
-                usage['weeklyTokenLimitByModel'] = existingByModel;
-            }
-        }
-    }
-    if (plan.changes.length > 0) {
-        usage['calibratedAt'] = plan.after.calibratedAt;
-        usage['source'] = plan.after.source;
-        // A fresh calibration re-arms routing for THIS account and clears the legacy free-text switch:
-        // the calibration is the very act the disable-note demanded.
-        usage['calibrationAccount'] = plan.after.calibrationAccount ?? null;
-    }
-    memory['usage'] = usage;
-    next['memory'] = memory;
-    return next;
-}
-function parseUsageModelArgs(modelArgs) {
-    const modelPct = {};
-    const skipped = [];
-    for (const raw of modelArgs) {
-        const eq = raw.indexOf('=');
-        if (eq <= 0 || eq === raw.length - 1) {
-            skipped.push(`model ${raw}: skipped malformed model=pct argument`);
-            continue;
-        }
-        const modelName = raw.slice(0, eq).trim();
-        const model = normalizeClaudeUsageModelKey(modelName);
-        if (!model) {
-            skipped.push(`model ${modelName}: skipped unknown model`);
-            continue;
-        }
-        modelPct[model] = raw.slice(eq + 1).trim();
-    }
-    return { modelPct, skipped };
-}
-function writeUsageCalibrationSummary(opts) {
-    opts.write('usage calibrate: estimated local transcript counts; claude.ai/settings/usage is authoritative');
-    opts.write(`usage calibrate: project ${opts.projectRoot}`);
-    if (opts.configWarning)
-        opts.write(`usage calibrate: ${opts.configWarning}`);
-    for (const change of opts.plan.changes) {
-        opts.write(`usage calibrate: ${change.key} tokens=${change.tokens} pct=${change.pct}% limit ${change.before ?? 'null'} -> ${change.after}`);
-    }
-    const skipped = [...opts.preSkipped, ...opts.plan.skipped];
-    for (const item of skipped)
-        opts.write(`usage calibrate: skipped ${item}`);
-    if (opts.wrote) {
-        opts.write('usage calibrate: wrote .dz/config.json with source claude.ai/settings/usage');
-    }
-    else {
-        opts.write('usage calibrate: no config changes written');
-    }
-}
-function cmdUsageCalibrate(options, optionLists, cwd, write) {
-    const projectRoot = resolve(cwd, options.get('project') ?? '.');
-    const suppliedModels = optionLists.get('model') ?? [];
-    const parsedModels = parseUsageModelArgs(suppliedModels);
-    const modelPct = parsedModels.modelPct;
-    const hasModelPct = Object.keys(modelPct).length > 0;
-    const input = {
-        ...(options.has('session') ? { sessionPct: options.get('session') } : {}),
-        ...(options.has('weekly') ? { weeklyPct: options.get('weekly') } : {}),
-        ...(hasModelPct ? { modelPct } : {}),
-        calibratedAt: new Date().toISOString(),
-        source: 'claude.ai/settings/usage',
-    };
-    const missingInputs = [];
-    if (!options.has('session') && !options.has('weekly') && !hasModelPct) {
-        missingInputs.push('no calibration percentages supplied');
-    }
-    try {
-        const current = computeUsage(projectRoot);
-        const before = readUsageLimits(projectRoot);
-        const plan = deriveUsageCalibration(current, before, input);
-        if (plan.changes.length === 0) {
-            writeUsageCalibrationSummary({
-                projectRoot,
-                plan,
-                preSkipped: [...parsedModels.skipped, ...missingInputs],
-                wrote: false,
-                write,
-            });
-            return 0;
-        }
-        const existing = readProjectConfigForUsage(projectRoot);
-        const nextConfig = applyUsageCalibrationToConfig(existing.config, plan);
-        try {
-            mkdirSync(join(projectRoot, '.dz'), { recursive: true });
-            writeFileSync(usageConfigPath(projectRoot), JSON.stringify(nextConfig, null, 2) + '\n');
-            writeUsageCalibrationSummary({
-                projectRoot,
-                plan,
-                preSkipped: [...parsedModels.skipped, ...missingInputs],
-                configWarning: existing.warning,
-                wrote: true,
-                write,
-            });
-        }
-        catch {
-            writeUsageCalibrationSummary({
-                projectRoot,
-                plan,
-                preSkipped: [...parsedModels.skipped, ...missingInputs, 'write failed'],
-                configWarning: existing.warning,
-                wrote: false,
-                write,
-            });
-        }
-        return 0;
-    }
-    catch {
-        write('usage calibrate: skipped internal error; no config changes written');
         return 0;
     }
 }
@@ -2569,17 +2423,6 @@ function cmdUsageByStage(options, flags, write) {
     }
     return 0;
 }
-/**
- * `dz usage` — print an ESTIMATE of Claude session + weekly usage from fixed reset windows,
- * aggregated READONLY from the local transcript store (see {@link computeUsage}). `--json` emits
- * the single-line contract the feature-adr usage-probe agent parses; `--calibrate` is the only
- * write path and records human-transcribed claude.ai percentages in `.dz/config.json`.
- *
- * **Exit code is 0 ALWAYS** — including on internal error the whole body is guarded and prints the
- * all-null JSON, so a probe can NEVER distinguish "usage unknown" from "command failed" via a
- * non-zero exit. `--project <dir>` scopes ONLY the `.dz/config.json` read/write; measurement is
- * account-wide (all projects).
- */
 /**
  * dz qe-rounds — how many Step-8 review rounds has one feature already had?
  *
@@ -2754,6 +2597,62 @@ function cmdRestartAdvisor(options, flags, cwd, write) {
         roundsOrigin,
     }));
 }
+function packageCommitCount(root, sinceIso) {
+    try {
+        // Assemble git's flag so the CLI flag-inventory scanner does not mistake a child-process option
+        // for a user-facing dz option. The argv delivered to git is still exactly `--count`.
+        const raw = execFileSync('git', ['rev-list', '--' + 'count', `--since=${sinceIso}`, 'HEAD', '--', 'packages/'], {
+            cwd: root,
+            encoding: 'utf8',
+            stdio: ['ignore', 'pipe', 'pipe'],
+        }).trim();
+        return /^\d+$/.test(raw) ? Number(raw) : null;
+    }
+    catch {
+        return null;
+    }
+}
+function roundTraceSince(root) {
+    let firstDate = null;
+    let lastRoundDate = null;
+    try {
+        const rows = readFileSync(join(root, '.dz', 'feature-adr', 'run-cost-ledger.jsonl'), 'utf8').split('\n');
+        for (const line of rows) {
+            if (line.trim() === '')
+                continue;
+            let row;
+            try {
+                const parsed = JSON.parse(line);
+                if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed))
+                    continue;
+                row = parsed;
+            }
+            catch {
+                continue;
+            }
+            const date = typeof row['date'] === 'string' && Number.isFinite(Date.parse(row['date'])) ? row['date'] : null;
+            if (date === null)
+                continue;
+            if (firstDate === null)
+                firstDate = date;
+            if (row['stage'] === 'round' || row['stage'] === 'round-exec')
+                lastRoundDate = date;
+        }
+    }
+    catch {
+        return null;
+    }
+    return lastRoundDate ?? firstDate;
+}
+function roundsTracingEnabled(root) {
+    try {
+        const parsed = JSON.parse(readFileSync(join(root, '.dz', 'config.json'), 'utf8'));
+        return parsed?.rounds?.traced !== false;
+    }
+    catch {
+        return true;
+    }
+}
 function cmdCadence(options, flags, cwd, write) {
     const root = resolve(cwd, options.get('project') ?? '.');
     const windowRaw = (options.get('window') ?? 'week').trim();
@@ -2761,7 +2660,9 @@ function cmdCadence(options, flags, cwd, write) {
         write('dz cadence: --window must be one of ' + Object.keys(CADENCE_WINDOW_DAYS).join('|'));
         return 1;
     }
-    const r = buildCadenceReport(root, windowRaw);
+    const now = Date.now();
+    const windowStartIso = new Date(now - CADENCE_WINDOW_DAYS[windowRaw] * 86_400_000).toISOString();
+    const r = buildCadenceReport(root, windowRaw, now, packageCommitCount(root, windowStartIso));
     if (flags.has('json')) {
         write(JSON.stringify(r));
         return r.decision.ok ? 0 : 2;
@@ -2779,6 +2680,14 @@ function cmdCadence(options, flags, cwd, write) {
         write('  ' + w.padEnd(12) + String(r.shipments.graded[w] ?? 0).padStart(15) + String(r.npmPublishes.weekly[w] ?? 0).padStart(15) + String(r.recalls.weekly[w] ?? 0).padStart(9));
     }
     write('  graded ' + r.shipments.gradedTotal + ' (' + Object.entries(r.shipments.byGrade).sort().map(([g, n]) => g + '×' + n).join(', ') + ') · UNGRADED ' + r.shipments.ungraded + ' (named, not hidden)');
+    const roundCount = r.rounds.byStage.round;
+    const roundPart = roundCount === 0
+        ? 'rounds 0 (ни одной строки круга в окне)'
+        : `rounds ${roundCount} (shipped ${r.rounds.byOutcome.shipped} · refuted ${r.rounds.byOutcome.refuted} · blocked ${r.rounds.byOutcome.blocked} · abandoned ${r.rounds.byOutcome.abandoned})`;
+    write(`  ${roundPart} · exec ${r.rounds.byStage['round-exec']} (done ${r.rounds.byOutcome.done} · timeout ${r.rounds.byOutcome.timeout} · session-limit ${r.rounds.byOutcome['session-limit']} · model-refused ${r.rounds.byOutcome['model-refused']} · failed ${r.rounds.byOutcome.failed} · empty ${r.rounds.byOutcome.empty}) · commits(packages/) ${r.rounds.commitsInWindow ?? 'not measured'}`);
+    for (const round of r.rounds.unfinished) {
+        write(`  ✗ ${round.slug}#${round.round} ${round.outcome} — ${round.reason ?? 'причина не названа'}`);
+    }
     if (r.guard.decay.length > 0) {
         write('  guard repeat decay (FIXED set — rules with pre-window history only):');
         for (const d of r.guard.decay.slice(0, 8))
@@ -2786,133 +2695,91 @@ function cmdCadence(options, flags, cwd, write) {
     }
     if (r.guard.excludedNewborn.length > 0)
         write('  excluded newborn rule(s) (no pre-window history — a zero here would be youth, not virtue): ' + r.guard.excludedNewborn.join(', '));
-    for (const dgr of [r.npmPublishes.degraded, r.guard.degraded, r.recalls.degraded])
+    for (const dgr of [r.npmPublishes.degraded, r.guard.degraded, r.recalls.degraded, r.rounds.degraded])
         if (dgr)
             write('  DEGRADED: ' + dgr);
     return 0;
 }
-function cmdUsage(options, optionLists, flags, cwd, write) {
+function cmdUsage(options, _optionLists, flags, cwd, write) {
     const projectRoot = resolve(cwd, options.get('project') ?? '.');
-    const nullContract = () => JSON.stringify({
+    const reqeDue = () => {
+        try {
+            return scanReqeDebts(projectRoot).debts.length;
+        }
+        catch {
+            return 0;
+        }
+    };
+    const jsonContract = (spend) => JSON.stringify({
         sessionPct: null,
         weeklyPct: null,
-        sessionTokens: 0,
-        weeklyTokens: 0,
-        resetsAt: { session: null, weekly: null },
-        limits: { session: null, weekly: null },
-        estimated: true,
+        routing: 'disabled-by-design',
+        spend,
+        reqeDue: reqeDue(),
     });
+    const number = (value) => (Number.isInteger(value) ? String(value) : String(Math.round(value * 100) / 100));
     try {
-        if (flags.has('calibrate'))
-            return cmdUsageCalibrate(options, optionLists, cwd, write);
+        if (flags.has('calibrate')) {
+            // Keep the retired mode's value flags known so its one-line removal receipt is not polluted
+            // by generic unknown-flag notices before dispatch.
+            void ['--session', '--weekly'];
+            write('dz usage --calibrate removed 2026-09-12: provider limits are not measurable (no API, per-account weekly resets, ad-hoc resets); dz usage reports spend only');
+            return 2;
+        }
         if (flags.has('by-stage'))
             return cmdUsageByStage(options, flags, write);
-        const u = computeUsage(projectRoot);
-        const lim = readUsageLimits(projectRoot);
-        const modelLimits = lim.weeklyTokenLimitByModel;
-        const hasModelLimits = modelLimits !== undefined && Object.keys(modelLimits).length > 0;
+        const spend = computeSpendReport();
         if (flags.has('json')) {
-            const limitsPayload = { session: lim.sessionTokenLimit ?? null, weekly: lim.weeklyTokenLimit ?? null };
-            if (hasModelLimits)
-                limitsPayload.weeklyByModel = { ...modelLimits };
-            const payload = {
-                sessionPct: u.sessionPct,
-                weeklyPct: u.weeklyPct,
-                sessionTokens: u.sessionTokens,
-                weeklyTokens: u.weeklyTokens,
-                resetsAt: { session: u.sessionResetsAt, weekly: u.weeklyResetsAt },
-                limits: limitsPayload,
-                estimated: true,
-            };
-            // ADR-001 usage-honesty: a consumer that reads null pcts deserves the WHY (closed reason
-            // set), and a human deserves the raw estimates when POLICY (not measurement) nulled them.
-            if (u.notEstablished.length > 0)
-                payload.notEstablished = u.notEstablished;
-            if (u.estimatesNotForRouting !== undefined)
-                payload.estimatesNotForRouting = u.estimatesNotForRouting;
-            if (hasModelLimits && u.weeklyByModel !== undefined)
-                payload.weeklyByModel = u.weeklyByModel;
-            // re-QE debt surfacing (backlog 6b40e667 — QE #9: the json contract must carry the debt too,
-            // a probe is exactly the consumer that needs it). The field appears ONLY when a debt exists,
-            // so the zero-debt contract stays byte-identical to the pinned legacy shape. Best-effort.
-            try {
-                const reqeCount = scanReqeDebts(resolve(cwd, options.get('project') ?? '.')).debts.length;
-                if (reqeCount > 0)
-                    payload.reqeDue = reqeCount;
-            }
-            catch { /* advisory only */ }
-            write(JSON.stringify(payload));
+            write(jsonContract(spend));
             return 0;
         }
-        if (u.sessionPct === null && u.weeklyPct === null && u.notEstablished.length > 0) {
-            // Limits may be fully configured and the pcts STILL null — that is the honesty, not a config
-            // gap. Say why, and show the human the raw estimates when only policy nulled them.
-            write('usage: not established — ' + u.notEstablished.join(', '));
-            if (u.estimatesNotForRouting !== undefined) {
-                const e = u.estimatesNotForRouting;
-                write('  estimates (NOT for routing): session ~' + (e.sessionPct ?? '?') + '% · week ~' + (e.weeklyPct ?? '?') + '% — recalibrate on THIS account: dz usage --calibrate --session <pct> --weekly <pct>');
-            }
-            else {
-                write('  the scan established nothing (' + u.sessionTokens + ' session / ' + u.weeklyTokens + ' weekly tokens counted) — a percentage would be a guess, and routing must not eat guesses');
-            }
-            try {
-                const reqe = scanReqeDebts(resolve(cwd, options.get('project') ?? '.'));
-                if (reqe.debts.length > 0)
-                    write('re-QE due: ' + reqe.debts.length + ' usage-switched run(s) kept same-family QE — run `dz reqe` for the cross-family pass');
-            }
-            catch { /* advisory only */ }
-            return 0;
+        write('usage spend — last 7 UTC days');
+        write('date        weighted  input  output  cache-read  cache-write  events');
+        for (const day of spend.days) {
+            write(`${day.date}  ${number(day.weightedTokens)}  ${number(day.input)}  ${number(day.output)}  ${number(day.cacheRead)}  ${number(day.cacheWrite)}  ${day.events}`);
         }
-        if (u.sessionPct === null && u.weeklyPct === null) {
-            write('usage: unconfigured — set memory.usage.sessionTokenLimit / weeklyTokenLimit in .dz/config.json (percentages are ESTIMATES calibrated from observed exhaustion)');
-            try {
-                const reqe = scanReqeDebts(resolve(cwd, options.get('project') ?? '.'));
-                if (reqe.debts.length > 0)
-                    write('re-QE due: ' + reqe.debts.length + ' usage-switched run(s) kept same-family QE — run `dz reqe` for the cross-family pass');
-            }
-            catch { /* advisory only */ }
-            return 0;
+        const total = spend.total7d;
+        write(`7-day total  ${number(total.weightedTokens)}  ${number(total.input)}  ${number(total.output)}  ${number(total.cacheRead)}  ${number(total.cacheWrite)}  ${total.events}`);
+        // "unknown" = `event.model ?? 'unknown'` in `spendReport` — an event with NO model field AT
+        // ALL, or one whose model string matched none of the four recognized substrings (in practice
+        // almost always `<synthetic>`). Fix-round-1 (Codex review, MEDIUM #3): a prior wording here and
+        // in the README said "not an event without a model", which is the OPPOSITE of what the code
+        // does — corrected to name both causes.
+        write('by model — weighted  share (0..1) (7-day window; "unknown" = event with no model, or an unrecognized model string e.g. "<synthetic>")');
+        const models = Object.entries(spend.byModel);
+        if (models.length === 0)
+            write('  (no events)');
+        for (const [model, row] of models) {
+            write(`  ${model}  ${number(row.weightedTokens)}  ${number(row.sharePct / 100)}`);
         }
-        // Compact human line — a short HH:MM / weekday hint on the resets, best-effort.
-        const clock = (iso) => {
-            if (!iso)
-                return '?';
-            try {
-                return new Date(iso).toISOString().slice(11, 16);
+        const today = spend.daysByModel.at(-1);
+        if (today !== undefined) {
+            // Fix-round-1 (Codex review, MEDIUM #1): this block used to print weighted tokens only, so
+            // AC-5's "today block shows Sonnet's share of today" had nothing to read it off of. The share
+            // denominator is TODAY's own total (`spend.days.at(-1)`, the same last entry as `today` by
+            // construction — both arrays are built from the same `days` in `spendReport`), not the 7-day
+            // total — a day's share of a week would silently understate every model.
+            write(`today (${today.date}) by model — weighted  share-of-day (0..1)`);
+            const todayModels = Object.entries(today.models);
+            const todayTotal = spend.days.at(-1)?.weightedTokens ?? 0;
+            if (todayModels.length === 0)
+                write('  (no events)');
+            for (const [model, weightedTokens] of todayModels) {
+                const shareOfDay = todayTotal > 0 ? weightedTokens / todayTotal : 0;
+                write(`  ${model}  ${number(weightedTokens)}  ${number(shareOfDay)}`);
             }
-            catch {
-                return '?';
-            }
-        };
-        const s = u.sessionPct === null ? 'n/a' : '~' + u.sessionPct + '%';
-        const binding = hasModelLimits && u.weeklyBindingModel !== undefined ? ' ' + u.weeklyBindingModel + '-bound' : '';
-        const w = u.weeklyPct === null ? 'n/a' : '~' + u.weeklyPct + '%' + binding;
-        // The weekly reset is WEEKLY: print the anchor verbatim (weekday + offset), not a bare clock
-        // time — 'resets 08:59' reads as daily and hides the weekday (idea c8513be9: the bare form
-        // misread a Monday reading as '41 minutes after the boundary' when the boundary was Wednesday's).
-        const weeklyAnchorLabel = typeof lim.weeklyResetAnchor === 'string' && lim.weeklyResetAnchor !== ''
-            ? lim.weeklyResetAnchor
-            : clock(u.weeklyResetsAt);
-        write('usage: session ' + s + ' (resets ' + clock(u.sessionResetsAt) + ') · week ' + w + ' (resets ' + weeklyAnchorLabel + ') · estimated');
-        if (typeof lim.weeklyResetAnchor === 'string' && parseWeeklyResetAnchor(lim.weeklyResetAnchor)?.offsetMinutes === undefined) {
-            write('  ⚠ weeklyResetAnchor has NO utc offset — the boundary follows the SERVER timezone, not your account\'s true reset instant (measured: the same moment lands a week apart under UTC vs +03:00). Pin it: "' + lim.weeklyResetAnchor + ' +03:00" (your offset) in .dz/config.json');
         }
-        // re-QE debt surfacing (backlog 6b40e667): the moment someone checks usage is the moment a
-        // usage-switched self-review debt should be visible. Best-effort — never breaks the contract.
-        try {
-            const reqe = scanReqeDebts(resolve(cwd, options.get('project') ?? '.'));
-            if (reqe.debts.length > 0)
-                write('re-QE due: ' + reqe.debts.length + ' usage-switched run(s) kept same-family QE — run `dz reqe` for the cross-family pass');
-        }
-        catch { /* advisory only */ }
+        write('source: local Claude Code + subagent transcripts, cost-weighted');
         return 0;
     }
     catch {
-        // never let a probe see a non-zero exit — print the all-null contract and exit 0.
+        const empty = spendReport([], { nowMs: Date.now(), days: 7 });
         if (flags.has('json'))
-            write(nullContract());
-        else
-            write('usage: unconfigured — set memory.usage.sessionTokenLimit / weeklyTokenLimit in .dz/config.json');
+            write(jsonContract(empty));
+        else {
+            write('usage spend — last 7 UTC days');
+            write('source: local Claude Code + subagent transcripts, cost-weighted');
+        }
         return 0;
     }
 }
@@ -3204,14 +3071,20 @@ async function cmdStoreGuard(options, flags, cwd, write, writeErr, stdinText, in
     }
 }
 async function runTeachGuardReinforcement(projectRoot, dzId, reward, preserveQuarantine = false) {
+    const matchedDzId = loadStoreRecords(projectRoot)
+        .find((record) => record.id === dzId || record.text === dzId)?.id;
     const backend = resolveLearningBackend(projectRoot);
     backend.addSample({
         dzId,
         kind: preserveQuarantine ? 'recall-hit' : 'reinforce',
-        reward,
+        ...(reward !== undefined ? { reward } : {}),
         ts: new Date().toISOString(),
     });
-    return backend.train();
+    const trained = await backend.train();
+    return {
+        ...trained,
+        ...(trained.flushed > 0 && matchedDzId !== undefined ? { dzId: matchedDzId } : {}),
+    };
 }
 async function cmdTeach(options, flags, cwd, write, writeErr = (line) => { console.error(line); }, interactive = false, guardRunner = teachGuard, reinforceRunner = runTeachGuardReinforcement) {
     // WHICH store this lesson belongs to, and WHO decided (teach-chooses-its-store).
@@ -3251,24 +3124,71 @@ async function cmdTeach(options, flags, cwd, write, writeErr = (line) => { conso
     // (D3) — an unconfigured project runs ZERO vector code and its output stays byte-identical
     // to the pre-feature baseline (AC-1). Failures are queued + logged by the service itself and
     // NOT printed on the default path (teach must stay quiet/scriptable); only success emits.
+    // AM-4 (dz-harness-hub issue #10 defect 4, feature setup-installs-apply-leg): a mirror attempt
+    // that produced ZERO rows, resolved NO working engine (`receipt.engine === undefined` — deps
+    // missing/unusable, the ABI-115 failure AM-2 fixes being the measured cause), AND left the
+    // agentdb store file still absent is not "nothing to report" — it is the vector tier having
+    // never come into being, and a lesson taught in that window has nowhere to mirror into until
+    // `dz consolidate`/a later teach (once the store exists) runs. BOTH signals are required so this
+    // never misfires for an rvf-configured project (whose store is not `.dz/agentdb.db` at all) or
+    // for the ordinary "already mirrored, nothing new" case (which resolves an engine successfully).
+    const emitVectorTierAbsentIfNeeded = (root, receipt) => {
+        if (receipt.engine === undefined && !existsSync(resolveAgentdbPath(root))) {
+            write('  ↳ vector tier absent — run dz consolidate');
+        }
+    };
+    // AM-9/AM-10 (issue #10 defect 6, feature setup-installs-apply-leg): `vectorMirrorEnabled(root)`
+    // alone used to decide "say nothing" for every disabled reason alike, including a config that
+    // CLAIMS agentdb via a top-level `backend` key (`{"backend":"agentdb"}` instead of
+    // `{"memory":{"backend":"agentdb"}}`) — a real, readable intent this silently dropped on the
+    // floor. Named for `config-unreadable` / `legacy-shape` — both are a config that TRIED to say
+    // something and got it wrong. THREE reasons stay silent: `engine-off` (deliberate), `no-config`
+    // (the pre-existing AC-1 contract — a NAMED test in `cli.test.ts`/`teach-chooses-its-store.test.ts`
+    // — printing there broke both, MEASURED), and `not-enabled` (AM-10, narrower than the amendment's
+    // literal instruction — MEASURED: `not-enabled` is ALSO the state of the ORDINARY, first-class
+    // jsonl backend `dz setup` produces by default, and printing there added a line to the single most
+    // common `dz teach` invocation shape, reproducer: `mkdir .dz && echo '{"memory":{"backend":
+    // "jsonl"}}' > .dz/config.json && dz teach "x"` → new line `↳ vector tier OFF: …` on the DEFAULT,
+    // fully-supported jsonl path. `not-enabled` cannot distinguish "chose jsonl on purpose" from "typo'd
+    // a backend name", so it is grouped with the other legitimate-quiet states rather than with the
+    // two states that are unambiguously a mistake.
+    const emitMirrorOffIfNeeded = (root) => {
+        const reason = mirrorWriterReason(root);
+        if (reason.state !== 'config-unreadable' && reason.state !== 'legacy-shape')
+            return false;
+        write(`  ↳ vector tier OFF: ${mirrorWriterExplanation(reason.state)}`);
+        return true;
+    };
     const emitMirror = async (root, records, source) => {
-        if (flags.has('no-mirror') || records.length === 0 || !vectorMirrorEnabled(root))
+        if (flags.has('no-mirror') || records.length === 0)
             return;
+        if (!vectorMirrorEnabled(root)) {
+            emitMirrorOffIfNeeded(root);
+            return;
+        }
         const receipt = await mirrorPatternsToVector(root, records, source);
         if (receipt.mirrored > 0)
             write(`  ↳ mirrored to vector tier (${receipt.engine ?? 'vector'})`);
+        else
+            emitVectorTierAbsentIfNeeded(root, receipt);
     };
     // lesson-quarantine FR-8: the fresh-teach mirror carries the qStatus marker so the hook daemon
     // (which reads only the mirror's metadata) can exclude unproven lessons from auto-inject.
     const emitMirrorQ = async (root, records, source, quarantined) => {
-        if (flags.has('no-mirror') || records.length === 0 || !vectorMirrorEnabled(root))
+        if (flags.has('no-mirror') || records.length === 0)
             return;
+        if (!vectorMirrorEnabled(root)) {
+            emitMirrorOffIfNeeded(root);
+            return;
+        }
         const entries = records
             .map((r) => patternVectorEntry(r, source, quarantined ? { quarantined: true } : {}))
             .filter((e) => e !== undefined);
         const receipt = await mirrorEntriesToVector(root, entries);
         if (receipt.mirrored > 0)
             write(`  ↳ mirrored to vector tier (${receipt.engine ?? 'vector'})${quarantined ? ' [quarantined]' : ''}`);
+        else
+            emitVectorTierAbsentIfNeeded(root, receipt);
     };
     // `dz teach --harmonize` — documented ALIAS of `dz vector harmonize`: SEMANTIC dedup of the
     // learned store. ONE implementation (harmonizeVectorStore), two entry points (QR-6). Routed
@@ -3388,21 +3308,25 @@ async function cmdTeach(options, flags, cwd, write, writeErr = (line) => { conso
     }
     const reinforce = options.get('reinforce');
     if (reinforce !== undefined && reinforce.trim() !== '') {
-        const backend = resolveLearningBackend(storeRoot);
         const sampleReward = options.has('reward') ? parseFloat(options.get('reward') ?? '0.8') : undefined;
-        backend.addSample({
-            dzId: reinforce,
-            kind: 'reinforce',
-            ts: new Date().toISOString(),
-            ...(sampleReward !== undefined ? { reward: sampleReward } : {}),
-        });
-        const trained = await backend.train();
+        const trained = await reinforceRunner(storeRoot, reinforce, sampleReward);
         if (trained.flushed > 0) {
-            write(`↳ reinforced ${reinforce}`);
+            const records = loadStoreRecords(storeRoot);
+            const reinforcedDzId = trained.dzId
+                ?? findExactLesson(records, reinforce)?.id
+                ?? records.find((record) => record.id === reinforce)?.id;
+            write(reinforcedDzId !== undefined && reinforcedDzId !== reinforce
+                ? `↳ reinforced ${reinforcedDzId} (matched by text)`
+                : `↳ reinforced ${reinforcedDzId ?? reinforce}`);
             // lesson-quarantine: reinforcement IS promotion — keep the hook daemon's mirror in step.
-            const clearedQ = clearAgentdbQuarantine(storeRoot, [reinforce]);
-            if (clearedQ.cleared > 0)
-                write(`  ↳ promoted out of quarantine (mirror updated)`);
+            if (reinforcedDzId === undefined) {
+                write('  ↳ mirror quarantine NOT cleared: matched pattern has no dzId');
+            }
+            else {
+                const clearedQ = clearAgentdbQuarantine(storeRoot, [reinforcedDzId]);
+                if (clearedQ.cleared > 0)
+                    write(`  ↳ promoted out of quarantine (mirror updated)`);
+            }
             write(storeLine('written'));
             refreshLearningStoreMark(storeRoot, writeErr, 'dz teach --reinforce');
             return 0;
@@ -4747,6 +4671,7 @@ Usage:
   dz brain add    --from-kus   <file.json> --slug <s> [--kind repo|book|paper] [--license <spdx>] [--override] [--json]
   dz brain update <slug> [--project <dir>] [--json]
   dz brain reindex [--json]
+  dz brain snapshots [--keep <N>] [--prune] [--json] [--project <dir>]
   dz brain primer <slug> [--json]
   dz brain export --source <slug> --out <file>
   dz brain ground [<prompt>] [--k <N>] [--source <slug>] [--text] [--budget <N>] [--full]
@@ -5215,7 +5140,100 @@ async function cmdBrain(options, flags, cwd, write, readStdin) {
         write(`dz brain reindex: re-embedded ${result.reembedded} KU vector(s) with ${result.model} (manifest v${result.version})`);
         if (result.backupPath !== undefined)
             write(`  snapshot: ${result.backupPath}`);
+        if (result.snapshots !== undefined) {
+            const mb = (result.snapshots.removedBytes / (1024 * 1024)).toFixed(1);
+            write(`  ↳ snapshots: kept ${result.snapshots.kept.length}, removed ${result.snapshots.removed.length} (${mb} MB)`);
+            if (result.snapshots.errors !== undefined && result.snapshots.errors.length > 0) {
+                write(`  ⚠ snapshot rotation error(s): ${result.snapshots.errors.join('; ')}`);
+            }
+            if (result.snapshots.scanErrors !== undefined && result.snapshots.scanErrors.length > 0) {
+                write(`  ⚠ snapshot scan error(s), nothing removed this call: ${result.snapshots.scanErrors.join('; ')}`);
+            }
+            if (result.snapshots.partialFamilies !== undefined && result.snapshots.partialFamilies.length > 0) {
+                write(`  ⚠ .bak preserved after a sibling failure in famil(y/ies): ${result.snapshots.partialFamilies.join(', ')}`);
+            }
+        }
         return 0;
+    }
+    // ── dz brain snapshots [--keep N] [--prune] [--json] ────────────────────────────────────────
+    // Manual rotation of the brain's OWN pre-reindex snapshots — independent of `dz brain reindex`
+    // (FR-7). The owner's hub forbids running a live reindex there today, and 13 snapshots / 50 MB
+    // sit unrotated regardless; this command reaches the same family-aware rotation without one.
+    // Without --prune it only LISTS families (dry, never deletes); --prune applies FR-1..FR-5.
+    if (sub === 'snapshots') {
+        // Lead edit after acceptance (2026-09-13): the owner's hub keeps its 13 families next to the
+        // PROJECT store (.dz/agentdb.db, written by the vector-tier reindex), not the home brain —
+        // `--project <dir>` addresses that store; without it the home brain is the target as before.
+        const projectArg = options.get('project');
+        const dbFile = projectArg !== undefined ? resolveAgentdbPath(resolve(cwd, projectArg)) : brainAgentdbPath(brainHome());
+        const keepRaw = options.get('keep');
+        let keep = 3;
+        if (keepRaw !== undefined) {
+            // AM-1 (fix-round, Codex review Grade D): `Number('')` is `0` and `Number(' 2')` is `2` —
+            // both used to validate as an ordinary non-negative integer, silently accepting empty/
+            // whitespace input. Only the literal digit-string shape is accepted; no trimming.
+            if (!/^(0|[1-9]\d*)$/.test(keepRaw)) {
+                write(`dz brain snapshots: --keep must be a non-negative integer (got '${keepRaw}')`);
+                return 2;
+            }
+            keep = Number(keepRaw);
+            // Lead edit after re-review (Codex C): a digit string can still overflow a safe integer.
+            if (!Number.isSafeInteger(keep)) {
+                write(`dz brain snapshots: --keep is out of range (got '${keepRaw}')`);
+                return 2;
+            }
+        }
+        if (!flags.has('prune')) {
+            // Lead edit after re-review: the list is only trustworthy when the scan was complete —
+            // an unreadable directory is reported with ⚠ and exit 1, never as "no families".
+            const { families, scanErrors } = scanSnapshotDir(dbFile);
+            if (asJson) {
+                write(JSON.stringify({ keep, families: families.map((f) => ({ ms: f.ms, files: f.files.map((file) => file.name), bytes: f.bytes })), scanErrors }));
+                return scanErrors.length > 0 ? 1 : 0;
+            }
+            if (scanErrors.length > 0)
+                write(`  ⚠ scan error(s) — the list below may be incomplete: ${scanErrors.join('; ')}`);
+            if (families.length === 0) {
+                write(`dz brain snapshots: no pre-reindex snapshot families next to ${dbFile}`);
+                return scanErrors.length > 0 ? 1 : 0;
+            }
+            write(`dz brain snapshots — ${families.length} family(-ies) @ ${dbFile}`);
+            for (const f of families) {
+                const mb = (f.bytes / (1024 * 1024)).toFixed(1);
+                write(`  ${new Date(f.ms).toISOString()}  ms=${f.ms}  ${f.files.length} file(s)  ${mb} MB`);
+            }
+            write('  (dry run — pass --prune to remove families older than --keep)');
+            return scanErrors.length > 0 ? 1 : 0;
+        }
+        const report = rotatePreReindexSnapshots(dbFile, { keep });
+        const scanFailed = report.scanErrors !== undefined && report.scanErrors.length > 0;
+        // agentdb-snapshot-lock FR-4: a busy snapshot lock is reported exactly like a scan failure —
+        // nothing removed, ⚠, exit 1 — never a silent "kept N, removed 0" that reads like an empty rotation.
+        const lockBusy = report.errors !== undefined && report.errors.some((e) => e.startsWith('lock busy'));
+        if (asJson) {
+            write(JSON.stringify(report));
+            return scanFailed || lockBusy ? 1 : 0;
+        }
+        const mb = (report.removedBytes / (1024 * 1024)).toFixed(1);
+        write(`dz brain snapshots: kept ${report.kept.length}, removed ${report.removed.length} (${mb} MB)`);
+        if (report.removed.length > 0)
+            write(`  removed: ${report.removed.join(', ')}`);
+        if (report.errors !== undefined && report.errors.length > 0) {
+            write(`  ⚠ ${report.errors.length} error(s): ${report.errors.join('; ')}`);
+        }
+        // AM-4: an incomplete scan means NOTHING was removed this call — say so, never silently.
+        if (report.scanErrors !== undefined && report.scanErrors.length > 0) {
+            write(`  ⚠ scan error(s), nothing removed this call: ${report.scanErrors.join('; ')}`);
+        }
+        // AM-2: a family whose .bak survived only because a sibling failed to unlink.
+        if (report.partialFamilies !== undefined && report.partialFamilies.length > 0) {
+            write(`  ⚠ .bak preserved after a sibling failure in famil(y/ies): ${report.partialFamilies.join(', ')}`);
+        }
+        // FR-3: a live reindex marker rescued a family, or an expired one was cleaned up — honest, never an error.
+        if (report.notes !== undefined && report.notes.length > 0) {
+            write(`  note: ${report.notes.join('; ')}`);
+        }
+        return scanFailed || lockBusy ? 1 : 0;
     }
     // ── dz brain ground [<prompt>] ───────────────────────────────────────────────────────────────
     // The UserPromptSubmit hook entrypoint. ALWAYS exits 0 — grounding is advisory and must never
@@ -5426,6 +5444,19 @@ async function cmdSetup(options, flags, cwd, write, writeErr) {
     // Step 3: Run setup (hooks + memory + config)
     write(`║  3. Setting up learning environment...                ║`);
     const memoryOpt = options.get('memory');
+    // ADR-001 Decision 2 (feature setup-installs-apply-leg): bake THIS CLI's own installed
+    // @dzhechkov/harness-core into the generated apply-leg hooks — the installation actually running
+    // `dz setup` is the one a consumer's project can always reach, unlike a hard-coded npm prefix
+    // (FR-3). Best-effort: an unresolvable core (should not happen — the CLI depends on it) falls
+    // back to core's own self-resolution inside `runSetup`, never a crash.
+    let coreDistDir;
+    try {
+        const corePkgJson = createRequire(import.meta.url).resolve('@dzhechkov/harness-core/package.json');
+        coreDistDir = join(dirname(corePkgJson), 'dist');
+    }
+    catch {
+        coreDistDir = undefined;
+    }
     const setupResult = runSetup({
         projectRoot,
         target,
@@ -5435,6 +5466,7 @@ async function cmdSetup(options, flags, cwd, write, writeErr) {
         noMemory: flags.has('no-memory'),
         force: flags.has('force'),
         installDriver: flags.has('install-driver'),
+        coreDistDir,
     });
     for (const step of setupResult.steps) {
         const icon = step.status === 'done' ? '✓' : step.status === 'skipped' ? '○' : '✗';
@@ -6595,7 +6627,7 @@ function cmdPublish(options, flags, cwd, writeOutput, mirrorRunner) {
 /*  dz parity — the honest feature×target map (target-parity-matrix,   */
 /*  ADR-001): computed from the declarative model, never hand-written  */
 /* ------------------------------------------------------------------ */
-function cmdParity(options, flags, write, writeErr) {
+function cmdParity(options, flags, write, writeErr, cwd) {
     const json = flags.has('json');
     if (flags.has('help')) {
         write('dz parity [--target <name>] [--json] — the computed feature×target map (never hand-written)');
@@ -6623,7 +6655,33 @@ function cmdParity(options, flags, write, writeErr) {
             return 1;
         }
     }
-    const matrix = buildParityMatrix();
+    // ADR-001 Decision 3 (feature setup-installs-apply-leg): `learning-apply` on `claude-code` is
+    // MEASURED, not declared — `hooks-prompt` is present for that ONE target only when
+    // `applyLegStatus(root).installed`. `computeParity` itself is untouched (FR-5); only the
+    // capability SET fed into it for this one cell differs from the static `TARGET_CAPABILITIES`.
+    // `applyLegStatus` never throws (fix round 1, Q3 finding: an unreadable helper used to be able to
+    // crash this command rather than degrade to a named remedy).
+    const applyLegStatusVal = applyLegStatus(cwd);
+    const applyLegInstalled = applyLegStatusVal.installed;
+    const matrix = buildParityMatrix().map((row) => {
+        if (row.feature.id !== 'learning-apply' || applyLegInstalled)
+            return row;
+        const claudeCodeCaps = TARGET_CAPABILITIES['claude-code'].filter((c) => c !== 'hooks-prompt');
+        return { feature: row.feature, cells: { ...row.cells, 'claude-code': computeParity(row.feature, claudeCodeCaps) } };
+    });
+    // The "not installed" remedy — named ONLY for the one cell whose grant is a live measurement,
+    // never a blanket note for every `manual` cell (most targets are manual by DESIGN, not absence).
+    // `stale-version`/`unreadable` route through `applyLegReasonMessage` — the SAME text-producing
+    // function `dz doctor` uses for those two reasons (fix round 1, HIGH finding 2 / Q3 finding 7), so
+    // the two instruments cannot disagree about WHY a stale or broken install is not "full".
+    const applyLegRemedy = (featureId, t) => {
+        if (featureId !== 'learning-apply' || t !== 'claude-code' || applyLegInstalled)
+            return '';
+        if (applyLegStatusVal.reason === 'stale-version' || applyLegStatusVal.reason === 'unreadable') {
+            return ` — ${applyLegReasonMessage(applyLegStatusVal)}`;
+        }
+        return ' — not installed — run dz setup --target claude-code --memory agentdb';
+    };
     // EVIDENCE staleness, folded into the report (fix round 2, R2-3). Derived from the records
     // themselves — no `codex --version`, no subprocess, so `dz parity` stays a deterministic function
     // of the model. A cell whose deciding form rests on a transcript that is older than the newest
@@ -6667,8 +6725,11 @@ function cmdParity(options, flags, write, writeErr) {
         const shown = target !== undefined ? [target] : TARGET_NAMES;
         const rows = matrix.map((r) => {
             const cells = {};
-            for (const t of shown)
-                cells[t] = reportCell(r.feature, t, r.cells[t]);
+            for (const t of shown) {
+                const cell = reportCell(r.feature, t, r.cells[t]);
+                const remedy = applyLegRemedy(r.feature.id, t);
+                cells[t] = remedy === '' ? cell : { ...cell, note: remedy.replace(/^ — /, '') };
+            }
             return { id: r.feature.id, title: r.feature.title, cells };
         });
         // A filtered response stays internally consistent: capabilities are filtered too (Codex QE gap 9).
@@ -6694,7 +6755,7 @@ function cmdParity(options, flags, write, writeErr) {
                 : c.level === 'inconclusive'
                     ? `via ${c.via ?? ''} — INCONCLUSIVE: stale evidence for ${(c.staleEvidence ?? []).join(', ')}`
                     : `via ${c.via ?? ''}`;
-            write(`  ${icon} ${r.feature.title.padEnd(58)} ${detail}`);
+            write(`  ${icon} ${r.feature.title.padEnd(58)} ${detail}${applyLegRemedy(r.feature.id, t)}`);
         }
         write('\n  ✓ full (the complete experience)   ◐ manual (works, you drive it by hand)   ? evidence stale (re-probe)   — not available');
         for (const line of staleNote(t))
@@ -8933,6 +8994,39 @@ function gatherGuardFacts(op, root, text, storeCap, publishFilter) {
     const facts = { op };
     const publishPackageRoots = [];
     if (op === 'publish') {
+        try {
+            const roundsDir = join(root, '.dz', 'rounds');
+            const states = readdirSync(roundsDir)
+                .filter((name) => name.endsWith('.json'))
+                .map((name) => readRoundState(join(roundsDir, name)))
+                .filter((state) => state !== null);
+            facts['openRounds'] = listRounds(states, {
+                now: Date.now(),
+                olderThanMinutes: 120,
+                isPidAlive: probePid,
+                isRunAlive: (runId) => roundRunOwnerAlive(root, runId, Date.now()),
+            }).map((row) => ({
+                slug: row.state.slug,
+                round: row.state.round,
+                ageMinutes: row.ageMinutes,
+                pidAlive: row.pidAlive,
+            }));
+        }
+        catch { /* absent/unreadable round state is no fabricated violation */ }
+        const since = roundTraceSince(root);
+        const enabled = roundsTracingEnabled(root);
+        if (!enabled) {
+            facts['codeCommitsSinceLastRound'] = { commits: null, since, enabled: false };
+        }
+        else if (since !== null) {
+            facts['codeCommitsSinceLastRound'] = { commits: packageCommitCount(root, since), since };
+        }
+        else if (existsSync(join(root, '.dz', 'feature-adr', 'run-cost-ledger.jsonl'))) {
+            // The ledger EXISTS but carries no dated row: that is a measurable absence and gets a note.
+            // No ledger file at all is a fresh project — the rule stays not-established silently, so a
+            // note that every new repo would carry does not drown the ones that mean something.
+            facts['codeCommitsSinceLastRound'] = { commits: null, since: null };
+        }
         // Advisory I/O: unreadable telemetry or fed state is absence of evidence, never a fabricated
         // stale finding and never a publish blocker.
         try {
@@ -11329,6 +11423,107 @@ function parseCheckMutatedFile(absFile, text) {
         return { skipped: `parse-check errored: ${String(e.message).slice(0, 120)}` };
     }
 }
+const MUTATION_GATE_OUTPUT_TAIL_MAX_LINES = 20;
+const MUTATION_GATE_OUTPUT_TAIL_MAX_BYTES = 2 * 1024;
+export function boundedMutationGateOutputTail(output) {
+    const normalized = output.replace(/\r\n?/g, '\n').replace(/\n+$/, '');
+    if (normalized === '')
+        return undefined;
+    let tail = normalized.split('\n').slice(-MUTATION_GATE_OUTPUT_TAIL_MAX_LINES).join('\n');
+    const encoded = Buffer.from(tail, 'utf8');
+    if (encoded.byteLength <= MUTATION_GATE_OUTPUT_TAIL_MAX_BYTES)
+        return tail;
+    const codePoints = Array.from(tail);
+    let start = codePoints.length;
+    let byteLength = 0;
+    while (start > 0) {
+        const nextByteLength = Buffer.byteLength(codePoints[start - 1], 'utf8');
+        if (byteLength + nextByteLength > MUTATION_GATE_OUTPUT_TAIL_MAX_BYTES)
+            break;
+        byteLength += nextByteLength;
+        start -= 1;
+    }
+    return codePoints.slice(start).join('');
+}
+// ── Full-output capture for a RED baseline/rebaseline line (gate-stability, 2026-09-12) ────────
+// The bounded tail above is a diagnostic teaser (3-20 lines); under a multi-entry gate run the
+// tail was measured to hand back an unrelated neighbour's stderr, leaving OVER_FAILING/
+// INCONCLUSIVE undiagnosable. Only the baseline and rebaseline lines write here — the per-entry
+// mutation run is EXPECTED to redden and already carries a bounded tail; this is for the lines
+// whose redness means "the copy itself is broken", where the full transcript is the only way to
+// tell what actually happened.
+const MUTATION_GATE_OUTPUT_FILE_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
+function mutationGateOutputDir() {
+    return process.env.DZ_MUTGATE_OUTPUT_DIR ?? join(tmpdir(), 'dz-mutgate-output');
+}
+/** own filename prefix (fix-round-1 HIGH finding) — see isMutationGateOutputFile. */
+const MUTATION_GATE_OUTPUT_FILE_PREFIX = 'dz-mutgate-';
+/** exact shape of `new Date().toISOString().replace(/:/g, '-')`, e.g. `2026-09-12T20-00-00.000Z`. */
+const MUTATION_GATE_OUTPUT_TS_PATTERN = String.raw `\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.\d{3}Z`;
+const MUTATION_GATE_OUTPUT_FILE_RE = new RegExp(`^${MUTATION_GATE_OUTPUT_FILE_PREFIX}.+-(baseline|rebaseline|final-rebaseline)-${MUTATION_GATE_OUTPUT_TS_PATTERN}\\.log$`);
+/**
+ * true only for a filename THIS executor could have written — rotation never touches a foreign
+ * file. Fix-round-1 HIGH finding (Codex review, gate-stability): the prior
+ * `^.+-(baseline|rebaseline|final-rebaseline)-.+\.log$` had no own prefix and accepted ANY
+ * trailing text as the "timestamp", so a pre-existing unrelated file dropped into a shared
+ * `DZ_MUTGATE_OUTPUT_DIR` (e.g. `service-baseline-backup.log`) matched and could be rotated away.
+ * Now BOTH the `dz-mutgate-` prefix AND the exact ISO-timestamp shape we ourselves write are
+ * required — a foreign file can accidentally share the prefix but essentially never our precise
+ * timestamp format, and a file we did NOT write never carries both.
+ */
+function isMutationGateOutputFile(name) {
+    return MUTATION_GATE_OUTPUT_FILE_RE.test(name);
+}
+function rotateMutationGateOutputDir(dir) {
+    let names;
+    try {
+        names = readdirSync(dir);
+    }
+    catch {
+        return;
+    }
+    const cutoff = Date.now() - MUTATION_GATE_OUTPUT_FILE_RETENTION_MS;
+    for (const name of names) {
+        if (!isMutationGateOutputFile(name))
+            continue; // "чужие файлы не трогаются" — own prefix only
+        const full = join(dir, name);
+        try {
+            if (statSync(full).mtimeMs < cutoff)
+                rmSync(full, { force: true });
+        }
+        catch { /* best effort — a listing race is not this executor's problem */ }
+    }
+}
+/**
+ * Saves the FULL stdout+stderr of a RED baseline/rebaseline run and returns `{ path }`, or
+ * `{ error }` on any I/O failure (EACCES/ENOSPC/EROFS/ENOTDIR and the like — never blocks the gate
+ * on a logging problem: fix-round-1 MEDIUM finding, the prior silent `catch { return undefined; }`
+ * made a failed save indistinguishable from "nothing to save"), or `undefined` when exitCode is 0
+ * (nothing written on green — NFR-1 byte-identity).
+ */
+function writeMutationGateOutputOnRed(entryId, phase, exitCode, output) {
+    if (exitCode === 0)
+        return undefined;
+    try {
+        const dir = mutationGateOutputDir();
+        mkdirSync(dir, { recursive: true });
+        rotateMutationGateOutputDir(dir);
+        const ts = new Date().toISOString().replace(/:/g, '-');
+        const full = join(dir, `${MUTATION_GATE_OUTPUT_FILE_PREFIX}${entryId ?? 'baseline'}-${phase}-${ts}.log`);
+        writeFileSync(full, output);
+        return { path: full };
+    }
+    catch (e) {
+        return { error: String(e?.message ?? e) };
+    }
+}
+/** Unpacks a `writeMutationGateOutputOnRed` result into the `{outputPath, outputError}` shape the
+ *  pure engine (classifyBaseline / MutationObservation) consumes. */
+function splitMutationGateOutputWrite(result) {
+    if (result === undefined)
+        return {};
+    return 'path' in result ? { outputPath: result.path } : { outputError: result.error };
+}
 function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
     const json = flags.has('json');
     const fail = (what) => {
@@ -11384,6 +11579,10 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
     if (/[\0\n\r]/.test(testCmdRaw))
         return fail('--test-cmd may not contain NUL or newline characters');
     const testCmd = testCmdRaw;
+    const excludedSelfChecks = REGISTRY_SELFCHECK_TESTS.filter((testFile) => entries.some((entry) => buildMutationTestCommand(testCmd, entry).excluded.includes(testFile)));
+    if (!json) {
+        write(`mutation-gate: self-check excluded from mutant runs: ${excludedSelfChecks.join(', ') || '(none)'}`);
+    }
     const timeoutOpt = Number(options.get('timeout') ?? '300000');
     const timeout = Number.isFinite(timeoutOpt) && timeoutOpt > 0 ? timeoutOpt : 300000;
     // Route-b guard mode: `per-entry` (default, strongest — each red entry re-baselines the restored
@@ -11461,11 +11660,16 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
         // write below is asserted to RESOLVE inside this root before it happens.
         const realScratchRoot = realpathSync(copyDir);
         const requireCompletionReceipt = parsed.registry.requireCompletionReceipt === true;
-        const invokeSuite = () => {
+        const invokeSuite = (suiteCommand, phase, entryId) => {
             if (injectedRunner !== undefined) {
-                return injectedRunner(testCmd, { cwd: copyDir, timeoutMs: timeout });
+                return injectedRunner(suiteCommand, {
+                    cwd: copyDir,
+                    timeoutMs: timeout,
+                    phase,
+                    ...(entryId !== undefined ? { entryId } : {}),
+                });
             }
-            const run = spawnSync(testCmd, {
+            const run = spawnSync(suiteCommand, {
                 cwd: copyDir,
                 shell: true,
                 encoding: 'utf-8',
@@ -11502,8 +11706,8 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
                 ...(failureReason !== undefined ? { failureReason } : {}),
             };
         };
-        const runSuite = (phase, entryId) => {
-            const retried = runWithOneInternalRetry(invokeSuite);
+        const runSuite = (phase, entryId, suiteCommand = testCmd) => {
+            const retried = runWithOneInternalRetry(() => invokeSuite(suiteCommand, phase, entryId));
             const loggedAttempts = retried.attempts.map((attempt) => {
                 if (attempt.outcome !== 'completed' || retried.value === null)
                     return attempt;
@@ -11541,9 +11745,10 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
         if (!json)
             write(`mutation-gate: baseline suite in scratch copy of ${pkgDir} …`);
         const base = runSuite('baseline');
+        const { outputPath: baseOutputPath, outputError: baseOutputError } = splitMutationGateOutputWrite(writeMutationGateOutputOnRed(undefined, 'baseline', base.exitCode, base.output));
         baseline = classifyBaseline(base.exitCode, base.failureReason, base.exitCode !== null && base.exitCode !== 0
             ? attributeBaselineRedness(base.output, entries.map((entry) => entry.file))
-            : undefined);
+            : undefined, baseOutputPath, baseOutputError);
         if (!baseline.ok) {
             if (json) {
                 write(JSON.stringify({ packageDir: pkgDir, registryPath, testCommand: testCmd, baseline, results, internalRetries, exitCode: 1 }, null, 2));
@@ -11616,7 +11821,7 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
                     parseError = check.error; // no suite run: the verdict is MUTATION_UNPARSEABLE regardless
                 }
                 else if (parseInternalFailureReason === undefined) {
-                    run = runSuite('mutation', entry.id);
+                    run = runSuite('mutation', entry.id, buildMutationTestCommand(testCmd, entry).testCommand);
                 }
             }
             finally {
@@ -11653,6 +11858,9 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
             let rebaselineExitCode;
             let rebaselineFailureReason;
             let rebaselineAttribution;
+            let rebaselineOutputTail;
+            let rebaselineOutputPath;
+            let rebaselineOutputError;
             let rebaselineInternalAttemptLog;
             if (rebaselineMode === 'per-entry' && run !== null && run.exitCode !== null && run.exitCode !== 0
                 && fileLoadFailure === undefined && outputUnrecognised === undefined && receiptMismatch === undefined) {
@@ -11662,8 +11870,13 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
                 rebaselineExitCode = rebaselineRun.exitCode;
                 rebaselineFailureReason = rebaselineRun.failureReason;
                 rebaselineInternalAttemptLog = rebaselineRun.internalAttemptLog;
-                if (rebaselineRun.exitCode !== null && rebaselineRun.exitCode !== 0) {
-                    rebaselineAttribution = attributeBaselineRedness(rebaselineRun.output, entries.map((candidate) => candidate.file));
+                if (rebaselineRun.exitCode !== 0) {
+                    rebaselineOutputTail = boundedMutationGateOutputTail(rebaselineRun.output);
+                    ({ outputPath: rebaselineOutputPath, outputError: rebaselineOutputError } =
+                        splitMutationGateOutputWrite(writeMutationGateOutputOnRed(entry.id, 'rebaseline', rebaselineRun.exitCode, rebaselineRun.output)));
+                    if (rebaselineRun.exitCode !== null) {
+                        rebaselineAttribution = attributeBaselineRedness(rebaselineRun.output, entries.map((candidate) => candidate.file));
+                    }
                 }
             }
             const entryRunFailureReason = run?.failureReason ?? parseInternalFailureReason;
@@ -11684,6 +11897,9 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
                 ...(rebaselineExitCode !== undefined ? { rebaselineExitCode } : {}),
                 ...(rebaselineFailureReason !== undefined ? { rebaselineFailureReason } : {}),
                 ...(rebaselineAttribution !== undefined ? { rebaselineAttribution } : {}),
+                ...(rebaselineOutputTail !== undefined ? { rebaselineOutputTail } : {}),
+                ...(rebaselineOutputPath !== undefined ? { outputPath: rebaselineOutputPath } : {}),
+                ...(rebaselineOutputError !== undefined ? { outputError: rebaselineOutputError } : {}),
             };
             observations.push(obs);
             results.push(classifyMutationOutcome(obs));
@@ -11699,6 +11915,8 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
             const finalRun = runSuite('final-rebaseline');
             const finalExit = finalRun.exitCode;
             if (finalExit !== 0) {
+                const finalOutputTail = boundedMutationGateOutputTail(finalRun.output);
+                const { outputPath: finalOutputPath, outputError: finalOutputError } = splitMutationGateOutputWrite(writeMutationGateOutputOnRed(undefined, 'final-rebaseline', finalExit, finalRun.output));
                 const what = finalExit === null ? `no exit code: ${finalRun.failureReason ?? 'unknown timeout / spawn failure'}` : `exit ${finalExit}`;
                 warnings.push(`final re-baseline NOT green (${what}) — the suite is flaky; red-based verdicts downgraded to INCONCLUSIVE`);
                 if (!json)
@@ -11713,6 +11931,9 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
                     ...(finalExit !== null && finalExit !== 0
                         ? { rebaselineAttribution: attributeBaselineRedness(finalRun.output, entries.map((entry) => entry.file)) }
                         : {}),
+                    ...(finalOutputTail !== undefined ? { rebaselineOutputTail: finalOutputTail } : {}),
+                    ...(finalOutputPath !== undefined ? { outputPath: finalOutputPath } : {}),
+                    ...(finalOutputError !== undefined ? { outputError: finalOutputError } : {}),
                 }));
                 results.length = 0;
                 results.push(...reclassified);
@@ -13870,6 +14091,893 @@ function cmdRunsRecord(options, flags, cwd, write) {
         return 2;
     }
 }
+const ROUND_LEDGER_REL = join('.dz', 'feature-adr', 'run-cost-ledger.jsonl');
+/**
+ * round-state-root FR-1/FR-2: where `dz round` state (and its ledger, FR-4) lives — flag beats env
+ * beats cwd. `--project` is untouched by this and stays recall-only (lesson 2ac30a70). Only an
+ * EXPLICIT flag/env value is validated for absoluteness; the cwd fallback is `resolve(cwd)`, exactly
+ * what every subcommand used before this feature (NFR-1: byte-identical when neither is set).
+ */
+function resolveRoundStateRoot(options, env, cwd) {
+    const flagRaw = options.get('state-root');
+    if (flagRaw !== undefined) {
+        if (!isAbsolute(flagRaw))
+            return { ok: false, reason: `--state-root должен быть абсолютным путём: ${flagRaw}` };
+        return { ok: true, root: flagRaw, source: 'flag' };
+    }
+    const envRaw = env['DZ_ROUND_STATE_ROOT'];
+    if (envRaw !== undefined) {
+        // A variable that is SET but blank is a misconfiguration, not an absence: falling back to cwd
+        // here would be exactly the stray-write this flag exists to prevent (Codex review, 2026-09-13).
+        if (envRaw.trim() === '')
+            return { ok: false, reason: 'DZ_ROUND_STATE_ROOT задана, но пуста — укажите абсолютный путь или снимите переменную' };
+        if (!isAbsolute(envRaw))
+            return { ok: false, reason: `DZ_ROUND_STATE_ROOT должен быть абсолютным путём: ${envRaw}` };
+        return { ok: true, root: envRaw, source: 'env' };
+    }
+    return { ok: true, root: resolve(cwd), source: 'cwd' };
+}
+function roundStatePath(root, slug, round) {
+    return join(root, '.dz', 'rounds', `${slug}-${round}.json`);
+}
+/** round-state-lock T2: parses raw JSON text into a `RoundState`, shared by `readRoundState` (reads
+ * from disk) and the AC-1 recheck-under-lock (compares a raw string captured before recall against
+ * one read again inside the lock, so it needs to parse the SAME raw text twice without a third
+ * disk read). */
+function parseRoundState(raw) {
+    try {
+        const row = JSON.parse(raw);
+        if (typeof row.slug !== 'string' || !Number.isInteger(row.round) || typeof row.topic !== 'string'
+            || typeof row.startedAt !== 'string' || !Number.isInteger(row.pid) || !Array.isArray(row.recalled)
+            || row.recalled.some((id) => typeof id !== 'string'))
+            return null;
+        if (row.execs !== undefined && (!Array.isArray(row.execs) || row.execs.some((entry) => typeof entry.startedAt !== 'string' || typeof entry.endedAt !== 'string'
+            || (entry.exitCode !== null && !Number.isInteger(entry.exitCode))
+            || typeof entry.outcome !== 'string'
+            || (entry.tokens !== null && !Number.isInteger(entry.tokens)))))
+            return null;
+        return row;
+    }
+    catch {
+        return null;
+    }
+}
+function readRoundState(path) {
+    try {
+        return parseRoundState(readFileSync(path, 'utf8'));
+    }
+    catch {
+        return null;
+    }
+}
+/** round-state-lock: the raw bytes at `path`, or `null` when absent/unreadable. Used to detect
+ * whether the state file changed between a check made BEFORE the (long, unlocked) recall and one
+ * made again INSIDE the round-state lock — a byte-identical read means nothing raced us. */
+function readRawRoundState(path) {
+    try {
+        return readFileSync(path, 'utf8');
+    }
+    catch {
+        return null;
+    }
+}
+/** round-state-lock fix-round AM-1: 16 random hex chars, minted once per `open`. */
+function generateRoundStateId() {
+    return randomBytes(8).toString('hex');
+}
+/** Lead edit after Codex re-review: a LEGACY state (written before stateId existed) must not be
+ * matched by `undefined === undefined` — under the lock, the first exec/close that meets it mints
+ * an id, writes it back, and continues with that id as the identity of THIS operation. */
+function ensureStateId(path, fresh) {
+    if (fresh.stateId !== undefined)
+        return fresh;
+    const minted = { ...fresh, stateId: randomBytes(8).toString('hex') };
+    writeJsonAtomic(path, minted);
+    return minted;
+}
+function readStateOrRefuse(path, expectedStateId) {
+    const fresh = readRoundState(path);
+    if (fresh === null)
+        return { refused: 'gone' };
+    if (expectedStateId === undefined && fresh.stateId === undefined)
+        return ensureStateId(path, fresh);
+    if (fresh.stateId !== expectedStateId)
+        return { refused: 'replaced', stateId: fresh.stateId };
+    return fresh;
+}
+function readStateForCloseOrRefuse(path, expectedStateId) {
+    const fresh = readRoundState(path);
+    if (fresh === null)
+        return { refused: 'closed-already' };
+    if (expectedStateId === undefined && fresh.stateId === undefined)
+        return ensureStateId(path, fresh);
+    if (fresh.stateId !== expectedStateId)
+        return { refused: 'replaced', stateId: fresh.stateId };
+    return fresh;
+}
+/** round-state-lock fix-round AM-4: the exact ledger-row marker `closeRound` (harness-core) will
+ * compute for THIS close attempt, predicted from the same three inputs (slug, round, closedAt)
+ * BEFORE calling it — so a retried `close` with the same injected `roundNow` (same `closedAt`) can
+ * detect "the ledger already carries this attempt's row" and skip writing a duplicate. Mirrors
+ * `closeRound`'s own marker formula in harness-core/src/round.ts exactly; a drift between the two
+ * would only defeat the RETRY-dedup check (closeRound's own success postcondition, verified by
+ * rereading the ledger tail, is unaffected either way). Deliberately NOT keyed on `stateId`: the
+ * run-cost ledger row schema (`RoundLedgerRow`) has no such column, and adding one is out of this
+ * fix's scope (round.ts stays untouched) — (slug, round, closedAt) is the identity already exposed
+ * through the marker, and it is exactly as unique for a genuine retry (same close command, same
+ * injected clock) as a `stateId` would be. */
+function predictedRoundCloseMarker(slug, round, closedAtIso) {
+    const closedMs = Date.parse(closedAtIso);
+    const compactTs = new Date(closedMs).toISOString().replace(/[-:.]/g, '');
+    return `round-${slug}-${round}-${compactTs}`;
+}
+/** round-state-lock fix-round AM-5: `open`/`status` warn when a round has been sitting with
+ * `ownerKind: 'exec'` for more than this many minutes — the shape of a restore-section that
+ * exhausted its lock-busy retries (see `ROUND_RESTORE_LOCK_ATTEMPTS`) and left the round claimed by
+ * an `exec` that already finished. There is no separate "since when has this been exec" timestamp on
+ * `RoundState`, so this measures from `startedAt` (the round's own start) — a deliberate
+ * approximation: an `exec` that ran briefly near round-open would read as "young" even if its
+ * restore failed just now. Good enough to surface the stuck case at all; not a claim of precision. */
+const ROUND_EXEC_STALE_MINUTES = 10;
+function roundExecStaleAgeMinutes(state, now) {
+    if (state.ownerKind !== 'exec')
+        return null;
+    // Lead edit after Codex re-review: count from the exec claim, not from the round's own start —
+    // a fresh exec inside an old round is not stuck. Legacy states without the field fall back.
+    const claimedMs = Date.parse(state.execClaimedAt ?? state.startedAt);
+    if (!Number.isFinite(claimedMs))
+        return null;
+    const minutes = Math.floor((now - claimedMs) / 60_000);
+    return minutes >= ROUND_EXEC_STALE_MINUTES ? minutes : null;
+}
+function readRoundLedgerTail(root) {
+    try {
+        const body = readFileSync(join(root, ROUND_LEDGER_REL), 'utf8');
+        return body.slice(-64 * 1024);
+    }
+    catch {
+        return '';
+    }
+}
+function readRoundLedger(root) {
+    try {
+        return readFileSync(join(root, ROUND_LEDGER_REL), 'utf8');
+    }
+    catch {
+        return '';
+    }
+}
+function roundRunOwnerAlive(root, runId, now, registryReader, pidProbe = probePid) {
+    const registry = readRunRegistry(root, registryReader === undefined
+        ? runRegistryIO
+        : { ...runRegistryIO, read: () => registryReader(root) });
+    if (registry.status !== 'readable')
+        return null;
+    const decision = liveness(registry.runs.find((run) => run.runId === runId), now, pidProbe);
+    return decision.state === 'live' || decision.state === 'stalled' ? true : decision.state === 'orphaned' ? false : null;
+}
+function nextRoundNumber(ledger, slug) {
+    let count = 0;
+    for (const line of ledger.split('\n')) {
+        try {
+            const row = JSON.parse(line);
+            if (row.slug === slug && row.stage === 'round')
+                count++;
+        }
+        catch { /* malformed and torn rows are not completed rounds */ }
+    }
+    return count + 1;
+}
+export async function spawnRoundCodex(request) {
+    mkdirSync(dirname(request.logPath), { recursive: true });
+    const logFd = openSync(request.logPath, 'w');
+    return await new Promise((resolveRun) => {
+        let settled = false;
+        let timedOut = false;
+        let escalation;
+        let child;
+        const finish = (receipt) => {
+            if (settled)
+                return;
+            settled = true;
+            clearTimeout(deadline);
+            if (escalation !== undefined)
+                clearTimeout(escalation);
+            try {
+                closeSync(logFd);
+            }
+            catch { /* the subprocess receipt remains authoritative */ }
+            resolveRun({ ...receipt, timedOut });
+        };
+        const deadline = setTimeout(() => {
+            timedOut = true;
+            try {
+                child?.kill('SIGTERM');
+            }
+            catch { /* SIGKILL below is the bounded fallback */ }
+            escalation = setTimeout(() => {
+                try {
+                    child?.kill('SIGKILL');
+                }
+                catch { /* close/error decides the receipt */ }
+            }, request.killGraceMs ?? 10_000);
+        }, request.timeoutMs);
+        try {
+            child = spawn(request.command, [...request.args], {
+                cwd: request.cwd,
+                stdio: ['ignore', logFd, logFd],
+            });
+        }
+        catch (error) {
+            const err = error;
+            finish({ exitCode: null, signal: null, ...(err.code === undefined ? {} : { errorCode: err.code }), error: err.message });
+            return;
+        }
+        child.on('error', (error) => {
+            finish({ exitCode: null, signal: null, ...(error.code === undefined ? {} : { errorCode: error.code }), error: error.message });
+        });
+        child.on('close', (code, signal) => finish({ exitCode: code, signal }));
+    });
+}
+function roundExecReceiptFound(tail, expected) {
+    for (const line of tail.split('\n')) {
+        try {
+            const row = JSON.parse(line);
+            if (row.stage === 'round-exec' && row.slug === expected.slug && row.round === expected.round
+                && row.startedAt === expected.startedAt && row.endedAt === expected.endedAt
+                && row.outcome === expected.outcome && row.exitCode === expected.exitCode)
+                return true;
+        }
+        catch { /* a torn or unrelated line is not this receipt */ }
+    }
+    return false;
+}
+/**
+ * round-state-lock T1 — the one named lock every `.dz/rounds/*.json` mutation goes through
+ * (`<stateRoot>/.dz/locks/round-state.lock`, `withNamedLockSync` from `@dzhechkov/harness-core`).
+ *
+ * `fn` MUST be short and synchronous (the same caveat `withNamedLockSync` itself carries): it may
+ * reread state and write it, never spawn a subprocess or await anything — the recall step and the
+ * ledger write stay OUTSIDE the lock by design (teach:0ea46034), and the long-running `codex exec`
+ * child in `round exec` runs between two separate short lock holds, not inside one.
+ *
+ * `io.roundLockTimeoutMs` (NFR-2) lets tests force a small deadline instead of the real default;
+ * omitting it keeps production behaviour (and every existing test) byte-identical.
+ */
+function withRoundStateLock(stateRoot, fn, io) {
+    try {
+        return withNamedLockSync(stateRoot, 'round-state', fn, io.roundLockTimeoutMs === undefined ? {} : { timeoutMs: io.roundLockTimeoutMs });
+    }
+    catch (error) {
+        if (error instanceof NamedLockTimeoutError) {
+            return { refused: 'lock-busy', reason: error.message };
+        }
+        throw error;
+    }
+}
+/** round-state-lock fix-round AM-5: the restore-section retry budget — `exec`'s SECOND lock hold
+ * (returning ownership after the codex child exits) tries up to this many times, with the SAME
+ * per-attempt timeout, before it gives up and leaves the round `ownerKind: 'exec'` for a human to
+ * notice (via the `open`/`status` staleness warning) rather than looping forever against a lock that
+ * may never free up. */
+const ROUND_RESTORE_LOCK_ATTEMPTS = 4; // 1 attempt + 3 retries (AM-5; lead edit after re-review)
+function withRoundStateLockRetried(stateRoot, fn, io, attempts) {
+    let lastBusy = null;
+    for (let attempt = 0; attempt < attempts; attempt++) {
+        const result = withRoundStateLock(stateRoot, fn, io);
+        if (!(typeof result === 'object' && result !== null && 'refused' in result && result.refused === 'lock-busy')) {
+            return result;
+        }
+        lastBusy = result;
+    }
+    return lastBusy;
+}
+async function cmdRound(options, optionLists, flags, cwd, write, io) {
+    const sub = options.get('_positional_0') ?? '';
+    const json = flags.has('json');
+    const stateRootResolution = resolveRoundStateRoot(options, process.env, cwd);
+    if (!stateRootResolution.ok) {
+        write(json ? JSON.stringify({ message: stateRootResolution.reason }) : stateRootResolution.reason);
+        return 2;
+    }
+    const stateRoot = stateRootResolution.root;
+    const stateRootExplicit = stateRootResolution.source !== 'cwd';
+    const projectRoot = resolve(cwd, options.get('project') ?? '.');
+    const now = io.roundNow?.() ?? Date.now();
+    const emit = (message, extra = {}) => {
+        write(json ? JSON.stringify({ message, ...extra }) : message);
+    };
+    const address = (roundOverride) => {
+        const slug = options.get('slug') ?? '';
+        const round = roundOverride ?? Number(options.get('round'));
+        if (!/^[a-z0-9][a-z0-9._-]*$/i.test(slug) || !Number.isInteger(round) || round < 1)
+            return null;
+        return { slug, round };
+    };
+    if (sub === 'open') {
+        const slug = options.get('slug') ?? '';
+        const roundRaw = options.get('round');
+        const autoRound = roundRaw === 'auto'
+            ? nextRoundNumber(io.roundLedgerReader?.(stateRoot) ?? readRoundLedger(stateRoot), slug)
+            : undefined;
+        const at = address(autoRound);
+        const topic = options.get('topic') ?? '';
+        if (at === null || topic.trim() === '') {
+            emit('нужны --slug --round --topic');
+            return 2;
+        }
+        const ownerPidRaw = options.get('owner-pid');
+        const ownerRunRaw = options.get('owner-run');
+        if (ownerPidRaw !== undefined && ownerRunRaw !== undefined) {
+            emit('--owner-pid и --owner-run взаимоисключающие');
+            return 2;
+        }
+        if (ownerRunRaw !== undefined && ownerRunRaw.trim() === '') {
+            emit('--owner-run пуст');
+            return 2;
+        }
+        const ownerRun = ownerRunRaw?.trim();
+        const ownerPid = ownerRunRaw !== undefined ? 0 : ownerPidRaw === undefined ? process.ppid : Number(ownerPidRaw);
+        const ownerKind = ownerRunRaw !== undefined ? 'run' : ownerPidRaw === undefined ? 'parent' : 'explicit';
+        const path = roundStatePath(stateRoot, at.slug, at.round);
+        // round-state-lock FR-3/AC-1: captured BEFORE the (long, unlocked) recall below, so the
+        // recheck under the lock can tell "unchanged since this snapshot" from "a different process
+        // opened it while we were recalling".
+        const beforeRaw = readRawRoundState(path);
+        const existing = beforeRaw === null
+            ? null
+            : parseRoundState(beforeRaw) ?? {
+                slug: at.slug, round: at.round, topic: '', startedAt: new Date(now).toISOString(),
+                pid: 1, ownerKind: 'explicit', recalled: [],
+            };
+        let existingOwnerAlive = null;
+        if (existing !== null && flags.has('force') && existing.ownerKind !== 'run') {
+            try {
+                existingOwnerAlive = (io.roundPidProbe ?? probePid)(existing.pid);
+            }
+            catch { /* unavailable is unknown and refuses */ }
+        }
+        const isRunAlive = (runId) => roundRunOwnerAlive(stateRoot, runId, now, io.roundRunRegistryReader, io.roundPidProbe ?? probePid);
+        const runId = options.get('run')?.trim();
+        const recallOptions = { limit: 5, ...(runId === undefined || runId === '' ? {} : { runId }) };
+        const preflight = openRound({
+            ...at, topic, startedAt: new Date(now).toISOString(), ownerPid, ownerKind,
+            ...(ownerRun === undefined || ownerRun === '' ? {} : { ownerRun }),
+            ...(runId === undefined || runId === '' ? {} : { run: runId }), recalled: [], existing,
+            force: flags.has('force'), existingOwnerAlive, isRunAlive,
+        });
+        if (!preflight.ok) {
+            // AM-5: the round we are refusing to touch may itself be a stuck `exec` claim (its restore
+            // section exhausted its lock-busy retries and left `ownerKind: 'exec'`) — name that out loud
+            // rather than leaving the operator to guess why a pid that "shouldn't" be alive is blocking.
+            const staleMinutes = existing === null ? null : roundExecStaleAgeMinutes(existing, now);
+            const reason = staleMinutes === null
+                ? preflight.reason
+                : `${preflight.reason} (владелец завис в exec ${staleMinutes} мин)`;
+            emit(reason, { round: at.round, ...(staleMinutes === null ? {} : { staleExecMinutes: staleMinutes }) });
+            return preflight.exit;
+        }
+        let lessons = [];
+        try {
+            lessons = io.roundRecall !== undefined
+                ? await io.roundRecall(projectRoot, topic, recallOptions)
+                : (await recallHybrid(projectRoot, topic, recallOptions)).hits.slice(0, 5).map((hit) => ({
+                    id: patternRecordId(hit.pattern),
+                    reward: hit.pattern.reward,
+                    domain: hit.pattern.domain,
+                    text: hit.pattern.pattern,
+                }));
+        }
+        catch {
+            lessons = [];
+        }
+        const opened = openRound({
+            ...at, topic, startedAt: new Date(now).toISOString(), ownerPid, ownerKind,
+            ...(ownerRun === undefined || ownerRun === '' ? {} : { ownerRun }),
+            ...(runId === undefined || runId === '' ? {} : { run: runId }),
+            recalled: lessons.slice(0, 5).map((lesson) => lesson.id), existing: null,
+            force: false, existingOwnerAlive: null, isRunAlive,
+        });
+        if (!opened.ok) {
+            emit(opened.reason);
+            return opened.exit;
+        }
+        const openedState = { ...opened.state, execs: [], stateId: generateRoundStateId() };
+        let archived;
+        try {
+            const locked = withRoundStateLock(stateRoot, () => {
+                // AM-3/AM-6: recall ran unlocked and may have taken a while — reread NOW, under the lock,
+                // and decide fresh from what is ACTUALLY there rather than from the pre-recall snapshot.
+                //
+                // AM-3 (was: refuse only when the bytes changed AND the foreign pid differed from ours):
+                // `ppid` coincides for two `dz` launched from the same shell, and every run-owned state
+                // carries pid 0 — so "same pid" proved nothing about identity. ANY change in raw bytes since
+                // `beforeRaw` is now the refusal trigger; the foreign pid is reported for diagnostics only,
+                // never consulted for the decision.
+                //
+                // AM-6 (was: an unconditional `readFileSync(path)` while archiving threw a bare ENOENT if
+                // the target vanished mid-recall): a state that is simply GONE now is not a race to refuse —
+                // it is exactly the "no existing round" case, --force or not. Re-decide fresh: no file under
+                // the lock ⇒ ordinary open, no archive, regardless of what `beforeRaw`/`existing` said.
+                const nowRaw = readRawRoundState(path);
+                if (nowRaw === beforeRaw) {
+                    // Unchanged since the pre-recall snapshot: proceed exactly as `preflight` planned —
+                    // including the --force archive-a-dead-owner flow, which is safe here because nothing
+                    // touched `existing`'s bytes while we were recalling.
+                    if (preflight.archiveExisting && existing !== null) {
+                        const compactStartedAt = new Date(existing.startedAt).toISOString().replace(/[-:.]/g, '');
+                        archived = join(stateRoot, '.dz', 'rounds', 'archive', `${at.slug}-${at.round}-${compactStartedAt}.json`);
+                        mkdirSync(dirname(archived), { recursive: true });
+                        writeFileSync(archived, readFileSync(path), { flag: 'wx' });
+                    }
+                    writeJsonAtomic(path, openedState);
+                    return { ok: true };
+                }
+                if (nowRaw === null) {
+                    // AM-6: vanished under us — nothing left to conflict with or to archive.
+                    writeJsonAtomic(path, openedState);
+                    return { ok: true };
+                }
+                // Something is there now, and it is byte-different from what we planned around: refuse.
+                // The pid below is diagnostic only (AM-3) — it never gates the decision.
+                const foreign = parseRoundState(nowRaw);
+                return { refused: 'already-open', pid: foreign?.pid ?? -1 };
+            }, io);
+            if ('refused' in locked) {
+                if (locked.refused === 'lock-busy') {
+                    emit(`lock busy: ${locked.reason}`, { refused: 'lock-busy' });
+                    return 1;
+                }
+                emit(`круг уже открыт (pid ${locked.pid}) — состояние не перезаписано`, { refused: 'already-open', pid: locked.pid });
+                return 1;
+            }
+        }
+        catch (error) {
+            emit(`круг не открыт: ${error instanceof Error ? error.message : String(error)}`);
+            return 1;
+        }
+        const owner = openedState.ownerKind === 'run'
+            ? `владелец: run ${openedState.ownerRun} (run)`
+            : `владелец: pid ${openedState.pid} (${openedState.ownerKind})`;
+        if (json) {
+            emit('круг открыт', { state: openedState, owner, stateRoot, lessons: lessons.slice(0, 5), ...(archived === undefined ? {} : { archived }) });
+        }
+        else {
+            if (archived !== undefined)
+                write(`архивировано: ${archived}`);
+            write(`=== КРУГ ОТКРЫТ: ${at.slug} круг ${at.round}`);
+            write(`state root: ${stateRoot}`);
+            write(owner);
+            write(`--- уроки для брифа (${lessons.slice(0, 5).length} поднято):`);
+            for (const lesson of lessons.slice(0, 5)) {
+                const oneLine = lesson.text.replace(/[\r\n\u2028\u2029\u0085\v\f]+/g, ' ⏎ ');
+                write(`  [${lesson.reward.toFixed(2)}] (${lesson.domain}) ${oneLine.slice(0, 160)}`);
+            }
+        }
+        return 0;
+    }
+    if (sub === 'exec') {
+        const at = address();
+        const briefArg = options.get('brief') ?? '';
+        const timeoutRaw = options.get('timeout-min') ?? '30';
+        const timeoutMinutes = Number(timeoutRaw);
+        if (at === null || briefArg.trim() === '' || !Number.isInteger(timeoutMinutes) || timeoutMinutes <= 0) {
+            emit('нужны --slug --round --brief; --timeout-min должен быть целым числом больше нуля');
+            return 2;
+        }
+        const briefPath = resolve(cwd, briefArg);
+        let briefText;
+        try {
+            briefText = readFileSync(briefPath, 'utf8');
+        }
+        catch {
+            emit(`brief не читается: ${briefArg}`);
+            return 2;
+        }
+        const path = roundStatePath(stateRoot, at.slug, at.round);
+        let state = readRoundState(path);
+        if (state === null) {
+            emit(existsSync(path) ? 'состояние круга не читается' : 'круг не открыт');
+            return 1;
+        }
+        const model = options.get('model') ?? 'gpt-5.6-sol';
+        const effort = options.get('effort') ?? 'high';
+        const logArg = options.get('log') ?? join('.dz', 'rounds', `${at.slug}-${at.round}.exec.log`);
+        const logPath = resolve(cwd, logArg);
+        const startedMs = io.roundNow?.() ?? Date.now();
+        const startedAt = new Date(startedMs).toISOString();
+        const request = {
+            command: 'codex',
+            args: [
+                'exec',
+                '-c', `model=${model}`,
+                '-c', `model_reasoning_effort=${effort}`,
+                '--dangerously-bypass-approvals-and-sandbox',
+                briefText,
+            ],
+            cwd: stateRoot,
+            logPath,
+            timeoutMs: timeoutMinutes * 60_000,
+            killGraceMs: io.roundKillGraceMs ?? 10_000,
+        };
+        let execClaimId = '';
+        try {
+            // T3/FR-1, fix-round AM-1: reread state under the lock immediately before claiming ownership
+            // — a short, synchronous critical section, released before the (possibly long) codex child
+            // below runs. NO fallback to the pre-lock `state` snapshot (that was the resurrection bug:
+            // `readRoundState(path) ?? state!` would recreate a round that had been closed in the
+            // meantime). The claim proceeds ONLY when the state currently under the lock still carries the
+            // exact `stateId` we read before acquiring it — pid/ppid can coincide across processes, but a
+            // `stateId` never does.
+            execClaimId = randomBytes(8).toString('hex');
+            const claimed = withRoundStateLock(stateRoot, () => {
+                const outcome = readStateOrRefuse(path, state.stateId);
+                if ('refused' in outcome)
+                    return outcome;
+                if (outcome.ownerKind === 'exec' && outcome.execClaimId !== undefined) {
+                    return { refused: 'exec-in-progress', execClaimId: outcome.execClaimId };
+                }
+                writeJsonAtomic(path, { ...outcome, pid: io.roundPid ?? process.pid, ownerKind: 'exec', execClaimId, execClaimedAt: new Date(io.roundNow?.() ?? Date.now()).toISOString() });
+                return { ok: true, base: outcome };
+            }, io);
+            if ('refused' in claimed) {
+                if (claimed.refused === 'lock-busy') {
+                    emit(`exec не запущен: владелец круга не обновлён: lock busy: ${claimed.reason}`, { refused: 'lock-busy' });
+                    return 1;
+                }
+                if (claimed.refused === 'gone') {
+                    emit('exec не запущен: круг закрыт во время exec, владелец не менялся', { refused: 'gone' });
+                    return 1;
+                }
+                if (claimed.refused === 'exec-in-progress') {
+                    emit(`exec не запущен: у круга уже идёт exec (claim ${claimed.execClaimId})`, { refused: 'exec-in-progress', execClaimId: claimed.execClaimId });
+                    return 1;
+                }
+                const replaced = claimed;
+                emit(`exec не запущен: состояние круга заменено (stateId ${replaced.stateId ?? 'unknown'}), возврат владельца пропущен`, { refused: 'replaced', stateId: replaced.stateId });
+                return 1;
+            }
+            state = claimed.base;
+        }
+        catch (error) {
+            emit(`exec не запущен: владелец круга не обновлён: ${error instanceof Error ? error.message : String(error)}`);
+            return 1;
+        }
+        let receipt;
+        try {
+            try {
+                receipt = await (io.roundSpawn ?? spawnRoundCodex)(request);
+            }
+            catch (error) {
+                const err = error;
+                receipt = { exitCode: null, timedOut: false, signal: null, ...(err.code === undefined ? {} : { errorCode: err.code }), error: err.message };
+            }
+        }
+        finally {
+            try {
+                // T3/FR-1, fix-round AM-1/AM-5: the return leg — a second short lock hold, symmetric with
+                // the claim above, and gated by the SAME stateId check (the child may have run long enough
+                // for someone else to close or replace this round while it was running). AM-5: a busy lock
+                // here gets up to ROUND_RESTORE_LOCK_ATTEMPTS tries with the same timeout before giving up —
+                // a codex child can legitimately run for a while, so ownership recovery deserves more than
+                // one attempt before leaving the round stuck at `ownerKind: 'exec'`.
+                const restored = withRoundStateLockRetried(stateRoot, () => {
+                    const outcome = readStateOrRefuse(path, state.stateId);
+                    if ('refused' in outcome)
+                        return outcome;
+                    // Lead edit after Codex re-review: restore only OUR claim — another exec of the same round
+                    // instance has its own execClaimId and must not be wiped by our base state.
+                    if (outcome.execClaimId !== execClaimId) {
+                        return { refused: 'replaced', stateId: outcome.stateId, execClaimId: outcome.execClaimId };
+                    }
+                    writeJsonAtomic(path, state);
+                    return { ok: true };
+                }, io, ROUND_RESTORE_LOCK_ATTEMPTS);
+                if ('refused' in restored) {
+                    if (restored.refused === 'lock-busy') {
+                        // AM-5: no new flag or command is added — this names the manual remedy in prose (a
+                        // literal `--flag`-shaped token here would be caught by known-flags-drift.test.ts as an
+                        // undocumented flag, which would be exactly the wrong signal for text naming no flag at
+                        // all). The durable fix is that `open`/`status` surface the resulting stuck
+                        // `ownerKind: 'exec'` on their own (roundExecStaleAgeMinutes), so it is never silently
+                        // left for someone to trip over.
+                        emit('владелец круга не восстановлен (ownerKind=exec остался): повторите dz round exec для этого круга, когда блокировка освободится', { refused: 'lock-busy', ownerKind: 'exec' });
+                        return 1;
+                    }
+                    if (restored.refused === 'gone') {
+                        emit('круг закрыт во время exec, владелец не менялся', { refused: 'gone' });
+                        return 1;
+                    }
+                    emit(`состояние круга заменено (stateId ${restored.stateId ?? 'unknown'}), возврат владельца пропущен`, { refused: 'replaced', stateId: restored.stateId });
+                    return 1;
+                }
+            }
+            catch (error) {
+                emit(`exec завершён, но владелец круга не восстановлен: ${error instanceof Error ? error.message : String(error)}`);
+                return 1;
+            }
+        }
+        const endedMs = io.roundNow?.() ?? Date.now();
+        const endedAt = new Date(endedMs).toISOString();
+        let logBuffer = Buffer.alloc(0);
+        try {
+            logBuffer = readFileSync(logPath);
+        }
+        catch { /* no output is an empty receipt */ }
+        const logText = logBuffer.toString('utf8');
+        const bytes = logBuffer.byteLength;
+        const tokens = parseCodexTokens(logText);
+        const outcome = classifyRoundExecOutcome({
+            exitCode: receipt.exitCode,
+            timedOut: receipt.timedOut,
+            bytes,
+            tail: logBuffer.subarray(Math.max(0, bytes - 4096)).toString('utf8'),
+        });
+        const row = buildRoundExecRow({
+            ...at,
+            model,
+            effort,
+            minutes: Math.max(0, Math.floor((endedMs - startedMs) / 60_000)),
+            tokens,
+            outcome,
+            exitCode: receipt.exitCode,
+            bytes,
+            startedAt,
+            endedAt,
+            log: logArg,
+            brief: briefArg,
+        });
+        if (io.roundLedgerWriter !== undefined)
+            io.roundLedgerWriter(stateRoot, row);
+        else
+            cmdFeatureAdrRecord(new Map([
+                ['kind', 'ledger'], ['stage', 'round-exec'], ['slug', state.slug], ['row', JSON.stringify(row)], ['project', stateRoot],
+            ]), new Set(), stateRoot, () => undefined);
+        const ledgerTail = io.roundLedgerReader?.(stateRoot) ?? readRoundLedgerTail(stateRoot);
+        if (!roundExecReceiptFound(ledgerTail, row)) {
+            emit('строка round-exec не найдена — результат НЕ подтверждён');
+            return 1;
+        }
+        try {
+            writeJsonAtomic(path, {
+                ...state,
+                execs: [...(state.execs ?? []), { startedAt, endedAt, exitCode: receipt.exitCode, outcome, tokens }],
+            });
+        }
+        catch (error) {
+            emit(`строка round-exec подтверждена, но состояние не обновлено: ${error instanceof Error ? error.message : String(error)}`);
+            return 1;
+        }
+        if (receipt.errorCode === 'ENOENT')
+            emit('codex не найден', { row });
+        else
+            emit(`round exec: ${row.minutes} min; exit ${row.exitCode ?? 'null'}; ${row.bytes} bytes; tokens ${row.tokens ?? 'не найдены'}; ${row.outcome}`, { row });
+        return outcome === 'done' ? 0 : 1;
+    }
+    if (sub === 'close') {
+        const at = address();
+        if (at === null || !options.has('outcome')) {
+            emit('нужны --slug --round --outcome');
+            return 2;
+        }
+        const path = roundStatePath(stateRoot, at.slug, at.round);
+        const state = readRoundState(path);
+        if (state === null) {
+            emit(existsSync(path) ? 'состояние круга не читается — круг НЕ закрыт' : 'круг не открыт');
+            return 1;
+        }
+        const lessons = optionLists.get('lesson') ?? [];
+        const knownLessonIds = lessons.filter((id) => {
+            try {
+                return io.roundLessonExists !== undefined
+                    ? io.roundLessonExists(projectRoot, id)
+                    : loadStoreRecords(projectRoot).some((record) => record.id === id);
+            }
+            catch {
+                return false;
+            }
+        });
+        const numeric = (key) => options.has(key) ? Number(options.get(key)) : undefined;
+        const closedAtIso = new Date(now).toISOString();
+        // AM-4: predict the marker `closeRound` will compute for THIS attempt (same slug/round/closedAt
+        // it will use) and check whether the ledger already carries it BEFORE calling `closeRound` —
+        // this is what makes a retried `close` idempotent: if a prior invocation's write already landed
+        // (this run's own tail read, not trusted from the earlier failed attempt's own belief), skip the
+        // write below instead of appending a duplicate row.
+        const predictedMarker = predictedRoundCloseMarker(at.slug, at.round, closedAtIso);
+        const tailBeforeWrite = io.roundLedgerReader?.(stateRoot) ?? readRoundLedgerTail(stateRoot);
+        // Lead edit after Codex re-review: a retried close carries a NEW clock, so the marker alone never
+        // matches — the row's stateId (identity of the state instance) is what makes the retry idempotent.
+        const alreadyRecorded = tailBeforeWrite.includes(predictedMarker)
+            || (state.stateId !== undefined && tailBeforeWrite.includes(`"stateId":"${state.stateId}"`));
+        // Lead edit after Codex re-review: a retry whose row is already in the ledger (same stateId) must
+        // not re-run closeRound's postcondition against a marker computed from the NEW clock — the earlier
+        // row is the receipt; only the state-file removal remains.
+        const closed = alreadyRecorded
+            ? { ok: true, row: undefined, marker: `already-recorded:${state.stateId ?? predictedMarker}` }
+            : closeRound({
+                state,
+                outcome: options.get('outcome') ?? '',
+                ...(options.has('reason') ? { reason: options.get('reason') } : {}),
+                lessons,
+                knownLessonIds,
+                ...(options.has('no-new-knowledge') ? { noNewKnowledge: options.get('no-new-knowledge') } : {}),
+                ...(options.has('tokens') ? { tokens: numeric('tokens') } : {}),
+                ...(options.has('agents') ? { agents: numeric('agents') } : {}),
+                ...(options.has('coder') ? { coder: options.get('coder') } : {}),
+                ...(options.has('reviewer') ? { reviewer: options.get('reviewer') } : {}),
+                ...(options.has('note') ? { note: options.get('note') } : {}),
+                ...(flags.has('no-cost') ? { noCost: true } : {}),
+                closedAt: closedAtIso,
+                ...(state.stateId !== undefined ? { stateId: state.stateId } : {}),
+            }, {
+                writeLedger: (row) => {
+                    // AM-4 idempotent retry: the row for this attempt was already witnessed in the tail read
+                    // above — do not append a second one. `closeRound`'s own postcondition (rereading the tail
+                    // and checking it contains the marker) still passes, because the marker is already there.
+                    if (alreadyRecorded)
+                        return undefined;
+                    if (io.roundLedgerWriter !== undefined)
+                        return io.roundLedgerWriter(stateRoot, row);
+                    return cmdFeatureAdrRecord(new Map([
+                        ['kind', 'ledger'], ['stage', 'round'], ['slug', state.slug], ['row', JSON.stringify(row)], ['project', stateRoot],
+                    ]), new Set(), stateRoot, () => undefined);
+                },
+                readLedgerTail: () => io.roundLedgerReader?.(stateRoot) ?? readRoundLedgerTail(stateRoot),
+            });
+        if (!closed.ok) {
+            emit(closed.reason);
+            return closed.exit;
+        }
+        try {
+            // T4/FR-1/FR-2, fix-round AM-2: the ledger write above (via `closed`) stays OUTSIDE the lock
+            // (teach:0ea46034); only the final reread-and-delete is a lock-guarded critical section, and it
+            // now deletes ONLY the exact state instance the ledger row above was written for — identified
+            // by `state.stateId`, read before the lock was ever taken.
+            const deleted = withRoundStateLock(stateRoot, () => {
+                const outcome = readStateForCloseOrRefuse(path, state.stateId);
+                if ('refused' in outcome)
+                    return outcome;
+                unlinkSync(path);
+                return { ok: true };
+            }, io);
+            if ('refused' in deleted) {
+                if (deleted.refused === 'lock-busy') {
+                    // AM-4: the ledger row is ALREADY written by the time this lock is even attempted (see
+                    // above) — so a busy lock here never leaves the outcome unrecorded, only the round's OWN
+                    // state file open. Say exactly that, and make the retry path explicit.
+                    emit('строка леджера записана, состояние круга осталось открытым — повторите close', { refused: 'lock-busy', ledgerWritten: true });
+                    return 1;
+                }
+                if (deleted.refused === 'closed-already') {
+                    // AM-2: the state file is already gone — this close's own ledger row is written (above, or
+                    // by a previous invocation of this same idempotent attempt), so this is the same round
+                    // reaching its already-closed postcondition by a different path, not a failure.
+                    emit('круг уже закрыт (строка леджера записана)', { closed: true, alreadyClosed: true, marker: closed.marker });
+                    return 0;
+                }
+                // AM-2: something else's state sits at this path now (a different stateId) — never delete it.
+                emit('состояние заменено, не удалено', { refused: 'replaced', stateId: deleted.stateId });
+                return 1;
+            }
+        }
+        catch (error) {
+            emit(`строка подтверждена, но состояние не удалено — круг НЕ закрыт: ${error instanceof Error ? error.message : String(error)}`);
+            return 1;
+        }
+        emit(`✓ строка круга в леджере подтверждена чтением (${closed.marker})`, { row: closed.row, marker: closed.marker });
+        return 0;
+    }
+    if (sub === 'status') {
+        const rawThreshold = options.get('older-than') ?? '120';
+        const olderThan = Number(rawThreshold);
+        if (!Number.isInteger(olderThan) || olderThan < 0) {
+            emit('--older-than должен быть целым числом минут не меньше нуля', { open: [] });
+            return 0;
+        }
+        const dir = join(stateRoot, '.dz', 'rounds');
+        const states = [];
+        try {
+            for (const name of readdirSync(dir).filter((entry) => entry.endsWith('.json')).sort()) {
+                const state = readRoundState(join(dir, name));
+                if (state !== null)
+                    states.push(state);
+            }
+        }
+        catch { /* no state directory is an honestly empty report */ }
+        const rows = listRounds(states, {
+            now,
+            olderThanMinutes: olderThan,
+            isPidAlive: io.roundPidProbe ?? probePid,
+            isRunAlive: (runId) => roundRunOwnerAlive(stateRoot, runId, now, io.roundRunRegistryReader, io.roundPidProbe ?? probePid),
+        });
+        // AM-5: independent of the `--older-than` filter above (a stuck exec claim is worth flagging at
+        // 10 minutes regardless of the round's own age threshold) — computed over ALL open states, and
+        // additive: when none apply, neither branch below emits anything extra, so the two byte-pinned
+        // zero-rounds lines (NFR-1, see the comment below) stay untouched.
+        const staleExec = states
+            .map((state) => {
+            const minutes = roundExecStaleAgeMinutes(state, now);
+            return minutes === null ? null : { slug: state.slug, round: state.round, minutes };
+        })
+            .filter((warning) => warning !== null);
+        if (json) {
+            emit(rows.length > 0 ? `⚠ ${rows.length} open round(s) older than ${olderThan} min` : 'нет старых открытых кругов', {
+                stateRoot, olderThan, open: rows, ...(staleExec.length === 0 ? {} : { staleExec }),
+            });
+        }
+        else {
+            // FR-3 prints `state root: <dir>` on open unconditionally; here it is printed only when the
+            // root was EXPLICITLY chosen (--state-root / DZ_ROUND_STATE_ROOT). Printing it unconditionally
+            // would change the two default-cwd zero-rounds lines pinned exactly by
+            // round-cli.test.ts ("status reports a fresh open round…" / "…no open rounds"), which NFR-1
+            // requires to stay byte-identical and unmodified.
+            if (stateRootExplicit)
+                write(`state root: ${stateRoot}`);
+            write(states.length === 0
+                ? 'открытых кругов нет'
+                : `открытых кругов: ${states.length}, старше ${olderThan} мин: ${rows.length}`);
+            for (const row of rows) {
+                const live = row.pidAlive === true ? 'alive' : row.pidAlive === false ? 'dead' : 'unknown';
+                write(`${row.state.slug}#${row.state.round} · ${row.ageMinutes} min · pid ${row.state.pid} ${live} · ${row.state.topic}`);
+            }
+            for (const warning of staleExec) {
+                write(`⚠ ${warning.slug}#${warning.round}: владелец завис в exec ${warning.minutes} мин — восстановите вручную (dz round exec вернул lock-busy при возврате владельца)`);
+            }
+        }
+        return 0;
+    }
+    emit('использование: dz round open|exec|close|status');
+    return 2;
+}
+/**
+ * ledger-stage-minutes T2: the `ts` of the LAST ledger row (scanning from the end, so a duplicate
+ * or out-of-order runId still finds the truly latest one) that carries the given `runId`. Every
+ * failure mode — the file does not exist yet, a permission error — returns `null` rather than
+ * throwing: this is a BEST-EFFORT observability lookup feeding a non-blocking field (ADR-003), never
+ * a gate the write must pass.
+ *
+ * fix-round-1/AM-n (cross-family review B, MEDIUM): a torn or non-object line — `ledger-corrupt-line`
+ * — is NOT silently skipped past. The original code `continue`d over it and kept scanning further
+ * back, which could return an OLDER valid row for this `runId` while a NEWER one for the same run
+ * sat hidden on the other side of the corrupt line (or was itself the corrupt line). Once the scan
+ * hits a line it cannot parse as a JSON object, it can no longer prove which row is truly LAST for
+ * this run, so it stops and reports `null` (⇒ `minutesSource: 'unavailable'`) rather than risk an
+ * UNDERSTATED delta computed against a stale row.
+ */
+function findPreviousLedgerRowTs(ledgerPath, runId) {
+    if (runId === '')
+        return null;
+    let body;
+    try {
+        body = readFileSync(ledgerPath, 'utf-8');
+    }
+    catch {
+        return null;
+    }
+    const lines = body.split('\n').filter((l) => l !== '');
+    for (let i = lines.length - 1; i >= 0; i--) {
+        let parsed;
+        try {
+            parsed = JSON.parse(lines[i]);
+        }
+        catch {
+            // ledger-corrupt-line: everything from here to the start of the file is unprovable — a real
+            // match further back cannot be trusted to still be the LAST one, so this is `unavailable`,
+            // never a guess made by skipping past what we could not read.
+            return null;
+        }
+        if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            // Same reasoning as the parse failure above: a non-object line is exactly as untrustworthy.
+            return null;
+        }
+        const row = parsed;
+        if (typeof row['runId'] === 'string' && row['runId'].trim() === runId) {
+            return typeof row['ts'] === 'string' && row['ts'].trim() !== '' ? row['ts'] : null;
+        }
+    }
+    return null;
+}
 function cmdFeatureAdrRecord(options, flags, cwd, write) {
     const json = flags.has('json');
     // `--backfill` is a different verb on the same store: it fills the ledger's null cost fields from
@@ -13906,10 +15014,76 @@ function cmdFeatureAdrRecord(options, flags, cwd, write) {
     const markDir = join(repo, '.dz', 'fa-training', '.backfill-marks');
     const markName = (options.get('mark') ?? '').trim();
     const markPath = markName === '' ? null : join(markDir, markName.replace(/[^\w.-]/g, '_'));
+    // ledger-stage-minutes T2/FR-2: `--run-id` fills the payload's `runId` ONLY WHEN the payload does
+    // not already carry one — the same gap-only stamping discipline `decideRecordWrite` already uses
+    // for `runnerId`. "Absent" is deliberately wider than "missing key": `runId: null`, `runId: ''`
+    // and a non-string `runId` (a number, an object — never a real join key) are ALL gaps too, exactly
+    // the `isRunnerGap` rule one seam over — fixed-round-1/AM-n confirmed this is the INTENDED contract
+    // ("missing when absent or blank"), not a bug: only a genuine non-empty string counts as "the
+    // caller already knew it", so any of those gap shapes are correctly overwritten by the flag. A
+    // malformed --row is left untouched here: decideRecordWrite reports the real JSON parse error,
+    // this merge step must never invent a different one.
+    const isRunIdArgGap = (v) => v === null || v === undefined || typeof v !== 'string' || v.trim() === '';
+    let effectivePayloadRaw = payloadRaw;
+    const explicitRunId = (options.get('run-id') ?? '').trim();
+    if (kind === 'ledger' && explicitRunId !== '') {
+        try {
+            const parsed = JSON.parse(payloadRaw);
+            if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                const rowObj = parsed;
+                if (isRunIdArgGap(rowObj['runId'])) {
+                    // fix-round-1/AM-n (cross-family review B, MEDIUM): the flag-filled runId now carries its
+                    // provenance, the same discipline `resolved-at-write` already applies to the OTHER runId
+                    // source (write-time auto-resolution below) — an un-sourced runId looked exactly like one
+                    // the caller supplied. A non-empty `runIdSource` the payload already carries (an odd shape,
+                    // since `runId` itself was a gap) is left alone rather than overwritten with a guess.
+                    const hasRunIdSource = typeof rowObj['runIdSource'] === 'string' && rowObj['runIdSource'].trim() !== '';
+                    effectivePayloadRaw = JSON.stringify({
+                        ...rowObj,
+                        runId: explicitRunId,
+                        ...(hasRunIdSource ? {} : { runIdSource: 'cli-flag' }),
+                    });
+                }
+            }
+        }
+        catch { /* decideRecordWrite reports the parse error itself */ }
+    }
+    // FR-2/FR-3: find the runId this row will carry (explicit flag, or one the payload already had),
+    // then read the ledger BEST-EFFORT for the last row of that same run and its `ts`. A read failure
+    // (file absent, unreadable, a torn or malformed line) is an honest `previousRowTs: null` — never
+    // a thrown error, because a record write must never fail on an OBSERVABILITY lookup (ADR-003).
+    let runIdForLookup = '';
+    try {
+        const parsed = JSON.parse(effectivePayloadRaw);
+        if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            const v = parsed['runId'];
+            if (typeof v === 'string' && v.trim() !== '')
+                runIdForLookup = v.trim();
+        }
+    }
+    catch { /* decideRecordWrite reports the parse error itself */ }
+    // Lead edit after re-review (Codex B): the pipeline's own rows have no runId in the payload — it is
+    // resolved at write time below. Resolve it HERE as well (same resolver, same registry) so the
+    // previous-row lookup and the minutes delta cover the main path, not only explicit ids.
+    let resolvedRunIdPre = null;
+    if (kind === 'ledger' && runIdForLookup === '') {
+        try {
+            const parsed = JSON.parse(effectivePayloadRaw);
+            if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                resolvedRunIdPre = resolveLedgerRunId(parsed, listCostLedgerRuns());
+                if (resolvedRunIdPre !== null)
+                    runIdForLookup = resolvedRunIdPre.trim();
+            }
+        }
+        catch { /* resolution is an ENRICHMENT; the row is written regardless */ }
+    }
+    const previousRowTs = kind === 'ledger' && runIdForLookup !== '' ? findPreviousLedgerRowTs(target, runIdForLookup) : null;
     const decision = decideRecordWrite({
         kind,
-        payloadRaw,
+        payloadRaw: effectivePayloadRaw,
         stage,
+        previousRowTs,
+        effectiveRunId: runIdForLookup !== '' ? runIdForLookup : null,
         stageProducedResult: flags.has('no-result') ? false : true,
         markExists: markPath !== null && existsSync(markPath),
         targetExists: existsSync(target),
@@ -13968,10 +15142,31 @@ function cmdFeatureAdrRecord(options, flags, cwd, write) {
                 const parsed = JSON.parse(decision.line);
                 if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
                     const rowObj = parsed;
-                    const resolved = resolveLedgerRunId(rowObj, listCostLedgerRuns());
+                    // Lead edit after review #3 (Codex B): ONE resolution per write — reuse the id resolved
+                    // before the decision (the same one the minutes delta was measured against) instead of
+                    // resolving again; two resolutions could disagree if the run registry moved in between.
+                    const resolved = resolvedRunIdPre !== null ? resolvedRunIdPre : resolveLedgerRunId(rowObj, listCostLedgerRuns());
                     if (resolved !== null) {
                         // Marked, because a resolved run id is our inference, not something the pipeline knew.
-                        lineToWrite = JSON.stringify({ ...rowObj, runId: resolved, runIdSource: 'resolved-at-write' });
+                        // Keep the minutes fields LAST (NFR-1 of ledger-stage-minutes): splice runId/runIdSource in
+                        // right before `ts` when the decided row already carries the stamped tail.
+                        const ordered = {};
+                        let spliced = false;
+                        for (const [k, v] of Object.entries(rowObj)) {
+                            if (k === 'ts' && !spliced) {
+                                ordered['runId'] = resolved;
+                                ordered['runIdSource'] = 'resolved-at-write';
+                                spliced = true;
+                            }
+                            if (k === 'runId' || k === 'runIdSource')
+                                continue;
+                            ordered[k] = v;
+                        }
+                        if (!spliced) {
+                            ordered['runId'] = resolved;
+                            ordered['runIdSource'] = 'resolved-at-write';
+                        }
+                        lineToWrite = JSON.stringify(ordered);
                     }
                 }
             }
@@ -18120,7 +19315,7 @@ export async function runCli(argv, io = {}) {
             case 'release':
                 return cmdRelease(options, flags, cwd, write, io.releaseRunner);
             case 'parity':
-                return cmdParity(options, flags, write, writeErr);
+                return cmdParity(options, flags, write, writeErr, cwd);
             case 'registry':
                 return cmdRegistry(options, cwd, write);
             case 'benchmark':
@@ -18207,6 +19402,8 @@ export async function runCli(argv, io = {}) {
                 return cmdJournal(options, flags, cwd, write, io.journalIo);
             case 'feature-adr-record':
                 return cmdFeatureAdrRecord(options, flags, cwd, write);
+            case 'round':
+                return await cmdRound(options, optionLists, flags, cwd, write, io);
             case 'runs':
                 return cmdRuns(options, flags, cwd, write);
             case 'runs-clean':

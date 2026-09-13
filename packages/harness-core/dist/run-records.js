@@ -117,15 +117,13 @@ export function decideRecordWrite(input) {
     // inside an already-serialised document — text surgery on a structured value, and the exact place
     // a payload containing that literal token could corrupt itself.
     const stamped = { ...obj };
+    const isGap = (v) => v === null || v === undefined || (typeof v === 'string' && v.trim() === '');
     if (input.timestamp != null && input.timestamp !== '') {
         // An EMPTY STRING is a gap, not a value. Stamping only over null/undefined let
         // `"date":""` through as `written` (cross-family review, 2026-08-21) — a row that looks recorded
         // and carries no date.
-        const isGap = (v) => v === null || v === undefined || (typeof v === 'string' && v.trim() === '');
         if (kind === 'ledger' && isGap(stamped['date']))
             stamped['date'] = input.timestamp.slice(0, 10);
-        if (kind === 'training-pair' && isGap(stamped['ts']))
-            stamped['ts'] = input.timestamp;
     }
     // WHO ran this. Stamped HERE and nowhere else, for a structural reason: the workflow lives in a
     // sandbox with no host, no process and no clock, so it cannot name its own runner — but this
@@ -138,8 +136,76 @@ export function decideRecordWrite(input) {
     // because a fabricated identity is worse than a missing one for anything that later joins on it.
     // A blank supplied id is a gap too: `'   '` sneaking in as a value would join later as a distinct
     // runner made of spaces — the same class of harm as inventing 'unknown'.
+    //
+    // Stamped BEFORE `ts` below (fix-round-1/AM-n, cross-family review B): a runnerId this call itself
+    // adds is still an ESTABLISHED field, from the runnerId feature that shipped before
+    // ledger-stage-minutes — NFR-1's "new fields land after everything else" is a promise about the
+    // fields THIS feature introduces (`ts`, `minutesSincePrev`, `minutesSource`), not about the order
+    // decideRecordWrite happens to run its own blocks in. The original order stamped `ts` first, so a
+    // freshly-added runnerId landed AFTER it — an object key order a `--full-qe-extended` Codex review
+    // (grade B) caught by diffing `Object.keys` against the documented convention.
     if (kind === 'ledger' && isRunnerGap(stamped['runnerId']) && !isRunnerGap(input.runnerId)) {
         stamped['runnerId'] = input.runnerId.trim();
+    }
+    if (input.timestamp != null && input.timestamp !== '') {
+        // FR-1 (ledger-stage-minutes): every ledger row also gets the FULL ISO instant it was recorded,
+        // next to `date` — `date` alone cannot answer "how long between two rows of this run", `ts` can.
+        //
+        // fix-round-1/AM-n (cross-family review B): `ts` is ALWAYS the instant of THIS write, never a
+        // value the payload happened to bring in — the delta below measures from `ts`, and a caller-
+        // supplied instant (stale, forged, or simply wrong) would silently become "now" for that
+        // measurement. The original `isGap` check let a non-empty payload `ts` survive untouched, which
+        // is exactly the value a clock-skewed or replayed payload could poison. No data is discarded: a
+        // real payload `ts` is kept, renamed to `payloadTs`, so the row still says what the caller claimed
+        // — just not under the name the delta trusts.
+        if (kind === 'ledger') {
+            const payloadTs = stamped['ts'];
+            // Lead edit after re-review (Codex B): never clobber a `payloadTs` the caller already carries,
+            // and re-insert `ts` so it lands LAST even when the payload brought its own `ts` key
+            // (assigning an existing property keeps its old insertion position).
+            if (!isGap(payloadTs) && isGap(stamped['payloadTs']))
+                stamped['payloadTs'] = payloadTs;
+            delete stamped['ts'];
+            stamped['ts'] = input.timestamp;
+        }
+        if (kind === 'training-pair' && isGap(stamped['ts']))
+            stamped['ts'] = input.timestamp;
+    }
+    // FR-2 (ledger-stage-minutes): the writer cannot measure a stage's full duration — the workflow
+    // sandbox has no clock (`Date.now()` is banned there for resume-safety) — but it DOES know the
+    // moment of every write and the run each write belongs to. For an `auto:true` row that carries a
+    // `runId`, the gap since the PREVIOUS row of the same run is a real, partial measurement, and it
+    // gets its own named field and source rather than being folded into (or mistaken for) `minutes`
+    // — "a claim exactly as strong as its inputs" (lesson, repeated 2026-08-25/2026-09-12): a partial
+    // quantity is reported as itself, tagged with where it came from, never smuggled into a field that
+    // implies the whole. `minutes` is left untouched by this block — it stays whatever the payload
+    // already carried (null for every auto row today).
+    if (kind === 'ledger') {
+        const runIdVal = stamped['runId'];
+        // Lead edit after re-review (Codex B): the pipeline's own rows carry NO runId in the payload —
+        // the CLI resolves it at write time (`resolved-at-write`) — so the caller may hand the resolved
+        // id in as `effectiveRunId`; the delta is measurable for those rows too.
+        const effectiveRunId = typeof input.effectiveRunId === 'string' && input.effectiveRunId.trim() !== '' ? input.effectiveRunId : null;
+        const hasRunId = (typeof runIdVal === 'string' && runIdVal.trim() !== '') || effectiveRunId !== null;
+        if (stamped['auto'] === true && hasRunId) {
+            const nowTs = typeof stamped['ts'] === 'string' && stamped['ts'].trim() !== '' ? stamped['ts'] : null;
+            const prevTs = typeof input.previousRowTs === 'string' && input.previousRowTs.trim() !== '' ? input.previousRowTs : null;
+            let minutesSincePrev = null;
+            let minutesSource = 'unavailable';
+            if (nowTs !== null && prevTs !== null) {
+                const nowMs = Date.parse(nowTs);
+                const prevMs = Date.parse(prevTs);
+                // Absence of a receipt is not success: an unparseable timestamp or a previous row that is
+                // somehow LATER than this one (clock skew, out-of-order backfill) must not be reported as a
+                // measured value — it stays `unavailable`, never a fabricated or negative minute count.
+                if (Number.isFinite(nowMs) && Number.isFinite(prevMs) && nowMs >= prevMs) {
+                    minutesSincePrev = Math.round(((nowMs - prevMs) / 60000) * 10) / 10;
+                    minutesSource = 'ledger-ts-delta';
+                }
+            }
+            stamped['minutesSincePrev'] = minutesSincePrev;
+            stamped['minutesSource'] = minutesSource;
+        }
     }
     let line;
     try {

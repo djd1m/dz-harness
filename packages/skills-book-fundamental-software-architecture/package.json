@@ -36,8 +36,8 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/djd1m/dz-harness-hub.git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-book-fundamental-software-architecture"
   },
-  "homepage": "https://github.com/djd1m/dz-harness-hub/tree/main/packages/@dzhechkov/skills-book-fundamental-software-architecture#readme"
+  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-book-fundamental-software-architecture#readme"
 }

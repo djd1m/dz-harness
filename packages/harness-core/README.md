@@ -15,6 +15,10 @@ including `execSync(` and `execFile(`, and fails when the list and census differ
 whitespace-collapsed text matches exactly (case-sensitive), optionally within one metadata domain,
 and reports whether that existing lesson is quarantined.
 
+Карантин: источник правды — лексический стор; зеркало — проекция; `dz vector reindex`
+пересобирает зеркало из лексических записей и восстанавливает паритет меток. Прямая правка
+зеркала не меняет авторитетное состояние и при следующем перестроении будет утрачена.
+
 `countLearningStoreRowsReadonly()` reports the mirror as TWO figures, deliberately not one.
 `vectorRows` stays the whole mirror (lessons + backlog ideas + book units) because the store guard
 reads it as an integrity signal against a recorded high-water mark; narrowing it would present a
@@ -245,6 +249,10 @@ compatibility path.
 | `skills-verify` | `scanSkillsLayout`, `parseInitFacts`, `verifyRegistration`, `registrationExitCode`, `renderRegistrationReport` | Pure registration-gate engine behind `dz skills-verify`: a static scan of `.claude/skills/` (which dirs CAN register + the shapes that never can) and a **sealed** verdict over one atomic evidence bundle (`RegistrationEvidence` = the whole scan + a tagged probe result + a provenance record). Cardinality and parse integrity are derived INSIDE from the raw `system/init` stream, so no caller can omit or falsify them. FAIL-CLOSED: an unobservable registration is `inconclusive`, never `pass`; a plugin-shaped container is advisory and its fate is decided by whether the session says that plugin LOADED, never by the layout. Also exports `findNonRegistrableSkillDirs` — the publish-time guard fact behind the `skills-registrable` rule (a pack counts only if it already has one registrable skill; a dir is flagged only when a `SKILL.md` exists inside but below depth 1 — the discriminator was chosen after MEASURING the real packs, since a naive rule flagged ~40 healthy dirs across 9 npx toolkits). Plugin containers are attributed by `init.plugins[].path`, never by directory name; a container whose plugin did not load FAILS, one that loaded PASSES with an advisory that its individual skills are unverified (modelling Claude Code's command-name resolution produced a new wrong verdict in every review round — the gap is disclosed, not guessed). Sees SLASH COMMANDS too: `InitFacts.slash_commands` carries the session's command listing (MEASURED on Claude Code 2.1.233 — `system/init` emits `slash_commands`, and a plugin command registers as `<plugin>:<file basename>`, not as its frontmatter name), `RegistrationEvidence.expectedCommands` names what must appear, and an ABSENT `slash_commands` key is `inconclusive` exactly like an absent `skills` key — never an empty list, because schema drift and "the commands did not load" are different facts. `declaredPluginSurface(dir)` derives the expected names from a plugin's own manifest so a gate run cannot drift from the manifest it checks, and returns `null` (never an empty, vacuously-passing expectation) for an unreadable one. Also ships the ADVISORY content layer (`buildContentProbePrompt` / `classifyContentProbe`): registration is not usability, so an extra model turn asks for a VERBATIM quote as evidence — advisory by construction, it never gates. No `child_process` — the CLI owns the probe |
 
 ### Mutation registry: entry-scoped refusal and declared gaps
+
+Every new mutable registry entry must carry an `observed` count measured by running
+`dz mutation-gate --only <id>`. Legacy entries without that field are tracked as debt: the current
+ceiling lives in `test/observed-debt-ceiling.json` and may move only downward.
 
 Run outcomes distinguish **green**, **tests-failed**, **runner-infrastructure**, and
 **unknown-nonzero**. The existing API keeps its names: the exit code identifies green;
@@ -520,6 +528,52 @@ protection by making at least one named test red; each
 protection, when deleted from the source, turns at least one named test red. Design record:
 `features/destructive-command-guard/03_adr/001-narrow-by-decidability.md`.
 
+## Apply-leg module (`apply-leg.ts`) — the third self-learning leg, shipped by `dz setup`
+
+Self-learning is COLLECT (session hooks → store) → RANK (`dz teach`/`dz recall`/`dz consolidate`) →
+APPLY (a `UserPromptSubmit` hook injects ranked lessons back into the next prompt). Before this
+module, `runSetup` shipped the first two legs; the third existed only as two hand-committed files
+in this repo's own `.claude/helpers/` — every OTHER project that ran `dz setup --memory agentdb`
+got collection and ranking but never automatic recall injection (MEASURED 2026-09-12: a clean
+scratch install on 0.8.10/0.8.22, with or without `--memory agentdb`, wrote no `UserPromptSubmit`
+hook entry at all).
+
+`apply-leg.ts` is the versioned SOURCE of that leg, in the same shape `AGENTDB_WRITER_VERSION`/
+`generateAgentdbWriter` already used for the session-hook writer:
+
+- `APPLY_LEG_VERSION` / `applyLegVersionOf(content)` — the `// dz-apply-leg-version: N` stamp
+  (line 2 of both generated files) and its parser. Unlike `writerVersionOf` (floors an absent stamp
+  at `0`), `applyLegVersionOf` returns `-1` for "never installed" so `applyLegStatus` can tell that
+  apart from "installed at v0".
+- `recallHookSource(coreDistDir)` / `embedDaemonSource()` — the two generated files, byte-for-byte
+  identical to the pre-existing hand-committed hub copies except for the version stamp and (recall
+  hook only) the resolve-candidate list. `coreDistDir` is baked in as the FIRST candidate
+  `loadCoreModule` tries — an absolute path the CALLER resolves (the installing CLI's own
+  `@dzhechkov/harness-core`, or the hub's own `harnessCoreDistDir()` for its own copies) — replacing
+  a hard-coded `/usr/lib/node_modules/...` guess that failed on any other npm prefix (nvm,
+  `/usr/local`, a differently-rooted global install).
+- `applyLegHookEntries()` — the exact `UserPromptSubmit`/`SessionStart` hook-registry entries
+  `runSetup` merges into `.claude/settings.json` (a swallowed non-zero exit on the recall hook so a
+  broken body never blocks a prompt; a detached `nohup` spawn for the daemon so `SessionStart` never
+  waits on the ~1.5 s model load).
+- `applyLegStatus(root)` — the ONE measurement `dz doctor` and `dz parity` both read: do both helper
+  files exist, at what version, and does `settings.json` actually reference them? Neither surface
+  may declare the leg "installed" from a static capability table again (ADR-001 Decision 3) — a
+  project with `memory.backend=agentdb` configured and nothing else gets a NAMED red row from
+  `dz doctor` (`apply-leg installed`, `ok:false`) and a `manual` cell from `dz parity`, never a
+  silent `✓`.
+
+`runSetup`'s "Install apply-leg" step (agentdb backend only — jsonl reports `skipped` with the
+named reason: the embed daemon needs agentdb's transitive transformers dependency) also creates an
+EMPTY, schema-only `.dz/agentdb.db` via `ensureAgentdbSchema` (`agentdb-index.ts`, reusing
+`REASONING_BANK_SCHEMA` verbatim — never a second, duplicated schema string) when the file does not
+already exist, so `dz teach` has somewhere to mirror into before any session has ever ended.
+
+The hub regenerates its OWN `.claude/helpers/recall-hook.cjs`/`dz-embed-daemon.mjs` from this same
+generator (with the hub's own `coreDistDir`, via `harnessCoreDistDir()`) — a twins test
+(`test/apply-leg-twins.test.ts`) keeps the two byte-identical, the same discipline `feature-adr`'s
+workflow twins test applies to its own generated scripts.
+
 ## Run a plan without the Claude host
 
 `runWorkflow` (`workflow-run.ts`) is the PURE scheduler behind `dz workflow run`: it INTERPRETS a
@@ -707,6 +761,221 @@ ambiguous, capped, and zero-denominator evidence becomes a typed `unknown` obser
 rule is forced SOFT even under hostile HARD configuration, and observations do not participate in
 the verdict reducer. Source comments, comment density, and prose classification are outside this
 decision domain: justification is neither scored nor offered as a trimming target.
+
+## Reads from a read-only-mounted store (ADR-001, `store-readonly-reads`)
+
+`dz recall`, `dz recall --books`, and `dz brain query`/`dz brain ground` read the pattern store
+(`patterns.sqlite`) and the book KB (`books.sqlite`) through `@dzhechkov/memory`'s
+`openSqliteReadOnly` ladder rather than the writer's `SqliteBackend.open`/`openDb`. Observable
+consequences: these commands now work when their store's directory is mounted read-only (e.g. a
+sandboxed runtime) — falling back to a temporary copy when the file cannot be opened in place —
+and, on the common case (a writable directory), the read no longer runs `CREATE TABLE`/FTS-rebuild
+DDL on every invocation. `recallPatterns`/`loadStorePatternsSync` keep their existing
+graceful-empty contract on any open failure (they fall through to the JSON store); `dz recall
+--books` keeps its throw-vs-`{error}` distinction (an unreadable store still exits non-zero naming
+the cause — see `books-recall-honesty` coverage in `book-kb.ts`). A residual (`readonly-residuals`):
+the post-open `busy_timeout` pragma on both readonly wrappers now goes through
+`applyReadonlyPragmas`, which closes the connection and cleans up a tmp-copy before rethrowing if
+the pragma itself throws, instead of leaking both on that failure; and `recallPatterns`/
+`loadStorePatternsSync` distinguish "native `better-sqlite3` unavailable" (silent JSON fallback,
+unchanged) from "the store file itself is unreadable" (corrupt file, permission failure), printing
+one `dz: <path> unreadable (<cause>) — falling back to the JSON store` line on stderr per process in
+the second case, so a broken store no longer looks like plain "fewer lessons".
+
+## Consistent pre-reindex snapshot + rollback (`agentdb-snapshot.ts`)
+
+The pre-reindex snapshot `reindexAgentdbRows` takes before every reindex used to be a bare
+`copyFileSync(dbFile, backupPath)` — one file, no `-wal` sidecar. A WAL-mode sqlite database can
+hold committed rows in `-wal` that never reached the main file (autocheckpoint disabled, or simply
+a writer connection still open between commits), so copying only the main file silently drops them
+— the "undo point" a rollback relies on could already be missing exactly the rows a rollback is
+meant to restore. MEASURED (scratch repro, 2026-09-13, real `better-sqlite3`): a schema + one row
+checkpointed, then a second row inserted on a connection kept open (`wal_autocheckpoint = 0`) —
+`copyFileSync` alone produces a backup with 1 row; `VACUUM INTO` on a fresh read-only connection to
+the SAME live db produces 2.
+
+- `snapshotSqliteDatabase(Database, dbFile, backupPath, opts?)` — default strategy: opens `dbFile`
+  READ-ONLY and runs `VACUUM INTO '<backupPath>'` (the path is escaped as a single-quoted sqlite
+  string literal). One output file, every committed transaction including `-wal` frames, and the
+  live database is untouched — MEASURED: the main file's hash and the `-wal` file's size are
+  identical before and after the call. On any failure (older sqlite without `VACUUM INTO`, a
+  locked/foreign file, no free disk) — or when `opts.strategy: 'copy+wal'` forces it — falls back to
+  `copyFileSync(dbFile, backupPath)` plus a copy of `dbFile-wal` to `backupPath-wal` when the WAL
+  sibling exists and is non-empty. The outcome always names how it actually happened:
+  `{ method: 'vacuum-into' | 'copy+wal' | 'copy', note?: string }` — `note` carries the fallback
+  reason, so a caller/report never claims a stronger guarantee than it got. **Refuses an existing,
+  non-empty `backupPath` before any write** (fix round AM-4, Codex review Grade C) — throws
+  `snapshot target exists and is non-empty: <path>` rather than silently clobbering whatever the
+  path already held; the target is left byte-identical. Also clears any `backupPath-wal`/`-shm`
+  sidecar BEFORE either strategy writes anything, and again right after a successful `VACUUM INTO`
+  (AM-1) — a leftover sidecar from an earlier, unrelated snapshot family reusing the same path must
+  never sit next to (and later be mistaken for part of) a fresh snapshot. The `-wal` size probe now
+  calls `statSync` directly and treats only a confirmed `ENOENT` as "no WAL, method: copy" (AM-2) —
+  any other stat error (`EACCES`, `EIO`, a raced deletion) aborts the whole snapshot with a thrown
+  exception instead of silently degrading to a weaker, falsely-honest-looking `copy`.
+- `restoreSqliteSnapshot(dbFile, backupPath, method)` — the paired rollback. `method` is the EXACT
+  `SnapshotMethod` the paired `snapshotSqliteDatabase` call returned (AM-1, fix round) — never
+  re-derived from whether `backupPath-wal` happens to exist on disk, which a stale sidecar from an
+  unrelated earlier snapshot at the same path could satisfy and cause the wrong generation of `-wal`
+  to be restored. Copies `backupPath` over `dbFile`; when `method === 'copy+wal'`, also restores
+  `backupPath-wal` to `dbFile-wal` — otherwise (`'vacuum-into'` or `'copy'`) removes any LIVE
+  `dbFile-wal` instead. MEASURED: skipping that removal leaves a reopened "restored" db replaying
+  the stale WAL's frames (a since-superseded write) on top of the reverted main file — rows come
+  back EMPTY instead of the restored set. `dbFile-shm` is always removed (its offsets are only valid
+  for the `-wal` that no longer matches). **The caller must close its write connection to `dbFile`
+  before calling this** — it is a plain file copy, not a sqlite-mediated rollback, and a live handle
+  can reintroduce exactly the frames being undone. Returns `{ ok: true }` or `{ ok: false, error }`
+  (AM-3, fix round) — a failing restore (e.g. the destination path unwritable) is reported, never
+  silently swallowed as if the rollback had succeeded.
+
+`reindexAgentdbRows` wires both in: sqlite now resolves (`require.resolve('better-sqlite3')` +
+dynamic `import`) BEFORE any snapshot is attempted, so an unavailable dependency aborts with
+`DEPS_MISSING` and no new `pre-reindex-*` file on disk (previously a snapshot could be taken and
+then immediately discarded by a deps-missing error — a mixed-signal failure). `opts.backupPath`,
+when given, must resolve INSIDE `dirname(dbFile)` (AM-5, fix round — checked via `resolve` +
+`relative`, so neither a `..`-escaping relative path nor a foreign absolute path can steer the
+snapshot outside the db's own directory); violating it aborts with no snapshot attempted at all. The
+result gains `snapshotMethod?` / `snapshotNote?`, named whenever a snapshot ran (including when a
+LATER best-effort step, like copying the sibling embed-manifest, fails) — "absence of a receipt is
+not success". On a reindex failure, the result also gains `rollback: 'restored' | 'failed'` and
+`rollbackError?` (AM-3, fix round) — `rollback()` now closes over `restoreSqliteSnapshot`'s
+`{ ok, error }` outcome instead of a bare `copyFileSync` it used to fire-and-forget, and a failed
+restore is folded into the top-level `error` string as `"<reindex error>; rollback failed: <why>"`
+rather than reported as if the rollback had quietly succeeded. `rollback()` only ever runs after
+every write connection this function opened has already been closed (the DELETE's own
+`finally { db.close() }`, and `indexPatternsToAgentdb`'s own). Test:
+`opts.snapshotStrategy?: 'vacuum-into' | 'copy+wal'` forces the fallback path for deterministic
+coverage of `method: 'copy+wal'` without needing an actually-broken sqlite.
+
+## Pre-reindex snapshot rotation (`agentdb-snapshot-rotation.ts`)
+
+`reindexAgentdbRows` (`agentdb-index.ts`) copies the store to `<db>.pre-reindex-<ms>.bak` (+
+`.embed-manifest.json`/`-shm`/`-wal` siblings) before every reindex, as an undo point — and nothing
+had ever pruned them: 13 snapshots / 50 MB observed on the owner's own hub. `agentdb-snapshot-rotation.ts`
+is the fix, split PURE/effect (NFR-2):
+
+- `listPreReindexSnapshots(dbFile)` — reads the directory next to `dbFile`, groups matches of the
+  STRICT regex `^<basename>\.pre-reindex-(\d+)\.bak(\.embed-manifest\.json|-shm|-wal)?$` into
+  families by their `<ms>` timestamp. Nothing else in the directory is a candidate — `agentdb.db.bak`
+  and `other.pre-reindex-1.bak` next to `agentdb.db` are left alone. Symlinks are never followed and
+  never rotated (`lstatSync`, never `stat`): a matching NAME that resolves to a symlink is excluded
+  entirely, not "rotated by its link size". An orphaned sibling with no `.bak` (e.g. a lone `-shm`)
+  still forms its own one-file family under its own `<ms>`.
+- `planSnapshotRotation(families, { keep, protectMs, now, graceMs })` — pure decision, zero fs: the
+  newest `keep` families survive; the family just created by THIS call (`protectMs`) is rescued even
+  beyond `keep` and even at `keep=0` — the boundary case named by the requirement — but is NOT
+  double-counted when it already falls inside the top-`keep` slice (the ordinary case, since a fresh
+  backup is normally the newest family already). **Grace period (fix-round AM-3):** ANY family
+  younger than `graceMs` (default 10 minutes; `ms > now - graceMs`) is rescued too, even past `keep`
+  — a snapshot from a DIFFERENT process/run than the one calling this must never look "old" just
+  because nobody named it via `protectMs`. There is no CLI flag to shorten or disable it; `now`/
+  `graceMs` exist only so tests can be deterministic.
+- `rotatePreReindexSnapshots(dbFile, { keep = 3, protectPath })` — the fs-effect wrapper: list, plan,
+  `unlinkSync` each file of every removed family. Three fix-round hardenings, all closing a real
+  Codex-review Grade-D finding:
+  - **`keep` is validated before anything is read or deleted** (AM-1): `Number.isSafeInteger(keep)
+    && keep >= 0`, else the call returns `{ kept: [], removed: [], errors: ['invalid keep: …'] }` and
+    touches nothing. The bug this closes: `Math.max(0, NaN)` is `NaN`, and `sorted.slice(0, NaN)` is
+    `[]` — an EMPTY kept slice, so a `NaN`/negative `keep` used to delete every existing family.
+  - **A scan error blocks deletion, not just gets logged** (AM-4): a `readdirSync`/`lstatSync`
+    failure other than ENOENT lands in `report.scanErrors: string[]` and this call removes NOTHING —
+    an incomplete candidate list can never be safely read as "these are all the old ones".
+  - **Within a family, siblings unlink first and `.bak` last, and only if every sibling
+    succeeded** (AM-2): a failed sibling unlink leaves the `.bak` — the one file that alone still
+    proves the snapshot existed — in place, and names the family's `<ms>` in
+    `report.partialFamilies: number[]`, rather than guessing the family is gone.
+  - A per-file failure still lands in `report.errors[]` and never stops the rest of the rotation or
+    the caller's own success — "no receipt is not success", so every removed file is named, never
+    just counted.
+  - An absurd `<ms>` in a matching filename (not a safe non-negative integer, or beyond `Date`'s
+    representable `±8.64e15`) is never grouped into a candidate family (AM-5) — it never reaches
+    `new Date(ms)`, which throws `RangeError` past that bound.
+
+`reindexAgentdbRows` calls this automatically on its SUCCESS path only (`opts.keepSnapshots ?? 3`),
+adding a `snapshots?: SnapshotRotationReport` field to its result; an `error` return never rotates
+anything (old snapshots may be the only working copy left at that moment). `reindexBrainVectors`
+(`brain.ts`) forwards the same field verbatim, so `dz brain reindex` reports it too.
+
+For rotation WITHOUT running a reindex — the owner's hub forbids a live reindex there today, and
+had 13 unrotated snapshots regardless — see `dz brain snapshots [--keep N] [--prune]` in the CLI
+README.
+
+## Snapshot lock + reindex-in-progress marker (`agentdb-reindex-marker.ts`)
+
+**Recovery-required marker (lead edit after Codex re-review, 2026-09-13).** When a reindex fails AND its rollback
+fails too, the marker is rewritten (owner token, atomic tmp+rename) with `requiresRecovery: true`. Such a marker never
+expires: rotation keeps protecting its family and prints a note, and every new reindex of that store is refused with
+`recovery required: … restore <snapshot> manually, then remove marker <path>`. Every marker mutation (create, stale
+replacement, clear, recovery flag) runs under the same `agentdb-snapshot` lock, so compare-and-delete cannot
+interleave with another owner. A snapshot that throws inside the locked section clears its own marker before the
+error propagates.
+
+Snapshot creation (`reindexAgentdbRows`), rotation (`rotatePreReindexSnapshots`) and restore
+(`restoreSqliteSnapshot` via rollback) are three writers of ONE directory — before this feature they
+had NO mutual exclusion, and only the 10-minute grace period above stood between a concurrent
+`rotate --keep 0` and the very snapshot family a live reindex was relying on as its undo point.
+
+- `withAgentdbSnapshotLock(dbFile, fn, opts?)` — a thin, `dbFile`-addressed wrapper over
+  `withNamedLockSync`: the lock lives at `<dirname(dbFile)>/.dz/locks/agentdb-snapshot.lock`, a pure
+  function of the database's OWN directory, never of `process.cwd()` — a project store and the home
+  brain each get their own lock. All three snapshot writers now run their file operations
+  (`VACUUM INTO`/copy, unlink, restore) under this lock; a `NamedLockTimeoutError` propagates as an
+  explicit `error` (`reindexAgentdbRows`: `"snapshot lock busy: …"`, no snapshot, no db change;
+  `rotatePreReindexSnapshots`: `{ removed: [], errors: ['lock busy: …'] }`) — never a silent skip.
+  The critical section stays SHORT and SYNCHRONOUS by design: re-embedding (the network/CPU-bound
+  part of a reindex) runs OUTSIDE the lock, exactly as the store-lock/named-lock lesson requires.
+- **The lock is never acquired twice in one call stack** (NFR-2): `rotatePreReindexSnapshotsUnlocked`
+  is the pure fs-effect primitive with no lock of its own; the PUBLIC `rotatePreReindexSnapshots`
+  wraps it in one lock acquisition, and `reindexAgentdbRows`'s own success-path rotation wraps it in
+  its OWN separate acquisition — never through the public wrapper, which would try to take the same
+  named lock a second time while the first was still logically "in flight" for this call.
+- `writeReindexMarker(dbFile, { ms, pid, startedAt, backupPath? })` / `clearReindexMarker(dbFile,
+  token)` — a `<dbFile>.reindex-inprogress.json` marker written at the start of `reindexAgentdbRows`,
+  INSIDE the same locked critical section as the snapshot itself (never before the lock is even
+  attempted, so a busy lock leaves the directory byte-identical — no snapshot AND no marker). Removed
+  in `finally` on every path EXCEPT one (below). `ms` is recomputed from the actual `backupPath`'s
+  filename, not from whatever internal counter built the default one — a non-standard `backupPath`
+  (no `.pre-reindex-<n>.bak` suffix) names no family, so the marker carries `ms: null` plus the
+  literal `backupPath` for an operator to identify it by.
+- **Marker OWNERSHIP (fix-round, 2026-09-13).** `writeReindexMarker` creates the file EXCLUSIVELY
+  (`openSync(path, 'wx')`) and stamps it with a random 16-hex-char `token`. A LIVE marker already at
+  that path — a genuinely concurrent reindex of the SAME store — refuses the call outright:
+  `{ ok: false, error: 'reindex already in progress (marker <path>)' }`, with NO snapshot ever taken
+  for the refused attempt (nothing was deleted, so there is nothing to roll back). A marker at or past
+  the TTL is replaced. `clearReindexMarker` is compare-and-delete: it removes the marker ONLY when the
+  caller's `token` matches the one on disk — a process can never tear down a marker it does not own —
+  returning `{ cleared: false, reason }` otherwise (an absent marker is treated as an idempotent
+  `{ cleared: true }`).
+- **A rollback that cannot re-take the lock leaves the marker in place (fix-round, 2026-09-13).** If
+  the forward reindex fails and needs to roll back, and the rollback's OWN lock re-acquisition times
+  out, the marker is deliberately NOT cleared — its family may be the only intact copy of the
+  pre-reindex state, and clearing the marker would let a concurrent `dz brain snapshots --prune`
+  delete it out from under an operator who has not yet acted. The returned `error` names BOTH paths
+  explicitly (`"…; snapshot at <backupPath> was not confirmed restored; marker at <path> is left in
+  place — requires manual recovery"`), and `rollback: 'failed'` / `rollbackError` surface the
+  underlying reason (typically `lock busy: …`). Recovery is manual: inspect the snapshot at the named
+  path, restore it by hand if needed, then remove the marker file directly.
+- `readLiveReindexMarkers(dbFile, now?)` — a marker younger than `REINDEX_MARKER_TTL_MS` (60 min)
+  rescues its `ms` from rotation, even at `keep=0` and `graceMs=0` (a `ms: null` marker protects
+  nothing — there is no family to protect); a marker at or past the TTL is abandoned — removal is
+  attempted and the outcome is reported HONESTLY in the rotation report's `notes: string[]` field:
+  `"… ignored and removed"` only once the removal actually succeeded, `"… ignored, removal failed:
+  <err>"` when it did not (fix-round, 2026-09-13 — the previous wording always said "removed" even
+  when the underlying `rmSync` failed). **`pid` is recorded for operator debugging only and is NEVER
+  consulted for liveness** — the same "pid is not authority" lesson `store-lock.ts`/`named-lock.ts`
+  already encode for lock staleness; a marker with an obviously-dead `pid` and a fresh `startedAt` is
+  still treated as live.
+- **Stale threshold: 5 minutes (fix-round, 2026-09-13).** `withAgentdbSnapshotLock` defaults
+  `staleMs` to `AGENTDB_SNAPSHOT_LOCK_STALE_MS` (300 000 ms) rather than named-lock's ordinary 30s
+  default — MEASURED: `VACUUM INTO` on an 8.45 MB agentdb store took 96 ms, so 5 minutes leaves
+  roughly 3000x headroom while staying inside named-lock's own 600 000 ms environment-override
+  ceiling. **A database whose snapshot genuinely takes longer than 5 minutes needs external
+  coordination** (a bigger default is not the fix); a caller doing something unusual may still pass
+  its own `staleMs`.
+- **`rotatePreReindexSnapshotsUnlocked` is package-internal only (fix-round, 2026-09-13).** It is no
+  longer exported from this package's public barrel — the public rotation API is
+  `rotatePreReindexSnapshots`, which always takes the snapshot lock. Exporting the unlocked primitive
+  would hand outside callers a way to rotate with no mutual exclusion at all.
 
 ## Status
 

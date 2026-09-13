@@ -15,6 +15,7 @@
  * @packageDocumentation
  */
 import { type BookKU, type BookKUHit } from './book-kb.js';
+import type { SnapshotRotationReport } from './agentdb-snapshot-rotation.js';
 /** The durable, cross-project brain home. `DZ_BRAIN_HOME` overrides `~/.dz/brain`. */
 export declare function brainHome(): string;
 /** Lexical (FTS5) store for the whole brain — all sources, source-tagged. */
@@ -288,6 +289,8 @@ export declare function reindexBrainVectors(opts: {
     version?: number;
     backupPath?: string;
     error?: string;
+    /** Pre-reindex snapshot rotation outcome — forwarded verbatim from `reindexAgentdbRows` (FR-4). */
+    snapshots?: SnapshotRotationReport;
 }>;
 /**
  * The grounding-enforcement hook entrypoint (ADR-001 §7, P1). Given a user prompt, deterministically

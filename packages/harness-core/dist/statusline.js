@@ -514,28 +514,60 @@ export function statuslineData(projectRoot, now = Date.now()) {
     // зеркалом не пользуется, он горел бы всегда, а вечно горящий показатель не несёт сведений.
     // Зеркало ЕСТЬ, но прочитать или разложить его не удалось: это отказ инструмента, и он горит.
     const mirrorLessons = storeRows?.vectorLessonRows;
+    const mirrorRows = storeRows?.vectorRows;
     const mirrorAbsent = storeRows !== undefined && storeRows.vectorSourcePath === undefined;
+    const lexicalMirrorable = storeRows?.lexicalMirrorableRows;
+    const excluded = {
+        class: storeRows?.lexicalExcludedClassRows ?? 0,
+        noise: storeRows?.lexicalExcludedNoiseRows ?? 0,
+    };
+    const mirrorAvailable = storeRows?.vectorSourcePath !== undefined
+        && typeof mirrorRows === 'number'
+        && mirrorLessons !== undefined;
     const patternMirror = mirrorAbsent
         ? undefined
-        : storeRows === undefined || storeRows.vectorRows === 'unreadable' || mirrorLessons === undefined
+        : storeRows === undefined || storeRows.vectorRows === 'unreadable' || storeRows.vectorRows === 'busy'
+            || mirrorLessons === undefined || lexicalMirrorable === undefined
             ? { state: 'unavailable' }
-            : mirrorLessons !== patterns
-                ? { state: 'different', lexical: patterns, vector: mirrorLessons }
-                : undefined;
+            : {
+                state: mirrorLessons !== lexicalMirrorable ? 'different' : 'in-sync',
+                lexicalMirrorable,
+                vector: mirrorLessons,
+                excluded,
+            };
+    const mirror = {
+        available: mirrorAvailable,
+        rows: typeof mirrorRows === 'number' ? mirrorRows : 0,
+        lessons: mirrorAvailable ? mirrorLessons : 0,
+        pending: mirrorAbsent && lexicalMirrorable !== undefined
+            ? lexicalMirrorable
+            : mirrorAvailable && lexicalMirrorable !== undefined
+                ? Math.max(0, lexicalMirrorable - mirrorLessons)
+                : 0,
+        source: 'agentdb',
+    };
     let patternBreakdown;
     try {
         if (storeRows !== undefined
             && typeof storeRows.lexicalRows === 'number'
             && typeof storeRows.lexicalQuarantinedRows === 'number') {
             const quarantined = storeRows.lexicalQuarantinedRows;
-            const tierDelta = typeof storeRows.vectorQuarantinedRows === 'number'
-                ? Math.abs(quarantined - storeRows.vectorQuarantinedRows)
+            const tierDelta = mirrorAvailable
+                && typeof storeRows.lexicalMirrorableQuarantinedRows === 'number'
+                && typeof storeRows.vectorQuarantinedRows === 'number'
+                ? Math.abs(storeRows.lexicalMirrorableQuarantinedRows - storeRows.vectorQuarantinedRows)
                 : undefined;
             patternBreakdown = {
-                source: 'lexical',
+                source: mirrorAvailable ? 'lexical+mirror' : 'lexical',
                 active: storeRows.lexicalRows - quarantined,
                 quarantined,
                 attention: quarantined > 0 && quarantined * 3 >= storeRows.lexicalRows,
+                ...(storeRows.quarantineTierParity === undefined ? {} : {
+                    tierParity: {
+                        lexicalOnly: storeRows.quarantineTierParity.lexicalOnly,
+                        mirrorOnly: storeRows.quarantineTierParity.mirrorOnly,
+                    },
+                }),
                 ...(tierDelta !== undefined && tierDelta > QUARANTINE_TIER_DRIFT_TOLERANCE ? { tierDelta } : {}),
             };
         }
@@ -572,6 +604,7 @@ export function statuslineData(projectRoot, now = Date.now()) {
     }
     return {
         patterns,
+        mirror,
         ...(patternMirror !== undefined ? { patternMirror } : {}),
         ...(patternBreakdown !== undefined ? { patternBreakdown } : {}),
         ...(usedPatterns !== undefined ? { usedPatterns } : {}),

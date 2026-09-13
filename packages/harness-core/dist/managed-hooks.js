@@ -39,8 +39,17 @@ export function hookCommandsOf(entry) {
  * - Events absent from `managed` are copied through untouched (including unknown ones), and their
  *   entries still count toward `foreignPreserved` — the number answers "how many of the user's
  *   entries did this registry hold and keep", not "how many survived the touched events".
- * - Within a touched event, non-ours entries keep their relative order and object identity, then
- *   the managed entries are appended.
+ * - Within a touched event, non-ours entries keep their relative order and object identity.
+ * - A CURRENT (non-legacy) managed entry that is already byte-identical to one of the fresh managed
+ *   targets stays IN PLACE rather than being dropped and re-appended at the tail (fix round 1,
+ *   feature `setup-installs-apply-leg`, review Codex C MEDIUM finding "идемпотентность Configure
+ *   hooks для чужой записи, добавленной ПОСЛЕ writer-а"). Before this, an already-installed managed
+ *   entry was unconditionally removed and the fresh target re-appended at the tail on EVERY run —
+ *   invisible while it was the only entry in its event, but a genuinely foreign entry a user added
+ *   AFTER it would get silently outrun to the front on the very next `dz setup` (MEASURED: `[writer,
+ *   foreign]` → next run → `[foreign, writer]`). Any managed entry that does NOT exactly match a
+ *   remaining target (stale content, a legacy shape, or a mixed matcher-group carrying a foreign
+ *   handler) still gets dropped/salvaged and the fresh target appended at the tail exactly as before.
  * - `merge(merge(x)) === merge(x)`.
  */
 export function mergeManagedHookEntries(existingHooks, managed, options) {
@@ -72,20 +81,37 @@ export function mergeManagedHookEntries(existingHooks, managed, options) {
     let replacedLegacy = false;
     for (const event of Object.keys(managed)) {
         const current = Array.isArray(hooks[event]) ? hooks[event] : [];
-        const kept = [];
+        const targets = [...(managed[event] ?? [])];
+        const usedTarget = new Array(targets.length).fill(false);
+        const next = [];
         for (const entry of current) {
             const ours = options.isManaged(entry, event);
             if (!ours) {
-                kept.push(entry);
+                next.push(entry);
                 continue;
             }
-            if (options.isLegacy?.(entry, event) === true)
+            const isLegacy = options.isLegacy?.(entry, event) === true;
+            if (isLegacy)
                 replacedLegacy = true;
+            // A current-vintage managed entry already equal to one of the fresh targets is kept IN
+            // PLACE (see the doc comment above) — legacy entries always fall through to drop/salvage so
+            // they get migrated to the current shape rather than "matching" their own stale bytes.
+            if (!isLegacy) {
+                const matchIdx = targets.findIndex((t, i) => !usedTarget[i] && JSON.stringify(t) === JSON.stringify(entry));
+                if (matchIdx !== -1) {
+                    usedTarget[matchIdx] = true;
+                    next.push(entry);
+                    continue;
+                }
+            }
             const salvaged = options.retainForeign?.(entry, event) ?? null;
             if (salvaged !== null)
-                kept.push(salvaged);
+                next.push(salvaged);
         }
-        const next = [...kept, ...(managed[event] ?? [])];
+        for (let i = 0; i < targets.length; i += 1) {
+            if (!usedTarget[i])
+                next.push(targets[i]);
+        }
         if (JSON.stringify(next) !== JSON.stringify(current))
             changed = true;
         hooks[event] = next;

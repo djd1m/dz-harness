@@ -191,6 +191,8 @@ function inspectSignatureFresh(evidence, severity) {
 }
 /** The built-in rule set (works with no config). Ops are the mutating operations each rule guards. */
 export const DEFAULT_RULES = [
+    { id: 'rounds-closed', severity: 'soft', ops: ['publish'], description: 'focused rounds older than 120 minutes are named before publish; a dead owner is reported as an abandoned round' },
+    { id: 'rounds-traced', severity: 'soft', ops: ['publish'], description: '10 or more package-code commits without a round ledger receipt are named; unavailable git evidence is not a pass' },
     { id: 'no-workspace-star', severity: 'hard', ops: ['publish'], description: 'a published package.json must carry no workspace:* dep (npm ships it verbatim → the install breaks)' },
     { id: 'plugin-manifest-audit', severity: 'hard', ops: ['publish'], description: 'every .claude-plugin/plugin.json parses and declares a non-empty name, description and a STRICT N.N.N version' },
     { id: 'sibling-dep-protocol', severity: 'hard', ops: ['publish'], description: 'a dependencies/devDependencies entry on a sibling @dzhechkov package must use the workspace: protocol on disk (peer/optional deps are deliberately exempt — a range is their point)' },
@@ -329,6 +331,27 @@ function mentionsSlug(haystackLower, slug) {
     return new RegExp(`(^|[^a-z0-9_-])${s}($|[^a-z0-9_-])`).test(haystackLower);
 }
 const CHECKERS = {
+    'rounds-closed': (f, sev) => (f.openRounds ?? [])
+        .filter((round) => Number.isFinite(round.ageMinutes) && round.ageMinutes > 120)
+        .map((round) => ({
+        rule: 'rounds-closed',
+        severity: sev,
+        detail: round.pidAlive === false
+            ? `abandoned round ${round.slug}#${round.round}: ${round.ageMinutes} min, owner pid is dead`
+            : `${round.slug}#${round.round}: open round ${round.ageMinutes} min, owner pid ${round.pidAlive === true ? 'is alive' : 'liveness is unknown'}`,
+    })),
+    'rounds-traced': (f, sev) => {
+        const fact = f.codeCommitsSinceLastRound;
+        if (fact === undefined || fact.enabled === false || fact.commits === null || !Number.isFinite(fact.commits))
+            return [];
+        if (fact.commits < 10)
+            return [];
+        return [{
+                rule: 'rounds-traced',
+                severity: sev,
+                detail: `${fact.commits} коммитов кода без единой строки круга с ${fact.since ?? 'неизвестной даты'}`,
+            }];
+    },
     'no-workspace-star': (f, sev) => {
         const out = [];
         for (const p of f.packages ?? []) {
@@ -778,6 +801,10 @@ const CHECKERS = {
 };
 /** Per-rule evidence predicates. No entry preserves the rule's existing checked behaviour exactly. */
 const HAS_INPUT = {
+    'rounds-traced': (f) => {
+        const fact = f.codeCommitsSinceLastRound;
+        return fact !== undefined && fact.enabled !== false && typeof fact.commits === 'number' && Number.isFinite(fact.commits);
+    },
     // `!== undefined` пропускал `null`: правило объявлялось проверенным и возвращало чисто по
     // ветке «улик нет». Это буквально отсутствие улик, отчитанное как проверка (назвал независимый
     // ревьюер 2026-09-04).
@@ -986,6 +1013,15 @@ export function evaluateGuard(facts, rules = DEFAULT_RULES) {
     // (missing contents ⇒ nothing reported), but a skip nobody can see is fail-SILENT. One aggregate
     // note, computed AFTER the verdict so it can never block or warn: information, not a violation.
     const notes = [];
+    if (notEstablished.includes('rounds-traced')) {
+        const fact = facts.codeCommitsSinceLastRound;
+        if (fact?.enabled === false)
+            notes.push('rounds-traced: skipped (.dz/config.json rounds.traced=false)');
+        else if (fact?.commits === null)
+            notes.push(fact.since === null
+                ? 'rounds-traced: not measured (ledger has no dated rows)'
+                : 'rounds-traced: not measured (git unavailable)');
+    }
     if (checked.includes('no-stubs')) {
         const skipped = facts.change?.stubSkipped;
         if (typeof skipped === 'number' && Number.isFinite(skipped) && skipped > 0) {

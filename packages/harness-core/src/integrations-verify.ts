@@ -74,7 +74,8 @@ export const defaultIntegrationProcessPort: IntegrationProcessPort = {
     if (!executable.ok) {
       return { status: null, signal: null, stdout: new Uint8Array(), stderr: new Uint8Array(), errorCode: executable.errorCode };
     }
-    const workerPath = fileURLToPath(new URL('./integration-probe-worker.js', import.meta.url));
+    // Source-importing tests and the compiled module both execute the built worker.
+    const workerPath = fileURLToPath(new URL('../dist/integration-probe-worker.js', import.meta.url));
     const result = spawnSync(process.execPath, [workerPath], {
       input: JSON.stringify({
         ...request,
@@ -83,6 +84,7 @@ export const defaultIntegrationProcessPort: IntegrationProcessPort = {
         aggregateMaxBytes: INTEGRATION_PROBE_AGGREGATE_MAX_BYTES,
       }),
       cwd: request.cwd,
+      env: { ...process.env, DZ_INTEGRATION_PROBE_WORKER: '1' },
       timeout: request.timeoutMs + 5_000,
       killSignal: 'SIGKILL',
       maxBuffer: 4 * 1024 * 1024,

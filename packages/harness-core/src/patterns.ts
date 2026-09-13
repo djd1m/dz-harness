@@ -32,6 +32,7 @@ import type { VectorEntry } from './vector-tier.js';
 import { rankLessonsByDelta, type LessonHistory } from './safla-delta.js';
 import { withStoreLock, withStoreLockSync, StoreLockTimeoutError, StoreLockCompromisedError } from './store-lock.js';
 import { describeNativeDep, exerciseSqliteOpen, probeNativeDep } from './native-dep-probe.js';
+import { classifySqliteReadFailure, warnOnce } from './sqlite-read-helpers.js';
 import {
   lessonPairIdOf,
   mergeLessonFormHits,
@@ -619,9 +620,18 @@ function loadStoreRecordsSync(projectRoot: string): MemoryRecord[] {
   // SQLite tier (only if the db file exists — avoid creating one on a pure read)
   if (sqliteBackend !== 'json' && existsSync(sqlitePath(projectRoot))) {
     try {
-      const db = SqliteBackend.open(sqlitePath(projectRoot));
+      const db = SqliteBackend.openReadOnly(sqlitePath(projectRoot));
       try { for (const r of db.allSync()) add(r); } finally { db.close(); }
-    } catch { /* native unavailable — fall through to JSON */ }
+    } catch (err) {
+      // FR-2 (readonly-residuals): native-unavailable stays a silent JSON fallback (unchanged
+      // behaviour); store-unreadable (a corrupt/broken store) warns once instead of silently
+      // looking like "fewer lessons".
+      if (classifySqliteReadFailure(err) === 'store-unreadable') {
+        const cause = err instanceof Error ? err.message : String(err);
+        const path = sqlitePath(projectRoot);
+        warnOnce(path, `dz: ${path} unreadable (${cause}) — falling back to the JSON store`);
+      }
+    }
   }
   // JSON store (the deterministic fallback; also the source during migration)
   try {
@@ -1266,7 +1276,7 @@ export function recallPatterns(
   const { sqliteBackend } = readLearningConfig(projectRoot);
   if (sqliteBackend !== 'json' && existsSync(sqlitePath(projectRoot))) {
     try {
-      const db = SqliteBackend.open(sqlitePath(projectRoot));
+      const db = SqliteBackend.openReadOnly(sqlitePath(projectRoot));
       try {
         if (!classFormIndexPresent(projectRoot)) {
           return sinkQuarantined(
@@ -1283,7 +1293,16 @@ export function recallPatterns(
       } finally {
         db.close();
       }
-    } catch { /* fall through to JSON */ }
+    } catch (err) {
+      // FR-2 (readonly-residuals): same classify-then-warn-once as loadStoreRecordsSync — a
+      // native-unavailable failure keeps the silent JSON fallback; a store-unreadable failure
+      // warns once instead of silently looking like "fewer lessons".
+      if (classifySqliteReadFailure(err) === 'store-unreadable') {
+        const cause = err instanceof Error ? err.message : String(err);
+        const path = sqlitePath(projectRoot);
+        warnOnce(path, `dz: ${path} unreadable (${cause}) — falling back to the JSON store`);
+      }
+    }
   }
   try {
     const backend = JsonFileBackend.openSync(storePath(projectRoot));

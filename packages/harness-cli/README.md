@@ -2,13 +2,16 @@
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
-## Test execution
+## Install in 30 seconds
 
-`npx vitest run` uses two projects and returns one combined verdict: `parallel` runs the ordinary
-suites concurrently, while `serial` runs process-spawning and real-time suites one file at a time.
-The serial paths in `test/serial-suites.txt` are regenerated from
-`test/serial-suites-census.test.ts`, which scans test sources for synchronous and asynchronous
-process markers, including `execSync(` and `execFile(`, and fails when the list and census differ.
+```bash
+npm install -g @dzhechkov/harness-cli
+dz setup --target claude-code --preset devops
+dz doctor
+```
+
+You do NOT need to clone any repository to use dz. Source is for contributors — see
+[From source (contributors only)](#from-source-contributors-only) at the end of this README.
 
 ## Why dz?
 
@@ -120,7 +123,7 @@ Re-running is safe (existing files are skipped unless `--force`). Targets: `clau
 
 Don't see your tool below? Two fallbacks: if it reads `CLAUDE.md`/`.claude/` use `--target claude-code`;
 otherwise `dz bundle --select <ids> --out <dir>` gives a portable tree of **raw `SKILL.md`** files you can
-point any tool at (a skill is just Markdown). Dedicated targets are on the [roadmap](https://github.com/djd1m/dz-harness-hub/blob/main/docs/target-expansion-research.md).
+point any tool at (a skill is just Markdown). Dedicated targets are on the roadmap (contributors — see `docs/target-expansion-research.md` in the source repo).
 
 **✅ Shipped native targets** (each compiles to the tool's own layout):
 
@@ -287,7 +290,7 @@ you know exactly which file is at fault, and you know whose defect it is.
 
 ## User Journey — from install to mastery
 
-All 91 commands (MEASURED — reproducer: `node --input-type=module -e "import('./dist/index.js').then(m=>console.log(m.DZ_COMMANDS.length))"` from this package; rendered help documents 92 unique top-level names — the 91 plus the built-in `help` — pinned NAME-FOR-NAME by `test/command-inventory-parity.test.ts`) mapped to a real workflow:
+All 92 commands (MEASURED — reproducer: `node --input-type=module -e "import('./dist/index.js').then(m=>console.log(m.DZ_COMMANDS.length))"` from this package; rendered help documents 93 unique top-level names — the 92 plus the built-in `help` — pinned NAME-FOR-NAME by `test/command-inventory-parity.test.ts`) mapped to a real workflow:
 
 ```
 DISCOVER → INSTALL → USE → CREATE → MAINTAIN → SHARE
@@ -1021,17 +1024,15 @@ extracts you scope are what leaves the machine. RU: мост в обратную
 ### Пересмотр после аварийного само-ревью — `dz reqe`
 
 The feature-adr pipeline's cross-model guard says *the model that writes code must not review it*.
-Under limit pressure (usage-adaptive `>=70%` switch) that guard is CONSCIOUSLY suspended: coder AND
-Step-8 QE both run on Codex (FR-2.9 — a Claude reviewer is exactly the agent that dies at the
-limit). The rule used to say "re-review manually after limits reset" — an instruction nobody
-remembers. `dz reqe` turns it into a **debt with a lifecycle**: the run records
-`features/<slug>/.fa-state/reqe-due.json`, `dz usage` surfaces the count the moment you check your
-freed-up limits, and settlement is FAIL-CLOSED.
+Historical usage-switched runs could suspend that guard under provider-limit pressure: coder AND
+Step-8 QE both ran on Codex. The rule used to say "re-review manually after limits reset" — an
+instruction nobody remembers. `dz reqe` turns it into a **debt with a lifecycle**: the run records
+`features/<slug>/.fa-state/reqe-due.json`, `dz usage --json` carries the outstanding count as
+`reqeDue`, and settlement is FAIL-CLOSED.
 
 ```bash
-$ dz usage
-usage: session ~12% (resets 03:00) · week ~41% (resets 06:00) · estimated
-re-QE due: 1 usage-switched run(s) kept same-family QE — run `dz reqe` for the cross-family pass
+$ dz usage --json
+{"sessionPct":null,"weeklyPct":null,"routing":"disabled-by-design","spend":{"days":[...],"total7d":{...},"byModel":{...}},"reqeDue":1}
 
 $ dz reqe                        # the ledger
 dz reqe — 1 unsettled re-QE debt(s):
@@ -1042,8 +1043,8 @@ $ dz reqe --slug add-x --done --report features/add-x/08b_reqe_report.md
 dz reqe: debt settled: re-QE grade C (report …) — settlement appended to features/add-x/08_qe_report.md
 ```
 
-**When to use:** any time `dz usage` prints a `re-QE due` line, or a feature-adr result carried
-`reqeDue: true`. **Fail-closed settlement:** the report must exist, be non-trivial, and name exactly
+**When to use:** any time `dz usage --json` reports a positive `reqeDue`, or a feature-adr result
+carried `reqeDue: true`. **Fail-closed settlement:** the report must exist, be non-trivial, and name exactly
 one line-anchored `GRADE` (the boilerplate phrase `GRADE A-F` does not count); the run's own
 `08_qe_report.md` can never settle its own debt (real-path AND inode compared — a hard link doesn't
 fool it); the settlement epilogue lands in `08_qe_report.md` and the due-file rotates to
@@ -1051,12 +1052,13 @@ fool it); the settlement epilogue lands in `08_qe_report.md` and the due-file ro
 nothing re-runs QE automatically, and the validator proves the settlement is procedurally sound —
 which model authored the report stays with the human running the brief. RU: гард «кодер не ревьюит
 сам себя» осознанно снимается под лимитом; `dz reqe` превращает инструкцию «перепроверь потом»
-в долг на диске — виден в `dz usage`, гасится только настоящим кросс-семейным отчётом с грейдом.
+в долг на диске — виден как `reqeDue` в `dz usage --json`, гасится только настоящим кросс-семейным отчётом с грейдом.
 
-### Usage estimates you can act on — `dz usage`
+### Spend you can inspect — `dz usage`
 
-`dz usage` estimates how much of your Claude session (5h block) and week you have spent, from local
-transcripts. It drives feature-adr's pre-emptive "switch to Codex before the limit" routing.
+`dz usage` reports cost-weighted token spend from local Claude Code and subagent transcripts. It does
+not predict provider limits: there is no provider usage API, weekly resets are per-account, and
+ad-hoc resets make a local denominator non-measurable. Feature routing is therefore disabled by design.
 
 Two things changed to make it mean something:
 
@@ -1066,20 +1068,44 @@ Two things changed to make it mean something:
   1-hour TTL write, cache-read 0.1x, output 5x).
 - **Subagent transcripts count.** `<session>/subagents/*.jsonl` carry real, non-duplicated usage and
   were silently excluded.
+- **Symlinked project directories are scanned by real path, each real directory once.** Broken links
+  and symlinks to files are skipped.
 - **The walk is safe and bounded.** Only regular files are read, symlinked files and directory
-  components are skipped (a FIFO used to block it, a symlink used to be followed), and the file cap
-  keeps the NEWEST transcripts so a long history cannot push current usage out of view.
+  components cannot create duplicate walks or loops, and the file cap keeps the NEWEST transcripts
+  so a long history cannot push current usage out of view.
 
 ```bash
-dz usage                       # session ~13% (resets 10:24) · week ~15% (resets 08:59) · estimated
-dz usage --json                # machine-readable; pct is null when limits are unconfigured
-dz usage --calibrate --session 42 --weekly 61      # teach it YOUR real numbers from claude.ai
+dz usage         # seven UTC days + seven-day total + model shares + today-by-model
+dz usage --json  # sessionPct/weeklyPct stay null; spend carries days, total7d, byModel, daysByModel
 ```
 
-**`pct` is `null` until you configure limits — that is deliberate**, an unconfigured estimate is not
-a guess dressed as a number. The authoritative calibration is `--calibrate` with the percentages
-shown on claude.ai/settings/usage; absent that, limits set from your own observed peak mean "unusually
-heavy **for you**", which is exactly what a pre-emptive routing switch needs.
+The compatibility keys `sessionPct` and `weeklyPct` remain present and always `null`, so existing
+feature-adr probes keep parsing the payload without treating a guess as a routing signal.
+
+**What `unknown` means, and which window each block covers.** The "by model" table is a
+**seven-day window total** — it is the same seven days as the daily table above it, collapsed
+across models, never a per-day figure (a defect this project has hit before: a weekly figure read
+as a daily one). A model row named `unknown` is the aggregation's fallback bucket, literally
+`event.model ?? 'unknown'` in `spendReport` — it catches BOTH of the two ways an event can carry no
+usable model: an event with **no model field at all**, and one whose model string did not match
+any of the four known substrings (`fable`/`opus`/`sonnet`/`haiku`). (Fix-round-1, Codex review
+MEDIUM #3: an earlier revision of this paragraph said `unknown` was "not an event without a
+model" — the opposite of what the code does; corrected to name both causes.) MEASURED on this
+machine, the second cause dominates — almost entirely `<synthetic>` assistant-turn markers, not a
+parsing failure — and `unknown` is always shown, never hidden, because a hidden `unknown` row would
+make the visible rows undercount the real total. Both the "by model" table and the "today by model"
+block print a third column: the model's **share as a fraction 0..1** (two decimals), not a
+percentage — `by model` shares are of the **seven-day total**, `today by model` shares are of
+**today's own total**, and a complete breakdown's column sums to `1.00` in either block (never
+`100` — that would be the percentage form). The `--json` payload additionally carries
+`spend.daysByModel`: one entry per day (same dates as `spend.days`, same order) with that single
+day's `{model → weightedTokens}`, `unknown` included — read `daysByModel.at(-1)` for **today's**
+per-model spend, which the plain-text report prints as the `today (<date>) by model` block right
+after the seven-day "by model" table. The invariant this rests on — every model breakdown
+reconciles exactly with the totals it was sliced from — is `spendInvariantViolations()` in
+`harness-core` (relative tolerance `max(1e-6, 1e-9·max(|a|,|b|))`, and a `NaN`/`Infinity` sum is
+always a violation, never a silent pass), covered by a dedicated mutation-registry entry
+(`usage-days-by-model-invariant`).
 
 ### Where did the run's budget actually go? — `dz usage --by-stage`
 
@@ -1327,6 +1353,22 @@ Four rules the gate itself obeys — these are what distinguish it from a green-
    undefended property lives in this repo's test suite, and the gate MUST fail on it — a gate that
    cannot fail cannot pass.
 
+**Where the full output of a RED baseline/rebaseline line lives** (gate-stability, 2026-09-12,
+fix-round-1 2026-09-12): the bounded 3-line/20-line tail in the verdict is a teaser, and under a
+multi-entry `--only a,b` run it was measured to hand back an unrelated neighbour's stderr —
+undiagnosable. When the initial baseline or a per-entry/final rebaseline line comes back non-zero,
+the executor saves the FULL stdout+stderr to
+`<os.tmpdir()>/dz-mutgate-output/dz-mutgate-<entryId|baseline>-<phase>-<ISO-timestamp>.log` and the
+verdict text names the path (`; full output: <path>`); a green line writes nothing. Files older
+than 7 days in that directory are rotated away on the next write, and rotation only ever touches a
+name carrying BOTH our own `dz-mutgate-` prefix AND our exact ISO-timestamp shape — a foreign file
+(even one shaped like `service-baseline-backup.log`, which the pre-fix-round-1 pattern would have
+matched and deleted) is never touched. If the save itself fails (EACCES/ENOSPC/EROFS/a blocked
+output directory), the verdict says so instead of silently losing the diagnostic artifact
+(`; full output NOT saved: <error>`) — the gate's own exit code is never changed by a logging
+failure. Override the directory with `DZ_MUTGATE_OUTPUT_DIR` (used by this package's own tests to
+avoid touching the real tmpdir).
+
 When to reach for it: after a QE round names safety properties (seed the registry so they STAY
 defended); in CI for a package whose protections have burned you before (`npm run test:mutation`);
 and in feature-adr Step 8, where the QE reviewer runs it whenever the touched package has a
@@ -1449,13 +1491,13 @@ Each pack is an npm package — click through for the **full per-skill documenta
 | [@dzhechkov/skills-academic](https://www.npmjs.com/package/@dzhechkov/skills-academic) | 5 | Thesis-defense toolkit — dissertation review, questions, doc-check, defense eval |
 | [@dzhechkov/skills-news](https://www.npmjs.com/package/@dzhechkov/skills-news) | 3 | *dz-original* — news digests (`news-digest`) + delta watches (`news-monitor`) + bundled `goap-research-ed25519` verified-research backend (mandatory) |
 | [@dzhechkov/skills-demo-publisher](https://github.com/djd1m/dz-harness/tree/main/packages/%40dzhechkov/skills-demo-publisher) | 1 | *dz-original, staged* — scenario-driven product recording → budgeted static HTML5 video site with Russian captions and fail-closed Pages delivery checks |
-| [@dzhechkov/skills-idea2prd](https://www.npmjs.com/package/@dzhechkov/skills-idea2prd) | 1 | *dz-original* — `idea2prd-manual`: idea/problem → PRD+ADR+DDD+C4+Pseudocode+Tests+Completion (9 checkpoints); bundles the analyst trio as a sources.json-tracked vendor ([ADR-0001](https://github.com/djd1m/dz-harness-hub/blob/main/docs/adr/0001-skill-canonicalization-and-dependency-model.md)) |
-| [@dzhechkov/skills-reverse-engineering](https://www.npmjs.com/package/@dzhechkov/skills-reverse-engineering) | 1 | *dz-original* — `reverse-engineering-unicorn`: company → launch playbook (+CJM) via 6-module QUICK/DEEP/VERIFIED pipeline; canonical home that resolved the keysarium↔p-replicator drift ([ADR-0001](https://github.com/djd1m/dz-harness-hub/blob/main/docs/adr/0001-skill-canonicalization-and-dependency-model.md)) |
-| [@dzhechkov/skills-presentation-storyteller](https://www.npmjs.com/package/@dzhechkov/skills-presentation-storyteller) | 1 | *dz-original* — `presentation-storyteller`: selling deck + verified sources + slide-by-slide speaker script; referenced (not vendored) by reverse-engineering-unicorn's Post-M6 step ([ADR-0001](https://github.com/djd1m/dz-harness-hub/blob/main/docs/adr/0001-skill-canonicalization-and-dependency-model.md)) |
-| [@dzhechkov/skills-website-cloner](https://www.npmjs.com/package/@dzhechkov/skills-website-cloner) | 1 | *imported (MIT)* — `clone-website`: live site → pixel-perfect Next.js clone (recon → specs → parallel build → visual QA); needs a browser-MCP + Next.js scaffold; referenced by p-replicator's `/replicate` ([ADR-0001](https://github.com/djd1m/dz-harness-hub/blob/main/docs/adr/0001-skill-canonicalization-and-dependency-model.md)) |
-| [@dzhechkov/skills-pm](https://www.npmjs.com/package/@dzhechkov/skills-pm) | 18 | *imported (MIT)* — product-management toolkit: OST, RICE/ICE prioritization, product-strategy, pricing, OKRs, NSM/metrics/A-B/cohort, outcome-roadmap, stakeholder-map, sprint-plan, strategy-red-team, GTM/growth/beachhead, market-sizing; curated from phuryn/pm-skills (`dz init --preset pm`) ([ADR-0002](https://github.com/djd1m/dz-harness-hub/blob/main/docs/adr/0002-product-and-design-expansion.md)) |
-| [@dzhechkov/skills-taste](https://www.npmjs.com/package/@dzhechkov/skills-taste) | 1 | *imported (MIT)* — `design-taste-frontend`: anti-slop landing/portfolio/redesign framework (dials + pre-flight + GSAP skeletons); complements frontend-design (`dz init --select design-taste-frontend`) ([ADR-0002](https://github.com/djd1m/dz-harness-hub/blob/main/docs/adr/0002-product-and-design-expansion.md)) |
-| [@dzhechkov/skills-book-digitizer](https://www.npmjs.com/package/@dzhechkov/skills-book-digitizer) | 8 | *dz-original* — book → installable methodology pack: `digitize-book` (orchestrator) + ingest/extract/distill/pack/kb-index + `book-brain-register` (CP6 promote → cross-project brain) + `source-brain-ingest` (repo sibling). Verified provenance, IP-safe, resumable (`dz init --select digitize-book`) ([ADR-001](https://github.com/djd1m/dz-harness-hub/blob/main/features/book-knowledge-digitizer/03_adr/001-book-to-skillpack-pipeline.md)) |
+| [@dzhechkov/skills-idea2prd](https://www.npmjs.com/package/@dzhechkov/skills-idea2prd) | 1 | *dz-original* — `idea2prd-manual`: idea/problem → PRD+ADR+DDD+C4+Pseudocode+Tests+Completion (9 checkpoints); bundles the analyst trio as a sources.json-tracked vendor (ADR-0001, contributors-only doc) |
+| [@dzhechkov/skills-reverse-engineering](https://www.npmjs.com/package/@dzhechkov/skills-reverse-engineering) | 1 | *dz-original* — `reverse-engineering-unicorn`: company → launch playbook (+CJM) via 6-module QUICK/DEEP/VERIFIED pipeline; canonical home that resolved the keysarium↔p-replicator drift (ADR-0001, contributors-only doc) |
+| [@dzhechkov/skills-presentation-storyteller](https://www.npmjs.com/package/@dzhechkov/skills-presentation-storyteller) | 1 | *dz-original* — `presentation-storyteller`: selling deck + verified sources + slide-by-slide speaker script; referenced (not vendored) by reverse-engineering-unicorn's Post-M6 step (ADR-0001, contributors-only doc) |
+| [@dzhechkov/skills-website-cloner](https://www.npmjs.com/package/@dzhechkov/skills-website-cloner) | 1 | *imported (MIT)* — `clone-website`: live site → pixel-perfect Next.js clone (recon → specs → parallel build → visual QA); needs a browser-MCP + Next.js scaffold; referenced by p-replicator's `/replicate` (ADR-0001, contributors-only doc) |
+| [@dzhechkov/skills-pm](https://www.npmjs.com/package/@dzhechkov/skills-pm) | 18 | *imported (MIT)* — product-management toolkit: OST, RICE/ICE prioritization, product-strategy, pricing, OKRs, NSM/metrics/A-B/cohort, outcome-roadmap, stakeholder-map, sprint-plan, strategy-red-team, GTM/growth/beachhead, market-sizing; curated from phuryn/pm-skills (`dz init --preset pm`) (ADR-0002, contributors-only doc) |
+| [@dzhechkov/skills-taste](https://www.npmjs.com/package/@dzhechkov/skills-taste) | 1 | *imported (MIT)* — `design-taste-frontend`: anti-slop landing/portfolio/redesign framework (dials + pre-flight + GSAP skeletons); complements frontend-design (`dz init --select design-taste-frontend`) (ADR-0002, contributors-only doc) |
+| [@dzhechkov/skills-book-digitizer](https://www.npmjs.com/package/@dzhechkov/skills-book-digitizer) | 8 | *dz-original* — book → installable methodology pack: `digitize-book` (orchestrator) + ingest/extract/distill/pack/kb-index + `book-brain-register` (CP6 promote → cross-project brain) + `source-brain-ingest` (repo sibling). Verified provenance, IP-safe, resumable (`dz init --select digitize-book`) (ADR-001, contributors-only doc) |
 | [@dzhechkov/skills-12factor](https://www.npmjs.com/package/@dzhechkov/skills-12factor) | 12 | *generated by the digitizer, CC BY 4.0* — The Twelve-Factor App distilled into 12 decision-moment skills (one per factor). The first PUBLIC digitized-book pack; paraphrased (shingling-gated), routing-gated (every factor carries triggers), attributed (`NOTICE`) (`dz init --select 12factor-config-in-environment,…`) |
 | [@dzhechkov/skills-book-ai-apps](https://www.npmjs.com/package/@dzhechkov/skills-book-ai-apps) | 17 | *generated by the digitizer, CP5-published* — «Building Applications with AI Agents» (Albada, рус. пер.) distilled into 17 decision-moment skills across the whole agent-building arc: agent-fit & model choice, single-vs-multi, orchestration, tool design, knowledge & memory, context engineering, evaluation, probabilistic behaviour checks, release gates, improvement loops, drift, human-in-the-loop, agent UX, governance, security. Ships our page-anchored Knowledge Units, NOT the book text — shingling-gated at 0 uncited verbatim runs >=8 words; publication is the recorded CP5 owner decision; `trust_tier 1` (routing-gated, not human-reviewed) Since 0.2.2 it also ships `brain/ai-apps.sqlite`, the 223-KU knowledge slice: `dz brain add --from-pack @dzhechkov/skills-book-ai-apps` loads it into your `~/.dz/brain`, then `dz brain query --source ai-apps` answers in any project (`dz install @dzhechkov/skills-book-ai-apps --target claude-code`) |
 | [@dzhechkov/skills-book-clean-code](https://www.npmjs.com/package/@dzhechkov/skills-book-clean-code) | 9 | *generated by the digitizer, CP5-published 2026-09-11* — «Чистый код» (Robert C. Martin, рус. пер.): intent/comment contract, source layout, function contracts, object/data ownership, error and boundary handling, test-suite feedback, legacy refactoring loop, architecture assembly, concurrency safety; ships `brain/clean-code.sqlite` (259 KU). Shingling IP gate 0 violations on the published bytes; trust tier 1. |
@@ -1972,10 +2014,10 @@ runs a command that MEASURES the declared artifacts itself. It refuses a null re
 never recorded as done), an absent or partially-present artifact set, and a stage that declares nothing
 to witness — so a stage that did not happen can no longer be recorded, which the old mechanism allowed.
 
-## All Commands (91)
+## All Commands (92)
 
-*(91 MEASURED from the bounded command inventory below; rendered `dz --help` exposes 92 unique
-top-level names — the 91 plus the built-in `help`, which prints USAGE before the dispatch switch and
+*(92 MEASURED from the bounded command inventory below; rendered `dz --help` exposes 93 unique
+top-level names — the 92 plus the built-in `help`, which prints USAGE before the dispatch switch and
 is therefore documented without being a command. Both numbers are COMPUTED, never typed: the name
 sets of this section, the root README, the docs site and `DZ_COMMANDS` are pinned to each other by
 `test/command-inventory-parity.test.ts`.)*
@@ -1992,7 +2034,7 @@ dz teach --from-json <file> [--project <dir>] [--no-mirror] [--harmonize]   # bu
 dz consolidate       [--sessions-dir <dir>] [--project <dir>] [--no-mirror]
 dz recall            "<query>" [--limit <N>] [--domain <name>] [--semantic | --no-semantic] [--full] [--project <dir>]   # hybrid lexical+vector when the vector tier is enabled; --domain BOOSTS same-domain lessons (never filters)
 dz recall --all      [--json] [--stats] [--include-domain <name,…>]   # export the learned store (held-out domains are withheld unless named), or inspect learning stats/top uses
-dz recall --books    "<query>" [--book <slug>]      # digitized-book KUs; --book narrows to one book
+dz recall --books    "<query>" [--book <slug>]      # digitized-book KUs; --book narrows to one book. Reads via a read-only opener (ADR-001, store-readonly-reads): works from a read-only-mounted store directory (falls back to a temporary copy) and no longer writes `-wal`/`-shm` on every invocation
 dz vector status     [--project <dir>] [--json]     # semantic tier: engine availability, mirrored vs lexical counts, pending queue
 dz vector reindex    [--project <dir>] [--json]     # re-embed learned vectors with the CONFIGURED model + stamp the manifest (snapshot first; atomic — a mid-way failure restores the store). Warns about task types it does not own (e.g. book-knowledge → run `dz brain reindex`)
 dz vector export     <path> [--project <dir>]       # portable VECTOR form (.rvf checkpoint; needs the opt-in RVF engine)
@@ -2001,13 +2043,13 @@ dz vector harmonize  [--apply] [--threshold <0..1>] [--json]       # SEMANTIC me
 dz teach --harmonize [--apply] [--threshold <0..1>]                # alias of `dz vector harmonize`
 dz statusline        [--json] [--install]   # compact Claude Code statusline: live self-learning pattern count + brain sources
 dz store-guard       [--status|--reset] [--yes] [--project <dir>]   # inspect the monotonic external high-water mark; --reset is the only lowering path and requires confirmation or --yes
-dz usage             [--json] [--project <dir>] | --calibrate --session <pct> --weekly <pct> [--model fable=<pct>]   # ESTIMATE Claude usage from fixed reset windows; optional per-model weekly binding; exit 0 ALWAYS
+dz usage             [--json] [--project <dir>]   # 7-day UTC spend from local Claude Code + subagent transcripts; provider-limit routing disabled by design
                      --by-stage [--run <id> | --slug <s>] [--epsilon <0..1>] [--write <file.jsonl>] [--json]         # per-stage cost ledger for ONE feature-adr run + reconciliation invariant (BALANCED | DEFECT | INSUFFICIENT_DATA)
 dz chain             [--project <dir>] [--json]   # verify EVERY hash-chained journal in one command; coverage is DERIVED from the CHAINED_JOURNALS registry, so a journal cannot be chained and checked by nobody; an ABSENT journal is NAMED, never omitted; exit 1 on broken/unreadable
 dz claim-check       [paths...] [--json] [--fail-on high|medium|none] [--project <dir>]   # enforce the Integrity Rule: flag untagged/overstated accuracy claims; default scan = READMEs + features' 08_qe_report.md; exit 1 only at/above --fail-on (default high)
 dz lint              [paths...] [--json] [--config <file>] [--registry <file>] [--project <dir>]   # advisory EN/RU prose-style lint; findings exit 0, incomplete input/policy exits 1, usage exits 2
 dz brain list        [--json]                                        # the durable cross-project knowledge brain
-dz brain query       "<q>" [--source <slug>] [--limit <N>] [--any] [--rerank] [--json]  # cross-source recall (--any = OR match; --rerank reorders on-point first). Auto-broadens: if strict all-terms match yields 0 hits, it retries once as OR and labels the result "broadened" (text note + broadened:true in --json) instead of returning empty. Explicit --any is OR from the start (never labeled broadened).
+dz brain query       "<q>" [--source <slug>] [--limit <N>] [--any] [--rerank] [--json]  # cross-source recall (--any = OR match; --rerank reorders on-point first). Auto-broadens: if strict all-terms match yields 0 hits, it retries once as OR and labels the result "broadened" (text note + broadened:true in --json) instead of returning empty. Explicit --any is OR from the start (never labeled broadened). `dz brain query`/`dz brain ground` read via the same read-only opener as `dz recall --books` — see ADR-001, store-readonly-reads.
 dz brain add         [--source <slug>] [--project <dir>] [--from-slice <f>|--from-pack <p>|--from-kus <f> --slug <s> --kind <k> --license <spdx> [--override]] [--json]  # grow the brain
 dz brain ground      "<prompt>" [--k <N>] [--source <slug>] [--text] [--budget <N>] [--full]  # retrieve + emit grounding citations (hook entrypoint; silent if irrelevant); --budget N eager-inlines top-K KU content within ~N tokens (chars/4 approx); --full = --budget 8000
 dz brain expand      <kuId> [--source <slug>] [--json]               # full-content lookup by kuId — the command the grounding directive names; prints name/problem/pages/book + FULL content (untruncated)
@@ -2015,6 +2057,8 @@ dz brain init        [--project <dir>] [--k <N>]                     # opt-in: w
 dz brain primer      <slug> [--json]                                # print a source's capability card (histogram + top decision moments)
 dz brain export      --source <slug> --out <file>                   # write a portable per-book KB slice (ships inside the pack, §8.1)
 dz brain update      <slug> [--project <dir>] [--json]              # non-destructive refresh: re-mirror a re-ingested source, evict stale corpus
+dz brain reindex     [--json]                                        # snapshot + re-embed the brain's book-KU vectors, stamp current model; ALSO rotates the brain's own pre-reindex snapshots on success (default keep 3)
+dz brain snapshots   [--keep <N>] [--prune] [--json] [--project <dir>] # list (default) — or, with --prune, rotate — the brain's own `agentdb.db.pre-reindex-<ms>.bak` snapshot families; reaches the same rotation WITHOUT running a reindex
 dz pretrain          [--project <dir>]
 dz recommend         "<task description>" [--json]  (RU/EN lexical topics; explicit task/project-stack/none provenance)
 dz compose           <preset1+preset2+...> [--target <name>]
@@ -2041,7 +2085,86 @@ dz discrimination-check --test <f[,f]> [--base <ref>] [--name <filter>] [--runne
 dz amendment-check   --slug <slug> | --feature-dir <dir> | --all [--json]   (every AM-N / AM-CP-N amendment row must resolve to a test found INSIDE the file the row names; the PLAN is authoritative when it carries rows, and an ideation amendment the plan drops is a failure; --all is a census that always exits 0; exit 0 pass/skip, 1 fail, 3 NOT-ESTABLISHED — ZERO parsed rows may skip only when the whole first paragraph or heading suffix is exactly "None"/"N/A"/"нет", optionally with a full stop; an optional CommonMark closing # sequence is heading furniture, qualified text is refused, and AM-like content beside the declaration is NOT-ESTABLISHED)
 dz contract-check    --slug <s> [--json]   (read-only retrospective feature contract gate: canonical AC-N + ADR Confirmation → CC-N; every item needs one artifact-anchored met|unmet|not-testable verdict; A/B with unmet is refused; exit 0 pass / 1 readable violation / 2 invalid invocation or unreadable/not-established artifacts)
 dz journal           add --kind decision|verdict|run|error|block "<text>" [--ref <trace>] [--at <ISO>] [--quote <file>] [--commit-quote]; show [--day|--week] [--at <date>] [--kind <kind>] [--json]   # UTC day files, witnessed append; quotes local by default
-dz feature-adr-record  --kind ledger|training-pair --stage <s> [--slug <s>] [--row|--pair <json>] [--mark <n>] [--once] [--json]   (the witnessed writer: payload as an ARGUMENT never as shell, refused before any write, timestamp stamped before serialising, append verified by re-reading the tail; exit 0 written|duplicate|skipped, 2 refused, 3 not-verified, never blocking)
+dz feature-adr-record  --kind ledger|training-pair --stage <s> [--slug <s>] [--row|--pair <json>] [--run-id <id>] [--mark <n>] [--once] [--json]   (the witnessed writer: payload as an ARGUMENT never as shell, refused before any write; for a ledger row `ts` is ALWAYS the real write instant (a payload `ts` survives as `payloadTs`, never lost); `--run-id` fills a MISSING `runId` — absent, null, empty, or non-string — and tags it `runIdSource:'cli-flag'`; `minutesSincePrev`/`minutesSource` on an auto ledger row measure against the previous row of the same run, reporting `unavailable` on no prior row OR a corrupt/non-object ledger line anywhere in between; new fields never reorder existing ones; append verified by re-reading the tail; exit 0 written|duplicate|skipped, 2 refused, 3 not-verified, never blocking)
+dz round             open --slug <s> --round <n|auto> --topic "<topic>" [--run <id>] [--owner-pid <n> | --owner-run <runId>] [--force] | exec --slug <s> --round <n> --brief <file> [--log <file>] [--model gpt-5.6-sol] [--effort high] [--timeout-min 30] | close --slug <s> --round <n> --outcome shipped|refuted|blocked|abandoned (--lesson teach:<id>... | --no-new-knowledge "<reason>") [--no-cost] | status [--older-than <minutes>]   -- every subcommand also takes [--state-root <dir>] (or DZ_ROUND_STATE_ROOT)   # open records the parent process by default; --owner-pid records a process and --owner-run records a run-registry owner; live/stalled runs are live, finished/orphaned runs are dead, and unknown registry state stays unknown; open --force refuses a live or unknown owner
+
+The round owner is the session shell (`process.ppid`) by default. Under `setsid`, or in a container
+where that parent is PID 1, pass `--owner-pid <pid>` for the real supervising process; otherwise PID 1
+can make an abandoned round appear permanently owned by a live process.
+
+`--state-root <dir>` (or `DZ_ROUND_STATE_ROOT=<dir>`, flag wins when both are set) names where round
+state (`.dz/rounds/`) AND its ledger row live — every subcommand reads/writes under this root instead
+of cwd when it is given. **`--project` is unrelated and stays recall-only**: `open` only ever passes
+it to `dz recall` for lessons, round state itself has always lived in cwd (lesson `2ac30a70`), and
+`--state-root` is the flag that actually redirects that state. The value must be an absolute path —
+a relative one is refused with exit 2 before anything is written. Without the flag or the variable,
+behavior is unchanged (state in cwd, exactly as before this flag existed). `open` always prints the
+resolved root as `state root: <dir>` (text) / `stateRoot` (JSON), so a caller never has to assume it
+landed in cwd; `status` prints the same `stateRoot` in JSON always, and the `state root: <dir>` text
+line only when `--state-root`/`DZ_ROUND_STATE_ROOT` was actually given (its default-cwd text output
+is otherwise unchanged, byte-for-byte, from before this flag existed).
+
+Every mutation of `.dz/rounds/<slug>-<round>.json` (`open`'s archive+write, `exec`'s owner-claim and
+owner-restore writes, `close`'s final reread+delete) runs under ONE named lock,
+`<stateRoot>/.dz/locks/round-state.lock` (`withNamedLockSync`, feature round-state-lock) — two `dz
+round` processes sharing a `--state-root` can no longer lose each other's update. Recall (`open`) and
+the run-cost ledger write (`close`) stay OUTSIDE the lock — they can be slow, and the lock must not be
+held across anything that isn't a short, synchronous read-modify-write. `open` rereads state again
+UNDER the lock right before writing: if recall ran for a while and a different process opened the
+same round in the meantime, `open` refuses instead of silently overwriting that process's state.
+`status` never takes the lock (read-only) and keeps working while it is held elsewhere. Two refusals,
+both observable, neither one leaves a state file half-written:
+- **`already-open`** — a different process's state appeared while `open` was recalling: exit 1,
+  `круг уже открыт (pid …) — состояние не перезаписано`, `--json` carries `{"refused":"already-open",
+  "pid": <n>}`. The ORIGINAL state (the other process's) is left on disk untouched.
+- **`lock-busy`** — the lock could not be acquired before its deadline (another process is still
+  inside its own critical section): exit 1, `lock busy: …`, `--json` carries `{"refused":"lock-busy"}`.
+  Nothing is written; for `close` specifically, the run-cost ledger row is written BEFORE this lock is
+  ever attempted (see above), so a `close` that hits `lock-busy` on its final delete has already logged
+  the outcome — only the round's own state file is left undeleted (retry `close` to finish it).
+
+**Fix-round (identity beats pid, `stateId`).** Every state `open` writes carries a `stateId` (16
+random hex chars) — the token `exec`/`close` compare against, not pid: `process.ppid` coincides for
+two `dz` launched from the same shell, and every run-owned state carries pid 0, so pid alone could
+not tell a genuine race from an innocent coincidence.
+- `open`'s recheck-under-lock now refuses on ANY raw-byte change since the pre-recall snapshot
+  (pid is diagnostic-only in the refusal text), except a vanished file — a round closed while `open`
+  was recalling is not a race to refuse, it is the ordinary "no existing round" case, `--force` or not.
+- `exec`'s claim AND owner-restore sections both refuse — leaving the file untouched — when the state
+  under the lock is gone (`круг закрыт во время exec, владелец не менялся`) or carries a DIFFERENT
+  `stateId` (`состояние круга заменено (stateId …), возврат владельца пропущен`); neither section ever
+  falls back to resurrecting or overwriting with a stale pre-lock snapshot. The owner-restore lock is
+  retried up to 3 times at the same timeout before giving up; if it still cannot recover ownership, the
+  round is left `ownerKind: 'exec'` and the command says so in prose (`владелец круга не восстановлен
+  (ownerKind=exec остался): повторите dz round exec для этого круга, когда блокировка освободится`) —
+  no new flag is added for this. `open` and `status` warn on their own when a round has been sitting at
+  `ownerKind: 'exec'` for 10+ minutes, so a stuck claim is never silently left for someone to trip over.
+- `close`'s final delete deletes ONLY the state instance its own ledger row was written for (matched by
+  `stateId`): a state that vanished under the lock is `круг уже закрыт (строка леджера записана)` (exit
+  0 — the same round reaching its own success postcondition a different way, not a failure); a state
+  replaced by a different `stateId` is `состояние заменено, не удалено` (exit 1, never deleted). A
+  `close` that hits `lock-busy` on the delete step now says exactly what already happened:
+  `строка леджера записана, состояние круга осталось открытым — повторите close`, `--json` carries
+  `{"refused":"lock-busy","ledgerWritten":true}` — and the retry is idempotent: if the ledger already
+  carries this attempt's row (same slug/round/closedAt), the retry does not append a second one.
+
+`feature-adr` is one outer round, not one round per stage. Step 0 opens it with `--round auto` and
+`--run fa:<slug>` plus `--owner-run <runId>` when the run-registry start receipt supplies a non-empty
+id, so the run registry—not the short-lived command process—owns its liveness. If that best-effort
+registry write fails, the workflow omits `--owner-run`, logs the fallback explicitly, and keeps round
+tracking under the command's ordinary explicit owner. Step 8 maps the QE grade to the outcome and
+closes with `--no-cost`. The existing stage ledger commands remain byte-stable and remain the only
+cost source, so cadence/usage readers do not count the same minutes or tokens twice. A refused close
+is logged and returned as `roundClosed:false` without failing the feature run.
+
+In round rows, `tokens: null` means tokens were not measured; an explicit `--tokens 0` remains zero.
+Automatic feature-adr stage rows keep total `tokens` null and record the measurable partial cost as
+`tokensOut`, with `tokensOutSource` naming `budget.spent` or `unavailable`.
+
+When `args.dzBin` is supplied, feature-adr uses it without a selection/version agent call and logs
+version `not probed (dzBin given)`. With no `dzBin`, binary selection costs no more than **3 additional
+agent calls**: up to 2 `probeSessionCwd` attempts when the workspace is not yet known, plus 1 combined
+probe that both selects the workspace build or PATH fallback and prints the selected binary's version.
 dz runs               [--settle] [--stall-minutes N] [--json] [--project <dir>]   (read the run registry: live / stalled / orphaned / inconclusive / finished)
 dz runs-record        --event started|heartbeat|finished [--run-id <id>] [--kind <kind>] [--slug <slug>] [--pid <pid|host>] [--parent-run-id <id>] [--outcome <text>] [--project <dir>] [--json]   (append one run event)
 dz runs-clean         [--apply] [--retention-days N] [--project <dir>] [--json]   (plan cleanup of old clean merged worktrees and dead/finished registry histories; apply explicitly)
@@ -2056,7 +2179,7 @@ dz epoch-replay --judge <filled-work-order.json> [--out <file>] [--json]   # bli
 dz epoch-replay --score <judgments.json> --work-order <file> [--slice <name>] [--json]   # un-blind against the VERIFIED pre-registered assignment; ONE paired binomial over DECISIVE pairs (ties excluded, reported) → SUPPORTED only when the lift interval (2p−1) lies entirely above zero; FALSIFIED only on harm or a passed non-superiority test (lift upper bound below the margin PRE-REGISTERED in the work order, default 0.05, at 10+ decisive pairs); else INCONCLUSIVE (min 5 decisive pairs). Refuses a forged work order, a --margin flag, or duplicate judgement ids; the verdict is data, not an exit code
 dz score             --slug <feature> [--project <dir>] [--json]   # process scorecard for ONE feature-adr run, from its artifacts: ADR confirmation, discrimination proof, cross-model QE grade, live verification, README-first, learning loop, amendments — DESCRIPTIVE-ONLY (a low score exits 0); evidence lines are shown so the reader judges the heuristics
 dz recap             [--day|--week|--month] [--at <ISO date>] [--refresh-publishes] [--project <dir>] [--json]   # what was done over a window, from records only. `--refresh-publishes` fills the third-party publish-times cache first (the ONLY place this command touches the network — 51 packages in ~7s, batches of 8); the report itself always reads the cache, prints its AGE, and names any package the registry did not answer for: those are MISSING from the numbers, not zero. Deliveries carry the grade an independent review STATED — a report naming two different grades is reported AMBIGUOUS, never guessed; registry publishes come from a cache (51 packages cost 18.3s over the network, MEASURED — never inside a report); gate verdicts and knowledge reuse come from the local stores. --quarter/--half-year/--year are RECOGNISED and REFUSED with the real span in days: there is exactly ONE complete quarter and the longest record is 174 days, so a quarter-over-quarter comparison is arithmetically impossible and a year would be fabrication. Every section carries its own data-start date, and "the source was not read" never prints as a zero. Contaminated measures are NOT computed and the report says so: commit count (this project mandates a commit per logical change), lines changed (352 of 1318 commits are docs), token spend (self-declared an estimate, once wrong sixfold), learning-event volume (the curve tracks when hooks were installed), inventory counts (monotonic — they can only flatter), lesson count (54% of the pool has never been read). exit 0 reported / 2 refused
-dz cadence           [--window day|week|month|quarter|halfyear|year] [--json]   # the RHYTHM view of what shipped: graded-shipment counts bucketed by ISO week, npm-publish cadence (reads `dz recap`'s publish-times cache — run `dz recap --refresh-publishes` to warm it), guard repeat DECAY on the FIXED rule set (a rule joins only with pre-window history, so a newborn rule's zero is youth, not virtue — the no-stubs false-zero class excluded by construction), and recall reuse per week. A window deeper than 2× the record is REFUSED with the measured depth and the largest honest window named (a cadence from under two full windows is scale forgery). Sibling of `dz recap`: recap is the narrative what-was-done report over one window; cadence is the week-by-week rhythm across the window. exit 0 / 2 refused-window / 1 usage
+dz cadence           [--window day|week|month|quarter|halfyear|year] [--json]   # the RHYTHM view of what shipped: graded-shipment counts bucketed by ISO week, round/round-exec outcomes with every unfinished round named, packages/ commits in the window (`not measured` when git is unavailable), npm-publish cadence (reads `dz recap`'s publish-times cache — run `dz recap --refresh-publishes` to warm it), guard repeat DECAY on the FIXED rule set (a rule joins only with pre-window history, so a newborn rule's zero is youth, not virtue — the no-stubs false-zero class excluded by construction), and recall reuse per week. A window deeper than 2× the record is REFUSED with the measured depth and the largest honest window named (a cadence from under two full windows is scale forgery). Sibling of `dz recap`: recap is the narrative what-was-done report over one window; cadence is the week-by-week rhythm across the window. exit 0 / 2 refused-window / 1 usage
 dz profile           init | show | set <field> <value> | sync [--target claude]   # WHO is being talked to. Per-USER store ~/.dz/profile.json (0600, never under a project root), delivered as a marked block in ~/.claude/CLAUDE.md so it loads in EVERY project on the machine, dz installed or not. Two axes: default register (pro | pro-lite | plain; RU aliases профи / профи лайт / просто) and named domains that move it — `deep` = full pro no scaffolding, `weak` = one plain sentence EVERY time unprompted, MANDATORY there. Three fixed rules ride along and the register cannot override them: an explanation is SELF-CONTAINED (every term glossed at first use in THIS passage), the register governs dialogue and owner-facing surfaces but NEVER ADRs / commits / QE reports / npm READMEs, and it changes FORM not FACTS. `show` always prints the store path and the profile's age; an unknown register value is REFUSED naming the accepted set, never silently defaulted; a hand-edited block is reported as drift and `sync` repairs it with a timestamped backup, foreign content preserved byte-for-byte. Redacted from training-pair capture (.dz/fa-training/ records the full prompt and is deliberately not gitignored)
 dz qe-rounds          (--slug <feature> | --feature-dir <abs>) [--ceiling <n>] [--project <dir>] [--json]   # how many Step-8 review rounds has this feature ALREADY had? The rule "Max iterations: 3" lived only as a sentence in a prose module, so every restart of the agent forgot it — MEASURED, one real slug reached 38 graded rounds. Reads what `dz qe-bridge` already wrote (signoff-<runId>.json / failed-*.json under features/<slug>/.fa-state/qe-bridge) and writes NOTHING itself, so it answers for runs already past. A round is a runId, not a file; an attempt with no verdict is counted separately and never merged; ONE directory, never a union across checkouts. FAILS CLOSED: if any record cannot be counted the verdict is NOT ESTABLISHED, never a smaller number presented as the answer. exit 0 under the ceiling / 1 at-or-over — the owner decides, this never judges whether the rounds were warranted / 2 NOT ESTABLISHED, which is never "zero rounds"
 dz restart-advisor    --slug <feature> [--threshold C|D] [--rounds <n>] [--json]   # manual, read-only advice over this feature's QE history. Defaults: threshold D, rounds 2. Reads only features/<slug>/.fa-state/checkpoints.jsonl and .dz/fa-training/<slug>/qe.jsonl; when both carry QE rounds they must normalize identically and are never unioned. RESTART_CODE_STAGE is a recommendation for the operator, not an action: autoAction is always false, and every firing result includes an explicit decision-log line. exit 0 established recommendation/no-recommendation / 2 invalid or not established / 1 unexpected runtime failure
@@ -2071,7 +2194,7 @@ dz backlog <sub>     add "<idea>" | list | show <id> | goals [--validate] | roul
 dz sign --init --out <path>  |  --pack <dir> --key <path>   # --init: generate the Ed25519 keypair (private OUTSIDE the repo, prints the public key for keys/dz.pub); else sign a pack's manifest + CycloneDX SBOM
 dz sbom --pack <dir> [--out <file>]   # emit the CycloneDX 1.5 SBOM for a pack standalone (file-level bill of materials); print to stdout or write to a file
 dz verify-pack --pack <dir> [--pubkey <path>]   # signature check of a pack: fail-closed, and the trust root comes from the repo, never from the pack it is verifying
-dz guard check --op <publish|teach|consolidate|reindex> [--text <s>] [--json] [--force <reason>]   # declarative constraint layer before self-mutating ops: HARD violation → block (exit 1), SOFT → warn; zero-config defaults, .dz/guard.json to customise; dz guard --init | dz guard log (append-only audit). dz publish runs it automatically (--no-guard "<reason>" = logged escape hatch)
+dz guard check --op <publish|teach|consolidate|reindex> [--text <s>] [--json] [--force <reason>]   # declarative constraint layer before self-mutating ops: HARD violation → block (exit 1), SOFT → warn; zero-config defaults, .dz/guard.json to customise; dz guard --init | dz guard log (append-only audit). The built-in SOFT `rounds-traced` rule warns at 10 packages/ commits since the latest round receipt (or the ledger's first row when no round exists); a null git fact is `not measured`, and `.dz/config.json` `rounds.traced:false` is a named skip. dz publish runs it automatically (--no-guard "<reason>" = logged escape hatch)
 dz guard promote [--dry-run | --apply] [--window-days <N>] [--periods <N>] [--json]   # lesson → guard-rule promotion: ranks lessons by firings × cost, SHADOW-replays each candidate over real commits, and proposes a rule only after TWO consecutive wins AND two window-lengths of REAL elapsed time since first observation. Non-dry runs add bounded prospective funnel evidence to .dz/promotion-state.json without feeding the verdict; --dry-run remains write-free. --apply installs SOFT rules only; promotions/refusals remain under features/guard-promotion/promotions/
 dz feature-adr-setup --guards [--loc-cap <n>] [--apply]   # P3: scaffold DETERMINISTIC guard tests into the project — guards.config.json + a zero-dependency check.mjs runner (LOC cap, secret scan, frozen-file sha256 pins, waivers-with-reasons); wire `node architecture/guards/check.mjs` into CI
 dz publish           [--filter <name>] [--bump-only] [--claim-check <off|warn|error>] [--mirror-cmd <cmd>|--no-mirror]   (dry-run by default; pass --yes/--confirm to go live; a configured mirror must return a live receipt or the published run exits 3; config: publish.mirrorCommand)
@@ -2101,7 +2224,7 @@ dz import-ecc       [--local-path <dir>] [--select id,id,...] [--limit N] [--out
 ```
 
 Built-in, not a command: `dz help` prints this same USAGE and is handled before the dispatch switch,
-so `dz --help` lists 92 names while the canonical inventory above holds 91 (ADR-001 of feature
+so `dz --help` lists 93 names while the canonical inventory above holds 92 (ADR-001 of feature
 `command-count-triad`).
 
 **Adding a command — the whole checklist, in order.** It replaces the seven-place folklore that used
@@ -2244,27 +2367,25 @@ echo "how do I handle replication lag?" | dz brain ground --budget 2000   # eage
 
 ### Live self-learning panel (`dz statusline`)
 
-The owner's combined panel keeps the mirror indicator silent on equal lesson counts. On divergence
-it shows `dz 🎓 N (mirror M ⚠)`. A mirror that EXISTS but cannot be read shows
-`dz 🎓 N (mirror unreadable ⚠)`; a project with NO mirror at all stays silent — there is nothing to
-compare, and lighting up there would make the indicator permanent noise.
-The mirror figure counts LESSONS only — backlog ideas and book units are excluded, so the indicator
-is comparable with the lexical count instead of lighting up permanently. It is read from
-`vectorLessonRows`, never from `vectorRows`: that field keeps counting the whole mirror because the
-store guard reads it as an integrity signal, and narrowing it would look like a store collapse.
-The JSON payload exposes these warnings as `patternMirror`; parity omits that field. Both surfaces
-carry the indicator — the combined panel helper and `dz statusline` itself.
+The panel always names the mirror: `mirror: N lessons (pending M)` when readable, or `mirror: absent` when it is not configured.
+Its JSON `mirror` section reports `{available, rows, lessons, pending, source:'agentdb'}`; `patternMirror` compares only mirrorable lexical lessons and reports class/noise exclusions.
+
+A mirror that EXISTS but cannot be read remains a distinct degraded state (`mirror: unreadable ⚠`).
+Mirror lesson counts exclude backlog ideas and book units, while the lexical comparison also excludes
+class lessons and noise rejected by the writer. `vectorRows` remains the full physical count because
+the store guard consumes it as an integrity signal.
 
 `dz statusline` renders a compact Claude Code statusline that surfaces dz's learning at a glance:
 
 ```
-🎓 dz: 12 (9 active · 3 quarantined) (mirror 11 ⚠) · 🧠 3 sources (223/315/60)
+🎓 dz: 12 (9 active · 3 quarantined) · mirror: 11 lessons (pending 1) · 🧠 3 sources (223/315/60)
 ```
 
-The parenthesized split is read only from the primary lexical store. A row is quarantined exactly
+The parenthesized split is read from the primary lexical store; its JSON source is `lexical+mirror`
+when the mirror is readable and `lexical` otherwise. A row is quarantined exactly
 when parsed metadata has `qStatus: "quarantined"`; historical fields do not count. The quarantine
 fragment is omitted at zero, `⚠` appears at one third of the pool, and `⚠ tiers ΔN` reports a
-quarantine-label difference greater than five rows from the vector mirror. `M sources` is how many
+quarantine-label difference greater than five rows across the mirrorable populations. `M sources` is how many
 brain sources (book-KBs / grounding stores) are wired, and the parenthesised list after it gives the
 KU volume of EACH source in brain order — four sources of 300 units and four of three read
 identically without it. The list is omitted (bare source count) when the volumes cannot be
@@ -2426,75 +2547,36 @@ the exact `dz store-guard --reset --project '<dir>'` command. `--status` and gua
 selected lexical source; when both SQLite and JSONL exist they also name the ignored JSONL row count.
 The snapshot helper supports both lexical formats.
 
-### Usage estimate (`dz usage`)
-> **Pin the weekly reset to an ABSOLUTE instant.** `weeklyResetAnchor: "Wed 08:59"` is
-> server-timezone-relative — measured: the same moment lands a week apart under UTC vs `+03:00`, so
-> after a real account reset the counter can keep showing the OLD week for hours while printing the
-> "correct" clock time. Add your offset: `"Wed 08:59 +03:00"` in `.dz/config.json` — the boundary
-> then never moves with the machine's timezone, and `dz usage` prints the full anchor
-> (`resets Wed 08:59 +03:00`). Without an offset it warns on every run.
+### Usage spend (`dz usage`)
 
-
-`dz usage` prints a READONLY, never-throw ESTIMATE of Claude SESSION and WEEKLY token usage,
-aggregated from your local `~/.claude/projects/**/*.jsonl` transcripts. Weekly counts start at the
-configured fixed local anchor (`memory.usage.weeklyResetAnchor`, for example `Wed 08:59`). Session
-counts use the active fixed-length transcript block (`memory.usage.sessionBlockHours`, normally `5`).
+`dz usage` prints a READONLY, never-throw spend report over the last seven UTC calendar days,
+aggregated from local `~/.claude/projects/**/*.jsonl` Claude Code and subagent transcripts. Every day
+shows weighted tokens, raw input/output/cache-read/cache-write tokens, and event count; the report
+also carries a seven-day total and cost-weighted model shares.
 
 ```bash
-dz usage           # session ~74% (resets 19:00) · week ~76% fable-bound (resets 08:59) · estimated
-dz usage --json    # {"sessionPct":74,"weeklyPct":76,"sessionTokens":...,"weeklyTokens":...,"resetsAt":{...},"limits":{...},"estimated":true}
+dz usage
+dz usage --json
 ```
 
-**Exit code is 0 ALWAYS** (even unconfigured/error → all-null JSON) — a probe must never distinguish
-"usage unknown" from "command failed" via a non-zero exit. Percentages are **ESTIMATES** from local
-transcripts; claude.ai/settings/usage is authoritative. They are `null` until you configure the
-plan-dependent limits in `.dz/config.json`:
+The weighting is input `1x`, five-minute cache write `1.25x`, one-hour cache write `2x`, cache read
+`0.1x`, and output `5x`. The JSON contract is:
 
 ```json
 {
-  "memory": {
-    "usage": {
-      "sessionTokenLimit": 200000000,
-      "weeklyTokenLimit": 1000000000,
-      "weeklyResetAnchor": "Wed 08:59",
-      "sessionBlockHours": 5,
-      "weeklyTokenLimitByModel": { "fable": 500000000 }
-    }
-  }
+  "sessionPct": null,
+  "weeklyPct": null,
+  "routing": "disabled-by-design",
+  "spend": { "days": [], "total7d": {}, "byModel": {} },
+  "reqeDue": 0
 }
 ```
 
-`sessionTokenLimit` and `weeklyTokenLimit` are optional; absent means that pct is `null` (unknown,
-never `0`). `weeklyTokenLimit` is the all-model weekly limit. `weeklyTokenLimitByModel` is optional;
-when it has at least one valid model limit (`fable`, `opus`, `sonnet`, or `haiku`), `weeklyPct` is the
-binding per-model percentage and `--json` adds:
-
-```json
-{
-  "weeklyByModel": { "fable": { "tokens": 380, "pct": 76 } },
-  "limits": { "session": 200000000, "weekly": 1000000000, "weeklyByModel": { "fable": 500 } }
-}
-```
-
-When no per-model limits are configured, the JSON shape stays at the legacy fields:
-`sessionPct`, `weeklyPct`, `sessionTokens`, `weeklyTokens`, `resetsAt`, `limits`, `estimated`.
-
-Calibrate from human-transcribed claude.ai percentages with one command:
-
-```bash
-dz usage --calibrate --session 20 --weekly 50 --model fable=76 --project .
-```
-
-It computes each limit as `currentTokens / (pct / 100)`, writes only `memory.usage` in
-`.dz/config.json`, and records `calibratedAt` plus `source: "claude.ai/settings/usage"`. Invalid
-percentages, unknown models, missing transcripts, and zero-token calibration requests are skipped with
-exit code `0`.
-
-This feeds `/feature-adr`'s **usage-adaptive routing** — the pipeline probes `dz usage --json` at each
-phase boundary and pre-emptively routes the remaining stages to Codex when `sessionPct` or the binding
-`weeklyPct` crosses the threshold (default 70%). **Honest caveat:** at TRUE exhaustion even the Codex
-dispatch dies (`codex:codex-rescue` is a Claude wrapper), so the switch must happen BEFORE — the
-pre-emptive probe, not reactive detection, is the real defense.
+The percentage keys deliberately remain present and always `null` for the existing feature-adr probe.
+Provider limits are not measurable locally: there is no provider usage API, weekly resets are tied to
+an account, and ad-hoc resets invalidate a learned denominator. `--calibrate` was removed and returns
+exit `2` with that reason. Existing `.dz/config.json` limit fields are neither read for this report nor
+modified.
 
 ### Claim check (`dz claim-check`)
 
@@ -3416,6 +3498,102 @@ dz setup --target claude-code --preset devops --memory agentdb   # AgentDB (vect
 | **MCP tools** | 0 | pattern, reflexion, causal, skill, hierarchy (whatever the pinned `agentdb` build exposes — `dz` hardcodes no count) |
 | **Dependencies** | None | agentdb (optional, via npx) |
 
+### The apply leg — `dz setup --memory agentdb` installs the whole loop, not two of three
+
+Self-learning is a three-leg loop: **collect** (session hooks write into the store above),
+**rank** (`dz teach` / `dz recall` / `dz consolidate` score and retrieve), and **apply** (a
+`UserPromptSubmit` hook injects the top-ranked lessons back into your next prompt, automatically).
+Before this feature `dz setup` shipped the first two legs only — the apply leg's files existed
+solely in this repo's own `.claude/helpers/`, so every OTHER project that ran `dz setup --memory
+agentdb` got collection and ranking, but never automatic recall (MEASURED: a clean install wrote no
+`UserPromptSubmit` entry at all, on 0.8.10 and 0.8.22 alike, with or without `--memory agentdb`).
+
+`dz setup --target claude-code --memory agentdb` now installs all three, additively (a repeat run
+changes nothing; a foreign hook you wrote yourself is left exactly where it is):
+
+| What | Where | Purpose |
+|---|---|---|
+| `recall-hook.cjs` | `.claude/helpers/` | `UserPromptSubmit` hook — asks the embed daemon for relevant lessons, injects them as prompt context, silent when nothing clears the relevance floor |
+| `dz-embed-daemon.mjs` | `.claude/helpers/` | Resident embedding daemon behind a unix socket — keeps the ~1.5 s model-load cost off every single prompt |
+| `UserPromptSubmit` entry | `.claude/settings.json` | Runs the recall hook (`node ".../recall-hook.cjs" 2>/dev/null \|\| true` — a broken hook never blocks a prompt) |
+| `SessionStart` entry | `.claude/settings.json` | Spawns the embed daemon detached (`sh -c 'nohup node ".../dz-embed-daemon.mjs" ... & exit 0'`) |
+
+The hook resolves your harness-core installation by an ABSOLUTE PATH baked in at `dz setup` time
+(the installation actually running the command), first in its candidate list — no more guessing at
+`/usr/lib/node_modules/...`, which silently failed on any other npm prefix (nvm, `/usr/local`, a
+global install elsewhere). Project-local candidates (`node_modules/`, a monorepo checkout) stay as
+fallbacks after it.
+
+**On the jsonl backend** (no `--memory agentdb`) the step reports `skipped` with the reason named —
+the embed daemon needs agentdb's transitive `@huggingface/transformers`/`@xenova/transformers`
+dependency, which jsonl mode never installs. This is an honest boundary, not a missing feature: run
+`dz setup --memory agentdb` when you want the automatic apply leg.
+
+**Memory footprint and idle lifecycle.** OWNER-MEASURED: the resident embed daemon holds ~1.0 GB
+RSS with only 7 patterns loaded — the multilingual embedding model dominates that number, not the
+pattern count, so it does not grow materially with a larger store. The recommended mental model is
+"spawns on session start, exits after 30 minutes idle" (`DZ_EMBED_IDLE_MS`, default
+`30 * 60 * 1000`) — not "runs forever": a machine that cannot spare ~1 GB resident for a background
+process should stay on the jsonl backend rather than tune the idle window down to zero, since `0`
+(or a negative/non-numeric value) now DISABLES the idle exit entirely (issue #10 defect 7) rather
+than exiting immediately — the daemon is meant to be reaped by inactivity, not pinned forever by a
+misconfigured knob. A value above Node's 32-bit `setTimeout` ceiling (2 147 483 647 ms, ~24.9 days)
+is clamped to that ceiling with a logged line (`idle clamp: <value> -> 2147483647 ms`) instead of
+silently wrapping to ~1 ms — the pre-fix bug that made a "30 days" idle setting exit in about a
+second.
+
+**`dz doctor` and `dz parity` measure this, they don't declare it.** Both read the SAME
+`applyLegStatus(root)` function — a plain filesystem check (do the two files exist? does
+`settings.json` reference them?) — so neither can say "installed" about a project that only has the
+memory backend configured:
+
+```bash
+dz setup --target claude-code --memory agentdb   # installs all three legs
+dz doctor                                         # apply-leg installed: ✓  (or a red row naming: dz setup --target claude-code --memory agentdb)
+dz parity --target claude-code                    # ✓ Self-learning: automatic apply-leg   via UserPromptSubmit hook (auto recall)
+```
+
+Without the apply leg installed, `dz doctor` prints a RED `apply-leg installed` check with the
+exact fix command, and `dz parity`'s `learning-apply` row for `claude-code` reads `◐ manual` with
+`not installed — run dz setup --target claude-code --memory agentdb` — never a silent `✓` read off
+a capability table that has never looked at your project.
+
+#### Post-install verification (acceptance check, dz-harness-hub issue #10)
+
+A live end-to-end check for a fresh `--memory agentdb` install — every line below is something the
+install must produce, not a smoke test of the CLI parsing its own flags:
+
+```bash
+# 1. Install — all three legs, on a bare Node 20/22 host (no C toolchain required: AM-2 pins
+#    better-sqlite3@^11, the range with a prebuilt binary for Node 20's ABI 115).
+dz setup --target claude-code --project . --memory agentdb
+
+# 2. Both hook entries actually landed in settings.json.
+grep -c recall-hook.cjs .claude/settings.json      # → 1
+grep -c dz-embed-daemon.mjs .claude/settings.json  # → 1
+
+# 3. The pinned dependency resolved to a version WITH a prebuilt binary.
+node -e "console.log(require('./node_modules/better-sqlite3/package.json').version)"  # → 11.x
+
+# 4. A lesson taught right after setup — before any session has ever ended — still mirrors
+#    (AM-4: setup pre-creates an empty .dz/agentdb.db so this is never silent).
+dz teach "acceptance check lesson" --allow-cold-start   # → "↳ mirrored to vector tier (agentdb)"
+
+# 5. The embed daemon comes up (spawned by SessionStart; give it up to ~20s to load the model).
+timeout 20 sh -c 'until [ -S .dz/embed.sock ]; do sleep 1; done' && echo "daemon socket is up"
+
+# 6. The recall hook actually injects context for a relevant prompt, and stays silent for one
+#    that clears no relevance floor — never a hang, never a stray print on stdout.
+echo '{"prompt":"acceptance check lesson"}'   | node .claude/helpers/recall-hook.cjs   # → one line of JSON, hookSpecificOutput.additionalContext non-empty
+echo '{"prompt":"unrelated weather report"}'  | node .claude/helpers/recall-hook.cjs   # → empty stdout, exit 0
+
+# 7. Doctor confirms the leg is alive, not merely installed.
+dz doctor   # → "apply-leg alive (embed daemon): embed.sock present"
+```
+
+Every step above is a REPRODUCER, not a claim: run it on a scratch project before trusting a `dz
+setup --memory agentdb` install on a new machine.
+
 ### AgentDB self-learning algorithms
 
 When using `--memory agentdb`, the following algorithms automatically tune search quality:
@@ -3756,8 +3934,8 @@ Learned routing outcomes (what `auto-cost` currently believes):
 Cold-start (no history) walks a cheapest-first chain and escalates on failure; once a model clears the bar it is
 chosen directly. Two invariants held hard: `auto-cost` on the **qe** stage only ever ranks the **cross-family of
 the coder** (a model never self-QEs), and the whole thing is **opt-in** — with no `auto-cost` spec anywhere the
-pipeline is byte-identical and the store is never touched. Layered under the usage-adaptive override (a session
-near its limit still switches to Codex first). Storage is a plain JSON file — zero native deps.
+pipeline is byte-identical and the store is never touched. Provider-limit overrides are disabled by design;
+`auto-cost` decisions use only their own gated outcome history. Storage is a plain JSON file — zero native deps.
 
 ### `dz bto-optimize` — when you want to improve a skill WITHOUT gaming its own benchmark
 
@@ -3891,7 +4069,7 @@ invariants: HARD rules **block** the operation, SOFT rules warn. Zero config nee
 cover the known rakes; `.dz/guard.json` (via `dz guard --init`) exists only if you want to tune a severity
 or disable a rule.
 ```bash
-dz guard check --op publish        # no-workspace-star · no-skill-drift · no-secrets · readme-consistency · readme-first · signature-fresh · skills-registrable · lockfile-in-sync · marketplace-parity · no-stubs · review-round · licence-hold
+dz guard check --op publish        # no-workspace-star · no-skill-drift · no-secrets · readme-consistency · readme-first · signature-fresh · skills-registrable · lockfile-in-sync · marketplace-parity · no-stubs · review-round · rounds-closed · rounds-traced · licence-hold
 dz guard check --op teach --text "the fix: export sk-abc..."   # → BLOCK (exit 1): looks like a credential
 dz guard log                       # append-only audit: every verdict + every forced override
 ```
@@ -4373,6 +4551,119 @@ stay in the previous embedding space until their own reindex runs) instead of le
 Only models listed in `KNOWN_EMBED_DIMS` are accepted — the store's `vectorDim` is 384, so a 768-dim
 model is rejected rather than silently writing mismatched vectors.
 
+#### Pre-reindex snapshots pile up — rotating them
+
+Every `dz brain reindex` (and every `dz vector reindex`) copies the store to
+`<db>.pre-reindex-<ms>.bak` first, as an undo point. Nothing pruned those copies before this feature —
+13 snapshots / 50 MB accumulated on one real brain home before anyone noticed. Two ways to clear them:
+
+```bash
+$ dz brain reindex
+dz brain reindex: re-embedded 812 KU vector(s) with Xenova/paraphrase-multilingual-MiniLM-L12-v2 (manifest v4)
+  snapshot: /home/you/.dz/brain/agentdb.db.pre-reindex-1757754000000.bak
+  ↳ snapshots: kept 6, removed 8 (41.2 MB)
+```
+
+`dz brain reindex` now rotates automatically after a SUCCESSFUL reindex, keeping the newest 3
+snapshot families by default (`opts.keepSnapshots`) — the family it just created is never removed,
+even at `keep=0`. A reindex that itself fails rotates nothing (the old snapshots may be the only
+working copy left).
+
+When you cannot or do not want to run a reindex — e.g. a hub where reindexing itself is off-limits
+today, but old snapshots have piled up regardless — rotate directly:
+
+```bash
+$ dz brain snapshots
+dz brain snapshots — 9 family(-ies) @ /home/you/.dz/brain/agentdb.db
+  2026-09-01T08:00:00.000Z  ms=1756713600000  2 file(s)  4.1 MB
+  2026-09-05T08:00:00.000Z  ms=1757059200000  2 file(s)  4.1 MB
+  ...
+  (dry run — pass --prune to remove families older than --keep)
+
+# The PROJECT store (.dz/agentdb.db, written by the vector-tier reindex) is addressed with --project:
+$ dz brain snapshots --project . 
+dz brain snapshots — 13 family(-ies) @ /path/to/project/.dz/agentdb.db
+
+$ dz brain snapshots --prune --keep 3
+dz brain snapshots: kept 6, removed 12 (37.1 MB)
+  removed: agentdb.db.pre-reindex-1756713600000.bak, agentdb.db.pre-reindex-1756713600000.bak.embed-manifest.json, ...
+```
+
+`dz brain snapshots` never touches anything but the brain's own strictly-named
+`agentdb.db.pre-reindex-<ms>.bak` family (a symlink or a differently-named neighbour is left alone);
+without `--prune` it only lists, and a bad `--keep` — negative, non-numeric, empty, or whitespace-
+padded (`--keep ' 2'`) — is refused with exit 2 rather than silently treated as 0 or 2.
+
+**Fix-round hardenings (2026-09-13, after a Codex review found the earlier version could delete
+every snapshot on a bad `--keep`):**
+
+- **10-minute grace period.** A family younger than 10 minutes is never removed, even past `--keep`
+  — there is no flag to shorten or disable this; it protects a snapshot a DIFFERENT, still-running
+  process just wrote from looking "old" to a `--prune` invoked moments later.
+- **Removal order inside a family: siblings first, `.bak` last, only if every sibling actually
+  unlinked.** If a sibling (the manifest, `-shm`, `-wal`) fails to unlink, the `.bak` — the one file
+  that alone still proves the snapshot existed — is left in place, and the family's `⚠ .bak
+  preserved after a sibling failure` line names it.
+- **A scan error blocks the whole rotation, not just that one file.** If the brain directory itself
+  cannot be listed (or a file's status cannot be read) for a reason other than "it does not exist",
+  the command prints `⚠ scan error(s), nothing removed this call` and removes NOTHING — an
+  incomplete file list is never a safe basis for "these are the old ones".
+
+```bash
+$ dz brain snapshots --prune --keep 3
+dz brain snapshots: kept 6, removed 12 (37.1 MB)
+  removed: agentdb.db.pre-reindex-1756713600000.bak, agentdb.db.pre-reindex-1756713600000.bak.embed-manifest.json, ...
+  ⚠ .bak preserved after a sibling failure in famil(y/ies): 1756713600000   # only printed if a sibling unlink failed
+  ⚠ scan error(s), nothing removed this call: readdir /home/you/.dz/brain: EACCES  # only printed on a scan failure
+```
+
+**Snapshot lock (agentdb-snapshot-lock, 2026-09-13).** `--prune` now takes the SAME advisory lock a
+concurrent `dz brain reindex`/`reindexAgentdbRows` uses (`<store dir>/.dz/locks/agentdb-snapshot.lock`)
+before it removes anything — a `rotate --keep 0` racing a live reindex used to be able to delete the
+undo point the reindex was still relying on; now it waits for the lock, or reports the timeout
+explicitly instead of silently succeeding on an empty rotation:
+
+```bash
+$ dz brain snapshots --prune --keep 0     # a concurrent reindex is mid-flight and holds the lock
+dz brain snapshots: kept 0, removed 0 (0.0 MB)
+  ⚠ 1 error(s): lock busy: the lock at …/.dz/locks/agentdb-snapshot.lock stayed held for 10000ms — …
+$ echo $?
+1
+```
+
+A family a LIVE reindex marker names (`<db>.reindex-inprogress.json`, written for the duration of
+that reindex, not just the moment the lock is held) also survives `--prune`, even at `--keep 0`; an
+EXPIRED marker (older than 60 minutes) is cleaned up and named honestly in a `note:` line rather than
+either protecting it forever or treating its removal as a scan error:
+
+```bash
+$ dz brain snapshots --prune --keep 0
+dz brain snapshots: kept 2, removed 4 (12.3 MB)
+  note: stale reindex marker (ms=1757754000000, startedAt=2026-09-13T01:00:00.000Z) ignored and removed
+```
+
+If the marker could not actually be removed (e.g. a permission error), the note says so instead of
+silently claiming success: `"… ignored, removal failed: <err>"` — never `"… ignored and removed"` for
+a removal that did not happen.
+
+**Marker ownership + a stuck rollback (fix-round, 2026-09-13).** The marker file is now written and
+removed with an ownership token: a `dz brain reindex` genuinely still in flight refuses a SECOND
+concurrent reindex of the same store outright (no snapshot for the refused attempt), and nothing but
+the owning reindex can clear its own marker. If a reindex fails and its rollback cannot re-acquire the
+snapshot lock (e.g. `--prune` or another reindex is mid-critical-section), the marker is deliberately
+LEFT IN PLACE rather than cleared — the reported error names both the snapshot and the marker path and
+says `requires manual recovery`:
+
+```
+error: index failed: …; rollback failed: lock busy: …; snapshot at /home/you/.dz/brain/agentdb.db.pre-reindex-1757754000000.bak
+  was not confirmed restored; marker at /home/you/.dz/brain/agentdb.db.reindex-inprogress.json is left
+  in place — requires manual recovery
+```
+
+Recovery is manual: inspect the named snapshot, restore it by hand if the store looks wrong, then
+delete the marker file. **The snapshot lock's own stale threshold is 5 minutes** — a base whose own
+snapshot genuinely takes longer needs external coordination, not a bigger default.
+
 **Before → after** (what changes when you enable it):
 
 | | Before (lexical only) | After (hybrid vector tier) |
@@ -4738,7 +5029,7 @@ refusal as the honest answer.
 
 ## Status
 
-`harness-core v0.8.30` · `harness-cli v0.8.22` — **this release: the store guard tells "busy" from "broken",
+`harness-core v0.8.31` · `harness-cli v0.8.22` — **this release: the store guard tells "busy" from "broken",
 and a publish is not finished until the public mirror confirms it.** (1) The learning-store guard used to
 turn ANY read failure into `unreadable` and refuse the write; a neighbour holding the SQLite write lock
 (`SQLITE_BUSY`) or a store still being initialised (`no such table`) now gets bounded retries and, if still
@@ -4761,7 +5052,7 @@ exports (`commandInventory`, `declaredCommands`, `dispatchedCommands`, `document
 `stripNonCode`, `validateExceptionList`, `INTERNAL_ENTRY_POINTS`, `PSEUDO_COMMANDS`) — instead of a
 fourth private regex and a fourth number. Four hidden commands (`mr-rakes`, `retro`,
 `feature-adr-setup`, `bto-optimize`) gained USAGE lines, so `--help` changed; `help` is a documented
-pseudo-command, not a `case` label. **91 canonical commands, 92 names in rendered `--help`** (the 91
+pseudo-command, not a `case` label. **92 canonical commands, 93 names in rendered `--help`** (the 92
 plus the built-in `help`) — both COMPUTED from `cli.ts`, neither typed into a test. Three cross-family QE rounds closed
 six parser defects the naive version had: four that INVENTED a command (regex literals with a lone
 `}`, `case` labels in comments or templates, sub-verb labels from nested switches, `  dz <name>` lines
@@ -4780,6 +5071,43 @@ feature-adr workflow performs advisory top-3 micro-recall at the live Step 3 ADR
 plan-route choice. Every failure is fail-open; versioned `.fa-state/decision-recall.jsonl` rows make
 receipt coverage and repeat-related outcomes derivable offline. The hypothesis is external `[SRC],
 n=1`, books were silent on retrieval timing, and no runtime threshold gates a stage.
+
+`harness-core` / `harness-cli` — **staged, not published: `ts` and `minutesSincePrev` on the run-cost
+ledger.** The writer could not measure a stage's full duration (the workflow sandbox never calls
+`Date.now()`, for resume-safety) but it always knew the moment of each write and the run it belonged
+to — so every ledger row now also gets `ts` (the ISO instant it was recorded, next to `date`), and an
+`auto:true` row that carries a `runId` additionally gets `minutesSincePrev` (a number, one decimal
+digit, ≥ 0) plus `minutesSource: 'ledger-ts-delta'`, measured against the LAST row of the same run —
+found via `dz feature-adr-record --run-id <id>` or a `runId` already in the payload. When there is no
+prior row, or it carries no `ts`, the pair reads `minutesSincePrev: null` / `minutesSource:
+'unavailable'` rather than a guess. `minutes` itself is untouched and stays `null` on every auto row:
+a partial measurement gets its own named field and source, and is never folded into the field that
+implies the whole stage's duration was known. `dz cadence`'s round summary reads unaffected fixtures
+unchanged — the new fields are additive, never repositioning an existing key.
+
+**Fix-round-1 (cross-family review, grade B → 5 findings closed), still staged, not published:**
+a Codex `gpt-5.6-sol` review of the above found five contract gaps, all closed by measurement:
+(1) the reverse scan for the previous row's `ts` used to skip PAST a torn or non-object ledger line
+and keep looking further back, so an OLDER row for the same `runId` could be returned while a newer
+one sat hidden behind the corrupt line; it now stops and reports `unavailable` — named
+`ledger-corrupt-line` — the instant it hits a line it cannot parse as an object, never a guess made
+by skipping past what it could not read. (2) `--run-id` filling a MISSING `runId` was already correct
+— "missing" means absent, `null`, `''`, or a non-string value, the same "missing when absent or
+blank" rule `runnerId` uses — but it was untested beyond the plain non-empty-string case and
+undocumented; both are fixed now, behavior unchanged. (3) when `--run-id` actually fills the gap, the
+row is now tagged `runIdSource: 'cli-flag'` — the same provenance discipline `resolved-at-write`
+already gets for the OTHER runId source (write-time auto-resolution) — and an existing non-empty
+`runIdSource` is left untouched. (4) a payload's own `ts` is no longer trusted for the delta: `ts` on
+a ledger row is now ALWAYS the actual write instant, and a caller-supplied one survives, renamed,
+as `payloadTs` — no data lost, just no longer the value the delta measures from. (5) object key order
+now matches the documented convention exactly: a `runnerId` this call itself stamps keeps its position
+ahead of `ts`/`minutesSincePrev`/`minutesSource`, which land strictly last regardless of which fields
+the incoming payload already carried. `test/run-records.test.ts` (48, +10) and
+`test/feature-adr-record-cli.test.ts` (22, +7) cover all five, plus fractional-minute rounding
+(2m30s → 2.5, 1m3s → 1.1) and a pinned negative-delta case; the `ledger-minutes-since-prev-measured`
+mutation-gate entry was RE-MEASURED at `failingCount: 3` (three of the new tests now discriminate the
+same mutation, up from one) and the registry updated to match — `dz mutation-gate --only
+ledger-minutes-since-prev-measured` verdict `PROVEN`, exit 0.
 
 `v0.8.8` — **staged, not published.** `dz init` now reports exactly one MCP and one hook outcome,
 adds `integrations-verify`, content-bound authorization, explicit skills-only opt-out, and named
@@ -4911,7 +5239,7 @@ partial design). The compat floor is unchanged — this CLI uses no new core exp
 
 **v0.5.1** — published 2026-08-20. Ships `dz workflow run`, the portable plan enactor: it INTERPRETS a `loop-plan/1` plan instead of executing a rendered script, dispatching to `codex exec` or an isolated `claude -p`, exit 0/1/2/75 (75 = a typed pause whose last stdout line is a `wf-pause-envelope/1`). Requires `@dzhechkov/harness-core >= 0.5.1` (the compat guard refuses below it by name). See "Who writes the trace" above for the stated scope of the cross-host equivalence claim — it is narrower than "the two hosts agree".
 
-`v0.5.0` — published. Also available as [Claude Plugin](#claude-plugin). Part of [DZ Harness Hub](https://github.com/djd1m/dz-harness-hub).
+`v0.5.0` — published. Claude Plugin packaging exists for contributors only (see [Claude Plugin](#claude-plugin) — a public marketplace install does not work today). Part of [DZ Harness Hub](https://github.com/djd1m/dz-harness).
 
 New in 0.5.0 (feature `qe-bridge-claude`, cross-runtime leg 3/4): `dz qe-bridge --family claude`
 runs an INDEPENDENT Claude reviewer from any host — a Codex session included — and lands a PARSED
@@ -4935,21 +5263,21 @@ Previously: the global `dz --version` / `-v` / `dz version` surface (one parseab
 
 ## Claude Plugin
 
-DZ Harness Hub is available as a Claude Code plugin:
+Using the whole hub as a Claude Code plugin needs the source repo — this is a path for
+**contributors and plugin developers**, not something an `npm install -g` user needs (see
+Install above). A public marketplace install does **not** work today: `claude plugin marketplace add djd1m/dz-harness` fails with `Marketplace file not found` (MEASURED 2026-09-13, scratch probe) — the public mirror ships each package's `npm pack` contents only, never the root-level `.claude-plugin/marketplace.json`.
 
 ```bash
-# Via marketplace (when published):
-claude plugin marketplace add djd1m/dz-harness-hub
-claude plugin install dz-harness-hub@dz-harness-hub
-
-# Or test locally:
+# From a cloned repo (contributors / plugin developers only):
 claude --plugin-dir /path/to/dz-harness-hub
 
 # Generate plugin manifest from current inventory:
 dz plugin --version 0.3.86
 ```
 
-The `.claude-plugin/` directory contains `plugin.json` + `marketplace.json` compatible with [pi-claude-marketplace](https://npm.im/pi-claude-marketplace) and [skill-hub](https://npm.im/@jasonwen/skill-hub).
+The `.claude-plugin/` directory (source repo only) contains `plugin.json` + `marketplace.json`
+compatible with [pi-claude-marketplace](https://npm.im/pi-claude-marketplace) and
+[skill-hub](https://npm.im/@jasonwen/skill-hub).
 
 ## Related Projects
 
@@ -5031,3 +5359,18 @@ Core APIs: `settleDeadRuns` and `planRegistryArchive` are pure registry decision
 `planWorktreeCleanup` accepts injected `WorktreeFact` values and returns remove/keep decisions;
 `renderCleanupPlan` renders them. `worktreeRemovalsToApply` selects removals only when apply is true.
 No process is terminated and no branch is deleted.
+
+## From source (contributors only)
+
+Everything below is for people building or testing `dz` itself — not for `npm install -g` users.
+The buildable source lives in the public mirror, [github.com/djd1m/dz-harness](https://github.com/djd1m/dz-harness) (each package's own npm-pack contents; the full monorepo, including this feature's design docs, stays in the private source repo).
+
+### Test execution
+
+`npx vitest run` uses two projects and returns one combined verdict: `parallel` runs the ordinary
+suites concurrently, while `serial` runs process-spawning and real-time suites one file at a time.
+The serial paths in `test/serial-suites.txt` are regenerated from
+`test/serial-suites-census.test.ts`, which scans test sources for synchronous and asynchronous
+process markers, including `execSync(` and `execFile(`, and fails when the list and census differ.
+CF-2 records uncommented explicit test budgets in each package's `test/budget-debt-ceiling.json`: growth fails with `file:line` findings; shrinkage passes and suggests a lower ceiling.
+The ceiling files live in `packages/@dzhechkov/harness-core/test/` and `packages/@dzhechkov/harness-cli/test/` and are lowered by hand: a ratchet on existing debt, not a migration that clears it in one shot.

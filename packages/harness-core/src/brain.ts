@@ -23,6 +23,7 @@ import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { putBookKnowledge, queryBookKnowledge, bookKbPath, type BookKU, type BookKUHit } from './book-kb.js';
 import { indexPatternsToAgentdb, searchAgentdbPatterns, reindexAgentdbRows, type AgentdbRow } from './agentdb-index.js';
+import type { SnapshotRotationReport } from './agentdb-snapshot-rotation.js';
 import { resolveEmbedModel, type EmbedModelConfig } from './embedding-config.js';
 
 // ─────────────────────────────────────── Home & paths ───────────────────────────────────────
@@ -992,7 +993,7 @@ await emb.initialize();
 await emb.embed('warm embedding model cache');
 `;
     try {
-      const nodeBin = existsSync(process.execPath) ? process.execPath : (process.argv[0] ?? 'node');
+      const nodeBin = process.execPath;
       const child = spawn(nodeBin, ['--input-type=module', '-e', script], {
         cwd: depsRoot,
         detached: true,
@@ -1066,7 +1067,15 @@ export async function searchBrainVectors(opts: {
 export async function reindexBrainVectors(opts: {
   brainHome?: string;
   depsRoot?: string;
-}): Promise<{ reembedded: number; model?: string; version?: number; backupPath?: string; error?: string }> {
+}): Promise<{
+  reembedded: number;
+  model?: string;
+  version?: number;
+  backupPath?: string;
+  error?: string;
+  /** Pre-reindex snapshot rotation outcome — forwarded verbatim from `reindexAgentdbRows` (FR-4). */
+  snapshots?: SnapshotRotationReport;
+}> {
   const home = opts.brainHome ?? brainHome();
   const depsRoot = opts.depsRoot ?? process.cwd();
   const read = readBookKus({ storePath: brainBooksPath(home), depsRoot });

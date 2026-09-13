@@ -858,7 +858,7 @@ await emb.initialize();
 await emb.embed('warm embedding model cache');
 `;
         try {
-            const nodeBin = existsSync(process.execPath) ? process.execPath : (process.argv[0] ?? 'node');
+            const nodeBin = process.execPath;
             const child = spawn(nodeBin, ['--input-type=module', '-e', script], {
                 cwd: depsRoot,
                 detached: true,

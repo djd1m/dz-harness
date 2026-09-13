@@ -20,6 +20,8 @@ export const meta = {
 let finishRunRegistry = null
 let registryOutcome = 'errored'
 try {
+const RUNTIME_SPENT = (typeof budget === 'object' && budget && typeof budget.spent === 'function') ? function () { return budget.spent() } : null
+let spentAtPrevRow = RUNTIME_SPENT ? RUNTIME_SPENT() : null
 const A = typeof args === 'string' ? JSON.parse(args) : (args || {})
 const SLUG = A.slug || 'feature'
 const DESC = A.description || ''
@@ -139,15 +141,35 @@ function normalizeDzBin(raw, ws) {
   const base = (typeof ws === 'string' && ws.length > 0) ? ws.replace(/\/+$/, '') : ''
   return base === '' ? r : base + '/' + r
 }
-const DZ_RAW = A.dzBin || 'dz'
-// The probe above runs only when args.repo needed resolving; a relative dzBin needs WS too, so run
-// it here in exactly that case — a bare `dz` (the common case) pays zero extra agent calls.
+// In the hub, PATH may name an older published CLI. Resolve the workspace first so an omitted
+// args.dzBin can prefer the build that belongs to this checkout.
+if (A.workspace !== undefined && A.workspace !== null) WS = assertAbsoluteNoTraversal(A.workspace, 'workspace')
+if ((A.dzBin === undefined || A.dzBin === null || A.dzBin === '') && WS === null) {
+  WS = await probeSessionCwd('resolve-workspace-dz')
+}
+const WORKSPACE_DZ = WS === null ? null : WS.replace(/\/+$/, '') + '/packages/@dzhechkov/harness-cli/dist/bin.js'
+let DZ_RAW = A.dzBin
+let DZ_VERSION = 'not probed (dzBin given)'
+if (DZ_RAW === undefined || DZ_RAW === null || DZ_RAW === '') {
+  const dzProbeCmd = WORKSPACE_DZ === null
+    ? "printf 'DZ_PATH_FALLBACK '; dz --version"
+    : 'if [ -f ' + shq(WORKSPACE_DZ) + " ]; then printf 'DZ_WORKSPACE_BUILD '; " + shq(WORKSPACE_DZ) + " --version; else printf 'DZ_PATH_FALLBACK '; dz --version; fi"
+  const localDzOut = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with ONLY its stdout: ' + dzProbeCmd, { label: 'resolve-workspace-dz:select-version', phase: 'Route', model: 'haiku', effort: 'low' })
+  const localDzText = String(localDzOut || '').trim()
+  const workspaceDzExists = localDzText.indexOf('DZ_WORKSPACE_BUILD ') === 0
+  DZ_RAW = workspaceDzExists ? WORKSPACE_DZ : 'dz'
+  const dzVersionText = localDzText.replace(/^DZ_(?:WORKSPACE_BUILD|PATH_FALLBACK)\s*/, '')
+  const dzVersionLines = dzVersionText.split(/\r?\n/).map(function (line) { return line.trim() }).filter(Boolean)
+  DZ_VERSION = dzVersionLines.length > 0 ? dzVersionLines[dzVersionLines.length - 1].slice(0, 80) : 'unknown'
+}
+// A relative dzBin still needs WS so it resolves identically after every downstream cd. The combined
+// selection/version probe above runs only when dzBin is absent; a supplied absolute dzBin costs no call.
 if (DZ_RAW.indexOf('/') >= 0 && DZ_RAW.charAt(0) !== '/' && WS === null) {
   WS = await probeSessionCwd('resolve-ws')
   if (!WS) throw new Error('feature-adr: args.dzBin ' + JSON.stringify(DZ_RAW) + ' is relative and the workspace root could not be resolved after 2 attempts; refusing to splice a path that would resolve differently in every cd\'d command. Pass an absolute args.dzBin.')
 }
 const DZ = normalizeDzBin(DZ_RAW, WS)
-log('dz binary: ' + DZ)
+log('dz binary: ' + DZ + ' (' + DZ_VERSION + ')')
 // args.gateScript — an explicit ABSOLUTE path to the K2 gate script (ADR-002 candidate 1). Validated
 // HERE, at invocation time, so a bad value fails at the same layer the pure half fails rather than
 // two layers later inside an emitted shell command.
@@ -156,7 +178,6 @@ const GATE_SCRIPT_ARG = (A.gateScript === undefined || A.gateScript === null) ? 
 // shell fallback WS=$(pwd -P) runs in the GATE AGENT own cwd. On a run against an external repo it
 // equalled REPO, so the workspace candidate pointed at the target repo and the skill installed in
 // the workspace was never found - NOT-ESTABLISHED, exit 3, Step 7 never ran. args.workspace pins it.
-if (A.workspace !== undefined && A.workspace !== null) WS = assertAbsoluteNoTraversal(A.workspace, 'workspace')
 // CANONICAL BRAIN store: the self-learning loop (Step-0 recall → Step-8 teach) MUST read+write ONE
 // shared pattern store so lessons never fragment into a target repo's .dz when the Step-7 coder cd's
 // away. BRAIN defaults to the workspace root (REPO) — so an OMITTED args.brain is behaviorally inert
@@ -173,6 +194,14 @@ const BRAIN = (A.brain || REPO).replace(/\/+$/, '')
 const DZ_RECALL = (terms) => 'cd ' + BRAIN + ' && ' + DZ + ' recall "' + terms + '" --project ' + BRAIN + ' --run fa:' + SLUG
 const DZ_TEACH = (lesson, reward, domain) =>
   'cd ' + BRAIN + ' && ' + DZ + ' teach "' + lesson + '" --reward ' + reward + ' --domain ' + domain + ' --project ' + BRAIN
+
+function parseRoundCommandJson(raw) {
+  const lines = String(raw === null || raw === undefined ? '' : raw).split(/\r?\n/).map(function (line) { return line.trim() }).filter(Boolean)
+  for (let i = lines.length - 1; i >= 0; i--) {
+    try { return JSON.parse(lines[i]) } catch { /* a chatty shell courier may add non-JSON lines */ }
+  }
+  return null
+}
 
 // ── Durable checkpoints + resume (backlog 49e4a95b) — inline mirror of ──
 // ── harness-core/src/feature-adr-checkpoints.ts (the workflow is self-contained, no imports) ──
@@ -978,7 +1007,14 @@ async function appendRunCostRow(stage, phaseName, outcome) {
   // Like capturePairs, a ledger failure is a logged SECONDARY event that can NEVER fail the run;
   // the whole body therefore rides one best-effort try/catch and never rethrows.
   try {
-    // HONESTY: tokens and minutes and agents come from the Workflow COMPLETION NOTIFICATION, which the running script CANNOT see. So the automated row MUST write null for them — never an estimate, never a guess, never a fabricated number. The operator still enriches tokens/minutes afterwards.
+    const spentNow = RUNTIME_SPENT ? RUNTIME_SPENT() : null
+    const tokensOut = Number.isFinite(spentNow) && Number.isFinite(spentAtPrevRow)
+      ? spentNow - spentAtPrevRow
+      : null
+    if (Number.isFinite(spentNow)) spentAtPrevRow = spentNow
+    // HONESTY: budget.spent() exposes only cumulative OUTPUT tokens, so tokensOut is that measured
+    // partial cost. Complete token cost, minutes and agents come from the Workflow COMPLETION NOTIFICATION,
+    // which the running script CANNOT see. Keep their fields null: never an estimate, never a guess, never a fabricated number.
     const line = JSON.stringify({
       slug: (typeof SLUG === 'string' && SLUG !== '') ? SLUG : null,
       stage: (typeof stage === 'string' && stage !== '') ? stage : null,
@@ -986,6 +1022,9 @@ async function appendRunCostRow(stage, phaseName, outcome) {
       tokens: null,
       minutes: null,
       agents: null,
+      tokensOut: tokensOut,
+      tokensOutSource: tokensOut === null ? 'unavailable' : 'budget.spent',
+      costNote: 'total tokens visible only in the completion notification; minutes not measurable inside the sandbox',
       coder: (typeof coderUsed === 'string' && coderUsed !== '') ? coderUsed : null,
       grade: (qe && typeof qe.grade === 'string' && qe.grade !== '') ? qe.grade : null,
       outcome: (typeof outcome === 'string' && outcome !== '') ? outcome : null,
@@ -3083,7 +3122,7 @@ const ARTIFACT = { type: 'object', additionalProperties: false, required: ['wrot
 // (hasManifest + the who-injected report). The BIG per-stage guidance content is fetched by each stage
 // agent directly from `dz project-skills` (never threaded through a model → fidelity preserved).
 const PROJECT_SKILLS = { type: 'object', additionalProperties: false, required: ['hasManifest', 'report'], properties: { hasManifest: { type: 'boolean' }, report: { type: 'string' } } }
-const QE = { type: 'object', additionalProperties: false, required: ['grade', 'gaps', 'codeTestsAdequate', 'docTestsPresent'], properties: { grade: { type: 'string' }, codeTestsAdequate: { type: 'boolean' }, docTestsPresent: { type: 'boolean' }, gaps: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['sev', 'what'], properties: { sev: { type: 'string' }, what: { type: 'string' } } } }, claimCheck: { type: 'object', additionalProperties: false, properties: { findings: { type: 'number' }, high: { type: 'number' }, medium: { type: 'number' } } } } }
+const QE = { type: 'object', additionalProperties: false, required: ['grade', 'gaps', 'codeTestsAdequate', 'docTestsPresent'], properties: { grade: { type: 'string' }, codeTestsAdequate: { type: 'boolean' }, docTestsPresent: { type: 'boolean' }, gaps: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['sev', 'what'], properties: { sev: { type: 'string' }, what: { type: 'string' } } } }, claimCheck: { type: 'object', additionalProperties: false, properties: { findings: { type: 'number' }, high: { type: 'number' }, medium: { type: 'number' } } }, roundLessons: { type: 'array', items: { type: 'string' } }, roundNoNewKnowledge: { type: 'string' } } }
 const CONFIRMATION_FILE_GATE = { type: 'object', additionalProperties: false, required: ['verdict', 'missing', 'checked', 'reason'], properties: { verdict: { type: 'string', enum: ['pass', 'fail', 'skipped', 'refused'] }, missing: { type: 'array', items: { type: 'string' } }, checked: { type: 'array', items: { type: 'string' } }, reason: { type: 'string' } } }
 
 function normalizeConfirmationFileGate(raw) {
@@ -3250,6 +3289,8 @@ FA_TIER.v = tier // fa-phase-statusline: from here every ckpt-side fa-record car
 // Outer completion state starts absent so the plan-only ledger row can report null honestly.
 let coderUsed = null
 let qe = null
+let pipelineRound = null
+let roundClosed = false
 const LEARNED = router ? router.rationale : 'none recalled'
 const isMplus = tier === 'M' || tier === 'L' || tier === 'XL'
 const isLplus = tier === 'L' || tier === 'XL'
@@ -3292,6 +3333,26 @@ if (autoCostStages.length > 0) {
 // Bash call). A dedicated single-command agent reliably lights up the live /feature-adr panel at the
 // most visible moment. Uses the workspace bin (PATH-independent). Best-effort — never blocks.
 if (resumedStages.indexOf('router') === -1) await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and report its stdout verbatim — do nothing else, do not summarize: ' + DZ + ' statusline --fa-record --slug ' + SLUG + ' --step "Step 0 recall" --recalled auto --run fa:' + SLUG + ' --count-project ' + BRAIN + ' --stored 0 --mode ' + MODE + ' --project ' + REPO, { label: 'fa-record:step0', phase: 'Router', effort: 'low' })
+
+// A whole feature-adr run is one outer round. Cost remains in the unchanged per-stage ledger rows;
+// the round records only the outcome. State lives in REPO because the command cd's there, while
+// recall reads the canonical BRAIN and carries the same fa:<slug> attribution as DZ_RECALL.
+const roundOwnerArg = registryRunId
+  ? ' --owner-run ' + shq(registryRunId)
+  : ''
+if (!registryRunId) log('round owner: no registry run id (registry write failed) — falling back to explicit owner')
+const roundOpenCmd = 'cd ' + shq(REPO) + ' && ' + DZ + ' round open --slug ' + shq(SLUG) + ' --round auto --topic ' + shq(DESC) + ' --project ' + shq(BRAIN) + ' --run fa:' + SLUG + roundOwnerArg + ' --json'
+const roundOpenOut = await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, nothing else: ' + roundOpenCmd, { label: 'round:open', phase: 'Router', effort: 'low' })
+const roundOpenReceipt = parseRoundCommandJson(roundOpenOut)
+pipelineRound = Number(roundOpenReceipt && roundOpenReceipt.state ? roundOpenReceipt.state.round : (roundOpenReceipt ? roundOpenReceipt.round : NaN))
+if (!Number.isInteger(pipelineRound) || pipelineRound < 1) {
+  pipelineRound = null
+  log('round open refused: ' + (roundOpenReceipt && roundOpenReceipt.message ? roundOpenReceipt.message : String(roundOpenOut || 'no JSON receipt')))
+} else if (!roundOpenReceipt.state) {
+  // A resumed run sees the still-open state and receives the selected auto number in the refusal.
+  // Keep that number so Step 8 can close the original round, but never call the refusal an open.
+  log('round open refused: ' + String(roundOpenReceipt.message || 'round already open'))
+}
 
 // R1 product-architecture-lens (ADR-001 Decision 3): forward-looking сверка of THIS feature vs the LIVE
 // product map + vision. NON-BLOCKING/soft by design — it LOGS {signal,confidence} so a real command
@@ -4140,7 +4201,7 @@ const confirmationGateLine = confirmationFileGate.verdict === 'skipped'
 log(confirmationGateLine)
 const confirmationGateNote = ' MANDATORY CONFIRMATION FILE GATE RESULT: `' + confirmationGateLine + '`. Write that as a separate line in 08_qe_report.md. The independent QE review MUST still run. If the gate verdict is fail or refused, the final Step-8 grade cannot be A or B; the workflow also enforces that after the reviewer returns. This gate proves only existence/readability; all other ADR checklist items remain advisory.'
 await usageProbe('QE')
-const qePrompt = 'Step 8 (QE - brutal-honesty review, agentic-qe) of /feature-adr for "' + DESC + '" (' + SLUG + '). Adversarially review the SHIPPED code (read it): correctness, edge cases, error handling, and the LOAD-BEARING property the ADR named (ASSERT it has a test that DISCRIMINATES - the recurring lesson: a test that would still pass with the protection deleted is documentation, not a gate). Run this ADR gate before final grading: ' + ADR_FITNESS_CHECKLIST + ' ' + DISCRIMINATION_GATE + ' ' + MUTATION_GATE + ' ' + NO_STUBS_GATE + ' ' + AMENDMENT_GATE + ' Grade A/B/C/D honestly. Assess code-test adequacy + doc-test presence. List CONFIRMED gaps with severity. Write ' + FDIR + '/08_qe_report.md with the primary findings under the exact heading `## Primary QE pass` and an ADR Fitness Checklist section showing PASS/FAIL per ADR and evidence for the Confirmation-linked test. MANDATORY SELF-LEARNING STORE (close the loop, never skip): compare every candidate lesson against the Step-0 recalled LEARNED patterns above. Teach ONLY lessons NOT covered by Step-0 recall. On overlap, run `dz teach --reinforce "<recalled pattern id or exact text>" --project ' + BRAIN + '` instead of minting a near-duplicate; if --reinforce is unavailable, skip the duplicate teach and report `reinforced existing pattern <id>` in the QE report. Store every genuinely new lesson in the CANONICAL BRAIN store at `' + BRAIN + '` so it is NOT lost to a target repo you may have cd`d into. Via Bash run EXACTLY `' + DZ_TEACH('<a durable reusable lesson from this feature - a rule/pattern/pitfall, NOT a checkpoint echo>', '<0.7-0.95>', '<area>') + '` for each genuine NEW lesson (1-3 max, high-signal) — the `cd ' + BRAIN + ' &&` prefix + `--project ' + BRAIN + '` pin guarantee the lesson lands in the brain regardless of your CWD. Then run `' + DZ + ' statusline --fa-record --slug ' + SLUG + ' --step "Step 8 QE" --recalled auto --run fa:' + SLUG + ' --count-project ' + BRAIN + ' --stored <count taught> --reinforced <count reinforced> --mode ' + MODE + ' --project ' + REPO + '` (run it verbatim via Bash, do not skip). Do NOT teach trivia or invent gaps. AUTHORING-TIME CLAIM-CHECK (Deliverable of claim-check-authoring-time): after writing ' + FDIR + '/08_qe_report.md, run EXACTLY `dz claim-check ' + FDIR + '/08_qe_report.md --json --fail-on none` via Bash, parse the {ok, findings, scanned} JSON, and report claimCheck: {findings: N, high: N, medium: N} (counts by severity) in your return object. TAG EVERY QUANTITATIVE CLAIM you write in the report using the convention the checker recognizes as honest — write "1131 tests pass (MEASURED — `npx vitest run`)", never a bare "1131 tests pass" — and where you QUOTE a forbidden phrase as an example (e.g. the retracted "100% passing" framing), backtick the literal so it reads as code, not an assertion, so your own compliant report scans clean. Return {grade, gaps, codeTestsAdequate, docTestsPresent, claimCheck}.' + ABSOLUTE_PATH_NOTE + landedNote + wqNote + confirmationGateNote + PS_GUIDANCE('qe')
+const qePrompt = 'Step 8 (QE - brutal-honesty review, agentic-qe) of /feature-adr for "' + DESC + '" (' + SLUG + '). Adversarially review the SHIPPED code (read it): correctness, edge cases, error handling, and the LOAD-BEARING property the ADR named (ASSERT it has a test that DISCRIMINATES - the recurring lesson: a test that would still pass with the protection deleted is documentation, not a gate). Run this ADR gate before final grading: ' + ADR_FITNESS_CHECKLIST + ' ' + DISCRIMINATION_GATE + ' ' + MUTATION_GATE + ' ' + NO_STUBS_GATE + ' ' + AMENDMENT_GATE + ' Grade A/B/C/D honestly. Assess code-test adequacy + doc-test presence. List CONFIRMED gaps with severity. Write ' + FDIR + '/08_qe_report.md with the primary findings under the exact heading `## Primary QE pass` and an ADR Fitness Checklist section showing PASS/FAIL per ADR and evidence for the Confirmation-linked test. MANDATORY SELF-LEARNING STORE (close the loop, never skip): compare every candidate lesson against the Step-0 recalled LEARNED patterns above. Teach ONLY lessons NOT covered by Step-0 recall. On overlap, run `dz teach --reinforce "<recalled pattern id or exact text>" --project ' + BRAIN + '` instead of minting a near-duplicate; if --reinforce is unavailable, skip the duplicate teach and report `reinforced existing pattern <id>` in the QE report. Store every genuinely new lesson in the CANONICAL BRAIN store at `' + BRAIN + '` so it is NOT lost to a target repo you may have cd`d into. Via Bash run EXACTLY `' + DZ_TEACH('<a durable reusable lesson from this feature - a rule/pattern/pitfall, NOT a checkpoint echo>', '<0.7-0.95>', '<area>') + '` for each genuine NEW lesson (1-3 max, high-signal) — the `cd ' + BRAIN + ' &&` prefix + `--project ' + BRAIN + '` pin guarantee the lesson lands in the brain regardless of your CWD. Then run `' + DZ + ' statusline --fa-record --slug ' + SLUG + ' --step "Step 8 QE" --recalled auto --run fa:' + SLUG + ' --count-project ' + BRAIN + ' --stored <count taught> --reinforced <count reinforced> --mode ' + MODE + ' --project ' + REPO + '` (run it verbatim via Bash, do not skip). Do NOT teach trivia or invent gaps. In the return object set roundLessons to the teach:<id> receipts successfully written in this Step 8; when there were none, return roundLessons:[] and a non-empty roundNoNewKnowledge reason derived from this review/reinforcement decision. AUTHORING-TIME CLAIM-CHECK (Deliverable of claim-check-authoring-time): after writing ' + FDIR + '/08_qe_report.md, run EXACTLY `dz claim-check ' + FDIR + '/08_qe_report.md --json --fail-on none` via Bash, parse the {ok, findings, scanned} JSON, and report claimCheck: {findings: N, high: N, medium: N} (counts by severity) in your return object. TAG EVERY QUANTITATIVE CLAIM you write in the report using the convention the checker recognizes as honest — write "1131 tests pass (MEASURED — `npx vitest run`)", never a bare "1131 tests pass" — and where you QUOTE a forbidden phrase as an example (e.g. the retracted "100% passing" framing), backtick the literal so it reads as code, not an assertion, so your own compliant report scans clean. Return {grade, gaps, codeTestsAdequate, docTestsPresent, claimCheck, roundLessons, roundNoNewKnowledge}.' + ABSOLUTE_PATH_NOTE + landedNote + wqNote + confirmationGateNote + PS_GUIDANCE('qe')
 // CROSS-MODEL QE (load-bearing): resolveStageModel('qe') derives the OTHER family than the resolved
 // coder when args.models.qe is unset (coder-codex ⇒ opus; coder-Claude ⇒ codex, or opus if codex absent).
 // An explicit args.models.qe wins. A Claude qe spec is merged onto the qe-code-reviewer base (role
@@ -4427,6 +4488,26 @@ qe = qeStage ? qeStage.qe : null
 let qeReviewerUsed = qeStage ? qeStage.qeReviewerUsed : 'claude'
 if (qeStage && qeStage.modelUsed) modelsUsed.qe = qeStage.modelUsed + (resumedStages.indexOf('qe') !== -1 ? ' (resumed)' : '')
 if (qeStage && qeStage.qe2ModelUsed) modelsUsed.qe2 = qeStage.qe2ModelUsed + (resumedStages.indexOf('qe') !== -1 ? ' (resumed)' : '')
+
+// Step 8 has completed its teach/reinforce work and written 08_qe_report.md. Closing telemetry is
+// secondary: refusal is loud and reflected in roundClosed, but it never overturns the feature run.
+if (qe && pipelineRound !== null) {
+  const roundGrade = String(qe.grade || '').trim().toUpperCase()
+  const roundOutcome = ['A', 'A-', 'B+', 'B'].indexOf(roundGrade) !== -1 ? 'shipped' : (['C', 'D'].indexOf(roundGrade) !== -1 ? 'refuted' : null)
+  if (roundOutcome === null) {
+    log('round close refused: unsupported Step 8 grade ' + JSON.stringify(roundGrade))
+  } else {
+    const roundLessonIds = Array.isArray(qe.roundLessons) ? qe.roundLessons.filter(function (id) { return /^teach:[a-z0-9]+$/i.test(String(id)) }) : []
+    const roundLearningArg = roundLessonIds.length > 0
+      ? roundLessonIds.map(function (id) { return ' --lesson ' + shq(String(id)) }).join('')
+      : ' --no-new-knowledge ' + shq((typeof qe.roundNoNewKnowledge === 'string' && qe.roundNoNewKnowledge.trim() !== '') ? qe.roundNoNewKnowledge.trim() : 'Step 8 returned no new teach receipt for this round')
+    const roundCloseCmd = 'cd ' + shq(REPO) + ' && ' + DZ + ' round close --slug ' + shq(SLUG) + ' --round ' + pipelineRound + ' --outcome ' + roundOutcome + ' --reason ' + shq('grade ' + roundGrade) + roundLearningArg + ' --project ' + shq(BRAIN) + ' --no-cost --json'
+    const roundCloseOut = await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, nothing else: ' + roundCloseCmd, { label: 'round:close', phase: 'QE', effort: 'low' })
+    const roundCloseReceipt = parseRoundCommandJson(roundCloseOut)
+    roundClosed = !!(roundCloseReceipt && roundCloseReceipt.marker && roundCloseReceipt.row && roundCloseReceipt.row.stage === 'round')
+    if (!roundClosed) log('round close refused: ' + (roundCloseReceipt && roundCloseReceipt.message ? roundCloseReceipt.message : String(roundCloseOut || 'no JSON receipt')))
+  }
+}
 
 // Step 8 claim-gate: fold the QE agent's reported claim-check counts into an additive result field.
 const claimGate = step8ClaimGate(qe && qe.claimCheck ? qe.claimCheck : null)
@@ -4798,6 +4879,7 @@ return {
   design: design.filter(Boolean).map((d) => d.wrote).flat(),
   codeWrote: code ? code.wrote : [],
   qeGrade: qe ? qe.grade : null,
+  roundClosed: roundClosed,
   score: score,
   gaps: qe ? qe.gaps : [],
   codeTestsAdequate: qe ? qe.codeTestsAdequate : null,

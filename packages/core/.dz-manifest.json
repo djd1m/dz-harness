@@ -221,7 +221,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "5d9a4d305a14424da0f805e42c5854e73c5ad6f36b8344ba0abf5291267039b6"
+        "sha256": "6b719e901b7127b591f62e854143634ac9d6714530e10b121277de23bc031711"
       },
       {
         "path": "src/adapter.ts",
@@ -230,6 +230,10 @@
       {
         "path": "src/agents-md.ts",
         "sha256": "1d94050c71928db3dbeec901ed564beeb08c27ea43e7785a7f2d58aed92f38b8"
+      },
+      {
+        "path": "src/coverage-baseline.json",
+        "sha256": "dc5db1a377458abe229a0b0ee72a97697a1600544c959effcdac4be57eb844cf"
       },
       {
         "path": "src/cursor.ts",
@@ -261,11 +265,11 @@
       },
       {
         "path": "src/vitest.coverage.shared.ts",
-        "sha256": "edc6148604c90d1c3cd756b764c655930fd9c5a422fe79b5e32c76c1eb77cef7"
+        "sha256": "757e33f504688b0aeb4c87333a1e23af06871f00c92148f746a1cb8259e0f334"
       },
       {
         "path": "src/vitest.dz-debris.shared.ts",
-        "sha256": "312f383d3e3f1c3d47a4360c4c53591532a19d96a62a17b2134e5029ef95c9c2"
+        "sha256": "8405db5b8ccf6b8437921cf019a0a5d34a08497cea8ba135cc3f430e5addacc8"
       },
       {
         "path": "src/windsurf.ts",
@@ -277,5 +281,5 @@
       }
     ]
   },
-  "signature": "caQzWgghNh3BNSgbjDthEBzuzqlJ2ZGX1bEWlPrWHbAm3bC+06D3jEGZ//gBU7WxHzmjHLu1oR8R1YupekiVCg=="
+  "signature": "g/XY3U6TSFpB1ysVEgOFh2019rgmwCiEtFwwb/OxS16a93XBKm3gACERpA3cP5Dg2nk9BXhjwGzAc2VrpzMHBw=="
 }

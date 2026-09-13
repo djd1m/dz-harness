@@ -126,14 +126,31 @@ const TOOL_TELEMETRY_RE = /^Tool \S+ invoked during session$/;
 export function isVectorNoise(text) {
     return isNoiseInsight(text) || TOOL_TELEMETRY_RE.test(text);
 }
+/** One source of truth for records admitted to the vector mirror and its lexical comparison set. */
+export function isMirrorableRecord(record) {
+    return record.lessonForm !== 'class' && !isVectorNoise(record.pattern);
+}
+/** Pure lexical-record → vector-metadata projection used by every learned-pattern mirror writer. */
+export function mirrorQuarantineOf(record) {
+    if ('timestamp' in record) {
+        const state = readQuarantineState(record);
+        return state.quarantined
+            ? { qStatus: 'quarantined', ...(state.quarantinedAt === undefined ? {} : { quarantinedAt: state.quarantinedAt }) }
+            : {};
+    }
+    return record.quarantined === true
+        ? { qStatus: 'quarantined', quarantinedAt: record.ts }
+        : {};
+}
 /**
  * ACL: taught {@link PatternRecord} → {@link VectorEntry}. Returns `undefined` for noise (the
  * ingest gate — I-6). Score is the record's REAL reward, never a fabricated 1.0.
  */
 export function patternVectorEntry(p, source = 'dz-teach', opts = {}) {
-    if (p.lessonForm === 'class' || isVectorNoise(p.pattern))
+    if (!isMirrorableRecord(p))
         return undefined;
     const dzId = patternRecordId(p);
+    const quarantine = mirrorQuarantineOf(opts.quarantined === true ? { ...p, quarantined: true } : p);
     return {
         dzId,
         text: p.pattern,
@@ -147,7 +164,7 @@ export function patternVectorEntry(p, source = 'dz-teach', opts = {}) {
             ...(p.lessonForm !== undefined && p.lessonPairId !== undefined
                 ? { lessonForm: p.lessonForm, lessonPairId: p.lessonPairId }
                 : {}),
-            ...(opts.quarantined === true ? { qStatus: 'quarantined' } : {}),
+            ...quarantine,
         },
     };
 }
@@ -185,6 +202,7 @@ export function memoryRecordVectorEntry(r) {
             ...(r.metadata?.['lessonForm'] === 'specific' && typeof r.metadata?.['lessonPairId'] === 'string'
                 ? { lessonForm: 'specific', lessonPairId: r.metadata['lessonPairId'] }
                 : {}),
+            ...mirrorQuarantineOf(r),
         },
         uses: state.uses,
         avgReward: state.avgReward,
@@ -260,6 +278,11 @@ export function mirrorWriterReason(projectRoot) {
         return { enabled: true, state: 'on' };
     if (engine === 'agentdb' || engine === 'rvf')
         return { enabled: true, state: 'on' };
+    // Issue #10 defect 6 (AM-6): a TOP-LEVEL `backend` key is a real, readable intent to enable
+    // agentdb that this function used to silently ignore (it only ever looked under `memory`) —
+    // reported here as a NAMED cause, never folded into the generic `not-enabled` shrug.
+    if (cfg.backend === 'agentdb')
+        return { enabled: false, state: 'legacy-shape' };
     return { enabled: false, state: 'not-enabled' };
 }
 /** The sentence a reader can act on, for each state. */
@@ -273,6 +296,7 @@ export function mirrorWriterExplanation(state) {
         case 'config-unreadable': return '.dz/config.json exists but could not be read or parsed — fix the file, not the settings';
         case 'engine-off': return '.dz/config.json sets memory.vector.engine = "off" — the tier is deliberately disabled';
         case 'not-enabled': return '.dz/config.json enables no mirror (needs memory.backend=agentdb, or memory.vector.engine=agentdb|rvf) — teach is NOT queueing';
+        case 'legacy-shape': return '.dz/config.json uses a top-level backend key; the mirror reads memory.backend — run dz setup';
     }
 }
 /**

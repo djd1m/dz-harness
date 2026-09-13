@@ -489,13 +489,39 @@ export function isVectorNoise(text: string): boolean {
   return isNoiseInsight(text) || TOOL_TELEMETRY_RE.test(text);
 }
 
+/** One source of truth for records admitted to the vector mirror and its lexical comparison set. */
+export function isMirrorableRecord(record: Pick<PatternRecord, 'pattern' | 'lessonForm'>): boolean {
+  return record.lessonForm !== 'class' && !isVectorNoise(record.pattern);
+}
+
+export interface MirrorQuarantineMetadata {
+  readonly qStatus?: 'quarantined';
+  readonly quarantinedAt?: string;
+}
+
+/** Pure lexical-record → vector-metadata projection used by every learned-pattern mirror writer. */
+export function mirrorQuarantineOf(
+  record: Pick<PatternRecord, 'quarantined' | 'ts'> | Pick<MemoryRecord, 'metadata' | 'timestamp'>,
+): MirrorQuarantineMetadata {
+  if ('timestamp' in record) {
+    const state = readQuarantineState(record as MemoryRecord);
+    return state.quarantined
+      ? { qStatus: 'quarantined', ...(state.quarantinedAt === undefined ? {} : { quarantinedAt: state.quarantinedAt }) }
+      : {};
+  }
+  return record.quarantined === true
+    ? { qStatus: 'quarantined', quarantinedAt: record.ts }
+    : {};
+}
+
 /**
  * ACL: taught {@link PatternRecord} → {@link VectorEntry}. Returns `undefined` for noise (the
  * ingest gate — I-6). Score is the record's REAL reward, never a fabricated 1.0.
  */
 export function patternVectorEntry(p: PatternRecord, source = 'dz-teach', opts: { quarantined?: boolean } = {}): VectorEntry | undefined {
-  if (p.lessonForm === 'class' || isVectorNoise(p.pattern)) return undefined;
+  if (!isMirrorableRecord(p)) return undefined;
   const dzId = patternRecordId(p);
+  const quarantine = mirrorQuarantineOf(opts.quarantined === true ? { ...p, quarantined: true } : p);
   return {
     dzId,
     text: p.pattern,
@@ -509,7 +535,7 @@ export function patternVectorEntry(p: PatternRecord, source = 'dz-teach', opts: 
       ...(p.lessonForm !== undefined && p.lessonPairId !== undefined
         ? { lessonForm: p.lessonForm, lessonPairId: p.lessonPairId }
         : {}),
-      ...(opts.quarantined === true ? { qStatus: 'quarantined' } : {}),
+      ...quarantine,
     },
   };
 }
@@ -547,6 +573,7 @@ export function memoryRecordVectorEntry(r: MemoryRecord): VectorEntry | undefine
       ...(r.metadata?.['lessonForm'] === 'specific' && typeof r.metadata?.['lessonPairId'] === 'string'
         ? { lessonForm: 'specific', lessonPairId: r.metadata['lessonPairId'] }
         : {}),
+      ...mirrorQuarantineOf(r),
     },
     uses: state.uses,
     avgReward: state.avgReward,
@@ -606,7 +633,16 @@ export type MirrorWriterState =
   /** The config is readable and simply does not enable a mirror. */
   | 'not-enabled'
   /** The config explicitly turns the vector tier off. */
-  | 'engine-off';
+  | 'engine-off'
+  /**
+   * `.dz/config.json` has a TOP-LEVEL `backend` key (`{"backend":"agentdb"}`) instead of the real
+   * shape (`{"memory":{"backend":"agentdb"}}`) — issue #10 defect 6, AM-6 (feature
+   * `setup-installs-apply-leg`). `dz setup` never emits this shape (it always nests under
+   * `memory`), so this is a hand-written or foreign-tool-written config; distinguished from
+   * `not-enabled` because the reader typed the RIGHT intent in the WRONG place, and "no mirror
+   * configured" sends them to add a setting that is already there, just misplaced.
+   */
+  | 'legacy-shape';
 
 /**
  * The mirror writer's state AND its real cause.
@@ -620,7 +656,7 @@ export type MirrorWriterState =
 export function mirrorWriterReason(projectRoot: string): { enabled: boolean; state: MirrorWriterState } {
   const path = join(projectRoot, '.dz', 'config.json');
   if (!existsSync(path)) return { enabled: false, state: 'no-config' };
-  let cfg: { memory?: { backend?: string; vector?: { engine?: string } } };
+  let cfg: { backend?: string; memory?: { backend?: string; vector?: { engine?: string } } };
   try {
     cfg = JSON.parse(readFileSync(path, 'utf-8')) as typeof cfg;
   } catch {
@@ -636,6 +672,10 @@ export function mirrorWriterReason(projectRoot: string): { enabled: boolean; sta
   if (engine === 'off') return { enabled: false, state: 'engine-off' };
   if (cfg.memory?.backend === 'agentdb') return { enabled: true, state: 'on' };
   if (engine === 'agentdb' || engine === 'rvf') return { enabled: true, state: 'on' };
+  // Issue #10 defect 6 (AM-6): a TOP-LEVEL `backend` key is a real, readable intent to enable
+  // agentdb that this function used to silently ignore (it only ever looked under `memory`) —
+  // reported here as a NAMED cause, never folded into the generic `not-enabled` shrug.
+  if (cfg.backend === 'agentdb') return { enabled: false, state: 'legacy-shape' };
   return { enabled: false, state: 'not-enabled' };
 }
 
@@ -650,6 +690,7 @@ export function mirrorWriterExplanation(state: MirrorWriterState): string {
     case 'config-unreadable': return '.dz/config.json exists but could not be read or parsed — fix the file, not the settings';
     case 'engine-off': return '.dz/config.json sets memory.vector.engine = "off" — the tier is deliberately disabled';
     case 'not-enabled': return '.dz/config.json enables no mirror (needs memory.backend=agentdb, or memory.vector.engine=agentdb|rvf) — teach is NOT queueing';
+    case 'legacy-shape': return '.dz/config.json uses a top-level backend key; the mirror reads memory.backend — run dz setup';
   }
 }
 

@@ -12,6 +12,8 @@ export { selectBackend } from './cascade.js';
 export type { BackendProbe, CascadeResult } from './cascade.js';
 export { SqliteBackend } from './sqlite-backend.js';
 export type { SqliteBackendOptions } from './sqlite-backend.js';
+export { openSqliteReadOnly, SqliteReadOnlyStore } from './sqlite-readonly.js';
+export type { ReadOnlyHandle, ReadOnlyStore, OpenReadOnlyOptions } from './sqlite-readonly.js';
 export { SqliteProbe } from './sqlite-probe.js';
 export type { SqliteProbeOptions } from './sqlite-probe.js';
 export { Reflexion } from './reflexion.js';

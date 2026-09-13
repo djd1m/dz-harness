@@ -16,11 +16,14 @@
  * @packageDocumentation
  */
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
-import { basename, dirname, join } from 'node:path';
+import { basename, dirname, isAbsolute, join, relative } from 'node:path';
 import { execSync, spawnSync } from 'node:child_process';
 import { mergeManagedHookEntries } from './managed-hooks.js';
 import { CLAUDE_DESTRUCTIVE_HOOK_COMMAND, CLAUDE_DESTRUCTIVE_HOOK_MATCHER, CLAUDE_DESTRUCTIVE_HOOK_RELPATH, generateClaudeDestructiveHook, isDzManagedHookBody, } from './claude-hooks-assets.js';
 import { applyIntegrationFragments, IntegrationApplyError } from './integration-apply.js';
+import { harnessCoreDistDir } from './harness-core-location.js';
+import { ensureAgentdbSchema } from './agentdb-index.js';
+import { APPLY_LEG_VERSION, applyLegHookEntries, applyLegVersionOf, bakedCoreDistDirOf, embedDaemonSource, recallHookSource, hookCommandInvokes, } from './apply-leg.js';
 /**
  * Absolute path to the store the generated session-hook writer opens NATIVELY (better-sqlite3).
  * It is the writer's own file: the agentdb MCP server must never be pointed at it — see
@@ -323,7 +326,12 @@ export function generateHooksConfig(projectRoot, backend) {
     // Use a RELATIVE path (Claude Code runs hooks from the project root): interpolating the absolute
     // ${dzDir} into a single-quoted JS literal inside shell double-quotes breaks on Windows backslash
     // paths (\U, \b…) and on any path containing a quote. `.dz/sessions.jsonl` sidesteps all of it.
-    const jsonlCmd = (event) => `node -e "const fs=require('fs');const d=new Date().toISOString();fs.appendFileSync('.dz/sessions.jsonl',JSON.stringify({event:'${event}',ts:d,backend:'jsonl'})+'\\n')"`;
+    // AM-5 (dz-harness-hub issue #10 defect 5): `mkdirSync('.dz',{recursive:true})` FIRST —
+    // `appendFileSync` throws ENOENT when `.dz/` has been removed (a fresh checkout with `.dz`
+    // gitignored, or a user who deleted it) or when custom `settings.json` runs hooks from a cwd
+    // where the directory was never created; `mkdirSync` with `recursive:true` is a no-op when the
+    // directory already exists, so this is free on the common path.
+    const jsonlCmd = (event) => `node -e "const fs=require('fs');fs.mkdirSync('.dz',{recursive:true});const d=new Date().toISOString();fs.appendFileSync('.dz/sessions.jsonl',JSON.stringify({event:'${event}',ts:d,backend:'jsonl'})+'\\n')"`;
     // Matcher-less PreCompact mirrors the agentdb backend so long-session bookkeeping stays reliable
     // even without a vector store (jsonl has no consolidator — this is just an honest marker row).
     return JSON.stringify({
@@ -421,7 +429,14 @@ function installAgentdbLocally(projectRoot) {
         // 'pipe') avoids execSync's 1 MB maxBuffer aborting the child on npm's verbose output.
         // --save-exact: agentdb is alpha; a semver range would let a later `npm update` drift the
         // local copy away from the version the MCP registration pins (audit gap G7).
-        execSync('npm install agentdb better-sqlite3 --save-exact --no-audit --no-fund --loglevel=error', {
+        //
+        // better-sqlite3@^11 (AM-2, dz-harness-hub issue #10 defect 1, MEASURED Node 20.20.2 with no
+        // `make` on PATH): an unpinned `npm install better-sqlite3` resolved 12.11.1, which ships no
+        // prebuilt binary for Node 20's ABI 115 — the install fell through to a node-gyp source build
+        // and failed on a machine with no C toolchain. `agentdb` itself requests `^11.8.1`, which DOES
+        // publish an ABI-115 prebuild, so pinning the range here costs nothing agentdb wasn't already
+        // going to resolve to, and buys a working install on a bare Node 20/22 host.
+        execSync('npm install agentdb better-sqlite3@^11 --save-exact --no-audit --no-fund --loglevel=error', {
             cwd: projectRoot,
             stdio: 'ignore',
             timeout: 300000,
@@ -557,6 +572,144 @@ function installDriverDocs(projectRoot, force) {
         parts.push(`skipped ${skipped.join(', ')}`);
     return parts.join('; ') || 'no changes';
 }
+/**
+ * Install the apply-leg (recall hook + embed daemon) — ADR-001 Decision 1, feature
+ * `setup-installs-apply-leg`. The third self-learning leg (COLLECT/RANK are Steps 4/2 of
+ * `runSetup`; APPLY is this one) lived only as hand-committed files in this hub's OWN
+ * `.claude/helpers/` — a consumer's `dz setup --memory agentdb` wrote session hooks and a memory
+ * store but never a `UserPromptSubmit` recall hook at all (00_complexity_assessment.md, MEASURED
+ * 2026-09-12).
+ *
+ * WHY THIS RUNS ITS WORK BEFORE "Configure hooks", even though the STEP is reported after it
+ * (`runSetup` calls this first, then pushes the returned step once "Configure hooks" has run).
+ * "Configure hooks" owns SessionStart too (the session-hook writer's own entry) via
+ * `mergeManagedHookEntries`'s drop-its-own-managed-entries/reappend-at-tail algorithm — a call that
+ * is perfectly stable in isolation, but which REORDERS a genuinely foreign SessionStart entry
+ * relative to its own the FIRST time one coexists (kept-foreign-entries-in-place, then append fresh
+ * own at the tail — stable only once the foreign entry is already positioned before it). Running
+ * this step's ADDITIVE-ONLY write first establishes that stable [foreign, own] layout on the VERY
+ * FIRST run, so "Configure hooks" never has anything to reorder on any later run — MEASURED: with
+ * the write ordered the other way, a repeat `runSetup` flips `SessionStart`'s two entries back and
+ * forth forever and neither step ever reports `skipped`, breaking the pre-existing
+ * `setup.test.ts` "PreCompact merge is idempotent" contract (FR-6) this feature must not touch.
+ *
+ * ADDITIVE-ONLY, deliberately NOT `mergeManagedHookEntries`: this step never needs to REPLACE a
+ * stale command text (the two commands `applyLegHookEntries()` emits do not change without an
+ * `APPLY_LEG_VERSION` bump, and a version bump is about the FILE content, not the hook command) —
+ * it only needs "is our command already referenced under this event, anywhere, in any position?".
+ * That question is order-independent, so it can never itself be a source of reordering, and it is
+ * exactly what keeps "Configure hooks" stable once the first run has established the layout above.
+ */
+function applyLegStepResult(opts, backend) {
+    if (opts.noHooks)
+        return { name: 'Install apply-leg', status: 'skipped', detail: '--no-hooks' };
+    if (backend !== 'agentdb') {
+        return {
+            name: 'Install apply-leg',
+            status: 'skipped',
+            detail: "apply-leg needs --memory agentdb (embed daemon requires agentdb's transformers)",
+        };
+    }
+    try {
+        const coreDistDir = opts.coreDistDir ?? harnessCoreDistDir();
+        // Re-review Codex (B) finding: the hub's own portable `null` marker must survive an ordinary
+        // `dz setup` run INSIDE the hub — when harness-core resolves to a path inside THIS project's
+        // `packages/@dzhechkov/harness-core`, the checkout is the monorepo itself and the helper is
+        // baked portable (`null` → runtime `<project>/packages/...` candidate), never an absolute path
+        // that would dirty the committed twin and break the twins test in any other clone.
+        const monorepoCoreDist = join(opts.projectRoot, 'packages', '@dzhechkov', 'harness-core', 'dist');
+        const relToMonorepo = relative(monorepoCoreDist, coreDistDir);
+        const insideMonorepo = relToMonorepo === '' || (!relToMonorepo.startsWith('..') && !isAbsolute(relToMonorepo));
+        const bakeTarget = insideMonorepo ? null : coreDistDir;
+        const helpersDir = join(opts.projectRoot, '.claude', 'helpers');
+        const recallHookPath = join(helpersDir, 'recall-hook.cjs');
+        const embedDaemonPath = join(helpersDir, 'dz-embed-daemon.mjs');
+        const settingsPath = join(opts.projectRoot, '.claude', 'settings.json');
+        const deployedRecallContent = existsSync(recallHookPath) ? readFileSync(recallHookPath, 'utf-8') : undefined;
+        const deployedEmbedContent = existsSync(embedDaemonPath) ? readFileSync(embedDaemonPath, 'utf-8') : undefined;
+        const deployedRecallVersion = deployedRecallContent !== undefined ? applyLegVersionOf(deployedRecallContent) : -1;
+        const deployedEmbedVersion = deployedEmbedContent !== undefined ? applyLegVersionOf(deployedEmbedContent) : -1;
+        // MEDIUM finding "переезд ядра" (fix round 1): a version-only staleness check misses the case
+        // where npm/nvm RELOCATED the installed harness-core without any template change — the deployed
+        // file still stamps the current APPLY_LEG_VERSION, but its baked `CORE_DIST_DIR` now points at a
+        // path that no longer exists, and `loadCoreModule` degrades to permanent silence rather than an
+        // error nothing else would ever surface. Comparing the BAKED path against the CURRENT one closes
+        // that gap independently of the version stamp.
+        const deployedCoreDistDir = deployedRecallContent !== undefined ? bakedCoreDistDirOf(deployedRecallContent) : undefined;
+        // Re-review Codex (B) finding: a path-staleness rewrite must never DOWNGRADE a helper that a
+        // newer CLI already deployed — only a file at or below the current version is ours to rewrite.
+        const recallDistDirStale = deployedRecallContent !== undefined
+            && deployedRecallVersion <= APPLY_LEG_VERSION
+            && deployedCoreDistDir !== bakeTarget;
+        let wroteHelpers = false;
+        if (deployedRecallVersion === -1 || opts.force || deployedRecallVersion < APPLY_LEG_VERSION || recallDistDirStale) {
+            mkdirSync(helpersDir, { recursive: true });
+            writeFileSync(recallHookPath, recallHookSource(bakeTarget), { mode: 0o755 });
+            wroteHelpers = true;
+        }
+        if (deployedEmbedVersion === -1 || opts.force || deployedEmbedVersion < APPLY_LEG_VERSION) {
+            mkdirSync(helpersDir, { recursive: true });
+            writeFileSync(embedDaemonPath, embedDaemonSource(), { mode: 0o755 });
+            wroteHelpers = true;
+        }
+        // ADD-IF-MISSING, per event: FR-2's literal contract — "ours is added only if no command of
+        // the event already contains OUR entry". Never removes or reorders an existing entry (foreign
+        // OR our own) — see the WHY above for why that matters here.
+        //
+        // MEDIUM finding "совпадение подстроки в чужой команде" (fix round 1): the substring probe used
+        // to be the bare filename (`recall-hook.cjs`), so a foreign command that merely MENTIONS the
+        // filename (e.g. `echo recall-hook.cjs`) was indistinguishable from our own entry and silently
+        // blocked ours from ever being added. "Ours is already present" now means either an EXACT match
+        // of the command we would emit, or the command containing our full relative PATH
+        // (`.claude/helpers/<file>`, the same marker `applyLegStatus` structurally looks for) — a bare
+        // filename mention under any other wrapper text no longer counts.
+        const entries = applyLegHookEntries();
+        const existingSettings = existsSync(settingsPath)
+            ? JSON.parse(readFileSync(settingsPath, 'utf-8'))
+            : {};
+        const hooks = { ...(existingSettings['hooks'] ?? {}) };
+        let hooksAdded = false;
+        const addIfMissing = (event, ownCommand, markerPath, entry) => {
+            const current = Array.isArray(hooks[event]) ? hooks[event] : [];
+            const alreadyPresent = current.some((e) => commandsOf(e).some((cmd) => cmd === ownCommand || hookCommandInvokes(cmd, markerPath)));
+            if (alreadyPresent)
+                return;
+            hooks[event] = [...current, entry];
+            hooksAdded = true;
+        };
+        addIfMissing('UserPromptSubmit', entries.userPromptSubmit.hooks[0]?.command ?? '', '.claude/helpers/recall-hook.cjs', entries.userPromptSubmit);
+        addIfMissing('SessionStart', entries.sessionStart.hooks[0]?.command ?? '', '.claude/helpers/dz-embed-daemon.mjs', entries.sessionStart);
+        if (hooksAdded) {
+            existingSettings['hooks'] = hooks;
+            mkdirSync(dirname(settingsPath), { recursive: true });
+            writeFileSync(settingsPath, JSON.stringify(existingSettings, null, 2));
+        }
+        // AM-4 (dz-harness-hub issue #10 defect 4): create the empty AgentDB-schema store now, so a
+        // lesson taught before the first session's SessionEnd/PreCompact writer has ever run still has
+        // somewhere to mirror into — see `ensureAgentdbSchema`'s own doc for the full mechanism. Never
+        // touches an EXISTING store (never re-opens a populated db on every routine re-run); "creates a
+        // store" is a claim about a store that did not exist.
+        const dbPath = join(opts.projectRoot, '.dz', 'agentdb.db');
+        let schemaDetail = '';
+        if (!existsSync(dbPath)) {
+            const schemaResult = ensureAgentdbSchema(opts.projectRoot);
+            schemaDetail = schemaResult.ok ? '; empty agentdb.db created' : `; agentdb.db NOT created (${schemaResult.error ?? 'unknown error'})`;
+        }
+        const changed = wroteHelpers || hooksAdded;
+        return {
+            name: 'Install apply-leg',
+            status: changed ? 'done' : 'skipped',
+            detail: (changed ? `Apply-leg: installed v${APPLY_LEG_VERSION}` : `Apply-leg: current (v${APPLY_LEG_VERSION})`) + schemaDetail,
+        };
+    }
+    catch (err) {
+        return {
+            name: 'Install apply-leg',
+            status: 'error',
+            detail: `could not install apply-leg: ${err instanceof Error ? err.message : String(err)}`,
+        };
+    }
+}
 export function runSetup(opts) {
     const steps = [];
     const dzDir = join(opts.projectRoot, '.dz');
@@ -649,6 +802,12 @@ export function runSetup(opts) {
             steps.push({ name: 'Initialize patterns.jsonl', status: 'skipped', detail: 'already exists' });
         }
     }
+    // Step 4.6: Install apply-leg — the WORK happens here (before "Configure hooks" writes
+    // SessionStart), so a foreign SessionStart entry is already in place before that step's own
+    // merge ever sees it; see `applyLegStepResult`'s doc for why order matters. The STEP is reported
+    // further down, after "Configure hooks" pushes its own, so the printed order still reads as
+    // "collect → rank → apply".
+    const applyLegStep = applyLegStepResult(opts, backend);
     // Step 5: Configure hooks (write to .claude/settings.json) — EVENT-LEVEL merge (gap G2):
     // dz-generated entries (recognized by signature, incl. the broken legacy `agentdb add` hooks
     // this feature fixes) are replaced in place WITHOUT --force; the user's own hooks and every
@@ -823,6 +982,10 @@ export function runSetup(opts) {
     else {
         steps.push({ name: 'Configure hooks', status: 'skipped', detail: '--no-hooks' });
     }
+    // Step 5.6: Install apply-leg — report pushed AFTER "Configure hooks" below (for a report order
+    // that reads naturally), but see `applyLegStepResult()` above `runSetup` for why the WRITE itself
+    // happens BEFORE it.
+    steps.push(applyLegStep);
     // Step 5.5: Register agentdb MCP through the SAME ownership-aware transaction used by `dz init`.
     // `.mcp.json` is the project-scope carrier Claude Code actually loads. A known historical dz
     // agentdb shape is adopted; an ambiguous hand-authored entry is preserved and named as an error.

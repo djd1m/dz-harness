@@ -9,6 +9,7 @@ export const MEMORY_VERSION = createRequire(import.meta.url)('../package.json').
 export { JsonFileBackend } from './json-backend.js';
 export { selectBackend } from './cascade.js';
 export { SqliteBackend } from './sqlite-backend.js';
+export { openSqliteReadOnly, SqliteReadOnlyStore } from './sqlite-readonly.js';
 export { SqliteProbe } from './sqlite-probe.js';
 export { Reflexion } from './reflexion.js';
 export { importMemoryMarkdown, MemoryBridge } from './bridge.js';

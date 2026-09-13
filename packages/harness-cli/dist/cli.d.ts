@@ -5,6 +5,19 @@
  */
 import { spawn, type ChildProcess } from 'node:child_process';
 import { type JournalIo } from '@dzhechkov/harness-core';
+import { type RoundLedgerRow, type RoundExecLedgerRow } from '@dzhechkov/harness-core';
+declare module '@dzhechkov/harness-core' {
+    interface RoundState {
+        /** 16 random hex chars, minted once by `open`. The identity comparison `exec`/`close` use
+         * instead of pid: `process.ppid` coincides for two `dz` launched from the same shell, and every
+         * run-owned state carries pid 0 (teach:0ea46034 — pid is not identity). */
+        readonly stateId?: string;
+        /** Lead edit after Codex re-review: identity of ONE exec claim (two execs of the same round
+         * instance are different claims) and when it was taken — the stale-exec warning counts from it. */
+        readonly execClaimId?: string;
+        readonly execClaimedAt?: string;
+    }
+}
 import { runSyncCodexHooks, type CodexHooksSyncReport, type BridgeFamily } from '@dzhechkov/harness-core';
 import type { RecallPatternsOptions, TeachGuardResult, IntegrationOutcome } from '@dzhechkov/harness-core';
 /** Literal command inventory, pinned against the main dispatch switch by a layer-1 test. */
@@ -17,6 +30,8 @@ export interface MutationGateRunnerObservation {
 export type MutationGateRunner = (command: string, options: {
     readonly cwd: string;
     readonly timeoutMs: number;
+    readonly phase: 'baseline' | 'mutation' | 'rebaseline' | 'final-rebaseline';
+    readonly entryId?: string;
 }) => MutationGateRunnerObservation;
 /** Output sink + working directory — injectable so the CLI is testable. */
 export interface CliIo {
@@ -44,13 +59,49 @@ export interface CliIo {
     readonly interactive?: boolean;
     /** Fault seam proving that class-form recall degrades to specific recall with a stderr receipt. */
     readonly classMatcher?: RecallPatternsOptions['classMatcher'];
+    /** Focused-round seams: production still uses the real store, writer, ledger tail and pid probe. */
+    readonly roundNow?: () => number;
+    readonly roundPid?: number;
+    readonly roundRecall?: (projectRoot: string, topic: string, options: {
+        readonly limit: number;
+        readonly runId?: string;
+    }) => Promise<readonly {
+        readonly id: string;
+        readonly reward: number;
+        readonly domain: string;
+        readonly text: string;
+    }[]>;
+    readonly roundLessonExists?: (projectRoot: string, id: string) => boolean;
+    readonly roundLedgerWriter?: (projectRoot: string, row: RoundLedgerRow | RoundExecLedgerRow) => unknown;
+    readonly roundLedgerReader?: (projectRoot: string) => string;
+    readonly roundPidProbe?: (pid: number) => boolean | null;
+    readonly roundRunRegistryReader?: (projectRoot: string) => string;
+    readonly roundKillGraceMs?: number;
+    /** round-state-lock NFR-2: overrides `withNamedLockSync`'s acquisition deadline for `dz round`
+     * mutations so a test can force `lock busy` deterministically. Omitted in production. */
+    readonly roundLockTimeoutMs?: number;
+    readonly roundSpawn?: (request: {
+        readonly command: 'codex';
+        readonly args: readonly string[];
+        readonly cwd: string;
+        readonly logPath: string;
+        readonly timeoutMs: number;
+        readonly killGraceMs?: number;
+    }) => Promise<{
+        readonly exitCode: number | null;
+        readonly timedOut: boolean;
+        readonly signal: NodeJS.Signals | null;
+        readonly errorCode?: string;
+        readonly error?: string;
+    }>;
     /** Guard decision seam; production always uses the real vector-backed teach guard. */
     readonly teachGuardRunner?: (projectRoot: string, text: string, opts: {
         readonly reward?: number;
     }) => Promise<TeachGuardResult>;
     /** Reinforcement flush seam paired with `teachGuardRunner`; production uses the configured backend. */
-    readonly teachReinforceRunner?: (projectRoot: string, dzId: string, reward: number) => Promise<{
+    readonly teachReinforceRunner?: (projectRoot: string, dzId: string, reward?: number) => Promise<{
         readonly flushed: number;
+        readonly dzId?: string;
     }>;
     /**
      * Test seam for `dz release`: overrides subprocess execution for gate steps and the
@@ -168,6 +219,7 @@ export declare function codexHooksSummary(report: CodexHooksSyncReport, label?: 
 export declare function deliverCodexHooks(input: CodexHooksSyncInput, sync?: (options: Parameters<typeof runSyncCodexHooks>[0]) => CodexHooksSyncReport, label?: string): CodexHooksSummary & {
     readonly report: CodexHooksSyncReport;
 };
+export declare function boundedMutationGateOutputTail(output: string): string | undefined;
 /** Test seam for the chokepoint: NEW-C4's proof needs to call it with a hostile pid. */
 export declare function __wfSignalChildTestSeam(child: unknown, signal: string, detached: boolean): boolean;
 /** Exposed for the unit test: the kill set must NAME every live child's pid. */
@@ -182,6 +234,21 @@ export declare function cmdRunsClean(options: Map<string, string>, flags: Set<st
     encoding: 'utf8';
     stdio: ['ignore', 'pipe', 'pipe'];
 }) => string | Buffer): number;
+type RoundSpawnReceipt = {
+    readonly exitCode: number | null;
+    readonly timedOut: boolean;
+    readonly signal: NodeJS.Signals | null;
+    readonly errorCode?: string;
+    readonly error?: string;
+};
+export declare function spawnRoundCodex(request: {
+    readonly command: string;
+    readonly args: readonly string[];
+    readonly cwd: string;
+    readonly logPath: string;
+    readonly timeoutMs: number;
+    readonly killGraceMs?: number;
+}): Promise<RoundSpawnReceipt>;
 export interface ClaudeBridgeRun {
     stdout: string;
     stderr: string;
