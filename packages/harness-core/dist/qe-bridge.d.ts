@@ -266,6 +266,22 @@ export interface BridgeAudit {
     /** sha256 of the exact prompt sent, so the digest in the signoff can be recomputed. */
     promptSha256: string | null;
     channels?: BridgeChannels;
+    /**
+     * Diagnostic sequencing metadata (qe-bridge-signoff-order): a self-reported, process-local trace of
+     * the write steps with monotonic `process.hrtime.bigint()` stamps, taken at each named event — the
+     * first and third are START/PREPARATION stamps (a record cannot carry the completion time of its
+     * own write), the second is taken AFTER the report landed; the names say so:
+     * `signoff-write-started` (first record write), `report-written` (after the report is on disk),
+     * `record-update-prepared` (right before the atomic tmp+rename that persists `reportWritten:true`;
+     * a leftover `.tmp` carrying it is not a record). Order and crash guarantees are NOT proven by this
+     * field — the first leg (record before report) is proven by the report-failure test, the second
+     * (`reportWritten:true` only after the report) by the failpoint test (hang-before-rename, R4-1);
+     * this field replaces a wall-clock mtime comparison that was a race (teach:296e5fcd).
+     */
+    writeSequence?: ReadonlyArray<{
+        step: 'signoff-write-started' | 'report-written' | 'record-update-prepared';
+        monotonicNs: string;
+    }>;
 }
 /**
  * The failure record written to `.fa-state/qe-bridge/failed-<stamp>.json`. Deliberately carries NO

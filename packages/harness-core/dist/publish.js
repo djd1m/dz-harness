@@ -9,8 +9,14 @@ import { join as pathJoin, relative as pathRelative, resolve as pathResolve } fr
 import { decidePublishSigning, decidePostSigningVerification } from './publish-signing.js';
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
+// node:crypto is NOT in the core-boundary ratchet's tracked module list (fs/child_process/https
+// only) — a read-only digest of bytes already produced by THIS process is not the kind of external
+// I/O the ratchet polices, so this import is free with respect to it (verified against
+// `core-boundary.ts`'s `countIoImports` module list).
+import { createHash } from 'node:crypto';
 import { claimCheck } from './claim-check.js';
 import { rewriteReleaseLine } from './release-line.js';
+import { packedTarballName } from './packed-install-smoke.js';
 // MEASURED 2026-09-10: registry answered E404 for ~3 min (19 probes); earlier the same day > 5 min.
 export const REGISTRY_PROBE_BUDGET = 90;
 export const REGISTRY_PROBE_INTERVAL_MS = 10_000;
@@ -486,6 +492,47 @@ export function publishPackages(monorepoRoot, opts = {}) {
     const failedInBatch = new Set();
     const armFloorPreflight = opts.bumpOnly !== true && (opts.dryRun !== true || opts.probeFloor !== undefined);
     const probeFloor = opts.probeFloor ?? ((name, version) => probeVersion(name, version).ok);
+    // AM-1 (packedTransport): sibling pins for the packing-only rewrite, updated to each package's
+    // NEW version the moment its OWN bump lands — a dependent packed LATER in this same batch must
+    // pin to what its dependency will actually ship, not the stale value captured before the loop
+    // (mirrors what a real `pnpm pack` reads: the dependency's on-disk package.json, already bumped).
+    const pinVersions = new Map(workspaceVersions);
+    const pendingPacked = [];
+    /**
+     * The registry receipt-probe loop, factored out so the packedTransport pass (below) reuses it
+     * identically to the existing per-package publish path — including the "no receipt is not
+     * success" throw itself, so there is exactly ONE place in this file that decides that.
+     */
+    function confirmPublished(name, version, probeLog) {
+        let registryProbes = 0;
+        let confirmed = false;
+        while (registryProbes < REGISTRY_PROBE_BUDGET) {
+            registryProbes++;
+            const probed = probe(name, version);
+            const outcome = typeof probed === 'boolean'
+                ? { ok: probed, stdout: '', stderr: '', code: null, ms: 0 }
+                : probed;
+            probeLog.push({ attempt: registryProbes, ...outcome });
+            if (outcome.ok) {
+                confirmed = true;
+                break;
+            }
+            if (registryProbes < REGISTRY_PROBE_BUDGET)
+                sleep(REGISTRY_PROBE_INTERVAL_MS);
+        }
+        if (!confirmed) {
+            const last = probeLog[probeLog.length - 1];
+            const output = last.stderr || last.stdout;
+            const firstLine = output.split(/\r?\n/, 1)[0]?.trim() || '(empty)';
+            throw new Error(`registry did not confirm ${name}@${version} after ${registryProbes} probes ` +
+                `(${Math.round(registryProbes * REGISTRY_PROBE_INTERVAL_MS / 60_000)} min); ` +
+                `last probe: code ${String(last.code)}, ${last.ms}ms, ${firstLine}`);
+        }
+        return { registryProbes };
+    }
+    function sha256File(path) {
+        return createHash('sha256').update(readFileSync(path)).digest('hex');
+    }
     for (const pkg of ordered) {
         const oldVersion = pkg.version;
         const pkgJsonPath = join(pkg.dir, 'package.json');
@@ -724,6 +771,62 @@ export function publishPackages(monorepoRoot, opts = {}) {
                     continue;
                 }
             }
+            if (opts.packedTransport !== undefined) {
+                // AM-1: pack ONCE, from a package.json whose workspace: specs are already resolved to each
+                // sibling's PINNED version — the SAME transformation `rewriteWorkspaceSpecs` performs — so
+                // the tarball about to be smoked is exactly what `npm publish <tgzPath>` ships. Lifecycle
+                // scripts already ran during the `build` step above; `prepublishOnly` is dropped here to
+                // mirror what pnpm itself strips at pack time (the manifest-freshness guard, cli.ts, does
+                // the identical transformation for verification — this is that same convention, now used
+                // to actually PRODUCE the artifact rather than merely check one).
+                const bumpedText = readFileSync(pkgJsonPath, 'utf-8'); // already carries newVersion
+                const rewritten = JSON.parse(rewriteWorkspaceSpecs(bumpedText, pinVersions));
+                const scripts = rewritten['scripts'];
+                if (scripts !== null && typeof scripts === 'object' && !Array.isArray(scripts)) {
+                    delete scripts['prepublishOnly'];
+                }
+                const stagedText = JSON.stringify(rewritten, null, 2) + '\n';
+                let tgzPath;
+                let digest;
+                writeFileSync(pkgJsonPath, stagedText);
+                try {
+                    const packOptions = { cwd: pkg.dir, stdio: 'pipe', encoding: 'utf-8' };
+                    if (opts.exec)
+                        opts.exec(`npm pack . --pack-destination ${JSON.stringify(opts.packedTransport.packDestDir)}`, packOptions);
+                    else
+                        execSync(`npm pack . --pack-destination ${JSON.stringify(opts.packedTransport.packDestDir)}`, packOptions);
+                    tgzPath = join(opts.packedTransport.packDestDir, packedTarballName(pkg.name, newVersion));
+                    digest = sha256File(tgzPath);
+                }
+                finally {
+                    // The COMMITTED tree keeps `workspace:` specs (only the version bump is meant to stick) —
+                    // the rewrite above is packing-only and is undone here regardless of pack's outcome.
+                    writeFileSync(pkgJsonPath, bumpedText);
+                }
+                pendingPacked.push({
+                    name: pkg.name,
+                    dir: pkg.dir,
+                    oldVersion,
+                    newVersion,
+                    tgzPath,
+                    sha256: digest,
+                    pkgJsonPath,
+                    originalPkgJson,
+                    readmePath: pathJoin(pkg.dir, 'README.md'),
+                    originalReadme,
+                    claimCheckSummary,
+                });
+                pinVersions.set(pkg.name, newVersion);
+                // Optimistic, mirroring the dry-run branch above: this package WILL land once the
+                // batch-wide smoke (after the loop) passes — a dependent packed later in this same batch
+                // must not re-probe its floor on the registry for an artifact that simply hasn't
+                // published YET (a staged disk version is not a shipped one — but a PACKED one, pending a
+                // batch-wide smoke that the dependent itself is also waiting on, is not "unpublished" in
+                // the sense this preflight polices). Corrected back to `failedInBatch` after the loop if
+                // the smoke actually rejects the batch.
+                landedInBatch.add(pkg.name);
+                continue;
+            }
             // Publish
             const publishOptions = {
                 cwd: pkg.dir,
@@ -735,30 +838,7 @@ export function publishPackages(monorepoRoot, opts = {}) {
                 opts.exec(publishCmd, publishOptions);
             else
                 execSync(publishCmd, publishOptions);
-            let registryProbes = 0;
-            let confirmed = false;
-            while (registryProbes < REGISTRY_PROBE_BUDGET) {
-                registryProbes++;
-                const probed = probe(pkg.name, newVersion);
-                const outcome = typeof probed === 'boolean'
-                    ? { ok: probed, stdout: '', stderr: '', code: null, ms: 0 }
-                    : probed;
-                probeLog.push({ attempt: registryProbes, ...outcome });
-                if (outcome.ok) {
-                    confirmed = true;
-                    break;
-                }
-                if (registryProbes < REGISTRY_PROBE_BUDGET)
-                    sleep(REGISTRY_PROBE_INTERVAL_MS);
-            }
-            if (!confirmed) {
-                const last = probeLog[probeLog.length - 1];
-                const output = last.stderr || last.stdout;
-                const firstLine = output.split(/\r?\n/, 1)[0]?.trim() || '(empty)';
-                throw new Error(`registry did not confirm ${pkg.name}@${newVersion} after ${registryProbes} probes ` +
-                    `(${Math.round(registryProbes * REGISTRY_PROBE_INTERVAL_MS / 60_000)} min); ` +
-                    `last probe: code ${String(last.code)}, ${last.ms}ms, ${firstLine}`);
-            }
+            const { registryProbes } = confirmPublished(pkg.name, newVersion, probeLog);
             results.push({ name: pkg.name, oldVersion, newVersion, status: 'published', registryProbes, probeLog, claimCheck: claimCheckSummary });
             landedInBatch.add(pkg.name); // only an ACTUAL publish covers dependents (Codex P1)
         }
@@ -787,6 +867,145 @@ export function publishPackages(monorepoRoot, opts = {}) {
                 claimCheck: claimCheckSummary,
             });
             failedInBatch.add(pkg.name);
+        }
+    }
+    // AM-1 (packedTransport, pass 2): every packable package in the batch has now been bumped,
+    // built, signed and packed into a real tarball — nothing has been published yet. Judge the
+    // WHOLE batch together (the packed-install smoke needs every batch tarball installed at once,
+    // exactly like a fresh user would receive them) BEFORE any of them ships.
+    if (opts.packedTransport !== undefined && pendingPacked.length > 0) {
+        // Lead edit after Codex re-review (finding 1): the transport is ONE transaction — a batch that
+        // lost any package before packing (an earlier error) is never smoked or published partially, and
+        // a smoke that THROWS rolls every pending package back exactly like a failed verdict.
+        const rollbackAll = (reason) => {
+            for (const p of pendingPacked) {
+                try {
+                    writeFileSync(p.pkgJsonPath, p.originalPkgJson);
+                }
+                catch { /* best-effort restore */ }
+                if (p.originalReadme !== undefined) {
+                    try {
+                        writeFileSync(p.readmePath, p.originalReadme);
+                    }
+                    catch { /* best-effort restore */ }
+                }
+                results.push({
+                    name: p.name, oldVersion: p.oldVersion, newVersion: p.newVersion, status: 'error',
+                    error: reason, claimCheck: p.claimCheckSummary,
+                });
+                failedInBatch.add(p.name);
+                landedInBatch.delete(p.name);
+            }
+            pendingPacked.length = 0;
+        };
+        if (failedInBatch.size > 0) {
+            rollbackAll(`batch incomplete before smoke (${[...failedInBatch].join(', ')} failed earlier) — nothing published`);
+        }
+        let smokeVerdict = { ok: false, reason: 'smoke did not run' };
+        if (pendingPacked.length > 0) {
+            try {
+                smokeVerdict = opts.packedTransport.smoke(pendingPacked.map((p) => ({ name: p.name, newVersion: p.newVersion, tgzPath: p.tgzPath, sha256: p.sha256 })));
+            }
+            catch (err) {
+                smokeVerdict = { ok: false, reason: `smoke threw: ${formatPublishError(err)}` };
+            }
+        }
+        if (pendingPacked.length === 0) {
+            /* already rolled back above */
+        }
+        else if (!smokeVerdict.ok) {
+            for (const p of pendingPacked) {
+                try {
+                    writeFileSync(p.pkgJsonPath, p.originalPkgJson);
+                }
+                catch { /* best-effort restore */ }
+                if (p.originalReadme !== undefined) {
+                    try {
+                        writeFileSync(p.readmePath, p.originalReadme);
+                    }
+                    catch { /* best-effort restore */ }
+                }
+                results.push({
+                    name: p.name,
+                    oldVersion: p.oldVersion,
+                    newVersion: p.newVersion,
+                    status: 'error',
+                    error: `packed install smoke failed: ${smokeVerdict.reason ?? '(no detail)'}`,
+                    claimCheck: p.claimCheckSummary,
+                });
+                failedInBatch.add(p.name);
+                landedInBatch.delete(p.name); // correct the pass-1 optimistic assumption
+            }
+        }
+        else {
+            let transportFailed = false;
+            for (const p of pendingPacked) {
+                const probeLog = [];
+                // Lead edit after Codex re-review (finding 2): after the first transport/receipt failure the
+                // REST of the batch is not published — a dependant must never land on top of a failed sibling.
+                if (transportFailed) {
+                    try {
+                        writeFileSync(p.pkgJsonPath, p.originalPkgJson);
+                    }
+                    catch { /* best-effort restore */ }
+                    if (p.originalReadme !== undefined) {
+                        try {
+                            writeFileSync(p.readmePath, p.originalReadme);
+                        }
+                        catch { /* best-effort restore */ }
+                    }
+                    results.push({
+                        name: p.name, oldVersion: p.oldVersion, newVersion: p.newVersion, status: 'error',
+                        error: 'skipped: an earlier package in this batch failed to publish — dependants are not published on top of a failed sibling',
+                        claimCheck: p.claimCheckSummary,
+                    });
+                    failedInBatch.add(p.name);
+                    landedInBatch.delete(p.name);
+                    continue;
+                }
+                try {
+                    // Defends the "same bytes" claim against anything that could touch the tarball between
+                    // the pack step and this publish call (AM-1: "a digest mismatch between smoke and
+                    // publish is BLOCKED", made a real, checked code path rather than an architectural
+                    // argument that the two steps happen to read the same file).
+                    const currentDigest = sha256File(p.tgzPath);
+                    if (currentDigest !== p.sha256) {
+                        throw new Error(`tarball digest changed between smoke and publish for ${p.name}@${p.newVersion} ` +
+                            `(smoked ${p.sha256}, about to publish ${currentDigest}) — refusing`);
+                    }
+                    const publishOptions = { cwd: p.dir, stdio: 'pipe', encoding: 'utf-8', env: { ...process.env } };
+                    const npmPublishCmd = `npm publish ${JSON.stringify(p.tgzPath)} --access public${publishCmd.includes('--provenance') ? ' --provenance' : ''}`;
+                    if (opts.exec)
+                        opts.exec(npmPublishCmd, publishOptions);
+                    else
+                        execSync(npmPublishCmd, publishOptions);
+                    const { registryProbes } = confirmPublished(p.name, p.newVersion, probeLog);
+                    results.push({
+                        name: p.name, oldVersion: p.oldVersion, newVersion: p.newVersion, status: 'published',
+                        registryProbes, probeLog, claimCheck: p.claimCheckSummary, sha256: p.sha256,
+                    });
+                    // landedInBatch already carries p.name from pass 1 (optimistic) — now confirmed for real.
+                }
+                catch (err) {
+                    try {
+                        writeFileSync(p.pkgJsonPath, p.originalPkgJson);
+                    }
+                    catch { /* best-effort restore */ }
+                    if (p.originalReadme !== undefined) {
+                        try {
+                            writeFileSync(p.readmePath, p.originalReadme);
+                        }
+                        catch { /* best-effort restore */ }
+                    }
+                    results.push({
+                        name: p.name, oldVersion: p.oldVersion, newVersion: p.newVersion, status: 'error',
+                        error: formatPublishError(err), ...(probeLog.length > 0 ? { probeLog } : {}), claimCheck: p.claimCheckSummary,
+                    });
+                    failedInBatch.add(p.name);
+                    landedInBatch.delete(p.name);
+                    transportFailed = true;
+                }
+            }
         }
     }
     const releaseLineSynced = [];

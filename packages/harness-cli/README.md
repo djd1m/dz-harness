@@ -978,7 +978,13 @@ stated fact rather than an inference from an absent file. Records and reports ar
 the state directory itself is contained the same way, before anything is created in it. The audit
 trail is written BEFORE the report and corrected after it, so `reportWritten` can only ever
 understate; if the trail cannot be written at all, the run FAILS (`audit-write-failed`) rather than
-shipping a verdict nobody can re-derive.
+shipping a verdict nobody can re-derive. The record also carries `writeSequence` — diagnostic
+sequencing metadata: a self-reported, process-local trace of the `signoff-write-started` /
+`report-written` / `record-update-prepared` steps with monotonic stamps taken at each named event
+(the start of the first record write, the moment the report is on disk, and just before the atomic
+record update). It replaces a file-mtime comparison in the tests (a race); the write ORDER itself is
+proven by the report-failure test (record exists and says `false` when the report never lands) and
+the failpoint test (`reportWritten:true` only after the report), not by this field.
 
 **Exit codes:** `0` a signoff was parsed (ANY grade — a grade F still exits 0: the bridge reports, it
 does not gate), `1` a named failure, `2` a usage error. **Honest limits:** it proves the call was
@@ -3222,30 +3228,54 @@ dz publish --filter skills-devops --bump-only # bump version only, no publish
 `workspace:^`/`workspace:~`/`workspace:*` pins a sibling dependency to the exact version on disk —
 but the REGISTRY under that version can carry an OLDER build if the sibling changed without a
 version bump (the 2026-09-13 incident: 15 minutes of a broken `@dzhechkov/harness-cli` on npm). Two
-HARD gates catch this before anything ships, and both run on `--dry-run` too:
+HARD gates catch this before anything ships, and both run on `--dry-run` too — a dry run ALWAYS
+prints both verdicts, even once sibling-drift already blocks (no gate goes silent because an
+earlier one failed):
 
-1. **Sibling drift.** For every workspace `S` a batch package depends on that is NOT itself part of
-   the batch, the gate hashes `S`'s published `dist/**` + a normalized `package.json` (version/
-   gitHead/`_*` stripped) against the workspace copy. A mismatch blocks; a fetch that cannot
-   complete (offline, 404) blocks too — `unavailable` is never silently treated as a pass.
-2. **Packed-install smoke.** Every package in the batch is `npm pack`ed, installed TOGETHER into a
-   clean directory (siblings outside the batch resolve from the registry — exactly like a fresh
-   user), then every `bin` runs `--version` and must exit 0 with non-empty stdout.
+1. **Sibling drift.** For every workspace `S` a batch package depends on (`dependencies`,
+   `peerDependencies` AND `optionalDependencies` — all three pin and ship identically) that is NOT
+   itself part of the batch, the gate hashes `S`'s published inventory — `dist/**`, every path
+   named in `package.json#files`, and every `bin` target (not `dist/**` alone: a changed bin script
+   or template outside `dist/` is drift too) — plus a normalized `package.json` (version/gitHead/
+   `_*`/`imports`/`browser`/`sideEffects`/`man` compared, not just entry points) against the
+   workspace copy. A mismatch blocks; anything this gate cannot build — a fetch that fails
+   (offline, 404), an unreadable/invalid `package.json` on either side, or a `workspace:`-spec'd
+   name it does not recognize — is `unavailable` and blocks too; `unavailable` is never silently
+   treated as a pass. `--include-drifted` auto-extends the batch and RE-CHECKS the expanded batch's
+   own new edges until nothing new drifts (a fixed point over transitive drift, capped at the
+   package count) — a folded-in sibling that itself depends on a drifted sibling is not missed.
+2. **Packed-install smoke.** The batch's `.tgz` files are installed TOGETHER into a clean directory
+   (siblings outside the batch resolve from the registry — exactly like a fresh user), then every
+   declared `bin` — including one whose target file turns out NOT to exist after the install,
+   which blocks with `declared bin missing after packed install` rather than silently reading as
+   n/a — runs `--version` and must exit 0 with non-empty stdout. On a **live** publish this gate
+   packs each package's tarball exactly ONCE, right after its own version bump — the SAME bytes are
+   then smoke-tested and handed to `npm publish <tgz>`; their sha256 is printed
+   (`tarball <pkg>@<ver> sha256:<hex>`) and written to `.dz/guard-audit.jsonl` alongside every
+   pass/block/override/n-a verdict, so "the smoke tested what shipped" is a checkable claim rather
+   than an architectural one. `dz release --dry-run` plans the same steps inside its `smoke` gate
+   (`smoke:packed-install:*`) and `dz release`'s own execution judges the `--version` step through
+   the identical rule — the two doors apply one rule, for real, not only on paper.
 
 ```bash
 dz publish --filter harness-cli               # ✓ sibling drift: none / ✓ packed install smoke, or BLOCKED with a fix-it command
-dz publish --filter harness-cli --allow-sibling-drift   # override (logged to .dz/guard-audit.jsonl)
-dz publish --filter harness-cli --include-drifted       # auto-extend the batch with the drifted sibling instead of blocking
+dz publish --filter harness-cli --allow-sibling-drift   # override (logged to .dz/guard-audit.jsonl) — refused if the audit write itself fails
+dz publish --filter harness-cli --include-drifted       # auto-extend the batch (transitively) with the drifted sibling(s) instead of blocking
 ```
 
 A BLOCKED sibling-drift verdict always names the fix: `add S to the batch (--filter <batch>,<S>) or
-publish it first`. `dz release --dry-run` shows the same packed-install steps inside its `smoke`
-gate (`smoke:packed-install:*`) — the two doors apply the identical rule.
+publish it first`.
 
 ```
 $ dz publish --filter harness-cli
 dz publish: BLOCKED harness-cli — sibling drift: @dzhechkov/memory@0.2.20 on the registry differs from the workspace (3 file(s)); add @dzhechkov/memory to the batch (--filter harness-cli,@dzhechkov/memory) or publish it first
 dz publish: refusing to publish (1 sibling-drift violation(s))
+
+$ dz publish --filter harness-cli --yes
+dz publish: tarball @dzhechkov/harness-cli@0.8.24 sha256:9f2c…e10a
+dz publish: ✓ packed install smoke
+  ✓ @dzhechkov/harness-cli                1.0.0 → 1.0.1  published (confirmed by registry after 1 probes)
+      sha256:9f2c…e10a
 ```
 
 ### dz auto-canonicalize — discover skills in GitHub repos
@@ -3529,6 +3559,31 @@ dz setup --target claude-code --preset devops --memory agentdb   # AgentDB (vect
 | **MCP tools** | 0 | pattern, reflexion, causal, skill, hierarchy (whatever the pinned `agentdb` build exposes — `dz` hardcodes no count) |
 | **Dependencies** | None | agentdb (optional, via npx) |
 
+### Repeat setup — the backend comes from your config, not from a forgotten flag
+
+**A plain `dz setup --target claude-code` re-run (no `--memory`) now keeps the backend `.dz/config.json`
+already names — a repeat setup takes the backend from your config; downgrading to jsonl needs an
+explicit `--memory jsonl`.** Before this feature, a repeat `dz setup --target claude-code` with no
+`--memory` decided the backend as "`--memory` or jsonl" and silently reset an agentdb project back
+to jsonl, dropping `.dz/agentdb-writer.mjs` from the `SessionStart` hook — the config still said
+`agentdb`, the hooks quietly stopped writing to it.
+
+| You run | `.dz/config.json` before | Result |
+|---|---|---|
+| `dz setup --target claude-code` | `memory.backend: "agentdb"` | stays **agentdb** — hooks/writer untouched, byte-identical to the flagged run |
+| `dz setup --target claude-code --memory agentdb` | anything, or absent | **agentdb** (explicit, unchanged from before) |
+| `dz setup --target claude-code --memory jsonl` | `memory.backend: "agentdb"` | **downgrades to jsonl** — printed loudly: `⚠ memory backend downgraded agentdb → jsonl by --memory jsonl`; the config is rewritten to jsonl too (even without `--force`), so the two never disagree |
+| `dz setup --target claude-code` | no config yet | **jsonl** (the documented default — unchanged) |
+
+Every run also prints where the backend came from, e.g. `memory backend: agentdb (from
+.dz/config.json)` / `memory backend: jsonl (from --memory)` / `memory backend: jsonl (default — no
+.dz/config.json)` — never left to be inferred from the flag alone.
+
+`dz doctor` cross-checks the two truths too: a new `memory hooks match config` row goes red when
+`.dz/config.json`'s `memory.backend` and the ACTUAL `SessionStart`/`SessionEnd`/`PreCompact` hooks in
+`.claude/settings.json` disagree in either direction, naming the exact fix (`run: dz setup --target
+claude-code --memory agentdb`, or the jsonl equivalent).
+
 ### The apply leg — `dz setup --memory agentdb` installs the whole loop, not two of three
 
 Self-learning is a three-leg loop: **collect** (session hooks write into the store above),
@@ -3537,7 +3592,7 @@ Self-learning is a three-leg loop: **collect** (session hooks write into the sto
 Before this feature `dz setup` shipped the first two legs only — the apply leg's files existed
 solely in this repo's own `.claude/helpers/`, so every OTHER project that ran `dz setup --memory
 agentdb` got collection and ranking, but never automatic recall (MEASURED: a clean install wrote no
-`UserPromptSubmit` entry at all, on 0.8.10 and 0.8.23 alike, with or without `--memory agentdb`).
+`UserPromptSubmit` entry at all, on 0.8.10 and 0.8.24 alike, with or without `--memory agentdb`).
 
 `dz setup --target claude-code --memory agentdb` now installs all three, additively (a repeat run
 changes nothing; a foreign hook you wrote yourself is left exactly where it is):
@@ -3589,6 +3644,15 @@ exact fix command, and `dz parity`'s `learning-apply` row for `claude-code` read
 `not installed — run dz setup --target claude-code --memory agentdb` — never a silent `✓` read off
 a capability table that has never looked at your project.
 
+**Deeply nested checkout? The socket moves to a short tmpdir path, automatically.** A unix socket
+path is capped at ~100-108 bytes by the OS (`sun_path`); `<project>/.dz/embed.sock` can exceed that
+in a project nested several directories deep, and past the limit the daemon used to bind nowhere
+while still looking "ready". It now falls back to a short, deterministic path under your system temp
+directory and drops a pointer file (`.dz/embed.sock.path`) the recall hook and `dz doctor` both
+read — `dz doctor`'s liveness line names the actual path in that case: `embed socket present at
+/tmp/dz-embed-<hash>.sock (tmpdir-short: project path 118 bytes > 100)`. Nothing to configure; set
+`DZ_EMBED_SOCKET` yourself only if you need to pin an exact path.
+
 #### Post-install verification (acceptance check, dz-harness-hub issue #10)
 
 A live end-to-end check for a fresh `--memory agentdb` install — every line below is something the
@@ -3619,7 +3683,7 @@ echo '{"prompt":"acceptance check lesson"}'   | node .claude/helpers/recall-hook
 echo '{"prompt":"unrelated weather report"}'  | node .claude/helpers/recall-hook.cjs   # → empty stdout, exit 0
 
 # 7. Doctor confirms the leg is alive, not merely installed.
-dz doctor   # → "apply-leg alive (embed daemon): embed.sock present"
+dz doctor   # → "apply-leg alive (embed daemon): embed socket present at <path> — recall injection can run"
 ```
 
 Every step above is a REPRODUCER, not a claim: run it on a scratch project before trusting a `dz
@@ -5060,7 +5124,22 @@ refusal as the honest answer.
 
 ## Status
 
-`harness-core v0.8.32` · `harness-cli v0.8.23` — **this release: the store guard tells "busy" from "broken",
+`harness-core v0.8.33` · `harness-cli v0.8.24` — **this release: `dz publish` refuses a broken pair, `dz setup`
+reads the memory backend from config, and the embed daemon says "ready" only with a socket that exists.**
+(1) Sibling-drift gate + packed install smoke: before any live `npm publish`, every `workspace:*` sibling on
+the registry is compared with the workspace (dist/files/bin + the shipping fields of package.json); a
+drifted sibling BLOCKS the batch (`add <sibling> to the batch or publish it first`), and each package that
+declares a `bin` is packed post-bump, installed into a clean directory and asked `--version` — the exact
+incident of 2026-09-13 (a CLI published against a core that did not export what it imports) is now caught
+in the dry run. Transport is transactional: the first failed `npm publish` stops the batch. (2) `dz setup`
+without `--memory` takes the backend from `.dz/config.json` (`memory backend: agentdb (from .dz/config.json)`),
+downgrades only on an explicit `--memory jsonl` with a warning, and `dz doctor` gained `memory hooks match
+config` — all three session events must invoke `.dz/agentdb-writer.mjs` when config says agentdb.
+(3) A project whose `.dz/embed.sock` path exceeds the unix limit gets a short socket in a private
+`<tmpdir>/dz-<uid>/` directory (mode 0700) with an atomically published pointer `.dz/embed.sock.path`; the
+daemon prints `ready` only after the socket exists and exits 3 on a bind failure. (4) The qe-bridge signoff
+record carries `writeSequence` (diagnostic sequencing metadata) so the tests no longer race on file mtimes.
+Previous release (0.8.30/0.8.22): **the store guard tells "busy" from "broken",
 and a publish is not finished until the public mirror confirms it.** (1) The learning-store guard used to
 turn ANY read failure into `unreadable` and refuse the write; a neighbour holding the SQLite write lock
 (`SQLITE_BUSY`) or a store still being initialised (`no such table`) now gets bounded retries and, if still

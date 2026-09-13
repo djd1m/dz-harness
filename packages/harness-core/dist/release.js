@@ -23,7 +23,7 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { discoverPackages, orderByDependencies } from './publish.js';
-import { planPackedInstallSmoke } from './packed-install-smoke.js';
+import { planPackedInstallSmoke, judgePackedInstallSmoke } from './packed-install-smoke.js';
 /** Order the CLI executes and the verdict reports gates in. */
 export const RELEASE_GATE_ORDER = ['tests', 'audit', 'syntax', 'smoke'];
 /** Default per-step timeouts (NFR-4: a hung child is a classified failure, not a hung release). */
@@ -330,8 +330,9 @@ export function planReleaseGates(facts, opts) {
     // omitted, this is byte-identical to the pre-feature plan, which every existing planner test
     // relies on. Skipped entirely when nothing in the batch has a bin — packing siblings nobody
     // will boot proves nothing a fresh `npm install` doesn't already cover elsewhere.
+    let packedInstallPlan;
     if (opts.packedInstall !== undefined) {
-        const bins = facts.flatMap((f) => f.bins.filter((b) => b.exists).map((b) => ({ pkg: f.name, binName: b.name, relPath: relative(f.dir, b.path) })));
+        const bins = facts.flatMap((f) => f.bins.map((b) => ({ pkg: f.name, binName: b.name, relPath: relative(f.dir, b.path) })));
         if (bins.length > 0) {
             const packages = facts.map((f) => ({ name: f.name, dir: f.dir, version: f.version }));
             const smokePlan = planPackedInstallSmoke({
@@ -340,12 +341,15 @@ export function planReleaseGates(facts, opts) {
                 packDir: opts.packedInstall.packDir,
                 installDir: opts.packedInstall.installDir,
             });
+            packedInstallPlan = smokePlan; // AM-7: kept for classifyGateExecutions's re-judge pass
             for (const s of smokePlan.steps) {
                 const reason = s.kind === 'pack'
                     ? `pack ${s.pkg} for the packed-install smoke — the tarball a consumer would actually receive`
                     : s.kind === 'install'
                         ? 'install every packed tarball together in a clean dir — out-of-batch siblings resolve from the registry, exactly like a fresh user'
-                        : `bin "${s.binName}" must boot from the PACKED install (--version, exit 0, non-empty stdout)`;
+                        : s.kind === 'bin-exists'
+                            ? `bin "${s.binName}" must EXIST after the packed install (AM-8)`
+                            : `bin "${s.binName}" must boot from the PACKED install (--version, exit 0, non-empty stdout)`;
                 steps.push({
                     id: `smoke:packed-install:${s.id}`,
                     gate: 'smoke',
@@ -359,7 +363,7 @@ export function planReleaseGates(facts, opts) {
             }
         }
     }
-    return { steps, skips, packages: facts.map((f) => f.name) };
+    return { steps, skips, packages: facts.map((f) => f.name), ...(packedInstallPlan !== undefined ? { packedInstallPlan } : {}) };
 }
 /* ------------------------------------------------------------------ */
 /*  VERIFY — pure classification                                       */
@@ -425,6 +429,27 @@ export function classifyGateExecutions(plan, executions, now = new Date()) {
         if (e != null && typeof e.stepId === 'string')
             byId.set(e.stepId, e);
     }
+    // AM-7: `bin-exists`/`bin-version` packed-install steps are judged through
+    // `judgePackedInstallSmoke` — the SAME rule `dz publish` applies (exit 0 AND non-empty stdout,
+    // AND the declared bin must exist post-install) — instead of the generic exit-code-only check
+    // every other step gets. The generic loop below SKIPS these step ids; the judged verdict is
+    // folded into the 'smoke' gate's failures/passed count after the loop.
+    const packedInstallPlan = plan?.packedInstallPlan;
+    const packedInstallBinStepIds = new Set((packedInstallPlan?.steps ?? []).filter((s) => s.kind === 'bin-exists' || s.kind === 'bin-version').map((s) => `smoke:packed-install:${s.id}`));
+    let packedInstallVerdict;
+    if (packedInstallPlan !== undefined) {
+        const prefix = 'smoke:packed-install:';
+        const translated = (executions ?? [])
+            .filter((e) => e != null && typeof e.stepId === 'string' && e.stepId.startsWith(prefix))
+            .map((e) => ({
+            stepId: e.stepId.slice(prefix.length),
+            exitCode: e.exitCode,
+            stdout: e.stdout ?? '',
+            stderr: e.stderr ?? '',
+            ...(e.timedOut !== undefined ? { timedOut: e.timedOut } : {}),
+        }));
+        packedInstallVerdict = judgePackedInstallSmoke(packedInstallPlan, translated);
+    }
     const gates = RELEASE_GATE_ORDER.map((gate) => {
         const gateSteps = (plan?.steps ?? []).filter((s) => s?.gate === gate);
         const gateSkips = (plan?.skips ?? []).filter((s) => s?.gate === gate);
@@ -432,6 +457,8 @@ export function classifyGateExecutions(plan, executions, now = new Date()) {
         let passed = 0;
         for (const step of gateSteps) {
             try {
+                if (packedInstallBinStepIds.has(step.id))
+                    continue; // judged separately below (AM-7)
                 if (step.kind === 'synthetic-fail') {
                     failures.push({ pkg: step.pkg, reason: step.reason, class: step.failClass ?? 'EXIT_NONZERO' });
                     continue;
@@ -473,6 +500,22 @@ export function classifyGateExecutions(plan, executions, now = new Date()) {
             catch {
                 // Hostile/malformed step or execution record: classify as failure, never throw.
                 failures.push({ pkg: step?.pkg, reason: 'unclassifiable step/execution record', class: 'EXIT_NONZERO' });
+            }
+        }
+        // AM-7: fold the packed-install bin verdicts (judged via judgePackedInstallSmoke, above) into
+        // the 'smoke' gate — the ONLY gate that ever plans packed-install steps.
+        if (gate === 'smoke' && packedInstallVerdict !== undefined) {
+            for (const bin of packedInstallVerdict.bins) {
+                if (bin.ok) {
+                    passed += 1;
+                }
+                else {
+                    failures.push({
+                        pkg: bin.pkg,
+                        reason: `packed-install bin "${bin.binName}" ${bin.detail ?? 'failed'}`,
+                        class: 'EXIT_NONZERO',
+                    });
+                }
             }
         }
         const status = failures.length > 0 ? 'fail' : passed > 0 ? 'pass' : 'skip';

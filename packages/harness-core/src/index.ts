@@ -232,7 +232,9 @@ export type {
   TeachGuardResult,
 } from './vector-tier.js';
 export { runSetup, generateHooksConfig, generateAgentdbWriter, writerVersionOf, AGENTDB_WRITER_VERSION,
-  agentdbStorePath, agentdbMcpStorePath, agentdbStoreSeparationProblem } from './setup.js';
+  agentdbStorePath, agentdbMcpStorePath, agentdbStoreSeparationProblem,
+  resolveSetupMemoryBackend, memoryBackendSourceLabel } from './setup.js';
+export type { MemoryBackend, MemoryBackendSource, ResolvedSetupMemoryBackend } from './setup.js';
 // apply-leg (feature setup-installs-apply-leg, ADR-001): the third self-learning leg (APPLY) as a
 // versioned generator + the ONE measurement dz doctor/parity both read (Decision 3).
 export {
@@ -255,6 +257,16 @@ export type {
   ApplyLegNotInstalledReason,
   ResolvedIdleMs,
 } from './apply-leg.js';
+// embed-socket-short-path: the ONE resolver the daemon (inlined text), the recall hook (inlined
+// text), and dz doctor (real import) all use for the unix-socket sun_path length limit.
+export {
+  EMBED_SOCKET_PATH_BYTES_LIMIT,
+  resolveEmbedSocketPath,
+  embedSocketPointerPath,
+  readEmbedSocketPointer,
+  resolveEffectiveEmbedSocketPath,
+} from './embed-socket-path.js';
+export type { EmbedSocketPathReason, ResolvedEmbedSocketPath } from './embed-socket-path.js';
 export { countLearningStoreRowsReadonly, quarantineTierParity } from './store-counts.js';
 export type { QuarantineTierRow, QuarantineTierParity } from './store-counts.js';
 export type { LearningStoreRowCounts } from './store-counts.js';
@@ -717,7 +729,7 @@ export { fetchAllDownloads } from './downloads.js';
 export type { PackageDownloads, DownloadsReport } from './downloads.js';
 export { discoverInstalled, checkUpgrades } from './upgrade.js';
 export type { InstalledSkill, UpgradeCheck, UpgradeReport } from './upgrade.js';
-export type { PublishResult, PublishReport, ProvenanceMode, ProvenanceDecision } from './publish.js';
+export type { PublishResult, PublishReport, ProvenanceMode, ProvenanceDecision, PackedTarballArtifact, PackedTransportSmokeVerdict } from './publish.js';
 // Verified-release engine (feature release-verified, ADR-001) — pure VERIFY-phase planner +
 // classifier in front of the untouched publish path. formatPublishError is re-exported for the
 // CLI executor's captured-output discipline.

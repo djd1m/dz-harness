@@ -17,6 +17,36 @@
  */
 /** Memory backend type. */
 export type MemoryBackend = 'jsonl' | 'agentdb';
+/** Where a resolved setup memory backend came from (feature `setup-backend-from-config`). */
+export type MemoryBackendSource = 'flag' | 'config' | 'default' | 'default-unreadable' | 'disabled';
+/** Result of {@link resolveSetupMemoryBackend}. */
+export interface ResolvedSetupMemoryBackend {
+    readonly backend: MemoryBackend;
+    readonly source: MemoryBackendSource;
+    /** `true` only when an explicit `--memory jsonl` pulled an agentdb-configured project down to jsonl (FR-2). */
+    readonly downgraded: boolean;
+}
+/**
+ * FR-1/FR-2/FR-3 (feature `setup-backend-from-config`). Before this function, `runSetup` decided
+ * the backend as `opts.memory ?? 'jsonl'` — a repeat `dz setup --target claude-code` (no `--memory`)
+ * on an agentdb project silently reset it to jsonl and dropped `.dz/agentdb-writer.mjs` from
+ * `SessionStart` (AC-1, red-first). This is the ONE place that decides the backend for a run, so
+ * the config write, the printed source line, and the doctor cross-check can never disagree.
+ *
+ * - An explicit `--memory <x>` always wins (`source: 'flag'`) — including the one case that
+ *   DOWNGRADES an agentdb-configured project to jsonl (FR-2): `downgraded` is set so the caller can
+ *   warn and force the config write back in sync even without `--force`.
+ * - No flag, and `.dz/config.json` has a recognised `memory.backend` → that value, `source: 'config'`.
+ * - No flag, and no config (absent, unreadable, or an unrecognised backend value) → `jsonl`,
+ *   `source: 'default'` — the literal ticket command on an empty project (no change, named in
+ *   01_requirements.md "Что НЕ чинится").
+ */
+export declare function resolveSetupMemoryBackend(projectRoot: string, memoryOpt: MemoryBackend | undefined, noMemory?: boolean): ResolvedSetupMemoryBackend;
+/**
+ * FR-3: the human-readable "source" suffix, shared between `runSetup`'s own warning step and the
+ * CLI's printed `memory backend: …` line so the two texts can never drift apart.
+ */
+export declare function memoryBackendSourceLabel(source: MemoryBackendSource): string;
 /** Setup options. */
 export interface SetupOptions {
     readonly projectRoot: string;
@@ -44,6 +74,12 @@ export interface SetupResult {
     readonly totalSteps: number;
     readonly completed: number;
     readonly skipped: number;
+    /** The memory backend this run actually used (feature `setup-backend-from-config`, FR-1). */
+    readonly memoryBackend: MemoryBackend;
+    /** Where {@link memoryBackend} came from — FR-3, also the `--json` field name. */
+    readonly memoryBackendSource: MemoryBackendSource;
+    /** `true` when an explicit `--memory jsonl` pulled an agentdb-configured project down (FR-2). */
+    readonly memoryBackendDowngraded: boolean;
 }
 /** A single setup step. */
 export interface SetupStep {

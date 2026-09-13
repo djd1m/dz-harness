@@ -21,7 +21,7 @@
 
 import { join } from 'node:path';
 
-export type PackedInstallStepKind = 'pack' | 'install' | 'bin-version';
+export type PackedInstallStepKind = 'pack' | 'install' | 'bin-exists' | 'bin-version';
 
 /** One concrete step — data, not action (mirrors release.ts's GateStep idiom). */
 export interface PackedInstallStep {
@@ -62,6 +62,16 @@ export interface PlanPackedInstallSmokeOptions {
   readonly packTimeoutMs?: number;
   readonly installTimeoutMs?: number;
   readonly versionTimeoutMs?: number;
+  /**
+   * AM-1 (feature publish-sibling-drift-gate): the caller (`publishPackages`'s `packedTransport`)
+   * already packed each artifact ONCE, post-bump — a SECOND, different `npm pack` here would smoke
+   * bytes other than the ones about to be published, reintroducing the exact defect this amendment
+   * closes. `true` skips planning any 'pack' step; `tarballs` is still populated with the SAME
+   * deterministic `packedTarballName(name, version)` path under `packDir` — the caller is
+   * responsible for having written the tarball there already (`packages[].dir` is unused in this
+   * mode and may be any string).
+   */
+  readonly skipPack?: boolean;
 }
 
 export interface PackedInstallPlan {
@@ -90,6 +100,7 @@ export function planPackedInstallSmoke(opts: PlanPackedInstallSmokeOptions): Pac
   for (const pkg of opts.packages) {
     const tgz = join(opts.packDir, packedTarballName(pkg.name, pkg.version));
     tarballs.push(tgz);
+    if (opts.skipPack === true) continue; // AM-1: already packed by the caller — see skipPack's doc
     steps.push({
       id: `pack:${pkg.name}`,
       kind: 'pack',
@@ -111,10 +122,27 @@ export function planPackedInstallSmoke(opts: PlanPackedInstallSmokeOptions): Pac
   }
 
   for (const bin of opts.bins) {
+    const absBinPath = join(opts.installDir, 'node_modules', bin.pkg, bin.relPath);
+    // AM-8: a manifest can declare a `bin` whose target file does not exist (never built, moved,
+    // typo'd) — the OLD `cli.ts` bin-collection step silently DROPPED such a bin before this
+    // amendment, which read as "n/a: nothing to smoke" (or even skipped the whole gate when it
+    // was the batch's only bin). `test -f` is a dedicated, portable existence probe RUN AFTER THE
+    // REAL INSTALL — pass/fail here is judged into a specific, honest message
+    // ("declared bin missing after packed install") instead of being folded into whatever
+    // `node <bin> --version` happens to print for a missing file (a generic MODULE_NOT_FOUND).
+    steps.push({
+      id: `bin-exists:${bin.pkg}:${bin.binName}`,
+      kind: 'bin-exists',
+      cmd: `test -f ${JSON.stringify(absBinPath)}`,
+      cwd: opts.installDir,
+      timeoutMs: versionTimeoutMs,
+      pkg: bin.pkg,
+      binName: bin.binName,
+    });
     steps.push({
       id: `bin:${bin.pkg}:${bin.binName}`,
       kind: 'bin-version',
-      cmd: `node ${JSON.stringify(join(opts.installDir, 'node_modules', bin.pkg, bin.relPath))} --version`,
+      cmd: `node ${JSON.stringify(absBinPath)} --version`,
       cwd: opts.installDir,
       timeoutMs: versionTimeoutMs,
       pkg: bin.pkg,
@@ -216,9 +244,21 @@ export function judgePackedInstallSmoke(
     .filter((s) => s.kind === 'bin-version')
     .map((step) => {
       const exec = byId.get(step.id);
+      if (!packOk || !installOk) {
+        // Pack/install already failed for the whole batch — the generic pack/install detail is
+        // more informative than a bin-specific message about a step that never had a chance to run.
+        return { pkg: step.pkg!, binName: step.binName!, ok: false, stdout: '', detail: stepDetail(exec) };
+      }
+      // AM-8: a declared bin missing from the REAL post-install tree is its own failure class —
+      // checked and reported BEFORE the generic stdout rule below, whose message ("empty stdout")
+      // would otherwise misdescribe a file that was never there to boot at all.
+      const existsStep = plan.steps.find((s) => s.kind === 'bin-exists' && s.pkg === step.pkg && s.binName === step.binName);
+      if (existsStep !== undefined && !stepOk(byId.get(existsStep.id))) {
+        return { pkg: step.pkg!, binName: step.binName!, ok: false, stdout: '', detail: 'declared bin missing after packed install' };
+      }
       // FR-3 / lesson "publisher output is not a receipt": exit 0 alone is not enough — the
       // version output must be non-empty, or a bin that silently no-ops would read as healthy.
-      const ok = packOk && installOk && stepOk(exec) && (exec?.stdout ?? '').trim() !== '';
+      const ok = stepOk(exec) && (exec?.stdout ?? '').trim() !== '';
       return {
         pkg: step.pkg!,
         binName: step.binName!,

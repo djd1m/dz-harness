@@ -20,6 +20,7 @@
  *
  * @packageDocumentation
  */
+import type { PackedInstallPlan } from './packed-install-smoke.js';
 /** The four HARD verify gates, in execution order. */
 export type ReleaseGateId = 'tests' | 'audit' | 'syntax' | 'smoke';
 /** Order the CLI executes and the verdict reports gates in. */
@@ -90,6 +91,15 @@ export interface GatePlan {
     readonly skips: readonly GateSkip[];
     /** Package names in the release set (dependency order). */
     readonly packages: readonly string[];
+    /**
+     * AM-7 (feature publish-sibling-drift-gate): the packed-install sub-plan, carried through so
+     * {@link classifyGateExecutions} can re-judge its `bin-version`/`bin-exists` steps through the
+     * SAME judge `dz publish` uses (`judgePackedInstallSmoke`: exit 0 AND non-empty stdout, AND the
+     * declared bin must exist post-install) instead of the generic exit-code-only check every other
+     * step gets. Without this, a silently no-op bin could pass `dz release` while `dz publish`
+     * refuses it — the two doors would not be equal, contradicting FR-6's own claim.
+     */
+    readonly packedInstallPlan?: PackedInstallPlan | undefined;
 }
 /** The CLI's record of running one exec step. */
 export interface GateExecution {

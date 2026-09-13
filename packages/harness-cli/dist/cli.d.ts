@@ -125,6 +125,21 @@ export interface CliIo {
      */
     readonly publishPackedInstallRunner?: ReleaseExecRunner;
     /**
+     * AM-1 (feature publish-sibling-drift-gate): overrides EVERY subprocess `publishPackages` would
+     * run on a LIVE publish — build, the `npm pack`/`npm publish <tgz>` packedTransport commands, and
+     * the `npm view` registry probes (production leaves it unset → real `execSync`, stdio piped).
+     * Threaded into `publishPackages`'s `exec` option so a test can drive the FULL live+packedTransport
+     * `cmdPublish` path (pack → smoke → publish → registry-confirm) with zero network and zero real
+     * `npm publish`.
+     */
+    readonly publishExecRunner?: (command: string, options: {
+        cwd?: string | URL | undefined;
+        stdio?: unknown;
+        encoding?: unknown;
+        timeout?: number | undefined;
+        env?: NodeJS.ProcessEnv | undefined;
+    }) => string;
+    /**
      * Test seam for `dz install`: overrides the `npm install` subprocess (production leaves
      * it unset → real `execSync`, stdio piped). A stub runner that pre-stages a fixture
      * package under `node_modules/` makes `cmdInstall`'s layout resolution testable

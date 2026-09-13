@@ -56,6 +56,8 @@ export interface DetectSiblingDriftOptions {
   readonly dependencies: Record<string, string> | undefined;
   /** pnpm rewrites `workspace:` in peerDependencies too (mirrors findUnpublishedWorkspaceFloors). */
   readonly peerDependencies?: Record<string, string> | undefined;
+  /** AM-3: ships and pins exactly like `dependencies` — checked the same way. */
+  readonly optionalDependencies?: Record<string, string> | undefined;
   /** name -> version on DISK, for every package in the workspace. */
   readonly workspaceVersions: ReadonlyMap<string, string>;
   /** name -> absolute package dir on disk, for every package in the workspace. */
@@ -81,32 +83,95 @@ function sha256(data: string | Buffer): string {
   return createHash('sha256').update(data).digest('hex');
 }
 
-/** package.json normalized for comparison: strip fields that legitimately differ (version, gitHead, npm-internal `_*`). */
-function normalizedPackageJsonText(dir: string): string | undefined {
+/**
+ * package.json PARSED and validated. `null` (never `undefined`) means "this side cannot be built
+ * at all" — AM-3: a missing or unparseable manifest on EITHER side must surface as `unavailable`,
+ * never as an empty/omitted comparison field that a hash-mismatch loop could silently read as
+ * "nothing differs here".
+ */
+function readManifest(dir: string): Record<string, unknown> | null {
   const p = join(dir, 'package.json');
-  if (!existsSync(p)) return undefined;
+  if (!existsSync(p)) return null;
   try {
-    const raw = JSON.parse(readFileSync(p, 'utf-8')) as Record<string, unknown>;
-    const kept: Record<string, unknown> = {};
-    for (const key of Object.keys(raw).sort()) {
-      if (key === 'version' || key === 'gitHead' || key.startsWith('_')) continue;
-      kept[key] = raw[key];
-    }
-    return JSON.stringify(kept);
+    const raw = JSON.parse(readFileSync(p, 'utf-8'));
+    return raw !== null && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Record<string, unknown>) : null;
   } catch {
-    return undefined;
+    return null;
   }
 }
 
-/** Hash every dist/** file (by content) plus the normalized package.json, keyed by a stable relative path. */
-function hashTree(dir: string): Map<string, string> {
-  const map = new Map<string, string>();
-  const distDir = join(dir, 'dist');
-  for (const rel of listFilesRecursive(distDir, distDir)) {
-    map.set(join('dist', rel), sha256(readFileSync(join(distDir, rel))));
+/** package.json normalized for comparison: strip fields that legitimately differ (version, gitHead, npm-internal `_*`). */
+function normalizedPackageJsonText(raw: Record<string, unknown>): string {
+  // Lead edit after the live dry-run on the hub (2026-09-13 10:40): the packer strips
+  // `scripts.prepublishOnly`, drops devDependencies/publishConfig and rewrites `workspace:` specs to
+  // pinned versions — every freshly published sibling read as "1 file drifted". Compare only what
+  // shapes the SHIPPED behavior: entry points, bins, files, engines, and dependency NAMES (values
+  // are the workspace-floor preflight's business, not this gate's).
+  //
+  // AM-4: `imports`/`browser`/`sideEffects`/`man` added — each one changes what a consumer actually
+  // resolves or ships, exactly like `main`/`exports`/`bin` already did; omitting them was a real gap
+  // the round-1 review named (finding 4), not a stylistic nicety.
+  const SHIPPING_FIELDS = [
+    'name', 'type', 'main', 'module', 'types', 'exports', 'imports', 'browser', 'sideEffects', 'man',
+    'bin', 'files', 'engines', 'os', 'cpu',
+  ];
+  const DEP_TABLES = ['dependencies', 'peerDependencies', 'optionalDependencies'];
+  const kept: Record<string, unknown> = {};
+  for (const key of SHIPPING_FIELDS) if (key in raw) kept[key] = raw[key];
+  for (const key of DEP_TABLES) {
+    const table = raw[key];
+    if (table !== null && typeof table === 'object') kept[key] = Object.keys(table as Record<string, unknown>).sort();
   }
-  const pkgNorm = normalizedPackageJsonText(dir);
-  if (pkgNorm !== undefined) map.set('package.json', sha256(pkgNorm));
+  return JSON.stringify(kept);
+}
+
+/** Every relative path (from `dir`) that a `bin` field in a parsed manifest resolves to. */
+function binPaths(raw: Record<string, unknown>): string[] {
+  const bin = raw['bin'];
+  if (typeof bin === 'string') return [bin.replace(/^\.\//, '')];
+  if (bin !== null && typeof bin === 'object' && !Array.isArray(bin)) {
+    return Object.values(bin as Record<string, unknown>)
+      .filter((v): v is string => typeof v === 'string')
+      .map((v) => v.replace(/^\.\//, ''));
+  }
+  return [];
+}
+
+/**
+ * AM-4: the round-1 gate hashed only `dist/**` — a changed bin script, template, or other
+ * top-level asset that ships (declared in `package.json#files`, or the `bin` target itself) was
+ * invisible to the drift check even though npm ships it byte-for-byte. This is a documented,
+ * honest APPROXIMATION of "the whole tarball inventory" (the literal ADR wording), not a full
+ * re-implementation of npm's pack-time file-inclusion rules (`.npmignore`, default excludes,
+ * nested `.gitignore`): it walks `dist/**` (unconditional — the common case) plus every path
+ * named in `files` (directories walked recursively, files hashed directly) plus every resolved
+ * `bin` target, deduplicated. A package with no `files` field declared keeps exactly the
+ * pre-amendment `dist/**`-only scope, named here rather than silently pretended-away.
+ */
+function shippedInventoryDirs(dir: string, raw: Record<string, unknown>): string[] {
+  const rels = new Set<string>(['dist']);
+  const files = raw['files'];
+  if (Array.isArray(files)) {
+    for (const entry of files) {
+      if (typeof entry === 'string' && entry.trim() !== '') rels.add(entry.replace(/^\.\//, '').replace(/\/+$/, ''));
+    }
+  }
+  for (const bin of binPaths(raw)) rels.add(bin);
+  return [...rels].filter((rel) => existsSync(join(dir, rel)));
+}
+
+/** Hash the shipped inventory (AM-4) plus the normalized package.json, keyed by a stable relative path. */
+function hashTree(dir: string, manifest: Record<string, unknown>): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const rel of shippedInventoryDirs(dir, manifest)) {
+    const abs = join(dir, rel);
+    if (statSync(abs).isDirectory()) {
+      for (const sub of listFilesRecursive(abs, abs)) map.set(join(rel, sub), sha256(readFileSync(join(abs, sub))));
+    } else {
+      map.set(rel, sha256(readFileSync(abs)));
+    }
+  }
+  map.set('package.json', sha256(normalizedPackageJsonText(manifest)));
   return map;
 }
 
@@ -143,7 +208,13 @@ function missingExportNames(publishedDir: string, workspaceDir: string): string[
 export function detectSiblingDrift(opts: DetectSiblingDriftOptions): SiblingDriftResult[] {
   const results: SiblingDriftResult[] = [];
   const seen = new Set<string>();
-  const entries = [...Object.entries(opts.dependencies ?? {}), ...Object.entries(opts.peerDependencies ?? {})];
+  // AM-3: `optionalDependencies` ships and pins EXACTLY like `dependencies`/`peerDependencies` —
+  // checking only the first two let a stale optional sibling through untouched (round-1 finding 3).
+  const entries = [
+    ...Object.entries(opts.dependencies ?? {}),
+    ...Object.entries(opts.peerDependencies ?? {}),
+    ...Object.entries(opts.optionalDependencies ?? {}),
+  ];
   for (const [dep, spec] of entries) {
     if (!String(spec).startsWith('workspace:')) continue;
     if (seen.has(dep)) continue;
@@ -151,7 +222,20 @@ export function detectSiblingDrift(opts: DetectSiblingDriftOptions): SiblingDrif
     if (opts.batch.has(dep)) continue; // publishes fresh in this batch — nothing stale to drift from
     const version = opts.workspaceVersions.get(dep);
     const workspaceDir = opts.workspaceDirs.get(dep);
-    if (version === undefined || workspaceDir === undefined) continue; // not a workspace package we know about
+    // AM-3: a `workspace:`-spec'd dependency this caller does not recognize used to be silently
+    // SKIPPED — an input this gate cannot build is a HARD gate that cannot say "same", never a
+    // quiet pass-through (round-1 finding 3: pnpm would die packing it anyway; die here, named).
+    if (version === undefined || workspaceDir === undefined) {
+      results.push({
+        name: dep,
+        version: version ?? '(not in workspace)',
+        status: 'unavailable',
+        changedFiles: [],
+        missingExports: [],
+        reason: `${dep} is declared workspace:-protocol but is not a known workspace package`,
+      });
+      continue;
+    }
 
     const fetched = opts.fetchPublished(dep, version);
     if (fetched === null) {
@@ -166,8 +250,26 @@ export function detectSiblingDrift(opts: DetectSiblingDriftOptions): SiblingDrif
       continue;
     }
 
-    const publishedHashes = hashTree(fetched.dir);
-    const workspaceHashes = hashTree(workspaceDir);
+    // AM-3: a missing/unparseable package.json on EITHER side must not silently drop out of the
+    // comparison (the old `hashTree` simply omitted the key, which — with an empty/matching
+    // `dist/**` on both sides — could report `same` about an input that was never actually read).
+    const publishedManifest = readManifest(fetched.dir);
+    const workspaceManifest = readManifest(workspaceDir);
+    if (publishedManifest === null || workspaceManifest === null) {
+      const side = publishedManifest === null ? 'the published tarball' : 'the workspace copy';
+      results.push({
+        name: dep,
+        version,
+        status: 'unavailable',
+        changedFiles: [],
+        missingExports: [],
+        reason: `${dep}@${version}: package.json in ${side} is missing or not valid JSON — cannot compare`,
+      });
+      continue;
+    }
+
+    const publishedHashes = hashTree(fetched.dir, publishedManifest);
+    const workspaceHashes = hashTree(workspaceDir, workspaceManifest);
     const allKeys = new Set<string>([...publishedHashes.keys(), ...workspaceHashes.keys()]);
     const changed: string[] = [];
     for (const key of allKeys) {

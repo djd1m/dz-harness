@@ -25,6 +25,68 @@ import { harnessCoreDistDir } from './harness-core-location.js';
 import { ensureAgentdbSchema } from './agentdb-index.js';
 import { APPLY_LEG_VERSION, applyLegHookEntries, applyLegVersionOf, bakedCoreDistDirOf, embedDaemonSource, recallHookSource, hookCommandInvokes, } from './apply-leg.js';
 /**
+ * FR-1/FR-2/FR-3 (feature `setup-backend-from-config`). Before this function, `runSetup` decided
+ * the backend as `opts.memory ?? 'jsonl'` — a repeat `dz setup --target claude-code` (no `--memory`)
+ * on an agentdb project silently reset it to jsonl and dropped `.dz/agentdb-writer.mjs` from
+ * `SessionStart` (AC-1, red-first). This is the ONE place that decides the backend for a run, so
+ * the config write, the printed source line, and the doctor cross-check can never disagree.
+ *
+ * - An explicit `--memory <x>` always wins (`source: 'flag'`) — including the one case that
+ *   DOWNGRADES an agentdb-configured project to jsonl (FR-2): `downgraded` is set so the caller can
+ *   warn and force the config write back in sync even without `--force`.
+ * - No flag, and `.dz/config.json` has a recognised `memory.backend` → that value, `source: 'config'`.
+ * - No flag, and no config (absent, unreadable, or an unrecognised backend value) → `jsonl`,
+ *   `source: 'default'` — the literal ticket command on an empty project (no change, named in
+ *   01_requirements.md "Что НЕ чинится").
+ */
+export function resolveSetupMemoryBackend(projectRoot, memoryOpt, noMemory = false) {
+    // Lead edit after Codex review (findings 5/6): a config that EXISTS but cannot be read, or names an
+    // unknown backend, is not "no config" — its source is labeled so, and a later step never overwrites
+    // it silently. `--no-memory` disables memory entirely: no downgrade, no config rewrite.
+    let configuredBackend;
+    let configUnreadable = false;
+    const configPath = join(projectRoot, '.dz', 'config.json');
+    if (existsSync(configPath)) {
+        try {
+            const cfg = JSON.parse(readFileSync(configPath, 'utf-8'));
+            if (cfg.memory?.backend === 'agentdb')
+                configuredBackend = 'agentdb';
+            else if (cfg.memory?.backend === 'jsonl')
+                configuredBackend = 'jsonl';
+            else
+                configUnreadable = true;
+        }
+        catch {
+            configUnreadable = true;
+        }
+    }
+    if (noMemory) {
+        return { backend: memoryOpt ?? configuredBackend ?? 'jsonl', source: 'disabled', downgraded: false };
+    }
+    if (memoryOpt !== undefined) {
+        return { backend: memoryOpt, source: 'flag', downgraded: memoryOpt === 'jsonl' && configuredBackend === 'agentdb' };
+    }
+    if (configuredBackend !== undefined) {
+        return { backend: configuredBackend, source: 'config', downgraded: false };
+    }
+    return { backend: 'jsonl', source: configUnreadable ? 'default-unreadable' : 'default', downgraded: false };
+}
+/**
+ * FR-3: the human-readable "source" suffix, shared between `runSetup`'s own warning step and the
+ * CLI's printed `memory backend: …` line so the two texts can never drift apart.
+ */
+export function memoryBackendSourceLabel(source) {
+    if (source === 'flag')
+        return 'from --memory';
+    if (source === 'config')
+        return 'from .dz/config.json';
+    if (source === 'default-unreadable')
+        return 'default — .dz/config.json unreadable or names no known backend';
+    if (source === 'disabled')
+        return 'memory disabled (--no-memory)';
+    return 'default — no .dz/config.json';
+}
+/**
  * Absolute path to the store the generated session-hook writer opens NATIVELY (better-sqlite3).
  * It is the writer's own file: the agentdb MCP server must never be pointed at it — see
  * {@link agentdbMcpStorePath}.
@@ -713,7 +775,10 @@ function applyLegStepResult(opts, backend) {
 export function runSetup(opts) {
     const steps = [];
     const dzDir = join(opts.projectRoot, '.dz');
-    const backend = opts.memory ?? 'jsonl';
+    // FR-1/FR-2/FR-3 (feature `setup-backend-from-config`): read BEFORE this run writes anything, so
+    // the comparison is against the PRIOR config, never the one this same call is about to produce.
+    const resolvedMemory = resolveSetupMemoryBackend(opts.projectRoot, opts.memory, opts.noMemory === true);
+    const backend = resolvedMemory.backend;
     // Step 0: Install agentdb + better-sqlite3 locally so the session-hook writer can import them
     // and share a native store with the MCP server. Best-effort — the writer self-degrades to a
     // jsonl marker (and self-heals once the deps exist) if this fails.
@@ -738,14 +803,40 @@ export function runSetup(opts) {
     else {
         steps.push({ name: 'Create .dz directory', status: 'skipped', detail: 'already exists' });
     }
-    // Step 2: Write .dz/config.json
+    // Step 2: Write .dz/config.json. FR-2: a DOWNGRADE (explicit --memory jsonl over an
+    // agentdb-configured project) forces the write even without --force — "two truths after any
+    // setup coincide" means the config may not keep claiming agentdb once the caller has explicitly
+    // asked for jsonl.
     const configPath = join(dzDir, 'config.json');
     if (!existsSync(configPath) || opts.force) {
         writeFileSync(configPath, generateDzConfig(opts.target, opts.preset, backend));
         steps.push({ name: 'Write .dz/config.json', status: 'done', detail: `${backend} backend` });
     }
+    else if (resolvedMemory.downgraded) {
+        // Lead edit after Codex review (finding 3): a downgrade changes ONLY memory.backend — every other
+        // field the owner keeps in .dz/config.json survives; an unparsable file falls back to regeneration.
+        let rewritten = false;
+        try {
+            const cfg = JSON.parse(readFileSync(configPath, 'utf-8'));
+            const memory = (cfg['memory'] !== null && typeof cfg['memory'] === 'object') ? cfg['memory'] : {};
+            cfg['memory'] = { ...memory, backend };
+            writeFileSync(configPath, JSON.stringify(cfg, null, 2) + '\n');
+            rewritten = true;
+        }
+        catch { /* fall through to regeneration */ }
+        if (!rewritten)
+            writeFileSync(configPath, generateDzConfig(opts.target, opts.preset, backend));
+        steps.push({ name: 'Write .dz/config.json', status: 'done', detail: `memory.backend → ${backend} (other fields kept)` });
+    }
     else {
         steps.push({ name: 'Write .dz/config.json', status: 'skipped', detail: 'already exists (use --force)' });
+    }
+    if (resolvedMemory.downgraded) {
+        steps.push({
+            name: 'Memory backend downgrade',
+            status: 'done',
+            detail: '⚠ memory backend downgraded agentdb → jsonl by --memory jsonl',
+        });
     }
     // Step 3: Initialize session log
     const sessionsPath = join(dzDir, 'sessions.jsonl');
@@ -1114,6 +1205,9 @@ export function runSetup(opts) {
         totalSteps: steps.length,
         completed: steps.filter((s) => s.status === 'done').length,
         skipped: steps.filter((s) => s.status === 'skipped').length,
+        memoryBackend: resolvedMemory.backend,
+        memoryBackendSource: resolvedMemory.source,
+        memoryBackendDowngraded: resolvedMemory.downgraded,
     };
 }
 //# sourceMappingURL=setup.js.map

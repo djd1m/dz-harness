@@ -503,6 +503,7 @@ export function buildBridgeSignoffRecord(signoff, audit) {
         reportWritten: audit.reportWritten,
         rawStdoutFile: audit.rawStdoutFile,
         ...(audit.channels === undefined ? {} : { channels: audit.channels }),
+        ...(audit.writeSequence === undefined ? {} : { writeSequence: audit.writeSequence }),
     };
 }
 /** Keep a value on one table cell — and out of the verdict grammar. */

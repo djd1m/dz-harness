@@ -1412,6 +1412,60 @@ export async function runDoctor(options: { projectRoot: string }): Promise<Docto
     // never ran `dz setup` gets no apply-leg opinion, same as every other doctor check here.
   } catch { /* doctor never throws on a diagnostic */ }
 
+  // MEMORY HOOKS MATCH CONFIG (feature `setup-backend-from-config`, FR-4). "Absence of a receipt
+  // is not success": a repeat `dz setup --target claude-code` (no `--memory`) used to silently drop
+  // `.dz/agentdb-writer.mjs` from SessionStart on an agentdb project without `doctor` ever noticing
+  // (AC-1, red-first) — `.dz/config.json`'s `memory.backend` and the ACTUAL SessionStart/
+  // SessionEnd/PreCompact hooks in `.claude/settings.json` are two independent truths, and this
+  // check compares them by fact rather than trusting either source alone.
+  try {
+    let configuredMemoryBackend: 'agentdb' | 'jsonl' | 'unknown' = 'unknown';
+    try {
+      const cfg = JSON.parse(readFileSync(join(root, '.dz', 'config.json'), 'utf-8')) as { memory?: { backend?: string } };
+      if (cfg.memory?.backend === 'agentdb') configuredMemoryBackend = 'agentdb';
+      else if (cfg.memory?.backend === 'jsonl') configuredMemoryBackend = 'jsonl';
+    } catch { /* no .dz/config.json yet — nothing to compare */ }
+
+    if (configuredMemoryBackend !== 'unknown') {
+      const { commandsOf } = await import('./setup.js');
+      // Lead edit after Codex review (findings 1/4): agentdb is "wired" only when EVERY session event
+      // invokes the writer (a writer on SessionStart alone loses the end-of-session row), and the writer
+      // is recognized by its PATH TOKEN, not a substring — `old-agentdb-writer.mjs` or the name inside an
+      // echo must not count.
+      const invokesWriter = (cmd: string): boolean =>
+        cmd.split(/\s+/).some((tok) => /^(?:\.\/)?(?:.*\/)?\.dz\/agentdb-writer\.mjs$/.test(tok.replace(/^["']|["']$/g, '')));
+      const WRITER_EVENTS = ['SessionStart', 'SessionEnd', 'PreCompact'];
+      let eventsWithWriter: string[] = [];
+      let settingsReadable = false;
+      try {
+        const settings = JSON.parse(readFileSync(join(root, '.claude', 'settings.json'), 'utf-8')) as {
+          hooks?: Record<string, unknown[]>;
+        };
+        settingsReadable = true;
+        eventsWithWriter = WRITER_EVENTS.filter((ev) => (settings.hooks?.[ev] ?? []).some((h) => commandsOf(h).some(invokesWriter)));
+      } catch {
+      }
+      const allWired = eventsWithWriter.length === WRITER_EVENTS.length;
+      const hooksInvokeAgentdbWriter = eventsWithWriter.length > 0;
+
+      if (configuredMemoryBackend === 'agentdb' && !allWired) {
+        checks.push({
+          name: 'memory hooks match config',
+          ok: false,
+          detail: `.dz/config.json says memory.backend=agentdb but ${WRITER_EVENTS.filter((ev) => !eventsWithWriter.includes(ev)).join('/')} hook(s) do not invoke .dz/agentdb-writer.mjs${settingsReadable ? '' : ' (.claude/settings.json unreadable or absent)'} — run: dz setup --target claude-code --memory agentdb`,
+        });
+      } else if (configuredMemoryBackend === 'jsonl' && hooksInvokeAgentdbWriter) {
+        checks.push({
+          name: 'memory hooks match config',
+          ok: false,
+          detail: '.dz/config.json says memory.backend=jsonl but SessionStart/SessionEnd/PreCompact hooks still invoke agentdb-writer.mjs — run: dz setup --target claude-code --memory jsonl (or --memory agentdb to keep agentdb and bring the config back in sync)',
+        });
+      }
+    }
+    // configuredMemoryBackend === 'unknown': no .dz/config.json yet — nothing to compare, same
+    // silence as every other doctor check that needs it.
+  } catch { /* doctor never throws on a diagnostic */ }
+
   const writerPath = join(root, '.dz', 'agentdb-writer.mjs');
   if (existsSync(writerPath)) {
     const { writerVersionOf, AGENTDB_WRITER_VERSION } = await import('./setup.js');
@@ -1433,13 +1487,23 @@ export async function runDoctor(options: { projectRoot: string }): Promise<Docto
         const settingsText = readFileSync(settingsPath, 'utf-8');
         const applyLegWired = settingsText.includes('recall-hook.cjs') && settingsText.includes('dz-embed-daemon.mjs');
         if (applyLegWired) {
-          const sockAlive = existsSync(join(root, '.dz', 'embed.sock'));
+          // embed-socket-short-path (FR-5): name the ACTUAL path the resolver picked — a deeply
+          // nested project's daemon binds a short tmpdir path, not `<root>/.dz/embed.sock`, and a
+          // doctor that only ever checks the latter reports ABSENT for a daemon that is alive.
+          const { resolveEffectiveEmbedSocketPath, EMBED_SOCKET_PATH_BYTES_LIMIT } = await import('./embed-socket-path.js');
+          const resolved = resolveEffectiveEmbedSocketPath(root);
+          const sockAlive = existsSync(resolved.path);
+          const projectPathBytes = Buffer.byteLength(join(root, '.dz', 'embed.sock'), 'utf8');
+          const tmpdirNote =
+            resolved.reason === 'tmpdir-short'
+              ? ` (tmpdir-short: project path ${projectPathBytes} bytes > ${EMBED_SOCKET_PATH_BYTES_LIMIT})`
+              : '';
           checks.push({
             name: 'apply-leg alive (embed daemon)',
             ok: sockAlive,
             detail: sockAlive
-              ? 'embed.sock present — recall injection can run'
-              : 'embed.sock ABSENT: the recall hook is wired but cannot inject (the hook self-heals on the next prompt; a persistent absence means the daemon cannot start)',
+              ? `embed socket present at ${resolved.path}${tmpdirNote} — recall injection can run`
+              : `embed socket ABSENT at ${resolved.path}: the recall hook is wired but cannot inject (the hook self-heals on the next prompt; a persistent absence means the daemon cannot start)`,
           });
         }
       }
