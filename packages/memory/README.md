@@ -94,7 +94,7 @@ test/sqlite-backend.test.ts` покраснел; форму реестра пр�
 
 ## Status
 
-`0.2.19` — a signature-only republish; `0.2.11` shipped with a stale manifest. No behaviour changes.
+`0.2.20` — a signature-only republish; `0.2.11` shipped with a stale manifest. No behaviour changes.
 
 `0.2.11` — a query that matched nothing returns nothing (see above). `0.2.10` — the lexical tokenizer is Unicode-aware. It split on `[^a-z0-9]+`, so every non-Latin letter
 was a separator and a Cyrillic query produced **zero terms**: the FTS5 branch was skipped, relevance

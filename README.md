@@ -35,7 +35,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/keysarium-core` | 1.1.27 |
 | `@dzhechkov/loop-designer-plugin` | 0.1.5 |
 | `@dzhechkov/mcp-server-tools` | 0.2.10 |
-| `@dzhechkov/memory` | 0.2.19 |
+| `@dzhechkov/memory` | 0.2.20 |
 | `@dzhechkov/p-replicator` | 1.13.2 |
 | `@dzhechkov/scout` | 0.8.11 |
 | `@dzhechkov/skills-12factor` | 0.1.13 |

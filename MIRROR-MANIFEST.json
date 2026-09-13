@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-09-13T08:46:33.018Z",
+  "builtAt": "2026-09-13T08:53:00.857Z",
   "builtFrom": "dz-harness-hub (private monorepo)",
   "rule": "each package mirrors exactly its npm-pack tarball inventory — the already-public surface",
   "requested": 56,
@@ -233,7 +233,7 @@
     },
     {
       "name": "@dzhechkov/memory",
-      "version": "0.2.19",
+      "version": "0.2.20",
       "files": 54
     },
     {
