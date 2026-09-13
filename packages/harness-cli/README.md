@@ -5029,7 +5029,7 @@ refusal as the honest answer.
 
 ## Status
 
-`harness-core v0.8.31` · `harness-cli v0.8.23` — **this release: the store guard tells "busy" from "broken",
+`harness-core v0.8.32` · `harness-cli v0.8.23` — **this release: the store guard tells "busy" from "broken",
 and a publish is not finished until the public mirror confirms it.** (1) The learning-store guard used to
 turn ANY read failure into `unreadable` and refuse the write; a neighbour holding the SQLite write lock
 (`SQLITE_BUSY`) or a store still being initialised (`no such table`) now gets bounded retries and, if still
