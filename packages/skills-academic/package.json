@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-academic",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },

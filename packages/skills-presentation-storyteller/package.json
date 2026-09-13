@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-presentation-storyteller",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },

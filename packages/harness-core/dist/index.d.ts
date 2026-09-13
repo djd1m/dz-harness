@@ -163,6 +163,10 @@ export type { PublishResult, PublishReport, ProvenanceMode, ProvenanceDecision }
 export { collectPackageFacts, selectAffectedPackages, planReleaseGates, classifyGateExecutions, buildFailureIssue, buildReleaseNotes, releaseTagName, firstOutputLine, RELEASE_GATE_ORDER, RELEASE_TIMEOUTS, } from './release.js';
 export type { ReleaseGateId, ReleaseFailureClass, ReleaseSkipClass, ReleaseBinEntry, ReleasePackageFacts, GateStep, GateSkip, GatePlan, GateExecution, GateFailure, GateResult, ReleaseVerdict, PlanReleaseGatesOptions, FailureIssueContext, } from './release.js';
 export { formatPublishError } from './publish.js';
+export { detectSiblingDrift } from './publish-sibling-drift.js';
+export type { SiblingDriftStatus, SiblingDriftResult, FetchedPublished, FetchPublished, DetectSiblingDriftOptions, } from './publish-sibling-drift.js';
+export { planPackedInstallSmoke, judgePackedInstallSmoke, packedTarballName } from './packed-install-smoke.js';
+export type { PackedInstallStepKind, PackedInstallStep, PackedInstallPackageSpec, PackedInstallBinSpec, PlanPackedInstallSmokeOptions, PackedInstallPlan, PackedInstallExecution, PackedInstallBinVerdict, PackedInstallVerdict, } from './packed-install-smoke.js';
 export { computeRiskScore } from './risk-scoring.js';
 export type { RiskScore, RiskThresholds } from './risk-scoring.js';
 export { MODEL_PRICES, pricingFor, hasKnownPricing, normalizeUsage, usageCost, invocationCost, costEfficiency, estimateSkillCost, } from './cost-scoring.js';

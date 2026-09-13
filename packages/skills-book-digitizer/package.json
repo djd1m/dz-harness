@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-book-digitizer",
-  "version": "0.2.19",
+  "version": "0.2.20",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },

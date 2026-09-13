@@ -227,7 +227,7 @@ methods are not copyrightable); no verbatim book expression is redistributed. Se
   preserved when real and never invented. A repository backfill command covers existing tutorials
   idempotently, and the published/working skill copies have byte-drift tests for the new seam.
 
-- **0.7.0** — **four diagram kinds, because content has four shapes.** 0.6.0 shipped only `flow`,
+- **0.7.1** — **four diagram kinds, because content has four shapes.** 0.6.0 shipped only `flow`,
   and the result was measurable: 2 diagrams in a 14-section course, 5 in a 17-section one — not
   because the criterion was strict, but because anything that was not a sequence had nothing to be
   drawn with. Added `compare` (a choice: columns with gains and costs), `scale` (a gradient where

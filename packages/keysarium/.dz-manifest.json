@@ -5,7 +5,7 @@
     "files": [
       {
         "path": "README.md",
-        "sha256": "cdf2f62cc545566db69be175a052de647f493b570905853f7451dc52567fc43f"
+        "sha256": "e2f661392b2862870ae3ab05892493e5a7ddcdb86360690d126525f08b6d87a1"
       },
       {
         "path": "README.ru.md",
@@ -17,7 +17,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "0183f5f8d4b51603bbeb0991e85b442da1d93aecd80862c35f989a5055e2ef12"
+        "sha256": "56048c9ebf810b35645674fe4a413112af02be6a53836583d3c80b0ad4047dde"
       },
       {
         "path": "src/cli.js",
@@ -989,5 +989,5 @@
       }
     ]
   },
-  "signature": "nSlw1Q6uPdup0cCXi5waj7ARniB6PwW0tTqbAJNQB1X5Er1+nPJGROOx4SckF7lxVJX3v+Lwb3utHHrcSxvBBg=="
+  "signature": "Ni8QtKUfWoED6GoaSA9ARScSXZdJxtM6FSWTILwzYsRLvgJ6fyCmHV9Vz0IriuT0E/NXt8YYp1Oo8Np1iBpVDg=="
 }

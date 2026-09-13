@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-codex",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "OpenAI Codex CLI platform adapter - compiles canonical skills into the .agents/skills tree.",
   "type": "module",
   "license": "MIT",

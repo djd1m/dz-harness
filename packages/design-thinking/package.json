@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/design-thinking",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "Human-centered product design toolkit for Claude Code — Stanford d.school 5-phase Design Thinking + a 6th Validate phase, 25 academically-grounded methodologies (JTBD, CJM, VSM, HADI), chained over explore → goap-research → prototype → usability test → pilot. Bundles the BTO-benchmarked design-thinking orchestrator plus its skill dependencies, a /design-thinking command, governance rule, and context shard.",
   "main": "src/cli.js",
   "bin": {

@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/evidence-wiki",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },

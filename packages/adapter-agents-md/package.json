@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-agents-md",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "AGENTS.md platform adapter - flattens canonical skills into a single root-level AGENTS.md (plain Markdown, no frontmatter; intentionally lossy, merge-not-overwrite).",
   "type": "module",
   "license": "MIT",

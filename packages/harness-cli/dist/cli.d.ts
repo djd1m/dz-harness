@@ -18,7 +18,7 @@ declare module '@dzhechkov/harness-core' {
         readonly execClaimedAt?: string;
     }
 }
-import { runSyncCodexHooks, type CodexHooksSyncReport, type BridgeFamily } from '@dzhechkov/harness-core';
+import { runSyncCodexHooks, type CodexHooksSyncReport, type FetchPublished, type BridgeFamily } from '@dzhechkov/harness-core';
 import type { RecallPatternsOptions, TeachGuardResult, IntegrationOutcome } from '@dzhechkov/harness-core';
 /** Literal command inventory, pinned against the main dispatch switch by a layer-1 test. */
 export declare const DZ_COMMANDS: readonly string[];
@@ -112,6 +112,18 @@ export interface CliIo {
     readonly releaseRunner?: ReleaseExecRunner;
     /** Post-publish mirror command seam; production uses synchronous shell execution. */
     readonly publishMirrorRunner?: PublishMirrorRunner;
+    /**
+     * Test seam for `dz publish`'s sibling-drift gate (feature publish-sibling-drift-gate):
+     * overrides the registry fetch (production leaves it unset → real `npm pack` + extract into a
+     * temp dir). Tests inject a local directory instead of hitting the real registry.
+     */
+    readonly publishSiblingDriftFetcher?: FetchPublished;
+    /**
+     * Test seam for `dz publish`'s packed-install smoke: overrides the pack/install/`--version`
+     * subprocesses (production leaves it unset → real `execSync`, stdio piped). Mirrors
+     * {@link CliIo.releaseRunner}.
+     */
+    readonly publishPackedInstallRunner?: ReleaseExecRunner;
     /**
      * Test seam for `dz install`: overrides the `npm install` subprocess (production leaves
      * it unset → real `execSync`, stdio piped). A stub runner that pre-stages a fixture

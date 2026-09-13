@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-opencode",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "OpenCode platform adapter - compiles canonical skills into the .opencode/skills tree.",
   "type": "module",
   "license": "MIT",

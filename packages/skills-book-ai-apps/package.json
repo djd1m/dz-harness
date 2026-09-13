@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-book-ai-apps",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },

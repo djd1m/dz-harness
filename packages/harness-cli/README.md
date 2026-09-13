@@ -2197,9 +2197,9 @@ dz verify-pack --pack <dir> [--pubkey <path>]   # signature check of a pack: fai
 dz guard check --op <publish|teach|consolidate|reindex> [--text <s>] [--json] [--force <reason>]   # declarative constraint layer before self-mutating ops: HARD violation → block (exit 1), SOFT → warn; zero-config defaults, .dz/guard.json to customise; dz guard --init | dz guard log (append-only audit). The built-in SOFT `rounds-traced` rule warns at 10 packages/ commits since the latest round receipt (or the ledger's first row when no round exists); a null git fact is `not measured`, and `.dz/config.json` `rounds.traced:false` is a named skip. dz publish runs it automatically (--no-guard "<reason>" = logged escape hatch)
 dz guard promote [--dry-run | --apply] [--window-days <N>] [--periods <N>] [--json]   # lesson → guard-rule promotion: ranks lessons by firings × cost, SHADOW-replays each candidate over real commits, and proposes a rule only after TWO consecutive wins AND two window-lengths of REAL elapsed time since first observation. Non-dry runs add bounded prospective funnel evidence to .dz/promotion-state.json without feeding the verdict; --dry-run remains write-free. --apply installs SOFT rules only; promotions/refusals remain under features/guard-promotion/promotions/
 dz feature-adr-setup --guards [--loc-cap <n>] [--apply]   # P3: scaffold DETERMINISTIC guard tests into the project — guards.config.json + a zero-dependency check.mjs runner (LOC cap, secret scan, frozen-file sha256 pins, waivers-with-reasons); wire `node architecture/guards/check.mjs` into CI
-dz publish           [--filter <name>] [--bump-only] [--claim-check <off|warn|error>] [--mirror-cmd <cmd>|--no-mirror]   (dry-run by default; pass --yes/--confirm to go live; a configured mirror must return a live receipt or the published run exits 3; config: publish.mirrorCommand)
+dz publish           [--filter <name>] [--bump-only] [--claim-check <off|warn|error>] [--mirror-cmd <cmd>|--no-mirror] [--allow-sibling-drift] [--include-drifted]   (dry-run by default; pass --yes/--confirm to go live; a configured mirror must return a live receipt or the published run exits 3; config: publish.mirrorCommand; sibling-drift + packed-install-smoke gates, feature publish-sibling-drift-gate, ADR-001 — a workspace sibling whose registry build differs blocks with a `--filter <batch>,<S>` fix-it, --allow-sibling-drift overrides (logged to .dz/guard-audit.jsonl), --include-drifted auto-extends the batch; the whole batch is packed + installed together and every bin runs `--version`, exit 0 + non-empty stdout required)
 dz parity            [--target <name>] [--json]   # honest feature×target map COMPUTED from the capability model — full / manual (via which form) / absent, per target
-dz release           [--filter <name>] [--affected] [--audit-dev] [--tag] [--publish] [--json] [--dry-run] [--no-issue]   # VERIFIED release: 4 HARD gates in front of dz publish — package test suites, pnpm audit --prod >=high (--audit-dev widens), node --check of every dist/bin file (unbuilt package with a build script ⇒ MISSING_DIST fail), bin smoke-boot "node <bin> --help" (temp cwd + timeout); --affected narrows to git-touched packages (fail-open); any red gate STOPS the release (exit 1) + best-effort gh issue; green ⇒ re-sign reminder, then the ready dz publish command (never with --yes injected)
+dz release           [--filter <name>] [--affected] [--audit-dev] [--tag] [--publish] [--json] [--dry-run] [--no-issue]   # VERIFIED release: 4 HARD gates in front of dz publish — package test suites, pnpm audit --prod >=high (--audit-dev widens), node --check of every dist/bin file (unbuilt package with a build script ⇒ MISSING_DIST fail), bin smoke-boot "node <bin> --help" (temp cwd + timeout), packed-install smoke (same rule as dz publish's, feature publish-sibling-drift-gate — pack the batch, install together, `--version` every bin) when the set has a bin; --affected narrows to git-touched packages (fail-open); any red gate STOPS the release (exit 1) + best-effort gh issue; green ⇒ re-sign reminder, then the ready dz publish command (never with --yes injected)
 dz auto-canonicalize --source <github-url> --pack <skills-pack>
 dz sync-upstream     [--package <dir>] [--list] [--all]
 dz drift-check       [--all] [--json] [--project <dir>]   # CI gate: exit 1 on NEW shared-skill drift (baseline: .dz/drift-allowlist.json; --all incl .claude dogfood)
@@ -3215,6 +3215,37 @@ has failed in that batch; its error names the dependency and preserves the depen
 dz publish --dry-run                          # preview what would publish
 dz publish --filter skills-devops             # publish specific package
 dz publish --filter skills-devops --bump-only # bump version only, no publish
+```
+
+#### Sibling-drift + packed-install-smoke gates (feature `publish-sibling-drift-gate`, ADR-001)
+
+`workspace:^`/`workspace:~`/`workspace:*` pins a sibling dependency to the exact version on disk —
+but the REGISTRY under that version can carry an OLDER build if the sibling changed without a
+version bump (the 2026-09-13 incident: 15 minutes of a broken `@dzhechkov/harness-cli` on npm). Two
+HARD gates catch this before anything ships, and both run on `--dry-run` too:
+
+1. **Sibling drift.** For every workspace `S` a batch package depends on that is NOT itself part of
+   the batch, the gate hashes `S`'s published `dist/**` + a normalized `package.json` (version/
+   gitHead/`_*` stripped) against the workspace copy. A mismatch blocks; a fetch that cannot
+   complete (offline, 404) blocks too — `unavailable` is never silently treated as a pass.
+2. **Packed-install smoke.** Every package in the batch is `npm pack`ed, installed TOGETHER into a
+   clean directory (siblings outside the batch resolve from the registry — exactly like a fresh
+   user), then every `bin` runs `--version` and must exit 0 with non-empty stdout.
+
+```bash
+dz publish --filter harness-cli               # ✓ sibling drift: none / ✓ packed install smoke, or BLOCKED with a fix-it command
+dz publish --filter harness-cli --allow-sibling-drift   # override (logged to .dz/guard-audit.jsonl)
+dz publish --filter harness-cli --include-drifted       # auto-extend the batch with the drifted sibling instead of blocking
+```
+
+A BLOCKED sibling-drift verdict always names the fix: `add S to the batch (--filter <batch>,<S>) or
+publish it first`. `dz release --dry-run` shows the same packed-install steps inside its `smoke`
+gate (`smoke:packed-install:*`) — the two doors apply the identical rule.
+
+```
+$ dz publish --filter harness-cli
+dz publish: BLOCKED harness-cli — sibling drift: @dzhechkov/memory@0.2.20 on the registry differs from the workspace (3 file(s)); add @dzhechkov/memory to the batch (--filter harness-cli,@dzhechkov/memory) or publish it first
+dz publish: refusing to publish (1 sibling-drift violation(s))
 ```
 
 ### dz auto-canonicalize — discover skills in GitHub repos
