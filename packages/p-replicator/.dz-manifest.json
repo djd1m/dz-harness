@@ -109,7 +109,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "31ca93f420a9dd6bb7d91a0e25ca8fdb685c5c0f2daac7e9dd82e33ebe484836"
+        "sha256": "09d9074650a09fe7715324b47211685755777381c8219cdecb0bfbc4d562bd0f"
       },
       {
         "path": "scripts/check-pipeline-gaps.sh",
@@ -1145,5 +1145,5 @@
       }
     ]
   },
-  "signature": "YGUW9syiGVtgOYIOGjOVkV3al0LEfMtQl44scfrIOrGnnt6ibhiH+TPHiTSrLyIswvtJtb6XsCQJ9t9PtOUBDg=="
+  "signature": "DsIFOeT4ntNvUrhbFwpDHt7FDAAAq0dlLrVkPqSmxOmk8sER5xd7d2L7OvMEeaFFzfobe6IYFNtJlv5ISvtiCA=="
 }

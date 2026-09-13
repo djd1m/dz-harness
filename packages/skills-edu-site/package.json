@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-edu-site",
-  "version": "1.1.10",
+  "version": "1.1.11",
   "description": "Gamified Educational Site Generator skill pack for Claude Code — transform documentation into interactive learning SPAs with quizzes, flashcards, achievements, and GitHub Pages deployment",
   "main": "src/cli.js",
   "bin": {

@@ -21,8 +21,9 @@
  * @packageDocumentation
  */
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import { discoverPackages, orderByDependencies } from './publish.js';
+import { planPackedInstallSmoke } from './packed-install-smoke.js';
 /** Order the CLI executes and the verdict reports gates in. */
 export const RELEASE_GATE_ORDER = ['tests', 'audit', 'syntax', 'smoke'];
 /** Default per-step timeouts (NFR-4: a hung child is a classified failure, not a hung release). */
@@ -319,6 +320,41 @@ export function planReleaseGates(facts, opts) {
                     reason: `bin "${bin.name}" must boot (--help, exit 0)`,
                     kind: 'exec',
                     tempCwd: true,
+                });
+            }
+        }
+    }
+    // FR-6 (feature publish-sibling-drift-gate): the packed-install smoke joins the SAME smoke
+    // gate `dz publish` runs (planPackedInstallSmoke, ADR-001 Decision 2) — so both doors apply
+    // the identical rule. Opt-in via `opts.packedInstall` (real tmp dirs, supplied by the CLI):
+    // omitted, this is byte-identical to the pre-feature plan, which every existing planner test
+    // relies on. Skipped entirely when nothing in the batch has a bin — packing siblings nobody
+    // will boot proves nothing a fresh `npm install` doesn't already cover elsewhere.
+    if (opts.packedInstall !== undefined) {
+        const bins = facts.flatMap((f) => f.bins.filter((b) => b.exists).map((b) => ({ pkg: f.name, binName: b.name, relPath: relative(f.dir, b.path) })));
+        if (bins.length > 0) {
+            const packages = facts.map((f) => ({ name: f.name, dir: f.dir, version: f.version }));
+            const smokePlan = planPackedInstallSmoke({
+                packages,
+                bins,
+                packDir: opts.packedInstall.packDir,
+                installDir: opts.packedInstall.installDir,
+            });
+            for (const s of smokePlan.steps) {
+                const reason = s.kind === 'pack'
+                    ? `pack ${s.pkg} for the packed-install smoke — the tarball a consumer would actually receive`
+                    : s.kind === 'install'
+                        ? 'install every packed tarball together in a clean dir — out-of-batch siblings resolve from the registry, exactly like a fresh user'
+                        : `bin "${s.binName}" must boot from the PACKED install (--version, exit 0, non-empty stdout)`;
+                steps.push({
+                    id: `smoke:packed-install:${s.id}`,
+                    gate: 'smoke',
+                    pkg: s.pkg,
+                    cmd: s.cmd,
+                    cwd: s.cwd,
+                    timeoutMs: s.timeoutMs,
+                    reason,
+                    kind: 'exec',
                 });
             }
         }

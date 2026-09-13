@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-analyst-manual",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },

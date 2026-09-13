@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-copilot",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "GitHub Copilot platform adapter - compiles canonical skills into .github/instructions/*.instructions.md (intentionally lossy).",
   "type": "module",
   "license": "MIT",

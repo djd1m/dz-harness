@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-tutorial-factory",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "package-tutorial-factory — a meta-skill that turns any harness-hub package into a Head-First-style gamified edu-site learning course. Composes skills-book-digitizer (IP-safe distillation), edu-site-generator (render), and the code-skills-creator meta-factory pattern. Ships a distilled, page-anchored Head First method-KB + a deterministic zero-LLM Head-First checklist gate + an IP shingling gate.",
   "license": "MIT",
   "author": "dzhechko",

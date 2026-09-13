@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/trip-planner",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Travel-itinerary → interactive mobile site generator. Turns a city + dates + constraints into a self-contained, one-handed HTML itinerary with maps, weather, booking links, verified contacts and review evidence for every named venue, and constraint-filtered restaurants.",
   "main": "src/cli.js",
   "bin": {

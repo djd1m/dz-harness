@@ -750,6 +750,27 @@ export type {
   FailureIssueContext,
 } from './release.js';
 export { formatPublishError } from './publish.js';
+// Sibling-drift + packed-install-smoke gates (feature publish-sibling-drift-gate, ADR-001).
+export { detectSiblingDrift } from './publish-sibling-drift.js';
+export type {
+  SiblingDriftStatus,
+  SiblingDriftResult,
+  FetchedPublished,
+  FetchPublished,
+  DetectSiblingDriftOptions,
+} from './publish-sibling-drift.js';
+export { planPackedInstallSmoke, judgePackedInstallSmoke, packedTarballName } from './packed-install-smoke.js';
+export type {
+  PackedInstallStepKind,
+  PackedInstallStep,
+  PackedInstallPackageSpec,
+  PackedInstallBinSpec,
+  PlanPackedInstallSmokeOptions,
+  PackedInstallPlan,
+  PackedInstallExecution,
+  PackedInstallBinVerdict,
+  PackedInstallVerdict,
+} from './packed-install-smoke.js';
 export { computeRiskScore } from './risk-scoring.js';
 export type { RiskScore, RiskThresholds } from './risk-scoring.js';
 export {

@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-taste",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },

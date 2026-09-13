@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-gemini",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "GEMINI.md platform adapter - flattens canonical skills into a single root-level GEMINI.md (plain Markdown, no frontmatter, hierarchical; read by Gemini CLI + Code Assist; intentionally lossy, merge-not-overwrite).",
   "type": "module",
   "license": "MIT",

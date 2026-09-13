@@ -77,7 +77,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "527a0ea46fe07d78dcf14c09d9f7a3978a563a7f86c90b10bc22083ab6c41483"
+        "sha256": "a93bd1439b2f42cc18b0b6bb03db621d2e3e5ef483b59b209bd01e7c7ac6da7b"
       },
       {
         "path": "skills/loop-plan-author/SKILL.md",
@@ -89,5 +89,5 @@
       }
     ]
   },
-  "signature": "hZPRU8cbAh2LgU2Yhlf/znz2Tcv6XzooRqivSyuiD6YD8hAjiNF+lYWEVoKGdJogOv/OCX6p49xgOQJW/yXZAQ=="
+  "signature": "KGW+i/3S7nleX7OwnXrKFLT1zpr9ZA+qQrACu/3onURdcZcKpUPCn1J4bWkexBo4TNtc0tfEQiXCUvZJms9ECQ=="
 }

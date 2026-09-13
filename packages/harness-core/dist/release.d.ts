@@ -164,6 +164,15 @@ export interface PlanReleaseGatesOptions {
     readonly auditTimeoutMs?: number | undefined;
     readonly syntaxTimeoutMs?: number | undefined;
     readonly smokeTimeoutMs?: number | undefined;
+    /**
+     * FR-6 (feature publish-sibling-drift-gate): real tmp dirs for the packed-install smoke,
+     * supplied by the CLI (planning stays pure — it never calls mkdtemp itself). Omitted ⇒ no
+     * packed-install steps are planned, byte-identical to the pre-feature behavior.
+     */
+    readonly packedInstall?: {
+        readonly packDir: string;
+        readonly installDir: string;
+    } | undefined;
 }
 /**
  * Plan the four gates from injected facts. Pure: same facts ⇒ byte-identical plan; nothing

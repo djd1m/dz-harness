@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/mcp-server-tools",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "MCP server exposing DZ harness operations (skill list/get/compile, harness verify) over stdio.",
   "type": "module",
   "license": "MIT",

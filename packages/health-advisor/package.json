@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/health-advisor",
-  "version": "1.10.5",
+  "version": "1.10.6",
   "description": "AI Health Advisor — 20 base components + 25 extended medical skills for Claude Code",
   "bin": {
     "health-advisor": "./bin/health-advisor.js",

@@ -141,6 +141,9 @@ export { discoverInstalled, checkUpgrades } from './upgrade.js';
 // CLI executor's captured-output discipline.
 export { collectPackageFacts, selectAffectedPackages, planReleaseGates, classifyGateExecutions, buildFailureIssue, buildReleaseNotes, releaseTagName, firstOutputLine, RELEASE_GATE_ORDER, RELEASE_TIMEOUTS, } from './release.js';
 export { formatPublishError } from './publish.js';
+// Sibling-drift + packed-install-smoke gates (feature publish-sibling-drift-gate, ADR-001).
+export { detectSiblingDrift } from './publish-sibling-drift.js';
+export { planPackedInstallSmoke, judgePackedInstallSmoke, packedTarballName } from './packed-install-smoke.js';
 export { computeRiskScore } from './risk-scoring.js';
 export { MODEL_PRICES, pricingFor, hasKnownPricing, normalizeUsage, usageCost, invocationCost, costEfficiency, estimateSkillCost, } from './cost-scoring.js';
 export { importEcc } from './import-ecc.js';

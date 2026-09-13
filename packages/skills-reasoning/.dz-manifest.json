@@ -25,7 +25,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "0fc20a977280794fcdd78e49c9c25ded824aba2685170b2233ee8310f5c46867"
+        "sha256": "bd6c1483a8a8942fedf320bd677b871cd57ed9ce3d16d97b582a178714f73a60"
       },
       {
         "path": "solid/SKILL.md",
@@ -73,5 +73,5 @@
       }
     ]
   },
-  "signature": "vLg/+kPcruan2Jg0SSOTdGznCVaJGy46E59ZCqIsucIbDHNEVOb/9R9y7xq166/4FIX8rY86kGCS8Cmh7MOqBQ=="
+  "signature": "DeIQQdUBIQlNuMgF7T/NikjD5nWWLmxDKOwnUFeBTafwlX3/JNQs9N8xkZDzwI203rjMc3/bQGQTWOPdyeDGCQ=="
 }

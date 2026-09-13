@@ -29,7 +29,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "9d847c4e84014fe0f74682c546d22810a760a61eee20182b6a7d90b8f76c31ca"
+        "sha256": "7770637e09ff03b3a5f9533b09d96a532c9b8eb7d47f24d78027a88be64f3021"
       },
       {
         "path": "src/index.ts",
@@ -37,5 +37,5 @@
       }
     ]
   },
-  "signature": "3gV0wCvXQAxAVG1TnZDyI2LfXPTqmWjFyaLe/G2pXpg+CHTBkBZZGQLMX3vub8S5abCOiHA/VBvrpyCrsjOQCg=="
+  "signature": "J5zjzntUIR1FnyKv7s/7Rb+H7KyN+JhV8vADPBFgn2DHCCP1EdGwcweyWClRBsSCfW1l3Ur6ULv+He2PYCmoCA=="
 }

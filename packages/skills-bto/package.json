@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-bto",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "description": "Build-Benchmark-Test-Optimize skill pack for Claude Code — deterministic benchmarking, quality gates, witness chain, judge attestation, and optimization",
   "main": "src/cli.js",
   "scripts": {

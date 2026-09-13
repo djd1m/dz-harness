@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-devops",
-  "version": "0.3.17",
+  "version": "0.3.18",
   "description": "Canonical DevOps skill pack — 30 agentic skills for code review, security, testing, CI/CD, debugging, incident & problem management, ITSM/ITIL, and more. Canonicalized from gitlawb/openclaude-skills (+ dz-original itsm-itil), deploy-to-Cloud.ru-VM.",
   "license": "MIT",
   "author": "dzhechko",

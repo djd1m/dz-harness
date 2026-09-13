@@ -45,7 +45,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "9586c2e63291e19031382f57b2f81d9a0f7d2917fc026e1e704f94b9108b5931"
+        "sha256": "c40ea35a6a994034e4643310bdd990367abcb033f49279f5349e95fe489b4e1a"
       },
       {
         "path": "src/classification.js",
@@ -105,5 +105,5 @@
       }
     ]
   },
-  "signature": "qiijLfr4kUks32oCWuvQ61VQS7j5wQRlsWJzdwI4KpsJJPMfelBSYf8fex/I2tMLy1vFO79i5GF8m+gGouEdCg=="
+  "signature": "NhFBu/MKRxi0dLb3A40PAfnOWi8pqEXs1vZ6+3AQIoh7K09B9/BFQXdQnMiCCfTtG1getGxSNK2SCr/57FGIBw=="
 }

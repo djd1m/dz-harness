@@ -337,7 +337,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "e0a99a6e7aa905d0f754d1b1213828c79330b46488240c42944fc099bbd5e16c"
+        "sha256": "86c67fcd928df50b77bec23d9fb4b073e6550d70e7d8e882bee7c2ec5787c494"
       },
       {
         "path": "playwright-testing/SKILL.md",
@@ -505,5 +505,5 @@
       }
     ]
   },
-  "signature": "25hGkC0DyoWUxOayc4vuYCBaz61y96NZzVLP5+7QIF1u8JEHX42/BaLrQEkz+DOoqSe/NN9Uu5nSsQf9E3DaAA=="
+  "signature": "0AnJ6BeZ3jnk2kQ8YNDH8YY4q1CilpKoJGOY1QIDiCot/hCE7qHi/+obkikMR4O+YJuKCgRfbUy8Fg1/8+rMAA=="
 }

@@ -157,7 +157,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "d51789b4cae0a312a482b42586cf982179573fdfc27f5731a7389d5f62eebd96"
+        "sha256": "d9e79f53749eead9f593cc9b102294674fb54bfca06ac5bcbd12e2b0c550f6f5"
       },
       {
         "path": "route-manifest.json",
@@ -177,5 +177,5 @@
       }
     ]
   },
-  "signature": "BIyBi+Iy6mXZ60mUh1zBHWASiyrWF9kKmz4Y52+rjf+oIrsvd7xU/+EzWJpwQwAWwhfWcH70ynXPbtgXhiF/DA=="
+  "signature": "HVf0+9G+MiXK68HwYvr+IC/7CqIEifSP7jrPAE81U9IioC+LUIU0PquueH+7d5VIRc79ELkmalA9Sy8pXHg5BA=="
 }

@@ -1,3 +1,10 @@
+interface SweepOptions {
+    readonly now?: () => number;
+    readonly isAlive?: (pid: number) => boolean;
+    readonly log?: (message: string) => void;
+}
+export declare function sweepStaleRunRoots(systemTmp: string, options?: SweepOptions): number;
+export declare function dzTmpRunRoot(packageName: string): () => void;
 /**
  * Containment for the .dz-debris class (backlog: dz-debris episodes 7-9): in-process runCli
  * tests default --project to process.cwd(), which under vitest is the PACKAGE root — the first
@@ -9,4 +16,6 @@
  * would read as "no seeder left", which is not established.
  */
 export declare function dzDebrisTeardown(packageRoot: string): () => void;
+export declare function dzTestRunGuards(packageRoot: string, packageName: string): () => void;
+export {};
 //# sourceMappingURL=vitest.dz-debris.shared.d.ts.map

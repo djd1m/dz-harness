@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-qe",
-  "version": "0.3.14",
+  "version": "0.3.15",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },

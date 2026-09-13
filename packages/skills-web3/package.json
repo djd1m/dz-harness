@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-web3",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
