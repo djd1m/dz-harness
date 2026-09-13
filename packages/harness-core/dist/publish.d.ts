@@ -49,6 +49,30 @@ export interface PublishResult {
      * and the CLI prints it. Absent on a real publish, where every gate actually ran.
      */
     readonly notVerified?: readonly string[] | undefined;
+    /**
+     * AM-1 (feature publish-sibling-drift-gate): sha256 of the EXACT tarball bytes that were
+     * packed-install-smoked AND handed to `npm publish` — present only when `opts.packedTransport`
+     * was used for a live (non-dry-run) publish. Printed and audited so "the smoke tested the same
+     * bytes that shipped" is a checkable claim, not an architectural assertion.
+     */
+    readonly sha256?: string | undefined;
+}
+/**
+ * One package's packed, smoke-eligible artifact — the unit `opts.packedTransport.smoke` receives
+ * (AM-1). Produced ONCE per package, after its OWN bump/build/sign steps, from a package.json
+ * whose `workspace:` specs are already resolved to each sibling's PINNED version (the same
+ * transformation `rewriteWorkspaceSpecs` performs) — so the tarball is exactly what `npm publish
+ * <tgzPath>` will later ship, byte for byte.
+ */
+export interface PackedTarballArtifact {
+    readonly name: string;
+    readonly newVersion: string;
+    readonly tgzPath: string;
+    readonly sha256: string;
+}
+export interface PackedTransportSmokeVerdict {
+    readonly ok: boolean;
+    readonly reason?: string | undefined;
 }
 /** Positive read-back evidence returned by the configured public-mirror command. */
 export interface MirrorReceipt {
@@ -290,6 +314,26 @@ export declare function publishPackages(monorepoRoot: string, opts?: {
     probe?: ((name: string, version: string) => boolean | Omit<ProbeOutcome, 'attempt'>) | undefined;
     /** Pause injection between receipt probes. The default blocks for the requested milliseconds. */
     sleep?: ((milliseconds: number) => void) | undefined;
+    /**
+     * AM-1 (feature publish-sibling-drift-gate). OPT-IN — omitted (the default), this function is
+     * byte-identical to its pre-amendment self: every package still publishes via `pnpm publish`
+     * FROM ITS DIRECTORY (`publishArgv`), exactly as every existing test of this function expects.
+     *
+     * When provided, the transport for THIS call's batch changes: each package is packed ONCE
+     * (after its own bump/build/sign, workspace: specs resolved to each sibling's PINNED version —
+     * a landed batch sibling's NEW version, an out-of-batch sibling's disk version, mirroring what
+     * `rewriteWorkspaceSpecs`/pnpm itself would resolve), collected, and `smoke` is called with
+     * EVERY package's packed artifact before ANY of them is published. Only on `smoke.ok === true`
+     * does each artifact get `npm publish <tgzPath>` — the exact bytes that were smoked (a sha256
+     * recheck immediately before that call refuses on any mismatch, defending the "same bytes"
+     * claim against anything that could touch the tarball in between).
+     */
+    packedTransport?: {
+        /** Absolute, pre-created directory to write tarballs into (this function never mkdirs it). */
+        readonly packDestDir: string;
+        /** Judge the WHOLE batch's packed artifacts together — nothing publishes until this passes. */
+        readonly smoke: (artifacts: readonly PackedTarballArtifact[]) => PackedTransportSmokeVerdict;
+    } | undefined;
 }): PublishReport;
 export {};
 //# sourceMappingURL=publish.d.ts.map

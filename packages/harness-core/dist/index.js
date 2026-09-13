@@ -79,10 +79,13 @@ export { DEFAULT_REINFORCE_THRESHOLD, NoopLearningBackend, NativeReinforcementBa
 // the ranker, and a foreign, invariant-blind API has no business on our safety-critical seam.
 export { resolveBanditConfig, payoffTermsFor, recordReward, recordExposures, contextKeyFor, banditStats, renderBanditHealth, narrowBanditReport, loadBanditState, banditStatePath, banditStateDir, freshBanditEnvelope, makeRewardEvent, classifySignal, BANDIT_LOCK_NAME, BANDIT_STATE_SCHEMA } from './lesson-payoff.js';
 export { DEFAULT_VECTOR_TIMEOUT_MS, DEFAULT_HARMONIZE_THRESHOLD, REINFORCE_RRF_CAP, BANDIT_RRF_CAP, withVectorTimeout, isVectorNoise, isMirrorableRecord, mirrorQuarantineOf, patternVectorEntry, dreamVectorEntry, memoryRecordVectorEntry, readVectorEngineMode, readHarmonizeThreshold, vectorMirrorEnabled, mirrorWriterReason, mirrorWriterExplanation, resolveVectorEngine, mirrorEntriesToVector, mirrorPatternsToVector, backfillVectorMirror, mergeHybridHits, recallHybrid, teachGuard, vectorTierStatus, reindexVectorStore, harmonizeVectorStore, selectClusterKeeper, importRvfCheckpoint, } from './vector-tier.js';
-export { runSetup, generateHooksConfig, generateAgentdbWriter, writerVersionOf, AGENTDB_WRITER_VERSION, agentdbStorePath, agentdbMcpStorePath, agentdbStoreSeparationProblem } from './setup.js';
+export { runSetup, generateHooksConfig, generateAgentdbWriter, writerVersionOf, AGENTDB_WRITER_VERSION, agentdbStorePath, agentdbMcpStorePath, agentdbStoreSeparationProblem, resolveSetupMemoryBackend, memoryBackendSourceLabel } from './setup.js';
 // apply-leg (feature setup-installs-apply-leg, ADR-001): the third self-learning leg (APPLY) as a
 // versioned generator + the ONE measurement dz doctor/parity both read (Decision 3).
 export { APPLY_LEG_VERSION, applyLegVersionOf, bakedCoreDistDirOf, recallHookSource, embedDaemonSource, applyLegHookEntries, applyLegStatus, applyLegReasonMessage, resolveIdleMs, IDLE_MS_INT32_MAX, } from './apply-leg.js';
+// embed-socket-short-path: the ONE resolver the daemon (inlined text), the recall hook (inlined
+// text), and dz doctor (real import) all use for the unix-socket sun_path length limit.
+export { EMBED_SOCKET_PATH_BYTES_LIMIT, resolveEmbedSocketPath, embedSocketPointerPath, readEmbedSocketPointer, resolveEffectiveEmbedSocketPath, } from './embed-socket-path.js';
 export { countLearningStoreRowsReadonly, quarantineTierParity } from './store-counts.js';
 export { STORE_GUARD_VERSION, STORE_COLLAPSE_MAX_FRACTION, STORE_COLLAPSE_LAST_ROWS, storeGuardPath, storeSnapshotPath, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, } from './store-guard.js';
 export { statuslineData, readFeatureAdrState, writeFeatureAdrState, featureAdrStateDir, featureAdrStatePath, writeFeatureAdrStateDetailed, renderFeatureAdrPhaseLine } from './statusline.js';

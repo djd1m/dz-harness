@@ -18,7 +18,7 @@
  *
  * @packageDocumentation
  */
-export type PackedInstallStepKind = 'pack' | 'install' | 'bin-version';
+export type PackedInstallStepKind = 'pack' | 'install' | 'bin-exists' | 'bin-version';
 /** One concrete step — data, not action (mirrors release.ts's GateStep idiom). */
 export interface PackedInstallStep {
     readonly id: string;
@@ -55,6 +55,16 @@ export interface PlanPackedInstallSmokeOptions {
     readonly packTimeoutMs?: number;
     readonly installTimeoutMs?: number;
     readonly versionTimeoutMs?: number;
+    /**
+     * AM-1 (feature publish-sibling-drift-gate): the caller (`publishPackages`'s `packedTransport`)
+     * already packed each artifact ONCE, post-bump — a SECOND, different `npm pack` here would smoke
+     * bytes other than the ones about to be published, reintroducing the exact defect this amendment
+     * closes. `true` skips planning any 'pack' step; `tarballs` is still populated with the SAME
+     * deterministic `packedTarballName(name, version)` path under `packDir` — the caller is
+     * responsible for having written the tarball there already (`packages[].dir` is unused in this
+     * mode and may be any string).
+     */
+    readonly skipPack?: boolean;
 }
 export interface PackedInstallPlan {
     readonly steps: readonly PackedInstallStep[];

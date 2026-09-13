@@ -94,7 +94,7 @@ test/sqlite-backend.test.ts` покраснел; форму реестра пр�
 
 ## Status
 
-`0.2.20` — ships `openSqliteReadOnly` (read-only opener ladder: in-place → tmp copy → honest error; feature store-readonly-reads, 2026-09-12) — the export `@dzhechkov/harness-core` ≥ 0.8.31 imports; `0.2.19` was a signature-only republish; `0.2.11` shipped with a stale manifest.
+`0.2.21` — ships `openSqliteReadOnly` (read-only opener ladder: in-place → tmp copy → honest error; feature store-readonly-reads, 2026-09-12) — the export `@dzhechkov/harness-core` ≥ 0.8.31 imports; `0.2.19` was a signature-only republish; `0.2.11` shipped with a stale manifest.
 
 `0.2.11` — a query that matched nothing returns nothing (see above). `0.2.10` — the lexical tokenizer is Unicode-aware. It split on `[^a-z0-9]+`, so every non-Latin letter
 was a separator and a Cyrillic query produced **zero terms**: the FTS5 branch was skipped, relevance

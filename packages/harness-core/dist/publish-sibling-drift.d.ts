@@ -47,6 +47,8 @@ export interface DetectSiblingDriftOptions {
     readonly dependencies: Record<string, string> | undefined;
     /** pnpm rewrites `workspace:` in peerDependencies too (mirrors findUnpublishedWorkspaceFloors). */
     readonly peerDependencies?: Record<string, string> | undefined;
+    /** AM-3: ships and pins exactly like `dependencies` — checked the same way. */
+    readonly optionalDependencies?: Record<string, string> | undefined;
     /** name -> version on DISK, for every package in the workspace. */
     readonly workspaceVersions: ReadonlyMap<string, string>;
     /** name -> absolute package dir on disk, for every package in the workspace. */
