@@ -3506,7 +3506,7 @@ Self-learning is a three-leg loop: **collect** (session hooks write into the sto
 Before this feature `dz setup` shipped the first two legs only — the apply leg's files existed
 solely in this repo's own `.claude/helpers/`, so every OTHER project that ran `dz setup --memory
 agentdb` got collection and ranking, but never automatic recall (MEASURED: a clean install wrote no
-`UserPromptSubmit` entry at all, on 0.8.10 and 0.8.22 alike, with or without `--memory agentdb`).
+`UserPromptSubmit` entry at all, on 0.8.10 and 0.8.23 alike, with or without `--memory agentdb`).
 
 `dz setup --target claude-code --memory agentdb` now installs all three, additively (a repeat run
 changes nothing; a foreign hook you wrote yourself is left exactly where it is):
@@ -5029,7 +5029,7 @@ refusal as the honest answer.
 
 ## Status
 
-`harness-core v0.8.31` · `harness-cli v0.8.22` — **this release: the store guard tells "busy" from "broken",
+`harness-core v0.8.31` · `harness-cli v0.8.23` — **this release: the store guard tells "busy" from "broken",
 and a publish is not finished until the public mirror confirms it.** (1) The learning-store guard used to
 turn ANY read failure into `unreadable` and refuse the write; a neighbour holding the SQLite write lock
 (`SQLITE_BUSY`) or a store still being initialised (`no such table`) now gets bounded retries and, if still
