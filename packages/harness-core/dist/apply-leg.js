@@ -27,8 +27,87 @@
  * @packageDocumentation
  */
 import { existsSync, readFileSync } from 'node:fs';
+import { connect as netConnect } from 'node:net';
 import { join } from 'node:path';
 import { hookCommandsOf } from './managed-hooks.js';
+/**
+ * FR-6 (feature `hook-recall-hybrid-parity`, ADR-001 C-4): send ONE `op: recall` probe to a LIVE
+ * embed daemon socket and report the `engine` it answers with (`'hybrid'` | `'cosine-fallback'`) —
+ * `dz doctor` prints this so an operator can SEE which engine is actually serving prompts, rather
+ * than trusting the daemon's mere presence. Honest-degrade contract, matching every other doctor
+ * probe: a non-socket path (e.g. a plain file, as every non-live doctor fixture in this repo uses),
+ * a connection error, an unparsable reply, or a timeout all resolve to `undefined` — NEVER a thrown
+ * error, and never distinguishable from "no daemon" in the caller's output (the existing "socket
+ * present/absent" line already carries that half of the truth).
+ *
+ * `timeoutMs` defaults to 1000 ms — comfortably above the documented `HOOK_RECALL_BUDGET_MS` default
+ * (500 ms): under that default, a cold `recallHybrid` semantic leg routinely exceeds the budget in
+ * this environment (MEASURED — see the manifest's NFR-1 discussion), so the daemon's OWN answer
+ * time is closer to ~500-550 ms than to the socket round-trip cost alone; a shorter probe timeout
+ * would silently miss a live, correctly-answering daemon and report no engine at all.
+ *
+ * AM-8 (fix round 1): lives HERE, not in `operations.ts` — this module already owns the daemon's
+ * wire protocol (`recallHookSource`/`embedDaemonSource`'s generated `op: recall` handshake) and its
+ * socket-path resolution; `operations.ts`'s `runDoctor` reaches it via a dynamic `import()`
+ * (matching its existing `embed-socket-path.js` import one line above the call site) rather than
+ * duplicating a second, independent `node:net` IO surface in a file whose job is orchestration, not
+ * protocol.
+ */
+export function probeRecallEngine(socketPath, timeoutMs = 1000) {
+    return new Promise((resolvePromise) => {
+        let settled = false;
+        const done = (v) => {
+            if (settled)
+                return;
+            settled = true;
+            try {
+                sock.destroy();
+            }
+            catch {
+                /* already gone */
+            }
+            resolvePromise(v);
+        };
+        let sock;
+        try {
+            sock = netConnect(socketPath);
+        }
+        catch {
+            resolvePromise(undefined);
+            return;
+        }
+        const timer = setTimeout(() => done(undefined), timeoutMs);
+        timer.unref?.();
+        let buf = '';
+        sock.on('connect', () => {
+            try {
+                sock.write(`${JSON.stringify({ op: 'recall', prompt: 'dz doctor probe', limit: 1 })}\n`);
+            }
+            catch {
+                done(undefined);
+            }
+        });
+        sock.on('data', (chunk) => {
+            buf += chunk.toString('utf-8');
+            const nl = buf.indexOf('\n');
+            if (nl === -1)
+                return;
+            clearTimeout(timer);
+            try {
+                const msg = JSON.parse(buf.slice(0, nl));
+                // Codex round-3: only the protocol's own vocabulary is reported; anything else is "unknown" (undefined)
+                done(msg.engine === 'hybrid' || msg.engine === 'cosine-fallback' || msg.engine === 'none' ? msg.engine : undefined);
+            }
+            catch {
+                done(undefined);
+            }
+        });
+        sock.on('error', () => {
+            clearTimeout(timer);
+            done(undefined);
+        });
+    });
+}
 /**
  * Version stamped into BOTH generated helper files as `// dz-apply-leg-version: N` (line 2, right
  * after the shebang). Bump on ANY change to {@link recallHookSource} or {@link embedDaemonSource}'s
@@ -46,8 +125,26 @@ import { hookCommandsOf } from './managed-hooks.js';
  * compiled module), the daemon writes a `.dz/embed.sock.path` pointer when it picks the tmpdir-short
  * branch, and `ready` is now printed only after `existsSync(SOCKET)` confirms the bind actually
  * landed (previously logged unconditionally, before `listen` even ran).
+ *
+ * Bumped 4→5 (feature `hook-recall-hybrid-parity`, ADR-001 D1/D2): the daemon's `op: recall`
+ * handler now tries core's `recallHybrid` FIRST — under a time budget (`HOOK_RECALL_BUDGET_MS`,
+ * default 500 ms) — via the SAME `CORE_DIST_DIR` + `loadCoreModule` mechanism the hook already
+ * used only for its policy modules; on budget overrun, engine error, or no resolvable core module
+ * it falls back to today's brute-force cosine, honestly labelled `engine: 'cosine-fallback'` with a
+ * `reason`. The hook now reads `engine`/`reason` off the daemon's reply (stderr-only, never
+ * context) and applies its relevance floor to the NEW `score` format when `engine === 'hybrid'`,
+ * preserving today's cosine-calibrated floor unchanged for the `cosine-fallback` path.
+ *
+ * Bumped 5→6 (`hook-recall-hybrid-parity`, fix round 1 — AM-1/AM-2/AM-3/AM-5): the daemon now
+ * (a) fires a fire-and-forget engine warm-up before `listen()` (AM-1) so the first REAL `op: recall`
+ * is less likely to pay a cold `resolveAgentdbEmbedder` init; (b) arms the budget timer BEFORE
+ * `loadCoreModule()`, not after (AM-2, wall clock from request receipt); (c) treats ANY failure
+ * past the budget race — a malformed hit, `patternRecordId()` throwing — as an honest cosine
+ * fallback rather than a bare protocol error (AM-3); (d) reports the RAW core RRF score, unchanged,
+ * instead of a locally re-normalized [0,1] value (AM-5) — the hook's own `HOOK_SCORE_FLOOR` default
+ * moved from `0.01` to `0.005` to match (see that constant's own comment for the measurement).
  */
-export const APPLY_LEG_VERSION = 4;
+export const APPLY_LEG_VERSION = 6;
 /**
  * Parse the `dz-apply-leg-version` stamp from a deployed helper file. Unlike
  * `writerVersionOf` (which floors an absent stamp at `0`), this returns `-1` for "no stamp at
@@ -174,7 +271,33 @@ function resolveEffectiveEmbedSocketPath(projectRoot, env) {
 }
 const SOCKET = resolveEffectiveEmbedSocketPath(PROJECT, process.env).path;
 const USAGE_LOG = process.env.DZ_RECALL_USAGE_LOG || path.join(PROJECT, '.dz', 'recall-usage.jsonl');
+// Measured (2026-09-14, apply-leg-socket.test.ts): an ordinary hook round-trip (spawn + one socket
+// op) took 81-121 ms; 800 ms leaves a wide margin for a loaded daemon while still bounding the AM-2
+// worst case — a daemon synchronously blocked never replies at all, so THIS timeout (not the
+// daemon's own internal budget race, which cannot preempt synchronous work) is what actually
+// rescues the hook from hanging.
 const TIMEOUT_MS = Number(process.env.DZ_RECALL_HOOK_TIMEOUT_MS || 800);
+
+// FR-5 (hook-recall-hybrid-parity, ADR-001 D2): the RRF-based \`score\` the daemon returns for
+// \`engine: 'hybrid'\` is NOT on the cosine scale DEFAULT_RECALL_FLOORS (recall-hook-policy.ts) was
+// calibrated on — applying the cosine floor to an RRF score would either admit everything or cut
+// everything, so the hybrid path gets its OWN floor, applied to BOTH languages alike (the RRF score
+// carries no language-baseline shift the way raw cosine did).
+//
+// AM-5 (fix round 1), MEASURED not a placeholder: recallHybrid(RRF_K=60) over a live 14-lesson
+// fixture (this environment, 2026-09-14 — reproducer in the manifest's Fix-round 1 section) shows
+// raw RRF score is only WEAKLY discriminating per-hit: an exact-lexical-match hit scored 0.03252
+// (both legs agree at rank 0), but a genuinely IRRELEVANT query ("xkcd banana quantum toaster
+// nonsense") still returned a top hit at 0.01639 — HIGHER than several truly relevant tail hits in
+// OTHER queries (0.01471-0.01538). This is structural, not a fixture artifact: RRF encodes RANK,
+// not similarity, and a nearest-neighbor search always returns SOME top-1 even for a garbage query.
+// A raw-score floor therefore cannot cleanly separate signal from noise at the per-hit level the
+// way the cosine floor does — true filtering here has to come from \`limit\` and \`selectHookHits\`'s
+// own budget, not from this number. The floor's honest job is only to reject a DEGENERATE score
+// (zero/negative/NaN from a malformed hit), so it is set well BELOW the measured noise floor
+// (0.01471) rather than attempting to rank-filter — deliberately permissive, matching ADR-001 D2's
+// stated intent that an exact lexical match (FR-4) must never be defeated by an unmeasured cutoff.
+const HOOK_SCORE_FLOOR = Number(process.env.DZ_RECALL_HOOK_SCORE_FLOOR || 0.005);
 
 const safe = (fn, fb) => {
   try {
@@ -291,6 +414,9 @@ function readLogTail(chain, file) {
   }, chain && chain.EMPTY_LOG_TAIL);
 }
 
+// FR-6 (hook-recall-hybrid-parity): the reply now carries \`engine\`/\`reason\` alongside \`hits\` —
+// returned as a small object rather than the bare hit array, so the caller can apply the RIGHT
+// floor (FR-5) and print the engine to stderr ONLY (never into the injected context, FR-2).
 function askDaemon(prompt) {
   return new Promise((resolve) => {
     if (!fs.existsSync(SOCKET)) return resolve(undefined);
@@ -312,7 +438,15 @@ function askDaemon(prompt) {
       if (nl === -1) return;
       clearTimeout(timer);
       const msg = safe(() => JSON.parse(buf.slice(0, nl)), undefined);
-      done(msg && Array.isArray(msg.hits) ? msg.hits : undefined);
+      done(
+        msg && Array.isArray(msg.hits)
+          ? {
+              hits: msg.hits,
+              engine: typeof msg.engine === 'string' ? msg.engine : undefined,
+              reason: typeof msg.reason === 'string' ? msg.reason : undefined,
+            }
+          : undefined,
+      );
     });
     sock.on('error', () => {
       clearTimeout(timer);
@@ -504,8 +638,8 @@ async function main() {
   const policy = await loadPolicy();
   if (!policy) return emitContext(debt);
 
-  const hits = await askDaemon(prompt);
-  if (!hits) {
+  const daemonReply = await askDaemon(prompt);
+  if (!daemonReply) {
     // SELF-HEAL (2026-07-28): the daemon is started at SessionStart only, so when it dies mid-way
     // through a long-lived session NOTHING restarts it — the apply leg was silently dead for 19
     // days (MEASURED: recall-usage.jsonl last record 2026-07-09, socket absent). Spawn it
@@ -513,9 +647,19 @@ async function main() {
     reviveDaemon();
     return emitContext(debt);
   }
+  const { hits, engine, reason } = daemonReply;
+  // FR-6/FR-2: the engine (and, on fallback, why) is the caller's business, not the model's — it
+  // NEVER rides into additionalContext, only stderr, which Claude Code does not read as context.
+  if (typeof engine === 'string') {
+    safe(() => process.stderr.write(\`[dz-recall] engine=\${engine}\${reason ? \` reason=\${reason}\` : ''}\\n\`));
+  }
   if (hits.length === 0) return emitContext(debt); // daemon alive, nothing relevant — silence is correct
 
-  const selection = policy.selectHookHits(prompt, hits);
+  // FR-5 (ADR-001 D2): a hybrid-engine reply carries an RRF-based score — its OWN floor, applied to
+  // both languages. A cosine-fallback reply (or an old daemon that never sent \`engine\` at all)
+  // keeps today's cosine-calibrated DEFAULT_RECALL_FLOORS untouched.
+  const floorOpts = engine === 'hybrid' ? { floors: { ru: HOOK_SCORE_FLOOR, en: HOOK_SCORE_FLOOR } } : {};
+  const selection = policy.selectHookHits(prompt, hits, floorOpts);
   // lesson-quarantine AM-2: an excluded hypothesis is logged, never a silent context shrink.
   if (typeof selection.quarantinedExcluded === 'number' && selection.quarantinedExcluded > 0) {
     try {
@@ -566,13 +710,22 @@ export function resolveIdleMs(raw) {
 }
 /**
  * Generate `.claude/helpers/dz-embed-daemon.mjs`. Behaviourally identical to the pre-existing
- * hand-committed hub file except for: the version stamp (new, line 2) and `resolveDeps()`, which
- * now tries `@huggingface/transformers` before falling back to `@xenova/transformers` — AM-3,
+ * hand-committed hub file except for: the version stamp (new, line 2), `resolveDeps()`, which
+ * tries `@huggingface/transformers` before falling back to `@xenova/transformers` — AM-3,
  * dz-harness-hub issue #10 defect 3: `agentdb >= 3.0.0-alpha` depends on the former, and an older
  * agentdb install still carries the latter, so probing only one name silently starved the daemon
- * on either side of that agentdb version boundary.
+ * on either side of that agentdb version boundary — and (feature `hook-recall-hybrid-parity`,
+ * ADR-001 D1) the `op: recall` handler, which now tries core's `recallHybrid` under a time budget
+ * before falling back to the brute-force cosine below.
+ *
+ * `coreDistDir` (new parameter, ADR-001 D1) is baked in exactly like {@link recallHookSource}'s own
+ * parameter of the same name — the FIRST resolve candidate for `loadCoreModule`. `null` (the
+ * default, and what every existing zero-arg call site gets) is the same PORTABLE marker
+ * `recallHookSource(null)` uses: `loadCoreModule` falls through to the project-relative fallback
+ * candidates, resolved from `DZ_PROJECT_ROOT`/`cwd()` at daemon RUNTIME, which is correct in any
+ * clone and for any consumer whose `harness-core` install is reachable under its own project tree.
  */
-export function embedDaemonSource() {
+export function embedDaemonSource(coreDistDir = null) {
     return `#!/usr/bin/env node
 // dz-apply-leg-version: ${APPLY_LEG_VERSION}
 /**
@@ -594,11 +747,18 @@ export function embedDaemonSource() {
  *   - it exits on SIGINT/SIGTERM/SIGHUP and unlinks its socket.
  *
  * PROTOCOL — newline-delimited JSON over a unix socket:
- *   → {"op":"recall","prompt":"…","limit":8}    ← {"hits":[{"dzId","pattern","score","domain"}]}
+ *   → {"op":"recall","prompt":"…","limit":8}   ← {"hits":[{"dzId","pattern","score","domain"}],"engine":"hybrid"|"cosine-fallback","reason"?}
  *   → {"op":"ping"}                              ← {"ok":true,"model":"…","uptimeMs":N}
  *   → {"op":"stop"}                              ← {"ok":true}   (then exits)
  *
- * \`score\` is COSINE RELEVANCE in [0,1] — never the teaching reward. The caller applies the floor.
+ * ADR-001 (feature \`hook-recall-hybrid-parity\`): \`op: recall\` first tries core's \`recallHybrid\`
+ * (same engine \`dz recall\` uses) under \`HOOK_RECALL_BUDGET_MS\` (default 500 ms, < the hook's own
+ * 800 ms timeout); on budget overrun, engine error, or no resolvable core module it falls back to
+ * the brute-force cosine below. \`score\` on \`engine:"hybrid"\` is the RAW core RRF score, UNCHANGED
+ * (AM-5, fix round 1) — the exact same number \`dz recall --json\` reports as \`relevance\`, never
+ * locally re-normalized; on \`engine:"cosine-fallback"\` it is COSINE RELEVANCE in [0,1] as before —
+ * two DIFFERENT scales, never the teaching reward either way. The caller applies the right floor
+ * for whichever scale \`engine\` names.
  */
 
 import { createServer } from 'node:net';
@@ -608,6 +768,7 @@ import { createRequire } from 'node:module';
 import { connect } from 'node:net';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
+import { pathToFileURL } from 'node:url';
 
 const log = (...a) => console.error('[dz-embed]', ...a);
 
@@ -615,6 +776,64 @@ const log = (...a) => console.error('[dz-embed]', ...a);
 console.log = (...a) => console.error(...a);
 
 const PROJECT = process.env['DZ_PROJECT_ROOT'] ?? process.cwd();
+
+// ADR-001 (hook-recall-hybrid-parity, D1): the SAME candidate-list resolution the hook uses for its
+// own policy modules — the baked \`coreDistDir\` first (a real install's absolute dist path), then
+// project-relative fallbacks resolved from PROJECT at RUNTIME. \`null\` (the hub's own portable
+// marker, matching \`recallHookSource(null)\`) skips straight to the fallbacks. Loaded ONCE and
+// memoized (\`coreModulePromise\`) — a fresh \`import()\` per recall would defeat FR-3's "opened once".
+const CORE_DIST_DIR = ${coreDistDir === null ? 'null' : JSON.stringify(coreDistDir)};
+let coreModulePromise;
+function loadCoreModule() {
+  if (coreModulePromise !== undefined) return coreModulePromise;
+  coreModulePromise = (async () => {
+    const candidates = [
+      ...(CORE_DIST_DIR ? [join(CORE_DIST_DIR, 'index.js')] : []),
+      join(PROJECT, 'node_modules', '@dzhechkov', 'harness-core', 'dist', 'index.js'),
+      join(PROJECT, 'packages', '@dzhechkov', 'harness-core', 'dist', 'index.js'),
+    ];
+    for (const c of candidates) {
+      if (!existsSync(c)) continue;
+      try {
+        const mod = await import(pathToFileURL(c).href);
+        if (typeof mod.recallHybrid === 'function' && typeof mod.patternRecordId === 'function') return mod;
+      } catch {
+        /* try the next candidate */
+      }
+    }
+    return undefined;
+  })();
+  return coreModulePromise;
+}
+
+// FR-2 (hook-recall-hybrid-parity): the hybrid leg is time-boxed so a slow/cold engine can never make ONE prompt pay the full
+// cost — it falls back to the warm cosine below instead. 500 ms leaves the hook's own 800 ms
+// timeout (recallHookSource's TIMEOUT_MS) headroom for the socket round-trip itself.
+// Measured 2026-09-14 (nfr1-measure.mjs, real 743-pattern store, warm-up on, n=100 x2): hybrid p50 60-65 ms,
+// p95 100-180 ms, max 374 ms; 500 ms ≈ 3x p95 and stays under the hook's own 800 ms client timeout.
+const HOOK_RECALL_BUDGET_MS = Number(process.env['HOOK_RECALL_BUDGET_MS'] || 500);
+// Codex round-2 (2026-09-14): a hybrid attempt that LOST the race keeps running in the background —
+// this cap keeps a burst of slow requests from stacking unbounded engine work; past it, requests answer
+// with cosine at once, honestly labelled. Real cancellation needs worker isolation (backlog 14c1316b).
+const HYBRID_MAX_IN_FLIGHT = (() => {
+  const raw = Number(process.env['HOOK_HYBRID_MAX_IN_FLIGHT'] || 2);
+  // Codex round-3: NaN/Infinity/0/negative must not silently disable the cap — fall back to 2.
+  return Number.isFinite(raw) && raw >= 1 ? Math.floor(raw) : 2;
+})();
+let hybridInFlight = 0;
+// Test-only fault injection (AC-2): a positive value delays the hybrid leg so the budget can be
+// PROVEN to fire without a real slow engine. Absent/0 in every real deployment.
+const DZ_EMBED_HYBRID_DELAY_MS = Number(process.env['DZ_EMBED_HYBRID_DELAY_MS'] || 0);
+// AM-5 (fix round 1): the daemon used to re-normalize recallHybrid's raw RRF score into [0,1] with
+// its OWN copy of vector-tier.ts's RRF_K constant — two numbers that could silently drift apart
+// (this file is standalone generated text and cannot \`import\` the compiled core constant), AND a
+// scale \`dz recall --json\`'s own \`relevance\` field (cli.ts: \`relevance: … h.score …\`) never
+// applies — so the hook's floor and the CLI's floor were never comparable numbers even though both
+// ultimately came from the same recallHybrid() call. Fixed: the daemon now reports \`h.score\`
+// UNCHANGED — the exact raw core score \`dz recall --json\` already reports as \`relevance\` — so a
+// floor calibrated against one is valid against the other (AM-4's parity test asserts the two are
+// literally equal, not merely proportional).
+
 // embed-socket-short-path (FR-1): a unix socket path has a hard platform limit on \`sun_path\`
 // (Linux 108 bytes incl. NUL, macOS 104) — a deeply nested project's \`.dz/embed.sock\` can exceed
 // it, and \`listen()\` then fails while every OTHER part of the daemon looks healthy. This mirrors
@@ -792,6 +1011,116 @@ async function main() {
   let patterns = loadPatterns();
   let patternsAt = Date.now();
 
+  // ADR-001 (hook-recall-hybrid-parity, D1): try core's recallHybrid FIRST, budget-bounded.
+  // AM-2 (fix round 1, wall clock from request receipt): the budget timer is armed BEFORE
+  // \`loadCoreModule()\` runs, not after it resolves — the FIRST call's dynamic \`import()\` cost used
+  // to be spent OUTSIDE the race, so a slow/cold module resolution could add its own latency on top
+  // of the full \`HOOK_RECALL_BUDGET_MS\` window instead of eating into it.
+  // NAMED LIMIT (AM-2): \`Promise.race\` cannot PREEMPT synchronous work — if \`core.recallHybrid\`
+  // (or anything it calls) blocks the event loop synchronously, this race does not return until
+  // that work finishes, budget or not; Node has no cooperative-preemption primitive for that. The
+  // budget only bounds work that yields the event loop somewhere (every real I/O/await in
+  // recallHybrid does). The hook's OWN client-side \`TIMEOUT_MS\` (recallHookSource, 800 ms) is the
+  // actual backstop against a synchronously-blocked daemon: it times out the SOCKET, not the
+  // daemon's internal race, so the hook always returns promptly even if this promise never does.
+  //
+  // \`hybridRecall\`'s own promise is left running past a timeout loss (never awaited a second time)
+  // — its \`.catch\` below only silences a LATE rejection so a slow, eventually-failing engine call
+  // can never become an unhandled-rejection crash for this long-lived process.
+  async function hybridRecall(prompt, limit) {
+    if (hybridInFlight >= HYBRID_MAX_IN_FLIGHT) {
+      return { ok: false, reason: \`hybrid saturated (\${hybridInFlight} attempt(s) still in flight, cap \${HYBRID_MAX_IN_FLIGHT})\` };
+    }
+    const TIMED_OUT = Symbol('timed-out');
+    let timer;
+    const budget = new Promise((resolve) => {
+      timer = setTimeout(() => resolve(TIMED_OUT), HOOK_RECALL_BUDGET_MS);
+      timer.unref?.();
+    });
+    hybridInFlight += 1;
+    const attempt = (async () => {
+      const core = await loadCoreModule();
+      if (core === undefined) return { unavailable: true };
+      if (DZ_EMBED_HYBRID_DELAY_MS > 0) await new Promise((r) => setTimeout(r, DZ_EMBED_HYBRID_DELAY_MS));
+      const result = await core.recallHybrid(PROJECT, prompt, { limit, mode: 'hook', deferExposures: true });
+      return { unavailable: false, result, core };
+    })();
+    // the in-flight count follows the UNDERLYING attempt, not the race: a timed-out attempt still
+    // occupies its slot until it settles (that is the whole point of the cap)
+    attempt.then(() => { hybridInFlight -= 1; }, () => { hybridInFlight -= 1; });
+    attempt.catch(() => {}); // swallow a rejection that arrives AFTER the budget already won the race
+    try {
+      const raced = await Promise.race([attempt, budget]);
+      clearTimeout(timer);
+      if (raced === TIMED_OUT) return { ok: false, reason: \`budget exceeded (\${HOOK_RECALL_BUDGET_MS} ms)\` };
+      if (raced.unavailable) return { ok: false, reason: 'core module unavailable' };
+      // AM-3 (fix round 1): everything past the race — reading result.hits, a hit missing its
+      // required fields, patternRecordId() throwing on a malformed pattern — is now INSIDE this
+      // try, so any such failure falls back to cosine with an honest \`reason\` instead of reaching
+      // the socket handler's outer catch, which used to turn it into a bare protocol {error} reply
+      // (never engine:'cosine-fallback') — the exact defect this amendment fixes.
+      const { result, core } = raced;
+      const hits = (result.hits || []).map((h) => ({
+        dzId: core.patternRecordId(h.pattern),
+        pattern: h.pattern.pattern,
+        score: h.score, // AM-5: raw core score, unchanged — the same number \`dz recall --json\` reports as \`relevance\`
+        domain: h.pattern.domain,
+        ...(h.quarantined ? { quarantined: true } : {}),
+      }));
+      return { ok: true, hits: hits.slice(0, limit) };
+    } catch (err) {
+      clearTimeout(timer);
+      return { ok: false, reason: \`recallHybrid failed: \${err?.message ?? err}\` };
+    }
+  }
+
+  /** \`op: recall\`'s whole answer: hybrid first (budget-bounded), cosine fallback on ANY failure —
+   * always honestly labelled with \`engine\`/\`reason\` (FR-2/FR-6). */
+  async function answerRecall(prompt, limitRaw) {
+    const limit = Math.min(Number(limitRaw) || 8, 32);
+    if (prompt.trim() === '') return { hits: [], engine: 'none', reason: 'empty prompt' }; // Codex round-2: every reply carries \`engine\`
+    const hybrid = await hybridRecall(prompt, limit);
+    if (hybrid.ok) return { hits: hybrid.hits, engine: 'hybrid' };
+    // Reload the cosine mirror if it changed on disk (a \`dz teach\` between turns) — the SAME
+    // staleness window as before this feature, just checked only when actually falling back.
+    if (Date.now() - patternsAt > 5000) {
+      try {
+        patterns = loadPatterns();
+      } catch {
+        /* keep the previous snapshot */
+      }
+      patternsAt = Date.now();
+    }
+    if (patterns.length === 0) return { hits: [], engine: 'cosine-fallback', reason: hybrid.reason };
+    const qv = await embed(prompt);
+    const scored = patterns.map((p) => ({ dzId: p.dzId, pattern: p.pattern, score: cos(qv, p.vec), ...(p.quarantined ? { quarantined: true } : {}) }));
+    scored.sort((a, b) => b.score - a.score);
+    return { hits: scored.slice(0, limit), engine: 'cosine-fallback', reason: hybrid.reason };
+  }
+
+  // AM-1 (fix round 1): warm resolveAgentdbEmbedder — cached PER PROCESS since db1521ba (cold
+  // ~2-3.6 s, warm ~1 ms, MEASURED, see the manifest's T8/AM-1 discussion) — OFF the request path,
+  // so the first REAL \`op: recall\` is not the one that pays the cold init. Fired fire-and-forget
+  // right before \`listen()\` below, never awaited by startup: this is a best-effort head start, not
+  // a guarantee — a request landing in the few-hundred-ms window before it completes still pays the
+  // cold cost exactly as before this amendment, and a warm-up failure (no core module, engine
+  // error) is silently swallowed — never-block applies to startup exactly as it does to a request.
+  // Measured: the slowest cold resolveAgentdbEmbedder init observed in this environment was 3653 ms
+  // (T8 log, 2026-09-14) — 10 s leaves a wide margin without risking an unbounded warm-up hang.
+  const WARMUP_TIMEOUT_MS = 10_000;
+  async function warmUpHybridEngine() {
+    const core = await loadCoreModule();
+    if (core === undefined) return;
+    const guard = new Promise((resolve) => {
+      const t = setTimeout(resolve, WARMUP_TIMEOUT_MS);
+      t.unref?.();
+    });
+    // An empty-string query still exercises the FULL semantic leg (embed + engine.search), which is
+    // exactly what needs warming; recallHybrid degrades any error inside it honestly, so nothing
+    // here needs its own try/catch beyond the outer .catch(() => {}) at the call site below.
+    await Promise.race([core.recallHybrid(PROJECT, '', { limit: 1, mode: 'hook', deferExposures: true }), guard]);
+  }
+
   let idleTimer;
   let lastActivityAt = Date.now();
   const touch = () => {
@@ -826,24 +1155,8 @@ async function main() {
             sock.write(JSON.stringify({ ok: true }) + '\\n');
             return shutdown(0);
           } else if (msg.op === 'recall') {
-            // Reload the mirror if it changed on disk (a \`dz teach\` between turns).
-            if (Date.now() - patternsAt > 5000) {
-              try {
-                patterns = loadPatterns();
-              } catch {
-                /* keep the previous snapshot */
-              }
-              patternsAt = Date.now();
-            }
             const prompt = typeof msg.prompt === 'string' ? msg.prompt : '';
-            if (prompt.trim() === '' || patterns.length === 0) {
-              reply = { hits: [] };
-            } else {
-              const qv = await embed(prompt);
-              const scored = patterns.map((p) => ({ dzId: p.dzId, pattern: p.pattern, score: cos(qv, p.vec), ...(p.quarantined ? { quarantined: true } : {}) }));
-              scored.sort((a, b) => b.score - a.score);
-              reply = { hits: scored.slice(0, Math.min(Number(msg.limit) || 8, 32)) };
-            }
+            reply = await answerRecall(prompt, msg.limit);
           } else {
             reply = { error: \`unknown op \${String(msg.op)}\` };
           }
@@ -881,6 +1194,9 @@ async function main() {
   }
 
   for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(sig, () => shutdown(0));
+
+  // AM-1: fire-and-forget, never awaited — bind proceeds immediately regardless of warm-up outcome.
+  warmUpHybridEngine().catch(() => {});
 
   // FR-3 ("absence of a receipt is not success"): \`ready\` is printed ONLY after \`listen\`'s callback
   // AND a fresh \`existsSync(SOCKET)\` both confirm the socket file is actually on disk — a caller

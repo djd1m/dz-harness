@@ -284,30 +284,43 @@ export interface AgentdbSearchResult {
 
 const DEPS_MISSING = 'agentdb/better-sqlite3 not installed in project (run: dz setup --memory agentdb)';
 
+type Embedder = { embed: (t: string) => Promise<Float32Array> } | { error: string };
+
 /**
- * Resolve agentdb's `EmbeddingService` from the PROJECT (same dynamic-resolution discipline as
- * {@link indexPatternsToAgentdb}); every dz call site uses the same resolved model so query and row
- * vectors stay in the same space.
+ * `agentdb-embedder-cache` (feature): the transformers pipeline behind `EmbeddingService` is
+ * expensive to stand up (MEASURED 2026-09-14: 2-3.6s per `resolveAgentdbEmbedder` call — see
+ * `features/agentdb-embedder-cache/00_complexity_assessment.md`), yet the resolved model/dim never
+ * changes within one process. Keyed by `${agentdbDir}|${model}|${dim}` so a config/env change (a
+ * different `resolveEmbedModel` source) gets its own entry (FR-2) rather than reusing a stale
+ * pipeline. The PROMISE is cached, not the awaited result (FR-4): concurrent first callers for the
+ * same key join the same in-flight initialization instead of racing two pipelines. An `{error}`
+ * outcome (or a rejection) evicts its own entry so the next call retries cleanly (FR-3) — a failure
+ * must never "stick".
  */
-export async function resolveAgentdbEmbedder(
-  projectRoot: string,
-): Promise<{ embed: (t: string) => Promise<Float32Array> } | { error: string }> {
-  let agentdbDir: string;
-  try {
-    const req = createRequire(join(projectRoot, 'package.json'));
-    agentdbDir = dirname(req.resolve('agentdb'));
-  } catch {
-    return { error: DEPS_MISSING };
-  }
+const embedderCache = new Map<string, Promise<Embedder>>();
+let embedderCacheInitializations = 0;
+
+/** Test-only (and future warm-start) reset — callers (`vector-tier.ts`, `backlog.ts`) are unaffected. */
+export function resetAgentdbEmbedderCache(): void {
+  embedderCache.clear();
+  embedderCacheInitializations = 0;
+}
+
+/** `entries` = cached keys right now — a SUCCESSFUL pipeline or an IN-FLIGHT initialization (the promise is
+ * cached before it settles, FR-4; a failed one is evicted, FR-3); `initializations` = pipelines actually
+ * started since the last reset. (Codex round-1, 2026-09-14: the earlier wording said "successful" only.) */
+export function getAgentdbEmbedderCacheStats(): { entries: number; initializations: number } {
+  return { entries: embedderCache.size, initializations: embedderCacheInitializations };
+}
+
+async function initAgentdbEmbedder(agentdbDir: string, model: string, dim: number): Promise<Embedder> {
   try {
     const { EmbeddingService } = (await import(pathToFileURL(join(agentdbDir, 'controllers', 'EmbeddingService.js')).href)) as {
       EmbeddingService: new (o: object) => { initialize: () => Promise<void>; embed: (t: string) => Promise<Float32Array> };
     };
-    const model = resolveEmbedModel(projectRoot);
-    if ('error' in model) return { error: model.error };
     const emb = new EmbeddingService({
-      model: model.model,
-      dimension: model.dim,
+      model,
+      dimension: dim,
       provider: 'transformers',
       // agentdb >= 3.0.0-alpha.20 refuses UNREGISTERED models without an explicit role policy
       // (its built-in registry knows all-MiniLM-L6-v2 but not our multilingual variant — grounded
@@ -323,6 +336,41 @@ export async function resolveAgentdbEmbedder(
   } catch (err) {
     return { error: `embedder init failed: ${err instanceof Error ? err.message : String(err)}` };
   }
+}
+
+/**
+ * Resolve agentdb's `EmbeddingService` from the PROJECT (same dynamic-resolution discipline as
+ * {@link indexPatternsToAgentdb}); every dz call site uses the same resolved model so query and row
+ * vectors stay in the same space. Cached per process — see {@link embedderCache} above.
+ */
+export async function resolveAgentdbEmbedder(projectRoot: string): Promise<Embedder> {
+  let agentdbDir: string;
+  try {
+    const req = createRequire(join(projectRoot, 'package.json'));
+    agentdbDir = dirname(req.resolve('agentdb'));
+  } catch {
+    return { error: DEPS_MISSING };
+  }
+  const model = resolveEmbedModel(projectRoot);
+  if ('error' in model) return { error: model.error };
+  const key = `${agentdbDir}|${model.model}|${model.dim}`;
+  const hit = embedderCache.get(key);
+  if (hit !== undefined) return hit;
+  embedderCacheInitializations += 1;
+  const promise = initAgentdbEmbedder(agentdbDir, model.model, model.dim);
+  embedderCache.set(key, promise);
+  // FR-3: an init failure must not stick — evict so the next call retries instead of replaying
+  // the same {error} forever. `.catch` here only guards a rejection that slips past
+  // `initAgentdbEmbedder`'s own try/catch; it never rethrows (this is bookkeeping, not the return path).
+  void promise.then(
+    (result) => {
+      if ('error' in result && embedderCache.get(key) === promise) embedderCache.delete(key);
+    },
+    () => {
+      if (embedderCache.get(key) === promise) embedderCache.delete(key);
+    },
+  );
+  return promise;
 }
 
 /** `absent: true` = no store file yet — an EMPTY mirror is a state, not an error (backfill relies on this). */

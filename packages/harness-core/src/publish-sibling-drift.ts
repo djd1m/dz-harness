@@ -28,9 +28,23 @@
 
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { join, relative } from 'node:path';
+import { join, relative, isAbsolute } from 'node:path';
 
 export type SiblingDriftStatus = 'same' | 'drift' | 'unavailable';
+
+/**
+ * AM-6 (feature publish-gate-audit-durable): which mechanism produced BOTH sides' file inventory
+ * for this comparison — named on every result, never left implicit. `'npm-pack'`: the caller
+ * injected {@link DetectSiblingDriftOptions.localInventory} (the CLI's `npm pack --dry-run --json`
+ * via {@link parseNpmPackInventory}); the workspace side is exactly what npm will ship, and the
+ * published side is hashed by a FULL recursive walk of the already-unpacked tarball (AM-1 — the
+ * two sides must be symmetric: "every file npm put there" on one side, "every file npm will put
+ * there" on the other). `'readdir-approximation'`: no provider was injected — BOTH sides fall back
+ * to the pre-existing `dist`/`files`/`bin` walk ({@link shippedInventoryDirs}), which stays
+ * symmetric by construction (same function, same rules, both sides) but can miss a file
+ * `.npmignore` excludes or include one npm would never ship.
+ */
+export type InventorySource = 'npm-pack' | 'pnpm-pack' | 'readdir-approximation';
 
 export interface SiblingDriftResult {
   readonly name: string;
@@ -42,6 +56,12 @@ export interface SiblingDriftResult {
   readonly missingExports: readonly string[];
   /** Present only when status === 'unavailable'. */
   readonly reason?: string;
+  /**
+   * AM-6: named per-result (not merely per-call) because `detectSiblingDrift` short-circuits to
+   * `'unavailable'` before ever reaching the hashing step for some entries — those still carry the
+   * source that WOULD have been used, so a reader never has to guess.
+   */
+  readonly inventorySource: InventorySource;
 }
 
 export interface FetchedPublished {
@@ -65,6 +85,21 @@ export interface DetectSiblingDriftOptions {
   /** Names being published in THIS batch — they publish fresh, so drift cannot be measured against them. */
   readonly batch: ReadonlySet<string>;
   readonly fetchPublished: FetchPublished;
+  /**
+   * FR-3 (feature publish-gate-audit-durable): the LOCAL (workspace) package's shipped-file
+   * inventory, asked from npm instead of approximated by walking `dist`/`files`/`bin` by hand —
+   * `.npmignore` and nested ignore rules make the hand-rolled walk wrong in both directions (a file
+   * npm will never ship can still be read off disk, producing a false drift). No production default
+   * lives in THIS module — core stays pure (never spawns `npm`, per the core-boundary import
+   * ratchet). The CLI runs `npm pack --dry-run --json` and hands the stdout to
+   * {@link parseNpmPackInventory}, then passes the resulting closure here; a caller that injects
+   * nothing (`undefined`) makes `detectSiblingDrift` fall back to the named
+   * `'readdir-approximation'` {@link InventorySource} on BOTH sides (AM-1) — never a silent "no
+   * drift".
+   */
+  readonly localInventory?: LocalInventory;
+  /** Label for the injected provider's source (default `'npm-pack'`); the CLI passes `'pnpm-pack'` for a packed tree. */
+  readonly localInventorySource?: InventorySource;
 }
 
 function listFilesRecursive(root: string, dir: string): string[] {
@@ -81,6 +116,120 @@ function listFilesRecursive(root: string, dir: string): string[] {
 
 function sha256(data: string | Buffer): string {
   return createHash('sha256').update(data).digest('hex');
+}
+
+// ── FR-3 (feature publish-gate-audit-durable): ask npm, don't approximate ──────────────────────
+
+/** The exact set of relative paths `npm pack` will ship for a package — no `.npmignore` guessing. */
+export interface PackInventory {
+  readonly paths: readonly string[];
+}
+
+/** `npm pack --dry-run --json` could not be run or answered in a shape this code cannot use. */
+export interface PackInventoryUnavailable {
+  readonly unavailable: string;
+}
+
+/**
+ * Lead fix after the fix-round's live dry-run (2026-09-14 01:02): the workspace side PACKED BY THE
+ * LIVE TRANSPORT (`pnpm pack`) and unpacked into `packedDir`. pnpm synthesises a LICENSE from the
+ * workspace root into the tarball of a package whose own tree has none; `npm pack --dry-run --json`
+ * never lists that file, so a `paths` inventory read every such sibling as "LICENSE only in the
+ * published copy" — 2 false drifts (harness-presets, scout) on a tree unchanged since publication.
+ * A packed tree is hashed by the SAME full walk as the published side, symmetric by construction.
+ */
+export interface PackedTree {
+  readonly packedDir: string;
+}
+
+export type LocalInventoryResult = PackInventory | PackedTree | PackInventoryUnavailable;
+
+/** Ask what npm would ship for the package rooted at `dir`. Injected in tests (no subprocess). */
+export type LocalInventory = (dir: string) => LocalInventoryResult;
+
+/**
+ * C-1/AM-4: `npm pack --dry-run --json` is a real subprocess call — the CLI caches its result per
+ * absolute directory for the lifetime of ONE `dz publish` run (not per package being checked), so
+ * a run that checks the same sibling from more than one dependent package packs it only once. Core
+ * itself never runs the subprocess or owns the cache (core-boundary import ratchet) — this parser
+ * is the pure half only.
+ *
+ * Parses `npm pack --dry-run --json`'s stdout (an array with one element; `files[]` holds
+ * `{path,size,mode}` per shipped path, plus `integrity`/`shasum`/`entryCount`) into the exact set of
+ * relative paths npm intends to ship, honouring `.npmignore`/`files`/default-ignore exactly the way
+ * a real `npm publish` would. A failure to run, parse, or make sense of the shape — including a
+ * malformed individual `files[]` element (AM-5: a corrupt entry is a reason to say the WHOLE
+ * inventory is untrustworthy, never a file to silently drop) — is `{ unavailable: reason }`: an
+ * input this gate cannot read is a reason to say so, never a silent "nothing to compare".
+ */
+export function parseNpmPackInventory(stdout: string): LocalInventoryResult {
+  try {
+    const parsed: unknown = JSON.parse(stdout);
+    const entry = Array.isArray(parsed) ? (parsed[0] as unknown) : undefined;
+    const files = entry !== null && typeof entry === 'object' ? (entry as Record<string, unknown>)['files'] : undefined;
+    if (!Array.isArray(files)) return { unavailable: 'npm pack --dry-run --json returned no files[] array' };
+    // AM-5 (Codex round-1 finding 6, medium): a malformed element used to be `.filter()`ed out
+    // silently — a `files[]` entry npm itself always shapes as `{path,size,mode}` should never fail
+    // to parse; if one DOES (missing/non-string `path`, or a non-object element), that is a signal
+    // this output cannot be trusted, not a single file to quietly drop from the comparison. Say so.
+    const paths: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      if (f === null || typeof f !== 'object') {
+        return { unavailable: `npm pack --dry-run --json files[${i}] is not an object (got ${JSON.stringify(f)})` };
+      }
+      const path = (f as Record<string, unknown>)['path'];
+      if (typeof path !== 'string' || path === '') {
+        return { unavailable: `npm pack --dry-run --json files[${i}].path is missing or not a non-empty string (got ${JSON.stringify(path)})` };
+      }
+      paths.push(path);
+    }
+    return { paths };
+  } catch (err) {
+    return { unavailable: `npm pack --dry-run --json output could not be parsed: ${(err as Error).message.split('\n')[0]}` };
+  }
+}
+
+/** Hash exactly the paths `npm pack` names (package.json normalized separately, as {@link hashTree} does). */
+/**
+ * Codex round-2 (2026-09-14) new findings 1+2: a listed path that is absent, a directory, absolute,
+ * or that climbs out of `dir` via `..` used to be SKIPPED silently — a comparison over a listing
+ * the tree does not match is not a comparison, it is `unavailable`; and an inventory must never
+ * read outside the package directory. Thrown here, turned into an `unavailable` result by the caller.
+ */
+class InventoryListingError extends Error {}
+
+function hashTreeFromPaths(dir: string, paths: readonly string[], manifest: Record<string, unknown>): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const rel of paths) {
+    if (rel === 'package.json') continue; // normalized below, not hashed raw
+    if (isAbsolute(rel) || rel.split(/[\\/]/).includes('..')) {
+      throw new InventoryListingError(`inventory path "${rel}" is absolute or leaves the package directory`);
+    }
+    const abs = join(dir, rel);
+    if (!existsSync(abs)) throw new InventoryListingError(`inventory path "${rel}" does not exist in the workspace copy`);
+    if (statSync(abs).isDirectory()) throw new InventoryListingError(`inventory path "${rel}" is a directory, not a file`);
+    map.set(rel, sha256(readFileSync(abs)));
+  }
+  map.set('package.json', sha256(normalizedPackageJsonText(manifest)));
+  return map;
+}
+
+/**
+ * AM-1: hash EVERY file under `dir` (the already-unpacked published tarball) — the literal "full
+ * recursive walk of what npm put there" the amendment names, used ONLY as the symmetric partner to
+ * {@link hashTreeFromPaths} (i.e. only when a `localInventory` provider is injected). `dir` here is
+ * always an extracted tarball, never the workspace tree, so there is no `.npmignore` to consult:
+ * everything that exists on disk is, by construction, exactly what npm shipped.
+ */
+function hashTreeFull(dir: string, manifest: Record<string, unknown>): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const rel of listFilesRecursive(dir, dir)) {
+    if (rel === 'package.json') continue; // normalized below, not hashed raw
+    map.set(rel, sha256(readFileSync(join(dir, rel))));
+  }
+  map.set('package.json', sha256(normalizedPackageJsonText(manifest)));
+  return map;
 }
 
 /**
@@ -208,6 +357,9 @@ function missingExportNames(publishedDir: string, workspaceDir: string): string[
 export function detectSiblingDrift(opts: DetectSiblingDriftOptions): SiblingDriftResult[] {
   const results: SiblingDriftResult[] = [];
   const seen = new Set<string>();
+  // AM-6: named ONCE per call — every result below (including the short-circuited `unavailable`
+  // ones) carries the source that is or would have been used for this comparison.
+  const inventorySource: InventorySource = opts.localInventory !== undefined ? (opts.localInventorySource ?? 'npm-pack') : 'readdir-approximation';
   // AM-3: `optionalDependencies` ships and pins EXACTLY like `dependencies`/`peerDependencies` —
   // checking only the first two let a stale optional sibling through untouched (round-1 finding 3).
   const entries = [
@@ -233,6 +385,7 @@ export function detectSiblingDrift(opts: DetectSiblingDriftOptions): SiblingDrif
         changedFiles: [],
         missingExports: [],
         reason: `${dep} is declared workspace:-protocol but is not a known workspace package`,
+        inventorySource,
       });
       continue;
     }
@@ -246,6 +399,7 @@ export function detectSiblingDrift(opts: DetectSiblingDriftOptions): SiblingDrif
         changedFiles: [],
         missingExports: [],
         reason: `could not fetch ${dep}@${version} from the registry (network unavailable or the version was not found)`,
+        inventorySource,
       });
       continue;
     }
@@ -264,12 +418,62 @@ export function detectSiblingDrift(opts: DetectSiblingDriftOptions): SiblingDrif
         changedFiles: [],
         missingExports: [],
         reason: `${dep}@${version}: package.json in ${side} is missing or not valid JSON — cannot compare`,
+        inventorySource,
       });
       continue;
     }
 
-    const publishedHashes = hashTree(fetched.dir, publishedManifest);
-    const workspaceHashes = hashTree(workspaceDir, workspaceManifest);
+    // FR-3/AM-1: the LOCAL package's inventory comes from npm, not from a hand-rolled dist/files/bin
+    // walk — `.npmignore` (and nested ignore rules) can exclude a file this gate would otherwise walk
+    // straight into, producing a false drift about a file npm was never going to ship. AM-1 (Codex
+    // review, round-1 finding 3, high): the two sides must stay SYMMETRIC. With a provider injected,
+    // the workspace side is npm's OWN shipped-path list; the published side must then be hashed by a
+    // FULL recursive walk of the already-unpacked tarball (every file npm actually put there —
+    // README/LICENSE included, since npm auto-packs those regardless of `files`), not the narrower
+    // `dist`/`files`/`bin` approximation `hashTree` uses — that approximation would silently OMIT an
+    // auto-packed README/LICENSE from the published side while the workspace side (via real `npm
+    // pack`) correctly includes them, reading as a false "only in workspace" drift. WITHOUT a
+    // provider, core has no way to ask npm on either side, so it degrades to the SAME approximation
+    // on BOTH sides (symmetry preserved, just cruder) — a named approximation, never a subprocess.
+    let workspaceHashes: Map<string, string>;
+    let publishedHashes: Map<string, string>;
+    if (opts.localInventory !== undefined) {
+      const localResult = opts.localInventory(workspaceDir);
+      if ('unavailable' in localResult) {
+        results.push({
+          name: dep,
+          version,
+          status: 'unavailable',
+          changedFiles: [],
+          missingExports: [],
+          reason: `${dep}@${version}: local package inventory unavailable (${localResult.unavailable})`,
+          inventorySource,
+        });
+        continue;
+      }
+      try {
+        workspaceHashes = 'packedDir' in localResult
+          ? hashTreeFull(localResult.packedDir, workspaceManifest)
+          : hashTreeFromPaths(workspaceDir, localResult.paths, workspaceManifest);
+      } catch (err) {
+        if (!(err instanceof InventoryListingError)) throw err;
+        results.push({
+          name: dep,
+          version,
+          status: 'unavailable',
+          changedFiles: [],
+          missingExports: [],
+          reason: `${dep}@${version}: local package inventory unusable (${err.message})`,
+          inventorySource,
+        });
+        continue;
+      }
+      publishedHashes = hashTreeFull(fetched.dir, publishedManifest);
+    } else {
+      workspaceHashes = hashTree(workspaceDir, workspaceManifest);
+      publishedHashes = hashTree(fetched.dir, publishedManifest);
+    }
+
     const allKeys = new Set<string>([...publishedHashes.keys(), ...workspaceHashes.keys()]);
     const changed: string[] = [];
     for (const key of allKeys) {
@@ -278,7 +482,7 @@ export function detectSiblingDrift(opts: DetectSiblingDriftOptions): SiblingDrif
     changed.sort();
 
     if (changed.length === 0) {
-      results.push({ name: dep, version, status: 'same', changedFiles: [], missingExports: [] });
+      results.push({ name: dep, version, status: 'same', changedFiles: [], missingExports: [], inventorySource });
     } else {
       results.push({
         name: dep,
@@ -286,6 +490,7 @@ export function detectSiblingDrift(opts: DetectSiblingDriftOptions): SiblingDrif
         status: 'drift',
         changedFiles: changed,
         missingExports: missingExportNames(fetched.dir, workspaceDir),
+        inventorySource,
       });
     }
   }

@@ -115,6 +115,22 @@ export interface GateFailure {
     readonly pkg?: string | undefined;
     readonly reason: string;
     readonly class: ReleaseFailureClass;
+    /**
+     * Feature release-gate-output-tail (AM-4): the last non-empty lines of the step's stdout and
+     * stderr, KEPT SEPARATE — each stream through {@link outputTail} on its own, never merged —
+     * so a reader can tell which stream a line came from. Set for `tests`/`syntax`/`smoke`
+     * EXIT_NONZERO/TIMEOUT failures; absent for `audit` (its own detail line already summarizes)
+     * and for failures with no execution record (e.g. UNEXECUTED_STEP).
+     *
+     * Scope honesty (AM-4): the two streams are captured independently, so a printed/issued
+     * `stdout:`/`stderr:` pair does NOT reconstruct the chronological interleaving of the two
+     * streams as the process actually emitted them — only each stream's own tail order is
+     * preserved. Documented in the CLI README (AM-8), not silently implied.
+     */
+    readonly tails?: {
+        readonly stdout: string;
+        readonly stderr: string;
+    };
 }
 /** Per-gate verdict. `skip` = the gate had nothing to execute (still not a pass). */
 export interface GateResult {
@@ -196,6 +212,54 @@ export declare function planReleaseGates(facts: readonly ReleasePackageFacts[], 
  */
 export declare function firstOutputLine(...chunks: readonly unknown[]): string;
 /**
+ * Feature release-gate-output-tail (FR-1, amended AM-2): a one-line-ish detail for a
+ * `tests`/`syntax`/`smoke` EXIT_NONZERO/TIMEOUT failure that names the ACTUAL failure — not
+ * just the first output line, which for `pnpm test`/vitest is routinely an unrelated
+ * vite/esbuild deprecation warning (MEASURED 2026-09-13 16:05/18:52).
+ *
+ * AM-2: ANSI escapes are stripped FIRST (a coloured runner must match the same patterns as a
+ * plain one). Recognised shapes, collected in this priority order and joined:
+ * 1. vitest summary lines (`Tests …`, `Test Files …`);
+ * 2. up to 5 `FAIL …` / `× …` / `❯ …` lines (failing test names/paths);
+ * 3. node:test (TAP) lines: `not ok N - name` and `# fail N`.
+ *
+ * If NONE of the above is present (a non-vitest, non-TAP failure, or empty output), fall back
+ * to the prior `firstLine` behavior, marked `(no test-runner summary recognised)` so a reader
+ * knows the detail is a guess, not a parsed summary — UNLESS `firstLine` itself is empty (no
+ * output at all), in which case the mark would manufacture a synthetic line where none existed
+ * and is withheld. Capped at 600 chars — a detail line, not a dump.
+ */
+export declare function testsFailureDetail(stdout: unknown, stderr: unknown): string;
+/**
+ * Feature release-gate-output-tail (FR-2/FR-3, amended AM-3): the last non-empty lines of ONE
+ * stream (call separately for stdout and stderr — AM-4), bounded on BOTH axes (line count and
+ * byte size) so a runaway suite cannot blow up a report or an issue body.
+ *
+ * AM-3 bounds, each an explicit branch rather than an emergent `Array.slice(-0)` accident
+ * (`slice(-0)` returns the WHOLE array, not `[]` — the pre-amendment bug):
+ * - `maxLines <= 0` → `''`; `maxBytes <= 0` → `''`.
+ * - Whole-line selection: lines are pulled from the END while the running BYTE total (each
+ *   line's UTF-8 byte length plus its joining `\n`) stays `<= maxBytes` — never a partial line.
+ * - A single most-recent line that ALONE exceeds `maxBytes` is truncated at a UTF-8 CHARACTER
+ *   boundary (never splitting a multi-byte codepoint) and marked `… (line truncated)`.
+ *
+ * Empty/whitespace-only output → `''` (never a synthetic line).
+ */
+export declare function outputTail(stdout: unknown, stderr: unknown, maxLines?: number, maxBytes?: number): string;
+/**
+ * Feature release-gate-output-tail (AM-1): redact secret-shaped substrings before ANY tail text
+ * reaches a GitHub issue body. Patterns, each independently redacted:
+ * - `token`/`secret`/`password` (case-insensitive) as a `key: value` or `key=value` pair — the
+ *   KEY survives, only the value is replaced;
+ * - `Bearer <token>` HTTP auth headers;
+ * - vendor-prefixed tokens: `npm_…`, `ghp_…`, `sk-…`, `AKIA…`;
+ * - long opaque strings (base64/hex-ish, `[A-Za-z0-9+/=]{32,}`) that look like a key/secret even
+ *   without a recognisable prefix.
+ * Order matters: prefixed/labelled patterns run BEFORE the generic long-opaque-string pattern so
+ * a `Bearer …` token is redacted as a whole rather than surviving as a shorter unlabelled blob.
+ */
+export declare function redactSecrets(text: string): string;
+/**
  * Merge plan + executions into the {@link ReleaseVerdict} — the single fail-closed decision
  * point (ADR load-bearing property):
  *
@@ -213,6 +277,14 @@ export interface FailureIssueContext {
 /**
  * gh-2.4-safe `gh issue create` payload (only `--title`/`--body` are assumed downstream).
  * Pure + deterministic for a fixed verdict — the issue is the verdict's echo, never its judge.
+ *
+ * AM-1/AM-4/AM-5: every tail is (a) redacted (secret-shaped substrings replaced — see
+ * {@link redactSecrets}) and ANSI-stripped BEFORE it is ever considered for the body; (b) shown
+ * per STREAM, labelled `stdout:`/`stderr:` — AM-4's scope note applies here too: the two labelled
+ * blocks do NOT reconstruct chronological interleaving between the streams; (c) fenced so the
+ * payload cannot break out of its code block; (d) the WHOLE body is capped at
+ * {@link MAX_ISSUE_BODY_BYTES} — when it would exceed the cap, every tail is shrunk EVENLY
+ * (byte-proportional), not by dropping some tails whole while keeping others untouched.
  */
 export declare function buildFailureIssue(verdict: ReleaseVerdict, ctx?: FailureIssueContext): {
     title: string;

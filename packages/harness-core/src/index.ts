@@ -303,7 +303,7 @@ export {
   segmentRun,
 } from './eta.js';
 export type { CheckpointObservation, EtaEstimate, EtaInput, IncompleteCoverageSample, RunSegment, StageDurationSample, StageSample } from './eta.js';
-export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema } from './agentdb-index.js';
+export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, resetAgentdbEmbedderCache, getAgentdbEmbedderCacheStats, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema } from './agentdb-index.js';
 export type { AgentdbSearchHit, AgentdbSearchResult, AgentdbImportRow } from './agentdb-index.js';
 export { DEFAULT_EMBED_MODEL, LEGACY_EMBED_MODEL, DEFAULT_EMBED_DIM, KNOWN_EMBED_DIMS, resolveEmbedModel, readEmbedManifest, writeEmbedManifest, embedManifestPath, legacyEmbedManifest } from './embedding-config.js';
 export type { EmbedModelConfig, EmbedModelSource, EmbedManifest } from './embedding-config.js';
@@ -742,6 +742,8 @@ export {
   buildReleaseNotes,
   releaseTagName,
   firstOutputLine,
+  testsFailureDetail,
+  outputTail,
   RELEASE_GATE_ORDER,
   RELEASE_TIMEOUTS,
 } from './release.js';
@@ -763,13 +765,19 @@ export type {
 } from './release.js';
 export { formatPublishError } from './publish.js';
 // Sibling-drift + packed-install-smoke gates (feature publish-sibling-drift-gate, ADR-001).
-export { detectSiblingDrift } from './publish-sibling-drift.js';
+export { detectSiblingDrift, parseNpmPackInventory } from './publish-sibling-drift.js';
 export type {
   SiblingDriftStatus,
+  InventorySource,
   SiblingDriftResult,
   FetchedPublished,
   FetchPublished,
   DetectSiblingDriftOptions,
+  PackInventory,
+  PackInventoryUnavailable,
+  LocalInventoryResult,
+  PackedTree,
+  LocalInventory,
 } from './publish-sibling-drift.js';
 export { planPackedInstallSmoke, judgePackedInstallSmoke, packedTarballName } from './packed-install-smoke.js';
 export type {

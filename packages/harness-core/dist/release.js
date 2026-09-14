@@ -415,6 +415,137 @@ function firstLine(...chunks) {
     return '';
 }
 /**
+ * Strip ANSI/VT100 escape sequences (colour codes, cursor moves, OSC hyperlinks) so pattern
+ * matching sees the plain text a human reads on a non-colour terminal. AM-2/AM-1 precondition:
+ * `testsFailureDetail` and the issue-body redaction both run this FIRST, before any regex tries
+ * to recognise a runner's summary/FAIL lines or a secret value — a coloured `FAIL` token (e.g.
+ * `\x1b[31mFAIL\x1b[0m`) must still match `/^FAIL\b/` once stripped.
+ */
+// eslint-disable-next-line no-control-regex -- deliberately matching raw ESC control bytes
+function stripAnsi(s) {
+    return s
+        .replace(/\x1B\][^\x07\x1B]*(?:\x07|\x1B\\)/g, '') // OSC …  BEL | OSC … ST
+        .replace(/\x1B[[()#;?]*[0-9]*(?:;[0-9]*)*[a-zA-Z@]/g, ''); // CSI/other short escapes
+}
+/**
+ * Feature release-gate-output-tail (FR-1, amended AM-2): a one-line-ish detail for a
+ * `tests`/`syntax`/`smoke` EXIT_NONZERO/TIMEOUT failure that names the ACTUAL failure — not
+ * just the first output line, which for `pnpm test`/vitest is routinely an unrelated
+ * vite/esbuild deprecation warning (MEASURED 2026-09-13 16:05/18:52).
+ *
+ * AM-2: ANSI escapes are stripped FIRST (a coloured runner must match the same patterns as a
+ * plain one). Recognised shapes, collected in this priority order and joined:
+ * 1. vitest summary lines (`Tests …`, `Test Files …`);
+ * 2. up to 5 `FAIL …` / `× …` / `❯ …` lines (failing test names/paths);
+ * 3. node:test (TAP) lines: `not ok N - name` and `# fail N`.
+ *
+ * If NONE of the above is present (a non-vitest, non-TAP failure, or empty output), fall back
+ * to the prior `firstLine` behavior, marked `(no test-runner summary recognised)` so a reader
+ * knows the detail is a guess, not a parsed summary — UNLESS `firstLine` itself is empty (no
+ * output at all), in which case the mark would manufacture a synthetic line where none existed
+ * and is withheld. Capped at 600 chars — a detail line, not a dump.
+ */
+export function testsFailureDetail(stdout, stderr) {
+    const all = stripAnsi(`${stdout == null ? '' : String(stdout)}\n${stderr == null ? '' : String(stderr)}`);
+    const lines = all
+        .split('\n')
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0);
+    const summaryLines = lines.filter((l) => /^(Tests|Test Files)\b/.test(l));
+    const failLines = lines.filter((l) => /^(FAIL\b|×|❯)/.test(l)).slice(0, 5);
+    const tapNotOkLines = lines.filter((l) => /^not ok \d+/.test(l)).slice(0, 5);
+    const tapFailCountLines = lines.filter((l) => /^# fail \d+/i.test(l));
+    const parts = [...summaryLines, ...failLines, ...tapNotOkLines, ...tapFailCountLines];
+    if (parts.length === 0) {
+        // lead r2: the fallback is derived from the ANSI-STRIPPED text, never the raw stream
+        const fl = lines[0] ?? '';
+        return fl.length === 0 ? '' : `${fl.slice(0, 200)} (no test-runner summary recognised)`;
+    }
+    return parts.join(' — ').slice(0, 600);
+}
+/** Truncate `s` to at most `maxBytes` UTF-8 bytes, never splitting a multi-byte character. */
+function truncateToBytes(s, maxBytes) {
+    if (maxBytes <= 0)
+        return '';
+    const buf = Buffer.from(s, 'utf-8');
+    if (buf.length <= maxBytes)
+        return s;
+    let end = maxBytes;
+    // back off while the next byte is a UTF-8 continuation byte (10xxxxxx)
+    while (end > 0 && (buf[end] & 0xc0) === 0x80)
+        end -= 1;
+    return buf.subarray(0, end).toString('utf-8');
+}
+/**
+ * Feature release-gate-output-tail (FR-2/FR-3, amended AM-3): the last non-empty lines of ONE
+ * stream (call separately for stdout and stderr — AM-4), bounded on BOTH axes (line count and
+ * byte size) so a runaway suite cannot blow up a report or an issue body.
+ *
+ * AM-3 bounds, each an explicit branch rather than an emergent `Array.slice(-0)` accident
+ * (`slice(-0)` returns the WHOLE array, not `[]` — the pre-amendment bug):
+ * - `maxLines <= 0` → `''`; `maxBytes <= 0` → `''`.
+ * - Whole-line selection: lines are pulled from the END while the running BYTE total (each
+ *   line's UTF-8 byte length plus its joining `\n`) stays `<= maxBytes` — never a partial line.
+ * - A single most-recent line that ALONE exceeds `maxBytes` is truncated at a UTF-8 CHARACTER
+ *   boundary (never splitting a multi-byte codepoint) and marked `… (line truncated)`.
+ *
+ * Empty/whitespace-only output → `''` (never a synthetic line).
+ */
+export function outputTail(stdout, stderr, maxLines = 40, maxBytes = 8192) {
+    if (maxLines <= 0 || maxBytes <= 0)
+        return '';
+    const all = `${stdout == null ? '' : String(stdout)}\n${stderr == null ? '' : String(stderr)}`;
+    const nonEmpty = all
+        .split('\n')
+        .map((l) => l.replace(/\r$/, ''))
+        .filter((l) => l.trim().length > 0);
+    const tailLines = nonEmpty.slice(-maxLines);
+    if (tailLines.length === 0)
+        return '';
+    const lastLine = tailLines[tailLines.length - 1];
+    if (Buffer.byteLength(lastLine, 'utf-8') > maxBytes) {
+        // lead r2: the marker lives INSIDE the byte budget, so the returned text never exceeds maxBytes
+        const marker = '… (line truncated)';
+        const room = Math.max(0, maxBytes - Buffer.byteLength(marker, 'utf-8'));
+        return `${truncateToBytes(lastLine, room)}${marker}`;
+    }
+    const selected = [];
+    let bytes = 0;
+    for (let i = tailLines.length - 1; i >= 0; i--) {
+        const line = tailLines[i];
+        const lineBytes = Buffer.byteLength(line, 'utf-8');
+        const joinerBytes = selected.length > 0 ? 1 : 0; // the '\n' this line adds once prepended
+        if (bytes + lineBytes + joinerBytes > maxBytes)
+            break;
+        selected.unshift(line);
+        bytes += lineBytes + joinerBytes;
+    }
+    return selected.join('\n');
+}
+/**
+ * Feature release-gate-output-tail (AM-1): redact secret-shaped substrings before ANY tail text
+ * reaches a GitHub issue body. Patterns, each independently redacted:
+ * - `token`/`secret`/`password` (case-insensitive) as a `key: value` or `key=value` pair — the
+ *   KEY survives, only the value is replaced;
+ * - `Bearer <token>` HTTP auth headers;
+ * - vendor-prefixed tokens: `npm_…`, `ghp_…`, `sk-…`, `AKIA…`;
+ * - long opaque strings (base64/hex-ish, `[A-Za-z0-9+/=]{32,}`) that look like a key/secret even
+ *   without a recognisable prefix.
+ * Order matters: prefixed/labelled patterns run BEFORE the generic long-opaque-string pattern so
+ * a `Bearer …` token is redacted as a whole rather than surviving as a shorter unlabelled blob.
+ */
+export function redactSecrets(text) {
+    let out = text;
+    out = out.replace(/\bBearer\s+\S+/gi, 'Bearer [redacted]');
+    out = out.replace(/\bnpm_[A-Za-z0-9]+/g, '[redacted]');
+    out = out.replace(/\bghp_[A-Za-z0-9]+/g, '[redacted]');
+    out = out.replace(/\bsk-[A-Za-z0-9]+/g, '[redacted]');
+    out = out.replace(/\bAKIA[A-Za-z0-9]+/g, '[redacted]');
+    out = out.replace(/\b(token|secret|password)(\s*[:=]\s*)(\S+)/gi, '$1$2[redacted]');
+    out = out.replace(/\b[A-Za-z0-9+/=]{32,}\b/g, '[redacted]');
+    return out;
+}
+/**
  * Merge plan + executions into the {@link ReleaseVerdict} — the single fail-closed decision
  * point (ADR load-bearing property):
  *
@@ -477,6 +608,9 @@ export function classifyGateExecutions(plan, executions, now = new Date()) {
                         pkg: step.pkg,
                         reason: `timed out after ${step.timeoutMs}ms: ${step.cmd}`,
                         class: gate === 'smoke' ? 'SMOKE_TIMEOUT' : 'TIMEOUT',
+                        // FR-3 / AM-4: a killed-by-timeout step still has whatever it printed before the
+                        // kill — captured per-stream, never merged (see GateFailure.tails doc comment).
+                        tails: { stdout: outputTail(exec.stdout, undefined), stderr: outputTail(undefined, exec.stderr) },
                     });
                     continue;
                 }
@@ -487,10 +621,15 @@ export function classifyGateExecutions(plan, executions, now = new Date()) {
                         failures.push({ pkg: step.pkg, reason: `${reason}${detail ? ` — ${detail}` : ''}`, class: cls });
                     }
                     else {
+                        // FR-1: for tests/syntax/smoke, name the ACTUAL failure (summary + failing tests),
+                        // not just the first output line — see testsFailureDetail's doc comment for why.
+                        const detail = testsFailureDetail(exec.stderr, exec.stdout);
                         failures.push({
                             pkg: step.pkg,
-                            reason: `exit ${String(exec.exitCode)}: ${step.cmd}${firstLine(exec.stderr, exec.stdout) ? ` — ${firstLine(exec.stderr, exec.stdout)}` : ''}`,
+                            reason: `exit ${String(exec.exitCode)}: ${step.cmd}${detail ? ` — ${detail}` : ''}`,
                             class: 'EXIT_NONZERO',
+                            // AM-4: per-stream tails, never merged — see GateFailure.tails doc comment.
+                            tails: { stdout: outputTail(exec.stdout, undefined), stderr: outputTail(undefined, exec.stderr) },
                         });
                     }
                     continue;
@@ -537,34 +676,112 @@ export function classifyGateExecutions(plan, executions, now = new Date()) {
         timestamp: now.toISOString(),
     };
 }
+/** AM-1: total issue-body cap — a courier never balloons into an unpostable payload. */
+const MAX_ISSUE_BODY_BYTES = 60 * 1024;
+/**
+ * AM-5: fence `text` so the payload can never prematurely close the code block — the fence is
+ * N+1 backticks, where N is the LONGEST run of consecutive backticks already present in `text`.
+ * Every content line (and the fence itself) carries `indent` so a multi-line block renders as a
+ * continuation of the enclosing markdown list item, not as a sibling paragraph.
+ */
+function fencedBlock(text, indent = '    ') {
+    const runs = text.match(/`+/g) ?? [];
+    const longestRun = runs.reduce((m, r) => Math.max(m, r.length), 0);
+    // GFM needs >= 3 backticks for a FENCED (block) code fence — fewer reads as inline code.
+    const fence = '`'.repeat(Math.max(3, longestRun + 1));
+    const contentLines = text.split('\n').map((l) => `${indent}${l}`);
+    return [`${indent}${fence}`, ...contentLines, `${indent}${fence}`];
+}
 /**
  * gh-2.4-safe `gh issue create` payload (only `--title`/`--body` are assumed downstream).
  * Pure + deterministic for a fixed verdict — the issue is the verdict's echo, never its judge.
+ *
+ * AM-1/AM-4/AM-5: every tail is (a) redacted (secret-shaped substrings replaced — see
+ * {@link redactSecrets}) and ANSI-stripped BEFORE it is ever considered for the body; (b) shown
+ * per STREAM, labelled `stdout:`/`stderr:` — AM-4's scope note applies here too: the two labelled
+ * blocks do NOT reconstruct chronological interleaving between the streams; (c) fenced so the
+ * payload cannot break out of its code block; (d) the WHOLE body is capped at
+ * {@link MAX_ISSUE_BODY_BYTES} — when it would exceed the cap, every tail is shrunk EVENLY
+ * (byte-proportional), not by dropping some tails whole while keeping others untouched.
  */
 export function buildFailureIssue(verdict, ctx = {}) {
     const failed = verdict.gates.filter((g) => g.status === 'fail').map((g) => g.gate);
     const title = `dz release: gate failure — ${failed.length > 0 ? failed.join(', ') : 'nothing verified'}`;
-    const lines = [
-        `Verified release blocked at ${verdict.timestamp}.`,
-        '',
-        ...(ctx.invocation ? [`Invocation: \`${ctx.invocation}\``, ''] : []),
-        ...(ctx.repo ? [`Repo: ${ctx.repo}`, ''] : []),
-        '## Gate verdict',
-        '',
-    ];
+    const refsByFailure = new Map();
     for (const g of verdict.gates) {
-        const icon = g.status === 'pass' ? '✓' : g.status === 'fail' ? '✗' : '○';
-        lines.push(`- ${icon} **${g.gate}** — ${g.status} (${g.passed} passed, ${g.failures.length} failed, ${g.skips.length} skipped)`);
-        for (const f of g.failures)
-            lines.push(`  - [${f.class}] ${f.pkg ? `${f.pkg}: ` : ''}${f.reason}`);
+        for (const f of g.failures) {
+            if (f.tails === undefined)
+                continue;
+            const refs = [];
+            for (const stream of ['stdout', 'stderr']) {
+                const raw = f.tails[stream];
+                if (raw.length === 0)
+                    continue;
+                const clean = redactSecrets(stripAnsi(raw));
+                refs.push({ stream, text: clean, rawBytes: Buffer.byteLength(clean, 'utf-8') });
+            }
+            if (refs.length > 0)
+                refsByFailure.set(f, refs);
+        }
     }
-    if (verdict.skipped.length > 0) {
-        lines.push('', '## Skipped (honestly reported, never counted as passed)', '');
-        for (const s of verdict.skipped)
-            lines.push(`- [${s.class}] ${s.pkg}: ${s.reason}`);
+    const render = () => {
+        const lines = [
+            `Verified release blocked at ${verdict.timestamp}.`,
+            '',
+            ...(ctx.invocation ? [`Invocation: \`${redactSecrets(stripAnsi(ctx.invocation)).replace(/`/g, "'")}\``, ''] : []),
+            ...(ctx.repo ? [`Repo: ${ctx.repo}`, ''] : []),
+            '## Gate verdict',
+            '',
+        ];
+        for (const g of verdict.gates) {
+            const icon = g.status === 'pass' ? '✓' : g.status === 'fail' ? '✗' : '○';
+            lines.push(`- ${icon} **${g.gate}** — ${g.status} (${g.passed} passed, ${g.failures.length} failed, ${g.skips.length} skipped)`);
+            for (const f of g.failures) {
+                // lead r2 (HIGH): the reason is output-derived free text — strip ANSI and redact it like a tail
+                lines.push(`  - [${f.class}] ${f.pkg ? `${f.pkg}: ` : ''}${redactSecrets(stripAnsi(f.reason))}`);
+                // FR-2 / AM-4 / AM-5: a labelled, fenced block per non-empty stream — the issue is the
+                // echo of the verdict, so a reader can see the actual failing output without re-running.
+                for (const ref of refsByFailure.get(f) ?? []) {
+                    lines.push(`    ${ref.stream}:`, ...fencedBlock(ref.text));
+                }
+            }
+        }
+        if (verdict.skipped.length > 0) {
+            lines.push('', '## Skipped (honestly reported, never counted as passed)', '');
+            for (const s of verdict.skipped)
+                lines.push(`- [${s.class}] ${s.pkg}: ${s.reason}`);
+        }
+        lines.push('', `Blocked by: ${verdict.blockedBy.join('; ')}`, '', '_Auto-created by `dz release` (best-effort; the release verdict is independent of this issue)._');
+        return lines.join('\n');
+    };
+    let body = render();
+    let bodyBytes = Buffer.byteLength(body, 'utf-8');
+    if (bodyBytes > MAX_ISSUE_BODY_BYTES && refsByFailure.size > 0) {
+        const allRefs = [...refsByFailure.values()].flat();
+        let overage = bodyBytes - MAX_ISSUE_BODY_BYTES;
+        // Bounded iteration: each pass's cut is based on the LATEST measured overage (markup like
+        // "… (truncated)" adds a few bytes back per ref, so one pass rarely lands exactly) — a few
+        // passes converge; the safety net below closes any pathological remainder.
+        for (let pass = 0; pass < 3 && overage > 0; pass++) {
+            const perRefCut = Math.ceil(overage / allRefs.length);
+            for (const ref of allRefs) {
+                const targetBytes = Math.max(0, ref.rawBytes - perRefCut);
+                if (Buffer.byteLength(ref.text, 'utf-8') > targetBytes) {
+                    ref.text = `${truncateToBytes(ref.text, targetBytes)}… (truncated)`;
+                }
+            }
+            body = render();
+            bodyBytes = Buffer.byteLength(body, 'utf-8');
+            overage = bodyBytes - MAX_ISSUE_BODY_BYTES;
+        }
+        // Safety net: a pathological shape (a huge non-tail skeleton, tiny/no tails) can still exceed
+        // the cap after every tail is wiped — hard-truncate the whole body as the last resort so the
+        // cap is an INVARIANT, never a best-effort.
+        if (bodyBytes > MAX_ISSUE_BODY_BYTES) {
+            body = `${truncateToBytes(body, MAX_ISSUE_BODY_BYTES - 20)}\n… (truncated)`;
+        }
     }
-    lines.push('', `Blocked by: ${verdict.blockedBy.join('; ')}`, '', '_Auto-created by `dz release` (best-effort; the release verdict is independent of this issue)._');
-    return { title, body: lines.join('\n') };
+    return { title, body };
 }
 /** Short, bounded release notes from injected `git log --oneline`-style lines. */
 export function buildReleaseNotes(gitLogLines, limit = 15) {

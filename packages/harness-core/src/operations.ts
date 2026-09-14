@@ -1437,18 +1437,34 @@ export async function runDoctor(options: { projectRoot: string }): Promise<Docto
       const WRITER_EVENTS = ['SessionStart', 'SessionEnd', 'PreCompact'];
       let eventsWithWriter: string[] = [];
       let settingsReadable = false;
+      // Lead edit after Codex review (finding 1, 2026-09-13): three states, not a boolean — an
+      // EXISTING settings.json that cannot be parsed is "unknowable", never "agrees".
+      const settingsPath = join(root, '.claude', 'settings.json');
+      const settingsPresent = existsSync(settingsPath);
       try {
-        const settings = JSON.parse(readFileSync(join(root, '.claude', 'settings.json'), 'utf-8')) as {
+        const settings = JSON.parse(readFileSync(settingsPath, 'utf-8')) as {
           hooks?: Record<string, unknown[]>;
         };
-        settingsReadable = true;
         eventsWithWriter = WRITER_EVENTS.filter((ev) => (settings.hooks?.[ev] ?? []).some((h) => commandsOf(h).some(invokesWriter)));
+        // Lead edit after Codex round 2 (new finding 2): "readable" means the hooks were actually
+        // INSPECTED — a parseable but malformed shape (`null`, a non-array event) throws inside the
+        // traversal and must land in the "cannot be compared" row, never in the OK row.
+        settingsReadable = true;
       } catch {
       }
+      const settingsUnreadable = settingsPresent && !settingsReadable;
       const allWired = eventsWithWriter.length === WRITER_EVENTS.length;
       const hooksInvokeAgentdbWriter = eventsWithWriter.length > 0;
 
-      if (configuredMemoryBackend === 'agentdb' && !allWired) {
+      if (settingsUnreadable) {
+        // Lead edit after Codex round 2: precedence — an unparseable settings.json is diagnosed FIRST for
+        // both backends; the hooks are UNKNOWABLE, so neither "not wired" nor "in agreement" may be claimed.
+        checks.push({
+          name: 'memory hooks match config',
+          ok: false,
+          detail: `.dz/config.json says memory.backend=${configuredMemoryBackend} but .claude/settings.json exists and could not be parsed or inspected (invalid JSON or a malformed hooks shape) — the hooks cannot be compared; fix the file (or re-run dz setup)`,
+        });
+      } else if (configuredMemoryBackend === 'agentdb' && !allWired) {
         checks.push({
           name: 'memory hooks match config',
           ok: false,
@@ -1459,6 +1475,15 @@ export async function runDoctor(options: { projectRoot: string }): Promise<Docto
           name: 'memory hooks match config',
           ok: false,
           detail: '.dz/config.json says memory.backend=jsonl but SessionStart/SessionEnd/PreCompact hooks still invoke agentdb-writer.mjs — run: dz setup --target claude-code --memory jsonl (or --memory agentdb to keep agentdb and bring the config back in sync)',
+        });
+      } else {
+        // the OK receipt comes from the SAME comparison that produces the red rows (all three events observed)
+        checks.push({
+          name: 'memory hooks match config',
+          ok: true,
+          detail: configuredMemoryBackend === 'agentdb'
+            ? 'memory.backend=agentdb — SessionStart/SessionEnd/PreCompact all invoke .dz/agentdb-writer.mjs'
+            : `memory.backend=jsonl — SessionStart/SessionEnd/PreCompact do not invoke .dz/agentdb-writer.mjs${settingsPresent ? '' : ' (no .claude/settings.json — no hooks at all)'}`,
         });
       }
     }
@@ -1498,11 +1523,23 @@ export async function runDoctor(options: { projectRoot: string }): Promise<Docto
             resolved.reason === 'tmpdir-short'
               ? ` (tmpdir-short: project path ${projectPathBytes} bytes > ${EMBED_SOCKET_PATH_BYTES_LIMIT})`
               : '';
+          // FR-6 (hook-recall-hybrid-parity): a socket that merely EXISTS is not proof of what it
+          // answers with — probe it. A non-live fixture (a plain file, no listener) fails the probe
+          // near-instantly and this note stays empty, so every pre-existing detail string here is
+          // untouched.
+          // AM-8 (fix round 1): the socket-speaking probe itself now lives in apply-leg.ts (the
+          // module that already owns the daemon's wire protocol + socket-path resolution) rather
+          // than duplicating a `node:net` IO surface here — dynamic `import()`, same pattern as
+          // `embed-socket-path.js` two lines above, so operations.ts carries no new top-level IO
+          // import for this.
+          const { probeRecallEngine } = await import('./apply-leg.js');
+          const engine = sockAlive ? await probeRecallEngine(resolved.path) : undefined;
+          const engineNote = engine !== undefined ? ` (engine: ${engine})` : '';
           checks.push({
             name: 'apply-leg alive (embed daemon)',
             ok: sockAlive,
             detail: sockAlive
-              ? `embed socket present at ${resolved.path}${tmpdirNote} — recall injection can run`
+              ? `embed socket present at ${resolved.path}${tmpdirNote}${engineNote} — recall injection can run`
               : `embed socket ABSENT at ${resolved.path}: the recall hook is wired but cannot inject (the hook self-heals on the next prompt; a persistent absence means the daemon cannot start)`,
           });
         }

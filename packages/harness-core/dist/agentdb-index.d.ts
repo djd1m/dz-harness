@@ -101,16 +101,26 @@ export interface AgentdbSearchResult {
     readonly hits: AgentdbSearchHit[];
     readonly error?: string | undefined;
 }
-/**
- * Resolve agentdb's `EmbeddingService` from the PROJECT (same dynamic-resolution discipline as
- * {@link indexPatternsToAgentdb}); every dz call site uses the same resolved model so query and row
- * vectors stay in the same space.
- */
-export declare function resolveAgentdbEmbedder(projectRoot: string): Promise<{
+type Embedder = {
     embed: (t: string) => Promise<Float32Array>;
 } | {
     error: string;
-}>;
+};
+/** Test-only (and future warm-start) reset — callers (`vector-tier.ts`, `backlog.ts`) are unaffected. */
+export declare function resetAgentdbEmbedderCache(): void;
+/** `entries` = cached keys right now — a SUCCESSFUL pipeline or an IN-FLIGHT initialization (the promise is
+ * cached before it settles, FR-4; a failed one is evicted, FR-3); `initializations` = pipelines actually
+ * started since the last reset. (Codex round-1, 2026-09-14: the earlier wording said "successful" only.) */
+export declare function getAgentdbEmbedderCacheStats(): {
+    entries: number;
+    initializations: number;
+};
+/**
+ * Resolve agentdb's `EmbeddingService` from the PROJECT (same dynamic-resolution discipline as
+ * {@link indexPatternsToAgentdb}); every dz call site uses the same resolved model so query and row
+ * vectors stay in the same space. Cached per process — see {@link embedderCache} above.
+ */
+export declare function resolveAgentdbEmbedder(projectRoot: string): Promise<Embedder>;
 /**
  * Cosine similarity in [-1, 1] over two embeddings. Exported (was file-private) so
  * `harmonizeVectorStore` scores near-duplicate pairs with the IDENTICAL math the semantic search
@@ -246,4 +256,5 @@ export declare function reindexAgentdbRows(projectRoot: string, rows: readonly A
     /** AM-3: present only when `rollback === 'failed'` — why the restore did not fully complete. */
     rollbackError?: string;
 }>;
+export {};
 //# sourceMappingURL=agentdb-index.d.ts.map
