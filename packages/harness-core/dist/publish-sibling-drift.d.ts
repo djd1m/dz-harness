@@ -26,6 +26,19 @@
  * @packageDocumentation
  */
 export type SiblingDriftStatus = 'same' | 'drift' | 'unavailable';
+/**
+ * AM-6 (feature publish-gate-audit-durable): which mechanism produced BOTH sides' file inventory
+ * for this comparison — named on every result, never left implicit. `'npm-pack'`: the caller
+ * injected {@link DetectSiblingDriftOptions.localInventory} (the CLI's `npm pack --dry-run --json`
+ * via {@link parseNpmPackInventory}); the workspace side is exactly what npm will ship, and the
+ * published side is hashed by a FULL recursive walk of the already-unpacked tarball (AM-1 — the
+ * two sides must be symmetric: "every file npm put there" on one side, "every file npm will put
+ * there" on the other). `'readdir-approximation'`: no provider was injected — BOTH sides fall back
+ * to the pre-existing `dist`/`files`/`bin` walk ({@link shippedInventoryDirs}), which stays
+ * symmetric by construction (same function, same rules, both sides) but can miss a file
+ * `.npmignore` excludes or include one npm would never ship.
+ */
+export type InventorySource = 'npm-pack' | 'pnpm-pack' | 'readdir-approximation';
 export interface SiblingDriftResult {
     readonly name: string;
     readonly version: string;
@@ -36,6 +49,12 @@ export interface SiblingDriftResult {
     readonly missingExports: readonly string[];
     /** Present only when status === 'unavailable'. */
     readonly reason?: string;
+    /**
+     * AM-6: named per-result (not merely per-call) because `detectSiblingDrift` short-circuits to
+     * `'unavailable'` before ever reaching the hashing step for some entries — those still carry the
+     * source that WOULD have been used, so a reader never has to guess.
+     */
+    readonly inventorySource: InventorySource;
 }
 export interface FetchedPublished {
     /** Directory holding the extracted published tarball (contains dist/, package.json). */
@@ -56,7 +75,60 @@ export interface DetectSiblingDriftOptions {
     /** Names being published in THIS batch — they publish fresh, so drift cannot be measured against them. */
     readonly batch: ReadonlySet<string>;
     readonly fetchPublished: FetchPublished;
+    /**
+     * FR-3 (feature publish-gate-audit-durable): the LOCAL (workspace) package's shipped-file
+     * inventory, asked from npm instead of approximated by walking `dist`/`files`/`bin` by hand —
+     * `.npmignore` and nested ignore rules make the hand-rolled walk wrong in both directions (a file
+     * npm will never ship can still be read off disk, producing a false drift). No production default
+     * lives in THIS module — core stays pure (never spawns `npm`, per the core-boundary import
+     * ratchet). The CLI runs `npm pack --dry-run --json` and hands the stdout to
+     * {@link parseNpmPackInventory}, then passes the resulting closure here; a caller that injects
+     * nothing (`undefined`) makes `detectSiblingDrift` fall back to the named
+     * `'readdir-approximation'` {@link InventorySource} on BOTH sides (AM-1) — never a silent "no
+     * drift".
+     */
+    readonly localInventory?: LocalInventory;
+    /** Label for the injected provider's source (default `'npm-pack'`); the CLI passes `'pnpm-pack'` for a packed tree. */
+    readonly localInventorySource?: InventorySource;
 }
+/** The exact set of relative paths `npm pack` will ship for a package — no `.npmignore` guessing. */
+export interface PackInventory {
+    readonly paths: readonly string[];
+}
+/** `npm pack --dry-run --json` could not be run or answered in a shape this code cannot use. */
+export interface PackInventoryUnavailable {
+    readonly unavailable: string;
+}
+/**
+ * Lead fix after the fix-round's live dry-run (2026-09-14 01:02): the workspace side PACKED BY THE
+ * LIVE TRANSPORT (`pnpm pack`) and unpacked into `packedDir`. pnpm synthesises a LICENSE from the
+ * workspace root into the tarball of a package whose own tree has none; `npm pack --dry-run --json`
+ * never lists that file, so a `paths` inventory read every such sibling as "LICENSE only in the
+ * published copy" — 2 false drifts (harness-presets, scout) on a tree unchanged since publication.
+ * A packed tree is hashed by the SAME full walk as the published side, symmetric by construction.
+ */
+export interface PackedTree {
+    readonly packedDir: string;
+}
+export type LocalInventoryResult = PackInventory | PackedTree | PackInventoryUnavailable;
+/** Ask what npm would ship for the package rooted at `dir`. Injected in tests (no subprocess). */
+export type LocalInventory = (dir: string) => LocalInventoryResult;
+/**
+ * C-1/AM-4: `npm pack --dry-run --json` is a real subprocess call — the CLI caches its result per
+ * absolute directory for the lifetime of ONE `dz publish` run (not per package being checked), so
+ * a run that checks the same sibling from more than one dependent package packs it only once. Core
+ * itself never runs the subprocess or owns the cache (core-boundary import ratchet) — this parser
+ * is the pure half only.
+ *
+ * Parses `npm pack --dry-run --json`'s stdout (an array with one element; `files[]` holds
+ * `{path,size,mode}` per shipped path, plus `integrity`/`shasum`/`entryCount`) into the exact set of
+ * relative paths npm intends to ship, honouring `.npmignore`/`files`/default-ignore exactly the way
+ * a real `npm publish` would. A failure to run, parse, or make sense of the shape — including a
+ * malformed individual `files[]` element (AM-5: a corrupt entry is a reason to say the WHOLE
+ * inventory is untrustworthy, never a file to silently drop) — is `{ unavailable: reason }`: an
+ * input this gate cannot read is a reason to say so, never a silent "nothing to compare".
+ */
+export declare function parseNpmPackInventory(stdout: string): LocalInventoryResult;
 /**
  * For every `workspace:`-declared dependency of a package that is NOT part of `batch` (i.e. will
  * be pinned to whatever is already on the registry, not published fresh in this run), compare the

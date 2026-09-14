@@ -31,7 +31,7 @@
  *
  * @packageDocumentation
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync, renameSync, appendFileSync, copyFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync, renameSync, appendFileSync, copyFileSync, statSync, realpathSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
@@ -430,12 +430,121 @@ function logMirrorNote(projectRoot, error, pending) {
     }
     catch { /* best-effort */ }
 }
-function pickEngine(projectRoot, opts) {
+/** Module-level, per-process cache. Keyed by `realpath(projectRoot)` (AM-6): two callers that name
+ * the SAME project through different paths (a symlinked checkout, a relative vs. absolute cwd) must
+ * share one slot, not silently duplicate it — `realpath` is what `resolveVectorEngine` itself
+ * ultimately resolves native deps against. One long-lived caller (the recall daemon, feature
+ * `hook-recall-hybrid-parity`) serves exactly one project for its whole lifetime; a short-lived CLI
+ * invocation would populate + discard a slot within one process, which is why `pickEngine` below
+ * only ever reads this cache for `mode: 'hook'` — the CLI path never touches it (AM-10, I-1 parity).
+ *
+ * Bounded (AM-6): a daemon is expected to serve one project, but nothing enforces that structurally
+ * (`DZ_PROJECT_ROOT` could vary run to run in a shared test harness), so the cache evicts its LEAST
+ * RECENTLY USED entry rather than growing without bound for the lifetime of a long-lived process.
+ */
+const engineCache = new Map();
+/** Measured: a daemon serves exactly one `DZ_PROJECT_ROOT` for its whole life (ADR-001 D1); 8 is a
+ * >>1 safety margin for a shared-process test harness that reuses the module across several fixture
+ * projects, never a production expectation. */
+const ENGINE_CACHE_MAX_ENTRIES = 8;
+/** Realpath of `projectRoot`, falling back to the raw path when it cannot be resolved (a project
+ * root that does not exist yet, or a permissions error) — the cache must still work, just without
+ * the symlink-collapsing benefit, exactly as it did before AM-6. */
+function engineCacheKey(projectRoot) {
+    try {
+        return realpathSync(projectRoot);
+    }
+    catch {
+        return projectRoot;
+    }
+}
+/** stat facts of `<root>/.dz/agentdb.db`, or `-1`/`-1`/`-1` when absent — a distinct, stable cache
+ * key for "no store yet" so a project that later gains a store is never confused with one that
+ * never had (statSync's own floor is mtime 0). Never throws. */
+function agentdbDbStat(projectRoot) {
+    try {
+        const st = statSync(join(projectRoot, '.dz', 'agentdb.db'));
+        return { mtimeMs: st.mtimeMs, size: st.size, ino: st.ino };
+    }
+    catch {
+        return { mtimeMs: -1, size: -1, ino: -1 };
+    }
+}
+/** True when NONE of the three independent signals changed — the only case where a cached engine
+ * may still be trusted (AM-6). Any one of them differing (a same-tick replace still bumps size or
+ * gets a fresh inode from a temp+rename write) forces a re-resolve. */
+function agentdbDbStatUnchanged(a, b) {
+    return a.mtimeMs === b.mtimeMs && a.size === b.size && a.ino === b.ino;
+}
+/** Evict the least-recently-used entry once the cache is at capacity — called only on a genuine
+ * miss, so a cache that never exceeds {@link ENGINE_CACHE_MAX_ENTRIES} never pays this scan. */
+function evictLeastRecentlyUsed() {
+    if (engineCache.size < ENGINE_CACHE_MAX_ENTRIES)
+        return;
+    let oldestKey;
+    let oldestAt = Infinity;
+    for (const [key, entry] of engineCache) {
+        if (entry.stat.lastUsedAt < oldestAt) {
+            oldestAt = entry.stat.lastUsedAt;
+            oldestKey = key;
+        }
+    }
+    if (oldestKey !== undefined)
+        engineCache.delete(oldestKey);
+}
+/**
+ * FR-3 (`hook-recall-hybrid-parity`, ADR-001): resolve the vector engine ONCE per project and
+ * reuse it across calls in the SAME process, instead of re-running `resolveVectorEngine`'s
+ * `isPackageInstalled` walk + native-dep probe on every single request — the cost a long-lived
+ * daemon answering one recall per prompt would otherwise pay repeatedly. Invalidated the moment
+ * `.dz/agentdb.db`'s mtime, size, OR inode changes (AM-6 — a `dz teach`/`consolidate` landed
+ * between requests), so a cached engine can never silently outlive the store it was resolved
+ * against, even across a mtime-preserving replace.
+ *
+ * `resolve` is injectable (AC-3, spy-testable): production code always uses the default
+ * {@link resolveVectorEngine}; a test passes a counting wrapper as the second argument instead of
+ * mocking the module, which — for two functions in the SAME ES module — `vi.spyOn` cannot
+ * intercept reliably when the callee is invoked by its own local name.
+ */
+export function getOrOpenEngine(projectRoot, resolve = resolveVectorEngine) {
+    const key = engineCacheKey(projectRoot);
+    const stat = agentdbDbStat(projectRoot);
+    const now = Date.now();
+    const cached = engineCache.get(key);
+    if (cached !== undefined && agentdbDbStatUnchanged(cached.stat, stat)) {
+        cached.stat.lastUsedAt = now;
+        return cached.resolved;
+    }
+    const resolved = resolve(projectRoot);
+    // Codex round-3 (2026-09-14): a REFRESH of an existing key replaces in place — evicting first would
+    // drop an unrelated entry and shrink the cache for nothing; only a brand-new key needs room.
+    if (cached === undefined)
+        evictLeastRecentlyUsed();
+    engineCache.set(key, { resolved, stat: { ...stat, lastUsedAt: now } });
+    return resolved;
+}
+/** Test-only: drop every cached engine. A fresh process never needs this; a test suite reusing one
+ * project root across cases (or reusing this module's singleton cache across tests) does. */
+export function __resetEngineCacheForTests() {
+    engineCache.clear();
+}
+/**
+ * AM-10 regression fix: caching was previously applied to EVERY caller of `pickEngine`, including
+ * `dz recall` itself — a short-lived CLI process gains nothing from caching (I-1 parity note above)
+ * and the cache's mtime-only key (pre-AM-6) could serve a STALE resolution across two calls in the
+ * SAME test/process whose `.dz/agentdb.db` was replaced within one mtime tick (MEASURED regression:
+ * `recall-output-honesty.test.ts` › "the setup advice does not fire when the vector tier is already
+ * installed" went red — an empty-footprint resolution from an earlier call in the same run was
+ * served back after `installEmptyVectorTier` had since written a real engine). Only `mode: 'hook'`
+ * (the recall daemon, the ONE long-lived caller this cache exists for) reads the cache; every other
+ * mode resolves fresh, byte-identical to the pre-cache behavior.
+ */
+function pickEngine(projectRoot, opts = {}) {
     if (opts.engine === null)
         return { reason: 'vector engine disabled (injected)' };
     if (opts.engine !== undefined)
         return { engine: opts.engine };
-    return resolveVectorEngine(projectRoot);
+    return opts.mode === 'hook' ? getOrOpenEngine(projectRoot) : resolveVectorEngine(projectRoot);
 }
 /**
  * Mirror prepared {@link VectorEntry}s into the vector store — **the single write seam** that

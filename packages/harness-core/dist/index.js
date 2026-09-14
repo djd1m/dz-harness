@@ -90,7 +90,7 @@ export { countLearningStoreRowsReadonly, quarantineTierParity } from './store-co
 export { STORE_GUARD_VERSION, STORE_COLLAPSE_MAX_FRACTION, STORE_COLLAPSE_LAST_ROWS, storeGuardPath, storeSnapshotPath, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, } from './store-guard.js';
 export { statuslineData, readFeatureAdrState, writeFeatureAdrState, featureAdrStateDir, featureAdrStatePath, writeFeatureAdrStateDetailed, renderFeatureAdrPhaseLine } from './statusline.js';
 export { ETA_MAX_STAGE_MS, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, } from './eta.js';
-export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema } from './agentdb-index.js';
+export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, resetAgentdbEmbedderCache, getAgentdbEmbedderCacheStats, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema } from './agentdb-index.js';
 export { DEFAULT_EMBED_MODEL, LEGACY_EMBED_MODEL, DEFAULT_EMBED_DIM, KNOWN_EMBED_DIMS, resolveEmbedModel, readEmbedManifest, writeEmbedManifest, embedManifestPath, legacyEmbedManifest } from './embedding-config.js';
 export { putBookKnowledge, queryBookKnowledge, bookKbPath } from './book-kb.js';
 export { applyReadonlyPragmas, classifySqliteReadFailure, warnOnce } from './sqlite-read-helpers.js';
@@ -142,10 +142,10 @@ export { discoverInstalled, checkUpgrades } from './upgrade.js';
 // Verified-release engine (feature release-verified, ADR-001) — pure VERIFY-phase planner +
 // classifier in front of the untouched publish path. formatPublishError is re-exported for the
 // CLI executor's captured-output discipline.
-export { collectPackageFacts, selectAffectedPackages, planReleaseGates, classifyGateExecutions, buildFailureIssue, buildReleaseNotes, releaseTagName, firstOutputLine, RELEASE_GATE_ORDER, RELEASE_TIMEOUTS, } from './release.js';
+export { collectPackageFacts, selectAffectedPackages, planReleaseGates, classifyGateExecutions, buildFailureIssue, buildReleaseNotes, releaseTagName, firstOutputLine, testsFailureDetail, outputTail, RELEASE_GATE_ORDER, RELEASE_TIMEOUTS, } from './release.js';
 export { formatPublishError } from './publish.js';
 // Sibling-drift + packed-install-smoke gates (feature publish-sibling-drift-gate, ADR-001).
-export { detectSiblingDrift } from './publish-sibling-drift.js';
+export { detectSiblingDrift, parseNpmPackInventory } from './publish-sibling-drift.js';
 export { planPackedInstallSmoke, judgePackedInstallSmoke, packedTarballName } from './packed-install-smoke.js';
 export { computeRiskScore } from './risk-scoring.js';
 export { MODEL_PRICES, pricingFor, hasKnownPricing, normalizeUsage, usageCost, invocationCost, costEfficiency, estimateSkillCost, } from './cost-scoring.js';

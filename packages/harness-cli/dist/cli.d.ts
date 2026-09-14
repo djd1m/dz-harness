@@ -140,6 +140,20 @@ export interface CliIo {
         env?: NodeJS.ProcessEnv | undefined;
     }) => string;
     /**
+     * Test seam for `dz publish`'s gate-audit writer (feature `publish-gate-audit-durable`, FR-2):
+     * overrides the fs primitives `appendPublishGateAudit` uses for its durable append (production
+     * leaves it unset → the real `node:fs` functions). Lets a test make `fsyncSync` throw to prove
+     * `(audit NOT logged: …)` is printed and the write is reported as failed, without touching any
+     * other seam's filesystem.
+     */
+    readonly publishGateAuditFsLayer?: PublishGateAuditFsLayer;
+    /**
+     * AM-5 (feature publish-gate-audit-durable): test seam for the sibling-drift gate's `npm pack
+     * --dry-run --json` call (production leaves it unset → real `execFileSync`). Takes the package
+     * dir, returns raw stdout, or throws to simulate a real `npm` failure without spawning anything.
+     */
+    readonly publishNpmPackRunner?: (dir: string) => string;
+    /**
      * Test seam for `dz install`: overrides the `npm install` subprocess (production leaves
      * it unset → real `execSync`, stdio piped). A stub runner that pre-stages a fixture
      * package under `node_modules/` makes `cmdInstall`'s layout resolution testable
@@ -246,6 +260,29 @@ export declare function codexHooksSummary(report: CodexHooksSyncReport, label?: 
 export declare function deliverCodexHooks(input: CodexHooksSyncInput, sync?: (options: Parameters<typeof runSyncCodexHooks>[0]) => CodexHooksSyncReport, label?: string): CodexHooksSummary & {
     readonly report: CodexHooksSyncReport;
 };
+/**
+ * fs primitives `appendPublishGateAudit` needs for its durable write (FR-2), injectable so a test
+ * can make `fsyncSync` throw without touching the real filesystem underneath every OTHER seam this
+ * function shares with production. Left unset in production → the real `node:fs` functions above.
+ */
+interface PublishGateAuditFsLayer {
+    readonly existsSync: (path: string) => boolean;
+    readonly mkdirSync: (path: string, opts: {
+        recursive: boolean;
+    }) => void;
+    readonly openSync: (path: string, flags: number) => number;
+    /**
+     * AM-2 (Codex round-1 review, finding 2, high): `Buffer`, not `string` — a SHORT write must
+     * resume at the exact BYTE it stopped at, and a string-based API cannot express that safely once
+     * the data contains any multi-byte UTF-8 character (re-encoding a slice of an already-partial
+     * string can silently produce different bytes than the ones actually pending). The real
+     * `node:fs.writeSync` accepts a `Buffer` directly (no re-encoding), so this changes nothing about
+     * what production writes.
+     */
+    readonly writeSync: (fd: number, data: Buffer) => number;
+    readonly fsyncSync: (fd: number) => void;
+    readonly closeSync: (fd: number) => void;
+}
 export declare function boundedMutationGateOutputTail(output: string): string | undefined;
 /** Test seam for the chokepoint: NEW-C4's proof needs to call it with a hostile pid. */
 export declare function __wfSignalChildTestSeam(child: unknown, signal: string, detached: boolean): boolean;

@@ -137,8 +137,15 @@ export interface ResolvedVectorEngine {
     readonly engine?: VectorEngine | undefined;
     readonly reason?: string | undefined;
 }
-/** Recall mode: `hybrid` (default), `semantic` (`--semantic`, 2× vector weight), `lexical` (`--no-semantic`). */
-export type HybridRecallMode = 'hybrid' | 'semantic' | 'lexical';
+/**
+ * Recall mode: `hybrid` (default), `semantic` (`--semantic`, 2× vector weight), `lexical`
+ * (`--no-semantic`), `hook` (feature `hook-recall-hybrid-parity`, ADR-001 D1/D2) — the SAME ranking
+ * as `hybrid` (no weight change), used by the recall daemon so `mode` travels end to end for
+ * observability; the caller is responsible for also passing `deferExposures: true` and never
+ * calling the returned `commitExposures` — that is what actually keeps a per-prompt hook recall
+ * from moving the bandit's exposure counts (FR-1/FR-7 in that feature's requirements).
+ */
+export type HybridRecallMode = 'hybrid' | 'semantic' | 'lexical' | 'hook';
 /** One merged recall hit (RRF-scored). `pattern` ALWAYS comes from the lexical store (V-1). */
 export interface HybridHit {
     readonly pattern: PatternRecord;
@@ -466,6 +473,24 @@ export interface VectorServiceOptions {
     readonly engine?: VectorEngine | null | undefined;
     readonly timeoutMs?: number | undefined;
 }
+/**
+ * FR-3 (`hook-recall-hybrid-parity`, ADR-001): resolve the vector engine ONCE per project and
+ * reuse it across calls in the SAME process, instead of re-running `resolveVectorEngine`'s
+ * `isPackageInstalled` walk + native-dep probe on every single request — the cost a long-lived
+ * daemon answering one recall per prompt would otherwise pay repeatedly. Invalidated the moment
+ * `.dz/agentdb.db`'s mtime, size, OR inode changes (AM-6 — a `dz teach`/`consolidate` landed
+ * between requests), so a cached engine can never silently outlive the store it was resolved
+ * against, even across a mtime-preserving replace.
+ *
+ * `resolve` is injectable (AC-3, spy-testable): production code always uses the default
+ * {@link resolveVectorEngine}; a test passes a counting wrapper as the second argument instead of
+ * mocking the module, which — for two functions in the SAME ES module — `vi.spyOn` cannot
+ * intercept reliably when the callee is invoked by its own local name.
+ */
+export declare function getOrOpenEngine(projectRoot: string, resolve?: (root: string) => ResolvedVectorEngine): ResolvedVectorEngine;
+/** Test-only: drop every cached engine. A fresh process never needs this; a test suite reusing one
+ * project root across cases (or reusing this module's singleton cache across tests) does. */
+export declare function __resetEngineCacheForTests(): void;
 /**
  * Mirror prepared {@link VectorEntry}s into the vector store — **the single write seam** that
  * teach, `teach --from-json`, consolidate, and the backfill all route through (QR-6). The

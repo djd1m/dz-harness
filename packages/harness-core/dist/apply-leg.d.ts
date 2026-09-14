@@ -27,6 +27,30 @@
  * @packageDocumentation
  */
 /**
+ * FR-6 (feature `hook-recall-hybrid-parity`, ADR-001 C-4): send ONE `op: recall` probe to a LIVE
+ * embed daemon socket and report the `engine` it answers with (`'hybrid'` | `'cosine-fallback'`) —
+ * `dz doctor` prints this so an operator can SEE which engine is actually serving prompts, rather
+ * than trusting the daemon's mere presence. Honest-degrade contract, matching every other doctor
+ * probe: a non-socket path (e.g. a plain file, as every non-live doctor fixture in this repo uses),
+ * a connection error, an unparsable reply, or a timeout all resolve to `undefined` — NEVER a thrown
+ * error, and never distinguishable from "no daemon" in the caller's output (the existing "socket
+ * present/absent" line already carries that half of the truth).
+ *
+ * `timeoutMs` defaults to 1000 ms — comfortably above the documented `HOOK_RECALL_BUDGET_MS` default
+ * (500 ms): under that default, a cold `recallHybrid` semantic leg routinely exceeds the budget in
+ * this environment (MEASURED — see the manifest's NFR-1 discussion), so the daemon's OWN answer
+ * time is closer to ~500-550 ms than to the socket round-trip cost alone; a shorter probe timeout
+ * would silently miss a live, correctly-answering daemon and report no engine at all.
+ *
+ * AM-8 (fix round 1): lives HERE, not in `operations.ts` — this module already owns the daemon's
+ * wire protocol (`recallHookSource`/`embedDaemonSource`'s generated `op: recall` handshake) and its
+ * socket-path resolution; `operations.ts`'s `runDoctor` reaches it via a dynamic `import()`
+ * (matching its existing `embed-socket-path.js` import one line above the call site) rather than
+ * duplicating a second, independent `node:net` IO surface in a file whose job is orchestration, not
+ * protocol.
+ */
+export declare function probeRecallEngine(socketPath: string, timeoutMs?: number): Promise<string | undefined>;
+/**
  * Version stamped into BOTH generated helper files as `// dz-apply-leg-version: N` (line 2, right
  * after the shebang). Bump on ANY change to {@link recallHookSource} or {@link embedDaemonSource}'s
  * output — `runSetup` regenerates a deployed helper whose stamp is older, without requiring
@@ -43,8 +67,26 @@
  * compiled module), the daemon writes a `.dz/embed.sock.path` pointer when it picks the tmpdir-short
  * branch, and `ready` is now printed only after `existsSync(SOCKET)` confirms the bind actually
  * landed (previously logged unconditionally, before `listen` even ran).
+ *
+ * Bumped 4→5 (feature `hook-recall-hybrid-parity`, ADR-001 D1/D2): the daemon's `op: recall`
+ * handler now tries core's `recallHybrid` FIRST — under a time budget (`HOOK_RECALL_BUDGET_MS`,
+ * default 500 ms) — via the SAME `CORE_DIST_DIR` + `loadCoreModule` mechanism the hook already
+ * used only for its policy modules; on budget overrun, engine error, or no resolvable core module
+ * it falls back to today's brute-force cosine, honestly labelled `engine: 'cosine-fallback'` with a
+ * `reason`. The hook now reads `engine`/`reason` off the daemon's reply (stderr-only, never
+ * context) and applies its relevance floor to the NEW `score` format when `engine === 'hybrid'`,
+ * preserving today's cosine-calibrated floor unchanged for the `cosine-fallback` path.
+ *
+ * Bumped 5→6 (`hook-recall-hybrid-parity`, fix round 1 — AM-1/AM-2/AM-3/AM-5): the daemon now
+ * (a) fires a fire-and-forget engine warm-up before `listen()` (AM-1) so the first REAL `op: recall`
+ * is less likely to pay a cold `resolveAgentdbEmbedder` init; (b) arms the budget timer BEFORE
+ * `loadCoreModule()`, not after (AM-2, wall clock from request receipt); (c) treats ANY failure
+ * past the budget race — a malformed hit, `patternRecordId()` throwing — as an honest cosine
+ * fallback rather than a bare protocol error (AM-3); (d) reports the RAW core RRF score, unchanged,
+ * instead of a locally re-normalized [0,1] value (AM-5) — the hook's own `HOOK_SCORE_FLOOR` default
+ * moved from `0.01` to `0.005` to match (see that constant's own comment for the measurement).
  */
-export declare const APPLY_LEG_VERSION = 4;
+export declare const APPLY_LEG_VERSION = 6;
 /**
  * Parse the `dz-apply-leg-version` stamp from a deployed helper file. Unlike
  * `writerVersionOf` (which floors an absent stamp at `0`), this returns `-1` for "no stamp at
@@ -114,13 +156,22 @@ export interface ResolvedIdleMs {
 export declare function resolveIdleMs(raw: number): ResolvedIdleMs;
 /**
  * Generate `.claude/helpers/dz-embed-daemon.mjs`. Behaviourally identical to the pre-existing
- * hand-committed hub file except for: the version stamp (new, line 2) and `resolveDeps()`, which
- * now tries `@huggingface/transformers` before falling back to `@xenova/transformers` — AM-3,
+ * hand-committed hub file except for: the version stamp (new, line 2), `resolveDeps()`, which
+ * tries `@huggingface/transformers` before falling back to `@xenova/transformers` — AM-3,
  * dz-harness-hub issue #10 defect 3: `agentdb >= 3.0.0-alpha` depends on the former, and an older
  * agentdb install still carries the latter, so probing only one name silently starved the daemon
- * on either side of that agentdb version boundary.
+ * on either side of that agentdb version boundary — and (feature `hook-recall-hybrid-parity`,
+ * ADR-001 D1) the `op: recall` handler, which now tries core's `recallHybrid` under a time budget
+ * before falling back to the brute-force cosine below.
+ *
+ * `coreDistDir` (new parameter, ADR-001 D1) is baked in exactly like {@link recallHookSource}'s own
+ * parameter of the same name — the FIRST resolve candidate for `loadCoreModule`. `null` (the
+ * default, and what every existing zero-arg call site gets) is the same PORTABLE marker
+ * `recallHookSource(null)` uses: `loadCoreModule` falls through to the project-relative fallback
+ * candidates, resolved from `DZ_PROJECT_ROOT`/`cwd()` at daemon RUNTIME, which is correct in any
+ * clone and for any consumer whose `harness-core` install is reachable under its own project tree.
  */
-export declare function embedDaemonSource(): string;
+export declare function embedDaemonSource(coreDistDir?: string | null): string;
 /** One Claude Code hook-registry entry in the matcher-group shape (no matcher — session/prompt events don't need one). */
 export interface ApplyLegHookEntry {
     readonly hooks: readonly {

@@ -3,7 +3,8 @@
  *
  * @packageDocumentation
  */
-import { appendFileSync, chmodSync, closeSync, cpSync, existsSync, fstatSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readSync, readdirSync, readlinkSync, realpathSync, renameSync, rmdirSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
+import { parseNpmPackInventory } from '@dzhechkov/harness-core';
+import { appendFileSync, chmodSync, closeSync, constants as fsConstants, cpSync, existsSync, fstatSync, fsyncSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readSync, readdirSync, readlinkSync, realpathSync, renameSync, rmdirSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync, writeSync } from 'node:fs';
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { request as httpsRequest } from 'node:https';
@@ -6236,7 +6237,85 @@ function mirrorFailureMessage(error) {
 function packedInstallScratchRoot() {
     return existsSync('/var/tmp') ? '/var/tmp' : tmpdir();
 }
-function cmdPublish(options, flags, cwd, writeOutput, mirrorRunner, siblingDriftFetcher, packedInstallRunner, publishExecRunner) {
+/**
+ * FR-1 (feature release-smoke-staged-pack): stage every target's `package.json` exactly like a
+ * live publish packs it — `workspace:*` sibling specs rewritten to the exact sibling version
+ * (`rewriteWorkspaceSpecs`), `scripts.prepublishOnly` dropped — run `fn`, then ALWAYS restore the
+ * original bytes in a `finally`, whatever `fn` does or throws. A restore failure is reported
+ * through `write` (with the path), never swallowed — the "absence of a receipt is not success"
+ * rule this file follows everywhere else.
+ *
+ * `cmdPublish`'s dry-run preview and `cmdRelease`'s packed-install-smoke `pack` steps both go
+ * through this ONE helper, so the two doors that ask "what would the registry receive?" pack the
+ * exact same bytes (MEASURED 2026-09-13 16:05: `dz release` packed the live `workspace:*`
+ * package.json and its smoke install died with EUNSUPPORTEDPROTOCOL — `dz publish`'s preview
+ * already staged around this and release never got that).
+ */
+function withStagedPackageJson(targets, workspaceVersions, write, fn, label = 'dz') {
+    // Lead edits after Codex review (2026-09-13, findings 1/5/6): every write — the staged text and
+    // the restore — goes through a sibling temp file + rename, so a reader never sees a truncated
+    // package.json; a restore that FAILS is an error the caller must see (thrown after fn, or attached
+    // to fn's own error), never a warning that lets a run "succeed" on a damaged tree; and the
+    // diagnostic keeps the calling command's name (`label`).
+    const atomicWrite = (path, text) => {
+        // Codex round 2: an EXCLUSIVE, randomized sibling temp — never a shared pid-named file
+        const tmp = `${path}.${process.pid}.${randomBytes(6).toString('hex')}.staged.tmp`;
+        writeFileSync(tmp, text, { flag: 'wx' });
+        renameSync(tmp, path);
+    };
+    const stagedOriginals = [];
+    let fnError;
+    let fnThrew = false;
+    try {
+        for (const p of targets) {
+            const pkgJsonPath = join(p.dir, 'package.json');
+            const original = readFileSync(pkgJsonPath, 'utf-8');
+            const rewritten = JSON.parse(rewriteWorkspaceSpecs(original, workspaceVersions));
+            const scripts = rewritten['scripts'];
+            if (scripts !== null && typeof scripts === 'object' && !Array.isArray(scripts))
+                delete scripts['prepublishOnly'];
+            stagedOriginals.push({ path: pkgJsonPath, text: original });
+            atomicWrite(pkgJsonPath, JSON.stringify(rewritten, null, 2) + '\n');
+        }
+        return fn();
+    }
+    catch (err) {
+        fnThrew = true;
+        fnError = err;
+        throw err;
+    }
+    finally {
+        const restoreFailures = [];
+        for (const o of stagedOriginals) {
+            try {
+                atomicWrite(o.path, o.text);
+            }
+            catch (err) {
+                const msg = `${label}: ✗ could not restore ${o.path} after staged packing: ${formatPublishError(err)} — the tree is left STAGED, restore it by hand`;
+                try {
+                    write(msg);
+                }
+                catch { /* a throwing writer must not mask the restore failure */ }
+                restoreFailures.push(msg);
+            }
+        }
+        if (restoreFailures.length > 0) {
+            // Codex round 2: one aggregate error carrying BOTH fn's own failure (if any) and the restore
+            // failures — never a bare message assignment that could itself throw out of finally.
+            const fnPart = fnThrew ? `\n(during: ${fnError instanceof Error ? fnError.message : String(fnError)})` : '';
+            // eslint-disable-next-line no-unsafe-finally -- a damaged tree must not read as success
+            throw new Error(`${restoreFailures.join('\n')}${fnPart}`);
+        }
+    }
+}
+function cmdPublish(options, flags, cwd, writeOutput, mirrorRunner, siblingDriftFetcher, packedInstallRunner, publishExecRunner, gateAuditFsLayer, 
+/**
+ * AM-5 (feature publish-gate-audit-durable): test seam for the sibling-drift gate's `npm pack
+ * --dry-run --json` call — production leaves it unset (real `execFileSync`). Takes the package
+ * dir, returns raw stdout, or THROWS to simulate a real `npm` failure — a test can then prove the
+ * failure reaches `parseNpmPackInventory`'s caller as `unavailable`, never a real subprocess.
+ */
+npmPackRunner) {
     const json = flags.has('json');
     // Under --json stdout carries exactly one JSON document, so every human line — guard notes, refusals,
     // progress — goes to stderr instead of being dropped: a refusal that prints nothing is the silent
@@ -6379,19 +6458,57 @@ function cmdPublish(options, flags, cwd, writeOutput, mirrorRunner, siblingDrift
                 return null;
             }
         });
-    // AM-6: an override (--allow-sibling-drift) is only real once its audit row is DURABLE. A write
-    // failure must refuse the publish rather than print "(logged)" about a log entry that never
-    // landed — the same "absence of a receipt is not success" lesson the registry-probe gate already
-    // enforces for a publish's own confirmation.
-    const auditedOverride = (detail, humanMessage, pkgNameForBlock) => {
-        const wrote = appendPublishGateAudit(cwd, 'sibling-drift', 'warn', detail, '--allow-sibling-drift');
-        if (wrote) {
-            write(`dz publish: ⚠ ${humanMessage} — allowed via --allow-sibling-drift (logged)`);
-            return false;
+    // AM-4: `npm pack --dry-run --json` is a real subprocess — cache it for the lifetime of this
+    // ENTIRE run (keyed by resolved dir), NOT per package being checked (round-1 review, finding 5):
+    // the cache used to be re-created inside the per-package loop body, so two different dependents
+    // of the SAME sibling packed it twice. `npmPackRunner` (AM-5) is a test seam — production leaves
+    // it unset and runs the real subprocess; a test injects a stub that throws to prove a real `npm`
+    // failure reaches the caller as `unavailable`, without spawning anything.
+    // Lead fix after the fix-round's live dry-run (2026-09-14 01:02, MEASURED on the hub): the
+    // workspace side is now PACKED BY THE LIVE TRANSPORT — `pnpm pack` into a per-run temp dir,
+    // unpacked, and handed to core as a `packedDir` that core hashes with the SAME full walk it uses
+    // for the published tarball. `npm pack --dry-run --json` (kept behind the `npmPackRunner` test
+    // seam) never lists the LICENSE pnpm synthesises from the workspace root into a package whose own
+    // tree has none, so two siblings unchanged since publication (harness-presets, scout) read as
+    // "LICENSE only in the published copy" — a false drift the fix-round's inventory could not see.
+    // Honest limit: the seam path (tests) still parses npm's JSON; only production takes the pnpm path.
+    const npmPackInventoryCache = new Map();
+    let packTmpDir;
+    const npmPackInventory = (dir) => {
+        const key = resolve(dir);
+        const hit = npmPackInventoryCache.get(key);
+        if (hit !== undefined)
+            return hit;
+        let out;
+        try {
+            if (npmPackRunner !== undefined) {
+                out = parseNpmPackInventory(npmPackRunner(dir));
+            }
+            else {
+                packTmpDir ??= mkdtempSync(join(tmpdir(), 'dz-drift-pack-'));
+                out = { packedDir: extractIntoTempDir(dir, mkdtempSync(join(packTmpDir, 'p-'))).dir };
+            }
         }
-        write(`dz publish: BLOCKED ${pkgNameForBlock} — ${humanMessage}, and the override could not be recorded (audit write failed); refusing rather than proceeding unlogged`);
-        return true;
+        catch (err) {
+            const how = npmPackRunner !== undefined ? 'npm pack --dry-run --json' : 'pnpm pack';
+            out = { unavailable: `${how} failed: ${err.message.split('\n')[0]}` };
+        }
+        npmPackInventoryCache.set(key, out);
+        return out;
     };
+    const localInventorySource = npmPackRunner !== undefined ? 'npm-pack' : 'pnpm-pack';
+    // AM-3 (Codex round-1 review, finding 4, high): sibling-drift audit records are EXACTLY one per
+    // package per rule per RUN. The old code appended one JSONL record per SIBLING a package depends
+    // on (a package with two drifted deps wrote two rows under the same rule), and the `unavailable`
+    // branch without `--allow-sibling-drift` wrote NO record at all. Every sibling outcome for a
+    // package is now aggregated first (`pkParts`/`pkVerdict`/`pkOverrideUsed`) and written ONCE —
+    // `block` if any sibling blocks, else `warn` if the only issues were resolved via
+    // `--allow-sibling-drift`, else `pass` — with a detail naming every sibling and its status.
+    // `siblingDriftAudited` guarantees the single write even though `--include-drifted`'s fixed-point
+    // loop can revisit the SAME package across rounds: a package's own `dependencies` never change
+    // between rounds, so a later round can only ever re-derive a SUBSET of what the first pass
+    // already covered (its siblings that drifted got folded into the batch and are now skipped).
+    const siblingDriftAudited = new Set();
     let driftBlocked = 0;
     const extraBatch = new Set();
     // AM-2: --include-drifted must reach a FIXED POINT over transitive drifted siblings — a sibling
@@ -6399,92 +6516,156 @@ function cmdPublish(options, flags, cwd, writeOutput, mirrorRunner, siblingDrift
     // (finding 2) showed the single pass never re-checked an EXPANDED batch's own new edges. Capped at
     // `allPackages.length + 1` rounds (the plan's own "цикл с потолком = число пакетов").
     const maxRounds = allPackages.length + 1;
-    for (let round = 0; round < maxRounds; round++) {
-        let addedThisRound = false;
-        for (const pk of targets) {
-            let manifestObj;
-            try {
-                manifestObj = JSON.parse(readFileSync(join(pk.dir, 'package.json'), 'utf-8'));
-            }
-            catch (err) {
-                // AM-3: an unreadable/invalid package.json for a BATCH package is an input this HARD gate
-                // cannot build — it must BLOCK, never silently degrade to "no dependencies" (which used to
-                // read as a clean n/a).
-                const reason = `package.json unreadable/invalid (${err.message.split('\n')[0]})`;
-                if (allowSiblingDrift) {
-                    if (auditedOverride(`${pk.name}: ${reason}`, `sibling drift check unavailable for ${pk.name} (${reason})`, pk.name))
-                        driftBlocked++;
+    // Codex round-3 (2026-09-14): the per-run pack scratch is released in a `finally`, so an
+    // exception thrown while hashing or auditing cannot leak a `dz-drift-pack-*` dir under tmpdir.
+    try {
+        for (let round = 0; round < maxRounds; round++) {
+            let addedThisRound = false;
+            for (const pk of targets) {
+                let manifestObj;
+                try {
+                    manifestObj = JSON.parse(readFileSync(join(pk.dir, 'package.json'), 'utf-8'));
                 }
-                else {
-                    write(`dz publish: BLOCKED ${pk.name} — sibling drift check unavailable (${reason}); add --allow-sibling-drift to override (logged) or fix the manifest`);
-                    driftBlocked++;
-                }
-                continue;
-            }
-            const deps = manifestObj?.dependencies ?? {};
-            const peerDeps = manifestObj?.peerDependencies ?? {};
-            const optionalDeps = manifestObj?.optionalDependencies ?? {};
-            // AM-6: a package with no workspace: dependency at all is n/a for THIS gate — recorded as a
-            // pass note, not silence (FR-6 compatibility: output stays unchanged for such a batch).
-            const anyWorkspaceDep = [...Object.values(deps), ...Object.values(peerDeps), ...Object.values(optionalDeps)]
-                .some((spec) => String(spec).startsWith('workspace:'));
-            if (!anyWorkspaceDep) {
-                appendPublishGateAudit(cwd, 'sibling-drift', 'pass', `${pk.name}: n/a — no workspace: dependency declared`);
-                continue;
-            }
-            const drifts = detectSiblingDrift({
-                dependencies: deps,
-                peerDependencies: peerDeps,
-                optionalDependencies: optionalDeps,
-                workspaceVersions,
-                workspaceDirs,
-                batch: batchNames,
-                fetchPublished,
-            });
-            for (const r of drifts) {
-                if (r.status === 'same') {
-                    appendPublishGateAudit(cwd, 'sibling-drift', 'pass', `${r.name}@${r.version} = workspace (dependent: ${pk.name})`);
-                    write(`dz publish: ✓ sibling drift: none (${r.name}@${r.version} = workspace)`);
-                }
-                else if (r.status === 'unavailable') {
-                    if (allowSiblingDrift) {
-                        if (auditedOverride(`${r.name}@${r.version}: ${r.reason}`, `sibling drift check unavailable for ${r.name}@${r.version} (${r.reason})`, pk.name))
+                catch (err) {
+                    // AM-3: an unreadable/invalid package.json for a BATCH package is an input this HARD gate
+                    // cannot build — it must BLOCK, never silently degrade to "no dependencies" (which used to
+                    // read as a clean n/a). AND (finding 4) the non-override branch below used to print a
+                    // BLOCKED line with NO audit record behind it — an `unavailable` outcome is logged exactly
+                    // like every other outcome, override or not.
+                    const reason = `package.json unreadable/invalid (${err.message.split('\n')[0]})`;
+                    if (!siblingDriftAudited.has(pk.name)) {
+                        siblingDriftAudited.add(pk.name);
+                        if (allowSiblingDrift) {
+                            const wrote = appendPublishGateAudit(cwd, 'sibling-drift', 'warn', `${pk.name}: ${reason} — allowed via --allow-sibling-drift`, [{ name: pk.name, version: pk.version }], '--allow-sibling-drift', gateAuditFsLayer);
+                            if (wrote.logged) {
+                                write(`dz publish: ⚠ sibling drift check unavailable for ${pk.name} (${reason}) — allowed via --allow-sibling-drift (logged)`);
+                            }
+                            else {
+                                write(`dz publish: BLOCKED ${pk.name} — sibling drift check unavailable for ${pk.name} (${reason}), and the override could not be recorded (audit write failed: ${wrote.reason ?? 'unknown reason'}); refusing rather than proceeding unlogged`);
+                                driftBlocked++;
+                            }
+                        }
+                        else {
+                            const wrote = appendPublishGateAudit(cwd, 'sibling-drift', 'block', `${pk.name}: ${reason}`, [{ name: pk.name, version: pk.version }], undefined, gateAuditFsLayer);
+                            write(`dz publish: BLOCKED ${pk.name} — sibling drift check unavailable (${reason}); add --allow-sibling-drift to override (logged) or fix the manifest${auditSuffix(wrote)}`);
                             driftBlocked++;
+                        }
                     }
-                    else {
-                        write(`dz publish: BLOCKED ${pk.name} — sibling drift check unavailable (${r.reason}); add --allow-sibling-drift to override (logged) or check network/registry access`);
-                        driftBlocked++;
+                    continue;
+                }
+                const deps = manifestObj?.dependencies ?? {};
+                const peerDeps = manifestObj?.peerDependencies ?? {};
+                const optionalDeps = manifestObj?.optionalDependencies ?? {};
+                // AM-6: a package with no EXTERNAL sibling to check at all is n/a for THIS gate — recorded as
+                // a pass note ("no external siblings"), not silence (FR-6 compatibility: this branch prints
+                // nothing to stdout, matching the pre-existing behavior). "External" covers BOTH "no
+                // workspace: dependency declared" and "every workspace: dependency is inside THIS batch"
+                // (publishing fresh, nothing stale to drift from) — both used to leave this package with no
+                // audit record at all when every dep resolved to the second case.
+                const anyWorkspaceDep = [...Object.values(deps), ...Object.values(peerDeps), ...Object.values(optionalDeps)]
+                    .some((spec) => String(spec).startsWith('workspace:'));
+                const pkParts = [];
+                let pkVerdict = 'pass';
+                let pkOverrideUsed = false;
+                if (anyWorkspaceDep) {
+                    const drifts = detectSiblingDrift({
+                        localInventory: npmPackInventory,
+                        localInventorySource,
+                        dependencies: deps,
+                        peerDependencies: peerDeps,
+                        optionalDependencies: optionalDeps,
+                        workspaceVersions,
+                        workspaceDirs,
+                        batch: batchNames,
+                        fetchPublished,
+                    });
+                    for (const r of drifts) {
+                        if (r.status === 'same') {
+                            pkParts.push(`${r.name}@${r.version}: same`);
+                            write(`dz publish: ✓ sibling drift: none (${r.name}@${r.version} = workspace)`);
+                        }
+                        else if (r.status === 'unavailable') {
+                            if (allowSiblingDrift) {
+                                pkParts.push(`${r.name}@${r.version}: unavailable (${r.reason}) — allowed via --allow-sibling-drift`);
+                                if (pkVerdict !== 'block')
+                                    pkVerdict = 'warn';
+                                pkOverrideUsed = true;
+                            }
+                            else {
+                                pkParts.push(`${r.name}@${r.version}: unavailable (${r.reason})`);
+                                pkVerdict = 'block';
+                                write(`dz publish: BLOCKED ${pk.name} — sibling drift check unavailable (${r.reason}); add --allow-sibling-drift to override (logged) or check network/registry access`);
+                                driftBlocked++;
+                            }
+                        }
+                        else if (includeDrifted) {
+                            pkParts.push(`${r.name}@${r.version}: drift (${r.changedFiles.length} file(s)) — auto-included via --include-drifted`);
+                            if (!batchNames.has(r.name) && !extraBatch.has(r.name)) {
+                                extraBatch.add(r.name);
+                                addedThisRound = true;
+                                write(`dz publish: → sibling drift: ${r.name}@${r.version} differs from the workspace (${r.changedFiles.length} file(s)) — adding to the batch via --include-drifted${r.missingExports.length > 0 ? ` (missing exports: ${r.missingExports.join(', ')})` : ''}`);
+                            }
+                        }
+                        else if (allowSiblingDrift) {
+                            pkParts.push(`${r.name}@${r.version}: drift (${r.changedFiles.length} file(s)) — allowed via --allow-sibling-drift`);
+                            if (pkVerdict !== 'block')
+                                pkVerdict = 'warn';
+                            pkOverrideUsed = true;
+                        }
+                        else {
+                            pkParts.push(`${r.name}@${r.version}: drift (${r.changedFiles.length} file(s))`);
+                            pkVerdict = 'block';
+                            const suggestFilter = filterStr !== undefined ? `${filterStr},${r.name}` : `${pk.name},${r.name}`;
+                            write(`dz publish: BLOCKED ${pk.name} — sibling drift: @dzhechkov/${r.name.replace(/^@dzhechkov\//, '')}@${r.version} on the registry differs from the workspace (${r.changedFiles.length} file(s)); add ${r.name} to the batch (--filter ${suggestFilter}) or publish it first`);
+                            driftBlocked++;
+                        }
                     }
                 }
-                else if (includeDrifted) {
-                    if (!batchNames.has(r.name) && !extraBatch.has(r.name)) {
-                        extraBatch.add(r.name);
-                        addedThisRound = true;
-                        write(`dz publish: → sibling drift: ${r.name}@${r.version} differs from the workspace (${r.changedFiles.length} file(s)) — adding to the batch via --include-drifted${r.missingExports.length > 0 ? ` (missing exports: ${r.missingExports.join(', ')})` : ''}`);
+                // AM-3/AM-6: the single, aggregated audit write for this package — "no external siblings"
+                // when nothing was ever checked, otherwise every sibling's status joined into one detail.
+                if (!siblingDriftAudited.has(pk.name)) {
+                    siblingDriftAudited.add(pk.name);
+                    const detail = pkParts.length > 0 ? pkParts.join('; ') : 'no external siblings';
+                    // AM-6: an override reason is attached only when the FINAL verdict is 'warn' — if some
+                    // OTHER sibling still stands as a live block, the override never actually excused the run.
+                    const overrideReason = pkOverrideUsed && pkVerdict !== 'block' ? '--allow-sibling-drift' : undefined;
+                    const wrote = appendPublishGateAudit(cwd, 'sibling-drift', pkVerdict, detail, [{ name: pk.name, version: pk.version }], overrideReason, gateAuditFsLayer);
+                    if (pkOverrideUsed) {
+                        // AM-6: the override is only real once ITS audit row is durable — a write failure must
+                        // refuse the publish rather than print "(logged)" about a record that never landed.
+                        if (wrote.logged) {
+                            write(`dz publish: ⚠ sibling drift override recorded for ${pk.name} — allowed via --allow-sibling-drift (logged)`);
+                        }
+                        else {
+                            write(`dz publish: BLOCKED ${pk.name} — the --allow-sibling-drift override could not be recorded (audit write failed: ${wrote.reason ?? 'unknown reason'}); refusing rather than proceeding unlogged`);
+                            driftBlocked++;
+                        }
                     }
-                }
-                else if (allowSiblingDrift) {
-                    if (auditedOverride(`${r.name}@${r.version}: ${r.changedFiles.length} file(s) differ from the workspace`, `sibling drift: ${r.name}@${r.version} differs from the workspace (${r.changedFiles.length} file(s))`, pk.name))
-                        driftBlocked++;
-                }
-                else {
-                    appendPublishGateAudit(cwd, 'sibling-drift', 'block', `${pk.name} depends on ${r.name}@${r.version}; ${r.changedFiles.length} file(s) differ from the workspace`);
-                    const suggestFilter = filterStr !== undefined ? `${filterStr},${r.name}` : `${pk.name},${r.name}`;
-                    write(`dz publish: BLOCKED ${pk.name} — sibling drift: @dzhechkov/${r.name.replace(/^@dzhechkov\//, '')}@${r.version} on the registry differs from the workspace (${r.changedFiles.length} file(s)); add ${r.name} to the batch (--filter ${suggestFilter}) or publish it first`);
-                    driftBlocked++;
+                    else if (pkParts.length > 0) {
+                        write(`dz publish: ℹ sibling drift audit for ${pk.name}${auditSuffix(wrote)}`);
+                    }
+                    else if (!wrote.logged) {
+                        // Codex round-2 (2026-09-14), AM-6 residual: the "no external siblings" pass note stays
+                        // silent on stdout ONLY while its record actually landed — a failed audit write is said.
+                        write(`dz publish: ℹ sibling drift audit for ${pk.name} (no external siblings)${auditSuffix(wrote)}`);
+                    }
                 }
             }
+            if (driftBlocked > 0)
+                break; // nothing to expand into a run that already refuses
+            if (!includeDrifted || !addedThisRound)
+                break; // no auto-expand requested, or fixed point reached
+            // FR-4: --include-drifted folds the drifted sibling(s) into the batch — they bump patch like
+            // any other package in `publishPackages`' own (unchanged) bump logic. Re-loop: the newly
+            // folded-in sibling(s) may themselves depend on a drifted sibling outside the (now bigger) batch.
+            filter = filter === undefined ? [...batchNames, ...extraBatch] : [...filter, ...extraBatch];
+            targets = allPackages.filter(matchesFilter);
+            batchNames = new Set(targets.map((p) => p.name));
         }
-        if (driftBlocked > 0)
-            break; // nothing to expand into a run that already refuses
-        if (!includeDrifted || !addedThisRound)
-            break; // no auto-expand requested, or fixed point reached
-        // FR-4: --include-drifted folds the drifted sibling(s) into the batch — they bump patch like
-        // any other package in `publishPackages`' own (unchanged) bump logic. Re-loop: the newly
-        // folded-in sibling(s) may themselves depend on a drifted sibling outside the (now bigger) batch.
-        filter = filter === undefined ? [...batchNames, ...extraBatch] : [...filter, ...extraBatch];
-        targets = allPackages.filter(matchesFilter);
-        batchNames = new Set(targets.map((p) => p.name));
+    }
+    finally {
+        if (packTmpDir !== undefined)
+            rmSync(packTmpDir, { recursive: true, force: true });
     }
     const siblingDriftFailed = driftBlocked > 0;
     if (siblingDriftFailed && !dryRun) {
@@ -6523,8 +6704,8 @@ function cmdPublish(options, flags, cwd, writeOutput, mirrorRunner, siblingDrift
     let packedInstallSmokePreviewFailed = false;
     if (dryRun) {
         if (bins.length === 0) {
-            appendPublishGateAudit(cwd, 'packed-install-smoke', 'pass', 'n/a — nothing in the batch declares a bin');
-            write('dz publish: ○ packed install smoke: n/a (nothing in the batch declares a bin)');
+            const wrote = appendPublishGateAudit(cwd, 'packed-install-smoke', 'pass', 'n/a — nothing in the batch declares a bin', targets.map((p) => ({ name: p.name, version: p.version })), undefined, gateAuditFsLayer);
+            write(`dz publish: ○ packed install smoke: n/a (nothing in the batch declares a bin)${auditSuffix(wrote)}`);
         }
         else {
             const scratchRoot = packedInstallScratchRoot();
@@ -6557,33 +6738,19 @@ function cmdPublish(options, flags, cwd, writeOutput, mirrorRunner, siblingDrift
             // Lead edit after the live dry-run (13.09 12:05): the preview packed the WORKING directory with
             // `workspace:^` specs still inside, so `npm install <tgz>` died with EUNSUPPORTEDPROTOCOL — the
             // preview must stage package.json exactly as the live packedTransport does (sibling pins via
-            // rewriteWorkspaceSpecs, prepublishOnly dropped) and restore the originals afterwards.
-            const stagedOriginals = [];
+            // rewriteWorkspaceSpecs, prepublishOnly dropped) and restore the originals afterwards. Shared
+            // with `dz release` via `withStagedPackageJson` (feature release-smoke-staged-pack).
             try {
-                for (const p of targets) {
-                    const pkgJsonPath = join(p.dir, 'package.json');
-                    const original = readFileSync(pkgJsonPath, 'utf-8');
-                    const rewritten = JSON.parse(rewriteWorkspaceSpecs(original, workspaceVersions));
-                    const scripts = rewritten['scripts'];
-                    if (scripts !== null && typeof scripts === 'object' && !Array.isArray(scripts))
-                        delete scripts['prepublishOnly'];
-                    stagedOriginals.push({ path: pkgJsonPath, text: original });
-                    writeFileSync(pkgJsonPath, JSON.stringify(rewritten, null, 2) + '\n');
-                }
-                for (const step of smokePlan.steps) {
-                    const r = runSmoke(step.cmd, { cwd: step.cwd, timeoutMs: step.timeoutMs });
-                    smokeExecutions.push({ stepId: step.id, exitCode: r.exitCode, stdout: r.stdout, stderr: r.stderr, ...(r.timedOut !== undefined ? { timedOut: r.timedOut } : {}) });
-                }
+                withStagedPackageJson(targets, workspaceVersions, write, () => {
+                    for (const step of smokePlan.steps) {
+                        const r = runSmoke(step.cmd, { cwd: step.cwd, timeoutMs: step.timeoutMs });
+                        smokeExecutions.push({ stepId: step.id, exitCode: r.exitCode, stdout: r.stdout, stderr: r.stderr, ...(r.timedOut !== undefined ? { timedOut: r.timedOut } : {}) });
+                    }
+                }, 'dz publish');
             }
-            finally {
-                for (const o of stagedOriginals) {
-                    try {
-                        writeFileSync(o.path, o.text);
-                    }
-                    catch (err) {
-                        write(`dz publish: ⚠ could not restore ${o.path} after the preview smoke: ${formatPublishError(err)}`);
-                    }
-                }
+            catch (err) {
+                // a restore failure is a preview failure (Codex finding 1): never a green preview on a staged tree
+                smokeExecutions.push({ stepId: 'staged-restore', exitCode: 1, stdout: '', stderr: formatPublishError(err) });
             }
             const smokeVerdict = judgePackedInstallSmoke(smokePlan, smokeExecutions);
             try {
@@ -6595,13 +6762,13 @@ function cmdPublish(options, flags, cwd, writeOutput, mirrorRunner, siblingDrift
             }
             catch { /* best-effort cleanup */ }
             if (smokeVerdict.ok) {
-                appendPublishGateAudit(cwd, 'packed-install-smoke', 'pass', 'preview: pack/install/--version all clean');
-                write('dz publish: ✓ packed install smoke (preview)');
+                const wrote = appendPublishGateAudit(cwd, 'packed-install-smoke', 'pass', 'preview: pack/install/--version all clean', targets.map((p) => ({ name: p.name, version: p.version })), undefined, gateAuditFsLayer);
+                write(`dz publish: ✓ packed install smoke (preview)${auditSuffix(wrote)}`);
             }
             else {
                 const detail = smokeVerdict.failureDetail ?? smokeVerdict.bins.find((b) => !b.ok)?.detail ?? '(no detail)';
-                appendPublishGateAudit(cwd, 'packed-install-smoke', 'block', detail);
-                write(`dz publish: BLOCKED — packed install smoke failed (preview): ${detail}`);
+                const wrote = appendPublishGateAudit(cwd, 'packed-install-smoke', 'block', detail, targets.map((p) => ({ name: p.name, version: p.version })), undefined, gateAuditFsLayer);
+                write(`dz publish: BLOCKED — packed install smoke failed (preview): ${detail}${auditSuffix(wrote)}`);
                 for (const b of smokeVerdict.bins.filter((b) => !b.ok))
                     write(`  ✗ ${b.pkg} (${b.binName}): ${b.detail ?? '(no detail)'}`);
                 packedInstallSmokePreviewFailed = true;
@@ -6658,23 +6825,37 @@ function cmdPublish(options, flags, cwd, writeOutput, mirrorRunner, siblingDrift
                 // `pnpm publish` and skipped re-signing (ADR-001, features/publish-gate-verifies-the-tarball).
                 let cleanupGate = null;
                 try {
-                    const signed = JSON.parse(readFileSync(manifestPath, 'utf8'));
-                    let extracted;
-                    try {
-                        extracted = extractPublishTarball(pk.dir);
-                        cleanupGate = extracted.cleanup;
-                    }
-                    catch (err) {
-                        // Cross-family review (codex `gpt-5.6-sol`, 2026-08-22): falling back to the working
-                        // TREE here fails the gate OPEN. The gate's whole claim is "what ships matches the
-                        // signature"; with no artifact, nothing was compared, and reporting a pass would be a
-                        // claim about an object that was never built. Say why, and block.
-                        write(`dz publish: could not pack ${pk.name} (${err.message.split('\n')[0]}) — the artifact was never built, so its signature was not checked`);
+                    const parsedManifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+                    // FR-4 (feature publish-gate-audit-durable): a manifest that PARSES but is not a plain
+                    // object — `null`, an array, a bare string — is UNAVAILABLE, never "no signature". Those
+                    // are different failures with different fixes: "no signature" means run `dz sign`; a
+                    // malformed manifest means the file itself is corrupt/wrong-shaped and re-signing alone
+                    // would silently paper over that. Mirrors `readManifest`'s shape guard in
+                    // publish-sibling-drift.ts (null/array/non-object ⇒ cannot be used, say so).
+                    if (parsedManifest === null || typeof parsedManifest !== 'object' || Array.isArray(parsedManifest)) {
+                        const gotShape = parsedManifest === null ? 'null' : Array.isArray(parsedManifest) ? 'an array' : typeof parsedManifest;
+                        write(`dz publish: ${pk.name}'s ${MANIFEST_NAME} is not a JSON object (got ${gotShape}) — its signature is unavailable, not merely absent`);
                         artifactUnavailable = true;
                     }
-                    verifyOk =
-                        extracted !== undefined &&
-                            verifyManifest(extracted.dir, signed, readFileSync(trustRoot, 'utf8')).ok;
+                    else {
+                        const signed = parsedManifest;
+                        let extracted;
+                        try {
+                            extracted = extractPublishTarball(pk.dir);
+                            cleanupGate = extracted.cleanup;
+                        }
+                        catch (err) {
+                            // Cross-family review (codex `gpt-5.6-sol`, 2026-08-22): falling back to the working
+                            // TREE here fails the gate OPEN. The gate's whole claim is "what ships matches the
+                            // signature"; with no artifact, nothing was compared, and reporting a pass would be a
+                            // claim about an object that was never built. Say why, and block.
+                            write(`dz publish: could not pack ${pk.name} (${err.message.split('\n')[0]}) — the artifact was never built, so its signature was not checked`);
+                            artifactUnavailable = true;
+                        }
+                        verifyOk =
+                            extracted !== undefined &&
+                                verifyManifest(extracted.dir, signed, readFileSync(trustRoot, 'utf8')).ok;
+                    }
                 }
                 catch {
                     verifyOk = false;
@@ -6722,9 +6903,10 @@ function cmdPublish(options, flags, cwd, writeOutput, mirrorRunner, siblingDrift
             smoke: (artifacts) => {
                 for (const a of artifacts)
                     write(`dz publish: tarball ${a.name}@${a.newVersion} sha256:${a.sha256}`);
+                const auditPackages = artifacts.map((a) => ({ name: a.name, version: a.newVersion, tarballSha256: a.sha256 }));
                 if (bins.length === 0) {
-                    appendPublishGateAudit(cwd, 'packed-install-smoke', 'pass', 'n/a — nothing in the batch declares a bin');
-                    write('dz publish: ○ packed install smoke: n/a (nothing in the batch declares a bin)');
+                    const wrote = appendPublishGateAudit(cwd, 'packed-install-smoke', 'pass', 'n/a — nothing in the batch declares a bin', auditPackages, undefined, gateAuditFsLayer);
+                    write(`dz publish: ○ packed install smoke: n/a (nothing in the batch declares a bin)${auditSuffix(wrote)}`);
                     return { ok: true };
                 }
                 const scratchRoot = packedInstallScratchRoot();
@@ -6766,13 +6948,13 @@ function cmdPublish(options, flags, cwd, writeOutput, mirrorRunner, siblingDrift
                 }
                 catch { /* best-effort cleanup */ }
                 if (verdict.ok) {
-                    appendPublishGateAudit(cwd, 'packed-install-smoke', 'pass', 'pack/install/--version all clean (live, packedTransport)');
-                    write('dz publish: ✓ packed install smoke');
+                    const wrote = appendPublishGateAudit(cwd, 'packed-install-smoke', 'pass', 'pack/install/--version all clean (live, packedTransport)', auditPackages, undefined, gateAuditFsLayer);
+                    write(`dz publish: ✓ packed install smoke${auditSuffix(wrote)}`);
                     return { ok: true };
                 }
                 const detail = verdict.failureDetail ?? verdict.bins.find((b) => !b.ok)?.detail ?? '(no detail)';
-                appendPublishGateAudit(cwd, 'packed-install-smoke', 'block', detail);
-                write(`dz publish: BLOCKED — packed install smoke failed: ${detail}`);
+                const wrote = appendPublishGateAudit(cwd, 'packed-install-smoke', 'block', detail, auditPackages, undefined, gateAuditFsLayer);
+                write(`dz publish: BLOCKED — packed install smoke failed: ${detail}${auditSuffix(wrote)}`);
                 for (const b of verdict.bins.filter((b) => !b.ok))
                     write(`  ✗ ${b.pkg} (${b.binName}): ${b.detail ?? '(no detail)'}`);
                 return { ok: false, reason: detail };
@@ -7352,7 +7534,20 @@ function cmdRelease(options, flags, cwd, write, runner) {
     let smokeTmp;
     const execSteps = plan.steps.filter((s) => s.kind !== 'synthetic-fail');
     say(`\ndz release — executing ${execSteps.length} gate step(s) across ${plan.packages.length} package(s)…`);
-    for (const step of execSteps) {
+    // FR-1/FR-2 (feature release-smoke-staged-pack): the packed-install smoke's `pack` steps must
+    // pack the SAME staged bytes `dz publish`'s preview does — sibling `workspace:*` deps rewritten
+    // to the exact sibling version, `prepublishOnly` dropped — or `npm install` on the resulting
+    // tarballs dies with EUNSUPPORTEDPROTOCOL (MEASURED 2026-09-13 16:05). `workspaceVersions` is
+    // built like publish's (from the FULL workspace, not just this release's filtered batch — an
+    // out-of-batch sibling still needs its real version). Only the `pack` sub-steps are staged; the
+    // `install`/`bin-exists`/`bin-version` steps already run against the packed tarballs and need no
+    // staging.
+    const allPackages = discoverPackages(cwd);
+    const workspaceVersions = new Map(allPackages.map((p) => [p.name, p.version]));
+    const packStepIds = new Set((plan.packedInstallPlan?.steps ?? [])
+        .filter((s) => s.kind === 'pack')
+        .map((s) => `smoke:packed-install:${s.id}`));
+    const runGateStep = (step) => {
         let stepCwd = step.cwd;
         if (step.tempCwd === true) {
             // AM-4: boot bins in a throwaway cwd so an installer-style bin cannot mutate the workspace.
@@ -7370,6 +7565,37 @@ function cmdRelease(options, flags, cwd, write, runner) {
             durationMs: Date.now() - started,
             timedOut: r.timedOut,
         });
+    };
+    // Plan/execution order is load-bearing (see the plan/execution skew guard test) — steps run in
+    // exactly the order `plan.steps` lists them, one loop, no reordering. Only the `pack` steps are
+    // wrapped in the staged window, individually, so where they fall in that order never changes.
+    let announcedStagedPack = false;
+    for (const step of execSteps) {
+        if (packStepIds.has(step.id)) {
+            if (!announcedStagedPack) {
+                say('dz release: smoke: packed tarballs staged like the live publish (workspace:* → exact sibling versions)');
+                announcedStagedPack = true;
+            }
+            // Codex finding 2: stage ONLY the package this pack step packs — sibling pins come from
+            // workspaceVersions, and `npm pack` reads the packed package's manifest alone.
+            const packed = factsList.filter((f) => f.name === step.pkg);
+            try {
+                withStagedPackageJson(packed, workspaceVersions, write, () => runGateStep(step), 'dz release');
+            }
+            catch (err) {
+                // a staging/restore failure is a FAILED step with the reason, never a silent skip — and ONE
+                // record per step: a run already recorded by runGateStep is replaced, not duplicated (Codex r2)
+                const failed = { stepId: step.id, exitCode: 1, stdout: '', stderr: formatPublishError(err), durationMs: 0, timedOut: false };
+                const at = executions.findIndex((e) => e.stepId === step.id);
+                if (at >= 0)
+                    executions[at] = failed;
+                else
+                    executions.push(failed);
+            }
+        }
+        else {
+            runGateStep(step);
+        }
     }
     if (smokeTmp !== undefined) {
         try {
@@ -7384,8 +7610,24 @@ function cmdRelease(options, flags, cwd, write, runner) {
     for (const g of verdict.gates) {
         const icon = g.status === 'pass' ? '✓' : g.status === 'fail' ? '✗' : '○';
         say(`  ${icon} ${g.gate.padEnd(7)} ${g.status.toUpperCase().padEnd(4)}  ${g.passed} passed, ${g.failures.length} failed, ${g.skips.length} skipped`);
-        for (const f of g.failures)
+        for (const f of g.failures) {
             say(`      [${f.class}] ${f.pkg !== undefined ? `${f.pkg}: ` : ''}${f.reason}`);
+            // FR-2 / AM-4 / AM-6 (feature release-gate-output-tail): print each non-empty stream's
+            // tail under the failure line, labelled `stdout:`/`stderr:` at the failure's own 6-space
+            // indent, with its content lines at an 8-space CONTINUATION indent so a reader can tell a
+            // tail line from a new failure/skip bullet at a glance; --json carries the same `tails`
+            // object as-is (present, possibly with empty strings, on every executed failure).
+            if (f.tails !== undefined) {
+                for (const stream of ['stdout', 'stderr']) {
+                    const t = f.tails[stream];
+                    if (t.length === 0)
+                        continue;
+                    say(`      ${stream}:`);
+                    for (const tailLine of t.split('\n'))
+                        say(`        ${tailLine}`);
+                }
+            }
+        }
         for (const sk of g.skips)
             say(`      [${sk.class}] ${sk.pkg}: ${sk.reason}`);
     }
@@ -10211,31 +10453,154 @@ function runGuardEvaluation(root, op, text, overrideReason, publishFilter) {
     return result;
 }
 /**
- * Feature `publish-sibling-drift-gate` (FR-5/AM-6): both the sibling-drift and packed-install-smoke
+ * AM-2: loop `writeSync` until every byte of `data` has been accepted, checking the RETURNED
+ * length on every call (Codex round-1 review, finding 1: the old code called `writeSync` once and
+ * ignored the return value — a short write followed by `fsyncSync` durably persists a TRUNCATED,
+ * unparseable JSON line into an append-only log every future read walks). A call that reports zero
+ * or negative progress can never complete the buffer and would spin forever — that is treated as a
+ * failure, not a retry target.
+ */
+function writeAllSync(fsLayer, fd, data) {
+    let remaining = data;
+    while (remaining.length > 0) {
+        const n = fsLayer.writeSync(fd, remaining);
+        if (typeof n !== 'number' || !Number.isFinite(n) || n <= 0) {
+            throw new Error(`writeSync made no progress (returned ${n}) with ${remaining.length} byte(s) still pending`);
+        }
+        // Codex round-2 (2026-09-14) finding 3: a layer claiming MORE bytes than it was given is lying
+        // about the record, and must not reach "logged: true" through a subarray that just goes empty.
+        if (n > remaining.length) {
+            throw new Error(`writeSync claimed ${n} byte(s) written but only ${remaining.length} were supplied`);
+        }
+        remaining = remaining.subarray(n);
+    }
+}
+const REAL_PUBLISH_GATE_AUDIT_FS = { existsSync, mkdirSync, openSync, writeSync, fsyncSync, closeSync };
+/**
+ * Feature `publish-sibling-drift-gate` (FR-5/AM-6), durability + per-package identity added by
+ * feature `publish-gate-audit-durable` (FR-1/FR-2): both the sibling-drift and packed-install-smoke
  * gates write to the SAME append-only, hash-chained `.dz/guard-audit.jsonl` the declarative
  * `dz guard` rules use — visibility for `dz guard promote`/`dz compounding` never depends on
  * which mechanism produced the finding. `pass` records go through as an informational `note`
  * (never a violation, so they can never flip the row's own verdict) so a clean check is ALSO on
  * the record, not just a block or an override (AM-6: "аудит без записи = не аудит").
  *
- * Returns whether the write actually landed. Most callers are best-effort (a write failure never
- * blocks a verdict already decided) — the one exception is an `--allow-sibling-drift` OVERRIDE,
- * whose caller MUST check this return value: an override is not real without a durable row behind
- * it (AM-6's load-bearing property — see `auditedOverride` in `cmdPublish`).
+ * FR-1: one JSONL record PER PACKAGE in `packages`, each naming the package, its version, and the
+ * tarball's sha256 (or the explicit `sha256:n/a` before a tarball exists — a dry-run preview). FR-2:
+ * the write is `openSync('a') → writeSync → fsyncSync(fd) → closeSync`, plus an `fsyncSync` of the
+ * `.dz` directory itself the one time this call CREATES it (a file's own fsync durably persists its
+ * bytes; the directory entry that makes the file findable after a crash needs its own fsync — the
+ * same lesson `integration-apply.ts`'s `fsyncDirectory` already encodes).
+ *
+ * Returns `{ logged, reason? }` — never a bare boolean, so a caller can print WHY a write failed,
+ * not just that it did. Most callers are best-effort (a write failure never blocks a verdict already
+ * decided) — the one exception is an `--allow-sibling-drift` OVERRIDE, whose caller MUST check
+ * `logged`: an override is not real without a durable row behind it (AM-6's load-bearing property —
+ * see `auditedOverride` in `cmdPublish`).
  */
-function appendPublishGateAudit(root, rule, verdict, detail, overrideReason) {
+function appendPublishGateAudit(root, rule, verdict, detail, packages, overrideReason, fsLayer = REAL_PUBLISH_GATE_AUDIT_FS) {
+    if (packages.length === 0)
+        return { logged: true }; // nothing to record about — not a failure
+    const dzDir = join(root, '.dz');
+    const auditPath = join(dzDir, 'guard-audit.jsonl');
+    const dzDirExisted = fsLayer.existsSync(dzDir);
+    // AM-2: tracked BEFORE the write — this is what decides whether the append call below is about
+    // to CREATE the file (needing a `.dz` directory-entry fsync afterwards) or extend an existing one
+    // (whose directory entry is already durable from a previous append).
+    const auditFileExisted = fsLayer.existsSync(auditPath);
     try {
-        const rec = auditRecord(verdict === 'pass'
-            ? { op: 'publish', verdict, violations: [], checked: [rule], notEstablished: [], notes: [`${rule}: ${detail}`] }
-            : { op: 'publish', verdict, violations: [{ rule, severity: 'hard', detail }], checked: [rule], notEstablished: [] }, new Date().toISOString(), overrideReason !== undefined ? { reason: overrideReason } : undefined);
-        mkdirSync(join(root, '.dz'), { recursive: true });
-        const auditPath = join(root, '.dz', 'guard-audit.jsonl');
-        writeFileSync(auditPath, appendChainedLines([rec], readLogTail(auditPath)), { flag: 'a' });
-        return true;
+        fsLayer.mkdirSync(dzDir, { recursive: true });
     }
-    catch {
-        return false; // audit write failed — the caller decides whether that itself is refusable (AM-6)
+    catch (err) {
+        return { logged: false, reason: `could not create ${dzDir}: ${err.message.split('\n')[0]}` };
     }
+    const records = packages.map((pkg) => {
+        const sha = pkg.tarballSha256 !== undefined && pkg.tarballSha256 !== '' ? pkg.tarballSha256 : 'n/a';
+        const label = `${rule}: ${pkg.name}@${pkg.version} sha256:${sha} — ${detail}`;
+        return auditRecord(verdict === 'pass'
+            ? { op: 'publish', verdict, violations: [], checked: [rule], notEstablished: [], notes: [label] }
+            : { op: 'publish', verdict, violations: [{ rule, severity: 'hard', detail: label }], checked: [rule], notEstablished: [] }, new Date().toISOString(), overrideReason !== undefined ? { reason: overrideReason } : undefined);
+    });
+    let bytes;
+    try {
+        bytes = appendChainedLines(records, readLogTail(auditPath));
+    }
+    catch (err) {
+        return { logged: false, reason: `could not build the chained record: ${err.message.split('\n')[0]}` };
+    }
+    if (bytes === '')
+        return { logged: true };
+    const buf = Buffer.from(bytes, 'utf-8');
+    let fd;
+    try {
+        fd = fsLayer.openSync(auditPath, fsConstants.O_APPEND | fsConstants.O_CREAT | fsConstants.O_WRONLY);
+        writeAllSync(fsLayer, fd, buf); // AM-2: loops on a short write, throws on no progress
+        fsLayer.fsyncSync(fd);
+        fsLayer.closeSync(fd);
+        fd = undefined;
+    }
+    catch (err) {
+        return { logged: false, reason: err.message.split('\n')[0] ?? String(err) };
+    }
+    finally {
+        if (fd !== undefined) {
+            try {
+                fsLayer.closeSync(fd);
+            }
+            catch { /* best-effort */ }
+        }
+    }
+    // AM-2 (Codex round-1 review, finding 1, high): a directory-entry fsync is REQUIRED, not
+    // best-effort, whenever THIS call is the reason the entry needed persisting — swallowing its
+    // failure used to let `logged: true` go out about a record whose directory entry can vanish on a
+    // crash before the next fsck. Two DIFFERENT entries can need persisting, tracked independently:
+    if (!auditFileExisted) {
+        // The audit FILE was just created by the open() above — `.dz` (its containing directory) needs
+        // its own fsync so the new directory entry survives a crash; the file's own fsync (above) only
+        // guarantees the file's DATA, not that anything can find it afterwards.
+        let dfd;
+        try {
+            dfd = fsLayer.openSync(dzDir, fsConstants.O_RDONLY);
+            fsLayer.fsyncSync(dfd);
+        }
+        catch (err) {
+            return { logged: false, reason: `could not fsync ${dzDir} after creating ${auditPath}: ${err.message.split('\n')[0]}` };
+        }
+        finally {
+            if (dfd !== undefined) {
+                try {
+                    fsLayer.closeSync(dfd);
+                }
+                catch { /* best-effort, does not affect the verdict already returned */ }
+            }
+        }
+    }
+    if (!dzDirExisted) {
+        // `.dz` ITSELF was just created by `mkdirSync` above — its PARENT (`root`) needs its own fsync
+        // so `.dz`'s OWN directory entry survives a crash (the fsync of `.dz` just above only durably
+        // persists entries INSIDE `.dz`, not the fact that `.dz` exists at all).
+        let pfd;
+        try {
+            pfd = fsLayer.openSync(root, fsConstants.O_RDONLY);
+            fsLayer.fsyncSync(pfd);
+        }
+        catch (err) {
+            return { logged: false, reason: `could not fsync ${root} after creating ${dzDir}: ${err.message.split('\n')[0]}` };
+        }
+        finally {
+            if (pfd !== undefined) {
+                try {
+                    fsLayer.closeSync(pfd);
+                }
+                catch { /* best-effort, does not affect the verdict already returned */ }
+            }
+        }
+    }
+    return { logged: true };
+}
+/** FR-2: the printed suffix a caller appends to its own verdict line — never silent about logging. */
+function auditSuffix(wrote) {
+    return wrote.logged ? ' (logged)' : ` (audit NOT logged: ${wrote.reason ?? 'unknown reason'})`;
 }
 function renderGuardObservation(observation) {
     const tag = observation.status === 'unknown' ? 'note' : 'observe';
@@ -19757,7 +20122,7 @@ export async function runCli(argv, io = {}) {
             case 'auto-canonicalize':
                 return await cmdAutoCanonicalize(options, cwd, write);
             case 'publish':
-                return cmdPublish(options, flags, cwd, write, io.publishMirrorRunner, io.publishSiblingDriftFetcher, io.publishPackedInstallRunner, io.publishExecRunner);
+                return cmdPublish(options, flags, cwd, write, io.publishMirrorRunner, io.publishSiblingDriftFetcher, io.publishPackedInstallRunner, io.publishExecRunner, io.publishGateAuditFsLayer, io.publishNpmPackRunner);
             case 'release':
                 return cmdRelease(options, flags, cwd, write, io.releaseRunner);
             case 'parity':

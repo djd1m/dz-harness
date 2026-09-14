@@ -1455,7 +1455,25 @@ is not a false gate; `--audit-dev` widens; an audit that *cannot run* also block
 `STALE_DIST`, never checked as-is; a package that declares a `build` script but has **no** dist JS is
 `MISSING_DIST` — an unbuilt package cannot ship), (4) smoke-boot every bin via `node <bin> --help` in a
 throwaway cwd with a timeout. Packages without a `test` script are **named skips** in the report — never
-silent passes; a template-only pack (no build, no artifacts, no bin) is a named `SKIP_NO_ARTIFACTS`.
+silent passes; a template-only pack (no build, no artifacts, no bin) is a named `SKIP_NO_ARTIFACTS`. The
+packed-install smoke's `pack` steps run against a **staged** `package.json` — `workspace:*` sibling
+deps rewritten to the exact sibling version, `scripts.prepublishOnly` dropped, written and restored
+atomically (temp file + rename), one package at a time — the same staging `dz publish`'s preview
+applies, so `npm install` on the resulting tarballs does not fail on a literal `workspace:*` spec. A
+restore that fails is reported as a FAILED step (the tree is left staged and says so), never as a pass.
+A red `tests`/`syntax`/`smoke` step names the failing test(s) when the output is a runner shape it
+recognises (vitest summary/FAIL/×/❯ lines, or node:test/TAP `not ok N …` + `# fail N`) — colour
+codes are stripped first, so a coloured runner is recognised too; otherwise it falls back to the
+first output line, marked `(no test-runner summary recognised)` so the difference from a parsed
+summary is visible. Beneath the reason it prints the tail **per stream**, labelled `stdout:` /
+`stderr:` — the two streams are captured independently, so their relative order (as the process
+actually interleaved them) is **not** reconstructed, only each stream's own tail order. Both
+streams appear the same way in the report, the `--json` output (a `tails: {stdout, stderr}` object
+on every executed tests/syntax/smoke/timeout failure — present with empty strings when a stream
+produced nothing), and the best-effort `gh issue`, where every tail is additionally **redacted**
+(`token`/`secret`/`password` values, `Bearer …`, `npm_…`/`ghp_…`/`sk-…`/`AKIA…` tokens, and long
+opaque base64/hex-ish blobs all become `[redacted]`) and the whole issue body is capped at 60KB,
+shrinking every tail evenly rather than dropping some whole while leaving others untouched.
 
 ```bash
 dz release --dry-run              # full gate plan, zero commands executed
@@ -3234,16 +3252,33 @@ earlier one failed):
 
 1. **Sibling drift.** For every workspace `S` a batch package depends on (`dependencies`,
    `peerDependencies` AND `optionalDependencies` — all three pin and ship identically) that is NOT
-   itself part of the batch, the gate hashes `S`'s published inventory — `dist/**`, every path
-   named in `package.json#files`, and every `bin` target (not `dist/**` alone: a changed bin script
-   or template outside `dist/` is drift too) — plus a normalized `package.json` (version/gitHead/
-   `_*`/`imports`/`browser`/`sideEffects`/`man` compared, not just entry points) against the
-   workspace copy. A mismatch blocks; anything this gate cannot build — a fetch that fails
-   (offline, 404), an unreadable/invalid `package.json` on either side, or a `workspace:`-spec'd
-   name it does not recognize — is `unavailable` and blocks too; `unavailable` is never silently
-   treated as a pass. `--include-drifted` auto-extends the batch and RE-CHECKS the expanded batch's
-   own new edges until nothing new drifts (a fixed point over transitive drift, capped at the
-   package count) — a folded-in sibling that itself depends on a drifted sibling is not missed.
+   itself part of the batch, the gate compares `S`'s WORKSPACE copy against its published inventory,
+   naming which mechanism produced BOTH sides on every result (`inventorySource: 'pnpm-pack' |
+   'npm-pack' | 'readdir-approximation'`, never left implicit). In production the CLI packs `S`'s
+   workspace dir with `pnpm pack` — the SAME transport the live publish uses — into a per-run scratch
+   dir, unpacks it, and hands the unpacked tree to core, which hashes it with the same full recursive
+   walk it applies to the already-unpacked registry tarball: symmetric by construction, so a file the
+   transport synthesises into the tarball (pnpm copies the workspace-root LICENSE into a package whose
+   own tree has none) is on BOTH sides. MEASURED 2026-09-14 on the hub: with an `npm pack --dry-run
+   --json` path listing instead, two siblings unchanged since publication (harness-presets, scout)
+   read as "LICENSE only in the published copy" — a false drift, because npm's dry-run never lists
+   the file pnpm adds. That npm listing survives only behind a test seam (`publishNpmPackRunner`,
+   parsed by core's pure `parseNpmPackInventory`, source `'npm-pack'`) — the seam path and the
+   production path are NOT the same code, and that is named here rather than implied. Packed ONCE
+   per package directory per `dz publish` RUN (not re-run per dependent package that happens to
+   share the sibling); the scratch dir is removed after the drift loop. With no provider injected
+   (an unusual, degraded mode), both sides fall back to the same `dist`/`files`/`bin` approximation
+   — cruder, but still symmetric by construction. Both
+   inventories are hashed together with a normalized `package.json`
+   (version/gitHead/`_*`/`imports`/`browser`/`sideEffects`/`man` compared, not just entry points). A
+   mismatch blocks; anything this gate cannot build — a fetch that fails (offline, 404), a
+   failed `pnpm pack` (or a shapeless seam listing) on the workspace side, an unreadable/invalid
+   `package.json` on either side, or a `workspace:`-spec'd name it does not recognize — is
+   `unavailable` and blocks too; `unavailable` is never silently treated as a pass, and NEVER goes
+   unlogged (an `unavailable` outcome writes an audit record whether or not `--allow-sibling-drift`
+   was used). `--include-drifted` auto-extends the batch and RE-CHECKS the expanded batch's own new
+   edges until nothing new drifts (a fixed point over transitive drift, capped at the package count)
+   — a folded-in sibling that itself depends on a drifted sibling is not missed.
 2. **Packed-install smoke.** The batch's `.tgz` files are installed TOGETHER into a clean directory
    (siblings outside the batch resolve from the registry — exactly like a fresh user), then every
    declared `bin` — including one whose target file turns out NOT to exist after the install,
@@ -3251,11 +3286,31 @@ earlier one failed):
    n/a — runs `--version` and must exit 0 with non-empty stdout. On a **live** publish this gate
    packs each package's tarball exactly ONCE, right after its own version bump — the SAME bytes are
    then smoke-tested and handed to `npm publish <tgz>`; their sha256 is printed
-   (`tarball <pkg>@<ver> sha256:<hex>`) and written to `.dz/guard-audit.jsonl` alongside every
-   pass/block/override/n-a verdict, so "the smoke tested what shipped" is a checkable claim rather
-   than an architectural one. `dz release --dry-run` plans the same steps inside its `smoke` gate
-   (`smoke:packed-install:*`) and `dz release`'s own execution judges the `--version` step through
-   the identical rule — the two doors apply one rule, for real, not only on paper.
+   (`tarball <pkg>@<ver> sha256:<hex>`). `dz release --dry-run` plans the same steps inside its
+   `smoke` gate (`smoke:packed-install:*`) and `dz release`'s own execution judges the `--version`
+   step through the identical rule — the two doors apply one rule, for real, not only on paper.
+
+Both gates write to the SAME append-only, hash-chained `.dz/guard-audit.jsonl` `dz guard` reads —
+**exactly ONE JSONL record per package per rule per run**, never one record per SIBLING a package
+happens to depend on: every sibling's outcome for a package (same/drift/unavailable, overridden or
+not) is aggregated first, then written once, with a detail that names every sibling and its status
+and a verdict of `block` if any sibling stands blocked, else `warn` if the only issues were resolved
+via `--allow-sibling-drift`, else `pass` (a package with no external sibling to check still gets a
+`pass — no external siblings` record, so the rule is never silently absent for a package). Each
+note/violation names `<rule>: <pkg>@<ver> sha256:<hex> — <detail>`, with `sha256:n/a` stated
+explicitly whenever the verdict is a preview that ran before anything was packed. The write itself is
+durable: `openSync` append → a LOOP of `writeSync` calls until every byte of the record is confirmed
+written (checking the returned length on every call — a short write is resumed, not silently
+accepted) → `fsyncSync(fd)` → `closeSync`. Two FURTHER fsyncs are each REQUIRED, not best-effort, and
+each failure alone is enough to report the whole write as not logged: an `fsyncSync` of `.dz` itself
+when THIS call is the one that created the audit file (so its new directory entry survives a crash),
+and an `fsyncSync` of `.dz`'s PARENT when THIS call is the one that created `.dz` (so `.dz`'s own
+directory entry survives a crash). Every printed verdict line says so: `(logged)` appears only after
+every required fsync actually succeeded, and a failed write — the file's own fsync, either directory
+fsync, or a writer that makes no progress — prints `(audit NOT logged: <reason>)` instead, never a
+false `(logged)`. The signature gate got the matching honesty fix: a `.dz-manifest.json` that PARSES
+but is not a JSON object (`null`, an array, a bare string) is reported `unavailable` — "the manifest is
+malformed", not "the pack carries no signature", because the fix for each is different.
 
 ```bash
 dz publish --filter harness-cli               # ✓ sibling drift: none / ✓ packed install smoke, or BLOCKED with a fix-it command
@@ -3272,7 +3327,7 @@ dz publish: BLOCKED harness-cli — sibling drift: @dzhechkov/memory@0.2.20 on t
 dz publish: refusing to publish (1 sibling-drift violation(s))
 
 $ dz publish --filter harness-cli --yes
-dz publish: tarball @dzhechkov/harness-cli@0.8.24 sha256:9f2c…e10a
+dz publish: tarball @dzhechkov/harness-cli@0.8.25 sha256:9f2c…e10a
 dz publish: ✓ packed install smoke
   ✓ @dzhechkov/harness-cli                1.0.0 → 1.0.1  published (confirmed by registry after 1 probes)
       sha256:9f2c…e10a
@@ -3582,7 +3637,12 @@ Every run also prints where the backend came from, e.g. `memory backend: agentdb
 `dz doctor` cross-checks the two truths too: a new `memory hooks match config` row goes red when
 `.dz/config.json`'s `memory.backend` and the ACTUAL `SessionStart`/`SessionEnd`/`PreCompact` hooks in
 `.claude/settings.json` disagree in either direction, naming the exact fix (`run: dz setup --target
-claude-code --memory agentdb`, or the jsonl equivalent).
+claude-code --memory agentdb`, or the jsonl equivalent). When the two truths agree, the row prints an
+explicit `[OK]` naming the backend and the three events (e.g. `memory.backend=agentdb —
+SessionStart/SessionEnd/PreCompact all invoke .dz/agentdb-writer.mjs`) — it stays silent only when
+there is no `.dz/config.json` at all (never ran `dz setup`); a `.claude/settings.json` that exists
+but cannot be parsed or inspected (invalid JSON, or a malformed `hooks` shape) is reported red as
+"cannot be compared", never as a green receipt.
 
 ### The apply leg — `dz setup --memory agentdb` installs the whole loop, not two of three
 
@@ -3592,7 +3652,7 @@ Self-learning is a three-leg loop: **collect** (session hooks write into the sto
 Before this feature `dz setup` shipped the first two legs only — the apply leg's files existed
 solely in this repo's own `.claude/helpers/`, so every OTHER project that ran `dz setup --memory
 agentdb` got collection and ranking, but never automatic recall (MEASURED: a clean install wrote no
-`UserPromptSubmit` entry at all, on 0.8.10 and 0.8.24 alike, with or without `--memory agentdb`).
+`UserPromptSubmit` entry at all, on 0.8.10 and 0.8.25 alike, with or without `--memory agentdb`).
 
 `dz setup --target claude-code --memory agentdb` now installs all three, additively (a repeat run
 changes nothing; a foreign hook you wrote yourself is left exactly where it is):
@@ -3688,6 +3748,65 @@ dz doctor   # → "apply-leg alive (embed daemon): embed socket present at <path
 
 Every step above is a REPRODUCER, not a claim: run it on a scratch project before trusting a `dz
 setup --memory agentdb` install on a new machine.
+
+#### One recall engine for the hook and the CLI (`hook-recall-hybrid-parity`, ADR-001)
+
+Before this feature the per-prompt hook and `dz recall` used TWO DIFFERENT engines: the hook's embed
+daemon ran its own brute-force cosine loop over the mirror; `dz recall` called core's `recallHybrid`
+(FTS5 lexical + semantic + reciprocal-rank-fusion). MEASURED (record 097ca040): 41.8% of taught
+lessons went unretrieved by either path over 48 days, and an exact lexical match with cosine 0.39 was
+silently dropped by the hook's cosine floor — a lexical hit `dz recall` would have surfaced.
+
+The daemon's `op: recall` now calls `recallHybrid` itself — the SAME engine, SAME store, SAME
+ranking `dz recall` uses — under a time budget (`HOOK_RECALL_BUDGET_MS`, default 500 ms, below the
+hook's own 800 ms socket timeout). Every reply now carries an honest `engine` field:
+
+- `engine: 'hybrid'` — `recallHybrid` answered inside the budget; `hits[].score` is an RRF rank
+  normalized into `[0,1]` (`score / (2 / (RRF_K + 1))`, clamped — RRF_K=60 mirrors `vector-tier.ts`'s
+  own constant).
+- `engine: 'cosine-fallback'` — the budget was exceeded, `recallHybrid`'s engine errored, or no core
+  module was resolvable; the daemon falls back to TODAY'S brute-force cosine (unchanged, byte for
+  byte) and reports `reason` alongside (e.g. `"budget exceeded (500 ms)"`).
+
+The hook prints `engine`/`reason` to **stderr only** (`[dz-recall] engine=… reason=…`) — it never
+rides into `additionalContext`, so the model reading the prompt never sees it. The relevance floor
+the hook applies also depends on `engine`: a `cosine-fallback` reply keeps today's cosine-calibrated
+`DEFAULT_RECALL_FLOORS` (`recall-hook-policy.ts`) untouched; a `hybrid` reply is judged against its
+OWN placeholder floor (`DZ_RECALL_HOOK_SCORE_FLOOR`, currently `0.01`, deliberately permissive) —
+calibrating that floor on the real 281-pattern store is tracked as a follow-up measurement, named as
+a `TODO(08, FR-5)` at the constant's definition site.
+
+**Recall-mode `'hook'` never moves the bandit's exposure counters.** The daemon calls
+`recallHybrid(PROJECT, prompt, { limit, mode: 'hook', deferExposures: true })` and never calls the
+returned `commitExposures(...)` — so a per-prompt recall (which would otherwise fire on every single
+turn) never counts as a bandit "exposure" the way an interactive `dz recall` does. `mode: 'hook'`
+itself ranks identically to `'hybrid'` (no weight change); it exists purely so the daemon's intent is
+visible end to end, alongside `deferExposures`, which is the field that actually withholds the write.
+
+**The vector engine is now cached per process** (`getOrOpenEngine`, `vector-tier.ts`, FR-3): a
+long-lived caller like the daemon no longer re-runs the native-dependency probe
+(`isPackageInstalled`/`probeNativeDep`) on every single request — the resolved engine is kept keyed
+by `(projectRoot, mtime of .dz/agentdb.db)` and re-resolved only when that mtime changes (a `dz
+teach`/`consolidate` landed between requests). A short-lived CLI invocation is unaffected — the cache
+just gets populated once and discarded with the process, byte-identical to before this feature.
+
+**`dz doctor`'s "apply-leg alive (embed daemon)" row now names the live engine** (FR-6): when the
+socket is alive it sends one `op: recall` probe (bounded at 1000 ms — comfortably above the 500 ms
+production budget default, see the honest NFR-1 discussion below) and appends `(engine: hybrid)` or
+`(engine: cosine-fallback)` to the detail line. A non-live fixture (no daemon actually listening)
+fails the probe near-instantly and the line is unchanged from before this feature.
+
+**Honest NFR-1 finding (measured, not assumed).** The target was p95 daemon-answer ≤ 500 ms over 100
+real prompts from `.dz/recall-usage.jsonl`. MEASURED on this machine against the REAL 743-pattern
+production store, under the documented DEFAULT `HOOK_RECALL_BUDGET_MS=500` (script + numbers in
+`features/hook-recall-hybrid-parity/07_code_changes/change_manifest.md`): every single reply fell
+back to `engine: 'cosine-fallback'` — `resolveAgentdbEmbedder` (agentdb-index.ts, `EmbeddingService`)
+re-initializes the transformers pipeline on EVERY call with no cross-call caching (MEASURED
+standalone: 2–3.6 s per call, no warm-up across 3 repeated calls in one process), so a cold semantic
+leg routinely costs well over the 500 ms budget — NFR-1 is **not met** by the current architecture on
+this machine. Caching that embedder lives one layer below this feature's touched files
+(`agentdb-index.ts`, out of `hook-recall-hybrid-parity`'s scope) and is named as follow-up work in the
+manifest, not silently left unmeasured.
 
 ### AgentDB self-learning algorithms
 
@@ -5124,8 +5243,17 @@ refusal as the honest answer.
 
 ## Status
 
-`harness-core v0.8.33` · `harness-cli v0.8.24` — **this release: `dz publish` refuses a broken pair, `dz setup`
-reads the memory backend from config, and the embed daemon says "ready" only with a socket that exists.**
+`harness-core v0.8.34` · `harness-cli v0.8.25` — **this release: the recall hook and `dz recall` share ONE hybrid
+engine, the embedder is cached per process, and every publish-gate verdict is a durable per-package audit record.**
+(0) Hook/CLI recall parity (`hook-recall-hybrid-parity`): the embed daemon answers `op: recall` through core's
+`recallHybrid` under a 500 ms budget (measured p95 100–190 ms on the real 743-pattern store, 99–100 of 100
+requests hybrid) with an honest cosine fallback labelled `engine`/`reason`, a warm-up at start, an in-flight cap,
+and an engine cache used ONLY by the hook (`dz recall` itself resolves fresh); `dz doctor` prints the engine.
+The agentdb embedder is cached per process (`agentdb-embedder-cache`: cold 2117 ms → warm 1 ms). Sibling-drift
+inventories come from `pnpm pack` — the live transport — so the LICENSE pnpm synthesises from the workspace root
+no longer reads as drift; every gate verdict is one fsync'd audit record per package with `sha256:<hex|n/a>`.
+Previous release (v0.8.33 / v0.8.25): `dz publish` refuses a broken pair, `dz setup`
+reads the memory backend from config, and the embed daemon says "ready" only with a socket that exists.
 (1) Sibling-drift gate + packed install smoke: before any live `npm publish`, every `workspace:*` sibling on
 the registry is compared with the workspace (dist/files/bin + the shipping fields of package.json); a
 drifted sibling BLOCKS the batch (`add <sibling> to the batch or publish it first`), and each package that

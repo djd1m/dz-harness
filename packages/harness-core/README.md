@@ -604,6 +604,62 @@ instead of only ever checking the plain project path. The daemon also now prints
 (path N bytes)` and exits non-zero, never a silent "ready" for a socket that was never created
 (`APPLY_LEG_VERSION` bumped 3→4 for this and the resolver change).
 
+### One recall engine for hook and CLI (`hook-recall-hybrid-parity`, ADR-001, `APPLY_LEG_VERSION` 4→5)
+
+The daemon's `op: recall` handler used to run its own brute-force cosine loop over the in-memory
+mirror — a SECOND engine, diverging from `dz recall`'s `recallHybrid` (FTS5 lexical + semantic +
+RRF). MEASURED (record 097ca040): 41.8% of taught lessons went unretrieved by either path over 48
+days, and an exact lexical match at cosine 0.39 was silently dropped by the hook's cosine floor.
+
+`embedDaemonSource(coreDistDir?)` now takes the SAME `coreDistDir` parameter `recallHookSource`
+already had (default `null`, the hub's own portable marker) and inlines the SAME `loadCoreModule`
+candidate-list pattern the hook uses, loading `index.js` from the resolved `CORE_DIST_DIR` to reach
+`recallHybrid`/`patternRecordId`. `answerRecall(prompt, limit)` — the whole `op: recall` answer —
+tries `hybridRecall` first: `core.recallHybrid(PROJECT, prompt, { limit, mode: 'hook',
+deferExposures: true })`, raced via `Promise.race` against a `HOOK_RECALL_BUDGET_MS` timer (env,
+default 500, always below the hook's own 800 ms socket timeout). On success the reply carries
+`engine: 'hybrid'` and `hits[].score` normalized from the raw RRF sum into `[0,1]`
+(`score / (2/(RRF_K+1))`, `RRF_K=60` — duplicated from `vector-tier.ts`'s own constant since this is
+standalone generated text; `apply-leg-twins.test.ts` does not currently pin the two numerically
+equal, only that both exist as literals — a numeric drift would need to be caught by the parity
+test's own live assertions). On budget overrun / engine error / no resolvable core module, it falls
+straight through to TODAY'S cosine leg (byte-identical) with `engine: 'cosine-fallback'` and a
+`reason`.
+
+`HybridRecallMode` in `vector-tier.ts` gained a fourth literal, `'hook'` — ranked identically to
+`'hybrid'` (no semantic-weight change); its only role is to travel end to end for observability. The
+ACTUAL mechanism that keeps a per-prompt recall from moving the lesson-bandit's exposure counters is
+`deferExposures: true` plus never calling the returned `commitExposures(...)` — `recallHybrid`
+already supported deferral for `dz recall --domain`'s own over-fetch-and-truncate case; the daemon is
+simply a second caller of the same contract.
+
+`pickEngine` (the one seam `recallHybrid`, `mirrorPatternsToVector`, `teachGuard` etc. all resolve
+their engine through) now routes through `getOrOpenEngine(projectRoot)` instead of calling
+`resolveVectorEngine` directly — a per-process cache keyed by `(projectRoot, mtime of
+.dz/agentdb.db)`, so a long-lived caller (the daemon) pays the `isPackageInstalled`/`probeNativeDep`
+walk once, not once per prompt. A short-lived CLI invocation is unaffected (the cache is populated
+and discarded within one process either way — I-1 parity holds). `getOrOpenEngine`'s second
+parameter is an injectable resolver (default `resolveVectorEngine`) purely for spy-testability — two
+functions in the same ES module cannot be reliably intercepted by `vi.spyOn` when one calls the other
+by its local name.
+
+`dz doctor`'s "apply-leg alive (embed daemon)" check now sends one live `op: recall` probe
+(`probeRecallEngine`, `operations.ts`, 1000 ms default — comfortably above the 500 ms production
+budget default) when the socket exists, and appends `(engine: hybrid)` / `(engine: cosine-fallback)`
+to the detail line on a successful reply. A non-listening path (every non-live doctor fixture in this
+repo writes a plain file, never a real socket) fails the probe near-instantly, so every pre-existing
+detail string is untouched.
+
+**Honest NFR-1 finding.** MEASURED against the real 743-pattern production store on this machine,
+100 real prompts from `.dz/recall-usage.jsonl`, under the documented default budget: EVERY reply
+fell back to `cosine-fallback` — `resolveAgentdbEmbedder` (`agentdb-index.ts`) reconstructs the
+transformers pipeline on every call with no cross-call caching (measured standalone: 2–3.6 s/call,
+no warm-up across repeats in one process), so a cold semantic leg routinely exceeds the 500 ms
+budget. The p95/p50/reproducer script live in
+`features/hook-recall-hybrid-parity/07_code_changes/change_manifest.md`. Fixing the embedder's own
+cache is `agentdb-index.ts` work, outside this feature's touched files — named here as a follow-up,
+not silently absorbed into a passing-looking number.
+
 ## Run a plan without the Claude host
 
 `runWorkflow` (`workflow-run.ts`) is the PURE scheduler behind `dz workflow run`: it INTERPRETS a
@@ -811,6 +867,28 @@ the pragma itself throws, instead of leaking both on that failure; and `recallPa
 unchanged) from "the store file itself is unreadable" (corrupt file, permission failure), printing
 one `dz: <path> unreadable (<cause>) — falling back to the JSON store` line on stderr per process in
 the second case, so a broken store no longer looks like plain "fewer lessons".
+
+## Embedder cache (`agentdb-index.ts` — `resolveAgentdbEmbedder`)
+
+`resolveAgentdbEmbedder(projectRoot)` resolves agentdb's `EmbeddingService` and stands up the
+`@huggingface/transformers` pipeline behind it — MEASURED 2026-09-14 at 2-3.6s per call
+(`features/agentdb-embedder-cache/00_complexity_assessment.md`), because the model+dim for a
+project never changes within one process. It is now cached at module scope, keyed by
+`${agentdbDir}|${model}|${dim}` (so a `DZ_EMBED_MODEL`/`.dz/config.json` change — a different
+`resolveEmbedModel` result — gets its own entry rather than reusing a stale pipeline):
+
+- Repeat calls for the same key return the **same object**, not a re-initialized one — MEASURED
+  2026-09-14 (`test/agentdb-embedder-cache.test.ts`, live model): cold call `2117ms`, warm call
+  `1ms` (budget: ≤50ms).
+- The **promise** is cached, not the awaited result, so concurrent first callers for the same key
+  join one in-flight initialization instead of racing two pipelines (`getAgentdbEmbedderCacheStats()`
+  reports `initializations: 1` for two parallel first calls).
+- An `{error}` outcome (or a rejection) evicts its own cache entry immediately, so a failed init
+  never "sticks" — the next call retries against the current config.
+- `resetAgentdbEmbedderCache()` clears the cache and the `initializations` counter; it exists for
+  tests and future warm-start use only — `vector-tier.ts`/`backlog.ts` call sites are unaffected.
+- `getAgentdbEmbedderCacheStats()` returns `{ entries, initializations }` (`entries` = currently
+  cached successful pipelines, `initializations` = pipelines actually started since the last reset).
 
 ## Consistent pre-reindex snapshot + rollback (`agentdb-snapshot.ts`)
 
