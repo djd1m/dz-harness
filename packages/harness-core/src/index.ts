@@ -12,6 +12,12 @@ export const HARNESS_CORE_VERSION: string =
 
 export { REPOSITORY_ORIGIN } from './repository-origin.js';
 
+// Fix-round 1 (feature recall-short-terms, Codex HIGH-1c): `dz recall`'s CLI printer needs the
+// single source of truth for "why did this query tokenize to nothing" without harness-cli taking
+// a new direct dependency on `@dzhechkov/memory` (a publishing-surface change outside this
+// feature's scope) — harness-core already depends on memory, so it re-exports the one helper.
+export { noSearchableTermsReason } from '@dzhechkov/memory';
+
 export * from './skills.js';
 export * from './apply.js';
 export {
@@ -246,6 +252,7 @@ export {
   applyLegHookEntries,
   applyLegStatus,
   applyLegReasonMessage,
+  probeApplyLeg,
   resolveIdleMs,
   IDLE_MS_INT32_MAX,
 } from './apply-leg.js';
@@ -255,6 +262,7 @@ export type {
   ApplyLegHookPresence,
   ApplyLegStatus,
   ApplyLegNotInstalledReason,
+  ApplyLegProbeResult,
   ResolvedIdleMs,
 } from './apply-leg.js';
 // embed-socket-short-path: the ONE resolver the daemon (inlined text), the recall hook (inlined
@@ -303,7 +311,7 @@ export {
   segmentRun,
 } from './eta.js';
 export type { CheckpointObservation, EtaEstimate, EtaInput, IncompleteCoverageSample, RunSegment, StageDurationSample, StageSample } from './eta.js';
-export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, resetAgentdbEmbedderCache, getAgentdbEmbedderCacheStats, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema } from './agentdb-index.js';
+export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, resetAgentdbEmbedderCache, getAgentdbEmbedderCacheStats, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema, readStoreGeneration, bumpStoreGeneration } from './agentdb-index.js';
 export type { AgentdbSearchHit, AgentdbSearchResult, AgentdbImportRow } from './agentdb-index.js';
 export { DEFAULT_EMBED_MODEL, LEGACY_EMBED_MODEL, DEFAULT_EMBED_DIM, KNOWN_EMBED_DIMS, resolveEmbedModel, readEmbedManifest, writeEmbedManifest, embedManifestPath, legacyEmbedManifest } from './embedding-config.js';
 export type { EmbedModelConfig, EmbedModelSource, EmbedManifest } from './embedding-config.js';

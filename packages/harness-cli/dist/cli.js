@@ -4,8 +4,15 @@
  * @packageDocumentation
  */
 import { parseNpmPackInventory } from '@dzhechkov/harness-core';
+// Fix-round 1 (Codex HIGH-1c, feature recall-short-terms): the ONE place `dz recall` prints an
+// empty result must name WHY — via the shared helper, not by re-deriving the decision. Routed
+// through harness-core's re-export (lead correction) rather than a new direct dependency on
+// `@dzhechkov/memory`: a new package-graph edge is a publishing-surface change outside this
+// feature's scope, and harness-core already depends on memory.
+import { noSearchableTermsReason } from '@dzhechkov/harness-core';
 import { appendFileSync, chmodSync, closeSync, constants as fsConstants, cpSync, existsSync, fstatSync, fsyncSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readSync, readdirSync, readlinkSync, realpathSync, renameSync, rmdirSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync, writeSync } from 'node:fs';
-import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
+import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep, posix as nodePosixPath } from 'node:path';
+const posixNormalize = nodePosixPath.normalize;
 import { fileURLToPath } from 'node:url';
 import { request as httpsRequest } from 'node:https';
 import { KNOWN_CLI_FLAGS } from './known-flags.js';
@@ -14,15 +21,15 @@ import { resolveInstallSpec } from './install-spec.js';
 import { dispatchedCommands, documentedCommands } from './command-inventory.js';
 import { execFile, execFileSync, execSync, spawn, spawnSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { homedir, hostname, tmpdir } from 'node:os';
+import { cpus, homedir, hostname, tmpdir } from 'node:os';
 import { createRequire } from 'node:module';
 import { isDeepStrictEqual } from 'node:util';
 import { JOURNAL_KINDS, formatLine, parseLine, selectWindow, appendWitnessed } from '@dzhechkov/harness-core';
 import { appendRunEvent, readRunRegistry, liveParents, liveness, probePid, settleDeadRuns, planRegistryArchive, planWorktreeCleanup, renderCleanupPlan, worktreeRemovalsToApply } from '@dzhechkov/harness-core';
 import { openRound, closeRound, listRounds, parseCodexTokens, classifyRoundExecOutcome, buildRoundExecRow, } from '@dzhechkov/harness-core';
-import { createSkill, getSkillInfo, listSkillsDetailed, formatSkillLoadFailures, formatSkillApplyFailures, resolveTargetName, formatTargetProblem, formatTargetAliasNote, TARGET_NAMES_SORTED, runDoctor, runInit, discoverSkillIds, resolveSelection, formatSelectRefusal, runIntegrationsVerify, resolvePackageSkillRoots, PACKAGE_SKILL_LAYOUTS, benchmarkSkill, benchmarkSkills, scanMcp, reconcileCapabilities, RECONCILE_BANNER, buildRegistry, discoverSkillPackDirs, discoverVerifiablePackDirs, checkUpstream, compareSkills, checkAllUpstream, sweepSkillDrift, syncCanonicalSkill, checkUpgrades, discoverPackages, discoverSourcePackages, fetchAllDownloads, filterByCategory, pretrain, recommend, generatePlugin, publishPackages, runSetup, memoryBackendSourceLabel, runMigrate, searchRegistry, runSync, runVerify, runInitAgentsMd, runInitGeminiMd, runSyncAgentsPolicy, runSyncCodexHooks, resolveCodexHome, withNamedLockSync, 
+import { createSkill, getSkillInfo, listSkillsDetailed, formatSkillLoadFailures, formatSkillApplyFailures, resolveTargetName, formatTargetProblem, formatTargetAliasNote, TARGET_NAMES_SORTED, runDoctor, runInit, discoverSkillIds, loadSkillFromDir, resolveSelection, formatSelectRefusal, runIntegrationsVerify, resolvePackageSkillRoots, PACKAGE_SKILL_LAYOUTS, benchmarkSkill, benchmarkSkills, scanMcp, reconcileCapabilities, RECONCILE_BANNER, buildRegistry, discoverSkillPackDirs, discoverVerifiablePackDirs, checkUpstream, compareSkills, checkAllUpstream, sweepSkillDrift, syncCanonicalSkill, checkUpgrades, discoverPackages, discoverSourcePackages, fetchAllDownloads, filterByCategory, pretrain, recommend, generatePlugin, publishPackages, runSetup, memoryBackendSourceLabel, runMigrate, searchRegistry, runSync, runVerify, runInitAgentsMd, runInitGeminiMd, runSyncAgentsPolicy, runSyncCodexHooks, resolveCodexHome, withNamedLockSync, 
 // dz workflow run (feature dz-workflow-run): the pure scheduler + the dispatch adapters.
-TRACE_RUNID_RE, WF_RUN_OWNER_HOST, preflight, runWorkflow, makeClaudePDispatcher, makeCodexExecDispatcher, NamedLockTimeoutError, NamedLockCompromisedError, POLICY_SOURCES, detectPolicyDrift, hasPolicyFence, TARGET_NAMES, buildParityMatrix, computeParity, PARITY_FEATURES, downgradeForStaleEvidence, findStaleTranscriptEvidence, TARGET_CAPABILITIES, TARGET_SHORT_LABELS, applyLegStatus, applyLegReasonMessage, resolveAgentdbPath, WORKFLOW_TEMPLATES_RETIRED_MESSAGE, parsePlan, isParseErrors, validatePlan, normalizePlan, planDigest, toTraceProjection, renderPlan, mergeRender, lint, lintExitCode, LOOP_BLOBS, parseTrace, assembleTimeline, runInvariants, deriveAttestation, stampAttestation, corroborate, NOT_WITNESSED, renderTimelineHtml, importEcc, recordPattern, recordLessonForms, normalizeLessonForms, resolveLearningBackend, storeStats, consolidateSessions, pruneNoisePatterns, lessonDeltaReport, removePatternsByIds, snapshotStore, recallHybrid, teachGuard, mirrorPatternsToVector, mirrorEntriesToVector, patternVectorEntry, readMemoryLearningConfig, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns, clearAgentdbQuarantine, vectorMirrorEnabled, vectorTierStatus, resolveVectorEngine, reindexVectorStore, harmonizeVectorStore, importRvfCheckpoint, renderFeatureAdrPhaseLine, statuslineData, countLearningStoreRowsReadonly, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, storeGuardPath, storeSnapshotPath, writeFeatureAdrState, writeFeatureAdrStateDetailed, CHECKPOINT_STAGES, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, computeSpendReport, deriveCostLedger, planLedgerBackfill, listCostLedgerRuns, resolveLedgerRunId, AMBIGUOUS, stampCheckpointLine, LEDGER_FILL_SOURCE, renderCostLedger, verifyCostLedgerReport, writeCostLedgerJsonl, COST_LEDGER_SCOPE, spendReport, claimCheck, summarize, BUNDLED_SLOP_REGISTRY_URL, DEFAULT_SLOP_CONFIG, parseSlopRegistry, slopLint, validateSlopLintConfig, queryBookKnowledge, loadStorePatternsSync, patternRecordId, patternIdentityOf, mergeLessonMatchedForms, SWARM_BRIEF_CONTRACT, checkSwarmBrief, visibleText, loadStoreRecords, findExactLesson, recordToPattern, bundleSkills, brainHome, brainAgentdbPath, listPreReindexSnapshots, rotatePreReindexSnapshots, scanSnapshotDir, listBrain, bookKbPath, promoteProjectToBrain, updateBrainSource, queryBrain, groundPrompt, expandKu, reindexBrainVectors, buildPrimer, exportBrainSlice, importBrainSlice, registerKusToBrain, RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, parseRecallUsageLog, buildRecallUsageReport, EVENT_CHAIN_TAIL_BYTES, EMPTY_LOG_TAIL, readTailInfo, appendChainedLines, verifyEventChainText, classifyChainDefects, CHAINED_JOURNALS, buildManifest, buildSbom, resolveTrustRoot, decideVerifyPolicy, generateSigningKeypair, appendTransition, evaluateGuard, resolveRules, auditRecord, guardExitCode, DEFAULT_RULES, parsePnpmLockImporters, scannableStubPath, 
+TRACE_RUNID_RE, WF_RUN_OWNER_HOST, preflight, runWorkflow, makeClaudePDispatcher, makeCodexExecDispatcher, NamedLockTimeoutError, NamedLockCompromisedError, POLICY_SOURCES, detectPolicyDrift, hasPolicyFence, TARGET_NAMES, buildParityMatrix, computeParity, PARITY_FEATURES, downgradeForStaleEvidence, findStaleTranscriptEvidence, TARGET_CAPABILITIES, TARGET_SHORT_LABELS, applyLegStatus, applyLegReasonMessage, probeApplyLeg, resolveAgentdbPath, WORKFLOW_TEMPLATES_RETIRED_MESSAGE, parsePlan, isParseErrors, validatePlan, normalizePlan, planDigest, toTraceProjection, renderPlan, mergeRender, lint, lintExitCode, LOOP_BLOBS, parseTrace, assembleTimeline, runInvariants, deriveAttestation, stampAttestation, corroborate, NOT_WITNESSED, renderTimelineHtml, importEcc, recordPattern, recordLessonForms, normalizeLessonForms, resolveLearningBackend, storeStats, consolidateSessions, pruneNoisePatterns, lessonDeltaReport, removePatternsByIds, snapshotStore, recallHybrid, teachGuard, mirrorPatternsToVector, mirrorEntriesToVector, patternVectorEntry, readMemoryLearningConfig, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns, clearAgentdbQuarantine, vectorMirrorEnabled, vectorTierStatus, resolveVectorEngine, reindexVectorStore, harmonizeVectorStore, importRvfCheckpoint, renderFeatureAdrPhaseLine, statuslineData, countLearningStoreRowsReadonly, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, storeGuardPath, storeSnapshotPath, writeFeatureAdrState, writeFeatureAdrStateDetailed, CHECKPOINT_STAGES, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, computeSpendReport, deriveCostLedger, planLedgerBackfill, listCostLedgerRuns, resolveLedgerRunId, AMBIGUOUS, stampCheckpointLine, LEDGER_FILL_SOURCE, renderCostLedger, verifyCostLedgerReport, writeCostLedgerJsonl, COST_LEDGER_SCOPE, spendReport, claimCheck, summarize, BUNDLED_SLOP_REGISTRY_URL, DEFAULT_SLOP_CONFIG, parseSlopRegistry, slopLint, validateSlopLintConfig, queryBookKnowledge, loadStorePatternsSync, patternRecordId, patternIdentityOf, mergeLessonMatchedForms, SWARM_BRIEF_CONTRACT, checkSwarmBrief, visibleText, loadStoreRecords, findExactLesson, recordToPattern, bundleSkills, brainHome, brainAgentdbPath, listPreReindexSnapshots, rotatePreReindexSnapshots, scanSnapshotDir, listBrain, bookKbPath, promoteProjectToBrain, updateBrainSource, queryBrain, groundPrompt, expandKu, reindexBrainVectors, buildPrimer, exportBrainSlice, importBrainSlice, registerKusToBrain, RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, parseRecallUsageLog, buildRecallUsageReport, EVENT_CHAIN_TAIL_BYTES, EMPTY_LOG_TAIL, readTailInfo, appendChainedLines, verifyEventChainText, classifyChainDefects, CHAINED_JOURNALS, buildManifest, buildSbom, resolveTrustRoot, decideVerifyPolicy, generateSigningKeypair, appendTransition, evaluateGuard, resolveRules, auditRecord, guardExitCode, DEFAULT_RULES, parsePnpmLockImporters, scannableStubPath, 
 // guard-promotion (feature guard-promotion, scout idea #1)
 assembleCandidates, renderPromotionReport, renderPromotionAdr, normalizePromotionState, nextPromotionState, recordPromotionRunEvidence, isLessonRuleContentAnchor, isOffsetIsoTimestamp, globMatch, promotionAdrRelPath, DEFAULT_WINDOW_DAYS, DEFAULT_PERIODS, MAX_CONTENT_FETCHES, BUILTIN_COVERAGE, decideProvenance, isInsideTree, signManifest, verifyManifest, hashPackBytes, rewriteWorkspaceSpecs, detectSiblingDrift, planPackedInstallSmoke, judgePackedInstallSmoke, listPackFiles, listSignablePackFiles, assertKeyOutsideTree, decidePublishGate, collectPackageFacts, planReleaseGates, selectAffectedPackages, classifyGateExecutions, buildFailureIssue, buildReleaseNotes, releaseTagName, firstOutputLine, formatPublishError, MANIFEST_NAME, SBOM_NAME, buildArchitectureMap, renderMapHuman, findArchitectureDrift, renderDriftReport, scanWorkspacePackages, loadSubsystemManifest, loadProductVision, checkFeatureAgainstArchitecture, renderArchCheck, planProjectSkills, guidanceForStage, renderInjectionReport, analyzeCorpus, renderRakeReport, renderCriticSection, rakeAsLesson, rakeReward, DEFAULT_RAKE_THRESHOLDS, streamSessionEvents, findLatestTranscript, resolveScanTailTranscript, detectProcessRakes, buildRetro, renderRetro, retroLessonText, PROCESS_SIGNATURES, RETRO_DOMAIN, runRetroTailScan, scanForSetup, buildSetupPlan, scaffoldFromSpec, renderScaffoldPreview, readExistingForScaffold, assembleChallengeContext, buildChallengeBrief, planDiscriminationCheck, classifyDiscrimination, classifyExecutionEvidence, pickAdversaryModel, CHALLENGE_QUESTIONS, loadOutcomes, renderOutcomes, statsForKey, selectAutoCost, recordProvisional, finalizeOutcome, harvestStageOutcomes, recommendModels, planFeed, unfedRuns, GRADE_SUCCESS_FLOOR, COST_LADDER, splitScenarios, budgetPlan, selectWinner, proseScopeOk, renderProseDiff, readScenarioIds, DEFAULT_MAX_JUDGE_RUNS, collectDeliveryFacts, planDeliveryCheck, renderDeliveryBrief, classifyDelivery, isUsablePlaneResult, renderDeliveryReview, scanSkillsLayout, declaredPluginSurface, parseInitFacts, verifyRegistration, buildContentProbePrompt, classifyContentProbe, renderContentProbe, findNonRegistrableSkillDirs, assembleCompoundingReport, buildDeadwoodReport, compactCmdUsageIfNeeded, measureCmdUsageDepthDays, recordCommandInvocation, resolveCmdUsageRoot, renderDeadwoodReport, CMD_USAGE_LOG_RELATIVE, banditStats, narrowBanditReport, renderBanditHealth, 
 // Cold-vs-warm EPOCH RUNNER (feature epoch-replay) — orchestrates + scores, never calls a model.
@@ -32,7 +39,7 @@ readBacklogConfig, readIdeas, writeIdeas, ideaId, dedupIdea, readGoalMap, readGo
 // qe-bridge (feature qe-bridge-claude, ADR-001): the pure half of the reverse QE bridge.
 KNOWN_CLAUDE, isSafeClaudeId, claudeProbeArgs, claudeReviewArgs, interpretClaudeProbe, modelFamily, buildBridgePrompt, parseBridgeOutput, buildBridgeFailureRecord, buildBridgeSignoffRecord, renderBridgeReport, isSafeSlug, hasUnsafePathChars, hasDotDotSegment, buildReqeBrief, settleReqeDebt, renderReqeList, REQE_SCOPE, 
 // Mutation gate (feature ha-mutation-gate) — break each named protection, run the suite, require red.
-REGISTRY_SELFCHECK_TESTS, buildMutationTestCommand, parseMutationRegistry, applyMutationToText, attributeBaselineRedness, countFailingTests, detectSuiteCompletionReceipt, detectSuiteReceiptMismatch, classifyBaseline, classifyRunFailure, classifyMutationOutcome, mutationGateExitCode, summarizeMutationResults, renderMutationReport, runWithOneInternalRetry, TRACE_BUNDLE_LEDGER_PATH, TRACE_BUNDLE_SCHEMA, TRACE_BUNDLE_RUN_META_FILE, buildBundle, serializeBundle, parseBundle, planImport, decideCheckpointWrite, amendmentSection, amendmentSectionCount, amendmentDeclarationAmbiguity, planSaysNoAmendments, parseAmendments, resolveAmendments, decideAmendmentOutcome, amendmentVerdictLine, amendmentsMissingFromPlan, AMENDMENT_VACUITY_NOTE, extractContractChecklist, readFeatureTier, parseContractVerdictReport, verifyContractVerdicts, decideSignableSet, signableSetLine, decideRecordWrite, decideReadBack, recordVerdictLine, buildCadenceReport, tgVisibleSha256, CADENCE_WINDOW_DAYS, readQeRounds, QE_ROUNDS_DEFAULT_CEILING, adviseRestart, describeStoreLocation, storeLocationLine, resolveTeachTarget, teachReasonPhrase, readTeachToConfig, TeachTargetError, mergeStoreHits, sameStore, globalStoreRoot, storeCountLabel, 
+REGISTRY_SELFCHECK_TESTS, buildMutationTestCommand, parseMutationRegistry, registryEntriesAddedSince, applyMutationToText, attributeBaselineRedness, countFailingTests, detectSuiteCompletionReceipt, detectSuiteReceiptMismatch, classifyBaseline, classifyRunFailure, classifyMutationOutcome, mutationGateExitCode, summarizeMutationResults, renderMutationReport, runWithOneInternalRetry, TRACE_BUNDLE_LEDGER_PATH, TRACE_BUNDLE_SCHEMA, TRACE_BUNDLE_RUN_META_FILE, buildBundle, serializeBundle, parseBundle, planImport, decideCheckpointWrite, amendmentSection, amendmentSectionCount, amendmentDeclarationAmbiguity, planSaysNoAmendments, parseAmendments, resolveAmendments, decideAmendmentOutcome, amendmentVerdictLine, amendmentsMissingFromPlan, AMENDMENT_VACUITY_NOTE, extractContractChecklist, readFeatureTier, parseContractVerdictReport, verifyContractVerdicts, decideSignableSet, signableSetLine, decideRecordWrite, decideReadBack, recordVerdictLine, buildCadenceReport, tgVisibleSha256, CADENCE_WINDOW_DAYS, readQeRounds, QE_ROUNDS_DEFAULT_CEILING, adviseRestart, describeStoreLocation, storeLocationLine, resolveTeachTarget, teachReasonPhrase, readTeachToConfig, TeachTargetError, mergeStoreHits, sameStore, globalStoreRoot, storeCountLabel, 
 // operator-profile (ADR-001): per-user 0600 store + marked block in ~/.claude/CLAUDE.md
 renderProfileBlock, readProfile, writeProfile, syncProfileBlock, checkProfileDrift, parseRegister, registerOwnerWord, profileAgeDays, parseDomainList, domainListText, parseYesNo, REGISTERS, } from '@dzhechkov/harness-core';
 import { getPreset, PRESET_NAMES } from '@dzhechkov/harness-presets';
@@ -142,7 +149,7 @@ Usage:
   dz profile [init|show|set|sync] [--json]   (WHO the assistant is talking to — per-user store at ~/.dz/profile.json (0600, NEVER in a project), delivered as a marked block in ~/.claude/CLAUDE.md so it loads in EVERY project, dz installed or not. init = five questions (language, register, deep/weak domains as comma lists — "networking (CCIE; NSX)" keeps the parenthetical as the note, Enter skips — teaches y/n with one re-ask, never a silent default); show ALWAYS prints the store path + age + drift verdict + the rendered block; set register|language|teaches <v> or set deep|weak add|rm <tag> [note] — register accepts the owner's own words (профи / профи лайт / просто), an unknown value is REFUSED naming the accepted set; sync re-writes the block (runs automatically after init/set; foreign content byte-for-byte, timestamped backup before every modifying write). The register changes FORM, never FACTS, and governs dialogue only — never ADRs/commits/QE reports; both rules are baked into the rendered block at every level. exit 0 done / 1 no profile or failed / 2 refused input)
   dz reqe [--slug <feature> [--done --report <f>]] [--json]   (the re-QE debt ledger: a usage-switched run whose Step-8 QE ran on the coder's OWN family records a debt; list debts, print the cross-family review brief, settle FAIL-CLOSED against a graded report — the settlement lands in 08_qe_report.md)
   dz qe-bridge --family claude --slug <feature> [--coder-family codex|claude] [--model <id>] [--files a,b] [--out <f>] [--timeout <s>] [--allow-same-family] [--json]   (the REVERSE QE bridge: run an INDEPENDENT Claude reviewer over a feature's Step-8 artifacts from ANY host — a Codex session included, plain shell, no Claude agent plane needed — and land a PARSED signoff. The reviewer runs ISOLATED: an EMPTY temp cwd plus --safe-mode --strict-mcp-config --tools '' --no-session-persistence, so no CLAUDE.md/skills/plugins/hooks/MCP load, and the verdict is read from the --output-format json RESULT ENVELOPE — text a session customization printed onto the same stdout can never become a signoff. Probes the model before trusting it; sends SCOPED extracts with a loud 200k-char ceiling (never silent truncation); the grade must AGREE across three LAST-anchored channels (terminal marker line, fenced qe-bridge-signoff JSON, the report's own GRADE line) AND the marker must be the FINAL content — empty, gradeless, self-contradicting or miscounted output is one of 17 NAMED failures with an audit record under features/<slug>/.fa-state/qe-bridge/ (runId, resolved executable + binOverride, prompt sha256, channel offsets, requestedOut, reportWritten, retained raw stdout; 0600 files in a 0700 dir), never a clean review. A --coder-family that contradicts the recorded reqe debt is refused. Writes features/<slug>/08b_reqe_report.md, which dz reqe --done settles unchanged. DISCLOSURE: the extracts you scope are sent to the Claude runtime; the bridge cannot classify secrets. DZ_QE_BRIDGE_CLAUDE_BIN is a TEST SEAM, not a flag. exit 0 signoff parsed (ANY grade — it reports, it does not gate) / 1 named failure / 2 usage)
-  dz mutation-gate [--package <dir>] [--registry <file>] [--test-cmd "<cmd>"] [--only <id[,id]>] [--timeout <ms>] [--rebaseline per-entry|final] [--keep-scratch] [--json]   (prove each NAMED protection has a test that DISCRIMINATES: copy the package to a scratch dir, verify the baseline suite is green, apply each registry mutation, run the suite, REQUIRE red, restore. The red must be BEHAVIOURAL: a mutation that no longer parses is MUTATION_UNPARSEABLE; a red run whose OWN output reports a test FILE failing to load (node --test file-level not-ok with exitCode, vitest Failed Suites) is MUTATION_LOAD_FATAL — the signal comes from the same run as the failing count, never from a separate isolated import; red output whose shape matches no known runner is INCONCLUSIVE (a runner-coverage gap, loud, never PROVEN); a count far above the entry's bound is OVER_FAILING; a restored tree that does not reproduce green makes the entry INCONCLUSIVE (flaky). Mutation writes are realpath-contained to the scratch copy: a symlink escape or a node_modules/ target is refused (exit 2), the real tree is never written. A mutation that does not apply, a green suite, or an inconclusive run is a FAILURE — never a skip. exit 0 all proven / 1 gate failed / 2 setup error)
+  dz mutation-gate [--package <dir>] [--registry <file>] [--test-cmd "<cmd>"] [--only <id[,id]>] [--touched <path[,path]>] [--added-since <git-ref>] [--timeout <ms>] [--max-workers <n>] [--rebaseline per-entry|final] [--keep-scratch] [--json]   (prove each NAMED protection has a test that DISCRIMINATES: '--max-workers' resolves flag > the registry's own 'maxWorkers' field > 'min(4, max(1, floor(cpus/2)))' (an invalid flag value — 0, negative, fractional, non-numeric — is a usage error, exit 2, never a silent default; fix-round 1), injects '--maxWorkers=<n>' right after 'vitest run' inside its own compound-command segment (unless that segment already names the flag; fix-round 1 — scoped detection, not a whole-command substring check) and sets 'VITEST_MAX_WORKERS=<n>' in the env regardless — an uncapped full-suite baseline/mutant run at vitest's default worker count (= cpu cores) has measured load 62-358 and <2GB free on an 8-core/16GB box under embedding-daemon tests, killing full overnight gate runs (0bb74d66); printed as 'mutation-gate: workers: <n> (<flag|registry|default>)', or 'mutation-gate: workers: n/a — test command is not vitest' when the command is not recognised as vitest. '--touched' selects entries whose 'file' matches one of the given paths, accepted in ANY of package-relative, './'-prefixed, absolute-inside-the-package, repo-relative, or backslash-separated form — all normalized to package-relative POSIX before matching (fix-round 1, AM-1); a path that resolves OUTSIDE the package is counted, never silently dropped, as '<K> outside package' in the 'selected N of M' line; '--added-since <ref>' selects entries whose id is not present in the registry as it read at that ref ('git show <ref>:<registry path>'): a registry genuinely ABSENT at that ref means every current entry counts as added (said explicitly); an unresolvable ref, any OTHER git failure, or an invalid/malformed base registry at that ref is a usage error (exit 2), never folded into "absent" (AM-3) — a feature scopes the gate to its own touched files and any entries it just added instead of the whole registry (MEASURED: an unscoped run over 358 entries on this repo's core package ran 30-40 minutes and hit the timeout wall, INCONCLUSIVE every time). The two selectors UNION and the result INTERSECTS with '--only' when both are given; an empty selection prints 'selected 0 of M entries (…)' and exits 0 — never a silent skip; '--json' always carries a 'selection' object ({selected, total, touched, addedSince, base, outsidePackage}) on every scoped run (AM-4). copy the package to a scratch dir, verify the baseline suite is green, apply each registry mutation, run the suite, REQUIRE red, restore. The red must be BEHAVIOURAL: a mutation that no longer parses is MUTATION_UNPARSEABLE; a red run whose OWN output reports a test FILE failing to load (node --test file-level not-ok with exitCode, vitest Failed Suites) is MUTATION_LOAD_FATAL — the signal comes from the same run as the failing count, never from a separate isolated import; red output whose shape matches no known runner is INCONCLUSIVE (a runner-coverage gap, loud, never PROVEN); a count far above the entry's bound is OVER_FAILING; a restored tree that does not reproduce green makes the entry INCONCLUSIVE (flaky). Mutation writes are realpath-contained to the scratch copy: a symlink escape or a node_modules/ target is refused (exit 2), the real tree is never written. A mutation that does not apply, a green suite, or an inconclusive run is a FAILURE — never a skip. exit 0 all proven / 1 gate failed / 2 setup error)
   dz backlog add "<idea>" [--effort 1-5] [--proposal <text>] [--dry-run] [--allow-cold-start] [--project <dir>] [--json]   (capture an idea: semantic dedup against existing ideas via the Brain vector engine (DUPLICATE>=0.92 merges, RELATED links, NEW creates) + GoalMap alignment; --dry-run classifies without writing)
   dz backlog list [--status <s>] [--goal <id>] [--project <dir>] [--json]   (list captured ideas, filterable by status/goal)
   dz backlog show <id> [--project <dir>] [--json]                          (full record for one idea)
@@ -1807,6 +1814,43 @@ async function cmdInstall(options, flags, cwd, write, writeErr, installRunner) {
     }
     if (root.layout === 'npx-template' && root.hasCompanionAssets) {
         write(`  note: ${pkg} also ships commands/hooks/agents — \`npx -y ${pkg} init\` installs the full kit.`);
+    }
+    // Junk-skip summary (feature skills-walk-symlinks-and-junk, FR-2/AC-3). `report.skills[].skipped`
+    // above is a WRITE outcome (an existing file not overwritten without --force) — a different
+    // question from "did this skill directory contain build/cache junk that never became an asset at
+    // all". Re-walk each discovered skill (a cheap second READ — `loadSkillFromDir` already did this
+    // once inside `runInit`'s `adapter.compile`, this adds no write) to surface that count without
+    // reshaping `InitReport`. Silent at N=0 (AC-3): most packages ship no junk and must print nothing.
+    // fix-round 1 MEDIUM-4: this counts ENTRIES, not files. A skipped junk DIRECTORY (e.g.
+    // `__pycache__`) is exactly one entry here even though it may hold many files underneath —
+    // `walkFiles` never descends into a skipped junk directory to count those (see skills.ts),
+    // so a per-file count would be a number this code cannot honestly produce. The wording and
+    // the trailing `/` on directory paths say so, instead of implying "file" for something that
+    // may be a whole tree.
+    let junkSkippedCount = 0;
+    const junkSkippedPaths = [];
+    for (const id of discoverSkillIds(root.dir)) {
+        let skill;
+        try {
+            skill = loadSkillFromDir(root.dir, id);
+        }
+        catch {
+            continue; // unparseable skills are reported separately via report.failures below
+        }
+        for (const entry of skill.skipped ?? []) {
+            if (!entry.reason.startsWith('junk'))
+                continue; // broken-symlink/cycle/escape skips are a different concern (FR-1/AM-8)
+            junkSkippedCount += 1;
+            const shownPath = relative(pkgDir, entry.path).split('\\').join('/');
+            const isDir = entry.reason.startsWith('junk directory');
+            junkSkippedPaths.push(isDir ? `${shownPath}/` : shownPath);
+        }
+    }
+    if (junkSkippedCount > 0) {
+        const shown = junkSkippedPaths.slice(0, 5).join(', ');
+        const more = junkSkippedPaths.length > 5 ? `, … (+${junkSkippedPaths.length - 5} more)` : '';
+        const noun = junkSkippedCount === 1 ? 'entry' : 'entries';
+        write(`skills: skipped ${junkSkippedCount} junk ${noun} (${shown}${more})`);
     }
     // Skip-and-collect at install time (D1 / the report's D2 amendment): the offending
     // SKILL.md came out of the DOWNLOADED TARBALL, so the path is rendered relative to
@@ -4244,7 +4288,19 @@ async function cmdRecall(options, flags, cwd, write, writeErr, classMatcher) {
     }
     if (hits.length === 0) {
         write(`dz recall "${shownQuery}"`);
-        write(`  No matching patterns (teach some with \`dz teach\`, or consolidate sessions).`);
+        // Fix-round 1 (Codex HIGH-1c): a query that tokenizes to literally nothing (pure
+        // punctuation/whitespace) is a DIFFERENT empty result than a query with real terms that
+        // simply matched no record — FR-3 requires the reason to be named, not folded into the same
+        // generic "no matching patterns" line. `noSearchableTermsReason` is the single source of
+        // truth for the decision (memory/src/tokenize.ts); this print site calls it rather than
+        // re-deriving "no searchable terms" from the query text itself.
+        const noTermsReason = noSearchableTermsReason(query);
+        if (noTermsReason !== undefined) {
+            write(`  no searchable terms in "${shownQuery}" (only punctuation/whitespace) — reason: ${noTermsReason}`);
+        }
+        else {
+            write(`  No matching patterns (teach some with \`dz teach\`, or consolidate sessions).`);
+        }
         // The domain note must print here too (Codex QE #10): a --domain run with zero hits
         // silently said nothing about the domain, so the reader could not tell whether the
         // boost had been applied and found nothing, or had not run at all.
@@ -7189,7 +7245,7 @@ npmPackRunner) {
 /*  dz parity — the honest feature×target map (target-parity-matrix,   */
 /*  ADR-001): computed from the declarative model, never hand-written  */
 /* ------------------------------------------------------------------ */
-function cmdParity(options, flags, write, writeErr, cwd) {
+async function cmdParity(options, flags, write, writeErr, cwd) {
     const json = flags.has('json');
     if (flags.has('help')) {
         write('dz parity [--target <name>] [--json] — the computed feature×target map (never hand-written)');
@@ -7217,32 +7273,56 @@ function cmdParity(options, flags, write, writeErr, cwd) {
             return 1;
         }
     }
-    // ADR-001 Decision 3 (feature setup-installs-apply-leg): `learning-apply` on `claude-code` is
-    // MEASURED, not declared — `hooks-prompt` is present for that ONE target only when
-    // `applyLegStatus(root).installed`. `computeParity` itself is untouched (FR-5); only the
-    // capability SET fed into it for this one cell differs from the static `TARGET_CAPABILITIES`.
-    // `applyLegStatus` never throws (fix round 1, Q3 finding: an unreadable helper used to be able to
-    // crash this command rather than degrade to a named remedy).
+    // ADR-001 Decision 3 (feature setup-installs-apply-leg), extended by `apply-leg-never-silent`
+    // Decision 3 (FR-4): `learning-apply` on `claude-code` is MEASURED, not declared — `hooks-prompt`
+    // is present for that ONE target only when the leg is OBSERVED to inject, not merely installed.
+    // Issue #2 was exactly this cell reading `full` while the leg injected nothing in every session
+    // but one: `applyLegStatus(root).installed` alone (file presence + structural wiring) is
+    // necessary but not sufficient — `probeApplyLeg` is the live end-to-end proof. `computeParity`
+    // itself is untouched (FR-5 of the earlier feature); only the capability SET fed into it for this
+    // one cell differs from the static `TARGET_CAPABILITIES`, exactly as before this feature.
+    // `applyLegStatus` never throws (fix round 1, Q3 finding); `probeApplyLeg` is only invoked when
+    // `installed` is true — a leg with missing/stale/unreadable helpers has nothing live to probe,
+    // and the pre-existing remedy for that state is unchanged.
     const applyLegStatusVal = applyLegStatus(cwd);
     const applyLegInstalled = applyLegStatusVal.installed;
+    // Codex round-2: `probeApplyLeg` may REJECT (temp dir, dynamic import, a throwing remover) — doctor
+    // catches that; parity must too, or a probe crash would crash `dz parity` instead of reading as
+    // "installed but silent: probe-error".
+    let applyLegProbe;
+    if (applyLegInstalled) {
+        try {
+            applyLegProbe = await probeApplyLeg(cwd);
+        }
+        catch (err) {
+            applyLegProbe = { ok: false, reason: `probe-error: ${err instanceof Error ? err.message : String(err)}`, elapsedMs: 0 };
+        }
+    }
+    const applyLegWorking = applyLegProbe?.ok === true;
     const matrix = buildParityMatrix().map((row) => {
-        if (row.feature.id !== 'learning-apply' || applyLegInstalled)
+        if (row.feature.id !== 'learning-apply' || applyLegWorking)
             return row;
         const claudeCodeCaps = TARGET_CAPABILITIES['claude-code'].filter((c) => c !== 'hooks-prompt');
         return { feature: row.feature, cells: { ...row.cells, 'claude-code': computeParity(row.feature, claudeCodeCaps) } };
     });
-    // The "not installed" remedy — named ONLY for the one cell whose grant is a live measurement,
-    // never a blanket note for every `manual` cell (most targets are manual by DESIGN, not absence).
-    // `stale-version`/`unreadable` route through `applyLegReasonMessage` — the SAME text-producing
-    // function `dz doctor` uses for those two reasons (fix round 1, HIGH finding 2 / Q3 finding 7), so
-    // the two instruments cannot disagree about WHY a stale or broken install is not "full".
+    // The remedy — named ONLY for the one cell whose grant is a live measurement, never a blanket
+    // note for every `manual` cell (most targets are manual by DESIGN, not absence). Three distinct
+    // states, never conflated: NOT installed (stale-version/unreadable route through
+    // `applyLegReasonMessage`, the SAME text-producing function `dz doctor` uses for those two
+    // reasons, so the two instruments cannot disagree about WHY); installed but the live probe did
+    // NOT observe injection (FR-4's new "installed but silent" case, reason from `probeApplyLeg`
+    // itself — the SAME reason `dz doctor`'s live-probe row prints, so doctor and parity cannot
+    // disagree about a dead leg either); and the working case, where this function returns ''.
     const applyLegRemedy = (featureId, t) => {
-        if (featureId !== 'learning-apply' || t !== 'claude-code' || applyLegInstalled)
+        if (featureId !== 'learning-apply' || t !== 'claude-code' || applyLegWorking)
             return '';
-        if (applyLegStatusVal.reason === 'stale-version' || applyLegStatusVal.reason === 'unreadable') {
-            return ` — ${applyLegReasonMessage(applyLegStatusVal)}`;
+        if (!applyLegInstalled) {
+            if (applyLegStatusVal.reason === 'stale-version' || applyLegStatusVal.reason === 'unreadable') {
+                return ` — ${applyLegReasonMessage(applyLegStatusVal)}`;
+            }
+            return ' — not installed — run dz setup --target claude-code --memory agentdb';
         }
-        return ' — not installed — run dz setup --target claude-code --memory agentdb';
+        return ` — installed but silent: ${applyLegProbe?.reason ?? 'unknown'}`;
     };
     // EVIDENCE staleness, folded into the report (fix round 2, R2-3). Derived from the records
     // themselves — no `codex --version`, no subprocess, so `dz parity` stays a deterministic function
@@ -12320,6 +12400,43 @@ function splitMutationGateOutputWrite(result) {
         return {};
     return 'path' in result ? { outputPath: result.path } : { outputError: result.error };
 }
+/** Fix-round 1 (AM-1, feature qe-step-gate-scoped-to-feature): a `--touched` path arrives in one of
+ * several shapes — package-relative POSIX (the common case, already correct as-is), with a leading
+ * `./`, as an ABSOLUTE path inside the package, or REPO-relative (e.g.
+ * `packages/@dzhechkov/harness-cli/src/x.ts`) — and on a POSIX host a caller may hand a backslash
+ * path too (a Windows-authored change list). MEASURED (Codex round-1 review): the pre-fix
+ * normalization only converted the native path separator, so any of the other shapes matched ZERO
+ * registry entries and the gate silently reported `selected 0` / exit 0 — the run looked clean while
+ * defending nothing. This resolves EVERY shape to the package-relative POSIX candidate(s) a registry
+ * entry's `file` is written in, and — when a path genuinely resolves outside `pkgDir` (an absolute
+ * path elsewhere, or a `../` that still escapes the package after a repo-relative reinterpretation)
+ * — reports it as `outside`, never a silent non-match indistinguishable from "the path doesn't
+ * exist".
+ */
+function normalizeTouchedPath(raw, pkgDir, repoTop) {
+    // Codex round-2: normalize lexically FIRST so `lib/../../x` is seen as the traversal it is, and treat a
+    // Windows-drive path (`C:/…`) on a POSIX host as outside the package (counted, said) rather than as a
+    // package-relative name that silently matches nothing. Symlinked package dirs stay a named limit: the
+    // containment check is lexical, not realpath-based.
+    const p = posixNormalize(raw.replace(/\\/g, '/')).replace(/^(?:\.\/)+/, '');
+    if (p === '' || p === '.')
+        return { candidates: [], outside: false };
+    if (/^[A-Za-z]:\//.test(p) && !isAbsolute(p))
+        return { candidates: [], outside: true };
+    if (isAbsolute(p)) {
+        const rel = relative(pkgDir, resolve(p)).split(sep).join('/');
+        return rel === '' || rel.startsWith('..') ? { candidates: [], outside: true } : { candidates: [rel], outside: false };
+    }
+    const candidates = new Set();
+    if (p !== '..' && !p.startsWith('../'))
+        candidates.add(p); // already package-relative, as given
+    if (repoTop !== null) {
+        const rel = relative(pkgDir, resolve(repoTop, p)).split(sep).join('/');
+        if (rel !== '' && !rel.startsWith('..'))
+            candidates.add(rel);
+    }
+    return candidates.size > 0 ? { candidates: [...candidates], outside: false } : { candidates: [], outside: true };
+}
 function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
     const json = flags.has('json');
     const fail = (what) => {
@@ -12343,7 +12460,9 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
     }
     let entries = parsed.registry.entries;
     let entryResults = parsed.entryResults;
+    const totalRegistryEntries = entries.length;
     const only = options.get('only');
+    let onlyIds = null;
     if (only !== undefined) {
         const ids = only.split(',').map((s) => s.trim()).filter(Boolean);
         const known = new Set([
@@ -12353,15 +12472,139 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
         const unknown = ids.filter((id) => !known.has(id));
         if (unknown.length > 0)
             return fail(`--only names unknown entry id(s): ${unknown.join(', ')}`);
+        onlyIds = new Set(ids);
         entries = entries.filter((e) => ids.includes(e.id));
         entryResults = entryResults.filter((result) => ids.includes(result.id));
+    }
+    // Feature qe-step-gate-scoped-to-feature (FR-1/FR-2/FR-3): scope the gate to the files a FEATURE
+    // actually touched and/or entries added since a base ref, instead of the whole registry — MEASURED
+    // 2026-09-12, 358 entries on this repo's core package ran 30-40 minutes and hit the timeout wall,
+    // INCONCLUSIVE every time, though a feature owns only its own touched files. `--touched` and
+    // `--added-since` UNION (a file changed by the feature OR an entry it newly added is in scope);
+    // that union then INTERSECTS with `--only` when both are given, same algebra as an ordinary filter
+    // chain. Both selectors are computed against the FULL (pre-`--only`) registry so their reported
+    // counts describe what THEY matched, independent of any `--only` narrowing applied on top.
+    const touchedRaw = options.get('touched');
+    const addedSinceRaw = options.get('added-since');
+    let selectionMeta = null;
+    if (touchedRaw !== undefined || addedSinceRaw !== undefined) {
+        let repoTop = null;
+        try {
+            repoTop = execSync('git rev-parse --show-toplevel', { cwd: pkgDir, stdio: 'pipe', encoding: 'utf-8' }).trim() || null;
+        }
+        catch { /* not in a git repo */ }
+        const touchedIds = new Set();
+        let outsidePackageCount = 0;
+        if (touchedRaw !== undefined) {
+            const touchedPaths = touchedRaw.split(',').map((s) => s.trim()).filter(Boolean);
+            const normalizedCandidates = new Set();
+            for (const raw of touchedPaths) {
+                const { candidates, outside } = normalizeTouchedPath(raw, pkgDir, repoTop);
+                if (outside)
+                    outsidePackageCount++;
+                for (const c of candidates)
+                    normalizedCandidates.add(c);
+            }
+            for (const entry of parsed.registry.entries) {
+                if (normalizedCandidates.has(entry.file))
+                    touchedIds.add(entry.id);
+            }
+        }
+        const addedSinceIds = new Set();
+        let baseAbsentMessage = null;
+        if (addedSinceRaw !== undefined) {
+            if (repoTop === null)
+                return fail(`--added-since requires ${pkgDir} to be inside a git repository`);
+            try {
+                execFileSync('git', ['rev-parse', '--verify', '--quiet', `${addedSinceRaw}^{commit}`], { cwd: repoTop, stdio: 'pipe' });
+            }
+            catch {
+                return fail(`--added-since names an unknown git ref: ${addedSinceRaw}`);
+            }
+            const registryRelPath = relative(repoTop, registryPath).split(sep).join('/');
+            let baseRegistry = null;
+            // Fix-round 1 (AM-3): only a genuinely ABSENT registry at that ref means "all entries are
+            // new". Any OTHER `git show` failure (a bad path that isn't a missing-registry case, git
+            // itself missing, a timeout) is a usage error, and a registry that parses to invalid JSON /
+            // an invalid registry shape at that ref is a distinct usage error too — collapsing all three
+            // into "absent" used to hide real failures behind a silently-too-generous selection.
+            try {
+                // stdio: registry-absent-at-ref is an EXPECTED outcome (git's own "fatal: path … does not
+                // exist" on stderr would otherwise leak to the terminal by node's default inherit-stderr
+                // behaviour) — pipe it into the caught error instead of printing it at the user.
+                const baseText = execFileSync('git', ['show', `${addedSinceRaw}:${registryRelPath}`], { cwd: repoTop, encoding: 'utf-8', env: { ...process.env, LC_ALL: 'C', LANG: 'C' }, maxBuffer: 16 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] });
+                const baseParsed = parseMutationRegistry(baseText);
+                if (baseParsed.registry === null) {
+                    return fail(`base registry at ${addedSinceRaw} is not a valid registry: ${baseParsed.errors.join('; ')}`);
+                }
+                baseRegistry = baseParsed.registry;
+            }
+            catch (e) {
+                const stderr = typeof e?.stderr === 'string'
+                    ? e.stderr
+                    : String(e?.message ?? e);
+                if (/does not exist in|exists on disk, but not in|Path .* does not exist/i.test(stderr)) {
+                    baseRegistry = null; // registry absent at that ref → every current entry counts as added
+                    baseAbsentMessage = `base registry absent at ${addedSinceRaw} — all ${totalRegistryEntries} entries count as added`;
+                }
+                else {
+                    return fail(`git show ${addedSinceRaw}:${registryRelPath} failed: ${stderr.trim()}`);
+                }
+            }
+            if (baseAbsentMessage !== null && !json)
+                write(`mutation-gate: ${baseAbsentMessage}`);
+            for (const id of registryEntriesAddedSince(baseRegistry, parsed.registry))
+                addedSinceIds.add(id);
+        }
+        let unionIds = new Set([...touchedIds, ...addedSinceIds]);
+        if (onlyIds !== null) {
+            const only2 = onlyIds;
+            unionIds = new Set([...unionIds].filter((id) => only2.has(id)));
+        }
+        const selectorParts = [];
+        if (touchedRaw !== undefined)
+            selectorParts.push(`touched: ${touchedIds.size}${outsidePackageCount > 0 ? ` (${outsidePackageCount} outside package)` : ''}`);
+        if (addedSinceRaw !== undefined)
+            selectorParts.push(`added-since ${addedSinceRaw}: ${addedSinceIds.size}`);
+        if (!json)
+            write(`mutation-gate: selected ${unionIds.size} of ${totalRegistryEntries} entries (${selectorParts.join('; ')})`);
+        entries = entries.filter((e) => unionIds.has(e.id));
+        entryResults = entryResults.filter((result) => unionIds.has(result.id));
+        // AM-4: every scoped run — empty or not — carries a machine-readable `selection` object in the
+        // JSON contract, not just the empty-selection early return.
+        selectionMeta = {
+            selected: unionIds.size,
+            total: totalRegistryEntries,
+            touched: touchedRaw !== undefined ? [...touchedIds].sort() : null,
+            addedSince: addedSinceRaw !== undefined ? [...addedSinceIds].sort() : null,
+            base: addedSinceRaw ?? null,
+            baseAbsent: baseAbsentMessage !== null,
+            outsidePackage: outsidePackageCount,
+        };
+        if (unionIds.size === 0) {
+            const msg = `0 entries match ${selectorParts.join(', ')} — nothing to run`;
+            if (json) {
+                write(JSON.stringify({
+                    packageDir: pkgDir,
+                    registryPath,
+                    selection: selectionMeta,
+                    results: [],
+                    summary: summarizeMutationResults([]),
+                    exitCode: 0,
+                }, null, 2));
+            }
+            else {
+                write(`mutation-gate: ${msg}`);
+            }
+            return 0;
+        }
     }
     if (entries.length === 0) {
         const scope = only === undefined ? 'registry' : 'selected registry entries';
         const error = `${scope} has no runnable entries after validation — nothing can be run; the registry is unusable`;
         const summary = summarizeMutationResults(entryResults);
         if (json) {
-            write(JSON.stringify({ error, registryPath, results: entryResults, summary, exitCode: 2 }, null, 2));
+            write(JSON.stringify({ error, registryPath, ...(selectionMeta !== null ? { selection: selectionMeta } : {}), results: entryResults, summary, exitCode: 2 }, null, 2));
         }
         else {
             write(`dz mutation-gate: ${error}`);
@@ -12374,13 +12617,98 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
     const testCmdRaw = options.get('test-cmd') ?? parsed.registry.testCommand ?? 'npm test';
     if (/[\0\n\r]/.test(testCmdRaw))
         return fail('--test-cmd may not contain NUL or newline characters');
-    const testCmd = testCmdRaw;
+    let testCmd = testCmdRaw;
     const excludedSelfChecks = REGISTRY_SELFCHECK_TESTS.filter((testFile) => entries.some((entry) => buildMutationTestCommand(testCmd, entry).excluded.includes(testFile)));
     if (!json) {
         write(`mutation-gate: self-check excluded from mutant runs: ${excludedSelfChecks.join(', ') || '(none)'}`);
     }
-    const timeoutOpt = Number(options.get('timeout') ?? '300000');
-    const timeout = Number.isFinite(timeoutOpt) && timeoutOpt > 0 ? timeoutOpt : 300000;
+    // mutation-gate-timeout-verdict FR-3/FR-4: precedence is the `--timeout` flag > the registry's
+    // own `timeoutMs` field > the 300000ms default. A package whose real baseline run is longer than
+    // the default (this repo's core package, MEASURED ≈5-8 min) declares its floor in the registry so
+    // a bare `dz mutation-gate` — no flag — still succeeds (AC-5).
+    const timeoutFlagRaw = options.get('timeout');
+    let timeout;
+    let timeoutSource;
+    if (timeoutFlagRaw !== undefined) {
+        const timeoutOpt = Number(timeoutFlagRaw);
+        if (Number.isFinite(timeoutOpt) && timeoutOpt > 0) {
+            timeout = timeoutOpt;
+            timeoutSource = 'flag';
+        }
+        else {
+            timeout = 300000;
+            timeoutSource = 'default';
+        }
+    }
+    else if (parsed.registry.timeoutMs !== undefined) {
+        timeout = parsed.registry.timeoutMs;
+        timeoutSource = 'registry';
+    }
+    else {
+        timeout = 300000;
+        timeoutSource = 'default';
+    }
+    if (!json)
+        write(`mutation-gate: timeout: ${timeout} ms (${timeoutSource})`);
+    // mutation-gate-baseline-honesty FR-2/FR-3: precedence is the `--max-workers` flag > the
+    // registry's own `maxWorkers` field > `min(4, max(1, floor(cpus/2)))`. Baseline and mutant runs
+    // spawn the package's FULL testCommand at vitest's DEFAULT worker count (= cpu cores) unless
+    // capped — MEASURED: under embedding-daemon tests (0.7-3.5 GB/process) this repo's core package
+    // hit load 62-358 and 0.4-1.8 GB free on an 8-core/16GB box, killing three full overnight runs
+    // (0bb74d66); the same suite at `--maxWorkers=2` passed 6909/6909.
+    const maxWorkersFlagRaw = options.get('max-workers');
+    const defaultMaxWorkers = Math.min(4, Math.max(1, Math.floor(cpus().length / 2)));
+    let maxWorkers;
+    let maxWorkersSource;
+    if (maxWorkersFlagRaw !== undefined) {
+        // fix-round 1, AM-1: an invalid `--max-workers` value (0, negative, fractional, `NaN`,
+        // non-numeric) is a USAGE ERROR (exit 2) — mirroring the `--only` unknown-id fail() style —
+        // never a silent fallback to the default. A silent fallback would make a typo'd flag run
+        // uncapped-by-mistake while LOOKING capped (the source line still says "(default)").
+        const maxWorkersOpt = Number(maxWorkersFlagRaw);
+        if (!Number.isInteger(maxWorkersOpt) || maxWorkersOpt < 1) {
+            return fail(`--max-workers must be a positive integer, got '${maxWorkersFlagRaw}'`);
+        }
+        maxWorkers = maxWorkersOpt;
+        maxWorkersSource = 'flag';
+    }
+    else if (parsed.registry.maxWorkers !== undefined) {
+        maxWorkers = parsed.registry.maxWorkers;
+        maxWorkersSource = 'registry';
+    }
+    else {
+        maxWorkers = defaultMaxWorkers;
+        maxWorkersSource = 'default';
+    }
+    // FR-3: inject the ceiling into the command ONLY when it is (detectably) a vitest run and does
+    // not already name the flag itself — an arbitrary testCommand cannot be assumed to accept
+    // `--maxWorkers`. VITEST_MAX_WORKERS is set in the env unconditionally (below, at spawn time)
+    // regardless of this detection, so a vitest command reached indirectly (e.g. through a package
+    // script) is still capped.
+    // fix-round 1, AM-3: detection AND injection are scoped to the VITEST SEGMENT — from the first
+    // `vitest run` token to the next `&&`/`||`/`;`/`|` (or end of string) — and the flag lands right
+    // after `vitest run`, never appended to the tail of a whole (possibly compound) command. A
+    // raw-substring append over the FULL command turned `vitest run … && cleanup` into
+    // `vitest run … && cleanup --maxWorkers=2` (silently handed to `cleanup`, not vitest), and the
+    // existing-flag check could be suppressed by an unrelated `--maxWorkers` substring living outside
+    // the vitest segment entirely (e.g. inside `cleanup`'s own args, or before `vitest run` in the
+    // same command).
+    const vitestRunIdx = testCmd.indexOf('vitest run');
+    const isVitestCommand = vitestRunIdx !== -1;
+    if (isVitestCommand) {
+        const tailFromRun = testCmd.slice(vitestRunIdx);
+        const terminator = /&&|\|\||;|\|/.exec(tailFromRun);
+        const vitestSegment = terminator !== null ? tailFromRun.slice(0, terminator.index) : tailFromRun;
+        if (!vitestSegment.includes('--maxWorkers')) {
+            const insertAt = vitestRunIdx + 'vitest run'.length;
+            testCmd = `${testCmd.slice(0, insertAt)} --maxWorkers=${maxWorkers}${testCmd.slice(insertAt)}`;
+        }
+    }
+    if (!json) {
+        write(isVitestCommand
+            ? `mutation-gate: workers: ${maxWorkers} (${maxWorkersSource})`
+            : 'mutation-gate: workers: n/a — test command is not vitest');
+    }
     // Route-b guard mode: `per-entry` (default, strongest — each red entry re-baselines the restored
     // tree, so a flaky neighbour flips THAT entry to INCONCLUSIVE) or `final` (cheap — one re-run at
     // the end; if it is not green, every red-based verdict of the run is downgraded, because any of
@@ -12457,22 +12785,29 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
         const realScratchRoot = realpathSync(copyDir);
         const requireCompletionReceipt = parsed.registry.requireCompletionReceipt === true;
         const invokeSuite = (suiteCommand, phase, entryId) => {
+            // FR-3: VITEST_MAX_WORKERS is set in any case — regardless of whether the command was
+            // recognised as vitest and got the `--maxWorkers=<n>` flag injected — so a vitest command
+            // reached indirectly (a wrapper script) is still capped.
+            const extraEnv = { VITEST_MAX_WORKERS: String(maxWorkers) };
             if (injectedRunner !== undefined) {
                 return injectedRunner(suiteCommand, {
                     cwd: copyDir,
                     timeoutMs: timeout,
                     phase,
+                    env: extraEnv,
                     ...(entryId !== undefined ? { entryId } : {}),
                 });
             }
+            const startedAt = performance.now();
             const run = spawnSync(suiteCommand, {
                 cwd: copyDir,
                 shell: true,
                 encoding: 'utf-8',
                 timeout,
                 maxBuffer: 64 * 1024 * 1024,
-                env: { ...process.env, FORCE_COLOR: '0' },
+                env: { ...process.env, FORCE_COLOR: '0', ...extraEnv },
             });
+            const elapsedMs = Math.round(performance.now() - startedAt);
             const errorCode = run.error && 'code' in run.error && typeof run.error.code === 'string'
                 ? run.error.code
                 : undefined;
@@ -12483,11 +12818,28 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
                 throw run.error;
             }
             const signal = typeof run.signal === 'string' ? run.signal : undefined;
+            // mutation-gate-timeout-verdict FR-1/FR-2: a genuine ETIMEDOUT must NEVER be read as a real
+            // suite verdict, even when the killed child intercepted the kill signal and exited with its
+            // OWN status (e.g. a SIGTERM handler calling `process.exit(1)`) — MEASURED: node still sets
+            // `run.error.code === 'ETIMEDOUT'` in that case, but a numeric `run.status` used to win the
+            // `typeof run.status !== 'number'` check below, so the timeout was silently reported as
+            // "baseline suite RED (exit 1)", indistinguishable from a real red suite. ETIMEDOUT now short
+            // -circuits to `exitCode: null` unconditionally, before that check runs.
+            if (errorCode === 'ETIMEDOUT') {
+                // Codex round-1 (2026-09-14): report BOTH facts when both exist — a trapped SIGTERM that
+                // exits 1 shows `child exit 1; signal SIGTERM`, a plain kill shows `no exit code; signal …`.
+                const exitPart = typeof run.status === 'number' ? `child exit ${run.status}` : 'child produced no exit code';
+                const childExit = signal === undefined ? exitPart : `${exitPart}; signal ${signal}`;
+                const suggestedMs = Math.max(timeout + 1, Math.ceil(elapsedMs * 2));
+                return {
+                    exitCode: null,
+                    output: `${String(run.stdout ?? '')}\n${String(run.stderr ?? '')}`,
+                    failureReason: `timeout after ${timeout}ms (elapsed ${elapsedMs}ms); ${childExit}; try --timeout ${suggestedMs} or the registry's timeoutMs field`,
+                };
+            }
             let failureReason;
             if (typeof run.status !== 'number') {
-                if (errorCode === 'ETIMEDOUT')
-                    failureReason = `timeout after ${timeout}ms${signal === undefined ? '' : `; signal=${signal}`}`;
-                else if (errorCode === 'ENOBUFS')
+                if (errorCode === 'ENOBUFS')
                     failureReason = 'maxBuffer exceeded (ENOBUFS; 67108864-byte output ceiling)';
                 else if (signal !== undefined)
                     failureReason = `child killed by signal ${signal}`;
@@ -12749,7 +13101,7 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
     }
     const exitCode = mutationGateExitCode(results, baseline.ok);
     if (json) {
-        write(JSON.stringify({ packageDir: pkgDir, registryPath, testCommand: testCmd, rebaselineMode, baseline, results, summary: summarizeMutationResults(results), warnings, internalRetries, exitCode }, null, 2));
+        write(JSON.stringify({ packageDir: pkgDir, registryPath, testCommand: testCmd, rebaselineMode, baseline, results, summary: summarizeMutationResults(results), warnings, internalRetries, ...(selectionMeta !== null ? { selection: selectionMeta } : {}), exitCode }, null, 2));
         return exitCode;
     }
     write(renderMutationReport(results, baseline, pkgDir));
@@ -20126,7 +20478,7 @@ export async function runCli(argv, io = {}) {
             case 'release':
                 return cmdRelease(options, flags, cwd, write, io.releaseRunner);
             case 'parity':
-                return cmdParity(options, flags, write, writeErr, cwd);
+                return await cmdParity(options, flags, write, writeErr, cwd);
             case 'registry':
                 return cmdRegistry(options, cwd, write);
             case 'benchmark':

@@ -10,6 +10,7 @@
  * See harness-core/src/cli-flag-notice.ts for the full reasoning and the honest limit.
  */
 export const KNOWN_CLI_FLAGS = [
+    'added-since',
     'affected',
     'all',
     'allow-cold-start',
@@ -162,6 +163,7 @@ export const KNOWN_CLI_FLAGS = [
     'max',
     'max-per-day',
     'max-wall-clock',
+    'max-workers',
     'memory',
     'mock',
     'mode',
@@ -239,6 +241,10 @@ export const KNOWN_CLI_FLAGS = [
     'pubkey',
     'publish',
     'quarter',
+    // Not a dz flag: `git rev-parse --verify --quiet` is a git argument this CLI passes through
+    // (mutation-gate --added-since ref validation) — same pass-through class as the git-diff volume
+    // counters noted above.
+    'quiet',
     'reason',
     'rebaseline',
     'recalled',
@@ -324,6 +330,7 @@ export const KNOWN_CLI_FLAGS = [
     'topic',
     'topics',
     'tokens',
+    'touched',
     'transcript',
     'type',
     'untracked-files', // git status argument

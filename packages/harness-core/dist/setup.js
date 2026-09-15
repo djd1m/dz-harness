@@ -655,12 +655,17 @@ function installDriverDocs(projectRoot, force) {
  * forth forever and neither step ever reports `skipped`, breaking the pre-existing
  * `setup.test.ts` "PreCompact merge is idempotent" contract (FR-6) this feature must not touch.
  *
- * ADDITIVE-ONLY, deliberately NOT `mergeManagedHookEntries`: this step never needs to REPLACE a
- * stale command text (the two commands `applyLegHookEntries()` emits do not change without an
- * `APPLY_LEG_VERSION` bump, and a version bump is about the FILE content, not the hook command) —
- * it only needs "is our command already referenced under this event, anywhere, in any position?".
- * That question is order-independent, so it can never itself be a source of reordering, and it is
- * exactly what keeps "Configure hooks" stable once the first run has established the layout above.
+ * ADD-OR-REPLACE-IN-PLACE, deliberately NOT `mergeManagedHookEntries`: this step never REORDERS —
+ * a match keeps its POSITION, only its command text is swapped — so it stays the same "is our
+ * command already referenced under this event, anywhere, in any position?" question
+ * `mergeManagedHookEntries`'s drop-and-reappend-at-tail algorithm answers differently (by moving
+ * the entry), which is exactly what "Configure hooks" must never do to a foreign SessionStart entry
+ * on the very first run (see above). Before feature `apply-leg-install-root` the two commands never
+ * changed without an `APPLY_LEG_VERSION` bump (a version bump is about the FILE content, not the
+ * hook command), so ADDITIVE-ONLY (skip on any match) and ADD-OR-REPLACE (rewrite text on a
+ * stale-form match) were behaviourally identical; an install-root migration now changes the command
+ * text on its own, independent of the file version, so a stale `CLAUDE_PROJECT_DIR`-relative entry
+ * from a pre-feature install must be rewritten in place on the next `dz setup`, not left stale.
  */
 function applyLegStepResult(opts, backend) {
     if (opts.noHooks)
@@ -714,9 +719,10 @@ function applyLegStepResult(opts, backend) {
             writeFileSync(embedDaemonPath, embedDaemonSource(), { mode: 0o755 });
             wroteHelpers = true;
         }
-        // ADD-IF-MISSING, per event: FR-2's literal contract — "ours is added only if no command of
-        // the event already contains OUR entry". Never removes or reorders an existing entry (foreign
-        // OR our own) — see the WHY above for why that matters here.
+        // ADD-OR-REPLACE, per event: "ours is added when no command of the event references OUR marker
+        // yet, and REWRITTEN IN PLACE (same position) when one does but its text is stale". Never
+        // removes or reorders an existing entry (foreign OR our own) — see the WHY above for why that
+        // matters here.
         //
         // MEDIUM finding "совпадение подстроки в чужой команде" (fix round 1): the substring probe used
         // to be the bare filename (`recall-hook.cjs`), so a foreign command that merely MENTIONS the
@@ -725,19 +731,89 @@ function applyLegStepResult(opts, backend) {
         // of the command we would emit, or the command containing our full relative PATH
         // (`.claude/helpers/<file>`, the same marker `applyLegStatus` structurally looks for) — a bare
         // filename mention under any other wrapper text no longer counts.
-        const entries = applyLegHookEntries();
+        // FR-2 (ADR-001 D2, apply-leg-install-root): bake THIS install's own absolute root into the
+        // two commands — the deployed helper already bakes an absolute CORE_DIST_DIR, so a relative
+        // command only masked that non-portability (issue #2, `Cannot find module` when project ===
+        // $HOME and a foreign session's CLAUDE_PROJECT_DIR pointed elsewhere, swallowed by
+        // `2>/dev/null || true`).
+        const entries = applyLegHookEntries(opts.projectRoot);
         const existingSettings = existsSync(settingsPath)
             ? JSON.parse(readFileSync(settingsPath, 'utf-8'))
             : {};
         const hooks = { ...(existingSettings['hooks'] ?? {}) };
         let hooksAdded = false;
+        // ADD-OR-REPLACE, per event (FR-2/AC-3, apply-leg-install-root): a command that already
+        // invokes our marker path is OURS, whatever exact form it takes — a pre-feature
+        // `CLAUDE_PROJECT_DIR`-relative entry (or, in principle, a relocated install's stale absolute
+        // one) is REPLACED by the current command in place, never left stale AND never duplicated. An
+        // EXACT match of the command we would emit is a true no-op (idempotent re-setup — this is what
+        // keeps a routine re-run from ever thrashing the file, same guarantee the prior ADDITIVE-ONLY
+        // design gave when the command text truly never changed without a version bump; it can now
+        // change on install-root migration too, so replace must be part of the contract).
+        //
+        // AM-2 (fix round 1, HIGH): the prior version replaced the WHOLE matching GROUP
+        // (`hooks[event][i]`) with our bare `entry` — a group is Claude Code's matcher-plus-commands
+        // shape (`{matcher, hooks:[...]}`), so that discarded the group's `matcher` and any FOREIGN
+        // sibling command sharing the same `hooks[]` array whenever ours needed an upgrade. Fixed: only
+        // the ONE command object inside the group's own `hooks[]` array that matches OUR marker is
+        // replaced — the matcher and every other command in that array survive untouched. A single pass
+        // also now upgrades EVERY matching group, not just the first `findIndex` hit, so two stale
+        // managed entries left in two different groups (a prior bug's residue, or a hand-edited file)
+        // are both fixed in place rather than the second one being silently ignored.
         const addIfMissing = (event, ownCommand, markerPath, entry) => {
             const current = Array.isArray(hooks[event]) ? hooks[event] : [];
-            const alreadyPresent = current.some((e) => commandsOf(e).some((cmd) => cmd === ownCommand || hookCommandInvokes(cmd, markerPath)));
-            if (alreadyPresent)
+            let anyMatch = false;
+            let anyChanged = false;
+            const updated = current.map((e) => {
+                const cmds = commandsOf(e);
+                const matchesHere = cmds.some((cmd) => cmd === ownCommand || hookCommandInvokes(cmd, markerPath));
+                if (!matchesHere)
+                    return e;
+                anyMatch = true;
+                const group = e;
+                if (!Array.isArray(group.hooks)) {
+                    if (cmds.some((cmd) => cmd === ownCommand))
+                        return e; // legacy flat, already exact
+                    anyChanged = true;
+                    return entry; // legacy flat {command:...} — nothing else to preserve
+                }
+                // Codex round-2 (AM-2 residual): a group that holds BOTH the exact own command and a stale
+                // copy (or two stale copies) used to be skipped as "already exact" — the stale twin stayed
+                // forever. Walk the group once: the first own/stale command becomes the exact form, every
+                // later own/stale copy is dropped, every foreign sibling and the group's `matcher` survive.
+                let seenOwn = false;
+                let groupChanged = false;
+                const newGroupHooks = [];
+                for (const h of group.hooks) {
+                    const cmd = String(h?.command ?? '');
+                    const isOurs = cmd === ownCommand || hookCommandInvokes(cmd, markerPath);
+                    if (!isOurs) {
+                        newGroupHooks.push(h);
+                        continue;
+                    }
+                    if (seenOwn) {
+                        groupChanged = true;
+                        continue;
+                    } // duplicate of ours — dropped
+                    seenOwn = true;
+                    if (cmd !== ownCommand)
+                        groupChanged = true;
+                    newGroupHooks.push(cmd === ownCommand ? h : { ...h, command: ownCommand });
+                }
+                if (!groupChanged)
+                    return e;
+                anyChanged = true;
+                return { ...e, hooks: newGroupHooks };
+            });
+            if (!anyMatch) {
+                hooks[event] = [...current, entry];
+                hooksAdded = true;
                 return;
-            hooks[event] = [...current, entry];
-            hooksAdded = true;
+            }
+            if (anyChanged) {
+                hooks[event] = updated;
+                hooksAdded = true;
+            }
         };
         addIfMissing('UserPromptSubmit', entries.userPromptSubmit.hooks[0]?.command ?? '', '.claude/helpers/recall-hook.cjs', entries.userPromptSubmit);
         addIfMissing('SessionStart', entries.sessionStart.hooks[0]?.command ?? '', '.claude/helpers/dz-embed-daemon.mjs', entries.sessionStart);

@@ -69,6 +69,7 @@ import {
   reindexAgentdbRows,
   readAgentdbRowsByTaskType,
   DZ_OWNED_TASK_TYPES,
+  readStoreGeneration,
 } from './agentdb-index.js';
 // smart-backlog (ADR-001/005 lifecycle): `dz vector reindex` must re-embed dz-backlog rows too, or
 // they rot in a stale embedding space after a model bump. One-directional import — backlog.ts imports
@@ -857,12 +858,17 @@ interface EngineCacheEntry {
   readonly stat: AgentdbDbStat;
 }
 
-/** The three independent invalidation signals AM-6 asks for, plus the recency stamp
+/** The four independent invalidation signals: the three AM-6 asks for (mtime/size/inode) PLUS the
+ * store's own write-generation counter (`store-generation-counter`, FR-2) — a same-size same-tick
+ * temp+rename replace can still leave mtime/size/inode all coincidentally unchanged on a coarse
+ * filesystem, but `indexPatternsToAgentdb` bumps the generation on every real write, so it is the
+ * one signal that can never coincidentally match a stale cache entry. Plus the recency stamp
  * {@link touchEngineCacheEntry} needs for the bounded-size eviction below. */
 interface AgentdbDbStat {
   readonly mtimeMs: number;
   readonly size: number;
   readonly ino: number;
+  readonly generation: number;
   lastUsedAt: number;
 }
 
@@ -897,21 +903,25 @@ function engineCacheKey(projectRoot: string): string {
 
 /** stat facts of `<root>/.dz/agentdb.db`, or `-1`/`-1`/`-1` when absent — a distinct, stable cache
  * key for "no store yet" so a project that later gains a store is never confused with one that
- * never had (statSync's own floor is mtime 0). Never throws. */
-function agentdbDbStat(projectRoot: string): { mtimeMs: number; size: number; ino: number } {
+ * never had (statSync's own floor is mtime 0). `generation` is read regardless of whether the stat
+ * itself succeeded (`readStoreGeneration` already degrades a missing/corrupt counter file to `0`,
+ * FR-2's compatibility floor for a pre-existing store). Never throws. */
+function agentdbDbStat(projectRoot: string): { mtimeMs: number; size: number; ino: number; generation: number } {
+  const generation = readStoreGeneration(projectRoot);
   try {
     const st = statSync(join(projectRoot, '.dz', 'agentdb.db'));
-    return { mtimeMs: st.mtimeMs, size: st.size, ino: st.ino };
+    return { mtimeMs: st.mtimeMs, size: st.size, ino: st.ino, generation };
   } catch {
-    return { mtimeMs: -1, size: -1, ino: -1 };
+    return { mtimeMs: -1, size: -1, ino: -1, generation };
   }
 }
 
-/** True when NONE of the three independent signals changed — the only case where a cached engine
- * may still be trusted (AM-6). Any one of them differing (a same-tick replace still bumps size or
- * gets a fresh inode from a temp+rename write) forces a re-resolve. */
-function agentdbDbStatUnchanged(a: AgentdbDbStat, b: { mtimeMs: number; size: number; ino: number }): boolean {
-  return a.mtimeMs === b.mtimeMs && a.size === b.size && a.ino === b.ino;
+/** True when NONE of the four independent signals changed — the only case where a cached engine
+ * may still be trusted (AM-6, and `store-generation-counter` FR-2). Any one of them differing (a
+ * same-tick replace still bumps size or gets a fresh inode from a temp+rename write, and every real
+ * write bumps the generation regardless) forces a re-resolve. */
+function agentdbDbStatUnchanged(a: AgentdbDbStat, b: { mtimeMs: number; size: number; ino: number; generation: number }): boolean {
+  return a.mtimeMs === b.mtimeMs && a.size === b.size && a.ino === b.ino && a.generation === b.generation;
 }
 
 /** Evict the least-recently-used entry once the cache is at capacity — called only on a genuine

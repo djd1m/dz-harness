@@ -1321,6 +1321,40 @@ dz mutation-gate --json               # machine contract {baseline, results, sum
 npm run test:mutation                 # the package's own alias for the full run
 ```
 
+**Scope the gate to what a FEATURE actually touched — `--touched` / `--added-since`.** A whole-registry
+sweep does not fit a per-feature Step 8: on this repo's core package it is 358 entries, 30-40 minutes,
+and hit the timeout wall INCONCLUSIVE every time (MEASURED 2026-09-12) — yet a feature usually owns only
+the files it edited and the entries it just added. `--touched <path[,path]>` selects entries whose `file`
+matches one of the given paths — accepted in package-relative POSIX form (the plain case), with a leading
+`./`, as an ABSOLUTE path inside the package, as a REPO-relative path (package prefix stripped, so a
+Step-7 change list in repo-relative form works unmodified), or backslash-separated (a Windows-authored
+change list handed to a POSIX runner); all forms normalize to package-relative POSIX before matching
+(fix-round 1, AM-1). A path that resolves OUTSIDE the package is not silently dropped — it is counted
+and reported as `<K> outside package` in the `selected N of M` line. `--added-since <git-ref>` selects
+entries whose `id` is NOT present in the registry as `git show <ref>:<registry path>` read it: a registry
+genuinely ABSENT at that ref means every current entry counts as added, and the run says so explicitly
+(`base registry absent at <ref> — all M entries count as added`); an unresolvable ref, any OTHER git
+failure, or a base registry that is present but INVALID/malformed at that ref is a usage error (exit 2),
+never folded into "absent" (fix-round 1, AM-3 — collapsing all three used to hide real failures behind a
+silently-too-generous selection). The two selectors UNION with each other and INTERSECT with `--only`
+when both are given — same set algebra as any filter chain — and the run prints exactly how it selected.
+`--json` always carries a `selection` object (`{selected, total, touched, addedSince, base,
+outsidePackage}`) on every scoped run, not only the empty-selection case (fix-round 1, AM-4):
+
+```bash
+dz mutation-gate --touched src/cli.ts,src/mutation-gate.ts             # only entries on these two files
+dz mutation-gate --added-since HEAD                                    # only entries this run just added
+dz mutation-gate --touched src/cli.ts --added-since HEAD --only gate-touched-selector
+# → mutation-gate: selected 1 of 81 entries (touched: 1; added-since HEAD: 1)
+```
+
+An empty match is SAID, never silent, and exits 0 without spending a scratch-copy run:
+`mutation-gate: 0 entries match touched: 0 — nothing to run`. **Recommended for Step 8 of `/feature-adr`**:
+scope to `--touched <this run's file list> --added-since <base ref>` for the per-feature gate; run the
+gate WITHOUT selectors as a separate, periodic regular task (not per feature) to keep the whole registry
+honest — the scoped run proves the feature's own protections, the full sweep proves the registry hasn't
+drifted anywhere else.
+
 Expected output (abridged from a real run — MEASURED 2026-08-07, reproducer: `cd
 packages/@dzhechkov/health-advisor && dz mutation-gate`, 18 entries over a 484-test `node --test`
 suite; wall-clock 9m32s with the default per-entry re-baseline, 4m53s with `--rebaseline final` —
@@ -1358,6 +1392,36 @@ Four rules the gate itself obeys — these are what distinguish it from a green-
 4. **The gate carries its own discrimination proof**: a fixture package with a deliberately
    undefended property lives in this repo's test suite, and the gate MUST fail on it — a gate that
    cannot fail cannot pass.
+5. **A suite timeout is a VERDICT, never a fabricated exit code** (mutation-gate-timeout-verdict,
+   2026-09-14). node's `spawnSync` sets `error.code === 'ETIMEDOUT'` on a real timeout regardless of
+   whether the killed process manages to report its own numeric exit status first — MEASURED: a
+   script that traps the kill signal and calls `process.exit(1)` makes `spawnSync` report
+   `status: 1` AND `error.code: 'ETIMEDOUT'` at once. Before this fix, that numeric status silently
+   outranked the timeout flag and the gate printed `baseline suite RED (exit 1)` for a suite that
+   never actually ran to completion — indistinguishable from a real red suite. Now every ETIMEDOUT
+   is reported `INCONCLUSIVE`, naming the elapsed time, the killed child's own exit/signal, and a
+   `--timeout` suggestion (`ceil(2× elapsed)`).
+   The suite-run ceiling itself resolves **`--timeout` flag > the registry's own `timeoutMs` field >
+   the 300000ms default**, printed in the header as `mutation-gate: timeout: <ms> ms (<source>)`. A
+   package whose real baseline run is longer than the default (this repo's `harness-core`, whose
+   `test/mutation-registry.json` declares `"timeoutMs": 900000` — MEASURED ≈5–8 min baseline) needs
+   no `--timeout` flag at all: a bare `dz mutation-gate` in that package now succeeds where it used
+   to need a manually-remembered flag.
+6. **A suite runs at vitest's DEFAULT worker count (= cpu cores) unless capped, and an uncapped full
+   suite can take the machine down** (mutation-gate-baseline-honesty, 2026-09-15). MEASURED: under
+   this repo's `harness-core` embedding-daemon tests (0.7–3.5 GB/process), an 8-core/16GB box hit
+   load 62–358 and 0.4–1.8 GB free — three full overnight gate runs died. The same suite at
+   `--maxWorkers=2` passed 6909/6909. The worker ceiling resolves **`--max-workers` flag > the
+   registry's own `maxWorkers` field > `min(4, max(1, floor(cpus/2)))`**, is injected as
+   `--maxWorkers=<n>` into a `vitest run` testCommand (unless the command already names the flag —
+   never double-injected) and sets `VITEST_MAX_WORKERS=<n>` in the env unconditionally (a vitest
+   command reached indirectly through a wrapper script is still capped). Printed as
+   `mutation-gate: workers: <n> (<flag|registry|default>)`, or
+   `mutation-gate: workers: n/a — test command is not vitest` for a non-vitest command. Also
+   fixed the same session: vitest 3 prints an optional POOL LABEL between `FAIL` and the file path
+   (`FAIL  |serial| test/x.test.ts …`) — the baseline-attribution parser used to capture the label
+   itself as "the file" and report a perfectly parseable red run as `unparseable from runner
+   output`; the regex now skips the optional label.
 
 **Where the full output of a RED baseline/rebaseline line lives** (gate-stability, 2026-09-12,
 fix-round-1 2026-09-12): the bounded 3-line/20-line tail in the verdict is a teaser, and under a
@@ -2192,7 +2256,7 @@ probe that both selects the workspace build or PATH fallback and prints the sele
 dz runs               [--settle] [--stall-minutes N] [--json] [--project <dir>]   (read the run registry: live / stalled / orphaned / inconclusive / finished)
 dz runs-record        --event started|heartbeat|finished [--run-id <id>] [--kind <kind>] [--slug <slug>] [--pid <pid|host>] [--parent-run-id <id>] [--outcome <text>] [--project <dir>] [--json]   (append one run event)
 dz runs-clean         [--apply] [--retention-days N] [--project <dir>] [--json]   (plan cleanup of old clean merged worktrees and dead/finished registry histories; apply explicitly)
-dz mutation-gate [--package <dir>] [--registry <file>] [--test-cmd "<cmd>"] [--only <id[,id]>] [--timeout <ms>] [--rebaseline per-entry|final] [--keep-scratch] [--json]   # the mutation gate: for each NAMED protection in a declarative registry, copy the package to a scratch dir (shadow-repo layout, node_modules symlinked, git-initialized), verify the baseline is green, apply the entry's exact {find, replace} mutation, run the suite, REQUIRE red, restore — and require the red to be ATTRIBUTABLE to the protection: a mutated file that no longer parses is MUTATION_UNPARSEABLE, a failing count far above the entry's bound (maxFailing, default from observed) is OVER_FAILING, and a restored tree that does not reproduce green makes the entry INCONCLUSIVE (flaky suite). A mutation that does not apply, a green suite, or an inconclusive run is a FAILURE — never a skip. exit 0 all proven / 1 gate failed / 2 setup error
+dz mutation-gate [--package <dir>] [--registry <file>] [--test-cmd "<cmd>"] [--only <id[,id]>] [--touched <path[,path]>] [--added-since <git-ref>] [--timeout <ms>] [--max-workers <n>] [--rebaseline per-entry|final] [--keep-scratch] [--json]   # the mutation gate: for each NAMED protection in a declarative registry, copy the package to a scratch dir (shadow-repo layout, node_modules symlinked, git-initialized), verify the baseline is green, apply the entry's exact {find, replace} mutation, run the suite, REQUIRE red, restore — and require the red to be ATTRIBUTABLE to the protection: a mutated file that no longer parses is MUTATION_UNPARSEABLE, a failing count far above the entry's bound (maxFailing, default from observed) is OVER_FAILING, and a restored tree that does not reproduce green makes the entry INCONCLUSIVE (flaky suite). A mutation that does not apply, a green suite, or an inconclusive run is a FAILURE — never a skip. `--touched <path[,path]>` / `--added-since <ref>` scope the run to a feature's own touched files and newly added entries (they UNION with each other and INTERSECT with `--only`; an empty selection prints `selected 0 of M entries (…)` and exits 0 without running the suite — never a silent skip) — MEASURED: an unscoped sweep of 358 entries on this repo's core package took 30-40 minutes and hit the timeout wall every time. `--timeout` resolves flag > the registry's own `timeoutMs` field > a 300000ms default (printed in the header); a real ETIMEDOUT is always INCONCLUSIVE, never read as the killed child's own numeric exit code. `--max-workers` resolves flag > the registry's own `maxWorkers` field > `min(4, max(1, floor(cpus/2)))`, injects `--maxWorkers=<n>` into a `vitest run` testCommand (unless it already names the flag) and always sets `VITEST_MAX_WORKERS=<n>` in the env — printed as `mutation-gate: workers: <n> (<flag|registry|default>)`, or `n/a — test command is not vitest` when the command isn't recognised as vitest; MEASURED: an uncapped full-suite baseline (vitest's default worker count = cpu cores) hit load 62-358 and <2GB free on an 8-core/16GB box under this repo's core-package embedding-daemon tests, killing full overnight gate runs — `--maxWorkers=2` passed 6909/6909. exit 0 all proven / 1 gate failed / 2 setup error
 dz delivery-check --slug <slug> [--context-only] [--findings <f.json>] [--strict] [--author <model>] [--json]   # portable Step-10 Delivery Gate: the `manual` form that travels to every shell target — prints the 4-plane review brief (regressions ‖ security ‖ code-quality ‖ product-honesty) + artifact probes; --findings classifies a fed-back review into a fail-closed ready|blocked hand-off (only cross-validated BLOCKER/HIGH count) and writes features/<slug>/10_delivery_review.md; --strict exits 1 on blocked
 dz skills-verify     [--dir <project>] [--expect a,b] [--static] [--strict] [--timeout <s>] [--json]   # does .claude/skills/ actually REGISTER? --static = instant layout scan (CI-safe, no session): flags dirs that can never register; default also starts a real session and reads the authoritative system/init listing. exit 0 pass / 1 fail / 2 inconclusive — an unobservable registration is NEVER a pass
 dz compounding       [--project <dir>] [--json]   # honest learning-loop payoff report: pool/replay/guard instrumentation plus the monthly eligible→attempted→accepted→executions funnel. A missing source is NOT MEASURED; only a non-empty→empty named edge across three consecutive measured months is a funnel finding; text/JSON carry the same facts and no learning-health verdict
@@ -3327,7 +3391,7 @@ dz publish: BLOCKED harness-cli — sibling drift: @dzhechkov/memory@0.2.20 on t
 dz publish: refusing to publish (1 sibling-drift violation(s))
 
 $ dz publish --filter harness-cli --yes
-dz publish: tarball @dzhechkov/harness-cli@0.8.25 sha256:9f2c…e10a
+dz publish: tarball @dzhechkov/harness-cli@0.8.26 sha256:9f2c…e10a
 dz publish: ✓ packed install smoke
   ✓ @dzhechkov/harness-cli                1.0.0 → 1.0.1  published (confirmed by registry after 1 probes)
       sha256:9f2c…e10a
@@ -3652,7 +3716,7 @@ Self-learning is a three-leg loop: **collect** (session hooks write into the sto
 Before this feature `dz setup` shipped the first two legs only — the apply leg's files existed
 solely in this repo's own `.claude/helpers/`, so every OTHER project that ran `dz setup --memory
 agentdb` got collection and ranking, but never automatic recall (MEASURED: a clean install wrote no
-`UserPromptSubmit` entry at all, on 0.8.10 and 0.8.25 alike, with or without `--memory agentdb`).
+`UserPromptSubmit` entry at all, on 0.8.10 and 0.8.26 alike, with or without `--memory agentdb`).
 
 `dz setup --target claude-code --memory agentdb` now installs all three, additively (a repeat run
 changes nothing; a foreign hook you wrote yourself is left exactly where it is):
@@ -3661,7 +3725,7 @@ changes nothing; a foreign hook you wrote yourself is left exactly where it is):
 |---|---|---|
 | `recall-hook.cjs` | `.claude/helpers/` | `UserPromptSubmit` hook — asks the embed daemon for relevant lessons, injects them as prompt context, silent when nothing clears the relevance floor |
 | `dz-embed-daemon.mjs` | `.claude/helpers/` | Resident embedding daemon behind a unix socket — keeps the ~1.5 s model-load cost off every single prompt |
-| `UserPromptSubmit` entry | `.claude/settings.json` | Runs the recall hook (`node ".../recall-hook.cjs" 2>/dev/null \|\| true` — a broken hook never blocks a prompt) |
+| `UserPromptSubmit` entry | `.claude/settings.json` | Runs the recall hook (`node ".../recall-hook.cjs" \|\| true` — a broken hook never blocks a prompt; stderr is NOT redirected — see "The leg never fails silently" below) |
 | `SessionStart` entry | `.claude/settings.json` | Spawns the embed daemon detached (`sh -c 'nohup node ".../dz-embed-daemon.mjs" ... & exit 0'`) |
 
 The hook resolves your harness-core installation by an ABSOLUTE PATH baked in at `dz setup` time
@@ -3669,6 +3733,38 @@ The hook resolves your harness-core installation by an ABSOLUTE PATH baked in at
 `/usr/lib/node_modules/...`, which silently failed on any other npm prefix (nvm, `/usr/local`, a
 global install elsewhere). Project-local candidates (`node_modules/`, a monorepo checkout) stay as
 fallbacks after it.
+
+**Installed at `$HOME` (a common single-machine layout)? The leg now finds ITSELF, not whatever
+project the current session happens to be in.** Both generated files used to resolve their store
+from `CLAUDE_PROJECT_DIR || cwd()` — the SESSION's project. A user-level install
+(`dz setup --target claude-code --memory agentdb --project $HOME`, expecting the leg everywhere)
+silently looked up a DIFFERENT project's `.dz/` from every other session, and the `UserPromptSubmit`
+command itself broke down to `Cannot find module` (swallowed silently) whenever `project === $HOME`
+and a session's own `CLAUDE_PROJECT_DIR` pointed elsewhere (issue #2, MEASURED on 0.8.26). Fixed: the
+hook and daemon now resolve their own INSTALL location first (`path.resolve(__dirname, '..', '..')`
+for the hook — the precedent already used by the destructive-guard hook), and `dz setup` writes the
+`UserPromptSubmit`/`SessionStart` commands as an ABSOLUTE path to that install root instead of the
+old `${CLAUDE_PROJECT_DIR:-.}`-relative form. A re-`dz setup` over a pre-feature relative entry
+upgrades it in place — never a second entry. The one-line reproducer:
+
+```bash
+# temp $HOME layout, matching the owner's real one
+export HOME=$(mktemp -d) && mkdir -p "$HOME/other-checkout"
+dz setup --target claude-code --memory agentdb --project "$HOME"
+dz teach "install-root beacon lesson" --project "$HOME"
+
+# invoke the RECORDED command from a DIFFERENT checkout, CLAUDE_PROJECT_DIR pointing at it too —
+# the beacon still reaches additionalContext, because the hook found ITS OWN install, not $CLAUDE_PROJECT_DIR
+( cd "$HOME/other-checkout" && CLAUDE_PROJECT_DIR="$HOME/other-checkout" \
+  node "$HOME/.claude/helpers/recall-hook.cjs" <<< '{"prompt":"install-root beacon lesson"}' )
+# → one line of JSON, hookSpecificOutput.additionalContext containing the beacon
+```
+
+One named limit: from a foreign project's session the hook now injects the INSTALL ROOT's lessons,
+not the session project's — that is the requested one-store-per-install behavior, not a bug; a
+per-project store layered on top of a user-level one is a separate feature. The Codex host's own hook
+resolves its root from `payload.cwd`/`PWD`/`cwd()` — the SAME class of weakness — and is not fixed by
+this change; it is named in the harness-core README and the feature's own backlog entry.
 
 **On the jsonl backend** (no `--memory agentdb`) the step reports `skipped` with the reason named —
 the embed daemon needs agentdb's transitive `@huggingface/transformers`/`@xenova/transformers`
@@ -3737,13 +3833,15 @@ dz teach "acceptance check lesson" --allow-cold-start   # → "↳ mirrored to v
 # 5. The embed daemon comes up (spawned by SessionStart; give it up to ~20s to load the model).
 timeout 20 sh -c 'until [ -S .dz/embed.sock ]; do sleep 1; done' && echo "daemon socket is up"
 
-# 6. The recall hook actually injects context for a relevant prompt, and stays silent for one
-#    that clears no relevance floor — never a hang, never a stray print on stdout.
+# 6. The recall hook actually injects context for a relevant prompt, and STAYS SILENT ON STDOUT for
+#    one that clears no relevance floor — never a hang, never a stray print on stdout. stderr now
+#    NAMES the no-hits case (apply-leg-never-silent, FR-1) instead of staying blank.
 echo '{"prompt":"acceptance check lesson"}'   | node .claude/helpers/recall-hook.cjs   # → one line of JSON, hookSpecificOutput.additionalContext non-empty
-echo '{"prompt":"unrelated weather report"}'  | node .claude/helpers/recall-hook.cjs   # → empty stdout, exit 0
+echo '{"prompt":"unrelated weather report"}'  | node .claude/helpers/recall-hook.cjs   # → empty stdout, exit 0, stderr: [dz-recall] skipped reason=no-hits root=…
 
-# 7. Doctor confirms the leg is alive, not merely installed.
+# 7. Doctor confirms the leg is ALIVE AND ACTUALLY INJECTING, not merely installed.
 dz doctor   # → "apply-leg alive (embed daemon): embed socket present at <path> — recall injection can run"
+            # → "apply-leg injects (live probe): live probe injected its beacon lesson in <N>ms"
 ```
 
 Every step above is a REPRODUCER, not a claim: run it on a scratch project before trusting a `dz
@@ -3807,6 +3905,55 @@ leg routinely costs well over the 500 ms budget — NFR-1 is **not met** by the 
 this machine. Caching that embedder lives one layer below this feature's touched files
 (`agentdb-index.ts`, out of `hook-recall-hybrid-parity`'s scope) and is named as follow-up work in the
 manifest, not silently left unmeasured.
+
+### The leg never fails silently — `dz doctor`/`dz parity` prove injection, not presence (`apply-leg-never-silent`)
+
+Issue #2's second half, MEASURED: the recall hook exited 0 with NO stderr on every early-return path
+— dead store, dead socket, unresolvable core module, an empty prompt, no relevant lesson — and `dz
+setup`'s own UserPromptSubmit command swallowed even a `Cannot find module` behind
+`2>/dev/null || true`. `dz doctor` printed three green checks (`apply-leg installed`,
+`apply-leg alive`, `memory hooks match config`) and `dz parity` printed
+`✓ Self-learning … via UserPromptSubmit hook (auto recall)` on a project where the leg injected
+nothing in every session but one — both instruments were reading FILE PRESENCE as proof of FUNCTION.
+
+**The hook now names every silent exit, on stderr, before returning:**
+
+```
+[dz-recall] skipped reason=<store-not-found|socket-absent|core-unavailable|empty-prompt|no-hits> root=<path> (<source>) session=<path>
+```
+
+Exit code stays 0 — a broken hook must never fail a prompt. `dz setup`'s UserPromptSubmit command no
+longer redirects that stream (`node ".../recall-hook.cjs" || true` — `2>/dev/null` is gone,
+`|| true` stays). **This is not for Claude Code's own transcript**: MEASURED against the real
+`claude` binary's own hook-reference table (`UserPromptSubmit`'s entry), exit 0 there is documented
+as `stdout shown to Claude` — stderr is named nowhere for that exit code, so a "verbose mode" hope of
+seeing it in-session does not hold. It is for two readers who read a spawned child's stderr directly:
+`dz doctor`/`dz parity`'s own live probe below, and a human running the hook by hand from a terminal.
+
+**`dz doctor` and `dz parity` now measure whether the leg actually injects, not whether its files
+exist.** Both call the SAME `probeApplyLeg(root)`: it spawns the REAL configured hook command (read
+back from `.claude/settings.json`, not reconstructed) from a TEMPORARY cwd with `CLAUDE_PROJECT_DIR`
+pointing at that same temp dir — the shape of a real session — asks it to recall a throwaway beacon
+lesson written into the store just for the call, and is green ONLY when the beacon's own token comes
+back inside `additionalContext`. The beacon is removed immediately after, success or failure —
+proven by a count-before == count-after test, not merely claimed.
+
+```bash
+dz setup --target claude-code --memory agentdb   # installs all three legs
+dz doctor   # → "apply-leg injects (live probe): live probe injected its beacon lesson in 143ms — the recall hook actually finds this project's store"
+dz parity --target claude-code   # → "✓ Self-learning: automatic apply-leg   via UserPromptSubmit hook (auto recall)"
+
+# now kill the daemon and re-check — files are still there, but the leg is silently dead:
+pkill -f dz-embed-daemon.mjs; rm -f .dz/embed.sock
+dz doctor   # → "apply-leg injects (live probe): installed but silent: socket-absent (probed in 4ms)" — RED, with the reason
+dz parity --target claude-code   # → "◐ Self-learning: automatic apply-leg   via manual dz recall before a task — installed but silent: socket-absent"
+```
+
+`dz doctor` and `dz parity` cannot disagree about WHY a leg is dead: both read the same `reason`
+string off the same `probeApplyLeg` result, the same discipline `applyLegReasonMessage` already
+enforces for `stale-version`/`unreadable`. `dz doctor`/`dz parity` pay one probe's worth of wall time
+(measured: well under 200 ms when the leg is dead; ~100-200 ms once warm when it is alive) whenever
+the leg is wired — named here, not hidden.
 
 ### AgentDB self-learning algorithms
 
@@ -5243,8 +5390,29 @@ refusal as the honest answer.
 
 ## Status
 
-`harness-core v0.8.34` · `harness-cli v0.8.25` — **this release: the recall hook and `dz recall` share ONE hybrid
-engine, the embedder is cached per process, and every publish-gate verdict is a durable per-package audit record.**
+`harness-core v0.8.35` · `harness-cli v0.8.26` · `memory v0.2.22` — **this release (night 14→15.09, 8 features, each
+cross-family reviewed by Codex): the recall hook resolves its store from the INSTALL root, never from the session's cwd,
+and is never silent; the skill walker follows symlinks, drops build junk and names everything it skipped; one-character
+recall terms are searchable; and the mutation gate stays honest under load.**
+(a) `apply-leg-install-root` + `apply-leg-never-silent` (issue #2): the `UserPromptSubmit` recall hook computes
+`INSTALL_ROOT` from its own location and `SESSION_ROOT` from `CLAUDE_PROJECT_DIR`, settings commands are absolute and
+POSIX-quoted, a dead leg prints `[dz-recall] skipped reason=… root=…`, and `dz doctor`/`dz parity` report the leg
+green ONLY after a live injection probe (`apply-leg injects (live probe)`).
+(b) `skills-walk-symlinks-and-junk`: `walkFiles` → `{files, skipped}` — a symlink resolves via `stat`, a cycle guard
+tracks the ANCESTOR chain (aliases both walk), a symlink escaping the skill directory is skipped and named, an
+escaping `SKILL.md` refuses the whole skill in EVERY public reader, junk (`__pycache__`, `node_modules`, `.git`,
+`__MACOSX`, `.pytest_cache`, `.mypy_cache`, `*.pyc/*.pyo/*.swp/*.swo`, `.#*`, `.DS_Store`, `Thumbs.db`) is a published
+contract, and `dz install` prints `skills: skipped N junk entr(y|ies)` only when N > 0.
+(c) `recall-short-terms` (memory 0.2.22): ONE shared `tokenize()` for both backends, no length floor, diacritics folded
+for Latin script only (one combining mark — exactly FTS5 `unicode61 remove_diacritics=1`, measured), `hasSearchableTerms`
+/ `noSearchableTermsReason` re-exported through core, and `dz recall ",,"` prints `reason: no-searchable-terms`.
+(d) `mutation-gate-baseline-honesty` + `--touched/--added-since`: the attribution regex reads vitest 3's pool label
+(`FAIL  |serial| path`), `maxWorkers` lives in the registry (hub: 2) and is honoured by `--max-workers`, and a feature
+gates only its own entries. (e) `store-generation-counter`: the daemon's engine cache invalidates on a generation bump
+written under a named lock. (f) `sandbox-copy-remaining-sites` + `full-suite-flake-fixes-2`: measured budgets
+(≥ 2× p95 under load), spawn timeouts strictly below the test budget, `waitForSocketReady` for daemon tests.
+Previous release (v0.8.34 / v0.8.26): the recall hook and `dz recall` share ONE hybrid
+engine, the embedder is cached per process, and every publish-gate verdict is a durable per-package audit record.
 (0) Hook/CLI recall parity (`hook-recall-hybrid-parity`): the embed daemon answers `op: recall` through core's
 `recallHybrid` under a 500 ms budget (measured p95 100–190 ms on the real 743-pattern store, 99–100 of 100
 requests hybrid) with an honest cosine fallback labelled `engine`/`reason`, a warm-up at start, an in-flight cap,
@@ -5252,7 +5420,7 @@ and an engine cache used ONLY by the hook (`dz recall` itself resolves fresh); `
 The agentdb embedder is cached per process (`agentdb-embedder-cache`: cold 2117 ms → warm 1 ms). Sibling-drift
 inventories come from `pnpm pack` — the live transport — so the LICENSE pnpm synthesises from the workspace root
 no longer reads as drift; every gate verdict is one fsync'd audit record per package with `sha256:<hex|n/a>`.
-Previous release (v0.8.33 / v0.8.25): `dz publish` refuses a broken pair, `dz setup`
+Previous release (v0.8.33 / v0.8.26): `dz publish` refuses a broken pair, `dz setup`
 reads the memory backend from config, and the embed daemon says "ready" only with a socket that exists.
 (1) Sibling-drift gate + packed install smoke: before any live `npm publish`, every `workspace:*` sibling on
 the registry is compared with the workspace (dist/files/bin + the shipping fields of package.json); a

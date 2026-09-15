@@ -210,7 +210,7 @@ explicit skills-only short circuit. `--no-verify` cannot authorize emission. A C
 
 | Module | Exports | Purpose |
 |---|---|---|
-| `skills` | `loadSkillFromDir`, `listSkills`, `listSkillsDetailed`, `describeSkillLoadFailure`, `formatSkillLoadFailures`, `formatSkillApplyFailures`, `discoverSkillIds` | Read skill directories into `CanonicalSkill` objects. **Two listing functions, deliberately:** `listSkills` THROWS on the first unloadable skill and always will — it is a published export, and silently turning it into a skip-and-collect function would downgrade every unknown third-party consumer from fail-closed to fail-silent without their consent (an incomplete catalogue reported as complete); a pinned regression test asserts it still throws. `listSkillsDetailed` is the total variant callers ask for BY NAME: it returns `{skills, failures}` with a per-id `try/catch`, so one unparseable `SKILL.md` never hides the ones after it (order-independence is the tested property — the offender first, middle or last yields the same counts). Every failure is NAMED — `describeSkillLoadFailure` is the single place a pathless parser throw becomes `{id, absolute path, verbatim reason, first line}`, because the parser is handed only TEXT and can never supply a path. `formatSkillLoadFailures` renders that list for stderr in one of two modes chosen by the CALLER (absolute paths for `dz list`/`dz sync`; relative-to-package for `dz install`, where a `node_modules/**` path is not actionable) |
+| `skills` | `loadSkillFromDir`, `listSkills`, `listSkillsDetailed`, `describeSkillLoadFailure`, `formatSkillLoadFailures`, `formatSkillApplyFailures`, `discoverSkillIds`, `walkFiles`, `isSkillJunkFile`, `SKILL_JUNK_DIRS`, `SKILL_JUNK_FILES` | Read skill directories into `CanonicalSkill` objects. **Two listing functions, deliberately:** `listSkills` THROWS on the first unloadable skill and always will — it is a published export, and silently turning it into a skip-and-collect function would downgrade every unknown third-party consumer from fail-closed to fail-silent without their consent (an incomplete catalogue reported as complete); a pinned regression test asserts it still throws. `listSkillsDetailed` is the total variant callers ask for BY NAME: it returns `{skills, failures}` with a per-id `try/catch`, so one unparseable `SKILL.md` never hides the ones after it (order-independence is the tested property — the offender first, middle or last yields the same counts). Every failure is NAMED — `describeSkillLoadFailure` is the single place a pathless parser throw becomes `{id, absolute path, verbatim reason, first line}`, because the parser is handed only TEXT and can never supply a path. `formatSkillLoadFailures` renders that list for stderr in one of two modes chosen by the CALLER (absolute paths for `dz list`/`dz sync`; relative-to-package for `dz install`, where a `node_modules/**` path is not actionable). **Symlinks and junk (feature `skills-walk-symlinks-and-junk`):** `walkFiles`, the asset-discovery loop `loadSkillFromDir` and `getSkillInfo` both run on, resolves every symlink with `statSync` before deciding whether it names a file or a directory — a `Dirent` from `readdirSync` answers `false` to BOTH `isDirectory()` and `isFile()` for a symlink entry, so trusting those two checks alone silently drops every symlinked asset (MEASURED: 2 of 4 fixture assets vanished, exit 0, before this fix). A symlink whose target cannot be `stat`'d is a *broken symlink*; a directory (reached directly or through a symlink) whose `realpath` is already on the current ANCESTOR chain ends the walk there instead of recursing — the guard tracks the recursion path, not every directory ever visited, so two non-cyclic aliases of one directory (`alias1 -> shared`, `alias2 -> shared`) are both walked under their own logical paths (Codex r2, lead fix) (`walk-guards-cycles`, its own dedicated mutation entry as of fix-round 1 — the symlink-resolution mutation alone cannot prove the guard, because disabling symlink-following ALSO stops any cycle from ever being reached), which is what stops an `a -> ..` cycle from hanging. **Containment (fix-round 1, lead item AM-8):** a symlink is followed only when its RESOLVED target's real path lies within the skill directory's own real path — `assets/secret -> /etc/hostname`, or a relative `-> ../../..` that escapes upward, is refused with reason `'symlink escapes the skill directory'` and never bundled, whether the escaping target is a file or a directory; only a `..` path COMPONENT counts as an escape — a file legitimately named `..asset` is inside the root (Codex r2, lead fix). `SKILL.md` itself gets the same check BEFORE it is read: a `SKILL.md` that is a symlink escaping the skill directory makes the whole skill REFUSED with a named error (it is mandatory, so it cannot merely be skipped); an in-tree `SKILL.md` symlink still loads (Codex r2 CRITICAL, lead fix) (an escaping directory is not recursed into either — nothing beneath it is walked). **What counts as junk IS THE PUBLISHED CONTRACT** (fix-round 1 HIGH-1 — Codex's finding that this contradicts "never drops a legitimate skill asset" is REFUTED-BY-CONTRACT, not a bug: a skill cannot ship an asset under one of these exact names, on purpose or by accident, and that is the deliberate trade this design makes, not an oversight to be widened into content-sniffing): directories `__pycache__`, `node_modules`, `.git`, `__MACOSX`, `.pytest_cache`, `.mypy_cache` (`SKILL_JUNK_DIRS`); files named exactly `.DS_Store` or `Thumbs.db`, or matching `*.pyc`, `*.pyo`, `*.swp`, `*.swo`, or `.#*` (`SKILL_JUNK_FILES` + `isSkillJunkFile`) — a trailing `~` (editor backup) is deliberately NOT on the list: it is the one pattern a legitimate asset name can plausibly end with (`notes~`), and the list is conservative by contract — a false positive would silently drop a real asset (Codex r2, lead decision). This is NOT a whitelist — any other file (including a skill author's own `notes.local.txt`) is kept as a real asset; filtering someone else's files by name is not this list's job. Every junk entry, broken symlink, escaping symlink, and detected cycle is counted and NAMED, never silently dropped: `walkFiles` returns `{files, skipped}` where `skipped` is `{path, reason}[]` and `reason` NAMES the matched pattern (`'junk file (*.pyc)'`, `'junk directory (__pycache__)'`, not a bare `'junk file'` — fix-round 1 HIGH-1(b)), and `loadSkillFromDir` threads that list onto its `CanonicalSkill` result as an *optional* `skipped` field (present only when something was actually skipped, so every existing consumer that only reads the `CanonicalSkill` shape is unaffected). An unreadable directory (`readdirSync` throwing — fix-round 1 MEDIUM-3) is *also* a named `'unreadable directory (<errno>)'` skip, never a throw out of `loadSkillFromDir`. `dz install` sums the junk-tagged entries across the installed package's skills and prints one line — `skills: skipped N junk entr(y|ies) (…)` — only when N > 0; the count is ENTRIES, not files (a skipped junk directory is one entry regardless of how many files sit underneath it, since `walkFiles` never descends into it to count those), and a directory path in the list is shown with a trailing `/` (fix-round 1 MEDIUM-4) |
 | `apply` | `applyEmitResult` | Write an adapter `EmitResult` to disk — **additively** |
 | `repo-boundary` | `isRepoBoundary`, `RepoBoundaryIo` | A repository boundary is a `.git` directory with a real `HEAD` file or a worktree `gitdir:` redirect; an empty or unrelated `.git` entry is not a boundary, so `dz` run from a directory such as `/tmp` with a stray empty `.git` no longer treats it as a project root (and no longer creates a `.dz` store there). Named locks are unchanged: `<root>/.dz/locks/<name>.lock`, a pure function of the root. |
 | `targets` | `TARGETS`, `TargetName`, `isTargetName`, `resolveTargetName`, `TARGET_ALIASES`, `TARGET_NAMES_SORTED`, `formatTargetProblem`, `formatTargetAliasNote`, `normalizeTargetToken` | `--target` name → platform adapter, plus the resolution layer in front of it. `isTargetName`/`TARGETS`/`TARGET_NAMES` are UNCHANGED: `boundaries.json` names `isTargetName` as the scanned `--target` validation boundary, and every resolution ends in exactly that guard — the boundary is routed THROUGH, never relocated. `resolveTargetName` is total and pure, with fixed precedence: exact canonical → normalised canonical (case/padding/separators: `Claude_Code`, `claudecode`) → an explicit `TARGET_ALIASES` row → unique normalised prefix → Levenshtein ≤ 3 strictly better than the runner-up → nothing. **Aliases ACCEPT; prefix and Levenshtein only SUGGEST** — an alias row is an owner decision recorded in DATA (adding one is one line and zero control flow), while a fuzzy match is a guess, and installing to the wrong target on a guess is worse than one round-trip. An ambiguous prefix (`co` → `codex`/`copilot`) is terminal with NO suggestion, for the same reason. `formatTargetProblem` renders the two-line refusal, keeping the literal `--target must be one of:` substring that shipped assertions pin |
@@ -556,10 +556,13 @@ hook entry at all).
   `@dzhechkov/harness-core`, or the hub's own `harnessCoreDistDir()` for its own copies) — replacing
   a hard-coded `/usr/lib/node_modules/...` guess that failed on any other npm prefix (nvm,
   `/usr/local`, a differently-rooted global install).
-- `applyLegHookEntries()` — the exact `UserPromptSubmit`/`SessionStart` hook-registry entries
-  `runSetup` merges into `.claude/settings.json` (a swallowed non-zero exit on the recall hook so a
-  broken body never blocks a prompt; a detached `nohup` spawn for the daemon so `SessionStart` never
-  waits on the ~1.5 s model load).
+- `applyLegHookEntries(installRoot?)` — the exact `UserPromptSubmit`/`SessionStart` hook-registry
+  entries `runSetup` merges into `.claude/settings.json` (a swallowed non-zero exit on the recall
+  hook so a broken body never blocks a prompt; a detached `nohup` spawn for the daemon so
+  `SessionStart` never waits on the ~1.5 s model load). `installRoot` — an ABSOLUTE path — bakes both
+  commands as `node "<installRoot>/.claude/helpers/<file>" …`; omitting it (every zero-arg caller
+  before feature `apply-leg-install-root`) keeps the original `${CLAUDE_PROJECT_DIR:-.}`-relative
+  form. See "Install-root resolution" below for why the absolute form exists.
 - `applyLegStatus(root)` — the ONE measurement `dz doctor` and `dz parity` both read: do both helper
   files exist, at what version, and does `settings.json` actually reference them? Neither surface
   may declare the leg "installed" from a static capability table again (ADR-001 Decision 3) — a
@@ -635,13 +638,84 @@ simply a second caller of the same contract.
 
 `pickEngine` (the one seam `recallHybrid`, `mirrorPatternsToVector`, `teachGuard` etc. all resolve
 their engine through) now routes through `getOrOpenEngine(projectRoot)` instead of calling
-`resolveVectorEngine` directly — a per-process cache keyed by `(projectRoot, mtime of
-.dz/agentdb.db)`, so a long-lived caller (the daemon) pays the `isPackageInstalled`/`probeNativeDep`
-walk once, not once per prompt. A short-lived CLI invocation is unaffected (the cache is populated
-and discarded within one process either way — I-1 parity holds). `getOrOpenEngine`'s second
-parameter is an injectable resolver (default `resolveVectorEngine`) purely for spy-testability — two
-functions in the same ES module cannot be reliably intercepted by `vi.spyOn` when one calls the other
-by its local name.
+`resolveVectorEngine` directly — a per-process cache keyed by `realpath(projectRoot)`, invalidated
+whenever `.dz/agentdb.db`'s mtime, size, inode, OR write-generation counter (see "Store
+write-generation counter" below) changes, so a long-lived caller (the daemon) pays the
+`isPackageInstalled`/`probeNativeDep` walk once, not once per prompt. A short-lived CLI invocation is
+unaffected (the cache is populated and discarded within one process either way — I-1 parity holds).
+`getOrOpenEngine`'s second parameter is an injectable resolver (default `resolveVectorEngine`) purely
+for spy-testability — two functions in the same ES module cannot be reliably intercepted by
+`vi.spyOn` when one calls the other by its local name.
+
+### Install-root resolution (`apply-leg-install-root`, ADR-001, `APPLY_LEG_VERSION` 6→7)
+
+Both generated files used to resolve their own store from `CLAUDE_PROJECT_DIR || cwd()` — the
+SESSION's project, never the project the leg was actually installed into. A user-level install
+(`dz setup --target claude-code --memory agentdb --project $HOME` — the owner's own layout, expecting
+the leg everywhere `~/.claude/settings.json` is read) silently looked up a DIFFERENT project's `.dz/`
+from every other session (issue #2, MEASURED on 0.8.25), and when `project === $HOME` the settings
+command (`node "${CLAUDE_PROJECT_DIR:-.}/.claude/helpers/recall-hook.cjs"`) broke down to `Cannot
+find module` from a foreign session, swallowed by `2>/dev/null || true`.
+
+- **The hook and daemon now resolve `PROJECT` install-root-first.** `INSTALL_ROOT =
+  path.resolve(__dirname, '..', '..')` (the hook, `.cjs`) / `dirname(dirname(fileURLToPath(import.meta.url)))`
+  (the daemon, ESM) — the precedent is `claude-hooks-assets.ts`'s own `path.resolve(__dirname, '..',
+  '..')` for the destructive-guard hook. Order for the hook: `INSTALL_ROOT` (used when it owns a
+  `.dz/`) → `CLAUDE_PROJECT_DIR` → `cwd()`. Order for the daemon is the same shape but
+  `DZ_PROJECT_ROOT` stays the TOP override (an explicit project root always wins over the install
+  root) → `INSTALL_ROOT` → `cwd()`. The hook's existing `[dz-recall] engine=…` diagnostic line (stderr
+  only, never `additionalContext`) now also names `root=<path> (install|env|cwd)`.
+- **`dz setup` now bakes an ABSOLUTE command.** `applyLegHookEntries(opts.projectRoot)` writes
+  `node "<installRoot>/.claude/helpers/recall-hook.cjs" …` instead of the
+  `${CLAUDE_PROJECT_DIR:-.}`-relative form — the deployed helper already bakes an absolute
+  `CORE_DIST_DIR`, so the relative command only masked that non-portability. `hookCommandInvokes` (and
+  therefore `applyLegStatus`) recognizes BOTH forms — a command is "ours" once the helper's full
+  `.claude/helpers/<file>` path follows a `node` invocation, whatever the prefix. A re-`dz setup` over
+  a pre-feature relative entry REPLACES it in place (same array position — `addIfMissing` in
+  `setup.ts` is now add-or-replace, never reorders), so an upgrade never leaves two entries for one
+  event.
+- **Limits, named plainly.** One store per install: from a foreign project's session the hook injects
+  the INSTALL ROOT's lessons, not the session project's — that is the requested behavior (a
+  per-project store alongside a user-level one is a separate feature). The Codex host's own hook
+  (`codex-hooks-assets.ts:232`/`:373`) resolves its root from `payload.cwd || PWD || cwd()` — the
+  SAME class of weakness — and is deliberately left unfixed here (named, not silently patched); see
+  that file's own comments and the project backlog.
+
+### Store write-generation counter (`store-generation-counter`, `agentdb-index.ts`/`vector-tier.ts`)
+
+`getOrOpenEngine`'s cache above invalidates on `.dz/agentdb.db`'s mtime/size/inode — AM-6 already
+covers a temp+rename replace that preserves mtime (size or inode still differs), but a write of the
+SAME byte length landing inside the same filesystem-mtime TICK, in place (no rename), could leave
+all three signals coincidentally unchanged, serving the daemon a stale engine that never sees the
+lesson `dz teach` just wrote. `indexPatternsToAgentdb` (`agentdb-index.ts` — the single write seam,
+QR-6, every `dz teach`/consolidate/reindex/brain-mirror write) now bumps a sidecar counter file,
+`<dbFile>.generation` (atomic tmp+`wx`+rename, next to the store itself so it travels with any copy),
+on every successful write: `bumpStoreGeneration(projectRoot, dbPath?)` reads the current value via
+`readStoreGeneration(projectRoot, dbPath?)` (missing/corrupt file degrades to `0` — the compatibility
+floor for a store that predates this feature; a corrupt-but-numeric-looking value like `12junk` also
+degrades to `0` — the parse is strict, `/^\d+$/`, not `Number.parseInt`'s leading-digits tolerance)
+and writes `current + 1`. **Every exported store mutator bumps it** on its success path, not only
+`indexPatternsToAgentdb`: `importVectorsToAgentdb`, `clearAgentdbQuarantine`, `deleteAgentdbByDzIds`,
+`bumpAgentdbUses` and `reindexAgentdbRows` all call the same `bumpStoreGeneration` when they actually
+changed a row (fix-round after independent Codex review, AM-1). The read-modify-write itself runs
+under `withNamedLockSync(dirname(dbFile), 'store-generation', …)` (`named-lock.ts` — the repo's
+advisory lock for a read-modify-write file store, `.claude/rules/cross-runtime-concurrency.md`; same
+`dirname(dbFile)`-addressed pattern as `agentdb-reindex-marker.ts`'s `withAgentdbSnapshotLock`), with
+the counter RE-READ from disk inside the lock — a bare read→compute→rename would let two concurrent
+writers both publish the same `N+1` (one bump silently lost) or let a delayed writer overwrite a
+later value with an earlier one (AM-2). Inside `indexPatternsToAgentdb`/`importVectorsToAgentdb` the
+bump runs IMMEDIATELY after the row commit, BEFORE `writeEmbedManifest` — if the manifest write then
+throws, the generation is already correct for the rows already on disk (AM-3). A write failure (a
+jammed counter path, a full disk, an unresolvable path, or a lock that could not be acquired by its
+deadline) is reported honestly on the index result (`generationBumped: false, generationReason`) but
+NEVER fails the store write it accompanies, and `bumpStoreGeneration` itself never throws — telemetry
+is not a gate (FR-4/AM-2/AM-4).
+
+`getOrOpenEngine`'s cache-invalidation stat (`AgentdbDbStat`, `vector-tier.ts`) now carries
+`generation` as a FOURTH independent signal alongside mtime/size/inode — a monotonically increasing
+counter can never coincidentally match a stale cache entry the way mtime/size/inode occasionally can
+on a coarse filesystem. Both public functions are exported from the package root
+(`readStoreGeneration`, `bumpStoreGeneration`).
 
 `dz doctor`'s "apply-leg alive (embed daemon)" check now sends one live `op: recall` probe
 (`probeRecallEngine`, `operations.ts`, 1000 ms default — comfortably above the 500 ms production
@@ -659,6 +733,77 @@ budget. The p95/p50/reproducer script live in
 `features/hook-recall-hybrid-parity/07_code_changes/change_manifest.md`. Fixing the embedder's own
 cache is `agentdb-index.ts` work, outside this feature's touched files — named here as a follow-up,
 not silently absorbed into a passing-looking number.
+
+### Green means injected, not merely present (`apply-leg-never-silent`, ADR-001, `APPLY_LEG_VERSION` 8→9)
+
+Issue #2's second half: the recall hook exited 0 with NO stderr on every early-return path, and
+`dz setup`'s own UserPromptSubmit command swallowed even a `Cannot find module` behind
+`2>/dev/null || true` — a MEASURED state where `dz doctor` printed three green checks
+(`apply-leg installed`, `apply-leg alive`, `memory hooks match config`) and `dz parity` printed
+`✓ Self-learning … via UserPromptSubmit hook (auto recall)` while the leg injected nothing in every
+session but one. Both instruments were reading FILE PRESENCE and STRUCTURAL WIRING as proof of
+FUNCTION — the same class of defect ADR-001 Decision 3 already named for `applyLegStatus`, one layer
+deeper.
+
+- **The hook never exits silently now (FR-1).** Every early return in `main()` — `store-not-found`
+  (no `.dz/` under the resolved `PROJECT`), `socket-absent` (no daemon listening), `core-unavailable`
+  (`recall-hook-policy.js` unresolvable), `empty-prompt`, `no-hits` — prints exactly one line,
+  `[dz-recall] skipped reason=<reason> root=<path> (<source>) session=<path>`, on stderr before
+  returning. Exit code stays 0 — NEVER-BLOCK is unchanged; only the silence is gone.
+- **`dz setup`'s own command no longer swallows that line (FR-2).** `applyLegHookEntries()`'s
+  UserPromptSubmit command dropped `2>/dev/null` (both the legacy relative form and the
+  `installRoot`-given absolute form); `|| true` stays, so a broken hook body still never fails a
+  prompt. **Where that line actually goes, MEASURED against the real Claude Code binary** (strings
+  extracted from `bin/claude.exe`, the `UserPromptSubmit` entry in its own hook-reference table):
+  `Exit code 0 - stdout shown to Claude` / `Exit code 2 - block processing, erase original prompt,
+  and show stderr to user only` / `Other exit codes - show stderr to user only` — on exit 0
+  (NEVER-BLOCK's exit code), stderr is named NOWHERE in that table. So the reason line is NOT for a
+  user watching Claude Code's own transcript (that channel does not exist for this hook on exit 0,
+  whatever "verbose mode" might suggest) — it is for the two readers who actually read a spawned
+  child's stderr directly: `probeApplyLeg`'s own `child_process` call below, and a human running the
+  hook by hand from a terminal.
+- **A live, end-to-end probe replaces "files present" as the proof of function (FR-3/FR-4, ADR-001
+  Decision 1).** `probeApplyLeg(root, opts?)` — new export — spawns the REAL configured
+  UserPromptSubmit command (read back from `.claude/settings.json`, never reconstructed — a
+  reconstruction would silently stop testing the legacy relative form's own `${CLAUDE_PROJECT_DIR:-.}`
+  shell-expansion dependency) from a TEMPORARY cwd with `CLAUDE_PROJECT_DIR` pointing at that same
+  temp dir — the shape of a real session, never the project root itself. It writes a throwaway
+  "beacon" lesson into the lexical store via `recordPattern` (the same seam `dz teach` uses — no
+  embedding needed; the daemon's `recallHybrid` runs its LEXICAL leg synchronously and always, so an
+  exact-token beacon is found even under a starved hybrid budget) immediately before the probe and
+  removes it via `removePatternsByIds` in a `finally` — unconditionally, so a probe that throws,
+  times out, or never finds the leg alive still leaves the store exactly as it found it (proven by a
+  count-before == count-after test, not merely claimed). `ok: true` ONLY when the beacon's own token
+  comes back inside `additionalContext`; every other outcome is `ok: false` with a `reason` — taken
+  from the hook's own `[dz-recall] skipped reason=…` line when present (FR-1 feeding FR-3 directly),
+  else a best-effort description.
+  - `dz doctor` gains `apply-leg injects (live probe)`, evaluated whenever the existing
+    `apply-leg alive (embed daemon)` row's `applyLegWired` gate is true — green with the elapsed
+    time on success, red with the probe's `reason` on failure. A dedicated `try`/`catch`, separate
+    from the socket-alive check beside it: a probe failure must never suppress that already-useful
+    row, and vice versa.
+  - `dz parity`'s Self-learning cell now gates on `probeApplyLeg(cwd).ok`, not
+    `applyLegStatus(cwd).installed` alone — `computeParity` itself is untouched (FR-5 of the earlier
+    feature). A structurally-installed-but-silent leg reads `◐ … installed but silent: <reason>`,
+    never `✓ full`; the SAME `reason` `dz doctor`'s row prints, so the two instruments cannot
+    disagree about WHY a leg is dead, matching the fix-round-1 discipline `applyLegReasonMessage`
+    already established for `stale-version`/`unreadable`.
+  - `probeHookLiveness` (`operations.ts`) gained optional `cwd`/`env`/`timeoutMs` overrides (additive
+    — every pre-existing 2-arg call site, the Codex veto-hook liveness checks, is unaffected) and now
+    also returns `stdout` alongside `status`/`stderr`, reused by `probeApplyLeg` via a dynamic
+    `import()` rather than duplicating a `child_process` surface in `apply-leg.ts` (the core-boundary
+    IO ratchet stayed at its pinned `files:63 imports:69` — no new top-level IO import anywhere).
+  - `timeoutMs` defaults to 8000 ms. Measured (this environment, 2026-09-14/15): a
+    `store-not-found`/`socket-absent` probe returns in well under 200 ms; a live-daemon probe answers
+    in ~100-200 ms (matching ADR-001's own estimate) once warm. `dz doctor`/`dz parity` are
+    measurably slower by one probe's worth of wall time when the leg is wired — named here, not
+    hidden.
+- **A limit, named plainly.** Under HEAVY concurrent load (this repo's own ~2700-test suite run in
+  one process), a live probe against a just-spawned daemon can occasionally exceed the hook's own
+  hardcoded 800 ms client-side socket timeout even when the daemon itself answers — a CPU-contention
+  flake, not a correctness defect; the daemon's own `HOOK_RECALL_BUDGET_MS` is independently
+  widenable, and `probeApplyLeg`'s `env` option exists for exactly this in tests. A real single
+  `dz doctor`/`dz parity` invocation never contends with 100+ concurrent test files.
 
 ## Run a plan without the Claude host
 

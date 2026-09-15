@@ -107,6 +107,8 @@ export function parseMutationRegistry(text) {
     let entriesRaw;
     let testCommand;
     let requireCompletionReceipt;
+    let timeoutMs;
+    let maxWorkers;
     if (Array.isArray(raw)) {
         entriesRaw = raw;
     }
@@ -124,6 +126,18 @@ export function parseMutationRegistry(text) {
                 return { registry: null, entryResults: [], errors: ['requireCompletionReceipt must be a boolean when present'] };
             }
             requireCompletionReceipt = obj.requireCompletionReceipt;
+        }
+        if (obj.timeoutMs !== undefined) {
+            if (typeof obj.timeoutMs !== 'number' || !Number.isFinite(obj.timeoutMs) || obj.timeoutMs <= 0) {
+                return { registry: null, entryResults: [], errors: ['timeoutMs must be a finite number > 0 when present'] };
+            }
+            timeoutMs = obj.timeoutMs;
+        }
+        if (obj.maxWorkers !== undefined) {
+            if (typeof obj.maxWorkers !== 'number' || !Number.isInteger(obj.maxWorkers) || obj.maxWorkers < 1) {
+                return { registry: null, entryResults: [], errors: ['maxWorkers must be a positive integer when present'] };
+            }
+            maxWorkers = obj.maxWorkers;
         }
     }
     if (!Array.isArray(entriesRaw)) {
@@ -251,11 +265,29 @@ export function parseMutationRegistry(text) {
         registry: {
             ...(testCommand !== undefined ? { testCommand } : {}),
             ...(requireCompletionReceipt !== undefined ? { requireCompletionReceipt } : {}),
+            ...(timeoutMs !== undefined ? { timeoutMs } : {}),
+            ...(maxWorkers !== undefined ? { maxWorkers } : {}),
             entries,
         },
         entryResults,
         errors,
     };
+}
+// ── Feature scoping (qe-step-gate-scoped-to-feature) — pure registry diff, no IO ───────────────
+//
+// Step 8's QE mutation gate ran the FULL registry unconditionally (MEASURED 2026-09-12: 358
+// entries on this repo's core package, 30-40 minutes, timed out INCONCLUSIVE every time), though a
+// feature only owns its own touched files and any entries it newly declares. The `--touched` and
+// `--added-since` CLI selectors (harness-cli's executor) scope the run; the executor reads the base
+// registry via `git show <ref>:<path>` (I/O) and hands both parsed registries to this PURE diff so
+// the comparison itself stays testable without a filesystem or git process (NFR-1).
+/** Entry ids present in `current` but absent from `base` (by id, not by content). A `null` base
+ *  means the registry did not exist at the reference point — every current entry counts as added. */
+export function registryEntriesAddedSince(base, current) {
+    if (base === null)
+        return current.entries.map((entry) => entry.id);
+    const baseIds = new Set(base.entries.map((entry) => entry.id));
+    return current.entries.filter((entry) => !baseIds.has(entry.id)).map((entry) => entry.id);
 }
 /** Count NON-OVERLAPPING occurrences and apply only when the count is exactly 1. */
 export function applyMutationToText(source, find, replace) {
@@ -494,7 +526,11 @@ export function attributeBaselineRedness(rawOutput, registryFiles) {
         if (file !== null && !files.includes(file))
             files.push(file);
     };
-    const vitestMatches = [...output.matchAll(/^\s*FAIL\s+(\S+)/gm)];
+    // mutation-gate-baseline-honesty FR-1: vitest 3 prints an optional POOL LABEL between `FAIL` and
+    // the file path (`FAIL  |serial| test/x.test.ts > case`, `FAIL  |parallel| …`) — the plain
+    // `(\S+)` used to capture the label itself as "the file", which normaliseReportedFile then
+    // rejects, turning a perfectly parseable red run into `unparseable from runner output`.
+    const vitestMatches = [...output.matchAll(/^\s*FAIL\s+(?:\|[^|\n]*\|\s+)?(\S+)/gm)];
     for (const match of vitestMatches)
         add(match[1] ?? '');
     const tapMatches = [...output.matchAll(/^not ok \d+\s+-\s+(.+)$/gm)];

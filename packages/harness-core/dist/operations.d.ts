@@ -353,8 +353,23 @@ export declare function resolveCodexHome(explicit: string | undefined): string;
  * with the helper's own self-failure note unable to fire because the process never started.
  * Grading on file presence would call that "installed".
  */
-export declare function probeHookLiveness(command: string, payload: string): {
+/**
+ * `opts` (feature `apply-leg-never-silent`, ADR-001 D1): additive, optional — every pre-existing
+ * 2-arg caller (the Codex veto-hook liveness checks above) is unaffected. `cwd`/`env` let a caller
+ * reproduce the EXACT conditions a real invoking session presents (a foreign cwd, an overridden
+ * `CLAUDE_PROJECT_DIR`) rather than always running from THIS process's own cwd/env — the apply-leg
+ * live probe needs exactly that to prove install-root resolution end-to-end, not merely structurally.
+ * `stdout` is returned alongside `stderr`/`status` for the same reason: a UserPromptSubmit hook's
+ * payload (`hookSpecificOutput.additionalContext`) rides stdout, not stderr (see `probeApplyLeg`'s
+ * own doc comment for the measured stderr-visibility fact this displaces).
+ */
+export declare function probeHookLiveness(command: string, payload: string, opts?: {
+    readonly cwd?: string;
+    readonly env?: Readonly<Record<string, string>>;
+    readonly timeoutMs?: number;
+}): {
     readonly status: number | null;
+    readonly stdout: string;
     readonly stderr: string;
 };
 export declare function runSyncCodexHooks(options?: CodexHooksSyncOptions): CodexHooksSyncReport;

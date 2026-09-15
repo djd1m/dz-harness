@@ -7,6 +7,11 @@ import { createRequire } from 'node:module';
 /** Package version — single source of truth, read from package.json (no drift). */
 export const HARNESS_CORE_VERSION = createRequire(import.meta.url)('../package.json').version;
 export { REPOSITORY_ORIGIN } from './repository-origin.js';
+// Fix-round 1 (feature recall-short-terms, Codex HIGH-1c): `dz recall`'s CLI printer needs the
+// single source of truth for "why did this query tokenize to nothing" without harness-cli taking
+// a new direct dependency on `@dzhechkov/memory` (a publishing-surface change outside this
+// feature's scope) — harness-core already depends on memory, so it re-exports the one helper.
+export { noSearchableTermsReason } from '@dzhechkov/memory';
 export * from './skills.js';
 export * from './apply.js';
 export { buildPublicSnapshot, assertPublicSafe, applyDeltaRule, HOLD_CAP_DAYS, PUBLIC_SCHEMA, MIN_GROUP, TTT_BUCKETS, } from './backlog-public.js';
@@ -82,7 +87,7 @@ export { DEFAULT_VECTOR_TIMEOUT_MS, DEFAULT_HARMONIZE_THRESHOLD, REINFORCE_RRF_C
 export { runSetup, generateHooksConfig, generateAgentdbWriter, writerVersionOf, AGENTDB_WRITER_VERSION, agentdbStorePath, agentdbMcpStorePath, agentdbStoreSeparationProblem, resolveSetupMemoryBackend, memoryBackendSourceLabel } from './setup.js';
 // apply-leg (feature setup-installs-apply-leg, ADR-001): the third self-learning leg (APPLY) as a
 // versioned generator + the ONE measurement dz doctor/parity both read (Decision 3).
-export { APPLY_LEG_VERSION, applyLegVersionOf, bakedCoreDistDirOf, recallHookSource, embedDaemonSource, applyLegHookEntries, applyLegStatus, applyLegReasonMessage, resolveIdleMs, IDLE_MS_INT32_MAX, } from './apply-leg.js';
+export { APPLY_LEG_VERSION, applyLegVersionOf, bakedCoreDistDirOf, recallHookSource, embedDaemonSource, applyLegHookEntries, applyLegStatus, applyLegReasonMessage, probeApplyLeg, resolveIdleMs, IDLE_MS_INT32_MAX, } from './apply-leg.js';
 // embed-socket-short-path: the ONE resolver the daemon (inlined text), the recall hook (inlined
 // text), and dz doctor (real import) all use for the unix-socket sun_path length limit.
 export { EMBED_SOCKET_PATH_BYTES_LIMIT, resolveEmbedSocketPath, embedSocketPointerPath, readEmbedSocketPointer, resolveEffectiveEmbedSocketPath, } from './embed-socket-path.js';
@@ -90,7 +95,7 @@ export { countLearningStoreRowsReadonly, quarantineTierParity } from './store-co
 export { STORE_GUARD_VERSION, STORE_COLLAPSE_MAX_FRACTION, STORE_COLLAPSE_LAST_ROWS, storeGuardPath, storeSnapshotPath, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, } from './store-guard.js';
 export { statuslineData, readFeatureAdrState, writeFeatureAdrState, featureAdrStateDir, featureAdrStatePath, writeFeatureAdrStateDetailed, renderFeatureAdrPhaseLine } from './statusline.js';
 export { ETA_MAX_STAGE_MS, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, } from './eta.js';
-export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, resetAgentdbEmbedderCache, getAgentdbEmbedderCacheStats, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema } from './agentdb-index.js';
+export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, resetAgentdbEmbedderCache, getAgentdbEmbedderCacheStats, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema, readStoreGeneration, bumpStoreGeneration } from './agentdb-index.js';
 export { DEFAULT_EMBED_MODEL, LEGACY_EMBED_MODEL, DEFAULT_EMBED_DIM, KNOWN_EMBED_DIMS, resolveEmbedModel, readEmbedManifest, writeEmbedManifest, embedManifestPath, legacyEmbedManifest } from './embedding-config.js';
 export { putBookKnowledge, queryBookKnowledge, bookKbPath } from './book-kb.js';
 export { applyReadonlyPragmas, classifySqliteReadFailure, warnOnce } from './sqlite-read-helpers.js';

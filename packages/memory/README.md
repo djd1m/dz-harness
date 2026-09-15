@@ -21,17 +21,68 @@ with the whole store, reordered. MEASURED on two records (`hello world`, `anothe
 `zebrafish` returned both, and so did `hello`, which matches exactly one. With no matches the sort
 degenerates into confidence order — which is how it looked like "ranking by confidence".
 
-Now the two situations are separated:
+Now the three situations are separated:
 
 | The query | What comes back |
 |---|---|
 | has usable terms and matches nothing | nothing |
 | has usable terms and matches some records | only those |
-| has NO usable terms (punctuation, single characters, no text) | the whole store, ranked by confidence — unchanged, because no filter was expressible |
+| was PROVIDED but tokenizes to NO usable terms (pure punctuation/whitespace/empty) | nothing — a named `no-searchable-terms` reason, not a silent full-store dump (`recall-short-terms`, 2026-09-15; see below) |
+| has NO text field at all (`{}` — a browse, not a search) | the whole store, ranked by confidence — unchanged, because nothing was ever expressible to filter on |
 
 The filter is `overlap > 0`, never a tuned threshold: a weak match is still a match, and zero overlap
 is not a weak match. Both backends take the same rule, so a store's answers never depend on which one
 is installed. Note that "matched" is measured over the record's TEXT and its `skillId`.
+
+## Short terms — `x`, `C`, `Go`, `ID`, `db` are now searchable (`recall-short-terms`, 2026-09-15)
+
+Until 2026-09-15 `tokenize` dropped every token of length <= 1 code point (`memory/src/tokenize.ts`,
+shared by both backends since this feature — FR-1). Single- and two-character alphanumeric entities
+are real in this domain (`C`, `Go`, `R`, `ID`, `db`, ADR letter variants), so a record whose entire
+text is `x` was never found by querying `x`: the query tokenized to zero terms and fell into the
+"nothing to search by" branch, which used to dump the whole store instead of the specific match
+(backlog 529c31ab, MEASURED by Codex 2026-08-22).
+
+The floor is gone: any non-empty run of `\p{L}\p{N}` characters is a token now, matched **only by
+exact equality** — never a prefix or stem (`stemOf`, in each backend, already refuses anything under
+5 code points, so this was already the rule for 1-2 char terms; recall-short-terms only widens which
+terms REACH that rule). `Go concurrency` finds a record about Go, not one about "going".
+
+`tokenize.ts` also exports `hasSearchableTerms(text)` — the single place that decides whether a query
+falls into the "no-searchable-terms" branch above — and `noSearchableTermsReason(text)`, which returns
+the literal `'no-searchable-terms'` string or `undefined`. Both backends call `hasSearchableTerms`
+directly for the branch decision now (fix-round 1, Codex HIGH-1) rather than reimplementing it as
+`terms.length === 0`; `dz recall`'s CLI printer calls `noSearchableTermsReason` (re-exported from
+`@dzhechkov/harness-core`) so the reason it prints — `no searchable terms in "<query>" (only
+punctuation/whitespace) — reason: no-searchable-terms` — can never drift from what the backends
+actually decided.
+
+**No stop-list, by design.** Every alphanumeric token is searchable, including one-letter ones —
+`a`, `i`, `и`, `в` all count. A one-letter query can legitimately match every record that contains
+that letter as a standalone token; the caller's own `limit` bounds the flood, this package does not
+maintain a stop-list to pre-filter it (measured: 50 records each containing token `a`, query `a`,
+`limit: 5` → exactly 5 hits, in both backends — `test/short-terms.test.ts`).
+
+**Shipping FTS5 (fix-round 1, Codex HIGH-2/MEDIUM-5).** `test/short-terms.test.ts`'s twins corpus
+now runs BOTH with FTS5 forced off (the keyword-overlap CONTROL — both backends run the identical
+algorithm, so any divergence can only be the shared tokenizer) and with FTS5 left ON, the shipping
+default. The FTS5-on comparison checks the MATCHED SET, not ranking order: FTS5's bm25 and the
+keyword path's hit-count relevance are different algorithms and may legitimately tie-break ties
+differently even when they agree on which records qualify. Separately, single-character Cyrillic,
+CJK, and astral-plane terms are each planted and then FOUND via shipping FTS5 — proving they are
+reachable, not merely that an absent one returns empty (which `tokenize-unicode.test.ts`'s A7
+already covered).
+
+`tokenize()` also `.normalize('NFC')`s before splitting (fix-round 1, HIGH-2, MEASURED via a
+`better-sqlite3` probe against an in-memory FTS5 table): precomposed `café` (`é` = U+00E9) and
+decomposed `café` (`e` + combining acute U+0301) are the same word to a reader and to shipping
+FTS5's own tokenizer, which already matched both forms (and even bare `cafe`) to each other. Without
+NFC, this tokenizer disagreed with itself across representations — the combining mark falls in the
+SEPARATOR class, so decomposed `café` tokenized to `cafe` (accent silently dropped) while
+precomposed `café` tokenized to the distinct string `café`. NFC-normalizing first fixes that
+representation bug: both forms now tokenize to the identical `café`.
+
+**Diacritics are FOLDED, in both backends (Codex r2, lead fix).** Shipping FTS5's default `unicode61` tokenizer strips diacritics (`remove_diacritics=1`): a MATCH for plain `cafe` finds a row stored as `café`. The keyword-overlap path (JSON backend, or sqlite with FTS5 off) used to keep `café` and `cafe` as two tokens — an exact-parity violation between the two backends of one store. `tokenize()` therefore folds diacritics the way `unicode61` does — for LATIN script only (NFD, drop combining marks after a Latin base letter, NFC back), so both paths answer alike (tested in both backends: `cafe`/`café`/decomposed `café` and `ano`/`año` fold; Cyrillic `й`≠`и`, `ё`≠`е` do NOT — MEASURED against FTS5, which keeps them distinct; and a Latin letter carrying TWO marks — `ộ`, `ǘ` — is NOT folded either, exactly as `remove_diacritics=1` leaves it, measured: `MATCH 'o'` does not return the `ộ` row). **Named limit, inherited from the shipping engine:** words that differ only by an accent (`año`/`ano`, `côté`/`cote`) conflate — exactly as FTS5 already conflated them; parity was chosen over a narrower keyword rule.
 
 ## Backend strategy
 
@@ -83,9 +134,10 @@ missing, the writer creates/rebuilds FTS5 on open while the read-only store only
 the two on that specific old/incomplete schema; not fixed here, a named limit.
 
 **Реестр мутаций:** этот пакет несёт собственный `test/mutation-registry.json` (ADR-001 C-1…C-3 —
-опенер чтения) — `dz mutation-gate --package packages/@dzhechkov/memory --only <id>` мутирует
+опенер чтения; `short-terms-searchable` — AC-4, `recall-short-terms`, 2026-09-15, единый токенизатор
+в `src/tokenize.ts`) — `dz mutation-gate --package packages/@dzhechkov/memory --only <id>` мутирует
 названное свойство в scratch-копии и требует, чтобы `npx vitest run test/sqlite-readonly.test.ts
-test/sqlite-backend.test.ts` покраснел; форму реестра проверяет
+test/sqlite-backend.test.ts test/short-terms.test.ts` покраснел; форму реестра проверяет
 `test/mutation-registry-shape.test.ts`.
 
 ## Status
@@ -94,7 +146,9 @@ test/sqlite-backend.test.ts` покраснел; форму реестра пр�
 
 ## Status
 
-`0.2.21` — ships `openSqliteReadOnly` (read-only opener ladder: in-place → tmp copy → honest error; feature store-readonly-reads, 2026-09-12) — the export `@dzhechkov/harness-core` ≥ 0.8.31 imports; `0.2.19` was a signature-only republish; `0.2.11` shipped with a stale manifest.
+`0.2.22` — ONE shared `tokenize()` (`src/tokenize.ts`) for both backends: no length floor (one-character terms are searchable), Latin-only diacritic folding measured against FTS5 `unicode61 remove_diacritics=1` (one combining mark folds; two marks, Cyrillic `й`/`ё` do not), `hasSearchableTerms` / `noSearchableTermsReason` exported, a query that tokenizes to nothing returns `[]` (feature recall-short-terms, 2026-09-15; `@dzhechkov/harness-core` ≥ 0.8.35 re-exports the reason helper).
+
+`0.2.22` — ships `openSqliteReadOnly` (read-only opener ladder: in-place → tmp copy → honest error; feature store-readonly-reads, 2026-09-12) — the export `@dzhechkov/harness-core` ≥ 0.8.31 imports; `0.2.19` was a signature-only republish; `0.2.11` shipped with a stale manifest.
 
 `0.2.11` — a query that matched nothing returns nothing (see above). `0.2.10` — the lexical tokenizer is Unicode-aware. It split on `[^a-z0-9]+`, so every non-Latin letter
 was a separator and a Cyrillic query produced **zero terms**: the FTS5 branch was skipped, relevance
@@ -106,6 +160,9 @@ floor counts code points rather than UTF-16 units.
 No migration is needed: FTS5's own tokenizer always indexed the text correctly — only the query was
 being stripped of its terms on the way out.
 
-**Unchanged on purpose:** a query that yields no terms still returns the store. That behaviour is
-pinned by four existing tests which comment it as intended, so it is a contract to be changed by
-decision, not folded into an alphabet fix.
+**Left unchanged HERE, on purpose:** at the time of this fix, a query that yielded no terms still
+returned the store — a contract deliberately NOT folded into this alphabet-only fix, pinned by four
+existing tests that commented it as intended. That contract was narrowed by a LATER, SEPARATE
+decision — `recall-short-terms` (2026-09-15, see above): the one-character floor was removed, and a
+PROVIDED query that still yields zero terms (pure punctuation) now returns empty, not the store. A
+query with no text field at all still returns the store — that half of the old contract survives.

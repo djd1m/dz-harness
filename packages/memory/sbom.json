@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6ae2da1d09bbe9ce6e3742079d659690f5c505a39eb187806c5f5be4c2d3a7d4"
+          "content": "4560bc1052213616df71c0eca90758f976eaf9683cfda760cfa67d701e57604b"
         }
       ]
     },
@@ -195,7 +195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c4e8be344baf02933c8e453bdba9ec3f95062d28672c8d0dabdd8035ef39e58e"
+          "content": "e73b2a1fc8f83272323e24cc117943712c929c6e2daddaf407c2ed71ab7ca1b8"
         }
       ]
     },
@@ -205,7 +205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9576e873ac4003f6b217e0eff04f2cd5f8633397e004164abe7f10f9d7886511"
+          "content": "b84d8f5995bd3a1285a69361a638af35eba6c64c9b4945268da942894d48aff6"
         }
       ]
     },
@@ -215,7 +215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6f72385ca8f3fbde2a5c11cf0deb98f58ea9836d216377e6585dc22b4b629b5"
+          "content": "be8ab9da014b2c9bf7472f342cebe2e9ae81d0867b3efbfb35f006ff811973c3"
         }
       ]
     },
@@ -225,7 +225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "92e221dc762befc999d234a173b09b2e5c09c7e927518fccdd8bbebe15923712"
+          "content": "1c78cb041d2f482319f7a691330b313ed0235441835ec9ae78f8165a27eb3e5d"
         }
       ]
     },
@@ -245,7 +245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "95adb5287a060d417ed83d2364d8f63b973790e9885dc29ea7182132f4231b7c"
+          "content": "158819665930ed2cd3f86f4fa257b8b7bfa69d7638a69cfcc6d947be2c7d014c"
         }
       ]
     },
@@ -255,7 +255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d53fcda53b7a1d24ccff4c3e1d98794985a9de01c97f6c357eec91ad64c2a341"
+          "content": "eb621bac0d3447892064fefb8c9e0f118cef1bf3ca6da538177afe4614320bb9"
         }
       ]
     },
@@ -265,7 +265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7e0a073bfc25ae6fea53f29ad518319c31cdac070a1215bfb8a7584cb7ce9c33"
+          "content": "662b463dd30f390aaa60527bca2df3b42894bb70de3162a55c24aee1718efb65"
         }
       ]
     },
@@ -325,7 +325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0df025e4853d8420efc87d2b7aa8ea9f36e5b9a0a0be4351a7eb7614caf62b4c"
+          "content": "62b60365ba990ae1be666b5190e4f01d4a60989ddc62cea687e3823a4f0bb2cc"
         }
       ]
     },
@@ -335,7 +335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4f2a5c61fc27a8aa39f1adfb06215af80bbde0236f1f2a7f73ab65d3ab3f3652"
+          "content": "664eb414c5438dda67b5e6b2e9c3281a20c38c4b85a1e9ee48b004a1e7c08d24"
         }
       ]
     },
@@ -345,7 +345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4106d2a7cfa2ad50ea5497dab8ad18d2102019f05e5a3aca2469ab2ec325ce48"
+          "content": "12ba0851550864589cb8fad02950cfc7ff468bdf0e87b429ba4bfc6a7294e28d"
         }
       ]
     },
@@ -431,6 +431,46 @@
     },
     {
       "type": "file",
+      "name": "dist/tokenize.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5c1fcc80c8d6836c3b80dba6de50e98b06c70bc2d15c46b1392bb305af6e5e57"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/tokenize.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ec47c8a2687a0f598c0e81a5871e9a011cf686880c8a34915af31a09701faddc"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/tokenize.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bc1b9368d3e375bed2293afead3cc5d23409f8f83fae2e8f9eb790542ab02635"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/tokenize.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8fd9e4236d32873ee9b9ea4b3d44f9e4dfffa09071dc3831e26956f88f662fcf"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "package.json",
       "properties": [
         {
@@ -439,7 +479,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "cd706c6ae1def0fd6e4bdb9c84e0d95239a24bda69eb8f70b47377189c26fc14"
+          "value": "ea0e5da14d9fdddbb6a5a6278610f0bcda3b98f1cae6287def6e5565f01a3ab6"
         }
       ]
     },
@@ -489,7 +529,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9152ce2677f8b209bb26a90cf15b1f97dccd7e5fcdcc95e7cf417a698798fc56"
+          "content": "4ac9affbf4fbe220a7a23c08ce48a1d9ffc02c1ddc4774fd41abbeccd33d8993"
         }
       ]
     },
@@ -499,7 +539,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ba881b55f48dabe7d95ce87ee1c840180850899f551173cd5940e54a8d6c6cf6"
+          "content": "37b2e031e8dc9437b55b3b57ad83e2ebc962335d16c496834a7c4aed9a1770cc"
         }
       ]
     },
@@ -519,7 +559,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "08b618bf7fd351120aac5c4140ae84c2d207c45d708dc42a98f175a99938a11c"
+          "content": "d91cff21f894ae44483b06807fdbbe4958bee00292c0cd85469e2c5f3374c055"
         }
       ]
     },
@@ -540,6 +580,16 @@
         {
           "alg": "SHA-256",
           "content": "c973b0eeae5567af4c519c178ccb48d496fa1cf2ad226363b26ecc2e7d11dc45"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/tokenize.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "16b59783d4cf4023d810584564063b195e1cae83a4f4c4fd9d11751ad3d1e7be"
         }
       ]
     }

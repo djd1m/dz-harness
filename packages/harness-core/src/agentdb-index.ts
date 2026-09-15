@@ -12,7 +12,7 @@
  * @packageDocumentation
  */
 
-import { existsSync, mkdirSync, copyFileSync, realpathSync } from 'node:fs';
+import { existsSync, mkdirSync, copyFileSync, realpathSync, readFileSync, writeFileSync, renameSync, unlinkSync } from 'node:fs';
 import { join, dirname, resolve, relative, isAbsolute, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
@@ -23,7 +23,7 @@ import { applyReadonlyPragmas } from './sqlite-read-helpers.js';
 import { rotatePreReindexSnapshotsUnlocked, type SnapshotRotationReport } from './agentdb-snapshot-rotation.js';
 import { snapshotSqliteDatabase, restoreSqliteSnapshot, type SnapshotMethod, type SnapshotDbCtor } from './agentdb-snapshot.js';
 import { withAgentdbSnapshotLock, writeReindexMarker, clearReindexMarker, markReindexMarkerRecoveryRequired, reindexMarkerPath, msFromBackupPath } from './agentdb-reindex-marker.js';
-import { NamedLockTimeoutError } from './named-lock.js';
+import { NamedLockTimeoutError, withNamedLockSync } from './named-lock.js';
 import type { StoreLockOptions } from './store-lock.js';
 // The backlog dedup embed form (PURE, zero-dep — no cycle): dz-backlog rows must be embedded in the
 // SAME bounded form the dedup query uses, including through the reindex path.
@@ -48,10 +48,14 @@ export interface AgentdbRow {
   readonly avgReward?: number;
 }
 
-/** Outcome of {@link indexPatternsToAgentdb}. */
+/** Outcome of {@link indexPatternsToAgentdb}. `generationBumped`/`generationReason` are present only
+ * when a store write actually happened (`indexed > 0`) — FR-4: a failed counter write NEVER fails
+ * the indexing call itself, it is only reported so a caller (`dz doctor`, telemetry) can see it. */
 export interface AgentdbIndexResult {
   readonly indexed: number;
   readonly error?: string | undefined;
+  readonly generationBumped?: boolean;
+  readonly generationReason?: string;
 }
 
 interface NativeDb {
@@ -132,6 +136,112 @@ export function ensureAgentdbSchema(projectRoot: string, dbPath?: string): { rea
     return { ok: true };
   } catch (err) {
     return { ok: false, error: `agentdb schema init failed: ${err instanceof Error ? err.message : String(err)}` };
+  }
+}
+
+/** `<dbFile>.generation` — a sidecar counter next to the store itself, so it travels with any copy
+ * of `.dz/agentdb.db` (backup, mirror sync) without a separate path to keep in sync. */
+function generationFilePath(dbFile: string): string {
+  return `${dbFile}.generation`;
+}
+
+/** AM-5 (fix-round): the ONLY shape {@link readStoreGeneration} trusts — one or more ASCII digits,
+ * nothing else. `Number.parseInt` alone accepts a leading-numeric-with-trailing-junk string like
+ * `"12junk"` as `12`; that reads a corrupt sidecar as a plausible generation instead of degrading to
+ * the documented `0` compatibility floor. */
+const STRICT_GENERATION = /^\d+$/;
+
+/**
+ * FR-2/FR-3 (`store-generation-counter`): the store's write-generation counter, read back. A
+ * missing file (a store that predates this feature, or one that has never been written through
+ * {@link bumpStoreGeneration}) reads as `0` — the compatibility floor {@link getOrOpenEngine}'s
+ * caller compares against, never an error. A corrupt/non-numeric file degrades the same way (best
+ * effort — a bad counter must never crash a read path), never a throw. AM-5: the content must match
+ * {@link STRICT_GENERATION} exactly — `Number.parseInt`'s leading-digits-only tolerance is NOT used
+ * to decide validity, only to convert an already-validated string.
+ */
+export function readStoreGeneration(projectRoot: string, dbPath?: string): number {
+  try {
+    const raw = readFileSync(generationFilePath(resolveAgentdbPath(projectRoot, dbPath)), 'utf8').trim();
+    if (!STRICT_GENERATION.test(raw)) return 0;
+    const n = Number.parseInt(raw, 10);
+    return Number.isFinite(n) && n >= 0 ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * FR-1 (`store-generation-counter`): monotonically advance the store's write-generation counter by
+ * one (absent file ⇒ starts at 1), atomically (tmp + rename — the same durability discipline every
+ * other sidecar file in this module uses; a reader can never observe a half-written counter) AND
+ * under mutual exclusion (AM-2, fix-round after Codex review). A bare read→compute→rename with no
+ * lock lets two concurrent writers both read the same current value and both publish `current+1` —
+ * one bump is lost — or lets a DELAYED writer overwrite a later value with an earlier one (the
+ * counter briefly goes backwards on disk). `withNamedLockSync` (`named-lock.ts`, the repo's
+ * advisory lock for a read-modify-write file store — `.claude/rules/cross-runtime-concurrency.md`)
+ * serializes the critical section; the counter is RE-READ from disk *inside* the lock (never trusted
+ * from before acquisition), so the sequence every process observes is strictly monotonic
+ * (`agentdb-reindex-marker.ts`'s `withAgentdbSnapshotLock` is the precedent this mirrors — a lock
+ * addressed by `dirname(dbFile)`, a pure function of the store's own directory, never of
+ * `process.cwd()`).
+ *
+ * NEVER throws (FR-4): a write failure (read-only `.dz`, a full disk, a permissions error, an
+ * unresolvable path, OR a lock that could not be acquired by its deadline) is reported honestly as
+ * `{ok:false, error}` so the caller can log it — the store write it accompanies must stay successful
+ * regardless, telemetry is never a gate. AM-4: {@link resolveAgentdbPath} itself now runs INSIDE this
+ * function's outer `try` — an unresolvable path can no longer throw OUT of `bumpStoreGeneration`
+ * either; "never throws" now covers the whole function, not just the file-write tail.
+ */
+/** Codex round-2 (NEW HIGH): most mutators discard the bump result, so a failed bump must be
+ * VISIBLE on its own — one stderr line, written by the helper itself. Telemetry never throws. */
+function reportBumpFailure(error: string): { readonly ok: false; readonly error: string } {
+  try { process.stderr.write(`dz: store generation not bumped — ${error}\n`); } catch { /* telemetry never throws */ }
+  return { ok: false, error };
+}
+
+export function bumpStoreGeneration(
+  projectRoot: string,
+  dbPath?: string,
+): { readonly ok: true; readonly generation: number } | { readonly ok: false; readonly error: string } {
+  try {
+    const dbFile = resolveAgentdbPath(projectRoot, dbPath);
+    const genFile = generationFilePath(dbFile);
+    return withNamedLockSync(
+      dirname(dbFile),
+      'store-generation',
+      (): { readonly ok: true; readonly generation: number } | { readonly ok: false; readonly error: string } => {
+        // AM-2: re-read the CURRENT value from disk while holding the lock — a value observed before
+        // acquisition may already be stale, another holder may have advanced it in the meantime.
+        let current = readStoreGeneration(projectRoot, dbPath);
+        const tmp = `${genFile}.tmp-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        try {
+          // Codex round-2 (AM-2 residual): a sidecar that EXISTS but is corrupt reads as 0 and would
+          // reset the counter to 1 — a value an engine-cache entry may already be keyed on. Floor a
+          // corrupt value at a wall-clock stamp instead: still monotonic (ms since epoch exceeds any
+          // count reached by bumping) and never colliding with an earlier generation. Absent file ⇒ 1.
+          if (current === 0 && existsSync(genFile)) {
+            const raw = readFileSync(genFile, 'utf8').trim();
+            if (raw !== '0' && !STRICT_GENERATION.test(raw)) current = Date.now();
+          }
+          const next = current + 1;
+          mkdirSync(dirname(genFile), { recursive: true });
+          writeFileSync(tmp, String(next), { encoding: 'utf8', flag: 'wx' });
+          renameSync(tmp, genFile);
+          return { ok: true, generation: next };
+        } catch (err) {
+          // Best-effort cleanup of a half-written temp file (e.g. rename failed after a successful
+          // write) so it never lingers as clutter — never lets a cleanup failure mask the real error.
+          try { if (existsSync(tmp)) unlinkSync(tmp); } catch { /* best-effort only */ }
+          return reportBumpFailure(`store generation bump failed: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      },
+    );
+  } catch (err) {
+    // AM-2/FR-4: a lock that could not be acquired by its deadline (`NamedLockTimeoutError`) — and
+    // any other failure reaching this point (an unresolvable path, AM-4) — degrades to the same
+    // honest `{ok:false, error}` shape; it never throws into the store write it accompanies.
+    return reportBumpFailure(`store generation bump failed: ${err instanceof Error ? err.message : String(err)}`);
   }
 }
 
@@ -218,8 +328,19 @@ export async function indexPatternsToAgentdb(
         return prepared.length;
       });
       const indexed = commit() as number;
+      // AM-3 (fix-round): bump the generation IMMEDIATELY after the commit — BEFORE
+      // `writeEmbedManifest` — not after it. The store already changed on disk the instant `commit()`
+      // returned; if the manifest write throws (a jammed manifest path, a full disk), the OLD order
+      // left the DB changed with no generation ever published — a stale-cache read would then serve
+      // an engine that never saw this write, with no signal anywhere that anything went wrong. Moving
+      // the bump here makes "the store changed" and "the generation reflects it" atomic in effect:
+      // whichever of the two calls below throws, the generation is already correct for the rows that
+      // are already on disk.
+      const bump = bumpStoreGeneration(projectRoot, opts.dbPath);
       writeEmbedManifest(dbFile, currentEmbedManifest(model, guard.manifest.version, 'agentdb'));
-      return { indexed };
+      return bump.ok
+        ? { indexed, generationBumped: true }
+        : { indexed, generationBumped: false, generationReason: bump.error };
     } finally {
       db.close();
     }
@@ -726,6 +847,12 @@ export async function importVectorsToAgentdb(
         return imported;
       });
       const imported = commit();
+      // AM-1 (fix-round): `importVectorsToAgentdb` is the write-half of `dz vector import` — it
+      // changes `pattern_embeddings`/`reasoning_patterns` exactly like `indexPatternsToAgentdb`, so
+      // it must bump the SAME counter (the whole point of a single "did the store change" signal is
+      // that every writer feeds it, not just one). Ordered before `writeEmbedManifest`, same AM-3
+      // rationale: the rows are already on disk by the time `commit()` returns.
+      bumpStoreGeneration(projectRoot, opts.dbPath);
       writeEmbedManifest(dbFile, currentEmbedManifest(model, guard.manifest.version, 'agentdb'));
       return { imported };
     } finally {
@@ -773,7 +900,14 @@ export function clearAgentdbQuarantine(
         }
         return cleared;
       });
-      return { cleared: tx() };
+      const cleared = tx();
+      // AM-1 (fix-round): a quarantine clear mutates `metadata` on rows the hook daemon reads
+      // straight from this mirror (see the doc comment above) — it changes what a query returns, so
+      // it must bump too, exactly like every other mutator. Only when something actually changed
+      // (`cleared > 0`) — same "no write, no bump" discipline as `indexPatternsToAgentdb`'s
+      // empty-rows case (AC-2).
+      if (cleared > 0) bumpStoreGeneration(projectRoot, opts.dbPath);
+      return { cleared };
     } finally {
       db.close();
     }
@@ -829,7 +963,11 @@ export function deleteAgentdbByDzIds(
         }
         return deleted;
       });
-      return { deleted: tx() };
+      const deleted = tx();
+      // AM-1 (fix-round): a DELETE removes rows from a query's result set exactly as surely as an
+      // INSERT adds them — it must bump too. Only when rows actually left the store (`deleted > 0`).
+      if (deleted > 0) bumpStoreGeneration(projectRoot, opts.dbPath);
+      return { deleted };
     } finally {
       db.close();
     }
@@ -874,7 +1012,13 @@ export function bumpAgentdbUses(
         }
         return bumped;
       });
-      return { bumped: tx() };
+      const bumped = tx();
+      // AM-1 (fix-round): `uses`/`avg_reward` feed reward-weighted ranking — a change here is a real
+      // store mutation, so it bumps the SAME counter (deliberately NOT named `bump` — that identifier
+      // is this function's own return value; the counter helper is called by its full name below to
+      // avoid the collision). Only when a row actually changed (`bumped > 0`).
+      if (bumped > 0) bumpStoreGeneration(projectRoot, opts.dbPath);
+      return { bumped };
     } finally {
       db.close();
     }
@@ -1157,6 +1301,13 @@ export async function reindexAgentdbRows(
       if (!(err instanceof NamedLockTimeoutError)) throw err;
       snapshots = { kept: [], removed: [], removedBytes: 0, keep: keepSnapshots, errors: [`lock busy: ${err.message}`] };
     }
+    // AM-1 (fix-round): `reindexAgentdbRows` is itself a mutator (the DELETE above rebuilds the
+    // owned task types) — it must not rely SOLELY on `indexPatternsToAgentdb`'s own internal bump,
+    // because that call is a no-op (and bumps nothing) when `rows` is empty, yet the DELETE it ran
+    // just above unconditionally changed the store. Bumping again here when `rows` was non-empty
+    // (the common case, already bumped once inside `indexPatternsToAgentdb`) is harmless — the
+    // counter is a monotonic "did anything change" signal, not a per-operation tally.
+    bumpStoreGeneration(projectRoot, opts.dbPath);
     return {
       reembedded: indexed.indexed,
       model: model.model,

@@ -6,7 +6,7 @@
  * @packageDocumentation
  */
 
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync, spawnSync, type SpawnSyncOptionsWithStringEncoding } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
@@ -1542,6 +1542,33 @@ export async function runDoctor(options: { projectRoot: string }): Promise<Docto
               ? `embed socket present at ${resolved.path}${tmpdirNote}${engineNote} — recall injection can run`
               : `embed socket ABSENT at ${resolved.path}: the recall hook is wired but cannot inject (the hook self-heals on the next prompt; a persistent absence means the daemon cannot start)`,
           });
+
+          // APPLY-LEG INJECTS — live probe (feature `apply-leg-never-silent`, ADR-001 Decision 1).
+          // Issue #2's whole defect was that `installed`/`alive` above can ALL read green while the
+          // leg injects nothing in every session but one (a foreign install-root symptom the file-
+          // presence and socket-presence checks above cannot see by construction — they check for
+          // the RIGHT FILES at the RIGHT PATH, never whether the deployed COMMAND actually resolves
+          // to this project's store from a foreign cwd). This row is the difference: it runs the
+          // ACTUAL configured hook command end-to-end and is green ONLY on an observed injection.
+          // Deliberately a SEPARATE try/catch from the socket-alive check above: a probe failure
+          // must never suppress the (already useful) socket-presence row, and vice versa.
+          try {
+            const { probeApplyLeg } = await import('./apply-leg.js');
+            const probe = await probeApplyLeg(root);
+            checks.push({
+              name: 'apply-leg injects (live probe)',
+              ok: probe.ok,
+              detail: probe.ok
+                ? `live probe injected its beacon lesson in ${probe.elapsedMs}ms — the recall hook actually finds this project's store`
+                : `installed but silent: ${probe.reason ?? 'unknown'} (probed in ${probe.elapsedMs}ms) — dz setup wrote the hook, but it is not injecting anything into real sessions`,
+            });
+          } catch (err) {
+            checks.push({
+              name: 'apply-leg injects (live probe)',
+              ok: false,
+              detail: `live probe could not run: ${err instanceof Error ? err.message : String(err)}`,
+            });
+          }
         }
       }
     } catch {
@@ -1852,18 +1879,57 @@ function probeCodexVersion(): string | null {
  * with the helper's own self-failure note unable to fire because the process never started.
  * Grading on file presence would call that "installed".
  */
-export function probeHookLiveness(command: string, payload: string): { readonly status: number | null; readonly stderr: string } {
+/**
+ * `opts` (feature `apply-leg-never-silent`, ADR-001 D1): additive, optional — every pre-existing
+ * 2-arg caller (the Codex veto-hook liveness checks above) is unaffected. `cwd`/`env` let a caller
+ * reproduce the EXACT conditions a real invoking session presents (a foreign cwd, an overridden
+ * `CLAUDE_PROJECT_DIR`) rather than always running from THIS process's own cwd/env — the apply-leg
+ * live probe needs exactly that to prove install-root resolution end-to-end, not merely structurally.
+ * `stdout` is returned alongside `stderr`/`status` for the same reason: a UserPromptSubmit hook's
+ * payload (`hookSpecificOutput.additionalContext`) rides stdout, not stderr (see `probeApplyLeg`'s
+ * own doc comment for the measured stderr-visibility fact this displaces).
+ */
+export function probeHookLiveness(
+  command: string,
+  payload: string,
+  opts: { readonly cwd?: string; readonly env?: Readonly<Record<string, string>>; readonly timeoutMs?: number } = {},
+): { readonly status: number | null; readonly stdout: string; readonly stderr: string } {
   const shell = process.env['SHELL'] ?? '/bin/sh';
   try {
-    const res = spawnSync(shell, ['-lc', command], {
+    // AM-5 (fix round 1, apply-leg-never-silent): `detached: true` puts the shell in its OWN
+    // process GROUP (pgid === its own pid) instead of sharing the caller's — `spawnSync`'s own
+    // timeout kill signals only the DIRECT child (the shell), never anything the shell forked, so a
+    // `node "<hook>" || true` grandchild that is still running when the shell dies is orphaned but
+    // free to keep touching whatever this probe is about to remove (the beacon, the temp cwd).
+    // Killing the NEGATIVE pid below reaches the whole group in one signal. `@types/node`'s
+    // `SpawnSyncOptions` does not DECLARE `detached` (only the async `SpawnOptions` does) — MEASURED
+    // this is a typings gap, not a runtime one: a real child under `spawnSync(..., {detached:true})`
+    // reports its own pgid === its own pid (verified with `ps -o pgid=`), exactly as it would under
+    // async `spawn`. Widened via an inline type intersection rather than `as any` so every OTHER key
+    // stays checked.
+    const spawnOpts: SpawnSyncOptionsWithStringEncoding & { readonly detached?: boolean } = {
       input: payload,
       encoding: 'utf8',
-      timeout: 20_000,
-      env: { ...process.env, DZ_HOOK_LIVENESS_PROBE: '1' },
-    });
-    return { status: res.status, stderr: res.stderr ?? '' };
+      timeout: opts.timeoutMs ?? 20_000,
+      detached: true,
+      ...(opts.cwd !== undefined ? { cwd: opts.cwd } : {}),
+      env: { ...process.env, DZ_HOOK_LIVENESS_PROBE: '1', ...(opts.env ?? {}) },
+    };
+    const res = spawnSync(shell, ['-lc', command], spawnOpts);
+    // Belt, run on EVERY outcome (timeout OR a clean, on-time exit): a `node` grandchild can still
+    // be alive in the group even after the shell itself exited normally (e.g. it double-forked or
+    // outlived a `|| true` that already returned). ESRCH — the common, successful case, everything
+    // already exited — is swallowed; this is best-effort cleanup, never a probe failure.
+    if (typeof res.pid === 'number' && res.pid > 0) {
+      try {
+        process.kill(-res.pid, 'SIGKILL');
+      } catch {
+        /* group already gone */
+      }
+    }
+    return { status: res.status, stdout: res.stdout ?? '', stderr: res.stderr ?? '' };
   } catch (err) {
-    return { status: null, stderr: String((err as Error)?.message ?? err) };
+    return { status: null, stdout: '', stderr: String((err as Error)?.message ?? err) };
   }
 }
 
@@ -2043,7 +2109,7 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
   //     a home that never opted in (the leg-1 F12 lesson).
   if (options.check === true) {
     const drift = diffCodexHooks(currentText, entries, manifest);
-    const live = drift.installed && options.liveness !== false ? probeHookLiveness(entries[0]!.command, ALLOWED_PROBE_PAYLOAD) : { status: null, stderr: '' };
+    const live = drift.installed && options.liveness !== false ? probeHookLiveness(entries[0]!.command, ALLOWED_PROBE_PAYLOAD) : { status: null, stdout: '', stderr: '' };
     const executable = drift.installed && (options.liveness === false || live.status === 0 || live.status === 2);
     // `--check` must report the TRUST axis too. Without it the report said `installed && executable`
     // with `trust: 'unknown'`, and the CLI printed a success word for it — the exact G-G/AM-17
@@ -2142,7 +2208,7 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
 
 
   // (6) LIVENESS: exit 127 is ALLOW to the runtime, so it must never be graded as installed (G-L).
-  const live = options.liveness === false ? { status: 0, stderr: '' } : probeHookLiveness(entries[0]!.command, ALLOWED_PROBE_PAYLOAD);
+  const live = options.liveness === false ? { status: 0, stdout: '', stderr: '' } : probeHookLiveness(entries[0]!.command, ALLOWED_PROBE_PAYLOAD);
   const executable = live.status === 0 || live.status === 2;
   if (!executable) {
     warnings.push(

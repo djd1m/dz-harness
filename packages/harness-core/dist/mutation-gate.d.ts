@@ -37,6 +37,22 @@ export interface MutationRegistry {
     readonly testCommand?: string;
     /** opt-in proof that the suite harness reached its clean completion path. */
     readonly requireCompletionReceipt?: boolean;
+    /**
+     * optional per-registry suite-run ceiling in milliseconds (mutation-gate-timeout-verdict FR-3):
+     * a package whose real baseline runs longer than the executor's 300000ms default (e.g. this
+     * repo's core package, MEASURED ≈5-8 min) declares its own floor here so `dz mutation-gate` with
+     * no `--timeout` flag still succeeds — precedence is flag > this field > the 300000ms default.
+     */
+    readonly timeoutMs?: number;
+    /**
+     * optional per-registry vitest worker ceiling (mutation-gate-baseline-honesty FR-2): baseline and
+     * mutant runs spawn the package's FULL `testCommand` at vitest's default worker count (= cpu
+     * cores), and under embedding-daemon tests (0.7-3.5 GB/process) this repo's core package measured
+     * load 62-358 and 0.4-1.8 GB free on an 8-core/16GB box — three full runs died overnight
+     * (0bb74d66). The same suite with `--maxWorkers=2` passed (6909/6909). Precedence is the
+     * `--max-workers` flag > this field > `min(4, max(1, floor(cpus/2)))`.
+     */
+    readonly maxWorkers?: number;
     readonly entries: readonly MutationRegistryEntry[];
 }
 export type MutationVerdict = 'PROVEN' | 'ENTRY_INVALID' | 'COVERAGE_GAP' | 'UNDEFENDED' | 'RECEIPT_MISMATCH' | 'NOT_APPLIED' | 'BELOW_MIN' | 'MUTATION_UNPARSEABLE' | 'MUTATION_LOAD_FATAL' | 'OVER_FAILING' | 'INCONCLUSIVE';
@@ -170,6 +186,9 @@ export interface ParsedRegistry {
 }
 /** Parse + validate a registry JSON text. Accepts a bare array or `{testCommand?, requireCompletionReceipt?, entries}`. */
 export declare function parseMutationRegistry(text: string): ParsedRegistry;
+/** Entry ids present in `current` but absent from `base` (by id, not by content). A `null` base
+ *  means the registry did not exist at the reference point — every current entry counts as added. */
+export declare function registryEntriesAddedSince(base: MutationRegistry | null, current: MutationRegistry): string[];
 export interface AppliedMutation {
     readonly ok: boolean;
     readonly occurrences: number;

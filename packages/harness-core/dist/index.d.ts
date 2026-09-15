@@ -6,6 +6,7 @@
 /** Package version — single source of truth, read from package.json (no drift). */
 export declare const HARNESS_CORE_VERSION: string;
 export { REPOSITORY_ORIGIN } from './repository-origin.js';
+export { noSearchableTermsReason } from '@dzhechkov/memory';
 export * from './skills.js';
 export * from './apply.js';
 export { buildPublicSnapshot, assertPublicSafe, applyDeltaRule, HOLD_CAP_DAYS, PUBLIC_SCHEMA, MIN_GROUP, TTT_BUCKETS, type PrivateRecord, type PublicSnapshot, type BuildResult, type RefusalCode, type EgressVerdict, type DeltaOutcome, } from './backlog-public.js';
@@ -76,8 +77,8 @@ export { DEFAULT_VECTOR_TIMEOUT_MS, DEFAULT_HARMONIZE_THRESHOLD, REINFORCE_RRF_C
 export type { VectorEngine, VectorEngineKind, VectorEngineMode, VectorEntry, MirrorQuarantineMetadata, VectorHit, ImportVectorRow, MirrorReceipt, ResolvedVectorEngine, HybridRecall, HybridRecallMode, HybridHit, RankedPattern, VectorServiceOptions, VectorTierStatus, MirrorWriterState, HarmonizeItem, HarmonizeCluster, HarmonizeReport, HarmonizeOptions, ImportReport, ImportOptions, ReindexVectorReport, TeachGuardResult, } from './vector-tier.js';
 export { runSetup, generateHooksConfig, generateAgentdbWriter, writerVersionOf, AGENTDB_WRITER_VERSION, agentdbStorePath, agentdbMcpStorePath, agentdbStoreSeparationProblem, resolveSetupMemoryBackend, memoryBackendSourceLabel } from './setup.js';
 export type { MemoryBackend, MemoryBackendSource, ResolvedSetupMemoryBackend } from './setup.js';
-export { APPLY_LEG_VERSION, applyLegVersionOf, bakedCoreDistDirOf, recallHookSource, embedDaemonSource, applyLegHookEntries, applyLegStatus, applyLegReasonMessage, resolveIdleMs, IDLE_MS_INT32_MAX, } from './apply-leg.js';
-export type { ApplyLegHookEntry, ApplyLegHelperStatus, ApplyLegHookPresence, ApplyLegStatus, ApplyLegNotInstalledReason, ResolvedIdleMs, } from './apply-leg.js';
+export { APPLY_LEG_VERSION, applyLegVersionOf, bakedCoreDistDirOf, recallHookSource, embedDaemonSource, applyLegHookEntries, applyLegStatus, applyLegReasonMessage, probeApplyLeg, resolveIdleMs, IDLE_MS_INT32_MAX, } from './apply-leg.js';
+export type { ApplyLegHookEntry, ApplyLegHelperStatus, ApplyLegHookPresence, ApplyLegStatus, ApplyLegNotInstalledReason, ApplyLegProbeResult, ResolvedIdleMs, } from './apply-leg.js';
 export { EMBED_SOCKET_PATH_BYTES_LIMIT, resolveEmbedSocketPath, embedSocketPointerPath, readEmbedSocketPointer, resolveEffectiveEmbedSocketPath, } from './embed-socket-path.js';
 export type { EmbedSocketPathReason, ResolvedEmbedSocketPath } from './embed-socket-path.js';
 export { countLearningStoreRowsReadonly, quarantineTierParity } from './store-counts.js';
@@ -89,7 +90,7 @@ export { statuslineData, readFeatureAdrState, writeFeatureAdrState, featureAdrSt
 export type { StatuslineData, StatuslineStoreHealth, FeatureAdrState, WriteFeatureAdrStateInput, WriteFeatureAdrStateResult } from './statusline.js';
 export { ETA_MAX_STAGE_MS, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, } from './eta.js';
 export type { CheckpointObservation, EtaEstimate, EtaInput, IncompleteCoverageSample, RunSegment, StageDurationSample, StageSample } from './eta.js';
-export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, resetAgentdbEmbedderCache, getAgentdbEmbedderCacheStats, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema } from './agentdb-index.js';
+export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, resetAgentdbEmbedderCache, getAgentdbEmbedderCacheStats, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema, readStoreGeneration, bumpStoreGeneration } from './agentdb-index.js';
 export type { AgentdbSearchHit, AgentdbSearchResult, AgentdbImportRow } from './agentdb-index.js';
 export { DEFAULT_EMBED_MODEL, LEGACY_EMBED_MODEL, DEFAULT_EMBED_DIM, KNOWN_EMBED_DIMS, resolveEmbedModel, readEmbedManifest, writeEmbedManifest, embedManifestPath, legacyEmbedManifest } from './embedding-config.js';
 export type { EmbedModelConfig, EmbedModelSource, EmbedManifest } from './embedding-config.js';
