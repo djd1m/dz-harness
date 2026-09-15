@@ -3391,7 +3391,7 @@ dz publish: BLOCKED harness-cli — sibling drift: @dzhechkov/memory@0.2.20 on t
 dz publish: refusing to publish (1 sibling-drift violation(s))
 
 $ dz publish --filter harness-cli --yes
-dz publish: tarball @dzhechkov/harness-cli@0.8.26 sha256:9f2c…e10a
+dz publish: tarball @dzhechkov/harness-cli@0.8.27 sha256:9f2c…e10a
 dz publish: ✓ packed install smoke
   ✓ @dzhechkov/harness-cli                1.0.0 → 1.0.1  published (confirmed by registry after 1 probes)
       sha256:9f2c…e10a
@@ -3716,7 +3716,7 @@ Self-learning is a three-leg loop: **collect** (session hooks write into the sto
 Before this feature `dz setup` shipped the first two legs only — the apply leg's files existed
 solely in this repo's own `.claude/helpers/`, so every OTHER project that ran `dz setup --memory
 agentdb` got collection and ranking, but never automatic recall (MEASURED: a clean install wrote no
-`UserPromptSubmit` entry at all, on 0.8.10 and 0.8.26 alike, with or without `--memory agentdb`).
+`UserPromptSubmit` entry at all, on 0.8.10 and 0.8.25 alike, with or without `--memory agentdb`).
 
 `dz setup --target claude-code --memory agentdb` now installs all three, additively (a repeat run
 changes nothing; a foreign hook you wrote yourself is left exactly where it is):
@@ -3740,7 +3740,7 @@ from `CLAUDE_PROJECT_DIR || cwd()` — the SESSION's project. A user-level insta
 (`dz setup --target claude-code --memory agentdb --project $HOME`, expecting the leg everywhere)
 silently looked up a DIFFERENT project's `.dz/` from every other session, and the `UserPromptSubmit`
 command itself broke down to `Cannot find module` (swallowed silently) whenever `project === $HOME`
-and a session's own `CLAUDE_PROJECT_DIR` pointed elsewhere (issue #2, MEASURED on 0.8.26). Fixed: the
+and a session's own `CLAUDE_PROJECT_DIR` pointed elsewhere (issue #2, MEASURED on 0.8.25). Fixed: the
 hook and daemon now resolve their own INSTALL location first (`path.resolve(__dirname, '..', '..')`
 for the hook — the precedent already used by the destructive-guard hook), and `dz setup` writes the
 `UserPromptSubmit`/`SessionStart` commands as an ABSOLUTE path to that install root instead of the
@@ -5390,7 +5390,7 @@ refusal as the honest answer.
 
 ## Status
 
-`harness-core v0.8.35` · `harness-cli v0.8.26` · `memory v0.2.22` — **this release (night 14→15.09, 8 features, each
+`harness-core v0.8.35` · `harness-cli v0.8.27` · `memory v0.2.22` — **this release (night 14→15.09, 8 features, each
 cross-family reviewed by Codex): the recall hook resolves its store from the INSTALL root, never from the session's cwd,
 and is never silent; the skill walker follows symlinks, drops build junk and names everything it skipped; one-character
 recall terms are searchable; and the mutation gate stays honest under load.**
@@ -5411,7 +5411,7 @@ for Latin script only (one combining mark — exactly FTS5 `unicode61 remove_dia
 gates only its own entries. (e) `store-generation-counter`: the daemon's engine cache invalidates on a generation bump
 written under a named lock. (f) `sandbox-copy-remaining-sites` + `full-suite-flake-fixes-2`: measured budgets
 (≥ 2× p95 under load), spawn timeouts strictly below the test budget, `waitForSocketReady` for daemon tests.
-Previous release (v0.8.34 / v0.8.26): the recall hook and `dz recall` share ONE hybrid
+Previous release (v0.8.34 / v0.8.25): the recall hook and `dz recall` share ONE hybrid
 engine, the embedder is cached per process, and every publish-gate verdict is a durable per-package audit record.
 (0) Hook/CLI recall parity (`hook-recall-hybrid-parity`): the embed daemon answers `op: recall` through core's
 `recallHybrid` under a 500 ms budget (measured p95 100–190 ms on the real 743-pattern store, 99–100 of 100
@@ -5420,7 +5420,7 @@ and an engine cache used ONLY by the hook (`dz recall` itself resolves fresh); `
 The agentdb embedder is cached per process (`agentdb-embedder-cache`: cold 2117 ms → warm 1 ms). Sibling-drift
 inventories come from `pnpm pack` — the live transport — so the LICENSE pnpm synthesises from the workspace root
 no longer reads as drift; every gate verdict is one fsync'd audit record per package with `sha256:<hex|n/a>`.
-Previous release (v0.8.33 / v0.8.26): `dz publish` refuses a broken pair, `dz setup`
+Previous release (v0.8.33 / v0.8.24): `dz publish` refuses a broken pair, `dz setup`
 reads the memory backend from config, and the embed daemon says "ready" only with a socket that exists.
 (1) Sibling-drift gate + packed install smoke: before any live `npm publish`, every `workspace:*` sibling on
 the registry is compared with the workspace (dist/files/bin + the shipping fields of package.json); a
