@@ -27,7 +27,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/core` | 0.2.23 |
 | `@dzhechkov/design-thinking` | 1.0.15 |
 | `@dzhechkov/evidence-wiki` | 0.2.7 |
-| `@dzhechkov/harness-cli` | 0.8.26 |
+| `@dzhechkov/harness-cli` | 0.8.27 |
 | `@dzhechkov/harness-core` | 0.8.35 |
 | `@dzhechkov/harness-presets` | 0.5.19 |
 | `@dzhechkov/health-advisor` | 1.10.6 |
@@ -35,7 +35,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/keysarium-core` | 1.1.28 |
 | `@dzhechkov/loop-designer-plugin` | 0.1.6 |
 | `@dzhechkov/mcp-server-tools` | 0.2.11 |
-| `@dzhechkov/memory` | 0.2.22 |
+| `@dzhechkov/memory` | 0.2.23 |
 | `@dzhechkov/p-replicator` | 1.13.3 |
 | `@dzhechkov/scout` | 0.8.12 |
 | `@dzhechkov/skills-12factor` | 0.1.14 |

@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/memory",
-  "version": "0.2.22",
+  "version": "0.2.23",
   "description": "Harness memory layer - backend cascade, Reflexion feedback, and the host-memory bridge.",
   "type": "module",
   "license": "MIT",
