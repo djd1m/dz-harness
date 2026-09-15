@@ -27,10 +27,16 @@
  * @packageDocumentation
  */
 
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { connect as netConnect } from 'node:net';
-import { join } from 'node:path';
+// `node:os` is NOT one of the modules `countIoImports` (core-boundary.ts) tracks — free to import
+// (core-boundary.test.ts's ratchet only counts fs/child_process/https). `probeApplyLeg`'s temp probe
+// cwd reuses the existing top-level 'node:fs' import above (mkdtempSync/rmSync added to that SAME
+// import statement, not a new one) so the ratchet stays at its pinned files:63 imports:69.
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { hookCommandsOf } from './managed-hooks.js';
+import { patternRecordId, recordPattern, removePatternsByIds, loadStorePatternsSync, type PatternRecord, type RemovePatternsResult } from './patterns.js';
 
 /**
  * FR-6 (feature `hook-recall-hybrid-parity`, ADR-001 C-4): send ONE `op: recall` probe to a LIVE
@@ -140,8 +146,52 @@ export function probeRecallEngine(socketPath: string, timeoutMs = 1000): Promise
  * fallback rather than a bare protocol error (AM-3); (d) reports the RAW core RRF score, unchanged,
  * instead of a locally re-normalized [0,1] value (AM-5) — the hook's own `HOOK_SCORE_FLOOR` default
  * moved from `0.01` to `0.005` to match (see that constant's own comment for the measurement).
+ *
+ * Bumped 6→7 (feature `apply-leg-install-root`, ADR-001 D1): both generated files now resolve
+ * `PROJECT` install-root-first (`INSTALL_ROOT` = this file's own location, when it owns a `.dz/`)
+ * instead of trusting a foreign session's `CLAUDE_PROJECT_DIR`/cwd (issue #2) — the hook's own
+ * `[dz-recall]` diagnostic line also gains `root=<path> (install|env|cwd)`.
+ *
+ * Bumped 7→8 (`apply-leg-install-root`, fix round 1, AM-7 HIGH — real regression MEASURED via
+ * `retro-debt-hook.test.ts` going 4/5 red on the v7 hub helper): `PROJECT` install-root-first is
+ * correct for the STORE (pattern db, socket, daemon script) but WRONG for a per-session artifact —
+ * the narrated-error retro-debt sentinel (`retro-pending.json`) is written by the INVOKING
+ * SESSION's own Stop hook under `CLAUDE_PROJECT_DIR`, not under wherever the hook happens to be
+ * installed; a shared $HOME install made the hook look for a foreign session's sentinel under the
+ * install root and silently drop every session's own debt confrontation. Split: `PROJECT` (install-
+ * root-first) stays the STORE root; a new `SESSION_ROOT` (`CLAUDE_PROJECT_DIR || cwd()`, the
+ * pre-feature resolution, unchanged) is the root for `RETRO_PENDING` — the ONE per-session file this
+ * hook reads (every other `PROJECT`-derived path in this file names the store, the daemon, or the
+ * harness-core install, confirmed by grep against every `path.join(PROJECT, …)` site). The diag line
+ * gains `session=<path>` alongside the existing `root=<path> (…)`.
+ *
+ * Bumped 8→9 (feature `apply-leg-never-silent`, ADR-001 D2, FR-1): every early return in `main()`
+ * now prints `[dz-recall] skipped reason=<store-not-found|socket-absent|core-unavailable|
+ * empty-prompt|no-hits> root=<path> (…) session=<path>` on stderr before returning — the hook used
+ * to exit silently on every one of these paths, indistinguishable (from stderr alone) from a
+ * correctly-quiet "nothing relevant" outcome. `embedDaemonSource`'s own bytes are UNCHANGED by this
+ * bump; the shared version number still advances because both helpers are upgraded as one unit by
+ * `dz setup`/`applyLegStatus`.
+ *
+ * Bumped 9→10 (`apply-leg-never-silent`, fix round 1 — cross-model review AM-3/AM-6): (a) the hook
+ * now tags its `op: recall` request with `probe: <bool>` (true only when
+ * `DZ_HOOK_LIVENESS_PROBE=1`, the env {@link "./operations.js".probeHookLiveness} already stamps on
+ * every live-probe spawn) so the daemon can tell a genuine session prompt apart from
+ * `probeApplyLeg`'s own beacon query — AM-3: a beacon written for the ~8s of a doctor/parity probe
+ * used to be recallable by ANY concurrent real prompt in the SAME project, a probe-only fixture
+ * leaking into a real session's context; (b) `askDaemon`'s every failure path used to collapse into
+ * one `undefined`, forcing the hook's own `skip('socket-absent')` call regardless of what actually
+ * went wrong — AM-6: it now returns a tagged `{error: 'socket-absent'|'connect-refused'|
+ * 'daemon-timeout'|'bad-reply'}` so the stderr reason names the ACTUAL failure (no socket file vs a
+ * non-socket file at that path vs a listener that never replies vs a listener that replies with
+ * something unparseable/shapeless). `embedDaemonSource`'s bytes also change for AM-3: `loadPatterns`
+ * now reads each row's `domain` out of the SAME metadata JSON `dzIdOf`/`quarantinedOf` already
+ * parse (the vector mirror carries no separate domain column), and both `hybridRecall`'s hits and
+ * the cosine-fallback `scored` array are filtered to exclude `domain === 'apply-leg-probe'` unless
+ * the request carried `probe: true` — a probe's own beacon still needs to reach ITS query, only a
+ * REAL prompt must never see it.
  */
-export const APPLY_LEG_VERSION = 6;
+export const APPLY_LEG_VERSION = 10;
 
 /**
  * Parse the `dz-apply-leg-version` stamp from a deployed helper file. Unlike
@@ -231,7 +281,24 @@ const crypto = require('node:crypto');
 const os = require('node:os');
 const { pathToFileURL } = require('node:url');
 
-const PROJECT = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+// FR-1 (ADR-001 D1, apply-leg-install-root): resolve OUR OWN store from where this hook is
+// INSTALLED, not from whatever project the invoking session happens to be in — a hook installed at
+// $HOME (a common single-machine layout: \`dz setup --target claude --memory agentdb --project
+// $HOME\`, expecting the leg everywhere) used to silently look up a DIFFERENT project's \`.dz/\`
+// whenever CLAUDE_PROJECT_DIR pointed elsewhere (issue #2, MEASURED). Precedent:
+// claude-hooks-assets.ts's \`path.resolve(__dirname, '..', '..')\` for the destructive-guard hook.
+// Order: INSTALL_ROOT (if it owns a \`.dz/\`) -> CLAUDE_PROJECT_DIR -> cwd.
+const INSTALL_ROOT = path.resolve(__dirname, '..', '..');
+const ROOT_SOURCE = fs.existsSync(path.join(INSTALL_ROOT, '.dz')) ? 'install' : (process.env.CLAUDE_PROJECT_DIR ? 'env' : 'cwd');
+const PROJECT = ROOT_SOURCE === 'install' ? INSTALL_ROOT : (process.env.CLAUDE_PROJECT_DIR || process.cwd());
+// AM-7 (fix round 1, apply-leg-install-root): PROJECT above is the STORE root (install-first) — a
+// pattern db shared across every session at a $HOME install is correctly install-scoped. A
+// per-session ARTIFACT is the opposite: the retro-debt sentinel is written by THIS SESSION's own
+// Stop hook under its own CLAUDE_PROJECT_DIR, so looking it up under a foreign install root finds
+// nothing (or, worse, another session's leftover file) and silently drops the confrontation.
+// SESSION_ROOT is the pre-feature resolution, unchanged — the root for any file that belongs to the
+// INVOKING session rather than to the store.
+const SESSION_ROOT = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const CORE_DIST_DIR = ${coreDistDir === null ? 'null' : JSON.stringify(coreDistDir)};
 
 // embed-socket-short-path (FR-1/FR-2): byte-for-byte the same logic as \`resolveEmbedSocketPath\` /
@@ -267,6 +334,11 @@ function resolveEffectiveEmbedSocketPath(projectRoot, env) {
   return pointer !== undefined && fs.existsSync(pointer) ? { path: pointer, reason: 'tmpdir-short' } : resolved;
 }
 const SOCKET = resolveEffectiveEmbedSocketPath(PROJECT, process.env).path;
+// AM-3 (fix round 1, apply-leg-never-silent): set ONLY by probeHookLiveness (operations.ts) on
+// every live-probe spawn — never by a real Claude Code session. Rides into the daemon's op:recall
+// request as \`probe\` so the daemon can admit the probe's OWN beacon (domain=apply-leg-probe)
+// without ever surfacing it to a concurrent real prompt in the same project.
+const IS_LIVENESS_PROBE = process.env.DZ_HOOK_LIVENESS_PROBE === '1';
 const USAGE_LOG = process.env.DZ_RECALL_USAGE_LOG || path.join(PROJECT, '.dz', 'recall-usage.jsonl');
 // Measured (2026-09-14, apply-leg-socket.test.ts): an ordinary hook round-trip (spawn + one socket
 // op) took 81-121 ms; 800 ms leaves a wide margin for a loaded daemon while still bounding the AM-2
@@ -359,7 +431,9 @@ async function loadPolicy() {
  *  - stale / other-session sentinel ⇒ '' (the debt belongs to a dead session; retro collected it);
  *  - core module absent or old (no directive exports) ⇒ '' — inert, NEVER-BLOCK.
  */
-const RETRO_PENDING = path.join(PROJECT, '.dz', 'retro-pending.json');
+// AM-7 (fix round 1): SESSION_ROOT, not PROJECT — the sentinel is a per-session artifact (see the
+// SESSION_ROOT comment above).
+const RETRO_PENDING = path.join(SESSION_ROOT, '.dz', 'retro-pending.json');
 async function retroDebtDirective(payload) {
   if (!fs.existsSync(RETRO_PENDING)) return '';
   const sentinel = safe(() => JSON.parse(fs.readFileSync(RETRO_PENDING, 'utf-8')), undefined);
@@ -414,9 +488,13 @@ function readLogTail(chain, file) {
 // FR-6 (hook-recall-hybrid-parity): the reply now carries \`engine\`/\`reason\` alongside \`hits\` —
 // returned as a small object rather than the bare hit array, so the caller can apply the RIGHT
 // floor (FR-5) and print the engine to stderr ONLY (never into the injected context, FR-2).
+// AM-6 (fix round 1): every failure used to collapse into one \`undefined\`, forcing the caller's
+// \`skip('socket-absent')\` regardless of whether the socket was truly absent, refused the connect,
+// never replied, or replied with garbage. Each branch now tags its OWN reason so the stderr line
+// (and, through it, \`probeApplyLeg\`'s parsed reason) names what actually happened.
 function askDaemon(prompt) {
   return new Promise((resolve) => {
-    if (!fs.existsSync(SOCKET)) return resolve(undefined);
+    if (!fs.existsSync(SOCKET)) return resolve({ error: 'socket-absent' });
     let settled = false;
     const done = (v) => {
       if (settled) return;
@@ -425,29 +503,29 @@ function askDaemon(prompt) {
       resolve(v);
     };
     const sock = net.connect(SOCKET);
-    const timer = setTimeout(() => done(undefined), TIMEOUT_MS);
+    const timer = setTimeout(() => done({ error: 'daemon-timeout' }), TIMEOUT_MS);
     timer.unref?.();
     let buf = '';
-    sock.on('connect', () => sock.write(JSON.stringify({ op: 'recall', prompt, limit: 8 }) + '\\n'));
+    sock.on('connect', () => sock.write(JSON.stringify({ op: 'recall', prompt, limit: 8, probe: IS_LIVENESS_PROBE }) + '\\n'));
     sock.on('data', (chunk) => {
       buf += chunk.toString('utf8');
       const nl = buf.indexOf('\\n');
       if (nl === -1) return;
       clearTimeout(timer);
       const msg = safe(() => JSON.parse(buf.slice(0, nl)), undefined);
-      done(
-        msg && Array.isArray(msg.hits)
-          ? {
-              hits: msg.hits,
-              engine: typeof msg.engine === 'string' ? msg.engine : undefined,
-              reason: typeof msg.reason === 'string' ? msg.reason : undefined,
-            }
-          : undefined,
-      );
+      if (msg && Array.isArray(msg.hits)) {
+        done({
+          hits: msg.hits,
+          engine: typeof msg.engine === 'string' ? msg.engine : undefined,
+          reason: typeof msg.reason === 'string' ? msg.reason : undefined,
+        });
+      } else {
+        done({ error: 'bad-reply' });
+      }
     });
     sock.on('error', () => {
       clearTimeout(timer);
-      done(undefined);
+      done({ error: 'connect-refused' });
     });
   });
 }
@@ -455,6 +533,13 @@ function askDaemon(prompt) {
 const REVIVE_LOCK = path.join(PROJECT, '.dz', 'embed-daemon.lock');
 const REVIVE_LOCK_FRESH_MS = 120_000; // model load takes ~45s; don't respawn while one is coming up
 function reviveDaemon() {
+  // AM-7 (fix round 1, test-only): a test that probes the SAME dead fixture multiple times in quick
+  // succession (probeApplyLeg directly, then again through runDoctor, then again through a
+  // 'dz parity' subprocess) used to race against this very self-heal — the first probe's revive
+  // could finish loading a real daemon before the second or third probe ran, flipping
+  // "socket-absent" into "hybrid"/"cosine-fallback" non-deterministically. No production session
+  // ever sets this.
+  if (process.env.DZ_RECALL_NO_REVIVE === '1') return;
   // CROSS-PROCESS lock: every prompt runs a fresh hook process, so a per-process flag let 20 queued
   // prompts spawn 20 daemons while the first was still loading its model (Codex #5). A lockfile with
   // a freshness window means at most one spawn per window, machine-wide.
@@ -620,6 +705,17 @@ function emitContext(context) {
   );
 }
 
+// FR-1 (ADR-001 D2, apply-leg-never-silent): every silent early exit below now names WHY, on
+// stderr, one line, same shape as the existing \`[dz-recall] engine=…\` diagnostic. Exit code stays
+// 0 — a broken/empty/quiet hook must never fail a prompt (NEVER-BLOCK, unchanged). The reason is
+// for TWO readers, neither of which is "the user watching Claude Code's own transcript" (FR-2's
+// own manifest names why that channel does not apply to this hook): (1) \`dz doctor\`'s live probe,
+// which spawns this exact command as a child process and reads ITS OWN child's stderr directly —
+// unmediated by Claude Code's UI, so the redirect policy of any particular hook EVENT is moot; and
+// (2) a human running the command by hand from a terminal, who sees stderr exactly as printed.
+const skip = (reason) =>
+  safe(() => process.stderr.write(\`[dz-recall] skipped reason=\${reason} root=\${PROJECT} (\${ROOT_SOURCE}) session=\${SESSION_ROOT}\\n\`));
+
 async function main() {
   const raw = readStdin();
   const payload = safe(() => JSON.parse(String(raw || '').trim()), undefined);
@@ -630,13 +726,34 @@ async function main() {
   // sentinel is absent this is one existsSync and debt === '' (byte-identical outputs to before).
   const debt = await retroDebtDirective(payload);
 
-  if (prompt === '') return emitContext(debt);
+  if (prompt === '') {
+    skip('empty-prompt');
+    return emitContext(debt);
+  }
+
+  // FR-1: the most fundamental silent failure (issue #2) — no \`.dz/\` at all under the resolved
+  // PROJECT root. Checked BEFORE the policy/daemon legs below: a missing store makes every
+  // downstream question ("is the daemon alive?") moot, and printing THIS reason first is what let
+  // the original issue's symptom (four green checks, a store that was never there) be diagnosed
+  // from stderr alone.
+  if (!fs.existsSync(path.join(PROJECT, '.dz'))) {
+    skip('store-not-found');
+    return emitContext(debt);
+  }
 
   const policy = await loadPolicy();
-  if (!policy) return emitContext(debt);
+  if (!policy) {
+    skip('core-unavailable');
+    return emitContext(debt);
+  }
 
   const daemonReply = await askDaemon(prompt);
-  if (!daemonReply) {
+  // AM-6: the tagged reason IS the diagnosis now — 'socket-absent' (no file), 'connect-refused' (a
+  // file exists but nothing answers like a daemon), 'daemon-timeout' (something answers, never in
+  // time) and 'bad-reply' (answers, unparseable/shapeless) are four DIFFERENT defects with four
+  // different remedies; collapsing them back into one string is exactly the finding this fixes.
+  if (daemonReply.error) {
+    skip(daemonReply.error);
     // SELF-HEAL (2026-07-28): the daemon is started at SessionStart only, so when it dies mid-way
     // through a long-lived session NOTHING restarts it — the apply leg was silently dead for 19
     // days (MEASURED: recall-usage.jsonl last record 2026-07-09, socket absent). Spawn it
@@ -648,9 +765,12 @@ async function main() {
   // FR-6/FR-2: the engine (and, on fallback, why) is the caller's business, not the model's — it
   // NEVER rides into additionalContext, only stderr, which Claude Code does not read as context.
   if (typeof engine === 'string') {
-    safe(() => process.stderr.write(\`[dz-recall] engine=\${engine}\${reason ? \` reason=\${reason}\` : ''}\\n\`));
+    safe(() => process.stderr.write(\`[dz-recall] engine=\${engine}\${reason ? \` reason=\${reason}\` : ''} root=\${PROJECT} (\${ROOT_SOURCE}) session=\${SESSION_ROOT}\\n\`));
   }
-  if (hits.length === 0) return emitContext(debt); // daemon alive, nothing relevant — silence is correct
+  if (hits.length === 0) {
+    skip('no-hits');
+    return emitContext(debt); // daemon alive, nothing relevant — silence is correct
+  }
 
   // FR-5 (ADR-001 D2): a hybrid-engine reply carries an RRF-based score — its OWN floor, applied to
   // both languages. A cosine-fallback reply (or an old daemon that never sent \`engine\` at all)
@@ -774,14 +894,19 @@ import { createRequire } from 'node:module';
 import { connect } from 'node:net';
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 
 const log = (...a) => console.error('[dz-embed]', ...a);
 
 /** Never let a diagnostic reach stdout — the hook that spawns us may be parsing it. */
 console.log = (...a) => console.error(...a);
 
-const PROJECT = process.env['DZ_PROJECT_ROOT'] ?? process.cwd();
+// FR-4 (ADR-001 D1, apply-leg-install-root): the SAME install-root-first order the hook uses (see
+// recallHookSource's own PROJECT comment) — DZ_PROJECT_ROOT stays the TOP override for the daemon
+// (a caller that explicitly names a project root always wins), then INSTALL_ROOT (this file's own
+// location, when it owns a \`.dz/\`), then cwd.
+const INSTALL_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
+const PROJECT = process.env['DZ_PROJECT_ROOT'] ?? (existsSync(join(INSTALL_ROOT, '.dz')) ? INSTALL_ROOT : process.cwd());
 
 // ADR-001 (hook-recall-hybrid-parity, D1): the SAME candidate-list resolution the hook uses for its
 // own policy modules — the baked \`coreDistDir\` first (a real install's absolute dist path), then
@@ -958,6 +1083,27 @@ function quarantinedOf(metadataJson) {
   }
 }
 
+// AM-3 (fix round 1, apply-leg-never-silent): the vector mirror's own row carries no domain column
+// (see loadPatterns' own note below) — domain lives in the SAME metadata JSON dzIdOf/quarantinedOf
+// already parse, so this is the ONE extra field read off a column that's already in hand.
+function domainOf(metadataJson) {
+  try {
+    const d = JSON.parse(String(metadataJson || '{}'))?.domain;
+    return typeof d === 'string' && d !== '' ? d : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+// AM-3: the ONE domain a genuine session must never see — probeApplyLeg's own beacon marker
+// (apply-leg.ts's PROBE_BEACON_DOMAIN, inlined here as text for the same reason every other shared
+// constant in this generated file is: a template string cannot import a compiled module).
+const PROBE_BEACON_DOMAIN = 'apply-leg-probe';
+/** Strip probe-domain hits from a real (non-probe) answer; a probe request passes through untouched. */
+function filterProbeHits(hits, probe) {
+  return probe ? hits : hits.filter((h) => h.domain !== PROBE_BEACON_DOMAIN);
+}
+
 async function main() {
   if (await socketAlive(SOCKET)) {
     log('a daemon already owns', SOCKET, '— exiting');
@@ -1007,7 +1153,9 @@ async function main() {
       return rows.map((r) => {
         const buf = r.embedding;
         const vec = new Float32Array(buf.buffer, buf.byteOffset, buf.byteLength / 4);
-        return { dzId: dzIdOf(r.metadata), pattern: r.pattern, vec, quarantined: quarantinedOf(r.metadata) };
+        // AM-3: domain rides along so answerRecall can exclude the probe's own beacon from a real
+        // session's cosine-fallback answer — the SAME metadata column dzIdOf/quarantinedOf already read.
+        return { dzId: dzIdOf(r.metadata), pattern: r.pattern, vec, quarantined: quarantinedOf(r.metadata), domain: domainOf(r.metadata) };
       });
     } finally {
       db.close();
@@ -1033,7 +1181,7 @@ async function main() {
   // \`hybridRecall\`'s own promise is left running past a timeout loss (never awaited a second time)
   // — its \`.catch\` below only silences a LATE rejection so a slow, eventually-failing engine call
   // can never become an unhandled-rejection crash for this long-lived process.
-  async function hybridRecall(prompt, limit) {
+  async function hybridRecall(prompt, limit, probe) {
     if (hybridInFlight >= HYBRID_MAX_IN_FLIGHT) {
       return { ok: false, reason: \`hybrid saturated (\${hybridInFlight} attempt(s) still in flight, cap \${HYBRID_MAX_IN_FLIGHT})\` };
     }
@@ -1073,7 +1221,10 @@ async function main() {
         domain: h.pattern.domain,
         ...(h.quarantined ? { quarantined: true } : {}),
       }));
-      return { ok: true, hits: hits.slice(0, limit) };
+      // AM-3 (fix round 1): filter BEFORE slicing to \`limit\` — filtering after would let a probe
+      // beacon that happened to rank in the top \`limit\` silently crowd out a real hit for a real
+      // (non-probe) caller instead of simply being excluded from consideration.
+      return { ok: true, hits: filterProbeHits(hits, probe).slice(0, limit) };
     } catch (err) {
       clearTimeout(timer);
       return { ok: false, reason: \`recallHybrid failed: \${err?.message ?? err}\` };
@@ -1082,10 +1233,10 @@ async function main() {
 
   /** \`op: recall\`'s whole answer: hybrid first (budget-bounded), cosine fallback on ANY failure —
    * always honestly labelled with \`engine\`/\`reason\` (FR-2/FR-6). */
-  async function answerRecall(prompt, limitRaw) {
+  async function answerRecall(prompt, limitRaw, probe) {
     const limit = Math.min(Number(limitRaw) || 8, 32);
     if (prompt.trim() === '') return { hits: [], engine: 'none', reason: 'empty prompt' }; // Codex round-2: every reply carries \`engine\`
-    const hybrid = await hybridRecall(prompt, limit);
+    const hybrid = await hybridRecall(prompt, limit, probe);
     if (hybrid.ok) return { hits: hybrid.hits, engine: 'hybrid' };
     // Reload the cosine mirror if it changed on disk (a \`dz teach\` between turns) — the SAME
     // staleness window as before this feature, just checked only when actually falling back.
@@ -1099,9 +1250,10 @@ async function main() {
     }
     if (patterns.length === 0) return { hits: [], engine: 'cosine-fallback', reason: hybrid.reason };
     const qv = await embed(prompt);
-    const scored = patterns.map((p) => ({ dzId: p.dzId, pattern: p.pattern, score: cos(qv, p.vec), ...(p.quarantined ? { quarantined: true } : {}) }));
+    const scored = patterns.map((p) => ({ dzId: p.dzId, pattern: p.pattern, score: cos(qv, p.vec), domain: p.domain, ...(p.quarantined ? { quarantined: true } : {}) }));
     scored.sort((a, b) => b.score - a.score);
-    return { hits: scored.slice(0, limit), engine: 'cosine-fallback', reason: hybrid.reason };
+    // AM-3: same domain exclusion as the hybrid leg, applied before slicing for the same reason.
+    return { hits: filterProbeHits(scored, probe).slice(0, limit), engine: 'cosine-fallback', reason: hybrid.reason };
   }
 
   // AM-1 (fix round 1): warm resolveAgentdbEmbedder — cached PER PROCESS since db1521ba (cold
@@ -1162,7 +1314,7 @@ async function main() {
             return shutdown(0);
           } else if (msg.op === 'recall') {
             const prompt = typeof msg.prompt === 'string' ? msg.prompt : '';
-            reply = await answerRecall(prompt, msg.limit);
+            reply = await answerRecall(prompt, msg.limit, msg.probe === true);
           } else {
             reply = { error: \`unknown op \${String(msg.op)}\` };
           }
@@ -1264,24 +1416,103 @@ export interface ApplyLegHookEntry {
 }
 
 /**
+ * POSIX single-quote a value for safe interpolation into a shell command line: wraps it in `'`,
+ * escaping every embedded `'` as the standard `'\''` sequence (close quote, literal escaped quote,
+ * reopen quote). Single quotes disable EVERY shell expansion — `$`, backticks, `"`, another `'` —
+ * unlike a bare `"..."` interpolation, which blocks only whitespace/globbing and still lets `$`/
+ * backtick content run (AM-1, fix round 1, HIGH).
+ */
+function shellQuote(value: string): string {
+  return `'${value.split(`'`).join(`'\\''`)}'`;
+}
+
+/**
  * The two hook-registry entries `runSetup` merges into `.claude/settings.json` (FR-1). Commands
  * match the hub's own `.claude/settings.json` verbatim (`grep`-diffed against it at authoring time):
  * the recall hook is invoked with a swallowed non-zero exit (`|| true`) so a broken hook body never
  * fails a prompt, and the embed daemon is spawned detached via `nohup` + a backgrounding `sh -c`
  * so `SessionStart` never waits on model load.
+ *
+ * `installRoot` (ADR-001 D2, feature `apply-leg-install-root`): when the caller (`dz setup`) knows
+ * its own install root, the commands bake it in as an ABSOLUTE path — the deployed helper already
+ * bakes an absolute `CORE_DIST_DIR`, so a `${CLAUDE_PROJECT_DIR:-.}`-relative command in
+ * settings.json only masked that non-portability, and broke down to `Cannot find module` (swallowed
+ * by `2>/dev/null || true`) whenever `project === $HOME` and a session's own `CLAUDE_PROJECT_DIR`
+ * pointed elsewhere (issue #2). Omitting `installRoot` (every pre-existing zero-arg caller — status
+ * fixtures, `applyLegStatus` regression tests) keeps the original `CLAUDE_PROJECT_DIR`-relative
+ * form byte for byte; `hookCommandInvokes`/`applyLegStatus` (FR-3) recognize BOTH forms as wired,
+ * and `runSetup`'s `addIfMissing` (setup.ts) REPLACES a stale form with the current one in place —
+ * never a second entry — on re-setup.
+ *
+ * Fix round 1 corrections to the absolute (`installRoot`-given) branch — the legacy zero-arg branch
+ * is UNCHANGED byte for byte:
+ *  - AM-1 (HIGH): a caller-controlled path was interpolated RAW into shell source. A `"`, `$`,
+ *    backtick, or `'` in `installRoot` altered or injected commands, and the SessionStart form broke
+ *    outright on a `'` (it cannot be escaped inside a `'...'` body by nesting `"`). Fixed:
+ *    {@link shellQuote} wraps every path; SessionStart passes them as POSITIONAL ARGS (`$1`/`$2`) to
+ *    an INNER `sh -c` whose script text is a FIXED literal with no caller-controlled bytes, so
+ *    nested-quote fragility cannot arise at all.
+ *  - AM-3 (HIGH): the daemon used to fall back to `DZ_PROJECT_ROOT ?? installLocal`, and nothing in
+ *    the SessionStart command ever SET that variable — a stale inherited `DZ_PROJECT_ROOT` in the
+ *    parent env could win over the install root the hook itself resolves to. Fixed: the SessionStart
+ *    command now sets `DZ_PROJECT_ROOT="$1"` (`$1` = installRoot) explicitly, so the daemon and the
+ *    hook agree by construction regardless of what the parent environment happens to carry.
+ *  - AM-4 (LOW): a relative `installRoot` used to produce a relative command, breaking the "every
+ *    baked path is absolute" invariant the module's own docs claim. Fixed: `resolve()`s its input.
  */
-export function applyLegHookEntries(): { readonly userPromptSubmit: ApplyLegHookEntry; readonly sessionStart: ApplyLegHookEntry } {
+export function applyLegHookEntries(
+  installRoot?: string,
+): { readonly userPromptSubmit: ApplyLegHookEntry; readonly sessionStart: ApplyLegHookEntry } {
+  if (installRoot === undefined) {
+    // Legacy zero-arg form — byte-identical to every pre-fix-round build. Kept only for
+    // `applyLegStatus`'s upgrade-recognition tests (a pre-feature install's settings.json) and for
+    // seeding "stale entry" fixtures; every real `dz setup` caller passes `opts.projectRoot`.
+    return {
+      userPromptSubmit: {
+        hooks: [{
+          type: 'command',
+          // FR-2 (apply-leg-never-silent, ADR-001 D2): `2>/dev/null` removed — the hook itself now
+          // names every silent exit on stderr (FR-1), and swallowing that stream at the settings.json
+          // level would defeat it at the source. `|| true` stays: a broken hook body must never fail
+          // the prompt.
+          command: 'node "${CLAUDE_PROJECT_DIR:-.}/.claude/helpers/recall-hook.cjs" || true',
+        }],
+      },
+      sessionStart: {
+        hooks: [{
+          type: 'command',
+          command: "sh -c 'nohup node \"${CLAUDE_PROJECT_DIR:-.}/.claude/helpers/dz-embed-daemon.mjs\" >/dev/null 2>&1 & exit 0'",
+        }],
+      },
+    };
+  }
+  // AM-4: make a relative caller input absolute so the "every baked path is absolute" invariant
+  // holds regardless of what the caller passed, not merely for callers that already resolve first.
+  const root = resolve(installRoot);
+  const recallHookPath = `${root}/.claude/helpers/recall-hook.cjs`;
+  const daemonPath = `${root}/.claude/helpers/dz-embed-daemon.mjs`;
   return {
     userPromptSubmit: {
       hooks: [{
         type: 'command',
-        command: 'node "${CLAUDE_PROJECT_DIR:-.}/.claude/helpers/recall-hook.cjs" 2>/dev/null || true',
+        // AM-1: shellQuote the WHOLE path — a bare `"..."` interpolation only blocks whitespace and
+        // globbing, it still lets `$`, backticks, and a literal `"` do damage; single-quoting blocks
+        // every shell expansion at once.
+        // FR-2 (apply-leg-never-silent, ADR-001 D2): `2>/dev/null` removed — see the zero-arg branch's
+        // comment above for why.
+        command: `node ${shellQuote(recallHookPath)} || true`,
       }],
     },
     sessionStart: {
       hooks: [{
         type: 'command',
-        command: "sh -c 'nohup node \"${CLAUDE_PROJECT_DIR:-.}/.claude/helpers/dz-embed-daemon.mjs\" >/dev/null 2>&1 & exit 0'",
+        // AM-1/AM-3: the INNER script text (`'DZ_PROJECT_ROOT="$1" nohup node "$2" …'`) is a FIXED
+        // literal — no caller-controlled byte ever sits inside it, so it can never itself contain an
+        // unescaped `'` that would break the outer single-quoting. `root`/`daemonPath` instead arrive
+        // as POSITIONAL ARGS (`$1`/`$2`), each independently shellQuote()d for the OUTER shell that
+        // parses this whole command line. AM-3: `DZ_PROJECT_ROOT="$1"` pins the daemon to THIS
+        // install root explicitly — a stale value already in the parent environment can never win.
+        command: `sh -c 'DZ_PROJECT_ROOT="$1" nohup node "$2" >/dev/null 2>&1 & exit 0' sh ${shellQuote(root)} ${shellQuote(daemonPath)}`,
       }],
     },
   };
@@ -1357,10 +1588,27 @@ function readHelperStatus(path: string): { exists: boolean; version: number; unr
  * Codex, third pass). A bare mention (`echo .claude/helpers/recall-hook.cjs`) is not an invocation:
  * the helper path must follow a `node` word — directly, or inside the daemon's
  * `sh -c 'nohup node "…"'` spawn. Forward slashes only: every command dz writes uses them.
+ *
+ * Fix round 1 (AM-1/AM-3, apply-leg-install-root): the SessionStart command now passes its daemon
+ * path as a POSITIONAL ARG (`sh -c '… node "$2" …' sh <root> <daemonPath>`) rather than interpolating
+ * it textually next to `node`, so the ORIGINAL adjacency regex alone no longer matches it. A SECOND
+ * recognizer accepts that shape: the command invokes `node` with a `$N`-style positional argument
+ * AND carries `markerPath` as one of its own (shellQuote()d) trailing arguments — both conditions
+ * together, so a foreign command that merely echoes the marker path near an unrelated `node "$1"`
+ * invocation still does not count.
  */
 export function hookCommandInvokes(command: string, markerPath: string): boolean {
-  const invoked = new RegExp('(^|[\\s;&|(])node\\s+[\'"]?[^\\s\'"]*' + markerPath.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&'));
-  return invoked.test(command);
+  const escapedMarker = markerPath.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
+  const direct = new RegExp('(^|[\\s;&|(])node\\s+[\'"]?[^\\s\'"]*' + escapedMarker);
+  if (direct.test(command)) return true;
+  // Codex round-2 (NEW): the absolute form is POSIX-single-quoted (`node '<root>/.claude/…'`), and a
+  // root may contain whitespace or `'` (written as `'\''`) — the bare `[^\s'"]*` run above stops at
+  // the first space, so such an entry read as "absent" and re-setup appended a duplicate.
+  const quotedDirect = new RegExp("(^|[\\s;&|(])node\\s+'(?:[^']|'\\\\'')*" + escapedMarker);
+  if (quotedDirect.test(command)) return true;
+  const invokesNodeWithPositional = /\bnode\s+["']?\$\d/.test(command);
+  const markerAsQuotedArg = new RegExp("'[^']*" + escapedMarker + "'");
+  return invokesNodeWithPositional && markerAsQuotedArg.test(command);
 }
 
 /**
@@ -1467,4 +1715,274 @@ export function applyLegReasonMessage(status: ApplyLegStatus): string {
     return `cannot read deployed helper(s): ${bad.join(', ')} — fix or remove it and re-run: dz setup --target claude-code --memory agentdb`;
   }
   return 'not installed — run dz setup --target claude-code --memory agentdb';
+}
+
+/**
+ * The ACTUAL command `.claude/settings.json` carries for the wired `UserPromptSubmit` recall hook —
+ * not a reconstruction. {@link probeApplyLeg} must run exactly what a real session would run,
+ * `${CLAUDE_PROJECT_DIR:-.}`-relative legacy form and all: reconstructing our own `node <path> ||
+ * true` would silently stop testing the shell-expansion half of the legacy form, the exact half
+ * issue #2 broke. Mirrors {@link hookWiredUnder}'s traversal (kept in lock-step: both read
+ * `hooks.UserPromptSubmit[*].hooks[*].command` and recognize it via {@link hookCommandInvokes}) but
+ * returns the command TEXT instead of a boolean.
+ */
+function findConfiguredRecallHookCommand(root: string): string | undefined {
+  try {
+    const settings = JSON.parse(readFileSync(join(root, '.claude', 'settings.json'), 'utf-8')) as unknown;
+    const hooksSection = (settings as { hooks?: unknown })?.hooks;
+    const list = hooksSection && typeof hooksSection === 'object' ? (hooksSection as Record<string, unknown>)['UserPromptSubmit'] : undefined;
+    if (!Array.isArray(list)) return undefined;
+    for (const entry of list) {
+      for (const cmd of hookCommandsOf(entry)) {
+        if (hookCommandInvokes(cmd, '.claude/helpers/recall-hook.cjs')) return cmd;
+      }
+    }
+  } catch {
+    /* settings.json absent, unreadable, or not valid JSON — nothing to probe */
+  }
+  return undefined;
+}
+
+/**
+ * AM-4 (fix round 1, apply-leg-never-silent): the LEGACY zero-arg form ({@link applyLegHookEntries}'s
+ * no-installRoot branch) reads `${CLAUDE_PROJECT_DIR:-.}` — a shell expansion that only resolves to
+ * something useful from a REAL session's own cwd. Spawning it from `probeApplyLeg`'s temp "foreign"
+ * cwd can never find the deployed helper by construction (the file lives at `root`'s own
+ * `.claude/helpers/`, never under the temp dir), so a probe against this form would spawn a doomed
+ * command and report a confusing generic failure — not a fact about whether the leg injects, only a
+ * fact about the fixture being unprobeable. The absolute form ({@link shellQuote}'d installRoot)
+ * never contains this literal env-expansion syntax — it bakes a resolved path instead — so a plain
+ * substring check distinguishes the two without re-parsing shell grammar.
+ */
+export function isLegacyRelativeRecallCommand(command: string): boolean {
+  return command.includes('${CLAUDE_PROJECT_DIR');
+}
+
+/** {@link probeApplyLeg}'s result — the ONE measurement `dz doctor`'s new row and `dz parity`'s
+ * Self-learning cell both read (ADR-001 Decision 3, extended by `apply-leg-never-silent` D1): green
+ * means OBSERVED injection, never inferred file presence. */
+export interface ApplyLegProbeResult {
+  /** True ONLY when the probe's own beacon lesson came back inside `additionalContext`. */
+  readonly ok: boolean;
+  /** Present exactly when `ok` is `false` — taken from the hook's own `[dz-recall] skipped
+   * reason=…` stderr line when present, else a best-effort description of what went wrong. */
+  readonly reason?: string;
+  readonly elapsedMs: number;
+}
+
+/** Words a real prompt needs to clear `hasEnoughSignal` (recall-hook-policy.ts: `MIN_PROMPT_CHARS`
+ * 10, `MIN_CONTENT_TOKENS` 2) — a bare unique token alone is ONE token and would be silently
+ * dropped by the very floor this probe means to exercise honestly. */
+const PROBE_PROMPT_WORDS = 'apply leg live probe';
+/** Doctor/parity probes share ONE domain tag so a leaked beacon (a failed removal) is trivially
+ * findable and excludable — never `dz-teach`/`general`, which would blend it into real lessons. */
+const PROBE_BEACON_DOMAIN = 'apply-leg-probe';
+
+/**
+ * Live, end-to-end proof that the apply leg actually injects — ADR-001 Decision 1. `applyLegStatus`
+ * only proves FILES exist and are STRUCTURALLY wired (issue #2's whole defect: four green checks,
+ * a leg that injected nothing in every session but one). This spawns the REAL configured hook
+ * command from a TEMPORARY cwd with `CLAUDE_PROJECT_DIR` pointing at that same temp dir — the exact
+ * shape of a real Claude Code session, which never runs a hook from the project root itself — and
+ * asks it to recall a throwaway "beacon" lesson written into the store for the duration of the call.
+ * `ok: true` only when the beacon's own SECRET token (fix round 1, AM-1 — never sent as input, only
+ * stored) comes back inside `additionalContext`; every other outcome is `ok: false` with a `reason`,
+ * never a silent guess.
+ *
+ * The beacon is written via {@link recordPattern} (the SAME lexical-store seam `dz teach` uses) and
+ * removed via {@link removePatternsByIds} in a `finally` — a probe that throws, times out, or never
+ * finds the leg alive still leaves the store exactly as it found it (proven by a count-before ==
+ * count-after test, not merely claimed).
+ *
+ * `timeoutMs` bounds `probeHookLiveness`'s spawn. Measured (this environment, 2026-09-14, T1): a
+ * `store-not-found`/`socket-absent` early exit returns in well under 200 ms; a live-daemon probe
+ * answers in ~100-200 ms, matching ADR-001's own estimate. 8000 ms leaves roughly a 40x margin for a
+ * loaded daemon without ever approaching `probeHookLiveness`'s own un-overridden 20 000 ms ceiling —
+ * a genuinely dead probe still returns to `dz doctor`/`dz parity` in bounded time.
+ *
+ * `env` is a TEST-ONLY escape hatch (never used by `dz doctor`/`dz parity`, both call this with
+ * default opts): it lets a test widen the HOOK's OWN internal socket-connect timeout
+ * (`DZ_RECALL_HOOK_TIMEOUT_MS`) against a genuinely cold daemon, matching the same widening
+ * `apply-leg-recall-parity.test.ts`/`apply-leg-install-root.test.ts` already apply to the daemon's
+ * `HOOK_RECALL_BUDGET_MS`. Merged BEFORE `CLAUDE_PROJECT_DIR`, so a caller can never override the
+ * one env var this probe's own honesty depends on.
+ */
+export async function probeApplyLeg(
+  root: string,
+  opts: {
+    timeoutMs?: number;
+    env?: Readonly<Record<string, string>>;
+    /** TEST-ONLY seam (AM-2, fix round 1): a stand-in for {@link removePatternsByIds} so a test can
+     * force cleanup to fail WITHOUT needing to corrupt the real store mid-call. Never set by
+     * `dz doctor`/`dz parity` — both call with default opts, and the real function is the default. */
+    removeBeacon?: (root: string, ids: ReadonlySet<string>) => RemovePatternsResult;
+  } = {},
+): Promise<ApplyLegProbeResult> {
+  const started = Date.now();
+  const elapsed = (): number => Date.now() - started;
+
+  const status = applyLegStatus(root);
+  if (!status.installed) {
+    return { ok: false, reason: 'apply-leg not installed', elapsedMs: elapsed() };
+  }
+  const command = findConfiguredRecallHookCommand(root);
+  if (command === undefined) {
+    return { ok: false, reason: 'no UserPromptSubmit entry invokes recall-hook.cjs (settings.json missing or unreadable)', elapsedMs: elapsed() };
+  }
+  // AM-4: the legacy relative form can never be reached from a foreign cwd by construction — see
+  // isLegacyRelativeRecallCommand's own doc comment. Reported BEFORE any beacon is written: there is
+  // nothing to clean up for a probe that never ran.
+  if (isLegacyRelativeRecallCommand(command)) {
+    return { ok: false, reason: 'legacy-relative-command', elapsedMs: elapsed() };
+  }
+
+  // AM-1 (CRITICAL, fix round 1): two INDEPENDENT tokens, not one. `queryToken` rides the PROMPT the
+  // probe sends the hook — a dead/stub hook that merely echoes its own stdin back into
+  // `additionalContext` makes THIS token reappear too, so it alone can never prove genuine
+  // injection. `secretToken` exists ONLY inside the beacon's STORED pattern text and is never sent
+  // to the hook as input — only a hook that actually queried the store and returned a matched
+  // pattern's own text can produce it. `ok: true` therefore requires the SECRET, never the query.
+  const queryToken = `dzapplylegquery${process.pid}${Date.now()}${Math.random().toString(36).slice(2, 10)}`;
+  const secretToken = `dzapplylegsecret${process.pid}${Date.now()}${Math.random().toString(36).slice(2, 10)}`;
+  const beaconPattern: PatternRecord = {
+    pattern: `${PROBE_PROMPT_WORDS} ${queryToken} — dz doctor / dz parity live-probe marker, safe to remove. probe-secret=${secretToken}`,
+    type: 'lesson-learned',
+    reward: 0,
+    domain: PROBE_BEACON_DOMAIN,
+    ts: new Date().toISOString(),
+    source: 'apply-leg-probe',
+  };
+  // Deterministic content-hash id (patternRecordId), computed from the SAME object recordPattern is
+  // about to write — the id is a pure function of {pattern, ts, reward, domain, type}, so the value
+  // computed here and the value the store assigns are guaranteed equal without a round-trip read.
+  const beaconId = patternRecordId(beaconPattern);
+  const probePrompt = `${PROBE_PROMPT_WORDS} ${queryToken}`;
+  const removeBeacon = opts.removeBeacon ?? removePatternsByIds;
+
+  // AM-2 (HIGH, fix round 1): `wrote` is armed BEFORE the write is even attempted, and cleanup below
+  // runs off `wrote` alone — a `recordPattern` call that PARTIALLY lands and then rejects used to
+  // skip cleanup entirely (the old code's `finally` only wrapped the code AFTER a successful
+  // `await recordPattern`), leaking the beacon forever. A cleanup FAILURE (the store refuses the
+  // delete) now overrides whatever `result` the probe body computed — `ok: true` is not honest if
+  // the probe cannot even prove the store is clean afterward.
+  let wrote = false;
+  let cleanupFailed = false;
+  let cleanupErrMsg = '';
+  let tempCwd: string | undefined;
+  let result!: ApplyLegProbeResult;
+
+  // Codex round-2: a process killed mid-probe bypasses `finally`, so a beacon can outlive its probe.
+  // Every probe therefore starts by SCAVENGING any beacon left behind by an earlier one (the probe
+  // domain is reserved for beacons, never for user lessons) — the store is clean before AND after.
+  try {
+    // a loaded pattern carries the STORE's own id (`dzId`); recomputing it from normalised fields
+    // (type/ts round-trip) can diverge, so the store id wins and the recomputation is the fallback.
+    const stale = loadStorePatternsSync(root).filter((p) => p.domain === PROBE_BEACON_DOMAIN).map((p) => p.dzId ?? patternRecordId(p));
+    if (stale.length > 0) removeBeacon(root, new Set(stale));
+  } catch { /* scavenging is best-effort; the probe's own cleanup below is the accountable path */ }
+
+  try {
+    wrote = true;
+    let writeFailed: string | undefined;
+    try {
+      await recordPattern(root, beaconPattern);
+    } catch (err) {
+      writeFailed = err instanceof Error ? err.message : String(err);
+    }
+
+    if (writeFailed !== undefined) {
+      result = { ok: false, reason: `beacon write failed: ${writeFailed}`, elapsedMs: elapsed() };
+    } else {
+      // AM-4: a bare empty temp dir does not model a FOREIGN session — a real foreign
+      // CLAUDE_PROJECT_DIR names a DIFFERENT project with its own (empty-of-lessons, but present)
+      // `.dz`/`.claude` tree, not "nothing at all". This closes the gap between "no project" and "a
+      // different, empty project" a bare empty dir cannot distinguish, matching what the hook's own
+      // SESSION_ROOT-derived reads (e.g. the retro-debt sentinel) would see in a real foreign session.
+      tempCwd = mkdtempSync(join(tmpdir(), 'dz-apply-leg-probe-'));
+      mkdirSync(join(tempCwd, '.dz'), { recursive: true });
+      mkdirSync(join(tempCwd, '.claude'), { recursive: true });
+
+      const { probeHookLiveness } = await import('./operations.js');
+      const timeoutMs = opts.timeoutMs ?? 8000;
+      const probeResult = probeHookLiveness(command, JSON.stringify({ prompt: probePrompt }), {
+        cwd: tempCwd,
+        env: { ...(opts.env ?? {}), CLAUDE_PROJECT_DIR: tempCwd },
+        timeoutMs,
+      });
+
+      const stdoutLines = probeResult.stdout.split('\n').map((l) => l.trim()).filter((l) => l !== '');
+      let additionalContext: unknown;
+      for (const line of stdoutLines) {
+        try {
+          const parsed = JSON.parse(line) as { hookSpecificOutput?: { additionalContext?: unknown } };
+          if (typeof parsed?.hookSpecificOutput?.additionalContext === 'string') {
+            additionalContext = parsed.hookSpecificOutput.additionalContext;
+          }
+        } catch {
+          /* not a JSON line — the hook only ever emits at most one, but tolerate stray output */
+        }
+      }
+
+      if (typeof additionalContext === 'string' && additionalContext.includes(secretToken)) {
+        result = { ok: true, elapsedMs: elapsed() };
+      } else if (typeof additionalContext === 'string' && additionalContext.includes(queryToken)) {
+        // AM-1: the QUERY came back but the SECRET did not — the hook (or a stub standing in for
+        // it) echoed its own input instead of genuinely querying the store. Named distinctly from
+        // every other red reason so a dead leg and a FAKING one never read the same.
+        result = { ok: false, reason: 'echo-not-injection', elapsedMs: elapsed() };
+      } else {
+        // FR-1's own reason line is the authoritative source — the hook names itself why it stayed
+        // quiet. Falling back to a raw stderr/status summary keeps the probe honest even against an
+        // OLDER deployed hook (pre-`apply-leg-never-silent`) that has not been upgraded yet.
+        const skipMatch = /\[dz-recall\] skipped reason=(\S+)/.exec(probeResult.stderr);
+        const skipReason = skipMatch?.[1];
+        if (skipReason !== undefined) {
+          result = { ok: false, reason: skipReason, elapsedMs: elapsed() };
+        } else if (probeResult.status === null) {
+          result = { ok: false, reason: `probe did not complete (timeout or spawn error after ${timeoutMs} ms)`, elapsedMs: elapsed() };
+        } else {
+          const stderrFirstLine = probeResult.stderr.trim().split('\n')[0];
+          result = {
+            ok: false,
+            reason: stderrFirstLine && stderrFirstLine !== '' ? stderrFirstLine : 'no beacon in additionalContext (empty or non-matching reply)',
+            elapsedMs: elapsed(),
+          };
+        }
+      }
+    }
+  } finally {
+    if (tempCwd !== undefined) {
+      try {
+        rmSync(tempCwd, { recursive: true, force: true });
+      } catch {
+        /* best-effort cleanup of the probe's own temp cwd */
+      }
+    }
+    // Beacon removal is UNCONDITIONAL on `wrote` — success, failure, or a thrown probe all reach
+    // here (AM-2). `removePatternsByIds` never throws (patterns.ts's own contract) — a failure is
+    // reported through its RETURN VALUE's `.error`, checked below, never via a catch.
+    if (wrote) {
+      try {
+        const removeResult = removeBeacon(root, new Set([beaconId]));
+        if (removeResult.error !== undefined) {
+          cleanupFailed = true;
+          cleanupErrMsg = removeResult.error;
+        }
+      } catch (err) {
+        // Codex round-2: a remover that THROWS (a foreign store implementation, a test seam) must not
+        // escape past the cleanup accounting — it is a cleanup failure like any other.
+        cleanupFailed = true;
+        cleanupErrMsg = err instanceof Error ? err.message : String(err);
+      }
+    }
+  }
+
+  if (cleanupFailed) {
+    return {
+      ok: false,
+      reason: `beacon-cleanup-failed: beacon ${beaconId} could not be removed (${cleanupErrMsg})`,
+      elapsedMs: elapsed(),
+    };
+  }
+  return result;
 }

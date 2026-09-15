@@ -37,7 +37,7 @@ import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 import { isNoiseInsight } from '@dzhechkov/memory';
 import { recallPatterns, recordToPattern, patternRecordId, patternIdentityOf, dreamRecordId, lessonDeltaMap, loadStoreRecords, readMemoryLearningConfig, readReinforcementState, readQuarantineState, removePatternsByIds, snapshotStore, updateReinforcementState, } from './patterns.js';
-import { indexPatternsToAgentdb, searchAgentdbPatterns, listAgentdbDzIds, DZ_PATTERN_TASK_TYPES, resolveAgentdbEmbedder, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, } from './agentdb-index.js';
+import { indexPatternsToAgentdb, searchAgentdbPatterns, listAgentdbDzIds, DZ_PATTERN_TASK_TYPES, resolveAgentdbEmbedder, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, readStoreGeneration, } from './agentdb-index.js';
 // smart-backlog (ADR-001/005 lifecycle): `dz vector reindex` must re-embed dz-backlog rows too, or
 // they rot in a stale embedding space after a model bump. One-directional import — backlog.ts imports
 // agentdb-index/compounding only, never vector-tier, so there is no cycle.
@@ -460,21 +460,25 @@ function engineCacheKey(projectRoot) {
 }
 /** stat facts of `<root>/.dz/agentdb.db`, or `-1`/`-1`/`-1` when absent — a distinct, stable cache
  * key for "no store yet" so a project that later gains a store is never confused with one that
- * never had (statSync's own floor is mtime 0). Never throws. */
+ * never had (statSync's own floor is mtime 0). `generation` is read regardless of whether the stat
+ * itself succeeded (`readStoreGeneration` already degrades a missing/corrupt counter file to `0`,
+ * FR-2's compatibility floor for a pre-existing store). Never throws. */
 function agentdbDbStat(projectRoot) {
+    const generation = readStoreGeneration(projectRoot);
     try {
         const st = statSync(join(projectRoot, '.dz', 'agentdb.db'));
-        return { mtimeMs: st.mtimeMs, size: st.size, ino: st.ino };
+        return { mtimeMs: st.mtimeMs, size: st.size, ino: st.ino, generation };
     }
     catch {
-        return { mtimeMs: -1, size: -1, ino: -1 };
+        return { mtimeMs: -1, size: -1, ino: -1, generation };
     }
 }
-/** True when NONE of the three independent signals changed — the only case where a cached engine
- * may still be trusted (AM-6). Any one of them differing (a same-tick replace still bumps size or
- * gets a fresh inode from a temp+rename write) forces a re-resolve. */
+/** True when NONE of the four independent signals changed — the only case where a cached engine
+ * may still be trusted (AM-6, and `store-generation-counter` FR-2). Any one of them differing (a
+ * same-tick replace still bumps size or gets a fresh inode from a temp+rename write, and every real
+ * write bumps the generation regardless) forces a re-resolve. */
 function agentdbDbStatUnchanged(a, b) {
-    return a.mtimeMs === b.mtimeMs && a.size === b.size && a.ino === b.ino;
+    return a.mtimeMs === b.mtimeMs && a.size === b.size && a.ino === b.ino && a.generation === b.generation;
 }
 /** Evict the least-recently-used entry once the cache is at capacity — called only on a genuine
  * miss, so a cache that never exceeds {@link ENGINE_CACHE_MAX_ENTRIES} never pays this scan. */

@@ -26,6 +26,7 @@
  *
  * @packageDocumentation
  */
+import { type RemovePatternsResult } from './patterns.js';
 /**
  * FR-6 (feature `hook-recall-hybrid-parity`, ADR-001 C-4): send ONE `op: recall` probe to a LIVE
  * embed daemon socket and report the `engine` it answers with (`'hybrid'` | `'cosine-fallback'`) —
@@ -85,8 +86,52 @@ export declare function probeRecallEngine(socketPath: string, timeoutMs?: number
  * fallback rather than a bare protocol error (AM-3); (d) reports the RAW core RRF score, unchanged,
  * instead of a locally re-normalized [0,1] value (AM-5) — the hook's own `HOOK_SCORE_FLOOR` default
  * moved from `0.01` to `0.005` to match (see that constant's own comment for the measurement).
+ *
+ * Bumped 6→7 (feature `apply-leg-install-root`, ADR-001 D1): both generated files now resolve
+ * `PROJECT` install-root-first (`INSTALL_ROOT` = this file's own location, when it owns a `.dz/`)
+ * instead of trusting a foreign session's `CLAUDE_PROJECT_DIR`/cwd (issue #2) — the hook's own
+ * `[dz-recall]` diagnostic line also gains `root=<path> (install|env|cwd)`.
+ *
+ * Bumped 7→8 (`apply-leg-install-root`, fix round 1, AM-7 HIGH — real regression MEASURED via
+ * `retro-debt-hook.test.ts` going 4/5 red on the v7 hub helper): `PROJECT` install-root-first is
+ * correct for the STORE (pattern db, socket, daemon script) but WRONG for a per-session artifact —
+ * the narrated-error retro-debt sentinel (`retro-pending.json`) is written by the INVOKING
+ * SESSION's own Stop hook under `CLAUDE_PROJECT_DIR`, not under wherever the hook happens to be
+ * installed; a shared $HOME install made the hook look for a foreign session's sentinel under the
+ * install root and silently drop every session's own debt confrontation. Split: `PROJECT` (install-
+ * root-first) stays the STORE root; a new `SESSION_ROOT` (`CLAUDE_PROJECT_DIR || cwd()`, the
+ * pre-feature resolution, unchanged) is the root for `RETRO_PENDING` — the ONE per-session file this
+ * hook reads (every other `PROJECT`-derived path in this file names the store, the daemon, or the
+ * harness-core install, confirmed by grep against every `path.join(PROJECT, …)` site). The diag line
+ * gains `session=<path>` alongside the existing `root=<path> (…)`.
+ *
+ * Bumped 8→9 (feature `apply-leg-never-silent`, ADR-001 D2, FR-1): every early return in `main()`
+ * now prints `[dz-recall] skipped reason=<store-not-found|socket-absent|core-unavailable|
+ * empty-prompt|no-hits> root=<path> (…) session=<path>` on stderr before returning — the hook used
+ * to exit silently on every one of these paths, indistinguishable (from stderr alone) from a
+ * correctly-quiet "nothing relevant" outcome. `embedDaemonSource`'s own bytes are UNCHANGED by this
+ * bump; the shared version number still advances because both helpers are upgraded as one unit by
+ * `dz setup`/`applyLegStatus`.
+ *
+ * Bumped 9→10 (`apply-leg-never-silent`, fix round 1 — cross-model review AM-3/AM-6): (a) the hook
+ * now tags its `op: recall` request with `probe: <bool>` (true only when
+ * `DZ_HOOK_LIVENESS_PROBE=1`, the env {@link "./operations.js".probeHookLiveness} already stamps on
+ * every live-probe spawn) so the daemon can tell a genuine session prompt apart from
+ * `probeApplyLeg`'s own beacon query — AM-3: a beacon written for the ~8s of a doctor/parity probe
+ * used to be recallable by ANY concurrent real prompt in the SAME project, a probe-only fixture
+ * leaking into a real session's context; (b) `askDaemon`'s every failure path used to collapse into
+ * one `undefined`, forcing the hook's own `skip('socket-absent')` call regardless of what actually
+ * went wrong — AM-6: it now returns a tagged `{error: 'socket-absent'|'connect-refused'|
+ * 'daemon-timeout'|'bad-reply'}` so the stderr reason names the ACTUAL failure (no socket file vs a
+ * non-socket file at that path vs a listener that never replies vs a listener that replies with
+ * something unparseable/shapeless). `embedDaemonSource`'s bytes also change for AM-3: `loadPatterns`
+ * now reads each row's `domain` out of the SAME metadata JSON `dzIdOf`/`quarantinedOf` already
+ * parse (the vector mirror carries no separate domain column), and both `hybridRecall`'s hits and
+ * the cosine-fallback `scored` array are filtered to exclude `domain === 'apply-leg-probe'` unless
+ * the request carried `probe: true` — a probe's own beacon still needs to reach ITS query, only a
+ * REAL prompt must never see it.
  */
-export declare const APPLY_LEG_VERSION = 6;
+export declare const APPLY_LEG_VERSION = 10;
 /**
  * Parse the `dz-apply-leg-version` stamp from a deployed helper file. Unlike
  * `writerVersionOf` (which floors an absent stamp at `0`), this returns `-1` for "no stamp at
@@ -185,8 +230,35 @@ export interface ApplyLegHookEntry {
  * the recall hook is invoked with a swallowed non-zero exit (`|| true`) so a broken hook body never
  * fails a prompt, and the embed daemon is spawned detached via `nohup` + a backgrounding `sh -c`
  * so `SessionStart` never waits on model load.
+ *
+ * `installRoot` (ADR-001 D2, feature `apply-leg-install-root`): when the caller (`dz setup`) knows
+ * its own install root, the commands bake it in as an ABSOLUTE path — the deployed helper already
+ * bakes an absolute `CORE_DIST_DIR`, so a `${CLAUDE_PROJECT_DIR:-.}`-relative command in
+ * settings.json only masked that non-portability, and broke down to `Cannot find module` (swallowed
+ * by `2>/dev/null || true`) whenever `project === $HOME` and a session's own `CLAUDE_PROJECT_DIR`
+ * pointed elsewhere (issue #2). Omitting `installRoot` (every pre-existing zero-arg caller — status
+ * fixtures, `applyLegStatus` regression tests) keeps the original `CLAUDE_PROJECT_DIR`-relative
+ * form byte for byte; `hookCommandInvokes`/`applyLegStatus` (FR-3) recognize BOTH forms as wired,
+ * and `runSetup`'s `addIfMissing` (setup.ts) REPLACES a stale form with the current one in place —
+ * never a second entry — on re-setup.
+ *
+ * Fix round 1 corrections to the absolute (`installRoot`-given) branch — the legacy zero-arg branch
+ * is UNCHANGED byte for byte:
+ *  - AM-1 (HIGH): a caller-controlled path was interpolated RAW into shell source. A `"`, `$`,
+ *    backtick, or `'` in `installRoot` altered or injected commands, and the SessionStart form broke
+ *    outright on a `'` (it cannot be escaped inside a `'...'` body by nesting `"`). Fixed:
+ *    {@link shellQuote} wraps every path; SessionStart passes them as POSITIONAL ARGS (`$1`/`$2`) to
+ *    an INNER `sh -c` whose script text is a FIXED literal with no caller-controlled bytes, so
+ *    nested-quote fragility cannot arise at all.
+ *  - AM-3 (HIGH): the daemon used to fall back to `DZ_PROJECT_ROOT ?? installLocal`, and nothing in
+ *    the SessionStart command ever SET that variable — a stale inherited `DZ_PROJECT_ROOT` in the
+ *    parent env could win over the install root the hook itself resolves to. Fixed: the SessionStart
+ *    command now sets `DZ_PROJECT_ROOT="$1"` (`$1` = installRoot) explicitly, so the daemon and the
+ *    hook agree by construction regardless of what the parent environment happens to carry.
+ *  - AM-4 (LOW): a relative `installRoot` used to produce a relative command, breaking the "every
+ *    baked path is absolute" invariant the module's own docs claim. Fixed: `resolve()`s its input.
  */
-export declare function applyLegHookEntries(): {
+export declare function applyLegHookEntries(installRoot?: string): {
     readonly userPromptSubmit: ApplyLegHookEntry;
     readonly sessionStart: ApplyLegHookEntry;
 };
@@ -242,6 +314,14 @@ export interface ApplyLegStatus {
  * Codex, third pass). A bare mention (`echo .claude/helpers/recall-hook.cjs`) is not an invocation:
  * the helper path must follow a `node` word — directly, or inside the daemon's
  * `sh -c 'nohup node "…"'` spawn. Forward slashes only: every command dz writes uses them.
+ *
+ * Fix round 1 (AM-1/AM-3, apply-leg-install-root): the SessionStart command now passes its daemon
+ * path as a POSITIONAL ARG (`sh -c '… node "$2" …' sh <root> <daemonPath>`) rather than interpolating
+ * it textually next to `node`, so the ORIGINAL adjacency regex alone no longer matches it. A SECOND
+ * recognizer accepts that shape: the command invokes `node` with a `$N`-style positional argument
+ * AND carries `markerPath` as one of its own (shellQuote()d) trailing arguments — both conditions
+ * together, so a foreign command that merely echoes the marker path near an unrelated `node "$1"`
+ * invocation still does not count.
  */
 export declare function hookCommandInvokes(command: string, markerPath: string): boolean;
 /**
@@ -262,4 +342,64 @@ export declare function applyLegStatus(root: string): ApplyLegStatus;
  * (pre-existing, tested) phrasing for that case before this fix round, and unifying it was not asked.
  */
 export declare function applyLegReasonMessage(status: ApplyLegStatus): string;
+/**
+ * AM-4 (fix round 1, apply-leg-never-silent): the LEGACY zero-arg form ({@link applyLegHookEntries}'s
+ * no-installRoot branch) reads `${CLAUDE_PROJECT_DIR:-.}` — a shell expansion that only resolves to
+ * something useful from a REAL session's own cwd. Spawning it from `probeApplyLeg`'s temp "foreign"
+ * cwd can never find the deployed helper by construction (the file lives at `root`'s own
+ * `.claude/helpers/`, never under the temp dir), so a probe against this form would spawn a doomed
+ * command and report a confusing generic failure — not a fact about whether the leg injects, only a
+ * fact about the fixture being unprobeable. The absolute form ({@link shellQuote}'d installRoot)
+ * never contains this literal env-expansion syntax — it bakes a resolved path instead — so a plain
+ * substring check distinguishes the two without re-parsing shell grammar.
+ */
+export declare function isLegacyRelativeRecallCommand(command: string): boolean;
+/** {@link probeApplyLeg}'s result — the ONE measurement `dz doctor`'s new row and `dz parity`'s
+ * Self-learning cell both read (ADR-001 Decision 3, extended by `apply-leg-never-silent` D1): green
+ * means OBSERVED injection, never inferred file presence. */
+export interface ApplyLegProbeResult {
+    /** True ONLY when the probe's own beacon lesson came back inside `additionalContext`. */
+    readonly ok: boolean;
+    /** Present exactly when `ok` is `false` — taken from the hook's own `[dz-recall] skipped
+     * reason=…` stderr line when present, else a best-effort description of what went wrong. */
+    readonly reason?: string;
+    readonly elapsedMs: number;
+}
+/**
+ * Live, end-to-end proof that the apply leg actually injects — ADR-001 Decision 1. `applyLegStatus`
+ * only proves FILES exist and are STRUCTURALLY wired (issue #2's whole defect: four green checks,
+ * a leg that injected nothing in every session but one). This spawns the REAL configured hook
+ * command from a TEMPORARY cwd with `CLAUDE_PROJECT_DIR` pointing at that same temp dir — the exact
+ * shape of a real Claude Code session, which never runs a hook from the project root itself — and
+ * asks it to recall a throwaway "beacon" lesson written into the store for the duration of the call.
+ * `ok: true` only when the beacon's own SECRET token (fix round 1, AM-1 — never sent as input, only
+ * stored) comes back inside `additionalContext`; every other outcome is `ok: false` with a `reason`,
+ * never a silent guess.
+ *
+ * The beacon is written via {@link recordPattern} (the SAME lexical-store seam `dz teach` uses) and
+ * removed via {@link removePatternsByIds} in a `finally` — a probe that throws, times out, or never
+ * finds the leg alive still leaves the store exactly as it found it (proven by a count-before ==
+ * count-after test, not merely claimed).
+ *
+ * `timeoutMs` bounds `probeHookLiveness`'s spawn. Measured (this environment, 2026-09-14, T1): a
+ * `store-not-found`/`socket-absent` early exit returns in well under 200 ms; a live-daemon probe
+ * answers in ~100-200 ms, matching ADR-001's own estimate. 8000 ms leaves roughly a 40x margin for a
+ * loaded daemon without ever approaching `probeHookLiveness`'s own un-overridden 20 000 ms ceiling —
+ * a genuinely dead probe still returns to `dz doctor`/`dz parity` in bounded time.
+ *
+ * `env` is a TEST-ONLY escape hatch (never used by `dz doctor`/`dz parity`, both call this with
+ * default opts): it lets a test widen the HOOK's OWN internal socket-connect timeout
+ * (`DZ_RECALL_HOOK_TIMEOUT_MS`) against a genuinely cold daemon, matching the same widening
+ * `apply-leg-recall-parity.test.ts`/`apply-leg-install-root.test.ts` already apply to the daemon's
+ * `HOOK_RECALL_BUDGET_MS`. Merged BEFORE `CLAUDE_PROJECT_DIR`, so a caller can never override the
+ * one env var this probe's own honesty depends on.
+ */
+export declare function probeApplyLeg(root: string, opts?: {
+    timeoutMs?: number;
+    env?: Readonly<Record<string, string>>;
+    /** TEST-ONLY seam (AM-2, fix round 1): a stand-in for {@link removePatternsByIds} so a test can
+     * force cleanup to fail WITHOUT needing to corrupt the real store mid-call. Never set by
+     * `dz doctor`/`dz parity` — both call with default opts, and the real function is the default. */
+    removeBeacon?: (root: string, ids: ReadonlySet<string>) => RemovePatternsResult;
+}): Promise<ApplyLegProbeResult>;
 //# sourceMappingURL=apply-leg.d.ts.map

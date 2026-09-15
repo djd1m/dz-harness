@@ -20,6 +20,78 @@ export interface SkillInfo {
     readonly assetPaths: string[];
     readonly frontmatter: Record<string, unknown>;
 }
+/**
+ * One filesystem entry skipped during skill asset discovery, named so nothing
+ * vanishes silently (feature `skills-walk-symlinks-and-junk`, FR-1/FR-2). `path`
+ * is the entry's own path (not its symlink target); `reason` is a short,
+ * stable, human-readable tag: `'junk file (<pattern>)'` (e.g. `'junk file
+ * (*.pyc)'` — fix-round 1 HIGH-1(b): the pattern that matched, not just the
+ * verdict), `'junk directory (<name>)'`, `'broken symlink'`, `'symlink escapes
+ * the skill directory'` (fix-round 1 AM-8), `'symlink cycle — directory
+ * already visited'`, or `'unreadable directory (<errno message>)'` (fix-round
+ * 1 MEDIUM-3).
+ */
+export interface SkippedEntry {
+    readonly path: string;
+    readonly reason: string;
+}
+/** The result of {@link walkFiles}: the real assets found, plus everything skipped. */
+export interface SkillWalkResult {
+    readonly files: readonly string[];
+    readonly skipped: readonly SkippedEntry[];
+}
+/**
+ * Directory names that never carry legitimate skill assets — build/cache artifacts a
+ * skill author does not intend to ship. **This list IS the published contract for "what
+ * counts as junk"** (fix-round 1 HIGH-1(a), REFUTED-by-contract — see
+ * `packages/@dzhechkov/harness-core/README.md`, "What counts as junk"): a skill cannot
+ * ship a directory bearing one of these exact names as an asset, on purpose or by
+ * accident — that is the deliberate, documented trade the design makes, not an
+ * oversight to be widened into content-sniffing heuristics. NOT a whitelist of allowed
+ * directories: any OTHER name (including a dotdir the author added on purpose) is
+ * walked as usual — filtering a user's own files is not this list's job (FR-2,
+ * requirements AC-1).
+ */
+export declare const SKILL_JUNK_DIRS: ReadonlySet<string>;
+/** Exact junk filenames skipped during skill asset discovery (FR-2). */
+export declare const SKILL_JUNK_FILES: ReadonlySet<string>;
+/** True when `name` matches a documented junk-file pattern (FR-2). */
+export declare function isSkillJunkFile(name: string): boolean;
+/**
+ * Recursively list every real, non-junk file under `dir`, resolving symlinks to
+ * their targets and guarding against symlink cycles.
+ *
+ * A `Dirent` from `readdirSync` answers `false` to BOTH `isDirectory()` and
+ * `isFile()` for a symlink entry — trusting those two checks alone silently drops
+ * every symlinked asset (MEASURED: 2 of 4 fixture assets vanished, exit 0). This
+ * resolves each symlink with `statSync` (which follows the link) before deciding
+ * whether it names a file or a directory.
+ *
+ * Cycle guard: each directory's `realpath` is recorded in `seenRealDirs` while
+ * it is being walked and REMOVED again when its walk returns — the set is the
+ * chain of ANCESTORS on the current recursion path, not every directory ever
+ * visited. A directory (reached directly or through a symlink) whose real path is
+ * already on that chain ends the walk there instead of recursing — this is what
+ * stops `a -> ..` from hanging (AC-2; registry entry `walk-guards-cycles`). Two
+ * non-cyclic aliases of the same directory (`alias1 -> shared`, `alias2 -> shared`)
+ * are BOTH walked under their own logical paths (Codex r2 HIGH, lead fix): an
+ * alias is not a cycle, and the earlier visited-set semantics silently dropped the
+ * second one as if it were.
+ *
+ * Containment guard (lead item AM-8): every symlink's resolved target is checked
+ * against `rootRealDir` — the real path of the directory the OUTERMOST call was
+ * given (the skill directory itself, for every caller in this file) — before it is
+ * followed. A symlink whose target resolves outside that root is skipped, named,
+ * never bundled as an asset; `rootRealDir` is threaded through every recursive call
+ * so a nested symlinked directory is still checked against the ORIGINAL skill root,
+ * not against whichever subdirectory happens to be walking it.
+ *
+ * `readdirSync` failure (fix-round 1 MEDIUM-3) — e.g. an unreadable directory whose
+ * own `realpath` still resolved — produces a named `skipped` entry, same as an
+ * unresolvable `realpathSync`; it never throws out of this function or out of
+ * {@link loadSkillFromDir}.
+ */
+export declare function walkFiles(dir: string, seenRealDirs?: Set<string>, rootRealDir?: string): SkillWalkResult;
 /** Return the ids of every `<skillsDir>/<id>/SKILL.md`, sorted. */
 export declare function discoverSkillIds(skillsDir: string): string[];
 /**
@@ -109,13 +181,25 @@ export interface SkillApplyFailure {
  * Returns `[]` for an empty input, so callers can splice it unconditionally.
  */
 export declare function formatSkillApplyFailures(failures: readonly SkillApplyFailure[]): string[];
-/** Get detailed info about a single skill without loading all assets. */
 export declare function getSkillInfo(skillsDir: string, id: string): SkillInfo | undefined;
 /**
+ * A {@link CanonicalSkill} plus, optionally, the {@link SkippedEntry} list
+ * {@link loadSkillFromDir} collected while walking the skill's directory. The
+ * field is additive and optional — a `CanonicalSkill`-typed caller (every
+ * adapter, every existing consumer) sees exactly the shape it always saw;
+ * only a caller that reads `.skipped` learns about junk/broken-symlink skips.
+ */
+export type LoadedSkill = CanonicalSkill & {
+    readonly skipped?: readonly SkippedEntry[];
+};
+/**
  * Load one `<skillsDir>/<id>/` directory into a {@link CanonicalSkill}: its
- * `SKILL.md` document plus every other file as a bundled asset.
+ * `SKILL.md` document plus every other file as a bundled asset. Junk entries
+ * and broken/cyclic symlinks encountered along the way are named in
+ * `.skipped` (feature `skills-walk-symlinks-and-junk`, FR-1/FR-2) — omitted
+ * entirely when nothing was skipped, never a silent drop.
  *
  * @throws if the skill directory has no `SKILL.md`.
  */
-export declare function loadSkillFromDir(skillsDir: string, id: string): CanonicalSkill;
+export declare function loadSkillFromDir(skillsDir: string, id: string): LoadedSkill;
 //# sourceMappingURL=skills.d.ts.map

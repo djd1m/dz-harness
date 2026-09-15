@@ -6,6 +6,7 @@
 import { createRequire } from 'node:module';
 /** Package version. Kept in sync with `package.json`. */
 export const MEMORY_VERSION = createRequire(import.meta.url)('../package.json').version;
+export { tokenize, hasSearchableTerms, noSearchableTermsReason } from './tokenize.js';
 export { JsonFileBackend } from './json-backend.js';
 export { selectBackend } from './cascade.js';
 export { SqliteBackend } from './sqlite-backend.js';

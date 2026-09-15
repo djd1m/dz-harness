@@ -15,34 +15,11 @@ import { dirname } from 'node:path';
 import type { MemoryBackend, MemoryQuery, MemoryRecord } from './backend.js';
 import { openSqliteReadOnly, SqliteReadOnlyStore } from './sqlite-readonly.js';
 import type { OpenReadOnlyOptions, ReadOnlyStore } from './sqlite-readonly.js';
+import { tokenize, hasSearchableTerms } from './tokenize.js';
 
 const require = createRequire(import.meta.url);
 
 const DEFAULT_LIMIT = 20;
-
-/**
- * Split text into lowercase word tokens of length > 1.
- *
- * The class is `\p{L}\p{N}`, not `a-z0-9`. Until 2026-08-21 it was ASCII-only, so every non-Latin
- * letter was a SEPARATOR and a Cyrillic query produced ZERO tokens — the FTS5 branch was then skipped
- * entirely, `relevanceOf` returned 0 for every record, and the sort collapsed onto its confidence
- * tie-break. MEASURED on a 267-record clone of the real brain: RU top-1 0/10 against EN 10/10, while
- * 63% of real recall traffic is Cyrillic. The INDEX was never wrong — FTS5's own tokenizer handles
- * Cyrillic — so nothing on disk needed migrating; only the query was being stripped of its terms.
- *
- * `\p{L}` admits letters and `\p{N}` digits; it does NOT admit `"`, `*`, `(` or any other FTS5
- * operator, which is what keeps the joined terms safe to interpolate into a MATCH expression.
- */
-function tokenize(text: string): string[] {
-  return text
-    .toLowerCase()
-    .split(/[^\p{L}\p{N}]+/u)
-    // Count CODE POINTS, not UTF-16 units. `token.length` counts units, so a single astral letter
-    // (`𐐀`, one character, two units) would slip past a floor meant to reject one-character words —
-    // an accidental threshold change smuggled in by the alphabet change (cross-family review,
-    // 2026-08-21). The promise was "the alphabet, not the thresholds"; this keeps it.
-    .filter((token) => [...token].length > 1);
-}
 
 /**
  * Crude prefix-stem for morphology-bearing languages — feature recall-ru-morphology.
@@ -204,7 +181,24 @@ export function searchPreparedRecords(
   }
 
   // Keyword overlap fallback
-  const terms = query.text !== undefined ? tokenize(query.text) : [];
+  const noText = query.text === undefined;
+  const terms = noText ? [] : tokenize(query.text!);
+  // FR-3 (recall-short-terms): a query that SUPPLIED text but tokenized to literally nothing
+  // (pure punctuation/whitespace/empty) has nothing to filter on, and until 2026-09-15 that
+  // silently dumped the WHOLE STORE — indistinguishable from "here is everything you asked for".
+  // That is the bug this feature names and fixes: honest behavior for an unsatisfiable search is
+  // EMPTY, the same "no-match-means-no-results" answer any other failed search gets (ADR-001). A
+  // query with NO text field at all is a different intent — "browse everything", never attempted
+  // as a search — and keeps the old whole-store answer below.
+  //
+  // Fix-round 1 (Codex HIGH-1): this used to reimplement the decision as `terms.length === 0` —
+  // a hand-rolled copy of `hasSearchableTerms`'s own logic, forkable exactly the way the old
+  // per-backend `tokenize()` was. Calling the shared helper directly closes that gap; `terms` is
+  // still computed above for `relevanceOf` below, but the BRANCH decision is never re-derived.
+  if (!noText && !hasSearchableTerms(query.text!)) {
+    return []; // reason: 'no-searchable-terms' — see tokenize.ts `noSearchableTermsReason`
+  }
+
   let rows: any[];
   if (query.skillId !== undefined) {
     rows = stmts.bySkill.all(query.skillId);
@@ -223,8 +217,9 @@ export function searchPreparedRecords(
     );
   // The SAME guard the JSON backend applies, so a store's answers never depend on which backend is
   // installed. This is the keyword FALLBACK; the FTS5 path above already returns zero honestly and
-  // is untouched. With no usable terms there was nothing to match on, so the store still comes back
-  // ranked by confidence — that distinction is the whole decision (ADR-001).
+  // is untouched. `noText` is the ONLY way `terms.length === 0` reaches this point now (the
+  // provided-but-unsearchable case returned above) — a genuine "no query at all" browse, so nothing
+  // was ever expressible to filter on and the store comes back ranked by confidence (ADR-001).
   const filtered = terms.length > 0 ? ranked.filter((entry) => entry.relevance > 0) : ranked;
   return filtered.slice(0, limit).map((entry) => entry.record);
 }

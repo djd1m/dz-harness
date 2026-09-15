@@ -32,6 +32,13 @@ export type MutationGateRunner = (command: string, options: {
     readonly timeoutMs: number;
     readonly phase: 'baseline' | 'mutation' | 'rebaseline' | 'final-rebaseline';
     readonly entryId?: string;
+    /**
+     * mutation-gate-baseline-honesty FR-3: the extra env vars the REAL executor would set on top of
+     * `process.env` for this run — currently just `VITEST_MAX_WORKERS`, set unconditionally
+     * regardless of whether the test command is recognised as vitest (a non-vitest command still
+     * gets the env var; only the command-string injection is vitest-gated).
+     */
+    readonly env: Readonly<Record<string, string>>;
 }) => MutationGateRunnerObservation;
 /** Output sink + working directory — injectable so the CLI is testable. */
 export interface CliIo {

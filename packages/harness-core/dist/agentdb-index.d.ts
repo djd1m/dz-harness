@@ -24,10 +24,14 @@ export interface AgentdbRow {
     readonly uses?: number;
     readonly avgReward?: number;
 }
-/** Outcome of {@link indexPatternsToAgentdb}. */
+/** Outcome of {@link indexPatternsToAgentdb}. `generationBumped`/`generationReason` are present only
+ * when a store write actually happened (`indexed > 0`) — FR-4: a failed counter write NEVER fails
+ * the indexing call itself, it is only reported so a caller (`dz doctor`, telemetry) can see it. */
 export interface AgentdbIndexResult {
     readonly indexed: number;
     readonly error?: string | undefined;
+    readonly generationBumped?: boolean;
+    readonly generationReason?: string;
 }
 /** Resolve the shared store path: explicit opt → AGENTDB_PATH env → `<project>/.dz/agentdb.db`. */
 export declare function resolveAgentdbPath(projectRoot: string, dbPath?: string): string;
@@ -57,6 +61,23 @@ export declare function resolveAgentdbPath(projectRoot: string, dbPath?: string)
 export declare function ensureAgentdbSchema(projectRoot: string, dbPath?: string): {
     readonly ok: boolean;
     readonly error?: string;
+};
+/**
+ * FR-2/FR-3 (`store-generation-counter`): the store's write-generation counter, read back. A
+ * missing file (a store that predates this feature, or one that has never been written through
+ * {@link bumpStoreGeneration}) reads as `0` — the compatibility floor {@link getOrOpenEngine}'s
+ * caller compares against, never an error. A corrupt/non-numeric file degrades the same way (best
+ * effort — a bad counter must never crash a read path), never a throw. AM-5: the content must match
+ * {@link STRICT_GENERATION} exactly — `Number.parseInt`'s leading-digits-only tolerance is NOT used
+ * to decide validity, only to convert an already-validated string.
+ */
+export declare function readStoreGeneration(projectRoot: string, dbPath?: string): number;
+export declare function bumpStoreGeneration(projectRoot: string, dbPath?: string): {
+    readonly ok: true;
+    readonly generation: number;
+} | {
+    readonly ok: false;
+    readonly error: string;
 };
 /**
  * Index `rows` into the shared AgentDB vector store. Returns `{indexed:0}` for an empty input and

@@ -11,6 +11,7 @@ export const MEMORY_VERSION: string =
   (createRequire(import.meta.url)('../package.json') as { version: string }).version;
 
 export type { MemoryBackend, MemoryQuery, MemoryRecord } from './backend.js';
+export { tokenize, hasSearchableTerms, noSearchableTermsReason } from './tokenize.js';
 export { JsonFileBackend } from './json-backend.js';
 export type { JsonFileBackendOptions } from './json-backend.js';
 export { selectBackend } from './cascade.js';

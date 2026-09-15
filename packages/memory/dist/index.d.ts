@@ -6,6 +6,7 @@
 /** Package version. Kept in sync with `package.json`. */
 export declare const MEMORY_VERSION: string;
 export type { MemoryBackend, MemoryQuery, MemoryRecord } from './backend.js';
+export { tokenize, hasSearchableTerms, noSearchableTermsReason } from './tokenize.js';
 export { JsonFileBackend } from './json-backend.js';
 export type { JsonFileBackendOptions } from './json-backend.js';
 export { selectBackend } from './cascade.js';
