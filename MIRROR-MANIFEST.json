@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-09-15T13:02:11.002Z",
+  "builtAt": "2026-09-16T06:20:13.004Z",
   "builtFrom": "dz-harness-hub (private monorepo)",
   "rule": "each package mirrors exactly its npm-pack tarball inventory — the already-public surface",
   "requested": 56,
@@ -193,12 +193,12 @@
     },
     {
       "name": "@dzhechkov/harness-cli",
-      "version": "0.8.27",
+      "version": "0.8.28",
       "files": 47
     },
     {
       "name": "@dzhechkov/harness-core",
-      "version": "0.8.35",
+      "version": "0.8.36",
       "files": 857
     },
     {

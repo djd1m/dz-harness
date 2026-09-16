@@ -531,12 +531,43 @@ export interface RankedPattern {
     readonly similarity?: number;
 }
 /**
+ * One entry in the total order every post-merge ranking step shares (feature
+ * `recall-parity-tie-break`, FR-1). `evidence` is the SAME three-way rank `mergeHybridHits` has
+ * always used (`both` < lexical-only < semantic-only — lower is stronger), computed once by
+ * {@link evidenceRank} from a hit's `backend`.
+ */
+export interface HybridOrderKey {
+    readonly score: number;
+    readonly evidence: number;
+    readonly dzId: string;
+}
+/** `both` outranks lexical-only outranks semantic-only (mergeHybridHits' own rule, ADR-001 AM-4). */
+export declare function evidenceRank(backend: RecallHit['backend']): number;
+export declare function compareHybridHits(a: HybridOrderKey, b: HybridOrderKey): number;
+/**
+ * Sorts `hits` into the shared total order {@link compareHybridHits} defines — used by `enhance()`
+ * BEFORE its reinforcement/bandit re-rank runs (`applyLearningSignalsWithTerms` et al.,
+ * `learning-backend.ts`, out of this fix's edit scope). That re-rank sorts by an ADJUSTED score
+ * with a STABLE tie-break on each hit's ORIGINAL array position — so pre-ordering the input here
+ * makes any tie in the adjusted score resolve in the SAME evidence/dzId order `compareHybridHits`
+ * would give directly, without touching the re-rank's own internals.
+ *
+ * This closes the ordering gap `enhance()` had (recall-parity-tie-break fix-round 1, HIGH finding):
+ * `dampQuarantined` only ran {@link compareHybridHits} when `memory.learning.quarantine` was ON;
+ * with it OFF (the default), `enhance()`'s final order was whatever the re-rank's own
+ * original-index tie-break happened to preserve — invisible from the printed `score` column,
+ * because the re-rank reorders the hit array but never rewrites `.score`. Real (non-tied) score
+ * differences from reinforcement/bandit re-ranking are UNCHANGED by this — it only decides ties.
+ */
+export declare function orderHitsForReRank(hits: readonly HybridHit[], idOf: (p: PatternRecord) => string): HybridHit[];
+/**
  * Reciprocal Rank Fusion merge: `score(p) = Σ 1/(60 + rank)` over the lists containing `p`
  * (semantic ranks weighted by `semanticWeight`). Dedup by id; `backend: 'both'` when a pattern
  *
- * Ordering: fused score, then EVIDENCE (`both` before lexical-only before semantic-only), then id.
- * When `semanticWeight > 1` the lexical top-1 is guaranteed a place in the result, taken from the
- * last seat unless that seat holds a `both` hit. See `features/semantic-keeps-exact-hits`.
+ * Ordering: fused score, then EVIDENCE (`both` before lexical-only before semantic-only), then id
+ * — {@link compareHybridHits}. When `semanticWeight > 1` the lexical top-1 is guaranteed a place in
+ * the result, taken from the last seat unless that seat holds a `both` hit. See
+ * `features/semantic-keeps-exact-hits`.
  *
  * appears in both lists. DETERMINISTIC (AC-6): ties break on id, so fixed inputs always yield
  * the same ordering. Pure — no I/O.

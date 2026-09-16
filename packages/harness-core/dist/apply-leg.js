@@ -32,7 +32,7 @@ import { connect as netConnect } from 'node:net';
 // (core-boundary.test.ts's ratchet only counts fs/child_process/https). `probeApplyLeg`'s temp probe
 // cwd reuses the existing top-level 'node:fs' import above (mkdtempSync/rmSync added to that SAME
 // import statement, not a new one) so the ratchet stays at its pinned files:63 imports:69.
-import { tmpdir } from 'node:os';
+import { tmpdir, uptime } from 'node:os';
 import { join, resolve } from 'node:path';
 import { hookCommandsOf } from './managed-hooks.js';
 import { patternRecordId, recordPattern, removePatternsByIds, loadStorePatternsSync } from './patterns.js';
@@ -1698,6 +1698,215 @@ const PROBE_PROMPT_WORDS = 'apply leg live probe';
  * findable and excludable — never `dz-teach`/`general`, which would blend it into real lessons. */
 const PROBE_BEACON_DOMAIN = 'apply-leg-probe';
 /**
+ * FR-3 (feature `apply-leg-daemon-hygiene`): the scavenger that ran at the top of every probe used
+ * to delete EVERY beacon-domain record unconditionally — safe against a probe killed mid-flight
+ * (Codex round-2's own reason for the scavenger existing at all), but WRONG the moment two probes
+ * from two DIFFERENT sessions can be live against the SAME store at once: the second probe's
+ * scavenge deletes the first probe's still-in-flight beacon, and the first probe then reports a
+ * false `ok:false` (its own hook query returns nothing, because the lesson it was about to match
+ * against is already gone) — a false-red `dz doctor`/`dz parity` parity check with no defect behind
+ * it. The fix: tag every beacon with its OWNER (`probe-owner=<pid>:<startedMs>`, embedded in the
+ * pattern TEXT so it survives a round-trip through any store tier without a schema change — NFR-1
+ * forbids a new column) and scavenge ONLY a beacon whose owner is provably gone: the pid no longer
+ * answers `process.kill(pid, 0)`, OR the beacon has outlived its TTL (see {@link
+ * scavengeStaleProbeBeacons}'s own `ttlMs` parameter).
+ */
+const PROBE_OWNER_TAG_PREFIX = 'probe-owner=';
+/** Fix round 1 (HIGH-6 residual): a second, independent tag alongside `probe-owner=` — the WRITING
+ * process's own OS-level start time (epoch ms, from `/proc/<pid>/stat`), so the scavenger can tell a
+ * PID-REUSE case (the recorded pid is technically "alive" per `process.kill(pid,0)`, but the LIVE
+ * process at that pid started at a different time than the one that wrote the beacon) apart from
+ * the genuine same-process case. Absent whenever the write-time `/proc` read fails (non-Linux,
+ * permission) — the scavenger then falls back to the plain alive+TTL check alone, unchanged. */
+const PROC_START_TAG_PREFIX = 'proc-start=';
+/** Lead delta after Codex round 2 (HIGH-4): the beacon's OWN expiry, in epoch ms, written by the
+ * probe that owns it. The pre-delta scavenger applied ITS OWN `ttlMs` to SOMEONE ELSE'S beacon, so a
+ * default-budget probe (ttl 60 s) deleted the live beacon of a widened-budget probe (ttl 360 s) after
+ * 60 s — the very false-red this hardening exists to prevent, one level up. A beacon now states when
+ * IT expires; the scavenger's own `ttlMs` is only the fallback for a beacon written before this tag
+ * existed. */
+const PROBE_EXPIRES_TAG_PREFIX = 'probe-expires=';
+/**
+ * Fix round 1 (HIGH-6): the pre-fix-round TTL was a flat 60 000 ms, independent of the probe's own
+ * `timeoutMs` — a caller that legitimately widens `timeoutMs` past that (a widened, suspended, or
+ * heavily loaded probe) could have its OWN still-in-flight beacon scavenged by a concurrent probe
+ * before it ever replies. The TTL is now DERIVED from the probe's own `timeoutMs`
+ * (`max(timeoutMs * 3, 60_000)`, see {@link probeApplyLeg}'s call site) so a widened timeout widens
+ * its own protection window too; the 60 000 ms floor keeps the pre-fix-round generous margin for the
+ * default (unwidened) case. Exported as a named constant only for the floor value — the ACTUAL TTL
+ * used by a given probe is always `ttlMs`, computed at the call site, never this constant alone.
+ */
+const PROBE_BEACON_TTL_FLOOR_MS = 60_000;
+function formatProbeOwner(pid, startedMs) {
+    return `${PROBE_OWNER_TAG_PREFIX}${pid}:${startedMs}`;
+}
+/** Parses the `probe-owner=<pid>:<startedMs>` tag out of a beacon's pattern text. `undefined` for
+ * any beacon predating this tag (an older deployed core wrote it) — treated by the scavenger as
+ * ownerless and therefore always safe to remove (the pre-FR-3 behavior for exactly that case). */
+function parseProbeOwner(patternText) {
+    const idx = patternText.indexOf(PROBE_OWNER_TAG_PREFIX);
+    if (idx === -1)
+        return undefined;
+    const match = /probe-owner=(\d+):(\d+)/u.exec(patternText.slice(idx));
+    if (match?.[1] === undefined || match[2] === undefined)
+        return undefined;
+    return { pid: Number(match[1]), startedMs: Number(match[2]) };
+}
+function formatProcStart(procStartedAtMs) {
+    return ` ${PROC_START_TAG_PREFIX}${procStartedAtMs}`;
+}
+function formatProbeExpires(expiresAtMs) {
+    return ` ${PROBE_EXPIRES_TAG_PREFIX}${expiresAtMs}`;
+}
+/** Parses the `probe-expires=<epochMs>` tag — `undefined` for a beacon written before the tag
+ * existed, which is exactly when the scavenger falls back to its own `ttlMs`. */
+function parseProbeExpires(patternText) {
+    const idx = patternText.indexOf(PROBE_EXPIRES_TAG_PREFIX);
+    if (idx === -1)
+        return undefined;
+    const match = /probe-expires=(\d+)/u.exec(patternText.slice(idx));
+    if (match?.[1] === undefined)
+        return undefined;
+    return Number(match[1]);
+}
+/** Parses the `proc-start=<ticks>` tag — `undefined` when absent (pre-fix-round beacon, or the
+ * write-time `/proc` read failed). */
+function parseProcStart(patternText) {
+    const idx = patternText.indexOf(PROC_START_TAG_PREFIX);
+    if (idx === -1)
+        return undefined;
+    const match = /proc-start=(\d+)/u.exec(patternText.slice(idx));
+    if (match?.[1] === undefined)
+        return undefined;
+    return Number(match[1]);
+}
+/** True when `pid` answers a liveness signal — `process.kill(pid, 0)` sends no actual signal, it
+ * only probes whether the OS still has a process at that pid (ESRCH ⇒ dead). */
+function isPidAlive(pid) {
+    try {
+        process.kill(pid, 0);
+        return true;
+    }
+    catch (err) {
+        return err.code !== 'ESRCH';
+    }
+}
+/**
+ * Fix round 1 (HIGH-6 residual, Linux-only, best-effort), tightened by the lead after Codex round 2
+ * (MEDIUM-6): a process's OWN `starttime` from `/proc/<pid>/stat` — field 22 overall, found by
+ * skipping past the LAST `)` so a `comm` containing spaces or parens never misaligns the split —
+ * returned as RAW TICKS SINCE BOOT, the unit the kernel reports. No wall clock is consulted and no
+ * CLK_TCK conversion is performed, so a stepped wall clock can no longer make the same live process
+ * look like a different one. `undefined` on ANY read/parse failure (non-Linux, permission, the
+ * process exiting mid-read) — the caller MUST treat that as "cannot prove", never as a pass in
+ * either direction.
+ */
+function pidStartedAtMsFromProcStat(pid) {
+    try {
+        const stat = readFileSync(`/proc/${pid}/stat`, 'utf-8');
+        const afterComm = stat.slice(stat.lastIndexOf(')') + 1).trim();
+        const fields = afterComm.split(/\s+/u);
+        // Overall field 22 (`starttime`) = fields[22 - 3] here, since fields[] starts at overall field 3
+        // (state) once `pid (comm)` (fields 1-2) has been stripped above.
+        const starttimeTicks = Number(fields[19]);
+        if (!Number.isFinite(starttimeTicks))
+            return undefined;
+        // Lead delta after Codex round 2 (MEDIUM-6): return the RAW ticks-since-boot, never an epoch
+        // derived from `Date.now() - uptime()`. The derived epoch moves when the WALL CLOCK is stepped,
+        // so the same still-running process appeared to have "started at a different time" and its LIVE
+        // beacon was deleted as a pid-reuse. Ticks since boot are monotonic within a boot and identical
+        // for the same process on every read; across a reboot the recorded pid is dead anyway, which the
+        // liveness check catches first — WITHDRAWN by the lead after Codex round 4: that sentence was
+        // wrong, because across a reboot the pid may ALREADY have been reused and can collide on start
+        // ticks too; the honest scope is the NAMED LIMIT stated below. This also removes the CLK_TCK assumption entirely — no conversion
+        // to milliseconds happens at all, the two values are compared in their own unit.
+        // NAMED LIMIT (lead delta after Codex round 3, MEDIUM): identity holds WITHIN one boot. Across a
+        // reboot both pid allocation and ticks-since-boot restart, so a beacon that somehow persisted
+        // could in principle collide with a new process at the same pid and the same tick. A boot id
+        // would close it; the honest scope today is "within one boot", and a reboot also means the
+        // beacon's own TTL has almost certainly passed, which the TTL branch catches first.
+        return starttimeTicks;
+    }
+    catch {
+        return undefined;
+    }
+}
+/** Fix round 1 (HIGH-6 residual): `process.kill(pid,0)` proves SOME process occupies `pid`, never
+ * that it is the SAME process that wrote the beacon — PID reuse defeats the plain alive check named
+ * as a residual limit in the review. Compares the LIVE process's own start time (from `/proc/<pid>/
+ * stat`) against `recordedStartedMs` (the beacon's own `proc-start=` tag). A mismatch beyond {@link
+ * PID_START_TOLERANCE_MS} means the pid was reused by an unrelated process — the true owner is
+ * confirmed gone. `undefined` (stat unreadable) means "cannot prove either way" — the lead's decision
+ * (fix round 1, item 6) is explicit: that MUST read as "do not remove" wherever it is consumed, never
+ * as a pass. */
+function isSameProcessInstance(pid, recordedStartTicks) {
+    const actualStartTicks = pidStartedAtMsFromProcStat(pid);
+    if (actualStartTicks === undefined)
+        return undefined;
+    // Lead delta after Codex round 2 (MEDIUM-6): EXACT equality on ticks-since-boot. The old
+    // ±5 000 ms tolerance existed only to absorb the CLK_TCK guess in the epoch conversion; with the
+    // raw kernel value there is nothing to absorb, and a tolerance would re-admit the very pid-reuse
+    // case it was meant to exclude (a reused pid started within the tolerance read as "same process").
+    return actualStartTicks === recordedStartTicks;
+}
+/**
+ * FR-3/FR-4: remove only the STALE beacon-domain records in `root`'s store — owner dead
+ * (`process.kill(pid, 0)` ⇒ ESRCH), older than `ttlMs`, OR (fix round 1, HIGH-6 residual) alive AND
+ * within `ttlMs` but the live pid's OWN `/proc/<pid>/stat` start time no longer matches the beacon's
+ * `proc-start=` tag — a confirmed PID-reuse case, where the recorded owner is provably gone even
+ * though `pid` itself answers. An UNREADABLE stat at scavenge time never counts as reuse evidence —
+ * it falls back to the plain alive+TTL verdict, per the lead's "cannot prove ⇒ do not remove"
+ * decision. A beacon whose owner is alive, within TTL, and (when provable) confirmed the SAME
+ * process is left untouched, even though it belongs to a different probe. An ownerless (pre-FR-3)
+ * beacon is always treated as stale. `ttlMs` defaults to {@link PROBE_BEACON_TTL_FLOOR_MS} for a
+ * caller that does not derive one (`apply-leg-beacon-owner.test.ts`'s own fixtures); `probeApplyLeg`
+ * always passes its own derived value. Exported so `apply-leg-beacon-owner.test.ts` can exercise the
+ * property directly, without needing a live hook/daemon (FR-4's red-first case needs only a store
+ * and an injectable remover, never a real probe round-trip).
+ */
+export function scavengeStaleProbeBeacons(root, removeBeacon, ttlMs = PROBE_BEACON_TTL_FLOOR_MS) {
+    try {
+        const beacons = loadStorePatternsSync(root).filter((p) => p.domain === PROBE_BEACON_DOMAIN);
+        const staleIds = [];
+        for (const beacon of beacons) {
+            const owner = parseProbeOwner(beacon.pattern);
+            if (owner === undefined) {
+                staleIds.push(beacon.dzId ?? patternRecordId(beacon));
+                continue;
+            }
+            const alive = isPidAlive(owner.pid);
+            // Lead delta after Codex round 2 (HIGH-4): the beacon's OWN expiry wins over this scavenger's
+            // `ttlMs`, which belongs to a DIFFERENT probe and knows nothing of this owner's budget.
+            const ownExpiresAtMs = parseProbeExpires(beacon.pattern);
+            const withinTtl = ownExpiresAtMs !== undefined
+                ? Date.now() <= ownExpiresAtMs
+                : Date.now() - owner.startedMs <= ttlMs;
+            if (!alive || !withinTtl) {
+                staleIds.push(beacon.dzId ?? patternRecordId(beacon));
+                continue;
+            }
+            // alive AND within TTL — the plain check says "keep", but confirm it is the SAME process, not
+            // a reused pid, whenever the beacon carries the (best-effort) proc-start tag.
+            const procStart = parseProcStart(beacon.pattern);
+            if (procStart !== undefined) {
+                const same = isSameProcessInstance(owner.pid, procStart);
+                if (same === false)
+                    staleIds.push(beacon.dzId ?? patternRecordId(beacon)); // confirmed reuse
+                // same === true, or same === undefined (unreadable ⇒ cannot prove ⇒ do not remove): keep.
+            }
+        }
+        if (staleIds.length === 0)
+            return { ok: true, removed: 0 };
+        const result = removeBeacon(root, new Set(staleIds));
+        if (result.error !== undefined)
+            return { ok: false, error: result.error };
+        return { ok: true, removed: result.removed };
+    }
+    catch (err) {
+        return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+}
+/**
  * Live, end-to-end proof that the apply leg actually injects — ADR-001 Decision 1. `applyLegStatus`
  * only proves FILES exist and are STRUCTURALLY wired (issue #2's whole defect: four green checks,
  * a leg that injected nothing in every session but one). This spawns the REAL configured hook
@@ -1729,6 +1938,11 @@ const PROBE_BEACON_DOMAIN = 'apply-leg-probe';
 export async function probeApplyLeg(root, opts = {}) {
     const started = Date.now();
     const elapsed = () => Date.now() - started;
+    // Fix round 1 (HIGH-6): computed HERE, before the scavenger runs, so the scavenge TTL can be
+    // derived from THIS probe's own budget rather than a flat constant blind to a caller-widened
+    // timeout — see the `ttlMs` computation below, right before the beacon that carries its implicit
+    // promise is written.
+    const timeoutMs = opts.timeoutMs ?? 8000;
     const status = applyLegStatus(root);
     if (!status.installed) {
         return { ok: false, reason: 'apply-leg not installed', elapsedMs: elapsed() };
@@ -1751,8 +1965,32 @@ export async function probeApplyLeg(root, opts = {}) {
     // pattern's own text can produce it. `ok: true` therefore requires the SECRET, never the query.
     const queryToken = `dzapplylegquery${process.pid}${Date.now()}${Math.random().toString(36).slice(2, 10)}`;
     const secretToken = `dzapplylegsecret${process.pid}${Date.now()}${Math.random().toString(36).slice(2, 10)}`;
+    // FR-3: the owner tag rides the SAME pattern text as the secret — a beacon's owner is knowable
+    // from its store record alone, no side channel, no schema change (NFR-1).
+    const ownerTag = formatProbeOwner(process.pid, started);
+    // Fix round 1 (HIGH-6): TTL derives from THIS probe's own timeoutMs — a caller that widens
+    // timeoutMs (this repo's own live tests widen it to 15_000 ms) widens its own protection window
+    // too, rather than staying pinned to a flat constant blind to that widening. Floored at the
+    // pre-fix-round 60_000 ms so the default (unwidened) case keeps its original generous margin.
+    // Asserted, not merely trusted — an unreasoned future edit to the formula must fail loudly right
+    // here, where the beacon carrying this TTL's implicit promise is about to be written, rather than
+    // silently reintroducing the false-red-under-concurrency defect this closes.
+    const ttlMs = Math.max(timeoutMs * 3, PROBE_BEACON_TTL_FLOOR_MS);
+    if (!(timeoutMs < ttlMs)) {
+        throw new Error(`invariant violated: timeoutMs (${String(timeoutMs)}) must be < ttlMs (${String(ttlMs)}) — scavenger TTL formula regressed`);
+    }
+    // Fix round 1 (HIGH-6 residual, best-effort): the writing process's OWN OS-level start time,
+    // captured NOW so a later scavenger can tell a genuinely-still-alive owner apart from a DIFFERENT
+    // process that merely reused this pid (isSameProcessInstance's own doc comment). Omitted entirely
+    // when unreadable (non-Linux, permission) — the scavenger then falls back to the plain alive+TTL
+    // check for this beacon, unchanged from before this residual hardening.
+    const ownProcStart = pidStartedAtMsFromProcStat(process.pid);
+    const procStartTag = ownProcStart !== undefined ? formatProcStart(ownProcStart) : '';
+    // Lead delta after Codex round 2 (HIGH-4): this beacon states its OWN expiry, so a concurrent
+    // probe with a different (shorter) budget can never out-vote this probe's protection window.
+    const expiresTag = formatProbeExpires(started + ttlMs);
     const beaconPattern = {
-        pattern: `${PROBE_PROMPT_WORDS} ${queryToken} — dz doctor / dz parity live-probe marker, safe to remove. probe-secret=${secretToken}`,
+        pattern: `${PROBE_PROMPT_WORDS} ${queryToken} — dz doctor / dz parity live-probe marker, safe to remove. probe-secret=${secretToken} ${ownerTag}${procStartTag}${expiresTag}`,
         type: 'lesson-learned',
         reward: 0,
         domain: PROBE_BEACON_DOMAIN,
@@ -1779,14 +2017,14 @@ export async function probeApplyLeg(root, opts = {}) {
     // Codex round-2: a process killed mid-probe bypasses `finally`, so a beacon can outlive its probe.
     // Every probe therefore starts by SCAVENGING any beacon left behind by an earlier one (the probe
     // domain is reserved for beacons, never for user lessons) — the store is clean before AND after.
-    try {
-        // a loaded pattern carries the STORE's own id (`dzId`); recomputing it from normalised fields
-        // (type/ts round-trip) can diverge, so the store id wins and the recomputation is the fallback.
-        const stale = loadStorePatternsSync(root).filter((p) => p.domain === PROBE_BEACON_DOMAIN).map((p) => p.dzId ?? patternRecordId(p));
-        if (stale.length > 0)
-            removeBeacon(root, new Set(stale));
-    }
-    catch { /* scavenging is best-effort; the probe's own cleanup below is the accountable path */ }
+    // FR-3/FR-4: scavenging is no longer unconditional — a LIVE beacon from a DIFFERENT concurrent
+    // probe (another session's `dz doctor`/`dz parity` against the same store) must survive; only a
+    // beacon whose owner is dead or past its TTL is removed. A scavenge failure is a named FACT
+    // (`scavengeError`), never a swallowed exception (the pre-fix `catch {}` this replaces).
+    let scavengeError;
+    const scavengeResult = scavengeStaleProbeBeacons(root, removeBeacon, ttlMs);
+    if (!scavengeResult.ok)
+        scavengeError = scavengeResult.error;
     try {
         wrote = true;
         let writeFailed;
@@ -1809,7 +2047,6 @@ export async function probeApplyLeg(root, opts = {}) {
             mkdirSync(join(tempCwd, '.dz'), { recursive: true });
             mkdirSync(join(tempCwd, '.claude'), { recursive: true });
             const { probeHookLiveness } = await import('./operations.js');
-            const timeoutMs = opts.timeoutMs ?? 8000;
             const probeResult = probeHookLiveness(command, JSON.stringify({ prompt: probePrompt }), {
                 cwd: tempCwd,
                 env: { ...(opts.env ?? {}), CLAUDE_PROJECT_DIR: tempCwd },
@@ -1829,13 +2066,13 @@ export async function probeApplyLeg(root, opts = {}) {
                 }
             }
             if (typeof additionalContext === 'string' && additionalContext.includes(secretToken)) {
-                result = { ok: true, elapsedMs: elapsed() };
+                result = { ok: true, elapsedMs: elapsed(), groupKillAttempted: probeResult.groupKillAttempted };
             }
             else if (typeof additionalContext === 'string' && additionalContext.includes(queryToken)) {
                 // AM-1: the QUERY came back but the SECRET did not — the hook (or a stub standing in for
                 // it) echoed its own input instead of genuinely querying the store. Named distinctly from
                 // every other red reason so a dead leg and a FAKING one never read the same.
-                result = { ok: false, reason: 'echo-not-injection', elapsedMs: elapsed() };
+                result = { ok: false, reason: 'echo-not-injection', elapsedMs: elapsed(), groupKillAttempted: probeResult.groupKillAttempted };
             }
             else {
                 // FR-1's own reason line is the authoritative source — the hook names itself why it stayed
@@ -1844,10 +2081,10 @@ export async function probeApplyLeg(root, opts = {}) {
                 const skipMatch = /\[dz-recall\] skipped reason=(\S+)/.exec(probeResult.stderr);
                 const skipReason = skipMatch?.[1];
                 if (skipReason !== undefined) {
-                    result = { ok: false, reason: skipReason, elapsedMs: elapsed() };
+                    result = { ok: false, reason: skipReason, elapsedMs: elapsed(), groupKillAttempted: probeResult.groupKillAttempted };
                 }
                 else if (probeResult.status === null) {
-                    result = { ok: false, reason: `probe did not complete (timeout or spawn error after ${timeoutMs} ms)`, elapsedMs: elapsed() };
+                    result = { ok: false, reason: `probe did not complete (timeout or spawn error after ${timeoutMs} ms)`, elapsedMs: elapsed(), groupKillAttempted: probeResult.groupKillAttempted };
                 }
                 else {
                     const stderrFirstLine = probeResult.stderr.trim().split('\n')[0];
@@ -1855,6 +2092,7 @@ export async function probeApplyLeg(root, opts = {}) {
                         ok: false,
                         reason: stderrFirstLine && stderrFirstLine !== '' ? stderrFirstLine : 'no beacon in additionalContext (empty or non-matching reply)',
                         elapsedMs: elapsed(),
+                        groupKillAttempted: probeResult.groupKillAttempted,
                     };
                 }
             }
@@ -1889,12 +2127,21 @@ export async function probeApplyLeg(root, opts = {}) {
         }
     }
     if (cleanupFailed) {
+        // a cleanup failure can only happen after `result` was assigned (the finally block runs after
+        // the try body) — carry the kill-attempt fact through rather than dropping it on this path.
+        // `exactOptionalPropertyTypes` forbids assigning `undefined` to an optional field explicitly, so
+        // the key is included only when `result.groupKillAttempted` actually has a value.
         return {
             ok: false,
             reason: `beacon-cleanup-failed: beacon ${beaconId} could not be removed (${cleanupErrMsg})`,
             elapsedMs: elapsed(),
+            ...(result.groupKillAttempted !== undefined ? { groupKillAttempted: result.groupKillAttempted } : {}),
+            ...(scavengeError !== undefined ? { scavengeError } : {}),
         };
     }
-    return result;
+    // FR-3: a scavenge failure is surfaced on the SUCCESS path too — it does not override `ok`/
+    // `reason` (this probe's own injection result may be perfectly genuine), but it is a fact a
+    // caller should not lose.
+    return scavengeError !== undefined ? { ...result, scavengeError } : result;
 }
 //# sourceMappingURL=apply-leg.js.map

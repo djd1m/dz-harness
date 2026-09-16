@@ -21,7 +21,7 @@ type ExecSyncOptionsWithStringEncoding = NonNullable<Parameters<typeof execSync>
 import { createHash } from 'node:crypto';
 
 import { claimCheck } from './claim-check.js';
-import { rewriteReleaseLine } from './release-line.js';
+import { rewriteReleaseLine, isReleaseLineToken } from './release-line.js';
 import { packedTarballName } from './packed-install-smoke.js';
 
 export type ProbeOutcome = {
@@ -54,6 +54,21 @@ export interface PublishResult {
    * unmodified `publishPackages` call is byte-compatible with pre-gate behavior.
    */
   readonly claimCheck?: { readonly findings: number; readonly high: number } | undefined;
+  /**
+   * FR-3 (feature publish-readme-stamp-scope): a preview of what `planReadmeVersionSync` would do
+   * (dry-run) or already did (live) to this package's own README.md — never silent about the
+   * lock-step sync. `lines` are the 1-based line numbers actually rewritten; `skippedHistorical` is
+   * a TOKEN count (changelog-region entries + tokens outside every recognised ALLOWLIST shape), not
+   * a line count; `historyLines` names WHERE those kept-as-history tokens sit (fix-round 1, Codex
+   * HIGH: "history has only an aggregate count, not locations"). Absent when the package has no
+   * README.md, or on an 'error' result where the sync never ran/mattered.
+   */
+  readonly readmeSync?: {
+    readonly rewrittenLines: number;
+    readonly lines: readonly number[];
+    readonly skippedHistorical: number;
+    readonly historyLines: readonly number[];
+  } | undefined;
   /**
    * DRY-RUN ONLY, and the reason it exists is a measured incident. A dry run short-circuits
    * BEFORE build, sign and pack (see the `opts.dryRun` branch below), so the package's own
@@ -501,15 +516,177 @@ export function orderByDependencies<T extends { name: string; dir: string }>(pkg
   return ordered;
 }
 
+/** One README line the sync touched: 1-based line number, and the line before/after the rewrite. */
+export interface ReadmeSyncRewrite {
+  readonly line: number;
+  readonly before: string;
+  readonly after: string;
+}
+
+/** The report `planReadmeVersionSync` returns — never silent about what it did and did not touch. */
+export interface ReadmeVersionSyncPlan {
+  readonly text: string;
+  readonly rewritten: readonly ReadmeSyncRewrite[];
+  /** Count of OLD-VERSION token OCCURRENCES left untouched as history (changelog region + every
+   *  token outside every recognised ALLOWLIST shape — FR-1). */
+  readonly skippedHistorical: number;
+  /** The 1-based line numbers carrying at least one of those kept-as-history tokens (fix-round 1,
+   *  Codex HIGH: "history has only an aggregate count, not locations; rewritten lines have
+   *  numbers"). Deduplicated and sorted ascending — a line with two skipped tokens appears once. */
+  readonly historyLines: readonly number[];
+}
+
 /**
- * Sync a package's own README to a freshly-bumped version: every exact occurrence of the OLD
- * version token (optionally `v`-prefixed, word-bounded) becomes the new one.
+ * A line carrying this HTML comment opts BACK IN to rewriting, overriding both the changelog-region
+ * protection and the allowlist below — the author's explicit "this token is a stamp, not history"
+ * (AC-3).
+ */
+const DZ_VERSION_MARKER = '<!-- dz:version -->';
+
+/**
+ * Shape 4 of the allowlist (fix-round 1 design): the `dz publish` CLI's own example line, quoted
+ * verbatim in a README — `dz publish: tarball <name>@X sha256:…`. In practice every occurrence of
+ * this line is ALSO caught by shape 3 (the version always follows `<name>@`), so this predicate is
+ * mostly documentation of intent — named explicitly because the design brief calls it out as its own
+ * recognised shape, not an accident of shape 3's reach.
+ */
+// Codex r2 HIGH (lead): the tarball example line grants NO whole-line permission any more — its
+// only stampable token is `<name>@X`, which shape 3 (install/pin) already recognises; a trailing
+// `measured on X` on the same example line stays history.
+
+/**
+ * Shape 2 of the allowlist: a current-release FOOTER PREFIX — a short declarative label stamping the
+ * package's OWN current version (`Status: `, `Current release: `, `Current status: `, `Released as `),
+ * optionally preceded by a list marker or bold-open, with the label being the ENTIRE prefix up to the
+ * token — `Status: vX is current.` allows `vX` because nothing but the label sits before it. This is
+ * deliberately POSITION-AWARE (tested against the text before the token, not "does this line contain
+ * the word somewhere"): a line that opens with a footer label but cites an UNRELATED older version
+ * later in the same sentence — `Current release: 1.0.0. (Previous release (v1.1.0 / v1.0.0) …)` —
+ * must allow only the first token, not the second one sitting deep in a citation. `Previous release
+ * (vA / vB)` itself never matches at all: it opens with "Previous", not "release".
+ */
+// Codex r2 HIGH (lead): exactly the three settled footer labels, at line start, colon required —
+// `Status:`, `Version:`, `Current release:` (optional bold / list marker). `Note: X`, `Released X`
+// and every other label stay history.
+// The settled label set (Codex r2 HIGH, lead): `Status:`, `Version:`, `Current release:`,
+// `Current status:` (colon required, optional bold / list marker) and the original footer
+// sentence `Released as vX` — the shapes the 2026-08-25 tests pin. `Note: X`, `Released X on …`,
+// `Status as of X` and every other label are history.
+const FOOTER_STAMP_PREFIX_RE = /^\s*(?:[-*+]\s+)?(?:(?:\*\*)?(?:status|version|current release|current status)(?::\*\*|\*\*:|:)|released as)\s*$/i;
+
+/**
+ * Shape 6 of the allowlist: a shields.io-style badge URL segment — `badge/npm-v0.7.7-…` or
+ * `badge/version-0.7.7-…`. Scoped to the literal `/badge/` marker (not a bare "-v" anywhere) so an
+ * unrelated hyphenated token elsewhere on the line is never mistaken for a badge.
+ */
+// Codex r2 HIGH (lead): a badge segment counts only inside a shields.io badge URL, not any `/badge/` path.
+const BADGE_SEGMENT_RE = /img\.shields\.io\/badge\/[\w.%-]*$/i;
+
+/**
+ * Shape 3 of the allowlist: an install/dependency-pin context. Either the token is immediately
+ * preceded by `@` (`npm i @dzhechkov/harness-core@0.7.6`, the tarball example's `<name>@X`), or it
+ * sits in the JSON-pin shape `"<package-name>": "X"` (a `package.json`/lockfile-style dependency pin
+ * quoted in prose) — the design brief's "for the JSON-pin form accept `\": \"` before the token when
+ * the key is a package name".
+ */
+function isInstallPinContext(line: string, tokenStart: number): boolean {
+  // Codex r2 HIGH (lead): `@X` counts only as `<name>@X` — a package-name character must precede the
+  // `@` (`thing@0.8.25`, `@scope/name@0.8.25`); a bare `see @0.8.25` stays history.
+  if (line[tokenStart - 1] === '@' && /[A-Za-z0-9._-]/.test(line[tokenStart - 2] ?? '')) return true;
+  const before = line.slice(0, tokenStart);
+  return /"[@A-Za-z0-9][\w./-]*"\s*:\s*"$/.test(before);
+}
+
+/**
+ * FR-1 (POSITIVE ALLOWLIST, not a denylist — Codex fix-round 1, 2026-09-15). Outside a changelog
+ * region, an old-version token occurrence rewrites ONLY when it sits in one of six recognised
+ * shapes — the lock-step feature this sync exists for, and NOTHING beyond it. Every shape NOT named
+ * here defaults to HISTORY, whatever prose it is written in: the previous design (a denylist of
+ * three named citation phrases — "on X", "X alike", "/ vX") was corruptible by construction, because
+ * ANY new prose shape citing the outgoing version ("since X", "measured against X", "X behaviour", a
+ * bare "X" in a sentence) rewrote by default until someone thought to deny it too. An allowlist has
+ * no such gap: an unrecognised shape is history by default, not by enumeration.
  *
- * This kills the perpetual footer off-by-one: publish bumps package.json DURING publishing, so a
- * hand-synced "vX.Y.Z" status line was always one release behind on npmjs.com (or required
- * pre-setting the future version by hand). Exact-old-token matching keeps every other version
- * string (dependency pins, historical notes, examples citing other releases) untouched.
- * Returns the pre-sync README text for failure restore, or undefined when nothing was rewritten.
+ *  1. a release-line token — `` `harness-core vX` · `harness-cli vY` `` and any generalised
+ *     `` `<name> vX` `` on the same line, including a trailing `` · `memory vZ` `` segment
+ *     (release-line.ts `isReleaseLineToken`/`GENERIC_RELEASE_TOKEN_RE`).
+ *  2. a current-release FOOTER prefix (`FOOTER_STAMP_PREFIX_RE`) — position-aware, so only the
+ *     token immediately after the label is allowed.
+ *  3. an install/dependency-pin context (`isInstallPinContext`).
+ *  4. the `dz publish: tarball <name>@X sha256:…` example line (`TARBALL_EXAMPLE_LINE_RE`).
+ *  5. (handled by the caller, not here) a `<!-- dz:version -->` marker forces the rewrite outright,
+ *     overriding this predicate AND the changelog-region protection (AC-3).
+ *  6. a shields badge URL segment (`BADGE_SEGMENT_RE`).
+ */
+function isAllowlistedRewriteContext(line: string, tokenStart: number, versionEnd: number): boolean {
+  if (isReleaseLineToken(line, tokenStart, versionEnd)) return true; // shape 1
+  if (FOOTER_STAMP_PREFIX_RE.test(line.slice(0, tokenStart))) return true; // shape 2
+  if (isInstallPinContext(line, tokenStart)) return true; // shape 3 (also covers the tarball example's `<name>@X`)
+  if (BADGE_SEGMENT_RE.test(line.slice(0, tokenStart))) return true; // shape 6 (shields.io only)
+  return false;
+}
+
+/**
+ * Plan how a README's OLD-VERSION tokens would move to NEW-VERSION — a pure function, no I/O.
+ *
+ * FR-1 (allowlist, not denylist). Outside a changelog region (FR-2: EVERY entry-shaped run, not
+ * only the first — see `changelogRegion`), a token rewrites ONLY when `isAllowlistedRewriteContext`
+ * recognises its shape; every other token — historical prose of ANY form — is left untouched by
+ * default. A `<!-- dz:version -->` marker on the line forces the rewrite regardless of either
+ * protection (AC-3).
+ *
+ * FR-3 (never silent): every rewritten line is reported with its line number and before/after text;
+ * every token left untouched as history is counted AND located, whether the reason was the
+ * changelog region or simply not matching any allowlist shape.
+ */
+export function planReadmeVersionSync(
+  text: string,
+  oldVersion: string,
+  newVersion: string,
+): ReadmeVersionSyncPlan {
+  const escaped = oldVersion.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const token = new RegExp(`(^|[^0-9A-Za-z.])(v?)${escaped}(?![0-9])(?!\\.[0-9])`, 'g');
+  const lines = text.split('\n');
+  const history = changelogRegion(lines);
+  const rewritten: ReadmeSyncRewrite[] = [];
+  const historyLineSet = new Set<number>();
+  let skippedHistorical = 0;
+
+  const outLines = lines.map((line, i) => {
+    const forced = line.includes(DZ_VERSION_MARKER);
+    const lineIsHistory = history.has(i) && !forced;
+    let touched = false;
+    const after = line.replace(token, (full: string, sep: string, vPrefix: string, offset: number) => {
+      const tokenStart = offset + sep.length; // includes the optional 'v' — allowlist shapes need it
+      const versionStart = tokenStart + vPrefix.length;
+      const versionEnd = versionStart + oldVersion.length;
+      const allowed = forced || (!lineIsHistory && isAllowlistedRewriteContext(line, tokenStart, versionEnd));
+      if (!allowed) {
+        skippedHistorical++;
+        historyLineSet.add(i + 1);
+        return full;
+      }
+      touched = true;
+      return `${sep}${vPrefix}${newVersion}`;
+    });
+    if (touched) rewritten.push({ line: i + 1, before: line, after });
+    return after;
+  });
+
+  return {
+    text: outLines.join('\n'),
+    rewritten,
+    skippedHistorical,
+    historyLines: [...historyLineSet].sort((a, b) => a - b),
+  };
+}
+
+/**
+ * Sync a package's own README to a freshly-bumped version — a thin, atomic-write wrapper around
+ * `planReadmeVersionSync`. Returns the pre-sync README text for failure restore, or undefined when
+ * nothing was rewritten (same contract as before this function grew a real plan underneath it —
+ * `dz publish`'s report reads the plan via `planReadmeVersionSync` directly; this wrapper's return
+ * value stays exactly what its callers already depend on).
  *
  * Bootstrap invariant: exact-token matching MAINTAINS sync but cannot REPAIR pre-existing drift
  * (a footer already one release behind contains a token != oldVersion and is skipped). Bring the
@@ -519,18 +696,12 @@ export function syncReadmeVersion(dir: string, oldVersion: string, newVersion: s
   const readmePath = join(dir, 'README.md');
   if (!existsSync(readmePath)) return undefined;
   const original = readFileSync(readmePath, 'utf-8');
-  const escaped = oldVersion.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const token = new RegExp(`(^|[^0-9A-Za-z.])(v?)${escaped}(?![0-9])(?!\\.[0-9])`, 'g');
-  const lines = original.split('\n');
-  const history = changelogRegion(lines);
-  const updated = lines
-    .map((line, i) => (history.has(i) ? line : line.replace(token, `$1$2${newVersion}`)))
-    .join('\n');
-  if (updated === original) return undefined;
+  const plan = planReadmeVersionSync(original, oldVersion, newVersion);
+  if (plan.text === original) return undefined;
   // Atomic: a write interrupted after truncation would leave a half-written README in the tarball
   // (cross-family review). temp + rename makes a partial file impossible.
   const tmp = readmePath + '.sync-tmp';
-  writeFileSync(tmp, updated);
+  writeFileSync(tmp, plan.text);
   renameSync(tmp, readmePath);
   return original;
 }
@@ -601,21 +772,35 @@ function maskFences(lines: readonly string[]): string[] {
  * The region ENDS at the next heading rather than at end-of-file on purpose: two of these READMEs
  * carry ordinary sections after Status, and over-protecting them would silently stop the lock-step
  * sync where it is still wanted.
+ *
+ * MEASURED 2026-09-15 (00_complexity_assessment.md, feature publish-readme-stamp-scope): this
+ * function protected only the FIRST such run. A second `## Status` heading further down the SAME
+ * README opens a SECOND entry-shaped run (`memory` 0.2.21/0.2.22 sat under a later `## Status`,
+ * after an earlier `0.1.0` entry whose region had already ended) — and that second run was bare,
+ * so its entries got relabelled by the next bump exactly like the 2026-08-25 incident this function
+ * was written to stop. FR-2: EVERY entry-shaped run in the document is protected, not only the
+ * first — the scan restarts after each run ends instead of stopping there.
  */
 export function changelogRegion(lines: readonly string[]): Set<number> {
   const out = new Set<number>();
   const masked = maskFences(lines);
-  const start = masked.findIndex((l) => ANY_ENTRY.test(l));
-  if (start < 0) return out;
-  // REJECTED design, recorded so it is not retried: "sync the FIRST entry, protect the rest". It
-  // looks like it restores the lock-step for the current release, and it is unsafe in exactly the
-  // case that produced the bug — an author who bumps WITHOUT adding a new entry has the previous
-  // release's entry sitting first, and syncing it relabels that release's contents to the new
-  // version. The whole region stays protected; writing the newest heading is the author's job, and
-  // the prompt for it is that the version they type is the version they are about to publish.
-  for (let i = start; i < masked.length; i++) {
-    if (i > start && REGION_END.test(masked[i] as string)) break;
-    out.add(i);
+  let i = 0;
+  while (i < masked.length) {
+    if (!ANY_ENTRY.test(masked[i] as string)) { i++; continue; }
+    const start = i;
+    // REJECTED design, recorded so it is not retried: "sync the FIRST entry, protect the rest". It
+    // looks like it restores the lock-step for the current release, and it is unsafe in exactly the
+    // case that produced the bug — an author who bumps WITHOUT adding a new entry has the previous
+    // release's entry sitting first, and syncing it relabels that release's contents to the new
+    // version. The whole region stays protected; writing the newest heading is the author's job, and
+    // the prompt for it is that the version they type is the version they are about to publish.
+    while (i < masked.length && !(i > start && REGION_END.test(masked[i] as string))) {
+      out.add(i);
+      i++;
+    }
+    // `i` now sits on the heading that ended this run (or at EOF) — NOT consumed, so the outer loop
+    // re-examines it: a heading is never itself an entry, but the very next line under it can open a
+    // brand-new run, which is exactly the second-`## Status` case above.
   }
   return out;
 }
@@ -734,6 +919,9 @@ export function publishPackages(
     readonly readmePath: string;
     readonly originalReadme: string | undefined;
     readonly claimCheckSummary: { findings: number; high: number } | undefined;
+    /** FR-3 (fix-round 1): carried through the two-pass packed transport so the readme-sync report
+     *  reaches the FINAL 'published'/'error' result too — not only the pass-1 optimistic entry. */
+    readonly readmeSyncSummary: PublishResult['readmeSync'];
   }
   const pendingPacked: PendingPacked[] = [];
 
@@ -879,6 +1067,27 @@ export function publishPackages(
       }
     }
 
+    // FR-3 (feature publish-readme-stamp-scope): preview the README sync BEFORE the dry-run
+    // short-circuit, so `--dry-run` shows what the live sync would do — never silent about it, the
+    // same reasoning as the claim-check gate just above. Reading the README never blocks publish;
+    // an unreadable README simply carries no readmeSync summary.
+    let readmeSyncSummary: PublishResult['readmeSync'];
+    try {
+      const readmePath = join(pkg.dir, 'README.md');
+      if (existsSync(readmePath)) {
+        const text = readFileSync(readmePath, 'utf-8');
+        const plan = planReadmeVersionSync(text, oldVersion, newVersion);
+        readmeSyncSummary = {
+          rewrittenLines: plan.rewritten.length,
+          lines: plan.rewritten.map((r) => r.line),
+          skippedHistorical: plan.skippedHistorical,
+          historyLines: plan.historyLines,
+        };
+      }
+    } catch {
+      /* unreadable README never blocks publish or this preview */
+    }
+
     if (opts.dryRun) {
       // NOT a statement that the package would publish cleanly — only that the gates checked ABOVE
       // this line passed. Everything below it (build, re-sign, pack, the package's own
@@ -893,6 +1102,7 @@ export function publishPackages(
       results.push({
         name: pkg.name, oldVersion, newVersion, status: 'skipped',
         claimCheck: claimCheckSummary,
+        readmeSync: readmeSyncSummary,
         notVerified: NOT_VERIFIED_BY_DRY_RUN,
       });
       landedInBatch.add(pkg.name);
@@ -909,7 +1119,12 @@ export function publishPackages(
       originalReadme = syncReadmeVersion(pkg.dir, oldVersion, newVersion);
 
       if (opts.bumpOnly) {
-        results.push({ name: pkg.name, oldVersion, newVersion, status: 'published', claimCheck: claimCheckSummary });
+        // FR-3 fix-round 1 (Codex HIGH): the readme-sync summary was previously attached only to the
+        // dry-run and main-live paths — --bump-only silently omitted it even though `syncReadmeVersion`
+        // just ran two lines above. Reuse the SAME preview computed before the dry-run branch: it is a
+        // pure function of the same pre-sync text and the same old/new versions, so it already
+        // describes exactly what the write above just did.
+        results.push({ name: pkg.name, oldVersion, newVersion, status: 'published', claimCheck: claimCheckSummary, readmeSync: readmeSyncSummary });
         continue;
       }
 
@@ -1037,6 +1252,7 @@ export function publishPackages(
           readmePath: pathJoin(pkg.dir, 'README.md'),
           originalReadme,
           claimCheckSummary,
+          readmeSyncSummary,
         });
         pinVersions.set(pkg.name, newVersion);
         // Optimistic, mirroring the dry-run branch above: this package WILL land once the
@@ -1062,7 +1278,7 @@ export function publishPackages(
 
       const { registryProbes } = confirmPublished(pkg.name, newVersion, probeLog);
 
-      results.push({ name: pkg.name, oldVersion, newVersion, status: 'published', registryProbes, probeLog, claimCheck: claimCheckSummary });
+      results.push({ name: pkg.name, oldVersion, newVersion, status: 'published', registryProbes, probeLog, claimCheck: claimCheckSummary, readmeSync: readmeSyncSummary });
       landedInBatch.add(pkg.name); // only an ACTUAL publish covers dependents (Codex P1)
     } catch (err) {
       // The version was written BEFORE build+publish; on any failure restore the
@@ -1182,6 +1398,7 @@ export function publishPackages(
           results.push({
             name: p.name, oldVersion: p.oldVersion, newVersion: p.newVersion, status: 'published',
             registryProbes, probeLog, claimCheck: p.claimCheckSummary, sha256: p.sha256,
+            readmeSync: p.readmeSyncSummary, // FR-3 fix-round 1: the third publish path that was silent
           });
           // landedInBatch already carries p.name from pass 1 (optimistic) — now confirmed for real.
         } catch (err) {

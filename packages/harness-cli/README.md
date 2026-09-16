@@ -1422,6 +1422,16 @@ Four rules the gate itself obeys — these are what distinguish it from a green-
    (`FAIL  |serial| test/x.test.ts …`) — the baseline-attribution parser used to capture the label
    itself as "the file" and report a perfectly parseable red run as `unparseable from runner
    output`; the regex now skips the optional label.
+7. **A special file (socket/FIFO/char or block device) or a package-root `.dz/` no longer crashes
+   the scratch copy** (mutation-gate-scratch-special-files, 2026-09-15). MEASURED: a live UNIX
+   socket left inside a package by an embedding daemon (`.dz/embed.sock`) made `fs.cpSync` throw
+   `ERR_INTERNAL_ASSERTION` ("Unreachable code") — Node's copy machinery has no case for that dirent
+   type, and the gate could prove nothing once the scratch copy itself died. The filter now skips
+   any special file and the package-root `.dz/` (the project's own store, not part of the package
+   under test — a nested `.dz/`, e.g. inside a test fixture, is still copied), printing at most one
+   line of each kind before the baseline run: `mutation-gate: scratch copy skipped N special
+   file(s): <rel paths>` and/or `mutation-gate: scratch copy skipped .dz/ at the package root
+   (store, not package)`. Nothing skipped ⇒ no line, output byte-identical to before.
 
 **Where the full output of a RED baseline/rebaseline line lives** (gate-stability, 2026-09-12,
 fix-round-1 2026-09-12): the bounded 3-line/20-line tail in the verdict is a teaser, and under a
@@ -3391,7 +3401,7 @@ dz publish: BLOCKED harness-cli — sibling drift: @dzhechkov/memory@0.2.20 on t
 dz publish: refusing to publish (1 sibling-drift violation(s))
 
 $ dz publish --filter harness-cli --yes
-dz publish: tarball @dzhechkov/harness-cli@0.8.27 sha256:9f2c…e10a
+dz publish: tarball @dzhechkov/harness-cli@0.8.28 sha256:9f2c…e10a
 dz publish: ✓ packed install smoke
   ✓ @dzhechkov/harness-cli                1.0.0 → 1.0.1  published (confirmed by registry after 1 probes)
       sha256:9f2c…e10a
@@ -5390,8 +5400,36 @@ refusal as the honest answer.
 
 ## Status
 
-`harness-core v0.8.35` · `harness-cli v0.8.27` · `memory v0.2.22` — **this release (night 14→15.09, 8 features, each
-cross-family reviewed by Codex): the recall hook resolves its store from the INSTALL root, never from the session's cwd,
+`harness-core v0.8.36` · `harness-cli v0.8.28` · `memory v0.2.23` — **this release (night 15→16.09, five
+changes, each cross-family reviewed by Codex): recall orders its hits deterministically in every sort, a killed
+process must be OBSERVED dead rather than assumed dead, the mutation gate survives a UNIX socket inside the
+package, the README version stamp cannot rewrite history, and the two Codex hooks resolve their project root
+through ONE function that says where the root came from.**
+(a) `recall-parity-tie-break`: every sort inside `recallHybrid` routes through one comparator (score desc →
+evidence rank → `dzId` asc, NaN last), so the embed daemon and `dz recall` return the SAME order for equal
+scores. The parity test now clones the store byte-for-byte per reader, because recall is not a pure read —
+its fire-and-forget exposure write contaminates the next reader of the same store.
+(b) `apply-leg-daemon-hygiene`: a daemon stop is proven by polling `/proc` until nothing serves the root, and
+every SIGKILL is gated on a freshly-read identity AND containment under the test root — a three-valued check
+where "could not read" is never collapsed into "does not match". The probe beacon carries its own owner, its
+raw process start ticks and its own expiry, and the scavenger honours the beacon's expiry over its own. The
+lock-file pid was removed as a kill source entirely: it held the HOOK's pid, not the daemon's.
+(c) `mutation-gate-scratch-special-files`: the scratch copy skips sockets, FIFOs and character/block devices,
+skips the package-ROOT `.dz` only when it really is a directory, records a vanished file instead of crashing,
+prints an honest skip line and reports `scratchCopy: {skippedSpecialFiles, skippedRootDz, vanished}` in both
+JSON emission sites. Before this, one socket left by the recall daemon turned the instrument that proves every
+other protection into an internal Node assertion.
+(d) `full-suite-flake-fixes-3`: the grandchild-death test asserts the kill ATTEMPT (an observed result field)
+and the death (a poll with a measured budget) as two separate facts, and the run-lock race test is a real
+rendezvous — the holder blocks on a test seam until the owner marker appears, then the contender must be
+refused with exactly `run-locked`.
+(e) `codex-hook-root-provenance`: both generated Codex hooks resolve the project root through one
+`resolveHookRoot`, and `reportRootProvenance` names the source and start directory on stderr, silent on the
+success path, control characters escaped. The environment override the backlog asked for was DROPPED after a
+live measurement (3 scenarios × 2 hook events = 6 captures, codex-cli 0.154.0): the payload's `cwd` is present
+and correct in all six, so the defect it would have cured is not observable here. Also in the CLI: the README
+version stamp of `dz publish` now rewrites only six allowlisted forms and never touches a changelog region.
+Previous release (v0.8.35 / v0.8.27): **the recall hook resolves its store from the INSTALL root, never from the session's cwd,
 and is never silent; the skill walker follows symlinks, drops build junk and names everything it skipped; one-character
 recall terms are searchable; and the mutation gate stays honest under load.**
 (a) `apply-leg-install-root` + `apply-leg-never-silent` (issue #2): the `UserPromptSubmit` recall hook computes

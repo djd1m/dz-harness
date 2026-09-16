@@ -1893,8 +1893,19 @@ export function probeHookLiveness(
   command: string,
   payload: string,
   opts: { readonly cwd?: string; readonly env?: Readonly<Record<string, string>>; readonly timeoutMs?: number } = {},
-): { readonly status: number | null; readonly stdout: string; readonly stderr: string } {
+): { readonly status: number | null; readonly stdout: string; readonly stderr: string; readonly groupKillAttempted: boolean } {
   const shell = process.env['SHELL'] ?? '/bin/sh';
+  // Fix round 1 (apply-leg-never-silent, HIGH-1): a caller previously had to INFER "was the group
+  // kill sent" by reading this function's source — a regression removing or bypassing the
+  // `process.kill(-pid, ...)` call below would silently invalidate that inference. `groupKillAttempted`
+  // is the OBSERVABLE fact instead: true exactly when this call reached the point of attempting the
+  // kill syscall (`res.pid` was a real positive pid), false when it never got that far (e.g. the
+  // spawn itself never produced a pid). It does NOT claim the signal found a live recipient — ESRCH
+  // ("group already gone", the common successful-exit case) still counts as "sent": the syscall was
+  // issued, its target simply no longer existed. That is a SEPARATE fact from whether the grandchild
+  // is actually dead by the time a caller checks — see `probeApplyLeg`'s AM-5 test for the
+  // kill-sent-vs-death-observed split this field exists to make possible.
+  let groupKillAttempted = false;
   try {
     // AM-5 (fix round 1, apply-leg-never-silent): `detached: true` puts the shell in its OWN
     // process GROUP (pgid === its own pid) instead of sharing the caller's — `spawnSync`'s own
@@ -1925,11 +1936,15 @@ export function probeHookLiveness(
         process.kill(-res.pid, 'SIGKILL');
       } catch {
         /* group already gone */
+      } finally {
+        // set right after the process.kill(-pid, 'SIGKILL') attempt (HIGH-1 lead decision): reached
+        // regardless of ESRCH, because ESRCH means "no recipient", not "syscall not issued".
+        groupKillAttempted = true;
       }
     }
-    return { status: res.status, stdout: res.stdout ?? '', stderr: res.stderr ?? '' };
+    return { status: res.status, stdout: res.stdout ?? '', stderr: res.stderr ?? '', groupKillAttempted };
   } catch (err) {
-    return { status: null, stdout: '', stderr: String((err as Error)?.message ?? err) };
+    return { status: null, stdout: '', stderr: String((err as Error)?.message ?? err), groupKillAttempted };
   }
 }
 
