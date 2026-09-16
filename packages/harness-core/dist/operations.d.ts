@@ -371,6 +371,7 @@ export declare function probeHookLiveness(command: string, payload: string, opts
     readonly status: number | null;
     readonly stdout: string;
     readonly stderr: string;
+    readonly groupKillAttempted: boolean;
 };
 export declare function runSyncCodexHooks(options?: CodexHooksSyncOptions): CodexHooksSyncReport;
 export interface CodexVetoProbeOptions {

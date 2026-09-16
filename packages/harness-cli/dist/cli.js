@@ -7209,6 +7209,21 @@ npmPackRunner) {
         if (pkg.claimCheck && pkg.claimCheck.findings > 0 && pkg.status !== 'error') {
             write(`      ⚠ claim-check: ${pkg.claimCheck.findings} finding(s) (${pkg.claimCheck.high} high) in README.md`);
         }
+        // FR-3 (feature publish-readme-stamp-scope): never silent about the README version-lock-step
+        // sync — what it rewrote (dry-run: what it WOULD rewrite, so the wording never claims a write
+        // that did not happen — Codex HIGH finding, fix-round 1) and WHERE it kept every other token as
+        // history, in both dry-run and live reports, on every publish path (main live, --bump-only, and
+        // packed-transport all populate `readmeSync` the same way).
+        if (pkg.readmeSync) {
+            const rewrittenWhere = pkg.readmeSync.rewrittenLines > 0
+                ? ` (${pkg.readmeSync.lines.map((l) => `L${l}`).join(', ')})`
+                : '';
+            const historyWhere = pkg.readmeSync.historyLines.length > 0
+                ? ` (${pkg.readmeSync.historyLines.map((l) => `L${l}`).join(', ')})`
+                : '';
+            const verb = dryRun ? 'would rewrite' : 'rewrote';
+            write(`      readme sync ${pkg.name}: ${verb} ${pkg.readmeSync.rewrittenLines} line(s)${rewrittenWhere}; ${pkg.readmeSync.skippedHistorical} version token(s) kept as history${historyWhere}`);
+        }
         // A dry run stops before build/sign/pack, so it says NOTHING about the gates below that line.
         // Printing what it did not check is what keeps a clean preview from reading as a clean publish
         // (measured 2026-09-02: a clean dry run preceded a RED real gate).
@@ -12740,6 +12755,15 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
     const results = [...entryResults];
     const observations = [];
     const warnings = [];
+    // mutation-gate-scratch-special-files fix-round 1 (MEDIUM finding 2): hoisted OUTSIDE the
+    // `try` below so both JSON verdict emission sites (the baseline-not-ok early return and the
+    // final exit) can see them — the `--json` path used to discard this observability entirely
+    // because these were `const`/`let` locals scoped to the try block.
+    const skippedSpecialFiles = [];
+    let skippedDzRoot = false;
+    // fix-round 1 (HIGH finding 1): entries whose `lstatSync` hit ENOENT — vanished between
+    // `readdir` and `lstat` — are recorded here rather than silently retried by `cpSync`.
+    const vanished = [];
     const internalRetries = [];
     let baseline;
     try {
@@ -12765,13 +12789,89 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
             });
             copyDir = shadowCursor;
         }
+        // mutation-gate-scratch-special-files FR-1/FR-2: `cpSync` cannot copy a special file (socket,
+        // FIFO, char/block device) — Node's own copy machinery throws ERR_INTERNAL_ASSERTION
+        // ("Unreachable code") on a dirent it does not recognise, and the gate can prove nothing once
+        // the scratch copy itself dies. Skip those entries (and the package-root `.dz/`, which is the
+        // project's OWN store, not part of the package under test — the socket that triggered this
+        // feature lived at `.dz/embed.sock`) instead of letting the copy fail.
         cpSync(pkgDir, copyDir, {
             recursive: true,
             filter: (src) => {
                 const rel = relative(pkgDir, src);
-                return rel === '' || !rel.split(sep).some((seg) => seg === 'node_modules' || seg === '.git');
+                if (rel === '')
+                    return true;
+                if (rel.split(sep).some((seg) => seg === 'node_modules' || seg === '.git'))
+                    return false;
+                // fix-round 1 (MEDIUM finding 3): exclude the package-root `.dz` ONLY when it is actually
+                // the project's store — a directory, or a symlink pointing at one. A regular FILE (or a
+                // symlink to one) named `.dz` is not the store and is copied like anything else; it falls
+                // through to the special-file check below, which will not skip it (it is not a socket).
+                if (rel === '.dz') {
+                    // Lead delta after Codex round 3: the two probes are SEPARATE statements, never nested —
+                    // a nested rethrow from the symlink-target probe was being swallowed by the enclosing
+                    // catch that exists for the FIRST probe, and `.dz` would then be copied after all. Each
+                    // probe now names exactly which error it tolerates: an absent entry (ENOENT) is "not a
+                    // directory"; EACCES/EPERM/ELOOP and everything else travel up.
+                    let dzStat;
+                    try {
+                        dzStat = lstatSync(src);
+                    }
+                    catch (err) {
+                        if (err.code !== 'ENOENT')
+                            throw err;
+                    }
+                    let dzIsDir = dzStat !== undefined && dzStat.isDirectory();
+                    if (dzStat !== undefined && !dzIsDir && dzStat.isSymbolicLink()) {
+                        try {
+                            dzIsDir = statSync(src).isDirectory();
+                        }
+                        catch (err) {
+                            if (err.code !== 'ENOENT')
+                                throw err;
+                            dzIsDir = false; // dangling link: honestly not a directory
+                        }
+                    }
+                    if (dzIsDir) {
+                        skippedDzRoot = true;
+                        return false;
+                    }
+                }
+                try {
+                    const st = lstatSync(src);
+                    if (st.isSocket() || st.isFIFO() || st.isCharacterDevice() || st.isBlockDevice()) {
+                        skippedSpecialFiles.push(rel);
+                        return false;
+                    }
+                }
+                catch (err) {
+                    // fix-round 1 (HIGH finding 1): ENOENT means the entry vanished between `readdir` and
+                    // `lstat` — cpSync must NOT be told to copy a path that is already gone, so return
+                    // `false` (skip it, and record it) rather than `true` (which used to hand the vanished
+                    // path straight to cpSync's own copy step, which could still abort the whole gate).
+                    // Replacement of the entry AFTER this lstat call remains an unavoidable TOCTOU window —
+                    // narrowed, not eliminated. Any OTHER error (EACCES, EPERM, …) is a real fault, not a
+                    // benign race, and must not be swallowed: rethrow it.
+                    if (err.code === 'ENOENT') {
+                        vanished.push(rel);
+                        return false;
+                    }
+                    throw err;
+                }
+                return true;
             },
         });
+        if (!json) {
+            if (skippedSpecialFiles.length > 0) {
+                write(`mutation-gate: scratch copy skipped ${skippedSpecialFiles.length} special file(s): ${skippedSpecialFiles.join(', ')}`);
+            }
+            if (skippedDzRoot) {
+                write('mutation-gate: scratch copy skipped .dz/ at the package root (store, not package)');
+            }
+            if (vanished.length > 0) {
+                write(`mutation-gate: scratch copy skipped ${vanished.length} vanished entr${vanished.length === 1 ? 'y' : 'ies'} (removed between readdir and lstat): ${vanished.join(', ')}`);
+            }
+        }
         const srcNm = join(pkgDir, 'node_modules');
         if (existsSync(srcNm) && !existsSync(join(copyDir, 'node_modules'))) {
             symlinkSync(srcNm, join(copyDir, 'node_modules'), 'dir');
@@ -12898,8 +12998,11 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
             ? attributeBaselineRedness(base.output, entries.map((entry) => entry.file))
             : undefined, baseOutputPath, baseOutputError);
         if (!baseline.ok) {
+            // fix-round 1 (MEDIUM finding 2): the `--json` path used to discard the scratch-copy skip
+            // observability entirely; it is now part of the structured verdict on every JSON exit,
+            // including this early baseline-failure return.
             if (json) {
-                write(JSON.stringify({ packageDir: pkgDir, registryPath, testCommand: testCmd, baseline, results, internalRetries, exitCode: 1 }, null, 2));
+                write(JSON.stringify({ packageDir: pkgDir, registryPath, testCommand: testCmd, baseline, results, internalRetries, scratchCopy: { skippedSpecialFiles, skippedRootDz: skippedDzRoot, vanished }, exitCode: 1 }, null, 2));
                 return 1;
             }
             write(renderMutationReport(results, baseline, pkgDir));
@@ -13101,7 +13204,11 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
     }
     const exitCode = mutationGateExitCode(results, baseline.ok);
     if (json) {
-        write(JSON.stringify({ packageDir: pkgDir, registryPath, testCommand: testCmd, rebaselineMode, baseline, results, summary: summarizeMutationResults(results), warnings, internalRetries, ...(selectionMeta !== null ? { selection: selectionMeta } : {}), exitCode }, null, 2));
+        // fix-round 1 (MEDIUM finding 2): `scratchCopy` carries the same skip observability the
+        // non-JSON path prints as text lines — special-file count/relative paths, whether the
+        // package-root `.dz/` store was excluded, and any vanished-during-copy entries — so a caller
+        // reading `--json` output is never blind to what the scratch copy silently dropped.
+        write(JSON.stringify({ packageDir: pkgDir, registryPath, testCommand: testCmd, rebaselineMode, baseline, results, summary: summarizeMutationResults(results), warnings, internalRetries, scratchCopy: { skippedSpecialFiles, skippedRootDz: skippedDzRoot, vanished }, ...(selectionMeta !== null ? { selection: selectionMeta } : {}), exitCode }, null, 2));
         return exitCode;
     }
     write(renderMutationReport(results, baseline, pkgDir));
@@ -13250,6 +13357,22 @@ function wfScriptedDispatcher(scriptPath, family) {
             };
             if (picked === undefined || picked === null)
                 return base;
+            // full-suite-flake-fixes-3 (lead delta after Codex round 2, HIGH-3): a scripted step may HOLD
+            // until a release file appears — the only way a test can pin a LIVE owner in place and then
+            // launch a second invocation against it deterministically (`run-locked`, never a race that
+            // happens to serialize). Test seam only (env-gated file); the cap turns a forgotten release
+            // into a loud dispatcher error instead of a hang.
+            if (typeof picked['holdUntilFile'] === 'string') {
+                const holdFile = picked['holdUntilFile'];
+                const rawCap = picked['holdCapMs'];
+                const capMs = typeof rawCap === 'number' && Number.isFinite(rawCap) && rawCap > 0 ? rawCap : 10_000;
+                const until = Date.now() + capMs;
+                while (!existsSync(holdFile)) {
+                    if (Date.now() >= until)
+                        throw new Error(`scripted dispatcher: holdUntilFile ${holdFile} did not appear within ${capMs} ms`);
+                    await new Promise((r) => setTimeout(r, 25));
+                }
+            }
             // a scripted step may ask the runner to CREATE its declared writes (the landed-barrier leg)
             if (picked['writes'] === true) {
                 for (const rel of req.expectedWrites) {
@@ -13262,7 +13385,10 @@ function wfScriptedDispatcher(scriptPath, family) {
                     writeFileSync(abs, `scripted write for ${req.stepId} attempt ${req.attempt}\n`);
                 }
             }
-            return { ...base, ...picked };
+            const cleaned = { ...picked };
+            delete cleaned['holdUntilFile'];
+            delete cleaned['holdCapMs'];
+            return { ...base, ...cleaned };
         },
     };
 }

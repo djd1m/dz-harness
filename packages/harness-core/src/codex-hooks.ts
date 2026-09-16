@@ -56,8 +56,20 @@ import { mergeManagedHookEntries } from './managed-hooks.js';
  * run was indistinguishable from a clean allow. The Claude hook already failed open loudly here.
  * Now it prints ONE line, `DZ-DESTRUCTIVE-WARN: classifier threw — <message>`, and still exits 0.
  * A changed body ⇒ re-trust.
+ * 8 — `codex-hook-root-provenance`: both hooks now share ONE `resolveHookRoot(payload)` instead of
+ * two copies of the same `payload.cwd || PWD || cwd()` ternary, and a silent `root === null` early
+ * return now prints one provenance line (`[dz-codex-<hook>] skipped reason=no-project-root
+ * start=<startDir> (<source>)`); the found-root path stays silent unless `DZ_CODEX_HOOK_DEBUG` is
+ * set. T1 (live probe, codex-cli 0.154.0) found `payload.cwd` always present and equal to `PWD`/
+ * `process.cwd()`, so no explicit-override knob was added. A changed body ⇒ re-trust.
+ * 9 — fix-round 1: the provenance line's interpolated paths are now escaped via
+ * `escapeControlChars` (C0 range + DEL) before printing, so a hostile `payload.cwd` cannot defeat
+ * the "ONE line" promise with an embedded newline; the corrected T1 re-run (both hook events
+ * captured separately, per-scenario — the original reproducer's `BASE` was never exported) reached
+ * the SAME conclusion, scoped honestly as "not observed on codex-cli 0.154.0 across 3 scenarios / 6
+ * captures", not "does not exist". A changed body ⇒ re-trust.
  */
-export const DZ_HOOK_HELPER_VERSION = 7;
+export const DZ_HOOK_HELPER_VERSION = 9;
 
 /** Seconds. Probe-proven (spike S2): `timeout` is honored, the unset default is 600 s. */
 export const DZ_HOOK_TIMEOUT_SECONDS = 5;

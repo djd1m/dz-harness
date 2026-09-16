@@ -607,6 +607,13 @@ instead of only ever checking the plain project path. The daemon also now prints
 (path N bytes)` and exits non-zero, never a silent "ready" for a socket that was never created
 (`APPLY_LEG_VERSION` bumped 3→4 for this and the resolver change).
 
+`probeApplyLeg` (and `probeHookLiveness` beneath it) now report **`groupKillAttempted`** — whether the
+liveness probe actually issued its process-group `SIGKILL` (attempted after EVERY probe outcome — timeout, exit, spawn error; ESRCH still counts as attempted) — as an OBSERVED field,
+set in the `finally` right after the kill attempt and present only on branches that reached a spawn.
+A test can therefore assert "the kill was attempted" separately from "the child is dead" instead of
+inferring the first from the source (feature `full-suite-flake-fixes-3`, Codex HIGH-1; the mutant
+that never reports the attempt is registry entry `probe-group-kill-attempted`).
+
 ### One recall engine for hook and CLI (`hook-recall-hybrid-parity`, ADR-001, `APPLY_LEG_VERSION` 4→5)
 
 The daemon's `op: recall` handler used to run its own brute-force cosine loop over the in-memory
@@ -677,9 +684,30 @@ find module` from a foreign session, swallowed by `2>/dev/null || true`.
 - **Limits, named plainly.** One store per install: from a foreign project's session the hook injects
   the INSTALL ROOT's lessons, not the session project's — that is the requested behavior (a
   per-project store alongside a user-level one is a separate feature). The Codex host's own hook
-  (`codex-hooks-assets.ts:232`/`:373`) resolves its root from `payload.cwd || PWD || cwd()` — the
-  SAME class of weakness — and is deliberately left unfixed here (named, not silently patched); see
-  that file's own comments and the project backlog.
+  (`codex-hooks-assets.ts:232`/`:373`) resolves its root from `payload.cwd || PWD || cwd()` via a
+  single shared `resolveHookRoot(payload)` and now NAMES a not-found root on stderr instead of a
+  silent early return (`codex-hook-root-provenance`, below); a live probe (T1, codex-cli 0.154.0,
+  re-run correctly in fix-round 1 — see that feature's own change manifest) found `payload.cwd`
+  always present and equal to `PWD`/`cwd()` across 3 scenarios / 6 captures, so no explicit-override
+  knob was added — a SCOPED finding, not a claim that no producer could ever send a different value.
+
+#### Codex hook root provenance (`codex-hook-root-provenance`)
+
+Both Codex hooks (`dz-codex-veto`, `dz-codex-recall`) share ONE `resolveHookRoot(payload)` instead of
+two copies of the `payload.cwd || PWD || cwd()` fallback, and a `root === null` early return now
+prints one line to stderr — `[dz-codex-<hook>] skipped reason=no-project-root start=<startDir>
+(<source>)` — so a hook that never found a project is distinguishable from one that is silently dead;
+a found root stays silent unless `DZ_CODEX_HOOK_DEBUG` is set. Interpolated paths are escaped (C0
+control range + DEL) before printing, so a hostile `cwd` cannot turn the "ONE line" promise into
+several — the tradeoff is that the line still discloses the absolute directory the hook was asked
+about (which can embed a username or a project name) to stderr, accepted because it is a diagnostic
+for the person running the hook, not a return value. A live probe (three real `codex exec` sessions —
+project root, a nested subdirectory, a directory with no `.dz` anywhere — each with BOTH hook events,
+`PreToolUse` and `UserPromptSubmit`, captured separately; corrected in fix-round 1 after the original
+reproducer's unexported `BASE` measured the wrong file) found `payload.cwd` always correct in every
+one of the 6 captures, so there is no `DZ_PROJECT_ROOT`-style override — stated as "not observed on
+codex-cli 0.154.0 across 3 scenarios / 6 captures", not as a claim that the "hook read the wrong
+project" class cannot exist elsewhere.
 
 ### Store write-generation counter (`store-generation-counter`, `agentdb-index.ts`/`vector-tier.ts`)
 
@@ -804,6 +832,16 @@ deeper.
   flake, not a correctness defect; the daemon's own `HOOK_RECALL_BUDGET_MS` is independently
   widenable, and `probeApplyLeg`'s `env` option exists for exactly this in tests. A real single
   `dz doctor`/`dz parity` invocation never contends with 100+ concurrent test files.
+- **Every probe beacon now carries an owner and a TTL (feature `apply-leg-daemon-hygiene`, FR-3).**
+  The pre-probe scavenger used to delete EVERY `apply-leg-probe`-domain record unconditionally,
+  which was safe against a probe killed mid-flight but WRONG the moment two probes from two
+  different sessions run against the same store concurrently — the second probe's scavenge could
+  delete the first probe's still-in-flight beacon, producing a false-red `dz doctor`/`dz parity`
+  parity check with no real defect behind it. Each beacon now embeds `probe-owner=<pid>:<startedMs>`
+  in its own text (no schema change), and `scavengeStaleProbeBeacons` (exported) removes ONLY a
+  beacon whose owner is dead (`process.kill(pid, 0)` ⇒ ESRCH) or older than 60 s — a live, in-budget
+  beacon from a different concurrent probe is left untouched. A scavenge failure is now a named fact
+  (`ApplyLegProbeResult.scavengeError`), never a swallowed exception.
 
 ## Run a plan without the Claude host
 
@@ -864,6 +902,15 @@ Four changes, each replacing a statement derived from configuration with one der
   it REPLACED the lexical one, and exact matches on rare identifiers vanished. The lexical top-1 now
   keeps a reserved seat (taken from the weakest non-`both` place, never from a hit both legs found),
   and ties break by evidence rather than by the id alphabet.
+- **Recall's ordering contract is score DESC → evidence → `dzId` ASC everywhere, via one exported
+  `compareHybridHits`** (`feature recall-parity-tie-break`) — `mergeHybridHits`, `dampQuarantined`,
+  and `enhance()`'s reinforcement/bandit re-rank (via `orderHitsForReRank`, its pre-sort) all share
+  it, and the comparator is total even for `NaN`/±Infinity keys (a `NaN` sorts deterministically
+  last, never a coincidental tie). The daemon's own `recall-hit` exposure write stays
+  fire-and-forget — awaiting it cost +55–131 ms per recall against a 500 ms hook budget without
+  fully closing the race anyway; parity between the daemon and `dz recall` is instead proven with a
+  byte-level store snapshot taken before the comparison, so no write can reach the read it's
+  compared against.
 - **`HybridRecall` carries `semanticCandidates` and `semanticRanked`** — what the engine returned and
   what actually entered the merge, so a caller can tell "the tier is empty" from "the tier returned
   only stale ids", which need different fixes.
@@ -1232,6 +1279,17 @@ had NO mutual exclusion, and only the 10-minute grace period above stood between
 
 ## Status
 
+`0.8.36` — this release (night 15→16.09). Three changes live in this package: `recallHybrid` orders equal-scoring
+hits through ONE comparator (score desc → evidence rank → `dzId` asc, NaN last), so the embed daemon and
+`dz recall` agree; the apply-leg test helpers prove a daemon stop by OBSERVING `/proc` until nothing serves the
+root and gate every SIGKILL on a freshly-read identity plus containment under the test root (three-valued —
+"could not read" is never "does not match"), while the probe beacon carries its own owner, raw start ticks and
+expiry; and both generated Codex hooks resolve the project root through one `resolveHookRoot`, with
+`reportRootProvenance` naming the source and start directory on stderr, silent on the success path and with
+control characters escaped. The environment override originally planned for the hooks was dropped after a live
+measurement showed the payload's `cwd` present and correct in all six captures (3 scenarios × 2 hook events,
+codex-cli 0.154.0).
+
 `dz guard check --op publish` now warns when either release line disagrees with the core/CLI package versions, and a registry-confirmed live core or CLI publish synchronizes the first such line in both release READMEs: each README is rewritten atomically; the pair is not one transaction (dry-run and bump-only never write them).
 
 `0.8.12` — **staged, not published.** The `/feature-adr` phase panel + per-phase ledger telemetry,
@@ -1516,6 +1574,46 @@ collapsed onto a single version, and an entry that went out in `0.7.5` was label
 comment claimed historical notes were safe; they were, except for the one release a fresh entry
 cites most — the one it supersedes. A backticked version opening a line before a dash is now treated
 as an entry and left alone; footers, badges, install examples and pins still move.
+
+**Feature publish-readme-stamp-scope (2026-09-15, fix-round 1 2026-09-15): the sync outside the
+changelog region is a real POSITIVE ALLOWLIST — not a denylist, and not a denylist that calls itself
+one.** MEASURED 2026-09-15: a live `dz publish --yes` rewrote five historical lines — a second `##
+Status` region's own changelog entry (`changelogRegion` protected only the FIRST run, so a `memory`
+README's later `0.2.21` entry sat bare) and four prose CITATIONS of the outgoing version as a past
+fact (`MEASURED on 0.8.25`, two `Previous release (vA / v0.8.25)` parentheticals, `on 0.8.10 and
+0.8.25 alike`). The FIRST fix (same day) replaced that with a denylist of exactly those three phrase
+shapes (`isCitationContext`) — narrower than the incident, but still a denylist: any FOURTH prose
+shape citing the outgoing version ("since X", "measured against X", "X behaviour", a bare "X" in a
+sentence) would have rewritten by default until someone thought to deny it too, and the README
+documented it as an "allowlist" while the code rewrote by default — a cross-model review caught both.
+`planReadmeVersionSync(text, old, new)` now inverts the default: outside a changelog region, a token
+rewrites ONLY when `isAllowlistedRewriteContext` recognises one of six shapes — the lock-step feature
+this sync exists for, and nothing beyond it:
+
+1. a release-line token — `` `harness-core vX` · `harness-cli vY` `` and any generalised
+   `` `<name> vX` `` on the same line, including a trailing `` · `memory vZ` `` segment
+   (`release-line.ts` `isReleaseLineToken`/`GENERIC_RELEASE_TOKEN_RE`, unchanged since the earlier fix).
+2. a current-release FOOTER prefix — `Status:`/`Version:`/`Current release:`/`Current status:`/
+   `Released as` (case-insensitive, optional leading `**`/`-`), POSITION-aware: only the token
+   immediately after the label is allowed, so a footer sentence that also cites an unrelated older
+   release later in the same line (`Current release: X. (Previous release (vA / vB) …)`) allows the
+   first token and still protects the second.
+3. an install/dependency-pin context — the token immediately follows `@` (`npm i
+   @dzhechkov/harness-core@X`), or sits in a JSON-pin shape `"<package-name>": "X"`.
+4. the `dz publish: tarball <name>@X sha256:…` example line.
+5. a `<!-- dz:version -->` marker on the line — forces the rewrite regardless of EVERY other
+   protection, including the changelog region (the author's explicit override, AC-3).
+6. a shields.io-style badge URL segment — `badge/npm-vX-…` / `badge/version-X-…`.
+
+Every OTHER shape — whatever prose it is written in, today or in the future — is HISTORY by default,
+the same as a changelog entry. `syncReadmeVersion` stays a thin, atomic-write wrapper around the
+plan, returning exactly what it always returned (the pre-sync text, or `undefined` when nothing
+moved) — every existing caller is byte-compatible. The plan itself is never silent, and locates BOTH
+sides of its report: `dz publish` prints `readme sync <pkg>: would rewrite N line(s) (L…); M version
+token(s) kept as history (L…)` on a dry run and `rewrote N line(s) …` on a live publish — attached on
+every publish path (the main live publish, `--bump-only`, and the packed-transport batch), and
+`--json` carries the same `readmeSync` summary (`rewrittenLines`, `lines`, `skippedHistorical`,
+`historyLines`) per package.
 
 Also: skill-enrichment ownership is anchored at the skill dir rather than searched across the whole
 absolute path, and enrichment is excluded from canonical SELECTION as well as from the destination

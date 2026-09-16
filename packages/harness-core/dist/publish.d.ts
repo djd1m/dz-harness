@@ -39,6 +39,21 @@ export interface PublishResult {
         readonly high: number;
     } | undefined;
     /**
+     * FR-3 (feature publish-readme-stamp-scope): a preview of what `planReadmeVersionSync` would do
+     * (dry-run) or already did (live) to this package's own README.md — never silent about the
+     * lock-step sync. `lines` are the 1-based line numbers actually rewritten; `skippedHistorical` is
+     * a TOKEN count (changelog-region entries + tokens outside every recognised ALLOWLIST shape), not
+     * a line count; `historyLines` names WHERE those kept-as-history tokens sit (fix-round 1, Codex
+     * HIGH: "history has only an aggregate count, not locations"). Absent when the package has no
+     * README.md, or on an 'error' result where the sync never ran/mattered.
+     */
+    readonly readmeSync?: {
+        readonly rewrittenLines: number;
+        readonly lines: readonly number[];
+        readonly skippedHistorical: number;
+        readonly historyLines: readonly number[];
+    } | undefined;
+    /**
      * DRY-RUN ONLY, and the reason it exists is a measured incident. A dry run short-circuits
      * BEFORE build, sign and pack (see the `opts.dryRun` branch below), so the package's own
      * `prepublishOnly` gate never executes. On 2026-09-02 a clean dry run was read as evidence that
@@ -218,15 +233,44 @@ export declare function orderByDependencies<T extends {
     name: string;
     dir: string;
 }>(pkgs: T[]): T[];
+/** One README line the sync touched: 1-based line number, and the line before/after the rewrite. */
+export interface ReadmeSyncRewrite {
+    readonly line: number;
+    readonly before: string;
+    readonly after: string;
+}
+/** The report `planReadmeVersionSync` returns — never silent about what it did and did not touch. */
+export interface ReadmeVersionSyncPlan {
+    readonly text: string;
+    readonly rewritten: readonly ReadmeSyncRewrite[];
+    /** Count of OLD-VERSION token OCCURRENCES left untouched as history (changelog region + every
+     *  token outside every recognised ALLOWLIST shape — FR-1). */
+    readonly skippedHistorical: number;
+    /** The 1-based line numbers carrying at least one of those kept-as-history tokens (fix-round 1,
+     *  Codex HIGH: "history has only an aggregate count, not locations; rewritten lines have
+     *  numbers"). Deduplicated and sorted ascending — a line with two skipped tokens appears once. */
+    readonly historyLines: readonly number[];
+}
 /**
- * Sync a package's own README to a freshly-bumped version: every exact occurrence of the OLD
- * version token (optionally `v`-prefixed, word-bounded) becomes the new one.
+ * Plan how a README's OLD-VERSION tokens would move to NEW-VERSION — a pure function, no I/O.
  *
- * This kills the perpetual footer off-by-one: publish bumps package.json DURING publishing, so a
- * hand-synced "vX.Y.Z" status line was always one release behind on npmjs.com (or required
- * pre-setting the future version by hand). Exact-old-token matching keeps every other version
- * string (dependency pins, historical notes, examples citing other releases) untouched.
- * Returns the pre-sync README text for failure restore, or undefined when nothing was rewritten.
+ * FR-1 (allowlist, not denylist). Outside a changelog region (FR-2: EVERY entry-shaped run, not
+ * only the first — see `changelogRegion`), a token rewrites ONLY when `isAllowlistedRewriteContext`
+ * recognises its shape; every other token — historical prose of ANY form — is left untouched by
+ * default. A `<!-- dz:version -->` marker on the line forces the rewrite regardless of either
+ * protection (AC-3).
+ *
+ * FR-3 (never silent): every rewritten line is reported with its line number and before/after text;
+ * every token left untouched as history is counted AND located, whether the reason was the
+ * changelog region or simply not matching any allowlist shape.
+ */
+export declare function planReadmeVersionSync(text: string, oldVersion: string, newVersion: string): ReadmeVersionSyncPlan;
+/**
+ * Sync a package's own README to a freshly-bumped version — a thin, atomic-write wrapper around
+ * `planReadmeVersionSync`. Returns the pre-sync README text for failure restore, or undefined when
+ * nothing was rewritten (same contract as before this function grew a real plan underneath it —
+ * `dz publish`'s report reads the plan via `planReadmeVersionSync` directly; this wrapper's return
+ * value stays exactly what its callers already depend on).
  *
  * Bootstrap invariant: exact-token matching MAINTAINS sync but cannot REPAIR pre-existing drift
  * (a footer already one release behind contains a token != oldVersion and is skipped). Bring the
@@ -263,6 +307,14 @@ export declare function isChangelogEntryLine(line: string, version: string): boo
  * The region ENDS at the next heading rather than at end-of-file on purpose: two of these READMEs
  * carry ordinary sections after Status, and over-protecting them would silently stop the lock-step
  * sync where it is still wanted.
+ *
+ * MEASURED 2026-09-15 (00_complexity_assessment.md, feature publish-readme-stamp-scope): this
+ * function protected only the FIRST such run. A second `## Status` heading further down the SAME
+ * README opens a SECOND entry-shaped run (`memory` 0.2.21/0.2.22 sat under a later `## Status`,
+ * after an earlier `0.1.0` entry whose region had already ended) — and that second run was bare,
+ * so its entries got relabelled by the next bump exactly like the 2026-08-25 incident this function
+ * was written to stop. FR-2: EVERY entry-shaped run in the document is protected, not only the
+ * first — the scan restarts after each run ends instead of stopping there.
  */
 export declare function changelogRegion(lines: readonly string[]): Set<number>;
 /** Publish packages that have changes since last publish. */

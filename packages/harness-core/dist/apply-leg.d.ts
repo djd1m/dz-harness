@@ -364,7 +364,45 @@ export interface ApplyLegProbeResult {
      * reason=…` stderr line when present, else a best-effort description of what went wrong. */
     readonly reason?: string;
     readonly elapsedMs: number;
+    /** Fix round 1 (HIGH-1): the KILL-ATTEMPT fact, straight from `probeHookLiveness`'s own
+     * `groupKillAttempted` — present only on the branches that actually reached a spawn (absent for the
+     * early "not installed" / "no hook configured" / "legacy command" / "beacon write failed"
+     * returns, none of which ever call `probeHookLiveness`). This is deliberately a DIFFERENT fact
+     * from "is the grandchild still alive" — a caller observes both separately, never conflates them. */
+    readonly groupKillAttempted?: boolean;
+    /** FR-3 (feature `apply-leg-daemon-hygiene`): present exactly when the pre-probe scavenge of
+     * STALE beacon-domain records failed — the reason comes straight from {@link
+     * scavengeStaleProbeBeacons}'s own `error`, never swallowed. Independent of `ok`/`reason`: a
+     * scavenge failure does not itself flip `ok` to `false` (the probe's own injection result may
+     * still be perfectly genuine), but it IS a fact `dz doctor`/`dz parity` callers can surface
+     * rather than lose. */
+    readonly scavengeError?: string;
 }
+/** {@link scavengeStaleProbeBeacons}'s result — FR-3: a scavenge error is a FACT the caller can
+ * surface, never a swallowed exception (the pre-fix `catch { /* best-effort *\/ }` this replaces). */
+export type ScavengeResult = {
+    readonly ok: true;
+    readonly removed: number;
+} | {
+    readonly ok: false;
+    readonly error: string;
+};
+/**
+ * FR-3/FR-4: remove only the STALE beacon-domain records in `root`'s store — owner dead
+ * (`process.kill(pid, 0)` ⇒ ESRCH), older than `ttlMs`, OR (fix round 1, HIGH-6 residual) alive AND
+ * within `ttlMs` but the live pid's OWN `/proc/<pid>/stat` start time no longer matches the beacon's
+ * `proc-start=` tag — a confirmed PID-reuse case, where the recorded owner is provably gone even
+ * though `pid` itself answers. An UNREADABLE stat at scavenge time never counts as reuse evidence —
+ * it falls back to the plain alive+TTL verdict, per the lead's "cannot prove ⇒ do not remove"
+ * decision. A beacon whose owner is alive, within TTL, and (when provable) confirmed the SAME
+ * process is left untouched, even though it belongs to a different probe. An ownerless (pre-FR-3)
+ * beacon is always treated as stale. `ttlMs` defaults to {@link PROBE_BEACON_TTL_FLOOR_MS} for a
+ * caller that does not derive one (`apply-leg-beacon-owner.test.ts`'s own fixtures); `probeApplyLeg`
+ * always passes its own derived value. Exported so `apply-leg-beacon-owner.test.ts` can exercise the
+ * property directly, without needing a live hook/daemon (FR-4's red-first case needs only a store
+ * and an injectable remover, never a real probe round-trip).
+ */
+export declare function scavengeStaleProbeBeacons(root: string, removeBeacon: (root: string, ids: ReadonlySet<string>) => RemovePatternsResult, ttlMs?: number): ScavengeResult;
 /**
  * Live, end-to-end proof that the apply leg actually injects — ADR-001 Decision 1. `applyLegStatus`
  * only proves FILES exist and are STRUCTURALLY wired (issue #2's whole defect: four green checks,

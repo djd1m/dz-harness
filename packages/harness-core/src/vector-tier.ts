@@ -1159,12 +1159,86 @@ export interface RankedPattern {
 const RRF_K = 60;
 
 /**
+ * One entry in the total order every post-merge ranking step shares (feature
+ * `recall-parity-tie-break`, FR-1). `evidence` is the SAME three-way rank `mergeHybridHits` has
+ * always used (`both` < lexical-only < semantic-only — lower is stronger), computed once by
+ * {@link evidenceRank} from a hit's `backend`.
+ */
+export interface HybridOrderKey {
+  readonly score: number;
+  readonly evidence: number;
+  readonly dzId: string;
+}
+
+/** `both` outranks lexical-only outranks semantic-only (mergeHybridHits' own rule, ADR-001 AM-4). */
+export function evidenceRank(backend: RecallHit['backend']): number {
+  return backend === 'both' ? 0 : backend === 'vector' ? 2 : 1;
+}
+
+/**
+ * The ONE deterministic total order recall uses at every step where a tie can occur: fused score
+ * DESC, then EVIDENCE (both > lexical-only > semantic-only), then `dzId` ASC. `mergeHybridHits`
+ * always applied exactly this rule inline; it is exported here (FR-1) so `dampQuarantined`,
+ * `orderHitsForReRank` (the pre-sort `enhance()` runs before its reinforcement/bandit re-rank) and
+ * any other post-merge sort can share the SAME tiebreak instead of an ad hoc score-only comparator
+ * that is deterministic only because its input already arrived pre-ordered — a property that
+ * silently breaks the moment an upstream step feeds it hits in a different order
+ * (recall-parity-tie-break T0: MEASURED, `apply-leg-recall-parity.test.ts` AM-4, a racy
+ * reinforcement-signal read, not a comparator defect, actually explained the observed tail swap —
+ * this comparator is hardening kept from that round; the actual causal fix, per fix-round 1, is the
+ * byte-level store snapshot AM-4 now takes, not this comparator and not an awaited flush).
+ *
+ * FINITE-NUMBER INVARIANT (fix-round 1, LOW finding): plain subtraction (`b.score - a.score`) is
+ * NOT total over `number` — `NaN - x` is `NaN`, and the `||` chain treats a `NaN` term as falsy,
+ * silently SKIPPING it and falling through to the next key as if score had never been compared.
+ * Both terms below use explicit `>`/`<` comparisons instead (correct as-is for ±Infinity — IEEE 754
+ * orders infinities correctly) plus an explicit NaN case: a `NaN` score or evidence is the WEAKEST
+ * possible value on its own axis, so it sorts deterministically LAST, never a coincidental tie.
+ */
+function compareScoreDesc(a: number, b: number): number {
+  if (Number.isNaN(a) || Number.isNaN(b)) return Number.isNaN(a) && Number.isNaN(b) ? 0 : Number.isNaN(a) ? 1 : -1;
+  return a > b ? -1 : a < b ? 1 : 0;
+}
+function compareEvidenceAsc(a: number, b: number): number {
+  if (Number.isNaN(a) || Number.isNaN(b)) return Number.isNaN(a) && Number.isNaN(b) ? 0 : Number.isNaN(a) ? 1 : -1;
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+export function compareHybridHits(a: HybridOrderKey, b: HybridOrderKey): number {
+  return compareScoreDesc(a.score, b.score)
+    || compareEvidenceAsc(a.evidence, b.evidence)
+    || (a.dzId < b.dzId ? -1 : a.dzId > b.dzId ? 1 : 0);
+}
+
+/**
+ * Sorts `hits` into the shared total order {@link compareHybridHits} defines — used by `enhance()`
+ * BEFORE its reinforcement/bandit re-rank runs (`applyLearningSignalsWithTerms` et al.,
+ * `learning-backend.ts`, out of this fix's edit scope). That re-rank sorts by an ADJUSTED score
+ * with a STABLE tie-break on each hit's ORIGINAL array position — so pre-ordering the input here
+ * makes any tie in the adjusted score resolve in the SAME evidence/dzId order `compareHybridHits`
+ * would give directly, without touching the re-rank's own internals.
+ *
+ * This closes the ordering gap `enhance()` had (recall-parity-tie-break fix-round 1, HIGH finding):
+ * `dampQuarantined` only ran {@link compareHybridHits} when `memory.learning.quarantine` was ON;
+ * with it OFF (the default), `enhance()`'s final order was whatever the re-rank's own
+ * original-index tie-break happened to preserve — invisible from the printed `score` column,
+ * because the re-rank reorders the hit array but never rewrites `.score`. Real (non-tied) score
+ * differences from reinforcement/bandit re-ranking are UNCHANGED by this — it only decides ties.
+ */
+export function orderHitsForReRank(hits: readonly HybridHit[], idOf: (p: PatternRecord) => string): HybridHit[] {
+  return [...hits].sort((a, b) => compareHybridHits(
+    { score: a.score, evidence: evidenceRank(a.backend), dzId: idOf(a.pattern) },
+    { score: b.score, evidence: evidenceRank(b.backend), dzId: idOf(b.pattern) },
+  ));
+}
+
+/**
  * Reciprocal Rank Fusion merge: `score(p) = Σ 1/(60 + rank)` over the lists containing `p`
  * (semantic ranks weighted by `semanticWeight`). Dedup by id; `backend: 'both'` when a pattern
  *
- * Ordering: fused score, then EVIDENCE (`both` before lexical-only before semantic-only), then id.
- * When `semanticWeight > 1` the lexical top-1 is guaranteed a place in the result, taken from the
- * last seat unless that seat holds a `both` hit. See `features/semantic-keeps-exact-hits`.
+ * Ordering: fused score, then EVIDENCE (`both` before lexical-only before semantic-only), then id
+ * — {@link compareHybridHits}. When `semanticWeight > 1` the lexical top-1 is guaranteed a place in
+ * the result, taken from the last seat unless that seat holds a `both` hit. See
+ * `features/semantic-keeps-exact-hits`.
  *
  * appears in both lists. DETERMINISTIC (AC-6): ties break on id, so fixed inputs always yield
  * the same ordering. Pure — no I/O.
@@ -1196,12 +1270,14 @@ export function mergeHybridHits(
   });
   // Ties break by EVIDENCE, not by the id alphabet: a hit both legs found outranks one only a single
   // leg found. Before this, an exact-term match lost a tie to an arbitrary semantic hit purely
-  // because its id sorted later (ADR-001 AM-4).
-  const evidence = (v: Acc): number => (v.lex !== undefined && v.sem ? 0 : v.lex !== undefined ? 1 : 2);
+  // because its id sorted later (ADR-001 AM-4). Now routed through the shared {@link
+  // compareHybridHits} (FR-1) — same three-part rule, no behaviour change.
+  const evidenceOfAcc = (v: Acc): number => evidenceRank(v.lex !== undefined && v.sem ? 'both' : v.lex ?? 'vector');
   const ordered = [...acc.entries()]
-    .sort((a, b) => b[1].score - a[1].score
-      || evidence(a[1]) - evidence(b[1])
-      || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+    .sort((a, b) => compareHybridHits(
+      { score: a[1].score, evidence: evidenceOfAcc(a[1]), dzId: a[0] },
+      { score: b[1].score, evidence: evidenceOfAcc(b[1]), dzId: b[0] },
+    ));
   const toHit = ([, v]: [string, Acc]): HybridHit => ({
     pattern: v.pattern,
     backend: v.lex !== undefined && v.sem ? ('both' as const) : v.lex ?? ('vector' as const),
@@ -1256,6 +1332,27 @@ export function mergeHybridHits(
  *
  * `bandit` is passed ONLY when `memory.learning.banditRerank` is armed; when it is absent this
  * function is byte-identical to its pre-feature self — no state file, no lock, no allocation.
+ *
+ * `backend.train()` fires FIRE-AND-FORGET (`void backend.train().catch(() => undefined)`) — this is
+ * a REVERT (recall-parity-tie-break, fix-round 1, MEDIUM finding). An intermediate version of this
+ * fix AWAITED the flush, on the theory that a caller's own reinforcement write landing before it got
+ * an answer would remove the race `apply-leg-recall-parity.test.ts` AM-4 was catching (two tail hits
+ * swapping order between the daemon's `op:recall` reply and a `dz recall --json` invoked a moment
+ * later — MEASURED byte-identical `score` fields, only `uses` differed, so the merge/comparator was
+ * never the cause). MEASURED (lead, 2026-09-15 15:57, temp project, 8 lexical hits, 5 warm runs):
+ * `recallHybrid` took 2 ms with `onRecallHits:false` (no flush at all) vs 57–131 ms with the flush
+ * AWAITED — landing INSIDE the hook's 500 ms `HOOK_RECALL_BUDGET_MS` but a real, avoidable tax on
+ * every recall, for a property the await did not even fully deliver: the awaited write still let a
+ * CLI invoked immediately after the daemon see the DAEMON'S OWN just-computed exposure for that same
+ * query, answering a subtly different question than the daemon had. AM-4 now proves parity by taking
+ * a byte-level SNAPSHOT of the store BEFORE each query's daemon call and pointing `dz recall --json`
+ * at the frozen snapshot (`--project <snapshot>`) — both sides then answer the identical question
+ * from the identical state under PRODUCTION defaults (`onRecallHits` ON), and no write, awaited or
+ * not, can reach the CLI's read. That snapshot is what actually closes the race; this function stays
+ * fire-and-forget, exactly as it always was, because the snapshot makes its timing irrelevant to the
+ * test. `test/lesson-bandit-byte-identity.test.ts` documents the same underlying race in its own
+ * fixture comment and works around it with `onRecallHits: false` there — a narrower, still-valid
+ * isolation for a different test's needs.
  */
 function markRecallHits(
   projectRoot: string,
@@ -1356,7 +1453,15 @@ export async function recallHybrid(
         const q = rec !== undefined && readQuarantineState(rec).quarantined;
         return q ? { ...h, score: h.score * memCfg.quarantineDamp, quarantined: true as const } : h;
       })
-      .sort((a, b) => b.score - a.score);
+      // FR-1 (recall-parity-tie-break): score-only used to rely on the INCOMING array already
+      // being pre-ordered (native Array.sort is stable, so a genuine tie only stayed put by
+      // accident of arrival order). Routed through the same {@link compareHybridHits} the merge
+      // uses, so damping two equally-scored hits can never reorder them differently from how the
+      // merge itself would have.
+      .sort((a, b) => compareHybridHits(
+        { score: a.score, evidence: evidenceRank(a.backend), dzId: idOf(a.pattern) },
+        { score: b.score, evidence: evidenceRank(b.backend), dzId: idOf(b.pattern) },
+      ));
   };
   // lesson-bandit-rerank (ADR-001): the payoff axis. Resolved ONCE per recall; `enabled:false` ⇒
   // the Lesson Payoff context is NEVER CONSTRUCTED — the branch is taken BEFORE any work, so the
@@ -1366,7 +1471,15 @@ export async function recallHybrid(
   let banditReport: BanditRecallReport | undefined;
   let banditExplored: readonly string[] = [];
   const enhance = (hits: readonly HybridHit[]): HybridHit[] => {
-    const candidates = hits.map((h) => {
+    // FR-1 (recall-parity-tie-break, fix-round 1, HIGH finding): pre-sort into the shared total
+    // order BEFORE the reinforcement/bandit re-rank runs — see {@link orderHitsForReRank}.
+    // Why the pre-sort is sufficient and not "reliance on a stable sort" (Codex round 2): the
+    // re-rank's own sort in learning-backend.ts is `b.adjusted - a.adjusted || a.i - b.i` — an
+    // EXPLICIT tie-break on the incoming index, so an adjusted-score tie resolves to exactly the
+    // order built here (score → evidence → dzId), by construction, on any engine. That generic
+    // function only knows `score`, so it cannot call compareHybridHits itself.
+    const ordered = orderHitsForReRank(hits, idOf);
+    const candidates = ordered.map((h) => {
       const dzId = idOf(h.pattern);
       const rec = idToRecord.get(dzId);
       return { dzId, score: h.score, reinforcement: rec !== undefined ? readReinforcementState(rec) : undefined };
@@ -1392,8 +1505,8 @@ export async function recallHybrid(
         ? []
         : [{ id: 'delta', byIndex: candidates.map((c) => deltaMap.get(c.dzId) ?? 0), cap: REINFORCE_RRF_CAP }];
       // The SAME ranking without the payoff term — the only honest way to say what the term moved.
-      const before = dampQuarantined(applyLearningSignalsWithTerms(hits, learning, candidates, REINFORCE_RRF_CAP, baseTerms));
-      const after = dampQuarantined(applyLearningSignalsWithTerms(hits, learning, candidates, REINFORCE_RRF_CAP, [
+      const before = dampQuarantined(applyLearningSignalsWithTerms(ordered, learning, candidates, REINFORCE_RRF_CAP, baseTerms));
+      const after = dampQuarantined(applyLearningSignalsWithTerms(ordered, learning, candidates, REINFORCE_RRF_CAP, [
         ...baseTerms,
         // ADDED, never assigned, and pre-bounded to [-1,+1] by the ACL — so `squash` is identity and
         // `cap` is an EXACT bound on this term's contribution (INV-4).
@@ -1423,9 +1536,9 @@ export async function recallHybrid(
     }
     if (deltaMap !== undefined) {
       const deltaByIndex = candidates.map((c) => deltaMap.get(c.dzId) ?? 0);
-      return dampQuarantined(applyLearningSignalsWithDelta(hits, learning, candidates, REINFORCE_RRF_CAP, deltaByIndex, REINFORCE_RRF_CAP));
+      return dampQuarantined(applyLearningSignalsWithDelta(ordered, learning, candidates, REINFORCE_RRF_CAP, deltaByIndex, REINFORCE_RRF_CAP));
     }
-    return dampQuarantined(applyLearningSignals(hits, learning, candidates, REINFORCE_RRF_CAP));
+    return dampQuarantined(applyLearningSignals(ordered, learning, candidates, REINFORCE_RRF_CAP));
   };
   /** The exposure/telemetry payload for `markRecallHits` — `undefined` while disarmed (INV-1). */
   const banditEmission = (): { readonly contextKey: string; readonly explored: readonly string[]; readonly moved: number; readonly arms: number; readonly deferred?: boolean } | undefined =>

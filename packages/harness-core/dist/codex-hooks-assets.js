@@ -139,6 +139,66 @@ function findProjectRoot(startDir) {
   }
 }
 
+/**
+ * FR-1 (codex-hook-root-provenance): the ONE place both hooks compute their start directory and
+ * walk to a project root — replacing two independent copies of the same ternary. T1 (fix-round 1:
+ * the original reproducer had an unexported \`BASE\`, so it measured the wrong file; corrected and
+ * re-run — see the feature's change manifest for both) measured LIVE on \`codex-cli 0.154.0\`: three
+ * real \`codex exec\` sessions (project root, a nested subdirectory, a directory with no \`.dz\`
+ * anywhere in its ancestry), each with BOTH hook events (\`PreToolUse\` and \`UserPromptSubmit\`)
+ * captured SEPARATELY. \`payload.cwd\` was present and equal to both \`PWD\` and the hook's own
+ * \`process.cwd()\` in every one of the 6 captures. \`PWD\`/\`process.cwd()\` therefore stay only as a
+ * DEFENSIVE fallback for a payload shaped without \`cwd\` — not because that fallback was ever
+ * observed to fire. This is a SCOPED finding, not a claim that the "hook read the wrong project"
+ * defect class cannot exist: it was not observed on codex-cli 0.154.0 across these 3 scenarios / 6
+ * captures, and 01_requirements.md's own Ограничение C-3 is what permits cutting FR-3 (the explicit
+ * \`DZ_PROJECT_ROOT\` override) on a scoped finding like that — not a claim of nonexistence.
+ */
+function resolveHookRoot(payload) {
+  const hasPayloadCwd = typeof payload.cwd === 'string' && payload.cwd !== '';
+  const startDir = hasPayloadCwd ? payload.cwd : (process.env.PWD || process.cwd());
+  const source = hasPayloadCwd ? 'payload-cwd' : (process.env.PWD ? 'env-pwd' : 'process-cwd');
+  return { root: findProjectRoot(startDir), source, startDir };
+}
+
+/**
+ * Fix-round 1, item 4: a path interpolated into the provenance line below can itself carry control
+ * characters — a \`payload.cwd\` from an untrusted producer, or a \`PWD\` set to something hostile —
+ * and a bare newline in the middle of it would defeat the "ONE line" promise the diagnostic makes.
+ * Escape the whole C0 range (0x00-0x1F) plus DEL (0x7F) into a visible \`\\n\`/\\r\`/\\t\`/\\xHH\`
+ * representation; every other byte, including non-ASCII path segments, passes through unchanged.
+ */
+function escapeControlChars(value) {
+  return String(value).replace(/[\\x00-\\x1f\\x7f]/g, function (ch) {
+    var code = ch.charCodeAt(0);
+    if (code === 10) return '\\\\n';
+    if (code === 13) return '\\\\r';
+    if (code === 9) return '\\\\t';
+    return '\\\\x' + code.toString(16).padStart(2, '0');
+  });
+}
+
+/**
+ * FR-2: ONE provenance line, same shape as the Claude hook's (\`apply-leg.ts\`'s \`skip()\`), printed
+ * to stderr. When no root was found it ALWAYS prints (the walk's whole verdict was silent before
+ * this feature); when a root WAS found it prints only under \`DZ_CODEX_HOOK_DEBUG\`, so the found
+ * path stays byte-for-byte silent by default (NFR-2). Tradeoff, named plainly: this line discloses
+ * the absolute directory the hook was asked about (which can embed a username, a customer or
+ * repository name) to stderr — accepted because it is a diagnostic aimed at the person running the
+ * hook, not a return value, and redacting it would make the not-found case as silent as the bug
+ * this feature exists to fix. \`startDir\`/\`root\` are escaped via \`escapeControlChars\` first, so an
+ * adversarial value cannot itself defeat the "ONE line" guarantee.
+ */
+function reportRootProvenance(resolved) {
+  if (resolved.root === null) {
+    process.stderr.write(\`[\${HELPER}] skipped reason=no-project-root start=\${escapeControlChars(resolved.startDir)} (\${resolved.source})\\n\`);
+    return;
+  }
+  if (process.env.DZ_CODEX_HOOK_DEBUG) {
+    process.stderr.write(\`[\${HELPER}] root=\${escapeControlChars(resolved.root)} start=\${escapeControlChars(resolved.startDir)} (\${resolved.source})\\n\`);
+  }
+}
+
 function readProjectConfig(root) {
   try {
     return JSON.parse(fs.readFileSync(path.join(root, '.dz', 'config.json'), 'utf8'));
@@ -226,9 +286,10 @@ async function main() {
   const command = input && typeof input === 'object' ? input.command : undefined;
   if (typeof command !== 'string' || command === '') return 0;
 
-  const cwd = typeof payload.cwd === 'string' && payload.cwd !== '' ? payload.cwd : process.env.PWD || process.cwd();
-  const root = findProjectRoot(cwd);
-  if (root === null) return 0; // inert outside an opted-in dz project: no decision, no output, no write
+  const resolved = resolveHookRoot(payload);
+  reportRootProvenance(resolved);
+  const root = resolved.root;
+  if (root === null) return 0; // inert outside an opted-in dz project: no DECISION and no WRITE — one diagnostic line on stderr (FR-2), nothing else
 
   // (1) The destructive-command guard. Never blocks on our own failure: an absent module, a throw,
   // or an \`undecidable\` verdict all fall through to the shell veto below (AC-10).
@@ -366,8 +427,9 @@ async function main() {
   const prompt = typeof payload.prompt === 'string' ? payload.prompt : '';
   if (prompt.trim() === '') return;
 
-  const cwd = typeof payload.cwd === 'string' && payload.cwd !== '' ? payload.cwd : process.env.PWD || process.cwd();
-  const root = findProjectRoot(cwd);
+  const resolved = resolveHookRoot(payload);
+  reportRootProvenance(resolved);
+  const root = resolved.root;
   if (root === null) return; // inert outside an opted-in dz project
 
   const policy = await loadCore(root, 'recall-hook-policy.js', (m) => typeof m.selectHookHits === 'function');

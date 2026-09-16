@@ -203,6 +203,9 @@ export {
   mirrorPatternsToVector,
   backfillVectorMirror,
   mergeHybridHits,
+  compareHybridHits,
+  evidenceRank,
+  orderHitsForReRank,
   recallHybrid,
   teachGuard,
   vectorTierStatus,
@@ -224,6 +227,7 @@ export type {
   HybridRecall,
   HybridRecallMode,
   HybridHit,
+  HybridOrderKey,
   RankedPattern,
   VectorServiceOptions,
   VectorTierStatus,
@@ -730,7 +734,8 @@ export type {
   ChainDefectAges,
   ChainedJournal,
 } from './event-chain.js';
-export { decideProvenance, environmentCanMintProvenance, publishArgv, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, rewriteWorkspaceSpecs, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion } from './publish.js';
+export { decideProvenance, environmentCanMintProvenance, publishArgv, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, rewriteWorkspaceSpecs, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion, planReadmeVersionSync } from './publish.js';
+export type { ReadmeVersionSyncPlan, ReadmeSyncRewrite } from './publish.js';
 export { RELEASE_LINE_RE, findReleaseLine, rewriteReleaseLine } from './release-line.js';
 export * from './course-staleness.js';
 export { fetchAllDownloads } from './downloads.js';
