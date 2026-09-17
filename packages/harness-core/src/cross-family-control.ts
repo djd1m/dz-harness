@@ -579,10 +579,47 @@ export function buildControlRow(input: BuildControlRowInput): BuildControlRowRes
   };
 }
 
+/**
+ * experiment-instrument FR-4/A6 (ADR-001): a `stage:'control'` row `dz control-review` writes when
+ * the run REFUSED before producing a diff — the failure-leaves-a-row half of the ADR's safety
+ * property. Distinguished from {@link ControlLedgerRow} by `outcome:'refused'`, which a successful
+ * row never carries; the two schemas share nothing else structurally on purpose — a refused run has
+ * no diff, no tree hashes, no grades to validate.
+ */
+export interface ControlRefusedRow {
+  readonly slug: string;
+  readonly stage: 'control';
+  readonly outcome: 'refused';
+  /** Which half was responsible: the claude review, the codex review, or neither (a setup/tree/
+   *  aggregation failure that belongs to neither half specifically). */
+  readonly half: 'claude' | 'codex' | 'setup';
+  readonly reason: string;
+  readonly runId: string;
+  /** Known only when the coder family was determined before the refusal — absent for the earliest
+   *  failures (the claude half itself failing before it can report which family it reviewed). When
+   *  present, the SAME `bucket(coderFamily, reviewerOfInterest)` a successful control row uses. */
+  readonly coderFamily?: 'codex' | 'claude';
+  readonly minutes: number | null;
+}
+
+function isValidControlRefusedRow(obj: Record<string, unknown>): boolean {
+  if (typeof obj['slug'] !== 'string' || obj['slug'].trim() === '') return false;
+  if (typeof obj['runId'] !== 'string' || obj['runId'].trim() === '') return false;
+  if (obj['half'] !== 'claude' && obj['half'] !== 'codex' && obj['half'] !== 'setup') return false;
+  if (typeof obj['reason'] !== 'string' || obj['reason'].trim() === '') return false;
+  if (!(obj['minutes'] === null || (typeof obj['minutes'] === 'number' && Number.isFinite(obj['minutes'])))) return false;
+  if (obj['coderFamily'] !== undefined && obj['coderFamily'] !== 'codex' && obj['coderFamily'] !== 'claude') return false;
+  return true;
+}
+
 /* ── D5: reading the ledger back (FR-7; A8) ──────────────────────────────────────────────────── */
 
 export interface ParsedControlRows {
   readonly rows: readonly ControlLedgerRow[];
+  /** experiment-instrument FR-4/A6: `stage:'control'` rows with `outcome:'refused'` — a run that
+   *  never produced a diff. Schema-validated (`isValidControlRefusedRow`) the same way `rows` is;
+   *  one that fails validation is `unreadable`, same as a malformed successful row. */
+  readonly refusedRows: readonly ControlRefusedRow[];
   readonly roundRows: readonly Record<string, unknown>[];
   readonly fullRows: readonly Record<string, unknown>[];
   /** A8: a line that is not parseable JSON, or parses to something that is not a plain object, or
@@ -678,6 +715,7 @@ function isValidControlRow(obj: Record<string, unknown>): boolean {
  */
 export function parseControlRows(lines: readonly string[]): ParsedControlRows {
   const rows: ControlLedgerRow[] = [];
+  const refusedRows: ControlRefusedRow[] = [];
   const roundRows: Record<string, unknown>[] = [];
   const fullRows: Record<string, unknown>[] = [];
   let unreadable = 0;
@@ -698,6 +736,17 @@ export function parseControlRows(lines: readonly string[]): ParsedControlRows {
     const obj = parsed as Record<string, unknown>;
     const stage = obj['stage'];
     if (stage === 'control') {
+      // experiment-instrument FR-4/A6: `outcome:'refused'` is a DIFFERENT schema from a successful
+      // control row — checked FIRST, so a refused row is never mistaken for a malformed successful
+      // one (which would count it `unreadable`, losing exactly the receipt this feature adds).
+      if (obj['outcome'] === 'refused') {
+        if (!isValidControlRefusedRow(obj)) {
+          unreadable++;
+          continue;
+        }
+        refusedRows.push(obj as unknown as ControlRefusedRow);
+        continue;
+      }
       if (!isValidControlRow(obj)) {
         unreadable++;
         continue;
@@ -711,7 +760,7 @@ export function parseControlRows(lines: readonly string[]): ParsedControlRows {
     // Every other stage (plan/impl/fix/loop-run/round-exec/…) and the header/comment row (no
     // string `stage`) are readable, just not addressed by this module.
   }
-  return { rows, roundRows, fullRows, unreadable };
+  return { rows, refusedRows, roundRows, fullRows, unreadable };
 }
 
 /* ── D6: the per-family-pair aggregate (FR-7; A6, A8) ────────────────────────────────────────── */
@@ -769,6 +818,10 @@ export interface FamilyPairAggregate {
   readonly refutedShare: { readonly n: number; readonly value: number | 'unknown' };
   readonly costPerConfirmed: { readonly n: number; readonly value: number | 'unknown' };
   readonly draftToShipped: ReadonlyArray<{ readonly slug: string; readonly first: string; readonly final: string; readonly finals: number }>;
+  /** experiment-instrument FR-4/A6: `stage:'control'` rows refused for THIS pair (attributed by a
+   *  known `coderFamily` on the refused row) — a real cost line (the run was attempted and failed),
+   *  never counted in `n` (which measures completed reviews). */
+  readonly refusedRuns: number;
 }
 
 export interface FamilyAggregate {
@@ -781,6 +834,11 @@ export interface FamilyAggregate {
   /** A6: the raw count of `stage:'control'` rows folded in — `0` means every `foreignUnique`
    *  figure below is a true, honestly-printed absence, not a fabricated non-observation. */
   readonly controlRows: number;
+  /** experiment-instrument FR-4/A6: EVERY `stage:'control'` refused row seen, attributed or not —
+   *  the total accounting figure `refusedRuns` (per pair) can never exceed, and the gap between the
+   *  sum of per-pair `refusedRuns` and this total is exactly how many refusals had no determinable
+   *  coderFamily (the earliest failures — printed here rather than silently dropped). */
+  readonly refusedControlRows: number;
 }
 
 interface MutablePair {
@@ -801,13 +859,14 @@ interface MutablePair {
   costN: number;
   costSum: number;
   drafts: Array<{ slug: string; first: string; final: string; finals: number }>;
+  refusedRuns: number;
 }
 
 function newPair(): MutablePair {
   return {
     n: 0, grades: {}, shipped: 0, shippedTotal: 0, fixRoundsList: [],
     foreignN: 0, foreignBySeverity: {}, foreignAuto: 0, foreignAdjudicated: 0, foreignAutoRuns: 0, foreignAdjudicatedRuns: 0, foreignIncomplete: 0,
-    refutedN: 0, refutedSum: 0, costN: 0, costSum: 0, drafts: [],
+    refutedN: 0, refutedSum: 0, costN: 0, costSum: 0, drafts: [], refusedRuns: 0,
   };
 }
 
@@ -886,6 +945,18 @@ export function aggregateByFamily(
     else { b.foreignAutoRuns++; b.foreignAuto += foreignTotal; }
   }
 
+  // experiment-instrument FR-4/A6: a refused row is bucketed the SAME way a successful control row
+  // is — by its own coderFamily and the complementary reviewer — but ONLY when coderFamily is known
+  // (the earliest failures, before the claude half reports which family it reviewed, cannot be
+  // attributed to a pair; they still count toward `refusedControlRows` at the top level below,
+  // never silently dropped). `n` is deliberately untouched: `n` measures COMPLETED reviews.
+  for (const rr of parsed.refusedRows) {
+    if (rr.coderFamily === undefined) continue;
+    const reviewerOfInterest = rr.coderFamily === 'codex' ? 'claude' : 'codex';
+    const b = bucket(rr.coderFamily, reviewerOfInterest);
+    b.refusedRuns++;
+  }
+
   // draftToShipped: earliest known verdict per slug (a qe-bridge signoff, or this control row's
   // own claude-half grade when no signoff was given) against the slug's final grade — keyed by
   // slug PLUS the normalized (coder,reviewer) family pair (r1-14: two final rows for the same slug
@@ -952,9 +1023,16 @@ export function aggregateByFamily(
       refutedShare: { n: b.refutedN, value: b.refutedN > 0 ? b.refutedSum / b.refutedN : 'unknown' },
       costPerConfirmed: { n: b.costN, value: b.costN > 0 ? b.costSum / b.costN : 'unknown' },
       draftToShipped: b.drafts,
+      refusedRuns: b.refusedRuns,
     };
   }
 
   const incompleteControlRows = parsed.rows.filter((r) => !r.complete).length;
-  return { pairs: out, incomplete: parsed.unreadable > 0 || incompleteControlRows > 0, incompleteControlRows, controlRows: parsed.rows.length };
+  return {
+    pairs: out,
+    incomplete: parsed.unreadable > 0 || incompleteControlRows > 0,
+    incompleteControlRows,
+    controlRows: parsed.rows.length,
+    refusedControlRows: parsed.refusedRows.length,
+  };
 }

@@ -121,7 +121,7 @@ redactProfileBlock, TP_PROFILE_MARKER_START, TP_PROFILE_MARKER_END, TP_PROFILE_R
 codeCheckpointPersistAllowed, codeStageResultShapeValid, } from './feature-adr-checkpoints.js';
 // amendment-traceability (ADR-001/002/003): the deterministic half of the Step-8 amendment gate.
 export { MIN_MATCHABLE_ID_LENGTH, AMENDMENT_VACUITY_NOTE, normalizeTestId, amendmentSection, planSaysNoAmendments, parseAmendments, resolveAmendments, decideAmendmentOutcome, amendmentVerdictLine, amendmentsMissingFromPlan, amendmentSubject, extractTestTitles, amendmentIdsIn, amendmentSectionCount, amendmentDeclarationAmbiguity, mentionsAmendmentId, } from './amendment-trace.js';
-export { RECORD_MAX_LINE_CHARS, decideRecordWrite, decideReadBack, recordVerdictLine, parseModelSpec, } from './run-records.js';
+export { RECORD_MAX_LINE_CHARS, decideRecordWrite, decideReadBack, recordVerdictLine, parseModelSpec, applyTaskId, } from './run-records.js';
 export { ENVELOPE_SCHEMA, TASK_KINDS, PRIORITIES as ENVELOPE_PRIORITIES, TIERS as ENVELOPE_TIERS, buildExperimentEnvelope, validateExperimentEnvelope, } from './feature-adr-envelope.js';
 export { decidePublishSigning, decidePostSigningVerification, decideSignableSet, publishSigningLine, signableSetLine } from './publish-signing.js';
 // contract-checklist (ADR-001): pure extraction, canonical rendering, typed report parsing, and
@@ -280,7 +280,9 @@ export { maskMarkdown } from './markdown-masker.js';
 export * from './confirmation-file-gate.js';
 export * from './run-registry.js';
 export { JOURNAL_KINDS, formatLine, parseLine, selectWindow, appendWitnessed } from './journal.js';
-export { openRound, closeRound, listRounds, validateClosedRoundLedgerRow } from './round.js';
+export { openRound, closeRound, listRounds, validateClosedRoundLedgerRow, readOpenRoundTaskId } from './round.js';
+// review-cost-ledger T1/FR-1 (ADR-001 п.1): the pure qe-bridge stdout cost parser.
+export { parseQeBridgeStdoutCost } from './review-cost.js';
 export { parseCodexTokens, classifyRoundExecOutcome, buildRoundExecRow } from './round-exec.js';
 export * from './run-cleanup.js';
 export * from './cross-family-control.js';

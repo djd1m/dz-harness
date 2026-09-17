@@ -851,6 +851,48 @@ function captureFailureRecord(stage, mode, reason, detail) {
   return { stage: normalizedStage, mode: normalizedMode, reason: normalizedReason, detail: normalizedDetail }
 }
 function tpFamily(spec) { return /codex|gpt|openai/i.test(String(spec == null ? '' : spec)) ? 'codex' : 'claude' }
+// aqe-ledger-row fix-round-1/#1 (Codex r1 HIGH #1): a STRICT closed-set classifier, deliberately
+// separate from tpFamily() above. tpFamily() maps every unrecognized string — including undefined,
+// null and typos — to 'claude', because its ONE existing job (the cross-model-QE routing default,
+// evaluatorActual/chosenActual) wants a safe default direction. That default is WRONG for a LEDGER
+// IDENTITY field: an unrecognized reviewer must read as unknown (null), never be silently attributed
+// to Claude. knownFamily() is that closed set — only the values this workflow itself ever assigns to
+// coderUsed/qeReviewerUsed ('claude', 'codex', 'codex-fallback') resolve; anything else is null.
+function knownFamily(spec) {
+  return spec === 'claude' ? 'claude' : (spec === 'codex' || spec === 'codex-fallback') ? 'codex' : null
+}
+// aqe-ledger-row fix-round-1/#1: reviewerIdentity(qeReviewerUsed, modelUsed, qeScopeMode) — pure,
+// never guesses. `family` comes ONLY from knownFamily() (never tpFamily(), per the owner decision).
+// `qeRole` is 'qe-code-reviewer' ONLY when family is 'claude'; 'codex-review'/'codex-exec' ONLY when
+// family is 'codex' AND qeScopeMode is the matching 'A'/'B'; every other combination (including an
+// unknown family, or a codex family with an unrecognized/missing scope mode) is null — never guessed.
+function reviewerIdentity(qeReviewerUsed, modelUsed, qeScopeMode) {
+  const family = knownFamily(qeReviewerUsed)
+  const qeRole = family === 'claude'
+    ? 'qe-code-reviewer'
+    : (family === 'codex' && qeScopeMode === 'A') ? 'codex-review'
+      : (family === 'codex' && qeScopeMode === 'B') ? 'codex-exec'
+        : null
+  // r2-N1 (Codex r2 HIGH, lead delta): a model label is an identity claim too — with the FAMILY
+  // unknown, the label cannot be attributed (`reviewer:'gpt-x'` under an unrecognized route would
+  // read as a Codex review that never provably happened). Null outside the known set, all three.
+  const reviewer = family !== null && typeof modelUsed === 'string' && modelUsed !== '' ? modelUsed : null
+  return { reviewer: reviewer, reviewerFamily: family, qeRole: qeRole }
+}
+// aqe-ledger-row T2/A2/NFR-4: pure helper — {findings, findingsBySeverity, findingsSource} from a QE
+// gaps[] array. Not an array (missing/malformed) -> findings:0, findingsSource:'no-gaps-array', never a
+// guess. sev is normalized (String -> trim -> lowercase); anything outside the closed set counts as
+// 'other' rather than being dropped, so a finding is never silently lost from the total.
+function qeFindingsSummary(gaps) {
+  const bySeverity = { blocker: 0, critical: 0, high: 0, medium: 0, low: 0, info: 0, other: 0 }
+  if (!Array.isArray(gaps)) return { findings: 0, findingsBySeverity: bySeverity, findingsSource: 'no-gaps-array' }
+  for (const g of gaps) {
+    const sev = String((g && g.sev !== undefined && g.sev !== null) ? g.sev : '').trim().toLowerCase()
+    if (Object.prototype.hasOwnProperty.call(bySeverity, sev)) bySeverity[sev] += 1
+    else bySeverity.other += 1
+  }
+  return { findings: gaps.length, findingsBySeverity: bySeverity, findingsSource: 'gaps' }
+}
 function tpText(v) { if (typeof v === 'string') return v; if (v === null || v === undefined) return ''; try { const s = JSON.stringify(v); return typeof s === 'string' ? s : String(v) } catch (e) { return String(v) } }
 function tpBudget(raw) {
   try {
@@ -1045,7 +1087,10 @@ async function capturePairs(stage, phaseName, records, resumeGuardStage) {
   }
 }
 
-async function appendRunCostRow(stage, phaseName, outcome) {
+async function appendRunCostRow(stage, phaseName, outcome, extra) {
+  // aqe-ledger-row T1/NFR-1: `extra` is OPTIONAL and ADDITIVE-ONLY. Its keys are spread into
+  // the row literal AFTER every existing field (after `runId:`, the last pre-existing field), so
+  // a call site that passes no fourth argument produces the exact byte-identical row it always did.
   // Like capturePairs, a ledger failure is a logged SECONDARY event that can NEVER fail the run;
   // the whole body therefore rides one best-effort try/catch and never rethrows.
   try {
@@ -1093,6 +1138,8 @@ async function appendRunCostRow(stage, phaseName, outcome) {
       // skips that guess entirely (run-records.ts / cli.ts: runIdForLookup is only computed when
       // the payload carries no runId), so passing it here is a strict reliability improvement.
       runId: (typeof RUN_ID === 'string' && RUN_ID !== '') ? RUN_ID : null,
+      // aqe-ledger-row T1/NFR-1: additive-only — spreads nothing when `extra` is absent.
+      ...(extra && typeof extra === 'object' ? extra : {}),
     })
     // WITNESSED WRITE (ADR-001): the subagent RUNS a command with data arguments; it is no longer
     // handed a shell pipeline with the row baked in. The command refuses a malformed row, stamps the
@@ -1157,6 +1204,11 @@ const CODEX_HINT = ' (If you are the Codex runtime, prefer the ' + CODEX_MODEL +
 // and --base HEAD review the identical tree while --uncommitted needs no ref at all.
 const QE_SCOPE = (A.qeScope === 'commit' || A.qeScope === 'base') ? A.qeScope : 'uncommitted'
 const QE_SCOPE_REF = (typeof A.qeScopeRef === 'string') ? A.qeScopeRef : ''
+// codex-review-scope (FR-5, A5): mode A's 'uncommitted' pass runs in an ISOLATED scope-repo by
+// default (MEASURED wf_95211e0f, 2026-09-17: --uncommitted on the shared tree wandered into other
+// dirty packages and timed out at 600s having reviewed nothing of the run's own feature).
+// args.qeIsolatedScope:false restores the prior --uncommitted-on-REPO behavior byte-for-byte.
+const QE_ISOLATED_SCOPE = A.qeIsolatedScope !== false
 // Mode-B questions: the ones --commit structurally forbids us from asking.
 const SCOPED_QE_QUESTIONS = [
   'Is the change correct — name any real defect with file and line, or say there is none.',
@@ -1982,7 +2034,16 @@ const CODEX_REVIEW_TIMEOUT_SECONDS = 600
 const CODEX_REVIEW_DEFAULT_EFFORT = 'high'
 const CODEX_TIMEOUT = 'CODEX_TIMEOUT'
 const CODEX_QE_SIGNAL_PREFIX = 'CODEX-QE-SIGNAL'
-const CODEX_QE_DECLINE_KINDS = ['timeout', 'no-verdict', 'tool-error', 'unusable-output', 'unavailable', 'over-ceiling', 'wrong-tree']
+// 'scope-not-established' joined the set 2026-09-17 (feature codex-review-scope, FR-2/A2): mode A's
+// isolated scope-repo is built ONLY from an ESTABLISHED change set (modeBChanged an array >= 1
+// entry) — null (not established) or an established-but-empty set both refuse under this ONE kind,
+// distinguished by the reason TEXT (never a second kind), so the taxonomy grows by exactly one.
+// 'base-ref-not-established' joined the set 2026-09-17 (fix-round-1 #3, Codex r1 CRITICAL/HIGH): a
+// base-ref probe that fails or returns something unparseable used to fall back to 'HEAD' SILENTLY —
+// indistinguishable from a healthy default, and codex would then review a full-file addition
+// instead of the real modification. This is a DIFFERENT kind from 'scope-not-established' (not just
+// different reason text) because the failure is about the REF, not the change set.
+const CODEX_QE_DECLINE_KINDS = ['timeout', 'no-verdict', 'tool-error', 'unusable-output', 'unavailable', 'over-ceiling', 'wrong-tree', 'scope-not-established', 'base-ref-not-established']
 const SCOPED_QE_MAX_FILES = 3
 const SCOPED_QE_MAX_QUESTIONS = 4
 const SCOPED_QE_MAX_PATH_CHARS = 200
@@ -2040,6 +2101,172 @@ function codexReviewCommand(input) {
   else cmd += ' --uncommitted'
   cmd += ' < /dev/null'
   return { cmd: cmd, carriesPrompt: false, scope: scope, reason: null }
+}
+
+// ── ISOLATED REVIEW SCOPE (feature codex-review-scope) ──────────────────────────────────────────
+// MEASURED 2026-09-17 (wf_95211e0f, 07:14-08:22): mode A's codex review --uncommitted on the
+// shared hub tree wandered into OTHER dirty packages (books/, features/clean-code-*) and timed out
+// at 600s having reviewed nothing of this run's own feature — the same class as teach:c551a2c3
+// (12.09: 816KB of log, no verdict). The fix is not a bigger timeout (that buys more reconnaissance,
+// per the qe-scoped-review ADR above); it is giving mode A a TREE that contains ONLY this run's
+// established changes.
+//
+// A live probe (14:25, codex-cli 0.154.0, gpt-5.6-terra medium) confirmed the mechanics: a throwaway
+// git repo with one committed base file plus one working-tree edit, codex review --uncommitted
+// exits 0 in 16.7s with a real finding whose location is the scope repo's ABSOLUTE path — hence
+// normalizeScopedFindings below.
+const SCOPE_REPO_GIT_EMAIL = 'dz-review-scope@localhost'
+const SCOPE_REPO_GIT_NAME = 'dz-review-scope'
+
+// T1 (FR-3, A3, NFR-2). Pure builder: {repo, scopeDir, baseRef, files, quote} -> {script, reason}.
+// script is ONE shell command line (chained with && ; each per-file step is parenthesised so a
+// missing base file or a working-tree deletion never aborts the rest of the build); null + reason
+// on any refusal. Never invoked here — this file has no child_process; the caller dispatches script
+// through a shell agent (effort low), exactly like every other shell step in this pipeline.
+//
+// The emitted rm -rf is the ONLY destructive line this builder can produce, and it fires ONLY when
+// scopeDir is provably a child of <repo>/features/<slug>/.fa-state/review-scope — never a
+// caller-supplied path taken on faith (NFR-2).
+//
+// fix-round-1 #1 (BLOCKER, Codex r1): the old containment check was LEXICAL — scopeDir merely had
+// to START WITH '<repo>/features/' and CONTAIN '/.fa-state/review-scope' anywhere after that, so
+// '<repo>/features/../victim/.fa-state/review-scope' passed both tests while '..' walks the rm -rf
+// straight out of features/. The check below is SEGMENT-based (split('/'), never substring/indexOf
+// on the whole string): scopeDir must equal repo's own segments, followed by EXACTLY the four
+// segments ['features', <slug>, '.fa-state', 'review-scope'] with <slug> matching SCOPE_SLUG_RE —
+// and every segment anywhere in scopeDir is rejected if it is '', '.' or '..'.
+const SCOPE_SLUG_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,39}$/
+function reviewScopeRepoScript(input) {
+  const o = input || {}
+  const quote = o.quote
+  if (typeof quote !== 'function') return { script: null, reason: 'no quote function supplied' }
+  const repo = String(o.repo === undefined || o.repo === null ? '' : o.repo)
+  const scopeDir = String(o.scopeDir === undefined || o.scopeDir === null ? '' : o.scopeDir)
+  const baseRef = String(o.baseRef === undefined || o.baseRef === null ? '' : o.baseRef)
+  if (repo === '' || scopeDir === '') return { script: null, reason: 'empty repo or scopeDir' }
+  if (!isSafeCodexRef(baseRef)) return { script: null, reason: 'unsafe baseRef' }
+  const repoSegs = repo.split('/')
+  const dirSegs = scopeDir.split('/')
+  for (const seg of dirSegs) {
+    if (seg === '.' || seg === '..') return { script: null, reason: 'scopeDir contains an unsafe "." or ".." path segment' }
+  }
+  let repoMatches = dirSegs.length >= repoSegs.length
+  if (repoMatches) for (let i = 0; i < repoSegs.length; i++) { if (dirSegs[i] !== repoSegs[i]) { repoMatches = false; break } }
+  const rest = repoMatches ? dirSegs.slice(repoSegs.length) : null
+  const slug = rest && rest.length === 4 ? rest[1] : ''
+  const shapeOk = !!rest && rest.length === 4 && rest[0] === 'features' && rest[2] === '.fa-state' && rest[3] === 'review-scope' && SCOPE_SLUG_RE.test(slug)
+  if (!shapeOk) {
+    return { script: null, reason: 'scopeDir must be exactly ' + repo + '/features/<slug>/.fa-state/review-scope with a safe <slug>' }
+  }
+  const rawFiles = Array.isArray(o.files) ? o.files : []
+  const files = []
+  const seen = new Set()
+  for (const raw of rawFiles) {
+    // fix-round-1 #6 (MEDIUM, Codex r1): NEVER trim a declared path — trimming 'src/a.ts ' silently
+    // retargets the shell command at 'src/a.ts', a DIFFERENT file than the one declared, and the
+    // subsequent receipt mismatch then reads as a build failure rather than the truncation that
+    // caused it. Reject only what the TRANSPORT genuinely cannot express: every character below is
+    // safely embeddable through the injected 'quote' (single-quoting round-trips ANY byte, including
+    // ';&|<>*?()[]{}!' and even a literal "'"), so the real constraint is the FR-3 receipt —
+    // 'git status --porcelain' QUOTES a path containing a control character, '"', '\' or (by default)
+    // non-ASCII, and our receipt parser reads that raw line without un-quoting it. A leading '-' is
+    // refused so no downstream tool ever reads the path as a flag. Spaces are explicitly ALLOWED.
+    const f = String(raw === undefined || raw === null ? '' : raw)
+    if (f === '') continue
+    if (seen.has(f)) continue
+    if (f.charAt(0) === '/') return { script: null, reason: 'absolute path ' + JSON.stringify(f) }
+    if (f === '..' || f.indexOf('../') === 0 || f.indexOf('/../') !== -1 || f.slice(-3) === '/..') {
+      return { script: null, reason: 'path traversal ' + JSON.stringify(f) }
+    }
+    if (f.charAt(0) === '-') return { script: null, reason: 'path may not start with "-" ' + JSON.stringify(f) }
+    if (f.charAt(f.length - 1) === '/') return { script: null, reason: 'path must not end with "/" ' + JSON.stringify(f) }
+    if (/[^\x20-\x7e]/.test(f) || /["\\\x60$]/.test(f)) {
+      return { script: null, reason: 'unsafe path (control/quote/backtick/$/non-ASCII character) ' + JSON.stringify(f) }
+    }
+    seen.add(f)
+    files.push(f)
+  }
+  if (files.length === 0) return { script: null, reason: 'empty file list' }
+  const parts = []
+  // fix-round-1 #3 (HIGH, Codex r1) — script half: verify baseRef resolves to a real commit as the
+  // FIRST command. Every later "git show <baseRef>:<path>" failure used to be swallowed identically
+  // whether the FILE was absent at a valid commit (expected — a new file) or the REF itself was
+  // bogus (a silent full-tree diff against nothing) — indistinguishable from outside. A bad ref now
+  // aborts loudly (exit 4) before any per-file step runs.
+  parts.push('git -C ' + quote(repo) + ' rev-parse --verify --quiet ' + quote(baseRef + '^{commit}') + ' > /dev/null || exit 4')
+  // fix-round-1 #1 — runtime belt matching the JS-side segment check above: a symlink at scopeDir
+  // (planted between the JS check and this script's execution) is refused rather than followed by
+  // rm -rf, and a 'case' re-asserts the very prefix the JS validator just proved, so the two checks
+  // can never silently drift apart.
+  // Lead delta after the second manual e2e (2026-09-17 15:35): the form '[ -L dir ] && exit 3' inside a
+  // '&&'-joined chain ABORTS the chain whenever dir is NOT a symlink (the test returns 1), so the
+  // fix-round script exited 1 having built nothing — a dead feature that fails closed. A statement
+  // form keeps the belt and lets the chain continue.
+  parts.push('if [ -L ' + quote(scopeDir) + ' ]; then exit 3; fi')
+  parts.push('case ' + quote(scopeDir) + ' in ' + quote(repo) + '/features/*/.fa-state/review-scope) : ;; *) exit 3 ;; esac')
+  parts.push('rm -rf ' + quote(scopeDir))
+  parts.push('mkdir -p ' + quote(scopeDir))
+  parts.push('git -C ' + quote(scopeDir) + ' init -q')
+  parts.push('git -C ' + quote(scopeDir) + ' config user.email ' + quote(SCOPE_REPO_GIT_EMAIL))
+  parts.push('git -C ' + quote(scopeDir) + ' config user.name ' + quote(SCOPE_REPO_GIT_NAME))
+  for (const f of files) {
+    const dest = scopeDir + '/' + f
+    const slash = dest.lastIndexOf('/')
+    const destDir = dest.slice(0, slash)
+    if (destDir !== scopeDir) parts.push('mkdir -p ' + quote(destDir))
+    // fix-round-1 #3 (HIGH) — per file: distinguish "path absent at a valid commit" (expected for a
+    // new file — degrade to rm -f) from every OTHER git-show failure (permissions, corrupt object,
+    // …) which now ABORTS the build (exit 5) instead of silently degrading the same way. cat-file -e
+    // is the existence check git itself uses; git show is only reached once existence is confirmed.
+    // Lead delta (Codex r2 N1 HIGH): 'cat-file -e' folds "absent at the base" and "object error"
+    // into one non-zero — a tree entry whose blob is missing/corrupt was silently turned into a
+    // full-file ADDITION. Three-way probe instead: ls-tree FAILS → exit 7 (build failure, named);
+    // empty listing → genuinely absent at the base → no base copy; non-empty → 'show' is MANDATORY
+    // and its failure aborts (exit 5).
+    parts.push('if ! lt=$(git -C ' + quote(repo) + ' ls-tree --name-only ' + quote(baseRef) + ' -- ' + quote(f) + '); then exit 7; fi; if [ -n "$lt" ]; then git -C ' + quote(repo) + ' show ' + quote(baseRef + ':' + f) + ' > ' + quote(dest) + ' || exit 5; else rm -f ' + quote(dest) + '; fi')
+  }
+  parts.push('git -C ' + quote(scopeDir) + ' add -A && git -C ' + quote(scopeDir) + ' commit -q --allow-empty -m base')
+  for (const f of files) {
+    const src = repo + '/' + f
+    const dest = scopeDir + '/' + f
+    // fix-round-1 #4 (HIGH, Codex r1): the old '[ -f src ] && cp src dest || rm -f dest' ran the
+    // REMOVAL whenever 'cp' itself failed (permissions, disk full, the file vanishing mid-copy) —
+    // indistinguishable from a genuine working-tree deletion, and the FR-3 pathname-only receipt
+    // then accepted the wrong outcome as a pass. A real 'cp' failure now aborts the build (exit 6);
+    // only a MISSING source file (a real deletion) degrades to rm -f.
+    parts.push('if [ -f ' + quote(src) + ' ]; then cp ' + quote(src) + ' ' + quote(dest) + ' || exit 6; else rm -f ' + quote(dest) + '; fi')
+  }
+  // Lead delta (manual e2e 2026-09-17 14:51, BEFORE Codex r1): without --untracked-files=all a NEW
+  // file of the change set is reported as its collapsed parent directory ('?? packages/x/'), the
+  // receipt set never equals the declared set, and mode A is refused as scope-build-failed for
+  // every feature that ADDS a file. Per-file listing makes the receipt compare paths with paths.
+  // fix-round-1 #5 (HIGH, Codex r1): --no-renames forces git to report a rename as a plain
+  // delete+add instead of the two-path 'R  old -> new' line, which a fixed-width slice(3) parser
+  // (the receipt side, below) cannot split back into two paths.
+  parts.push('git -C ' + quote(scopeDir) + ' status --porcelain --untracked-files=all --no-renames')
+  // fix-round-1 #4 (HIGH) — content receipt: a sha256sum line per declared working file, in the same
+  // "<hash>  <path>" shape changeSetProbeCmd's uncommitted probe already emits, so the workflow can
+  // compare it against the ALREADY-MEASURED afterSnap for the same files. A cp that silently
+  // degraded to rm -f shows up here as a hash MISMATCH even when the pathname-only porcelain receipt
+  // above would have passed (a deletion and a failed-copy-then-deletion look identical by name alone).
+  parts.push('( cd ' + quote(scopeDir) + ' && sha256sum -- ' + files.map(quote).join(' ') + ' 2>/dev/null || true )')
+  return { script: parts.join(' && '), reason: null }
+}
+
+// T3 (FR-4, A4). Mode-A findings from a scoped review carry the scope-repo's ABSOLUTE path (MEASURED
+// live probe above). Strip it back to repo-relative so partitionReviewFindings can match it against
+// modeBChanged. A finding whose location does not start with scopeDir is left UNTOUCHED — never
+// guessed as belonging to the scope.
+function normalizeScopedFindings(findings, scopeDir) {
+  const list = Array.isArray(findings) ? findings : []
+  const dir = String(scopeDir === undefined || scopeDir === null ? '' : scopeDir)
+  if (dir === '') return list
+  const prefix = dir.charAt(dir.length - 1) === '/' ? dir : dir + '/'
+  return list.map(function (f) {
+    const loc = (f && f.location) ? String(f.location) : ''
+    if (loc.indexOf(prefix) !== 0) return f
+    return { severity: f.severity, title: f.title, location: loc.slice(prefix.length) }
+  })
 }
 
 // Mode B. The "do NOT open any other file" clause is LOAD-BEARING TEXT — it is the difference
@@ -2226,6 +2453,8 @@ function codexQeDeclineReason(kind, detail) {
   // tool-error right above rendered it — the asymmetry that made the field report unfixable blind.
   if (canonical === 'unavailable') return 'codex not used — ' + ((d.reason === undefined || d.reason === null || String(d.reason) === '') ? 'codex exec reported it could not run' : String(d.reason)) + (extra === 'no detail' ? '' : ' (' + extra + ')')
   if (canonical === 'over-ceiling') return 'prompt is ' + chars + ' chars / unscoped — refused before dispatch'
+  if (canonical === 'scope-not-established') return 'review scope NOT ESTABLISHED for uncommitted QE — ' + ((d.reason === undefined || d.reason === null || String(d.reason) === '') ? 'the change set could not be measured' : String(d.reason)) + ' — refusing to fall back to --uncommitted on the shared tree'
+  if (canonical === 'base-ref-not-established') return 'base ref for the isolated review scope NOT ESTABLISHED — ' + ((d.reason === undefined || d.reason === null || String(d.reason) === '') ? 'the base-ref probe failed or was unparseable' : String(d.reason)) + ' — refusing to silently fall back to HEAD'
   throw new Error('codexQeDeclineReason: unknown kind ' + k)
 }
 
@@ -2455,11 +2684,18 @@ function codexQeSignalCommand(inner, outPath) {
 // Shared tail of both dispatch modes: run the signal-wrapped command through a shell agent and
 // CLASSIFY what came back. signalExpected is true here — on the pipeline path a swallowed sentinel
 // means the command did not demonstrably run, which is a tool-error, never a pass.
-async function runCodexQeCommand(stage, cmd, phaseName, label, probed, mode, scopeRef, files, allowStatedGrade, requestedReasoning, rung, announcementOpts) {
+async function runCodexQeCommand(stage, cmd, phaseName, label, probed, mode, scopeRef, files, allowStatedGrade, requestedReasoning, rung, announcementOpts, scopeDir) {
   const wrapped = 'Run EXACTLY this via Bash and reply with its stdout VERBATIM and nothing else, INCLUDING the final ' + CODEX_QE_SIGNAL_PREFIX + ' line (it is a machine signal, not prose — do not summarise, reformat or omit it). Only if you cannot run the command AT ALL (no shell, command not found) reply with exactly ' + CODEX_UNAVAILABLE + '; a timeout is NOT that case, it reports itself in the signal line.\n\n' + codexQeSignalCommand(cmd, '/tmp/dz-codex-qe-' + SLUG + '-' + stage + '-' + mode + '.out')
   const raw = await dispatchAgent(rung, wrapped, { label: stageLabel(label, { agentType: 'codex:codex-rescue', codexModel: probed, _reasoning: requestedReasoning || 'high' }), phase: phaseName, model: 'haiku', effort: 'low' }, announcementOpts)
   const sig = parseCodexReviewSignal(raw === null ? '' : String(raw))
-  const findings = parseCodexReviewFindings(sig.body)
+  // fix-round-1 #2 (CRITICAL, Codex r1): normalize a scoped review's findings to repo-relative
+  // IMMEDIATELY after parsing — before classifyCodexQeOutcome or gradeFromReviewFindings ever see
+  // them, and before the caller does anything else with the return value. declaredFiles ('files')
+  // are already repo-relative ('_scopeFiles'); leaving the PARSED findings on the scope-repo's
+  // ABSOLUTE path for even one extra hop is the class of bug this closes — every consumer downstream
+  // of this function now sees only repo-relative locations, never a mix of the two shapes.
+  const rawFindings = parseCodexReviewFindings(sig.body)
+  const findings = scopeDir ? normalizeScopedFindings(rawFindings, scopeDir) : rawFindings
   // Mode A NEVER asked for a letter (every scope flag rejects a prompt), so any "Grade: X" in its
   // output came from the CODE UNDER REVIEW, not from the reviewer. FOUND BY THE FIRST LIVE MODE-A RUN
   // (2026-08-21): this feature's own README and CHANGELOG quote "Grade: B", and the review of that
@@ -2480,19 +2716,42 @@ async function runCodexQeCommand(stage, cmd, phaseName, label, probed, mode, sco
 // and exit 124 without one). It cannot carry our questions: every scope flag refuses [PROMPT].
 async function codexReviewAgent(stage, scope, scopeRef, phaseName, requestedOpts, rung) {
   lastCodexDecline = null
+  // codex-review-scope (A1/A2): the scope DECISION travels on requestedOpts as PRIVATE fields
+  // (_scopeBlocked / _scopeRepo / _scopeFiles) rather than a new positional parameter —
+  // codexReviewAgent's signature and its call site are BOTH pinned byte-for-byte
+  // (cross-family-qe.test.ts, feature-adr-model-routing.test.ts), so this is the one channel that
+  // extends behavior without touching either pin. A blocked scope refuses BEFORE any probe is spent —
+  // mode A never dispatches against the shared tree for an unestablished or empty change set.
+  if (requestedOpts && requestedOpts._scopeBlocked) {
+    // fix-round-1 #3 (HIGH, Codex r1): a blocked scope carries its own taxonomy KIND when the
+    // decision knows a more specific one (e.g. 'base-ref-not-established') — defaulting to
+    // 'scope-not-established' keeps every EXISTING caller (none of which set _scopeBlockedKind)
+    // byte-identical.
+    const blockedKind = (requestedOpts._scopeBlockedKind && CODEX_QE_DECLINE_KINDS.indexOf(requestedOpts._scopeBlockedKind) !== -1) ? requestedOpts._scopeBlockedKind : 'scope-not-established'
+    settleUndispatchedStage(requestedOpts, rung, 'refused-before-dispatch', blockedKind)
+    return noteCodexDecline(stage, blockedKind, { reason: requestedOpts._scopeBlocked })
+  }
   const requestedId = requestedOpts && requestedOpts.codexModel !== 'auto' ? requestedOpts.codexModel : null
   const requestedReasoning = (requestedOpts && requestedOpts._reasoning) || 'high'
   const probed = await probeCodexId(requestedId)
   if (!probed) { settleUndispatchedStage(requestedOpts, rung, 'probe-failed'); return noteCodexDecline(stage, 'unavailable', { reason: 'no codex model id answered the probe' }) }
   const announcementOpts = mergeOpts(requestedOpts || {}, { codexModel: probed, _stage: stage })
-  const built = codexReviewCommand({ scope: scope, ref: scopeRef, modelId: probed, reasoning: requestedReasoning, timeoutSeconds: CODEX_REVIEW_TIMEOUT_SECONDS, timeoutBin: await probeTimeoutBin(), repo: REPO })
+  // A1: for scope 'uncommitted' this is REPO only when isolation was explicitly disabled
+  // (args.qeIsolatedScope:false) or never applies (commit/base) — never a silent fallback.
+  const scopeRepo = (requestedOpts && typeof requestedOpts._scopeRepo === 'string' && requestedOpts._scopeRepo !== '') ? requestedOpts._scopeRepo : REPO
+  const declaredFiles = (requestedOpts && Array.isArray(requestedOpts._scopeFiles)) ? requestedOpts._scopeFiles : []
+  const built = codexReviewCommand({ scope: scope, ref: scopeRef, modelId: probed, reasoning: requestedReasoning, timeoutSeconds: CODEX_REVIEW_TIMEOUT_SECONDS, timeoutBin: await probeTimeoutBin(), repo: scopeRepo })
   // R18: an id ANSWERED and this rung still dispatches nothing (a missing or unsafe scope ref).
   // The outcome is recorded as a REFUSAL so the belt below cannot report it as a rung that ran.
   if (built.cmd === null) { settleUndispatchedStage(announcementOpts, rung, 'refused-before-dispatch', built.reason); return noteCodexDecline(stage, 'tool-error', { exit: 2, detail: built.reason }) }
   // R4-F2a: AFTER the command exists. An unusable scope ref (commit/base with a missing or unsafe
   // ref) returns cmd:null and dispatches NOTHING — announcing above printed a line for a review that
   // never ran. The reason travels from requestedOpts so it is not silently defaulted either.
-  return await runCodexQeCommand(stage, built.cmd, phaseName, stage + ':codex-review', probed, 'A', built.scope + (scopeRef ? ' ' + scopeRef : ''), [], false, requestedReasoning, rung, announcementOpts)
+  const result = await runCodexQeCommand(stage, built.cmd, phaseName, stage + ':codex-review', probed, 'A', built.scope + (scopeRef ? ' ' + scopeRef : ''), declaredFiles, false, requestedReasoning, rung, announcementOpts, scopeRepo !== REPO ? scopeRepo : undefined)
+  // T3 (FR-4, A4): a scoped review's findings carry the scope-repo's ABSOLUTE path — normalize back
+  // to repo-relative so partitionReviewFindings can match them against the declared change set.
+  if (result && scopeRepo !== REPO) return mergeOpts(result, { findings: normalizeScopedFindings(result.findings, scopeRepo) })
+  return result
 }
 
 // MODE B — the narrowed follow-up. Carries OUR questions over files we name, and is refused outright
@@ -3679,6 +3938,7 @@ let coderUsed = null
 let qe = null
 let pipelineRound = null
 let roundClosed = false
+let roundSkippedReason = null
 const LEARNED = router ? router.rationale : 'none recalled'
 const isMplus = tier === 'M' || tier === 'L' || tier === 'XL'
 const isLplus = tier === 'L' || tier === 'XL'
@@ -4774,6 +5034,31 @@ if (resumedStages.indexOf('code') !== -1 && landedNote !== '') {
   landedNote = '\n\n[RESUMED from checkpoint — the landing barrier below ran in the ORIGINAL run; the change-manifest artifact was re-verified present by the resume probe]' + landedNote
 }
 
+// aqe-ledger-row T4/FR-2/FR-3/A5: the `impl` row, written right here — AFTER the Step 7.5
+// landing barrier so its outcome/coder/landed fields are known, and BEFORE Step 8 QE runs —
+// so the `qe` row's minutesSincePrev measures the QE step itself, not QE+code combined
+// (00_complexity_assessment.md: today the row before `qe` is `plan`, which would fold code time in).
+// fix-round-1/#2 (Codex r1 HIGH #2): the OLD `landingStatus !== null ? landingStatus :
+// 'skipped-claude-sync'` guessed 'skipped-claude-sync' for ANY null landingStatus — including a
+// codex coder whose barrier composite never built (codeStage null). Now: a landingStatus from the
+// KNOWN barrier-verdict set (the same set codeStageResultShapeValid checks — landed /
+// genuinely-not-landed / inconclusive / 'synchronous', the last reachable only when the barrier was
+// never NEEDED, i.e. a Claude coder) is used AS-IS; 'skipped-claude-sync' is used ONLY when the
+// coder's family is genuinely 'claude' AND the barrier was never needed for it
+// (!needsCodeLandedBarrier); every other case (an unrecognized landingStatus paired with a codex — or
+// unknown — coder) is the honestly-named 'no-landing-status', which is ALWAYS a string, so — unlike
+// `undefined` — the field can never silently vanish from the JSON.stringify'd row.
+if (resumedStages.indexOf('code') === -1) {
+  const knownLandingVerdicts = ['landed', 'genuinely-not-landed', 'inconclusive', 'synchronous']
+  const coderFamilyForImpl = knownFamily(coderUsed)
+  const implOutcome = knownLandingVerdicts.indexOf(landingStatus) !== -1
+    ? landingStatus
+    : (coderFamilyForImpl === 'claude' && !needsCodeLandedBarrier(coderUsed)) ? 'skipped-claude-sync' : 'no-landing-status'
+  await appendRunCostRow('impl', 'Code', implOutcome, { coder: coderUsed, coderFamily: coderFamilyForImpl, landed: implOutcome })
+} else {
+  log('run-cost ledger: impl row skipped — stage resumed')
+}
+
 // Step 8: QE (brutal-honesty, agentic-qe) + MANDATORY teach
 phase('QE')
 await recordRegistryEvent('heartbeat', 'QE')
@@ -4861,7 +5146,11 @@ const qe2Spec = qePrecisionPassSpec(PRIMARY, BUDGET_MODE, tier)
 // re-teach (the original run already stored its lessons — replaying teach would double-store).
 // R6: the review SCOPE is part of what a QE verdict is about, so it enters the hash — a resume must
 // not present a verdict obtained over one scope as if it had been obtained over another.
-const qeHash = ckptHash('qe', [fnv1a64(JSON.stringify(codeStage === undefined ? null : codeStage)), tier, DESC, QE_REVIEWER, MODELS.qe === undefined ? null : MODELS.qe, CODEX_MODEL, coderUsed, PRIMARY, BUDGET_MODE, qe2Spec, POLY.hasManifest, fnv1a64(String(POLY.report || '')), usageOverride, QE_SCOPE, QE_SCOPE_REF, confirmationFileGate])
+// L1 (fix-round-1, lead e2e 14:53): QE_ISOLATED_SCOPE must enter the hash — without it, flipping
+// args.qeIsolatedScope between runs of the SAME slug resumes a checkpointed verdict that was
+// obtained under the OTHER knob value (an --uncommitted shared-tree review standing in for an
+// isolated-scope one, or vice versa) instead of re-QEing under the new setting.
+const qeHash = ckptHash('qe', [fnv1a64(JSON.stringify(codeStage === undefined ? null : codeStage)), tier, DESC, QE_REVIEWER, MODELS.qe === undefined ? null : MODELS.qe, CODEX_MODEL, coderUsed, PRIMARY, BUDGET_MODE, qe2Spec, POLY.hasManifest, fnv1a64(String(POLY.report || '')), usageOverride, QE_SCOPE, QE_SCOPE_REF, confirmationFileGate, QE_ISOLATED_SCOPE])
 let crossFamilyQeReport = null
 const qeStage = await withCheckpoint('qe', 'QE', qeHash, async () => {
 let qe = null
@@ -4895,16 +5184,7 @@ if (qe === null && (qeIsCodex || QE_REVIEWER === 'codex-fallback')) {
   // assert the very property that is being lost. The honest label for a rung after a dead rung.
   let qeCodexReason = stageReason('qe', qeDecision)
   if (!qeIsCodex) qeCodexReason = 'fallback-rung'
-  const qeCodexLabelOpts = mergeOpts(qeModel.agentType ? qeModel : specToOpts('codex:' + CODEX_MODEL + ':high'), { _stage: 'qe', _reason: qeCodexReason })
-  // R5-1: the id modelsUsed will report, resolved by the SAME memoized probe the dispatch uses.
-  const qeCodexResolved = await codexLabelOptsForDispatch(qeCodexLabelOpts)
-  qeCodexProbeFailed = !!qeCodexResolved._codexProbeFailed
-  const qeCodexDispatchLabel = modelLabel(qeCodexResolved)
-  // R16-1: the codex QE rung records its attempt HERE. The only dispatch-time write used to sit
-  // inside `if (!qeIsCodex)`, so a codex-routed QE whose modes and belt all returned null printed
-  // `▸ qe` lines and left modelsUsed.qe unassigned entirely. The marker is provisional: the success
-  // paths below overwrite it, and if nothing succeeds it stays and says so.
-  modelsUsed.qe = qeCodexDispatchLabel + (qeCodexProbeFailed ? ' (codex probe found no usable id)' : ' (no verdict)')
+  let qeCodexLabelOpts = mergeOpts(qeModel.agentType ? qeModel : specToOpts('codex:' + CODEX_MODEL + ':high'), { _stage: 'qe', _reason: qeCodexReason })
   // ADR-001: QE's deliverable is its RETURN VALUE, so it dispatches SYNCHRONOUSLY, never through the
   // fire-and-forget wrapper, and the verdict is PARSED, never synthesised (the deleted
   // {grade:'codex-review', gaps: []} turned a stub into a clean review).
@@ -4927,6 +5207,10 @@ if (qe === null && (qeIsCodex || QE_REVIEWER === 'codex-fallback')) {
     // commit/base committed work produced no status entry at all. Now the probe is built for the scope
     // in force, and for `uncommitted` it is a CONTENT comparison against the pre-code baseline.
     let modeBChanged = null
+    // fix-round-1 #4 (HIGH): hoisted so the scope-decision block below (which runs BEFORE the codex
+    // label resolution now) can compare the scope-repo's OWN content receipt against the SAME
+    // measurement, with no second network round-trip.
+    let modeBAfterSnap = null
     if (modeBPlanned.length > 0) {
       const probeCmd = changeSetProbeCmd({ scope: QE_SCOPE, ref: QE_SCOPE_REF, paths: modeBPlanned, quote: shq })
       if (probeCmd === null) {
@@ -4937,6 +5221,7 @@ if (qe === null && (qeIsCodex || QE_REVIEWER === 'codex-fallback')) {
           if (QE_SCOPE === 'uncommitted') {
             // CONTENT, not dirtiness: only a hash that MOVED since the baseline is this run's doing.
             const afterSnap = parseHashProbe(String(chgOut), modeBPlanned)
+            modeBAfterSnap = afterSnap
             modeBChanged = changedFromHashes(preCodeBaseline, afterSnap)
             if (modeBChanged === null) log('QE: no pre-code baseline — the delta is NOT ESTABLISHED (never treated as empty)')
           } else {
@@ -4945,6 +5230,109 @@ if (qe === null && (qeIsCodex || QE_REVIEWER === 'codex-fallback')) {
         }
       }
     }
+  // codex-review-scope (FR-1/FR-2/FR-5, A1/A2/A5): decide BEFORE mode A is ever attempted whether —
+  // and how — it may run for scope 'uncommitted'. Never a bare fallback to --uncommitted on the
+  // shared tree: the decision is recorded on qeCodexLabelOpts (private fields consumed by
+  // codexReviewAgent above) so the call site immediately below stays byte-identical to before this
+  // feature (pinned by cross-family-qe.test.ts / feature-adr-model-routing.test.ts).
+  // fix-round-1 #8 (MEDIUM, Codex r1): this decision block now runs BEFORE codexLabelOptsForDispatch
+  // (moved below) — a scope that is about to be BLOCKED must never spend a codex model probe on a
+  // rung that will refuse before any dispatch anyway. "Refused before any probe" was already true
+  // INSIDE codexReviewAgent; this closes the same gap one call earlier.
+  if (QE_SCOPE === 'uncommitted' && !QE_ISOLATED_SCOPE) {
+    log('QE: isolated scope DISABLED by args (qeIsolatedScope:false) — mode A runs --uncommitted on the shared tree as before')
+  } else if (QE_SCOPE === 'uncommitted') {
+    if (modeBChanged === null) {
+      // A2: NOT ESTABLISHED is never treated as empty, and never silently falls back to --uncommitted.
+      qeCodexLabelOpts = mergeOpts(qeCodexLabelOpts, { _scopeBlocked: 'change set NOT ESTABLISHED (no pre-code baseline) — refusing to fall back to --uncommitted on the shared tree' })
+    } else if (modeBChanged.length === 0) {
+      qeCodexLabelOpts = mergeOpts(qeCodexLabelOpts, { _scopeBlocked: 'change set established but EMPTY — no files changed' })
+    } else {
+      const scopeDir = FDIR + '/.fa-state/review-scope'
+      // FR-1: BASE_REF = HEAD of the run before Step 7 started (recorded by the coder at Step 7's
+      // preamble, mirror of the mutation-gate's own AM-2 convention); HEAD itself when that record is
+      // absent — valid exactly because scope 'uncommitted' means Step 7 made no commits of its own.
+      const baseRefOut = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and return its stdout VERBATIM with NO commentary: cd ' + shq(REPO) + ' && if [ -f ' + shq(FDIR + '/.fa-state/base-ref') + ' ]; then cat ' + shq(FDIR + '/.fa-state/base-ref') + ' || echo BASE-REF-READ-FAILED; else echo NO-BASE-REF-FILE; fi', { label: 'qe:review-scope-base-ref', phase: 'QE', effort: 'low' })
+      // Lead delta (Codex r2 #3 partial): the probe no longer folds "no base-ref record" and "read
+      // failed" into a silent `git rev-parse HEAD`. NO-BASE-REF-FILE is the one NAMED fallback to
+      // HEAD (logged); BASE-REF-READ-FAILED and anything unparseable refuse below.
+      const baseRefRaw = String(baseRefOut === null || baseRefOut === undefined ? '' : baseRefOut).trim()
+      if (baseRefRaw === 'NO-BASE-REF-FILE') log('QE: no .fa-state/base-ref record for this run — the isolated scope base falls back to HEAD (named fallback, not a probe failure)')
+      const baseRefCandidate = baseRefRaw === 'NO-BASE-REF-FILE' ? 'HEAD' : baseRefRaw
+      // fix-round-1 #3 (CRITICAL, Codex r1): a probe that DISPATCHED NOTHING (null/undefined) or
+      // returned something unsafe/unparseable used to fall back to 'HEAD' SILENTLY — a probe
+      // failure and a legitimately-absent base-ref record read identically, and codex would then
+      // review a full-file ADDITION instead of the real modification. Refuse outright instead, under
+      // its own taxonomy kind, so this is never mistaken for the healthy default.
+      if (baseRefOut === null || baseRefOut === undefined || baseRefCandidate === '' || !isSafeCodexRef(baseRefCandidate)) {
+        qeCodexLabelOpts = mergeOpts(qeCodexLabelOpts, { _scopeBlocked: 'base-ref probe failed or unparseable (dispatch reply: ' + JSON.stringify(String(baseRefOut === null || baseRefOut === undefined ? null : baseRefOut).slice(0, 120)) + ') — refusing rather than silently falling back to HEAD', _scopeBlockedKind: 'base-ref-not-established' })
+      } else {
+        const baseRef = baseRefCandidate
+        const scopeBuilt = reviewScopeRepoScript({ repo: REPO, scopeDir: scopeDir, baseRef: baseRef, files: modeBChanged, quote: shq })
+        if (scopeBuilt.script === null) {
+          qeCodexLabelOpts = mergeOpts(qeCodexLabelOpts, { _scopeBlocked: 'scope-build refused: ' + scopeBuilt.reason })
+        } else {
+          const scopeBuildOut = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and return its stdout VERBATIM with NO commentary: ' + scopeBuilt.script, { label: 'qe:review-scope', phase: 'QE', effort: 'low' })
+          // FR-3 receipt: git status --porcelain in the scope-repo must name EXACTLY the declared
+          // change set — an absent or partial receipt is a build failure, never "close enough"
+          // (feedback-absence-of-receipt-is-not-success).
+          // fix-round-1 #5 (HIGH): porcelain's status column is a FIXED two-character prefix plus one
+          // space (line.slice(3)), never a `\S+\s+` regex — that regex reads a rename `R  old -> new`
+          // as the single path "old -> new", losing both real paths (the builder now also passes
+          // --no-renames, so a rename never reaches this parser as a two-path line in the first place).
+          // fix-round-1 #6 (MEDIUM): the path is read WITHOUT trimming — only a trailing '\n'/'\r' is
+          // ever stripped — so a declared path containing a leading/trailing space still round-trips.
+          // fix-round-1 #4 (HIGH): a second table of sha256 hashes is parsed out of the SAME reply
+          // (the builder appends a `sha256sum` step after the porcelain line) and compared to
+          // modeBAfterSnap — a receipt that matches on PATHNAME but not on CONTENT is still a
+          // scope-build-failed, catching a cp that silently degraded to rm -f.
+          const statusText = String(scopeBuildOut === null || scopeBuildOut === undefined ? '' : scopeBuildOut)
+          const gotFiles = new Set()
+          const gotHashes = new Map()
+          for (const rawLine of statusText.split('\n')) {
+            const line = rawLine.replace(/\r$/, '')
+            if (line === '') continue
+            // Lead delta (Codex r2 N2 MEDIUM): sha256sum's format is FIXED — 64 hex, one space, one
+            // mode char (' ' text / '*' binary), then the path byte-for-byte. No trim: a declared
+            // path with a trailing space must key the same way it was declared (r1 #6).
+            const hm = /^([0-9a-f]{64}) [ *](.*)$/.exec(line)
+            if (hm) { gotHashes.set(hm[2].replace(/^\.\//, ''), hm[1]); continue }
+            if (line.length < 4 || line.charAt(2) !== ' ') continue
+            const path = line.slice(3)
+            if (path !== '') gotFiles.add(path)
+          }
+          const wantFiles = new Set(modeBChanged)
+          const receiptOk = gotFiles.size === wantFiles.size && Array.from(wantFiles).every(function (f) { return gotFiles.has(f) })
+          const hashMismatches = modeBAfterSnap === null ? [] : modeBChanged.filter(function (f) {
+            const want = modeBAfterSnap.has(f) ? modeBAfterSnap.get(f) : null
+            const got = gotHashes.has(f) ? gotHashes.get(f) : null
+            return (want === null || want === undefined) ? (got !== null && got !== undefined) : got !== want
+          })
+          if (!receiptOk) {
+            qeCodexLabelOpts = mergeOpts(qeCodexLabelOpts, { _scopeBlocked: 'scope-build-failed: git status --porcelain in the scope-repo did not return exactly the declared change set (got ' + gotFiles.size + ', wanted ' + wantFiles.size + ')' })
+          } else if (hashMismatches.length > 0) {
+            qeCodexLabelOpts = mergeOpts(qeCodexLabelOpts, { _scopeBlocked: 'scope-build-failed: content hash mismatch for ' + hashMismatches.join(', ') + ' — the scope-repo working copy does not match the measured content' })
+          } else {
+            qeCodexLabelOpts = mergeOpts(qeCodexLabelOpts, { _scopeRepo: scopeDir, _scopeFiles: modeBChanged })
+          }
+        }
+      }
+    }
+  }
+  // fix-round-1 #8 (MEDIUM, Codex r1): resolve the dispatch LABEL after the scope decision — a
+  // BLOCKED scope skips codexLabelOptsForDispatch entirely (no probe spent on a refusal).
+  let qeCodexResolved = qeCodexLabelOpts
+  if (!qeCodexLabelOpts._scopeBlocked) {
+    // R5-1: the id modelsUsed will report, resolved by the SAME memoized probe the dispatch uses.
+    qeCodexResolved = await codexLabelOptsForDispatch(qeCodexLabelOpts)
+  }
+  qeCodexProbeFailed = !!qeCodexResolved._codexProbeFailed
+  const qeCodexDispatchLabel = modelLabel(qeCodexResolved)
+  // R16-1: the codex QE rung records its attempt HERE. The only dispatch-time write used to sit
+  // inside `if (!qeIsCodex)`, so a codex-routed QE whose modes and belt all returned null printed
+  // `▸ qe` lines and left modelsUsed.qe unassigned entirely. The marker is provisional: the success
+  // paths below overwrite it, and if nothing succeeds it stays and says so.
+  modelsUsed.qe = qeCodexDispatchLabel + (qeCodexLabelOpts._scopeBlocked ? ' (scope not established)' : (qeCodexProbeFailed ? ' (codex probe found no usable id)' : ' (no verdict)'))
   const qeRungHolder = newRung()
   let qeLastRungHolder = qeRungHolder
   let codexQe = await codexReviewAgent('qe', QE_SCOPE, QE_SCOPE_REF, 'QE', qeCodexLabelOpts, qeRungHolder)
@@ -5118,19 +5506,55 @@ let qeReviewerUsed = qeStage ? qeStage.qeReviewerUsed : 'claude'
 if (qeStage && qeStage.modelUsed) modelsUsed.qe = qeStage.modelUsed + (resumedStages.indexOf('qe') !== -1 ? ' (resumed)' : '')
 if (qeStage && qeStage.qe2ModelUsed) modelsUsed.qe2 = qeStage.qe2ModelUsed + (resumedStages.indexOf('qe') !== -1 ? ' (resumed)' : '')
 
+// aqe-ledger-row T3/FR-1/FR-3/A1/A3/A4: the QE step's OWN autorow — who reviewed, how many
+// findings, cross-family or not — so the instrument's own footprint in the ledger stops being
+// zero (00_complexity_assessment.md: 0 of 355 rows before this). Guarded by the SAME
+// resumedStages check every other autorow uses: a resumed QE stage already has its row from the
+// run that actually did the review, so writing again would double-pay it.
+if (resumedStages.indexOf('qe') === -1) {
+  // fix-round-1/#1 (Codex r1 HIGH #1): reviewer/reviewerFamily/qeRole now come from the STRICT
+  // reviewerIdentity() classifier (knownFamily()-backed), not tpFamily() — an unrecognized
+  // qeReviewerUsed (undefined, null, a typo) now reads as reviewerFamily:null/qeRole:null, never
+  // guessed as 'claude'. crossFamily is null whenever EITHER family is unknown — comparing a known
+  // family against an unknown one is not a fact, and reporting `false` for it (as the old
+  // `qeReviewerFamily !== tpFamily(coderUsed)` did whenever tpFamily's default silently matched)
+  // would assert a same-family review that was never established.
+  const qeIdentity = reviewerIdentity(qeReviewerUsed, modelsUsed.qe, qe && qe.qeScope ? qe.qeScope.mode : null)
+  const qeCoderFamily = knownFamily(coderUsed)
+  const qeGrade = (qe && typeof qe.grade === 'string' && qe.grade !== '') ? qe.grade : null
+  const qeGradeSource = (qe && typeof qe.gradeSource === 'string' && qe.gradeSource !== '') ? qe.gradeSource : null
+  const qeClaimCheck = (qe && qe.claimCheck && typeof qe.claimCheck === 'object') ? qe.claimCheck : null
+  const qeScopeRow = (qe && qe.qeScope && typeof qe.qeScope === 'object') ? qe.qeScope : null
+  const qeCrossFamily = (qeIdentity.reviewerFamily === null || qeCoderFamily === null) ? null : (qeIdentity.reviewerFamily !== qeCoderFamily)
+  await appendRunCostRow('qe', 'QE', qe ? 'reviewed' : 'no-deliverable', {
+    reviewer: qeIdentity.reviewer,
+    reviewerFamily: qeIdentity.reviewerFamily,
+    qeRole: qeIdentity.qeRole,
+    grade: qeGrade,
+    gradeSource: qeGradeSource,
+    ...qeFindingsSummary(qe && qe.gaps),
+    claimCheck: qeClaimCheck,
+    crossFamily: qeCrossFamily,
+    qeScope: qeScopeRow,
+  })
+} else {
+  log('run-cost ledger: qe row skipped — stage resumed')
+}
+
 // Step 8 has completed its teach/reinforce work and written 08_qe_report.md. Closing telemetry is
 // secondary: refusal is loud and reflected in roundClosed, but it never overturns the feature run.
 if (qe && pipelineRound !== null) {
   const roundGrade = String(qe.grade || '').trim().toUpperCase()
   const roundOutcome = ['A', 'A-', 'B+', 'B'].indexOf(roundGrade) !== -1 ? 'shipped' : (['C', 'D'].indexOf(roundGrade) !== -1 ? 'refuted' : null)
   if (roundOutcome === null) {
-    log('round close refused: unsupported Step 8 grade ' + JSON.stringify(roundGrade))
+    log('round close skipped: non-terminal Step 8 grade ' + roundGrade + ' — the round stays open for the lead')
+    roundSkippedReason = 'non-terminal-grade'
   } else {
     const roundLessonIds = Array.isArray(qe.roundLessons) ? qe.roundLessons.filter(function (id) { return /^teach:[a-z0-9]+$/i.test(String(id)) }) : []
     const roundLearningArg = roundLessonIds.length > 0
       ? roundLessonIds.map(function (id) { return ' --lesson ' + shq(String(id)) }).join('')
       : ' --no-new-knowledge ' + shq((typeof qe.roundNoNewKnowledge === 'string' && qe.roundNoNewKnowledge.trim() !== '') ? qe.roundNoNewKnowledge.trim() : 'Step 8 returned no new teach receipt for this round')
-    const roundCloseCmd = 'cd ' + shq(REPO) + ' && ' + DZ + ' round close --slug ' + shq(SLUG) + ' --round ' + pipelineRound + ' --outcome ' + roundOutcome + ' --reason ' + shq('grade ' + roundGrade) + roundLearningArg + ' --project ' + shq(BRAIN) + ' --no-cost --json'
+    const roundCloseCmd = 'cd ' + shq(REPO) + ' && ' + DZ + ' round close --slug ' + shq(SLUG) + ' --round ' + pipelineRound + ' --outcome ' + roundOutcome + ' --reason ' + shq('grade ' + roundGrade) + roundLearningArg + ' --grade ' + shq(roundGrade) + ' --reviewer ' + shq(String(modelsUsed.qe || qeReviewerUsed)) + ' --project ' + shq(BRAIN) + ' --no-cost --json'
     const roundCloseOut = await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, nothing else: ' + roundCloseCmd, { label: 'round:close', phase: 'QE', effort: 'low' })
     const roundCloseReceipt = parseRoundCommandJson(roundCloseOut)
     roundClosed = !!(roundCloseReceipt && roundCloseReceipt.marker && roundCloseReceipt.row && roundCloseReceipt.row.stage === 'round')
@@ -5509,6 +5933,7 @@ return {
   codeWrote: code ? code.wrote : [],
   qeGrade: qe ? qe.grade : null,
   roundClosed: roundClosed,
+  roundSkippedReason: roundSkippedReason,
   score: score,
   gaps: qe ? qe.gaps : [],
   codeTestsAdequate: qe ? qe.codeTestsAdequate : null,

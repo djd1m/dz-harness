@@ -2236,9 +2236,107 @@ dz round close --slug add-x --round 1 --outcome shipped
 dz round close --slug add-x --round 1 --outcome blocked --reason "dependency unavailable" --lesson teach:abc123
 # ok — grade stays null, no --grade was passed
 
-dz round close --slug add-x --round 1 --outcome shipped --grade B+ --lesson teach:abc123
-# ✓ строка круга в леджере подтверждена чтением (…) — the row carries "grade":"B+"
+dz round close --slug add-x --round 1 --outcome shipped --grade B+ --reviewer sonnet-5 --lesson teach:abc123
+# ✓ строка круга в леджере подтверждена чтением (…) — the row carries "grade":"B+", "reviewer":"sonnet-5"
 ```
+
+**A finished review also requires a reviewer (`review-cost-ledger` ADR-001 п.4).** `close --outcome
+shipped|refuted` now ALSO refuses `exit 2` (reason names `--reviewer`) when there is neither an
+explicit `--reviewer` nor one the qe-bridge sidecar could fill — a shipped round with no reviewer
+named is not auditable. `blocked|abandoned` carry no such requirement.
+
+**Reviewer price, automatic for Claude reviews (`review-cost.ts`, ADR-001 `review-cost-ledger`,
+amended by fix-round-1 after Codex r1's BLOCKER/CRITICAL pair).** When the reviewer is TIED to a
+qe-bridge signoff — either `--reviewer` is filled FROM it, or an explicit `--reviewer` AGREES with its
+`gradedBy` (case-insensitive `family:model`, or a family-only flag like `claude` matching the
+sidecar's family; `reviewSource:'flag+qe-bridge'` names this second case) — `close` also reads that
+signoff's own `rawStdoutFile` — the reviewer's raw Claude CLI stdout, repo-relative under `--project`
+— and prices the review from its last JSON line (`total_cost_usd`, `usage.*`). A successful price
+lands as `reviewerCostUsd`, `reviewerTokens` (sum of the four token components — `null` when the
+sidecar's own sum was only partial, see below), `reviewerTokensBreakdown:{input, output,
+cacheCreation, cacheRead, partial?}` and `reviewerCostSource:'qe-bridge-stdout'`. Anything that
+prevents a price — the stdout file was removed, is unreadable, its `rawStdoutFile` is absolute or
+escapes the project root via `..`, or it names a DIFFERENT slug's/signoff's own qe-bridge path
+(rejected, never read either way) — lands as `reviewerCostSource:'unavailable'` + `reviewerCostReason`
+(never a silent gap, never a guessed `0`). **A named limit:** Codex reviews leave no qe-bridge signoff
+at all — their tokens are structurally invisible to this instrument. A Codex `--reviewer` (e.g.
+`codex:gpt-5.6-sol:high`) with no matching signoff still gets an honest
+`reviewerCostSource:'unavailable'` + `reviewerCostReason:'no qe-bridge signoff for this round (codex
+tokens are not visible to the instrument)'` — the reviewer identity itself stays the flag's value. An
+explicit `--reviewer` that DISAGREES with a REAL matching signoff is refused outright, `exit 2`, naming
+both values — never a silent win, never a silent price omission (the same discipline `--grade` already
+follows against a disagreeing sidecar grade). The price is never recomputed from a price list — it is
+exactly what the Claude CLI itself billed for that review, taken verbatim:
+```
+dz round close --slug add-x --round 1 --outcome shipped --grade A
+# reviewer filled from the qe-bridge sidecar → the row also carries:
+#   "reviewerCostUsd": 0.452, "reviewerTokens": 55005,
+#   "reviewerTokensBreakdown": {"input":5,"output":12000,"cacheCreation":40000,"cacheRead":3000},
+#   "reviewerCostSource": "qe-bridge-stdout"
+
+dz round close --slug add-x --round 1 --outcome shipped --grade A --reviewer claude:sonnet
+# --reviewer AGREES with the matching signoff's gradedBy → tied to it too:
+#   "reviewer": "claude:sonnet", "reviewSource": "flag+qe-bridge",
+#   "reviewerCostUsd": 0.452, "reviewerCostSource": "qe-bridge-stdout"
+
+dz round close --slug add-x --round 1 --outcome shipped --grade B --reviewer codex:gpt-5.6-sol:high
+# Codex round, no bridge signoff — the row carries:
+#   "reviewer": "codex:gpt-5.6-sol:high", "reviewerCostSource": "unavailable",
+#   "reviewerCostReason": "no qe-bridge signoff for this round (codex tokens are not visible to the instrument)"
+```
+
+**Task identity (`--task`, `--strict`, experiment-instrument ADR-001).** `round open --task <id>`
+mints this round's `taskId` once — a non-empty string ≤120 characters with no control characters
+(refused with exit 2 otherwise); omitted, it defaults to `<slug>@<startedAt>`. `round close` writes
+`taskId` into every row (a state written before this feature carries none on disk — `close` derives
+the same `<slug>@<startedAt>` default and marks `taskIdSource:'derived-legacy'`), and for
+`outcome shipped|refuted` resolves `shipSha` via `git rev-parse HEAD` in `--project` (`null` +
+`shipShaReason` — `"not a git repository"` or `"git failed: …"` — when it cannot), stamping
+`shippedAt` alongside it. **Named limit:** `HEAD` identifies the commit, not the working tree — so the
+same close also records `shipTreeDirty:true|false` (`git status --porcelain` non-empty) or
+`shipTreeDirtyReason` when it could not check; a dirty tree is recorded, never refused (in a shared
+hub the tree is routinely dirty with other people's files). `round status` prints each open round's
+`task <id>` on its own line. Every OTHER writer this feature touches fills `taskId` fill-only-null
+from the slug's SINGLE open round: a payload that already names `taskId` is never overwritten (a
+disagreement is recorded as `taskIdConflict:{payload, round}`; a present-but-unusable value such as
+`7` or `""` is preserved verbatim and named in `taskIdInvalid:{value, reason}`); a payload that already
+names `taskIdSource` is written as-is; an explicit `taskId:null` (the key present) is the caller's
+"no identity applies" and stays null with `taskIdSource:'not-applicable'`; no open round, two of
+them, or an unreadable state file fills `taskId:null` with
+`taskIdSource:'no-open-round'`/`'ambiguous'`/`'unavailable'` — never a guess.
+
+`dz feature-adr-record --kind ledger|training-pair` now fills `taskId`/`taskIdSource` the same way,
+and for an `--auto` ledger row also judges COMPLETENESS: `minutes` is fill-only-null from a payload
+`wallSec` (`minutes = wallSec/60`, rounded to 0.1, `minutesSource:'wallSec'`); a row missing both
+`minutes` and `wallSec`, or carrying a non-number `tokens` with no `tokensSource`, is written
+`complete:false` with `incompleteReasons` (`['minutes']`, `['tokens']`, or both) rather than refused.
+`--strict` turns that into a refusal (exit 2, nothing written) instead of a loudly-marked write — a
+manual (non-`--auto`) row never gains `complete`/`incompleteReasons`/`minutesSource` at all.
+
+`dz control-review` now writes a WITNESSED `{stage:'control', outcome:'refused', half, reason, runId,
+taskId, minutes}` row for every refusal that happens AFTER the run actually started (the claude half
+was at least dispatched) — `half` names which side failed (`claude`/`codex`), or `setup` for a
+tree/aggregation failure belonging to neither; validation/usage refusals before either half runs still
+write nothing, unchanged. Before this, 3 of 4 refused control runs left no ledger trace at all. A
+successful `control` row also carries `taskId`. `dz score --by-family` folds refusals into each
+pair's `refusedRuns` (attributed only when the refusal's own `coderFamily` is known — the earliest
+failures, before the claude half reports which family it reviewed, count only at the top-level
+`refusedControlRows`, never guessed into a pair) — `refusedRuns` is never counted toward `n`, which
+measures completed reviews.
+
+`dz publish --yes` appends a witnessed `{stage:'publish', outcome:'published', packages:{<name>:
+<version>…}, shipSha, taskId:null, note:'dz publish --yes'}` row exactly when at least one package
+actually published (the same gate the mirror epilogue already uses: `!dryRun && published >= 1`) —
+0 published, or a dry-run, appends nothing. `taskId` is a literal `null` here, never looked up: a
+publish sweeps multiple packages/features in one run, so no single slug's open round owns this row's
+task identity. A writer failure only warns (`⚠ the publish ledger row was not verified on reread…`)
+and never changes the publish exit code.
+
+`dz qe-bridge`'s signoff record also carries `taskId`/`taskIdSource`, filled the same way at write
+time; `round close`'s own signoff lookup additionally narrows an otherwise-AMBIGUOUS window by taskId
+when EXACTLY ONE candidate's own `taskId` matches the closing round's — zero or multiple matches still
+refuse as ambiguous, and a round with no taskId to compare falls straight through unchanged (closes
+backlog `1affd89e`).
 
 Every mutation of `.dz/rounds/<slug>-<round>.json` (`open`'s archive+write, `exec`'s owner-claim and
 owner-restore writes, `close`'s final reread+delete) runs under ONE named lock,
@@ -3441,7 +3539,7 @@ dz publish: BLOCKED harness-cli — sibling drift: @dzhechkov/memory@0.2.20 on t
 dz publish: refusing to publish (1 sibling-drift violation(s))
 
 $ dz publish --filter harness-cli --yes
-dz publish: tarball @dzhechkov/harness-cli@0.8.29 sha256:9f2c…e10a
+dz publish: tarball @dzhechkov/harness-cli@0.8.29 sha256:d656…c334
 dz publish: ✓ packed install smoke
   ✓ @dzhechkov/harness-cli                1.0.0 → 1.0.1  published (confirmed by registry after 1 probes)
       sha256:9f2c…e10a
@@ -5450,7 +5548,7 @@ ledger row now carries a `prices` snapshot. See `@dzhechkov/harness-core`'s READ
 decision list (D1–D5) and the two new pure modules (`feature-adr-stage-canon.ts`, `codex-rollouts.ts`) behind
 `dz usage --by-stage`'s new `INCOMPLETE_INVENTORY` verdict and canonical-stage breakdown.
 
-`harness-core v0.8.37` · `harness-cli v0.8.29` · `memory v0.2.23` — **this release (night 16→17.09, five features
+`harness-core v0.8.38` · `harness-cli v0.8.29` · `memory v0.2.23` — **this release (night 16→17.09, five features
 and four live-run fixes, each cross-family reviewed by Codex): `dz control-review` (two independent scoped reviews
 over one tree, candidate/confirmed/unique buckets, tree-snapshot refusals, witnessed ledger row) and `dz score
 --by-family` (per-family-pair aggregate with honest n/unknown/INCOMPLETE); every Step-8 report carries a machine-
@@ -5459,7 +5557,7 @@ shipped/refuted; automatic ledger rows carry the experiment envelope; the featur
 module (a duplicate `shellQuote` had made it unlaunchable since 16.09 — a dependency-free guard test now pins the
 tool's grammar) and the `codex-stdin-guard` hook no longer refuses a correct `… 2>&1 < /dev/null`.**
 
-`harness-core v0.8.36` · `harness-cli v0.8.29` · `memory v0.2.23` — **(night 15→16.09, five
+`harness-core v0.8.36` · `harness-cli v0.8.28` · `memory v0.2.23` — **(night 15→16.09, five
 changes, each cross-family reviewed by Codex): recall orders its hits deterministically in every sort, a killed
 process must be OBSERVED dead rather than assumed dead, the mutation gate survives a UNIX socket inside the
 package, the README version stamp cannot rewrite history, and the two Codex hooks resolve their project root

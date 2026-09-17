@@ -290,6 +290,10 @@ export function decideRecordWrite(input: {
   /** measurement-integrity FR-5/FR-6: rollout-log + price enrichment for a ledger row. Absent ⇒ zero
    *  behavior change (NFR-1). */
   enrich?: LedgerEnrichInput;
+  /** experiment-instrument FR-2/A3 (ADR-001): when `true`, an AUTO ledger row that would be written
+   *  `complete:false` is refused instead (exit 2, before any write) — a круг-B default candidate, opt-
+   *  in today so nothing that already writes incomplete auto rows starts failing underfoot (NFR-1). */
+  strict?: boolean;
 }): RecordDecision {
   const { kind, payloadRaw, stage } = input;
   if (kind !== 'ledger' && kind !== 'training-pair') {
@@ -553,6 +557,57 @@ export function decideRecordWrite(input: {
     }
   }
 
+  // experiment-instrument FR-2/A3 (ADR-001): completeness of an AUTO ledger row. `minutes` is
+  // fill-only-null from a `wallSec` the payload carries (the workflow sandbox has a clock delta even
+  // when it has no wall clock of its own — FR-2's `wallSec` field, distinct from `minutesSincePrev`
+  // above, which needs a PREVIOUS row and a runId neither of which every auto row has). `tokens` is
+  // judged complete when it is a real number OR the row already NAMES why it is not (`tokensSource`,
+  // set above by the FR-5 rollout match, or supplied by the caller) — an unexplained non-number is the
+  // one shape that is actually incomplete. Gated on `auto` only: a MANUAL row never gains any of these
+  // three keys, so it stays byte-identical to before this feature (NFR-1).
+  if (kind === 'ledger' && stamped['auto'] === true) {
+    const incompleteReasons: string[] = [];
+    if (stamped['minutes'] === null || stamped['minutes'] === undefined) {
+      const wallSec = stamped['wallSec'];
+      if (typeof wallSec === 'number' && Number.isFinite(wallSec) && wallSec >= 0) {
+        stamped['minutes'] = Math.round((wallSec / 60) * 10) / 10;
+        stamped['minutesSource'] = 'wallSec';
+      } else {
+        incompleteReasons.push('minutes');
+      }
+    }
+    // r1-10 (Codex r1 HIGH #10): completeness requires a real, finite NUMBER of tokens. Naming why
+    // tokens are missing (`tokensSource:'unavailable'`, or any other provenance) is diagnostic, never
+    // a substitute for the number itself — ADR-001 says missing tokens makes the row incomplete, full
+    // stop. The old check (`tokensSource === undefined`) treated a NAMED absence as if it were data.
+    if (typeof stamped['tokens'] !== 'number' || !Number.isFinite(stamped['tokens'])) {
+      incompleteReasons.push('tokens');
+    }
+    // r1-11 (Codex r1 MEDIUM #11): a payload that ALREADY declared itself incomplete (its own
+    // `complete:false` + `incompleteReasons`, e.g. a workflow-side `'artifact'` reason this module
+    // knows nothing about) must never be overwritten back to `complete:true` just because THIS
+    // module's own minutes/tokens checks both passed — that erases a true fact and leaves a
+    // contradictory row (`complete:true` alongside a stale `incompleteReasons`). Preserve and MERGE.
+    const existingCompleteRaw = stamped['complete'];
+    const existingWasIncomplete = existingCompleteRaw === false;
+    const existingReasonsRaw = stamped['incompleteReasons'];
+    const existingReasons = Array.isArray(existingReasonsRaw)
+      ? existingReasonsRaw.filter((r): r is string => typeof r === 'string')
+      : [];
+    const mergedReasons = existingWasIncomplete
+      ? [...new Set([...existingReasons, ...incompleteReasons])]
+      : incompleteReasons;
+    const complete = mergedReasons.length === 0 && !existingWasIncomplete;
+    // A3: under `--strict`, incompleteness is a REFUSAL — before any write, the target untouched —
+    // rather than a loudly-marked write. Without `--strict` (the default today; круг-B may flip it),
+    // the row is still written, just honestly marked `complete:false` with its reasons.
+    if (input.strict === true && !complete) {
+      return refuse(`auto ledger row is incomplete (${mergedReasons.join(', ') || 'previously marked incomplete'}) — refused under --strict before any write`);
+    }
+    stamped['complete'] = complete;
+    if (!complete) stamped['incompleteReasons'] = mergedReasons.length > 0 ? mergedReasons : existingReasons;
+  }
+
   let line: string;
   try {
     line = JSON.stringify(stamped);
@@ -603,4 +658,55 @@ export function decideReadBack(appended: string, lastLineOnDisk: string | null):
 /** The one line every caller reads last, in the shape the other gates use. */
 export function recordVerdictLine(kind: RecordKind, stage: string, d: RecordDecision): string {
   return `feature-adr record (${kind}/${stage}): ${d.verdict.toUpperCase()} — ${d.reason}`;
+}
+
+/** experiment-instrument FR-1/FR-3 (ADR-001): what `round.ts`'s `readOpenRoundTaskId` returns — the
+ *  single source `applyTaskId` fills from. Duplicated here rather than imported so this pure module
+ *  never depends on `round.ts`'s own shape; the CLI is the one holding both and wiring them together.
+ *  r1-1/r1-2 (Codex r1 #1/#2): extended with `'derived-legacy'` and `'unavailable'` to stay in
+ *  lockstep with `round.ts`'s own `readOpenRoundTaskId` return type. */
+export interface TaskIdLookup {
+  readonly taskId: string | null;
+  readonly source: 'open-round' | 'derived-legacy' | 'no-open-round' | 'ambiguous' | 'unavailable';
+}
+
+/**
+ * experiment-instrument FR-1/FR-3/A8 (ADR-001): propagate `taskId` onto a ledger/training-pair payload
+ * BEFORE it reaches {@link decideRecordWrite} — fill-only-null, never overwritten.
+ *
+ * - The payload already names a non-empty `taskId` string ⇒ it is authoritative. When it DISAGREES
+ *   with the round's own current taskId, that disagreement is a real fact worth keeping — recorded as
+ *   `taskIdConflict: {payload, round}` — never silently resolved either way (A8).
+ * - The payload's `taskId` key is absent, or explicitly `null`/`undefined` ⇒ filled from `lookup`,
+ *   INCLUDING the honest `null` case: no open round (A4) or two of them (A5) still stamps `taskId:
+ *   null` + `taskIdSource` naming why, rather than leaving the field silently absent — absence with a
+ *   named reason beats absence with none.
+ * - r1-3 (Codex r1 HIGH #3): the payload's `taskId` key is PRESENT with a value that is neither a
+ *   non-empty string nor null/undefined (a number, a boolean, an object, or a blank/whitespace-only
+ *   string) ⇒ that is a present-but-INVALID value, a THIRD case distinct from both of the above. It
+ *   used to be treated exactly like "absent" (`typeof !== 'string'` fell through to the fill branch),
+ *   silently replacing the caller's own (malformed) value with the round's — violating both
+ *   fill-only-null and "a present payload value always wins". Now: the row's own value is preserved
+ *   UNTOUCHED (never replaced with a guess about what the caller meant), and the problem is named in
+ *   `taskIdInvalid` so a reader can see the row was neither filled nor trusted blindly.
+ *
+ * Pure: no filesystem, no clock. The CALLER (the cli) is the one that read `.dz/rounds/` to build
+ * `lookup` in the first place.
+ */
+export function applyTaskId(row: Record<string, unknown>, lookup: TaskIdLookup): Record<string, unknown> {
+  const hasTaskIdKey = Object.prototype.hasOwnProperty.call(row, 'taskId');
+  const rawPayloadTaskId = row['taskId'];
+  if (hasTaskIdKey && rawPayloadTaskId !== null && rawPayloadTaskId !== undefined) {
+    if (typeof rawPayloadTaskId === 'string' && rawPayloadTaskId.trim() !== '') {
+      const payloadTaskId = rawPayloadTaskId.trim();
+      if (lookup.taskId !== null && lookup.taskId !== payloadTaskId) {
+        return { ...row, taskIdConflict: { payload: payloadTaskId, round: lookup.taskId } };
+      }
+      return { ...row };
+    }
+    // r1-3: present but not a usable identity (non-string, or blank after trim) — refuse to replace
+    // it with a lookup guess; preserve it verbatim and name the problem.
+    return { ...row, taskIdInvalid: { value: rawPayloadTaskId, reason: 'taskId present but not a non-empty string' } };
+  }
+  return { ...row, taskId: lookup.taskId, taskIdSource: lookup.source };
 }

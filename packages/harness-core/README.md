@@ -1448,6 +1448,120 @@ surface on top of the prose, never replacing it:
   producer-side prompt wiring (Step 8's `QE-VERDICT:` + table instruction) and the six September
   reports hand-marked from their own prose as the real-corpus proof (`qe-findings-corpus.test.ts`).
 
+## Task identity (`round.ts` + `run-records.ts`, experiment-instrument ADR-001)
+
+A prospective audit found no task identifier joining ledger rows, review signoffs, control rows and
+training pairs across the whole pipeline — three writers each minting (or not minting) their own idea
+of "what this run was about". This feature mints `taskId` in exactly ONE place and propagates it
+fill-only-null everywhere else, never guessing.
+
+- **`openRound` mints it.** A new optional `RoundState.taskId`/`RoundLedgerRow.taskId` field: `--task
+  <id>` (validated — non-empty, ≤120 chars, no control characters, else `{ok:false, exit:2}`), or the
+  default `<slug>@<startedAt>`. `closeRound` copies it into every row; a state predating this feature
+  carries no `taskId` key on disk, so `closeRound` derives the SAME default and marks
+  `taskIdSource:'derived-legacy'` on the row (never on a fresh round's row).
+- **`closeRound` also carries the ship anchor**, entirely as CLI-supplied data (the core never shells
+  out — `git rev-parse` lives in the cli): `shipSha: string | null` and an optional `shipShaReason`,
+  present only for a FINISHED outcome (`shipped|refuted`), alongside `shippedAt` (= this row's own
+  `closedAt`). A finished row with a null sha ALWAYS carries a non-empty `shipShaReason` (`'not
+  provided'` when the caller gave none). Because `HEAD` does not identify a dirty working tree, the
+  same row also carries `shipTreeDirty: boolean` (resolved by the cli from `git status --porcelain`)
+  or, when unresolved, a non-empty `shipTreeDirtyReason` (`'not provided'` default) — one of the two is
+  always present on a finished row; a dirty tree is recorded, never refused. `blocked|abandoned`
+  carries none of these, even when a sha is passed in.
+- **`readOpenRoundTaskId(states, slug)`** is the single pure lookup every OTHER writer in the pipeline
+  consults: `{taskId, source}` where `source` is `'open-round'` (exactly one match — `taskId` is its
+  own), `'derived-legacy'` (exactly one match whose state predates this feature — the default is
+  derived, and the label says so), `'no-open-round'` (zero matches — `taskId: null`), `'ambiguous'`
+  (two or more, or a readable state next to an unreadable one — `taskId: null`, never "the latest
+  wins") or `'unavailable'` (only unreadable matching state files — an unreadable round is never read
+  as absence). It does not touch a filesystem; the caller (the cli, walking `.dz/rounds/<slug>-*.json`)
+  hands in the already-read states plus the count it could not parse.
+- **`applyTaskId(row, lookup)`** (`run-records.ts`) fills a ledger/training-pair payload's `taskId`
+  from that lookup, fill-only-null: a payload that already names a non-empty `taskId` is left alone
+  UNLESS it disagrees with `lookup.taskId`, in which case the disagreement is recorded as
+  `taskIdConflict: {payload, round}` (the payload's own value still wins — never silently overwritten).
+  A payload with no `taskId` is filled, including the honest `null` case (`taskIdSource` names why) —
+  absence with a reason beats silent absence.
+- **`decideRecordWrite` also judges AUTO-ROW COMPLETENESS.** For `kind:'ledger'` with `auto:true`:
+  `minutes` is fill-only-null from a payload `wallSec` (`minutes = round(wallSec/60, 1)`,
+  `minutesSource:'wallSec'`); a row that ends up with neither a real `minutes` nor a resolvable
+  `tokens` (no number, no `tokensSource`) is written `complete:false` with `incompleteReasons`
+  (`['minutes']`, `['tokens']`, or both) — new optional `strict?: boolean` turns that into a refusal
+  (`exit 2`, nothing written) instead. A manual (non-`auto`) row gains none of these three keys, ever.
+
+All new fields are additive, appended after every existing key (NFR-1) — every pre-existing test of
+`round.ts`/`run-records.ts` keeps passing unmodified except the handful of exact key-order/exact-value
+assertions that the new fields legitimately extend (documented in the feature's own change manifest).
+
+## Reviewer price on the round ledger row (`review-cost.ts`, ADR-001 `review-cost-ledger`)
+
+Cross-family review cost sat un-tracked: the qe-bridge reviewer's own price (Claude CLI's
+`total_cost_usd`/`usage.*`/`duration_ms` on the last line of its raw stdout) was measured 40/40 for
+every recent signoff, but nothing in `harness-core` read it, and a finished (`shipped|refuted`) round
+could close with no reviewer named at all — unmeasurable by definition.
+
+- **`parseQeBridgeStdoutCost(text)`** (new module `review-cost.ts`, exported from `index.ts`) is a
+  pure parser over the reviewer's raw stdout TEXT (this module owns no filesystem access — NFR-2). It
+  reads the LAST non-empty line and returns `{status:'ok', costUsd, tokens:{input, output,
+  cacheCreation, cacheRead, total, tokensPartial?}, durationMs, numTurns}` for a usable JSON cost
+  object, `{status:'absent', reason?}` when there is no non-empty line at all, or
+  `{status:'unparseable', reason}` for anything else (not JSON, not an object, a missing/negative/NaN
+  `total_cost_usd`) — a price is NEVER guessed from an absence, and a missing usage component becomes
+  `0` with `tokensPartial:true` rather than silently blending with a genuine zero.
+- **`closeRound` gains `reviewSidecar.cost?: QeBridgeCost`** and, on the row, `reviewerCostUsd`,
+  `reviewerTokens` (sum of the four components — `null` when the sidecar's own sum was only partial,
+  see below), `reviewerTokensBreakdown:{input, output, cacheCreation, cacheRead, partial?}`,
+  `reviewerCostSource:'qe-bridge-stdout'|'unavailable'` and (only when `'unavailable'`)
+  `reviewerCostReason` — additive, appended after every existing key (NFR-1; a round closed with no
+  sidecar is byte-identical to before this feature).
+- **Reviewer identity is TIED to the sidecar (ADR-001 п.2, amended by fix-round-1 after Codex r1's
+  BLOCKER/CRITICAL pair) in exactly two cases**: (a) `reviewer` is FILLED from the sidecar (no explicit
+  `--reviewer`), or (b) an explicit `--reviewer` AGREES with the sidecar's own `gradedBy`
+  (case-insensitive `family:model` equality, or a family-only flag like `claude` matching the sidecar's
+  family) — `reviewSource:'flag+qe-bridge'` names that second case. This exists because the pipeline's
+  normal path ALWAYS passes `--reviewer` (`.claude/workflows/feature-adr.js`); under the pre-fix-round-1
+  rule ("an explicit reviewer never trusts the sidecar for cost, ever") the price this feature exists
+  to record was never written on that path. A `--reviewer` that DISAGREES with a real sidecar `gradedBy`
+  is refused outright, `exit 2`, naming both values — the same discipline `--grade` already follows
+  against a disagreeing sidecar grade — never a silent win and never a silent price omission. The price
+  itself is written ONLY in the two tied cases above; a sidecar that is NOT tied to the row's reviewer
+  (an empty `gradedBy` — the CLI's Codex-no-signoff synthesis, below) can still explain a NAMED limit,
+  but an `'ok'`-status price on an untied sidecar is NEVER attributed, whatever the number.
+- **A finished review now REQUIRES a reviewer.** `closeRound` refuses `exit 2` (reason names
+  `--reviewer`) for `outcome ∈ {shipped, refuted}` with neither an explicit `--reviewer` nor one filled
+  from the sidecar — a row with no reviewer named is not auditable. `blocked|abandoned` carry no such
+  requirement, same as they carry no grade requirement.
+- **A partial token sum never reads as an exact zero.** When the sidecar's own `tokens.tokensPartial`
+  is `true` (at least one usage component was missing from the source JSON), `reviewerTokens` is `null`
+  and `reviewerTokensBreakdown.partial` is `true` — the price stays valid, only the aggregate count is
+  withheld, so a genuinely partial review is never indistinguishable from a real zero-token one.
+- **Every token component is validated as a nonnegative safe integer** (`Number.isSafeInteger`); the
+  four-way sum is checked the same way. A component that is fractional, negative, or beyond
+  `Number.MAX_SAFE_INTEGER` (adversarial: `1e308`) turns the WHOLE result `unparseable` with a reason
+  naming the offending field, rather than silently overflowing into `Infinity` (which used to serialize
+  as `null` on the row while the in-memory type still claimed `number`).
+- **The cli (`readQeBridgeCostSidecar`, next to `findQeBridgeSignoffForRound`)** reads a found
+  signoff's own `rawStdoutFile` (repo-relative, resolved from the project root; an absolute path or one
+  escaping the root via `..` is rejected, never read) and parses it best-effort — never throws; any
+  failure (removed file, unreadable, unsafe path) becomes `reviewerCostSource:'unavailable'` with a
+  named reason, same as an intact-but-unparseable stdout. The path is additionally scoped to THIS
+  round's own `features/<slug>/.fa-state/qe-bridge/signoff-<runId>.stdout.txt` — a path that resolves
+  inside the repository root but under a DIFFERENT slug's directory, or names a DIFFERENT signoff's
+  runId, is rejected before it is opened (never another review's price silently imported), followed by
+  an `lstat` check that the resolved file exists and is not a symlink. A Codex reviewer supplied via
+  `--reviewer` with NO matching bridge signoff (structural — Codex reviews leave none, so their tokens
+  are never visible to this instrument) still gets an honest `reviewerCostSource:'unavailable'` +
+  `reviewerCostReason:'no qe-bridge signoff for this round (codex tokens are not visible to the
+  instrument)'`, while the reviewer identity itself stays the flag's value.
+- **The `/feature-adr` conveyor's own `round close` now passes `--grade` and `--reviewer`.** Measured
+  2026-09-17: `roundCloseCmd` in `.claude/workflows/feature-adr.js` (and its packaged twin) omitted
+  BOTH since the measurement-integrity feature made `--grade` mandatory — every ultracode-graded run
+  closed with `roundClosed:false`. Both flags are now built from the same values the run already
+  computed (`roundGrade`, `modelsUsed.qe || qeReviewerUsed`); the wiring test pins the literal
+  construction and reproduces the regression as a RED/GREEN mutation (removing either flag on one twin
+  fails the pin).
+
 ## Status
 
 `next` — staged, not yet versioned or published. Feature `measurement-integrity` (ADR-001, tier M): five

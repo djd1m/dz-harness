@@ -2190,7 +2190,11 @@ export function gradeFromReviewFindings(findings: readonly CodexQeFinding[] | nu
  * The LOCKED decline taxonomy. A `kind` outside this set is a bug, not a new case — which is why
  * {@link codexQeDeclineReason} throws on one rather than rendering something plausible.
  */
-export const CODEX_QE_DECLINE_KINDS: readonly string[] = ['timeout', 'no-verdict', 'tool-error', 'unusable-output', 'unavailable', 'over-ceiling', 'wrong-tree'];
+// 'scope-not-established' and 'base-ref-not-established' joined the set 2026-09-17 (feature
+// codex-review-scope + its fix-round-1, finding #7): the workflow's two inline mirrors grew both
+// kinds; this export copy diverged behind them until now. Appended, never reordered — the SAME
+// order the two workflow-twin mirrors carry.
+export const CODEX_QE_DECLINE_KINDS: readonly string[] = ['timeout', 'no-verdict', 'tool-error', 'unusable-output', 'unavailable', 'over-ceiling', 'wrong-tree', 'scope-not-established', 'base-ref-not-established'];
 
 export interface ClassifyCodexQeInput {
   readonly exit?: number | null;
@@ -2349,6 +2353,12 @@ export function codexQeDeclineReason(kind: string | null | undefined, detail?: C
   }
   if (canonical === 'over-ceiling') {
     return 'prompt is ' + chars + ' chars / unscoped — refused before dispatch';
+  }
+  if (canonical === 'scope-not-established') {
+    return 'review scope NOT ESTABLISHED for uncommitted QE — ' + (d.reason === undefined || d.reason === null || String(d.reason) === '' ? 'the change set could not be measured' : String(d.reason)) + ' — refusing to fall back to --uncommitted on the shared tree';
+  }
+  if (canonical === 'base-ref-not-established') {
+    return 'base ref for the isolated review scope NOT ESTABLISHED — ' + (d.reason === undefined || d.reason === null || String(d.reason) === '' ? 'the base-ref probe failed or was unparseable' : String(d.reason)) + ' — refusing to silently fall back to HEAD';
   }
   throw new Error('codexQeDeclineReason: unknown kind ' + k);
 }

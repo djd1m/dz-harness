@@ -464,6 +464,21 @@ export function buildControlRow(input) {
         },
     };
 }
+function isValidControlRefusedRow(obj) {
+    if (typeof obj['slug'] !== 'string' || obj['slug'].trim() === '')
+        return false;
+    if (typeof obj['runId'] !== 'string' || obj['runId'].trim() === '')
+        return false;
+    if (obj['half'] !== 'claude' && obj['half'] !== 'codex' && obj['half'] !== 'setup')
+        return false;
+    if (typeof obj['reason'] !== 'string' || obj['reason'].trim() === '')
+        return false;
+    if (!(obj['minutes'] === null || (typeof obj['minutes'] === 'number' && Number.isFinite(obj['minutes']))))
+        return false;
+    if (obj['coderFamily'] !== undefined && obj['coderFamily'] !== 'codex' && obj['coderFamily'] !== 'claude')
+        return false;
+    return true;
+}
 const CONTROL_BY_SEVERITY_KEYS = ['confirmed', 'candidate', 'onlyCodex', 'onlyClaude'];
 const QE_SEVERITY_SET = new Set(QE_SEVERITIES);
 function isNonNegInt(v) {
@@ -572,6 +587,7 @@ function isValidControlRow(obj) {
  */
 export function parseControlRows(lines) {
     const rows = [];
+    const refusedRows = [];
     const roundRows = [];
     const fullRows = [];
     let unreadable = 0;
@@ -594,6 +610,17 @@ export function parseControlRows(lines) {
         const obj = parsed;
         const stage = obj['stage'];
         if (stage === 'control') {
+            // experiment-instrument FR-4/A6: `outcome:'refused'` is a DIFFERENT schema from a successful
+            // control row — checked FIRST, so a refused row is never mistaken for a malformed successful
+            // one (which would count it `unreadable`, losing exactly the receipt this feature adds).
+            if (obj['outcome'] === 'refused') {
+                if (!isValidControlRefusedRow(obj)) {
+                    unreadable++;
+                    continue;
+                }
+                refusedRows.push(obj);
+                continue;
+            }
             if (!isValidControlRow(obj)) {
                 unreadable++;
                 continue;
@@ -609,7 +636,7 @@ export function parseControlRows(lines) {
         // Every other stage (plan/impl/fix/loop-run/round-exec/…) and the header/comment row (no
         // string `stage`) are readable, just not addressed by this module.
     }
-    return { rows, roundRows, fullRows, unreadable };
+    return { rows, refusedRows, roundRows, fullRows, unreadable };
 }
 /**
  * r1-15 (Codex r1 finding 15): a provider-qualified spec like `anthropic/claude-sonnet-4` or
@@ -639,7 +666,7 @@ function newPair() {
     return {
         n: 0, grades: {}, shipped: 0, shippedTotal: 0, fixRoundsList: [],
         foreignN: 0, foreignBySeverity: {}, foreignAuto: 0, foreignAdjudicated: 0, foreignAutoRuns: 0, foreignAdjudicatedRuns: 0, foreignIncomplete: 0,
-        refutedN: 0, refutedSum: 0, costN: 0, costSum: 0, drafts: [],
+        refutedN: 0, refutedSum: 0, costN: 0, costSum: 0, drafts: [], refusedRuns: 0,
     };
 }
 /**
@@ -726,6 +753,18 @@ export function aggregateByFamily(parsed, signoffs) {
             b.foreignAuto += foreignTotal;
         }
     }
+    // experiment-instrument FR-4/A6: a refused row is bucketed the SAME way a successful control row
+    // is — by its own coderFamily and the complementary reviewer — but ONLY when coderFamily is known
+    // (the earliest failures, before the claude half reports which family it reviewed, cannot be
+    // attributed to a pair; they still count toward `refusedControlRows` at the top level below,
+    // never silently dropped). `n` is deliberately untouched: `n` measures COMPLETED reviews.
+    for (const rr of parsed.refusedRows) {
+        if (rr.coderFamily === undefined)
+            continue;
+        const reviewerOfInterest = rr.coderFamily === 'codex' ? 'claude' : 'codex';
+        const b = bucket(rr.coderFamily, reviewerOfInterest);
+        b.refusedRuns++;
+    }
     // draftToShipped: earliest known verdict per slug (a qe-bridge signoff, or this control row's
     // own claude-half grade when no signoff was given) against the slug's final grade — keyed by
     // slug PLUS the normalized (coder,reviewer) family pair (r1-14: two final rows for the same slug
@@ -794,9 +833,16 @@ export function aggregateByFamily(parsed, signoffs) {
             refutedShare: { n: b.refutedN, value: b.refutedN > 0 ? b.refutedSum / b.refutedN : 'unknown' },
             costPerConfirmed: { n: b.costN, value: b.costN > 0 ? b.costSum / b.costN : 'unknown' },
             draftToShipped: b.drafts,
+            refusedRuns: b.refusedRuns,
         };
     }
     const incompleteControlRows = parsed.rows.filter((r) => !r.complete).length;
-    return { pairs: out, incomplete: parsed.unreadable > 0 || incompleteControlRows > 0, incompleteControlRows, controlRows: parsed.rows.length };
+    return {
+        pairs: out,
+        incomplete: parsed.unreadable > 0 || incompleteControlRows > 0,
+        incompleteControlRows,
+        controlRows: parsed.rows.length,
+        refusedControlRows: parsed.refusedRows.length,
+    };
 }
 //# sourceMappingURL=cross-family-control.js.map

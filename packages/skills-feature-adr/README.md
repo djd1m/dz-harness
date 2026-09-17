@@ -208,6 +208,32 @@ run; it now survives it in `recordFailures`.
 
 Requires `@dzhechkov/harness-core >= 0.6.1`.
 
+### The QE instrument writes its own ledger row (aqe-ledger-row)
+
+Before this, the run-cost ledger recorded `plan`, `full`, `design-gate` and friends automatically, but
+the pass that actually reviews the code — Step 8 QE — left zero autorows: every `qe`/`impl` row in the
+ledger was hand-entered, with no model, no findings count, no cross-family signal. The `Workflow`
+pipeline now writes two additional autorows, both additive-only (existing rows are byte-identical to
+before — `appendRunCostRow` gained an optional fourth `extra` argument, spread in only after every
+pre-existing field):
+
+- **`impl`** — written right after the Step 7.5 landing barrier settles: `coder`, `coderFamily`, and
+  `landed` (the barrier's verdict string, or `skipped-claude-sync` for a synchronous Claude coder that
+  never runs the barrier). Writing it here — before Step 8 starts — means the `qe` row's
+  `minutesSincePrev` measures the QE step alone, not QE-plus-code.
+- **`qe`** — written right after the QE step resolves: `reviewer` (the model, or `null` if unknown),
+  `reviewerFamily`, `qeRole` (`qe-code-reviewer` for Claude; `codex-review`/`codex-exec` for Codex by
+  scope mode; never guessed), `grade`, `gradeSource` (if known), `findings` + `findingsBySeverity` +
+  `findingsSource` (normalized from the QE `gaps[]`; an unknown severity counts as `other`, never
+  dropped; no `gaps` array at all reads as `findings:0`, `findingsSource:'no-gaps-array'`), `claimCheck`
+  (if run), `crossFamily` (bool — reviewer family differs from coder family), and `qeScope` (if the
+  reviewer ran scoped, e.g. Codex's `mode`/`ref`/`files`).
+
+Both rows are skipped — with a logged reason, never silently — when their stage resumed from a
+checkpoint (`resumedStages`), so a resumed run never double-pays the ledger. Plain-mode runs (the
+interactive SKILL, not the ultracode `Workflow`) carry the same fields as a manual step at the end of
+`modules/08-qe.md` — see that module for the exact command.
+
 ### Step 0 writes the assessment down, and the acid check gets its input back (v1.5.0)
 
 Step 0 classifies the feature and now **writes `00_complexity_assessment.md` before it returns** — the
@@ -416,9 +442,55 @@ cross-family QE is silently lost — on exactly the big features that need it mo
 - **Every fallback names its cause.** The reason carried into
   `opus (cross-family QE DID NOT happen — …)` comes from a locked taxonomy —
   `timeout` (narrow the scope) · `no-verdict` · `tool-error` (fix the invocation) · `unusable-output` ·
-  `unavailable` (fix the account/model) · `over-ceiling`. A timeout and an unusable output can never
-  render the same string, because the operator's next move differs.
+  `unavailable` (fix the account/model) · `over-ceiling` · `scope-not-established` (mode A's scope
+  could not be built — see below) · `base-ref-not-established` (the scope's base-ref probe failed or
+  was unparseable — see below). A timeout and an unusable output can never render the same string,
+  because the operator's next move differs.
 - **The pipeline still never blocks on Codex.** Both modes fail into the same Claude belt as before.
+
+**Mode A's `--uncommitted` pass runs in an ISOLATED scope-repo, never on the shared tree.** MEASURED
+2026-09-17 (run `wf_95211e0f`): on a hub with other dirty packages, `codex review --uncommitted`
+wandered into unrelated files (`books/`, `features/clean-code-*`) and timed out at 600s having
+reviewed nothing of the run's own feature — cross-family QE silently lost on exactly the runs that
+need it most. Before mode A is attempted for scope `'uncommitted'` (the default), the pipeline now:
+builds a throwaway git repo under `features/<slug>/.fa-state/review-scope/` containing ONLY the
+ESTABLISHED change set (the same `modeBChanged` measurement mode B already uses — base versions via
+`git show <BASE_REF>:<path>` in one commit, working versions copied on top); verifies the receipt
+(`git status --porcelain` in that repo names EXACTLY the declared files, never "close enough"); and
+runs `codex review --uncommitted` with `repo:` pointed at that isolated tree. Findings come back with
+the scope-repo's own absolute path and are normalized to repo-relative before scoring. A change set
+that is **not established** (`null` — no pre-code baseline) or **established but empty** (`[]` — no
+files changed) refuses BEFORE any dispatch, under one decline kind `scope-not-established` (never a
+silent fallback to `--uncommitted` on the shared tree); a failed scope-repo build or a receipt
+mismatch refuse the same way. Knob: `args.qeIsolatedScope` (default `true`) — `false` restores the
+prior `--uncommitted`-on-the-shared-tree behavior byte-for-byte, with a log line saying so. Scopes
+`commit`/`base` are unaffected.
+
+**Fix round 1 hardening (Codex r1 review, 2026-09-17), briefly:** the scope-repo path is validated by
+PATH SEGMENT (`<repo>/features/<slug>/.fa-state/review-scope`, `<slug>` alphanumeric, no `.`/`..`
+segment anywhere), not by a lexical prefix/substring check — a `..`-laced path can no longer walk the
+one destructive `rm -rf` outside `features/`; the script itself repeats the check at runtime (symlink
++ `case` guard) as a second belt. A base-ref probe that fails or returns something unparseable now
+REFUSES under `base-ref-not-established` instead of silently substituting `HEAD` — a bad ref used to
+make Codex review a full-file addition instead of the real modification. The receipt is now a CONTENT
+check, not just a pathname list: the scope-build script also emits a `sha256sum` of every working
+file, compared against the same pre-measured hashes mode B already computes, so a `cp` that silently
+degraded to a deletion (an unreadable file, one that vanished mid-copy) is caught even though the
+pathname-only receipt would have passed; a genuine `cp` failure now aborts the build rather than being
+read as an intentional deletion. The porcelain receipt parser reads a fixed two-character status
+column (`--no-renames` on the git status call, so a rename can never arrive as the ambiguous
+`old -> new` shape). A declared path is never trimmed and rejects only what the receipt genuinely
+cannot express (control characters, `"`, `\`, backtick, `$`, non-ASCII, a leading `-`) — spaces and
+shell metacharacters are accepted, because every value already passes through the same safe quoting
+function used everywhere else in this file.
+
+**Named limit of the isolated scope (owner-facing, so it reads as a boundary, not a defect):** the
+scope-repo review is BLIND to everything outside the declared change set, by construction — that is
+the whole point (it is why the shared-tree run above timed out reviewing unrelated dirty packages).
+A finding phrased as *"file X does not exist"* or *"the twin file is missing"* from mode A is therefore
+an artifact of that intentional narrowness, not a real defect: the twin/sibling file is simply not
+copied into the scope repo. Context that spans beyond the declared files is covered by mode B (which
+is told exactly which files it may open) and by the separate Claude QE pass, never by mode A alone.
 
 After a Codex verdict a cheap Claude agent transcribes it into `08_qe_report.md` (mode A takes no
 prompt, so the reviewer cannot be asked to write anything). It is a scribe, not a second reviewer: the
