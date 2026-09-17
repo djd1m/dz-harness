@@ -250,8 +250,34 @@ export type BuildControlRowResult = {
  * partial-measurement fact, not a total failure) — they land in `refused`/`complete:false` instead.
  */
 export declare function buildControlRow(input: BuildControlRowInput): BuildControlRowResult;
+/**
+ * experiment-instrument FR-4/A6 (ADR-001): a `stage:'control'` row `dz control-review` writes when
+ * the run REFUSED before producing a diff — the failure-leaves-a-row half of the ADR's safety
+ * property. Distinguished from {@link ControlLedgerRow} by `outcome:'refused'`, which a successful
+ * row never carries; the two schemas share nothing else structurally on purpose — a refused run has
+ * no diff, no tree hashes, no grades to validate.
+ */
+export interface ControlRefusedRow {
+    readonly slug: string;
+    readonly stage: 'control';
+    readonly outcome: 'refused';
+    /** Which half was responsible: the claude review, the codex review, or neither (a setup/tree/
+     *  aggregation failure that belongs to neither half specifically). */
+    readonly half: 'claude' | 'codex' | 'setup';
+    readonly reason: string;
+    readonly runId: string;
+    /** Known only when the coder family was determined before the refusal — absent for the earliest
+     *  failures (the claude half itself failing before it can report which family it reviewed). When
+     *  present, the SAME `bucket(coderFamily, reviewerOfInterest)` a successful control row uses. */
+    readonly coderFamily?: 'codex' | 'claude';
+    readonly minutes: number | null;
+}
 export interface ParsedControlRows {
     readonly rows: readonly ControlLedgerRow[];
+    /** experiment-instrument FR-4/A6: `stage:'control'` rows with `outcome:'refused'` — a run that
+     *  never produced a diff. Schema-validated (`isValidControlRefusedRow`) the same way `rows` is;
+     *  one that fails validation is `unreadable`, same as a malformed successful row. */
+    readonly refusedRows: readonly ControlRefusedRow[];
     readonly roundRows: readonly Record<string, unknown>[];
     readonly fullRows: readonly Record<string, unknown>[];
     /** A8: a line that is not parseable JSON, or parses to something that is not a plain object, or
@@ -314,6 +340,10 @@ export interface FamilyPairAggregate {
         readonly final: string;
         readonly finals: number;
     }>;
+    /** experiment-instrument FR-4/A6: `stage:'control'` rows refused for THIS pair (attributed by a
+     *  known `coderFamily` on the refused row) — a real cost line (the run was attempted and failed),
+     *  never counted in `n` (which measures completed reviews). */
+    readonly refusedRuns: number;
 }
 export interface FamilyAggregate {
     /** Keyed `<coderFamily>:<reviewerFamily>`, e.g. `codex:claude`. */
@@ -325,6 +355,11 @@ export interface FamilyAggregate {
     /** A6: the raw count of `stage:'control'` rows folded in — `0` means every `foreignUnique`
      *  figure below is a true, honestly-printed absence, not a fabricated non-observation. */
     readonly controlRows: number;
+    /** experiment-instrument FR-4/A6: EVERY `stage:'control'` refused row seen, attributed or not —
+     *  the total accounting figure `refusedRuns` (per pair) can never exceed, and the gap between the
+     *  sum of per-pair `refusedRuns` and this total is exactly how many refusals had no determinable
+     *  coderFamily (the earliest failures — printed here rather than silently dropped). */
+    readonly refusedControlRows: number;
 }
 /**
  * `dz score --by-family`'s aggregate: per (coder family, reviewer family) pair, how many rounds

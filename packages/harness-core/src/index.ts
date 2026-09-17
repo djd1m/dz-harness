@@ -505,6 +505,7 @@ export {
   decideReadBack,
   recordVerdictLine,
   parseModelSpec,
+  applyTaskId,
 } from './run-records.js';
 export {
   ENVELOPE_SCHEMA,
@@ -527,7 +528,7 @@ export type {
 } from './feature-adr-envelope.js';
 export { decidePublishSigning, decidePostSigningVerification, decideSignableSet, publishSigningLine, signableSetLine } from './publish-signing.js';
 export type { PublishSigningVerdict, PublishSigningDecision, SignableSetDecision } from './publish-signing.js';
-export type { RecordKind, RecordVerdict, RecordDecision, LedgerEnrichInput, LedgerPriceEntry, ParsedModelSpec } from './run-records.js';
+export type { RecordKind, RecordVerdict, RecordDecision, LedgerEnrichInput, LedgerPriceEntry, ParsedModelSpec, TaskIdLookup } from './run-records.js';
 export type { AmendmentAmbiguity, AmendmentRow, AmendmentVerdict, AmendmentResolution, AmendmentOutcome, AmendmentDecision, PlanCoverageGap } from './amendment-trace.js';
 // contract-checklist (ADR-001): pure extraction, canonical rendering, typed report parsing, and
 // exact per-item verification. Filesystem discovery/containment stays in harness-cli.
@@ -1317,8 +1318,12 @@ export * from './run-registry.js';
 
 export { JOURNAL_KINDS, formatLine, parseLine, selectWindow, appendWitnessed } from './journal.js';
 export type { JournalKind, JournalEvent, JournalLine, JournalIo } from './journal.js';
-export { openRound, closeRound, listRounds, validateClosedRoundLedgerRow } from './round.js';
+export { openRound, closeRound, listRounds, validateClosedRoundLedgerRow, readOpenRoundTaskId } from './round.js';
 export type { RoundState, RoundExecState, RoundLedgerRow, RoundReviewSidecar } from './round.js';
+
+// review-cost-ledger T1/FR-1 (ADR-001 п.1): the pure qe-bridge stdout cost parser.
+export { parseQeBridgeStdoutCost } from './review-cost.js';
+export type { QeBridgeCost, QeBridgeCostTokens } from './review-cost.js';
 export { parseCodexTokens, classifyRoundExecOutcome, buildRoundExecRow } from './round-exec.js';
 export type { RoundExecOutcome, RoundExecLedgerRow } from './round-exec.js';
 export * from './run-cleanup.js';

@@ -381,6 +381,17 @@ export declare function runChildBridge(bin: string, argv: string[], opts: {
     /** Extra variable names the allowlist should carry (a family's own auth, named by the caller). */
     envExtra?: readonly string[];
 }): Promise<ClaudeBridgeRun>;
+/**
+ * r1-7 (Codex r1 HIGH #7): the honest fallback reason for a failed claude-half bridge call in
+ * `dz control-review` — NEVER an empty string. The old inline expression fell straight to
+ * `bridgeOut.join(' | ')` whenever the parsed JSON carried no `detail` string, and `''` for a
+ * genuinely EMPTY `bridgeOut` array. `isValidControlRefusedRow` (cross-family-control.ts) rejects a
+ * blank `reason`, so the very row this refusal writes to PROVE "the run happened" was itself
+ * unreadable — counted as aggregation noise instead of the refusal it actually was. Exported and
+ * pure (no I/O) so this exact defect is directly, deterministically testable without reconstructing
+ * the rare real-world shape that triggers it end to end.
+ */
+export declare function claudeHalfFailureReason(bridgeExit: number, bridgeResult: Record<string, unknown> | null, bridgeOut: readonly string[]): string;
 export declare function runCli(argv: string[], io?: CliIo): Promise<number>;
 export {};
 //# sourceMappingURL=cli.d.ts.map

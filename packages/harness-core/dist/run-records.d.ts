@@ -129,9 +129,46 @@ export declare function decideRecordWrite(input: {
     /** measurement-integrity FR-5/FR-6: rollout-log + price enrichment for a ledger row. Absent ⇒ zero
      *  behavior change (NFR-1). */
     enrich?: LedgerEnrichInput;
+    /** experiment-instrument FR-2/A3 (ADR-001): when `true`, an AUTO ledger row that would be written
+     *  `complete:false` is refused instead (exit 2, before any write) — a круг-B default candidate, opt-
+     *  in today so nothing that already writes incomplete auto rows starts failing underfoot (NFR-1). */
+    strict?: boolean;
 }): RecordDecision;
 /** The read-back verdict (ADR-002): equal bytes or NOT written. Never inferred from the absence of an error. */
 export declare function decideReadBack(appended: string, lastLineOnDisk: string | null): RecordDecision;
 /** The one line every caller reads last, in the shape the other gates use. */
 export declare function recordVerdictLine(kind: RecordKind, stage: string, d: RecordDecision): string;
+/** experiment-instrument FR-1/FR-3 (ADR-001): what `round.ts`'s `readOpenRoundTaskId` returns — the
+ *  single source `applyTaskId` fills from. Duplicated here rather than imported so this pure module
+ *  never depends on `round.ts`'s own shape; the CLI is the one holding both and wiring them together.
+ *  r1-1/r1-2 (Codex r1 #1/#2): extended with `'derived-legacy'` and `'unavailable'` to stay in
+ *  lockstep with `round.ts`'s own `readOpenRoundTaskId` return type. */
+export interface TaskIdLookup {
+    readonly taskId: string | null;
+    readonly source: 'open-round' | 'derived-legacy' | 'no-open-round' | 'ambiguous' | 'unavailable';
+}
+/**
+ * experiment-instrument FR-1/FR-3/A8 (ADR-001): propagate `taskId` onto a ledger/training-pair payload
+ * BEFORE it reaches {@link decideRecordWrite} — fill-only-null, never overwritten.
+ *
+ * - The payload already names a non-empty `taskId` string ⇒ it is authoritative. When it DISAGREES
+ *   with the round's own current taskId, that disagreement is a real fact worth keeping — recorded as
+ *   `taskIdConflict: {payload, round}` — never silently resolved either way (A8).
+ * - The payload's `taskId` key is absent, or explicitly `null`/`undefined` ⇒ filled from `lookup`,
+ *   INCLUDING the honest `null` case: no open round (A4) or two of them (A5) still stamps `taskId:
+ *   null` + `taskIdSource` naming why, rather than leaving the field silently absent — absence with a
+ *   named reason beats absence with none.
+ * - r1-3 (Codex r1 HIGH #3): the payload's `taskId` key is PRESENT with a value that is neither a
+ *   non-empty string nor null/undefined (a number, a boolean, an object, or a blank/whitespace-only
+ *   string) ⇒ that is a present-but-INVALID value, a THIRD case distinct from both of the above. It
+ *   used to be treated exactly like "absent" (`typeof !== 'string'` fell through to the fill branch),
+ *   silently replacing the caller's own (malformed) value with the round's — violating both
+ *   fill-only-null and "a present payload value always wins". Now: the row's own value is preserved
+ *   UNTOUCHED (never replaced with a guess about what the caller meant), and the problem is named in
+ *   `taskIdInvalid` so a reader can see the row was neither filled nor trusted blindly.
+ *
+ * Pure: no filesystem, no clock. The CALLER (the cli) is the one that read `.dz/rounds/` to build
+ * `lookup` in the first place.
+ */
+export declare function applyTaskId(row: Record<string, unknown>, lookup: TaskIdLookup): Record<string, unknown>;
 //# sourceMappingURL=run-records.d.ts.map

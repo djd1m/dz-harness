@@ -107,6 +107,14 @@ export interface BridgeSignoff {
     promptSha256: string;
     elapsedMs: number;
     emittedAt: string;
+    /** experiment-instrument FR-1/FR-3/T5 (ADR-001): the task identity of the slug's single open
+     *  round at the moment this signoff was emitted — filled by the cli (it owns `.dz/rounds/`), null
+     *  when there was no open round to fill from, never guessed. Optional so a signoff written before
+     *  this feature landed parses unchanged (NFR-1). */
+    taskId?: string | null;
+    /** experiment-instrument FR-1/FR-3/T5: present whenever `taskId` above was filled from a lookup —
+     *  names where it came from (`readOpenRoundTaskId`'s own source, r1-1/r1-2 extended to five values). */
+    taskIdSource?: 'open-round' | 'derived-legacy' | 'no-open-round' | 'ambiguous' | 'unavailable';
 }
 /** Where each channel was found, for the audit bundle: an auditor can re-derive the verdict from
  * the retained raw stdout without trusting this process's summary. */
