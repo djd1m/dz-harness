@@ -52,7 +52,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/skills-devops` | 0.3.18 |
 | `@dzhechkov/skills-ecc` | 0.1.13 |
 | `@dzhechkov/skills-edu-site` | 1.1.11 |
-| `@dzhechkov/skills-feature-adr` | 1.5.12 |
+| `@dzhechkov/skills-feature-adr` | 1.5.13 |
 | `@dzhechkov/skills-idea2prd` | 0.1.16 |
 | `@dzhechkov/skills-mcp` | 0.3.11 |
 | `@dzhechkov/skills-meta` | 0.9.58 |
