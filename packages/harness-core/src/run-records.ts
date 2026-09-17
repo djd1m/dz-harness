@@ -13,7 +13,133 @@
  * Pure: payload in, verdict out. The CLI owns paths, the append, the read-back and the exit code.
  */
 
+import { matchCodexRollouts } from './codex-rollouts.js';
+import type { CodexRollout } from './codex-rollouts.js';
 import { redactTrainingPayload } from './feature-adr-checkpoints.js';
+import { validateExperimentEnvelope } from './feature-adr-envelope.js';
+
+/** Structural — a caller passes `cost-scoring.ts`'s `ModelPricing`; kept local so `run-records.ts`
+ *  does not have to import `cost-scoring.ts` just to name a type.
+ *
+ *  measurement-integrity fix-round-1/F6 (Codex r1 HIGH #6): `cacheCreation` used to be dropped here —
+ *  the snapshot silently lacked the ONE rate a cache-WRITE-heavy row needs to reproduce its own cost
+ *  later, even though the caller's own `ModelPricing` carries it. Now carried through verbatim. */
+export interface LedgerPriceEntry {
+  readonly prompt: number;
+  readonly completion: number;
+  readonly cachedInput: number;
+  readonly cacheCreation: number;
+}
+
+/** measurement-integrity fix-round-1/F4 (Codex r1 HIGH #4): a resolvable executor spec, split into
+ *  its three parts. Never invents a model: {@link parseModelSpec} returns `null` for anything it
+ *  cannot resolve to exactly one model, rather than guessing. */
+export interface ParsedModelSpec {
+  readonly family: 'claude' | 'codex';
+  readonly model: string;
+  readonly effort: string | null;
+}
+
+/** Bare Claude model names the pipeline actually emits with no `claude:` prefix (`coder: 'sonnet'`,
+ *  `'opus'`, `'fable'`, real values observed in `.dz/feature-adr/run-cost-ledger.jsonl`). */
+const BARE_CLAUDE_NAMES = new Set(['sonnet', 'opus', 'haiku', 'fable']);
+/** id/effort alphabet a model spec component may use (lead delta after Codex r2, new MEDIUM #3). */
+const SPEC_PART = /^[A-Za-z0-9._-]+$/;
+
+/**
+ * Parse an executor spec — the shapes actually recorded in `coder`/`reviewer` fields
+ * (`codex:gpt-5.6-sol:high`, `claude:sonnet`, bare `sonnet`/`opus`, bare `codex`, bare `claude`) —
+ * into `{family, model, effort}`. Pure, never throws.
+ *
+ * Returns `null` (never a guess) for anything that cannot be resolved to exactly ONE model:
+ * - a bare `'codex'` or `'claude'` (family named, no model at all);
+ * - an annotated/aggregate field such as `'claude:sonnet x2'` or `'qe-bridge:claude x2 + lead'` (real
+ *   values this ledger carries for a MULTI-reviewer round) — any embedded whitespace means the field
+ *   names more than one resolvable spec, and picking one would misattribute to the others;
+ * - a bare model id with no family marker that is not one of the known bare Claude names (e.g. a full
+ *   `'claude-sonnet-5'` — that shape is handled by the OLDER vendor-prefix path in {@link priceLookup}
+ *   for backward compatibility, not by this parser).
+ */
+export function parseModelSpec(spec: unknown): ParsedModelSpec | null {
+  if (typeof spec !== 'string') return null;
+  const trimmed = spec.trim();
+  if (trimmed === '' || /\s/.test(trimmed)) return null;
+  const parts = trimmed.split(':');
+  const head = parts[0] ?? '';
+  if (head === 'codex') {
+    const model = parts[1];
+    if (model === undefined || model === '') return null; // bare 'codex' — no reliable model
+    // Lead delta after Codex r2 (new MEDIUM #3): exactly 2 or 3 non-empty components, id alphabet
+    // only — `codex:gpt-5.6-sol:high:garbage` is a corrupt/aggregate spec, never a reliable model.
+    if (parts.length > 3 || !SPEC_PART.test(model) || (parts.length === 3 && (parts[2] === '' || !SPEC_PART.test(parts[2]!)))) return null;
+    const effort = parts[2] ?? null;
+    return { family: 'codex', model, effort: effort === '' ? null : effort };
+  }
+  if (head === 'claude') {
+    const model = parts[1];
+    if (model === undefined || model === '') return null; // bare 'claude' — no reliable model
+    return { family: 'claude', model, effort: null };
+  }
+  if (parts.length === 1 && BARE_CLAUDE_NAMES.has(head)) {
+    return { family: 'claude', model: head, effort: null };
+  }
+  return null;
+}
+
+/** measurement-integrity FR-5/FR-6: enrichment the WRITER supplies at write time — the rollout logs
+ *  it already read (I/O lives in the CLI; this stays pure) and the price table snapshot. Absent
+ *  entirely ⇒ zero behavior change from before this feature (NFR-1). */
+export interface LedgerEnrichInput {
+  /** Parsed Codex rollout logs for the window the CLI read — usually every rollout from the days the
+   *  window spans. Pure data; the CLI is the one that walked `~/.codex/sessions`. */
+  readonly rollouts?: readonly CodexRollout[];
+  /** The stage's own time window — usually [the previous ledger row's `ts`, this write's `ts`], or
+   *  an explicit `--window-from/--window-to`. Omitted ⇒ no rollout match is even attempted. */
+  readonly window?: { readonly from: string; readonly to: string };
+  /** Narrows an otherwise-ambiguous match — usually the repo root the stage ran in. */
+  readonly cwd?: string;
+  /** A model-pricing table SNAPSHOT (FR-6) — the CALLER's table, captured at write time, never the
+   *  ledger's own idea of "current" pricing (ADR-001 D4 rejects re-pricing after the fact). */
+  readonly prices?: Readonly<Record<string, LedgerPriceEntry>>;
+}
+
+function isCodexFamily(v: unknown): boolean {
+  return typeof v === 'string' && /codex/i.test(v);
+}
+
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
+/** Longest-prefix match against the CALLER'S OWN table (never `cost-scoring.ts`'s internal
+ *  constant) — the whole point of a price SNAPSHOT is that it answers only from what the caller
+ *  handed in at write time, mirroring `pricingFor`'s matching rule without importing it.
+ *
+ *  measurement-integrity fix-round-1/F7 (Codex r1 HIGH #7): the OLD version stripped only a
+ *  `vendor/`-shaped prefix, so the REAL recorded shape `codex:gpt-5.6-sol:high` (or `claude:sonnet`)
+ *  never matched anything and always landed in `prices.unknown[]`. This now runs the id through the
+ *  SAME {@link parseModelSpec} FR-4's matcher uses, then reconstructs the normalized id the way
+ *  `cost-scoring.ts`'s `pricingFor`/`hasKnownPricing` key their table (`claude-<model>` for the
+ *  Claude family; the bare model for Codex — its ids carry no vendor prefix). A spec this parser
+ *  cannot resolve falls back to the OLD vendor-prefix strip, so an already-working bare id
+ *  (`claude-sonnet-5`, `gpt-4o`) keeps matching exactly as before (NFR-1). */
+function priceLookup(modelId: string, table: Readonly<Record<string, LedgerPriceEntry>>): LedgerPriceEntry | null {
+  if (typeof modelId !== 'string' || modelId.length === 0) return null;
+  const parsed = parseModelSpec(modelId);
+  const id = parsed !== null
+    ? (parsed.family === 'claude' ? `claude-${parsed.model}` : parsed.model).toLowerCase()
+    : modelId.toLowerCase().replace(/^[a-z0-9-]+\//, '');
+  let best: LedgerPriceEntry | null = null;
+  let bestLen = 0;
+  for (const [key, price] of Object.entries(table)) {
+    const k = key.toLowerCase();
+    if (id.startsWith(k) && k.length > bestLen) {
+      best = price;
+      bestLen = k.length;
+    }
+  }
+  return best;
+}
 
 export type RecordKind = 'ledger' | 'training-pair';
 
@@ -65,7 +191,7 @@ const noop = (verdict: 'duplicate' | 'skipped', reason: string): RecordDecision 
   line: null,
 });
 
-function shapeMismatch(kind: RecordKind, payload: Record<string, unknown>): string | null {
+function shapeMismatch(kind: RecordKind, payload: Record<string, unknown>, autoFlag: boolean): string | null {
   // AM-1 FIRST, before the required-field sweep. A ledger row offered as a training pair fails BOTH
   // checks, and the wrong-kind reason is the one that tells the caller what actually happened —
   // "missing field `output`" sends them looking for a field they never meant to send.
@@ -77,6 +203,39 @@ function shapeMismatch(kind: RecordKind, payload: Record<string, unknown>): stri
   }
   if (kind === 'training-pair' && 'tokens' in payload && !('input' in payload)) {
     return 'this payload looks like a ledger row (`tokens` without `input`), not a training pair';
+  }
+  // experiment-envelope FR-5 / ADR-001 D2: `auto:true` marks a pipeline-written row, and the pipeline
+  // is obligated to carry the envelope built once after the Step-0 router — a row missing it is
+  // useless for learning and would silently corrupt the sample (the "warn but write" alternative was
+  // rejected in the ADR: a warning nobody reads left `tokens=null` unnoticed for years). A MANUAL row
+  // (no `auto`) stays compatible: no envelope required, but one that IS present is still validated —
+  // never trusted just because a human typed it.
+  //
+  // fix-round-1/F2 (cross-family review, HIGH #2): the PAYLOAD's own `auto` field used to be the
+  // ONLY signal — an automatic producer that forgot it, or sent `"true"`/`false`, was silently
+  // accepted as a manual row and skipped the envelope requirement entirely. `autoFlag` is the CLI's
+  // own trusted `--auto` argument (never JSON a caller could typo): it is a SECOND, independent
+  // trust source, unioned with the payload field rather than replacing it — nothing that used to be
+  // gated stops being gated, and a `--auto`-dispatched caller is now gated even if its hand-built
+  // payload forgot the field. Independently of either source, a PRESENT `auto` field is checked for
+  // shape: only the literal `true` is a legal value — anything else (a string, `false`, a number) is
+  // refused outright, because a field whose only sane value is `true` holding something else is a
+  // caller bug worth surfacing, not silently downgrading to "manual".
+  if (kind === 'ledger') {
+    const rawAuto = payload['auto'];
+    if (rawAuto !== undefined && rawAuto !== true) {
+      return 'a ledger record\'s `auto` field must be `true` or absent';
+    }
+    const envelope = payload['envelope'];
+    const envelopePresent = envelope !== undefined && envelope !== null;
+    const isAuto = autoFlag === true || rawAuto === true;
+    if (isAuto && !envelopePresent) {
+      return 'an auto ledger row must carry `envelope` (experiment-envelope FR-5)';
+    }
+    if (envelopePresent) {
+      const v = validateExperimentEnvelope(envelope);
+      if (!v.ok) return `envelope invalid — ${v.reason}`;
+    }
   }
   const required = kind === 'ledger' ? LEDGER_REQUIRED : PAIR_REQUIRED;
   for (const field of required) {
@@ -125,7 +284,12 @@ export function decideRecordWrite(input: {
   /** Who ran it. Supplied by the CALLER, which lives outside the workflow sandbox and can see the
    *  host; absent stays absent (see the stamping comment below). */
   runnerId?: string | null;
+  /** fix-round-1/F2: the CLI's own trusted `--auto` flag — see the comment inside `shapeMismatch`. */
+  auto?: boolean;
   maxChars?: number;
+  /** measurement-integrity FR-5/FR-6: rollout-log + price enrichment for a ledger row. Absent ⇒ zero
+   *  behavior change (NFR-1). */
+  enrich?: LedgerEnrichInput;
 }): RecordDecision {
   const { kind, payloadRaw, stage } = input;
   if (kind !== 'ledger' && kind !== 'training-pair') {
@@ -153,7 +317,7 @@ export function decideRecordWrite(input: {
   // the read-back, the refusal texts — ever sees a byte of the profile block.
   const obj = (kind === 'training-pair' ? redactTrainingPayload(payload) : payload) as Record<string, unknown>;
 
-  const mismatch = shapeMismatch(kind, obj);
+  const mismatch = shapeMismatch(kind, obj, input.auto === true);
   if (mismatch !== null) return refuse(mismatch);
 
   // The record is filed under `--stage`, and the payload carries its own. A disagreement means the
@@ -182,6 +346,11 @@ export function decideRecordWrite(input: {
   // inside an already-serialised document — text surgery on a structured value, and the exact place
   // a payload containing that literal token could corrupt itself.
   const stamped: Record<string, unknown> = { ...obj };
+  // fix-round-1/F2: the CLI's own `--auto` flag is authoritative — when set, the written row MUST
+  // carry `auto:true` too (not just gate on it transiently), so every downstream reader of the
+  // PERSISTED line keeps seeing the same signal `shapeMismatch` already gated on above. A no-op when
+  // the payload already said `auto:true` (shapeMismatch already refused any OTHER value).
+  if (kind === 'ledger' && input.auto === true) stamped['auto'] = true;
   const isGap = (v: unknown): boolean => v === null || v === undefined || (typeof v === 'string' && v.trim() === '');
   if (input.timestamp != null && input.timestamp !== '') {
     // An EMPTY STRING is a gap, not a value. Stamping only over null/undefined let
@@ -270,6 +439,117 @@ export function decideRecordWrite(input: {
       }
       stamped['minutesSincePrev'] = minutesSincePrev;
       stamped['minutesSource'] = minutesSource;
+    }
+  }
+
+  // measurement-integrity FR-5 (rollout enrichment) + FR-6 (price snapshot). Both are ADDITIVE and
+  // OPT-IN on `input.enrich` — a caller that never passes it gets byte-identical output to before
+  // this feature (NFR-1).
+  if (kind === 'ledger' && input.enrich !== undefined) {
+    const enrich = input.enrich;
+
+    // FR-5: only a codex-family coder/reviewer with `tokens: null` is a candidate — a Claude row, or
+    // one that already has a token figure, is left untouched. The loose `/codex/i` check below only
+    // decides whether this row is WORTH TRYING at all.
+    const tokensIsNull = stamped['tokens'] === null;
+    const looksCodexFamily = isCodexFamily(stamped['coder']) || isCodexFamily(stamped['reviewer']);
+    if (tokensIsNull && looksCodexFamily) {
+      // measurement-integrity fix-round-1/F4 (Codex r1 HIGH #4): the matcher REQUIRES a reliable
+      // model, parsed the same way FR-7's price lookup parses one — never `/codex/i` alone. If
+      // `coder`/`reviewer` do not resolve to exactly ONE codex model between them (a bare `'codex'`
+      // with no model at all, or the two fields naming DIFFERENT codex models), the matcher is never
+      // even called with an unreliable/omitted model filter — a lone rollout in the window would
+      // otherwise be accepted as `'one'` on time+cwd alone and its tokens misattributed to the wrong
+      // model's stage.
+      const codexModels = new Set(
+        [parseModelSpec(stamped['coder']), parseModelSpec(stamped['reviewer'])]
+          .filter((s): s is ParsedModelSpec => s !== null && s.family === 'codex')
+          .map((s) => s.model),
+      );
+      if (codexModels.size !== 1) {
+        stamped['tokensSource'] = 'codex-rollout:no-model';
+      } else if (enrich.window !== undefined) {
+        const model = [...codexModels][0]!;
+        const match = matchCodexRollouts(enrich.rollouts ?? [], {
+          from: enrich.window.from,
+          to: enrich.window.to,
+          model,
+          ...(enrich.cwd !== undefined ? { cwd: enrich.cwd } : {}),
+        });
+        if (match.status === 'one') {
+          stamped['tokens'] = match.rollout.totals.total;
+          const startMs = match.rollout.startedAt !== null ? Date.parse(match.rollout.startedAt) : NaN;
+          const endMs = match.rollout.endedAt !== null ? Date.parse(match.rollout.endedAt) : NaN;
+          // measurement-integrity fix-round-1/F6 (Codex r1 HIGH #6): fill-ONLY-null — an existing
+          // `minutes` figure (a manually recorded one, say) must never be silently overwritten by a
+          // derived rollout duration.
+          if (stamped['minutes'] === null && Number.isFinite(startMs) && Number.isFinite(endMs) && endMs >= startMs) {
+            stamped['minutes'] = Math.round(((endMs - startMs) / 60000) * 10) / 10;
+          }
+          stamped['tokensSource'] = 'codex-rollout';
+          stamped['rolloutId'] = match.rollout.id;
+        } else {
+          // `none` or `ambiguous` — NFR-3: an explicit status, never a guessed number.
+          stamped['tokensSource'] = `codex-rollout:${match.status}`;
+        }
+      } else {
+        // Eligible in principle (codex family, one reliable model, tokens null) but no window was
+        // supplied — AC-4's "old row without a window": no enrichment is even attempted, and that
+        // fact is itself recorded rather than left silently absent.
+        stamped['tokensSource'] = 'unavailable';
+      }
+    }
+
+    // FR-6: the price snapshot, for every model this row names — independent of the FR-5 branch
+    // above (a Claude row gets priced too; only tokens enrichment is codex-specific).
+    if (enrich.prices !== undefined) {
+      const modelIds = new Set<string>();
+      for (const v of [stamped['coder'], stamped['reviewer']]) {
+        if (typeof v === 'string' && v.trim() !== '') modelIds.add(v.trim());
+      }
+      const envelope = stamped['envelope'];
+      if (isRecord(envelope)) {
+        const chosen = envelope['chosen'];
+        if (isRecord(chosen)) {
+          const stages = chosen['stages'];
+          if (isRecord(stages)) {
+            for (const v of Object.values(stages)) {
+              if (typeof v === 'string' && v.trim() !== '') modelIds.add(v.trim());
+            }
+          }
+        }
+      }
+      const table: Record<string, LedgerPriceEntry> = {};
+      const unknown: string[] = [];
+      for (const modelId of modelIds) {
+        const price = priceLookup(modelId, enrich.prices);
+        if (price === null) unknown.push(modelId);
+        else table[modelId] = { prompt: price.prompt, completion: price.completion, cachedInput: price.cachedInput, cacheCreation: price.cacheCreation };
+      }
+      const computedPrices = {
+        snapshotAt: input.timestamp ?? null,
+        table,
+        ...(unknown.length > 0 ? { unknown } : {}),
+      };
+      // measurement-integrity fix-round-1/F6 (Codex r1 HIGH #6): fill-ONLY-null for `prices` too — an
+      // existing snapshot (a previous write already priced this row) is never unconditionally
+      // replaced. Equal → left alone (idempotent re-enrichment, common on a retried write). Different
+      // → a named `pricesConflict`, never a silent re-price (ADR-001 D4 forbids re-pricing after the
+      // fact — a DIFFERING recomputation is exactly that, so it is surfaced, not applied).
+      const existingPrices = stamped['prices'];
+      if (existingPrices === undefined || existingPrices === null) {
+        stamped['prices'] = computedPrices;
+      } else if (isRecord(existingPrices) && isRecord(existingPrices['table']) && (existingPrices['unknown'] === undefined || Array.isArray(existingPrices['unknown']))) {
+        // Lead delta after Codex r2 (new MEDIUM #4): compare the WHOLE snapshot canonically (table +
+        // sorted unknown), not the table alone.
+        const canon = (t: unknown, u: unknown): string => JSON.stringify({ table: t, unknown: Array.isArray(u) ? [...u].map(String).sort() : [] });
+        if (canon(existingPrices['table'], existingPrices['unknown']) !== canon(table, unknown)) {
+          stamped['pricesConflict'] = { existing: existingPrices, recomputed: computedPrices };
+        }
+      } else {
+        // A malformed existing snapshot (no table / bad unknown) is a CONFLICT, never silently trusted.
+        stamped['pricesConflict'] = { existing: existingPrices, recomputed: computedPrices, reason: 'existing prices snapshot is malformed' };
+      }
     }
   }
 

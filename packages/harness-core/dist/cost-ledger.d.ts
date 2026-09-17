@@ -47,6 +47,7 @@
  *
  * @packageDocumentation
  */
+import type { CanonicalStage } from './feature-adr-stage-canon.js';
 /** The one sentence that states what the ledger is and is not. Printed by EVERY surface (ADR-003). */
 export declare const COST_LEDGER_SCOPE: string;
 export type CostLedgerDefectKind = 
@@ -70,10 +71,16 @@ export type CostLedgerDefectKind =
  */
 export declare const COST_LEDGER_DEFECT_KINDS: readonly CostLedgerDefectKind[];
 /**
- * Three values, not two. `INSUFFICIENT_DATA` is NOT success: a caller must not read
- * `verdict !== 'DEFECT'` as "reconciled" (ADR-003).
+ * Four values, not two (measurement-integrity ADR-001 D2 grew this from three). `INSUFFICIENT_DATA`
+ * is NOT success: a caller must not read `verdict !== 'DEFECT'` as "reconciled" (ADR-003).
+ * `INCOMPLETE_INVENTORY` is likewise not success — it names the SPECIFIC case where every unaccounted
+ * token traces to a named orphan transcript (a directory listing the record's own inventory does not
+ * know about), with no OTHER attribution defect present. It outranks `BALANCED` (an orphan transcript
+ * can never read as balanced) and is outranked by `DEFECT` (a genuine attribution defect — double
+ * counting, a foreign sample, spend unaccounted for reasons OTHER than a named orphan — is a worse
+ * finding than "the inventory is incomplete but everything it does have reconciles").
  */
-export type CostLedgerVerdict = 'BALANCED' | 'DEFECT' | 'INSUFFICIENT_DATA';
+export type CostLedgerVerdict = 'BALANCED' | 'DEFECT' | 'INCOMPLETE_INVENTORY' | 'INSUFFICIENT_DATA';
 export declare const COST_LEDGER_VERDICTS: readonly CostLedgerVerdict[];
 /**
  * Default reconciliation tolerance, as a FRACTION of the run total. Zero, because the arithmetic is
@@ -128,6 +135,17 @@ export interface CostLedgerRow {
     readonly slug: string | null;
     /** `stageLabel()` output, verbatim. */
     readonly stage: string;
+    /** measurement-integrity FR-2/ADR-001 D1: the canonical bucket `stage` classifies into, NEXT TO
+     *  the untouched verbatim `stage` — never a replacement for it. `'unknown'` when no rule matches. */
+    readonly stageCanonical: CanonicalStage | 'unknown';
+    /** measurement-integrity FR-4: 1-based position of THIS occurrence among stage entries that share
+     *  `stage`'s exact label, in record order — `attempt: 1, attempts: 1` when the label occurs once. */
+    readonly attempt: number;
+    /** Total number of stage entries in this run that share `stage`'s exact label. A repeated label no
+     *  longer merges silently into one row (ADR-001 D... measurement-integrity FR-4): each occurrence
+     *  is its OWN row, and every one of them carries the same `attempts` count so a reader grouping by
+     *  `stage` can tell there were several without re-deriving it. */
+    readonly attempts: number;
     readonly phase: string | null;
     /** The stage's model id, or `'mixed'` when several agents share a label with different models. */
     readonly model: string;
@@ -172,6 +190,18 @@ export interface CostLedgerReconciliation {
     readonly identityHolds: boolean;
     readonly verdict: CostLedgerVerdict;
     readonly defects: readonly CostLedgerDefect[];
+    /** measurement-integrity FR-3/ADR-001 D2: transcripts present in the run's directory that have NO
+     *  `workflowProgress[]` entry in the record — named explicitly rather than dissolved into a generic
+     *  `unaccountedTokens` remainder. `method: 'per-transcript'` means `tokens` is an exact sum over
+     *  each orphan's own extracted samples; `'count-fallback'` means only the COUNT (and, where
+     *  available, the ids) is known and `tokens` falls back to the reconciliation's own
+     *  `unaccountedTokens` as the best available estimate — always present, always additive. */
+    readonly orphanTranscripts: {
+        readonly count: number;
+        readonly tokens: number;
+        readonly ids: readonly string[];
+        readonly method: 'per-transcript' | 'count-fallback';
+    };
 }
 export interface CostLedgerReport {
     readonly runId: string;
@@ -180,6 +210,16 @@ export interface CostLedgerReport {
     readonly status: string | null;
     readonly startedTs: string | null;
     readonly rows: readonly CostLedgerRow[];
+    /** measurement-integrity FR-2/T1: rows re-aggregated by `stageCanonical`, plus two synthetic
+     *  buckets — `unknown` (rows whose verbatim label matched no canon rule) and `unattributed` (the
+     *  orphan-transcript tokens from `reconciliation.orphanTranscripts`, which belong to no stage row
+     *  at all). Every one of the 12 {@link CanonicalStage} values is always present, even at zero, so a
+     *  reader can iterate a stable key set. */
+    readonly byCanonicalStage: Record<CanonicalStage | 'unknown' | 'unattributed', {
+        readonly tokens: number;
+        readonly agents: number;
+        readonly attempts: number;
+    }>;
     readonly reconciliation: CostLedgerReconciliation;
     /** The record's cached raw sum — reported, never the invariant's right-hand side (ADR-002). */
     readonly recordTotalTokens: number | null;
@@ -232,8 +272,20 @@ export interface BuildCostLedgerInput {
     }[];
     /** RIGHT side — the dedup-union over the run's transcript DIRECTORY (ADR-002). */
     readonly runSamples: readonly CostLedgerSample[];
-    /** Agent transcripts present in the run directory with no `workflowProgress[]` entry. */
+    /** Agent transcripts present in the run directory with no `workflowProgress[]` entry — ids only.
+     *  Kept for the `Unaccounted` defect's `subjects` listing; superseded by `orphanTranscripts` below
+     *  for the FR-3 `orphanTranscripts.tokens` figure whenever the caller can supply per-orphan samples. */
     readonly orphanAgentIds?: readonly string[];
+    /** measurement-integrity FR-3: the SAME orphan transcripts as `orphanAgentIds`, but carrying each
+     *  one's own extracted samples so `reconciliation.orphanTranscripts.tokens` is an EXACT sum rather
+     *  than a derived remainder. When omitted, `orphanAgentIds` alone still produces a named
+     *  `orphanTranscripts` entry (`method: 'count-fallback'`, `tokens` = the reconciliation's own
+     *  `unaccountedTokens` as the best available estimate) — the count/ids are never lost even without
+     *  the precise per-transcript figure. */
+    readonly orphanTranscripts?: readonly {
+        readonly agentId: string;
+        readonly samples: readonly CostLedgerSample[];
+    }[];
     /** Fraction of the run total tolerated as unaccounted. Default {@link DEFAULT_COST_LEDGER_EPSILON}. */
     readonly epsilon?: number;
     /** True when the transcript listing hit the file cap — the run total is incomplete (Codex QE HIGH). */

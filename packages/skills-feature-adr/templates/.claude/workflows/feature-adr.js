@@ -54,6 +54,10 @@ function absolutizeRepo(raw, cwd) {
   return rel === '' ? base : normalizeRepoPath(base + '/' + rel)
 }
 const ABSOLUTE_PATH_NOTE = ' All artifact paths in this prompt are ABSOLUTE. Read and write them exactly as given; do not cd first and do not re-relativize them.'
+// qe-findings-record (ADR-001): the ONE machine-readable surface a Step-8 report must carry, on top
+// of the prose grade it already writes. Kept under 500 chars (NFR-3) and OUTSIDE the parser-safe
+// no-backticks region (const MODELS .. const ROUTER), so single quotes are used deliberately.
+const FINDINGS_LEDGER_NOTE = " Write EXACTLY one line 'QE-VERDICT: <A|B|C|D with optional +/->' and a '## Findings ledger' table with the exact header '| Finding | Severity | Status | Round | Author | Title |' - Severity in BLOCKER|CRITICAL|HIGH|MEDIUM|LOW|INFO, Status in confirmed|fixed|partial|refuted|named-limit|open, Author in codex|claude|lead; a row outside the dictionary is REFUSED by dz score, never coerced; an empty table is worse than none."
 
 // WRITE DISCIPLINE — the anti-watchdog clause for every step whose DELIVERABLE IS A DOCUMENT.
 // MEASURED (field report P14, two independent runs, agent journals on disk): Steps 5 and 6 never
@@ -539,6 +543,8 @@ function drOneLine(value, cap) {
 function drDecisionShape(kind) {
   return kind === 'adr-alternative-selection'
     ? { stage: 'step-3', banditContext: 'feature-adr-decision-adr-alternative' }
+    : kind === 'code-implementation'
+    ? { stage: 'step-7', banditContext: 'feature-adr-decision-code-implementation' }
     : { stage: 'step-6', banditContext: 'feature-adr-decision-plan-route' }
 }
 function buildDecisionContext(opts) {
@@ -887,7 +893,21 @@ function tpRedact(text) {
     rest = rest.slice(end + TP_PROFILE_END.length)
   }
 }
-function buildTrainingPair(slug, stage, ts, inputRaw, outputRaw, evaluation, provenance, budgetModeRaw, captureMode, resumed) {
+// experiment-envelope FR-3(б): mirror of harness-core's normalizeTrainingPairEnvelope — a
+// LIGHTWEIGHT structural check (not the full field-by-field validator, which lives in
+// feature-adr-envelope.ts and is used where an invalid envelope actually refuses a write). Absent
+// or malformed degrades HONESTLY to null.
+function tpEnvelope(raw) {
+  if (raw === null || raw === undefined || typeof raw !== 'object' || Array.isArray(raw)) return null
+  if (raw.schema !== 1) return null
+  if (typeof raw.runId !== 'string' || raw.runId.trim() === '') return null
+  if (raw.arms === null || typeof raw.arms !== 'object') return null
+  if (raw.chosen === null || typeof raw.chosen !== 'object') return null
+  if (raw.policy === null || typeof raw.policy !== 'object') return null
+  if (raw.evaluator === null || typeof raw.evaluator !== 'object') return null
+  return raw
+}
+function buildTrainingPair(slug, stage, ts, inputRaw, outputRaw, evaluation, provenance, budgetModeRaw, captureMode, resumed, envelopeRaw) {
   // Redaction FIRST, before the oversize guard — same order as the core builder.
   let input = tpRedact(tpText(inputRaw))
   let output = tpRedact(tpText(outputRaw))
@@ -924,6 +944,7 @@ function buildTrainingPair(slug, stage, ts, inputRaw, outputRaw, evaluation, pro
     truncated: truncated,
     captureMode: captureMode === 'backfill' ? 'backfill' : 'capture',
     resumed: resumed === true,
+    envelope: tpEnvelope(envelopeRaw),
   }
 }
 // capturePairs(stage, phaseName, records[, resumeGuardStage]) — build + append the stage's pair(s)
@@ -943,10 +964,31 @@ async function capturePairs(stage, phaseName, records, resumeGuardStage) {
     const resumed = resumedStages.indexOf(guardStage) !== -1
     mode = decideCaptureMode({ enabled: CAPTURE_PAIRS, resumed: resumed, recordCount: filteredRecords.length })
     if (mode === 'skip-disabled' || mode === 'skip-empty') return
+    // fix-round-1/F1 (cross-family review, HIGH #1): every automatic training pair now gets a
+    // conveyor built from a VALIDATED envelope — validated by the FULL inline validator, not the
+    // lightweight structural check buildTrainingPair itself applies (tpEnvelope stays a second,
+    // import-free belt; see its own comment). An invalid or absent ENVELOPE means the whole capture
+    // for this stage is SKIPPED (never written with a null/malformed envelope) and the reason is
+    // logged — pairs are observability, and a garbage envelope in the dataset is worse than a
+    // missing pair. This is what lets the router's own pair (the call site moved to AFTER the
+    // envelope is built) carry a real, validated envelope instead of the previous envelope:null.
+    const envelopeCheck = validateExperimentEnvelopeInline(ENVELOPE)
+    if (!envelopeCheck.ok) {
+      log('training-pair: ' + stage + ' SKIPPED — envelope invalid (' + envelopeCheck.reason + ')')
+      return
+    }
     const lines = []
-    const budgetModeInput = { primary: PRIMARY, claude: BUDGET_MODE.claude, codex: BUDGET_MODE.codex, preset: A.budget === undefined ? 'unset' : undefined }
+    // fix-round-1/F5 (cross-family review, MEDIUM #5): preset is derived from A_BUDGET (the
+    // priority-resolved budget BUDGET_MODE itself came from), not the raw A.budget — a
+    // priority:'speed' run routes through eco (A_BUDGET === 'eco') while the old A.budget check
+    // still saw the caller's arg as undefined and reported preset:'unset', contradicting the
+    // envelope's own ENVELOPE.priority/chosen on the SAME pair.
+    const budgetModeInput = { primary: PRIMARY, claude: BUDGET_MODE.claude, codex: BUDGET_MODE.codex, preset: A_BUDGET === undefined ? 'unset' : undefined }
     for (const r of filteredRecords) {
-      lines.push(JSON.stringify(buildTrainingPair(SLUG, stage, null, r.input, r.output, r.evaluation, r.provenance, budgetModeInput, mode === 'backfill' ? 'backfill' : 'capture', resumed === true)))
+      // experiment-envelope FR-3(б): ENVELOPE rides alongside budgetModeInput (a narrower legacy
+      // summary), never in place of it — null before the router-adjacent build completes (the
+      // router's own pair, captured before ENVELOPE exists), the built object for every pair after.
+      lines.push(JSON.stringify(buildTrainingPair(SLUG, stage, null, r.input, r.output, r.evaluation, r.provenance, budgetModeInput, mode === 'backfill' ? 'backfill' : 'capture', resumed === true, ENVELOPE)))
     }
     const file = TP_DIR + '/' + stage + '.jsonl'
     const markStage = String(stage).replace(/\.\./g, '_').replace(/\//g, '_')
@@ -1032,13 +1074,34 @@ async function appendRunCostRow(stage, phaseName, outcome) {
       // auto:true distinguishes this automated row from a hand-entered one for every consumer.
       auto: true,
       mode: (typeof MODE === 'string' && MODE !== '') ? MODE : null,
+      // experiment-envelope FR-3(a)/ADR-001 D1: the SAME envelope object built once after the
+      // router, threaded into every autorow. null only when the router itself never completed —
+      // every stage this function is called for (design-gate, plan-repair, plan-gate, plan, full)
+      // runs strictly after the router, so ENVELOPE is non-null in the ordinary case; the writer
+      // (run-records.ts FR-5) refuses an auto:true row without one rather than write it silently.
+      envelope: ENVELOPE,
+      // ADR-001 D4: the PLANNED evaluator lives inside ENVELOPE.evaluator; the `full` row alone
+      // also carries the ACTUAL reviewer, so a degrade (planned codex, actual claude-fallback)
+      // is visible without cross-referencing another artifact.
+      evaluatorActual: (stage === 'full') ? { family: tpFamily(qeReviewerUsed), model: (typeof modelsUsed.qe === 'string' && modelsUsed.qe !== '') ? modelsUsed.qe : null } : undefined,
+      // Lead delta after Codex r2 (#3 PARTIAL): the envelope's chosen.stages is the PLAN; the models the
+      // stages actually ran with (usage-switched ids included) are recorded once, on the final row.
+      chosenActual: (stage === 'full') ? mergeOpts({}, modelsUsed) : undefined,
+      // fix-round-1/F4: the SAME canonical RUN_ID every other writer of this run carries — additive,
+      // last field (NFR-1). The CLI's own runId-resolution-at-write-time (resolveLedgerRunId) is a
+      // best-effort GUESS for rows that arrive with none; a row that already names its own runId
+      // skips that guess entirely (run-records.ts / cli.ts: runIdForLookup is only computed when
+      // the payload carries no runId), so passing it here is a strict reliability improvement.
+      runId: (typeof RUN_ID === 'string' && RUN_ID !== '') ? RUN_ID : null,
     })
     // WITNESSED WRITE (ADR-001): the subagent RUNS a command with data arguments; it is no longer
     // handed a shell pipeline with the row baked in. The command refuses a malformed row, stamps the
     // date BEFORE serialising (no sed over a serialised document) and verifies the append by
     // re-reading the tail. A courier could do none of those three.
+    // fix-round-1/F2: --auto is the TRUSTED CLI-level marker (harness-core run-records.ts) — the
+    // written row's auto:true no longer depends solely on the JSON payload remembering the field.
     const cmd = DZ + ' feature-adr-record --kind ledger --stage ' + shq(stage) + ' --project ' + shq(REPO)
-      + ' --row ' + shq(line) + ' --json'
+      + ' --row ' + shq(line) + ' --auto --json'
     const out = await dispatchAgent(newRung(), 'Run this command via your Bash tool and reply with only its stdout: ' + cmd, { label: 'ledger:append', phase: phaseName, effort: 'low' })
     const readback = String(out == null ? '' : out)
     if (!/"verdict"\s*:\s*"written"/.test(readback)) {
@@ -1154,10 +1217,50 @@ const DEFAULT_MODELS = { router: 'fable', requirements: 'sonnet', research: 'son
 const BUDGET_PRESETS = { normal: { claude: 'normal', codex: 'normal' }, eco: { claude: 'eco', codex: 'eco' }, hybrid: { claude: 'eco', codex: 'normal' } }
 const ROUTING_TABLES = { claude: { claude: { normal: { router: 'sonnet', requirements: 'sonnet', research: 'sonnet', adr: 'fable', ideation: 'sonnet', ddd: 'fable', architecture: 'fable', plan: 'opus', code: 'sonnet', fleet: 'sonnet' }, eco: { router: 'sonnet', requirements: 'sonnet', research: 'sonnet', adr: 'opus', ideation: 'sonnet', ddd: 'opus', architecture: 'opus', plan: 'sonnet', code: 'sonnet', fleet: 'sonnet' } }, codex: { normal: {}, eco: {} } }, codex: { claude: { normal: { router: 'sonnet', qe: 'sonnet', fleet: 'sonnet' }, eco: { router: 'sonnet', qe: 'sonnet', fleet: 'sonnet' } }, codex: { normal: {}, eco: {} } } }
 const STAGE_EFFORT = { override: { router: 'medium', requirements: 'medium', research: 'medium', adr: 'high', ideation: 'medium', ddd: 'high', architecture: 'high', plan: 'high', code: 'medium', qe: 'high', fleet: 'medium' } }
-const BUDGET_MODE = resolveBudgetMode(A.budget)
+// experiment-envelope (ADR-001 D3, FR-4): args.priority is a LEARNING-STRATUM label, one level
+// ABOVE budget/deliveryGate — an explicit knob always wins over the preset. TASK_KINDS mirrors the
+// Step-0 ROUTER schema enum below (one list, two readers). PRIORITY_PRESETS + resolvePriority are
+// inline copies of harness-core/src/feature-adr-routing.ts (pinned by name in the drift test) —
+// this whole block stays inside the parser-safe window (from the MODELS constant down to the
+// ROUTER schema constant), so no backticks anywhere here, same discipline as every other inline
+// mirror above it.
+const TASK_KINDS = ['feature', 'bugfix', 'refactor', 'tooling', 'docs', 'research']
+const PRIORITY_PRESETS = { speed: { budget: 'eco', deliveryGate: false }, balance: { budget: 'normal', deliveryGate: false }, quality: { budget: 'normal', deliveryGate: true } }
+const POLICY_VERSION = 'routing-tables/2026-09-16'
+function resolvePriority(raw) {
+  // fix-round-1/F5: the literal string 'unset' is now accepted as an explicit "not set", the same
+  // result as absent/null — mirror of harness-core/src/feature-adr-routing.ts's resolvePriority.
+  if (raw === undefined || raw === null || raw === 'unset') return 'unset'
+  if (typeof raw === 'string' && Object.prototype.hasOwnProperty.call(PRIORITY_PRESETS, raw)) return raw
+  const valid = Object.keys(PRIORITY_PRESETS).join('|') + '|unset'
+  return { error: 'priority: unknown "' + String(raw) + '" — valid: ' + valid }
+}
+const PRIORITY_RESOLVED = resolvePriority(A.priority)
+if (PRIORITY_RESOLVED && typeof PRIORITY_RESOLVED === 'object' && PRIORITY_RESOLVED.error) {
+  throw new Error(PRIORITY_RESOLVED.error)
+}
+const PRIORITY = PRIORITY_RESOLVED
+// applyPriorityPreset: inline mirror of harness-core/src/feature-adr-routing.ts — an explicit
+// budget/deliveryGate knob always wins over the preset; 'unset' leaves both exactly as given
+// (NFR-1: byte-identical routing when args.priority is absent).
+function applyPriorityPreset(priority, explicit) {
+  if (priority === 'unset') return { budget: explicit.budget, deliveryGate: explicit.deliveryGate, routingRequested: false }
+  const preset = PRIORITY_PRESETS[priority]
+  const budget = explicit.budget !== undefined ? explicit.budget : preset.budget
+  const deliveryGate = explicit.deliveryGate !== undefined ? explicit.deliveryGate : preset.deliveryGate
+  return { budget: budget, deliveryGate: deliveryGate, routingRequested: true }
+}
+const PRIORITY_APPLIED = applyPriorityPreset(PRIORITY, { budget: A.budget, deliveryGate: A.deliveryGate })
+const A_BUDGET = PRIORITY_APPLIED.budget
+const DELIVERY_GATE_RESOLVED = PRIORITY_APPLIED.deliveryGate
+const BUDGET_MODE = resolveBudgetMode(A_BUDGET)
 const PRIMARY = (A.primary === 'codex') ? 'codex' : 'claude'
-const routingRequested = (Object.keys(MODELS).length > 0) || (A.primary !== undefined) || (A.budget !== undefined) || (PLANNER === 'codex') || (CODER === 'codex' || CODER === 'codex-fallback') || (QE_REVIEWER === 'codex' || QE_REVIEWER === 'codex-fallback') || (A.usageAdaptive === true)
+const routingRequested = (Object.keys(MODELS).length > 0) || (A.primary !== undefined) || (A.budget !== undefined) || (PLANNER === 'codex') || (CODER === 'codex' || CODER === 'codex-fallback') || (QE_REVIEWER === 'codex' || QE_REVIEWER === 'codex-fallback') || (A.usageAdaptive === true) || (PRIORITY !== 'unset')
 const modelsUsed = {}
+// experiment-envelope: built ONCE, right after the router (taskKind/tier are known there) and
+// before Step 1 — see the block right before roundOpenCmd below. null until then (and null
+// forever if the router never completes); every downstream reader treats null as "not yet built".
+let ENVELOPE = null
 // Authoritative who-did-what report. The legacy modelsUsed map is a lossy routing/provenance
 // summary; intent lines are deliberately NOT stored here. Only final concrete-rung outcomes enter.
 const dispatchOutcomes = []
@@ -1456,11 +1559,162 @@ function resolveStageModel(stage) {
   return resolveStageDecision(stage).opts
 }
 
+// experiment-envelope FR-1/FR-2 (ADR-001 D1): inline mirror of
+// harness-core/src/feature-adr-envelope.ts buildExperimentEnvelope — assembles the normalized
+// envelope from already-resolved inputs (arms/chosen/evaluator are resolved by the caller, right
+// after the router, from the SAME routing tables every stage dispatch already uses). Called
+// exactly ONCE per run; the result is assigned to the module-level ENVELOPE and threaded, byte for
+// byte, into every ledger row, training pair and round-open command that follows it.
+function buildExperimentEnvelopeInline(input) {
+  return {
+    schema: 1,
+    runId: input.runId,
+    attempt: input.attempt,
+    // fix-round-1/F4: mirrors treeSha/treeShaReason — attemptReason is filled only when attempt is
+    // null (the .fa-state/attempt counter probe failed), cleared otherwise.
+    attemptReason: input.attempt === null ? (input.attemptReason ?? 'unavailable') : null,
+    taskKind: input.taskKind,
+    tier: input.tier,
+    priority: input.priority,
+    treeSha: input.treeSha,
+    // fix-round-1/F8 (cross-family review, MEDIUM #8): '??' not '||' — an EMPTY STRING treeShaReason
+    // is a real (if odd) value and must survive; '||' silently replaced it with 'unavailable', a
+    // semantic drift from the core builder's '??'.
+    treeShaReason: input.treeSha === null ? (input.treeShaReason ?? 'unavailable') : null,
+    // fix-round-1/F8: shallow-clone arms.stages/chosen.stages (mergeOpts({}, x) === {...x} without
+    // introducing a new spread-syntax call site) — the core builder clones both nested stage maps;
+    // this mirror used to alias them directly, so a caller mutating its own arms.stages object
+    // after calling this function would silently mutate the built envelope too.
+    arms: { mode: input.arms.mode.slice(), stages: mergeOpts({}, input.arms.stages) },
+    chosen: { mode: input.chosen.mode, stages: mergeOpts({}, input.chosen.stages), overrides: mergeOpts({}, input.chosen.overrides === undefined ? {} : input.chosen.overrides) },
+    policy: { name: input.policy.name, version: input.policy.version, propensity: input.policy.propensity },
+    evaluator: { family: input.evaluator.family, model: input.evaluator.model, source: input.evaluator.source },
+  }
+}
+
 function mergeOpts(base, extra) {
   const out = {}
   for (const k in base) out[k] = base[k]
   for (const k in extra) out[k] = extra[k]
   return out
+}
+
+// fix-round-1/F1 (cross-family review, HIGH #1): inline mirror of
+// harness-core/src/feature-adr-envelope.ts validateExperimentEnvelope — the FULL field-by-field
+// validator, not the lightweight structural check (tpEnvelope, further below) that stays a second,
+// import-free belt for buildTrainingPair. capturePairs gates every automatic training-pair capture
+// on THIS validator before calling buildTrainingPair, so a pair with an invalid envelope is never
+// written (skipped and logged) instead of silently landing with a malformed or null envelope.
+function isPlainObjectEnv(v) { return v !== null && typeof v === 'object' && Array.isArray(v) === false }
+function isNonEmptyStringEnv(v) { return typeof v === 'string' && v.trim() !== '' }
+function validateExperimentEnvelopeInline(value) {
+  if (!isPlainObjectEnv(value)) return { ok: false, reason: 'envelope: expected an object' }
+  const v = value
+  if (v.schema !== 1) return { ok: false, reason: 'schema: expected 1, got ' + JSON.stringify(v.schema) }
+  if (!isNonEmptyStringEnv(v.runId)) return { ok: false, reason: 'runId: expected a non-empty string' }
+  if (v.attempt !== null) {
+    if (typeof v.attempt !== 'number' || !Number.isInteger(v.attempt) || v.attempt < 1) {
+      return { ok: false, reason: 'attempt: expected an integer >= 1 or null' }
+    }
+  } else if (!isNonEmptyStringEnv(v.attemptReason)) {
+    return { ok: false, reason: 'attemptReason: required (non-empty) when attempt is null' }
+  }
+  const taskKinds = ['feature', 'bugfix', 'refactor', 'tooling', 'docs', 'research']
+  if (typeof v.taskKind !== 'string' || taskKinds.indexOf(v.taskKind) === -1) {
+    return { ok: false, reason: 'taskKind: expected one of ' + taskKinds.join('|') + ', got ' + JSON.stringify(v.taskKind) }
+  }
+  const tiers = ['S', 'M', 'L', 'XL']
+  if (typeof v.tier !== 'string' || tiers.indexOf(v.tier) === -1) {
+    return { ok: false, reason: 'tier: expected one of ' + tiers.join('|') + ', got ' + JSON.stringify(v.tier) }
+  }
+  const priorities = ['speed', 'balance', 'quality', 'unset']
+  if (typeof v.priority !== 'string' || priorities.indexOf(v.priority) === -1) {
+    return { ok: false, reason: 'priority: expected one of ' + priorities.join('|') + ', got ' + JSON.stringify(v.priority) }
+  }
+  if (v.treeSha !== null) {
+    if (typeof v.treeSha !== 'string' || !/^[0-9a-f]{40}$/i.test(v.treeSha)) {
+      return { ok: false, reason: 'treeSha: expected 40 hex chars or null' }
+    }
+  } else if (!isNonEmptyStringEnv(v.treeShaReason)) {
+    return { ok: false, reason: 'treeShaReason: required (non-empty) when treeSha is null' }
+  }
+  if (!isPlainObjectEnv(v.arms)) return { ok: false, reason: 'arms: expected an object' }
+  const arms = v.arms
+  if (!Array.isArray(arms.mode) || arms.mode.length === 0 || !arms.mode.every(isNonEmptyStringEnv)) {
+    return { ok: false, reason: 'arms.mode: expected a non-empty array of non-empty strings' }
+  }
+  if (!isPlainObjectEnv(arms.stages)) return { ok: false, reason: 'arms.stages: expected an object' }
+  const armsStageEntries = Object.entries(arms.stages)
+  if (armsStageEntries.length === 0) return { ok: false, reason: 'arms.stages: expected at least one stage' }
+  for (const entry of armsStageEntries) {
+    const stage = entry[0]
+    const specs = entry[1]
+    if (stage.trim() === '') return { ok: false, reason: 'arms.stages: stage name must not be empty' }
+    if (!Array.isArray(specs) || specs.length === 0 || !specs.every(isNonEmptyStringEnv)) {
+      return { ok: false, reason: 'arms.stages.' + stage + ': expected a non-empty array of non-empty strings' }
+    }
+  }
+  if (!isPlainObjectEnv(v.chosen)) return { ok: false, reason: 'chosen: expected an object' }
+  const chosen = v.chosen
+  if (!isNonEmptyStringEnv(chosen.mode)) return { ok: false, reason: 'chosen.mode: expected a non-empty string' }
+  if (arms.mode.indexOf(chosen.mode) === -1) {
+    return { ok: false, reason: 'chosen.mode: "' + chosen.mode + '" is not a member of arms.mode (' + arms.mode.join('|') + ')' }
+  }
+  if (!isPlainObjectEnv(chosen.stages)) return { ok: false, reason: 'chosen.stages: expected an object' }
+  const chosenStageEntries = Object.entries(chosen.stages)
+  if (chosenStageEntries.length === 0) return { ok: false, reason: 'chosen.stages: expected at least one stage' }
+  for (const entry of chosenStageEntries) {
+    const stage = entry[0]
+    const spec = entry[1]
+    if (stage.trim() === '') return { ok: false, reason: 'chosen.stages: stage name must not be empty' }
+    if (!isNonEmptyStringEnv(spec)) return { ok: false, reason: 'chosen.stages.' + stage + ': expected a non-empty string' }
+  }
+  const armsStageNames = Object.keys(arms.stages)
+  const chosenStageNames = Object.keys(chosen.stages)
+  const sameSize = armsStageNames.length === chosenStageNames.length
+  const allPresent = armsStageNames.every(function (s) { return chosenStageNames.indexOf(s) !== -1 })
+  if (!sameSize || !allPresent) {
+    return { ok: false, reason: 'chosen.stages: stage set disagrees with arms.stages' }
+  }
+  // Lead delta after Codex r2 (HIGH): arms are IMMUTABLE — the offered set. A chosen spec outside it is
+  // legal only when chosen.overrides names that stage with the SAME spec (mirror of the core rule).
+  const overridesRaw = chosen.overrides === undefined ? {} : chosen.overrides
+  if (!isPlainObjectEnv(overridesRaw)) return { ok: false, reason: 'chosen.overrides: expected an object when present' }
+  const overrides = overridesRaw
+  for (const oentry of Object.entries(overrides)) {
+    const ostage = oentry[0]
+    const ospec = oentry[1]
+    if (!(ostage in chosen.stages)) return { ok: false, reason: 'chosen.overrides.' + ostage + ': names a stage absent from chosen.stages' }
+    if (!isNonEmptyStringEnv(ospec)) return { ok: false, reason: 'chosen.overrides.' + ostage + ': expected a non-empty string' }
+    if (chosen.stages[ostage] !== ospec) return { ok: false, reason: 'chosen.overrides.' + ostage + ': "' + String(ospec) + '" disagrees with chosen.stages.' + ostage }
+  }
+  for (const entry of chosenStageEntries) {
+    const stage = entry[0]
+    const spec = entry[1]
+    const offered = arms.stages[stage]
+    if (offered.indexOf(spec) === -1 && overrides[stage] !== spec) {
+      return { ok: false, reason: 'chosen.stages.' + stage + ': "' + spec + '" is not a member of arms.stages.' + stage + ' (' + offered.join('|') + ') and not declared in chosen.overrides' }
+    }
+  }
+  if (!isPlainObjectEnv(v.policy)) return { ok: false, reason: 'policy: expected an object' }
+  const policy = v.policy
+  if (!isNonEmptyStringEnv(policy.name)) return { ok: false, reason: 'policy.name: expected a non-empty string' }
+  if (!isNonEmptyStringEnv(policy.version)) return { ok: false, reason: 'policy.version: expected a non-empty string' }
+  if (policy.propensity !== null && typeof policy.propensity !== 'number') {
+    return { ok: false, reason: 'policy.propensity: expected a number or null' }
+  }
+  if (!isPlainObjectEnv(v.evaluator)) return { ok: false, reason: 'evaluator: expected an object' }
+  const evaluator = v.evaluator
+  if (evaluator.family !== null && evaluator.family !== 'claude' && evaluator.family !== 'codex') {
+    return { ok: false, reason: 'evaluator.family: expected claude, codex, or null' }
+  }
+  if (evaluator.model !== null && typeof evaluator.model !== 'string') {
+    return { ok: false, reason: 'evaluator.model: expected a string or null' }
+  }
+  if (evaluator.source !== 'planned' && evaluator.source !== 'actual') {
+    return { ok: false, reason: 'evaluator.source: expected planned or actual' }
+  }
+  return { ok: true }
 }
 
 // modelLabel: render the resolved spec used by the legacy modelsUsed routing/provenance summary.
@@ -1819,7 +2073,7 @@ function scopedQePrompt(input) {
   if (slug !== '') out += ' They are the changed files of feature ' + slug + '.'
   out += '\n\nAnswer these ' + questions.length + ' questions about them:\n'
   for (let i = 0; i < questions.length; i++) out += i + 1 + '. ' + questions[i] + '\n'
-  out += '\nFinish with a single final line: Grade: <A|B|C|D>'
+  out += '\nFinish with two final lines: Grade: <A|B|C|D> and QE-VERDICT: <same>'
   return out
 }
 
@@ -2857,6 +3111,11 @@ function assertAbsoluteNoTraversal(value, knob) {
 function planCompletenessGateCmd(repo, featureDir, tier, opts) {
   const q = (s) => "'" + String(s).replace(/'/g, "'\\''") + "'"
   const t = (typeof tier === 'string' && tier !== '') ? ' --tier=' + q(tier) : ''
+  // FR-2 (ADR-001 plan-inherits-requirements): opt-in per caller via opts.requireRequirements, not
+  // baked into every invocation — the pipeline's one call site sets it (below), so C8 (01_requirements.md
+  // coverage) is a per-id FAIL there; a caller that omits opts, or opts without the flag, is unaffected —
+  // the bare/positional form stays byte-identical to the pre-C8 command.
+  const req = (opts && opts.requireRequirements) ? ' --require-requirements' : ''
   if (opts === undefined || opts === null) {
     return 'cd ' + q(repo) + ' && node ' + q(PLAN_GATE_SCRIPT) + ' ' + q(featureDir) + t + ' 2>&1; echo K2_EXIT=$?'
   }
@@ -2880,7 +3139,7 @@ function planCompletenessGateCmd(repo, featureDir, tier, opts) {
     // twice and the chain silently degenerated from three candidates to two. Saying so turns a
     // puzzling duplicate into an instruction. Not verdict-shaped, so the parser anchoring is untouched.
     '[ "$C2" = "$C3" ] && echo "K2_GATE_NOTE=the workspace candidate resolved to the TARGET repo (WS==repo), so only two distinct candidates were tried; pass args.workspace or args.gateScript when the feature-adr skill is installed outside the target repo"',
-    'if [ -z "$GS" ]; then echo "K2 plan-completeness: NOT-ESTABLISHED — tooling-missing: no gate script at any candidate on the K2_GATE_TRIED line above"; echo "K2_EXIT=3"; else cd ' + q(repo) + ' && node "$GS" ' + q(featureDir) + t + ' 2>&1; echo "K2_EXIT=$?"; fi',
+    'if [ -z "$GS" ]; then echo "K2 plan-completeness: NOT-ESTABLISHED — tooling-missing: no gate script at any candidate on the K2_GATE_TRIED line above"; echo "K2_EXIT=3"; else cd ' + q(repo) + ' && node "$GS" ' + q(featureDir) + t + req + ' 2>&1; echo "K2_EXIT=$?"; fi',
   ].join('\n')
 }
 
@@ -2914,6 +3173,101 @@ function parsePlanGateVerdict(raw) {
   const lastLine = nl < 0 ? text.slice(lastAt) : text.slice(lastAt, nl)
   const reason = (byName === 'not-established' && /tooling-missing:/.test(lastLine)) ? 'tooling-missing' : 'script-verdict'
   return { verdict: byName, exit: exitCode, reason: reason, output: output }
+}
+
+// ── FR-6 preservation check (AM-4; rewritten by the lead after Codex round 2, 2026-09-16) ────────
+// "Edit the plan to close EXACTLY these gaps, keep everything else" is a PROMPT, not a guarantee.
+// POSIX-only commands (INV-12: no node -e / require / fs tokens in emitted shell) bracket the ONE
+// repair dispatch:
+//   planBackupCmd         copies the plan to <plan>.pre-repair BEFORE anything else — the restore
+//                         source. No backup ⇒ no repair (a repair that cannot be undone is not one
+//                         we are allowed to attempt; Codex r2 HIGH-3).
+//   planSnapshotCmd       byte length, the trimmed EXPECTED_CODE_TARGETS lines and the task-HEADING
+//                         LINES themselves — a heading COUNT was satisfiable by filler (Codex r2
+//                         HIGH-2); a heading SET must be a superset of what was there.
+//   planRestoreCmd        puts the backup back on a REJECTED repair (mv, atomic, removes the backup).
+//   planArchiveBackupCmd  moves the backup into .fa-state/ on an ACCEPTED repair (never a stray file
+//                         left in the feature dir).
+// NAMED LIMIT (Codex r2 HIGH-2, kept on purpose): task BODIES are not proven preserved by any metric
+// here — a repair that keeps every heading line, every target and 80% of the bytes while gutting the
+// prose is undetectable by construction; the same class as C1/C8 being greps. A plan line that
+// FORGES a snapshot marker can only WEAKEN its own before-set (lastIndexOf picks the forged start),
+// never open the gate: a broken snapshot now REJECTS (see parsePlanSnapshot / the repair block).
+// POSIX single-quote escaping for every path the helpers below interpolate (Codex r3 HIGH-6: a
+// path carrying a double quote or a command substitution would rewrite the emitted command).
+// (shellQuote is declared ONCE, near checkpointReadCmd — a second top-level declaration made the
+// whole script unparseable as an ES module for the Workflow tool; live-run guard test
+// feature-adr-workflow-parses-as-module.test.ts pins this.)
+// Backup refuses (BACKUP_FAILED ⇒ no repair) when: the plan is not a regular non-symlink file, it
+// is empty, or a .pre-repair ALREADY exists — a stale restore source from a crashed earlier run
+// must never be overwritten by the possibly-damaged current plan, and a pre-planted symlink must
+// never be followed (Codex r3 HIGH-3).
+function planBackupCmd(f) {
+  return 'f=' + shellQuote(f) + '; if [ -f "$f" ] && [ ! -L "$f" ] && [ -s "$f" ] && [ ! -e "$f.pre-repair" ] && cp "$f" "$f.pre-repair"; then echo "BACKUP_OK"; else echo "BACKUP_FAILED"; fi'
+}
+function planRestoreCmd(f) {
+  return 'f=' + shellQuote(f) + '; if [ -f "$f.pre-repair" ] && [ ! -L "$f.pre-repair" ] && [ -s "$f.pre-repair" ] && mv "$f.pre-repair" "$f"; then echo "RESTORE_OK"; else echo "RESTORE_FAILED"; fi'
+}
+function planArchiveBackupCmd(f, stateDir) {
+  return 'f=' + shellQuote(f) + '; d=' + shellQuote(stateDir) + '; if [ -f "$f.pre-repair" ] && [ ! -L "$f.pre-repair" ] && mkdir -p "$d" && mv "$f.pre-repair" "$d/06_implementation_plan.pre-repair"; then echo "ARCHIVE_OK"; else echo "ARCHIVE_FAILED"; fi'
+}
+// SNAP_CKSUM (POSIX cksum) is the restore proof — equal length is not equal content (Codex r3 HIGH-4).
+function planSnapshotCmd(f) {
+  return 'f=' + shellQuote(f) + '; if [ -f "$f" ] && [ ! -L "$f" ] && [ -s "$f" ]; then ' +
+    'len=$(wc -c < "$f" | tr -d " "); ck=$(cksum < "$f" | cut -d " " -f 1); ' +
+    'echo "SNAP_TARGETS_START"; ' +
+    'awk \'/^EXPECTED_CODE_TARGETS:/{f=1;next} f&&/^[ \\t]*[-*][ \\t]/{s=$0; sub(/^[ \\t]*[-*][ \\t]*/,"",s); sub(/[ \\t]+$/,"",s); print s; next} f&&/^[ \\t]*$/{next} f{exit}\' "$f"; ' +
+    'echo "SNAP_TARGETS_END"; ' +
+    'echo "SNAP_HEADS_START"; grep -E "^#{2,4}[[:space:]]" "$f"; echo "SNAP_HEADS_END"; ' +
+    'echo "SNAP_LEN=$len"; echo "SNAP_CKSUM=$ck"; echo "SNAP_DONE"; ' +
+    'else echo "SNAP_ABSENT"; echo "SNAP_DONE"; fi'
+}
+
+// One marker-delimited block of the snapshot. Markers are matched as WHOLE LINES, the block runs from
+// the FIRST start marker to the LAST end marker (Codex r3 HIGH-1): the probe prints its start marker
+// BEFORE any plan content and its end marker AFTER all of it, so a plan line that spells a marker
+// (a target - SNAP_TARGETS_START, a heading ## SNAP_HEADS_START) lands INSIDE the block and can
+// neither open a later one nor close this one early. Top-level on purpose: the TS twin in
+// feature-adr-routing.ts types its parameters, and a typed inner arrow would make the two
+// parsePlanSnapshot bodies differ under the drift guard.
+function snapshotBlock(head, startMark, endMark) {
+  const startRe = new RegExp('(^|\n)' + startMark + '(\r?\n)')
+  const sm = startRe.exec(head)
+  if (sm === null) return null
+  const s = sm.index + sm[0].length
+  const endRe = new RegExp('(^|\n)' + endMark + '(\r?\n|$)', 'g')
+  let e = -1
+  let em = endRe.exec(head)
+  while (em !== null) { e = em.index + (em[1] === '' ? 0 : 1); em = endRe.exec(head) }
+  if (e < 0 || e < s) return null
+  return head.slice(s, e).split('\n').map((l) => l.trim()).filter((l) => l !== '')
+}
+// The LAST whole-line <name>=<digits> in the snapshot (the probe prints it after the blocks).
+function snapshotNumber(head, name) {
+  const re = new RegExp('(^|\n)' + name + '=(\\d+)[ \t\r]*(\n|$)', 'g')
+  let v = null
+  let m = re.exec(head)
+  while (m !== null) { v = Number(m[2]); m = re.exec(head) }
+  return v
+}
+
+// Returns null when the probe never completed (no SNAP_DONE) or a field is unparseable — and the
+// CALLER treats null as "reject the repair", never as "nothing to compare" (Codex r2 HIGH-1: a broken
+// snapshot used to fail OPEN into the re-gate branch). SNAP_ABSENT is read only as the last whole
+// line before the final SNAP_DONE.
+function parsePlanSnapshot(raw) {
+  const text = String(raw === null || raw === undefined ? '' : raw)
+  const doneIdx = text.lastIndexOf('SNAP_DONE')
+  if (doneIdx < 0) return null
+  const head = text.slice(0, doneIdx)
+  if (/(^|\n)SNAP_ABSENT[ \t\r]*\n?[ \t\r]*$/.test(head)) return { present: false, len: 0, cksum: null, headings: [], targets: [] }
+  const len = snapshotNumber(head, 'SNAP_LEN')
+  const cksum = snapshotNumber(head, 'SNAP_CKSUM')
+  if (len === null || cksum === null) return null
+  const targets = snapshotBlock(head, 'SNAP_TARGETS_START', 'SNAP_TARGETS_END')
+  const headings = snapshotBlock(head, 'SNAP_HEADS_START', 'SNAP_HEADS_END')
+  if (targets === null || headings === null) return null
+  return { present: true, len: len, cksum: cksum, headings: headings, targets: targets }
 }
 
 // AM-2/AM-7 — ONE reason→text table for the refusal note (mirror of refusalNoteFor in
@@ -3116,7 +3470,7 @@ async function designStage(promptText, opts, artifactPath, baseLabel) {
   return fb
 }
 
-const ROUTER = { type: 'object', additionalProperties: false, required: ['tier', 'activeSteps', 'rationale'], properties: { tier: { type: 'string', enum: ['S', 'M', 'L', 'XL'] }, activeSteps: { type: 'array', items: { type: 'number' } }, rationale: { type: 'string' } } }
+const ROUTER = { type: 'object', additionalProperties: false, required: ['tier', 'activeSteps', 'rationale', 'taskKind'], properties: { tier: { type: 'string', enum: ['S', 'M', 'L', 'XL'] }, activeSteps: { type: 'array', items: { type: 'number' } }, rationale: { type: 'string' }, taskKind: { type: 'string', enum: TASK_KINDS } } }
 const ARTIFACT = { type: 'object', additionalProperties: false, required: ['wrote', 'summary'], properties: { wrote: { type: 'array', items: { type: 'string' } }, summary: { type: 'string' } } }
 // R2 polymorphic-feature-adr: the Step-0 project-skills probe returns only the small, reliable bits
 // (hasManifest + the who-injected report). The BIG per-stage guidance content is fetched by each stage
@@ -3200,6 +3554,11 @@ function runRecordCommand(dz, root, event, runId, slug, pid, parentRunId, outcom
 // Run registry: the courier executes the CLI because the sandbox has no filesystem.
 let registryRunId = ''
 let registryPhase = 'Router'
+// fix-round-1/F4: best-effort capture of the 'started' event's OWN receipt timestamp — even when
+// the overall registry write is judged UNVERIFIED for some other reason (a runId mismatch, say),
+// the receipt may still have carried a real `ts` (the CLI stamps `new Date().toISOString()` before
+// any of those checks run). RUN_ID's fallback below prefers this over a fabricated 'unknown-ts'.
+let registryStartedTs = null
 async function recordRegistryEvent(event, phaseName, outcome) {
   registryPhase = phaseName
   if (event !== 'started' && !registryRunId) return
@@ -3210,6 +3569,9 @@ async function recordRegistryEvent(event, phaseName, outcome) {
       { label: 'runs-record:' + event + ':' + phaseName, phase: phaseName, effort: 'low' })
     let receipt = null
     try { receipt = typeof out === 'string' ? JSON.parse(out.trim()) : out } catch { /* unverified below */ }
+    if (event === 'started' && receipt && typeof receipt.ts === 'string' && receipt.ts.trim() !== '') {
+      registryStartedTs = receipt.ts
+    }
     if (!receipt || receipt.status !== 'written' || receipt.event !== event ||
         typeof receipt.runId !== 'string' || !receipt.runId || (registryRunId && receipt.runId !== registryRunId)) {
       registryOutcome = 'unverified'
@@ -3226,6 +3588,23 @@ finishRunRegistry = async function () {
   await recordRegistryEvent('finished', registryPhase, registryOutcome)
 }
 await recordRegistryEvent('started', 'Router')
+// fix-round-1/F4 (cross-family review, HIGH #4): ONE canonical RUN_ID, computed HERE — the
+// beginning of the run, right after the registry's own 'started' event — and used everywhere this
+// run needs to name itself: round open --run, appendRunCostRow's ledger row, the envelope, and (via
+// the envelope riding into every training pair) the pairs too. Before this fix, a registry-write
+// failure gave the envelope `fa:<slug>:<timestamp>` while `round open --run` independently hard-
+// coded `fa:<slug>` (no timestamp) — TWO DIFFERENT IDENTITIES for the same run, unjoinable.
+// args.runTs is an explicit caller override (tests, deterministic replays); registryStartedTs is the
+// registry's own best-effort timestamp; 'unknown-ts' is the last-resort, honestly-named fallback —
+// never a fabricated timestamp.
+// Lead delta after Codex r2 (HIGH #2): the last-resort fallback used to be the CONSTANT
+// 'unknown-ts' — two runs of one slug with no registry receipt and no args.runTs collapsed into ONE
+// identity. RUN_ID is now finalized right after the envelope probe below, which also returns a
+// wall-clock stamp + the probe shell's pid; with neither registry, args.runTs, nor probe stamp the
+// id is null, the envelope fails validation, and every auto row is REFUSED loudly (recordFailures)
+// rather than merged into a shared identity.
+let RUN_ID = registryRunId ? registryRunId
+  : (((typeof A.runTs === 'string' && A.runTs.trim() !== '') ? ('fa:' + SLUG + ':' + A.runTs.trim()) : (registryStartedTs ? ('fa:' + SLUG + ':' + registryStartedTs) : null)))
 
 // Step 0: Router + MANDATORY self-learning recall
 phase('Router')
@@ -3258,7 +3637,12 @@ await usageProbe('Router')
 const routerTierDirective = A.tier
   ? ' (4) TIER OVERRIDE — THE CALLER FORCED TIER ' + A.tier + '. This run EXECUTES ' + A.tier + ' regardless of what you classify, so `00_complexity_assessment.md` MUST record `Effective tier: ' + A.tier + ' (forced by the caller)` as the tier of record, and your own classification separately as `Router recommendation: <your tier>` with its decisive criterion. Recording only your own would put a tier in the file that the run did not run — the same defect as recording none. Size the acid table for the EFFECTIVE tier.'
   : ''
-const routerPrompt = 'You are Step 0 (Complexity Router) of the /feature-adr pipeline. TWO jobs. (1) MANDATORY SELF-LEARNING RECALL (never skip — run BOTH Bash commands VERBATIM, do not summarize instead of running them): the learned patterns live in the CANONICAL BRAIN store at `' + BRAIN + '` — pin every recall to it. Via your Bash tool run EXACTLY `' + DZ_RECALL('<the key domain terms of this feature>') + '` (and `' + DZ_RECALL('<the key domain terms of this feature>') + ' --all` if narrow) to load relevant LEARNED PATTERNS from the brain. Preserve recalled pattern TEXT, reward, domain, and any visible id in the rationale as a concrete list so Step 8 can compare candidate lessons against it. Then run `dz statusline --fa-record --slug ' + SLUG + ' --step "Step 0 recall" --recalled <count> --mode ' + MODE + ' --project ' + REPO + '`. Summarize the top 3 applicable patterns in the rationale. (2) Classify S/M/L/XL + active steps. Feature: "' + DESC + '". Code: ' + CODE_HINT + '. S=1-3 files (0,1,6,7,8; if an ADR is explicitly forced, use Nygard as the lightweight fallback); M=4-10 (0,1,3,3.5,5,6,7,8; Nygard/ITD-light ADR); L=11-30 (all+9; MADR+Confirmation ADRs); XL=30+ (full+9; MADR+Confirmation ADRs). ADR template-weight rule: S/M -> Nygard/ITD-light; L/XL -> MADR + NHS Wales Confirmation, while every generated ADR still carries the invariant core. (3) WRITE THE ARTIFACT — a deliverable, not a note to yourself. Create ' + FDIR + '/00_complexity_assessment.md BEFORE returning: the TIER and the DECISIVE criterion for it (not a restatement of the bands); the ACTIVE STEPS list; the recalled patterns folded in; and an ACID-CASE TABLE with rows shaped EXACTLY `| A<n> | <the bad input> | <what must happen> |` for every input this feature must REFUSE. The K2 gate reads those rows by that exact shape and checks the plan names each token, so a loose shape silently disables the check. If this feature genuinely has no acid cases, say so in prose and write NO table — an honest absence is a skip, an absent FILE is a missing input, and the gate tells those apart. Without this file the tier is recorded NOWHERE while the run is alive (MEASURED 2026-08-21: 66 of 199 features had it) and C4 has nothing to read. Return {tier, activeSteps, rationale} with the recalled patterns folded into rationale.' + routerTierDirective
+// experiment-envelope FR-2: args.taskKind overrides the router's own classification, same pattern
+// as routerTierDirective above (forced value wins, both are recorded so the file never hides one).
+const routerTaskKindDirective = (typeof A.taskKind === 'string' && TASK_KINDS.indexOf(A.taskKind) !== -1)
+  ? ' (5) TASK KIND OVERRIDE — THE CALLER FORCED TASK KIND ' + A.taskKind + '; record it as `Task kind: ' + A.taskKind + ' (forced by the caller)`.'
+  : ''
+const routerPrompt = 'You are Step 0 (Complexity Router) of the /feature-adr pipeline. TWO jobs. (1) MANDATORY SELF-LEARNING RECALL (never skip — run BOTH Bash commands VERBATIM, do not summarize instead of running them): the learned patterns live in the CANONICAL BRAIN store at `' + BRAIN + '` — pin every recall to it. Via your Bash tool run EXACTLY `' + DZ_RECALL('<the key domain terms of this feature>') + '` (and `' + DZ_RECALL('<the key domain terms of this feature>') + ' --all` if narrow) to load relevant LEARNED PATTERNS from the brain. Preserve recalled pattern TEXT, reward, domain, and any visible id in the rationale as a concrete list so Step 8 can compare candidate lessons against it. Then run `dz statusline --fa-record --slug ' + SLUG + ' --step "Step 0 recall" --recalled <count> --mode ' + MODE + ' --project ' + REPO + '`. Summarize the top 3 applicable patterns in the rationale. (2) Classify S/M/L/XL + active steps, AND classify the task kind as exactly one of ' + TASK_KINDS.join('|') + ' (write `Task kind: <x>` into the artifact). Feature: "' + DESC + '". Code: ' + CODE_HINT + '. S=1-3 files (0,1,6,7,8; if an ADR is explicitly forced, use Nygard as the lightweight fallback); M=4-10 (0,1,3,3.5,5,6,7,8; Nygard/ITD-light ADR); L=11-30 (all+9; MADR+Confirmation ADRs); XL=30+ (full+9; MADR+Confirmation ADRs). ADR template-weight rule: S/M -> Nygard/ITD-light; L/XL -> MADR + NHS Wales Confirmation, while every generated ADR still carries the invariant core. (3) WRITE THE ARTIFACT — a deliverable, not a note to yourself. Create ' + FDIR + '/00_complexity_assessment.md BEFORE returning: the TIER and the DECISIVE criterion for it (not a restatement of the bands); the ACTIVE STEPS list; the `Task kind: <x>` line; the recalled patterns folded in; and an ACID-CASE TABLE with rows shaped EXACTLY `| A<n> | <the bad input> | <what must happen> |` for every input this feature must REFUSE. The K2 gate reads those rows by that exact shape and checks the plan names each token, so a loose shape silently disables the check. If this feature genuinely has no acid cases, say so in prose and write NO table — an honest absence is a skip, an absent FILE is a missing input, and the gate tells those apart. Without this file the tier is recorded NOWHERE while the run is alive (MEASURED 2026-08-21: 66 of 199 features had it) and C4 has nothing to read. Return {tier, activeSteps, rationale, taskKind} with the recalled patterns folded into rationale.' + routerTierDirective + routerTaskKindDirective
 // ADR-001: ONE resolve feeds BOTH the announcement and the dispatch. Resolving twice printed a
 // spec-degradation warning twice and broke the invariant the line exists to hold.
 const routerDecision = resolveStageDecision('router')
@@ -3286,6 +3670,10 @@ const router = await withCheckpoint('router', 'Router', routerHash, async () => 
 if (resumedStages.indexOf('router') !== -1) modelsUsed.router = modelsUsed.router + ' (resumed)'
 let tier = A.tier || (router ? router.tier : 'M')
 FA_TIER.v = tier // fa-phase-statusline: from here every ckpt-side fa-record carries the real tier
+// experiment-envelope FR-2: same override-then-router-then-fallback pattern as tier above.
+let taskKind = (typeof A.taskKind === 'string' && TASK_KINDS.indexOf(A.taskKind) !== -1)
+  ? A.taskKind
+  : ((router && typeof router.taskKind === 'string' && TASK_KINDS.indexOf(router.taskKind) !== -1) ? router.taskKind : 'feature')
 // Outer completion state starts absent so the plan-only ledger row can report null honestly.
 let coderUsed = null
 let qe = null
@@ -3295,9 +3683,11 @@ const LEARNED = router ? router.rationale : 'none recalled'
 const isMplus = tier === 'M' || tier === 'L' || tier === 'XL'
 const isLplus = tier === 'L' || tier === 'XL'
 log('Router: tier ' + tier)
-// training pair: router has no QE grade — grade:null HONESTLY (never fabricated). The recall happens
-// INSIDE the router (its output carries the recalled patterns), so lessonsInjected is [] here.
-await capturePairs('router', 'Router', [{ input: routerPrompt, output: router, evaluation: { grade: null, gradedBy: null, lessonsInjected: [] }, provenance: { model: String(modelsUsed.router || ''), family: tpFamily(modelsUsed.router), role: 'router' } }])
+// fix-round-1/F1 (cross-family review, HIGH #1): the router's training-pair capture MOVED to AFTER
+// the envelope is built (below) — it used to run here, before ENVELOPE existed, deliberately
+// writing envelope:null on every single router pair (FR-3(б) violated on every run by construction).
+// capturePairs itself now gates on a VALIDATED envelope (see its own comment), so this call is
+// unreachable until ENVELOPE is real.
 
 // ── AUTO-COST pre-resolution (feature learned-cost-routing) ──
 // A stage whose spec is 'auto-cost' is resolved HERE (tier is now known) to a concrete model via
@@ -3334,6 +3724,111 @@ if (autoCostStages.length > 0) {
 // most visible moment. Uses the workspace bin (PATH-independent). Best-effort — never blocks.
 if (resumedStages.indexOf('router') === -1) await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and report its stdout verbatim — do nothing else, do not summarize: ' + DZ + ' statusline --fa-record --slug ' + SLUG + ' --step "Step 0 recall" --recalled auto --run fa:' + SLUG + ' --count-project ' + BRAIN + ' --stored 0 --mode ' + MODE + ' --project ' + REPO, { label: 'fa-record:step0', phase: 'Router', effort: 'low' })
 
+// ── experiment-envelope (ADR-001 D1/D2): built ONCE, right here — tier and taskKind are known
+// (the router returned), and nothing downstream has dispatched yet. treeSha comes from a real git
+// probe (a Claude agent IS the shell — the sandbox has no fs/exec of its own); a non-git or failed
+// probe degrades to null + a named reason, never a fabricated sha. RUN_ID was already finalized at
+// the top of the run (right after the registry 'started' event) — this probe no longer needs its
+// own timestamp for that purpose.
+//
+// fix-round-1/F4 (cross-family review, HIGH #4): attempt is now a REAL, PERSISTENT counter —
+// features/<slug>/.fa-state/attempt — incremented by ONE shell command combined into this SAME
+// probe (one agent dispatch, not two): read-or-default-to-0, increment, write back, echo the new
+// value. The old heuristic (resumedStages.length > 0 ? 2 : 1) is gone — it silently reported "2"
+// for every third-and-later retry of the same slug, a confident-looking lie. A failed or
+// non-numeric probe now degrades HONESTLY to attempt:null + a named attemptReason, mirroring the
+// treeSha/treeShaReason null+reason shape (see buildExperimentEnvelopeInline / validateExperimentEnvelopeInline).
+const envelopeAttemptFile = shq(FDIR + '/.fa-state/attempt')
+const envelopeProbeOut = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with ONLY its stdout, nothing else: cd ' + shq(REPO) + ' && mkdir -p ' + shq(FDIR + '/.fa-state') + ' && n=$(cat ' + envelopeAttemptFile + ' 2>/dev/null || echo 0); case "$n" in ""|*[!0-9]*) a=invalid;; *) n=$((n+1)); printf %s "$n" > ' + envelopeAttemptFile + '; a=$n;; esac; echo "TREESHA:$(git rev-parse HEAD 2>/dev/null || echo none):ATTEMPT:$a:TS:$(date -u +%Y%m%dT%H%M%S)-$$"', { label: 'envelope:probe', phase: 'Router', model: 'haiku', effort: 'low' })
+// Lead delta after Codex r2 (MEDIUM #4): the counter file's content is validated by the SHELL
+// (digits only) before arithmetic — a corrupt 'abc' used to become 0 and start a fresh count; it now
+// reports ATTEMPT:invalid and lands as attempt:null + a named reason. Same-slug PARALLEL runs are
+// not serialized here: `round open` already refuses a second live owner for the slug (named limit).
+const envelopeProbeM = /TREESHA:(.+?):ATTEMPT:([A-Za-z0-9]+):TS:(\S+)/.exec(String(envelopeProbeOut === null || envelopeProbeOut === undefined ? '' : envelopeProbeOut))
+const probedTreeSha = envelopeProbeM === null ? null : envelopeProbeM[1].trim()
+const probedRunTs = (envelopeProbeM !== null && /^\d{8}T\d{6}-\d+$/.test(envelopeProbeM[3])) ? envelopeProbeM[3] : null
+if (RUN_ID === null && probedRunTs !== null) RUN_ID = 'fa:' + SLUG + ':' + probedRunTs
+if (RUN_ID === null) log('experiment-envelope: no unique run identity (registry, args.runTs and the probe stamp all unavailable) — the envelope will fail validation and every auto row will be refused')
+const ENVELOPE_TREE_SHA = (probedTreeSha && /^[0-9a-f]{40}$/i.test(probedTreeSha)) ? probedTreeSha.toLowerCase() : null
+const ENVELOPE_TREE_SHA_REASON = ENVELOPE_TREE_SHA === null ? ('git rev-parse HEAD probe unavailable or non-git (' + (probedTreeSha || 'no output') + ')') : null
+const probedAttempt = (envelopeProbeM !== null && /^\d+$/.test(envelopeProbeM[2])) ? Number(envelopeProbeM[2]) : null
+const ENVELOPE_ATTEMPT = (probedAttempt !== null && Number.isInteger(probedAttempt) && probedAttempt >= 1) ? probedAttempt : null
+const ENVELOPE_ATTEMPT_REASON = ENVELOPE_ATTEMPT === null ? ((envelopeProbeM !== null && envelopeProbeM[2] === 'invalid') ? 'attempt counter file corrupt (non-numeric content) — not reset' : ('attempt counter probe unavailable or non-numeric (' + (envelopeProbeOut || 'no output') + ')')) : null
+// arms/chosen: for every stage, what the normal/eco tables (plus an explicit args.models override)
+// OFFERED, and what resolveStageDecision — the SAME resolver every real dispatch below calls —
+// actually CHOSE. Reusing resolveStageDecision here costs nothing beyond a table lookup: it is a
+// pure function, and a stage name from Object.keys(STAGE_EFFORT.override) is never one of the
+// literal-string calls the single-resolve wiring guard counts.
+const ENVELOPE_STAGES = Object.keys(STAGE_EFFORT.override)
+const envelopeArmsStages = {}
+const envelopeChosenStages = {}
+const envelopeChosenOverrides = {}
+// fix-round-1/F3 (cross-family review, HIGH #3): 'router' has ALREADY been resolved once, above,
+// into `routerDecision` — the value the router ACTUALLY dispatched with. Re-resolving it here (a
+// second, separate call with no state change in between) is exactly the redundant resolve the
+// verdict names; reusing the SAME object instead makes `chosen.stages.router` provably the decision
+// that ran, not a second computation of it that could theoretically diverge from a hand-maintained
+// duplicate of the same rules.
+let envelopeQeDecision = null
+for (const envStage of ENVELOPE_STAGES) {
+  const normalCell = budgetTable(PRIMARY, BUDGET_PRESETS.normal)[envStage]
+  const ecoCell = budgetTable(PRIMARY, BUDGET_PRESETS.eco)[envStage]
+  const normalSpec = (normalCell !== undefined && normalCell !== null) ? normalCell : DEFAULT_MODELS[envStage]
+  const ecoSpec = (ecoCell !== undefined && ecoCell !== null) ? ecoCell : DEFAULT_MODELS[envStage]
+  const candidates = []
+  if (normalSpec) candidates.push(normalSpec)
+  if (ecoSpec && candidates.indexOf(ecoSpec) === -1) candidates.push(ecoSpec)
+  if (MODELS[envStage] !== undefined && MODELS[envStage] !== null && candidates.indexOf(String(MODELS[envStage])) === -1) candidates.push(String(MODELS[envStage]))
+  const envDecision = (envStage === 'router') ? routerDecision : resolveStageDecision(envStage)
+  if (envStage === 'qe') envelopeQeDecision = envDecision
+  const chosenSpec = envDecision.spec || 'session-inherited'
+  // fix-round-1/F7 (cross-family review, MEDIUM #7): chosen MUST be a member of arms — the
+  // budget-table/DEFAULT_MODELS/MODELS-override candidates above do not cover every branch
+  // resolveStageDecision can take (usage-override switches to a codex id never in that list;
+  // routing-not-requested resolves chosen to the literal 'session-inherited', which is not a real
+  // model name either). Rather than hand-duplicate resolveStageDecision's full branch logic here
+  // (fragile — a future branch would silently drift), the ACTUAL resolved spec is added to the
+  // candidate set whenever it is not already there. This makes membership hold BY CONSTRUCTION for
+  // every branch, present and future, instead of by enumerating branches.
+  // Lead delta after Codex r2 (HIGH): arms are what was OFFERED and stay untouched; a chosen spec
+  // outside them (usage-override id, the literal 'session-inherited') is recorded as an explicit
+  // override — the experiment record shows the choice fell outside the offered set, not a set
+  // rewritten to contain the winner.
+  if (candidates.indexOf(chosenSpec) === -1) envelopeChosenOverrides[envStage] = chosenSpec
+  envelopeArmsStages[envStage] = candidates
+  envelopeChosenStages[envStage] = chosenSpec
+}
+// fix-round-1/F3: evaluator.planned is derived from the SAME 'qe' decision just used to build
+// chosen.stages.qe above (envelopeQeDecision) — never a separate, unrelated resolveQeSpec() call
+// that could name a different model than what `chosen` already committed to. The routing-not-
+// requested fallback (envelopeQeDecision.spec is null) still calls resolveQeSpec() directly — the
+// honest "what WOULD be chosen under today's rules" the evaluator has always reported for the
+// common (routing not opted into) case, where chosen.stages.qe itself reads 'session-inherited'.
+const ENVELOPE_QE_SPEC = (envelopeQeDecision && envelopeQeDecision.spec) ? envelopeQeDecision.spec : resolveQeSpec()
+const ENVELOPE_QE_FAMILY = (String(ENVELOPE_QE_SPEC).indexOf('codex') === 0) ? 'codex' : 'claude'
+const ENVELOPE_CODE_FAMILY = coderIsCodex() ? 'codex' : 'claude'
+const ENVELOPE_CHOSEN_MODE = (ENVELOPE_QE_FAMILY === ENVELOPE_CODE_FAMILY) ? 'same-family' : 'cross-family'
+ENVELOPE = buildExperimentEnvelopeInline({
+  runId: RUN_ID,
+  attempt: ENVELOPE_ATTEMPT,
+  attemptReason: ENVELOPE_ATTEMPT_REASON,
+  taskKind: taskKind,
+  tier: tier,
+  priority: PRIORITY,
+  treeSha: ENVELOPE_TREE_SHA,
+  treeShaReason: ENVELOPE_TREE_SHA_REASON,
+  arms: { mode: ['same-family', 'cross-family'], stages: envelopeArmsStages },
+  chosen: { mode: ENVELOPE_CHOSEN_MODE, stages: envelopeChosenStages, overrides: envelopeChosenOverrides },
+  policy: { name: 'routing-tables', version: POLICY_VERSION, propensity: null },
+  evaluator: { family: ENVELOPE_QE_FAMILY, model: ENVELOPE_QE_SPEC, source: 'planned' },
+})
+// fix-round-1/F1: the router's training pair, captured here — AFTER ENVELOPE is real — so it gets
+// the SAME validated envelope every other automatic pair gets, instead of the deliberate
+// envelope:null the pre-fix call site wrote (FR-3(б) violated on every run by construction).
+// grade:null HONESTLY (router has no QE grade); lessonsInjected is [] because the recall happens
+// INSIDE the router (its output carries the recalled patterns).
+await capturePairs('router', 'Router', [{ input: routerPrompt, output: router, evaluation: { grade: null, gradedBy: null, lessonsInjected: [] }, provenance: { model: String(modelsUsed.router || ''), family: tpFamily(modelsUsed.router), role: 'router' } }])
+
 // A whole feature-adr run is one outer round. Cost remains in the unchanged per-stage ledger rows;
 // the round records only the outcome. State lives in REPO because the command cd's there, while
 // recall reads the canonical BRAIN and carries the same fa:<slug> attribution as DZ_RECALL.
@@ -3341,7 +3836,10 @@ const roundOwnerArg = registryRunId
   ? ' --owner-run ' + shq(registryRunId)
   : ''
 if (!registryRunId) log('round owner: no registry run id (registry write failed) — falling back to explicit owner')
-const roundOpenCmd = 'cd ' + shq(REPO) + ' && ' + DZ + ' round open --slug ' + shq(SLUG) + ' --round auto --topic ' + shq(DESC) + ' --project ' + shq(BRAIN) + ' --run fa:' + SLUG + roundOwnerArg + ' --json'
+// fix-round-1/F4: --run carries the SAME canonical RUN_ID the envelope/ledger use — before this fix
+// this hard-coded 'fa:' + SLUG (no timestamp) while the envelope's runId, on a registry-write
+// failure, was 'fa:' + SLUG + ':' + <timestamp> — two different identities for one run.
+const roundOpenCmd = 'cd ' + shq(REPO) + ' && ' + DZ + ' round open --slug ' + shq(SLUG) + ' --round auto --topic ' + shq(DESC) + ' --project ' + shq(BRAIN) + ' --run ' + shq(RUN_ID) + roundOwnerArg + (ENVELOPE ? (' --envelope ' + shq(JSON.stringify(ENVELOPE))) : '') + ' --json'
 const roundOpenOut = await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, nothing else: ' + roundOpenCmd, { label: 'round:open', phase: 'Router', effort: 'low' })
 const roundOpenReceipt = parseRoundCommandJson(roundOpenOut)
 pipelineRound = Number(roundOpenReceipt && roundOpenReceipt.state ? roundOpenReceipt.state.round : (roundOpenReceipt ? roundOpenReceipt.round : NaN))
@@ -3658,7 +4156,7 @@ if (registryOutcome !== 'unverified') registryOutcome = designIncompleteOutcome
 phase('Plan')
 await recordRegistryEvent('heartbeat', 'Plan')
 await usageProbe('Plan')
-const planPrompt = 'Step 6 (SPARC-GOAP implementation plan) of /feature-adr for "' + DESC + '" (' + SLUG + ', tier ' + tier + '). Given the requirements + ADR + architecture in ' + FDIR + ', decompose into milestones + concrete tasks with success metrics. Write ' + FDIR + '/06_implementation_plan.md. END the plan with a trailing `EXPECTED_CODE_TARGETS:` block listing, one per line as `- <repo-relative path>`, EVERY production/test/config/doc file Step 7 is expected to create or modify. This block is machine-read by the Step-7.5 landing barrier: only paths it ESTABLISHES can ever count as landed, so an absent or unpollable block makes the barrier verdict INCONCLUSIVE. List only real targets outside features/, .dz/, .agentic-qe/ and roam/. The K2 plan-completeness gate blocks Step 7 until the plan satisfies these too, so write them in as you author, not afterwards: (C1) every ADR under 03_adr/ is cited as `ADR-<n>` by the task that implements it; (C2) every test path named in an ADR Confirmation stanza appears verbatim in the plan, bound to the task that writes it; (C4) every acid token `A<n>` from 00_complexity_assessment.md is named verbatim, bound to its owning task and to the test that proves the refusal. If any corrections from Step 3.5 (a CONDITIONAL verdict) or other sources are folded into this plan, carry them in a `## Amendments` section. ' + AMENDMENT_RULE + ' Return wrote[] + summary.' + ABSOLUTE_PATH_NOTE + WRITE_DISCIPLINE
+const planPrompt = 'Step 6 (SPARC-GOAP implementation plan) of /feature-adr for "' + DESC + '" (' + SLUG + ', tier ' + tier + '). READ THESE INPUTS FIRST, by name: ' + FDIR + '/01_requirements.md, every ' + FDIR + '/03_adr/NNN-*.md, ' + FDIR + '/05_architecture.md, and ' + FDIR + '/03.5_ideation_report.md / ' + FDIR + '/04_domain_model.md when present. Then decompose into milestones + concrete tasks with success metrics. Write ' + FDIR + '/06_implementation_plan.md. END the plan with a trailing `EXPECTED_CODE_TARGETS:` block listing, one per line as `- <repo-relative path>`, EVERY production/test/config/doc file Step 7 is expected to create or modify. This block is machine-read by the Step-7.5 landing barrier: only paths it ESTABLISHES can ever count as landed, so an absent or unpollable block makes the barrier verdict INCONCLUSIVE. List only real targets outside features/, .dz/, .agentic-qe/ and roam/. The K2 plan-completeness gate blocks Step 7 until the plan satisfies these too, so write them in as you author, not afterwards: (C1) every ADR under 03_adr/ is cited as `ADR-<n>` by the task that implements it; (C2) every test path named in an ADR Confirmation stanza appears verbatim in the plan, bound to the task that writes it; (C4) every acid token `A<n>` from 00_complexity_assessment.md is named verbatim, bound to its owning task and to the test that proves the refusal. (C8) every requirement id declared in 01_requirements.md (FR-N, NFR-N, AC-N, C-N) is cited by the task that covers it. If any corrections from Step 3.5 (a CONDITIONAL verdict) or other sources are folded into this plan, carry them in a `## Amendments` section. ' + AMENDMENT_RULE + ' Return wrote[] + summary.' + ABSOLUTE_PATH_NOTE + WRITE_DISCIPLINE
 const planContext = buildDecisionContext({ slug: SLUG, decisionKind: 'plan-route-selection', description: DESC, tier: tier, codeHint: CODE_HINT, upstreamDigest: fnv1a64(JSON.stringify(design === undefined ? null : design)) })
 let planRecallCapture = { promptBlock: '', selected: [] }
 // Resolve the plan model. args.models.plan wins; else the planner:'codex' knob (via routingRequested +
@@ -3843,10 +4341,132 @@ if (plan) {
 // plan straight into Step 7. The gate is forced NOT-ESTABLISHED without probing the tree at all.
 let planGate = { verdict: 'not-established', exit: null, reason: 'plan-stage-null', output: 'The Step-6 plan stage returned no result for THIS run (agent died, or produced nothing). Any 06_implementation_plan.md present on disk belongs to an earlier run and cannot vouch for this one, so the gate refuses without reading it.' }
 if (plan) {
-  const planGateOut = await dispatchAgent(newRung(), 'Run EXACTLY this shell snippet via your Bash tool, as ONE command, and return its stdout VERBATIM, nothing else — do not summarize it, do not judge the plan yourself, do not omit the K2_GATE_SCRIPT / K2_GATE_TRIED lines or the trailing K2_EXIT line:\n' + planCompletenessGateCmd(REPO, 'features/' + SLUG, tier, { gateScript: GATE_SCRIPT_ARG, workspace: WS === null ? undefined : WS }), { label: 'plan:k2-gate', phase: 'Plan', effort: 'low' })
+  const planGateOut = await dispatchAgent(newRung(), 'Run EXACTLY this shell snippet via your Bash tool, as ONE command, and return its stdout VERBATIM, nothing else — do not summarize it, do not judge the plan yourself, do not omit the K2_GATE_SCRIPT / K2_GATE_TRIED lines or the trailing K2_EXIT line:\n' + planCompletenessGateCmd(REPO, 'features/' + SLUG, tier, { gateScript: GATE_SCRIPT_ARG, workspace: WS === null ? undefined : WS, requireRequirements: true }), { label: 'plan:k2-gate', phase: 'Plan', effort: 'low' })
   planGate = parsePlanGateVerdict(planGateOut)
 }
 log('K2 plan-completeness gate: ' + planGate.verdict + ' (exit=' + (planGate.exit === null ? 'unknown' : planGate.exit) + ', reason=' + planGate.reason + ')')
+
+// ── FR-6 (ADR-001 plan-inherits-requirements): ONE automatic plan-repair round ──────────────────
+// A genuine script FAIL (never a tooling-missing/mismatch/empty-reply NOT-ESTABLISHED, and never a
+// dead plan stage) gets exactly one re-dispatch of the SAME planner that wrote the plan, handed the
+// gate's own FAIL lines, before the run gives up as plan-gate-failed. C-3: exactly one round — no
+// loop. The planner route mirrors the first plan's (Codex stays Codex, behind the same landed-barrier
+// pattern as the initial Codex plan dispatch; Claude stays Claude) so a repaired plan never silently
+// diverges onto a different model family than the one the operator chose.
+let planGateAttempts = plan ? 1 : 0
+let planRepair = null
+if (plan && planGate.verdict === 'fail' && planGate.reason === 'script-verdict') {
+  const failLines = planGate.output.split('\n').map((l) => l.trim()).filter((l) => l.indexOf('FAIL') === 0)
+  const repairPlanPath = FDIR + '/06_implementation_plan.md'
+  const lastLineIs = (out, token) => new RegExp('(^|\\n)' + token + '[ \\t\\r]*$').test(String(out === null || out === undefined ? '' : out).replace(/\s+$/, ''))
+  const countOf = (arr, x) => arr.filter((y) => y === x).length
+  // Lead delta after Codex r2 (HIGH-3) / r3 (HIGH-3): the restore SOURCE is taken before anything
+  // else, and the backup command itself refuses a stale `.pre-repair` or a symlinked plan. No backup
+  // ⇒ no repair at all — a repair that cannot be undone is not one we are allowed to attempt.
+  const backupOut = await dispatchAgent(newRung(), 'Run EXACTLY this shell snippet via your Bash tool, as ONE command, and return its stdout VERBATIM, nothing else:\n' + planBackupCmd(repairPlanPath), { label: 'plan:repair-backup', phase: 'Plan', _stage: 'plan-repair', _reason: 'plan-repair-backup' })
+  const backupOk = lastLineIs(backupOut, 'BACKUP_OK')
+  let repairLedgerOutcome
+  if (!backupOk) {
+    planRepair = { attempted: false, failLines: failLines, rejected: { reason: 'repair-backup-unproven' } }
+    repairLedgerOutcome = runOutcomeOf({ phase: 'plan-repair', gates: { plan: 'rejected', planCompleteness: planGate.verdict } })
+    log('K2 plan-completeness gate: repair NOT attempted — repair-backup-unproven (no backup: the plan is not a regular file, is empty, or a stale ' + repairPlanPath + '.pre-repair already exists — a bad repair could not be undone)')
+  } else {
+  // AM-4 preservation check, BEFORE half. A before-snapshot that did not complete means the repair
+  // cannot be JUDGED — so it is not dispatched at all (Codex r2 HIGH-1: never fail open), and the
+  // untouched plan is NOT overwritten by a restore (Codex r3 MEDIUM-2): the backup is archived instead.
+  const beforeSnapOut = await dispatchAgent(newRung(), 'Run EXACTLY this shell snippet via your Bash tool, as ONE command, and return its stdout VERBATIM, nothing else:\n' + planSnapshotCmd(repairPlanPath), { label: 'plan:repair-snapshot-before', phase: 'Plan', _stage: 'plan-repair', _reason: 'plan-repair-snapshot' })
+  const beforeSnap = parsePlanSnapshot(beforeSnapOut)
+  const beforeUnproven = beforeSnap === null || !beforeSnap.present
+  const repairPrompt = 'PLAN REPAIR (one round): the K2 gate refused the plan with these FAIL lines: ' + failLines.join(' | ') + '. Edit ' + FDIR + '/06_implementation_plan.md to close EXACTLY these gaps, keep everything else, keep the trailing EXPECTED_CODE_TARGETS block. Return wrote[] + summary.'
+  let repaired = null
+  if (!beforeUnproven) {
+  if (plan.planner === 'codex') {
+      const repairCodexLabelOpts = (planModel.agentType === 'codex:codex-rescue') ? planModel : specToOpts('codex:' + CODEX_MODEL + ':high')
+      const repairCodexOpts = mergeOpts({ label: stageLabel('plan:repair-codex', repairCodexLabelOpts), phase: 'Plan', agentType: 'codex:codex-rescue', _stage: 'plan-repair', _reason: 'plan-repair' }, repairCodexLabelOpts)
+      const repairRung = newRung()
+      const codexRepair = await safeCodexAgent(repairPrompt + codexEffortHint(repairCodexOpts) + ' IMPORTANT: run the Codex task in FOREGROUND (synchronous — do NOT pass --background) so this call blocks until 06_implementation_plan.md is fully written to disk.', repairCodexOpts, repairRung)
+      // Codex writes out-of-band, so a stub return is not proof of landing — reuse the SAME
+      // landed-barrier probe the first Codex plan dispatch used (landedProbeCmd), not a copy of it.
+      const repairLanded = codexRepair ? await dispatchAgent(newRung(), 'Confirm the Codex plan-repair write has LANDED. Run EXACTLY this via Bash and return its stdout verbatim, nothing else:\n' + landedProbeCmd(FDIR + '/06_implementation_plan.md'), { label: 'plan:repair-confirm-landed', phase: 'Plan', effort: 'low' }) : null
+      if (codexRepair && repairLanded && /landed=/.test(String(repairLanded))) repaired = { wrote: [FDIR + '/06_implementation_plan.md'], summary: String(codexRepair).slice(0, 500) }
+    } else {
+      const repairClaudeModel = planIsCodex ? {} : planModel
+      const repairClaudeOpts = mergeOpts({ label: stageLabel(planIsCodex ? 'plan:repair-claude-fb' : 'plan:repair', repairClaudeModel), phase: 'Plan', schema: ARTIFACT, _stage: 'plan-repair', _reason: 'plan-repair' }, repairClaudeModel)
+      const claudeRepair = await dispatchAgent(newRung(), repairPrompt, repairClaudeOpts)
+      repaired = claudeRepair ? { wrote: claudeRepair.wrote, summary: claudeRepair.summary } : null
+    }
+  }
+  // AM-4 preservation check, AFTER half. `shrankPlan` folds in `snapshotBroken` ON PURPOSE: a
+  // snapshot that cannot be read is a repair that cannot be trusted, and it is REJECTED exactly like
+  // a shrunk one — the gate is never re-run against it, the verdict stays the ORIGINAL fail.
+  // Headings are compared with MULTIPLICITY (Codex r3 MEDIUM-1): two identical headings before must
+  // still be two after — a set test would let one of them vanish.
+  const afterSnapOut = beforeUnproven ? null : await dispatchAgent(newRung(), 'Run EXACTLY this shell snippet via your Bash tool, as ONE command, and return its stdout VERBATIM, nothing else:\n' + planSnapshotCmd(repairPlanPath), { label: 'plan:repair-snapshot-after', phase: 'Plan', _stage: 'plan-repair', _reason: 'plan-repair-snapshot' })
+  const afterSnap = beforeUnproven ? null : parsePlanSnapshot(afterSnapOut)
+  const snapshotBroken = beforeUnproven || afterSnap === null || !afterSnap.present
+  const missingTargets = snapshotBroken ? [] : beforeSnap.targets.filter((t) => countOf(afterSnap.targets, t) < countOf(beforeSnap.targets, t))
+  const missingHeadings = snapshotBroken ? [] : beforeSnap.headings.filter((h) => countOf(afterSnap.headings, h) < countOf(beforeSnap.headings, h))
+  const shrankBytes = !snapshotBroken && afterSnap.len < 0.8 * beforeSnap.len
+  const shrankPlan = snapshotBroken || shrankBytes || missingTargets.length > 0 || missingHeadings.length > 0
+  if (shrankPlan) {
+    // Each rejection reason is an explicit literal (the wiring test pins the tokens, not a variable):
+    //   repair-snapshot-unproven — a snapshot did not complete, so the repair could not be judged;
+    //   repair-shrank-plan       — it was judged, and it shrank (bytes / targets / heading lines);
+    //   repair-restore-unproven  — whichever of the two applied, the undo could not be PROVEN.
+    const rejectedBase = snapshotBroken
+      ? { reason: 'repair-snapshot-unproven' }
+      : { reason: 'repair-shrank-plan' }
+    // Codex r2 HIGH-3: a rejected repair is UNDONE, not merely refused — and the restore is proven by
+    // re-measuring: the restored plan's POSIX cksum AND length must equal the before snapshot's
+    // (Codex r3 HIGH-4: equal length alone is not equal content). When the before snapshot itself
+    // never completed the plan was never touched: nothing to restore, the backup is archived.
+    // planGateAttempts stays 1: the gate was not re-run (Codex r2 LOW).
+    let restoreProven = false
+    let restoreAttempted = false
+    if (!beforeUnproven) {
+      restoreAttempted = true
+      const restoreOut = await dispatchAgent(newRung(), 'Run EXACTLY this shell snippet via your Bash tool, as ONE command, and return its stdout VERBATIM, nothing else:\n' + planRestoreCmd(repairPlanPath), { label: 'plan:repair-restore', phase: 'Plan', _stage: 'plan-repair', _reason: 'plan-repair-restore' })
+      const restoreOk = lastLineIs(restoreOut, 'RESTORE_OK')
+      const restoredSnap = restoreOk ? parsePlanSnapshot(await dispatchAgent(newRung(), 'Run EXACTLY this shell snippet via your Bash tool, as ONE command, and return its stdout VERBATIM, nothing else:\n' + planSnapshotCmd(repairPlanPath), { label: 'plan:repair-snapshot-restored', phase: 'Plan', _stage: 'plan-repair', _reason: 'plan-repair-snapshot' })) : null
+      restoreProven = restoreOk && restoredSnap !== null && restoredSnap.present && restoredSnap.cksum === beforeSnap.cksum && restoredSnap.len === beforeSnap.len
+    } else {
+      await dispatchAgent(newRung(), 'Run EXACTLY this shell snippet via your Bash tool, as ONE command, and return its stdout VERBATIM, nothing else:\n' + planArchiveBackupCmd(repairPlanPath, FDIR + '/.fa-state'), { label: 'plan:repair-archive-backup', phase: 'Plan', _stage: 'plan-repair', _reason: 'plan-repair-archive' })
+    }
+    const rejected = Object.assign({}, rejectedBase, (restoreAttempted && !restoreProven) ? { reason: 'repair-restore-unproven', restoreAttemptedFor: rejectedBase.reason } : {}, {
+      restoreAttempted: restoreAttempted, restoreProven: restoreProven,
+      before: beforeUnproven ? null : { len: beforeSnap.len, headings: beforeSnap.headings.length, targets: beforeSnap.targets.length },
+      after: (afterSnap === null || !afterSnap.present) ? null : { len: afterSnap.len, headings: afterSnap.headings.length, targets: afterSnap.targets.length },
+      missingTargets: missingTargets, missingHeadings: missingHeadings })
+    planRepair = { attempted: !beforeUnproven, failLines: failLines, rejected: rejected }
+    repairLedgerOutcome = runOutcomeOf({ phase: 'plan-repair', gates: { plan: 'rejected', planCompleteness: planGate.verdict } })
+    log('K2 plan-completeness gate (after repair): REJECTED — ' + rejected.reason + (restoreProven ? ' (plan restored from backup, proven by cksum+length)' : (restoreAttempted ? ' (RESTORE NOT PROVEN — the plan on disk may be the rejected repair; the backup, if any, is ' + repairPlanPath + '.pre-repair)' : ' (plan untouched, backup archived)')))
+  } else {
+    // Accepted by the preservation check ⇒ re-gate FIRST, with the backup still in place (Codex r3
+    // HIGH-5): a metric-preserving repair that STILL fails K2 is restored to the original, not left on
+    // disk. Only a PASS archives the backup into .fa-state/. The gate ran twice either way.
+    const repairGateOut = await dispatchAgent(newRung(), 'Run EXACTLY this shell snippet via your Bash tool, as ONE command, and return its stdout VERBATIM, nothing else — do not summarize it, do not judge the plan yourself, do not omit the K2_GATE_SCRIPT / K2_GATE_TRIED lines or the trailing K2_EXIT line:\n' + planCompletenessGateCmd(REPO, 'features/' + SLUG, tier, { gateScript: GATE_SCRIPT_ARG, workspace: WS === null ? undefined : WS, requireRequirements: true }), { label: 'plan:k2-gate-after-repair', phase: 'Plan', effort: 'low' })
+    const gateAfterRepair = parsePlanGateVerdict(repairGateOut)
+    planGateAttempts = 2
+    if (gateAfterRepair.verdict === 'pass') {
+      const archiveOut = await dispatchAgent(newRung(), 'Run EXACTLY this shell snippet via your Bash tool, as ONE command, and return its stdout VERBATIM, nothing else:\n' + planArchiveBackupCmd(repairPlanPath, FDIR + '/.fa-state'), { label: 'plan:repair-archive-backup', phase: 'Plan', _stage: 'plan-repair', _reason: 'plan-repair-archive' })
+      const backupArchived = lastLineIs(archiveOut, 'ARCHIVE_OK')
+      if (!backupArchived) log('K2 plan-completeness gate (after repair): WARNING — the pre-repair backup could not be archived and may remain at ' + repairPlanPath + '.pre-repair (hygiene, not a verdict change)')
+      planRepair = { attempted: true, failLines: failLines, verdictAfter: gateAfterRepair.verdict, backupArchived: backupArchived }
+      planGate = gateAfterRepair
+    } else {
+      const restoreOut = await dispatchAgent(newRung(), 'Run EXACTLY this shell snippet via your Bash tool, as ONE command, and return its stdout VERBATIM, nothing else:\n' + planRestoreCmd(repairPlanPath), { label: 'plan:repair-restore', phase: 'Plan', _stage: 'plan-repair', _reason: 'plan-repair-restore' })
+      const restoreOk = lastLineIs(restoreOut, 'RESTORE_OK')
+      const restoredSnap = restoreOk ? parsePlanSnapshot(await dispatchAgent(newRung(), 'Run EXACTLY this shell snippet via your Bash tool, as ONE command, and return its stdout VERBATIM, nothing else:\n' + planSnapshotCmd(repairPlanPath), { label: 'plan:repair-snapshot-restored', phase: 'Plan', _stage: 'plan-repair', _reason: 'plan-repair-snapshot' })) : null
+      const restoreProven = restoreOk && restoredSnap !== null && restoredSnap.present && restoredSnap.cksum === beforeSnap.cksum && restoredSnap.len === beforeSnap.len
+      planRepair = { attempted: true, failLines: failLines, verdictAfter: gateAfterRepair.verdict, rejected: { reason: restoreProven ? 'repair-gate-still-fail' : 'repair-restore-unproven', restoreAttemptedFor: 'repair-gate-still-fail', restoreAttempted: true, restoreProven: restoreProven } }
+      log('K2 plan-completeness gate (after repair): ' + gateAfterRepair.verdict + ' — the repaired plan did not pass either; ' + (restoreProven ? 'original plan restored (proven by cksum+length)' : 'RESTORE NOT PROVEN — the plan on disk may be the failed repair'))
+    }
+    repairLedgerOutcome = runOutcomeOf({ phase: 'plan-repair', gates: { plan: (repaired ? 'produced' : 'missing'), planCompleteness: gateAfterRepair.verdict } })
+  }
+  }
+  await appendRunCostRow('plan-repair', 'Plan', repairLedgerOutcome)
+}
+
 if (planGate.verdict !== 'pass') {
   // NAMED REFUSAL — the run stops here and the coder is never dispatched. This precedes the L/XL
   // checkpoint deliberately: an incomplete plan is not something to steer, it is something to fix.
@@ -3854,7 +4474,7 @@ if (planGate.verdict !== 'pass') {
   const planGateFailedOutcome = runOutcomeOf({ phase: 'plan-gate-failed', gates: planGateFailedGates })
 if (registryOutcome !== 'unverified') registryOutcome = planGateFailedOutcome
   await appendRunCostRow('plan-gate', 'Plan', planGateFailedOutcome)
-  return { tier: tier, phase: 'plan-gate-failed', outcome: planGateFailedOutcome, slug: SLUG, artifactsDir: FDIR, planner: (plan ? plan.planner : null), plan: (plan ? plan.summary : null), modelsUsed: modelsUsed, dispatchOutcomes: dispatchOutcomes, planGate: planGate, gates: planGateFailedGates, resumedStages: resumedStages, checkpointing: CHECKPOINTS_ON ? RESUME_MODE : 'off', trainingPairs: CAPTURE_PAIRS ? TP_DIR : 'off', captureFailures: captureFailures, recordFailures: recordFailures, decisionRecallFailures: decisionRecallFailures, usageEvents: usageEvents, usageThreshold: USAGE_THRESHOLD, polymorphism: POLY.hasManifest ? POLY.report : null, note: refusalNoteFor(planGate, SLUG) }
+  return { tier: tier, phase: 'plan-gate-failed', outcome: planGateFailedOutcome, slug: SLUG, artifactsDir: FDIR, planner: (plan ? plan.planner : null), plan: (plan ? plan.summary : null), modelsUsed: modelsUsed, dispatchOutcomes: dispatchOutcomes, planGate: planGate, planGateAttempts: planGateAttempts, planRepair: planRepair, gates: planGateFailedGates, resumedStages: resumedStages, checkpointing: CHECKPOINTS_ON ? RESUME_MODE : 'off', trainingPairs: CAPTURE_PAIRS ? TP_DIR : 'off', captureFailures: captureFailures, recordFailures: recordFailures, decisionRecallFailures: decisionRecallFailures, usageEvents: usageEvents, usageThreshold: USAGE_THRESHOLD, polymorphism: POLY.hasManifest ? POLY.report : null, note: refusalNoteFor(planGate, SLUG) }
 }
 
 // Hybrid checkpoint for L/XL
@@ -3897,7 +4517,7 @@ if (stopHere) {
   const checkpointAfterPlanOutcome = runOutcomeOf({ phase: 'checkpoint-after-plan', gates: planGates })
 if (registryOutcome !== 'unverified') registryOutcome = checkpointAfterPlanOutcome
   await appendRunCostRow('plan', 'Plan', checkpointAfterPlanOutcome)
-  return { tier: tier, phase: 'checkpoint-after-plan', outcome: checkpointAfterPlanOutcome, artifactsDir: FDIR, planner: (plan ? plan.planner : null), plan: (plan ? plan.summary : null), modelsUsed: plannedModels, dispatchOutcomes: dispatchOutcomes, challengeVerdict: challengeVerdict, gates: planGates, resumedStages: resumedStages, checkpointing: CHECKPOINTS_ON ? RESUME_MODE : 'off', trainingPairs: CAPTURE_PAIRS ? TP_DIR : 'off', captureFailures: captureFailures, recordFailures: recordFailures, decisionRecallFailures: decisionRecallFailures, usageEvents: usageEvents, usageThreshold: USAGE_THRESHOLD, polymorphism: POLY.hasManifest ? POLY.report : null, note: 'L/XL checkpoint - review the ADR + plan (+ the planned code/qe/fleet models) + the challenge panel verdict (advisory) + the gates line, then re-invoke with args.stopAfter="none" to implement + QE (durable checkpoints make the re-invoke resume router+design+plan instead of re-running them). Present the gates map as a `🚦 Gates:` line in the checkpoint banner, rendering the planCompleteness entry as `K2 plan-completeness ✓` (pass) / `✗` (fail) / `inconclusive`.' }
+  return { tier: tier, phase: 'checkpoint-after-plan', outcome: checkpointAfterPlanOutcome, artifactsDir: FDIR, planner: (plan ? plan.planner : null), plan: (plan ? plan.summary : null), modelsUsed: plannedModels, dispatchOutcomes: dispatchOutcomes, challengeVerdict: challengeVerdict, planGate: planGate, planGateAttempts: planGateAttempts, planRepair: planRepair, gates: planGates, resumedStages: resumedStages, checkpointing: CHECKPOINTS_ON ? RESUME_MODE : 'off', trainingPairs: CAPTURE_PAIRS ? TP_DIR : 'off', captureFailures: captureFailures, recordFailures: recordFailures, decisionRecallFailures: decisionRecallFailures, usageEvents: usageEvents, usageThreshold: USAGE_THRESHOLD, polymorphism: POLY.hasManifest ? POLY.report : null, note: 'L/XL checkpoint - review the ADR + plan (+ the planned code/qe/fleet models) + the challenge panel verdict (advisory) + the gates line, then re-invoke with args.stopAfter="none" to implement + QE (durable checkpoints make the re-invoke resume router+design+plan instead of re-running them). Present the gates map as a `🚦 Gates:` line in the checkpoint banner, rendering the planCompleteness entry as `K2 plan-completeness ✓` (pass) / `✗` (fail) / `inconclusive`.' }
 }
 
 // Step 7: Code (optional Codex fallback on Claude-limit exhaustion)
@@ -3941,7 +4561,8 @@ await usageProbe('Code')
 // non-interactive dispatch can never deliver. Three of six Step-7 dispatches that night landed
 // nothing; every hand-dispatched round that carried this preamble landed code. The routing is
 // decided before this prompt exists, so saying so is the whole fix.
-const codePrompt = 'GATE-ANSWERED — the routing questions are already settled and must NOT be asked again: the mode and the coder family were chosen before this dispatch, you ARE the coder, and an independent cross-family QE runs after you. This dispatch is non-interactive: asking a question and exiting returns exit 0 with nothing written, which is indistinguishable from a crash to everything downstream. FIRST, via Bash run EXACTLY `mkdir -p ' + FDIR + '/.fa-state && git -C ' + REPO + ' rev-parse HEAD > "' + FDIR + '/.fa-state/base-ref.tmp" && mv "' + FDIR + '/.fa-state/base-ref.tmp" "' + FDIR + '/.fa-state/base-ref"` — an atomic record of HEAD before your changes; Step 8 scopes `--added-since` on it (AM-2). Begin implementing immediately.\n\nStep 7 (Code) of /feature-adr for "' + DESC + '" (' + SLUG + '). READ THESE INPUTS FIRST, by name (0691e163: the coder used to get one directory pointer; measured over three real runs, the plan was opened by all coders but the ADR unevenly and requirements/domain model not at all): ' + FDIR + '/06_implementation_plan.md (the tasks + EXPECTED_CODE_TARGETS + Amendments), every ' + FDIR + '/03_adr/NNN-*.md (each names a load-bearing property and its Required automated check), ' + FDIR + '/05_architecture.md, ' + FDIR + '/01_requirements.md, and ' + FDIR + '/04_domain_model.md when present (L/XL). Then implement the feature. Write the ACTUAL production code + its tests (mirror the closest existing implementation named in research/architecture). If the plan carries a `## Amendments` section, implement every AM-N row AND its named Confirmation test (for a safeguard amendment: a test proving it FIRES on a real input). IO-ON-PURE-PATH RULE: if your diff adds I/O (DB/network/file) to a previously-pure path — especially a startup/lifespan/health path — also write a NEGATIVE resource-down test (broken/unbound resource handle → the path degrades per its declared contract: fail-open for an advisory feature, explicit fail-fast for a load-bearing one) alongside the happy-path test; never fix a failing test by swapping a broken fixture for a healthy one without keeping BOTH cases. Follow repo conventions; build must pass. Write a change manifest ' + FDIR + '/07_code_changes/change_manifest.md listing every file touched. Return wrote[] (incl. real source files) + summary.' + ABSOLUTE_PATH_NOTE + PS_GUIDANCE('code')
+const codePromptBase = 'GATE-ANSWERED — the routing questions are already settled and must NOT be asked again: the mode and the coder family were chosen before this dispatch, you ARE the coder, and an independent cross-family QE runs after you. This dispatch is non-interactive: asking a question and exiting returns exit 0 with nothing written, which is indistinguishable from a crash to everything downstream. FIRST, via Bash run EXACTLY `mkdir -p ' + FDIR + '/.fa-state && git -C ' + REPO + ' rev-parse HEAD > "' + FDIR + '/.fa-state/base-ref.tmp" && mv "' + FDIR + '/.fa-state/base-ref.tmp" "' + FDIR + '/.fa-state/base-ref"` — an atomic record of HEAD before your changes; Step 8 scopes `--added-since` on it (AM-2). Begin implementing immediately.\n\nStep 7 (Code) of /feature-adr for "' + DESC + '" (' + SLUG + '). READ THESE INPUTS FIRST, by name (0691e163: the coder used to get one directory pointer; measured over three real runs, the plan was opened by all coders but the ADR unevenly and requirements/domain model not at all): ' + FDIR + '/06_implementation_plan.md (the tasks + EXPECTED_CODE_TARGETS + Amendments), every ' + FDIR + '/03_adr/NNN-*.md (each names a load-bearing property and its Required automated check), ' + FDIR + '/05_architecture.md, ' + FDIR + '/01_requirements.md, and ' + FDIR + '/04_domain_model.md when present (L/XL). Then implement the feature. Write the ACTUAL production code + its tests (mirror the closest existing implementation named in research/architecture). If the plan carries a `## Amendments` section, implement every AM-N row AND its named Confirmation test (for a safeguard amendment: a test proving it FIRES on a real input). IO-ON-PURE-PATH RULE: if your diff adds I/O (DB/network/file) to a previously-pure path — especially a startup/lifespan/health path — also write a NEGATIVE resource-down test (broken/unbound resource handle → the path degrades per its declared contract: fail-open for an advisory feature, explicit fail-fast for a load-bearing one) alongside the happy-path test; never fix a failing test by swapping a broken fixture for a healthy one without keeping BOTH cases. Follow repo conventions; build must pass. Write a change manifest ' + FDIR + '/07_code_changes/change_manifest.md listing every file touched. Return wrote[] (incl. real source files) + summary.' + ABSOLUTE_PATH_NOTE + PS_GUIDANCE('code')
+let codePrompt = codePromptBase
 // Resolve the coder model. args.models.code wins (a direct 'codex' spec = codex-first); else the legacy
 // CODER knob drives it (with its codex-fallback null-guard). resolveStageModel('code') folds both via the
 // code:null sentinel → resolveCoderSpec(). A Claude resolution merges {model} onto the Claude branch;
@@ -3963,13 +4584,16 @@ const codeClaudeOpts = mergeOpts({ label: stageLabel('code', codeClaudeModel), p
 // R6: the landing token is salted into the code stage's PARTS (not CKPT_SCHEMA_VERSION, which
 // stays 'fa-ckpt-2' deliberately) so ONLY this stage's pre-protocol checkpoints hash stale.
 const codeHash = ckptHash('code', [tier, DESC, fnv1a64(JSON.stringify(plan === undefined ? null : plan)), CODER, MODELS.code === undefined ? null : MODELS.code, CODEX_MODEL, PRIMARY, BUDGET_MODE, POLY.hasManifest, fnv1a64(String(POLY.report || '')), usageOverride, LANDING_HASH_TOKEN])
-const codeStage = await withCheckpoint('code', 'Code', codeHash, async () => {
+const codeComposite = await withCheckpoint('code', 'Code', codeHash, async () => {
 let code = null
 let coderUsed = 'claude'
 let codexCodeText = ''
 let codexJobId = null
 // QE F2: null until a capture attempt is PARSED. A barrier that never captured must not poll.
 let baselineCapture = null
+const codeContext = buildDecisionContext({ slug: SLUG, decisionKind: 'code-implementation', description: DESC, tier: tier, codeHint: CODE_HINT, upstreamDigest: fnv1a64(JSON.stringify(plan === undefined ? null : plan)) })
+const codeRecall = await prepareDecisionRecall(codeContext, 'Code', 'decision-recall:step7')
+codePrompt = codePromptBase + codeRecall.promptBlock
 if (!codeIsCodexFirst) {
   // R14-1: claimed at DISPATCH. The later `return null` exits only this withCheckpoint CALLBACK — the
   // run continues and can return `completed-unverified`, so a success-only write left the report with
@@ -4117,8 +4741,13 @@ if (needsCodeLandedBarrier(coderUsed)) {
 }
 const codeStageResult = { code: code, coderUsed: coderUsed, codexCodeText: String(codexCodeText).slice(0, 4000), codexJobId: codexJobId, modelUsed: modelsUsed.code, landedNote: landedNote, landingStatus: landingStatus, landingProtocol: LANDING_PROTOCOL_VERSION, scrapeDiagnostic: scrapeDiagnostic, expectedTargets: expectedTargets }
 if (landingReason !== null) codeStageResult.landingReason = landingReason
-return codeStageResult
-}, { validate: function (r) { return codeStageResultShapeValid(r) }, persist: function (r) { return codeCheckpointPersistAllowed(r.landingStatus, needsCodeLandedBarrier(r.coderUsed)) } })
+return { stageResult: codeStageResult, decisionRecall: codeRecall }
+}, { validate: function (value) { return !!value && typeof value === 'object' && value.stageResult !== null && value.stageResult !== undefined && codeStageResultShapeValid(value.stageResult) && value.decisionRecall && typeof value.decisionRecall.promptBlock === 'string' }, persist: function (r) { return codeCheckpointPersistAllowed(r.stageResult.landingStatus, needsCodeLandedBarrier(r.stageResult.coderUsed)) } })
+let codeStage = null
+if (codeComposite && typeof codeComposite === 'object') {
+  codeStage = codeComposite.stageResult
+  codePrompt = codePromptBase + (codeComposite.decisionRecall && typeof codeComposite.decisionRecall.promptBlock === 'string' ? codeComposite.decisionRecall.promptBlock : '')
+}
 let code = codeStage ? codeStage.code : null
 coderUsed = codeStage ? codeStage.coderUsed : 'claude'
 let codexCodeText = codeStage ? codeStage.codexCodeText : ''
@@ -4201,7 +4830,7 @@ const confirmationGateLine = confirmationFileGate.verdict === 'skipped'
 log(confirmationGateLine)
 const confirmationGateNote = ' MANDATORY CONFIRMATION FILE GATE RESULT: `' + confirmationGateLine + '`. Write that as a separate line in 08_qe_report.md. The independent QE review MUST still run. If the gate verdict is fail or refused, the final Step-8 grade cannot be A or B; the workflow also enforces that after the reviewer returns. This gate proves only existence/readability; all other ADR checklist items remain advisory.'
 await usageProbe('QE')
-const qePrompt = 'Step 8 (QE - brutal-honesty review, agentic-qe) of /feature-adr for "' + DESC + '" (' + SLUG + '). Adversarially review the SHIPPED code (read it): correctness, edge cases, error handling, and the LOAD-BEARING property the ADR named (ASSERT it has a test that DISCRIMINATES - the recurring lesson: a test that would still pass with the protection deleted is documentation, not a gate). Run this ADR gate before final grading: ' + ADR_FITNESS_CHECKLIST + ' ' + DISCRIMINATION_GATE + ' ' + MUTATION_GATE + ' ' + NO_STUBS_GATE + ' ' + AMENDMENT_GATE + ' Grade A/B/C/D honestly. Assess code-test adequacy + doc-test presence. List CONFIRMED gaps with severity. Write ' + FDIR + '/08_qe_report.md with the primary findings under the exact heading `## Primary QE pass` and an ADR Fitness Checklist section showing PASS/FAIL per ADR and evidence for the Confirmation-linked test. MANDATORY SELF-LEARNING STORE (close the loop, never skip): compare every candidate lesson against the Step-0 recalled LEARNED patterns above. Teach ONLY lessons NOT covered by Step-0 recall. On overlap, run `dz teach --reinforce "<recalled pattern id or exact text>" --project ' + BRAIN + '` instead of minting a near-duplicate; if --reinforce is unavailable, skip the duplicate teach and report `reinforced existing pattern <id>` in the QE report. Store every genuinely new lesson in the CANONICAL BRAIN store at `' + BRAIN + '` so it is NOT lost to a target repo you may have cd`d into. Via Bash run EXACTLY `' + DZ_TEACH('<a durable reusable lesson from this feature - a rule/pattern/pitfall, NOT a checkpoint echo>', '<0.7-0.95>', '<area>') + '` for each genuine NEW lesson (1-3 max, high-signal) — the `cd ' + BRAIN + ' &&` prefix + `--project ' + BRAIN + '` pin guarantee the lesson lands in the brain regardless of your CWD. Then run `' + DZ + ' statusline --fa-record --slug ' + SLUG + ' --step "Step 8 QE" --recalled auto --run fa:' + SLUG + ' --count-project ' + BRAIN + ' --stored <count taught> --reinforced <count reinforced> --mode ' + MODE + ' --project ' + REPO + '` (run it verbatim via Bash, do not skip). Do NOT teach trivia or invent gaps. In the return object set roundLessons to the teach:<id> receipts successfully written in this Step 8; when there were none, return roundLessons:[] and a non-empty roundNoNewKnowledge reason derived from this review/reinforcement decision. AUTHORING-TIME CLAIM-CHECK (Deliverable of claim-check-authoring-time): after writing ' + FDIR + '/08_qe_report.md, run EXACTLY `dz claim-check ' + FDIR + '/08_qe_report.md --json --fail-on none` via Bash, parse the {ok, findings, scanned} JSON, and report claimCheck: {findings: N, high: N, medium: N} (counts by severity) in your return object. TAG EVERY QUANTITATIVE CLAIM you write in the report using the convention the checker recognizes as honest — write "1131 tests pass (MEASURED — `npx vitest run`)", never a bare "1131 tests pass" — and where you QUOTE a forbidden phrase as an example (e.g. the retracted "100% passing" framing), backtick the literal so it reads as code, not an assertion, so your own compliant report scans clean. Return {grade, gaps, codeTestsAdequate, docTestsPresent, claimCheck, roundLessons, roundNoNewKnowledge}.' + ABSOLUTE_PATH_NOTE + landedNote + wqNote + confirmationGateNote + PS_GUIDANCE('qe')
+const qePrompt = 'Step 8 (QE - brutal-honesty review, agentic-qe) of /feature-adr for "' + DESC + '" (' + SLUG + '). Adversarially review the SHIPPED code (read it): correctness, edge cases, error handling, and the LOAD-BEARING property the ADR named (ASSERT it has a test that DISCRIMINATES - the recurring lesson: a test that would still pass with the protection deleted is documentation, not a gate). Run this ADR gate before final grading: ' + ADR_FITNESS_CHECKLIST + ' ' + DISCRIMINATION_GATE + ' ' + MUTATION_GATE + ' ' + NO_STUBS_GATE + ' ' + AMENDMENT_GATE + ' Grade A/B/C/D honestly. Assess code-test adequacy + doc-test presence. List CONFIRMED gaps with severity. Write ' + FDIR + '/08_qe_report.md with the primary findings under the exact heading `## Primary QE pass` and an ADR Fitness Checklist section showing PASS/FAIL per ADR and evidence for the Confirmation-linked test. MANDATORY SELF-LEARNING STORE (close the loop, never skip): compare every candidate lesson against the Step-0 recalled LEARNED patterns above. Teach ONLY lessons NOT covered by Step-0 recall. On overlap, run `dz teach --reinforce "<recalled pattern id or exact text>" --project ' + BRAIN + '` instead of minting a near-duplicate; if --reinforce is unavailable, skip the duplicate teach and report `reinforced existing pattern <id>` in the QE report. Store every genuinely new lesson in the CANONICAL BRAIN store at `' + BRAIN + '` so it is NOT lost to a target repo you may have cd`d into. Via Bash run EXACTLY `' + DZ_TEACH('<a durable reusable lesson from this feature - a rule/pattern/pitfall, NOT a checkpoint echo>', '<0.7-0.95>', '<area>') + '` for each genuine NEW lesson (1-3 max, high-signal) — the `cd ' + BRAIN + ' &&` prefix + `--project ' + BRAIN + '` pin guarantee the lesson lands in the brain regardless of your CWD. Then run `' + DZ + ' statusline --fa-record --slug ' + SLUG + ' --step "Step 8 QE" --recalled auto --run fa:' + SLUG + ' --count-project ' + BRAIN + ' --stored <count taught> --reinforced <count reinforced> --mode ' + MODE + ' --project ' + REPO + '` (run it verbatim via Bash, do not skip). Do NOT teach trivia or invent gaps. In the return object set roundLessons to the teach:<id> receipts successfully written in this Step 8; when there were none, return roundLessons:[] and a non-empty roundNoNewKnowledge reason derived from this review/reinforcement decision. AUTHORING-TIME CLAIM-CHECK (Deliverable of claim-check-authoring-time): after writing ' + FDIR + '/08_qe_report.md, run EXACTLY `dz claim-check ' + FDIR + '/08_qe_report.md --json --fail-on none` via Bash, parse the {ok, findings, scanned} JSON, and report claimCheck: {findings: N, high: N, medium: N} (counts by severity) in your return object. TAG EVERY QUANTITATIVE CLAIM you write in the report using the convention the checker recognizes as honest — write "1131 tests pass (MEASURED — `npx vitest run`)", never a bare "1131 tests pass" — and where you QUOTE a forbidden phrase as an example (e.g. the retracted "100% passing" framing), backtick the literal so it reads as code, not an assertion, so your own compliant report scans clean. Return {grade, gaps, codeTestsAdequate, docTestsPresent, claimCheck, roundLessons, roundNoNewKnowledge}.' + ABSOLUTE_PATH_NOTE + FINDINGS_LEDGER_NOTE + landedNote + wqNote + confirmationGateNote + PS_GUIDANCE('qe')
 // CROSS-MODEL QE (load-bearing): resolveStageModel('qe') derives the OTHER family than the resolved
 // coder when args.models.qe is unset (coder-codex ⇒ opus; coder-Claude ⇒ codex, or opus if codex absent).
 // An explicit args.models.qe wins. A Claude qe spec is merged onto the qe-code-reviewer base (role
@@ -4669,7 +5298,7 @@ if (isLplus) {
 // documented rows the orchestrator fills, not code); planes calibrate on architecture/vision.md when present,
 // generic otherwise (the R5 pattern). ADVISORY: `handoff: blocked` is a report — nothing auto-aborts, and
 // findings are NEVER auto-posted anywhere (findings-only hard rule).
-const DELIVERY_ON = A.deliveryGate === true || !!(A.models && typeof A.models === 'object' && A.models.delivery)
+const DELIVERY_ON = DELIVERY_GATE_RESOLVED === true || !!(A.models && typeof A.models === 'object' && A.models.delivery)
 let delivery = null
 if (DELIVERY_ON) {
   try {
@@ -4886,6 +5515,7 @@ return {
   docTestsPresent: qe ? qe.docTestsPresent : null,
   fleetQE: fleet,
   plannerUsed: plan ? plan.planner : null,
+  planGateAttempts: planGateAttempts, planRepair: planRepair,
   coderUsed: coderUsed,
   qeReviewerUsed: qeReviewerUsed,
   codexModel: CODEX_MODEL,

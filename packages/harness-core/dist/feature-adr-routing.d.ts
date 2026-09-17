@@ -150,6 +150,37 @@ export interface BudgetAxis {
 export declare const BUDGET_PRESETS: Record<'normal' | 'eco' | 'hybrid', BudgetAxis>;
 export declare function resolveBudgetMode(raw: unknown): BudgetAxis;
 export declare function budgetPresetName(axis: BudgetAxis): 'normal' | 'eco' | 'hybrid' | null;
+/**
+ * `args.priority` — a LABEL for the run's learning stratum (ADR-001 D3), applied as a preset one
+ * level ABOVE `budget`/`deliveryGate`: an explicit knob always wins. `speed` trades quality for
+ * cost; `quality` turns on the delivery gate; `balance` is today's default made nameable. Not yet a
+ * full selector (no calibration data) — see the ADR for what is deliberately out of scope.
+ */
+export type PriorityName = 'speed' | 'balance' | 'quality';
+export type EnvelopePriorityValue = PriorityName | 'unset';
+export interface PriorityPreset {
+    readonly budget: 'normal' | 'eco';
+    readonly deliveryGate: boolean;
+}
+export declare const PRIORITY_PRESETS: Record<PriorityName, PriorityPreset>;
+/** Unknown values return a named `{error}` rather than silently collapsing to `'unset'` (FR-4). */
+export declare function resolvePriority(raw: unknown): EnvelopePriorityValue | {
+    readonly error: string;
+};
+/**
+ * Applies the priority preset UNDER explicit `budget`/`deliveryGate` knobs — an explicit value
+ * always wins, the preset only fills what the caller left unspecified. `routingRequested` reports
+ * whether a non-`unset` priority alone should turn routing on (NFR-1: without `args.priority` this
+ * stays `false`, byte-identical to today).
+ */
+export declare function applyPriorityPreset(priority: EnvelopePriorityValue, explicit: {
+    readonly budget?: unknown;
+    readonly deliveryGate?: unknown;
+}): {
+    readonly budget: unknown;
+    readonly deliveryGate: unknown;
+    readonly routingRequested: boolean;
+};
 /** The Claude model names the Workflow runtime accepts as `agent()` `model`. */
 export declare const CLAUDE_NAMES: Record<string, number>;
 /**
@@ -1014,6 +1045,13 @@ export interface PlanGateCmdOpts {
     gateScript?: string;
     /** Pin the workspace root instead of resolving it live with `pwd -P` (tests; deterministic pins). */
     workspace?: string;
+    /**
+     * FR-2 (ADR-001 plan-inherits-requirements): promotes C8 (01_requirements.md id coverage) from a
+     * WARN-with-count to a per-id FAIL. Opt-in per caller — the pipeline's one call site sets it; the
+     * bare/positional 3-arg form and any opts object without this field stay byte-identical to the
+     * pre-C8 command.
+     */
+    requireRequirements?: boolean;
 }
 /**
  * The EXACT command the gate agent runs. `2>&1` folds stderr in (a crash must be visible, not
@@ -1043,6 +1081,32 @@ export declare function planCompletenessGateCmd(repo: string, featureDir: string
  * quiet failure this forecloses: a dead or chatty agent reading as a clean gate.
  */
 export declare function parsePlanGateVerdict(raw: string | null | undefined): PlanGateVerdict;
+/** Snapshot of a plan taken around the ONE repair round (FR-6 preservation check, plan-inherits-requirements). */
+export interface PlanSnapshot {
+    present: boolean;
+    len: number;
+    cksum: number | null;
+    headings: string[];
+    targets: string[];
+}
+/**
+ * FR-6 preservation check — pure halves of the plan-repair round, mirrored INLINE in
+ * `.claude/workflows/feature-adr.js` (the sandbox cannot import) and body-pinned by the drift guard in
+ * `test/feature-adr-model-routing.test.ts`. See the workflow's own comment block above these functions
+ * for the design, the Codex round-2/3 findings each one answers, and the NAMED LIMIT (task bodies are
+ * not proven preserved by any metric).
+ */
+export declare function shellQuote(s: string): string;
+export declare function planBackupCmd(f: string): string;
+export declare function planRestoreCmd(f: string): string;
+export declare function planArchiveBackupCmd(f: string, stateDir: string): string;
+export declare function planSnapshotCmd(f: string): string;
+/** One marker-delimited block: WHOLE-LINE markers, FIRST start to LAST end (a plan line spelling a marker lands inside the block). */
+export declare function snapshotBlock(head: string, startMark: string, endMark: string): string[] | null;
+/** The LAST whole-line `<name>=<digits>` in the snapshot. */
+export declare function snapshotNumber(head: string, name: string): number | null;
+/** null = the probe never completed or a field is unparseable — the caller REJECTS the repair on null, never reads it as "nothing to compare". */
+export declare function parsePlanSnapshot(raw: string | null | undefined): PlanSnapshot | null;
 /**
  * The operator note a refused plan gate carries — ONE reason→text table, so the workflow's inline
  * copy cannot drift into telling an operator to fix a plan that is not broken.

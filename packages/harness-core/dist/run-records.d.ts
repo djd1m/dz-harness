@@ -12,6 +12,61 @@
  *
  * Pure: payload in, verdict out. The CLI owns paths, the append, the read-back and the exit code.
  */
+import type { CodexRollout } from './codex-rollouts.js';
+/** Structural — a caller passes `cost-scoring.ts`'s `ModelPricing`; kept local so `run-records.ts`
+ *  does not have to import `cost-scoring.ts` just to name a type.
+ *
+ *  measurement-integrity fix-round-1/F6 (Codex r1 HIGH #6): `cacheCreation` used to be dropped here —
+ *  the snapshot silently lacked the ONE rate a cache-WRITE-heavy row needs to reproduce its own cost
+ *  later, even though the caller's own `ModelPricing` carries it. Now carried through verbatim. */
+export interface LedgerPriceEntry {
+    readonly prompt: number;
+    readonly completion: number;
+    readonly cachedInput: number;
+    readonly cacheCreation: number;
+}
+/** measurement-integrity fix-round-1/F4 (Codex r1 HIGH #4): a resolvable executor spec, split into
+ *  its three parts. Never invents a model: {@link parseModelSpec} returns `null` for anything it
+ *  cannot resolve to exactly one model, rather than guessing. */
+export interface ParsedModelSpec {
+    readonly family: 'claude' | 'codex';
+    readonly model: string;
+    readonly effort: string | null;
+}
+/**
+ * Parse an executor spec — the shapes actually recorded in `coder`/`reviewer` fields
+ * (`codex:gpt-5.6-sol:high`, `claude:sonnet`, bare `sonnet`/`opus`, bare `codex`, bare `claude`) —
+ * into `{family, model, effort}`. Pure, never throws.
+ *
+ * Returns `null` (never a guess) for anything that cannot be resolved to exactly ONE model:
+ * - a bare `'codex'` or `'claude'` (family named, no model at all);
+ * - an annotated/aggregate field such as `'claude:sonnet x2'` or `'qe-bridge:claude x2 + lead'` (real
+ *   values this ledger carries for a MULTI-reviewer round) — any embedded whitespace means the field
+ *   names more than one resolvable spec, and picking one would misattribute to the others;
+ * - a bare model id with no family marker that is not one of the known bare Claude names (e.g. a full
+ *   `'claude-sonnet-5'` — that shape is handled by the OLDER vendor-prefix path in {@link priceLookup}
+ *   for backward compatibility, not by this parser).
+ */
+export declare function parseModelSpec(spec: unknown): ParsedModelSpec | null;
+/** measurement-integrity FR-5/FR-6: enrichment the WRITER supplies at write time — the rollout logs
+ *  it already read (I/O lives in the CLI; this stays pure) and the price table snapshot. Absent
+ *  entirely ⇒ zero behavior change from before this feature (NFR-1). */
+export interface LedgerEnrichInput {
+    /** Parsed Codex rollout logs for the window the CLI read — usually every rollout from the days the
+     *  window spans. Pure data; the CLI is the one that walked `~/.codex/sessions`. */
+    readonly rollouts?: readonly CodexRollout[];
+    /** The stage's own time window — usually [the previous ledger row's `ts`, this write's `ts`], or
+     *  an explicit `--window-from/--window-to`. Omitted ⇒ no rollout match is even attempted. */
+    readonly window?: {
+        readonly from: string;
+        readonly to: string;
+    };
+    /** Narrows an otherwise-ambiguous match — usually the repo root the stage ran in. */
+    readonly cwd?: string;
+    /** A model-pricing table SNAPSHOT (FR-6) — the CALLER's table, captured at write time, never the
+     *  ledger's own idea of "current" pricing (ADR-001 D4 rejects re-pricing after the fact). */
+    readonly prices?: Readonly<Record<string, LedgerPriceEntry>>;
+}
 export type RecordKind = 'ledger' | 'training-pair';
 export type RecordVerdict = 
 /** the line was appended AND read back equal */
@@ -68,7 +123,12 @@ export declare function decideRecordWrite(input: {
     /** Who ran it. Supplied by the CALLER, which lives outside the workflow sandbox and can see the
      *  host; absent stays absent (see the stamping comment below). */
     runnerId?: string | null;
+    /** fix-round-1/F2: the CLI's own trusted `--auto` flag — see the comment inside `shapeMismatch`. */
+    auto?: boolean;
     maxChars?: number;
+    /** measurement-integrity FR-5/FR-6: rollout-log + price enrichment for a ledger row. Absent ⇒ zero
+     *  behavior change (NFR-1). */
+    enrich?: LedgerEnrichInput;
 }): RecordDecision;
 /** The read-back verdict (ADR-002): equal bytes or NOT written. Never inferred from the absence of an error. */
 export declare function decideReadBack(appended: string, lastLineOnDisk: string | null): RecordDecision;

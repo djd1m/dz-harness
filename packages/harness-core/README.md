@@ -11,6 +11,52 @@ The serial paths in `test/serial-suites.txt` are regenerated from
 `test/serial-suites-census.test.ts`, which scans test sources for process and timing markers,
 including `execSync(` and `execFile(`, and fails when the list and census differ.
 
+### Full-suite worker ceiling (`CORE_MAX_WORKERS`, `vitest.config.ts`)
+
+The root `test` block caps `maxWorkers` at `CORE_MAX_WORKERS` (2, `minWorkers: 1`), so
+`npx vitest run` with no flags is safe by default. **The ceiling lives on the root `test` block,
+not on the `parallel` project's `poolOptions`** — an earlier version of this config set
+`poolOptions.forks.maxForks` on the `parallel` project instead, and that was a false guarantee: a
+fix-round measurement (2026-09-16) compared process names (`node (vitest N)`, polled from
+`/proc/<pid>/cmdline`) over the same 30-file parallel set and saw names `vitest 1`..`vitest 7`
+(14 workers observed) under the project-level `poolOptions`, against never more than
+`vitest 1`/`vitest 2` under either a `--maxWorkers=2` CLI flag or `maxWorkers` on the root `test`
+block. Vitest 3.2.4 simply does not honour `poolOptions.forks.maxForks` set on a project the way it
+honours the root-level knob (or the equivalent CLI flag) — full proof in
+`features/core-suite-memory-ceiling/07_code_changes/change_manifest.md`, section "Фикс-раунд 1".
+
+The number itself is not "8 minus a guess" — it is arithmetic from a MEASURED trace (see the
+comment above the constant in `vitest.config.ts`): the memory pressure is NOT the embedding model
+loaded inside the vitest worker (that guess is REFUTED), it is a CHILD process that some tests
+spawn per file (an embedding daemon, or a `dz teach` invocation). On 2026-09-16 three full-suite
+runs were traced with the same instruments, and each number below
+says WHICH run produced it, because two of the three runs did not have a ceiling that actually
+bound:
+
+| run | ceiling | tree peak | minimum free | result |
+|---|---|---|---|---|
+| 06:24–06:29 | `--maxWorkers=2` CLI flag (binds) | 5721 MB | 2995 MB | green, 7018 passed, 281 s |
+| 06:46–06:49 | `poolOptions` on the `parallel` project (does NOT bind — effectively unbounded) | 8207 MB | 804 MB | green, but see below |
+| 07:01–07:06 | root `test.maxWorkers` (binds), **no flags** | 5383 MB | 3804 MB | green, 333 files, 7024 passed, 275 s |
+
+The last row is the profile of the shipped configuration — the command a person actually types.
+The middle row is the DEFECT being measured, not this configuration, and it is where the
+per-process-class peaks come from: a `vitest` process 2324 MB, an embedding-daemon child spawned by
+a test 2321 MB, a child `dz teach --from-json` 1786 MB, with up to 4 daemon children alive at once
+(3917 MB combined). Those per-class numbers are real, but quoting them as the memory profile of the
+2-worker run would be a misattribution — a Codex round-2 finding, fixed here.
+
+The load-bearing fact stays: the memory is NOT the embedding model inside the vitest worker, it is
+in the CHILD processes the tests spawn, and the ceiling bounds how many worker-plus-child pairs are
+alive together. `CORE_MAX_WORKERS` must not be raised without a fresh trace of the last shape.
+
+`vitest.config.ts` also fails LOUD at config-load time if `CORE_MAX_WORKERS` is ever set to
+something other than a positive integer (0, negative, or fractional) — a Codex fix-round finding
+that a ceiling accepting those values is not a ceiling at all.
+
+`test/mutation-registry.json`'s `maxWorkers` is kept equal to this same constant
+(`test/suite-worker-ceiling.test.ts` reddens if either drifts from the other).
+
 `findExactLesson(records, text, domain?)` finds the earliest lesson whose trimmed,
 whitespace-collapsed text matches exactly (case-sensitive), optionally within one metadata domain,
 and reports whether that existing lesson is quarantined.
@@ -192,6 +238,49 @@ evidence; **high-volume** (`gpt-5.6-luna`) for mechanics. Eco lowers each select
 Codex tier by one level; these are capability assignments, not measured prices.
 Claude-primary cells and the cross-family QE rule retain their existing behavior.
 
+## Experiment envelope (`feature-adr-envelope.ts`, ADR-001 envelope-before-dispatch)
+
+The feature-adr conveyor writes an OUTCOME per run (grade, some tokens) but never used to write the
+DECISION behind it — what kind of task this was, how big, at what priority, which model arms the
+router considered, which one it picked, and who judged it. `buildExperimentEnvelope` assembles that
+as one plain-data object, built exactly ONCE per run (right after the Step-0 router, once `tier` and
+`taskKind` are known, and before Step 1 dispatches anything), then threaded byte-for-byte into every
+place the run reports itself:
+
+- every autowritten run-cost ledger row (`.dz/feature-adr/run-cost-ledger.jsonl`, field `envelope`);
+- every captured training pair (`.dz/fa-training/<slug>/<stage>.jsonl`, field `envelope`, alongside
+  the narrower legacy `budgetMode` — not instead of it);
+- the round state opened via `dz round open --envelope <json>`, copied into the round's ledger row
+  by `closeRound` on `dz round close`.
+
+Shape (`ExperimentEnvelope`): `schema:1`, `runId`, `attempt` (integer ≥ 1), `taskKind` (one of
+`feature|bugfix|refactor|tooling|docs|research`), `tier` (`S|M|L|XL`), `priority`
+(`speed|balance|quality|unset`), `treeSha` (40-hex or `null` + `treeShaReason`), `arms` (`{mode:
+string[], stages: {stage: string[]}}` — what the routing tables OFFERED), `chosen` (`{mode, stages:
+{stage: spec}}` — what was actually resolved), `policy` (`{name, version, propensity}`), `evaluator`
+(`{family, model, source: 'planned'|'actual'}`). `validateExperimentEnvelope(value)` returns
+`{ok:true}` or `{ok:false, reason}` naming the FIRST invalid field.
+
+**The writer refuses an automated row without one (FR-5, D2).** In `run-records.ts`,
+`decideRecordWrite` for `kind:'ledger'` refuses (`exit 2`) an `auto:true` row that carries no
+`envelope`, and refuses ANY row (auto or manual) whose present `envelope` fails validation. A manual
+row without `auto`/`envelope` is unaffected — the old shape still writes exactly as before (C-3).
+Read it back with `jq '.envelope' .dz/feature-adr/run-cost-ledger.jsonl`.
+
+**`args.priority` (FR-4).** A learning-stratum LABEL, one level above `budget`/`deliveryGate` — an
+explicit knob always wins over the preset:
+
+| `priority` | `budget` preset | `deliveryGate` |
+|---|---|---|
+| `speed` | `eco` | `false` |
+| `balance` | `normal` | `false` |
+| `quality` | `normal` | `true` |
+| `unset` (default) | whatever `args.budget` says | whatever `args.deliveryGate` says |
+
+`PRIORITY_PRESETS` + `resolvePriority(raw)` + `applyPriorityPreset(priority, explicit)` live next to
+`BUDGET_PRESETS` in `feature-adr-routing.ts`; an unknown priority is a startup error naming the valid
+list, never a silent `unset`. Setting `priority` alone (no other routing knob) turns routing on.
+
 ## What it provides
 
 ### Evidence-gated companion integrations
@@ -224,7 +313,9 @@ explicit skills-only short circuit. `--no-verify` cannot authorize emission. A C
 | `no-stubs` | `scanStubs`, `checkNoStubs`, `scannableStubPath`, `STUB_MARKERS`, `STUB_PHRASES`, `STUB_SCAN_EXTENSIONS` | Pure unfinished-stub scanner behind the SOFT `no-stubs` publish rule (backlog 0b403a0106103901, Karpathy-Michaels rule XI): bare markers (`TODO`/`FIXME`/`HACK`/`XXX`/`PLACEHOLDER`) case-SENSITIVE with hard word boundaries (`hackathon`/`todos`/a marker inside a hash never fire; MEASURED: relaxing case doubles this repo's hits and adds only prose) + the `implement later` phrase case-insensitive. SCOPE = the CHANGE-SET (the working-tree `git status --porcelain -uall` diff — `-uall` so a brand-new untracked DIRECTORY is scanned file-by-file instead of collapsing to one invisible `?? newdir/` line; `.gitignore` semantics unchanged), never the whole tree — MEASURED: a tree-wide scan is 32+25 hits of mostly ancient legitimate markers, i.e. noise that gets a gate switched off. Markdown gets PROSE scoping (fenced blocks + backticked spans are QUOTES, not stubs). Waiver-with-REASON only, per line (`no-stubs: <reason>`) or per path (`.dz/guard.json` `stubWaivers`, the feature-adr-setup --guards shape); a reasonless waiver is REFUSED as its own finding and exempts nothing. Self-exemption is STRUCTURAL: every marker in the module and its tests is assembled from string fragments, so the gate's own source scans clean — a tested property, not a path skip. Fail-open on missing evidence (no change fact / ungathered contents ⇒ nothing reported) but never fail-SILENT: skipped scannable files (deleted/oversize/unreadable/beyond the file cap) surface as ONE aggregate `notes` entry in the `GuardResult` + audit record — information that can never move the verdict. KNOWN LIMITS are documented at the top of `no-stubs.ts` instead of implied away (whole-line inline waiver token = layer-4 auditability defence; reason QUALITY not judged; boolean fence model, not CommonMark; git-quoted paths undecoded; TS-monorepo extension allowlist; worktree-not-index reads; exact-string config-waiver paths). Mutation-defended (`no-stubs-bare-marker-fires` observed 10 red, `no-stubs-skipped-note-emitted` observed 2 red) |
 | `feature-adr-setup` (P3) | `renderGuardsConfig`, `renderGuardsRunner` | Scaffolds deterministic guard tests into a TARGET project: `guards.config.json` + a zero-dependency `check.mjs` runner (loc-cap, secret-scan, frozen-file sha256 pins, waivers-with-reasons) — `dz feature-adr-setup --guards` |
 | `usage` | `computeUsage`, `TOKEN_WEIGHTS`, `readUsageLimits`, `deriveUsageCalibration` | Read-only Claude usage ESTIMATE behind `dz usage`. Tokens are COST-WEIGHTED input-equivalents (input 1x, cache-write 1.25x / 1h 2x, cache-read 0.1x, output 5x) — a flat sum is 89-99.7% cache-read (MEASURED) and tracks conversation length, not work. Scans subagent transcripts too (`<session>/subagents/*.jsonl`), follows no symlinks, reads only regular files (symlinked FILES and DIRECTORY components alike are skipped), and caps the walk BY RECENCY so a huge history cannot discard current usage. `pct` stays `null` while limits are unconfigured — an unconfigured estimate is never dressed up as a number |
-| `cost-ledger` | `deriveCostLedger`, `buildCostLedger`, `verifyCostLedgerReport`, `stageCostAggregates`, `renderCostLedger`, `writeCostLedgerJsonl`, `COST_LEDGER_SCOPE` | Per-stage cost ledger behind `dz usage --by-stage`. A feature-adr run reports ONE number; this joins the workflow's own `stageLabel()` strings to the per-agent transcripts the harness already writes, so a run becomes an itemized receipt. POST-HOC DERIVER, not a writer — no workflow edit, and a KILLED run is still derivable. The invariant: `accounted + unaccounted === runTotal` and `accounted + doubleAttributed === Σ stages`, RAW integer equality (rounding happens exactly once, per sample, at extraction), re-derived from the emitted report by `verifyCostLedgerReport` — the writer clamps, the verifier enforces. A mismatch is a NAMED defect (`Unaccounted`, `DoubleAttributed`, `ForeignSample`, `MissingStageTranscript`, `MalformedRecord`), never a rounding remainder, so `epsilon` defaults to 0. The run total comes from the run's transcript DIRECTORY LISTING, NOT the record's own `totalTokens` — that field is exactly `Σ workflowProgress[].tokens` in 29 of 29 recorded runs (MEASURED), so an invariant against it can never fail. Both sides share ONE estimator with `dz usage` (`weightedTokensOf`). `stageCostAggregates` is a pure feed-forward reader for auto-cost routing that EXCLUDES non-reconciling runs; wiring it into routing is deliberately out of scope. HONEST SCOPE, printed by every surface: local transcript ESTIMATES, not billed amounts — it catches ATTRIBUTION errors, NOT pricing errors; `hasKnownPricing` marks rows priced by the sonnet-class fallback. `INSUFFICIENT_DATA` is a distinct verdict, never collapsed into `BALANCED` |
+| `cost-ledger` | `deriveCostLedger`, `buildCostLedger`, `verifyCostLedgerReport`, `stageCostAggregates`, `renderCostLedger`, `writeCostLedgerJsonl`, `COST_LEDGER_SCOPE` | Per-stage cost ledger behind `dz usage --by-stage`. A feature-adr run reports ONE number; this joins the workflow's own `stageLabel()` strings to the per-agent transcripts the harness already writes, so a run becomes an itemized receipt. POST-HOC DERIVER, not a writer — no workflow edit, and a KILLED run is still derivable. The invariant: `accounted + unaccounted === runTotal` and `accounted + doubleAttributed === Σ stages`, RAW integer equality (rounding happens exactly once, per sample, at extraction), re-derived from the emitted report by `verifyCostLedgerReport` — the writer clamps, the verifier enforces. A mismatch is a NAMED defect (`Unaccounted`, `DoubleAttributed`, `ForeignSample`, `MissingStageTranscript`, `MalformedRecord`), never a rounding remainder, so `epsilon` defaults to 0. The run total comes from the run's transcript DIRECTORY LISTING, NOT the record's own `totalTokens` — that field is exactly `Σ workflowProgress[].tokens` in 29 of 29 recorded runs (MEASURED), so an invariant against it can never fail. Both sides share ONE estimator with `dz usage` (`weightedTokensOf`). `stageCostAggregates` is a pure feed-forward reader for auto-cost routing that EXCLUDES non-reconciling runs (now also `INCOMPLETE_INVENTORY` runs — the `!== 'BALANCED'` gate already excludes it, no second branch to forget); wiring it into routing is deliberately out of scope. HONEST SCOPE, printed by every surface: local transcript ESTIMATES, not billed amounts — it catches ATTRIBUTION errors, NOT pricing errors; `hasKnownPricing` marks rows priced by the sonnet-class fallback. `INSUFFICIENT_DATA` is a distinct verdict, never collapsed into `BALANCED`. **measurement-integrity (ADR-001 D1/D2):** every row also carries `stageCanonical` (the verbatim `stage` classified against `feature-adr-stage-canon.ts`'s one ordered table — see that module below — `'unknown'` when no rule matches, never silently folded into `infra`) plus `attempt`/`attempts` (a label repeated N times in one run is N separate rows, each tagged `attempt: i` of `attempts: N`, instead of one row silently summing them). The report gains `byCanonicalStage` (every canonical stage + `unknown` + `unattributed`, `{tokens, agents, attempts}`) and `reconciliation.orphanTranscripts` (`{count, tokens, ids, method}` — transcripts present in the run directory with NO `workflowProgress[]` entry; `method: 'per-transcript'` is an exact sum over each orphan's own samples, `'count-fallback'` is the best estimate when only ids are known). A run whose ONLY problem is a named orphan (nothing else defective) reports verdict `INCOMPLETE_INVENTORY` — outranks `BALANCED`, outranked by `DEFECT` — never the old `Unaccounted`/`DEFECT` pair that used to swallow the orphan into the generic bucket |
+| `feature-adr-stage-canon` | `CANONICAL_STAGES`, `STAGE_LABEL_RULES`, `canonicalStage` | measurement-integrity ADR-001 D1: the canonical stage taxonomy — 11 pipeline stages (`router`, `requirements`, `research`, `adr`, `ideation`, `ddd`, `architecture`, `plan`, `code`, `qe`, `fleet`) + `infra` for the bookkeeping/plumbing labels around them. `canonicalStage(label)` classifies ONE verbatim `stageLabel()` string against ONE ordered prefix table (first match wins; a `label · model` suffix is matched on the part before ` · `) and returns `{stage, label, known}` — the input label is NEVER rewritten, only classified next to it. An unrecognised label is `{stage:'unknown', known:false}`, never silently `infra`. The completeness fixture (`test/feature-adr-stage-canon.test.ts`) is 47 labels copied verbatim from a live recorded run (`wf_5a7755c7-f92`) — Step 0's assessment counted 48 on the same record; a live reproducer counted 47, and the one-label gap does not change which prefixes are needed. Pure — no filesystem, no clock; the `core-boundary` ratchet pins it at zero `node:fs` imports |
+| `codex-rollouts` | `parseCodexRollout`, `matchCodexRollouts` | measurement-integrity ADR-001 D3: a pure reader for Codex CLI rollout logs (`~/.codex/sessions/YYYY/MM/DD/rollout-<ts>-<uuid>.jsonl`) — 130 of 156 recorded Codex ledger rows carry `tokens: null` even though the spend is sitting on disk, because the pipeline dispatches `codex exec` without an explicit session id. `parseCodexRollout(text, fileName?)` extracts `{id, cwd, model, startedAt, endedAt, totals}` from one file's TEXT (never opens a file itself — the CLI does that); it accepts BOTH the schema Step 0 documented (`type:"token_count"`, `payload.info.total_token_usage`) AND the schema actually observed live on this machine 2026-09-16, `cli_version 0.154.0` (`type:"token_usage_record"`, `payload.usage`; `model` on `turn_context`, not `session_meta`) — a reader that understood only a shape nothing on disk still emits would fail at the exact thing it exists to fix. `matchCodexRollouts(rollouts, {from, to, cwd?, model?})` joins a stage's time window to the rollout that produced its spend by INTERVAL OVERLAP, never "nearest in time" (two reviews back to back would misattribute) — `0` matches is `{status:'none'}`, `1` is `{status:'one', rollout}`, `>1` is `{status:'ambiguous', candidates}`, never a first-pick. Pure — the `core-boundary` ratchet pins it at zero `node:fs` imports |
 | `compounding` | `mulberry32`, `bootstrapDelta`, `decidePromotion`, `assembleCompoundingReport`, `assembleLessonToRuleFunnel` | Pure learning-loop payoff engine behind `dz compounding`: seeded deterministic bootstrap (conservative nearest-rank lower-95), promotion that refuses non-finite/malformed input and anything under 5 samples per arm, and dz-native measurements (pool write-only ratio, guard trajectory by RATE, replay readiness over unique untruncated prompt events). Its lesson-to-rule funnel reports UTC calendar-month `eligible → attempted → accepted → executions` counts from prospective promotion-run and anchored guard-audit evidence. Zero alone is not a finding: only a non-empty predecessor followed by an empty named successor in three consecutive measured months produces one; unavailable evidence remains `NOT MEASURED` with its reason. Compaction keeps the newest query-bearing rows verbatim and aggregates ONLY the rest (read totals are invariant across compactions). Also reports EVENT-CHAIN health of the evidence logs it computed from (`evidenceLogs` in, `instrumentation.chains` out) — verified / defect kinds / uncovered pre-chain prefix, with no logs handed in producing no line at all rather than a vacuous "clean" |
 | `event-chain` | `fnv1a32`, `nextChainFields`, `appendChainedLines`, `chainRewrite`, `guardedRewrite`, `verifyEventChain`, `EVENT_CHAIN_SCOPE` | Pure hash-chain over the two learning-evidence logs (`.dz/recall-usage.jsonl`, `.dz/guard-audit.jsonl`): each appended record carries `seq` + `prevHash` (FNV-1a over the previous line AS WRITTEN, so key order cannot make writer and verifier disagree), derived from the LAST LINE ONLY so a per-prompt hook stays O(1). `verifyEventChain` names eight classes — `BrokenLink`, `DuplicateSeq`, `NonMonotonicSeq`, `TornTail`, `DoubleCounted`, `LedgerImbalance`, `MalformedLedger`, `ClaimInterrupted`. The last four exist because a rewriter must not be able to certify itself: the compaction ledger's arithmetic (`Σ weight + dropped === source`, `dropped ∈ [0, source]`) is enforced with NO clamps in the verifier (the clamp belongs to the writer), a damaged ledger line is a defect rather than a silently-disabled check, and a claim that never reached its `throughSeq` — because the segment restarted or the file ended — is reported instead of escaping through the discontinuity. `guardedRewrite` is the concurrency guard for any whole-file rewrite: exclusive lock, plus a re-read of the live file after computing the new text and BEFORE the rename, so a concurrent append aborts the attempt and is folded into a bounded retry rather than overwritten (it narrows the read→rename window; it cannot close it, and says so). Records written before chaining existed stay LEGAL and are counted as an uncovered `preChainPrefix`; an unreadable tail never blocks a write (fresh MARKED segment — an unreadable tail WINDOW is distinguished from an empty file — and the appender starts on a new line so one torn write cannot eat the next record); an unmarked restart is reported once and then re-anchored, so one incident is one defect instead of a cascade. HONEST SCOPE, carried in every result and printed by every surface: corruption detection for our own bugs — FNV-1a is not cryptography, its collisions are constructible, the threat model has no adversary, and a regression test fails if the module regrows tamper-proofing vocabulary |
 | `feature-adr-checkpoints` | `checkpointInputHash`, `decideCheckpointResume`, `parseCheckpointRead`, `serializeCheckpoint`, `fnv1a64`, `CKPT_SCHEMA_VERSION`, `STAGE_ARTIFACTS`, `DESIGN_SUBSTAGES`, `designStageKey`, `decideDesignFanResume`, `parseArtifactProbe` | The PURE half of feature-adr's durable per-stage checkpoints (`features/<slug>/.fa-state/checkpoints.jsonl`): a dead L/XL run — or the standard stop-after-plan re-invoke — resumes completed stages instead of re-spending them. Resume = INPUT-identity (64-bit salted FNV over a schema-versioned JSON tuple incl. upstream stage results) + presence of EVERY tier-required artifact; a stale-input hash never resumes in ANY mode (`force` relaxes only the artifact probe — the tested load-bearing property). HONEST SCOPE: it does NOT fingerprint the working tree (a crash-resume legitimately sees the dead run's uncommitted writes) — after manual edits use `resume:'never'` and re-QE. Null results are never persisted or resumable; a stage-identifiable corrupt record ERASES its older entry (last-wins holds for corruption too); the code stage's persist predicate is now an ALLOWLIST (`codeCheckpointPersistAllowed` + `codeStageResultShapeValid`, ADR-003 Condition 3): ONLY `landed` on a barrier-required run and `synchronous` on a non-barrier run may be checkpointed — inconclusive, not-landed, garbage and a mislabeled `synchronous` are all refused, and the `landing-v2` hash token makes every pre-protocol code checkpoint stale. **Since 0.5.3 the design fan is checkpointed PER SIBLING** (`design:requirements` / `adr` / `qcsd` / `architecture` via `designStageKey`), so one dead agent no longer discards three finished siblings, and a fix to one step's instructions invalidates that step alone. What may be CONSUMED is judged separately from what may be WRITTEN: `decideDesignFanResume` returns a named reason (`substage-missing` / `artifact-missing` / `probe-not-established` / `ok`) and the workflow REFUSES at the Step-5/6 boundary rather than planning off a partial design. The artifact half is judged against a POST-RUN probe that never prints filenames (`[ -f <exact rel> ]` per required artifact) — a listing is a list of filenames, and a file whose NAME ends in a newline was measured satisfying the requirement for the real file. `parseArtifactProbe` then validates the WHOLE transcript, because the probe is relayed by a model: an agent that merely NARRATES the expected output emits the token byte-identically. Inconclusive is never a pass. The workflow mirrors this inline (wiring-guarded); RU: чекпоинт после каждой дорогой стадии — упавший ран возобновляется, а не пере-тратит завершённое; веер проектирования — по каждому участнику отдельно, а неполный веер получает отказ, а не запись в лог |
@@ -1062,12 +1153,17 @@ the second case, so a broken store no longer looks like plain "fewer lessons".
 
 ## Embedder cache (`agentdb-index.ts` — `resolveAgentdbEmbedder`)
 
-`resolveAgentdbEmbedder(projectRoot)` resolves agentdb's `EmbeddingService` and stands up the
-`@huggingface/transformers` pipeline behind it — MEASURED 2026-09-14 at 2-3.6s per call
-(`features/agentdb-embedder-cache/00_complexity_assessment.md`), because the model+dim for a
-project never changes within one process. It is now cached at module scope, keyed by
-`${agentdbDir}|${model}|${dim}` (so a `DZ_EMBED_MODEL`/`.dz/config.json` change — a different
-`resolveEmbedModel` result — gets its own entry rather than reusing a stale pipeline):
+`resolveAgentdbEmbedder(projectRoot, dbPath?)` builds the `@huggingface/transformers` pipeline
+**directly** — MEASURED 2026-09-14 at 2-3.6s per call
+(`features/agentdb-embedder-cache/00_complexity_assessment.md`), because the model+dim+dtype for a
+project never changes within one process. Feature `embed-daemon-memory` (ADR-001 D1) moved this off
+agentdb's own `EmbeddingService` class: the same `pipeline(text, { pooling: 'mean', normalize: true })`
+call `EmbeddingService.embed` makes internally, called straight from core, so a process building
+BOTH the write path (`indexPatternsToAgentdb`) and the read path (`searchAgentdbPatterns`) — or the
+embed daemon, when it can reach this same cache (see below) — stands up **one** pipeline instance,
+not one per code path. Cached at module scope, keyed by `${agentdbDir}|${model}|${dim}|${dtype}` (so
+a `DZ_EMBED_MODEL`/`.dz/config.json` change — a different `resolveEmbedModel` result, or a different
+dtype — gets its own entry rather than reusing a stale pipeline):
 
 - Repeat calls for the same key return the **same object**, not a re-initialized one — MEASURED
   2026-09-14 (`test/agentdb-embedder-cache.test.ts`, live model): cold call `2117ms`, warm call
@@ -1081,6 +1177,41 @@ project never changes within one process. It is now cached at module scope, keye
   tests and future warm-start use only — `vector-tier.ts`/`backlog.ts` call sites are unaffected.
 - `getAgentdbEmbedderCacheStats()` returns `{ entries, initializations }` (`entries` = currently
   cached successful pipelines, `initializations` = pipelines actually started since the last reset).
+- **COMPAT FALLBACK** (dtype `fp32` only): when `@huggingface/transformers`/`@xenova/transformers`
+  cannot be resolved directly from the project (nor via `agentdb`'s own declared dependency), this
+  falls back to agentdb's `EmbeddingService` — the pre-T2 behaviour — so a project whose only route
+  to an embedder is through agentdb's own installed copy still works. A requested `dtype: 'q8'` never
+  takes this fallback (NFR-4): a quantized store with no reachable transformers install is a hard
+  `{error}` naming the model/dtype, never a silent fp32 downgrade.
+
+### dtype: `fp32` vs `q8` (`memory.embed.dtype`, ADR-001 D2)
+
+A single fp32 instance of the default model (`Xenova/paraphrase-multilingual-MiniLM-L12-v2`) costs
+~1.2 GB RSS once warm (816 MB immediately, ~1219 MB 1-2s after the first embed — a second, native
+weight read inside `onnxruntime`, library behaviour, not something this package controls). The
+quantized `q8` variant (`{ dtype: 'q8' }` at pipeline construction, needs `model_quantized.onnx` in
+the transformers cache) costs ~0.55 GB — roughly half — at a MEASURED (2026-09-16, 14-lesson RU/EN
+fixture, `features/embed-daemon-memory/07_code_changes/measure-q8-parity.mjs`) cosine parity of
+min=0.9900/mean=0.9929 against fp32 for the SAME text, and top-1 query agreement 5/5.
+
+- `memory.embed.dtype` in `.dz/config.json` (`'fp32'` default, `'q8'` opt-in) selects the dtype for a
+  **new** index or a `dz vector reindex` — it does **not** retroactively change an existing store.
+- The **store's manifest** (`<dbFile>.embed-manifest.json`) records the dtype it was actually built
+  with; every query is embedded with the **manifest's** dtype (`resolveStoreEmbedDtype`), never
+  blindly with the configured one — a manifest with no `dtype` field (every store written before
+  this feature) reads as `fp32`, so existing stores are unaffected.
+- `guardEmbedSpace` now checks dtype the same way it already checks model/dim: a store built at one
+  dtype and configured for the other is refused with `embedding dtype mismatch: index built with
+  <m>, configured <c>; run <reindexHint>` — never a silent mixed-dtype read (store fp32, query q8),
+  which the ADR names as the concrete risk a default flip would have created.
+- Switching a store to `q8` is exactly `dz vector reindex` after setting `memory.embed.dtype: 'q8'`
+  — the ONLY point the dtype actually changes; an ordinary incremental index always embeds new rows
+  in the store's EXISTING dtype, never the config's, so two partial writes can never leave one store
+  split across two embedding spaces.
+- `q8` needs `model_quantized.onnx` already in the transformers cache — a fresh install with no
+  cached weights would need network access on first use; confirm the file is present under the
+  transformers cache dir (or that the machine has network access) before flipping `memory.embed.dtype`
+  to `q8` and running `dz vector reindex`.
 
 ## Consistent pre-reindex snapshot + rollback (`agentdb-snapshot.ts`)
 
@@ -1277,9 +1408,105 @@ had NO mutual exclusion, and only the 10-minute grace period above stood between
   `rotatePreReindexSnapshots`, which always takes the snapshot lock. Exporting the unlocked primitive
   would hand outside callers a way to rotate with no mutual exclusion at all.
 
+## Findings ledger + machine-readable QE verdict (`qe-findings.ts`, ADR-001 `qe-findings-record`)
+
+`readQeGrade` (`score.ts`) used to read only PROSE — a report fixed after a `Grade: C` round-1
+review, ending `Grade: B`, read back as `ambiguous`, and a report whose only "Grade" mention was a
+stray round-1 line read as a confidently-WRONG `unique C` even when its final verdict was `B`
+(MEASURED, `00_complexity_assessment.md`: 41 of 100 feature reports came back ambiguous; `dz score`
+returned `C` for a report whose stated outcome was `B`). This feature adds ONE machine-readable
+surface on top of the prose, never replacing it:
+
+- **A verdict line**: `QE-VERDICT: <A|A-|A+|B|B+|B-|C|C+|C-|D>` (`QE_VERDICT_RE`, `qe-findings.ts`).
+  `readQeGrade` checks it FIRST: exactly one → `{status:'unique', source:'verdict-line'}`; more than
+  one → `{status:'ambiguous', source:'verdict-line'}` (never "last wins", even when both name the
+  same grade — two lines is a fact about the report); zero → the pre-existing prose scan runs
+  exactly as before, tagged `source:'prose'` (or `'none'`). `GradeReading` gained the `source` field;
+  every prior caller of `readQeGrade`/`extractQeGrade` is unaffected (NFR-1).
+- **A Findings ledger table** under the exact header `QE_FINDINGS_HEADER` = `| Finding | Severity |
+  Status | Round | Author | Title |`. `parseQeFindings(md)` returns `{status:'absent'}` when no such
+  table exists (406 pre-existing reports; the common case, and the ONLY case for anything written
+  before this feature), or `{status:'present', hollow, rows, refused, summary}`. Three closed
+  dictionaries — Severity `BLOCKER|CRITICAL|HIGH|MEDIUM|LOW|INFO`, Status
+  `confirmed|fixed|partial|refuted|named-limit|open`, Author `codex|claude|lead` — plus Round (an
+  integer ≥ 1) and a whitespace-free Finding id. **A row outside any dictionary is REFUSED
+  (`{line, text, reason}`), never coerced to the nearest known value** — coercion would make the
+  resulting severity/status tally unprovable (ADR-001 D2). **A second table is refused WHOLE**, its
+  header the anchor, reason `duplicate table` — its rows are never parsed individually. **A
+  header-only table is `hollow: true`** — worse than no table at all (ADR-001 D3, the same principle
+  `readMutationEvidence`'s `present-unproven` already applies to the mutation-gate table).
+- `qe-findings.ts` is PURE (no `node:fs`) — file reads stay in the CLI, guarded by the same
+  `core-boundary.ts` IO ratchet every other core module answers to.
+- `scoreRun` (`score.ts`) now returns `gradeSource` and `findings` (a lighter `{status, hollow?,
+  summary?, refused?}` projection of `parseQeFindings`'s full result) — both ADDITIVE, the same
+  optional-field discipline `mutationEvidence` already uses. `renderScorecard`/`renderFindingsLine`
+  print a one-line findings summary (`findings: 3 HIGH / 2 MEDIUM; 1 refused (line 84: severity
+  "Major" not in dictionary)`) only when a table exists — the common case (no table) stays silent.
+- `dz feature-adr-record --kind ledger --stage full` enriches the row with `findings`/`gradeSource`
+  computed by this parser over the row's own `features/<slug>/08_qe_report.md` (fill-only-null,
+  best-effort — a missing/unreadable report never blocks the write). See the CLI README for the
+  producer-side prompt wiring (Step 8's `QE-VERDICT:` + table instruction) and the six September
+  reports hand-marked from their own prose as the real-corpus proof (`qe-findings-corpus.test.ts`).
+
 ## Status
 
-`0.8.36` — this release (night 15→16.09). Three changes live in this package: `recallHybrid` orders equal-scoring
+`next` — staged, not yet versioned or published. Feature `measurement-integrity` (ADR-001, tier M): five
+measurement holes in the SDD pipeline get an explicit status instead of a convenient number. **D1/D2** land in
+`cost-ledger.ts` and the new `feature-adr-stage-canon.ts` (see the module table above) — canonical stage
+taxonomy + `INCOMPLETE_INVENTORY`/`orphanTranscripts`. **D3** is the new `codex-rollouts.ts` (module table
+above) — a pure Codex rollout-log reader. **D3/D4** land in `run-records.ts`: `decideRecordWrite` gains an
+OPT-IN `enrich?: LedgerEnrichInput` (`{rollouts?, window?, cwd?, prices?}`) — a ledger row with a codex-family
+`coder`/`reviewer` and `tokens: null`, given a time window, is enriched via `matchCodexRollouts`:
+`status:'one'` fills `tokens`/`minutes`/`tokensSource:'codex-rollout'`/`rolloutId`; `'none'`/`'ambiguous'`
+stamp `tokensSource:'codex-rollout:'+status` with NO number (NFR-3 — never a guess); no `window` at all
+stamps `tokensSource:'unavailable'` rather than attempting nothing silently. Independently, ANY ledger row
+given a `prices` table gets a `prices: {snapshotAt, table: {model: {prompt, completion, cachedInput}},
+unknown?: [model,…]}` snapshot for every model it names (`coder`/`reviewer`/`envelope.chosen.stages`) — a
+longest-prefix match against the CALLER'S OWN table (never `cost-scoring.ts`'s live constant), so a future
+repricing never rewrites a historical row (ADR-001 D4). Omitting `enrich` entirely is byte-identical to
+before this feature. **D5** lands in `round.ts`: `closeRound` gains `grade?`/`reviewSidecar?
+(RoundReviewSidecar: {gradedBy, elapsedMs, grade?})`. `grade` is now MANDATORY for `outcome ∈
+{shipped,refuted}` (refusal exit 2, `'grade required for a finished review'`) and a warned-and-DROPPED no-op
+for `blocked|abandoned` (the close still succeeds; `result.warnings` names why nothing was written).
+`RoundLedgerRow.grade` is `string | null` (was always `null`). When `--reviewer` is absent, `reviewer` /
+`reviewMinutes` (`elapsedMs / 60000`, 1 decimal) / `reviewSource:'qe-bridge'` are filled from the sidecar; a
+`--grade` that disagrees with the sidecar's OWN grade is refused naming both. The CLI (`dz round close
+--grade`) reads the sidecar from `features/<slug>/.fa-state/qe-bridge/signoff-*.json`, latest by `emittedAt`
+— `round.ts` itself opens no file. `dz feature-adr-record --kind ledger` grows `--window-from/--window-to`
++ `--codex-sessions <dir>` (default `~/.codex/sessions`) to drive the FR-5 enrichment; every ledger write
+always carries the FR-6 price snapshot.
+
+`plan-inherits-requirements`: the pure halves of the
+feature-adr plan-repair round now live here and are body-pinned against the workflow's inline copies by the
+drift guard — `shellQuote` (POSIX single-quote escaping), `planBackupCmd` / `planRestoreCmd` /
+`planArchiveBackupCmd` (backup before the ONE repair round, proven restore on rejection, archive into
+`.fa-state/` on acceptance), `planSnapshotCmd` (byte length, POSIX `cksum`, the `EXPECTED_CODE_TARGETS` lines
+and the task-heading lines), `snapshotBlock` / `snapshotNumber` (whole-line markers, first start to last end —
+a plan line spelling a marker lands inside its block) and `parsePlanSnapshot` (null = the probe never completed;
+the caller rejects on null, never reads it as "nothing to compare"). `planCompletenessGateCmd` gained
+`opts.requireRequirements`, which emits `--require-requirements` so the K2 gate's new C8 (every id declared in
+`01_requirements.md` is referenced by the plan) fails per id instead of warning with a count.
+Also in this staged release (feature `coder-reads-and-recall`): the decision-recall kind union gained
+`'code-implementation'` (stage `step-7`, bandit context `feature-adr-decision-code-implementation`) so the
+Step-7 coder receives the same ≤3-lesson recall block the Step-6 planner already gets, bundled into the code
+stage's checkpoint composite exactly like `planComposite` — a resumed stage restores the recalled prompt for
+the training-pair capture instead of re-spending recall. Measured motive: after the by-name input directive,
+Claude coders opened `01_requirements.md` in 5 of 7 runs (39 % before), while 37 of 48 post-directive coders
+were Codex, whose file reads are invisible to the transcript instrument.
+
+`0.8.37` — this release (night 16→17.09). Five changes live in this package, each through the full pipeline with a
+cross-family Codex review: **qe-findings** — every Step-8 report now carries one machine-readable `QE-VERDICT:` line
+and a `## Findings ledger` table in a closed vocabulary (`parseQeFindings`, `readQeGrade` with its source; masks for
+fenced code, blockquotes incl. CommonMark lazy continuation, HTML comments/blockquotes; a near-miss table is refused
+loudly, never read as absent); **cross-family-control** — `diffFamilyFindings`/`aggregateByFamily` for `dz
+control-review`: two independent reviews over one tree, automatic pairs are CANDIDATES (maximum-cardinality
+matching), confirmed overlap only by adjudication, incomplete rows excluded from measured figures;
+**measurement-integrity** — canonical stages, `INCOMPLETE_INVENTORY`, per-turn Codex rollout deltas, price
+snapshots, `round close --grade` mandatory for shipped/refuted; **experiment-envelope** — every automatic ledger row
+carries `envelope.{taskKind,priority,arms,chosen,evaluator}` (verified live: 1 of 1 new auto rows); **qe-bridge** —
+the reviewer prompt demands ONE grade letter with no +/− suffix (a live `B-` was refused as no-grade-marker).
+
+`0.8.36` — (night 15→16.09). Three changes live in this package: `recallHybrid` orders equal-scoring
 hits through ONE comparator (score desc → evidence rank → `dzId` asc, NaN last), so the embed daemon and
 `dz recall` agree; the apply-leg test helpers prove a daemon stop by OBSERVING `/proc` until nothing serves the
 root and gate every SIGKILL on a freshly-read identity plus containment under the test root (three-valued —

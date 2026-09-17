@@ -293,6 +293,11 @@ export interface TrainingPair {
     truncated: TrainingPairTruncation | null;
     captureMode: 'capture' | 'backfill';
     resumed: boolean;
+    /** experiment-envelope FR-3(б): the envelope built once after the Step-0 router, carried
+     * alongside `budgetMode` (not instead of it — `budgetMode` is a narrower legacy summary).
+     * Normalized via `validateExperimentEnvelope`: an invalid or absent value becomes `null`, never
+     * a malformed value smuggled into the dataset. */
+    envelope: unknown | null;
 }
 /** Per-stage JSONL path, relative to the repo root. ONE file per stage. */
 export declare function trainingPairPath(slug: string, stage: string): string;
@@ -378,6 +383,7 @@ export declare function buildTrainingPair(opts: {
     budgetMode?: unknown;
     captureMode?: unknown;
     resumed?: unknown;
+    envelope?: unknown;
 }): TrainingPair;
 /** Serialize one training pair to a JSONL line. The oversize guard already bounds the pair,
  * so this only fails on the impossible (all fields are plain data) — null on that, never a throw. */

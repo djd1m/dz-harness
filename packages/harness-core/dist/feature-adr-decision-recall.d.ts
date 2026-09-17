@@ -1,6 +1,6 @@
 declare const SCHEMA: "fa-decision-recall-1";
-export type DecisionRecallKind = 'adr-alternative-selection' | 'plan-route-selection';
-export type DecisionRecallStage = 'step-3' | 'step-6';
+export type DecisionRecallKind = 'adr-alternative-selection' | 'plan-route-selection' | 'code-implementation';
+export type DecisionRecallStage = 'step-3' | 'step-6' | 'step-7';
 export type DecisionRecallOutcomeName = 'success' | 'empty' | 'timeout' | 'command-error' | 'parse-error' | 'transport-error';
 export interface DecisionRecallContext {
     readonly schema: typeof SCHEMA;

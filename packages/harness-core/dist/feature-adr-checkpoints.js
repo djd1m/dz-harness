@@ -471,6 +471,34 @@ function normalizeTrainingPairBudget(raw) {
         return null;
     }
 }
+/**
+ * experiment-envelope FR-3(б): a LIGHTWEIGHT structural check, not the full field-by-field
+ * validator (`validateExperimentEnvelope` in `feature-adr-envelope.ts`) — this module is
+ * DELIBERATELY import-free (the workflow sandbox mirrors it inline, same discipline as
+ * `TP_PROFILE_MARKER_START`/`tpRedact` above), so importing the full validator here would break
+ * that mirroring. This check catches gross malformation (not an object, wrong schema, missing
+ * the four nested sections) — the AUTHORITATIVE per-field validation gate lives at the
+ * run-records/round layer, where an invalid envelope actually refuses a write. Absent or
+ * malformed here degrades HONESTLY to `null`, never a fabricated or partially-checked value.
+ */
+function normalizeTrainingPairEnvelope(raw) {
+    if (raw === null || raw === undefined || typeof raw !== 'object' || Array.isArray(raw))
+        return null;
+    const v = raw;
+    if (v.schema !== 1)
+        return null;
+    if (typeof v.runId !== 'string' || v.runId.trim() === '')
+        return null;
+    if (v.arms === null || typeof v.arms !== 'object')
+        return null;
+    if (v.chosen === null || typeof v.chosen !== 'object')
+        return null;
+    if (v.policy === null || typeof v.policy !== 'object')
+        return null;
+    if (v.evaluator === null || typeof v.evaluator !== 'object')
+        return null;
+    return raw;
+}
 /** Assemble one SFT-ready training pair. Deterministic (ts passed in). Applies the oversize
  * guard: when input+output exceed TRAINPAIR_MAX_IO_CHARS combined, each over-budget side is
  * truncated with a marker naming the cut char count + the fnv1a64 of its FULL text (the
@@ -527,6 +555,7 @@ export function buildTrainingPair(opts) {
         truncated,
         captureMode: opts.captureMode === 'backfill' ? 'backfill' : 'capture',
         resumed: opts.resumed === true,
+        envelope: normalizeTrainingPairEnvelope(opts.envelope),
     };
 }
 /** Serialize one training pair to a JSONL line. The oversize guard already bounds the pair,

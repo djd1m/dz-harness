@@ -150,6 +150,39 @@ export function budgetPresetName(axis) {
     }
     return null;
 }
+export const PRIORITY_PRESETS = {
+    speed: { budget: 'eco', deliveryGate: false },
+    balance: { budget: 'normal', deliveryGate: false },
+    quality: { budget: 'normal', deliveryGate: true },
+};
+/** Unknown values return a named `{error}` rather than silently collapsing to `'unset'` (FR-4). */
+export function resolvePriority(raw) {
+    // fix-round-1/F5: the literal string 'unset' is accepted as an explicit "not set" — the SAME
+    // result as the argument being absent. Before this fix the error message listed 'unset' among the
+    // valid values while passing exactly that string was refused (a self-contradicting error).
+    if (raw === undefined || raw === null || raw === 'unset')
+        return 'unset';
+    if (typeof raw === 'string' && Object.prototype.hasOwnProperty.call(PRIORITY_PRESETS, raw)) {
+        return raw;
+    }
+    const valid = Object.keys(PRIORITY_PRESETS).join('|') + '|unset';
+    return { error: 'priority: unknown "' + String(raw) + '" — valid: ' + valid };
+}
+/**
+ * Applies the priority preset UNDER explicit `budget`/`deliveryGate` knobs — an explicit value
+ * always wins, the preset only fills what the caller left unspecified. `routingRequested` reports
+ * whether a non-`unset` priority alone should turn routing on (NFR-1: without `args.priority` this
+ * stays `false`, byte-identical to today).
+ */
+export function applyPriorityPreset(priority, explicit) {
+    if (priority === 'unset') {
+        return { budget: explicit.budget, deliveryGate: explicit.deliveryGate, routingRequested: false };
+    }
+    const preset = PRIORITY_PRESETS[priority];
+    const budget = explicit.budget !== undefined ? explicit.budget : preset.budget;
+    const deliveryGate = explicit.deliveryGate !== undefined ? explicit.deliveryGate : preset.deliveryGate;
+    return { budget, deliveryGate, routingRequested: true };
+}
 /** The Claude model names the Workflow runtime accepts as `agent()` `model`. */
 export const CLAUDE_NAMES = { fable: 1, opus: 1, sonnet: 1, haiku: 1 };
 /**
@@ -1604,7 +1637,12 @@ export function scopedQePrompt(input) {
     out += '\n\nAnswer these ' + questions.length + ' questions about them:\n';
     for (let i = 0; i < questions.length; i++)
         out += i + 1 + '. ' + questions[i] + '\n';
-    out += '\nFinish with a single final line: Grade: <A|B|C|D>';
+    // qe-findings-record fix-round-1 finding 8: this is the mirror `export function scopedQePrompt`
+    // of the SAME function inlined in `.claude/workflows/feature-adr.js` (and its byte-identical twin)
+    // — the pipeline gained the QE-VERDICT tail so `dz score`/`dz recap` can read a Codex-graded run
+    // machine-readably, and this mirror had drifted (still asking for only `Grade:`). Text pinned
+    // identical to the pipeline by test/codex-scoped-review.test.ts and test/qe-findings-wiring.test.ts.
+    out += '\nFinish with two final lines: Grade: <A|B|C|D> and QE-VERDICT: <same>';
     return out;
 }
 /**
@@ -2064,6 +2102,11 @@ function assertAbsoluteNoTraversal(value, knob) {
 export function planCompletenessGateCmd(repo, featureDir, tier, opts) {
     const q = (s) => "'" + String(s).replace(/'/g, "'\\''") + "'";
     const t = (typeof tier === 'string' && tier !== '') ? ' --tier=' + q(tier) : '';
+    // FR-2 (ADR-001 plan-inherits-requirements): opt-in per caller via opts.requireRequirements, not
+    // baked into every invocation — the pipeline's one call site sets it (below), so C8 (01_requirements.md
+    // coverage) is a per-id FAIL there; a caller that omits opts, or opts without the flag, is unaffected —
+    // the bare/positional form stays byte-identical to the pre-C8 command.
+    const req = (opts && opts.requireRequirements) ? ' --require-requirements' : '';
     if (opts === undefined || opts === null) {
         return 'cd ' + q(repo) + ' && node ' + q(PLAN_GATE_SCRIPT) + ' ' + q(featureDir) + t + ' 2>&1; echo K2_EXIT=$?';
     }
@@ -2087,7 +2130,7 @@ export function planCompletenessGateCmd(repo, featureDir, tier, opts) {
         // twice and the chain silently degenerated from three candidates to two. Saying so turns a
         // puzzling duplicate into an instruction. Not verdict-shaped, so the parser anchoring is untouched.
         '[ "$C2" = "$C3" ] && echo "K2_GATE_NOTE=the workspace candidate resolved to the TARGET repo (WS==repo), so only two distinct candidates were tried; pass args.workspace or args.gateScript when the feature-adr skill is installed outside the target repo"',
-        'if [ -z "$GS" ]; then echo "K2 plan-completeness: NOT-ESTABLISHED — tooling-missing: no gate script at any candidate on the K2_GATE_TRIED line above"; echo "K2_EXIT=3"; else cd ' + q(repo) + ' && node "$GS" ' + q(featureDir) + t + ' 2>&1; echo "K2_EXIT=$?"; fi',
+        'if [ -z "$GS" ]; then echo "K2 plan-completeness: NOT-ESTABLISHED — tooling-missing: no gate script at any candidate on the K2_GATE_TRIED line above"; echo "K2_EXIT=3"; else cd ' + q(repo) + ' && node "$GS" ' + q(featureDir) + t + req + ' 2>&1; echo "K2_EXIT=$?"; fi',
     ].join('\n');
 }
 /**
@@ -2126,6 +2169,83 @@ export function parsePlanGateVerdict(raw) {
     const lastLine = nl < 0 ? text.slice(lastAt) : text.slice(lastAt, nl);
     const reason = (byName === 'not-established' && /tooling-missing:/.test(lastLine)) ? 'tooling-missing' : 'script-verdict';
     return { verdict: byName, exit: exitCode, reason: reason, output: output };
+}
+/**
+ * FR-6 preservation check — pure halves of the plan-repair round, mirrored INLINE in
+ * `.claude/workflows/feature-adr.js` (the sandbox cannot import) and body-pinned by the drift guard in
+ * `test/feature-adr-model-routing.test.ts`. See the workflow's own comment block above these functions
+ * for the design, the Codex round-2/3 findings each one answers, and the NAMED LIMIT (task bodies are
+ * not proven preserved by any metric).
+ */
+export function shellQuote(s) {
+    return "'" + String(s).replace(/'/g, "'\\''") + "'";
+}
+export function planBackupCmd(f) {
+    return 'f=' + shellQuote(f) + '; if [ -f "$f" ] && [ ! -L "$f" ] && [ -s "$f" ] && [ ! -e "$f.pre-repair" ] && cp "$f" "$f.pre-repair"; then echo "BACKUP_OK"; else echo "BACKUP_FAILED"; fi';
+}
+export function planRestoreCmd(f) {
+    return 'f=' + shellQuote(f) + '; if [ -f "$f.pre-repair" ] && [ ! -L "$f.pre-repair" ] && [ -s "$f.pre-repair" ] && mv "$f.pre-repair" "$f"; then echo "RESTORE_OK"; else echo "RESTORE_FAILED"; fi';
+}
+export function planArchiveBackupCmd(f, stateDir) {
+    return 'f=' + shellQuote(f) + '; d=' + shellQuote(stateDir) + '; if [ -f "$f.pre-repair" ] && [ ! -L "$f.pre-repair" ] && mkdir -p "$d" && mv "$f.pre-repair" "$d/06_implementation_plan.pre-repair"; then echo "ARCHIVE_OK"; else echo "ARCHIVE_FAILED"; fi';
+}
+export function planSnapshotCmd(f) {
+    return 'f=' + shellQuote(f) + '; if [ -f "$f" ] && [ ! -L "$f" ] && [ -s "$f" ]; then ' +
+        'len=$(wc -c < "$f" | tr -d " "); ck=$(cksum < "$f" | cut -d " " -f 1); ' +
+        'echo "SNAP_TARGETS_START"; ' +
+        'awk \'/^EXPECTED_CODE_TARGETS:/{f=1;next} f&&/^[ \\t]*[-*][ \\t]/{s=$0; sub(/^[ \\t]*[-*][ \\t]*/,"",s); sub(/[ \\t]+$/,"",s); print s; next} f&&/^[ \\t]*$/{next} f{exit}\' "$f"; ' +
+        'echo "SNAP_TARGETS_END"; ' +
+        'echo "SNAP_HEADS_START"; grep -E "^#{2,4}[[:space:]]" "$f"; echo "SNAP_HEADS_END"; ' +
+        'echo "SNAP_LEN=$len"; echo "SNAP_CKSUM=$ck"; echo "SNAP_DONE"; ' +
+        'else echo "SNAP_ABSENT"; echo "SNAP_DONE"; fi';
+}
+/** One marker-delimited block: WHOLE-LINE markers, FIRST start to LAST end (a plan line spelling a marker lands inside the block). */
+export function snapshotBlock(head, startMark, endMark) {
+    const startRe = new RegExp('(^|\n)' + startMark + '(\r?\n)');
+    const sm = startRe.exec(head);
+    if (sm === null)
+        return null;
+    const s = sm.index + sm[0].length;
+    const endRe = new RegExp('(^|\n)' + endMark + '(\r?\n|$)', 'g');
+    let e = -1;
+    let em = endRe.exec(head);
+    while (em !== null) {
+        e = em.index + (em[1] === '' ? 0 : 1);
+        em = endRe.exec(head);
+    }
+    if (e < 0 || e < s)
+        return null;
+    return head.slice(s, e).split('\n').map((l) => l.trim()).filter((l) => l !== '');
+}
+/** The LAST whole-line `<name>=<digits>` in the snapshot. */
+export function snapshotNumber(head, name) {
+    const re = new RegExp('(^|\n)' + name + '=(\\d+)[ \t\r]*(\n|$)', 'g');
+    let v = null;
+    let m = re.exec(head);
+    while (m !== null) {
+        v = Number(m[2]);
+        m = re.exec(head);
+    }
+    return v;
+}
+/** null = the probe never completed or a field is unparseable — the caller REJECTS the repair on null, never reads it as "nothing to compare". */
+export function parsePlanSnapshot(raw) {
+    const text = String(raw === null || raw === undefined ? '' : raw);
+    const doneIdx = text.lastIndexOf('SNAP_DONE');
+    if (doneIdx < 0)
+        return null;
+    const head = text.slice(0, doneIdx);
+    if (/(^|\n)SNAP_ABSENT[ \t\r]*\n?[ \t\r]*$/.test(head))
+        return { present: false, len: 0, cksum: null, headings: [], targets: [] };
+    const len = snapshotNumber(head, 'SNAP_LEN');
+    const cksum = snapshotNumber(head, 'SNAP_CKSUM');
+    if (len === null || cksum === null)
+        return null;
+    const targets = snapshotBlock(head, 'SNAP_TARGETS_START', 'SNAP_TARGETS_END');
+    const headings = snapshotBlock(head, 'SNAP_HEADS_START', 'SNAP_HEADS_END');
+    if (targets === null || headings === null)
+        return null;
+    return { present: true, len: len, cksum: cksum, headings: headings, targets: targets };
 }
 /**
  * The operator note a refused plan gate carries — ONE reason→text table, so the workflow's inline

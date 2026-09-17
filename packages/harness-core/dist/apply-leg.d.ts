@@ -130,8 +130,26 @@ export declare function probeRecallEngine(socketPath: string, timeoutMs?: number
  * the cosine-fallback `scored` array are filtered to exclude `domain === 'apply-leg-probe'` unless
  * the request carried `probe: true` — a probe's own beacon still needs to reach ITS query, only a
  * REAL prompt must never see it.
+ *
+ * Bumped 10→11 (feature `embed-daemon-memory`, ADR-001 D1): the daemon now tries core's OWN cached
+ * embedder (`resolveAgentdbEmbedder`) first — one pipeline per process — building a private one only
+ * when core cannot hand one over; `ready` gained the ` embedder=<core-shared|own-fallback>` suffix
+ * (see `features/embed-daemon-memory/07_code_changes/change_manifest.md` for the full T3 note; this
+ * paragraph was missing from the bump history and is added here for the record, fix round 1).
+ *
+ * Bumped 11→12 (`embed-daemon-memory`, fix round 1 — F1/F2, Codex #1b/#3): (a) F1 — the own-fallback
+ * pipeline now reads the STORE's own dtype manifest before building (absent = fp32 legacy, a
+ * present-but-unrecognized value fails the request loudly instead of silently building fp32 against
+ * a q8 store); `ready`'s own-fallback branch gains ` dtype=<fp32|q8|error>`. (b) F2 — a core-shared
+ * STARTUP init failure no longer falls back to building an own pipeline (which risked a second live
+ * embedder once a later hybrid call succeeded): `embedderSource` stays `'core-shared'` and `embed`
+ * re-resolves `core.resolveAgentdbEmbedder` per request instead; `ready` names a startup failure
+ * inline as `core-shared (init failed: <msg>, will retry per request)`; `warmUpHybridEngine()` is
+ * skipped entirely in own-fallback mode. (c) `answerRecall`'s `embed(prompt)` call is now wrapped so
+ * either failure mode degrades to the SAME honest `cosine-fallback` reply shape as every other
+ * failure, never a bare protocol `{error}`.
  */
-export declare const APPLY_LEG_VERSION = 10;
+export declare const APPLY_LEG_VERSION = 12;
 /**
  * Parse the `dz-apply-leg-version` stamp from a deployed helper file. Unlike
  * `writerVersionOf` (which floors an absent stamp at `0`), this returns `-1` for "no stamp at

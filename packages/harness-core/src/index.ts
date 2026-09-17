@@ -315,10 +315,10 @@ export {
   segmentRun,
 } from './eta.js';
 export type { CheckpointObservation, EtaEstimate, EtaInput, IncompleteCoverageSample, RunSegment, StageDurationSample, StageSample } from './eta.js';
-export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, resetAgentdbEmbedderCache, getAgentdbEmbedderCacheStats, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema, readStoreGeneration, bumpStoreGeneration } from './agentdb-index.js';
+export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, resolveStoreEmbedDtype, resetAgentdbEmbedderCache, getAgentdbEmbedderCacheStats, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema, readStoreGeneration, bumpStoreGeneration, resolveTransformersModule } from './agentdb-index.js';
 export type { AgentdbSearchHit, AgentdbSearchResult, AgentdbImportRow } from './agentdb-index.js';
-export { DEFAULT_EMBED_MODEL, LEGACY_EMBED_MODEL, DEFAULT_EMBED_DIM, KNOWN_EMBED_DIMS, resolveEmbedModel, readEmbedManifest, writeEmbedManifest, embedManifestPath, legacyEmbedManifest } from './embedding-config.js';
-export type { EmbedModelConfig, EmbedModelSource, EmbedManifest } from './embedding-config.js';
+export { DEFAULT_EMBED_MODEL, LEGACY_EMBED_MODEL, DEFAULT_EMBED_DIM, KNOWN_EMBED_DIMS, KNOWN_EMBED_DTYPES, resolveEmbedModel, readEmbedManifest, writeEmbedManifest, embedManifestPath, legacyEmbedManifest, currentEmbedManifest, guardEmbedSpace, snapshotEmbedManifest } from './embedding-config.js';
+export type { EmbedModelConfig, EmbedModelSource, EmbedManifest, EmbedDtype } from './embedding-config.js';
 export { putBookKnowledge, queryBookKnowledge, bookKbPath } from './book-kb.js';
 export type { BookKU, BookKUHit } from './book-kb.js';
 export { applyReadonlyPragmas, classifySqliteReadFailure, warnOnce } from './sqlite-read-helpers.js';
@@ -504,10 +504,30 @@ export {
   decideRecordWrite,
   decideReadBack,
   recordVerdictLine,
+  parseModelSpec,
 } from './run-records.js';
+export {
+  ENVELOPE_SCHEMA,
+  TASK_KINDS,
+  PRIORITIES as ENVELOPE_PRIORITIES,
+  TIERS as ENVELOPE_TIERS,
+  buildExperimentEnvelope,
+  validateExperimentEnvelope,
+} from './feature-adr-envelope.js';
+export type {
+  TaskKind,
+  EnvelopePriority,
+  EnvelopeTier,
+  ExperimentEnvelope,
+  ExperimentEnvelopeArms,
+  ExperimentEnvelopeChosen,
+  ExperimentEnvelopePolicy,
+  ExperimentEnvelopeEvaluator,
+  BuildExperimentEnvelopeInput,
+} from './feature-adr-envelope.js';
 export { decidePublishSigning, decidePostSigningVerification, decideSignableSet, publishSigningLine, signableSetLine } from './publish-signing.js';
 export type { PublishSigningVerdict, PublishSigningDecision, SignableSetDecision } from './publish-signing.js';
-export type { RecordKind, RecordVerdict, RecordDecision } from './run-records.js';
+export type { RecordKind, RecordVerdict, RecordDecision, LedgerEnrichInput, LedgerPriceEntry, ParsedModelSpec } from './run-records.js';
 export type { AmendmentAmbiguity, AmendmentRow, AmendmentVerdict, AmendmentResolution, AmendmentOutcome, AmendmentDecision, PlanCoverageGap } from './amendment-trace.js';
 // contract-checklist (ADR-001): pure extraction, canonical rendering, typed report parsing, and
 // exact per-item verification. Filesystem discovery/containment stays in harness-cli.
@@ -911,6 +931,14 @@ export {
   // p16-non-js-portability: the gate-script search chain's operator note (ADR-002/AM-7) and the
   // dzBin absolutization (ADR-003). Named for the same reason as the three above.
   refusalNoteFor,
+  shellQuote,
+  planBackupCmd,
+  planRestoreCmd,
+  planArchiveBackupCmd,
+  planSnapshotCmd,
+  snapshotBlock,
+  snapshotNumber,
+  parsePlanSnapshot,
   normalizeDzBin,
   // qe-bridge-claude: the bridge's path/slug hygiene reuses these rather than minting a second
   // definition of "safe" (ADR-001 D5-A).
@@ -978,6 +1006,7 @@ export type {
   ParsedBaselineCapture,
   ParsedLandingSignal,
   PlanGateVerdict,
+  PlanSnapshot,
   PlanGateCmdOpts,
   CodexReviewCommandInput,
   CodexReviewCommandResult,
@@ -1054,6 +1083,25 @@ export type {
   WorkflowRunRecord,
   WorkflowStageEntry,
 } from './cost-ledger.js';
+// Canonical stage taxonomy (feature measurement-integrity, ADR-001 D1).
+export { CANONICAL_STAGES, STAGE_LABEL_RULES, canonicalStage } from './feature-adr-stage-canon.js';
+export type {
+  CanonicalStage,
+  KnownStageResult,
+  StageCanonResult,
+  StageLabelRule,
+  UnknownStageResult,
+} from './feature-adr-stage-canon.js';
+// Codex rollout-log reader (feature measurement-integrity, ADR-001 D3).
+export { matchCodexRollouts, parseCodexRollout } from './codex-rollouts.js';
+export type {
+  CodexRollout,
+  CodexRolloutMatch,
+  CodexRolloutMatchWindow,
+  CodexRolloutParseError,
+  CodexRolloutTotals,
+  CodexRolloutTurn,
+} from './codex-rollouts.js';
 export type {
   ClaudeUsageModel,
   UsageCalibrationChange,
@@ -1154,6 +1202,7 @@ export {
 // Run-process scorecard (feature dz-score, Reading C) — scores the DISCIPLINE of a feature-adr run
 // from its artifacts and folds immutable receipts into a chained aggregate. Descriptive-only,
 // permanently: neither the single-run score nor the aggregate gates.
+export * from './qe-findings.js';
 export * from './score.js';
 export * from './recap.js';
 export * from './provenance.js';
@@ -1268,8 +1317,13 @@ export * from './run-registry.js';
 
 export { JOURNAL_KINDS, formatLine, parseLine, selectWindow, appendWitnessed } from './journal.js';
 export type { JournalKind, JournalEvent, JournalLine, JournalIo } from './journal.js';
-export { openRound, closeRound, listRounds } from './round.js';
-export type { RoundState, RoundExecState, RoundLedgerRow } from './round.js';
+export { openRound, closeRound, listRounds, validateClosedRoundLedgerRow } from './round.js';
+export type { RoundState, RoundExecState, RoundLedgerRow, RoundReviewSidecar } from './round.js';
 export { parseCodexTokens, classifyRoundExecOutcome, buildRoundExecRow } from './round-exec.js';
 export type { RoundExecOutcome, RoundExecLedgerRow } from './round-exec.js';
 export * from './run-cleanup.js';
+
+export * from './cross-family-control.js';
+
+export { debtRatchetVerdict, parsePinnedCeiling, ceilingUnreadableMessage } from './debt-ratchet.js';
+export type { DebtRatchetArgs, DebtRatchetVerdict, PinnedCeiling } from './debt-ratchet.js';

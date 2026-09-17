@@ -32,6 +32,57 @@ export interface MutationTestCommand {
 }
 /** Build the mutant-only command; baseline commands remain unchanged in the executor. */
 export declare function buildMutationTestCommand(testCommand: string, entry: Pick<MutationRegistryEntry, 'tests'>): MutationTestCommand;
+/**
+ * mutation-gate-inject-tokens FR-1..FR-3 (D1-D4b, fix-round 1 F1-F3): inject `--maxWorkers=<n>`
+ * into EVERY `vitest run` segment of a (possibly compound) test command, token-scoped — not the
+ * whole-command substring append that used to (a) cap only the FIRST `vitest run` in `a && b` (D1),
+ * (b) let an existing-flag SUBSTRING check be fooled by an unrelated `--maxWorkers` living inside a
+ * quoted argument or another command's own flags (D2, D3), and (c) stack a second `--maxWorkers` on
+ * top of a user's own `--max-workers=<n>` (D4) instead of deferring to it.
+ *
+ * Segmentation splits on `&&`/`||`/`;`/`|` that are OUTSIDE single/double quotes, POSIX-escape aware
+ * (fix-round 1, F1 — the round-1 Codex review's HIGH finding): outside single quotes a `\` makes the
+ * NEXT character literal (so `\"` cannot open/close a double-quoted span, and `\&` cannot be mistaken
+ * for an operator); inside double quotes a `\` escapes at least `\"` and `\\` (so `-t "a \" && b"` stays
+ * ONE segment — the escaped quote does not close the string, so the `&&` inside it is never treated as
+ * a real terminator); inside single quotes nothing is special, matching POSIX. This is the fix for the
+ * exploit the verdict named: `npx vitest run -t "a \" && b" --maxWorkers=1` used to be mis-split into
+ * two pseudo-segments (the existing flag ending up in the "wrong" one), stacking a second flag.
+ *
+ * Within each segment, `vitest run` is recognised only in COMMAND POSITION (fix-round 1, F2 — the
+ * round-1 Codex review's other HIGH finding): the first word token, after skipping any leading bare
+ * `NAME=value` assignments and at most one runner-prefix chain (`npx`, `pnpm exec`, `pnpm dlx`, `yarn`,
+ * `bunx`, or `env`/`cross-env` followed by more assignments), must have a BASENAME of `vitest`,
+ * `vitest.cmd`, `vitest.mjs` or `vitest.js` (a full path like `node_modules/.bin/vitest` counts — only
+ * the basename is compared), immediately followed by the literal token `run`. `echo vitest run` and
+ * `node wrapper.js vitest run` are therefore NOT vitest commands (`echo`/`node` is not an allowed
+ * prefix and is not itself a vitest basename) — the old scan matched `vitest`+`run` ANYWHERE in the
+ * segment and would have mutated both.
+ *
+ * An existing ceiling flag is detected per DECODED token (fix-round 1, F3 — MEDIUM finding: the old
+ * substring/regex checks compared RAW tokens, so a quoted `"--maxWorkers=1"` was invisible, and the
+ * regex additionally accepted unclaimed spellings like `--maxworkers`/`--max-Workers`) via
+ * `/^--(?:maxWorkers|max-workers)(?:=.*)?$/` — matches exactly `--maxWorkers=1`, `--maxWorkers 1` (the
+ * bare flag token, value in the next token), `--max-workers=1`, `--max-workers 1`; does NOT match
+ * `--maxWorkersFoo=9` (D3) or `--maxworkers`/`--max-Workers` (not the two claimed spellings). The scan
+ * stops at a standalone `--` token (F3): everything after it is positional per POSIX, so a `--maxWorkers`
+ * living there is a positional argument to vitest's OWN test-name filter, not a flag naming the ceiling.
+ * When a real flag is present, the segment is left untouched (the user's explicit choice wins, D4);
+ * when absent, ` --maxWorkers=<n>` is inserted immediately after the `run` token's RAW source span
+ * (never the decoded one — insertion always preserves the original quoting of everything else).
+ */
+export interface InjectVitestWorkerCeilingResult {
+    /** the command with the ceiling injected into every eligible vitest segment. */
+    readonly cmd: string;
+    /** how many segments were recognised as `vitest run` (0 for a non-vitest command). */
+    readonly vitestSegments: number;
+    /** how many of those segments actually got `--maxWorkers=<n>` inserted (excludes ones that already named it). */
+    readonly injected: number;
+    /** segments where `vitest run` was found only by the LOOSE token-pair fallback (command position
+     * unrecognised) — the CLI reports these so an odd wrapper shape is visible, not silent. */
+    readonly looseSegments: number;
+}
+export declare function injectVitestWorkerCeiling(testCmd: string, maxWorkers: number): InjectVitestWorkerCeilingResult;
 export interface MutationRegistry {
     /** optional suite command override for the whole registry (default `npm test`). */
     readonly testCommand?: string;

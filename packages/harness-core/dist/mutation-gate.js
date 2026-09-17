@@ -35,6 +35,301 @@ export function buildMutationTestCommand(testCommand, entry) {
         excluded,
     };
 }
+/**
+ * Split on unquoted `&&`/`||`/`;`/`|`, preserving each segment's own text (incl. surrounding
+ * whitespace). POSIX-escape aware (fix-round 1, F1): outside quotes `\` makes the next character
+ * literal (so it can neither open a quote nor start an operator); inside double quotes `\"` and `\\`
+ * are recognised escapes that do NOT close the string; inside single quotes nothing is escaped.
+ */
+function splitUnquotedSegments(cmd) {
+    const segments = [];
+    let segStart = 0;
+    let inSingle = false;
+    let inDouble = false;
+    let i = 0;
+    while (i < cmd.length) {
+        const ch = cmd[i];
+        if (inSingle) {
+            if (ch === "'")
+                inSingle = false;
+            i += 1;
+            continue;
+        }
+        if (inDouble) {
+            if (ch === '"') {
+                inDouble = false;
+                i += 1;
+                continue;
+            }
+            if (ch === '\\') {
+                const next = cmd[i + 1];
+                // at least \" and \\ (F1's floor) — an escaped quote must not close the double-quoted span.
+                if (next === '"' || next === '\\') {
+                    i += 2;
+                    continue;
+                }
+                i += 1;
+                continue;
+            }
+            i += 1;
+            continue;
+        }
+        if (ch === "'") {
+            inSingle = true;
+            i += 1;
+            continue;
+        }
+        if (ch === '"') {
+            inDouble = true;
+            i += 1;
+            continue;
+        }
+        if (ch === '\\') {
+            // Outside any quote, POSIX makes the character AFTER `\` literal — skip both so it can never
+            // be mis-read as a quote-open or an operator boundary.
+            i += cmd[i + 1] !== undefined ? 2 : 1;
+            continue;
+        }
+        const terminatorMatch = /^(&&|\|\||;|\|)/.exec(cmd.slice(i));
+        if (terminatorMatch) {
+            segments.push({ text: cmd.slice(segStart, i), terminator: terminatorMatch[0] });
+            i += terminatorMatch[0].length;
+            segStart = i;
+            continue;
+        }
+        i += 1;
+    }
+    segments.push({ text: cmd.slice(segStart), terminator: '' });
+    return segments;
+}
+function isWhitespaceChar(ch) {
+    return ch !== undefined && /\s/u.test(ch);
+}
+/**
+ * Whitespace-delimited tokens with POSIX-ish quote/escape DECODING (fix-round 1, F1/F3): a quoted
+ * span (single or double) still forms one token with its surrounding unquoted parts (POSIX word
+ * concatenation — `'it''s'` decodes to the single token `its`), but `token.value` now holds the
+ * DECODED text (quotes removed, `\"`/`\\` resolved inside double quotes, `\<char>` resolved to
+ * `<char>` outside any quote, single-quoted content kept verbatim) while `token.end` keeps the RAW
+ * source offset so `injectIntoSegment` can still splice into the ORIGINAL text unchanged elsewhere.
+ */
+function tokenizeSegment(text) {
+    const tokens = [];
+    let i = 0;
+    while (i < text.length) {
+        while (i < text.length && isWhitespaceChar(text[i]))
+            i += 1;
+        if (i >= text.length)
+            break;
+        const start = i;
+        let value = '';
+        let inSingle = false;
+        let inDouble = false;
+        while (i < text.length) {
+            const ch = text[i];
+            if (ch === undefined)
+                break;
+            if (inSingle) {
+                if (ch === "'") {
+                    inSingle = false;
+                    i += 1;
+                    continue;
+                }
+                value += ch;
+                i += 1;
+                continue;
+            }
+            if (inDouble) {
+                if (ch === '"') {
+                    inDouble = false;
+                    i += 1;
+                    continue;
+                }
+                if (ch === '\\') {
+                    const next = text[i + 1];
+                    if (next === '"' || next === '\\') {
+                        value += next;
+                        i += 2;
+                        continue;
+                    }
+                    // not one of the two claimed double-quote escapes: the backslash is literal (F1's floor).
+                    value += ch;
+                    i += 1;
+                    continue;
+                }
+                value += ch;
+                i += 1;
+                continue;
+            }
+            if (ch === "'") {
+                inSingle = true;
+                i += 1;
+                continue;
+            }
+            if (ch === '"') {
+                inDouble = true;
+                i += 1;
+                continue;
+            }
+            if (ch === '\\') {
+                const next = text[i + 1];
+                // POSIX line continuation (lead delta after Codex r2, MEDIUM): `\<newline>` (and `\<CR><LF>`)
+                // is REMOVED by the shell, never a literal — a token must not swallow a newline as its value.
+                if (next === '\n' || (next === '\r' && text[i + 2] === '\n')) {
+                    i += next === '\n' ? 2 : 3;
+                    // an EMPTY token so far means the continuation sat between words: skip the whitespace
+                    // that follows so the next word starts a real token instead of an empty one.
+                    if (value.length === 0) {
+                        while (i < text.length && isWhitespaceChar(text[i]))
+                            i += 1;
+                    }
+                    continue;
+                }
+                if (next !== undefined) {
+                    value += next;
+                    i += 2;
+                    continue;
+                }
+                value += ch; // trailing lone backslash: nothing to escape, keep it literal.
+                i += 1;
+                continue;
+            }
+            if (isWhitespaceChar(ch))
+                break;
+            value += ch;
+            i += 1;
+        }
+        tokens.push({ value, end: i });
+    }
+    return tokens;
+}
+/** strictly `--maxWorkers` or `--max-workers`, with or without `=…` (fix-round 1, F3: no other spelling). */
+const MAX_WORKERS_TOKEN = /^--(?:maxWorkers|max-workers)(?:=.*)?$/u;
+/** basenames vitest's own bin may resolve to; a leading path (POSIX or Windows-style) is stripped. */
+const VITEST_BASENAMES = new Set(['vitest', 'vitest.cmd', 'vitest.mjs', 'vitest.js']);
+/** allowed single-token runner prefixes that may precede the vitest executable. */
+const SINGLE_TOKEN_PREFIXES = new Set(['npx', 'yarn', 'bunx']);
+/** `env`/`cross-env` may be followed by more `NAME=value` assignments before the real command. */
+const ENV_STYLE_PREFIXES = new Set(['env', 'cross-env']);
+/** `NAME=value` — a bare shell-style assignment token, decoded value. */
+const ASSIGNMENT_TOKEN = /^[A-Za-z_][A-Za-z0-9_]*=/u;
+function basenameOf(path) {
+    const normalised = path.replace(/\\/g, '/');
+    const idx = normalised.lastIndexOf('/');
+    return idx === -1 ? normalised : normalised.slice(idx + 1);
+}
+/**
+ * Find `vitest run` in COMMAND POSITION (fix-round 1, F2): the first word token after (a) any
+ * leading bare `NAME=value` assignments, then (b) AT MOST ONE recognised runner-prefix chain
+ * (`npx` / `yarn` / `bunx` — one token; `pnpm exec` / `pnpm dlx` — two tokens; `env` / `cross-env` —
+ * one token, itself followed by zero or more further assignments) must have a basename in
+ * `VITEST_BASENAMES`, and the token right after it must be the literal `run`. Returns the INDEX of
+ * that `run` token, or null when this segment is not a vitest-run command. `echo vitest run` and
+ * `node wrapper.js vitest run` correctly return null: `echo`/`node` are neither an allowed prefix
+ * nor a vitest basename, so the scan never advances past them.
+ */
+function findVitestRunCommandIndex(tokens) {
+    let idx = 0;
+    // Lead delta after Codex r2 (HIGH): the prefix chain is ITERATIVE and OPTION-TOLERANT — a runner
+    // prefix may carry its own dash-options (`npx --yes`, `pnpm exec --silent`) and prefixes may chain
+    // (`env CI=1 npx vitest run`). The previous single-step grammar returned null for both and left
+    // such commands UNCAPPED — a regression against the substring era this feature replaced.
+    for (;;) {
+        while (idx < tokens.length && ASSIGNMENT_TOKEN.test(tokens[idx].value))
+            idx += 1;
+        const head = tokens[idx]?.value;
+        if (head === undefined)
+            break;
+        if (SINGLE_TOKEN_PREFIXES.has(head)) {
+            idx += 1;
+        }
+        else if (head === 'pnpm' && (tokens[idx + 1]?.value === 'exec' || tokens[idx + 1]?.value === 'dlx')) {
+            idx += 2;
+        }
+        else if (ENV_STYLE_PREFIXES.has(head)) {
+            idx += 1;
+            continue; // assignments after env/cross-env are consumed by the loop head
+        }
+        else {
+            break;
+        }
+        while (idx < tokens.length && tokens[idx].value.startsWith('-'))
+            idx += 1; // the prefix's own options
+    }
+    const exe = tokens[idx];
+    const runToken = tokens[idx + 1];
+    if (exe === undefined || runToken === undefined)
+        return null;
+    if (!VITEST_BASENAMES.has(basenameOf(exe.value)))
+        return null;
+    if (runToken.value !== 'run')
+        return null;
+    return idx + 1;
+}
+/**
+ * True when a `--maxWorkers`/`--max-workers` token names the ceiling ANYWHERE before a standalone
+ * `--` (fix-round 1, F3): a `--` marks POSIX end-of-options, so anything naming the flag AFTER it is
+ * a positional argument (e.g. vitest's own test-name filter), never the ceiling flag itself.
+ */
+function hasMaxWorkersFlag(tokens) {
+    for (const token of tokens) {
+        if (token.value === '--')
+            return false;
+        if (MAX_WORKERS_TOKEN.test(token.value))
+            return true;
+    }
+    return false;
+}
+/**
+ * LOOSE fallback (lead delta after Codex r2, HIGH): when the strict command-position grammar finds
+ * nothing, look for a `<vitest-basename> run` token pair ANYWHERE in the segment. The ceiling exists
+ * to keep a full-suite run from taking the machine down (0bb74d66); an unrecognised wrapper shape
+ * must degrade to the substring-era behaviour (capped, reported as `loose`), never to an uncapped
+ * run. The price — `echo vitest run` also gets the flag — is named in the result so the CLI can say
+ * it out loud, and is a harmless extra argument to a non-vitest command.
+ */
+function findVitestRunLooseIndex(tokens) {
+    for (let i = 0; i + 1 < tokens.length; i += 1) {
+        if (VITEST_BASENAMES.has(basenameOf(tokens[i].value)) && tokens[i + 1].value === 'run')
+            return i + 1;
+    }
+    return null;
+}
+function injectIntoSegment(text, maxWorkers) {
+    const tokens = tokenizeSegment(text);
+    const strictIdx = findVitestRunCommandIndex(tokens);
+    const looseIdx = strictIdx === null ? findVitestRunLooseIndex(tokens) : null;
+    const runTokenIdx = strictIdx ?? looseIdx;
+    const loose = strictIdx === null && looseIdx !== null;
+    if (runTokenIdx === null)
+        return { text, isVitest: false, injected: false, loose: false };
+    if (hasMaxWorkersFlag(tokens))
+        return { text, isVitest: true, injected: false, loose };
+    const runToken = tokens[runTokenIdx];
+    // unreachable defensively: runTokenIdx was derived from a valid index into `tokens` above.
+    if (runToken === undefined)
+        return { text, isVitest: true, injected: false, loose };
+    const insertAt = runToken.end;
+    const injectedText = `${text.slice(0, insertAt)} --maxWorkers=${maxWorkers}${text.slice(insertAt)}`;
+    return { text: injectedText, isVitest: true, injected: true, loose };
+}
+export function injectVitestWorkerCeiling(testCmd, maxWorkers) {
+    const segments = splitUnquotedSegments(testCmd);
+    let vitestSegments = 0;
+    let injected = 0;
+    let looseSegments = 0;
+    const rebuilt = segments.map((segment) => {
+        const result = injectIntoSegment(segment.text, maxWorkers);
+        if (result.isVitest)
+            vitestSegments += 1;
+        if (result.injected)
+            injected += 1;
+        if (result.loose)
+            looseSegments += 1;
+        return result.text + segment.terminator;
+    }).join('');
+    return { cmd: rebuilt, vitestSegments, injected, looseSegments };
+}
 function internalRunnerErrorHead(error) {
     const raw = error instanceof Error ? error.message : String(error);
     const firstLine = raw.split(/\r?\n/, 1)[0]?.trim() || 'unknown internal runner error';

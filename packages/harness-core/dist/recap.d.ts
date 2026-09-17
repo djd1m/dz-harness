@@ -93,7 +93,7 @@ export type Delivery = {
 } | {
     readonly slug: string;
     readonly createdIso: string;
-    readonly gradeStatus: 'ambiguous' | 'none' | 'no-report';
+    readonly gradeStatus: 'ambiguous' | 'invalid' | 'none' | 'no-report';
     readonly grade: null;
 };
 export interface Publish {

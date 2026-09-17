@@ -10,7 +10,7 @@ import { parseNpmPackInventory } from '@dzhechkov/harness-core';
 // `@dzhechkov/memory`: a new package-graph edge is a publishing-surface change outside this
 // feature's scope, and harness-core already depends on memory.
 import { noSearchableTermsReason } from '@dzhechkov/harness-core';
-import { appendFileSync, chmodSync, closeSync, constants as fsConstants, cpSync, existsSync, fstatSync, fsyncSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readSync, readdirSync, readlinkSync, realpathSync, renameSync, rmdirSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync, writeSync } from 'node:fs';
+import { appendFileSync, chmodSync, closeSync, constants as fsConstants, copyFileSync, cpSync, existsSync, fstatSync, fsyncSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readSync, readdirSync, readlinkSync, realpathSync, renameSync, rmdirSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync, writeSync } from 'node:fs';
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep, posix as nodePosixPath } from 'node:path';
 const posixNormalize = nodePosixPath.normalize;
 import { fileURLToPath } from 'node:url';
@@ -26,22 +26,29 @@ import { createRequire } from 'node:module';
 import { isDeepStrictEqual } from 'node:util';
 import { JOURNAL_KINDS, formatLine, parseLine, selectWindow, appendWitnessed } from '@dzhechkov/harness-core';
 import { appendRunEvent, readRunRegistry, liveParents, liveness, probePid, settleDeadRuns, planRegistryArchive, planWorktreeCleanup, renderCleanupPlan, worktreeRemovalsToApply } from '@dzhechkov/harness-core';
-import { openRound, closeRound, listRounds, parseCodexTokens, classifyRoundExecOutcome, buildRoundExecRow, } from '@dzhechkov/harness-core';
+import { openRound, closeRound, listRounds, validateClosedRoundLedgerRow, parseCodexTokens, classifyRoundExecOutcome, buildRoundExecRow, } from '@dzhechkov/harness-core';
+// measurement-integrity: canonical stage taxonomy, Codex rollout reader, ledger price snapshot.
+import { canonicalStage } from '@dzhechkov/harness-core';
+import { parseCodexRollout } from '@dzhechkov/harness-core';
+import { MODEL_PRICES } from '@dzhechkov/harness-core';
 import { createSkill, getSkillInfo, listSkillsDetailed, formatSkillLoadFailures, formatSkillApplyFailures, resolveTargetName, formatTargetProblem, formatTargetAliasNote, TARGET_NAMES_SORTED, runDoctor, runInit, discoverSkillIds, loadSkillFromDir, resolveSelection, formatSelectRefusal, runIntegrationsVerify, resolvePackageSkillRoots, PACKAGE_SKILL_LAYOUTS, benchmarkSkill, benchmarkSkills, scanMcp, reconcileCapabilities, RECONCILE_BANNER, buildRegistry, discoverSkillPackDirs, discoverVerifiablePackDirs, checkUpstream, compareSkills, checkAllUpstream, sweepSkillDrift, syncCanonicalSkill, checkUpgrades, discoverPackages, discoverSourcePackages, fetchAllDownloads, filterByCategory, pretrain, recommend, generatePlugin, publishPackages, runSetup, memoryBackendSourceLabel, runMigrate, searchRegistry, runSync, runVerify, runInitAgentsMd, runInitGeminiMd, runSyncAgentsPolicy, runSyncCodexHooks, resolveCodexHome, withNamedLockSync, 
 // dz workflow run (feature dz-workflow-run): the pure scheduler + the dispatch adapters.
 TRACE_RUNID_RE, WF_RUN_OWNER_HOST, preflight, runWorkflow, makeClaudePDispatcher, makeCodexExecDispatcher, NamedLockTimeoutError, NamedLockCompromisedError, POLICY_SOURCES, detectPolicyDrift, hasPolicyFence, TARGET_NAMES, buildParityMatrix, computeParity, PARITY_FEATURES, downgradeForStaleEvidence, findStaleTranscriptEvidence, TARGET_CAPABILITIES, TARGET_SHORT_LABELS, applyLegStatus, applyLegReasonMessage, probeApplyLeg, resolveAgentdbPath, WORKFLOW_TEMPLATES_RETIRED_MESSAGE, parsePlan, isParseErrors, validatePlan, normalizePlan, planDigest, toTraceProjection, renderPlan, mergeRender, lint, lintExitCode, LOOP_BLOBS, parseTrace, assembleTimeline, runInvariants, deriveAttestation, stampAttestation, corroborate, NOT_WITNESSED, renderTimelineHtml, importEcc, recordPattern, recordLessonForms, normalizeLessonForms, resolveLearningBackend, storeStats, consolidateSessions, pruneNoisePatterns, lessonDeltaReport, removePatternsByIds, snapshotStore, recallHybrid, teachGuard, mirrorPatternsToVector, mirrorEntriesToVector, patternVectorEntry, readMemoryLearningConfig, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns, clearAgentdbQuarantine, vectorMirrorEnabled, vectorTierStatus, resolveVectorEngine, reindexVectorStore, harmonizeVectorStore, importRvfCheckpoint, renderFeatureAdrPhaseLine, statuslineData, countLearningStoreRowsReadonly, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, storeGuardPath, storeSnapshotPath, writeFeatureAdrState, writeFeatureAdrStateDetailed, CHECKPOINT_STAGES, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, computeSpendReport, deriveCostLedger, planLedgerBackfill, listCostLedgerRuns, resolveLedgerRunId, AMBIGUOUS, stampCheckpointLine, LEDGER_FILL_SOURCE, renderCostLedger, verifyCostLedgerReport, writeCostLedgerJsonl, COST_LEDGER_SCOPE, spendReport, claimCheck, summarize, BUNDLED_SLOP_REGISTRY_URL, DEFAULT_SLOP_CONFIG, parseSlopRegistry, slopLint, validateSlopLintConfig, queryBookKnowledge, loadStorePatternsSync, patternRecordId, patternIdentityOf, mergeLessonMatchedForms, SWARM_BRIEF_CONTRACT, checkSwarmBrief, visibleText, loadStoreRecords, findExactLesson, recordToPattern, bundleSkills, brainHome, brainAgentdbPath, listPreReindexSnapshots, rotatePreReindexSnapshots, scanSnapshotDir, listBrain, bookKbPath, promoteProjectToBrain, updateBrainSource, queryBrain, groundPrompt, expandKu, reindexBrainVectors, buildPrimer, exportBrainSlice, importBrainSlice, registerKusToBrain, RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, parseRecallUsageLog, buildRecallUsageReport, EVENT_CHAIN_TAIL_BYTES, EMPTY_LOG_TAIL, readTailInfo, appendChainedLines, verifyEventChainText, classifyChainDefects, CHAINED_JOURNALS, buildManifest, buildSbom, resolveTrustRoot, decideVerifyPolicy, generateSigningKeypair, appendTransition, evaluateGuard, resolveRules, auditRecord, guardExitCode, DEFAULT_RULES, parsePnpmLockImporters, scannableStubPath, 
 // guard-promotion (feature guard-promotion, scout idea #1)
 assembleCandidates, renderPromotionReport, renderPromotionAdr, normalizePromotionState, nextPromotionState, recordPromotionRunEvidence, isLessonRuleContentAnchor, isOffsetIsoTimestamp, globMatch, promotionAdrRelPath, DEFAULT_WINDOW_DAYS, DEFAULT_PERIODS, MAX_CONTENT_FETCHES, BUILTIN_COVERAGE, decideProvenance, isInsideTree, signManifest, verifyManifest, hashPackBytes, rewriteWorkspaceSpecs, detectSiblingDrift, planPackedInstallSmoke, judgePackedInstallSmoke, listPackFiles, listSignablePackFiles, assertKeyOutsideTree, decidePublishGate, collectPackageFacts, planReleaseGates, selectAffectedPackages, classifyGateExecutions, buildFailureIssue, buildReleaseNotes, releaseTagName, firstOutputLine, formatPublishError, MANIFEST_NAME, SBOM_NAME, buildArchitectureMap, renderMapHuman, findArchitectureDrift, renderDriftReport, scanWorkspacePackages, loadSubsystemManifest, loadProductVision, checkFeatureAgainstArchitecture, renderArchCheck, planProjectSkills, guidanceForStage, renderInjectionReport, analyzeCorpus, renderRakeReport, renderCriticSection, rakeAsLesson, rakeReward, DEFAULT_RAKE_THRESHOLDS, streamSessionEvents, findLatestTranscript, resolveScanTailTranscript, detectProcessRakes, buildRetro, renderRetro, retroLessonText, PROCESS_SIGNATURES, RETRO_DOMAIN, runRetroTailScan, scanForSetup, buildSetupPlan, scaffoldFromSpec, renderScaffoldPreview, readExistingForScaffold, assembleChallengeContext, buildChallengeBrief, planDiscriminationCheck, classifyDiscrimination, classifyExecutionEvidence, pickAdversaryModel, CHALLENGE_QUESTIONS, loadOutcomes, renderOutcomes, statsForKey, selectAutoCost, recordProvisional, finalizeOutcome, harvestStageOutcomes, recommendModels, planFeed, unfedRuns, GRADE_SUCCESS_FLOOR, COST_LADDER, splitScenarios, budgetPlan, selectWinner, proseScopeOk, renderProseDiff, readScenarioIds, DEFAULT_MAX_JUDGE_RUNS, collectDeliveryFacts, planDeliveryCheck, renderDeliveryBrief, classifyDelivery, isUsablePlaneResult, renderDeliveryReview, scanSkillsLayout, declaredPluginSurface, parseInitFacts, verifyRegistration, buildContentProbePrompt, classifyContentProbe, renderContentProbe, findNonRegistrableSkillDirs, assembleCompoundingReport, buildDeadwoodReport, compactCmdUsageIfNeeded, measureCmdUsageDepthDays, recordCommandInvocation, resolveCmdUsageRoot, renderDeadwoodReport, CMD_USAGE_LOG_RELATIVE, banditStats, narrowBanditReport, renderBanditHealth, 
 // Cold-vs-warm EPOCH RUNNER (feature epoch-replay) — orchestrates + scores, never calls a model.
-replayableInstances, buildWorkOrder, buildJudgePrompts, unblindJudgments, verifyWorkOrder, isValidMargin, DIGEST_HONEST_SCOPE, scoreEpochReplay, generateMockOutcomes, renderEpochReplayResult, renderWorkOrderSummary, renderJudgePromptsSummary, WORK_ORDER_KIND, DEFAULT_MOCK_N, DEFAULT_MOCK_SEED, scoreRun, readQeGrade, scoreReceiptToAggregateRow, readScoreAggregateRows, dedupeScoreAggregateRows, buildScoreAggregateReport, renderScoreAggregateReport, recapWindow, decideHorizon, withinWindow, buildRecap, renderRecap, parseSourceManifest, tgPostHtmlIssues, tgVisibleLength, decideTgSend, TG_TEXT_LIMIT, countRecallEventsForRun, unknownFlagNotice, mirrorWriterExplanation, mirrorWriterReason, appendRecallUsage, closenessLine, anyAboveFloor, decideNameCheck, renderNameCheck, exportedNamesIn, dispatchedCommandsIn, decideSourceProvenance, renderSourceProvenance, REFUSED_HORIZONS, renderScorecard, renderCompoundingReport, readReinforcementState, readQuarantineState, registrationExitCode, renderRegistrationReport, 
+replayableInstances, buildWorkOrder, buildJudgePrompts, unblindJudgments, verifyWorkOrder, isValidMargin, DIGEST_HONEST_SCOPE, scoreEpochReplay, generateMockOutcomes, renderEpochReplayResult, renderWorkOrderSummary, renderJudgePromptsSummary, WORK_ORDER_KIND, DEFAULT_MOCK_N, DEFAULT_MOCK_SEED, scoreRun, readQeGrade, parseQeFindings, scoreReceiptToAggregateRow, readScoreAggregateRows, dedupeScoreAggregateRows, buildScoreAggregateReport, renderScoreAggregateReport, recapWindow, decideHorizon, withinWindow, buildRecap, renderRecap, parseSourceManifest, tgPostHtmlIssues, tgVisibleLength, decideTgSend, TG_TEXT_LIMIT, countRecallEventsForRun, unknownFlagNotice, mirrorWriterExplanation, mirrorWriterReason, appendRecallUsage, closenessLine, anyAboveFloor, decideNameCheck, renderNameCheck, exportedNamesIn, dispatchedCommandsIn, decideSourceProvenance, renderSourceProvenance, REFUSED_HORIZONS, renderScorecard, renderCompoundingReport, readReinforcementState, readQuarantineState, registrationExitCode, renderRegistrationReport, 
 // Smart Backlog (feature smart-backlog) — goal-directed idea pipeline over the Brain vector engine.
 readBacklogConfig, readIdeas, writeIdeas, ideaId, dedupIdea, readGoalMap, readGoalMapDetailed, parseEffort, ensureBacklogGitignored, isSafeId, alignIdea, mirrorIdeaVector, ensureBacklogEmbedForm, readBacklogEmbedFormVersion, recordAbsorption, DEDUP_EMBED_FORM_VERSION, snapshotIdeas, spinRoulette, rankRoulette, seededRng, eligibleIdeas, stageEnrichment, buildJiraDraft, resolveJiraAdapter, makeBacklogIO, harmonizeBacklog, transitionIdeas, editIdea, clearEmbedStale, BACKLOG_BACKENDS, applyDomainBoost, DZ_OWNED_TASK_TYPES, applyExportHoldout, DEFAULT_HELD_OUT_DOMAINS, canonicalDomainKey, readAgentdbRowsByTaskType, heldOutAfterOptIn, renderHoldoutNote, renderSharedStoreAdvice, decideVectorExport, countDisplacedByCut, renderDomainBoostNote, renderDomainCutNote, parseReqeDebt, 
 // qe-bridge (feature qe-bridge-claude, ADR-001): the pure half of the reverse QE bridge.
 KNOWN_CLAUDE, isSafeClaudeId, claudeProbeArgs, claudeReviewArgs, interpretClaudeProbe, modelFamily, buildBridgePrompt, parseBridgeOutput, buildBridgeFailureRecord, buildBridgeSignoffRecord, renderBridgeReport, isSafeSlug, hasUnsafePathChars, hasDotDotSegment, buildReqeBrief, settleReqeDebt, renderReqeList, REQE_SCOPE, 
 // Mutation gate (feature ha-mutation-gate) — break each named protection, run the suite, require red.
-REGISTRY_SELFCHECK_TESTS, buildMutationTestCommand, parseMutationRegistry, registryEntriesAddedSince, applyMutationToText, attributeBaselineRedness, countFailingTests, detectSuiteCompletionReceipt, detectSuiteReceiptMismatch, classifyBaseline, classifyRunFailure, classifyMutationOutcome, mutationGateExitCode, summarizeMutationResults, renderMutationReport, runWithOneInternalRetry, TRACE_BUNDLE_LEDGER_PATH, TRACE_BUNDLE_SCHEMA, TRACE_BUNDLE_RUN_META_FILE, buildBundle, serializeBundle, parseBundle, planImport, decideCheckpointWrite, amendmentSection, amendmentSectionCount, amendmentDeclarationAmbiguity, planSaysNoAmendments, parseAmendments, resolveAmendments, decideAmendmentOutcome, amendmentVerdictLine, amendmentsMissingFromPlan, AMENDMENT_VACUITY_NOTE, extractContractChecklist, readFeatureTier, parseContractVerdictReport, verifyContractVerdicts, decideSignableSet, signableSetLine, decideRecordWrite, decideReadBack, recordVerdictLine, buildCadenceReport, tgVisibleSha256, CADENCE_WINDOW_DAYS, readQeRounds, QE_ROUNDS_DEFAULT_CEILING, adviseRestart, describeStoreLocation, storeLocationLine, resolveTeachTarget, teachReasonPhrase, readTeachToConfig, TeachTargetError, mergeStoreHits, sameStore, globalStoreRoot, storeCountLabel, 
+REGISTRY_SELFCHECK_TESTS, buildMutationTestCommand, parseMutationRegistry, registryEntriesAddedSince, applyMutationToText, attributeBaselineRedness, countFailingTests, detectSuiteCompletionReceipt, detectSuiteReceiptMismatch, classifyBaseline, classifyRunFailure, classifyMutationOutcome, injectVitestWorkerCeiling, mutationGateExitCode, summarizeMutationResults, renderMutationReport, runWithOneInternalRetry, TRACE_BUNDLE_LEDGER_PATH, TRACE_BUNDLE_SCHEMA, TRACE_BUNDLE_RUN_META_FILE, buildBundle, serializeBundle, parseBundle, planImport, decideCheckpointWrite, amendmentSection, amendmentSectionCount, amendmentDeclarationAmbiguity, planSaysNoAmendments, parseAmendments, resolveAmendments, decideAmendmentOutcome, amendmentVerdictLine, amendmentsMissingFromPlan, AMENDMENT_VACUITY_NOTE, extractContractChecklist, readFeatureTier, parseContractVerdictReport, verifyContractVerdicts, decideSignableSet, signableSetLine, decideRecordWrite, decideReadBack, recordVerdictLine, buildCadenceReport, tgVisibleSha256, CADENCE_WINDOW_DAYS, readQeRounds, QE_ROUNDS_DEFAULT_CEILING, adviseRestart, describeStoreLocation, storeLocationLine, resolveTeachTarget, teachReasonPhrase, readTeachToConfig, TeachTargetError, mergeStoreHits, sameStore, globalStoreRoot, storeCountLabel, 
 // operator-profile (ADR-001): per-user 0600 store + marked block in ~/.claude/CLAUDE.md
-renderProfileBlock, readProfile, writeProfile, syncProfileBlock, checkProfileDrift, parseRegister, registerOwnerWord, profileAgeDays, parseDomainList, domainListText, parseYesNo, REGISTERS, } from '@dzhechkov/harness-core';
+renderProfileBlock, readProfile, writeProfile, syncProfileBlock, checkProfileDrift, parseRegister, registerOwnerWord, profileAgeDays, parseDomainList, domainListText, parseYesNo, REGISTERS, 
+// cross-family-control-branch (ADR-001): the two-scoped-review measurement's pure core.
+normalizeBridgeSeverity, diffFamilyFindings, buildControlRow, parseControlRows, aggregateByFamily, } from '@dzhechkov/harness-core';
+import { QE_FINDINGS_HEADER, QE_LEDGER_HEADING } from '@dzhechkov/harness-core';
 import { getPreset, PRESET_NAMES } from '@dzhechkov/harness-presets';
 import { scanGitHub, analyzeRepo, generateReport, deepAnalyze, scanAllSources, ScoutMemory } from '@dzhechkov/scout';
 /**
@@ -82,7 +89,7 @@ export const DZ_COMMANDS = [
     'epoch-replay', 'score', 'recap', 'cadence', 'qe-rounds', 'restart-advisor', 'tg-post',
     'name-check', 'brief-check', 'provenance-check', 'journal', 'feature-adr-record', 'runs', 'runs-record', 'runs-clean', 'amendment-check', 'contract-check',
     'feature-adr-checkpoint', 'profile', 'reqe', 'qe-bridge', 'backlog', 'routing',
-    'bto-optimize', 'dashboard', 'roam', 'import-ecc', 'chain', 'round',
+    'bto-optimize', 'dashboard', 'roam', 'import-ecc', 'chain', 'round', 'control-review',
 ];
 const USAGE = `dz - DZ cross-platform harness CLI
   dz runs [--settle] [--stall-minutes N] [--json] [--project <dir>] [--probe-pid <pid>]   (run registry: live, stalled, orphaned, inconclusive or finished; PID probe prints true|false|unknown)
@@ -143,13 +150,14 @@ Usage:
   dz amendment-check --slug <slug> | --feature-dir <dir> | --all [--json]   (the deterministic Step-8 amendment gate: every AM-N / AM-CP-N row must resolve to a test found INSIDE the file the row names (the challenge-panel prefix is part of the id: AM-CP-1 is never AM-1); the PLAN is authoritative when it carries rows, and an ideation amendment the plan drops is a failure. exit 0 pass/skip, 1 fail, 3 NOT-ESTABLISHED — a section that parsed ZERO rows is never a pass, UNLESS the plan explicitly declares \"None\"/\"нет\", which is an answer and reports skip. --all is a CENSUS and always exits 0. Does NOT prove non-vacuity — that is dz discrimination-check)
   dz contract-check --slug <s> [--json]   (read-only retrospective feature contract gate: extracts canonical AC-N + ADR Confirmation items, requires one artifact-anchored met|unmet|not-testable verdict per CC-N, and rejects A/B with unmet. exit 0 pass / 1 readable contract or verdict violation / 2 invalid invocation or unreadable/not-established artifacts)
   dz journal add --kind decision|verdict|run|error|block "<text>" [--ref <trace>] [--at <ISO>] [--quote <file>] [--commit-quote]; dz journal show [--day|--week] [--at <date>] [--kind <kind>] [--json]   (UTC day files, witnessed append; quotes stay local unless explicitly staged)
-  dz feature-adr-record --kind ledger|training-pair --stage <s> [--slug <s>] [--row|--pair <json>] [--run-id <id>] [--mark <n>] [--once] [--json]   (the witnessed writer for the run-cost ledger and training pairs: the payload arrives as an ARGUMENT, never as shell; a malformed or wrong-kind payload is REFUSED before any write; for a ledger row, 'ts' is ALWAYS the actual write instant (ledger-stage-minutes FR-1) — a payload-supplied 'ts' is never trusted for the delta below, and is preserved as 'payloadTs' rather than discarded; --run-id fills the payload's runId ONLY when it is a gap — absent, null, '', or non-string, the same 'missing when absent or blank' rule runnerId uses — and stamps runIdSource:'cli-flag' when it does; for an auto:true ledger row that carries a runId — from the payload, from --run-id, or resolved at write time — the append also carries minutesSincePrev/minutesSource:'ledger-ts-delta' measured against the LAST row of the same run found by a best-effort reverse scan that reports 'unavailable' (never a guess) on a missing prior row OR a corrupt/non-object ledger line anywhere between it and the file's end (ledger-corrupt-line); minutes itself stays untouched. New fields (ts, minutesSincePrev, minutesSource) are always appended after every existing key, never reordering one. The append is verified by re-reading the tail. exit 0 written|duplicate|skipped, 2 refused, 3 not-verified — a record failure is never blocking)
-  dz round open --slug <s> --round <n|auto> --topic <text> [--project <brain>] [--run <id>] [--owner-pid <n>|--owner-run <runId>] [--force] [--json]; dz round exec --slug <s> --round <n> --brief <file> [--log <file>] [--model gpt-5.6-sol] [--effort high] [--timeout-min 30] [--json]; dz round close --slug <s> --round <n> --outcome shipped|refuted|blocked|abandoned [--reason <text>] [--lesson teach:<id>...]|[--no-new-knowledge <reason>] [--tokens N] [--agents N] [--coder <spec>] [--reviewer <spec>] [--note <text>] [--no-cost] [--json]; dz round status [--older-than <minutes>] [--json]   (focused rounds outside feature-adr: open tracks the parent process by default, an explicit pid, or a registered run; live/stalled run owners stay live and missing registry evidence stays unknown; open --force refuses a live or unknown owner and archives a known-dead owner's state; recall precedes work, then the witnessed ledger is trusted only after reading it back)
+  dz feature-adr-record --kind ledger|training-pair --stage <s> [--slug <s>] [--row|--pair <json>] [--run-id <id>] [--mark <n>] [--once] [--auto] [--window-from <iso> --window-to <iso>] [--codex-sessions <dir>] [--json]   (the witnessed writer for the run-cost ledger and training pairs: measurement-integrity FR-5/FR-6 — a ledger row with a codex-family coder/reviewer and tokens:null is enriched from Codex rollout logs (~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl, or --codex-sessions <dir>) matched to --window-from/--window-to by [cwd+time] overlap: exactly one match fills tokens/minutes/tokensSource:'codex-rollout'/rolloutId, none/ambiguous name the status instead of guessing, and no window at all leaves tokensSource:'unavailable'; every ledger row ALSO gets a 'prices' snapshot (named models' {prompt,completion,cachedInput} from the CURRENT pricing table, taken at write time — never re-priced later); the payload arrives as an ARGUMENT, never as shell; a malformed or wrong-kind payload is REFUSED before any write; for a ledger row, 'ts' is ALWAYS the actual write instant (ledger-stage-minutes FR-1) — a payload-supplied 'ts' is never trusted for the delta below, and is preserved as 'payloadTs' rather than discarded; --run-id fills the payload's runId ONLY when it is a gap — absent, null, '', or non-string, the same 'missing when absent or blank' rule runnerId uses — and stamps runIdSource:'cli-flag' when it does; for an auto:true ledger row that carries a runId — from the payload, from --run-id, or resolved at write time — the append also carries minutesSincePrev/minutesSource:'ledger-ts-delta' measured against the LAST row of the same run found by a best-effort reverse scan that reports 'unavailable' (never a guess) on a missing prior row OR a corrupt/non-object ledger line anywhere between it and the file's end (ledger-corrupt-line); minutes itself stays untouched. New fields (ts, minutesSincePrev, minutesSource) are always appended after every existing key, never reordering one. --auto (fix-round-1/F2, experiment-envelope) is the TRUSTED CLI-level marker for a ledger row written by the automated pipeline — it sets auto:true on the written row and REQUIRES a valid 'envelope' (exit 2 refused otherwise), independent of whether the --row payload itself remembered to carry auto:true; a present payload 'auto' field must be the literal true or the row is refused. Omit --auto for a manual/hand-entered row (unaffected — no envelope required). The append is verified by re-reading the tail. exit 0 written|duplicate|skipped, 2 refused, 3 not-verified — a record failure is never blocking)
+  dz round open --slug <s> --round <n|auto> --topic <text> [--project <brain>] [--run <id>] [--owner-pid <n>|--owner-run <runId>] [--envelope <json>] [--force] [--json]; dz round exec --slug <s> --round <n> --brief <file> [--log <file>] [--model gpt-5.6-sol] [--effort high] [--timeout-min 30] [--json]; dz round close --slug <s> --round <n> --outcome shipped|refuted|blocked|abandoned [--grade <A|A-|B+|…>] [--reason <text>] [--lesson teach:<id>...]|[--no-new-knowledge <reason>] [--tokens N] [--agents N] [--coder <spec>] [--reviewer <spec>] [--note <text>] [--no-cost] [--json]; dz round status [--older-than <minutes>] [--json]   (focused rounds outside feature-adr: open tracks the parent process by default, an explicit pid, or a registered run; live/stalled run owners stay live and missing registry evidence stays unknown; open --force refuses a live or unknown owner and archives a known-dead owner's state; recall precedes work, then the witnessed ledger is trusted only after reading it back; measurement-integrity FR-7: --grade is REQUIRED for outcome shipped|refuted (exit 2 without it), dropped with a warning for blocked|abandoned; --reviewer absent ⇒ filled from the LATEST features/<slug>/.fa-state/qe-bridge/signoff-*.json by emittedAt, which also sets reviewMinutes/reviewSource:'qe-bridge'; a --grade that disagrees with that sidecar's own grade is refused naming both)
   dz feature-adr-checkpoint (--slug <feature> | --feature-dir <abs>) --stage <s> --input-hash <h> --result <json> [--artifact a,b] [--json]   (record a pipeline stage ONLY after measuring its artifacts on disk; refuses a null result, an absent artifact, or a stage that declares none — the subagent runs a COMMAND instead of hand-writing durable state)
   dz profile [init|show|set|sync] [--json]   (WHO the assistant is talking to — per-user store at ~/.dz/profile.json (0600, NEVER in a project), delivered as a marked block in ~/.claude/CLAUDE.md so it loads in EVERY project, dz installed or not. init = five questions (language, register, deep/weak domains as comma lists — "networking (CCIE; NSX)" keeps the parenthetical as the note, Enter skips — teaches y/n with one re-ask, never a silent default); show ALWAYS prints the store path + age + drift verdict + the rendered block; set register|language|teaches <v> or set deep|weak add|rm <tag> [note] — register accepts the owner's own words (профи / профи лайт / просто), an unknown value is REFUSED naming the accepted set; sync re-writes the block (runs automatically after init/set; foreign content byte-for-byte, timestamped backup before every modifying write). The register changes FORM, never FACTS, and governs dialogue only — never ADRs/commits/QE reports; both rules are baked into the rendered block at every level. exit 0 done / 1 no profile or failed / 2 refused input)
   dz reqe [--slug <feature> [--done --report <f>]] [--json]   (the re-QE debt ledger: a usage-switched run whose Step-8 QE ran on the coder's OWN family records a debt; list debts, print the cross-family review brief, settle FAIL-CLOSED against a graded report — the settlement lands in 08_qe_report.md)
   dz qe-bridge --family claude --slug <feature> [--coder-family codex|claude] [--model <id>] [--files a,b] [--out <f>] [--timeout <s>] [--allow-same-family] [--json]   (the REVERSE QE bridge: run an INDEPENDENT Claude reviewer over a feature's Step-8 artifacts from ANY host — a Codex session included, plain shell, no Claude agent plane needed — and land a PARSED signoff. The reviewer runs ISOLATED: an EMPTY temp cwd plus --safe-mode --strict-mcp-config --tools '' --no-session-persistence, so no CLAUDE.md/skills/plugins/hooks/MCP load, and the verdict is read from the --output-format json RESULT ENVELOPE — text a session customization printed onto the same stdout can never become a signoff. Probes the model before trusting it; sends SCOPED extracts with a loud 200k-char ceiling (never silent truncation); the grade must AGREE across three LAST-anchored channels (terminal marker line, fenced qe-bridge-signoff JSON, the report's own GRADE line) AND the marker must be the FINAL content — empty, gradeless, self-contradicting or miscounted output is one of 17 NAMED failures with an audit record under features/<slug>/.fa-state/qe-bridge/ (runId, resolved executable + binOverride, prompt sha256, channel offsets, requestedOut, reportWritten, retained raw stdout; 0600 files in a 0700 dir), never a clean review. A --coder-family that contradicts the recorded reqe debt is refused. Writes features/<slug>/08b_reqe_report.md, which dz reqe --done settles unchanged. DISCLOSURE: the extracts you scope are sent to the Claude runtime; the bridge cannot classify secrets. DZ_QE_BRIDGE_CLAUDE_BIN is a TEST SEAM, not a flag. exit 0 signoff parsed (ANY grade — it reports, it does not gate) / 1 named failure / 2 usage)
-  dz mutation-gate [--package <dir>] [--registry <file>] [--test-cmd "<cmd>"] [--only <id[,id]>] [--touched <path[,path]>] [--added-since <git-ref>] [--timeout <ms>] [--max-workers <n>] [--rebaseline per-entry|final] [--keep-scratch] [--json]   (prove each NAMED protection has a test that DISCRIMINATES: '--max-workers' resolves flag > the registry's own 'maxWorkers' field > 'min(4, max(1, floor(cpus/2)))' (an invalid flag value — 0, negative, fractional, non-numeric — is a usage error, exit 2, never a silent default; fix-round 1), injects '--maxWorkers=<n>' right after 'vitest run' inside its own compound-command segment (unless that segment already names the flag; fix-round 1 — scoped detection, not a whole-command substring check) and sets 'VITEST_MAX_WORKERS=<n>' in the env regardless — an uncapped full-suite baseline/mutant run at vitest's default worker count (= cpu cores) has measured load 62-358 and <2GB free on an 8-core/16GB box under embedding-daemon tests, killing full overnight gate runs (0bb74d66); printed as 'mutation-gate: workers: <n> (<flag|registry|default>)', or 'mutation-gate: workers: n/a — test command is not vitest' when the command is not recognised as vitest. '--touched' selects entries whose 'file' matches one of the given paths, accepted in ANY of package-relative, './'-prefixed, absolute-inside-the-package, repo-relative, or backslash-separated form — all normalized to package-relative POSIX before matching (fix-round 1, AM-1); a path that resolves OUTSIDE the package is counted, never silently dropped, as '<K> outside package' in the 'selected N of M' line; '--added-since <ref>' selects entries whose id is not present in the registry as it read at that ref ('git show <ref>:<registry path>'): a registry genuinely ABSENT at that ref means every current entry counts as added (said explicitly); an unresolvable ref, any OTHER git failure, or an invalid/malformed base registry at that ref is a usage error (exit 2), never folded into "absent" (AM-3) — a feature scopes the gate to its own touched files and any entries it just added instead of the whole registry (MEASURED: an unscoped run over 358 entries on this repo's core package ran 30-40 minutes and hit the timeout wall, INCONCLUSIVE every time). The two selectors UNION and the result INTERSECTS with '--only' when both are given; an empty selection prints 'selected 0 of M entries (…)' and exits 0 — never a silent skip; '--json' always carries a 'selection' object ({selected, total, touched, addedSince, base, outsidePackage}) on every scoped run (AM-4). copy the package to a scratch dir, verify the baseline suite is green, apply each registry mutation, run the suite, REQUIRE red, restore. The red must be BEHAVIOURAL: a mutation that no longer parses is MUTATION_UNPARSEABLE; a red run whose OWN output reports a test FILE failing to load (node --test file-level not-ok with exitCode, vitest Failed Suites) is MUTATION_LOAD_FATAL — the signal comes from the same run as the failing count, never from a separate isolated import; red output whose shape matches no known runner is INCONCLUSIVE (a runner-coverage gap, loud, never PROVEN); a count far above the entry's bound is OVER_FAILING; a restored tree that does not reproduce green makes the entry INCONCLUSIVE (flaky). Mutation writes are realpath-contained to the scratch copy: a symlink escape or a node_modules/ target is refused (exit 2), the real tree is never written. A mutation that does not apply, a green suite, or an inconclusive run is a FAILURE — never a skip. exit 0 all proven / 1 gate failed / 2 setup error)
+  dz control-review --slug <feature> --files a,b [--brief <file>] [--coder-family codex|claude] [--codex-model gpt-5.6-sol] [--effort high] [--claude-model <id>] [--timeout-min 30] [--adjudicate <file>] [--project <dir>] [--json]   (ADR-001 cross-family-control-branch: two INDEPENDENT scoped reviews over the SAME tree, Codex run from an ISOLATED scope copy — a Claude qe-bridge half then a Codex round-exec half — diffed into confirmed/candidate/onlyCodex/onlyClaude per severity; automatic overlap is a CANDIDATE only (title-Jaccard>=0.5 with compatible file, or same-file+line±3 AND jaccard>=0.2) — --adjudicate produces the only CONFIRMED pairs, none entries family-qualified as codex:<id>/claude:<id>; a tree-hash drift, an unreadable Claude signoff, a half with no accepted table, a nonzero Codex exit/timeout, or an ambiguous answer boundary refuses with NO ledger row; an out-of-scope or unnormalizable finding lands in the row's own refused/complete fields instead; a written row is trusted only after an exactly-one-new-line deep-compared reread. exit 0 written+verified / 1 refused / 2 usage / 3 written-but-not-reread)
+  dz mutation-gate [--package <dir>] [--registry <file>] [--test-cmd "<cmd>"] [--only <id[,id]>] [--touched <path[,path]>] [--added-since <git-ref>] [--timeout <ms>] [--max-workers <n>] [--rebaseline per-entry|final] [--keep-scratch] [--json]   (prove each NAMED protection has a test that DISCRIMINATES: '--max-workers' resolves flag > the registry's own 'maxWorkers' field > 'min(4, max(1, floor(cpus/2)))' (an invalid flag value — 0, negative, fractional, non-numeric — is a usage error, exit 2, never a silent default; fix-round 1), injects '--maxWorkers=<n>' right after 'run' in EVERY 'vitest run' segment of a (possibly compound) command (unless that segment already names the flag itself, token-scoped — not a whole-command substring check; mutation-gate-inject-tokens fix-round 2) and sets 'VITEST_MAX_WORKERS=<n>' in the env regardless — an uncapped full-suite baseline/mutant run at vitest's default worker count (= cpu cores) has measured load 62-358 and <2GB free on an 8-core/16GB box under embedding-daemon tests, killing full overnight gate runs (0bb74d66); the env is read by vitest CONFIGS that opt in (this repo's harness-core/harness-cli vitest.config.ts do) — vitest itself does NOT read it (MEASURED 3.2.4); printed as 'mutation-gate: workers: <n> (<flag|registry|default>)', or 'mutation-gate: workers: n/a — test command is not vitest (VITEST_MAX_WORKERS set; honoured only by configs that read it)' when the command is not recognised as vitest. '--touched' selects entries whose 'file' matches one of the given paths, accepted in ANY of package-relative, './'-prefixed, absolute-inside-the-package, repo-relative, or backslash-separated form — all normalized to package-relative POSIX before matching (fix-round 1, AM-1); a path that resolves OUTSIDE the package is counted, never silently dropped, as '<K> outside package' in the 'selected N of M' line; '--added-since <ref>' selects entries whose id is not present in the registry as it read at that ref ('git show <ref>:<registry path>'): a registry genuinely ABSENT at that ref means every current entry counts as added (said explicitly); an unresolvable ref, any OTHER git failure, or an invalid/malformed base registry at that ref is a usage error (exit 2), never folded into "absent" (AM-3) — a feature scopes the gate to its own touched files and any entries it just added instead of the whole registry (MEASURED: an unscoped run over 358 entries on this repo's core package ran 30-40 minutes and hit the timeout wall, INCONCLUSIVE every time). The two selectors UNION and the result INTERSECTS with '--only' when both are given; an empty selection prints 'selected 0 of M entries (…)' and exits 0 — never a silent skip; '--json' always carries a 'selection' object ({selected, total, touched, addedSince, base, outsidePackage}) on every scoped run (AM-4). copy the package to a scratch dir, verify the baseline suite is green, apply each registry mutation, run the suite, REQUIRE red, restore. The red must be BEHAVIOURAL: a mutation that no longer parses is MUTATION_UNPARSEABLE; a red run whose OWN output reports a test FILE failing to load (node --test file-level not-ok with exitCode, vitest Failed Suites) is MUTATION_LOAD_FATAL — the signal comes from the same run as the failing count, never from a separate isolated import; red output whose shape matches no known runner is INCONCLUSIVE (a runner-coverage gap, loud, never PROVEN); a count far above the entry's bound is OVER_FAILING; a restored tree that does not reproduce green makes the entry INCONCLUSIVE (flaky). Mutation writes are realpath-contained to the scratch copy: a symlink escape or a node_modules/ target is refused (exit 2), the real tree is never written. A mutation that does not apply, a green suite, or an inconclusive run is a FAILURE — never a skip. exit 0 all proven / 1 gate failed / 2 setup error)
   dz backlog add "<idea>" [--effort 1-5] [--proposal <text>] [--dry-run] [--allow-cold-start] [--project <dir>] [--json]   (capture an idea: semantic dedup against existing ideas via the Brain vector engine (DUPLICATE>=0.92 merges, RELATED links, NEW creates) + GoalMap alignment; --dry-run classifies without writing)
   dz backlog list [--status <s>] [--goal <id>] [--project <dir>] [--json]   (list captured ideas, filterable by status/goal)
   dz backlog show <id> [--project <dir>] [--json]                          (full record for one idea)
@@ -12695,34 +12703,29 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
         maxWorkers = defaultMaxWorkers;
         maxWorkersSource = 'default';
     }
-    // FR-3: inject the ceiling into the command ONLY when it is (detectably) a vitest run and does
-    // not already name the flag itself — an arbitrary testCommand cannot be assumed to accept
-    // `--maxWorkers`. VITEST_MAX_WORKERS is set in the env unconditionally (below, at spawn time)
-    // regardless of this detection, so a vitest command reached indirectly (e.g. through a package
-    // script) is still capped.
-    // fix-round 1, AM-3: detection AND injection are scoped to the VITEST SEGMENT — from the first
-    // `vitest run` token to the next `&&`/`||`/`;`/`|` (or end of string) — and the flag lands right
-    // after `vitest run`, never appended to the tail of a whole (possibly compound) command. A
-    // raw-substring append over the FULL command turned `vitest run … && cleanup` into
-    // `vitest run … && cleanup --maxWorkers=2` (silently handed to `cleanup`, not vitest), and the
-    // existing-flag check could be suppressed by an unrelated `--maxWorkers` substring living outside
-    // the vitest segment entirely (e.g. inside `cleanup`'s own args, or before `vitest run` in the
-    // same command).
-    const vitestRunIdx = testCmd.indexOf('vitest run');
-    const isVitestCommand = vitestRunIdx !== -1;
-    if (isVitestCommand) {
-        const tailFromRun = testCmd.slice(vitestRunIdx);
-        const terminator = /&&|\|\||;|\|/.exec(tailFromRun);
-        const vitestSegment = terminator !== null ? tailFromRun.slice(0, terminator.index) : tailFromRun;
-        if (!vitestSegment.includes('--maxWorkers')) {
-            const insertAt = vitestRunIdx + 'vitest run'.length;
-            testCmd = `${testCmd.slice(0, insertAt)} --maxWorkers=${maxWorkers}${testCmd.slice(insertAt)}`;
-        }
-    }
+    // FR-3: inject the ceiling into EVERY `vitest run` segment of the (possibly compound) command
+    // that does not already name the flag itself — an arbitrary testCommand cannot be assumed to
+    // accept `--maxWorkers`. VITEST_MAX_WORKERS is set in the env unconditionally (below, at spawn
+    // time) regardless of this detection — but honestly (mutation-gate-inject-tokens FR-4, MEASURED
+    // vitest 3.2.4): vitest itself does NOT read this env var (no `process.env.*MAX_WORKERS*` in its
+    // dist), so a vitest command reached indirectly (e.g. through a package script, never matching
+    // `vitest run` literally) is capped ONLY if that package's own `vitest.config.ts` opts in and
+    // reads `process.env.VITEST_MAX_WORKERS` itself — this repo's core/cli configs do; an arbitrary
+    // third-party package's does not.
+    // mutation-gate-inject-tokens (fix-round 2, D1-D4b): the injection moved to the pure, token-scoped
+    // `injectVitestWorkerCeiling` (harness-core/src/mutation-gate.ts) — the previous whole-command
+    // substring scan capped only the FIRST `vitest run` in a compound command (D1), let an unrelated
+    // `--maxWorkers` SUBSTRING inside a quoted argument or another flag suppress injection (D2, D3),
+    // and could stack a second `--maxWorkers` on top of the user's own `--max-workers=<n>` (D4)
+    // instead of deferring to it. The new function detects the flag per TOKEN and scopes both
+    // detection and insertion to each individual vitest segment.
+    const injectionResult = injectVitestWorkerCeiling(testCmd, maxWorkers);
+    testCmd = injectionResult.cmd;
+    const isVitestCommand = injectionResult.vitestSegments > 0;
     if (!json) {
         write(isVitestCommand
-            ? `mutation-gate: workers: ${maxWorkers} (${maxWorkersSource})`
-            : 'mutation-gate: workers: n/a — test command is not vitest');
+            ? `mutation-gate: workers: ${maxWorkers} (${maxWorkersSource})${injectionResult.looseSegments > 0 ? ` — ${injectionResult.looseSegments} segment(s) matched \`vitest run\` only LOOSELY (command position not recognised; capped anyway)` : ''}`
+            : 'mutation-gate: workers: n/a — test command is not vitest (VITEST_MAX_WORKERS set; honoured only by configs that read it)');
     }
     // Route-b guard mode: `per-entry` (default, strongest — each red entry re-baselines the restored
     // tree, so a flaky neighbour flips THAT entry to INCONCLUSIVE) or `final` (cheap — one re-run at
@@ -12886,8 +12889,11 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
         const requireCompletionReceipt = parsed.registry.requireCompletionReceipt === true;
         const invokeSuite = (suiteCommand, phase, entryId) => {
             // FR-3: VITEST_MAX_WORKERS is set in any case — regardless of whether the command was
-            // recognised as vitest and got the `--maxWorkers=<n>` flag injected — so a vitest command
-            // reached indirectly (a wrapper script) is still capped.
+            // recognised as vitest and got the `--maxWorkers=<n>` flag injected. mutation-gate-inject-tokens
+            // FR-4 (MEASURED vitest 3.2.4): vitest itself does not read this var — a vitest command
+            // reached indirectly (a wrapper script) is capped only if THAT package's own vitest.config.ts
+            // opts in and reads `process.env.VITEST_MAX_WORKERS` (this repo's configs do; an arbitrary
+            // third-party one does not).
             const extraEnv = { VITEST_MAX_WORKERS: String(maxWorkers) };
             if (injectedRunner !== undefined) {
                 return injectedRunner(suiteCommand, {
@@ -15485,6 +15491,45 @@ function predictedRoundCloseMarker(slug, round, closedAtIso) {
     const compactTs = new Date(closedMs).toISOString().replace(/[-:.]/g, '');
     return `round-${slug}-${round}-${compactTs}`;
 }
+/**
+ * measurement-integrity fix-round-1/F8 (Codex r1 CRITICAL #8): the JSONL line in the ledger TAIL that
+ * made `alreadyRecorded` true — the same needle (`predictedMarker` or `"stateId":"<id>"`) that
+ * decided the retry was idempotent, now used to fetch the ACTUAL row so it can be validated before
+ * the CLI is allowed to treat the retry as closed. Scans from the END (a retry's own row is the most
+ * RECENT one carrying either needle) so an older, unrelated line sharing a coincidental substring is
+ * never picked over the real match. `null` when neither needle is found on any line — a defensive
+ * case that should be unreachable given `alreadyRecorded` was already true, surfaced as a refusal
+ * rather than silently treated as valid.
+ */
+function findAlreadyRecordedLedgerLine(tail, predictedMarker, stateId) {
+    const lines = tail.split('\n');
+    const stateIdNeedle = stateId !== undefined ? `"stateId":"${stateId}"` : null;
+    for (let i = lines.length - 1; i >= 0; i -= 1) {
+        const line = lines[i] ?? '';
+        if (line.length === 0)
+            continue;
+        if (!(line.includes(predictedMarker) || (stateIdNeedle !== null && line.includes(stateIdNeedle))))
+            continue;
+        // Lead delta after Codex r2 (#8 PARTIAL): a substring hit is only a CANDIDATE — the row must be
+        // a parseable round row whose own `note`/`stateId` FIELD equals the needle (a later, unrelated
+        // valid row that merely contains the marker text must not be validated in place of the target).
+        let parsed;
+        try {
+            parsed = JSON.parse(line);
+        }
+        catch {
+            continue;
+        }
+        if (typeof parsed !== 'object' || parsed === null)
+            continue;
+        const row = parsed;
+        if (row['stage'] !== 'round')
+            continue;
+        if (row['note'] === predictedMarker || (stateId !== undefined && row['stateId'] === stateId))
+            return line;
+    }
+    return null;
+}
 /** round-state-lock fix-round AM-5: `open`/`status` warn when a round has been sitting with
  * `ownerKind: 'exec'` for more than this many minutes — the shape of a restore-section that
  * exhausted its lock-busy retries (see `ROUND_RESTORE_LOCK_ATTEMPTS`) and left the round claimed by
@@ -15714,11 +15759,26 @@ async function cmdRound(options, optionLists, flags, cwd, write, io) {
         const isRunAlive = (runId) => roundRunOwnerAlive(stateRoot, runId, now, io.roundRunRegistryReader, io.roundPidProbe ?? probePid);
         const runId = options.get('run')?.trim();
         const recallOptions = { limit: 5, ...(runId === undefined || runId === '' ? {} : { runId }) };
+        // experiment-envelope FR-3(в)/AC-5: --envelope carries the JSON envelope built once by the
+        // conveyor after its Step-0 router. Malformed JSON is a CLI-level refusal (exit 2) BEFORE
+        // `openRound` is even called — a payload that cannot be parsed cannot be validated either.
+        const envelopeRaw = options.get('envelope');
+        let envelope;
+        if (envelopeRaw !== undefined) {
+            try {
+                envelope = JSON.parse(envelopeRaw);
+            }
+            catch {
+                emit('--envelope не является валидным JSON');
+                return 2;
+            }
+        }
         const preflight = openRound({
             ...at, topic, startedAt: new Date(now).toISOString(), ownerPid, ownerKind,
             ...(ownerRun === undefined || ownerRun === '' ? {} : { ownerRun }),
             ...(runId === undefined || runId === '' ? {} : { run: runId }), recalled: [], existing,
             force: flags.has('force'), existingOwnerAlive, isRunAlive,
+            ...(envelope === undefined ? {} : { envelope }),
         });
         if (!preflight.ok) {
             // AM-5: the round we are refusing to touch may itself be a stuck `exec` claim (its restore
@@ -15751,6 +15811,7 @@ async function cmdRound(options, optionLists, flags, cwd, write, io) {
             ...(runId === undefined || runId === '' ? {} : { run: runId }),
             recalled: lessons.slice(0, 5).map((lesson) => lesson.id), existing: null,
             force: false, existingOwnerAlive: null, isRunAlive,
+            ...(envelope === undefined ? {} : { envelope }),
         });
         if (!opened.ok) {
             emit(opened.reason);
@@ -16067,8 +16128,53 @@ async function cmdRound(options, optionLists, flags, cwd, write, io) {
         // Lead edit after Codex re-review: a retry whose row is already in the ledger (same stateId) must
         // not re-run closeRound's postcondition against a marker computed from the NEW clock — the earlier
         // row is the receipt; only the state-file removal remains.
+        // measurement-integrity FR-7: the qe-bridge cross-model-review sidecar for this slug — read HERE
+        // (the I/O `round.ts` never does), so `closeRound` decides purely from data. `--grade` is the
+        // trusted CLI-level flag; the sidecar fills `reviewer`/`reviewMinutes`/`reviewSource` only when
+        // `--reviewer` is absent, and its own `grade` (when it carries one) is checked for a conflict.
+        //
+        // fix-round-1/F9 (Codex r1 HIGH #9): the lookup is now WINDOWED to THIS round's own interval
+        // (`state.startedAt` .. `closedAtIso`) — a signoff outside it never qualifies — and more than one
+        // qualifying signoff is an AMBIGUITY, refused here rather than resolved by "the latest wins".
+        // measurement-integrity fix-round-1/F8 (Codex r1 CRITICAL #8): `alreadyRecorded` used to skip
+        // `closeRound` ENTIRELY and go straight to deleting the state file — so an OLD row already in the
+        // ledger (`shipped` with `grade: null`, written before FR-7 shipped) could be recognised as
+        // "already closed" and the state removed WITHOUT ever being checked against the schema rule this
+        // whole feature exists to enforce. The found row is now read back and validated BEFORE the retry
+        // is allowed to proceed — a failing validation refuses (state stays open) instead of silently
+        // completing.
+        if (alreadyRecorded) {
+            const foundLine = findAlreadyRecordedLedgerLine(tailBeforeWrite, predictedMarker, state.stateId);
+            if (foundLine === null) {
+                emit('строка помечена как уже записанная, но не найдена дословно в леджере — круг НЕ закрыт');
+                return 1;
+            }
+            let parsedRow;
+            try {
+                parsedRow = JSON.parse(foundLine);
+            }
+            catch {
+                emit('найденная строка леджера не парсится как JSON — круг НЕ закрыт (валидация невозможна)');
+                return 1;
+            }
+            const validation = validateClosedRoundLedgerRow(parsedRow);
+            if (!validation.ok) {
+                emit(`${validation.reason} — состояние круга НЕ удалено`);
+                return 1;
+            }
+        }
+        // Lead delta after Codex r2 (new MEDIUM #2): the sidecar is needed only when a NEW row is
+        // written — an idempotent retry of an already-recorded row must not fail on signoffs that
+        // appeared afterwards, so the lookup runs AFTER the already-recorded validation.
+        const signoffLookup = alreadyRecorded ? { status: 'none' } : findQeBridgeSignoffForRound(projectRoot, at.slug, state.startedAt, closedAtIso);
+        if (signoffLookup.status === 'ambiguous') {
+            emit(`несколько подходящих сайдкаров qe-bridge для slug ${at.slug} в интервале круга — не удаётся выбрать: ` +
+                signoffLookup.candidates.map((c) => `${c.file} (emittedAt ${c.emittedAt})`).join(', '), { ambiguousSignoffs: signoffLookup.candidates.map((c) => ({ file: c.file, emittedAt: c.emittedAt })) });
+            return 2;
+        }
+        const reviewSidecar = signoffLookup.status === 'one' ? signoffLookup.sidecar : undefined;
         const closed = alreadyRecorded
-            ? { ok: true, row: undefined, marker: `already-recorded:${state.stateId ?? predictedMarker}` }
+            ? { ok: true, row: undefined, marker: `already-recorded:${state.stateId ?? predictedMarker}`, warnings: [] }
             : closeRound({
                 state,
                 outcome: options.get('outcome') ?? '',
@@ -16082,6 +16188,8 @@ async function cmdRound(options, optionLists, flags, cwd, write, io) {
                 ...(options.has('reviewer') ? { reviewer: options.get('reviewer') } : {}),
                 ...(options.has('note') ? { note: options.get('note') } : {}),
                 ...(flags.has('no-cost') ? { noCost: true } : {}),
+                ...(options.has('grade') ? { grade: options.get('grade') } : {}),
+                ...(reviewSidecar !== undefined ? { reviewSidecar } : {}),
                 closedAt: closedAtIso,
                 ...(state.stateId !== undefined ? { stateId: state.stateId } : {}),
             }, {
@@ -16139,7 +16247,11 @@ async function cmdRound(options, optionLists, flags, cwd, write, io) {
             emit(`строка подтверждена, но состояние не удалено — круг НЕ закрыт: ${error instanceof Error ? error.message : String(error)}`);
             return 1;
         }
-        emit(`✓ строка круга в леджере подтверждена чтением (${closed.marker})`, { row: closed.row, marker: closed.marker });
+        // measurement-integrity FR-7: a dropped --grade (blocked|abandoned) is a WARNING, not silence —
+        // the caller passed something that was honored differently than they may have expected.
+        for (const w of closed.warnings)
+            emit(`⚠ ${w}`);
+        emit(`✓ строка круга в леджере подтверждена чтением (${closed.marker})`, { row: closed.row, marker: closed.marker, warnings: closed.warnings });
         return 0;
     }
     if (sub === 'status') {
@@ -16252,6 +16364,132 @@ function findPreviousLedgerRowTs(ledgerPath, runId) {
     }
     return null;
 }
+/**
+ * measurement-integrity fix-round-1/F9 (Codex r1 HIGH #9): the qe-bridge signoff for THIS round —
+ * read from `features/<slug>/.fa-state/qe-bridge/signoff-*.json` — never a `failed-*.json` (no grade
+ * to offer). `round.ts`'s `closeRound` never opens a file itself; this is the CLI-side read that
+ * hands it DATA.
+ *
+ * OLD behavior picked the LATEST by `emittedAt` across ALL of a slug's signoffs, so a stale signoff
+ * from a PAST round of the same slug — or a future one from a run that has not closed yet — could
+ * fill `reviewer`/`reviewMinutes` for a round it was never written for, or conflict-refuse the
+ * current close over a grade that belongs to a different round entirely (the review's own scenario:
+ * "a test covers a DIFFERENT slug, but not a DIFFERENT run of the SAME slug"). This now additionally
+ * requires `emittedAt` to fall inside THIS round's own `[windowFrom, windowTo]` interval (the state's
+ * own `startedAt` .. this close's `closedAt`) — and when MORE THAN ONE signoff qualifies (including a
+ * tie on `emittedAt`), that is an AMBIGUITY, surfaced to the caller rather than silently resolved by
+ * picking "the latest" again.
+ *
+ * Best-effort and never-throw: no directory, or nothing parseable, is `{status:'none'}` — the same
+ * "absence is not a signal either way" the ledger-lookup helper above already uses.
+ */
+function findQeBridgeSignoffForRound(projectRoot, slug, windowFrom, windowTo) {
+    const dir = join(projectRoot, 'features', slug, '.fa-state', 'qe-bridge');
+    let entries;
+    try {
+        if (!statSync(dir).isDirectory())
+            return { status: 'none' };
+        entries = readdirSync(dir);
+    }
+    catch {
+        return { status: 'none' };
+    }
+    const fromMs = Date.parse(windowFrom);
+    const toMs = Date.parse(windowTo);
+    const candidates = [];
+    for (const name of entries) {
+        if (!name.startsWith('signoff-') || !name.endsWith('.json'))
+            continue;
+        let parsed;
+        try {
+            parsed = JSON.parse(readFileSync(join(dir, name), 'utf-8'));
+        }
+        catch {
+            continue; // unreadable — skip, never a guess
+        }
+        if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed))
+            continue;
+        const rec = parsed;
+        if (typeof rec['slug'] !== 'string' || rec['slug'] !== slug)
+            continue;
+        const emittedAt = typeof rec['emittedAt'] === 'string' ? rec['emittedAt'] : '';
+        const emittedMs = emittedAt === '' ? NaN : Date.parse(emittedAt);
+        if (!Number.isFinite(emittedMs))
+            continue;
+        // fix-round-1/F9: THIS round's own interval, inclusive — a signoff from a past or future round of
+        // the same slug never qualifies.
+        if (!Number.isFinite(fromMs) || !Number.isFinite(toMs) || emittedMs < fromMs || emittedMs > toMs)
+            continue;
+        const gradedByRaw = rec['gradedBy'];
+        const family = typeof gradedByRaw === 'object' && gradedByRaw !== null && !Array.isArray(gradedByRaw)
+            ? gradedByRaw['family']
+            : undefined;
+        const model = typeof gradedByRaw === 'object' && gradedByRaw !== null && !Array.isArray(gradedByRaw)
+            ? gradedByRaw['model']
+            : undefined;
+        if (typeof family !== 'string' || family === '' || typeof model !== 'string' || model === '')
+            continue;
+        const elapsedMs = typeof rec['elapsedMs'] === 'number' && Number.isFinite(rec['elapsedMs']) ? rec['elapsedMs'] : 0;
+        const grade = typeof rec['grade'] === 'string' && rec['grade'] !== '' ? rec['grade'] : null;
+        // fix-round-1/F9: the qe-bridge review's OWN runId lives in the filename (`signoff-<runId>.json`)
+        // — a DIFFERENT id space from `RoundState.run`, carried through for traceability/audit only.
+        const runIdMatch = /^signoff-(.+)\.json$/.exec(name);
+        const runId = runIdMatch !== null ? (runIdMatch[1] ?? null) : null;
+        candidates.push({
+            file: name,
+            emittedAt,
+            sidecar: { gradedBy: `${family}:${model}`, elapsedMs, grade, slug, runId, emittedAt },
+        });
+    }
+    if (candidates.length === 0)
+        return { status: 'none' };
+    if (candidates.length === 1)
+        return { status: 'one', sidecar: candidates[0].sidecar };
+    return { status: 'ambiguous', candidates };
+}
+/**
+ * measurement-integrity FR-5: every `rollout-*.jsonl` under `~/.codex/sessions/YYYY/MM/DD/` for each
+ * day the `[from, to]` window touches (inclusive) — the CLI walks the tree, `parseCodexRollout` (pure
+ * core) reads each file's TEXT. A file that fails to parse is silently excluded (its own honest
+ * `{error}` is not this function's problem to surface — `matchCodexRollouts` reports `none` for a
+ * window with nothing usable in it, which is the correct outward signal either way).
+ */
+function readCodexRolloutsForWindow(sessionsDir, fromIso, toIso) {
+    const fromMs = Date.parse(fromIso);
+    const toMs = Date.parse(toIso);
+    if (!Number.isFinite(fromMs) || !Number.isFinite(toMs))
+        return [];
+    const out = [];
+    const dayMs = 24 * 60 * 60 * 1000;
+    const startDay = Math.floor(fromMs / dayMs) * dayMs;
+    const endDay = Math.floor(toMs / dayMs) * dayMs;
+    for (let day = startDay; day <= endDay; day += dayMs) {
+        const d = new Date(day);
+        const dayDir = join(sessionsDir, String(d.getUTCFullYear()), String(d.getUTCMonth() + 1).padStart(2, '0'), String(d.getUTCDate()).padStart(2, '0'));
+        let files;
+        try {
+            files = readdirSync(dayDir);
+        }
+        catch {
+            continue; // no sessions that day — not an error, just nothing to read
+        }
+        for (const f of files) {
+            if (!f.startsWith('rollout-') || !f.endsWith('.jsonl'))
+                continue;
+            let text;
+            try {
+                text = readFileSync(join(dayDir, f), 'utf-8');
+            }
+            catch {
+                continue;
+            }
+            const parsed = parseCodexRollout(text, f);
+            if (!('error' in parsed))
+                out.push(parsed);
+        }
+    }
+    return out;
+}
 function cmdFeatureAdrRecord(options, flags, cwd, write) {
     const json = flags.has('json');
     // `--backfill` is a different verb on the same store: it fills the ledger's null cost fields from
@@ -16322,6 +16560,79 @@ function cmdFeatureAdrRecord(options, flags, cwd, write) {
         }
         catch { /* decideRecordWrite reports the parse error itself */ }
     }
+    // qe-findings-record FR-6 (fix-round-1 finding 4): for a `stage=full` ledger row, THIS command is
+    // the one that reads features/<slug>/08_qe_report.md (the sandbox that runs the workflow has no
+    // fs) and computes findings/gradeSource with the core parser — AUTHORITATIVELY, from the report,
+    // every time a slug is present. The slug comes from the ROW ITSELF (the `--slug` flag is a
+    // training-pair path fragment, not something a ledger caller passes) — the same field
+    // `recapDeliveries`/other ledger readers already treat as the row's identity.
+    //
+    // What changed from "fill-only-null": a payload that ALREADY carries `findings`/`gradeSource` used
+    // to be trusted blindly (isGap only fired on null/undefined) — a caller could hand-write
+    // `findings:{status:'absent'}` and have it recorded as fact even when the real report says
+    // otherwise, and a report that failed to read was silently indistinguishable from "no report yet".
+    // Now: a GAP is filled with the computed value (unchanged); a non-gap value that AGREES is left
+    // alone; a non-gap value that DISAGREES is never silently overwritten NOR silently trusted — both
+    // versions are recorded under `findingsConflict`/`gradeSourceConflict` and the row's own value
+    // stays put (a write must never be blocked by an enrichment disagreement, ADR-003). A report that
+    // cannot be read/found is reported too — `findingsStatus:'unreadable'` + a reason — never silent.
+    if (kind === 'ledger' && stage === 'full') {
+        try {
+            const parsed = JSON.parse(effectivePayloadRaw);
+            if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                const rowObj = parsed;
+                const isGap = (v) => v === null || v === undefined;
+                const rowSlug = typeof rowObj['slug'] === 'string' ? rowObj['slug'].trim() : '';
+                if (rowSlug !== '') {
+                    const reportPath = join(repo, 'features', rowSlug, '08_qe_report.md');
+                    let reportText = null;
+                    let readError = null;
+                    try {
+                        reportText = readFileSync(reportPath, 'utf8');
+                    }
+                    catch (err) {
+                        readError = err instanceof Error ? err.message : String(err);
+                    }
+                    if (reportText === null) {
+                        effectivePayloadRaw = JSON.stringify({
+                            ...rowObj,
+                            findingsStatus: 'unreadable',
+                            findingsUnreadableReason: readError ?? `no report at ${reportPath}`,
+                        });
+                    }
+                    else {
+                        const gradeReading = readQeGrade(reportText);
+                        const findingsParsed = parseQeFindings(reportText);
+                        const computedFindings = findingsParsed.status === 'absent'
+                            ? { status: 'absent' }
+                            : { status: 'present', hollow: findingsParsed.hollow, summary: findingsParsed.summary, refused: findingsParsed.refused };
+                        const computedGradeSource = gradeReading.source;
+                        const patch = {};
+                        if (isGap(rowObj['findings'])) {
+                            patch['findings'] = computedFindings;
+                        }
+                        else if (!isDeepStrictEqual(rowObj['findings'], computedFindings)) {
+                            // Lead delta after Codex r2 (#4 PARTIAL): the report is the authority — the computed
+                            // value becomes the PRIMARY field; the caller's value survives only inside the conflict.
+                            patch['findings'] = computedFindings;
+                            patch['findingsConflict'] = { reported: rowObj['findings'], computed: computedFindings };
+                        }
+                        if (isGap(rowObj['gradeSource'])) {
+                            patch['gradeSource'] = computedGradeSource;
+                        }
+                        else if (!isDeepStrictEqual(rowObj['gradeSource'], computedGradeSource)) {
+                            patch['gradeSource'] = computedGradeSource;
+                            patch['gradeSourceConflict'] = { reported: rowObj['gradeSource'], computed: computedGradeSource };
+                        }
+                        if (Object.keys(patch).length > 0) {
+                            effectivePayloadRaw = JSON.stringify({ ...rowObj, ...patch });
+                        }
+                    }
+                }
+            }
+        }
+        catch { /* decideRecordWrite reports the parse error itself */ }
+    }
     // FR-2/FR-3: find the runId this row will carry (explicit flag, or one the payload already had),
     // then read the ledger BEST-EFFORT for the last row of that same run and its `ts`. A read failure
     // (file absent, unreadable, a torn or malformed line) is an honest `previousRowTs: null` — never
@@ -16352,6 +16663,25 @@ function cmdFeatureAdrRecord(options, flags, cwd, write) {
         catch { /* resolution is an ENRICHMENT; the row is written regardless */ }
     }
     const previousRowTs = kind === 'ledger' && runIdForLookup !== '' ? findPreviousLedgerRowTs(target, runIdForLookup) : null;
+    // measurement-integrity FR-5/FR-6: rollout-log + price enrichment for a ledger row. The CLI owns
+    // ALL the I/O this needs (walking `~/.codex/sessions`, reading each rollout file's text) — the
+    // core function stays pure and receives only already-read objects. Absent `--window-from`/
+    // `--window-to` ⇒ `window` stays undefined, which `decideRecordWrite` reads as "no attempt was
+    // even possible" (AC-4's "old row without a window").
+    const windowFrom = options.get('window-from');
+    const windowTo = options.get('window-to');
+    const enrich = kind === 'ledger'
+        ? {
+            prices: MODEL_PRICES,
+            ...(windowFrom !== undefined && windowTo !== undefined
+                ? {
+                    window: { from: windowFrom, to: windowTo },
+                    rollouts: readCodexRolloutsForWindow((options.get('codex-sessions') ?? '').trim() || join(homedir(), '.codex', 'sessions'), windowFrom, windowTo),
+                    ...(repo !== '' ? { cwd: repo } : {}),
+                }
+                : {}),
+        }
+        : undefined;
     const decision = decideRecordWrite({
         kind,
         payloadRaw: effectivePayloadRaw,
@@ -16375,6 +16705,11 @@ function cmdFeatureAdrRecord(options, flags, cwd, write) {
             catch {
                 return null;
             } })(),
+        // fix-round-1/F2: `--auto` is the CLI's OWN trusted flag — the pipeline dispatch line now
+        // passes it explicitly, so "is this row automatic" no longer depends solely on a JSON payload
+        // field a caller could forget or mistype. decideRecordWrite unions it with any payload.auto.
+        auto: flags.has('auto'),
+        ...(enrich !== undefined ? { enrich } : {}),
     });
     if (decision.line === null)
         return emit(decision);
@@ -17821,6 +18156,616 @@ async function cmdQeBridge(options, flags, cwd, write) {
         cleanupIsolated();
     }
 }
+/* ── cross-family-control-branch (ADR-001, tier M): `dz control-review` ─────────────────────── */
+/** Built-in Codex brief ceiling (ADR-001 D2 lesson: a long multi-question prompt makes Codex
+ *  hang). The built-in template stays well under this; `--brief <file>` is user-authored and NOT
+ *  bounded here — the caller owns that risk the same way `dz round exec --brief` already does. */
+const CONTROL_REVIEW_BRIEF_CEILING_CHARS = 2048;
+/** git HEAD + a sha256 of each scoped file's bytes — the pure `treeSha` this run compares before
+ *  and after each half. ANY read failure (file removed mid-run) is folded into the hash as a
+ *  distinguishable sentinel, so it still shows up as drift rather than silently matching. */
+function controlTreeSnapshot(root, scope) {
+    const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf-8' }).trim();
+    const perFile = [];
+    for (const rel of scope) {
+        let digest;
+        try {
+            digest = createHash('sha256').update(readFileSync(join(root, rel))).digest('hex');
+        }
+        catch (error) {
+            digest = `unreadable:${error instanceof Error ? error.message : String(error)}`;
+        }
+        perFile.push(`${rel}=${digest}`);
+    }
+    const combined = createHash('sha256').update(`${head}\n${perFile.join('\n')}`).digest('hex');
+    return { head, combined };
+}
+function controlReviewBrief(files) {
+    return [
+        `Read ONLY these files: ${files.join(', ')}. Do NOT open, list, or run anything else — no shell command can`,
+        'succeed in this sandbox anyway.',
+        '',
+        `Report every real defect as one row in a table directly under the heading "${QE_LEDGER_HEADING}", using`,
+        'EXACTLY this header row (copy it verbatim):',
+        QE_FINDINGS_HEADER,
+        '',
+        'Columns: Finding (F1, F2, …, unique); Severity in {BLOCKER,CRITICAL,HIGH,MEDIUM,LOW,INFO}; Status is',
+        '"open" for every fresh finding; Round is always 1; Author is always codex. Title MUST start with',
+        '"<relative path from the list above>:<line number> — " then one line of description, e.g.',
+        '"src/thing.ts:42 — a stray unused variable in the handler".',
+        'Found nothing real? Write the header row with NO data rows under it — that is a valid clean review.',
+        '',
+        'Finish your ENTIRE answer with a line reading exactly: QE-VERDICT: <A|B|C|D>',
+    ].join('\n');
+}
+/** r1-7 (Codex r1 finding 7): the built-in brief now REQUIRES Title to open with
+ *  `<relative path>:<line> — `, and this extracts it — matched against the CANONICAL scope list
+ *  (closed vocabulary, never an arbitrary regex), so a title cannot spoof a file/line pointing
+ *  outside the reviewed scope. No match ⇒ the whole title is kept verbatim, file/line stay absent —
+ *  never a guessed split. This is what makes the file+line matching rule reachable for real
+ *  Codex output at all (it had no file/line columns before). */
+function extractFileLineFromTitle(title, scope) {
+    // Lead delta after Codex r2 (finding 6 OPEN): the extractor used to recognise ONLY in-scope
+    // prefixes, so `src/outside.ts:1 — …` was laundered into a finding with NO file and accepted. Now
+    // ANY `<path>:<line> — ` prefix is extracted and the scope decision is made explicitly by the
+    // caller: outside ⇒ refused (`outside scope`), missing ⇒ refused (`no <path>:<line> prefix`).
+    const m = /^(\S+?):(\d+)\s+—\s+(.+)$/.exec(title);
+    if (m === null)
+        return { title, prefix: 'missing' };
+    const file = m[1];
+    const line = Number(m[2]);
+    const rest = m[3].trim();
+    return { file, line, title: rest, prefix: scope.includes(file) ? 'in-scope' : 'outside-scope' };
+}
+/** Every `\ncodex\n` banner marks where one of the model's own answer TURNS starts in a `codex
+ *  exec` log (mirrors `classifyRoundExecOutcome`'s marker, `round-exec.ts:46`); a well-formed log
+ *  carries exactly one. `textAfterCodexBanner` keeps ONLY the LAST segment (the model's final
+ *  answer, same contract as before) — but r1-11 also needs the segments BEFORE it, to detect an
+ *  ambiguous answer boundary (see `codexAnswerBoundaryAmbiguous` below). */
+function codexBannerSegments(logText) {
+    const marker = '\ncodex\n';
+    const starts = [];
+    let idx = logText.indexOf(marker);
+    while (idx !== -1) {
+        starts.push(idx + marker.length);
+        idx = logText.indexOf(marker, idx + marker.length);
+    }
+    return starts.map((start, i) => logText.slice(start, i + 1 < starts.length ? starts[i + 1] - marker.length : logText.length));
+}
+function textAfterCodexBanner(logText) {
+    const segments = codexBannerSegments(logText);
+    if (segments.length === 0)
+        return '';
+    return stripCodexTokensFooter(segments[segments.length - 1]);
+}
+/** Live-run delta (2026-09-17 06:47 UTC, first real `dz control-review`): the Codex CLI prints its
+ *  final message, then a footer `tokens used\n<n>`, then the SAME final message AGAIN. Both copies
+ *  land in the last banner segment, so the report carried two `## Findings ledger` headings and the
+ *  parser (correctly) refused the table as non-unique — the whole control was refused with two live
+ *  reviews already paid for. The footer line is the CLI's own, never part of an answer: everything
+ *  from the first standalone `tokens used` line onward is dropped. */
+function stripCodexTokensFooter(segment) {
+    const lines = segment.split('\n');
+    const idx = lines.findIndex((l) => l.trim() === 'tokens used');
+    return idx === -1 ? segment : lines.slice(0, idx).join('\n');
+}
+/** r1-11 (Codex r1 finding 11): if an EARLIER banner segment already carried an accepted findings
+ *  table and the FINAL segment does not, the "answer" is ambiguous — a stray standalone `codex`
+ *  line later in the log (echoed input, a stale re-run) could otherwise discard a genuine table by
+ *  the simple "keep everything after the LAST banner" rule. Refused, never guessed at — the ADR's
+ *  own words for this: "no mechanism to distinguish it from the answer". */
+function codexAnswerBoundaryAmbiguous(logText) {
+    const segments = codexBannerSegments(logText);
+    if (segments.length < 2)
+        return false;
+    const prev = parseQeFindings(segments[segments.length - 2]);
+    const prevAccepted = prev.status === 'present' && (prev.tableStatus === 'accepted' || prev.tableStatus === 'accepted-hollow');
+    const last = parseQeFindings(segments[segments.length - 1]);
+    const lastAccepted = last.status === 'present' && (last.tableStatus === 'accepted' || last.tableStatus === 'accepted-hollow');
+    return prevAccepted && !lastAccepted;
+}
+/** Validates `--files a,b` with the SAME hygiene `dz qe-bridge --files` already applies (relative,
+ *  no `..`, no control chars, contained under root, a real regular file) — returns the clean list
+ *  or a usage reason naming the first offending entry. */
+function validateControlScope(root, raw) {
+    const entries = raw.split(',').map((s) => s.trim()).filter((s) => s !== '');
+    if (entries.length === 0)
+        return { ok: false, reason: '--files must name at least one file' };
+    const files = [];
+    for (const rel of entries) {
+        if (hasUnsafePathChars(rel) || hasDotDotSegment(rel) || isAbsolute(rel)) {
+            return { ok: false, reason: `--files entry "${rel}" must be a repo-relative path with no ".." segments and no control characters` };
+        }
+        const check = containedUnderRoot(root, rel);
+        if (!check.ok)
+            return { ok: false, reason: `--files entry "${check.why}"` };
+        let st;
+        try {
+            st = lstatSync(check.path);
+        }
+        catch {
+            return { ok: false, reason: `--files entry "${rel}" does not exist` };
+        }
+        if (!st.isFile())
+            return { ok: false, reason: `--files entry "${rel}" is not a regular file (symlinks are refused)` };
+        files.push(rel);
+    }
+    return { ok: true, files };
+}
+/** r1-6 (Codex r1 finding 6): Codex used to run with `cwd: root` and a repo-wide read-only
+ *  sandbox — "Read ONLY these files" was a PROMPT, not an enforced boundary. This copies exactly
+ *  the scoped files into an isolated directory (preserving their relative paths, so the brief's own
+ *  paths still resolve) and the caller runs Codex there instead — defense in depth, not the ONLY
+ *  guard: a finding naming a file outside `scope` is still refused at ingestion
+ *  (`partitionOutsideScope` below) regardless of whether Codex peeked outside via an absolute path. */
+function buildIsolatedScopeDir(root, scopeDir, files) {
+    mkdirSync(scopeDir, { recursive: true, mode: 0o700 });
+    try {
+        chmodSync(scopeDir, 0o700);
+    }
+    catch { /* not ours to tighten a pre-existing shared dir */ }
+    for (const rel of files) {
+        const dest = join(scopeDir, rel);
+        mkdirSync(dirname(dest), { recursive: true, mode: 0o700 });
+        try {
+            chmodSync(dirname(dest), 0o700);
+        }
+        catch { /* best effort on a shared ancestor */ }
+        copyFileSync(join(root, rel), dest);
+    }
+}
+/** r1-6: any finding naming a `file` NOT in the canonical scope list is refused with a named
+ *  reason — never silently ingested. Applied to BOTH halves; in practice only the Claude half can
+ *  ever trigger it (a Codex `file` only ever comes from `extractFileLineFromTitle`, which is
+ *  closed over the scope list by construction), but the check runs uniformly rather than trusting
+ *  that invariant silently. */
+function partitionOutsideScope(list, scope) {
+    const scopeSet = new Set(scope);
+    const inScope = [];
+    const outside = [];
+    for (const item of list) {
+        if (item.file !== undefined && !scopeSet.has(item.file))
+            outside.push({ item, reason: `outside scope: ${item.file}` });
+        else
+            inScope.push(item);
+    }
+    return { inScope, outside };
+}
+/** r1-10 (Codex r1 finding 10): the reread used to accept ANY row sharing only stage/slug/runId,
+ *  ignore the writer's own return status, and never count appends. Now: the ledger's line count is
+ *  captured BEFORE the write, the write must add EXACTLY ONE line, and that line must deep-equal
+ *  the row WE asked to be written on every field we passed — fields the writer itself stamps on
+ *  (`ts`, `date`, `runnerId`, price/enrichment fields, …) are additive bookkeeping, outside this
+ *  comparison, never a substitute for the row's own content. */
+function controlRowWrittenExactlyOnce(before, after, expected) {
+    const linesOf = (text) => text.split('\n').filter((l) => l.trim() !== '');
+    const beforeLines = linesOf(before);
+    const afterLines = linesOf(after);
+    const added = afterLines.length - beforeLines.length;
+    if (added !== 1)
+        return { ok: false, reason: `expected exactly one new ledger line, observed ${added}` };
+    // Lead delta after Codex r2 (finding 10 PARTIAL / question c): a net +1 could hide a rewrite of
+    // older lines — the pre-write ledger must survive VERBATIM as the prefix of the post-write one.
+    for (let i = 0; i < beforeLines.length; i++) {
+        if (beforeLines[i] !== afterLines[i])
+            return { ok: false, reason: `pre-existing ledger line ${i + 1} changed during the write` };
+    }
+    const candidateLine = afterLines[afterLines.length - 1];
+    let parsed;
+    try {
+        parsed = JSON.parse(candidateLine);
+    }
+    catch {
+        return { ok: false, reason: 'the new ledger line is not valid JSON' };
+    }
+    if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        return { ok: false, reason: 'the new ledger line is not a JSON object' };
+    }
+    const row = parsed;
+    for (const [key, value] of Object.entries(expected)) {
+        if (!isDeepStrictEqual(row[key], value)) {
+            return { ok: false, reason: `ledger line disagrees with the written row on field "${key}"` };
+        }
+    }
+    return { ok: true };
+}
+async function cmdControlReview(options, flags, cwd, write, io) {
+    const json = flags.has('json');
+    const usage = 'dz control-review --slug <feature> --files a,b [--brief <file>] [--coder-family codex|claude] ' +
+        '[--codex-model gpt-5.6-sol] [--effort high] [--claude-model <id>] [--timeout-min 30] [--adjudicate <file>] ' +
+        '[--project <dir>] [--json]';
+    const usageError = (message) => {
+        write(json ? JSON.stringify({ ok: false, error: message, exitCode: 2 }) : `dz control-review: ${message}\n${usage}`);
+        return 2;
+    };
+    if (flags.has('help')) {
+        if (json) {
+            write(JSON.stringify({ help: usage, exitCode: 0 }));
+            return 0;
+        }
+        write(usage);
+        write('  Two INDEPENDENT scoped reviews of the SAME tree — a Claude qe-bridge half, then a Codex round-exec');
+        write('  half — diffed for foreign-unique findings per severity (ADR-001, feature cross-family-control-branch).');
+        write('  Automatic overlap is a CANDIDATE only (title-Jaccard>=0.5 with compatible file, or same-file+line±3');
+        write('  with jaccard>=0.2) — never confirmed overlap; --adjudicate produces the only CONFIRMED pairs.');
+        write('  A tree-hash drift between halves, a half with no accepted findings table, an unreadable Claude');
+        write('  signoff, a nonzero Codex exit/timeout, or an ambiguous answer boundary refuses — NO ledger row.');
+        write('  A finding naming a file outside --files is refused into the row\'s own refused/complete fields.');
+        return 0;
+    }
+    const ALLOWED_FLAGS = new Set(['json', 'help']);
+    for (const flag of flags)
+        if (!ALLOWED_FLAGS.has(flag))
+            return usageError(`unknown option --${flag}`);
+    const ALLOWED_OPTIONS = new Set(['slug', 'round', 'files', 'brief', 'coder-family', 'codex-model', 'effort', 'claude-model', 'timeout-min', 'adjudicate', 'project']);
+    for (const key of options.keys()) {
+        if (key.startsWith('_positional_'))
+            return usageError(`unexpected argument "${options.get(key)}"`);
+        if (!ALLOWED_OPTIONS.has(key))
+            return usageError(`unknown option --${key}`);
+    }
+    const slug = options.get('slug') ?? '';
+    if (!isSafeSlug(slug))
+        return usageError('a kebab-case --slug <feature> is required (no path separators, max 40 chars)');
+    const root = resolve(cwd, options.get('project') ?? '.');
+    const scoped = validateControlScope(root, options.get('files') ?? '');
+    if (!scoped.ok)
+        return usageError(scoped.reason);
+    const files = scoped.files;
+    const coderFamilyOpt = options.get('coder-family');
+    if (coderFamilyOpt !== undefined && coderFamilyOpt !== 'codex' && coderFamilyOpt !== 'claude') {
+        return usageError(`--coder-family must be codex or claude (got "${coderFamilyOpt}")`);
+    }
+    let adjudication;
+    const adjudicateArg = options.get('adjudicate');
+    if (adjudicateArg !== undefined) {
+        let raw;
+        try {
+            raw = readFileSync(resolve(cwd, adjudicateArg), 'utf-8');
+        }
+        catch {
+            return usageError(`--adjudicate file "${adjudicateArg}" is not readable`);
+        }
+        let parsed;
+        try {
+            parsed = JSON.parse(raw);
+        }
+        catch {
+            return usageError(`--adjudicate file "${adjudicateArg}" is not valid JSON`);
+        }
+        // r2 delta (new MEDIUM #1): JSON `null`, `pairs:[null]`, non-scalar ids or non-string `none`
+        // entries used to reach the core through unchecked casts and could throw — validated here.
+        const shapeError = `--adjudicate file "${adjudicateArg}" must be {"pairs":[{"codex":<id>,"claude":<id>},…],"none":["codex:<id>"|"claude:<id>",…]}`;
+        if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed))
+            return usageError(shapeError);
+        const obj = parsed;
+        const noneRaw = obj.none ?? [];
+        if (!Array.isArray(obj.pairs) || !Array.isArray(noneRaw))
+            return usageError(shapeError);
+        const isScalarId = (v) => (typeof v === 'string' && v.trim() !== '') || (typeof v === 'number' && Number.isFinite(v));
+        for (const p of obj.pairs) {
+            if (p === null || typeof p !== 'object' || Array.isArray(p))
+                return usageError(shapeError);
+            const pr = p;
+            if (!isScalarId(pr['codex']) || !isScalarId(pr['claude']))
+                return usageError(shapeError);
+        }
+        if (noneRaw.some((n) => typeof n !== 'string' || n.trim() === ''))
+            return usageError(shapeError);
+        adjudication = { pairs: obj.pairs, none: noneRaw };
+    }
+    const timeoutRaw = options.get('timeout-min') ?? '30';
+    const timeoutMinutes = Number(timeoutRaw);
+    if (!Number.isFinite(timeoutMinutes) || timeoutMinutes <= 0)
+        return usageError('--timeout-min must be a positive number');
+    const runId = `control-${new Date().toISOString().replace(/[:.]/g, '-')}-${randomBytes(4).toString('hex')}`;
+    const dirRel = join('features', slug, '.fa-state', 'control', runId);
+    const dirCheck = containedUnderRoot(root, dirRel);
+    if (!dirCheck.ok)
+        return usageError(`the control state directory ${dirCheck.why}`);
+    const dir = dirCheck.path;
+    mkdirSync(dir, { recursive: true, mode: 0o700 });
+    try {
+        chmodSync(dir, 0o700);
+    }
+    catch { /* not ours to tighten a pre-existing shared dir */ }
+    const startedMs = Date.now();
+    let snapA;
+    try {
+        snapA = controlTreeSnapshot(root, files);
+    }
+    catch (error) {
+        write(json ? JSON.stringify({ ok: false, error: `could not snapshot the tree: ${String(error)}`, exitCode: 1 }) : `dz control-review: could not snapshot the tree: ${String(error)}`);
+        return 1;
+    }
+    // ── half 1: Claude, via qe-bridge IN-PROCESS (the same in-process pattern `round exec` already
+    // uses for its own ledger write) — never re-implements qe-bridge's isolation/parsing. ──
+    const bridgeOptions = new Map([
+        ['family', 'claude'],
+        ['slug', slug],
+        ['project', root],
+        ['files', files.join(',')],
+        ['out', relative(root, join(dir, 'claude.md'))],
+    ]);
+    if (coderFamilyOpt !== undefined)
+        bridgeOptions.set('coder-family', coderFamilyOpt);
+    const claudeModel = options.get('claude-model');
+    if (claudeModel !== undefined)
+        bridgeOptions.set('model', claudeModel);
+    bridgeOptions.set('timeout', String(Math.round(timeoutMinutes * 60)));
+    const bridgeFlags = new Set(['json', 'allow-same-family']);
+    const bridgeOut = [];
+    const bridgeExit = await cmdQeBridge(bridgeOptions, bridgeFlags, cwd, (line) => bridgeOut.push(line));
+    const bridgeJsonLine = [...bridgeOut].reverse().find((l) => l.trim().startsWith('{'));
+    let bridgeResult = null;
+    try {
+        bridgeResult = bridgeJsonLine === undefined ? null : JSON.parse(bridgeJsonLine);
+    }
+    catch {
+        bridgeResult = null;
+    }
+    if (bridgeExit !== 0 || bridgeResult === null || bridgeResult['ok'] !== true) {
+        const reason = bridgeResult !== null && typeof bridgeResult['detail'] === 'string' ? bridgeResult['detail'] : bridgeOut.join(' | ');
+        write(json ? JSON.stringify({ ok: false, half: 'claude', reason, runId, exitCode: 1 }) : `dz control-review: claude half FAILED — ${reason}\n  no ledger row was written.`);
+        return 1;
+    }
+    let snapB;
+    try {
+        snapB = controlTreeSnapshot(root, files);
+    }
+    catch (error) {
+        write(json ? JSON.stringify({ ok: false, error: `could not snapshot the tree after the claude half: ${String(error)}`, exitCode: 1 }) : `dz control-review: could not snapshot the tree after the claude half: ${String(error)}`);
+        return 1;
+    }
+    if (snapB.combined !== snapA.combined) {
+        const reason = `treeSha drift after claude half — the scope changed mid-review; no ledger row was written`;
+        write(json ? JSON.stringify({ ok: false, reason, runId, exitCode: 1 }) : `dz control-review: ${reason}`);
+        return 1;
+    }
+    // r1-8 (Codex r1 finding 8): findings refused for cause (an unnormalizable severity, an
+    // out-of-scope file) are recorded DURABLY on the row itself, never only in a best-effort
+    // convenience file — accumulated across BOTH halves.
+    const refusedReasons = [];
+    let refusedClaudeCount = 0;
+    let refusedCodexCount = 0;
+    // The signoff on disk carries the FULL findings array; the bridge's own --json stdout carries
+    // only a count. Read the record the bridge already wrote and audited — this file is the
+    // AUTHORITATIVE record; an unreadable/unparseable signoff here is a total measurement failure,
+    // refused outright (r1-8), never silently treated as "0 findings mapped".
+    const signoffRel = typeof bridgeResult['signoff'] === 'string' ? bridgeResult['signoff'] : '';
+    if (signoffRel === '') {
+        const reason = 'claude half result carries no signoff path — control refused, no ledger row was written';
+        write(json ? JSON.stringify({ ok: false, half: 'claude', reason, runId, exitCode: 1 }) : `dz control-review: ${reason}`);
+        return 1;
+    }
+    let signoffFindingsRaw;
+    try {
+        const signoffText = (io.readClaudeSignoffText ?? ((p) => readFileSync(p, 'utf-8')))(join(root, signoffRel));
+        const signoffRaw = JSON.parse(signoffText);
+        signoffFindingsRaw = Array.isArray(signoffRaw.findings) ? signoffRaw.findings : [];
+    }
+    catch (error) {
+        const reason = `claude half signoff at ${relative(root, join(root, signoffRel))} could not be read/parsed: ${String(error)} — control refused, no ledger row was written`;
+        write(json ? JSON.stringify({ ok: false, half: 'claude', reason, runId, exitCode: 1 }) : `dz control-review: ${reason}`);
+        return 1;
+    }
+    const claudeFindingsRaw = [];
+    for (const f of signoffFindingsRaw) {
+        const sev = normalizeBridgeSeverity(String(f['severity'] ?? ''));
+        if (sev === null) {
+            refusedClaudeCount++;
+            refusedReasons.push(`claude:${String(f['n'])} severity ${JSON.stringify(f['severity'])} not in {critical,major,minor}`);
+            continue;
+        }
+        claudeFindingsRaw.push({
+            family: 'claude',
+            id: String(f['n']),
+            severity: sev,
+            title: String(f['title'] ?? ''),
+            ...(typeof f['file'] === 'string' ? { file: f['file'] } : {}),
+            ...(typeof f['line'] === 'number' ? { line: f['line'] } : {}),
+        });
+    }
+    const claudeScope = partitionOutsideScope(claudeFindingsRaw, files);
+    for (const { item, reason } of claudeScope.outside) {
+        refusedClaudeCount++;
+        refusedReasons.push(`claude:${item.id} ${reason}`);
+    }
+    const claudeFindings = claudeScope.inScope;
+    const bridgeCoderFamily = bridgeResult['coderFamily'] === 'openai' ? 'codex' : 'claude';
+    const claudeGrade = typeof bridgeResult['grade'] === 'string' ? bridgeResult['grade'] : null;
+    // ── half 2: Codex, via the SAME round-exec runner + test seam `dz round exec` already uses,
+    // but from an ISOLATED scope directory (r1-6) rather than the repo root. ──
+    const briefArg = options.get('brief');
+    let briefText;
+    if (briefArg !== undefined) {
+        try {
+            briefText = readFileSync(resolve(cwd, briefArg), 'utf-8');
+        }
+        catch {
+            return usageError(`--brief file "${briefArg}" is not readable`);
+        }
+    }
+    else {
+        briefText = controlReviewBrief(files);
+        if (briefText.length > CONTROL_REVIEW_BRIEF_CEILING_CHARS) {
+            write(json ? JSON.stringify({ ok: false, error: 'the built-in brief exceeded its own ceiling — pass --brief', exitCode: 1 }) : 'dz control-review: the built-in brief exceeded its own ceiling — pass --brief explicitly');
+            return 1;
+        }
+    }
+    const scopeDir = join(dir, 'scope');
+    try {
+        buildIsolatedScopeDir(root, scopeDir, files);
+    }
+    catch (error) {
+        const reason = `could not build the isolated scope directory: ${String(error)}`;
+        write(json ? JSON.stringify({ ok: false, error: reason, exitCode: 1 }) : `dz control-review: ${reason}`);
+        return 1;
+    }
+    const codexModel = options.get('codex-model') ?? 'gpt-5.6-sol';
+    const effort = options.get('effort') ?? 'high';
+    const logPath = join(dir, 'codex.log');
+    const receipt = await (io.roundSpawn ?? spawnRoundCodex)({
+        command: 'codex',
+        args: ['exec', '-c', `model=${codexModel}`, '-c', `model_reasoning_effort=${effort}`, '--sandbox', 'read-only', briefText],
+        cwd: scopeDir,
+        logPath,
+        timeoutMs: Math.round(timeoutMinutes * 60_000),
+    });
+    let codexLogText = '';
+    try {
+        codexLogText = readFileSync(logPath, 'utf-8');
+    }
+    catch { /* no output is an empty receipt */ }
+    const codexAnswer = textAfterCodexBanner(codexLogText);
+    try {
+        writeNewFileOrThrow(join(dir, 'codex.md'), codexAnswer === '' ? '(no output)\n' : codexAnswer);
+    }
+    catch { /* best-effort artifact; parsing below still proceeds from the in-memory text */ }
+    let snapC;
+    try {
+        snapC = controlTreeSnapshot(root, files);
+    }
+    catch (error) {
+        write(json ? JSON.stringify({ ok: false, error: `could not snapshot the tree after the codex half: ${String(error)}`, exitCode: 1 }) : `dz control-review: could not snapshot the tree after the codex half: ${String(error)}`);
+        return 1;
+    }
+    if (snapC.combined !== snapB.combined) {
+        const reason = 'treeSha drift after codex half — the scope changed mid-review; no ledger row was written';
+        write(json ? JSON.stringify({ ok: false, reason, runId, exitCode: 1 }) : `dz control-review: ${reason}`);
+        return 1;
+    }
+    // r1-9 (Codex r1 finding 9): the process's OWN status is checked BEFORE the table — an accepted
+    // table from a process that exited nonzero, or that timed out, is not trusted.
+    if (receipt.exitCode !== 0) {
+        const reason = `codex process exited ${receipt.exitCode ?? 'null'} — no ledger row was written`;
+        write(json ? JSON.stringify({ ok: false, reason, runId, exitCode: 1, codexExitCode: receipt.exitCode }) : `dz control-review: ${reason}`);
+        return 1;
+    }
+    if (receipt.timedOut) {
+        const reason = 'codex half timed out — no ledger row was written';
+        write(json ? JSON.stringify({ ok: false, reason, runId, exitCode: 1 }) : `dz control-review: ${reason}`);
+        return 1;
+    }
+    // r1-11: an earlier banner segment with an accepted table, superseded by a final segment WITHOUT
+    // one, is an ambiguous answer boundary — refused, never guessed at.
+    if (codexAnswerBoundaryAmbiguous(codexLogText)) {
+        const reason = 'answer boundary ambiguous — an earlier `codex` banner segment carried an accepted table but the final one did not; no ledger row was written';
+        write(json ? JSON.stringify({ ok: false, reason, runId, exitCode: 1 }) : `dz control-review: ${reason}`);
+        return 1;
+    }
+    const parsedCodex = parseQeFindings(codexAnswer);
+    const codexAccepted = parsedCodex.status === 'present' && (parsedCodex.tableStatus === 'accepted' || parsedCodex.tableStatus === 'accepted-hollow');
+    if (!codexAccepted) {
+        const reason = 'codex half has no accepted findings table — no ledger row was written';
+        write(json ? JSON.stringify({ ok: false, reason, runId, exitCode: 1, codexExitCode: receipt.exitCode }) : `dz control-review: ${reason}`);
+        return 1;
+    }
+    // r1-9: a verdict is required to be UNIQUE (readQeGrade — the same hardened reader `dz score`
+    // uses) — ambiguous/invalid/absent all refuse rather than diffing on a guessed grade.
+    const verdictReading = readQeGrade(codexAnswer);
+    if (verdictReading.status !== 'unique') {
+        const reason = `codex verdict ${verdictReading.status} (readQeGrade) — no ledger row was written`;
+        write(json ? JSON.stringify({ ok: false, reason, runId, exitCode: 1 }) : `dz control-review: ${reason}`);
+        return 1;
+    }
+    const codexGrade = verdictReading.grade;
+    const codexFindingsRaw = [];
+    if (parsedCodex.status === 'present') {
+        for (const r of parsedCodex.rows) {
+            const extracted = extractFileLineFromTitle(r.title, files);
+            if (extracted.prefix === 'missing') {
+                // r2 delta (finding 6): a Codex finding MUST carry a canonical in-scope location — a
+                // missing prefix is refused, never accepted as "no file"
+                refusedCodexCount++;
+                refusedReasons.push(`codex:${r.finding} no <path>:<line> prefix in title`);
+                continue;
+            }
+            codexFindingsRaw.push({
+                family: 'codex',
+                id: r.finding,
+                severity: r.severity,
+                title: extracted.title,
+                ...(extracted.file !== undefined ? { file: extracted.file } : {}),
+                ...(extracted.line !== undefined ? { line: extracted.line } : {}),
+                status: r.status,
+            });
+        }
+    }
+    const codexScope = partitionOutsideScope(codexFindingsRaw, files);
+    for (const { item, reason } of codexScope.outside) {
+        refusedCodexCount++;
+        refusedReasons.push(`codex:${item.id} ${reason}`);
+    }
+    const codexFindings = codexScope.inScope;
+    const diffResult = diffFamilyFindings(codexFindings, claudeFindings, adjudication);
+    if (!diffResult.ok) {
+        write(json ? JSON.stringify({ ok: false, reason: diffResult.reason, runId, exitCode: 1 }) : `dz control-review: ${diffResult.reason}\n  no ledger row was written.`);
+        return 1;
+    }
+    const endedMs = Date.now();
+    const built = buildControlRow({
+        slug,
+        runId,
+        coderFamily: bridgeCoderFamily,
+        scope: files,
+        tree: { before: snapA.combined, afterClaude: snapB.combined, afterCodex: snapC.combined },
+        codex: { accepted: codexAccepted, grade: codexGrade },
+        claude: { accepted: true, grade: claudeGrade },
+        diff: diffResult,
+        refused: { claude: refusedClaudeCount, codex: refusedCodexCount, reasons: refusedReasons },
+        tokens: parseCodexTokens(codexLogText),
+        minutes: Math.max(0, Math.round((endedMs - startedMs) / 60_000)),
+    });
+    if (!built.ok) {
+        write(json ? JSON.stringify({ ok: false, reason: built.reason, runId, exitCode: 1 }) : `dz control-review: ${built.reason}\n  no ledger row was written.`);
+        return 1;
+    }
+    const row = built.row;
+    // r1-10 (Codex r1 finding 10): the reread used to accept ANY row sharing only stage/slug/runId.
+    // Capture the ledger's own content BEFORE the write, require EXACTLY ONE new line, and
+    // deep-compare it against the row we asked to be written.
+    const readLedger = (r) => io.roundLedgerReader?.(r) ?? readRoundLedger(r);
+    const ledgerBefore = readLedger(root);
+    const writerExit = cmdFeatureAdrRecord(new Map([
+        ['kind', 'ledger'], ['stage', 'control'], ['slug', slug], ['row', JSON.stringify(row)], ['project', root],
+    ]), new Set(), root, () => undefined);
+    const ledgerAfter = readLedger(root);
+    // r2 delta (finding 10): the writer's own status is part of the receipt — a non-zero exit with a
+    // row that nevertheless appeared is a contradiction, reported as not-verified.
+    const verified = writerExit !== 0
+        ? { ok: false, reason: `ledger writer exited ${writerExit}` }
+        : controlRowWrittenExactlyOnce(ledgerBefore, ledgerAfter, row);
+    if (!verified.ok) {
+        const reason = `control row not verified on reread — ${verified.reason}`;
+        write(json ? JSON.stringify({ ok: false, reason, runId, exitCode: 3 }) : `dz control-review: строка control не подтверждена перечитыванием — ${verified.reason}`);
+        return 3;
+    }
+    try {
+        writeNewFileOrThrow(join(dir, 'control.json'), `${JSON.stringify({ row, diff: diffResult, files }, null, 2)}\n`);
+    }
+    catch { /* the ledger row is the record of truth; this is a convenience copy */ }
+    if (json) {
+        write(JSON.stringify({
+            ok: true, runId, slug, coderFamily: row.coderFamily,
+            confirmed: row.confirmed, candidate: row.candidate, onlyCodex: row.onlyCodex, onlyClaude: row.onlyClaude,
+            bySeverity: row.bySeverity, matchRule: row.matchRule, adjudicated: row.adjudicated,
+            complete: row.complete, refused: row.refused,
+            dir: relative(root, dir), exitCode: 0,
+        }));
+    }
+    else {
+        write(`dz control-review: ${runId} — coder family ${row.coderFamily}`);
+        write(`  confirmed ${row.confirmed} · candidate ${row.candidate} · onlyCodex ${row.onlyCodex} · onlyClaude ${row.onlyClaude}`);
+        write(`  bySeverity: ${JSON.stringify(row.bySeverity)}`);
+        write(`  matchRule: ${row.matchRule}`);
+        write(`  adjudicated: ${row.adjudicated ? 'yes' : 'no'} · complete: ${row.complete ? 'yes' : 'no'}`);
+        if (!row.complete)
+            write(`  refused: ${JSON.stringify(row.refused)}`);
+        write(`  dir: ${relative(root, dir)}`);
+    }
+    return 0;
+}
 function scoreReceiptFiles(root) {
     const featuresDir = join(root, 'features');
     let features;
@@ -17969,11 +18914,16 @@ function cmdScore(options, flags, cwd, write) {
             write('dz score --all [--project <dir>] [--json] — sweep immutable score receipts into the append-only chained aggregate');
             write('  disciplines: ADR confirmation · discrimination · cross-model QE · live verification · README-first · learning loop · amendments');
             write('  descriptive-only, never a gate: a low score exits 0');
+            write('dz score --by-family [--project <dir>] [--json] — ADR-001 cross-family-control-branch: per (coder,reviewer)');
+            write('  family pair — grade distribution, shippedShare, notShipped, fixRounds, foreign-unique findings from');
+            write('  `control` rows (n, bySeverity, auto vs adjudicated — every field "unknown" when n=0, never a');
+            write('  fabricated zero), refutedShare, costPerConfirmed, draftToShipped (shipped-only finals, latest by ts);');
+            write('  "control rows: 0" is printed honestly when none exist yet');
         }
         return 0;
     }
     for (const flag of flags) {
-        if (!new Set(['json', 'help', 'all']).has(flag)) {
+        if (!new Set(['json', 'help', 'all', 'by-family']).has(flag)) {
             write(json ? JSON.stringify({ error: `unknown option --${flag}`, exitCode: 1 }) : `dz score: unknown option --${flag}\n  allowed: --slug <feature>, --project <dir>, --json`);
             return 1;
         }
@@ -17984,6 +18934,17 @@ function cmdScore(options, flags, cwd, write) {
             write(json ? JSON.stringify({ error: what, exitCode: 1 }) : `dz score: ${what}\n  allowed: --slug <feature>, --project <dir>, --json`);
             return 1;
         }
+    }
+    if (flags.has('all') && flags.has('by-family')) {
+        write(json ? JSON.stringify({ error: '--all and --by-family are mutually exclusive', exitCode: 1 }) : 'dz score: --all and --by-family are mutually exclusive');
+        return 1;
+    }
+    if (flags.has('by-family')) {
+        if (options.has('slug')) {
+            write(json ? JSON.stringify({ error: '--by-family and --slug are mutually exclusive', exitCode: 1 }) : 'dz score: --by-family and --slug are mutually exclusive');
+            return 1;
+        }
+        return cmdScoreByFamily(options, cwd, write, json);
     }
     if (flags.has('all'))
         return cmdScoreAll(options, flags, cwd, write);
@@ -18056,6 +19017,103 @@ function cmdScore(options, flags, cwd, write) {
         write(renderScorecard(card));
         if (reqeNote)
             write('note: ' + reqeNote);
+    }
+    return 0;
+}
+/** Every `features/*\/.fa-state/qe-bridge/signoff-*.json` in the repo, reduced to the four fields
+ *  `aggregateByFamily`'s `draftToShipped` needs — best-effort, an unreadable file is skipped, never
+ *  fatal (the same discipline `scoreReceiptFiles` already uses for `score-*.json`). */
+function allQeBridgeSignoffs(root) {
+    const featuresDir = join(root, 'features');
+    let features;
+    try {
+        features = readdirSync(featuresDir, { withFileTypes: true });
+    }
+    catch {
+        return [];
+    }
+    const out = [];
+    for (const feature of features) {
+        if (!feature.isDirectory())
+            continue;
+        const dir = join(featuresDir, feature.name, '.fa-state', 'qe-bridge');
+        let entries;
+        try {
+            if (lstatSync(dir).isSymbolicLink())
+                continue;
+            entries = readdirSync(dir);
+        }
+        catch {
+            continue;
+        }
+        for (const name of entries) {
+            if (!name.startsWith('signoff-') || !name.endsWith('.json'))
+                continue;
+            try {
+                const rec = JSON.parse(readFileSync(join(dir, name), 'utf-8'));
+                const slug = typeof rec['slug'] === 'string' ? rec['slug'] : '';
+                const emittedAt = typeof rec['emittedAt'] === 'string' ? rec['emittedAt'] : '';
+                const grade = typeof rec['grade'] === 'string' ? rec['grade'] : '';
+                const coderFamily = typeof rec['coderFamily'] === 'string' ? rec['coderFamily'] : '';
+                if (slug === '' || emittedAt === '' || grade === '')
+                    continue;
+                out.push({ slug, emittedAt, grade, coderFamily });
+            }
+            catch { /* unreadable — skip, never a guess */ }
+        }
+    }
+    return out;
+}
+/**
+ * `dz score --by-family` (ADR-001 cross-family-control-branch, FR-7): the per-(coder,reviewer)-
+ * family aggregate over the WHOLE run-cost ledger, folding in every `dz control-review` row's
+ * foreign-unique measurement. Descriptive-only — exit 0 always, the same discipline `dz score`
+ * already follows, because this reports, it never gates.
+ */
+function cmdScoreByFamily(options, cwd, write, json) {
+    const root = resolve(cwd, options.get('project') ?? '.');
+    const ledgerText = readRoundLedger(root);
+    const parsed = parseControlRows(ledgerText.split('\n'));
+    const signoffs = allQeBridgeSignoffs(root);
+    const agg = aggregateByFamily(parsed, signoffs);
+    if (json) {
+        write(JSON.stringify({ ...agg, exitCode: 0 }, null, 2));
+        return 0;
+    }
+    if (agg.controlRows === 0) {
+        write('control rows: 0 — no control runs yet (foreign-unique findings not measured)');
+    }
+    else {
+        write(`control rows: ${agg.controlRows}`);
+    }
+    if (agg.incomplete) {
+        // live-run delta (2026-09-17 07:07, first real control row): name the ACTUAL cause — an incomplete
+        // control row (refused entries) is not an unreadable ledger line, and the old text said it was.
+        const causes = [];
+        if (parsed.unreadable > 0)
+            causes.push(`${parsed.unreadable} ledger line(s) could not be read`);
+        if (agg.incompleteControlRows > 0)
+            causes.push(`${agg.incompleteControlRows} control row(s) incomplete (refused entries — excluded from the measured figures)`);
+        write(`INCOMPLETE: ${causes.join('; ') || 'cause not identified'}`);
+    }
+    const pairKeys = Object.keys(agg.pairs).sort();
+    if (pairKeys.length === 0) {
+        write('no round/full rows in the ledger yet');
+        return 0;
+    }
+    for (const key of pairKeys) {
+        const p = agg.pairs[key];
+        write(`${key}: n=${p.n} · grades ${JSON.stringify(p.grades)} · shippedShare ${p.shippedShare === 'unknown' ? 'unknown' : p.shippedShare.toFixed(2)} · notShipped ${p.notShipped}`);
+        write(`  fixRounds: n=${p.fixRounds.n} mean=${p.fixRounds.mean === 'unknown' ? 'unknown' : p.fixRounds.mean.toFixed(2)}`);
+        // r1-13: n=0 ⇒ every other field is the literal string 'unknown' — a fabricated 0/{} is never
+        // printed for an unmeasured pair.
+        write(`  foreignUnique: n=${p.foreignUnique.n} incompleteRuns=${p.foreignUnique.incompleteRuns} bySeverity=${JSON.stringify(p.foreignUnique.bySeverity)} findings auto=${p.foreignUnique.auto} adjudicated=${p.foreignUnique.adjudicated} (runs ${p.foreignUnique.autoRuns}/${p.foreignUnique.adjudicatedRuns})`);
+        write(`  refutedShare: n=${p.refutedShare.n} value=${p.refutedShare.value === 'unknown' ? 'unknown' : p.refutedShare.value.toFixed(2)}`);
+        write(`  costPerConfirmed: n=${p.costPerConfirmed.n} value=${p.costPerConfirmed.value === 'unknown' ? 'unknown' : p.costPerConfirmed.value.toFixed(0)}`);
+        // r1-14: only outcome:'shipped' rows become a "final"; `finals` names how many shipped
+        // candidates existed for that (slug, family-pair) key before the latest-by-ts one won.
+        if (p.draftToShipped.length > 0)
+            write(`  draftToShipped: ${p.draftToShipped.map((d) => `${d.slug} ${d.first}->${d.final}${d.finals > 1 ? ` (finals:${d.finals})` : ''}`).join(', ')}`);
     }
     return 0;
 }
@@ -20711,6 +21769,8 @@ export async function runCli(argv, io = {}) {
                 return cmdReqe(options, flags, cwd, write);
             case 'qe-bridge':
                 return await cmdQeBridge(options, flags, cwd, write);
+            case 'control-review':
+                return await cmdControlReview(options, flags, cwd, write, io);
             case 'backlog':
                 return await cmdBacklog(options, flags, cwd, write, writeErr);
             case 'routing':

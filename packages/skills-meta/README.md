@@ -70,6 +70,11 @@ the copies match, sync is a no-op — it never modifies a legacy skill.
 
 ## Status
 
+`next` — carries the canonical `feature-adr` gate and module with **requirement coverage (C8)**, ADR ids
+by in-file heading, NOT-ESTABLISHED on an unclosed fence in a declaration input, the planner prompt naming its
+inputs, and ONE bracketed plan-repair round (backup → snapshot → repair → snapshot → re-gate → archive or
+proven restore). Staged: not yet versioned or published. See `@dzhechkov/skills-feature-adr` for the full account.
+
 `0.9.51` — carries the canonical `feature-adr` module with the new mandatory `Observability` section
 in Step 5: how the shipped feature will be watched, with "nothing to observe" accepted as a complete
 answer. See `@dzhechkov/skills-feature-adr@1.5.4`.

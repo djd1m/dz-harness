@@ -103,19 +103,39 @@ Runs after tier classification, only when `{AGENTIC_QE_MODE}` = `direct` | `dire
 
 Step 1 folds `{LEARNED_PATTERNS}` into the requirements brief as "lessons from previous features" — advisory context only, never requirements themselves. Why here: Step 0 is the one point where recall can be keyed to the feature's phase and domain — per-prompt hook auto-injection cannot see which pipeline step is running.
 
+### 7. Task Kind Classification (experiment-envelope, ADR-001)
+
+Classify the feature as exactly ONE of the six task kinds below, and write `Task kind: <x>` as its
+own line in the artifact. This feeds the experiment envelope the conveyor builds after this step —
+downstream learning reads the kind, not a paraphrase, so the line must use one of the exact words.
+
+| Task kind | Criterion |
+|-----------|-----------|
+| `feature` | A genuinely new capability, adapter, command, or skill did not exist before this run. |
+| `bugfix` | The change corrects observed incorrect behavior in existing code — a defect, not an absence. |
+| `refactor` | Behavior is unchanged; the change restructures, renames, or simplifies existing code. |
+| `tooling` | The change is to build/CI/dev-tooling/scripts rather than to the product's own runtime behavior. |
+| `docs` | The change is documentation-only (README, ADR prose, comments) with no code delta. |
+| `research` | The deliverable is a finding or a design decision, not a shipped code change. |
+
+If `args.taskKind` was passed explicitly by the caller, it OVERRIDES this classification — record
+both: `Task kind: <forced value> (forced by the caller)` as the kind of record, and your own
+classification separately if it differs, the same pattern Step 0 already uses for a forced tier.
+
 ## Output
 
 Set the following variables:
 
 ```
 {COMPLEXITY_TIER} = S | M | L | XL
+{TASK_KIND} = feature | bugfix | refactor | tooling | docs | research
 {ACTIVE_STEPS} = [0, 1, 6, 7, 8]  # example for S
 {TIME_BUDGET} = { requirements: 2, planning: 0, implementation: 10, qe: 3 }
 {DIMENSION_SCORES} = { files: 1, domains: 1, integrations: 1, breaking: 1, models: 1, crosscutting: 1 }
 {LEARNED_PATTERNS} = [ ... ]  # top-3 by confidence from memory_query; [] in reference mode / no hits / error
 ```
 
-Create artifact: `features/<slug>/00_complexity_assessment.md`
+Create artifact: `features/<slug>/00_complexity_assessment.md`, including the `Task kind: <x>` line.
 
 ## Checkpoint 0 Format
 

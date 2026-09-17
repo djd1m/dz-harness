@@ -36,7 +36,9 @@ export type MutationGateRunner = (command: string, options: {
      * mutation-gate-baseline-honesty FR-3: the extra env vars the REAL executor would set on top of
      * `process.env` for this run — currently just `VITEST_MAX_WORKERS`, set unconditionally
      * regardless of whether the test command is recognised as vitest (a non-vitest command still
-     * gets the env var; only the command-string injection is vitest-gated).
+     * gets the env var; only the command-string injection is vitest-gated). mutation-gate-inject-tokens
+     * FR-4 (MEASURED vitest 3.2.4): the env is read by vitest CONFIGS that opt in (this repo's
+     * `harness-core`/`harness-cli` vitest.config.ts do) — vitest itself does not read it.
      */
     readonly env: Readonly<Record<string, string>>;
 }) => MutationGateRunnerObservation;
@@ -81,6 +83,11 @@ export interface CliIo {
     readonly roundLessonExists?: (projectRoot: string, id: string) => boolean;
     readonly roundLedgerWriter?: (projectRoot: string, row: RoundLedgerRow | RoundExecLedgerRow) => unknown;
     readonly roundLedgerReader?: (projectRoot: string) => string;
+    /** cross-family-control-branch fix-round-1 (finding 8): reads the qe-bridge signoff FILE
+     *  `dz control-review` treats as the AUTHORITATIVE claude-half record. A test seam so "the
+     *  authoritative record cannot be read/parsed" (r1-8's hard refusal) is reproducible without a
+     *  real disk race — production always uses `readFileSync(path, 'utf-8')`. */
+    readonly readClaudeSignoffText?: (absolutePath: string) => string;
     readonly roundPidProbe?: (pid: number) => boolean | null;
     readonly roundRunRegistryReader?: (projectRoot: string) => string;
     readonly roundKillGraceMs?: number;

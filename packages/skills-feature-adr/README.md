@@ -1179,6 +1179,64 @@ pre-code probe that returns nothing no longer becomes an all-null baseline that 
 "every target changed".
 
 
+`next` — **the plan inherits requirements by contract, not by goodwill** (feature `plan-inherits-requirements`,
+staged: not yet versioned or published). Two swarms plus a cross-family check measured that the implementation
+plan referenced only 95 of 339 requirement ids across 8 M/L features (28 %), lost one requirement without a trace
+and introduced one contradiction, while the norm "every FR-N → a task" lived only in the module text — neither
+the planner prompt nor the K2 gate enforced it. Now:
+
+- **C8 — requirement coverage.** The K2 gate reads `01_requirements.md`, extracts every id declared at line start
+  in the four corpus shapes (heading / bold / list / table; `FR-N`, `NFR-N`, `AC-N`, `C-N`, with an optional
+  letter group and dotted sub-number — measured over 394 requirement files) and checks each by word boundary in
+  the plan. By default a WARN with the exact count; under `--require-requirements` (which the pipeline passes)
+  every missing id is its own FAIL line. An absent `01_requirements.md` is a WARN naming the absence, never a
+  skip; a file declaring no ids in the contract shapes says so. NAMED LIMIT, in the same form as C1's: C8 is a
+  grep — a prose mention satisfies it; "mentioned but not tasked" is not caught.
+- **C1 counts decisions by heading, not by filename.** `# ADR-NNN` / `## ADR-NNN` headings inside each ADR file
+  are the decisions the plan owes a task; a file holding four decisions now yields four checks, not one. No
+  heading ⇒ filename prefix with a WARN.
+- **An unclosed code fence on the declaration side is NOT-ESTABLISHED.** Masking it silently dropped every id
+  after it (measured); restoring it silently established a heading that was only example code. Neither silent
+  reading is honest, so the gate refuses with the file named — close the fence, rerun. The corpus has 0 such
+  files out of 831.
+- **The Step-6 planner is told the inputs by NAME** (`01_requirements.md`, every `03_adr/*.md`,
+  `05_architecture.md`, `03.5_ideation_report.md` / `04_domain_model.md` when present) and the C8 contract in the
+  same clause as C1/C2/C4 — the lesson that a gate whose contract is not named in the authoring prompt produces
+  refusal after refusal.
+- **ONE automatic repair round.** A genuine script-verdict FAIL re-dispatches the planner with the FAIL lines
+  ("close EXACTLY these gaps, keep everything else"). Because that sentence is a prompt and not a guarantee, the
+  round is bracketed: the plan is backed up first (no backup ⇒ no repair; a stale `.pre-repair` or a symlinked
+  plan refuses), snapshots before/after compare byte length, every `EXPECTED_CODE_TARGETS` line and every task
+  heading line WITH multiplicity, a snapshot that did not complete REJECTS (never fails open), the re-gate runs
+  before the backup is archived, and a rejected or still-failing repair is restored from the backup with the
+  restore PROVEN by POSIX `cksum` + length. `planGateAttempts` counts gate runs; `planRepair` carries the
+  outcome; a `plan-repair` ledger row is written either way. NAMED LIMIT: task bodies are not proven preserved
+  by any metric — a repair that keeps every heading, every target and 80 % of the bytes while gutting prose is
+  undetectable by construction.
+- The pure halves (`shellQuote`, `planBackupCmd`, `planRestoreCmd`, `planArchiveBackupCmd`, `planSnapshotCmd`,
+  `snapshotBlock`, `snapshotNumber`, `parsePlanSnapshot`) live in `@dzhechkov/harness-core` and are body-pinned
+  against the inline copies by the drift guard. Three Codex review rounds (C, C, D) — every finding either fixed
+  or named above; the full account is in `features/plan-inherits-requirements/08_qe_report.md`.
+
+Also staged: **the coder now gets the same recall lane the planner already had** (feature
+`coder-reads-and-recall`). `1.5.9` wired advisory decision-point micro-recall into Step 3 (ADR
+selection) and Step 6 (plan routing) only — Step 7 (Code) never called `prepareDecisionRecall` at
+all, so any lesson reaching the coder was a night-shift human pasting it into the brief by hand.
+`drDecisionShape` now knows a third decision kind, `code-implementation` → `step-7` /
+`feature-adr-decision-code-implementation`, kept apart from the plan's own `step-6` bandit context.
+The call sits INSIDE the code stage's checkpoint, before any of the three places that read the
+coder's prompt (the Claude dispatch, the Codex dispatch, and the training-pair capture) — so a
+resumed stage neither re-spends the recall nor loses it, and all three see the identical
+recall-augmented text. Separately measured (Step 0 of this feature, instrument: host workflow
+records → the coding-stage agent's own tool-call transcript): a comment added 24.08 naming the plan,
+every ADR, the architecture doc, requirements and the domain model by file name moved how often
+Claude-family coders opened `01_requirements.md` from 39 % (11 of 28 runs) before the change to 71 %
+(5 of 7) after — a real jump, but on **n = 7**, not a controlled comparison, and it says nothing
+about Codex-family coders: they were 77 % of the post-change sample and are invisible to this
+instrument (a Codex coder's transcript carries exactly one entry, the dispatch itself). Full method,
+the two false reads caught before the number was trusted, and the raw counts are in
+`features/coder-reads-and-recall/00_complexity_assessment.md`.
+
 `1.5.3` — **the workflow stops crashing on the way into Step 7.** `1.5.2` shipped a workflow that
 CALLED three helpers it never defined — `changeSetProbeCmd`, `parseHashProbe`, `changedFromHashes`
 (5 call sites, 0 definitions). `QE_SCOPE` defaults to `uncommitted`, so the guarded branch was true

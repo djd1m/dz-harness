@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "25700d1dddb101ee329428e06274b44a315f66bf349a6069c71f4549e7994843"
+        "sha256": "9cb4248a91efce5de5bc6c14a5447975f1502d87a5823a9b9ec31627aeb17431"
       },
       {
         "path": "dist/bin.d.ts",
@@ -33,31 +33,31 @@
       },
       {
         "path": "dist/boolean-flags.d.ts.map",
-        "sha256": "6dc1cb51c44d69d47ed68fa59ef83d3864e67c464fd52d19304d686b0d52db0f"
+        "sha256": "fd8f9606fd13f4820c8277214cbb7d6852e6221fdafa979b1964faaa9308461c"
       },
       {
         "path": "dist/boolean-flags.js",
-        "sha256": "2603e6ae974bae8ad682654f4c4ebd732e8a8c98b984c1cb539576cff0e37662"
+        "sha256": "9631153a7a7ef7fa20a45db5a674fbcafafba0137380d47c3d9573aa2bdb5411"
       },
       {
         "path": "dist/boolean-flags.js.map",
-        "sha256": "bc800f97db0d795fb323dfd8d5d8cf930dd3a426269e559fd6e73bb357f2024a"
+        "sha256": "dcdf455a11e08ab22398121ab0ff3c3a476c82d7388a8fd689ea3dd722301c3a"
       },
       {
         "path": "dist/cli.d.ts",
-        "sha256": "1452c5529edf1c4d57711ae9c6610cf37c7619a88024c3874c499060fc4d1c31"
+        "sha256": "f6d5634fd8272fc8d1ed997b713a3455de8480c9134de873a623ec6a50bf35bf"
       },
       {
         "path": "dist/cli.d.ts.map",
-        "sha256": "7f94e62679730c9277472d2d364a48ac5155673f01626e1c626fd645603d1f42"
+        "sha256": "784b7a7724168b93ab4e96007f3f489c5bcd64c2299f06a498d9c9e8953b95ad"
       },
       {
         "path": "dist/cli.js",
-        "sha256": "7ff779234a9fff2cc9d5e7e590948ca7bea6ccb820c9e10a80cb2c9591115ae7"
+        "sha256": "4aff4fdb17f2d89a40cda8ce6ee24043b406c7bea8c279b128ac39aa92a9109f"
       },
       {
         "path": "dist/cli.js.map",
-        "sha256": "5b74c2f0818c717ce5011d82ed0d618da997deee6ce3277422b988f6e4447afa"
+        "sha256": "58636ea688229166e093c1df822dc9f56d439e2df86807e72fc17551d10704dc"
       },
       {
         "path": "dist/command-inventory.d.ts",
@@ -125,19 +125,19 @@
       },
       {
         "path": "dist/known-flags.d.ts",
-        "sha256": "40403ed4e24cdf95cb2757653485d7cb4650ef8496af96927ab503c2a189c598"
+        "sha256": "d320af28676900abe8abccded35a6c95f76af2859c53d2be05fac0ec7aafe374"
       },
       {
         "path": "dist/known-flags.d.ts.map",
-        "sha256": "db7b4dead9a5ca4054c1e1e7df8c56eed65a9fa31771ab0b4930c67e228f326c"
+        "sha256": "3d012b93fa1b3638b23a9db046a009b7ef2d07a5aa08085c19ca8074ff1807a0"
       },
       {
         "path": "dist/known-flags.js",
-        "sha256": "77eac32f2c0e552e0417205a43f40d18feacb951a768b9303360f0321fd79f6b"
+        "sha256": "ae68882f87dc3ada48406413e7b837c7ccc2d26fde3934be3b724941e809f0a7"
       },
       {
         "path": "dist/known-flags.js.map",
-        "sha256": "abf5332fb08f5403d244232cf7528be8163fad17de90ec48fb0d5dc5c995ec03"
+        "sha256": "9058aaabcf2c0383e576c88c81911f93927f1e5ea04db9245c0fffc5ba93fe08"
       },
       {
         "path": "keys/README.md",
@@ -149,7 +149,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "35b3a632de14899e526be80a719a0c8e57ccf51ed30c2a93685c8921a47ed69e"
+        "sha256": "1416816778de222145e7fa9e73e1348b2e9e6cb411ef031aa2b9bed8436866c2"
       },
       {
         "path": "src/bin.ts",
@@ -157,11 +157,11 @@
       },
       {
         "path": "src/boolean-flags.ts",
-        "sha256": "8705ed4427b562d0f39fe772a75cfac13d4322afda4a675cbfcf1e5bbab57628"
+        "sha256": "1d69ce08223b81d2d528f649bd94343bb237c905e1c662797b5646e9ce37af2d"
       },
       {
         "path": "src/cli.ts",
-        "sha256": "a4d867e836a4fe0f58fcd812a0b6fc70985d35afa7a9f5dfd1fb5cd22cad58c6"
+        "sha256": "4747091d397819e9f427d9bd5f01624042776188eb96e22a1174593c32224620"
       },
       {
         "path": "src/command-inventory.ts",
@@ -181,9 +181,9 @@
       },
       {
         "path": "src/known-flags.ts",
-        "sha256": "31473bd65a04071f13b7a5994db1b0005b85494f8b8abcc4321c8f5927270fe0"
+        "sha256": "1d5a5a18894b1a658ca0249536bdc5b6e7e2be349c02dbfdcbdbbf4f6ece70d7"
       }
     ]
   },
-  "signature": "8E275iIp2aYmswvAnAAuuP7vpZ5v2REPrr7ioj3NAGznX1bpvB3I7eUKkR04nloxE/DK73boez5MhEFiyp6dCg=="
+  "signature": "3rGnpXxnXf1HpU9+xwBXUFU2aph4d9H8A5Cuc2UyddRl0+H63MbPGweOL5GP4PoI906BF07Kkk+EGVxCODuwDg=="
 }

@@ -13,7 +13,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "889d62c5dfafb53c0664867f0882e5712e47eb8aa7a44c6db46d082e693ed58d"
+        "sha256": "e72e7ae2a5adc046598feb5de0bcac114d5aa961571f57d2aa530186c1dbb4b3"
       },
       {
         "path": "bin/cli.js",
@@ -25,7 +25,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "d13930ae60a1d849d08b798dbb3b3ed4fb5d0b50c4c3910fc76a455dd9e6ce31"
+        "sha256": "8b0f75ec75e5f2a4e121c65a625abe6c9a8fb4b12732349293b78232348b2234"
       },
       {
         "path": "src/cli.js",
@@ -121,7 +121,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/00-complexity-router.md",
-        "sha256": "a1275bd960ddff1c61352f96d8b7a4249371190766f08d1778f5a54f98350950"
+        "sha256": "6a98ca7af49aabcb2e14a081815f1167740ac4dba2e0cbb938c87aceac47bfa3"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/01-requirements.md",
@@ -149,15 +149,15 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/06-implementation-plan.md",
-        "sha256": "c624e0ade0314ca07913ba64e092d4655f86201856e8188c3e616b2320226c1e"
+        "sha256": "5c8d4c79d5329702b8c75b9afb36ae335aa63c99e74045c0afa98e12658ee975"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/07-code.md",
-        "sha256": "c427a0abacb4bc1d969d9f47739ce2aeff286a66da73eab67bf042d5c4dc9a59"
+        "sha256": "fb054591e86d55cee184eab96b5f0440053ada8fa9edf619e4a66ec5ac371587"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/08-qe.md",
-        "sha256": "ea8fb546acb7f09816d2fc9f9189a86f2400b8cec91c9ba4b82b68a8e32920bb"
+        "sha256": "7973676cc9a5a6d8429c0bcdbe163bb5dc16e2d2f28a72698e44ad72d234e199"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/09-fleet-qe.md",
@@ -249,7 +249,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/scripts/check-plan-completeness.mjs",
-        "sha256": "cbe70a524f6ce7987b5e3961ee412b92c24c00d84066d438c759659d656efaa2"
+        "sha256": "08e69d2e63350fe2dc64483226fcd30901b77a8e930ca6280ef71181c67675b4"
       },
       {
         "path": "templates/.claude/skills/feature-adr/scripts/markdown-masker.mjs",
@@ -317,7 +317,7 @@
       },
       {
         "path": "templates/.claude/workflows/feature-adr.js",
-        "sha256": "22416f105c1b988c07f6cb9002a507b54b07842b5b4bb109b7e300ff52272603"
+        "sha256": "8900ff6bc777a078aa4e37d8e28a2ffbc612187354995f726daf93e6f87d3109"
       },
       {
         "path": "templates/lib/memory-protocol.md",
@@ -329,5 +329,5 @@
       }
     ]
   },
-  "signature": "WT7wArJY3aKuIMMVgbBzFO+Rqw7qfcaVh8UQ9MENSltqdTJTFAr/0TBOS5A89UAfczkluCrkTtyUvPOTQvaNCw=="
+  "signature": "lPrCKcYVN87Vvd2+Xm6HFSVQdv8eu1AXQ1yGKm42Vad53oNafZvw3gF50Jm4pG1FkKd9vJ1SH/0zHJVNZi9bAQ=="
 }

@@ -95,8 +95,8 @@ export { countLearningStoreRowsReadonly, quarantineTierParity } from './store-co
 export { STORE_GUARD_VERSION, STORE_COLLAPSE_MAX_FRACTION, STORE_COLLAPSE_LAST_ROWS, storeGuardPath, storeSnapshotPath, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, } from './store-guard.js';
 export { statuslineData, readFeatureAdrState, writeFeatureAdrState, featureAdrStateDir, featureAdrStatePath, writeFeatureAdrStateDetailed, renderFeatureAdrPhaseLine } from './statusline.js';
 export { ETA_MAX_STAGE_MS, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, } from './eta.js';
-export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, resetAgentdbEmbedderCache, getAgentdbEmbedderCacheStats, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema, readStoreGeneration, bumpStoreGeneration } from './agentdb-index.js';
-export { DEFAULT_EMBED_MODEL, LEGACY_EMBED_MODEL, DEFAULT_EMBED_DIM, KNOWN_EMBED_DIMS, resolveEmbedModel, readEmbedManifest, writeEmbedManifest, embedManifestPath, legacyEmbedManifest } from './embedding-config.js';
+export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, resolveStoreEmbedDtype, resetAgentdbEmbedderCache, getAgentdbEmbedderCacheStats, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema, readStoreGeneration, bumpStoreGeneration, resolveTransformersModule } from './agentdb-index.js';
+export { DEFAULT_EMBED_MODEL, LEGACY_EMBED_MODEL, DEFAULT_EMBED_DIM, KNOWN_EMBED_DIMS, KNOWN_EMBED_DTYPES, resolveEmbedModel, readEmbedManifest, writeEmbedManifest, embedManifestPath, legacyEmbedManifest, currentEmbedManifest, guardEmbedSpace, snapshotEmbedManifest } from './embedding-config.js';
 export { putBookKnowledge, queryBookKnowledge, bookKbPath } from './book-kb.js';
 export { applyReadonlyPragmas, classifySqliteReadFailure, warnOnce } from './sqlite-read-helpers.js';
 export { brainHome, brainBooksPath, brainAgentdbPath, brainRegistryPath, readRegistry, writeRegistry, listBrain, promoteProjectToBrain, updateBrainSource, queryBrain, searchBrainVectors, reindexBrainVectors, rerankHits, groundPrompt, expandKu, buildPrimer, writePrimer, readBookKus, exportBrainSlice, importBrainSlice, registerKusToBrain, } from './brain.js';
@@ -121,7 +121,8 @@ redactProfileBlock, TP_PROFILE_MARKER_START, TP_PROFILE_MARKER_END, TP_PROFILE_R
 codeCheckpointPersistAllowed, codeStageResultShapeValid, } from './feature-adr-checkpoints.js';
 // amendment-traceability (ADR-001/002/003): the deterministic half of the Step-8 amendment gate.
 export { MIN_MATCHABLE_ID_LENGTH, AMENDMENT_VACUITY_NOTE, normalizeTestId, amendmentSection, planSaysNoAmendments, parseAmendments, resolveAmendments, decideAmendmentOutcome, amendmentVerdictLine, amendmentsMissingFromPlan, amendmentSubject, extractTestTitles, amendmentIdsIn, amendmentSectionCount, amendmentDeclarationAmbiguity, mentionsAmendmentId, } from './amendment-trace.js';
-export { RECORD_MAX_LINE_CHARS, decideRecordWrite, decideReadBack, recordVerdictLine, } from './run-records.js';
+export { RECORD_MAX_LINE_CHARS, decideRecordWrite, decideReadBack, recordVerdictLine, parseModelSpec, } from './run-records.js';
+export { ENVELOPE_SCHEMA, TASK_KINDS, PRIORITIES as ENVELOPE_PRIORITIES, TIERS as ENVELOPE_TIERS, buildExperimentEnvelope, validateExperimentEnvelope, } from './feature-adr-envelope.js';
 export { decidePublishSigning, decidePostSigningVerification, decideSignableSet, publishSigningLine, signableSetLine } from './publish-signing.js';
 // contract-checklist (ADR-001): pure extraction, canonical rendering, typed report parsing, and
 // exact per-item verification. Filesystem discovery/containment stays in harness-cli.
@@ -172,7 +173,7 @@ LANDING_PROTOCOL_VERSION, LANDING_HASH_TOKEN, addExpectedCodeTarget, extractExpe
 PLAN_GATE_SCRIPT, planCompletenessGateCmd, parsePlanGateVerdict, 
 // p16-non-js-portability: the gate-script search chain's operator note (ADR-002/AM-7) and the
 // dzBin absolutization (ADR-003). Named for the same reason as the three above.
-refusalNoteFor, normalizeDzBin, 
+refusalNoteFor, shellQuote, planBackupCmd, planRestoreCmd, planArchiveBackupCmd, planSnapshotCmd, snapshotBlock, snapshotNumber, parsePlanSnapshot, normalizeDzBin, 
 // qe-bridge-claude: the bridge's path/slug hygiene reuses these rather than minting a second
 // definition of "safe" (ADR-001 D5-A).
 isSafeSlug, hasUnsafePathChars, hasDotDotSegment, 
@@ -187,6 +188,10 @@ export { CLAUDE_USAGE_MODELS, computeSpendReport, computeUsage, deriveUsageCalib
 export { claudeProjectsRoot, rawTokenMixOf, weightedTokensOf } from './usage.js';
 // Per-stage cost ledger + reconciliation invariant (feature cost-ledger, ADR-001/002/003).
 export { COST_LEDGER_SCOPE, COST_LEDGER_DEFECT_KINDS, COST_LEDGER_VERDICTS, DEFAULT_COST_LEDGER_EPSILON, extractCostSamples, parseWorkflowRunRecord, buildCostLedger, verifyCostLedgerReport, stageCostAggregates, renderCostLedger, costLedgerJsonl, listCostLedgerRuns, deriveCostLedger, deriveStageCostAggregates, writeCostLedgerJsonl, } from './cost-ledger.js';
+// Canonical stage taxonomy (feature measurement-integrity, ADR-001 D1).
+export { CANONICAL_STAGES, STAGE_LABEL_RULES, canonicalStage } from './feature-adr-stage-canon.js';
+// Codex rollout-log reader (feature measurement-integrity, ADR-001 D3).
+export { matchCodexRollouts, parseCodexRollout } from './codex-rollouts.js';
 export * from './safla-delta.js';
 export * from './architecture.js';
 export * from './project-skills.js';
@@ -226,6 +231,7 @@ export { WILSON_Z, MIN_INSTANCES, FALSIFY_NO_LIFT_MIN_N, NO_LIFT_MARGIN, MARGIN_
 // Run-process scorecard (feature dz-score, Reading C) — scores the DISCIPLINE of a feature-adr run
 // from its artifacts and folds immutable receipts into a chained aggregate. Descriptive-only,
 // permanently: neither the single-run score nor the aggregate gates.
+export * from './qe-findings.js';
 export * from './score.js';
 export * from './recap.js';
 export * from './provenance.js';
@@ -274,7 +280,9 @@ export { maskMarkdown } from './markdown-masker.js';
 export * from './confirmation-file-gate.js';
 export * from './run-registry.js';
 export { JOURNAL_KINDS, formatLine, parseLine, selectWindow, appendWitnessed } from './journal.js';
-export { openRound, closeRound, listRounds } from './round.js';
+export { openRound, closeRound, listRounds, validateClosedRoundLedgerRow } from './round.js';
 export { parseCodexTokens, classifyRoundExecOutcome, buildRoundExecRow } from './round-exec.js';
 export * from './run-cleanup.js';
+export * from './cross-family-control.js';
+export { debtRatchetVerdict, parsePinnedCeiling, ceilingUnreadableMessage } from './debt-ratchet.js';
 //# sourceMappingURL=index.js.map
