@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "9cb4248a91efce5de5bc6c14a5447975f1502d87a5823a9b9ec31627aeb17431"
+        "sha256": "2d17ef06db8e111662beece342a8e2fe699e9275269d74b0709e506f7f82ca3d"
       },
       {
         "path": "dist/bin.d.ts",
@@ -45,19 +45,19 @@
       },
       {
         "path": "dist/cli.d.ts",
-        "sha256": "f6d5634fd8272fc8d1ed997b713a3455de8480c9134de873a623ec6a50bf35bf"
+        "sha256": "bce1fcc4c709fbc69dda9040968adbcf88f2a6c8dee7ac04f33164a2794eb11c"
       },
       {
         "path": "dist/cli.d.ts.map",
-        "sha256": "784b7a7724168b93ab4e96007f3f489c5bcd64c2299f06a498d9c9e8953b95ad"
+        "sha256": "3f229b6bfe546aede11cfe81addc675b47913f49452a0b3b708a00f1aef254de"
       },
       {
         "path": "dist/cli.js",
-        "sha256": "4aff4fdb17f2d89a40cda8ce6ee24043b406c7bea8c279b128ac39aa92a9109f"
+        "sha256": "9f20faa5c8439bf6ce21037aa973083ecaaa290e1e60268e5f16714956e9be56"
       },
       {
         "path": "dist/cli.js.map",
-        "sha256": "58636ea688229166e093c1df822dc9f56d439e2df86807e72fc17551d10704dc"
+        "sha256": "889f8fe8075e5e1b4dea3bfd5965194e992c826e97267837bc866f91ac33c123"
       },
       {
         "path": "dist/command-inventory.d.ts",
@@ -149,7 +149,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "1416816778de222145e7fa9e73e1348b2e9e6cb411ef031aa2b9bed8436866c2"
+        "sha256": "a56e27ce7f0700922e096bf6bcb96b6e9ef1a9483c98fd731b07d53ef25bd78d"
       },
       {
         "path": "src/bin.ts",
@@ -161,7 +161,7 @@
       },
       {
         "path": "src/cli.ts",
-        "sha256": "4747091d397819e9f427d9bd5f01624042776188eb96e22a1174593c32224620"
+        "sha256": "0dc8ba3d3f64a9ec155ee5d62917e6d7826d7f558e97874bb03f0c33d3f1d59c"
       },
       {
         "path": "src/command-inventory.ts",
@@ -185,5 +185,5 @@
       }
     ]
   },
-  "signature": "3rGnpXxnXf1HpU9+xwBXUFU2aph4d9H8A5Cuc2UyddRl0+H63MbPGweOL5GP4PoI906BF07Kkk+EGVxCODuwDg=="
+  "signature": "j3WV9gGSGDnNyJ6eKUIeWscmaJwi1IQkSdQPoGq6/4GeURzHPzrj9ZIOf6muGflXFUCFMj2u40VCBQS8c9dfCA=="
 }
