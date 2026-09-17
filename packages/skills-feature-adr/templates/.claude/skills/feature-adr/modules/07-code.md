@@ -20,6 +20,7 @@ opus (complex code generation)
 - `{ADR_DECISIONS}` from Step 3 (M+)
 - `{DOMAIN_MODEL}` from Step 4 (L/XL)
 - Codebase context (existing patterns, conventions)
+- {LEARNED_PATTERNS} for Step 7 — the decision-recall block (≤3 lessons), appended to the coder prompt by the pipeline
 
 ## Protocol
 

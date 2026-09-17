@@ -3,10 +3,14 @@
 // Generalized from features/wave1-instrument-repair/check-plan-completeness.mjs (that copy is the
 // historical artifact of its run and stays untouched); this one is parameterized by feature dir.
 //
-// USAGE:  node .claude/skills/feature-adr/scripts/check-plan-completeness.mjs [<feature-dir>] [--tier=M] [--acid=A1,A2]
+// USAGE:  node .claude/skills/feature-adr/scripts/check-plan-completeness.mjs [<feature-dir>] [--tier=M] [--acid=A1,A2] [--require-requirements]
 //         <feature-dir> defaults to the current working directory.
 //         --tier=S|M|L|XL closes the ADR-less dodge (see S-TIER HONESTY); omitting it keeps the
 //         heuristic, and the skip note then names the dodge out loud.
+//         --require-requirements promotes C8 (below) from a WARN-with-count to a per-id FAIL; the
+//         pipeline passes this flag, so the check is introduced two-shot (ADR-001 plan-inherits-
+//         requirements): WARN first so the corpus can be measured without repainting every green
+//         fixture red, FAIL once the planner prompt names the contract (feature-adr.js Step 6).
 //
 // VERDICT CONTRACT (unchanged from the proven copy — never a silent pass):
 //   PASS            exit 0   last line: `K2 plan-completeness: PASS (...)`
@@ -21,6 +25,12 @@
 // 3dbd2851-adjacent) must parse task structure. Kept honest here: C1 catches "forgot entirely",
 // not "mentioned but not tasked".
 //
+// KNOWN LIMITATION (fix round 1, 2026-09-16, same class as C1 above): C8 is also a grep — a PROSE
+// mention of "FR-3" satisfies it exactly like a task reference. Kept honest here too: C8 catches
+// "forgot entirely", not "mentioned but not tasked". Masking the PLAN side (not just the 01/ADR
+// side) for C1 and C8 together, so a prose mention stops satisfying either check, is a separate
+// backlog item — filed by the lead, not chased here.
+//
 // Checks:
 //  C1  every ADR file in 03_adr/ has >=1 task line in 06_implementation_plan.md citing it (ADR-00N)
 //  C2  every Confirmation-numbered check in each ADR is named in the plan (by its test-file path)
@@ -29,6 +39,23 @@
 //      — SFDIPOT condition: line-level validation, reject-with-reason, not just block presence
 //  C4  the plan names the feature's OWN acid corpus (see "acid corpus" below)
 //  C5  the plan has an 'Inputs read:' line naming 03_adr, 05_architecture (wave-2 seam, cheap here)
+//  C8  every requirement id DECLARED in 01_requirements.md (FR-N, NFR-N, AC-N, C-N, with an optional
+//      letter group FR-AN and an optional fraction FR-N.N) is CITED by the plan, by word boundary —
+//      set difference over identifiers, exactly like C1, never text similarity. WARN with a count by
+//      default; FAIL per missing id under --require-requirements (see USAGE above). 01 absent or
+//      declaring no ids in the four contract shapes ⇒ WARN, same honesty discipline as C4's absent
+//      00_complexity_assessment.md.
+//      NAMED LIMIT (C-1, measured over 394 corpus files 2026-09-16): forms outside FR|NFR|AC|C — bare
+//      `RN`/`QN` registries, an id with no hyphen (`FR1`) — are NOT caught. Minority forms in the
+//      corpus; widening the regex "just in case" would manufacture false WARN/FAIL on real plans, so
+//      the limit is named here rather than chased.
+//      NAMED LIMIT (fix round 1, 2026-09-16): the `C-N` shape is read as a Constraint requirement id
+//      by this regex — the repo convention this gate trusts. A defect table uses `D-N` (`| D1 |`),
+//      never `C-N`; a table of open defects mislabeled with `C-N` rows would be misread as
+//      requirement ids. That is a corpus-naming-convention limit, not a bug this gate works around.
+//      Declared ids are read from 01 THROUGH `maskMarkdown` (fenced code and HTML comments stripped
+//      first, same reader C6 already uses below), so an id quoted inside an example or a comment is
+//      never mistaken for a declaration.
 //
 // S-TIER HONESTY (no 03_adr/): an S-tier run legitimately has no ADR files, and forcing it to fail a
 // plan gate it can never satisfy would make the gate a nuisance to route around. So:
@@ -60,9 +87,11 @@ const acidArg = argv.find((a) => a.startsWith('--acid='));
 const tierArg = argv.find((a) => a.startsWith('--tier='));
 const TIER = tierArg ? tierArg.slice('--tier='.length).trim().toUpperCase() : null;
 const TIER_REQUIRES_ADR = TIER === 'M' || TIER === 'L' || TIER === 'XL';
+const REQUIRE_REQUIREMENTS = argv.includes('--require-requirements');
 const dirArg = argv.find((a) => !a.startsWith('--'));
 const FDIR = resolve(dirArg && dirArg !== '' ? (isAbsolute(dirArg) ? dirArg : join(process.cwd(), dirArg)) : process.cwd());
 const planPath = join(FDIR, '06_implementation_plan.md');
+const requirementsPath = join(FDIR, '01_requirements.md');
 const adrDir = join(FDIR, '03_adr');
 const complexityPath = join(FDIR, '00_complexity_assessment.md');
 
@@ -77,6 +106,23 @@ const safe = (v) => String(v)
 const out = (s) => console.log(s);
 const notEstablished = (why) => { out(`K2 plan-completeness: NOT-ESTABLISHED — ${safe(why)}`); process.exit(3); };
 let failures = [], warnings = [], skips = [];
+
+// Lead delta after Codex rounds 2+3 (2026-09-16, plan-inherits-requirements): on the DECLARATION side
+// (01_requirements.md ids, ADR headings) an UNCLOSED fence is AMBIGUOUS INPUT — CommonMark reads it as
+// code to EOF, a human reads it as prose that forgot a backtick. Round 2 measured that masking it
+// silently DROPPED every id after it (FR-2 vanished, no line said so); round 3 showed that restoring
+// it silently ESTABLISHED a heading that was only example code. Neither silent reading is honest, so
+// the gate does what it does for every other input it cannot read: NOT-ESTABLISHED, naming the file —
+// "close the fence" is a one-character fix, and the corpus has ZERO such files today (MEASURED
+// 2026-09-16 11:58 UTC over 831 requirements/ADR files). The detector is the two masking modes
+// disagreeing: an unclosed fence with an empty or whitespace-only tail changes no id and needs no
+// verdict — a NAMED LIMIT of the proxy, not a gap in it.
+function maskDeclarations(text, label) {
+  const strict = maskMarkdown(text, { unclosed: 'mask' });
+  const restored = maskMarkdown(text, { unclosed: 'restore' });
+  if (strict !== restored) notEstablished(`${label} has an UNCLOSED code fence — an ambiguous declaration input establishes nothing (close the fence and rerun)`);
+  return strict;
+}
 
 if (!existsSync(FDIR)) notEstablished(`feature dir absent: ${FDIR}`);
 if (!existsSync(planPath)) notEstablished('06_implementation_plan.md absent');
@@ -166,9 +212,35 @@ if (adrFiles.length === 0 && TIER_REQUIRES_ADR) {
   skips.push(`C1: no 03_adr/ and the plan claims no ADR work — ADR-coverage check SKIPPED${TIER === 'S' ? ' (--tier=S, the legitimate S-tier shape)' : ' (NO --tier supplied: an M/L/XL run that simply never wrote 03_adr/ would dodge C1/C2 here — pass --tier to close it)'}`);
   skips.push('C2: no 03_adr/ — Confirmation-test coverage check SKIPPED');
 } else {
-  // C1 — ADR ids referenced by plan tasks
+  // C1 — ADR ids referenced by plan tasks (FR-4). Decisions are counted by HEADING inside the file
+  // (`# ADR-NNN` / `## ADR-NNN`, multiline), not by the filename prefix: a file named `001-004-*.md`
+  // that actually contains four decisions used to be checked as ONE. A file with no such heading
+  // falls back to the old filename-prefix path, WARNed so the fallback is never silent.
+  // Fix round 1 (2026-09-16): the file is read THROUGH `maskMarkdown` first (fenced code and HTML
+  // comments blanked, positions preserved) — a heading printed inside a ```-fenced example is not a
+  // real decision. Up to 3 leading spaces of indentation are tolerated (CommonMark's own limit for a
+  // line to still be a heading; 4+ spaces is indented code and is already blanked by the mask).
+  // NAMED LIMIT: a nested `### ADR-002` heading cited INSIDE ADR-001's own file as a cross-reference
+  // (rather than living in ADR-002's own file) is still counted as a decision owed a task — a corpus
+  // rarity, and telling "own decision" from "cross-reference" needs semantic parsing, the same class
+  // of limit the C1 grep above already accepts.
+  const ADR_HEADING_RE = /^ {0,3}#{1,6}\s*ADR-(\d+)\b/gm;
   for (const f of adrFiles) {
+    let adrTextForHeadings = null;
+    try { adrTextForHeadings = maskDeclarations(readFileSync(join(adrDir, f), 'utf-8'), `C1: ${safe(f)}`); } catch { adrTextForHeadings = null; }
+    const headingNums = adrTextForHeadings === null
+      ? []
+      : [...new Set([...adrTextForHeadings.matchAll(ADR_HEADING_RE)].map((mm) => mm[1]))];
+    if (headingNums.length > 0) {
+      for (const n of headingNums) {
+        const id = `ADR-${n}`;
+        const re = new RegExp(`ADR-0*${Number(n)}\\b`);
+        if (!re.test(plan)) failures.push(`C1: ${id} (${safe(f)}) has NO task in the plan referencing it`);
+      }
+      continue;
+    }
     const m = f.match(/^(\d{3})-/); if (!m) { warnings.push(`C1: unparseable ADR filename ${safe(f)}`); continue; }
+    warnings.push(`C1: ${safe(f)} has no ADR-NNN heading — falling back to the filename prefix`);
     const id = `ADR-${m[1]}`;
     const re = new RegExp(`ADR-0*${Number(m[1])}\\b`);
     if (!re.test(plan)) failures.push(`C1: ${id} (${safe(f)}) has NO task in the plan referencing it`);
@@ -429,6 +501,42 @@ else for (const t of acidTokens) if (!new RegExp(`\\b${t.replace(/[.*+?^${}()|[\
   const onlyPlan = [...inPlan].filter((c) => !inAdr.has(c));
   if (adrAll !== '' && onlyAdr.length > 0 && onlyPlan.length > 0) {
     warnings.push(`C7: ADR and plan cite DIFFERENT dz commands — ADR-only: ${onlyAdr.join(', ')}; plan-only: ${onlyPlan.join(', ')} — if these name the SAME thing, one of the two files is lying to the coder (seam д)`);
+  }
+}
+
+// ── C8 requirement-id coverage (FR-1/2/3, ADR-001 plan-inherits-requirements) ───────────────────
+// Set difference over IDENTIFIERS, exactly like C1 — never text similarity. Declared id forms are
+// measured from the corpus (see the USAGE-block comment above for the named C-1 limit): `FR-N`,
+// `NFR-N`, `AC-N`, `C-N`, an optional letter group (`FR-AN`) and an optional fraction (`FR-N.N`),
+// declared at the START of a line as a heading, a bold run, a list item, or a table cell.
+{
+  const REQ_ID_DECL_RE = /^\s*(?:#{1,6}\s*|[-*]\s+|\|\s*)?\**\s*((?:FR|NFR|AC|C)-[A-Z]?\d+(?:\.\d+)?)\b/gm;
+  const escapeReqId = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (!existsSync(requirementsPath)) {
+    warnings.push('C8: 01_requirements.md is ABSENT — requirement coverage had no input to read');
+  } else {
+    // Fix round 1 (2026-09-16): masked THROUGH maskMarkdown first, exactly like C1's heading scan —
+    // an id inside a ```-fenced example or an HTML comment is not a declaration.
+    const requirementsText = maskDeclarations(readFileSync(requirementsPath, 'utf-8'), 'C8: 01_requirements.md');
+    const reqIds = [...new Set([...requirementsText.matchAll(REQ_ID_DECL_RE)].map((mm) => mm[1]))];
+    if (reqIds.length === 0) {
+      warnings.push('C8: 01_requirements.md declares NO requirement ids in the contract shapes (FR-N / NFR-N / AC-N / C-N at line start) — nothing to cover');
+    } else {
+      const missing = reqIds.filter((id) => !new RegExp('\\b' + escapeReqId(id) + '\\b').test(plan));
+      if (missing.length === 0) {
+        // Silence is not a verdict (K7): a check that ran and found nothing wrong must still print,
+        // or a reader cannot tell "C8 ran clean" from "C8 never ran". Deliberately NOT a PASS/FAIL/
+        // NOT-ESTABLISHED word — parsePlanGateVerdict anchors on the LAST such word, and a stray one
+        // mid-stream is exactly the G-F1 forgery class this script's `safe()` already defends against.
+        out(`NOTE  C8: all ${reqIds.length} requirement ids referenced`);
+      } else if (REQUIRE_REQUIREMENTS) {
+        for (const id of missing) failures.push(`C8: ${id} (01_requirements.md) is not referenced by the plan`);
+      } else {
+        const shown = missing.slice(0, 12);
+        const more = missing.length > 12 ? `, …and ${missing.length - 12} more` : '';
+        warnings.push(`C8: ${missing.length} of ${reqIds.length} requirement ids are not referenced by the plan: ${shown.join(', ')}${more}`);
+      }
+    }
   }
 }
 

@@ -5,7 +5,7 @@
     "files": [
       {
         "path": "README.md",
-        "sha256": "e2f661392b2862870ae3ab05892493e5a7ddcdb86360690d126525f08b6d87a1"
+        "sha256": "3b4f6570d8cebd26429409ed23da99ddd082c378946cf722fe62d5b405e288c2"
       },
       {
         "path": "README.ru.md",
@@ -17,7 +17,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "56048c9ebf810b35645674fe4a413112af02be6a53836583d3c80b0ad4047dde"
+        "sha256": "67d60a0ad58316ec7c0cd264683d6d17e5fe7f33c746f151b95c0def597037d6"
       },
       {
         "path": "src/cli.js",
@@ -353,7 +353,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/00-complexity-router.md",
-        "sha256": "a1275bd960ddff1c61352f96d8b7a4249371190766f08d1778f5a54f98350950"
+        "sha256": "6a98ca7af49aabcb2e14a081815f1167740ac4dba2e0cbb938c87aceac47bfa3"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/01-requirements.md",
@@ -381,15 +381,15 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/06-implementation-plan.md",
-        "sha256": "c624e0ade0314ca07913ba64e092d4655f86201856e8188c3e616b2320226c1e"
+        "sha256": "5c8d4c79d5329702b8c75b9afb36ae335aa63c99e74045c0afa98e12658ee975"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/07-code.md",
-        "sha256": "c427a0abacb4bc1d969d9f47739ce2aeff286a66da73eab67bf042d5c4dc9a59"
+        "sha256": "fb054591e86d55cee184eab96b5f0440053ada8fa9edf619e4a66ec5ac371587"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/08-qe.md",
-        "sha256": "ea8fb546acb7f09816d2fc9f9189a86f2400b8cec91c9ba4b82b68a8e32920bb"
+        "sha256": "7973676cc9a5a6d8429c0bcdbe163bb5dc16e2d2f28a72698e44ad72d234e199"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/09-fleet-qe.md",
@@ -481,7 +481,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/scripts/check-plan-completeness.mjs",
-        "sha256": "cbe70a524f6ce7987b5e3961ee412b92c24c00d84066d438c759659d656efaa2"
+        "sha256": "08e69d2e63350fe2dc64483226fcd30901b77a8e930ca6280ef71181c67675b4"
       },
       {
         "path": "templates/.claude/skills/feature-adr/scripts/markdown-masker.mjs",
@@ -989,5 +989,5 @@
       }
     ]
   },
-  "signature": "Ni8QtKUfWoED6GoaSA9ARScSXZdJxtM6FSWTILwzYsRLvgJ6fyCmHV9Vz0IriuT0E/NXt8YYp1Oo8Np1iBpVDg=="
+  "signature": "Ld7xkqWgfHmJp0Xv+wKYPylP5opGZmCfibsIDam0NS90aZ6R9oLfJVeRljITB25umc7/zHZMW1MWLbMornUgDQ=="
 }

@@ -13,7 +13,9 @@ function oneLine(value, cap) {
 function decisionShape(kind) {
     return kind === 'adr-alternative-selection'
         ? { stage: 'step-3', banditContext: 'feature-adr-decision-adr-alternative' }
-        : { stage: 'step-6', banditContext: 'feature-adr-decision-plan-route' };
+        : kind === 'code-implementation'
+            ? { stage: 'step-7', banditContext: 'feature-adr-decision-code-implementation' }
+            : { stage: 'step-6', banditContext: 'feature-adr-decision-plan-route' };
 }
 export function buildDecisionContext(opts) {
     const slug = oneLine(opts.slug, 80);
@@ -272,8 +274,8 @@ function validBase(value) {
     return typeof value.slug === 'string' && value.slug !== ''
         && typeof value.logicalDecisionId === 'string' && /^decision:[0-9a-f]{16}$/.test(value.logicalDecisionId)
         && typeof value.attemptId === 'string' && value.attemptId.startsWith(`${value.logicalDecisionId}:`)
-        && (value.stage === 'step-3' || value.stage === 'step-6')
-        && (value.decisionKind === 'adr-alternative-selection' || value.decisionKind === 'plan-route-selection')
+        && (value.stage === 'step-3' || value.stage === 'step-6' || value.stage === 'step-7')
+        && (value.decisionKind === 'adr-alternative-selection' || value.decisionKind === 'plan-route-selection' || value.decisionKind === 'code-implementation')
         && typeof value.ts === 'string' && value.ts !== '';
 }
 function validDisposition(raw) {

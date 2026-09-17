@@ -19,6 +19,7 @@
  *
  * PURE: the CLI reads the artifact files; this module only classifies.
  */
+import { type QeFindingsRefusedRow, type QeFindingsSummary } from './qe-findings.js';
 export type DisciplineVerdict = 'pass' | 'partial' | 'absent';
 export interface DisciplineScore {
     readonly id: string;
@@ -40,10 +41,32 @@ export interface RunScorecard {
      * stay distinguishable.
      */
     readonly mutationEvidence?: MutationEvidence;
+    /**
+     * qe-findings-record FR-4: where `qeGrade` came from — a machine-written `QE-VERDICT:` line, the
+     * pre-existing prose scan, or neither. ADDITIVE for the same reason as `mutationEvidence`: every
+     * scorecard built before this field existed still satisfies `RunScorecard`.
+     */
+    readonly gradeSource?: GradeSource;
+    /**
+     * qe-findings-record FR-4: the report's Findings ledger, when one exists. `absent` for the 406
+     * pre-existing reports that carry neither the table nor the heading (NFR-1) — never omitted, for
+     * the same "gate never ran vs a field an older scorer never wrote" reason `mutationEvidence` gives.
+     */
+    readonly findings?: QeFindingsScoreView;
     readonly passed: number;
     readonly total: number;
     readonly summary: string;
 }
+/** A lighter projection of `QeFindingsResult` for the scorecard — summary + refused + hollow, never
+ *  the full row list (that stays in `parseQeFindings`'s own return value for a caller that wants it). */
+export type QeFindingsScoreView = {
+    readonly status: 'absent';
+} | {
+    readonly status: 'present';
+    readonly hollow: boolean;
+    readonly summary: QeFindingsSummary;
+    readonly refused: readonly QeFindingsRefusedRow[];
+};
 /** The artifact texts of one run, keyed by RELATIVE path under `features/<slug>/`. */
 /**
  * The exact heading Step 5 asks for, and the exact heading the check looks for — ONE constant, so
@@ -100,13 +123,28 @@ export interface MutationEvidence {
     readonly evidence: string;
 }
 export declare function readMutationEvidence(text: string): MutationEvidence;
-export type GradeReadStatus = 'unique' | 'ambiguous' | 'none';
+/**
+ * fix-round-1 (codex-r1-verdict finding 2): `'invalid'` is a report that ATTEMPTED a machine verdict
+ * (a line starting `QE-VERDICT`, any case/spacing) and got the grammar wrong — `QE-VERDICT: B – final`
+ * (en dash + trailing prose), wrong case, no colon, a grade outside A-D. That is a DIFFERENT fact from
+ * `'none'` (no attempt at all, legacy prose scan still applies): a malformed attempt must never fall
+ * back to guessing a grade from prose — the malformed line is itself evidence the report is unreliable
+ * here, and guessing past it would silently launder that unreliability into a confident number.
+ */
+export type GradeReadStatus = 'unique' | 'ambiguous' | 'none' | 'invalid';
+/**
+ * qe-findings-record (ADR-001 D1): where the grade came from. `'verdict-line'` — a machine-written
+ * `QE-VERDICT:` line, the source of truth when present. `'prose'` — the pre-existing GRADE_RE scan,
+ * unchanged, used only when NO verdict line exists. `'none'` — neither surface names a grade.
+ */
+export type GradeSource = 'verdict-line' | 'prose' | 'none';
 export interface GradeReading {
     readonly status: GradeReadStatus;
     /** The grade, ONLY when the report names one unambiguously. */
     readonly grade: string | null;
     /** Every distinct grade found, normalised — what makes an `ambiguous` verdict inspectable. */
     readonly found: readonly string[];
+    readonly source: GradeSource;
 }
 /**
  * Read the review grade a report states — and refuse to guess when it states more than one.
@@ -123,6 +161,11 @@ export interface GradeReading {
 export declare function readQeGrade(qeText: string): GradeReading;
 export declare function extractQeGrade(qeText: string): string | null;
 export declare function scoreRun(slug: string, artifacts: RunArtifacts): RunScorecard;
+/** qe-findings-record FR-4: the one-line summary `dz score` prints for a report's Findings ledger —
+ *  "findings: 3 HIGH / 2 MEDIUM; 1 refused (line 84: severity "Major" not in dictionary)". Ordered by
+ *  QE_SEVERITIES (BLOCKER first) so the worst finding always reads first. `null` when there is no
+ *  table at all — the common case, which earns no noise (same rule as mutationEvidence above). */
+export declare function renderFindingsLine(findings: QeFindingsScoreView | undefined): string | null;
 export declare function renderScorecard(card: RunScorecard): string;
 /** The append-only projection of one immutable `score-<qeHash>.json` receipt. */
 export interface ScoreAggregateRow {

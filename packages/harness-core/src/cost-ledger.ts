@@ -52,6 +52,8 @@ import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSy
 import { dirname, join } from 'node:path';
 
 import { hasKnownPricing, usageCost } from './cost-scoring.js';
+import { CANONICAL_STAGES, canonicalStage } from './feature-adr-stage-canon.js';
+import type { CanonicalStage } from './feature-adr-stage-canon.js';
 import { claudeProjectsRoot, rawTokenMixOf, weightedTokensOf } from './usage.js';
 
 // ── Scope + vocabulary ──────────────────────────────────────
@@ -91,14 +93,21 @@ export const COST_LEDGER_DEFECT_KINDS: readonly CostLedgerDefectKind[] = [
 ];
 
 /**
- * Three values, not two. `INSUFFICIENT_DATA` is NOT success: a caller must not read
- * `verdict !== 'DEFECT'` as "reconciled" (ADR-003).
+ * Four values, not two (measurement-integrity ADR-001 D2 grew this from three). `INSUFFICIENT_DATA`
+ * is NOT success: a caller must not read `verdict !== 'DEFECT'` as "reconciled" (ADR-003).
+ * `INCOMPLETE_INVENTORY` is likewise not success — it names the SPECIFIC case where every unaccounted
+ * token traces to a named orphan transcript (a directory listing the record's own inventory does not
+ * know about), with no OTHER attribution defect present. It outranks `BALANCED` (an orphan transcript
+ * can never read as balanced) and is outranked by `DEFECT` (a genuine attribution defect — double
+ * counting, a foreign sample, spend unaccounted for reasons OTHER than a named orphan — is a worse
+ * finding than "the inventory is incomplete but everything it does have reconciles").
  */
-export type CostLedgerVerdict = 'BALANCED' | 'DEFECT' | 'INSUFFICIENT_DATA';
+export type CostLedgerVerdict = 'BALANCED' | 'DEFECT' | 'INCOMPLETE_INVENTORY' | 'INSUFFICIENT_DATA';
 
 export const COST_LEDGER_VERDICTS: readonly CostLedgerVerdict[] = [
   'BALANCED',
   'DEFECT',
+  'INCOMPLETE_INVENTORY',
   'INSUFFICIENT_DATA',
 ];
 
@@ -168,6 +177,17 @@ export interface CostLedgerRow {
   readonly slug: string | null;
   /** `stageLabel()` output, verbatim. */
   readonly stage: string;
+  /** measurement-integrity FR-2/ADR-001 D1: the canonical bucket `stage` classifies into, NEXT TO
+   *  the untouched verbatim `stage` — never a replacement for it. `'unknown'` when no rule matches. */
+  readonly stageCanonical: CanonicalStage | 'unknown';
+  /** measurement-integrity FR-4: 1-based position of THIS occurrence among stage entries that share
+   *  `stage`'s exact label, in record order — `attempt: 1, attempts: 1` when the label occurs once. */
+  readonly attempt: number;
+  /** Total number of stage entries in this run that share `stage`'s exact label. A repeated label no
+   *  longer merges silently into one row (ADR-001 D... measurement-integrity FR-4): each occurrence
+   *  is its OWN row, and every one of them carries the same `attempts` count so a reader grouping by
+   *  `stage` can tell there were several without re-deriving it. */
+  readonly attempts: number;
   readonly phase: string | null;
   /** The stage's model id, or `'mixed'` when several agents share a label with different models. */
   readonly model: string;
@@ -214,6 +234,18 @@ export interface CostLedgerReconciliation {
   readonly identityHolds: boolean;
   readonly verdict: CostLedgerVerdict;
   readonly defects: readonly CostLedgerDefect[];
+  /** measurement-integrity FR-3/ADR-001 D2: transcripts present in the run's directory that have NO
+   *  `workflowProgress[]` entry in the record — named explicitly rather than dissolved into a generic
+   *  `unaccountedTokens` remainder. `method: 'per-transcript'` means `tokens` is an exact sum over
+   *  each orphan's own extracted samples; `'count-fallback'` means only the COUNT (and, where
+   *  available, the ids) is known and `tokens` falls back to the reconciliation's own
+   *  `unaccountedTokens` as the best available estimate — always present, always additive. */
+  readonly orphanTranscripts: {
+    readonly count: number;
+    readonly tokens: number;
+    readonly ids: readonly string[];
+    readonly method: 'per-transcript' | 'count-fallback';
+  };
 }
 
 export interface CostLedgerReport {
@@ -223,6 +255,12 @@ export interface CostLedgerReport {
   readonly status: string | null;
   readonly startedTs: string | null;
   readonly rows: readonly CostLedgerRow[];
+  /** measurement-integrity FR-2/T1: rows re-aggregated by `stageCanonical`, plus two synthetic
+   *  buckets — `unknown` (rows whose verbatim label matched no canon rule) and `unattributed` (the
+   *  orphan-transcript tokens from `reconciliation.orphanTranscripts`, which belong to no stage row
+   *  at all). Every one of the 12 {@link CanonicalStage} values is always present, even at zero, so a
+   *  reader can iterate a stable key set. */
+  readonly byCanonicalStage: Record<CanonicalStage | 'unknown' | 'unattributed', { readonly tokens: number; readonly agents: number; readonly attempts: number }>;
   readonly reconciliation: CostLedgerReconciliation;
   /** The record's cached raw sum — reported, never the invariant's right-hand side (ADR-002). */
   readonly recordTotalTokens: number | null;
@@ -412,8 +450,17 @@ export interface BuildCostLedgerInput {
   readonly stageSamples: readonly { readonly agentId: string; readonly samples: readonly CostLedgerSample[] }[];
   /** RIGHT side — the dedup-union over the run's transcript DIRECTORY (ADR-002). */
   readonly runSamples: readonly CostLedgerSample[];
-  /** Agent transcripts present in the run directory with no `workflowProgress[]` entry. */
+  /** Agent transcripts present in the run directory with no `workflowProgress[]` entry — ids only.
+   *  Kept for the `Unaccounted` defect's `subjects` listing; superseded by `orphanTranscripts` below
+   *  for the FR-3 `orphanTranscripts.tokens` figure whenever the caller can supply per-orphan samples. */
   readonly orphanAgentIds?: readonly string[];
+  /** measurement-integrity FR-3: the SAME orphan transcripts as `orphanAgentIds`, but carrying each
+   *  one's own extracted samples so `reconciliation.orphanTranscripts.tokens` is an EXACT sum rather
+   *  than a derived remainder. When omitted, `orphanAgentIds` alone still produces a named
+   *  `orphanTranscripts` entry (`method: 'count-fallback'`, `tokens` = the reconciliation's own
+   *  `unaccountedTokens` as the best available estimate) — the count/ids are never lost even without
+   *  the precise per-transcript figure. */
+  readonly orphanTranscripts?: readonly { readonly agentId: string; readonly samples: readonly CostLedgerSample[] }[];
   /** Fraction of the run total tolerated as unaccounted. Default {@link DEFAULT_COST_LEDGER_EPSILON}. */
   readonly epsilon?: number;
   /** True when the transcript listing hit the file cap — the run total is incomplete (Codex QE HIGH). */
@@ -453,6 +500,9 @@ export function buildCostLedger(input: BuildCostLedgerInput): CostLedgerReport {
     ...input,
     runSamples: input.runSamples.map(clampSample),
     stageSamples: input.stageSamples.map((e) => ({ agentId: e.agentId, samples: e.samples.map(clampSample) })),
+    ...(input.orphanTranscripts !== undefined
+      ? { orphanTranscripts: input.orphanTranscripts.map((e) => ({ agentId: e.agentId, samples: e.samples.map(clampSample) })) }
+      : {}),
   };
 
   // RIGHT — the run's universe, deduped by sample key.
@@ -467,6 +517,8 @@ export function buildCostLedger(input: BuildCostLedgerInput): CostLedgerReport {
 
   interface Bucket {
     stage: string;
+    attempt: number;
+    attempts: number;
     phase: string | null;
     models: Set<string>;
     agentIds: string[];
@@ -478,7 +530,15 @@ export function buildCostLedger(input: BuildCostLedgerInput): CostLedgerReport {
     costUsd: number;
     pricingKnown: boolean;
   }
+  // measurement-integrity FR-4: a bucket is now keyed by (label, occurrence) rather than by label
+  // alone — a label repeated N times in `record.stages` (a retried stage) produces N buckets, each
+  // its own row, instead of one row silently summing N attempts together. `labelTotalCount` is a
+  // first pass so every occurrence's row can carry the SAME `attempts` total, including the first.
+  const labelTotalCount = new Map<string, number>();
+  for (const stage of record.stages) labelTotalCount.set(stage.label, (labelTotalCount.get(stage.label) ?? 0) + 1);
+  const labelSeen = new Map<string, number>();
   const buckets = new Map<string, Bucket>();
+  const bucketOrder: string[] = [];
   const keyOwners = new Map<string, Set<string>>();
   const foreign: string[] = [];
   const conflicting: string[] = [];
@@ -489,10 +549,23 @@ export function buildCostLedger(input: BuildCostLedgerInput): CostLedgerReport {
     const samples = byAgent.get(stage.agentId) ?? [];
     if (samples.length === 0) missingTranscript.push(`${stage.label} (${stage.agentId})`);
 
-    let b = buckets.get(stage.label);
+    const attempt = (labelSeen.get(stage.label) ?? 0) + 1;
+    labelSeen.set(stage.label, attempt);
+    const attempts = labelTotalCount.get(stage.label) ?? 1;
+    // measurement-integrity fix-round-1/F11 (Codex r1 MEDIUM #11): the key used to be a NUL-
+    // delimited template literal (`${stage.label}\0${attempt}`) - readable in an editor as a plain
+    // space because NUL renders invisibly, but NUL is a LEGAL JSON-string character (the same
+    // delimiter-ambiguity class `stageCostAggregates` below already fixed for its own key). An
+    // unambiguous JSON-tuple serialization removes the theoretical collision outright, and matches
+    // the pattern already used two functions down in this file.
+    const bucketKey = JSON.stringify([stage.label, attempt]);
+
+    let b = buckets.get(bucketKey);
     if (b === undefined) {
       b = {
         stage: stage.label,
+        attempt,
+        attempts,
         phase: stage.phase,
         models: new Set<string>(),
         agentIds: [],
@@ -503,7 +576,8 @@ export function buildCostLedger(input: BuildCostLedgerInput): CostLedgerReport {
         costUsd: 0,
         pricingKnown: true,
       };
-      buckets.set(stage.label, b);
+      buckets.set(bucketKey, b);
+      bucketOrder.push(bucketKey);
     }
     b.models.add(stage.model);
     b.agentIds.push(stage.agentId);
@@ -576,6 +650,9 @@ export function buildCostLedger(input: BuildCostLedgerInput): CostLedgerReport {
       runId: record.runId,
       slug: record.slug,
       stage: b.stage,
+      stageCanonical: canonicalStage(b.stage).stage,
+      attempt: b.attempt,
+      attempts: b.attempts,
       phase: b.phase,
       model: models.length === 1 ? (models[0] ?? 'unknown') : 'mixed',
       agentIds: b.agentIds,
@@ -591,20 +668,60 @@ export function buildCostLedger(input: BuildCostLedgerInput): CostLedgerReport {
       calls: b.claims.length,
     });
   }
-  rows.sort((a, z) => z.weightedTokens - a.weightedTokens || a.stage.localeCompare(z.stage));
+  rows.sort((a, z) => z.weightedTokens - a.weightedTokens || a.stage.localeCompare(z.stage) || a.attempt - z.attempt);
+
+  // ── orphan-transcript inventory (measurement-integrity FR-3 / ADR-001 D2) ──
+  // A transcript present in the run's directory with no `workflowProgress[]` entry is named
+  // explicitly here, rather than dissolved into the generic `Unaccounted` defect the way it was
+  // before this feature. `orphanTranscripts` is ALWAYS present in the report (count 0 when there are
+  // none) — additive, never a replacement for `unaccountedTokens`.
+  let orphanTokens = 0;
+  let orphanIds: string[] = [];
+  let orphanMethod: 'per-transcript' | 'count-fallback' = 'count-fallback';
+  if (input.orphanTranscripts !== undefined) {
+    orphanMethod = 'per-transcript';
+    const seenOrphanKeys = new Set<string>();
+    for (const o of input.orphanTranscripts) {
+      if (typeof o.agentId === 'string' && o.agentId.length > 0) orphanIds.push(o.agentId);
+      for (const s of o.samples) {
+        if (seenOrphanKeys.has(s.key)) continue;
+        seenOrphanKeys.add(s.key);
+        orphanTokens += s.weighted;
+      }
+    }
+  } else {
+    orphanIds = (input.orphanAgentIds ?? []).filter((x): x is string => typeof x === 'string' && x.length > 0);
+    if (orphanIds.length > 0) {
+      // No per-transcript samples were supplied — `orphanTokens` is still reported as the
+      // reconciliation's own `unaccountedTokens` (an honest BEST ESTIMATE, never invented) so a
+      // reader can see roughly how much spend is implicated. measurement-integrity fix-round-1/F1
+      // (Codex r1 CRITICAL #1): this figure is NO LONGER used below to shrink the `Unaccounted`
+      // defect — count-fallback's `orphanExplained` stays 0. The old behavior treated the WHOLE
+      // remainder as "orphan-explained" and could downgrade a genuine `DEFECT` (unattributed spend
+      // whose CAUSE is not actually known — a count-fallback orphan is a NAME, not a subtraction
+      // proof) into a merely-incomplete `INCOMPLETE_INVENTORY`. Only the EXACT `'per-transcript'`
+      // method — which sums real extracted samples — is trusted to reduce the residual.
+      orphanTokens = unaccountedTokens;
+    }
+  }
 
   // ── named defects ──
-  const orphans = (input.orphanAgentIds ?? []).filter((x) => typeof x === 'string' && x.length > 0);
-  if (unaccountedTokens > Math.floor(epsilon * runTotalTokens)) {
-    defects.push({
-      kind: 'Unaccounted',
-      detail:
-        orphans.length > 0
-          ? `${orphans.length} agent transcript(s) in the run directory have no workflowProgress entry`
-          : 'run spend is attributed to no stage',
-      tokens: unaccountedTokens,
-      ...(orphans.length > 0 ? { subjects: orphans } : {}),
-    });
+  const tolerance = Math.floor(epsilon * runTotalTokens);
+  if (unaccountedTokens > tolerance) {
+    // ONLY the portion NOT already explained by a named orphan transcript is a genuine `Unaccounted`
+    // defect — and ONLY the exact `'per-transcript'` method may explain any of it (F1 above).
+    const orphanExplained = orphanMethod === 'per-transcript' ? Math.min(orphanTokens, unaccountedTokens) : 0;
+    const residual = unaccountedTokens - orphanExplained;
+    if (residual > 0) {
+      defects.push({
+        kind: 'Unaccounted',
+        detail:
+          orphanIds.length > 0
+            ? 'run spend is attributed to no stage, beyond what the named orphan transcripts explain'
+            : 'run spend is attributed to no stage',
+        tokens: residual,
+      });
+    }
   }
   const doubleClaimed = [...keyOwners.entries()].filter(([, owners]) => owners.size > 1);
   if (doubleAttributedTokens > 0 || doubleClaimed.length > 0) {
@@ -651,18 +768,48 @@ export function buildCostLedger(input: BuildCostLedgerInput): CostLedgerReport {
     });
   }
 
+  // measurement-integrity fix-round-1/F1 (Codex r1 CRITICAL #1): a named orphan transcript makes the
+  // inventory incomplete REGARDLESS of tokens or epsilon — an orphan with zero usage samples
+  // (`orphanTokens === 0`) or one whose spend happens to fall under a generous epsilon is STILL a
+  // transcript the inventory does not know about. Equality of SUMS never proves attribution; the
+  // epsilon budget is about tolerating a small unattributable REMAINDER (the generic `Unaccounted`
+  // defect above, which still honors `tolerance`), never about excusing a NAMED gap in the inventory
+  // itself. `hasOrphan` therefore no longer reads `orphanTokens`/`tolerance` at all.
+  const hasOrphan = orphanIds.length > 0;
+
   // INSUFFICIENT_DATA is NOT success (ADR-003): no samples means nothing was measured, and a
   // "0 === 0, so it balances" shortcut would let an absent transcript store read as a clean run.
+  //
+  // measurement-integrity ADR-001 D2: INCOMPLETE_INVENTORY outranks BALANCED (an orphan transcript
+  // can never read as balanced) and is outranked by DEFECT (a genuine attribution defect — one NOT
+  // fully explained by a named orphan — is worse than "the inventory is incomplete but everything it
+  // does have reconciles").
   const verdict: CostLedgerVerdict =
     runTotalTokens === 0 && stageTokensSum === 0
       ? 'INSUFFICIENT_DATA'
       : defects.length > 0
         ? 'DEFECT'
-        : 'BALANCED';
+        : hasOrphan
+          ? 'INCOMPLETE_INVENTORY'
+          : 'BALANCED';
 
   let totalCostUsd = 0;
   for (const r of rows) totalCostUsd += r.costUsd;
   const fallbackModels = [...new Set(record.stages.filter((s) => !hasKnownPricing(s.model)).map((s) => s.model))].sort();
+
+  // ── byCanonicalStage (FR-2/T1 + FR-3/T2 combined: every canon bucket, plus `unknown` for rows
+  //    whose verbatim label matched no rule, plus `unattributed` for the orphan-transcript tokens
+  //    that belong to no stage row at all) ──
+  interface CanonAgg { tokens: number; agents: number; attempts: number }
+  const byCanonicalStage = {} as Record<CanonicalStage | 'unknown' | 'unattributed', CanonAgg>;
+  for (const k of [...CANONICAL_STAGES, 'unknown', 'unattributed'] as const) byCanonicalStage[k] = { tokens: 0, agents: 0, attempts: 0 };
+  for (const row of rows) {
+    const bucket = byCanonicalStage[row.stageCanonical];
+    bucket.tokens += row.weightedTokens;
+    bucket.agents += row.agentIds.length;
+    bucket.attempts += 1;
+  }
+  byCanonicalStage.unattributed = { tokens: orphanTokens, agents: orphanIds.length, attempts: orphanIds.length };
 
   return {
     runId: record.runId,
@@ -671,6 +818,7 @@ export function buildCostLedger(input: BuildCostLedgerInput): CostLedgerReport {
     status: record.status,
     startedTs: isoOrNull(record.startedAtMs),
     rows,
+    byCanonicalStage,
     reconciliation: {
       runTotalTokens,
       accountedTokens,
@@ -681,6 +829,7 @@ export function buildCostLedger(input: BuildCostLedgerInput): CostLedgerReport {
       identityHolds,
       verdict,
       defects,
+      orphanTranscripts: { count: orphanIds.length, tokens: orphanTokens, ids: orphanIds, method: orphanMethod },
     },
     recordTotalTokens: record.recordTotalTokens,
     totalCostUsd,
@@ -740,6 +889,10 @@ export function verifyCostLedgerReport(report: CostLedgerReport): readonly CostL
 export function stageCostAggregates(reports: readonly CostLedgerReport[]): StageCostAggregate[] {
   const acc = new Map<string, { stage: string; model: string; total: number; cost: number; runs: Set<string> }>();
   for (const report of reports) {
+    // measurement-integrity T2: `!== 'BALANCED'` already excludes `INCOMPLETE_INVENTORY` — a run
+    // with a named orphan transcript is exactly as unfit for a routing input as one with a DoubleAttributed
+    // defect, and this single comparison against the full 4-value vocabulary keeps excluding it
+    // without a second branch to forget.
     if (report.reconciliation.verdict !== 'BALANCED') continue;
     for (const row of report.rows) {
       // JSON-tuple key (Codex QE LOW): NUL is a LEGAL JSON-string character, so even a NUL join
@@ -838,6 +991,26 @@ export function renderCostLedger(report: CostLedgerReport): string {
     const tok = d.tokens === undefined ? '' : ` (${fmt(d.tokens)} weighted tokens)`;
     const subj = d.subjects === undefined || d.subjects.length === 0 ? '' : ` [${d.subjects.slice(0, 6).join(', ')}${d.subjects.length > 6 ? ', …' : ''}]`;
     lines.push(`    ${d.kind}: ${d.detail}${tok}${subj}`);
+  }
+  if (r.orphanTranscripts.count > 0) {
+    const idsPreview = r.orphanTranscripts.ids.slice(0, 6).join(', ') + (r.orphanTranscripts.ids.length > 6 ? ', …' : '');
+    lines.push(
+      `  orphanTranscripts: ${r.orphanTranscripts.count} transcript(s) with no inventory row, ${fmt(r.orphanTranscripts.tokens)} weighted tokens ` +
+        `(${r.orphanTranscripts.method}) [${idsPreview}]`,
+    );
+  }
+  // measurement-integrity FR-2/T1: the canon block — one line per non-empty bucket, `unattributed`
+  // (orphan tokens) and `unknown` (unrecognised verbatim labels) LAST so the named canon reads first.
+  const canonEntries = Object.entries(report.byCanonicalStage).filter(([, v]) => v.tokens > 0 || v.attempts > 0);
+  if (canonEntries.length > 0) {
+    canonEntries.sort(([a], [z]) => {
+      const rank = (k: string): number => (k === 'unknown' ? 2 : k === 'unattributed' ? 3 : 1);
+      return rank(a) - rank(z) || a.localeCompare(z);
+    });
+    lines.push('  by canonical stage:');
+    for (const [stage, agg] of canonEntries) {
+      lines.push(`    ${pad(stage, 14)} ${padLeft(fmt(agg.tokens), 12)} tok  ${padLeft(String(agg.agents), 4)} agent(s)  ${padLeft(String(agg.attempts), 4)} attempt(s)`);
+    }
   }
   if (report.recordTotalTokens !== null) {
     lines.push(
@@ -1037,22 +1210,57 @@ export function deriveCostLedger(opts: DeriveCostLedgerOptions = {}): CostLedger
 
     const runSamples: CostLedgerSample[] = [];
     const perAgent = new Map<string, CostLedgerSample[]>();
-    const orphanAgentIds: string[] = [];
+    // measurement-integrity FR-3: a transcript file with NO matching `workflowProgress[]` entry is an
+    // orphan REGARDLESS of whether it happened to log any usage samples — a zero-sample orphan is
+    // still a transcript the inventory does not know about, so it is counted here (0 tokens, still a
+    // named id) rather than silently dropped the way the pre-existing `orphanAgentIds.length > 0`
+    // gate did.
+    //
+    // measurement-integrity fix-round-1/F2 (Codex r1 HIGH #2): the OLD loop compared inventory
+    // MEMBERSHIP by `agentId` alone and treated two anomalies as invisible: a file whose name does not
+    // match the `agent-<id>.jsonl` shape was `continue`d past — dropped from BOTH `perAgent` and
+    // `orphanTranscripts` — and a SECOND file for an agentId already known simply OVERWROTE the first
+    // in `perAgent`, silently discarding one transcript's samples while reading as "the one known
+    // agent". Both are now named inventory anomalies, folded into the SAME `orphanTranscripts` list
+    // (so the existing `hasOrphan`/verdict machinery in `buildCostLedger` already refuses to call
+    // either case BALANCED) with a synthetic, self-describing id — never silently absorbed as "known".
+    const orphanTranscripts: { agentId: string; samples: CostLedgerSample[] }[] = [];
+    const unparseableNames: string[] = [];
+    const duplicateFor: string[] = [];
     for (const f of files) {
       const samples = extractCostSamples(safeReadText(join(ref.transcriptDir, f)));
       runSamples.push(...samples);
+      // `journal.jsonl` is a KNOWN, EXPECTED per-run housekeeping file (present in every real run
+      // directory alongside the `agent-<id>.jsonl` transcripts — verified against live
+      // `roam/claude-state/**/subagents/workflows/wf_*` directories) that carries no usage samples of
+      // its own. Naming it an inventory anomaly would make F2's fix fire on every single run there is
+      // — the false-positive explosion this feature exists to AVOID, not cause.
+      if (f === 'journal.jsonl') continue;
       const m = /^agent-(.+)\.jsonl$/.exec(f);
-      if (m === null) continue;
+      if (m === null) {
+        unparseableNames.push(f);
+        orphanTranscripts.push({ agentId: `unparseable:${f}`, samples });
+        continue;
+      }
       const agentId = m[1] ?? '';
-      if (stageAgentIds.has(agentId)) perAgent.set(agentId, samples);
-      else if (samples.length > 0) orphanAgentIds.push(agentId);
+      if (!stageAgentIds.has(agentId)) {
+        orphanTranscripts.push({ agentId, samples });
+      } else if (perAgent.has(agentId)) {
+        // A SECOND transcript file for an agentId already claimed — never silently overwrite the
+        // first one's samples nor pretend this file belongs to "the known agent" too.
+        duplicateFor.push(agentId);
+        orphanTranscripts.push({ agentId: `duplicate:${agentId}:${f}`, samples });
+      } else {
+        perAgent.set(agentId, samples);
+      }
     }
 
     return buildCostLedger({
       record,
       stageSamples: [...perAgent.entries()].map(([agentId, samples]) => ({ agentId, samples })),
       runSamples,
-      orphanAgentIds,
+      orphanAgentIds: orphanTranscripts.map((o) => o.agentId),
+      orphanTranscripts,
       ...(listingTruncated ? { transcriptListingTruncated: true } : {}),
       ...(opts.epsilon !== undefined ? { epsilon: opts.epsilon } : {}),
     });

@@ -190,8 +190,26 @@ export function probeRecallEngine(socketPath: string, timeoutMs = 1000): Promise
  * the cosine-fallback `scored` array are filtered to exclude `domain === 'apply-leg-probe'` unless
  * the request carried `probe: true` — a probe's own beacon still needs to reach ITS query, only a
  * REAL prompt must never see it.
+ *
+ * Bumped 10→11 (feature `embed-daemon-memory`, ADR-001 D1): the daemon now tries core's OWN cached
+ * embedder (`resolveAgentdbEmbedder`) first — one pipeline per process — building a private one only
+ * when core cannot hand one over; `ready` gained the ` embedder=<core-shared|own-fallback>` suffix
+ * (see `features/embed-daemon-memory/07_code_changes/change_manifest.md` for the full T3 note; this
+ * paragraph was missing from the bump history and is added here for the record, fix round 1).
+ *
+ * Bumped 11→12 (`embed-daemon-memory`, fix round 1 — F1/F2, Codex #1b/#3): (a) F1 — the own-fallback
+ * pipeline now reads the STORE's own dtype manifest before building (absent = fp32 legacy, a
+ * present-but-unrecognized value fails the request loudly instead of silently building fp32 against
+ * a q8 store); `ready`'s own-fallback branch gains ` dtype=<fp32|q8|error>`. (b) F2 — a core-shared
+ * STARTUP init failure no longer falls back to building an own pipeline (which risked a second live
+ * embedder once a later hybrid call succeeded): `embedderSource` stays `'core-shared'` and `embed`
+ * re-resolves `core.resolveAgentdbEmbedder` per request instead; `ready` names a startup failure
+ * inline as `core-shared (init failed: <msg>, will retry per request)`; `warmUpHybridEngine()` is
+ * skipped entirely in own-fallback mode. (c) `answerRecall`'s `embed(prompt)` call is now wrapped so
+ * either failure mode degrades to the SAME honest `cosine-fallback` reply shape as every other
+ * failure, never a bare protocol `{error}`.
  */
-export const APPLY_LEG_VERSION = 10;
+export const APPLY_LEG_VERSION = 12;
 
 /**
  * Parse the `dz-apply-leg-version` stamp from a deployed helper file. Unlike
@@ -1027,6 +1045,18 @@ function socketAlive(path) {
   });
 }
 
+// ADR-001 (embed-daemon-memory, D1/T3): better-sqlite3 is resolved INDEPENDENTLY of the embedder now
+// — the cosine-fallback leg always needs it to read the mirror, regardless of whether the embedder
+// itself comes from core (embedder=core-shared) or this daemon's own pipeline (embedder=own-fallback).
+// Splitting it out of the old resolveDeps() lets the daemon start on core-shared alone when only
+// better-sqlite3 (not transformers) is locally resolvable.
+function resolveDatabase() {
+  const req = createRequire(join(PROJECT, 'package.json'));
+  return req('better-sqlite3');
+}
+
+// own-fallback ONLY (ADR-001 D1): resolves the transformers module for the daemon's OWN pipeline,
+// built only when core has no resolveAgentdbEmbedder to share (no core module, or it errored).
 function resolveDeps() {
   const req = createRequire(join(PROJECT, 'package.json'));
   // agentdb >= 3.0.0-alpha depends on '@huggingface/transformers' (the '@xenova/transformers'
@@ -1054,7 +1084,7 @@ function resolveDeps() {
   if (transformers === undefined) {
     throw new Error('neither @huggingface/transformers nor @xenova/transformers could be resolved (' + String((lastErr && lastErr.message) || lastErr) + ')');
   }
-  return { Database: req('better-sqlite3'), transformers };
+  return { transformers };
 }
 
 const cos = (a, b) => {
@@ -1119,17 +1149,151 @@ async function main() {
 
   const started = Date.now();
   const model = configuredModel();
-  let deps;
+
+  // better-sqlite3 is required regardless of which embedder answers a request (ADR-001, T3) — the
+  // cosine-fallback leg always reads the mirror through it.
+  let Database;
   try {
-    deps = resolveDeps();
+    Database = resolveDatabase();
   } catch (err) {
     log('deps unavailable — not starting:', err?.message ?? err);
     process.exit(0); // never a hard failure: the hook degrades to silence
   }
 
-  const { pipeline } = await import(deps.transformers);
-  const extractor = await pipeline('feature-extraction', model);
-  const embed = async (text) => Array.from((await extractor(text, { pooling: 'mean', normalize: true })).data);
+  // ADR-001 D1 (embed-daemon-memory): the daemon SHARES core's single per-process embedder and
+  // builds a private pipeline only when core cannot hand one over AT ALL — no core module, or a core
+  // build too old to export \`resolveAgentdbEmbedder\` (F2, fix round 1, Codex #3). A STARTUP init
+  // FAILURE (core exists, has the export, but the call itself errored — offline model cache, a
+  // corrupted manifest) is NEVER treated as "core unavailable": own-fallback must not be built in
+  // that case, because a LATER hybrid call could succeed and stand up a SECOND, independent pipeline
+  // in the same process — the exact "two live embedders" defect the review named. Instead
+  // \`embedderSource\` STAYS \`'core-shared'\` and \`embed\` re-resolves \`core.resolveAgentdbEmbedder\`
+  // on EVERY call: core's own per-process cache (agentdb-index.ts) makes a repeat call after SUCCESS
+  // effectively free, and evicts its own entry on failure — so a transient startup failure can heal
+  // on a later request without this daemon ever building an embedder of its own.
+  //
+  // The shared embedder is still PROBED EAGERLY, before \`ready\`, for the same reason the own
+  // pipeline always was: the cosine-fallback leg must answer inside the hook budget on the FIRST
+  // request too (parity AC-2: hybrid delayed by 3000 ms, reply < 2000 ms). MEASURED 2026-09-16
+  // (change_manifest.md, deviation B): a LAZY resolve put the cold pipeline init (2000-3600 ms) on
+  // the first fallback reply — 4/5 runs at 2063-2146 ms. The probe's OUTCOME only decides the
+  // \`ready\`-log wording now (F2) — it never gates \`embedderSource\` or builds an own-fallback
+  // pipeline. The starved-budget parity test that used to lean on a cold engine now injects
+  // DZ_EMBED_HYBRID_DELAY_MS itself, so its premise holds by construction, not by cold timing.
+  let embed;
+  let embedderSource;
+  let embedderReadyDetail = '';
+  let ownFallbackDtypeLabel;
+  const startupCore = await loadCoreModule();
+  const coreHasSharedEmbedder = startupCore !== undefined && typeof startupCore.resolveAgentdbEmbedder === 'function';
+  if (coreHasSharedEmbedder) {
+    embedderSource = 'core-shared';
+    embed = async (text) => {
+      const shared = await startupCore.resolveAgentdbEmbedder(PROJECT);
+      if (!shared || typeof shared.embed !== 'function' || 'error' in shared) {
+        throw new Error((shared && shared.error) || 'resolveAgentdbEmbedder returned no embed()');
+      }
+      return shared.embed(text);
+    };
+    let startupProbe;
+    try {
+      startupProbe = await startupCore.resolveAgentdbEmbedder(PROJECT);
+    } catch (err) {
+      startupProbe = { error: err?.message ?? String(err) };
+    }
+    if (!startupProbe || typeof startupProbe.embed !== 'function' || 'error' in startupProbe) {
+      const msg = (startupProbe && startupProbe.error) || 'resolveAgentdbEmbedder returned no embed()';
+      log('core-shared embedder init failed at startup, will retry per request:', msg);
+      embedderReadyDetail = \` (init failed: \${msg}, will retry per request)\`;
+    }
+  }
+  if (embed === undefined) {
+    // own-fallback: ONLY when core has no resolveAgentdbEmbedder to share at all (no core module, or
+    // a fake/old core, as in test fixtures) — never as a reaction to a startup init error (above).
+    let deps;
+    try {
+      deps = resolveDeps();
+    } catch (err) {
+      log('deps unavailable — not starting:', err?.message ?? err);
+      process.exit(0); // never a hard failure: the hook degrades to silence
+    }
+    // F1 (fix round 1, Codex #1b): the daemon has no core to ask, so it reads the STORE's own dtype
+    // manifest directly — an own pipeline built blindly at fp32 would silently compare vectors from
+    // two different spaces against a q8 store. Absent manifest = fp32 (legacy — matches every store
+    // predating this feature, same discipline as embedding-config.ts's readEmbedManifest). A manifest
+    // that IS present but names neither known dtype is NEVER folded into that same fp32 case — this
+    // daemon fails loudly for that request (embed() throws below, caught honestly by answerRecall)
+    // rather than silently mixing dtype spaces.
+    const manifestPath = join(PROJECT, '.dz', 'agentdb.db.embed-manifest.json');
+    let ownDtype = 'fp32';
+    let ownDtypeError;
+    let manifestIsFile = false;
+    try {
+      manifestIsFile = statSync(manifestPath).isFile(); // a non-file at the sidecar path is "absent", as in core
+    } catch {
+      manifestIsFile = false;
+    }
+    if (manifestIsFile) {
+      try {
+        const raw = JSON.parse(readFileSync(manifestPath, 'utf-8'))?.dtype;
+        if (raw === 'fp32' || raw === 'q8') {
+          ownDtype = raw;
+        } else if (raw !== undefined) {
+          ownDtypeError = String(raw);
+        }
+      } catch (err) {
+        // Lead delta after Codex r2 (HIGH): a manifest that EXISTS but cannot be parsed is NOT
+        // "absent" — refusing beats guessing fp32 over a q8 store (same rule as core's readError).
+        ownDtypeError = 'unreadable manifest: ' + (err?.message ?? String(err));
+      }
+    }
+    embedderSource = 'own-fallback';
+    if (ownDtypeError !== undefined) {
+      log('manifest dtype unknown:', ownDtypeError);
+      ownFallbackDtypeLabel = 'error';
+      const dtypeErrMsg = \`manifest dtype unknown: \${ownDtypeError}\`;
+      embed = async () => { throw new Error(dtypeErrMsg); };
+    } else {
+      ownFallbackDtypeLabel = ownDtype;
+      const { pipeline } = await import(deps.transformers);
+      const extractor = await pipeline('feature-extraction', model, ownDtype === 'q8' ? { dtype: 'q8' } : {});
+      embed = async (text) => Array.from((await extractor(text, { pooling: 'mean', normalize: true })).data);
+    }
+  }
+
+  // AM-1 (fix round 1): warm resolveAgentdbEmbedder — cached PER PROCESS since db1521ba (cold
+  // ~2-3.6 s, warm ~1 ms, MEASURED, see the manifest's T8/AM-1 discussion) — OFF the request path,
+  // so the first REAL \`op: recall\` is not the one that pays the cold init. Fired fire-and-forget as
+  // early as main() can (moved up from right-before-listen, T3/embed-daemon-memory: every ms of
+  // extra head start matters against a multi-second cold cost — see change_manifest.md), never
+  // awaited by startup: this is a best-effort head start, not a guarantee — a request landing in
+  // the window before it completes still pays the (possibly-partial, since it JOINS the same
+  // in-flight resolveAgentdbEmbedder promise, D1) cold cost, and a warm-up failure (no core module,
+  // engine error) is silently swallowed — never-block applies to startup exactly as it does to a
+  // request. Measured: the slowest cold resolveAgentdbEmbedder init observed in this environment
+  // was 3653 ms (T8 log, 2026-09-14) — 10 s leaves a wide margin without risking an unbounded
+  // warm-up hang.
+  const WARMUP_TIMEOUT_MS = 10_000;
+  async function warmUpHybridEngine() {
+    const core = await loadCoreModule();
+    if (core === undefined) return;
+    const guard = new Promise((resolve) => {
+      const t = setTimeout(resolve, WARMUP_TIMEOUT_MS);
+      t.unref?.();
+    });
+    // An empty-string query still exercises the FULL semantic leg (embed + engine.search), which is
+    // exactly what needs warming; recallHybrid degrades any error inside it honestly, so nothing
+    // here needs its own try/catch beyond the outer .catch(() => {}) at the call site below.
+    await Promise.race([core.recallHybrid(PROJECT, '', { limit: 1, mode: 'hook', deferExposures: true }), guard]);
+  }
+  // Fire-and-forget, never awaited — main() proceeds immediately regardless of warm-up outcome.
+  // F2 (fix round 1, Codex #3): warm-up specifically primes the HYBRID leg's own use of
+  // resolveAgentdbEmbedder — pointless when this daemon has no core embedder to share (own-fallback
+  // has no core module, or a fake/old core in tests) AND risks standing up a SECOND, unrelated
+  // pipeline via whatever recallHybrid does internally in that case. Skipped entirely in own-fallback.
+  if (embedderSource === 'core-shared') {
+    warmUpHybridEngine().catch(() => {});
+  }
 
   // READ-ONLY. This process must never be the writer that tears the file for a concurrent reader.
   const dbPath = join(PROJECT, '.dz', 'agentdb.db');
@@ -1137,7 +1301,7 @@ async function main() {
 
   function loadPatterns() {
     if (!existsSync(dbPath)) return [];
-    const db = new deps.Database(dbPath, { readonly: true, fileMustExist: true });
+    const db = new Database(dbPath, { readonly: true, fileMustExist: true });
     try {
       const ph = DZ_TASK_TYPES.map(() => '?').join(',');
       // NOTE: the vector mirror carries no \`domain\` — that column lives in the lexical store. An
@@ -1249,34 +1413,20 @@ async function main() {
       patternsAt = Date.now();
     }
     if (patterns.length === 0) return { hits: [], engine: 'cosine-fallback', reason: hybrid.reason };
-    const qv = await embed(prompt);
+    // F1/F2 (fix round 1): \`embed()\` can now THROW honestly (own-fallback with an unrecognized
+    // manifest dtype, F1; core-shared re-resolution failing on this exact request, F2) — caught here
+    // so it degrades to the SAME honest cosine-fallback shape every other failure gets, never a bare
+    // protocol {error} reply reaching the socket handler's outer catch (the AM-3 defect class).
+    let qv;
+    try {
+      qv = await embed(prompt);
+    } catch (err) {
+      return { hits: [], engine: 'cosine-fallback', reason: \`embedder unavailable: \${err?.message ?? err}\` };
+    }
     const scored = patterns.map((p) => ({ dzId: p.dzId, pattern: p.pattern, score: cos(qv, p.vec), domain: p.domain, ...(p.quarantined ? { quarantined: true } : {}) }));
     scored.sort((a, b) => b.score - a.score);
     // AM-3: same domain exclusion as the hybrid leg, applied before slicing for the same reason.
     return { hits: filterProbeHits(scored, probe).slice(0, limit), engine: 'cosine-fallback', reason: hybrid.reason };
-  }
-
-  // AM-1 (fix round 1): warm resolveAgentdbEmbedder — cached PER PROCESS since db1521ba (cold
-  // ~2-3.6 s, warm ~1 ms, MEASURED, see the manifest's T8/AM-1 discussion) — OFF the request path,
-  // so the first REAL \`op: recall\` is not the one that pays the cold init. Fired fire-and-forget
-  // right before \`listen()\` below, never awaited by startup: this is a best-effort head start, not
-  // a guarantee — a request landing in the few-hundred-ms window before it completes still pays the
-  // cold cost exactly as before this amendment, and a warm-up failure (no core module, engine
-  // error) is silently swallowed — never-block applies to startup exactly as it does to a request.
-  // Measured: the slowest cold resolveAgentdbEmbedder init observed in this environment was 3653 ms
-  // (T8 log, 2026-09-14) — 10 s leaves a wide margin without risking an unbounded warm-up hang.
-  const WARMUP_TIMEOUT_MS = 10_000;
-  async function warmUpHybridEngine() {
-    const core = await loadCoreModule();
-    if (core === undefined) return;
-    const guard = new Promise((resolve) => {
-      const t = setTimeout(resolve, WARMUP_TIMEOUT_MS);
-      t.unref?.();
-    });
-    // An empty-string query still exercises the FULL semantic leg (embed + engine.search), which is
-    // exactly what needs warming; recallHybrid degrades any error inside it honestly, so nothing
-    // here needs its own try/catch beyond the outer .catch(() => {}) at the call site below.
-    await Promise.race([core.recallHybrid(PROJECT, '', { limit: 1, mode: 'hook', deferExposures: true }), guard]);
   }
 
   let idleTimer;
@@ -1353,9 +1503,6 @@ async function main() {
 
   for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(sig, () => shutdown(0));
 
-  // AM-1: fire-and-forget, never awaited — bind proceeds immediately regardless of warm-up outcome.
-  warmUpHybridEngine().catch(() => {});
-
   // FR-3 ("absence of a receipt is not success"): \`ready\` is printed ONLY after \`listen\`'s callback
   // AND a fresh \`existsSync(SOCKET)\` both confirm the socket file is actually on disk — a caller
   // that greps stderr for "ready" must never see it for a socket that silently failed to bind.
@@ -1397,7 +1544,11 @@ async function main() {
         return bindFailed(\`could not publish socket pointer: \${err?.message ?? err}\`);
       }
     }
-    log(\`ready: \${patterns.length} pattern vectors, model \${model}, socket \${SOCKET}\`);
+    // F1/F2 (fix round 1): own-fallback names ITS resolved dtype (\`dtype=<fp32|q8|error>\`, F1); a
+    // core-shared daemon that failed its startup probe names that too, inline (\`(init failed: …,
+    // will retry per request)\`, F2) — both make the honest state observable from \`ready\` alone.
+    const embedderReadyLabel = embedderSource === 'own-fallback' ? \`\${embedderSource} dtype=\${ownFallbackDtypeLabel}\` : \`\${embedderSource}\${embedderReadyDetail}\`;
+    log(\`ready: \${patterns.length} pattern vectors, model \${model}, socket \${SOCKET} embedder=\${embedderReadyLabel}\`);
     touch();
   });
   server.on('error', (err) => bindFailed(err?.message ?? String(err)));

@@ -20,6 +20,7 @@
  * PURE: the CLI reads the artifact files; this module only classifies.
  */
 import { amendmentIdsIn } from './amendment-trace.js';
+import { QE_SEVERITIES, findInvalidQeVerdictLines, parseQeFindings, readQeVerdictLines } from './qe-findings.js';
 /** The artifact texts of one run, keyed by RELATIVE path under `features/<slug>/`. */
 /**
  * The exact heading Step 5 asks for, and the exact heading the check looks for — ONE constant, so
@@ -258,6 +259,42 @@ function normaliseGradeSign(grade) {
  * report is ambiguous, which is a fact about the report, not a missing number.
  */
 export function readQeGrade(qeText) {
+    // ADR-001 D1: a machine-written verdict line is the source of truth WHEN it exists — checked
+    // first, and the prose scan below never runs when it does. Exactly one -> unique; more than one
+    // -> ambiguous ("две строки — ambiguous, никогда «последняя побеждает»", even if both name the
+    // SAME grade — two lines is a fact about the report, not a number to reconcile); zero -> the
+    // prose scan runs exactly as it always has (NFR-1: 406 pre-existing reports are unaffected) —
+    // UNLESS a malformed attempt exists (fix-round-1 finding 2, checked next): the report is `invalid`
+    // and the prose fallback is refused, never silently reached.
+    const verdictLines = readQeVerdictLines(qeText);
+    // Lead delta after Codex r2 (new HIGH #1): a malformed declaration next to a valid one is NOT a
+    // unique verdict — `QE-VERDICT: A` + `qe-verdict: D` used to read as unique A. Invalid lines are
+    // checked FIRST, whatever the count of valid ones.
+    const invalidFirst = findInvalidQeVerdictLines(qeText);
+    if (invalidFirst.length > 0) {
+        const reasons = invalidFirst.map((l) => `line ${l.line}: ${JSON.stringify(l.text.trim())} does not match "QE-VERDICT: <A|B|C|D><+|-> "`);
+        return { status: 'invalid', grade: null, found: [...verdictLines, ...reasons], source: 'verdict-line' };
+    }
+    if (verdictLines.length === 1) {
+        return { status: 'unique', grade: verdictLines[0], found: verdictLines, source: 'verdict-line' };
+    }
+    if (verdictLines.length > 1) {
+        const distinct = [];
+        for (const g of verdictLines)
+            if (!distinct.includes(g))
+                distinct.push(g);
+        return { status: 'ambiguous', grade: null, found: distinct, source: 'verdict-line' };
+    }
+    // fix-round-1 finding 2: zero GRAMMATICALLY VALID verdict lines is not yet "no attempt" — a line
+    // that clearly opens a verdict declaration but botches the grammar (wrong dash, wrong case, no
+    // colon, a grade outside A-D) is `invalid`, and the legacy prose scan below is FORBIDDEN for it.
+    // The reason lives inside `found` (GradeReading keeps the same 4-field shape for every status).
+    // Lead delta after Codex r2 (#2 PARTIAL): the prose fallback is for LEGACY reports only. A report
+    // that already carries the new-format ledger heading but no verdict line is a NEW-format report
+    // missing its verdict — `invalid`, never a prose guess.
+    if (/^## Findings ledger\s*$/m.test(qeText)) {
+        return { status: 'invalid', grade: null, found: ['new-format report (has "## Findings ledger") without a QE-VERDICT line'], source: 'verdict-line' };
+    }
     const found = [];
     const lines = qeText.split('\n');
     // Line offsets once, so each match maps to ITS line for the negation screen (67d7883d: the
@@ -291,10 +328,10 @@ export function readQeGrade(qeText) {
             found.push(g);
     }
     if (found.length === 0)
-        return { status: 'none', grade: null, found: [] };
+        return { status: 'none', grade: null, found: [], source: 'none' };
     if (found.length === 1)
-        return { status: 'unique', grade: found[0], found };
-    return { status: 'ambiguous', grade: null, found };
+        return { status: 'unique', grade: found[0], found, source: 'prose' };
+    return { status: 'ambiguous', grade: null, found, source: 'prose' };
 }
 export function extractQeGrade(qeText) {
     return readQeGrade(qeText).grade;
@@ -379,7 +416,12 @@ export function scoreRun(slug, artifacts) {
                 ? 'no discrimination/§42/mutation-proof evidence in any artifact'
                 : mutationEvidence.evidence)));
     // 3. Cross-model QE — an independent family reviewed it, and a grade exists.
-    const grade = extractQeGrade(qeText);
+    const gradeReading = readQeGrade(qeText);
+    const grade = gradeReading.grade;
+    const findingsParsed = parseQeFindings(qeText);
+    const findings = findingsParsed.status === 'absent'
+        ? { status: 'absent' }
+        : { status: 'present', hollow: findingsParsed.hollow, summary: findingsParsed.summary, refused: findingsParsed.refused };
     if (qeText === '') {
         add('cross-model-qe', 'independent cross-model review with a grade', 'absent', 'no 08_qe_report.md artifact');
     }
@@ -451,9 +493,35 @@ export function scoreRun(slug, artifacts) {
     const summary = `${passed}/${total} disciplines fully evidenced` +
         (grade !== null ? ` · QE grade ${grade}` : ' · no QE grade') +
         (worst.length > 0 ? ` · absent: ${worst.join(', ')}` : '');
-    return { slug, disciplines, qeGrade: grade, mutationEvidence, passed, total, summary };
+    return { slug, disciplines, qeGrade: grade, gradeSource: gradeReading.source, findings, mutationEvidence, passed, total, summary };
 }
 const MARK = { pass: '✓', partial: '◐', absent: '✗' };
+/** qe-findings-record FR-4: the one-line summary `dz score` prints for a report's Findings ledger —
+ *  "findings: 3 HIGH / 2 MEDIUM; 1 refused (line 84: severity "Major" not in dictionary)". Ordered by
+ *  QE_SEVERITIES (BLOCKER first) so the worst finding always reads first. `null` when there is no
+ *  table at all — the common case, which earns no noise (same rule as mutationEvidence above). */
+export function renderFindingsLine(findings) {
+    if (findings === undefined || findings.status === 'absent')
+        return null;
+    // fix-round-1 finding 6: hollow used to short-circuit BEFORE the refused check, so a report whose
+    // real ledger table (with CRITICAL rows) was refused as duplicate/outside-section alongside an
+    // empty accepted table read as pure "EMPTY" — the refused rows vanished from the printed line, not
+    // merely from the tally. Both facts are ALWAYS reported together now; neither hides the other.
+    const refusedSuffix = (() => {
+        if (findings.refused.length === 0)
+            return '';
+        const first = findings.refused[0];
+        const more = findings.refused.length > 1 ? `, +${findings.refused.length - 1} more` : '';
+        return `; ${findings.refused.length} refused (line ${first.line}: ${first.reason})${more}`;
+    })();
+    if (findings.hollow) {
+        return `findings: table present but EMPTY (hollow) — worse than no table at all${refusedSuffix}`;
+    }
+    const bySev = findings.summary.bySeverity;
+    const parts = QE_SEVERITIES.filter((s) => (bySev[s] ?? 0) > 0).map((s) => `${bySev[s]} ${s}`);
+    const head = parts.length > 0 ? parts.join(' / ') : 'no rows';
+    return `findings: ${head}${refusedSuffix}`;
+}
 export function renderScorecard(card) {
     const out = [];
     out.push(`dz score — ${card.slug} (process scorecard; descriptive-only, never a gate)`);
@@ -470,6 +538,11 @@ export function renderScorecard(card) {
     if (card.mutationEvidence !== undefined && card.mutationEvidence.status !== 'absent') {
         out.push('');
         out.push(`  ${card.mutationEvidence.evidence}`);
+    }
+    const findingsLine = renderFindingsLine(card.findings);
+    if (findingsLine !== null) {
+        out.push('');
+        out.push(`  ${findingsLine}${card.gradeSource !== undefined && card.gradeSource !== 'none' ? ` (grade source: ${card.gradeSource})` : ''}`);
     }
     out.push('');
     out.push(`  ${card.summary}`);

@@ -127,7 +127,9 @@ For each group, identify:
 
 Before finalizing the plan, validate completeness:
 
-1. Cross-reference every `{REQUIREMENT}` (FR-N) → at least one TASK covers it
+1. Cross-reference every `{REQUIREMENT}` (FR-N) → at least one TASK covers it (C8 — the gate checks
+   this by identifier: WARN with a count by default, FAIL under `--require-requirements`, which the
+   pipeline passes)
 2. Cross-reference every `{ADR_DECISION}` → at least one TASK implements it
 3. Cross-reference every critical risk from `{QUALITY_RISKS}` → mitigation in some TASK
 4. Name every acid token `A<n>` from `00_complexity_assessment.md` VERBATIM in the plan (C4), each
@@ -233,11 +235,16 @@ C2 recognises JS/TS, pytest, Go, Rust, JVM and .NET test paths, extensible per p
 
 Never proceed on a non-zero exit, and never treat empty output as a pass — the last line
 (`K2 plan-completeness: PASS|FAIL|NOT-ESTABLISHED`) is the verdict, and its absence is not one.
-What it checks: C1 every ADR has a plan task citing it · C2 every ADR Confirmation test path is named
-in the plan · C3 the `EXPECTED_CODE_TARGETS:` block parses line by line · C4 the feature's declared
-acid corpus is named · C5 (WARN) the `Inputs read:` line. An S-tier run with no `03_adr/` skips C1/C2
-with a note (it cannot be failed for ADRs it never had) — unless the plan itself cites `ADR-<n>`,
-which is NOT-ESTABLISHED. C1 is a grep: it catches "forgot entirely", not "mentioned but not tasked".
+What it checks: C1 every ADR **decision** (a `# ADR-NNN` / `## ADR-NNN` heading INSIDE the file, not
+just the filename prefix — a file with several headings owes several plan citations) has a plan task
+citing it · C2 every ADR Confirmation test path is named in the plan · C3 the `EXPECTED_CODE_TARGETS:`
+block parses line by line · C4 the feature's declared acid corpus is named · C5 (WARN) the
+`Inputs read:` line · C8 every requirement id declared in `01_requirements.md` (`FR-N`, `NFR-N`,
+`AC-N`, `C-N`) is cited by the plan by word boundary — WARN with a count by default, FAIL per missing
+id under `--require-requirements` (the pipeline passes this flag; a bare interactive run of the
+script does not). An S-tier run with no `03_adr/` skips C1/C2 with a note (it cannot be failed for
+ADRs it never had) — unless the plan itself cites `ADR-<n>`, which is NOT-ESTABLISHED. C1 is a grep:
+it catches "forgot entirely", not "mentioned but not tasked".
 
 Pass the run's tier so the check cannot be dodged: `--tier=S|M|L|XL`. An M/L/XL feature with no
 `03_adr/` FAILS C1/C2 (an M+ feature owes ADRs); only `--tier=S` — or no tier at all, and then the

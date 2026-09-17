@@ -13,6 +13,7 @@
  */
 import { type SnapshotRotationReport } from './agentdb-snapshot-rotation.js';
 import { type SnapshotMethod } from './agentdb-snapshot.js';
+import { type EmbedDtype } from './embedding-config.js';
 /** One record to index. `text` is stored as `approach` AND embedded (`${taskType}: ${text}`). */
 export interface AgentdbRow {
     readonly taskType: string;
@@ -26,7 +27,15 @@ export interface AgentdbRow {
 }
 /** Outcome of {@link indexPatternsToAgentdb}. `generationBumped`/`generationReason` are present only
  * when a store write actually happened (`indexed > 0`) — FR-4: a failed counter write NEVER fails
- * the indexing call itself, it is only reported so a caller (`dz doctor`, telemetry) can see it. */
+ * the indexing call itself, it is only reported so a caller (`dz doctor`, telemetry) can see it.
+ *
+ * Fix-round 1 (CRITICAL, item 1a): `indexed`/`generationBumped`/`generationReason` and `error` are
+ * NOT mutually exclusive. A failure AFTER the row commit (today, only `writeEmbedManifest` throwing)
+ * reports the REAL `indexed` count and the REAL bump outcome alongside `error` — it never collapses
+ * back to `{indexed: 0, error}` once rows are already on disk. Collapsing to `indexed: 0` after a
+ * real commit was the CRITICAL finding: a caller reading `indexed === 0` as "nothing happened" would
+ * skip its own rescue-bump logic even though the store had genuinely changed — an under-bump C-1
+ * forbids. */
 export interface AgentdbIndexResult {
     readonly indexed: number;
     readonly error?: string | undefined;
@@ -72,7 +81,17 @@ export declare function ensureAgentdbSchema(projectRoot: string, dbPath?: string
  * to decide validity, only to convert an already-validated string.
  */
 export declare function readStoreGeneration(projectRoot: string, dbPath?: string): number;
-export declare function bumpStoreGeneration(projectRoot: string, dbPath?: string): {
+/** Fix-round 1, item 5: `String(err)` itself can throw if `err` carries a poisoned `toString` (or
+ * `Error.prototype.message` getter). `bumpStoreGeneration`'s "never throws" contract (FR-4) is
+ * ABSOLUTE, so every place in this function that turns a caught error into a string goes through
+ * this ONE protected helper — never a bare `err instanceof Error ? err.message : String(err)`.
+ * Exported test-only (same convention as {@link needsRescueBump}/{@link resetAgentdbEmbedderCache}).
+ */
+export declare function safeErrorMessage(err: unknown): string;
+export declare function bumpStoreGeneration(projectRoot: string, dbPath?: string, 
+/** T2: the ONLY signature extension the plan permits — injectable wall clock, default `Date.now`,
+ * so AC-3 (a rolled-back system clock) can be reproduced without touching the real clock. */
+now?: () => number): {
     readonly ok: true;
     readonly generation: number;
 } | {
@@ -131,17 +150,60 @@ type Embedder = {
 export declare function resetAgentdbEmbedderCache(): void;
 /** `entries` = cached keys right now — a SUCCESSFUL pipeline or an IN-FLIGHT initialization (the promise is
  * cached before it settles, FR-4; a failed one is evicted, FR-3); `initializations` = pipelines actually
- * started since the last reset. (Codex round-1, 2026-09-14: the earlier wording said "successful" only.) */
+ * started since the last reset. (Codex round-1, 2026-09-14: the earlier wording said "successful" only.)
+ * `pipelinesBuilt` (fix round 1, F6) = the count of REAL pipeline-construction primitives that actually
+ * ran (`pipeline()` or `EmbeddingService.initialize()`), never merely the number of times the resolver
+ * was entered — see {@link embedderCachePipelinesBuilt}'s own doc comment for why the two can diverge. */
 export declare function getAgentdbEmbedderCacheStats(): {
     entries: number;
     initializations: number;
+    pipelinesBuilt: number;
 };
 /**
- * Resolve agentdb's `EmbeddingService` from the PROJECT (same dynamic-resolution discipline as
- * {@link indexPatternsToAgentdb}); every dz call site uses the same resolved model so query and row
- * vectors stay in the same space. Cached per process — see {@link embedderCache} above.
+ * C-3 (`embed-daemon-memory`): the SAME resolution order the daemon's own `resolveDeps` uses
+ * (`.claude/helpers/dz-embed-daemon.mjs`) — project `package.json` first, then `agentdb`'s own
+ * declared dependency (possibly hoisted elsewhere) — so core and the daemon agree on which install
+ * of transformers they find, in a monorepo or a plain install alike. Each candidate root is
+ * confirmed by {@link findAncestorWithModule} BEFORE `require.resolve` is trusted (see its own doc
+ * comment for why the plain try/catch this replaced was not safe under this package's test runner).
+ *
+ * Exported (fix round 1, F4, same convention as {@link safeErrorMessage}/{@link resetAgentdbEmbedderCache}):
+ * `embedder-single-owner.test.ts`'s live-dep skip gate needs the SAME resolution order the production
+ * code uses to decide, BEFORE running, whether a live embedder failure is a dependency gap (named skip)
+ * or a real defect (must fail) — a text-matching heuristic on the error message cannot tell those apart.
  */
-export declare function resolveAgentdbEmbedder(projectRoot: string): Promise<Embedder>;
+export declare function resolveTransformersModule(projectRoot: string): {
+    url: string;
+} | {
+    error: string;
+};
+/**
+ * D2 (`embed-daemon-memory`): the dtype a QUERY/write is embedded with is the STORE's own dtype
+ * (its manifest) when the store already exists, falling back to the CONFIGURED dtype only for a
+ * store that does not exist yet (its first-ever write picks up the config). This is the ONE place
+ * that decision is made — {@link resolveAgentdbEmbedder} calls it so every caller (search, an
+ * ordinary incremental index) agrees; `reindexAgentdbRows` is the sole exception (T2/plan): it
+ * stamps the manifest with the NEW configured dtype BEFORE it re-embeds, so by the time this
+ * function runs during a reindex the manifest already names the new dtype — config and manifest
+ * necessarily agree at that point, which is what makes reindex "the one place dtype changes".
+ */
+export declare function resolveStoreEmbedDtype(projectRoot: string, dbPath?: string): EmbedDtype | {
+    error: string;
+};
+/**
+ * Resolve the shared embedder from the PROJECT (same dynamic-resolution discipline as
+ * {@link indexPatternsToAgentdb}); every dz call site uses the same resolved model/dtype so query
+ * and row vectors stay in the same space. Cached per process — see {@link embedderCache} above.
+ *
+ * Fix round 1 (F1, doc correction — the prior wording was misleading): `dbPath` is passed straight
+ * to {@link resolveStoreEmbedDtype}, which calls {@link resolveAgentdbPath}`(projectRoot, dbPath)` —
+ * and THAT function already returns the project's DEFAULT store path (`<project>/.dz/agentdb.db`,
+ * or `AGENTDB_PATH`) when `dbPath` is omitted, not "no path". So an omitted `dbPath` still reads the
+ * default store's OWN manifest when one exists; the CONFIGURED dtype is used only as the fallback
+ * for a store that has no manifest yet (i.e. does not exist, or predates this feature) — never as
+ * the default behaviour for "no dbPath given".
+ */
+export declare function resolveAgentdbEmbedder(projectRoot: string, dbPath?: string): Promise<Embedder>;
 /**
  * Cosine similarity in [-1, 1] over two embeddings. Exported (was file-private) so
  * `harmonizeVectorStore` scores near-duplicate pairs with the IDENTICAL math the semantic search
@@ -248,6 +310,24 @@ export declare function bumpAgentdbUses(projectRoot: string, dzIds: readonly str
     bumped: number;
     error?: string;
 };
+/**
+ * Fix-round 1 (CRITICAL, item 1b — the belt): whether {@link reindexAgentdbRows} must run its own
+ * rescue bump, given the DELETE's own observed `changes` count and the nested
+ * {@link indexPatternsToAgentdb} call's result. Exported test-only (same convention as
+ * {@link resetAgentdbEmbedderCache}) so the DECISION can be exercised directly and deterministically,
+ * independent of forcing a real concurrent bump-lock race.
+ *
+ * `!nestedBumped && (deleteChanges > 0 || indexed.indexed > 0 || indexed.error !== undefined)`:
+ * - `deleteChanges > 0` — the DELETE genuinely removed rows; the store changed regardless of the
+ *   nested call's outcome.
+ * - `indexed.indexed > 0` — the nested call committed rows itself but its OWN bump failed
+ *   (`generationBumped: false`) or was never attempted.
+ * - `indexed.error !== undefined` — the nested call's post-write state is UNKNOWN (item 1a: an error
+ *   here may still carry accurate `indexed`/`generationBumped` facts, but a caller must not assume a
+ *   future error path will). C-1: when in doubt, bump — an extra bump only over-invalidates a cache
+ *   (safe), a missed one serves stale data (not safe).
+ */
+export declare function needsRescueBump(deleteChanges: number, indexed: AgentdbIndexResult): boolean;
 export declare function reindexAgentdbRows(projectRoot: string, rows: readonly AgentdbRow[], opts?: {
     dbPath?: string;
     taskTypes?: readonly string[];

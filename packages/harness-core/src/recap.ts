@@ -227,7 +227,12 @@ export const FORBIDDEN_METRICS: readonly ForbiddenMetric[] = [
  */
 export type Delivery =
   | { readonly slug: string; readonly createdIso: string; readonly gradeStatus: 'unique'; readonly grade: string }
-  | { readonly slug: string; readonly createdIso: string; readonly gradeStatus: 'ambiguous' | 'none' | 'no-report'; readonly grade: null };
+  // fix-round-1 (codex-r1-verdict finding 2/3): `readQeGrade` gained an `'invalid'` status — a
+  // report that ATTEMPTED a machine `QE-VERDICT:` line and got the grammar wrong. It is counted
+  // alongside `'ambiguous'` below (both mean "no single grade can be trusted", for different
+  // reasons) rather than getting a fifth bucket in the printed line — the type keeps the real
+  // status, `buildRecap` chooses how to group it for display.
+  | { readonly slug: string; readonly createdIso: string; readonly gradeStatus: 'ambiguous' | 'invalid' | 'none' | 'no-report'; readonly grade: null };
 
 /** A `unique` with no usable grade is not a graded delivery; it is a report we could not read. */
 function normaliseDelivery(d: Delivery): Delivery {
@@ -346,14 +351,16 @@ export function buildRecap(facts: RecapFacts): RecapReport {
     const covered = coveredWindow(v, facts.window);
     const items = (facts.deliveries?.items ?? []).map(normaliseDelivery).filter((d) => withinWindow(covered, d.createdIso));
     const graded = items.filter((d): d is Extract<Delivery, { gradeStatus: 'unique' }> => d.gradeStatus === 'unique');
-    const ambiguous = items.filter((d) => d.gradeStatus === 'ambiguous');
+    // fix-round-1: 'invalid' (a malformed QE-VERDICT attempt) is folded into the same printed bucket
+    // as 'ambiguous' — both are "no single grade can be trusted", just a different reason.
+    const ambiguous = items.filter((d) => d.gradeStatus === 'ambiguous' || d.gradeStatus === 'invalid');
     const ungraded = items.filter((d) => d.gradeStatus === 'none' || d.gradeStatus === 'no-report');
     const lines = sectionLines(v, facts.window, (scope) => items.length === 0
       ? emptyOrUnavailable(v, `no feature directories were created in ${scope}`)
       : [
           `${items.length} feature director${items.length === 1 ? 'y' : 'ies'} created in ${scope}`,
           `${graded.length} carry a grade an independent review stated unambiguously${graded.length > 0 ? `: ${tally(graded.map((d) => d.grade))}` : ''}`,
-          `${ambiguous.length} have a report that states MORE THAN ONE grade — reported as ambiguous, never guessed`,
+          `${ambiguous.length} have a report that states MORE THAN ONE grade or a malformed QE-VERDICT line — reported as ambiguous, never guessed`,
           `${ungraded.length} have no letter grade in their report, or no report at all`,
           'cadence is not value: this counts deliveries, not what they were worth',
         ]);

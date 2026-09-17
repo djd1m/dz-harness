@@ -491,6 +491,11 @@ export interface TrainingPair {
   truncated: TrainingPairTruncation | null;
   captureMode: 'capture' | 'backfill';
   resumed: boolean;
+  /** experiment-envelope FR-3(б): the envelope built once after the Step-0 router, carried
+   * alongside `budgetMode` (not instead of it — `budgetMode` is a narrower legacy summary).
+   * Normalized via `validateExperimentEnvelope`: an invalid or absent value becomes `null`, never
+   * a malformed value smuggled into the dataset. */
+  envelope: unknown | null;
 }
 
 /** Per-stage JSONL path, relative to the repo root. ONE file per stage. */
@@ -649,6 +654,28 @@ function normalizeTrainingPairBudget(raw: unknown): TrainingPairBudget | null {
   }
 }
 
+/**
+ * experiment-envelope FR-3(б): a LIGHTWEIGHT structural check, not the full field-by-field
+ * validator (`validateExperimentEnvelope` in `feature-adr-envelope.ts`) — this module is
+ * DELIBERATELY import-free (the workflow sandbox mirrors it inline, same discipline as
+ * `TP_PROFILE_MARKER_START`/`tpRedact` above), so importing the full validator here would break
+ * that mirroring. This check catches gross malformation (not an object, wrong schema, missing
+ * the four nested sections) — the AUTHORITATIVE per-field validation gate lives at the
+ * run-records/round layer, where an invalid envelope actually refuses a write. Absent or
+ * malformed here degrades HONESTLY to `null`, never a fabricated or partially-checked value.
+ */
+function normalizeTrainingPairEnvelope(raw: unknown): unknown | null {
+  if (raw === null || raw === undefined || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const v = raw as Record<string, unknown>;
+  if (v.schema !== 1) return null;
+  if (typeof v.runId !== 'string' || v.runId.trim() === '') return null;
+  if (v.arms === null || typeof v.arms !== 'object') return null;
+  if (v.chosen === null || typeof v.chosen !== 'object') return null;
+  if (v.policy === null || typeof v.policy !== 'object') return null;
+  if (v.evaluator === null || typeof v.evaluator !== 'object') return null;
+  return raw;
+}
+
 /** Assemble one SFT-ready training pair. Deterministic (ts passed in). Applies the oversize
  * guard: when input+output exceed TRAINPAIR_MAX_IO_CHARS combined, each over-budget side is
  * truncated with a marker naming the cut char count + the fnv1a64 of its FULL text (the
@@ -667,6 +694,7 @@ export function buildTrainingPair(opts: {
   budgetMode?: unknown;
   captureMode?: unknown;
   resumed?: unknown;
+  envelope?: unknown;
 }): TrainingPair {
   // Operator-profile redaction FIRST — before the oversize guard, so the truncation hashes are
   // hashes of the redacted text and the full-text fnv1a64 never fingerprints personal data.
@@ -709,6 +737,7 @@ export function buildTrainingPair(opts: {
     truncated,
     captureMode: opts.captureMode === 'backfill' ? 'backfill' : 'capture',
     resumed: opts.resumed === true,
+    envelope: normalizeTrainingPairEnvelope(opts.envelope),
   };
 }
 

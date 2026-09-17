@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-09-16T06:20:13.004Z",
+  "builtAt": "2026-09-17T09:17:26.098Z",
   "builtFrom": "dz-harness-hub (private monorepo)",
   "rule": "each package mirrors exactly its npm-pack tarball inventory — the already-public surface",
   "requested": 56,
@@ -193,13 +193,13 @@
     },
     {
       "name": "@dzhechkov/harness-cli",
-      "version": "0.8.28",
+      "version": "0.8.29",
       "files": 47
     },
     {
       "name": "@dzhechkov/harness-core",
-      "version": "0.8.36",
-      "files": 857
+      "version": "0.8.37",
+      "files": 887
     },
     {
       "name": "@dzhechkov/harness-presets",
@@ -213,12 +213,12 @@
     },
     {
       "name": "@dzhechkov/keysarium",
-      "version": "1.7.5",
+      "version": "1.7.6",
       "files": 248
     },
     {
       "name": "@dzhechkov/keysarium-core",
-      "version": "1.1.28",
+      "version": "1.1.29",
       "files": 24
     },
     {
@@ -318,7 +318,7 @@
     },
     {
       "name": "@dzhechkov/skills-feature-adr",
-      "version": "1.5.11",
+      "version": "1.5.12",
       "files": 83
     },
     {
@@ -333,7 +333,7 @@
     },
     {
       "name": "@dzhechkov/skills-meta",
-      "version": "0.9.56",
+      "version": "0.9.57",
       "files": 141
     },
     {

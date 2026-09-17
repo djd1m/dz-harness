@@ -33,6 +33,7 @@ export const BOOLEAN_CLI_FLAGS = new Set([
     'books',
     'bto',
     'bump-only',
+    'by-family',
     'by-stage',
     'calibrate',
     'check',

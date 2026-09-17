@@ -34,6 +34,7 @@ import {
   readEmbedManifest,
   resolveEmbedModel,
   writeEmbedManifest,
+  type EmbedDtype,
 } from './embedding-config.js';
 
 /** One record to index. `text` is stored as `approach` AND embedded (`${taskType}: ${text}`). */
@@ -50,7 +51,15 @@ export interface AgentdbRow {
 
 /** Outcome of {@link indexPatternsToAgentdb}. `generationBumped`/`generationReason` are present only
  * when a store write actually happened (`indexed > 0`) — FR-4: a failed counter write NEVER fails
- * the indexing call itself, it is only reported so a caller (`dz doctor`, telemetry) can see it. */
+ * the indexing call itself, it is only reported so a caller (`dz doctor`, telemetry) can see it.
+ *
+ * Fix-round 1 (CRITICAL, item 1a): `indexed`/`generationBumped`/`generationReason` and `error` are
+ * NOT mutually exclusive. A failure AFTER the row commit (today, only `writeEmbedManifest` throwing)
+ * reports the REAL `indexed` count and the REAL bump outcome alongside `error` — it never collapses
+ * back to `{indexed: 0, error}` once rows are already on disk. Collapsing to `indexed: 0` after a
+ * real commit was the CRITICAL finding: a caller reading `indexed === 0` as "nothing happened" would
+ * skip its own rescue-bump logic even though the store had genuinely changed — an under-bump C-1
+ * forbids. */
 export interface AgentdbIndexResult {
   readonly indexed: number;
   readonly error?: string | undefined;
@@ -145,11 +154,37 @@ function generationFilePath(dbFile: string): string {
   return `${dbFile}.generation`;
 }
 
+/** `<dbFile>.generation.recovered` (T2, `store-generation-residuals`, record `1d465496`) — the
+ * corrupt-sidecar recovery floor's own memory, a SEPARATE file next to the counter (never a
+ * module-level variable: two OS processes do not share one, and two processes are exactly what
+ * race here). Substring `.generation` deliberately preserved so any future sidecar-enumeration
+ * point that greps for the counter family (checked, none exists today — see Р-2 in
+ * `features/store-generation-residuals/06_implementation_plan.md`) still finds this file. */
+function recoveredMemoryFilePath(genFile: string): string {
+  return `${genFile}.recovered`;
+}
+
 /** AM-5 (fix-round): the ONLY shape {@link readStoreGeneration} trusts — one or more ASCII digits,
  * nothing else. `Number.parseInt` alone accepts a leading-numeric-with-trailing-junk string like
  * `"12junk"` as `12`; that reads a corrupt sidecar as a plausible generation instead of degrading to
  * the documented `0` compatibility floor. */
 const STRICT_GENERATION = /^\d+$/;
+
+/** Shared degrade-to-0 read for any sidecar holding a single non-negative decimal integer: garbage,
+ * a missing file, or anything not matching {@link STRICT_GENERATION} reads as `0`, never throws.
+ * Both {@link readStoreGeneration} (the counter itself) and T2's recovery memory
+ * ({@link recoveredMemoryFilePath}) use this ONE primitive — the recovery memory must degrade
+ * exactly like the counter it accompanies (T2 NFR-1), not by a second, possibly-diverging rule. */
+function readNonNegativeIntFile(path: string): number {
+  try {
+    const raw = readFileSync(path, 'utf8').trim();
+    if (!STRICT_GENERATION.test(raw)) return 0;
+    const n = Number.parseInt(raw, 10);
+    return Number.isFinite(n) && n >= 0 ? n : 0;
+  } catch {
+    return 0;
+  }
+}
 
 /**
  * FR-2/FR-3 (`store-generation-counter`): the store's write-generation counter, read back. A
@@ -161,14 +196,7 @@ const STRICT_GENERATION = /^\d+$/;
  * to decide validity, only to convert an already-validated string.
  */
 export function readStoreGeneration(projectRoot: string, dbPath?: string): number {
-  try {
-    const raw = readFileSync(generationFilePath(resolveAgentdbPath(projectRoot, dbPath)), 'utf8').trim();
-    if (!STRICT_GENERATION.test(raw)) return 0;
-    const n = Number.parseInt(raw, 10);
-    return Number.isFinite(n) && n >= 0 ? n : 0;
-  } catch {
-    return 0;
-  }
+  return readNonNegativeIntFile(generationFilePath(resolveAgentdbPath(projectRoot, dbPath)));
 }
 
 /**
@@ -192,6 +220,37 @@ export function readStoreGeneration(projectRoot: string, dbPath?: string): numbe
  * regardless, telemetry is never a gate. AM-4: {@link resolveAgentdbPath} itself now runs INSIDE this
  * function's outer `try` — an unresolvable path can no longer throw OUT of `bumpStoreGeneration`
  * either; "never throws" now covers the whole function, not just the file-write tail.
+ *
+ * T2 (`store-generation-residuals`, record `1d465496`): the corrupt-sidecar recovery floor below
+ * used to be a bare `Date.now()` — NOT strictly monotonic on its own (two recoveries inside the same
+ * millisecond publish the same value; a backward clock step can publish a SMALLER one than an
+ * earlier recovery). It is now `max(now(), lastPublished + 1)`, where `lastPublished` is read from
+ * {@link recoveredMemoryFilePath} — a file, not a module-level variable, because the two writers who
+ * actually race here are two OS PROCESSES, which do not share process memory. `now` is an injectable
+ * time source (default `Date.now`) — AC-3's only reason to exist: a real clock cannot be rolled back
+ * from a test.
+ *
+ * Fix-round 1 (independent Codex review, gpt-5.6-sol — items 2/3/4/5/7), on top of T2:
+ * - item 2: {@link recoveredMemoryFilePath} now holds the LAST **published** generation, not the
+ *   last **recovered** one — it is written on EVERY successful bump, not only inside the
+ *   corrupt-sidecar branch. Before this fix, a run of ordinary bumps after a recovery left the
+ *   memory stale, so a LATER recovery under a rolled-back clock could float the counter below a
+ *   generation an ordinary bump already published (HIGH #2 finding).
+ * - item 3: the memory file is published BEFORE the counter file (was: counter first, memory
+ *   "best-effort" after). A crash between the two writes now leaves the memory AHEAD of the counter
+ *   — the SAFE direction: the next recovery floors too high rather than too low, so monotonicity
+ *   survives a half-done bump (HIGH #3 finding).
+ * - item 4: a memory-write failure (e.g. a directory sitting at its path) does NOT block the counter
+ *   publish below it — invalidation is the load-bearing behaviour — but the degradation is reported
+ *   on stderr via {@link reportBumpMemoryDegraded}, never swallowed. LIMITATION: while the memory
+ *   sidecar stays unwritable, a future corrupt-sidecar recovery on this store floors only at the wall
+ *   clock, same as pre-fix-round behaviour — not strictly above every ordinary bump published in the
+ *   meantime (HIGH #4 finding).
+ * - item 5: every error-to-string conversion in this function goes through {@link safeErrorMessage},
+ *   which cannot itself throw even if `err` carries a poisoned `toString` — "never throws" is
+ *   absolute (MEDIUM #5 finding).
+ * - item 7: the memory sidecar's own tmp file is cleaned up on a failed write, matching the counter's
+ *   existing tmp-cleanup discipline (LOW #7 finding).
  */
 /** Codex round-2 (NEW HIGH): most mutators discard the bump result, so a failed bump must be
  * VISIBLE on its own — one stderr line, written by the helper itself. Telemetry never throws. */
@@ -200,13 +259,50 @@ function reportBumpFailure(error: string): { readonly ok: false; readonly error:
   return { ok: false, error };
 }
 
+/** Fix-round 1, item 4: a bump whose COUNTER publish succeeded but whose recovery-memory sidecar
+ * ({@link recoveredMemoryFilePath}) could not be written must not swallow that fact — same
+ * stderr-report shape as {@link reportBumpFailure}, but this one never changes the return value:
+ * the counter genuinely advanced, so `{ok:true, generation}` stands. LIMITATION (documented here per
+ * the brief, item 4): until the memory sidecar is writable again, a FUTURE corrupt-sidecar recovery
+ * on this store is not guaranteed to floor above every generation an ordinary bump already published
+ * in the meantime (item 2's fix depends on the memory file being current) — it still floors above the
+ * wall clock, same as before this fix-round. */
+function reportBumpMemoryDegraded(reason: string): void {
+  try {
+    process.stderr.write(
+      `dz: store generation recovery memory not updated — ${reason} — a future corrupt-sidecar recovery on this store is not guaranteed to stay strictly monotonic until this is fixed\n`,
+    );
+  } catch { /* telemetry never throws */ }
+}
+
+/** Fix-round 1, item 5: `String(err)` itself can throw if `err` carries a poisoned `toString` (or
+ * `Error.prototype.message` getter). `bumpStoreGeneration`'s "never throws" contract (FR-4) is
+ * ABSOLUTE, so every place in this function that turns a caught error into a string goes through
+ * this ONE protected helper — never a bare `err instanceof Error ? err.message : String(err)`.
+ * Exported test-only (same convention as {@link needsRescueBump}/{@link resetAgentdbEmbedderCache}).
+ */
+export function safeErrorMessage(err: unknown): string {
+  try {
+    return err instanceof Error ? err.message : String(err);
+  } catch {
+    return '(unstringifiable error)';
+  }
+}
+
 export function bumpStoreGeneration(
   projectRoot: string,
   dbPath?: string,
+  /** T2: the ONLY signature extension the plan permits — injectable wall clock, default `Date.now`,
+   * so AC-3 (a rolled-back system clock) can be reproduced without touching the real clock. */
+  now: () => number = Date.now,
 ): { readonly ok: true; readonly generation: number } | { readonly ok: false; readonly error: string } {
   try {
     const dbFile = resolveAgentdbPath(projectRoot, dbPath);
     const genFile = generationFilePath(dbFile);
+    // Fix-round 1, item 2: computed UNCONDITIONALLY (was: only inside the corrupt-sidecar branch) —
+    // this sidecar now tracks "last PUBLISHED generation", updated on every successful bump, not just
+    // a recovery.
+    const recoveredMemoryFile = recoveredMemoryFilePath(genFile);
     return withNamedLockSync(
       dirname(dbFile),
       'store-generation',
@@ -215,25 +311,61 @@ export function bumpStoreGeneration(
         // acquisition may already be stale, another holder may have advanced it in the meantime.
         let current = readStoreGeneration(projectRoot, dbPath);
         const tmp = `${genFile}.tmp-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        const recTmp = `${recoveredMemoryFile}.tmp-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
         try {
-          // Codex round-2 (AM-2 residual): a sidecar that EXISTS but is corrupt reads as 0 and would
-          // reset the counter to 1 — a value an engine-cache entry may already be keyed on. Floor a
-          // corrupt value at a wall-clock stamp instead: still monotonic (ms since epoch exceeds any
-          // count reached by bumping) and never colliding with an earlier generation. Absent file ⇒ 1.
+          // Codex round-2 (AM-2 residual) / T2 (record `1d465496`): a sidecar that EXISTS but is
+          // corrupt reads as 0 and would reset the counter to 1 — a value an engine-cache entry may
+          // already be keyed on. Floor a corrupt value at max(wall-clock, lastPublished+1) instead:
+          // still monotonic (ms-since-epoch exceeds any count reached by bumping) AND strictly
+          // increasing across successive corrupt recoveries even inside the same millisecond or
+          // across a backward clock step — the bare `Date.now()` this replaces was neither. Absent
+          // file (not corrupt, simply missing) still takes the ordinary `current === 0` path below,
+          // unaffected — only a genuinely corrupt EXISTING sidecar enters this branch.
           if (current === 0 && existsSync(genFile)) {
             const raw = readFileSync(genFile, 'utf8').trim();
-            if (raw !== '0' && !STRICT_GENERATION.test(raw)) current = Date.now();
+            if (raw !== '0' && !STRICT_GENERATION.test(raw)) {
+              // NFR-1: a memory file that cannot be read (missing, or itself corrupt) degrades to 0,
+              // exactly like the counter's own read — never a throw, never a special-cased error.
+              // Fix-round 1, item 2: `lastPublished` now reflects every prior successful bump
+              // (ordinary or recovery), not only the previous recovery — see the doc comment above.
+              const lastPublished = readNonNegativeIntFile(recoveredMemoryFile);
+              current = Math.max(now(), lastPublished + 1);
+            }
           }
           const next = current + 1;
           mkdirSync(dirname(genFile), { recursive: true });
+
+          // Fix-round 1, item 3: the memory sidecar is published BEFORE the counter sidecar — a crash
+          // between the two then leaves the memory AHEAD of the counter (safe: the next recovery
+          // floors too high, never too low). Fix-round 1, item 2: this now runs on EVERY successful
+          // bump, not only inside the corrupt-sidecar branch above.
+          let memoryError: string | undefined;
+          try {
+            writeFileSync(recTmp, String(next), { encoding: 'utf8', flag: 'wx' });
+            renameSync(recTmp, recoveredMemoryFile);
+          } catch (memErr) {
+            // Fix-round 1, item 4: the counter publish below still goes ahead — invalidation matters
+            // more than the memory sidecar — but the degradation is reported, not swallowed (see the
+            // stderr write after the counter publish). Fix-round 1, item 7: clean up a half-written
+            // memory tmp file the same way the counter's own tmp is cleaned up on failure below.
+            try { if (existsSync(recTmp)) unlinkSync(recTmp); } catch { /* best-effort only */ }
+            memoryError = safeErrorMessage(memErr);
+          }
+
           writeFileSync(tmp, String(next), { encoding: 'utf8', flag: 'wx' });
           renameSync(tmp, genFile);
+
+          // Fix-round 1, item 4: reported AFTER the counter publish succeeds, so the stderr line
+          // never implies the bump itself failed — it names exactly the narrower, degraded guarantee.
+          if (memoryError !== undefined) reportBumpMemoryDegraded(memoryError);
+
           return { ok: true, generation: next };
         } catch (err) {
           // Best-effort cleanup of a half-written temp file (e.g. rename failed after a successful
           // write) so it never lingers as clutter — never lets a cleanup failure mask the real error.
           try { if (existsSync(tmp)) unlinkSync(tmp); } catch { /* best-effort only */ }
-          return reportBumpFailure(`store generation bump failed: ${err instanceof Error ? err.message : String(err)}`);
+          try { if (existsSync(recTmp)) unlinkSync(recTmp); } catch { /* best-effort only */ } // item 7
+          return reportBumpFailure(`store generation bump failed: ${safeErrorMessage(err)}`);
         }
       },
     );
@@ -241,7 +373,7 @@ export function bumpStoreGeneration(
     // AM-2/FR-4: a lock that could not be acquired by its deadline (`NamedLockTimeoutError`) — and
     // any other failure reaching this point (an unresolvable path, AM-4) — degrades to the same
     // honest `{ok:false, error}` shape; it never throws into the store write it accompanies.
-    return reportBumpFailure(`store generation bump failed: ${err instanceof Error ? err.message : String(err)}`);
+    return reportBumpFailure(`store generation bump failed: ${safeErrorMessage(err)}`);
   }
 }
 
@@ -256,37 +388,25 @@ export async function indexPatternsToAgentdb(
 ): Promise<AgentdbIndexResult> {
   if (rows.length === 0) return { indexed: 0 };
   let sqliteUrl: string;
-  let agentdbDir: string;
   try {
     const req = createRequire(join(projectRoot, 'package.json'));
     sqliteUrl = pathToFileURL(req.resolve('better-sqlite3')).href;
-    agentdbDir = dirname(req.resolve('agentdb'));
   } catch {
     return { indexed: 0, error: 'agentdb/better-sqlite3 not installed in project (run: dz setup --memory agentdb)' };
   }
   try {
     const { default: Database } = (await import(sqliteUrl)) as { default: new (p: string) => NativeDb };
-    const { EmbeddingService } = (await import(pathToFileURL(join(agentdbDir, 'controllers', 'EmbeddingService.js')).href)) as {
-      EmbeddingService: new (o: object) => { initialize: () => Promise<void>; embed: (t: string) => Promise<Float32Array> };
-    };
     const model = resolveEmbedModel(projectRoot);
     if ('error' in model) return { indexed: 0, error: model.error };
-    const emb = new EmbeddingService({
-      model: model.model,
-      dimension: model.dim,
-      provider: 'transformers',
-      // agentdb >= 3.0.0-alpha.20 refuses UNREGISTERED models without an explicit role policy
-      // (its built-in registry knows all-MiniLM-L6-v2 but not our multilingual variant — grounded
-      // in dist/src/controllers/EmbeddingService.js:53). paraphrase-multilingual-MiniLM is a
-      // SYMMETRIC sentence-transformer (no query/passage instruction prefixes), so the policy is
-      // {kind:'symmetric'} — the same one the registry assigns its own symmetric models. On
-      // alpha.18 the extra field is ignored; without it alpha.20 threw and the vector tier fell
-      // to lexical SILENTLY (mirror writes answered {indexed:0, error} — measured 2026-08-24).
-      rolePolicy: { kind: 'symmetric' },
-    } as never);
-    await emb.initialize();
-
     const dbFile = resolveAgentdbPath(projectRoot, opts.dbPath);
+    // D1 (embed-daemon-memory, ADR-001): a single embedder per process — the SAME cached pipeline
+    // `resolveAgentdbEmbedder` hands to search/the daemon, never a private `new EmbeddingService(...)`
+    // built here. `dbFile` (not just `projectRoot`) so an EXISTING store's dtype (manifest, D2) wins
+    // over the config for an ordinary incremental index — only `reindexAgentdbRows` re-stamps the
+    // manifest first and thereby moves the dtype (see resolveStoreEmbedDtype's own doc comment).
+    const emb = await resolveAgentdbEmbedder(projectRoot, dbFile);
+    if ('error' in emb) return { indexed: 0, error: emb.error };
+
     const db = new Database(dbFile);
     try {
       db.pragma('journal_mode = WAL');
@@ -337,7 +457,21 @@ export async function indexPatternsToAgentdb(
       // whichever of the two calls below throws, the generation is already correct for the rows that
       // are already on disk.
       const bump = bumpStoreGeneration(projectRoot, opts.dbPath);
-      writeEmbedManifest(dbFile, currentEmbedManifest(model, guard.manifest.version, 'agentdb'));
+      // Fix-round 1 (CRITICAL, item 1a): `writeEmbedManifest` can throw (a directory sitting at the
+      // manifest sidecar path — see the AM-3 test). Before this fix, that throw escaped to the outer
+      // `catch` below, which returned the GENERIC `{indexed: 0, error: ...}` — discarding the two
+      // facts already true by this point: `indexed` rows are on disk, and `bump` already ran. A
+      // caller reading `indexed === 0` would conclude "nothing happened" and skip its own rescue-bump
+      // logic even though the store had genuinely changed — the under-bump C-1 forbids. Catching the
+      // throw HERE, with the real `indexed`/bump outcome already captured in scope, preserves both.
+      try {
+        writeEmbedManifest(dbFile, currentEmbedManifest(model, guard.manifest.version, 'agentdb'));
+      } catch (manifestErr) {
+        const manifestError = `index failed: ${safeErrorMessage(manifestErr)}`;
+        return bump.ok
+          ? { indexed, generationBumped: true, error: manifestError }
+          : { indexed, generationBumped: false, generationReason: bump.error, error: manifestError };
+      }
       return bump.ok
         ? { indexed, generationBumped: true }
         : { indexed, generationBumped: false, generationReason: bump.error };
@@ -345,7 +479,7 @@ export async function indexPatternsToAgentdb(
       db.close();
     }
   } catch (err) {
-    return { indexed: 0, error: `index failed: ${err instanceof Error ? err.message : String(err)}` };
+    return { indexed: 0, error: `index failed: ${safeErrorMessage(err)}` };
   }
 }
 
@@ -420,21 +554,147 @@ type Embedder = { embed: (t: string) => Promise<Float32Array> } | { error: strin
  */
 const embedderCache = new Map<string, Promise<Embedder>>();
 let embedderCacheInitializations = 0;
+/**
+ * Fix round 1 (F6, Codex #6): `embedderCacheInitializations` only counts calls to
+ * {@link resolveAgentdbEmbedder} that missed the cache — it proves cache REUSE, not that a real
+ * pipeline was actually constructed. This counter increments at the exact two call sites where a
+ * pipeline construction primitive actually runs: the direct `pipeline('feature-extraction', …)` call
+ * in {@link initAgentdbEmbedder} and `EmbeddingService.initialize()` in
+ * {@link initViaAgentdbEmbeddingService} (the COMPAT FALLBACK path) — never merely on entry to
+ * `initAgentdbEmbedder`, which can also return an `{error}` (dtype:'q8' with no resolvable
+ * transformers, NFR-4) without ever attempting either.
+ */
+let embedderCachePipelinesBuilt = 0;
 
 /** Test-only (and future warm-start) reset — callers (`vector-tier.ts`, `backlog.ts`) are unaffected. */
 export function resetAgentdbEmbedderCache(): void {
   embedderCache.clear();
   embedderCacheInitializations = 0;
+  embedderCachePipelinesBuilt = 0;
 }
 
 /** `entries` = cached keys right now — a SUCCESSFUL pipeline or an IN-FLIGHT initialization (the promise is
  * cached before it settles, FR-4; a failed one is evicted, FR-3); `initializations` = pipelines actually
- * started since the last reset. (Codex round-1, 2026-09-14: the earlier wording said "successful" only.) */
-export function getAgentdbEmbedderCacheStats(): { entries: number; initializations: number } {
-  return { entries: embedderCache.size, initializations: embedderCacheInitializations };
+ * started since the last reset. (Codex round-1, 2026-09-14: the earlier wording said "successful" only.)
+ * `pipelinesBuilt` (fix round 1, F6) = the count of REAL pipeline-construction primitives that actually
+ * ran (`pipeline()` or `EmbeddingService.initialize()`), never merely the number of times the resolver
+ * was entered — see {@link embedderCachePipelinesBuilt}'s own doc comment for why the two can diverge. */
+export function getAgentdbEmbedderCacheStats(): { entries: number; initializations: number; pipelinesBuilt: number } {
+  return { entries: embedderCache.size, initializations: embedderCacheInitializations, pipelinesBuilt: embedderCachePipelinesBuilt };
 }
 
-async function initAgentdbEmbedder(agentdbDir: string, model: string, dim: number): Promise<Embedder> {
+/**
+ * Walk UP from `startDir` (inclusive) looking for `<dir>/node_modules/<name>` as a real, existing
+ * path — a PLAIN FILESYSTEM CHECK, deliberately never `require.resolve()` alone. MEASURED
+ * 2026-09-16: under this package's own vitest harness, `createRequire(join(projectRoot,
+ * 'package.json')).resolve('@huggingface/transformers')` succeeds even for a deliberately isolated
+ * `/tmp` fixture that installs no such dependency at all (`agentdb-embedder-cache.test.ts`'s AC-3) —
+ * the test runner's module loader resolves more liberally than plain Node does, reaching the
+ * monorepo's real install regardless of `projectRoot`. `require.resolve` is used only AFTER this
+ * filesystem walk has already named a legitimate ancestor, so it can no longer be fooled that way.
+ * Returns the ancestor directory whose OWN `node_modules/<name>` exists, or `undefined` if none does
+ * all the way to the filesystem root (a handful of synchronous `existsSync` calls either way).
+ */
+function findAncestorWithModule(startDir: string, name: string): string | undefined {
+  let dir = resolve(startDir);
+  for (;;) {
+    if (existsSync(join(dir, 'node_modules', name))) return dir;
+    const parent = dirname(dir);
+    if (parent === dir) return undefined;
+    dir = parent;
+  }
+}
+
+/**
+ * C-3 (`embed-daemon-memory`): the SAME resolution order the daemon's own `resolveDeps` uses
+ * (`.claude/helpers/dz-embed-daemon.mjs`) — project `package.json` first, then `agentdb`'s own
+ * declared dependency (possibly hoisted elsewhere) — so core and the daemon agree on which install
+ * of transformers they find, in a monorepo or a plain install alike. Each candidate root is
+ * confirmed by {@link findAncestorWithModule} BEFORE `require.resolve` is trusted (see its own doc
+ * comment for why the plain try/catch this replaced was not safe under this package's test runner).
+ *
+ * Exported (fix round 1, F4, same convention as {@link safeErrorMessage}/{@link resetAgentdbEmbedderCache}):
+ * `embedder-single-owner.test.ts`'s live-dep skip gate needs the SAME resolution order the production
+ * code uses to decide, BEFORE running, whether a live embedder failure is a dependency gap (named skip)
+ * or a real defect (must fail) — a text-matching heuristic on the error message cannot tell those apart.
+ */
+export function resolveTransformersModule(projectRoot: string): { url: string } | { error: string } {
+  const candidates = ['@huggingface/transformers', '@xenova/transformers'];
+  for (const name of candidates) {
+    const ancestor = findAncestorWithModule(projectRoot, name);
+    if (ancestor === undefined) continue;
+    try {
+      return { url: pathToFileURL(createRequire(join(ancestor, 'package.json')).resolve(name)).href };
+    } catch {
+      /* an ancestor that named the directory but whose require still can't resolve it (e.g. a
+         broken symlink) — try the next candidate */
+    }
+  }
+  let agentdbDir: string;
+  try {
+    agentdbDir = dirname(createRequire(join(projectRoot, 'package.json')).resolve('agentdb'));
+  } catch {
+    return { error: DEPS_MISSING };
+  }
+  for (const name of candidates) {
+    const ancestor = findAncestorWithModule(agentdbDir, name);
+    if (ancestor === undefined) continue;
+    try {
+      return { url: pathToFileURL(createRequire(join(ancestor, 'package.json')).resolve(name)).href };
+    } catch {
+      /* try the next candidate */
+    }
+  }
+  return { error: DEPS_MISSING };
+}
+
+/**
+ * D1 (ADR-001): builds the `transformers` pipeline DIRECTLY — the exact call agentdb's own
+ * `EmbeddingService.embed` makes for a symmetric model (`pipeline(text, { pooling:'mean',
+ * normalize:true })`, `EmbeddingService.js:205`), never through agentdb's wrapper class. This is
+ * the ONLY way to request `dtype:'q8'` at pipeline construction (D2) — `EmbeddingService.initialize`
+ * hardcodes `transformers.pipeline('feature-extraction', model)` with no dtype option at all, so a
+ * quantized store is unreachable through it at any dtype but fp32.
+ *
+ * COMPAT FALLBACK (deviation from the ADR's literal "иначе ядро отдаёт {error} как сегодня" —
+ * documented in `features/embed-daemon-memory/07_code_changes/change_manifest.md`): when
+ * `@huggingface/transformers`/`@xenova/transformers` cannot be resolved directly AND the requested
+ * dtype is the default `fp32`, this falls back to agentdb's `EmbeddingService` exactly as this
+ * function's pre-T2 body did. Measured (2026-09-16): seven OTHER features' test files
+ * (`agentdb-index.test.ts`, `agentdb-snapshot-{consistency,lock,rotation}.test.ts`, `brain.test.ts`,
+ * `quarantine-mirror-projection.test.ts`, `store-generation.test.ts`, `vector-tier{,​-rvf}.test.ts`)
+ * fake ONLY `agentdb/controllers/EmbeddingService.js` for their offline fixtures, never a
+ * `@huggingface/transformers`/`@xenova/transformers` stub — a literal "no fallback" implementation
+ * reddens all of them (out of scope here: `.claude/rules/cross-runtime-concurrency.md` and this
+ * feature's own hard rule both forbid touching another feature's files). `dtype:'q8'` NEVER falls
+ * back (NFR-4) — an unresolvable transformers module with `dtype:'q8'` requested is a hard `{error}`
+ * naming the model and dtype, exactly as the ADR specifies; only the fp32 path is widened.
+ */
+async function initAgentdbEmbedder(projectRoot: string, agentdbDir: string, model: string, dim: number, dtype: EmbedDtype): Promise<Embedder> {
+  const transformers = resolveTransformersModule(projectRoot);
+  if (!('error' in transformers)) {
+    try {
+      const { pipeline } = (await import(transformers.url)) as {
+        pipeline: (task: string, model: string, opts?: Record<string, unknown>) => Promise<(t: string, o: Record<string, unknown>) => Promise<{ data: ArrayLike<number> }>>;
+      };
+      const extractor = await pipeline('feature-extraction', model, dtype === 'q8' ? { dtype: 'q8' } : {});
+      embedderCachePipelinesBuilt += 1; // F6: the real primitive ran and returned a usable extractor
+      return { embed: async (t: string) => Float32Array.from((await extractor(t, { pooling: 'mean', normalize: true })).data) };
+    } catch (err) {
+      return { error: `embedder init failed (model ${model}, dtype ${dtype}): ${err instanceof Error ? err.message : String(err)}` };
+    }
+  }
+  if (dtype === 'q8') {
+    // NFR-4: a quantized store must never silently downgrade to fp32 for lack of a transformers
+    // install — the caller needs to know exactly why q8 is unreachable here.
+    return { error: `embedder init failed (model ${model}, dtype ${dtype}): ${transformers.error}` };
+  }
+  return initViaAgentdbEmbeddingService(agentdbDir, model, dim);
+}
+
+/** The pre-T2 implementation, preserved verbatim as the fp32-only COMPAT FALLBACK documented on
+ * {@link initAgentdbEmbedder} above. */
+async function initViaAgentdbEmbeddingService(agentdbDir: string, model: string, dim: number): Promise<Embedder> {
   try {
     const { EmbeddingService } = (await import(pathToFileURL(join(agentdbDir, 'controllers', 'EmbeddingService.js')).href)) as {
       EmbeddingService: new (o: object) => { initialize: () => Promise<void>; embed: (t: string) => Promise<Float32Array> };
@@ -453,6 +713,7 @@ async function initAgentdbEmbedder(agentdbDir: string, model: string, dim: numbe
       rolePolicy: { kind: 'symmetric' },
     } as never);
     await emb.initialize();
+    embedderCachePipelinesBuilt += 1; // F6: the COMPAT FALLBACK's own primitive ran
     return { embed: (t: string) => emb.embed(t) };
   } catch (err) {
     return { error: `embedder init failed: ${err instanceof Error ? err.message : String(err)}` };
@@ -460,11 +721,45 @@ async function initAgentdbEmbedder(agentdbDir: string, model: string, dim: numbe
 }
 
 /**
- * Resolve agentdb's `EmbeddingService` from the PROJECT (same dynamic-resolution discipline as
- * {@link indexPatternsToAgentdb}); every dz call site uses the same resolved model so query and row
- * vectors stay in the same space. Cached per process — see {@link embedderCache} above.
+ * D2 (`embed-daemon-memory`): the dtype a QUERY/write is embedded with is the STORE's own dtype
+ * (its manifest) when the store already exists, falling back to the CONFIGURED dtype only for a
+ * store that does not exist yet (its first-ever write picks up the config). This is the ONE place
+ * that decision is made — {@link resolveAgentdbEmbedder} calls it so every caller (search, an
+ * ordinary incremental index) agrees; `reindexAgentdbRows` is the sole exception (T2/plan): it
+ * stamps the manifest with the NEW configured dtype BEFORE it re-embeds, so by the time this
+ * function runs during a reindex the manifest already names the new dtype — config and manifest
+ * necessarily agree at that point, which is what makes reindex "the one place dtype changes".
  */
-export async function resolveAgentdbEmbedder(projectRoot: string): Promise<Embedder> {
+export function resolveStoreEmbedDtype(projectRoot: string, dbPath?: string): EmbedDtype | { error: string } {
+  const configured = resolveEmbedModel(projectRoot);
+  if ('error' in configured) return { error: configured.error };
+  const manifest = readEmbedManifest(resolveAgentdbPath(projectRoot, dbPath));
+  // Fix round 1 (Codex #4): a manifest dtype that is PRESENT but unrecognized must refuse, not fall
+  // through to the configured default — the same discipline guardEmbedSpace applies, needed here too
+  // because THIS is what resolveAgentdbEmbedder actually keys its cache and pipeline construction on.
+  if (manifest?.readError !== undefined) {
+    return { error: `embedding manifest unreadable (${manifest.readError}); run dz vector reindex` };
+  }
+  if (manifest?.dtypeError !== undefined) {
+    return { error: `unknown embedding dtype "${manifest.dtypeError}" in manifest; run dz vector reindex` };
+  }
+  return manifest?.dtype ?? configured.dtype;
+}
+
+/**
+ * Resolve the shared embedder from the PROJECT (same dynamic-resolution discipline as
+ * {@link indexPatternsToAgentdb}); every dz call site uses the same resolved model/dtype so query
+ * and row vectors stay in the same space. Cached per process — see {@link embedderCache} above.
+ *
+ * Fix round 1 (F1, doc correction — the prior wording was misleading): `dbPath` is passed straight
+ * to {@link resolveStoreEmbedDtype}, which calls {@link resolveAgentdbPath}`(projectRoot, dbPath)` —
+ * and THAT function already returns the project's DEFAULT store path (`<project>/.dz/agentdb.db`,
+ * or `AGENTDB_PATH`) when `dbPath` is omitted, not "no path". So an omitted `dbPath` still reads the
+ * default store's OWN manifest when one exists; the CONFIGURED dtype is used only as the fallback
+ * for a store that has no manifest yet (i.e. does not exist, or predates this feature) — never as
+ * the default behaviour for "no dbPath given".
+ */
+export async function resolveAgentdbEmbedder(projectRoot: string, dbPath?: string): Promise<Embedder> {
   let agentdbDir: string;
   try {
     const req = createRequire(join(projectRoot, 'package.json'));
@@ -474,11 +769,13 @@ export async function resolveAgentdbEmbedder(projectRoot: string): Promise<Embed
   }
   const model = resolveEmbedModel(projectRoot);
   if ('error' in model) return { error: model.error };
-  const key = `${agentdbDir}|${model.model}|${model.dim}`;
+  const dtype = resolveStoreEmbedDtype(projectRoot, dbPath);
+  if (typeof dtype === 'object' && 'error' in dtype) return { error: dtype.error };
+  const key = `${agentdbDir}|${model.model}|${model.dim}|${dtype}`;
   const hit = embedderCache.get(key);
   if (hit !== undefined) return hit;
   embedderCacheInitializations += 1;
-  const promise = initAgentdbEmbedder(agentdbDir, model.model, model.dim);
+  const promise = initAgentdbEmbedder(projectRoot, agentdbDir, model.model, model.dim, dtype);
   embedderCache.set(key, promise);
   // FR-3: an init failure must not stick — evict so the next call retries instead of replaying
   // the same {error} forever. `.catch` here only guards a rejection that slips past
@@ -618,7 +915,10 @@ export async function searchAgentdbPatterns(
       reindexHint: opts.reindexHint ?? 'dz vector reindex',
     });
     if (!guard.ok) return { hits: [], error: guard.error };
-    const emb = await resolveAgentdbEmbedder(projectRoot);
+    // D2: the query is embedded with the STORE's own dtype (the guard above already proved the
+    // manifest and the config agree) — pass the resolved store path so resolveAgentdbEmbedder reads
+    // the same manifest guardEmbedSpace just read, never the config's dtype in isolation.
+    const emb = await resolveAgentdbEmbedder(projectRoot, resolveAgentdbPath(projectRoot, opts.dbPath));
     if ('error' in emb) return { hits: [], error: emb.error };
     let qvec: Float32Array;
     try {
@@ -762,7 +1062,11 @@ interface UpsertDb {
   pragma: (s: string) => void;
   exec: (s: string) => void;
   prepare: (q: string) => {
-    run: (...a: unknown[]) => { lastInsertRowid: number | bigint };
+    // T1 (`store-generation-residuals`, record `3cfcec83`): `changes` is added here (better-sqlite3
+    // always returns it — this only makes an already-true fact visible to the type checker) so
+    // `reindexAgentdbRows`'s own DELETE can read its OBSERVED row count instead of inferring it from
+    // an adjacent signal (the exact mistake named in `06_implementation_plan.md`'s T1 section).
+    run: (...a: unknown[]) => { changes: number; lastInsertRowid: number | bigint };
     get: (...a: unknown[]) => unknown;
   };
   transaction: <T>(fn: () => T) => () => T;
@@ -1027,6 +1331,28 @@ export function bumpAgentdbUses(
   }
 }
 
+/**
+ * Fix-round 1 (CRITICAL, item 1b — the belt): whether {@link reindexAgentdbRows} must run its own
+ * rescue bump, given the DELETE's own observed `changes` count and the nested
+ * {@link indexPatternsToAgentdb} call's result. Exported test-only (same convention as
+ * {@link resetAgentdbEmbedderCache}) so the DECISION can be exercised directly and deterministically,
+ * independent of forcing a real concurrent bump-lock race.
+ *
+ * `!nestedBumped && (deleteChanges > 0 || indexed.indexed > 0 || indexed.error !== undefined)`:
+ * - `deleteChanges > 0` — the DELETE genuinely removed rows; the store changed regardless of the
+ *   nested call's outcome.
+ * - `indexed.indexed > 0` — the nested call committed rows itself but its OWN bump failed
+ *   (`generationBumped: false`) or was never attempted.
+ * - `indexed.error !== undefined` — the nested call's post-write state is UNKNOWN (item 1a: an error
+ *   here may still carry accurate `indexed`/`generationBumped` facts, but a caller must not assume a
+ *   future error path will). C-1: when in doubt, bump — an extra bump only over-invalidates a cache
+ *   (safe), a missed one serves stale data (not safe).
+ */
+export function needsRescueBump(deleteChanges: number, indexed: AgentdbIndexResult): boolean {
+  const nestedBumped = indexed.generationBumped === true;
+  return !nestedBumped && (deleteChanges > 0 || indexed.indexed > 0 || indexed.error !== undefined);
+}
+
 export async function reindexAgentdbRows(
   projectRoot: string,
   rows: readonly AgentdbRow[],
@@ -1238,6 +1564,11 @@ export async function reindexAgentdbRows(
   };
 
   let stale: string[] = [];
+  // T1 (`store-generation-residuals`, record `3cfcec83`): the OBSERVED fact — `changes` from the
+  // DELETE's own prepared-statement result, never inferred from `rows.length` or any other adjacent
+  // signal (06_implementation_plan.md's T1 section names exactly that inference as the mistake to
+  // avoid). Declared outside the `db` block so it survives to the bump decision below `db.close()`.
+  let deleteChanges = 0;
   try {
     mkdirSync(dirname(dbFile), { recursive: true });
     const db = new Database(dbFile);
@@ -1255,11 +1586,11 @@ export async function reindexAgentdbRows(
       stale = foreignTaskTypesWithEmbeddings(db, taskTypes);
       const delEmb = db.prepare(`DELETE FROM pattern_embeddings WHERE pattern_id IN (SELECT id FROM reasoning_patterns WHERE task_type IN (${placeholders}))`);
       const delPat = db.prepare(`DELETE FROM reasoning_patterns WHERE task_type IN (${placeholders})`);
-      const tx = db.transaction(() => {
+      const tx = db.transaction((): number => {
         delEmb.run(...taskTypes);
-        delPat.run(...taskTypes);
+        return delPat.run(...taskTypes).changes;
       });
-      tx();
+      deleteChanges = tx();
     } finally {
       db.close();
     }
@@ -1274,6 +1605,15 @@ export async function reindexAgentdbRows(
 
     const indexed = await indexPatternsToAgentdb(projectRoot, rows, { dbPath: dbFile });
     if (indexed.error !== undefined) {
+      // Fix-round 1 (CRITICAL, item 1b — the belt): before this fix, NO bump was attempted anywhere
+      // on this branch, regardless of `deleteChanges` — the DELETE above may have genuinely removed
+      // rows from the store (a real change on disk) and the counter would never move to reflect it,
+      // even though `rollback()` below may itself fail and leave that changed state in place. An
+      // error from the nested call means the post-write state is UNKNOWN — C-1 resolves unknown in
+      // favour of bumping (a spurious extra bump only over-invalidates a cache; a missed one serves
+      // stale data). `needsRescueBump` is the SAME decision used on the success path below — one
+      // rule, not two that could drift apart.
+      if (needsRescueBump(deleteChanges, indexed)) bumpStoreGeneration(projectRoot, opts.dbPath);
       const rb = await rollback();
       if (rb.restored === 'failed') rollbackFailed = true; // AM-3: the `finally` below must not clear the marker
       return {
@@ -1301,13 +1641,36 @@ export async function reindexAgentdbRows(
       if (!(err instanceof NamedLockTimeoutError)) throw err;
       snapshots = { kept: [], removed: [], removedBytes: 0, keep: keepSnapshots, errors: [`lock busy: ${err.message}`] };
     }
-    // AM-1 (fix-round): `reindexAgentdbRows` is itself a mutator (the DELETE above rebuilds the
-    // owned task types) — it must not rely SOLELY on `indexPatternsToAgentdb`'s own internal bump,
-    // because that call is a no-op (and bumps nothing) when `rows` is empty, yet the DELETE it ran
-    // just above unconditionally changed the store. Bumping again here when `rows` was non-empty
-    // (the common case, already bumped once inside `indexPatternsToAgentdb`) is harmless — the
-    // counter is a monotonic "did anything change" signal, not a per-operation tally.
-    bumpStoreGeneration(projectRoot, opts.dbPath);
+    // T1 (`store-generation-residuals`, record `3cfcec83` — supersedes the AM-1 comment this
+    // replaces, which documented the double-bump as "harmless" rather than fixing it). AM-1's
+    // underlying concern stands unchanged: `reindexAgentdbRows` is ITSELF a mutator (the DELETE
+    // above rebuilds the owned task types) and must not rely solely on `indexPatternsToAgentdb`'s
+    // own internal bump, because that nested call is a no-op — bumps nothing, sets no
+    // `generationBumped` — when `rows` is empty, yet the DELETE just above may have changed the
+    // store regardless of whether there was anything to re-insert.
+    //
+    // The rule (now the shared {@link needsRescueBump} helper — fix-round 1, item 1b — used
+    // identically on the error branch above) uses OBSERVED facts, never inferred from an adjacent
+    // signal (the mistake named in the plan's T1 section, fresh from the worker-ceiling fix that
+    // predates this one): `deleteChanges` is the DELETE's own `changes` count, read directly off the
+    // prepared-statement result; `indexed.generationBumped` is a field `indexPatternsToAgentdb` sets
+    // ONLY where its own bump actually ran (never guessed from `indexed.indexed > 0`, which is
+    // itself a real fact but a DIFFERENT one — see below).
+    //
+    // The condition is intentionally `!nestedBumped && (deleteChanges > 0 || indexed.indexed > 0 ||
+    // indexed.error !== undefined)`, NOT the narrower `deleteChanges > 0 && !nestedBumped` the
+    // plan's prose formula reads as: a bare `deleteChanges > 0` gate would MISS the case where the
+    // DELETE removed nothing (a first-ever reindex of these task types) but the nested insert then
+    // ran and its OWN bump failed (`indexed.generationBumped === false`, e.g. a transient lock
+    // timeout) — under the narrower gate the store would have changed on disk with no rescue bump at
+    // all, a genuine under-bump. C-1 (`01_requirements.md`) makes correctness here non-negotiable:
+    // "при сомнении поднимать счётчик ЛИШНИЙ раз безопаснее, чем не поднять" — so the OR-of-facts
+    // form below is what actually ships; it satisfies every case FR-1's AC-1 enumerates AND closes
+    // the gaps the plan's literal formula and the pre-fix-round-1 condition left open, verified by
+    // exhaustive case analysis in `features/store-generation-residuals/07_code_changes/change_manifest.md`.
+    if (needsRescueBump(deleteChanges, indexed)) {
+      bumpStoreGeneration(projectRoot, opts.dbPath);
+    }
     return {
       reembedded: indexed.indexed,
       model: model.model,

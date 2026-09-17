@@ -450,6 +450,13 @@ changes. See `@dzhechkov/skills-feature-adr@1.5.3`.
 
 `1.5.38` — a fix to the bundled `feature-adr` gate script in `templates/`, no pipeline change.
 
+The bundled K2 plan-completeness gate (staged, not yet versioned or published) now also checks
+**requirement coverage (C8)** — every id declared in `01_requirements.md` must be referenced by the plan (WARN with
+a count by default, per-id FAIL under `--require-requirements`, which the bundled pipeline passes) — counts ADR
+decisions by in-file heading rather than by filename, and treats an unclosed code fence in a declaration input as
+NOT-ESTABLISHED. The bundled workflow gained ONE bracketed plan-repair round with a proven restore. See
+`@dzhechkov/skills-feature-adr` for the full account.
+
 The bundled K2 plan-completeness gate now tells an **ABSENT** `00_complexity_assessment.md` from a
 deliberate skip: a missing file is a WARNING that names the missing artifact, while a present file
 carrying no acid table is an honest SKIP. Both used to report as a clean skip, so the acid check

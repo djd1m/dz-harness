@@ -8,8 +8,8 @@ const MAX_QUERY_CHARS = 512;
 const MAX_PATTERN_CHARS = 800;
 const MAX_EVIDENCE_CHARS = 800;
 
-export type DecisionRecallKind = 'adr-alternative-selection' | 'plan-route-selection';
-export type DecisionRecallStage = 'step-3' | 'step-6';
+export type DecisionRecallKind = 'adr-alternative-selection' | 'plan-route-selection' | 'code-implementation';
+export type DecisionRecallStage = 'step-3' | 'step-6' | 'step-7';
 export type DecisionRecallOutcomeName =
   | 'success'
   | 'empty'
@@ -63,6 +63,8 @@ function oneLine(value: unknown, cap: number): string {
 function decisionShape(kind: DecisionRecallKind): { stage: DecisionRecallStage; banditContext: string } {
   return kind === 'adr-alternative-selection'
     ? { stage: 'step-3', banditContext: 'feature-adr-decision-adr-alternative' }
+    : kind === 'code-implementation'
+    ? { stage: 'step-7', banditContext: 'feature-adr-decision-code-implementation' }
     : { stage: 'step-6', banditContext: 'feature-adr-decision-plan-route' };
 }
 
@@ -391,8 +393,8 @@ function validBase(value: Record<string, unknown>): boolean {
   return typeof value.slug === 'string' && value.slug !== ''
     && typeof value.logicalDecisionId === 'string' && /^decision:[0-9a-f]{16}$/.test(value.logicalDecisionId)
     && typeof value.attemptId === 'string' && value.attemptId.startsWith(`${value.logicalDecisionId}:`)
-    && (value.stage === 'step-3' || value.stage === 'step-6')
-    && (value.decisionKind === 'adr-alternative-selection' || value.decisionKind === 'plan-route-selection')
+    && (value.stage === 'step-3' || value.stage === 'step-6' || value.stage === 'step-7')
+    && (value.decisionKind === 'adr-alternative-selection' || value.decisionKind === 'plan-route-selection' || value.decisionKind === 'code-implementation')
     && typeof value.ts === 'string' && value.ts !== '';
 }
 

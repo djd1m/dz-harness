@@ -1,12 +1,27 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync, copyFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 export type EmbedModelSource = 'env' | 'config' | 'default';
+
+/**
+ * `embed-daemon-memory` (ADR-001 D2): dtype is a property of the STORE, not a global runtime
+ * setting. `fp32` is the full-precision default (existing behaviour, unchanged); `q8` is the
+ * quantized variant (`{ dtype: 'q8' }` at `pipeline()` construction, `model_quantized.onnx`) —
+ * roughly half the RSS of fp32 at a measured cosine parity >= 0.990 (see the harness-core README's
+ * `memory.embed.dtype` section for the numbers). `memory.embed.dtype` in config selects the dtype
+ * for a NEW index/reindex; the STORE's manifest is what a query is actually embedded with
+ * ({@link guardEmbedSpace}) — the two are deliberately allowed to disagree only long enough for the
+ * guard to demand a reindex, never silently.
+ */
+export type EmbedDtype = 'fp32' | 'q8';
+export const KNOWN_EMBED_DTYPES: readonly EmbedDtype[] = ['fp32', 'q8'];
+const DEFAULT_EMBED_DTYPE: EmbedDtype = 'fp32';
 
 export interface EmbedModelConfig {
   readonly model: string;
   readonly dim: 384;
   readonly source: EmbedModelSource;
+  readonly dtype: EmbedDtype;
 }
 
 export interface EmbedManifest {
@@ -14,6 +29,24 @@ export interface EmbedManifest {
   readonly dim: 384;
   readonly version: number;
   readonly engine?: string;
+  /** Absent on a manifest written before this feature — reads as `'fp32'` everywhere it is compared
+   * ({@link guardEmbedSpace}), matching the pre-existing fp32-only behaviour exactly. */
+  readonly dtype?: EmbedDtype;
+  /**
+   * Fix round 1 (Codex #4): the RAW `dtype` string off disk when it is PRESENT but not one of
+   * {@link KNOWN_EMBED_DTYPES} — a corrupted manifest (`"Q8"`) or one written by a future version
+   * (`"int8"`). Distinct from an ABSENT field (legacy pre-feature manifest, safe to read as `'fp32'`):
+   * a present-but-unknown value must never be silently folded into the same "absent" bucket, because
+   * the underlying vectors may genuinely not be fp32 — {@link guardEmbedSpace} and
+   * {@link resolveStoreEmbedDtype} both refuse instead of guessing when this is set.
+   */
+  readonly dtypeError?: string;
+  /** Lead delta after Codex r2 (HIGH): the manifest file EXISTS but could not be read/parsed
+   * (truncated by a concurrent writer, hand-edited into invalid JSON). It used to read as "absent"
+   * and fall through to legacy fp32 — the same silent cross-space risk as an unknown dtype. Only
+   * ENOENT means absent; a read/parse failure is carried here and guardEmbedSpace refuses. The
+   * remedy stays reachable: reindex stamps a NEW manifest before it re-indexes. */
+  readonly readError?: string;
 }
 
 export const DEFAULT_EMBED_MODEL = 'Xenova/paraphrase-multilingual-MiniLM-L12-v2';
@@ -50,8 +83,10 @@ export const KNOWN_EMBED_DIMS: Readonly<Record<string, 384>> = {
  */
 
 export function resolveEmbedModel(projectRoot: string): EmbedModelConfig | { error: string } {
+  const dtypeResult = resolveEmbedDtype(projectRoot);
+  if ('error' in dtypeResult) return dtypeResult;
   const env = process.env['DZ_EMBED_MODEL'];
-  if (env !== undefined && env.trim() !== '') return modelConfig(env.trim(), 'env');
+  if (env !== undefined && env.trim() !== '') return modelConfig(env.trim(), 'env', dtypeResult.dtype);
   const cfgPath = join(projectRoot, '.dz', 'config.json');
   if (existsSync(cfgPath)) {
     try {
@@ -60,20 +95,45 @@ export function resolveEmbedModel(projectRoot: string): EmbedModelConfig | { err
       const agentdb = memory?.['agentdb'] as Record<string, unknown> | undefined;
       const embed = memory?.['embed'] as Record<string, unknown> | undefined;
       const configured = agentdb?.['embeddingModel'] ?? embed?.['model'];
-      if (typeof configured === 'string' && configured.trim() !== '') return modelConfig(configured.trim(), 'config');
+      if (typeof configured === 'string' && configured.trim() !== '') return modelConfig(configured.trim(), 'config', dtypeResult.dtype);
     } catch {
       /* corrupt config falls back to the default, matching the existing config-read discipline */
     }
   }
-  return modelConfig(DEFAULT_EMBED_MODEL, 'default');
+  return modelConfig(DEFAULT_EMBED_MODEL, 'default', dtypeResult.dtype);
 }
 
-function modelConfig(model: string, source: EmbedModelSource): EmbedModelConfig | { error: string } {
+/**
+ * FR-3/AC-2 (`embed-daemon-memory`): `memory.embed.dtype` read INDEPENDENTLY of which model source
+ * won above — a dtype override must apply the same way whether the model itself came from env,
+ * config, or the default. An unset value (or a config file that predates this feature) is `'fp32'`,
+ * matching every store written before this feature existed. An unrecognized string is a hard
+ * `{error}` naming the allowed values, never a silent fp32 fallback — a typo in the dtype must not
+ * quietly build the wrong-shaped index.
+ */
+function resolveEmbedDtype(projectRoot: string): { dtype: EmbedDtype } | { error: string } {
+  const cfgPath = join(projectRoot, '.dz', 'config.json');
+  if (!existsSync(cfgPath)) return { dtype: DEFAULT_EMBED_DTYPE };
+  try {
+    const cfg = JSON.parse(readFileSync(cfgPath, 'utf-8')) as Record<string, unknown>;
+    const memory = cfg['memory'] as Record<string, unknown> | undefined;
+    const embed = memory?.['embed'] as Record<string, unknown> | undefined;
+    const raw = embed?.['dtype'];
+    if (raw === undefined) return { dtype: DEFAULT_EMBED_DTYPE };
+    if (typeof raw === 'string' && (KNOWN_EMBED_DTYPES as readonly string[]).includes(raw)) return { dtype: raw as EmbedDtype };
+    return { error: `unsupported embedding dtype '${String(raw)}' (known: ${KNOWN_EMBED_DTYPES.join(', ')})` };
+  } catch {
+    // corrupt config falls back to the default, matching resolveEmbedModel's own discipline
+    return { dtype: DEFAULT_EMBED_DTYPE };
+  }
+}
+
+function modelConfig(model: string, source: EmbedModelSource, dtype: EmbedDtype): EmbedModelConfig | { error: string } {
   const dim = KNOWN_EMBED_DIMS[model];
   if (dim === undefined) {
     return { error: `unsupported embedding model '${model}' (known 384-dim models: ${Object.keys(KNOWN_EMBED_DIMS).join(', ')})` };
   }
-  return { model, dim, source };
+  return { model, dim, source, dtype };
 }
 
 export function embedManifestPath(storePath: string): string {
@@ -86,13 +146,41 @@ export function readEmbedManifest(storePath: string): EmbedManifest | undefined 
 
 function readManifestFile(p: string): EmbedManifest | undefined {
   if (!existsSync(p)) return undefined;
+  // `readError` (below) is scoped to a REGULAR FILE whose bytes cannot be parsed — the concurrent-
+  // writer/hand-edit case Codex r2 named. A non-file at the sidecar path (a directory) is a different
+  // pathology and stays "absent": the store-generation AM-3 fixture plants exactly that directory so
+  // the manifest WRITE fails loudly after a real commit — refusing here would hide that contract.
+  let isFile = false;
+  try {
+    isFile = statSync(p).isFile();
+  } catch {
+    isFile = false;
+  }
+  if (!isFile) return undefined;
   try {
     const m = JSON.parse(readFileSync(p, 'utf-8')) as Partial<EmbedManifest>;
     if (typeof m.model !== 'string' || m.model === '') return undefined;
     if (m.dim !== DEFAULT_EMBED_DIM) return undefined;
-    return { model: m.model, dim: DEFAULT_EMBED_DIM, version: typeof m.version === 'number' ? m.version : 1, ...(typeof m.engine === 'string' ? { engine: m.engine } : {}) };
-  } catch {
-    return undefined;
+    // T1 + fix round 1 (Codex #4): only the two known dtype strings are trusted off disk as a real
+    // dtype. An ABSENT field reads as `undefined` (legacy pre-feature manifest — guardEmbedSpace
+    // treats it as fp32, the safe pre-existing default). A field that IS PRESENT but names neither
+    // known value is NEVER folded into that same "absent" bucket — it used to be (T1's original cut),
+    // which let a corrupted (`"Q8"`) or future-version (`"int8"`) dtype masquerade as legacy-fp32 and
+    // search would silently compare vectors from two different spaces. It is carried instead as
+    // `dtypeError` (the raw string), which guardEmbedSpace/resolveStoreEmbedDtype turn into a hard
+    // refusal rather than a guess.
+    const dtype = m.dtype === 'fp32' || m.dtype === 'q8' ? m.dtype : undefined;
+    const dtypeError = m.dtype !== undefined && dtype === undefined ? String(m.dtype) : undefined;
+    return {
+      model: m.model,
+      dim: DEFAULT_EMBED_DIM,
+      version: typeof m.version === 'number' ? m.version : 1,
+      ...(typeof m.engine === 'string' ? { engine: m.engine } : {}),
+      ...(dtype !== undefined ? { dtype } : {}),
+      ...(dtypeError !== undefined ? { dtypeError } : {}),
+    };
+  } catch (err) {
+    return { model: '', dim: DEFAULT_EMBED_DIM, version: 1, readError: err instanceof Error ? err.message : String(err) };
   }
 }
 
@@ -111,9 +199,20 @@ export function legacyEmbedManifest(): EmbedManifest {
 }
 
 export function currentEmbedManifest(configured: EmbedModelConfig, version = 1, engine?: string): EmbedManifest {
-  return { model: configured.model, dim: configured.dim, version, ...(engine !== undefined ? { engine } : {}) };
+  return { model: configured.model, dim: configured.dim, version, dtype: configured.dtype, ...(engine !== undefined ? { engine } : {}) };
 }
 
+/**
+ * D2 (`embed-daemon-memory`): the model/dim check is unchanged; a SEPARATE dtype check is added
+ * after it. Absent manifest dtype reads as `'fp32'` (matching every store written before this
+ * feature) before the comparison — so an existing fp32 store configured for fp32 never trips this,
+ * and only a genuine fp32<->q8 disagreement (or a q8 store re-configured to fp32) is refused.
+ *
+ * Fix round 1 (Codex #4): a manifest `dtype` that is PRESENT but unrecognized ({@link
+ * EmbedManifest.dtypeError}) is checked BEFORE the fp32-fallback comparison above — it must never
+ * be silently treated as the safe legacy-absent case, because the store's real vectors may not be
+ * fp32 at all.
+ */
 export function guardEmbedSpace(args: {
   storePath: string;
   configured: EmbedModelConfig;
@@ -122,11 +221,33 @@ export function guardEmbedSpace(args: {
 }): { ok: true; manifest: EmbedManifest } | { ok: false; error: string; manifest: EmbedManifest } {
   const manifest = readStoreManifest(args.storePath)
     ?? (args.hasRows ? legacyEmbedManifest() : currentEmbedManifest(args.configured));
+  if (manifest.readError !== undefined) {
+    return {
+      ok: false,
+      manifest,
+      error: `embedding manifest unreadable (${manifest.readError}); run ${args.reindexHint}`,
+    };
+  }
   if (manifest.model !== args.configured.model || manifest.dim !== args.configured.dim) {
     return {
       ok: false,
       manifest,
       error: `embedding model mismatch: index built with ${manifest.model}/${manifest.dim}, configured ${args.configured.model}/${args.configured.dim}; run ${args.reindexHint}`,
+    };
+  }
+  if (manifest.dtypeError !== undefined) {
+    return {
+      ok: false,
+      manifest,
+      error: `unknown embedding dtype "${manifest.dtypeError}" in manifest; run ${args.reindexHint}`,
+    };
+  }
+  const manifestDtype = manifest.dtype ?? DEFAULT_EMBED_DTYPE;
+  if (manifestDtype !== args.configured.dtype) {
+    return {
+      ok: false,
+      manifest,
+      error: `embedding dtype mismatch: index built with ${manifestDtype}, configured ${args.configured.dtype}; run ${args.reindexHint}`,
     };
   }
   return { ok: true, manifest };
