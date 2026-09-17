@@ -17,7 +17,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "67d60a0ad58316ec7c0cd264683d6d17e5fe7f33c746f151b95c0def597037d6"
+        "sha256": "85ee0ef212bb69ac511c116c59e09244ca872d47a017cfa2a8e1c6dce66a99dc"
       },
       {
         "path": "src/cli.js",
@@ -389,7 +389,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/08-qe.md",
-        "sha256": "7973676cc9a5a6d8429c0bcdbe163bb5dc16e2d2f28a72698e44ad72d234e199"
+        "sha256": "7ab9b7b1523289986a1f51b4cbbebf4410d96ad4a153f22fa8613e8a0f4f5fa7"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/09-fleet-qe.md",
@@ -989,5 +989,5 @@
       }
     ]
   },
-  "signature": "Ld7xkqWgfHmJp0Xv+wKYPylP5opGZmCfibsIDam0NS90aZ6R9oLfJVeRljITB25umc7/zHZMW1MWLbMornUgDQ=="
+  "signature": "ZZFB7zXTZDB63ZrEzOczGdfH+uLbNRErmZNCPYwG3gYx5r7uI7aS2JjQG4eUkwKpELo28Jj20t6k9lvh2ejMAw=="
 }
