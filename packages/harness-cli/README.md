@@ -3539,7 +3539,7 @@ dz publish: BLOCKED harness-cli — sibling drift: @dzhechkov/memory@0.2.20 on t
 dz publish: refusing to publish (1 sibling-drift violation(s))
 
 $ dz publish --filter harness-cli --yes
-dz publish: tarball @dzhechkov/harness-cli@0.8.29 sha256:d656…c334
+dz publish: tarball @dzhechkov/harness-cli@0.8.30 sha256:d656…c334
 dz publish: ✓ packed install smoke
   ✓ @dzhechkov/harness-cli                1.0.0 → 1.0.1  published (confirmed by registry after 1 probes)
       sha256:9f2c…e10a
@@ -5548,7 +5548,7 @@ ledger row now carries a `prices` snapshot. See `@dzhechkov/harness-core`'s READ
 decision list (D1–D5) and the two new pure modules (`feature-adr-stage-canon.ts`, `codex-rollouts.ts`) behind
 `dz usage --by-stage`'s new `INCOMPLETE_INVENTORY` verdict and canonical-stage breakdown.
 
-`harness-core v0.8.38` · `harness-cli v0.8.29` · `memory v0.2.23` — **this release (night 16→17.09, five features
+`harness-core v0.8.38` · `harness-cli v0.8.30` · `memory v0.2.23` — **this release (night 16→17.09, five features
 and four live-run fixes, each cross-family reviewed by Codex): `dz control-review` (two independent scoped reviews
 over one tree, candidate/confirmed/unique buckets, tree-snapshot refusals, witnessed ledger row) and `dz score
 --by-family` (per-family-pair aggregate with honest n/unknown/INCOMPLETE); every Step-8 report carries a machine-
