@@ -589,6 +589,90 @@
           "разрез по целям пропущен"
         ]
       }
+    },
+    "2026-09-18": {
+      "schema": "backlog-public/1",
+      "snapshotDate": "2026-09-18",
+      "totals": {
+        "records": 991,
+        "terminal": 547
+      },
+      "statusCounts": {
+        "shipped": 501,
+        "new": 444,
+        "dropped": 46
+      },
+      "effortCounts": {
+        "1": 138,
+        "2": 295,
+        "3": 508,
+        "4": 32,
+        "5": 18
+      },
+      "categoryCounts": null,
+      "categorySkipReason": "разрез пропущен: 1 групп(ы) ниже порога 2, их сумма 1 тоже ниже порога",
+      "ttt": {
+        "medianDays": 0.72,
+        "buckets": {
+          "<1": 284,
+          "1-3": 81,
+          "3-7": 104,
+          "7-14": 11,
+          "14+": 45
+        }
+      },
+      "receipt": {
+        "checkedFields": 13,
+        "checkedGroups": 16,
+        "appliedRules": [
+          "MIN_GROUP=2",
+          "терминальность по статусу, не по наличию отметки",
+          "наружу не уходит величина, привязанная к одной записи",
+          "разрез по целям пропущен"
+        ]
+      }
+    },
+    "2026-09-19": {
+      "schema": "backlog-public/1",
+      "snapshotDate": "2026-09-19",
+      "totals": {
+        "records": 995,
+        "terminal": 552
+      },
+      "statusCounts": {
+        "shipped": 506,
+        "new": 443,
+        "dropped": 46
+      },
+      "effortCounts": {
+        "1": 140,
+        "2": 297,
+        "3": 508,
+        "4": 32,
+        "5": 18
+      },
+      "categoryCounts": null,
+      "categorySkipReason": "разрез пропущен: 1 групп(ы) ниже порога 2, их сумма 1 тоже ниже порога",
+      "ttt": {
+        "medianDays": 0.72,
+        "buckets": {
+          "<1": 289,
+          "1-3": 81,
+          "3-7": 104,
+          "7-14": 11,
+          "14+": 45
+        }
+      },
+      "receipt": {
+        "checkedFields": 13,
+        "checkedGroups": 16,
+        "appliedRules": [
+          "MIN_GROUP=2",
+          "терминальность по статусу, не по наличию отметки",
+          "наружу не уходит величина, привязанная к одной записи",
+          "разрез по целям пропущен"
+        ]
+      }
     }
   }
 }
