@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/p-replicator",
-  "version": "1.13.3",
+  "version": "1.13.4",
   "description": "P-Replicator — Claude Code toolkit for AI-assisted product development (Vibe Coding). Full /replicate pipeline, 10 modular skills (880K+ chars), /harvest knowledge extraction, swarm agents, quality gates, security patterns, cross-project learning.",
   "main": "src/cli.js",
   "bin": {

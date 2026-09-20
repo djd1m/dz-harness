@@ -36,7 +36,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/loop-designer-plugin` | 0.1.6 |
 | `@dzhechkov/mcp-server-tools` | 0.2.11 |
 | `@dzhechkov/memory` | 0.2.23 |
-| `@dzhechkov/p-replicator` | 1.13.3 |
+| `@dzhechkov/p-replicator` | 1.13.4 |
 | `@dzhechkov/scout` | 0.8.12 |
 | `@dzhechkov/skills-12factor` | 0.1.14 |
 | `@dzhechkov/skills-academic` | 0.3.8 |
