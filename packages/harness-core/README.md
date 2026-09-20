@@ -145,6 +145,29 @@ The default remains off. Future work must decide the other readers' policy at th
 Regenerate every gate copy from this source and run `npx vitest run test/markdown-masker.test.ts`
 from this package; byte equality is tested, including the installed and packaged gate locations.
 
+## Store-guard mark pruning (`store-guard-prune.ts`)
+
+`planStoreGuardPrune(entries, {exists, tmpDirs})` is the pure half behind `dz store-guard --prune`. It
+sorts every mark file in `~/.dz-store-guard` into four buckets and computes the reclaimable bytes:
+`stale-temp` (the recorded `project` path is gone AND lies under a temp root — the only bucket the
+command ever deletes), `live`, `gone-outside-tmp` and `unreadable`. The classification order is
+fixed — unparseable first, then existence, then the temp-root test — and "under" is separator-aware, so
+`/tmpfoo` is not under `/tmp`.
+
+Two input hazards are handled in this module because they decide whether files are deleted, and the
+pure half is where that is testable:
+
+- a **degenerate temp root** (`'/'`, `''`) authorizes nothing and is dropped. `TMPDIR=/` makes
+  `os.tmpdir()` return the single character `/` — node strips a trailing slash only when the path is
+  longer than one character — and a prefix test against `/` would match every absolute path, deleting
+  exactly the `gone-outside-tmp` marks the bucket exists to protect;
+- the caller passes **both the raw and the canonical** form of each temp root, because a mark records
+  the project root as resolved, not as realpath'd; on a machine where the temp root is itself a symlink
+  a canonical-only list matches nothing and the command silently does nothing.
+
+Both are pinned by tests in `test/store-guard-prune.test.ts`; the deletion side, the dry-run default
+and the symlinked-directory refusal live in the CLI and are pinned in `harness-cli`.
+
 ## Per-turn admission debt (`session-retro.ts`)
 
 The engine behind `dz retro` and `dz retro --scan-tail`: it turns a session transcript into events,
@@ -281,6 +304,32 @@ explicit knob always wins over the preset:
 `BUDGET_PRESETS` in `feature-adr-routing.ts`; an unknown priority is a startup error naming the valid
 list, never a silent `unset`. Setting `priority` alone (no other routing knob) turns routing on.
 
+### QE self-report, arm fields, and their honest limits (instrument-round-b, ADR-001 D1/D2, fix-round-1)
+
+The `.claude/workflows/feature-adr.js` pipeline script (not a `harness-core` module — a workflow the
+Step-8 QE stage runs) stamps three MORE trusted-by-construction fields onto every autowritten
+run-cost ledger row, on top of the envelope above:
+
+- **`aqeInvoked`/`aqeInvokedSource`/`aqeEvidence`** — whether the QE agent actually invoked a live
+  `agentic-qe` tool this pass, SELF-REPORTED by the agent (`aqeInvokedSource:'qe-self-report'`),
+  never derived from `MODE` (a run's intent, not an event). Unreported ⇒ honest `null`/`'not-reported'`.
+  **fix-round-1 (Codex r1 MEDIUM finding 6): `aqeEvidence` is trimmed; blank-after-trim keeps
+  `aqeInvoked` but sets `aqeEvidence:null, aqeEvidenceStatus:'blank'`; a non-blank value is checked
+  against a SOFT shape (contains `mcp__agentic-qe__`, or starts with `aqe `) and marked
+  `aqeEvidenceStatus:'recognized'`/`'unrecognized'` — the value is KEPT either way, never discarded.**
+  **NAMED LIMIT: a fabricated tool name that happens to match the soft shape is indistinguishable from
+  a truthful one.** This mechanism can catch an obviously wrong shape; it cannot catch a convincing
+  lie. That is the owner-selected self-report design (no external observer inside the agent's own
+  tool calls exists), not a gap this round could close.
+- **`arm`/`propensity`/`armSource`** — copies of `envelope.chosen.mode`/`envelope.policy.propensity`,
+  promoted to top level so a reader never parses the nested envelope; `armSource:'invalid-envelope'`
+  (fix-round-1, Codex r1 HIGH finding 5) when the envelope object resolves to NEITHER field, honestly
+  distinct from the working `'envelope'` label. **The per-stage `extra` object every autorow call site
+  passes is FORBIDDEN from carrying `arm`/`propensity`/`armSource`/`envelope` — stripped before the
+  spread, then `envelope: ENVELOPE` is restated and the arm fields re-derived from that exact value —
+  so the row's nested envelope and its top-level arm fields can never disagree, even under an `extra`
+  that tries to smuggle its own.**
+
 ## What it provides
 
 ### Evidence-gated companion integrations
@@ -405,6 +454,39 @@ This is an author's
 visible declaration, not measured proof that the stated reason is correct. In particular, declaring an
 outside-package file does not make that path mutable: an ordinary mutation entry with the same path is
 still `ENTRY_INVALID`, and the executor's package boundary is unchanged.
+
+### Durable mutation-gate verdicts (instrument-round-b T3/FR-3/A3/A4, ADR-001 D3)
+
+Before this feature a gate verdict lived only inside `DZ_MUTGATE_OUTPUT_DIR` — a TEMP directory, gone
+on the next reboot (00_complexity_assessment.md, 2026-09-17: 0 of 377 `test/mutation-registry.json`
+entries carried a persisted verdict anywhere). `mutationVerdictRow(entry, result, meta)` (pure, no
+filesystem — the registry read + the append both stay in the CLI executor) builds one durable row per
+classified entry: `{ts, package, entryId, verdict, failingCount, observed, drop, dropComparable,
+runId}`. `entry` is `MutationRegistryEntry | null` — `null` for a result that never resolved to a
+valid registry entry (`ENTRY_INVALID`/`COVERAGE_GAP` are excluded from `registry.entries` by
+`parseMutationRegistry` itself), in which case `observed` stays honestly `null` rather than inventing
+a fallback entry. `dz mutation-gate` appends one JSONL line per entry it just classified (AFTER any
+final-rebaseline reclassification) to `.dz/mutation-gate/verdicts.jsonl` under the invocation cwd —
+`--verdicts <file>` overrides the path, `--run-id <id>` names the row (absent ⇒ `runId: null`, never
+guessed). This file is a SEPARATE, purely additive OUTPUT — the registry itself (`test/mutation-registry.json`, the gate's INPUT: what to mutate) is never
+touched, so `mutation-registry-freshness` and every other reader of the registry's own format keep
+seeing exactly what they always did (A4). A write failure (unwritable path, disk full) is a loud `⚠`
+warning on stderr and NEVER changes the gate's own exit code (FR-3) — the instrument cannot become a
+second way for the gate itself to fail.
+
+**fix-round-1 (Codex r1 BLOCKER finding 1 / HIGH finding 2): two more properties, both in the cli
+executor (`harness-cli/src/cli.ts`), not here.** (1) The durable-verdicts destination is canonicalized
+(walk to the nearest existing ancestor, `realpathSync` it, rejoin the non-existent tail — the same
+technique `dz sign --init`'s outside-tree guard uses) and compared against the registry's own
+canonicalized path AND its `{dev, ino}` — a direct path, a symlink, or a hardlink alias to the
+registry all refuse the write LOUDLY (stderr) rather than corrupting the gate's own input; `--verdicts
+<the registry path itself>` is the literal failing input this closes. (2) The whole read-append-reread
+transaction runs inside `withNamedLockSync(dirname(verdictsPath), 'mutation-gate-verdicts', …)` (the
+same cross-process advisory lock `named-lock.ts` provides for every other read-modify-write file
+store) — one `appendFileSync` call for the entire classified batch, then the tail is
+RE-READ inside the same lock to verify exactly as many lines landed as were classified and that each
+one parses, so two concurrent gate processes writing the same file can neither interleave nor silently
+lose a line.
 
 ## The additive guarantee
 
@@ -1487,8 +1569,21 @@ fill-only-null everywhere else, never guessing.
   `minutes` is fill-only-null from a payload `wallSec` (`minutes = round(wallSec/60, 1)`,
   `minutesSource:'wallSec'`); a row that ends up with neither a real `minutes` nor a resolvable
   `tokens` (no number, no `tokensSource`) is written `complete:false` with `incompleteReasons`
-  (`['minutes']`, `['tokens']`, or both) — new optional `strict?: boolean` turns that into a refusal
-  (`exit 2`, nothing written) instead. A manual (non-`auto`) row gains none of these three keys, ever.
+  (`['minutes']`, `['tokens']`, or both). **instrument-round-b FR-4/A5 (ADR-001 D4, круг B):
+  incompleteness is a REFUSAL by default** (`exit 2`, nothing written) — omitting every completeness
+  flag behaves exactly like the pre-fix-round-1 default. **fix-round-1 (Codex r1 HIGH finding 3, ADR-001
+  D4 amended): the blanket `strict: false` / cli `--no-strict` opt-out is REMOVED** — it was a
+  no-op-by-necessity escape hatch every real automatic writer had to pass, making the "default"
+  operationally empty. The only relaxation now is a NAMED, SCOPED pair:
+  **`allowIncomplete?: readonly string[]`** (the fields this call KNOWS will be incomplete) plus
+  **`incompleteReason?: string | null`**, validated against the closed
+  `INCOMPLETE_REASON_CODES = ['sandbox-metrics-unavailable', 'manual-entry']` set. The row writes
+  ONLY when the row's ACTUAL `incompleteReasons` is a SUBSET of `allowIncomplete` AND the reason is
+  recognized — otherwise refused, naming the field(s) not covered or the unrecognized code. A manual
+  (non-`auto`) row gains none of these keys, ever, and the completeness flags have no effect on it
+  either way. The cli additionally refuses (`exit 2`, usage error, before any payload parsing) when
+  `--strict` is combined with `--allow-incomplete`/`--incomplete-reason` (mutually exclusive), or
+  when only one of the pair is given without the other.
 
 All new fields are additive, appended after every existing key (NFR-1) — every pre-existing test of
 `round.ts`/`run-records.ts` keeps passing unmodified except the handful of exact key-order/exact-value

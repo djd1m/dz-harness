@@ -26,7 +26,6 @@ const A = typeof args === 'string' ? JSON.parse(args) : (args || {})
 const SLUG = A.slug || 'feature'
 const DESC = A.description || ''
 const CODE_HINT = A.code || '(discover from the description)'
-const MODE = A.mode || 'full-qe-extended'
 const STOP_AFTER = A.stopAfter || null
 // fa-phase-statusline (ADR-001 D2): tier holder for the ckpt-side phase-start fa-records. The real
 // tier variable initializes only AFTER the router stage (TDZ — reading it from the router's own
@@ -207,6 +206,40 @@ function parseRoundCommandJson(raw) {
   return null
 }
 
+// ablation-c-start (ADR-001 D6, fix-round-1 BLOCKER #2): the run's arm is NEVER accepted from a
+// caller-supplied option — that let a run execute reference mode (or claim "direct" while actually
+// running "reference") with zero journal entry, bypassing the lottery entirely. If args.experiment
+// is given, the arm is RESOLVED here from the SAME assignments journal `dz experiment assign`
+// already wrote to BEFORE this run was ever dispatched, via `dz experiment resolve` — never
+// invented, never trusted from an option the caller could set to anything.
+const EXPERIMENT = typeof A.experiment === 'string' ? A.experiment.trim() : ''
+const EXPERIMENT_TASK_ID = typeof A.taskId === 'string' ? A.taskId.trim() : ''
+// direct -> the pipeline's own default full pipeline; reference -> the reduced-QE arm. A caller
+// that also passes args.mode must AGREE with what the resolved arm implies, or the run refuses
+// (assignment-conflict) rather than silently letting the mode win over the arm.
+const ABLATION_ARM_EXPECTED_MODE = { direct: 'full-qe-extended', reference: 'reference' }
+let ABLATION_ARM = null
+let ABLATION_PROPENSITY = null
+if (EXPERIMENT !== '') {
+  if (EXPERIMENT_TASK_ID === '') {
+    throw new Error('feature-adr: args.experiment=' + JSON.stringify(EXPERIMENT) + ' but args.taskId is missing — the arm can only be RESOLVED from an existing assignment, never invented (ADR-001 D6, assignment-missing).')
+  }
+  const resolveCmd = 'cd ' + shq(REPO) + ' && ' + DZ + ' experiment resolve --experiment ' + shq(EXPERIMENT) + ' --task ' + shq(EXPERIMENT_TASK_ID) + ' --project ' + shq(REPO) + ' --json'
+  const resolveOut = await dispatchAgent(newRung(), 'Run EXACTLY this one shell command via your Bash tool and return its stdout VERBATIM, no commentary: ' + resolveCmd, { label: 'resolve-experiment-arm', phase: 'Route', model: 'haiku', effort: 'low' })
+  const resolved = parseRoundCommandJson(resolveOut)
+  if (!resolved || resolved.status !== 'resolved' || (resolved.arm !== 'direct' && resolved.arm !== 'reference')) {
+    const reason = (resolved && typeof resolved.status === 'string') ? resolved.status : 'assignment-missing'
+    throw new Error('feature-adr: could not resolve an assignment for task ' + JSON.stringify(EXPERIMENT_TASK_ID) + ' in experiment ' + JSON.stringify(EXPERIMENT) + ' (' + reason + ') — run `dz experiment assign` for this task BEFORE dispatching it (ADR-001 D6, assignment-missing).')
+  }
+  ABLATION_ARM = resolved.arm
+  ABLATION_PROPENSITY = (typeof resolved.propensity === 'number') ? resolved.propensity : null
+  const expectedMode = ABLATION_ARM_EXPECTED_MODE[ABLATION_ARM]
+  if (typeof A.mode === 'string' && A.mode !== '' && A.mode !== expectedMode) {
+    throw new Error('feature-adr: the resolved arm ' + JSON.stringify(ABLATION_ARM) + ' for task ' + JSON.stringify(EXPERIMENT_TASK_ID) + ' implies mode ' + JSON.stringify(expectedMode) + ', but args.mode=' + JSON.stringify(A.mode) + ' disagrees — refusing rather than letting one silently override the other (ADR-001 D6, assignment-conflict).')
+  }
+}
+const MODE = ABLATION_ARM !== null ? ABLATION_ARM_EXPECTED_MODE[ABLATION_ARM] : (A.mode || 'full-qe-extended')
+
 // ── Durable checkpoints + resume (backlog 49e4a95b) — inline mirror of ──
 // ── harness-core/src/feature-adr-checkpoints.ts (the workflow is self-contained, no imports) ──
 // After each expensive stage a cheap effort-low agent appends {stage, inputHash, result} to
@@ -226,7 +259,7 @@ const CKPT_FILE = FDIR + '/.fa-state/checkpoints.jsonl'
 // M10 Stage-A, feature loop-designer). This region is now a GENERATED BLOB (regen-diff-gated by
 // loop-blobs-regen.test.ts): edit the canonical TS FIRST, run node scripts/gen-loop-blobs.mjs,
 // then re-splice. The value-pinned wiring tests in feature-adr-checkpoints.test.ts stay the net.
-// ── BEGIN BLOB checkpoints@1.2.0 sha256:a44560c6036fd143b7a3f125fec00fa8b91c3c06ac5b9e1ecfb83d27a5211e9b src=packages/@dzhechkov/harness-core/src/feature-adr-checkpoints.ts ──
+// ── BEGIN BLOB checkpoints@1.2.0 sha256:b602357649042d6b8aa68b5ca5593f7f5c483fdb36a287742e7b27bda8a2a6c7 src=packages/@dzhechkov/harness-core/src/feature-adr-checkpoints.ts ──
 const CHECKPOINT_STAGES = ['router', 'design', 'plan', 'code', 'qe', 'fleet'];
 const STAGE_ARTIFACTS = {
     router: '00_complexity_assessment.md',
@@ -300,12 +333,12 @@ function decideCheckpointResume(opts) {
     }
     return { resume: true, reason: 'resumed' };
 }
-function serializeCheckpoint(stage, inputHash, result) {
+function serializeCheckpoint(stage, inputHash, result, ts) {
     if (result === null || result === undefined)
         return null;
     let line;
     try {
-        line = JSON.stringify({ stage, inputHash, result });
+        line = JSON.stringify({ stage, inputHash, result, ...(ts === undefined ? {} : { ts }) });
     }
     catch {
         return null;
@@ -315,6 +348,7 @@ function serializeCheckpoint(stage, inputHash, result) {
     return line;
 }
 const CHECKPOINT_LS_SENTINEL = '---FA-CKPT-LS---';
+const CHECKPOINT_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/;
 function parseCheckpointRead(text) {
     const out = { entries: {}, listing: new Set(), malformedLines: 0 };
     const raw = String(text ?? '');
@@ -329,7 +363,8 @@ function parseCheckpointRead(text) {
         try {
             const e = JSON.parse(t);
             if (e && typeof e === 'object' && typeof e.stage === 'string' && typeof e.inputHash === 'string' && 'result' in e && e.result !== null && e.result !== undefined) {
-                out.entries[e.stage] = e;
+                const { ts, ...entry } = e;
+                out.entries[e.stage] = typeof ts === 'string' && CHECKPOINT_TIMESTAMP.test(ts) ? { ...entry, ts } : entry;
             }
             else {
                 if (e && typeof e === 'object' && typeof e.stage === 'string')
@@ -360,7 +395,11 @@ function checkpointReadCmd(fdirAbs) {
 function checkpointAppendCmd(fdirAbs, line) {
     const dir = shellQuote(fdirAbs + '/.fa-state');
     const file = shellQuote(fdirAbs + '/.fa-state/checkpoints.jsonl');
-    return 'mkdir -p ' + dir + " && printf '%s\\n' " + shellQuote(line) + ' >> ' + file;
+    const plain = 'mkdir -p ' + dir + " && printf '%s\\n' " + shellQuote(line) + ' >> ' + file;
+    if (typeof line !== 'string' || !line.startsWith('{'))
+        return plain;
+    return 'ts=$(date -u +%Y-%m-%dT%H:%M:%SZ); mkdir -p ' + dir
+        + ' && { printf \'{"ts":"%s",\' "$ts"; printf \'%s\\n\' ' + shellQuote(line.slice(1)) + '; } >> ' + file;
 }
 function parseArtifactProbe(opts) {
     if (opts.stdout === null || opts.stdout === undefined)
@@ -893,6 +932,70 @@ function qeFindingsSummary(gaps) {
   }
   return { findings: gaps.length, findingsBySeverity: bySeverity, findingsSource: 'gaps' }
 }
+// instrument-round-b T1/A1 (ADR-001 D1): a self-report can ONLY come from the QE agent's OWN return
+// object, keyed to a NAMED source — never derived from MODE (mode is an intent the run was
+// configured with, not an event that happened). A missing or non-boolean aqeInvoked is honestly
+// 'not-reported', never guessed true/false from context. Pure, never throws.
+// fix-round-1 (Codex r1 MEDIUM finding 6): `aqeEvidence` used to accept ANY nonempty string,
+// including pure whitespace. Now TRIMMED; blank-after-trim keeps `aqeInvoked` (the agent DID answer
+// the invoked/not-invoked question) but the evidence itself is honestly `null` with
+// `aqeEvidenceStatus:'blank'`. A non-blank string is checked against a SOFT form (does it look like
+// an MCP tool name or an `aqe ` command?) — a fabricated tool name is still indistinguishable from a
+// truthful one (a named, honest limit, not a fixable gap: see the module README), so this can only
+// catch the OBVIOUSLY wrong shape, never a convincing lie. The value is kept either way; only the
+// status is marked 'unrecognized', never discarded.
+function aqeSelfReport(qe) {
+  if (!qe || typeof qe !== 'object' || typeof qe.aqeInvoked !== 'boolean') {
+    return { aqeInvoked: null, aqeInvokedSource: 'not-reported', aqeEvidence: null }
+  }
+  const trimmed = typeof qe.aqeEvidence === 'string' ? qe.aqeEvidence.trim() : ''
+  if (trimmed === '') {
+    return { aqeInvoked: qe.aqeInvoked, aqeInvokedSource: 'qe-self-report', aqeEvidence: null, aqeEvidenceStatus: 'blank' }
+  }
+  // Lead delta after Codex r2 (#6 partial): a substring test called 'garbagemcp__agentic-qe__garbage'
+  // recognized evidence. The shape is now ANCHORED: the whole trimmed string is either an MCP tool
+  // name (mcp__agentic-qe__<tool>) or an aqe command line starting with 'aqe '.
+  const looksReal = /^mcp__agentic-qe__[a-z][a-z0-9_]*$/.test(trimmed) || /^aqe [\w-]/.test(trimmed)
+  return {
+    aqeInvoked: qe.aqeInvoked,
+    aqeInvokedSource: 'qe-self-report',
+    aqeEvidence: trimmed,
+    aqeEvidenceStatus: looksReal ? 'recognized' : 'unrecognized',
+  }
+}
+// instrument-round-b T2/A2/A7 (ADR-001 D2): `arm`/`propensity` are COPIES of
+// envelope.chosen.mode/envelope.policy.propensity, promoted to top-level ledger-row fields so a
+// consumer never has to parse the nested envelope object — copied at write time so the two can never
+// disagree by construction. No envelope (the router never completed) -> both null, armSource names
+// why. Pure, never throws.
+// fix-round-1 (Codex r1 HIGH finding 5): an envelope object present but carrying neither a valid
+// `chosen.mode` NOR a valid `policy.propensity` (e.g. `{}`) used to be labeled `armSource:'envelope'`
+// despite yielding two nulls — a validated-looking label on an unvalidated object. Now honestly
+// `'invalid-envelope'` unless AT LEAST one of the two fields actually resolved to a real value.
+function envelopeArmFields(envelope) {
+  if (!envelope || typeof envelope !== 'object') return { arm: null, propensity: null, armSource: 'no-envelope' }
+  const chosen = envelope.chosen
+  const policy = envelope.policy
+  const arm = (chosen && typeof chosen.mode === 'string' && chosen.mode !== '') ? chosen.mode : null
+  const propensity = (policy && typeof policy.propensity === 'number') ? policy.propensity : null
+  const armSource = (arm !== null || propensity !== null) ? 'envelope' : 'invalid-envelope'
+  return { arm: arm, propensity: propensity, armSource: armSource }
+}
+// fix-round-1 (Codex r1 HIGH finding 5): keys a per-stage `extra` is FORBIDDEN from carrying —
+// each one is either derived from the SAME canonical ENVELOPE the row already stamps (arm,
+// propensity, armSource) or IS that canonical value (envelope) — stripped before the spread so an
+// `extra` that named one of these could never make the row's TOP-LEVEL fields disagree with its
+// NESTED envelope. Defense in depth: appendRunCostRow also restates `envelope: ENVELOPE` and
+// re-derives arm/propensity/armSource AFTER the (now-sanitized) spread.
+function sanitizeLedgerExtra(extra) {
+  const RESERVED_LEDGER_EXTRA_KEYS = ['arm', 'propensity', 'armSource', 'envelope']
+  if (!extra || typeof extra !== 'object') return {}
+  const out = {}
+  for (const k in extra) {
+    if (Object.prototype.hasOwnProperty.call(extra, k) && RESERVED_LEDGER_EXTRA_KEYS.indexOf(k) === -1) out[k] = extra[k]
+  }
+  return out
+}
 function tpText(v) { if (typeof v === 'string') return v; if (v === null || v === undefined) return ''; try { const s = JSON.stringify(v); return typeof s === 'string' ? s : String(v) } catch (e) { return String(v) } }
 function tpBudget(raw) {
   try {
@@ -1139,7 +1242,18 @@ async function appendRunCostRow(stage, phaseName, outcome, extra) {
       // the payload carries no runId), so passing it here is a strict reliability improvement.
       runId: (typeof RUN_ID === 'string' && RUN_ID !== '') ? RUN_ID : null,
       // aqe-ledger-row T1/NFR-1: additive-only — spreads nothing when `extra` is absent.
-      ...(extra && typeof extra === 'object' ? extra : {}),
+      // fix-round-1 (Codex r1 HIGH finding 5): reserved keys are STRIPPED from `extra` first
+      // (sanitizeLedgerExtra), which is what makes the single `envelope: ENVELOPE` above canonical —
+      // nothing the spread carries can shadow it. Lead delta after Codex r2: the belt-and-braces
+      // RESTATEMENT that used to sit here was removed — a second `envelope` key in the same literal
+      // is invisible at runtime but visible to the key-order guard (feature-adr-training-pairs),
+      // which reads the literal's keys, so the defense in depth read as a contract break.
+      ...sanitizeLedgerExtra(extra),
+      // instrument-round-b T2/FR-2/A2/A7 (ADR-001 D2): arm/propensity/armSource land AFTER the
+      // per-stage `extra` spread — the last fields on every row, exactly like NFR-1 requires. Derived
+      // from the SAME `ENVELOPE` just restated above, so the row's nested envelope and its top-level
+      // arm/propensity/armSource can never disagree (Codex r1 finding 5).
+      ...envelopeArmFields(ENVELOPE),
     })
     // WITNESSED WRITE (ADR-001): the subagent RUNS a command with data arguments; it is no longer
     // handed a shell pipeline with the row baked in. The command refuses a malformed row, stamps the
@@ -1147,8 +1261,18 @@ async function appendRunCostRow(stage, phaseName, outcome, extra) {
     // re-reading the tail. A courier could do none of those three.
     // fix-round-1/F2: --auto is the TRUSTED CLI-level marker (harness-core run-records.ts) — the
     // written row's auto:true no longer depends solely on the JSON payload remembering the field.
+    // instrument-round-b FR-4/A5 (ADR-001 D4), fix-round-1 (Codex r1 HIGH finding 3): a NAMED,
+    // SCOPED allowance — `--allow-incomplete tokens,minutes --incomplete-reason
+    // sandbox-metrics-unavailable` — replaces the removed blanket `--no-strict`. This row's `tokens`/
+    // `minutes` are LEGITIMATELY incomplete by construction, every single call: the sandbox has no
+    // clock and budget.spent() exposes only a partial OUTPUT-token delta (tokensOut, a DIFFERENT
+    // field than the `tokens`/`minutes` completeness checks), never the real total — that total is
+    // visible only in the Workflow COMPLETION NOTIFICATION, which the running script cannot see (see
+    // the HONESTY comment above the row literal). Naming exactly these two fields means if a THIRD
+    // one (e.g. `envelope`) ever went missing too, the write would refuse rather than silently
+    // widen what "legitimately incomplete" covers.
     const cmd = DZ + ' feature-adr-record --kind ledger --stage ' + shq(stage) + ' --project ' + shq(REPO)
-      + ' --row ' + shq(line) + ' --auto --json'
+      + ' --row ' + shq(line) + ' --auto --allow-incomplete tokens,minutes --incomplete-reason sandbox-metrics-unavailable --json'
     const out = await dispatchAgent(newRung(), 'Run this command via your Bash tool and reply with only its stdout: ' + cmd, { label: 'ledger:append', phase: phaseName, effort: 'low' })
     const readback = String(out == null ? '' : out)
     if (!/"verdict"\s*:\s*"written"/.test(readback)) {
@@ -1638,7 +1762,14 @@ function buildExperimentEnvelopeInline(input) {
     // this mirror used to alias them directly, so a caller mutating its own arms.stages object
     // after calling this function would silently mutate the built envelope too.
     arms: { mode: input.arms.mode.slice(), stages: mergeOpts({}, input.arms.stages) },
-    chosen: { mode: input.chosen.mode, stages: mergeOpts({}, input.chosen.stages), overrides: mergeOpts({}, input.chosen.overrides === undefined ? {} : input.chosen.overrides) },
+    chosen: {
+      mode: input.chosen.mode,
+      stages: mergeOpts({}, input.chosen.stages),
+      overrides: mergeOpts({}, input.chosen.overrides === undefined ? {} : input.chosen.overrides),
+      // ablation-c-start (ADR-001, T3): mirror of the core builder — carried through only
+      // when the caller actually set it, so an unset qeMode never appears in the JSON.
+      ...(input.chosen.qeMode !== undefined ? { qeMode: input.chosen.qeMode } : {}),
+    },
     policy: { name: input.policy.name, version: input.policy.version, propensity: input.policy.propensity },
     evaluator: { family: input.evaluator.family, model: input.evaluator.model, source: input.evaluator.source },
   }
@@ -1747,6 +1878,12 @@ function validateExperimentEnvelopeInline(value) {
     if (offered.indexOf(spec) === -1 && overrides[stage] !== spec) {
       return { ok: false, reason: 'chosen.stages.' + stage + ': "' + spec + '" is not a member of arms.stages.' + stage + ' (' + offered.join('|') + ') and not declared in chosen.overrides' }
     }
+  }
+  // ablation-c-start (ADR-001, T3): qeMode is OPTIONAL — absent on every run this feature
+  // does not touch — but when present must be a non-empty string, same shape rule every
+  // other envelope field gets (mirror of the core validator).
+  if (chosen.qeMode !== undefined && !isNonEmptyStringEnv(chosen.qeMode)) {
+    return { ok: false, reason: 'chosen.qeMode: expected a non-empty string when present' }
   }
   if (!isPlainObjectEnv(v.policy)) return { ok: false, reason: 'policy: expected an object' }
   const policy = v.policy
@@ -3735,7 +3872,7 @@ const ARTIFACT = { type: 'object', additionalProperties: false, required: ['wrot
 // (hasManifest + the who-injected report). The BIG per-stage guidance content is fetched by each stage
 // agent directly from `dz project-skills` (never threaded through a model → fidelity preserved).
 const PROJECT_SKILLS = { type: 'object', additionalProperties: false, required: ['hasManifest', 'report'], properties: { hasManifest: { type: 'boolean' }, report: { type: 'string' } } }
-const QE = { type: 'object', additionalProperties: false, required: ['grade', 'gaps', 'codeTestsAdequate', 'docTestsPresent'], properties: { grade: { type: 'string' }, codeTestsAdequate: { type: 'boolean' }, docTestsPresent: { type: 'boolean' }, gaps: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['sev', 'what'], properties: { sev: { type: 'string' }, what: { type: 'string' } } } }, claimCheck: { type: 'object', additionalProperties: false, properties: { findings: { type: 'number' }, high: { type: 'number' }, medium: { type: 'number' } } }, roundLessons: { type: 'array', items: { type: 'string' } }, roundNoNewKnowledge: { type: 'string' } } }
+const QE = { type: 'object', additionalProperties: false, required: ['grade', 'gaps', 'codeTestsAdequate', 'docTestsPresent'], properties: { grade: { type: 'string' }, codeTestsAdequate: { type: 'boolean' }, docTestsPresent: { type: 'boolean' }, gaps: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['sev', 'what'], properties: { sev: { type: 'string' }, what: { type: 'string' } } } }, claimCheck: { type: 'object', additionalProperties: false, properties: { findings: { type: 'number' }, high: { type: 'number' }, medium: { type: 'number' } } }, roundLessons: { type: 'array', items: { type: 'string' } }, roundNoNewKnowledge: { type: 'string' }, aqeInvoked: { type: 'boolean' }, aqeEvidence: { type: 'string' } } }
 const CONFIRMATION_FILE_GATE = { type: 'object', additionalProperties: false, required: ['verdict', 'missing', 'checked', 'reason'], properties: { verdict: { type: 'string', enum: ['pass', 'fail', 'skipped', 'refused'] }, missing: { type: 'array', items: { type: 'string' } }, checked: { type: 'array', items: { type: 'string' } }, reason: { type: 'string' } } }
 
 function normalizeConfirmationFileGate(raw) {
@@ -4078,8 +4215,17 @@ ENVELOPE = buildExperimentEnvelopeInline({
   treeSha: ENVELOPE_TREE_SHA,
   treeShaReason: ENVELOPE_TREE_SHA_REASON,
   arms: { mode: ['same-family', 'cross-family'], stages: envelopeArmsStages },
-  chosen: { mode: ENVELOPE_CHOSEN_MODE, stages: envelopeChosenStages, overrides: envelopeChosenOverrides },
-  policy: { name: 'routing-tables', version: POLICY_VERSION, propensity: null },
+  // ablation-c-start (ADR-001, T3; fix-round-1 BLOCKER #2): a non-null ABLATION_ARM puts the arm
+  // in chosen.qeMode (a field SEPARATE from chosen.mode's same-family/cross-family axis — mode
+  // keeps its old meaning untouched) and renames the policy so a reader of the ledger's embedded
+  // envelope can tell an ablation-c run from a routing-tables run at a glance. ABLATION_ARM and
+  // ABLATION_PROPENSITY are RESOLVED above from the assignments journal via `dz experiment
+  // resolve` — never taken from a caller-supplied option — so this line cannot be used to bypass
+  // the lottery. ?? 0.5 covers only a missing/invalid propensity on the resolved record alongside
+  // a present arm, never a missing arm. Without an arm, both lines stay byte-identical to before
+  // this feature (NFR-2).
+  chosen: { mode: ENVELOPE_CHOSEN_MODE, stages: envelopeChosenStages, overrides: envelopeChosenOverrides, ...(ABLATION_ARM ? { qeMode: ABLATION_ARM } : {}) },
+  policy: ABLATION_ARM ? { name: 'ablation-c', version: POLICY_VERSION, propensity: (typeof ABLATION_PROPENSITY === 'number') ? ABLATION_PROPENSITY : 0.5 } : { name: 'routing-tables', version: POLICY_VERSION, propensity: null },
   evaluator: { family: ENVELOPE_QE_FAMILY, model: ENVELOPE_QE_SPEC, source: 'planned' },
 })
 // fix-round-1/F1: the router's training pair, captured here — AFTER ENVELOPE is real — so it gets
@@ -5115,7 +5261,7 @@ const confirmationGateLine = confirmationFileGate.verdict === 'skipped'
 log(confirmationGateLine)
 const confirmationGateNote = ' MANDATORY CONFIRMATION FILE GATE RESULT: `' + confirmationGateLine + '`. Write that as a separate line in 08_qe_report.md. The independent QE review MUST still run. If the gate verdict is fail or refused, the final Step-8 grade cannot be A or B; the workflow also enforces that after the reviewer returns. This gate proves only existence/readability; all other ADR checklist items remain advisory.'
 await usageProbe('QE')
-const qePrompt = 'Step 8 (QE - brutal-honesty review, agentic-qe) of /feature-adr for "' + DESC + '" (' + SLUG + '). Adversarially review the SHIPPED code (read it): correctness, edge cases, error handling, and the LOAD-BEARING property the ADR named (ASSERT it has a test that DISCRIMINATES - the recurring lesson: a test that would still pass with the protection deleted is documentation, not a gate). Run this ADR gate before final grading: ' + ADR_FITNESS_CHECKLIST + ' ' + DISCRIMINATION_GATE + ' ' + MUTATION_GATE + ' ' + NO_STUBS_GATE + ' ' + AMENDMENT_GATE + ' Grade A/B/C/D honestly. Assess code-test adequacy + doc-test presence. List CONFIRMED gaps with severity. Write ' + FDIR + '/08_qe_report.md with the primary findings under the exact heading `## Primary QE pass` and an ADR Fitness Checklist section showing PASS/FAIL per ADR and evidence for the Confirmation-linked test. MANDATORY SELF-LEARNING STORE (close the loop, never skip): compare every candidate lesson against the Step-0 recalled LEARNED patterns above. Teach ONLY lessons NOT covered by Step-0 recall. On overlap, run `dz teach --reinforce "<recalled pattern id or exact text>" --project ' + BRAIN + '` instead of minting a near-duplicate; if --reinforce is unavailable, skip the duplicate teach and report `reinforced existing pattern <id>` in the QE report. Store every genuinely new lesson in the CANONICAL BRAIN store at `' + BRAIN + '` so it is NOT lost to a target repo you may have cd`d into. Via Bash run EXACTLY `' + DZ_TEACH('<a durable reusable lesson from this feature - a rule/pattern/pitfall, NOT a checkpoint echo>', '<0.7-0.95>', '<area>') + '` for each genuine NEW lesson (1-3 max, high-signal) — the `cd ' + BRAIN + ' &&` prefix + `--project ' + BRAIN + '` pin guarantee the lesson lands in the brain regardless of your CWD. Then run `' + DZ + ' statusline --fa-record --slug ' + SLUG + ' --step "Step 8 QE" --recalled auto --run fa:' + SLUG + ' --count-project ' + BRAIN + ' --stored <count taught> --reinforced <count reinforced> --mode ' + MODE + ' --project ' + REPO + '` (run it verbatim via Bash, do not skip). Do NOT teach trivia or invent gaps. In the return object set roundLessons to the teach:<id> receipts successfully written in this Step 8; when there were none, return roundLessons:[] and a non-empty roundNoNewKnowledge reason derived from this review/reinforcement decision. AUTHORING-TIME CLAIM-CHECK (Deliverable of claim-check-authoring-time): after writing ' + FDIR + '/08_qe_report.md, run EXACTLY `dz claim-check ' + FDIR + '/08_qe_report.md --json --fail-on none` via Bash, parse the {ok, findings, scanned} JSON, and report claimCheck: {findings: N, high: N, medium: N} (counts by severity) in your return object. TAG EVERY QUANTITATIVE CLAIM you write in the report using the convention the checker recognizes as honest — write "1131 tests pass (MEASURED — `npx vitest run`)", never a bare "1131 tests pass" — and where you QUOTE a forbidden phrase as an example (e.g. the retracted "100% passing" framing), backtick the literal so it reads as code, not an assertion, so your own compliant report scans clean. Return {grade, gaps, codeTestsAdequate, docTestsPresent, claimCheck, roundLessons, roundNoNewKnowledge}.' + ABSOLUTE_PATH_NOTE + FINDINGS_LEDGER_NOTE + landedNote + wqNote + confirmationGateNote + PS_GUIDANCE('qe')
+const qePrompt = 'Step 8 (QE - brutal-honesty review, agentic-qe) of /feature-adr for "' + DESC + '" (' + SLUG + '). Adversarially review the SHIPPED code (read it): correctness, edge cases, error handling, and the LOAD-BEARING property the ADR named (ASSERT it has a test that DISCRIMINATES - the recurring lesson: a test that would still pass with the protection deleted is documentation, not a gate). Run this ADR gate before final grading: ' + ADR_FITNESS_CHECKLIST + ' ' + DISCRIMINATION_GATE + ' ' + MUTATION_GATE + ' ' + NO_STUBS_GATE + ' ' + AMENDMENT_GATE + ' Grade A/B/C/D honestly. Assess code-test adequacy + doc-test presence. List CONFIRMED gaps with severity. Write ' + FDIR + '/08_qe_report.md with the primary findings under the exact heading `## Primary QE pass` and an ADR Fitness Checklist section showing PASS/FAIL per ADR and evidence for the Confirmation-linked test. MANDATORY SELF-LEARNING STORE (close the loop, never skip): compare every candidate lesson against the Step-0 recalled LEARNED patterns above. Teach ONLY lessons NOT covered by Step-0 recall. On overlap, run `dz teach --reinforce "<recalled pattern id or exact text>" --project ' + BRAIN + '` instead of minting a near-duplicate; if --reinforce is unavailable, skip the duplicate teach and report `reinforced existing pattern <id>` in the QE report. Store every genuinely new lesson in the CANONICAL BRAIN store at `' + BRAIN + '` so it is NOT lost to a target repo you may have cd`d into. Via Bash run EXACTLY `' + DZ_TEACH('<a durable reusable lesson from this feature - a rule/pattern/pitfall, NOT a checkpoint echo>', '<0.7-0.95>', '<area>') + '` for each genuine NEW lesson (1-3 max, high-signal) — the `cd ' + BRAIN + ' &&` prefix + `--project ' + BRAIN + '` pin guarantee the lesson lands in the brain regardless of your CWD. Then run `' + DZ + ' statusline --fa-record --slug ' + SLUG + ' --step "Step 8 QE" --recalled auto --run fa:' + SLUG + ' --count-project ' + BRAIN + ' --stored <count taught> --reinforced <count reinforced> --mode ' + MODE + ' --project ' + REPO + '` (run it verbatim via Bash, do not skip). Do NOT teach trivia or invent gaps. In the return object set roundLessons to the teach:<id> receipts successfully written in this Step 8; when there were none, return roundLessons:[] and a non-empty roundNoNewKnowledge reason derived from this review/reinforcement decision. AUTHORING-TIME CLAIM-CHECK (Deliverable of claim-check-authoring-time): after writing ' + FDIR + '/08_qe_report.md, run EXACTLY `dz claim-check ' + FDIR + '/08_qe_report.md --json --fail-on none` via Bash, parse the {ok, findings, scanned} JSON, and report claimCheck: {findings: N, high: N, medium: N} (counts by severity) in your return object. TAG EVERY QUANTITATIVE CLAIM you write in the report using the convention the checker recognizes as honest — write "1131 tests pass (MEASURED — `npx vitest run`)", never a bare "1131 tests pass" — and where you QUOTE a forbidden phrase as an example (e.g. the retracted "100% passing" framing), backtick the literal so it reads as code, not an assertion, so your own compliant report scans clean. AQE SELF-REPORT (instrument-round-b T1/A1, ADR-001 D1): state honestly in your return object whether you actually invoked LIVE agentic-qe in THIS QE pass — aqeInvoked: true or false — and name aqeEvidence: the exact MCP tool you called (e.g. mcp__agentic-qe__quality_assess) or the exact command you ran (e.g. aqe quality assess). This is a SELF-REPORT of what YOU did, never an inference from the run MODE (' + MODE + ') — the mode names an intent this run was configured with, not proof that live agentic-qe was actually called this pass. If you did not call live agentic-qe this pass, say aqeInvoked:false and name what you used instead in aqeEvidence. Return {grade, gaps, codeTestsAdequate, docTestsPresent, claimCheck, roundLessons, roundNoNewKnowledge, aqeInvoked, aqeEvidence}.' + ABSOLUTE_PATH_NOTE + FINDINGS_LEDGER_NOTE + landedNote + wqNote + confirmationGateNote + PS_GUIDANCE('qe')
 // CROSS-MODEL QE (load-bearing): resolveStageModel('qe') derives the OTHER family than the resolved
 // coder when args.models.qe is unset (coder-codex ⇒ opus; coder-Claude ⇒ codex, or opus if codex absent).
 // An explicit args.models.qe wins. A Claude qe spec is merged onto the qe-code-reviewer base (role
@@ -5536,6 +5682,10 @@ if (resumedStages.indexOf('qe') === -1) {
     claimCheck: qeClaimCheck,
     crossFamily: qeCrossFamily,
     qeScope: qeScopeRow,
+    // instrument-round-b T1/FR-1/A1 (ADR-001 D1): last fields on the qe row's own extra — the
+    // agent's self-report of whether it actually invoked live agentic-qe this pass, never derived
+    // from MODE.
+    ...aqeSelfReport(qe),
   })
 } else {
   log('run-cost ledger: qe row skipped — stage resumed')

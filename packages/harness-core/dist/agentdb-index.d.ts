@@ -279,9 +279,9 @@ export declare function importVectorsToAgentdb(projectRoot: string, rows: readon
     error?: string;
 }>;
 /**
- * lesson-quarantine: clear the `qStatus` marker from mirrored rows after a promotion — the hook
- * daemon reads ONLY this mirror's metadata, so a promoted lesson must stop being excluded there
- * too. Best-effort, same custody model as {@link bumpAgentdbUses} (missing db/deps ⇒ no-op).
+ * lesson-quarantine: mark mirrored rows as promoted after a promotion — the hook daemon reads ONLY
+ * this mirror's metadata, so a promoted lesson must stop being excluded there while retaining its
+ * quarantine history. Best-effort, same custody model as {@link bumpAgentdbUses} (missing db/deps ⇒ no-op).
  */
 export declare function clearAgentdbQuarantine(projectRoot: string, dzIds: readonly string[], opts?: {
     dbPath?: string;

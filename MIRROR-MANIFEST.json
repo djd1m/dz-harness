@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-09-17T18:33:01.821Z",
+  "builtAt": "2026-09-20T20:13:04.223Z",
   "builtFrom": "dz-harness-hub (private monorepo)",
   "rule": "each package mirrors exactly its npm-pack tarball inventory — the already-public surface",
   "requested": 56,
@@ -194,12 +194,12 @@
     {
       "name": "@dzhechkov/harness-cli",
       "version": "0.8.30",
-      "files": 47
+      "files": 52
     },
     {
       "name": "@dzhechkov/harness-core",
-      "version": "0.8.38",
-      "files": 892
+      "version": "0.8.39",
+      "files": 917
     },
     {
       "name": "@dzhechkov/harness-presets",
@@ -209,7 +209,7 @@
     {
       "name": "@dzhechkov/health-advisor",
       "version": "1.10.6",
-      "files": 247
+      "files": 248
     },
     {
       "name": "@dzhechkov/keysarium",
@@ -239,7 +239,7 @@
     {
       "name": "@dzhechkov/p-replicator",
       "version": "1.13.3",
-      "files": 286
+      "files": 290
     },
     {
       "name": "@dzhechkov/scout",
@@ -299,7 +299,7 @@
     {
       "name": "@dzhechkov/skills-demo-publisher",
       "version": "0.1.2",
-      "files": 54
+      "files": 55
     },
     {
       "name": "@dzhechkov/skills-devops",

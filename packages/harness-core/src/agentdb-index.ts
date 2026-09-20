@@ -1168,9 +1168,9 @@ export async function importVectorsToAgentdb(
 }
 
 /**
- * lesson-quarantine: clear the `qStatus` marker from mirrored rows after a promotion — the hook
- * daemon reads ONLY this mirror's metadata, so a promoted lesson must stop being excluded there
- * too. Best-effort, same custody model as {@link bumpAgentdbUses} (missing db/deps ⇒ no-op).
+ * lesson-quarantine: mark mirrored rows as promoted after a promotion — the hook daemon reads ONLY
+ * this mirror's metadata, so a promoted lesson must stop being excluded there while retaining its
+ * quarantine history. Best-effort, same custody model as {@link bumpAgentdbUses} (missing db/deps ⇒ no-op).
  */
 export function clearAgentdbQuarantine(
   projectRoot: string,
@@ -1194,12 +1194,12 @@ export function clearAgentdbQuarantine(
       db.pragma('busy_timeout = 5000');
       db.exec(REASONING_BANK_SCHEMA);
       const stmt = db.prepare(
-        "UPDATE reasoning_patterns SET metadata = json_remove(metadata, '$.qStatus', '$.quarantinedAt') WHERE json_extract(metadata, '$.dzId') = ? AND json_extract(metadata, '$.qStatus') = 'quarantined'",
+        "UPDATE reasoning_patterns SET metadata = json_set(metadata, '$.qStatus', 'promoted', '$.promotedAt', ?) WHERE json_extract(metadata, '$.dzId') = ? AND json_extract(metadata, '$.qStatus') = 'quarantined'",
       );
       const tx = db.transaction(() => {
         let cleared = 0;
         for (const dzId of dzIds) {
-          const r = stmt.run(dzId);
+          const r = stmt.run(new Date().toISOString(), dzId);
           cleared += Number((r as unknown as { changes?: number }).changes ?? 0);
         }
         return cleared;

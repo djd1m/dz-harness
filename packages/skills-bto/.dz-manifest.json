@@ -13,7 +13,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "a622d32ed16bdd3b0db021ad84c5eba87da18e63fe2dd96b10ab1e3f86e24a36"
+        "sha256": "53cfb254d1d4dafb3cb3b39530f2475bae0416fe3adbd9cd4415fabca9c948bb"
       },
       {
         "path": "bin/cli.js",
@@ -153,5 +153,5 @@
       }
     ]
   },
-  "signature": "ezdTFC/VW4NTmmXgbaYjicbX1xBdirfxqA/dzlwd93mWMkOkZjDnm40c36OlXtvaWc+2e6wvJNaY/OmR/mvFAQ=="
+  "signature": "GNYLBuQwFO3jZkRPJCckUVeu0HMS2BR++RXqTiF54OnIuQHks2+gKf64GHmcjSP01S+fVam5EfYu3Dtsz3FxBw=="
 }

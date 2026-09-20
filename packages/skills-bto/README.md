@@ -238,7 +238,7 @@ sufficient: it passes on a tree whose fence is missing, so `dz list` is the disc
 
 ## Links
 
-- **GitHub:** [https://github.com/dzhechko/product-keysarium-2026](https://github.com/dzhechko/product-keysarium-2026)
-- **Issues:** [https://github.com/dzhechko/product-keysarium-2026/issues](https://github.com/dzhechko/product-keysarium-2026/issues)
+- **GitHub:** [https://github.com/djd1m/dz-harness](https://github.com/djd1m/dz-harness)
+- **Issues:** [https://github.com/djd1m/dz-harness/issues](https://github.com/djd1m/dz-harness/issues)
 - **npm:** [https://www.npmjs.com/package/@dzhechkov/skills-bto](https://www.npmjs.com/package/@dzhechkov/skills-bto)
 - **Keysarium:** [https://www.npmjs.com/package/@dzhechkov/keysarium](https://www.npmjs.com/package/@dzhechkov/keysarium)

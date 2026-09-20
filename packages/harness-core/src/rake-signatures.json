@@ -1,0 +1,98 @@
+[
+  {
+    "id": "esm-require-footgun",
+    "label": "ESM lazy require() undefined at runtime",
+    "patterns": ["require\\(['\\\"]node:", "\\besm\\b.*require", "lazy require"],
+    "flags": "i"
+  },
+  {
+    "id": "untested-adr-property",
+    "label": "ADR-named safety property left untested",
+    "patterns": ["load-bearing.*(untested|not\\s+tested|no\\s+test)", "adr.*names.*(property|test)", "safety property.*test"],
+    "flags": "i"
+  },
+  {
+    "id": "claim-check-fp",
+    "label": "claim-check false positive / untagged count",
+    "patterns": ["claim-check.*(false positive|\\bfp\\b)", "untagged.*(count|claim)", "metric term"],
+    "flags": "i"
+  },
+  {
+    "id": "path-traversal",
+    "label": "path not constrained to the repo (traversal)",
+    "patterns": ["\\.\\./", "(?=.*travers)(?=.*(repo|root|\\bpath\\b|director|/etc/))", "escapes.{0,12}repo"],
+    "flags": "i"
+  },
+  {
+    "id": "silent-drop-or-inject",
+    "label": "silent drop / silent injection (no report)",
+    "patterns": ["silent(ly)?\\s+(drop|inject|discard|dropped)", "no silent (injection|caps|drop)"],
+    "flags": "i"
+  },
+  {
+    "id": "swallow-generic-exception",
+    "label": "generic except/catch swallows real bugs",
+    "patterns": ["except\\s+Exception", "catch.*swallow", "generic (exception|catch)"],
+    "flags": "i"
+  },
+  {
+    "id": "determinism-hole",
+    "label": "non-deterministic output (unsorted/clock/random)",
+    "patterns": ["non-determinis", "determinism hole", "unsorted|not sorted"],
+    "flags": "i"
+  },
+  {
+    "id": "cross-model-self-qe",
+    "label": "coder self-QE instead of cross-model",
+    "patterns": ["self-qe", "coder.*(review|qe).*(itself|self)", "cross-model", "same-family.{0,40}(qe|review)", "cross-family.{0,60}(not obtained|did not happen|fell back)"],
+    "flags": "i"
+  },
+  {
+    "id": "malformed-input-bypass",
+    "label": "malformed input bypasses validation",
+    "patterns": ["array.*(pass|bypass)", "malformed.*(bypass|pass|manifest)", "typeof.*object"],
+    "flags": "i"
+  },
+  {
+    "id": "wiring-tail",
+    "label": "implementation wiring tail left unfinished",
+    "patterns": ["wiring[-\\s]tail", "wiring-хвост", "незавершённая проводка"],
+    "flags": "i"
+  },
+  {
+    "id": "canonical-copy-edit",
+    "label": "edit made in a canonical copy",
+    "patterns": ["canonical\\s+copy", "каноническ\\w*\\s+коп", "edited in the\\s+\\*\\*canonical\\*\\*\\s+copy"],
+    "flags": "i"
+  },
+  {
+    "id": "zero-or-partial-landing",
+    "label": "zero or partial implementation landing",
+    "patterns": ["zero\\s+code\\s+landed", "genuinely-not-landed", "step\\s*7.{0,50}did not land"],
+    "flags": "i"
+  },
+  {
+    "id": "corpus-preimage-not-repinned",
+    "label": "corpus preimage was not re-pinned",
+    "patterns": ["preimage.{0,80}(never|not).{0,30}re-?pinned", "(?:registry|corpus).{0,40}(?:find|anchor).{0,80}(never|not).{0,30}re-?pinned", "find.{0,10}string was never re-pinned"],
+    "flags": "i"
+  },
+  {
+    "id": "verdict-from-proxy",
+    "label": "verdict inferred from a proxy instead of the subject",
+    "patterns": ["(?:verdict|decision|grade).{0,60}proxy", "proxy.{0,60}(?:verdict|decision|grade|property)", "asserted a\\s+\\*\\*?proxy\\*\\*?.{0,80}not the\\s+\\*\\*?property"],
+    "flags": "i"
+  },
+  {
+    "id": "single-language-book-silence",
+    "label": "book result silently omitted for a single-language query",
+    "patterns": ["books are silent", "книги молчат", "book.{0,50}(silent|silence)"],
+    "flags": "i"
+  },
+  {
+    "id": "reserved-heading-collision",
+    "label": "reserved heading collision",
+    "patterns": ["(?:name|heading).{0,12}collision.{0,60}reused.{0,8}#{1,6}\\s", "reused.{0,8}#{1,6}\\s+scenario coverage", "заголов.{0,50}(?:collision|столкнов)"],
+    "flags": "i"
+  }
+]

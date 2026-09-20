@@ -1,0 +1,81 @@
+import { sep } from 'node:path';
+
+export type StoreGuardPruneBucket = 'stale-temp' | 'live' | 'gone-outside-tmp' | 'unreadable';
+
+export interface StoreGuardPruneEntry {
+  readonly file: string;
+  readonly project: string | null;
+  readonly bytes: number;
+  readonly bucket: StoreGuardPruneBucket;
+}
+
+export interface StoreGuardPrunePlan {
+  readonly entries: readonly StoreGuardPruneEntry[];
+  readonly counts: Readonly<Record<StoreGuardPruneBucket, number>>;
+  readonly reclaimableBytes: number;
+}
+
+export interface StoreGuardPruneDeps {
+  readonly exists: (path: string) => boolean;
+  readonly tmpDirs: readonly string[];
+}
+
+/**
+ * A temp-root candidate that authorizes deletion must be a REAL directory path, never the filesystem
+ * root or an empty string. MEASURED 2026-09-20 (cross-family review, P1): `TMPDIR=/` makes
+ * `os.tmpdir()` return the single character `"/"` (node strips a trailing slash only when the path is
+ * longer than one character), and `isUnder` then matches EVERY absolute path — so every
+ * `gone-outside-tmp` mark, which FR-3 exists to protect, would be classified `stale-temp` and deleted.
+ * A degenerate candidate authorizes nothing and is dropped here, in the pure half, where it is testable.
+ */
+function isUsableTmpDir(tmpDir: string): boolean {
+  const trimmed = tmpDir.trim();
+  return trimmed.length > 1 && trimmed !== sep && trimmed !== '/';
+}
+
+function isUnder(project: string, tmpDir: string): boolean {
+  const prefix = tmpDir.endsWith(sep) ? tmpDir : `${tmpDir}${sep}`;
+  return project === tmpDir || project.startsWith(prefix);
+}
+
+export function planStoreGuardPrune(
+  input: readonly { readonly file: string; readonly bytes: number; readonly text: string }[],
+  deps: StoreGuardPruneDeps,
+): StoreGuardPrunePlan {
+  const counts: Record<StoreGuardPruneBucket, number> = {
+    'stale-temp': 0,
+    live: 0,
+    'gone-outside-tmp': 0,
+    unreadable: 0,
+  };
+  let reclaimableBytes = 0;
+
+  const entries = input.map(({ file, bytes, text }): StoreGuardPruneEntry => {
+    let value: unknown;
+    try {
+      value = JSON.parse(text);
+    } catch {
+      counts.unreadable += 1;
+      return { file, project: null, bytes, bucket: 'unreadable' };
+    }
+
+    if (typeof value !== 'object' || value === null
+      || typeof (value as { project?: unknown }).project !== 'string'
+      || (value as { project: string }).project.length === 0) {
+      counts.unreadable += 1;
+      return { file, project: null, bytes, bucket: 'unreadable' };
+    }
+
+    const project = (value as { project: string }).project;
+    const bucket: StoreGuardPruneBucket = deps.exists(project)
+      ? 'live'
+      : deps.tmpDirs.filter(isUsableTmpDir).some((tmpDir) => isUnder(project, tmpDir))
+        ? 'stale-temp'
+        : 'gone-outside-tmp';
+    counts[bucket] += 1;
+    if (bucket === 'stale-temp') reclaimableBytes += bytes;
+    return { file, project, bytes, bucket };
+  });
+
+  return { entries, counts, reclaimableBytes };
+}

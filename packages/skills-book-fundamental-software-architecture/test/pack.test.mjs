@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { copyFileSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -102,6 +103,28 @@ test('manifest verifies against the pinned trust root', async () => {
     return;
   }
   const { verifyManifest } = await import(pathToFileURL(signerPath).href);
-  const result = verifyManifest(root, readJson('.dz-manifest.json'), readFileSync(trustRoot, 'utf8'));
-  assert.equal(result.ok, true, JSON.stringify(result.failures ?? []));
+  // Owner decision 2026-09-20 (fork 3, A): the signature covers the bytes a RECIPIENT receives — the
+  // packed tarball, whose package.json the packer rewrites (workspace: → versions). Verifying the
+  // working tree therefore fails by construction on package.json (backlog 58dc4d58 / 0deb5d0b: one
+  // question answered in two places). So: pack, extract, verify the extracted package.
+  const scratch = mkdtempSync(join(tmpdir(), 'fsa-pack-verify-'));
+  try {
+    const packed = spawnSync('pnpm', ['pack', '--pack-destination', scratch], { cwd: root, encoding: 'utf8', timeout: 120000 });
+    assert.equal(packed.status, 0, `pnpm pack failed: ${packed.stderr}`);
+    const tgz = readdirSync(scratch).find((f) => f.endsWith('.tgz'));
+    assert.ok(tgz, 'pnpm pack produced a tarball');
+    const untar = spawnSync('tar', ['-xzf', join(scratch, tgz), '-C', scratch], { encoding: 'utf8' });
+    assert.equal(untar.status, 0, `tar failed: ${untar.stderr}`);
+    const packageDir = join(scratch, 'package');
+    const manifest = JSON.parse(readFileSync(join(packageDir, '.dz-manifest.json'), 'utf8'));
+    const result = verifyManifest(packageDir, manifest, readFileSync(trustRoot, 'utf8'));
+    assert.equal(result.ok, true, JSON.stringify(result.failures ?? []));
+    // RED half, in-process: the same verifier over the WORKING TREE must name package.json — proving
+    // the tree is the wrong object, not that the verifier is lenient.
+    const onTree = verifyManifest(root, manifest, readFileSync(trustRoot, 'utf8'));
+    assert.equal(onTree.ok, false, 'the working tree is not the signed object');
+    assert.ok((onTree.failures ?? []).some((f) => f.path === 'package.json'), JSON.stringify(onTree.failures ?? []));
+  } finally {
+    rmSync(scratch, { recursive: true, force: true });
+  }
 });

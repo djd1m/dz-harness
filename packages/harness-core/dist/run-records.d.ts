@@ -67,6 +67,8 @@ export interface LedgerEnrichInput {
      *  ledger's own idea of "current" pricing (ADR-001 D4 rejects re-pricing after the fact). */
     readonly prices?: Readonly<Record<string, LedgerPriceEntry>>;
 }
+export declare const INCOMPLETE_REASON_CODES: readonly ["sandbox-metrics-unavailable", "manual-entry"];
+export type IncompleteReasonCode = typeof INCOMPLETE_REASON_CODES[number];
 export type RecordKind = 'ledger' | 'training-pair';
 export type RecordVerdict = 
 /** the line was appended AND read back equal */
@@ -129,10 +131,22 @@ export declare function decideRecordWrite(input: {
     /** measurement-integrity FR-5/FR-6: rollout-log + price enrichment for a ledger row. Absent ⇒ zero
      *  behavior change (NFR-1). */
     enrich?: LedgerEnrichInput;
-    /** experiment-instrument FR-2/A3 (ADR-001): when `true`, an AUTO ledger row that would be written
-     *  `complete:false` is refused instead (exit 2, before any write) — a круг-B default candidate, opt-
-     *  in today so nothing that already writes incomplete auto rows starts failing underfoot (NFR-1). */
-    strict?: boolean;
+    /**
+     * instrument-round-b FR-4/A5 (ADR-001 D4), fix-round-1 (Codex r1 HIGH finding 3): an AUTO ledger
+     * row that would be written `complete:false` is refused (exit 2, before any write) UNLESS the
+     * actual incompleteness is fully covered by this NAMED, SCOPED allowance — the CLI's
+     * `--allow-incomplete <fields>`. A field this row is incomplete in that is NOT in this set still
+     * refuses, naming exactly the uncovered field(s). `--no-strict` (a blanket opt-out) is gone —
+     * see {@link INCOMPLETE_REASON_CODES}.
+     */
+    allowIncomplete?: readonly string[];
+    /**
+     * instrument-round-b fix-round-1 (Codex r1 HIGH finding 3): WHY the row is legitimately
+     * incomplete — the CLI's `--incomplete-reason <code>`, required alongside `allowIncomplete` and
+     * validated against the closed {@link INCOMPLETE_REASON_CODES} set. An unrecognized or absent
+     * reason refuses the write even when every incomplete field IS named in `allowIncomplete`.
+     */
+    incompleteReason?: string | null;
 }): RecordDecision;
 /** The read-back verdict (ADR-002): equal bytes or NOT written. Never inferred from the absence of an error. */
 export declare function decideReadBack(appended: string, lastLineOnDisk: string | null): RecordDecision;

@@ -234,13 +234,19 @@ function download({
     let currentStream = null;
     let sink = null;
 
-    const cleanup = () => {
+    // Timers and network handles only. The SINK is closed separately, because WHEN it finishes
+    // closing decides whether the blob removal below can work at all (see `fail`).
+    const stopTimersAndHandles = () => {
       if (totalTimer !== null) clearTimeout(totalTimer);
       for (const handle of [currentRequest, currentStream]) {
         if (handle && typeof handle.destroy === 'function') {
           try { handle.destroy(); } catch { /* a canceller that cannot cancel is not an error path */ }
         }
       }
+    };
+
+    const cleanup = () => {
+      stopTimersAndHandles();
       if (sink !== null) {
         try { sink.close(); } catch { /* already closed */ }
         sink = null;
@@ -250,12 +256,48 @@ function download({
     // A FAILED DOWNLOAD LEAVES NO BLOB. The staging discipline downstream would tolerate a leftover
     // dot-prefixed file, but a half-downloaded blob that a later run could mistake for a complete one
     // is a different class of problem, so it is removed here at the source.
+    // REMOVAL WAITS FOR THE CLOSE, and that ordering is the whole point. `fs.createWriteStream`
+    // opens the file ASYNCHRONOUSLY: when the cap trips on the first chunk the open can still be
+    // in flight, so a synchronous `rmSync` finds nothing to delete and the open then CREATES the
+    // file — leaving exactly the half-downloaded blob this path promises never to leave.
+    // MEASURED 2026-09-19 on the primitive: createWriteStream → write → close() → rmSync → check
+    // 5 ms later, 200 repetitions, the file was present 199 times. Observed in the field as CI run
+    // 35450887699 (`STREAM CAP WINS`), red there and green here because on this machine the open
+    // usually wins the race. The rejection is also held until the removal has happened, so a
+    // caller that checks for the blob right after the rejection is making an assertion, not a bet —
+    // and where the removal ITSELF fails, the error says so in `partialBlobLeft` instead of the
+    // promise quietly claiming a clean failure.
+    const removeBlobAndReject = (err) => {
+      // Cross-family review r1, HIGH 2: swallowing a removal failure made the promise claim more
+      // than the code delivers — a caller that checks for the blob right after the rejection would
+      // find one and have been told nothing. The removal is attempted, then VERIFIED, and a blob
+      // that survives is named ON the error rather than hidden behind it. The original error is
+      // still what rejects: it is the cause, and replacing it would lose the reason for the failure.
+      let removalError = null;
+      try { fs.rmSync(destPath, { force: true }); } catch (rmErr) { removalError = rmErr; }
+      let survived = false;
+      try { survived = fs.existsSync(destPath); } catch { survived = false; }
+      if (survived) {
+        err.partialBlobLeft = destPath;
+        err.partialBlobReason = removalError ? String(removalError.message ?? removalError) : 'the path still exists after a forced removal';
+      }
+      reject(err);
+    };
+
     const fail = (err) => {
       if (settled) return;
       settled = true;
-      cleanup();
-      try { fs.rmSync(destPath, { force: true }); } catch { /* best effort */ }
-      reject(err);
+      stopTimersAndHandles();
+      const pendingSink = sink;
+      sink = null;
+      if (pendingSink === null) { removeBlobAndReject(err); return; }
+      try {
+        // close(cb) fires after the open has settled and the fd is gone — the first moment at
+        // which removing the path is durable.
+        pendingSink.close(() => removeBlobAndReject(err));
+      } catch {
+        removeBlobAndReject(err); // a sink that cannot be closed must not swallow the failure
+      }
     };
 
     const succeed = (value) => {
@@ -402,16 +444,23 @@ function download({
             res.on('end', () => {
               if (idleTimer !== null) clearTimeout(idleTimer);
               if (settled) return;
+              // Cross-family review r1, HIGH 1: `sink` used to be nulled HERE, before `end()`
+              // finished. A `total_timeout` firing inside that window made `fail()` see no sink at
+              // all, remove the path immediately and reject — while the still-flushing stream
+              // recreated it. The handle stays visible until the flush is done, so a failure in
+              // that window closes it first, exactly like every other failure.
               const finished = sink;
-              sink = null;
-              finished.end(() => succeed({
-                blobPath: destPath,
-                bytes: received,
-                requestedUrlRedacted: redactUrl(url),
-                finalUrlRedacted: redactUrl(parsed.href),
-                urlSha256: urlSha256(url),
-                hops: hop,
-              }));
+              finished.end(() => {
+                sink = null;
+                succeed({
+                  blobPath: destPath,
+                  bytes: received,
+                  requestedUrlRedacted: redactUrl(url),
+                  finalUrlRedacted: redactUrl(parsed.href),
+                  urlSha256: urlSha256(url),
+                  hops: hop,
+                });
+              });
             });
           }
         );

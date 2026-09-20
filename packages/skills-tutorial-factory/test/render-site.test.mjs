@@ -2,10 +2,10 @@
 // Every test drives the REAL scripts via spawnSync(node …): the thing under test is the seam
 // itself (course.json → site → driven verification), not an importable approximation of it.
 
-import { test } from 'node:test';
+import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -16,7 +16,16 @@ const RENDER = join(__dirname, '..', 'package-tutorial-factory', 'scripts', 'ren
 const VERIFY = join(__dirname, '..', 'package-tutorial-factory', 'scripts', 'verify-site.mjs');
 const GATE = join(__dirname, '..', 'package-tutorial-factory', 'scripts', 'headfirst-gate.mjs');
 
-const tmp = () => mkdtempSync(join(tmpdir(), 'tf-seam-'));
+// Every scratch dir is removed at the end (after() + process exit) unless DZ_KEEP_TMP=1 —
+// MEASURED 2026-09-20: this file left 114 tf-seam-* dirs per full sweep in /tmp (backlog 7cb6f9b7).
+const created = [];
+const removeCreated = () => {
+  if (process.env.DZ_KEEP_TMP === '1') return;
+  for (const d of created.splice(0)) rmSync(d, { recursive: true, force: true });
+};
+after(removeCreated);
+process.on('exit', removeCreated);
+const tmp = () => { const d = mkdtempSync(join(tmpdir(), 'tf-seam-')); created.push(d); return d; };
 const run = (script, args) => spawnSync(process.execPath, [script, ...args], { encoding: 'utf-8' });
 const render = (dir, course, out = join(dir, 'site', 'index.html')) => {
   const cp = join(dir, 'course.json');

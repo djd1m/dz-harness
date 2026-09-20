@@ -187,7 +187,17 @@ export interface ReqeSettlement {
 export function extractReportGrade(text: string): string | null {
   // the lookahead rejects RANGES in punctuation form (A-F, A/F) AND word form (A through F,
   // A to F) — Codex QE round-2 #6: 'GRADE A through F' must not read as grade A
-  const matches = [...String(text ?? '').matchAll(/^\s*(?:\*{0,2}#{0,4}\s*)?GRADE\s*[:=—–-]?\s*([A-F])\b(?!\s*(?:[-–—/]|through|to|thru)\s*[A-F]\b)/gim)];
+  // bridge-grade-grammar (backlog ddf83072): the rest of the instrument already speaks in modifiers —
+  // `dz round close --grade B-` is accepted and `dz recap` tallies `A-×21` — so a review that writes
+  // `GRADE B-` must be readable here too. The modifier is allowed ONLY when a letter does not follow
+  // it, because `GRADE A-F` is a RANGE (the boilerplate "GRADE A-F + findings"), not an A-minus.
+  // The dash class below is the UNICODE dash family, not just the ASCII hyphen (Codex review HIGH #2):
+  // a reviewer's editor turns `A-F` into `A−F` (U+2212) or `A‐F` (U+2010) without asking, and a range
+  // written that way used to read as a bare `A`. Any dash-family character following the letter means
+  // the text is not a plain grade, so the extractor refuses instead of guessing which half was meant —
+  // the same rule that makes `GRADE B-Critical` null. A modifier is only ever its ASCII form (`+`, `-`).
+  //   hyphen-minus - | hyphen ‐ | non-breaking ‑ | figure ‒ | en – | em — | horizontal bar ― | minus −
+  const matches = [...String(text ?? '').matchAll(/^\s*(?:\*{0,2}#{0,4}\s*)?GRADE\s*[:=‐-―−-]?\s*([A-F](?:[+-](?![ \t]*[A-F]\b))?)(?![A-Za-z])(?![ \t]*[-‐-―−])(?!\s*(?:through|to|thru)\s*[A-F]\b)/gim)];
   const distinct = new Set(matches.map((m) => (m[1] ?? '').toUpperCase()).filter((g) => g !== ''));
   if (distinct.size !== 1) return null;
   return [...distinct][0] ?? null;

@@ -52,8 +52,12 @@ const check = (files) => run(CHECK, files);
 const GOOD_EVIDENCE = 'https://docs.example.test/email · checked 2026-08-30 · '
   + '«The API reports hard and soft bounces via webhook»';
 
+const EN_HEADER = '| Capability needed | Provider / API | Evidence | Verdict | Requirements relying on it |';
+/** The package writes its documents in Russian, so a Russian header is the TYPICAL case, not a corner. */
+const RU_HEADER = '| Возможность | Провайдер | Свидетельство | Вердикт | Требования |';
+
 /** An Architecture.md whose inventory says what the case needs. */
-function arch({ rows, before = '## Technology Stack\n\n| Layer | Technology | Rationale |\n|---|---|---|\n| Backend | Node | привычен команде |\n', section = true, prose = '' } = {}) {
+function arch({ rows, header = EN_HEADER, before = '## Technology Stack\n\n| Layer | Technology | Rationale |\n|---|---|---|\n| Backend | Node | привычен команде |\n', section = true, prose = '' } = {}) {
   const body = rows === undefined
     ? [['отправка писем', 'Postmark', GOOD_EVIDENCE, 'CONFIRMED', 'FR-010']]
     : rows;
@@ -61,7 +65,7 @@ function arch({ rows, before = '## Technology Stack\n\n| Layer | Technology | Ra
   if (section) {
     out += '## External Dependencies\n\n' + (prose ? prose + '\n\n' : '');
     if (body.length) {
-      out += '| Capability needed | Provider / API | Evidence | Verdict | Requirements relying on it |\n'
+      out += header + '\n'
         + '|---|---|---|---|---|\n'
         + body.map((r) => '| ' + r.join(' | ') + ' |').join('\n') + '\n';
     }
@@ -152,6 +156,26 @@ describe('инвентарь внешних зависимостей — the det
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /CONTRADICTED/);
     assert.match(r.out, /FR-011/, 'the dependent requirements must be named, not counted');
+  });
+
+  test('P9b - RU/EN twin: the header is recognised by POSITION, so a Russian header is never a data row', () => {
+    // MEASURED 2026-09-02 (backlog b8a7669d): the same table body under a Russian header produced a
+    // FALSE finding «строка инвентаря без вердикта • Возможность» — the header itself was read as a
+    // row — and that false finding fired FIRST, masking the real one. One variable differs between
+    // the twins: the header line. Every outcome below must be identical for both.
+    const clean = [['отправка писем', 'Postmark', GOOD_EVIDENCE, 'CONFIRMED', 'FR-010']];
+    for (const header of [EN_HEADER, RU_HEADER]) {
+      const r = check({ [ARCH]: arch({ rows: clean, header }) });
+      assert.equal(r.code, 0, header + '\n' + r.out);
+      assert.doesNotMatch(r.out, /Возможность|Capability needed/, 'the header must not surface as a row: ' + r.out);
+    }
+    const noVerdict = [['отправка писем', 'Postmark', GOOD_EVIDENCE, '', 'FR-010']];
+    const twins = [EN_HEADER, RU_HEADER].map((header) => check({ [ARCH]: arch({ rows: noVerdict, header }) }));
+    for (const r of twins) {
+      assert.equal(r.code, 1, r.out);
+      assert.match(r.out, /отправка писем/, 'the REAL defective row must be the one named: ' + r.out);
+      assert.doesNotMatch(r.out, /Возможность|Capability needed/, 'the header must not be the finding: ' + r.out);
+    }
   });
 
   test('P10 - THE second fixture: CONFIRMED without a verbatim quote fails, WITH THE ROW NAMED', () => {

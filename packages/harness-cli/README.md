@@ -290,7 +290,7 @@ you know exactly which file is at fault, and you know whose defect it is.
 
 ## User Journey — from install to mastery
 
-All 93 commands (MEASURED — reproducer: `node --input-type=module -e "import('./dist/index.js').then(m=>console.log(m.DZ_COMMANDS.length))"` from this package; rendered help documents 94 unique top-level names — the 93 plus the built-in `help` — pinned NAME-FOR-NAME by `test/command-inventory-parity.test.ts`) mapped to a real workflow:
+All 94 commands (MEASURED — reproducer: `node --input-type=module -e "import('./dist/index.js').then(m=>console.log(m.DZ_COMMANDS.length))"` from this package; rendered help documents 95 unique top-level names — the 94 plus the built-in `help` — pinned NAME-FOR-NAME by `test/command-inventory-parity.test.ts`) mapped to a real workflow:
 
 ```
 DISCOVER → INSTALL → USE → CREATE → MAINTAIN → SHARE
@@ -356,7 +356,7 @@ dz help                                   # see all commands
 dz pretrain                                # analyze project files → recommend by tech stack
 dz recommend "build API and deploy to K8s" # keyword match → skills + toolkits
 dz recommend "work on this project"        # unmatched? → labels suggestions as PROJECT-STACK, not task-derived
-dz stats                                  # 58 packages, 260 skills, 10 targets, 14 presets
+dz stats                                  # 57 packages, 260 skills, 10 targets, 14 presets
 dz dashboard                              # visual panel — packages, adapters, skill packs
 dz registry                               # browse all 260 skills by category
 dz registry search kubernetes             # find specific skills
@@ -956,8 +956,12 @@ which binary answered.
 
 **What makes the grade valid.** Three channels must EXIST and AGREE, each read **LAST-anchored**,
 and the marker must be the FINAL content of the answer:
-the terminal `QE-BRIDGE-SIGNOFF grade=<A-F> findings=<n>` line, the last fenced `qe-bridge-signoff`
-JSON block, and the report's own line-anchored `GRADE:` line. Repo content flows into the prompt and
+the terminal `QE-BRIDGE-SIGNOFF grade=<A-F, optionally with + or -> findings=<n>` line, the last
+fenced `qe-bridge-signoff` JSON block, and the report's own line-anchored `GRADE:` line. The grade
+carries its modifier verbatim (`B-` stays `B-`, never flattens to `B`), and the three channels must
+match character for character — `B-` in one and `B` in another is a disagreement, not a rounding.
+A RANGE is still not a grade: `GRADE A-F` is refused, and so is the same range written with any
+Unicode dash (`A−F`, `A‐F`), which an editor produces without being asked. Repo content flows into the prompt and
 comes back quoted, so a planted earlier verdict must lose — and it does (there is a test whose
 fixture plants `grade=A` early and requires the genuine trailing `grade=D` to win). Extracts are
 DEFANGED on the way in, so quoted content can never mint a verdict. Empty, gradeless, marker-only or
@@ -2112,10 +2116,10 @@ runs a command that MEASURES the declared artifacts itself. It refuses a null re
 never recorded as done), an absent or partially-present artifact set, and a stage that declares nothing
 to witness — so a stage that did not happen can no longer be recorded, which the old mechanism allowed.
 
-## All Commands (93)
+## All Commands (94)
 
-*(93 MEASURED from the bounded command inventory below; rendered `dz --help` exposes 94 unique
-top-level names — the 93 plus the built-in `help`, which prints USAGE before the dispatch switch and
+*(94 MEASURED from the bounded command inventory below; rendered `dz --help` exposes 95 unique
+top-level names — the 94 plus the built-in `help`, which prints USAGE before the dispatch switch and
 is therefore documented without being a command. Both numbers are COMPUTED, never typed: the name
 sets of this section, the root README, the docs site and `DZ_COMMANDS` are pinned to each other by
 `test/command-inventory-parity.test.ts`.)*
@@ -2127,7 +2131,7 @@ dz integrations-verify --target <name> --component <mcp|hooks> [--project <dir>]
 dz install           <npm-pkg> [--target <name>] [--project <dir>] [--force]
 dz bundle            [--preset <name> | --select id,...] [--out <dir>] [--skills-dir <dir>] [--force]
 dz teach             "<pattern>" [--class-form "<template with :slot>"] [--reward <0-1>] [--domain <name>] [--type rule|success-pattern|lesson-learned] [--project <dir>] [--to project|global] [--no-mirror] [--guard]   # --class-form is optional and never blocks the specific write; --project pins the learned store to <dir>/.dz; --to picks WHICH store (global = ~/.dz, shared across projects). Every write prints the path AND what chose it.
-dz teach --reinforce "<dzId-or-exact-text>" [--project <dir>] # bump an existing learned pattern instead of writing a near-duplicate
+dz teach --reinforce "<dzId-or-exact-text>" [--project <dir>] # bump an existing learned pattern instead of writing a near-duplicate. The id is the FULL printed form (`teach:1a4a9bdd…` — what the `ID:` line and `dz recall --json`'s `dzId` both print); since 2026-09-20 a BARE suffix (`1a4a9bdd…`) also resolves, and a suffix shared by two namespaces is refused by name rather than guessed. The receipt says HOW it matched — `(matched by text)` / `(matched by bare id suffix)` / nothing for a full-id hit. A lesson taught minutes ago is QUARANTINED and damped in recall, so `dz recall "<terms>"` may not find it by its own words: list ids with `dz recall --all --json`
 dz teach --from-json <file> [--project <dir>] [--no-mirror] [--harmonize]   # bulk-import a `dz recall --all --json` export; prints a harmonize dry-run advisory
 dz consolidate       [--sessions-dir <dir>] [--project <dir>] [--no-mirror]
 dz recall            "<query>" [--limit <N>] [--domain <name>] [--semantic | --no-semantic] [--full] [--project <dir>]   # hybrid lexical+vector when the vector tier is enabled; --domain BOOSTS same-domain lessons (never filters)
@@ -2140,7 +2144,7 @@ dz vector import     <file.rvf> [--project <dir>] [--json]         # RVF import 
 dz vector harmonize  [--apply] [--threshold <0..1>] [--json]       # SEMANTIC merge of near-dups (dry-run default; --apply after a restorable backup)
 dz teach --harmonize [--apply] [--threshold <0..1>]                # alias of `dz vector harmonize`
 dz statusline        [--json] [--install]   # compact Claude Code statusline: live self-learning pattern count + brain sources
-dz store-guard       [--status|--reset] [--yes] [--project <dir>]   # inspect the monotonic external high-water mark; --reset is the only lowering path and requires confirmation or --yes
+dz store-guard       [--status|--reset|--prune [--apply]] [--yes] [--project <dir>]   # inspect the monotonic external high-water mark; --reset is the only lowering path and requires confirmation; --prune removes marks whose project is gone (dry run by default)
 dz usage             [--json] [--project <dir>]   # 7-day UTC spend from local Claude Code + subagent transcripts; provider-limit routing disabled by design
                      --by-stage [--run <id> | --slug <s>] [--epsilon <0..1>] [--write <file.jsonl>] [--json]         # per-stage cost ledger for ONE feature-adr run + reconciliation invariant (BALANCED | DEFECT | INSUFFICIENT_DATA)
 dz chain             [--project <dir>] [--json]   # verify EVERY hash-chained journal in one command; coverage is DERIVED from the CHAINED_JOURNALS registry, so a journal cannot be chained and checked by nobody; an ABSENT journal is NAMED, never omitted; exit 1 on broken/unreadable
@@ -2183,8 +2187,9 @@ dz discrimination-check --test <f[,f]> [--base <ref>] [--name <filter>] [--runne
 dz amendment-check   --slug <slug> | --feature-dir <dir> | --all [--json]   (every AM-N / AM-CP-N amendment row must resolve to a test found INSIDE the file the row names; the PLAN is authoritative when it carries rows, and an ideation amendment the plan drops is a failure; --all is a census that always exits 0; exit 0 pass/skip, 1 fail, 3 NOT-ESTABLISHED — ZERO parsed rows may skip only when the whole first paragraph or heading suffix is exactly "None"/"N/A"/"нет", optionally with a full stop; an optional CommonMark closing # sequence is heading furniture, qualified text is refused, and AM-like content beside the declaration is NOT-ESTABLISHED)
 dz contract-check    --slug <s> [--json]   (read-only retrospective feature contract gate: canonical AC-N + ADR Confirmation → CC-N; every item needs one artifact-anchored met|unmet|not-testable verdict; A/B with unmet is refused; exit 0 pass / 1 readable violation / 2 invalid invocation or unreadable/not-established artifacts)
 dz journal           add --kind decision|verdict|run|error|block "<text>" [--ref <trace>] [--at <ISO>] [--quote <file>] [--commit-quote]; show [--day|--week] [--at <date>] [--kind <kind>] [--json]   # UTC day files, witnessed append; quotes local by default
-dz feature-adr-record  --kind ledger|training-pair --stage <s> [--slug <s>] [--row|--pair <json>] [--run-id <id>] [--mark <n>] [--once] [--window-from <iso> --window-to <iso>] [--codex-sessions <dir>] [--json]   (the witnessed writer: payload as an ARGUMENT never as shell, refused before any write; for a ledger row `ts` is ALWAYS the real write instant (a payload `ts` survives as `payloadTs`, never lost); `--run-id` fills a MISSING `runId` — absent, null, empty, or non-string — and tags it `runIdSource:'cli-flag'`; `minutesSincePrev`/`minutesSource` on an auto ledger row measure against the previous row of the same run, reporting `unavailable` on no prior row OR a corrupt/non-object ledger line anywhere in between; new fields never reorder existing ones; append verified by re-reading the tail; exit 0 written|duplicate|skipped, 2 refused, 3 not-verified, never blocking; measurement-integrity FR-5/FR-6: a codex-family ledger row with `tokens:null`, given `--window-from/--window-to`, is enriched from `~/.codex/sessions` rollout logs (or `--codex-sessions <dir>`) by cwd+time-window match — one match fills tokens/minutes/`tokensSource:'codex-rollout'`/`rolloutId`, none/ambiguous name the status instead of guessing, no window leaves `tokensSource:'unavailable'`; every ledger row also gets a `prices` snapshot of the current pricing table, taken at write time; qe-findings-record FR-6: a `stage=full` row is additionally enriched with `findings` (bySeverity/byStatus/refused/hollow) and `gradeSource` ('verdict-line'|'prose'|'none'), computed by the core parser over the row's own `features/<slug>/08_qe_report.md` — fill-only-null (a caller-supplied value is never overwritten), best-effort (a missing/unreadable report leaves the row exactly as it arrived))
+dz feature-adr-record  --kind ledger|training-pair --stage <s> [--slug <s>] [--row|--pair <json>] [--run-id <id>] [--mark <n>] [--once] [--strict] [--allow-incomplete <fields>] [--incomplete-reason <code>] [--window-from <iso> --window-to <iso>] [--codex-sessions <dir>] [--json]   (the witnessed writer: payload as an ARGUMENT never as shell, refused before any write; for a ledger row `ts` is ALWAYS the real write instant (a payload `ts` survives as `payloadTs`, never lost); `--run-id` fills a MISSING `runId` — absent, null, empty, or non-string — and tags it `runIdSource:'cli-flag'`; `minutesSincePrev`/`minutesSource` on an auto ledger row measure against the previous row of the same run, reporting `unavailable` on no prior row OR a corrupt/non-object ledger line anywhere in between; an incomplete AUTO row (missing `minutes`/`tokens`) is REFUSED by default now (instrument-round-b, круг B) — fix-round-1 (Codex r1 HIGH finding 3): the blanket bypass flag is REMOVED (every real automatic writer had to pass it, making the default operationally empty); `--allow-incomplete <comma-separated fields>` + `--incomplete-reason <code>` (closed set: sandbox-metrics-unavailable, manual-entry) permit a write ONLY when the row's actual incompleteness is a SUBSET of the named fields — a field growing incomplete beyond what was declared still refuses, naming it; the pair must be given TOGETHER (exit 2 usage error otherwise) and is mutually exclusive with `--strict` (exit 2 usage error naming both, before any payload is parsed) — `--strict` alone remains accepted as a no-op, the default already does what it asked for; new fields never reorder existing ones; append verified by re-reading the tail; exit 0 written|duplicate|skipped, 2 refused, 3 not-verified, never blocking; measurement-integrity FR-5/FR-6: a codex-family ledger row with `tokens:null`, given `--window-from/--window-to`, is enriched from `~/.codex/sessions` rollout logs (or `--codex-sessions <dir>`) by cwd+time-window match — one match fills tokens/minutes/`tokensSource:'codex-rollout'`/`rolloutId`, none/ambiguous name the status instead of guessing, no window leaves `tokensSource:'unavailable'`; every ledger row also gets a `prices` snapshot of the current pricing table, taken at write time; qe-findings-record FR-6: a `stage=full` row is additionally enriched with `findings` (bySeverity/byStatus/refused/hollow) and `gradeSource` ('verdict-line'|'prose'|'none'), computed by the core parser over the row's own `features/<slug>/08_qe_report.md` — fill-only-null (a caller-supplied value is never overwritten), best-effort (a missing/unreadable report leaves the row exactly as it arrived))
 dz round             open --slug <s> --round <n|auto> --topic "<topic>" [--run <id>] [--owner-pid <n> | --owner-run <runId>] [--envelope <json>] [--force] | exec --slug <s> --round <n> --brief <file> [--log <file>] [--model gpt-5.6-sol] [--effort high] [--timeout-min 30] | close --slug <s> --round <n> --outcome shipped|refuted|blocked|abandoned [--grade <A|A-|B+|…>] (--lesson teach:<id>... | --no-new-knowledge "<reason>") [--no-cost] | status [--older-than <minutes>]   -- every subcommand also takes [--state-root <dir>] (or DZ_ROUND_STATE_ROOT)   # open records the parent process by default; --owner-pid records a process and --owner-run records a run-registry owner; live/stalled runs are live, finished/orphaned runs are dead, and unknown registry state stays unknown; open --force refuses a live or unknown owner; open --envelope <json> saves the feature-adr experiment envelope in round state (invalid JSON or a shape that fails validateExperimentEnvelope refuses with exit 2) and close copies it verbatim into the round's ledger row; measurement-integrity FR-7: close --grade is REQUIRED for outcome shipped|refuted (exit 2 without it), dropped with a warning for blocked|abandoned; --reviewer absent fills reviewer/reviewMinutes/reviewSource:'qe-bridge' from the latest features/<slug>/.fa-state/qe-bridge/signoff-*.json by emittedAt; a conflicting --grade is refused naming both
+dz experiment         assign --experiment <name> --task <taskId> --stratum <stratum> [--seed <n>] [--project <dir>] | status --experiment <name> [--project <dir>]   (ablation-c-start, ADR-001: deterministic block-randomized arm assignment, pre-registered and idempotent — assign computes direct/reference from (experiment, stratum, seed, ordinal-within-stratum) and appends one JSONL record to .dz/experiments/<experiment>/assignments.jsonl under a named lock with a re-read verification; a repeat --task returns the SAME arm and writes nothing; refuses (exit 2) a --task that already has a line in .dz/feature-adr/run-cost-ledger.jsonl — work already started; status reports an intention-to-treat table by arm (n, completed, incomplete, median task minutes, aqeInvoked compliance); zero assignments prints INSUFFICIENT_DATA, never an empty table)
 
 The round owner is the session shell (`process.ppid`) by default. Under `setsid`, or in a container
 where that parent is PID 1, pass `--owner-pid <pid>` for the real supervising process; otherwise PID 1
@@ -2402,7 +2407,7 @@ probe that both selects the workspace build or PATH fallback and prints the sele
 dz runs               [--settle] [--stall-minutes N] [--json] [--project <dir>]   (read the run registry: live / stalled / orphaned / inconclusive / finished)
 dz runs-record        --event started|heartbeat|finished [--run-id <id>] [--kind <kind>] [--slug <slug>] [--pid <pid|host>] [--parent-run-id <id>] [--outcome <text>] [--project <dir>] [--json]   (append one run event)
 dz runs-clean         [--apply] [--retention-days N] [--project <dir>] [--json]   (plan cleanup of old clean merged worktrees and dead/finished registry histories; apply explicitly)
-dz mutation-gate [--package <dir>] [--registry <file>] [--test-cmd "<cmd>"] [--only <id[,id]>] [--touched <path[,path]>] [--added-since <git-ref>] [--timeout <ms>] [--max-workers <n>] [--rebaseline per-entry|final] [--keep-scratch] [--json]   # the mutation gate: for each NAMED protection in a declarative registry, copy the package to a scratch dir (shadow-repo layout, node_modules symlinked, git-initialized), verify the baseline is green, apply the entry's exact {find, replace} mutation, run the suite, REQUIRE red, restore — and require the red to be ATTRIBUTABLE to the protection: a mutated file that no longer parses is MUTATION_UNPARSEABLE, a failing count far above the entry's bound (maxFailing, default from observed) is OVER_FAILING, and a restored tree that does not reproduce green makes the entry INCONCLUSIVE (flaky suite). A mutation that does not apply, a green suite, or an inconclusive run is a FAILURE — never a skip. `--touched <path[,path]>` / `--added-since <ref>` scope the run to a feature's own touched files and newly added entries (they UNION with each other and INTERSECT with `--only`; an empty selection prints `selected 0 of M entries (…)` and exits 0 without running the suite — never a silent skip) — MEASURED: an unscoped sweep of 358 entries on this repo's core package took 30-40 minutes and hit the timeout wall every time. `--timeout` resolves flag > the registry's own `timeoutMs` field > a 300000ms default (printed in the header); a real ETIMEDOUT is always INCONCLUSIVE, never read as the killed child's own numeric exit code. `--max-workers` resolves flag > the registry's own `maxWorkers` field > `min(4, max(1, floor(cpus/2)))`, injects `--maxWorkers=<n>` into a `vitest run` testCommand (unless it already names the flag) and always sets `VITEST_MAX_WORKERS=<n>` in the env — printed as `mutation-gate: workers: <n> (<flag|registry|default>)`, or `n/a — test command is not vitest` when the command isn't recognised as vitest; MEASURED: an uncapped full-suite baseline (vitest's default worker count = cpu cores) hit load 62-358 and <2GB free on an 8-core/16GB box under this repo's core-package embedding-daemon tests, killing full overnight gate runs — `--maxWorkers=2` passed 6909/6909. exit 0 all proven / 1 gate failed / 2 setup error
+dz mutation-gate [--package <dir>] [--registry <file>] [--test-cmd "<cmd>"] [--only <id[,id]>] [--touched <path[,path]>] [--added-since <git-ref>] [--timeout <ms>] [--max-workers <n>] [--rebaseline per-entry|final] [--verdicts <file>] [--run-id <id>] [--keep-scratch] [--json]   # the mutation gate: for each NAMED protection in a declarative registry, copy the package to a scratch dir (shadow-repo layout, node_modules symlinked, git-initialized), verify the baseline is green, apply the entry's exact {find, replace} mutation, run the suite, REQUIRE red, restore — and require the red to be ATTRIBUTABLE to the protection: a mutated file that no longer parses is MUTATION_UNPARSEABLE, a failing count far above the entry's bound (maxFailing, default from observed) is OVER_FAILING, and a restored tree that does not reproduce green makes the entry INCONCLUSIVE (flaky suite). A mutation that does not apply, a green suite, or an inconclusive run is a FAILURE — never a skip. After classifying, one durable JSONL line per entry (`{ts, package, entryId, verdict, failingCount, observed, drop, dropComparable, runId}`) is appended to `.dz/mutation-gate/verdicts.jsonl` under the invocation cwd (`--verdicts <file>` overrides; `--run-id <id>` names the row) — a SEPARATE file from the registry itself (the registry is the gate's INPUT, a verdict is its OUTPUT), so `test/mutation-registry.json` stays untouched; a write failure is a loud stderr warning that never changes the gate's own exit code. fix-round-1 (Codex r1 BLOCKER finding 1): `--verdicts` is canonicalized and compared against the registry's own canonical path AND `{dev, ino}` — a direct path, a symlink, or a hardlink alias to the registry refuses the write LOUDLY instead of corrupting the gate's own input. fix-round-1 (Codex r1 HIGH finding 2): the whole read-append-reread transaction runs under a named cross-process lock (`withNamedLockSync`), so two concurrent gate processes appending to the same file can neither interleave nor lose a line — the tail is re-read inside the lock to verify exactly as many lines landed as were classified. `--touched <path[,path]>` / `--added-since <ref>` scope the run to a feature's own touched files and newly added entries (they UNION with each other and INTERSECT with `--only`; an empty selection prints `selected 0 of M entries (…)` and exits 0 without running the suite — never a silent skip) — MEASURED: an unscoped sweep of 358 entries on this repo's core package took 30-40 minutes and hit the timeout wall every time. `--timeout` resolves flag > the registry's own `timeoutMs` field > a 300000ms default (printed in the header); a real ETIMEDOUT is always INCONCLUSIVE, never read as the killed child's own numeric exit code. `--max-workers` resolves flag > the registry's own `maxWorkers` field > `min(4, max(1, floor(cpus/2)))`, injects `--maxWorkers=<n>` into a `vitest run` testCommand (unless it already names the flag) and always sets `VITEST_MAX_WORKERS=<n>` in the env — printed as `mutation-gate: workers: <n> (<flag|registry|default>)`, or `n/a — test command is not vitest` when the command isn't recognised as vitest; MEASURED: an uncapped full-suite baseline (vitest's default worker count = cpu cores) hit load 62-358 and <2GB free on an 8-core/16GB box under this repo's core-package embedding-daemon tests, killing full overnight gate runs — `--maxWorkers=2` passed 6909/6909. exit 0 all proven / 1 gate failed / 2 setup error
 dz delivery-check --slug <slug> [--context-only] [--findings <f.json>] [--strict] [--author <model>] [--json]   # portable Step-10 Delivery Gate: the `manual` form that travels to every shell target — prints the 4-plane review brief (regressions ‖ security ‖ code-quality ‖ product-honesty) + artifact probes; --findings classifies a fed-back review into a fail-closed ready|blocked hand-off (only cross-validated BLOCKER/HIGH count) and writes features/<slug>/10_delivery_review.md; --strict exits 1 on blocked
 dz skills-verify     [--dir <project>] [--expect a,b] [--static] [--strict] [--timeout <s>] [--json]   # does .claude/skills/ actually REGISTER? --static = instant layout scan (CI-safe, no session): flags dirs that can never register; default also starts a real session and reads the authoritative system/init listing. exit 0 pass / 1 fail / 2 inconclusive — an unobservable registration is NEVER a pass
 dz compounding       [--project <dir>] [--json]   # honest learning-loop payoff report: pool/replay/guard instrumentation plus the monthly eligible→attempted→accepted→executions funnel. A missing source is NOT MEASURED; only a non-empty→empty named edge across three consecutive measured months is a funnel finding; text/JSON carry the same facts and no learning-health verdict
@@ -2460,7 +2465,7 @@ dz import-ecc       [--local-path <dir>] [--select id,id,...] [--limit N] [--out
 ```
 
 Built-in, not a command: `dz help` prints this same USAGE and is handled before the dispatch switch,
-so `dz --help` lists 94 names while the canonical inventory above holds 93 (ADR-001 of feature
+so `dz --help` lists 95 names while the canonical inventory above holds 94 (ADR-001 of feature
 `command-count-triad`).
 
 **Adding a command — the whole checklist, in order.** It replaces the seven-place folklore that used
@@ -2777,6 +2782,38 @@ dz store-guard --reset --yes --project ./my-project
 #   mark: /home/alice/.dz-store-guard/<project-hash>.json
 #   receipt: <timestamp> — dz store-guard --reset: manual operator decision; before lexical=1385, vector=1300; after lexical=120, vector=118
 ```
+
+#### Clearing marks the guard can no longer be protecting (`--prune`)
+
+One mark is written per project root and nothing used to remove one, so every test run that built a
+store in a throwaway temp directory left a mark forever. MEASURED on this machine 2026-09-20 before
+the command existed: **64 315 marks — 29 whose project path still existed and 64 286 whose path was
+gone and under a temp dir** (14.1 MB of content, 255 MB of disk blocks). Running the command cleared
+it to 30 marks / 3.1 MB in 4.6 s, with every live mark intact.
+
+```bash
+dz store-guard --prune                     # DRY RUN — the default; deletes nothing
+# dz store-guard --prune: 64315 mark(s) in /home/alice/.dz-store-guard
+#   stale-temp: 64286
+#   live: 29
+#   gone-outside-tmp: 0
+#   unreadable: 0
+#   reclaimable: 14.1 MB in 64286 stale mark(s)
+#     live: /home/alice/projects/my-project
+#   DRY RUN — nothing deleted; re-run with --prune --apply to remove them
+
+dz store-guard --prune --apply             # the only path that deletes
+# dz store-guard --prune: 64315 mark(s) in /home/alice/.dz-store-guard
+#   …
+#   DELETED 64286 mark(s), 0 already gone, 0 failed
+```
+
+Only `stale-temp` is ever deleted — a mark whose recorded project path is **gone** *and* lay under the
+OS temp directory, where the random name can never be recreated. Three buckets are reported and never
+touched: `live` (the mark is doing its job), `gone-outside-tmp` (a real project that may be restored at
+the same path), and `unreadable` (not understood — and not understanding something is not permission to
+delete it). A symlinked guard directory is refused outright. `--json` emits
+`{dir, counts, reclaimableBytes, applied, deleted, alreadyGone, failed}`.
 
 Commands that intentionally remove records print the resulting counts, the unchanged maxima, and
 the exact `dz store-guard --reset --project '<dir>'` command. `--status` and guard warnings name the
@@ -4648,6 +4685,21 @@ Scoped to SOURCE on purpose: a HARD rule that also blocked a docs-only republish
 switches off. The floor defaults to PRESENCE of a grade — `.dz/guard.json` → `reviewRound.minGrade`
 sets a letter when you want one.
 
+**What counts as SOURCE is decided by EXECUTABILITY, not by location** (changed 2026-09-20). A file
+is source when its extension can run — `.js` `.mjs` `.cjs` `.ts` `.mts` `.cts` `.sh` `.bash` `.py` —
+unless it sits in a directory that never ships behaviour (`test`, `tests`, `__tests__`, `fixtures`,
+`__fixtures__`, `dist`, `node_modules`, `coverage`) or carries an extension that never can
+(`.md` `.json` `.txt` `.yaml` `.yml`). The historical roots `src/` `lib/` `bin/` `skills/` still
+count in full, so nothing that used to block stops blocking.
+
+The previous rule tested the PATH PREFIX alone, and that made this gate unable to fire for a skill
+pack at all: a pack ships its executable content from `templates/` and `<skill-name>/`, neither of
+which begins with `src/`. MEASURED on the 2026-08-25 release of `skills-feature-adr` 1.5.3,
+`skills-meta` 0.9.50 and `keysarium` 1.5.41 — all three bumped and shipped changed workflow code
+with the gate silent. **Consequence you will notice:** republishing a skill pack whose
+`templates/**` JavaScript changed is now HARD-blocked until the change brings a graded QE report,
+or is overridden with `--force "<reason>"` (logged).
+
 It proves a graded report EXISTS in this change. It does **not** prove the review was independent,
 was competent, covered THIS package, or was taken against this revision — the violation text says all
 four. And like every change-scoped rule here it reads the WORKING TREE, so it is silent once the
@@ -5548,7 +5600,20 @@ ledger row now carries a `prices` snapshot. See `@dzhechkov/harness-core`'s READ
 decision list (D1–D5) and the two new pure modules (`feature-adr-stage-canon.ts`, `codex-rollouts.ts`) behind
 `dz usage --by-stage`'s new `INCOMPLETE_INVENTORY` verdict and canonical-stage breakdown.
 
-`harness-core v0.8.38` · `harness-cli v0.8.30` · `memory v0.2.23` — **this release (night 16→17.09, five features
+`harness-core v0.8.39` · `harness-cli v0.8.30` · `memory v0.2.23` — **this release (day 17.09, four instrument
+features, each cross-family reviewed by Codex): ONE task identity minted at `dz round open` and carried fill-only-null by
+every writer (`taskIdSource` names where it came from — `open-round`, `derived-legacy`, `no-open-round`, `ambiguous`,
+`unavailable` — never a guess); a ship anchor on every finished round (`shipSha` plus `shipTreeDirty`, because `HEAD` does
+not identify a dirty worktree) and a witnessed `outcome:'refused'` row behind every control refusal; the QE step writes
+its OWN ledger rows — `impl` after the landing barrier and `qe` after the review, carrying reviewer, family, role,
+findings by severity, grade and the output-token delta; Step-8 mode A reviews an ISOLATED scope repo built from the
+established change set instead of `--uncommitted` over a shared dirty tree (measured: under two minutes against a 600 s
+timeout that reviewed nothing), refusing by name when the change set or the base ref is not established; and the review's
+PRICE reaches the ledger automatically from the qe-bridge sidecar (`reviewerCostUsd` with a token breakdown, or
+`unavailable` with a named reason for a Codex review whose tokens the instrument cannot see), with `dz round close`
+refusing a finished round that names no reviewer at all.**
+
+`harness-core v0.8.37` · `harness-cli v0.8.29` · `memory v0.2.23` — **(night 16→17.09, five features
 and four live-run fixes, each cross-family reviewed by Codex): `dz control-review` (two independent scoped reviews
 over one tree, candidate/confirmed/unique buckets, tree-snapshot refusals, witnessed ledger row) and `dz score
 --by-family` (per-family-pair aggregate with honest n/unknown/INCOMPLETE); every Step-8 report carries a machine-
@@ -5653,7 +5718,7 @@ exports (`commandInventory`, `declaredCommands`, `dispatchedCommands`, `document
 `stripNonCode`, `validateExceptionList`, `INTERNAL_ENTRY_POINTS`, `PSEUDO_COMMANDS`) — instead of a
 fourth private regex and a fourth number. Four hidden commands (`mr-rakes`, `retro`,
 `feature-adr-setup`, `bto-optimize`) gained USAGE lines, so `--help` changed; `help` is a documented
-pseudo-command, not a `case` label. **93 canonical commands, 94 names in rendered `--help`** (the 93
+pseudo-command, not a `case` label. **94 canonical commands, 95 names in rendered `--help`** (the 94
 plus the built-in `help`) — both COMPUTED from `cli.ts`, neither typed into a test. Three cross-family QE rounds closed
 six parser defects the naive version had: four that INVENTED a command (regex literals with a lone
 `}`, `case` labels in comments or templates, sub-verb labels from nested switches, `  dz <name>` lines

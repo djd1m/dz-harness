@@ -4,10 +4,11 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
-const Module = require('node:module');
 const os = require('node:os');
 const path = require('node:path');
 const { Worker } = require('node:worker_threads');
+
+const { announceNpmSkip, resolveNpmCli } = require('../npm-cli-resolver.js');
 
 const PKG_DIR = path.resolve(__dirname, '..', '..');
 const RULE_DIR = path.join(PKG_DIR, 'templates', '.claude', 'rules');
@@ -18,13 +19,12 @@ const CLI = path.join(PKG_DIR, 'bin', 'cli.js');
 
 const read = (file) => fs.readFileSync(file, 'utf8');
 
-function npmPackDryRunFiles() {
-  const npmCli = process.env.npm_execpath && fs.existsSync(process.env.npm_execpath)
-    ? process.env.npm_execpath
-    : path.join(
-      path.dirname(require.resolve('npm/package.json', { paths: Module.globalPaths })),
-      'bin',
-      'npm-cli.js');
+// FR-3 / ADR-001. The previous line here asked whether `npm_execpath` EXISTS. Under `pnpm test` it
+// points at pnpm.cjs, that file exists, so the fallback never fired in the one case it was written
+// for — and pnpm was then loaded as the npm CLI: `Unknown option: 'dry-run'` (MEASURED 2026-09-18).
+// The resolver asks instead whether the thing at that path IS npm, and falls through to the
+// installed npm when it is not.
+function npmPackDryRunFiles(npmCli) {
   const cache = fs.mkdtempSync(path.join(os.tmpdir(), 'p-rep-npm-pack-cache-'));
 
   return new Promise((resolve, reject) => {
@@ -288,14 +288,24 @@ test('P5 — package runner and scope guards reject omitted and out-of-scope inp
     'a real out-of-scope package path must fire the scope safeguard');
 });
 
-test('A2 — package files include templates and the actual npm pack listing contains the ladder', async () => {
+test('A2 — package files include templates and the actual npm pack listing contains the ladder', async (t) => {
   const pkg = JSON.parse(read(path.join(PKG_DIR, 'package.json')));
   assert.deepEqual(packagingProblems(pkg), []);
   const omitted = JSON.parse(JSON.stringify(pkg));
   omitted.files = omitted.files.filter((entry) => entry !== 'templates/');
   assert.deepEqual(packagingProblems(omitted), ['package files[] omits templates/'],
     'a cloned files[] without templates/ must fire the distribution safeguard');
-  const packedFiles = await npmPackDryRunFiles();
+
+  // FR-4: no npm anywhere is a NAMED skip printed into the suite output, never a silent pass and
+  // never a crash. This test exists to exercise the REAL packer; a faked one would prove nothing.
+  const npmCli = resolveNpmCli(process.env);
+  if (npmCli.kind !== 'npm-cli') {
+    announceNpmSkip(npmCli);
+    t.skip(npmCli.reason);
+    return;
+  }
+
+  const packedFiles = await npmPackDryRunFiles(npmCli.path);
   assert.ok(
     packedFiles.includes(`templates/.claude/rules/${RULE_FILE}`),
     `actual npm pack listing omits templates/.claude/rules/${RULE_FILE}`);

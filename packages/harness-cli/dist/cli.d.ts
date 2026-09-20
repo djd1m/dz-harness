@@ -168,6 +168,28 @@ export interface CliIo {
      */
     readonly publishNpmPackRunner?: (dir: string) => string;
     /**
+     * Test seam for publish's registry-CONFIRMATION step (`confirmPublished`, inside
+     * `publishPackages`) — feature `publish-confirm-seam` (backlog 079ba94c). Exists so a test can
+     * prove the ORDER "registry confirmed → `stage:'publish'` ledger row written" through the REAL
+     * `publishPackages`, not a `vi.mock('@dzhechkov/harness-core')` that removes the confirmation
+     * step entirely (a mock of `publishPackages` cannot show this order at all — see
+     * `test/publish-confirm-seam.test.ts`). Production leaves this unset, so `publishPackages` falls
+     * back to its own defaults (a real `npm view` probe, a real blocking `sleep`). Publish behaviour is
+     * therefore unchanged when the seam is unset; the emitted options object does carry the two extra
+     * keys with `undefined` values, so "unchanged behaviour" is the accurate claim, not "byte-identical
+     * call" (review finding, 2026-09-18).
+     */
+    readonly publishRegistry?: {
+        readonly probe?: (name: string, version: string) => boolean | {
+            ok: boolean;
+            stdout: string;
+            stderr: string;
+            code: number | null;
+            ms: number;
+        };
+        readonly sleep?: (milliseconds: number) => void;
+    };
+    /**
      * Test seam for `dz install`: overrides the `npm install` subprocess (production leaves
      * it unset → real `execSync`, stdio piped). A stub runner that pre-stages a fixture
      * package under `node_modules/` makes `cmdInstall`'s layout resolution testable
@@ -392,6 +414,21 @@ export declare function runChildBridge(bin: string, argv: string[], opts: {
  * the rare real-world shape that triggers it end to end.
  */
 export declare function claudeHalfFailureReason(bridgeExit: number, bridgeResult: Record<string, unknown> | null, bridgeOut: readonly string[]): string;
+/**
+ * How many PACKAGES live under `baseDir` — a directory counts when, and only when, it carries a
+ * `package.json`. Backlog c632bde4: this used to be `readdirSync(...).filter(isDirectory).length`,
+ * which answers a DIFFERENT question — "how many folders are here". The two questions agreed until
+ * a tool dropped a data store beside the packages: MEASURED 2026-09-19, `packages/@dzhechkov/`
+ * held 58 directories and 57 manifests, the extra one being the gitignored `.agentic-qe` store
+ * (`memory.db`, `brain.rvf`). `dz stats` printed 58 here and the CI runner, which never sees an
+ * ignored directory, computed 57 — three README-alignment cases were red there and green here
+ * (run 35434913155). The runner was RIGHT.
+ *
+ * The test is the MANIFEST, deliberately not a name filter: a skip-list of names (or "ignore
+ * dot-directories") goes stale in silence, while "a package is a directory that declares itself
+ * one" cannot. Pinned by test/stats-counts-packages.test.ts, whose red half is this exact case.
+ */
+export declare function countPackageDirs(baseDir: string): number;
 export declare function runCli(argv: string[], io?: CliIo): Promise<number>;
 export {};
 //# sourceMappingURL=cli.d.ts.map

@@ -161,7 +161,7 @@ When installed alongside Keysarium, the Transcript Site skill is available as pa
 
 ## Links
 
-- **GitHub:** [https://github.com/dzhechko/product-keysarium-2026](https://github.com/dzhechko/product-keysarium-2026)
-- **Issues:** [https://github.com/dzhechko/product-keysarium-2026/issues](https://github.com/dzhechko/product-keysarium-2026/issues)
+- **GitHub:** [https://github.com/djd1m/dz-harness](https://github.com/djd1m/dz-harness)
+- **Issues:** [https://github.com/djd1m/dz-harness/issues](https://github.com/djd1m/dz-harness/issues)
 - **npm:** [https://www.npmjs.com/package/@dzhechkov/skills-transcript-site](https://www.npmjs.com/package/@dzhechkov/skills-transcript-site)
 - **Keysarium:** [https://www.npmjs.com/package/@dzhechkov/keysarium](https://www.npmjs.com/package/@dzhechkov/keysarium)

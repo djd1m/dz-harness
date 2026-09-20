@@ -1,5 +1,5 @@
 // Engine resolution tests — ADR-002: runtime resolution, sha256 pin, loud esbuild-style error.
-import { test } from 'node:test';
+import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -11,7 +11,16 @@ const require = createRequire(import.meta.url);
 const { resolveEngine, sha256File, platformKey } = require('../src/resolve.js');
 const PKG = require('../package.json');
 
-const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'cloudru-resolve-'));
+// Every scratch dir is removed at the end (after() + process exit) unless DZ_KEEP_TMP=1 —
+// MEASURED 2026-09-20: 18 cloudru-resolve-* dirs per full sweep (backlog 7cb6f9b7).
+const created = [];
+const removeCreated = () => {
+  if (process.env.DZ_KEEP_TMP === '1') return;
+  for (const d of created.splice(0)) fs.rmSync(d, { recursive: true, force: true });
+};
+after(removeCreated);
+process.on('exit', removeCreated);
+const tmp = () => { const d = fs.mkdtempSync(path.join(os.tmpdir(), 'cloudru-resolve-')); created.push(d); return d; };
 
 test('env CLOUDRU_VM_BIN wins and is hashed; a non-pinned file reports verified:false but resolves', () => {
   const dir = tmp();

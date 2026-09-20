@@ -28,6 +28,18 @@ export interface ExperimentEnvelopeChosen {
      * (usage-override, session-inherited fallback) is recorded HERE explicitly — arms stay the set that
      * was actually offered; the winner is never appended to them after the fact. */
     readonly overrides?: Readonly<Record<string, string>>;
+    /**
+     * ablation-c-start (ADR-001, T3; fix-round-1 BLOCKER #2): the pre-registered ablation-C arm
+     * (`direct` | `reference`) for THIS run, filled only when `args.experiment`/`args.taskId` were
+     * given AND the workflow successfully RESOLVED an existing assignment for that task via
+     * `dz experiment resolve` — never taken from a caller-supplied arm option (that was the BLOCKER
+     * fix-round-1 found: a caller could set the arm to anything, with zero journal entry). Deliberately
+     * a SEPARATE field from `mode` — `mode` already means "same-family vs cross-family reviewer" (a
+     * different axis) — so setting `qeMode` never redefines what `mode` has always meant. Absent (not
+     * `null`) when no arm was resolved, so `JSON.stringify` drops the key and an unflagged run's
+     * envelope stays byte-identical to before this feature (NFR-2).
+     */
+    readonly qeMode?: string;
 }
 export interface ExperimentEnvelopePolicy {
     readonly name: string;

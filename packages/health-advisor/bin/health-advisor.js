@@ -317,14 +317,19 @@ function cmdValidate() {
   // The master is a registrable skill in its own right — it used to get no PASS/FAIL line at all,
   // so a full 22-skill install summarised as "Total skills: 21".
   const label = (r) => (r.master ? `${r.name} ${C.dim}[master]${C.reset}` : r.name);
+  const printNotes = (r) => {
+    for (const note of r.notes || []) console.log(`       ${C.dim}i ${note}${C.reset}`);
+  };
   for (const p of results.pass) {
     console.log(`  ${C.green}PASS${C.reset} ${label(p)} (${p.size} bytes)`);
+    printNotes(p);
   }
   for (const w of results.warn) {
     console.log(`  ${C.yellow}WARN${C.reset} ${label(w)} (${w.size} bytes)`);
     for (const issue of w.issues) {
       console.log(`       ${C.dim}- ${issue}${C.reset}`);
     }
+    printNotes(w);
   }
   for (const f of results.fail) {
     console.log(`  ${C.red}FAIL${C.reset} ${f.name}: ${f.reason}`);

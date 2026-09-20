@@ -138,7 +138,10 @@ export function extractTestTitles(body: string): string[] {
 }
 
 export function normalizeTestId(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, '');
+  // Unicode letter/number classes: the old `[^a-z0-9]` erased Cyrillic outright, so a Russian test title
+  // normalised to '' and tripped the floor as the author's fault (MEASURED 2026-09-04, backlog 191853a2).
+  // Re-run over all 519 features on 2026-09-20: zero verdicts changed — this only adds matches.
+  return s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
 }
 
 /**

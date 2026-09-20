@@ -1,7 +1,7 @@
 // Skill dialect compiler tests — ADR-006 Confirmation, all layer 1: size, links, dialect
 // grep, determinism. Uses a SYNTHETIC fixture (our own text carrying the Hermes-dialect
 // tokens) — the real canonical corpus is upstream content and never ships in this package.
-import { test } from 'node:test';
+import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -11,8 +11,18 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { compileSkill, loadDialects, filterFrontmatter } = require('../src/dialects.js');
 
+// Every scratch dir is removed at the end (after() + process exit) unless DZ_KEEP_TMP=1 —
+// MEASURED 2026-09-20: 81 cloudru-dialects-* dirs per full sweep (backlog 7cb6f9b7).
+const created = [];
+const removeCreated = () => {
+  if (process.env.DZ_KEEP_TMP === '1') return;
+  for (const d of created.splice(0)) fs.rmSync(d, { recursive: true, force: true });
+};
+after(removeCreated);
+process.on('exit', removeCreated);
 function fixture() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cloudru-dialects-'));
+  created.push(dir);
   fs.writeFileSync(path.join(dir, 'SKILL.md'), `---
 name: cloudru-hub
 description: Управление Cloud.ru Evolution.

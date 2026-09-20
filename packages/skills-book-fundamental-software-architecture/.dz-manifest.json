@@ -173,9 +173,9 @@
       },
       {
         "path": "test/pack.test.mjs",
-        "sha256": "bda8c2b4e415dd579250dbe4e57dcf1077268568552619586460a157c9dcc8cb"
+        "sha256": "301b67084869590ce9dc7c4a3e3563ece481c871c01709698ecf13ceb046c4e3"
       }
     ]
   },
-  "signature": "HVf0+9G+MiXK68HwYvr+IC/7CqIEifSP7jrPAE81U9IioC+LUIU0PquueH+7d5VIRc79ELkmalA9Sy8pXHg5BA=="
+  "signature": "IIFxakyhkb7PBGjg99MjCWmhXZg4hmyeQrviRhFqGli0pGtUnTp3GzXNi9o/Y15j+kYyaTpRvm8s4AyRFGfbBg=="
 }

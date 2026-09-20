@@ -33,7 +33,12 @@ export function buildExperimentEnvelope(input) {
         treeSha: input.treeSha,
         treeShaReason: input.treeSha === null ? (input.treeShaReason ?? 'unavailable') : null,
         arms: { mode: [...input.arms.mode], stages: { ...input.arms.stages } },
-        chosen: { mode: input.chosen.mode, stages: { ...input.chosen.stages }, overrides: { ...(input.chosen.overrides ?? {}) } },
+        chosen: {
+            mode: input.chosen.mode,
+            stages: { ...input.chosen.stages },
+            overrides: { ...(input.chosen.overrides ?? {}) },
+            ...(input.chosen.qeMode !== undefined ? { qeMode: input.chosen.qeMode } : {}),
+        },
         policy: { ...input.policy },
         evaluator: { ...input.evaluator },
     };
@@ -155,6 +160,12 @@ export function validateExperimentEnvelope(value) {
         if (!offered.includes(spec) && overrides[stage] !== spec) {
             return { ok: false, reason: `chosen.stages.${stage}: "${String(spec)}" is not a member of arms.stages.${stage} (${offered.join('|')}) and not declared in chosen.overrides` };
         }
+    }
+    // ablation-c-start (ADR-001, T3): qeMode is OPTIONAL — absent on every run this feature does not
+    // touch — but when present must be a non-empty string, same shape rule as every other envelope
+    // field (never a silently-accepted empty label).
+    if (chosen.qeMode !== undefined && !isNonEmptyString(chosen.qeMode)) {
+        return { ok: false, reason: 'chosen.qeMode: expected a non-empty string when present' };
     }
     if (!isPlainObject(v.policy))
         return { ok: false, reason: 'policy: expected an object' };

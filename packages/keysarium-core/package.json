@@ -5,7 +5,6 @@
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
   "description": "Core framework for multi-agent pipelines: governance, memory, orchestration, verification, trust tiers, and multi-platform support",
-  "main": "index.md",
   "files": [
     "index.md",
     "governance/",

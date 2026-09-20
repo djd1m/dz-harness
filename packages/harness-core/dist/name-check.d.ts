@@ -73,7 +73,26 @@ export declare function classifyName(query: NameQuery, facts: NameFacts): NameRe
  * source scanner that printed `github: 0` for a 401.
  */
 export declare function decideNameCheck(queries: readonly NameQuery[], facts: NameFacts): NameDecision;
-export declare function renderNameCheck(decision: NameDecision, scanned?: NameFacts['scanned']): string[];
+/**
+ * Имена того же вида, ДЕЛЯЩИЕ СЛОВО с запрошенным.
+ *
+ * ЗАЧЕМ ЭТО ЗДЕСЬ. `name-check` отвечает на вопрос «занято ли ИМЯ», и отвечает верно. Но у
+ * него есть соседний вопрос, которого он не задаёт: «а нет ли уже ПРИБОРА для этой работы».
+ * ИЗМЕРЕНО 2026-09-19: `dz name-check --module ledger-cost-fill` честно ответил FREE, и по
+ * этому ответу был построен модуль, дублирующий существующий `ledger-backfill` — подключённый
+ * к CLI, с тем же измерением в шапке, заполняющий 47 строк против 31 у дубля и вдобавок
+ * намеренно НЕ делающий того, что дубль сделал (вывод минут и агентов, тихо переопределивший
+ * две колонки).
+ *
+ * Поэтому здесь НЕ вердикт и НЕ отказ — свободное имя остаётся свободным. Это СВЕДЕНИЯ в точке
+ * решения: список соседей по корню слова, которые оператор увидит ровно тогда, когда ещё не
+ * написал ни строки. Разница между «занято» и «рядом есть похожее» сохранена намеренно:
+ * превратить второе в отказ значило бы запретить `publish-order` рядом с `publish-signing`.
+ *
+ * Слова короче четырёх букв игнорируются: `fa`, `dz`, `to`, `run` роднят почти всё со всем.
+ */
+export declare function nearNames(query: NameQuery, facts: NameFacts, limit?: number): string[];
+export declare function renderNameCheck(decision: NameDecision, scanned?: NameFacts['scanned'], facts?: NameFacts): string[];
 /**
  * Exported identifiers declared in one TypeScript source file.
  *

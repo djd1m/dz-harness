@@ -1675,6 +1675,10 @@ export function codexDispatchMode(stage: string): CodexDispatch {
  * SCOPE — `codexReviewCommand` (the diff defines it) and `scopedQePrompt` ("read ONLY these files").
  * This constant is retained as a sanity bound on an absurd payload, and is no longer claimed as the
  * thing that prevents a stall.
+ *
+ * THIS IS THE ONLY DEFINITION. `workflow-run-dispatch.ts` re-exports it rather than declaring its
+ * own twin (it used to, and nothing compared the two). The direction is forced: this module is
+ * lifted verbatim into the workflow sandbox by `scripts/gen-loop-blobs.mjs`, so it may not import.
  */
 export const CODEX_EXEC_PROMPT_CEILING_CHARS = 24_000;
 

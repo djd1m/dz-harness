@@ -116,6 +116,7 @@ export * from './trace-bundle.js';
 export { BLOBS as LOOP_BLOBS, LOOP_BLOB_NAMES, BLOB_COVERAGE_MANIFEST } from './loop-blobs.generated.js';
 export type { LoopBlob } from './loop-blobs.generated.js';
 export * from './sign.js';
+export * from './publish-source-scope.js';
 export * from './swarm-brief.js';
 export * from './skill-schema.js';
 export { createSkill } from './create-skill.js';
@@ -144,7 +145,7 @@ export { tokenize, stemToken, stems } from './stem.js';
 export * from './package-skill-layouts.js';
 export { recommend } from './recommend.js';
 export { pretrain } from './pretrain.js';
-export { loadPatterns, loadSessions, computePatternBoost, readLearningConfig, readMemoryLearningConfig, BOOST_CAP, recordPattern, recordLessonForms, loadStorePatternsSync, loadStoreRecords, findExactLesson, patternToRecord, recordToPattern, patternRecordId, patternIdentityOf, dreamRecordId, isMirrorableLearning, consolidateSessions, recallPatterns, pruneNoisePatterns, removePatternsByIds, snapshotStore, readReinforcementState, encodeReinforcementState, reinforcePattern, updateReinforcementState, storeStats, lessonDeltaReport, lessonDeltaMap, readQuarantineState, encodeQuarantineState, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns } from './patterns.js';
+export { loadPatterns, loadSessions, computePatternBoost, readLearningConfig, readMemoryLearningConfig, BOOST_CAP, recordPattern, recordLessonForms, loadStorePatternsSync, loadStoreRecords, findExactLesson, patternToRecord, recordToPattern, patternRecordId, patternIdentityOf, dreamRecordId, isMirrorableLearning, consolidateSessions, recallPatterns, pruneNoisePatterns, removePatternsByIds, snapshotStore, readReinforcementState, encodeReinforcementState, reinforcePattern, resolveReinforceTarget, updateReinforcementState, storeStats, lessonDeltaReport, lessonDeltaMap, readQuarantineState, encodeQuarantineState, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns } from './patterns.js';
 export { normalizeLessonForms, validateClassTemplate, lessonPairIdOf, mergeLessonFormHits, mergeLessonMatchedForms } from './lesson-generalization.js';
 export { withStoreLock, withStoreLockSync, storeLockPath, StoreLockTimeoutError, StoreLockCompromisedError, STALE_LOCK_MS, LOCK_TIMEOUT_MS } from './store-lock.js';
 export type { StoreLockOptions } from './store-lock.js';
@@ -304,6 +305,13 @@ export type {
   StoreMarkWriteOptions,
   StoreResetReceipt,
 } from './store-guard.js';
+export { planStoreGuardPrune } from './store-guard-prune.js';
+export type {
+  StoreGuardPruneBucket,
+  StoreGuardPruneEntry,
+  StoreGuardPrunePlan,
+  StoreGuardPruneDeps,
+} from './store-guard-prune.js';
 export { statuslineData, readFeatureAdrState, writeFeatureAdrState, featureAdrStateDir, featureAdrStatePath, writeFeatureAdrStateDetailed, renderFeatureAdrPhaseLine } from './statusline.js';
 export type { StatuslineData, StatuslineStoreHealth, FeatureAdrState, WriteFeatureAdrStateInput, WriteFeatureAdrStateResult } from './statusline.js';
 export {
@@ -501,6 +509,7 @@ export {
 } from './amendment-trace.js';
 export {
   RECORD_MAX_LINE_CHARS,
+  INCOMPLETE_REASON_CODES,
   decideRecordWrite,
   decideReadBack,
   recordVerdictLine,
@@ -528,7 +537,7 @@ export type {
 } from './feature-adr-envelope.js';
 export { decidePublishSigning, decidePostSigningVerification, decideSignableSet, publishSigningLine, signableSetLine } from './publish-signing.js';
 export type { PublishSigningVerdict, PublishSigningDecision, SignableSetDecision } from './publish-signing.js';
-export type { RecordKind, RecordVerdict, RecordDecision, LedgerEnrichInput, LedgerPriceEntry, ParsedModelSpec, TaskIdLookup } from './run-records.js';
+export type { RecordKind, RecordVerdict, RecordDecision, LedgerEnrichInput, LedgerPriceEntry, ParsedModelSpec, TaskIdLookup, IncompleteReasonCode } from './run-records.js';
 export type { AmendmentAmbiguity, AmendmentRow, AmendmentVerdict, AmendmentResolution, AmendmentOutcome, AmendmentDecision, PlanCoverageGap } from './amendment-trace.js';
 // contract-checklist (ADR-001): pure extraction, canonical rendering, typed report parsing, and
 // exact per-item verification. Filesystem discovery/containment stays in harness-cli.
@@ -755,7 +764,7 @@ export type {
   ChainDefectAges,
   ChainedJournal,
 } from './event-chain.js';
-export { decideProvenance, environmentCanMintProvenance, publishArgv, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, rewriteWorkspaceSpecs, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion, planReadmeVersionSync } from './publish.js';
+export { decideProvenance, environmentCanMintProvenance, publishArgv, matchesPublishFilter, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, rewriteWorkspaceSpecs, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion, planReadmeVersionSync } from './publish.js';
 export type { ReadmeVersionSyncPlan, ReadmeSyncRewrite } from './publish.js';
 export { RELEASE_LINE_RE, findReleaseLine, rewriteReleaseLine } from './release-line.js';
 export * from './course-staleness.js';
@@ -1147,6 +1156,11 @@ export * from './compounding.js';
 
 // Advisory command-invocation telemetry + deadwood report (feature dz-deadwood).
 export * from './cmd-usage.js';
+
+// Deterministic, blocked arm assignment for a prospective ablation (feature ablation-c-start,
+// ADR-001): pure — no fs, no clock, reuses `mulberry32` (the repo's only PRNG).
+export { assignArm, readAssignments, verifyAssignmentRecord } from './experiment-assign.js';
+export type { AssignArmInput, AssignArmResult, AssignmentRecord, ReadAssignmentsResult, VerifyAssignmentResult } from './experiment-assign.js';
 
 // Cold-vs-warm EPOCH RUNNER (feature epoch-replay, scout idea #4) — the RESULT leg to compounding's
 // readiness leg. Orchestrates + scores; never calls a model. SUPPORTED requires two DISJOINT Wilson

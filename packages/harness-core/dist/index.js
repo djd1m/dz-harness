@@ -51,6 +51,7 @@ export * from './trace-corroborate.js';
 export * from './trace-bundle.js';
 export { BLOBS as LOOP_BLOBS, LOOP_BLOB_NAMES, BLOB_COVERAGE_MANIFEST } from './loop-blobs.generated.js';
 export * from './sign.js';
+export * from './publish-source-scope.js';
 export * from './swarm-brief.js';
 export * from './skill-schema.js';
 export { createSkill } from './create-skill.js';
@@ -73,7 +74,7 @@ export { tokenize, stemToken, stems } from './stem.js';
 export * from './package-skill-layouts.js';
 export { recommend } from './recommend.js';
 export { pretrain } from './pretrain.js';
-export { loadPatterns, loadSessions, computePatternBoost, readLearningConfig, readMemoryLearningConfig, BOOST_CAP, recordPattern, recordLessonForms, loadStorePatternsSync, loadStoreRecords, findExactLesson, patternToRecord, recordToPattern, patternRecordId, patternIdentityOf, dreamRecordId, isMirrorableLearning, consolidateSessions, recallPatterns, pruneNoisePatterns, removePatternsByIds, snapshotStore, readReinforcementState, encodeReinforcementState, reinforcePattern, updateReinforcementState, storeStats, lessonDeltaReport, lessonDeltaMap, readQuarantineState, encodeQuarantineState, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns } from './patterns.js';
+export { loadPatterns, loadSessions, computePatternBoost, readLearningConfig, readMemoryLearningConfig, BOOST_CAP, recordPattern, recordLessonForms, loadStorePatternsSync, loadStoreRecords, findExactLesson, patternToRecord, recordToPattern, patternRecordId, patternIdentityOf, dreamRecordId, isMirrorableLearning, consolidateSessions, recallPatterns, pruneNoisePatterns, removePatternsByIds, snapshotStore, readReinforcementState, encodeReinforcementState, reinforcePattern, resolveReinforceTarget, updateReinforcementState, storeStats, lessonDeltaReport, lessonDeltaMap, readQuarantineState, encodeQuarantineState, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns } from './patterns.js';
 export { normalizeLessonForms, validateClassTemplate, lessonPairIdOf, mergeLessonFormHits, mergeLessonMatchedForms } from './lesson-generalization.js';
 export { withStoreLock, withStoreLockSync, storeLockPath, StoreLockTimeoutError, StoreLockCompromisedError, STALE_LOCK_MS, LOCK_TIMEOUT_MS } from './store-lock.js';
 export { withNamedLockSync, namedLockPath, isSafeLockName, NamedLockNameError, NamedLockTimeoutError, NamedLockCompromisedError } from './named-lock.js';
@@ -93,6 +94,7 @@ export { APPLY_LEG_VERSION, applyLegVersionOf, bakedCoreDistDirOf, recallHookSou
 export { EMBED_SOCKET_PATH_BYTES_LIMIT, resolveEmbedSocketPath, embedSocketPointerPath, readEmbedSocketPointer, resolveEffectiveEmbedSocketPath, } from './embed-socket-path.js';
 export { countLearningStoreRowsReadonly, quarantineTierParity } from './store-counts.js';
 export { STORE_GUARD_VERSION, STORE_COLLAPSE_MAX_FRACTION, STORE_COLLAPSE_LAST_ROWS, storeGuardPath, storeSnapshotPath, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, } from './store-guard.js';
+export { planStoreGuardPrune } from './store-guard-prune.js';
 export { statuslineData, readFeatureAdrState, writeFeatureAdrState, featureAdrStateDir, featureAdrStatePath, writeFeatureAdrStateDetailed, renderFeatureAdrPhaseLine } from './statusline.js';
 export { ETA_MAX_STAGE_MS, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, } from './eta.js';
 export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, resolveStoreEmbedDtype, resetAgentdbEmbedderCache, getAgentdbEmbedderCacheStats, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema, readStoreGeneration, bumpStoreGeneration, resolveTransformersModule } from './agentdb-index.js';
@@ -121,7 +123,7 @@ redactProfileBlock, TP_PROFILE_MARKER_START, TP_PROFILE_MARKER_END, TP_PROFILE_R
 codeCheckpointPersistAllowed, codeStageResultShapeValid, } from './feature-adr-checkpoints.js';
 // amendment-traceability (ADR-001/002/003): the deterministic half of the Step-8 amendment gate.
 export { MIN_MATCHABLE_ID_LENGTH, AMENDMENT_VACUITY_NOTE, normalizeTestId, amendmentSection, planSaysNoAmendments, parseAmendments, resolveAmendments, decideAmendmentOutcome, amendmentVerdictLine, amendmentsMissingFromPlan, amendmentSubject, extractTestTitles, amendmentIdsIn, amendmentSectionCount, amendmentDeclarationAmbiguity, mentionsAmendmentId, } from './amendment-trace.js';
-export { RECORD_MAX_LINE_CHARS, decideRecordWrite, decideReadBack, recordVerdictLine, parseModelSpec, applyTaskId, } from './run-records.js';
+export { RECORD_MAX_LINE_CHARS, INCOMPLETE_REASON_CODES, decideRecordWrite, decideReadBack, recordVerdictLine, parseModelSpec, applyTaskId, } from './run-records.js';
 export { ENVELOPE_SCHEMA, TASK_KINDS, PRIORITIES as ENVELOPE_PRIORITIES, TIERS as ENVELOPE_TIERS, buildExperimentEnvelope, validateExperimentEnvelope, } from './feature-adr-envelope.js';
 export { decidePublishSigning, decidePostSigningVerification, decideSignableSet, publishSigningLine, signableSetLine } from './publish-signing.js';
 // contract-checklist (ADR-001): pure extraction, canonical rendering, typed report parsing, and
@@ -140,7 +142,7 @@ export { DZ_VETO_MARKER, DZ_VETO_WARN_MARKER, RUNTIME_BLOCK_PHRASE, classifyTrus
 export { SHELL_VETO_RULE_ID, resolveVetoMode, vetoShellCommand } from './shell-veto-policy.js';
 export { generateCodexHelpers, generateCodexRecallHelper, generateCodexVetoHelper } from './codex-hooks-assets.js';
 export { EVENT_CHAIN_SCOPE, EVENT_CHAIN_GENESIS_HASH, EVENT_CHAIN_TAIL_BYTES, EVENT_CHAIN_FIELD_OVERHEAD_BYTES, EVENT_CHAIN_LEDGER_KIND, EVENT_CHAIN_DEFECT_KINDS, fnv1a32, chainHashOf, chainLinesOf, lastChainLine, readTailInfo, appendChainedLines, EMPTY_LOG_TAIL, nextChainFields, withChainFields, chainRecordLines, chainRewrite, defaultEventWeight, eventWeightOfText, verifyEventChain, verifyEventChainText, renderEventChainVerification, rewriteSnapshot, rewriteSnapshotUnchanged, guardedRewrite, DEFAULT_REWRITE_ATTEMPTS, liveSegmentStart, classifyChainDefects, CHAINED_JOURNALS, } from './event-chain.js';
-export { decideProvenance, environmentCanMintProvenance, publishArgv, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, rewriteWorkspaceSpecs, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion, planReadmeVersionSync } from './publish.js';
+export { decideProvenance, environmentCanMintProvenance, publishArgv, matchesPublishFilter, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, rewriteWorkspaceSpecs, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion, planReadmeVersionSync } from './publish.js';
 export { RELEASE_LINE_RE, findReleaseLine, rewriteReleaseLine } from './release-line.js';
 export * from './course-staleness.js';
 export { fetchAllDownloads } from './downloads.js';
@@ -222,6 +224,9 @@ export * from './skills-verify.js';
 export * from './compounding.js';
 // Advisory command-invocation telemetry + deadwood report (feature dz-deadwood).
 export * from './cmd-usage.js';
+// Deterministic, blocked arm assignment for a prospective ablation (feature ablation-c-start,
+// ADR-001): pure — no fs, no clock, reuses `mulberry32` (the repo's only PRNG).
+export { assignArm, readAssignments, verifyAssignmentRecord } from './experiment-assign.js';
 // Cold-vs-warm EPOCH RUNNER (feature epoch-replay, scout idea #4) — the RESULT leg to compounding's
 // readiness leg. Orchestrates + scores; never calls a model. SUPPORTED requires two DISJOINT Wilson
 // intervals; INCONCLUSIVE is a first-class honest outcome.

@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4c411eb5395084f793b4fd9e3ae52a699477a3947f5dc8dc3a036ad5bb64eb66"
+          "content": "61a8cc1042fdc5853d3b8dd3ba90b55e396ef6c4f4aeafcc344eac38361caaf2"
         }
       ]
     },
@@ -115,7 +115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bce1fcc4c709fbc69dda9040968adbcf88f2a6c8dee7ac04f33164a2794eb11c"
+          "content": "e3904f7b56e9909257a2430cf48731edaaf6b9250d56ecc7095ed5d92b7234d5"
         }
       ]
     },
@@ -125,7 +125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f229b6bfe546aede11cfe81addc675b47913f49452a0b3b708a00f1aef254de"
+          "content": "d6389c5834b838b51fadb635989266be80327fabc32d8caa6bc4057bcea20e23"
         }
       ]
     },
@@ -135,7 +135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9f20faa5c8439bf6ce21037aa973083ecaaa290e1e60268e5f16714956e9be56"
+          "content": "6b6e49231cfe92d8cd48b485c55d0838770fe79e95e3d249b9bb5b5925d67690"
         }
       ]
     },
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "889f8fe8075e5e1b4dea3bfd5965194e992c826e97267837bc866f91ac33c123"
+          "content": "18ccd44c41415980a4f30dae1d701ab53f450c7367148e268f1140cb51c56d19"
         }
       ]
     },
@@ -325,7 +325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3d012b93fa1b3638b23a9db046a009b7ef2d07a5aa08085c19ca8074ff1807a0"
+          "content": "c975f133face4139f6492eb324d87323181534a646ddfd5f0d04050362e5bcf6"
         }
       ]
     },
@@ -335,7 +335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ae68882f87dc3ada48406413e7b837c7ccc2d26fde3934be3b724941e809f0a7"
+          "content": "ce59dca05a514b5879ccc2cb44f2ed70ff2f6c91509143d874747f9e0c4b5efd"
         }
       ]
     },
@@ -345,7 +345,47 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9058aaabcf2c0383e576c88c81911f93927f1e5ea04db9245c0fffc5ba93fe08"
+          "content": "8fe7fab23f6d8259fee2017cbb739f1d09927672e235f15921b3977acf14ba11"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/sibling-drift-fetch.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "29075a588c79b37198c939d1b2b496fc8fcb596e1a32cb9c392316c9817757d4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/sibling-drift-fetch.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "14d7a7bad7c45183b7e4f06ce962e2fb16589b66a79b9a0dc59495f4359f8695"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/sibling-drift-fetch.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d118dc8b2db0e3d2be9f62d0b5c576aa61bd1d4f59e71d9f354472c103f6d90d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/sibling-drift-fetch.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "be85783c6a13cde5a6e3819f8c796395c13a2aff3cf6a3129bbb187403f04eee"
         }
       ]
     },
@@ -409,7 +449,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0dc8ba3d3f64a9ec155ee5d62917e6d7826d7f558e97874bb03f0c33d3f1d59c"
+          "content": "53c0bb051f4b4e0ff2c496cb9d033356bfbcbcc091811c3c0ecd8e542103675b"
         }
       ]
     },
@@ -459,7 +499,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1d5a5a18894b1a658ca0249536bdc5b6e7e2be349c02dbfdcbdbbf4f6ece70d7"
+          "content": "7284543d4061c7adb50ffde58a69940c1b408b7235be5fe41a5ad9d1bc520334"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/sibling-drift-fetch.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5a1ea48502c78d3f140eea8f14a41b28619791741b3ca2688bd1fc3055139d98"
         }
       ]
     }

@@ -1488,6 +1488,65 @@ export function summarizeMutationResults(results: readonly MutationEntryResult[]
   };
 }
 
+// ── Durable verdicts (instrument-round-b T3/FR-3/A3/A4, ADR-001 D3) ────────────────────────────
+//
+// The registry (`test/mutation-registry.json`) is the gate's INPUT — what to mutate. A verdict is
+// its OUTPUT — what happened the last time the gate ran. Mixing them means the input would change
+// on every run and every reader of the registry (mutation-registry-freshness included) would have
+// to start tolerating a moving file; A4 keeps them apart on purpose. `dz mutation-gate` (the CLI
+// executor) appends one JSON line per classified entry to a SEPARATE durable file
+// (`.dz/mutation-gate/verdicts.jsonl`) so a verdict survives the executor's own scratch-dir
+// teardown and the host's next reboot — today it lives only in `DZ_MUTGATE_OUTPUT_DIR`, a temp
+// directory (00_complexity_assessment.md: 0 of 377 registry entries carry a persisted verdict).
+
+/** Everything the CLI knows that this pure module does not: when, in which package, and under
+ *  which run. `runId` is honest-absent (`null`) when the caller has none to offer — never guessed. */
+export interface MutationVerdictMeta {
+  readonly ts: string;
+  readonly package: string;
+  readonly runId: string | null;
+}
+
+/** One durable line — append-only, one per classified registry entry. `observed` is the
+ *  registry's OWN anchor (copied, never recomputed) so a reader can see the historical coverage
+ *  claim next to the fresh verdict without re-opening the registry. */
+export interface MutationVerdictRow {
+  readonly ts: string;
+  readonly package: string;
+  readonly entryId: string;
+  readonly verdict: MutationVerdict;
+  readonly failingCount: number | null;
+  readonly observed: number | null;
+  readonly drop: boolean;
+  readonly dropComparable: boolean;
+  readonly runId: string | null;
+}
+
+/**
+ * Pure: payload in, row out — no filesystem (NFR-2; the CLI owns the append). `entry` is `null`
+ * for a result that never resolved to a valid registry entry (`ENTRY_INVALID` / `COVERAGE_GAP` —
+ * `parseMutationRegistry` excludes those from `registry.entries` by construction, so the CALLER
+ * cannot always hand one in) — `observed` then stays `null`, honestly, rather than the caller
+ * inventing a fallback entry object just to satisfy this signature.
+ */
+export function mutationVerdictRow(
+  entry: MutationRegistryEntry | null,
+  result: MutationEntryResult,
+  meta: MutationVerdictMeta,
+): MutationVerdictRow {
+  return {
+    ts: meta.ts,
+    package: meta.package,
+    entryId: result.id,
+    verdict: result.verdict,
+    failingCount: result.failingCount,
+    observed: entry !== null && typeof entry.observed === 'number' ? entry.observed : null,
+    drop: result.drop,
+    dropComparable: result.dropComparable,
+    runId: meta.runId,
+  };
+}
+
 const VERDICT_MARK: Record<MutationVerdict, string> = {
   PROVEN: '✓',
   ENTRY_INVALID: '✗',

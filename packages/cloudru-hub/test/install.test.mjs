@@ -1,5 +1,5 @@
 // Installer tests — ADR-005 tiering + ADR-004 brake emission with EXECUTED veto.
-import { test } from 'node:test';
+import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -10,7 +10,16 @@ const require = createRequire(import.meta.url);
 const { install, mergeSettings, claudeSettingsFragment, probeBrake, HOOK_TEMPLATE, TIERS } = require('../src/install.js');
 const { permissionRules } = require('../src/classification.js');
 
-const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'cloudru-hub-test-'));
+// Every scratch dir is removed at the end (after() + process exit) unless DZ_KEEP_TMP=1 —
+// MEASURED 2026-09-20: 42 cloudru-hub-test-* dirs per full sweep (backlog 7cb6f9b7).
+const created = [];
+const removeCreated = () => {
+  if (process.env.DZ_KEEP_TMP === '1') return;
+  for (const d of created.splice(0)) fs.rmSync(d, { recursive: true, force: true });
+};
+after(removeCreated);
+process.on('exit', removeCreated);
+const tmp = () => { const d = fs.mkdtempSync(path.join(os.tmpdir(), 'cloudru-hub-test-')); created.push(d); return d; };
 
 test('claude-code install emits .mcp.json + permission brake + hook, and the veto is EXECUTED', () => {
   const dir = tmp();

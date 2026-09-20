@@ -118,6 +118,8 @@ export interface StubFinding {
   readonly detail: string;
 }
 
+import { maskMarkdown } from './markdown-masker.js';
+
 /** A config waiver: path-keyed, reason MANDATORY. A reasonless entry is refused, never honoured. */
 export interface StubWaiver {
   readonly path?: string;
@@ -141,18 +143,25 @@ function maskInlineCode(line: string): string {
  * clean, while a naked stub line in doc prose still fires. Code files are scanned in full: a marker
  * a code file must legitimately carry (another gate's source, a fixture) takes an inline
  * `no-stubs: <reason>` waiver — visible, reasoned, greppable.
+ *
+ * Block scoping is DELEGATED to the canonical masker, not re-implemented here. The hand-rolled
+ * `inFence = !inFence` toggle it replaces broke two CommonMark rules and produced MEASURED false
+ * positives (2026-09-20): a fence closes only on its OWN marker, so a `~~~` line inside a backtick
+ * block is content — the toggle read it as a close and scanned the rest of the code block as prose;
+ * and a closing fence may carry NO info string, so a second info-string line closed the block.
+ * `unclosed: 'hide'` preserves THIS reader's existing policy — an unclosed opener hides the tail
+ * rather than restoring it, because a gate must not invent findings out of a half-written block.
+ * Four-space indented code stays unmasked (the masker default): unchanged from the toggle era, a
+ * known limit rather than a new one.
  */
 export function scanStubs(path: string, text: unknown): StubFinding[] {
   if (typeof text !== 'string' || text.length === 0) return [];
   const md = isMarkdown(path);
   const out: StubFinding[] = [];
-  let inFence = false;
   const lines = text.split('\n');
+  const scanLines = md ? String(maskMarkdown(text, { unclosed: 'hide' })).split('\n') : lines;
   for (let i = 0; i < lines.length; i++) {
-    const raw = lines[i]!;
-    if (md && /^\s*(```|~~~)/.test(raw)) { inFence = !inFence; continue; }
-    if (md && inFence) continue;
-    const line = md ? maskInlineCode(raw) : raw;
+    const line = md ? maskInlineCode(scanLines[i] ?? '') : lines[i]!;
 
     // Inline waiver first: with a reason ⇒ the line is exempt; without one ⇒ refuse loudly AND
     // leave the marker finding in place (a refused waiver must not half-work).

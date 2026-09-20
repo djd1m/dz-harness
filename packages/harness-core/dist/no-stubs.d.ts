@@ -37,6 +37,16 @@ export interface StubWaiver {
  * clean, while a naked stub line in doc prose still fires. Code files are scanned in full: a marker
  * a code file must legitimately carry (another gate's source, a fixture) takes an inline
  * `no-stubs: <reason>` waiver — visible, reasoned, greppable.
+ *
+ * Block scoping is DELEGATED to the canonical masker, not re-implemented here. The hand-rolled
+ * `inFence = !inFence` toggle it replaces broke two CommonMark rules and produced MEASURED false
+ * positives (2026-09-20): a fence closes only on its OWN marker, so a `~~~` line inside a backtick
+ * block is content — the toggle read it as a close and scanned the rest of the code block as prose;
+ * and a closing fence may carry NO info string, so a second info-string line closed the block.
+ * `unclosed: 'hide'` preserves THIS reader's existing policy — an unclosed opener hides the tail
+ * rather than restoring it, because a gate must not invent findings out of a half-written block.
+ * Four-space indented code stays unmasked (the masker default): unchanged from the toggle era, a
+ * known limit rather than a new one.
  */
 export declare function scanStubs(path: string, text: unknown): StubFinding[];
 /**
