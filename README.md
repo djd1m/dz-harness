@@ -32,7 +32,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/harness-presets` | 0.5.19 |
 | `@dzhechkov/health-advisor` | 1.10.7 |
 | `@dzhechkov/keysarium` | 1.7.7 |
-| `@dzhechkov/keysarium-core` | 1.1.30 |
+| `@dzhechkov/keysarium-core` | 1.1.31 |
 | `@dzhechkov/loop-designer-plugin` | 0.1.6 |
 | `@dzhechkov/mcp-server-tools` | 0.2.11 |
 | `@dzhechkov/memory` | 0.2.23 |

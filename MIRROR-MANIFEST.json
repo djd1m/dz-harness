@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-09-20T20:26:36.942Z",
+  "builtAt": "2026-09-20T20:30:11.415Z",
   "builtFrom": "dz-harness-hub (private monorepo)",
   "rule": "each package mirrors exactly its npm-pack tarball inventory — the already-public surface",
   "requested": 56,
@@ -218,7 +218,7 @@
     },
     {
       "name": "@dzhechkov/keysarium-core",
-      "version": "1.1.30",
+      "version": "1.1.31",
       "files": 24
     },
     {
