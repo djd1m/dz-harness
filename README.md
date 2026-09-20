@@ -46,7 +46,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/skills-book-ddia` | 0.1.6 |
 | `@dzhechkov/skills-book-digitizer` | 0.2.20 |
 | `@dzhechkov/skills-book-fundamental-software-architecture` | 0.1.4 |
-| `@dzhechkov/skills-bto` | 1.4.6 |
+| `@dzhechkov/skills-bto` | 1.4.7 |
 | `@dzhechkov/skills-decision-mockups` | 0.1.8 |
 | `@dzhechkov/skills-demo-publisher` | 0.1.2 |
 | `@dzhechkov/skills-devops` | 0.3.18 |
