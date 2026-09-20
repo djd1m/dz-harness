@@ -55,7 +55,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/skills-feature-adr` | 1.5.13 |
 | `@dzhechkov/skills-idea2prd` | 0.1.16 |
 | `@dzhechkov/skills-mcp` | 0.3.11 |
-| `@dzhechkov/skills-meta` | 0.9.58 |
+| `@dzhechkov/skills-meta` | 0.9.59 |
 | `@dzhechkov/skills-news` | 0.1.17 |
 | `@dzhechkov/skills-package-story-page` | 0.2.5 |
 | `@dzhechkov/skills-pm` | 0.1.6 |
