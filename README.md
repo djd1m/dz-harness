@@ -30,7 +30,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/harness-cli` | 0.8.30 |
 | `@dzhechkov/harness-core` | 0.8.39 |
 | `@dzhechkov/harness-presets` | 0.5.19 |
-| `@dzhechkov/health-advisor` | 1.10.6 |
+| `@dzhechkov/health-advisor` | 1.10.7 |
 | `@dzhechkov/keysarium` | 1.7.7 |
 | `@dzhechkov/keysarium-core` | 1.1.30 |
 | `@dzhechkov/loop-designer-plugin` | 0.1.6 |
