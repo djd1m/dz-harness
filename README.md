@@ -27,7 +27,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/core` | 0.2.23 |
 | `@dzhechkov/design-thinking` | 1.0.15 |
 | `@dzhechkov/evidence-wiki` | 0.2.7 |
-| `@dzhechkov/harness-cli` | 0.8.31 |
+| `@dzhechkov/harness-cli` | 0.8.32 |
 | `@dzhechkov/harness-core` | 0.8.39 |
 | `@dzhechkov/harness-presets` | 0.5.19 |
 | `@dzhechkov/health-advisor` | 1.10.7 |
