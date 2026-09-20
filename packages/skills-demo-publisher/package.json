@@ -72,6 +72,7 @@
     "test/unit/publish-receipt.test.mjs",
     "test/unit/confidentiality-gate.test.mjs",
     "test/unit/identifier-gate.test.mjs",
+    "test/unit/no-litter.test.mjs",
     "test/toolchain/preconditions.test.mjs",
     "test/toolchain/cursor-overlay.test.mjs",
     "test/toolchain/build-montage.test.mjs",

@@ -470,6 +470,7 @@ function validateSkills(skillsRoot) {
     const content = fs.readFileSync(file, 'utf-8');
     const size = Buffer.byteLength(content, 'utf-8');
     const issues = [];
+    const notes = [];
 
     // Check size
     if (size < 2000) {
@@ -479,15 +480,19 @@ function validateSkills(skillsRoot) {
       issues.push(`SKILL.md too large (${size} bytes, max 50KB)`);
     }
 
-    // Check required sections (English or Russian)
+    // Section headings are INFORMATIONAL, not a defect (owner decision 2026-09-20, backlog 2ee8a6d6):
+    // the check reads LITERAL headings, while two shipped skills (third-brain, intake-archive) carry
+    // the same meanings under more precise names («What it deliberately does NOT do», «Not installed
+    // standalone»). A missing literal heading is therefore a NOTE the reader can judge, never a WARN —
+    // renaming precise sections to satisfy a regexp would trade expressiveness for the gate's comfort.
     if (!/^## (Overview|Обзор)/m.test(content)) {
-      issues.push('Missing ## Overview / ## Обзор');
+      notes.push('no literal ## Overview / ## Обзор heading — the meaning may live under a more precise name');
     }
     if (!/^## (Anti-Patterns|Анти-паттерны|Антипаттерны)/m.test(content)) {
-      issues.push('Missing ## Anti-Patterns / ## Анти-паттерны');
+      notes.push('no literal ## Anti-Patterns / ## Анти-паттерны heading — the meaning may live under a more precise name');
     }
     if (!/^## (Dependencies|Зависимости)/m.test(content)) {
-      issues.push('Missing ## Dependencies / ## Зависимости');
+      notes.push('no literal ## Dependencies / ## Зависимости heading — the meaning may live under a more precise name');
     }
 
     // Check balanced code blocks
@@ -518,9 +523,9 @@ function validateSkills(skillsRoot) {
     }
 
     if (issues.length === 0) {
-      results.pass.push({ name: target.name, size, master: target.master });
+      results.pass.push({ name: target.name, size, master: target.master, notes });
     } else {
-      results.warn.push({ name: target.name, size, issues, master: target.master });
+      results.warn.push({ name: target.name, size, issues, notes, master: target.master });
     }
   }
 

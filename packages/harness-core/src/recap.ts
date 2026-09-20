@@ -351,16 +351,20 @@ export function buildRecap(facts: RecapFacts): RecapReport {
     const covered = coveredWindow(v, facts.window);
     const items = (facts.deliveries?.items ?? []).map(normaliseDelivery).filter((d) => withinWindow(covered, d.createdIso));
     const graded = items.filter((d): d is Extract<Delivery, { gradeStatus: 'unique' }> => d.gradeStatus === 'unique');
-    // fix-round-1: 'invalid' (a malformed QE-VERDICT attempt) is folded into the same printed bucket
-    // as 'ambiguous' — both are "no single grade can be trusted", just a different reason.
-    const ambiguous = items.filter((d) => d.gradeStatus === 'ambiguous' || d.gradeStatus === 'invalid');
+    // recap-invalid-bucket (backlog 3bd73eec): the two were printed as ONE number, so a reader could
+    // not tell "the report states two grades" from "the report's verdict line is malformed" — and the
+    // second is a FIXABLE authoring defect in our own artifact, while the first is a real
+    // disagreement between reviews. `dz score --slug` already separated them; recap now does too.
+    const ambiguous = items.filter((d) => d.gradeStatus === 'ambiguous');
+    const invalid = items.filter((d) => d.gradeStatus === 'invalid');
     const ungraded = items.filter((d) => d.gradeStatus === 'none' || d.gradeStatus === 'no-report');
     const lines = sectionLines(v, facts.window, (scope) => items.length === 0
       ? emptyOrUnavailable(v, `no feature directories were created in ${scope}`)
       : [
           `${items.length} feature director${items.length === 1 ? 'y' : 'ies'} created in ${scope}`,
           `${graded.length} carry a grade an independent review stated unambiguously${graded.length > 0 ? `: ${tally(graded.map((d) => d.grade))}` : ''}`,
-          `${ambiguous.length} have a report that states MORE THAN ONE grade or a malformed QE-VERDICT line — reported as ambiguous, never guessed`,
+          `${ambiguous.length} have a report that states MORE THAN ONE grade — reported as ambiguous, never guessed`,
+          `${invalid.length} have a findings table but a MALFORMED or missing QE-VERDICT line — the report cannot be read, which is a formatting problem rather than two reviews disagreeing`,
           `${ungraded.length} have no letter grade in their report, or no report at all`,
           'cadence is not value: this counts deliveries, not what they were worth',
         ]);

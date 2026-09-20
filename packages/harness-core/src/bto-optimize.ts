@@ -20,6 +20,8 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 
+import { maskMarkdown } from './markdown-masker.js';
+
 export type BtoDimension = 'METHODOLOGY' | 'DEPTH' | 'CORRECTNESS' | 'USABILITY' | 'ROBUSTNESS';
 export const BTO_DIMENSIONS: readonly BtoDimension[] = Object.freeze(['METHODOLOGY', 'DEPTH', 'CORRECTNESS', 'USABILITY', 'ROBUSTNESS']);
 export type DimScores = Record<BtoDimension, number>;
@@ -203,22 +205,22 @@ const bodyAfterFrontmatter = (t: string): string => {
 
 /**
  * ALL structural markers on the BODY, not just space-delimited ATX (QE: `##\tNEW`, bare `##`, and setext
- * `Title\n===` / `Title\n---` evaded the old regex). Fenced code blocks (``` / ~~~) are SKIPPED so a `===`/`---`
- * line INSIDE code is not misread as a heading (QE false-positive). Collect ATX (`#`..`######` + any/no ws)
- * AND setext underlines (a non-empty line immediately followed by `=+`/`-+`).
+ * `Title\n===` / `Title\n---` evaded the old regex). The canonical masker skips fenced code blocks before
+ * collecting ATX (`#`..`######` + any/no ws) and setext underlines (a non-empty line immediately followed
+ * by `=+`/`-+`). Its `unclosed: 'restore'` policy is load-bearing: measured over 7,121 headed Markdown
+ * documents, the old parity toggle missed a deletion in 39 documents, masking with `hide` missed 22, and
+ * masking with `restore` missed 0.
  */
 const headings = (t: string): string[] => {
-  const lines = bodyAfterFrontmatter(t).split('\n');
+  const body = bodyAfterFrontmatter(t);
+  const lines = maskMarkdown(body, { unclosed: 'restore' }).split('\n');
   const out: string[] = [];
-  let inFence = false;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
-    if (/^\s*(```|~~~)/.test(line)) { inFence = !inFence; continue; }
-    if (inFence) continue;
     const atx = /^(#{1,6})(?:\s.*)?$/.exec(line.replace(/\s+$/, ''));
     if (atx) { out.push('ATX:' + line.trim()); continue; }
     const next = lines[i + 1];
-    if (line.trim() !== '' && !/^\s*(```|~~~)/.test(next ?? '') && next !== undefined && /^(=+|-+)\s*$/.test(next)) {
+    if (line.trim() !== '' && next !== undefined && /^(=+|-+)\s*$/.test(next)) {
       out.push('SETEXT:' + line.trim() + '|' + next.trim());
     }
   }

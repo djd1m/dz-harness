@@ -755,10 +755,52 @@ export async function reinforcePattern(projectRoot: string, dzIdOrText: string, 
   return result;
 }
 
+/**
+ * Which learned pattern does `--reinforce <arg>` mean? PURE, so the branch that REFUSES has a test.
+ *
+ * Order: the full id, then the exact text, then a BARE id suffix.
+ *
+ * The suffix step exists because an id is PRINTED as `<namespace>:<suffix>` — `teach:1a4a9bdd…` —
+ * by every surface that emits one (`dz teach`'s own `ID:` line, `dz recall --json`'s `dzId`), and a
+ * caller who kept only the hex got `no learned pattern matches`. The advisory then pointed at
+ * `dz recall`, which cannot surface a QUARANTINED lesson by its own text, so a lesson taught
+ * minutes ago had no reachable path at all (MEASURED 2026-09-20, backlog 2d3059fc). The report's
+ * wider claim — that ids are rejected outright — is REFUTED: the full printed id has always worked.
+ *
+ * An ambiguous suffix is refused BY NAME, never guessed. Reinforcing the wrong lesson writes
+ * silently and leaves no signal afterwards that the wrong record moved, so a wrong guess here is
+ * strictly worse than a refusal the caller can act on. Today only `teach:` ids exist, but `dream:`
+ * is a second canonical namespace this store already documents, so the collision is reachable.
+ */
+export function resolveReinforceTarget(
+  records: readonly MemoryRecord[],
+  dzIdOrText: string,
+): { rec: MemoryRecord; matchedBy: 'id' | 'text' | 'suffix' } | { rec: undefined; error: string } {
+  // The KIND of match is part of the answer, not a detail: the caller prints it in a receipt, and a
+  // receipt that says "matched by text" about a suffix match is a receipt that lies. MEASURED
+  // 2026-09-20: the CLI inferred the kind from `resolved !== input`, which is true for BOTH a text
+  // match and a suffix match, so the suffix path reported the wrong one.
+  const byId = records.find((r) => r.id === dzIdOrText);
+  if (byId !== undefined) return { rec: byId, matchedBy: 'id' };
+  const byText = records.find((r) => r.text === dzIdOrText);
+  if (byText !== undefined) return { rec: byText, matchedBy: 'text' };
+  const bare = records.filter((r) => typeof r.id === 'string' && r.id.endsWith(':' + dzIdOrText));
+  if (bare.length > 1) {
+    return {
+      rec: undefined,
+      error: `${JSON.stringify(dzIdOrText)} is a bare id suffix shared by ${bare.length} learned patterns (${bare.map((r) => r.id).join(', ')}) — pass the full id`,
+    };
+  }
+  const only = bare[0];
+  if (only !== undefined) return { rec: only, matchedBy: 'suffix' };
+  return { rec: undefined, error: `no learned pattern matches ${JSON.stringify(dzIdOrText)}` };
+}
+
 async function reinforcePatternLocked(projectRoot: string, dzIdOrText: string, opts: { reward?: number; ts?: string; mergedFrom?: readonly string[]; exposure?: boolean }): Promise<ReinforcePatternResult> {
   const records = loadStoreRecords(projectRoot);
-  const rec = records.find((r) => r.id === dzIdOrText || r.text === dzIdOrText);
-  if (rec === undefined) return { ok: false, error: `no learned pattern matches ${JSON.stringify(dzIdOrText)}` };
+  const resolved = resolveReinforceTarget(records, dzIdOrText);
+  if (resolved.rec === undefined) return { ok: false, error: resolved.error };
+  const rec = resolved.rec;
   const pairId = typeof rec.metadata?.['lessonPairId'] === 'string' ? rec.metadata['lessonPairId'] : undefined;
   const targets = pairId === undefined
     ? [rec]
@@ -781,14 +823,14 @@ async function reinforcePatternLocked(projectRoot: string, dzIdOrText: string, o
   for (const target of targets) {
     const promotedMeta = { ...(target.metadata ?? {}), ...encodeReinforcementState(nextState) };
     if (opts.exposure !== true) {
-      delete promotedMeta['qStatus'];
-      delete promotedMeta['quarantinedAt'];
+      promotedMeta['qStatus'] = 'promoted';
+      promotedMeta['promotedAt'] = ts;
     }
     const put = await putStoreRecord(projectRoot, { ...target, metadata: promotedMeta });
     if ('error' in put) return { ok: false, dzId: rec.id, error: put.error };
   }
   try {
-    appendFileSync(join(projectRoot, '.dz', 'sessions.jsonl'), JSON.stringify({ event: 'reinforce', ts, dzId: rec.id, uses: nextState.uses }) + '\n');
+    appendFileSync(join(projectRoot, '.dz', 'sessions.jsonl'), JSON.stringify({ event: 'reinforce', ts, dzId: rec.id, uses: nextState.uses, exposure: opts.exposure === true }) + '\n');
   } catch { /* best-effort */ }
   return { ok: true, dzId: rec.id, uses: nextState.uses, reward: observed };
 }
@@ -845,10 +887,9 @@ export async function promotePatterns(projectRoot: string, dzIds: readonly strin
         const targets = pairId === undefined ? [rec] : records.filter((r) => r.metadata?.['lessonPairId'] === pairId);
         const pending = targets.filter((target) => !handled.has(target.id) && readQuarantineState(target).quarantined);
         if (pending.length === 0) { notQuarantined.push(id); continue; }
+        const promotedAt = new Date().toISOString();
         for (const target of pending) {
-          const meta = { ...(target.metadata ?? {}) };
-          delete meta['qStatus'];
-          delete meta['quarantinedAt'];
+          const meta = { ...(target.metadata ?? {}), qStatus: 'promoted', promotedAt };
           const put = await putStoreRecord(projectRoot, { ...target, metadata: meta });
           if ('error' in put) return { ok: false, promoted, notFound, notQuarantined, error: put.error };
           handled.add(target.id);

@@ -252,7 +252,8 @@ export declare function outputTail(stdout: unknown, stderr: unknown, maxLines?: 
  * - `token`/`secret`/`password` (case-insensitive) as a `key: value` or `key=value` pair — the
  *   KEY survives, only the value is replaced;
  * - `Bearer <token>` HTTP auth headers;
- * - vendor-prefixed tokens: `npm_…`, `ghp_…`, `sk-…`, `AKIA…`;
+ * - vendor-prefixed tokens: `npm_…`, `ghp_…`, `github_pat_…`, `sk-…` (hyphenated forms whole), `AKIA…`;
+ * - JSON keys (`"token":"…"`) and env-style names ending in TOKEN/SECRET/PASSWORD/API_KEY;
  * - long opaque strings (base64/hex-ish, `[A-Za-z0-9+/=]{32,}`) that look like a key/secret even
  *   without a recognisable prefix.
  * Order matters: prefixed/labelled patterns run BEFORE the generic long-opaque-string pattern so

@@ -6,15 +6,15 @@
  * the PROPERTY (registration). This module makes the property observable.
  *
  * Two layers:
- *   L1 `scanSkillsLayout`  — instant, no Claude session: which names CAN register, plus the three
- *                            layout shapes that produced the 1.2.0 defect.
+ *   L1 `scanSkillsLayout`  — instant, no Claude session: names whose on-disk form passes the
+ *                            static checks, plus known issue shapes.
  *   L2 `parseInitFacts`    — the authoritative listing, parsed from the `system/init` event of
  *      + `classifyRegistration`  `claude -p --output-format stream-json --verbose`. No model prose.
  *
  * FAIL-CLOSED: anything that prevents an honest observation yields `inconclusive`, never `pass`.
  */
-/** The three non-registrable shapes, all observed in the health-advisor 1.2.0 defect. */
-export type SkillIssueKind = 'no-skill-md' | 'buried-skill-md' | 'plugin-manifest-trap' | 'wildcard-allowed-tools' | 'empty-allowed-tools';
+/** The seven static issue shapes this scanner reports. */
+export type SkillIssueKind = 'no-skill-md' | 'buried-skill-md' | 'plugin-manifest-trap' | 'wildcard-allowed-tools' | 'empty-allowed-tools' | 'missing-frontmatter-fence' | 'missing-description';
 export interface SkillLayoutFinding {
     readonly dir: string;
     readonly kind: SkillIssueKind;
@@ -25,7 +25,10 @@ export interface StaticScan {
     readonly projectDir: string;
     readonly skillsRoot: string;
     readonly exists: boolean;
-    /** Names that CAN register: a dir with SKILL.md exactly one level deep. */
+    /**
+     * Bare skill names whose on-disk form passes static layout and measured frontmatter checks.
+     * Actual registration is established only by the Layer-2 session listing.
+     */
     readonly registrable: readonly string[];
     /** Load-blocking problems: these make the verdict FAIL. */
     readonly findings: readonly SkillLayoutFinding[];

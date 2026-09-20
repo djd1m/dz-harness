@@ -19,6 +19,7 @@
  *
  * PURE: the CLI reads the artifact files; this module only classifies.
  */
+import { maskMarkdown } from './markdown-masker.js';
 import { amendmentIdsIn } from './amendment-trace.js';
 import { QE_SEVERITIES, findInvalidQeVerdictLines, parseQeFindings, readQeVerdictLines } from './qe-findings.js';
 /** The artifact texts of one run, keyed by RELATIVE path under `features/<slug>/`. */
@@ -54,7 +55,13 @@ export function observabilityAnswer(architectureMarkdown) {
     // Fenced blocks are stripped FIRST: a `## Observability` inside an example fence is not a section
     // of this document, and accepting one is a false pass anybody could write by accident
     // (cross-family review, finding 1).
-    const text = String(architectureMarkdown ?? '').replace(/\r\n/g, '\n').replace(/^ {0,3}(```|~~~)[\s\S]*?^ {0,3}\1[^\n]*$/gm, '');
+    // Block scoping is DELEGATED to the canonical masker, not a local paired-fence regex. The regex
+    // it replaces required a MATCHING CLOSE, so an UNCLOSED fence stripped nothing at all and a
+    // `## Observability` quoted inside the example counted as a real section — MEASURED 2026-09-20,
+    // exactly the false pass the comment above warns about. `unclosed: 'hide'` is the CommonMark
+    // reading (an unclosed fence runs to end of document) and is the safe direction for a gate:
+    // a section that may be code must not be accepted as an answer.
+    const text = String(maskMarkdown(String(architectureMarkdown ?? '').replace(/\r\n/g, '\n'), { unclosed: 'hide' }));
     // CommonMark: up to three leading spaces, then #s, then REQUIRED whitespace. `##Observability` is
     // not a heading and must not pass; an indented one is, and must not be missed (finding 2).
     const headingRe = new RegExp('^ {0,3}#{1,6}[ \t]+' + OBSERVABILITY_SECTION + '\\b.*$', 'gim');

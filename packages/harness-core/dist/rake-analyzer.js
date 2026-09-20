@@ -14,33 +14,80 @@
  * `thresholds.candidate` DISTINCT sources is a one-off — it is NEVER a rake and never reaches teach/critic.
  */
 import { existsSync, readFileSync, readdirSync, statSync, realpathSync } from 'node:fs';
+import { maskMarkdown } from './markdown-masker.js';
 import { join } from 'node:path';
 const SEVERITY_RANK = { blocker: 4, high: 3, medium: 2, low: 1, unknown: 0 };
 export const DEFAULT_RAKE_THRESHOLDS = { candidate: 2, confirmed: 3 };
 /**
+ * Decode the data-only signature table. This fails closed: stateful `g`/`y` patterns would make
+ * RegExp.test() depend on lastIndex, which breaks signatureOf's determinism.
+ */
+export function loadRakeSignatures(raw) {
+    if (!Array.isArray(raw))
+        throw new Error('Rake signatures: expected an array');
+    const signatures = raw.map((entry, index) => {
+        const name = typeof entry === 'object' && entry !== null && typeof entry.id === 'string'
+            ? entry.id
+            : `entry #${index}`;
+        if (typeof entry !== 'object' || entry === null || Array.isArray(entry))
+            throw new Error(`Rake signature ${name}: expected an object`);
+        const spec = entry;
+        if (typeof spec.id !== 'string' || spec.id === '')
+            throw new Error(`Rake signature ${name}: missing id`);
+        if (typeof spec.label !== 'string' || spec.label === '')
+            throw new Error(`Rake signature ${name}: missing label`);
+        if (!Array.isArray(spec.patterns) || spec.patterns.length === 0 || spec.patterns.some((p) => typeof p !== 'string' || p === '')) {
+            throw new Error(`Rake signature ${name}: patterns must be a non-empty string array`);
+        }
+        const flags = spec.flags ?? '';
+        if (typeof flags !== 'string')
+            throw new Error(`Rake signature ${name}: flags must be a string`);
+        if (/[gy]/.test(flags))
+            throw new Error(`Rake signature ${name}: stateful g/y flags are forbidden`);
+        let patterns;
+        try {
+            patterns = spec.patterns.map((pattern) => new RegExp(pattern, flags));
+        }
+        catch (error) {
+            throw new Error(`Rake signature ${name}: invalid regular expression (${error instanceof Error ? error.message : String(error)})`);
+        }
+        for (const pattern of patterns)
+            Object.freeze(pattern);
+        return Object.freeze({ id: spec.id, label: spec.label, patterns: Object.freeze(patterns) });
+    });
+    return Object.freeze(signatures);
+}
+/**
  * Known rake classes (extensible, data-only). Seeded from the classes that actually recur in this repo's
  * QE reports — that IS the dogfood. First match in order wins; unmatched → normalized-text bucket.
  */
-export const RAKE_SIGNATURES = [
-    { id: 'esm-require-footgun', label: 'ESM lazy require() undefined at runtime', patterns: [/require\(['"]node:/, /\besm\b.*require/i, /lazy require/i] },
-    { id: 'untested-adr-property', label: 'ADR-named safety property left untested', patterns: [/load-bearing.*(untested|not\s+tested|no\s+test)/i, /adr.*names.*(property|test)/i, /safety property.*test/i] },
-    { id: 'claim-check-fp', label: 'claim-check false positive / untagged count', patterns: [/claim-check.*(false positive|\bfp\b)/i, /untagged.*(count|claim)/i, /metric term/i] },
-    // "traversal" alone over-matches (AST/tree traversal); require a filesystem-scope token to CO-OCCUR
-    // (or a literal `../`) — cross-model QE caught the over-match.
-    { id: 'path-traversal', label: 'path not constrained to the repo (traversal)', patterns: [/\.\.\//, /(?=.*travers)(?=.*(repo|root|\bpath\b|director|\/etc\/))/i, /escapes.{0,12}repo/i] },
-    { id: 'silent-drop-or-inject', label: 'silent drop / silent injection (no report)', patterns: [/silent(ly)?\s+(drop|inject|discard|dropped)/i, /no silent (injection|caps|drop)/i] },
-    { id: 'swallow-generic-exception', label: 'generic except/catch swallows real bugs', patterns: [/except\s+Exception/i, /catch.*swallow/i, /generic (exception|catch)/i] },
-    { id: 'determinism-hole', label: 'non-deterministic output (unsorted/clock/random)', patterns: [/non-determinis/i, /determinism hole/i, /unsorted|not sorted/i] },
-    { id: 'cross-model-self-qe', label: 'coder self-QE instead of cross-model', patterns: [/self-qe/i, /coder.*(review|qe).*(itself|self)/i, /cross-model/i] },
-    { id: 'malformed-input-bypass', label: 'malformed input bypasses validation', patterns: [/array.*(pass|bypass)/i, /malformed.*(bypass|pass|manifest)/i, /typeof.*object/i] },
-];
-// Deep-freeze so an external caller can't inject a `/g`-flag regex whose `.test()` mutates lastIndex and
-// makes signatureOf non-deterministic (cross-model QE). None of the patterns above use `g`/`y`.
-for (const s of RAKE_SIGNATURES) {
-    Object.freeze(s.patterns);
-    Object.freeze(s);
+/**
+ * Таблица живёт В ПАКЕТЕ, а не в `docs/`, и путь записан ровно как у близнеца
+ * `slop-lint.ts` → `../src/slop-markers.json`: из собранного `dist/` он указывает в `src/`,
+ * который входит в `files[]` и потому ПУБЛИКУЕТСЯ. Запись бэклога предлагала
+ * `docs/methodology/`, но чтение стоит на верхнем уровне модуля — в опубликованном пакете
+ * такого пути нет, и модуль упал бы ПРИ ИМПОРТЕ, утащив за собой каждого потребителя.
+ * Человекочитаемое описание схемы осталось в `docs/methodology/rake-signatures.md`.
+ */
+const RAKE_SIGNATURES_FILE = new URL('../src/rake-signatures.json', import.meta.url);
+export const RAKE_SIGNATURES = loadRakeSignatures(readRakeSignaturesFile(RAKE_SIGNATURES_FILE));
+/** Отдельный читатель, чтобы отсутствие или порча файла назывались СВОИМИ ИМЕНАМИ, а не
+ *  прилетали сырым ENOENT/SyntaxError из середины загрузки модуля. */
+function readRakeSignaturesFile(url) {
+    let raw;
+    try {
+        raw = readFileSync(url, 'utf8');
+    }
+    catch (err) {
+        throw new Error(`rake-signatures: таблица не найдена по пути ${url.pathname} — пакет собран без src/? (${err instanceof Error ? err.message : String(err)})`);
+    }
+    try {
+        return JSON.parse(raw);
+    }
+    catch (err) {
+        throw new Error(`rake-signatures: ${url.pathname} не разбирается как JSON: ${err instanceof Error ? err.message : String(err)}`);
+    }
 }
-Object.freeze(RAKE_SIGNATURES);
 const byStr = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const uniqSorted = (xs) => [...new Set(xs)].sort(byStr);
 const maxSeverity = (a, b) => (SEVERITY_RANK[a] >= SEVERITY_RANK[b] ? a : b);
@@ -64,8 +111,8 @@ const SEV_MAP = {
 const toSeverity = (raw) => SEV_MAP[raw.trim().toLowerCase()] ?? 'unknown';
 const SITE_RE = /([\w./-]+\.(?:ts|js|tsx|jsx|py|go|md|json|yml|yaml):\d+)/;
 /** The signature of a finding: first matching rule, else the normalized-text bucket. */
-export function signatureOf(finding) {
-    for (const s of RAKE_SIGNATURES) {
+export function signatureOf(finding, signatures = RAKE_SIGNATURES) {
+    for (const s of signatures) {
         if (s.patterns.some((p) => p.test(finding.text)))
             return { id: s.id, label: s.label };
     }
@@ -83,6 +130,18 @@ export function signatureOf(finding) {
  */
 export function extractFindings(markdown, source) {
     const out = [];
+    // Строки ВНУТРИ блока кода находками не являются: отчёт QE регулярно показывает ПРИМЕР того,
+    // как писать не надо, и пример оформлен той же таблицей. ИЗМЕРЕНО 2026-09-19: отчёт с одной
+    // настоящей находкой и одной строкой-примером в ```-блоке давал ДВЕ находки.
+    // Маскировщик здесь ОБЩИЙ (`markdown-masker`), тот же, что у `amendment-trace` и у гейта K2 —
+    // запись 8b309a04 просила один проход на весь харнесс, а не третий собственный разбор.
+    // Решение «считать ли строку» принимается по МАСКЕ, а текст находки берётся из ИСХОДНИКА:
+    // маска сохраняет разбиение на строки, но не содержимое.
+    // ОДИН механизм: читаем МАСКУ. Маскировщик заменяет строки внутри блока кода филлером той же
+    // длины и не трогает остальные, поэтому отдельный список «пропустить замаскированные» был бы
+    // ВТОРОЙ защитой — и мутация, снимающая только её, осталась бы эквивалентной (проверено:
+    // 35 тестов из 35 зелёные при «снятой» починке). Ровно тот же капкан, что сегодня в гейте K2.
+    const maskLines = String(maskMarkdown(markdown)).split('\n');
     const push = (severity, text) => {
         const t = text.replace(/\s+/g, ' ').trim();
         if (t.length < 8)
@@ -90,7 +149,10 @@ export function extractFindings(markdown, source) {
         const site = SITE_RE.exec(t)?.[1];
         out.push(site ? { source, severity, text: t, site } : { source, severity, text: t });
     };
-    for (const line of markdown.split('\n')) {
+    const sourceLines = markdown.split('\n');
+    for (let i = 0; i < sourceLines.length; i++) {
+        // Читаем маску, а не исходник: строка, спрятанная блоком кода, до правил ниже не доходит.
+        const line = maskLines[i] ?? sourceLines[i] ?? '';
         // (a) table row: | ... | <sev> | <finding> | ...
         const cells = line.includes('|') ? line.split('|').map((c) => c.trim()) : null;
         if (cells && cells.length >= 4) {

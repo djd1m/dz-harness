@@ -417,7 +417,21 @@ else for (const t of acidTokens) if (!new RegExp(`\\b${t.replace(/[.*+?^${}()|[\
       // bullet-less row was invisible here while being a row there (so it evaded this check), and
       // this side lacked the range guard, so «AM-1..AM-4 are covered elsewhere» was falsely
       // reported as a definition. One shape, one meaning.
-      const isDef = /^\s*(?:[-*|]\s*)?\*{0,2}AM-(?:CP-)?\d+\*{0,2}\b(?!\s*\.)/.test(pl);
+      // ЯЧЕЙКА ТАБЛИЦЫ ВНЕ СЕКЦИИ — НЕ ОПРЕДЕЛЕНИЕ. Внутри `## Amendments` строка таблицы
+      // законно объявляет поправку, поэтому там `|` остаётся допустимым началом строки. Снаружи
+      // же таблица — это СВОДКА, ссылающаяся на поправки, определённые в другом месте, и читать
+      // её как определение значит отказывать плану за оглавление.
+      // ИЗМЕРЕНО 2026-09-05: четыре ложных FAIL за один день на четырёх разных фичах
+      // (narrated-error-must-be-taught, fa-phase-statusline, core-boundary-guard,
+      // run-registry-liveness); каждый стоил ручной правки ведущего и перезапуска конвейера,
+      // то есть 5–10 минут и один цикл роутера. Один планировщик дошёл до того, что вписал в
+      // план оговорку «no line of this paragraph may begin with AM-» — прибор начал
+      // диктовать людям форму прозы, а это уже не проверка, а суеверие.
+      // ОДИН механизм, а не два: `|` УБРАН из класса начал строки. Первая редакция этой правки
+      // добавляла ещё и отдельную проверку `isTableRow`, и мутация, снимавшая только её,
+      // оставалась ЭКВИВАЛЕНТНОЙ — 77 тестов из 77 зелёные при «снятой» починке. Дублирующая
+      // защита не усиливает гейт, она прячет от мутационной пробы, что именно держит свойство.
+      const isDef = /^\s*(?:[-*]\s*)?\*{0,2}AM-(?:CP-)?\d+\*{0,2}\b(?!\s*\.)/.test(pl);
       const inSection = sectionStart >= 0 && cursor2 >= sectionStart && cursor2 < sectionEnd;
       if (isDef && !inSection) {
         const tok = (/AM-(?:CP-)?\d+/.exec(pl) || ['AM-?'])[0];
@@ -479,7 +493,10 @@ else for (const t of acidTokens) if (!new RegExp(`\\b${t.replace(/[.*+?^${}()|[\
         }
         if (superseded) break;
       }
-      if (!hasTest && !superseded) failures.push(`C6: ${defs[k].id} carries neither \`\u2192 test <name>\` nor \`superseded by AM-N\` — an amendment without a confirmation is a wish, and a retracted one must say its successor`);
+      // Сообщение называет ТУ ЖЕ форму, которую требует MARK выше. Прежняя редакция обещала
+      // простое `→ test <name>`, а проверка требовала имя и файл в обратных кавычках — человек,
+      // написавший ровно то, что просило сообщение, получал отказ снова и не понимал, почему.
+      if (!hasTest && !superseded) failures.push(`C6: ${defs[k].id} carries neither \`\u2192 test \`<имя>\` in \`<файл>\`\` (обратные кавычки обязательны, как и слово in) nor \`superseded by AM-N\` — an amendment without a confirmation is a wish, and a retracted one must say its successor`);
     }
   }
 }

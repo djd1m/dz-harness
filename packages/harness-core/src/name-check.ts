@@ -127,7 +127,37 @@ export function decideNameCheck(queries: readonly NameQuery[], facts: NameFacts)
   return { outcome: 'free', exit: 0, results, reason: `all ${results.length} name(s) are free` };
 }
 
-export function renderNameCheck(decision: NameDecision, scanned?: NameFacts['scanned']): string[] {
+/**
+ * Имена того же вида, ДЕЛЯЩИЕ СЛОВО с запрошенным.
+ *
+ * ЗАЧЕМ ЭТО ЗДЕСЬ. `name-check` отвечает на вопрос «занято ли ИМЯ», и отвечает верно. Но у
+ * него есть соседний вопрос, которого он не задаёт: «а нет ли уже ПРИБОРА для этой работы».
+ * ИЗМЕРЕНО 2026-09-19: `dz name-check --module ledger-cost-fill` честно ответил FREE, и по
+ * этому ответу был построен модуль, дублирующий существующий `ledger-backfill` — подключённый
+ * к CLI, с тем же измерением в шапке, заполняющий 47 строк против 31 у дубля и вдобавок
+ * намеренно НЕ делающий того, что дубль сделал (вывод минут и агентов, тихо переопределивший
+ * две колонки).
+ *
+ * Поэтому здесь НЕ вердикт и НЕ отказ — свободное имя остаётся свободным. Это СВЕДЕНИЯ в точке
+ * решения: список соседей по корню слова, которые оператор увидит ровно тогда, когда ещё не
+ * написал ни строки. Разница между «занято» и «рядом есть похожее» сохранена намеренно:
+ * превратить второе в отказ значило бы запретить `publish-order` рядом с `publish-signing`.
+ *
+ * Слова короче четырёх букв игнорируются: `fa`, `dz`, `to`, `run` роднят почти всё со всем.
+ */
+export function nearNames(query: NameQuery, facts: NameFacts, limit = 5): string[] {
+  const words = (n: string): string[] =>
+    n.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 4);
+  const asked = new Set(words(query.name));
+  if (asked.size === 0) return [];
+  const pool: string[] = query.kind === 'command'
+    ? [...facts.commands]
+    : query.kind === 'module' ? [...facts.modules.keys()] : [...facts.exports.keys()];
+  const hits = pool.filter((n) => n !== query.name && words(n).some((w) => asked.has(w)));
+  return hits.sort().slice(0, limit);
+}
+
+export function renderNameCheck(decision: NameDecision, scanned?: NameFacts['scanned'], facts?: NameFacts): string[] {
   const out: string[] = [];
   if (scanned !== undefined) {
     // Printed always, pass or fail: the operator must be able to see that the sweep looked at a real
@@ -145,6 +175,18 @@ export function renderNameCheck(decision: NameDecision, scanned?: NameFacts['sca
     // Said on the passing path, because that is where the limit gets forgotten: the scan reads
     // declarations, so a re-export under a different name (`export { a as b }`) is invisible to it.
     out.push('  note: this reads declarations in source. A re-export under a different name is not visible here — the build still owns that case.');
+    if (facts !== undefined) {
+      // Свободное имя — не доказательство отсутствия прибора. Соседи печатаются СВЕДЕНИЯМИ,
+      // вердикт при этом не меняется: отказывать за сходство значило бы запретить
+      // `publish-order` рядом с `publish-signing`.
+      for (const r of decision.results) {
+        const near = nearNames({ kind: r.kind, name: r.name }, facts);
+        if (near.length > 0) {
+          out.push(`  рядом уже есть ${r.kind}(s), делящие слово с «${r.name}»: ${near.join(', ')}`);
+          out.push('    прочитайте их ПЕРЕД тем, как писать: свободное ИМЯ не означает отсутствия ПРИБОРА для этой работы');
+        }
+      }
+    }
   }
   return out;
 }

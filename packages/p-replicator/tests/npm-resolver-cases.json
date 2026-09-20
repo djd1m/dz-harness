@@ -1,0 +1,128 @@
+{
+  "contract": "resolveNpmCli(env, options) — ADR-001 of feature repo-sweep-honesty. A test that needs the real npm packer must check the IDENTITY of the tool it was handed, never the existence of a path: under pnpm, npm_execpath points at pnpm.cjs, that file exists, and an existsSync fallback therefore never fires in the one case it was written for (MEASURED 2026-09-18).",
+  "identity": [
+    "A candidate is npm only if ALL THREE hold (review r1, HIGH-5 — the first and third were missing):",
+    "1. the candidate is DEREFERENCED first (realpath), because a genuine npm is normally reached through a symlink (/usr/bin/npm -> ../lib/node_modules/npm/bin/npm-cli.js) and resolving modules from /usr/bin finds nothing;",
+    "2. the nearest enclosing package.json says name == 'npm', because module resolution answers a question about a DIRECTORY — without this, any intruder dropped into a tree that contains libnpmpack passes;",
+    "3. 'libnpmpack' resolves from the dereferenced file AND the module it resolves to lives in the SAME npm installation (inside npm's own package directory, or in the node_modules that holds it)."
+  ],
+  "ladder": [
+    "1. npm_execpath is used only if it passes the identity check above (the answer is the DEREFERENCED path).",
+    "2. otherwise the installed npm is looked up in the global module roots: the ambient machine roots (process.execPath layout, NODE_PATH, module.globalPaths), then npm's configured prefix, then the directories on PATH.",
+    "3. otherwise an 'npm' executable on PATH is dereferenced and identity-checked.",
+    "4. otherwise the answer is 'unavailable' carrying a reason that NAMES the tool that was not found and everywhere it was looked for."
+  ],
+  "twins": [
+    "packages/@dzhechkov/harness-cli/test/npm-resolver-cases.json",
+    "packages/@dzhechkov/p-replicator/tests/npm-resolver-cases.json"
+  ],
+  "twinGuard": "packages/@dzhechkov/harness-core/test/npm-resolver-cases-twin-drift.test.ts keeps the two copies byte-identical. Two implementations exist because p-replicator PUBLISHES its tests/ directory, so it may not import from the repo root; the contract, not the code, is what is shared.",
+  "givenFields": {
+    "npmExecPath": "placeholder name for env.npm_execpath, or null to leave it unset",
+    "globalRoots": "'defaultRoots' to let the resolver pick its own AMBIENT roots, or a list of placeholder names that replaces them",
+    "env": "optional map of extra environment variables; each value is a placeholder name. Env-derived roots (npm's prefix, PATH) apply even when globalRoots is overridden, because they describe the environment handed in rather than the machine",
+    "nullArguments": "optional; when true the resolver is called with explicit nulls for BOTH optional arguments instead of an env object"
+  },
+  "placeholders": {
+    "npmCli": "absolute path to a real npm-cli.js, located WITHOUT the resolver under test",
+    "pnpmCli": "absolute path to a real pnpm.cjs — an existing file that is NOT npm",
+    "decoyCli": "a freshly written .js file that exists and is NOT npm; the fixture that an existence check would wrongly accept",
+    "intruderCli": "a freshly written .js file that is NOT npm but sits in a tree where 'libnpmpack' DOES resolve; the fixture that a resolution-only check would wrongly accept",
+    "npmCliSymlink": "a symlink pointing at the real npm-cli.js; the fixture a resolver that does not dereference would wrongly reject",
+    "npmPrefix": "npm's install prefix, derived from `npm root -g` without the resolver under test",
+    "npmrcHome": "a directory holding a .npmrc whose `prefix=` names npmPrefix",
+    "npmBinDir": "a directory holding a symlink named 'npm' that points at the real npm-cli.js, as a bin directory on PATH does",
+    "missingPath": "an absolute path that does not exist",
+    "emptyRoot": "an existing directory holding no npm installation",
+    "defaultRoots": "the resolver's own ambient global-root list, whatever it is on this machine"
+  },
+  "cases": [
+    {
+      "id": "execpath-that-is-npm-is-used",
+      "why": "the happy path the whole ladder exists to preserve: a real npm hand-off is honoured",
+      "given": { "npmExecPath": "npmCli", "globalRoots": "defaultRoots" },
+      "requires": ["npmCli"],
+      "expect": { "kind": "npm-cli", "source": "npm_execpath", "path": "npmCli" }
+    },
+    {
+      "id": "execpath-that-is-pnpm-is-rejected",
+      "why": "the measured defect: pnpm.cjs exists, so an existence check accepts it and the caller then loads pnpm as if it were npm",
+      "given": { "npmExecPath": "pnpmCli", "globalRoots": "defaultRoots" },
+      "requires": ["npmCli", "pnpmCli"],
+      "expect": { "kind": "npm-cli", "source": "global-install", "path": "npmCli" }
+    },
+    {
+      "id": "execpath-that-is-an-existing-decoy-is-rejected",
+      "why": "machine-independent proof that IDENTITY is checked and not EXISTENCE; this file always exists",
+      "given": { "npmExecPath": "decoyCli", "globalRoots": "defaultRoots" },
+      "requires": ["npmCli"],
+      "expect": { "kind": "npm-cli", "source": "global-install", "path": "npmCli" }
+    },
+    {
+      "id": "intruder-in-a-tree-where-libnpmpack-resolves-is-rejected",
+      "why": "review r1 HIGH-5: resolving libnpmpack proves something about the DIRECTORY, not about the file; without the enclosing-package check any file dropped beside a node_modules/libnpmpack passed as npm",
+      "given": { "npmExecPath": "intruderCli", "globalRoots": "defaultRoots" },
+      "requires": ["npmCli", "intruderCli"],
+      "expect": { "kind": "npm-cli", "source": "global-install", "path": "npmCli" }
+    },
+    {
+      "id": "symlinked-npm-is-dereferenced-and-accepted",
+      "why": "review r1 HIGH-5, the other half: a genuine npm is normally reached through a symlink, and resolving from the symlink's own directory finds nothing — the real npm was being rejected",
+      "given": { "npmExecPath": "npmCliSymlink", "globalRoots": "defaultRoots" },
+      "requires": ["npmCli", "npmCliSymlink"],
+      "expect": { "kind": "npm-cli", "source": "npm_execpath", "path": "npmCli" }
+    },
+    {
+      "id": "execpath-that-does-not-exist-is-rejected",
+      "why": "a stale hand-off must fall through the ladder rather than crash the caller",
+      "given": { "npmExecPath": "missingPath", "globalRoots": "defaultRoots" },
+      "requires": ["npmCli"],
+      "expect": { "kind": "npm-cli", "source": "global-install", "path": "npmCli" }
+    },
+    {
+      "id": "no-execpath-falls-through-to-the-installed-npm",
+      "why": "direct runs (npx vitest run / node --test) set no npm_execpath at all",
+      "given": { "npmExecPath": null, "globalRoots": "defaultRoots" },
+      "requires": ["npmCli"],
+      "expect": { "kind": "npm-cli", "source": "global-install", "path": "npmCli" }
+    },
+    {
+      "id": "npm-config-prefix-from-the-environment-is-searched",
+      "why": "review r1 HIGH-5: an npm installed under an unrelated prefix is invisible to process.execPath and to globalPaths, and was reported absent on a machine that has it",
+      "given": { "npmExecPath": "decoyCli", "globalRoots": ["emptyRoot"], "env": { "npm_config_prefix": "npmPrefix" } },
+      "requires": ["npmCli", "npmPrefix"],
+      "expect": { "kind": "npm-cli", "source": "global-install", "path": "npmCli" }
+    },
+    {
+      "id": "npm-config-prefix-from-the-user-npmrc-is-searched",
+      "why": "the same question `npm config get prefix` answers, read from npm's own user config instead of by spawning npm (spawning the tool you are looking for is circular)",
+      "given": { "npmExecPath": "decoyCli", "globalRoots": ["emptyRoot"], "env": { "HOME": "npmrcHome" } },
+      "requires": ["npmCli", "npmrcHome"],
+      "expect": { "kind": "npm-cli", "source": "global-install", "path": "npmCli" }
+    },
+    {
+      "id": "an-npm-on-PATH-is-found-when-every-root-is-empty",
+      "why": "review r1 HIGH-5: the fallback ignored PATH, yet a bin directory on PATH is how the user runs npm at all; the entry there is a symlink, so this also proves the dereferencing",
+      "given": { "npmExecPath": "decoyCli", "globalRoots": ["emptyRoot"], "env": { "PATH": "npmBinDir" } },
+      "requires": ["npmCli", "npmBinDir"],
+      "expect": { "kind": "npm-cli", "source": "global-install", "path": "npmCli" }
+    },
+    {
+      "id": "explicit-null-arguments-behave-like-omitted-ones",
+      "why": "review r1 LOW-7: a default parameter fires only on undefined, so the TypeScript twin threw on resolveNpmCli(null) while the CommonJS twin fell back to process.env — two twins that disagree on a value a caller can pass are not twins",
+      "given": { "npmExecPath": null, "globalRoots": "defaultRoots", "nullArguments": true },
+      "requires": ["npmCli"],
+      "expect": { "kind": "npm-cli" }
+    },
+    {
+      "id": "no-npm-anywhere-is-an-honest-unavailable",
+      "why": "FR-4: absence is reported with a NAMED reason, never as a pass and never as a crash",
+      "given": { "npmExecPath": "decoyCli", "globalRoots": ["emptyRoot"] },
+      "requires": [],
+      "expect": {
+        "kind": "unavailable",
+        "reasonIncludes": ["npm", "libnpmpack", "npm/bin/npm-cli.js"]
+      }
+    }
+  ]
+}

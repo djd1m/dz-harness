@@ -7,6 +7,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { skipWhenDzAbsent } = require('../dz-availability.js');
 
 const PKG = path.resolve(__dirname, '..', '..');
 const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm';
@@ -220,12 +221,15 @@ describe('PR-022 exact packed artifact', () => {
     } finally { fs.rmSync(consumer, { recursive: true, force: true }); }
   });
 
-  test('P17 - deleting .dz retains the packed Markdown record and local delivery', () => {
+  test('P17 - deleting .dz retains the packed Markdown record and local delivery', (t) => {
     const { consumer } = installConsumer();
     try {
       const record = insight({ title: LOCAL_PACKED });
       const written = parseReceipt(runPackedWriter(consumer, record, { path: process.env.PATH }));
       assert.equal(written.status, 'created');
+      // Backlog 1b4857a6: a MISSING dz is an audible skip, a BROKEN dz stays red. The rule and
+      // its reasoning live once, in tests/dz-availability.js.
+      if (skipWhenDzAbsent(t, written.teach.state, 'it deletes the .dz state that only dz creates')) return;
       assert.equal(written.teach.state, 'ok');
 
       const query = run('dz', ['recall', '--all', '--json', '--project', consumer], {

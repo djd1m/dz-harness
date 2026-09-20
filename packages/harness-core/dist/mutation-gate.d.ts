@@ -396,5 +396,34 @@ export interface MutationGateSummary {
     readonly dropComparable: number;
 }
 export declare function summarizeMutationResults(results: readonly MutationEntryResult[]): MutationGateSummary;
+/** Everything the CLI knows that this pure module does not: when, in which package, and under
+ *  which run. `runId` is honest-absent (`null`) when the caller has none to offer — never guessed. */
+export interface MutationVerdictMeta {
+    readonly ts: string;
+    readonly package: string;
+    readonly runId: string | null;
+}
+/** One durable line — append-only, one per classified registry entry. `observed` is the
+ *  registry's OWN anchor (copied, never recomputed) so a reader can see the historical coverage
+ *  claim next to the fresh verdict without re-opening the registry. */
+export interface MutationVerdictRow {
+    readonly ts: string;
+    readonly package: string;
+    readonly entryId: string;
+    readonly verdict: MutationVerdict;
+    readonly failingCount: number | null;
+    readonly observed: number | null;
+    readonly drop: boolean;
+    readonly dropComparable: boolean;
+    readonly runId: string | null;
+}
+/**
+ * Pure: payload in, row out — no filesystem (NFR-2; the CLI owns the append). `entry` is `null`
+ * for a result that never resolved to a valid registry entry (`ENTRY_INVALID` / `COVERAGE_GAP` —
+ * `parseMutationRegistry` excludes those from `registry.entries` by construction, so the CALLER
+ * cannot always hand one in) — `observed` then stays `null`, honestly, rather than the caller
+ * inventing a fallback entry object just to satisfy this signature.
+ */
+export declare function mutationVerdictRow(entry: MutationRegistryEntry | null, result: MutationEntryResult, meta: MutationVerdictMeta): MutationVerdictRow;
 export declare function renderMutationReport(results: readonly MutationEntryResult[], baseline: BaselineResult, packageDir: string): string;
 //# sourceMappingURL=mutation-gate.d.ts.map

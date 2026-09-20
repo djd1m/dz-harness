@@ -196,6 +196,11 @@ export interface ProvenanceDecision {
 export declare function decideProvenance(mode: ProvenanceMode, env: NodeJS.ProcessEnv): ProvenanceDecision;
 /** The exact command. A test asserts this string; nothing is assembled inline at the call site. */
 export declare function publishArgv(mode: ProvenanceMode, env: NodeJS.ProcessEnv): string;
+/** Match substrings against package identity and path without including the checkout root. */
+export declare function matchesPublishFilter(pkg: {
+    name: string;
+    dir: string;
+}, filter: string, monorepoRoot: string): boolean;
 /** Discover all publishable @dzhechkov packages. */
 export declare function discoverPackages(monorepoRoot: string): {
     name: string;

@@ -63,7 +63,9 @@ npx @dzhechkov/skills-feature-adr init               # Install core components
 npx @dzhechkov/skills-feature-adr init --with-learning                  # + reward learning
 npx @dzhechkov/skills-feature-adr init --knowledge-extractor            # + knowledge extractor
 npx @dzhechkov/skills-feature-adr init --with-learning --knowledge-extractor  # + both
-npx @dzhechkov/skills-feature-adr init --force       # Overwrite existing files
+npx @dzhechkov/skills-feature-adr init --force       # Overwrite existing files (a locally
+                                                     # changed file is copied to <file>.bak first,
+                                                     # and the copy is named in the report)
 npx @dzhechkov/skills-feature-adr init --dry-run     # Preview without making changes
 npx @dzhechkov/skills-feature-adr update             # Update to latest version
 npx @dzhechkov/skills-feature-adr remove             # Clean uninstall

@@ -109,7 +109,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "09d9074650a09fe7715324b47211685755777381c8219cdecb0bfbc4d562bd0f"
+        "sha256": "92f1f4fe9846831ff5c40c981383c2b9c57f8a9f87b45260ae955d7fce984f70"
       },
       {
         "path": "scripts/check-pipeline-gaps.sh",
@@ -245,7 +245,7 @@
       },
       {
         "path": "templates/.claude/hooks/check-external-deps.cjs",
-        "sha256": "7bce49a744170a3193edf4b2238bcc5a6f1b0efa29333760a52e4fd145739d18"
+        "sha256": "d671353b2e73e0790206cf963ee85f1ff6b97d56d975b9eb3ad59a14d7239e2a"
       },
       {
         "path": "templates/.claude/hooks/check-file-ownership.cjs",
@@ -820,6 +820,10 @@
         "sha256": "7b4497bc76bb421fae7a07ecb46af01e021412180a394a5487a3c3c42dc004b6"
       },
       {
+        "path": "tests/dz-availability.js",
+        "sha256": "22203df26f3a90f015730c4b667b07b35e40730cb0e310b4e8087cbfab31b3ce"
+      },
+      {
         "path": "tests/e2e/feature-contour.test.js",
         "sha256": "a6e7c00e86fae150b834234efe34c2837da63b6794117a1bffd5c0de13505fe1"
       },
@@ -829,7 +833,7 @@
       },
       {
         "path": "tests/e2e/packed-insights-writer.test.js",
-        "sha256": "3477f63db3f531e3c2970b85d784f22d268695030764319457a543b2e9d49758"
+        "sha256": "b84eb4d3b79544b8c0dad51dd043ce01dd94931246fc153283f9ab6d1c50e8cc"
       },
       {
         "path": "tests/fixtures/feature-contour/docs/features/demo-gate/01_specification.md",
@@ -872,8 +876,16 @@
         "sha256": "848b3afb83e2d4151c1774900b33983b824e88c03e651085c4a9a1952ba78e64"
       },
       {
+        "path": "tests/npm-cli-resolver.js",
+        "sha256": "272e8aab19d4b0dbe3fa2bf3c0d544afd1c811f6a04cc445d480233e11c63840"
+      },
+      {
+        "path": "tests/npm-resolver-cases.json",
+        "sha256": "df67c832c5bde9f550d88fda48ed27600f4654aa7c3fdaadc79adbbbe6af141b"
+      },
+      {
         "path": "tests/snapshot/baseline.json",
-        "sha256": "31801798e099c5e43e60de29c3487a586fe6b906b2135ea1060861567d36fdfb"
+        "sha256": "0c73149a79dc3b4c051f49500ea2f3fb2dc172df127636fe95ab217e8a6f5291"
       },
       {
         "path": "tests/snapshot/templates.test.js",
@@ -925,7 +937,7 @@
       },
       {
         "path": "tests/unit/check-external-deps.test.js",
-        "sha256": "652c90abf50636dd97e499fe3d23f77b780a0f77d7dd989f4b7ab900ae3a467b"
+        "sha256": "e5177f2726a8a13c2c0a56d5bf010d0ee0160f2324cf7b2293c4d44c40fdc4aa"
       },
       {
         "path": "tests/unit/check-file-ownership.test.js",
@@ -993,7 +1005,7 @@
       },
       {
         "path": "tests/unit/detection-ladder-contract.test.js",
-        "sha256": "8ff509273436f10432bed8d34568d88d3bcbf6d85c9e7e290310ab771b9785b0"
+        "sha256": "0612c27c88051c717da0e37b7f525b75195a85cf7a88f0da9d65d7ebbc3501b6"
       },
       {
         "path": "tests/unit/detection-ladder-registry.test.js",
@@ -1061,7 +1073,7 @@
       },
       {
         "path": "tests/unit/insights-writer.test.js",
-        "sha256": "e723a1fe9cd392196aae4f0c421915b6487f78ee213cfa1eab3f1b66106ec243"
+        "sha256": "e17cd3de5fd6173ebf262b5c5d354ee764343a02a7a22f9f2f16511b220d067c"
       },
       {
         "path": "tests/unit/look-phase-contract.test.js",
@@ -1074,6 +1086,10 @@
       {
         "path": "tests/unit/negative-conclusion-gate.test.js",
         "sha256": "6c6a470d22d12ff46301c4ae61ba7a2563c4ff8a3a2d5b3a84c81c6b8c11b067"
+      },
+      {
+        "path": "tests/unit/npm-cli-resolver.test.js",
+        "sha256": "9c5ee626d9b92c69e9720b1fca032a14592c2767f903b064be1b7f1f78772b76"
       },
       {
         "path": "tests/unit/optional-doc-idiom.test.js",
@@ -1145,5 +1161,5 @@
       }
     ]
   },
-  "signature": "DsIFOeT4ntNvUrhbFwpDHt7FDAAAq0dlLrVkPqSmxOmk8sER5xd7d2L7OvMEeaFFzfobe6IYFNtJlv5ISvtiCA=="
+  "signature": "OyYKpjZ81OEwsii/g7FKuabRpLlUTLfLhWyeB3nt530tF92ogEqjHMTPpW58oN375UciXXq8T/4KW//kc37nDw=="
 }

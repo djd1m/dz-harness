@@ -44,15 +44,22 @@ export interface RakeSignature {
     readonly label: string;
     readonly patterns: readonly RegExp[];
 }
+export interface RakeSignatureSpec {
+    readonly id: string;
+    readonly label: string;
+    readonly patterns: readonly string[];
+    readonly flags?: string;
+}
 /**
- * Known rake classes (extensible, data-only). Seeded from the classes that actually recur in this repo's
- * QE reports — that IS the dogfood. First match in order wins; unmatched → normalized-text bucket.
+ * Decode the data-only signature table. This fails closed: stateful `g`/`y` patterns would make
+ * RegExp.test() depend on lastIndex, which breaks signatureOf's determinism.
  */
+export declare function loadRakeSignatures(raw: unknown): readonly RakeSignature[];
 export declare const RAKE_SIGNATURES: readonly RakeSignature[];
 /** Normalize a finding's text to a stable clustering key: lowercase, strip sites/numbers/punct, top significant words. */
 export declare function normalizeText(text: string): string;
 /** The signature of a finding: first matching rule, else the normalized-text bucket. */
-export declare function signatureOf(finding: Finding): {
+export declare function signatureOf(finding: Finding, signatures?: readonly RakeSignature[]): {
     id: string;
     label: string;
 };

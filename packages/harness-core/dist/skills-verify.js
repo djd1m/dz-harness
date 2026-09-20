@@ -6,8 +6,8 @@
  * the PROPERTY (registration). This module makes the property observable.
  *
  * Two layers:
- *   L1 `scanSkillsLayout`  — instant, no Claude session: which names CAN register, plus the three
- *                            layout shapes that produced the 1.2.0 defect.
+ *   L1 `scanSkillsLayout`  — instant, no Claude session: names whose on-disk form passes the
+ *                            static checks, plus known issue shapes.
  *   L2 `parseInitFacts`    — the authoritative listing, parsed from the `system/init` event of
  *      + `classifyRegistration`  `claude -p --output-format stream-json --verbose`. No model prose.
  *
@@ -162,6 +162,37 @@ export function parseAllowedTools(markdown) {
         .map((v) => v.trim().replace(/^["']|["']$/g, '').trim())
         .filter((v) => v !== '');
     return { state: 'listed', values, wildcard: values.includes('*') };
+}
+/**
+ * Read the registration-relevant frontmatter fields, line by line and only before its closing fence.
+ * Scanning the whole file would let `description:` in skill documentation suppress a real finding,
+ * the same false-positive/false-negative boundary guarded by `parseAllowedTools` above.
+ *
+ * The two conditions are measured as absence from the registry, not refusal of invocation. Each
+ * measurement used a fresh session, so it also does not establish appearance in the same response
+ * without a restart.
+ */
+function findSkillFrontmatterIssue(markdown) {
+    const lines = markdown.split(/\r?\n/);
+    // NO explicit BOM strip, and that is deliberate: `String.prototype.trim()` already removes U+FEFF
+    // (it is <ZWNBSP>, part of the WhiteSpace production), so a BOM-prefixed fence compares equal to
+    // a bare one. MEASURED 2026-09-19: adding a strip left the mutant "don't strip" 70/70 green —
+    // dead code. The tolerance is pinned by a test instead, so replacing `trim()` with anything
+    // stricter goes red rather than silently rejecting every BOM-prefixed skill.
+    if (lines[0]?.trim() !== '---')
+        return 'missing-frontmatter-fence';
+    let description = null;
+    for (let i = 1; i < lines.length; i++) {
+        const line = lines[i] ?? '';
+        if (line.trim() === '---')
+            break;
+        const match = /^description:(.*)$/.exec(line);
+        if (match) {
+            description = match[1] ?? '';
+            break;
+        }
+    }
+    return description === null || description.trim() === '' ? 'missing-description' : null;
 }
 /**
  * Privilege findings for one skill directory.
@@ -353,17 +384,38 @@ export function scanSkillsLayout(projectDir) {
         // `buried-skill-md` findings for it killed the layout anyway, which was the over-claim (QE4 #1).
         const isPluginContainer = hasPluginManifest(dir);
         const bucket = isPluginContainer ? advisories : findings;
+        // Read under a guard, exactly like scanSkillPrivileges: an unreadable SKILL.md is another
+        // check's business, and this scanner's contract is to REPORT findings, never to throw out of
+        // the whole sweep over one bad file.
+        let frontmatterIssue = null;
+        if (registers) {
+            try {
+                frontmatterIssue = findSkillFrontmatterIssue(readFileSync(join(dir, 'SKILL.md'), 'utf8'));
+            }
+            catch {
+                frontmatterIssue = null;
+            }
+        }
+        if (frontmatterIssue) {
+            findings.push({
+                dir: name,
+                kind: frontmatterIssue,
+                detail: frontmatterIssue === 'missing-frontmatter-fence'
+                    ? 'SKILL.md has no opening frontmatter fence — measured absent from the registry without it'
+                    : 'SKILL.md has no non-empty frontmatter description — measured absent from the registry without one',
+            });
+        }
         // Права проверяются у КАЖДОГО навыка с читаемым SKILL.md, включая одно-навыковый плагин: щедрая
         // выдача не становится безопаснее оттого, что навык лежит в контейнере.
         if (registers)
             scanSkillPrivileges(dir, name, findings, advisories);
-        if (registers && !isPluginContainer) {
-            registrable.push(name);
-        }
-        else if (registers && isPluginContainer) {
+        if (registers) {
+            if (!isPluginContainer && !frontmatterIssue) {
+                registrable.push(name);
+            }
             // A single-skill plugin: it has a depth-1 SKILL.md AND a manifest, so it registers NAMESPACED.
             // Expecting the bare directory name here was a false FAIL (QE5 #2); the container check below
-            // accepts either form.
+            // accepts either form. A frontmatter finding likewise keeps the bare name out of registrable.
         }
         else {
             // A dir with no markdown was never meant to be a skill — advisory, not a failure (QE5 #7).

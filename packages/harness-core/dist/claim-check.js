@@ -105,6 +105,7 @@ function paragraphAround(lines, i) {
 /** Tags that make a claim honest (case-insensitive). */
 // `estimated` agrees with the `estimated: true` honest-uncertainty marker `dz usage` already
 // emits — the two honesty systems must not contradict each other.
+import { maskMarkdown } from './markdown-masker.js';
 const HONEST_TAGS = ['measured', 'claimed', 'synthetic', 'unvalidated', 'baseline', 'estimated'];
 /**
  * Is the 1-based `line` inside a fenced code block within `text`?
@@ -119,20 +120,31 @@ const HONEST_TAGS = ['measured', 'claimed', 'synthetic', 'unvalidated', 'baselin
 export function isFenced(text, line) {
     if (typeof text !== 'string' || typeof line !== 'number' || !isFinite(line) || line < 1)
         return false;
-    const lines = text.split(/\r?\n/);
-    const upTo = Math.min(line - 1, lines.length);
-    let open = null;
-    for (let i = 0; i < upTo; i++) {
-        const m = FENCE_RE.exec(lines[i] || '');
-        if (!m)
-            continue;
-        const marker = m[1][0];
-        if (open === null)
-            open = marker;
-        else if (open === marker)
-            open = null;
+    // DELEGATED to the canonical masker. The local walk this replaces already tracked the marker
+    // CHARACTER — the naive-toggle bug the comment above describes was genuinely fixed — but it still
+    // broke two further CommonMark rules, and both were MEASURED 2026-09-20 to answer `false` for a
+    // line that IS inside a block: a closing fence may carry NO info string, so a second info-string
+    // line closed the block; and a closing fence may not be SHORTER than the opening one, so a
+    // three-backtick line closed a four-backtick block. Both make the engine scan a QUOTED example as
+    // a real claim, and make the hook's deny path stop exempting it.
+    //
+    // `unclosed: 'hide'` keeps the local walk's policy: an unclosed opener leaves every later line
+    // inside the block. One deliberate difference: the OPENING delimiter line now answers `true` (the
+    // local walk answered `false` for it and `true` for the closing one) — an info string is not
+    // prose, and the two delimiters answering differently was an artifact, not a decision.
+    let masked = false;
+    try {
+        const target = line - 1;
+        maskMarkdown(text.replace(/\r\n/g, '\n'), {
+            unclosed: 'hide',
+            onMasked: (i) => { if (i === target)
+                masked = true; },
+        });
     }
-    return open !== null;
+    catch {
+        return false;
+    }
+    return masked;
 }
 const FENCE_RE = /^\s*(`{3,}|~{3,})/;
 const HEADING_RE = /^\s{0,3}#{1,6}\s/;
@@ -168,8 +180,32 @@ const MAP_METRIC_RE = new RegExp(String.raw `(?<![.\w])map\b(?!-)\s*(?:[@:=]\s*)
  * A shell reproducer is STRUCTURAL, never a word. `(MEASURED — reproducer)` is self-certifying and
  * must not pass; a backticked span whose first token is a command this repo actually measures with is
  * evidence. The allowlist boundary is exactly that: an unknown binary is a claim ABOUT evidence.
+ *
+ * `python3` joined the list for backlog 0b53470a, on the list's OWN criterion rather than by
+ * widening it: `packages/@dzhechkov/health-advisor/test/goap-python-suite.test.js` makes
+ * `python3 -m unittest discover` a GATE, so it is a command this repo measures with. Before the
+ * addition a Python measurer could not cite itself — MEASURED by twins, one line differing only in
+ * the backticked binary: `python3 …` → 1 finding "Tagged MEASURED but cites no reproducer",
+ * `pytest …` → 0, `git show …` → 0. Bare `python` was deliberately NOT added (cross-family review
+ * r1, MEDIUM): the gate this repo runs is `python3`, and the only measured usage in the tree is
+ * `python3 -m unittest` — an entry nothing measures with would be exactly the "claim ABOUT
+ * evidence" this list refuses. The list stays CLOSED: a measurer in any other language meets the
+ * same wall and needs the same deliberate entry. That is the price of the boundary, not a defect.
+ *
+ * THE BOUNDARY IS `(?![\w-])`, NOT `\b`, and that turned out to matter far beyond python
+ * (cross-family review r1, HIGH). `\b` treats a hyphen as a word boundary, so every backticked
+ * FILE NAME that begins with a listed command counted as a reproducer. MEASURED 2026-09-19:
+ * `pnpm-lock.yaml`, `dz-harness-hub`, `git-workflow` and `npm-shrinkwrap.json` all passed as
+ * evidence for a MEASURED claim, while `node_modules` was correctly refused — only because `_` is
+ * a word character and `-` is not. The repository holds hundreds of such tokens, so the check has
+ * been accepting file names as measurements for as long as the list has existed.
+ *
+ * WHAT THIS CHECK DOES NOT DO, said plainly because the previous wording implied more: it verifies
+ * the SHAPE of a citation, never that a measurement happened. `git --version` in backticks is
+ * accepted by construction — validating arguments per binary is a different mechanism with a
+ * different cost, and pretending otherwise would be the very laundering this file exists to stop.
  */
-const SHELL_REPRO_RE = /`\s*\$?\s*(?:ps|stat|lsof|time|git|npm|npx|node|pnpm|yarn|dz|curl|wc|grep|find|cargo|make|docker|kubectl|awk|sed|du|df|vitest|pytest)\b[^`]*`/i;
+const SHELL_REPRO_RE = /`\s*\$?\s*(?:ps|stat|lsof|time|git|npm|npx|node|pnpm|yarn|dz|curl|wc|grep|find|cargo|make|docker|kubectl|awk|sed|du|df|vitest|pytest|python3)(?![\w-])[^`]*`/i;
 /** Reproducer references that count as evidence backing a MEASURED claim. */
 const REPRODUCER_HINTS = [
     // Generic evidence hints kept from ruview.

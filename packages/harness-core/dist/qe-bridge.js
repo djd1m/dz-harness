@@ -45,7 +45,10 @@ export const CLAUDE_BRIDGE_PROMPT_CEILING_CHARS = 200_000;
  * Ids outside this map are still usable via `--model`; this is the default search order.
  */
 export const KNOWN_CLAUDE = { opus: 1, sonnet: 1, haiku: 1 };
-/** The terminal verdict grammar: `QE-BRIDGE-SIGNOFF grade=<A-F> findings=<n>`. */
+/** The terminal verdict grammar: `QE-BRIDGE-SIGNOFF grade=<A-F, optionally + or -> findings=<n>`.
+ *  bridge-grade-grammar (ddf83072): a live Sonnet review wrote `grade=B-` in all three channels on
+ *  2026-09-17 06:52 and the whole 145-second review was discarded as no-grade-marker, while every
+ *  other consumer (round close, score, recap) already accepted modifiers. */
 export const BRIDGE_MARKER = 'QE-BRIDGE-SIGNOFF';
 /** The fenced block's info string. */
 export const BRIDGE_FENCE_LABEL = 'qe-bridge-signoff';
@@ -238,7 +241,7 @@ export function defangSignoffEchoes(text) {
     out = out.replace(/qe-bridge-signoff/gi, '[quoted-fence-label]');
     out = out.split(BRIDGE_EXTRACT_END).join('[quoted-boundary]');
     // Line-anchored verdict lines only — prose such as "upgrade the grade later" is untouched.
-    out = out.replace(/^([ \t>*~-]*)(?:\*{0,2}#{0,4}[ \t]*)?GRADE[ \t]*[:=—–-]?[ \t]*([A-F])\b/gim, '$1[quoted-grade] $2');
+    out = out.replace(/^([ \t>*~-]*)(?:\*{0,2}#{0,4}[ \t]*)?GRADE[ \t]*[:=—–-]?[ \t]*([A-F](?:[+-](?![ \t]*[A-F]\b))?)(?![A-Za-z])/gim, '$1[quoted-grade] $2');
     return out;
 }
 /**
@@ -282,13 +285,14 @@ export function buildBridgePrompt(input) {
         'happen in this environment.',
         '',
         'Output format — ALL THREE parts are required, in this order, at the END of your answer:',
-        '  (a) your review prose, containing exactly ONE line that reads:  GRADE: <A-F>',
+        '  (a) your review prose, containing exactly ONE line that reads:  GRADE: ' + GRADE_PLACEHOLDER,
         '  (b) a fenced code block labelled ' + BRIDGE_FENCE_LABEL + ' whose body is JSON:',
-        '      {"grade":"<A-F>","findings":[{"n":1,"severity":"major","title":"…","file":"path","line":12}]}',
+        '      {"grade":"' + GRADE_PLACEHOLDER + '","findings":[{"n":1,"severity":"major","title":"…","file":"path","line":12}]}',
         '      A genuinely clean review writes "findings": [] — but it must WRITE it.',
-        '  (c) a final line, on its own:  ' + BRIDGE_MARKER + ' grade=<A-F> findings=<n>',
-        'The grade in all three places must be the SAME letter — ONE capital letter A, B, C, D, E or F,',
-        'with NO + or - suffix (write B, never B- or B+; a modifier makes the whole answer unparseable).',
+        '  (c) a final line, on its own:  ' + BRIDGE_MARKER + ' grade=' + GRADE_PLACEHOLDER + ' findings=<n>',
+        'The grade in all three places must be the SAME grade, character for character — one capital',
+        'letter A, B, C, D, E or F, optionally followed by + or -.',
+        'A modifier is fine (B+, B, B-) and is carried through verbatim; what breaks the parse is a RANGE (A-F), prose in place of the letter, or two channels disagreeing.',
         'Anything else is discarded as a failed call — an unparseable answer is treated as no review at',
         'all, never as a passing one.',
         '',
@@ -314,7 +318,13 @@ export function buildBridgePrompt(input) {
 /* ── parsing ───────────────────────────────────────────────────────────────────────────────── */
 /** Line-anchored marker. Leading quote/list decoration is allowed on purpose: a planted marker
  * SHOULD match the grammar — and then lose to the LAST one. Anchoring is the defence, not evasion. */
-const MARKER_LINE = /^[ \t>*~-]*QE-BRIDGE-SIGNOFF[ \t]+grade=([A-F])[ \t]+findings=(\d{1,6})[ \t]*$/gim;
+/** The grade placeholder the reviewer prompt shows in ALL THREE output slots. It lives in one
+ * constant because round-2 review (2026-09-18, HIGH #1 partial) found the opposite: the marker slot
+ * invited a modifier while the prose and JSON slots still read `<A-F>` — which is also the exact
+ * spelling of the RANGE the parser refuses, so the template taught the reviewer to write the one
+ * thing that breaks the parse. One spelling, three slots, no drift. */
+const GRADE_PLACEHOLDER = '<A-F, optionally with + or ->';
+const MARKER_LINE = /^[ \t>*~-]*QE-BRIDGE-SIGNOFF[ \t]+grade=([A-F][+-]?)[ \t]+findings=(\d{1,6})[ \t]*$/gim;
 /** Fenced `qe-bridge-signoff` block. */
 const SIGNOFF_FENCE = /^[ \t]*(?:`{3,}|~{3,})[ \t]*qe-bridge-signoff[ \t]*\r?\n([\s\S]*?)^[ \t]*(?:`{3,}|~{3,})[ \t]*$/gim;
 /** Presence-only probe for a verdict LINE (not a grade parse) — lets the parser tell "no GRADE line
@@ -395,7 +405,7 @@ export function parseBridgeOutput(raw, ctx) {
     // channel 1 — the LAST terminal marker line, which must be the FINAL content of the answer
     const marker = lastMatch(MARKER_LINE, text);
     if (marker === null) {
-        return fail('no-grade-marker', 'no `' + BRIDGE_MARKER + ' grade=<A-F> findings=<n>` line anywhere in ' + text.length + ' chars of reviewer output — text without a verdict marker is not a verdict');
+        return fail('no-grade-marker', 'no `' + BRIDGE_MARKER + ' grade=<A-F, optionally with + or -> findings=<n>` line anywhere in ' + text.length + ' chars of reviewer output — text without a verdict marker is not a verdict');
     }
     const markerGrade = String(marker[1]).toUpperCase();
     const markerCount = Number(marker[2]);
@@ -429,8 +439,8 @@ export function parseBridgeOutput(raw, ctx) {
     }
     const obj = parsedJson;
     const jsonGradeRaw = obj['grade'];
-    if (typeof jsonGradeRaw !== 'string' || !/^[A-Fa-f]$/.test(jsonGradeRaw.trim())) {
-        return fail('no-signoff-json', 'the fenced JSON block names no `grade` letter A-F (saw ' + JSON.stringify(jsonGradeRaw) + ')');
+    if (typeof jsonGradeRaw !== 'string' || !/^[A-Fa-f][+-]?$/.test(jsonGradeRaw.trim())) {
+        return fail('no-signoff-json', 'the fenced JSON block names no `grade` letter A-F (optionally with + or -) (saw ' + JSON.stringify(jsonGradeRaw) + ')');
     }
     const jsonGrade = jsonGradeRaw.trim().toUpperCase();
     const validated = validateFindings(obj['findings']);

@@ -1150,6 +1150,26 @@ export function summarizeMutationResults(results) {
         dropComparable: results.filter((r) => r.dropComparable).length,
     };
 }
+/**
+ * Pure: payload in, row out — no filesystem (NFR-2; the CLI owns the append). `entry` is `null`
+ * for a result that never resolved to a valid registry entry (`ENTRY_INVALID` / `COVERAGE_GAP` —
+ * `parseMutationRegistry` excludes those from `registry.entries` by construction, so the CALLER
+ * cannot always hand one in) — `observed` then stays `null`, honestly, rather than the caller
+ * inventing a fallback entry object just to satisfy this signature.
+ */
+export function mutationVerdictRow(entry, result, meta) {
+    return {
+        ts: meta.ts,
+        package: meta.package,
+        entryId: result.id,
+        verdict: result.verdict,
+        failingCount: result.failingCount,
+        observed: entry !== null && typeof entry.observed === 'number' ? entry.observed : null,
+        drop: result.drop,
+        dropComparable: result.dropComparable,
+        runId: meta.runId,
+    };
+}
 const VERDICT_MARK = {
     PROVEN: '✓',
     ENTRY_INVALID: '✗',

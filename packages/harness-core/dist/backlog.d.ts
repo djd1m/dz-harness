@@ -153,7 +153,8 @@ export declare function ideaId(text: string, createdTs: string): string;
  * into a surprising path.
  */
 export declare function isSafeId(id: unknown): id is string;
-/** Read the append-only store. A corrupt line is SKIPPED (never fatal) — the whole store never throws. */
+/** Read the store (one current line per id — `writeIdeas` rewrites it whole and never appends). A corrupt
+ *  line is SKIPPED (never fatal) — the whole store never throws. */
 export declare function readIdeas(projectRoot: string): IdeaRecord[];
 /** Atomic full rewrite (tmp + rename) so a crash mid-write never truncates the store. */
 export declare function writeIdeas(projectRoot: string, ideas: readonly IdeaRecord[]): void;

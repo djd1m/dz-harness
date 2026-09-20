@@ -5,8 +5,9 @@
  * @packageDocumentation
  */
 
+import { maskMarkdown } from './markdown-masker.js';
 import { existsSync, readFileSync, writeFileSync, readdirSync, renameSync } from 'node:fs';
-import { join as pathJoin, relative as pathRelative, resolve as pathResolve } from 'node:path';
+import { join as pathJoin, relative as pathRelative, resolve as pathResolve, isAbsolute as pathIsAbsolute, sep as pathSep } from 'node:path';
 
 import { decidePublishSigning, decidePostSigningVerification } from './publish-signing.js';
 import { join } from 'node:path';
@@ -381,6 +382,24 @@ export function publishArgv(mode: ProvenanceMode, env: NodeJS.ProcessEnv): strin
   return decideProvenance(mode, env).useProvenance ? base + ' --provenance' : base;
 }
 
+/** Match substrings against package identity and path without including the checkout root. */
+export function matchesPublishFilter(
+  pkg: { name: string; dir: string },
+  filter: string,
+  monorepoRoot: string,
+): boolean {
+  const normalizedFilter = filter.replace(/\\/g, '/');
+  const relativeDir = pathRelative(pathResolve(monorepoRoot), pathResolve(pkg.dir));
+  // A foreign path must not reintroduce checkout ancestors into the match.
+  const outsideRoot = relativeDir === '..' || relativeDir.startsWith(`..${pathSep}`) || pathIsAbsolute(relativeDir);
+  // Only Windows spells separators with a backslash. On POSIX a backslash is a legal character
+  // INSIDE a directory name, so rewriting it here would invent a separator the filesystem does
+  // not have and over-select that package — the same class as the root-substring defect.
+  const comparableDir = pathSep === '\\' ? relativeDir.replace(/\\/g, '/') : relativeDir;
+  return pkg.name.includes(normalizedFilter)
+    || (!outsideRoot && comparableDir.includes(normalizedFilter));
+}
+
 /** Discover all publishable @dzhechkov packages. */
 export function discoverPackages(monorepoRoot: string): { name: string; dir: string; version: string }[] {
   const baseDir = join(monorepoRoot, 'packages', '@dzhechkov');
@@ -741,21 +760,20 @@ const REGION_END = /^ {0,3}#{1,2}\s/;
 
 /** Blank out fenced-code lines while PRESERVING line numbering, so a `## Status` or an entry-shaped
  *  line inside an example neither starts nor ends the region (the same fence blindness was found in
- *  another checker on the same day). */
+ *  another checker on the same day).
+ *
+ *  Scoping is DELEGATED to the canonical masker, not re-implemented. The local version this replaces
+ *  tracked only the marker CHARACTER and closed on any run of three or more, ignoring CommonMark's
+ *  rule that a closing fence may not be SHORTER than the opening one. MEASURED 2026-09-20: in a
+ *  README whose entry body quotes a markdown example as ````markdown … ```` , the inner ``` closed
+ *  the outer block early, the quoted `## Status` became visible, the region ENDED there, and the
+ *  body line below — `В `1.2.2` эта строка тела …` — lost protection. That is exactly the
+ *  2026-08-25 incident this function exists to stop: a record's body relabelled forward and shipped
+ *  to npm. `unclosed: 'hide'` preserves the local version's policy — an unclosed opener masks to
+ *  end of file, which is also the CommonMark reading.
+ */
 function maskFences(lines: readonly string[]): string[] {
-  const out: string[] = [];
-  let fence: string | null = null;
-  for (const line of lines) {
-    const open = /^ {0,3}(```+|~~~+)/.exec(line);
-    if (fence === null && open !== null && open[1] !== undefined) { fence = open[1][0] as string; out.push(''); continue; }
-    if (fence !== null) {
-      out.push('');
-      if (new RegExp('^ {0,3}' + fence + '{3,}\\s*$').test(line)) fence = null;
-      continue;
-    }
-    out.push(line);
-  }
-  return out;
+  return String(maskMarkdown(lines.join('\n'), { unclosed: 'hide' })).split('\n');
 }
 
 /**
@@ -883,10 +901,14 @@ export function publishPackages(
     Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds);
   });
 
+  if (opts.filter?.some((filter) => filter.length === 0)) {
+    throw new Error('publish: --filter requires non-empty package-name substrings (empty would match ALL packages)');
+  }
+
   const packages = discoverPackages(monorepoRoot);
   const results: PublishResult[] = [];
   const filtered = opts.filter && opts.filter.length > 0
-    ? packages.filter((p) => opts.filter!.some((f) => p.name.includes(f) || p.dir.includes(f)))
+    ? packages.filter((p) => opts.filter!.some((f) => matchesPublishFilter(p, f, monorepoRoot)))
     : packages;
   // Publish dependencies before dependents so pnpm rewrites workspace:* to the
   // freshly-bumped version, never a stale one (the harness-cli@0.3.122 breakage).

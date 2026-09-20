@@ -279,7 +279,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "09d9074650a09fe7715324b47211685755777381c8219cdecb0bfbc4d562bd0f"
+          "value": "92f1f4fe9846831ff5c40c981383c2b9c57f8a9f87b45260ae955d7fce984f70"
         }
       ]
     },
@@ -619,7 +619,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7bce49a744170a3193edf4b2238bcc5a6f1b0efa29333760a52e4fd145739d18"
+          "content": "d671353b2e73e0790206cf963ee85f1ff6b97d56d975b9eb3ad59a14d7239e2a"
         }
       ]
     },
@@ -2055,6 +2055,16 @@
     },
     {
       "type": "file",
+      "name": "tests/dz-availability.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "22203df26f3a90f015730c4b667b07b35e40730cb0e310b4e8087cbfab31b3ce"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "tests/e2e/feature-contour.test.js",
       "hashes": [
         {
@@ -2079,7 +2089,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3477f63db3f531e3c2970b85d784f22d268695030764319457a543b2e9d49758"
+          "content": "b84eb4d3b79544b8c0dad51dd043ce01dd94931246fc153283f9ab6d1c50e8cc"
         }
       ]
     },
@@ -2185,11 +2195,31 @@
     },
     {
       "type": "file",
+      "name": "tests/npm-cli-resolver.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "272e8aab19d4b0dbe3fa2bf3c0d544afd1c811f6a04cc445d480233e11c63840"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "tests/npm-resolver-cases.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "df67c832c5bde9f550d88fda48ed27600f4654aa7c3fdaadc79adbbbe6af141b"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "tests/snapshot/baseline.json",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "31801798e099c5e43e60de29c3487a586fe6b906b2135ea1060861567d36fdfb"
+          "content": "0c73149a79dc3b4c051f49500ea2f3fb2dc172df127636fe95ab217e8a6f5291"
         }
       ]
     },
@@ -2319,7 +2349,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "652c90abf50636dd97e499fe3d23f77b780a0f77d7dd989f4b7ab900ae3a467b"
+          "content": "e5177f2726a8a13c2c0a56d5bf010d0ee0160f2324cf7b2293c4d44c40fdc4aa"
         }
       ]
     },
@@ -2489,7 +2519,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8ff509273436f10432bed8d34568d88d3bcbf6d85c9e7e290310ab771b9785b0"
+          "content": "0612c27c88051c717da0e37b7f525b75195a85cf7a88f0da9d65d7ebbc3501b6"
         }
       ]
     },
@@ -2659,7 +2689,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e723a1fe9cd392196aae4f0c421915b6487f78ee213cfa1eab3f1b66106ec243"
+          "content": "e17cd3de5fd6173ebf262b5c5d354ee764343a02a7a22f9f2f16511b220d067c"
         }
       ]
     },
@@ -2690,6 +2720,16 @@
         {
           "alg": "SHA-256",
           "content": "6c6a470d22d12ff46301c4ae61ba7a2563c4ff8a3a2d5b3a84c81c6b8c11b067"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "tests/unit/npm-cli-resolver.test.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9c5ee626d9b92c69e9720b1fca032a14592c2767f903b064be1b7f1f78772b76"
         }
       ]
     },

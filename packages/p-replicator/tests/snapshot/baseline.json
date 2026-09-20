@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-03T05:28:07.394Z",
+  "generatedAt": "2026-09-20T09:34:29.101Z",
   "totalFiles": 167,
   "files": {
     ".claude/agents/doc-validator.md": "e57950758cd4764b2cb54b3f1905567e9dbc1ed20ac6ecd30998614894689f4f",
@@ -25,7 +25,7 @@
     ".claude/hooks/check-dangling-refs.cjs": "8f012876b1af110a1093319d36a2f84208a15780dbb8abb5a43eb4aeb8f76865",
     ".claude/hooks/check-docs-complete.cjs": "0f516df0882c9da53d166a1b4e30ff1fc37bd5a2027c7e5fbdab6cba116ca828",
     ".claude/hooks/check-embed-contract.cjs": "9e963a07c12350b760264133021e75fb699439b1f060332e1ccdd962b645b4a0",
-    ".claude/hooks/check-external-deps.cjs": "7bce49a744170a3193edf4b2238bcc5a6f1b0efa29333760a52e4fd145739d18",
+    ".claude/hooks/check-external-deps.cjs": "d671353b2e73e0790206cf963ee85f1ff6b97d56d975b9eb3ad59a14d7239e2a",
     ".claude/hooks/check-file-ownership.cjs": "c6273e7b0817d15e375586131924a08095722aff7d0e6a6a04c857a480788e1f",
     ".claude/hooks/check-growth-trace.cjs": "91994fc109c8440306c9dd3d5eea176c533eb0818fcdb09bac2b309397d9908a",
     ".claude/hooks/check-handoff-manifest.cjs": "768cd0befc0da3adcddcded86ed6d1bd1ac4f25afb563ae578002060a54968cf",

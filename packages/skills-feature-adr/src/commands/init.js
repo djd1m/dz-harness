@@ -54,14 +54,15 @@ function showKeysariumIntegration(keysariumManifest) {
 
 // Copies a component file-by-file with per-file overwrite protection:
 //   - destination missing            -> write, record in `written`
-//   - destination exists + --force   -> overwrite, record in `written`
+//   - destination exists + --force   -> BACK UP to a .bak sibling if the bytes differ,
+//                                       then overwrite; record in `written` (+ `backedUp`)
 //   - destination exists, no --force -> do NOT write, record in `preserved`
 // In dry-run mode nothing is written, but the same written/preserved
 // classification is produced.
 // Returns { missing, fileCount } where `missing` means the template source
 // was absent on disk and `fileCount` is how many files the template provides.
 function installComponent(key, comp, templatesDir, targetDir, opts) {
-  const { force, dryRun, written, preserved, hashes } = opts;
+  const { force, dryRun, written, preserved, backedUp, hashes } = opts;
   const src = path.join(templatesDir, comp.src);
   const destRoot = path.join(targetDir, comp.src);
 
@@ -89,12 +90,20 @@ function installComponent(key, comp, templatesDir, targetDir, opts) {
   }
 
   for (const entry of entries) {
-    if (fileExists(entry.destFile) && !force) {
+    const existed = fileExists(entry.destFile);
+    if (existed && !force) {
       preserved.push(entry.rel);
       continue;
     }
+    // `update --force` has backed edits up to a `.bak` sibling since day one; `init --force` was
+    // the ONE path that overwrote silently — and the success banner recommends exactly that
+    // command, so a locally-edited workflow could vanish with no notice and no copy.
+    // Only DIFFERING bytes are backed up: a `.bak` identical to the template is pure litter.
+    const differs = existed && hashFile(entry.destFile) !== hashFile(entry.srcFile);
+    if (differs && backedUp) backedUp.push(entry.rel);
     if (!dryRun) {
       ensureDir(path.dirname(entry.destFile));
+      if (differs) fs.copyFileSync(entry.destFile, `${entry.destFile}.bak`);
       fs.copyFileSync(entry.srcFile, entry.destFile);
       // Record the SHA-256 of the TEMPLATE bytes we just installed (not the
       // dest) as this file's baseline. This makes baseline == mine immediately
@@ -108,6 +117,23 @@ function installComponent(key, comp, templatesDir, targetDir, opts) {
   }
 
   return { missing: false, fileCount: entries.length };
+}
+
+// Print the block of locally-changed files that were (or would be) backed up before --force
+// overwrote them. Silence here is what the field report caught: the operator had no way to learn
+// that their edit was gone, let alone where the copy is.
+function printBackedUpBlock(backedUp, dryRun) {
+  if (backedUp.length === 0) return;
+  const MAX_SHOWN = 10;   // `printPreservedBlock` держит свою копию — она объявлена в его теле
+  console.log('');
+  const verb = dryRun ? 'would be backed up' : 'backed up';
+  warn(`${backedUp.length} locally-changed file(s) ${verb} to a .bak sibling before being overwritten:`);
+  for (const rel of backedUp.slice(0, MAX_SHOWN)) {
+    console.log(dim(`  ${rel} -> ${rel}.bak`));
+  }
+  if (backedUp.length > MAX_SHOWN) {
+    console.log(dim(`  …and ${backedUp.length - MAX_SHOWN} more`));
+  }
 }
 
 // Print the block of pre-existing files that were (or would be) preserved
@@ -233,6 +259,7 @@ async function run(options) {
   const installedFiles = [];   // files written (or would-write in dry-run)
   const installedHashes = {};  // rel -> sha256 of the TEMPLATE bytes installed (baseline)
   const preservedFiles = [];   // pre-existing files NOT overwritten (no --force)
+  const backedUpFiles = [];    // locally-changed files copied to .bak before --force overwrote them
   const completedKeys = [];    // component keys processed so far (for partial manifest)
   const installedOptionalKeys = [];
   let stepNum = 0;
@@ -246,7 +273,7 @@ async function run(options) {
 
       installComponent(key, comp, templatesDir, targetDir, {
         force, dryRun, written: installedFiles, preserved: preservedFiles,
-        hashes: installedHashes,
+        backedUp: backedUpFiles, hashes: installedHashes,
       });
       completedKeys.push(key);
     }
@@ -262,7 +289,7 @@ async function run(options) {
 
       const res = installComponent(key, comp, templatesDir, targetDir, {
         force, dryRun, written: installedFiles, preserved: preservedFiles,
-        hashes: installedHashes,
+        backedUp: backedUpFiles, hashes: installedHashes,
       });
       if (!res.missing && res.fileCount > 0) {
         installedOptionalKeys.push(key);
@@ -296,6 +323,10 @@ async function run(options) {
   if (dryRun) {
     console.log('');
     info(`Dry run: ${installedFiles.length} file(s) would be written, ${preservedFiles.length} pre-existing file(s) would be preserved.`);
+    // Отчёт о копиях стоит СНАРУЖИ стража сохранённых: при --force сохранять нечего, список
+    // пуст, и внутри стража блок был бы недостижим ровно в том случае, ради которого написан.
+    // Пустой список функция отсекает сама.
+    printBackedUpBlock(backedUpFiles, true);
     if (preservedFiles.length > 0) {
       printPreservedBlock(preservedFiles, true);
     }
@@ -318,10 +349,11 @@ async function run(options) {
     process.exit(0);
   }
 
+  printBackedUpBlock(backedUpFiles, false);   // снаружи: при --force preservedFiles пуст
   if (preservedFiles.length > 0) {
     printPreservedBlock(preservedFiles, false);
-    console.log('');
   }
+  if (preservedFiles.length > 0 || backedUpFiles.length > 0) console.log('');
 
   // ── f) Write manifest ──────────────────────────────────────────────────
   const pkgPath = path.resolve(__dirname, '../../package.json');

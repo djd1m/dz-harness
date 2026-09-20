@@ -21,6 +21,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, readdir
 import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
+import { openSqliteReadOnly } from '@dzhechkov/memory';
 import { putBookKnowledge, queryBookKnowledge, bookKbPath, type BookKU, type BookKUHit } from './book-kb.js';
 import { indexPatternsToAgentdb, searchAgentdbPatterns, reindexAgentdbRows, type AgentdbRow } from './agentdb-index.js';
 import type { SnapshotRotationReport } from './agentdb-snapshot-rotation.js';
@@ -193,7 +194,8 @@ export function readBookKus(opts: {
     return { kus: [], error: 'better-sqlite3 not installed (run: dz setup --memory agentdb)' };
   }
   try {
-    const db = new Database(opts.storePath, { readonly: true });
+    const handle = openSqliteReadOnly(opts.storePath, { Database });
+    const db = handle.db as NativeDb;
     try {
       const cols = 'book, ku_id, corpus_version, type, name, problem, content, chapter, pages, metadata';
       const rows = (opts.source !== undefined
@@ -201,7 +203,11 @@ export function readBookKus(opts: {
         : db.prepare(`SELECT ${cols} FROM book_knowledge`).all()) as ProjRow[];
       return { kus: rows.map(rowToKu) };
     } finally {
-      db.close();
+      try {
+        db.close();
+      } finally {
+        handle.cleanup();
+      }
     }
   } catch (err) {
     return { kus: [], error: `read book KB failed: ${err instanceof Error ? err.message : String(err)}` };

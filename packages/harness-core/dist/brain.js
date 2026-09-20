@@ -20,6 +20,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync, readdir
 import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
+import { openSqliteReadOnly } from '@dzhechkov/memory';
 import { putBookKnowledge, queryBookKnowledge, bookKbPath } from './book-kb.js';
 import { indexPatternsToAgentdb, searchAgentdbPatterns, reindexAgentdbRows } from './agentdb-index.js';
 import { resolveEmbedModel } from './embedding-config.js';
@@ -135,7 +136,8 @@ export function readBookKus(opts) {
         return { kus: [], error: 'better-sqlite3 not installed (run: dz setup --memory agentdb)' };
     }
     try {
-        const db = new Database(opts.storePath, { readonly: true });
+        const handle = openSqliteReadOnly(opts.storePath, { Database });
+        const db = handle.db;
         try {
             const cols = 'book, ku_id, corpus_version, type, name, problem, content, chapter, pages, metadata';
             const rows = (opts.source !== undefined
@@ -144,7 +146,12 @@ export function readBookKus(opts) {
             return { kus: rows.map(rowToKu) };
         }
         finally {
-            db.close();
+            try {
+                db.close();
+            }
+            finally {
+                handle.cleanup();
+            }
         }
     }
     catch (err) {

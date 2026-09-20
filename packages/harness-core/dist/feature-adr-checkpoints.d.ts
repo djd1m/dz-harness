@@ -185,7 +185,7 @@ export declare function decideCheckpointResume(opts: {
 /** Serialize one checkpoint line, or null when the result is null/oversize/unserializable —
  * the caller logs the skip loudly; a missing checkpoint only costs a re-run, never corrupts.
  * A null result is never persisted (Codex QE #8: it would later parse as a resumable entry). */
-export declare function serializeCheckpoint(stage: string, inputHash: string, result: unknown): string | null;
+export declare function serializeCheckpoint(stage: string, inputHash: string, result: unknown, ts?: string): string | null;
 export interface ParsedCheckpointRead {
     entries: Record<string, CheckpointEntry>;
     listing: Set<string>;
@@ -209,7 +209,12 @@ export declare function shellQuote(s: string): string;
 export declare function checkpointReadCmd(fdirAbs: string): string;
 /** The one Bash command the write agent runs: mkdir the state dir, then append ONE line. The line
  * is single-quote-escaped as a whole — JSON.stringify output never contains literal newlines, so
- * printf '%s\n' emits exactly one record. */
+ * printf '%s\n' emits exactly one record.
+ *
+ * The record's `ts` is stamped SHELL-SIDE (`date -u`), the same idiom the decision-recall ledger
+ * uses, because the workflow sandbox forbids `Date` and this function must stay pure. A line that
+ * is not a JSON object falls back to the plain append: an unstamped record beats a lost one, and
+ * the return type stays `string` so no caller grows a new failure path. */
 export declare function checkpointAppendCmd(fdirAbs: string, line: string): string;
 export type CaptureMode = 'capture' | 'backfill' | 'skip-disabled' | 'skip-empty';
 /** Decide whether this completion is captured. A resumed stage is backfilled rather than

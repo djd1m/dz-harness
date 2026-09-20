@@ -25,7 +25,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import type { Dirent } from 'node:fs';
 import { join, relative } from 'node:path';
 
-import { discoverPackages, orderByDependencies } from './publish.js';
+import { discoverPackages, matchesPublishFilter, orderByDependencies } from './publish.js';
 import { planPackedInstallSmoke, judgePackedInstallSmoke } from './packed-install-smoke.js';
 import type { PackedInstallPlan, PackedInstallExecution } from './packed-install-smoke.js';
 
@@ -243,9 +243,14 @@ export function collectPackageFacts(monorepoRoot: string, filter?: readonly stri
   if (filter !== undefined && filter.length === 0) {
     throw new Error('release: --filter requires a non-empty list of package-name substrings (empty would match ALL packages)');
   }
+  // The twin of the publish guard: an empty ELEMENT matches every name, so the list being
+  // non-empty is not enough. Both doors must be shut or the weaker one becomes the entrance.
+  if (filter?.some((f) => f.length === 0)) {
+    throw new Error('release: --filter requires non-empty package-name substrings (empty would match ALL packages)');
+  }
   const discovered = discoverPackages(monorepoRoot);
   const selected =
-    filter === undefined ? discovered : discovered.filter((p) => filter.some((f) => p.name.includes(f) || p.dir.includes(f)));
+    filter === undefined ? discovered : discovered.filter((p) => filter.some((f) => matchesPublishFilter(p, f, monorepoRoot)));
   const ordered = orderByDependencies(selected);
 
   return ordered.map((p) => {
@@ -727,7 +732,8 @@ export function outputTail(stdout: unknown, stderr: unknown, maxLines = 40, maxB
  * - `token`/`secret`/`password` (case-insensitive) as a `key: value` or `key=value` pair — the
  *   KEY survives, only the value is replaced;
  * - `Bearer <token>` HTTP auth headers;
- * - vendor-prefixed tokens: `npm_…`, `ghp_…`, `sk-…`, `AKIA…`;
+ * - vendor-prefixed tokens: `npm_…`, `ghp_…`, `github_pat_…`, `sk-…` (hyphenated forms whole), `AKIA…`;
+ * - JSON keys (`"token":"…"`) and env-style names ending in TOKEN/SECRET/PASSWORD/API_KEY;
  * - long opaque strings (base64/hex-ish, `[A-Za-z0-9+/=]{32,}`) that look like a key/secret even
  *   without a recognisable prefix.
  * Order matters: prefixed/labelled patterns run BEFORE the generic long-opaque-string pattern so
@@ -738,8 +744,16 @@ export function redactSecrets(text: string): string {
   out = out.replace(/\bBearer\s+\S+/gi, 'Bearer [redacted]');
   out = out.replace(/\bnpm_[A-Za-z0-9]+/g, '[redacted]');
   out = out.replace(/\bghp_[A-Za-z0-9]+/g, '[redacted]');
-  out = out.replace(/\bsk-[A-Za-z0-9]+/g, '[redacted]');
+  out = out.replace(/\bgithub_pat_[A-Za-z0-9_]+/g, '[redacted]');
+  // `sk-proj-…` (and any other hyphenated vendor form) is redacted WHOLE — the old `[A-Za-z0-9]+` stopped
+  // at the first hyphen and let the tail through (MEASURED 2026-09-13, backlog 2df653d9).
+  out = out.replace(/\bsk-[A-Za-z0-9_-]+/g, '[redacted]');
   out = out.replace(/\bAKIA[A-Za-z0-9]+/g, '[redacted]');
+  // JSON keys: `"token":"…"` has a quote between key and colon, so the labelled rule below never saw it.
+  out = out.replace(/"(token|secret|password|api[_-]?key|access[_-]?token)"\s*:\s*"[^"]*"/gi, '"$1":"[redacted]"');
+  // Env-style names that END in a secret word (`GITHUB_TOKEN=`, `NPM_ACCESS_TOKEN=`): `_` is a word
+  // character, so `\btoken` never matched them.
+  out = out.replace(/\b([A-Z0-9_]*(?:TOKEN|SECRET|PASSWORD|API_KEY))(\s*[:=]\s*)(\S+)/g, '$1$2[redacted]');
   out = out.replace(/\b(token|secret|password)(\s*[:=]\s*)(\S+)/gi, '$1$2[redacted]');
   out = out.replace(/\b[A-Za-z0-9+/=]{32,}\b/g, '[redacted]');
   return out;

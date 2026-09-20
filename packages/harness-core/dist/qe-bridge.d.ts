@@ -44,7 +44,10 @@ export declare const CLAUDE_BRIDGE_PROMPT_CEILING_CHARS = 200000;
  * Ids outside this map are still usable via `--model`; this is the default search order.
  */
 export declare const KNOWN_CLAUDE: Record<string, 1>;
-/** The terminal verdict grammar: `QE-BRIDGE-SIGNOFF grade=<A-F> findings=<n>`. */
+/** The terminal verdict grammar: `QE-BRIDGE-SIGNOFF grade=<A-F, optionally + or -> findings=<n>`.
+ *  bridge-grade-grammar (ddf83072): a live Sonnet review wrote `grade=B-` in all three channels on
+ *  2026-09-17 06:52 and the whole 145-second review was discarded as no-grade-marker, while every
+ *  other consumer (round close, score, recap) already accepted modifiers. */
 export declare const BRIDGE_MARKER = "QE-BRIDGE-SIGNOFF";
 /** The fenced block's info string. */
 export declare const BRIDGE_FENCE_LABEL = "qe-bridge-signoff";

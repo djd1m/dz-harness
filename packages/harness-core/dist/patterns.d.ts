@@ -217,6 +217,30 @@ export declare function reinforcePattern(projectRoot: string, dzIdOrText: string
     exposure?: boolean;
     domain?: string;
 }): Promise<ReinforcePatternResult>;
+/**
+ * Which learned pattern does `--reinforce <arg>` mean? PURE, so the branch that REFUSES has a test.
+ *
+ * Order: the full id, then the exact text, then a BARE id suffix.
+ *
+ * The suffix step exists because an id is PRINTED as `<namespace>:<suffix>` — `teach:1a4a9bdd…` —
+ * by every surface that emits one (`dz teach`'s own `ID:` line, `dz recall --json`'s `dzId`), and a
+ * caller who kept only the hex got `no learned pattern matches`. The advisory then pointed at
+ * `dz recall`, which cannot surface a QUARANTINED lesson by its own text, so a lesson taught
+ * minutes ago had no reachable path at all (MEASURED 2026-09-20, backlog 2d3059fc). The report's
+ * wider claim — that ids are rejected outright — is REFUTED: the full printed id has always worked.
+ *
+ * An ambiguous suffix is refused BY NAME, never guessed. Reinforcing the wrong lesson writes
+ * silently and leaves no signal afterwards that the wrong record moved, so a wrong guess here is
+ * strictly worse than a refusal the caller can act on. Today only `teach:` ids exist, but `dream:`
+ * is a second canonical namespace this store already documents, so the collision is reachable.
+ */
+export declare function resolveReinforceTarget(records: readonly MemoryRecord[], dzIdOrText: string): {
+    rec: MemoryRecord;
+    matchedBy: 'id' | 'text' | 'suffix';
+} | {
+    rec: undefined;
+    error: string;
+};
 export declare function updateReinforcementState(projectRoot: string, dzId: string, state: ReinforcementState): Promise<ReinforcePatternResult>;
 /** Result of a promotion (dz recall --promote). */
 export interface PromoteResult {

@@ -6,6 +6,7 @@ const { spawnSync } = require('node:child_process');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { skipWhenDzAbsent } = require('../dz-availability.js');
 
 const PKG = path.resolve(__dirname, '..', '..');
 const TPL = path.join(PKG, 'templates', '.claude');
@@ -258,7 +259,7 @@ describe('PR-022 harvest insight persistence', () => {
     } finally { cleanup(broken); }
   });
 
-  test('P16b - duplicate replay imports one learned row', () => {
+  test('P16b - duplicate replay imports one learned row', (t) => {
     const { writeInsight, stableTeachText, normalizePayload } = requireWriter();
     const root = tempProject('p-rep-real-dz-teach-');
     try {
@@ -266,6 +267,9 @@ describe('PR-022 harvest insight persistence', () => {
       const first = writeInsight(root, record);
       const replay = writeInsight(root, { ...record, date: '2026-08-31' });
       assert.equal(first.status, 'created');
+      // Backlog 1b4857a6: this case queries the learned rows dz itself stores, so a missing dz is
+      // an audible skip and a broken dz stays red — the rule lives once, in tests/dz-availability.js.
+      if (skipWhenDzAbsent(t, first.teach.state, 'it reads back the learned rows dz stores')) return;
       assert.equal(first.teach.state, 'ok');
       assert.equal(replay.status, 'duplicate');
       assert.equal(replay.teach.state, 'ok');

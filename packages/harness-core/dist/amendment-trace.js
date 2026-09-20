@@ -52,7 +52,10 @@ export function extractTestTitles(body) {
     return out;
 }
 export function normalizeTestId(s) {
-    return s.toLowerCase().replace(/[^a-z0-9]+/g, '');
+    // Unicode letter/number classes: the old `[^a-z0-9]` erased Cyrillic outright, so a Russian test title
+    // normalised to '' and tripped the floor as the author's fault (MEASURED 2026-09-04, backlog 191853a2).
+    // Re-run over all 519 features on 2026-09-20: zero verdicts changed — this only adds matches.
+    return s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '');
 }
 /**
  * Row starts, in BOTH shapes the corpus actually contains: a bullet (`- **AM-1 (…):**`) and a table

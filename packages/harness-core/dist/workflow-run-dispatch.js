@@ -10,6 +10,7 @@
  * a preference. Each one is named at its definition with the observation that produced it, because
  * a convention whose reason is lost is the next thing somebody "cleans up".
  */
+import { CODEX_EXEC_PROMPT_CEILING_CHARS } from './feature-adr-routing.js';
 import { claudeProbeArgs, claudeReviewArgs, extractClaudeResult, interpretClaudeProbe } from './qe-bridge.js';
 /**
  * The 4 reasons an ADAPTER may produce — the producer PARTITION of the one 22-member
@@ -55,13 +56,24 @@ export function classifyChildRun(run) {
  */
 export const CODEX_SCOPING_PREFIX = 'Answer directly from this prompt text alone; no commands, no files, no tools.';
 /**
- * The REAL prompt ceiling for `codex exec`.
+ * The REAL prompt ceiling for `codex exec` — RE-EXPORTED, never re-declared.
  *
  * The folk value 1200 is refuted history: it came from an era when the prompt travelled through a
  * fire-and-forget wrapper. Over-ceiling ⇒ a LOUD `prompt-over-ceiling`, never truncation — a
  * truncated prompt produces a confident answer to a question nobody asked.
+ *
+ * ONE NUMBER, ONE DEFINITION. Until 2026-09-20 this module declared its own `= 24_000` beside the
+ * one in `feature-adr-routing.ts`, and NOTHING compared them: no test imported both, so the two
+ * could diverge in silence and `codexExecPlan` would route to Claude at a different threshold than
+ * `makeCodexExecDispatcher` rejects at. Measured: `feature-adr-codex-dispatch.test.ts` asserts only
+ * `> 4000`, and the mirror guard in `codex-scoped-review.test.ts` ties routing.ts to the four
+ * workflow copies but knows nothing about this file.
+ *
+ * The definition lives in `feature-adr-routing.ts` and not here because THAT module is lifted
+ * verbatim into the workflow sandbox by `scripts/gen-loop-blobs.mjs` and therefore may not import
+ * anything. The dependency can only point this way.
  */
-export const CODEX_EXEC_PROMPT_CEILING_CHARS = 24_000;
+export { CODEX_EXEC_PROMPT_CEILING_CHARS };
 /**
  * argv for one codex dispatch. The prompt travels as ONE argv element (no shell, no quoting), and
  * `stdinText` is ALWAYS null for codex — MEASURED this session: with stdin left open, codex-cli

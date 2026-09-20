@@ -137,7 +137,7 @@ export function readBacklogConfig(projectRoot) {
     }
 }
 /* ================================================================== */
-/*  STORE (AM-1) — .dz/backlog/ideas.jsonl (append-only JSONL, ADR-005) */
+/*  STORE (AM-1) — .dz/backlog/ideas.jsonl (JSONL rewritten WHOLE per write, ADR-005 + amendment 2026-09-20) */
 /* ================================================================== */
 export function backlogDir(projectRoot) {
     return join(projectRoot, '.dz', 'backlog');
@@ -206,7 +206,8 @@ function normaliseIdea(raw) {
         rec.statusReason = raw.statusReason;
     return rec;
 }
-/** Read the append-only store. A corrupt line is SKIPPED (never fatal) — the whole store never throws. */
+/** Read the store (one current line per id — `writeIdeas` rewrites it whole and never appends). A corrupt
+ *  line is SKIPPED (never fatal) — the whole store never throws. */
 export function readIdeas(projectRoot) {
     const path = ideasPath(projectRoot);
     if (!existsSync(path))

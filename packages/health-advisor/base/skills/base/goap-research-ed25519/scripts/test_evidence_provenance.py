@@ -974,12 +974,22 @@ class LearningBridgeTests(_BridgeHarness, unittest.TestCase):
         self.assertIn("never leave the health brain", out)
 
     def test_status_names_both_stores_and_the_direction(self):
+        # This case is about the WORDING of status when self-learning is on, so it must not
+        # depend on whether a `dz` happens to be installed on the machine running the suite.
+        # It used to stub `_run_dz` only, while `status()` asks `dz_path()` FIRST and returns
+        # DZ_MISSING_NOTE when that answers None — true on a CI runner, false on a developer
+        # machine with a global dz. MEASURED 2026-09-19 (CI run 35445515044):
+        # "'health brain' not found in 'self-learning is OFF: `dz` … is not installed'".
+        # Both seams are stubbed now: the probe AND the call.
         original = self.lb._run_dz
+        original_path = self.lb.dz_path
         self.lb._run_dz = lambda *a, **k: (0, "dz recall --all --stats  —  7 learned pattern(s)", "")
+        self.lb.dz_path = lambda *a, **k: "/stubbed/dz"
         try:
             out = self.lb.status()
         finally:
             self.lb._run_dz = original
+            self.lb.dz_path = original_path
         self.assertIn("health brain", out)
         self.assertIn("shared brain", out)
         self.assertIn("WRITTEN ONLY to the health brain", out)

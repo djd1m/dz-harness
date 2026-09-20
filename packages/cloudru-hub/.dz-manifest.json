@@ -77,7 +77,7 @@
       },
       {
         "path": "test/dialects.test.mjs",
-        "sha256": "9b83b2e2cbbee4ead33af61db840833ce4aa2dd0cf5a4448d72d5886098639c6"
+        "sha256": "3e6236f0cfb159dd73477b6243f6af536925968308085fd248df93932a2bebbf"
       },
       {
         "path": "test/hook.test.mjs",
@@ -85,7 +85,7 @@
       },
       {
         "path": "test/install.test.mjs",
-        "sha256": "e986b29346672bf75b384ab6d8657265b8ecb8f62df6563dca317c1fc63fc8fc"
+        "sha256": "d28e8689b6885c5fc5eac4af29851871acd51e62b8b079489f3db232eea91cba"
       },
       {
         "path": "test/mutation-registry-freshness.test.mjs",
@@ -101,9 +101,9 @@
       },
       {
         "path": "test/resolve.test.mjs",
-        "sha256": "6b524f69c5ed03aaafab67e734e58092033423b86feade28ad03f516feba2380"
+        "sha256": "d3001ad5610d7c6ec5ceba7ad3d53c4a71c7886bc863d8b4c7a6611d57a8053d"
       }
     ]
   },
-  "signature": "NhFBu/MKRxi0dLb3A40PAfnOWi8pqEXs1vZ6+3AQIoh7K09B9/BFQXdQnMiCCfTtG1getGxSNK2SCr/57FGIBw=="
+  "signature": "nPOsYhX3nMHd1DfjVVwhuu7rx6X+o4ViPp7Bt+ejPSCrpWogFw1i+remesozkS7nhSx6y7rVe0bUVyw+1kFABw=="
 }

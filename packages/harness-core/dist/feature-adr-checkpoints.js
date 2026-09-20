@@ -173,12 +173,12 @@ export function decideCheckpointResume(opts) {
 /** Serialize one checkpoint line, or null when the result is null/oversize/unserializable —
  * the caller logs the skip loudly; a missing checkpoint only costs a re-run, never corrupts.
  * A null result is never persisted (Codex QE #8: it would later parse as a resumable entry). */
-export function serializeCheckpoint(stage, inputHash, result) {
+export function serializeCheckpoint(stage, inputHash, result, ts) {
     if (result === null || result === undefined)
         return null;
     let line;
     try {
-        line = JSON.stringify({ stage, inputHash, result });
+        line = JSON.stringify({ stage, inputHash, result, ...(ts === undefined ? {} : { ts }) });
     }
     catch {
         return null;
@@ -190,6 +190,8 @@ export function serializeCheckpoint(stage, inputHash, result) {
 /** Sentinel separating the checkpoint file body from the artifact listing in the single read-back
  * command's stdout. */
 export const CHECKPOINT_LS_SENTINEL = '---FA-CKPT-LS---';
+/** A writer-produced UTC instant. A malformed supplied value is unmeasured, not a bad record. */
+const CHECKPOINT_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/;
 /** Parse the read-back agent's stdout: JSONL entries (LAST occurrence of a stage wins — a re-run
  * overwrites by append), then the sentinel ON ITS OWN LINE, then one artifact path per line
  * (relative to the feature dir). The sentinel match is LINE-ANCHORED: JSON.stringify never emits
@@ -210,7 +212,11 @@ export function parseCheckpointRead(text) {
         try {
             const e = JSON.parse(t);
             if (e && typeof e === 'object' && typeof e.stage === 'string' && typeof e.inputHash === 'string' && 'result' in e && e.result !== null && e.result !== undefined) {
-                out.entries[e.stage] = e;
+                const { ts, ...entry } = e;
+                // Narrow to `string` before the spread: under exactOptionalPropertyTypes an optional
+                // `ts?: string` refuses `string | undefined`, and an unmeasured record must carry NO key
+                // rather than an explicit undefined.
+                out.entries[e.stage] = typeof ts === 'string' && CHECKPOINT_TIMESTAMP.test(ts) ? { ...entry, ts } : entry;
             }
             else {
                 // last-wins holds for BAD records too: a stage-identifiable null/invalid record ERASES the
@@ -246,11 +252,20 @@ export function checkpointReadCmd(fdirAbs) {
 }
 /** The one Bash command the write agent runs: mkdir the state dir, then append ONE line. The line
  * is single-quote-escaped as a whole — JSON.stringify output never contains literal newlines, so
- * printf '%s\n' emits exactly one record. */
+ * printf '%s\n' emits exactly one record.
+ *
+ * The record's `ts` is stamped SHELL-SIDE (`date -u`), the same idiom the decision-recall ledger
+ * uses, because the workflow sandbox forbids `Date` and this function must stay pure. A line that
+ * is not a JSON object falls back to the plain append: an unstamped record beats a lost one, and
+ * the return type stays `string` so no caller grows a new failure path. */
 export function checkpointAppendCmd(fdirAbs, line) {
     const dir = shellQuote(fdirAbs + '/.fa-state');
     const file = shellQuote(fdirAbs + '/.fa-state/checkpoints.jsonl');
-    return 'mkdir -p ' + dir + " && printf '%s\\n' " + shellQuote(line) + ' >> ' + file;
+    const plain = 'mkdir -p ' + dir + " && printf '%s\\n' " + shellQuote(line) + ' >> ' + file;
+    if (typeof line !== 'string' || !line.startsWith('{'))
+        return plain;
+    return 'ts=$(date -u +%Y-%m-%dT%H:%M:%SZ); mkdir -p ' + dir
+        + ' && { printf \'{"ts":"%s",\' "$ts"; printf \'%s\\n\' ' + shellQuote(line.slice(1)) + '; } >> ' + file;
 }
 /** Decide whether this completion is captured. A resumed stage is backfilled rather than
  * skipped: its input (stage template + args) and checkpointed output are both in scope at the

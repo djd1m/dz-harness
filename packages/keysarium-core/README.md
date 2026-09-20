@@ -119,7 +119,7 @@ To create a custom multi-agent pipeline using keysarium-core:
 
 ## Origins
 
-keysarium-core was extracted from the [Keysarium](https://github.com/dzhechko/product-keysarium-2026) project, which implements a 7-phase AI research pipeline. The protocols are inspired by:
+keysarium-core was extracted from the [Keysarium](https://github.com/djd1m/dz-harness) project, which implements a 7-phase AI research pipeline. The protocols are inspired by:
 
 - **Ruflo** — 7-layer governance, 6 topologies, 3-tier model routing
 - **Agentic QE** — Trust tiers, reward-calibrated learning, dream cycles, PACT principles

@@ -141,6 +141,17 @@ function priceLookup(modelId: string, table: Readonly<Record<string, LedgerPrice
   return best;
 }
 
+// instrument-round-b fix-round-1 (Codex r1 HIGH finding 3, ADR-001 D4 amended): `--no-strict` was a
+// BLANKET opt-out — since the one demonstrated automatic writer (the pipeline) always passed it, the
+// new strict-by-default was operationally empty for every real caller. Replaced by a NAMED, SCOPED
+// allowance: the caller states exactly which fields it expects to be incomplete
+// (`allowIncomplete`) and WHY, from a closed set of reason codes — an incomplete row is written only
+// when its actual incompleteness is a SUBSET of what was named AND the reason is recognized.
+// Growing the incompleteness beyond what was declared (e.g. `envelope` going missing tomorrow) is
+// refused, by construction, without anyone having to remember to tighten a flag.
+export const INCOMPLETE_REASON_CODES = ['sandbox-metrics-unavailable', 'manual-entry'] as const;
+export type IncompleteReasonCode = typeof INCOMPLETE_REASON_CODES[number];
+
 export type RecordKind = 'ledger' | 'training-pair';
 
 export type RecordVerdict =
@@ -290,10 +301,22 @@ export function decideRecordWrite(input: {
   /** measurement-integrity FR-5/FR-6: rollout-log + price enrichment for a ledger row. Absent ⇒ zero
    *  behavior change (NFR-1). */
   enrich?: LedgerEnrichInput;
-  /** experiment-instrument FR-2/A3 (ADR-001): when `true`, an AUTO ledger row that would be written
-   *  `complete:false` is refused instead (exit 2, before any write) — a круг-B default candidate, opt-
-   *  in today so nothing that already writes incomplete auto rows starts failing underfoot (NFR-1). */
-  strict?: boolean;
+  /**
+   * instrument-round-b FR-4/A5 (ADR-001 D4), fix-round-1 (Codex r1 HIGH finding 3): an AUTO ledger
+   * row that would be written `complete:false` is refused (exit 2, before any write) UNLESS the
+   * actual incompleteness is fully covered by this NAMED, SCOPED allowance — the CLI's
+   * `--allow-incomplete <fields>`. A field this row is incomplete in that is NOT in this set still
+   * refuses, naming exactly the uncovered field(s). `--no-strict` (a blanket opt-out) is gone —
+   * see {@link INCOMPLETE_REASON_CODES}.
+   */
+  allowIncomplete?: readonly string[];
+  /**
+   * instrument-round-b fix-round-1 (Codex r1 HIGH finding 3): WHY the row is legitimately
+   * incomplete — the CLI's `--incomplete-reason <code>`, required alongside `allowIncomplete` and
+   * validated against the closed {@link INCOMPLETE_REASON_CODES} set. An unrecognized or absent
+   * reason refuses the write even when every incomplete field IS named in `allowIncomplete`.
+   */
+  incompleteReason?: string | null;
 }): RecordDecision {
   const { kind, payloadRaw, stage } = input;
   if (kind !== 'ledger' && kind !== 'training-pair') {
@@ -354,7 +377,20 @@ export function decideRecordWrite(input: {
   // carry `auto:true` too (not just gate on it transiently), so every downstream reader of the
   // PERSISTED line keeps seeing the same signal `shapeMismatch` already gated on above. A no-op when
   // the payload already said `auto:true` (shapeMismatch already refused any OTHER value).
-  if (kind === 'ledger' && input.auto === true) stamped['auto'] = true;
+  // Lead delta after Codex r2 (N1 HIGH): `auto:true` used to be indistinguishable between "the
+  // CLI-level trusted marker was present" and "a hand-built payload said so", so a manual row could
+  // read as an automatic one. STRIPPING the claim was tried and rejected: the minutes-delta contract
+  // (auto + runId) legitimately rides payload-declared auto rows, and 28 existing callers write
+  // them. So the claim SURVIVES and its PROVENANCE is recorded instead — `autoSource` is the field a
+  // reader filters on when it needs trusted automatic rows only.
+  if (kind === 'ledger') {
+    if (input.auto === true) {
+      stamped['auto'] = true;
+      stamped['autoSource'] = 'cli-flag';
+    } else if (stamped['auto'] === true) {
+      stamped['autoSource'] = 'payload-claim';
+    }
+  }
   const isGap = (v: unknown): boolean => v === null || v === undefined || (typeof v === 'string' && v.trim() === '');
   if (input.timestamp != null && input.timestamp !== '') {
     // An EMPTY STRING is a gap, not a value. Stamping only over null/undefined let
@@ -598,11 +634,43 @@ export function decideRecordWrite(input: {
       ? [...new Set([...existingReasons, ...incompleteReasons])]
       : incompleteReasons;
     const complete = mergedReasons.length === 0 && !existingWasIncomplete;
-    // A3: under `--strict`, incompleteness is a REFUSAL — before any write, the target untouched —
-    // rather than a loudly-marked write. Without `--strict` (the default today; круг-B may flip it),
-    // the row is still written, just honestly marked `complete:false` with its reasons.
-    if (input.strict === true && !complete) {
-      return refuse(`auto ledger row is incomplete (${mergedReasons.join(', ') || 'previously marked incomplete'}) — refused under --strict before any write`);
+    // A3/A5 (круг B, ADR-001 D4), fix-round-1 (Codex r1 HIGH finding 3, finding 9): incompleteness
+    // is a REFUSAL by DEFAULT, before any write — but the escape hatch is now a NAMED, SCOPED
+    // allowance, not a blanket flag: the row writes only when EVERY name in `mergedReasons` is
+    // covered by `input.allowIncomplete` AND `input.incompleteReason` is one of the closed
+    // {@link INCOMPLETE_REASON_CODES}. This is the load-bearing condition finding 9 asked for a
+    // real discriminating mutation against — an omitted allowance (the ordinary caller who never
+    // heard of this option) refuses exactly like круг B's original default; a caller naming the
+    // wrong reason, or a wider incompleteness than it declared, ALSO refuses.
+    // Lead delta after Codex r2 (N3 MEDIUM): the closed-list check used to live INSIDE the
+    // incomplete branch, so a COMPLETE row could carry `--incomplete-reason bogus` and be written
+    // with an unrecognized code sitting in its arguments. A supplied reason is validated whenever it
+    // is supplied, complete or not.
+    const suppliedReason = input.incompleteReason ?? null;
+    if (suppliedReason !== null && !(INCOMPLETE_REASON_CODES as readonly string[]).includes(suppliedReason)) {
+      return refuse(`--incomplete-reason ${JSON.stringify(suppliedReason)} is not a recognized reason code — expected one of ${INCOMPLETE_REASON_CODES.join(', ')}`);
+    }
+    if (!complete) {
+      const allowedFields = new Set(input.allowIncomplete ?? []);
+      const reason = suppliedReason;
+      const reasonKnown = reason !== null && (INCOMPLETE_REASON_CODES as readonly string[]).includes(reason);
+      // Lead delta after Codex r2 (N2 HIGH): a payload marked `complete:false` with NO concrete
+      // reasons cannot be covered by any allowance — the subset relation has nothing to check, so
+      // `uncovered` came out empty and the row slipped through. An unexplained incompleteness is a
+      // refusal: name the fields, or do not claim incompleteness.
+      if (mergedReasons.length === 0) {
+        return refuse('auto ledger row is marked `complete:false` but names no incompleteReasons — an allowance cannot cover an unnamed gap; list the incomplete field(s) or drop the claim');
+      }
+      const uncovered = mergedReasons.filter((r) => !allowedFields.has(r));
+      if (uncovered.length > 0 || !reasonKnown) {
+        if (reason === null && allowedFields.size === 0) {
+          return refuse(`auto ledger row is incomplete (${mergedReasons.join(', ') || 'previously marked incomplete'}) — refused by default; pass --allow-incomplete <fields> and --incomplete-reason <code> to permit a scoped incomplete write`);
+        }
+        if (!reasonKnown) {
+          return refuse(`--incomplete-reason ${JSON.stringify(reason)} is not a recognized reason code — expected one of ${INCOMPLETE_REASON_CODES.join(', ')}`);
+        }
+        return refuse(`auto ledger row is incomplete in field(s) not covered by --allow-incomplete: ${uncovered.join(', ')} (incomplete: ${mergedReasons.join(', ') || 'previously marked incomplete'})`);
+      }
     }
     stamped['complete'] = complete;
     if (!complete) stamped['incompleteReasons'] = mergedReasons.length > 0 ? mergedReasons : existingReasons;
