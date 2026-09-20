@@ -57,7 +57,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "19e6d7328cf906f467930d68007903407fce3eab53eee73f7197845a64bd8c3d"
+        "sha256": "b5e64e4c2ab23506c2bfc5cc331b4fd14242ce3e20f174a2615d5a2dec417fc6"
       },
       {
         "path": "platform/adapter-registry.md",
@@ -97,5 +97,5 @@
       }
     ]
   },
-  "signature": "KJN4lS5zS/EJ8QrUquq6j/S5vKlj2FvdRVotWOfFrLzmTCgojikGh5U1fsm4chjXByjqIJr/VO83MfdZpRszDw=="
+  "signature": "oNpD/PVeLoDM6x484D0FUHCdAS6NC1+dHPgJqrji142mpT4dDXHifH8x4kVJrEgBmKv5/HBgd7D2/Z5U19qECQ=="
 }
