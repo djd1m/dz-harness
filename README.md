@@ -64,7 +64,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/skills-reasoning` | 0.1.6 |
 | `@dzhechkov/skills-reverse-engineering` | 0.3.5 |
 | `@dzhechkov/skills-taste` | 0.1.6 |
-| `@dzhechkov/skills-transcript-site` | 1.0.10 |
+| `@dzhechkov/skills-transcript-site` | 1.0.11 |
 | `@dzhechkov/skills-tutorial-factory` | 0.7.1 |
 | `@dzhechkov/skills-web3` | 0.2.10 |
 | `@dzhechkov/skills-website-cloner` | 0.1.6 |
