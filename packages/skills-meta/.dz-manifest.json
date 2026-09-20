@@ -229,7 +229,7 @@
       },
       {
         "path": "feature-adr/modules/08-qe.md",
-        "sha256": "7ab9b7b1523289986a1f51b4cbbebf4410d96ad4a153f22fa8613e8a0f4f5fa7"
+        "sha256": "470306ac327550c3c8775062f1e40bc0f9f7143ab03c2a62a85a090c125ec2fa"
       },
       {
         "path": "feature-adr/modules/09-fleet-qe.md",
@@ -321,7 +321,7 @@
       },
       {
         "path": "feature-adr/scripts/check-plan-completeness.mjs",
-        "sha256": "08e69d2e63350fe2dc64483226fcd30901b77a8e930ca6280ef71181c67675b4"
+        "sha256": "2370036869bb643e2dba799fb98226ea0155f37efaea07a4e330dc76070e8804"
       },
       {
         "path": "feature-adr/scripts/markdown-masker.mjs",
@@ -465,7 +465,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "6d7fb172706e9822634452d8de016ff43d8496956b63cfb426e5cf3013dad1f2"
+        "sha256": "23a62020f398d502168e4f915f9718b6874a26695903583e94ede85c64852a06"
       },
       {
         "path": "problem-solver-enhanced/SKILL.md",
@@ -561,5 +561,5 @@
       }
     ]
   },
-  "signature": "1vEne6mVBBO59lEbam2C/4NBU0nHc+51HQOQhK+CvI8ibAgQxXoFmYD5pJCOjSfIgKMYJAQn2oFn/FGtLk/hBA=="
+  "signature": "kXM23EDJzvlJGmutZ13eJcKEYA/eDukQ+v1tmUd26UP2bSF0SbTihOMgg3+SmAbsd1aKgPrSyoYyEsRaeZRSAg=="
 }
