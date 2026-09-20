@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-transcript-site",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
