@@ -1,6 +1,6 @@
 # Knowledge Units — ddia-storage-engine-tradeoffs
 
-Deep-lookup reference for the SKILL.md decision skill. Source: «Высоконагруженные приложения» (M. Kleppmann, DDIA рус.), глава 3. Machine-distilled, unreviewed (trust_tier 0).
+Deep-lookup reference for the SKILL.md decision skill. Source: «Высоконагруженные приложения» (M. Kleppmann, DDIA рус.), глава 3. Machine-distilled; trust_tier 1 — machine-distilled, routing evals passed (CP3.5 gate 2026-07-04).
 
 ---
 

@@ -35,9 +35,28 @@ export interface RoundExecState {
     readonly tokens: number | null;
 }
 /** Additive row shape accepted by the existing run-cost ledger readers. */
+/**
+ * The row this version WRITES. It is deliberately not the shape the FILE holds: the ledger is
+ * append-only, so rows written before a field existed do not carry it. Read a stored line as
+ * `unknown` and put it through {@link validateClosedRoundLedgerRow} or your own guard — typing a
+ * historical line with this interface and dereferencing a later field as a guaranteed string is the
+ * defect this note exists to prevent (named by cross-family review, Codex gpt-5.6-sol, 2026-09-21).
+ */
 export interface RoundLedgerRow {
     readonly slug: string;
     readonly stage: 'round';
+    /**
+     * This round's identity as a FIELD. It is also the first token of `note`, and that prefix is what
+     * the confirmation read greps for — but a key that lives inside prose can only be joined by
+     * parsing prose. MEASURED on the COMMITTED `.dz/feature-adr/run-cost-ledger.jsonl` at `488f596c`
+     * (backlog c60cc857, whose own numbers had gone stale): of 436 rows, 99 are `round`, and the
+     * round's own identity sat in a FIELD 0 times out of 99 while sitting inside `note` prose 99 times
+     * out of 99. Other id fields exist on those rows — 28 carry `taskId`, 76 carry `stateId` — but
+     * they identify the TASK and the STATE FILE, not the round's ledger identity; 22 carry none of
+     * `runId`/`taskId`/`stateId` (those three exactly — `runnerId`, the host, is on all 99).
+     * Reproducer and pinning commit: package README, section `roundId`.
+     */
+    readonly roundId: string;
     readonly tier: null;
     readonly coder: string | null;
     readonly reviewer: string | null;

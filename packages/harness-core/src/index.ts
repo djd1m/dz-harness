@@ -78,6 +78,8 @@ export {
 } from './parity.js';
 export type { RuntimeCapability, FeatureForm, ParityFeature, ParityCell, ParityReportCell, ParityMatrixRow, CapabilityEvidence, UnbackedCapability, ProbedRuntimeVersions } from './parity.js';
 export * from './operations.js';
+export { checkInstrumentFreshness, checkRankingState } from './doctor-instrument.js';
+export type { InstrumentFreshness, InstrumentCheckInput, InstrumentCheckResult, RankingStateCheckInput, RankingStateCheckResult } from './doctor-instrument.js';
 // workflows.ts: the ADR-005 templates are RETIRED (feature loop-designer, AM-6) — the module is a
 // deprecation shim (empty WORKFLOW_NAMES). BREAKING for external harness-core consumers of
 // WorkflowTemplate/WORKFLOWS/getWorkflow — deliberately channeled through the 0.x MINOR bump and
@@ -137,7 +139,7 @@ export type { RepoBoundaryIo } from './repo-boundary.js';
 export type { LedgerBackfillPlan, LedgerBackfillRow, RunCostFacts } from './ledger-backfill.js';
 export type { SweepResult, DriftedSkill, SyncResult, SyncCanonicalOptions } from './skill-drift.js';
 export { benchmarkSkill, benchmarkSkills, compareSkills } from './benchmark.js';
-export { buildRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs } from './registry.js';
+export { buildRegistry, buildShowcaseRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs, packScope, verifiedScopeNote } from './registry.js';
 export { tokenize, stemToken, stems } from './stem.js';
 // Package skill-layout resolution (feature dz-install-npx-init) — the ONE seam that knows where an
 // npm package keeps its skills (flat / templates/.claude/skills / skills). `cmdInstall` calls it;
@@ -782,6 +784,7 @@ export {
   planReleaseGates,
   classifyGateExecutions,
   buildFailureIssue,
+  shouldRetryGhWithoutToken,
   buildReleaseNotes,
   releaseTagName,
   firstOutputLine,
@@ -881,7 +884,7 @@ export type {
   McpSeverity,
   McpCapability,
 } from './mcp-scan.js';
-export type { RegistryEntry, Registry } from './registry.js';
+export type { RegistryEntry, Registry, ShowcaseRegistry, ShowcaseSkill } from './registry.js';
 export type { BenchmarkCheck, BenchmarkScore, BenchmarkReport, CompareResult } from './benchmark.js';
 export {
   specToOpts,

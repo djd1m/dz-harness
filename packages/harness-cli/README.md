@@ -426,7 +426,7 @@ dz install @dzhechkov/skills-devops            # npm install + copy skills
 
 # Verify everything is correct:
 dz verify                                       # structural validation
-dz doctor                                       # 7 health checks
+dz doctor                                       # 19 health checks (in this monorepo)
 dz list                                         # show installed skills
 dz info --id terraform                          # detailed info about a skill
 ```
@@ -622,6 +622,24 @@ every run; `--require-signing` turns that into a refusal today.
 > "Sign the QE skill pack with my key at ~/.dz/keys/dz.key, then verify it."
 > "Check whether the pack I just downloaded matches what we published."
 > "Publish, but refuse if anything is unsigned."
+
+### Two checks that answer "is this instrument even the right one?"
+
+`dz doctor` reports two things that used to be invisible, and both print a **path**, not just a verdict:
+
+- **`doctor instrument freshness`** — which executable actually answered, its version, and the
+  workspace's own version. A binary resolved INSIDE the project is the tree's own instrument whatever
+  its version says. One outside it, at a different version, prints `WARN`. MEASURED 2026-09-20: the
+  globally installed CLI was `0.8.30` while the checkout was `0.8.32`, so a lever published that same
+  day was missing from every command that ran. Earlier the same class ran for seventeen days, with a
+  fixed-and-published read path being misread as a live code defect.
+- **`bandit ranking state`** — `memory.learning.banditRerank: true` with no
+  `.dz/lesson-bandit/state.json` means the re-ranking silently stopped ranking, which looks exactly
+  like healthy re-ranking. It prints the state path it looked at and the binary that answered.
+
+Neither check can change an exit code. `WARN` says "measured, act on it"; `??` says the evidence could
+not be gathered, which is never printed as a pass; only `XX` fails, and only for the checks that
+already failed before.
 
 ### Signature checks in `dz doctor` and `dz upgrade`
 
@@ -3576,7 +3594,7 @@ dz publish: BLOCKED harness-cli — sibling drift: @dzhechkov/memory@0.2.20 on t
 dz publish: refusing to publish (1 sibling-drift violation(s))
 
 $ dz publish --filter harness-cli --yes
-dz publish: tarball @dzhechkov/harness-cli@0.8.32 sha256:d656…c334
+dz publish: tarball @dzhechkov/harness-cli@0.8.33 sha256:d656…c334
 dz publish: ✓ packed install smoke
   ✓ @dzhechkov/harness-cli                1.0.0 → 1.0.1  published (confirmed by registry after 1 probes)
       sha256:9f2c…e10a
@@ -5600,7 +5618,20 @@ ledger row now carries a `prices` snapshot. See `@dzhechkov/harness-core`'s READ
 decision list (D1–D5) and the two new pure modules (`feature-adr-stage-canon.ts`, `codex-rollouts.ts`) behind
 `dz usage --by-stage`'s new `INCOMPLETE_INVENTORY` verdict and canonical-stage breakdown.
 
-`harness-core v0.8.39` · `harness-cli v0.8.32` · `memory v0.2.23` — **this release (day 17.09, four instrument
+`harness-core v0.8.40` · `harness-cli v0.8.33` · `health-advisor v1.10.7` · `p-replicator v1.13.4` ·
+`keysarium-core v1.1.31` · `skills-meta v0.9.59` — **this release (night 20→21.09, eight packages): `dz store-guard
+--prune [--apply]` clears high-water marks the guard can no longer be protecting — MEASURED here 64 315 marks, of which
+64 286 pointed at a vanished temp path (255 MB of disk blocks); the dry run is the DEFAULT and only `stale-temp` is ever
+deleted, leaving `live`, `gone-outside-tmp` and `unreadable` reported and untouched (the live run left 30 marks / 3.1 MB
+in 4.6 s). The `bto-optimize` prose-scope guard reads the canonical Markdown masker with `unclosed: 'restore'`; the
+policy was chosen by a corpus acid over 7 121 headed documents — deleting each real heading in turn, the old fence
+toggle missed the deletion in 39 documents, `hide` in 22, `restore` in 0. `redactSecrets` closes four measured leaks
+(`*_TOKEN=`, JSON `"token"`, `github_pat_`, a `sk-proj-` value truncated at the hyphen). The health-advisor skill
+validator reports missing literal section headings as notes rather than warnings. Two cross-family findings about
+INPUTS were fixed in the same change: `TMPDIR=/` would have deleted the protected bucket, and a canonical-only temp-root
+list would have matched nothing where `/tmp` is a symlink.**
+
+`harness-core v0.8.38` · `harness-cli v0.8.30` · `memory v0.2.23` — **(day 17.09, four instrument
 features, each cross-family reviewed by Codex): ONE task identity minted at `dz round open` and carried fill-only-null by
 every writer (`taskIdSource` names where it came from — `open-round`, `derived-legacy`, `no-open-round`, `ambiguous`,
 `unavailable` — never a guess); a ship anchor on every finished round (`shipSha` plus `shipTreeDirty`, because `HEAD` does

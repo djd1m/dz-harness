@@ -258,6 +258,12 @@ export declare function runMigrate(options: {
 export interface DoctorCheck {
     readonly name: string;
     readonly ok: boolean;
+    /**
+     * Rendering severity for a check that is NOT a failure. `warn` = measured and worth saying out
+     * loud; `unknown` = the evidence could not be gathered, which is never rendered as a pass. Neither
+     * value participates in `DoctorReport.ok`, so neither can change any caller's exit code.
+     */
+    readonly level?: 'warn' | 'unknown';
     readonly detail: string;
 }
 /** The outcome of {@link runDoctor}. */
@@ -267,8 +273,15 @@ export interface DoctorReport {
     readonly ok: boolean;
 }
 /** Report environment diagnostics for the harness. */
+/**
+ * `instrumentPath` is the executable that is answering — normally the CLI's own `process.argv[1]`.
+ * It is an INPUT, not something this module reads for itself: `core-boundary` rule A forbids core
+ * from touching process globals, because core is a library and the process belongs to whoever hosts
+ * it. Omitted ⇒ the instrument-freshness check honestly reports that it could not tell.
+ */
 export declare function runDoctor(options: {
     projectRoot: string;
+    instrumentPath?: string | null;
 }): Promise<DoctorReport>;
 export interface CodexHooksSyncOptions {
     /** Defaults to `$CODEX_HOME`, then `~/.codex`. Every automated probe passes a temp dir (AM-11). */

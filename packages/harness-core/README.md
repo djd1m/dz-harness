@@ -304,6 +304,54 @@ explicit knob always wins over the preset:
 `BUDGET_PRESETS` in `feature-adr-routing.ts`; an unknown priority is a startup error naming the valid
 list, never a silent `unset`. Setting `priority` alone (no other routing knob) turns routing on.
 
+### `roundId` — the round's join key, as a field (backlog c60cc857)
+
+Every row `closeRound` writes carries **`roundId`**, the round's own identity
+(`round-<slug>-<n>-<closedAt>`). The same string is still the first token of `note`, because the
+confirming re-read of the ledger greps for it there — but a key that lives inside prose can only be
+joined by parsing prose, and with a `--note` present the field reads `<marker> | <note>`, so an
+equality match on `note` misses it.
+
+MEASURED on the COMMITTED ledger at `488f596c`: **the round's own identity was in a field 0 times
+out of 99 `round` rows — while sitting inside `note` prose 99 times out of 99.**
+
+One command prints every LEDGER COUNT above, in this order: rows; `round` rows; of those,
+rows with `roundId`; rows whose `note` starts with the round marker; rows with `taskId`; rows with
+`stateId`; rows carrying none of `runId`/`taskId`/`stateId`; rows with `runnerId`. It answers
+`436 99 0 99 28 76 22 99`.
+
+```bash
+git show 488f596c:.dz/feature-adr/run-cost-ledger.jsonl | node -e \
+  'const L=require("fs").readFileSync(0,"utf8").split("\n").filter(Boolean).map(JSON.parse),R=L.filter(r=>r.stage==="round"),h=(r,f)=>r[f]!==undefined&&r[f]!==null&&r[f]!=="";console.log(L.length,R.length,R.filter(r=>h(r,"roundId")).length,R.filter(r=>/^round-.+-\d+-\d{8}T/.test(r.note||"")).length,R.filter(r=>h(r,"taskId")).length,R.filter(r=>h(r,"stateId")).length,R.filter(r=>!h(r,"runId")&&!h(r,"taskId")&&!h(r,"stateId")).length,R.filter(r=>h(r,"runnerId")).length)'
+```
+
+The command names the commit rather than `HEAD` on purpose: the ledger is tracked and keeps growing,
+so a `HEAD` form would print different numbers every week and the claim would stop being checkable.
+
+What the other id fields are, and why they do not answer this section's question: `taskId` names the
+TASK a round serves, `stateId` its state file, `runnerId` the host that wrote the row. None of them
+is the round's ledger identity.
+
+**This paragraph needed five corrections, every one from cross-family review (Codex `gpt-5.6-sol`),
+and they are kept because the corrections teach more than the result.** (1) The first draft counted
+an uncommitted working copy — 457/119/117 — which cannot be audited from the repository. (2) The
+second said 97 rows "carried no join key in any field" while measuring only a missing `runId`.
+(3) The third quoted 28/76/22 that the shown reproducer did not print. (4) The fourth called those
+22 rows "no id field at all" when `runnerId` is present on every one. (5) The fifth added that
+`runnerId` claim without adding its count to the command. Each time the NUMBER was right and the
+SENTENCE was wider than the predicate that produced it — the same defect this repo keeps finding in
+code verdicts, wearing prose. Six rounds on one paragraph is itself the finding: a sentence added
+to JUSTIFY a number is a new claim, and it needs its own predicate or it does not belong — the sixth
+round caught the phrase "every number this section states", which the ledger command cannot cover
+because this correction list is not a ledger count. Its evidence is `git log` on this file, not that
+command, and reviewing this paragraph stopped here on purpose: the repo's own rule is that three
+rounds on one mechanism mean you write the boundary instead of taking a fourth.
+
+**`RoundLedgerRow` is the shape this version WRITES, not the shape the file holds.** The ledger is
+append-only, so rows written before a field existed do not have it — `roundId` included. Read a
+ledger line as `unknown` and put it through `validateClosedRoundLedgerRow` (or your own guard);
+never type a parsed historical line with this interface and dereference a later field as guaranteed.
+
 ### QE self-report, arm fields, and their honest limits (instrument-round-b, ADR-001 D1/D2, fix-round-1)
 
 The `.claude/workflows/feature-adr.js` pipeline script (not a `harness-core` module — a workflow the

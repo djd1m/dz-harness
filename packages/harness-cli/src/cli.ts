@@ -100,6 +100,7 @@ import {
   buildRegistry,
   discoverSkillPackDirs,
   discoverVerifiablePackDirs,
+  verifiedScopeNote,
   checkUpstream,
   compareSkills,
   checkAllUpstream,
@@ -296,6 +297,7 @@ import {
   appendChainedLines,
   verifyEventChainText,
   classifyChainDefects,
+  liveSegmentStart,
   CHAINED_JOURNALS,
   buildManifest,
   buildSbom,
@@ -342,6 +344,7 @@ import {
   type PromotionRunEvidence,
   type FunnelEvidenceSource,
   type GuardEvent,
+  type GuardAuditChainWindow,
   decideProvenance,
   isInsideTree,
   signManifest,
@@ -362,6 +365,7 @@ import {
   selectAffectedPackages,
   classifyGateExecutions,
   buildFailureIssue,
+  shouldRetryGhWithoutToken,
   buildReleaseNotes,
   releaseTagName,
   firstOutputLine,
@@ -511,6 +515,7 @@ import {
   type GuardRun,
   type ReuseFacts,
   renderScorecard,
+  chainTrust,
   renderCompoundingReport,
   readReinforcementState,
   readQuarantineState,
@@ -597,6 +602,8 @@ import {
   classifyBaseline,
   classifyRunFailure,
   classifyMutationOutcome,
+  parseSuitePaths,
+  suiteSelectionNamesModule,
   injectVitestWorkerCeiling,
   mutationGateExitCode,
   mutationVerdictRow,
@@ -2366,10 +2373,14 @@ function cmdMigrate(options: Map<string, string>, cwd: string, write: Write): nu
 
 async function cmdDoctor(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): Promise<number> {
   const projectRoot = resolve(cwd, options.get('project') ?? '.');
-  const report = await runDoctor({ projectRoot });
+  // The CLI owns the process, so IT names the answering executable; core never reads argv itself.
+  const report = await runDoctor({ projectRoot, instrumentPath: process.argv[1] ?? null });
   write(`dz doctor (${report.node}):`);
   for (const check of report.checks) {
-    write(`  [${check.ok ? 'OK' : 'XX'}] ${check.name} - ${check.detail}`);
+    // Four markers, because three would force a non-failure into looking like a pass or a failure:
+    // XX failed · WARN measured and worth acting on · ?? evidence missing · OK fine.
+    const mark = !check.ok ? 'XX' : check.level === 'warn' ? 'WARN' : check.level === 'unknown' ? '??' : 'OK';
+    write(`  [${mark}] ${check.name} - ${check.detail}`);
   }
   // ADR-001 (verify-apply-leg): the consumer-side apply-leg. A TAMPERED pack is fatal; an unsigned
   // pack or a missing trust root is reported. A signature proves the bytes are unmodified — never
@@ -6900,6 +6911,15 @@ function packagedTrustRootPath(): string | undefined {
 
 interface PackCheck {
   readonly pack: string;
+  /**
+   * Разрешённый каталог пака. Несётся не ради подробности: глобально установленный `dz` дотягивается
+   * до СВОИХ упакованных копий наравне с проектными (так и написано в комментарии
+   * `discoverVerifiablePackDirs`), и без каталога строка «31 verified» читается как охват ПРОЕКТА,
+   * хотя относится к паку самого прибора. ИЗМЕРЕНО 2026-09-21: один репозиторий, одна минута —
+   * прибор из PATH даёт 88 записей (31 проверено), прибор из дерева 57 (0 проверено); оба правы,
+   * и расходятся ровно на 29 подписанных манифестов внутри глобальной установки.
+   */
+  readonly dir: string;
   readonly verdict: PackVerdict;
   readonly failures: readonly { path: string; reason: string }[];
 }
@@ -6940,19 +6960,19 @@ function verifyInstalledPacks(cwd: string, explicitPubkey?: string | undefined):
   const checks: PackCheck[] = [];
   for (const { pack, dir } of packs) {
     if (trustRoot === null) {
-      checks.push({ pack, verdict: 'no-trust-root', failures: [] });
+      checks.push({ pack, dir, verdict: 'no-trust-root', failures: [] });
       continue;
     }
     const manifestPath = join(dir, MANIFEST_NAME);
     if (!existsSync(manifestPath)) {
-      checks.push({ pack, verdict: 'unsigned', failures: [] });
+      checks.push({ pack, dir, verdict: 'unsigned', failures: [] });
       continue;
     }
     let signed: unknown;
     try {
       signed = JSON.parse(readFileSync(manifestPath, 'utf8'));
     } catch {
-      checks.push({ pack, verdict: 'tampered', failures: [{ path: MANIFEST_NAME, reason: 'not valid JSON' }] });
+      checks.push({ pack, dir, verdict: 'tampered', failures: [{ path: MANIFEST_NAME, reason: 'not valid JSON' }] });
       continue;
     }
     // The key existed when the trust root was resolved; it can vanish before it is read. A crash is
@@ -6961,7 +6981,7 @@ function verifyInstalledPacks(cwd: string, explicitPubkey?: string | undefined):
     try {
       keyPem = readFileSync(trustRoot.path, 'utf8');
     } catch {
-      checks.push({ pack, verdict: 'no-trust-root', failures: [] });
+      checks.push({ pack, dir, verdict: 'no-trust-root', failures: [] });
       continue;
     }
     // A SOURCE tree legitimately holds files the tarball never ships (tests, coverage, CHANGELOG), so
@@ -6987,12 +7007,13 @@ function verifyInstalledPacks(cwd: string, explicitPubkey?: string | undefined):
       // `pnpm publish` re-serialises package.json and rewrites `workspace:*`. Hash-verifying a
       // checkout against it produces a guaranteed false TAMPERED, so this reports a state of its own
       // instead of an alarm. `dz verify-pack` packs and checks the real artifact.
-      checks.push({ pack, verdict: 'source-tree', failures: [] });
+      checks.push({ pack, dir, verdict: 'source-tree', failures: [] });
       continue;
     }
     const res = verifyManifest(dir, signed as never, keyPem);
     checks.push({
       pack,
+      dir,
       verdict: res.ok ? 'verified' : 'tampered',
       failures: res.failures.map((f) => ({ path: f.path, reason: f.reason })),
     });
@@ -7063,7 +7084,7 @@ function reportPackVerification(
   }
   const root = trustRoot ? `${trustRoot.source} (${trustRoot.path})` : 'none';
   write(
-    `  signatures: ${counts.verified} verified, ${counts.unsigned} unsigned, ` +
+    `  signatures: ${counts.verified} verified${verifiedScopeNote(checks, resolve(cwd))}, ${counts.unsigned} unsigned, ` +
       `${counts.tampered} TAMPERED, ${counts['no-trust-root']} unverifiable, ${counts['source-tree']} source-tree (not an artifact); trust root: ${root}`,
   );
   // A signature proves the bytes are unmodified. It never proves the skill is any good.
@@ -8769,12 +8790,28 @@ function cmdRelease(options: Map<string, string>, flags: Set<string>, cwd: strin
       if (probe.exitCode !== 0) {
         loud(`dz release: ⚠ gh unavailable — file the issue manually: ${issue.title}`);
       } else {
-        const res = run(`gh issue create --title ${shq(issue.title)} --body ${shq(issue.body)}`, { cwd, timeoutMs: 30_000 });
+        const create = `gh issue create --title ${shq(issue.title)} --body ${shq(issue.body)}`;
+        let res = run(create, { cwd, timeoutMs: 30_000 });
+        // Мёртвый GITHUB_TOKEN в окружении ЗАТЕНЯЕТ рабочие учётные данные gh, и вызов падает по
+        // авторизации, хотя вход есть (ИЗМЕРЕНО 2026-09-21, бэклог ead5f8e0). Безусловно снимать
+        // переменную нельзя — в сборочной среде это штатный вход. Поэтому ровно одна повторная
+        // попытка и только на отказе ИМЕННО по авторизации, и о ней говорится вслух.
+        let retriedWithoutToken = false;
+        if (shouldRetryGhWithoutToken({
+          exitCode: res.exitCode ?? 1,
+          stderr: res.stderr,
+          stdout: res.stdout,
+          tokenPresent: (process.env['GITHUB_TOKEN'] ?? '') !== '',
+        })) {
+          loud('dz release: ⚠ gh отказал по авторизации при заданном GITHUB_TOKEN — повторяю один раз без этой переменной');
+          res = run(`env -u GITHUB_TOKEN ${create}`, { cwd, timeoutMs: 30_000 });
+          retriedWithoutToken = true;
+        }
         if (res.exitCode === 0) {
           issueUrl = oneLine(res.stdout) || undefined;
-          say(`dz release: gh issue created${issueUrl !== undefined ? `: ${issueUrl}` : ''}`);
+          say(`dz release: gh issue created${retriedWithoutToken ? ' (без GITHUB_TOKEN — переменная в окружении недействительна)' : ''}${issueUrl !== undefined ? `: ${issueUrl}` : ''}`);
         } else {
-          loud(`dz release: ⚠ gh issue creation failed (${oneLine(res.stderr, res.stdout) || 'unknown error'}) — file the issue manually: ${issue.title}`);
+          loud(`dz release: ⚠ gh issue creation failed${retriedWithoutToken ? ' (и с GITHUB_TOKEN, и без него)' : ''} (${oneLine(res.stderr, res.stdout) || 'unknown error'}) — file the issue manually: ${issue.title}`);
         }
       }
     }
@@ -9420,7 +9457,9 @@ function cmdChain(options: Map<string, string>, flags: Set<string>, cwd: string,
     if (v.chained === 0) {
       return { rel: journal.rel, decides: journal.decides, status: 'unchained' as const, chained: 0, defects: 0, detail: 'present, but no record carries a chain (legal — the log predates chaining)' };
     }
-    const total = text.split('\n').filter((l) => l.trim() !== '').length;
+    // `lines` IS the non-empty line count the verifier already made — re-deriving it here made a
+    // fourth answerer to one question and the counts drifted (1088 vs 1095, MEASURED 2026-09-20).
+    const total = v.lines;
     const age = classifyChainDefects(v, total);
     if (v.ok) {
       return { rel: journal.rel, decides: journal.decides, status: 'ok' as const, chained: v.chained, defects: 0, detail: `${v.chained} chained record(s), ${v.resets} recorded restart(s)` };
@@ -9671,7 +9710,17 @@ function cmdMcpScan(options: Map<string, string>, flags: Set<string>, cwd: strin
       write(`          ↳ ${f.evidence}  [${f.source}]`);
     }
   }
-  write(`\n  ${report.findings.length} finding(s) (low = informational). Exit ${report.exitCode} (0 clean / 1 medium / 2 high).`);
+  // Состав НАЗЫВАЕТСЯ поимённо. Прежняя строка «8 finding(s) (low = informational)» читалась как
+  // «все восемь низкие», а рядом стоял код 2, который та же строка определяет как высокий —
+  // ИЗМЕРЕНО 2026-09-21: на самом деле 4 высокие, 2 средние, 2 низкие. Скобка была легендой, но
+  // выглядела заявлением о тяжести; сводка, которую надо разгадывать, хуже отсутствующей.
+  const bySeverity = (s: string): number => report.findings.filter((f) => f.severity === s).length;
+  const mix = [
+    `${bySeverity('high')} high`,
+    `${bySeverity('medium')} medium`,
+    `${bySeverity('low')} low (informational)`,
+  ].join(', ');
+  write(`\n  ${report.findings.length} finding(s): ${mix}. Exit ${report.exitCode} — the scale is 0 clean / 1 medium / 2 high.`);
 
   if (rec) {
     renderReconcile(rec, write);
@@ -13395,6 +13444,27 @@ function cmdMutationGate(
     ? resolve(cwd, registryOpt)
     : [join(pkgDir, 'test', 'mutation-registry.json'), join(pkgDir, 'mutation-registry.json')].find((p) => existsSync(p));
   if (registryPath === undefined || !existsSync(registryPath)) {
+    // Two DIFFERENT failures, and one message for both used to describe the search that never ran:
+    // with an explicit `--registry` the default lookup is skipped entirely, so reporting "looked
+    // under <pkg>" and advising "pass --registry <file>" told the caller to do what they had just
+    // done, and hid the real cause — a RELATIVE `--registry` resolves against the CWD, not against
+    // `--package`. MEASURED 2026-09-21: `--package packages/.../skills-package-story-page
+    // --registry test/mutation-registry.json` from the repo root reported the file missing while it
+    // sat exactly where the message claimed to have looked.
+    if (registryOpt !== undefined) {
+      // Three different failures, three different sentences, and the rule behind all of them is the
+      // same: name the path that was ACTUALLY checked, and attribute it to a base only when there
+      // was one. An ABSOLUTE option is resolved against nothing — but `resolve()` still normalises
+      // `..` lexically, so even there the checked path can differ from the supplied one, and only
+      // the checked path may be reported as missing (both named by cross-family review, Codex
+      // gpt-5.6-sol, rounds 1 and 2).
+      if (isAbsolute(registryOpt)) {
+        return fail(registryPath === registryOpt
+          ? `--registry ${registryOpt} does not exist`
+          : `--registry ${registryOpt} normalises to ${registryPath}, and no file is there`);
+      }
+      return fail(`--registry ${registryOpt} resolved to ${registryPath} (relative to the CWD ${cwd}, NOT to --package) and no file is there`);
+    }
     return fail(`no mutation registry found (looked for test/mutation-registry.json and mutation-registry.json under ${pkgDir}) — pass --registry <file>`);
   }
 
@@ -14062,6 +14132,15 @@ function cmdMutationGate(
         ...(rebaselineOutputTail !== undefined ? { rebaselineOutputTail } : {}),
         ...(rebaselineOutputPath !== undefined ? { outputPath: rebaselineOutputPath } : {}),
         ...(rebaselineOutputError !== undefined ? { outputError: rebaselineOutputError } : {}),
+        // Only consulted on the UNDEFENDED path, and only as a HINT: does any suite this entry's
+        // command SELECTS even name the mutated module? MEASURED 2026-09-04 (backlog 1f4e4f66): two
+        // entries read as UNDEFENDED while both tests existed — the command simply did not select
+        // their suites, and the finding filed against the CODE was wrong.
+        suiteNamesModule: suiteSelectionNamesModule({
+          file: entry.file,
+          suitePaths: parseSuitePaths(buildMutationTestCommand(testCmd, entry).testCommand),
+          readSuite: (rel) => { try { return readFileSync(join(copyDir, rel), 'utf-8'); } catch { return null; } },
+        }),
       };
       observations.push(obs);
       results.push(classifyMutationOutcome(obs));
@@ -17497,6 +17576,9 @@ async function cmdRound(
       timedOut: receipt.timedOut,
       bytes,
       tail: logBuffer.subarray(Math.max(0, bytes - 4096)).toString('utf8'),
+      // The whole log, because the turn marker is not an end-state fact and a 4 KB window cannot hold
+      // it when Codex's final answer is 12-20 KB (backlog 50673a55). `logText` is already in memory.
+      fullText: logText,
     });
     const row = buildRoundExecRow({
       ...at,
@@ -21103,6 +21185,8 @@ interface GuardAuditEvidenceRead {
   readonly source: FunnelEvidenceSource<GuardEvent>;
   readonly rows: readonly GuardEvent[];
   readonly text: string | null;
+  /** Absent when there is no readable log; `defects: 0` when the chain verifies. */
+  readonly chain?: GuardAuditChainWindow;
 }
 
 function readGuardAuditEvidence(root: string): GuardAuditEvidenceRead {
@@ -21118,8 +21202,13 @@ function readGuardAuditEvidence(root: string): GuardAuditEvidenceRead {
   }
   const rows: GuardEvent[] = [];
   let malformed = false;
+  // 1-based position among NON-EMPTY lines — the same counting `chainLinesOf` uses, which is what
+  // makes a defect's `line` comparable with a row. Counted here rather than derived from `rows`
+  // because a malformed record is skipped and would silently shift every position after it.
+  let chainLine = 0;
   for (const line of text.split('\n')) {
     if (line.trim() === '') continue;
+    chainLine += 1;
     try {
       const raw = JSON.parse(line) as Record<string, unknown>;
       if (
@@ -21156,19 +21245,34 @@ function readGuardAuditEvidence(root: string): GuardAuditEvidenceRead {
         verdict,
         rules: violations.map((item) => item.rule),
         violations,
+        chainLine,
       });
     } catch {
       malformed = true;
     }
   }
+  // The chain's verdict is about the FILE; the funnel asks about a PERIOD. Damage with an unbroken
+  // run after it leaves later periods measurable — `assembleLessonToRuleFunnel` refuses only the
+  // periods whose own rows sit at or before the damage. Damage INSIDE the run (no sound record
+  // follows it) still refuses everything: there is no trustworthy window left to point at.
+  // MEASURED 2026-09-21 on `.dz/guard-audit.jsonl`: 28 defects, all before a run of 1169 unbroken
+  // records, and the funnel reported `executions NOT MEASURED (guard-audit-chain-corrupt)` for both
+  // months it had data for — the whole-file verdict answering a per-period question (b38dd3ba).
+  const verification = verifyEventChainText(text);
+  const chain: GuardAuditChainWindow = {
+    runFrom: liveSegmentStart(verification),
+    defects: verification.defects.length,
+  };
+  const damageInRun = classifyChainDefects(verification, chainLine).inRun.length > 0;
   return {
     source: malformed
       ? { status: 'not-measured', reason: 'guard-audit-malformed' }
-      : !verifyEventChainText(text).ok
+      : damageInRun
         ? { status: 'not-measured', reason: 'guard-audit-chain-corrupt' }
         : { status: 'measured', rows },
     rows,
     text,
+    chain,
   };
 }
 
@@ -21319,6 +21423,7 @@ function cmdCompounding(options: Map<string, string>, flags: Set<string>, cwd: s
     lessonToRule: {
       promotionRuns: promotionEvidence.source,
       guardAudits: guardEvidence.source,
+      ...(guardEvidence.chain ? { guardAuditChain: guardEvidence.chain } : {}),
       promotionAcceptances: promotionEvidence.acceptances,
       truncatedPromotionPeriods: promotionEvidence.truncatedPeriods,
       acceptanceHistoryComplete: promotionEvidence.acceptanceHistoryComplete,
@@ -21329,9 +21434,15 @@ function cmdCompounding(options: Map<string, string>, flags: Set<string>, cwd: s
   // already asks of the reinforcement loop (is the apply leg alive, or is it a write-only log?).
   // Read-only, and INSUFFICIENT_DATA on an absent state file — never a fake verdict.
   const bandit = banditStats(root);
-  if (json) write(JSON.stringify({ ...report, bandit, exitCode: 0 }, null, 2));
+  // Бэклог 79ce6262: отчёт не вправе печатать «числа посчитаны по повреждённому журналу» и при этом
+  // отчитываться успехом. Трёхзначный вердикт разводит два случая: повреждение ПОЗАДИ непрерывного
+  // прогона оставляет числа в силе (0), повреждение ВНУТРИ него делает их ненадёжными (3 —
+  // «прогон состоялся, вердикту доверять нельзя», форма INCONCLUSIVE этого репозитория, не отказ).
+  const trust = chainTrust(report.instrumentation.chains);
+  const code = trust === 'trusted' ? 0 : 3;
+  if (json) write(JSON.stringify({ ...report, bandit, chainTrust: trust, exitCode: code }, null, 2));
   else write(`${renderCompoundingReport(report)}\n\n${renderBanditHealth(bandit)}`);
-  return 0;
+  return code;
 }
 
 // ── `dz epoch-replay` (feature epoch-replay) ────────────────────────────────────────────────────

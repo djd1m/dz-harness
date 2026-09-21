@@ -27,6 +27,7 @@ export { redactProbeText, PROBE_REDACTION_MARKER } from './integration-probe-wor
 // Target-parity model (feature target-parity-matrix, ADR-001) — the computed feature×target map.
 export { RUNTIME_CAPABILITIES, TARGET_CAPABILITIES, PARITY_FEATURES, TARGET_SHORT_LABELS, GATE_FEATURE_IDS, computeParity, buildParityMatrix, CAPABILITY_EVIDENCE, findUnbackedCapabilities, findStaleTranscriptEvidence, newestRecordedRuntimeVersion, downgradeForStaleEvidence, } from './parity.js';
 export * from './operations.js';
+export { checkInstrumentFreshness, checkRankingState } from './doctor-instrument.js';
 // workflows.ts: the ADR-005 templates are RETIRED (feature loop-designer, AM-6) — the module is a
 // deprecation shim (empty WORKFLOW_NAMES). BREAKING for external harness-core consumers of
 // WorkflowTemplate/WORKFLOWS/getWorkflow — deliberately channeled through the 0.x MINOR bump and
@@ -66,7 +67,7 @@ export { planLedgerBackfill, LEDGER_FILL_SOURCE, AMBIGUOUS, resolveLedgerRunId }
 export { projectSkillsOneRoot, projectSkillsProbeCommand } from './project-skills-root.js';
 export { isRepoBoundary } from './repo-boundary.js';
 export { benchmarkSkill, benchmarkSkills, compareSkills } from './benchmark.js';
-export { buildRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs } from './registry.js';
+export { buildRegistry, buildShowcaseRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs, packScope, verifiedScopeNote } from './registry.js';
 export { tokenize, stemToken, stems } from './stem.js';
 // Package skill-layout resolution (feature dz-install-npx-init) — the ONE seam that knows where an
 // npm package keeps its skills (flat / templates/.claude/skills / skills). `cmdInstall` calls it;
@@ -150,7 +151,7 @@ export { discoverInstalled, checkUpgrades } from './upgrade.js';
 // Verified-release engine (feature release-verified, ADR-001) — pure VERIFY-phase planner +
 // classifier in front of the untouched publish path. formatPublishError is re-exported for the
 // CLI executor's captured-output discipline.
-export { collectPackageFacts, selectAffectedPackages, planReleaseGates, classifyGateExecutions, buildFailureIssue, buildReleaseNotes, releaseTagName, firstOutputLine, testsFailureDetail, outputTail, RELEASE_GATE_ORDER, RELEASE_TIMEOUTS, } from './release.js';
+export { collectPackageFacts, selectAffectedPackages, planReleaseGates, classifyGateExecutions, buildFailureIssue, shouldRetryGhWithoutToken, buildReleaseNotes, releaseTagName, firstOutputLine, testsFailureDetail, outputTail, RELEASE_GATE_ORDER, RELEASE_TIMEOUTS, } from './release.js';
 export { formatPublishError } from './publish.js';
 // Sibling-drift + packed-install-smoke gates (feature publish-sibling-drift-gate, ADR-001).
 export { detectSiblingDrift, parseNpmPackInventory } from './publish-sibling-drift.js';

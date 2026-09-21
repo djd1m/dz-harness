@@ -4912,7 +4912,17 @@ if (stopHere) {
       const rows = cpFindings.map((f, i) => '- AM-CP-' + (i + 1) + ' [' + f.severity + '] ' + String(f.title || '').replace(/[\r\n`]/g, ' ').slice(0, 160) + ' \u2192 test `названный кодером при реализации — заменить на имя реального теста` (panel ' + String(f.c || '') + ')').join('\n')
       const marker = '<!-- challenge-panel amendments appended ' + fnv1a64(rows) + ' -->'
       const planPath = FDIR + '/06_implementation_plan.md'
-      const appendCmd = 'cd ' + shq(REPO) + ' && grep -qF ' + shq(marker) + ' ' + shq(planPath) + ' && echo CP-DUP || { grep -q "^## Amendments" ' + shq(planPath) + ' || printf "\n## Amendments\n" >> ' + shq(planPath) + '; printf "%s\n%s\n" ' + shq(marker) + ' ' + shq(rows) + ' >> ' + shq(planPath) + '; echo CP-APPENDED; }'
+      // The rows must land INSIDE `## Amendments`, not at EOF. MEASURED 2026-09-20 (backlog d48505cc,
+      // which stood as an unverified inference until then): with `## Amendments` at line 13 and a later
+      // `## Risks` at 17, the old `>> plan` put AM-CP-1 at line 21 and K2 C6 answered "AM-CP-1 is
+      // DEFINED outside the `## Amendments` section". A plan whose Amendments section happens to be
+      // last worked by luck, not by construction. The awk pass inserts before the NEXT `## ` heading
+      // after the section, and falls back to EOF when the section IS last; the `a` flag is set AFTER
+      // the heading test so the `## Amendments` line itself never triggers the insert. Idempotence is
+      // unchanged: the marker grep still short-circuits to CP-DUP.
+      const insertAwk = 'awk -v m=' + shq(marker) + ' -v r=' + shq(rows)
+        + ' \'BEGIN{a=0;d=0} { if(a&&!d&&/^## /){print m; print r; d=1; a=0} if($0 ~ /^## Amendments/)a=1; print } END{if(a&&!d){print m; print r}}\' '
+      const appendCmd = 'cd ' + shq(REPO) + ' && grep -qF ' + shq(marker) + ' ' + shq(planPath) + ' && echo CP-DUP || { grep -q "^## Amendments" ' + shq(planPath) + ' || printf "\n## Amendments\n" >> ' + shq(planPath) + '; ' + insertAwk + shq(planPath) + ' > ' + shq(planPath) + '.cp-tmp && mv ' + shq(planPath) + '.cp-tmp ' + shq(planPath) + '; echo CP-APPENDED; }'
       const cpOut = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and reply with ONLY its stdout: ' + appendCmd, { label: 'challenge:append-amendments', phase: 'Plan', effort: 'low' })
       log('challenge panel \u2192 plan amendments: ' + (/CP-APPENDED/.test(String(cpOut || '')) ? cpFindings.length + ' AM-CP row(s) appended' : /CP-DUP/.test(String(cpOut || '')) ? 'already appended (idempotent)' : 'NOT appended (probe answered: ' + String(cpOut || '').slice(0, 80) + ')'))
     }

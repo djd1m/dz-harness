@@ -316,6 +316,7 @@ export function closeRound(input, io) {
     const row = {
         slug: input.state.slug,
         stage: 'round',
+        roundId: marker,
         tier: null,
         coder: nonEmpty(input.coder) ? input.coder.trim() : null,
         reviewer,

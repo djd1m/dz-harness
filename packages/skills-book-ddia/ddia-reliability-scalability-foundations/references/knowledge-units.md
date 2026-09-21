@@ -3,7 +3,7 @@
 Deep-lookup reference for the SKILL.md in this directory. Source: «Высоконагруженные приложения»
 (M. Kleppmann, DDIA рус.), глава 1 — надёжность / масштабируемость / сопровождаемость.
 
-Trust tier 0: machine-distilled from a copyrighted source, unreviewed. Prose paraphrased; facts,
+Trust tier 1: machine-distilled from a copyrighted source; routing evals passed (CP3.5 gate 2026-07-04). Prose paraphrased; facts,
 formulas, technique names, and page anchors preserved.
 
 ---

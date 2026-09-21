@@ -276,6 +276,24 @@ export interface FailureIssueContext {
     readonly repo?: string | undefined;
 }
 /**
+ * Стоит ли повторить вызов `gh` БЕЗ переменной `GITHUB_TOKEN`.
+ *
+ * ИЗМЕРЕНО 2026-09-21 в этой среде: `gh auth status` → «the github.com token in GITHUB_TOKEN is no
+ * longer valid», а `env -u GITHUB_TOKEN gh auth status` → вход как djd1m через keyring. То есть
+ * мёртвая переменная ЗАТЕНЯЕТ рабочие учётные данные, и всякий вызов `gh` из скрипта падает
+ * (бэклог ead5f8e0). Переменная живёт в окружении tmux-сервера и снимается только владельцем.
+ *
+ * Почему повтор, а не безусловное снятие: в сборочной среде `GITHUB_TOKEN` — ШТАТНЫЙ способ
+ * авторизации, и выбрасывать его всегда значило бы ломать работающее ради сломанного. Поэтому
+ * сначала обычный вызов, и лишь на отказе ИМЕННО по авторизации — одна попытка без переменной.
+ */
+export declare function shouldRetryGhWithoutToken(input: {
+    readonly exitCode: number;
+    readonly stderr: string;
+    readonly stdout: string;
+    readonly tokenPresent: boolean;
+}): boolean;
+/**
  * gh-2.4-safe `gh issue create` payload (only `--title`/`--body` are assumed downstream).
  * Pure + deterministic for a fixed verdict — the issue is the verdict's echo, never its judge.
  *

@@ -1081,7 +1081,22 @@ export function auditRecord(result, ts, override) {
         ...(Array.isArray(result.notes) && result.notes.length > 0 ? { notes: result.notes } : {}),
         ...(Array.isArray(result.observations) && result.observations.length > 0 ? { observations: result.observations } : {}),
         ...(override && typeof override.reason === 'string' ? { override: { forced: true, reason: override.reason } } : {}),
+        ...(evaluatedRuleIds(result).length > 0 ? { evaluated: evaluatedRuleIds(result) } : {}),
     };
+}
+/**
+ * Every rule that got its turn this run, sorted and de-duplicated. A rule with no input still RAN —
+ * calling that "not evaluated" would reintroduce the very conflation this field exists to remove.
+ */
+export function evaluatedRuleIds(result) {
+    const ids = new Set();
+    for (const id of Array.isArray(result.checked) ? result.checked : [])
+        if (typeof id === 'string' && id !== '')
+            ids.add(id);
+    for (const id of Array.isArray(result.notEstablished) ? result.notEstablished : [])
+        if (typeof id === 'string' && id !== '')
+            ids.add(id);
+    return [...ids].sort();
 }
 /** The exit-code contract: a block is non-zero unless forced; a warn/pass is zero. */
 export function guardExitCode(result, forced) {

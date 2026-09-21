@@ -15,8 +15,9 @@ export function classifyRoundExecOutcome(input) {
     if (/HTTP 400|not supported when using Codex/i.test(input.tail))
         return 'model-refused';
     if (input.exitCode === 0 && input.bytes > 0) {
-        const marker = input.tail.lastIndexOf('\ncodex\n');
-        const finalLine = marker < 0 ? '' : input.tail.slice(marker + '\ncodex\n'.length).split(/\r?\n/, 1)[0]?.trim() ?? '';
+        const haystack = input.fullText ?? input.tail;
+        const marker = haystack.lastIndexOf('\ncodex\n');
+        const finalLine = marker < 0 ? '' : haystack.slice(marker + '\ncodex\n'.length).split(/\r?\n/, 1)[0]?.trim() ?? '';
         if (finalLine !== '')
             return 'done';
     }
