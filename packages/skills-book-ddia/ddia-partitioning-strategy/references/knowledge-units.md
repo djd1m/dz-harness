@@ -1,7 +1,7 @@
 # Knowledge Units — ddia-partitioning-strategy
 
 Source: «Высоконагруженные приложения» (M. Kleppmann, DDIA рус.), глава 6.
-Machine-distilled, unreviewed (trust_tier 0). 7 KUs.
+Machine-distilled; trust_tier 1 — machine-distilled, routing evals passed (CP3.5 gate 2026-07-04). 7 KUs.
 
 ---
 

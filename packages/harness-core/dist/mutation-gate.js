@@ -1025,7 +1025,13 @@ function classifyMutationOutcomeWithoutAttemptLog(obs) {
             applied: true,
             verdict: 'UNDEFENDED',
             drop: false,
-            detail: `suite stayed GREEN with the protection deleted — property UNDEFENDED: "${e.property}" (${e.file}). The suite would not notice this protection regressing (rule 2).`,
+            detail: `suite stayed GREEN with the protection deleted — property UNDEFENDED: "${e.property}" (${e.file}). The suite would not notice this protection regressing (rule 2).`
+                + (obs.suiteNamesModule === false
+                    ? ' HINT: no suite in this entry\'s testCommand NAMES this module, so check the COMMAND before the tests'
+                        + ' — a suite that never loads the module cannot notice its protection (MEASURED 2026-09-04: two properties'
+                        + ' read as UNDEFENDED for exactly this reason, and both tests existed). The hint matches the module stem,'
+                        + ' so a transitive import would not be seen by it: it narrows where to look, it does not decide.'
+                    : ''),
         };
     }
     // Unrecognised output shape on a RED run — a runner-coverage gap of THIS TOOL (jest, mocha, an
@@ -1093,6 +1099,44 @@ function classifyMutationOutcomeWithoutAttemptLog(obs) {
             ? `suite red (${obs.failingCount} failing vs ${e.observed} observed when written) — COVERAGE DROP: still defended, but fewer tests notice; investigate or re-pin observed`
             : `suite red under the mutation (${obs.failingCount === null ? 'failing count unavailable — exit code is the verdict' : `${obs.failingCount} failing`}) — the test discriminates`,
     };
+}
+/**
+ * Suite paths a registry `testCommand` selects, in order. Tokens that are not suite files (the
+ * runner, its flags) are ignored — the command is a shell line, not a schema, so this reads the
+ * shape it actually has rather than assuming one.
+ */
+export function parseSuitePaths(testCommand) {
+    return String(testCommand ?? '')
+        .split(/\s+/)
+        .filter((token) => /\.(?:test|spec)\.[cm]?[jt]sx?$/.test(token) && !token.startsWith('-'));
+}
+/**
+ * Does ANY suite the command selects even name the mutated module?
+ *
+ * Why this exists: `UNDEFENDED` reads as "this property has no test", and MEASURED 2026-09-04 that
+ * reading was wrong twice in one run — both tests existed; the registry's `testCommand` simply did
+ * not select the suites that import them (backlog 1f4e4f66). The author filed a finding about two
+ * "unprotected properties" before checking the instrument, which is the failure this hint prevents.
+ *
+ * Deliberately a HINT, never a verdict: it matches the module's STEM in each suite's text, so a
+ * suite that reaches the module through a transitive import is invisible to it. `'unknown'` when no
+ * suite could be read — absence of evidence is not evidence, and a hint that guesses is worse than
+ * no hint.
+ */
+export function suiteSelectionNamesModule(input) {
+    const stem = String(input.file ?? '').split('/').pop()?.replace(/\.[cm]?[jt]sx?$/, '') ?? '';
+    if (stem === '')
+        return 'unknown';
+    let read = 0;
+    for (const suite of input.suitePaths) {
+        const text = input.readSuite(suite);
+        if (text === null)
+            continue;
+        read += 1;
+        if (text.includes(stem))
+            return true;
+    }
+    return read === 0 ? 'unknown' : false;
 }
 export function classifyMutationOutcome(obs) {
     const result = classifyMutationOutcomeWithoutAttemptLog(obs);

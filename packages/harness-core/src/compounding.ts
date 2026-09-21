@@ -15,7 +15,7 @@
  * Everything here is PURE: callers gather facts (files, store rows); this module only computes.
  */
 
-import { EVENT_CHAIN_SCOPE, verifyEventChainText } from './event-chain.js';
+import { EVENT_CHAIN_SCOPE, classifyChainDefects, verifyEventChainText } from './event-chain.js';
 import {
   isOffsetIsoTimestamp,
   type PromotionAcceptanceEvidence,
@@ -160,15 +160,36 @@ export interface GuardEvent {
   readonly verdict: string;
   readonly rules: readonly string[]; // violated rule ids
   readonly violations?: readonly { readonly rule: string; readonly contentAnchor?: string }[];
+  /**
+   * 1-based position of this record among the log's non-empty lines — the ONLY thing that can place
+   * it relative to a chain defect. Absent when the caller read the rows without a chain.
+   */
+  readonly chainLine?: number;
 }
 
 export type FunnelEvidenceSource<T> =
   | { readonly status: 'measured'; readonly rows: readonly T[] }
   | { readonly status: 'not-measured'; readonly reason: string };
 
+/**
+ * Where the guard journal's chain damage sits, so a PERIOD can be judged instead of the whole FILE.
+ *
+ * A log damaged once in March and unbroken since is not evidence against September's rows, and
+ * refusing to measure September because of March is the same "verdict answers a different question"
+ * defect the chain headline was fixed for (backlog b38dd3ba, MEASURED 2026-09-21: 28 defects, all
+ * before a run of 1169 unbroken records, suppressed BOTH measured months).
+ */
+export interface GuardAuditChainWindow {
+  /** First non-empty line of the current unbroken run: one past the last defect. */
+  readonly runFrom: number;
+  /** Total defects in the file. Zero means the window imposes nothing. */
+  readonly defects: number;
+}
+
 export interface LessonToRuleFunnelFacts {
   readonly promotionRuns: FunnelEvidenceSource<PromotionRunEvidence>;
   readonly guardAudits: FunnelEvidenceSource<GuardEvent>;
+  readonly guardAuditChain?: GuardAuditChainWindow;
   readonly promotionAcceptances?: readonly PromotionAcceptanceEvidence[];
   readonly truncatedPromotionPeriods?: readonly string[];
   readonly acceptanceHistoryComplete?: boolean;
@@ -274,6 +295,20 @@ export interface EvidenceChainHealth {
   readonly preChainPrefix: number;
   readonly defects: number;
   readonly defectKinds: readonly string[];
+  /**
+   * WHERE the defects sit relative to the log's current unbroken run, and HOW MUCH of a run that is.
+   * Without this a bare `FAILED` over a log whose damage is entirely historical reads as "today's
+   * numbers are garbage", while `dz chain` over the SAME file says "healed … verdicts over those are
+   * sound" — MEASURED 2026-09-20 on `.dz/guard-audit.jsonl`: 28 defects, all before the current run,
+   * 1095 unbroken records after them; one instrument printed FAILED, the other healed, both exit 0
+   * (backlog 79ce6262). Neither was lying; neither named its WINDOW. `event-chain.ts` says it
+   * outright: a caller that reports soundness without printing the run size overclaims on its behalf,
+   * and the same holds for a caller that reports damage without printing where the damage sits.
+   */
+  readonly defectsBeforeRun: number;
+  readonly defectsInRun: number;
+  /** Records in the current unbroken run — the evidence behind any "sound for today" reading. */
+  readonly runRecords: number;
 }
 
 export interface InstrumentationHealth {
@@ -393,6 +428,13 @@ function executionMeasurement(
   const periodAudits = facts.guardAudits.rows.filter((row) => utcMonth(row.ts) === period);
   if (periodAudits.length === 0) {
     return LESSON_TO_RULE_FUNNEL_POLICY.unavailable(`guard-audit-not-recorded:${period}`);
+  }
+  // Damage that PRECEDES this period's rows says nothing about them; damage that touches them does.
+  // A row with no position cannot be placed, and unplaceable is not the same as sound — it refuses.
+  const chain = facts.guardAuditChain;
+  if (chain !== undefined && chain.defects > 0
+    && periodAudits.some((row) => row.chainLine === undefined || row.chainLine < chain.runFrom)) {
+    return LESSON_TO_RULE_FUNNEL_POLICY.unavailable(`guard-audit-chain-damaged:${period}`);
   }
   const audits = periodAudits.filter((row) => row.op === 'publish');
   if (audits.length === 0) {
@@ -594,6 +636,11 @@ export function assembleCompoundingReport(facts: CompoundingFacts): CompoundingR
       preChainPrefix: v.preChainPrefix,
       defects: v.defects.length,
       defectKinds: [...new Set(v.defects.map((d) => d.kind))],
+      ...((age) => ({
+        defectsBeforeRun: age.beforeRun.length,
+        defectsInRun: age.inRun.length,
+        runRecords: age.runRecords,
+      }))(classifyChainDefects(v, v.lines)),
     };
   });
 
@@ -623,13 +670,7 @@ export function assembleCompoundingReport(facts: CompoundingFacts): CompoundingR
     trajectory.length > 0 ? `guard: ${improvedRules}/${trajectory.length} rules recur less in the later half` : 'guard: not enough history',
     `cold-vs-warm: ${replay.verdict === 'insufficient-data' ? 'INSUFFICIENT DATA (accruing)' : 'READY to measure'}`,
     instrumentation.applyLegLive ? 'apply leg: live' : 'apply leg: STALE — fix the instrumentation before trusting anything above',
-    ...(chains.length === 0
-      ? []
-      : [
-          instrumentation.chainsOk
-            ? 'evidence chain: verified'
-            : 'evidence chain: CORRUPT — the numbers above are computed from a damaged log',
-        ]),
+    ...(chains.length === 0 ? [] : [chainHeadline(chains)]),
   ].join(' · ');
 
   return { pool, guardTrajectory: trajectory, replay, instrumentation, lessonToRuleFunnel, verdict };
@@ -671,6 +712,68 @@ function renderFunnelPeriodMeasurements(row: LessonToRuleFunnelPeriod): string {
   return `${renderPromotionMeasurements(row)} · ${renderFunnelMeasurement('executions', row.executions)}`;
 }
 
+/**
+ * The HEADLINE verdict over every evidence log — three-valued, because two values lied.
+ *
+ * MEASURED 2026-09-21 on `.dz/guard-audit.jsonl`: 28 defects, the LAST of them dated 2026-09-05,
+ * followed by more than a thousand unbroken records. The old headline read
+ * "CORRUPT — the numbers above are computed from a damaged log", which is true of the FILE'S
+ * HISTORY and false about the numbers it was printed next to. The distinction already existed one
+ * function below, in {@link chainVerdictPhrase}; it simply never reached the line a reader sees
+ * first. That is the same defect class this report exists to find: a verdict answering a different
+ * question than the one it appears to answer.
+ */
+/**
+ * Whether the report's OWN numbers may be trusted, as a value the caller can turn into an exit code.
+ *
+ * Backlog 79ce6262 named the defect: the report printed "the numbers above are computed from a
+ * damaged log" and exited 0 anyway — a tool announcing its own output untrustworthy and reporting
+ * success. That record offered two lawful cures and asked which applies. Both do, on different
+ * branches, and only the three-valued verdict lets them coexist: damage BEHIND the current run
+ * narrows the WORDING (the numbers stand, exit 0), damage INSIDE it makes the numbers genuinely
+ * unreliable and must reach the exit code.
+ *
+ * `'trusted'` ⇒ 0. `'unreliable'` ⇒ a non-zero the caller chooses — the run succeeded, the verdict
+ * cannot be relied on, which is this repository's INCONCLUSIVE shape, not its failure shape.
+ */
+export function chainTrust(chains: readonly EvidenceChainHealth[]): 'trusted' | 'unreliable' {
+  return chains.some((c) => !c.ok && c.defectsInRun > 0) ? 'unreliable' : 'trusted';
+}
+
+export function chainHeadline(chains: readonly EvidenceChainHealth[]): string {
+  const broken = chains.filter((c) => !c.ok);
+  if (broken.length === 0) return 'evidence chain: verified';
+  const live = broken.filter((c) => c.defectsInRun > 0);
+  if (live.length === 0) {
+    const runs = broken.reduce((n, c) => n + c.runRecords, 0);
+    const defects = broken.reduce((n, c) => n + c.defects, 0);
+    return `evidence chain: damaged EARLIER — ${defects} defect(s), none inside the current run of `
+      + `${runs} unbroken record(s); the numbers above stand, the file's history does not`;
+  }
+  const inRun = live.reduce((n, c) => n + c.defectsInRun, 0);
+  return `evidence chain: CORRUPT — ${inRun} defect(s) INSIDE the current run; the numbers above are `
+    + 'computed from a damaged log';
+}
+
+/**
+ * The verdict phrase for one evidence log, with its WINDOW named. A bare `FAILED` over damage that an
+ * unbroken run has already followed is true of the FILE and misleading about TODAY — see
+ * {@link EvidenceChainHealth.defectsBeforeRun}.
+ */
+export function chainVerdictPhrase(c: EvidenceChainHealth): string {
+  if (c.ok) return 'verified';
+  const kinds = `[${c.defectKinds.join(', ')}]`;
+  if (c.defectsInRun === 0) {
+    return `DAMAGED EARLIER — ${c.defects} defect(s) ${kinds}, all BEFORE the current run of `
+      + `${c.runRecords} unbroken record(s); numbers over that run stand, the file's history does not`;
+  }
+  if (c.defectsBeforeRun === 0) {
+    return `FAILED — ${c.defects} defect(s) ${kinds} with NO sound records after them`;
+  }
+  return `FAILED — ${c.defects} defect(s) ${kinds}: ${c.defectsInRun} inside the current run of `
+    + `${c.runRecords} record(s), ${c.defectsBeforeRun} before it`;
+}
+
 export function renderCompoundingReport(r: CompoundingReport): string {
   const out: string[] = [];
   out.push('dz compounding — does the learning loop pay? (honest report: gates without data say so)');
@@ -695,7 +798,7 @@ export function renderCompoundingReport(r: CompoundingReport): string {
   );
   for (const c of r.instrumentation.chains) {
     out.push(
-      `  EVIDENCE CHAIN ${c.log}: ${c.ok ? 'verified' : `FAILED — ${c.defects} defect(s) [${c.defectKinds.join(', ')}]`}` +
+      `  EVIDENCE CHAIN ${c.log}: ${chainVerdictPhrase(c)}` +
         ` · ${c.chained} chained · ${c.preChainPrefix} pre-chain (uncovered)`,
     );
   }

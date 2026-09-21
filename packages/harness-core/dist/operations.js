@@ -7,7 +7,7 @@
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { dirname, join, resolve as resolvePath } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,6 +27,7 @@ import { CURSOR_RULES_ROOT } from '@dzhechkov/adapter-cursor';
 import { WINDSURF_RULES_ROOT } from '@dzhechkov/adapter-windsurf';
 import { AGENTS_MD_BLOCK_BEGIN, mergeAgentsMd, mergeGeminiMd, mergePolicyBlock, renderAgentsMdSection } from '@dzhechkov/core';
 import { computeRiskScore } from './risk-scoring.js';
+import { checkInstrumentFreshness, checkRankingState } from './doctor-instrument.js';
 import { applyEmitResult } from './apply.js';
 import { describeSkillLoadFailure, discoverSkillIds, loadSkillFromDir } from './skills.js';
 import { TARGETS } from './targets.js';
@@ -728,6 +729,12 @@ export function runMigrate(options) {
     return { projectRoot: root, detections, skillsFound, recommendation };
 }
 /** Report environment diagnostics for the harness. */
+/**
+ * `instrumentPath` is the executable that is answering — normally the CLI's own `process.argv[1]`.
+ * It is an INPUT, not something this module reads for itself: `core-boundary` rule A forbids core
+ * from touching process globals, because core is a library and the process belongs to whoever hosts
+ * it. Omitted ⇒ the instrument-freshness check honestly reports that it could not tell.
+ */
 export async function runDoctor(options) {
     const checks = [];
     const root = options.projectRoot;
@@ -741,6 +748,84 @@ export async function runDoctor(options) {
     // monorepo (or a fork of it) and owes itself these checks; anything else is a consumer project
     // and gets a NAMED skip — a skip, never a silent pass and never a fail.
     const isMonorepo = existsSync(join(root, 'packages', '@dzhechkov'));
+    // The executable is part of the measurement. Resolve the CALLER-SUPPLIED path (including its
+    // symlinks), then attribute it to the nearest package.json. Every read is independent and
+    // fail-quiet so a broken install becomes an explicit UNKNOWN diagnostic instead of throwing.
+    let binPath = null;
+    try {
+        const given = options.instrumentPath;
+        binPath = given === undefined || given === null ? null : realpathSync(given);
+    }
+    catch { /* unresolved is reported by the pure decider */ }
+    let binVersion = null;
+    if (binPath !== null) {
+        try {
+            let cursor = dirname(binPath);
+            while (true) {
+                const packagePath = join(cursor, 'package.json');
+                if (existsSync(packagePath)) {
+                    const parsed = JSON.parse(readFileSync(packagePath, 'utf8'));
+                    binVersion = typeof parsed.version === 'string' ? parsed.version : null;
+                    break;
+                }
+                const parent = dirname(cursor);
+                if (parent === cursor)
+                    break;
+                cursor = parent;
+            }
+        }
+        catch {
+            binVersion = null;
+        }
+    }
+    let treeVersion = null;
+    if (isMonorepo) {
+        try {
+            const parsed = JSON.parse(readFileSync(join(root, 'packages', '@dzhechkov', 'harness-cli', 'package.json'), 'utf8'));
+            treeVersion = typeof parsed.version === 'string' ? parsed.version : null;
+        }
+        catch {
+            treeVersion = null;
+        }
+    }
+    let realRoot = resolvePath(root);
+    let realRootResolved = true;
+    // A root that cannot be resolved through its symlinks makes the containment question undecidable
+    // rather than false — the decider is told so explicitly instead of silently comparing two path
+    // forms that need not agree.
+    try {
+        realRoot = realpathSync(root);
+    }
+    catch {
+        realRootResolved = false;
+    }
+    const instrument = checkInstrumentFreshness({ binPath, binVersion, treeVersion, projectRoot: realRoot, projectRootRealpathed: realRootResolved, isMonorepo });
+    checks.push({
+        name: 'doctor instrument freshness',
+        // The pure decider owns the verdict; this wiring only carries it. Never re-derive `ok` here.
+        ok: true,
+        ...(instrument.level === 'ok' ? {} : { level: instrument.level }),
+        detail: instrument.detail,
+    });
+    const rankingStatePath = join(realRoot, '.dz', 'lesson-bandit', 'state.json');
+    let rankingFlagOn = false;
+    try {
+        const parsed = JSON.parse(readFileSync(join(root, '.dz', 'config.json'), 'utf8'));
+        rankingFlagOn = parsed.memory?.learning?.banditRerank === true;
+    }
+    catch { /* malformed config is owned by the config diagnostic; ranking defaults off */ }
+    const ranking = checkRankingState({
+        flagOn: rankingFlagOn,
+        statePath: rankingStatePath,
+        stateExists: existsSync(rankingStatePath),
+        binPath,
+    });
+    checks.push({
+        name: 'bandit ranking state',
+        ok: true,
+        ...(ranking.level === 'warn' ? { level: 'warn' } : {}),
+        detail: ranking.detail,
+    });
     checks.push({
         name: '.claude/skills present',
         ok: existsSync(join(root, '.claude', 'skills')),
@@ -1345,7 +1430,8 @@ export async function runDoctor(options) {
             const v = verifyEventChainText(text);
             if (v.chained === 0 || v.ok)
                 continue;
-            const total = text.split('\n').filter((l) => l.trim() !== '').length;
+            // The verifier already counted non-empty lines; re-deriving it drifts (see cli.ts note).
+            const total = v.lines;
             const age = classifyChainDefects(v, total);
             const named = `${v.defects.length} defect(s): ${v.defects.slice(0, 3).map((d) => `${d.kind}@L${d.line}`).join(', ')}`;
             // A break that an unbroken run has already outlived is not a reason to distrust today's

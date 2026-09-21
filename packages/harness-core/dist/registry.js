@@ -7,7 +7,7 @@
  * @packageDocumentation
  */
 import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
-import { basename, dirname, join, relative, resolve } from 'node:path';
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { stems } from './stem.js';
 /**
@@ -207,6 +207,39 @@ export function discoverSkillCarryingDirs(cwd) {
  * drop the `unsigned` verdict for a `skills-*` pack that carries no manifest — turning "unsigned" into
  * "absent", which is the same class of silence this fixes.
  */
+/**
+ * Чей это пак: проекта, который проверяют, или самого прибора, который проверяет.
+ *
+ * ИЗМЕРЕНО 2026-09-21 на одном репозитории в одну минуту: `dz` из PATH перечисляет 88 паков и
+ * сообщает «31 verified», сборка из дерева — 57 и «0 verified». Оба ответа ВЕРНЫ и расходятся
+ * ровно на 29 подписанных манифестов внутри глобальной установки: `discoverVerifiablePackDirs`
+ * намеренно дотягивается до упакованных копий самого прибора. Беда не в числе, а в строке, где оно
+ * стоит: «31 verified» рядом с именем проекта читается как охват ПРОЕКТА, хотя проверены копии
+ * инструмента. Разделение считается по пути, потому что только путь и отличает эти два случая.
+ *
+ * Сравнение путей РАЗДЕЛИТЕЛЬНОЕ: `/repo-2/x` не внутри `/repo`. Наивный `startsWith` этот репозиторий
+ * уже однажды отгружал.
+ */
+export function packScope(dir, projectRoot) {
+    const rel = relative(projectRoot, dir);
+    const inside = rel === '' || (!isAbsolute(rel) && rel !== '..' && !rel.startsWith(`..${sep}`));
+    return inside ? 'project' : 'instrument';
+}
+/**
+ * Уточнение к числу проверенных подписей: сколько из них — паки ЭТОГО проекта, а сколько принадлежат
+ * самому прибору. Возвращает ПУСТУЮ строку, когда уточнять нечего (ничего не проверено либо всё
+ * проверенное — проектное): приписка к нулю была бы шумом, а шум в строке охвата её и обесценивает.
+ */
+export function verifiedScopeNote(checks, projectRoot) {
+    const verified = checks.filter((c) => c.verdict === 'verified');
+    if (verified.length === 0)
+        return '';
+    const outside = verified.filter((c) => packScope(c.dir, projectRoot) === 'instrument').length;
+    if (outside === 0)
+        return '';
+    return ` (${verified.length - outside} in this project, ${outside} in the instrument's own install`
+        + " — not this project's artifacts)";
+}
 export function discoverVerifiablePackDirs(cwd) {
     const out = [];
     // Keyed on the RESOLVED path: a globally-installed `dz` reaches its own bundled packs as well as the
@@ -397,11 +430,35 @@ function categoryFromPack(pack) {
     return 'other';
 }
 /**
- * Build the registry from every `skills-*` pack discovered across all base dirs
- * ({@link skillPackBaseDirs}) — monorepo `packages/@dzhechkov`, project-local
- * `node_modules/@dzhechkov`, **and** the CLI's own install location. This is why
- * `dz registry` works for a globally-installed `dz`, not only inside the monorepo.
+ * The public showcase catalogue, projected from the SAME {@link Registry} the plugin manifests come
+ * from — so the page and the manifests can never answer "how many skills are there" differently.
+ *
+ * Why this exists: MEASURED 2026-09-04 and re-measured 2026-09-20, `marketplace/registry.json` said
+ * 57 skills / 10 packs while `buildRegistry` counted 260 / 37, and the file's last commit was
+ * 2026-06-03 — because NOTHING wrote it. A grep for its path across the whole source tree returned
+ * zero writers (backlog 9595b21e). A catalogue with no generator does not go stale slowly; it stops
+ * being true the first time anything ships, and it was the one surface a visitor actually reads.
+ *
+ * `generated` is the caller's to supply: a timestamp minted inside would make the output
+ * non-reproducible and the drift gate unable to compare a fresh build against the published file.
  */
+export function buildShowcaseRegistry(registry, opts) {
+    return {
+        version: opts.version,
+        generated: opts.generated,
+        totalSkills: registry.totalSkills,
+        totalPacks: registry.totalPacks,
+        categories: [...registry.categories],
+        skills: registry.entries.map((e) => ({
+            id: e.id,
+            pack: e.pack,
+            description: e.description,
+            trustTier: e.trustTier,
+            category: e.category,
+            install: `dz init --target claude-code --select ${e.id}`,
+        })),
+    };
+}
 export function buildRegistry(cwd) {
     const entries = [];
     const packs = discoverSkillCarryingDirs(cwd);

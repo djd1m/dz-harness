@@ -1338,6 +1338,18 @@ export interface GuardAuditRecord {
   readonly observations?: readonly GuardObservation[];
   /** set when the operator overrode a block with `--force <reason>` — the override is logged, never silent. */
   readonly override?: { readonly forced: true; readonly reason: string };
+  /**
+   * Ids of every rule this run EVALUATED — `checked` plus `notEstablished`, because both mean the
+   * rule was active for the op and got its turn.
+   *
+   * Why the log needs it (backlog 1bee49dd): a guard rule's zero-firing state is its HEALTHY state,
+   * so `violations[]` cannot tell a working safety net from a dead rule. MEASURED 2026-09-21 on
+   * `.dz/guard-audit.jsonl`: 1854 rows, 26 default rules, 6 of which never appear in any violations
+   * array — and 4 of those 6 are not allowlisted, so the moment the report's history floor is met
+   * they would be named dead for doing their job. The evaluation set was already computed in
+   * `GuardResult`; only the record dropped it.
+   */
+  readonly evaluated?: readonly string[];
 }
 
 /** Build the audit record for a guard evaluation (+ an optional forced-override reason). Pure. */
@@ -1350,7 +1362,19 @@ export function auditRecord(result: GuardResult, ts: string, override?: { reason
     ...(Array.isArray(result.notes) && result.notes.length > 0 ? { notes: result.notes } : {}),
     ...(Array.isArray(result.observations) && result.observations.length > 0 ? { observations: result.observations } : {}),
     ...(override && typeof override.reason === 'string' ? { override: { forced: true, reason: override.reason } } : {}),
+    ...(evaluatedRuleIds(result).length > 0 ? { evaluated: evaluatedRuleIds(result) } : {}),
   };
+}
+
+/**
+ * Every rule that got its turn this run, sorted and de-duplicated. A rule with no input still RAN —
+ * calling that "not evaluated" would reintroduce the very conflation this field exists to remove.
+ */
+export function evaluatedRuleIds(result: GuardResult): string[] {
+  const ids = new Set<string>();
+  for (const id of Array.isArray(result.checked) ? result.checked : []) if (typeof id === 'string' && id !== '') ids.add(id);
+  for (const id of Array.isArray(result.notEstablished) ? result.notEstablished : []) if (typeof id === 'string' && id !== '') ids.add(id);
+  return [...ids].sort();
 }
 
 /** The exit-code contract: a block is non-zero unless forced; a warn/pass is zero. */

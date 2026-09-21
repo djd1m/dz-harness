@@ -176,6 +176,12 @@ export interface MutationObservation {
     readonly outputError?: string;
     /** bounded log proving an internal runner failure received at most one retry. */
     readonly internalAttemptLog?: string;
+    /**
+     * Whether any suite the entry's `testCommand` selects NAMES the mutated module — see
+     * {@link suiteSelectionNamesModule}. Only read on the UNDEFENDED path, and only to add a hint:
+     * `false` says "check the command before the tests", never "the property is fine".
+     */
+    readonly suiteNamesModule?: boolean | 'unknown';
 }
 export interface MutationEntryResult {
     readonly id: string;
@@ -372,6 +378,30 @@ export interface BaselineResult {
  * "red under mutation" would be noise, and every "green" a lie about an unrunnable copy.
  */
 export declare function classifyBaseline(exitCode: number | null, runFailureReason?: string, attribution?: BaselineAttribution, outputPath?: string, outputError?: string): BaselineResult;
+/**
+ * Suite paths a registry `testCommand` selects, in order. Tokens that are not suite files (the
+ * runner, its flags) are ignored — the command is a shell line, not a schema, so this reads the
+ * shape it actually has rather than assuming one.
+ */
+export declare function parseSuitePaths(testCommand: string): readonly string[];
+/**
+ * Does ANY suite the command selects even name the mutated module?
+ *
+ * Why this exists: `UNDEFENDED` reads as "this property has no test", and MEASURED 2026-09-04 that
+ * reading was wrong twice in one run — both tests existed; the registry's `testCommand` simply did
+ * not select the suites that import them (backlog 1f4e4f66). The author filed a finding about two
+ * "unprotected properties" before checking the instrument, which is the failure this hint prevents.
+ *
+ * Deliberately a HINT, never a verdict: it matches the module's STEM in each suite's text, so a
+ * suite that reaches the module through a transitive import is invisible to it. `'unknown'` when no
+ * suite could be read — absence of evidence is not evidence, and a hint that guesses is worse than
+ * no hint.
+ */
+export declare function suiteSelectionNamesModule(input: {
+    readonly file: string;
+    readonly suitePaths: readonly string[];
+    readonly readSuite: (path: string) => string | null;
+}): boolean | 'unknown';
 export declare function classifyMutationOutcome(obs: MutationObservation): MutationEntryResult;
 /** Exit contract: 0 all runnable entries proven · 1 a runnable entry failed (or red baseline) ·
  *  2 no mutation-eligible entry exists, so the registry/selection is unusable as a run. */

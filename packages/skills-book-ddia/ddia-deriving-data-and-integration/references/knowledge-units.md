@@ -187,4 +187,4 @@ of «Высоконагруженные приложения» (M. Kleppmann). E
 
 ---
 
-*14 KUs · chapter 12 · trust_tier 0 (machine-distilled, unreviewed).*
+*14 KUs · chapter 12 · trust_tier 1 (machine-distilled; routing evals passed, CP3.5 gate 2026-07-04).*

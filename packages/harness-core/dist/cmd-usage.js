@@ -270,9 +270,13 @@ export function loadDeadwoodAllowlist(json) {
 function parseGuardAuditUsage(text, weeks, now) {
     const auditTimestamps = [];
     const hits = [];
+    let evaluationRows = 0;
     let skipped = 0;
     let outOfRange = 0;
     const newestAllowed = now.getTime() + DEADWOOD_FUTURE_TOLERANCE_MS;
+    // Same window arithmetic `foldCmdUsage` uses, so "counted as evidence" and "counted as a run"
+    // cannot disagree about which rows are inside.
+    const windowStart = now.getTime() - Math.max(0, weeks) * 7 * DAY_MS;
     for (const line of text.split('\n')) {
         if (line.trim() === '')
             continue;
@@ -297,17 +301,42 @@ function parseGuardAuditUsage(text, weeks, now) {
             continue;
         }
         auditTimestamps.push(row.ts);
+        // A rule's HEALTHY state is silence, so firing cannot measure whether it is alive. `evaluated`
+        // records the rules that actually got their turn; rows written before the field existed carry
+        // none, and they contribute evidence about firing only.
+        //
+        // Two conditions, both named by cross-family review (Codex gpt-5.6-sol, 2026-09-21), both of
+        // which turn this evidence into a false accusation if skipped:
+        //  · the row must be INSIDE the window. An instrumented row older than `now - weeks` yields no
+        //    in-window runs, so counting it as evidence would let one ancient row flip every absent
+        //    rule from "cannot judge" to "dead".
+        //  · the array must carry a USABLE id. `evaluated: []` is a row that recorded nothing; treating
+        //    it as evidence is the same false accusation by a shorter path.
+        const evaluatedIds = new Set();
+        if (Array.isArray(row.evaluated)) {
+            for (const value of row.evaluated) {
+                if (typeof value === 'string' && value.trim() !== '')
+                    evaluatedIds.add(value);
+            }
+        }
+        if (evaluatedIds.size > 0 && tsMs >= windowStart)
+            evaluationRows += 1;
+        for (const id of evaluatedIds) {
+            hits.push({ kind: 'cmd', cmd: id, ts: row.ts, v: CMD_USAGE_SCHEMA });
+        }
         const violations = Array.isArray(row.violations) ? row.violations : [];
         for (const value of violations) {
             const rule = typeof value === 'object' && value !== null
                 ? value.rule
                 : undefined;
-            if (typeof rule === 'string' && rule.trim() !== '') {
+            // One guard run is ONE run. A rule that both evaluated and fired in the same row would be
+            // counted twice — 100 warning evaluations reported as 200 runs (same review, second finding).
+            if (typeof rule === 'string' && rule.trim() !== '' && !evaluatedIds.has(rule)) {
                 hits.push({ kind: 'cmd', cmd: rule, ts: row.ts, v: CMD_USAGE_SCHEMA });
             }
         }
     }
-    return { auditTimestamps, stats: foldCmdUsage(hits, weeks, now), skipped, outOfRange };
+    return { auditTimestamps, stats: foldCmdUsage(hits, weeks, now), skipped, outOfRange, evaluationRows };
 }
 function timestampDepthDays(timestamps, now) {
     let first = Number.POSITIVE_INFINITY;
@@ -451,6 +480,23 @@ export function buildDeadwoodReport(input) {
                 state: 'insufficient-data',
                 ...item,
                 reason: `guard-audit cannot support this window: ${ruleWindow.reason}`,
+            });
+            continue;
+        }
+        // A rule the window has no EVALUATION evidence for is unjudged, not unused. Firing is the wrong
+        // signal for a guard (silence is its healthy state), so without `evaluated` rows the only honest
+        // answer is "this report cannot judge the rule" — exactly what the skill surface already says.
+        if (item.kind === 'rule' && rules.evaluationRows === 0
+            && (rules.stats.get(item.surface)?.runsInWindow ?? 0) === 0
+            // An explicit allowlist entry is an operator's standing statement about this surface; it keeps
+            // its own wording. Only the ACCUSING path — "zero usage, consider deprecating" — is withdrawn.
+            && !allowlist.has(allowlistKey(item.kind, item.surface))) {
+            noInstrumentation.push({
+                state: 'no-instrumentation',
+                surface: item.surface,
+                kind: item.kind,
+                reason: 'no guard-audit row in this window recorded which rules it evaluated; a rule that '
+                    + 'never fires may be a healthy safety net, so firing alone cannot judge it',
             });
             continue;
         }

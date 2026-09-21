@@ -1,7 +1,7 @@
 # Knowledge Units — Transaction Isolation Choice (DDIA гл. 7)
 
 Deep-lookup reference for `ddia-transaction-isolation-choice`. Machine-distilled from
-«Высоконагруженные приложения» (M. Kleppmann, DDIA рус.), chapter 7. trust_tier 0 — unreviewed.
+«Высоконагруженные приложения» (M. Kleppmann, DDIA рус.), chapter 7. trust_tier 1 — routing evals passed (CP3.5 gate 2026-07-04).
 
 ---
 

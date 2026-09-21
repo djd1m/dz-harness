@@ -2,7 +2,7 @@
 
 Deep-lookup reference for the SKILL.md decision skill. Machine-distilled from
 «Высоконагруженные приложения» (M. Kleppmann, DDIA рус.), глава 5 (и врезки гл. 6
-про сочетание секционирования с репликацией). Trust tier 0 — unreviewed.
+про сочетание секционирования с репликацией). Trust tier 1 — routing evals passed (CP3.5 gate 2026-07-04).
 
 Each unit preserves: type, name, problem, content, applicability, limits, pages.
 

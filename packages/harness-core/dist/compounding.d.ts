@@ -80,6 +80,11 @@ export interface GuardEvent {
         readonly rule: string;
         readonly contentAnchor?: string;
     }[];
+    /**
+     * 1-based position of this record among the log's non-empty lines — the ONLY thing that can place
+     * it relative to a chain defect. Absent when the caller read the rows without a chain.
+     */
+    readonly chainLine?: number;
 }
 export type FunnelEvidenceSource<T> = {
     readonly status: 'measured';
@@ -88,9 +93,24 @@ export type FunnelEvidenceSource<T> = {
     readonly status: 'not-measured';
     readonly reason: string;
 };
+/**
+ * Where the guard journal's chain damage sits, so a PERIOD can be judged instead of the whole FILE.
+ *
+ * A log damaged once in March and unbroken since is not evidence against September's rows, and
+ * refusing to measure September because of March is the same "verdict answers a different question"
+ * defect the chain headline was fixed for (backlog b38dd3ba, MEASURED 2026-09-21: 28 defects, all
+ * before a run of 1169 unbroken records, suppressed BOTH measured months).
+ */
+export interface GuardAuditChainWindow {
+    /** First non-empty line of the current unbroken run: one past the last defect. */
+    readonly runFrom: number;
+    /** Total defects in the file. Zero means the window imposes nothing. */
+    readonly defects: number;
+}
 export interface LessonToRuleFunnelFacts {
     readonly promotionRuns: FunnelEvidenceSource<PromotionRunEvidence>;
     readonly guardAudits: FunnelEvidenceSource<GuardEvent>;
+    readonly guardAuditChain?: GuardAuditChainWindow;
     readonly promotionAcceptances?: readonly PromotionAcceptanceEvidence[];
     readonly truncatedPromotionPeriods?: readonly string[];
     readonly acceptanceHistoryComplete?: boolean;
@@ -187,6 +207,20 @@ export interface EvidenceChainHealth {
     readonly preChainPrefix: number;
     readonly defects: number;
     readonly defectKinds: readonly string[];
+    /**
+     * WHERE the defects sit relative to the log's current unbroken run, and HOW MUCH of a run that is.
+     * Without this a bare `FAILED` over a log whose damage is entirely historical reads as "today's
+     * numbers are garbage", while `dz chain` over the SAME file says "healed … verdicts over those are
+     * sound" — MEASURED 2026-09-20 on `.dz/guard-audit.jsonl`: 28 defects, all before the current run,
+     * 1095 unbroken records after them; one instrument printed FAILED, the other healed, both exit 0
+     * (backlog 79ce6262). Neither was lying; neither named its WINDOW. `event-chain.ts` says it
+     * outright: a caller that reports soundness without printing the run size overclaims on its behalf,
+     * and the same holds for a caller that reports damage without printing where the damage sits.
+     */
+    readonly defectsBeforeRun: number;
+    readonly defectsInRun: number;
+    /** Records in the current unbroken run — the evidence behind any "sound for today" reading. */
+    readonly runRecords: number;
 }
 export interface InstrumentationHealth {
     readonly lastUsageTs: string | null;
@@ -212,5 +246,37 @@ export interface CompoundingReport {
 }
 export declare function assembleLessonToRuleFunnel(facts: LessonToRuleFunnelFacts, nowTs: string): LessonToRuleFunnelReport;
 export declare function assembleCompoundingReport(facts: CompoundingFacts): CompoundingReport;
+/**
+ * The HEADLINE verdict over every evidence log — three-valued, because two values lied.
+ *
+ * MEASURED 2026-09-21 on `.dz/guard-audit.jsonl`: 28 defects, the LAST of them dated 2026-09-05,
+ * followed by more than a thousand unbroken records. The old headline read
+ * "CORRUPT — the numbers above are computed from a damaged log", which is true of the FILE'S
+ * HISTORY and false about the numbers it was printed next to. The distinction already existed one
+ * function below, in {@link chainVerdictPhrase}; it simply never reached the line a reader sees
+ * first. That is the same defect class this report exists to find: a verdict answering a different
+ * question than the one it appears to answer.
+ */
+/**
+ * Whether the report's OWN numbers may be trusted, as a value the caller can turn into an exit code.
+ *
+ * Backlog 79ce6262 named the defect: the report printed "the numbers above are computed from a
+ * damaged log" and exited 0 anyway — a tool announcing its own output untrustworthy and reporting
+ * success. That record offered two lawful cures and asked which applies. Both do, on different
+ * branches, and only the three-valued verdict lets them coexist: damage BEHIND the current run
+ * narrows the WORDING (the numbers stand, exit 0), damage INSIDE it makes the numbers genuinely
+ * unreliable and must reach the exit code.
+ *
+ * `'trusted'` ⇒ 0. `'unreliable'` ⇒ a non-zero the caller chooses — the run succeeded, the verdict
+ * cannot be relied on, which is this repository's INCONCLUSIVE shape, not its failure shape.
+ */
+export declare function chainTrust(chains: readonly EvidenceChainHealth[]): 'trusted' | 'unreliable';
+export declare function chainHeadline(chains: readonly EvidenceChainHealth[]): string;
+/**
+ * The verdict phrase for one evidence log, with its WINDOW named. A bare `FAILED` over damage that an
+ * unbroken run has already followed is true of the FILE and misleading about TODAY — see
+ * {@link EvidenceChainHealth.defectsBeforeRun}.
+ */
+export declare function chainVerdictPhrase(c: EvidenceChainHealth): string;
 export declare function renderCompoundingReport(r: CompoundingReport): string;
 //# sourceMappingURL=compounding.d.ts.map

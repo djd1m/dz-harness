@@ -417,11 +417,28 @@ export interface GuardAuditRecord {
         readonly forced: true;
         readonly reason: string;
     };
+    /**
+     * Ids of every rule this run EVALUATED — `checked` plus `notEstablished`, because both mean the
+     * rule was active for the op and got its turn.
+     *
+     * Why the log needs it (backlog 1bee49dd): a guard rule's zero-firing state is its HEALTHY state,
+     * so `violations[]` cannot tell a working safety net from a dead rule. MEASURED 2026-09-21 on
+     * `.dz/guard-audit.jsonl`: 1854 rows, 26 default rules, 6 of which never appear in any violations
+     * array — and 4 of those 6 are not allowlisted, so the moment the report's history floor is met
+     * they would be named dead for doing their job. The evaluation set was already computed in
+     * `GuardResult`; only the record dropped it.
+     */
+    readonly evaluated?: readonly string[];
 }
 /** Build the audit record for a guard evaluation (+ an optional forced-override reason). Pure. */
 export declare function auditRecord(result: GuardResult, ts: string, override?: {
     reason: string;
 }): GuardAuditRecord;
+/**
+ * Every rule that got its turn this run, sorted and de-duplicated. A rule with no input still RAN —
+ * calling that "not evaluated" would reintroduce the very conflation this field exists to remove.
+ */
+export declare function evaluatedRuleIds(result: GuardResult): string[];
 /** The exit-code contract: a block is non-zero unless forced; a warn/pass is zero. */
 export declare function guardExitCode(result: GuardResult, forced: boolean): number;
 export {};

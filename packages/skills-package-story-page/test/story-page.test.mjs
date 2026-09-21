@@ -3966,3 +3966,48 @@ test('every checkpoint check and mutant has one executable semantic disposition'
     }
   }
 });
+
+/**
+ * Бэклог 881e1d1b. Сдерживание относительного импорта — код, который ЕСТЬ, но который до сих пор
+ * не был закреплён НИ ОДНИМ тестом: соседний блок `escapes` проверяет побег ВОЗМОЖНОСТЕЙ
+ * (fetch/eval/Function), а не пути. ИЗМЕРЕНО 2026-09-21 прямым вызовом: выход через `..`,
+ * абсолютный путь и отсутствующий модуль отвергаются все три — то есть защита работала, но
+ * снаружи её нельзя было отличить от защиты, которой нет.
+ *
+ * Три ветки одного условия проверяются по отдельности, потому что одна мутация обязана давать один
+ * красный: «вышел за корень», «вошёл в node_modules», «не .mjs».
+ */
+test('относительный импорт не покидает проекцию, не входит в node_modules и остаётся .mjs', () => {
+  const graph = (source, path = 'scripts/entry.mjs') => scanSemanticImportGraph([{ path, source }], path);
+
+  // Контроль: без него любой из отказов ниже мог бы означать «сканер отвергает всё подряд».
+  assert.equal(graph('export const ok = true;').pass, true, 'чистый модуль обязан проходить');
+
+  for (const [label, specifier] of [
+    ['выход на уровень выше корня', '../../outside.mjs'],
+    ['выход многими шагами', '../../../../outside.mjs'],
+  ]) {
+    const result = graph(`import ${JSON.stringify(specifier)};`);
+    assert.equal(result.pass, false, label);
+    assert.ok(
+      result.failures.some((failure) => failure.includes('import escapes') && failure.includes(specifier)),
+      `${label}: отказ обязан назвать сам спецификатор — ${JSON.stringify(result.failures)}`,
+    );
+  }
+
+  const inNodeModules = graph('import "./node_modules/pkg/index.mjs";');
+  assert.equal(inNodeModules.pass, false, 'путь через node_modules закрыт');
+  assert.ok(inNodeModules.failures.some((failure) => failure.includes('node_modules')), JSON.stringify(inNodeModules.failures));
+
+  const wrongExtension = graph('import "./helper.js";');
+  assert.equal(wrongExtension.pass, false, 'расширение, отличное от .mjs, закрыто');
+  assert.ok(wrongExtension.failures.some((failure) => failure.includes('./helper.js')), JSON.stringify(wrongExtension.failures));
+
+  // Граница: `../` САМО ПО СЕБЕ не запрещено — запрещён выход за корень проекции. Без этого случая
+  // тест закрепил бы более строгое правило, чем код, и первая же законная правка стала бы красной.
+  const legalParent = scanSemanticImportGraph([
+    { path: 'scripts/deep/entry.mjs', source: 'import "../sibling.mjs";' },
+    { path: 'scripts/sibling.mjs', source: 'export const sibling = true;' },
+  ], 'scripts/deep/entry.mjs');
+  assert.equal(legalParent.pass, true, `подъём внутри проекции законен — ${JSON.stringify(legalParent.failures)}`);
+});

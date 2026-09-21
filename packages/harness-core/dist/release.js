@@ -707,6 +707,36 @@ function fencedBlock(text, indent = '    ') {
     return [`${indent}${fence}`, ...contentLines, `${indent}${fence}`];
 }
 /**
+ * Формы отказа `gh`, означающие «учётные данные не приняты», а не «команда не та».
+ * Список узкий намеренно: широкая сетка превратила бы любой сбой в повод лезть в окружение.
+ */
+const GH_AUTH_FAILURE_SHAPES = [
+    /no longer valid/i,
+    /bad credentials/i,
+    /authentication failed/i,
+    /requires authentication/i,
+    /gh auth login/i,
+    /HTTP 401/i,
+];
+/**
+ * Стоит ли повторить вызов `gh` БЕЗ переменной `GITHUB_TOKEN`.
+ *
+ * ИЗМЕРЕНО 2026-09-21 в этой среде: `gh auth status` → «the github.com token in GITHUB_TOKEN is no
+ * longer valid», а `env -u GITHUB_TOKEN gh auth status` → вход как djd1m через keyring. То есть
+ * мёртвая переменная ЗАТЕНЯЕТ рабочие учётные данные, и всякий вызов `gh` из скрипта падает
+ * (бэклог ead5f8e0). Переменная живёт в окружении tmux-сервера и снимается только владельцем.
+ *
+ * Почему повтор, а не безусловное снятие: в сборочной среде `GITHUB_TOKEN` — ШТАТНЫЙ способ
+ * авторизации, и выбрасывать его всегда значило бы ломать работающее ради сломанного. Поэтому
+ * сначала обычный вызов, и лишь на отказе ИМЕННО по авторизации — одна попытка без переменной.
+ */
+export function shouldRetryGhWithoutToken(input) {
+    if (input.exitCode === 0 || !input.tokenPresent)
+        return false;
+    const text = `${input.stderr}\n${input.stdout}`;
+    return GH_AUTH_FAILURE_SHAPES.some((re) => re.test(text));
+}
+/**
  * gh-2.4-safe `gh issue create` payload (only `--title`/`--body` are assumed downstream).
  * Pure + deterministic for a fixed verdict — the issue is the verdict's echo, never its judge.
  *
