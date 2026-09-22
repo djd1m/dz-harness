@@ -2,7 +2,8 @@ import { type RuleTemplate, type TemplateParams } from './guard-promotion.js';
 import { type StubWaiver } from './no-stubs.js';
 import { type GuardObservation, type VolumeShadowInput } from './guard-volume.js';
 export type GuardSeverity = 'hard' | 'soft';
-export type GuardOp = 'publish' | 'teach' | 'consolidate' | 'reindex';
+export declare const GUARD_OPS: readonly ["publish", "teach", "consolidate", "reindex", "code"];
+export type GuardOp = typeof GUARD_OPS[number];
 export type GuardVerdict = 'pass' | 'warn' | 'block';
 /** A declarative rule. Built-in rules ship with a checker (below); config can only tune/disable them. */
 export interface GuardRule {
@@ -137,6 +138,8 @@ export interface GuardFacts {
     };
     /** for no-skill-drift: the names that byte-drift between copies (from sweepSkillDrift). */
     readonly drift?: readonly string[];
+    /** for no-skill-drift: canonical-side defects as skill:path (from sweepSkillDrift). */
+    readonly canonicalDefects?: readonly string[];
     /**
      * for codex-wrapper-for-value-stage: workflow scripts to scan, as (path, text). Absent ⇒ the
      * rule reports nothing: a guard with no evidence must stay silent rather than invent a verdict.
@@ -150,11 +153,22 @@ export interface GuardFacts {
         readonly label: string;
         readonly text: string;
     }[];
+    /** for no-secrets: findings already scanned from the streaming publish inventory. */
+    readonly secretFindings?: readonly {
+        readonly label: string;
+        readonly name: string;
+    }[];
     /** for no-secrets: exact path waivers; entries without a non-empty reason are ignored and noted. */
     readonly secretWaivers?: readonly SecretWaiver[];
     /** Publish secret-scan coverage gaps; skips are informational and never verdict inputs. */
+    /** backlog a530eaca: `skippedPaths` names what the fail-open scan never read (repo-relative, with the
+     * reason) so the coverage gap is auditable — a bare count told the owner nothing to check. Optional:
+     * an older CLI that sends only the count still renders the count-only note. */
     readonly secretScan?: {
         readonly skipped: number;
+        readonly skippedPaths?: readonly string[];
+        readonly scanned?: number;
+        readonly inventory?: string;
     };
     /** for readme-consistency: labelled (a,b) count pairs that must be equal. */
     readonly counts?: readonly {
@@ -207,7 +221,7 @@ export interface GuardFacts {
     /**
      * for review-round: per publishable package, does this change bump a version AND touch SOURCE, and
      * did it bring a GRADED QE report with it? `undefined` (the whole fact absent) means the tree could
-     * not be read — the rule then reports nothing, which is different from reporting "no review".
+     * not be read — the rule is NOT-ESTABLISHED, which is different from reporting "no review".
      */
     readonly reviewRound?: {
         readonly packages: readonly {
@@ -339,6 +353,12 @@ export declare const SECRET_PATTERNS: readonly {
 /** Scan text for secret shapes. Returns each match's pattern name (deduped) — never throws on hostile input. */
 export declare function scanSecrets(text: unknown): {
     readonly name: string;
+}[];
+export declare const SECRET_SCAN_OVERLAP_BYTES = 4096;
+export declare function scanSecretsChunked(chunks: Iterable<Buffer>, opts?: {
+    overlapBytes?: number;
+}): {
+    name: string;
 }[];
 /** Per-rule pure checkers. Each returns the violations it found (empty ⇒ clean). Missing evidence ⇒ []. */
 /**

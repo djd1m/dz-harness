@@ -101,9 +101,9 @@
       },
       {
         "path": "test/story-page.test.mjs",
-        "sha256": "33555ccbcda3d8eaf13f468db43e03c638810caa46d7a9919c74a8a803029e94"
+        "sha256": "bc6853283363c0ca1cc2e3cfa003f7486f18f0fe99268cf847f9fdf1871f4643"
       }
     ]
   },
-  "signature": "pXQQMPBjzlcrUnHdWkCvFCoI3TYu3i5zKhbBNuhkeqHMXYEFOdoAwfB9Y0xxSfPcns3EiT2l5GF3epA7bZzgAw=="
+  "signature": "K2/yXxS3qXGxeBqfs2C6xmBKF3o4MkxC6MfldoTrnDN0tO7pNsqdCa5c8Jvber6GBWF9GHa8067hrgPE3eEnCQ=="
 }

@@ -9,6 +9,7 @@
 import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PACKAGE_SKILL_LAYOUTS } from './package-skill-layouts.js';
 import { stems } from './stem.js';
 /**
  * Resolve every `@dzhechkov` base directory that may hold `skills-*` packs, for a given
@@ -77,11 +78,13 @@ function readSkillDiscoveryConfig(cwd) {
 /** List `skills-*` pack directories across all base dirs, de-duplicated by pack name (first wins). */
 /**
  * Does this directory actually carry skills? Answers by LOOKING, so a pack is catalogued for what it
- * contains rather than for how it is named. Bounded on purpose: only the three layouts real packs
- * use (`skills/<id>/SKILL.md`, `<pack>/<id>/SKILL.md` for a single-skill pack, and a bare
- * `SKILL.md`), never a full-tree walk — an unbounded scan over `node_modules` would cost more than
- * the catalogue it builds. Templates are excluded: a template is a stamp for making skills, not an
- * installed skill, and counting it would list the same name twice.
+ * contains rather than for how it is named. Probes PACKAGE_SKILL_LAYOUTS — the ONE table that says
+ * where a package keeps its skills (backlog 86b787b8: the same three layouts used to be spelled out
+ * by hand here and in `buildRegistry`, so the next layout would land in one place and be forgotten
+ * in the other). Bounded on purpose: never a full-tree walk, because an unbounded scan over
+ * `node_modules` would cost more than the catalogue it builds. For the flat layout the package
+ * itself may also be a skill (a bare `SKILL.md`). `hasSkillMd` skips a `templates` child so a
+ * template stamp is not counted twice — it is reached only through its own allowed layout.
  */
 function packCarriesSkills(dir) {
     const hasSkillMd = (d) => {
@@ -97,16 +100,12 @@ function packCarriesSkills(dir) {
         return false;
     };
     try {
-        if (existsSync(join(dir, 'SKILL.md')))
-            return true;
-        if (hasSkillMd(join(dir, 'skills')))
-            return true;
-        // A template pack ships the skills it will roll out into the user's project. From the
-        // catalogue's point of view those skills EXIST — `trip-planner` and `presentation-storyteller`
-        // are installable answers to a task — so hiding them makes the advisor deny a real capability.
-        if (hasSkillMd(join(dir, 'templates', '.claude', 'skills')))
-            return true;
-        return hasSkillMd(dir);
+        return PACKAGE_SKILL_LAYOUTS.some(({ rel }) => {
+            const root = rel === '.' ? dir : join(dir, rel);
+            if (rel === '.' && existsSync(join(root, 'SKILL.md')))
+                return true;
+            return hasSkillMd(root);
+        });
     }
     catch {
         return false;
@@ -462,16 +461,21 @@ export function buildShowcaseRegistry(registry, opts) {
 export function buildRegistry(cwd) {
     const entries = [];
     const packs = discoverSkillCarryingDirs(cwd);
-    // A pack keeps its skills in one of three shapes, and reading only the first made 41 real skills
+    // The catalogue collects ALL allowed layouts, and reading only the first made 41 real skills
     // invisible (MEASURED 2026-09-01): the pack root (`skills-*` packs), a `skills/` subdirectory
     // (health-advisor and friends), and `templates/.claude/skills/` for packs that roll their skills
-    // out into the user's project. The catalogue answers "what can I use", so all three count.
-    const SKILL_LAYOUTS = [[], ['skills'], ['templates', '.claude', 'skills']];
+    // out into the user's project. A template pack ships the skills it will roll out; from the
+    // catalogue's point of view those skills EXIST — `trip-planner` and `presentation-storyteller`
+    // are installable answers to a task — so hiding them would make the advisor deny a real
+    // capability. The layouts themselves now come from PACKAGE_SKILL_LAYOUTS so the knowledge lives
+    // in ONE place; resolvePackageSkillRoots deliberately selects only the FIRST non-empty root
+    // (installation semantics, plan AM-4) and therefore cannot serve this enumeration — calling it
+    // here would silently drop skills from a pack that fills two layouts (backlog 86b787b8).
     const seenSkillIds = new Set();
     for (const { pack, dir: packDir } of packs) {
         const found = [];
-        for (const layout of SKILL_LAYOUTS) {
-            const root = layout.length === 0 ? packDir : join(packDir, ...layout);
+        for (const { rel } of PACKAGE_SKILL_LAYOUTS) {
+            const root = rel === '.' ? packDir : join(packDir, rel);
             if (!existsSync(root))
                 continue;
             try {

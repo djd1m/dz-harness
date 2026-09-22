@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-20T09:34:29.101Z",
+  "generatedAt": "2026-09-21T08:44:23.161Z",
   "totalFiles": 167,
   "files": {
     ".claude/agents/doc-validator.md": "e57950758cd4764b2cb54b3f1905567e9dbc1ed20ac6ecd30998614894689f4f",
@@ -34,7 +34,7 @@
     ".claude/hooks/check-look-trace.cjs": "2952d8547feff344ec18289e1eaf5d067ada2af6e13541e25e73a8dfd7caf2bc",
     ".claude/hooks/check-metric-source.cjs": "315deda6354f91737165786bdb22b799517bd80530e5b4584593c4f4df84c56e",
     ".claude/hooks/check-model-cost.cjs": "425bda547661e0b31f313d6bb371db4d303cc83a43189fb4dc981e1fb43fac06",
-    ".claude/hooks/check-ports.cjs": "2b458cf78367ec7752174f08aa40109b3b6217e405f99a46e18e75e4b69bc87e",
+    ".claude/hooks/check-ports.cjs": "1d38312a85c7d71cad7f7a91477c3b1e3a3694852f72582102759250a68ba318",
     ".claude/hooks/check-review-contract.cjs": "44e32ea31a4a71ceb6eccb0956006519de270eab787a79ab4884978bc04385ab",
     ".claude/hooks/check-source-version.cjs": "b9dc2eee7403119481ea2c49a94581613f2c134685448736c2734948a638a010",
     ".claude/hooks/check-swarm-receipts.cjs": "9fa83d78b085d8eea28958b4722999ba44a7bd47c98fe5a96127fc5b5230b40c",

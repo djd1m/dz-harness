@@ -60,6 +60,15 @@
 export declare const STALE_LOCK_MS = 30000;
 /** Give up waiting after this long and say so, rather than blocking a CLI forever. */
 export declare const LOCK_TIMEOUT_MS = 10000;
+/** A store exists exactly when the project's .dz entry exists. */
+export declare function storeExists(projectRoot: string): boolean;
+/** Refusing a store-scoped lock must never seed a store. */
+export declare class StoreAbsentError extends Error {
+    readonly root: string;
+    readonly lock: string;
+    readonly code = "ESTOREABSENT";
+    constructor(root: string, lock: string);
+}
 /** Path of the lock guarding a project's pattern store (a DIRECTORY when held). */
 export declare function storeLockPath(projectRoot: string): string;
 /** Options accepted by {@link withStoreLock} / {@link withStoreLockSync}. */

@@ -954,10 +954,25 @@ dz qe-bridge: FAILED — probe-failed
   record: features/wave1-scorer-negation/.fa-state/qe-bridge/failed-2026-08-19T18-48-52-931Z.json
   no report was written — an unparseable or absent review is never a passing one.
 
-# with a debt on record, the report settles it through the untouched fail-closed path
-$ dz reqe --slug add-x --done --report features/add-x/08b_reqe_report.md
-dz reqe: debt settled: re-QE grade C (report …) — settlement appended to features/add-x/08_qe_report.md
+# with a debt on record, settlement reports new and prior findings separately (T3 test output)
+$ dz reqe --slug demo --done --report reqe-report.md
+dz reqe: debt settled: re-QE grade B (report reqe-report.md) — settlement appended to features/demo/08_qe_report.md
+  new findings: blocked — BLOCKER 0, HIGH 1, MEDIUM 0, LOW 1, unknown 0 (rows 2)
+  prior findings: closed (1/1)
+stop — owner decides
+  HIGH — Settlement loses the verdict (src/settle.ts:12)
 ```
+
+The `dz reqe --done` exit code distinguishes settlement from readiness; exit 3 means the debt
+was settled and the named findings must be surfaced to the owner.
+
+| Exit code | Meaning |
+|---|---|
+| 0 | settled (ready or unassessed) |
+| 1 | refused, nothing written |
+| 3 | settled but BLOCKER or HIGH named — stop, owner decides |
+
+Severities and prior-finding status are the reviewer's own declaration; `dz reqe` counts them, it does not judge them.
 
 **When to use:** you are hosting a run outside Claude Code (Codex, CI, a plain terminal), you have
 just written code, and the independent reviewer must be the OTHER family. Also: whenever `dz reqe`
@@ -1052,19 +1067,41 @@ extracts you scope are what leaves the machine. RU: мост в обратную
 ### Пересмотр после аварийного само-ревью — `dz reqe`
 
 The feature-adr pipeline's cross-model guard says *the model that writes code must not review it*.
-Historical usage-switched runs could suspend that guard under provider-limit pressure: coder AND
-Step-8 QE both ran on Codex. The rule used to say "re-review manually after limits reset" — an
-instruction nobody remembers. `dz reqe` turns it into a **debt with a lifecycle**: the run records
-`features/<slug>/.fa-state/reqe-due.json`, `dz usage --json` carries the outstanding count as
-`reqeDue`, and settlement is FAIL-CLOSED.
+When a review intended to be cross-family runs on the coder's own family, `dz reqe` makes it a
+**debt with a lifecycle** in `features/<slug>/.fa-state/reqe-due.json`, naming its cause:
+
+- `usage-switched`: a provider-usage override switched QE onto the coder's own family.
+- `probe-failed`: the cross-family reviewer probe failed and QE ran on the coder's own family.
+- `same-family-fallback`: a cross-family attempt failed or was refused and QE fell back to the coder's family; the loop runner's explicit same-family QE waiver also uses this cause.
+- `same-family-pinned`: routing was ON, but an explicit QE model pin selected the coder's own family.
+
+All four causes settle the same way: run an independent review with the OTHER family than the coder,
+then submit its graded report with `dz reqe --slug <feature> --done --report <file>`.
+
+The brief includes this instruction:
+
+> Also list every finding of the same-family 08_qe_report.md by number under a "## Prior findings" heading, one line each: <n>: closed|open — <reason>.
+
+New findings and prior status are assessed separately. A report without a canonical `## Findings (N)`
+table with a `severity` column (plus `finding`/`title` and `location`/`where`) can still settle if it
+passes the report and grade checks, but its findings are `unclassified` and its new-findings verdict
+is `unassessed`, never inferred ready. The output names the reason: `findings: unclassified (absent)`
+when the section is missing, or `findings: unclassified (rejected: <reason>)` when parsing rejects it.
+An explicit `## Findings (0)` with no table is accepted as zero findings. Missing or unparseable
+prior declarations remain `unassessed`.
+
+Routing-OFF runs are excluded by configuration. Old checkpoints without bridge facts or a usage
+marker are reported as undeterminable, not assigned an invented cause. Historical debt records
+without `cause` are read as `usage-switched`. `dz usage --json` reports the outstanding total in
+`reqeDue` and the counts for all four causes in `reqeDueByCause`; settlement is FAIL-CLOSED.
 
 ```bash
 $ dz usage --json
-{"sessionPct":null,"weeklyPct":null,"routing":"disabled-by-design","spend":{"days":[...],"total7d":{...},"byModel":{...}},"reqeDue":1}
+{"sessionPct":null,"weeklyPct":null,"routing":"disabled-by-design","spend":{"days":[...],"total7d":{...},"byModel":{...}},"reqeDue":1,"reqeDueByCause":{"usage-switched":1,"probe-failed":0,"same-family-fallback":0,"same-family-pinned":0}}
 
 $ dz reqe                        # the ledger
 dz reqe — 1 unsettled re-QE debt(s):
-  add-x  coder=openai qe=openai grade=B  2026-07-30T10:00:00Z  → dz reqe --slug add-x
+  add-x  coder=openai qe=openai grade=B  2026-07-30T10:00:00Z cause=usage-switched  → dz reqe --slug add-x
 
 $ dz reqe --slug add-x           # the ready cross-family review brief (the OTHER family than the coder)
 $ dz reqe --slug add-x --done --report features/add-x/08b_reqe_report.md
@@ -1079,7 +1116,7 @@ fool it); the settlement epilogue lands in `08_qe_report.md` and the due-file ro
 `reqe-settled.json` (evidence kept, never deleted). **Honest scope** (printed by the command):
 nothing re-runs QE automatically, and the validator proves the settlement is procedurally sound —
 which model authored the report stays with the human running the brief. RU: гард «кодер не ревьюит
-сам себя» осознанно снимается под лимитом; `dz reqe` превращает инструкцию «перепроверь потом»
+сам себя» может быть снят из-за лимита, сбоя пробы, fallback или явного выбора модели своего семейства; `dz reqe` превращает инструкцию «перепроверь потом»
 в долг на диске — виден как `reqeDue` в `dz usage --json`, гасится только настоящим кросс-семейным отчётом с грейдом.
 
 ### Spend you can inspect — `dz usage`
@@ -2363,7 +2400,7 @@ backlog `1affd89e`).
 
 Every mutation of `.dz/rounds/<slug>-<round>.json` (`open`'s archive+write, `exec`'s owner-claim and
 owner-restore writes, `close`'s final reread+delete) runs under ONE named lock,
-`<stateRoot>/.dz/locks/round-state.lock` (`withNamedLockSync`, feature round-state-lock) — two `dz
+`<stateRoot>/.dz/locks/round-state.lock` (feature round-state-lock; class by ROOT SOURCE since `lock-never-seeds-store`: the DEFAULT root (cwd) is store-scoped — `withProjectLockSync` refuses with `StoreAbsentError` when `<cwd>/.dz` does not exist; an EXPLICIT `--state-root` / `DZ_ROUND_STATE_ROOT` is a directory mutex — `withDirLockSync`, `<stateRoot>/.dz-locks/round-state.lock` unless a legacy `<stateRoot>/.dz/locks/` already exists — and `round open` then CREATES `<stateRoot>/.dz/rounds/` itself, because naming the root is the user's deliberate act: the explicit root is the fourth documented store creator) — two `dz
 round` processes sharing a `--state-root` can no longer lose each other's update. Recall (`open`) and
 the run-cost ledger write (`close`) stay OUTSIDE the lock — they can be slow, and the lock must not be
 held across anything that isn't a short, synchronous read-modify-write. `open` rereads state again
@@ -2425,7 +2462,7 @@ probe that both selects the workspace build or PATH fallback and prints the sele
 dz runs               [--settle] [--stall-minutes N] [--json] [--project <dir>]   (read the run registry: live / stalled / orphaned / inconclusive / finished)
 dz runs-record        --event started|heartbeat|finished [--run-id <id>] [--kind <kind>] [--slug <slug>] [--pid <pid|host>] [--parent-run-id <id>] [--outcome <text>] [--project <dir>] [--json]   (append one run event)
 dz runs-clean         [--apply] [--retention-days N] [--project <dir>] [--json]   (plan cleanup of old clean merged worktrees and dead/finished registry histories; apply explicitly)
-dz mutation-gate [--package <dir>] [--registry <file>] [--test-cmd "<cmd>"] [--only <id[,id]>] [--touched <path[,path]>] [--added-since <git-ref>] [--timeout <ms>] [--max-workers <n>] [--rebaseline per-entry|final] [--verdicts <file>] [--run-id <id>] [--keep-scratch] [--json]   # the mutation gate: for each NAMED protection in a declarative registry, copy the package to a scratch dir (shadow-repo layout, node_modules symlinked, git-initialized), verify the baseline is green, apply the entry's exact {find, replace} mutation, run the suite, REQUIRE red, restore — and require the red to be ATTRIBUTABLE to the protection: a mutated file that no longer parses is MUTATION_UNPARSEABLE, a failing count far above the entry's bound (maxFailing, default from observed) is OVER_FAILING, and a restored tree that does not reproduce green makes the entry INCONCLUSIVE (flaky suite). A mutation that does not apply, a green suite, or an inconclusive run is a FAILURE — never a skip. After classifying, one durable JSONL line per entry (`{ts, package, entryId, verdict, failingCount, observed, drop, dropComparable, runId}`) is appended to `.dz/mutation-gate/verdicts.jsonl` under the invocation cwd (`--verdicts <file>` overrides; `--run-id <id>` names the row) — a SEPARATE file from the registry itself (the registry is the gate's INPUT, a verdict is its OUTPUT), so `test/mutation-registry.json` stays untouched; a write failure is a loud stderr warning that never changes the gate's own exit code. fix-round-1 (Codex r1 BLOCKER finding 1): `--verdicts` is canonicalized and compared against the registry's own canonical path AND `{dev, ino}` — a direct path, a symlink, or a hardlink alias to the registry refuses the write LOUDLY instead of corrupting the gate's own input. fix-round-1 (Codex r1 HIGH finding 2): the whole read-append-reread transaction runs under a named cross-process lock (`withNamedLockSync`), so two concurrent gate processes appending to the same file can neither interleave nor lose a line — the tail is re-read inside the lock to verify exactly as many lines landed as were classified. `--touched <path[,path]>` / `--added-since <ref>` scope the run to a feature's own touched files and newly added entries (they UNION with each other and INTERSECT with `--only`; an empty selection prints `selected 0 of M entries (…)` and exits 0 without running the suite — never a silent skip) — MEASURED: an unscoped sweep of 358 entries on this repo's core package took 30-40 minutes and hit the timeout wall every time. `--timeout` resolves flag > the registry's own `timeoutMs` field > a 300000ms default (printed in the header); a real ETIMEDOUT is always INCONCLUSIVE, never read as the killed child's own numeric exit code. `--max-workers` resolves flag > the registry's own `maxWorkers` field > `min(4, max(1, floor(cpus/2)))`, injects `--maxWorkers=<n>` into a `vitest run` testCommand (unless it already names the flag) and always sets `VITEST_MAX_WORKERS=<n>` in the env — printed as `mutation-gate: workers: <n> (<flag|registry|default>)`, or `n/a — test command is not vitest` when the command isn't recognised as vitest; MEASURED: an uncapped full-suite baseline (vitest's default worker count = cpu cores) hit load 62-358 and <2GB free on an 8-core/16GB box under this repo's core-package embedding-daemon tests, killing full overnight gate runs — `--maxWorkers=2` passed 6909/6909. exit 0 all proven / 1 gate failed / 2 setup error
+dz mutation-gate [--package <dir>] [--registry <file>] [--test-cmd "<cmd>"] [--only <id[,id]>] [--touched <path[,path]>] [--added-since <git-ref>] [--timeout <ms>] [--max-workers <n>] [--rebaseline per-entry|final] [--verdicts <file>] [--run-id <id>] [--keep-scratch] [--json]   # the mutation gate: for each NAMED protection in a declarative registry, copy the package to a scratch dir (shadow-repo layout, node_modules symlinked, git-initialized), verify the baseline is green, apply the entry's exact {find, replace} mutation, run the suite, REQUIRE red, restore — and require the red to be ATTRIBUTABLE to the protection: a mutated file that no longer parses is MUTATION_UNPARSEABLE, a failing count far above the entry's bound (maxFailing, default from observed) is OVER_FAILING, and a restored tree that does not reproduce green makes the entry INCONCLUSIVE (flaky suite). A mutation that does not apply, a green suite, or an inconclusive run is a FAILURE — never a skip. After classifying, one durable JSONL line per entry (`{ts, package, entryId, verdict, failingCount, observed, drop, dropComparable, runId}`) is appended to `.dz/mutation-gate/verdicts.jsonl` under the invocation cwd (`--verdicts <file>` overrides; `--run-id <id>` names the row) — a SEPARATE file from the registry itself (the registry is the gate's INPUT, a verdict is its OUTPUT), so `test/mutation-registry.json` stays untouched; a write failure is a loud stderr warning that never changes the gate's own exit code. fix-round-1 (Codex r1 BLOCKER finding 1): `--verdicts` is canonicalized and compared against the registry's own canonical path AND `{dev, ino}` — a direct path, a symlink, or a hardlink alias to the registry refuses the write LOUDLY instead of corrupting the gate's own input. fix-round-1 (Codex r1 HIGH finding 2): the whole read-append-reread transaction runs under a cross-process directory mutex (`withDirLockSync`, `<dirname(verdicts)>/.dz-locks/mutation-gate-verdicts.lock`), so two concurrent gate processes appending to the same file can neither interleave nor lose a line — the tail is re-read inside the lock to verify exactly as many lines landed as were classified. `--touched <path[,path]>` / `--added-since <ref>` scope the run to a feature's own touched files and newly added entries (they UNION with each other and INTERSECT with `--only`; an empty selection prints `selected 0 of M entries (…)` and exits 0 without running the suite — never a silent skip) — MEASURED: an unscoped sweep of 358 entries on this repo's core package took 30-40 minutes and hit the timeout wall every time. `--timeout` resolves flag > the registry's own `timeoutMs` field > a 300000ms default (printed in the header); a real ETIMEDOUT is always INCONCLUSIVE, never read as the killed child's own numeric exit code. `--max-workers` resolves flag > the registry's own `maxWorkers` field > `min(4, max(1, floor(cpus/2)))`, injects `--maxWorkers=<n>` into a `vitest run` testCommand (unless it already names the flag) and always sets `VITEST_MAX_WORKERS=<n>` in the env — printed as `mutation-gate: workers: <n> (<flag|registry|default>)`, or `n/a — test command is not vitest` when the command isn't recognised as vitest; MEASURED: an uncapped full-suite baseline (vitest's default worker count = cpu cores) hit load 62-358 and <2GB free on an 8-core/16GB box under this repo's core-package embedding-daemon tests, killing full overnight gate runs — `--maxWorkers=2` passed 6909/6909. exit 0 all proven / 1 gate failed / 2 setup error
 dz delivery-check --slug <slug> [--context-only] [--findings <f.json>] [--strict] [--author <model>] [--json]   # portable Step-10 Delivery Gate: the `manual` form that travels to every shell target — prints the 4-plane review brief (regressions ‖ security ‖ code-quality ‖ product-honesty) + artifact probes; --findings classifies a fed-back review into a fail-closed ready|blocked hand-off (only cross-validated BLOCKER/HIGH count) and writes features/<slug>/10_delivery_review.md; --strict exits 1 on blocked
 dz skills-verify     [--dir <project>] [--expect a,b] [--static] [--strict] [--timeout <s>] [--json]   # does .claude/skills/ actually REGISTER? --static = instant layout scan (CI-safe, no session): flags dirs that can never register; default also starts a real session and reads the authoritative system/init listing. exit 0 pass / 1 fail / 2 inconclusive — an unobservable registration is NEVER a pass
 dz compounding       [--project <dir>] [--json]   # honest learning-loop payoff report: pool/replay/guard instrumentation plus the monthly eligible→attempted→accepted→executions funnel. A missing source is NOT MEASURED; only a non-empty→empty named edge across three consecutive measured months is a funnel finding; text/JSON carry the same facts and no learning-health verdict
@@ -2445,7 +2482,7 @@ dz name-check         [--command <n>] [--module <basename>] [--export <a,b>] [--
 dz brief-check        <file> [--json]   Swarm brief declares OUTPUT_DIR, UNITS, ASSEMBLY_UNIT? Parsed as data, refused by name. The verdict cannot be forged by the text it judges: declarations inside a fenced block or an HTML comment do not count (a closing fence must be at least as long as its opener, and a comment that tries to nest is refused rather than silently reopened); a decorated key still counts toward the duplicate check, so hiding one declaration behind bold or a quote yields an ambiguity refusal, not a quiet pick. The unit list is never silently truncated: a blank line or any non-item line with more items after it — including a masked fence or comment — is a refusal that NAMES the interrupting line, because `units` is the very list a directory is later compared against. Output dir is checked as a PATH (absolute, `..`, backslash, control bytes and non-name segments refused); `plan` is reserved because its file is the plan the swarm writes first; unit names are length-capped and the list is capped at 200 with a linear duplicate check. Every brief-supplied value that reaches the terminal is neutralised, so an ESC byte cannot repaint a REFUSED line as OK. exit 0 ok / 1 refused / 2 unreadable — and `--json` answers on ALL THREE branches, carrying `checked:false` when the tool could not check rather than when the brief was bad
 dz tg-post            --draft <file.html> [--manifest <sources.json>] [--channel <@name>] [--send --yes] [--night] [--max-per-day <n>] [--json]   # the sender for an APPROVED genai-tweets-channel post, held to the channel's own accepted ADRs: HTML mode only (never MarkdownV2 — 18 escapes against 3, one miss is a 400); link preview OFF by default (x.com previews in Telegram are broken since 2022); the 00:00-06:00 MSK quiet window refuses without an explicit --night. THE DEFAULT RUN IS A DRY-RUN: tag balance and allowed-tag checks, bare &/< detection, the 4096 visible-character limit with the overshoot counted — every issue named in one pass, not just the first. The provenance gate runs IN-PROCESS over --manifest, and a draft with no manifest is refused as unchecked when a send is asked. A real send needs --send AND --yes — ADR-004's standing order that publishing stays manual, stated out loud each time. Three autopublish guards run FAIL-CLOSED, in a fixed order: the **stop-cord** (`.dz/tg-post/HALT` exists ⇒ nothing publishes, checked FIRST so no bug in a later gate can route around it), **dedup** by the sha256 of the post's VISIBLE text (what the reader sees, not the bytes — a whitespace-different draft is the same post), and the **daily limit** (10 by default, `--max-per-day <n>` to change it), counted over the trailing 24h. The journal is two-phase: a `pending` row is written BEFORE the network call and a `sent` row after Telegram accepts, so a crash between the two is caught by dedup on the next run instead of double-publishing; only `sent` rows eat the daily ceiling. An UNREADABLE journal REFUSES — an unreadable counter does not prove the ceiling is unreached. The provenance gate also clears `kind: url`: a well-formed http(s) URL is public by construction so there is nothing local to protect, while a `file://`, a bare path or a non-URL is refused, never inferred. The bot token (TELEGRAM_BOT_TOKEN or telegram.tokenFile) is never printed, and the gates run BEFORE any secret is read. exit 0 sent or clean dry-run / 1 refused / 2 usage
 dz feature-adr-checkpoint (--slug <feature> | --feature-dir <abs>) --stage <s> --input-hash <h> --result <json> [--artifact a,b] [--json]
-dz reqe              [--slug <feature> [--done --report <f>]] [--project <dir>] [--json]   # the re-QE debt ledger: a usage-switched feature-adr run whose Step-8 QE ran on the coder's OWN family (cross-model guard suspended, FR-2.9) records a debt; list debts (also surfaced by dz usage), print the cross-family review brief, settle FAIL-CLOSED against an existing GRADED report (the run's own 08_qe_report.md — even hard-linked — can never settle its own debt); settlement lands in 08_qe_report.md, evidence rotates to reqe-settled.json
+dz reqe              [--slug <feature> [--done --report <f>]] [--project <dir>] [--json]   # the re-QE debt ledger: a usage-switched feature-adr run whose Step-8 QE ran on the coder's OWN family (cross-model guard suspended, FR-2.9) records a debt; list debts (also surfaced by dz usage), print the cross-family review brief, settle FAIL-CLOSED against an existing GRADED report (the run's own 08_qe_report.md — even hard-linked — can never settle its own debt); settlement lands in 08_qe_report.md, evidence rotates to reqe-settled.json — exit 0 settled (ready or unassessed) / 1 refused, nothing written / 3 settled but BLOCKER or HIGH named: stop, owner decides
 dz qe-bridge         --family claude --slug <feature> [--coder-family codex|claude] [--model <id>] [--files a,b] [--out <f>] [--timeout <s>] [--allow-same-family] [--json]   # the REVERSE QE bridge (Codex-hosted → Claude reviewer): the reviewer runs ISOLATED (an empty temp cwd + --safe-mode --strict-mcp-config --tools '' --no-session-persistence, so no CLAUDE.md/skills/plugins/hooks/MCP load) and its verdict is read from the --output-format json RESULT ENVELOPE, so text a customization printed onto the same stdout can never become a signoff. Probes the model first; sends SCOPED extracts under a loud 200k-char ceiling; the grade must agree across three LAST-anchored channels AND the marker must be the final content — empty/gradeless/mismatched/miscounted output is a named failure with an audit record under features/<slug>/.fa-state/qe-bridge/, never a clean review. exit 0 signoff parsed (ANY grade — it reports, it does not gate) / 1 named failure / 2 usage. DZ_QE_BRIDGE_CLAUDE_BIN is a TEST SEAM (recorded as binOverride:true)
 dz control-review    --slug <feature> --files a,b [--brief <file>] [--coder-family codex|claude] [--codex-model gpt-5.6-sol] [--effort high] [--claude-model <id>] [--timeout-min 30] [--adjudicate <file>] [--project <dir>] [--json]   # ADR-001 cross-family-control-branch: two INDEPENDENT scoped reviews over the SAME tree, the Codex half run from an ISOLATED scope copy — diffed into confirmed (adjudicated)/candidate (automatic)/onlyCodex/onlyClaude per severity. Automatic overlap is a CANDIDATE only, never confirmed (title-Jaccard>=0.5 with compatible file, or same file+line±3 AND jaccard>=0.2); an explicit --adjudicate file (none entries family-qualified as codex:<id>/claude:<id>) produces the only CONFIRMED pairs. `git rev-parse HEAD` + a sha256 of every scoped file is snapshotted before and after EACH half; any drift, an unreadable Claude signoff, a half with no accepted findings table, a nonzero Codex exit/timeout, or an ambiguous answer boundary refuses with NO ledger row written; an out-of-scope or unnormalizable finding lands in the row's own refused/complete fields instead. A written row is trusted only after an exactly-one-new-line, prefix-preserving, deep-compared reread that also checks the writer's exit status. NAMED LIMITS: the isolated scope copy is NOT filesystem isolation (`codex exec --sandbox read-only` can still read the repository — the enforced half is ingestion: every Codex finding must carry an in-scope `<path>:<line> — ` title prefix or it is refused); the Codex answer is the text after the LAST standalone `codex` banner line, so a model that prints the word `codex` alone on a line truncates its own answer (the brief forbids it; an accepted table left in an earlier segment is refused as an ambiguous boundary). exit 0 written+verified / 1 refused / 2 usage / 3 written-but-not-reread
 dz score --by-family [--project <dir>] [--json]   # the per-(coder,reviewer)-family aggregate over the WHOLE run-cost ledger: grade distribution, shippedShare, notShipped, mean fixRounds, foreign-unique findings folded in from every COMPLETE `dz control-review` row (n, incompleteRuns, bySeverity, auto vs adjudicated as FINDING sums plus autoRuns/adjudicatedRuns — every field "unknown" when n=0, never a fabricated zero; a `complete:false` row is counted in incompleteRuns, excluded from the measured figures, and marks the aggregate INCOMPLETE), refutedShare, costPerConfirmed, draftToShipped (shipped-outcome-only finals, latest by ts). "control rows: 0" prints honestly when no control runs exist yet; an unreadable ledger line marks the whole aggregate INCOMPLETE. Descriptive-only — exit 0 always
@@ -2461,10 +2498,10 @@ dz parity            [--target <name>] [--json]   # honest feature×target map C
 dz release           [--filter <name>] [--affected] [--audit-dev] [--tag] [--publish] [--json] [--dry-run] [--no-issue]   # VERIFIED release: 4 HARD gates in front of dz publish — package test suites, pnpm audit --prod >=high (--audit-dev widens), node --check of every dist/bin file (unbuilt package with a build script ⇒ MISSING_DIST fail), bin smoke-boot "node <bin> --help" (temp cwd + timeout), packed-install smoke (same rule as dz publish's, feature publish-sibling-drift-gate — pack the batch, install together, `--version` every bin) when the set has a bin; --affected narrows to git-touched packages (fail-open); any red gate STOPS the release (exit 1) + best-effort gh issue; green ⇒ re-sign reminder, then the ready dz publish command (never with --yes injected)
 dz auto-canonicalize --source <github-url> --pack <skills-pack>
 dz sync-upstream     [--package <dir>] [--list] [--all]
-dz drift-check       [--all] [--json] [--project <dir>]   # CI gate: exit 1 on NEW shared-skill drift (baseline: .dz/drift-allowlist.json; --all incl .claude dogfood)
+dz drift-check       [--all] [--json] [--project <dir>]   # CI gate: exit 1 on NEW shared-skill drift, canonicalDefects, or blocking signatures (drift baseline: .dz/drift-allowlist.json; --all incl .claude dogfood)
 dz agents-sync       [--check] [--json] [--project <dir>] # sync anchored bearing rules into the root AGENTS.md policy fence; exit 0 sync / 1 drift / 3 inconclusive
 dz hooks-sync        --target codex [--check] [--verify|--no-verify] [--project <dir>] [--remove] [--json]  # install + ARM the dz veto/recall hooks in $CODEX_HOME/hooks.json and PROVE they fire with a live veto probe; exit 0 armed+trusted+verified / 1 not armed / 3 inconclusive (incl. --no-verify)
-dz sync-canonical    <skill> [--check] [--from <dir>] [--auto] [--project <dir>]   # heal every copy from skills-meta/<skill> or --from; no canonical + --check = compare copies to each other (exit 1 on drift); no canonical + write = refuse unless --auto (LOUD, picks most-complete copy); --check writes nothing
+dz sync-canonical    <skill> [--check] [--from <dir>] [--auto] [--project <dir>]   # heal every copy from skills-meta/<skill> or --from; canonicalDefects = exit 1, write refused; no canonical + --check = compare copies to each other (exit 1 on drift); no canonical + write = refuse unless --auto (LOUD, picks most-complete copy); --check writes nothing
 dz scout             [--topics <list>] [--since <date>] [--deep] [--output <file>] [--diff] [--report]
 dz workflow          init --name <n> [--pattern pipeline|barrier|fanout|gate] [--o <plan.json>] | validate <plan.json> [--json] | render <plan.json> --o <script.js> [--check] [--force] | blobs [--check]   # loop-plan/1 authoring (the ADR-005 templates are retired)
 dz workflow run      <plan.json> [--run-id <id>] [--resume <runId>] [--arg k=v]... [--coder-family codex|claude] [--default-family codex|claude] [--budget <n>] [--max-wall-clock <s>] [--stage-timeout <s>] [--budget-extra <n>] [--wall-clock-extra <s>] [--run-dir <dir>] [--allow-same-family-qe] [--json]   # INTERPRET the plan without the Claude host; exit 0/1/2/75 (75 = typed pause)
@@ -3414,22 +3451,41 @@ cannot prove it wrote. Foreign entries are preserved byte-for-byte by every oper
 
 **What.** The same skill is physically duplicated across many packages (`packages/@dzhechkov/*/​<skill>/` + `.claude/skills/<skill>/`). These two commands make that duplication safe:
 
-- `dz drift-check` — the **detector + CI gate**. Finds every skill that lives in ≥2 **package** locations and reports which copies **byte-differ**. Exit **1** if any *unexpected* drift, **0** if clean. By default it compares published-package copies only; the `.claude/skills/<skill>` dogfood copies legitimately lag, so add `--all` to include them in a raw audit.
-- `dz sync-canonical <skill>` — the **healer**. Treats `skills-meta/<skill>` (or `--from <dir>`) as canonical and overwrites every other copy, proving byte-identity. `--check` reports drift and writes **nothing** (exit 1 on drift) — the CI-safe dry-run. It always prints how the canonical resolved: `resolved: from | skills-meta | auto | none`.
+- `dz drift-check` — the **detector + CI gate**. Finds every skill that lives in ≥2 **package** locations and reports which copies **byte-differ**. Exit **1** if any *unexpected* drift, canonical defect, or blocking signature finding, **0** if clean. By default it compares published-package copies only; the `.claude/skills/<skill>` dogfood copies legitimately lag, so add `--all` to include them in a raw audit.
+- `dz sync-canonical <skill>` — the **healer**. Treats `skills-meta/<skill>` (or `--from <dir>`) as canonical and overwrites every other copy, proving byte-identity. `--check` reports drift and canonical defects and writes **nothing** (exit 1 on either finding) — the CI-safe dry-run. A canonical defect also refuses write mode with exit **1**, `synced: 0`, and `wrote: []`; all copies stay unchanged. It always prints how the canonical resolved: `resolved: from | skills-meta | auto | none`.
   - **No `skills-meta` home + no `--from`?** (~half of shared skills live in a domain pack, not `skills-meta`.) `--check` still works: it runs a **canonical-free** comparison — are the copies byte-identical to **each other**? — and exits **0** if they all match / **1** if any differ (this used to dead-end at exit 2). A bare **write** in that state **refuses** (exit 2, writes nothing) rather than guess a canonical — a wrong guess would silently destroy the good copy. Pass **`--auto`** to opt in to auto-picking the **most-complete** copy as canonical; it prints a **loud warning naming the pick and the exact overwrite list** before healing (completeness ≠ correctness — review the diff).
 
-**Green-on-arrival, not red-on-arrival.** A gate that always fails is ignored. `drift-check` reads **`.dz/drift-allowlist.json`** — a documented baseline of skills whose drift is *accepted* (intentional forks like `knowledge-extractor`, or a package that owns the primary vs a registry snapshot). It fails only on **new** drift in any other shared skill. To accept a drift, add the skill name + a **reason** to that file; to re-arm the gate, heal it (`dz sync-canonical`) and remove the entry.
+**Drift baseline.** `drift-check` reads **`.dz/drift-allowlist.json`** — a documented baseline of skills whose drift is *accepted* (intentional forks like `knowledge-extractor`, or a package that owns the primary vs a registry snapshot). For copy drift it fails only on **new** drift in any other shared skill. To accept a drift, add the skill name + a **reason** to that file; to re-arm the gate, heal it (`dz sync-canonical`) and remove the entry. Canonical defects are not allowlisted: a repo whose `skills-meta` already contains a misplaced asset can fail the gate immediately.
+
+**Canonical defects.** Both commands expose `canonicalDefects` in `--json`, using the shared
+`findCanonicalDefects` detector. Each entry has `skill`, `kind: 'misplaced-enrichment-asset'`,
+skill-relative `path`, and absolute `canonical`. An enrichment asset such as `agents/openai.yaml`
+in `skills-meta/foo` is a canonical defect; in its owning `.agents/skills/foo` root it is valid
+target metadata and is still never propagated. When the canonical defect is the only difference,
+`drifted` is `[]` / `0`; the defect remains visible in `canonicalDefects` and the `no-skill-drift`
+guard. The same misplaced file in another package copy still counts as drift.
+
+Both text modes print this line for that fixture (canonical relative to the project root):
+
+```text
+canonical defect: foo — agents/openai.yaml (misplaced-enrichment-asset) inside packages/@dzhechkov/skills-meta/foo; not propagated, not removed — fix the canon
+```
+
+Text and `--json` use the same exit-1 gate. Write mode also prints
+`dz sync-canonical: refusing to write: canonical defects found; nothing was written`.
+These commands never heal, propagate, or remove a canonical defect; fix the named canonical
+source before syncing. Inspect `dz drift-check --json` and its `canonicalDefects.length` for the count.
 
 **Why.** A fix applied to ONE copy silently leaves the others broken. This is not hypothetical: a CRITICAL `goap-research-ed25519` self-signed-forgery exploit shipped in **10 of 12 copies**, and a `brutal-honesty-review` `set -e` crash reached the **published** `@dzhechkov/skills-qe` — both found only by accident. `dz sync-upstream` only checks against **external** repos and is structurally blind to this class of intra-monorepo drift. `drift-check` closes that gap and turns "found by luck" into a red PR (`.github/workflows/drift-check.yml` runs the built CLI on every PR).
 
 **How.**
 
 ```bash
-dz drift-check                              # package-scope gate: exit 1 only on NEW/unexpected drift
+dz drift-check                              # exit 1 on NEW drift, canonical defects, or blocking signatures
 dz drift-check --all                        # raw audit incl. .claude/skills dogfood copies
-dz drift-check --json                       # machine-readable { duplicated, drifted[], allowlisted[] }
-dz sync-canonical goap-research-ed25519 --check   # report drift, write NOTHING (exit 1 on drift)
-dz sync-canonical goap-research-ed25519           # overwrite every copy from skills-meta/, prove identity
+dz drift-check --json                       # machine-readable { duplicated, drifted[], canonicalDefects[], allowlisted[], signatures }
+dz sync-canonical goap-research-ed25519 --check   # report drift + canonical defects, write NOTHING (exit 1 on either)
+dz sync-canonical goap-research-ed25519           # heal from skills-meta/; canonical defect → exit 1, write NOTHING
 dz sync-canonical brutal-honesty-review --from packages/@dzhechkov/skills-qe/brutal-honesty-review
                                             # heal from a freshly-fixed copy instead of skills-meta
 dz sync-canonical brutal-honesty-review --check   # NO skills-meta home → compare copies to EACH OTHER
@@ -3439,7 +3495,7 @@ dz sync-canonical brutal-honesty-review --auto    # opt-in: pick the most-comple
                                             #   LOUD banner naming the pick + overwrite list, then heal
 ```
 
-> `drift-check` is a **consistency** gate, not a correctness one — it goes green when every copy is byte-identical (even if the shared skill is uniformly wrong). The same caveat applies to the canonical-free `sync-canonical --check`: a green result means the copies **agree with each other (convergence)**, NOT that any copy is **correct (validity)**. Correctness stays with review/QE; this just guarantees a fix reaches *all* copies. The pure logic lives in `@dzhechkov/harness-core` (`sweepSkillDrift` / `syncCanonicalSkill`); the prototype scripts `scripts/drift-sweep-skills.mjs` + `scripts/sync-canonical-skill.mjs` are thin wrappers over the same functions.
+> `drift-check` checks copy consistency, canonical enrichment defects, and blocking signatures; a green result does not establish general skill correctness. The same caveat applies to the canonical-free `sync-canonical --check`: a green result means the copies **agree with each other (convergence)**, NOT that any copy is **correct (validity)**. Correctness stays with review/QE. The pure logic lives in `@dzhechkov/harness-core` (`sweepSkillDrift` / `syncCanonicalSkill`); the prototype scripts `scripts/drift-sweep-skills.mjs` + `scripts/sync-canonical-skill.mjs` are thin wrappers over the same functions.
 
 ### dz upgrade — check installed skills for updates
 
@@ -3507,6 +3563,30 @@ dz publish --dry-run                          # preview what would publish
 dz publish --filter skills-devops             # publish specific package
 dz publish --filter skills-devops --bump-only # bump version only, no publish
 ```
+
+#### First publish ≠ offline (feature `first-publish-not-offline`, ADR-001)
+
+The registry probe (`npm view <name> version`) now has THREE outcomes, not two: `published(<version>)`,
+`never-published` (an explicit npm `E404` / `404 Not Found` on stderr) and `unknown(<code>)` (`ECONNREFUSED`,
+`ENOTFOUND`, a timeout, a stub with no npm code…). Before, both failures collapsed into "fall back to the local
+version", so a package that had NEVER been published was planned as `0.1.0 → 0.1.1` (MEASURED 2026-09-02 on a
+live first publish). What you see now:
+
+```text
+@dzhechkov/new-pkg 0.1.0 (first publish)                                   # never-published: the disk version ships AS IS, no bump
+@dzhechkov/harness-core 0.8.40 → 0.8.41 published                          # published: bump from max(local, registry), as before
+@dzhechkov/harness-cli NOT ESTABLISHED (registry unreachable: ECONNREFUSED) # unknown on --dry-run: the preview says so and still exits 0
+```
+
+A LIVE publish under `unknown` REFUSES that package (`status: 'error'`, reason names the npm code) — it never bumps
+blind; its dependents in the batch fail with it, as they already do for any failed dependency. `--json` carries the
+same facts as `firstPublish: true` and `probe: 'published' | 'never-published' | 'unknown'` on every row (one
+serialiser, no second renderer). The behaviour change an operator feels: **`dz publish --dry-run` now probes the
+registry** (it used to be network-free), so a 56-package preview costs ESTIMATED 56–224 s more; there is no
+`--offline` opt-out (ADR-001 D4, out of scope). Known bounded risk: npm holds a fresh publish STAGED for minutes
+(`npm view` 404s while the dist-tags already know it), so a re-run seconds after a first publish reads
+`never-published` again and npm rejects the duplicate version — the post-publish confirmation probes
+(`REGISTRY_PROBE_BUDGET`) already cover that window.
 
 #### Sibling-drift + packed-install-smoke gates (feature `publish-sibling-drift-gate`, ADR-001)
 
@@ -3594,7 +3674,7 @@ dz publish: BLOCKED harness-cli — sibling drift: @dzhechkov/memory@0.2.20 on t
 dz publish: refusing to publish (1 sibling-drift violation(s))
 
 $ dz publish --filter harness-cli --yes
-dz publish: tarball @dzhechkov/harness-cli@0.8.33 sha256:d656…c334
+dz publish: tarball @dzhechkov/harness-cli@1.0.1 sha256:9f2c…e10a
 dz publish: ✓ packed install smoke
   ✓ @dzhechkov/harness-cli                1.0.0 → 1.0.1  published (confirmed by registry after 1 probes)
       sha256:9f2c…e10a
@@ -4656,6 +4736,15 @@ test in CI). In a repo without the docs site those pairs simply aren't gathered 
 package metadata alone does not masquerade as a version bump; unreadable version evidence is reported as
 an `unknown` observation and never becomes a violation.
 
+For `dz guard check --op publish`, `no-secrets` no longer skips files for size: files are streamed in
+1 MiB chunks with a 4 KiB overlap. The publish inventory comes from the live packer
+(`npm pack --dry-run --json`), cached by content hash, with a named `fallback-walk` on packer failure.
+A second note line reports the inventory source counts as `no-secrets: inventory: <source>×<n>`;
+for example, when the source is the live npm dry run (`<n>` is the package count):
+```
+no-secrets: inventory: npm-dry-run×<n>
+```
+
 The SOFT `lockfile-in-sync` rule closes the CI break that follows a dependency bump: when a workspace
 `packages/*/package.json` declares a `@dzhechkov/*` spec that differs from the specifier `pnpm-lock.yaml`
 records for that importer, CI's `pnpm install --frozen-lockfile` dies with `ERR_PNPM_OUTDATED_LOCKFILE`
@@ -5197,7 +5286,7 @@ dz brain snapshots: kept 6, removed 12 (37.1 MB)
 ```
 
 **Snapshot lock (agentdb-snapshot-lock, 2026-09-13).** `--prune` now takes the SAME advisory lock a
-concurrent `dz brain reindex`/`reindexAgentdbRows` uses (`<store dir>/.dz/locks/agentdb-snapshot.lock`)
+concurrent `dz brain reindex`/`reindexAgentdbRows` uses (`<store dir>/.dz-locks/agentdb-snapshot.lock` — a directory mutex, `withDirLockSync`; a legacy `<store dir>/.dz/locks/` is used while it exists)
 before it removes anything — a `rotate --keep 0` racing a live reindex used to be able to delete the
 undo point the reindex was still relying on; now it waits for the lock, or reports the timeout
 explicitly instead of silently succeeding on an empty rotation:
@@ -5205,7 +5294,7 @@ explicitly instead of silently succeeding on an empty rotation:
 ```bash
 $ dz brain snapshots --prune --keep 0     # a concurrent reindex is mid-flight and holds the lock
 dz brain snapshots: kept 0, removed 0 (0.0 MB)
-  ⚠ 1 error(s): lock busy: the lock at …/.dz/locks/agentdb-snapshot.lock stayed held for 10000ms — …
+  ⚠ 1 error(s): lock busy: the lock at …/.dz-locks/agentdb-snapshot.lock stayed held for 10000ms — …
 $ echo $?
 1
 ```
@@ -5618,7 +5707,23 @@ ledger row now carries a `prices` snapshot. See `@dzhechkov/harness-core`'s READ
 decision list (D1–D5) and the two new pure modules (`feature-adr-stage-canon.ts`, `codex-rollouts.ts`) behind
 `dz usage --by-stage`'s new `INCOMPLETE_INVENTORY` verdict and canonical-stage breakdown.
 
-`harness-core v0.8.40` · `harness-cli v0.8.33` · `health-advisor v1.10.7` · `p-replicator v1.13.4` ·
+`harness-core v0.8.41` · `harness-cli v0.8.33` · `harness-presets v0.5.20` — **this release (night
+21.09, three packages, all instrument-honesty fixes): the lesson→rule funnel now refuses a PERIOD
+rather than the whole FILE — chain damage that an unbroken run has already followed suppresses only
+the months whose own rows sit at or before it (`guard-audit-chain-damaged:<month>`), and a month
+entirely inside the run measures again without repairing the journal. A guard rule is judged by
+EVALUATION, not by firing: `auditRecord` now carries `evaluated` (the rules that actually got their
+turn), because a safety net's healthy state is silence — MEASURED on this repo's journal, six of 26
+default rules never appear in any violations array and four of those are not allowlisted, so they
+would have been called dead for working. Every round ledger row carries `roundId` as a FIELD instead
+of only as a prefix inside `note` prose. `dz mutation-gate` splits one registry refusal into its
+three real cases (absolute path, normalised absolute path, relative path resolved against the CWD
+rather than `--package`). The registry `other`-bucket verdict names the offending pack instead of
+printing a count. A new repo gate pins every skill's knowledge-units tier to its own frontmatter,
+and a second one refuses a test suite that is not registered in `npm run test:all` — both defects
+had recurred, and both were found by cross-family review rather than by their authors.**
+
+`harness-core v0.8.39` · `harness-cli v0.8.32` · `health-advisor v1.10.7` · `p-replicator v1.13.4` ·
 `keysarium-core v1.1.31` · `skills-meta v0.9.59` — **this release (night 20→21.09, eight packages): `dz store-guard
 --prune [--apply]` clears high-water marks the guard can no longer be protecting — MEASURED here 64 315 marks, of which
 64 286 pointed at a vanished temp path (255 MB of disk blocks); the dry run is the DEFAULT and only `stale-temp` is ever
@@ -5941,8 +6046,8 @@ partial design). The compat floor is unchanged — this CLI uses no new core exp
 New in 0.5.0 (feature `qe-bridge-claude`, cross-runtime leg 3/4): `dz qe-bridge --family claude`
 runs an INDEPENDENT Claude reviewer from any host — a Codex session included — and lands a PARSED
 signoff whose grade must agree across three LAST-anchored channels; an empty or gradeless answer is
-a named failure with a forensic record, never a clean review. `withNamedLockSync` generalises the
-store lock and now guards the `$CODEX_HOME/hooks.json` read-merge-write, so two dz processes can no
+a named failure with a forensic record, never a clean review. `withDirLockSync` (a plain directory mutex at `<dir>/.dz-locks/<name>.lock` — it never asks whether a
+store exists and never creates a `.dz`; feature `lock-never-seeds-store`) guards the `$CODEX_HOME/hooks.json` read-merge-write, so two dz processes can no
 longer lose each other's hook entries.
 
 Also in 0.4.8 (feature `crossrt-1-agents-md`): `dz agents-sync` ports the fixed registry of bearing

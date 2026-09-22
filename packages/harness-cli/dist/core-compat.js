@@ -45,7 +45,7 @@ import { fileURLToPath } from 'node:url';
 // 0.8.7: the statusline statically imports the ETA parser/estimator surface. An older core fails
 // during ESM linking before runCli can print a useful diagnostic, so the import-free preflight must
 // refuse it first.
-export const MIN_CORE = '0.8.7';
+export const MIN_CORE = '0.8.41';
 /** The npm name of the guarded package — one literal, used by every leg below. */
 export const CORE_PACKAGE_NAME = '@dzhechkov/harness-core';
 /**

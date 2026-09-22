@@ -351,7 +351,7 @@ export function rotatePreReindexSnapshotsUnlocked(
  *
  * `lockTimeoutMs` is test/tuning-only: omitted, the lock uses its ordinary default deadline.
  *
- * AM-4 (carried forward): `withNamedLockSync` creates `<dirname(dbFile)>/.dz/locks/` before it ever
+ * AM-4 (carried forward): `withDirLockSync` creates `<dirname(dbFile)>/.dz-locks/` (or reuses a legacy `.dz/locks/`) before it ever
  * runs `fn` — if `dirname(dbFile)` exists but is NOT a directory (a pathological store path, exactly
  * the shape AM-4's own fixture uses), that `mkdirSync` throws `ENOTDIR` before any lock is even
  * attempted. Scanning is therefore checked FIRST, outside the lock: an unreadable directory is a

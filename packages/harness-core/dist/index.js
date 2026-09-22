@@ -52,12 +52,13 @@ export * from './trace-corroborate.js';
 export * from './trace-bundle.js';
 export { BLOBS as LOOP_BLOBS, LOOP_BLOB_NAMES, BLOB_COVERAGE_MANIFEST } from './loop-blobs.generated.js';
 export * from './sign.js';
+export * from './pack-inventory.js';
 export * from './publish-source-scope.js';
 export * from './swarm-brief.js';
 export * from './skill-schema.js';
 export { createSkill } from './create-skill.js';
 export { checkUpstream, checkAllUpstream, discoverSourcePackages, loadSourcesManifest } from './sync-upstream.js';
-export { sweepSkillDrift, syncCanonicalSkill } from './skill-drift.js';
+export { sweepSkillDrift, syncCanonicalSkill, findCanonicalDefects } from './skill-drift.js';
 export { SKILL_INSTALL_ROOTS, SKILL_INSTALL_ROOT_BY_TARGET, DEV_SKILL_ROOT, TARGET_ENRICHMENT_ASSETS } from './skill-install-roots.js';
 export { stampCheckpointLine } from './checkpoint-stamp.js';
 export { TELEMETRY_VOCAB_VERSION, TELEMETRY_FIELDS, PROVISIONAL_TELEMETRY_FIELDS, LOCAL_FIELD_ALIASES, RUN_OUTCOMES, telemetryFieldFor, runOutcomeOf } from './telemetry-vocabulary.js';
@@ -77,8 +78,8 @@ export { recommend } from './recommend.js';
 export { pretrain } from './pretrain.js';
 export { loadPatterns, loadSessions, computePatternBoost, readLearningConfig, readMemoryLearningConfig, BOOST_CAP, recordPattern, recordLessonForms, loadStorePatternsSync, loadStoreRecords, findExactLesson, patternToRecord, recordToPattern, patternRecordId, patternIdentityOf, dreamRecordId, isMirrorableLearning, consolidateSessions, recallPatterns, pruneNoisePatterns, removePatternsByIds, snapshotStore, readReinforcementState, encodeReinforcementState, reinforcePattern, resolveReinforceTarget, updateReinforcementState, storeStats, lessonDeltaReport, lessonDeltaMap, readQuarantineState, encodeQuarantineState, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns } from './patterns.js';
 export { normalizeLessonForms, validateClassTemplate, lessonPairIdOf, mergeLessonFormHits, mergeLessonMatchedForms } from './lesson-generalization.js';
-export { withStoreLock, withStoreLockSync, storeLockPath, StoreLockTimeoutError, StoreLockCompromisedError, STALE_LOCK_MS, LOCK_TIMEOUT_MS } from './store-lock.js';
-export { withNamedLockSync, namedLockPath, isSafeLockName, NamedLockNameError, NamedLockTimeoutError, NamedLockCompromisedError } from './named-lock.js';
+export { withStoreLock, withStoreLockSync, storeLockPath, storeExists, StoreAbsentError, StoreLockTimeoutError, StoreLockCompromisedError, STALE_LOCK_MS, LOCK_TIMEOUT_MS } from './store-lock.js';
+export { withProjectLockSync, withDirLockSync, namedLockPath, isSafeLockName, NamedLockNameError, NamedLockTimeoutError, NamedLockCompromisedError } from './named-lock.js';
 export { QE_BRIDGE_SCHEMA, QE_BRIDGE_FAILURE_SCHEMA, CLAUDE_BRIDGE_PROMPT_CEILING_CHARS, KNOWN_CLAUDE, BRIDGE_MARKER, BRIDGE_FENCE_LABEL, BRIDGE_EXTRACT_END, isSafeClaudeId, CLAUDE_ISOLATION_ARGS, BRIDGE_FAILURE_REASONS, extractClaudeResult, buildBridgeSignoffRecord, claudeProbeArgs, interpretClaudeProbe, claudeReviewArgs, defangSignoffEchoes, buildBridgePrompt, parseBridgeOutput, buildBridgeFailureRecord, renderBridgeReport, } from './qe-bridge.js';
 export { DEFAULT_REINFORCE_THRESHOLD, NoopLearningBackend, NativeReinforcementBackend, resolveLearningBackend, isLearningSignalBackend, applyLearningSignals, applyLearningSignalsWithDelta, applyLearningSignalsWithTerms } from './learning-backend.js';
 // lesson-bandit-rerank (I-8): the ACL's public surface only. The vendored engine class is
@@ -133,7 +134,8 @@ export { extractContractChecklist, renderContractChecklist, parseContractVerdict
 export * from './feature-tier.js';
 export { DOMAIN_LIFT_EXACT, DOMAIN_LIFT_RELATED, normalizeDomain, domainMatch, applyDomainBoost, countDisplacedByCut, renderDomainBoostNote, renderDomainCutNote, } from './recall-domain-boost.js';
 export { DEFAULT_HELD_OUT_DOMAINS, applyExportHoldout, canonicalDomainKey, heldOutAfterOptIn, renderHoldoutNote, renderSharedStoreAdvice, decideVectorExport, } from './export-holdout.js';
-export { REQE_SCHEMA, REQE_SCOPE, modelFamily, shouldEmitReqeDebt, buildReqeDebt, parseReqeDebt, buildReqeBrief, extractReportGrade, settleReqeDebt, renderReqeList, } from './reqe.js';
+export { REQE_SCHEMA, REQE_SCOPE, modelFamily, shouldEmitReqeDebt, buildReqeDebt, parseReqeDebt, buildReqeBrief, extractReportGrade, settleReqeDebt, renderReqeList, countReqeByCause, } from './reqe.js';
+export { classifyReqeFindings, parsePriorFindings, buildReqeVerdict } from './reqe-verdict.js';
 export { detectQueryLang, relevanceFloorFor, selectHookHits, renderHookContext, hasEnoughSignal, DEFAULT_RECALL_FLOORS, DEFAULT_RECALL_HOOK_LIMIT, DEFAULT_RECALL_HOOK_BUDGET_CHARS, MIN_PROMPT_CHARS, MIN_CONTENT_TOKENS, closenessLine, anyAboveFloor, } from './recall-hook-policy.js';
 export { RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, RECALL_USAGE_COMPACT_TARGET_BYTES, formatRecallUsageRecord, buildRecallUsageRecord, parseRecallUsageLog, aggregateRecallUsage, buildRecallUsageReport, shouldCompactRecallUsageLogSize, compactRecallUsageLog, compactRecallUsageLogChecked, appendRecallUsage, countRecallEventsForRun, runtimeOf, RUNTIMES, } from './recall-usage.js';
 /* crossrt-2-codex-hooks (leg 2 of umbrella 98ed3967) */
@@ -223,6 +225,8 @@ export * from './skills-verify.js';
 // from darwin-mode; measurements are dz-native and NEVER fake a verdict (INSUFFICIENT_DATA is a
 // finding, not a pass).
 export * from './compounding.js';
+// Дополнительная метрика доведённой работы: публичные функции и типы.
+export { joinLessonOutcomes, renderLessonOutcomes } from './compounding.js';
 // Advisory command-invocation telemetry + deadwood report (feature dz-deadwood).
 export * from './cmd-usage.js';
 // Deterministic, blocked arm assignment for a prospective ablation (feature ablation-c-start,
@@ -293,4 +297,7 @@ export { parseCodexTokens, classifyRoundExecOutcome, buildRoundExecRow } from '.
 export * from './run-cleanup.js';
 export * from './cross-family-control.js';
 export { debtRatchetVerdict, parsePinnedCeiling, ceilingUnreadableMessage } from './debt-ratchet.js';
+// Квитанция зелёного прогона: проверка на PUSH вместо проверки на коммите (развилка 4, 21.09).
+export { decideTestReceipt, renderTestReceiptVerdict } from './test-receipt.js';
+export { decideBackupFreshness, renderBackupFreshness } from './backup-freshness.js';
 //# sourceMappingURL=index.js.map

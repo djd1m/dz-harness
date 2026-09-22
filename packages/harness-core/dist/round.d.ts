@@ -72,6 +72,16 @@ export interface RoundLedgerRow {
     readonly reason: string | null;
     readonly round: number;
     readonly lessons: readonly string[];
+    /** Recall coverage for the "доведённая работа" metric: measured on 2026-09-21, 0 of 462
+     * ledger rows carried `recalled`, losing the shown-to-used link across 124 round rows.
+     * Preserve the lessons shown at open as exact IDs, deduplicated by Set and sorted; omit when empty. */
+    readonly recalled?: readonly string[];
+    /** Used lessons drawn from the shown set: `recalled` intersected with `lessons`, sorted and
+     * omitted when empty. Lessons obtained elsewhere do not count toward recall coverage. */
+    readonly recalledUsed?: readonly string[];
+    /** Shown lessons not used: `recalled` minus `lessons`, sorted and omitted when empty. Together
+     * with `recalledUsed`, preserves the denominator for the "доведённая работа" metric. */
+    readonly recalledUnused?: readonly string[];
     readonly noNewKnowledge: string | null;
     readonly note: string;
     readonly date: null;

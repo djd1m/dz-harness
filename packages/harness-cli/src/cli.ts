@@ -106,6 +106,7 @@ import {
   checkAllUpstream,
   sweepSkillDrift,
   syncCanonicalSkill,
+  type CanonicalDefect,
   checkUpgrades,
   discoverPackages,
   matchesPublishFilter,
@@ -127,7 +128,8 @@ import {
   runSyncAgentsPolicy,
   runSyncCodexHooks,
   resolveCodexHome,
-  withNamedLockSync,
+  withProjectLockSync,
+  withDirLockSync,
   // dz workflow run (feature dz-workflow-run): the pure scheduler + the dispatch adapters.
   TRACE_RUNID_RE,
   WF_RUN_OWNER_HOST,
@@ -309,6 +311,8 @@ import {
   generateSigningKeypair,
   appendTransition,
   evaluateGuard,
+  GUARD_OPS,
+  type GuardOp,
   resolveRules,
   auditRecord,
   guardExitCode,
@@ -356,7 +360,7 @@ import {
   judgePackedInstallSmoke,
   type FetchPublished,
   type PackedInstallExecution,
-  listPackFiles,
+  gatherPublishSecretFacts,
   listSignablePackFiles,
   assertKeyOutsideTree,
   decidePublishGate,
@@ -588,6 +592,7 @@ import {
   buildReqeBrief,
   settleReqeDebt,
   renderReqeList,
+  countReqeByCause,
   REQE_SCOPE,
   // Mutation gate (feature ha-mutation-gate) — break each named protection, run the suite, require red.
   REGISTRY_SELFCHECK_TESTS,
@@ -804,7 +809,7 @@ Usage:
   dz experiment init --experiment <name> --seed <n> [--arms direct,reference] [--project <dir>] [--json]; dz experiment assign --experiment <name> --task <taskId> --stratum <stratum> [--project <dir>] [--json]; dz experiment resolve --experiment <name> --task <taskId> [--project <dir>] [--json]; dz experiment status --experiment <name> [--project <dir>] [--json]   (ablation-c-start, ADR-001, fix-round-1: deterministic block-randomized arm assignment, PRE-registered and idempotent — init writes .dz/experiments/<experiment>/config.json ONCE (seed, arms, createdAt); a re-init with a DIFFERENT seed or arms refuses (exit 2, seed-conflict) rather than silently drifting a live experiment's randomness (fix-round-1 BLOCKER #1); assign no longer accepts a --seed flag at all (exit 2, seed-not-accepted) — it reads the seed from that config, and refuses (not-initialized) if init was never run. assign computes 'direct'/'reference' from '(experiment, stratum, seed, ordinal-within-stratum)' via assignArm (harness-core, pure, mulberry32-seeded), appends one JSONL record to .dz/experiments/<experiment>/assignments.jsonl under a named lock with a re-read verification of the appended tail; a repeat --task returns the SAME arm and writes nothing (idempotency, A1); refuses (exit 2) a --task that already has a line in .dz/feature-adr/run-cost-ledger.jsonl — the work already started, so a random assignment now would no longer be random (A4, fail-closed on an unreadable ledger line too, fix-round-1 CRITICAL #4); a corrupted journal line is reported as 'unreadable' and refuses rather than silently concluding "not yet assigned" (A5); a non-empty journal missing its final newline refuses as 'truncated' rather than gluing a new record onto the old one (fix-round-1 CRITICAL #5); an experiment name is restricted to lowercase letters/digits/hyphen (fix-round-1 CRITICAL #3 — no alias via '.' or '/'); every record READ back (by assign's duplicate check, by resolve, or by status) is RE-VERIFIED by rederiving its arm/block/position/propensity from its own tuple — a valid-shaped but hand-edited row refuses as 'assignment-tampered' with both the expected and actual values (fix-round-1 HIGH #7). resolve prints the assignment already on file for a taskId — never invents one — so a downstream pipeline can trust it without accepting a caller-supplied arm (fix-round-1 BLOCKER #2); a task never assigned refuses as 'assignment-missing'. status prints an intention-to-treat table by arm (n, completed observations via a ledger row carrying taskId+shippedAt, median task minutes, aqeInvoked compliance, incomplete count broken down by reason: pending/bad-shippedAt/negative-duration — a task only counts as completed with a finite nonnegative duration, fix-round-1 HIGH #8); any malformed OR tampered record refuses the WHOLE report rather than computing from the survivors (fix-round-1 CRITICAL #6); zero assignments prints INSUFFICIENT_DATA with the assignment count, never an empty table (A7). exit 0 initialized/already-initialized/assigned/duplicate/resolved/status, 2 usage error or refusal, 3 append-not-verified)
   dz feature-adr-checkpoint (--slug <feature> | --feature-dir <abs>) --stage <s> --input-hash <h> --result <json> [--artifact a,b] [--json]   (record a pipeline stage ONLY after measuring its artifacts on disk; refuses a null result, an absent artifact, or a stage that declares none — the subagent runs a COMMAND instead of hand-writing durable state)
   dz profile [init|show|set|sync] [--json]   (WHO the assistant is talking to — per-user store at ~/.dz/profile.json (0600, NEVER in a project), delivered as a marked block in ~/.claude/CLAUDE.md so it loads in EVERY project, dz installed or not. init = five questions (language, register, deep/weak domains as comma lists — "networking (CCIE; NSX)" keeps the parenthetical as the note, Enter skips — teaches y/n with one re-ask, never a silent default); show ALWAYS prints the store path + age + drift verdict + the rendered block; set register|language|teaches <v> or set deep|weak add|rm <tag> [note] — register accepts the owner's own words (профи / профи лайт / просто), an unknown value is REFUSED naming the accepted set; sync re-writes the block (runs automatically after init/set; foreign content byte-for-byte, timestamped backup before every modifying write). The register changes FORM, never FACTS, and governs dialogue only — never ADRs/commits/QE reports; both rules are baked into the rendered block at every level. exit 0 done / 1 no profile or failed / 2 refused input)
-  dz reqe [--slug <feature> [--done --report <f>]] [--json]   (the re-QE debt ledger: a usage-switched run whose Step-8 QE ran on the coder's OWN family records a debt; list debts, print the cross-family review brief, settle FAIL-CLOSED against a graded report — the settlement lands in 08_qe_report.md)
+  dz reqe [--slug <feature> [--done --report <f>]] [--json]   (the re-QE debt ledger: a usage-switched run whose Step-8 QE ran on the coder's OWN family records a debt; list debts, print the cross-family review brief, settle FAIL-CLOSED against a graded report — the settlement lands in 08_qe_report.md; exit 0 settled / 1 refused / 3 blocked (BLOCKER or HIGH named by the reviewer — stop, owner decides))
   dz qe-bridge --family claude --slug <feature> [--coder-family codex|claude] [--model <id>] [--files a,b] [--out <f>] [--timeout <s>] [--allow-same-family] [--json]   (the REVERSE QE bridge: run an INDEPENDENT Claude reviewer over a feature's Step-8 artifacts from ANY host — a Codex session included, plain shell, no Claude agent plane needed — and land a PARSED signoff. The reviewer runs ISOLATED: an EMPTY temp cwd plus --safe-mode --strict-mcp-config --tools '' --no-session-persistence, so no CLAUDE.md/skills/plugins/hooks/MCP load, and the verdict is read from the --output-format json RESULT ENVELOPE — text a session customization printed onto the same stdout can never become a signoff. Probes the model before trusting it; sends SCOPED extracts with a loud 200k-char ceiling (never silent truncation); the grade must AGREE across three LAST-anchored channels (terminal marker line, fenced qe-bridge-signoff JSON, the report's own GRADE line) AND the marker must be the FINAL content — empty, gradeless, self-contradicting or miscounted output is one of 17 NAMED failures with an audit record under features/<slug>/.fa-state/qe-bridge/ (runId, resolved executable + binOverride, prompt sha256, channel offsets, requestedOut, reportWritten, retained raw stdout; 0600 files in a 0700 dir), never a clean review. A --coder-family that contradicts the recorded reqe debt is refused. Writes features/<slug>/08b_reqe_report.md, which dz reqe --done settles unchanged. DISCLOSURE: the extracts you scope are sent to the Claude runtime; the bridge cannot classify secrets. DZ_QE_BRIDGE_CLAUDE_BIN is a TEST SEAM, not a flag. exit 0 signoff parsed (ANY grade — it reports, it does not gate) / 1 named failure / 2 usage)
   dz control-review --slug <feature> --files a,b [--brief <file>] [--coder-family codex|claude] [--codex-model gpt-5.6-sol] [--effort high] [--claude-model <id>] [--timeout-min 30] [--adjudicate <file>] [--project <dir>] [--json]   (ADR-001 cross-family-control-branch: two INDEPENDENT scoped reviews over the SAME tree, Codex run from an ISOLATED scope copy — a Claude qe-bridge half then a Codex round-exec half — diffed into confirmed/candidate/onlyCodex/onlyClaude per severity; automatic overlap is a CANDIDATE only (title-Jaccard>=0.5 with compatible file, or same-file+line±3 AND jaccard>=0.2) — --adjudicate produces the only CONFIRMED pairs, none entries family-qualified as codex:<id>/claude:<id>; a tree-hash drift, an unreadable Claude signoff, a half with no accepted table, a nonzero Codex exit/timeout, or an ambiguous answer boundary refuses with NO ledger row; an out-of-scope or unnormalizable finding lands in the row's own refused/complete fields instead; a written row is trusted only after an exactly-one-new-line deep-compared reread. exit 0 written+verified / 1 refused / 2 usage / 3 written-but-not-reread)
   dz mutation-gate [--package <dir>] [--registry <file>] [--test-cmd "<cmd>"] [--only <id[,id]>] [--touched <path[,path]>] [--added-since <git-ref>] [--timeout <ms>] [--max-workers <n>] [--rebaseline per-entry|final] [--verdicts <file>] [--run-id <id>] [--keep-scratch] [--json]   (prove each NAMED protection has a test that DISCRIMINATES: after classifying, one JSONL line per classified entry ({ts, package, entryId, verdict, failingCount, observed, drop, dropComparable, runId}) is appended to a DURABLE file, SEPARATE from the registry (the registry is the gate's INPUT — what to mutate — a verdict is its OUTPUT; mixing them would change the registry on every run and break the mutation-registry-freshness guard) — default '.dz/mutation-gate/verdicts.jsonl' under the invocation cwd, '--verdicts <file>' overrides; '--run-id <id>' names the run in every appended row (absent -> runId:null, never guessed). Observability only: a write failure is a LOUD warning on stderr and NEVER changes the gate's own exit code — the instrument cannot become a second way for the gate to fail. '--max-workers' resolves flag > the registry's own 'maxWorkers' field > 'min(4, max(1, floor(cpus/2)))' (an invalid flag value — 0, negative, fractional, non-numeric — is a usage error, exit 2, never a silent default; fix-round 1), injects '--maxWorkers=<n>' right after 'run' in EVERY 'vitest run' segment of a (possibly compound) command (unless that segment already names the flag itself, token-scoped — not a whole-command substring check; mutation-gate-inject-tokens fix-round 2) and sets 'VITEST_MAX_WORKERS=<n>' in the env regardless — an uncapped full-suite baseline/mutant run at vitest's default worker count (= cpu cores) has measured load 62-358 and <2GB free on an 8-core/16GB box under embedding-daemon tests, killing full overnight gate runs (0bb74d66); the env is read by vitest CONFIGS that opt in (this repo's harness-core/harness-cli vitest.config.ts do) — vitest itself does NOT read it (MEASURED 3.2.4); printed as 'mutation-gate: workers: <n> (<flag|registry|default>)', or 'mutation-gate: workers: n/a — test command is not vitest (VITEST_MAX_WORKERS set; honoured only by configs that read it)' when the command is not recognised as vitest. '--touched' selects entries whose 'file' matches one of the given paths, accepted in ANY of package-relative, './'-prefixed, absolute-inside-the-package, repo-relative, or backslash-separated form — all normalized to package-relative POSIX before matching (fix-round 1, AM-1); a path that resolves OUTSIDE the package is counted, never silently dropped, as '<K> outside package' in the 'selected N of M' line; '--added-since <ref>' selects entries whose id is not present in the registry as it read at that ref ('git show <ref>:<registry path>'): a registry genuinely ABSENT at that ref means every current entry counts as added (said explicitly); an unresolvable ref, any OTHER git failure, or an invalid/malformed base registry at that ref is a usage error (exit 2), never folded into "absent" (AM-3) — a feature scopes the gate to its own touched files and any entries it just added instead of the whole registry (MEASURED: an unscoped run over 358 entries on this repo's core package ran 30-40 minutes and hit the timeout wall, INCONCLUSIVE every time). The two selectors UNION and the result INTERSECTS with '--only' when both are given; an empty selection prints 'selected 0 of M entries (…)' and exits 0 — never a silent skip; '--json' always carries a 'selection' object ({selected, total, touched, addedSince, base, outsidePackage}) on every scoped run (AM-4). copy the package to a scratch dir, verify the baseline suite is green, apply each registry mutation, run the suite, REQUIRE red, restore. The red must be BEHAVIOURAL: a mutation that no longer parses is MUTATION_UNPARSEABLE; a red run whose OWN output reports a test FILE failing to load (node --test file-level not-ok with exitCode, vitest Failed Suites) is MUTATION_LOAD_FATAL — the signal comes from the same run as the failing count, never from a separate isolated import; red output whose shape matches no known runner is INCONCLUSIVE (a runner-coverage gap, loud, never PROVEN); a count far above the entry's bound is OVER_FAILING; a restored tree that does not reproduce green makes the entry INCONCLUSIVE (flaky). Mutation writes are realpath-contained to the scratch copy: a symlink escape or a node_modules/ target is refused (exit 2), the real tree is never written. A mutation that does not apply, a green suite, or an inconclusive run is a FAILURE — never a skip. exit 0 all proven / 1 gate failed / 2 setup error)
@@ -816,11 +821,11 @@ Usage:
   dz backlog ship <id> [<id>…] [--reason <t>] [--dry-run] [--project <dir>] [--json]   (mark work DONE: new|enriched|in-progress → shipped, removing it from the roulette pool — run it after finishing a task; short id prefixes ok, ambiguous = loud error)
   dz backlog drop <id> [<id>…] [--reason <t>] [--dry-run] [--project <dir>] [--json]   (retire an idea: new|enriched|in-progress → dropped)
   dz backlog edit <id> --text "<new>" | --append "<more>" [--dry-run] [--project <dir>] [--json]   (rewrite ONE idea's text, preserving every other field; re-embeds the dedup vector, and on a failed re-embed MARKS the record embedStale so dedup refuses to trust it — previous text preserved in .dz/backlog/edits.jsonl)
-  dz routing recommend [--tier <t>] [--apply] [--json]   (per-stage args.models suggestion from REAL telemetry — harness records + imported run-meta sidecars — printed WITH its basis + current/STALE/UNFED store receipt; qe is FORCED cross-family of code; --apply feeds .dz/routing-outcomes.json idempotently by runId)
   dz backlog reopen <id> [<id>…] [--reason <t>] [--dry-run] [--project <dir>] [--json]   (back to the pool: shipped|dropped|in-progress → new)
   dz backlog enrich <id> [--project <dir>] [--json]                        (stage the idea2prd input scaffold in features/<slug>/ and hand off to the idea2prd-manual skill — the CLI never fabricates a PRD)
   dz backlog jira <id> [--project <dir>] [--json]                          (draft a Jira issue via the configurable adapter (backlog.jira.adapter: jira-mcp|copilot-mcp|none); none writes an auditable jira-outbox/<id>.json stub)
   dz backlog harmonize [--apply] [--threshold <0-1>] [--project <dir>] [--json]   (batch semantic dedup of the backlog ideas; --dry-run default, --apply snapshots first)
+  dz routing recommend [--tier <t>] [--apply] [--json]   (per-stage args.models suggestion from REAL telemetry — harness records + imported run-meta sidecars — printed WITH its basis + current/STALE/UNFED store receipt; qe is FORCED cross-family of code; --apply feeds .dz/routing-outcomes.json idempotently by runId)
   dz setup --target <name> [--preset <name>] [--select id,id,...] [--skills-dir <dir>] [--project <dir>] [--memory agentdb] [--no-memory] [--no-hooks] [--no-verify] [--install-driver] [--force] [--enrich]   (--target codex ALSO installs + LIVE-verifies the codex hooks; an unverified hook exits non-zero WITHOUT aborting the rest of setup)
   dz teach "<pattern>" [--class-form "<template with :slot>"] [--reward <0-1>] [--domain <name>] [--type rule|success-pattern|lesson-learned] [--project <dir>] [--no-mirror] [--allow-cold-start]   (class form is optional; rejection never blocks the specific write; --project pins the learned store to <dir>/.dz)
   dz teach --from-json <file> [--project <dir>] [--no-mirror]   (bulk-import a 'dz recall --all --json' export — share a learned store across machines)
@@ -865,7 +870,7 @@ Usage:
   dz agents-sync [--project <dir>] [--check] [--json]                   (sync/verify the always-on policy fence in root AGENTS.md; exit 0 synced/written, 1 drift, 3 inconclusive)
   dz hooks-sync --target codex [--check] [--verify] [--remove] [--json]  (install/verify the dz veto + recall hooks in $CODEX_HOME/hooks.json; exit 0 armed+trusted, 1 not armed/drift, 3 inconclusive)
   dz integrations-verify --target <name> --component <mcp|hooks> [--project <dir>] [--json]  (non-executing exact-version registration probe; exit 0 observed / 1 refused)
-  dz sync-canonical <skill> [--check] [--from <dir>] [--auto] [--project <dir>]  (heal every copy from skills-meta/<skill> or --from; no canonical + --check = compare copies to each other (exit 1 on drift); no canonical + write = refuse unless --auto (LOUD, picks most-complete copy); --check writes nothing)
+  dz sync-canonical <skill> [--check|--dry-run] [--from <dir>] [--auto] [--project <dir>]  (heal every copy from skills-meta/<skill> or --from; no canonical + --check = compare copies to each other (exit 1 on drift); no canonical + write = refuse unless --auto (LOUD, picks most-complete copy); --check / --dry-run write nothing)
   dz plugin [--version <ver>]
   dz downloads
   dz stats
@@ -971,7 +976,7 @@ export interface CliIo {
   readonly roundPidProbe?: (pid: number) => boolean | null;
   readonly roundRunRegistryReader?: (projectRoot: string) => string;
   readonly roundKillGraceMs?: number;
-  /** round-state-lock NFR-2: overrides `withNamedLockSync`'s acquisition deadline for `dz round`
+  /** round-state-lock NFR-2: overrides the round lock's acquisition deadline for `dz round`
    * mutations so a test can force `lock busy` deterministically. Omitted in production. */
   readonly roundLockTimeoutMs?: number;
   readonly roundSpawn?: (request: {
@@ -3625,19 +3630,24 @@ function cmdUsage(
   write: Write,
 ): number {
   const projectRoot = resolve(cwd, options.get('project') ?? '.');
-  const reqeDue = (): number => {
+  const reqeCounts = () => {
+    let debts: ReturnType<typeof scanReqeDebts>['debts'] = [];
     try {
-      return scanReqeDebts(projectRoot).debts.length;
+      debts = scanReqeDebts(projectRoot).debts;
     } catch {
-      return 0;
+      // Preserve the usage report's existing empty-debt fallback.
     }
+    return {
+      reqeDue: debts.length,
+      reqeDueByCause: countReqeByCause(debts.map((d) => d.debt)),
+    };
   };
   const jsonContract = (spend: ReturnType<typeof computeSpendReport>): string => JSON.stringify({
     sessionPct: null,
     weeklyPct: null,
     routing: 'disabled-by-design',
     spend,
-    reqeDue: reqeDue(),
+    ...reqeCounts(),
   });
   const number = (value: number): string =>
     (Number.isInteger(value) ? String(value) : String(Math.round(value * 100) / 100));
@@ -4415,7 +4425,14 @@ async function cmdTeach(
     return 1;
   }
 
-  const reward = parseFloat(options.get('reward') ?? '0.8');
+  const rawReward = options.get('reward');
+  const reward = Number(rawReward ?? '0.8');
+  if ((options.has('reward') || flags.has('reward'))
+    && (rawReward === undefined || rawReward.trim() === '' || !Number.isFinite(reward) || reward < 0 || reward > 1)) {
+    writeErr(`dz teach: invalid --reward ${JSON.stringify(rawReward ?? '(missing)')}; expected a finite number in [0, 1]`);
+    return 2;
+  }
+  const rewardSource = options.has('reward') ? 'explicit' : 'default';
   const domain = options.get('domain') ?? 'general';
   const classWasRequested = options.has('class-form') || flags.has('class-form');
   const lessonForms = normalizeLessonForms(pattern, options.get('class-form'));
@@ -4470,6 +4487,7 @@ async function cmdTeach(
       pattern: lessonForms.specific,
       type: type as PatternRecord['type'],
       reward: Math.max(0, Math.min(1, reward)),
+      rewardSource,
       domain,
       ts: new Date().toISOString(),
       source: 'dz-teach',
@@ -4522,7 +4540,7 @@ async function cmdTeach(
   const count = guardedExisting === undefined ? stored.count : loadStorePatternsSync(storeRoot).length;
 
   write(`${guardedExisting !== undefined && stored.class === 'stored' ? 'Enriched' : 'Learned'}: "${pattern.slice(0, 60)}${pattern.length > 60 ? '...' : ''}"`);
-  write(`  Domain: ${entry.domain}  Reward: ${entry.reward}  Backend: memory (@dzhechkov/memory)`);
+  write(`  Domain: ${entry.domain}  Reward: ${entry.reward} (${entry.rewardSource ?? 'stored, source unknown'})  Backend: memory (@dzhechkov/memory)`);
   write(`  Total patterns: ${count}`);
   // WHERE the write landed. MEASURED before this line existed: teach printed the pattern, the
   // domain, the reward and the backend — and not one word about the path, so a store written to
@@ -7386,7 +7404,51 @@ function withStagedPackageJson<T>(
   }
 }
 
-function cmdPublish(
+export function partitionPrivatePackages<T extends { name: string; dir: string; version: string }>(
+  packages: readonly T[],
+  readPkgJson: (dir: string) => string,
+) {
+  const targets: T[] = [];
+  const skipped: ReturnType<typeof publishPackages>['packages'][number][] = [];
+  const lines: string[] = [];
+  for (const pk of packages) {
+    try {
+      const manifest = JSON.parse(readPkgJson(pk.dir)) as { private?: unknown } | null;
+      if (manifest?.private === true) {
+        const reason = 'package.json declares private: true';
+        skipped.push({ name: pk.name, oldVersion: pk.version, newVersion: pk.version, status: 'skipped', error: reason });
+        lines.push(`dz publish: ○ ${pk.name} — skipped: ${reason}`);
+        continue;
+      }
+    } catch (err) {
+      const reason = (err instanceof Error ? err.message : String(err)).split(/\r?\n/)[0];
+      lines.push(`dz publish: ⚠ ${pk.name} — cannot determine private: package.json unreadable/invalid (${reason}); keeping in publish targets`);
+    }
+    targets.push(pk);
+  }
+  return { targets, skipped, lines };
+}
+
+/**
+ * The version cell of one publish plan row (first-publish-not-offline, ADR-001 D2/D4; Step-8 MEDIUM: the LIVE
+ * `unknown` row used to print a bare "NOT ESTABLISHED" while the dry-run row named the npm code). One rule for
+ * both modes: an `unknown` probe prints `NOT ESTABLISHED (registry unreachable: <code>)` whenever the row's error
+ * carries the code; `never-published` prints `<version> (first publish)`; everything else `<old> → <new>`.
+ */
+export function renderPublishVersionCell(pkg: {
+  readonly oldVersion: string; readonly newVersion: string; readonly probe?: string | undefined;
+  readonly firstPublish?: boolean | undefined; readonly error?: string | undefined;
+}): string {
+  if (pkg.probe === 'unknown') {
+    if (pkg.error?.startsWith('NOT ESTABLISHED')) return pkg.error;
+    const code = /registry unreachable: (\S+)/.exec(pkg.error ?? '')?.[1];
+    return code !== undefined ? `NOT ESTABLISHED (registry unreachable: ${code})` : 'NOT ESTABLISHED';
+  }
+  if (pkg.firstPublish === true) return `${pkg.newVersion} (first publish)`;
+  return `${pkg.oldVersion} → ${pkg.newVersion}`;
+}
+
+export function cmdPublish(
   options: Map<string, string>,
   flags: Set<string>,
   cwd: string,
@@ -7528,6 +7590,14 @@ function cmdPublish(
   const matchesFilter = (pk: { name: string; dir: string }): boolean =>
     filter === undefined || filter.length === 0 || filter.some((f) => matchesPublishFilter(pk, f, cwd));
   let targets = allPackages.filter(matchesFilter);
+  const privateSkips = new Map<string, ReturnType<typeof partitionPrivatePackages>['skipped'][number]>();
+  const selectPublicTargets = (packages: typeof targets): typeof targets => {
+    const selection = partitionPrivatePackages(packages, (dir) => readFileSync(join(dir, 'package.json'), 'utf-8'));
+    for (const line of selection.lines) write(line);
+    for (const skipped of selection.skipped) privateSkips.set(skipped.name, skipped);
+    return selection.targets;
+  };
+  targets = selectPublicTargets(targets);
   let batchNames = new Set(targets.map((p) => p.name));
 
   // Каждая выборка опубликованного пакета кладёт в /tmp тарбол и распакованное дерево. Убирается
@@ -7694,6 +7764,11 @@ function cmdPublish(
               driftBlocked++;
             }
           } else if (includeDrifted) {
+            const sibling = allPackages.find((candidate) => candidate.name === r.name);
+            if (privateSkips.has(r.name) || (sibling !== undefined && selectPublicTargets([sibling]).length === 0)) {
+              pkParts.push(`${r.name}@${r.version}: drift — not added: package.json declares private: true`);
+              continue;
+            }
             pkParts.push(`${r.name}@${r.version}: drift (${r.changedFiles.length} file(s)) — auto-included via --include-drifted`);
             if (!batchNames.has(r.name) && !extraBatch.has(r.name)) {
               extraBatch.add(r.name);
@@ -7749,7 +7824,7 @@ function cmdPublish(
     // any other package in `publishPackages`' own (unchanged) bump logic. Re-loop: the newly
     // folded-in sibling(s) may themselves depend on a drifted sibling outside the (now bigger) batch.
     filter = filter === undefined ? [...batchNames, ...extraBatch] : [...filter, ...extraBatch];
-    targets = allPackages.filter(matchesFilter);
+    targets = selectPublicTargets(allPackages.filter((pk) => matchesFilter(pk) && !privateSkips.has(pk.name)));
     batchNames = new Set(targets.map((p) => p.name));
   }
   } finally {
@@ -7865,11 +7940,6 @@ function cmdPublish(
 
   if (!dryRun) {
     // Loud confirmation banner listing exactly what is about to be published.
-    const targets = discoverPackages(cwd).filter((p) =>
-      filter === undefined || filter.length === 0
-        ? true
-        : filter.some((f) => matchesPublishFilter(p, f, cwd)),
-    );
     write(`\n╔══════════════════════════════════════════════════════════════════════╗`);
     write(`║  ⚠  LIVE PUBLISH — this will bump versions and run \`pnpm publish\`      ║`);
     write(`╠══════════════════════════════════════════════════════════════════════╣`);
@@ -7893,10 +7963,6 @@ function cmdPublish(
     const trustRoot = resolve(cwd, TRUST_ROOT_REL);
     const trustRootPresent = existsSync(trustRoot);
     const requireSigning = flags.has('require-signing');
-    // `filter` is a string[] of substrings (matching publishPackages' own semantics), not a string.
-    const targets = discoverPackages(cwd).filter(
-      (pk) => !filter || filter.length === 0 || filter.some((f) => matchesPublishFilter(pk, f, cwd)),
-    );
     let blocked = 0;
 
     for (const pk of targets) {
@@ -7976,6 +8042,7 @@ function cmdPublish(
     provenance,
     dryRun,
     filter,
+    targetNames: targets.map((pk) => pk.name),
     bumpOnly,
     claimGate: claimCheckOpt,
     exec: publishExecRunner,
@@ -8237,7 +8304,12 @@ function cmdPublish(
     }
   }
 
-  const report = { ...publishReport, mirror };
+  const report = {
+    ...publishReport,
+    packages: [...publishReport.packages, ...privateSkips.values()],
+    skipped: publishReport.skipped + privateSkips.size,
+    mirror,
+  };
   const exitCode = report.errors > 0 ? 1 : mirror.status === 'unconfirmed' ? 3 : 0;
 
   if (json) {
@@ -8251,11 +8323,12 @@ function cmdPublish(
     const icon = pkg.status === 'published' ? '✓' : pkg.status === 'skipped' ? '○' : '✗';
     // A one-line preview inline; on error the FULL captured npm error prints below (truncating a publish
     // failure to 60 chars is how a release stays undiagnosable — the reason lives past char 60).
-    const detail = pkg.error && pkg.status !== 'error' ? ` (${pkg.error.slice(0, 60)})` : '';
+    const detail = pkg.error && pkg.status !== 'error' && pkg.probe !== 'unknown' ? ` (${pkg.error.slice(0, 60)})` : '';
     const receipt = pkg.status === 'published' && pkg.registryProbes !== undefined
       ? ` (confirmed by registry after ${pkg.registryProbes} probes)`
       : '';
-    write(`  ${icon} ${pkg.name.padEnd(35)} ${pkg.oldVersion} → ${pkg.newVersion}  ${pkg.status}${receipt}${detail}`);
+    const version = renderPublishVersionCell(pkg);
+    write(`  ${icon} ${pkg.name.padEnd(35)} ${version}  ${pkg.status}${receipt}${detail}`);
     // AM-1: the digest of the EXACT tarball bytes that were smoke-tested AND published — present
     // only for a packedTransport publish, so "the smoke tested what shipped" is checkable here too.
     if (pkg.status === 'published' && pkg.sha256 !== undefined) write(`      sha256:${pkg.sha256}`);
@@ -10127,7 +10200,7 @@ function runSyncCodexHooksLocked(options: Parameters<typeof runSyncCodexHooks>[0
     ...options,
     criticalSection: <T>(fn: () => T): T => {
       try {
-        return withNamedLockSync(codexHome, 'codex-hooks', fn);
+        return withDirLockSync(codexHome, 'codex-hooks', fn);
       } catch (error) {
         if (error instanceof NamedLockTimeoutError || error instanceof NamedLockCompromisedError) {
           lockError = error;
@@ -10268,6 +10341,10 @@ function cmdAgentsSync(
   }
 }
 
+function renderCanonicalDefect(d: CanonicalDefect, root: string): string {
+  return `canonical defect: ${d.skill} — ${d.path} (${d.kind}) inside ${relative(root, d.canonical)}; not propagated, not removed — fix the canon`;
+}
+
 function cmdDriftCheck(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): number {
   const root = resolve(cwd, options.get('project') ?? '.');
   // Default scope = PUBLISHED packages only: the `.claude/skills` dogfood copies legitimately lag the
@@ -10277,58 +10354,58 @@ function cmdDriftCheck(options: Map<string, string>, flags: Set<string>, cwd: st
   const allowlist = readDriftAllowlist(root);
   const r = sweepSkillDrift(root, { scope, allowlist });
 
+  let sigBlocking = 0;
   if (flags.has('json')) {
     // The signature verdicts were printed in the TEXT output and absent from the JSON, so a CI job
     // parsing `--json` saw `drifted: 0` and concluded all was well while packs were TAMPERED. A gate
     // silent in the form CI reads is not a gate (MEASURED 2026-08-21: keys were duplicated, drifted,
     // allowlisted, scope, allowlist — and nothing else).
     const sig = collectPackVerification(root, options.get('pubkey'));
-    const sigBlocking = sig.packs.filter(
+    sigBlocking = sig.packs.filter(
       (c) => decideVerifyPolicy(c.verdict, flags.has('require-signing')).action === 'fail',
     ).length;
     write(JSON.stringify({ ...r, scope, allowlist, signatures: sig }));
-    return r.drifted.length > 0 || sigBlocking > 0 ? 1 : 0;
-  }
-
-  write(`Skills duplicated across ≥2 ${scope === 'packages' ? 'package' : ''} locations: ${r.duplicated}`);
-  if (r.allowlisted.length > 0) {
-    write(`allowlisted (accepted drift): ${r.allowlisted.map((d) => d.name).join(', ')}`);
-  }
-  write(`DRIFTED (unexpected, byte-differences between copies): ${r.drifted.length}`);
-  let driftExit = 0;
-  if (r.drifted.length === 0) {
-    write('✓ no unexpected intra-monorepo skill drift');
   } else {
-    write('');
-    write('skill'.padEnd(34) + 'copies  drift/total');
-    for (const d of r.drifted) {
-      write(
-        d.name.padEnd(34) +
-          String(d.copies).padStart(4) +
-          '    ' +
-          `${d.driftFiles}/${d.totalFiles}` +
-          (d.missingFiles ? ` (+${d.missingFiles} missing)` : ''),
-      );
+    write(`Skills duplicated across ≥2 ${scope === 'packages' ? 'package' : ''} locations: ${r.duplicated}`);
+    if (r.allowlisted.length > 0) {
+      write(`allowlisted (accepted drift): ${r.allowlisted.map((d) => d.name).join(', ')}`);
     }
-    write('');
-    write('→ fix each: heal drift, then commit. Remediation per skill:');
-    for (const d of r.drifted) {
-      const hasMeta = existsSync(join(root, 'packages', '@dzhechkov', 'skills-meta', d.name));
-      write(
-        hasMeta
-          ? `    dz sync-canonical ${d.name}`
-          : `    dz sync-canonical ${d.name} --from <a-known-good-copy>   (no skills-meta canonical)`,
-      );
+    write(`DRIFTED (unexpected, byte-differences between copies): ${r.drifted.length}`);
+    if (r.drifted.length === 0) {
+      write('✓ no unexpected intra-monorepo skill drift');
+    } else {
+      write('');
+      write('skill'.padEnd(34) + 'copies  drift/total');
+      for (const d of r.drifted) {
+        write(
+          d.name.padEnd(34) +
+            String(d.copies).padStart(4) +
+            '    ' +
+            `${d.driftFiles}/${d.totalFiles}` +
+            (d.missingFiles ? ` (+${d.missingFiles} missing)` : ''),
+        );
+      }
+      write('');
+      write('→ heal copy drift where the canon is clean, then commit. Remediation per skill:');
+      const defectiveSkills = new Set(r.canonicalDefects.map((d) => d.skill));
+      for (const d of r.drifted.filter((d) => !defectiveSkills.has(d.name))) {
+        const hasMeta = existsSync(join(root, 'packages', '@dzhechkov', 'skills-meta', d.name));
+        write(
+          hasMeta
+            ? `    dz sync-canonical ${d.name}`
+            : `    dz sync-canonical ${d.name} --from <a-known-good-copy>   (no skills-meta canonical)`,
+        );
+      }
+      write('  (accept a drift intentionally: add its name to .dz/drift-allowlist.json with a reason)');
     }
-    write('  (accept a drift intentionally: add its name to .dz/drift-allowlist.json with a reason)');
-    driftExit = 1; // EXIT CODE 1 = the CI gate trips
+    for (const d of r.canonicalDefects) write(renderCanonicalDefect(d, root));
+    // Supplementary CI check: installed-pack signatures. A TAMPERED pack trips the gate (fatal); an unsigned
+    // pack or a missing trust root is reported, not fatal — the same warn/block posture as `dz doctor` (the
+    // primary signature gate). drift-check surfaces it so the CI drift view also flags a tampered pack.
+    write('');
+    sigBlocking = reportPackVerification(root, options.get('pubkey'), flags.has('require-signing'), write);
   }
-  // Supplementary CI check: installed-pack signatures. A TAMPERED pack trips the gate (fatal); an unsigned
-  // pack or a missing trust root is reported, not fatal — the same warn/block posture as `dz doctor` (the
-  // primary signature gate). drift-check surfaces it so the CI drift view also flags a tampered pack.
-  write('');
-  const sigFatal = reportPackVerification(root, options.get('pubkey'), flags.has('require-signing'), write);
-  return driftExit || sigFatal;
+  return r.drifted.length > 0 || r.canonicalDefects.length > 0 || sigBlocking > 0 ? 1 : 0;
 }
 
 const DEFAULT_STORE_CAP = 5000;
@@ -10339,9 +10416,6 @@ const DEFAULT_STORE_CAP = 5000;
  * the rule reports nothing for them — a pre-flight must never become a filesystem sweep.
  */
 const MAX_STUB_SCAN_FILES = 400;
-
-/** Maximum packed-file size read by the publish secret scan. */
-const SECRET_SCAN_MAX_BYTES = 512 * 1024;
 
 /** Read the optional `.dz/guard.json` — `{ rules?, storeCap?, stubWaivers?, secretWaivers? }`. Missing/broken ⇒ defaults. */
 function loadGuardConfig(root: string): { rules?: unknown[]; storeCap?: number; stubWaivers?: unknown[]; secretWaivers?: unknown[]; reviewRound?: { minGrade?: unknown } } {
@@ -10823,6 +10897,114 @@ function gatherVolumeShadowFacts(
 function gatherGuardFacts(op: string, root: string, text: string | undefined, storeCap: number, publishFilter?: readonly string[]): Record<string, unknown> {
   const facts: Record<string, unknown> = { op };
   const publishPackageRoots: string[] = [];
+  function readWorkspaceManifests() {
+    type Manifest = { name?: string; version?: string; private?: boolean; license?: string; licenseHold?: unknown; dependencies?: Record<string, string>; devDependencies?: Record<string, string>; peerDependencies?: Record<string, string>; optionalDependencies?: Record<string, string> };
+    const manifests: Manifest[] = [];
+    const located: { dir: string; m: Manifest; text: string }[] = [];
+    try {
+      const out = volumeGitText(root, ['ls-files', 'packages/@dzhechkov/*/package.json']);
+      for (const rel of out.split('\n').map((s) => s.trim()).filter(Boolean)) {
+        try {
+          const packageJsonText = readFileSync(join(root, rel), 'utf8');
+          const m = JSON.parse(packageJsonText) as Manifest;
+          manifests.push(m);
+          located.push({ dir: rel.replace(/\/package\.json$/, ''), m, text: packageJsonText });
+        } catch { /* skip unreadable */ }
+      }
+    } catch { /* not a git repo */ }
+    const versionByName = new Map<string, string>();
+    for (const m of manifests) if (m.name && typeof m.version === 'string') versionByName.set(m.name, m.version);
+    return { manifests, located, versionByName };
+  }
+
+  function readChangedPackageFiles(): string[] | undefined {
+    try {
+      const status = execSync('git status --porcelain -uall -- "packages/@dzhechkov/"', { cwd: root, encoding: 'utf-8' });
+      return status
+        .split('\n')
+        .map((line) => line.slice(3).trim())
+        .map((path) => (path.includes(' -> ') ? path.split(' -> ')[1]!.trim() : path))
+        .filter(Boolean);
+    } catch { return undefined; }
+  }
+
+  function gatherSignedPackFacts(
+    changedPackageFiles: string[] | undefined,
+    located: ReturnType<typeof readWorkspaceManifests>['located'],
+    versionByName: Map<string, string>,
+  ): void {
+    // signature-fresh: verify only signed packs whose non-signature files changed in the same
+    // porcelain listing. Manifest/SBOM churn is the remedy, not another reason to verify.
+    // The trust key and every byte read here stay in the CLI; the guard core receives facts only.
+    const trustRootPath = join(root, TRUST_ROOT_REL);
+    if (changedPackageFiles !== undefined && existsSync(trustRootPath)) {
+      try {
+        const trustRootPem = readFileSync(trustRootPath, 'utf8');
+        const signedPacks: {
+          name: string;
+          dir: string;
+          changed: boolean;
+          ok: boolean | null;
+          failures: string[];
+          note?: string;
+        }[] = [];
+        for (const { dir, m, text: packageJsonText } of located) {
+          const manifestPath = join(root, dir, MANIFEST_NAME);
+          if (!existsSync(manifestPath)) continue;
+          const prefix = dir + '/';
+          const changedPackFiles = new Set(changedPackageFiles
+            .filter((rel) => rel.startsWith(prefix))
+            .map((rel) => rel.slice(prefix.length))
+            .filter((packRel) => packRel !== MANIFEST_NAME && packRel !== SBOM_NAME));
+          const changed = changedPackFiles.size > 0;
+          let ok: boolean | null = null;
+          let failures: string[] = [];
+          let note: string | undefined;
+          if (changed) {
+            try {
+              const signed = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
+                manifest?: { files?: readonly { path?: unknown; sha256?: unknown }[] };
+              };
+              const verified = verifyManifest(join(root, dir), signed as never, trustRootPem);
+              // A source checkout contains dev files outside package.json#files. They are absent
+              // from the tarball by design, so an unchanged "present but not signed" source file
+              // is not evidence about signature freshness. A changed/new unsigned file stays loud.
+              const relevantFailures = verified.failures.filter((failure) =>
+                failure.reason !== 'present in the pack but not signed' || changedPackFiles.has(failure.path));
+              ok = verified.ok || relevantFailures.length === 0;
+              if (!ok && relevantFailures.length > 0 && relevantFailures.every(({ path }) => path === 'package.json')) {
+                const signedPackageHash = signed.manifest?.files?.find(({ path }) => path === 'package.json')?.sha256;
+                if (typeof signedPackageHash === 'string') {
+                  const rewritten = rewriteWorkspaceSpecs(packageJsonText, versionByName);
+                  // MEASURED 2026-09-10 on keysarium/skills-meta/core: pnpm also removes only
+                  // prepublishOnly from the packed scripts table. Keep that I/O-adapter concern
+                  // outside the workspace-only core helper.
+                  const packedShape = JSON.parse(rewritten) as Record<string, unknown>;
+                  const scripts = packedShape['scripts'];
+                  if (scripts !== null && typeof scripts === 'object' && !Array.isArray(scripts)) {
+                    delete (scripts as Record<string, unknown>)['prepublishOnly'];
+                  }
+                  const rewrittenHash = hashPackBytes('package.json', Buffer.from(JSON.stringify(packedShape, null, 2) + '\n'), (signed.manifest as { version?: number } | undefined)?.version);
+                  if (rewrittenHash === signedPackageHash) {
+                    ok = true;
+                    note = 'package.json matches after workspace rewrite';
+                  }
+                }
+              }
+              failures = relevantFailures.slice(0, 3).map((failure) => `${failure.path}: ${failure.reason}`);
+            } catch (error) {
+              ok = false;
+              failures = [`${MANIFEST_NAME}: ${error instanceof Error ? error.message : String(error)}`];
+            }
+          }
+          signedPacks.push({ name: m.name ?? dir, dir, changed, ok, failures, ...(note !== undefined ? { note } : {}) });
+        }
+        facts['signedPacks'] = signedPacks;
+      } catch { /* unreadable trust root — absence of evidence, so the rule is not established */ }
+    }
+
+  }
+
   if (op === 'publish') {
     try {
       const roundsDir = join(root, '.dz', 'rounds');
@@ -10969,22 +11151,7 @@ function gatherGuardFacts(op: string, root: string, text: string | undefined, st
     // a resolvable workspace dep becomes its real semver (safe → the rule passes); an UNRESOLVABLE one (points at
     // no workspace package, or not a pnpm workspace) stays `workspace:*` so the rule catches a dep that WOULD ship
     // raw. That is the genuinely dangerous case the rule exists for.
-    type Manifest = { name?: string; version?: string; private?: boolean; license?: string; licenseHold?: unknown; dependencies?: Record<string, string>; devDependencies?: Record<string, string>; peerDependencies?: Record<string, string>; optionalDependencies?: Record<string, string> };
-    const manifests: Manifest[] = [];
-    const located: { dir: string; m: Manifest; text: string }[] = [];
-    try {
-      const out = volumeGitText(root, ['ls-files', 'packages/@dzhechkov/*/package.json']);
-      for (const rel of out.split('\n').map((s) => s.trim()).filter(Boolean)) {
-        try {
-          const packageJsonText = readFileSync(join(root, rel), 'utf8');
-          const m = JSON.parse(packageJsonText) as Manifest;
-          manifests.push(m);
-          located.push({ dir: rel.replace(/\/package\.json$/, ''), m, text: packageJsonText });
-        } catch { /* skip unreadable */ }
-      }
-    } catch { /* not a git repo */ }
-    const versionByName = new Map<string, string>();
-    for (const m of manifests) if (m.name && typeof m.version === 'string') versionByName.set(m.name, m.version);
+    const { manifests, located, versionByName } = readWorkspaceManifests();
     // release-line-in-sync: filesystem access belongs in the CLI gatherer. The core evaluator receives
     // only immutable evidence, so evaluateGuard(facts) stays deterministic and independent of cwd.
     const coreManifestPath = join(root, 'packages', '@dzhechkov', 'harness-core', 'package.json');
@@ -11138,7 +11305,11 @@ function gatherGuardFacts(op: string, root: string, text: string | undefined, st
       }
       facts['licenceHold'] = holds;
     } catch { /* unreadable tree — the rule reports nothing rather than inventing a violation */ }
-    try { facts['drift'] = sweepSkillDrift(root, { scope: DRIFT_SWEEP_SCOPE, allowlist: readDriftAllowlist(root) }).drifted.map((d) => d.name); } catch { /* skip */ }
+    try {
+      const r = sweepSkillDrift(root, { scope: DRIFT_SWEEP_SCOPE, allowlist: readDriftAllowlist(root) });
+      facts['drift'] = r.drifted.map((d) => d.name);
+      facts['canonicalDefects'] = r.canonicalDefects.map((d) => `${d.skill}:${d.path}`);
+    } catch { /* skip */ }
     // backlog-covers-features: каталоги фич, дата их ПОЯВЛЕНИЯ В ИСТОРИИ (не mtime — его двигает
     // любой посторонний процесс), оговорки из README фичи и тексты записей бэклога. Базовая дата
     // делает правило зелёным на приходе: 336 существующих каталогов заведены до правила.
@@ -11183,12 +11354,8 @@ function gatherGuardFacts(op: string, root: string, text: string | undefined, st
     // the version FIELD change from HEAD without its README.md changing? A package.json edit alone
     // says nothing about version; repository/metadata-only edits must not manufacture a bump.
     try {
-      const status = execSync('git status --porcelain -uall -- "packages/@dzhechkov/"', { cwd: root, encoding: 'utf-8' });
-      changedPackageFiles = status
-        .split('\n')
-        .map((line) => line.slice(3).trim())
-        .map((path) => (path.includes(' -> ') ? path.split(' -> ')[1]!.trim() : path))
-        .filter(Boolean);
+      changedPackageFiles = readChangedPackageFiles();
+      if (changedPackageFiles === undefined) throw new Error('package diff is unreadable');
       const perPack = new Map<string, { readme: boolean }>();
       for (const rel of changedPackageFiles) {
         const m = rel.match(/^packages\/@dzhechkov\/([^/]+)\/(.+)$/);
@@ -11236,75 +11403,7 @@ function gatherGuardFacts(op: string, root: string, text: string | undefined, st
       });
     } catch { /* not a git repo — rule skips */ }
 
-    // signature-fresh: verify only signed packs whose non-signature files changed in the same
-    // porcelain listing above. Manifest/SBOM churn is the remedy, not another reason to verify.
-    // The trust key and every byte read here stay in the CLI; the guard core receives facts only.
-    const trustRootPath = join(root, TRUST_ROOT_REL);
-    if (changedPackageFiles !== undefined && existsSync(trustRootPath)) {
-      try {
-        const trustRootPem = readFileSync(trustRootPath, 'utf8');
-        const signedPacks: {
-          name: string;
-          dir: string;
-          changed: boolean;
-          ok: boolean | null;
-          failures: string[];
-          note?: string;
-        }[] = [];
-        for (const { dir, m, text: packageJsonText } of located) {
-          const manifestPath = join(root, dir, MANIFEST_NAME);
-          if (!existsSync(manifestPath)) continue;
-          const prefix = dir + '/';
-          const changedPackFiles = new Set(changedPackageFiles
-            .filter((rel) => rel.startsWith(prefix))
-            .map((rel) => rel.slice(prefix.length))
-            .filter((packRel) => packRel !== MANIFEST_NAME && packRel !== SBOM_NAME));
-          const changed = changedPackFiles.size > 0;
-          let ok: boolean | null = null;
-          let failures: string[] = [];
-          let note: string | undefined;
-          if (changed) {
-            try {
-              const signed = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
-                manifest?: { files?: readonly { path?: unknown; sha256?: unknown }[] };
-              };
-              const verified = verifyManifest(join(root, dir), signed as never, trustRootPem);
-              // A source checkout contains dev files outside package.json#files. They are absent
-              // from the tarball by design, so an unchanged "present but not signed" source file
-              // is not evidence about signature freshness. A changed/new unsigned file stays loud.
-              const relevantFailures = verified.failures.filter((failure) =>
-                failure.reason !== 'present in the pack but not signed' || changedPackFiles.has(failure.path));
-              ok = verified.ok || relevantFailures.length === 0;
-              if (!ok && relevantFailures.length > 0 && relevantFailures.every(({ path }) => path === 'package.json')) {
-                const signedPackageHash = signed.manifest?.files?.find(({ path }) => path === 'package.json')?.sha256;
-                if (typeof signedPackageHash === 'string') {
-                  const rewritten = rewriteWorkspaceSpecs(packageJsonText, versionByName);
-                  // MEASURED 2026-09-10 on keysarium/skills-meta/core: pnpm also removes only
-                  // prepublishOnly from the packed scripts table. Keep that I/O-adapter concern
-                  // outside the workspace-only core helper.
-                  const packedShape = JSON.parse(rewritten) as Record<string, unknown>;
-                  const scripts = packedShape['scripts'];
-                  if (scripts !== null && typeof scripts === 'object' && !Array.isArray(scripts)) {
-                    delete (scripts as Record<string, unknown>)['prepublishOnly'];
-                  }
-                  const rewrittenHash = hashPackBytes('package.json', Buffer.from(JSON.stringify(packedShape, null, 2) + '\n'), (signed.manifest as { version?: number } | undefined)?.version);
-                  if (rewrittenHash === signedPackageHash) {
-                    ok = true;
-                    note = 'package.json matches after workspace rewrite';
-                  }
-                }
-              }
-              failures = relevantFailures.slice(0, 3).map((failure) => `${failure.path}: ${failure.reason}`);
-            } catch (error) {
-              ok = false;
-              failures = [`${MANIFEST_NAME}: ${error instanceof Error ? error.message : String(error)}`];
-            }
-          }
-          signedPacks.push({ name: m.name ?? dir, dir, changed, ok, failures, ...(note !== undefined ? { note } : {}) });
-        }
-        facts['signedPacks'] = signedPacks;
-      } catch { /* unreadable trust root — absence of evidence, so the rule is not established */ }
-    }
+    gatherSignedPackFacts(changedPackageFiles, located, versionByName);
 
     // review-round: the same WORKING-TREE diff, asked a different question — does a package that
     // bumps its version and changes SOURCE bring a GRADED QE report with it? Scoped to source so a
@@ -11459,32 +11558,26 @@ function gatherGuardFacts(op: string, root: string, text: string | undefined, st
     if (Array.isArray(secretWaivers)) facts['secretWaivers'] = secretWaivers;
   }
   if (op === 'consolidate') {
-    try { facts['drift'] = sweepSkillDrift(root, { scope: DRIFT_SWEEP_SCOPE, allowlist: readDriftAllowlist(root) }).drifted.map((d) => d.name); } catch { /* skip */ }
+    try {
+      const r = sweepSkillDrift(root, { scope: DRIFT_SWEEP_SCOPE, allowlist: readDriftAllowlist(root) });
+      facts['drift'] = r.drifted.map((d) => d.name);
+      facts['canonicalDefects'] = r.canonicalDefects.map((d) => `${d.skill}:${d.path}`);
+    } catch { /* skip */ }
+  }
+  if (op === 'code') {
+    try {
+      const r = sweepSkillDrift(root, { scope: DRIFT_SWEEP_SCOPE, allowlist: readDriftAllowlist(root) });
+      facts['drift'] = r.drifted.map((d) => d.name);
+      facts['canonicalDefects'] = r.canonicalDefects.map((d) => `${d.skill}:${d.path}`);
+    } catch { /* skip */ }
+    const changedPackageFiles = readChangedPackageFiles();
+    const { located, versionByName } = readWorkspaceManifests();
+    gatherSignedPackFacts(changedPackageFiles, located, versionByName);
   }
   if (op === 'publish') {
-    const secretTargets: { label: string; text: string }[] = [];
-    let skipped = 0;
-    for (const dir of publishPackageRoots) {
-      const packageRoot = join(root, dir);
-      let packed: string[];
-      try { packed = listPackFiles(packageRoot); }
-      catch { skipped++; continue; }
-      for (const rel of packed) {
-        const absolute = join(packageRoot, rel);
-        try {
-          const stat = lstatSync(absolute);
-          if (!stat.isFile() || stat.size > SECRET_SCAN_MAX_BYTES) { skipped++; continue; }
-          const content = readFileSync(absolute);
-          if (content.subarray(0, 8 * 1024).includes(0)) { skipped++; continue; }
-          secretTargets.push({
-            label: relative(root, absolute).split(sep).join('/'),
-            text: content.toString('utf8'),
-          });
-        } catch { skipped++; }
-      }
-    }
-    if (secretTargets.length > 0) facts['secretTargets'] = secretTargets;
-    if (skipped > 0) facts['secretScan'] = { skipped };
+    const s = gatherPublishSecretFacts(root, publishPackageRoots);
+    if (s.secretFindings.length) facts['secretFindings'] = s.secretFindings;
+    facts['secretScan'] = s.secretScan;
   }
   if (op === 'teach' || op === 'consolidate') {
     if (op === 'teach' && text) facts['secretTargets'] = [{ label: 'lesson', text }];
@@ -12119,8 +12212,8 @@ function cmdGuard(options: Map<string, string>, flags: Set<string>, cwd: string,
 
   // check
   const op = options.get('op');
-  if (op === undefined || !['publish', 'teach', 'consolidate', 'reindex'].includes(op)) {
-    write('dz guard check: --op must be one of publish | teach | consolidate | reindex');
+  if (op === undefined || !(GUARD_OPS as readonly string[]).includes(op)) {
+    write(`dz guard check: --op must be one of ${GUARD_OPS.join(' | ')}`);
     return 1;
   }
   const force = options.get('force');
@@ -12154,15 +12247,27 @@ function cmdGuard(options: Map<string, string>, flags: Set<string>, cwd: string,
  *     the exact overwrite list, then heals.
  */
 function cmdSyncCanonical(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): number {
+  const check = flags.has('check') || flags.has('dry-run');
+  const json = flags.has('json');
+  const mode = check ? 'check' : 'write';
+  // Emit human-readable intent before validation or any filesystem mutation.
+  if (!json) {
+    write(check
+      ? 'mode: check only — nothing will be written'
+      : 'mode: WRITE — copies will be overwritten from canonical');
+  }
   const root = resolve(cwd, options.get('project') ?? '.');
   const skill = options.get('_positional_0');
   if (!skill) {
+    if (json) {
+      write(JSON.stringify({ mode, error: 'dz sync-canonical: <skill> required' }));
+      return 2;
+    }
     write('dz sync-canonical: <skill> required');
-    write('  usage: dz sync-canonical <skill> [--check] [--from <dir>] [--auto] [--project <dir>]');
+    write('  usage: dz sync-canonical <skill> [--check|--dry-run] [--from <dir>] [--auto] [--project <dir>]');
     return 2;
   }
   const fromArg = options.get('from');
-  const check = flags.has('check');
   const auto = flags.has('auto');
   const r = syncCanonicalSkill(root, skill, {
     check,
@@ -12180,21 +12285,24 @@ function cmdSyncCanonical(options: Map<string, string>, flags: Set<string>, cwd:
             ? 1
             : 0
         : 2 // bare write, no canonical → refuse
-      : check
-        ? r.drifted > 0
-          ? 1
-          : 0
+      : r.canonicalDefects.length > 0 || (check && r.drifted > 0)
+        ? 1
         : 0;
 
-  if (flags.has('json')) {
+  if (json) {
     write(
-      JSON.stringify({ ...r, canonical: relative(root, r.canonical), wrote: r.wrote.map((w) => relative(root, w)) }),
+      JSON.stringify({ mode, ...r, canonical: relative(root, r.canonical), wrote: r.wrote.map((w) => relative(root, w)) }),
     );
     return exitCode;
   }
 
   // Always report HOW the canonical resolved (from | skills-meta | auto | none) — no invisible choice.
   write(`resolved: ${r.resolvedFrom}`);
+  for (const d of r.canonicalDefects) write(renderCanonicalDefect(d, root));
+  if (!check && r.canonicalDefects.length > 0) {
+    write('dz sync-canonical: refusing to write: canonical defects found; nothing was written');
+    return exitCode;
+  }
 
   if (r.resolvedFrom === 'none') {
     if (check) {
@@ -12202,14 +12310,14 @@ function cmdSyncCanonical(options: Map<string, string>, flags: Set<string>, cwd:
       write(`no skills-meta canonical and no --from — comparing ${r.copies} copies to each other`);
       if (r.copies < 2) {
         write(`only ${r.copies} copy — nothing to compare (vacuously consistent)`);
-        return 0;
+        return exitCode;
       }
       if (r.drifted === 0) {
         write(`✓ all ${r.copies} copies are byte-identical`);
-        return 0; // (a) canonical-free --check identical → exit 0 (was exit 2)
+        return exitCode; // (a) canonical-free --check identical → exit 0 (was exit 2)
       }
       write(`✗ ${r.drifted} file(s) differ across copies (wrote nothing)`);
-      return 1; // (b) canonical-free --check drift → exit 1
+      return exitCode; // (b) canonical-free --check drift → exit 1
     }
     // Bare WRITE with no resolvable canonical → REFUSE. Safe-by-default: never guess (r.wrote is []).
     write(`dz sync-canonical: no canonical for "${skill}" (no skills-meta, no --from).`);
@@ -12217,7 +12325,7 @@ function cmdSyncCanonical(options: Map<string, string>, flags: Set<string>, cwd:
     write(`  • read-only check:       dz sync-canonical ${skill} --check`);
     write(`  • pick a known-good src:  dz sync-canonical ${skill} --from <dir>`);
     write(`  • auto-pick most complete (LOUD, opt-in): dz sync-canonical ${skill} --auto`);
-    return 2; // unchanged "can't proceed" exit; ZERO writes
+    return exitCode; // unchanged "can't proceed" exit; ZERO writes
   }
 
   if (r.resolvedFrom === 'auto') {
@@ -12230,7 +12338,7 @@ function cmdSyncCanonical(options: Map<string, string>, flags: Set<string>, cwd:
           ? `${r.drifted} copy(ies) drift from it (wrote nothing).`
           : `all ${r.copies} copies match it.`,
       );
-      return r.drifted > 0 ? 1 : 0;
+      return exitCode;
     }
     // LOUD banner — name the picked canonical AND the exact overwrite list (the heal already ran).
     write('⚠ AUTO-CANONICAL — no skills-meta/--from; picked the MOST COMPLETE copy:');
@@ -12239,7 +12347,7 @@ function cmdSyncCanonical(options: Map<string, string>, flags: Set<string>, cwd:
     for (const w of r.wrote) write(`⚠     ${relative(root, w)}`);
     write('⚠ completeness ≠ correctness — review the git diff before committing.');
     write(`synced ${r.synced}; ${r.copies - r.drifted} already matched.`);
-    return 0;
+    return exitCode;
   }
 
   // resolvedFrom === 'from' | 'skills-meta' — unchanged behavior.
@@ -12252,12 +12360,12 @@ function cmdSyncCanonical(options: Map<string, string>, flags: Set<string>, cwd:
         ? `${r.drifted} copy(ies) drift from canonical (wrote nothing).`
         : `all ${r.copies} copies match canonical.`,
     );
-    return r.drifted > 0 ? 1 : 0; // --check: report + exit 1 on drift, ZERO writes
+    return exitCode; // --check: report + exit 1 on drift, ZERO writes
   }
 
   for (const w of r.wrote) write(`  SYNCED ${relative(root, w)}`);
   write(`synced ${r.synced}; ${r.copies - r.drifted} already matched.`);
-  return 0; // default: overwrite + prove identity, exit 0
+  return exitCode; // default: overwrite + prove identity, exit 0
 }
 
 function cmdPlugin(options: Map<string, string>, cwd: string, write: Write): number {
@@ -12795,6 +12903,13 @@ function hasUncommittedChangesIn(repoRoot: string, dir: string): boolean | null 
   }
 }
 
+export function discriminationCompat(result: { readonly findings: readonly { readonly detail: string }[] }) {
+  return {
+    finding: result.findings[0] ?? null,
+    deprecated: { finding: 'use findings[0]; removed in 0.9.0' },
+  };
+}
+
 function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): number {
   let repoRoot = cwd;
   try { repoRoot = execSync('git rev-parse --show-toplevel', { cwd, encoding: 'utf-8' }).trim() || cwd; } catch { /* not git */ }
@@ -12924,10 +13039,10 @@ function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>
     }
     // No safe target to run → this is the existing "property untested" finding (empty propertyTests classify).
     const result = classifyDiscrimination({ propertyTests: [], results: [] });
-    if (flags.has('json')) { write(JSON.stringify({ plan, results: [], ...result }, null, 2)); return 0; }
+    if (flags.has('json')) { write(JSON.stringify({ plan, results: [], ...result, ...discriminationCompat(result) }, null, 2)); return 0; }
     write(`discrimination-check: NOT RUN (${plan.reason ?? 'unknown'})`);
     if (plan.rejected.length) write('  rejected: ' + plan.rejected.map((r) => `${r.file} (${r.reason})`).join(', '));
-    write(`  → ${result.finding?.detail ?? 'no property test to check'}`);
+    write(`  → ${result.findings[0]?.detail ?? 'no property test to check'}`);
     return 0;
   }
 
@@ -13064,7 +13179,7 @@ function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>
   }
 
   const result = classifyDiscrimination({ propertyTests, results });
-  if (flags.has('json')) { write(JSON.stringify({ plan, results, tipTree, ...result }, null, 2)); return 0; }
+  if (flags.has('json')) { write(JSON.stringify({ plan, results, tipTree, ...result, ...discriminationCompat(result) }, null, 2)); return 0; }
 
   write(`discrimination-check @ ${baseRef} — verdict: ${result.aggregate}`);
   for (const p of result.perTest) {
@@ -14236,7 +14351,7 @@ function cmdMutationGate(
         // verify exactly as many lines landed as were classified, and that each new line parses —
         // a silent partial/garbled append would otherwise be indistinguishable from success.
         const countLines = (text: string): number => (text === '' ? 0 : text.split('\n').filter((l) => l.length > 0).length);
-        withNamedLockSync(dirname(verdictsPath), 'mutation-gate-verdicts', () => {
+        withDirLockSync(dirname(verdictsPath), 'mutation-gate-verdicts', () => {
           const before = existsSync(verdictsPath) ? readFileSync(verdictsPath, 'utf-8') : '';
           const beforeLines = countLines(before);
           appendFileSync(verdictsPath, `${verdictLines.join('\n')}\n`, 'utf-8');
@@ -14728,7 +14843,7 @@ async function cmdWorkflowRun(
   const startedMarker = new Date().toISOString();
   const RUN_ARTIFACTS = [WF_RUN_STATE_FILE, 'trace.jsonl', 'budget.jsonl', join('.fa-state', 'checkpoints.jsonl')];
   type Claim = { ok: true } | { ok: false; reason: 'run-exists' | 'run-locked'; detail: string };
-  const claim: Claim = withNamedLockSync(root, `wf-run-${runId}`, (): Claim => {
+  const claim: Claim = withProjectLockSync(root, `wf-run-${runId}`, (): Claim => {
     mkdirSync(runDir, { recursive: true });
     // ORDER MATTERS. A LIVE owner is `run-locked` whichever kind of invocation this is — that is
     // the precise fact, and it outranks "the directory has files in it". Only then does a FRESH run
@@ -14832,7 +14947,7 @@ async function cmdWorkflowRun(
   const deps: SchedulerDeps = {
     store,
     dispatchers,
-    lock: (fn) => withNamedLockSync(root, `wf-run-${runId}`, fn),
+    lock: (fn) => withProjectLockSync(root, `wf-run-${runId}`, fn),
     now: () => new Date().toISOString(),
     monotonicMs: () => Number(process.hrtime.bigint() / 1000000n),
     dispatcherOverride,
@@ -16031,7 +16146,7 @@ function cmdLedgerBackfill(options: Map<string, string>, flags: Set<string>, cwd
 }
 
 const runRegistryIO = {
-  append: (path: string, line: string): void => withNamedLockSync(dirname(path), 'run-registry-archive', () => appendFileSync(path, line, 'utf8')),
+  append: (path: string, line: string): void => withDirLockSync(dirname(path), 'run-registry-archive', () => appendFileSync(path, line, 'utf8')),
   read: (path: string): string => readFileSync(path, 'utf8'),
   mkdir: (dir: string): void => { mkdirSync(dir, { recursive: true }); },
 };
@@ -16051,7 +16166,7 @@ function cmdRuns(options: Map<string, string>, flags: Set<string>, cwd: string, 
   const opts = { stallMs: minutes * 60_000 };
   let settled: RunEvent[] = [];
   if (flags.has('settle')) {
-    settled = withNamedLockSync(join(root, '.dz', 'runs'), 'run-registry-archive', () => {
+    settled = withDirLockSync(join(root, '.dz', 'runs'), 'run-registry-archive', () => {
       const events = settleDeadRuns(readRunRegistry(root, runRegistryIO), Date.now(), probePid);
       // Already holding the shared archive/append lock across read-plan-append.
       const unlockedIO = { ...runRegistryIO, append: (path: string, line: string): void => appendFileSync(path, line, 'utf8') };
@@ -16178,7 +16293,7 @@ export function cmdRunsClean(options: Map<string, string>, flags: Set<string>, c
       return archivePlan;
     };
     const archive = flags.has('apply')
-      ? withNamedLockSync(join(root, '.dz', 'runs'), 'run-registry-archive', archiveRegistry)
+      ? withDirLockSync(join(root, '.dz', 'runs'), 'run-registry-archive', archiveRegistry)
       : archiveRegistry();
     say(`${flags.has('apply') ? 'archived' : 'archive'} ${archive.archive.length} registry event(s)`);
     if (json) write(JSON.stringify({ ...plan, applied: flags.has('apply'), archive, messages, ok: code === 0 }));
@@ -16441,7 +16556,18 @@ function findAlreadyRecordedLedgerLine(tail: string, predictedMarker: string, st
     if (typeof parsed !== 'object' || parsed === null) continue;
     const row = parsed as Record<string, unknown>;
     if (row['stage'] !== 'round') continue;
-    if (row['note'] === predictedMarker || (stateId !== undefined && row['stateId'] === stateId)) return line;
+    // backlog d1791093 (+ Codex r1 C+ on the first cut): a state that CARRIES a stateId is identified
+    // by it and by nothing else — a row that merely shares the marker (same slug/round/ms) but belongs
+    // to another instance must not be validated in its place, or that instance's own write would be
+    // silently suppressed. Only a LEGACY state (no stateId) falls back to the row's own identity
+    // field `roundId` (= the marker, round.ts): `note` equals the marker solely when no --note was
+    // given — with one it is "<marker> | <note>", which is why the old equality test refused every
+    // retry of such a state. `note` equality stays for ledger rows older than the roundId field.
+    if (stateId !== undefined) {
+      if (row['stateId'] === stateId) return line;
+      continue;
+    }
+    if (row['roundId'] === predictedMarker || row['note'] === predictedMarker) return line;
   }
   return null;
 }
@@ -16583,9 +16709,10 @@ type RoundLockBusy = { readonly refused: 'lock-busy'; readonly reason: string };
 
 /**
  * round-state-lock T1 — the one named lock every `.dz/rounds/*.json` mutation goes through
- * (`<stateRoot>/.dz/locks/round-state.lock`, `withNamedLockSync` from `@dzhechkov/harness-core`).
+ * Default project roots use `withProjectLockSync`; explicit flag/env directories use
+ * `withDirLockSync`, preserving their ability to host state without an existing project store.
  *
- * `fn` MUST be short and synchronous (the same caveat `withNamedLockSync` itself carries): it may
+ * `fn` MUST be short and synchronous (the same caveat both lock helpers carry): it may
  * reread state and write it, never spawn a subprocess or await anything — the recall step and the
  * ledger write stay OUTSIDE the lock by design (teach:0ea46034), and the long-running `codex exec`
  * child in `round exec` runs between two separate short lock holds, not inside one.
@@ -16593,9 +16720,9 @@ type RoundLockBusy = { readonly refused: 'lock-busy'; readonly reason: string };
  * `io.roundLockTimeoutMs` (NFR-2) lets tests force a small deadline instead of the real default;
  * omitting it keeps production behaviour (and every existing test) byte-identical.
  */
-function withRoundStateLock<T>(stateRoot: string, fn: () => T, io: CliIo): T | RoundLockBusy {
+function withRoundStateLock<T>(stateRoot: string, fn: () => T, io: CliIo, lock: typeof withProjectLockSync): T | RoundLockBusy {
   try {
-    return withNamedLockSync(
+    return lock(
       stateRoot,
       'round-state',
       fn,
@@ -16616,10 +16743,10 @@ function withRoundStateLock<T>(stateRoot: string, fn: () => T, io: CliIo): T | R
  * may never free up. */
 const ROUND_RESTORE_LOCK_ATTEMPTS = 4; // 1 attempt + 3 retries (AM-5; lead edit after re-review)
 
-function withRoundStateLockRetried<T>(stateRoot: string, fn: () => T, io: CliIo, attempts: number): T | RoundLockBusy {
+function withRoundStateLockRetried<T>(stateRoot: string, fn: () => T, io: CliIo, attempts: number, lock: typeof withProjectLockSync): T | RoundLockBusy {
   let lastBusy: RoundLockBusy | null = null;
   for (let attempt = 0; attempt < attempts; attempt++) {
-    const result = withRoundStateLock(stateRoot, fn, io);
+    const result = withRoundStateLock(stateRoot, fn, io, lock);
     if (!(typeof result === 'object' && result !== null && 'refused' in result && result.refused === 'lock-busy')) {
       return result;
     }
@@ -16877,7 +17004,7 @@ function cmdExperiment(options: Map<string, string>, flags: Set<string>, cwd: st
       | { readonly kind: 'seed-conflict'; readonly existing: ExperimentConfig }
       | { readonly kind: 'config-unreadable'; readonly reason: string }
       | { readonly kind: 'not-verified'; readonly reason: string };
-    const outcome: InitOutcome = withNamedLockSync(dirPath, 'experiment', (): InitOutcome => {
+    const outcome: InitOutcome = withDirLockSync(dirPath, 'experiment', (): InitOutcome => {
       const existing = readExperimentConfig(root, experiment);
       // Lead delta after Codex r2 (CRITICAL): a CORRUPT config used to be overwritten by a fresh
       // `init`, which turns "written once, before the first assignment" into "rewritable by whoever
@@ -17026,7 +17153,7 @@ function cmdExperiment(options: Map<string, string>, flags: Set<string>, cwd: st
 
     let outcome: ExperimentAssignOutcome;
     try {
-      outcome = withNamedLockSync(dirPath, 'experiment', transact);
+      outcome = withDirLockSync(dirPath, 'experiment', transact);
     } catch (error) {
       if (error instanceof NamedLockTimeoutError) {
         emit('lock busy: ' + error.message, { status: 'lock-busy' });
@@ -17224,6 +17351,7 @@ async function cmdRound(
   }
   const stateRoot = stateRootResolution.root;
   const stateRootExplicit = stateRootResolution.source !== 'cwd';
+  const stateLock = stateRootExplicit ? withDirLockSync : withProjectLockSync;
   const projectRoot = resolve(cwd, options.get('project') ?? '.');
   const now = io.roundNow?.() ?? Date.now();
   const emit = (message: string, extra: Record<string, unknown> = {}): void => {
@@ -17381,7 +17509,7 @@ async function cmdRound(
         // The pid below is diagnostic only (AM-3) — it never gates the decision.
         const foreign = parseRoundState(nowRaw);
         return { refused: 'already-open' as const, pid: foreign?.pid ?? -1 };
-      }, io);
+      }, io, stateLock);
       if ('refused' in locked) {
         if (locked.refused === 'lock-busy') {
           emit(`lock busy: ${locked.reason}`, { refused: 'lock-busy' });
@@ -17482,7 +17610,7 @@ async function cmdRound(
         }
         writeJsonAtomic(path, { ...outcome, pid: io.roundPid ?? process.pid, ownerKind: 'exec', execClaimId, execClaimedAt: new Date(io.roundNow?.() ?? Date.now()).toISOString() });
         return { ok: true as const, base: outcome };
-      }, io);
+      }, io, stateLock);
       if ('refused' in claimed) {
         if (claimed.refused === 'lock-busy') {
           emit(`exec не запущен: владелец круга не обновлён: lock busy: ${claimed.reason}`, { refused: 'lock-busy' });
@@ -17534,7 +17662,7 @@ async function cmdRound(
           }
           writeJsonAtomic(path, state);
           return { ok: true as const };
-        }, io, ROUND_RESTORE_LOCK_ATTEMPTS);
+        }, io, ROUND_RESTORE_LOCK_ATTEMPTS, stateLock);
         if ('refused' in restored) {
           if (restored.refused === 'lock-busy') {
             // AM-5: no new flag or command is added — this names the manual remedy in prose (a
@@ -17801,7 +17929,7 @@ async function cmdRound(
         if ('refused' in outcome) return outcome;
         unlinkSync(path);
         return { ok: true as const };
-      }, io);
+      }, io, stateLock);
       if ('refused' in deleted) {
         if (deleted.refused === 'lock-busy') {
           // AM-4: the ledger row is ALREADY written by the time this lock is even attempted (see
@@ -19047,9 +19175,9 @@ function cmdReqe(options: Map<string, string>, flags: Set<string>, cwd: string, 
     if (json) write(JSON.stringify({ help: usage, exitCode: 0 }));
     else {
       write(usage + ' — the re-QE debt ledger');
-      write('  (no args)              list unsettled debts (runs whose Step-8 QE ran on the coder’s own family under the usage override)');
+      write('  (no args)              list unsettled debts (runs whose Step-8 QE ran on the coder’s own family — cause: usage-switched, probe-failed, same-family-fallback or same-family-pinned)');
       write('  --slug <s>             print the ready cross-family review brief for one debt');
-      write('  --slug <s> --done --report <file>   settle the debt — FAIL-CLOSED: requires an existing, non-trivial, GRADED report; appends the settlement to 08_qe_report.md');
+      write('  --slug <s> --done --report <file>   settle the debt — FAIL-CLOSED: requires an existing, non-trivial, GRADED report; appends the settlement to 08_qe_report.md; exit 0 settled / 1 refused / 3 blocked (BLOCKER or HIGH named by the reviewer — stop, owner decides)');
       write('  ' + REQE_SCOPE);
     }
     return 0;
@@ -19142,7 +19270,8 @@ function cmdReqe(options: Map<string, string>, flags: Set<string>, cwd: string, 
     return 1;
   }
   const settlement = settleReqeDebt(hit.debt, reportText, reportOpt);
-  if (!settlement.ok || settlement.epilogue === null) {
+  const { verdict } = settlement;
+  if (!settlement.ok || settlement.epilogue === null || verdict === null) {
     write(json ? JSON.stringify({ error: settlement.error, exitCode: 1 }) : `dz reqe: ${settlement.error}`);
     return 1;
   }
@@ -19153,7 +19282,7 @@ function cmdReqe(options: Map<string, string>, flags: Set<string>, cwd: string, 
   let settledPath = settledBase + '.json';
   for (let n = 2; existsSync(settledPath); n++) settledPath = settledBase + '-' + n + '.json'; // never overwrite prior evidence
   try {
-    const settled = { ...hit.debt, settledGrade: settlement.grade, settledReport: reportOpt };
+    const settled = { ...hit.debt, settledGrade: settlement.grade, settledReport: reportOpt, verdict };
     writeFileSync(settledPath, JSON.stringify(settled) + '\n', { flag: 'wx' }); // wx: never through a planted symlink
     try {
       unlinkSync(hit.duePath);
@@ -19170,12 +19299,31 @@ function cmdReqe(options: Map<string, string>, flags: Set<string>, cwd: string, 
     if (lstatSync(qeReportPath).isSymbolicLink()) throw new Error('symlinked 08_qe_report.md');
     appendFileSync(qeReportPath, settlement.epilogue);
   } catch {
-    write(json ? JSON.stringify({ settled: true, grade: settlement.grade, warning: 'debt cleared (see .fa-state/reqe-settled*.json) but the epilogue could NOT be appended to 08_qe_report.md — append it manually', exitCode: 0 }) : 'dz reqe: debt cleared (evidence in .fa-state/) but the epilogue could NOT be appended to 08_qe_report.md — append it manually');
+    write(json ? JSON.stringify({ settled: true, grade: settlement.grade, verdict, warning: 'debt cleared (see .fa-state/reqe-settled*.json) but the epilogue could NOT be appended to 08_qe_report.md — append it manually', exitCode: 0 }) : 'dz reqe: debt cleared (evidence in .fa-state/) but the epilogue could NOT be appended to 08_qe_report.md — append it manually');
     return 0;
   }
   const okMsg = `debt settled: re-QE grade ${settlement.grade} (report ${reportOpt}) — settlement appended to features/${slug}/08_qe_report.md`;
-  write(json ? JSON.stringify({ settled: true, grade: settlement.grade, exitCode: 0 }) : `dz reqe: ${okMsg}`);
-  return 0;
+  const exitCode = verdict.new === 'blocked' ? 3 : 0;
+  if (json) write(JSON.stringify({ settled: true, grade: settlement.grade, verdict, exitCode }));
+  else {
+    write(`dz reqe: ${okMsg}`);
+    const { counts, findings, prior } = verdict;
+    write(`  new findings: ${verdict.new} — BLOCKER ${counts.blocker}, HIGH ${counts.high}, MEDIUM ${counts.medium}, LOW ${counts.low}, unknown ${counts.unknown} (rows ${verdict.rows})`);
+    const priorSummary = prior.kind === 'closed' ? `closed (${prior.closed}/${prior.total})`
+      : prior.kind === 'open' ? `open(${prior.open.length}) of ${prior.total}` : 'unassessed';
+    write(`  prior findings: ${priorSummary}`);
+    if (findings.kind !== 'accepted') {
+      write(`  findings: unclassified (${findings.kind === 'absent' ? 'absent' : `rejected: ${findings.reason}`})`);
+    }
+    if (verdict.new === 'blocked') {
+      write('stop — owner decides');
+      for (const row of verdict.blocking) write(`  ${row.severity} — ${row.title}${row.where === null ? '' : ` (${row.where})`}`);
+    }
+    // FR-6 (QE MEDIUM #1): the declarer sentence is printed where the operator actually looks — the
+    // terminal — not only in the appended epilogue. The counts are the reviewer's declaration; dz counts them.
+    write('  severities and prior-finding status as declared by the reviewer; dz reqe counts them, it does not judge them.');
+  }
+  return exitCode;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -20812,7 +20960,7 @@ function cmdScoreAll(options: Map<string, string>, flags: Set<string>, cwd: stri
   let appended = 0;
   let storeError: string | null = null;
   try {
-    const result = withNamedLockSync(storeDir, 'scorecards', () => {
+    const result = withDirLockSync(storeDir, 'scorecards', () => {
       let existingText = '';
       try {
         existingText = readFileSync(aggregatePath, 'utf8');
@@ -20947,7 +21095,7 @@ function cmdScore(options: Map<string, string>, flags: Set<string>, cwd: string,
   {
     const scan = scanReqeDebts(root);
     const mine = scan.debts.find((d) => d.debt.slug === slug);
-    if (mine) reqeNote = 'UNSETTLED re-QE debt — Step-8 ran same-family under the usage override; run `dz reqe --slug ' + slug + '`';
+    if (mine) reqeNote = 'UNSETTLED re-QE debt — Step-8 ran same-family; cause=' + mine.debt.cause + '; run `dz reqe --slug ' + slug + '`';
     else if (existsSync(join(dir, '.fa-state', 'reqe-due.json'))) reqeNote = 'a reqe-due.json exists but is MALFORMED/mismatched — inspect features/' + slug + '/.fa-state/ manually';
   }
   if (json) write(JSON.stringify({ ...card, reqeDebt: reqeNote, exitCode: 0 }, null, 2));
@@ -21213,7 +21361,7 @@ function readGuardAuditEvidence(root: string): GuardAuditEvidenceRead {
       const raw = JSON.parse(line) as Record<string, unknown>;
       if (
         !isOffsetIsoTimestamp(raw['ts']) ||
-        !['publish', 'teach', 'consolidate', 'reindex'].includes(String(raw['op'])) ||
+        !(GUARD_OPS as readonly string[]).includes(String(raw['op'])) ||
         !['pass', 'warn', 'block'].includes(String(raw['verdict']))
       ) {
         malformed = true;
@@ -21241,7 +21389,7 @@ function readGuardAuditEvidence(root: string): GuardAuditEvidenceRead {
       if ((verdict === 'pass') !== (violations.length === 0)) malformed = true;
       rows.push({
         ts: raw['ts'],
-        op: raw['op'] as 'publish' | 'teach' | 'consolidate' | 'reindex',
+        op: raw['op'] as GuardOp,
         verdict,
         rules: violations.map((item) => item.rule),
         violations,
@@ -22595,6 +22743,7 @@ async function cmdBacklog(
   write('  roulette [--pick N][--seed n][--commit <id>]           weighted draw; --commit takes the id you saw');
   write('  ship <id> [<id>…] [--reason <t>][--dry-run]            mark done (new|enriched|in-progress → shipped) — run it after finishing a task, or the roulette re-draws it forever');
   write('  drop <id> [<id>…] [--reason <t>][--dry-run]            retire an idea (→ dropped)');
+  write('  edit <id> --text "<new>" | --append "<more>"           rewrite ONE idea\'s text, keeping every other field (re-embeds the dedup vector)');
   write('  reopen <id> [<id>…] [--reason <t>][--dry-run]          back to the pool (shipped|dropped|in-progress → new)');
   write('  enrich <id>                                            stage the idea2prd hand-off (agent expands)');
   write(`  jira <id>                                              draft a Jira issue (adapter: ${[...BACKLOG_BACKENDS].join('|')})`);
@@ -23344,7 +23493,7 @@ function cmdJournal(options: Map<string, string>, flags: Set<string>, cwd: strin
     formatLine(event); // validate before any journal/quote write
     if (options.has('_positional_2')) throw new Error('Текст должен быть одним аргументом');
     if (flags.has('commit-quote') && !options.has('quote')) throw new Error('--commit-quote требует --quote');
-    return withNamedLockSync(root, 'journal', () => {
+    return withProjectLockSync(root, 'journal', () => {
       const path = join(dir, `${date}.md`);
       if (existsSync(path) && lstatSync(path).isSymbolicLink()) throw new Error(`Символическая ссылка запрещена: ${path}`);
       const previous = existsSync(path) ? readFileSync(path, 'utf8') : '';

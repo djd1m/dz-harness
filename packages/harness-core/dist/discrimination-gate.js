@@ -562,7 +562,7 @@ export function classifyDiscrimination(input) {
             title: 'discrimination gate: no property test to check',
             detail: 'No test was mapped to the ADR safety property, so discrimination could not be evaluated — this is the existing "property untested" finding. Action: map-a-test.',
         };
-        return { perTest: [], aggregate: 'CANNOT_ISOLATE', finding, findings: [finding], measurementValid: false, primaryAction: 'map-a-test' };
+        return { perTest: [], aggregate: 'CANNOT_ISOLATE', findings: [finding], measurementValid: false, primaryAction: 'map-a-test' };
     }
     let missingRow = false;
     const perTest = propertyTests.map((t) => {
@@ -609,6 +609,6 @@ export function classifyDiscrimination(input) {
     // primaryAction: the worst-ranked verdict's action. CANNOT_ISOLATE splits — a target with no
     // mapped/observed row is a MAPPING repair; every other degradation is an INVOCATION repair.
     const primaryAction = aggregate === 'CANNOT_ISOLATE' && missingRow ? 'map-a-test' : ACTION_OF[aggregate];
-    return { perTest, aggregate, finding: findings[0] ?? null, findings, measurementValid, primaryAction };
+    return { perTest, aggregate, findings, measurementValid, primaryAction };
 }
 //# sourceMappingURL=discrimination-gate.js.map

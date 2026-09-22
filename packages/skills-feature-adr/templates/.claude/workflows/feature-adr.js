@@ -16,6 +16,49 @@ export const meta = {
   ],
 }
 
+// Self-contained mirror of harness-core/src/reqe.ts shouldEmitReqeDebt. TASK-3 executes both
+// predicates against the shared cause table; keep branch order and decision text identical.
+function reqeEmitDecision(input) {
+  const familyOf = function (spec) { return /codex|gpt|openai/i.test(String(spec ?? '')) ? 'openai' : 'claude' }
+  const coderFam = familyOf(input.coderUsed)
+  const qeFam = familyOf(input.qeReviewerUsed)
+  if (coderFam !== qeFam) {
+    return { emit: false, cause: null, degraded: false, reason: 'cross-family QE ran' }
+  }
+  if (input.routingRequested === false) {
+    return { emit: false, cause: null, degraded: false,
+      reason: 'same-family by configuration (cross-family never requested)' }
+  }
+  if (/\(usage-switched\)/.test(String(input.qeModelLabel ?? ''))) {
+    return {
+      emit: true, cause: 'usage-switched', degraded: false,
+      reason:
+        'usage-switched self-review: Step-8 QE ran on the coder’s own family (' + coderFam +
+        ') under the limit override — the cross-model guard was suspended (FR-2.9)',
+    }
+  }
+  if (input.bridge?.rungState === 'probe-failed') {
+    return { emit: true, cause: 'probe-failed', degraded: false,
+      reason: 'codex probe found no usable id; review ran on the coder’s own family (' + coderFam + ')' }
+  }
+  if (input.bridge?.rungState === 'dispatched' || input.bridge?.rungState === 'refused-before-dispatch' ||
+      input.qeReviewerUsed === 'codex-fallback') {
+    return { emit: true, cause: 'same-family-fallback', degraded: false,
+      reason: 'same-family fallback: ' + (input.bridge?.decline ?? input.bridge?.rungReason ?? 'cross-family reviewer unavailable') +
+        '; review ran on the coder’s own family (' + coderFam + ')' }
+  }
+  if (input.bridge == null) {
+    return { emit: false, cause: null, degraded: true,
+      reason: "cause undeterminable (pre-change checkpoint) — re-run with resume:'never' to classify" }
+  }
+  if (input.routingRequested === true && input.bridge.rungState === 'pending') {
+    return { emit: true, cause: 'same-family-pinned', degraded: false,
+      reason: 'same-family by explicit qe pin (args.models.qe) while cross-family routing was requested' }
+  }
+  return { emit: false, cause: null, degraded: true,
+    reason: 'cause undeterminable (unknown rung state or routing request)' }
+}
+
 // Finalize on every normal return and on a caught runtime error; a killed host cannot finalize.
 let finishRunRegistry = null
 let registryOutcome = 'errored'
@@ -3920,7 +3963,7 @@ const MUTATION_GATE = 'MUTATION GATE (feature ha-mutation-gate — run alongside
 // same scan runs mechanically at publish time as the SOFT `no-stubs` guard rule.
 const STUB_RX = '(^|[^A-Za-z0-9_])(' + ['TO' + 'DO', 'FIX' + 'ME', 'HA' + 'CK', 'XX' + 'X', 'PLACE' + 'HOLDER'].join('|') + ')([^A-Za-z0-9_]|$)'
 const STUB_PHRASE = 'imple' + 'ment later'
-const NO_STUBS_GATE = 'NO-STUBS GATE (backlog 0b403a0106103901 — layer 1 of the cost-of-detection ladder): over the files THIS RUN touched (the Step-7 change list; for a Codex coder, the landed-barrier file list), via Bash run EXACTLY `grep -nE \'' + STUB_RX + '\' <touched files>` (case-SENSITIVE — never add -i) plus `grep -niE \'' + STUB_PHRASE.replace(' ', '[[:space:]]+') + '\' <touched files>`. ANY match = the task shipped incomplete → HIGH gap naming file:line, UNLESS the line carries an inline `no-stubs: <reason>` waiver WITH a non-empty reason, or `.dz/guard.json` stubWaivers lists the path WITH a reason — a REASONLESS waiver is itself a HIGH gap, never an exemption. Cross-check mechanically: `dz guard check --op publish --json` runs the same scan as the SOFT `no-stubs` rule over the working-tree diff. When you QUOTE a marker in 08_qe_report.md, backtick it so the report itself scans clean (the same convention as the claim-check forbidden-phrase escape). Record the verdict in the 08_qe_report.md ADR Fitness section.'
+const NO_STUBS_GATE = 'NO-STUBS GATE (backlog 0b403a0106103901 — layer 1 of the cost-of-detection ladder): over the files THIS RUN touched (the Step-7 change list; for a Codex coder, the landed-barrier file list), via Bash run EXACTLY `grep -nE \'' + STUB_RX + '\' <touched files>` (case-SENSITIVE — never add -i) plus `grep -niE \'' + STUB_PHRASE.replace(' ', '[[:space:]]+') + '\' <touched files>`. ANY match = the task shipped incomplete → HIGH gap naming file:line, UNLESS the line carries an inline `no-stubs: <reason>` waiver WITH a non-empty reason, or `.dz/guard.json` stubWaivers lists the path WITH a reason — a REASONLESS waiver is itself a HIGH gap, never an exemption. Cross-check mechanically: `dz guard check --op publish --json` runs the same scan as the SOFT `no-stubs` rule over the working-tree diff. After the Step-7 code has landed, run `dz guard check --op code --json` and treat a HARD `block` verdict as a HIGH finding naming the drifted file. When you QUOTE a marker in 08_qe_report.md, backtick it so the report itself scans clean (the same convention as the claim-check forbidden-phrase escape). Record the verdict in the 08_qe_report.md ADR Fitness section.'
 const DISCRIMINATION_GATE = '\u00a742 TEST-DISCRIMINATION GATE (run right after asserting the property has a test): the ADR Confirmation names `Required automated check: <test file>` for the load-bearing property. Prove that test DISCRIMINATES \u2014 via Bash run EXACTLY `' + DZ + ' discrimination-check --test <that test file> --base HEAD --json` (the PINNED workspace bin, never bare `dz` — the global install measurably lags the workspace) (the Step-7 feature diff is UNCOMMITTED, so HEAD is the pre-feature base). Parse the JSON: read `perTest[]` (each row carries verdict + reason), `findings[]` (ALL entries, not only the first), `measurementValid`, and `primaryAction` \u2014 the singular `finding` is a DEPRECATED alias; do not consume it. The SEVEN verdicts and the required QE action for each: `DISCRIMINATES` (assertion-red at base, execution-evidenced) = PASS. `DISCRIMINATES_VIA_ERROR` (evidenced load-error at base + evidenced pass at tip) = PASS \u2014 note the inference. `NON_DISCRIMINATING` (evidenced pass at base \u2014 a proven false green) \u2192 HIGH gap "property test does not discriminate: <file>"; advisory, not an automatic blocker. `TEST_FILE_ABSENT` (the named test is not a regular file) \u2192 HIGH gap; action create-missing-test; NEVER a pass. `LOAD_ERROR_AT_BOTH_REVS` (the instrument could not execute the test at either rev \u2014 zero signal) \u2192 HIGH gap; action fix-runner-invocation. `FAILS_AT_TIP` (the feature\'s own test is red WITH the feature present) \u2192 HIGH gap; action fix-red-feature-test \u2014 grade the feature code accordingly. `CANNOT_ISOLATE` (no established observation; the row\'s `reason` is one of no-execution-evidence | unrecognised-runner-output | no-tests-executed | inconsistent-evidence | tip-control-missing | tip-evidence-missing | timeout) \u2192 HIGH gap NAMING the reason; action per `primaryAction` (map-a-test or fix-runner-invocation). `measurementValid` false or \'partial\' means the instrument did not (fully) measure \u2014 report it verbatim; never convert a degraded reading into a pass. Record every verdict + reason in the 08_qe_report.md ADR Fitness section. If `discrimination-check` is unavailable at the pinned path, errors, or overruns its window \u2192 record a HIGH gap `discrimination gate INCONCLUSIVE: <unavailable|error|timeout>` (backlog 52d0ed08: an instrument that could not run is never a pass and never applicable-by-silence). Still never abort the run.'
 // P2 (amendment-confirmation-discipline, fa-improvements 2026-07-18): amendments are where the SHARPEST design
 // corrections land (challenge-panel/QCSD) and were the least-tested — prose deltas with no proving test. Every
@@ -5655,12 +5698,17 @@ if (qe !== null && qe2Spec !== null) {
   }
 }
 if (qe === null) return null
-return { qe: qe, qeReviewerUsed: qeReviewerUsed, modelUsed: modelsUsed.qe, qe2: qe2, qe2ModelUsed: modelsUsed.qe2 || null }
-}, { validate: function (r) { return !!(r && typeof r === 'object' && r.qe && typeof r.qe === 'object' && typeof r.qeReviewerUsed === 'string') } })
+return { qe: qe, qeReviewerUsed: qeReviewerUsed, modelUsed: modelsUsed.qe, qe2: qe2, qe2ModelUsed: modelsUsed.qe2 || null,
+  bridge: { happened: crossFamilyQeReport ? crossFamilyQeReport.happened : null, rungState: qeCodexRung ? qeCodexRung.state : null, rungReason: qeCodexRung ? qeCodexRung.reason : null, decline: lastCodexDecline } }
+// Missing bridge is valid for pre-change checkpoints; the debt decision logs the degradation.
+}, { validate: function (r) { return !!(r && typeof r === 'object' && r.qe && typeof r.qe === 'object' && typeof r.qeReviewerUsed === 'string' && (r.bridge == null || (typeof r.bridge === 'object' && !Array.isArray(r.bridge)))) } })
 qe = qeStage ? qeStage.qe : null
 let qeReviewerUsed = qeStage ? qeStage.qeReviewerUsed : 'claude'
 if (qeStage && qeStage.modelUsed) modelsUsed.qe = qeStage.modelUsed + (resumedStages.indexOf('qe') !== -1 ? ' (resumed)' : '')
 if (qeStage && qeStage.qe2ModelUsed) modelsUsed.qe2 = qeStage.qe2ModelUsed + (resumedStages.indexOf('qe') !== -1 ? ' (resumed)' : '')
+if (qeStage && qeStage.bridge == null && resumedStages.indexOf('qe') !== -1) {
+  log('re-QE debt: resumed pre-change checkpoint without bridge — only usage-switched can be classified from the model label')
+}
 
 // aqe-ledger-row T3/FR-1/FR-3/A1/A3/A4: the QE step's OWN autorow — who reviewed, how many
 // findings, cross-family or not — so the instrument's own footprint in the ledger stops being
@@ -5736,19 +5784,17 @@ await capturePairs('code', 'QE', [{ input: codePrompt, output: codeStage, evalua
 await capturePairs('qe', 'QE', [{ input: qePrompt, output: qeStage ? qeStage.qe : null, evaluation: { grade: qe ? qe.grade : null, gradedBy: qeReviewerUsed, lessonsInjected: [] }, provenance: { model: String(modelsUsed.qe || ''), family: tpFamily(qeReviewerUsed), role: 'reviewer' } }])
 
 // ── re-QE debt emission (backlog 6b40e667) — mirror of harness-core/src/reqe.ts ──
-// The cross-model guard was consciously SUSPENDED when the usage override made coder and QE the
-// same family (FR-2.9). Record that as a machine DEBT (features/<slug>/.fa-state/reqe-due.json) so
-// `dz reqe` / `dz usage` surface it after limits reset — a doc instruction on the weakest detection
-// layer becomes a fact on disk. Emitted ONLY for the actual same-family-under-override case: a
-// switch that kept cross-family QE, or the codex-unavailable Claude belt (no override), creates no
-// debt. A RESUMED qe never re-emits (the original run emitted; a settlement must not be clobbered).
+// Record same-family reviews after usage switches, failed probes, fallbacks or explicit QE pins
+// as machine debt. Checkpoint-carried bridge facts preserve the cause on resume; routing OFF is
+// excluded explicitly. Missing old checkpoint facts degrade visibly. The guards below preserve
+// existing debt and this run's settlement when a resumed QE retries the write.
 let reqeDue = false
 {
   const reqeFamOf = function (s) { return /codex|gpt|openai/i.test(String(s || '')) ? 'openai' : 'claude' }
-  const qeLabel = String(modelsUsed.qe || '')
-  if (/\(usage-switched\)/.test(qeLabel) && reqeFamOf(coderUsed) === reqeFamOf(qeReviewerUsed)) {
+  const reqeDecision = reqeEmitDecision({ coderUsed: coderUsed, qeReviewerUsed: qeReviewerUsed, qeModelLabel: modelsUsed.qe, routingRequested: routingRequested, bridge: qeStage ? qeStage.bridge : undefined })
+  if (reqeDecision.emit) {
     reqeDue = true
-    const reqeDebt = { schema: 'reqe-due-1', slug: SLUG, coderFamily: reqeFamOf(coderUsed), qeFamily: reqeFamOf(qeReviewerUsed), qeGrade: (qe && qe.grade) ? String(qe.grade) : null, reason: 'usage-switched self-review: Step-8 QE ran on the coder’s own family under the limit override (FR-2.9)', emittedAt: null, runStamp: qeHash }
+    const reqeDebt = { schema: 'reqe-due-1', slug: SLUG, coderFamily: reqeFamOf(coderUsed), qeFamily: reqeFamOf(qeReviewerUsed), qeGrade: (qe && qe.grade) ? String(qe.grade) : null, cause: reqeDecision.cause, bridge: qeStage ? qeStage.bridge : undefined, reason: reqeDecision.reason, emittedAt: null, runStamp: qeHash }
     // IDEMPOTENT + VERIFIED (reqe QE #2 + r2 #2/#3): a RESUMED qe re-runs this block (the original
     // run may have died between the qe checkpoint and this write), but: an existing due file is
     // never clobbered; a settlement blocks re-emission ONLY when it carries THIS run's runStamp (an
@@ -5762,8 +5808,10 @@ let reqeDue = false
     const emitText = String(emitOut || '')
     if (/REQE-SETTLED-THIS-RUN/.test(emitText)) log('re-QE debt: THIS run’s debt was already settled — not re-opened')
     else if (/REQE-EXISTS/.test(emitText)) log('re-QE debt: already recorded for ' + SLUG + ' — not overwritten')
-    else if (emitText.indexOf('reqe-due-1') !== -1) log('re-QE DEBT recorded: Step-8 ran same-family under the usage override — after limits reset run `dz reqe --slug ' + SLUG + '` for the independent cross-family pass')
+    else if (emitText.indexOf('reqe-due-1') !== -1) log('re-QE DEBT recorded: Step-8 ran same-family; cause=' + reqeDecision.cause + ' — run `dz reqe --slug ' + SLUG + '` for the independent cross-family pass')
     else log('re-QE debt write UNVERIFIED (agent returned no readback) — the debt may be missing on disk; reqeDue=true is still reported, record it manually via features/' + SLUG + '/.fa-state/reqe-due.json')
+  } else {
+    log('re-QE debt: ' + (reqeDecision.degraded ? '' : 'none — ') + reqeDecision.reason)
   }
 }
 

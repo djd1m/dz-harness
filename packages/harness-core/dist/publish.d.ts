@@ -18,12 +18,35 @@ export type ProbeOutcome = {
 };
 export declare const REGISTRY_PROBE_BUDGET = 90;
 export declare const REGISTRY_PROBE_INTERVAL_MS = 10000;
+export type RegistryProbe = {
+    kind: 'published';
+    version: string;
+    scripted?: true;
+} | {
+    kind: 'never-published';
+    scripted?: true;
+} | {
+    kind: 'unknown';
+    reason: string;
+    scripted?: true;
+};
+/**
+ * Scripted registry seam for tests that spawn the REAL bin and therefore cannot inject `exec`
+ * (first-publish-not-offline AM-A; same shape as `WF_RUN_DISPATCH_SCRIPT_ENV`). Value: path to a JSON
+ * file `{ "<name>": "<x.y.z>" | "E404" | "<npm code>" }`. When set, no `npm view` runs at all and EVERY
+ * row carries `probeOverride: true` — a scripted plan can never read as a verified one.
+ */
+export declare const PUBLISH_PROBE_SCRIPT_ENV = "DZ_PUBLISH_PROBE_SCRIPT";
 /** Result for a single package publish attempt. */
 export interface PublishResult {
     readonly name: string;
     readonly oldVersion: string;
     readonly newVersion: string;
     readonly status: 'published' | 'skipped' | 'error';
+    readonly firstPublish?: boolean;
+    readonly probe?: RegistryProbe['kind'];
+    /** Present (true) only when `DZ_PUBLISH_PROBE_SCRIPT` answered instead of the registry. */
+    readonly probeOverride?: boolean;
     readonly error?: string | undefined;
     /** Live publish only: how many registry probes were needed to confirm the exact new version. */
     readonly registryProbes?: number | undefined;
@@ -126,12 +149,9 @@ export interface PublishReport {
 export declare function bumpPatch(version: string): string;
 /** Compare two x.y.z(-pre) versions by their core triple: >0 if a>b, <0 if a<b. */
 export declare function compareVersions(a: string, b: string): number;
-/**
- * The version already published to npm for `name`, or `undefined` if the package
- * has never been published (or npm is unreachable). Used to bump from
- * max(local, published) so a locally-reverted version can't collide (audit #10).
- */
 type PublishExec = (command: string, options: ExecSyncOptionsWithStringEncoding) => string;
+/** Only explicit npm absence signals establish that a package has never been published. */
+export declare function classifyRegistryProbe(stderr: string, message: string): RegistryProbe;
 /**
  * Mirror pnpm's package-time expansion of the three shorthand workspace dependency specs.
  * Pure by construction: callers provide both the source bytes and the sibling version table.
@@ -326,6 +346,8 @@ export declare function changelogRegion(lines: readonly string[]): Set<number>;
 export declare function publishPackages(monorepoRoot: string, opts?: {
     dryRun?: boolean | undefined;
     filter?: string[] | undefined;
+    /** Exact CLI-selected batch; an empty list means no targets. Discovery remains unfiltered. */
+    targetNames?: readonly string[] | undefined;
     bumpOnly?: boolean | undefined;
     /**
      * Path to the Ed25519 signing key, OUTSIDE the repository. A pack that carries a
@@ -361,8 +383,8 @@ export declare function publishPackages(monorepoRoot: string, opts?: {
     /**
      * Floor probe injection for the workspace-floor preflight (see
      * `findUnpublishedWorkspaceFloors`). Default: a real `npm view` probe, which runs only on LIVE
-     * publishes — dry-run stays offline, matching `maxPublished`. Injecting a probe also arms the
-     * preflight under dry-run, which is how the wiring test drives it without network.
+     * publishes. Injecting a probe also arms this floor preflight under dry-run. The package's
+     * own registry classification runs in both live and dry-run modes independently.
      */
     probeFloor?: ((name: string, version: string) => boolean) | undefined;
     /** Subprocess injection for tests; the default is Node's synchronous executor. */

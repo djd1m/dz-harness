@@ -91,7 +91,7 @@ export interface CliIo {
     readonly roundPidProbe?: (pid: number) => boolean | null;
     readonly roundRunRegistryReader?: (projectRoot: string) => string;
     readonly roundKillGraceMs?: number;
-    /** round-state-lock NFR-2: overrides `withNamedLockSync`'s acquisition deadline for `dz round`
+    /** round-state-lock NFR-2: overrides the round lock's acquisition deadline for `dz round`
      * mutations so a test can force `lock busy` deterministically. Omitted in production. */
     readonly roundLockTimeoutMs?: number;
     readonly roundSpawn?: (request: {
@@ -258,6 +258,56 @@ export declare function buildInstallCommand(npmSpec: string, projectRoot: string
  * throwing `fn` cannot leave stdout redirected.
  */
 export declare function withForeignStdoutOnStderr<T>(fn: () => Promise<T>): Promise<T>;
+export declare function partitionPrivatePackages<T extends {
+    name: string;
+    dir: string;
+    version: string;
+}>(packages: readonly T[], readPkgJson: (dir: string) => string): {
+    targets: T[];
+    skipped: import("@dzhechkov/harness-core").PublishResult[];
+    lines: string[];
+};
+/**
+ * The version cell of one publish plan row (first-publish-not-offline, ADR-001 D2/D4; Step-8 MEDIUM: the LIVE
+ * `unknown` row used to print a bare "NOT ESTABLISHED" while the dry-run row named the npm code). One rule for
+ * both modes: an `unknown` probe prints `NOT ESTABLISHED (registry unreachable: <code>)` whenever the row's error
+ * carries the code; `never-published` prints `<version> (first publish)`; everything else `<old> → <new>`.
+ */
+export declare function renderPublishVersionCell(pkg: {
+    readonly oldVersion: string;
+    readonly newVersion: string;
+    readonly probe?: string | undefined;
+    readonly firstPublish?: boolean | undefined;
+    readonly error?: string | undefined;
+}): string;
+export declare function cmdPublish(options: Map<string, string>, flags: Set<string>, cwd: string, writeOutput: Write, mirrorRunner?: PublishMirrorRunner, siblingDriftFetcher?: FetchPublished, packedInstallRunner?: ReleaseExecRunner, publishExecRunner?: (command: string, options: {
+    cwd?: string | URL | undefined;
+    stdio?: unknown;
+    encoding?: unknown;
+    timeout?: number | undefined;
+    env?: NodeJS.ProcessEnv | undefined;
+}) => string, gateAuditFsLayer?: PublishGateAuditFsLayer, 
+/**
+ * AM-5 (feature publish-gate-audit-durable): test seam for the sibling-drift gate's `npm pack
+ * --dry-run --json` call — production leaves it unset (real `execFileSync`). Takes the package
+ * dir, returns raw stdout, or THROWS to simulate a real `npm` failure — a test can then prove the
+ * failure reaches `parseNpmPackInventory`'s caller as `unavailable`, never a real subprocess.
+ */
+npmPackRunner?: (dir: string) => string, 
+/**
+ * publish-confirm-seam: test seam for the registry-confirmation step inside `publishPackages`
+ * (see {@link CliIo.publishRegistry} for the full rationale). Production leaves it unset.
+ */
+registrySeam?: {
+    readonly probe?: (name: string, version: string) => boolean | {
+        ok: boolean;
+        stdout: string;
+        stderr: string;
+        code: number | null;
+        ms: number;
+    };
+    readonly sleep?: (milliseconds: number) => void;
+}): number;
 export interface CodexHooksSyncInput {
     readonly codexHome?: string | undefined;
     readonly project?: string | undefined;
@@ -319,6 +369,18 @@ interface PublishGateAuditFsLayer {
     readonly fsyncSync: (fd: number) => void;
     readonly closeSync: (fd: number) => void;
 }
+export declare function discriminationCompat(result: {
+    readonly findings: readonly {
+        readonly detail: string;
+    }[];
+}): {
+    finding: {
+        readonly detail: string;
+    } | null;
+    deprecated: {
+        finding: string;
+    };
+};
 export declare function boundedMutationGateOutputTail(output: string): string | undefined;
 /** Test seam for the chokepoint: NEW-C4's proof needs to call it with a hostile pid. */
 export declare function __wfSignalChildTestSeam(child: unknown, signal: string, detached: boolean): boolean;

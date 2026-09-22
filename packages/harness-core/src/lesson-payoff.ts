@@ -37,7 +37,7 @@ import { randomBytes } from 'node:crypto';
 import { join } from 'node:path';
 
 import { LessonBandit, type ArmStats, type SerializedBanditState } from './lesson-bandit.js';
-import { withNamedLockSync } from './named-lock.js';
+import { withProjectLockSync } from './named-lock.js';
 import { readMemoryLearningConfig, type MemoryLearningConfig } from './patterns.js';
 
 // ── Paths and constants ─────────────────────────────────────────────────────────────────────────
@@ -360,7 +360,7 @@ export interface BanditWriteOutcome {
  *
  * **Why the lock and not just the atomic rename.** MEASURED in this repo (2026-08-19, four
  * barrier-synchronised writers on one JSON file, all exit 0): ONE of four updates survived without a
- * lock; all four survived with `withNamedLockSync`. Temp+rename prevents a TORN read; it does
+ * lock; all four survived with `withProjectLockSync`. Temp+rename prevents a TORN read; it does
  * nothing about a LOST update, and the loss is silent — both writers report success.
  *
  * No network call, no subprocess, no model turn inside the section — an advisory lock held past its
@@ -372,7 +372,7 @@ function mutateBanditState(
   mutate: (bandit: LessonBandit, env: { exposures: Record<string, Record<string, number>>; explorePulls: Record<string, Record<string, number>> }) => void,
 ): BanditWriteOutcome {
   try {
-    return withNamedLockSync(projectRoot, BANDIT_LOCK_NAME, (): BanditWriteOutcome => {
+    return withProjectLockSync(projectRoot, BANDIT_LOCK_NAME, (): BanditWriteOutcome => {
       const { state, reason } = loadBanditState(projectRoot);
       if (reason === 'future-schema') {
         // Refuse to clobber a state written by a newer dz. The reward is dropped, loudly.

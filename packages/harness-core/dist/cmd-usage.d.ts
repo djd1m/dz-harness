@@ -141,8 +141,8 @@ export declare function renderDeadwoodReport(report: DeadwoodReport, format: 'te
  *
  * The named lock protects competing compactors. Emitters deliberately stay
  * lock-free; this advisory log accepts a possible racing row rather than making
- * every command wait on a lock. Every error is swallowed so compaction can never
- * turn `dz deadwood` into a gate.
+ * every command wait on a lock. An absent store is a no-op; other failures,
+ * including lock timeouts, propagate to the caller.
  */
 export declare function compactCmdUsageIfNeeded(root: string): void;
 //# sourceMappingURL=cmd-usage.d.ts.map

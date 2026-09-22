@@ -3,7 +3,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { closeSync, constants, existsSync, fsyncSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, statSync, unlinkSync, writeFileSync, } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { canonicalIntegrationJson, parseStrictJson } from '@dzhechkov/core';
-import { withNamedLockSync } from './named-lock.js';
+import { withProjectLockSync } from './named-lock.js';
 const MAX_CARRIER_BYTES = 1024 * 1024;
 const JOURNAL_REL = '.dz/integrations-ownership.json';
 export class IntegrationApplyError extends Error {
@@ -191,7 +191,7 @@ export function applyIntegrationFragments(options) {
     }
     if (groups.size === 0)
         return { written: [], alreadyCurrent: [], journalPath: JOURNAL_REL };
-    return withNamedLockSync(root, 'integrations', () => {
+    return withProjectLockSync(root, 'integrations', () => {
         const rootBefore = statSync(root);
         const dzBefore = statSync(join(root, '.dz'));
         const journalRead = readBoundedJson(journalPath, JOURNAL_REL);

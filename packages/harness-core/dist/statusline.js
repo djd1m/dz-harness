@@ -17,7 +17,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statS
 import { basename, join, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 import { listBrain } from './brain.js';
-import { withNamedLockSync } from './named-lock.js';
+import { withProjectLockSync } from './named-lock.js';
 import { RECALL_USAGE_LOG_RELATIVE, aggregateRecallUsage, parseRecallUsageLog } from './recall-usage.js';
 import { countLearningStoreRowsReadonly, countSqliteRowsReadonly } from './store-counts.js';
 import { checkStoreHealth, readStoreMark, storeSnapshotPath, } from './store-guard.js';
@@ -418,7 +418,7 @@ export function writeFeatureAdrStateDetailed(projectRoot, input, now = Date.now(
         // half of the lock test can reproduce the lost update. Shipped callers never pass it.
         const written = input._unsafeSkipLock === true
             ? transition()
-            : withNamedLockSync(root, 'fa-phase-slot', transition);
+            : withProjectLockSync(root, 'fa-phase-slot', transition);
         return { state: written };
     }
     catch (err) {

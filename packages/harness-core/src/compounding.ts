@@ -16,6 +16,7 @@
  */
 
 import { EVENT_CHAIN_SCOPE, classifyChainDefects, verifyEventChainText } from './event-chain.js';
+import type { GuardOp } from './guard.js';
 import {
   isOffsetIsoTimestamp,
   type PromotionAcceptanceEvidence,
@@ -156,7 +157,8 @@ export function replayableInstances(
 
 export interface GuardEvent {
   readonly ts: string;
-  readonly op?: 'publish' | 'teach' | 'consolidate' | 'reindex';
+  // Includes 'code': the code guard writes audit rows for this operation too.
+  readonly op?: GuardOp;
   readonly verdict: string;
   readonly rules: readonly string[]; // violated rule ids
   readonly violations?: readonly { readonly rule: string; readonly contentAnchor?: string }[];
@@ -824,4 +826,133 @@ export function renderCompoundingReport(r: CompoundingReport): string {
   out.push('');
   out.push(`  VERDICT: ${r.verdict}`);
   return out.join('\n');
+}
+
+// ── Доведённая работа: дополнительная метрика, не влияющая на отбор ──
+
+export interface LessonOutcomeRow {
+  readonly lessons?: readonly string[];
+  readonly outcome?: string;
+  readonly grade?: string | null;
+  readonly slug?: string;
+  readonly stage?: string;
+}
+
+export interface LessonOutcomeCounters {
+  pairs: number;
+  shipped: number;
+  refuted: number;
+  blocked: number;
+  other: number;
+  graded: number;
+  grades: Record<string, number>;
+}
+
+export interface LessonOutcomeCoverage {
+  readonly lessonsWithOutcome: number;
+  readonly pairsTotal: number;
+  readonly pairsUngraded: number;
+  readonly duplicateRowsDropped: number;
+}
+
+export interface JoinedLessonOutcomes {
+  readonly perLesson: ReadonlyMap<string, LessonOutcomeCounters>;
+  readonly totals: LessonOutcomeCounters;
+  readonly coverage: LessonOutcomeCoverage;
+}
+
+function emptyLessonOutcomeCounters(): LessonOutcomeCounters {
+  return {
+    pairs: 0, shipped: 0, refuted: 0, blocked: 0, other: 0, graded: 0,
+    grades: Object.create(null) as Record<string, number>,
+  };
+}
+
+/**
+ * Считает пары «урок ↔ исход работы» из уже прочитанных строк леджера.
+ * unknown допускает мусор после разбора JSON; поля проверяются перед использованием.
+ * Неизвестный или отсутствующий исход попадает в other, пустой грейд — в пары без грейда.
+ * Буквы грейдов сохраняются как категории, без перевода в единый балл пользы.
+ * Полные JSON-дубликаты строк и повторные id внутри одной строки не умножают пары.
+ */
+export function joinLessonOutcomes(rows: readonly unknown[]): JoinedLessonOutcomes {
+  const perLesson = new Map<string, LessonOutcomeCounters>();
+  const totals = emptyLessonOutcomeCounters();
+  const seenRows = new Set<string>();
+  let duplicateRowsDropped = 0;
+  for (const value of rows) {
+    if (value === null || typeof value !== 'object' || Array.isArray(value)) continue;
+    const row = value as LessonOutcomeRow;
+    if (!Array.isArray(row.lessons)) continue;
+    // Compare ALL fields; object key order is irrelevant, array order is preserved.
+    const canonicalRow = JSON.stringify(value, (_key, part: unknown) => {
+      if (part === null || typeof part !== 'object' || Array.isArray(part)) return part;
+      const object = part as Record<string, unknown>;
+      return Object.fromEntries(Object.keys(object).sort().map((key) => [key, object[key]]));
+    });
+    if (seenRows.has(canonicalRow)) {
+      duplicateRowsDropped++;
+      continue;
+    }
+    seenRows.add(canonicalRow);
+    const outcome = row.outcome === 'shipped' || row.outcome === 'refuted' || row.outcome === 'blocked'
+      ? row.outcome : 'other';
+    const grade = typeof row.grade === 'string' ? row.grade.trim() : '';
+    for (const dzId of new Set(row.lessons)) {
+      if (typeof dzId !== 'string' || !dzId.startsWith('teach:')) continue;
+      const counts = perLesson.get(dzId) ?? emptyLessonOutcomeCounters();
+      perLesson.set(dzId, counts);
+      for (const target of [counts, totals]) {
+        target.pairs++;
+        target[outcome]++;
+        if (grade !== '') {
+          target.graded++;
+          target.grades[grade] = (target.grades[grade] ?? 0) + 1;
+        }
+      }
+    }
+  }
+  return {
+    perLesson,
+    totals,
+    coverage: {
+      lessonsWithOutcome: perLesson.size,
+      pairsTotal: totals.pairs,
+      pairsUngraded: totals.pairs - totals.graded,
+      duplicateRowsDropped,
+    },
+  };
+}
+
+/**
+ * Размер стора передаёт вызывающий код: в строках леджера этого знаменателя нет.
+ * Для доли покрытия набор joined должен относиться к урокам этого стора.
+ * Без знаменателя доля остаётся неизвестной, а не превращается в 100%.
+ */
+export function renderLessonOutcomes(joined: JoinedLessonOutcomes, storeLessonCount?: number): string {
+  const { totals, coverage } = joined;
+  const percent = (part: number, whole: number): string =>
+    `${(whole === 0 ? 0 : part / whole * 100).toFixed(1).replace('.', ',')}%`;
+  const validStoreCount = typeof storeLessonCount === 'number'
+    && Number.isSafeInteger(storeLessonCount)
+    && storeLessonCount >= coverage.lessonsWithOutcome;
+  const storeCoverage = validStoreCount
+    ? `${coverage.lessonsWithOutcome}/${storeLessonCount} (${percent(coverage.lessonsWithOutcome, storeLessonCount)})`
+    : `${coverage.lessonsWithOutcome}/неизвестно (доля неизвестна: размер стора не задан или некорректен)`;
+  const grades = Object.entries(totals.grades)
+    .sort(([a], [b]) => a.localeCompare(b, 'ru'))
+    .map(([grade, count]) => `${grade}: ${count}`)
+    .join(', ');
+  return [
+    'ДОВЕДЁННАЯ РАБОТА — дополнительная метрика пользы уроков',
+    `  Пар «урок ↔ исход работы»: ${totals.pairs}; доведено (shipped): ${totals.shipped}; `
+      + `опровергнуто (refuted): ${totals.refuted}; заблокировано (blocked): ${totals.blocked}; прочие исходы: ${totals.other}.`,
+    `  Грейды (${totals.graded} пар): ${grades || 'нет'}; самоотчёт — грейд ставит ведущий при закрытии круга, это не независимая оценка.`,
+    `  Доля пар без грейда: ${coverage.pairsUngraded}/${coverage.pairsTotal} (${percent(coverage.pairsUngraded, coverage.pairsTotal)}).`,
+    `  Покрытие уроков стора хотя бы одной парой: ${storeCoverage}.`,
+    ...(coverage.duplicateRowsDropped > 0
+      ? [`  Отброшено дубликатов строк леджера: ${coverage.duplicateRowsDropped}.`]
+      : []),
+    '  Отбор уроков по-прежнему использует оценку намерения.',
+  ].join('\n');
 }

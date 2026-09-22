@@ -229,7 +229,7 @@
       },
       {
         "path": "feature-adr/modules/08-qe.md",
-        "sha256": "470306ac327550c3c8775062f1e40bc0f9f7143ab03c2a62a85a090c125ec2fa"
+        "sha256": "cb360cebbac91ac9ee8cf0ec8fb54f9c20385630928637f4940f80ec8c43778d"
       },
       {
         "path": "feature-adr/modules/09-fleet-qe.md",
@@ -561,5 +561,5 @@
       }
     ]
   },
-  "signature": "kXM23EDJzvlJGmutZ13eJcKEYA/eDukQ+v1tmUd26UP2bSF0SbTihOMgg3+SmAbsd1aKgPrSyoYyEsRaeZRSAg=="
+  "signature": "3Cu73MDifVLkZDSKAKienKf/x/WBGYtiwDerzVj7jLbluP1hs+onBT9c+YfQGOeHvOeA4tFxpBILJ0bXfrSmCA=="
 }

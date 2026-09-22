@@ -1,7 +1,7 @@
 /**
  * Package skill-layout resolution — where an installed npm package keeps its skills.
  *
- * `dz install <pkg>` (and, later, `dz init`/`dz registry` — see the backlog note below)
+ * `dz install <pkg>` and `dz registry`
  * must find `SKILL.md` skill dirs inside an npm package. Packages in the wild ship three
  * on-disk arrangements; before this module existed, `cmdInstall` hard-coded exactly one
  * (`flat`), so every npx-init pack (`templates/.claude/skills/…`) and bare-`skills/`
@@ -40,7 +40,8 @@ export interface PackageSkillRoot {
     readonly hasCompanionAssets: boolean;
 }
 /**
- * Ordered layout probe list. ORDER IS THE CONTRACT — first non-empty wins.
+ * Shared ordered layout probe list. The resolver selects the first non-empty root;
+ * the registry collects all roots, with the first occurrence of each skill id winning.
  *
  * `flat` is probed first so a classic pack can never be re-interpreted; `npx-template`
  * before `skills-dir` matches the measured census (13 vs 2 packages). Extending support

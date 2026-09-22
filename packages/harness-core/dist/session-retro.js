@@ -16,7 +16,7 @@
 import { existsSync, readFileSync, readdirSync, statSync, openSync, readSync, closeSync, writeFileSync, renameSync, unlinkSync, mkdirSync } from 'node:fs';
 import { join, basename, dirname } from 'node:path';
 import { homedir } from 'node:os';
-import { withNamedLockSync, NamedLockTimeoutError } from './named-lock.js';
+import { withProjectLockSync, NamedLockTimeoutError } from './named-lock.js';
 export const RETRO_DOMAIN = 'retro';
 export const DEFAULT_DRILL_THRESHOLD = 2;
 export const PROCESS_SIGNATURES = [
@@ -652,7 +652,7 @@ const writeJsonAtomic = (path, value) => {
  * a partial trailing line is left for the next scan) → fold the debt → persist state + sentinel.
  * NEVER throws (it runs inside a Stop hook; a broken scan must never surface as a turn failure).
  *
- * The WHOLE read→fold→write runs under `withNamedLockSync` (cross-family QE P1-3): two overlapping
+ * The WHOLE read→fold→write runs under `withProjectLockSync` (cross-family QE P1-3): two overlapping
  * Stop scans that both read the same offset/sentinel and then rename/unlink independently lose one
  * side's update — atomic per-file renames do not prevent that, only mutual exclusion does. The
  * critical section is short and synchronous (bounded ≤8 MB read, no subprocess, 65 ms measured on
@@ -664,7 +664,7 @@ export function runRetroTailScan(dzDir, transcriptPath, nowIso) {
     if (transcriptPath === null || transcriptPath === '')
         return { status: 'no-transcript', scannedBytes: 0, offset: 0 };
     try {
-        return withNamedLockSync(dirname(dzDir), RETRO_SCAN_LOCK_NAME, () => scanTailUnderLock(dzDir, transcriptPath, nowIso), { timeoutMs: RETRO_SCAN_LOCK_TIMEOUT_MS });
+        return withProjectLockSync(dirname(dzDir), RETRO_SCAN_LOCK_NAME, () => scanTailUnderLock(dzDir, transcriptPath, nowIso), { timeoutMs: RETRO_SCAN_LOCK_TIMEOUT_MS });
     }
     catch (e) {
         if (e instanceof NamedLockTimeoutError)

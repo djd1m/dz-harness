@@ -118,6 +118,7 @@ export * from './trace-bundle.js';
 export { BLOBS as LOOP_BLOBS, LOOP_BLOB_NAMES, BLOB_COVERAGE_MANIFEST } from './loop-blobs.generated.js';
 export type { LoopBlob } from './loop-blobs.generated.js';
 export * from './sign.js';
+export * from './pack-inventory.js';
 export * from './publish-source-scope.js';
 export * from './swarm-brief.js';
 export * from './skill-schema.js';
@@ -125,7 +126,7 @@ export { createSkill } from './create-skill.js';
 export type { CreateSkillOptions, CreateSkillResult } from './create-skill.js';
 export { checkUpstream, checkAllUpstream, discoverSourcePackages, loadSourcesManifest } from './sync-upstream.js';
 export type { SyncUpstreamReport, UpstreamCheckResult, SourcesManifest, SourcePackageInfo } from './sync-upstream.js';
-export { sweepSkillDrift, syncCanonicalSkill } from './skill-drift.js';
+export { sweepSkillDrift, syncCanonicalSkill, findCanonicalDefects } from './skill-drift.js';
 export { SKILL_INSTALL_ROOTS, SKILL_INSTALL_ROOT_BY_TARGET, DEV_SKILL_ROOT, TARGET_ENRICHMENT_ASSETS } from './skill-install-roots.js';
 export { stampCheckpointLine } from './checkpoint-stamp.js';
 export { TELEMETRY_VOCAB_VERSION, TELEMETRY_FIELDS, PROVISIONAL_TELEMETRY_FIELDS, LOCAL_FIELD_ALIASES, RUN_OUTCOMES, telemetryFieldFor, runOutcomeOf } from './telemetry-vocabulary.js';
@@ -137,7 +138,7 @@ export { projectSkillsOneRoot, projectSkillsProbeCommand } from './project-skill
 export { isRepoBoundary } from './repo-boundary.js';
 export type { RepoBoundaryIo } from './repo-boundary.js';
 export type { LedgerBackfillPlan, LedgerBackfillRow, RunCostFacts } from './ledger-backfill.js';
-export type { SweepResult, DriftedSkill, SyncResult, SyncCanonicalOptions } from './skill-drift.js';
+export type { SweepResult, DriftedSkill, SyncResult, SyncCanonicalOptions, CanonicalDefect, CanonicalDefectKind } from './skill-drift.js';
 export { benchmarkSkill, benchmarkSkills, compareSkills } from './benchmark.js';
 export { buildRegistry, buildShowcaseRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs, packScope, verifiedScopeNote } from './registry.js';
 export { tokenize, stemToken, stems } from './stem.js';
@@ -149,9 +150,9 @@ export { recommend } from './recommend.js';
 export { pretrain } from './pretrain.js';
 export { loadPatterns, loadSessions, computePatternBoost, readLearningConfig, readMemoryLearningConfig, BOOST_CAP, recordPattern, recordLessonForms, loadStorePatternsSync, loadStoreRecords, findExactLesson, patternToRecord, recordToPattern, patternRecordId, patternIdentityOf, dreamRecordId, isMirrorableLearning, consolidateSessions, recallPatterns, pruneNoisePatterns, removePatternsByIds, snapshotStore, readReinforcementState, encodeReinforcementState, reinforcePattern, resolveReinforceTarget, updateReinforcementState, storeStats, lessonDeltaReport, lessonDeltaMap, readQuarantineState, encodeQuarantineState, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns } from './patterns.js';
 export { normalizeLessonForms, validateClassTemplate, lessonPairIdOf, mergeLessonFormHits, mergeLessonMatchedForms } from './lesson-generalization.js';
-export { withStoreLock, withStoreLockSync, storeLockPath, StoreLockTimeoutError, StoreLockCompromisedError, STALE_LOCK_MS, LOCK_TIMEOUT_MS } from './store-lock.js';
+export { withStoreLock, withStoreLockSync, storeLockPath, storeExists, StoreAbsentError, StoreLockTimeoutError, StoreLockCompromisedError, STALE_LOCK_MS, LOCK_TIMEOUT_MS } from './store-lock.js';
 export type { StoreLockOptions } from './store-lock.js';
-export { withNamedLockSync, namedLockPath, isSafeLockName, NamedLockNameError, NamedLockTimeoutError, NamedLockCompromisedError } from './named-lock.js';
+export { withProjectLockSync, withDirLockSync, namedLockPath, isSafeLockName, NamedLockNameError, NamedLockTimeoutError, NamedLockCompromisedError } from './named-lock.js';
 export {
   QE_BRIDGE_SCHEMA,
   QE_BRIDGE_FAILURE_SCHEMA,
@@ -603,8 +604,11 @@ export {
   extractReportGrade,
   settleReqeDebt,
   renderReqeList,
+  countReqeByCause,
 } from './reqe.js';
-export type { ModelFamily, ReqeEmitDecision, ReqeDebt, ReqeBrief, ReqeSettlement } from './reqe.js';
+export type { ModelFamily, ReqeCause, ReqeRungState, ReqeBridgeFacts, ReqeEmitInput, ReqeEmitDecision, ReqeDebt, ReqeBrief, ReqeSettlement } from './reqe.js';
+export { classifyReqeFindings, parsePriorFindings, buildReqeVerdict } from './reqe-verdict.js';
+export type { ReqeVerdict, ReqeFindingsClass, ReqeSeverity, ReqeSeverityCounts, ReqeBlockingRow, ReqePriorVerdict } from './reqe-verdict.js';
 export {
   detectQueryLang,
   relevanceFloorFor,
@@ -1156,6 +1160,14 @@ export * from './skills-verify.js';
 // from darwin-mode; measurements are dz-native and NEVER fake a verdict (INSUFFICIENT_DATA is a
 // finding, not a pass).
 export * from './compounding.js';
+// Дополнительная метрика доведённой работы: публичные функции и типы.
+export { joinLessonOutcomes, renderLessonOutcomes } from './compounding.js';
+export type {
+  LessonOutcomeRow,
+  LessonOutcomeCounters,
+  LessonOutcomeCoverage,
+  JoinedLessonOutcomes,
+} from './compounding.js';
 
 // Advisory command-invocation telemetry + deadwood report (feature dz-deadwood).
 export * from './cmd-usage.js';
@@ -1349,3 +1361,9 @@ export * from './cross-family-control.js';
 
 export { debtRatchetVerdict, parsePinnedCeiling, ceilingUnreadableMessage } from './debt-ratchet.js';
 export type { DebtRatchetArgs, DebtRatchetVerdict, PinnedCeiling } from './debt-ratchet.js';
+
+// Квитанция зелёного прогона: проверка на PUSH вместо проверки на коммите (развилка 4, 21.09).
+export { decideTestReceipt, renderTestReceiptVerdict } from './test-receipt.js';
+export type { TestReceipt, TestReceiptVerdict, TestReceiptScopeState } from './test-receipt.js';
+export { decideBackupFreshness, renderBackupFreshness } from './backup-freshness.js';
+export type { BackupFreshnessVerdict } from './backup-freshness.js';

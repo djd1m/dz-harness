@@ -9,7 +9,7 @@ import { recommend } from '../recommend.js';
 import { NoopLearningBackend, NativeReinforcementBackend, isLearningSignalBackend, DEFAULT_REINFORCE_THRESHOLD } from '../learning-backend.js';
 import { DEFAULT_HARMONIZE_THRESHOLD } from '../vector-tier.js';
 let project;
-beforeEach(() => { project = mkdtempSync(join(tmpdir(), 'dz-golden-')); });
+beforeEach(() => { project = mkdtempSync(join(tmpdir(), 'dz-golden-')); mkdirSync(join(project, '.dz'), { recursive: true }); /* the store pre-exists: a lock never seeds one */ });
 afterEach(() => rmSync(project, { recursive: true, force: true }));
 async function seed() {
     const rows = Array.from({ length: 24 }, (_, i) => ({

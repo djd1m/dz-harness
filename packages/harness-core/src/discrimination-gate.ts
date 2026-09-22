@@ -394,9 +394,6 @@ export interface DiscriminationResult {
   /** compat scalar: worst-of via RANK. A total order can only answer "worst thing present" —
    *  everything it destroys travels in findings[] / measurementValid / primaryAction. */
   readonly aggregate: DiscriminationVerdict;
-  /** @deprecated compat alias for ONE release — always `findings[0] ?? null` (worst first).
-   *  Removal in the next minor is a recorded release obligation (ADR-002 Decision item 6). */
-  readonly finding: DiscriminationFinding | null;
   /** one per distinct non-clean verdict present, worst-first. */
   readonly findings: readonly DiscriminationFinding[];
   readonly measurementValid: MeasurementValid;
@@ -821,7 +818,7 @@ export function classifyDiscrimination(input: ClassifyInput): DiscriminationResu
       detail:
         'No test was mapped to the ADR safety property, so discrimination could not be evaluated — this is the existing "property untested" finding. Action: map-a-test.',
     };
-    return { perTest: [], aggregate: 'CANNOT_ISOLATE', finding, findings: [finding], measurementValid: false, primaryAction: 'map-a-test' };
+    return { perTest: [], aggregate: 'CANNOT_ISOLATE', findings: [finding], measurementValid: false, primaryAction: 'map-a-test' };
   }
 
   let missingRow = false;
@@ -876,5 +873,5 @@ export function classifyDiscrimination(input: ClassifyInput): DiscriminationResu
   const primaryAction: PrimaryAction =
     aggregate === 'CANNOT_ISOLATE' && missingRow ? 'map-a-test' : ACTION_OF[aggregate];
 
-  return { perTest, aggregate, finding: findings[0] ?? null, findings, measurementValid, primaryAction };
+  return { perTest, aggregate, findings, measurementValid, primaryAction };
 }

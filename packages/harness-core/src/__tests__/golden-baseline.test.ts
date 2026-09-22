@@ -13,7 +13,7 @@ import { DEFAULT_HARMONIZE_THRESHOLD } from '../vector-tier.js';
 
 let project: string;
 
-beforeEach(() => { project = mkdtempSync(join(tmpdir(), 'dz-golden-')); });
+beforeEach(() => { project = mkdtempSync(join(tmpdir(), 'dz-golden-')); mkdirSync(join(project, '.dz'), { recursive: true }); /* the store pre-exists: a lock never seeds one */ });
 afterEach(() => rmSync(project, { recursive: true, force: true }));
 
 async function seed(): Promise<void> {

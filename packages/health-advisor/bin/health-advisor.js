@@ -8,6 +8,7 @@ const {
   C,
   getSkillsList,
   installSkill,
+  nonStandaloneRefusal,
   installAll,
   installBase,
   installFlat,
@@ -359,7 +360,7 @@ function cmdInfo() {
 
   const skill = SKILLS.find(s => s.name === skillName);
   if (!skill) {
-    console.error(`${C.red}Error:${C.reset} Unknown skill: ${skillName}`);
+    console.error(`${C.red}Error:${C.reset} ${nonStandaloneRefusal(skillName) ?? `Unknown skill: ${skillName}`}`);
     console.error(`Run 'health-advisor list' to see available skills.`);
     process.exit(1);
   }

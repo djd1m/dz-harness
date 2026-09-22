@@ -28,6 +28,7 @@ import { parseTrace, traceClose, traceDrain, traceInit, traceLedgerLine, traceOn
 import { classifyFailure, errSnap, gateVerdict, joinRegion, stepContractLines } from './loop-run-semantics.js';
 import { checkpointInputHash, decideCheckpointResume, parseCheckpointRead, serializeCheckpoint } from './feature-adr-checkpoints.js';
 import { modelFamily } from './qe-bridge.js';
+import { buildReqeDebt } from './reqe.js';
 import { CODEX_EXEC_XHIGH_TIMEOUT_MS, defangGateEchoes } from './workflow-run-dispatch.js';
 // ─────────────────────────────────────────────────────────────────────────────
 // Schemas / constants
@@ -838,19 +839,17 @@ export async function runWorkflow(inputs, pre, deps) {
     };
     // a waived same-family QE step owes a machine debt, not a doc instruction (the FR-2.9 precedent)
     for (const w of pre.qeWaivers) {
-        // The FR-2.9 `reqe-due-1` shape VERBATIM (`reqe.ts` parseReqeDebt), because the debt is only
-        // real if `dz reqe` can read it — a record in a shape the reader rejects is a promise, not a
-        // debt. `qeFamily` equals `coderFamily` here: that identity IS the waiver.
-        store.writeReqeDebt({
-            schema: 'reqe-due-1',
+        // Use the shared builder so the waiver stays readable by every debt consumer.
+        store.writeReqeDebt(buildReqeDebt({
             slug: deps.slug ?? inputs.runId,
-            coderFamily: inputs.coderFamily,
-            qeFamily: inputs.coderFamily,
+            coderUsed: inputs.coderFamily,
+            qeReviewerUsed: inputs.coderFamily,
             qeGrade: null,
+            cause: 'same-family-fallback',
             reason: `dz workflow run ${inputs.runId}: step ${w.step} (x-role: qe) resolved to the CODER family ${inputs.coderFamily} and ran under --allow-same-family-qe — the cross-family guard was consciously suspended, so an independent review is OWED`,
             emittedAt: startedAt,
             runStamp: `${inputs.runId}:${pre.execFp.slice(0, 16)}`,
-        });
+        }));
     }
     // the PROBED ids (established above, before the resume decision) become this run's resolution
     for (const s of allSpecs(pre.projection)) {

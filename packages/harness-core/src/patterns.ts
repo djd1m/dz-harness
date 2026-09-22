@@ -49,6 +49,14 @@ export interface PatternRecord {
   readonly type: 'rule' | 'success-pattern' | 'lesson-learned';
   /** Reward signal in [0, 1]. */
   readonly reward: number;
+  /**
+   * Whether the reward was explicit or defaulted: measured rewards had only 7 distinct
+   * values, a median of 0.8, and covered 5.5% of impressions (338 / 6140).
+   * This field does NOT change the default reward value; absent means unknown for legacy records.
+   * Set at record creation and unchanged by subsequent reinforce/guard-reinforce calls,
+   * even with an explicit --reward, it describes the first invocation, not the latest.
+   */
+  readonly rewardSource?: 'explicit' | 'default';
   /** Domain tag (e.g. "performance", "api", "general"). */
   readonly domain: string;
   /** ISO-8601 timestamp the record was written. */
@@ -510,12 +518,16 @@ export function patternToRecord(p: PatternRecord): MemoryRecord {
     // the learn-loop write path.
     outcome: PATTERN_TYPES.has(p.type) ? p.type : 'lesson-learned',
     timestamp: p.ts,
-    metadata: { domain: p.domain ?? 'general', source: p.source ?? 'dz-teach', ...pairMetadata },
+    metadata: {
+      domain: p.domain ?? 'general', source: p.source ?? 'dz-teach', ...pairMetadata,
+      ...(p.rewardSource !== undefined ? { rewardSource: p.rewardSource } : {}),
+    },
   };
 }
 
 /** Anti-corruption mapping: canonical `MemoryRecord` → harness `PatternRecord`. */
 export function recordToPattern(r: MemoryRecord): PatternRecord {
+  const rewardSource = r.metadata?.['rewardSource'];
   const lessonForm = r.metadata?.['lessonForm'];
   const lessonPairId = r.metadata?.['lessonPairId'];
   const pair: { lessonForm?: LessonForm; lessonPairId?: string } = (lessonForm === 'specific' || lessonForm === 'class')
@@ -535,6 +547,7 @@ export function recordToPattern(r: MemoryRecord): PatternRecord {
     pattern: r.text,
     type: PATTERN_TYPES.has(r.outcome) ? (r.outcome as PatternRecord['type']) : 'lesson-learned',
     reward: r.score,
+    ...(rewardSource === 'explicit' || rewardSource === 'default' ? { rewardSource } : {}),
     domain: r.metadata?.['domain'] ?? 'general',
     ts: r.timestamp,
     source: r.metadata?.['source'] ?? 'dz-teach',
@@ -1130,6 +1143,10 @@ function migrationRecords(projectRoot: string): MemoryRecord[] {
  * JSON file is never deleted. Returns the total record count after the write.
  */
 export async function recordPattern(projectRoot: string, p: PatternRecord, opts: { quarantine?: boolean } = {}): Promise<number> {
+  // The WRITER creates the store, not the lock (lock-never-seeds-store, ADR-001 item 6). Guarded by
+  // existsSync so a fixture that plants a FILE at .dz/memory still reaches the real open error
+  // below instead of EEXIST here (patterns.test.ts, forced-sqlite cause).
+  if (!existsSync(join(projectRoot, '.dz', 'memory'))) mkdirSync(join(projectRoot, '.dz', 'memory'), { recursive: true });
   if (p.lessonForm === 'class') ensureClassFormMarker(projectRoot);
   const { sqliteBackend } = readLearningConfig(projectRoot);
   // lesson-quarantine: a fresh lesson is a HYPOTHESIS — mark it when the feature is on. Folded

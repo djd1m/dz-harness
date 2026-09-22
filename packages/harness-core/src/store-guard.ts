@@ -13,7 +13,7 @@ import { existsSync, mkdirSync, readFileSync, realpathSync, renameSync, unlinkSy
 import { homedir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 
-import { withNamedLockSync } from './named-lock.js';
+import { withDirLockSync } from './named-lock.js';
 
 export const STORE_GUARD_VERSION = 1 as const;
 
@@ -256,7 +256,7 @@ export function writeStoreMark(
   validateObservation(observation);
   mkdirSync(guardRoot, { recursive: true, mode: 0o700 });
 
-  return withNamedLockSync(guardRoot, `store-guard-${basename(path, '.json')}`, () => {
+  return withDirLockSync(guardRoot, `store-guard-${basename(path, '.json')}`, () => {
     const previous = readStoreMark(project);
     if (options.expectedPreviousLexicalSource !== undefined
       && previous?.lexicalSource !== options.expectedPreviousLexicalSource) {
@@ -295,7 +295,7 @@ export function resetStoreMark(projectRoot: string, observation: StoreMarkObserv
     throw new Error('store guard reset requires command dz store-guard --reset');
   }
   mkdirSync(guardRoot, { recursive: true, mode: 0o700 });
-  return withNamedLockSync(guardRoot, `store-guard-${basename(path, '.json')}`, () => {
+  return withDirLockSync(guardRoot, `store-guard-${basename(path, '.json')}`, () => {
     const previous = readStoreMark(project);
     const before: StoreCountSnapshot = {
       lexicalRows: previous?.lexicalMax ?? observation.lexicalRows,

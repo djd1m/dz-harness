@@ -246,10 +246,10 @@ const isLoopback = (hostIp) => {
   const address = String(hostIp || '').replace(/^\[|\]$/g, '');
   return (net.isIP(address) === 4 && Number(address.split('.')[0]) === 127) || address === '::1';
 };
-const isStorageImage = (image) => imageParts(image).some((part) => STORAGE_NAMES.test(part));
+const isStorageImage = (image) => STORAGE_NAMES.test(imageName(image));
 const isStorage = (svc) =>
   isStorageImage(svc.image) || svc.ports.some((p) => STORAGE_PORT.has(Number(p.target)));
-const isProxy = (svc) => imageParts(svc.image).some((part) => PROXY_NAMES.test(part));
+const isProxy = (svc) => PROXY_NAMES.test(imageName(svc.image));
 
 function unrecognizedServiceText(svc) {
   const publicPorts = svc.ports

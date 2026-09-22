@@ -9,8 +9,8 @@
  * DEBT with a lifecycle:
  *
  *   emit   — the workflow records features/<slug>/.fa-state/reqe-due.json when Step-8 actually ran
- *            same-family under the override (not on every switch — a switch before Step 8 that
- *            still got cross-family QE creates no debt);
+ *            same-family after a usage switch, failed probe, fallback or explicit QE pin;
+ *            a review that stayed cross-family creates no debt;
  *   list   — `dz reqe` scans the debts; `dz usage` surfaces the count so the moment limits free up
  *            is the moment the debt is visible;
  *   brief  — `dz reqe --slug <s>` prints a ready cross-family review brief (the OTHER family than
@@ -18,14 +18,30 @@
  *   settle — `dz reqe --slug <s> --done --report <file>` clears the debt FAIL-CLOSED: only against
  *            an existing, non-trivial report that names a grade; the settlement is appended to
  *            08_qe_report.md so the artifact trail closes.
+ * The two-part verdict reports new and prior findings separately; blocked new findings signal CLI exit 3.
  *
  * HONEST SCOPE: nothing here re-runs QE automatically (no background spend — the human decides);
- * the same-family CLAUDE belt fallback (codex unavailable) is out of scope by design — it is
- * already logged loudly at run time and is not a limit-pressure artifact; runs from before this
- * feature carry no marker and are UNDETERMINABLE, not debt-free.
+ * routing-off runs are excluded by configuration. Old checkpoints without bridge facts or a usage
+ * marker are UNDETERMINABLE and explicitly degraded.
  */
+import { type ReqeVerdict } from './reqe-verdict.js';
 export declare const REQE_SCHEMA = "reqe-due-1";
 export declare const REQE_SCOPE: string;
+export type ReqeCause = 'usage-switched' | 'probe-failed' | 'same-family-fallback' | 'same-family-pinned';
+export type ReqeRungState = 'pending' | 'dispatched' | 'probe-failed' | 'refused-before-dispatch';
+export interface ReqeBridgeFacts {
+    happened: boolean | null;
+    rungState: ReqeRungState | null;
+    rungReason: string | null;
+    decline: string | null;
+}
+export interface ReqeEmitInput {
+    coderUsed: string | null | undefined;
+    qeReviewerUsed: string | null | undefined;
+    qeModelLabel: string | null | undefined;
+    routingRequested: boolean | null | undefined;
+    bridge?: ReqeBridgeFacts | null;
+}
 export type ModelFamily = 'claude' | 'openai';
 /** Family classification shared with the workflow's acFamOf (codex/gpt/openai markers ⇒ openai).
  * DELIBERATELY binary over the workflow's own CONTROLLED vocabulary (coderUsed ∈ claude | codex |
@@ -36,18 +52,17 @@ export declare function modelFamily(spec: string | null | undefined): ModelFamil
 export interface ReqeEmitDecision {
     emit: boolean;
     reason: string;
+    cause: ReqeCause | null;
+    degraded: boolean;
 }
-/** Emit iff the QE stage label carries the workflow's ' (usage-switched)' marker AND the reviewer
- * family equals the coder family. Marker-only (cross-family survived the switch) or same-family
- * WITHOUT the marker (the codex-unavailable Claude belt — degraded loudly at run time, not a
- * limit-pressure artifact) both create NO debt. */
-export declare function shouldEmitReqeDebt(input: {
-    coderUsed: string | null | undefined;
-    qeReviewerUsed: string | null | undefined;
-    qeModelLabel: string | null | undefined;
-}): ReqeEmitDecision;
+/** Families are authoritative; routing OFF is an explicit exclusion. For same-family reviews,
+ * classify usage overrides before probe failures, fallbacks and explicit pins. Missing checkpoint
+ * facts and unknown rung states stay visibly degraded rather than inventing a cause. */
+export declare function shouldEmitReqeDebt(input: ReqeEmitInput): ReqeEmitDecision;
 export interface ReqeDebt {
     schema: typeof REQE_SCHEMA;
+    cause: ReqeCause;
+    bridge?: ReqeBridgeFacts | null;
     slug: string;
     coderFamily: ModelFamily;
     qeFamily: ModelFamily;
@@ -69,6 +84,9 @@ export declare function buildReqeDebt(input: {
     qeGrade: string | null | undefined;
     reason: string;
     emittedAt?: string | null;
+    cause: ReqeCause;
+    bridge?: ReqeBridgeFacts | null;
+    runStamp?: string | null;
 }): ReqeDebt;
 /** Parse + validate a debt file's text. null = not a valid debt (the caller reports it as
  * malformed — a corrupt debt file is NAMED, never silently dropped). */
@@ -88,6 +106,7 @@ export interface ReqeSettlement {
     error: string | null;
     grade: string | null;
     epilogue: string | null;
+    verdict: ReqeVerdict | null;
 }
 /** Extract the verdict grade from a report, or null. LINE-ANCHORED and range-proof (Codex QE #7):
  * the boilerplate phrase `GRADE A-F` must not read as grade A, so a letter followed by a dash and
@@ -103,4 +122,6 @@ export declare function extractReportGrade(text: string): string | null;
 export declare function settleReqeDebt(debt: ReqeDebt, reportText: string, reportPath: string): ReqeSettlement;
 /** Render the debt list for `dz reqe` / the `dz usage` surfacing line. */
 export declare function renderReqeList(debts: readonly ReqeDebt[], malformed: number): string[];
+/** Stable keys, including zero counts, for the dz usage JSON output. */
+export declare function countReqeByCause(debts: readonly ReqeDebt[]): Record<ReqeCause, number>;
 //# sourceMappingURL=reqe.d.ts.map

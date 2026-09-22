@@ -78,6 +78,16 @@ export interface RoundLedgerRow {
   readonly reason: string | null;
   readonly round: number;
   readonly lessons: readonly string[];
+  /** Recall coverage for the "доведённая работа" metric: measured on 2026-09-21, 0 of 462
+   * ledger rows carried `recalled`, losing the shown-to-used link across 124 round rows.
+   * Preserve the lessons shown at open as exact IDs, deduplicated by Set and sorted; omit when empty. */
+  readonly recalled?: readonly string[];
+  /** Used lessons drawn from the shown set: `recalled` intersected with `lessons`, sorted and
+   * omitted when empty. Lessons obtained elsewhere do not count toward recall coverage. */
+  readonly recalledUsed?: readonly string[];
+  /** Shown lessons not used: `recalled` minus `lessons`, sorted and omitted when empty. Together
+   * with `recalledUsed`, preserves the denominator for the "доведённая работа" metric. */
+  readonly recalledUnused?: readonly string[];
   readonly noNewKnowledge: string | null;
   readonly note: string;
   readonly date: null;
@@ -568,6 +578,11 @@ export function closeRound(input: {
     ? (nonEmpty(input.shipTreeDirtyReason) ? input.shipTreeDirtyReason.trim() : 'not provided')
     : undefined;
 
+  const recalled = [...new Set(input.state.recalled)].sort();
+  const usedLessons = new Set(lessons);
+  const recalledUsed = recalled.filter((id) => usedLessons.has(id));
+  const recalledUnused = recalled.filter((id) => !usedLessons.has(id));
+
   const row: RoundLedgerRow = {
     slug: input.state.slug,
     stage: 'round',
@@ -584,6 +599,9 @@ export function closeRound(input: {
     reason: nonEmpty(input.reason) ? input.reason.trim() : null,
     round: input.state.round,
     lessons,
+    ...(recalled.length > 0 ? { recalled } : {}),
+    ...(recalledUsed.length > 0 ? { recalledUsed } : {}),
+    ...(recalledUnused.length > 0 ? { recalledUnused } : {}),
     noNewKnowledge: noNewKnowledge === '' ? null : noNewKnowledge,
     note: note === '' ? marker : `${marker} | ${note}`,
     date: null,
