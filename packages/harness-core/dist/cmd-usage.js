@@ -12,7 +12,8 @@
 // own never-block catch and silently wrote no evidence.
 import { appendFileSync, existsSync, readFileSync, renameSync, statSync, writeFileSync, } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { withNamedLockSync } from './named-lock.js';
+import { withProjectLockSync } from './named-lock.js';
+import { StoreAbsentError } from './store-lock.js';
 import { isRepoBoundary } from './repo-boundary.js';
 export const CMD_USAGE_LOG_RELATIVE = '.dz/cmd-usage.jsonl';
 export const CMD_USAGE_LOG_MAX_BYTES = 1_048_576;
@@ -607,8 +608,8 @@ function compactedText(records) {
  *
  * The named lock protects competing compactors. Emitters deliberately stay
  * lock-free; this advisory log accepts a possible racing row rather than making
- * every command wait on a lock. Every error is swallowed so compaction can never
- * turn `dz deadwood` into a gate.
+ * every command wait on a lock. An absent store is a no-op; other failures,
+ * including lock timeouts, propagate to the caller.
  */
 export function compactCmdUsageIfNeeded(root) {
     try {
@@ -616,7 +617,7 @@ export function compactCmdUsageIfNeeded(root) {
         const path = join(resolvedRoot, CMD_USAGE_LOG_RELATIVE);
         if (!existsSync(path) || statSync(path).size <= CMD_USAGE_LOG_MAX_BYTES)
             return;
-        withNamedLockSync(resolvedRoot, 'cmd-usage', () => {
+        withProjectLockSync(resolvedRoot, 'cmd-usage', () => {
             if (!existsSync(path) || statSync(path).size <= CMD_USAGE_LOG_MAX_BYTES)
                 return;
             const parsed = parseCmdUsageLines(readFileSync(path, 'utf8'), new Date());
@@ -629,8 +630,9 @@ export function compactCmdUsageIfNeeded(root) {
             renameSync(tmp, path);
         });
     }
-    catch {
-        /* advisory compaction is fail-open just like the writer and report */
+    catch (err) {
+        if (!(err instanceof StoreAbsentError))
+            throw err;
     }
 }
 //# sourceMappingURL=cmd-usage.js.map

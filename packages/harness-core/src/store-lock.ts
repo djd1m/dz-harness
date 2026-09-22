@@ -57,7 +57,7 @@
  * one is honoured as held, same as any other lock.
  */
 
-import { mkdirSync, rmSync, statSync } from 'node:fs';
+import { existsSync, rmSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { lockSync } from 'proper-lockfile';
 
@@ -70,6 +70,23 @@ export const LOCK_TIMEOUT_MS = 10_000;
 const MIN_STALE_MS = 2_000;
 /** Highest accepted environment override; keeps proper-lockfile's heartbeat timer in range. */
 const MAX_STALE_MS = 600_000;
+
+/** A store exists exactly when the project's .dz entry exists. */
+export function storeExists(projectRoot: string): boolean {
+  return existsSync(join(projectRoot, '.dz'));
+}
+
+/** Refusing a store-scoped lock must never seed a store. */
+export class StoreAbsentError extends Error {
+  readonly code = 'ESTOREABSENT';
+  constructor(readonly root: string, readonly lock: string) {
+    super(
+      `no store at ${root} — the lock ${lock} was not taken and nothing was created; ` +
+      'run `dz init` there, or pass --project <the real project root>',
+    );
+    this.name = 'StoreAbsentError';
+  }
+}
 
 /** Path of the lock guarding a project's pattern store (a DIRECTORY when held). */
 export function storeLockPath(projectRoot: string): string {
@@ -201,8 +218,8 @@ export async function withStoreLock<T>(
   fn: () => Promise<T>,
   opts: StoreLockOptions = {},
 ): Promise<T> {
+  if (!storeExists(projectRoot)) throw new StoreAbsentError(projectRoot, 'store');
   const { staleMs, timeoutMs, pollMs } = resolveOpts(opts);
-  mkdirSync(join(projectRoot, '.dz'), { recursive: true });
   const started = Date.now();
   const deadline = started + timeoutMs;
   let compromised: Error | undefined;
@@ -240,8 +257,8 @@ export function withStoreLockSync<T>(
   fn: () => T,
   opts: StoreLockOptions = {},
 ): T {
+  if (!storeExists(projectRoot)) throw new StoreAbsentError(projectRoot, 'store');
   const { staleMs, timeoutMs, pollMs } = resolveOpts(opts);
-  mkdirSync(join(projectRoot, '.dz'), { recursive: true });
   const started = Date.now();
   const deadline = started + timeoutMs;
   let compromised: Error | undefined;

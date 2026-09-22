@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "aaba277ec6c479e924c397ce1289662841d57bca243c91544390f36f093ce13c"
+        "sha256": "60121bdbe21cf85529a32aacbe06cdb5f7ef4cbf94d3b8153804fb17a09e5e4a"
       },
       {
         "path": "base/assets/html-template.js",
@@ -229,7 +229,7 @@
       },
       {
         "path": "bin/health-advisor.js",
-        "sha256": "440c7b22d7f1744eae1ec0af3f02aa26bda769e0f623f4103992d0666b91a04b"
+        "sha256": "732532ef58a8a4e69f6c4494c0fc3e2973eb3e8786b3884f56d5329573186eee"
       },
       {
         "path": "lib/appraisal-acl/crossref.js",
@@ -337,7 +337,7 @@
       },
       {
         "path": "lib/installer.js",
-        "sha256": "bbf91a8e43dad0561e1a98da2f0148e066ec9191bf93ba72596bf6804af48b28"
+        "sha256": "4906dd0d8d8a4f115a8c66c50af024ac390833034478b8ea9cf4c81cd7e929db"
       },
       {
         "path": "lib/registry-comparison.js",
@@ -989,5 +989,5 @@
       }
     ]
   },
-  "signature": "OGwVum0TRiLAeEslxKeO+FL/v3NjbWYSPCq+uts6UwvuthHdm4Drd2XmXkzCA7OpSkkggT2x3BytSqQqPrPeAg=="
+  "signature": "Lzx3OI2SyAKe7KVmoDZWaEgj1UUfQ+tYUsOixNg6DywAjG4MFaWXPMGXbGZnc4T3dsZVcdriq8yPS/4gepH/Dw=="
 }

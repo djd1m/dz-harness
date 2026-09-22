@@ -1,5 +1,6 @@
 /**
- * Named advisory locks — `.dz/locks/<name>.lock` (feature qe-bridge-claude, ADR-001 D4-A).
+ * Named advisory locks — project stores use `.dz/locks/<name>.lock`; generic directories
+ * use `.dz-locks/<name>.lock`, honouring an existing legacy `.dz/locks` directory.
  *
  * WHY. The pattern store already has a cross-process lock (`store-lock.ts`), but it guards ONE
  * resource. Other read-modify-write surfaces in this repo have the same lost-update shape and no
@@ -53,5 +54,7 @@ export declare class NamedLockCompromisedError extends Error {
  * heartbeat cannot fire while a synchronous `fn` blocks the event loop, so keep bodies well under
  * `staleMs` — the same caveat `withStoreLockSync` carries.
  */
-export declare function withNamedLockSync<T>(projectRoot: string, name: string, fn: () => T, opts?: StoreLockOptions): T;
+export declare function withProjectLockSync<T>(projectRoot: string, name: string, fn: () => T, opts?: StoreLockOptions): T;
+/** A directory mutex never seeds a store; an existing legacy lock directory is shared. */
+export declare function withDirLockSync<T>(dir: string, name: string, fn: () => T, opts?: StoreLockOptions): T;
 //# sourceMappingURL=named-lock.d.ts.map

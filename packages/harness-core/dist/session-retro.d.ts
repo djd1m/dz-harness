@@ -159,7 +159,7 @@ export declare function foldAdmissionDebt(events: readonly SessionEvent[], prior
  * a partial trailing line is left for the next scan) → fold the debt → persist state + sentinel.
  * NEVER throws (it runs inside a Stop hook; a broken scan must never surface as a turn failure).
  *
- * The WHOLE read→fold→write runs under `withNamedLockSync` (cross-family QE P1-3): two overlapping
+ * The WHOLE read→fold→write runs under `withProjectLockSync` (cross-family QE P1-3): two overlapping
  * Stop scans that both read the same offset/sentinel and then rename/unlink independently lose one
  * side's update — atomic per-file renames do not prevent that, only mutual exclusion does. The
  * critical section is short and synchronous (bounded ≤8 MB read, no subprocess, 65 ms measured on

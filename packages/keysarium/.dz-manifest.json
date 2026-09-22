@@ -389,7 +389,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/08-qe.md",
-        "sha256": "7ab9b7b1523289986a1f51b4cbbebf4410d96ad4a153f22fa8613e8a0f4f5fa7"
+        "sha256": "cb360cebbac91ac9ee8cf0ec8fb54f9c20385630928637f4940f80ec8c43778d"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/09-fleet-qe.md",
@@ -481,7 +481,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/scripts/check-plan-completeness.mjs",
-        "sha256": "08e69d2e63350fe2dc64483226fcd30901b77a8e930ca6280ef71181c67675b4"
+        "sha256": "2370036869bb643e2dba799fb98226ea0155f37efaea07a4e330dc76070e8804"
       },
       {
         "path": "templates/.claude/skills/feature-adr/scripts/markdown-masker.mjs",
@@ -989,5 +989,5 @@
       }
     ]
   },
-  "signature": "ZZFB7zXTZDB63ZrEzOczGdfH+uLbNRErmZNCPYwG3gYx5r7uI7aS2JjQG4eUkwKpELo28Jj20t6k9lvh2ejMAw=="
+  "signature": "7ts03MQOH8n1vtnKniTMnk2PU9gT3fUYDNZ7zM9QTMcn3et9ePLHWh30U68QBxjSvlOv5oAtYkn3Tsyrh2wyCA=="
 }

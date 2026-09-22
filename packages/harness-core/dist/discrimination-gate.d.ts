@@ -195,9 +195,6 @@ export interface DiscriminationResult {
     /** compat scalar: worst-of via RANK. A total order can only answer "worst thing present" —
      *  everything it destroys travels in findings[] / measurementValid / primaryAction. */
     readonly aggregate: DiscriminationVerdict;
-    /** @deprecated compat alias for ONE release — always `findings[0] ?? null` (worst first).
-     *  Removal in the next minor is a recorded release obligation (ADR-002 Decision item 6). */
-    readonly finding: DiscriminationFinding | null;
     /** one per distinct non-clean verdict present, worst-first. */
     readonly findings: readonly DiscriminationFinding[];
     readonly measurementValid: MeasurementValid;

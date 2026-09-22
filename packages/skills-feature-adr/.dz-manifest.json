@@ -5,7 +5,7 @@
     "files": [
       {
         "path": "CHANGELOG.md",
-        "sha256": "88e0389016f697b90731ee8743a35e523f0ccb079426d59861d894f33e516392"
+        "sha256": "26fa03f89862d03ebfc6447c866cb5d4dcbd5591ae4f8fb3a3ea08b6c586e19d"
       },
       {
         "path": "LICENSE",
@@ -13,7 +13,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "619a231352a602c736ce6eec1e5fa79a056dc2f5f80f6b35eed236f9670f7337"
+        "sha256": "4ec4cbca84920d4ba5e1df60c18b665763b4f44c676b5be1410da5a62c50aaf1"
       },
       {
         "path": "bin/cli.js",
@@ -37,7 +37,7 @@
       },
       {
         "path": "src/commands/init.js",
-        "sha256": "fbc3853435048c5b632119bf37cc702c4c305cae7de656548891295f6b9e8947"
+        "sha256": "07ff9d955422979ea67aa5aa454c13303f5ae644efb32e5cc6f359a509638347"
       },
       {
         "path": "src/commands/list.js",
@@ -157,7 +157,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/08-qe.md",
-        "sha256": "7ab9b7b1523289986a1f51b4cbbebf4410d96ad4a153f22fa8613e8a0f4f5fa7"
+        "sha256": "cb360cebbac91ac9ee8cf0ec8fb54f9c20385630928637f4940f80ec8c43778d"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/09-fleet-qe.md",
@@ -249,7 +249,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/scripts/check-plan-completeness.mjs",
-        "sha256": "08e69d2e63350fe2dc64483226fcd30901b77a8e930ca6280ef71181c67675b4"
+        "sha256": "2370036869bb643e2dba799fb98226ea0155f37efaea07a4e330dc76070e8804"
       },
       {
         "path": "templates/.claude/skills/feature-adr/scripts/markdown-masker.mjs",
@@ -317,7 +317,7 @@
       },
       {
         "path": "templates/.claude/workflows/feature-adr.js",
-        "sha256": "e96c5280ad21b604036cc912418c9627b0ff0ae8ca1436c58dcff951ba9a034b"
+        "sha256": "6c73f97f899f15b8c566b66ef9989c1b7a18f63d90c065ec14773d1ac002c249"
       },
       {
         "path": "templates/lib/memory-protocol.md",
@@ -329,5 +329,5 @@
       }
     ]
   },
-  "signature": "CfTJgsBbekrZE+IbzaQFLofuRDZ3B2CJTqPk6gjeOiLXhChXiPGkqxaWKCT+hdQTy6ORB7fu6vfMx37rwJf6Cg=="
+  "signature": "RKFy9fkbovh1l/D+rpi5SqFDkWjRoRiVsNUNjHsKDF4hbeHO6yqtwwdmnbikT9z2RnvOU1/cXgxfss9kTWbMDQ=="
 }

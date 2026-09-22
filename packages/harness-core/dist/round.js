@@ -313,6 +313,10 @@ export function closeRound(input, io) {
     const shipTreeDirtyReason = finishedForShip && shipTreeDirtyValue === undefined
         ? (nonEmpty(input.shipTreeDirtyReason) ? input.shipTreeDirtyReason.trim() : 'not provided')
         : undefined;
+    const recalled = [...new Set(input.state.recalled)].sort();
+    const usedLessons = new Set(lessons);
+    const recalledUsed = recalled.filter((id) => usedLessons.has(id));
+    const recalledUnused = recalled.filter((id) => !usedLessons.has(id));
     const row = {
         slug: input.state.slug,
         stage: 'round',
@@ -329,6 +333,9 @@ export function closeRound(input, io) {
         reason: nonEmpty(input.reason) ? input.reason.trim() : null,
         round: input.state.round,
         lessons,
+        ...(recalled.length > 0 ? { recalled } : {}),
+        ...(recalledUsed.length > 0 ? { recalledUsed } : {}),
+        ...(recalledUnused.length > 0 ? { recalledUnused } : {}),
         noNewKnowledge: noNewKnowledge === '' ? null : noNewKnowledge,
         note: note === '' ? marker : `${marker} | ${note}`,
         date: null,

@@ -12,11 +12,12 @@
  * |----------------|-----------------------------------------------------|------------------------------------------|
  * | Polarity       | mode-driven on POLICY (default `warn` ⇒ exit 0)      | **never-block, always**                  |
  * | Keys on        | presence of `tool_input.command` (AM-8)              | `payload.prompt`                          |
- * | Activation     | nearest `.dz` walking up from `payload.cwd` (AM-25)  | same                                      |
+ * | Activation     | nearest `.dz` from `payload.cwd`, bounded by the repo and HOME (AM-25) | same                         |
  * | Our own failure| exit 0, silent, note to `helper-errors.jsonl`        | exit 0, empty stdout, no write (AM-9)     |
  *
  * `.git` is **not** an activation marker (AM-25): a user-global hook that treats "any git checkout"
  * as opted-in reaches every repository on the machine, including trees nobody pointed at dz.
+ * It only stops the walk at the repository boundary; HOME is never returned or climbed past.
  *
  * The self-failure note goes to `$CODEX_HOME/dz-hooks/helper-errors.jsonl` (AM-33), never into a
  * project — writing it into `<project>/.dz/` would CREATE a `.dz/` in a foreign repo, which is the
@@ -119,15 +120,27 @@ function readPayload() {
 
 /**
  * Walk UP from cwd to the nearest directory containing a \`.dz\` DIRECTORY.
- * \`.git\` is deliberately not a marker (AM-25). No root => the helper is inert.
+ * HOME is never returned or climbed past. Check \`.dz\` before the repository boundary.
+ * \`.git\` only stops the walk, never activates (AM-25). No root => the helper is inert.
  */
 function findProjectRoot(startDir) {
   try {
     let dir = path.resolve(startDir);
+    let home = null;
+    // Step-8 HIGH (find-project-root-boundary): compare RESOLVED paths — a trailing slash in HOME (\`/root/\`)
+    // would otherwise never equal the walked \`dir\` and the home store would activate as a project root.
+    try { home = path.resolve(process.env.HOME || require('node:os').homedir()); } catch (err) { note('find-root', err); }
     for (let i = 0; i < 64; i += 1) {
+      if (dir === home) return null;
       try {
         if (fs.statSync(path.join(dir, '.dz')).isDirectory()) return dir;
       } catch (_) { /* not here; keep walking */ }
+      try {
+        const git = path.join(dir, '.git');
+        const marker = fs.lstatSync(git);
+        if (marker.isDirectory() && fs.lstatSync(path.join(git, 'HEAD')).isFile()) return null;
+        if (marker.isFile() && fs.readFileSync(git, 'utf8').startsWith('gitdir:')) return null;
+      } catch (_) { /* no readable boundary; keep walking */ }
       const parent = path.dirname(dir);
       if (parent === dir) return null;
       dir = parent;

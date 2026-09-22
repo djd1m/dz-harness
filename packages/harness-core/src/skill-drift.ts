@@ -42,6 +42,18 @@ export interface DriftedSkill {
   readonly locations: readonly string[];
 }
 
+export type CanonicalDefectKind = 'misplaced-enrichment-asset';
+
+/** A finding in the canonical source, reported without propagating or removing it. */
+export interface CanonicalDefect {
+  readonly skill: string;
+  readonly kind: CanonicalDefectKind;
+  /** Skill-dir-relative POSIX path. */
+  readonly path: string;
+  /** Absolute canonical skill directory. */
+  readonly canonical: string;
+}
+
 /** Options for {@link sweepSkillDrift}. */
 export interface SweepOptions {
   /**
@@ -69,6 +81,8 @@ export interface SweepResult {
   readonly duplicated: number;
   /** Skills that byte-differ AND are not allowlisted, sorted by `driftFiles` desc — the gate keys on this. */
   readonly drifted: readonly DriftedSkill[];
+  /** Canonical-side findings, independent of copy drift and its allowlist. */
+  readonly canonicalDefects: readonly CanonicalDefect[];
   /** Skills that byte-differ but are allowlisted (intentional) — surfaced for transparency, not gated. */
   readonly allowlisted: readonly DriftedSkill[];
 }
@@ -112,12 +126,22 @@ export interface SyncResult {
   readonly synced: number;
   /** # copies/files that differ (from canonical in resolved modes; between peers in canonical-free mode). */
   readonly drifted: number;
+  /** Nonempty in write mode means refusal: `synced: 0`, `wrote: []`. */
+  readonly canonicalDefects: readonly CanonicalDefect[];
   /** Abs paths of copies written (empty when `check:true` / peer / refuse — proves no writes). */
   readonly wrote: readonly string[];
 }
 
 const SKILL_MANIFEST = 'SKILL.md';
-const IGNORED_ENTRIES = new Set(['node_modules', '__pycache__', '.DS_Store', 'run-history.json']);
+// Runtime state, never skill CONTENT. `.agentic-qe/` earned its place by measurement on
+// 2026-09-21: merely INVOKING the decision-mockups skill made its AQE runtime create a SQLite
+// store inside the live `.claude/skills/decision-mockups/`, which the packaged copies do not
+// have — so `no-skill-drift` reported drift and BLOCKED `dz guard --op publish`. The directory
+// is gitignored repo-wide (`**/.agentic-qe/`) and untracked; the drift sweep simply did not read
+// .gitignore. Note the denylist stays narrow on purpose: a blanket "skip dot-entries" would
+// silence real drift in the nine packages whose skill content legitimately lives under
+// `templates/.claude/`.
+const IGNORED_ENTRIES = new Set(['node_modules', '__pycache__', '.DS_Store', 'run-history.json', '.agentic-qe']);
 
 /** md5 of a file's bytes (identical to both prototype scripts ⇒ identical drift verdicts). */
 function md5(path: string): string {
@@ -127,7 +151,13 @@ function md5(path: string): string {
 /** Recursive file list under `dir`; skips `node_modules` / `__pycache__` / `.DS_Store`. */
 function walk(dir: string): string[] {
   const out: string[] = [];
-  for (const entry of readdirSync(dir)) {
+  let entries: string[];
+  try {
+    entries = readdirSync(dir);
+  } catch {
+    return out;
+  }
+  for (const entry of entries) {
     if (IGNORED_ENTRIES.has(entry)) continue;
     const p = join(dir, entry);
     let st;
@@ -181,11 +211,25 @@ function withoutEnrichmentNames(rels: readonly string[]): string[] {
   return rels.filter((r) => TARGET_ENRICHMENT_ASSETS[r.split(sep).join('/')] === undefined);
 }
 
-function comparePeers(copies: readonly string[]): { driftFiles: number; missingFiles: number; totalFiles: number } {
+/** Find misplaced target metadata in a canonical source, sorted by relative POSIX path. */
+export function findCanonicalDefects(canonicalDir: string, skill: string): CanonicalDefect[] {
+  const canonical = resolve(canonicalDir);
+  return walk(canonical)
+    .map((p) => relative(canonical, p).split(sep).join('/'))
+    .filter((rel) => TARGET_ENRICHMENT_ASSETS[rel] !== undefined && !isEnrichmentAsset(rel, canonical))
+    .sort()
+    .map((path) => ({ skill, kind: 'misplaced-enrichment-asset', path, canonical }));
+}
+
+function comparePeers(
+  copies: readonly string[],
+  exclusions: ReadonlyMap<string, ReadonlySet<string>> = new Map(),
+): { driftFiles: number; missingFiles: number; totalFiles: number } {
+  const excluded = (copy: string, rel: string): boolean => exclusions.get(copy)?.has(rel.split(sep).join('/')) === true;
   const relFiles = new Set<string>();
   for (const c of copies) for (const f of walk(c)) {
     const rel = relative(c, f);
-    if (isEnrichmentAsset(rel, c)) continue;
+    if (isEnrichmentAsset(rel, c) || excluded(c, rel)) continue;
     relFiles.add(rel);
   }
 
@@ -195,7 +239,9 @@ function comparePeers(copies: readonly string[]): { driftFiles: number; missingF
     const hashes = new Set<string>();
     for (const c of copies) {
       const p = join(c, rel);
-      if (existsSync(p)) hashes.add(md5(p));
+      // An excluded canonical file is absent from its content; another package's same path
+      // still contributes to the union and must compare as an extra file.
+      if (!excluded(c, rel) && existsSync(p)) hashes.add(md5(p));
       else {
         missingFiles++;
         hashes.add('__MISSING__');
@@ -291,7 +337,7 @@ function findSkillDirs(root: string, scope: 'packages' | 'installs' | 'all' = 'a
  * Detect intra-monorepo skill drift: find every skill duplicated across ≥2 locations and report
  * which copies byte-differ. Pure port of `scripts/drift-sweep-skills.mjs`.
  *
- * `result.drifted.length === 0` is the exact condition the CI gate keys on.
+ * Gates must inspect both copy drift and canonical defects.
  */
 export function sweepSkillDrift(root: string, opts: SweepOptions = {}): SweepResult {
   const scope = opts.scope ?? 'all';
@@ -308,16 +354,22 @@ export function sweepSkillDrift(root: string, opts: SweepOptions = {}): SweepRes
 
   let duplicated = 0;
   const drifted: DriftedSkill[] = [];
+  const canonicalDefects: CanonicalDefect[] = [];
   const allowlisted: DriftedSkill[] = [];
 
   for (const [name, unsorted] of [...byName.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
+    const meta = join(root, 'packages/@dzhechkov/skills-meta', name);
+    const defects = unsorted.includes(meta) ? findCanonicalDefects(meta, name) : [];
+    canonicalDefects.push(...defects);
     if (unsorted.length < 2) continue;
     duplicated++;
     const copies = [...unsorted].sort();
 
     // Per-skill byte-comparison of every copy against each other (extracted to `comparePeers`
     // so the canonical-free `sync-canonical --check` reuses the EXACT same logic).
-    const { driftFiles, missingFiles, totalFiles } = comparePeers(copies);
+    const { driftFiles, missingFiles, totalFiles } = comparePeers(
+      copies, new Map([[meta, new Set(defects.map((d) => d.path))]]),
+    );
 
     if (driftFiles > 0) {
       const entry: DriftedSkill = {
@@ -335,7 +387,7 @@ export function sweepSkillDrift(root: string, opts: SweepOptions = {}): SweepRes
   const byDrift = (a: DriftedSkill, b: DriftedSkill): number => b.driftFiles - a.driftFiles;
   drifted.sort(byDrift);
   allowlisted.sort(byDrift);
-  return { duplicated, drifted, allowlisted };
+  return { duplicated, drifted, canonicalDefects, allowlisted };
 }
 
 /**
@@ -344,6 +396,7 @@ export function sweepSkillDrift(root: string, opts: SweepOptions = {}): SweepRes
  * byte-identity. Pure port of `scripts/sync-canonical-skill.mjs`, extended with a canonical-free path.
  *
  * `check:true` writes NOTHING (`wrote` stays empty) and only reports the drift count.
+ * A canonical defect also prevents all writes, while reporting the same drift as check mode.
  * Default overwrites drifting copies; a subsequent {@link sweepSkillDrift} then reports 0 drift.
  *
  * When NO canonical resolves (`resolvedFrom === 'none'` — no `--from`, no `skills-meta`, no `--auto`):
@@ -372,12 +425,13 @@ export function syncCanonicalSkill(root: string, skill: string, opts: SyncCanoni
     if (check) {
       // CANONICAL-FREE peer check: are the copies byte-identical to EACH OTHER? (<2 ⇒ vacuously so.)
       const drifted = allCopies.length < 2 ? 0 : comparePeers(allCopies).driftFiles;
-      return { canonical: '', canonicalExists: false, resolvedFrom, copies: allCopies.length, synced: 0, drifted, wrote: [] };
+      return { canonical: '', canonicalExists: false, resolvedFrom, copies: allCopies.length, synced: 0, drifted, canonicalDefects: [], wrote: [] };
     }
     // Bare WRITE with no resolvable canonical → REFUSE. Mutates nothing (`wrote:[]` proves it).
-    return { canonical: '', canonicalExists: false, resolvedFrom, copies: allCopies.length, synced: 0, drifted: 0, wrote: [] };
+    return { canonical: '', canonicalExists: false, resolvedFrom, copies: allCopies.length, synced: 0, drifted: 0, canonicalDefects: [], wrote: [] };
   }
 
+  const canonicalDefects = findCanonicalDefects(canonical, skill);
   const canonFiles = withoutEnrichmentNames(walk(canonical).map((p) => relative(canonical, p))).sort();
 
   // Every <skill>/ dir except the canonical itself.
@@ -403,7 +457,7 @@ export function syncCanonicalSkill(root: string, skill: string, opts: SyncCanoni
     if (!differs) continue;
     drifted++;
 
-    if (check) continue; // report only — write NOTHING
+    if (check || canonicalDefects.length > 0) continue; // check or refusal — write NOTHING
 
     // Overwrite: remove extra files, then copy every canonical file byte-for-byte.
     for (const f of copyFiles) if (!canonFiles.includes(f)) rmSync(join(copy, f));
@@ -417,5 +471,5 @@ export function syncCanonicalSkill(root: string, skill: string, opts: SyncCanoni
     wrote.push(copy);
   }
 
-  return { canonical, canonicalExists: true, resolvedFrom, copies: copies.length, synced, drifted, wrote };
+  return { canonical, canonicalExists: true, resolvedFrom, copies: copies.length, synced, drifted, canonicalDefects, wrote };
 }

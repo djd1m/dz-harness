@@ -14,7 +14,7 @@ Defines the expected structural patterns for each artifact type. Used by Layer B
 |---|----------------|----------|---------------------|---------------|
 | 1 | `--- name/description frontmatter ---` | Yes | <1% | -- |
 | 2 | `# Title` | Yes | 1-2% | -- |
-| 3 | Trust Tier comment (`<!-- Trust Tier: ... -->`) | Yes | <1% | -- |
+| 3 | Trust Tier comment (`<!-- Trust Tier: ... -->`) | No | <1% | Legacy marker: kept in bto's own hand-written SKILL.md (guarded by skill-frontmatter-conformance.test.mjs:56), NOT emitted by the generator (build.md:77) and not required of generated skills — CHECK-S0 requires the frontmatter fence instead. MEASURED 2026-09-21: no scoring code reads it. |
 | 4 | `> One-line description` (blockquote) | Yes | 1-2% | -- |
 | 5 | `## Overview` | Yes | 5-15% | "Purpose", "Introduction", "About" |
 | 6 | `## Modules` (table) | If multi-module | 3-8% | "Components", "Architecture" |
@@ -35,7 +35,7 @@ Defines the expected structural patterns for each artifact type. Used by Layer B
 ### Structural Patterns (Quality Indicators)
 
 - **Title matches directory name:** `# BTO` in `.claude/skills/bto/SKILL.md`
-- **Trust Tier declared:** HTML comment with tier number and path to promotion
+- **Trust Tier declared:** `trust_tier` in frontmatter; the HTML comment is a legacy marker in bto's own hand-written SKILL.md, not required of generated skills.
 - **Modules table links to files:** Each row in `## Modules` table corresponds to a real file in `modules/`
 - **Module detail sections have consistent structure:** Each `## Module N` contains: Goal (1 sentence), Protocol (numbered steps), Output format (code block or template)
 - **Anti-patterns table is actionable:** Minimum 3 rows, each with both a problem description and a concrete fix

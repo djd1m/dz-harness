@@ -607,6 +607,43 @@ describe('the storage-port rule finally has a check that can fail', () => {
     assert.doesNotMatch(bypass.result.stdout, /✅/);
   });
 
+  for (const image of ['openresty/unit', 'nginx/unit', 'bitnami/kubectl', 'postgres/unit']) {
+    test('image namespace does not classify ' + image + ' as proxy or storage (exit 0)', () => {
+      const run = fakeDockerCheck({ compose: 'services:\n  candidate:\n'
+        + '    image: ' + image + '\n'
+        + '    ports:\n      - mode: ingress\n        target: 8080\n        published: "8080"\n        protocol: tcp\n'
+        + '  app:\n    image: node:22\n'
+        + '    ports:\n      - mode: ingress\n        target: 3000\n        published: "3000"\n        protocol: tcp\n' }, ['$PROJECT']);
+      assert.equal(run.result.status, 0, run.result.stdout + run.result.stderr);
+    });
+  }
+
+  for (const image of ['nginx:alpine', 'traefik:v3',
+    'registry.example.com/team/haproxy@sha256:abc']) {
+    test('last image component recognizes proxy ' + image + ' (exit 1)', () => {
+      const run = fakeDockerCheck({ compose: 'services:\n  gateway:\n'
+        + '    image: ' + image + '\n'
+        + '    ports:\n      - mode: ingress\n        target: 80\n        published: "80"\n        protocol: tcp\n'
+        + '  app:\n    image: node:22\n'
+        + '    ports:\n      - mode: ingress\n        target: 3000\n        published: "3000"\n        protocol: tcp\n' }, ['$PROJECT']);
+      assert.equal(run.result.status, 1, run.result.stdout + run.result.stderr);
+      assert.match(run.result.stdout, /reverse-proxy.*gateway/i);
+      assert.match(run.result.stdout, /app/);
+    });
+  }
+
+  for (const image of ['postgres:16', 'bitnami/postgresql', 'ghcr.io/org/redis:7']) {
+    test('last image component recognizes storage ' + image + ' (exit 1)', () => {
+      // An unusual target port proves image recognition, independently of STORAGE_PORT.
+      const run = fakeDockerCheck({ compose: 'services:\n  storage:\n'
+        + '    image: ' + image + '\n'
+        + '    environment:\n      REDIS_PASSWORD: fixture-password\n'
+        + '    ports:\n      - mode: ingress\n        target: 18080\n        published: "18080"\n        protocol: tcp\n' }, ['$PROJECT']);
+      assert.equal(run.result.status, 1, run.result.stdout + run.result.stderr);
+      assert.match(run.result.stdout, /storage: порт 18080 → 18080/);
+    });
+  }
+
   test('P31 — honest exit 0 receipt counts scope and names an unchecked published app', () => {
     const catalog = fakeDockerCheck({ compose: 'services:\n  db:\n    image: postgres:16\n'
       + '  web:\n    image: node:22\n'

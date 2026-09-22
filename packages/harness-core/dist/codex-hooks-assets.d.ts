@@ -12,11 +12,12 @@
  * |----------------|-----------------------------------------------------|------------------------------------------|
  * | Polarity       | mode-driven on POLICY (default `warn` ⇒ exit 0)      | **never-block, always**                  |
  * | Keys on        | presence of `tool_input.command` (AM-8)              | `payload.prompt`                          |
- * | Activation     | nearest `.dz` walking up from `payload.cwd` (AM-25)  | same                                      |
+ * | Activation     | nearest `.dz` from `payload.cwd`, bounded by the repo and HOME (AM-25) | same                         |
  * | Our own failure| exit 0, silent, note to `helper-errors.jsonl`        | exit 0, empty stdout, no write (AM-9)     |
  *
  * `.git` is **not** an activation marker (AM-25): a user-global hook that treats "any git checkout"
  * as opted-in reaches every repository on the machine, including trees nobody pointed at dz.
+ * It only stops the walk at the repository boundary; HOME is never returned or climbed past.
  *
  * The self-failure note goes to `$CODEX_HOME/dz-hooks/helper-errors.jsonl` (AM-33), never into a
  * project — writing it into `<project>/.dz/` would CREATE a `.dz/` in a foreign repo, which is the

@@ -8,8 +8,8 @@
  * concurrent `rotate --keep 0` can delete the very snapshot family a live reindex is relying on as
  * its undo point, with only a 10-minute grace period standing in the way.
  *
- * {@link withAgentdbSnapshotLock} is a thin, dbFile-addressed wrapper over `withNamedLockSync`: the
- * lock lives at `<dirname(dbFile)>/.dz/locks/agentdb-snapshot.lock` — a pure function of the
+ * {@link withAgentdbSnapshotLock} is a thin, dbFile-addressed wrapper over `withDirLockSync`: the
+ * lock lives at `<dirname(dbFile)>/.dz-locks/agentdb-snapshot.lock` (or the pre-existing legacy `.dz/locks` path) — a pure function of the
  * database's OWN directory, never of the caller's cwd, so a project store and the home brain each
  * get their own lock (AC-5) regardless of where `dz` happens to be invoked from. AM-7: it defaults
  * `staleMs` to {@link AGENTDB_SNAPSHOT_LOCK_STALE_MS} (5 minutes) rather than named-lock's ordinary
@@ -54,7 +54,7 @@
 import { closeSync, openSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import { basename, dirname } from 'node:path';
-import { withNamedLockSync } from './named-lock.js';
+import { withDirLockSync } from './named-lock.js';
 /** A marker older than this is abandoned — its family is no longer protected (FR-3). `pid` is
  * recorded for operator debugging only and is NEVER consulted to decide liveness. */
 export const REINDEX_MARKER_TTL_MS = 60 * 60 * 1000;
@@ -89,7 +89,7 @@ export function msFromBackupPath(backupPath) {
  * {@link AGENTDB_SNAPSHOT_LOCK_STALE_MS} unless the caller names its own.
  */
 export function withAgentdbSnapshotLock(dbFile, fn, opts = {}) {
-    return withNamedLockSync(dirname(dbFile), 'agentdb-snapshot', fn, {
+    return withDirLockSync(dirname(dbFile), 'agentdb-snapshot', fn, {
         staleMs: AGENTDB_SNAPSHOT_LOCK_STALE_MS,
         ...opts,
     });

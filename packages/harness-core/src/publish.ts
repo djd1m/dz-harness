@@ -38,12 +38,29 @@ export type ProbeOutcome = {
 export const REGISTRY_PROBE_BUDGET = 90;
 export const REGISTRY_PROBE_INTERVAL_MS = 10_000;
 
+export type RegistryProbe =
+  | { kind: 'published'; version: string; scripted?: true }
+  | { kind: 'never-published'; scripted?: true }
+  | { kind: 'unknown'; reason: string; scripted?: true };
+
+/**
+ * Scripted registry seam for tests that spawn the REAL bin and therefore cannot inject `exec`
+ * (first-publish-not-offline AM-A; same shape as `WF_RUN_DISPATCH_SCRIPT_ENV`). Value: path to a JSON
+ * file `{ "<name>": "<x.y.z>" | "E404" | "<npm code>" }`. When set, no `npm view` runs at all and EVERY
+ * row carries `probeOverride: true` — a scripted plan can never read as a verified one.
+ */
+export const PUBLISH_PROBE_SCRIPT_ENV = 'DZ_PUBLISH_PROBE_SCRIPT';
+
 /** Result for a single package publish attempt. */
 export interface PublishResult {
   readonly name: string;
   readonly oldVersion: string;
   readonly newVersion: string;
   readonly status: 'published' | 'skipped' | 'error';
+  readonly firstPublish?: boolean;
+  readonly probe?: RegistryProbe['kind'];
+  /** Present (true) only when `DZ_PUBLISH_PROBE_SCRIPT` answered instead of the registry. */
+  readonly probeOverride?: boolean;
   readonly error?: string | undefined;
   /** Live publish only: how many registry probes were needed to confirm the exact new version. */
   readonly registryProbes?: number | undefined;
@@ -176,26 +193,54 @@ export function compareVersions(a: string, b: string): number {
   return a0 - b0 || a1 - b1 || a2 - b2;
 }
 
-/**
- * The version already published to npm for `name`, or `undefined` if the package
- * has never been published (or npm is unreachable). Used to bump from
- * max(local, published) so a locally-reverted version can't collide (audit #10).
- */
 type PublishExec = (command: string, options: ExecSyncOptionsWithStringEncoding) => string;
 
-function publishedVersion(name: string, exec: PublishExec = execSync): string | undefined {
+/** Only explicit npm absence signals establish that a package has never been published. */
+export function classifyRegistryProbe(stderr: string, message: string): RegistryProbe {
+  const detail = `${stderr}\n${message}`;
+  if (/\bcode E404\b/.test(detail) || /\b404 Not Found\b/.test(detail) || /is not in this registry/.test(detail)) {
+    return { kind: 'never-published' };
+  }
+  const reason = /npm error code (\S+)/.exec(detail)?.[1]
+    ?? stderr.split(/\r?\n/).map((line) => line.trim()).find((line) => line.length > 0)
+    ?? message;
+  return { kind: 'unknown', reason };
+}
+
+function scriptedProbe(name: string): RegistryProbe | undefined {
+  const scriptPath = process.env[PUBLISH_PROBE_SCRIPT_ENV];
+  if (typeof scriptPath !== 'string' || scriptPath === '') return undefined;
+  let table: Record<string, unknown>;
   try {
-    const out = exec(`npm view ${name} version --prefer-online`, { stdio: ['ignore', 'pipe', 'ignore'], encoding: 'utf-8', timeout: 20000 }).trim();
-    return /^\d+\.\d+\.\d+/.test(out) ? out : undefined;
-  } catch {
-    return undefined; // 404 (never published) or offline → fall back to local
+    table = JSON.parse(readFileSync(scriptPath, 'utf-8')) as Record<string, unknown>;
+  } catch (err) {
+    return { kind: 'unknown', reason: `scripted probe unreadable: ${err instanceof Error ? err.message : String(err)}`, scripted: true };
+  }
+  const answer = table[name];
+  if (typeof answer !== 'string') return { kind: 'unknown', reason: `scripted probe has no entry for ${name}`, scripted: true };
+  if (/^\d+\.\d+\.\d+/.test(answer)) return { kind: 'published', version: answer, scripted: true };
+  if (answer === 'E404') return { kind: 'never-published', scripted: true };
+  return { kind: 'unknown', reason: answer, scripted: true };
+}
+
+function probeRegistry(name: string, exec: PublishExec = execSync): RegistryProbe {
+  const scripted = scriptedProbe(name);
+  if (scripted !== undefined) return scripted;
+  try {
+    const out = exec(`npm view ${name} version --prefer-online`, { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf-8', timeout: 20000 }).trim();
+    return /^\d+\.\d+\.\d+/.test(out)
+      ? { kind: 'published', version: out }
+      : { kind: 'unknown', reason: 'unparsable npm view output' };
+  } catch (err) {
+    const error = err as { stderr?: unknown; message?: unknown } | null | undefined;
+    return classifyRegistryProbe(String(error?.stderr ?? ''), String(error?.message ?? ''));
   }
 }
 
 /** The higher of the local version and the npm-published version (audit #10). */
 function maxPublished(name: string, localVersion: string, exec: PublishExec = execSync): string {
-  const pub = publishedVersion(name, exec);
-  return pub !== undefined && compareVersions(pub, localVersion) > 0 ? pub : localVersion;
+  const probe = probeRegistry(name, exec);
+  return probe.kind === 'published' && compareVersions(probe.version, localVersion) > 0 ? probe.version : localVersion;
 }
 
 // ── workspace-floor preflight (feature workspace-dep-protocol, Codex P1) ─────
@@ -829,6 +874,8 @@ export function publishPackages(
   opts: {
     dryRun?: boolean | undefined;
     filter?: string[] | undefined;
+    /** Exact CLI-selected batch; an empty list means no targets. Discovery remains unfiltered. */
+    targetNames?: readonly string[] | undefined;
     bumpOnly?: boolean | undefined;
     /**
      * Path to the Ed25519 signing key, OUTSIDE the repository. A pack that carries a
@@ -860,8 +907,8 @@ export function publishPackages(
     /**
      * Floor probe injection for the workspace-floor preflight (see
      * `findUnpublishedWorkspaceFloors`). Default: a real `npm view` probe, which runs only on LIVE
-     * publishes — dry-run stays offline, matching `maxPublished`. Injecting a probe also arms the
-     * preflight under dry-run, which is how the wiring test drives it without network.
+     * publishes. Injecting a probe also arms this floor preflight under dry-run. The package's
+     * own registry classification runs in both live and dry-run modes independently.
      */
     probeFloor?: ((name: string, version: string) => boolean) | undefined;
     /** Subprocess injection for tests; the default is Node's synchronous executor. */
@@ -907,9 +954,13 @@ export function publishPackages(
 
   const packages = discoverPackages(monorepoRoot);
   const results: PublishResult[] = [];
-  const filtered = opts.filter && opts.filter.length > 0
+  const registryProbes = new Map<string, RegistryProbe>();
+  const matching = opts.filter && opts.filter.length > 0
     ? packages.filter((p) => opts.filter!.some((f) => matchesPublishFilter(p, f, monorepoRoot)))
     : packages;
+  const filtered = opts.targetNames === undefined
+    ? matching
+    : matching.filter((p) => opts.targetNames!.includes(p.name));
   // Publish dependencies before dependents so pnpm rewrites workspace:* to the
   // freshly-bumped version, never a stale one (the harness-cli@0.3.122 breakage).
   const ordered = orderByDependencies(filtered);
@@ -1014,11 +1065,29 @@ export function publishPackages(
       failedInBatch.add(pkg.name);
       continue;
     }
-    // Bump from max(local, npm-published) so a locally-reverted version can't
-    // collide with an already-published one (audit #10). Dry-run stays offline
-    // (local only) to keep previews fast and network-free.
-    const base = opts.dryRun ? oldVersion : maxPublished(pkg.name, oldVersion, exec);
-    const newVersion = bumpPatch(base);
+    // Both modes establish registry state before planning: absence keeps the disk version,
+    // uncertainty refuses a bump, and an existing release bumps from max(local, published).
+    const registryProbe = probeRegistry(pkg.name, exec);
+    registryProbes.set(pkg.name, registryProbe);
+    if (registryProbe.kind === 'unknown') {
+      results.push({
+        name: pkg.name, oldVersion, newVersion: oldVersion,
+        status: opts.dryRun ? 'skipped' : 'error',
+        probe: 'unknown',
+        error: opts.dryRun
+          ? `NOT ESTABLISHED (registry unreachable: ${registryProbe.reason})`
+          : `registry unreachable: ${registryProbe.reason} — cannot tell "never published" from "offline"; not bumping blind`,
+      });
+      if (!opts.dryRun) failedInBatch.add(pkg.name);
+      continue;
+    }
+    const plan = {
+      base: registryProbe.kind === 'published' && compareVersions(registryProbe.version, oldVersion) > 0
+        ? registryProbe.version : oldVersion,
+      firstPublish: registryProbe.kind === 'never-published',
+      probe: registryProbe.kind,
+    };
+    const newVersion = plan.firstPublish ? oldVersion : bumpPatch(plan.base);
 
     // Preflight: refuse to publish a pack whose `files` whitelist would silently
     // drop a skill dir from the tarball (the bug that shipped skills-meta without
@@ -1113,7 +1182,7 @@ export function publishPackages(
     if (opts.dryRun) {
       // NOT a statement that the package would publish cleanly — only that the gates checked ABOVE
       // this line passed. Everything below it (build, re-sign, pack, the package's own
-      // `prepublishOnly`, the registry itself) is untouched by a dry run and is named as such.
+      // `prepublishOnly`, the registry's publish receipt) is untouched by a dry run and named as such.
       const NOT_VERIFIED_BY_DRY_RUN = Object.freeze([
         'prepublishOnly пакета (его собственный гейт публикации)',
         'сборка dist из исходников',
@@ -1492,7 +1561,17 @@ export function publishPackages(
   }
 
   return {
-    packages: results,
+    // Decorate every final path, including packed transport and gate failures. A dependency
+    // blocked before its own probe has unknown registry state; keep the deps-first short circuit.
+    packages: results.map((result) => {
+      const registryProbe = registryProbes.get(result.name);
+      return {
+        ...result,
+        probe: registryProbe?.kind ?? 'unknown',
+        ...(registryProbe?.kind === 'never-published' ? { firstPublish: true } : {}),
+        ...(registryProbe?.scripted === true ? { probeOverride: true } : {}),
+      };
+    }),
     published: results.filter((r) => r.status === 'published').length,
     skipped: results.filter((r) => r.status === 'skipped').length,
     errors: results.filter((r) => r.status === 'error').length,

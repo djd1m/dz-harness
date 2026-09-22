@@ -117,6 +117,11 @@ const NON_STANDALONE = new Map([
   ['intake-archive', 'engine requires ../../case-state/engine/lock.js and ../../../lib/, not copied'],
 ]);
 
+function nonStandaloneRefusal(name) {
+  if (!NON_STANDALONE.has(name)) return null;
+  return `${name} ships as documentation and cannot be installed standalone: ${NON_STANDALONE.get(name)}`;
+}
+
 function discoverSkills() {
   const order = new Map(EXTENDED_SKILL_META.map((s, i) => [s.name, i]));
   let entries;
@@ -343,7 +348,7 @@ function copyDirRecursive(src, dest) {
 function installSkill(skillName, masterDir) {
   const skill = SKILLS.find(s => s.name === skillName);
   if (!skill) {
-    return { success: false, error: `Unknown skill: ${skillName}` };
+    return { success: false, error: nonStandaloneRefusal(skillName) ?? `Unknown skill: ${skillName}` };
   }
 
   const srcDir = path.join(getSkillsDir(), skillName);
@@ -591,6 +596,7 @@ module.exports = {
   // the historical export name — bound to the DERIVED set, never to the metadata table
   EXTENDED_SKILLS: SKILLS,
   NON_STANDALONE,
+  nonStandaloneRefusal,
   discoverSkills,
   BASE_FILES,
   C,

@@ -28,6 +28,14 @@ export interface PatternRecord {
     readonly type: 'rule' | 'success-pattern' | 'lesson-learned';
     /** Reward signal in [0, 1]. */
     readonly reward: number;
+    /**
+     * Whether the reward was explicit or defaulted: measured rewards had only 7 distinct
+     * values, a median of 0.8, and covered 5.5% of impressions (338 / 6140).
+     * This field does NOT change the default reward value; absent means unknown for legacy records.
+     * Set at record creation and unchanged by subsequent reinforce/guard-reinforce calls,
+     * even with an explicit --reward, it describes the first invocation, not the latest.
+     */
+    readonly rewardSource?: 'explicit' | 'default';
     /** Domain tag (e.g. "performance", "api", "general"). */
     readonly domain: string;
     /** ISO-8601 timestamp the record was written. */

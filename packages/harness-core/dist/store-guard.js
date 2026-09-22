@@ -11,7 +11,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, realpathSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
-import { withNamedLockSync } from './named-lock.js';
+import { withDirLockSync } from './named-lock.js';
 export const STORE_GUARD_VERSION = 1;
 /**
  * A fall of more than 10% from the lifetime maximum is anomalous. A second,
@@ -163,7 +163,7 @@ export function writeStoreMark(projectRoot, observation, options = {}) {
     const guardRoot = dirname(path);
     validateObservation(observation);
     mkdirSync(guardRoot, { recursive: true, mode: 0o700 });
-    return withNamedLockSync(guardRoot, `store-guard-${basename(path, '.json')}`, () => {
+    return withDirLockSync(guardRoot, `store-guard-${basename(path, '.json')}`, () => {
         const previous = readStoreMark(project);
         if (options.expectedPreviousLexicalSource !== undefined
             && previous?.lexicalSource !== options.expectedPreviousLexicalSource) {
@@ -201,7 +201,7 @@ export function resetStoreMark(projectRoot, observation) {
         throw new Error('store guard reset requires command dz store-guard --reset');
     }
     mkdirSync(guardRoot, { recursive: true, mode: 0o700 });
-    return withNamedLockSync(guardRoot, `store-guard-${basename(path, '.json')}`, () => {
+    return withDirLockSync(guardRoot, `store-guard-${basename(path, '.json')}`, () => {
         const previous = readStoreMark(project);
         const before = {
             lexicalRows: previous?.lexicalMax ?? observation.lexicalRows,

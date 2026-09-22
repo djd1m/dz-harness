@@ -14,6 +14,7 @@
  *
  * Everything here is PURE: callers gather facts (files, store rows); this module only computes.
  */
+import type { GuardOp } from './guard.js';
 import { type PromotionAcceptanceEvidence, type PromotionRunEvidence } from './guard-promotion.js';
 /** Deterministic PRNG — same seed, same stream, byte-identical reports. */
 export declare function mulberry32(seed: number): () => number;
@@ -73,7 +74,7 @@ export interface ReplayInstance {
 export declare function replayableInstances(usage: readonly UsageEvent[], lessonText?: ReadonlyMap<string, string>): ReplayInstance[];
 export interface GuardEvent {
     readonly ts: string;
-    readonly op?: 'publish' | 'teach' | 'consolidate' | 'reindex';
+    readonly op?: GuardOp;
     readonly verdict: string;
     readonly rules: readonly string[];
     readonly violations?: readonly {
@@ -279,4 +280,45 @@ export declare function chainHeadline(chains: readonly EvidenceChainHealth[]): s
  */
 export declare function chainVerdictPhrase(c: EvidenceChainHealth): string;
 export declare function renderCompoundingReport(r: CompoundingReport): string;
+export interface LessonOutcomeRow {
+    readonly lessons?: readonly string[];
+    readonly outcome?: string;
+    readonly grade?: string | null;
+    readonly slug?: string;
+    readonly stage?: string;
+}
+export interface LessonOutcomeCounters {
+    pairs: number;
+    shipped: number;
+    refuted: number;
+    blocked: number;
+    other: number;
+    graded: number;
+    grades: Record<string, number>;
+}
+export interface LessonOutcomeCoverage {
+    readonly lessonsWithOutcome: number;
+    readonly pairsTotal: number;
+    readonly pairsUngraded: number;
+    readonly duplicateRowsDropped: number;
+}
+export interface JoinedLessonOutcomes {
+    readonly perLesson: ReadonlyMap<string, LessonOutcomeCounters>;
+    readonly totals: LessonOutcomeCounters;
+    readonly coverage: LessonOutcomeCoverage;
+}
+/**
+ * Считает пары «урок ↔ исход работы» из уже прочитанных строк леджера.
+ * unknown допускает мусор после разбора JSON; поля проверяются перед использованием.
+ * Неизвестный или отсутствующий исход попадает в other, пустой грейд — в пары без грейда.
+ * Буквы грейдов сохраняются как категории, без перевода в единый балл пользы.
+ * Полные JSON-дубликаты строк и повторные id внутри одной строки не умножают пары.
+ */
+export declare function joinLessonOutcomes(rows: readonly unknown[]): JoinedLessonOutcomes;
+/**
+ * Размер стора передаёт вызывающий код: в строках леджера этого знаменателя нет.
+ * Для доли покрытия набор joined должен относиться к урокам этого стора.
+ * Без знаменателя доля остаётся неизвестной, а не превращается в 100%.
+ */
+export declare function renderLessonOutcomes(joined: JoinedLessonOutcomes, storeLessonCount?: number): string;
 //# sourceMappingURL=compounding.d.ts.map

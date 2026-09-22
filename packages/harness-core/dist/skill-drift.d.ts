@@ -34,6 +34,16 @@ export interface DriftedSkill {
     /** Absolute paths of every copy — lets a human / `--json` consumer jump to the drifted dirs. */
     readonly locations: readonly string[];
 }
+export type CanonicalDefectKind = 'misplaced-enrichment-asset';
+/** A finding in the canonical source, reported without propagating or removing it. */
+export interface CanonicalDefect {
+    readonly skill: string;
+    readonly kind: CanonicalDefectKind;
+    /** Skill-dir-relative POSIX path. */
+    readonly path: string;
+    /** Absolute canonical skill directory. */
+    readonly canonical: string;
+}
 /** Options for {@link sweepSkillDrift}. */
 export interface SweepOptions {
     /**
@@ -60,6 +70,8 @@ export interface SweepResult {
     readonly duplicated: number;
     /** Skills that byte-differ AND are not allowlisted, sorted by `driftFiles` desc — the gate keys on this. */
     readonly drifted: readonly DriftedSkill[];
+    /** Canonical-side findings, independent of copy drift and its allowlist. */
+    readonly canonicalDefects: readonly CanonicalDefect[];
     /** Skills that byte-differ but are allowlisted (intentional) — surfaced for transparency, not gated. */
     readonly allowlisted: readonly DriftedSkill[];
 }
@@ -100,14 +112,18 @@ export interface SyncResult {
     readonly synced: number;
     /** # copies/files that differ (from canonical in resolved modes; between peers in canonical-free mode). */
     readonly drifted: number;
+    /** Nonempty in write mode means refusal: `synced: 0`, `wrote: []`. */
+    readonly canonicalDefects: readonly CanonicalDefect[];
     /** Abs paths of copies written (empty when `check:true` / peer / refuse — proves no writes). */
     readonly wrote: readonly string[];
 }
+/** Find misplaced target metadata in a canonical source, sorted by relative POSIX path. */
+export declare function findCanonicalDefects(canonicalDir: string, skill: string): CanonicalDefect[];
 /**
  * Detect intra-monorepo skill drift: find every skill duplicated across ≥2 locations and report
  * which copies byte-differ. Pure port of `scripts/drift-sweep-skills.mjs`.
  *
- * `result.drifted.length === 0` is the exact condition the CI gate keys on.
+ * Gates must inspect both copy drift and canonical defects.
  */
 export declare function sweepSkillDrift(root: string, opts?: SweepOptions): SweepResult;
 /**
@@ -116,6 +132,7 @@ export declare function sweepSkillDrift(root: string, opts?: SweepOptions): Swee
  * byte-identity. Pure port of `scripts/sync-canonical-skill.mjs`, extended with a canonical-free path.
  *
  * `check:true` writes NOTHING (`wrote` stays empty) and only reports the drift count.
+ * A canonical defect also prevents all writes, while reporting the same drift as check mode.
  * Default overwrites drifting copies; a subsequent {@link sweepSkillDrift} then reports 0 drift.
  *
  * When NO canonical resolves (`resolvedFrom === 'none'` — no `--from`, no `skills-meta`, no `--auto`):

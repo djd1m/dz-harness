@@ -23,7 +23,7 @@ import { applyReadonlyPragmas } from './sqlite-read-helpers.js';
 import { rotatePreReindexSnapshotsUnlocked, type SnapshotRotationReport } from './agentdb-snapshot-rotation.js';
 import { snapshotSqliteDatabase, restoreSqliteSnapshot, type SnapshotMethod, type SnapshotDbCtor } from './agentdb-snapshot.js';
 import { withAgentdbSnapshotLock, writeReindexMarker, clearReindexMarker, markReindexMarkerRecoveryRequired, reindexMarkerPath, msFromBackupPath } from './agentdb-reindex-marker.js';
-import { NamedLockTimeoutError, withNamedLockSync } from './named-lock.js';
+import { NamedLockTimeoutError, withDirLockSync } from './named-lock.js';
 import type { StoreLockOptions } from './store-lock.js';
 // The backlog dedup embed form (PURE, zero-dep — no cycle): dz-backlog rows must be embedded in the
 // SAME bounded form the dedup query uses, including through the reindex path.
@@ -206,7 +206,7 @@ export function readStoreGeneration(projectRoot: string, dbPath?: string): numbe
  * under mutual exclusion (AM-2, fix-round after Codex review). A bare read→compute→rename with no
  * lock lets two concurrent writers both read the same current value and both publish `current+1` —
  * one bump is lost — or lets a DELAYED writer overwrite a later value with an earlier one (the
- * counter briefly goes backwards on disk). `withNamedLockSync` (`named-lock.ts`, the repo's
+ * counter briefly goes backwards on disk). `withDirLockSync` (`named-lock.ts`, the repo's
  * advisory lock for a read-modify-write file store — `.claude/rules/cross-runtime-concurrency.md`)
  * serializes the critical section; the counter is RE-READ from disk *inside* the lock (never trusted
  * from before acquisition), so the sequence every process observes is strictly monotonic
@@ -303,7 +303,7 @@ export function bumpStoreGeneration(
     // this sidecar now tracks "last PUBLISHED generation", updated on every successful bump, not just
     // a recovery.
     const recoveredMemoryFile = recoveredMemoryFilePath(genFile);
-    return withNamedLockSync(
+    return withDirLockSync(
       dirname(dbFile),
       'store-generation',
       (): { readonly ok: true; readonly generation: number } | { readonly ok: false; readonly error: string } => {

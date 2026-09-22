@@ -28,6 +28,7 @@ import { WINDSURF_RULES_ROOT } from '@dzhechkov/adapter-windsurf';
 import { AGENTS_MD_BLOCK_BEGIN, mergeAgentsMd, mergeGeminiMd, mergePolicyBlock, renderAgentsMdSection } from '@dzhechkov/core';
 import { computeRiskScore } from './risk-scoring.js';
 import { checkInstrumentFreshness, checkRankingState } from './doctor-instrument.js';
+import { decideBackupFreshness, renderBackupFreshness } from './backup-freshness.js';
 import { applyEmitResult } from './apply.js';
 import { describeSkillLoadFailure, discoverSkillIds, loadSkillFromDir } from './skills.js';
 import { TARGETS } from './targets.js';
@@ -741,6 +742,29 @@ export async function runDoctor(options) {
     // 1. Node version
     const nodeMajor = Number(process.versions.node.split('.')[0] ?? '0');
     checks.push({ name: 'node >= 20', ok: nodeMajor >= 20, detail: `node ${process.version}` });
+    // Свежесть копии — отдельная ось: ok:false изменил бы код выхода doctor и заблокировал
+    // автоматику публикации. Поэтому отказ копии — WARN, отсутствие свидетельства — UNKNOWN.
+    const backupLogPath = process.env.DZ_BACKLOG_BACKUP_LOG ?? '/var/log/backlog-backup.log';
+    try {
+        const verdict = decideBackupFreshness({
+            lines: readFileSync(backupLogPath, 'utf8').split(/\r?\n/),
+            now: new Date(),
+            maxAgeHours: 36,
+        });
+        checks.push({
+            name: 'backlog backup',
+            ok: true,
+            ...(verdict.state === 'fresh' ? {} : { level: verdict.state === 'stale' ? 'warn' : 'unknown' }),
+            detail: renderBackupFreshness(verdict),
+        });
+    }
+    catch (error) {
+        const code = error.code ?? 'UNKNOWN';
+        const detail = code === 'ENOENT'
+            ? `журнал копии не найден: ${backupLogPath}`
+            : `журнал копии нечитаем: ${backupLogPath} (${code})`;
+        checks.push({ name: 'backlog backup', ok: true, level: 'unknown', detail });
+    }
     // 2/3. MONOREPO-ONLY checks, gated on PROJECT KIND (backlog fcf29728: in a consumer project
     // skills-meta and the 10 adapters are not there and MUST not be — both checks were red forever
     // and dz doctor could never exit 0 outside this repository, a standing false BLOCK for any

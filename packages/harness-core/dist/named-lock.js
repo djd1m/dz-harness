@@ -1,5 +1,6 @@
 /**
- * Named advisory locks — `.dz/locks/<name>.lock` (feature qe-bridge-claude, ADR-001 D4-A).
+ * Named advisory locks — project stores use `.dz/locks/<name>.lock`; generic directories
+ * use `.dz-locks/<name>.lock`, honouring an existing legacy `.dz/locks` directory.
  *
  * WHY. The pattern store already has a cross-process lock (`store-lock.ts`), but it guards ONE
  * resource. Other read-modify-write surfaces in this repo have the same lost-update shape and no
@@ -26,12 +27,12 @@
  * (foreign entries preserved byte-for-byte, timestamped backup, atomic temp+rename) remain the
  * backstop for that case, and the rule doc says so in as many words.
  */
-import { mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import { createRequire } from 'node:module';
-import { join, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { lockSync } from 'proper-lockfile';
-import { LOCK_TIMEOUT_MS, resolveStaleMs } from './store-lock.js';
+import { LOCK_TIMEOUT_MS, resolveStaleMs, storeExists, StoreAbsentError } from './store-lock.js';
 /** `proper-lockfile` silently clamps `stale` up to this minimum. */
 const MIN_STALE_MS = 2_000;
 /** Lock names are filenames: one bounded, lowercase, path-free component. */
@@ -147,9 +148,7 @@ function disarmExitRemoval(resourceKey) {
 function ownerMarkerPath(lockPath) {
     return lockPath + '.owner';
 }
-function tryAcquire(projectRoot, name, staleMs, onCompromised) {
-    const lockPath = namedLockPath(projectRoot, name);
-    const resourceKey = resolve(projectRoot, '.dz', 'locks', name);
+function tryAcquire(lockPath, resourceKey, staleMs, onCompromised) {
     try {
         const release = lockSync(resourceKey, {
             lockfilePath: lockPath,
@@ -207,16 +206,37 @@ function tryAcquire(projectRoot, name, staleMs, onCompromised) {
  * heartbeat cannot fire while a synchronous `fn` blocks the event loop, so keep bodies well under
  * `staleMs` — the same caveat `withStoreLockSync` carries.
  */
-export function withNamedLockSync(projectRoot, name, fn, opts = {}) {
+export function withProjectLockSync(projectRoot, name, fn, opts = {}) {
     const lockPath = namedLockPath(projectRoot, name); // validates the name BEFORE any mkdir
+    if (!storeExists(projectRoot))
+        throw new StoreAbsentError(projectRoot, name);
+    mkdirSync(dirname(lockPath), { recursive: true });
+    return withLockSync(lockPath, name, fn, opts);
+}
+/** A directory mutex never seeds a store; an existing legacy lock directory is shared. */
+export function withDirLockSync(dir, name, fn, opts = {}) {
+    const legacyPath = namedLockPath(dir, name); // validation precedes the filesystem question
+    const legacyDir = dirname(legacyPath);
+    let lockPath;
+    if (existsSync(legacyDir)) {
+        lockPath = legacyPath; // never create the legacy directory
+    }
+    else {
+        const lockDir = join(dir, '.dz-locks');
+        mkdirSync(lockDir, { recursive: true });
+        lockPath = join(lockDir, `${name}.lock`);
+    }
+    return withLockSync(lockPath, name, fn, opts);
+}
+function withLockSync(lockPath, name, fn, opts) {
+    const resourceKey = resolve(dirname(lockPath), name);
     const { staleMs, timeoutMs, pollMs } = resolveOpts(opts);
-    mkdirSync(join(projectRoot, '.dz', 'locks'), { recursive: true });
     const started = Date.now();
     const deadline = started + timeoutMs;
     let compromised;
     const onCompromised = (e) => { compromised = e; };
     for (;;) {
-        const got = tryAcquire(projectRoot, name, staleMs, onCompromised);
+        const got = tryAcquire(lockPath, resourceKey, staleMs, onCompromised);
         if (got !== 'held') {
             let result;
             let outcome = 'released';

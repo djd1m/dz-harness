@@ -24,7 +24,18 @@ import {
 import { findReleaseLine } from './release-line.js';
 
 export type GuardSeverity = 'hard' | 'soft';
-export type GuardOp = 'publish' | 'teach' | 'consolidate' | 'reindex';
+// The 'code' operation checks facts already established when code changes, such as shared skill-copy
+// drift or a stale signature on a pack whose files changed. Publication readiness (README, release
+// lines, versions) belongs to publish. On 2026-09-21, story-page's stale signature surfaced six hours
+// after the edit in harness-cli's tests, demonstrating why edit-time facts need an edit-time gate.
+export const GUARD_OPS = [
+  'publish',
+  'teach',
+  'consolidate',
+  'reindex',
+  'code',
+] as const;
+export type GuardOp = typeof GUARD_OPS[number];
 export type GuardVerdict = 'pass' | 'warn' | 'block';
 
 /** A declarative rule. Built-in rules ship with a checker (below); config can only tune/disable them. */
@@ -154,6 +165,8 @@ export interface GuardFacts {
   };
   /** for no-skill-drift: the names that byte-drift between copies (from sweepSkillDrift). */
   readonly drift?: readonly string[];
+  /** for no-skill-drift: canonical-side defects as skill:path (from sweepSkillDrift). */
+  readonly canonicalDefects?: readonly string[];
   /**
    * for codex-wrapper-for-value-stage: workflow scripts to scan, as (path, text). Absent ⇒ the
    * rule reports nothing: a guard with no evidence must stay silent rather than invent a verdict.
@@ -161,10 +174,15 @@ export interface GuardFacts {
   readonly workflowScripts?: readonly { readonly path: string; readonly text: string }[];
   /** for no-secrets: labelled blobs to scan (lesson text, staged files). */
   readonly secretTargets?: readonly { readonly label: string; readonly text: string }[];
+  /** for no-secrets: findings already scanned from the streaming publish inventory. */
+  readonly secretFindings?: readonly { readonly label: string; readonly name: string }[];
   /** for no-secrets: exact path waivers; entries without a non-empty reason are ignored and noted. */
   readonly secretWaivers?: readonly SecretWaiver[];
   /** Publish secret-scan coverage gaps; skips are informational and never verdict inputs. */
-  readonly secretScan?: { readonly skipped: number };
+  /** backlog a530eaca: `skippedPaths` names what the fail-open scan never read (repo-relative, with the
+   * reason) so the coverage gap is auditable — a bare count told the owner nothing to check. Optional:
+   * an older CLI that sends only the count still renders the count-only note. */
+  readonly secretScan?: { readonly skipped: number; readonly skippedPaths?: readonly string[]; readonly scanned?: number; readonly inventory?: string };
   /** for readme-consistency: labelled (a,b) count pairs that must be equal. */
   readonly counts?: readonly { readonly label: string; readonly a: number; readonly b: number }[];
   /** for store-bloat-cap: current learned-store size vs its cap. */
@@ -199,7 +217,7 @@ export interface GuardFacts {
   /**
    * for review-round: per publishable package, does this change bump a version AND touch SOURCE, and
    * did it bring a GRADED QE report with it? `undefined` (the whole fact absent) means the tree could
-   * not be read — the rule then reports nothing, which is different from reporting "no review".
+   * not be read — the rule is NOT-ESTABLISHED, which is different from reporting "no review".
    */
   readonly reviewRound?: {
     readonly packages: readonly { readonly name: string; readonly versionBumped: boolean; readonly sourceChanged: boolean }[];
@@ -477,12 +495,12 @@ export const DEFAULT_RULES: readonly GuardRule[] = [
   { id: 'no-workspace-star', severity: 'hard', ops: ['publish'], description: 'a published package.json must carry no workspace:* dep (npm ships it verbatim → the install breaks)' },
   { id: 'plugin-manifest-audit', severity: 'hard', ops: ['publish'], description: 'every .claude-plugin/plugin.json parses and declares a non-empty name, description and a STRICT N.N.N version' },
   { id: 'sibling-dep-protocol', severity: 'hard', ops: ['publish'], description: 'a dependencies/devDependencies entry on a sibling @dzhechkov package must use the workspace: protocol on disk (peer/optional deps are deliberately exempt — a range is their point)' },
-  { id: 'no-skill-drift', severity: 'hard', ops: ['publish', 'consolidate'], description: 'no unexpected byte-drift between shared skill copies' },
+  { id: 'no-skill-drift', severity: 'hard', ops: ['publish', 'consolidate', 'code'], description: 'no unexpected byte-drift between shared skill copies' },
   { id: 'backlog-covers-features', severity: 'soft', ops: ['publish', 'consolidate'], description: 'каталог фичи, заведённый после базовой даты, назван записью бэклога — либо несёт именованную оговорку с причиной' },
   { id: 'no-secrets', severity: 'hard', ops: ['teach', 'publish'], description: 'no private key or API token in lesson text or a published file' },
   { id: 'readme-consistency', severity: 'soft', ops: ['publish'], description: 'README counts agree (CJM header vs All Commands, etc.)' },
   { id: 'release-line-in-sync', severity: 'soft', ops: ['publish'], description: 'root and harness-cli README release lines agree with the harness-core and harness-cli package versions' },
-  { id: 'signature-fresh', severity: 'soft', ops: ['publish'], description: 'a pack whose files changed in this diff still verifies against its signed .dz-manifest.json — a stale signature is named before publish, not at the gate' },
+  { id: 'signature-fresh', severity: 'soft', ops: ['publish', 'code'], description: 'a pack whose files changed in this diff still verifies against its signed .dz-manifest.json — a stale signature is named before publish, not at the gate' },
   { id: 'skills-registrable', severity: 'soft', ops: ['publish'], description: 'every skill directory in a skill pack has a depth-1 SKILL.md (a buried or missing one ships un-registrable — the health-advisor 1.2.0 class)' },
   { id: 'readme-first', severity: 'soft', ops: ['publish'], description: 'a package with a staged version bump must update its own README.md in the same change (README-first)' },
   { id: 'routing-store-stale', severity: 'soft', ops: ['publish'], description: 'harvested routing telemetry has been applied to the auto-cost outcome store' },
@@ -524,6 +542,22 @@ export function scanSecrets(text: unknown): { readonly name: string }[] {
   if (typeof text !== 'string' || text.length === 0) return [];
   const hits = new Set<string>();
   for (const p of SECRET_PATTERNS) if (p.re.test(text)) hits.add(p.name);
+  return [...hits].map((name) => ({ name }));
+}
+
+export const SECRET_SCAN_OVERLAP_BYTES = 4096;
+
+export function scanSecretsChunked(chunks: Iterable<Buffer>, opts?: { overlapBytes?: number }): { name: string }[] {
+  const overlapBytes = opts?.overlapBytes ?? SECRET_SCAN_OVERLAP_BYTES;
+  const hits = new Set<string>();
+  let tail = Buffer.alloc(0);
+  for (const chunk of chunks) {
+    const window = Buffer.concat([tail, chunk]);
+    const text = window.toString('utf8');
+    for (const p of SECRET_PATTERNS) if (p.re.test(text)) hits.add(p.name);
+    if (hits.size === SECRET_PATTERNS.length) break;
+    tail = window.subarray(Math.max(0, window.length - overlapBytes));
+  }
   return [...hits].map((name) => ({ name }));
 }
 
@@ -613,7 +647,7 @@ function mentionsSlug(haystackLower: string, slug: string): boolean {
 }
 
 const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[]> = {
-  'rounds-closed': (f, sev) => (f.openRounds ?? [])
+  'rounds-closed': (f, sev) => f.openRounds!
     .filter((round) => Number.isFinite(round.ageMinutes) && round.ageMinutes > 120)
     .map((round) => ({
       rule: 'rounds-closed',
@@ -762,7 +796,11 @@ const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[
   },
   'no-skill-drift': (f, sev) => {
     const drifted = Array.isArray(f.drift) ? f.drift.filter((d) => typeof d === 'string') : [];
-    return drifted.length === 0 ? [] : [{ rule: 'no-skill-drift', severity: sev, detail: `${drifted.length} skill(s) drift between copies: ${drifted.slice(0, 8).join(', ')}${drifted.length > 8 ? '…' : ''} — heal with dz sync-canonical` }];
+    const defects = Array.isArray(f.canonicalDefects) ? f.canonicalDefects.filter((d) => typeof d === 'string') : [];
+    const out: Violation[] = [];
+    if (drifted.length > 0) out.push({ rule: 'no-skill-drift', severity: sev, detail: `${drifted.length} skill(s) drift between copies: ${drifted.slice(0, 8).join(', ')}${drifted.length > 8 ? '…' : ''} — heal with dz sync-canonical` });
+    if (defects.length > 0) out.push({ rule: 'no-skill-drift', severity: sev, detail: `${defects.length} canonical defect(s): ${defects.join(', ')} — fix the canon, not the copies` });
+    return out;
   },
   'backlog-covers-features': (f, sev) => {
     const ev = f.featureBacklog;
@@ -787,11 +825,15 @@ const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[
         out.push({ rule: 'no-secrets', severity: sev, detail: `${t.label}: looks like a ${hit.name} — do not teach/publish a credential` });
       }
     }
+    for (const hit of f.secretFindings ?? []) {
+      if (waived.has(hit.label)) continue;
+      out.push({ rule: 'no-secrets', severity: sev, detail: `${hit.label}: looks like a ${hit.name} — do not teach/publish a credential` });
+    }
     return out;
   },
   'readme-consistency': (f, sev) => {
     const out: Violation[] = [];
-    for (const c of f.counts ?? []) {
+    for (const c of f.counts!) {
       if (Number.isFinite(c.a) && Number.isFinite(c.b) && c.a !== c.b) {
         out.push({ rule: 'readme-consistency', severity: sev, detail: `${c.label}: ${c.a} ≠ ${c.b} (README counts disagree)` });
       }
@@ -804,7 +846,7 @@ const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[
     // a heuristic (a pack counts only if it already has one registrable skill, and only
     // markdown-bearing dirs are considered intended), so it informs rather than blocks.
     const out: Violation[] = [];
-    for (const p of f.skillPacks ?? []) {
+    for (const p of f.skillPacks!) {
       if (!p || !Array.isArray(p.nonRegistrable) || p.nonRegistrable.length === 0) continue;
       out.push({
         rule: 'skills-registrable',
@@ -819,7 +861,7 @@ const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[
     // whose own README.md is untouched in the same diff. SOFT: some republishes legitimately need no doc
     // change — the point is that skipping the README becomes a VISIBLE decision, not a silent lapse.
     const out: Violation[] = [];
-    for (const p of f.readmeFirst ?? []) {
+    for (const p of f.readmeFirst!) {
       if (p && p.versionBumped === true && p.readmeChanged !== true) {
         out.push({ rule: 'readme-first', severity: sev, detail: `${p.name}: version bumped but its README.md is untouched in this change — README-first: document the change (or consciously proceed; this warning is the record)` });
       }
@@ -886,7 +928,7 @@ const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[
     //
     // Scoped to CHANGED SOURCE on purpose (ADR-001): a HARD rule that also fired on a docs-only
     // republish would be a rule someone switches off. `undefined` facts mean the tree could not be
-    // read — silence, not an accusation.
+    // read — HAS_INPUT records NOT-ESTABLISHED, not an accusation.
     const rr = f.reviewRound;
     if (rr === undefined) return [];
     const min = typeof rr.minGrade === 'string' ? rr.minGrade.trim().toUpperCase() : undefined;
@@ -942,8 +984,8 @@ const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[
    * so it belongs on layer 1 rather than in a rule nobody re-reads.
    */
   'codex-wrapper-for-value-stage': (f, sev) => {
-    const scripts = f.workflowScripts;
-    if (scripts === undefined || scripts.length === 0) return [];
+    const scripts = f.workflowScripts!; // Presence is established by HAS_INPUT.
+    if (scripts.length === 0) return [];
     const out: Violation[] = [];
     for (const s of scripts) {
       const text = String(s.text ?? '');
@@ -1055,6 +1097,14 @@ const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[
   },
 };
 
+// Missing volume means NOT-ESTABLISHED. A throwing getter is INTENTIONALLY treated as present
+// so volume() can emit honest 'unknown' observations instead of failing in the precondition.
+// This preserves the older contract: test/guard.test.ts:725,
+// "a hostile volume getter becomes visible unknown evidence instead of a HARD checker error".
+const volumeInputPresent = (f: GuardFacts): boolean => {
+  try { return f.volume !== undefined; } catch { return true; }
+};
+
 /** Per-rule evidence predicates. No entry preserves the rule's existing checked behaviour exactly. */
 const HAS_INPUT: Partial<Record<string, (f: GuardFacts) => boolean>> = {
   'rounds-traced': (f) => {
@@ -1070,9 +1120,24 @@ const HAS_INPUT: Partial<Record<string, (f: GuardFacts) => boolean>> = {
   'sibling-dep-protocol': (f) => Array.isArray(f.siblingDeps) && f.siblingDeps.length > 0,
   // Дерево без плагин-манифестов правилу нечего сказать: «прошло» тут значило бы «не смотрели».
   'plugin-manifest-audit': (f) => Array.isArray(f.pluginManifests) && f.pluginManifests.length > 0,
-  'no-secrets': (f) => Array.isArray(f.secretTargets) && f.secretTargets.length > 0,
+  'no-secrets': (f) => (Array.isArray(f.secretTargets) && f.secretTargets.length > 0)
+    || Array.isArray(f.secretFindings) || typeof f.secretScan?.scanned === 'number',
   'release-line-in-sync': (f) => typeof f.releaseLines === 'object' && f.releaseLines !== null,
+  // 2026-09-21: на одном дереве с дрейфом publish=block, а code=pass без собранного факта drift.
+  'no-skill-drift': (f) => Array.isArray(f.drift),
+  'review-round': (f) => f.reviewRound !== undefined,
+  'no-workspace-star': (f) => Array.isArray(f.packages),
+  'codex-wrapper-for-value-stage': (f) => Array.isArray(f.workflowScripts),
   'signature-fresh': (f) => Array.isArray(f.signedPacks),
+  'rounds-closed': (f) => Array.isArray(f.openRounds),
+  'readme-consistency': (f) => Array.isArray(f.counts),
+  'skills-registrable': (f) => Array.isArray(f.skillPacks),
+  'readme-first': (f) => Array.isArray(f.readmeFirst),
+  'store-bloat-cap': (f) => f.store !== undefined,
+  'template-context-token-weight': volumeInputPresent,
+  'template-context-largest-file-share': volumeInputPresent,
+  'feature-artifact-diff-ratio': volumeInputPresent,
+  'feature-tier-artifact-set': volumeInputPresent,
 };
 
 /**
@@ -1138,7 +1203,7 @@ export function resolveRules(userRules?: readonly Partial<GuardRule>[]): GuardRu
       // than `lockfile-in-sync`'s tolerant parser, which is already SOFT-only. "I might be wrong"
       // plus "block the publish" is the wrong pair (ADR-004).
       if (isTemplateRule(u)) {
-        const ops = Array.isArray(u.ops) && u.ops.every((o) => ['publish', 'teach', 'consolidate', 'reindex'].includes(o as string)) && u.ops.length > 0 ? (u.ops as readonly GuardOp[]) : (['publish'] as const);
+        const ops = Array.isArray(u.ops) && u.ops.every((o) => (GUARD_OPS as readonly string[]).includes(o as string)) && u.ops.length > 0 ? (u.ops as readonly GuardOp[]) : (['publish'] as const);
         byId.set(u.id, {
           id: u.id,
           severity: 'soft',
@@ -1203,9 +1268,11 @@ export function evaluateGuard(facts: GuardFacts, rules: readonly GuardRule[] = D
     try {
       inputPresent = hasInput === undefined ? true : hasInput(facts);
     } catch (error) {
+      // Бросок в предикате улик и бросок в чекере обязаны нести общий маркер fail-closed:
+      // страж не смог решить и потому обвиняет, а не оправдывает; какой перехватчик был первым, потребителю неважно.
       violations.push({
         rule: r.id, severity: r.severity,
-        detail: `улики правила нечитаемы (${error instanceof Error ? error.message : String(error)}) — правило считается НАРУШЕННЫМ, а не пройденным`,
+        detail: `улики правила нечитаемы (${error instanceof Error ? error.message : String(error)}) — правило считается НАРУШЕННЫМ, а не пройденным (fail-closed)`,
       });
       checked.push(r.id);
       continue;
@@ -1291,10 +1358,30 @@ export function evaluateGuard(facts: GuardFacts, rules: readonly GuardRule[] = D
     }
     const skipped = facts.secretScan?.skipped;
     if (typeof skipped === 'number' && Number.isFinite(skipped) && skipped > 0) {
-      notes.push(`no-secrets: ${skipped} packed inventory item(s) not scanned (oversize/unreadable/binary) — the secret scan is fail-open, so this is a coverage gap on the record, not a violation`);
+      // MEASURED 2026-09-21: the count alone hid that harness-cli's own src/cli.ts and dist/cli.js
+      // (1.3 MiB each, both packed) are among the never-scanned items — name them, capped.
+      // Codex review (B): the legacy sentence stays byte-identical for consumers that match it whole;
+      // the names are APPENDED after it. "…and N more" counts from the FACT's `skipped`, not from the
+      // list length, so a partial list never understates the gap.
+      const paths = facts.secretScan?.skippedPaths ?? [];
+      const shown = paths.slice(0, 6);
+      const rest = Math.max(skipped - shown.length, 0);
+      const named = shown.length > 0
+        ? ` — skipped: ${shown.join(', ')}${rest > 0 ? `, …and ${rest} more` : ''}`
+        : '';
+      // Codex r2: NO trailing period — the legacy sentence must stay byte-identical, names follow after a space.
+      notes.push(`no-secrets: ${skipped} packed inventory item(s) not scanned (oversize/unreadable/binary) — the secret scan is fail-open, so this is a coverage gap on the record, not a violation${named}`);
+    }
+    // Lead fix (guard-change-fact regression): a fixture with zero publishable packages yields an EMPTY
+    // inventory string — 'present but empty' is not a source to report; only a non-empty summary is a line.
+    const inventoryLine = facts.secretScan?.inventory;
+    if (typeof inventoryLine === 'string' && inventoryLine.trim().length > 0) {
+      notes.push(`no-secrets: inventory: ${inventoryLine}`);
     }
   }
   if (checked.includes('review-round') && facts.reviewRound?.gathered === false) {
+    // A wholly absent fact is already NOT-ESTABLISHED via HAS_INPUT; this note covers an explicit
+    // failed gathering attempt on a present fact only.
     // A HARD gate that passes SILENTLY when it could not gather its evidence is a gate you cannot
     // tell from one that checked and approved (raised by cross-family review). It still does not
     // BLOCK — absence of facts is ignorance, not an accusation, and blocking every non-git checkout
