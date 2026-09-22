@@ -5707,7 +5707,7 @@ ledger row now carries a `prices` snapshot. See `@dzhechkov/harness-core`'s READ
 decision list (D1–D5) and the two new pure modules (`feature-adr-stage-canon.ts`, `codex-rollouts.ts`) behind
 `dz usage --by-stage`'s new `INCOMPLETE_INVENTORY` verdict and canonical-stage breakdown.
 
-`harness-core v0.8.41` · `harness-cli v0.8.33` · `harness-presets v0.5.20` — **this release (night
+`harness-core v0.8.41` · `harness-cli v0.8.34` · `harness-presets v0.5.20` — **this release (night
 21.09, three packages, all instrument-honesty fixes): the lesson→rule funnel now refuses a PERIOD
 rather than the whole FILE — chain damage that an unbroken run has already followed suppresses only
 the months whose own rows sit at or before it (`guard-audit-chain-damaged:<month>`), and a month
