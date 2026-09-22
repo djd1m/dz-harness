@@ -229,7 +229,7 @@
       },
       {
         "path": "feature-adr/modules/08-qe.md",
-        "sha256": "cb360cebbac91ac9ee8cf0ec8fb54f9c20385630928637f4940f80ec8c43778d"
+        "sha256": "5355e2b36ab13b6acb65abe5b206685915ef2b08191b4a3130574620012b9135"
       },
       {
         "path": "feature-adr/modules/09-fleet-qe.md",
@@ -465,7 +465,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "23a62020f398d502168e4f915f9718b6874a26695903583e94ede85c64852a06"
+        "sha256": "acfca6f1af252972cdd2ff8818b6b983f8af14ed841edba5c72da5c7b54342d6"
       },
       {
         "path": "problem-solver-enhanced/SKILL.md",
@@ -561,5 +561,5 @@
       }
     ]
   },
-  "signature": "3Cu73MDifVLkZDSKAKienKf/x/WBGYtiwDerzVj7jLbluP1hs+onBT9c+YfQGOeHvOeA4tFxpBILJ0bXfrSmCA=="
+  "signature": "soJXTvViyL5jRdAQJ30aciH8XAO5RgAKOuPbE37P7H0YLI6kMf13UK7/OaGB2ERDaQW+icGJbY8RTC+M8rFoCA=="
 }
