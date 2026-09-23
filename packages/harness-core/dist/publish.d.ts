@@ -131,6 +131,19 @@ export interface MirrorEpilogue {
     readonly reason?: string | undefined;
     readonly warning?: string | undefined;
 }
+export interface ReleaseLineReport {
+    readonly path: string;
+    readonly rewritten: readonly {
+        readonly name: string;
+        readonly from: string;
+        readonly to: string;
+    }[];
+    readonly kept: readonly {
+        readonly name: string;
+        readonly version: string;
+    }[];
+    readonly wrapped: boolean;
+}
 /** Full publish report. */
 export interface PublishReport {
     readonly packages: readonly PublishResult[];
@@ -140,6 +153,7 @@ export interface PublishReport {
     readonly dryRun: boolean;
     /** Repo-relative README paths whose first joint core/CLI release line was rewritten. */
     readonly releaseLineSynced: readonly string[];
+    readonly releaseLineReport: readonly ReleaseLineReport[];
     /** Post-publication sync failures are warnings: registry-confirmed packages cannot be unpublished. */
     readonly warnings?: readonly string[] | undefined;
     /** CLI-owned command-hook outcome after a live publish; no transport logic lives in core. */

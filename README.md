@@ -27,9 +27,9 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/core` | 0.2.23 |
 | `@dzhechkov/design-thinking` | 1.0.15 |
 | `@dzhechkov/evidence-wiki` | 0.2.7 |
-| `@dzhechkov/harness-cli` | 0.8.34 |
-| `@dzhechkov/harness-core` | 0.8.41 |
-| `@dzhechkov/harness-presets` | 0.5.21 |
+| `@dzhechkov/harness-cli` | 0.8.35 |
+| `@dzhechkov/harness-core` | 0.8.42 |
+| `@dzhechkov/harness-presets` | 0.5.22 |
 | `@dzhechkov/health-advisor` | 1.10.7 |
 | `@dzhechkov/keysarium` | 1.7.7 |
 | `@dzhechkov/keysarium-core` | 1.1.31 |
@@ -55,7 +55,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/skills-feature-adr` | 1.5.13 |
 | `@dzhechkov/skills-idea2prd` | 0.1.16 |
 | `@dzhechkov/skills-mcp` | 0.3.11 |
-| `@dzhechkov/skills-meta` | 0.9.60 |
+| `@dzhechkov/skills-meta` | 0.9.61 |
 | `@dzhechkov/skills-news` | 0.1.17 |
 | `@dzhechkov/skills-package-story-page` | 0.2.5 |
 | `@dzhechkov/skills-pm` | 0.1.6 |

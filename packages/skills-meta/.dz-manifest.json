@@ -321,7 +321,7 @@
       },
       {
         "path": "feature-adr/scripts/check-plan-completeness.mjs",
-        "sha256": "2370036869bb643e2dba799fb98226ea0155f37efaea07a4e330dc76070e8804"
+        "sha256": "eb77822f121ade10bd6265b0f0145ec38507a07d2cb72ba5fa8336c962096bda"
       },
       {
         "path": "feature-adr/scripts/markdown-masker.mjs",
@@ -465,7 +465,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "acfca6f1af252972cdd2ff8818b6b983f8af14ed841edba5c72da5c7b54342d6"
+        "sha256": "5ea6e55965de142cc3732d4d257e2fa2607d055d3ea1d0ddf9a2f901ceffb97d"
       },
       {
         "path": "problem-solver-enhanced/SKILL.md",
@@ -561,5 +561,5 @@
       }
     ]
   },
-  "signature": "soJXTvViyL5jRdAQJ30aciH8XAO5RgAKOuPbE37P7H0YLI6kMf13UK7/OaGB2ERDaQW+icGJbY8RTC+M8rFoCA=="
+  "signature": "dfpG4PyxjhGpNKF7kAOQEWDFrCZcMpKGdHonc5IrZBJslzjyfC6gRcQSE005lxo+QtXyJWmXmEiNfhBXdYIdDQ=="
 }

@@ -526,6 +526,7 @@ export const RETRO_PENDING_FILE = 'retro-pending.json';
 const MAX_TAIL_SCAN_BYTES = 8 * 1024 * 1024;
 /** Without a session id to compare, a sentinel older than this is stale (fallback freshness only). */
 const SENTINEL_FRESH_MS = 30 * 60 * 1000;
+const MAX_AWAITING_TEACHES = 16;
 /**
  * Decide which transcript a `dz retro --scan-tail` run is entitled to read. PURE.
  *
@@ -601,13 +602,18 @@ export function foldAdmissionDebt(events, prior) {
     // saw an already-cleared `pending` and overwrote the slot with null, so when both results came back
     // receipt-less neither could re-arm and the debt was silently forgiven. A set, and settlement moved
     // to the RECEIPT, removes the whole class: the CALL now registers a candidate and changes nothing.
-    const awaiting = new Set();
+    // Old or malformed sentinels mean no candidates, without skipping the rest of the scan.
+    const saved = prior?.awaiting;
+    const awaiting = new Set(Array.isArray(saved) && saved.every((id) => typeof id === 'string') ? saved : []);
     for (const e of events) {
         if (isTeachCommand(e)) {
             if (typeof e.toolUseId === 'string') {
                 // Registered, not settled. The debt stands until this call's own result carries a receipt.
-                if (pending !== null)
+                if (pending !== null) {
                     awaiting.add(e.toolUseId);
+                    if (awaiting.size > MAX_AWAITING_TEACHES)
+                        awaiting.delete(awaiting.values().next().value);
+                }
             }
             else {
                 // No pairing key ⇒ no result can ever confirm OR refute this call, so it pays on the command
@@ -635,12 +641,16 @@ export function foldAdmissionDebt(events, prior) {
             // A NEW admission supersedes every teach still in flight: those calls were issued against the
             // OLDER debt, so their receipts must not settle this one (ADR-001 D4 asymmetry).
             if (snippet !== null) {
+                if (pending === null || pending.snippet !== snippet)
+                    awaiting.clear();
                 pending = { snippet };
-                awaiting.clear();
             }
         }
     }
-    return pending;
+    return pending === null ? null : {
+        snippet: pending.snippet,
+        ...(awaiting.size > 0 ? { awaiting: [...awaiting] } : {}),
+    };
 }
 const writeJsonAtomic = (path, value) => {
     const tmp = `${path}.${process.pid}.tmp`;
@@ -693,7 +703,7 @@ function scanTailUnderLock(dzDir, transcriptPath, nowIso) {
         try {
             const s = JSON.parse(readFileSync(pendingPath, 'utf8'));
             if (s.transcript === transcriptPath && typeof s.snippet === 'string') {
-                prior = { snippet: s.snippet };
+                prior = { snippet: s.snippet, ...(s.awaiting !== undefined ? { awaiting: s.awaiting } : {}) };
                 hadSentinel = true;
             }
             else {
@@ -751,7 +761,7 @@ function scanTailUnderLock(dzDir, transcriptPath, nowIso) {
         const next = foldAdmissionDebt(events, prior);
         const newOffset = offset + consumed;
         mkdirSync(dzDir, { recursive: true });
-        writeJsonAtomic(statePath, { schema: 1, transcript: transcriptPath, offset: newOffset });
+        let outcome;
         if (next !== null) {
             const sentinel = {
                 schema: 1,
@@ -759,18 +769,33 @@ function scanTailUnderLock(dzDir, transcriptPath, nowIso) {
                 transcript: transcriptPath,
                 snippet: next.snippet.replace(/\s+/g, ' ').trim().slice(0, 200),
                 ts: nowIso ?? new Date().toISOString(),
+                ...(next.awaiting !== undefined ? { awaiting: next.awaiting } : {}),
             };
             writeJsonAtomic(pendingPath, sentinel);
-            return { status: 'pending', snippet: sentinel.snippet, scannedBytes: consumed, offset: newOffset };
+            outcome = { status: 'pending', snippet: sentinel.snippet, scannedBytes: consumed, offset: newOffset };
         }
-        if (hadSentinel) {
+        else if (hadSentinel) {
+            // Step-8 finding (23.09.2026, HIGH): swallowing EVERY unlink failure here and then advancing
+            // the offset anyway recreates the very loss this feature removes — the sentinel survives, the
+            // receipt that paid it is consumed, and every later scan re-arms the SAME stale snippet
+            // forever. Only "already gone" is benign; any other failure must leave the bytes replayable,
+            // so it propagates and the offset write below never runs. This makes the CLEAR branch
+            // symmetric with the ARM branch, which already blocks the offset on a failed write.
             try {
                 unlinkSync(pendingPath);
             }
-            catch { /* already gone */ }
-            return { status: 'cleared', scannedBytes: consumed, offset: newOffset };
+            catch (e) {
+                if (e.code !== 'ENOENT')
+                    throw e;
+            }
+            outcome = { status: 'cleared', scannedBytes: consumed, offset: newOffset };
         }
-        return { status: 'none', scannedBytes: consumed, offset: newOffset };
+        else {
+            outcome = { status: 'none', scannedBytes: consumed, offset: newOffset };
+        }
+        // Commit the debt BEFORE its offset: an interruption must leave these bytes replayable.
+        writeJsonAtomic(statePath, { schema: 1, transcript: transcriptPath, offset: newOffset });
+        return outcome;
     }
     catch {
         return { status: 'none', scannedBytes: 0, offset: 0 };

@@ -547,6 +547,14 @@ export const RETRO_PENDING_FILE = 'retro-pending.json';
 const MAX_TAIL_SCAN_BYTES = 8 * 1024 * 1024;
 /** Without a session id to compare, a sentinel older than this is stale (fallback freshness only). */
 const SENTINEL_FRESH_MS = 30 * 60 * 1000;
+const MAX_AWAITING_TEACHES = 16;
+
+export interface AdmissionDebt {
+  readonly snippet: string;
+  /** Paired call ids issued against THIS debt, in registration order (oldest first).
+   * Absent, rather than an empty array, when no calls await confirmation. */
+  readonly awaiting?: readonly string[];
+}
 
 export interface RetroPendingSentinel {
   readonly schema: 1;
@@ -554,6 +562,7 @@ export interface RetroPendingSentinel {
   readonly transcript: string;  // absolute transcript path — the debt belongs to THIS session
   readonly snippet: string;     // ≤200 chars around the admission marker
   readonly ts: string;          // ISO time of the scan that recorded the debt
+  readonly awaiting?: readonly string[];
 }
 
 /** Where the Stop-hook scan got its transcript path — or why it has none. */
@@ -643,20 +652,27 @@ const RETRO_SCAN_LOCK_TIMEOUT_MS = 2_000;
  */
 export function foldAdmissionDebt(
   events: readonly SessionEvent[],
-  prior: { snippet: string } | null,
-): { snippet: string } | null {
+  prior: AdmissionDebt | null,
+): AdmissionDebt | null {
   let pending = prior;
   // EVERY teach issued against the live debt and still awaiting its own result, by `tool_use_id`.
   // Round 3, P1-2: a single `lastPaid` slot lost the FIRST of two parallel teaches — the second call
   // saw an already-cleared `pending` and overwrote the slot with null, so when both results came back
   // receipt-less neither could re-arm and the debt was silently forgiven. A set, and settlement moved
   // to the RECEIPT, removes the whole class: the CALL now registers a candidate and changes nothing.
-  const awaiting = new Set<string>();
+  // Old or malformed sentinels mean no candidates, without skipping the rest of the scan.
+  const saved = prior?.awaiting;
+  const awaiting = new Set<string>(
+    Array.isArray(saved) && saved.every((id): id is string => typeof id === 'string') ? saved : [],
+  );
   for (const e of events) {
     if (isTeachCommand(e)) {
       if (typeof e.toolUseId === 'string') {
         // Registered, not settled. The debt stands until this call's own result carries a receipt.
-        if (pending !== null) awaiting.add(e.toolUseId);
+        if (pending !== null) {
+          awaiting.add(e.toolUseId);
+          if (awaiting.size > MAX_AWAITING_TEACHES) awaiting.delete(awaiting.values().next().value!);
+        }
       } else {
         // No pairing key ⇒ no result can ever confirm OR refute this call, so it pays on the command
         // alone — the pre-ADR-004 behaviour, kept deliberately so every id-less fixture and every
@@ -679,10 +695,16 @@ export function foldAdmissionDebt(
       const snippet = admissionSnippet(e.text);
       // A NEW admission supersedes every teach still in flight: those calls were issued against the
       // OLDER debt, so their receipts must not settle this one (ADR-001 D4 asymmetry).
-      if (snippet !== null) { pending = { snippet }; awaiting.clear(); }
+      if (snippet !== null) {
+        if (pending === null || pending.snippet !== snippet) awaiting.clear();
+        pending = { snippet };
+      }
     }
   }
-  return pending;
+  return pending === null ? null : {
+    snippet: pending.snippet,
+    ...(awaiting.size > 0 ? { awaiting: [...awaiting] } : {}),
+  };
 }
 
 const writeJsonAtomic = (path: string, value: unknown): void => {
@@ -735,11 +757,14 @@ function scanTailUnderLock(dzDir: string, transcriptPath: string, nowIso?: strin
     // Prior debt carries over ONLY for the same session; a stale sentinel (another session's debt)
     // is dropped — the PreCompact/SessionEnd retro of THAT session was its collector, and injecting
     // an old session's debt into a new one is noise (acid A9).
-    let prior: { snippet: string } | null = null;
+    let prior: AdmissionDebt | null = null;
     let hadSentinel = false;
     try {
       const s = JSON.parse(readFileSync(pendingPath, 'utf8')) as Partial<RetroPendingSentinel>;
-      if (s.transcript === transcriptPath && typeof s.snippet === 'string') { prior = { snippet: s.snippet }; hadSentinel = true; }
+      if (s.transcript === transcriptPath && typeof s.snippet === 'string') {
+        prior = { snippet: s.snippet, ...(s.awaiting !== undefined ? { awaiting: s.awaiting } : {}) };
+        hadSentinel = true;
+      }
       else { try { unlinkSync(pendingPath); } catch { /* already gone */ } }
     } catch { /* no sentinel */ }
 
@@ -778,7 +803,7 @@ function scanTailUnderLock(dzDir: string, transcriptPath: string, nowIso?: strin
     const next = foldAdmissionDebt(events, prior);
     const newOffset = offset + consumed;
     mkdirSync(dzDir, { recursive: true });
-    writeJsonAtomic(statePath, { schema: 1, transcript: transcriptPath, offset: newOffset });
+    let outcome: TailScanOutcome;
     if (next !== null) {
       const sentinel: RetroPendingSentinel = {
         schema: 1,
@@ -786,15 +811,26 @@ function scanTailUnderLock(dzDir: string, transcriptPath: string, nowIso?: strin
         transcript: transcriptPath,
         snippet: next.snippet.replace(/\s+/g, ' ').trim().slice(0, 200),
         ts: nowIso ?? new Date().toISOString(),
+        ...(next.awaiting !== undefined ? { awaiting: next.awaiting } : {}),
       };
       writeJsonAtomic(pendingPath, sentinel);
-      return { status: 'pending', snippet: sentinel.snippet, scannedBytes: consumed, offset: newOffset };
+      outcome = { status: 'pending', snippet: sentinel.snippet, scannedBytes: consumed, offset: newOffset };
+    } else if (hadSentinel) {
+      // Step-8 finding (23.09.2026, HIGH): swallowing EVERY unlink failure here and then advancing
+      // the offset anyway recreates the very loss this feature removes — the sentinel survives, the
+      // receipt that paid it is consumed, and every later scan re-arms the SAME stale snippet
+      // forever. Only "already gone" is benign; any other failure must leave the bytes replayable,
+      // so it propagates and the offset write below never runs. This makes the CLEAR branch
+      // symmetric with the ARM branch, which already blocks the offset on a failed write.
+      try { unlinkSync(pendingPath); }
+      catch (e) { if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e; }
+      outcome = { status: 'cleared', scannedBytes: consumed, offset: newOffset };
+    } else {
+      outcome = { status: 'none', scannedBytes: consumed, offset: newOffset };
     }
-    if (hadSentinel) {
-      try { unlinkSync(pendingPath); } catch { /* already gone */ }
-      return { status: 'cleared', scannedBytes: consumed, offset: newOffset };
-    }
-    return { status: 'none', scannedBytes: consumed, offset: newOffset };
+    // Commit the debt BEFORE its offset: an interruption must leave these bytes replayable.
+    writeJsonAtomic(statePath, { schema: 1, transcript: transcriptPath, offset: newOffset });
+    return outcome;
   } catch {
     return { status: 'none', scannedBytes: 0, offset: 0 };
   }

@@ -772,7 +772,8 @@ export type {
 } from './event-chain.js';
 export { decideProvenance, environmentCanMintProvenance, publishArgv, matchesPublishFilter, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, rewriteWorkspaceSpecs, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion, planReadmeVersionSync } from './publish.js';
 export type { ReadmeVersionSyncPlan, ReadmeSyncRewrite } from './publish.js';
-export { RELEASE_LINE_RE, findReleaseLine, rewriteReleaseLine } from './release-line.js';
+export { RELEASE_LINE_RE, parseReleaseLine, findReleaseLine, rewriteReleaseLine, shortPackageName } from './release-line.js';
+export type { ReleaseLineToken, ReleaseLineParse, ReleaseLineMatch } from './release-line.js';
 export * from './course-staleness.js';
 export { fetchAllDownloads } from './downloads.js';
 export type { PackageDownloads, DownloadsReport } from './downloads.js';

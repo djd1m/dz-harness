@@ -85,6 +85,7 @@ export interface GuardFacts {
         }[];
         readonly coreVersion: string | null;
         readonly cliVersion: string | null;
+        readonly workspaceVersions?: Readonly<Record<string, string | null>>;
     };
     /** Publish-only raw volume facts. Absence preserves the legacy result shape. */
     readonly volume?: VolumeShadowInput;
@@ -134,7 +135,10 @@ export interface GuardFacts {
             readonly createdIso: string;
             readonly waiver?: string;
         }[];
+        /** Тексты записей бэклога и непустые причины переходов. */
         readonly backlogTexts: readonly string[];
+        /** Летопись ЕСТЬ, но не прочиталась: «<путь>: <причина>». */
+        readonly transitionLogError?: string;
     };
     /** for no-skill-drift: the names that byte-drift between copies (from sweepSkillDrift). */
     readonly drift?: readonly string[];

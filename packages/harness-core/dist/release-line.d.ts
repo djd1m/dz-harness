@@ -1,12 +1,25 @@
 export declare const RELEASE_LINE_RE: RegExp;
-export interface ReleaseLineMatch {
+export interface ReleaseLineToken {
+    readonly name: string;
+    readonly version: string;
+    readonly start: number;
+    readonly end: number;
+}
+export interface ReleaseLineParse {
+    readonly tokens: readonly ReleaseLineToken[];
+    readonly chainEnd: number;
+    readonly wrapped: boolean;
+}
+export interface ReleaseLineMatch extends ReleaseLineParse {
     readonly index: number;
     readonly line: string;
     readonly core: string;
     readonly cli: string;
 }
 export declare function findReleaseLine(text: string): ReleaseLineMatch | null;
+export declare function rewriteReleaseLine(text: string, versions: Readonly<Record<string, string>>): string | null;
 export declare function rewriteReleaseLine(text: string, core: string, cli: string): string | null;
+export declare function shortPackageName(name: string): string;
 /**
  * A generic RELEASE-LINE token: a backtick-quoted `<pkg-short-name> vX` pair, anywhere on a line —
  * the shape `RELEASE_LINE_RE` names for the joint `harness-core`/`harness-cli` pair, generalised to
@@ -16,6 +29,7 @@ export declare function rewriteReleaseLine(text: string, core: string, cli: stri
  * after the first pair (an extra `` · `memory vZ` `` segment needs no bespoke regex of its own).
  */
 export declare const GENERIC_RELEASE_TOKEN_RE: RegExp;
+export declare function parseReleaseLine(line: string): ReleaseLineParse | null;
 /**
  * Is the OLD-VERSION occurrence at `[start, end)` in `line` sitting inside a `` `<name> vX` ``
  * backtick token? A POSITIVE override for `planReadmeVersionSync`'s citation heuristic: a token
