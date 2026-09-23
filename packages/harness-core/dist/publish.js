@@ -16,7 +16,7 @@ import { execSync } from 'node:child_process';
 // `core-boundary.ts`'s `countIoImports` module list).
 import { createHash } from 'node:crypto';
 import { claimCheck } from './claim-check.js';
-import { rewriteReleaseLine, isReleaseLineToken } from './release-line.js';
+import { findReleaseLine, rewriteReleaseLine, isReleaseLineToken, shortPackageName } from './release-line.js';
 import { packedTarballName } from './packed-install-smoke.js';
 // MEASURED 2026-09-10: registry answered E404 for ~3 min (19 probes); earlier the same day > 5 min.
 export const REGISTRY_PROBE_BUDGET = 90;
@@ -1260,56 +1260,72 @@ export function publishPackages(monorepoRoot, opts = {}) {
         }
     }
     const releaseLineSynced = [];
+    const releaseLineReport = [];
     const warnings = [];
-    const releasePackageNames = new Set(['@dzhechkov/harness-core', '@dzhechkov/harness-cli']);
-    const releasePackagePublished = results.some((result) => result.status === 'published' && releasePackageNames.has(result.name));
-    if (releasePackagePublished && opts.dryRun !== true && opts.bumpOnly !== true) {
-        const currentVersion = (name) => {
-            const landed = results.find((result) => result.name === name && result.status === 'published');
-            if (landed !== undefined)
-                return landed.newVersion;
-            const pkg = packages.find((candidate) => candidate.name === name);
-            if (pkg === undefined)
-                return null;
-            try {
-                const parsed = JSON.parse(readFileSync(pathJoin(pkg.dir, 'package.json'), 'utf8'));
-                return typeof parsed.version === 'string' ? parsed.version : null;
+    const versions = {};
+    for (const result of results.filter((result) => result.status === 'published')) {
+        versions[shortPackageName(result.name)] = result.newVersion;
+    }
+    // Dry-run marks would-publish packages skipped, but records successful planning in landedInBatch.
+    const planned = opts.dryRun === true ? {} : versions;
+    if (opts.dryRun === true) {
+        for (const result of results) {
+            if (landedInBatch.has(result.name) && result.error === undefined) {
+                planned[shortPackageName(result.name)] = result.newVersion;
             }
-            catch {
-                return null;
-            }
-        };
-        const coreVersion = currentVersion('@dzhechkov/harness-core');
-        const cliVersion = currentVersion('@dzhechkov/harness-cli');
-        if (coreVersion === null || cliVersion === null) {
-            warnings.push('release-line sync skipped: could not read both harness-core and harness-cli package versions');
         }
-        else {
-            const readmes = [
-                { path: 'README.md', absolute: pathJoin(monorepoRoot, 'README.md') },
-                {
-                    path: 'packages/@dzhechkov/harness-cli/README.md',
-                    absolute: pathJoin(monorepoRoot, 'packages', '@dzhechkov', 'harness-cli', 'README.md'),
-                },
-            ];
-            for (const readme of readmes) {
-                try {
-                    const original = readFileSync(readme.absolute, 'utf8');
-                    const updated = rewriteReleaseLine(original, coreVersion, cliVersion);
-                    if (updated === null) {
+    }
+    const syncReleaseLine = Object.keys(versions).length > 0 && opts.dryRun !== true && opts.bumpOnly !== true;
+    if (Object.keys(planned).length > 0 && opts.bumpOnly !== true) {
+        const readmes = [
+            { path: 'README.md', absolute: pathJoin(monorepoRoot, 'README.md') },
+            {
+                path: 'packages/@dzhechkov/harness-cli/README.md',
+                absolute: pathJoin(monorepoRoot, 'packages', '@dzhechkov', 'harness-cli', 'README.md'),
+            },
+        ];
+        for (const readme of readmes) {
+            try {
+                const original = readFileSync(readme.absolute, 'utf8');
+                const found = findReleaseLine(original);
+                if (found === null) {
+                    // A repo without a joint release line is the NORMAL case for every consumer monorepo —
+                    // only a run that was actually about to WRITE has something to report here. The report-only
+                    // pass (dry-run) records an empty plan and says nothing, which is what keeps `dz publish`'s
+                    // output free of the word the FR-11 proxy watches for (cli.test.ts, "independent of the
+                    // release feature"). MEASURED 2026-09-22: widening the gate without this made every dry-run
+                    // in a line-less repo print a release-line warning.
+                    if (syncReleaseLine)
                         warnings.push(`release-line sync skipped ${readme.path}: release line not found`);
-                        continue;
+                    continue;
+                }
+                const rewritten = [];
+                const kept = [];
+                for (const token of found.tokens) {
+                    if (Object.hasOwn(planned, token.name) && planned[token.name] !== token.version) {
+                        rewritten.push({ name: token.name, from: token.version, to: planned[token.name] });
                     }
-                    if (updated === original)
-                        continue;
-                    const tmp = readme.absolute + '.sync-tmp';
-                    writeFileSync(tmp, updated);
-                    renameSync(tmp, readme.absolute);
-                    releaseLineSynced.push(readme.path);
+                    else {
+                        kept.push({ name: token.name, version: token.version });
+                    }
                 }
-                catch (error) {
+                releaseLineReport.push({ path: readme.path, rewritten, kept, wrapped: found.wrapped });
+                const updated = rewriteReleaseLine(original, planned);
+                if (!syncReleaseLine || updated === null || updated === original)
+                    continue;
+                const tmp = readme.absolute + '.sync-tmp';
+                writeFileSync(tmp, updated);
+                renameSync(tmp, readme.absolute);
+                releaseLineSynced.push(readme.path);
+            }
+            catch (error) {
+                // Same rule as the not-found branch above: only the pass that was actually going to WRITE
+                // reports. A README that does not exist at all is the normal state of a consumer monorepo,
+                // and a report-only pass must not turn that into a warning naming the release line
+                // (FR-11 proxy, harness-cli/test/cli.test.ts — MEASURED 2026-09-22: ENOENT on both READMEs
+                // of a tmp fixture made every dry-run print two release-line warnings).
+                if (syncReleaseLine)
                     warnings.push(`release-line sync failed ${readme.path}: ${error instanceof Error ? error.message : String(error)}`);
-                }
             }
         }
     }
@@ -1330,6 +1346,7 @@ export function publishPackages(monorepoRoot, opts = {}) {
         errors: results.filter((r) => r.status === 'error').length,
         dryRun: opts.dryRun === true,
         releaseLineSynced,
+        releaseLineReport,
         ...(warnings.length > 0 ? { warnings } : {}),
     };
 }

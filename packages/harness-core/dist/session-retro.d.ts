@@ -90,12 +90,19 @@ export declare function parseSessionJsonl(raw: string): SessionEvent[];
 export declare function findLatestTranscript(repoRoot: string): string | null;
 export declare const RETRO_SCAN_STATE_FILE = "retro-scan-state.json";
 export declare const RETRO_PENDING_FILE = "retro-pending.json";
+export interface AdmissionDebt {
+    readonly snippet: string;
+    /** Paired call ids issued against THIS debt, in registration order (oldest first).
+     * Absent, rather than an empty array, when no calls await confirmation. */
+    readonly awaiting?: readonly string[];
+}
 export interface RetroPendingSentinel {
     readonly schema: 1;
     readonly sessionId: string;
     readonly transcript: string;
     readonly snippet: string;
     readonly ts: string;
+    readonly awaiting?: readonly string[];
 }
 /** Where the Stop-hook scan got its transcript path — or why it has none. */
 export interface ScanTailSource {
@@ -149,11 +156,7 @@ export declare const RETRO_SCAN_LOCK_NAME = "retro-scan";
  * detectProcessRakes stays looser (any non-directive text mention) because its failure mode is a
  * false accusation, while this fold's failure mode is a silently forgiven debt.
  */
-export declare function foldAdmissionDebt(events: readonly SessionEvent[], prior: {
-    snippet: string;
-} | null): {
-    snippet: string;
-} | null;
+export declare function foldAdmissionDebt(events: readonly SessionEvent[], prior: AdmissionDebt | null): AdmissionDebt | null;
 /**
  * One incremental scan transaction: read state → read the new transcript bytes (whole lines only —
  * a partial trailing line is left for the next scan) → fold the debt → persist state + sentinel.

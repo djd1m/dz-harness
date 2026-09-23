@@ -2597,6 +2597,80 @@ PRIVACY, stated plainly: the row carries the query text, exactly as the recall-h
 `.dz/` is gitignored and this store is prompt-class private by policy — the same protection, the same
 file, now with your interactive queries in it too.
 
+## Help is addressed: twelve commands answer for themselves
+
+```bash
+dz parity --help          # the parity usage — NOT the 156-line global block
+dz score --help           # the score usage
+dz workflow run --help    # the sub-command's own usage
+dz workflow --help        # still the GLOBAL block: `workflow` alone owns no help
+dz publish --help         # global block, as before
+```
+
+Twelve commands carry their own help: `parity`, `hooks-sync`, `agents-sync`, `reqe`, `qe-bridge`,
+`control-review`, `score`, `compounding`, `epoch-replay`, `skills-verify`, plus the sub-commands
+`guard promote` and `workflow run`. Everything else prints the global block, unchanged.
+
+**Ownership is a PAIR — command plus first positional token — not a bare name.** `guard promote`
+and `workflow run` live inside sub-dispatchers whose siblings have no help check of their own, so
+keying on `guard` or `workflow` alone would send a help request INTO the sibling and execute it:
+`workflow init --help` would write a plan file, `guard --init --help` would create a config, and
+`guard check --help` would append to the audit log. Measured, then closed by the pair key.
+
+**A help request is never recorded as a command invocation.** That was already true when the
+global block answered everything; it stays true now that twelve commands answer for themselves,
+so the deadwood inventory and the process scorecards still see real use only.
+
+## Backlog coverage accepts a transition reason
+
+The `backlog-covers-features` guard rule counts a feature directory as covered when its slug is
+named in a backlog record **or** in the reason of any status transition:
+
+```bash
+dz backlog ship <id> --reason "<slug>: what shipped"
+```
+
+Before this, only the record's own text was read, and the rule reported 94 uncovered directories
+on this repo; 48 of them were already named in transition reasons the rule never opened. The
+number is now 45, and the rule's message names all three cures (a record, a reason, or a waiver
+line carrying an explicit cause).
+
+## The release line is stamped for every published package
+
+`dz publish` rewrites the release line in both READMEs from the versions the run ACTUALLY
+published, keyed by short package name — not from what happens to be on disk. A token naming a
+package the run did not publish is left alone and reported rather than guessed at, and the dry-run
+plan says `будет переписано` where the live run says `переписано`, so the tense carries the mode.
+
+## Global: help in machine mode (`--json --help`)
+
+```bash
+dz publish --help            # 156 lines of plain text, exit 0 — unchanged
+dz publish --json --help     # {"ok":true,"help":["dz - DZ cross-platform harness CLI", …],"command":"publish"}
+dz -h --json                 # same envelope, "command":""
+dz --json                    # same envelope, "command":""
+dz help --json               # same envelope, "command":"help"
+```
+
+Exit 0 in every form. The `help` array is the usage text split into lines — 156 today — built
+from the usage template itself, never from captured output (capturing adds a trailing newline
+and would yield a phantom 157th, empty element).
+
+**Why it exists.** `dz <command> --json --help` used to print the same 156 lines of PLAIN TEXT
+with exit 0 (MEASURED 2026-09-22, reproducer: `node dist/bin.js publish --json --help`). A wrapper
+that asks for machine format and parses the answer as JSON failed on the first character — the
+mirror image of "silence read as success": here text was read as JSON. Both entry points answer
+through one function, the early `-h` flag and the command dispatcher alike, so the contract cannot
+drift between them.
+
+**No `exitCode` field, on purpose.** Help always returns 0, so the field would repeat a constant.
+Sibling envelopes in this CLI carry it because their exit code varies.
+
+**Deliberately out of scope, named rather than hidden.** An unregistered command with `--json
+--help` is still refused with an empty stdout and exit 2 — that belongs to the unknown-command
+contract, not the help contract, and is filed separately. Per-command help is also unchanged:
+every form prints the GLOBAL usage, not the usage of the named command.
+
 ## Global: `dz --version` / `-v` / `dz version`
 
 ```bash
@@ -5707,7 +5781,26 @@ ledger row now carries a `prices` snapshot. See `@dzhechkov/harness-core`'s READ
 decision list (D1–D5) and the two new pure modules (`feature-adr-stage-canon.ts`, `codex-rollouts.ts`) behind
 `dz usage --by-stage`'s new `INCOMPLETE_INVENTORY` verdict and canonical-stage breakdown.
 
-`harness-core v0.8.41` · `harness-cli v0.8.34` · `harness-presets v0.5.20` — **this release (night
+`harness-core v0.8.42` · `harness-cli v0.8.35` — **this release (night 22→23.09 plus 23.09, two
+packages, five features): command help is ADDRESSED — twelve commands answer `dz <cmd> --help` with
+their own text, and ownership is keyed by the PAIR (command + first positional token) rather than by
+the bare command name, because two of the twelve are branches of a shared sub-dispatcher whose
+siblings have no help check at all: a bare-name key would have EXECUTED the sibling on a help
+request, writing a plan file, a guard settings file and a journal line (verified by six live calls in
+a throwaway repo: zero writes). Seven pieces of content that had only ever lived in the GLOBAL help
+moved with the address — exit codes for `hooks-sync`/`agents-sync`/`control-review`, the
+"unavailable is NOT MEASURED" rule, parity cell categorization, the `qe-bridge` disclosure clause and
+the `epoch-replay` DISJOINT term. Help in machine mode answers `{ok, help, command}` from BOTH entry
+points. The backlog guard reads closure reasons out of the transition log, so a feature named by a
+`ship --reason` counts as covered: uncovered feature directories 94 → 46, measured by three
+independent instruments. The feature-adr skill tree is PRODUCED from one source by a tool that
+contains no deletion call whatsoever — the invariant is stated as what a permitted removal may touch,
+not as a blanket ban, and `compareTrees` reports `match | missing | diverged | extra` per file. The
+unrecorded-lesson debt now survives a turn boundary: the in-flight set moved into the sentinel file,
+and the write order is INVERTED — the debt is committed BEFORE its offset, so an interruption leaves
+those bytes replayable. All twelve sibling dependencies of `harness-core` are pinned `workspace:^`.**
+
+`harness-core v0.8.41` · `harness-cli v0.8.35` · `harness-presets v0.5.21` — **this release (night
 21.09, three packages, all instrument-honesty fixes): the lesson→rule funnel now refuses a PERIOD
 rather than the whole FILE — chain damage that an unbroken run has already followed suppresses only
 the months whose own rows sit at or before it (`guard-audit-chain-damaged:<month>`), and a month

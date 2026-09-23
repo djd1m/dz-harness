@@ -11,6 +11,7 @@ import { parseNpmPackInventory } from '@dzhechkov/harness-core';
 // `@dzhechkov/memory`: a new package-graph edge is a publishing-surface change outside this
 // feature's scope, and harness-core already depends on memory.
 import { noSearchableTermsReason } from '@dzhechkov/harness-core';
+import { shortPackageName } from '@dzhechkov/harness-core';
 import { appendFileSync, chmodSync, closeSync, constants as fsConstants, copyFileSync, cpSync, existsSync, fstatSync, fsyncSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readSync, readdirSync, readlinkSync, realpathSync, renameSync, rmdirSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync, writeSync } from 'node:fs';
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep, posix as nodePosixPath } from 'node:path';
 const posixNormalize = nodePosixPath.normalize;
@@ -37,7 +38,7 @@ import { MODEL_PRICES } from '@dzhechkov/harness-core';
 import { assignArm, readAssignments, verifyAssignmentRecord } from '@dzhechkov/harness-core';
 import { createSkill, getSkillInfo, listSkillsDetailed, formatSkillLoadFailures, formatSkillApplyFailures, resolveTargetName, formatTargetProblem, formatTargetAliasNote, TARGET_NAMES_SORTED, runDoctor, runInit, discoverSkillIds, loadSkillFromDir, resolveSelection, formatSelectRefusal, runIntegrationsVerify, resolvePackageSkillRoots, PACKAGE_SKILL_LAYOUTS, benchmarkSkill, benchmarkSkills, scanMcp, reconcileCapabilities, RECONCILE_BANNER, buildRegistry, discoverSkillPackDirs, discoverVerifiablePackDirs, verifiedScopeNote, checkUpstream, compareSkills, checkAllUpstream, sweepSkillDrift, syncCanonicalSkill, checkUpgrades, discoverPackages, matchesPublishFilter, discoverSourcePackages, fetchAllDownloads, filterByCategory, pretrain, recommend, generatePlugin, publishPackages, runSetup, memoryBackendSourceLabel, runMigrate, searchRegistry, runSync, runVerify, runInitAgentsMd, runInitGeminiMd, runSyncAgentsPolicy, runSyncCodexHooks, resolveCodexHome, withProjectLockSync, withDirLockSync, 
 // dz workflow run (feature dz-workflow-run): the pure scheduler + the dispatch adapters.
-TRACE_RUNID_RE, WF_RUN_OWNER_HOST, preflight, runWorkflow, makeClaudePDispatcher, makeCodexExecDispatcher, NamedLockTimeoutError, NamedLockCompromisedError, POLICY_SOURCES, detectPolicyDrift, hasPolicyFence, TARGET_NAMES, buildParityMatrix, computeParity, PARITY_FEATURES, downgradeForStaleEvidence, findStaleTranscriptEvidence, TARGET_CAPABILITIES, TARGET_SHORT_LABELS, applyLegStatus, applyLegReasonMessage, probeApplyLeg, resolveAgentdbPath, WORKFLOW_TEMPLATES_RETIRED_MESSAGE, parsePlan, isParseErrors, validatePlan, normalizePlan, planDigest, toTraceProjection, renderPlan, mergeRender, lint, lintExitCode, LOOP_BLOBS, parseTrace, assembleTimeline, runInvariants, deriveAttestation, stampAttestation, corroborate, NOT_WITNESSED, renderTimelineHtml, importEcc, recordPattern, recordLessonForms, normalizeLessonForms, resolveLearningBackend, storeStats, consolidateSessions, pruneNoisePatterns, lessonDeltaReport, removePatternsByIds, snapshotStore, recallHybrid, teachGuard, mirrorPatternsToVector, mirrorEntriesToVector, patternVectorEntry, readMemoryLearningConfig, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns, clearAgentdbQuarantine, vectorMirrorEnabled, vectorTierStatus, resolveVectorEngine, reindexVectorStore, harmonizeVectorStore, importRvfCheckpoint, renderFeatureAdrPhaseLine, statuslineData, countLearningStoreRowsReadonly, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, planStoreGuardPrune, storeGuardPath, storeSnapshotPath, writeFeatureAdrState, writeFeatureAdrStateDetailed, CHECKPOINT_STAGES, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, computeSpendReport, deriveCostLedger, planLedgerBackfill, listCostLedgerRuns, resolveLedgerRunId, AMBIGUOUS, stampCheckpointLine, LEDGER_FILL_SOURCE, renderCostLedger, verifyCostLedgerReport, writeCostLedgerJsonl, COST_LEDGER_SCOPE, spendReport, claimCheck, summarize, BUNDLED_SLOP_REGISTRY_URL, DEFAULT_SLOP_CONFIG, parseSlopRegistry, slopLint, validateSlopLintConfig, queryBookKnowledge, loadStorePatternsSync, patternRecordId, patternIdentityOf, mergeLessonMatchedForms, SWARM_BRIEF_CONTRACT, checkSwarmBrief, visibleText, loadStoreRecords, findExactLesson, recordToPattern, bundleSkills, brainHome, brainAgentdbPath, listPreReindexSnapshots, rotatePreReindexSnapshots, scanSnapshotDir, listBrain, bookKbPath, promoteProjectToBrain, updateBrainSource, queryBrain, groundPrompt, expandKu, reindexBrainVectors, buildPrimer, exportBrainSlice, importBrainSlice, registerKusToBrain, RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, parseRecallUsageLog, buildRecallUsageReport, EVENT_CHAIN_TAIL_BYTES, EMPTY_LOG_TAIL, readTailInfo, appendChainedLines, verifyEventChainText, classifyChainDefects, liveSegmentStart, CHAINED_JOURNALS, buildManifest, buildSbom, resolveTrustRoot, decideVerifyPolicy, explainPackVerificationFailure, resolveReinforceTarget, isShippedSource, generateSigningKeypair, appendTransition, evaluateGuard, GUARD_OPS, resolveRules, auditRecord, guardExitCode, DEFAULT_RULES, parsePnpmLockImporters, scannableStubPath, 
+TRACE_RUNID_RE, WF_RUN_OWNER_HOST, preflight, runWorkflow, makeClaudePDispatcher, makeCodexExecDispatcher, NamedLockTimeoutError, NamedLockCompromisedError, POLICY_SOURCES, detectPolicyDrift, hasPolicyFence, TARGET_NAMES, buildParityMatrix, computeParity, PARITY_FEATURES, downgradeForStaleEvidence, findStaleTranscriptEvidence, TARGET_CAPABILITIES, TARGET_SHORT_LABELS, applyLegStatus, applyLegReasonMessage, probeApplyLeg, resolveAgentdbPath, WORKFLOW_TEMPLATES_RETIRED_MESSAGE, parsePlan, isParseErrors, validatePlan, normalizePlan, planDigest, toTraceProjection, renderPlan, mergeRender, lint, lintExitCode, LOOP_BLOBS, parseTrace, assembleTimeline, runInvariants, deriveAttestation, stampAttestation, corroborate, NOT_WITNESSED, renderTimelineHtml, importEcc, recordPattern, recordLessonForms, normalizeLessonForms, resolveLearningBackend, storeStats, consolidateSessions, pruneNoisePatterns, lessonDeltaReport, removePatternsByIds, snapshotStore, recallHybrid, teachGuard, mirrorPatternsToVector, mirrorEntriesToVector, patternVectorEntry, readMemoryLearningConfig, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns, clearAgentdbQuarantine, vectorMirrorEnabled, vectorTierStatus, resolveVectorEngine, reindexVectorStore, harmonizeVectorStore, importRvfCheckpoint, renderFeatureAdrPhaseLine, statuslineData, countLearningStoreRowsReadonly, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, planStoreGuardPrune, storeGuardPath, storeSnapshotPath, writeFeatureAdrState, writeFeatureAdrStateDetailed, CHECKPOINT_STAGES, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, computeSpendReport, deriveCostLedger, planLedgerBackfill, listCostLedgerRuns, resolveLedgerRunId, AMBIGUOUS, stampCheckpointLine, LEDGER_FILL_SOURCE, renderCostLedger, verifyCostLedgerReport, writeCostLedgerJsonl, COST_LEDGER_SCOPE, spendReport, claimCheck, summarize, BUNDLED_SLOP_REGISTRY_URL, DEFAULT_SLOP_CONFIG, parseSlopRegistry, slopLint, validateSlopLintConfig, queryBookKnowledge, loadStorePatternsSync, patternRecordId, patternIdentityOf, mergeLessonMatchedForms, SWARM_BRIEF_CONTRACT, checkSwarmBrief, visibleText, loadStoreRecords, findExactLesson, recordToPattern, bundleSkills, brainHome, brainAgentdbPath, listPreReindexSnapshots, rotatePreReindexSnapshots, scanSnapshotDir, listBrain, bookKbPath, promoteProjectToBrain, updateBrainSource, queryBrain, groundPrompt, expandKu, reindexBrainVectors, buildPrimer, exportBrainSlice, importBrainSlice, registerKusToBrain, RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, parseRecallUsageLog, buildRecallUsageReport, EVENT_CHAIN_TAIL_BYTES, EMPTY_LOG_TAIL, readTailInfo, appendChainedLines, verifyEventChainText, classifyChainDefects, liveSegmentStart, CHAINED_JOURNALS, buildManifest, buildSbom, resolveTrustRoot, decideVerifyPolicy, explainPackVerificationFailure, resolveReinforceTarget, isShippedSource, generateSigningKeypair, appendTransition, readTransitions, transitionLogPath, evaluateGuard, GUARD_OPS, resolveRules, auditRecord, guardExitCode, DEFAULT_RULES, parsePnpmLockImporters, scannableStubPath, 
 // guard-promotion (feature guard-promotion, scout idea #1)
 assembleCandidates, renderPromotionReport, renderPromotionAdr, normalizePromotionState, nextPromotionState, recordPromotionRunEvidence, isLessonRuleContentAnchor, isOffsetIsoTimestamp, globMatch, promotionAdrRelPath, DEFAULT_WINDOW_DAYS, DEFAULT_PERIODS, MAX_CONTENT_FETCHES, BUILTIN_COVERAGE, decideProvenance, isInsideTree, signManifest, verifyManifest, hashPackBytes, rewriteWorkspaceSpecs, detectSiblingDrift, planPackedInstallSmoke, judgePackedInstallSmoke, gatherPublishSecretFacts, listSignablePackFiles, assertKeyOutsideTree, decidePublishGate, collectPackageFacts, planReleaseGates, selectAffectedPackages, classifyGateExecutions, buildFailureIssue, shouldRetryGhWithoutToken, buildReleaseNotes, releaseTagName, firstOutputLine, formatPublishError, MANIFEST_NAME, SBOM_NAME, buildArchitectureMap, renderMapHuman, findArchitectureDrift, renderDriftReport, scanWorkspacePackages, loadSubsystemManifest, loadProductVision, checkFeatureAgainstArchitecture, renderArchCheck, planProjectSkills, guidanceForStage, renderInjectionReport, analyzeCorpus, renderRakeReport, renderCriticSection, rakeAsLesson, rakeReward, DEFAULT_RAKE_THRESHOLDS, streamSessionEvents, findLatestTranscript, resolveScanTailTranscript, detectProcessRakes, buildRetro, renderRetro, retroLessonText, PROCESS_SIGNATURES, RETRO_DOMAIN, runRetroTailScan, scanForSetup, buildSetupPlan, scaffoldFromSpec, renderScaffoldPreview, readExistingForScaffold, assembleChallengeContext, buildChallengeBrief, planDiscriminationCheck, classifyDiscrimination, classifyExecutionEvidence, pickAdversaryModel, CHALLENGE_QUESTIONS, loadOutcomes, renderOutcomes, statsForKey, selectAutoCost, recordProvisional, finalizeOutcome, harvestStageOutcomes, recommendModels, planFeed, unfedRuns, GRADE_SUCCESS_FLOOR, COST_LADDER, splitScenarios, budgetPlan, selectWinner, proseScopeOk, renderProseDiff, readScenarioIds, DEFAULT_MAX_JUDGE_RUNS, collectDeliveryFacts, planDeliveryCheck, renderDeliveryBrief, classifyDelivery, isUsablePlaneResult, renderDeliveryReview, scanSkillsLayout, declaredPluginSurface, parseInitFacts, verifyRegistration, buildContentProbePrompt, classifyContentProbe, renderContentProbe, findNonRegistrableSkillDirs, assembleCompoundingReport, buildDeadwoodReport, compactCmdUsageIfNeeded, measureCmdUsageDepthDays, recordCommandInvocation, resolveCmdUsageRoot, renderDeadwoodReport, CMD_USAGE_LOG_RELATIVE, banditStats, narrowBanditReport, renderBanditHealth, 
 // Cold-vs-warm EPOCH RUNNER (feature epoch-replay) — orchestrates + scores, never calls a model.
@@ -252,6 +253,16 @@ Workflows: author loop-plan/1 plans with dz workflow init/validate/render; gate 
 
 Targets: ${TARGET_NAMES.join(', ')}
 Presets: ${PRESET_NAMES.join(', ')}`;
+const USAGE_LINES = USAGE.split('\n');
+function respondWithHelp(command, json, write) {
+    if (json === false) {
+        write(USAGE);
+        return 0;
+    }
+    // ADR-001 D5: help always returns 0, so an exitCode field would only repeat a constant.
+    write(JSON.stringify({ ok: true, help: USAGE_LINES, command }));
+    return 0;
+}
 /** Parse `<command> [--key value] [--flag]` argv. */
 function parseArgs(argv) {
     const options = new Map();
@@ -6585,6 +6596,16 @@ npmPackRunner,
  */
 registrySeam) {
     const json = flags.has('json');
+    // Node's stdout is async on a pipe: a bare write before returning can be truncated.
+    // Use the success report's writeOutput seam for every machine envelope.
+    const emitJson = (payload) => { writeOutput(JSON.stringify(payload)); };
+    // FR-7 was dropped here, deliberately, and the dead branch removed with it (feature
+    // publish-json-serialises-block, lead 2026-09-22): `dz publish --json --help` NEVER reaches this
+    // function — the top-level dispatcher intercepts `--help` for every known command at cli.ts:23674
+    // and prints the GLOBAL help. MEASURED: `dz publish --json --help` → 156 lines of plain text on
+    // stdout, exit 0. Making that one command answer in JSON is a change to the global help contract
+    // and belongs to its own decision, not to this feature's refusal envelope. Backlog: see the record
+    // filed with this feature. A branch that looks like a feature and can never run is worse than none.
     // Under --json stdout carries exactly one JSON document, so every human line — guard notes, refusals,
     // progress — goes to stderr instead of being dropped: a refusal that prints nothing is the silent
     // failure this repo forbids (QE P2 2026-09-10).
@@ -6598,6 +6619,8 @@ registrySeam) {
         if (!allowedFlags.has(flag)) {
             write(`dz publish: unknown option --${flag}`);
             write(allowedHelp);
+            if (json)
+                emitJson({ ok: false, error: `dz publish: unknown option --${flag}`, exitCode: 1 });
             return 1;
         }
     }
@@ -6607,6 +6630,8 @@ registrySeam) {
         if (!allowedOptions.has(key)) {
             write(`dz publish: unknown option --${key}`);
             write(allowedHelp);
+            if (json)
+                emitJson({ ok: false, error: `dz publish: unknown option --${key}`, exitCode: 1 });
             return 1;
         }
     }
@@ -6619,6 +6644,8 @@ registrySeam) {
         filter = filterStr.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
         if (filter.length === 0) {
             write('dz publish: --filter requires a non-empty comma-separated list of package-name substrings');
+            if (json)
+                emitJson({ ok: false, error: 'dz publish: --filter requires a non-empty comma-separated list of package-name substrings', exitCode: 1 });
             return 1;
         }
     }
@@ -6634,6 +6661,8 @@ registrySeam) {
         const noGuard = options.get('no-guard');
         if (noGuard !== undefined && noGuard.trim() === '') {
             write('dz publish: --no-guard requires a reason (it is logged): --no-guard "hotfix, guard re-run after"');
+            if (json)
+                emitJson({ ok: false, error: 'dz publish: --no-guard requires a reason (it is logged): --no-guard "hotfix, guard re-run after"', exitCode: 1 });
             return 1;
         }
         const guardResult = runGuardEvaluation(guardRoot, 'publish', undefined, noGuard, filter);
@@ -6642,6 +6671,8 @@ registrySeam) {
             for (const v of guardResult.violations.filter((x) => x.severity === 'hard'))
                 write(`  [BLOCK] ${v.rule}: ${v.detail}`);
             write('  → fix the violation(s), or override with --no-guard "<reason>" (logged to .dz/guard-audit.jsonl).');
+            if (json)
+                emitJson({ ok: false, blocked: true, gate: 'guard-hard', reason: 'dz guard HARD invariant violated', rows: guardResult.violations.filter((v) => v.severity === 'hard'), exitCode: 1 });
             return 1;
         }
         if (guardResult.verdict === 'block')
@@ -6661,6 +6692,8 @@ registrySeam) {
     // refuses `--provenance` where no OIDC token can be minted. `off` is an escape hatch that names itself.
     if (flags.has('provenance') && flags.has('no-provenance')) {
         write('dz publish: --provenance and --no-provenance are mutually exclusive');
+        if (json)
+            emitJson({ ok: false, error: 'dz publish: --provenance and --no-provenance are mutually exclusive', exitCode: 1 });
         return 1;
     }
     const provenance = flags.has('provenance') ? 'on' : flags.has('no-provenance') ? 'off' : 'auto';
@@ -6669,6 +6702,8 @@ registrySeam) {
     }
     catch (err) {
         write(err.message);
+        if (json)
+            emitJson({ ok: false, error: err.message, exitCode: 1 });
         return 1;
     }
     // Pre-publish claim-check gate strictness: reject (never coerce) an invalid value. Default 'warn'
@@ -6677,6 +6712,8 @@ registrySeam) {
     const claimCheckRaw = options.get('claim-check');
     if (claimCheckRaw !== undefined && !['off', 'warn', 'error'].includes(claimCheckRaw)) {
         write(`dz publish: invalid --claim-check '${claimCheckRaw}' (expected off|warn|error)`);
+        if (json)
+            emitJson({ ok: false, error: `dz publish: invalid --claim-check '${claimCheckRaw}' (expected off|warn|error)`, exitCode: 1 });
         return 1;
     }
     const claimCheckOpt = claimCheckRaw ?? 'warn';
@@ -6785,6 +6822,7 @@ registrySeam) {
     // between rounds, so a later round can only ever re-derive a SUBSET of what the first pass
     // already covered (its siblings that drifted got folded into the batch and are now skipped).
     const siblingDriftAudited = new Set();
+    const driftRows = [];
     let driftBlocked = 0;
     const extraBatch = new Set();
     // AM-2: --include-drifted must reach a FIXED POINT over transitive drifted siblings — a sibling
@@ -6818,12 +6856,14 @@ registrySeam) {
                             }
                             else {
                                 write(`dz publish: BLOCKED ${pk.name} — sibling drift check unavailable for ${pk.name} (${reason}), and the override could not be recorded (audit write failed: ${wrote.reason ?? 'unknown reason'}); refusing rather than proceeding unlogged`);
+                                driftRows.push({ name: pk.name, version: pk.version, reason: `dz publish: BLOCKED ${pk.name} — sibling drift check unavailable for ${pk.name} (${reason}), and the override could not be recorded (audit write failed: ${wrote.reason ?? 'unknown reason'}); refusing rather than proceeding unlogged` });
                                 driftBlocked++;
                             }
                         }
                         else {
                             const wrote = appendPublishGateAudit(cwd, 'sibling-drift', 'block', `${pk.name}: ${reason}`, [{ name: pk.name, version: pk.version }], undefined, gateAuditFsLayer);
                             write(`dz publish: BLOCKED ${pk.name} — sibling drift check unavailable (${reason}); add --allow-sibling-drift to override (logged) or fix the manifest${auditSuffix(wrote)}`);
+                            driftRows.push({ name: pk.name, version: pk.version, reason: `dz publish: BLOCKED ${pk.name} — sibling drift check unavailable (${reason}); add --allow-sibling-drift to override (logged) or fix the manifest${auditSuffix(wrote)}` });
                             driftBlocked++;
                         }
                     }
@@ -6871,6 +6911,7 @@ registrySeam) {
                                 pkParts.push(`${r.name}@${r.version}: unavailable (${r.reason})`);
                                 pkVerdict = 'block';
                                 write(`dz publish: BLOCKED ${pk.name} — sibling drift check unavailable (${r.reason}); add --allow-sibling-drift to override (logged) or check network/registry access`);
+                                driftRows.push({ name: pk.name, version: pk.version, reason: `dz publish: BLOCKED ${pk.name} — sibling drift check unavailable (${r.reason}); add --allow-sibling-drift to override (logged) or check network/registry access` });
                                 driftBlocked++;
                             }
                         }
@@ -6898,6 +6939,7 @@ registrySeam) {
                             pkVerdict = 'block';
                             const suggestFilter = filterStr !== undefined ? `${filterStr},${r.name}` : `${pk.name},${r.name}`;
                             write(`dz publish: BLOCKED ${pk.name} — sibling drift: @dzhechkov/${r.name.replace(/^@dzhechkov\//, '')}@${r.version} on the registry differs from the workspace (${r.changedFiles.length} file(s)); add ${r.name} to the batch (--filter ${suggestFilter}) or publish it first`);
+                            driftRows.push({ name: pk.name, version: pk.version, reason: `dz publish: BLOCKED ${pk.name} — sibling drift: @dzhechkov/${r.name.replace(/^@dzhechkov\//, '')}@${r.version} on the registry differs from the workspace (${r.changedFiles.length} file(s)); add ${r.name} to the batch (--filter ${suggestFilter}) or publish it first` });
                             driftBlocked++;
                         }
                     }
@@ -6919,6 +6961,7 @@ registrySeam) {
                         }
                         else {
                             write(`dz publish: BLOCKED ${pk.name} — the --allow-sibling-drift override could not be recorded (audit write failed: ${wrote.reason ?? 'unknown reason'}); refusing rather than proceeding unlogged`);
+                            driftRows.push({ name: pk.name, version: pk.version, reason: `dz publish: BLOCKED ${pk.name} — the --allow-sibling-drift override could not be recorded (audit write failed: ${wrote.reason ?? 'unknown reason'}); refusing rather than proceeding unlogged` });
                             driftBlocked++;
                         }
                     }
@@ -6958,6 +7001,8 @@ registrySeam) {
     const siblingDriftFailed = driftBlocked > 0;
     if (siblingDriftFailed && !dryRun) {
         write(`dz publish: refusing to publish (${driftBlocked} sibling-drift violation(s))`);
+        if (json)
+            emitJson({ ok: false, blocked: true, gate: 'sibling-drift', reason: `${driftBlocked} sibling-drift violation(s)`, rows: driftRows, exitCode: 1 });
         return 1;
     }
     // FR-3 — packed-install smoke: pack the WHOLE (possibly --include-drifted-expanded) batch,
@@ -6989,6 +7034,7 @@ registrySeam) {
     // real gate is `packedTransport` (wired at the `publishPackages` call below), which packs ONCE
     // post-bump and smokes exactly those tarballs — this preview is skipped entirely then, so its
     // digest is never confused with the one that actually ships.
+    const smokeRows = [];
     let packedInstallSmokePreviewFailed = false;
     if (dryRun) {
         if (bins.length === 0) {
@@ -7059,12 +7105,15 @@ registrySeam) {
                 write(`dz publish: BLOCKED — packed install smoke failed (preview): ${detail}${auditSuffix(wrote)}`);
                 for (const b of smokeVerdict.bins.filter((b) => !b.ok))
                     write(`  ✗ ${b.pkg} (${b.binName}): ${b.detail ?? '(no detail)'}`);
+                smokeRows.push(...targets.map((pk) => ({ name: pk.name, version: pk.version, reason: detail, bins: smokeVerdict.bins.filter((b) => b.pkg === pk.name && !b.ok) })));
                 packedInstallSmokePreviewFailed = true;
             }
         }
     }
     if (siblingDriftFailed || packedInstallSmokePreviewFailed) {
         write(`dz publish: refusing to publish (${driftBlocked} sibling-drift violation(s)${packedInstallSmokePreviewFailed ? ', packed install smoke failed' : ''})`);
+        if (json)
+            emitJson({ ok: false, blocked: true, gate: 'sibling-drift+packed-smoke', reason: `${driftBlocked} sibling-drift violation(s)${packedInstallSmokePreviewFailed ? ', packed install smoke failed' : ''}`, rows: [...driftRows, ...smokeRows], exitCode: 1 });
         return 1;
     }
     if (!dryRun) {
@@ -7092,6 +7141,7 @@ registrySeam) {
         const trustRoot = resolve(cwd, TRUST_ROOT_REL);
         const trustRootPresent = existsSync(trustRoot);
         const requireSigning = flags.has('require-signing');
+        const rows = [];
         let blocked = 0;
         for (const pk of targets) {
             const manifestPath = join(pk.dir, MANIFEST_NAME);
@@ -7150,6 +7200,7 @@ registrySeam) {
             const decision = decidePublishGate({ trustRootPresent, manifestPresent, verifyOk, requireSigning, artifactUnavailable });
             if (decision.action === 'block') {
                 write(`dz publish: BLOCKED ${pk.name} — ${decision.reason}`);
+                rows.push({ name: pk.name, version: pk.version, reason: decision.reason });
                 blocked++;
             }
             else if (decision.action === 'publish-unsigned') {
@@ -7158,6 +7209,8 @@ registrySeam) {
         }
         if (blocked > 0) {
             write(`dz publish: refusing to publish (${blocked} package(s) failed the signature gate)`);
+            if (json)
+                emitJson({ ok: false, blocked: true, gate: 'signature', reason: `${blocked} package(s) failed the signature gate`, rows, exitCode: 1 });
             return 1;
         }
     }
@@ -7461,7 +7514,7 @@ registrySeam) {
     };
     const exitCode = report.errors > 0 ? 1 : mirror.status === 'unconfirmed' ? 3 : 0;
     if (json) {
-        writeOutput(JSON.stringify(report));
+        emitJson({ ok: true, ...report });
         return exitCode;
     }
     write(`\ndz publish${dryRun ? ' --dry-run' : ''}${bumpOnly ? ' --bump-only' : ''}${claimCheckOpt !== 'warn' ? ` --claim-check ${claimCheckOpt}` : ''}`);
@@ -7529,6 +7582,24 @@ registrySeam) {
         write(`  ⚠ warning: ${warning}`);
     for (const path of report.releaseLineSynced ?? [])
         write(`  ↳ release line synced: ${path}`);
+    // ADR-001 D6 / FR-6 (QE HIGH, 2026-09-22): the per-token plan was COMPUTED and unit-tested at the
+    // publishPackages() level, and nothing printed it — a dry run said nothing at all about the release
+    // line, which is the exact omission this feature exists to make visible. One line per README, naming
+    // what moves and what stays, in BOTH modes.
+    for (const line of report.releaseLineReport ?? []) {
+        const moved = line.rewritten.map((t) => `${t.name} ${t.from}→${t.to}`).join(', ');
+        const stays = line.kept.map((t) => `${t.name} ${t.version}`).join(', ');
+        // QE re-round MEDIUM (2026-09-22): the sibling readme-sync line distinguishes `would rewrite`
+        // from `rewrote`, and this one did not — a preview and a completed write read identically.
+        // The tense now carries the mode, as ADR-001 D6's own example shows.
+        const willMove = report.dryRun === true ? 'будет переписано' : 'переписано';
+        const parts = [
+            moved === '' ? (report.dryRun === true ? 'переписывать нечего' : 'ничего не переписано') : `${willMove}: ${moved}`,
+            stays === '' ? null : `остаётся как есть: ${stays}`,
+            line.wrapped ? 'цепочка перенесена на следующую строку — продолжение вне охвата' : null,
+        ].filter((part) => part !== null);
+        write(`  ↳ release line ${line.path}: ${parts.join(' · ')}`);
+    }
     if (mirror.status === 'confirmed') {
         write(`  ✓ mirror: confirmed — ${mirror.commit} (${mirror.receipt?.manifestUrl})`);
     }
@@ -7555,8 +7626,16 @@ registrySeam) {
 async function cmdParity(options, flags, write, writeErr, cwd) {
     const json = flags.has('json');
     if (flags.has('help')) {
-        write('dz parity [--target <name>] [--json] — the computed feature×target map (never hand-written)');
-        write(`  targets: ${TARGET_NAMES.join(', ')}`);
+        const help = [
+            'dz parity [--target <name>] [--json] — the computed feature×target map (never hand-written)',
+            `  targets: ${TARGET_NAMES.join(', ')}`,
+            '  Each cell is full / manual / absent, and the map names via which form it is reached.',
+        ].flatMap(line => line.split('\n'));
+        if (json)
+            write(JSON.stringify({ ok: true, help, command: 'parity' }));
+        else
+            for (const line of help)
+                write(line);
         return 0;
     }
     const allowedFlags = new Set(['json', 'help']);
@@ -9126,7 +9205,15 @@ function cmdHooksSync(options, flags, cwd, write, writeErr) {
     const json = flags.has('json');
     const usage = 'dz hooks-sync --target codex [--check] [--verify] [--remove] [--json] [--project <dir>] [--no-verify]';
     if (flags.has('help')) {
-        write(`${usage} — install/verify the dz veto + recall hooks in $CODEX_HOME/hooks.json`);
+        const help = [
+            `${usage} — install/verify the dz veto + recall hooks in $CODEX_HOME/hooks.json`,
+            '  exit 0 armed+trusted · 1 not armed or drift · 3 inconclusive.',
+        ].flatMap(line => line.split('\n'));
+        if (json)
+            write(JSON.stringify({ ok: true, help, command: 'hooks-sync' }));
+        else
+            for (const line of help)
+                write(line);
         return 0;
     }
     for (const flag of flags) {
@@ -9392,7 +9479,15 @@ function cmdAgentsSync(options, flags, cwd, write, writeErr) {
     const json = flags.has('json');
     const usage = 'dz agents-sync [--project <dir>] [--check] [--json]';
     if (flags.has('help')) {
-        write(`${usage} — sync/verify the dz:policies fence in root AGENTS.md`);
+        const help = [
+            `${usage} — sync/verify the dz:policies fence in root AGENTS.md`,
+            '  exit 0 synced or written · 1 drift · 3 inconclusive.',
+        ].flatMap(line => line.split('\n'));
+        if (json)
+            write(JSON.stringify({ ok: true, help, command: 'agents-sync' }));
+        else
+            for (const line of help)
+                write(line);
         return 0;
     }
     for (const flag of flags) {
@@ -10352,9 +10447,17 @@ function gatherGuardFacts(op, root, text, storeCap, publishFilter) {
                     return null;
                 }
             };
+            // release-line-stamps-whole-batch C1: the release line names SHORT package names
+            // (`harness-presets`), while `versionByName` is keyed by the FULL scoped name. Stripping with the
+            // SAME helper the publish-side version map uses is what keeps the guard from silently falling into
+            // its `unknown` branch for every tail token — one stripper, never two.
+            const workspaceVersions = {};
+            for (const [name, version] of versionByName)
+                workspaceVersions[shortPackageName(name)] = version;
             facts['releaseLines'] = {
                 coreVersion: readVersion(coreManifestPath),
                 cliVersion: readVersion(cliManifestPath),
+                workspaceVersions,
                 readmes: [
                     { path: 'README.md', text: readText(join(root, 'README.md')) },
                     {
@@ -10553,8 +10656,24 @@ function gatherGuardFacts(op, root, text, storeCap, publishFilter) {
                     }
                 }
                 catch { /* стора нет */ }
+                // AM-9 literally: no backlog records ⇒ the rule is not established, so the chronicle is
+                // never even opened. Previously the guard held by a SNAPSHOT taken before the read; the
+                // behaviour was right and the code did not say so (Step-8 finding F5, 22.09.2026).
                 if (backlogTexts.length > 0) {
-                    facts['featureBacklog'] = { baseline: BACKLOG_COVERAGE_BASELINE, features, backlogTexts };
+                    let transitionLogError;
+                    try {
+                        for (const row of readTransitions(root)) {
+                            if (typeof row.reason === 'string' && row.reason.trim() !== '')
+                                backlogTexts.push(row.reason);
+                        }
+                    }
+                    catch (e) {
+                        transitionLogError = `${transitionLogPath(root)}: ${e.message}`;
+                    }
+                    facts['featureBacklog'] = {
+                        baseline: BACKLOG_COVERAGE_BASELINE, features, backlogTexts,
+                        ...(transitionLogError ? { transitionLogError } : {}),
+                    };
                 }
             }
         }
@@ -11244,9 +11363,16 @@ function cmdGuardPromote(options, flags, root, write) {
             return fail(`unknown option --${k}`);
     }
     if (flags.has('help')) {
-        write(`dz guard promote — promote a learned lesson to a deterministic guard rule\n  usage: ${GUARD_PROMOTE_USAGE}`);
-        write('  A candidate must SHADOW-WIN twice consecutively over real commit history before it is proposed.');
-        write('  Default: writes proposal/refusal documents only. --dry-run: writes nothing. --apply: writes the SOFT rule into .dz/guard.json.');
+        const help = [
+            `dz guard promote — promote a learned lesson to a deterministic guard rule\n  usage: ${GUARD_PROMOTE_USAGE}`,
+            '  A candidate must SHADOW-WIN twice consecutively over real commit history before it is proposed.',
+            '  Default: writes proposal/refusal documents only. --dry-run: writes nothing. --apply: writes the SOFT rule into .dz/guard.json.',
+        ].flatMap(line => line.split('\n'));
+        if (json)
+            write(JSON.stringify({ ok: true, help, command: 'guard promote' }));
+        else
+            for (const line of help)
+                write(line);
         return 0;
     }
     const dryRun = flags.has('dry-run');
@@ -14028,14 +14154,21 @@ async function cmdWorkflowRun(options, optionLists, flags, cwd, write) {
         return 2;
     };
     if (flags.has('help')) {
-        write(usage);
-        write('');
-        write('EXIT CODES — `dz workflow run` and `dz workflow-lint` have DIFFERENT tables (AM-11):');
-        write('  run   0 completed · 1 failed (named reason) · 2 usage/invalid plan · 75 typed pause (EX_TEMPFAIL)');
-        write('  lint  0 clean     · 1 findings            · 3 inconclusive');
-        write('  75 is NOT 3: 3 reads ignorable and collides with lint, while a pause strands resumable work.');
-        write('On a pause the LAST stdout line is a `wf-pause-envelope/1` JSON object; a FAILURE emits none,');
-        write('so a wrapper can tell the two apart from stdout + exit code alone, without parsing prose.');
+        const help = [
+            usage,
+            '',
+            'EXIT CODES — `dz workflow run` and `dz workflow-lint` have DIFFERENT tables (AM-11):',
+            '  run   0 completed · 1 failed (named reason) · 2 usage/invalid plan · 75 typed pause (EX_TEMPFAIL)',
+            '  lint  0 clean     · 1 findings            · 3 inconclusive',
+            '  75 is NOT 3: 3 reads ignorable and collides with lint, while a pause strands resumable work.',
+            'On a pause the LAST stdout line is a `wf-pause-envelope/1` JSON object; a FAILURE emits none,',
+            'so a wrapper can tell the two apart from stdout + exit code alone, without parsing prose.',
+        ].flatMap(line => line.split('\n'));
+        if (json)
+            write(JSON.stringify({ ok: true, help, command: 'workflow run' }));
+        else
+            for (const line of help)
+                write(line);
         return 0;
     }
     // ── closed allowlists (the cmdQeBridge discipline: an unknown flag is a usage error, never a
@@ -18632,15 +18765,18 @@ function cmdReqe(options, flags, cwd, write) {
     const json = flags.has('json');
     if (flags.has('help')) {
         const usage = 'dz reqe [--slug <feature> [--done --report <file>]] [--project <dir>] [--json]';
+        const help = [
+            usage + ' — the re-QE debt ledger',
+            '  (no args)              list unsettled debts (runs whose Step-8 QE ran on the coder’s own family — cause: usage-switched, probe-failed, same-family-fallback or same-family-pinned)',
+            '  --slug <s>             print the ready cross-family review brief for one debt',
+            '  --slug <s> --done --report <file>   settle the debt — FAIL-CLOSED: requires an existing, non-trivial, GRADED report; appends the settlement to 08_qe_report.md; exit 0 settled / 1 refused / 3 blocked (BLOCKER or HIGH named by the reviewer — stop, owner decides)',
+            '  ' + REQE_SCOPE,
+        ].flatMap(line => line.split('\n'));
         if (json)
-            write(JSON.stringify({ help: usage, exitCode: 0 }));
-        else {
-            write(usage + ' — the re-QE debt ledger');
-            write('  (no args)              list unsettled debts (runs whose Step-8 QE ran on the coder’s own family — cause: usage-switched, probe-failed, same-family-fallback or same-family-pinned)');
-            write('  --slug <s>             print the ready cross-family review brief for one debt');
-            write('  --slug <s> --done --report <file>   settle the debt — FAIL-CLOSED: requires an existing, non-trivial, GRADED report; appends the settlement to 08_qe_report.md; exit 0 settled / 1 refused / 3 blocked (BLOCKER or HIGH named by the reviewer — stop, owner decides)');
-            write('  ' + REQE_SCOPE);
-        }
+            write(JSON.stringify({ ok: true, help, command: 'reqe' }));
+        else
+            for (const line of help)
+                write(line);
         return 0;
     }
     for (const flag of flags) {
@@ -19065,19 +19201,22 @@ async function cmdQeBridge(options, flags, cwd, write) {
         return 2;
     };
     if (flags.has('help')) {
-        if (json) {
-            write(JSON.stringify({ help: usage, exitCode: 0 }));
-            return 0;
-        }
-        write(usage);
-        write('  Runs a CLAUDE reviewer over a feature’s Step-8 artifacts from ANY host (a Codex session included)');
-        write('  and writes a parsed SIGNOFF. Exit 0 = a signoff was parsed (ANY grade — the bridge reports, it does');
-        write('  not gate); 1 = a named failure (see features/<slug>/.fa-state/qe-bridge/failed-*.json); 2 = usage.');
-        write('  --family codex is reserved: the forward bridge is `codex exec` (see .claude/rules/feature-adr-conventions.md).');
-        write('  Default report: features/<slug>/08b_reqe_report.md — settle it with');
-        write('    dz reqe --slug <feature> --done --report features/<feature>/08b_reqe_report.md');
-        write('  DISCLOSURE: the bridge sends the extracts you scope (--files, plus the feature’s manifest/ADR/QE report)');
-        write('  to the Claude runtime. It cannot classify secrets — scoping the content you scope is YOUR decision (SEC-5).');
+        const help = [
+            usage,
+            '  Runs a CLAUDE reviewer over a feature’s Step-8 artifacts from ANY host (a Codex session included)',
+            '  and writes a parsed SIGNOFF. Exit 0 = a signoff was parsed (ANY grade — the bridge reports, it does',
+            '  not gate); 1 = a named failure (see features/<slug>/.fa-state/qe-bridge/failed-*.json); 2 = usage.',
+            '  --family codex is reserved: the forward bridge is `codex exec` (see .claude/rules/feature-adr-conventions.md).',
+            '  Default report: features/<slug>/08b_reqe_report.md — settle it with',
+            '    dz reqe --slug <feature> --done --report features/<feature>/08b_reqe_report.md',
+            '  DISCLOSURE: the bridge sends the extracts you scope (--files, plus the feature’s manifest/ADR/QE report)',
+            '  to the Claude runtime. It cannot classify secrets — scoping the content you scope is YOUR decision (SEC-5).',
+        ].flatMap(line => line.split('\n'));
+        if (json)
+            write(JSON.stringify({ ok: true, help, command: 'qe-bridge' }));
+        else
+            for (const line of help)
+                write(line);
         return 0;
     }
     const ALLOWED_FLAGS = new Set(['json', 'help', 'allow-same-family']);
@@ -19766,18 +19905,22 @@ async function cmdControlReview(options, flags, cwd, write, io) {
         return 2;
     };
     if (flags.has('help')) {
-        if (json) {
-            write(JSON.stringify({ help: usage, exitCode: 0 }));
-            return 0;
-        }
-        write(usage);
-        write('  Two INDEPENDENT scoped reviews of the SAME tree — a Claude qe-bridge half, then a Codex round-exec');
-        write('  half — diffed for foreign-unique findings per severity (ADR-001, feature cross-family-control-branch).');
-        write('  Automatic overlap is a CANDIDATE only (title-Jaccard>=0.5 with compatible file, or same-file+line±3');
-        write('  with jaccard>=0.2) — never confirmed overlap; --adjudicate produces the only CONFIRMED pairs.');
-        write('  A tree-hash drift between halves, a half with no accepted findings table, an unreadable Claude');
-        write('  signoff, a nonzero Codex exit/timeout, or an ambiguous answer boundary refuses — NO ledger row.');
-        write('  A finding naming a file outside --files is refused into the row\'s own refused/complete fields.');
+        const help = [
+            usage,
+            '  Two INDEPENDENT scoped reviews of the SAME tree — a Claude qe-bridge half, then a Codex round-exec',
+            '  half — diffed for foreign-unique findings per severity (ADR-001, feature cross-family-control-branch).',
+            '  Automatic overlap is a CANDIDATE only (title-Jaccard>=0.5 with compatible file, or same-file+line±3',
+            '  with jaccard>=0.2) — never confirmed overlap; --adjudicate produces the only CONFIRMED pairs.',
+            '  A tree-hash drift between halves, a half with no accepted findings table, an unreadable Claude',
+            '  signoff, a nonzero Codex exit/timeout, or an ambiguous answer boundary refuses — NO ledger row.',
+            '  A finding naming a file outside --files is refused into the row\'s own refused/complete fields.',
+            '  exit 0 written+verified · 1 refused · 2 usage · 3 written-but-not-reread.',
+        ].flatMap(line => line.split('\n'));
+        if (json)
+            write(JSON.stringify({ ok: true, help, command: 'control-review' }));
+        else
+            for (const line of help)
+                write(line);
         return 0;
     }
     const ALLOWED_FLAGS = new Set(['json', 'help']);
@@ -20421,19 +20564,22 @@ function cmdScore(options, flags, cwd, write) {
     const json = flags.has('json');
     if (flags.has('help')) {
         const usage = 'dz score --slug <feature> [--project <dir>] [--json] — process scorecard for one feature-adr run (descriptive-only, never a gate)';
+        const help = [
+            usage,
+            'dz score --all [--project <dir>] [--json] — sweep immutable score receipts into the append-only chained aggregate',
+            '  disciplines: ADR confirmation · discrimination · cross-model QE · live verification · README-first · learning loop · amendments',
+            '  descriptive-only, never a gate: a low score exits 0',
+            'dz score --by-family [--project <dir>] [--json] — ADR-001 cross-family-control-branch: per (coder,reviewer)',
+            '  family pair — grade distribution, shippedShare, notShipped, fixRounds, foreign-unique findings from',
+            '  `control` rows (n, bySeverity, auto vs adjudicated — every field "unknown" when n=0, never a',
+            '  fabricated zero), refutedShare, costPerConfirmed, draftToShipped (shipped-only finals, latest by ts);',
+            '  "control rows: 0" is printed honestly when none exist yet',
+        ].flatMap(line => line.split('\n'));
         if (json)
-            write(JSON.stringify({ help: usage, exitCode: 0 })); // --json stays ONE document even for help
-        else {
-            write(usage);
-            write('dz score --all [--project <dir>] [--json] — sweep immutable score receipts into the append-only chained aggregate');
-            write('  disciplines: ADR confirmation · discrimination · cross-model QE · live verification · README-first · learning loop · amendments');
-            write('  descriptive-only, never a gate: a low score exits 0');
-            write('dz score --by-family [--project <dir>] [--json] — ADR-001 cross-family-control-branch: per (coder,reviewer)');
-            write('  family pair — grade distribution, shippedShare, notShipped, fixRounds, foreign-unique findings from');
-            write('  `control` rows (n, bySeverity, auto vs adjudicated — every field "unknown" when n=0, never a');
-            write('  fabricated zero), refutedShare, costPerConfirmed, draftToShipped (shipped-only finals, latest by ts);');
-            write('  "control rows: 0" is printed honestly when none exist yet');
-        }
+            write(JSON.stringify({ ok: true, help, command: 'score' }));
+        else
+            for (const line of help)
+                write(line);
         return 0;
     }
     for (const flag of flags) {
@@ -20913,8 +21059,17 @@ function cmdDeadwood(options, flags, cwd, write, writeErr) {
 function cmdCompounding(options, flags, cwd, write) {
     const json = flags.has('json');
     if (flags.has('help')) {
-        write('dz compounding [--project <dir>] [--json] — honest learning-loop payoff report');
-        write('  pool payoff · guard trajectory · replay readiness · instrumentation · monthly eligible→attempted→accepted→executions funnel');
+        const help = [
+            'dz compounding [--project <dir>] [--json] — honest learning-loop payoff report',
+            '  pool payoff · guard trajectory · replay readiness · instrumentation · monthly eligible→attempted→accepted→executions funnel',
+            '  unavailable is NOT MEASURED: only a named empty stage after a non-empty predecessor,',
+            '  for three measured months, counts as a funnel finding.',
+        ].flatMap(line => line.split('\n'));
+        if (json)
+            write(JSON.stringify({ ok: true, help, command: 'compounding' }));
+        else
+            for (const line of help)
+                write(line);
         return 0;
     }
     for (const flag of flags) {
@@ -21052,17 +21207,26 @@ function cmdEpochReplay(options, flags, cwd, write) {
         return 1;
     };
     if (flags.has('help')) {
-        write(`dz epoch-replay — cold (epoch 0) vs warm (epoch 1), Wilson-CI three-valued verdict\n  ${EPOCH_REPLAY_USAGE}`);
-        write('');
-        write('  ONE binomial over DECISIVE pairs (ties carry no direction and are excluded from the test).');
-        write('  SUPPORTED only when the paired lift interval lies ENTIRELY above zero.');
-        write('  FALSIFIED only on HARM (entirely below zero), or on a passed NON-SUPERIORITY test (the');
-        write('  lift upper bound below the PRE-REGISTERED margin, default 0.05). Otherwise INCONCLUSIVE —');
-        write('  a first-class honest outcome; a tie is UNDER-POWERED, never "refuted".');
-        write('  The margin is pre-registered at --emit and stored in the work order; --score reads it there.');
-        write('  This runner ORCHESTRATES and SCORES; it never calls a model. The judge-facing file holds');
-        write('  {id, prompt} and nothing else; --score refuses any work order whose digest or seed-derived');
-        write('  assignment does not check out, and refuses duplicate judgement ids.');
+        const help = [
+            `dz epoch-replay — cold (epoch 0) vs warm (epoch 1), Wilson-CI three-valued verdict\n  ${EPOCH_REPLAY_USAGE}`,
+            '',
+            '  ONE binomial over DECISIVE pairs (ties carry no direction and are excluded from the test).',
+            '  The verdict is three-valued and the intervals are DISJOINT by construction: SUPPORTED,',
+            '  FALSIFIED and INCONCLUSIVE cannot overlap, so one run yields exactly one of them.',
+            '  SUPPORTED only when the paired lift interval lies ENTIRELY above zero.',
+            '  FALSIFIED only on HARM (entirely below zero), or on a passed NON-SUPERIORITY test (the',
+            '  lift upper bound below the PRE-REGISTERED margin, default 0.05). Otherwise INCONCLUSIVE —',
+            '  a first-class honest outcome; a tie is UNDER-POWERED, never "refuted".',
+            '  The margin is pre-registered at --emit and stored in the work order; --score reads it there.',
+            '  This runner ORCHESTRATES and SCORES; it never calls a model. The judge-facing file holds',
+            '  {id, prompt} and nothing else; --score refuses any work order whose digest or seed-derived',
+            '  assignment does not check out, and refuses duplicate judgement ids.',
+        ].flatMap(line => line.split('\n'));
+        if (json)
+            write(JSON.stringify({ ok: true, help, command: 'epoch-replay' }));
+        else
+            for (const line of help)
+                write(line);
         return 0;
     }
     const allowedFlags = new Set(['mock', 'emit', 'json', 'help']);
@@ -21421,16 +21585,23 @@ function probeContent(projectDir, prompt, timeoutMs) {
 async function cmdSkillsVerify(options, flags, cwd, write) {
     const json = flags.has('json');
     if (flags.has('help')) {
-        write('dz skills-verify [--dir <project>] [--expect a,b] [--expect-commands a,b] [--plugin-dir <dir>] [--static] [--strict] [--timeout <s>] [--json]');
-        write('  Verifies that a project\'s .claude/skills/ actually register in Claude Code.');
-        write('  --plugin-dir <dir>  load a plugin into the probe session (session-scoped, no marketplace);');
-        write('                      with no --expect-commands, the expectation defaults to the manifest\'s own commands[]');
-        write('  --expect-commands   slash commands that MUST appear in the session listing, e.g. loop-designer:init');
-        write('  --static  layout scan only (no Claude session, CI-safe): flags dirs that can never register');
-        write('  --live-content  ADVISORY extra turn: ask a live model to name the skills and quote one, proving');
-        write('                  the CONTENT is usable — registration is not usability. Never changes the exit code.');
-        write('  default   also starts a real session and reads the authoritative system/init listing');
-        write('  exit: 0 pass · 1 fail · 2 inconclusive (--strict makes inconclusive exit 1)');
+        const help = [
+            'dz skills-verify [--dir <project>] [--expect a,b] [--expect-commands a,b] [--plugin-dir <dir>] [--static] [--strict] [--timeout <s>] [--json]',
+            '  Verifies that a project\'s .claude/skills/ actually register in Claude Code.',
+            '  --plugin-dir <dir>  load a plugin into the probe session (session-scoped, no marketplace);',
+            '                      with no --expect-commands, the expectation defaults to the manifest\'s own commands[]',
+            '  --expect-commands   slash commands that MUST appear in the session listing, e.g. loop-designer:init',
+            '  --static  layout scan only (no Claude session, CI-safe): flags dirs that can never register',
+            '  --live-content  ADVISORY extra turn: ask a live model to name the skills and quote one, proving',
+            '                  the CONTENT is usable — registration is not usability. Never changes the exit code.',
+            '  default   also starts a real session and reads the authoritative system/init listing',
+            '  exit: 0 pass · 1 fail · 2 inconclusive (--strict makes inconclusive exit 1)',
+        ].flatMap(line => line.split('\n'));
+        if (json)
+            write(JSON.stringify({ ok: true, help, command: 'skills-verify' }));
+        else
+            for (const line of help)
+                write(line);
         return 0;
     }
     const allowedFlags = new Set(['json', 'help', 'static', 'strict', 'live-content']);
@@ -23091,6 +23262,13 @@ function cmdJournal(options, flags, cwd, write, injectedIo) {
         return 1;
     }
 }
+// Subcommand owners are pairs: their siblings must still stop at general help.
+// test/help-per-command.test.ts checks these names against the command help branches.
+const HELP_OWNERS = new Set([
+    'parity', 'hooks-sync', 'agents-sync', 'reqe', 'qe-bridge',
+    'control-review', 'score', 'compounding', 'epoch-replay', 'skills-verify',
+    'guard promote', 'workflow run',
+]);
 export async function runCli(argv, io = {}) {
     const cwd = io.cwd ?? process.cwd();
     const write = io.write ?? ((line) => { console.log(line); });
@@ -23148,8 +23326,7 @@ export async function runCli(argv, io = {}) {
     // with exit 2 and an empty stdout (measured regression, cross-model QE M1). It belongs beside
     // `-v` above — an argv-level flag, resolved before command dispatch.
     if (argv[0] === '-h') {
-        write(USAGE);
-        return 0;
+        return respondWithHelp('', flags.has('json'), write);
     }
     // A bare `--typo` leaves the command empty, so the usage branch reported SUCCESS on a misspelled
     // FLAG exactly as it used to on a misspelled VERB (cross-model QE M2): `dz --frobnicate` exited 0
@@ -23164,15 +23341,18 @@ export async function runCli(argv, io = {}) {
             return 2;
         }
     }
-    if (command === '' || command === 'help' || (flags.has('help') && DZ_COMMANDS.includes(command))) {
-        write(USAGE);
-        return 0;
+    const firstPositional = options.get('_positional_0');
+    const helpKey = firstPositional === undefined ? command : `${command} ${firstPositional}`;
+    const ownsHelp = HELP_OWNERS.has(helpKey) || HELP_OWNERS.has(command);
+    if (command === '' || command === 'help' || (flags.has('help') && DZ_COMMANDS.includes(command) && !ownsHelp)) {
+        return respondWithHelp(command, flags.has('json'), write);
     }
     // Only registered command identifiers are telemetry. An unknown first argv token may be a path,
     // typo, or secret-like value; persisting it would violate the command-name-only privacy boundary.
     // `contract-check` has an explicit byte-for-byte read-only contract: even the advisory command
     // usage ledger would mutate the repository being audited and invalidate its own safety proof.
-    if (command !== 'contract-check') {
+    // Help has never counted as an invocation, including help handled by a command owner.
+    if (command !== 'contract-check' && !flags.has('help')) {
         recordCommandInvocation(cwd, DZ_COMMANDS.includes(command) ? command : '', new Date());
     }
     try {

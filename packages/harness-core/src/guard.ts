@@ -119,6 +119,7 @@ export interface GuardFacts {
     readonly readmes: readonly { readonly path: string; readonly text: string | null }[];
     readonly coreVersion: string | null;
     readonly cliVersion: string | null;
+    readonly workspaceVersions?: Readonly<Record<string, string | null>>;
   };
   /** Publish-only raw volume facts. Absence preserves the legacy result shape. */
   readonly volume?: VolumeShadowInput;
@@ -161,7 +162,10 @@ export interface GuardFacts {
   readonly featureBacklog?: {
     readonly baseline: string;
     readonly features: readonly { readonly slug: string; readonly createdIso: string; readonly waiver?: string }[];
+    /** Тексты записей бэклога и непустые причины переходов. */
     readonly backlogTexts: readonly string[];
+    /** Летопись ЕСТЬ, но не прочиталась: «<путь>: <причина>». */
+    readonly transitionLogError?: string;
   };
   /** for no-skill-drift: the names that byte-drift between copies (from sweepSkillDrift). */
   readonly drift?: readonly string[];
@@ -428,6 +432,50 @@ function inspectReleaseLines(
       });
       continue;
     }
+    if (evidence.workspaceVersions !== undefined) {
+      const stale: string[] = [];
+      const actual: string[] = [];
+      const versions: string[] = [];
+      const unknown = (detail: string): void => {
+        observations.push({
+          schemaVersion: 'volume-shadow/v1', rule: 'release-line-in-sync' as never,
+          metric: 'release-line-version-sync', scope: readme.path, status: 'unknown', value: null,
+          unit: 'artifact_set', signal: false, operands: {}, method: 'release-line-regex/v1', detail,
+        });
+      };
+      for (const token of found.tokens) {
+        if (!Object.hasOwn(evidence.workspaceVersions, token.name)) {
+          unknown(`пакет \`${token.name}\` не собирается в этом монорепо — сверить не с чем`);
+          continue;
+        }
+        const version = evidence.workspaceVersions[token.name];
+        if (typeof version !== 'string') {
+          unknown(`${token.name} package.json version не прочитана — сверить не с чем`);
+          continue;
+        }
+        actual.push(`${token.name} v${token.version}`);
+        versions.push(`${token.name} v${version}`);
+        if (token.version !== version) {
+          stale.push(`строка релиза говорит ${token.name} v${token.version}, package.json — v${version}`);
+        }
+      }
+      if (found.wrapped) unknown('цепочка перенесена на следующую строку — продолжение вне охвата правила');
+      if (actual.length > 0) {
+        const mismatch = stale.length > 0;
+        const detail = mismatch
+          ? `${readme.path}: ${stale.join('; ')}`
+          : `${readme.path}: строка релиза совпадает с package.json (${versions.join(', ')})`;
+        observations.push({
+          schemaVersion: 'volume-shadow/v1', rule: 'release-line-in-sync' as never,
+          metric: 'release-line-version-sync', scope: readme.path,
+          status: mismatch ? 'outside-reference' : 'within-reference', value: actual,
+          unit: 'artifact_set', signal: mismatch, operands: { actual, expected: versions },
+          method: 'release-line-regex/v1', detail,
+        });
+        if (mismatch) violations.push({ rule: 'release-line-in-sync', severity, detail });
+      }
+      continue;
+    }
     if (expected === null) {
       const missing = [
         ...(evidence.coreVersion === null ? ['harness-core package.json version'] : []),
@@ -499,7 +547,7 @@ export const DEFAULT_RULES: readonly GuardRule[] = [
   { id: 'backlog-covers-features', severity: 'soft', ops: ['publish', 'consolidate'], description: 'каталог фичи, заведённый после базовой даты, назван записью бэклога — либо несёт именованную оговорку с причиной' },
   { id: 'no-secrets', severity: 'hard', ops: ['teach', 'publish'], description: 'no private key or API token in lesson text or a published file' },
   { id: 'readme-consistency', severity: 'soft', ops: ['publish'], description: 'README counts agree (CJM header vs All Commands, etc.)' },
-  { id: 'release-line-in-sync', severity: 'soft', ops: ['publish'], description: 'root and harness-cli README release lines agree with the harness-core and harness-cli package versions' },
+  { id: 'release-line-in-sync', severity: 'soft', ops: ['publish'], description: 'root and harness-cli README release lines agree with the package.json version of every workspace package the line names' },
   { id: 'signature-fresh', severity: 'soft', ops: ['publish', 'code'], description: 'a pack whose files changed in this diff still verifies against its signed .dz-manifest.json — a stale signature is named before publish, not at the gate' },
   { id: 'skills-registrable', severity: 'soft', ops: ['publish'], description: 'every skill directory in a skill pack has a depth-1 SKILL.md (a buried or missing one ships un-registrable — the health-advisor 1.2.0 class)' },
   { id: 'readme-first', severity: 'soft', ops: ['publish'], description: 'a package with a staged version bump must update its own README.md in the same change (README-first)' },
@@ -810,9 +858,10 @@ const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[
     return [{
       rule: 'backlog-covers-features',
       severity: sev,
-      detail: `${uncovered.length} фич(и) заведены после ${ev.baseline} и не названы ни одной записью бэклога: `
+      detail: `${uncovered.length} фич(и) заведены после ${ev.baseline} и не названы ни записью бэклога, ни причиной перехода: `
         + `${uncovered.slice(0, 8).join(', ')}${uncovered.length > 8 ? '…' : ''}`
-        + ` — заведи запись (dz backlog add) ЛИБО впиши оговорку в features/<slug>/README.md строкой`
+        + ` — назови слаг в записи (dz backlog add) ЛИБО в причине закрытия`
+        + ` (dz backlog ship <id> --reason "<слаг>: что сделано") ЛИБО впиши оговорку в features/<slug>/README.md строкой`
         + ` "Backlog: не заведено — <причина>". Оговорка без причины не считается.`,
     }];
   },
@@ -1338,6 +1387,16 @@ export function evaluateGuard(facts: GuardFacts, rules: readonly GuardRule[] = D
   // (missing contents ⇒ nothing reported), but a skip nobody can see is fail-SILENT. One aggregate
   // note, computed AFTER the verdict so it can never block or warn: information, not a violation.
   const notes: string[] = [];
+  // Only `checked`: when the chronicle read fails, the collector still supplies `featureBacklog`
+  // (the error field can only live INSIDE that object), so HAS_INPUT holds and the rule is never
+  // in `notEstablished` with an error to report. The second half was dead by construction —
+  // MEASURED by mutation, Step 8, 22.09.2026: removing it turned no test red.
+  if (checked.includes('backlog-covers-features')) {
+    const error = facts.featureBacklog?.transitionLogError;
+    if (typeof error === 'string' && error.trim() !== '') {
+      notes.push(`backlog-covers-features: летопись переходов не прочитана (${error}) — покрытие проверено только по текстам записей бэклога`);
+    }
+  }
   if (notEstablished.includes('rounds-traced')) {
     const fact = facts.codeCommitsSinceLastRound;
     if (fact?.enabled === false) notes.push('rounds-traced: skipped (.dz/config.json rounds.traced=false)');

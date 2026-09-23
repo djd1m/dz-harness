@@ -31,12 +31,18 @@
 // side) for C1 and C8 together, so a prose mention stops satisfying either check, is a separate
 // backlog item — filed by the lead, not chased here.
 //
+// KNOWN LIMITATION (C9): only byte-identical copies are visible before the edit. Already drifted
+// or intentionally different pinned copies remain the identity tests' job; the frozen
+// features/wave1-instrument-repair/check-plan-completeness.mjs is a real example C9 cannot see.
+//
 // Checks:
 //  C1  every ADR file in 03_adr/ has >=1 task line in 06_implementation_plan.md citing it (ADR-00N)
 //  C2  every Confirmation-numbered check in each ADR is named in the plan (by its test-file path)
 //  C3  the plan carries an EXPECTED_CODE_TARGETS: block, non-empty, and EVERY line parses to a
 //      plausible repo-relative path (no spaces unless quoted, no traversal, no markdown residue)
 //      — SFDIPOT condition: line-level validation, reject-with-reason, not just block presence
+//  C9  every tracked byte-identical twin of a target is also listed or explicitly waived with a
+//      reason; size-first narrowing, fixed exclusions, one FAIL per missing (target, twin) pair
 //  C4  the plan names the feature's OWN acid corpus (see "acid corpus" below)
 //  C5  the plan has an 'Inputs read:' line naming 03_adr, 05_architecture (wave-2 seam, cheap here)
 //  C8  every requirement id DECLARED in 01_requirements.md (FR-N, NFR-N, AC-N, C-N, with an optional
@@ -79,7 +85,9 @@
 // supplied explicitly with `--acid=T1,T2,…`. If neither establishes a corpus, C4 is SKIPPED-with-note
 // (a feature that declared no acid cases cannot be failed for not naming them).
 import { maskMarkdown } from './markdown-masker.mjs';
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { isAbsolute, join, resolve } from 'node:path';
 
 const argv = process.argv.slice(2);
@@ -335,6 +343,7 @@ function classifyTargetPath(path) {
 
 // C3 — EXPECTED_CODE_TARGETS block, line-level validation
 const blockM = plan.match(/EXPECTED_CODE_TARGETS:\s*\n((?:\s*[-*]\s*.+\n?)+)/);
+const listedTargets = new Set();
 if (!blockM) failures.push('C3: no EXPECTED_CODE_TARGETS: block in the plan');
 else {
   const lines = blockM[1].split('\n').map(s => s.trim()).filter(Boolean);
@@ -343,6 +352,81 @@ else {
     const path = ln.replace(/^[-*]\s*/, '').replace(/`/g, '').trim();
     const reasons = classifyTargetPath(path);
     if (reasons.length) failures.push(`C3: target line rejected: "${safe(ln)}" — ${reasons.join(', ')}`);
+    else listedTargets.add(path);
+  }
+}
+
+// C9 — every byte-identical copy is listed or carries a reasoned waiver (ADR-001).
+const TWIN_EXCLUDED_PREFIXES = ['out/', '.claude/worktrees/', 'node_modules/'];
+{
+  const excluded = (path) => TWIN_EXCLUDED_PREFIXES.some((prefix) => path.startsWith(prefix) || path.includes('/' + prefix));
+  const waivers = [];
+  for (const line of maskMarkdown(plan, { unclosed: 'mask' }).split('\n')) {
+    if (!/^\s*(?:[-*]\s*)?TWIN_NOT_A_TARGET:/.test(line)) continue;
+    const match = line.match(/^\s*(?:[-*]\s*)?TWIN_NOT_A_TARGET:\s*`?([^\s`]+)`?\s*(?:—|--)\s*(\S.*)$/);
+    if (!match) {
+      failures.push(`C9: waiver "${safe(line.trim())}" carries no reason — a waiver without a reason is an allowlist entry`);
+    } else waivers.push({ path: match[1], used: false });
+  }
+
+  let tracked = null;
+  try {
+    tracked = execFileSync('git', ['ls-files', '-z'], {
+      cwd: process.cwd(), encoding: 'utf-8', maxBuffer: 16 * 1024 * 1024,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }).split('\0').filter(Boolean);
+  } catch (error) {
+    warnings.push(`C9: twin scan had no input — git ls-files failed in ${safe(process.cwd())}: ${safe(error.message)}`);
+  }
+  if (tracked !== null) {
+    // Stat the universe first; only size matches ever reach readFileSync / md5.
+    const sizes = new Map();
+    for (const path of new Set([...tracked, ...listedTargets])) {
+      if (excluded(path)) continue;
+      try {
+        const stat = statSync(path);
+        if (stat.isFile()) sizes.set(path, stat.size);
+      } catch (error) {
+        // Missing targets are new files; tracked files can also have been deleted locally.
+        if (error.code !== 'ENOENT' && error.code !== 'ENOTDIR') warnings.push(`C9: cannot stat ${safe(path)}: ${safe(error.message)}`);
+      }
+    }
+    const targetSizes = new Set([...listedTargets].map((path) => sizes.get(path)).filter((size) => size > 0));
+    const hashes = new Map();
+    const twinsByHash = new Map();
+    for (const [path, size] of sizes) {
+      if (!targetSizes.has(size)) continue;
+      try { hashes.set(path, createHash('md5').update(readFileSync(path)).digest('hex')); }
+      catch (error) { warnings.push(`C9: cannot hash ${safe(path)}: ${safe(error.message)}`); }
+    }
+    for (const path of tracked) {
+      const hash = hashes.get(path);
+      if (hash === undefined) continue;
+      if (!twinsByHash.has(hash)) twinsByHash.set(hash, []);
+      twinsByHash.get(hash).push(path);
+    }
+    let unlisted = 0;
+    for (const target of listedTargets) {
+      for (const twin of twinsByHash.get(hashes.get(target)) ?? []) {
+        if (twin === target) continue;
+        let waived = false;
+        for (const waiver of waivers) {
+          if (waiver.path.endsWith('/') ? twin.startsWith(waiver.path) : twin === waiver.path) {
+            waiver.used = true;
+            waived = true;
+          }
+        }
+        if (listedTargets.has(twin) || waived) continue;
+        unlisted++;
+        // Keep pairs separate: safe() truncates each echoed value at 300 characters.
+        failures.push(`C9: target ${safe(target)} has a byte-identical twin the plan does not list: ${safe(twin)} — list it or waive it (TWIN_NOT_A_TARGET: ${safe(twin)} — <why>)`);
+      }
+    }
+    for (const waiver of waivers) if (!waiver.used) warnings.push(`C9: unused waiver ${safe(waiver.path)}`);
+    if (unlisted === 0) {
+      const onDisk = [...listedTargets].filter((path) => sizes.has(path)).length;
+      out(`NOTE  C9: twin scan over ${listedTargets.size} target(s), ${onDisk} on disk, 0 unlisted twins (byte-identical only; drifted copies need identity tests)`);
+    }
   }
 }
 

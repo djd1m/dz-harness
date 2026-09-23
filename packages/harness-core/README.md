@@ -1757,6 +1757,24 @@ the training-pair capture instead of re-spending recall. Measured motive: after 
 Claude coders opened `01_requirements.md` in 5 of 7 runs (39 % before), while 37 of 48 post-directive coders
 were Codex, whose file reads are invisible to the transcript instrument.
 
+`0.8.42` — this release (night 22→23.09 plus 23.09). Four changes live in this package. **retro-debt
+across turns** — the set of in-flight `dz teach` calls moved out of a single scan into the sentinel file
+(`AdmissionDebt.awaiting`, absent rather than `[]` when nothing is pending, capped at
+`MAX_AWAITING_TEACHES`), and the write order is INVERTED: the debt is committed BEFORE its offset, so an
+interruption between the two writes leaves those bytes replayable instead of skipped. The CLEAR branch is
+now symmetric with the SET branch — it had swallowed every removal failure and advanced the offset anyway,
+which is the same loss the feature exists to prevent, arriving through the other door. **tree-sync** —
+`compareTrees(source, target)` returns `match | missing | diverged | extra` per file; it is the read half
+of producing a skill tree from ONE source, and the producing script contains no deletion call whatsoever
+(the invariant is stated as what a permitted removal may touch, not as a blanket ban, so a directory lock
+releasing its own lock dir does not have to be excepted). **backlog coverage** — the fact gatherer reads
+closure reasons out of `.dz/backlog/status-log.jsonl` into the same evidence array, so a feature named by a
+`ship --reason` counts as covered; the predicate signature is untouched and an unreadable log yields a
+NAMED note rather than silent blindness. **release-line** — one `parseReleaseLine` serves four consumers,
+`rewriteReleaseLine` takes a short-name map, and the guard checks EVERY token of the line against the
+repository's own package version, reporting a non-workspace package or a relocated line as a named
+`unknown` rather than as a violation.
+
 `0.8.37` — this release (night 16→17.09). Five changes live in this package, each through the full pipeline with a
 cross-family Codex review: **qe-findings** — every Step-8 report now carries one machine-readable `QE-VERDICT:` line
 and a `## Findings ledger` table in a closed vocabulary (`parseQeFindings`, `readQeGrade` with its source; masks for
@@ -1780,7 +1798,7 @@ control characters escaped. The environment override originally planned for the 
 measurement showed the payload's `cwd` present and correct in all six captures (3 scenarios × 2 hook events,
 codex-cli 0.154.0).
 
-`dz guard check --op publish` now warns when either release line disagrees with the core/CLI package versions, and a registry-confirmed live core or CLI publish synchronizes the first such line in both release READMEs: each README is rewritten atomically; the pair is not one transaction (dry-run and bump-only never write them).
+`dz guard check --op publish` compares every token in the release-line chain against the workspace package of that short name and warns on version mismatches. A name the monorepo does not build and a chain wrapped onto the next physical line are reported as `unknown`, never as violations for that unknown name or wrap. A registry-confirmed live publish rewrites every token whose package THIS RUN published, including a presets-only batch, and leaves all other tokens byte-identical. The release line must stay on ONE physical line: a wrapped continuation is reported, never rewritten. Each release README is rewritten atomically; the pair is not one transaction (dry-run and bump-only never write them).
 
 `0.8.12` — **staged, not published.** The `/feature-adr` phase panel + per-phase ledger telemetry,
 with the four cross-family review findings of the feature's first landing closed with proof: a
@@ -2082,7 +2100,9 @@ this sync exists for, and nothing beyond it:
 
 1. a release-line token — `` `harness-core vX` · `harness-cli vY` `` and any generalised
    `` `<name> vX` `` on the same line, including a trailing `` · `memory vZ` `` segment
-   (`release-line.ts` `isReleaseLineToken`/`GENERIC_RELEASE_TOKEN_RE`, unchanged since the earlier fix).
+   (`release-line.ts`: `isReleaseLineToken` now delegates to `parseReleaseLine`, which uses
+   `GENERIC_RELEASE_TOKEN_RE` and preserves the same accepted boundary: the joint pair plus its
+   contiguous token chain on one physical line; prose ends the chain).
 2. a current-release FOOTER prefix — `Status:`/`Version:`/`Current release:`/`Current status:`/
    `Released as` (case-insensitive, optional leading `**`/`-`), POSITION-aware: only the token
    immediately after the label is allowed, so a footer sentence that also cites an unrelated older
