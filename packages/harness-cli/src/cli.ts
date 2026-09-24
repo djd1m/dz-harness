@@ -5,7 +5,7 @@
  */
 
 import { fetchPublishedViaNpmPack } from './sibling-drift-fetch.js';
-import { parseNpmPackInventory, type InventorySource, type LocalInventoryResult } from '@dzhechkov/harness-core';
+import { packArtifact, readWorkspaceVersions, formatDriftFiles, type InventorySource, type LocalInventoryResult } from '@dzhechkov/harness-core';
 // Fix-round 1 (Codex HIGH-1c, feature recall-short-terms): the ONE place `dz recall` prints an
 // empty result must name WHY — via the shared helper, not by re-deriving the decision. Routed
 // through harness-core's re-export (lead correction) rather than a new direct dependency on
@@ -1054,12 +1054,8 @@ export interface CliIo {
    * other seam's filesystem.
    */
   readonly publishGateAuditFsLayer?: PublishGateAuditFsLayer;
-  /**
-   * AM-5 (feature publish-gate-audit-durable): test seam for the sibling-drift gate's `npm pack
-   * --dry-run --json` call (production leaves it unset → real `execFileSync`). Takes the package
-   * dir, returns raw stdout, or throws to simulate a real `npm` failure without spawning anything.
-   */
-  readonly publishNpmPackRunner?: (dir: string) => string;
+  /** Inject the same artifact producer used by sign/publish; inventory is read from its tarball. */
+  readonly publishPackRunner?: (dir: string, dest: string) => { tgzPath: string };
   /**
    * Test seam for publish's registry-CONFIRMATION step (`confirmPublished`, inside
    * `publishPackages`) — feature `publish-confirm-seam` (backlog 079ba94c). Exists so a test can
@@ -7264,9 +7260,22 @@ function cmdSign(options: Map<string, string>, flags: Set<string>, cwd: string, 
     files = packFiles(hashRoot);
     write(`dz sign: hashing the packed tarball (${files.length} file(s)) — the bytes a recipient receives`);
   } catch (err) {
-    // Not an npm package, or no pnpm: sign the tree and SAY SO. A silent fallback would restore the
-    // divergence this change closes.
-    write(`dz sign: could not pack this directory (${(err as Error).message.split('\n')[0]}) — signing the working tree instead`);
+    // Only a missing package.json or an unavailable packer permits signing the tree.
+    // Staging failures (including unresolved workspace specs) must fail closed.
+    const error = err as NodeJS.ErrnoException;
+    const message = err instanceof Error ? err.message : String(err);
+    const reason = error?.code === 'ENOENT' && error.syscall === 'open'
+      && error.path === join(packDir, 'package.json')
+      ? 'not an npm package: no package.json'
+      : error?.code === 'ENOENT' && /^spawn(?:Sync)? (?:.*[/\\])?(?:npm|tar)$/.test(error.syscall ?? '')
+        ? 'packer unavailable: npm/tar spawn ENOENT'
+        : null;
+    if (reason === null) {
+      cleanupPack?.();
+      console.error(`dz sign: refusing to sign — ${message}; fix the dependency spec, do not sign the working tree`);
+      return 1;
+    }
+    write(`dz sign: could not pack this directory (${reason}; ${message.split('\n')[0]}) — signing the working tree instead`);
   }
   if (files.length === 0) {
     cleanupPack?.();
@@ -7515,13 +7524,8 @@ export function cmdPublish(
     options: { cwd?: string | URL | undefined; stdio?: unknown; encoding?: unknown; timeout?: number | undefined; env?: NodeJS.ProcessEnv | undefined },
   ) => string,
   gateAuditFsLayer?: PublishGateAuditFsLayer,
-  /**
-   * AM-5 (feature publish-gate-audit-durable): test seam for the sibling-drift gate's `npm pack
-   * --dry-run --json` call — production leaves it unset (real `execFileSync`). Takes the package
-   * dir, returns raw stdout, or THROWS to simulate a real `npm` failure — a test can then prove the
-   * failure reaches `parseNpmPackInventory`'s caller as `unavailable`, never a real subprocess.
-   */
-  npmPackRunner?: (dir: string) => string,
+  /** Artifact-producing test seam; both paths list and extract the returned tarball. */
+  packRunner?: (dir: string, dest: string) => { tgzPath: string },
   /**
    * publish-confirm-seam: test seam for the registry-confirmation step inside `publishPackages`
    * (see {@link CliIo.publishRegistry} for the full rationale). Production leaves it unset.
@@ -7695,21 +7699,9 @@ export function cmdPublish(
         join,
       }));
 
-  // AM-4: `npm pack --dry-run --json` is a real subprocess — cache it for the lifetime of this
-  // ENTIRE run (keyed by resolved dir), NOT per package being checked (round-1 review, finding 5):
-  // the cache used to be re-created inside the per-package loop body, so two different dependents
-  // of the SAME sibling packed it twice. `npmPackRunner` (AM-5) is a test seam — production leaves
-  // it unset and runs the real subprocess; a test injects a stub that throws to prove a real `npm`
-  // failure reaches the caller as `unavailable`, without spawning anything.
-  // Lead fix after the fix-round's live dry-run (2026-09-14 01:02, MEASURED on the hub): the
-  // workspace side is now PACKED BY THE LIVE TRANSPORT — `pnpm pack` into a per-run temp dir,
-  // unpacked, and handed to core as a `packedDir` that core hashes with the SAME full walk it uses
-  // for the published tarball. `npm pack --dry-run --json` (kept behind the `npmPackRunner` test
-  // seam) never lists the LICENSE pnpm synthesises from the workspace root into a package whose own
-  // tree has none, so two siblings unchanged since publication (harness-presets, scout) read as
-  // "LICENSE only in the published copy" — a false drift the fix-round's inventory could not see.
-  // Honest limit: the seam path (tests) still parses npm's JSON; only production takes the pnpm path.
+  // One inventory per sibling per run. Hash extracted bytes, including files made by lifecycle scripts.
   const npmPackInventoryCache = new Map<string, LocalInventoryResult>();
+  const pinVersions = readWorkspaceVersions(cwd);
   let packTmpDir: string | undefined;
   const npmPackInventory = (dir: string): LocalInventoryResult => {
     const key = resolve(dir);
@@ -7717,20 +7709,24 @@ export function cmdPublish(
     if (hit !== undefined) return hit;
     let out: LocalInventoryResult;
     try {
-      if (npmPackRunner !== undefined) {
-        out = parseNpmPackInventory(npmPackRunner(dir));
-      } else {
-        packTmpDir ??= mkdtempSync(join(tmpdir(), 'dz-drift-pack-'));
-        out = { packedDir: extractIntoTempDir(dir, mkdtempSync(join(packTmpDir, 'p-'))).dir };
-      }
+      packTmpDir ??= mkdtempSync(join(tmpdir(), 'dz-drift-pack-'));
+      const dest = mkdtempSync(join(packTmpDir, 'p-'));
+      const artifact = packRunner !== undefined
+        ? packRunner(dir, dest)
+        : packArtifact({ pkgDir: dir, destDir: dest, exec: execSync, pinVersions });
+      const files = 'files' in artifact
+        ? artifact.files as readonly string[]
+        : execFileSync('tar', ['-tzf', artifact.tgzPath], { encoding: 'utf-8', maxBuffer: 64 * 1024 * 1024 })
+          .split(/\r?\n/).filter(p => p !== '' && !p.endsWith('/')).map(p => p.replace(/^package\//, '')).sort();
+      execFileSync('tar', ['-xzf', artifact.tgzPath, '-C', dest]);
+      out = { packedDir: join(dest, 'package'), paths: files };
     } catch (err) {
-      const how = npmPackRunner !== undefined ? 'npm pack --dry-run --json' : 'pnpm pack';
-      out = { unavailable: `${how} failed: ${(err as Error).message.split('\n')[0]}` };
+      out = { unavailable: `pack-artifact failed: ${(err as Error).message.split('\n')[0]}` };
     }
     npmPackInventoryCache.set(key, out);
     return out;
   };
-  const localInventorySource: InventorySource = npmPackRunner !== undefined ? 'npm-pack' : 'pnpm-pack';
+  const localInventorySource: InventorySource = 'pack-artifact';
 
   // AM-3 (Codex round-1 review, finding 4, high): sibling-drift audit records are EXACTLY one per
   // package per rule per RUN. The old code appended one JSONL record per SIBLING a package depends
@@ -7845,22 +7841,22 @@ export function cmdPublish(
               pkParts.push(`${r.name}@${r.version}: drift — not added: package.json declares private: true`);
               continue;
             }
-            pkParts.push(`${r.name}@${r.version}: drift (${r.changedFiles.length} file(s)) — auto-included via --include-drifted`);
+            pkParts.push(`${r.name}@${r.version}: drift (${formatDriftFiles(r.changedFiles, r.inventorySource)}) — auto-included via --include-drifted`);
             if (!batchNames.has(r.name) && !extraBatch.has(r.name)) {
               extraBatch.add(r.name);
               addedThisRound = true;
-              write(`dz publish: → sibling drift: ${r.name}@${r.version} differs from the workspace (${r.changedFiles.length} file(s)) — adding to the batch via --include-drifted${r.missingExports.length > 0 ? ` (missing exports: ${r.missingExports.join(', ')})` : ''}`);
+              write(`dz publish: → sibling drift: ${r.name}@${r.version} differs from the workspace (${formatDriftFiles(r.changedFiles, r.inventorySource)}) — adding to the batch via --include-drifted${r.missingExports.length > 0 ? ` (missing exports: ${r.missingExports.join(', ')})` : ''}`);
             }
           } else if (allowSiblingDrift) {
-            pkParts.push(`${r.name}@${r.version}: drift (${r.changedFiles.length} file(s)) — allowed via --allow-sibling-drift`);
+            pkParts.push(`${r.name}@${r.version}: drift (${formatDriftFiles(r.changedFiles, r.inventorySource)}) — allowed via --allow-sibling-drift`);
             if (pkVerdict !== 'block') pkVerdict = 'warn';
             pkOverrideUsed = true;
           } else {
-            pkParts.push(`${r.name}@${r.version}: drift (${r.changedFiles.length} file(s))`);
+            pkParts.push(`${r.name}@${r.version}: drift (${formatDriftFiles(r.changedFiles, r.inventorySource)})`);
             pkVerdict = 'block';
             const suggestFilter = filterStr !== undefined ? `${filterStr},${r.name}` : `${pk.name},${r.name}`;
-            write(`dz publish: BLOCKED ${pk.name} — sibling drift: @dzhechkov/${r.name.replace(/^@dzhechkov\//, '')}@${r.version} on the registry differs from the workspace (${r.changedFiles.length} file(s)); add ${r.name} to the batch (--filter ${suggestFilter}) or publish it first`);
-            driftRows.push({ name: pk.name, version: pk.version, reason: `dz publish: BLOCKED ${pk.name} — sibling drift: @dzhechkov/${r.name.replace(/^@dzhechkov\//, '')}@${r.version} on the registry differs from the workspace (${r.changedFiles.length} file(s)); add ${r.name} to the batch (--filter ${suggestFilter}) or publish it first` });
+            write(`dz publish: BLOCKED ${pk.name} — sibling drift: @dzhechkov/${r.name.replace(/^@dzhechkov\//, '')}@${r.version} on the registry differs from the workspace (${formatDriftFiles(r.changedFiles, r.inventorySource)}); add ${r.name} to the batch (--filter ${suggestFilter}) or publish it first`);
+            driftRows.push({ name: pk.name, version: pk.version, reason: `dz publish: BLOCKED ${pk.name} — sibling drift: @dzhechkov/${r.name.replace(/^@dzhechkov\//, '')}@${r.version} on the registry differs from the workspace (${formatDriftFiles(r.changedFiles, r.inventorySource)}); add ${r.name} to the batch (--filter ${suggestFilter}) or publish it first` });
             driftBlocked++;
           }
         }
@@ -15264,43 +15260,6 @@ function packNpmName(packDir: string): string | undefined {
 }
 
 /**
- * Parse `pnpm pack --json` STDOUT robustly: a package with a `prepack` script echoes lifecycle
- * banners first, and the banner text itself may contain '[' or '{' (skills-feature-adr's guard
- * does) — so candidates are tried from the LAST line-start opener backwards; pnpm's JSON is the
- * final thing on stdout. MEASURED 2026-08-25: byte-0 parse failed on the banner, first-opener
- * parse failed on the banner's own array literal.
- */
-function parsePnpmPackJson(out: string): unknown {
-  const starts: number[] = [];
-  for (let li = 0; li < out.length; li = out.indexOf('\n', li) + 1) {
-    const ch = out[li];
-    if (ch === '{' || ch === '[') starts.push(li);
-    if (out.indexOf('\n', li) === -1) break;
-  }
-  for (let ci = starts.length - 1; ci >= 0; ci--) {
-    try { return JSON.parse(out.slice(starts[ci])); } catch { /* try an earlier candidate */ }
-  }
-  throw new Error('pnpm pack emitted no parseable JSON');
-}
-
-function npmPackedPaths(packDir: string): string[] {
-  // `pnpm`, not `npm`: the PUBLISHER is `pnpm publish` (see `publishArgv`), and the two packers do not
-  // agree. MEASURED 2026-08-21 on `skills-news`: `npm pack` emits a 1051-byte package.json identical
-  // to the working tree, `pnpm pack` emits 1050 — pnpm re-serialises it (dropping the trailing
-  // newline, and expanding `workspace:*`). Asking one tool what ships while a different tool ships it
-  // is how a signature ends up describing a file nobody receives.
-  const out = execFileSync('pnpm', ['pack', '--pack-destination', mkdtempSync(join(tmpdir(), 'dz-pack-probe-')), '--json'], {
-    cwd: packDir,
-    encoding: 'utf-8',
-    maxBuffer: 64 * 1024 * 1024,
-  });
-  const parsed = parsePnpmPackJson(out) as { files?: { path: string }[] } | { files?: { path: string }[] }[];
-  const entry = Array.isArray(parsed) ? parsed[0] : parsed;
-  const files = entry?.files ?? [];
-  return files.map((f) => f.path.replace(/^package\//, '')).sort();
-}
-
-/**
  * Pack the package with the SAME tool that publishes it, extract the tarball, and return the directory
  * holding its contents. Hashing THAT is the only way a manifest can describe what a recipient gets:
  * `pnpm publish` re-serialises package.json and rewrites `workspace:*`, so any hash taken from the
@@ -15319,18 +15278,13 @@ function extractPublishTarball(packDir: string): { dir: string; cleanup: () => v
 }
 
 function extractIntoTempDir(packDir: string, tmp: string): { dir: string; cleanup: () => void } {
-  const out = execFileSync('pnpm', ['pack', '--pack-destination', tmp, '--json'], {
-    cwd: packDir,
-    encoding: 'utf-8',
-    maxBuffer: 64 * 1024 * 1024,
+  let repoRoot = resolve(packDir);
+  while (!existsSync(join(repoRoot, 'packages', '@dzhechkov')) && dirname(repoRoot) !== repoRoot) {
+    repoRoot = dirname(repoRoot);
+  }
+  const { tgzPath } = packArtifact({
+    pkgDir: packDir, destDir: tmp, exec: execSync, pinVersions: readWorkspaceVersions(repoRoot),
   });
-  const parsed = parsePnpmPackJson(out) as { filename?: string } | { filename?: string }[];
-  const entry = Array.isArray(parsed) ? parsed[0] : parsed;
-  const tgz = entry?.filename;
-  if (tgz === undefined) throw new Error(`pnpm pack did not name a tarball for ${packDir}`);
-  // pnpm reports an ABSOLUTE filename (it already contains --pack-destination); joining again would
-  // double the directory. npm reports a bare name. Accept both rather than assuming either.
-  const tgzPath = isAbsolute(tgz) ? tgz : join(tmp, tgz);
   execFileSync('tar', ['-xzf', tgzPath, '-C', tmp]);
   return { dir: join(tmp, 'package'), cleanup: (): void => { try { rmSync(tmp, { recursive: true, force: true }); } catch { /* best-effort */ } } };
 }
@@ -23922,7 +23876,7 @@ export async function runCli(argv: string[], io: CliIo = {}): Promise<number> {
       case 'auto-canonicalize':
         return await cmdAutoCanonicalize(options, cwd, write);
       case 'publish':
-        return cmdPublish(options, flags, cwd, write, io.publishMirrorRunner, io.publishSiblingDriftFetcher, io.publishPackedInstallRunner, io.publishExecRunner, io.publishGateAuditFsLayer, io.publishNpmPackRunner, io.publishRegistry);
+        return cmdPublish(options, flags, cwd, write, io.publishMirrorRunner, io.publishSiblingDriftFetcher, io.publishPackedInstallRunner, io.publishExecRunner, io.publishGateAuditFsLayer, io.publishPackRunner, io.publishRegistry);
       case 'release':
         return cmdRelease(options, flags, cwd, write, io.releaseRunner);
       case 'parity':

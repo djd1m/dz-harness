@@ -1,14 +1,22 @@
 import { Buffer } from 'node:buffer';
+import { stemToken, stems } from './stem.js';
 
 export const MEMORY_INDEX_MAX_BYTES = 24_000;
 export const MEMORY_INDEX_MAX_LINE_CHARS = 200;
 // Hook support is a lexical heuristic, not proof that a hook's meaning is preserved.
+// Shared conservative stems fold находку/находка → находк and подписью/подпись → подпис;
+// проверил ≠ проверка (verb/noun) and teacher ≠ teach remain distinct, without prefix matching.
 // Calibration history on the real index (108 judged lines): 2026-09-23 the coder measured a live
 // minimum of 0 at L83/L85/L114 and 15 lines under 0.5 — 14 were Russian hooks over English files
 // or other word forms (knowledge present), one (L76) linked the WRONG file. The lead rewrote those
-// hooks with words from their files; 2026-09-24 the live minimum is 0.5 exactly (5 lines at the
-// boundary, QE F2). The threshold stays the contract's 0.5; a hook at the boundary passes
+// hooks with words from their files; 2026-09-24 the live minimum is 0.5 exactly (QE F2 on 23.09 counted
+// 5 lines at the boundary on the then-index; re-measured 24.09 on the current index: 4 under the substring rule). The threshold stays the contract's 0.5; a hook at the boundary passes
 // (`support < min` fails), so the margin there is thin by construction.
+// Stem era (feature memory-index-hook-stems, 2026-09-24, lead on the host): with stem-to-stem support the
+// live index first showed ONE new finding — L46, support 2/6, a hook whose words the substring rule had
+// matched INSIDE other words (после/двух/ночь) — an honest downgrade, fixed in the memory file, not here;
+// after that: 0 findings, minimum 0.5 on exactly 2 lines (L18, L69 — measured with minHookSupport raised
+// just above 0.5 and counting `support 0.5` findings; the earlier "5" was a stale copy, QE F1), threshold unchanged.
 export const MEMORY_INDEX_MIN_HOOK_SUPPORT = 0.5;
 
 export type FindingKind = 'over-size' | 'long-line' | 'broken-link' | 'unindexed-file' | 'unsupported-hook' | 'duplicate-link';
@@ -35,6 +43,7 @@ export function checkMemoryIndex(input: {
   const lines = indexText === '' ? [] : indexText.split(/\r?\n/u);
   if (lines.at(-1) === '') lines.pop();
   const indexed = new Map<string, number>();
+  const stemsByFile = new Map<string, Set<string>>();
   for (const [offset, text] of lines.entries()) {
     const line = offset + 1;
     // String length measures UTF-16 code units, not bytes or Unicode code points.
@@ -58,8 +67,12 @@ export function checkMemoryIndex(input: {
     const tokens = (match[3]!.split(';', 1)[0]!.match(/[\p{L}\p{N}]{4,}/gu) ?? []).map(token => token.toLowerCase());
     // Fewer than three tokens are too short for this heuristic to judge.
     if (tokens.length < 3) continue;
-    const lowerContent = content.toLowerCase();
-    const missing = tokens.filter(token => !lowerContent.includes(token));
+    let contentStems = stemsByFile.get(file);
+    if (contentStems === undefined) {
+      contentStems = new Set(stems(content));
+      stemsByFile.set(file, contentStems);
+    }
+    const missing = tokens.filter(token => !contentStems.has(stemToken(token)));
     const supported = tokens.length - missing.length;
     const support = supported / tokens.length;
     if (support < minHookSupport) {

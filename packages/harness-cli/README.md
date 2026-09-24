@@ -3617,6 +3617,16 @@ dz mcp-scan . --reconcile --fail-on-undergrant   # CI: exit 1 if a skill declare
 
 ### dz publish — automated npm publish
 
+Sign, publish and the sibling-drift gate now pack with one function, `packArtifact`: it pins
+workspace dependencies, removes `prepublishOnly` for packing, restores the original package.json,
+and inventories the resulting tarball. Signing hashes the extracted artifact. A blocked drift names
+up to five changed files, the remaining count and the inventory source (`pack-artifact`) in both
+the CLI message and audit detail. This addresses the 2026-09-24 incident in which different packers
+produced LICENSE/package.json drift and an unnamed “1 file” refusal. Supported platforms are Linux
+and macOS with GNU/BSD tar; Windows is not claimed, and macOS verification is manual rather than an
+OS-matrix CI claim. Staging is synchronous within one process; concurrent packing of the same package
+by multiple processes needs external coordination (no cross-process lock is added).
+
 For a live publish, the CLI prints `published` only after npm answers with the exact new package
 version, followed by the receipt text `confirmed by registry after N probes`. A zero exit from
 `pnpm publish` alone is not success. The publisher uses 90 probes × 10 s (15 min); measured registry
@@ -5794,6 +5804,13 @@ refusal as the honest answer.
 
 ## Status
 
+`v0.8.37` — **published 2026-09-24 (day plan).** `dz publish`, `dz sign` and the sibling-drift gate pack through one
+function (`packArtifact`, harness-core): the BLOCKED line names up to five drifted files and the inventory source instead of
+"1 file(s)"; `dz sign --pack` fails closed ("refusing to sign — …", exit 1, no manifest) when a `workspace:`/`catalog:` spec
+cannot be pinned, and falls back to the working tree only for "no package.json" / "packer unavailable", naming which. The
+`--pack-destination` flag left `known-flags` with the retired `pnpm pack` path. Test hygiene: 32 window cases carry measured
+budgets as underscore literals. Requires `harness-core 0.8.44`.
+
 `v0.8.36` — **published 2026-09-24 (night 23→24.09).** `dz teach`, `dz backlog add` and `dz backlog edit` take
 `--from-file <path>` (UTF-8, one trailing newline stripped; mutually exclusive with inline text — both given is a
 usage error, `{ok:false,exitCode:1}` under `--json`; an unreadable file is named). Every text, inline or file, is
@@ -5814,7 +5831,7 @@ ledger row now carries a `prices` snapshot. See `@dzhechkov/harness-core`'s READ
 decision list (D1–D5) and the two new pure modules (`feature-adr-stage-canon.ts`, `codex-rollouts.ts`) behind
 `dz usage --by-stage`'s new `INCOMPLETE_INVENTORY` verdict and canonical-stage breakdown.
 
-`harness-core v0.8.43` · `harness-cli v0.8.36` — **this release (night 22→23.09 plus 23.09, two
+`harness-core v0.8.44` · `harness-cli v0.8.37` — **this release (night 22→23.09 plus 23.09, two
 packages, five features): command help is ADDRESSED — twelve commands answer `dz <cmd> --help` with
 their own text, and ownership is keyed by the PAIR (command + first positional token) rather than by
 the bare command name, because two of the twelve are branches of a shared sub-dispatcher whose
@@ -6294,6 +6311,8 @@ Everything below is for people building or testing `dz` itself — not for `npm 
 The buildable source lives in the public mirror, [github.com/djd1m/dz-harness](https://github.com/djd1m/dz-harness) (each package's own npm-pack contents; the full monorepo, including this feature's design docs, stays in the private source repo).
 
 ### Test execution
+
+Per ADR `every-budget-is-measured`, cases measured at 2.5–5 s in a quiet full run receive an explicit budget of 4× quiet time, rounded up to whole seconds, with a 20 s minimum; a larger existing budget is retained. Each budget has a `Measured:` comment immediately above its closer naming the duration, date, quiet full run and measurement location. Five false reds on 2026-09-22 cost about four minutes per rerun. To re-measure, run `npx vitest run --reporter=json --outputFile=<f>` on a quiet tree with the default TMPDIR and use the recorded case durations.
 
 `npx vitest run` uses two projects and returns one combined verdict: `parallel` runs the ordinary
 suites concurrently, while `serial` runs process-spawning and real-time suites one file at a time.

@@ -147,6 +147,7 @@ export { DZ_VETO_MARKER, DZ_VETO_WARN_MARKER, RUNTIME_BLOCK_PHRASE, classifyTrus
 export { SHELL_VETO_RULE_ID, resolveVetoMode, vetoShellCommand } from './shell-veto-policy.js';
 export { generateCodexHelpers, generateCodexRecallHelper, generateCodexVetoHelper } from './codex-hooks-assets.js';
 export { EVENT_CHAIN_SCOPE, EVENT_CHAIN_GENESIS_HASH, EVENT_CHAIN_TAIL_BYTES, EVENT_CHAIN_FIELD_OVERHEAD_BYTES, EVENT_CHAIN_LEDGER_KIND, EVENT_CHAIN_DEFECT_KINDS, fnv1a32, chainHashOf, chainLinesOf, lastChainLine, readTailInfo, appendChainedLines, EMPTY_LOG_TAIL, nextChainFields, withChainFields, chainRecordLines, chainRewrite, defaultEventWeight, eventWeightOfText, verifyEventChain, verifyEventChainText, renderEventChainVerification, rewriteSnapshot, rewriteSnapshotUnchanged, guardedRewrite, DEFAULT_REWRITE_ATTEMPTS, liveSegmentStart, classifyChainDefects, CHAINED_JOURNALS, } from './event-chain.js';
+export { packArtifact, readWorkspaceVersions, UnknownWorkspaceSpecError } from './pack-artifact.js';
 export { decideProvenance, environmentCanMintProvenance, publishArgv, matchesPublishFilter, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, rewriteWorkspaceSpecs, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion, planReadmeVersionSync } from './publish.js';
 export { RELEASE_LINE_RE, parseReleaseLine, findReleaseLine, rewriteReleaseLine, shortPackageName } from './release-line.js';
 export * from './course-staleness.js';
@@ -158,7 +159,7 @@ export { discoverInstalled, checkUpgrades } from './upgrade.js';
 export { collectPackageFacts, selectAffectedPackages, planReleaseGates, classifyGateExecutions, buildFailureIssue, shouldRetryGhWithoutToken, buildReleaseNotes, releaseTagName, firstOutputLine, testsFailureDetail, outputTail, RELEASE_GATE_ORDER, RELEASE_TIMEOUTS, } from './release.js';
 export { formatPublishError } from './publish.js';
 // Sibling-drift + packed-install-smoke gates (feature publish-sibling-drift-gate, ADR-001).
-export { detectSiblingDrift, parseNpmPackInventory } from './publish-sibling-drift.js';
+export { detectSiblingDrift, parseNpmPackInventory, formatDriftFiles } from './publish-sibling-drift.js';
 export { planPackedInstallSmoke, judgePackedInstallSmoke, packedTarballName } from './packed-install-smoke.js';
 export { computeRiskScore } from './risk-scoring.js';
 export { MODEL_PRICES, pricingFor, hasKnownPricing, normalizeUsage, usageCost, invocationCost, costEfficiency, estimateSkillCost, } from './cost-scoring.js';

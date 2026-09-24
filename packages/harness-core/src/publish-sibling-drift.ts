@@ -44,7 +44,7 @@ export type SiblingDriftStatus = 'same' | 'drift' | 'unavailable';
  * symmetric by construction (same function, same rules, both sides) but can miss a file
  * `.npmignore` excludes or include one npm would never ship.
  */
-export type InventorySource = 'npm-pack' | 'pnpm-pack' | 'readdir-approximation';
+export type InventorySource = 'pack-artifact' | 'npm-pack' | 'pnpm-pack' | 'readdir-approximation';
 
 export interface SiblingDriftResult {
   readonly name: string;
@@ -98,7 +98,7 @@ export interface DetectSiblingDriftOptions {
    * drift".
    */
   readonly localInventory?: LocalInventory;
-  /** Label for the injected provider's source (default `'npm-pack'`); the CLI passes `'pnpm-pack'` for a packed tree. */
+  /** Label for the injected provider (default 'npm-pack'); CLI uses 'pack-artifact'. */
   readonly localInventorySource?: InventorySource;
 }
 
@@ -140,6 +140,8 @@ export interface PackInventoryUnavailable {
  */
 export interface PackedTree {
   readonly packedDir: string;
+  /** Exact files from packArtifact().files; old providers may omit this. */
+  readonly paths?: readonly string[];
 }
 
 export type LocalInventoryResult = PackInventory | PackedTree | PackInventoryUnavailable;
@@ -453,7 +455,9 @@ export function detectSiblingDrift(opts: DetectSiblingDriftOptions): SiblingDrif
       }
       try {
         workspaceHashes = 'packedDir' in localResult
-          ? hashTreeFull(localResult.packedDir, workspaceManifest)
+          ? localResult.paths !== undefined
+            ? hashTreeFromPaths(localResult.packedDir, localResult.paths, workspaceManifest)
+            : hashTreeFull(localResult.packedDir, workspaceManifest)
           : hashTreeFromPaths(workspaceDir, localResult.paths, workspaceManifest);
       } catch (err) {
         if (!(err instanceof InventoryListingError)) throw err;
@@ -495,4 +499,13 @@ export function detectSiblingDrift(opts: DetectSiblingDriftOptions): SiblingDrif
     }
   }
   return results;
+}
+
+
+/** Named drift evidence for both the publish BLOCKED line and its durable audit row. */
+export function formatDriftFiles(changedFiles: readonly string[], source: InventorySource, max = 5): string {
+  const shown = changedFiles.slice(0, Math.max(0, max));
+  const remaining = changedFiles.length - shown.length;
+  const names = [...shown, ...(remaining > 0 ? [`… (+${remaining} more)`] : [])].join(', ');
+  return `${names || '(no changed files)'} [source: ${source}]`;
 }

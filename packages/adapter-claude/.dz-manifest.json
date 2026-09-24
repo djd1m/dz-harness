@@ -77,7 +77,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "315e6e158151bad0e7e1ca75dc51b2be249d7df8c3e31f9da2fcb444cdbf4304"
+        "sha256": "7f7fec2f8ecb15c3905a7484f0e77979a40dc4fbb392b32cf5c56f3e5555258e"
       },
       {
         "path": "src/compile.ts",
@@ -97,5 +97,5 @@
       }
     ]
   },
-  "signature": "oJzwOEFO6/xZOVMkRkBZIcIOHqCKEl487gulV1G+UssKDeS7Ut15Ks67xe2a1DFSsJ4UnL58VGRk9mNBhu3xDA=="
+  "signature": "Hq6tKYvK2S7RydIXxjDUqx4bq+r3jm7yvUjmfO4LWGQrVywKE3676tGmv3s4GWOb+HLR7ZYiCl9LbJJs1QWkBg=="
 }

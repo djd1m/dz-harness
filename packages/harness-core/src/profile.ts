@@ -512,7 +512,12 @@ export function syncProfileBlock(profile: OperatorProfile, home?: string, now?: 
     let backup: string | null = null;
     if (existing !== null) {
       const stamp = (now ?? new Date()).toISOString().replace(/[:.]/g, '-');
+      // Two syncs inside one millisecond (a fast CI runner) share a stamp: MEASURED 2026-09-24 on
+      // package-story-gates (73ac1a32) — the second backup overwrote the first and the test that
+      // promises "backups accumulate rather than overwriting" read 1 file. A taken name gets a
+      // counter suffix; a backup is never written over an existing one.
       backup = `${target}.dz-profile-backup-${stamp}`;
+      for (let n = 1; existsSync(backup); n += 1) backup = `${target}.dz-profile-backup-${stamp}-${n}`;
       writeFileSync(backup, existing, { mode: 0o600 });
       chmodSync(backup, 0o600); // writeFileSync's mode applies only at creation
     }

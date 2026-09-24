@@ -38,7 +38,7 @@ export type SiblingDriftStatus = 'same' | 'drift' | 'unavailable';
  * symmetric by construction (same function, same rules, both sides) but can miss a file
  * `.npmignore` excludes or include one npm would never ship.
  */
-export type InventorySource = 'npm-pack' | 'pnpm-pack' | 'readdir-approximation';
+export type InventorySource = 'pack-artifact' | 'npm-pack' | 'pnpm-pack' | 'readdir-approximation';
 export interface SiblingDriftResult {
     readonly name: string;
     readonly version: string;
@@ -88,7 +88,7 @@ export interface DetectSiblingDriftOptions {
      * drift".
      */
     readonly localInventory?: LocalInventory;
-    /** Label for the injected provider's source (default `'npm-pack'`); the CLI passes `'pnpm-pack'` for a packed tree. */
+    /** Label for the injected provider (default 'npm-pack'); CLI uses 'pack-artifact'. */
     readonly localInventorySource?: InventorySource;
 }
 /** The exact set of relative paths `npm pack` will ship for a package — no `.npmignore` guessing. */
@@ -109,6 +109,8 @@ export interface PackInventoryUnavailable {
  */
 export interface PackedTree {
     readonly packedDir: string;
+    /** Exact files from packArtifact().files; old providers may omit this. */
+    readonly paths?: readonly string[];
 }
 export type LocalInventoryResult = PackInventory | PackedTree | PackInventoryUnavailable;
 /** Ask what npm would ship for the package rooted at `dir`. Injected in tests (no subprocess). */
@@ -136,4 +138,6 @@ export declare function parseNpmPackInventory(stdout: string): LocalInventoryRes
  * injected or scoped to reading local dist/package.json files — no network call is made here.
  */
 export declare function detectSiblingDrift(opts: DetectSiblingDriftOptions): SiblingDriftResult[];
+/** Named drift evidence for both the publish BLOCKED line and its durable audit row. */
+export declare function formatDriftFiles(changedFiles: readonly string[], source: InventorySource, max?: number): string;
 //# sourceMappingURL=publish-sibling-drift.d.ts.map

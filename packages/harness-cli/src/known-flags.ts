@@ -225,7 +225,6 @@ export const KNOWN_CLI_FLAGS: readonly string[] = [
   'owner-pid',
   'owner-run',
   'pack',
-  'pack-destination',
   'package',
   'pair',
   'parent-run-id',

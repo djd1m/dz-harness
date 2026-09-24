@@ -779,6 +779,8 @@ export type {
   ChainDefectAges,
   ChainedJournal,
 } from './event-chain.js';
+export { packArtifact, readWorkspaceVersions, UnknownWorkspaceSpecError } from './pack-artifact.js';
+export type { PackArtifactResult, ExecLike } from './pack-artifact.js';
 export { decideProvenance, environmentCanMintProvenance, publishArgv, matchesPublishFilter, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, rewriteWorkspaceSpecs, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion, planReadmeVersionSync } from './publish.js';
 export type { ReadmeVersionSyncPlan, ReadmeSyncRewrite } from './publish.js';
 export { RELEASE_LINE_RE, parseReleaseLine, findReleaseLine, rewriteReleaseLine, shortPackageName } from './release-line.js';
@@ -825,7 +827,7 @@ export type {
 } from './release.js';
 export { formatPublishError } from './publish.js';
 // Sibling-drift + packed-install-smoke gates (feature publish-sibling-drift-gate, ADR-001).
-export { detectSiblingDrift, parseNpmPackInventory } from './publish-sibling-drift.js';
+export { detectSiblingDrift, parseNpmPackInventory, formatDriftFiles } from './publish-sibling-drift.js';
 export type {
   SiblingDriftStatus,
   InventorySource,

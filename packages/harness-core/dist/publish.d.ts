@@ -170,7 +170,7 @@ export declare function classifyRegistryProbe(stderr: string, message: string): 
  * Mirror pnpm's package-time expansion of the three shorthand workspace dependency specs.
  * Pure by construction: callers provide both the source bytes and the sibling version table.
  */
-export declare function rewriteWorkspaceSpecs(pkgJsonText: string, siblingVersions: ReadonlyMap<string, string>): string;
+export { rewriteWorkspaceSpecs } from './pack-artifact.js';
 /**
  * Pure half: which `workspace:`-declared deps of a package would pack to a floor that is neither
  * being published in this batch nor already on the registry?
@@ -428,5 +428,4 @@ export declare function publishPackages(monorepoRoot: string, opts?: {
         readonly smoke: (artifacts: readonly PackedTarballArtifact[]) => PackedTransportSmokeVerdict;
     } | undefined;
 }): PublishReport;
-export {};
 //# sourceMappingURL=publish.d.ts.map

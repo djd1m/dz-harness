@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-claude",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Claude Code platform adapter - compiles canonical skills into the .claude/skills tree.",
   "type": "module",
   "license": "MIT",

@@ -170,6 +170,8 @@ export type { VetoHit, VetoMode } from './shell-veto-policy.js';
 export { generateCodexHelpers, generateCodexRecallHelper, generateCodexVetoHelper } from './codex-hooks-assets.js';
 export { EVENT_CHAIN_SCOPE, EVENT_CHAIN_GENESIS_HASH, EVENT_CHAIN_TAIL_BYTES, EVENT_CHAIN_FIELD_OVERHEAD_BYTES, EVENT_CHAIN_LEDGER_KIND, EVENT_CHAIN_DEFECT_KINDS, fnv1a32, chainHashOf, chainLinesOf, lastChainLine, readTailInfo, appendChainedLines, EMPTY_LOG_TAIL, nextChainFields, withChainFields, chainRecordLines, chainRewrite, defaultEventWeight, eventWeightOfText, verifyEventChain, verifyEventChainText, renderEventChainVerification, rewriteSnapshot, rewriteSnapshotUnchanged, guardedRewrite, DEFAULT_REWRITE_ATTEMPTS, liveSegmentStart, classifyChainDefects, CHAINED_JOURNALS, } from './event-chain.js';
 export type { ChainFields, LogTail, EventChainLedger, RewriteSnapshot, GuardedRewriteIo, GuardedRewriteResult, GuardedRewriteStatus, RewriteProposal, EventChainDefect, EventChainDefectKind, EventChainVerification, VerifyEventChainOptions, ChainDefectAge, ChainDefectAges, ChainedJournal, } from './event-chain.js';
+export { packArtifact, readWorkspaceVersions, UnknownWorkspaceSpecError } from './pack-artifact.js';
+export type { PackArtifactResult, ExecLike } from './pack-artifact.js';
 export { decideProvenance, environmentCanMintProvenance, publishArgv, matchesPublishFilter, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, rewriteWorkspaceSpecs, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion, planReadmeVersionSync } from './publish.js';
 export type { ReadmeVersionSyncPlan, ReadmeSyncRewrite } from './publish.js';
 export { RELEASE_LINE_RE, parseReleaseLine, findReleaseLine, rewriteReleaseLine, shortPackageName } from './release-line.js';
@@ -183,7 +185,7 @@ export type { PublishResult, PublishReport, ProvenanceMode, ProvenanceDecision, 
 export { collectPackageFacts, selectAffectedPackages, planReleaseGates, classifyGateExecutions, buildFailureIssue, shouldRetryGhWithoutToken, buildReleaseNotes, releaseTagName, firstOutputLine, testsFailureDetail, outputTail, RELEASE_GATE_ORDER, RELEASE_TIMEOUTS, } from './release.js';
 export type { ReleaseGateId, ReleaseFailureClass, ReleaseSkipClass, ReleaseBinEntry, ReleasePackageFacts, GateStep, GateSkip, GatePlan, GateExecution, GateFailure, GateResult, ReleaseVerdict, PlanReleaseGatesOptions, FailureIssueContext, } from './release.js';
 export { formatPublishError } from './publish.js';
-export { detectSiblingDrift, parseNpmPackInventory } from './publish-sibling-drift.js';
+export { detectSiblingDrift, parseNpmPackInventory, formatDriftFiles } from './publish-sibling-drift.js';
 export type { SiblingDriftStatus, InventorySource, SiblingDriftResult, FetchedPublished, FetchPublished, DetectSiblingDriftOptions, PackInventory, PackInventoryUnavailable, LocalInventoryResult, PackedTree, LocalInventory, } from './publish-sibling-drift.js';
 export { planPackedInstallSmoke, judgePackedInstallSmoke, packedTarballName } from './packed-install-smoke.js';
 export type { PackedInstallStepKind, PackedInstallStep, PackedInstallPackageSpec, PackedInstallBinSpec, PlanPackedInstallSmokeOptions, PackedInstallPlan, PackedInstallExecution, PackedInstallBinVerdict, PackedInstallVerdict, } from './packed-install-smoke.js';
