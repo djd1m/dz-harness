@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/harness-presets",
-  "version": "0.5.23",
+  "version": "0.5.24",
   "description": "Named skill-set presets for dz init (meta, qe-engineer).",
   "type": "module",
   "license": "MIT",

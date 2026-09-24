@@ -5794,6 +5794,16 @@ refusal as the honest answer.
 
 ## Status
 
+`v0.8.36` — **published 2026-09-24 (night 23→24.09).** `dz teach`, `dz backlog add` and `dz backlog edit` take
+`--from-file <path>` (UTF-8, one trailing newline stripped; mutually exclusive with inline text — both given is a
+usage error, `{ok:false,exitCode:1}` under `--json`; an unreadable file is named). Every text, inline or file, is
+checked for shell damage — `empty-substitution-hole`, `dangling-arrow`, `empty-brackets`, `short-for-kind` — and a
+hit prints one stderr line per symptom plus the remedy (`--from-file` after a quoted heredoc); `backlog add`/`edit`
+`--json` carry `warnings[]`; the write always proceeds (warn, never refuse). `dz teach` has no JSON result object,
+so its warnings are stderr only. `dz <unknown> --json` answers a refusal envelope `{ok:false, error, exitCode:2,
+command}` (exit 2), never the help envelope. Global help is unchanged at 156 lines. Requires `harness-core 0.8.43`
+(the detector and the memory-index checker live there) and `core 0.2.25`.
+
 `next` — staged, not yet versioned or published. Feature `measurement-integrity` (ADR-001, tier M) grows two
 existing commands: `dz round close` takes `--grade <A|A-|B+|…>` (mandatory for `outcome shipped|refuted`,
 dropped-with-a-warning for `blocked|abandoned`) and auto-fills `reviewer`/`reviewMinutes`/`reviewSource` from

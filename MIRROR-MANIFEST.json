@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-09-24T06:08:23.433Z",
+  "builtAt": "2026-09-24T07:34:43.081Z",
   "builtFrom": "dz-harness-hub (private monorepo)",
   "rule": "each package mirrors exactly its npm-pack tarball inventory — the already-public surface",
   "requested": 56,
@@ -178,8 +178,8 @@
     },
     {
       "name": "@dzhechkov/core",
-      "version": "0.2.25",
-      "files": 75
+      "version": "0.2.26",
+      "files": 76
     },
     {
       "name": "@dzhechkov/design-thinking",
@@ -203,8 +203,8 @@
     },
     {
       "name": "@dzhechkov/harness-presets",
-      "version": "0.5.23",
-      "files": 14
+      "version": "0.5.24",
+      "files": 15
     },
     {
       "name": "@dzhechkov/health-advisor",
