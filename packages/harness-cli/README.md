@@ -5804,7 +5804,7 @@ ledger row now carries a `prices` snapshot. See `@dzhechkov/harness-core`'s READ
 decision list (D1–D5) and the two new pure modules (`feature-adr-stage-canon.ts`, `codex-rollouts.ts`) behind
 `dz usage --by-stage`'s new `INCOMPLETE_INVENTORY` verdict and canonical-stage breakdown.
 
-`harness-core v0.8.42` · `harness-cli v0.8.35` — **this release (night 22→23.09 plus 23.09, two
+`harness-core v0.8.43` · `harness-cli v0.8.36` — **this release (night 22→23.09 plus 23.09, two
 packages, five features): command help is ADDRESSED — twelve commands answer `dz <cmd> --help` with
 their own text, and ownership is keyed by the PAIR (command + first positional token) rather than by
 the bare command name, because two of the twelve are branches of a shared sub-dispatcher whose
@@ -5823,7 +5823,7 @@ unrecorded-lesson debt now survives a turn boundary: the in-flight set moved int
 and the write order is INVERTED — the debt is committed BEFORE its offset, so an interruption leaves
 those bytes replayable. All twelve sibling dependencies of `harness-core` are pinned `workspace:^`.**
 
-`harness-core v0.8.41` · `harness-cli v0.8.35` · `harness-presets v0.5.21` — **this release (night
+`harness-core v0.8.41` · `harness-cli v0.8.36` · `harness-presets v0.5.21` — **this release (night
 21.09, three packages, all instrument-honesty fixes): the lesson→rule funnel now refuses a PERIOD
 rather than the whole FILE — chain damage that an unbroken run has already followed suppresses only
 the months whose own rows sit at or before it (`guard-audit-chain-damaged:<month>`), and a month

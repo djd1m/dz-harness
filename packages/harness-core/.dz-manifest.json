@@ -3053,7 +3053,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "e22f06c021fca1aa1332c3cc86f90c80ddb00bd164f74bf5d8bfe5fbfb444439"
+        "sha256": "073fc68b426d7cf73bb6d3ba9ec163306e7c8f5945db4d12f2da993c4da15089"
       },
       {
         "path": "src/__tests__/golden-baseline.test.ts",
@@ -3825,5 +3825,5 @@
       }
     ]
   },
-  "signature": "TVpFoorPYVtGiYhYZcVHdbSLci4PMbuPl7UB60YKUDm70Vd+bJR57WU4mnIb5LIJHdCWCi6ZKcxxe5Ik3JReBQ=="
+  "signature": "od802K3IbFfetzzL9hzJPxsKisJkhvjH1JI9zam4WY6hBeJy6oTkzyXCqf+OCQsGADn1ifPli0d9VbGAO5bnAw=="
 }

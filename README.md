@@ -24,12 +24,12 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/adapter-opencode` | 0.2.7 |
 | `@dzhechkov/adapter-windsurf` | 0.1.8 |
 | `@dzhechkov/cloudru-hub` | 0.1.12 |
-| `@dzhechkov/core` | 0.2.24 |
+| `@dzhechkov/core` | 0.2.25 |
 | `@dzhechkov/design-thinking` | 1.0.15 |
 | `@dzhechkov/evidence-wiki` | 0.2.7 |
-| `@dzhechkov/harness-cli` | 0.8.35 |
-| `@dzhechkov/harness-core` | 0.8.42 |
-| `@dzhechkov/harness-presets` | 0.5.22 |
+| `@dzhechkov/harness-cli` | 0.8.36 |
+| `@dzhechkov/harness-core` | 0.8.43 |
+| `@dzhechkov/harness-presets` | 0.5.23 |
 | `@dzhechkov/health-advisor` | 1.10.7 |
 | `@dzhechkov/keysarium` | 1.7.7 |
 | `@dzhechkov/keysarium-core` | 1.1.31 |
