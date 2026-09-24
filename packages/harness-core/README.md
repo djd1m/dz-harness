@@ -1821,7 +1821,17 @@ the training-pair capture instead of re-spending recall. Measured motive: after 
 Claude coders opened `01_requirements.md` in 5 of 7 runs (39 % before), while 37 of 48 post-directive coders
 were Codex, whose file reads are invisible to the transcript instrument.
 
-`0.8.42` — this release (night 22→23.09 plus 23.09). Four changes live in this package. **retro-debt
+`0.8.43` — this release (night 23→24.09, published 2026-09-24). Three changes live in this package.
+**text-mangling** — `detectMangledText(text, kind)` names four shell-damage symptoms (`empty-substitution-hole`,
+`dangling-arrow`, `empty-brackets`, `short-for-kind`) with UTF-16 offsets and ≤ 40-char excerpts; a literal
+backtick or `$(` is never a symptom. **memory-index-check** — `checkMemoryIndex({indexText, files})` reports
+`over-size` / `long-line` / `broken-link` / `unindexed-file` / `duplicate-link` / `unsupported-hook` (a lexical
+heuristic: first-clause tokens ≥ 4 chars present in the linked file ÷ tokens, threshold 0.5; on its first live
+calibration it found one index line linking the wrong file). **packed-sources-are-text** — a census over the
+package's real publish inventory turns a raw NUL in any packed text file into a named red; `architecture.ts`'s
+two raw NULs became `'\u0000'`. Plus the generation guard behind `scripts/backup-backlog.sh`.
+
+`0.8.42` — previous release (night 22→23.09 plus 23.09). Four changes live in this package. **retro-debt
 across turns** — the set of in-flight `dz teach` calls moved out of a single scan into the sentinel file
 (`AdmissionDebt.awaiting`, absent rather than `[]` when nothing is pending, capped at
 `MAX_AWAITING_TEACHES`), and the write order is INVERTED: the debt is committed BEFORE its offset, so an

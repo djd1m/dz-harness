@@ -81,6 +81,11 @@ clean `TMPDIR`. The guard only reads: it never creates, moves, or deletes files.
 
 ## Status
 
+`0.2.25` — published 2026-09-24: `findTempRootHazards` / `assertTempRootClean` (feature
+`temp-root-guard-before-run`) refuse a test run whose temp root sits under a `.dz` store or a `.git` ancestor,
+wired into `dzTmpRunRoot` on both branches; `0.2.24` was the same code (a sibling-drift gate artefact, backlog
+`71f1919d`).
+
 `0.2.22` — staged, not published. Adds the bounded integration manifest and the shared
 `emitted` / `refused` / `not-requested` contract used by evidence-gated target adapters.
 
