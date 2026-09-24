@@ -2666,9 +2666,10 @@ drift between them.
 **No `exitCode` field, on purpose.** Help always returns 0, so the field would repeat a constant.
 Sibling envelopes in this CLI carry it because their exit code varies.
 
-**Deliberately out of scope, named rather than hidden.** An unregistered command with `--json
---help` is still refused with an empty stdout and exit 2 — that belongs to the unknown-command
-contract, not the help contract, and is filed separately. Per-command help is also unchanged:
+An unknown command under `--json` (including with `--help` or `-h` after the command) answers one
+`{ ok:false, error, exitCode:2, command }` JSON line on stdout, leaves stderr empty, and exits 2.
+
+Per-command help is also unchanged:
 every form prints the GLOBAL usage, not the usage of the named command.
 
 ## Global: `dz --version` / `-v` / `dz version`
@@ -4011,6 +4012,28 @@ All included in `meta` preset.
 ---
 
 ## Self-Learning: JSONL vs AgentDB
+
+For text containing quotes, backticks or `$`, prefer `--from-file` with a quoted heredoc:
+
+```bash
+cat > lesson.md <<'EOF'
+Preserve `literal backticks` and $(cat x) when storing a lesson from the shell.
+EOF
+dz teach --from-file lesson.md
+dz backlog add --from-file lesson.md
+dz backlog edit <id> --from-file lesson.md
+```
+
+The file is read as UTF-8 and exactly one trailing `\n` is removed. File input is mutually
+exclusive with inline text. For `backlog edit`, it supplies `--text`; combining it with
+`--append` is a usage error. An unreadable file reports its path and exits 1.
+
+The text heuristic **warns, never refuses**: `empty-substitution-hole`, `dangling-arrow`,
+`empty-brackets` and `short-for-kind` identify possible shell damage, and the write proceeds.
+Each warning includes its UTF-16 offset and excerpt on stderr, followed by the quoted-heredoc
+remedy. Backlog add/edit also include `warnings[]` in their existing `--json` result when symptoms
+are present; clean results omit that key. Teach reports these warnings only on stderr and has
+no single-lesson JSON result. Literal backticks and `$(` alone are not warning symptoms.
 
 DZ Harness supports two memory backends for self-learning:
 

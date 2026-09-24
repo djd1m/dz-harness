@@ -308,6 +308,15 @@ export type {
   StoreMarkWriteOptions,
   StoreResetReceipt,
 } from './store-guard.js';
+export {
+  checkMemoryIndex,
+  MEMORY_INDEX_MAX_BYTES,
+  MEMORY_INDEX_MAX_LINE_CHARS,
+  MEMORY_INDEX_MIN_HOOK_SUPPORT,
+} from './memory-index-check.js';
+export type { MemoryIndexReport, Finding, FindingKind } from './memory-index-check.js';
+export { detectMangledText } from './text-mangling.js';
+export type { MangleKind, MangleSymptom } from './text-mangling.js';
 export { planStoreGuardPrune } from './store-guard-prune.js';
 export type {
   StoreGuardPruneBucket,

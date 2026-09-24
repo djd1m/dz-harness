@@ -96,6 +96,8 @@ export { APPLY_LEG_VERSION, applyLegVersionOf, bakedCoreDistDirOf, recallHookSou
 export { EMBED_SOCKET_PATH_BYTES_LIMIT, resolveEmbedSocketPath, embedSocketPointerPath, readEmbedSocketPointer, resolveEffectiveEmbedSocketPath, } from './embed-socket-path.js';
 export { countLearningStoreRowsReadonly, quarantineTierParity } from './store-counts.js';
 export { STORE_GUARD_VERSION, STORE_COLLAPSE_MAX_FRACTION, STORE_COLLAPSE_LAST_ROWS, storeGuardPath, storeSnapshotPath, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, } from './store-guard.js';
+export { checkMemoryIndex, MEMORY_INDEX_MAX_BYTES, MEMORY_INDEX_MAX_LINE_CHARS, MEMORY_INDEX_MIN_HOOK_SUPPORT, } from './memory-index-check.js';
+export { detectMangledText } from './text-mangling.js';
 export { planStoreGuardPrune } from './store-guard-prune.js';
 export { statuslineData, readFeatureAdrState, writeFeatureAdrState, featureAdrStateDir, featureAdrStatePath, writeFeatureAdrStateDetailed, renderFeatureAdrPhaseLine } from './statusline.js';
 export { ETA_MAX_STAGE_MS, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, } from './eta.js';

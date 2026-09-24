@@ -13,6 +13,7 @@ import { parseNpmPackInventory, type InventorySource, type LocalInventoryResult 
 // feature's scope, and harness-core already depends on memory.
 import { noSearchableTermsReason } from '@dzhechkov/harness-core';
 import { shortPackageName } from '@dzhechkov/harness-core';
+import { detectMangledText, type MangleKind, type MangleSymptom } from '@dzhechkov/harness-core';
 import { appendFileSync, chmodSync, closeSync, constants as fsConstants, copyFileSync, cpSync, existsSync, fstatSync, fsyncSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readSync, readdirSync, readlinkSync, realpathSync, renameSync, rmdirSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync, writeSync, type Dirent } from 'node:fs';
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep, posix as nodePosixPath } from 'node:path';
 const posixNormalize = nodePosixPath.normalize;
@@ -816,21 +817,21 @@ Usage:
   dz qe-bridge --family claude --slug <feature> [--coder-family codex|claude] [--model <id>] [--files a,b] [--out <f>] [--timeout <s>] [--allow-same-family] [--json]   (the REVERSE QE bridge: run an INDEPENDENT Claude reviewer over a feature's Step-8 artifacts from ANY host — a Codex session included, plain shell, no Claude agent plane needed — and land a PARSED signoff. The reviewer runs ISOLATED: an EMPTY temp cwd plus --safe-mode --strict-mcp-config --tools '' --no-session-persistence, so no CLAUDE.md/skills/plugins/hooks/MCP load, and the verdict is read from the --output-format json RESULT ENVELOPE — text a session customization printed onto the same stdout can never become a signoff. Probes the model before trusting it; sends SCOPED extracts with a loud 200k-char ceiling (never silent truncation); the grade must AGREE across three LAST-anchored channels (terminal marker line, fenced qe-bridge-signoff JSON, the report's own GRADE line) AND the marker must be the FINAL content — empty, gradeless, self-contradicting or miscounted output is one of 17 NAMED failures with an audit record under features/<slug>/.fa-state/qe-bridge/ (runId, resolved executable + binOverride, prompt sha256, channel offsets, requestedOut, reportWritten, retained raw stdout; 0600 files in a 0700 dir), never a clean review. A --coder-family that contradicts the recorded reqe debt is refused. Writes features/<slug>/08b_reqe_report.md, which dz reqe --done settles unchanged. DISCLOSURE: the extracts you scope are sent to the Claude runtime; the bridge cannot classify secrets. DZ_QE_BRIDGE_CLAUDE_BIN is a TEST SEAM, not a flag. exit 0 signoff parsed (ANY grade — it reports, it does not gate) / 1 named failure / 2 usage)
   dz control-review --slug <feature> --files a,b [--brief <file>] [--coder-family codex|claude] [--codex-model gpt-5.6-sol] [--effort high] [--claude-model <id>] [--timeout-min 30] [--adjudicate <file>] [--project <dir>] [--json]   (ADR-001 cross-family-control-branch: two INDEPENDENT scoped reviews over the SAME tree, Codex run from an ISOLATED scope copy — a Claude qe-bridge half then a Codex round-exec half — diffed into confirmed/candidate/onlyCodex/onlyClaude per severity; automatic overlap is a CANDIDATE only (title-Jaccard>=0.5 with compatible file, or same-file+line±3 AND jaccard>=0.2) — --adjudicate produces the only CONFIRMED pairs, none entries family-qualified as codex:<id>/claude:<id>; a tree-hash drift, an unreadable Claude signoff, a half with no accepted table, a nonzero Codex exit/timeout, or an ambiguous answer boundary refuses with NO ledger row; an out-of-scope or unnormalizable finding lands in the row's own refused/complete fields instead; a written row is trusted only after an exactly-one-new-line deep-compared reread. exit 0 written+verified / 1 refused / 2 usage / 3 written-but-not-reread)
   dz mutation-gate [--package <dir>] [--registry <file>] [--test-cmd "<cmd>"] [--only <id[,id]>] [--touched <path[,path]>] [--added-since <git-ref>] [--timeout <ms>] [--max-workers <n>] [--rebaseline per-entry|final] [--verdicts <file>] [--run-id <id>] [--keep-scratch] [--json]   (prove each NAMED protection has a test that DISCRIMINATES: after classifying, one JSONL line per classified entry ({ts, package, entryId, verdict, failingCount, observed, drop, dropComparable, runId}) is appended to a DURABLE file, SEPARATE from the registry (the registry is the gate's INPUT — what to mutate — a verdict is its OUTPUT; mixing them would change the registry on every run and break the mutation-registry-freshness guard) — default '.dz/mutation-gate/verdicts.jsonl' under the invocation cwd, '--verdicts <file>' overrides; '--run-id <id>' names the run in every appended row (absent -> runId:null, never guessed). Observability only: a write failure is a LOUD warning on stderr and NEVER changes the gate's own exit code — the instrument cannot become a second way for the gate to fail. '--max-workers' resolves flag > the registry's own 'maxWorkers' field > 'min(4, max(1, floor(cpus/2)))' (an invalid flag value — 0, negative, fractional, non-numeric — is a usage error, exit 2, never a silent default; fix-round 1), injects '--maxWorkers=<n>' right after 'run' in EVERY 'vitest run' segment of a (possibly compound) command (unless that segment already names the flag itself, token-scoped — not a whole-command substring check; mutation-gate-inject-tokens fix-round 2) and sets 'VITEST_MAX_WORKERS=<n>' in the env regardless — an uncapped full-suite baseline/mutant run at vitest's default worker count (= cpu cores) has measured load 62-358 and <2GB free on an 8-core/16GB box under embedding-daemon tests, killing full overnight gate runs (0bb74d66); the env is read by vitest CONFIGS that opt in (this repo's harness-core/harness-cli vitest.config.ts do) — vitest itself does NOT read it (MEASURED 3.2.4); printed as 'mutation-gate: workers: <n> (<flag|registry|default>)', or 'mutation-gate: workers: n/a — test command is not vitest (VITEST_MAX_WORKERS set; honoured only by configs that read it)' when the command is not recognised as vitest. '--touched' selects entries whose 'file' matches one of the given paths, accepted in ANY of package-relative, './'-prefixed, absolute-inside-the-package, repo-relative, or backslash-separated form — all normalized to package-relative POSIX before matching (fix-round 1, AM-1); a path that resolves OUTSIDE the package is counted, never silently dropped, as '<K> outside package' in the 'selected N of M' line; '--added-since <ref>' selects entries whose id is not present in the registry as it read at that ref ('git show <ref>:<registry path>'): a registry genuinely ABSENT at that ref means every current entry counts as added (said explicitly); an unresolvable ref, any OTHER git failure, or an invalid/malformed base registry at that ref is a usage error (exit 2), never folded into "absent" (AM-3) — a feature scopes the gate to its own touched files and any entries it just added instead of the whole registry (MEASURED: an unscoped run over 358 entries on this repo's core package ran 30-40 minutes and hit the timeout wall, INCONCLUSIVE every time). The two selectors UNION and the result INTERSECTS with '--only' when both are given; an empty selection prints 'selected 0 of M entries (…)' and exits 0 — never a silent skip; '--json' always carries a 'selection' object ({selected, total, touched, addedSince, base, outsidePackage}) on every scoped run (AM-4). copy the package to a scratch dir, verify the baseline suite is green, apply each registry mutation, run the suite, REQUIRE red, restore. The red must be BEHAVIOURAL: a mutation that no longer parses is MUTATION_UNPARSEABLE; a red run whose OWN output reports a test FILE failing to load (node --test file-level not-ok with exitCode, vitest Failed Suites) is MUTATION_LOAD_FATAL — the signal comes from the same run as the failing count, never from a separate isolated import; red output whose shape matches no known runner is INCONCLUSIVE (a runner-coverage gap, loud, never PROVEN); a count far above the entry's bound is OVER_FAILING; a restored tree that does not reproduce green makes the entry INCONCLUSIVE (flaky). Mutation writes are realpath-contained to the scratch copy: a symlink escape or a node_modules/ target is refused (exit 2), the real tree is never written. A mutation that does not apply, a green suite, or an inconclusive run is a FAILURE — never a skip. exit 0 all proven / 1 gate failed / 2 setup error)
-  dz backlog add "<idea>" [--effort 1-5] [--proposal <text>] [--dry-run] [--allow-cold-start] [--project <dir>] [--json]   (capture an idea: semantic dedup against existing ideas via the Brain vector engine (DUPLICATE>=0.92 merges, RELATED links, NEW creates) + GoalMap alignment; --dry-run classifies without writing)
+  dz backlog add "<idea>" [--from-file <path>] [--effort 1-5] [--proposal <text>] [--dry-run] [--allow-cold-start] [--project <dir>] [--json]   (capture an idea: semantic dedup against existing ideas via the Brain vector engine (DUPLICATE>=0.92 merges, RELATED links, NEW creates) + GoalMap alignment; --dry-run classifies without writing)
   dz backlog list [--status <s>] [--goal <id>] [--project <dir>] [--json]   (list captured ideas, filterable by status/goal)
   dz backlog show <id> [--project <dir>] [--json]                          (full record for one idea)
   dz backlog goals [--validate] [--project <dir>] [--json]                 (list/validate the compass at .dz/backlog/goals.json)
   dz backlog roulette [--pick <N>] [--seed <n>] [--commit] [--project <dir>] [--json]   (WEIGHTED draw over eligible ideas: alignment^alpha * recencyDecay * 1/effort, seeded; --pick N = ranked shortlist; --commit flips the pick to in-progress)
   dz backlog ship <id> [<id>…] [--reason <t>] [--dry-run] [--project <dir>] [--json]   (mark work DONE: new|enriched|in-progress → shipped, removing it from the roulette pool — run it after finishing a task; short id prefixes ok, ambiguous = loud error)
   dz backlog drop <id> [<id>…] [--reason <t>] [--dry-run] [--project <dir>] [--json]   (retire an idea: new|enriched|in-progress → dropped)
-  dz backlog edit <id> --text "<new>" | --append "<more>" [--dry-run] [--project <dir>] [--json]   (rewrite ONE idea's text, preserving every other field; re-embeds the dedup vector, and on a failed re-embed MARKS the record embedStale so dedup refuses to trust it — previous text preserved in .dz/backlog/edits.jsonl)
+  dz backlog edit <id> --text "<new>" | --append "<more>" [--from-file <path>] [--dry-run] [--project <dir>] [--json]   (rewrite ONE idea's text, preserving every other field; re-embeds the dedup vector, and on a failed re-embed MARKS the record embedStale so dedup refuses to trust it — previous text preserved in .dz/backlog/edits.jsonl)
   dz backlog reopen <id> [<id>…] [--reason <t>] [--dry-run] [--project <dir>] [--json]   (back to the pool: shipped|dropped|in-progress → new)
   dz backlog enrich <id> [--project <dir>] [--json]                        (stage the idea2prd input scaffold in features/<slug>/ and hand off to the idea2prd-manual skill — the CLI never fabricates a PRD)
   dz backlog jira <id> [--project <dir>] [--json]                          (draft a Jira issue via the configurable adapter (backlog.jira.adapter: jira-mcp|copilot-mcp|none); none writes an auditable jira-outbox/<id>.json stub)
   dz backlog harmonize [--apply] [--threshold <0-1>] [--project <dir>] [--json]   (batch semantic dedup of the backlog ideas; --dry-run default, --apply snapshots first)
   dz routing recommend [--tier <t>] [--apply] [--json]   (per-stage args.models suggestion from REAL telemetry — harness records + imported run-meta sidecars — printed WITH its basis + current/STALE/UNFED store receipt; qe is FORCED cross-family of code; --apply feeds .dz/routing-outcomes.json idempotently by runId)
   dz setup --target <name> [--preset <name>] [--select id,id,...] [--skills-dir <dir>] [--project <dir>] [--memory agentdb] [--no-memory] [--no-hooks] [--no-verify] [--install-driver] [--force] [--enrich]   (--target codex ALSO installs + LIVE-verifies the codex hooks; an unverified hook exits non-zero WITHOUT aborting the rest of setup)
-  dz teach "<pattern>" [--class-form "<template with :slot>"] [--reward <0-1>] [--domain <name>] [--type rule|success-pattern|lesson-learned] [--project <dir>] [--no-mirror] [--allow-cold-start]   (class form is optional; rejection never blocks the specific write; --project pins the learned store to <dir>/.dz)
+  dz teach "<pattern>" [--from-file <path>] [--class-form "<template with :slot>"] [--reward <0-1>] [--domain <name>] [--type rule|success-pattern|lesson-learned] [--project <dir>] [--no-mirror] [--allow-cold-start]   (class form is optional; rejection never blocks the specific write; --project pins the learned store to <dir>/.dz)
   dz teach --from-json <file> [--project <dir>] [--no-mirror]   (bulk-import a 'dz recall --all --json' export — share a learned store across machines)
   dz consolidate [--sessions-dir <dir>] [--project <dir>] [--no-mirror] [--prune-noise [--apply]] [--prune-quarantine [--apply]]   (both prunes: DRY-RUN by default; --apply snapshots then deletes; prune-quarantine = expired unproven lessons ONLY, never coupled to noise)
   dz recall "<query>" [--limit <N>] [--domain <name>] [--semantic | --no-semantic] [--books [--book <slug>]] [--project <dir>] | dz recall --all [--json] | dz recall --usage [--json] | dz recall --forget <dzId>[,<dzId>] [--apply] | dz recall --promote <dzId>[,<dzId>] [--apply]   (--domain <name> BOOSTS lessons of that domain without dropping foreign ones — a shared store keeps its cross-domain transfers; forget/promote: dry-run default; forget snapshots before removing; promote lifts lesson-quarantine)
@@ -4178,6 +4179,39 @@ async function runTeachGuardReinforcement(
   return out;
 }
 
+function resolveTextInput({ inline, fromFile, kind, command, write, writeErr, json }: {
+  inline: string | undefined;
+  fromFile: string | undefined;
+  kind: MangleKind;
+  command: string;
+  write: Write;
+  writeErr: WriteErr;
+  json: boolean;
+}): { text: string; warnings: readonly MangleSymptom[] } | { error: string; exitCode: 1 } {
+  const fail = (message: string): { error: string; exitCode: 1 } => {
+    const error = `dz ${command}: ${message}`;
+    write(json ? JSON.stringify({ ok: false, error, exitCode: 1 }) : error);
+    return { error, exitCode: 1 };
+  };
+  if (inline !== undefined && fromFile !== undefined) {
+    return fail('give the text either inline or via --from-file, not both');
+  }
+  let text = inline ?? '';
+  if (fromFile !== undefined) {
+    try {
+      text = readFileSync(fromFile, 'utf8').replace(/\n$/, '');
+    } catch {
+      return fail(`cannot read ${JSON.stringify(fromFile)} for --from-file`);
+    }
+  }
+  const warnings = inline === undefined && fromFile === undefined ? [] : detectMangledText(text, kind);
+  for (const symptom of warnings) {
+    writeErr(`dz ${command}: text may be damaged before it reached dz — ${symptom.kind} at ${symptom.at}: ${JSON.stringify(symptom.excerpt)}`);
+  }
+  if (warnings.length > 0) writeErr(`dz ${command}: use --from-file with a quoted heredoc to preserve literal text`);
+  return { text, warnings };
+}
+
 async function cmdTeach(
   options: Map<string, string>, flags: Set<string>, cwd: string, write: Write,
   writeErr: WriteErr = (line) => { console.error(line); }, interactive = false,
@@ -4203,7 +4237,7 @@ async function cmdTeach(
   const { storeRoot, target: teachTarget } = resolved;
   const teachWillWrite = flags.has('harmonize')
     ? false
-    : options.has('from-json')
+    : options.has('from-json') || options.has('from-file')
       || (options.get('reinforce') ?? '').trim() !== ''
       || (options.get('_positional_0') ?? '').trim() !== '';
   if (teachWillWrite && !allowLearningStoreWrite(storeRoot, flags, writeErr, 'dz teach')) return 1;
@@ -4429,7 +4463,12 @@ async function cmdTeach(
     return 1;
   }
 
-  const pattern = options.get('_positional_0');
+  const input = resolveTextInput({
+    inline: options.get('_positional_0'), fromFile: options.get('from-file'), kind: 'teach',
+    command: 'teach', write, writeErr, json: flags.has('json'),
+  });
+  if ('error' in input) return input.exitCode;
+  const pattern = input.text;
   if (!pattern) {
     write('dz teach: pattern description required');
     write('  Example:   dz teach "Used DataLoader to fix N+1 query" --reward 0.9 --domain performance');
@@ -22421,8 +22460,14 @@ async function cmdBacklog(
   };
 
   if (sub === 'add') {
-    const text = (options.get('_positional_1') ?? '').trim();
-    if (text === '') return emitErr('an idea text is required: dz backlog add "<idea>"');
+    const input = resolveTextInput({
+      inline: options.get('_positional_1')?.trim(), fromFile: options.get('from-file'), kind: 'backlog',
+      command: 'backlog add', write, writeErr, json,
+    });
+    if ('error' in input) return input.exitCode;
+    const { text, warnings } = input;
+    const warningFields = warnings.length > 0 ? { warnings } : {};
+    if (text.trim() === '') return emitErr('an idea text is required: dz backlog add "<idea>"');
     // The clamp is ECHOED, never silent (idea 86096d6d): `--effort 13` used to store 5 and say nothing.
     const eff = parseEffort(options.get('effort'), cfg.roulette.defaultEffort);
     if (eff.adjusted && !json && eff.note !== undefined) write(`dz backlog: ${eff.note}`);
@@ -22475,7 +22520,7 @@ async function cmdBacklog(
         didWrite = true;
       }
       if (didWrite) refreshLearningStoreMark(projectRoot, writeErr, 'dz backlog add');
-      if (json) write(JSON.stringify({ action: 'duplicate', matchedId: verdict.matchedId, cosine: verdict.cosine, ...(verdict.containment !== undefined ? { containment: verdict.containment } : {}), ...(verdict.subsetMatch === true ? { subsetMatch: true } : {}), ...(topMatch !== undefined ? { topMatch } : {}), ...(eff.note !== undefined ? { effortNote: eff.note } : {}), ...(dryRun ? {} : { absorbedLogged: absorbErr === undefined, ...(absorbErr !== undefined ? { absorbedLogError: absorbErr } : {}) }), exitCode: 0 }, null, 2));
+      if (json) write(JSON.stringify({ action: 'duplicate', matchedId: verdict.matchedId, cosine: verdict.cosine, ...(verdict.containment !== undefined ? { containment: verdict.containment } : {}), ...(verdict.subsetMatch === true ? { subsetMatch: true } : {}), ...(topMatch !== undefined ? { topMatch } : {}), ...(eff.note !== undefined ? { effortNote: eff.note } : {}), ...warningFields, ...(dryRun ? {} : { absorbedLogged: absorbErr === undefined, ...(absorbErr !== undefined ? { absorbedLogError: absorbErr } : {}) }), exitCode: 0 }, null, 2));
       else {
         const via = verdict.subsetMatch === true
           ? `subset match: containment ${(verdict.containment ?? 0).toFixed(3)} ≥ ${cfg.dedup.subsetContainment}, cosine ${verdict.cosine.toFixed(3)}`
@@ -22513,7 +22558,7 @@ async function cmdBacklog(
       ? `  near-duplicate demoted: ${verdict.demoted.id} @ cosine ${verdict.demoted.cosine.toFixed(3)} cleared the band but shares no subject vocabulary (containment ${verdict.demoted.containment.toFixed(3)} < ${cfg.dedup.corroborationFloor}) — kept as related`
       : undefined;
     if (dryRun) {
-      if (json) write(JSON.stringify({ action: verdict.action, dryRun: true, idea: rec, ...(verdict.demoted !== undefined ? { demoted: verdict.demoted } : {}), ...(topMatch !== undefined ? { topMatch } : {}), ...(eff.note !== undefined ? { effortNote: eff.note } : {}), exitCode: 0 }, null, 2));
+      if (json) write(JSON.stringify({ action: verdict.action, dryRun: true, idea: rec, ...(verdict.demoted !== undefined ? { demoted: verdict.demoted } : {}), ...(topMatch !== undefined ? { topMatch } : {}), ...(eff.note !== undefined ? { effortNote: eff.note } : {}), ...warningFields, exitCode: 0 }, null, 2));
       else {
         write(`dz backlog (dry-run): ${verdict.action.toUpperCase()} — would create ${rec.id}; align ${rec.goalAlignment.toFixed(3)}${rec.goalId !== null ? ` → ${rec.goalId}` : ''}`);
         // The calibration surface belongs on the dry-run too (QE LOW-8) — a dry-run is exactly where a
@@ -22531,7 +22576,7 @@ async function cmdBacklog(
     writeIdeas(projectRoot, ideas);
     const mirror = await mirrorIdeaVector(projectRoot, rec); // best-effort — never blocks capture
     refreshLearningStoreMark(projectRoot, writeErr, 'dz backlog add');
-    if (json) write(JSON.stringify({ action: verdict.action, idea: rec, related: verdict.relatedIds, ...(verdict.demoted !== undefined ? { demoted: verdict.demoted } : {}), ...(topMatch !== undefined ? { topMatch } : {}), ...(eff.note !== undefined ? { effortNote: eff.note } : {}), gitignore: ignore, exitCode: 0 }, null, 2));
+    if (json) write(JSON.stringify({ action: verdict.action, idea: rec, related: verdict.relatedIds, ...(verdict.demoted !== undefined ? { demoted: verdict.demoted } : {}), ...(topMatch !== undefined ? { topMatch } : {}), ...(eff.note !== undefined ? { effortNote: eff.note } : {}), ...warningFields, gitignore: ignore, exitCode: 0 }, null, 2));
     else {
       write(`dz backlog: ${verdict.action.toUpperCase()} — captured ${rec.id}`);
       if (verdict.action === 'related' && topMatch !== undefined) {
@@ -22759,9 +22804,21 @@ async function cmdBacklog(
   if (sub === 'edit') {
     const id = options.get('_positional_1');
     if (id === undefined) return emitErr('an idea id is required: dz backlog edit <id> --text "<new>" | --append "<more>" [--dry-run]');
+    const fromFile = options.get('from-file');
+    if (fromFile !== undefined && (options.has('append') || flags.has('append'))) {
+      const error = 'dz backlog edit: --from-file supplies --text and cannot be combined with --append';
+      write(json ? JSON.stringify({ ok: false, error, exitCode: 1 }) : error);
+      return 1;
+    }
+    const input = resolveTextInput({
+      inline: options.get('text') ?? options.get('append'), fromFile, kind: 'backlog',
+      command: 'backlog edit', write, writeErr, json,
+    });
+    if ('error' in input) return input.exitCode;
+    const warningFields = input.warnings.length > 0 ? { warnings: input.warnings } : {};
     const report = editIdea(projectRoot, id, {
-      ...(options.get('text') !== undefined ? { text: options.get('text')! } : {}),
-      ...(options.get('append') !== undefined ? { append: options.get('append')! } : {}),
+      ...(options.has('text') || fromFile !== undefined ? { text: input.text } : {}),
+      ...(options.has('append') ? { append: options.get('append')! } : {}),
       dryRun: flags.has('dry-run'),
     });
     let embed: 'ok' | 'stale' | 'skipped' = 'skipped';
@@ -22775,7 +22832,7 @@ async function cmdBacklog(
       refreshLearningStoreMark(projectRoot, writeErr, 'dz backlog edit');
     }
     if (json) {
-      write(JSON.stringify({ verb: 'edit', ...report, embed, exitCode: report.ok ? (embed === 'stale' ? 1 : 0) : 1 }, null, 2));
+      write(JSON.stringify({ verb: 'edit', ...report, embed, ...warningFields, exitCode: report.ok ? (embed === 'stale' ? 1 : 0) : 1 }, null, 2));
       return report.ok ? (embed === 'stale' ? 1 : 0) : 1;
     }
     for (const e of report.errors) write(`dz backlog edit: ${e}`);
@@ -23991,7 +24048,12 @@ export async function runCli(argv: string[], io: CliIo = {}): Promise<number> {
       case 'import-ecc':
         return await cmdImportEcc(options, flags, cwd, write);
       default:
-        writeErr(`dz: unknown command ${JSON.stringify(command)} — run 'dz help' for the command list`);
+        const message = `dz: unknown command ${JSON.stringify(command)} — run 'dz help' for the command list`;
+        if (flags.has('json')) {
+          write(JSON.stringify({ ok: false, error: message, exitCode: 2, command }));
+          return 2;
+        }
+        writeErr(message);
         return 2;
     }
   } catch (error) {

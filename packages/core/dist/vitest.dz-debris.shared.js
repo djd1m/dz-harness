@@ -1,6 +1,8 @@
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { assertTempRootClean } from './temp-root-guard.js';
+export { assertTempRootClean, findTempRootHazards } from './temp-root-guard.js';
 const STALE_RUN_ROOT_AGE_MS = 120 * 60 * 1_000;
 const RUN_ROOT_USERS_ENV = 'DZ_VITEST_TMP_ROOT_USERS';
 const RUN_ROOT_OWNER_FILE = '.dz-run-owner.json';
@@ -104,11 +106,13 @@ export function sweepStaleRunRoots(systemTmp, options = {}) {
 export function dzTmpRunRoot(packageName) {
     const activeRunRoot = process.env.DZ_VITEST_TMP_ROOT;
     if (activeRunRoot !== undefined && existsSync(activeRunRoot)) {
+        assertTempRootClean(activeRunRoot);
         const users = Number.parseInt(process.env[RUN_ROOT_USERS_ENV] ?? '1', 10);
         process.env[RUN_ROOT_USERS_ENV] = String(users + 1);
         return () => teardownTmpRunRoot(activeRunRoot);
     }
     const systemTmp = tmpdir();
+    assertTempRootClean(systemTmp);
     sweepStaleRunRoots(systemTmp);
     const runRoot = mkdtempSync(join(systemTmp, `dz-vitest-${packageName}-`));
     writeFileSync(join(runRoot, RUN_ROOT_OWNER_FILE), `${JSON.stringify({

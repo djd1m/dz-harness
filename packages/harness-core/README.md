@@ -3,6 +3,39 @@
 Shared logic for the DZ harness — the engine behind `@dzhechkov/harness-cli`
 and any other consumer.
 
+## Generation guard for backups
+
+The repository helper `.claude/helpers/generation-guard.cjs` compares backup counts without a
+build step. Its verdicts are `first-generation` (no previous count), `ok` (equal or growing),
+`collapsed` (any decrease without a receipt), `authorized` (a decrease with a matching receipt),
+and `receipt-invalid` (a present receipt is malformed or does not match the new count).
+Every generation decision prints a line with `previous`, `next`, and `verdict`.
+
+For an intentional shrink, write an operator receipt with this shape:
+
+```json
+{"at":"2026-09-05T04:41:00Z","reason":"harmonize dedup","before":739,"after":18}
+```
+
+`at` is an ISO-8601 timestamp, `reason` is non-empty, counts are non-negative integers,
+`before >= after`, and `after` must equal the new count. A malformed receipt refuses even an
+equal, growing, or first generation. There is no environment bypass.
+
+`scripts/backup-backlog.sh` reads `<source>/shrink-receipt.json` and compares the source count
+with the cloned `backlog-manifest.json` before removing the cloned backlog files. A refusal
+exits **6**, preserves that generation, and pushes nothing. An authorized push records
+`shrinkReason` in the manifest and renames the source receipt to
+`shrink-receipt.<stamp>.used.json`. `DZ_BACKLOG_BACKUP_SRC` selects the source directory
+(default `.dz/backlog`); it does not disable judgement. A missing or unrunnable guard exits 3.
+
+`.claude/helpers/brain-checkpoint.cjs export --json` exports to `.agentic-qe/aqe.rvf.tmp`, reads
+the previous count from `aqe.rvf.meta.json`, and judges before renaming the RVF and its idmap.
+Exporter failures, missing pattern counts, and refused generations preserve the previous RVF.
+Refusals return `exported:false`, `reason`, `previous`, and `next` with exit 0; an invalid receipt
+also reports `verdict` and `why`. The receipt is `aqe.rvf.shrink-receipt.json`; authorization
+renames it to `aqe.rvf.shrink-receipt.used.<stamp>.json`. Successful exports write `{at, patterns,
+bytes}` to the sidecar, and `verify --json` includes its `patterns` when available.
+
 ## Test execution
 
 `npx vitest run` uses two projects and returns one combined verdict: `parallel` runs the ordinary
@@ -144,6 +177,28 @@ premise, swarm-brief already masked indented code; its `indentedCode` option pre
 The default remains off. Future work must decide the other readers' policy at this one address.
 Regenerate every gate copy from this source and run `npx vitest run test/markdown-masker.test.ts`
 from this package; byte equality is tested, including the installed and packaged gate locations.
+
+## Text-mangling warnings (`text-mangling.ts`)
+
+`detectMangledText(text, kind)` is a pure, I/O-free detector exported with `MangleKind` and
+`MangleSymptom`. It returns possible `empty-substitution-hole`, `dangling-arrow`, `empty-brackets`
+and `short-for-kind` symptoms in offset order, with UTF-16 code-unit offsets and excerpts of at
+most 40 code units. The trimmed-length thresholds are 40 for `teach` and 20 for `backlog`.
+Literal backticks and `$(` are not symptoms by themselves. These are advisory warnings, never
+refusals; the CLI shares the detector across teach and backlog add/edit, including file input.
+
+## Memory index guard
+
+`checkMemoryIndex({ indexText, files, limits? })` checks a memory index against its sibling Markdown
+files without I/O: a 24 000-byte UTF-8 budget, 200 UTF-16 code units per line, broken and duplicate
+links, unindexed files, and unsupported hooks. Hook support is a heuristic: at least half of the
+Unicode letter/number tokens of length four or more in the hook's first clause (before `;`) must
+occur in the linked file, ignoring case; hooks with fewer than three tokens are not judged. The
+named defaults can be overridden through `limits`. `test/memory-index-guard.test.ts` always runs
+pure fixtures; its live check reads `roam/claude-state/memory/MEMORY.md` and sibling `*.md` files,
+prints measured bytes, lines and finding count, and requires no findings. When that index is absent
+(as in CI), the live case skips with the full path and reason in its title and one warning line.
+Neither the checker nor the live test writes to memory.
 
 ## Store-guard mark pruning (`store-guard-prune.ts`)
 
@@ -1118,6 +1173,15 @@ like every rule — `{packages: [{name, versionBumped, sourceChanged}], grades: 
 minGrade?, gathered?}`. A grade must BE a letter, not merely start with one. `gathered: false` means
 the caller TRIED and could not read the change: that produces a NOTE, never a violation, because
 absence of a report is an accusation and absence of facts is ignorance.
+
+**Packed sources are text — census.** `test/packed-sources-are-text.test.ts` checks the first
+8 KiB of every packed `.ts`, `.js`, `.mjs`, `.cjs`, `.json`, `.md`, `.txt`, `.yml` and `.yaml` file
+for NUL bytes, naming each offender and its byte offset. It prefers a valid inventory cache;
+otherwise it filters the offline walk by this package's `files` allowlist (plus `package.json`).
+It reports the inventory source, inspected count and excluded count, requires at least 100
+text files, and fails on unreadable files. Rebuild `dist` before running the census: stale
+compiled bytes are checked too. The scanners' git-compatible binary sniff stays unchanged;
+source string literals use escapes to preserve runtime NUL values without hiding text from scans.
 
 ## The vector tier reports what the RUN did, not what the config allows
 

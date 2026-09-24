@@ -54,6 +54,31 @@ credentials. It represents intent only: parsing never runs a command or performs
 Harness orchestration binds the canonical digest to operator authorization and requires separate
 live evidence before an adapter may emit a target carrier.
 
+## Test-run temp-root guard
+
+Before creating a Vitest run root, `dzTmpRunRoot` checks the physical path of the system temp
+directory and every ancestor through the filesystem root. A `.dz` directory, any `.git` entry
+(empty, broken, real repository, or gitfile), or an unreadable path refuses the run. Inherited
+active run roots retain their existing behavior. The shared Vitest module also exports
+`findTempRootHazards` and `assertTempRootClean`; both accept an injectable filesystem facade.
+
+A clean check prints one stderr receipt:
+
+```text
+dz tmp-root: clean — <n> ancestor(s) of <realpath> checked
+```
+
+A refusal throws with every hazard, deepest ancestor first:
+
+```text
+dz tmp-root: refused — unsafe temp-root ancestor chain
+<absolute path> — <kind> — <one-sentence consequence>
+remedy: move the entry aside or point TMPDIR at a clean root — this guard never deletes anything
+```
+
+There is no environment variable to disable the check. Move the offending entry aside or use a
+clean `TMPDIR`. The guard only reads: it never creates, moves, or deletes files.
+
 ## Status
 
 `0.2.22` — staged, not published. Adds the bounded integration manifest and the shared
