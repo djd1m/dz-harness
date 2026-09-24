@@ -118,6 +118,7 @@ export const KNOWN_CLI_FLAGS = [
     'format',
     'from',
     'from-',
+    'from-file',
     'from-json',
     'from-kus',
     'from-pack',

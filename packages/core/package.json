@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/core",
-  "version": "0.2.23",
+  "version": "0.2.24",
   "description": "Canonical skill + hooks schemas and the platform-adapter contract for the DZ cross-platform harness.",
   "type": "module",
   "license": "MIT",

@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "29257230c22a4d3036d13db88748dfbd85f52b53cf4e90686f86de692e5f8378"
+          "content": "953caec1db9c6467764cfe0dbf327d3a852b917caf559d6abe3d436ea827ab80"
         }
       ]
     },
@@ -391,6 +391,46 @@
     },
     {
       "type": "file",
+      "name": "dist/temp-root-guard.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3fbf43317b86bd729bca01f0377300e88143f93f27e3084ec132042b5d119fb4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/temp-root-guard.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a425e05d4229015c07dbd23503edbdc357d08c188cc40303cd11a1da9ffbc640"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/temp-root-guard.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7d3f5b3fe17dfbab919e6615d935950050d90aaa9bbac56f4fe030f433c14333"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/temp-root-guard.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "23b61938485e39cf17e5ca90930d8f050c812a0181b5cb746496cd83fd28e013"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "dist/vitest.coverage.shared.d.ts",
       "hashes": [
         {
@@ -435,7 +475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "39539b084891859512d3886b408f9e1829f9c954a72d9670d5421286ecc606a6"
+          "content": "9a691eddd76e76a3869474288c1ae9ade796e308456d91405aa9ec1e39dbb0ba"
         }
       ]
     },
@@ -445,7 +485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "34d56923b12715a8619e2caa5ba4a2847c950fe7c8bb6b45639d53692c33b922"
+          "content": "0d3f8039c85283066b598c4a8d00e39345cdf055f65b0639b83539cdd64efa13"
         }
       ]
     },
@@ -455,7 +495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8e7217a1cede6dc7fd3c7ba39d97b031101a328b0a2176a40a6b58a4c1576e56"
+          "content": "b10c05b1857d0820c1eabe49614e10d4b6d3000cf1837fece256d3b865ad939f"
         }
       ]
     },
@@ -465,7 +505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "04540b753f34ca0f8b9618f596a8dff592d1cc90cfe536a6ff7b26cd31495365"
+          "content": "352c5f3eaab3870dbf8cb86cc6fee2e8e0596a42a4ce1ee83e32fdb290a25648"
         }
       ]
     },
@@ -559,7 +599,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "02c06b8d3a517525cab4906f38242cbead1fe59bacf10bcd38c08e9ca832c7cd"
+          "value": "de101e80697cef3b5afc02ebb9e0093147966c0a14507c7228a2e13618a181ce"
         }
       ]
     },
@@ -665,6 +705,16 @@
     },
     {
       "type": "file",
+      "name": "src/temp-root-guard.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "56b90199b263ad6c45b8319a4a7ec6b247ba5dfe9fa763901a795c37a2b788e4"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "src/vitest.coverage.shared.ts",
       "hashes": [
         {
@@ -679,7 +729,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8405db5b8ccf6b8437921cf019a0a5d34a08497cea8ba135cc3f430e5addacc8"
+          "content": "2666aa2e68d46175d9d237b5525a3698ed2bb737dbf950dab5cd202771ecd143"
         }
       ]
     },

@@ -1,3 +1,4 @@
+export { assertTempRootClean, findTempRootHazards } from './temp-root-guard.js';
 interface SweepOptions {
     readonly now?: () => number;
     readonly isAlive?: (pid: number) => boolean;
@@ -17,5 +18,4 @@ export declare function dzTmpRunRoot(packageName: string): () => void;
  */
 export declare function dzDebrisTeardown(packageRoot: string): () => void;
 export declare function dzTestRunGuards(packageRoot: string, packageName: string): () => void;
-export {};
 //# sourceMappingURL=vitest.dz-debris.shared.d.ts.map
