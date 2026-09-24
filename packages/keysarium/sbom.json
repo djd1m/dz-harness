@@ -11,6 +11,16 @@
   "components": [
     {
       "type": "file",
+      "name": "LICENSE",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "README.md",
       "hashes": [
         {
@@ -979,7 +989,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb360cebbac91ac9ee8cf0ec8fb54f9c20385630928637f4940f80ec8c43778d"
+          "content": "5355e2b36ab13b6acb65abe5b206685915ef2b08191b4a3130574620012b9135"
         }
       ]
     },
@@ -1209,7 +1219,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2370036869bb643e2dba799fb98226ea0155f37efaea07a4e330dc76070e8804"
+          "content": "eb77822f121ade10bd6265b0f0145ec38507a07d2cb72ba5fa8336c962096bda"
         }
       ]
     },

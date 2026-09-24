@@ -4,6 +4,10 @@
     "pack": "keysarium",
     "files": [
       {
+        "path": "LICENSE",
+        "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
+      },
+      {
         "path": "README.md",
         "sha256": "3b4f6570d8cebd26429409ed23da99ddd082c378946cf722fe62d5b405e288c2"
       },
@@ -389,7 +393,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/08-qe.md",
-        "sha256": "cb360cebbac91ac9ee8cf0ec8fb54f9c20385630928637f4940f80ec8c43778d"
+        "sha256": "5355e2b36ab13b6acb65abe5b206685915ef2b08191b4a3130574620012b9135"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/09-fleet-qe.md",
@@ -481,7 +485,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/scripts/check-plan-completeness.mjs",
-        "sha256": "2370036869bb643e2dba799fb98226ea0155f37efaea07a4e330dc76070e8804"
+        "sha256": "eb77822f121ade10bd6265b0f0145ec38507a07d2cb72ba5fa8336c962096bda"
       },
       {
         "path": "templates/.claude/skills/feature-adr/scripts/markdown-masker.mjs",
@@ -989,5 +993,5 @@
       }
     ]
   },
-  "signature": "7ts03MQOH8n1vtnKniTMnk2PU9gT3fUYDNZ7zM9QTMcn3et9ePLHWh30U68QBxjSvlOv5oAtYkn3Tsyrh2wyCA=="
+  "signature": "0xhxWpOTOwmP6kxc1nGcKNxQCtvZNU3M+ABNCPn0Vod59M4CvKVuyL9U+3YAvg/hidv5USQfhx0l4m2CGJ/PBA=="
 }

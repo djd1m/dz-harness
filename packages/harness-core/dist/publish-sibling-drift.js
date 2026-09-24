@@ -359,7 +359,9 @@ export function detectSiblingDrift(opts) {
             }
             try {
                 workspaceHashes = 'packedDir' in localResult
-                    ? hashTreeFull(localResult.packedDir, workspaceManifest)
+                    ? localResult.paths !== undefined
+                        ? hashTreeFromPaths(localResult.packedDir, localResult.paths, workspaceManifest)
+                        : hashTreeFull(localResult.packedDir, workspaceManifest)
                     : hashTreeFromPaths(workspaceDir, localResult.paths, workspaceManifest);
             }
             catch (err) {
@@ -404,5 +406,12 @@ export function detectSiblingDrift(opts) {
         }
     }
     return results;
+}
+/** Named drift evidence for both the publish BLOCKED line and its durable audit row. */
+export function formatDriftFiles(changedFiles, source, max = 5) {
+    const shown = changedFiles.slice(0, Math.max(0, max));
+    const remaining = changedFiles.length - shown.length;
+    const names = [...shown, ...(remaining > 0 ? [`… (+${remaining} more)`] : [])].join(', ');
+    return `${names || '(no changed files)'} [source: ${source}]`;
 }
 //# sourceMappingURL=publish-sibling-drift.js.map

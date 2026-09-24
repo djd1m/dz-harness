@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-windsurf",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Windsurf platform adapter - transforms canonical skills into per-skill .windsurf/rules/<id>.md workspace rules (Windsurf's trigger/description frontmatter + body; intentionally transforming, not byte-identical).",
   "type": "module",
   "license": "MIT",

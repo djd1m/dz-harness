@@ -3,6 +3,18 @@
 Shared logic for the DZ harness — the engine behind `@dzhechkov/harness-cli`
 and any other consumer.
 
+## One artifact for signing and publishing
+
+Sign, publish and the sibling-drift gate now pack with one function, `packArtifact`: it pins
+workspace dependencies, removes `prepublishOnly` for packing, restores the original package.json,
+and inventories the resulting tarball. Signing hashes the extracted artifact. A blocked drift names
+up to five changed files, the remaining count and the inventory source (`pack-artifact`) in both
+the CLI message and audit detail. This addresses the 2026-09-24 incident in which different packers
+produced LICENSE/package.json drift and an unnamed “1 file” refusal. Supported platforms are Linux
+and macOS with GNU/BSD tar; Windows is not claimed, and macOS verification is manual rather than an
+OS-matrix CI claim. Staging is synchronous within one process; concurrent packing of the same package
+by multiple processes needs external coordination (no cross-process lock is added).
+
 ## Generation guard for backups
 
 The repository helper `.claude/helpers/generation-guard.cjs` compares backup counts without a
@@ -35,6 +47,19 @@ Refusals return `exported:false`, `reason`, `previous`, and `next` with exit 0; 
 also reports `verdict` and `why`. The receipt is `aqe.rvf.shrink-receipt.json`; authorization
 renames it to `aqe.rvf.shrink-receipt.used.<stamp>.json`. Successful exports write `{at, patterns,
 bytes}` to the sidecar, and `verify --json` includes its `patterns` when available.
+
+An authorized shrink follows consume → swap → finalize: first rename the receipt to
+`aqe.rvf.shrink-receipt.consuming.json`, then replace the RVF/idmap and write meta, then rename
+the receipt to `aqe.rvf.shrink-receipt.used.<stamp>.json`. `receiptConsumed:false` with
+`reason:'receipt-consume-failed'` means the previous generation was preserved;
+`receiptConsumed:true` records that authorization was spent. A swap failure returns
+`exported:false` and `receiptSpent`, the receipt path after a best-effort rename to
+`aqe.rvf.shrink-receipt.spent-on-failure.<stamp>.json` (the consuming path if that rename fails).
+The swap is not atomic across the RVF, idmap, and meta files. A finalize failure still returns
+`exported:true`, with `receiptConsumed:true` and `receiptFinalized:false`, and logs the retained
+receipt path. Non-authorized runs keep their existing JSON keys. Each receipt authorizes
+exactly one shrink attempt; a failed attempt requires a fresh receipt instead of restoring
+the spent authorization.
 
 ## Test execution
 
@@ -199,6 +224,7 @@ pure fixtures; its live check reads `roam/claude-state/memory/MEMORY.md` and sib
 prints measured bytes, lines and finding count, and requires no findings. When that index is absent
 (as in CI), the live case skips with the full path and reason in its title and one warning line.
 Neither the checker nor the live test writes to memory.
+Support is judged on stems from `stem.ts`: находку/находка → находк and подписью/подпись → подпис, while проверил ≠ проверка and teacher ≠ teach remain distinct. Measured 2026-09-24 on the live index: the stem rule exposed one hook the substring rule had matched inside other words (fixed in the memory file), then 0 findings with a minimum support of 0.5 on two lines (a stale "five" from the 23.09 report was corrected after QE re-measured it).
 
 ## Store-guard mark pruning (`store-guard-prune.ts`)
 
@@ -1183,6 +1209,13 @@ text files, and fails on unreadable files. Rebuild `dist` before running the cen
 compiled bytes are checked too. The scanners' git-compatible binary sniff stays unchanged;
 source string literals use escapes to preserve runtime NUL values without hiding text from scans.
 
+**Every package ships a non-empty LICENSE.** `test/package-license-present.test.ts` walks every
+directory under `packages/@dzhechkov/` with a `package.json`, including private packages, and names
+each missing or empty `LICENSE`. Packages keep their own license text; the invariant is presence
+and non-empty bytes. On 2026-09-24, core@0.2.25 / harness-presets@0.5.23 read as tampered by consumers
+because the packer synthesised a `LICENSE` the tree lacked: the signed manifest listed it, while the
+published tarball omitted it. Keeping the file in each package tree closes that missing-file class.
+
 ## The vector tier reports what the RUN did, not what the config allows
 
 Four changes, each replacing a statement derived from configuration with one derived from the run:
@@ -1821,7 +1854,18 @@ the training-pair capture instead of re-spending recall. Measured motive: after 
 Claude coders opened `01_requirements.md` in 5 of 7 runs (39 % before), while 37 of 48 post-directive coders
 were Codex, whose file reads are invisible to the transcript instrument.
 
-`0.8.43` — this release (night 23→24.09, published 2026-09-24). Three changes live in this package.
+`0.8.44` — this release (day 24.09, published 2026-09-24). Four changes live in this package. **pack-artifact** —
+`packArtifact({ pkgDir, destDir, exec, pinVersions })` is the ONE packer behind sign, publish and the drift gate
+(`npm pack`, staging with restore in `finally`, `files[]` from `tar -tzf`, `UnknownWorkspaceSpecError` on an
+unpinnable spec); `readWorkspaceVersions(repoRoot)` supplies the map; `formatDriftFiles` names drifted files.
+**memory-index-check** — hook support is judged on stems from `stem.ts` (находку/находка fold, проверил ≠ проверка
+stays distinct); the live index re-measured at 0 findings, minimum 0.5 on two lines. **profile** — a CLAUDE.md backup
+whose millisecond stamp is already taken gets a counter suffix (CI 73ac1a32 read one backup where two were promised).
+**generation guard** — `brain-checkpoint.cjs` consumes the shrink receipt before the swap and reports
+`receiptConsumed` / `receiptSpent` / `receiptFinalized`; the finalize-failure branch is tested through a `--require`
+preload. Plus the repo-invariant `package-license-present` test.
+
+`0.8.43` — previous release (night 23→24.09, published 2026-09-24). Three changes live in this package.
 **text-mangling** — `detectMangledText(text, kind)` names four shell-damage symptoms (`empty-substitution-hole`,
 `dangling-arrow`, `empty-brackets`, `short-for-kind`) with UTF-16 offsets and ≤ 40-char excerpts; a literal
 backtick or `$(` is never a symptom. **memory-index-check** — `checkMemoryIndex({indexText, files})` reports

@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-openclaude",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "OpenClaude platform adapter - compiles canonical skills into the .openclaude/skills tree.",
   "type": "module",
   "license": "MIT",

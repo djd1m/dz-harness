@@ -21,11 +21,11 @@
       },
       {
         "path": "dist/bin.js",
-        "sha256": "61f6052946cd9e30ad99892fa2aaf820abbfb8037654c3b85be9ef0438c42899"
+        "sha256": "c4edc640735b9648f56131e42f81ebb50de91d005eb6825ae9d27d626cc3c02d"
       },
       {
         "path": "dist/bin.js.map",
-        "sha256": "c9e81c127d1fd2c48f053dd4e33007c265df9d6097ae0d1e8153d52356d3dee0"
+        "sha256": "cdd70591384b3effedff425a8cfb326da11cf99f4f63f32f2e63209dcc635585"
       },
       {
         "path": "dist/index.d.ts",
@@ -77,27 +77,27 @@
       },
       {
         "path": "dist/version.d.ts",
-        "sha256": "5cab556c9a89db27703db8dce6bdfdeefae96f5a50c8b84969baf3566f0a0967"
+        "sha256": "d2a5bee446b051bd28f781fb786e5e64ec1ace86250882f3bf1af9a65cbb4d0b"
       },
       {
         "path": "dist/version.d.ts.map",
-        "sha256": "5636d062a77350f9888ce065c580a699aa69236268a1fffd10cb5c27499f1332"
+        "sha256": "7913ef839792e2e306b8255a2fd21f5709851e0255923c97b4a5e82880f9af9d"
       },
       {
         "path": "dist/version.js",
-        "sha256": "3f0d216406ac0de9c3ecb18f88c3aca45bf5c6f1ebaeb892b01ed27c48d79ac6"
+        "sha256": "fddadd657611da318541b0b0758d335c9222e823309884e54ef475ee680babb5"
       },
       {
         "path": "dist/version.js.map",
-        "sha256": "94317552205c1dd8e68cadac442dc4d5346d14386d5a338838ab609b27310def"
+        "sha256": "bfa230e1775df64d08e0b1c0c84f5f3c6d56b0f02956259671422786fa8cdb14"
       },
       {
         "path": "package.json",
-        "sha256": "9c43e9d6004a99a8891c451853d6fb0c07efaad2804ddfe67d6c638b859a3f7f"
+        "sha256": "249eba7389a0b7ed49c13fd94f2f8395aa692c90d140c0ca5cea84d3d34eb6a6"
       },
       {
         "path": "src/bin.ts",
-        "sha256": "c391d2e78392ad2cc7a8cede0aeaaaf905fa2ed5af8bf676240f9421d5e75777"
+        "sha256": "acdca45bcdf015925828b6ecb292b2e7edac27c5de4b5fb7b62414e6629f4363"
       },
       {
         "path": "src/index.ts",
@@ -113,9 +113,9 @@
       },
       {
         "path": "src/version.ts",
-        "sha256": "1117ba6287394a86cde2406aaafbe486322eeba739ff3ea594e31834f6a57da6"
+        "sha256": "dc2e15efbb079956a554fd89267a9efc598ce81f7dddbdcdf00b5638591c18c1"
       }
     ]
   },
-  "signature": "EYP5zRuVADY3cBUOgNyqe5KpeEs1mIC2uwsusOl0VhmpwYSZZvKyk8GGhHSUMWpycQZSwwrWSVFqGAb2QOEvDA=="
+  "signature": "r2bw8eBFszKTHHKyCzv1lQYmpADcLItx/TImhRM7p9EsWeYdUYIAQLbb8SkmfKPlTq05pKldpLns9Rz0nHKeAg=="
 }

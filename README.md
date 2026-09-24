@@ -13,22 +13,22 @@ Issues and questions: use this repository's issue tracker.
 
 | Package | Version |
 |---|---|
-| `@dzhechkov/adapter-agents-md` | 0.1.8 |
-| `@dzhechkov/adapter-claude` | 0.2.8 |
-| `@dzhechkov/adapter-codex` | 0.2.7 |
-| `@dzhechkov/adapter-copilot` | 0.1.8 |
-| `@dzhechkov/adapter-cursor` | 0.1.8 |
-| `@dzhechkov/adapter-gemini` | 0.1.8 |
-| `@dzhechkov/adapter-hermes` | 0.2.7 |
-| `@dzhechkov/adapter-openclaude` | 0.1.7 |
-| `@dzhechkov/adapter-opencode` | 0.2.7 |
-| `@dzhechkov/adapter-windsurf` | 0.1.8 |
+| `@dzhechkov/adapter-agents-md` | 0.1.9 |
+| `@dzhechkov/adapter-claude` | 0.2.9 |
+| `@dzhechkov/adapter-codex` | 0.2.8 |
+| `@dzhechkov/adapter-copilot` | 0.1.9 |
+| `@dzhechkov/adapter-cursor` | 0.1.9 |
+| `@dzhechkov/adapter-gemini` | 0.1.9 |
+| `@dzhechkov/adapter-hermes` | 0.2.8 |
+| `@dzhechkov/adapter-openclaude` | 0.1.8 |
+| `@dzhechkov/adapter-opencode` | 0.2.8 |
+| `@dzhechkov/adapter-windsurf` | 0.1.9 |
 | `@dzhechkov/cloudru-hub` | 0.1.12 |
-| `@dzhechkov/core` | 0.2.26 |
+| `@dzhechkov/core` | 0.2.27 |
 | `@dzhechkov/design-thinking` | 1.0.15 |
 | `@dzhechkov/evidence-wiki` | 0.2.7 |
-| `@dzhechkov/harness-cli` | 0.8.36 |
-| `@dzhechkov/harness-core` | 0.8.43 |
+| `@dzhechkov/harness-cli` | 0.8.37 |
+| `@dzhechkov/harness-core` | 0.8.44 |
 | `@dzhechkov/harness-presets` | 0.5.24 |
 | `@dzhechkov/health-advisor` | 1.10.7 |
 | `@dzhechkov/keysarium` | 1.7.7 |

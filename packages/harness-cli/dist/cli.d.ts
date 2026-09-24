@@ -161,12 +161,10 @@ export interface CliIo {
      * other seam's filesystem.
      */
     readonly publishGateAuditFsLayer?: PublishGateAuditFsLayer;
-    /**
-     * AM-5 (feature publish-gate-audit-durable): test seam for the sibling-drift gate's `npm pack
-     * --dry-run --json` call (production leaves it unset → real `execFileSync`). Takes the package
-     * dir, returns raw stdout, or throws to simulate a real `npm` failure without spawning anything.
-     */
-    readonly publishNpmPackRunner?: (dir: string) => string;
+    /** Inject the same artifact producer used by sign/publish; inventory is read from its tarball. */
+    readonly publishPackRunner?: (dir: string, dest: string) => {
+        tgzPath: string;
+    };
     /**
      * Test seam for publish's registry-CONFIRMATION step (`confirmPublished`, inside
      * `publishPackages`) — feature `publish-confirm-seam` (backlog 079ba94c). Exists so a test can
@@ -287,13 +285,10 @@ export declare function cmdPublish(options: Map<string, string>, flags: Set<stri
     timeout?: number | undefined;
     env?: NodeJS.ProcessEnv | undefined;
 }) => string, gateAuditFsLayer?: PublishGateAuditFsLayer, 
-/**
- * AM-5 (feature publish-gate-audit-durable): test seam for the sibling-drift gate's `npm pack
- * --dry-run --json` call — production leaves it unset (real `execFileSync`). Takes the package
- * dir, returns raw stdout, or THROWS to simulate a real `npm` failure — a test can then prove the
- * failure reaches `parseNpmPackInventory`'s caller as `unavailable`, never a real subprocess.
- */
-npmPackRunner?: (dir: string) => string, 
+/** Artifact-producing test seam; both paths list and extract the returned tarball. */
+packRunner?: (dir: string, dest: string) => {
+    tgzPath: string;
+}, 
 /**
  * publish-confirm-seam: test seam for the registry-confirmation step inside `publishPackages`
  * (see {@link CliIo.publishRegistry} for the full rationale). Production leaves it unset.

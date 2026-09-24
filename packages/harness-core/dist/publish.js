@@ -17,7 +17,7 @@ import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { claimCheck } from './claim-check.js';
 import { findReleaseLine, rewriteReleaseLine, isReleaseLineToken, shortPackageName } from './release-line.js';
-import { packedTarballName } from './packed-install-smoke.js';
+import { packArtifact, rewriteWorkspaceSpecs } from './pack-artifact.js';
 // MEASURED 2026-09-10: registry answered E404 for ~3 min (19 probes); earlier the same day > 5 min.
 export const REGISTRY_PROBE_BUDGET = 90;
 export const REGISTRY_PROBE_INTERVAL_MS = 10_000;
@@ -118,27 +118,7 @@ function maxPublished(name, localVersion, exec = execSync) {
  * Mirror pnpm's package-time expansion of the three shorthand workspace dependency specs.
  * Pure by construction: callers provide both the source bytes and the sibling version table.
  */
-export function rewriteWorkspaceSpecs(pkgJsonText, siblingVersions) {
-    const pkg = JSON.parse(pkgJsonText);
-    const fields = ['dependencies', 'peerDependencies', 'optionalDependencies', 'devDependencies'];
-    for (const field of fields) {
-        const candidate = pkg[field];
-        if (candidate === null || typeof candidate !== 'object' || Array.isArray(candidate))
-            continue;
-        const table = candidate;
-        for (const [dep, spec] of Object.entries(table)) {
-            if (typeof spec !== 'string')
-                continue;
-            const match = /^workspace:([*^~])$/.exec(spec);
-            const version = siblingVersions.get(dep);
-            if (match === null || version === undefined)
-                continue;
-            const marker = match[1];
-            table[dep] = marker === '*' ? version : `${marker}${version}`;
-        }
-    }
-    return JSON.stringify(pkg, null, 2) + '\n';
-}
+export { rewriteWorkspaceSpecs } from './pack-artifact.js';
 /**
  * Pure half: which `workspace:`-declared deps of a package would pack to a floor that is neither
  * being published in this batch nor already on the registry?
@@ -1021,37 +1001,13 @@ export function publishPackages(monorepoRoot, opts = {}) {
                 }
             }
             if (opts.packedTransport !== undefined) {
-                // AM-1: pack ONCE, from a package.json whose workspace: specs are already resolved to each
-                // sibling's PINNED version — the SAME transformation `rewriteWorkspaceSpecs` performs — so
-                // the tarball about to be smoked is exactly what `npm publish <tgzPath>` ships. Lifecycle
-                // scripts already ran during the `build` step above; `prepublishOnly` is dropped here to
-                // mirror what pnpm itself strips at pack time (the manifest-freshness guard, cli.ts, does
-                // the identical transformation for verification — this is that same convention, now used
-                // to actually PRODUCE the artifact rather than merely check one).
-                const bumpedText = readFileSync(pkgJsonPath, 'utf-8'); // already carries newVersion
-                const rewritten = JSON.parse(rewriteWorkspaceSpecs(bumpedText, pinVersions));
-                const scripts = rewritten['scripts'];
-                if (scripts !== null && typeof scripts === 'object' && !Array.isArray(scripts)) {
-                    delete scripts['prepublishOnly'];
-                }
-                const stagedText = JSON.stringify(rewritten, null, 2) + '\n';
-                let tgzPath;
-                let digest;
-                writeFileSync(pkgJsonPath, stagedText);
-                try {
-                    const packOptions = { cwd: pkg.dir, stdio: 'pipe', encoding: 'utf-8' };
-                    if (opts.exec)
-                        opts.exec(`npm pack . --pack-destination ${JSON.stringify(opts.packedTransport.packDestDir)}`, packOptions);
-                    else
-                        execSync(`npm pack . --pack-destination ${JSON.stringify(opts.packedTransport.packDestDir)}`, packOptions);
-                    tgzPath = join(opts.packedTransport.packDestDir, packedTarballName(pkg.name, newVersion));
-                    digest = sha256File(tgzPath);
-                }
-                finally {
-                    // The COMMITTED tree keeps `workspace:` specs (only the version bump is meant to stick) —
-                    // the rewrite above is packing-only and is undone here regardless of pack's outcome.
-                    writeFileSync(pkgJsonPath, bumpedText);
-                }
+                // Pack, inventory and digest the exact artifact later handed to npm publish.
+                const { tgzPath, sha256: digest } = packArtifact({
+                    pkgDir: pkg.dir,
+                    destDir: opts.packedTransport.packDestDir,
+                    exec: opts.exec ?? execSync,
+                    pinVersions,
+                });
                 pendingPacked.push({
                     name: pkg.name,
                     dir: pkg.dir,
