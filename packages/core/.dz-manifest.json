@@ -237,7 +237,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "de101e80697cef3b5afc02ebb9e0093147966c0a14507c7228a2e13618a181ce"
+        "sha256": "e4e5737b3bc8253587d85161679440547fd12f52d221e047c1992e7f5b1d9ae8"
       },
       {
         "path": "src/adapter.ts",
@@ -301,5 +301,5 @@
       }
     ]
   },
-  "signature": "aXyTalHbTs+tTSkTlx9wrw1OSeLL20oAh0oqWjjxosudeOOwH1YT+3/8MEMTdobEyLjW1fwVRJ/ckLdwi4t8Cw=="
+  "signature": "mzTVJtY/UtC/yZGP76QZu+umbvC4j7dTxExYWqiGArVKz+d1OeOYCyjf12lflCNjIZaf4WE8aCLHsM9lOqNoCA=="
 }
