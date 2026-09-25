@@ -38,6 +38,7 @@ import { join } from 'node:path';
 
 import { LessonBandit, type ArmStats, type SerializedBanditState } from './lesson-bandit.js';
 import { withProjectLockSync } from './named-lock.js';
+import { uniqueStampedPath } from './stamped-path.js';
 import { readMemoryLearningConfig, type MemoryLearningConfig } from './patterns.js';
 
 // ── Paths and constants ─────────────────────────────────────────────────────────────────────────
@@ -383,7 +384,8 @@ function mutateBanditState(
         // Preserve the evidence before overwriting it — never delete, never "repair". This is the
         // ONE place a corrupt file is touched, and it is under the lock.
         const target = banditStatePath(projectRoot);
-        try { renameSync(target, `${target}.corrupt-${new Date().toISOString().replace(/[:.]/g, '-')}`); } catch { /* best-effort */ }
+        const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+        try { renameSync(target, uniqueStampedPath(`${target}.corrupt-`, stamp, existsSync)); } catch { /* best-effort */ }
         logBanditEvent(projectRoot, { event: 'bandit-error', ts: new Date().toISOString(), op, reason });
       }
       const bandit = LessonBandit.deserialize(state.bandit);

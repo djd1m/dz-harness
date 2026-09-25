@@ -57,9 +57,11 @@ live evidence before an adapter may emit a target carrier.
 ## Test-run temp-root guard
 
 Before creating a Vitest run root, `dzTmpRunRoot` checks the physical path of the system temp
-directory and every ancestor through the filesystem root. A `.dz` directory, any `.git` entry
-(empty, broken, real repository, or gitfile), or an unreadable path refuses the run. Inherited
-active run roots retain their existing behavior. The shared Vitest module also exports
+directory and every ancestor through the filesystem root. A `.dz` directory, a real `.git`
+repository or `gitdir:` file, or an unreadable path refuses the run. Empty or broken `.git`
+entries warn and allow the run to proceed: dz root finders skip them, and the source census in
+`harness-core/test/root-finder-census.test.ts` guards that invariant. Inherited active run roots
+are checked too. The shared Vitest module also exports
 `findTempRootHazards` and `assertTempRootClean`; both accept an injectable filesystem facade.
 
 A clean check prints one stderr receipt:
@@ -68,7 +70,13 @@ A clean check prints one stderr receipt:
 dz tmp-root: clean — <n> ancestor(s) of <realpath> checked
 ```
 
-A refusal logs one `dz tmp-root: REFUSED` banner to stderr before throwing, naming the first hazard and total count and explaining that a runner's "No test files found" can mean this refusal.
+A check with only advisory hazards prints one warning per hazard, followed by the clean receipt:
+
+```text
+dz tmp-root: WARN — <path> — <kind> — not a repository boundary; no dz root finder adopts a .git without HEAD (census: harness-core test/root-finder-census.test.ts)
+```
+
+A refusal logs one `dz tmp-root: REFUSED` banner to stderr before throwing, naming the first blocking hazard and total hazard count and explaining that a runner's "No test files found" can mean this refusal.
 A refusal throws with every hazard, deepest ancestor first:
 
 ```text

@@ -18,9 +18,17 @@ export interface TempRootFs {
 
 const consequences: Record<Exclude<HazardKind, 'unreadable'>, string> = {
   'dz-store': 'Tests inherit this store and locks, and the destructive-guard helper becomes active for every directory below this ancestor.',
-  'git-empty': 'An empty .git makes dz adopt this ancestor as the project root and seed a shared .dz store.',
-  'git-broken': 'A broken .git makes dz adopt this ancestor as the project root and seed a shared .dz store.',
+  'git-empty': 'An empty .git is not a repository boundary; dz root finders skip it (census-guarded) — warned, not refused.',
+  'git-broken': 'A broken .git is not a repository boundary; dz root finders skip it (census-guarded) — warned, not refused.',
   'git-real': 'Tests would anchor to a real repository and inherit its store and locks.',
+};
+
+const hazardSeverity: Record<HazardKind, 'blocking' | 'advisory'> = {
+  'dz-store': 'blocking',
+  'git-real': 'blocking',
+  unreadable: 'blocking',
+  'git-empty': 'advisory',
+  'git-broken': 'advisory',
 };
 
 function unreadable(path: string, error: unknown): Hazard {
@@ -81,13 +89,18 @@ export function assertTempRootClean(
   log: (message: string) => void = console.error,
 ): void {
   const { hazards, realpath, count } = scanTempRoot(tmp, fs);
-  if (hazards.length > 0) {
-    log(`dz tmp-root: REFUSED — ${hazards[0]!.path} — ${hazards[0]!.kind} (${hazards.length} hazard(s)); a test runner may report this as "No test files found" — it is this refusal, not your filter. remedy: move the entry aside or point TMPDIR at a clean root — this guard never deletes anything`);
+  const blocking = hazards.filter(({ kind }) => hazardSeverity[kind] === 'blocking');
+  const advisory = hazards.filter(({ kind }) => hazardSeverity[kind] === 'advisory');
+  if (blocking.length > 0) {
+    log(`dz tmp-root: REFUSED — ${blocking[0]!.path} — ${blocking[0]!.kind} (${hazards.length} hazard(s)); a test runner may report this as "No test files found" — it is this refusal, not your filter. remedy: move the entry aside or point TMPDIR at a clean root — this guard never deletes anything`);
     throw new Error([
       'dz tmp-root: refused — unsafe temp-root ancestor chain',
       ...hazards.map(({ path, kind, consequence }) => `${path} — ${kind} — ${consequence}`),
       'remedy: move the entry aside or point TMPDIR at a clean root — this guard never deletes anything',
     ].join('\n'));
+  }
+  for (const { path, kind } of advisory) {
+    log(`dz tmp-root: WARN — ${path} — ${kind} — not a repository boundary; no dz root finder adopts a .git without HEAD (census: harness-core test/root-finder-census.test.ts)`);
   }
   log(`dz tmp-root: clean — ${count} ancestor(s) of ${realpath} checked`);
 }

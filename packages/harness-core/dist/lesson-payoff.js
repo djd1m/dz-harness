@@ -36,6 +36,7 @@ import { randomBytes } from 'node:crypto';
 import { join } from 'node:path';
 import { LessonBandit } from './lesson-bandit.js';
 import { withProjectLockSync } from './named-lock.js';
+import { uniqueStampedPath } from './stamped-path.js';
 import { readMemoryLearningConfig } from './patterns.js';
 // ── Paths and constants ─────────────────────────────────────────────────────────────────────────
 /** OUR envelope version — distinct from the engine's own `version` field (architecture §7.2). */
@@ -320,8 +321,9 @@ function mutateBanditState(projectRoot, op, mutate) {
                 // Preserve the evidence before overwriting it — never delete, never "repair". This is the
                 // ONE place a corrupt file is touched, and it is under the lock.
                 const target = banditStatePath(projectRoot);
+                const stamp = new Date().toISOString().replace(/[:.]/g, '-');
                 try {
-                    renameSync(target, `${target}.corrupt-${new Date().toISOString().replace(/[:.]/g, '-')}`);
+                    renameSync(target, uniqueStampedPath(`${target}.corrupt-`, stamp, existsSync));
                 }
                 catch { /* best-effort */ }
                 logBanditEvent(projectRoot, { event: 'bandit-error', ts: new Date().toISOString(), op, reason });

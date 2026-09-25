@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "0fece459ba261924ab83507a4e97ddbfe0aa0a97569d00118c23f444d6d772d5"
+        "sha256": "94a2e32a49c332908e8976b270a4c38f777de5a161bdc0ae40bd0898c8db400d"
       },
       {
         "path": "dist/adapter.d.ts",
@@ -161,15 +161,15 @@
       },
       {
         "path": "dist/temp-root-guard.d.ts.map",
-        "sha256": "b5bd7eb58db00644c081d264341cf6b8cabcdda935c2fc0e3f2226750b4a32a2"
+        "sha256": "05195ee53728420950a61fde34655a423dd6858f1c279c7ea54c742358f0a5f2"
       },
       {
         "path": "dist/temp-root-guard.js",
-        "sha256": "bdb3c54d2364760e2561ccc413b2304ec1e956573553ca1592622639d244b4ba"
+        "sha256": "1fdf77278c06db94571c358b6a36eda93f8c6ac92d23856288e4cfa3b8994ecb"
       },
       {
         "path": "dist/temp-root-guard.js.map",
-        "sha256": "977dda39c19eb408ebeb4747762fc28b8d4360bdf36b49c75789969591bd89d9"
+        "sha256": "dd3e77bd5133f9f21b2f536569b8a2284c32ae71cf642c1b6607acaf2b07acf1"
       },
       {
         "path": "dist/vitest.coverage.shared.d.ts",
@@ -237,7 +237,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "6d55d6ab3b963ac58d46839d939e20aaaf5dea2df1a695678d08e0c5ead731b2"
+        "sha256": "80f932fc66bace00dd16c1d7412922bbf82b14470ec86804422e91e2a4a8f3ad"
       },
       {
         "path": "src/adapter.ts",
@@ -281,7 +281,7 @@
       },
       {
         "path": "src/temp-root-guard.ts",
-        "sha256": "29cf4070bf8dbb6aefe6be6902874a6bb91f95bfc68fa5c20875c15eedab6bc0"
+        "sha256": "a453bab6164bd1cb1f11b602e056a42d9339682cd377842a61cc911ee2b3003c"
       },
       {
         "path": "src/vitest.coverage.shared.ts",
@@ -301,5 +301,5 @@
       }
     ]
   },
-  "signature": "Jv3LQXxVLJoCx+n1jY+A7MoP8uDpf8nNha/WntUa22VZHV9jYcE+iyDIeUkXKS1ZbzMe0FGeggXzNItoQafUDw=="
+  "signature": "myGw0qysF2gGOHYuaQI/Pm0g3ixmjGpv3kzoCCGJW05q+7M2ducPLVEfNUvLN6wen9+LG0CGq50F3uGosrh/Cw=="
 }

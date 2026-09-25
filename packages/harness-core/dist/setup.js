@@ -19,6 +19,7 @@ import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node
 import { basename, dirname, isAbsolute, join, relative } from 'node:path';
 import { execSync, spawnSync } from 'node:child_process';
 import { mergeManagedHookEntries } from './managed-hooks.js';
+import { writeUniqueStampedFile } from './stamped-path.js';
 import { CLAUDE_DESTRUCTIVE_HOOK_COMMAND, CLAUDE_DESTRUCTIVE_HOOK_MATCHER, CLAUDE_DESTRUCTIVE_HOOK_RELPATH, generateClaudeDestructiveHook, isDzManagedHookBody, } from './claude-hooks-assets.js';
 import { applyIntegrationFragments, IntegrationApplyError } from './integration-apply.js';
 import { harnessCoreDistDir } from './harness-core-location.js';
@@ -1019,8 +1020,8 @@ export function runSetup(opts) {
                 if (foreign && current !== null) {
                     // Same shape as the codex `hooks.json` backup: the original beside the original, stamped,
                     // so `--force` is recoverable rather than merely loud.
-                    backupPath = `${hookPath}.bak-${new Date().toISOString().replace(/[:.]/g, '-')}`;
-                    writeFileSync(backupPath, current);
+                    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+                    backupPath = writeUniqueStampedFile(`${hookPath}.bak-`, stamp, current, writeFileSync);
                 }
                 mkdirSync(dirname(hookPath), { recursive: true });
                 writeFileSync(hookPath, generateClaudeDestructiveHook(), { mode: 0o755 });
