@@ -488,7 +488,7 @@ let CKPT_LISTING = new Set()
 const resumedStages = []
 async function loadCheckpoints(phaseName) {
   if (!CHECKPOINTS_ON) return
-  const readCmd = 'cat ' + shq(CKPT_FILE) + ' 2>/dev/null || true; echo ' + shq(CKPT_LS_SENTINEL) + '; cd ' + shq(FDIR) + ' 2>/dev/null && find . -maxdepth 2 -type f 2>/dev/null | sed "s|^\\./||" || true'
+  const readCmd = checkpointReadCmd(FDIR)
   const readOut = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash and return its stdout VERBATIM (it may be empty) with NO code fences and NO commentary: ' + readCmd, { label: 'ckpt:read', phase: phaseName, effort: 'low' })
   const raw = String(readOut == null ? '' : readOut)
   // LINE-ANCHORED sentinel: a sentinel string INSIDE a recorded result shares its line with JSON

@@ -108,6 +108,13 @@ ARCHITECTURE → IMPLEMENTATION →  CODE   →   QE    →  FLEET QE
 # Full protocols + 6 extra skills, up to 7 fleet QE agents
 ```
 
+### Checkpoint reads have one source (v1.5.14)
+
+`loadCheckpoints` in the bundled `feature-adr.js` now builds its read command with the checkpoints blob's own
+`checkpointReadCmd(FDIR)` instead of a hand-written duplicate, so the helper with the speaking name is the one the pipeline
+runs. Behaviour is unchanged: for directory names with spaces, quotes and missing directories the shell output is
+byte-identical (proved against the old command). A wiring test fails if the duplicate is re-inlined.
+
 ### Advisory micro-recall at two decision points (v1.5.9, staged)
 
 The workflow makes one bounded decision-local recall attempt immediately before the live Step 3

@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-feature-adr",
-  "version": "1.5.13",
+  "version": "1.5.14",
   "description": "Adaptive Feature Development skill pack for Claude Code — 11-step pipeline with Complexity Router (S/M/L/XL), ADR-driven architecture, 15 agentic-qe skills, multi-agent fleet QE. Supports --full-qe, --full-qe-extended, --with-learning, and --knowledge-extractor modes.",
   "bin": {
     "skills-feature-adr": "./bin/cli.js"

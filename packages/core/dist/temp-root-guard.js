@@ -67,6 +67,7 @@ export function findTempRootHazards(tmp, fs = nodeFs) {
 export function assertTempRootClean(tmp, fs = nodeFs, log = console.error) {
     const { hazards, realpath, count } = scanTempRoot(tmp, fs);
     if (hazards.length > 0) {
+        log(`dz tmp-root: REFUSED — ${hazards[0].path} — ${hazards[0].kind} (${hazards.length} hazard(s)); a test runner may report this as "No test files found" — it is this refusal, not your filter. remedy: move the entry aside or point TMPDIR at a clean root — this guard never deletes anything`);
         throw new Error([
             'dz tmp-root: refused — unsafe temp-root ancestor chain',
             ...hazards.map(({ path, kind, consequence }) => `${path} — ${kind} — ${consequence}`),
