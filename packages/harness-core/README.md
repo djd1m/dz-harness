@@ -1854,7 +1854,9 @@ the training-pair capture instead of re-spending recall. Measured motive: after 
 Claude coders opened `01_requirements.md` in 5 of 7 runs (39 % before), while 37 of 48 post-directive coders
 were Codex, whose file reads are invisible to the transcript instrument.
 
-`0.8.44` — this release (day 24.09, published 2026-09-24). Four changes live in this package. **pack-artifact** —
+`0.8.45` — this release (25.09, package P1–P5). **unique-stamped-path:** same-millisecond stamped artifacts never overwrite each other — `dz setup --force` writes the hook backup with `writeUniqueStampedFile` (exclusive create, next `-N` suffix on EEXIST, safe across processes), the corrupt lesson-state quarantine uses `uniqueStampedPath` under its existing lock, and a census test refuses any new raw `toISOString().replace(/[:.]/g` path (feature unique-stamped-path).
+
+`0.8.44` — previous release (day 24.09, published 2026-09-24). Four changes live in this package. **pack-artifact** —
 `packArtifact({ pkgDir, destDir, exec, pinVersions })` is the ONE packer behind sign, publish and the drift gate
 (`npm pack`, staging with restore in `finally`, `files[]` from `tar -tzf`, `UnknownWorkspaceSpecError` on an
 unpinnable spec); `readWorkspaceVersions(repoRoot)` supplies the map; `formatDriftFiles` names drifted files.

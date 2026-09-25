@@ -67,6 +67,7 @@ export { planLedgerBackfill, LEDGER_FILL_SOURCE, AMBIGUOUS, resolveLedgerRunId }
 // probe and the PS_GUIDANCE paragraph, so the two can never look at different roots again.
 export { projectSkillsOneRoot, projectSkillsProbeCommand } from './project-skills-root.js';
 export { isRepoBoundary } from './repo-boundary.js';
+export { uniqueStampedPath, writeUniqueStampedFile } from './stamped-path.js';
 export { benchmarkSkill, benchmarkSkills, compareSkills } from './benchmark.js';
 export { buildRegistry, buildShowcaseRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs, packScope, verifiedScopeNote } from './registry.js';
 export { tokenize, stemToken, stems } from './stem.js';

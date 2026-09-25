@@ -137,6 +137,7 @@ export { planLedgerBackfill, LEDGER_FILL_SOURCE, AMBIGUOUS, resolveLedgerRunId }
 export { projectSkillsOneRoot, projectSkillsProbeCommand } from './project-skills-root.js';
 export { isRepoBoundary } from './repo-boundary.js';
 export type { RepoBoundaryIo } from './repo-boundary.js';
+export { uniqueStampedPath, writeUniqueStampedFile } from './stamped-path.js';
 export type { LedgerBackfillPlan, LedgerBackfillRow, RunCostFacts } from './ledger-backfill.js';
 export type { SweepResult, DriftedSkill, SyncResult, SyncCanonicalOptions, CanonicalDefect, CanonicalDefectKind } from './skill-drift.js';
 export { benchmarkSkill, benchmarkSkills, compareSkills } from './benchmark.js';
