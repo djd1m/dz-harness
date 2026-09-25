@@ -24,7 +24,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/adapter-opencode` | 0.2.8 |
 | `@dzhechkov/adapter-windsurf` | 0.1.9 |
 | `@dzhechkov/cloudru-hub` | 0.1.12 |
-| `@dzhechkov/core` | 0.2.27 |
+| `@dzhechkov/core` | 0.2.28 |
 | `@dzhechkov/design-thinking` | 1.0.15 |
 | `@dzhechkov/evidence-wiki` | 0.2.7 |
 | `@dzhechkov/harness-cli` | 0.8.37 |
@@ -52,7 +52,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/skills-devops` | 0.3.18 |
 | `@dzhechkov/skills-ecc` | 0.1.13 |
 | `@dzhechkov/skills-edu-site` | 1.1.11 |
-| `@dzhechkov/skills-feature-adr` | 1.5.13 |
+| `@dzhechkov/skills-feature-adr` | 1.5.14 |
 | `@dzhechkov/skills-idea2prd` | 0.1.16 |
 | `@dzhechkov/skills-mcp` | 0.3.11 |
 | `@dzhechkov/skills-meta` | 0.9.61 |

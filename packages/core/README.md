@@ -68,6 +68,7 @@ A clean check prints one stderr receipt:
 dz tmp-root: clean — <n> ancestor(s) of <realpath> checked
 ```
 
+A refusal logs one `dz tmp-root: REFUSED` banner to stderr before throwing, naming the first hazard and total count and explaining that a runner's "No test files found" can mean this refusal.
 A refusal throws with every hazard, deepest ancestor first:
 
 ```text
