@@ -149,7 +149,7 @@ export declare function probeRecallEngine(socketPath: string, timeoutMs?: number
  * either failure mode degrades to the SAME honest `cosine-fallback` reply shape as every other
  * failure, never a bare protocol `{error}`.
  */
-export declare const APPLY_LEG_VERSION = 12;
+export declare const APPLY_LEG_VERSION = 13;
 /**
  * Parse the `dz-apply-leg-version` stamp from a deployed helper file. Unlike
  * `writerVersionOf` (which floors an absent stamp at `0`), this returns `-1` for "no stamp at

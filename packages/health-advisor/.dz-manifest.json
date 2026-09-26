@@ -116,14 +116,6 @@
         "sha256": "d6a19abb6be64dc9e1f539903080029125d2d899da4de3063e75e1afb7e4906f"
       },
       {
-        "path": "base/skills/base/goap-research-ed25519/scripts/__pycache__/learning_bridge.cpython-310.pyc",
-        "sha256": "dd8c7d45e3dd8848afa08e0ccb064cc355ae7ee5313b42dd41075c26e978316b"
-      },
-      {
-        "path": "base/skills/base/goap-research-ed25519/scripts/__pycache__/test_evidence_provenance.cpython-310.pyc",
-        "sha256": "02e81e61a06443b8a088f67c46bae225cbdc4dcae843d288a47509a1805c4a4e"
-      },
-      {
         "path": "base/skills/base/goap-research-ed25519/scripts/check_report_evidence.py",
         "sha256": "5053e677f11d00b4dd8365a81eafa1d2c961eebd25c33f72b02455573a934a32"
       },
@@ -377,7 +369,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "e9186b2cd00258b29af9d84a8e8ed05afb48939d99e942b6198dac0fefaeb08b"
+        "sha256": "92f0411fa08e6a8bc7f5cc57dbe1878bffac55ffdbfda0da70f39cedc1a1a5cd"
       },
       {
         "path": "skills/case-state/SKILL.md",
@@ -772,10 +764,6 @@
         "sha256": "1c9b9da73309c8682692e881c603cb30441c3beeba7b09e6c7655e80eab19f92"
       },
       {
-        "path": "skills/lab-results/__pycache__/coworker.cpython-310.pyc",
-        "sha256": "bca90fd4f2e5981f117c0e3992a93d0523f23f0368dafddab76977f92d98d56d"
-      },
-      {
         "path": "skills/lab-results/coworker.py",
         "sha256": "fdf44a5a85f50b8238ae43b3f8256e0cffc8feebe8680fdb506c838d954f5cdf"
       },
@@ -989,5 +977,5 @@
       }
     ]
   },
-  "signature": "Lzx3OI2SyAKe7KVmoDZWaEgj1UUfQ+tYUsOixNg6DywAjG4MFaWXPMGXbGZnc4T3dsZVcdriq8yPS/4gepH/Dw=="
+  "signature": "LqTMI6UfEIS+IxkcGBdInzvQHWzLygsbasxVAh1ArJ/ocHlKXV4hnYwuAO+/8Z3pAwdOlkd2xsdETmhxSDm0Cw=="
 }

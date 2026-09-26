@@ -71,6 +71,18 @@ function scanTempRoot(tmp, fs) {
 export function findTempRootHazards(tmp, fs = nodeFs) {
     return scanTempRoot(tmp, fs).hazards;
 }
+export function isBlockingHazard({ kind }) {
+    return hazardSeverity[kind] === 'blocking';
+}
+/**
+ * Hazards in `after` whose (path, kind) pair is absent from `before`, in `after` order. Pure: no
+ * fs, neither input touched. The post-run check feeds it the pre-run and post-run scans so only a
+ * hazard CREATED during the run is attributed to it (feature temp-root-post-run-check, FR-1).
+ */
+export function diffTempRootHazards(before, after) {
+    const seen = new Set(before.map(({ path, kind }) => `${path}\u0000${kind}`));
+    return after.filter(({ path, kind }) => !seen.has(`${path}\u0000${kind}`));
+}
 export function assertTempRootClean(tmp, fs = nodeFs, log = console.error) {
     const { hazards, realpath, count } = scanTempRoot(tmp, fs);
     const blocking = hazards.filter(({ kind }) => hazardSeverity[kind] === 'blocking');
@@ -87,5 +99,8 @@ export function assertTempRootClean(tmp, fs = nodeFs, log = console.error) {
         log(`dz tmp-root: WARN — ${path} — ${kind} — not a repository boundary; no dz root finder adopts a .git without HEAD (census: harness-core test/root-finder-census.test.ts)`);
     }
     log(`dz tmp-root: clean — ${count} ancestor(s) of ${realpath} checked`);
+    // The advisory hazards it just warned about — the post-run check diffs against exactly this
+    // scan, so the pre-run chain is walked once (temp-root-post-run-check FR-3).
+    return hazards;
 }
 //# sourceMappingURL=temp-root-guard.js.map

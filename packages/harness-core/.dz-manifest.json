@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "9471b66311d4ec18259af1bb47442ba2ca145b14c62f326bdf2ba7934728c604"
+        "sha256": "9f7d650284101fe8b3bd2f4a9dd0de795bd5a0baedfa98b36fbfbc77ccd296d1"
       },
       {
         "path": "dist/__tests__/golden-baseline.test.d.ts",
@@ -125,19 +125,19 @@
       },
       {
         "path": "dist/apply-leg.d.ts",
-        "sha256": "5ee09fa3e1ac4271b420a93d0972b3dd3844ced3757c60dcb1da95015f68554a"
+        "sha256": "bb74bc4c0bc8ef6b41bd6ad0c8fb51c8da5b3fe228170374f0f85aa3ebdc5004"
       },
       {
         "path": "dist/apply-leg.d.ts.map",
-        "sha256": "126a8beddf9f7bf8a8056dc67d63d3c335fc89c993bb0478ac30a4ddd5c8e21e"
+        "sha256": "df06c273af29833e2c7f5ff7d0f7abd31f130155d912b41a3890b185a619bc61"
       },
       {
         "path": "dist/apply-leg.js",
-        "sha256": "1095a9a8b66ba60e64123e28eb47873079e015c82b61d211acf02b394fe6006b"
+        "sha256": "1480a03f6202aeb1b8ed6caa26d129159c46108b60d5e76cc2946252f1093098"
       },
       {
         "path": "dist/apply-leg.js.map",
-        "sha256": "10cdd827f805919af93aefc4876da422b84fbb3a30a686627b74a908a9332410"
+        "sha256": "942d14725e1aec75af18822d65378a2d02d3601383b6a4d887bf8642b366f7d9"
       },
       {
         "path": "dist/apply.d.ts",
@@ -1165,19 +1165,19 @@
       },
       {
         "path": "dist/index.d.ts",
-        "sha256": "57180412f3b4c03a8361ba69f1ea44402a38ddb5733039f0c34cadad80e1d8f8"
+        "sha256": "c4ceaf00e0ded6d5e802b8867871bd8bbf25029a6a93895f4086313d5b2175c2"
       },
       {
         "path": "dist/index.d.ts.map",
-        "sha256": "4e82b1bfc3ceb7ff85424cceb6c5d9fec85153942fa6c05a6139e8ac7cf5f77f"
+        "sha256": "911eee2810a4dbb9f28e6bff26a274d198cff03a2d3e28b47753f300014419e6"
       },
       {
         "path": "dist/index.js",
-        "sha256": "72c2dd7205ee3c83d1afa46e6de761d27b6df9faf67dc5a521cb53c8a6827cf2"
+        "sha256": "2c48457eb75559dd7f9ef76c82a67b09bacde134511ba2f537920f39a29299d2"
       },
       {
         "path": "dist/index.js.map",
-        "sha256": "93f882ebf5e4c8fe7d01167bf532fc151ab94a346d8fc32e23488c532c36f9bc"
+        "sha256": "d9179260cecee61509eb746b4ac88ed9e6e8947197db4b52c1773ffa9d41564a"
       },
       {
         "path": "dist/integration-apply.d.ts",
@@ -1677,19 +1677,19 @@
       },
       {
         "path": "dist/pack-inventory.d.ts",
-        "sha256": "02ca8a9c3e379fd9f53f534f69fc4f64ee55db3fda0b4ea9689f060ccbf438b8"
+        "sha256": "7dbbcb06f5b075cb2bf7d1eec8d1c3fe3312a39bfcaaf26ff8ae7daa4943c4fb"
       },
       {
         "path": "dist/pack-inventory.d.ts.map",
-        "sha256": "be6e65fe1cb9f2af632fe0f30cfb06ebcce873c06a794cea8df6a549f206e182"
+        "sha256": "f952a2cc0939988c7c388de4c8e206932cb92641c02e4666ec226e3123d5b9c1"
       },
       {
         "path": "dist/pack-inventory.js",
-        "sha256": "dc633ef207f8cbd90f1d9961bb8696c5cf63072ead09dd48929923ccfe3f0184"
+        "sha256": "c19eb4375e6d42f4f732bcffc2925735c3c6a7270fe1cca4c5dc1075e7311de2"
       },
       {
         "path": "dist/pack-inventory.js.map",
-        "sha256": "f0e121375dd12272ed7c9c5f61dc2d6df7fb19b9e6756de19820dbc460f86204"
+        "sha256": "1fb4a012594e28a604f2240ea091dc3b6a0b5f705ed485f0e36f6be8c196d856"
       },
       {
         "path": "dist/package-skill-layouts.d.ts",
@@ -2268,6 +2268,22 @@
         "sha256": "d1eccc50990b6ea8ec270c2112162aa6f43ccaa0d22fc6d5e70079ea53c209e4"
       },
       {
+        "path": "dist/round-exec-claim.d.ts",
+        "sha256": "5a2b0cb0f7f6e63afd415313f196c83b58ba235b84c0abe38e5bb0077a24e2ab"
+      },
+      {
+        "path": "dist/round-exec-claim.d.ts.map",
+        "sha256": "96f400965d180c6f388ffa9e47bf1836f6081bcb6f5c26188e15e067eb1960be"
+      },
+      {
+        "path": "dist/round-exec-claim.js",
+        "sha256": "c71a6d227665151d7ab3de4be94174b63cb4589b0029759ea324a77de8f6d022"
+      },
+      {
+        "path": "dist/round-exec-claim.js.map",
+        "sha256": "1c57b9f563db38679572d1ddbc9aa33a25f6100e975ddc683c35f87ccfc094cd"
+      },
+      {
         "path": "dist/round-exec.d.ts",
         "sha256": "3a7860e320ed7a2bf37b142f7aa37bcaec5302c563dc7b1ce2e75f6d4f9cc350"
       },
@@ -2413,19 +2429,19 @@
       },
       {
         "path": "dist/session-retro.d.ts",
-        "sha256": "ae652668bcff0fd5846e63fda6f1ffb38155459e1ad563d549ab72f4f1f5d32d"
+        "sha256": "48a74602b20dd51467ab48a09886e876bee6821dfa89255d0100e5147595d744"
       },
       {
         "path": "dist/session-retro.d.ts.map",
-        "sha256": "6119e91d2af673e5583e0f6ad117af62fd92799f6d8f671332e134f978f7ffe0"
+        "sha256": "d2f2685f09be7823be59ffdb3bb24efef865a62987a638c029f4c3452f061a09"
       },
       {
         "path": "dist/session-retro.js",
-        "sha256": "878a9dd6db7d369edaf7acb1ae6e00dd994ece247e6123980cd4dba0d7c54949"
+        "sha256": "5d869d3a224d52964b296d9224933f6ecb2f4edf573a946888d9166f1489ce92"
       },
       {
         "path": "dist/session-retro.js.map",
-        "sha256": "6eb19cab2cac968a063a7615e7fccb2a9ca4ac1b3fcf16bfd0f4c0c1506f1f5e"
+        "sha256": "f4744745a940e18d9591cbfcafc81cbc029c31e0c450918a4957fbdc87ba2070"
       },
       {
         "path": "dist/setup.d.ts",
@@ -2461,19 +2477,19 @@
       },
       {
         "path": "dist/sign.d.ts",
-        "sha256": "22608f3928716385fdb0cb53c7d64ef585ed4326060352af4f849a1d1621c66e"
+        "sha256": "8f63cf60067ec33ec3bdd86be8ea860ae6db442edd32fcabdba2a9f9c876a21d"
       },
       {
         "path": "dist/sign.d.ts.map",
-        "sha256": "565f680d49303935f12cf2b4bcb9c465320d259ac38cada8e5256b45b4bf8119"
+        "sha256": "375655033485f9b4cbdaca4c371581cfaa3a0b757d9d0d4309d75ecbc1c9a5e3"
       },
       {
         "path": "dist/sign.js",
-        "sha256": "b6712fc5a3e867a22c740ad05f782dba4c84267e0b74e3dd0bf796dd623e32e5"
+        "sha256": "0938e8399eb90c45520d1a544d3f7e741a9569f7e42d6cd36e2569f831f010d7"
       },
       {
         "path": "dist/sign.js.map",
-        "sha256": "059760d62fa63c6f45e47a31d17f3bedd926ef2076c7ac1a7f7e687021cf7f13"
+        "sha256": "bfc1acdb5b4b3dec2f6fe4eb2fe27e4133c574f693d3a34a1ae2f7cc26730262"
       },
       {
         "path": "dist/skill-drift.d.ts",
@@ -3085,7 +3101,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "501025e7e79122425b01afd14c2a37c59e7fb642d3606b1096f34d1530392995"
+        "sha256": "567d35d6959a019cb066d731a8b2c691c86b8a8853561af4b4af583b1a1391c6"
       },
       {
         "path": "src/__tests__/golden-baseline.test.ts",
@@ -3117,7 +3133,7 @@
       },
       {
         "path": "src/apply-leg.ts",
-        "sha256": "c130c9ce4f4829ee4c494a1863574d407cec61f63309dea0454a6ee2794476e6"
+        "sha256": "ee116c44eb3d1793e369bb684f2ff020957f351f1c2de1351e736de45b5dcab5"
       },
       {
         "path": "src/apply.ts",
@@ -3381,7 +3397,7 @@
       },
       {
         "path": "src/index.ts",
-        "sha256": "e4bc19a0dbb761a9155022398ed3223091366c95fb850b79f56d6722cbe57f26"
+        "sha256": "6708ea6071d81233d17a132024ecc34059e954c9bfb19af7222d2d839b200d39"
       },
       {
         "path": "src/integration-apply.ts",
@@ -3509,7 +3525,7 @@
       },
       {
         "path": "src/pack-inventory.ts",
-        "sha256": "27aad0694431ab6f7261f4f33a2b3c8500662d555c4d6c6f0700c4979dce23b5"
+        "sha256": "c731312962d631f985414a44111ee51ec4afc56f1dabb3adc088fd43b55f2620"
       },
       {
         "path": "src/package-skill-layouts.ts",
@@ -3656,6 +3672,10 @@
         "sha256": "dcae3c879f114899b12ca57324e776e083f5753590763647690de1fdbd40198d"
       },
       {
+        "path": "src/round-exec-claim.ts",
+        "sha256": "349ed3905cc29230a0cb67a2c0c2c10948aebb6c8f5d3c9c3ad59ec1f862e23b"
+      },
+      {
         "path": "src/round-exec.ts",
         "sha256": "e530880f7e2e789e10adff66f536e6536cd0b74a62d117bf9ce1d547bea4fdb9"
       },
@@ -3693,7 +3713,7 @@
       },
       {
         "path": "src/session-retro.ts",
-        "sha256": "191c5a88e35cb4d1e142cd1a60faa1f397c6a49b5e7d24690a5ea61d722c73de"
+        "sha256": "9c27223147bed72c41c80723a87123662200b72700a05f44714aaaa1d7fa5dc5"
       },
       {
         "path": "src/setup.ts",
@@ -3705,7 +3725,7 @@
       },
       {
         "path": "src/sign.ts",
-        "sha256": "02772313e7c6fd4e7f5d2354fd11eb4234baba7a64e9972d0b4136be9bd98ae6"
+        "sha256": "c9b2ee366049793eb25e93cbcfce1037d8c24c19ddc24a3dc6e496ee8cac6fe9"
       },
       {
         "path": "src/skill-drift.ts",
@@ -3865,5 +3885,5 @@
       }
     ]
   },
-  "signature": "D5OZFUbVMS8R1PvLUCw8eVVH4q1nw9G80zuwy3Vr/2P+bMio4J8mF9yEF7UrpFMP6ehgdmRfQlOwJP/vqUf4AA=="
+  "signature": "MO0csv2Y7U71rcFjmkUZM5nZZqFTbfuo8K6kxhTLFrAC2UvGJdFMFc2Y+7s0KlsjLH3Up4evyRyN4vsUVlQLDg=="
 }

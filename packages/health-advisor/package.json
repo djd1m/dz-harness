@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/health-advisor",
-  "version": "1.10.7",
+  "version": "1.10.8",
   "description": "AI Health Advisor — 20 base components + 25 extended medical skills for Claude Code",
   "bin": {
     "health-advisor": "./bin/health-advisor.js",
@@ -29,7 +29,9 @@
     "README.md",
     "webui.config.json",
     ".dz-manifest.json",
-    "sbom.json"
+    "sbom.json",
+    "!**/__pycache__/**",
+    "!**/*.pyc"
   ],
   "optionalDependencies": {
     "@dzhechkov/harness-core": "^0.3.150 || ^0.4.0 || ^0.5.0"

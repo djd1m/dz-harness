@@ -88,6 +88,26 @@ remedy: move the entry aside or point TMPDIR at a clean root — this guard neve
 There is no environment variable to disable the check. Move the offending entry aside or use a
 clean `TMPDIR`. The guard only reads: it never creates, moves, or deletes files.
 
+The check has a post-run half (feature `temp-root-post-run-check`). The pre-run refusal names a
+hazard left by an EARLIER run, so the run that created `/tmp/.dz` used to finish green and the next
+run paid. Now `dzTmpRunRoot` keeps the pre-run scan as a snapshot and, when the LAST user tears the
+run root down, removes the run root first and then scans the same ancestor chain once more (the
+system temp root, or the shared run root's parent on the `DZ_VITEST_TMP_ROOT` branch — the run
+root itself is gone by then). `diffTempRootHazards(before, after)` — pure, exported from the shared
+module too — keeps only the hazards whose `(path, kind)` pair was absent before the run. Each one
+is logged to stderr; a new blocking hazard also fails the teardown, which Vitest reports as a
+globalSetup teardown error:
+
+```text
+dz tmp-root: CREATED DURING THIS RUN of <package> — <absolute path> — <kind> — <one-sentence consequence>
+remedy: move the entry aside or point TMPDIR at a clean root — this guard never deletes anything
+```
+
+A new advisory hazard (an empty or broken `.git`) prints one `dz tmp-root: WARN — CREATED DURING
+THIS RUN of <package> — …` line and does not fail the teardown. A hazard that was already present
+at setup is never attributed to the run. The post-run half removes nothing either: it names the
+run, and the entry stays for you to move aside.
+
 ## Status
 
 `0.2.26` — published 2026-09-24 (supersedes `0.2.25`, whose tarball lacked the `LICENSE` its signed manifest listed — the

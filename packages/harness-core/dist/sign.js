@@ -376,6 +376,118 @@ export function listSignablePackFiles(root) {
     return out.sort();
 }
 /**
+ * The wording for a swept path that `package.json.files` would keep OUT of the tarball (feature
+ * verify-pack-sweep-respects-files, AM-1). MEASURED 2026-09-20 (backlog 338a3b59c878430c): right after
+ * `dz sign`, `dz verify-pack` over harness-core's directory named `coverage/coverage-final.json` and
+ * `CHANGELOG.md` as «present in the pack but not signed», while `npm pack --dry-run` shipped 922 files,
+ * ZERO of them coverage and no CHANGELOG — `files` limits the tarball to six entries. The sweep walks the
+ * DIRECTORY (by decision — see `verifyManifest`), so the reason must say so instead of saying PACK.
+ */
+export const OUTSIDE_FILES_REASON = 'present in the directory but not signed — outside package.json.files, the packer would not ship it';
+/**
+ * npm's always-included ROOT files, MEASURED from npm's own packer rather than its docs
+ * (`/usr/lib/node_modules/npm/node_modules/npm-packlist/lib/index.js:283-286`, fix round 1, 2026-09-25):
+ *   `readme{,.*[^~$]}`, `copying{,.*[^~$]}`, `license{,.*[^~$]}`, `licence{,.*[^~$]}` — case-insensitive.
+ * That is the BARE name or `name.<ext>` where the extension does not end in `~` or `$` (editor backups and
+ * lock-style droppings). So `README.md`, `readme.txt`, `COPYING`, `LICENCE.md` are inside; `README-old`
+ * (no dot), `LICENSE.md~`, `README.` (empty extension) are NOT. Plus `package.json`, which npm always ships.
+ * NOT `CHANGELOG*`: MEASURED 2026-09-20, pnpm pack of harness-core omitted `CHANGELOG.md` while `files` did
+ * not name it — the npm docs list CHANGES/CHANGELOG/HISTORY, the packer does not; we follow the packer.
+ */
+export const NPM_ALWAYS_INCLUDED = /^(package\.json|(readme|copying|licen[cs]e)(\..*[^~$])?)$/i;
+/**
+ * POSIX separators, no leading `./`, no trailing `/`. Every trailing slash goes — MEASURED fix round 1:
+ * `'.//'` used to survive as `'/'` (a phantom entry) because the strip kept one character; an entry that is
+ * nothing but slashes is empty after normalisation and must be dropped (AM-2).
+ */
+function normalisePackPath(p) {
+    let s = p.replace(/\\/g, '/');
+    while (s.startsWith('./'))
+        s = s.slice(2);
+    while (s.endsWith('/'))
+        s = s.slice(0, -1);
+    return s;
+}
+/**
+ * `null` unless `pkg.files` is a non-empty array of strings — and `null` means «no allowlist, behaviour
+ * unchanged», never «everything is outside». Pure: the caller reads and parses `package.json`.
+ */
+export function packAllowlistFromPackageJson(pkg) {
+    if (!pkg || typeof pkg !== 'object')
+        return null;
+    const { files, main, bin } = pkg;
+    if (!Array.isArray(files) || files.length === 0 || !files.every((f) => typeof f === 'string'))
+        return null;
+    const entries = files.map(normalisePackPath).filter((e) => e.length > 0);
+    if (entries.length === 0)
+        return null;
+    const binValues = typeof bin === 'string' ? [bin]
+        : bin && typeof bin === 'object' ? Object.values(bin).filter((v) => typeof v === 'string')
+            : [];
+    return {
+        entries,
+        main: typeof main === 'string' ? normalisePackPath(main) : null,
+        bins: binValues.map(normalisePackPath),
+    };
+}
+const GLOB_CHARS = /[*?[]/;
+/**
+ * Minimal `*`-only matcher over the WHOLE relative path: `*` matches any run of characters, `/` included
+ * (so `types/**` and `types/*` both cover `types/deep/x.d.ts`). `?`, `[…]` and `{a,b}` are NOT interpreted —
+ * an entry carrying them falls back to a literal comparison, which can only UNDER-match (⇒ the plain pack
+ * wording, never a false «outside»). Kept deliberately small (NFR-2): this is a wording aid, not a packer.
+ */
+function globStarMatch(pattern, rel) {
+    const parts = pattern.split('*');
+    if (parts.length === 1)
+        return pattern === rel;
+    if (!rel.startsWith(parts[0]))
+        return false;
+    let pos = parts[0].length;
+    for (let i = 1; i < parts.length - 1; i += 1) {
+        const at = rel.indexOf(parts[i], pos);
+        if (at < 0)
+            return false;
+        pos = at + parts[i].length;
+    }
+    const last = parts[parts.length - 1];
+    return last === '' || (rel.endsWith(last) && rel.length - last.length >= pos);
+}
+/**
+ * Would the packer ship `rel`? True when `rel` equals an entry, sits under an entry directory, matches a
+ * `*` glob entry, equals `main` or a bin target, or is a ROOT-level always-included file. `docs/README.md`
+ * is not root-level and is therefore outside unless `docs` is an entry.
+ */
+export function isInsidePackAllowlist(rel, allow) {
+    const p = normalisePackPath(rel);
+    if (!p.includes('/') && NPM_ALWAYS_INCLUDED.test(p))
+        return true;
+    if (allow.main === p || allow.bins.includes(p))
+        return true;
+    for (const entry of allow.entries) {
+        if (GLOB_CHARS.test(entry)) {
+            if (globStarMatch(entry, p))
+                return true;
+            continue;
+        }
+        if (p === entry || p.startsWith(entry + '/'))
+            return true;
+    }
+    return false;
+}
+/** `<root>/package.json` → allowlist; absent, symlinked, unreadable or invalid JSON ⇒ `null` (unchanged behaviour). */
+function readPackAllowlist(root) {
+    try {
+        const bytes = readRegularFileNoFollow(join(root, 'package.json'));
+        if (bytes === null)
+            return null;
+        return packAllowlistFromPackageJson(JSON.parse(bytes.toString('utf8')));
+    }
+    catch {
+        return null;
+    }
+}
+/**
  * The bytes that get signed (FR-7). Sorted by path, LF endings, no trailing whitespace, and no
  * dependence on JSON key order — a signature must not depend on how a serialiser felt that day.
  * Format is `sha256sum`-compatible: `<hex>  <path>\n`.
@@ -520,7 +632,20 @@ export function verifyManifest(root, signed, pubKeyPem) {
         if (!listed.has(p))
             failures.push({ path: p, reason: 'present in the pack but not signed' });
     }
-    return { ok: failures.length === 0, failures };
+    // AM-1 (feature verify-pack-sweep-respects-files): the sweep above is the recorded decision and stays
+    // byte-identical — every visible path participates, nothing is skipped, the verdict is unchanged. This
+    // pass changes WORDING only: a swept path that `package.json.files` keeps out of the tarball is reported
+    // as «present in the directory …» (OUTSIDE_FILES_REASON) instead of «present in the pack …», because it
+    // never was going to be in the pack. No `files` (or an unreadable package.json) ⇒ nothing is relabelled.
+    const allow = readPackAllowlist(root);
+    const outside = [];
+    const reported = allow === null ? failures : failures.map((f) => {
+        if (f.reason !== 'present in the pack but not signed' || isInsidePackAllowlist(f.path, allow))
+            return f;
+        outside.push(f.path);
+        return { path: f.path, reason: OUTSIDE_FILES_REASON };
+    });
+    return { ok: reported.length === 0, failures: reported, ...(outside.length > 0 ? { outsideFiles: outside } : {}) };
 }
 /**
  * FR-5, the one irreversible mistake. `.gitignore` covers `*.pem` and `*.key` and nothing else — a key

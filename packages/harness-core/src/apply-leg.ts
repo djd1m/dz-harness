@@ -209,7 +209,7 @@ export function probeRecallEngine(socketPath: string, timeoutMs = 1000): Promise
  * either failure mode degrades to the SAME honest `cosine-fallback` reply shape as every other
  * failure, never a bare protocol `{error}`.
  */
-export const APPLY_LEG_VERSION = 12;
+export const APPLY_LEG_VERSION = 13;
 
 /**
  * Parse the `dz-apply-leg-version` stamp from a deployed helper file. Unlike
@@ -442,19 +442,34 @@ async function loadPolicy() {
 
 /**
  * Retro admission-debt directive (feature narrated-error-must-be-taught, ADR-001 D2/D3). The Stop
- * hook's scan-tail arms \`.dz/retro-pending.json\` when the assistant admitted an error without a
- * teach; THIS hook confronts the assistant on the very next prompt. Contract:
+ * hook's scan-tail arms \`.dz/retro/<session>/pending.json\` when the assistant admitted an error
+ * without a teach; THIS hook confronts the assistant on the very next prompt. Contract:
+ *  - no string session_id in the payload ⇒ '' BEFORE any fs call (the hook guesses no session);
  *  - sentinel absent ⇒ '' and ZERO extra work beyond one existsSync (the no-noise pin — output
  *    stays byte-identical to a build without this feature);
  *  - stale / other-session sentinel ⇒ '' (the debt belongs to a dead session; retro collected it);
  *  - core module absent or old (no directive exports) ⇒ '' — inert, NEVER-BLOCK.
  */
 // AM-7 (fix round 1): SESSION_ROOT, not PROJECT — the sentinel is a per-session artifact (see the
-// SESSION_ROOT comment above).
-const RETRO_PENDING = path.join(SESSION_ROOT, '.dz', 'retro-pending.json');
+// SESSION_ROOT comment above). retro-debt-sentinel-per-session: per-session by PATH now too — the
+// root is the session's, and the file is under \`.dz/retro/<safeId>/\`, so two sessions in one
+// worktree can no longer read (or clear) each other's debt through one shared flat file.
+// TWIN of safeSessionDirName in session-retro.ts — duplicated inline because this hook must stay
+// dependency-free; pinned to equal outputs by test retro-sentinel-per-session.test.ts (AC-6/twin).
+const SAFE_SESSION_ID_RE = /^[A-Za-z0-9._-]{1,128}$/;
+function safeSessionDirName(sessionId) {
+  if (SAFE_SESSION_ID_RE.test(sessionId) && sessionId !== '.' && sessionId !== '..') return sessionId;
+  return crypto.createHash('sha256').update(sessionId).digest('hex').slice(0, 32);
+}
+function retroPendingPathFor(sessionId) {
+  return path.join(SESSION_ROOT, '.dz', 'retro', safeSessionDirName(sessionId), 'pending.json');
+}
 async function retroDebtDirective(payload) {
-  if (!fs.existsSync(RETRO_PENDING)) return '';
-  const sentinel = safe(() => JSON.parse(fs.readFileSync(RETRO_PENDING, 'utf-8')), undefined);
+  const sessionId = payload && typeof payload.session_id === 'string' ? payload.session_id : '';
+  if (sessionId === '') return '';
+  const pendingPath = retroPendingPathFor(sessionId);
+  if (!fs.existsSync(pendingPath)) return '';
+  const sentinel = safe(() => JSON.parse(fs.readFileSync(pendingPath, 'utf-8')), undefined);
   if (!sentinel || typeof sentinel.snippet !== 'string' || sentinel.snippet === '') return '';
   const mod = await loadCoreModule(
     'session-retro.js',

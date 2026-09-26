@@ -11,6 +11,7 @@ import { packArtifact, readWorkspaceVersions, formatDriftFiles } from '@dzhechko
 // `@dzhechkov/memory`: a new package-graph edge is a publishing-surface change outside this
 // feature's scope, and harness-core already depends on memory.
 import { noSearchableTermsReason } from '@dzhechkov/harness-core';
+import { OUTSIDE_FILES_REASON } from '@dzhechkov/harness-core';
 import { shortPackageName } from '@dzhechkov/harness-core';
 import { detectMangledText } from '@dzhechkov/harness-core';
 import { appendFileSync, chmodSync, closeSync, constants as fsConstants, copyFileSync, cpSync, existsSync, fstatSync, fsyncSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readSync, readdirSync, readlinkSync, realpathSync, renameSync, rmdirSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync, writeSync } from 'node:fs';
@@ -28,7 +29,7 @@ import { cpus, homedir, hostname, tmpdir } from 'node:os';
 import { createRequire } from 'node:module';
 import { isDeepStrictEqual } from 'node:util';
 import { JOURNAL_KINDS, formatLine, parseLine, selectWindow, appendWitnessed } from '@dzhechkov/harness-core';
-import { appendRunEvent, readRunRegistry, liveParents, liveness, probePid, settleDeadRuns, planRegistryArchive, planWorktreeCleanup, renderCleanupPlan, worktreeRemovalsToApply } from '@dzhechkov/harness-core';
+import { appendRunEvent, readRunRegistry, liveParents, liveness, probePid, settleDeadRuns, decideExecClaimTakeover, planRegistryArchive, planWorktreeCleanup, renderCleanupPlan, worktreeRemovalsToApply } from '@dzhechkov/harness-core';
 import { openRound, closeRound, listRounds, validateClosedRoundLedgerRow, readOpenRoundTaskId, parseCodexTokens, classifyRoundExecOutcome, buildRoundExecRow, parseQeBridgeStdoutCost, } from '@dzhechkov/harness-core';
 // measurement-integrity: canonical stage taxonomy, Codex rollout reader, ledger price snapshot.
 import { canonicalStage } from '@dzhechkov/harness-core';
@@ -6427,6 +6428,13 @@ function cmdVerifyPack(options, flags, cwd, write) {
     write(`dz verify-pack: FAILED — ${packDir}`);
     for (const f of res.failures)
         write(`  ${f.path}: ${f.reason}`);
+    // AM-1 (verify-pack-sweep-respects-files): the verdict and the exit code are untouched — every unsigned
+    // path above is a failure. This one line only says how many of them the packer would never have shipped
+    // (outside package.json.files), so a reader knows they are looking at a DIRECTORY, not the pack.
+    if (res.outsideFiles !== undefined && res.outsideFiles.length > 0) {
+        const sample = res.outsideFiles.slice(0, 3).join(', ');
+        write(`${res.outsideFiles.length} из них вне package.json.files — в тарбол не попадут (это каталог, не пакет; например: ${sample})`);
+    }
     // Стена «content does not match its signed hash» над рабочим деревом читается как подделка, и
     // за один день 2026-09-01 на это независимо попались трое. Объяснитель НАЗЫВАЕТ улики дерева
     // разработки, если они есть, и молчит, если их нет — он не классифицирует каталог.
@@ -10249,7 +10257,11 @@ function gatherGuardFacts(op, root, text, storeCap, publishFilter) {
                             // A source checkout contains dev files outside package.json#files. They are absent
                             // from the tarball by design, so an unchanged "present but not signed" source file
                             // is not evidence about signature freshness. A changed/new unsigned file stays loud.
-                            const relevantFailures = verified.failures.filter((failure) => failure.reason !== 'present in the pack but not signed' || changedPackFiles.has(failure.path));
+                            // Lead fix after CI red (25.09, feature verify-pack-sweep-respects-files AM-1): the sweep now
+                            // words an unsigned path OUTSIDE package.json#files as OUTSIDE_FILES_REASON — the same class
+                            // of «not evidence about freshness» as the plain wording, so both are filtered alike.
+                            const sweepOnly = (reason) => reason === 'present in the pack but not signed' || reason === OUTSIDE_FILES_REASON;
+                            const relevantFailures = verified.failures.filter((failure) => !sweepOnly(failure.reason) || changedPackFiles.has(failure.path));
                             ok = verified.ok || relevantFailures.length === 0;
                             if (!ok && relevantFailures.length > 0 && relevantFailures.every(({ path }) => path === 'package.json')) {
                                 const signedPackageHash = signed.manifest?.files?.find(({ path }) => path === 'package.json')?.sha256;
@@ -12025,7 +12037,11 @@ async function cmdMrRakes(options, flags, cwd, write) {
  *   --install-hook      print the opt-in hook set to add (non-destructive): Stop scan-tail +
  *                       PreCompact/SessionEnd full retro (feature narrated-error-must-be-taught)
  *   --scan-tail         per-turn Stop-hook mode: incremental admission-debt scan, O(new bytes) —
- *                       writes/clears .dz/retro-pending.json; no ledger, no teach, no git subprocess
+ *                       writes/clears .dz/retro/<session>/pending.json (one dir per session — two
+ *                       sessions in one worktree never touch each other's debt; a pre-feature flat
+ *                       .dz/retro-pending.json is adopted once when it is this transcript's, a
+ *                       stranger's is left alone); no ledger, no teach, no git subprocess.
+ *                       --json adds sessionId + pendingPath to the outcome
  *   --transcript <p>    the transcript --scan-tail must read. Without it the Stop hook's own stdin
  *                       payload (`transcript_path`) is used; with neither, the scan REFUSES
  *                       (NOT-ESTABLISHED) rather than guessing the newest file on disk
@@ -12058,7 +12074,7 @@ async function cmdRetro(options, flags, cwd, write, readStdin = () => '') {
         if (flags.has('json'))
             write(JSON.stringify({ ...outcome, source: picked.source }));
         else if (outcome.status === 'pending')
-            write(`retro scan-tail: unpaid admission — .dz/retro-pending.json armed («${(outcome.snippet ?? '').slice(0, 60)}…»)`);
+            write(`retro scan-tail: unpaid admission — .dz/retro/${outcome.sessionId ?? '<session>'}/pending.json armed («${(outcome.snippet ?? '').slice(0, 60)}…»)`);
         return 0;
     }
     let repoRoot = cwd;
@@ -12067,7 +12083,7 @@ async function cmdRetro(options, flags, cwd, write, readStdin = () => '') {
     }
     catch { /* not git */ }
     if (flags.has('install-hook')) {
-        write('Add these opt-in hooks to .claude/settings.json (per-turn debt scan + retro at compaction AND session end — PreCompact covers the crash/disconnect sessions SessionEnd never sees):');
+        write('Add these opt-in hooks to .claude/settings.json (per-turn debt scan + retro at compaction AND session end — PreCompact covers the crash/disconnect sessions SessionEnd never sees; the Stop scan keeps its debt in .dz/retro/<session>/pending.json, one dir per session):');
         write(JSON.stringify({ hooks: {
                 Stop: [{ hooks: [{ type: 'command', command: 'dz retro --scan-tail', timeout: 10000, continueOnError: true }] }],
                 PreCompact: [{ hooks: [{ type: 'command', command: 'dz retro', timeout: 60000, continueOnError: true }] }],
@@ -17161,11 +17177,38 @@ async function cmdRound(options, optionLists, flags, cwd, write, io) {
                 const outcome = readStateOrRefuse(path, state.stateId);
                 if ('refused' in outcome)
                     return outcome;
+                let base = outcome;
+                let takenOver;
                 if (outcome.ownerKind === 'exec' && outcome.execClaimId !== undefined) {
-                    return { refused: 'exec-in-progress', execClaimId: outcome.execClaimId };
+                    // round-exec-claim-takeover FR-2 (backlog 280e914607397474): a standing exec claim is
+                    // refused unless its owner is PROVABLY dead and the claim is older than
+                    // ROUND_EXEC_STALE_MINUTES (the debounce for a restart in flight). The probe is
+                    // `process.kill(pid, 0)` — no subprocess, so the critical section stays short (NFR-1);
+                    // `unknown` (inconclusive probe, no pid, unreadable claim time) refuses like `held`.
+                    let pidAlive = null;
+                    try {
+                        pidAlive = (io.roundPidProbe ?? probePid)(outcome.pid);
+                    }
+                    catch { /* unavailable is unknown and refuses */ }
+                    const verdict = decideExecClaimTakeover({
+                        execClaimedAt: outcome.execClaimedAt, pid: outcome.pid, pidAlive,
+                        now: io.roundNow?.() ?? Date.now(), staleMinutes: ROUND_EXEC_STALE_MINUTES,
+                    });
+                    if (verdict.kind !== 'stale-dead') {
+                        return {
+                            refused: 'exec-in-progress', execClaimId: outcome.execClaimId,
+                            ...(verdict.kind === 'unknown' ? { probe: verdict.reason } : {}),
+                        };
+                    }
+                    takenOver = { execClaimId: outcome.execClaimId, pid: outcome.pid, execClaimedAt: outcome.execClaimedAt, ageMinutes: verdict.ageMinutes };
+                    // The dead claimant's own pre-claim base died with it, so the state restored after THIS
+                    // exec must not be its claim verbatim — that would re-strand the round the moment we
+                    // return it. A run-owned round goes back to its run; anything else becomes ours.
+                    const { execClaimId: _deadClaimId, execClaimedAt: _deadClaimedAt, ...survivor } = outcome;
+                    base = { ...survivor, ownerKind: outcome.ownerRun === undefined ? 'explicit' : 'run', pid: io.roundPid ?? process.pid };
                 }
-                writeJsonAtomic(path, { ...outcome, pid: io.roundPid ?? process.pid, ownerKind: 'exec', execClaimId, execClaimedAt: new Date(io.roundNow?.() ?? Date.now()).toISOString() });
-                return { ok: true, base: outcome };
+                writeJsonAtomic(path, { ...base, pid: io.roundPid ?? process.pid, ownerKind: 'exec', execClaimId, execClaimedAt: new Date(io.roundNow?.() ?? Date.now()).toISOString() });
+                return { ok: true, base, ...(takenOver === undefined ? {} : { takenOver }) };
             }, io, stateLock);
             if ('refused' in claimed) {
                 if (claimed.refused === 'lock-busy') {
@@ -17177,7 +17220,8 @@ async function cmdRound(options, optionLists, flags, cwd, write, io) {
                     return 1;
                 }
                 if (claimed.refused === 'exec-in-progress') {
-                    emit(`exec не запущен: у круга уже идёт exec (claim ${claimed.execClaimId})`, { refused: 'exec-in-progress', execClaimId: claimed.execClaimId });
+                    const probe = 'probe' in claimed && typeof claimed.probe === 'string' ? claimed.probe : undefined;
+                    emit(`exec не запущен: у круга уже идёт exec (claim ${claimed.execClaimId})${probe === undefined ? '' : ` (проба PID: ${probe})`}`, { refused: 'exec-in-progress', execClaimId: claimed.execClaimId, ...(probe === undefined ? {} : { probe }) });
                     return 1;
                 }
                 const replaced = claimed;
@@ -17185,6 +17229,11 @@ async function cmdRound(options, optionLists, flags, cwd, write, io) {
                 return 1;
             }
             state = claimed.base;
+            if (claimed.takenOver !== undefined) {
+                // FR-3: said out loud, first — a takeover is never silent.
+                const t = claimed.takenOver;
+                emit(`exec: заявка ${t.execClaimId} (pid ${t.pid}, с ${t.execClaimedAt}, ${t.ageMinutes} мин) перехвачена — владелец подтверждённо мёртв`, { takenOver: t });
+            }
         }
         catch (error) {
             emit(`exec не запущен: владелец круга не обновлён: ${error instanceof Error ? error.message : String(error)}`);
