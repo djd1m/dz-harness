@@ -592,7 +592,17 @@ dz sbom --pack packages/@dzhechkov/skills-qe --out sbom.json # write to a file
 ```
 
 A single flipped byte, a deleted file, or an **added** file inside the authenticated npm shipment set
-fails verification and names the path. Directory segments `node_modules`, `.git`, `.agentic-qe`, and
+fails verification and names the path. The sweep walks the whole DIRECTORY it is handed and never skips
+an unsigned path — but it reads `package.json.files` to say which of them the packer would not have
+shipped: those fail as `present in the directory but not signed — outside package.json.files, the packer
+would not ship it`, and one summary line counts them (`N из них вне package.json.files …`), so a
+`FAILED` over a working tree reads as «you are verifying a directory, not the pack». Verdict and exit
+code are the same either way. The `files` matcher understands directory entries, exact files, `main`/`bin`
+and `*` globs only (`{a,b}`, `?`, `[…]` fall back to a literal compare, which can only keep the plain
+wording). npm's always-included root files count as inside, exactly as npm-packlist states them: `package.json`
+plus `readme`/`copying`/`license`/`licence` as a bare name or `name.<ext>` where the extension does not end in
+`~` or `$` (case-insensitive) — so `README-old` or `LICENSE.md~` are outside; `CHANGELOG*` is NOT
+always-included — measured: pnpm pack omitted it. Directory segments `node_modules`, `.git`, `.agentic-qe`, and
 `.dz` are unsigned local/dependency/VCS state by design and are absent from both manifest and SBOM; an OK
 verdict makes no claim about bytes placed there. A symlink smuggled anywhere else still fails loudly.
 `sbom.json` is required even though it is not self-hashed: after the signature is valid, `verify-pack`
@@ -2433,6 +2443,23 @@ not tell a genuine race from an innocent coincidence.
   (ownerKind=exec остался): повторите dz round exec для этого круга, когда блокировка освободится`) —
   no new flag is added for this. `open` and `status` warn on their own when a round has been sitting at
   `ownerKind: 'exec'` for 10+ minutes, so a stuck claim is never silently left for someone to trip over.
+- **A dead claim is taken over, a live or unknowable one is not (round-exec-claim-takeover).** A
+  standing exec claim used to refuse every later `exec` forever once its process had died (SIGTERM,
+  OOM, reboot — backlog 280e914607397474). `exec` now decides, under the same claim lock and with a
+  `process.kill(pid, 0)` probe (no subprocess), between three outcomes: **held** — the claimant is
+  alive, OR it is dead but the claim is younger than 10 minutes (a just-died claim may be a restart in
+  flight; the threshold is the debounce) ⇒ refused as before, `уже идёт exec (claim …)`, exit 1;
+  **stale-dead** — the claimant is provably dead (`ESRCH`) and the claim is 10+ minutes old ⇒ the
+  claim is taken over and the command says so FIRST, before anything else: `exec: заявка <old>
+  (pid <pid>, с <execClaimedAt>, <N> мин) перехвачена — владелец подтверждённо мёртв` (`--json`:
+  `takenOver: {execClaimId, pid, execClaimedAt, ageMinutes}`); **unknown** — the probe was
+  inconclusive (`EPERM`, no pid recorded, an unreadable claim time) ⇒ STILL refused, with the reason
+  appended: `уже идёт exec (claim …) (проба PID: PID probe inconclusive)` (`--json` adds `probe`).
+  Refusal is the safe side: a dead claimant's pid reassigned to an unrelated live process reads as
+  held, and `round status` keeps showing the claim's age. After a taken-over exec the restored owner
+  is the run (`ownerKind: 'run'`) when the round was run-owned, otherwise this process
+  (`ownerKind: 'explicit'`) — never the dead claim verbatim, which would re-strand the round at once.
+  No `--force`/`--release` flag exists: the probe decides, not the human.
 - `close`'s final delete deletes ONLY the state instance its own ledger row was written for (matched by
   `stateId`): a state that vanished under the lock is `круг уже закрыт (строка леджера записана)` (exit
   0 — the same round reaching its own success postcondition a different way, not a failure); a state
@@ -4582,7 +4609,15 @@ drill, the agent gets the taught rule — from the same mistake, out of one shar
 `dz retro` is the end-of-session pass. `--scan-tail` is the **per-turn** half: the Stop hook runs it after
 every assistant turn, it reads only the bytes added since the last scan, and it answers one question —
 *was an admitted mistake taught in the same turn?* An admission with no executed `dz teach` behind it
-arms `.dz/retro-pending.json`, and the recall hook turns that into a next-prompt directive.
+arms `.dz/retro/<session>/pending.json`, and the recall hook turns that into a next-prompt directive.
+
+**One directory per session (retro-debt-sentinel-per-session).** The debt and the scan bookmark live
+under `.dz/retro/<session>/` — `<session>` is the transcript basename, i.e. the session id — so two
+sessions in one worktree never read or clear each other's debt (before this, one shared flat
+`.dz/retro-pending.json` let a neighbour's Stop scan delete a LIVE debt as "foreign"). `--json` carries
+`sessionId` and `pendingPath`. A pre-feature flat `.dz/retro-pending.json` / `retro-scan-state.json`
+is adopted ONCE when it names this transcript (then removed); a stranger's is left alone. Dirs whose
+`scan-state.json` is older than 7 days are swept by the next scan of any session.
 
 ```bash
 dz retro --install-hook                  # print the opt-in hook set (Stop + PreCompact + SessionEnd)
@@ -5804,6 +5839,8 @@ refusal as the honest answer.
 
 ## Status
 
+`v0.8.38` — **published 2026-09-26 (night plan 25→26.09).** `dz retro --scan-tail` keeps its debt sentinel per session (`.dz/retro/<sessionId>/pending.json`; the UserPromptSubmit hook reads only its own session, an empty `session_id` is never a guess); `dz verify-pack` names an unsigned path outside `package.json#files` as a directory file the packer would not ship and prints one count line after FAILED — the verdict and exit code are unchanged, and the signature-fresh guard treats both sweep wordings alike; `dz round exec` takes over a claim whose owner process is proven dead (PID probe false, older than 10 min) with a loud line naming the old claim — a live owner or an inconclusive probe still refuses; the serial-suite census of both packages ignores markers in comments and fixture strings (TypeScript parser, fail-safe on parse errors).
+
 `v0.8.37` — **published 2026-09-24 (day plan).** `dz publish`, `dz sign` and the sibling-drift gate pack through one
 function (`packArtifact`, harness-core): the BLOCKED line names up to five drifted files and the inventory source instead of
 "1 file(s)"; `dz sign --pack` fails closed ("refusing to sign — …", exit 1, no manifest) when a `workspace:`/`catalog:` spec
@@ -5831,7 +5868,7 @@ ledger row now carries a `prices` snapshot. See `@dzhechkov/harness-core`'s READ
 decision list (D1–D5) and the two new pure modules (`feature-adr-stage-canon.ts`, `codex-rollouts.ts`) behind
 `dz usage --by-stage`'s new `INCOMPLETE_INVENTORY` verdict and canonical-stage breakdown.
 
-`harness-core v0.8.45` · `harness-cli v0.8.37` — **this release (night 22→23.09 plus 23.09, two
+`harness-core v0.8.46` · `harness-cli v0.8.38` — **this release (night 22→23.09 plus 23.09, two
 packages, five features): command help is ADDRESSED — twelve commands answer `dz <cmd> --help` with
 their own text, and ownership is keyed by the PAIR (command + first positional token) rather than by
 the bare command name, because two of the twelve are branches of a shared sub-dispatcher whose

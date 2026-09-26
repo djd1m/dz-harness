@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-09-25T09:10:46.924Z",
+  "builtAt": "2026-09-26T11:26:17.194Z",
   "builtFrom": "dz-harness-hub (private monorepo)",
   "rule": "each package mirrors exactly its npm-pack tarball inventory — the already-public surface",
   "requested": 56,
@@ -178,7 +178,7 @@
     },
     {
       "name": "@dzhechkov/core",
-      "version": "0.2.29",
+      "version": "0.2.30",
       "files": 76
     },
     {
@@ -193,13 +193,13 @@
     },
     {
       "name": "@dzhechkov/harness-cli",
-      "version": "0.8.37",
+      "version": "0.8.38",
       "files": 52
     },
     {
       "name": "@dzhechkov/harness-core",
-      "version": "0.8.45",
-      "files": 967
+      "version": "0.8.46",
+      "files": 972
     },
     {
       "name": "@dzhechkov/harness-presets",
@@ -208,8 +208,8 @@
     },
     {
       "name": "@dzhechkov/health-advisor",
-      "version": "1.10.7",
-      "files": 248
+      "version": "1.10.8",
+      "files": 245
     },
     {
       "name": "@dzhechkov/keysarium",
@@ -218,7 +218,7 @@
     },
     {
       "name": "@dzhechkov/keysarium-core",
-      "version": "1.1.31",
+      "version": "1.1.32",
       "files": 25
     },
     {

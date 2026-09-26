@@ -88,8 +88,37 @@ export declare function streamSessionEvents(path: string): SessionEvent[];
 export declare function parseSessionJsonl(raw: string): SessionEvent[];
 /** Find the most recently modified session transcript (roam state, then ~/.claude/projects). Null if none. */
 export declare function findLatestTranscript(repoRoot: string): string | null;
+/** LEGACY flat names (pre retro-debt-sentinel-per-session): the ONE pair every session in a worktree
+ * once shared under `.dz/`. A scan ADOPTS its own transcript's flat files once (FR-4) and never
+ * writes them again; a stranger's flat file is never touched. */
 export declare const RETRO_SCAN_STATE_FILE = "retro-scan-state.json";
 export declare const RETRO_PENDING_FILE = "retro-pending.json";
+export declare const RETRO_SESSION_DIRNAME = "retro";
+export declare const RETRO_SESSION_PENDING_BASENAME = "pending.json";
+export declare const RETRO_SESSION_STATE_BASENAME = "scan-state.json";
+/** A session dir whose scan-state is older than this belongs to a dead session: the next scan of
+ * any other session sweeps it (FR-5). A live session that ran no Stop for 7 days loses only a debt
+ * the hook would have called stale anyway (SENTINEL_FRESH_MS is 30 min) — accepted risk R2. */
+export declare const RETRO_SESSION_STALE_MS: number;
+/**
+ * The directory name for a session id. PURE. A plain token is used as is; anything else — a
+ * path-like string, the empty string, an over-long id, and the two dot names the charset regex
+ * alone would let through (`.` ⇒ `<dzDir>/retro`, `..` ⇒ `<dzDir>` itself) — becomes the first
+ * 32 hex of its sha256, so a session id can never name a path outside `.dz/retro/` (AC-2).
+ * TWIN: the recall hook in `apply-leg.ts` carries a copy (the hook must stay dependency-free);
+ * `test/retro-sentinel-per-session.test.ts` pins the two to equal outputs.
+ */
+export declare function safeSessionDirName(sessionId: string): string;
+/** The session id the SCANNER derives: the transcript basename without `.jsonl`. Claude Code names
+ * the transcript after the session id, so this equals the `session_id` the hook payload carries. PURE. */
+export declare function sessionIdFromTranscript(transcriptPath: string): string;
+export interface RetroSessionPaths {
+    readonly dir: string;
+    readonly pendingPath: string;
+    readonly statePath: string;
+}
+/** Where ONE session's debt and bookmark live: `<dzDir>/retro/<safeId>/{pending,scan-state}.json`. PURE, no fs. */
+export declare function retroSessionPaths(dzDir: string, sessionId: string): RetroSessionPaths;
 export interface AdmissionDebt {
     readonly snippet: string;
     /** Paired call ids issued against THIS debt, in registration order (oldest first).
@@ -139,6 +168,10 @@ export interface TailScanOutcome {
     readonly snippet?: string;
     readonly scannedBytes: number;
     readonly offset: number;
+    /** The session the scan was scoped to (FR-6) — absent only when no transcript was named. */
+    readonly sessionId?: string;
+    /** The per-session sentinel path the scan wrote, cleared, or left absent (FR-6). */
+    readonly pendingPath?: string;
 }
 /** The scan-state + sentinel pair is a read-modify-write store; per the repo concurrency rule
  * (`.claude/rules/cross-runtime-concurrency.md`) it gets a named lock in the same change. */

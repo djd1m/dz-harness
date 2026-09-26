@@ -1368,6 +1368,10 @@ export { parseQeBridgeStdoutCost } from './review-cost.js';
 export type { QeBridgeCost, QeBridgeCostTokens } from './review-cost.js';
 export { parseCodexTokens, classifyRoundExecOutcome, buildRoundExecRow } from './round-exec.js';
 export type { RoundExecOutcome, RoundExecLedgerRow } from './round-exec.js';
+// round-exec-claim-takeover FR-1: the pure verdict `dz round exec` consults before refusing a
+// standing exec claim (held / stale-dead / unknown); the pid probe itself stays in run-registry.
+export { decideExecClaimTakeover } from './round-exec-claim.js';
+export type { ExecClaimVerdict, ExecClaimTakeoverInput } from './round-exec-claim.js';
 export * from './run-cleanup.js';
 
 export * from './cross-family-control.js';

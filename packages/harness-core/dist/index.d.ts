@@ -292,6 +292,8 @@ export { parseQeBridgeStdoutCost } from './review-cost.js';
 export type { QeBridgeCost, QeBridgeCostTokens } from './review-cost.js';
 export { parseCodexTokens, classifyRoundExecOutcome, buildRoundExecRow } from './round-exec.js';
 export type { RoundExecOutcome, RoundExecLedgerRow } from './round-exec.js';
+export { decideExecClaimTakeover } from './round-exec-claim.js';
+export type { ExecClaimVerdict, ExecClaimTakeoverInput } from './round-exec-claim.js';
 export * from './run-cleanup.js';
 export * from './cross-family-control.js';
 export { debtRatchetVerdict, parsePinnedCeiling, ceilingUnreadableMessage } from './debt-ratchet.js';

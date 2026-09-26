@@ -13,5 +13,12 @@ export interface TempRootFs {
     readFileSync(path: string, encoding: 'utf8'): string;
 }
 export declare function findTempRootHazards(tmp: string, fs?: TempRootFs): readonly Hazard[];
-export declare function assertTempRootClean(tmp: string, fs?: TempRootFs, log?: (message: string) => void): void;
+export declare function isBlockingHazard({ kind }: Hazard): boolean;
+/**
+ * Hazards in `after` whose (path, kind) pair is absent from `before`, in `after` order. Pure: no
+ * fs, neither input touched. The post-run check feeds it the pre-run and post-run scans so only a
+ * hazard CREATED during the run is attributed to it (feature temp-root-post-run-check, FR-1).
+ */
+export declare function diffTempRootHazards(before: readonly Hazard[], after: readonly Hazard[]): readonly Hazard[];
+export declare function assertTempRootClean(tmp: string, fs?: TempRootFs, log?: (message: string) => void): readonly Hazard[];
 //# sourceMappingURL=temp-root-guard.d.ts.map

@@ -69,6 +69,23 @@ The serial paths in `test/serial-suites.txt` are regenerated from
 `test/serial-suites-census.test.ts`, which scans test sources for process and timing markers,
 including `execSync(` and `execFile(`, and fails when the list and census differ.
 
+The census reads markers from **comment-stripped code**: the test-side helper
+`test/helpers/serial-census.ts` (`maskTsComments` / `maskReport` / `spawnMarkersIn`, shared with the
+harness-cli twin by relative import; it needs the `typescript` devDependency, so it is NOT a `src/`
+export) asks the TypeScript parser where the comments are and blanks them to same-length spaces,
+keeping line terminators; string, template and regex contents stay verbatim (markers such as
+`dist/bin.js` live in strings by design). FAIL-SAFE (AM-5): a file the parser cannot parse is
+treated as all code (`parseOk:false`), so the only possible error is an unmasked comment that
+over-serializes one suite — never a hidden spawn. `dist/bin.js` counts only when the same file also
+holds an import STATEMENT of `child_process` at a line start (ESM `import … from` or
+`const … = require(`; a fixture string that spells one is data) or of a test helper — a relative
+import whose path carries a `helpers/` segment at any depth (`./helpers/x`, `../../helpers/x`,
+`./util/helpers/x`; not `./helpersX/`, not a bare `helpers` package) — otherwise it is a fixture
+path, i.e. data. MEASURED 2026-09-25 (backlog `ffe4e076`): the raw scan had listed 5 comment-only
+suites in harness-cli and 2 data-only suites here as serial; two of the flipped files spawn through
+a production helper and are now named by that helper's call (`spawnRoundCodex(`,
+`defaultIntegrationProcessPort.run(`) instead of by a comment.
+
 ### Full-suite worker ceiling (`CORE_MAX_WORKERS`, `vitest.config.ts`)
 
 The root `test` block caps `maxWorkers` at `CORE_MAX_WORKERS` (2, `minWorkers: 1`), so
@@ -260,7 +277,31 @@ Public surface used by the CLI: `streamSessionEvents`, `parseSessionJsonl`, `det
 `retroSentinelIsFresh`, `renderRetroDebtDirective`, `findLatestTranscript`, **`resolveScanTailTranscript`**
 (new), plus the types `SessionEvent`, `RetroPendingSentinel`, `TailScanOutcome` and **`ScanTailSource`**
 (new), and the constants `RETRO_DEBT_MARKER`, `RETRO_PENDING_FILE`, `RETRO_SCAN_STATE_FILE`,
-`RETRO_SCAN_LOCK_NAME`, `PROCESS_SIGNATURES`, `DEFAULT_DRILL_THRESHOLD`.
+`RETRO_SCAN_LOCK_NAME`, `PROCESS_SIGNATURES`, `DEFAULT_DRILL_THRESHOLD`; since
+retro-debt-sentinel-per-session also the pure resolver `retroSessionPaths(dzDir, sessionId)` (with
+`safeSessionDirName`, `sessionIdFromTranscript`, the type `RetroSessionPaths`) and the constants
+`RETRO_SESSION_DIRNAME`, `RETRO_SESSION_PENDING_BASENAME`, `RETRO_SESSION_STATE_BASENAME`,
+`RETRO_SESSION_STALE_MS`.
+
+**One directory per session (retro-debt-sentinel-per-session).** The sentinel and the scan bookmark
+live at `.dz/retro/<session>/pending.json` and `.dz/retro/<session>/scan-state.json`, where
+`<session>` is the transcript basename without `.jsonl` (Claude Code names the transcript after the
+session id, so it equals the hook payload's `session_id`); an id that is not a plain token — path-like,
+empty, over 128 chars, `.` or `..` — is replaced by the first 32 hex of its sha256, so nothing can
+escape `.dz/retro/`. A scan writes and removes files only inside its own dir; the pre-feature branch
+that unlinked a sentinel of ANOTHER transcript as "foreign" is gone — with two sessions in one
+worktree it deleted the neighbour's LIVE debt, and the shared bookmark made every turn a bounded
+re-scan from 0 (MEASURED, backlog 58f3c56fbb9d6893). `TailScanOutcome` now carries `sessionId` and
+`pendingPath`. **Legacy adoption, once:** the flat `.dz/retro-pending.json` / `retro-scan-state.json`
+(the names `RETRO_PENDING_FILE` / `RETRO_SCAN_STATE_FILE` still export) are adopted by a scan only when
+they name THIS transcript and the session has no per-session copy yet, and are unlinked only after
+the per-session copies are committed; a stranger's, or a nobody's (no `transcript` field), is left
+byte-identical. **Bounded sweep:** after each scan, `.dz/retro/*/` dirs whose `scan-state.json` is older
+than `RETRO_SESSION_STALE_MS` (7 days) are removed — own dir excluded, undatable dirs kept, at most
+64 entries examined, every error swallowed. The recall hook reads only
+`<session root>/.dz/retro/<session_id>/pending.json`; a payload without a string `session_id` yields
+`''` before any fs call — the hook guesses no session (`test/retro-sentinel-per-session.test.ts`,
+registry id `retro-sentinel-path-is-per-session`).
 
 `SessionEvent` carries an optional `toolUseId` — `tool_use.id` on a call, `tool_result.tool_use_id` on
 its result — which is the pairing key the debt fold needs to tell WHICH command a result belongs to.
@@ -482,9 +523,9 @@ explicit skills-only short circuit. `--no-verify` cannot authorize emission. A C
 | `repo-boundary` | `isRepoBoundary`, `RepoBoundaryIo` | A repository boundary is a `.git` directory with a real `HEAD` file or a worktree `gitdir:` redirect; an empty or unrelated `.git` entry is not a boundary, so `dz` run from a directory such as `/tmp` with a stray empty `.git` no longer treats it as a project root (and no longer creates a `.dz` store there). Store-scoped locks stay at `<root>/.dz/locks/<name>.lock`, a pure function of the root — and since `lock-never-seeds-store` they REFUSE (`StoreAbsentError`) instead of creating that `.dz`. |
 | `targets` | `TARGETS`, `TargetName`, `isTargetName`, `resolveTargetName`, `TARGET_ALIASES`, `TARGET_NAMES_SORTED`, `formatTargetProblem`, `formatTargetAliasNote`, `normalizeTargetToken` | `--target` name → platform adapter, plus the resolution layer in front of it. `isTargetName`/`TARGETS`/`TARGET_NAMES` are UNCHANGED: `boundaries.json` names `isTargetName` as the scanned `--target` validation boundary, and every resolution ends in exactly that guard — the boundary is routed THROUGH, never relocated. `resolveTargetName` is total and pure, with fixed precedence: exact canonical → normalised canonical (case/padding/separators: `Claude_Code`, `claudecode`) → an explicit `TARGET_ALIASES` row → unique normalised prefix → Levenshtein ≤ 3 strictly better than the runner-up → nothing. **Aliases ACCEPT; prefix and Levenshtein only SUGGEST** — an alias row is an owner decision recorded in DATA (adding one is one line and zero control flow), while a fuzzy match is a guess, and installing to the wrong target on a guess is worse than one round-trip. An ambiguous prefix (`co` → `codex`/`copilot`) is terminal with NO suggestion, for the same reason. `formatTargetProblem` renders the two-line refusal, keeping the literal `--target must be one of:` substring that shipped assertions pin |
 | `agents-policy` | `POLICY_SOURCES`, `extractPolicyBlocks`, `renderPolicySections`, `detectPolicyDrift`, `measureAgentsMdBudget` | Pure anchored policy extraction, 12-hex source stamps, drift classification and Codex project-doc byte-budget measurement. The stamps prove source/target synchronization only; they do not prove that a runtime read or obeyed the text |
-| `sign` | `listPackFiles`, `listSignablePackFiles`, `verifyManifest`, `verifySbomAgainstManifest` | Shared node_modules/.git exclusions; verify sees MORE than sign (smuggled symlinks still fail). After authenticating the Ed25519 manifest, verification derives the canonical CycloneDX document from those signed entries and requires the no-follow `sbom.json` read to match it exactly. Current/v3 signing refuses malformed, duplicate-key, or precision-losing root `package.json` JSON and preserves object order throughout `exports`, `imports`, and `typesVersions`, so condition-order entry-point changes cannot hide behind packer-noise canonicalisation. Readers retain v1/v2 compatibility |
+| `sign` | `listPackFiles`, `listSignablePackFiles`, `verifyManifest`, `verifySbomAgainstManifest`, `packAllowlistFromPackageJson`, `isInsidePackAllowlist`, `OUTSIDE_FILES_REASON` | Shared node_modules/.git exclusions; verify sees MORE than sign (smuggled symlinks still fail). The sweep scans the whole directory and skips nothing; a swept path outside `package.json.files` (directory entries, exact files, `main`/`bin`, `*` globs; root `package.json` and `readme`/`copying`/`license`/`licence` bare or `.<ext>` not ending in `~`/`$` always inside per npm-packlist, `CHANGELOG*` not — pnpm omitted it, measured) is still a failure but reads `present in the directory but not signed — outside package.json.files, the packer would not ship it`, and `VerifyResult.outsideFiles` lists such paths. After authenticating the Ed25519 manifest, verification derives the canonical CycloneDX document from those signed entries and requires the no-follow `sbom.json` read to match it exactly. Current/v3 signing refuses malformed, duplicate-key, or precision-losing root `package.json` JSON and preserves object order throughout `exports`, `imports`, and `typesVersions`, so condition-order entry-point changes cannot hide behind packer-noise canonicalisation. Readers retain v1/v2 compatibility |
 | `guard` | `evaluateGuard`, `resolveRules`, `scanSecrets`, `scanSecretsChunked`, `SECRET_SCAN_OVERLAP_BYTES`, `DEFAULT_RULES`, `parsePnpmLockImporters` | Declarative HARD/SOFT constraint engine behind `dz guard` (publish/teach/consolidate pre-flight; fail-closed). The SOFT `signature-fresh` rule warns before publish when a changed pack no longer verifies against its signed `.dz-manifest.json`; all manifest, key, and filesystem reads remain in the CLI fact gatherer. The SOFT `lockfile-in-sync` rule compares each workspace package's `@dzhechkov/*` dep specs against the specifier `pnpm-lock.yaml` records for that importer — the `ERR_PNPM_OUTDATED_LOCKFILE` CI break, caught at publish. Its lockfile reader (`parsePnpmLockImporters`) is a pure RECOGNISE-OR-REFUSE parser (no YAML dependency): it reads only the `lockfileVersion: 9`+ importer layout and returns `undefined` for a legacy v5/v6 file, a truncated one, or any shape that leaves an importer with zero specifiers — because a half-parse reports every real dependency as "not recorded". The rule FAILS OPEN on that `undefined` (no violation) and is pinned SOFT-only via `SOFT_ONLY_RULES`, so no config can turn a parser that admits uncertainty into a publish blocker. The HARD `licence-hold` rule (+ `LICENCE_HOLD_PENDING_MARKER`) is the machine side of a declared licence precondition (`package.json.licenseHold`, ADR-001 hermes-claude-adaptation): silent while the pack stays `private:true` (the npm layer refuses it), it HARD-blocks publish the moment the pack becomes publishable with the hold unsatisfied — LICENSE absent/empty or still carrying the `<!-- PENDING:` grant placeholder, no `Grant-Confirmation: <url>` line, empty THIRD_PARTY_NOTICES, or a non-SPDX license field |
-| `pack-inventory` | `listPublishInventory`, `gatherPublishSecretFacts`, `readFileChunks`, `parseNpmPackListing` | Publish inventory from a supplied tarball, a content-hash cache, or the live packer (`npm pack --dry-run --json`), with a named `fallback-walk` on packer failure. Scans the inventory as streams, retaining every coverage gap by name; files are never skipped for size |
+| `pack-inventory` | `listPublishInventory`, `gatherPublishSecretFacts`, `readFileChunks`, `parseNpmPackListing`, `looksBinarySample`, `NUL_RATIO` | Publish inventory from a supplied tarball, a content-hash cache, or the live packer (`npm pack --dry-run --json`), with a named `fallback-walk` on packer failure. Scans the inventory as streams, retaining every coverage gap by name; files are never skipped for size. **The `binary` skip is a RATIO, not "one NUL"** (feature `pack-inventory-binary-sniff-ratio`): `looksBinarySample(first 8 KiB)` is binary iff NUL bytes exceed `NUL_RATIO = 0.01` of its length; empty ⇒ text. ONLY NULs count — the rule it replaces skipped on a NUL and nothing else, so any wider criterion (other control bytes, UTF-8 validity) would skip files the old rule scanned: a latin-1 source with a secret, a text with `\x01` separators — a fail-open regression (fix round 1, F1). UTF-16 (about half NULs) stays binary; a PNG with few NULs is scanned — harmless, the scan is read-only. MEASURED 2026-09-21 (backlog d3841a3b): the old `includes(0)` sniff skipped a 19 628-byte TypeScript source with ONE NUL at offset 4383 — together with its dist twin — from the no-secrets scan, fail-open. One NUL in 8 KiB of text is now scanned; UTF-16 and NUL-padded binaries are still skipped with the `binary` label. Mutation-defended: `binary-sniff-one-nul-is-text` |
 | `slop-lint` | `slopLint`, `parseSlopRegistry`, `validateSlopLintConfig`, `DEFAULT_SLOP_CONFIG`, `BUNDLED_SLOP_REGISTRY_URL` | Pure deterministic EN/RU lexical-density and structural-style analysis behind advisory `dz lint`. It excludes protected Markdown, requires at least two distinct registered marker IDs in one paragraph, divides marker hits by `max(visibleWords, wordFloor)`, and reports bullet walls or registered three-adjective stacks independently. Under the default `4`/`2`/`25` policy, the distinct-ID floor owns paragraphs through 50 words and density is the dilution cap from 51 words onward. The core performs no file, network, clock, locale, or process I/O; policy/config failures are typed diagnostics rather than empty clean results. |
 | `stem` | `tokenize`, `stemToken`, `stems` | Zero-dependency EN/RU word-form normalisation (light suffix stripping applied to BOTH sides of a match) behind registry search and `recommend`, so «анализы» finds «анализ»; a RU topic dictionary maps Russian queries onto catalogue topics, and an unmapped topic is reported as a miss rather than silently widened. |
 | `course-staleness` | `classifyCourseStaleness`, `CourseStalenessState`, `CourseStalenessInput`, `CourseStalenessResult` | Pure tutorial/package parity classifier. It distinguishes `S0 SHIPPED`, `S3 TUTORIAL_STALE`, `S4 PACKAGE_BEHIND`, malformed/mismatched/unknown registry inputs, and—load-bearing—`E2 UNSTAMPED`; an absent source stamp can never collapse into shipped. The caller supplies registry facts, so classification performs no file, process, clock, or network I/O. |
@@ -1206,8 +1247,11 @@ for NUL bytes, naming each offender and its byte offset. It prefers a valid inve
 otherwise it filters the offline walk by this package's `files` allowlist (plus `package.json`).
 It reports the inventory source, inspected count and excluded count, requires at least 100
 text files, and fails on unreadable files. Rebuild `dist` before running the census: stale
-compiled bytes are checked too. The scanners' git-compatible binary sniff stays unchanged;
-source string literals use escapes to preserve runtime NUL values without hiding text from scans.
+compiled bytes are checked too. This census is stricter than the no-secrets scanner's sniff on
+purpose: the scanner's `looksBinarySample` treats one NUL in 8 KiB of valid UTF-8 as text (ratio
+rule above), while the census names EVERY NUL in a packed source, because a NUL in a source file is
+a defect in the file even when the scanner can read past it. Source string literals use escapes to
+preserve runtime NUL values without hiding text from scans.
 
 **Every package ships a non-empty LICENSE.** `test/package-license-present.test.ts` walks every
 directory under `packages/@dzhechkov/` with a `package.json`, including private packages, and names
@@ -1854,7 +1898,9 @@ the training-pair capture instead of re-spending recall. Measured motive: after 
 Claude coders opened `01_requirements.md` in 5 of 7 runs (39 % before), while 37 of 48 post-directive coders
 were Codex, whose file reads are invisible to the transcript instrument.
 
-`0.8.45` — this release (25.09, package P1–P5). **unique-stamped-path:** same-millisecond stamped artifacts never overwrite each other — `dz setup --force` writes the hook backup with `writeUniqueStampedFile` (exclusive create, next `-N` suffix on EEXIST, safe across processes), the corrupt lesson-state quarantine uses `uniqueStampedPath` under its existing lock, and a census test refuses any new raw `toISOString().replace(/[:.]/g` path (feature unique-stamped-path).
+`0.8.46` — this release (night 25→26.09, plan N1–N6, published 2026-09-26). **retro-debt-sentinel-per-session:** the admission-debt sentinel and scan cursor live under `.dz/retro/<sessionId>/` — two sessions in one worktree never read or delete each other's debt; hub helpers regenerated, `APPLY_LEG_VERSION` 13. **temp-root-post-run-check** (`@dzhechkov/core`): the vitest run guard re-scans the system temp root after the run and names a `.dz`/`.git` created during it. **verify-pack-sweep-respects-files:** an unsigned path outside `package.json#files` is worded «present in the directory … the packer would not ship it» (verdict unchanged, `outsideFiles` in the result); the always-included set follows npm-packlist. **round-exec-claim-takeover:** a `dz round exec` claim with a proven-dead owner is taken over loudly. **pack-inventory-binary-sniff-ratio:** the no-secrets binary sniff skips only on a NUL ratio above 1 % of the first 8 KiB, never on one byte; health-advisor no longer packs `__pycache__`. **serial-census-ignores-comments:** the serial-suite census parses every suite with TypeScript's parser (test-side helper) — markers in comments and fixture strings no longer force a unit test into the serial pool.
+
+`0.8.45` — previous release (25.09, package P1–P5). **unique-stamped-path:** same-millisecond stamped artifacts never overwrite each other — `dz setup --force` writes the hook backup with `writeUniqueStampedFile` (exclusive create, next `-N` suffix on EEXIST, safe across processes), the corrupt lesson-state quarantine uses `uniqueStampedPath` under its existing lock, and a census test refuses any new raw `toISOString().replace(/[:.]/g` path (feature unique-stamped-path).
 
 `0.8.44` — previous release (day 24.09, published 2026-09-24). Four changes live in this package. **pack-artifact** —
 `packArtifact({ pkgDir, destDir, exec, pinVersions })` is the ONE packer behind sign, publish and the drift gate

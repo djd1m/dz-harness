@@ -14,9 +14,10 @@
  * is taught silently but NOT drilled — no nagging on a one-off. Drills are for recurrent patterns only.
  */
 
-import { existsSync, readFileSync, readdirSync, statSync, openSync, readSync, closeSync, writeFileSync, renameSync, unlinkSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync, openSync, readSync, closeSync, writeFileSync, renameSync, unlinkSync, mkdirSync, rmSync } from 'node:fs';
 import { join, basename, dirname } from 'node:path';
 import { homedir } from 'node:os';
+import { createHash } from 'node:crypto';
 
 import { withProjectLockSync, NamedLockTimeoutError } from './named-lock.js';
 
@@ -538,11 +539,62 @@ export function findLatestTranscript(repoRoot: string): string | null {
 // ── Per-turn admission-debt scan (feature narrated-error-must-be-taught, ADR-001 D2/D4) ────────────
 // The Stop hook runs `dz retro --scan-tail` after EVERY assistant turn, so this half is built around
 // one budget: O(new bytes) — a persisted byte offset, no full re-read, no store open, no subprocess.
-// The sentinel `.dz/retro-pending.json` is the debt; the recall hook turns it into a next-prompt
-// directive; a REAL teach invocation (a TOOL event — prose promises never pay, ADR-001 D4) clears it.
+// The sentinel `.dz/retro/<session>/pending.json` is the debt; the recall hook turns it into a
+// next-prompt directive; a REAL teach invocation (a TOOL event — prose promises never pay, ADR-001 D4)
+// clears it.
 
+/** LEGACY flat names (pre retro-debt-sentinel-per-session): the ONE pair every session in a worktree
+ * once shared under `.dz/`. A scan ADOPTS its own transcript's flat files once (FR-4) and never
+ * writes them again; a stranger's flat file is never touched. */
 export const RETRO_SCAN_STATE_FILE = 'retro-scan-state.json';
 export const RETRO_PENDING_FILE = 'retro-pending.json';
+
+// ── Per-session layout (feature retro-debt-sentinel-per-session, FR-1; backlog 58f3c56fbb9d6893) ──
+// Two sessions in one worktree shared the flat pair above, so a Stop scan of EITHER unlinked the
+// other's LIVE debt as "foreign", and the shared bookmark made each session's offset meaningless to
+// the other (foreign transcript ⇒ offset 0 ⇒ a bounded re-scan every turn; MEASURED 22.09 20:23, a
+// second session in this repo). The pair now lives in a directory named after the session.
+export const RETRO_SESSION_DIRNAME = 'retro';
+export const RETRO_SESSION_PENDING_BASENAME = 'pending.json';
+export const RETRO_SESSION_STATE_BASENAME = 'scan-state.json';
+/** A session dir whose scan-state is older than this belongs to a dead session: the next scan of
+ * any other session sweeps it (FR-5). A live session that ran no Stop for 7 days loses only a debt
+ * the hook would have called stale anyway (SENTINEL_FRESH_MS is 30 min) — accepted risk R2. */
+export const RETRO_SESSION_STALE_MS = 7 * 24 * 3600 * 1000;
+/** At most this many `.dz/retro/*` entries are examined per scan — the sweep's cost bound (NFR-1). */
+const RETRO_SWEEP_MAX_ENTRIES = 64;
+const SAFE_SESSION_ID_RE = /^[A-Za-z0-9._-]{1,128}$/;
+
+/**
+ * The directory name for a session id. PURE. A plain token is used as is; anything else — a
+ * path-like string, the empty string, an over-long id, and the two dot names the charset regex
+ * alone would let through (`.` ⇒ `<dzDir>/retro`, `..` ⇒ `<dzDir>` itself) — becomes the first
+ * 32 hex of its sha256, so a session id can never name a path outside `.dz/retro/` (AC-2).
+ * TWIN: the recall hook in `apply-leg.ts` carries a copy (the hook must stay dependency-free);
+ * `test/retro-sentinel-per-session.test.ts` pins the two to equal outputs.
+ */
+export function safeSessionDirName(sessionId: string): string {
+  if (SAFE_SESSION_ID_RE.test(sessionId) && sessionId !== '.' && sessionId !== '..') return sessionId;
+  return createHash('sha256').update(sessionId).digest('hex').slice(0, 32);
+}
+
+/** The session id the SCANNER derives: the transcript basename without `.jsonl`. Claude Code names
+ * the transcript after the session id, so this equals the `session_id` the hook payload carries. PURE. */
+export function sessionIdFromTranscript(transcriptPath: string): string {
+  return basename(transcriptPath).replace(/\.jsonl$/, '');
+}
+
+export interface RetroSessionPaths {
+  readonly dir: string;
+  readonly pendingPath: string;
+  readonly statePath: string;
+}
+
+/** Where ONE session's debt and bookmark live: `<dzDir>/retro/<safeId>/{pending,scan-state}.json`. PURE, no fs. */
+export function retroSessionPaths(dzDir: string, sessionId: string): RetroSessionPaths {
+  const dir = join(dzDir, RETRO_SESSION_DIRNAME, safeSessionDirName(sessionId));
+  return { dir, pendingPath: join(dir, RETRO_SESSION_PENDING_BASENAME), statePath: join(dir, RETRO_SESSION_STATE_BASENAME) };
+}
 /** Bound the very FIRST scan of an already-huge transcript; later scans read only the new bytes. */
 const MAX_TAIL_SCAN_BYTES = 8 * 1024 * 1024;
 /** Without a session id to compare, a sentinel older than this is stale (fallback freshness only). */
@@ -628,6 +680,10 @@ export interface TailScanOutcome {
   readonly snippet?: string;
   readonly scannedBytes: number;
   readonly offset: number;
+  /** The session the scan was scoped to (FR-6) — absent only when no transcript was named. */
+  readonly sessionId?: string;
+  /** The per-session sentinel path the scan wrote, cleared, or left absent (FR-6). */
+  readonly pendingPath?: string;
 }
 
 /** The scan-state + sentinel pair is a read-modify-write store; per the repo concurrency rule
@@ -728,6 +784,8 @@ const writeJsonAtomic = (path: string, value: unknown): void => {
  */
 export function runRetroTailScan(dzDir: string, transcriptPath: string | null, nowIso?: string): TailScanOutcome {
   if (transcriptPath === null || transcriptPath === '') return { status: 'no-transcript', scannedBytes: 0, offset: 0 };
+  const sessionId = sessionIdFromTranscript(transcriptPath);
+  const ids = { sessionId, pendingPath: retroSessionPaths(dzDir, sessionId).pendingPath };
   try {
     return withProjectLockSync(
       dirname(dzDir),
@@ -736,43 +794,71 @@ export function runRetroTailScan(dzDir: string, transcriptPath: string | null, n
       { timeoutMs: RETRO_SCAN_LOCK_TIMEOUT_MS },
     );
   } catch (e) {
-    if (e instanceof NamedLockTimeoutError) return { status: 'contended', scannedBytes: 0, offset: 0 };
+    if (e instanceof NamedLockTimeoutError) return { status: 'contended', scannedBytes: 0, offset: 0, ...ids };
     // Compromised lock or any unexpected failure: report nothing, advance nothing (never-block).
-    return { status: 'none', scannedBytes: 0, offset: 0 };
+    return { status: 'none', scannedBytes: 0, offset: 0, ...ids };
   }
 }
 
 /** The transaction body — call ONLY under the named lock. Never throws for ordinary fs failures. */
 function scanTailUnderLock(dzDir: string, transcriptPath: string, nowIso?: string): TailScanOutcome {
+  // FR-2: every path this scan writes or removes is inside ITS OWN session dir; the only files it
+  // ever touches outside are the legacy flat pair, and only to adopt its own (FR-4).
+  const sessionId = sessionIdFromTranscript(transcriptPath);
+  const { dir, pendingPath, statePath } = retroSessionPaths(dzDir, sessionId);
+  const ids = { sessionId, pendingPath };
   try {
-    const statePath = join(dzDir, RETRO_SCAN_STATE_FILE);
-    const pendingPath = join(dzDir, RETRO_PENDING_FILE);
+    const legacyStatePath = join(dzDir, RETRO_SCAN_STATE_FILE);
+    const legacyPendingPath = join(dzDir, RETRO_PENDING_FILE);
 
+    const readOffset = (p: string): number | null => {
+      try {
+        const st = JSON.parse(readFileSync(p, 'utf8')) as { transcript?: string; offset?: number };
+        if (st.transcript === transcriptPath && typeof st.offset === 'number' && Number.isFinite(st.offset) && st.offset >= 0) return Math.floor(st.offset);
+      } catch { /* absent or unreadable */ }
+      return null;
+    };
     let offset = 0;
-    try {
-      const st = JSON.parse(readFileSync(statePath, 'utf8')) as { transcript?: string; offset?: number };
-      if (st.transcript === transcriptPath && typeof st.offset === 'number' && Number.isFinite(st.offset) && st.offset >= 0) offset = Math.floor(st.offset);
-    } catch { /* first scan of this transcript */ }
+    let adoptLegacyState = false;
+    const ownOffset = readOffset(statePath);
+    if (ownOffset !== null) offset = ownOffset;
+    else if (!existsSync(statePath)) {
+      // FR-4: the flat bookmark is adopted ONCE — only while this session has no bookmark of its own,
+      // and only when it names THIS transcript. Another session's stays where it is.
+      const legacyOffset = readOffset(legacyStatePath);
+      if (legacyOffset !== null) { offset = legacyOffset; adoptLegacyState = true; }
+    }
 
-    // Prior debt carries over ONLY for the same session; a stale sentinel (another session's debt)
-    // is dropped — the PreCompact/SessionEnd retro of THAT session was its collector, and injecting
-    // an old session's debt into a new one is noise (acid A9).
-    let prior: AdmissionDebt | null = null;
-    let hadSentinel = false;
-    try {
-      const s = JSON.parse(readFileSync(pendingPath, 'utf8')) as Partial<RetroPendingSentinel>;
-      if (s.transcript === transcriptPath && typeof s.snippet === 'string') {
-        prior = { snippet: s.snippet, ...(s.awaiting !== undefined ? { awaiting: s.awaiting } : {}) };
-        hadSentinel = true;
-      }
-      else { try { unlinkSync(pendingPath); } catch { /* already gone */ } }
-    } catch { /* no sentinel */ }
+    const readSentinel = (p: string): { prior: AdmissionDebt | null; present: boolean } => {
+      try {
+        const s = JSON.parse(readFileSync(p, 'utf8')) as Partial<RetroPendingSentinel>;
+        if (s.transcript === transcriptPath && typeof s.snippet === 'string') {
+          return { prior: { snippet: s.snippet, ...(s.awaiting !== undefined ? { awaiting: s.awaiting } : {}) }, present: true };
+        }
+        return { prior: null, present: true };
+      } catch { return { prior: null, present: false }; }
+    };
+    // Prior debt: this session's own sentinel. One naming ANOTHER transcript can only mean the
+    // transcript was moved or renamed under the same basename — it is IGNORED and overwritten (or
+    // removed below when nothing is armed), never deleted as "foreign": the pre-feature branch that
+    // unlinked a sentinel of another transcript deleted the NEIGHBOUR session's live debt (FR-2).
+    const own = readSentinel(pendingPath);
+    let prior = own.prior;
+    const staleOwn = own.present && own.prior === null;
+    let adoptLegacyPending = false;
+    if (!own.present) {
+      // FR-4: the flat sentinel is adopted only when it is THIS transcript's and this session has no
+      // per-session copy yet; a stranger's, or a nobody's (no transcript field), is left untouched.
+      const legacy = readSentinel(legacyPendingPath);
+      if (legacy.prior !== null) { prior = legacy.prior; adoptLegacyPending = true; }
+    }
+    const hadSentinel = prior !== null;
 
     let size = 0;
     try { size = statSync(transcriptPath).size; } catch {
       return prior !== null
-        ? { status: 'pending', snippet: prior.snippet, scannedBytes: 0, offset }
-        : { status: 'none', scannedBytes: 0, offset };
+        ? { status: 'pending', snippet: prior.snippet, scannedBytes: 0, offset, ...ids }
+        : { status: 'none', scannedBytes: 0, offset, ...ids };
     }
     if (size < offset) offset = 0;                                        // truncated/rotated transcript
     let jumped = offset === 0 && size > MAX_TAIL_SCAN_BYTES;              // bound the first scan of a huge file
@@ -802,12 +888,12 @@ function scanTailUnderLock(dzDir: string, transcriptPath: string, nowIso?: strin
 
     const next = foldAdmissionDebt(events, prior);
     const newOffset = offset + consumed;
-    mkdirSync(dzDir, { recursive: true });
+    mkdirSync(dir, { recursive: true });
     let outcome: TailScanOutcome;
     if (next !== null) {
       const sentinel: RetroPendingSentinel = {
         schema: 1,
-        sessionId: basename(transcriptPath).replace(/\.jsonl$/, ''),
+        sessionId,
         transcript: transcriptPath,
         snippet: next.snippet.replace(/\s+/g, ' ').trim().slice(0, 200),
         ts: nowIso ?? new Date().toISOString(),
@@ -826,13 +912,45 @@ function scanTailUnderLock(dzDir: string, transcriptPath: string, nowIso?: strin
       catch (e) { if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e; }
       outcome = { status: 'cleared', scannedBytes: consumed, offset: newOffset };
     } else {
+      // Our own stale sentinel (moved transcript, see above) with nothing armed: removed, so the hook
+      // never confronts a debt this transcript no longer carries. Same ENOENT-only tolerance.
+      if (staleOwn) {
+        try { unlinkSync(pendingPath); }
+        catch (e) { if ((e as NodeJS.ErrnoException).code !== 'ENOENT') throw e; }
+      }
       outcome = { status: 'none', scannedBytes: consumed, offset: newOffset };
     }
     // Commit the debt BEFORE its offset: an interruption must leave these bytes replayable.
     writeJsonAtomic(statePath, { schema: 1, transcript: transcriptPath, offset: newOffset });
-    return outcome;
+    // FR-4: the adopted flat files go only AFTER the per-session copies are committed — a failure
+    // above leaves them in place for the next scan to adopt again. Best-effort: leftover debris
+    // is harmless (a present per-session file blocks re-adoption), a thrown error here would
+    // misreport an already-committed scan.
+    if (adoptLegacyPending) { try { unlinkSync(legacyPendingPath); } catch { /* debris */ } }
+    if (adoptLegacyState) { try { unlinkSync(legacyStatePath); } catch { /* debris */ } }
+    sweepStaleSessionDirs(dzDir, dir, nowIso === undefined ? Date.now() : Date.parse(nowIso));
+    return { ...outcome, ...ids };
   } catch {
-    return { status: 'none', scannedBytes: 0, offset: 0 };
+    return { status: 'none', scannedBytes: 0, offset: 0, ...ids };
+  }
+}
+
+/**
+ * FR-5: remove dead sessions' dirs — `<dzDir>/retro/<x>/` whose `scan-state.json` mtime is older
+ * than {@link RETRO_SESSION_STALE_MS}. The scanning session's own dir is excluded; a dir with no
+ * readable scan-state cannot be dated and is left alone; every error is swallowed; at most
+ * {@link RETRO_SWEEP_MAX_ENTRIES} entries are examined (one readdir + ≤64 stats — NFR-1).
+ */
+function sweepStaleSessionDirs(dzDir: string, ownDir: string, nowMs: number): void {
+  let names: string[];
+  try { names = readdirSync(join(dzDir, RETRO_SESSION_DIRNAME)).slice(0, RETRO_SWEEP_MAX_ENTRIES); } catch { return; }
+  for (const name of names) {
+    const d = join(dzDir, RETRO_SESSION_DIRNAME, name);
+    if (d === ownDir) continue;
+    try {
+      const age = nowMs - statSync(join(d, RETRO_SESSION_STATE_BASENAME)).mtimeMs;
+      if (age > RETRO_SESSION_STALE_MS) rmSync(d, { recursive: true, force: true });
+    } catch { /* undatable or vanished: leave it */ }
   }
 }
 
@@ -851,6 +969,10 @@ export function retroSentinelIsFresh(
   ctx: { sessionId?: string; transcriptPath?: string; nowMs: number },
 ): boolean {
   if (typeof sentinel.snippet !== 'string' || sentinel.snippet === '') return false;
+  // AM-1 (retro-debt-sentinel-per-session): an EMPTY session id carries no identity — a sentinel that
+  // names no session never matches anyone, and an empty ctx id is the same as none (the hook side
+  // returns '' before any fs call for it; this is the core half of the same rule).
+  if (sentinel.sessionId === '') return false;
   if (typeof ctx.sessionId === 'string' && ctx.sessionId !== '') return sentinel.sessionId === ctx.sessionId;
   if (typeof ctx.transcriptPath === 'string' && ctx.transcriptPath !== '') return sentinel.transcript === ctx.transcriptPath;
   const ts = typeof sentinel.ts === 'string' ? Date.parse(sentinel.ts) : NaN;

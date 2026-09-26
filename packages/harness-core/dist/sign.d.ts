@@ -36,6 +36,13 @@ export interface VerifyFailure {
 export interface VerifyResult {
     readonly ok: boolean;
     readonly failures: readonly VerifyFailure[];
+    /**
+     * Paths that failed the sweep with {@link OUTSIDE_FILES_REASON}: present in the DIRECTORY, not in
+     * the manifest, and outside `package.json.files` — the packer would never ship them. They are still
+     * failures (AM-1: nothing is skipped); this list only lets a caller say how many of the failures
+     * describe the directory rather than the pack. Absent when there are none.
+     */
+    readonly outsideFiles?: readonly string[];
 }
 /** CycloneDX 1.5 JSON for current output. Canonical JSON digests are always explicitly labelled. */
 export declare function buildSbom(manifest: Manifest): Sbom;
@@ -72,6 +79,43 @@ export declare function listPackFiles(root: string): string[];
  * sees MORE than this (symlinks/specials outside node_modules), so a smuggled entry fails verification.
  */
 export declare function listSignablePackFiles(root: string): string[];
+/**
+ * The wording for a swept path that `package.json.files` would keep OUT of the tarball (feature
+ * verify-pack-sweep-respects-files, AM-1). MEASURED 2026-09-20 (backlog 338a3b59c878430c): right after
+ * `dz sign`, `dz verify-pack` over harness-core's directory named `coverage/coverage-final.json` and
+ * `CHANGELOG.md` as «present in the pack but not signed», while `npm pack --dry-run` shipped 922 files,
+ * ZERO of them coverage and no CHANGELOG — `files` limits the tarball to six entries. The sweep walks the
+ * DIRECTORY (by decision — see `verifyManifest`), so the reason must say so instead of saying PACK.
+ */
+export declare const OUTSIDE_FILES_REASON = "present in the directory but not signed \u2014 outside package.json.files, the packer would not ship it";
+/**
+ * npm's always-included ROOT files, MEASURED from npm's own packer rather than its docs
+ * (`/usr/lib/node_modules/npm/node_modules/npm-packlist/lib/index.js:283-286`, fix round 1, 2026-09-25):
+ *   `readme{,.*[^~$]}`, `copying{,.*[^~$]}`, `license{,.*[^~$]}`, `licence{,.*[^~$]}` — case-insensitive.
+ * That is the BARE name or `name.<ext>` where the extension does not end in `~` or `$` (editor backups and
+ * lock-style droppings). So `README.md`, `readme.txt`, `COPYING`, `LICENCE.md` are inside; `README-old`
+ * (no dot), `LICENSE.md~`, `README.` (empty extension) are NOT. Plus `package.json`, which npm always ships.
+ * NOT `CHANGELOG*`: MEASURED 2026-09-20, pnpm pack of harness-core omitted `CHANGELOG.md` while `files` did
+ * not name it — the npm docs list CHANGES/CHANGELOG/HISTORY, the packer does not; we follow the packer.
+ */
+export declare const NPM_ALWAYS_INCLUDED: RegExp;
+/** What `package.json` says the tarball contains: normalised `files` entries plus `main` and the bin targets. */
+export interface PackAllowlist {
+    readonly entries: readonly string[];
+    readonly main: string | null;
+    readonly bins: readonly string[];
+}
+/**
+ * `null` unless `pkg.files` is a non-empty array of strings — and `null` means «no allowlist, behaviour
+ * unchanged», never «everything is outside». Pure: the caller reads and parses `package.json`.
+ */
+export declare function packAllowlistFromPackageJson(pkg: unknown): PackAllowlist | null;
+/**
+ * Would the packer ship `rel`? True when `rel` equals an entry, sits under an entry directory, matches a
+ * `*` glob entry, equals `main` or a bin target, or is a ROOT-level always-included file. `docs/README.md`
+ * is not root-level and is therefore outside unless `docs` is an entry.
+ */
+export declare function isInsidePackAllowlist(rel: string, allow: PackAllowlist): boolean;
 /**
  * The bytes that get signed (FR-7). Sorted by path, LF endings, no trailing whitespace, and no
  * dependence on JSON key order — a signature must not depend on how a serialiser felt that day.

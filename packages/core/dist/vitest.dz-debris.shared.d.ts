@@ -1,4 +1,4 @@
-export { assertTempRootClean, findTempRootHazards } from './temp-root-guard.js';
+export { assertTempRootClean, diffTempRootHazards, findTempRootHazards } from './temp-root-guard.js';
 interface SweepOptions {
     readonly now?: () => number;
     readonly isAlive?: (pid: number) => boolean;

@@ -291,26 +291,6 @@
     },
     {
       "type": "file",
-      "name": "base/skills/base/goap-research-ed25519/scripts/__pycache__/learning_bridge.cpython-310.pyc",
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "dd8c7d45e3dd8848afa08e0ccb064cc355ae7ee5313b42dd41075c26e978316b"
-        }
-      ]
-    },
-    {
-      "type": "file",
-      "name": "base/skills/base/goap-research-ed25519/scripts/__pycache__/test_evidence_provenance.cpython-310.pyc",
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "02e81e61a06443b8a088f67c46bae225cbdc4dcae843d288a47509a1805c4a4e"
-        }
-      ]
-    },
-    {
-      "type": "file",
       "name": "base/skills/base/goap-research-ed25519/scripts/check_report_evidence.py",
       "hashes": [
         {
@@ -949,7 +929,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "e9186b2cd00258b29af9d84a8e8ed05afb48939d99e942b6198dac0fefaeb08b"
+          "value": "92f0411fa08e6a8bc7f5cc57dbe1878bffac55ffdbfda0da70f39cedc1a1a5cd"
         }
       ]
     },
@@ -1930,16 +1910,6 @@
         {
           "alg": "SHA-256",
           "content": "1c9b9da73309c8682692e881c603cb30441c3beeba7b09e6c7655e80eab19f92"
-        }
-      ]
-    },
-    {
-      "type": "file",
-      "name": "skills/lab-results/__pycache__/coworker.cpython-310.pyc",
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "bca90fd4f2e5981f117c0e3992a93d0523f23f0368dafddab76977f92d98d56d"
         }
       ]
     },

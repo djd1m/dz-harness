@@ -36,6 +36,26 @@ export interface PublishSecretSeams {
   readonly tgzPathFor?: (dir: string) => string | undefined;
 }
 
+/**
+ * Share of NUL bytes above which a sample is binary. MEASURED 2026-09-21 (backlog d3841a3b): one NUL in
+ * 19 628 bytes of TypeScript made the old `includes(0)` sniff skip a packed TEXT file from the no-secrets scan.
+ */
+export const NUL_RATIO = 0.01;
+
+/**
+ * PURE binary sniff over the first bytes of a file: `true` iff NUL bytes exceed `NUL_RATIO` of the sample length.
+ * Empty ⇒ text. ONLY NULs count (fix round 1, F1): the rule this replaces skipped on a NUL and nothing else, so a
+ * criterion over other control bytes or UTF-8 validity would SKIP files the old rule SCANNED — a latin-1 source with
+ * a secret, a text with \x01 separators — and that is a fail-open regression. One NUL in 8 KiB is text and gets
+ * scanned; UTF-16 (about half NULs) is binary as before; a PNG with few NULs is scanned — harmless, the scan is read-only.
+ */
+export function looksBinarySample(sample: Buffer): boolean {
+  if (sample.length === 0) return false;
+  let nuls = 0;
+  for (const byte of sample) if (byte === 0) nuls++;
+  return nuls > NUL_RATIO * sample.length;
+}
+
 /** Scan the publish inventory as streams, retaining every coverage gap by name. */
 export function gatherPublishSecretFacts(root: string, packageDirs: readonly string[], seams: PublishSecretSeams = {}):
   { readonly secretFindings: readonly { label: string; name: string }[];
@@ -74,7 +94,7 @@ export function gatherPublishSecretFacts(root: string, packageDirs: readonly str
           let first = true;
           try {
             for (const chunk of reader(absolute, 1024 * 1024)) {
-              if (first && chunk.subarray(0, 8 * 1024).includes(0)) { binary = true; return; }
+              if (first && looksBinarySample(chunk.subarray(0, 8 * 1024))) { binary = true; return; }
               first = false;
               yield chunk;
             }
