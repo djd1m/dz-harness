@@ -1,7 +1,7 @@
 {
   "builtAt": "2026-10-05T11:53:18.240199+00:00",
   "builtFrom": "dz-harness-hub (private monorepo)",
-  "rule": "each package mirrors exactly its npm-pack tarball inventory \u2014 the already-public surface",
+  "rule": "Review branch: baseline mirror with two unreleased candidate package payloads and one explicitly development-only test. See reviewCandidate.",
   "requested": 56,
   "built": 56,
   "requestedPackages": [
@@ -408,5 +408,31 @@
       "@dzhechkov/harness-cli": "0.8.41"
     },
     "verification": "Exact registry tarball bytes, publisher SHA256, registry SHA512/SHA1 and trusted repository Ed25519 signatures; other packages preserved."
+  },
+  "reviewCandidate": {
+    "published": false,
+    "baselineCommit": "1de71d0b0524b2a742992e79f1b68c474ba558ab",
+    "packages": [
+      {
+        "name": "@dzhechkov/skills-decision-mockups",
+        "version": "0.1.8",
+        "sha256": "5babe664ec44221b7b736fff34e075aafc2d578fb6d85b2b21ba1d24969af904",
+        "signature": "PASS",
+        "npmRepackByteIdentity": "PASS",
+        "archiveFiles": 15
+      },
+      {
+        "name": "@dzhechkov/skills-meta",
+        "version": "0.9.63",
+        "sha256": "8dc9578c9ddc4dece751d381647323f26dafb5a2346bb3125a66bf7dc6247b18",
+        "signature": "PASS",
+        "npmRepackByteIdentity": "PASS",
+        "archiveFiles": 143
+      }
+    ],
+    "developmentOnlyFiles": [
+      "packages/skills-decision-mockups/test/gate.test.mjs"
+    ],
+    "report": "DECISION-MOCKUPS-REVIEW.md"
   }
 }

@@ -12,10 +12,11 @@
     5. section#mocks    — макеты «как сейчас / после починки»
     6. section#questions— карточки открытых вопросов с чипом «кто решает»
     7. footer.page      — где лежат планы
-    8. .pickbar + script — механика выбора и экспорта (идентична templates/picker.js)
+    8. .pickbar + script — механика выбора и экспорта (инлайн-вариант templates/picker.js)
 
   ЖЁСТКИЕ ПРАВИЛА (нарушение = страница не долетает до владельца):
-    • Простой русский для руководителя. Инженерный жаргон — только в скобках как справка.
+    • Для нетехнического адресата: простой русский, технические имена в скобках.
+    • Учебные данные и оценки синтетические; замените их проверенными фактами своей задачи.
     • ОДНА бытовая аналогия на понятие, и она вводится ДО термина.
     • Каждая находка отвечает ровно на три вопроса: что не так / чем грозит / как чиним.
     • Вариант никогда не скрывает свою цену и переделку. Рекомендация помечена явно.
@@ -366,15 +367,15 @@ footer.page b{color:var(--ink-soft)}
   <h1>ЗАМЕНИТЬ — что разбираем и сколько тут пунктов</h1>
   <!-- Лид: одно-два предложения простым языком. Термин, без которого не обойтись,
        вводится ТУТ же скобкой-расшифровкой, а не оставляется голым. -->
-  <p class="lede">ЗАМЕНИТЬ. Коллеги посмотрели N порций готового кода («мерж-реквестов» — кусков работы, которые ждут вливания в основную ветку) и выписали M замечаний. Мы перепроверили каждое по коду. Ниже — что именно не так, чем это грозит на экране и в проде, и как мы это чиним.</p>
+  <p class="lede">ЗАМЕНИТЬ. Вымышленная мастерская готовит запись на занятия. Ниже — учебные вопросы о выборе даты, напоминаниях и запуске нового занятия. Это предложение для обсуждения, а не отчёт о работающем сервисе.</p>
   <p class="pickhint">Развилки на странице кликабельны — выберите варианты и нажмите «Скопировать ответы» внизу, чтобы отправить выбор обратно в чат.</p>
   <p class="meta">ЗАМЕНИТЬ · дата · на какой момент собраны данные · «ничего пока не реализовано» либо честный статус</p>
   <!-- Вердикт-полоса: 3–4 крупные цифры, которые отвечают на «ну и что в итоге» -->
   <div class="verdicts">
-    <div class="vd ok"><span class="n">35</span><span class="l">подтверждено</span></div>
-    <div class="vd part"><span class="n">2</span><span class="l">частично</span></div>
-    <div class="vd zero"><span class="n">0</span><span class="l">устарело</span></div>
-    <div class="vd"><span class="n">2–3</span><span class="l">недели работы</span></div>
+    <div class="vd ok"><span class="n">ЗАМЕНИТЬ</span><span class="l">подтверждено</span></div>
+    <div class="vd part"><span class="n">ЗАМЕНИТЬ</span><span class="l">частично</span></div>
+    <div class="vd zero"><span class="n">ЗАМЕНИТЬ</span><span class="l">устарело</span></div>
+    <div class="vd"><span class="n">ЗАМЕНИТЬ</span><span class="l">недели работы</span></div>
   </div>
   <nav class="toc">
     <h4>Содержание</h4>
@@ -400,10 +401,10 @@ footer.page b{color:var(--ink-soft)}
   </div>
 
   <div class="tally">
-    <div><b>3</b>ЗАМЕНИТЬ — кластер 1</div>
-    <div><b>5</b>ЗАМЕНИТЬ — кластер 2</div>
-    <div><b>9</b>ЗАМЕНИТЬ — кластер 3</div>
-    <div><b>10</b>ЗАМЕНИТЬ — кластер 4</div>
+    <div><b>ЗАМЕНИТЬ</b>ЗАМЕНИТЬ — кластер 1</div>
+    <div><b>ЗАМЕНИТЬ</b>ЗАМЕНИТЬ — кластер 2</div>
+    <div><b>ЗАМЕНИТЬ</b>ЗАМЕНИТЬ — кластер 3</div>
+    <div><b>ЗАМЕНИТЬ</b>ЗАМЕНИТЬ — кластер 4</div>
   </div>
 
   <h3 style="margin:26px 0 4px">ЗАМЕНИТЬ — что блокирует прямо сегодня</h3>
@@ -433,10 +434,9 @@ footer.page b{color:var(--ink-soft)}
   <p class="eyebrow">Кластер 1 · находки 1–3</p>
   <h2>ЗАМЕНИТЬ — имя кластера обычными словами</h2>
   <!-- Интро на 2–3 предложения УЧИТ метафоре ДО того, как появится термин.
-       Одна аналогия на понятие, не две. Примеры удачных: багаж на ленте досмотра
-       (конвейер сборки), книга-закладка-должок (курсор инкрементального чтения),
-       общежитие без договора (общий ресурс без контракта), бронь переговорки (аренда задачи). -->
-  <p class="sec-intro">ЗАМЕНИТЬ. Перед тем как код попадёт в общую ветку, его прогоняют через конвейер автоматических проверок — как багаж через ленту досмотра. Если лента остановилась на первом чемодане, стоят все следующие. Ровно это сейчас и происходит.</p>
+       Одна аналогия на понятие, не две. Учебный пример: афиша без дат (список занятий без дня);
+       приглашение перед выходом (слишком позднее напоминание). -->
+  <p class="sec-intro">ЗАМЕНИТЬ. Список занятий похож на афишу: названия и часы помогают выбрать встречу, но без даты человек не может спланировать день. В учебном примере добавим день рядом со временем.</p>
   <div class="cards">
 
     <!-- ВАРИАНТ 1: простая находка — три строки и всё -->
@@ -465,7 +465,7 @@ footer.page b{color:var(--ink-soft)}
         <div class="row fix"><div class="k">Как чиним</div>
           <div class="opts pickable" data-group="f2" data-label="Находка #2 — ЗАМЕНИТЬ подпись развилки">
             <div class="opt suggest" role="button" tabindex="0" data-val="Вариант A — рекомендуем"><b>Вариант A — рекомендуем.</b> ЗАМЕНИТЬ — что делаем, сколько стоит и что придётся переделать.</div>
-            <div class="opt" role="button" tabindex="0" data-val="Вариант B"><b>Вариант B.</b> ЗАМЕНИТЬ — альтернатива и её честная цена: чем именно она хуже.</div>
+            <div class="opt" role="button" tabindex="0" data-val="Вариант B"><b>Вариант B.</b> ЗАМЕНИТЬ — альтернатива, её цена и условие, при котором она полезна.</div>
           </div>
         </div>
       </div>
@@ -503,14 +503,14 @@ footer.page b{color:var(--ink-soft)}
       <figure>
         <span class="mock-cap bad">Как сейчас</span>
         <div class="mock-scroll"><div class="browser">
-          <div class="bbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">ЗАМЕНИТЬ.example.ru/раздел</span></div>
+          <div class="bbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">example.com/lessons</span></div>
           <div class="app">
-            <aside class="side"><p class="brand">ЗАМЕНИТЬ</p><ul><li>Сводка</li><li class="on">Аналитика</li><li>Команда</li><li>Настройки</li></ul></aside>
+            <aside class="side"><p class="brand">ЗАМЕНИТЬ</p><ul><li class="on">Занятия</li><li>Мои записи</li><li>Материалы</li></ul></aside>
             <div class="main">
               <div class="tabs"><span class="on">ЗАМЕНИТЬ</span><span>Вторая вкладка</span></div>
               <div class="canvas">
                 <p class="mhead">ЗАМЕНИТЬ — заголовок экрана</p>
-                <div class="mempty">Нет данных<br>ЗАМЕНИТЬ — что видит человек вместо результата</div>
+                <div class="mempty">Акварель · 10:30<br>ЗАМЕНИТЬ — дата занятия пока не показана</div>
               </div>
             </div>
           </div>
@@ -521,18 +521,18 @@ footer.page b{color:var(--ink-soft)}
       <figure>
         <span class="mock-cap good">После починки</span>
         <div class="mock-scroll"><div class="browser">
-          <div class="bbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">ЗАМЕНИТЬ.example.ru/раздел</span></div>
+          <div class="bbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">example.com/lessons</span></div>
           <div class="app">
-            <aside class="side"><p class="brand">ЗАМЕНИТЬ</p><ul><li>Сводка</li><li class="on">Аналитика</li><li>Команда</li><li>Настройки</li></ul></aside>
+            <aside class="side"><p class="brand">ЗАМЕНИТЬ</p><ul><li class="on">Занятия</li><li>Мои записи</li><li>Материалы</li></ul></aside>
             <div class="main">
               <div class="tabs"><span class="on">ЗАМЕНИТЬ</span><span>Вторая вкладка</span></div>
               <div class="canvas">
-                <span class="badge warn">ЗАМЕНИТЬ — честная плашка: дата данных и причина</span>
+                <span class="badge warn">ЗАМЕНИТЬ — учебная подпись даты занятия</span>
                 <p class="mhead">ЗАМЕНИТЬ — заголовок экрана</p>
                 <div class="mcards">
-                  <div class="mc"><span class="v">12</span><span class="l">ЗАМЕНИТЬ подпись</span></div>
-                  <div class="mc"><span class="v">4</span><span class="l">ЗАМЕНИТЬ подпись</span></div>
-                  <div class="mc"><span class="v">1</span><span class="l">ЗАМЕНИТЬ подпись</span></div>
+                  <div class="mc"><span class="v">7</span><span class="l">ЗАМЕНИТЬ подпись</span></div>
+                  <div class="mc"><span class="v">3</span><span class="l">ЗАМЕНИТЬ подпись</span></div>
+                  <div class="mc"><span class="v">2</span><span class="l">ЗАМЕНИТЬ подпись</span></div>
                 </div>
                 <div class="mrow"><span>ЗАМЕНИТЬ строку</span><em>статус</em></div>
                 <div class="mrow"><span>ЗАМЕНИТЬ строку</span><em>статус</em></div>
@@ -540,7 +540,7 @@ footer.page b{color:var(--ink-soft)}
             </div>
           </div>
         </div></div>
-        <p class="mock-note">ЗАМЕНИТЬ — что изменилось и какой ценой (например: «правка — четыре строки в общем каркасе»).</p>
+        <p class="mock-note">ЗАМЕНИТЬ — что изменилось и какой ценой (например: «день на изменение подписей и проверку телефона»).</p>
       </figure>
 
     </div>
