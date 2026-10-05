@@ -47,3 +47,5 @@ The existing npm 0.1.8 archive remains available and unchanged by this candidate
 - `@dzhechkov/skills-meta@0.9.63`: `8dc9578c9ddc4dece751d381647323f26dafb5a2346bb3125a66bf7dc6247b18`
 
 Public review-only extra: `packages/skills-decision-mockups/test/gate.test.mjs` is a development test, excluded from candidate archives. Run with Node and Python 3 from that package directory. The other 54 package trees are unchanged.
+
+The review checkout preserves the baseline executable bit on the unchanged feature-adr check-plan-completeness.mjs helper; pnpm archives normalize it to 0644. Its file bytes remain identical.
