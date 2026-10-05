@@ -433,6 +433,9 @@
     "developmentOnlyFiles": [
       "packages/skills-decision-mockups/test/gate.test.mjs"
     ],
-    "report": "DECISION-MOCKUPS-REVIEW.md"
+    "report": "DECISION-MOCKUPS-REVIEW.md",
+    "preservedCheckoutModes": {
+      "packages/skills-meta/feature-adr/scripts/check-plan-completeness.mjs": "0755 (baseline; archive 0644)"
+    }
   }
 }
