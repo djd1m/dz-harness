@@ -20,7 +20,7 @@
  */
 /** Одна запись журнала квитанций. Пишется ТОЛЬКО наблюдателем, видевшим код возврата 0. */
 export interface TestReceipt {
-    readonly v: 1;
+    readonly v: 1 | 2;
     /** Когда прогон закончился, ISO-8601. */
     readonly ts: string;
     /** Что именно было запущено — для сообщения об отказе, чтобы читатель мог повторить. */
@@ -37,7 +37,8 @@ export interface TestReceiptScopeState {
      * `never` — область не встречается ни в одной квитанции: прогона не было вовсе.
      * `changed` — квитанции есть, но ни одна не покрывает текущее содержимое.
      */
-    readonly why: 'never' | 'changed';
+    readonly why: 'never' | 'changed' | 'unobserved';
+    readonly unobservedReasons?: readonly string[];
     /** Время самой свежей квитанции, покрывавшей эту область в ЛЮБОМ виде; null при `never`. */
     readonly lastGreenAt: string | null;
 }
@@ -51,6 +52,7 @@ export type TestReceiptVerdict = {
     readonly state: 'not-established';
     readonly reason: string;
 };
+export declare function receiptTestPathMatchesScope(scope: string, path: string): boolean;
 /**
  * Чистое решение. Ничего не читает и не запускает — отпечатки и журнал подаёт вызывающий.
  *

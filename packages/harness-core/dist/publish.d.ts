@@ -151,7 +151,7 @@ export interface PublishReport {
     readonly skipped: number;
     readonly errors: number;
     readonly dryRun: boolean;
-    /** Repo-relative README paths whose first joint core/CLI release line was rewritten. */
+    /** Repo-relative README paths whose first explicitly marked joint core/CLI release line was rewritten. */
     readonly releaseLineSynced: readonly string[];
     readonly releaseLineReport: readonly ReleaseLineReport[];
     /** Post-publication sync failures are warnings: registry-confirmed packages cannot be unpublished. */
