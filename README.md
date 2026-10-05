@@ -1,3 +1,5 @@
+> **Unreleased review branch.** Two package directories contain synthetic teaching candidates, not replacement registry releases. A development-only test is included outside archive inventories. See [verification and limitations](DECISION-MOCKUPS-REVIEW.md). The published-mirror description below describes the baseline main branch.
+
 # @dzhechkov packages — public mirror
 
 Read-only mirror of the published surface of 56 npm packages under the
