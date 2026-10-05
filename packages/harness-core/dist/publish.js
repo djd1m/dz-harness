@@ -698,6 +698,9 @@ export function publishPackages(monorepoRoot, opts = {}) {
     // (mirrors what a real `pnpm pack` reads: the dependency's on-disk package.json, already bumped).
     const pinVersions = new Map(workspaceVersions);
     const pendingPacked = [];
+    // Preserve the release-line report's pre-sync view when CLI metadata moves before its artifact
+    // is built. Only a confirmed CLI result may report this staged change as delivered.
+    let cliReleaseLineBeforeArtifactSync;
     /**
      * The registry receipt-probe loop, factored out so the packedTransport pass (below) reuses it
      * identically to the existing per-package publish path — including the "no receipt is not
@@ -906,6 +909,28 @@ export function publishPackages(monorepoRoot, opts = {}) {
                 // describes exactly what the write above just did.
                 results.push({ name: pkg.name, oldVersion, newVersion, status: 'published', claimCheck: claimCheckSummary, readmeSync: readmeSyncSummary });
                 continue;
+            }
+            // CLI's npm README must name the SAME core version as its packed workspace dependency.
+            // In the ordinary transport core has already been confirmed; in packed transport it is a
+            // pending artifact in the transaction that must smoke successfully before anything ships.
+            // Never infer a released sibling from its disk version or merely from filter membership.
+            if (pkg.name === '@dzhechkov/harness-cli' && existsSync(join(pkg.dir, 'README.md'))) {
+                const readmePath = join(pkg.dir, 'README.md');
+                const before = readFileSync(readmePath, 'utf8');
+                const artifactVersions = { 'harness-cli': newVersion };
+                const core = opts.packedTransport !== undefined
+                    ? pendingPacked.find((p) => p.name === '@dzhechkov/harness-core')
+                    : results.find((p) => p.name === '@dzhechkov/harness-core' && p.status === 'published');
+                if (core !== undefined && landedInBatch.has(core.name))
+                    artifactVersions['harness-core'] = core.newVersion;
+                const updated = rewriteReleaseLine(before, artifactVersions);
+                if (updated !== null && updated !== before) {
+                    originalReadme ??= before; // includes first publishes where the own-version stamp did nothing
+                    const tmp = readmePath + '.sync-tmp';
+                    writeFileSync(tmp, updated);
+                    renameSync(tmp, readmePath);
+                    cliReleaseLineBeforeArtifactSync = before;
+                }
             }
             // Build if has build script
             if (manifest.scripts?.['build']) {
@@ -1260,7 +1285,9 @@ export function publishPackages(monorepoRoot, opts = {}) {
         for (const readme of readmes) {
             try {
                 const original = readFileSync(readme.absolute, 'utf8');
-                const found = findReleaseLine(original);
+                const artifactBaseline = readme.path === 'packages/@dzhechkov/harness-cli/README.md'
+                    && Object.hasOwn(versions, 'harness-cli') ? cliReleaseLineBeforeArtifactSync : undefined;
+                const found = findReleaseLine(artifactBaseline ?? original);
                 if (found === null) {
                     // A repo without a joint release line is the NORMAL case for every consumer monorepo —
                     // only a run that was actually about to WRITE has something to report here. The report-only
@@ -1284,12 +1311,15 @@ export function publishPackages(monorepoRoot, opts = {}) {
                 }
                 releaseLineReport.push({ path: readme.path, rewritten, kept, wrapped: found.wrapped });
                 const updated = rewriteReleaseLine(original, planned);
+                if (syncReleaseLine && artifactBaseline !== undefined)
+                    releaseLineSynced.push(readme.path);
                 if (!syncReleaseLine || updated === null || updated === original)
                     continue;
                 const tmp = readme.absolute + '.sync-tmp';
                 writeFileSync(tmp, updated);
                 renameSync(tmp, readme.absolute);
-                releaseLineSynced.push(readme.path);
+                if (artifactBaseline === undefined)
+                    releaseLineSynced.push(readme.path);
             }
             catch (error) {
                 // Same rule as the not-found branch above: only the pass that was actually going to WRITE

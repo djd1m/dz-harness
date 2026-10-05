@@ -17,7 +17,7 @@ commands. Use `node --test <file>` through the same wrapper for Node tests. Focu
 is supported; it does not prove a complete suite, meaningful tests or authenticated evidence.
 See the repository `.githooks/README.md` for bounds, supported commands and reasoned overrides.
 
-Current package version: `0.8.49`. <!-- dz:version -->
+Current package version: `0.8.50`. <!-- dz:version -->
 
 Joint current metadata requires `<!-- dz:version -->` on a dedicated undated core/CLI line. Both README writers preserve unmarked historical joint pairs; the guard and release-line report skip them. Fenced examples cannot become current joint metadata. `parseReleaseLine` remains structural, while selection requires this explicit opt-in. The marker still forces per-package rewriting of every matching version on its line, even inside history; keep it off historical records.
 
@@ -26,7 +26,20 @@ Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree
 Shared logic for the DZ harness — the engine behind `@dzhechkov/harness-cli`
 and any other consumer.
 
+## Repository links for npm packages
+
+The `npm-homepage` publish guard accepts the exact public mirror path `packages/<package-dir>`
+(preferred for public links) and the legacy `packages/@dzhechkov/<package-dir>` path during migration.
+Other package tails, traversal and extra path segments remain blocked. Homepage, repository URL,
+bugs URL and README link checks still apply to every package, including private packages.
+
 ## One artifact for signing and publishing
+
+For a joint core/CLI release, publishing stages the CLI README's explicitly marked current pair
+before building, signing or packing it. Its core token uses the confirmed core release, or the core
+artifact awaiting the same packed-batch smoke gate, so the npm README agrees with the dependency
+floor. Unmarked historical pairs are preserved. Dry-run and bump-only do not stage the sibling token;
+failed attempts restore the staged README before the final report reflects confirmed releases.
 
 Sign, publish and the sibling-drift gate now pack with one function, `packArtifact`: it pins
 workspace dependencies, removes `prepublishOnly` for packing, restores the original package.json,

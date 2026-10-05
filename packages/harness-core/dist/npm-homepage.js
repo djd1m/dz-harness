@@ -9,7 +9,8 @@
  *
  * Every accepted value is an EXACT string from a closed list — no URL parsing, no normalisation (fix round 1,
  * review r1 finding 1: a substring test accepted `https://evil.example/github.com/djd1m/dz-harness`). The lead
- * measured all 57 manifests: each carries exactly the one value listed below.
+ * initially measured 57 manifests with the legacy layout. Repository directories also accept
+ * the exact public mirror layout emitted by build-public-mirror.mjs, with the same package tail.
  *
  * Two halves, so the evaluator is testable without a filesystem:
  *   - `npmHomepageFacts(records, discovery)` (here) is PURE: records in, per-package problem lists out;
@@ -87,8 +88,11 @@ export function npmHomepageFacts(records, discovery = {}) {
             problems.push(`repository.url = ${JSON.stringify(repoUrl)}, must be exactly one of ${JSON.stringify(NPM_REPOSITORY_URLS)}`);
         }
         const repoDir = isObject(repo) ? repo['directory'] : undefined;
-        if (repoDir !== `${PACKAGES_PREFIX}${dir}`) {
-            problems.push(`repository.directory = ${JSON.stringify(repoDir)}, must be "${PACKAGES_PREFIX}${dir}"`);
+        // The public mirror strips the scope directory; preserve the legacy layout during migration.
+        // Exact strings only: no prefix matching or path normalisation that could accept another package.
+        const repoDirs = [`packages/${dir}`, `${PACKAGES_PREFIX}${dir}`];
+        if (typeof repoDir !== 'string' || !repoDirs.includes(repoDir)) {
+            problems.push(`repository.directory = ${JSON.stringify(repoDir)}, must be exactly one of ${JSON.stringify(repoDirs)}`);
         }
         const bugs = j['bugs'];
         const bugsUrl = isObject(bugs) ? bugs['url'] : undefined;

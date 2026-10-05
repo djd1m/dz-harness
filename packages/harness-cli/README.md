@@ -1,6 +1,6 @@
 # @dzhechkov/harness-cli
 
-Current package version: `0.8.41`. <!-- dz:version -->
+Current package version: `0.8.42`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -17,7 +17,7 @@ You do NOT need to clone any repository to use dz. Source is for contributors �
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/harness-cli
 
-Current package versions: `harness-core v0.8.49` · `harness-cli v0.8.41`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.50` · `harness-cli v0.8.42`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. The marker retains its explicit whole-line override for per-package synchronization, so keep it off historical records.
 
@@ -521,6 +521,10 @@ dz publish --yes --no-mirror                    # explicit one-run mirror opt-ou
 dz bundle --preset news --out ./dist            # → ./dist/skills/<id>/ (SKILL.md + references/scripts/assets)
 dz bundle --select news-digest,goap-research-ed25519 --out ./dist
 ```
+
+When core and CLI release together, `dz publish` stages the CLI README's marked current pair before
+its build, signature and pack. The core version in the npm README agrees with the packed dependency
+floor; historical unmarked release records remain intact. Dry-run previews leave both READMEs untouched.
 
 For a live sweep that publishes at least one package, `dz publish` can run a command-hook epilogue.
 Set it for one invocation with `--mirror-cmd`, or persist the command in `.dz/config.json`:

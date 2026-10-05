@@ -9,7 +9,8 @@
  *
  * Every accepted value is an EXACT string from a closed list — no URL parsing, no normalisation (fix round 1,
  * review r1 finding 1: a substring test accepted `https://evil.example/github.com/djd1m/dz-harness`). The lead
- * measured all 57 manifests: each carries exactly the one value listed below.
+ * initially measured 57 manifests with the legacy layout. Repository directories also accept
+ * the exact public mirror layout emitted by build-public-mirror.mjs, with the same package tail.
  *
  * Two halves, so the evaluator is testable without a filesystem:
  *   - `npmHomepageFacts(records, discovery)` (here) is PURE: records in, per-package problem lists out;
@@ -27,7 +28,7 @@ export declare const NPM_REPOSITORY_URLS: readonly string[];
 export declare const NPM_BUGS_URL = "https://github.com/djd1m/dz-harness/issues";
 /** One package directory as the reader found it. */
 export interface NpmHomepageRecord {
-    /** The directory name under `packages/@dzhechkov/` — the expected tail of `repository.directory`. */
+    /** The directory name under `packages/@dzhechkov/` — the package tail in either repository layout. */
     readonly dir: string;
     readonly json?: unknown;
     readonly parseError?: string;
