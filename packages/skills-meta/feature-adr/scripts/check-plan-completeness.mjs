@@ -3,7 +3,7 @@
 // Generalized from features/wave1-instrument-repair/check-plan-completeness.mjs (that copy is the
 // historical artifact of its run and stays untouched); this one is parameterized by feature dir.
 //
-// USAGE:  node .claude/skills/feature-adr/scripts/check-plan-completeness.mjs [<feature-dir>] [--tier=M] [--acid=A1,A2] [--require-requirements]
+// USAGE:  node .claude/skills/feature-adr/scripts/check-plan-completeness.mjs [<feature-dir>] [--tier=M] [--acid=A1,A2] [--require-requirements] [--no-require-task-lines]
 //         <feature-dir> defaults to the current working directory.
 //         --tier=S|M|L|XL closes the ADR-less dodge (see S-TIER HONESTY); omitting it keeps the
 //         heuristic, and the skip note then names the dodge out loud.
@@ -11,6 +11,12 @@
 //         pipeline passes this flag, so the check is introduced two-shot (ADR-001 plan-inherits-
 //         requirements): WARN first so the corpus can be measured without repainting every green
 //         fixture red, FAIL once the planner prompt names the contract (feature-adr.js Step 6).
+//         C1 and C8 read the plan's TASK LINES by DEFAULT (C10 below; owner decision 2026-09-27,
+//         backlog 95565da0): an id cited only in prose, fenced code, an HTML comment, `## Amendments`
+//         or EXPECTED_CODE_TARGETS is not a task. --no-require-task-lines is the explicit way back
+//         to the raw-plan reader, where C10 only WARNs — for re-checking a plan written before the
+//         default changed. --require-task-lines is still accepted and means the default; passing
+//         BOTH is a contradiction and is refused (NOT-ESTABLISHED), never resolved silently.
 //
 // VERDICT CONTRACT (unchanged from the proven copy — never a silent pass):
 //   PASS            exit 0   last line: `K2 plan-completeness: PASS (...)`
@@ -20,16 +26,22 @@
 //  ONE regex parses all three verdicts — the exit codes and their meanings are identical.)
 // Set difference over IDENTIFIERS, not text similarity.
 //
-// KNOWN LIMITATION (measured on the discrimination twin, 2026-08-19): C1 is a grep — a PROSE
-// mention of "ADR-002" satisfies it exactly like a task reference. The real N14 (backlog
-// 3dbd2851-adjacent) must parse task structure. Kept honest here: C1 catches "forgot entirely",
-// not "mentioned but not tasked".
-//
-// KNOWN LIMITATION (fix round 1, 2026-09-16, same class as C1 above): C8 is also a grep — a PROSE
-// mention of "FR-3" satisfies it exactly like a task reference. Kept honest here too: C8 catches
-// "forgot entirely", not "mentioned but not tasked". Masking the PLAN side (not just the 01/ADR
-// side) for C1 and C8 together, so a prose mention stops satisfying either check, is a separate
-// backlog item — filed by the lead, not chased here.
+// C1 AND C8 SHARE ONE PLAN-SIDE READER (k2-reads-masked-plan, backlog c03903eb, 2026-09-27).
+// Until then both were a grep over the RAW plan: an id in prose, a fenced code block, an HTML
+// comment, the `## Amendments` section or the EXPECTED_CODE_TARGETS block counted as a task
+// (named here as a limit since 2026-08-19 for C1 and 2026-09-16 for C8). `planTaskText()` now
+// answers "which plan text is a task" ONCE, for both checks — so one phrase can never pass one
+// check and fail the other. Introduced WARN-first (C10), because the corpus said so; the FAIL
+// half became the DEFAULT on 2026-09-27 by owner decision, with this measurement on the table:
+// MEASURED 2026-09-27 over all 472 features/*/06_implementation_plan.md, pipeline mode
+// (--require-requirements, tier read from 00): of 101 green plans, the task-line reader turns 55
+// red (an earlier snapshot of the same day; the count the owner decided on, taken later over 473
+// plans, was 56 of 102), and even mask-only (prose kept) turns 11 red — the SPARC-GOAP ```yaml goal-state block and
+// «ADR-001 governs every task» prose are the corpus's own idioms, not forgeries. So a plan that
+// was green before 2026-09-27 may be red on a re-check: that is the decision, not a regression —
+// cite the id on a task line, or re-check that plan with --no-require-task-lines and say so.
+// NAMED LIMIT: `planClaimsAdrWork` (S-tier honesty) and C2 still read the raw plan — a CLAIM of
+// ADR work in prose is still a claim, and C2 names test paths, not ids.
 //
 // KNOWN LIMITATION (C9): only byte-identical copies are visible before the edit. Already drifted
 // or intentionally different pinned copies remain the identity tests' job; the frozen
@@ -96,6 +108,8 @@ const tierArg = argv.find((a) => a.startsWith('--tier='));
 const TIER = tierArg ? tierArg.slice('--tier='.length).trim().toUpperCase() : null;
 const TIER_REQUIRES_ADR = TIER === 'M' || TIER === 'L' || TIER === 'XL';
 const REQUIRE_REQUIREMENTS = argv.includes('--require-requirements');
+const NO_REQUIRE_TASK_LINES = argv.includes('--no-require-task-lines');
+const REQUIRE_TASK_LINES = !NO_REQUIRE_TASK_LINES;
 const dirArg = argv.find((a) => !a.startsWith('--'));
 const FDIR = resolve(dirArg && dirArg !== '' ? (isAbsolute(dirArg) ? dirArg : join(process.cwd(), dirArg)) : process.cwd());
 const planPath = join(FDIR, '06_implementation_plan.md');
@@ -113,6 +127,7 @@ const safe = (v) => String(v)
   .slice(0, 300);
 const out = (s) => console.log(s);
 const notEstablished = (why) => { out(`K2 plan-completeness: NOT-ESTABLISHED — ${safe(why)}`); process.exit(3); };
+if (NO_REQUIRE_TASK_LINES && argv.includes('--require-task-lines')) notEstablished('both --require-task-lines and --no-require-task-lines were passed — pick one reader');
 let failures = [], warnings = [], skips = [];
 
 // Lead delta after Codex rounds 2+3 (2026-09-16, plan-inherits-requirements): on the DECLARATION side
@@ -136,6 +151,54 @@ if (!existsSync(FDIR)) notEstablished(`feature dir absent: ${FDIR}`);
 if (!existsSync(planPath)) notEstablished('06_implementation_plan.md absent');
 const plan = readFileSync(planPath, 'utf-8');
 if (plan.trim().length < 200) notEstablished('plan suspiciously small (<200 chars)');
+// The EXPECTED_CODE_TARGETS block as C3 reads it (C3 below reuses THIS match — one reader).
+const blockM = plan.match(/EXPECTED_CODE_TARGETS:\s*\n((?:\s*[-*]\s*.+\n?)+)/);
+
+// `## Amendments` as C6 reads it: up to three leading spaces, two to four hashes, trailing text
+// allowed; the section ends at the next level-1..4 heading. Returned as LINE indices over masked
+// lines — [headingLine, endLine). One definition for C6 and planTaskText, or the two drift.
+function findAmendmentsSection(maskedLines) {
+  let head = -1, end = -1;
+  for (let i = 0; i < maskedLines.length; i++) {
+    const pl = maskedLines[i];
+    if (head < 0 && /^ {0,3}#{2,4}\s+Amendments\b/.test(pl)) head = i;
+    else if (head >= 0 && end < 0 && /^ {0,3}#{1,4}\s/.test(pl)) end = i;
+  }
+  if (head >= 0 && end < 0) end = maskedLines.length;
+  return { head, end };
+}
+
+// C10 — the TASK LINES of the plan, the text C1/C8 cite against (the default reader).
+// Masked first (fences and HTML comments blanked, unclosed fence hidden — the K2 reader policy),
+// then: drop the `## Amendments` section and the EXPECTED_CODE_TARGETS block, and keep only
+// headings, list items and table rows. Table rows are kept deliberately, beyond the backlog's
+// «headings/list items»: task tables (`| T1 | … |`) are a corpus form — MEASURED 2026-09-27,
+// dropping them turns 12 more green plans red in pipeline mode (67 vs 55) and 26 more in WARN mode.
+// NAMED LIMIT: a list item or table row that is itself prose («- Note: ADR-001 governs …») still
+// counts — the reader tells structure from prose, not a task from a remark.
+function planTaskText(planText) {
+  const lines = maskMarkdown(planText, { unclosed: 'mask' }).split('\n');
+  const am = findAmendmentsSection(lines);
+  let tFrom = -1, tTo = -1;
+  if (blockM) {
+    tFrom = planText.slice(0, blockM.index).split('\n').length - 1;
+    tTo = planText.slice(0, blockM.index + blockM[0].length - 1).split('\n').length - 1;
+  }
+  const keep = [];
+  for (let i = 0; i < lines.length; i++) {
+    if (am.head >= 0 && i >= am.head && i < am.end) continue;
+    if (tFrom >= 0 && i >= tFrom && i <= tTo) continue;
+    const l = lines[i];
+    if (/^ {0,3}#{1,6}\s/.test(l) || /^\s*(?:[-*+]|\d+[.)])\s+/.test(l) || /^\s*\|/.test(l)) keep.push(l);
+  }
+  return keep.join('\n');
+}
+const planTasks = planTaskText(plan);
+// What C1/C8 cite against, and the ids that pass the raw read but have no task line (C10).
+const citeText = REQUIRE_TASK_LINES ? planTasks : plan;
+const outsideTasksOnly = { C1: [], C8: [] };
+const citedOutsideOnly = (re) => re.test(plan) && !re.test(planTasks);
+
 const adrFiles = existsSync(adrDir) ? readdirSync(adrDir).filter(f => f.endsWith('.md')).sort() : [];
 const planClaimsAdrWork = /\bADR-\d+/.test(plan);
 if (adrFiles.length === 0 && planClaimsAdrWork) notEstablished('no ADR files under 03_adr/, yet the plan cites ADR-<n> — completeness cannot be established');
@@ -243,7 +306,8 @@ if (adrFiles.length === 0 && TIER_REQUIRES_ADR) {
       for (const n of headingNums) {
         const id = `ADR-${n}`;
         const re = new RegExp(`ADR-0*${Number(n)}\\b`);
-        if (!re.test(plan)) failures.push(`C1: ${id} (${safe(f)}) has NO task in the plan referencing it`);
+        if (!re.test(citeText)) failures.push(`C1: ${id} (${safe(f)}) has NO task in the plan referencing it${citedOutsideOnly(re) ? ' (cited only outside task lines)' : ''}`);
+        else if (citedOutsideOnly(re)) outsideTasksOnly.C1.push(id);
       }
       continue;
     }
@@ -251,7 +315,8 @@ if (adrFiles.length === 0 && TIER_REQUIRES_ADR) {
     warnings.push(`C1: ${safe(f)} has no ADR-NNN heading — falling back to the filename prefix`);
     const id = `ADR-${m[1]}`;
     const re = new RegExp(`ADR-0*${Number(m[1])}\\b`);
-    if (!re.test(plan)) failures.push(`C1: ${id} (${safe(f)}) has NO task in the plan referencing it`);
+    if (!re.test(citeText)) failures.push(`C1: ${id} (${safe(f)}) has NO task in the plan referencing it${citedOutsideOnly(re) ? ' (cited only outside task lines)' : ''}`);
+    else if (citedOutsideOnly(re)) outsideTasksOnly.C1.push(id);
   }
 
   // C2 — every Confirmation-listed test file path appears in the plan
@@ -342,7 +407,6 @@ function classifyTargetPath(path) {
 }
 
 // C3 — EXPECTED_CODE_TARGETS block, line-level validation
-const blockM = plan.match(/EXPECTED_CODE_TARGETS:\s*\n((?:\s*[-*]\s*.+\n?)+)/);
 const listedTargets = new Set();
 if (!blockM) failures.push('C3: no EXPECTED_CODE_TARGETS: block in the plan');
 else {
@@ -477,16 +541,14 @@ else for (const t of acidTokens) if (!new RegExp(`\\b${t.replace(/[.*+?^${}()|[\
   // phantom amendment or hand a real testless one someone else's marker. Third fence-blindness
   // found in a checker today, so it is closed here by construction rather than by care.
   const planLines = maskMarkdown(plan, { unclosed: 'mask' }).split('\n');
-  let sectionStart = -1, sectionEnd = -1, cursor = 0;
-  for (const pl of planLines) {
-    // The SAME heading shape amendment-trace.ts accepts: up to three leading spaces, two to four
-    // hashes, and trailing text allowed. C6 required exactly `##` with nothing after, so the two
-    // tools disagreed about where the section even IS — the divergence this feature exists to end.
-    if (sectionStart < 0 && /^ {0,3}#{2,4}\s+Amendments\b/.test(pl)) sectionStart = cursor + pl.length + 1;
-    else if (sectionStart >= 0 && sectionEnd < 0 && /^ {0,3}#{1,4}\s/.test(pl)) sectionEnd = cursor;
-    cursor += pl.length + 1;
-  }
-  if (sectionStart >= 0 && sectionEnd < 0) sectionEnd = plan.length;
+  // The SAME heading shape amendment-trace.ts accepts: up to three leading spaces, two to four
+  // hashes, and trailing text allowed. C6 required exactly `##` with nothing after, so the two
+  // tools disagreed about where the section even IS — the divergence this feature exists to end.
+  // The section boundary itself is `findAmendmentsSection` — shared with C10, one answer.
+  const amRange = findAmendmentsSection(planLines);
+  const lineOffset = (idx) => planLines.slice(0, idx).reduce((acc, l) => acc + l.length + 1, 0);
+  const sectionStart = amRange.head < 0 ? -1 : lineOffset(amRange.head + 1);
+  const sectionEnd = amRange.head < 0 ? -1 : (amRange.end < planLines.length ? lineOffset(amRange.end) : plan.length);
   // Sliced from the MASKED text so the offsets computed above line up with what is scanned.
   const maskedPlan = planLines.join('\n');
   const amSection = sectionStart >= 0 ? maskedPlan.slice(sectionStart, sectionEnd) : '';
@@ -623,7 +685,9 @@ else for (const t of acidTokens) if (!new RegExp(`\\b${t.replace(/[.*+?^${}()|[\
     if (reqIds.length === 0) {
       warnings.push('C8: 01_requirements.md declares NO requirement ids in the contract shapes (FR-N / NFR-N / AC-N / C-N at line start) — nothing to cover');
     } else {
-      const missing = reqIds.filter((id) => !new RegExp('\\b' + escapeReqId(id) + '\\b').test(plan));
+      const reqRe = (id) => new RegExp('\\b' + escapeReqId(id) + '\\b');
+      const missing = reqIds.filter((id) => !reqRe(id).test(citeText));
+      for (const id of reqIds) if (!missing.includes(id) && citedOutsideOnly(reqRe(id))) outsideTasksOnly.C8.push(id);
       if (missing.length === 0) {
         // Silence is not a verdict (K7): a check that ran and found nothing wrong must still print,
         // or a reader cannot tell "C8 ran clean" from "C8 never ran". Deliberately NOT a PASS/FAIL/
@@ -631,7 +695,7 @@ else for (const t of acidTokens) if (!new RegExp(`\\b${t.replace(/[.*+?^${}()|[\
         // mid-stream is exactly the G-F1 forgery class this script's `safe()` already defends against.
         out(`NOTE  C8: all ${reqIds.length} requirement ids referenced`);
       } else if (REQUIRE_REQUIREMENTS) {
-        for (const id of missing) failures.push(`C8: ${id} (01_requirements.md) is not referenced by the plan`);
+        for (const id of missing) failures.push(`C8: ${id} (01_requirements.md) is not referenced by the plan${citedOutsideOnly(reqRe(id)) ? ' (cited only outside task lines)' : ''}`);
       } else {
         const shown = missing.slice(0, 12);
         const more = missing.length > 12 ? `, …and ${missing.length - 12} more` : '';
@@ -639,6 +703,23 @@ else for (const t of acidTokens) if (!new RegExp(`\\b${t.replace(/[.*+?^${}()|[\
       }
     }
   }
+}
+
+// C10 — ids that C1/C8 counted as covered, but whose ONLY citations sit outside task lines
+// (prose, fenced code, an HTML comment, `## Amendments`, the EXPECTED_CODE_TARGETS block). Reached
+// ONLY under --no-require-task-lines: by default C1/C8 already read task lines, so this list is
+// empty by construction. One line per check, ids capped like C8's WARN.
+for (const check of ['C1', 'C8']) {
+  const ids = [...new Set(outsideTasksOnly[check])];
+  if (ids.length === 0) continue;
+  const shown = ids.slice(0, 12);
+  const more = ids.length > 12 ? `, …and ${ids.length - 12} more` : '';
+  // Say what dropping the opt-out would do in THIS invocation (Codex astra r1 MINOR): C1 always
+  // FAILs by default; C8 FAILs only when --require-requirements is also passed — otherwise a WARN.
+  const consequence = check === 'C8' && !REQUIRE_REQUIREMENTS
+    ? 'without --no-require-task-lines this stays a C8 WARN (C8 is enforced only with --require-requirements; add that flag and the default reader fails it)'
+    : `these ids count as covered only because of --no-require-task-lines; the default makes this a ${check} FAIL`;
+  warnings.push(`C10: ${ids.length} ${check} id(s) are cited only outside task lines (prose, fenced code, HTML comment, ## Amendments, EXPECTED_CODE_TARGETS): ${shown.join(', ')}${more} — a mention is not a task; ${consequence}`);
 }
 
 // C5 — Inputs read line

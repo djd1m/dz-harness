@@ -16,9 +16,12 @@
  * @packageDocumentation
  */
 
-import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, renameSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, relative } from 'node:path';
-import { execSync, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
+
+import { randomUUID } from 'node:crypto';
+import { reconcileMemoryDependencies } from './setup-memory-deps.js';
 
 import { mergeManagedHookEntries } from './managed-hooks.js';
 import { writeUniqueStampedFile } from './stamped-path.js';
@@ -146,6 +149,8 @@ export interface SetupResult {
   readonly skipped: number;
   /** The memory backend this run actually used (feature `setup-backend-from-config`, FR-1). */
   readonly memoryBackend: MemoryBackend;
+  /** Observed persisted state; unknown is explicit on failed/uninitialized setup. */
+  readonly memoryBackendObserved?: MemoryBackend | 'unknown';
   /** Where {@link memoryBackend} came from — FR-3, also the `--json` field name. */
   readonly memoryBackendSource: MemoryBackendSource;
   /** `true` when an explicit `--memory jsonl` pulled an agentdb-configured project down (FR-2). */
@@ -547,11 +552,6 @@ function generateDzConfig(target: string, preset: string | undefined, backend: M
   }, null, 2);
 }
 
-/** True if `agentdb` resolves from the project's node_modules (the hook writer needs it there). */
-function isAgentdbInstalledLocally(projectRoot: string): boolean {
-  return existsSync(join(projectRoot, 'node_modules', 'agentdb', 'package.json'));
-}
-
 /**
  * The exact agentdb version installed in the project, or `'latest'` as a fallback. Used to pin the
  * MCP server spec (`agentdb@<version>`) so the long-running MCP server and the hook writer — which
@@ -573,38 +573,6 @@ function installedAgentdbSpec(projectRoot: string): string {
  * build tools — and gives true cross-process WAL concurrency so the hook and the MCP server share
  * one live store). Best-effort: returns false (caller degrades to jsonl) if install fails.
  */
-function installAgentdbLocally(projectRoot: string): boolean {
-  if (isAgentdbInstalledLocally(projectRoot)) return true;
-  try {
-    // Anchor npm to THIS project: without a package.json here, npm's prefix walk-up would
-    // install into (and mutate the lockfile of) the nearest ANCESTOR project (audit code#2).
-    const pkgJsonPath = join(projectRoot, 'package.json');
-    if (!existsSync(pkgJsonPath)) {
-      writeFileSync(pkgJsonPath, JSON.stringify({ name: 'dz-harness-project', private: true, version: '0.0.0' }, null, 2) + '\n');
-    }
-    // NB: use the ESM-imported execSync — `require()` is undefined in this ESM module (the
-    // original agentdb hooks failed silently for exactly this reason). stdio:'ignore' (not
-    // 'pipe') avoids execSync's 1 MB maxBuffer aborting the child on npm's verbose output.
-    // --save-exact: agentdb is alpha; a semver range would let a later `npm update` drift the
-    // local copy away from the version the MCP registration pins (audit gap G7).
-    //
-    // better-sqlite3@^11 (AM-2, dz-harness-hub issue #10 defect 1, MEASURED Node 20.20.2 with no
-    // `make` on PATH): an unpinned `npm install better-sqlite3` resolved 12.11.1, which ships no
-    // prebuilt binary for Node 20's ABI 115 — the install fell through to a node-gyp source build
-    // and failed on a machine with no C toolchain. `agentdb` itself requests `^11.8.1`, which DOES
-    // publish an ABI-115 prebuild, so pinning the range here costs nothing agentdb wasn't already
-    // going to resolve to, and buys a working install on a bare Node 20/22 host.
-    execSync('npm install agentdb better-sqlite3@^11 --save-exact --no-audit --no-fund --loglevel=error', {
-      cwd: projectRoot,
-      stdio: 'ignore',
-      timeout: 300000,
-    });
-    return isAgentdbInstalledLocally(projectRoot);
-  } catch {
-    return false;
-  }
-}
-
 /** Run full environment setup. */
 /** Marker that brackets the dz-harness section in a shared CLAUDE.md/AGENTS.md. */
 const DRIVER_MARKER_START = '<!-- dz-harness-driver:start -->';
@@ -957,19 +925,39 @@ export function runSetup(opts: SetupOptions): SetupResult {
   const resolvedMemory = resolveSetupMemoryBackend(opts.projectRoot, opts.memory, opts.noMemory === true);
   const backend: MemoryBackend = resolvedMemory.backend;
 
-  // Step 0: Install agentdb + better-sqlite3 locally so the session-hook writer can import them
-  // and share a native store with the MCP server. Best-effort — the writer self-degrades to a
-  // jsonl marker (and self-heals once the deps exist) if this fails.
-  if (backend === 'agentdb') {
-    const ready = installAgentdbLocally(opts.projectRoot);
-    if (ready) {
-      steps.push({ name: 'Install agentdb + better-sqlite3', status: 'done', detail: 'local deps for real vector writes' });
-    } else {
-      steps.push({
-        name: 'Install agentdb + better-sqlite3',
-        status: 'error',
-        detail: 'install failed — hooks log to sessions.jsonl until you run: npm i agentdb better-sqlite3',
-      });
+  const configPath = join(dzDir, 'config.json');
+  let config: Record<string, unknown> | undefined;
+  const observedBackend = (): MemoryBackend | 'unknown' => {
+    try {
+      const value = JSON.parse(readFileSync(configPath, 'utf8')) as { memory?: { backend?: unknown } };
+      return value?.memory?.backend === 'agentdb' || value?.memory?.backend === 'jsonl' ? value.memory.backend : 'unknown';
+    } catch { return 'unknown'; }
+  };
+  const finish = (): SetupResult => ({
+    steps, totalSteps: steps.length, completed: steps.filter(step => step.status === 'done').length,
+    skipped: steps.filter(step => step.status === 'skipped').length,
+    memoryBackend: observedBackend() === 'unknown' ? resolvedMemory.backend : observedBackend() as MemoryBackend,
+    memoryBackendObserved: observedBackend(), memoryBackendSource: resolvedMemory.source,
+    memoryBackendDowngraded: resolvedMemory.downgraded,
+  });
+  try {
+    if (existsSync(configPath)) {
+      const value: unknown = JSON.parse(readFileSync(configPath, 'utf8'));
+      if (value === null || typeof value !== 'object' || Array.isArray(value)) throw Error('config must be an object');
+      config = value as Record<string, unknown>;
+      const memory = config['memory'];
+      if (memory === null || typeof memory !== 'object' || Array.isArray(memory) || !['jsonl', 'agentdb'].includes(String((memory as Record<string, unknown>)['backend']))) throw Error('memory.backend must be jsonl or agentdb');
+    }
+  } catch (error) {
+    steps.push({ name: 'Memory saved state', status: 'error', detail: `unknown INCOMPLETE: malformed .dz/config.json preserved; ${String(error)}` });
+    return finish();
+  }
+  if (backend === 'agentdb' && !opts.noMemory) {
+    const deps = reconcileMemoryDependencies(opts.projectRoot);
+    steps.push({ name: 'Memory dependencies', status: deps.ready ? (deps.changedManifest || deps.changedLock || deps.detail.startsWith('repaired') ? 'done' : 'skipped') : 'error', detail: deps.detail });
+    if (!deps.ready) {
+      steps.push({ name: 'Memory backend transition', status: 'error', detail: `saved backend ${observedBackend()} INCOMPLETE before config persistence; dependency/npm/native failure; later memory phases not run` });
+      return finish();
     }
   }
 
@@ -981,38 +969,32 @@ export function runSetup(opts: SetupOptions): SetupResult {
     steps.push({ name: 'Create .dz directory', status: 'skipped', detail: 'already exists' });
   }
 
-  // Step 2: Write .dz/config.json. FR-2: a DOWNGRADE (explicit --memory jsonl over an
-  // agentdb-configured project) forces the write even without --force — "two truths after any
-  // setup coincide" means the config may not keep claiming agentdb once the caller has explicitly
-  // asked for jsonl.
-  const configPath = join(dzDir, 'config.json');
-  if (!existsSync(configPath) || opts.force) {
-    writeFileSync(configPath, generateDzConfig(opts.target, opts.preset, backend));
-    steps.push({ name: 'Write .dz/config.json', status: 'done', detail: `${backend} backend` });
-  } else if (resolvedMemory.downgraded) {
-    // Lead edit after Codex review (finding 3): a downgrade changes ONLY memory.backend — every other
-    // field the owner keeps in .dz/config.json survives; an unparsable file falls back to regeneration.
-    let rewritten = false;
-    try {
-      const cfg = JSON.parse(readFileSync(configPath, 'utf-8')) as Record<string, unknown>;
-      const memory = (cfg['memory'] !== null && typeof cfg['memory'] === 'object') ? (cfg['memory'] as Record<string, unknown>) : {};
-      cfg['memory'] = { ...memory, backend };
-      writeFileSync(configPath, JSON.stringify(cfg, null, 2) + '\n');
-      rewritten = true;
-    } catch { /* fall through to regeneration */ }
-    if (!rewritten) writeFileSync(configPath, generateDzConfig(opts.target, opts.preset, backend));
-    steps.push({ name: 'Write .dz/config.json', status: 'done', detail: `memory.backend → ${backend} (other fields kept)` });
+  // Persist only the requested backend field of readable existing config, atomically.
+  const priorBackend = observedBackend();
+  if (opts.noMemory) {
+    steps.push({ name: 'Write .dz/config.json', status: 'skipped', detail: '--no-memory: existing memory configuration preserved' });
   } else {
-    steps.push({ name: 'Write .dz/config.json', status: 'skipped', detail: 'already exists (use --force)' });
-  }
-  if (resolvedMemory.downgraded) {
-    steps.push({
-      name: 'Memory backend downgrade',
-      status: 'done',
-      detail: '⚠ memory backend downgraded agentdb → jsonl by --memory jsonl',
-    });
+    const transition = config !== undefined && opts.memory !== undefined && priorBackend !== backend;
+    if (config === undefined || opts.force || transition) {
+      const next = config !== undefined
+        ? { ...config, memory: { ...(config['memory'] as Record<string, unknown>), backend } }
+        : JSON.parse(generateDzConfig(opts.target, opts.preset, backend));
+      const temporary = `${configPath}.${randomUUID()}.tmp`;
+      try {
+        writeFileSync(temporary, JSON.stringify(next, null, 2) + '\n', { flag: 'wx' });
+        renameSync(temporary, configPath);
+        steps.push({ name: 'Write .dz/config.json', status: 'done', detail: transition ? `memory.backend ${priorBackend} → ${backend}; all other config fields kept` : `${backend} backend` });
+      } catch (error) {
+        if (existsSync(temporary)) rmSync(temporary);
+        steps.push({ name: 'Memory backend transition', status: 'error', detail: `saved backend ${observedBackend()} INCOMPLETE: config persistence failed; later memory wiring not run; ${String(error)}` });
+        return finish();
+      }
+    } else steps.push({ name: 'Write .dz/config.json', status: 'skipped', detail: 'already current; existing config preserved' });
+    if (resolvedMemory.downgraded) steps.push({ name: 'Memory backend downgrade', status: 'done', detail: '⚠ memory backend downgraded agentdb → jsonl by --memory jsonl; other config fields kept' });
   }
 
+  try {
+  if (!opts.noMemory) {
   // Step 3: Initialize session log
   const sessionsPath = join(dzDir, 'sessions.jsonl');
   if (!existsSync(sessionsPath)) {
@@ -1064,18 +1046,20 @@ export function runSetup(opts: SetupOptions): SetupResult {
     }
   }
 
+  } // --no-memory performs no memory store initialization.
+
   // Step 4.6: Install apply-leg — the WORK happens here (before "Configure hooks" writes
   // SessionStart), so a foreign SessionStart entry is already in place before that step's own
   // merge ever sees it; see `applyLegStepResult`'s doc for why order matters. The STEP is reported
   // further down, after "Configure hooks" pushes its own, so the printed order still reads as
   // "collect → rank → apply".
-  const applyLegStep = applyLegStepResult(opts, backend);
+  const applyLegStep: SetupStep = opts.noMemory ? { name: 'Install apply-leg', status: 'skipped', detail: '--no-memory' } : applyLegStepResult(opts, backend);
 
   // Step 5: Configure hooks (write to .claude/settings.json) — EVENT-LEVEL merge (gap G2):
   // dz-generated entries (recognized by signature, incl. the broken legacy `agentdb add` hooks
   // this feature fixes) are replaced in place WITHOUT --force; the user's own hooks and every
   // other settings key are preserved. Full-file overwrite happens only when the file is absent.
-  if (!opts.noHooks) {
+  if (!opts.noHooks && !opts.noMemory) {
     const settingsDir = join(opts.projectRoot, '.claude');
     const settingsPath = join(settingsDir, 'settings.json');
 
@@ -1253,7 +1237,7 @@ export function runSetup(opts: SetupOptions): SetupResult {
       }
     }
   } else {
-    steps.push({ name: 'Configure hooks', status: 'skipped', detail: '--no-hooks' });
+    steps.push({ name: 'Configure hooks', status: 'skipped', detail: opts.noMemory ? '--no-memory: existing hooks and guards preserved; no delivery' : '--no-hooks' });
   }
 
   // Step 5.6: Install apply-leg — report pushed AFTER "Configure hooks" below (for a report order
@@ -1264,7 +1248,7 @@ export function runSetup(opts: SetupOptions): SetupResult {
   // Step 5.5: Register agentdb MCP through the SAME ownership-aware transaction used by `dz init`.
   // `.mcp.json` is the project-scope carrier Claude Code actually loads. A known historical dz
   // agentdb shape is adopted; an ambiguous hand-authored entry is preserved and named as an error.
-  if (backend === 'agentdb') {
+  if (backend === 'agentdb' && !opts.noHooks && !opts.noMemory) {
     const agentdbEntry = {
       command: 'npx',
       // Pin to the INSTALLED agentdb version (not @latest) so the MCP server and the hook
@@ -1322,12 +1306,28 @@ export function runSetup(opts: SetupOptions): SetupResult {
     }
   }
 
+  } catch (error) {
+    steps.push({ name: 'Memory backend transition', status: 'error', detail: `saved backend ${observedBackend()} INCOMPLETE: managed wiring failed after persistence; ${String(error)}` });
+    return finish();
+  }
+
+  // Saved/local/native agreement is independent of hook installation.
+  if (!opts.noMemory) {
+    const actual = observedBackend();
+    const problems: string[] = actual === backend ? [] : [`saved backend ${actual} differs from requested ${backend}`];
+    if (backend === 'agentdb') {
+      const deps = reconcileMemoryDependencies(opts.projectRoot, false);
+      if (!deps.ready) problems.push(deps.detail);
+    }
+    steps.push({ name: 'Memory saved state', status: problems.length ? 'error' : 'done', detail: problems.length ? `saved backend ${actual} INCOMPLETE: ${problems.join('; ')}` : `saved backend ${actual}; dependencies/native state consistent` });
+  }
+
   // Step 5.9: agentdb wiring invariant check (audit code#3). Skip-branches across repeated runs
   // can leave inconsistent combinations (e.g. writer+MCP present but hooks still jsonl). Verify
   // the three-way invariant explicitly and surface a loud error step instead of silent "skipped"s.
-  if (backend === 'agentdb' && !opts.noHooks) {
+  if (backend === 'agentdb' && !opts.noHooks && !opts.noMemory) {
     const problems: string[] = [];
-    if (!isAgentdbInstalledLocally(opts.projectRoot)) problems.push('deps missing (npm i agentdb better-sqlite3)');
+    if (observedBackend() !== backend) problems.push(`saved backend ${observedBackend()} differs from ${backend}`);
     try {
       const settings = JSON.parse(readFileSync(join(opts.projectRoot, '.claude', 'settings.json'), 'utf-8')) as {
         hooks?: Record<string, unknown[]>;
@@ -1357,7 +1357,7 @@ export function runSetup(opts: SetupOptions): SetupResult {
   // sentinel check (e.g. sessions.jsonl, present in both backends) would skip agentdb.db/-wal/-shm
   // on the documented jsonl→agentdb `--force` switch, leaking the binary store into git.
   const gitignorePath = join(opts.projectRoot, '.gitignore');
-  const dzIgnoreLines = backend === 'agentdb'
+  const dzIgnoreLines = opts.noMemory ? [] : backend === 'agentdb'
     ? ['.dz/agentdb.db', '.dz/agentdb.db-wal', '.dz/agentdb.db-shm',
        '.dz/agentdb-mcp.db', '.dz/agentdb-mcp.db-wal', '.dz/agentdb-mcp.db-shm',
        '.dz/sessions.jsonl']
@@ -1374,7 +1374,7 @@ export function runSetup(opts: SetupOptions): SetupResult {
       detail: `added ${missing.join(', ')}`,
     });
   } else {
-    steps.push({ name: 'Update .gitignore', status: 'skipped', detail: 'already ignoring .dz data' });
+    steps.push({ name: 'Update .gitignore', status: 'skipped', detail: opts.noMemory ? '--no-memory: existing ignore rules preserved' : 'already ignoring .dz data' });
   }
 
   // Step 7: Install the CLI-driver skill + agent docs (--install-driver)
@@ -1383,13 +1383,10 @@ export function runSetup(opts: SetupOptions): SetupResult {
     steps.push({ name: 'Install driver skill', status: 'done', detail });
   }
 
-  return {
-    steps,
-    totalSteps: steps.length,
-    completed: steps.filter((s) => s.status === 'done').length,
-    skipped: steps.filter((s) => s.status === 'skipped').length,
-    memoryBackend: resolvedMemory.backend,
-    memoryBackendSource: resolvedMemory.source,
-    memoryBackendDowngraded: resolvedMemory.downgraded,
-  };
+  const failed = steps.filter(step => step.status === 'error');
+  if (!opts.noMemory && backend === 'agentdb') steps.push({
+    name: 'Memory backend transition', status: failed.length ? 'error' : 'done',
+    detail: failed.length ? `saved backend ${observedBackend()} INCOMPLETE; failed phase: ${failed.map(step => step.name).join(', ')}` : `saved backend ${observedBackend()} ready; ${priorBackend === backend ? 'already current' : `${priorBackend} → ${backend} transition complete`}`,
+  });
+  return finish();
 }

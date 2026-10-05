@@ -3521,9 +3521,142 @@ function codeLandingLivenessProbeCmd(repo, plan, baselineAbsPath, jobId, waitSec
 // A Bash one-liner that waits for a Codex OUT-OF-BAND artifact write to LAND: polls up to ~40s until
 // the file exists, is non-empty, AND its size is stable across two reads (write finished). Assumes a
 // fresh feature slug (no stale same-path artifact) — true for a normal /feature-adr run.
+// The printed count is stripped to digits (tr -cd 0-9): BSD/macOS wc -c left-pads it, and
+// parseLandedProbe accepts only landed=<digits> (Codex astra r1 MAJOR, landed-barrier-anchored-line).
 function landedProbeCmd(f) {
-  return 'f="' + f + '"; last=-1; for i in 1 2 3 4 5 6 7 8; do if [ -s "$f" ]; then s=$(wc -c < "$f"); if [ "$s" = "$last" ]; then break; fi; last=$s; fi; sleep 5; done; [ -s "$f" ] && echo "landed=$(wc -c < "$f")" || echo "absent"'
+  return 'f="' + f + '"; last=-1; for i in 1 2 3 4 5 6 7 8; do if [ -s "$f" ]; then s=$(wc -c < "$f"); if [ "$s" = "$last" ]; then break; fi; last=$s; fi; sleep 5; done; [ -s "$f" ] && echo "landed=$(wc -c < "$f" | tr -cd 0-9)" || echo "absent"'
 }
+
+// Mirror of parseLandedProbe in harness-core/src/feature-adr-routing.ts (body-pinned by the drift
+// guard in test/feature-adr-model-routing.test.ts; backlog 1f0353f7bdb53588). The probe above writes
+// its verdict as its LAST line, so only the last non-empty line decides and it must be exactly
+// landed=<positive digits>; a landed= anywhere else in the transport agent's reply is not a landing.
+// Trailing blank lines and code-fence lines are tolerated; any other trailing text is not.
+function parseLandedProbe(raw) {
+  const lines = String(raw === null || raw === undefined ? '' : raw).split('\n').map(function (l) { return l.trim() }).filter(function (l) { return l !== '' && !/^\x60\x60\x60+[\w-]*$/.test(l) })
+  if (lines.length === 0) return { landed: false, bytes: null, reason: 'empty-agent-reply' }
+  const m = /^landed=(\d+)$/.exec(String(lines[lines.length - 1]))
+  if (m === null) return { landed: false, bytes: null, reason: 'no-landed-line' }
+  const bytes = Number(m[1])
+  if (!(bytes > 0)) return { landed: false, bytes: bytes, reason: 'zero-bytes' }
+  return { landed: true, bytes: bytes, reason: 'landed' }
+}
+// Inline coder context host contract. Pure wire validation only; filesystem IO stays in the host.
+const CODER_CONTEXT_SCHEMA = 'fa-coder-context-1'
+function coderContextCommand(repo, featureDir, tier, opts) {
+  const q = (s) => "'" + String(s).replace(/'/g, "'\\''") + "'"
+  const absolute = (value) => {
+    if (typeof value !== 'string' || value.charAt(0) !== '/' || /(^|\/)\.\.(\/|$)/.test(value) || /[\x00-\x1f]/.test(value)) throw new Error('coder context paths must be absolute without traversal or control characters')
+    return value
+  }
+  if (['S', 'M', 'L', 'XL'].indexOf(tier) === -1) throw new Error('invalid coder context tier')
+  const script = '.claude/skills/feature-adr/scripts/build-coder-context.mjs'
+  const explicit = opts && opts.script != null ? absolute(opts.script) : null
+  const workspace = opts && opts.workspace != null ? absolute(opts.workspace) : null
+  absolute(repo)
+  const selected = featureDir.charAt(0) === '/' ? absolute(featureDir) : absolute(repo + '/' + featureDir)
+  const unavailable = JSON.stringify({ schema: CODER_CONTEXT_SCHEMA, status: 'unavailable', promptBlock: '', digest: null, sources: [], diagnostics: [{ source: script, reason: 'helper-missing', severity: 'error' }] })
+  return [
+    'CC_WORKSPACE=' + (workspace === null ? '$(pwd -P)' : q(workspace)) + "; CC_SCRIPT=''",
+    'CC_ONE=' + (explicit === null ? "''" : q(explicit)) + '; CC_TWO="$CC_WORKSPACE/' + script + '"; CC_THREE=' + q(repo + '/' + script),
+    'for c in "$CC_ONE" "$CC_TWO" "$CC_THREE"; do [ -n "$c" ] && [ -f "$c" ] && { CC_SCRIPT="$c"; break; }; done',
+    'if [ -n "$CC_SCRIPT" ]; then node "$CC_SCRIPT" ' + q(selected) + ' --tier=' + q(tier) + '; else printf \'%s\\n\' ' + q(unavailable) + '; printf \'coder context helper missing; tried: %s | %s | %s\\n\' "$CC_ONE" "$CC_TWO" "$CC_THREE" >&2; exit 1; fi',
+  ].join('\n')
+}
+function coderContextUtf8Bytes(value) {
+  let bytes = 0
+  for (const ch of value) { const cp = ch.codePointAt(0); bytes += cp <= 127 ? 1 : cp <= 2047 ? 2 : cp <= 65535 ? 3 : 4 }
+  return bytes
+}
+function parseCoderContextEnvelope(raw, tier) {
+  const failed = (source, reason) => ({ schema: CODER_CONTEXT_SCHEMA, status: 'unavailable', promptBlock: '', digest: null, sources: [], diagnostics: [{ source: source, reason: reason, severity: 'error' }] })
+  if (typeof raw !== 'string' || coderContextUtf8Bytes(raw) > 2 * 1024 * 1024) return failed('relay', 'invalid-envelope')
+  let value
+  try { value = JSON.parse(raw) } catch (_) { return failed('relay', 'invalid-json') }
+  if (!value || typeof value !== 'object' || Array.isArray(value) || value.schema !== CODER_CONTEXT_SCHEMA || ['complete', 'incomplete', 'unavailable'].indexOf(value.status) === -1 || typeof value.promptBlock !== 'string' || !Array.isArray(value.sources) || !Array.isArray(value.diagnostics)) return failed('relay', 'invalid-envelope')
+  const hash = (v) => typeof v === 'string' && /^[0-9a-f]{64}$/.test(v)
+  if (!(value.digest === null || hash(value.digest)) || coderContextUtf8Bytes(value.promptBlock) > 96 * 1024 || value.sources.length > 64 || value.diagnostics.length > 256) return failed('relay', 'invalid-envelope')
+  const seen = new Set()
+  let total = 0
+  for (const source of value.sources) {
+    if (!source || typeof source !== 'object' || typeof source.path !== 'string' || source.path.length > 512 || seen.has(source.path) || /[\x00-\x1f]/.test(source.path)) return failed('relay', 'invalid-source')
+    const kind = source.path === '01_requirements.md' ? 'requirements' : source.path === '06_implementation_plan.md' ? 'plan' : /^03_adr\/[0-9]{3}-[^/\\\x00-\x1f]+\.md$/.test(source.path) || source.path === '03_adr' ? 'adr' : null
+    if (kind === null || source.kind !== kind || !Number.isInteger(source.bytes) || source.bytes < 0 || ['read', 'missing', 'unreadable', 'invalid', 'oversized'].indexOf(source.status) === -1 || !(source.digest === null || hash(source.digest))) return failed(source.path, 'invalid-source')
+    if (source.status === 'read' && (!hash(source.digest) || source.bytes > 256 * 1024 || source.path === '03_adr')) return failed(source.path, 'invalid-source')
+    seen.add(source.path); total += source.bytes
+  }
+  const reasons = ['invalid-tier', 'invalid-source', 'duplicate-source', 'document-limit', 'file-limit', 'aggregate-limit', 'unclosed-fence', 'unclosed-comment', 'empty-section', 'duplicate-section', 'missing-section', 'missing-source', 'prompt-limit', 'invalid-root', 'invalid-file', 'outside-root', 'read-failure', 'invalid-utf8', 'invalid-arguments', 'helper-missing']
+  for (const d of value.diagnostics) {
+    if (!d || typeof d !== 'object' || typeof d.source !== 'string' || d.source.length > 4096 || reasons.indexOf(d.reason) === -1 || ['error', 'warning'].indexOf(d.severity) === -1 || (d.section !== undefined && typeof d.section !== 'string')) return failed('relay', 'invalid-diagnostic')
+  }
+  if (value.status === 'complete') {
+    if (!hash(value.digest) || !value.promptBlock.trim() || total > 1024 * 1024 || value.diagnostics.some((d) => d.severity === 'error') || value.sources.some((s) => s.status !== 'read' || s.bytes === 0)) return failed('relay', 'contradictory-complete')
+    for (const path of ['01_requirements.md', '06_implementation_plan.md']) if (!seen.has(path)) return failed(path, 'missing-source')
+    if (tier !== 'S' && !value.sources.some((s) => s.kind === 'adr')) return failed('03_adr', 'missing-source')
+  }
+  return value
+}
+
+// Review convergence host contract BEGIN. No Node imports in the Workflow sandbox.
+const REVIEW_CONVERGENCE_SCHEMA = 'fa-review-convergence-1'
+function reviewConvergenceCommand(action, reviewPhase, reviewers) {
+  const script = '.claude/skills/feature-adr/scripts/check-review-convergence.mjs'
+  const q = (s) => "'" + String(s).replace(/'/g, "'\\''") + "'"
+  const flags = ' ' + q(action) + ' --repo ' + q(REPO) + ' --feature ' + q(FDIR) + ' --phase ' + q(reviewPhase) + (action === 'prepare' ? ' --reviewers ' + q(JSON.stringify(reviewers)) : '')
+  return [
+    'RC_WORKSPACE=' + (WS ? q(WS) : '$(pwd -P)') + "; RC_SCRIPT=''",
+    'for c in "$RC_WORKSPACE/' + script + '" ' + q(REPO + '/' + script) + '; do [ -f "$c" ] && { RC_SCRIPT="$c"; break; }; done',
+    'if [ -n "$RC_SCRIPT" ]; then node "$RC_SCRIPT"' + flags + '; RC_STATUS=$?; else printf \'%s\\n\' ' + q(JSON.stringify({ schema: REVIEW_CONVERGENCE_SCHEMA, phase: reviewPhase, verdict: 'not-established', revision: null, unresolved: [], reasons: ['installed-helper-missing'] })) + '; RC_STATUS=3; fi',
+    'printf \'RC_EXIT=%s\\n\' "$RC_STATUS"',
+  ].join('\n')
+}
+function parseReviewConvergenceRelay(raw, reviewPhase, action) {
+  const failed = (reason) => ({ schema: REVIEW_CONVERGENCE_SCHEMA, phase: reviewPhase, verdict: 'not-established', revision: null, unresolved: [], reasons: [reason] })
+  if (typeof raw !== 'string' || raw.length > 2 * 1024 * 1024) return failed('relay-invalid')
+  const match = /^([^\r\n]+)\r?\nRC_EXIT=(0|1|3)\r?\n?$/.exec(raw)
+  if (!match) return failed('relay-not-exact-stdout')
+  let v
+  try { v = JSON.parse(match[1]) } catch (_) { return failed('relay-invalid-json') }
+  const keys = action === 'prepare' && v && v.verdict === 'prepared' ? ['schema', 'phase', 'verdict', 'revision', 'unresolved', 'reasons', 'nonce', 'manifest', 'conditions', 'reviewers', 'checkpointDigest'] : ['schema', 'phase', 'verdict', 'revision', 'unresolved', 'reasons']
+  if (action === 'evaluate' && v && Object.prototype.hasOwnProperty.call(v, 'checkpointClosure')) keys.push('checkpointClosure')
+  if (!v || typeof v !== 'object' || Array.isArray(v) || Object.keys(v).length !== keys.length || Object.keys(v).some(k => keys.indexOf(k) === -1) || v.schema !== REVIEW_CONVERGENCE_SCHEMA || v.phase !== reviewPhase || !Array.isArray(v.unresolved) || !v.unresolved.every(s => typeof s === 'string') || !Array.isArray(v.reasons) || !v.reasons.every(s => typeof s === 'string') || !(v.revision === null || typeof v.revision === 'string' && /^[a-f0-9]{64}$/.test(v.revision))) return failed('relay-invalid-envelope')
+  const expected = v.verdict === 'closed' || v.verdict === 'prepared' ? '0' : v.verdict === 'unresolved' ? '1' : v.verdict === 'not-established' ? '3' : null
+  if (expected === null || match[2] !== expected || action === 'evaluate' && v.verdict === 'prepared' || action === 'prepare' && v.verdict === 'closed') return failed('relay-verdict-exit-conflict')
+  if ((v.verdict === 'closed' || v.verdict === 'prepared') && (!v.revision || v.reasons.length || v.unresolved.length)) return failed('relay-contradictory-success')
+  if (v.verdict === 'prepared' && (typeof v.nonce !== 'string' || !v.nonce || !Array.isArray(v.manifest) || !Array.isArray(v.conditions) || !Array.isArray(v.reviewers) || !(v.checkpointDigest === null || typeof v.checkpointDigest === 'string' && /^[a-f0-9]{64}$/.test(v.checkpointDigest)))) return failed('relay-invalid-snapshot')
+  if (v.checkpointClosure && (v.verdict !== 'closed' || Object.keys(v.checkpointClosure).sort().join(',') !== 'checkpoint,checkpointDigest,revision' || v.checkpointClosure.revision !== v.revision || typeof v.checkpointClosure.checkpointDigest !== 'string' || !/^[a-f0-9]{64}$/.test(v.checkpointClosure.checkpointDigest) || !v.checkpointClosure.checkpoint || typeof v.checkpointClosure.checkpoint !== 'object')) return failed('relay-invalid-checkpoint-closure')
+  return v
+}
+async function reviewConvergenceGate(action, reviewPhase, reviewers) {
+  const command = reviewConvergenceCommand(action, reviewPhase, reviewers)
+  const raw = await dispatchAgent(newRung(), 'Run EXACTLY this via Bash. Return ONLY its stdout, including RC_EXIT, with no fences, narration, or synthesized result:\n' + command, { label: 'review-convergence:' + reviewPhase + ':' + action, phase: reviewPhase === 'ideation' ? 'Design' : 'QE', effort: 'low' })
+  return parseReviewConvergenceRelay(raw, reviewPhase, action)
+}
+function reviewConvergencePrompt(reviewPhase, reviewerId, family, prepared) {
+  if (prepared && Array.isArray(prepared.reviewers)) {
+    const actual = prepared.reviewers.find(r => r.id === reviewerId && r.family === family) || prepared.reviewers.find(r => r.id === reviewerId + ':' + family && r.family === family)
+    if (actual) reviewerId = actual.id
+  }
+  const identity = reviewerId === 'qcsd' ? 'Coordinate the actual qcsd-quality, qcsd-risk, qcsd-testability independent reviewers; each must write and verify only its own entry. The coordinator cannot manufacture their receipts from grades or report prose. Use the host role for each base id with actual family ' + family + ' (a retained other-family owner remains a separate required reviewer)'  : 'Your originating independent role is ' + reviewerId + ', actual family ' + family
+  return ' REVIEW CONVERGENCE: read ' + FDIR + '/.fa-state/review-convergence-' + reviewPhase + '-host.json and the installed feature-adr module receipt contract. ' + identity + '. Preserve every prior own condition with identical meaning/ID and every serious finding. Review the complete measured manifest at its revision/nonce; if any required input is missing or moving, report not-established rather than inventing approval. Write your own structured review entry into ' + FDIR + '/.fa-state/review-convergence-' + reviewPhase + '-review.json, preserving other reviewer entries and the actual author handoff. Never infer closure from grade. Each entry must contain reviewer, family, independent:true, verdict, conditions, verifications, explicit newRisks assessment/evidence/conditions, authorAssessmentChecked, and deltaVerification (null on initial review; independent classification/evidence/implementationVerified on rework). If your agent/transport fails after writing, your existing own entry remains original evidence: the host imports it before any family transition. Only verify your own conditions at the current revision; structural changes require implementation/test verification. The host gate will refuse missing/stale evidence. If a host snapshot is unavailable, preserve provisional findings in the ordinary report and name the repair. Do not call prepare or edit host lineage.'
+}
+function reviewConvergenceRefusal(reviewPhase, verdict, evidence) {
+  return { phase: 'review-convergence-' + reviewPhase, outcome: 'unverified', slug: SLUG, artifactsDir: FDIR, convergence: verdict, reviewerEvidence: evidence || null, note: 'Review closure is ' + verdict.verdict + ': ' + verdict.reasons.join(', ') + '. Host-driven repair: settle current artifacts; invoke the installed check-review-convergence.mjs prepare --repo <repo> --feature <feature-dir> --phase ' + reviewPhase + ' --reviewers <the selected actual base-role families JSON; host retains originated owner roles>; provide an author delta/addressed IDs/evidence/explicit new-risk assessment; have each originating independent reviewer verify its own conditions and actual structural/wording delta at the host revision/nonce, writing the reviewer receipt named in the Step ' + (reviewPhase === 'ideation' ? '3.5' : '8') + ' module; run evaluate with the same repo/feature/phase; re-invoke the same slug. Prior conditions stay in the host checkpoint. pending-reviewer-receipt-needs-origin-review pauses before fallback dispatch: keep the original receipt, have its originating reviewer repair malformed/foreign fields or refresh unknown stale findings at the unchanged host identity/current snapshot, then repeat prepare for the selected actual family. Valid partial own entries are retained without claiming closure; complete the full returned roster and own verifications before evaluate. Do not delete or replace original evidence to bootstrap. For same-slug QE resume, read prepare checkpointDigest and the complete latest qe result in .fa-state/checkpoints.jsonl. Each originating reviewer must additionally write checkpointVerification with that digest, supported:true, route native/mode-b/fallback, independent evidence, findings mapping every original serious gap SHA-256(JSON.stringify(gap)) to its own preserved conditionId, and reportDigest (null except a failed precision append requires SHA-256 of the current complete 08_qe_report.md). Own current structural verifications are required for every mapped finding. The gate binds the complete old checkpoint and current manifest; resume retains historical gaps/grade. A scribe or author cannot produce this reviewer proof. Outstanding serious risks at the round ceiling require owner escalation. No automatic repair loop ran.' }
+}
+function currentSeriousReviewFindings(stage) {
+  const serious = []
+  for (const source of [stage && stage.qe, stage && stage.qe2]) {
+    for (const gap of source && Array.isArray(source.gaps) ? source.gaps : []) {
+      const seriousSeverity = [gap.sev, gap.severity, gap.priority].some(value => /(?:^|[^A-Z0-9])(BLOCKER|CRITICAL|HIGH|P0|P1)(?:$|[^A-Z0-9])/.test(String(value || '').toUpperCase()))
+      if (seriousSeverity) serious.push(gap)
+    }
+  }
+  return serious
+}
+function historicalReviewClosure(verdict, stage) {
+  return resumedStages.indexOf('qe') !== -1 && verdict.checkpointClosure && verdict.checkpointClosure.revision === verdict.revision && JSON.stringify(verdict.checkpointClosure.checkpoint) === JSON.stringify(stage)
+}
+// Review convergence host contract END.
 
 // ── K2 plan-completeness gate (feature fa-plan-gate-wiring) ────────────────────────────────────
 // The coder (Step-7) must NOT start on an incomplete plan. Mirrors of the pure halves in
@@ -3866,6 +3999,12 @@ function setDesignProvenance(baseLabel, label) {
 }
 
 async function designStage(promptText, opts, artifactPath, baseLabel) {
+  const convergenceBasePrompt = promptText
+  if (baseLabel === 'qcsd') {
+    const initialConvergence = await reviewConvergenceGate('prepare', 'ideation', ['qcsd-quality', 'qcsd-risk', 'qcsd-testability'].map(id => ({ id: id, family: tpFamily(modelLabel(opts)) })))
+    if (initialConvergence.verdict !== 'prepared') return reviewConvergenceRefusal('ideation', initialConvergence, null)
+    promptText += reviewConvergencePrompt('ideation', 'qcsd', tpFamily(modelLabel(opts)))
+  }
   if (!needsLandedBarrier(opts)) { return await dispatchAgent(newRung(), promptText, opts) }
   const codexOpts = {}
   for (const k in opts) if (k !== 'schema') codexOpts[k] = opts[k]
@@ -3885,15 +4024,21 @@ async function designStage(promptText, opts, artifactPath, baseLabel) {
   const designRungHolder = newRung()
   const res = await safeCodexAgent(promptText + codexEffortHint(codexOpts) + ' IMPORTANT: run the Codex task in FOREGROUND (synchronous — do NOT pass --background) so this call blocks until the file is fully written to disk.', codexOpts, designRungHolder)
   const probe = await dispatchAgent(newRung(), 'Confirm a Codex OUT-OF-BAND artifact write has LANDED before the next stage reads it. Run EXACTLY this via Bash and return its stdout verbatim, nothing else:\n' + landedProbeCmd(artifactPath), { label: 'design:confirm-landed', phase: 'Design', effort: 'low' })
-  if (res && probe && /landed=/.test(String(probe))) return { wrote: [artifactPath], summary: String(res).slice(0, 300) }
+  if (res && probe && parseLandedProbe(probe).landed) return { wrote: [artifactPath], summary: String(res).slice(0, 300) }
   log('design artifact did not land on codex (' + artifactPath + ') — falling back to Claude')
   const fallbackOpts = {}
   // R18: ONE mapping for the whole class. The boolean below still writes the provenance TEXT (a
   // separate sentence, unchanged), but the LINE's reason now comes from the rung's three-valued
   // outcome so no branch here can silently re-flatten it back to "the previous rung ran".
   const designRung = designProbeFailed ? { state: 'probe-failed', reason: null } : designRungHolder
+  // Review convergence design fallback boundary BEGIN.
+  if (baseLabel === 'qcsd') {
+    const fallbackConvergence = await reviewConvergenceGate('prepare', 'ideation', ['qcsd-quality', 'qcsd-risk', 'qcsd-testability'].map(id => ({ id: id, family: 'claude' })))
+    if (fallbackConvergence.verdict !== 'prepared') return reviewConvergenceRefusal('ideation', fallbackConvergence, null)
+  }
   setDesignProvenance(baseLabel, modelLabel(fallbackOpts) + codexFallbackProvenance(designRung, 'codex not-landed', false))
-  const fb = await dispatchAgent(newRung(), promptText, mergeOpts({ label: stageLabel((baseLabel || 'design') + ':claude-fb', fallbackOpts), phase: 'Design', schema: ARTIFACT }, fallbackOpts), mergeOpts(fallbackOpts, { _stage: opts._stage, _reason: 'fallback-rung' }))
+  const fb = await dispatchAgent(newRung(), convergenceBasePrompt + (baseLabel === 'qcsd' ? reviewConvergencePrompt('ideation', 'qcsd', 'claude') : ''), mergeOpts({ label: stageLabel((baseLabel || 'design') + ':claude-fb', fallbackOpts), phase: 'Design', schema: ARTIFACT }, fallbackOpts), mergeOpts(fallbackOpts, { _stage: opts._stage, _reason: 'fallback-rung' }))
+  // Review convergence design fallback boundary END.
   // d926ee89: the fallback used to keep CODEX provenance — modelsUsed, the checkpoint label and the
   // training-pair family all still said codex after Claude wrote the artifact. The WRITER is the
   // provenance; overwrite it here, at the one place that knows the fallback fired.
@@ -4598,6 +4743,14 @@ if (registryOutcome !== 'unverified') registryOutcome = designIncompleteOutcome
   return { tier: tier, phase: 'design-incomplete', outcome: designIncompleteOutcome, slug: SLUG, artifactsDir: FDIR, missingSubstages: fanVerdict.missingSubstages, missingArtifacts: fanVerdict.missingArtifacts, reason: fanVerdict.reason, modelsUsed: modelsUsed, dispatchOutcomes: dispatchOutcomes, gates: designIncompleteGates, resumedStages: resumedStages, checkpointing: CHECKPOINTS_ON ? RESUME_MODE : 'off', trainingPairs: CAPTURE_PAIRS ? TP_DIR : 'off', captureFailures: captureFailures, recordFailures: recordFailures, decisionRecallFailures: decisionRecallFailures, usageEvents: usageEvents, usageThreshold: USAGE_THRESHOLD, polymorphism: POLY.hasManifest ? POLY.report : null, note: 'REFUSED at the Step-5/6 boundary: ' + what + ', so the design is incomplete and Step 6 was NOT dispatched. Planning off a partial design produces a plan with no ADR behind it. ' + repair + ' If a sibling died on a Claude limit, add usage-adaptive routing or route that stage to Codex first (args.models). To rebuild the whole design from scratch instead, re-invoke with args.resume=\'never\'.' }
 }
 
+// Review convergence ideation boundary BEGIN.
+let ideationConvergence = null
+if (isMplus) {
+  ideationConvergence = await reviewConvergenceGate('evaluate', 'ideation')
+  if (ideationConvergence.verdict !== 'closed') return reviewConvergenceRefusal('ideation', ideationConvergence, design)
+}
+// Review convergence ideation boundary END.
+
 // Step 6: Plan — optionally routed to Codex's top model (opt-in via args.planner='codex').
 // The user opts in at pre-flight ('use the top Codex model for planning?'); we route the Plan step to
 // the codex:codex-rescue runtime and GRACEFULLY FALL BACK to the default (Claude) planner if Codex is
@@ -4605,7 +4758,7 @@ if (registryOutcome !== 'unverified') registryOutcome = designIncompleteOutcome
 phase('Plan')
 await recordRegistryEvent('heartbeat', 'Plan')
 await usageProbe('Plan')
-const planPrompt = 'Step 6 (SPARC-GOAP implementation plan) of /feature-adr for "' + DESC + '" (' + SLUG + ', tier ' + tier + '). READ THESE INPUTS FIRST, by name: ' + FDIR + '/01_requirements.md, every ' + FDIR + '/03_adr/NNN-*.md, ' + FDIR + '/05_architecture.md, and ' + FDIR + '/03.5_ideation_report.md / ' + FDIR + '/04_domain_model.md when present. Then decompose into milestones + concrete tasks with success metrics. Write ' + FDIR + '/06_implementation_plan.md. END the plan with a trailing `EXPECTED_CODE_TARGETS:` block listing, one per line as `- <repo-relative path>`, EVERY production/test/config/doc file Step 7 is expected to create or modify. This block is machine-read by the Step-7.5 landing barrier: only paths it ESTABLISHES can ever count as landed, so an absent or unpollable block makes the barrier verdict INCONCLUSIVE. List only real targets outside features/, .dz/, .agentic-qe/ and roam/. The K2 plan-completeness gate blocks Step 7 until the plan satisfies these too, so write them in as you author, not afterwards: (C1) every ADR under 03_adr/ is cited as `ADR-<n>` by the task that implements it; (C2) every test path named in an ADR Confirmation stanza appears verbatim in the plan, bound to the task that writes it; (C4) every acid token `A<n>` from 00_complexity_assessment.md is named verbatim, bound to its owning task and to the test that proves the refusal. (C8) every requirement id declared in 01_requirements.md (FR-N, NFR-N, AC-N, C-N) is cited by the task that covers it. If any corrections from Step 3.5 (a CONDITIONAL verdict) or other sources are folded into this plan, carry them in a `## Amendments` section. ' + AMENDMENT_RULE + ' Return wrote[] + summary.' + ABSOLUTE_PATH_NOTE + WRITE_DISCIPLINE
+const planPrompt = 'Step 6 (SPARC-GOAP implementation plan) of /feature-adr for "' + DESC + '" (' + SLUG + ', tier ' + tier + '). READ THESE INPUTS FIRST, by name: ' + FDIR + '/01_requirements.md, every ' + FDIR + '/03_adr/NNN-*.md, ' + FDIR + '/05_architecture.md, and ' + FDIR + '/03.5_ideation_report.md / ' + FDIR + '/04_domain_model.md when present. Then decompose into milestones + concrete tasks with success metrics. Write ' + FDIR + '/06_implementation_plan.md. END the plan with a trailing `EXPECTED_CODE_TARGETS:` block listing, one per line as `- <repo-relative path>`, EVERY production/test/config/doc file Step 7 is expected to create or modify. This block is machine-read by the Step-7.5 landing barrier: only paths it ESTABLISHES can ever count as landed, so an absent or unpollable block makes the barrier verdict INCONCLUSIVE. List only real targets outside features/, .dz/, .agentic-qe/ and roam/. The K2 plan-completeness gate blocks Step 7 until the plan satisfies these too, so write them in as you author, not afterwards: (C1) every ADR under 03_adr/ is cited as `ADR-<n>` by the task that implements it; (C2) every test path named in an ADR Confirmation stanza appears verbatim in the plan, bound to the task that writes it; (C4) every acid token `A<n>` from 00_complexity_assessment.md is named verbatim, bound to its owning task and to the test that proves the refusal. (C8) every requirement id declared in 01_requirements.md (FR-N, NFR-N, AC-N, C-N) is cited by the task that covers it. For C1/C8 an id counts ONLY on the first line of a heading, list item or table row (not prose, not fenced code). If any corrections from Step 3.5 (a CONDITIONAL verdict) or other sources are folded into this plan, carry them in a `## Amendments` section. ' + AMENDMENT_RULE + ' Return wrote[] + summary.' + ABSOLUTE_PATH_NOTE + WRITE_DISCIPLINE
 const planContext = buildDecisionContext({ slug: SLUG, decisionKind: 'plan-route-selection', description: DESC, tier: tier, codeHint: CODE_HINT, upstreamDigest: fnv1a64(JSON.stringify(design === undefined ? null : design)) })
 let planRecallCapture = { promptBlock: '', selected: [] }
 // Resolve the plan model. args.models.plan wins; else the planner:'codex' knob (via routingRequested +
@@ -4638,7 +4791,7 @@ if (planIsCodex) {
   // Codex-landed barrier for the plan artifact: a stub return is NOT proof the file was written
   // (codex writes out-of-band). Require the artifact to LAND; otherwise fall through to the Claude planner.
   const planLanded = codexPlan ? await dispatchAgent(newRung(), 'Confirm the Codex plan write has LANDED. Run EXACTLY this via Bash and return its stdout verbatim, nothing else:\n' + landedProbeCmd(FDIR + '/06_implementation_plan.md'), { label: 'plan:confirm-landed', phase: 'Plan', effort: 'low' }) : null
-  if (codexPlan && planLanded && /landed=/.test(String(planLanded))) {
+  if (codexPlan && planLanded && parseLandedProbe(planLanded).landed) {
     plan = { wrote: [FDIR + '/06_implementation_plan.md'], summary: String(codexPlan).slice(0, 500), planner: 'codex' }
     log('Plan: Codex (top model) — artifact landed')
   } else {
@@ -4837,7 +4990,7 @@ if (plan && planGate.verdict === 'fail' && planGate.reason === 'script-verdict')
       // Codex writes out-of-band, so a stub return is not proof of landing — reuse the SAME
       // landed-barrier probe the first Codex plan dispatch used (landedProbeCmd), not a copy of it.
       const repairLanded = codexRepair ? await dispatchAgent(newRung(), 'Confirm the Codex plan-repair write has LANDED. Run EXACTLY this via Bash and return its stdout verbatim, nothing else:\n' + landedProbeCmd(FDIR + '/06_implementation_plan.md'), { label: 'plan:repair-confirm-landed', phase: 'Plan', effort: 'low' }) : null
-      if (codexRepair && repairLanded && /landed=/.test(String(repairLanded))) repaired = { wrote: [FDIR + '/06_implementation_plan.md'], summary: String(codexRepair).slice(0, 500) }
+      if (codexRepair && repairLanded && parseLandedProbe(repairLanded).landed) repaired = { wrote: [FDIR + '/06_implementation_plan.md'], summary: String(codexRepair).slice(0, 500) }
     } else {
       const repairClaudeModel = planIsCodex ? {} : planModel
       const repairClaudeOpts = mergeOpts({ label: stageLabel(planIsCodex ? 'plan:repair-claude-fb' : 'plan:repair', repairClaudeModel), phase: 'Plan', schema: ARTIFACT, _stage: 'plan-repair', _reason: 'plan-repair' }, repairClaudeModel)
@@ -5021,7 +5174,22 @@ await usageProbe('Code')
 // nothing; every hand-dispatched round that carried this preamble landed code. The routing is
 // decided before this prompt exists, so saying so is the whole fix.
 const codePromptBase = 'GATE-ANSWERED — the routing questions are already settled and must NOT be asked again: the mode and the coder family were chosen before this dispatch, you ARE the coder, and an independent cross-family QE runs after you. This dispatch is non-interactive: asking a question and exiting returns exit 0 with nothing written, which is indistinguishable from a crash to everything downstream. FIRST, via Bash run EXACTLY `mkdir -p ' + FDIR + '/.fa-state && git -C ' + REPO + ' rev-parse HEAD > "' + FDIR + '/.fa-state/base-ref.tmp" && mv "' + FDIR + '/.fa-state/base-ref.tmp" "' + FDIR + '/.fa-state/base-ref"` — an atomic record of HEAD before your changes; Step 8 scopes `--added-since` on it (AM-2). Begin implementing immediately.\n\nStep 7 (Code) of /feature-adr for "' + DESC + '" (' + SLUG + '). READ THESE INPUTS FIRST, by name (0691e163: the coder used to get one directory pointer; measured over three real runs, the plan was opened by all coders but the ADR unevenly and requirements/domain model not at all): ' + FDIR + '/06_implementation_plan.md (the tasks + EXPECTED_CODE_TARGETS + Amendments), every ' + FDIR + '/03_adr/NNN-*.md (each names a load-bearing property and its Required automated check), ' + FDIR + '/05_architecture.md, ' + FDIR + '/01_requirements.md, and ' + FDIR + '/04_domain_model.md when present (L/XL). Then implement the feature. Write the ACTUAL production code + its tests (mirror the closest existing implementation named in research/architecture). If the plan carries a `## Amendments` section, implement every AM-N row AND its named Confirmation test (for a safeguard amendment: a test proving it FIRES on a real input). IO-ON-PURE-PATH RULE: if your diff adds I/O (DB/network/file) to a previously-pure path — especially a startup/lifespan/health path — also write a NEGATIVE resource-down test (broken/unbound resource handle → the path degrades per its declared contract: fail-open for an advisory feature, explicit fail-fast for a load-bearing one) alongside the happy-path test; never fix a failing test by swapping a broken fixture for a healthy one without keeping BOTH cases. Follow repo conventions; build must pass. Write a change manifest ' + FDIR + '/07_code_changes/change_manifest.md listing every file touched. Return wrote[] (incl. real source files) + summary.' + ABSOLUTE_PATH_NOTE + PS_GUIDANCE('code')
-let codePrompt = codePromptBase
+// Read current documents on EVERY invocation, before lookup, using one captured host snapshot.
+let coderContextSnapshot
+try {
+  const contextCommand = coderContextCommand(REPO, FDIR, tier, { script: A.coderContextScript, workspace: WS === null ? undefined : WS })
+  const contextRaw = await dispatchAgent(newRung(), 'Run EXACTLY this shell snippet via Bash as ONE command. Return stdout VERBATIM as the single JSON envelope, with no narration or fences. Preserve command exit status; never synthesize a complete result:\n' + contextCommand, { label: 'code:context', phase: 'Code', effort: 'low' })
+  coderContextSnapshot = parseCoderContextEnvelope(contextRaw, tier)
+} catch (_) {
+  coderContextSnapshot = { schema: CODER_CONTEXT_SCHEMA, status: 'unavailable', promptBlock: '', digest: null, sources: [], diagnostics: [{ source: 'host-command', reason: 'read-failure', severity: 'error' }] }
+}
+if (coderContextSnapshot.status !== 'complete') {
+  log('Step 7 refused: required coder context ' + coderContextSnapshot.status + ': ' + JSON.stringify(coderContextSnapshot.diagnostics))
+  return { tier: tier, phase: 'code-context-failed', outcome: 'unverified', slug: SLUG, artifactsDir: FDIR, coderContext: coderContextSnapshot, gates: { code: 'not-run', qe: 'not-run' }, resumedStages: resumedStages, checkpointing: CHECKPOINTS_ON ? RESUME_MODE : 'off', note: 'Required current coder context was not established; no code checkpoint lookup, decision recall or coder dispatch occurred.' }
+}
+const coderContextFingerprint = fnv1a64(coderContextSnapshot.promptBlock)
+const coderContextMetadata = { schema: coderContextSnapshot.schema, digest: coderContextSnapshot.digest, promptFingerprint: coderContextFingerprint }
+let codePrompt = codePromptBase + coderContextSnapshot.promptBlock
 // Resolve the coder model. args.models.code wins (a direct 'codex' spec = codex-first); else the legacy
 // CODER knob drives it (with its codex-fallback null-guard). resolveStageModel('code') folds both via the
 // code:null sentinel → resolveCoderSpec(). A Claude resolution merges {model} onto the Claude branch;
@@ -5042,7 +5210,7 @@ const codeClaudeOpts = mergeOpts({ label: stageLabel('code', codeClaudeModel), p
 // the checkpoint (it only feeds the expected-targets parse, already consumed by the original run).
 // R6: the landing token is salted into the code stage's PARTS (not CKPT_SCHEMA_VERSION, which
 // stays 'fa-ckpt-2' deliberately) so ONLY this stage's pre-protocol checkpoints hash stale.
-const codeHash = ckptHash('code', [tier, DESC, fnv1a64(JSON.stringify(plan === undefined ? null : plan)), CODER, MODELS.code === undefined ? null : MODELS.code, CODEX_MODEL, PRIMARY, BUDGET_MODE, POLY.hasManifest, fnv1a64(String(POLY.report || '')), usageOverride, LANDING_HASH_TOKEN])
+const codeHash = ckptHash('code', [tier, DESC, fnv1a64(JSON.stringify(plan === undefined ? null : plan)), CODER, MODELS.code === undefined ? null : MODELS.code, CODEX_MODEL, PRIMARY, BUDGET_MODE, POLY.hasManifest, fnv1a64(String(POLY.report || '')), usageOverride, LANDING_HASH_TOKEN, coderContextSnapshot.digest, coderContextFingerprint])
 const codeComposite = await withCheckpoint('code', 'Code', codeHash, async () => {
 let code = null
 let coderUsed = 'claude'
@@ -5052,7 +5220,7 @@ let codexJobId = null
 let baselineCapture = null
 const codeContext = buildDecisionContext({ slug: SLUG, decisionKind: 'code-implementation', description: DESC, tier: tier, codeHint: CODE_HINT, upstreamDigest: fnv1a64(JSON.stringify(plan === undefined ? null : plan)) })
 const codeRecall = await prepareDecisionRecall(codeContext, 'Code', 'decision-recall:step7')
-codePrompt = codePromptBase + codeRecall.promptBlock
+codePrompt = codePromptBase + coderContextSnapshot.promptBlock + codeRecall.promptBlock
 if (!codeIsCodexFirst) {
   // R14-1: claimed at DISPATCH. The later `return null` exits only this withCheckpoint CALLBACK — the
   // run continues and can return `completed-unverified`, so a success-only write left the report with
@@ -5200,12 +5368,12 @@ if (needsCodeLandedBarrier(coderUsed)) {
 }
 const codeStageResult = { code: code, coderUsed: coderUsed, codexCodeText: String(codexCodeText).slice(0, 4000), codexJobId: codexJobId, modelUsed: modelsUsed.code, landedNote: landedNote, landingStatus: landingStatus, landingProtocol: LANDING_PROTOCOL_VERSION, scrapeDiagnostic: scrapeDiagnostic, expectedTargets: expectedTargets }
 if (landingReason !== null) codeStageResult.landingReason = landingReason
-return { stageResult: codeStageResult, decisionRecall: codeRecall }
-}, { validate: function (value) { return !!value && typeof value === 'object' && value.stageResult !== null && value.stageResult !== undefined && codeStageResultShapeValid(value.stageResult) && value.decisionRecall && typeof value.decisionRecall.promptBlock === 'string' }, persist: function (r) { return codeCheckpointPersistAllowed(r.stageResult.landingStatus, needsCodeLandedBarrier(r.stageResult.coderUsed)) } })
+return { stageResult: codeStageResult, decisionRecall: codeRecall, coderContext: coderContextMetadata }
+}, { validate: function (value) { return !!value && typeof value === 'object' && value.stageResult !== null && value.stageResult !== undefined && codeStageResultShapeValid(value.stageResult) && value.decisionRecall && typeof value.decisionRecall.promptBlock === 'string' && value.coderContext && value.coderContext.schema === coderContextMetadata.schema && value.coderContext.digest === coderContextMetadata.digest && value.coderContext.promptFingerprint === coderContextMetadata.promptFingerprint }, persist: function (r) { return codeCheckpointPersistAllowed(r.stageResult.landingStatus, needsCodeLandedBarrier(r.stageResult.coderUsed)) } })
 let codeStage = null
 if (codeComposite && typeof codeComposite === 'object') {
   codeStage = codeComposite.stageResult
-  codePrompt = codePromptBase + (codeComposite.decisionRecall && typeof codeComposite.decisionRecall.promptBlock === 'string' ? codeComposite.decisionRecall.promptBlock : '')
+  codePrompt = codePromptBase + coderContextSnapshot.promptBlock + (codeComposite.decisionRecall && typeof codeComposite.decisionRecall.promptBlock === 'string' ? codeComposite.decisionRecall.promptBlock : '')
 }
 let code = codeStage ? codeStage.code : null
 coderUsed = codeStage ? codeStage.coderUsed : 'claude'
@@ -5351,6 +5519,9 @@ const qe2Spec = qePrecisionPassSpec(PRIMARY, BUDGET_MODE, tier)
 // isolated-scope one, or vice versa) instead of re-QEing under the new setting.
 const qeHash = ckptHash('qe', [fnv1a64(JSON.stringify(codeStage === undefined ? null : codeStage)), tier, DESC, QE_REVIEWER, MODELS.qe === undefined ? null : MODELS.qe, CODEX_MODEL, coderUsed, PRIMARY, BUDGET_MODE, qe2Spec, POLY.hasManifest, fnv1a64(String(POLY.report || '')), usageOverride, QE_SCOPE, QE_SCOPE_REF, confirmationFileGate, QE_ISOLATED_SCOPE])
 let crossFamilyQeReport = null
+const qeConvergenceReviewers = [{ id: 'qe-primary', family: tpFamily(modelLabel(qeModel)) }]
+if (qe2Spec) qeConvergenceReviewers.push({ id: 'qe-precision', family: 'claude' })
+let qeConvergencePrepared = await reviewConvergenceGate('prepare', 'qe', qeConvergenceReviewers)
 const qeStage = await withCheckpoint('qe', 'QE', qeHash, async () => {
 let qe = null
 let qeReviewerUsed = 'claude'
@@ -5369,13 +5540,17 @@ if (!qeIsCodex) {
   // entry that does not say which family reviewed, and it correctly rejected the first shape of this
   // fix. The SAME verdict object then serves the success branch, so there is still one call here.
   const cfCl = crossFamilyQe({ requestedSpec: modelLabel(qeModel), actualLabel: modelLabel(qeClaudeOpts), coderFamily: tpFamily(coderUsed), reviewerFamily: 'claude', declineReason: null })
+  qeConvergencePrepared = await reviewConvergenceGate('prepare', 'qe', [{ id: 'qe-primary', family: 'claude' }].concat(qe2Spec ? [{ id: 'qe-precision', family: 'claude' }] : []))
+  if (qeConvergencePrepared.verdict !== 'prepared') return reviewConvergenceRefusal('qe', qeConvergencePrepared, qe)
   modelsUsed.qe = cfCl.label
-  qe = await dispatchAgent(newRung(), qePrompt, qeClaudeOpts)
+  qe = await dispatchAgent(newRung(), qePrompt + reviewConvergencePrompt('qe', 'qe-primary', 'claude', qeConvergencePrepared), qeClaudeOpts)
   if (qe) { qeReviewerUsed = 'claude'; crossFamilyQeReport = cfCl.report }
   else modelsUsed.qe = cfCl.label + ' (no deliverable)'
 }
 if (qe === null && !qeIsCodex) reactiveBelt('QE')
 if (qe === null && (qeIsCodex || QE_REVIEWER === 'codex-fallback')) {
+  qeConvergencePrepared = await reviewConvergenceGate('prepare', 'qe', [{ id: 'qe-primary', family: 'codex' }].concat(qe2Spec ? [{ id: 'qe-precision', family: 'claude' }] : []))
+  if (qeConvergencePrepared.verdict !== 'prepared') return reviewConvergenceRefusal('qe', qeConvergencePrepared, qe)
   if (QE_REVIEWER === 'codex-fallback' && !qeIsCodex) log('QE: Claude unavailable (limit?) — falling back to Codex ' + CODEX_MODEL)
   // R5-2: reaching this branch with !qeIsCodex means the cross-family rule had routed QE to Claude
   // and that FIRST rung returned null. This dispatch is therefore a fallback AND — with a codex coder
@@ -5576,7 +5751,7 @@ if (qe === null && (qeIsCodex || QE_REVIEWER === 'codex-fallback')) {
       const modeBRungHolder = newRung()
       qeLastRungHolder = modeBRungHolder
       const modeBLabelOpts = mergeOpts(qeCodexLabelOpts, { _reason: 'fallback-rung' })
-      codexQe = await codexExecAgent('qe', modeBPrompt + CODEX_HINT + codexEffortHint(modeBLabelOpts), 'QE', true, modeBFiles, modeBLabelOpts, modeBRungHolder)
+      codexQe = await codexExecAgent('qe', modeBPrompt + reviewConvergencePrompt('qe', 'qe-primary', 'codex', qeConvergencePrepared) + CODEX_HINT + codexEffortHint(modeBLabelOpts), 'QE', true, modeBFiles, modeBLabelOpts, modeBRungHolder)
       if (codexQe === null) lastCodexDecline = 'mode A: ' + String(modeADecline) + ' | mode B: ' + String(lastCodexDecline)
     }
   }
@@ -5585,6 +5760,7 @@ if (qe === null && (qeIsCodex || QE_REVIEWER === 'codex-fallback')) {
     // STATED by the reviewer or DERIVED from its findings, because mode A cannot be asked for one.
     qe = enforceConfirmationFileGate({ grade: codexQe.grade, gaps: codexQe.findings, codeTestsAdequate: null, docTestsPresent: null, summary: String(codexQe.text).slice(0, 1500), gradeSource: codexQe.gradeSource, qeScope: { mode: codexQe.mode, ref: codexQe.scopeRef, files: codexQe.files } }, confirmationFileGate)
     qeReviewerUsed = qeIsCodex ? 'codex' : 'codex-fallback'
+    if (codexQe.mode === 'A') qe = mergeOpts(qe, { convergenceUnavailable: 'read-only Codex mode A cannot accept the reviewer contract; host-driven supported review required' })
     log('QE: cross-family review by codex, mode ' + codexQe.mode + ' (scope ' + codexQe.scopeRef + ', grade ' + codexQe.grade + ' ' + codexQe.gradeSource + ', ' + codexQe.elapsedSeconds + 's)')
     // ARTIFACT SCRIBE. The old dispatch handed Codex the whole Step-8 prompt, so the reviewer itself
     // was asked to write 08_qe_report.md and close the teach loop. Neither mode can be asked that
@@ -5648,8 +5824,10 @@ if (qe === null && qeIsCodex) {
   // belt that returned null left the preceding Codex label standing and omitted the Claude dispatch
   // that had just been announced. The same verdict object still serves the success branch.
   const cfBelt = crossFamilyQe({ requestedSpec: modelLabel(qeModel), actualLabel: modelLabel(qeBeltOpts), coderFamily: tpFamily(coderUsed), reviewerFamily: 'claude', declineReason: lastCodexDecline })
+  qeConvergencePrepared = await reviewConvergenceGate('prepare', 'qe', [{ id: 'qe-primary', family: 'claude' }].concat(qe2Spec ? [{ id: 'qe-precision', family: 'claude' }] : []))
+  if (qeConvergencePrepared.verdict !== 'prepared') return reviewConvergenceRefusal('qe', qeConvergencePrepared, qe)
   modelsUsed.qe = cfBelt.label
-  qe = await dispatchAgent(newRung(), qePrompt, qeBeltOpts)
+  qe = await dispatchAgent(newRung(), qePrompt + reviewConvergencePrompt('qe', 'qe-primary', 'claude', qeConvergencePrepared), qeBeltOpts)
   if (qe) { qeReviewerUsed = 'claude'; crossFamilyQeReport = cfBelt.report }
   else modelsUsed.qe = cfBelt.label + ' (no deliverable)'
 }
@@ -5658,6 +5836,8 @@ qe = enforceConfirmationFileGate(qe, confirmationFileGate)
 // independent precision pass. It is advisory but real — never a table-only half-wire — and its
 // provenance stays separate in both the return object and 08_qe_report.md.
 let qe2 = null
+// Record the primary's conditions before the precision reviewer can append its receipt.
+await reviewConvergenceGate('evaluate', 'qe')
 if (qe !== null && qe2Spec !== null) {
   const qe2Model = specToOpts(qe2Spec)
   const primaryGrade = String(qe.grade || '').trim().toUpperCase()
@@ -5677,7 +5857,7 @@ if (qe !== null && qe2Spec !== null) {
   // R13-2: claimed at DISPATCH. The run completes on the primary verdict even when this reviewer
   // returns null, so a success-only write let the report silently omit a reviewer it had announced.
   modelsUsed.qe2 = modelLabel(qe2Model)
-  qe2 = await dispatchAgent(newRung(), qe2Prompt, qe2Opts)
+  qe2 = await dispatchAgent(newRung(), qe2Prompt + reviewConvergencePrompt('qe', 'qe-precision', 'claude'), qe2Opts)
   if (!qe2) modelsUsed.qe2 = modelLabel(qe2Model) + ' (no deliverable)'
   if (qe2) {
     const qe2After = await qe2ReportState('qe:precision-after')
@@ -5704,6 +5884,20 @@ return { qe: qe, qeReviewerUsed: qeReviewerUsed, modelUsed: modelsUsed.qe, qe2: 
 }, { validate: function (r) { return !!(r && typeof r === 'object' && r.qe && typeof r.qe === 'object' && typeof r.qeReviewerUsed === 'string' && (r.bridge == null || (typeof r.bridge === 'object' && !Array.isArray(r.bridge)))) } })
 qe = qeStage ? qeStage.qe : null
 let qeReviewerUsed = qeStage ? qeStage.qeReviewerUsed : 'claude'
+// Review convergence QE boundary BEGIN. Runs for live and resumed checkpoints.
+let qeConvergence = null
+{
+  qeConvergence = await reviewConvergenceGate('evaluate', 'qe')
+  const serious = currentSeriousReviewFindings(qeStage)
+  const historicalClosure = historicalReviewClosure(qeConvergence, qeStage)
+  const confirmationClosed = confirmationFileGate && (confirmationFileGate.verdict === 'pass' || confirmationFileGate.verdict === 'skipped')
+  const routeMissing = !qeStage || !qe || qe.convergenceUnavailable || (qe2Spec && (!qeStage.qe2 || !qeStage.qe2.reportWritten))
+  if (qeConvergencePrepared.verdict !== 'prepared' || qeConvergence.verdict !== 'closed' || !confirmationClosed || (!historicalClosure && (routeMissing || serious.length > 0))) {
+    const reasons = qeConvergence.reasons.concat(routeMissing ? [String(qe && qe.convergenceUnavailable || 'reviewer-route-or-precision-evidence-not-established')] : [], serious.length ? ['current-serious-review-findings-remain'] : [], qeConvergencePrepared.verdict !== 'prepared' ? qeConvergencePrepared.reasons : [], !confirmationClosed ? ['confirmation-file-gate-not-closed'] : [])
+    return reviewConvergenceRefusal('qe', Object.assign({}, qeConvergence, { verdict: serious.length ? 'unresolved' : 'not-established', reasons: reasons }), qeStage)
+  }
+}
+// Review convergence QE boundary END.
 if (qeStage && qeStage.modelUsed) modelsUsed.qe = qeStage.modelUsed + (resumedStages.indexOf('qe') !== -1 ? ' (resumed)' : '')
 if (qeStage && qeStage.qe2ModelUsed) modelsUsed.qe2 = qeStage.qe2ModelUsed + (resumedStages.indexOf('qe') !== -1 ? ' (resumed)' : '')
 if (qeStage && qeStage.bridge == null && resumedStages.indexOf('qe') !== -1) {
@@ -6096,6 +6290,15 @@ function runOutcomeOf(input) {
   // A crashed run cannot classify itself; an external consumer assigns that outcome later.
   return 'unclassified'
 }
+// Review convergence completion boundary BEGIN.
+{
+  const terminalConvergence = await reviewConvergenceGate('evaluate', 'qe')
+  const terminalHistorical = historicalReviewClosure(terminalConvergence, qeStage)
+  const terminalRouteMissing = !qeStage || !qe || qe.convergenceUnavailable || (qe2Spec && (!qeStage.qe2 || !qeStage.qe2.reportWritten))
+  const terminalConfirmation = confirmationFileGate && (confirmationFileGate.verdict === 'pass' || confirmationFileGate.verdict === 'skipped')
+  if (terminalConvergence.verdict !== 'closed' || !terminalConfirmation || (!terminalHistorical && (terminalRouteMissing || currentSeriousReviewFindings(qeStage).length > 0))) return reviewConvergenceRefusal('qe', Object.assign({}, terminalConvergence, { verdict: 'not-established', reasons: terminalConvergence.reasons.concat(!terminalConfirmation ? ['confirmation-file-gate-not-closed'] : [], !terminalHistorical && terminalRouteMissing ? ['terminal-reviewer-route-not-established'] : [], !terminalHistorical && currentSeriousReviewFindings(qeStage).length > 0 ? ['terminal-serious-findings-remain'] : []) }), qeStage)
+}
+// Review convergence completion boundary END.
 const designEvidence = Array.isArray(design) && design.filter(Boolean).length > 0
 const implementedEvidence = code !== null && code !== undefined && (needsCodeLandedBarrier(coderUsed) ? landingStatus === 'landed' : true)
 const tags = [

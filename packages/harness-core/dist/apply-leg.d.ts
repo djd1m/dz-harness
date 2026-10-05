@@ -148,8 +148,16 @@ export declare function probeRecallEngine(socketPath: string, timeoutMs?: number
  * skipped entirely in own-fallback mode. (c) `answerRecall`'s `embed(prompt)` call is now wrapped so
  * either failure mode degrades to the SAME honest `cosine-fallback` reply shape as every other
  * failure, never a bare protocol `{error}`.
+ *
+ * Bumped 12→13 (`retro-debt-sentinel-per-session`): the hook reads its admission-debt sentinel from
+ * `.dz/retro/<sessionId>/` (entry added retroactively for the record by the next bump).
+ *
+ * Bumped 13→14 (`daemon-install-root-from-self`, ADR-001, backlog 6dd464d5d6ee917f): the daemon's
+ * `INSTALL_ROOT` is two levels above its own directory (it was one short — `<root>/.claude` — so the
+ * install-root link never fired and the daemon served, and resolved its deps from, `cwd`); the hook's
+ * `reviveDaemon()` spawns it with `cwd: PROJECT` and `DZ_PROJECT_ROOT: PROJECT`.
  */
-export declare const APPLY_LEG_VERSION = 13;
+export declare const APPLY_LEG_VERSION = 14;
 /**
  * Parse the `dz-apply-leg-version` stamp from a deployed helper file. Unlike
  * `writerVersionOf` (which floors an absent stamp at `0`), this returns `-1` for "no stamp at

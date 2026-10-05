@@ -1,9 +1,7 @@
 {
   "name": "@dzhechkov/keysarium",
-  "version": "1.7.7",
-  "scripts": {
-    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
-  },
+  "version": "1.7.9",
+  "scripts": {},
   "description": "AI Case Research Toolkit for Claude Code — full 7-phase pipeline with feature-adr, dream cycles, background workers, multi-platform support, reward learning, and Cloud.ru AI Factory mapping (--ai-factory flag)",
   "main": "src/cli.js",
   "bin": {
@@ -40,7 +38,7 @@
     "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/keysarium"
   },
-  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/keysarium#readme",
+  "homepage": "https://aicoding.space",
   "bugs": {
     "url": "https://github.com/djd1m/dz-harness/issues"
   },

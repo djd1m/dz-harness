@@ -1489,6 +1489,10 @@ export function toTraceProjection(plan: LoopPlan): TraceProjection {
 /** One dispatching step as the scheduler needs it — everything it must know to build a prompt,
  * pick a model, spend budget, retry, and verify a deliverable landed. */
 export interface RunStepSpec {
+  role?: string | null;
+  tier?: string | null;
+  mode?: string | null;
+  estimate?: unknown;
   stepId: string;
   kind: 'agent' | 'gate';
   phase: string;
@@ -1574,6 +1578,10 @@ export function toRunProjection(plan: LoopPlan): RunProjection {
       stepId: s.stepId,
       kind: s.kind === 'gate' ? 'gate' : 'agent',
       phase: s.phase,
+      role: typeof s['x-role'] === 'string' ? s['x-role'] : null,
+      tier: typeof s['x-tier'] === 'string' ? s['x-tier'] : null,
+      mode: typeof s['x-mode'] === 'string' ? s['x-mode'] : null,
+      estimate: s['x-estimate'] ?? null,
       prompt: typeof s.prompt === 'string' ? s.prompt : null,
       model: typeof s.model === 'string' && s.model !== '' ? s.model : null,
       deliverable: s.deliverable ?? 'return-value',

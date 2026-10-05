@@ -48,6 +48,14 @@ export interface ParsedModelSpec {
  *   for backward compatibility, not by this parser).
  */
 export declare function parseModelSpec(spec: unknown): ParsedModelSpec | null;
+/** Internal shared ledger authority resolver; not a package-public barrel API.
+ * Capture/source values are comparison targets and never participate in claimant resolution. */
+export declare function resolveLedgerModelProvenance(row: Readonly<Record<string, unknown>>): {
+    model: string | null;
+    family: string | null;
+    modelProvenance: string;
+    diagnostics: string[];
+};
 /** measurement-integrity FR-5/FR-6: enrichment the WRITER supplies at write time — the rollout logs
  *  it already read (I/O lives in the CLI; this stays pure) and the price table snapshot. Absent
  *  entirely ⇒ zero behavior change from before this feature (NFR-1). */
@@ -55,6 +63,9 @@ export interface LedgerEnrichInput {
     /** Parsed Codex rollout logs for the window the CLI read — usually every rollout from the days the
      *  window spans. Pure data; the CLI is the one that walked `~/.codex/sessions`. */
     readonly rollouts?: readonly CodexRollout[];
+    readonly rolloutId?: string;
+    readonly turnId?: string;
+    readonly discoveryDiagnostics?: readonly string[];
     /** The stage's own time window — usually [the previous ledger row's `ts`, this write's `ts`], or
      *  an explicit `--window-from/--window-to`. Omitted ⇒ no rollout match is even attempted. */
     readonly window?: {

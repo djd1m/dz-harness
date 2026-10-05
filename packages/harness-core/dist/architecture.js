@@ -8,7 +8,7 @@
  * end of every feature-adr run (FR-3). The map/render/drift functions are pure; the load and scan
  * helpers at the bottom do the disk I/O for the CLI and the feature-adr end-of-run auto-update.
  */
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 /** Prefix-glob match: `adapter-*` matches `adapter-claude`. Only trailing `*` is supported (by design). */
 function patternMatches(pattern, name) {
@@ -127,15 +127,38 @@ export function renderDriftReport(report) {
  * I/O helper (lazy `require`, never throws) shared by the CLI and the feature-adr end-of-run auto-update
  * (FR-3), so both build the map from the identical scan. Deterministic: output is sorted.
  */
+function isDirFollowingLinks(path) {
+    try {
+        return statSync(path).isDirectory();
+    }
+    catch {
+        return false;
+    }
+}
 export function scanWorkspacePackages(repoRoot) {
     try {
         const base = join(repoRoot, 'packages', '@dzhechkov');
         if (!existsSync(base))
             return [];
         const out = [];
+        const seenReal = new Set();
         for (const entry of readdirSync(base, { withFileTypes: true })) {
-            if (!entry.isDirectory())
+            // A symlink to a package directory is a package directory: `dz mutation-gate`'s shadow tree
+            // symlinks every sibling, and pnpm links workspace packages the same way. Dirent reports such
+            // an entry as a symlink, never as a directory, so follow it; a dangling link is skipped.
+            if (!entry.isDirectory() && !(entry.isSymbolicLink() && isDirFollowingLinks(join(base, entry.name))))
                 continue;
+            // An alias link to a directory already scanned is the SAME package — count it once.
+            let real;
+            try {
+                real = realpathSync(join(base, entry.name));
+            }
+            catch {
+                continue;
+            }
+            if (seenReal.has(real))
+                continue;
+            seenReal.add(real);
             const pj = join(base, entry.name, 'package.json');
             if (!existsSync(pj))
                 continue;

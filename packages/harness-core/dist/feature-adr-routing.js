@@ -2185,6 +2185,27 @@ export function parsePlanGateVerdict(raw) {
     return { verdict: byName, exit: exitCode, reason: reason, output: output };
 }
 /**
+ * Read the transport agent's reply to `landedProbeCmd` (backlog 1f0353f7bdb53588). The probe writes its
+ * verdict as its LAST line — `landed=<bytes>` for a non-empty file, `absent` otherwise — so only the
+ * last non-empty line decides, and it must be exactly `landed=<digits>` with a positive number. A
+ * `landed=` anywhere else (a diagnostic the agent added, an earlier line) is not a landing: the old
+ * substring read accepted it. After the probe line only blank lines and code-fence lines may follow —
+ * an agent wrapping "stdout verbatim" in a fence adds no content; any other trailing text means the
+ * last word is no longer the probe's, and the barrier falls back (the safe direction).
+ */
+export function parseLandedProbe(raw) {
+    const lines = String(raw === null || raw === undefined ? '' : raw).split('\n').map(function (l) { return l.trim(); }).filter(function (l) { return l !== '' && !/^\x60\x60\x60+[\w-]*$/.test(l); });
+    if (lines.length === 0)
+        return { landed: false, bytes: null, reason: 'empty-agent-reply' };
+    const m = /^landed=(\d+)$/.exec(String(lines[lines.length - 1]));
+    if (m === null)
+        return { landed: false, bytes: null, reason: 'no-landed-line' };
+    const bytes = Number(m[1]);
+    if (!(bytes > 0))
+        return { landed: false, bytes: bytes, reason: 'zero-bytes' };
+    return { landed: true, bytes: bytes, reason: 'landed' };
+}
+/**
  * FR-6 preservation check — pure halves of the plan-repair round, mirrored INLINE in
  * `.claude/workflows/feature-adr.js` (the sandbox cannot import) and body-pinned by the drift guard in
  * `test/feature-adr-model-routing.test.ts`. See the workflow's own comment block above these functions

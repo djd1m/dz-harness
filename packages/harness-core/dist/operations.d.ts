@@ -322,6 +322,12 @@ export interface CodexHooksSyncOptions {
     readonly probeModel?: string;
     /** Test seam: replace the live probe. Production runs {@link runCodexVetoProbe}. */
     readonly probe?: (options: CodexVetoProbeOptions) => CodexVetoProbeRun;
+    /**
+     * Test seam (codex-hooks-remove-never-orphans, review r1 item 1): how a helper body reaches disk.
+     * Production writes atomically; a test injects a failing writer (ENOSPC) to prove the section-2
+     * restore fails CLOSED. Nothing else in the operation goes through it.
+     */
+    readonly writeHelperFile?: (path: string, body: string) => void;
 }
 export interface CodexHooksSyncReport {
     readonly codexHome: string;

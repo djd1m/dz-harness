@@ -76,6 +76,8 @@ export interface SetupResult {
     readonly skipped: number;
     /** The memory backend this run actually used (feature `setup-backend-from-config`, FR-1). */
     readonly memoryBackend: MemoryBackend;
+    /** Observed persisted state; unknown is explicit on failed/uninitialized setup. */
+    readonly memoryBackendObserved?: MemoryBackend | 'unknown';
     /** Where {@link memoryBackend} came from — FR-3, also the `--json` field name. */
     readonly memoryBackendSource: MemoryBackendSource;
     /** `true` when an explicit `--memory jsonl` pulled an agentdb-configured project down (FR-2). */

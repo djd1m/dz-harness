@@ -1,9 +1,7 @@
 {
   "name": "@dzhechkov/skills-meta",
-  "version": "0.9.61",
-  "scripts": {
-    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
-  },
+  "version": "0.9.63",
+  "scripts": {},
   "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups.",
   "license": "MIT",
   "author": "dzhechko",
@@ -58,7 +56,7 @@
     "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-meta"
   },
-  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-meta#readme",
+  "homepage": "https://aicoding.space",
   "bugs": {
     "url": "https://github.com/djd1m/dz-harness/issues"
   }

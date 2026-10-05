@@ -43,7 +43,7 @@ import { classifyFailure, errSnap, gateVerdict, joinRegion, stepContractLines, t
 import { checkpointInputHash, decideCheckpointResume, parseCheckpointRead, serializeCheckpoint } from './feature-adr-checkpoints.js';
 import { modelFamily, type BridgeFamily } from './qe-bridge.js';
 import { buildReqeDebt } from './reqe.js';
-import { CODEX_EXEC_XHIGH_TIMEOUT_MS, defangGateEchoes, type DispatchResult, type Dispatcher } from './workflow-run-dispatch.js';
+import { CODEX_EXEC_XHIGH_TIMEOUT_MS, defangGateEchoes, type DispatchResult, type Dispatcher, type ProbeOutcome } from './workflow-run-dispatch.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Schemas / constants
@@ -164,7 +164,8 @@ export interface WfRunState {
   dispatcherOverride?: boolean;
 }
 
-export interface WfBudgetRow {
+export interface WfBudgetRow extends Pick<DispatchResult, 'tokensTotal' | 'tokensCacheRead' | 'tokensCacheWrite' | 'tokensReasoning' | 'reportedTotalBasis' | 'inputCacheSemantics' | 'reportedCostUsd' | 'usageDiagnostics' | 'usageSource' | 'totalDerivation'> {
+  projectRoot?: string;
   schema: typeof WF_BUDGET_ROW_SCHEMA;
   kind: 'stage' | 'probe';
   runId: string;
@@ -175,10 +176,23 @@ export interface WfBudgetRow {
   attempt: number | null;
   family: BridgeFamily;
   model: string | null;
+  modelProvenance?: string;
+  requestedModel?: string | null;
+  plannedModel?: string | null;
+  plannedModelSource?: 'plan-declared' | 'plan-omitted' | 'unavailable';
+  probeId?: string | null;
+  probeProvenance?: Exclude<ProbeOutcome['provenance'], undefined>;
+  probeSource?: 'dispatcher-child-seam' | 'scripted-dispatcher';
+  probeObservationReason?: 'producer-not-recorded' | 'id-factory-missing' | 'id-factory-invalid' | 'provenance-invalid' | 'candidate-model-invalid' | 'wrapper-result-invalid' | 'selected-model-invalid' | null;
   wallMs: number;
   tokensIn: number | null;
   tokensOut: number | null;
-  tokensSource: 'claude-envelope' | 'codex-stderr' | null;
+  tokensSource: DispatchResult['tokensSource'];
+  phase?: string | null;
+  role?: string | null;
+  tier?: string | null;
+  mode?: string | null;
+  estimate?: unknown;
   outcome: 'ok' | 'null' | 'error' | null;
   timeoutMs: number | null;
 }
@@ -239,6 +253,7 @@ export interface RunnerInputs {
   wallClockExtraMs: number | null;
   runnerVersion: string;
   cwdRoot: string;
+  projectRoot?: string;
 }
 
 /** Small, dependency-free 64-bit FNV — the same shape the checkpoint plane uses, kept local so this
@@ -927,6 +942,35 @@ export interface RunStore {
   writeReqeDebt(record: object): void;
 }
 
+const safeRoutingModel = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$/.test(value);
+function probeRecordReason(probe: ProbeOutcome, family: BridgeFamily): Exclude<WfBudgetRow['probeObservationReason'], undefined> {
+  const exact = (value: unknown, keys: string[]): value is Record<string, unknown> => value !== null && typeof value === 'object'
+    && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null)
+    && Reflect.ownKeys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
+  if (probe.id !== null && !safeRoutingModel(probe.id)) return 'selected-model-invalid';
+  const present = [Object.hasOwn(probe, 'provenance'), Object.hasOwn(probe, 'provenanceReason')];
+  if (present.every(value => !value)) return 'producer-not-recorded';
+  if (!present.every(Boolean)) return 'provenance-invalid';
+  if (probe.provenance === null && (probe.provenanceReason === 'candidate-model-invalid' || probe.provenanceReason === 'wrapper-result-invalid')) return probe.provenanceReason;
+  const p = probe.provenance;
+  if (probe.provenanceReason !== null || !exact(p, ['schema', 'complete', 'totalConsidered', 'attempts']) || p.schema !== 'wf-probe-attempts-1'
+    || typeof p.complete !== 'boolean' || !Number.isSafeInteger(p.totalConsidered) || p.totalConsidered <= 0 || !Array.isArray(p.attempts)
+    || p.attempts.length !== Math.min(p.totalConsidered, 32) || p.complete !== (p.totalConsidered <= 32)) return 'provenance-invalid';
+  for (const [index, a] of p.attempts.entries()) {
+    if (!exact(a, ['ordinal', 'model', 'family', 'wrapperInvoked', 'outcome', 'reason', 'selected']) || a.ordinal !== index + 1
+      || a.family !== family || typeof a.wrapperInvoked !== 'boolean' || typeof a.selected !== 'boolean') return 'provenance-invalid';
+    const rejected = family === 'claude' && !a.wrapperInvoked && !a.selected && a.model === null && a.outcome === 'rejected' && a.reason === 'invalid-candidate';
+    const answered = a.wrapperInvoked && a.selected && safeRoutingModel(a.model) && a.outcome === 'answered' && a.reason === 'answered';
+    const failed = a.wrapperInvoked && !a.selected && safeRoutingModel(a.model) && a.outcome === 'failed'
+      && ['timeout', 'spawn-error', 'no-exit-code', 'exit-nonzero', 'unexpected-response'].includes(a.reason);
+    if (!(rejected || answered || failed)) return 'provenance-invalid';
+  }
+  const selected = p.attempts.filter(a => a.selected);
+  if (!p.complete ? selected.length !== 0 : probe.id === null ? selected.length !== 0
+    : selected.length !== 1 || selected[0]?.ordinal !== p.totalConsidered || selected[0]?.model !== probe.id) return 'provenance-invalid';
+  return null;
+}
+
 export interface SchedulerDeps {
   store: RunStore;
   dispatchers: Record<BridgeFamily, Dispatcher>;
@@ -935,6 +979,7 @@ export interface SchedulerDeps {
   /** Injected ISO clock (determinism, NFR-2). */
   now(): string;
   monotonicMs(): number;
+  newProbeId?: () => string;
   /**
    * TEST SEAM (named, never a casual flag): disables the landed barrier so the F5 mutant can show
    * the lying file-step passing. Default false; a run that sets it records `dispatcherOverride`.
@@ -978,6 +1023,7 @@ function failureClassOf(res: DispatchResult): FailureClass | null {
 }
 
 interface RunCtx {
+  probeIds: Partial<Record<BridgeFamily, string | null>>;
   inputs: RunnerInputs;
   pre: PreflightOk;
   deps: SchedulerDeps;
@@ -1053,16 +1099,36 @@ export async function runWorkflow(inputs: RunnerInputs, pre: PreflightOk, deps: 
 
   const usedFamilies = [...new Set(Object.values(pre.families))];
   const probedIds: Partial<Record<BridgeFamily, string | null>> = {};
+  const probeIds: Partial<Record<BridgeFamily, string | null>> = {};
   let probeAgentCalls = 0;
   const probeDetail: Partial<Record<BridgeFamily, string>> = {};
   for (const family of usedFamilies) {
     const candidates = [...new Set(allSpecs(pre.projection).filter((s) => pre.families[s.stepId] === family).map((s) => s.model).filter((m): m is string => typeof m === 'string'))];
     const probe = await deps.dispatchers[family].probe(candidates);
     probeAgentCalls++;
+    let probeId: string | null = null;
+    let idReason: Exclude<WfBudgetRow['probeObservationReason'], undefined> = 'id-factory-missing';
+    if (deps.newProbeId) {
+      try {
+        const id = deps.newProbeId();
+        if (typeof id === 'string' && /^[0-9a-f]{32}$/.test(id)) {
+          probeId = id;
+          idReason = null;
+        } else idReason = 'id-factory-invalid';
+      } catch { idReason = 'id-factory-invalid'; }
+    }
+    const producerReason = probeRecordReason(probe, family);
+    const probeObservationReason = producerReason && producerReason !== 'producer-not-recorded' ? producerReason : idReason ?? producerReason;
+    probeIds[family] = probeId;
     store.appendBudgetRow({
       schema: WF_BUDGET_ROW_SCHEMA,
       kind: 'probe',
+      probeId,
+      probeProvenance: probeObservationReason === null ? probe.provenance! : null,
+      probeSource: deps.dispatcherOverride ? 'scripted-dispatcher' : 'dispatcher-child-seam',
+      probeObservationReason,
       runId: inputs.runId,
+      projectRoot: inputs.projectRoot ?? inputs.cwdRoot,
       dispatchSeq: null,
       stepId: null,
       itemKey: null,
@@ -1073,6 +1139,14 @@ export async function runWorkflow(inputs: RunnerInputs, pre: PreflightOk, deps: 
       tokensIn: null,
       tokensOut: null,
       tokensSource: null,
+      tokensTotal: null,
+      tokensCacheRead: null,
+      tokensCacheWrite: null,
+      tokensReasoning: null,
+      reportedTotalBasis: 'unknown',
+      inputCacheSemantics: 'unknown',
+      reportedCostUsd: null,
+      usageDiagnostics: ['probe-usage-not-recorded'],
       outcome: null,
       timeoutMs: null,
     });
@@ -1189,6 +1263,7 @@ export async function runWorkflow(inputs: RunnerInputs, pre: PreflightOk, deps: 
 
   const opened = openTrace(inputs, pre, store, inputs.resume !== null);
   const ctx: RunCtx = {
+    probeIds,
     inputs,
     pre,
     deps,
@@ -1500,16 +1575,37 @@ async function dispatchOnce(
       schema: WF_BUDGET_ROW_SCHEMA,
       kind: 'stage',
       runId: ctx.inputs.runId,
+      projectRoot: ctx.inputs.projectRoot ?? ctx.inputs.cwdRoot,
       dispatchSeq,
       stepId: spec.stepId,
       itemKey,
       attempt,
       family,
-      model: res.modelUsed ?? model,
+      model: res.modelUsed,
+      requestedModel: model,
+      plannedModel: safeRoutingModel(spec.model) ? spec.model : null,
+      plannedModelSource: safeRoutingModel(spec.model) ? 'plan-declared' : spec.model == null ? 'plan-omitted' : 'unavailable',
+      probeId: ctx.probeIds[family] ?? null,
+      modelProvenance: res.modelProvenance ?? (res.modelUsed === null ? 'not-recorded' : 'dispatcher-reported'),
       wallMs,
       tokensIn: res.tokensIn,
       tokensOut: res.tokensOut,
       tokensSource: res.tokensSource,
+      tokensTotal: res.tokensTotal ?? null,
+      totalDerivation: res.totalDerivation ?? 'not-recorded',
+      tokensCacheRead: res.tokensCacheRead ?? null,
+      tokensCacheWrite: res.tokensCacheWrite ?? null,
+      tokensReasoning: res.tokensReasoning ?? null,
+      reportedTotalBasis: res.reportedTotalBasis ?? 'unknown',
+      inputCacheSemantics: res.inputCacheSemantics ?? 'unknown',
+      reportedCostUsd: res.reportedCostUsd ?? null,
+      usageDiagnostics: res.usageDiagnostics ?? [],
+      ...(res.usageSource !== undefined ? { usageSource: res.usageSource } : {}),
+      phase: spec.phase,
+      role: spec.role ?? null,
+      tier: spec.tier ?? null,
+      mode: spec.mode ?? null,
+      estimate: spec.estimate ?? null,
       outcome,
       timeoutMs,
     });
@@ -1699,7 +1795,7 @@ function appendLedger(ctx: RunCtx, outcome: string): void {
     outcome,
     date: null,
   });
-  if (line !== null) ctx.deps.store.appendLedgerLine(line);
+  if (line !== null) ctx.deps.store.appendLedgerLine(JSON.stringify({ ...JSON.parse(line), summary: true, sourceProjection: 'workflow-budget', workflowRunId: ctx.inputs.runId }));
 }
 
 /** PAUSE — flush WITHOUT `run.closed` (parity with the render's top-level terminal return, which

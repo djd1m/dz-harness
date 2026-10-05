@@ -30,6 +30,7 @@
  *
  * @packageDocumentation
  */
+import { fnv1a64 } from './feature-adr-checkpoints.js';
 function isRecord(v) {
     return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
@@ -37,7 +38,7 @@ function nonEmptyString(v) {
     return typeof v === 'string' && v.length > 0 ? v : null;
 }
 function finiteNonNegative(v) {
-    return typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : 0;
+    return typeof v === 'number' && Number.isSafeInteger(v) && v >= 0 ? v : null;
 }
 /** Epoch ms from a record's own `timestamp` (current schema) or `ts` (legacy/defensive), or `null`. */
 function recordTimeMs(rec) {
@@ -64,6 +65,7 @@ function isoOrNull(ms) {
  *  (both schemas use these five field names) out of a usage-bearing sub-object. */
 function totalsFrom(usage) {
     return {
+        cachedWrite: finiteNonNegative(usage['cache_write_input_tokens']),
         input: finiteNonNegative(usage['input_tokens']),
         cachedInput: finiteNonNegative(usage['cached_input_tokens']),
         output: finiteNonNegative(usage['output_tokens']),
@@ -80,136 +82,195 @@ function totalsFrom(usage) {
  * content.
  */
 export function parseCodexRollout(text, fileName) {
-    if (typeof text !== 'string' || text.trim().length === 0) {
+    if (typeof text !== 'string' || !text.trim())
         return { error: 'empty rollout text' };
-    }
+    const diagnostics = [];
     let id = null;
     let cwd = null;
-    let sessionMetaModel = null;
-    let turnContextModel = null;
+    let model = null;
+    let sessionCwd = null;
     let firstMs = null;
     let lastMs = null;
-    let lastTotals = null;
-    let sawAnyRecord = false;
-    const closedTurns = [];
-    let open = null;
-    let unmatchableTurns = 0;
-    const closeOpenTurn = (endMs) => {
-        if (open === null)
-            return;
-        if (open.startedMs === null || endMs === null)
-            unmatchableTurns += 1;
-        closedTurns.push({
-            model: open.model,
-            cwd: open.cwd,
-            startedAt: open.startedMs === null ? null : isoOrNull(open.startedMs),
-            endedAt: endMs === null ? null : isoOrNull(endMs),
-            totals: open.totals,
-        });
+    let cumulative = null;
+    let witnessMs = null;
+    let sawTurnModel = false;
+    const modern = new Map();
+    const conflicted = new Set();
+    const legacy = [];
+    const scopeDiagnostics = [];
+    const turns = [];
+    let current;
+    const empty = () => ({ input: null, cachedInput: null, cachedWrite: null, output: null, reasoning: null, total: null });
+    const fields = ['input', 'cachedInput', 'cachedWrite', 'output', 'reasoning', 'total'];
+    const sum = (values) => Object.fromEntries(fields.map((field) => {
+        const counts = values.map((v) => v[field]);
+        const total = counts.reduce((n, v) => n + (v ?? 0), 0);
+        if (!Number.isSafeInteger(total))
+            diagnostics.push('aggregate-overflow:' + field);
+        return [field, counts.length > 0 && counts.every((v) => v != null) && Number.isSafeInteger(total) ? total : null];
+    }));
+    const readUsage = (usage, owned = []) => {
+        const t = totalsFrom(usage);
+        for (const [key, v] of Object.entries(usage))
+            if (key.endsWith('_tokens') && v != null && finiteNonNegative(v) === null)
+                owned.push('invalid-counter:' + key);
+        if (t.input != null && ((t.cachedInput != null && t.cachedInput > t.input) || (t.cachedInput != null && t.cachedWrite != null && t.cachedInput + t.cachedWrite > t.input)))
+            owned.push('cache-exceeds-input');
+        if (t.output != null && t.reasoning != null && t.reasoning > t.output)
+            owned.push('reasoning-exceeds-output');
+        if (t.input != null && t.output != null && t.total != null && t.input + t.output !== t.total)
+            owned.push('total-split-mismatch');
+        diagnostics.push(...owned);
+        return t;
     };
-    const deltaTotals = (now, base) => {
-        if (base === null)
-            return now;
-        const d = (a, b) => (a - b >= 0 ? a - b : a); // a counter that went DOWN is per-record, not cumulative
-        return { input: d(now.input, base.input), cachedInput: d(now.cachedInput, base.cachedInput), output: d(now.output, base.output), reasoning: d(now.reasoning, base.reasoning), total: d(now.total, base.total) };
-    };
-    for (const line of text.split('\n')) {
-        if (line.length === 0)
+    const signature = (r) => JSON.stringify([r.turnId, r.totals.input, r.totals.cachedInput, r.totals.output, r.totals.reasoning, r.totals.total]);
+    for (const [sourceRecord, line] of text.split('\n').entries()) {
+        if (!line.trim())
             continue;
-        let rec;
+        let raw;
         try {
-            rec = JSON.parse(line);
+            raw = JSON.parse(line);
         }
         catch {
-            continue; // corrupt line — skip, never throw
-        }
-        if (!isRecord(rec))
+            diagnostics.push('malformed-record');
             continue;
-        sawAnyRecord = true;
-        const ms = recordTimeMs(rec);
+        }
+        if (!isRecord(raw))
+            continue;
+        const ms = recordTimeMs(raw);
         if (ms !== null) {
             firstMs = firstMs === null ? ms : Math.min(firstMs, ms);
             lastMs = lastMs === null ? ms : Math.max(lastMs, ms);
         }
-        const type = rec['type'];
-        const payload = isRecord(rec['payload']) ? rec['payload'] : null;
-        if (payload === null)
+        const payload = isRecord(raw['payload']) ? raw['payload'] : null;
+        if (!payload)
             continue;
-        if (type === 'session_meta') {
-            if (id === null)
-                id = nonEmptyString(payload['session_id']) ?? nonEmptyString(payload['id']);
-            if (cwd === null)
-                cwd = nonEmptyString(payload['cwd']);
-            // Step 0's documented (legacy, not observed live on this machine) shape put `model` directly on
-            // `session_meta` — accepted here too, but `turnContextModel` always wins at the end (below)
-            // since that is what the measured current schema actually carries.
-            if (sessionMetaModel === null)
-                sessionMetaModel = nonEmptyString(payload['model']);
+        if (raw['type'] === 'session_meta') {
+            id ??= nonEmptyString(payload['session_id']) ?? nonEmptyString(payload['id']);
+            cwd ??= nonEmptyString(payload['cwd']);
+            sessionCwd ??= nonEmptyString(payload['cwd']);
+            model ??= nonEmptyString(payload['model']);
         }
-        else if (type === 'turn_context') {
-            if (turnContextModel === null)
-                turnContextModel = nonEmptyString(payload['model']);
-            if (cwd === null)
-                cwd = nonEmptyString(payload['cwd']);
-            // Close the previous open turn AT this boundary (even when the boundary has no timestamp —
-            // the previous turn must stop absorbing usage), then open the new one.
-            closeOpenTurn(ms);
-            open = { model: nonEmptyString(payload['model']), cwd: nonEmptyString(payload['cwd']) ?? cwd, startedMs: ms, baseline: lastTotals, totals: null };
-        }
-        // Legacy shape (Step 0's documented one, not observed live on this machine 2026-09-16):
-        // `type: "token_count"`, `payload.info.total_token_usage`.
-        if (type === 'token_count') {
-            const info = isRecord(payload['info']) ? payload['info'] : null;
-            const usage = info !== null && isRecord(info['total_token_usage']) ? info['total_token_usage'] : null;
-            if (usage !== null) {
-                const t = totalsFrom(usage);
-                if (open !== null)
-                    open.totals = deltaTotals(t, open.baseline);
-                lastTotals = t;
+        if (raw['type'] === 'turn_context') {
+            if (current)
+                current.endedAt = isoOrNull(ms);
+            current = { model: nonEmptyString(payload['model']), cwd: nonEmptyString(payload['cwd']) ?? sessionCwd,
+                turnId: nonEmptyString(payload['turn_id']), startedAt: isoOrNull(ms), endedAt: null, totals: null, baseline: cumulative };
+            turns.push(current);
+            if (!sawTurnModel && current.model !== null) {
+                model = current.model;
+                sawTurnModel = true;
             }
+            cwd ??= current.cwd;
         }
-        // Current shape (measured live, cli_version 0.154.0): `type: "token_usage_record"`,
-        // `payload.usage`.
-        if (type === 'token_usage_record') {
-            const usage = isRecord(payload['usage']) ? payload['usage'] : null;
-            if (usage !== null) {
-                const t = totalsFrom(usage);
-                if (open !== null)
-                    open.totals = deltaTotals(t, open.baseline);
-                lastTotals = t;
+        const modernUsage = raw['type'] === 'token_usage_record' && isRecord(payload['usage']) ? payload['usage'] : null;
+        const info = isRecord(payload['info']) ? payload['info'] : null;
+        const countEvent = raw['type'] === 'token_count' || (raw['type'] === 'event_msg' && payload['type'] === 'token_count');
+        const recordDiagnostics = [];
+        let recordWitness;
+        const witness = modernUsage ? payload['thread_token_usage'] : countEvent ? info?.['total_token_usage'] : null;
+        if (isRecord(witness) && (witnessMs === null || ms === null || ms >= witnessMs)) {
+            const next = readUsage(witness, recordDiagnostics);
+            recordWitness = next;
+            if (cumulative?.total != null && next.total != null && next.total < cumulative.total) {
+                diagnostics.push('cumulative-reset');
+                recordDiagnostics.push('cumulative-reset');
             }
+            cumulative = next;
+            witnessMs = ms;
+        }
+        if (modernUsage) {
+            const owned = [];
+            const totals = readUsage(modernUsage, owned);
+            const responseId = nonEmptyString(payload['response_id']);
+            const turnId = nonEmptyString(payload['turn_id']) ?? current?.turnId ?? null;
+            const key = responseId ? 'response:' + responseId : 'record:' + fnv1a64(JSON.stringify([id, turnId, isoOrNull(ms), totals]));
+            if (!responseId)
+                diagnostics.push('response-id-unavailable');
+            if (payload['session_id'] != null && id != null && payload['session_id'] !== id) {
+                diagnostics.push('foreign-session');
+                owned.push('foreign-session');
+            }
+            const receipt = { key, responseId, turnId, turnIndex: current ? turns.indexOf(current) : null, timestamp: isoOrNull(ms), totals, sourceRecord, diagnostics: owned,
+                payloadDigest: fnv1a64(JSON.stringify([payload['session_id'] ?? id, payload['thread_id'] ?? id, turnId, current?.model ?? model, current?.cwd ?? cwd, totals])), source: 'modern-response' };
+            if (current?.turnId != null && turnId !== current.turnId) {
+                diagnostics.push('turn-association-conflict');
+                owned.push('turn-association-conflict');
+            }
+            const previous = modern.get(key);
+            if (previous && previous.payloadDigest !== receipt.payloadDigest) {
+                conflicted.add(key);
+                diagnostics.push('conflicting-response:' + key);
+            }
+            else
+                modern.set(key, previous ? { ...previous, diagnostics: [...new Set([...(previous.diagnostics ?? []), ...owned])] } : receipt);
+        }
+        else if (countEvent && info && isRecord(info['last_token_usage'])) {
+            const owned = [];
+            const totals = readUsage(info['last_token_usage'], owned);
+            recordDiagnostics.push(...owned);
+            legacy.push({ key: 'legacy:' + fnv1a64(JSON.stringify([id, current?.turnId, isoOrNull(ms), witness, totals])), responseId: null,
+                turnId: current?.turnId ?? null, turnIndex: current ? turns.indexOf(current) : null, timestamp: isoOrNull(ms), totals, sourceRecord, diagnostics: owned, payloadDigest: fnv1a64(JSON.stringify([current?.turnId, totals])), source: 'legacy-last' });
+        }
+        else if (countEvent && cumulative && current) {
+            const baseline = current.baseline;
+            current.totals = baseline === null ? cumulative : Object.fromEntries(fields.map((field) => {
+                const now = cumulative?.[field];
+                const base = baseline[field];
+                const delta = now != null && base != null ? now - base : null;
+                if (delta != null && delta < 0)
+                    diagnostics.push('cumulative-reset:' + field);
+                return [field, delta != null && delta >= 0 ? delta : null];
+            }));
+        }
+        if (recordWitness !== undefined || recordDiagnostics.length > 0) {
+            let receiptCount = modern.size - conflicted.size;
+            if (legacy.length) {
+                const modernReceipts = [...modern.values()].filter((r) => !conflicted.has(r.key));
+                const legacyKeys = new Set(legacy.filter((r) => !modernReceipts.some((m) => signature(m) === signature(r) && m.timestamp != null && r.timestamp != null && Math.abs(Date.parse(m.timestamp) - Date.parse(r.timestamp)) <= 5000)).map((r) => r.key));
+                receiptCount += legacyKeys.size;
+            }
+            scopeDiagnostics.push({ sourceRecord, receiptCount, timestamp: isoOrNull(ms), diagnostics: recordDiagnostics,
+                ...(recordWitness !== undefined ? { witness: recordWitness } : {}) });
         }
     }
-    if (open !== null && lastMs !== null)
-        closeOpenTurn(lastMs);
-    if (!sawAnyRecord)
-        return { error: 'no parseable JSON lines in rollout text' };
-    if (id === null) {
-        // Last resort: the uuid embedded in `rollout-<ts>-<uuid>.jsonl` — never invented, only read back.
-        // A plain "greedy dash" regex would stop at the uuid's OWN internal dashes (its 8-4-4-4-12 hex
-        // groups), so this matches the canonical uuid shape explicitly rather than "everything after the
-        // last dash".
-        const m = typeof fileName === 'string'
-            ? /([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\.jsonl$/.exec(fileName)
-            : null;
-        id = m !== null ? (m[1] ?? null) : null;
-    }
+    if (current)
+        current.endedAt = isoOrNull(lastMs);
+    if (id === null && fileName)
+        id = /([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})\.jsonl$/.exec(fileName)?.[1] ?? null;
     if (id === null)
         return { error: 'no session_meta record and no id in fileName — cannot identify this rollout' };
-    if (lastTotals === null) {
-        return { error: 'no token_count or token_usage_record entry — nothing to attribute' };
+    const seenTurnIds = new Set();
+    for (const turn of turns)
+        if (turn.turnId !== null) {
+            if (seenTurnIds.has(turn.turnId))
+                diagnostics.push('turn-association-conflict');
+            seenTurnIds.add(turn.turnId);
+        }
+    const responses = [...modern.values()].filter((r) => !conflicted.has(r.key));
+    const seenLegacy = new Set();
+    for (const receipt of legacy) {
+        const mirror = responses.some((r) => signature(r) === signature(receipt) && r.timestamp != null && receipt.timestamp != null
+            && Math.abs(Date.parse(r.timestamp) - Date.parse(receipt.timestamp)) <= 5000);
+        if (!mirror && !seenLegacy.has(receipt.key)) {
+            responses.push(receipt);
+            seenLegacy.add(receipt.key);
+        }
     }
-    return {
-        id,
-        cwd,
-        model: turnContextModel ?? sessionMetaModel,
-        startedAt: isoOrNull(firstMs),
-        endedAt: isoOrNull(lastMs),
-        totals: lastTotals,
-        granularity: closedTurns.length > 0 ? 'turn' : 'session',
-        unmatchableTurns,
-        turns: closedTurns,
-    };
+    if (responses.length === 0 && cumulative === null && conflicted.size === 0)
+        return { error: 'no token_count or token_usage_record entry — nothing to attribute' };
+    for (const turn of turns) {
+        const selected = responses.filter((r) => r.turnIndex === turns.indexOf(turn));
+        if (selected.length > 0)
+            turn.totals = sum(selected.map((r) => r.totals));
+    }
+    const totals = conflicted.size > 0 ? empty() : responses.length > 0 ? sum(responses.map((r) => r.totals)) : cumulative;
+    if (responses.length > 0 && cumulative?.total != null && totals.total !== cumulative.total)
+        diagnostics.push('cumulative-witness-mismatch');
+    return { id, cwd, model, startedAt: isoOrNull(firstMs), endedAt: isoOrNull(lastMs), totals,
+        granularity: turns.length ? 'turn' : 'session', unmatchableTurns: turns.filter((t) => t.startedAt === null || t.endedAt === null).length,
+        turns: turns.map(({ baseline: _baseline, ...turn }) => turn), receipts: responses, diagnostics: [...new Set(diagnostics)],
+        cumulativeWitness: cumulative, scopeDiagnostics, ...(fileName ? { sourcePath: fileName } : {}) };
 }
 /**
  * measurement-integrity fix-round-1/F5 (Codex r1 HIGH #5): every candidate window `matchCodexRollouts`
@@ -232,13 +293,34 @@ export function parseCodexRollout(text, fileName) {
  */
 function candidateViewsOf(r) {
     if (r.granularity === 'session')
-        return [r];
+        return r.turns.length === 0 ? [r] : [];
     const out = [];
-    for (const turn of r.turns) {
+    const turnIdCounts = new Map();
+    for (const turn of r.turns)
+        if (turn.turnId != null)
+            turnIdCounts.set(turn.turnId, (turnIdCounts.get(turn.turnId) ?? 0) + 1);
+    for (const [turnIndex, turn] of r.turns.entries()) {
+        if (turn.turnId != null && turnIdCounts.get(turn.turnId) !== 1)
+            continue;
         if (turn.totals === null)
             continue; // nothing was ever attributed to this turn — not a candidate
+        // Original turn position owns membership, even when adjacent boundaries share a timestamp.
+        const receipts = r.receipts?.filter((receipt) => {
+            if (receipt.turnIndex != null) {
+                if (!Number.isSafeInteger(receipt.turnIndex) || receipt.turnIndex < 0 || receipt.turnIndex >= r.turns.length || receipt.turnIndex !== turnIndex)
+                    return false;
+                return receipt.turnId === null || turn.turnId == null || receipt.turnId === turn.turnId;
+            }
+            return receipt.turnId !== null && turn.turnId === receipt.turnId && turnIdCounts.get(receipt.turnId) === 1;
+        });
+        const contradicts = r.receipts?.some((receipt) => receipt.turnIndex === turnIndex && receipt.turnId !== null && turn.turnId != null && receipt.turnId !== turn.turnId);
+        if (contradicts || (r.receipts && r.receipts.length > 0 && receipts?.length === 0))
+            continue;
         out.push({
+            ...r,
             id: r.id,
+            turnId: turn.turnId ?? null,
+            receipts: receipts ?? [],
             unmatchableTurns: r.unmatchableTurns,
             cwd: turn.cwd,
             model: turn.model,
@@ -264,22 +346,28 @@ function candidateViewsOf(r) {
  * disagreement can never resolve to a lone `'one'`, it always surfaces as `'ambiguous'`.
  */
 export function matchCodexRollouts(rollouts, window) {
-    const fromMs = Date.parse(window.from);
-    const toMs = Date.parse(window.to);
-    if (!Number.isFinite(fromMs) || !Number.isFinite(toMs) || fromMs > toMs)
+    const fromMs = Date.parse(window.from ?? '');
+    const toMs = Date.parse(window.to ?? '');
+    const hasWindow = window.from !== undefined || window.to !== undefined;
+    const exact = window.rolloutId !== undefined || window.turnId !== undefined;
+    if ((hasWindow && (!Number.isFinite(fromMs) || !Number.isFinite(toMs) || fromMs > toMs)) || (!hasWindow && !exact))
         return { status: 'none' };
     const candidates = [];
     for (const r of rollouts) {
         for (const view of candidateViewsOf(r)) {
-            if (view.startedAt === null || view.endedAt === null)
+            if (window.rolloutId !== undefined && view.id !== window.rolloutId)
                 continue;
-            const startMs = Date.parse(view.startedAt);
-            const endMs = Date.parse(view.endedAt);
-            if (!Number.isFinite(startMs) || !Number.isFinite(endMs))
+            if (window.turnId !== undefined && view.turnId !== window.turnId)
+                continue;
+            if (hasWindow && (view.startedAt === null || view.endedAt === null))
+                continue;
+            const startMs = Date.parse(view.startedAt ?? '');
+            const endMs = Date.parse(view.endedAt ?? '');
+            if (hasWindow && (!Number.isFinite(startMs) || !Number.isFinite(endMs)))
                 continue;
             // Lead delta after Codex r2 (#5): the turn must START inside the window — a turn that merely
             // brushes the window's edge (any-overlap) is exactly how a neighbouring dispatch's turn leaks in.
-            if (startMs < fromMs || startMs > toMs)
+            if (hasWindow && (startMs < fromMs || startMs > toMs))
                 continue;
             if (window.cwd !== undefined && view.cwd !== window.cwd)
                 continue;

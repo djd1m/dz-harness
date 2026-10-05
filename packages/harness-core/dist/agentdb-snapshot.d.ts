@@ -43,6 +43,18 @@
  * bug, a backup that looked complete but carried a wrong-generation `-wal`. It now refuses up front
  * (before `VACUUM INTO` or any copy) when `backupPath` already exists and is non-empty.
  *
+ * **agentdb-backup-no-symlink-escape (backlog c2a85b540a293ea2).** A `backupPath` that is itself a
+ * symbolic link used to be written THROUGH: `statSync` in AM-4 follows the link (so a link to a
+ * non-empty file was refused, by accident), but a dangling link got a fresh snapshot created at its
+ * target and a link to an EMPTY file had it overwritten — outside the store (MEASURED on HEAD, /var/tmp
+ * probe, features/agentdb-backup-no-symlink-escape/00_complexity_assessment.md). Two layers now:
+ * {@link assertBackupLeafWritable} refuses a symlink or non-regular leaf by name before anything is
+ * written, and {@link stageThenRename} writes the snapshot (main file and any `-wal`) into a fresh
+ * private `mkdtempSync` directory next to the target and moves it into place with `renameSync`.
+ * `rename(2)` replaces a directory ENTRY — a link planted at `backupPath` between the check and the
+ * write is replaced by the snapshot, never followed. `O_NOFOLLOW` was not an option: the main path
+ * writes through sqlite's `VACUUM INTO`, which takes no open flags.
+ *
  * {@link restoreSqliteSnapshot} (FR-4) is the paired rollback. MEASURED (same repro): copying the
  * old main file back over `dbFile` WITHOUT removing a `-wal` left over from the aborted operation
  * — reopening the "restored" db returned ZERO rows, not the restored one, because sqlite replayed
@@ -97,7 +109,8 @@ export interface SnapshotDbCtor {
  *
  * Throws (no snapshot taken, or an incomplete one left in a fully-cleared state) when: `backupPath`
  * already names an existing, non-empty file (AM-4); or a `-wal` stat probe hits a non-ENOENT error
- * (AM-2, inside the fallback path). Never silently overwrites, never mis-reports a lesser guarantee
+ * (AM-2, inside the fallback path); or `backupPath` is a symbolic link or an existing non-regular file
+ * (no-symlink-escape). Never silently overwrites, never mis-reports a lesser guarantee
  * as a stronger one.
  */
 export declare function snapshotSqliteDatabase(Database: SnapshotDbCtor, dbFile: string, backupPath: string, opts?: {

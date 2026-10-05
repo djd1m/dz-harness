@@ -415,12 +415,30 @@ export function publishArgv(mode: ProvenanceMode, env: NodeJS.ProcessEnv): strin
   return decideProvenance(mode, env).useProvenance ? base + ' --provenance' : base;
 }
 
-/** Match substrings against package identity and path without including the checkout root. */
+/** Validate exact identities against the unfiltered discovery set before any publish effects. */
+export function validatePublishFilters(
+  filters: readonly string[] | undefined,
+  packages: readonly { name: string }[],
+): void {
+  for (const filter of filters ?? []) {
+    if (!filter.startsWith('=')) continue;
+    const name = filter.slice(1);
+    if (name.length === 0 || /[\s\p{Cc}\p{Cf}=,]/u.test(name)) {
+      throw new Error(`malformed exact --filter token ${JSON.stringify(filter)}: expected =NAME without whitespace, controls, equals or comma`);
+    }
+    if (!packages.some(pkg => pkg.name === name)) {
+      throw new Error(`unknown exact --filter token ${JSON.stringify(filter)}: no discovered package has that name`);
+    }
+  }
+}
+
+/** Match =NAME by literal package identity; other filters retain checkout-relative substrings. */
 export function matchesPublishFilter(
   pkg: { name: string; dir: string },
   filter: string,
   monorepoRoot: string,
 ): boolean {
+  if (filter.startsWith('=')) return pkg.name === filter.slice(1);
   const normalizedFilter = filter.replace(/\\/g, '/');
   const relativeDir = pathRelative(pathResolve(monorepoRoot), pathResolve(pkg.dir));
   // A foreign path must not reintroduce checkout ancestors into the match.
@@ -941,6 +959,7 @@ export function publishPackages(
   }
 
   const packages = discoverPackages(monorepoRoot);
+  validatePublishFilters(opts.filter, packages);
   const results: PublishResult[] = [];
   const registryProbes = new Map<string, RegistryProbe>();
   const matching = opts.filter && opts.filter.length > 0

@@ -123,6 +123,29 @@ export declare function featureAdrStateDir(projectRoot: string): string;
  * without one this remains the legacy single-slot path for backward-compatible readers/callers.
  */
 export declare function featureAdrStatePath(projectRoot: string, slug?: string): string;
+/** Exact content selectors; slot filenames alone never establish run identity. */
+export interface FeatureAdrSelector {
+    readonly slug?: string;
+    readonly runId?: string;
+}
+/** Diagnostic observation, separate from the legacy active-only statusline DTO. */
+export interface FeatureAdrObservation {
+    readonly status: 'missing' | 'fresh' | 'stale' | 'expired' | 'completed' | 'unreadable' | 'limited-search';
+    readonly state?: Omit<FeatureAdrState, 'pool' | 'recalled' | 'stored'> & {
+        readonly pool?: number;
+        readonly recalled?: number;
+        readonly stored?: number;
+    };
+    readonly ageMs?: number;
+    readonly reason?: string;
+    readonly limitedSearch?: boolean;
+}
+/**
+ * Read bounded, regular local slots without writing or borrowing a different selected run.
+ * A deliberate symlink project root is resolved once; state ancestors/slots cannot be symlinks.
+ * These checks prevent accidental escapes/blocking files, not hostile concurrent replacement.
+ */
+export declare function readFeatureAdrObservation(projectRoot: string, selector?: FeatureAdrSelector, now?: number): FeatureAdrObservation;
 /**
  * Read the live `/feature-adr` learning state for one project — the source of the per-run panel.
  *

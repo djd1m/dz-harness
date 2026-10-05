@@ -48,12 +48,18 @@
  * @packageDocumentation
  */
 
-import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { closeSync, constants, fstatSync, openSync, readSync, existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
-import { hasKnownPricing, usageCost } from './cost-scoring.js';
+import { MODEL_PRICES, hasKnownPricing, usageCost } from './cost-scoring.js';
 import { CANONICAL_STAGES, canonicalStage } from './feature-adr-stage-canon.js';
 import type { CanonicalStage } from './feature-adr-stage-canon.js';
+import { resolveLedgerModelProvenance } from './run-records.js';
+import { buildStageUsageReport } from './stage-usage.js';
+import { parseCodexRollout } from './codex-rollouts.js';
+import { fnv1a64 } from './feature-adr-checkpoints.js';
+import { createHash } from 'node:crypto';
+import { parseTrace } from './loop-trace.js';
 import { claudeProjectsRoot, rawTokenMixOf, weightedTokensOf } from './usage.js';
 
 // ── Scope + vocabulary ──────────────────────────────────────
@@ -199,7 +205,10 @@ export interface CostLedgerRow {
   /** Cost-weighted input-equivalent tokens — the PRIMARY number of the row. */
   readonly weightedTokens: number;
   /** Secondary, derived estimate. `pricingKnown === false` ⇒ sonnet-class fallback pricing. */
-  readonly costUsd: number;
+  readonly costUsd: number | null;
+  readonly knownEstimatedCostUsd?: number;
+  readonly familyEstimatedCostUsd?: number | null;
+  readonly pricingProvenance?: readonly { model: string; tableKey: string | null; matchKind: string; source: string; fingerprint: string; current: false; billed: false }[];
   readonly pricingKnown: boolean;
   /** ISO, from the run record's stage boundaries (ADR-001) — `null` when the record lacked them. */
   readonly startedTs: string | null;
@@ -249,6 +258,8 @@ export interface CostLedgerReconciliation {
 }
 
 export interface CostLedgerReport {
+  /** Actual readonly input inventory for derived-export admission; absent on pure builder results. */
+  readonly authoritativeEvidence?: { readonly roots: readonly string[]; readonly files: readonly string[] };
   readonly runId: string;
   readonly slug: string | null;
   readonly workflowName: string | null;
@@ -264,7 +275,8 @@ export interface CostLedgerReport {
   readonly reconciliation: CostLedgerReconciliation;
   /** The record's cached raw sum — reported, never the invariant's right-hand side (ADR-002). */
   readonly recordTotalTokens: number | null;
-  readonly totalCostUsd: number;
+  readonly totalCostUsd: number | null;
+  readonly knownEstimatedCostUsd?: number;
   /** Model ids whose USD figures used sonnet-class fallback pricing (ADR-003). */
   readonly pricingFallbackModels: readonly string[];
   /** ALWAYS `true` — a local aggregation, not an official API (mirrors `dz usage`). */
@@ -280,7 +292,7 @@ export interface StageCostAggregate {
   readonly avgTokens: number;
   readonly runs: number;
   readonly totalTokens: number;
-  readonly avgCostUsd: number;
+  readonly avgCostUsd: number | null;
 }
 
 // ── Small clamped helpers ───────────────────────────────────
@@ -528,6 +540,7 @@ export function buildCostLedger(input: BuildCostLedgerInput): CostLedgerReport {
     startedAtMs: number | null;
     endedAtMs: number | null;
     costUsd: number;
+    familyCostUsd: number | null;
     pricingKnown: boolean;
   }
   // measurement-integrity FR-4: a bucket is now keyed by (label, occurrence) rather than by label
@@ -574,6 +587,7 @@ export function buildCostLedger(input: BuildCostLedgerInput): CostLedgerReport {
         startedAtMs: null,
         endedAtMs: null,
         costUsd: 0,
+        familyCostUsd: null,
         pricingKnown: true,
       };
       buckets.set(bucketKey, b);
@@ -586,7 +600,9 @@ export function buildCostLedger(input: BuildCostLedgerInput): CostLedgerReport {
       const end = stage.durationMs === null ? stage.startedAtMs : stage.startedAtMs + stage.durationMs;
       b.endedAtMs = b.endedAtMs === null ? end : Math.max(b.endedAtMs, end);
     }
-    if (!hasKnownPricing(stage.model)) b.pricingKnown = false;
+    const rateKey = Object.keys(MODEL_PRICES).filter((key) => stage.model.toLowerCase().replace(/^[a-z0-9-]+\//, '').startsWith(key)).sort((a,b) => b.length-a.length)[0];
+    const exactPrice = rateKey === stage.model.toLowerCase() && !rateKey?.includes('claude');
+    if (!exactPrice) b.pricingKnown = false;
 
     // Price per AGENT, using that agent's own model, then aggregate — a `mixed` label must not be
     // priced at one arbitrary model's rate.
@@ -614,8 +630,8 @@ export function buildCostLedger(input: BuildCostLedgerInput): CostLedgerReport {
         completionTokens: mix.completionTokens + s.output,
       };
     }
-    const cost = usageCost(mix, stage.model);
-    b.costUsd += Number.isFinite(cost) && cost > 0 ? cost : 0;
+    const cost = hasKnownPricing(stage.model) ? usageCost(mix, stage.model) : null;
+    if (cost !== null && Number.isFinite(cost)) { if (exactPrice) b.costUsd += cost; else b.familyCostUsd = (b.familyCostUsd ?? 0) + cost; }
   }
 
   // accountedTokens — the DEDUPED union of stage-claimed samples, so a double-claim inflates
@@ -661,7 +677,15 @@ export function buildCostLedger(input: BuildCostLedgerInput): CostLedgerReport {
       tokensCacheRead,
       tokensOut,
       weightedTokens: b.sum,
-      costUsd: b.costUsd,
+      costUsd: b.pricingKnown ? b.costUsd : null,
+      knownEstimatedCostUsd: b.costUsd,
+      familyEstimatedCostUsd: b.pricingKnown ? null : b.familyCostUsd,
+      pricingProvenance: models.map((model) => {
+        const normalized = model.toLowerCase().replace(/^[a-z0-9-]+\//, '');
+        const tableKey = Object.keys(MODEL_PRICES).filter((key) => normalized.startsWith(key)).sort((a,b) => b.length-a.length)[0] ?? null;
+        return { model, tableKey, matchKind: tableKey === null ? 'unknown' : tableKey === normalized && !tableKey.includes('claude') ? 'exact' : 'family-estimate',
+          source: 'MODEL_PRICES static snapshot', fingerprint: fnv1a64(JSON.stringify(MODEL_PRICES)), current: false as const, billed: false as const };
+      }),
       pricingKnown: b.pricingKnown,
       startedTs: isoOrNull(b.startedAtMs),
       endedTs: isoOrNull(b.endedAtMs),
@@ -793,8 +817,8 @@ export function buildCostLedger(input: BuildCostLedgerInput): CostLedgerReport {
           ? 'INCOMPLETE_INVENTORY'
           : 'BALANCED';
 
-  let totalCostUsd = 0;
-  for (const r of rows) totalCostUsd += r.costUsd;
+  const knownEstimatedCostUsd = rows.reduce((n,r) => n + (r.knownEstimatedCostUsd ?? 0), 0);
+  const totalCostUsd = rows.every((r) => r.costUsd !== null) ? knownEstimatedCostUsd : null;
   const fallbackModels = [...new Set(record.stages.filter((s) => !hasKnownPricing(s.model)).map((s) => s.model))].sort();
 
   // ── byCanonicalStage (FR-2/T1 + FR-3/T2 combined: every canon bucket, plus `unknown` for rows
@@ -833,6 +857,7 @@ export function buildCostLedger(input: BuildCostLedgerInput): CostLedgerReport {
     },
     recordTotalTokens: record.recordTotalTokens,
     totalCostUsd,
+    knownEstimatedCostUsd,
     pricingFallbackModels: fallbackModels,
     estimated: true,
     scope: COST_LEDGER_SCOPE,
@@ -887,7 +912,7 @@ export function verifyCostLedgerReport(report: CostLedgerReport): readonly CostL
  * run with a known attribution defect can never quietly become a routing input.
  */
 export function stageCostAggregates(reports: readonly CostLedgerReport[]): StageCostAggregate[] {
-  const acc = new Map<string, { stage: string; model: string; total: number; cost: number; runs: Set<string> }>();
+  const acc = new Map<string, { stage: string; model: string; total: number; cost: number | null; runs: Set<string> }>();
   for (const report of reports) {
     // measurement-integrity T2: `!== 'BALANCED'` already excludes `INCOMPLETE_INVENTORY` — a run
     // with a named orphan transcript is exactly as unfit for a routing input as one with a DoubleAttributed
@@ -905,7 +930,7 @@ export function stageCostAggregates(reports: readonly CostLedgerReport[]): Stage
         acc.set(key, a);
       }
       a.total += row.weightedTokens;
-      a.cost += row.costUsd;
+      a.cost = a.cost === null || row.costUsd === null ? null : a.cost + row.costUsd;
       a.runs.add(row.runId);
     }
   }
@@ -918,7 +943,7 @@ export function stageCostAggregates(reports: readonly CostLedgerReport[]): Stage
       avgTokens: runs > 0 ? Math.round(a.total / runs) : 0,
       runs,
       totalTokens: a.total,
-      avgCostUsd: runs > 0 ? a.cost / runs : 0,
+      avgCostUsd: a.cost === null ? null : runs > 0 ? a.cost / runs : 0,
     });
   }
   out.sort((x, y) => y.avgTokens - x.avgTokens || x.stage.localeCompare(y.stage));
@@ -932,7 +957,8 @@ function fmt(n: number): string {
   return Math.round(n).toLocaleString('en-US');
 }
 
-function usd(n: number): string {
+function usd(n: number | null): string {
+  if (n === null) return 'unavailable';
   if (!Number.isFinite(n) || n <= 0) return '$0.00';
   return '$' + n.toFixed(n < 1 ? 4 : 2);
 }
@@ -1018,7 +1044,7 @@ export function renderCostLedger(report: CostLedgerReport): string {
     );
   }
   if (report.pricingFallbackModels.length > 0) {
-    lines.push(`  note: ~USD marked * uses sonnet-class FALLBACK pricing for: ${report.pricingFallbackModels.join(', ')}`);
+    lines.push(`  note: primary ~USD unavailable; FALLBACK pricing is not used for: ${report.pricingFallbackModels.join(', ')}`);
   }
   lines.push(`  scope: ${COST_LEDGER_SCOPE}`);
   return lines.join('\n');
@@ -1174,6 +1200,7 @@ export function listCostLedgerRuns(opts: CostLedgerIoOptions = {}): CostLedgerRu
 }
 
 export interface DeriveCostLedgerOptions extends CostLedgerIoOptions {
+  readonly projectRoot?: string;
   /** Exact run id. Must match `[A-Za-z0-9_.-]{1,128}` — it becomes a path segment. */
   readonly runId?: string;
   /** Most recent run with this `args.slug`. Same pattern restriction. */
@@ -1188,7 +1215,7 @@ export function deriveCostLedger(opts: DeriveCostLedgerOptions = {}): CostLedger
   try {
     if (opts.runId !== undefined && !RUN_ID_PATTERN.test(opts.runId)) return null;
     if (opts.slug !== undefined && !SLUG_PATTERN.test(opts.slug)) return null;
-    const runs = listCostLedgerRuns(opts);
+    const runs = listCostLedgerRuns({ ...opts, ...(opts.projectRoot !== undefined && opts.projectDir === undefined ? { projectDir: resolve(opts.projectRoot).replace(/[\\/]/g, '-') } : {}) }).filter((ref) => opts.projectRoot === undefined || relative(opts.projectsRoot ?? claudeProjectsRoot(), ref.recordPath).split(sep)[0] === resolve(opts.projectRoot).replace(/[\\/]/g, '-'));
     const ref =
       opts.runId !== undefined
         ? runs.find((r) => r.runId === opts.runId)
@@ -1255,7 +1282,7 @@ export function deriveCostLedger(opts: DeriveCostLedgerOptions = {}): CostLedger
       }
     }
 
-    return buildCostLedger({
+    const report = buildCostLedger({
       record,
       stageSamples: [...perAgent.entries()].map(([agentId, samples]) => ({ agentId, samples })),
       runSamples,
@@ -1264,6 +1291,8 @@ export function deriveCostLedger(opts: DeriveCostLedgerOptions = {}): CostLedger
       ...(listingTruncated ? { transcriptListingTruncated: true } : {}),
       ...(opts.epsilon !== undefined ? { epsilon: opts.epsilon } : {}),
     });
+    return { ...report, authoritativeEvidence: { roots: [opts.projectsRoot ?? claudeProjectsRoot(), dirname(dirname(dirname(ref.recordPath))), ref.transcriptDir],
+      files: [ref.recordPath, ...files.map((file) => join(ref.transcriptDir, file)), ...record.stages.map((stage) => join(ref.transcriptDir, 'agent-' + stage.agentId + '.jsonl'))] } };
   } catch {
     return null; // never-throw contract
   }
@@ -1310,4 +1339,264 @@ export function writeCostLedgerJsonl(path: string, report: CostLedgerReport): bo
     }
     return false;
   }
+}
+
+
+// Capture contract: ordered named fields, with absent distinct from explicit null.
+// Kept private at producer/reader boundaries; both use this exact sha256 representation.
+function capturedPayload(evidence: Record<string, unknown>): string {
+  const value = (v: unknown) => v === undefined ? { absent: true } : v;
+  const receipts = Array.isArray(evidence['receipts']) ? evidence['receipts'] : [];
+  return JSON.stringify([
+    ...['schema', 'sessionId', 'turnId', 'sourcePath', 'matchBasis', 'capturedFrom', 'capturedTo', 'model', 'cwd', 'reportedTotalBasis', 'inputCacheSemantics'].map((k) => [k, value(evidence[k])]),
+    ['owner', ...['runId', 'taskId', 'stage', 'attempt', 'role'].map((k) => [k, value((evidence['owner'] as Record<string, unknown> | undefined)?.[k])])],
+    receipts.map((raw) => {
+      const r = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Record<string, unknown> : {}; const t = r['totals'] as Record<string, unknown> | undefined;
+      return [...['key', 'responseId', 'turnId', 'turnIndex', 'timestamp', 'payloadDigest', 'source'].map((k) => [k, value(r[k])]),
+        ['totals', ...['input', 'output', 'cachedInput', 'cachedWrite', 'reasoning', 'total'].map((k) => [k, value(t?.[k])])]];
+    }),
+  ]);
+}
+
+// Existing report IO boundary; no new persistent ledger. Diagnostics never contain raw source text.
+type StageRecord = Record<string, unknown>;
+const stageObject = (value: unknown): value is StageRecord => !!value && typeof value === 'object' && !Array.isArray(value);
+function stageReadText(path: string, allowedRoot: string, maxBytes = 64 * 1024 * 1024): { text: string | null; diagnostic: string | null } {
+  let fd: number | undefined;
+  try {
+    const root = realpathSync(allowedRoot); const abs = resolve(path); const actual = realpathSync(abs); const stat = lstatSync(abs);
+    if (!stat.isFile() || stat.isSymbolicLink() || (actual !== root && !actual.startsWith(root + sep))) return { text: null, diagnostic: 'source-outside-root-or-nonregular' };
+    let ancestor = dirname(abs);
+    while (ancestor !== root && ancestor !== dirname(ancestor)) { if (lstatSync(ancestor).isSymbolicLink()) return { text: null, diagnostic: 'source-symlink' }; ancestor = dirname(ancestor); }
+    fd = openSync(abs, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+    const opened = fstatSync(fd); if (!opened.isFile() || opened.ino !== stat.ino || opened.dev !== stat.dev) return { text: null, diagnostic: 'source-changed-during-read' };
+    const chunks: Buffer[] = []; let bytes = 0;
+    while (true) { const chunk = Buffer.alloc(Math.min(65536, maxBytes + 1 - bytes)); const n = readSync(fd, chunk, 0, chunk.length, null);
+      if (!n) break; bytes += n; if (bytes > maxBytes) return { text: null, diagnostic: 'source-input-too-large' }; chunks.push(chunk.subarray(0, n)); }
+    return { text: new TextDecoder('utf-8', { fatal: true }).decode(Buffer.concat(chunks)), diagnostic: null };
+  } catch { return { text: null, diagnostic: 'missing-or-unreadable-source' }; }
+  finally { if (fd !== undefined) closeSync(fd); }
+}
+function stageReadRows(path: string, root: string, maxBytes?: number, maxRecords = 100000) {
+  const read = stageReadText(path, root, maxBytes); const diagnostics: string[] = [];
+  const rows: StageRecord[] = []; if (read.diagnostic) diagnostics.push(read.diagnostic);
+  let scanned = 0;
+  for (const line of (read.text ?? '').split('\n')) {
+    if (!line.trim()) continue; if (++scanned > maxRecords) { diagnostics.push('inventory-truncated'); break; }
+    try { const value: unknown = JSON.parse(line); if (stageObject(value)) rows.push(value); else diagnostics.push('malformed-record'); }
+    catch { diagnostics.push('malformed-record'); }
+  }
+  return { rows, diagnostics, fingerprint: read.text === null ? null : createHash('sha256').update(read.text).digest('hex') };
+}
+
+/** Scoped source selection. Explicit project/run never falls through to an unrelated global run. */
+export function deriveStageUsageReport(opts: {
+  projectRoot: string; source?: string; runId?: string; slug?: string; runDir?: string;
+  codexSessionsRoot?: string; projectsRoot?: string; maxBytes?: number; maxRecords?: number; epsilon?: number;
+}): ReturnType<typeof buildStageUsageReport> & { legacyCostLedger?: CostLedgerReport; authoritativeEvidence: { roots: string[]; files: string[] } } {
+  const project = resolve(opts.projectRoot); const source = opts.source ?? 'auto';
+  const sourceRoot = resolve(opts.codexSessionsRoot ?? join(process.env['HOME'] ?? '', '.codex/sessions'));
+  const roots = [join(project, '.dz'), sourceRoot, resolve(opts.projectsRoot ?? claudeProjectsRoot()), join(resolve(opts.projectsRoot ?? claudeProjectsRoot()), project.replace(/[\\/]/g, '-'))]; const files: string[] = [];
+  if (opts.runDir !== undefined) roots.push(resolve(project, opts.runDir));
+  if (source === 'claude-transcript') roots.push(resolve(opts.projectsRoot ?? claudeProjectsRoot()));
+  const build = (input: Parameters<typeof buildStageUsageReport>[0]) => ({ ...buildStageUsageReport(input), authoritativeEvidence: { roots, files } });
+  const insufficient = (reason: string) => build({ sourceKind: source, sourcePath: project, runId: opts.runId ?? null, rows: [], diagnostics: [reason] });
+  if (!['auto', 'workflow-budget', 'fa-ledger', 'claude-transcript'].includes(source)) return insufficient('unknown-source');
+  const faPath = join(project, '.dz/feature-adr/run-cost-ledger.jsonl');
+  files.push(faPath);
+  const fa = stageReadRows(faPath, project, opts.maxBytes, opts.maxRecords);
+  const faMatches = fa.rows.filter((row) => (opts.runId === undefined || row['runId'] === opts.runId) && (opts.slug === undefined || row['slug'] === opts.slug));
+  const faIds = [...new Set(faMatches.map((row) => typeof row['runId'] === 'string' ? row['runId'] : '').filter(Boolean))];
+  const projections = faMatches.filter((row) => row['summary'] === true && row['sourceProjection'] === 'workflow-budget');
+  const projectionDiagnostics: string[] = []; const projectedIds = new Set<string>();
+  const safeRunId = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9_.-]{1,128}$/.test(value) && value !== '.' && value !== '..';
+  for (const row of projections) {
+    if (!safeRunId(row['workflowRunId']) || row['runId'] !== row['workflowRunId'] || (row['projectRoot'] !== undefined && (typeof row['projectRoot'] !== 'string' || resolve(row['projectRoot']) !== project))) {
+      projectionDiagnostics.push('inventory-workflow-projection-identity-invalid'); continue;
+    }
+    projectedIds.add(row['workflowRunId']);
+  }
+  const projectedRunId = projectedIds.size === 1 ? [...projectedIds][0]! : null;
+  const traceRoot = join(project, '.dz/loop-trace'); let wfDirs: string[] = [];
+  if (opts.runDir !== undefined) wfDirs = [resolve(project, opts.runDir)];
+  else if (opts.runId !== undefined && safeRunId(opts.runId)) wfDirs = [join(traceRoot, opts.runId)].filter((dir) => existsSync(join(dir, 'budget.jsonl')));
+  else if (opts.slug !== undefined) wfDirs = [...projectedIds].map((id) => join(traceRoot, id));
+  else if (opts.runId === undefined) {
+    try { wfDirs = readdirSync(traceRoot).filter(safeRunId).map((name) => join(traceRoot, name)).filter((dir) => existsSync(join(dir, 'budget.jsonl'))); } catch { /* no selected Wf inventory */ }
+  }
+  roots.push(...wfDirs);
+  for (const dir of wfDirs) files.push(...['budget.jsonl', 'trace.jsonl', 'run-state.json'].map((name) => join(dir, name)));
+
+  // Scoped native census, preserving latest-within-source semantics while refusing unresolved ties.
+  const claudeRoot = resolve(opts.projectsRoot ?? claudeProjectsRoot()); const projectDir = project.replace(/[\\/]/g, '-');
+  const claudeRefs = (opts.runId !== undefined && !RUN_ID_PATTERN.test(opts.runId)) || (opts.slug !== undefined && !SLUG_PATTERN.test(opts.slug)) ? []
+    : listCostLedgerRuns({ projectsRoot: claudeRoot, projectDir }).filter((ref) => (opts.runId === undefined || ref.runId === opts.runId) && (opts.slug === undefined || ref.slug === opts.slug));
+  roots.push(claudeRoot, join(claudeRoot, projectDir));
+  for (const ref of claudeRefs) { roots.push(ref.transcriptDir); files.push(ref.recordPath, ...safeListDir(ref.transcriptDir).filter((f) => f.endsWith('.jsonl')).slice(0, MAX_RUN_TRANSCRIPT_FILES).map((f) => join(ref.transcriptDir, f))); }
+  const claudeAmbiguous = claudeRefs.length > 1 && claudeRefs[0]!.startedAtMs === claudeRefs[1]!.startedAtMs;
+  const faIndependent = faMatches.some((row) => !(!stageObject(row['usageEvidence']) && (row['summary'] === true || ['full', 'round', 'control', 'publish'].includes(String(row['stage'])))));
+  const authorities = Number(wfDirs.length > 0) + Number(faIndependent) + Number(claudeRefs.length > 0);
+  if (source === 'auto' && (authorities > 1 || wfDirs.length > 1 || (faIndependent && faIds.length > 1) || claudeAmbiguous)) return insufficient('source-selection-ambiguous');
+  if (source === 'auto' && projectionDiagnostics.length) return insufficient(projectionDiagnostics[0]!);
+  const chosen = source === 'auto' ? wfDirs.length === 1 ? 'workflow-budget' : faIndependent ? 'fa-ledger' : claudeRefs.length ? 'claude-transcript' : projections.length ? 'fa-ledger' : 'none' : source;
+  if (chosen === 'workflow-budget') {
+    if (opts.slug !== undefined && opts.runId === undefined && projectedRunId === null) return insufficient(projectionDiagnostics[0] ?? 'workflow-source-missing-or-ambiguous');
+    if (wfDirs.length !== 1) return insufficient('workflow-source-missing-or-ambiguous');
+    const dir = wfDirs[0]!; const allowed = opts.runDir === undefined ? project : dir;
+    const budget = stageReadRows(join(dir, 'budget.jsonl'), allowed, opts.maxBytes, opts.maxRecords);
+    const trace = stageReadRows(join(dir, 'trace.jsonl'), allowed, opts.maxBytes, opts.maxRecords);
+    const stateRead = stageReadText(join(dir, 'run-state.json'), allowed, opts.maxBytes);
+    let state: StageRecord | null = null; try { const value: unknown = JSON.parse(stateRead.text ?? 'null'); if (stageObject(value)) state = value; } catch { /* named below */ }
+    const runId = opts.runId ?? projectedRunId ?? (typeof state?.['runId'] === 'string' ? state['runId'] : null);
+    const diagnostics = [...budget.diagnostics, ...trace.diagnostics, ...projectionDiagnostics];
+    if (!state || state['runId'] !== runId) diagnostics.push('inventory-run-state-unavailable-or-foreign');
+    if (state && state['traceSha256'] == null) diagnostics.push('inventory-trace-binding-unavailable');
+    else if (state && state['traceSha256'] !== trace.fingerprint) diagnostics.push('inventory-trace-binding-mismatch');
+    const validatedTrace = parseTrace(trace.rows.map((row) => JSON.stringify(row)).join('\n'));
+    for (const row of projections) if (row['workflowRunId'] !== runId || row['runId'] !== runId || (row['planDigest'] !== undefined && (typeof row['planDigest'] !== 'string' || row['planDigest'] !== state?.['planDigest'] || row['planDigest'] !== validatedTrace.planDigest))) diagnostics.push('inventory-workflow-projection-identity-mismatch');
+    if (validatedTrace.parseErrors.length || validatedTrace.openConflict) diagnostics.push('inventory-trace-invalid');
+    const rows = budget.rows.filter((row) => {
+      if (row['schema'] !== 'wf-budget-1' || (row['kind'] !== 'stage' && row['kind'] !== 'probe')) { diagnostics.push('malformed-budget-schema'); return false; }
+      if (row['projectRoot'] !== undefined && resolve(String(row['projectRoot'])) !== project) { diagnostics.push('foreign-project-root'); return false; }
+      return true;
+    });
+    const expected = validatedTrace.events.filter((row) => row.event === 'dispatched' && row.runId === runId).map((row) => ({ ...row, dispatchSeq: row.seq, evidenceKey: JSON.stringify(['wf-dispatch', row.runId, row.seq]) }));
+    if (trace.rows.some((row) => row['runId'] !== runId)) diagnostics.push('foreign-trace-run');
+    return build({ sourceKind: 'workflow-budget', sourcePath: dir, runId, rows,
+      ...(trace.diagnostics.length === 0 ? { expected } : {}), diagnostics });
+  }
+  if (chosen === 'fa-ledger') {
+    if (opts.runDir !== undefined) return insufficient('source-selection-conflicting-run-dir');
+    if (opts.runId === undefined && faIds.length !== 1) return insufficient('fa-run-selection-ambiguous-or-unidentified');
+    const runId = opts.runId ?? faIds[0]!;
+    const selected = faMatches.filter((row) => row['runId'] === runId);
+    const diagnostics = [...fa.diagnostics]; const sourceDiagnostics: string[] = [];
+    const rows: StageRecord[] = []; const expected: StageRecord[] = []; const witnesses: StageRecord[] = []; const moneyObservations: StageRecord[] = [];
+    let independent = true;
+    for (const row of selected) {
+      const identity = resolveLedgerModelProvenance(row);
+      const evidence = stageObject(row['usageEvidence']) ? row['usageEvidence'] : null;
+      if (!evidence && (row['summary'] === true || ['full', 'round', 'control', 'publish'].includes(String(row['stage'])))) continue;
+      const suppliedMoney = stageObject(row['reportedCostObservation']) ? row['reportedCostObservation'] : null;
+      const moneyScope = evidence && Array.isArray(evidence['receipts']) ? JSON.stringify([evidence['sessionId'], evidence['turnId'], evidence['receipts'].filter(stageObject).map((r) => r['key']).sort()]) : null;
+      moneyObservations.push({ id: suppliedMoney?.['id'] ?? (moneyScope === null ? null : 'captured-scope:' + fnv1a64(moneyScope)),
+        scope: suppliedMoney?.['scope'] ?? moneyScope, basis: suppliedMoney?.['basis'] ?? 'caller-reported-captured-scope', runId: row['runId'], amount: row['reportedCostUsd'] ?? null });
+      if (!evidence || !Array.isArray(evidence['receipts']) || evidence['schema'] !== 'codex-rollout-scope-1') { rows.push(row); independent = false; diagnostics.push('source-scope-unavailable'); continue; }
+      for (const field of ['capturedFrom', 'capturedTo']) if (evidence[field] != null && (typeof evidence[field] !== 'string' || !Number.isFinite(Date.parse(evidence[field] as string)))) sourceDiagnostics.push('invalid-captured-window:' + field);
+      if (!['codex', 'openai'].includes(identity.family ?? '')) sourceDiagnostics.push('captured-source-model-family-conflict');
+      if (identity.model === null || identity.diagnostics.length) sourceDiagnostics.push(...identity.diagnostics.map((d) => 'captured-' + d));
+      const captured = evidence['receipts'].filter(stageObject);
+      if (captured.some((r) => !stageObject(r['totals']))) sourceDiagnostics.push('invalid-captured-totals');
+      if (evidence['captureSha256'] !== undefined) {
+        if (createHash('sha256').update(capturedPayload(evidence)).digest('hex') !== evidence['captureSha256']) sourceDiagnostics.push('captured-payload-sha256-mismatch');
+        const owner = stageObject(evidence['owner']) ? evidence['owner'] : {};
+        for (const key of ['runId', 'taskId', 'stage', 'attempt', 'role']) if (owner[key] !== (row[key] ?? null)) sourceDiagnostics.push('captured-owner-mismatch:' + key);
+        if (evidence['model'] !== identity.model || evidence['cwd'] !== project || evidence['reportedTotalBasis'] !== row['reportedTotalBasis'] || evidence['inputCacheSemantics'] !== row['inputCacheSemantics']) sourceDiagnostics.push('captured-scope-mismatch');
+      }
+      if (fnv1a64(JSON.stringify(captured.map((receipt) => [receipt['key'], receipt['payloadDigest']]))) !== evidence['payloadDigest']) sourceDiagnostics.push('captured-scope-fingerprint-mismatch');
+      if (captured.length !== evidence['receipts'].length) { sourceDiagnostics.push('invalid-captured-scope'); independent = false; }
+      const sourcePath = typeof evidence['sourcePath'] === 'string' ? evidence['sourcePath'] : '';
+      if (sourcePath) files.push(resolve(sourcePath));
+      const original = stageReadText(sourcePath, sourceRoot, opts.maxBytes);
+      const parsed = original.text === null ? null : parseCodexRollout(original.text, sourcePath);
+      if (evidence['matchBasis'] !== 'exact') { independent = false; diagnostics.push('legacy-window-assurance'); }
+      let scopedTotal = 0; let allKnown = true; const scopeAssociations = new Set<string>(); const matchedSourceKeys = new Set<string>(); let maxSourceRecord = -1;
+      const scopedDimensions: Record<string, number | null> = { tokensIn: 0, tokensOut: 0, tokensCacheRead: 0, tokensCacheWrite: 0, tokensReasoning: 0 };
+      for (const receipt of captured) {
+        const key = typeof receipt['key'] === 'string' ? receipt['key'] : null;
+        const totals = stageObject(receipt['totals']) ? receipt['totals'] : {};
+        const claim = { ...row, reportedCostUsd: null, evidenceKey: key, tokensTotal: totals['total'], tokensIn: totals['input'], tokensOut: totals['output'],
+          tokensCacheRead: totals['cachedInput'], tokensCacheWrite: totals['cachedWrite'], tokensReasoning: totals['reasoning'],
+          reportedTotalBasis: 'raw-inclusive', inputCacheSemantics: 'includes-cache-read-write' };
+        rows.push(claim); expected.push({ evidenceKey: key });
+        if (!parsed || 'error' in parsed || parsed.id !== evidence['sessionId']) { independent = false; diagnostics.push('source-witness-unavailable'); continue; }
+        const found = parsed.receipts?.find((r) => JSON.stringify([parsed.id, r.key]) === key);
+        if (!found) { sourceDiagnostics.push('captured-source-receipt-missing-or-foreign'); independent = false; continue; }
+        matchedSourceKeys.add(found.key); maxSourceRecord = Math.max(maxSourceRecord, found.sourceRecord ?? -1);
+        for (const diagnostic of found.diagnostics ?? []) sourceDiagnostics.push('source-receipt:' + diagnostic);
+        for (const field of ['input', 'output', 'cachedInput', 'cachedWrite', 'reasoning', 'total'] as const) if (totals[field] !== found.totals[field]) sourceDiagnostics.push('captured-source-dimension-mismatch:' + field);
+        for (const field of ['responseId', 'turnId', 'timestamp', 'source'] as const) if (receipt[field] !== found[field]) sourceDiagnostics.push('captured-source-identity-mismatch:' + field);
+        // Association refers to the original independently parsed array, never a filtered view.
+        let turn: typeof parsed.turns[number] | undefined; let sourceTurnIndex: number | null = null;
+        let sessionScope = false;
+        if (found.turnIndex != null) {
+          if (Number.isSafeInteger(found.turnIndex) && found.turnIndex >= 0 && found.turnIndex < parsed.turns.length) {
+            sourceTurnIndex = found.turnIndex; turn = parsed.turns[sourceTurnIndex];
+          } else sourceDiagnostics.push('source-turn-index-invalid');
+        } else if (found.turnId !== null) {
+          const matches = parsed.turns.map((t, index) => ({ t, index })).filter(({ t }) => t.turnId === found.turnId);
+          if (matches.length === 1) { sourceTurnIndex = matches[0]!.index; turn = matches[0]!.t; }
+          else sourceDiagnostics.push('source-turn-identity-missing-or-ambiguous');
+        } else if (parsed.granularity === 'session' && parsed.turns.length === 0 && evidence['turnId'] == null) sessionScope = true;
+        if (!turn && !sessionScope) { sourceDiagnostics.push('source-turn-association-unavailable'); independent = false; }
+        if (turn?.turnId != null && (parsed.turns.filter((t) => t.turnId === turn!.turnId).length !== 1 || (found.turnId !== null && found.turnId !== turn.turnId))) sourceDiagnostics.push('source-turn-identity-conflict');
+        if (evidence['turnId'] != null && (evidence['turnId'] !== found.turnId || (turn?.turnId != null && evidence['turnId'] !== turn.turnId))) sourceDiagnostics.push('captured-turn-identity-conflict');
+        const explicitLegacyAssociation = receipt['turnIndex'] == null && receipt['turnId'] != null && receipt['turnId'] === found.turnId
+          && turn?.turnId === found.turnId && parsed.turns.filter((t) => t.turnId === found.turnId).length === 1;
+        if (receipt['turnIndex'] !== found.turnIndex && !explicitLegacyAssociation && !(sessionScope && receipt['turnIndex'] == null && found.turnIndex == null)) sourceDiagnostics.push('captured-source-identity-mismatch:turnIndex');
+        if (turn || sessionScope) {
+          scopeAssociations.add(turn ? 'turn:' + sourceTurnIndex : 'session');
+          const authority = turn ?? parsed;
+          if (evidence['capturedFrom'] !== authority.startedAt) sourceDiagnostics.push('captured-source-start-scope-mismatch');
+          if (identity.model !== authority.model || authority.cwd === null || resolve(authority.cwd) !== project
+            || row['reportedTotalBasis'] !== 'raw-inclusive' || row['inputCacheSemantics'] !== 'includes-cache-read-write') sourceDiagnostics.push('captured-source-scope-mismatch');
+        }
+        if (found.timestamp !== null && ((typeof evidence['capturedFrom'] === 'string' && Date.parse(found.timestamp) < Date.parse(evidence['capturedFrom'])) || (typeof evidence['capturedTo'] === 'string' && Date.parse(found.timestamp) > Date.parse(evidence['capturedTo'])))) sourceDiagnostics.push('captured-source-window-mismatch');
+        if (found.payloadDigest !== receipt['payloadDigest']) sourceDiagnostics.push('source-payload-conflict');
+        if (!found.responseId) { independent = false; diagnostics.push('source-receipt-identity-unavailable'); }
+        witnesses.push({ evidenceKey: key, tokensTotal: found.totals.total, reportedTotalBasis: 'raw-inclusive' });
+        if (found.totals.total === null) allKnown = false; else scopedTotal += found.totals.total;
+        for (const [field, value] of Object.entries({ tokensIn: found.totals.input, tokensOut: found.totals.output, tokensCacheRead: found.totals.cachedInput,
+          tokensCacheWrite: found.totals.cachedWrite ?? null, tokensReasoning: found.totals.reasoning })) scopedDimensions[field] = scopedDimensions[field] === null || value === null ? null : scopedDimensions[field]! + value;
+      }
+      if (allKnown && !Number.isSafeInteger(scopedTotal)) sourceDiagnostics.push('source-scoped-aggregate-overflow:total');
+      for (const [field, value] of Object.entries(scopedDimensions)) if (value !== null && !Number.isSafeInteger(value)) sourceDiagnostics.push('source-scoped-aggregate-overflow:' + field);
+      if (parsed && !('error' in parsed)) for (const scope of parsed.scopeDiagnostics ?? []) {
+        // A matching prefix and recorded end bound establish the SAME used witness scope.
+        if (scope.receiptCount !== matchedSourceKeys.size || maxSourceRecord < 0 || maxSourceRecord > scope.sourceRecord
+          || (scope.timestamp !== null && typeof evidence['capturedTo'] === 'string' && Date.parse(scope.timestamp) > Date.parse(evidence['capturedTo']))) continue;
+        for (const diagnostic of scope.diagnostics) sourceDiagnostics.push('source-scope:' + diagnostic);
+        if (scope.witness) for (const [field, actual] of Object.entries({ total: allKnown ? scopedTotal : null, input: scopedDimensions['tokensIn'], output: scopedDimensions['tokensOut'], cachedInput: scopedDimensions['tokensCacheRead'], cachedWrite: scopedDimensions['tokensCacheWrite'], reasoning: scopedDimensions['tokensReasoning'] })) {
+          const witness = scope.witness[field as keyof typeof scope.witness];
+          if (actual != null && witness != null && actual !== witness) sourceDiagnostics.push('source-scoped-witness-mismatch:' + field);
+        }
+      }
+      if (scopeAssociations.size > 1) sourceDiagnostics.push('captured-mixed-turn-association');
+      // Verify the captured receipt subset, not an expanded session's later cumulative total.
+      // A malformed record still leaves the source census undecidable; receipt mutations are
+      // detected above by their captured payload hashes and identities.
+      if (parsed && !('error' in parsed) && parsed.diagnostics?.includes('malformed-record')) sourceDiagnostics.push('source:malformed-record');
+      if (Array.isArray(row['usageDiagnostics']) && row['usageDiagnostics'].some((d) => typeof d === 'string' && /invalid|mismatch|conflict|reset|overflow|foreign/.test(d))) sourceDiagnostics.push('captured-source-was-invalid');
+      const claimTotal = row['tokensTotal'] ?? row['tokens'];
+      if (parsed && !('error' in parsed) && allKnown && Number.isSafeInteger(scopedTotal) && claimTotal !== scopedTotal) sourceDiagnostics.push('source-claim-total-mismatch');
+      if (parsed && !('error' in parsed) && allKnown && row['tokens'] != null && row['tokens'] !== scopedTotal) sourceDiagnostics.push('source-compatibility-total-mismatch');
+      for (const [field, value] of Object.entries(scopedDimensions)) if (parsed && !('error' in parsed) && row[field] != null && value !== null && row[field] !== value) sourceDiagnostics.push('source-dimension-mismatch:' + field);
+      if (!captured.length) { rows.push(row); independent = false; diagnostics.push('source-scope-empty'); }
+    }
+    if (!rows.length && selected.some((row) => row['summary'] === true)) diagnostics.push('projection-only-spend-unavailable');
+    if (sourceDiagnostics.length) for (const row of rows) row['usageDiagnostics'] = [...(Array.isArray(row['usageDiagnostics']) ? row['usageDiagnostics'] : []), 'source-payload-conflict'];
+    return build({ sourceKind: 'fa-ledger', sourcePath: faPath, runId, rows,
+      ...(independent ? { expected, witnesses } : {}), moneyObservations, diagnostics, sourceDiagnostics });
+  }
+  if (chosen === 'claude-transcript') {
+    if (claudeAmbiguous) return insufficient('source-selection-ambiguous');
+    const legacy = deriveCostLedger({ ...(opts.epsilon !== undefined ? { epsilon: opts.epsilon } : {}), projectRoot: project, ...(claudeRefs[0] !== undefined ? { runId: claudeRefs[0].runId } : opts.runId !== undefined ? { runId: opts.runId } : {}), ...(opts.slug !== undefined ? { slug: opts.slug } : {}), ...(opts.projectsRoot !== undefined ? { projectsRoot: opts.projectsRoot } : {}) });
+    if (!legacy || (opts.slug !== undefined && legacy.slug !== opts.slug)) return insufficient('claude-source-missing');
+    if (legacy.authoritativeEvidence) { roots.push(...legacy.authoritativeEvidence.roots); files.push(...legacy.authoritativeEvidence.files); }
+    const report = build({ sourceKind: 'claude-transcript', sourcePath: opts.projectsRoot ?? claudeProjectsRoot(), runId: legacy.runId,
+      rows: legacy.rows.map((row) => ({ runId: row.runId, stage: row.stage, model: row.model, family: 'claude', attempt: row.attempt,
+        tokensTotal: row.weightedTokens, reportedTotalBasis: 'weighted-input-equivalent', evidenceKey: JSON.stringify([row.runId, row.stage, row.attempt]) })), diagnostics: ['legacy-weighted-transcript-view'] });
+    return { ...report, legacyCostLedger: legacy };
+  }
+  return insufficient('no-selected-project-source');
+}
+
+export function renderStageUsageReport(report: ReturnType<typeof buildStageUsageReport>): string {
+  const number = (n: number | null) => n === null ? 'unavailable' : String(n);
+  const rows = report.rows.map((row) => `${row.stage ?? 'unattributed'} | ${row.model ?? 'unknown model'} | total ${number(row.tokensTotal)} (${row.reportedTotalBasis}) | input ${number(row.tokensIn)} cache-read ${number(row.tokensCacheRead)} cache-write ${number(row.tokensCacheWrite)} output ${number(row.tokensOut)} | estimated USD ${number(row.estimatedCostUsd)}`);
+  return [`usage --by-stage: ${report.verdict} — ${report.sourceKind} ${report.sourcePath}`, `metric: ${report.metric}; known subtotal ${number(report.knownRunTotalTokens)}; full total ${number(report.runTotalTokens)}`,
+    `conservation: ${report.conservation.status}; inventory: ${report.inventory.status}; source verification: ${report.sourceVerification.status}; source verified total ${number(report.sourceVerifiedTotalTokens)}`,
+    `reported USD ${number(report.reportedCostUsd)}; known reported subtotal ${number(report.knownReportedCostUsd)}; money coverage ${report.reportedCostCoverage.status}`,
+    `estimated USD ${number(report.estimatedCostUsd)}; known estimated subtotal ${number(report.knownEstimatedCostUsd)}; billed USD unavailable (not observed)`, ...rows,
+    ...report.diagnostics.map((d) => 'diagnostic: ' + d), ...report.sourceVerification.diagnostics.map((d) => 'source: ' + d)].join('\n');
 }

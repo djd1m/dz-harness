@@ -562,12 +562,90 @@ only the statusline:
 
 **Record the panel at the START of every step, not only at Steps 0/8/9.** The panel shows the last step
 that reported; a pipeline that reports three times per run shows a stale step for most of its life. Emit
-`dz statusline --fa-record --slug <slug> --step "<Step N Name>" --recalled <n> --stored <n>` as the first
+`dz statusline --fa-record --project "<worktree>" --slug "<slug>" --run-id "<stable-run-id>" --tier M --step "<Step N Name>" --recalled <n> --stored <n>` as the first
 action of each step. The recall/teach counts only change at Steps 0/8/9; the *step label* changes at every
 one of them.
 
 *Honesty note:* the panel is live only insofar as the pipeline records state — it reflects what the
 pipeline actually did with the loop (recalls that ran, stores that landed), not an aspirational count.
+
+### Plain observed usage receipts
+
+Use the existing witnessed writer for usage you actually observed. At a real stage boundary,
+capture the execution project, stable run/task, verbatim stage, actual model/family/role, attempt,
+tier/mode and source window/IDs available to this host. Missing fields remain null with their reason;
+do not infer input/cache from total, price from a model family, or tokens from invocation budgets.
+
+```bash
+dz feature-adr-record --kind ledger --stage "$CURRENT_STAGE" --project "$EXECUTION_PROJECT" \
+  --row "$OBSERVED_STAGE_ROW_JSON" --rollout-id "$ACTUAL_SESSION_ID" --turn-id "$ACTUAL_TURN_ID" --json
+dz usage --by-stage --project "$EXECUTION_PROJECT" --source fa-ledger --run "$STABLE_RUN_ID" --json
+```
+
+`OBSERVED_STAGE_ROW_JSON` is real host metadata: `runId`, `taskId`, `stage`, `model`, `family`, `role`,
+`attempt`, `tier`, `mode`, `tokens`/dimensions when observed, and optional separate `estimate` with
+tokens/costUsd/method/source/capturedAt. Omit selectors not known; window/cwd/model-only correlation
+is labelled legacy-window and cannot claim exact source verification. Source roots can be named with
+`--codex-sessions`. Exact IDs are validated against existing receipts; no new IDs or recall/teach occur.
+The source receipt subset is captured once; later source append cannot enlarge the old row.
+Captured payload integrity and every pricing-bearing dimension must match the original scoped source.
+A reported monetary amount belongs to one observation, not each expanded token receipt. Preserve an
+actual observation ID/scope/basis in optional `reportedCostObservation: { id, scope, basis }` within
+`--row` when known; otherwise a captured source scope supplies a stable identity and unrelated money
+attribution stays unavailable. Reimports of the same observation count once; conflicting amounts are
+diagnosed. Missing money differs from zero. Exports must avoid every selected authoritative source,
+including custom run directories and symlink aliases. Invalid Claude counters retain nulls/diagnostics;
+a declared invalid total cannot derive a replacement, and accounting validity does not rewrite the
+actual generation outcome.
+
+For Wf, use `--source workflow-budget --run <id>` and optional `--run-dir <dir>` for its existing
+budget/trace/state. Auto source collisions require an explicit source; joined Wf summary projections
+never add another cost. Preserve reported total basis and cache/reasoning subsets. Wf budget.spent
+counts dispatch units; native Workflow's existing budget delta is output-only. Neither is raw total.
+
+Reports separate conservation, expected inventory and independent amount verification. Without
+a same-scope witness, verified totals are null even when reported values conserve. Unknown rates or
+split keep primary estimated USD null; static family estimates, provider-reported USD and caller
+pre-run estimates are separate, never current exact prices or billed amounts. Billing remains unobserved.
+
+### Codex companion terminal (Plain included)
+
+Open an adjacent terminal or a manual tmux split and launch the observer explicitly. Codex does not
+have a dz native command-provider footer. Keep the producer's project, slug and stable run ID equal to
+the observer's; use the actual complexity tier at the START of every active step. Brain is the shared
+learning store for recall/teach, while project is the worktree containing run slots and branch.
+
+```bash
+# Set these to your actual absolute paths. Use the worktree build until the change is installed.
+PANEL_CLI="/path/to/worktree/packages/@dzhechkov/harness-cli/dist/bin.js"
+PANEL_PROJECT="/path/to/worktree"
+PANEL_BRAIN="/path/to/canonical-brain"
+PANEL_SLUG="feature-slug"
+PANEL_RUN="feature-20261002-1"  # choose once per invocation, retain at every step
+node "$PANEL_CLI" statusline --watch --project "$PANEL_PROJECT" --brain "$PANEL_BRAIN" \
+  --slug "$PANEL_SLUG" --run-id "$PANEL_RUN" --interval 2
+# In the producer terminal, at the START of each real step (example: tier M):
+node "$PANEL_CLI" statusline --fa-record --project "$PANEL_PROJECT" --slug "$PANEL_SLUG" \
+  --run-id "$PANEL_RUN" --tier M --step "Step 7 Code" --recalled 3 --stored 0
+# Only after the run actually completes; this is not a claim that QE passed:
+node "$PANEL_CLI" statusline --fa-record --project "$PANEL_PROJECT" --slug "$PANEL_SLUG" \
+  --run-id "$PANEL_RUN" --tier M --step "done" --recalled 3 --stored 0
+```
+
+Use `dz recall ... --project "$PANEL_BRAIN"` and `dz teach ... --project "$PANEL_BRAIN"` for actual
+learning. Supply measured cumulative counters, not the example numbers. The observer counts its brain
+source directly; the slot's producer pool is not a shared-brain inventory. One slug holds one latest
+run, so a replacement makes an exact old selection missing. No selectors means visibly automatic
+selection. Freshness measures producer-report age, not process liveness: fresh <30 minutes, stale
+30–<90, expired >=90; completed remains completed. Stage position is not completed gates.
+
+Watch v1 displays ETA unavailable, unknown optional values and unavailable failed/absent learning
+sources, and omits ambiguous global source inventory. It uses escaped ASCII text, a dedicated stdout
+TTY, 0.25–60 second intervals (default 2), and a size warning below 40 columns/8 rows. Ctrl-C/SIGTERM
+exit 0; output failures exit 1; piped output and watch+JSON/install/record combinations exit 2.
+Observation never reads stdin, runs models or writes logical store state. SQLite-managed ephemeral
+WAL/SHM files are permitted; no application locks, repair or schema changes occur. One-shot Claude
+statusline/JSON and its ETA keep their existing behavior. Do not start a terminal automatically.
 
 ### What changes with `--full-qe`
 

@@ -15,9 +15,11 @@
  *
  * @packageDocumentation
  */
-import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync, renameSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, relative } from 'node:path';
-import { execSync, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
+import { reconcileMemoryDependencies } from './setup-memory-deps.js';
 import { mergeManagedHookEntries } from './managed-hooks.js';
 import { writeUniqueStampedFile } from './stamped-path.js';
 import { CLAUDE_DESTRUCTIVE_HOOK_COMMAND, CLAUDE_DESTRUCTIVE_HOOK_MATCHER, CLAUDE_DESTRUCTIVE_HOOK_RELPATH, generateClaudeDestructiveHook, isDzManagedHookBody, } from './claude-hooks-assets.js';
@@ -452,10 +454,6 @@ function generateDzConfig(target, preset, backend) {
         },
     }, null, 2);
 }
-/** True if `agentdb` resolves from the project's node_modules (the hook writer needs it there). */
-function isAgentdbInstalledLocally(projectRoot) {
-    return existsSync(join(projectRoot, 'node_modules', 'agentdb', 'package.json'));
-}
 /**
  * The exact agentdb version installed in the project, or `'latest'` as a fallback. Used to pin the
  * MCP server spec (`agentdb@<version>`) so the long-running MCP server and the hook writer — which
@@ -477,39 +475,6 @@ function installedAgentdbSpec(projectRoot) {
  * build tools — and gives true cross-process WAL concurrency so the hook and the MCP server share
  * one live store). Best-effort: returns false (caller degrades to jsonl) if install fails.
  */
-function installAgentdbLocally(projectRoot) {
-    if (isAgentdbInstalledLocally(projectRoot))
-        return true;
-    try {
-        // Anchor npm to THIS project: without a package.json here, npm's prefix walk-up would
-        // install into (and mutate the lockfile of) the nearest ANCESTOR project (audit code#2).
-        const pkgJsonPath = join(projectRoot, 'package.json');
-        if (!existsSync(pkgJsonPath)) {
-            writeFileSync(pkgJsonPath, JSON.stringify({ name: 'dz-harness-project', private: true, version: '0.0.0' }, null, 2) + '\n');
-        }
-        // NB: use the ESM-imported execSync — `require()` is undefined in this ESM module (the
-        // original agentdb hooks failed silently for exactly this reason). stdio:'ignore' (not
-        // 'pipe') avoids execSync's 1 MB maxBuffer aborting the child on npm's verbose output.
-        // --save-exact: agentdb is alpha; a semver range would let a later `npm update` drift the
-        // local copy away from the version the MCP registration pins (audit gap G7).
-        //
-        // better-sqlite3@^11 (AM-2, dz-harness-hub issue #10 defect 1, MEASURED Node 20.20.2 with no
-        // `make` on PATH): an unpinned `npm install better-sqlite3` resolved 12.11.1, which ships no
-        // prebuilt binary for Node 20's ABI 115 — the install fell through to a node-gyp source build
-        // and failed on a machine with no C toolchain. `agentdb` itself requests `^11.8.1`, which DOES
-        // publish an ABI-115 prebuild, so pinning the range here costs nothing agentdb wasn't already
-        // going to resolve to, and buys a working install on a bare Node 20/22 host.
-        execSync('npm install agentdb better-sqlite3@^11 --save-exact --no-audit --no-fund --loglevel=error', {
-            cwd: projectRoot,
-            stdio: 'ignore',
-            timeout: 300000,
-        });
-        return isAgentdbInstalledLocally(projectRoot);
-    }
-    catch {
-        return false;
-    }
-}
 /** Run full environment setup. */
 /** Marker that brackets the dz-harness section in a shared CLAUDE.md/AGENTS.md. */
 const DRIVER_MARKER_START = '<!-- dz-harness-driver:start -->';
@@ -856,20 +821,45 @@ export function runSetup(opts) {
     // the comparison is against the PRIOR config, never the one this same call is about to produce.
     const resolvedMemory = resolveSetupMemoryBackend(opts.projectRoot, opts.memory, opts.noMemory === true);
     const backend = resolvedMemory.backend;
-    // Step 0: Install agentdb + better-sqlite3 locally so the session-hook writer can import them
-    // and share a native store with the MCP server. Best-effort — the writer self-degrades to a
-    // jsonl marker (and self-heals once the deps exist) if this fails.
-    if (backend === 'agentdb') {
-        const ready = installAgentdbLocally(opts.projectRoot);
-        if (ready) {
-            steps.push({ name: 'Install agentdb + better-sqlite3', status: 'done', detail: 'local deps for real vector writes' });
+    const configPath = join(dzDir, 'config.json');
+    let config;
+    const observedBackend = () => {
+        try {
+            const value = JSON.parse(readFileSync(configPath, 'utf8'));
+            return value?.memory?.backend === 'agentdb' || value?.memory?.backend === 'jsonl' ? value.memory.backend : 'unknown';
         }
-        else {
-            steps.push({
-                name: 'Install agentdb + better-sqlite3',
-                status: 'error',
-                detail: 'install failed — hooks log to sessions.jsonl until you run: npm i agentdb better-sqlite3',
-            });
+        catch {
+            return 'unknown';
+        }
+    };
+    const finish = () => ({
+        steps, totalSteps: steps.length, completed: steps.filter(step => step.status === 'done').length,
+        skipped: steps.filter(step => step.status === 'skipped').length,
+        memoryBackend: observedBackend() === 'unknown' ? resolvedMemory.backend : observedBackend(),
+        memoryBackendObserved: observedBackend(), memoryBackendSource: resolvedMemory.source,
+        memoryBackendDowngraded: resolvedMemory.downgraded,
+    });
+    try {
+        if (existsSync(configPath)) {
+            const value = JSON.parse(readFileSync(configPath, 'utf8'));
+            if (value === null || typeof value !== 'object' || Array.isArray(value))
+                throw Error('config must be an object');
+            config = value;
+            const memory = config['memory'];
+            if (memory === null || typeof memory !== 'object' || Array.isArray(memory) || !['jsonl', 'agentdb'].includes(String(memory['backend'])))
+                throw Error('memory.backend must be jsonl or agentdb');
+        }
+    }
+    catch (error) {
+        steps.push({ name: 'Memory saved state', status: 'error', detail: `unknown INCOMPLETE: malformed .dz/config.json preserved; ${String(error)}` });
+        return finish();
+    }
+    if (backend === 'agentdb' && !opts.noMemory) {
+        const deps = reconcileMemoryDependencies(opts.projectRoot);
+        steps.push({ name: 'Memory dependencies', status: deps.ready ? (deps.changedManifest || deps.changedLock || deps.detail.startsWith('repaired') ? 'done' : 'skipped') : 'error', detail: deps.detail });
+        if (!deps.ready) {
+            steps.push({ name: 'Memory backend transition', status: 'error', detail: `saved backend ${observedBackend()} INCOMPLETE before config persistence; dependency/npm/native failure; later memory phases not run` });
+            return finish();
         }
     }
     // Step 1: Create .dz directory
@@ -880,351 +870,364 @@ export function runSetup(opts) {
     else {
         steps.push({ name: 'Create .dz directory', status: 'skipped', detail: 'already exists' });
     }
-    // Step 2: Write .dz/config.json. FR-2: a DOWNGRADE (explicit --memory jsonl over an
-    // agentdb-configured project) forces the write even without --force — "two truths after any
-    // setup coincide" means the config may not keep claiming agentdb once the caller has explicitly
-    // asked for jsonl.
-    const configPath = join(dzDir, 'config.json');
-    if (!existsSync(configPath) || opts.force) {
-        writeFileSync(configPath, generateDzConfig(opts.target, opts.preset, backend));
-        steps.push({ name: 'Write .dz/config.json', status: 'done', detail: `${backend} backend` });
-    }
-    else if (resolvedMemory.downgraded) {
-        // Lead edit after Codex review (finding 3): a downgrade changes ONLY memory.backend — every other
-        // field the owner keeps in .dz/config.json survives; an unparsable file falls back to regeneration.
-        let rewritten = false;
-        try {
-            const cfg = JSON.parse(readFileSync(configPath, 'utf-8'));
-            const memory = (cfg['memory'] !== null && typeof cfg['memory'] === 'object') ? cfg['memory'] : {};
-            cfg['memory'] = { ...memory, backend };
-            writeFileSync(configPath, JSON.stringify(cfg, null, 2) + '\n');
-            rewritten = true;
-        }
-        catch { /* fall through to regeneration */ }
-        if (!rewritten)
-            writeFileSync(configPath, generateDzConfig(opts.target, opts.preset, backend));
-        steps.push({ name: 'Write .dz/config.json', status: 'done', detail: `memory.backend → ${backend} (other fields kept)` });
+    // Persist only the requested backend field of readable existing config, atomically.
+    const priorBackend = observedBackend();
+    if (opts.noMemory) {
+        steps.push({ name: 'Write .dz/config.json', status: 'skipped', detail: '--no-memory: existing memory configuration preserved' });
     }
     else {
-        steps.push({ name: 'Write .dz/config.json', status: 'skipped', detail: 'already exists (use --force)' });
-    }
-    if (resolvedMemory.downgraded) {
-        steps.push({
-            name: 'Memory backend downgrade',
-            status: 'done',
-            detail: '⚠ memory backend downgraded agentdb → jsonl by --memory jsonl',
-        });
-    }
-    // Step 3: Initialize session log
-    const sessionsPath = join(dzDir, 'sessions.jsonl');
-    if (!existsSync(sessionsPath)) {
-        writeFileSync(sessionsPath, '');
-        steps.push({ name: 'Initialize sessions.jsonl', status: 'done', detail: 'session tracking ready' });
-    }
-    else {
-        steps.push({ name: 'Initialize sessions.jsonl', status: 'skipped', detail: 'already exists' });
-    }
-    // Step 4: Initialize memory store
-    if (backend === 'agentdb') {
-        // Write the session-hook writer. The agentdb.db store itself is auto-created on first write
-        // by createDatabase() (both the writer and the MCP server init the schema), so there is no
-        // orphan placeholder file — the writer targets the real, shared native store.
-        const writerPath = join(dzDir, 'agentdb-writer.mjs');
-        // Regenerate when missing, forced, OR the deployed stamp is older than the current
-        // generator — deployed writers must not fossilize outside the package lifecycle (gap G4).
-        const deployedVersion = existsSync(writerPath) ? writerVersionOf(readFileSync(writerPath, 'utf-8')) : -1;
-        if (deployedVersion === -1 || opts.force || deployedVersion < AGENTDB_WRITER_VERSION) {
-            writeFileSync(writerPath, generateAgentdbWriter(opts.projectRoot));
-            steps.push({
-                name: 'Write agentdb-writer.mjs',
-                status: 'done',
-                detail: deployedVersion > -1 && deployedVersion < AGENTDB_WRITER_VERSION
-                    ? `upgraded v${deployedVersion} → v${AGENTDB_WRITER_VERSION}`
-                    : `session telemetry writer v${AGENTDB_WRITER_VERSION}`,
-            });
-        }
-        else {
-            steps.push({ name: 'Write agentdb-writer.mjs', status: 'skipped', detail: `current (v${deployedVersion})` });
-        }
-        // Keep the jsonl fallback log available for the writer's degraded path.
-        const sessionsPath = join(dzDir, 'sessions.jsonl');
-        if (!existsSync(sessionsPath))
-            writeFileSync(sessionsPath, '');
-    }
-    else {
-        // JSONL backend
-        const sessionsPath = join(dzDir, 'sessions.jsonl');
-        if (!existsSync(sessionsPath)) {
-            writeFileSync(sessionsPath, '');
-            steps.push({ name: 'Initialize sessions.jsonl', status: 'done', detail: 'session tracking ready' });
-        }
-        else {
-            steps.push({ name: 'Initialize sessions.jsonl', status: 'skipped', detail: 'already exists' });
-        }
-        const patternsPath = join(dzDir, 'patterns.jsonl');
-        if (!existsSync(patternsPath)) {
-            writeFileSync(patternsPath, '');
-            steps.push({ name: 'Initialize patterns.jsonl', status: 'done', detail: 'pattern learning ready' });
-        }
-        else {
-            steps.push({ name: 'Initialize patterns.jsonl', status: 'skipped', detail: 'already exists' });
-        }
-    }
-    // Step 4.6: Install apply-leg — the WORK happens here (before "Configure hooks" writes
-    // SessionStart), so a foreign SessionStart entry is already in place before that step's own
-    // merge ever sees it; see `applyLegStepResult`'s doc for why order matters. The STEP is reported
-    // further down, after "Configure hooks" pushes its own, so the printed order still reads as
-    // "collect → rank → apply".
-    const applyLegStep = applyLegStepResult(opts, backend);
-    // Step 5: Configure hooks (write to .claude/settings.json) — EVENT-LEVEL merge (gap G2):
-    // dz-generated entries (recognized by signature, incl. the broken legacy `agentdb add` hooks
-    // this feature fixes) are replaced in place WITHOUT --force; the user's own hooks and every
-    // other settings key are preserved. Full-file overwrite happens only when the file is absent.
-    if (!opts.noHooks) {
-        const settingsDir = join(opts.projectRoot, '.claude');
-        const settingsPath = join(settingsDir, 'settings.json');
-        // The BODY goes in first, and the ENTRY goes in only after a LIVE receipt that the body runs
-        // and refuses. Written from the INSTALLED package, never copied out of our repository — a
-        // consumer has no `packages/@dzhechkov/...` above their project.
-        //
-        // Round 4, P2: these two used to be independent. A failed write was recorded as an error and
-        // the entry was merged anyway, so a consumer whose install failed got a `PreToolUse` entry
-        // pointing at something that is not a runnable hook — and that breaks EVERY Bash call, not one.
-        //
-        // Round 5, P1: the write was also UNCONDITIONAL. Setup is additive everywhere else — the
-        // settings merge keeps the user's own hooks, `.gitignore` is appended to, an existing skill is
-        // skipped — and this path overwrote a well-known filename with no ownership check, so a
-        // consumer's hand-authored `.claude/hooks/destructive-guard.cjs` was destroyed by a routine
-        // run. A body we wrote carries a MARKER; a file without it is the consumer's, and only an
-        // explicit `--force` may replace it, after a timestamped backup.
-        const hookPath = join(opts.projectRoot, ...CLAUDE_DESTRUCTIVE_HOOK_RELPATH.split('/'));
-        let installError = null;
-        let preserved = null;
-        let backupPath = null;
-        // Unreadable (absent, or something that is not a file at all) is NOT a claim of ownership: it
-        // falls through to the write, whose failure the round-4 receipt below already reports.
-        let current = null;
-        try {
-            current = readFileSync(hookPath, 'utf-8');
-        }
-        catch {
-            current = null;
-        }
-        const foreign = current !== null && !isDzManagedHookBody(current);
-        if (foreign && opts.force !== true) {
-            preserved =
-                'файл на этом пути не наш (нет маркера dz) — ОСТАВЛЕН нетронутым и НЕ ЗАПУСКАЛСЯ; запись в settings.json на этот путь тоже не трогаем (ни своей не добавляем, ни вашу не снимаем); заменить: dz setup --force';
-        }
-        else {
+        const transition = config !== undefined && opts.memory !== undefined && priorBackend !== backend;
+        if (config === undefined || opts.force || transition) {
+            const next = config !== undefined
+                ? { ...config, memory: { ...config['memory'], backend } }
+                : JSON.parse(generateDzConfig(opts.target, opts.preset, backend));
+            const temporary = `${configPath}.${randomUUID()}.tmp`;
             try {
-                if (foreign && current !== null) {
-                    // Same shape as the codex `hooks.json` backup: the original beside the original, stamped,
-                    // so `--force` is recoverable rather than merely loud.
-                    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-                    backupPath = writeUniqueStampedFile(`${hookPath}.bak-`, stamp, current, writeFileSync);
-                }
-                mkdirSync(dirname(hookPath), { recursive: true });
-                writeFileSync(hookPath, generateClaudeDestructiveHook(), { mode: 0o755 });
+                writeFileSync(temporary, JSON.stringify(next, null, 2) + '\n', { flag: 'wx' });
+                renameSync(temporary, configPath);
+                steps.push({ name: 'Write .dz/config.json', status: 'done', detail: transition ? `memory.backend ${priorBackend} → ${backend}; all other config fields kept` : `${backend} backend` });
             }
-            catch (err) {
-                installError = String(err.message);
+            catch (error) {
+                if (existsSync(temporary))
+                    rmSync(temporary);
+                steps.push({ name: 'Memory backend transition', status: 'error', detail: `saved backend ${observedBackend()} INCOMPLETE: config persistence failed; later memory wiring not run; ${String(error)}` });
+                return finish();
             }
         }
-        const foreignBodyKept = preserved !== null;
-        // The receipt SPAWNS the file, so it may only ever be taken on a body dz owns.
-        //
-        // Round 11, P1 SECURITY — correcting my own round-5 sentence, "the receipt is taken from the
-        // file that IS there". Combined with round 6, which preserves a body dz does not own, that made
-        // `dz setup` EXECUTE whatever a repository had committed at this path: clone a hostile repo,
-        // run the documented setup command, and its `.claude/hooks/destructive-guard.cjs` ran — with
-        // none of the host's hook-trust prompting in between. MEASURED: a foreign body writing a marker
-        // file had written it by the time setup returned.
-        //
-        // So a preserved foreign body is NOT probed, NOT registered, and NOT run. `--force` is consent
-        // to REPLACE it (our body is written above, before this line) — never consent to execute it.
-        // The receipt is still taken whether or not the write threw, because a failed write over an
-        // OLDER BODY OF OURS leaves something we may legitimately run.
-        const receipt = foreignBodyKept
-            ? { ok: false, detail: 'проба не проводилась — запускать чужой файл не наше право' }
-            : probeInstalledGuard(hookPath);
-        // Round 8, P2: ownership of the ENTRY follows ownership of the BODY, never the filename.
-        //
-        // Round 6 preserved a consumer's hook file; attribution of its registry entry stayed path-only,
-        // so a routine run deleted the registration of the very file it had just decided not to touch —
-        // their hook left on disk and switched off (MEASURED: their `PreToolUse` entry came back `[]`).
-        // The reverse was just as wrong: a foreign body that happened to refuse made dz ADD an entry
-        // for somebody else's file (MEASURED), taking responsibility for code it may neither read as
-        // its own nor replace.
-        //
-        // So when a foreign body is kept, dz stands down from the whole event: it adds nothing, and
-        // `isManaged` below stops claiming an entry that points at that path. Whether the foreign hook
-        // refuses is not merely the consumer's business — it is a question dz no longer ASKS, because
-        // asking meant running their file (round 11). All of it is said in one line rather than left
-        // for them to find by diffing settings.json.
-        const guardArmed = receipt.ok && !foreignBodyKept;
-        // The receipt is taken from the file that IS at the path — ours, or the one we preserved. A
-        // foreign hook that demonstrably refuses is registered on its own merits; a foreign hook that
-        // does not refuse gets no entry, exactly like a failed install (round 4).
-        const notes = [
-            preserved === null ? '' : `${preserved}; `,
-            backupPath === null ? '' : `прежний файл сохранён: ${basename(backupPath)}; `,
-            installError === null ? '' : `${installError}; `,
-        ].join('');
-        steps.push(guardArmed
-            ? { name: 'Install destructive guard', status: 'done', detail: `${notes}${CLAUDE_DESTRUCTIVE_HOOK_RELPATH} — ${receipt.detail}` }
-            : {
-                name: 'Install destructive guard',
-                status: preserved === null ? 'error' : 'skipped',
-                detail: `${notes}${receipt.detail} — запись в settings.json НЕ добавлена`,
-            });
-        const generated = JSON.parse(generateHooksConfig(opts.projectRoot, backend));
-        // No working body ⇒ no entry, and the EVENT KEY STAYS — as an empty managed list when nothing
-        // else of ours belongs there.
-        //
-        // CORRECTION OF RECORD (round 7, P1). The round-5 version DELETED the key and this comment
-        // claimed the merge would then also drop a guard entry left by an earlier setup. That was
-        // asserted without measuring and it is false: `mergeManagedHookEntries` iterates
-        // `Object.keys(managed)`, so an event absent from the managed input is copied through
-        // UNTOUCHED — a project whose guard used to be armed kept invoking it on every Bash call while
-        // the report said the entry was not added. Handing the event an EMPTY list is what makes the
-        // merge EXAMINE it: our entries are dropped by `isManaged`, the user's are preserved in order,
-        // and nothing is appended. The round-5 test passed for the wrong reason — its project had no
-        // pre-existing settings.json, so there was no stale entry for the claim to be wrong about.
-        if (!guardArmed) {
-            generated.hooks['PreToolUse'] = (generated.hooks['PreToolUse'] ?? []).filter((entry) => !entry.hooks.some((h) => isManagedClaudeDestructiveHookCommand(h.command)));
-        }
-        if (!existsSync(settingsPath)) {
-            mkdirSync(settingsDir, { recursive: true });
-            writeFileSync(settingsPath, JSON.stringify({ hooks: generated.hooks }, null, 2));
-            steps.push({ name: 'Configure hooks', status: 'done', detail: `${backend} session hooks` });
-        }
-        else {
-            try {
-                const existing = JSON.parse(readFileSync(settingsPath, 'utf-8'));
-                // ONE merge implementation, shared with the Codex target (AM-3 / G-E). Claude's exact
-                // command attribution is passed in rather than reimplemented, so emitted bytes, report
-                // tail text, and the no-write path stay on the shared merge contract (AM-37).
-                const isManagedCommand = (cmd) => cmd.includes('agentdb add') ||
-                    cmd.includes('agentdb-writer.mjs') ||
-                    cmd.includes('sessions.jsonl') ||
-                    // Ours ONLY while the body at that path is ours (round 8, P2). Without the
-                    // path clause a second `dz setup` would append a duplicate guard entry instead of
-                    // replacing the first; without the ownership clause it would delete the entry a
-                    // consumer wrote for their own preserved hook.
-                    (!foreignBodyKept && isManagedClaudeDestructiveHookCommand(cmd));
-                const plan = mergeManagedHookEntries((existing['hooks'] ?? {}), generated.hooks, {
-                    // Drop dz-generated entries (any vintage, either shape) — keep the user's own hooks
-                    // untouched. Flat dz entries (≤0.3.43) are dropped too, migrating them to the valid
-                    // matcher-group shape appended below.
-                    isManaged: (entry) => commandsOf(entry).some(isManagedCommand),
-                    isLegacy: (entry) => !Array.isArray(entry?.hooks) ||
-                        commandsOf(entry).some((cmd) => cmd.includes('agentdb add')),
-                    // Ownership is per HANDLER, not per matcher group. A user's handler may deliberately
-                    // share the Bash group with dz's guard; replacing ours must retain their handler object
-                    // and every surrounding group field byte-for-byte through JSON serialization.
-                    retainForeign: (entry) => {
-                        const grouped = entry;
-                        if (!Array.isArray(grouped?.hooks))
-                            return null;
-                        const kept = grouped.hooks.filter((hook) => !isManagedCommand(String(hook?.command ?? '')));
-                        return kept.length === 0
-                            ? null
-                            : { ...entry, hooks: kept };
-                    },
-                    reportLabel: backend,
-                });
-                if (plan.changed) {
-                    existing['hooks'] = plan.hooks;
-                    writeFileSync(settingsPath, JSON.stringify(existing, null, 2));
-                    steps.push({ name: 'Configure hooks', status: 'done', detail: plan.report });
-                }
-                else {
-                    steps.push({ name: 'Configure hooks', status: 'skipped', detail: plan.report });
-                }
-            }
-            catch {
-                steps.push({ name: 'Configure hooks', status: 'error', detail: 'could not parse existing settings.json — fix it and re-run' });
-            }
-        }
+        else
+            steps.push({ name: 'Write .dz/config.json', status: 'skipped', detail: 'already current; existing config preserved' });
+        if (resolvedMemory.downgraded)
+            steps.push({ name: 'Memory backend downgrade', status: 'done', detail: '⚠ memory backend downgraded agentdb → jsonl by --memory jsonl; other config fields kept' });
     }
-    else {
-        steps.push({ name: 'Configure hooks', status: 'skipped', detail: '--no-hooks' });
-    }
-    // Step 5.6: Install apply-leg — report pushed AFTER "Configure hooks" below (for a report order
-    // that reads naturally), but see `applyLegStepResult()` above `runSetup` for why the WRITE itself
-    // happens BEFORE it.
-    steps.push(applyLegStep);
-    // Step 5.5: Register agentdb MCP through the SAME ownership-aware transaction used by `dz init`.
-    // `.mcp.json` is the project-scope carrier Claude Code actually loads. A known historical dz
-    // agentdb shape is adopted; an ambiguous hand-authored entry is preserved and named as an error.
-    if (backend === 'agentdb') {
-        const agentdbEntry = {
-            command: 'npx',
-            // Pin to the INSTALLED agentdb version (not @latest) so the MCP server and the hook
-            // writer run the same alpha schema against one DB.
-            args: [installedAgentdbSpec(opts.projectRoot), 'mcp', 'start'],
-            // Pin the server to its OWN store — NEVER the writer's .dz/agentdb.db. Two engines on one
-            // SQLite file (native better-sqlite3 + a silent sql.js fallback) whole-file-rewrite each
-            // other: measured 2026-07-09, 5 of 20 samples zero bytes and 4 torn (ADR-001, 2026-08-26).
-            env: { AGENTDB_PATH: agentdbMcpStorePath(opts.projectRoot) },
-        };
-        try {
-            const applied = applyIntegrationFragments({
-                projectRoot: opts.projectRoot,
-                fragments: [{
-                        component: 'mcp',
-                        carrierPath: '.mcp.json',
-                        scope: 'project',
-                        format: 'json',
-                        rootKey: 'mcpServers',
-                        entries: { agentdb: agentdbEntry },
-                    }],
-            });
-            if (applied.written.includes('.mcp.json')) {
-                steps.push({
-                    name: 'Register agentdb MCP',
-                    status: 'done',
-                    // No tool count: a hardcoded number is a lie waiting to age (the live server answered
-                    // 35 while its own banner said 32 and the README said 41 — measured 2026-08-26).
-                    detail: `.mcp.json: ${installedAgentdbSpec(opts.projectRoot)} → .dz/agentdb-mcp.db (own store; hooks keep .dz/agentdb.db)`,
-                });
+    try {
+        if (!opts.noMemory) {
+            // Step 3: Initialize session log
+            const sessionsPath = join(dzDir, 'sessions.jsonl');
+            if (!existsSync(sessionsPath)) {
+                writeFileSync(sessionsPath, '');
+                steps.push({ name: 'Initialize sessions.jsonl', status: 'done', detail: 'session tracking ready' });
             }
             else {
-                steps.push({ name: 'Register agentdb MCP', status: 'skipped', detail: 'already registered and current' });
+                steps.push({ name: 'Initialize sessions.jsonl', status: 'skipped', detail: 'already exists' });
             }
-        }
-        catch (error) {
-            const reason = error instanceof IntegrationApplyError ? error.reasonCode : 'APPLY_FAILED';
-            const detail = error instanceof Error ? error.message : String(error);
-            steps.push({ name: 'Register agentdb MCP', status: 'error', detail: `${reason}: ${detail}` });
-        }
-        // Migrate off the legacy location: `.claude/mcp.json` is not loaded by Claude Code. If it
-        // holds ONLY our old agentdb registration, remove the file; otherwise leave it and warn.
-        const legacyPath = join(opts.projectRoot, '.claude', 'mcp.json');
-        if (existsSync(legacyPath)) {
-            try {
-                const legacy = JSON.parse(readFileSync(legacyPath, 'utf-8'));
-                const keys = Object.keys(legacy.mcpServers ?? {});
-                if (keys.length === 1 && keys[0] === 'agentdb') {
-                    rmSync(legacyPath);
-                    steps.push({ name: 'Migrate legacy .claude/mcp.json', status: 'done', detail: 'removed (not loaded by Claude Code); registration now in .mcp.json' });
+            // Step 4: Initialize memory store
+            if (backend === 'agentdb') {
+                // Write the session-hook writer. The agentdb.db store itself is auto-created on first write
+                // by createDatabase() (both the writer and the MCP server init the schema), so there is no
+                // orphan placeholder file — the writer targets the real, shared native store.
+                const writerPath = join(dzDir, 'agentdb-writer.mjs');
+                // Regenerate when missing, forced, OR the deployed stamp is older than the current
+                // generator — deployed writers must not fossilize outside the package lifecycle (gap G4).
+                const deployedVersion = existsSync(writerPath) ? writerVersionOf(readFileSync(writerPath, 'utf-8')) : -1;
+                if (deployedVersion === -1 || opts.force || deployedVersion < AGENTDB_WRITER_VERSION) {
+                    writeFileSync(writerPath, generateAgentdbWriter(opts.projectRoot));
+                    steps.push({
+                        name: 'Write agentdb-writer.mjs',
+                        status: 'done',
+                        detail: deployedVersion > -1 && deployedVersion < AGENTDB_WRITER_VERSION
+                            ? `upgraded v${deployedVersion} → v${AGENTDB_WRITER_VERSION}`
+                            : `session telemetry writer v${AGENTDB_WRITER_VERSION}`,
+                    });
                 }
                 else {
-                    steps.push({ name: 'Migrate legacy .claude/mcp.json', status: 'error', detail: 'contains other servers — Claude Code does NOT load this file; move them to .mcp.json' });
+                    steps.push({ name: 'Write agentdb-writer.mjs', status: 'skipped', detail: `current (v${deployedVersion})` });
+                }
+                // Keep the jsonl fallback log available for the writer's degraded path.
+                const sessionsPath = join(dzDir, 'sessions.jsonl');
+                if (!existsSync(sessionsPath))
+                    writeFileSync(sessionsPath, '');
+            }
+            else {
+                // JSONL backend
+                const sessionsPath = join(dzDir, 'sessions.jsonl');
+                if (!existsSync(sessionsPath)) {
+                    writeFileSync(sessionsPath, '');
+                    steps.push({ name: 'Initialize sessions.jsonl', status: 'done', detail: 'session tracking ready' });
+                }
+                else {
+                    steps.push({ name: 'Initialize sessions.jsonl', status: 'skipped', detail: 'already exists' });
+                }
+                const patternsPath = join(dzDir, 'patterns.jsonl');
+                if (!existsSync(patternsPath)) {
+                    writeFileSync(patternsPath, '');
+                    steps.push({ name: 'Initialize patterns.jsonl', status: 'done', detail: 'pattern learning ready' });
+                }
+                else {
+                    steps.push({ name: 'Initialize patterns.jsonl', status: 'skipped', detail: 'already exists' });
                 }
             }
+        } // --no-memory performs no memory store initialization.
+        // Step 4.6: Install apply-leg — the WORK happens here (before "Configure hooks" writes
+        // SessionStart), so a foreign SessionStart entry is already in place before that step's own
+        // merge ever sees it; see `applyLegStepResult`'s doc for why order matters. The STEP is reported
+        // further down, after "Configure hooks" pushes its own, so the printed order still reads as
+        // "collect → rank → apply".
+        const applyLegStep = opts.noMemory ? { name: 'Install apply-leg', status: 'skipped', detail: '--no-memory' } : applyLegStepResult(opts, backend);
+        // Step 5: Configure hooks (write to .claude/settings.json) — EVENT-LEVEL merge (gap G2):
+        // dz-generated entries (recognized by signature, incl. the broken legacy `agentdb add` hooks
+        // this feature fixes) are replaced in place WITHOUT --force; the user's own hooks and every
+        // other settings key are preserved. Full-file overwrite happens only when the file is absent.
+        if (!opts.noHooks && !opts.noMemory) {
+            const settingsDir = join(opts.projectRoot, '.claude');
+            const settingsPath = join(settingsDir, 'settings.json');
+            // The BODY goes in first, and the ENTRY goes in only after a LIVE receipt that the body runs
+            // and refuses. Written from the INSTALLED package, never copied out of our repository — a
+            // consumer has no `packages/@dzhechkov/...` above their project.
+            //
+            // Round 4, P2: these two used to be independent. A failed write was recorded as an error and
+            // the entry was merged anyway, so a consumer whose install failed got a `PreToolUse` entry
+            // pointing at something that is not a runnable hook — and that breaks EVERY Bash call, not one.
+            //
+            // Round 5, P1: the write was also UNCONDITIONAL. Setup is additive everywhere else — the
+            // settings merge keeps the user's own hooks, `.gitignore` is appended to, an existing skill is
+            // skipped — and this path overwrote a well-known filename with no ownership check, so a
+            // consumer's hand-authored `.claude/hooks/destructive-guard.cjs` was destroyed by a routine
+            // run. A body we wrote carries a MARKER; a file without it is the consumer's, and only an
+            // explicit `--force` may replace it, after a timestamped backup.
+            const hookPath = join(opts.projectRoot, ...CLAUDE_DESTRUCTIVE_HOOK_RELPATH.split('/'));
+            let installError = null;
+            let preserved = null;
+            let backupPath = null;
+            // Unreadable (absent, or something that is not a file at all) is NOT a claim of ownership: it
+            // falls through to the write, whose failure the round-4 receipt below already reports.
+            let current = null;
+            try {
+                current = readFileSync(hookPath, 'utf-8');
+            }
             catch {
-                steps.push({ name: 'Migrate legacy .claude/mcp.json', status: 'error', detail: 'unparseable legacy file — Claude Code does not load it; review manually' });
+                current = null;
+            }
+            const foreign = current !== null && !isDzManagedHookBody(current);
+            if (foreign && opts.force !== true) {
+                preserved =
+                    'файл на этом пути не наш (нет маркера dz) — ОСТАВЛЕН нетронутым и НЕ ЗАПУСКАЛСЯ; запись в settings.json на этот путь тоже не трогаем (ни своей не добавляем, ни вашу не снимаем); заменить: dz setup --force';
+            }
+            else {
+                try {
+                    if (foreign && current !== null) {
+                        // Same shape as the codex `hooks.json` backup: the original beside the original, stamped,
+                        // so `--force` is recoverable rather than merely loud.
+                        const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+                        backupPath = writeUniqueStampedFile(`${hookPath}.bak-`, stamp, current, writeFileSync);
+                    }
+                    mkdirSync(dirname(hookPath), { recursive: true });
+                    writeFileSync(hookPath, generateClaudeDestructiveHook(), { mode: 0o755 });
+                }
+                catch (err) {
+                    installError = String(err.message);
+                }
+            }
+            const foreignBodyKept = preserved !== null;
+            // The receipt SPAWNS the file, so it may only ever be taken on a body dz owns.
+            //
+            // Round 11, P1 SECURITY — correcting my own round-5 sentence, "the receipt is taken from the
+            // file that IS there". Combined with round 6, which preserves a body dz does not own, that made
+            // `dz setup` EXECUTE whatever a repository had committed at this path: clone a hostile repo,
+            // run the documented setup command, and its `.claude/hooks/destructive-guard.cjs` ran — with
+            // none of the host's hook-trust prompting in between. MEASURED: a foreign body writing a marker
+            // file had written it by the time setup returned.
+            //
+            // So a preserved foreign body is NOT probed, NOT registered, and NOT run. `--force` is consent
+            // to REPLACE it (our body is written above, before this line) — never consent to execute it.
+            // The receipt is still taken whether or not the write threw, because a failed write over an
+            // OLDER BODY OF OURS leaves something we may legitimately run.
+            const receipt = foreignBodyKept
+                ? { ok: false, detail: 'проба не проводилась — запускать чужой файл не наше право' }
+                : probeInstalledGuard(hookPath);
+            // Round 8, P2: ownership of the ENTRY follows ownership of the BODY, never the filename.
+            //
+            // Round 6 preserved a consumer's hook file; attribution of its registry entry stayed path-only,
+            // so a routine run deleted the registration of the very file it had just decided not to touch —
+            // their hook left on disk and switched off (MEASURED: their `PreToolUse` entry came back `[]`).
+            // The reverse was just as wrong: a foreign body that happened to refuse made dz ADD an entry
+            // for somebody else's file (MEASURED), taking responsibility for code it may neither read as
+            // its own nor replace.
+            //
+            // So when a foreign body is kept, dz stands down from the whole event: it adds nothing, and
+            // `isManaged` below stops claiming an entry that points at that path. Whether the foreign hook
+            // refuses is not merely the consumer's business — it is a question dz no longer ASKS, because
+            // asking meant running their file (round 11). All of it is said in one line rather than left
+            // for them to find by diffing settings.json.
+            const guardArmed = receipt.ok && !foreignBodyKept;
+            // The receipt is taken from the file that IS at the path — ours, or the one we preserved. A
+            // foreign hook that demonstrably refuses is registered on its own merits; a foreign hook that
+            // does not refuse gets no entry, exactly like a failed install (round 4).
+            const notes = [
+                preserved === null ? '' : `${preserved}; `,
+                backupPath === null ? '' : `прежний файл сохранён: ${basename(backupPath)}; `,
+                installError === null ? '' : `${installError}; `,
+            ].join('');
+            steps.push(guardArmed
+                ? { name: 'Install destructive guard', status: 'done', detail: `${notes}${CLAUDE_DESTRUCTIVE_HOOK_RELPATH} — ${receipt.detail}` }
+                : {
+                    name: 'Install destructive guard',
+                    status: preserved === null ? 'error' : 'skipped',
+                    detail: `${notes}${receipt.detail} — запись в settings.json НЕ добавлена`,
+                });
+            const generated = JSON.parse(generateHooksConfig(opts.projectRoot, backend));
+            // No working body ⇒ no entry, and the EVENT KEY STAYS — as an empty managed list when nothing
+            // else of ours belongs there.
+            //
+            // CORRECTION OF RECORD (round 7, P1). The round-5 version DELETED the key and this comment
+            // claimed the merge would then also drop a guard entry left by an earlier setup. That was
+            // asserted without measuring and it is false: `mergeManagedHookEntries` iterates
+            // `Object.keys(managed)`, so an event absent from the managed input is copied through
+            // UNTOUCHED — a project whose guard used to be armed kept invoking it on every Bash call while
+            // the report said the entry was not added. Handing the event an EMPTY list is what makes the
+            // merge EXAMINE it: our entries are dropped by `isManaged`, the user's are preserved in order,
+            // and nothing is appended. The round-5 test passed for the wrong reason — its project had no
+            // pre-existing settings.json, so there was no stale entry for the claim to be wrong about.
+            if (!guardArmed) {
+                generated.hooks['PreToolUse'] = (generated.hooks['PreToolUse'] ?? []).filter((entry) => !entry.hooks.some((h) => isManagedClaudeDestructiveHookCommand(h.command)));
+            }
+            if (!existsSync(settingsPath)) {
+                mkdirSync(settingsDir, { recursive: true });
+                writeFileSync(settingsPath, JSON.stringify({ hooks: generated.hooks }, null, 2));
+                steps.push({ name: 'Configure hooks', status: 'done', detail: `${backend} session hooks` });
+            }
+            else {
+                try {
+                    const existing = JSON.parse(readFileSync(settingsPath, 'utf-8'));
+                    // ONE merge implementation, shared with the Codex target (AM-3 / G-E). Claude's exact
+                    // command attribution is passed in rather than reimplemented, so emitted bytes, report
+                    // tail text, and the no-write path stay on the shared merge contract (AM-37).
+                    const isManagedCommand = (cmd) => cmd.includes('agentdb add') ||
+                        cmd.includes('agentdb-writer.mjs') ||
+                        cmd.includes('sessions.jsonl') ||
+                        // Ours ONLY while the body at that path is ours (round 8, P2). Without the
+                        // path clause a second `dz setup` would append a duplicate guard entry instead of
+                        // replacing the first; without the ownership clause it would delete the entry a
+                        // consumer wrote for their own preserved hook.
+                        (!foreignBodyKept && isManagedClaudeDestructiveHookCommand(cmd));
+                    const plan = mergeManagedHookEntries((existing['hooks'] ?? {}), generated.hooks, {
+                        // Drop dz-generated entries (any vintage, either shape) — keep the user's own hooks
+                        // untouched. Flat dz entries (≤0.3.43) are dropped too, migrating them to the valid
+                        // matcher-group shape appended below.
+                        isManaged: (entry) => commandsOf(entry).some(isManagedCommand),
+                        isLegacy: (entry) => !Array.isArray(entry?.hooks) ||
+                            commandsOf(entry).some((cmd) => cmd.includes('agentdb add')),
+                        // Ownership is per HANDLER, not per matcher group. A user's handler may deliberately
+                        // share the Bash group with dz's guard; replacing ours must retain their handler object
+                        // and every surrounding group field byte-for-byte through JSON serialization.
+                        retainForeign: (entry) => {
+                            const grouped = entry;
+                            if (!Array.isArray(grouped?.hooks))
+                                return null;
+                            const kept = grouped.hooks.filter((hook) => !isManagedCommand(String(hook?.command ?? '')));
+                            return kept.length === 0
+                                ? null
+                                : { ...entry, hooks: kept };
+                        },
+                        reportLabel: backend,
+                    });
+                    if (plan.changed) {
+                        existing['hooks'] = plan.hooks;
+                        writeFileSync(settingsPath, JSON.stringify(existing, null, 2));
+                        steps.push({ name: 'Configure hooks', status: 'done', detail: plan.report });
+                    }
+                    else {
+                        steps.push({ name: 'Configure hooks', status: 'skipped', detail: plan.report });
+                    }
+                }
+                catch {
+                    steps.push({ name: 'Configure hooks', status: 'error', detail: 'could not parse existing settings.json — fix it and re-run' });
+                }
             }
         }
+        else {
+            steps.push({ name: 'Configure hooks', status: 'skipped', detail: opts.noMemory ? '--no-memory: existing hooks and guards preserved; no delivery' : '--no-hooks' });
+        }
+        // Step 5.6: Install apply-leg — report pushed AFTER "Configure hooks" below (for a report order
+        // that reads naturally), but see `applyLegStepResult()` above `runSetup` for why the WRITE itself
+        // happens BEFORE it.
+        steps.push(applyLegStep);
+        // Step 5.5: Register agentdb MCP through the SAME ownership-aware transaction used by `dz init`.
+        // `.mcp.json` is the project-scope carrier Claude Code actually loads. A known historical dz
+        // agentdb shape is adopted; an ambiguous hand-authored entry is preserved and named as an error.
+        if (backend === 'agentdb' && !opts.noHooks && !opts.noMemory) {
+            const agentdbEntry = {
+                command: 'npx',
+                // Pin to the INSTALLED agentdb version (not @latest) so the MCP server and the hook
+                // writer run the same alpha schema against one DB.
+                args: [installedAgentdbSpec(opts.projectRoot), 'mcp', 'start'],
+                // Pin the server to its OWN store — NEVER the writer's .dz/agentdb.db. Two engines on one
+                // SQLite file (native better-sqlite3 + a silent sql.js fallback) whole-file-rewrite each
+                // other: measured 2026-07-09, 5 of 20 samples zero bytes and 4 torn (ADR-001, 2026-08-26).
+                env: { AGENTDB_PATH: agentdbMcpStorePath(opts.projectRoot) },
+            };
+            try {
+                const applied = applyIntegrationFragments({
+                    projectRoot: opts.projectRoot,
+                    fragments: [{
+                            component: 'mcp',
+                            carrierPath: '.mcp.json',
+                            scope: 'project',
+                            format: 'json',
+                            rootKey: 'mcpServers',
+                            entries: { agentdb: agentdbEntry },
+                        }],
+                });
+                if (applied.written.includes('.mcp.json')) {
+                    steps.push({
+                        name: 'Register agentdb MCP',
+                        status: 'done',
+                        // No tool count: a hardcoded number is a lie waiting to age (the live server answered
+                        // 35 while its own banner said 32 and the README said 41 — measured 2026-08-26).
+                        detail: `.mcp.json: ${installedAgentdbSpec(opts.projectRoot)} → .dz/agentdb-mcp.db (own store; hooks keep .dz/agentdb.db)`,
+                    });
+                }
+                else {
+                    steps.push({ name: 'Register agentdb MCP', status: 'skipped', detail: 'already registered and current' });
+                }
+            }
+            catch (error) {
+                const reason = error instanceof IntegrationApplyError ? error.reasonCode : 'APPLY_FAILED';
+                const detail = error instanceof Error ? error.message : String(error);
+                steps.push({ name: 'Register agentdb MCP', status: 'error', detail: `${reason}: ${detail}` });
+            }
+            // Migrate off the legacy location: `.claude/mcp.json` is not loaded by Claude Code. If it
+            // holds ONLY our old agentdb registration, remove the file; otherwise leave it and warn.
+            const legacyPath = join(opts.projectRoot, '.claude', 'mcp.json');
+            if (existsSync(legacyPath)) {
+                try {
+                    const legacy = JSON.parse(readFileSync(legacyPath, 'utf-8'));
+                    const keys = Object.keys(legacy.mcpServers ?? {});
+                    if (keys.length === 1 && keys[0] === 'agentdb') {
+                        rmSync(legacyPath);
+                        steps.push({ name: 'Migrate legacy .claude/mcp.json', status: 'done', detail: 'removed (not loaded by Claude Code); registration now in .mcp.json' });
+                    }
+                    else {
+                        steps.push({ name: 'Migrate legacy .claude/mcp.json', status: 'error', detail: 'contains other servers — Claude Code does NOT load this file; move them to .mcp.json' });
+                    }
+                }
+                catch {
+                    steps.push({ name: 'Migrate legacy .claude/mcp.json', status: 'error', detail: 'unparseable legacy file — Claude Code does not load it; review manually' });
+                }
+            }
+        }
+    }
+    catch (error) {
+        steps.push({ name: 'Memory backend transition', status: 'error', detail: `saved backend ${observedBackend()} INCOMPLETE: managed wiring failed after persistence; ${String(error)}` });
+        return finish();
+    }
+    // Saved/local/native agreement is independent of hook installation.
+    if (!opts.noMemory) {
+        const actual = observedBackend();
+        const problems = actual === backend ? [] : [`saved backend ${actual} differs from requested ${backend}`];
+        if (backend === 'agentdb') {
+            const deps = reconcileMemoryDependencies(opts.projectRoot, false);
+            if (!deps.ready)
+                problems.push(deps.detail);
+        }
+        steps.push({ name: 'Memory saved state', status: problems.length ? 'error' : 'done', detail: problems.length ? `saved backend ${actual} INCOMPLETE: ${problems.join('; ')}` : `saved backend ${actual}; dependencies/native state consistent` });
     }
     // Step 5.9: agentdb wiring invariant check (audit code#3). Skip-branches across repeated runs
     // can leave inconsistent combinations (e.g. writer+MCP present but hooks still jsonl). Verify
     // the three-way invariant explicitly and surface a loud error step instead of silent "skipped"s.
-    if (backend === 'agentdb' && !opts.noHooks) {
+    if (backend === 'agentdb' && !opts.noHooks && !opts.noMemory) {
         const problems = [];
-        if (!isAgentdbInstalledLocally(opts.projectRoot))
-            problems.push('deps missing (npm i agentdb better-sqlite3)');
+        if (observedBackend() !== backend)
+            problems.push(`saved backend ${observedBackend()} differs from ${backend}`);
         try {
             const settings = JSON.parse(readFileSync(join(opts.projectRoot, '.claude', 'settings.json'), 'utf-8'));
             const refs = ['SessionStart', 'SessionEnd', 'PreCompact'].every((ev) => (settings.hooks?.[ev] ?? []).some((h) => commandsOf(h).some((cmd) => cmd.includes('agentdb-writer.mjs'))));
@@ -1252,7 +1255,7 @@ export function runSetup(opts) {
     // sentinel check (e.g. sessions.jsonl, present in both backends) would skip agentdb.db/-wal/-shm
     // on the documented jsonl→agentdb `--force` switch, leaking the binary store into git.
     const gitignorePath = join(opts.projectRoot, '.gitignore');
-    const dzIgnoreLines = backend === 'agentdb'
+    const dzIgnoreLines = opts.noMemory ? [] : backend === 'agentdb'
         ? ['.dz/agentdb.db', '.dz/agentdb.db-wal', '.dz/agentdb.db-shm',
             '.dz/agentdb-mcp.db', '.dz/agentdb-mcp.db-wal', '.dz/agentdb-mcp.db-shm',
             '.dz/sessions.jsonl']
@@ -1270,21 +1273,19 @@ export function runSetup(opts) {
         });
     }
     else {
-        steps.push({ name: 'Update .gitignore', status: 'skipped', detail: 'already ignoring .dz data' });
+        steps.push({ name: 'Update .gitignore', status: 'skipped', detail: opts.noMemory ? '--no-memory: existing ignore rules preserved' : 'already ignoring .dz data' });
     }
     // Step 7: Install the CLI-driver skill + agent docs (--install-driver)
     if (opts.installDriver) {
         const detail = installDriverDocs(opts.projectRoot, opts.force ?? false);
         steps.push({ name: 'Install driver skill', status: 'done', detail });
     }
-    return {
-        steps,
-        totalSteps: steps.length,
-        completed: steps.filter((s) => s.status === 'done').length,
-        skipped: steps.filter((s) => s.status === 'skipped').length,
-        memoryBackend: resolvedMemory.backend,
-        memoryBackendSource: resolvedMemory.source,
-        memoryBackendDowngraded: resolvedMemory.downgraded,
-    };
+    const failed = steps.filter(step => step.status === 'error');
+    if (!opts.noMemory && backend === 'agentdb')
+        steps.push({
+            name: 'Memory backend transition', status: failed.length ? 'error' : 'done',
+            detail: failed.length ? `saved backend ${observedBackend()} INCOMPLETE; failed phase: ${failed.map(step => step.name).join(', ')}` : `saved backend ${observedBackend()} ready; ${priorBackend === backend ? 'already current' : `${priorBackend} → ${backend} transition complete`}`,
+        });
+    return finish();
 }
 //# sourceMappingURL=setup.js.map

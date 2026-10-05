@@ -1,7 +1,7 @@
 {
-  "builtAt": "2026-09-26T11:26:17.194Z",
+  "builtAt": "2026-10-05T04:15:31.437229+00:00",
   "builtFrom": "dz-harness-hub (private monorepo)",
-  "rule": "each package mirrors exactly its npm-pack tarball inventory — the already-public surface",
+  "rule": "each package mirrors exactly its npm-pack tarball inventory \u2014 the already-public surface",
   "requested": 56,
   "built": 56,
   "requestedPackages": [
@@ -193,13 +193,13 @@
     },
     {
       "name": "@dzhechkov/harness-cli",
-      "version": "0.8.38",
-      "files": 52
+      "version": "0.8.40",
+      "files": 62
     },
     {
       "name": "@dzhechkov/harness-core",
-      "version": "0.8.46",
-      "files": 972
+      "version": "0.8.48",
+      "files": 980
     },
     {
       "name": "@dzhechkov/harness-presets",
@@ -213,8 +213,8 @@
     },
     {
       "name": "@dzhechkov/keysarium",
-      "version": "1.7.7",
-      "files": 249
+      "version": "1.7.9",
+      "files": 251
     },
     {
       "name": "@dzhechkov/keysarium-core",
@@ -318,8 +318,8 @@
     },
     {
       "name": "@dzhechkov/skills-feature-adr",
-      "version": "1.5.14",
-      "files": 83
+      "version": "1.5.16",
+      "files": 85
     },
     {
       "name": "@dzhechkov/skills-idea2prd",
@@ -333,8 +333,8 @@
     },
     {
       "name": "@dzhechkov/skills-meta",
-      "version": "0.9.61",
-      "files": 141
+      "version": "0.9.63",
+      "files": 143
     },
     {
       "name": "@dzhechkov/skills-news",
@@ -401,5 +401,15 @@
       "version": "1.0.12",
       "files": 52
     }
-  ]
+  ],
+  "lastRegistryRefresh": {
+    "versions": {
+      "@dzhechkov/harness-core": "0.8.48",
+      "@dzhechkov/harness-cli": "0.8.40",
+      "@dzhechkov/keysarium": "1.7.9",
+      "@dzhechkov/skills-feature-adr": "1.5.16",
+      "@dzhechkov/skills-meta": "0.9.63"
+    },
+    "verification": "Exact registry tarball bytes, publisher SHA256, registry SHA512/SHA1 and trusted repository Ed25519 signatures; other packages preserved."
+  }
 }

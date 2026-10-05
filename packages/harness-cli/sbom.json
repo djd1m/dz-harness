@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ed32f9a696f49e26f8373f2e67727ae6c1a2a9cc29afdcfbb1b3d441cd6e3d87"
+          "content": "a9f8b9ce839d8334d8d81f9092ce6e3b94062ca305b3c4294cda40b91ddf9b1d"
         }
       ]
     },
@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fd8f9606fd13f4820c8277214cbb7d6852e6221fdafa979b1964faaa9308461c"
+          "content": "0ee5fe7a8fb4ba685d773d87665aea66584ae943a59159568b02a01b0bd2a18b"
         }
       ]
     },
@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9631153a7a7ef7fa20a45db5a674fbcafafba0137380d47c3d9573aa2bdb5411"
+          "content": "da2797a8bae05a4d90f3443582ec972afa4f430e427705e1f6d0a48f7e9480f9"
         }
       ]
     },
@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dcdf455a11e08ab22398121ab0ff3c3a476c82d7388a8fd689ea3dd722301c3a"
+          "content": "16a8dd0fa97411f35d49b65d8c57221be47fbe226da22dec141c424d489d423d"
         }
       ]
     },
@@ -115,7 +115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bbd0c3f93790dcea1ff5a4b10f3d3619c3c54a23bfe0939068cdd36ad19734c2"
+          "content": "35f4dfdc18ba85bc0001c2804ffb39cb007eac783efd4eeb4ab107c30aa1c4d3"
         }
       ]
     },
@@ -125,7 +125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "668d8c9815f3d09ea6adf98d3f0d34d702548dc401b3a3167792f9be322680a2"
+          "content": "1959dac48a30ed59b3e2973e2edc259550b0bef623cf9aa20ea95b2db570e856"
         }
       ]
     },
@@ -135,7 +135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bda63f5a1aa44c61d0a2b63dcee82bf134281065f66b9d16128b9136afcad94b"
+          "content": "7a0ca870778b4ee31d8899852f1d0c132f4f04486989064fa5c6b239c9c1b723"
         }
       ]
     },
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7e4e93dc012883b9f557577023e64704b861153c48008c3fd85628a196eee707"
+          "content": "75cf5e999d8509d68a50fcb9faac35aea2fbe5b7530635c1541cdccb75a93cea"
         }
       ]
     },
@@ -325,7 +325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c975f133face4139f6492eb324d87323181534a646ddfd5f0d04050362e5bcf6"
+          "content": "084b82f3fc7ea90e4d63e7e6e10001ca61f25d78a8e61da131ce61b69f4fd70c"
         }
       ]
     },
@@ -335,7 +335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0f76634ddf124951c033af2fc904859e74fbeb467fd8f08d18fd9f21725eb7a7"
+          "content": "31d3ec892d8ed10dc2d56db1329bdec399bb16b1e43b287efaf4f4c71cbffc5a"
         }
       ]
     },
@@ -345,7 +345,47 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "950c627abcacb5e912155e9d9f6c1c9a13e41075549e9eb9c3cf93cc84839f26"
+          "content": "a65ed4185cdd0436f317ede37a4f05bb2d15221a062f3a0c40aad16497386875"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/release-package-audit-runner.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7eeecf02bc64e9cfc875e4edee24461c561ceb3dde67f903691bf6d190af4208"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/release-package-audit-runner.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "73800f12e08ce7f7fe071a26ab2a6fdbb014adfaef3a08690958ebe86bc706be"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/release-package-audit-runner.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a8e7bf884936e284100e839bd37fc6c0e3265369febfa4e8dd79f0c4dd2a0a3d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/release-package-audit-runner.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fbde6496e1beafb734f30f10bc1d15b377e566c512c05f605d95062e484c72d9"
         }
       ]
     },
@@ -391,6 +431,46 @@
     },
     {
       "type": "file",
+      "name": "dist/statusline-watch.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7b741c9d566b0baf6b9a7fa4e1ba8c758f4a1c0d4631a5d8c9b48b7328a3964c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/statusline-watch.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e0225ec4b5103e22068fccf0d428a5c106ca56c9ad88e9a7e1fe293c067788dd"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/statusline-watch.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "76bd1ec8bc177363f8069eb22603fe5aca15cf0287dbca1db7842d2c8e47a619"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/statusline-watch.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "22752ab7b9041ffb008baeeb2c759f1e678d83d21b81c44aa84b8a9905087492"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "keys/README.md",
       "hashes": [
         {
@@ -419,7 +499,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "aabe1ce7084f7bd8376adbef2683b7e7f3c58b3f53b559384b1ee3399ff2649e"
+          "value": "a94f7e076e983f9c00c3d1322fe5895a9933fbca1f36422b1a969ed41b45df38"
         }
       ]
     },
@@ -439,7 +519,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1d69ce08223b81d2d528f649bd94343bb237c905e1c662797b5646e9ce37af2d"
+          "content": "3494bfd16eb53b57648892bbda3a0f507617a0c661a240fd662ee378ffbee029"
         }
       ]
     },
@@ -449,7 +529,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "93f16af7b32b0725e83fa2df50054fb2dff68a76ebc9cb49a83e903b3b1b3a90"
+          "content": "50e6b971fdae7c6135db8a3097ba9c05219f15f611823fd234a14fb584611a91"
         }
       ]
     },
@@ -499,7 +579,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b622962688feef63b7fa2ea0a2ea1cfda34cbd79646094cb3f2326574bf1363d"
+          "content": "40e6ecd121037c124ef25002a5e7203d94d850ad71e863d08a60d5baa8cd84f2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/release-package-audit-runner.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c1534aae38f84e7203ee8806d9f55d84f69c97838642d80e8f05fa25265dff9a"
         }
       ]
     },
@@ -510,6 +600,16 @@
         {
           "alg": "SHA-256",
           "content": "5a1ea48502c78d3f140eea8f14a41b28619791741b3ca2688bd1fc3055139d98"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/statusline-watch.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e151472f7b04b9c54cc4bfa13b74a0f3aa82cf2e66fb055ea7353df7a3e1bc86"
         }
       ]
     }

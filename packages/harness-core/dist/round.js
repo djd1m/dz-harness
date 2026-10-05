@@ -343,6 +343,8 @@ export function closeRound(input, io) {
         ...(nonEmpty(input.stateId) ? { stateId: input.stateId } : {}),
         ...(input.state.envelope !== undefined ? { envelope: input.state.envelope } : {}),
         ...(reviewSource !== null ? { reviewSource } : {}),
+        ...(reviewerTiedToSidecar && input.reviewSidecar?.reviewIdentitySource !== undefined ? { reviewIdentitySource: input.reviewSidecar.reviewIdentitySource } : {}),
+        ...(reviewerTiedToSidecar && input.reviewSidecar?.reviewIdentity !== undefined ? { reviewIdentity: input.reviewSidecar.reviewIdentity } : {}),
         ...(reviewMinutes !== null ? { reviewMinutes } : {}),
         taskId,
         ...(taskIdSource !== null ? { taskIdSource } : {}),
@@ -432,8 +434,10 @@ export function validateClosedRoundLedgerRow(row) {
  *   Codex r1 CRITICAL #1: this used to report `'open-round'` for an invented value, indistinguishable
  *   from a value the round itself actually minted).
  */
-export function readOpenRoundTaskId(states, slug, unreadableStateCount = 0) {
+export function readOpenRoundTaskId(states, slug, unreadableStateCount = 0, authorityReadError = false) {
     const matches = states.filter((s) => s.slug === slug);
+    if (authorityReadError)
+        return { taskId: null, source: 'unavailable' };
     const unreadable = Number.isFinite(unreadableStateCount) && unreadableStateCount > 0 ? Math.floor(unreadableStateCount) : 0;
     if (unreadable > 0 && matches.length === 0)
         return { taskId: null, source: 'unavailable' };

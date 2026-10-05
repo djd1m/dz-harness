@@ -208,8 +208,16 @@ export function probeRecallEngine(socketPath: string, timeoutMs = 1000): Promise
  * skipped entirely in own-fallback mode. (c) `answerRecall`'s `embed(prompt)` call is now wrapped so
  * either failure mode degrades to the SAME honest `cosine-fallback` reply shape as every other
  * failure, never a bare protocol `{error}`.
+ *
+ * Bumped 12→13 (`retro-debt-sentinel-per-session`): the hook reads its admission-debt sentinel from
+ * `.dz/retro/<sessionId>/` (entry added retroactively for the record by the next bump).
+ *
+ * Bumped 13→14 (`daemon-install-root-from-self`, ADR-001, backlog 6dd464d5d6ee917f): the daemon's
+ * `INSTALL_ROOT` is two levels above its own directory (it was one short — `<root>/.claude` — so the
+ * install-root link never fired and the daemon served, and resolved its deps from, `cwd`); the hook's
+ * `reviveDaemon()` spawns it with `cwd: PROJECT` and `DZ_PROJECT_ROOT: PROJECT`.
  */
-export const APPLY_LEG_VERSION = 13;
+export const APPLY_LEG_VERSION = 14;
 
 /**
  * Parse the `dz-apply-leg-version` stamp from a deployed helper file. Unlike
@@ -595,7 +603,17 @@ function reviveDaemon() {
     const { spawn } = require('child_process');
     const daemon = path.join(PROJECT, '.claude', 'helpers', 'dz-embed-daemon.mjs');
     if (!fs.existsSync(daemon)) return;
-    const child = spawn(process.execPath, [daemon], { detached: true, stdio: 'ignore' });
+    // daemon-install-root-from-self (ADR-001 p.2): the daemon serves exactly the store this hook just
+    // checked. \`cwd\` so a self-healed daemon never inherits the caller's directory (the orphan with
+    // cwd=…/other from the 2026-09-15 field report); \`DZ_PROJECT_ROOT\` because the daemon ranks it
+    // ABOVE its own install root, so a stale value inherited by this hook would otherwise still
+    // re-route it (same class as AM-3 of apply-leg-install-root, for the SessionStart command).
+    const child = spawn(process.execPath, [daemon], {
+      cwd: PROJECT,
+      env: { ...process.env, DZ_PROJECT_ROOT: PROJECT },
+      detached: true,
+      stdio: 'ignore',
+    });
     child.unref();
   }, undefined);
 }
@@ -922,7 +940,7 @@ export function embedDaemonSource(coreDistDir: string | null = null): string {
 
 import { createServer } from 'node:net';
 import { existsSync, unlinkSync, readFileSync, mkdirSync, writeFileSync, renameSync, statSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 import { connect } from 'node:net';
 import { createHash } from 'node:crypto';
@@ -938,7 +956,11 @@ console.log = (...a) => console.error(...a);
 // recallHookSource's own PROJECT comment) — DZ_PROJECT_ROOT stays the TOP override for the daemon
 // (a caller that explicitly names a project root always wins), then INSTALL_ROOT (this file's own
 // location, when it owns a \`.dz/\`), then cwd.
-const INSTALL_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
+// daemon-install-root-from-self (ADR-001 p.1): this file lives at <root>/.claude/helpers/, so the
+// install root is TWO levels above its directory — the hook's own rule (path.resolve(__dirname, '..',
+// '..')), written for ESM. The previous dirname(dirname(<file>)) stopped at <root>/.claude, so the
+// install-root link never fired and the daemon always served (and resolved its deps from) cwd.
+const INSTALL_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const PROJECT = process.env['DZ_PROJECT_ROOT'] ?? (existsSync(join(INSTALL_ROOT, '.dz')) ? INSTALL_ROOT : process.cwd());
 
 // ADR-001 (hook-recall-hybrid-parity, D1): the SAME candidate-list resolution the hook uses for its

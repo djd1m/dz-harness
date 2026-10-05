@@ -1,6 +1,7 @@
 import { type RuleTemplate, type TemplateParams } from './guard-promotion.js';
 import { type StubWaiver } from './no-stubs.js';
 import { type GuardObservation, type VolumeShadowInput } from './guard-volume.js';
+import type { NpmHomepageFactSet } from './npm-homepage.js';
 export type GuardSeverity = 'hard' | 'soft';
 export declare const GUARD_OPS: readonly ["publish", "teach", "consolidate", "reindex", "code"];
 export type GuardOp = typeof GUARD_OPS[number];
@@ -215,6 +216,12 @@ export interface GuardFacts {
         readonly name: string;
         readonly nonRegistrable: readonly string[];
     }[];
+    /**
+     * for npm-homepage: one entry per `packages/@dzhechkov/*` package (private and hidden dirs included) plus
+     * every entry the reader could not decide, built by the pure `npmHomepageFacts`. No packages and no
+     * failures, or an unreadable packages directory, is not a pass — the rule is then NOT ESTABLISHED.
+     */
+    readonly npmHomepage?: NpmHomepageFactSet;
     /** for readme-first: per publishable package, is a version bump staged without a README change? */
     readonly readmeFirst?: readonly {
         readonly name: string;

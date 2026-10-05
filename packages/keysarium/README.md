@@ -1,8 +1,25 @@
 # @dzhechkov/keysarium
 
+Current package version: `1.7.9`. <!-- dz:version -->
+
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/keysarium
+
 **AI Case Research Toolkit for Claude Code**
 
 Full 7-phase pipeline for AI case studies, hackathons, and casariums. Provides skills, commands, rules, shards, agent templates, and brain portability for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+
+Bundled feature-adr usage guidance records observed stage metadata/source IDs through existing
+writers and reads explicit Wf/FA project evidence. Unknown dimensions and full prices stay null;
+independent verification, family estimates and billing absence remain visible.
+
+The bundled feature-adr Step 8 now carries explicit existing round/run/task identity through its plain
+Claude bridge contract using the execution project. Preflight conflicts refuse before review; matching
+and legacy-window assurance remain distinct. Native Workflow QE does not add a duplicate bridge review.
+
+The bundled feature-adr Code module now ships the shared `scripts/build-coder-context.mjs` helper.
+It supplies bounded literal requirements, plan tasks and ADR Decision/Confirmation; plain coding
+reads or embeds its successful block, and Workflow fingerprints current inputs before code reuse.
+Required missing or incomplete context refuses coding. This helper is separate from advisory recall.
 
 ---
 
@@ -473,3 +490,39 @@ harness-core's `src/markdown-masker.ts`. It runs without a core build. Amendment
 and K2 share the parser while retaining their existing unclosed-block and indentation policies.
 The four-space indented-code gap remains open for amendment checks and K2; swarm briefs retain their
 existing masking of indented code. Versions are unchanged in this staged change.
+
+### Codex companion for feature-adr
+
+`dz statusline --watch --project "/path/to/worktree" --brain "/path/to/shared-brain"
+--slug "feature-slug" --run-id "stable-run-id"` adds an explicitly launched adjacent terminal
+companion, including Plain runs. Until installed, invoke the worktree-built
+`node packages/@dzhechkov/harness-cli/dist/bin.js statusline --watch ...`. This extends the existing
+command inventory. Canonical feature-adr guidance supplies the quoted producer/observer recipe: record
+a stable run ID and actual tier at the START of each step, then `done` on real completion; recall/teach
+remain scoped to the shared brain. Project run state and brain counts are separate. One slug retains
+one latest run; report freshness is not process liveness and stage position is not passed gates.
+
+The readonly companion requires a dedicated stdout TTY, uses serial 2-second refreshes (0.25–60
+allowed), sanitizes/clips text and handles resize. Below 40x8 it shows a size warning. Ctrl-C/SIGTERM
+exit 0; output failure 1; invalid/piped watch 2. Failed/absent counts and optional values are explicit;
+watch v1 ETA is unavailable and global source inventory omitted. No stdin/raw mode, models, logical
+store writes or automatic terminal/settings changes. Normal SQLite ephemeral WAL/SHM sidecars are
+permitted. One-shot Claude text/JSON/ETA remain unchanged. Codex native footer capability is not
+asserted; parity names manual `dz statusline --watch` access.
+
+
+Review convergence in `/feature-adr` now uses one installed Node gate in Plain and native Workflow.
+Step 3.5 closes before planning; Step 8 closes before completion and delivery, including S tier and
+resumed runs. The host measures current artifact bytes and preserves originating reviewer conditions;
+focused rework includes an explicit author delta/new-risk assessment and independent own-condition
+verification. Serious primary or precision findings remain visible at the round ceiling.
+
+Missing or stale receipts, legacy resume, unavailable reviewers and read-only Codex mode A pause
+with host-driven repair instructions. Parallel native design can require focused review after sibling
+artifacts settle. Clean initial supported review closes without invented conditions or an extra review.
+This is a receipt consistency/freshness gate, not reviewer authentication or semantic proof; existing
+Confirmation, scope, family and budget gates still apply. No automatic repair loop or new CLI command.
+
+Repeated prepare retains all pending paths until verified closure. Actual fallback families bind before dispatch while prior owners remain required. Same-slug QE repair uses current own-reviewer evidence bound to the complete historical checkpoint; original findings/grades remain visible, and failed Confirmation still blocks delivery.
+
+Before fallback, host prepare retains independently written pending receipt findings under the original owner even if that reviewer returned null. Unreconciled pending evidence pauses dispatch for originating-reviewer repair; it cannot be replaced by a clean fallback to obtain closure.

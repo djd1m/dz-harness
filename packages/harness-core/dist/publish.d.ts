@@ -230,7 +230,11 @@ export interface ProvenanceDecision {
 export declare function decideProvenance(mode: ProvenanceMode, env: NodeJS.ProcessEnv): ProvenanceDecision;
 /** The exact command. A test asserts this string; nothing is assembled inline at the call site. */
 export declare function publishArgv(mode: ProvenanceMode, env: NodeJS.ProcessEnv): string;
-/** Match substrings against package identity and path without including the checkout root. */
+/** Validate exact identities against the unfiltered discovery set before any publish effects. */
+export declare function validatePublishFilters(filters: readonly string[] | undefined, packages: readonly {
+    name: string;
+}[]): void;
+/** Match =NAME by literal package identity; other filters retain checkout-relative substrings. */
 export declare function matchesPublishFilter(pkg: {
     name: string;
     dir: string;

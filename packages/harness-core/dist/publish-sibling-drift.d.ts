@@ -25,6 +25,7 @@
  *
  * @packageDocumentation
  */
+import { judgeReleaseCohortAudit } from './release-package-audit.js';
 export type SiblingDriftStatus = 'same' | 'drift' | 'unavailable';
 /**
  * AM-6 (feature publish-gate-audit-durable): which mechanism produced BOTH sides' file inventory
@@ -47,7 +48,7 @@ export interface SiblingDriftResult {
     readonly changedFiles: readonly string[];
     /** Export names the workspace's dist/index.js declares that the published one lacks (А2, secondary signal). */
     readonly missingExports: readonly string[];
-    /** Present only when status === 'unavailable'. */
+    /** Unavailable reason or diagnostic for a verified/declined owner-branding comparison. */
     readonly reason?: string;
     /**
      * AM-6: named per-result (not merely per-call) because `detectSiblingDrift` short-circuits to
@@ -55,6 +56,8 @@ export interface SiblingDriftResult {
      * source that WOULD have been used, so a reader never has to guess.
      */
     readonly inventorySource: InventorySource;
+    /** Verified directional policy class; SAME here does not mean byte-identical. */
+    readonly classification?: 'owner-branding-only' | 'retained-registered-binding';
 }
 export interface FetchedPublished {
     /** Directory holding the extracted published tarball (contains dist/, package.json). */
@@ -90,6 +93,45 @@ export interface DetectSiblingDriftOptions {
     readonly localInventory?: LocalInventory;
     /** Label for the injected provider (default 'npm-pack'); CLI uses 'pack-artifact'. */
     readonly localInventorySource?: InventorySource;
+    /** Repository trust root, supplied externally; never read from either artifact. */
+    readonly trustedPublicKeyPem?: string;
+    /** Structural validation seam only; normal CLI additionally requires its completed invocation-owned object. */
+    readonly retainedBindingProof?: {
+        readonly version: 1;
+        readonly phase: 'preview' | 'final';
+        readonly batch: readonly string[];
+        readonly head: string;
+        readonly refs: readonly {
+            ref: string;
+            oid: string;
+        }[];
+        readonly workspaceVersions: readonly (readonly [string, string])[];
+        readonly adapters: Readonly<Record<string, {
+            sourceSha256: string;
+            localTreeSha256: string;
+            registryTreeSha256: string;
+            registryIntegrity: string;
+            version: string;
+            localFloor: string;
+            registeredFloor: string;
+            creation: string;
+            history: readonly {
+                oid: string;
+                blob: string | null;
+                literal: string | null;
+                boundary: boolean;
+            }[];
+        }>>;
+        readonly baseline: {
+            roots: Parameters<typeof judgeReleaseCohortAudit>[0];
+            evidence: unknown;
+        };
+        readonly candidate: {
+            roots: Parameters<typeof judgeReleaseCohortAudit>[0];
+            evidence: unknown;
+        };
+        readonly digest: string;
+    };
 }
 /** The exact set of relative paths `npm pack` will ship for a package — no `.npmignore` guessing. */
 export interface PackInventory {

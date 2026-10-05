@@ -102,6 +102,8 @@ export interface RoundLedgerRow {
    *  fix-round-1 #1/#2 (ADR-001 п.2 amended): also present when an EXPLICIT `--reviewer` AGREES with
    *  the sidecar's own `gradedBy` (`reviewSource:'flag+qe-bridge'` below names that case). */
   readonly reviewMinutes?: number;
+  readonly reviewIdentitySource?: 'round-run-task' | 'partial-identity' | 'legacy-window';
+  readonly reviewIdentity?: { readonly round: number | null; readonly roundRun: string | null; readonly taskId: string | null; readonly bridgeRunId: string | null };
   /** measurement-integrity FR-7: present ONLY alongside `reviewMinutes` — names where `reviewer` and
    *  `reviewMinutes` came from, so a reader never confuses a sidecar-sourced figure for a flag.
    *  review-cost-ledger fix-round-1 #1/#2 (ADR-001 п.2 amended): `'qe-bridge'` when `reviewer` was
@@ -188,6 +190,8 @@ export interface RoundLedgerRow {
  * `closeRound` never opens a file.
  */
 export interface RoundReviewSidecar {
+  readonly reviewIdentitySource?: RoundLedgerRow['reviewIdentitySource'];
+  readonly reviewIdentity?: RoundLedgerRow['reviewIdentity'];
   /** Who graded it — family + model, e.g. `codex:gpt-5.6-sol`. */
   readonly gradedBy: string;
   readonly elapsedMs: number;
@@ -609,6 +613,8 @@ export function closeRound(input: {
     ...(nonEmpty(input.stateId) ? { stateId: input.stateId } : {}),
     ...(input.state.envelope !== undefined ? { envelope: input.state.envelope } : {}),
     ...(reviewSource !== null ? { reviewSource } : {}),
+    ...(reviewerTiedToSidecar && input.reviewSidecar?.reviewIdentitySource !== undefined ? { reviewIdentitySource: input.reviewSidecar.reviewIdentitySource } : {}),
+    ...(reviewerTiedToSidecar && input.reviewSidecar?.reviewIdentity !== undefined ? { reviewIdentity: input.reviewSidecar.reviewIdentity } : {}),
     ...(reviewMinutes !== null ? { reviewMinutes } : {}),
     taskId,
     ...(taskIdSource !== null ? { taskIdSource } : {}),
@@ -700,11 +706,13 @@ export function readOpenRoundTaskId(
   states: readonly RoundState[],
   slug: string,
   unreadableStateCount = 0,
+  authorityReadError = false,
 ): {
   readonly taskId: string | null;
   readonly source: 'open-round' | 'derived-legacy' | 'no-open-round' | 'ambiguous' | 'unavailable';
 } {
   const matches = states.filter((s) => s.slug === slug);
+  if (authorityReadError) return { taskId: null, source: 'unavailable' };
   const unreadable = Number.isFinite(unreadableStateCount) && unreadableStateCount > 0 ? Math.floor(unreadableStateCount) : 0;
   if (unreadable > 0 && matches.length === 0) return { taskId: null, source: 'unavailable' };
   if (unreadable > 0) return { taskId: null, source: 'ambiguous' };

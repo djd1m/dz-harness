@@ -397,7 +397,10 @@ export const PARITY_FEATURES: readonly ParityFeature[] = [
   {
     id: 'statusline-gates',
     title: 'Live 🚦 gates status line',
-    forms: [{ form: 'statusline integration', requires: ['statusline'], level: 'full' }],
+    forms: [
+      { form: 'statusline integration', requires: ['statusline'], level: 'full' },
+      { form: 'dz statusline --watch (adjacent terminal)', requires: ['shell'], level: 'manual' },
+    ],
   },
   {
     id: 'project-guards',

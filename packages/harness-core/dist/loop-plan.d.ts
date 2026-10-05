@@ -443,6 +443,10 @@ export declare function toTraceProjection(plan: LoopPlan): TraceProjection;
 /** One dispatching step as the scheduler needs it — everything it must know to build a prompt,
  * pick a model, spend budget, retry, and verify a deliverable landed. */
 export interface RunStepSpec {
+    role?: string | null;
+    tier?: string | null;
+    mode?: string | null;
+    estimate?: unknown;
     stepId: string;
     kind: 'agent' | 'gate';
     phase: string;

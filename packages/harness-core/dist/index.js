@@ -13,6 +13,8 @@ export { REPOSITORY_ORIGIN } from './repository-origin.js';
 // feature's scope) — harness-core already depends on memory, so it re-exports the one helper.
 export { noSearchableTermsReason } from '@dzhechkov/memory';
 export * from './skills.js';
+export { buildStageUsageReport } from './stage-usage.js';
+export { deriveStageUsageReport, renderStageUsageReport } from './cost-ledger.js';
 export * from './apply.js';
 export { buildPublicSnapshot, assertPublicSafe, applyDeltaRule, HOLD_CAP_DAYS, PUBLIC_SCHEMA, MIN_GROUP, TTT_BUCKETS, } from './backlog-public.js';
 export { appendTransition, readTransitions, transitionLogPath, } from './backlog-transitions.js';
@@ -81,7 +83,7 @@ export { loadPatterns, loadSessions, computePatternBoost, readLearningConfig, re
 export { normalizeLessonForms, validateClassTemplate, lessonPairIdOf, mergeLessonFormHits, mergeLessonMatchedForms } from './lesson-generalization.js';
 export { withStoreLock, withStoreLockSync, storeLockPath, storeExists, StoreAbsentError, StoreLockTimeoutError, StoreLockCompromisedError, STALE_LOCK_MS, LOCK_TIMEOUT_MS } from './store-lock.js';
 export { withProjectLockSync, withDirLockSync, namedLockPath, isSafeLockName, NamedLockNameError, NamedLockTimeoutError, NamedLockCompromisedError } from './named-lock.js';
-export { QE_BRIDGE_SCHEMA, QE_BRIDGE_FAILURE_SCHEMA, CLAUDE_BRIDGE_PROMPT_CEILING_CHARS, KNOWN_CLAUDE, BRIDGE_MARKER, BRIDGE_FENCE_LABEL, BRIDGE_EXTRACT_END, isSafeClaudeId, CLAUDE_ISOLATION_ARGS, BRIDGE_FAILURE_REASONS, extractClaudeResult, buildBridgeSignoffRecord, claudeProbeArgs, interpretClaudeProbe, claudeReviewArgs, defangSignoffEchoes, buildBridgePrompt, parseBridgeOutput, buildBridgeFailureRecord, renderBridgeReport, } from './qe-bridge.js';
+export { QE_BRIDGE_SCHEMA, QE_BRIDGE_FAILURE_SCHEMA, CLAUDE_BRIDGE_PROMPT_CEILING_CHARS, KNOWN_CLAUDE, BRIDGE_MARKER, BRIDGE_FENCE_LABEL, BRIDGE_EXTRACT_END, isSafeClaudeId, CLAUDE_ISOLATION_ARGS, BRIDGE_FAILURE_REASONS, extractClaudeResult, buildBridgeSignoffRecord, claudeProbeArgs, interpretClaudeProbe, claudeReviewArgs, defangSignoffEchoes, buildBridgePrompt, parseBridgeOutput, buildBridgeFailureRecord, renderBridgeReport, resolveBridgeRoundIdentity, selectQeBridgeRoundSignoff, } from './qe-bridge.js';
 export { DEFAULT_REINFORCE_THRESHOLD, NoopLearningBackend, NativeReinforcementBackend, resolveLearningBackend, isLearningSignalBackend, applyLearningSignals, applyLearningSignalsWithDelta, applyLearningSignalsWithTerms } from './learning-backend.js';
 // lesson-bandit-rerank (I-8): the ACL's public surface only. The vendored engine class is
 // deliberately NOT exported — `selectArm`'s "pick one and commit" is authority this domain denies
@@ -100,7 +102,7 @@ export { STORE_GUARD_VERSION, STORE_COLLAPSE_MAX_FRACTION, STORE_COLLAPSE_LAST_R
 export { checkMemoryIndex, MEMORY_INDEX_MAX_BYTES, MEMORY_INDEX_MAX_LINE_CHARS, MEMORY_INDEX_MIN_HOOK_SUPPORT, } from './memory-index-check.js';
 export { detectMangledText } from './text-mangling.js';
 export { planStoreGuardPrune } from './store-guard-prune.js';
-export { statuslineData, readFeatureAdrState, writeFeatureAdrState, featureAdrStateDir, featureAdrStatePath, writeFeatureAdrStateDetailed, renderFeatureAdrPhaseLine } from './statusline.js';
+export { statuslineData, readFeatureAdrObservation, readFeatureAdrState, writeFeatureAdrState, featureAdrStateDir, featureAdrStatePath, writeFeatureAdrStateDetailed, renderFeatureAdrPhaseLine } from './statusline.js';
 export { ETA_MAX_STAGE_MS, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, } from './eta.js';
 export { indexPatternsToAgentdb, resolveAgentdbPath, searchAgentdbPatterns, listAgentdbDzIds, resolveAgentdbEmbedder, resolveStoreEmbedDtype, resetAgentdbEmbedderCache, getAgentdbEmbedderCacheStats, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, bumpAgentdbUses, clearAgentdbQuarantine, deleteAgentdbByDzIds, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, ensureAgentdbSchema, readStoreGeneration, bumpStoreGeneration, resolveTransformersModule } from './agentdb-index.js';
 export { DEFAULT_EMBED_MODEL, LEGACY_EMBED_MODEL, DEFAULT_EMBED_DIM, KNOWN_EMBED_DIMS, KNOWN_EMBED_DTYPES, resolveEmbedModel, readEmbedManifest, writeEmbedManifest, embedManifestPath, legacyEmbedManifest, currentEmbedManifest, guardEmbedSpace, snapshotEmbedManifest } from './embedding-config.js';
@@ -149,7 +151,7 @@ export { SHELL_VETO_RULE_ID, resolveVetoMode, vetoShellCommand } from './shell-v
 export { generateCodexHelpers, generateCodexRecallHelper, generateCodexVetoHelper } from './codex-hooks-assets.js';
 export { EVENT_CHAIN_SCOPE, EVENT_CHAIN_GENESIS_HASH, EVENT_CHAIN_TAIL_BYTES, EVENT_CHAIN_FIELD_OVERHEAD_BYTES, EVENT_CHAIN_LEDGER_KIND, EVENT_CHAIN_DEFECT_KINDS, fnv1a32, chainHashOf, chainLinesOf, lastChainLine, readTailInfo, appendChainedLines, EMPTY_LOG_TAIL, nextChainFields, withChainFields, chainRecordLines, chainRewrite, defaultEventWeight, eventWeightOfText, verifyEventChain, verifyEventChainText, renderEventChainVerification, rewriteSnapshot, rewriteSnapshotUnchanged, guardedRewrite, DEFAULT_REWRITE_ATTEMPTS, liveSegmentStart, classifyChainDefects, CHAINED_JOURNALS, } from './event-chain.js';
 export { packArtifact, readWorkspaceVersions, UnknownWorkspaceSpecError } from './pack-artifact.js';
-export { decideProvenance, environmentCanMintProvenance, publishArgv, matchesPublishFilter, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, rewriteWorkspaceSpecs, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion, planReadmeVersionSync } from './publish.js';
+export { decideProvenance, environmentCanMintProvenance, publishArgv, matchesPublishFilter, validatePublishFilters, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, rewriteWorkspaceSpecs, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion, planReadmeVersionSync } from './publish.js';
 export { RELEASE_LINE_RE, parseReleaseLine, findReleaseLine, rewriteReleaseLine, shortPackageName } from './release-line.js';
 export * from './course-staleness.js';
 export { fetchAllDownloads } from './downloads.js';
@@ -180,6 +182,8 @@ LANDING_PROTOCOL_VERSION, LANDING_HASH_TOKEN, addExpectedCodeTarget, extractExpe
 // fa-plan-gate-wiring: the K2 plan-completeness gate halves. NAMED here on purpose — an omission
 // silently drops them from the published package (the ADR-002 Confirmation-1 lesson).
 PLAN_GATE_SCRIPT, planCompletenessGateCmd, parsePlanGateVerdict, 
+// landed-barrier-anchored-line: the design/plan/plan-repair landing-barrier reply parser.
+parseLandedProbe, 
 // p16-non-js-portability: the gate-script search chain's operator note (ADR-002/AM-7) and the
 // dzBin absolutization (ADR-003). Named for the same reason as the three above.
 refusalNoteFor, shellQuote, planBackupCmd, planRestoreCmd, planArchiveBackupCmd, planSnapshotCmd, snapshotBlock, snapshotNumber, parsePlanSnapshot, normalizeDzBin, 
@@ -214,6 +218,8 @@ export * from './bto-optimize.js';
 export * from './discrimination-gate.js';
 export * from './guard.js';
 export * from './guard-volume.js';
+// npm-homepage-guard (backlog e5d0d383): pure facts + fs reader for the `npm-homepage` guard rule.
+export * from './npm-homepage.js';
 // Root AGENTS.md policy projection: pure anchor extraction/render/hash drift +
 // the shared-emitter I/O entry point exported from operations.
 export * from './agents-policy.js';
@@ -307,4 +313,5 @@ export { debtRatchetVerdict, parsePinnedCeiling, ceilingUnreadableMessage } from
 // Квитанция зелёного прогона: проверка на PUSH вместо проверки на коммите (развилка 4, 21.09).
 export { decideTestReceipt, renderTestReceiptVerdict } from './test-receipt.js';
 export { decideBackupFreshness, renderBackupFreshness } from './backup-freshness.js';
+export { planReleasePackageAudit, judgeReleasePackageAudit, judgeReleaseCohortAudit } from './release-package-audit.js';
 //# sourceMappingURL=index.js.map

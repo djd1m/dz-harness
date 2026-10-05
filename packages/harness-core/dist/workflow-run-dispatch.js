@@ -86,7 +86,7 @@ export { CODEX_EXEC_PROMPT_CEILING_CHARS };
 export function codexExecArgv(modelId, prompt, deliverable) {
     const returnValue = (deliverable ?? 'return-value') !== 'file';
     const text = returnValue ? CODEX_SCOPING_PREFIX + '\n\n' + prompt : prompt;
-    return ['exec', '-m', modelId, ...(returnValue ? ['--sandbox', 'read-only'] : []), text];
+    return ['exec', '-m', modelId, ...(returnValue ? ['--sandbox', 'read-only'] : []), '--json', text];
 }
 /** The liveness probe: an allowlist says an id is SPELLABLE, only a probe says it ANSWERS. */
 export function codexProbeArgv(candidateId) {
@@ -98,70 +98,236 @@ export function interpretCodexProbe(out) {
         return false;
     return /\bOK\b/.test(String(out.stdout ?? ''));
 }
-/**
- * Best-effort token extraction from codex stderr — null when absent, NEVER 0 and never estimated.
- *
- * MEASURED (codex-cli 0.148.0, this session): the trailer is a TOTAL only —
- * `tokens used\n9,820` — with no input/output split. `wf-budget-1` has no field for a total, and
- * attributing a total to either half would be a fabrication, so this returns BOTH nulls for that
- * shape and the row's `tokensSource` stays null. The split branch below exists because some
- * builds/configs do print one; it is tested, not assumed. (Named consequence: codex runs report no
- * token counts today. That is the honest state, not a bug to paper over — see the manifest.)
- */
+const count = (value) => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : null;
+const emptyUsage = () => ({ tokensIn: null, tokensOut: null, tokensTotal: null, tokensCacheRead: null,
+    tokensCacheWrite: null, tokensReasoning: null, tokensSource: null, reportedTotalBasis: 'unknown', inputCacheSemantics: 'unknown',
+    reportedCostUsd: null, usageDiagnostics: [] });
 export function extractCodexTokens(stderr) {
     const text = String(stderr ?? '');
-    const num = (raw) => {
-        if (raw === undefined)
-            return null;
-        const n = Number(raw.replace(/[,_\s]/g, ''));
-        return Number.isFinite(n) && n >= 0 ? n : null;
-    };
-    // Two accepted spellings per half: `input tokens: N` / `input: N tokens` and `tokens in: N`.
-    const inMatch = /\binput\b[^\n\d]{0,20}([\d,_]+)|\btokens?\s+in\b[^\n\d]{0,10}([\d,_]+)/i.exec(text);
-    const outMatch = /\boutput\b[^\n\d]{0,20}([\d,_]+)|\btokens?\s+out\b[^\n\d]{0,10}([\d,_]+)/i.exec(text);
-    const tokensIn = inMatch === null ? null : num(inMatch[1] ?? inMatch[2]);
-    const tokensOut = outMatch === null ? null : num(outMatch[1] ?? outMatch[2]);
-    return { tokensIn, tokensOut };
+    const usage = emptyUsage();
+    const numeric = (raw) => raw === undefined ? null : count(Number(raw.replace(/[,_\s]/g, '')));
+    const input = /\binput\b[^\n\d+.-]{0,20}([+-]?\d[\d,_]*(?:\.\d+)?)|\btokens?\s+in\b[^\n\d+.-]{0,10}([+-]?\d[\d,_]*(?:\.\d+)?)/i.exec(text);
+    const output = /\boutput\b[^\n\d+.-]{0,20}([+-]?\d[\d,_]*(?:\.\d+)?)|\btokens?\s+out\b[^\n\d+.-]{0,10}([+-]?\d[\d,_]*(?:\.\d+)?)/i.exec(text);
+    const total = /tokens used\s*\n\s*([+-]?\d[\d,_]*(?:\.\d+)?)|Token usage:\s*total=([+-]?\d[\d,_]*(?:\.\d+)?)/i.exec(text);
+    usage.tokensIn = numeric(input?.[1] ?? input?.[2]);
+    usage.tokensOut = numeric(output?.[1] ?? output?.[2]);
+    usage.tokensTotal = numeric(total?.[1] ?? total?.[2]);
+    if (input && usage.tokensIn === null)
+        usage.usageDiagnostics.push('invalid-counter:input');
+    if (output && usage.tokensOut === null)
+        usage.usageDiagnostics.push('invalid-counter:output');
+    if (total && usage.tokensTotal === null)
+        usage.usageDiagnostics.push('invalid-counter:total');
+    const cached = /\(\+([\d,_]+) cached\)/i.exec(text);
+    if (total?.[2] && cached)
+        usage.tokensCacheRead = numeric(cached[1]);
+    usage.reportedTotalBasis = total?.[2] ? 'uncached-display' : 'reported-unknown';
+    usage.inputCacheSemantics = total?.[2] ? 'uncached-display' : 'unknown';
+    usage.tokensSource = usage.tokensTotal != null || usage.tokensIn != null || usage.tokensOut != null ? 'codex-stderr' : null;
+    usage.totalDerivation = usage.tokensTotal === null ? 'not-recorded' : 'reported';
+    return usage;
 }
-/**
- * The claude `--output-format json` USAGE fields, pinned to the LIVE envelope shape.
- *
- * MEASURED this session (`claude -p --output-format json`, sonnet):
- * `usage.input_tokens = 2`, `usage.output_tokens = 4`, alongside `cache_read_input_tokens` and
- * `cache_creation_input_tokens`. Only the two plain counters are reported — cache tokens are a
- * SEPARATE dimension `wf-budget-1` has no field for, and silently folding them into `tokensIn`
- * would inflate every cached run's cost picture. Added to the architecture's export list; see the
- * manifest.
- */
 export function extractClaudeUsage(stdout) {
-    const env = extractClaudeResult(String(stdout ?? ''));
-    if (!env.ok)
-        return { tokensIn: null, tokensOut: null };
-    // re-scan for the envelope object itself: extractClaudeResult hands back only the text
-    const lines = String(stdout ?? '').split(/\r?\n/);
-    const candidates = [String(stdout ?? '').trim(), ...lines.map((l) => l.trim())].filter((c) => c.startsWith('{') && c.endsWith('}'));
-    let usage = null;
-    for (const c of candidates) {
-        let obj;
+    let chosen = null;
+    for (const line of [String(stdout).trim(), ...String(stdout).split(/\r?\n/)]) {
         try {
-            obj = JSON.parse(c);
+            const obj = JSON.parse(line);
+            if (obj && obj['type'] === 'result')
+                chosen = obj;
+        }
+        catch { /* non-envelope line */ }
+    }
+    const result = emptyUsage();
+    if (!chosen)
+        return result;
+    const usage = chosen['usage'];
+    if (!usage || typeof usage !== 'object' || Array.isArray(usage))
+        return result;
+    const raw = usage;
+    const invalid = (obj, key) => obj[key] != null && count(obj[key]) === null;
+    const field = (obj, key) => {
+        if (invalid(obj, key))
+            result.usageDiagnostics.push('invalid-count:' + key);
+        return count(obj[key]);
+    };
+    result.tokensIn = field(raw, 'input_tokens');
+    result.tokensOut = field(raw, 'output_tokens');
+    result.tokensCacheRead = field(raw, 'cache_read_input_tokens');
+    result.tokensCacheWrite = field(raw, 'cache_creation_input_tokens');
+    const creation = raw['cache_creation'];
+    if (creation != null) {
+        if (typeof creation !== 'object' || Array.isArray(creation)) {
+            result.usageDiagnostics.push('invalid-cache-creation-shape');
+            result.tokensCacheWrite = null;
+        }
+        else {
+            const nested = creation;
+            const a = field(nested, 'ephemeral_5m_input_tokens');
+            const b = field(nested, 'ephemeral_1h_input_tokens');
+            const nestedInvalid = invalid(nested, 'ephemeral_5m_input_tokens') || invalid(nested, 'ephemeral_1h_input_tokens');
+            const total = a !== null && b !== null ? count(a + b) : null;
+            if (a !== null && b !== null && total === null)
+                result.usageDiagnostics.push('cache-creation-overflow');
+            if (nestedInvalid || (a !== null && b !== null && total === null))
+                result.tokensCacheWrite = null;
+            else if (raw['cache_creation_input_tokens'] == null)
+                result.tokensCacheWrite = total;
+            else if (result.tokensCacheWrite !== null && total !== null && total !== result.tokensCacheWrite) {
+                result.usageDiagnostics.push('cache-creation-mismatch');
+                result.tokensCacheWrite = null;
+            }
+        }
+    }
+    result.tokensReasoning = field(raw, 'reasoning_output_tokens');
+    if (result.tokensReasoning !== null && result.tokensOut !== null && result.tokensReasoning > result.tokensOut) {
+        result.usageDiagnostics.push('reasoning-exceeds-output');
+        result.tokensReasoning = null;
+    }
+    result.tokensTotal = field(raw, 'total_tokens');
+    const components = [result.tokensIn, result.tokensCacheRead, result.tokensCacheWrite, result.tokensOut];
+    const partitionKnown = components.every((n) => n !== null);
+    const derived = partitionKnown ? count(components.reduce((n, v) => n + (v ?? 0), 0)) : null;
+    if (partitionKnown && derived === null)
+        result.usageDiagnostics.push('total-overflow');
+    if (invalid(raw, 'total_tokens'))
+        result.totalDerivation = 'invalid-reported-total';
+    else if (raw['total_tokens'] == null) {
+        result.tokensTotal = derived;
+        result.totalDerivation = derived === null ? 'not-recorded' : 'disjoint-dimensions';
+    }
+    else
+        result.totalDerivation = 'reported';
+    if (derived !== null && result.tokensTotal !== null && result.tokensTotal !== derived)
+        result.usageDiagnostics.push('total-split-mismatch');
+    result.reportedCostUsd = typeof chosen['total_cost_usd'] === 'number' && Number.isFinite(chosen['total_cost_usd']) && chosen['total_cost_usd'] >= 0 ? chosen['total_cost_usd'] : null;
+    result.reportedTotalBasis = 'raw-inclusive';
+    result.inputCacheSemantics = 'excludes-cache-read-write';
+    result.tokensSource = 'claude-envelope';
+    return result;
+}
+function codexStructuredOutput(stdout) {
+    const lines = stdout.split(/\r?\n/).filter((line) => line.trim());
+    const events = [];
+    let malformed = false;
+    let recognized = false;
+    const types = new Set(['thread.started', 'turn.started', 'turn.completed', 'turn.failed', 'item.started', 'item.updated', 'item.completed', 'error']);
+    for (const line of lines) {
+        if (/"type"\s*:\s*"(?:thread\.|turn\.|item\.|error")/.test(line))
+            recognized = true;
+        try {
+            const event = JSON.parse(line);
+            if (event && typeof event === 'object' && typeof event['type'] === 'string' && (types.has(event['type']) || /^(thread|turn|item)\./.test(event['type'])))
+                recognized = true;
+            events.push(event);
         }
         catch {
+            malformed = true;
+        }
+    }
+    if (!recognized)
+        return { structured: false, valid: true, text: stdout.trim(), usage: emptyUsage() };
+    const result = emptyUsage();
+    let failedTerminal = false;
+    let text = '';
+    let threadId = null;
+    const terminals = [];
+    const reportedModels = new Set();
+    for (const event of events) {
+        if (!event || typeof event !== 'object' || !types.has(String(event['type']))) {
+            malformed = true;
             continue;
         }
-        if (obj === null || typeof obj !== 'object')
-            continue;
-        const u = obj['usage'];
-        if (u !== null && typeof u === 'object' && !Array.isArray(u))
-            usage = u;
+        if (typeof event['model'] === 'string' && event['model'].trim())
+            reportedModels.add(event['model']);
+        if (event['type'] === 'thread.started' && typeof event['thread_id'] === 'string') {
+            if (threadId !== null && threadId !== event['thread_id'])
+                malformed = true;
+            threadId = event['thread_id'];
+        }
+        if (event['type'] === 'item.completed' && event['item'] && typeof event['item'] === 'object') {
+            const item = event['item'];
+            if (item['type'] === 'agent_message' && typeof item['text'] === 'string')
+                text = item['text'];
+        }
+        if (event['type'] === 'turn.completed' || (event['type'] === 'turn.failed' && event['usage'] != null))
+            terminals.push(event);
+        if (event['type'] === 'turn.failed' || event['type'] === 'error')
+            failedTerminal = true;
     }
-    if (usage === null)
-        return { tokensIn: null, tokensOut: null };
-    const pick = (k) => {
-        const v = usage?.[k];
-        return typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null;
+    const distinct = new Set(terminals.map((v) => { const u = v['usage'] && typeof v['usage'] === 'object' ? v['usage'] : {}; return JSON.stringify([v['turn_id'] ?? null, ...['input_tokens', 'cached_input_tokens', 'cache_write_input_tokens', 'output_tokens', 'reasoning_output_tokens', 'total_tokens'].map((key) => u[key] ?? null)]); }));
+    if (distinct.size !== 1) {
+        malformed = true;
+        result.usageDiagnostics.push(distinct.size === 0 ? 'terminal-usage-unavailable' : 'conflicting-terminal-usage');
+    }
+    if (distinct.size === 1) {
+        const terminal = terminals[0];
+        const raw = terminal['usage'];
+        if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+            const usage = raw;
+            result.tokensIn = count(usage['input_tokens']);
+            result.tokensOut = count(usage['output_tokens']);
+            result.tokensCacheRead = count(usage['cached_input_tokens']);
+            result.tokensCacheWrite = count(usage['cache_write_input_tokens']);
+            result.tokensReasoning = count(usage['reasoning_output_tokens']);
+            const derived = result.tokensIn !== null && result.tokensOut !== null ? count(result.tokensIn + result.tokensOut) : null;
+            result.tokensTotal = count(usage['total_tokens']) ?? derived;
+            result.totalDerivation = count(usage['total_tokens']) !== null ? 'reported' : derived === null ? 'not-recorded' : 'input-plus-output';
+            if (derived !== null && result.tokensTotal !== derived)
+                result.usageDiagnostics.push('total-split-mismatch');
+            if (result.tokensCacheRead != null && result.tokensIn != null && result.tokensCacheRead > result.tokensIn)
+                result.usageDiagnostics.push('cache-exceeds-input');
+            if (result.tokensReasoning != null && result.tokensOut != null && result.tokensReasoning > result.tokensOut)
+                result.usageDiagnostics.push('reasoning-exceeds-output');
+            for (const [key, value] of Object.entries(usage))
+                if (key.endsWith('_tokens') && count(value) === null)
+                    result.usageDiagnostics.push('invalid-counter:' + key);
+            result.tokensSource = 'codex-json';
+            result.reportedTotalBasis = 'raw-inclusive';
+            result.inputCacheSemantics = 'includes-cache-read-write';
+            result.usageSource = { schema: 'codex-exec-json', scope: 'terminal-turn', threadId, turnId: typeof terminal['turn_id'] === 'string' ? terminal['turn_id'] : null, receiptId: null };
+        }
+        else
+            malformed = true;
+    }
+    if (malformed)
+        result.usageDiagnostics.push('malformed-event-stream');
+    if (failedTerminal)
+        result.usageDiagnostics.push('runtime-turn-failed');
+    if (reportedModels.size > 1)
+        result.usageDiagnostics.push('provider-model-mismatch');
+    return { structured: true, valid: !malformed && !failedTerminal, text, usage: result, reportedModel: reportedModels.size === 1 ? [...reportedModels][0] : null };
+}
+/** Observe the existing wrapper seam; this does not attest OS child start. */
+function collectProbeMetadata(family) {
+    const attempts = [];
+    let totalConsidered = 0;
+    let invalid = null;
+    return {
+        record(id, wrapperInvoked, r, selected) {
+            const ordinal = ++totalConsidered;
+            if (wrapperInvoked && (typeof id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$/.test(id)))
+                invalid = 'candidate-model-invalid';
+            let reason = 'invalid-candidate';
+            if (r !== null) {
+                const typed = typeof r.stdout === 'string' && typeof r.stderr === 'string' && typeof r.timedOut === 'boolean'
+                    && (r.exitCode === null || (Number.isSafeInteger(r.exitCode) && r.exitCode >= 0))
+                    && (r.spawnError === null || (typeof r.spawnError === 'string' && r.spawnError.length > 0));
+                const consistent = typed && !(r.timedOut && (r.spawnError !== null || r.exitCode === 0))
+                    && !(r.spawnError !== null && r.exitCode !== null) && !(selected && (r.timedOut || r.spawnError !== null || r.exitCode !== 0));
+                if (!consistent && invalid !== 'candidate-model-invalid')
+                    invalid = 'wrapper-result-invalid';
+                reason = r.timedOut ? 'timeout' : r.spawnError !== null ? 'spawn-error' : r.exitCode === null ? 'no-exit-code'
+                    : r.exitCode !== 0 ? 'exit-nonzero' : selected ? 'answered' : 'unexpected-response';
+            }
+            if (ordinal <= 32)
+                attempts.push({ ordinal, model: wrapperInvoked ? id : null, family, wrapperInvoked,
+                    outcome: !wrapperInvoked ? 'rejected' : selected ? 'answered' : 'failed', reason, selected });
+        },
+        finish() {
+            return { provenance: invalid === null ? { schema: 'wf-probe-attempts-1', complete: totalConsidered <= 32, totalConsidered, attempts } : null,
+                provenanceReason: invalid };
+        },
     };
-    return { tokensIn: pick('input_tokens'), tokensOut: pick('output_tokens') };
 }
 // ── the adapter factories (pure over the injected ChildRunner) ───────────────────────────────────
 function failed(family, model, wallMs, reason, detail, outcome = 'null') {
@@ -170,6 +336,7 @@ function failed(family, model, wallMs, reason, detail, outcome = 'null') {
         text: null,
         family,
         modelUsed: model,
+        modelProvenance: 'probed-request',
         wallMs,
         tokensIn: null,
         tokensOut: null,
@@ -199,13 +366,17 @@ export function makeCodexExecDispatcher(run, opts) {
             const t0 = clock();
             const list = candidates.length > 0 ? candidates : ['gpt-5.5'];
             const started = [];
+            const observation = collectProbeMetadata('openai');
             for (const id of list) {
+                const wrapperInvoked = true;
                 const r = await run(bin, codexProbeArgv(id), { stdinText: null, timeoutMs: 120_000, cwd: isolatedCwd(), detached: true });
                 started.push(id);
-                if (interpretCodexProbe(r))
-                    return { id, wallMs: clock() - t0, detail: `codex answered on ${id}` };
+                const selected = interpretCodexProbe(r);
+                observation.record(id, wrapperInvoked, r, selected);
+                if (selected)
+                    return { id, wallMs: clock() - t0, detail: `codex answered on ${id}`, ...observation.finish() };
             }
-            return { id: null, wallMs: clock() - t0, detail: `no codex candidate answered a probe (tried: ${started.join(', ')}) — an allowlist says an id is spellable, only a probe says it answers` };
+            return { id: null, wallMs: clock() - t0, detail: `no codex candidate answered a probe (tried: ${started.join(', ')}) — an allowlist says an id is spellable, only a probe says it answers`, ...observation.finish() };
         },
         dispatch: async (req) => {
             const t0 = clock();
@@ -218,26 +389,17 @@ export function makeCodexExecDispatcher(run, opts) {
                 cwd: req.cwd,
                 detached: true,
             });
+            const parsed = codexStructuredOutput(String(r.stdout ?? ''));
+            const usage = parsed.structured ? parsed.usage : extractCodexTokens(r.stderr);
             const cls = classifyChildRun(r);
             if (cls.kind === 'timeout')
-                return failed('openai', req.resolvedModelId, req.timeoutMs, 'dispatch-timeout', `the ${req.timeoutMs}ms deadline fired on step ${req.stepId}`);
+                return { ...failed('openai', req.resolvedModelId, req.timeoutMs, 'dispatch-timeout', `the ${req.timeoutMs}ms deadline fired on step ${req.stepId}`), ...usage };
             if (cls.kind === 'dead')
-                return failed('openai', req.resolvedModelId, clock() - t0, 'dispatch-dead', cls.detail);
-            const text = String(r.stdout ?? '').trim();
-            if (cls.exitCode !== 0 || text === '') {
-                return failed('openai', req.resolvedModelId, clock() - t0, 'dispatch-dead', `codex exited ${cls.exitCode} with ${text === '' ? 'NO stdout' : String(text.length) + ' chars of stdout'} — a clean exit with nothing to read is the spawned-but-mute case, not an empty success`);
-            }
-            const tokens = extractCodexTokens(r.stderr);
-            return {
-                outcome: 'ok',
-                text,
-                family: 'openai',
-                modelUsed: req.resolvedModelId,
-                wallMs: clock() - t0,
-                tokensIn: tokens.tokensIn,
-                tokensOut: tokens.tokensOut,
-                tokensSource: tokens.tokensIn === null && tokens.tokensOut === null ? null : 'codex-stderr',
-            };
+                return { ...failed('openai', req.resolvedModelId, clock() - t0, 'dispatch-dead', cls.detail), ...usage };
+            if (cls.exitCode !== 0 || !parsed.valid || parsed.text === '')
+                return { ...failed('openai', req.resolvedModelId, clock() - t0, 'dispatch-dead', 'Codex exited nonzero, had an invalid structured event stream, or was spawned-but-mute with no final text'), ...usage };
+            return { outcome: 'ok', text: parsed.text, family: 'openai', modelUsed: parsed.reportedModel ?? req.resolvedModelId,
+                modelProvenance: parsed.reportedModel ? 'provider-reported' : 'probed-request', wallMs: clock() - t0, ...usage };
         },
     };
 }
@@ -262,16 +424,22 @@ export function makeClaudePDispatcher(run, opts) {
             const t0 = clock();
             const list = candidates.length > 0 ? candidates : ['sonnet'];
             const tried = [];
+            const observation = collectProbeMetadata('claude');
             for (const id of list) {
                 const argv = claudeProbeArgs(id);
                 tried.push(id);
-                if (argv === null)
-                    continue; // an unsafe id is not spellable, let alone answerable
+                if (argv === null) {
+                    observation.record(id, false, null, false);
+                    continue;
+                } // existing unsafe rejection
+                const wrapperInvoked = true;
                 const r = await run(bin, argv, { stdinText: null, timeoutMs: 120_000, cwd: isolatedCwd(), detached: true });
-                if (interpretClaudeProbe({ stdout: r.stdout, exitCode: r.exitCode ?? 1 }))
-                    return { id, wallMs: clock() - t0, detail: `claude answered on ${id}` };
+                const selected = interpretClaudeProbe({ stdout: r.stdout, exitCode: r.exitCode ?? 1 });
+                observation.record(id, wrapperInvoked, r, selected);
+                if (selected)
+                    return { id, wallMs: clock() - t0, detail: `claude answered on ${id}`, ...observation.finish() };
             }
-            return { id: null, wallMs: clock() - t0, detail: `no claude candidate answered a probe (tried: ${tried.join(', ')})` };
+            return { id: null, wallMs: clock() - t0, detail: `no claude candidate answered a probe (tried: ${tried.join(', ')})`, ...observation.finish() };
         },
         dispatch: async (req) => {
             const t0 = clock();
@@ -286,33 +454,18 @@ export function makeClaudePDispatcher(run, opts) {
                 cwd: fileMode ? req.cwd : isolatedCwd(),
                 detached: true,
             });
+            const usage = extractClaudeUsage(r.stdout);
             const cls = classifyChildRun(r);
             if (cls.kind === 'timeout')
-                return failed('claude', req.resolvedModelId, req.timeoutMs, 'dispatch-timeout', `the ${req.timeoutMs}ms deadline fired on step ${req.stepId}`);
+                return { ...failed('claude', req.resolvedModelId, req.timeoutMs, 'dispatch-timeout', `the ${req.timeoutMs}ms deadline fired on step ${req.stepId}`), ...usage };
             if (cls.kind === 'dead')
-                return failed('claude', req.resolvedModelId, clock() - t0, 'dispatch-dead', cls.detail);
-            // The EXIT CODE and the ENVELOPE must agree (Step-8 HIGH-10). A parseable success envelope
-            // from a process that exited nonzero is a CONTRADICTION, not a success: the runtime told us
-            // twice and the two answers differ, so believing the friendlier one is how a failed dispatch
-            // becomes a green step. The codex adapter already required exit 0; this one did not.
-            if (cls.exitCode !== 0) {
-                return failed('claude', req.resolvedModelId, clock() - t0, 'dispatch-dead', `claude exited ${cls.exitCode} — a nonzero exit is a failed dispatch even when stdout carries a parseable success envelope; the two disagree and the exit code is the runtime's own verdict`);
-            }
+                return { ...failed('claude', req.resolvedModelId, clock() - t0, 'dispatch-dead', cls.detail), ...usage };
+            if (cls.exitCode !== 0)
+                return { ...failed('claude', req.resolvedModelId, clock() - t0, 'dispatch-dead', `claude exited ${cls.exitCode} — a nonzero exit is a failed dispatch even with a success envelope`), ...usage };
             const env = extractClaudeResult(r.stdout);
-            if (!env.ok) {
-                return failed('claude', req.resolvedModelId, clock() - t0, 'dispatch-dead', `claude exited ${cls.exitCode} but the reply is not readable as a result envelope: ${env.detail}`);
-            }
-            const usage = extractClaudeUsage(r.stdout);
-            return {
-                outcome: 'ok',
-                text: env.text,
-                family: 'claude',
-                modelUsed: req.resolvedModelId,
-                wallMs: clock() - t0,
-                tokensIn: usage.tokensIn,
-                tokensOut: usage.tokensOut,
-                tokensSource: usage.tokensIn === null && usage.tokensOut === null ? null : 'claude-envelope',
-            };
+            if (!env.ok)
+                return { ...failed('claude', req.resolvedModelId, clock() - t0, 'dispatch-dead', `reply is not readable as a result envelope: ${env.detail}`), ...usage };
+            return { outcome: 'ok', text: env.text, family: 'claude', modelUsed: req.resolvedModelId, modelProvenance: 'probed-request', wallMs: clock() - t0, ...usage };
         },
     };
 }

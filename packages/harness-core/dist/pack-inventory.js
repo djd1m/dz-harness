@@ -234,7 +234,12 @@ export function listPublishInventory(packageRoot, opts = {}) {
     packageRoot = resolve(packageRoot);
     const packer = opts.packer ?? 'npm';
     const exec = opts.exec ?? defaultExec;
-    const timeoutMs = opts.timeoutMs ?? 15_000;
+    // Default packer ceiling = 3 × the max `npm pack --dry-run --json` measured UNDER LOAD, rounded up to 1 000 ms.
+    // MEASURED 2026-09-26 (features/secret-scan-tails/07_code_changes/packer-timing-under-load.md): two sweeps over
+    // all 56 non-private packages/@dzhechkov/* while `npx vitest run` of harness-core ran (load1 2.38–7.73, 8 CPUs):
+    // max 5 358 ms (@dzhechkov/harness-core), p95 2 692 ms over 112 calls ⇒ 3 × 5 358 = 16 074 > 15 000 ⇒ 17 000.
+    // Supersedes the UNLOADED 15 000 ms (max 3 994 ms, parent AM-2). Reproducer: that file's measure script.
+    const timeoutMs = opts.timeoutMs ?? 17_000;
     let version = null;
     const fallback = (reason) => {
         const files = listPackFiles(packageRoot);

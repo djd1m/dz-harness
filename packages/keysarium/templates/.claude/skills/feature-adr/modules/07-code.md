@@ -26,6 +26,35 @@ opus (complex code generation)
 
 ### 1. Pre-Implementation Checklist
 
+### Current literal context (plain and delegated coding)
+
+Before coding or delegating, run the installed helper beside this module. Set `CONTEXT_HELPER` to
+the absolute `scripts/build-coder-context.mjs` path of the skill installation you are reading;
+set `FEATURE_DIR` to the absolute target `features/<slug>` directory and use the actual tier:
+
+```bash
+node "$CONTEXT_HELPER" "$FEATURE_DIR" --tier=M
+```
+
+The command emits exactly one JSON envelope and exits 0 only for `status: "complete"`. On any
+nonzero exit, unavailable/incomplete status, malformed JSON or required missing/empty section,
+stop before coding and repair the named input. Never paste a partial result as complete. A missing
+helper requires restoring this skill installation, not inventing a replacement block.
+
+For every delegated coder assignment, paste the successful envelope's literal `promptBlock` into
+the actual prompt, then append the existing advisory decision-recall block once. Keep the source
+paths below for deeper reading. For single-agent in-session coding, read this generated block
+directly before implementing. Requirements and plan are included in full; each ADR supplies its
+Decision and Confirmation with source labels. M/L/XL require at least one ADR; S can have none.
+
+The same canonical helper is used by the programmatic Workflow before code checkpoint lookup.
+It fingerprints full current inputs and binds the prompt separately, so changed documents cannot
+reuse old code. The plain mode boundary is an executable helper command plus these required
+read/embedding instructions; there is no separately automated plain dispatcher. Pure/fixture tests
+do not establish a live model relay's authenticity. Helper bounds are 64 documents, 256 KiB/file,
+1 MiB read and 96 KiB UTF-8 for the entire labelled block; exceeded bounds refuse without trimming.
+These are document limits, not a new limit on the existing coder wrapper's final prompt.
+
 Before writing any code:
 - [ ] Read existing similar implementations in codebase
 - [ ] Identify naming conventions (files, classes, functions, variables)

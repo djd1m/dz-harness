@@ -30,6 +30,7 @@
  * A–D): that parser answers a different threat model. The divergence is named in ADR-001 and is a
  * candidate later refactor, not a blocker.
  */
+import { type RoundState } from './round.js';
 export declare const QE_BRIDGE_SCHEMA = "qe-bridge-signoff-1";
 export declare const QE_BRIDGE_FAILURE_SCHEMA = "qe-bridge-failure-1";
 /**
@@ -111,14 +112,74 @@ export interface BridgeSignoff {
     elapsedMs: number;
     emittedAt: string;
     /** experiment-instrument FR-1/FR-3/T5 (ADR-001): the task identity of the slug's single open
-     *  round at the moment this signoff was emitted — filled by the cli (it owns `.dz/rounds/`), null
+     *  round snapshot captured before the reviewer child — filled by the cli (it owns `.dz/rounds/`), null
      *  when there was no open round to fill from, never guessed. Optional so a signoff written before
      *  this feature landed parses unchanged (NFR-1). */
     taskId?: string | null;
     /** experiment-instrument FR-1/FR-3/T5: present whenever `taskId` above was filled from a lookup —
      *  names where it came from (`readOpenRoundTaskId`'s own source, r1-1/r1-2 extended to five values). */
     taskIdSource?: 'open-round' | 'derived-legacy' | 'no-open-round' | 'ambiguous' | 'unavailable';
+    /** Pipeline round identity; runId in BridgeAudit remains the bridge invocation. */
+    round?: number | null;
+    roundRun?: string | null;
+    roundIdentitySource?: 'explicit' | 'open-round' | 'derived-legacy' | 'no-open-round' | 'ambiguous' | 'unavailable';
 }
+type BridgeRoundIdentity = {
+    round: number | null;
+    roundRun: string | null;
+    taskId: string | null;
+    taskIdSource: NonNullable<BridgeSignoff['taskIdSource']>;
+    roundIdentitySource: NonNullable<BridgeSignoff['roundIdentitySource']>;
+};
+/** Resolve copied values from ONE already-read authority snapshot, without IO or new IDs. */
+export declare function resolveBridgeRoundIdentity(input: {
+    slug: string;
+    states: readonly RoundState[];
+    unreadableCount?: number;
+    readError?: string;
+    explicit?: {
+        round?: unknown;
+        roundRun?: unknown;
+        taskId?: unknown;
+    };
+}): {
+    ok: true;
+    identity: BridgeRoundIdentity;
+} | {
+    ok: false;
+    reason: string;
+};
+/** Compare all present claims before cardinality. Raw invalid fields can never become legacy. */
+export declare function selectQeBridgeRoundSignoff<T extends {
+    round?: unknown;
+    roundRun?: unknown;
+    taskId?: unknown;
+    roundIdentitySource?: unknown;
+    bridgeRunId?: string | null;
+}>(candidates: readonly T[], closing: {
+    round: number;
+    run?: string | null;
+    taskId?: string | null;
+}): {
+    status: 'none';
+} | {
+    status: 'ambiguous';
+    candidates: readonly T[];
+} | {
+    status: 'identity-mismatch' | 'identity-unverified';
+    reason: string;
+    candidates: readonly T[];
+} | {
+    status: 'one';
+    candidate: T;
+    reviewIdentitySource: 'round-run-task' | 'partial-identity' | 'legacy-window';
+    reviewIdentity: {
+        round: number | null;
+        roundRun: string | null;
+        taskId: string | null;
+        bridgeRunId: string | null;
+    };
+};
 /** Where each channel was found, for the audit bundle: an auditor can re-derive the verdict from
  * the retained raw stdout without trusting this process's summary. */
 export interface BridgeChannels {
@@ -315,4 +376,5 @@ export declare function buildBridgeSignoffRecord(signoff: BridgeSignoff, audit: 
  * "see GRADE: A above" would otherwise mint a second verdict line and make the report unsettleable.
  */
 export declare function renderBridgeReport(signoff: BridgeSignoff): string;
+export {};
 //# sourceMappingURL=qe-bridge.d.ts.map
