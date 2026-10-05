@@ -8,8 +8,8 @@
  * terminal bar. Every read is therefore:
  * - **readonly + short busy_timeout** — a live MCP writer holding the store lock
  *   must never make the panel wait; we back off immediately, not block.
- * - **best-effort** — any error (absent/corrupt `.dz`, missing native module,
- *   locked db) collapses to `0` / an omitted field, never an exception.
+ * - **best-effort** — legacy count errors collapse to `0` / an omitted field;
+ *   recall observation errors remain explicitly unknown, never an exception.
  *
  * @packageDocumentation
  */
@@ -20,6 +20,7 @@ import { listBrain } from './brain.js';
 import { withProjectLockSync } from './named-lock.js';
 import { RECALL_USAGE_LOG_RELATIVE, aggregateRecallUsage, parseRecallUsageLog } from './recall-usage.js';
 import { countLearningStoreRowsReadonly, countSqliteRowsReadonly } from './store-counts.js';
+import { readRecallObservation, renderRecallObservationLine } from './recall-observation.js';
 import { checkStoreHealth, readStoreMark, storeSnapshotPath, } from './store-guard.js';
 const QUARANTINE_TIER_DRIFT_TOLERANCE = 5;
 /** Path of the SQLite pattern store (the Tier-3 backend). */
@@ -607,7 +608,7 @@ function parseStepNumber(label) {
  * @param projectRoot Absolute (or cwd-relative) project directory.
  * @param now Injectable clock (epoch ms) for the consolidation age — defaults to `Date.now()`.
  */
-export function statuslineData(projectRoot, now = Date.now()) {
+export function statuslineData(projectRoot, now = Date.now(), recallContext = {}) {
     const root = resolve(projectRoot);
     let patterns = 0;
     let storeRows;
@@ -760,6 +761,7 @@ export function statuslineData(projectRoot, now = Date.now()) {
         usedPatterns = undefined;
     }
     const ageH = consolidatedAgeHours(root, now);
+    const recallObservation = readRecallObservation(root, recallContext, now);
     // Live /feature-adr panel — attached ONLY when a fresh run is in flight (readonly, never throws).
     let featureAdr;
     try {
@@ -769,6 +771,8 @@ export function statuslineData(projectRoot, now = Date.now()) {
         featureAdr = undefined;
     }
     return {
+        recallObservation,
+        recallLine: renderRecallObservationLine(recallObservation),
         patterns,
         mirror,
         ...(patternMirror !== undefined ? { patternMirror } : {}),

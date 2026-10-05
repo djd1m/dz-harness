@@ -442,35 +442,66 @@ async function main() {
   const payload = readPayload();
   if (payload === null) return;
   const prompt = typeof payload.prompt === 'string' ? payload.prompt : '';
-  if (prompt.trim() === '') return;
 
   const resolved = resolveHookRoot(payload);
   reportRootProvenance(resolved);
   const root = resolved.root;
   if (root === null) return; // inert outside an opted-in dz project
 
+  const observation = await loadCore(root, 'recall-observation.js', (m) =>
+    typeof m.beginRecallObservation === 'function' && typeof m.updateRecallSelection === 'function'
+    && typeof m.updateRecallEmission === 'function' && typeof m.writeRecallEnvelope === 'function'
+    && typeof m.resolveRecallObservationProjectRoot === 'function');
+  let event;
+  let observationRoot;
+  try {
+    observationRoot = observation && observation.resolveRecallObservationProjectRoot(resolved.startDir);
+    if (observationRoot) event = observation.beginRecallObservation(observationRoot, { producer: 'codex-hook',
+    sessionId: payload.session_id, turnId: payload.turn_id, knowledgeStoreRoot: root }); } catch (_) { /* advisory */ }
+  const selected = (input) => { try { if (event) observation.updateRecallSelection(observationRoot, event, input); } catch (_) { /* advisory */ } };
+  const emitted = (result) => { try { if (event) observation.updateRecallEmission(observationRoot, event, result); } catch (_) { /* advisory */ } };
+  if (prompt.trim() === '') { selected({ hits: [], reason: 'empty-prompt' }); return; }
+
   const policy = await loadCore(root, 'recall-hook-policy.js', (m) => typeof m.selectHookHits === 'function');
-  if (policy === null) return;
+  if (policy === null) { selected({ unknown: 'core-unavailable' }); return; }
 
   const candidates = await askDaemon(root, prompt);
-  if (!candidates || candidates.length === 0) return; // daemon dead or nothing relevant: silence
+  if (!candidates) { selected({ unknown: 'daemon-unavailable' }); return; }
+  if (candidates.length === 0) { selected({ hits: [], reason: 'no-candidates' }); return; }
 
   let selection = null;
   try {
     selection = policy.selectHookHits(prompt, candidates);
   } catch (err) {
+    selected({ unknown: 'selection-failed' });
     note('select-hits', err);
     return;
   }
-  if (!selection || !Array.isArray(selection.hits) || selection.hits.length === 0) return;
+  if (!selection || !Array.isArray(selection.hits)) { selected({ unknown: 'selection-failed' }); return; }
+  selected({ hits: selection.hits, quarantinedExcluded: selection.quarantinedExcluded });
+  if (selection.hits.length === 0) return;
 
   let context = '';
-  try { context = policy.renderHookContext(selection); } catch (err) { note('render', err); return; }
-  if (context === '') return; // empty context => print NOTHING (an empty block is noise)
+  try { context = policy.renderHookContext(selection); } catch (err) { emitted('render-failed'); note('render', err); return; }
+  if (context === '') { emitted('no-selected-context'); return; } // empty context => print NOTHING
 
-  process.stdout.write(
-    JSON.stringify({ hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: context } }) + '\\n',
-  );
+  const envelope = JSON.stringify({ hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: context } }) + '\\n';
+  process.stdout.on('error', () => {});
+  let attempted = false;
+  let threw = false;
+  if (observation) {
+    const sink = { write: (text, callback) => { attempted = true; try { return process.stdout.write(text, callback); } catch (error) { threw = true; throw error; } },
+      on: (event, callback) => process.stdout.on(event, callback), off: (event, callback) => process.stdout.off(event, callback) };
+    try { emitted(await observation.writeRecallEnvelope(envelope, sink)); } catch (_) { /* advisory */ }
+  }
+  if (!attempted) {
+    await new Promise((done) => {
+      const timer = setTimeout(done, 50);
+      try { process.stdout.write(envelope, () => { clearTimeout(timer); done(); }); }
+      catch (_) { threw = true; clearTimeout(timer); done(); }
+    });
+  }
+  if (threw) return; // preserve synchronous-write failure's pre-existing no-usage outcome
 
   // The usage row carries runtime: 'codex' (ADR-003 §3) through the SHARED chained appender in
   // harness-core — ONE writer implementation, two callers (AM-6/AM-7). Written AFTER stdout so a

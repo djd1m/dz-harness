@@ -1,14 +1,16 @@
-import { type FeatureAdrObservation, type FeatureAdrSelector, type LearningStoreRowCounts } from '@dzhechkov/harness-core';
+import { type FeatureAdrObservation, type FeatureAdrSelector, type LearningStoreRowCounts, type RecallObservation } from '@dzhechkov/harness-core';
 interface FrameData {
     readonly observation: FeatureAdrObservation;
     readonly learning: readonly string[];
     readonly branch?: string;
+    readonly recallObservation?: RecallObservation;
 }
 export interface StatuslineWatchOptions {
     readonly projectRoot: string;
     readonly brainRoot: string;
     readonly selector?: FeatureAdrSelector;
     readonly intervalSeconds?: number;
+    readonly recallSessionAlias?: string;
 }
 /** All lifecycle resources have test seams; production never touches stdin. */
 export interface StatuslineWatchIo {

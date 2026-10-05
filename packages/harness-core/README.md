@@ -17,7 +17,7 @@ commands. Use `node --test <file>` through the same wrapper for Node tests. Focu
 is supported; it does not prove a complete suite, meaningful tests or authenticated evidence.
 See the repository `.githooks/README.md` for bounds, supported commands and reasoned overrides.
 
-Current package version: `0.8.50`. <!-- dz:version -->
+Current package version: `0.8.51`. <!-- dz:version -->
 
 Joint current metadata requires `<!-- dz:version -->` on a dedicated undated core/CLI line. Both README writers preserve unmarked historical joint pairs; the guard and release-line report skip them. Fenced examples cannot become current joint metadata. `parseReleaseLine` remains structural, while selection requires this explicit opt-in. The marker still forces per-package rewriting of every matching version on its line, even inside history; keep it off historical records.
 
@@ -191,6 +191,23 @@ carry no information. It is `{ state: 'different', lexical, vector }` on diverge
 `{ state: 'unavailable' }` only when the mirror EXISTS but cannot be read or decomposed: that is a
 tool failure and it is worth saying out loud. `statuslineData().brainKuCounts` carries the KU volume of each brain source in
 brain order; an empty array means the volumes could not be listed, never that the sources are empty.
+
+`recall-observation.ts` records local hook stages separately from legacy usage. Both generated
+UserPromptSubmit helpers begin an event for the invoking project and exact runtime/session, retain
+the existing policy selection, and establish emission only through the actual stdout write callback.
+`readRecallObservation(project, selector, now)` performs bounded read-only reads without opening
+an engine or database. `statuslineData(project, now, selector)` includes `recallObservation` and
+`recallLine`; absent session identity is unknown, with no fallback to a newer slot or pipeline run ID.
+
+The private `.dz/recall-observation.json` snapshot is at most 64 KiB with up to 32 session slots.
+Readers treat observations older than 24 hours as stale; later writes prune expired slots.
+Readers never erase them automatically. Locked writes use a fixed private temp file and guarded
+event/sequence updates.
+Storage carries scoped aliases, safe lesson IDs, counts, fixed reasons and timestamps; it excludes
+prompts, lesson text, transcript/source paths, raw session/turn IDs and host claims. Selection and
+callback completion remain distinct. Every returned host confirmation is `unknown` with reason
+`host-ack-unavailable`: stdout completion does not prove host acceptance or model consumption.
+Existing `usedPatterns` remains the legacy distinct-ID usage aggregate.
 
 ## Core boundary checks
 

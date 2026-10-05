@@ -4,13 +4,16 @@ import { join } from 'node:path';
 import {
   aggregateRecallUsage, checkStoreHealth, countLearningStoreRowsReadonly, parseRecallUsageLog,
   readFeatureAdrObservation, readStoreMark, renderFeatureAdrPhaseLine, storeGuardPath,
+  readRecallObservation, renderRecallObservationDetails, renderRecallObservationLine,
   type FeatureAdrObservation, type FeatureAdrSelector, type LearningStoreRowCounts,
+  type RecallObservation,
 } from '@dzhechkov/harness-core';
 
 interface FrameData {
   readonly observation: FeatureAdrObservation;
   readonly learning: readonly string[];
   readonly branch?: string;
+  readonly recallObservation?: RecallObservation;
 }
 
 export interface StatuslineWatchOptions {
@@ -18,6 +21,7 @@ export interface StatuslineWatchOptions {
   readonly brainRoot: string;
   readonly selector?: FeatureAdrSelector;
   readonly intervalSeconds?: number;
+  readonly recallSessionAlias?: string;
 }
 
 /** All lifecycle resources have test seams; production never touches stdin. */
@@ -83,7 +87,7 @@ function learning(root: string, readCounts: StatuslineWatchIo['readCounts']): st
       const parsed = parseRecallUsageLog(text);
       if (parsed.invalidLines === 0 && parsed.records.length > 0) used = aggregateRecallUsage(parsed.records).length;
     } catch { /* unknown auxiliary count never becomes zero */ }
-    lines.push(`Used patterns: ${number(used)}`);
+    lines.push(`Legacy usage: ${number(used)}`);
     try {
       const markPath = storeGuardPath(root);
       if (existsSync(markPath)) {
@@ -97,7 +101,7 @@ function learning(root: string, readCounts: StatuslineWatchIo['readCounts']): st
       if (health.verdict !== 'ok' && health.verdict !== 'no-mark') lines.push(`Store: ${health.verdict} | ${health.reason}`);
     } catch { lines.push('Store health: unavailable'); }
     return lines;
-  } catch { return ['Pool: unavailable (read failed)', 'Mirror: unavailable (read failed)', 'Used patterns: unknown', 'Store health: unavailable']; }
+  } catch { return ['Pool: unavailable (read failed)', 'Mirror: unavailable (read failed)', 'Legacy usage: unknown', 'Store health: unavailable']; }
 }
 
 function frame(data: FrameData, options: StatuslineWatchOptions, now: number, dimensions: { columns?: number; rows?: number }): string {
@@ -132,6 +136,9 @@ function frame(data: FrameData, options: StatuslineWatchOptions, now: number, di
   if (observation.reason !== undefined) lines.push(`Diagnostic: ${observation.reason}`);
   if (observation.limitedSearch === true) lines.push('Discovery: limited to 64 candidates');
   lines.push(...data.learning);
+  lines.push(...(data.recallObservation === undefined
+    ? [renderRecallObservationLine(undefined), 'Recall diagnostic: telemetry-unavailable | host-ack-unavailable']
+    : renderRecallObservationDetails(data.recallObservation)));
   if (state !== undefined) {
     lines.push(`Tier: ${state.tier ?? 'unknown'} | Reported phase: ${state.step}`);
     // Reuse the established tier/step position mapping; discard its decorative compact text.
@@ -174,6 +181,8 @@ export async function watchStatusline(options: StatuslineWatchOptions, io: Statu
   });
   const refresh = io.refresh ?? ((time: number): FrameData => ({
     observation: readFeatureAdrObservation(options.projectRoot, options.selector, time),
+    recallObservation: readRecallObservation(options.projectRoot,
+      options.recallSessionAlias === undefined ? {} : { sessionAlias: options.recallSessionAlias }, time),
     learning: learning(options.brainRoot, io.readCounts),
     ...(io.branch === undefined ? {} : { branch: io.branch() ?? 'unknown' }),
   }));

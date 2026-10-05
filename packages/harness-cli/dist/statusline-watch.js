@@ -1,7 +1,7 @@
 /** Opt-in companion terminal. No stdin, writer commands, ETA corpus or global brain registry. */
 import { existsSync, lstatSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { aggregateRecallUsage, checkStoreHealth, countLearningStoreRowsReadonly, parseRecallUsageLog, readFeatureAdrObservation, readStoreMark, renderFeatureAdrPhaseLine, storeGuardPath, } from '@dzhechkov/harness-core';
+import { aggregateRecallUsage, checkStoreHealth, countLearningStoreRowsReadonly, parseRecallUsageLog, readFeatureAdrObservation, readStoreMark, renderFeatureAdrPhaseLine, storeGuardPath, readRecallObservation, renderRecallObservationDetails, renderRecallObservationLine, } from '@dzhechkov/harness-core';
 // ASCII is deliberate: cell width is exact, and data cannot carry executable terminal controls.
 function safe(value) {
     return String(value).replace(/[^\x20-\x7e]/gu, character => {
@@ -57,7 +57,7 @@ function learning(root, readCounts) {
                 used = aggregateRecallUsage(parsed.records).length;
         }
         catch { /* unknown auxiliary count never becomes zero */ }
-        lines.push(`Used patterns: ${number(used)}`);
+        lines.push(`Legacy usage: ${number(used)}`);
         try {
             const markPath = storeGuardPath(root);
             if (existsSync(markPath)) {
@@ -79,7 +79,7 @@ function learning(root, readCounts) {
         return lines;
     }
     catch {
-        return ['Pool: unavailable (read failed)', 'Mirror: unavailable (read failed)', 'Used patterns: unknown', 'Store health: unavailable'];
+        return ['Pool: unavailable (read failed)', 'Mirror: unavailable (read failed)', 'Legacy usage: unknown', 'Store health: unavailable'];
     }
 }
 function frame(data, options, now, dimensions) {
@@ -116,6 +116,9 @@ function frame(data, options, now, dimensions) {
     if (observation.limitedSearch === true)
         lines.push('Discovery: limited to 64 candidates');
     lines.push(...data.learning);
+    lines.push(...(data.recallObservation === undefined
+        ? [renderRecallObservationLine(undefined), 'Recall diagnostic: telemetry-unavailable | host-ack-unavailable']
+        : renderRecallObservationDetails(data.recallObservation)));
     if (state !== undefined) {
         lines.push(`Tier: ${state.tier ?? 'unknown'} | Reported phase: ${state.step}`);
         // Reuse the established tier/step position mapping; discard its decorative compact text.
@@ -162,6 +165,7 @@ export async function watchStatusline(options, io = {}) {
     });
     const refresh = io.refresh ?? ((time) => ({
         observation: readFeatureAdrObservation(options.projectRoot, options.selector, time),
+        recallObservation: readRecallObservation(options.projectRoot, options.recallSessionAlias === undefined ? {} : { sessionAlias: options.recallSessionAlias }, time),
         learning: learning(options.brainRoot, io.readCounts),
         ...(io.branch === undefined ? {} : { branch: io.branch() ?? 'unknown' }),
     }));

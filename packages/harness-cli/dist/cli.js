@@ -43,7 +43,7 @@ import { MODEL_PRICES } from '@dzhechkov/harness-core';
 import { assignArm, readAssignments, verifyAssignmentRecord } from '@dzhechkov/harness-core';
 import { createSkill, getSkillInfo, listSkillsDetailed, formatSkillLoadFailures, formatSkillApplyFailures, resolveTargetName, formatTargetProblem, formatTargetAliasNote, TARGET_NAMES_SORTED, runDoctor, runInit, discoverSkillIds, loadSkillFromDir, resolveSelection, formatSelectRefusal, runIntegrationsVerify, resolvePackageSkillRoots, PACKAGE_SKILL_LAYOUTS, benchmarkSkill, benchmarkSkills, scanMcp, reconcileCapabilities, RECONCILE_BANNER, buildRegistry, discoverSkillPackDirs, discoverVerifiablePackDirs, verifiedScopeNote, checkUpstream, compareSkills, checkAllUpstream, sweepSkillDrift, syncCanonicalSkill, checkUpgrades, discoverPackages, matchesPublishFilter, validatePublishFilters, discoverSourcePackages, fetchAllDownloads, filterByCategory, pretrain, recommend, generatePlugin, publishPackages, runSetup, memoryBackendSourceLabel, runMigrate, searchRegistry, runSync, runVerify, runInitAgentsMd, runInitGeminiMd, runSyncAgentsPolicy, runSyncCodexHooks, resolveCodexHome, withProjectLockSync, withDirLockSync, storeExists, isRepoBoundary, 
 // dz workflow run (feature dz-workflow-run): the pure scheduler + the dispatch adapters.
-TRACE_RUNID_RE, WF_RUN_OWNER_HOST, preflight, runWorkflow, makeClaudePDispatcher, makeCodexExecDispatcher, NamedLockTimeoutError, NamedLockCompromisedError, POLICY_SOURCES, detectPolicyDrift, hasPolicyFence, TARGET_NAMES, buildParityMatrix, computeParity, PARITY_FEATURES, downgradeForStaleEvidence, findStaleTranscriptEvidence, TARGET_CAPABILITIES, TARGET_SHORT_LABELS, applyLegStatus, applyLegReasonMessage, probeApplyLeg, resolveAgentdbPath, WORKFLOW_TEMPLATES_RETIRED_MESSAGE, parsePlan, isParseErrors, validatePlan, normalizePlan, planDigest, toTraceProjection, renderPlan, mergeRender, lint, lintExitCode, LOOP_BLOBS, parseTrace, assembleTimeline, runInvariants, deriveAttestation, stampAttestation, corroborate, NOT_WITNESSED, renderTimelineHtml, importEcc, recordPattern, recordLessonForms, normalizeLessonForms, resolveLearningBackend, storeStats, consolidateSessions, pruneNoisePatterns, lessonDeltaReport, removePatternsByIds, snapshotStore, recallHybrid, teachGuard, mirrorPatternsToVector, mirrorEntriesToVector, patternVectorEntry, readMemoryLearningConfig, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns, clearAgentdbQuarantine, vectorMirrorEnabled, vectorTierStatus, resolveVectorEngine, reindexVectorStore, harmonizeVectorStore, importRvfCheckpoint, renderFeatureAdrPhaseLine, statuslineData, countLearningStoreRowsReadonly, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, planStoreGuardPrune, storeGuardPath, storeSnapshotPath, writeFeatureAdrState, writeFeatureAdrStateDetailed, CHECKPOINT_STAGES, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, computeSpendReport, deriveCostLedger, deriveStageUsageReport, renderStageUsageReport, planLedgerBackfill, listCostLedgerRuns, resolveLedgerRunId, AMBIGUOUS, stampCheckpointLine, LEDGER_FILL_SOURCE, renderCostLedger, verifyCostLedgerReport, costLedgerJsonl, COST_LEDGER_SCOPE, spendReport, claimCheck, summarize, BUNDLED_SLOP_REGISTRY_URL, DEFAULT_SLOP_CONFIG, parseSlopRegistry, slopLint, validateSlopLintConfig, queryBookKnowledge, loadStorePatternsSync, patternRecordId, patternIdentityOf, mergeLessonMatchedForms, SWARM_BRIEF_CONTRACT, checkSwarmBrief, visibleText, loadStoreRecords, findExactLesson, recordToPattern, bundleSkills, brainHome, brainAgentdbPath, listPreReindexSnapshots, rotatePreReindexSnapshots, scanSnapshotDir, listBrain, bookKbPath, promoteProjectToBrain, updateBrainSource, queryBrain, groundPrompt, expandKu, reindexBrainVectors, buildPrimer, exportBrainSlice, importBrainSlice, registerKusToBrain, RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, parseRecallUsageLog, buildRecallUsageReport, EVENT_CHAIN_TAIL_BYTES, EMPTY_LOG_TAIL, readTailInfo, appendChainedLines, verifyEventChainText, classifyChainDefects, liveSegmentStart, CHAINED_JOURNALS, buildManifest, buildSbom, resolveTrustRoot, decideVerifyPolicy, explainPackVerificationFailure, resolveReinforceTarget, isShippedSource, generateSigningKeypair, appendTransition, readTransitions, transitionLogPath, evaluateGuard, GUARD_OPS, resolveRules, auditRecord, guardExitCode, DEFAULT_RULES, parsePnpmLockImporters, scannableStubPath, 
+TRACE_RUNID_RE, WF_RUN_OWNER_HOST, preflight, runWorkflow, makeClaudePDispatcher, makeCodexExecDispatcher, NamedLockTimeoutError, NamedLockCompromisedError, POLICY_SOURCES, detectPolicyDrift, hasPolicyFence, TARGET_NAMES, buildParityMatrix, computeParity, PARITY_FEATURES, downgradeForStaleEvidence, findStaleTranscriptEvidence, TARGET_CAPABILITIES, TARGET_SHORT_LABELS, applyLegStatus, applyLegReasonMessage, probeApplyLeg, resolveAgentdbPath, WORKFLOW_TEMPLATES_RETIRED_MESSAGE, parsePlan, isParseErrors, validatePlan, normalizePlan, planDigest, toTraceProjection, renderPlan, mergeRender, lint, lintExitCode, LOOP_BLOBS, parseTrace, assembleTimeline, runInvariants, deriveAttestation, stampAttestation, corroborate, NOT_WITNESSED, renderTimelineHtml, importEcc, recordPattern, recordLessonForms, normalizeLessonForms, resolveLearningBackend, storeStats, consolidateSessions, pruneNoisePatterns, lessonDeltaReport, removePatternsByIds, snapshotStore, recallHybrid, teachGuard, mirrorPatternsToVector, mirrorEntriesToVector, patternVectorEntry, readMemoryLearningConfig, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns, clearAgentdbQuarantine, vectorMirrorEnabled, vectorTierStatus, resolveVectorEngine, reindexVectorStore, harmonizeVectorStore, importRvfCheckpoint, renderFeatureAdrPhaseLine, renderRecallObservationLine, statuslineData, countLearningStoreRowsReadonly, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, planStoreGuardPrune, storeGuardPath, storeSnapshotPath, writeFeatureAdrState, writeFeatureAdrStateDetailed, CHECKPOINT_STAGES, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, computeSpendReport, deriveCostLedger, deriveStageUsageReport, renderStageUsageReport, planLedgerBackfill, listCostLedgerRuns, resolveLedgerRunId, AMBIGUOUS, stampCheckpointLine, LEDGER_FILL_SOURCE, renderCostLedger, verifyCostLedgerReport, costLedgerJsonl, COST_LEDGER_SCOPE, spendReport, claimCheck, summarize, BUNDLED_SLOP_REGISTRY_URL, DEFAULT_SLOP_CONFIG, parseSlopRegistry, slopLint, validateSlopLintConfig, queryBookKnowledge, loadStorePatternsSync, patternRecordId, patternIdentityOf, mergeLessonMatchedForms, SWARM_BRIEF_CONTRACT, checkSwarmBrief, visibleText, loadStoreRecords, findExactLesson, recordToPattern, bundleSkills, brainHome, brainAgentdbPath, listPreReindexSnapshots, rotatePreReindexSnapshots, scanSnapshotDir, listBrain, bookKbPath, promoteProjectToBrain, updateBrainSource, queryBrain, groundPrompt, expandKu, reindexBrainVectors, buildPrimer, exportBrainSlice, importBrainSlice, registerKusToBrain, RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, parseRecallUsageLog, buildRecallUsageReport, EVENT_CHAIN_TAIL_BYTES, EMPTY_LOG_TAIL, readTailInfo, appendChainedLines, verifyEventChainText, classifyChainDefects, liveSegmentStart, CHAINED_JOURNALS, buildManifest, buildSbom, resolveTrustRoot, decideVerifyPolicy, explainPackVerificationFailure, resolveReinforceTarget, isShippedSource, generateSigningKeypair, appendTransition, readTransitions, transitionLogPath, evaluateGuard, GUARD_OPS, resolveRules, auditRecord, guardExitCode, DEFAULT_RULES, parsePnpmLockImporters, scannableStubPath, 
 // guard-promotion (feature guard-promotion, scout idea #1)
 assembleCandidates, renderPromotionReport, renderPromotionAdr, normalizePromotionState, nextPromotionState, recordPromotionRunEvidence, isLessonRuleContentAnchor, isOffsetIsoTimestamp, globMatch, promotionAdrRelPath, DEFAULT_WINDOW_DAYS, DEFAULT_PERIODS, MAX_CONTENT_FETCHES, BUILTIN_COVERAGE, decideProvenance, isInsideTree, signManifest, verifyManifest, hashPackBytes, rewriteWorkspaceSpecs, detectSiblingDrift, planPackedInstallSmoke, judgePackedInstallSmoke, gatherPublishSecretFacts, listSignablePackFiles, assertKeyOutsideTree, decidePublishGate, collectPackageFacts, planReleaseGates, selectAffectedPackages, classifyGateExecutions, buildFailureIssue, shouldRetryGhWithoutToken, buildReleaseNotes, releaseTagName, firstOutputLine, formatPublishError, MANIFEST_NAME, SBOM_NAME, buildArchitectureMap, renderMapHuman, findArchitectureDrift, renderDriftReport, scanWorkspacePackages, loadSubsystemManifest, loadProductVision, checkFeatureAgainstArchitecture, renderArchCheck, planProjectSkills, guidanceForStage, renderInjectionReport, analyzeCorpus, renderRakeReport, renderCriticSection, rakeAsLesson, rakeReward, DEFAULT_RAKE_THRESHOLDS, streamSessionEvents, findLatestTranscript, resolveScanTailTranscript, detectProcessRakes, buildRetro, renderRetro, retroLessonText, PROCESS_SIGNATURES, RETRO_DOMAIN, runRetroTailScan, scanForSetup, buildSetupPlan, scaffoldFromSpec, renderScaffoldPreview, readExistingForScaffold, assembleChallengeContext, buildChallengeBrief, planDiscriminationCheck, classifyDiscrimination, classifyExecutionEvidence, pickAdversaryModel, CHALLENGE_QUESTIONS, loadOutcomes, renderOutcomes, statsForKey, selectAutoCost, recordProvisional, finalizeOutcome, harvestStageOutcomes, recommendModels, planFeed, unfedRuns, GRADE_SUCCESS_FLOOR, COST_LADDER, splitScenarios, budgetPlan, selectWinner, proseScopeOk, renderProseDiff, readScenarioIds, DEFAULT_MAX_JUDGE_RUNS, collectDeliveryFacts, planDeliveryCheck, renderDeliveryBrief, classifyDelivery, isUsablePlaneResult, renderDeliveryReview, scanSkillsLayout, declaredPluginSurface, parseInitFacts, verifyRegistration, buildContentProbePrompt, classifyContentProbe, renderContentProbe, findNonRegistrableSkillDirs, assembleCompoundingReport, buildDeadwoodReport, compactCmdUsageIfNeeded, measureCmdUsageDepthDays, recordCommandInvocation, resolveCmdUsageRoot, renderDeadwoodReport, CMD_USAGE_LOG_RELATIVE, banditStats, narrowBanditReport, renderBanditHealth, 
 // Cold-vs-warm EPOCH RUNNER (feature epoch-replay) — orchestrates + scores, never calls a model.
@@ -204,7 +204,7 @@ Usage:
   dz brain ground [<prompt>] [--k <N>] [--source <slug>] [--text] [--budget <N>] [--full]  (UserPromptSubmit hook; --budget inlines top-K KUs within ~N tokens; --full = ~8000)
   dz brain expand <kuId> [--source <slug>] [--json]                    (full-content lookup for a citation kuId; --json emits the full KU object)
   dz brain init  [--project <dir>] [--k <N>]                           (wire the grounding hook into .claude/settings.json — opt-in)
-  dz statusline [--json] [--install] [--project <dir>]                 (live self-learning panel for Claude Code's status bar; reads the CC JSON payload from STDIN) | dz statusline --watch [--interval <0.25..60>] [--project <dir>] [--brain <dir>] [--slug <s>] [--run-id <id>]   (readonly adjacent TTY companion; default interval 2s; no stdin; SIGINT/SIGTERM exit 0; output failure 1; usage 2; not native Codex footer)
+  dz statusline [--json] [--install] [--project <dir>] [--recall-session <32hex>]   (live self-learning panel; CC JSON stdin carries exact session/turn) | dz statusline --watch [--interval <0.25..60>] [--project <dir>] [--brain <dir>] [--slug <s>] [--run-id <id>] [--recall-session <32hex>]   (readonly adjacent TTY companion; recall selector independent of pipeline run; default interval 2s; no stdin; SIGINT/SIGTERM exit 0; output failure 1; usage 2; not native Codex footer)
   dz store-guard [--status|--reset|--prune [--apply]] [--yes] [--project <dir>]   (show the monotonic external high-water mark; --reset is the only lowering path and requires confirmation or --yes; --prune is a dry run unless --apply is given)
   dz statusline --fa-record --slug <s> --step "<label>" [--kind <feature-adr|loop>] [--tier <S|M|L|XL>] [--run-id <id>] [--recalled <n>] [--stored <n>] [--mode <m>] [--reinforced <n>]   (feature-adr: record live per-run learning state + phase → 📐 SECOND-LINE phase panel; the monotone guard absorbs a backwards plain "Step <n>" only within the same non-empty run id, while an absent/empty id retains legacy fresh-slot behavior — prefix the label with ⛔ or ⏸ to record a legitimate regression)
   dz usage [--json] [--project <dir>]  (7-day UTC spend from local Claude Code + subagent transcripts; provider-limit routing disabled by design)
@@ -2024,21 +2024,24 @@ function statuslineGitBranch(projectRoot) {
     }
 }
 /** Resolve the project root from a Claude Code statusline STDIN payload, else `--project`/cwd. */
-function statuslineProjectRoot(stdinRaw, options, cwd) {
+function statuslineContext(stdinRaw, options, cwd) {
     const fallback = resolve(cwd, options.get('project') ?? '.');
+    const explicit = options.get('recall-session');
+    const recallContext = explicit === undefined ? {} : { sessionAlias: explicit };
     try {
         const trimmed = stdinRaw.trim();
         if (trimmed.length === 0)
-            return fallback;
+            return { projectRoot: fallback, recallContext };
         const payload = JSON.parse(trimmed);
         const candidate = (typeof payload.workspace?.project_dir === 'string' ? payload.workspace.project_dir : undefined) ??
             (typeof payload.workspace?.current_dir === 'string' ? payload.workspace.current_dir : undefined) ??
             (typeof payload.cwd === 'string' ? payload.cwd : undefined);
-        return candidate !== undefined && candidate.length > 0 ? resolve(candidate) : fallback;
+        return { projectRoot: candidate !== undefined && candidate.length > 0 ? resolve(candidate) : fallback,
+            recallContext: explicit === undefined ? { producer: 'claude-hook', sessionId: payload.session_id, turnId: payload.turn_id } : recallContext };
     }
     catch {
         // Empty / non-JSON stdin (e.g. run by hand in a terminal) — fall back to --project/cwd.
-        return fallback;
+        return { projectRoot: fallback, recallContext };
     }
 }
 /**
@@ -2360,9 +2363,9 @@ function cmdStatusline(options, flags, cwd, write, readStdin, writeErr) {
     if (flags.has('fa-record'))
         return cmdStatuslineFaRecord(options, cwd, write, writeErr);
     try {
-        const projectRoot = statuslineProjectRoot(readStdin(), options, cwd);
+        const { projectRoot, recallContext } = statuslineContext(readStdin(), options, cwd);
         warnLearningStoreRead(projectRoot, writeErr, 'dz statusline');
-        const data = statuslineData(projectRoot);
+        const data = statuslineData(projectRoot, Date.now(), recallContext);
         const fa = data.featureAdr;
         let eta;
         let etaFragment;
@@ -2423,7 +2426,7 @@ function cmdStatusline(options, flags, cwd, write, readStdin, writeErr) {
         // Рядом с числом источников — объём каждого через «/» (просьба владельца 2026-09-09):
         // четыре источника по 300 единиц и четыре по три — разные корпуса, а число одно и то же.
         const ku = data.brainKuCounts.length > 0 ? ` (${data.brainKuCounts.join('/')})` : '';
-        line += `${data.usedPatterns !== undefined ? ` · ${data.usedPatterns} used` : ''} · 🧠 ${data.brainSources} sources${ku}`;
+        line += `${data.usedPatterns !== undefined ? ` · legacy usage: ${data.usedPatterns}` : ''} · 🧠 ${data.brainSources} sources${ku}`;
         const branch = statuslineGitBranch(projectRoot);
         if (branch !== undefined)
             line += ` · ⎇ ${branch}`;
@@ -2443,11 +2446,13 @@ function cmdStatusline(options, flags, cwd, write, readStdin, writeErr) {
         if (phaseLine !== undefined) {
             write(`${phaseLine}${etaFragment !== undefined ? ` · ${etaFragment}` : ''}`);
         }
+        write(data.recallLine);
         return 0;
     }
     catch {
         // A garbled status bar is worse than a terse one — print SOMETHING minimal, never throw.
         write('dz');
+        write(renderRecallObservationLine(undefined));
         return 0;
     }
 }
@@ -24175,6 +24180,14 @@ export async function runCli(argv, io = {}) {
             case 'brain':
                 return await cmdBrain(options, flags, cwd, write, readStdin);
             case 'statusline': {
+                if (flags.has('recall-session') || (options.has('recall-session') && !/^[a-f0-9]{32}$/.test(options.get('recall-session')))) {
+                    writeErr('dz statusline: --recall-session requires a project-scoped 32hex session alias.');
+                    return 2;
+                }
+                if (options.has('recall-session') && (flags.has('install') || flags.has('fa-record'))) {
+                    writeErr('dz statusline: --recall-session is a reader selector and cannot be combined with writer options.');
+                    return 2;
+                }
                 if (flags.has('watch')) {
                     const supplied = (name) => flags.has(name) || options.has(name);
                     const incompatible = ['json', 'install', 'fa-record', 'step', 'kind', 'tier', 'recalled', 'stored', 'reinforced', 'mode', 'run'];
@@ -24202,9 +24215,10 @@ export async function runCli(argv, io = {}) {
                     catch {
                         return path;
                     } };
-                    const projectRoot = canonical(statuslineProjectRoot('', options, cwd));
+                    const projectRoot = canonical(statuslineContext('', options, cwd).projectRoot);
                     const brainRoot = options.get('brain') === undefined ? projectRoot : canonical(resolve(cwd, options.get('brain')));
                     return await watchStatusline({ projectRoot, brainRoot, intervalSeconds: interval,
+                        ...(options.get('recall-session') === undefined ? {} : { recallSessionAlias: options.get('recall-session') }),
                         selector: { ...(options.get('slug') === undefined ? {} : { slug: options.get('slug') }),
                             ...(options.get('run-id') === undefined ? {} : { runId: options.get('run-id') }) },
                     }, { ...io.statuslineWatch, writeErr, branch: () => statuslineGitBranch(projectRoot) });

@@ -8,11 +8,12 @@
  * terminal bar. Every read is therefore:
  * - **readonly + short busy_timeout** — a live MCP writer holding the store lock
  *   must never make the panel wait; we back off immediately, not block.
- * - **best-effort** — any error (absent/corrupt `.dz`, missing native module,
- *   locked db) collapses to `0` / an omitted field, never an exception.
+ * - **best-effort** — legacy count errors collapse to `0` / an omitted field;
+ *   recall observation errors remain explicitly unknown, never an exception.
  *
  * @packageDocumentation
  */
+import { type RecallObservation, type RecallObservationSelector } from './recall-observation.js';
 import { type StoreHealthVerdict } from './store-guard.js';
 /**
  * Live learning state for one in-flight `/feature-adr` run — the per-run visibility panel
@@ -87,8 +88,10 @@ export interface StatuslineData {
         /** Absolute lexical/vector quarantine-label delta, present only above the tolerated drift threshold. */
         readonly tierDelta?: number;
     };
-    /** Count of learned patterns that the live recall hook has actually injected at least once. */
+    /** Legacy distinct-ID usage aggregate; it does not establish emission or host consumption. */
     readonly usedPatterns?: number;
+    readonly recallObservation: RecallObservation;
+    readonly recallLine: string;
     /** Number of sources registered in the durable cross-project knowledge brain. */
     readonly brainSources: number;
     /**
@@ -232,7 +235,7 @@ export declare function writeFeatureAdrStateDetailed(projectRoot: string, input:
  * @param projectRoot Absolute (or cwd-relative) project directory.
  * @param now Injectable clock (epoch ms) for the consolidation age — defaults to `Date.now()`.
  */
-export declare function statuslineData(projectRoot: string, now?: number): StatuslineData;
+export declare function statuslineData(projectRoot: string, now?: number, recallContext?: RecallObservationSelector): StatuslineData;
 /**
  * Render the /feature-adr PHASE line (line format B, fa-phase-statusline ADR-001) — the second
  * status-bar line:

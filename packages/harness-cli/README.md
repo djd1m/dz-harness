@@ -1,6 +1,6 @@
 # @dzhechkov/harness-cli
 
-Current package version: `0.8.42`. <!-- dz:version -->
+Current package version: `0.8.43`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -17,7 +17,7 @@ You do NOT need to clone any repository to use dz. Source is for contributors �
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/harness-cli
 
-Current package versions: `harness-core v0.8.50` · `harness-cli v0.8.42`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.51` · `harness-cli v0.8.43`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. The marker retains its explicit whole-line override for per-package synchronization, so keep it off historical records.
 
@@ -2851,6 +2851,7 @@ the store guard consumes it as an integrity signal.
 
 ```
 🎓 dz: 12 (9 active · 3 quarantined) · mirror: 11 lessons (pending 1) · 🧠 3 sources (223/315/60)
+Recall (last observed): selected 2 | emitted 2 | host-confirmed unknown
 ```
 
 The parenthesized split is read from the primary lexical store; its JSON source is `lexical+mirror`
@@ -2873,6 +2874,23 @@ distills new learnings. It's **opt-in** and **non-clobbering**: `--install` merg
 existing `statusLine` config rather than overwriting it, and nothing changes until you run it.
 Modeled on the Agentic QE statusline pattern (e.g. AQE's `🎓 12 patterns`).
 
+The recall row describes the latest local hook event for the exact invoking project and session.
+Selection is the existing policy's result; emission means its stdout write callback completed.
+Neither proves host acceptance or model consumption, so `host-confirmed` always remains `unknown`.
+JSON includes the same `recallLine` plus a bounded `recallObservation` DTO with safe lesson IDs,
+selection reasons, an event ID and timestamp. Missing, stale, unsafe or unreadable evidence stays
+unknown; a readable empty selection is zero. Native Claude JSON stdin supplies `session_id` and
+optional `turn_id` and is read once, including by the combined helper's child commands.
+
+For manual one-shot or companion reads, use `--recall-session <32hex>` with the project-scoped
+`sessionAlias` from a known event. This selector is independent of feature-ADR `--run-id` and
+does not infer identity from the newest event. Without native identity or an explicit alias, recall
+remains unknown. The companion also shows producer, timestamp, IDs, unaddressable-entry count
+and diagnostic reasons. Telemetry retains no prompt, lesson text, raw session/turn ID or transcript
+path. `usedPatterns` arithmetic is unchanged and its display is labeled `legacy usage`.
+The observation reader writes nothing. Standard CLI dispatch retains its existing command-name-only
+append to `.dz/cmd-usage.jsonl` at the caller cwd, including validation and watch invocations.
+
 #### Adjacent terminal companion (`dz statusline --watch`)
 
 Start this explicitly beside Codex in a dedicated terminal or manual tmux split. It observes producer
@@ -2886,6 +2904,7 @@ PANEL_SLUG="add-user-auth"
 PANEL_RUN="fa-20261002-1"
 node "$PANEL_CLI" statusline --watch --project "$PANEL_PROJECT" --brain "$PANEL_BRAIN" \
   --slug "$PANEL_SLUG" --run-id "$PANEL_RUN" --interval 2
+# Add --recall-session <32hex> to select a known hook event; --run-id never selects recall.
 # Producer: record START of each actual step, with the same project/identity and real tier/counts.
 node "$PANEL_CLI" statusline --fa-record --project "$PANEL_PROJECT" --slug "$PANEL_SLUG" \
   --run-id "$PANEL_RUN" --tier M --step "Step 7 Code" --recalled 3 --stored 0
@@ -2905,8 +2924,9 @@ previous one finishes. The frame escapes Unicode/control text into ASCII, clips 
 last column/bottom row and clears on resize. Below 40x8 or unknown size it shows only a size warning.
 Watch requires stdout TTY, does not read stdin or set raw mode, and rejects JSON/install/fa-record
 combinations (exit 2; use one-shot/JSON for pipes). SIGINT/SIGTERM restore cursor and exit 0; output
-failure exits 1. Read failures are displayed and retried. No model calls, logical store writes, lock or
-snapshot creation, repair or schema changes; normal SQLite ephemeral WAL/SHM sidecars are permitted.
+failure exits 1. Read failures are displayed and retried. Refresh performs no model calls, logical
+store writes, lock or snapshot creation, repair or schema changes; normal SQLite ephemeral WAL/SHM
+sidecars are permitted. The initial CLI dispatch retains command accounting as described above.
 Slot reads reject state symlinks, nonregular and >256 KiB files; run-only discovery parses at most 64
 candidates and reports limited search. Directory enumeration remains a local filesystem limit.
 
@@ -5427,7 +5447,7 @@ An unknown id exits `1` rather than reporting a successful removal of nothing. A
 the lessons ever read?* — and the answer is usually humbling. So the statusline reports both:
 
 ```
-🎓 dz: 103 (103 актив) · 3 used · 🧠 2 sources
+🎓 dz: 103 (103 актив) · legacy usage: 3 · 🧠 2 sources
 ```
 
 ```bash
@@ -5440,7 +5460,8 @@ a future prune should consider, and the diagnostic that would have exposed a mis
 earlier. (It also surfaces junk that should never have been learned: on this repo it immediately
 revealed patterns extracted from task-notification text.)
 
-Every injected hit is appended to `.dz/recall-usage.jsonl` — append-only, no locks, no schema. The
+The existing usage logger appends selected-hit rows after attempting output to `.dz/recall-usage.jsonl`;
+these legacy rows do not establish callback completion or host consumption. The
 embedding daemon opens the pattern store **read-only** and never writes, so it can never be the writer
 that tears a database file for a concurrent reader; the hook does the recording instead. The count and
 the last-read timestamp are derived from the **same records**, so they cannot disagree the way

@@ -157,7 +157,7 @@ export declare function probeRecallEngine(socketPath: string, timeoutMs?: number
  * install-root link never fired and the daemon served, and resolved its deps from, `cwd`); the hook's
  * `reviveDaemon()` spawns it with `cwd: PROJECT` and `DZ_PROJECT_ROOT: PROJECT`.
  */
-export declare const APPLY_LEG_VERSION = 14;
+export declare const APPLY_LEG_VERSION = 15;
 /**
  * Parse the `dz-apply-leg-version` stamp from a deployed helper file. Unlike
  * `writerVersionOf` (which floors an absent stamp at `0`), this returns `-1` for "no stamp at

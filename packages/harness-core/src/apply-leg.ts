@@ -217,7 +217,7 @@ export function probeRecallEngine(socketPath: string, timeoutMs = 1000): Promise
  * install-root link never fired and the daemon served, and resolved its deps from, `cwd`); the hook's
  * `reviveDaemon()` spawns it with `cwd: PROJECT` and `DZ_PROJECT_ROOT: PROJECT`.
  */
-export const APPLY_LEG_VERSION = 14;
+export const APPLY_LEG_VERSION = 15;
 
 /**
  * Parse the `dz-apply-leg-version` stamp from a deployed helper file. Unlike
@@ -747,13 +747,49 @@ function compactUsageLogIfNeeded(usage, chain, ts) {
 }
 
 /** Emit additionalContext when non-empty; silence otherwise (the floor contract). */
-function emitContext(context) {
+async function emitContext(context, observation) {
   if (typeof context !== 'string' || context === '') return;
-  process.stdout.write(
-    JSON.stringify({
-      hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: context },
-    }) + '\\n',
-  );
+  const envelope = JSON.stringify({
+    hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: context },
+  }) + '\\n';
+  // Callback completion is a local stdout fact only. Keep errors nonblocking even after timeout.
+  process.stdout.on('error', () => {});
+  let result = 'pending';
+  let attempted = false;
+  let threw = false;
+  if (observation.mod) {
+    const sink = { write: (text, callback) => { attempted = true; try { return process.stdout.write(text, callback); } catch (error) { threw = true; throw error; } },
+      on: (event, callback) => process.stdout.on(event, callback), off: (event, callback) => process.stdout.off(event, callback) };
+    try { result = await observation.mod.writeRecallEnvelope(envelope, sink); } catch { /* telemetry is advisory */ }
+  }
+  if (!attempted) {
+    await new Promise((done) => {
+      const timer = setTimeout(done, 50);
+      try { process.stdout.write(envelope, () => { clearTimeout(timer); done(); }); }
+      catch { threw = true; clearTimeout(timer); done(); }
+    });
+  }
+  observation.emission(result);
+  return !threw;
+}
+
+async function beginObservation(payload) {
+  const mod = await loadCoreModule('recall-observation.js', (m) =>
+    typeof m.beginRecallObservation === 'function' && typeof m.updateRecallSelection === 'function'
+    && typeof m.updateRecallEmission === 'function' && typeof m.resolveRecallObservationProjectRoot === 'function'
+    && typeof m.writeRecallEnvelope === 'function');
+  let root;
+  let event;
+  try {
+    const explicitRoot = process.env.CLAUDE_PROJECT_DIR || (payload && typeof payload.cwd === 'string' && payload.cwd ? payload.cwd : undefined);
+    root = explicitRoot || (mod && mod.resolveRecallObservationProjectRoot(process.cwd()));
+    if (root) event = mod.beginRecallObservation(root, { producer: 'claude-hook',
+      sessionId: payload && payload.session_id, turnId: payload && payload.turn_id, knowledgeStoreRoot: PROJECT });
+  } catch { /* missing identity, private store or busy writer stays unknown */ }
+  return { mod,
+    selection: (input) => { if (event) safe(() => mod.updateRecallSelection(root, event, input)); },
+    emission: (result) => { if (event) safe(() => mod.updateRecallEmission(root, event, result)); },
+  };
 }
 
 // FR-1 (ADR-001 D2, apply-leg-never-silent): every silent early exit below now names WHY, on
@@ -771,6 +807,7 @@ async function main() {
   const raw = readStdin();
   const payload = safe(() => JSON.parse(String(raw || '').trim()), undefined);
   const prompt = extractPrompt(raw);
+  const observation = await beginObservation(payload);
 
   // The retro debt directive rides EVERY early-return path below: a down daemon or an empty prompt
   // must not swallow the confrontation — the debt is independent of recall relevance. When the
@@ -778,8 +815,9 @@ async function main() {
   const debt = await retroDebtDirective(payload);
 
   if (prompt === '') {
+    observation.selection({ hits: [], reason: 'empty-prompt' });
     skip('empty-prompt');
-    return emitContext(debt);
+    return emitContext(debt, observation);
   }
 
   // FR-1: the most fundamental silent failure (issue #2) — no \`.dz/\` at all under the resolved
@@ -788,14 +826,16 @@ async function main() {
   // the original issue's symptom (four green checks, a store that was never there) be diagnosed
   // from stderr alone.
   if (!fs.existsSync(path.join(PROJECT, '.dz'))) {
+    observation.selection({ unknown: 'core-unavailable' });
     skip('store-not-found');
-    return emitContext(debt);
+    return emitContext(debt, observation);
   }
 
   const policy = await loadPolicy();
   if (!policy) {
+    observation.selection({ unknown: 'core-unavailable' });
     skip('core-unavailable');
-    return emitContext(debt);
+    return emitContext(debt, observation);
   }
 
   const daemonReply = await askDaemon(prompt);
@@ -804,13 +844,14 @@ async function main() {
   // time) and 'bad-reply' (answers, unparseable/shapeless) are four DIFFERENT defects with four
   // different remedies; collapsing them back into one string is exactly the finding this fixes.
   if (daemonReply.error) {
+    observation.selection({ unknown: 'daemon-unavailable' });
     skip(daemonReply.error);
     // SELF-HEAL (2026-07-28): the daemon is started at SessionStart only, so when it dies mid-way
     // through a long-lived session NOTHING restarts it — the apply leg was silently dead for 19
     // days (MEASURED: recall-usage.jsonl last record 2026-07-09, socket absent). Spawn it
     // fire-and-forget so the NEXT prompt has it; this prompt stays uninjected (never-block).
     reviveDaemon();
-    return emitContext(debt);
+    return emitContext(debt, observation);
   }
   const { hits, engine, reason } = daemonReply;
   // FR-6/FR-2: the engine (and, on fallback, why) is the caller's business, not the model's — it
@@ -819,15 +860,19 @@ async function main() {
     safe(() => process.stderr.write(\`[dz-recall] engine=\${engine}\${reason ? \` reason=\${reason}\` : ''} root=\${PROJECT} (\${ROOT_SOURCE}) session=\${SESSION_ROOT}\\n\`));
   }
   if (hits.length === 0) {
+    observation.selection({ hits: [], reason: 'no-candidates' });
     skip('no-hits');
-    return emitContext(debt); // daemon alive, nothing relevant — silence is correct
+    return emitContext(debt, observation); // daemon alive, nothing relevant — silence is correct
   }
 
   // FR-5 (ADR-001 D2): a hybrid-engine reply carries an RRF-based score — its OWN floor, applied to
   // both languages. A cosine-fallback reply (or an old daemon that never sent \`engine\` at all)
   // keeps today's cosine-calibrated DEFAULT_RECALL_FLOORS untouched.
   const floorOpts = engine === 'hybrid' ? { floors: { ru: HOOK_SCORE_FLOOR, en: HOOK_SCORE_FLOOR } } : {};
-  const selection = policy.selectHookHits(prompt, hits, floorOpts);
+  let selection;
+  try { selection = policy.selectHookHits(prompt, hits, floorOpts); }
+  catch { observation.selection({ unknown: 'selection-failed' }); return; }
+  observation.selection({ hits: selection.hits, quarantinedExcluded: selection.quarantinedExcluded });
   // lesson-quarantine AM-2: an excluded hypothesis is logged, never a silent context shrink.
   if (typeof selection.quarantinedExcluded === 'number' && selection.quarantinedExcluded > 0) {
     try {
@@ -837,11 +882,14 @@ async function main() {
       );
     } catch { /* best-effort */ }
   }
-  const context = policy.renderHookContext(selection);
+  let context;
+  try { context = policy.renderHookContext(selection); }
+  catch { observation.emission('render-failed'); return; }
+  if (context === '') observation.emission('no-selected-context');
   // The debt directive is PREPENDED so it is the first thing the model reads (before other work).
   const combined = debt === '' ? context : context === '' ? debt : \`\${debt}\\n\${context}\`;
   if (combined === '') return; // nothing cleared the floor — the whole point
-  emitContext(combined);
+  if (await emitContext(combined, observation) === false) return; // synchronous write failure skipped legacy usage before telemetry
 
   if (context !== '') {
     const usage = await loadUsagePolicy();

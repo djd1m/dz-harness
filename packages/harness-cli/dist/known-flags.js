@@ -284,6 +284,7 @@ export const KNOWN_CLI_FLAGS = [
     'run',
     'run-dir',
     'run-id',
+    'recall-session',
     'runner',
     'safe-mode',
     'sandbox',

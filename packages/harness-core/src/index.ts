@@ -331,6 +331,8 @@ export type {
 } from './store-guard-prune.js';
 export { statuslineData, readFeatureAdrObservation, readFeatureAdrState, writeFeatureAdrState, featureAdrStateDir, featureAdrStatePath, writeFeatureAdrStateDetailed, renderFeatureAdrPhaseLine } from './statusline.js';
 export type { StatuslineData, StatuslineStoreHealth, FeatureAdrObservation, FeatureAdrSelector, FeatureAdrState, WriteFeatureAdrStateInput, WriteFeatureAdrStateResult } from './statusline.js';
+export { beginRecallObservation, updateRecallSelection, updateRecallEmission, readRecallObservation, renderRecallObservationLine, renderRecallObservationDetails, recallSessionAlias, resolveRecallObservationProjectRoot, writeRecallEnvelope, RECALL_OBSERVATION_MAX_BYTES, RECALL_OBSERVATION_MAX_SESSIONS, RECALL_OBSERVATION_MAX_ITEMS, RECALL_OBSERVATION_TTL_MS, RECALL_OBSERVATION_CLOCK_SKEW_MS, RECALL_EMISSION_TIMEOUT_MS } from './recall-observation.js';
+export type { RecallObservation, RecallObservationEvent, RecallObservationSelector, BeginRecallObservationInput, RecallSelection, RecallEmission, RecallProducer, RecallOutputSink } from './recall-observation.js';
 export {
   ETA_MAX_STAGE_MS,
   estimateEta,
