@@ -1,6 +1,6 @@
 # @dzhechkov/skills-meta
 
-Current package version: `0.9.63`. <!-- dz:version -->
+Current package version: `0.9.64`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-meta
 
@@ -31,7 +31,7 @@ The pack contains **21 development-process skills**:
 | `explore` | 3 | Socratic task clarification |
 | `problem-solver-enhanced` | 1 | First-principles + TRIZ + game-theory problem solving |
 | `loop-plan-author` | 2 | Author agent LOOPS as typed `loop-plan/1` plans — four patterns, INV-1..8, claims/defers, USER regions, reading a run's trace. Packaged for Claude Code as `@dzhechkov/loop-designer-plugin`; `dz` AUTHORS, GATES and READS loops — it never RUNS one |
-| `decision-mockups` | 10 | Owner-facing DECISION PAGE — plain-language explanation, browser-frame before/after mockups, clickable option forks and a copy-answers export that pastes back into the session, plus a zero-dependency deterministic gate (`references/check_page.py`, G0–G14) that refuses a page with a fake fork, an untokenised colour, an external resource or a leftover placeholder. **Vendored mirror** — the canon (and the test suite) lives in [`@dzhechkov/skills-decision-mockups`](https://www.npmjs.com/package/@dzhechkov/skills-decision-mockups); heal with `dz sync-canonical decision-mockups --from packages/@dzhechkov/skills-decision-mockups/decision-mockups`. **Honest scope:** the skill writes Russian (its gate hard-requires the export literals) |
+| `decision-mockups` | 10 | Owner-facing DECISION PAGE — plain-language explanation, browser-frame before/after mockups, clickable option forks and a copy-answers export that pastes back into the session, plus a zero-dependency deterministic gate (`references/check_page.py`, G0–G15) that refuses a page with fewer than two options per fork, an untokenised colour, an external resource or a leftover placeholder. **Vendored mirror** — the canon (and the test suite) lives in [`@dzhechkov/skills-decision-mockups`](https://www.npmjs.com/package/@dzhechkov/skills-decision-mockups); heal with `dz sync-canonical decision-mockups --from packages/@dzhechkov/skills-decision-mockups/decision-mockups`. **Honest scope:** the skill writes Russian (its gate hard-requires the export literals) |
 
 
 > **`goap-research-ed25519` — self-learning (optional, since this release).** When

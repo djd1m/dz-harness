@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-10-05T11:53:18.240199+00:00",
+  "builtAt": "2026-10-05T13:30:30.472131+00:00",
   "builtFrom": "dz-harness-hub (private monorepo)",
   "rule": "each package mirrors exactly its npm-pack tarball inventory \u2014 the already-public surface",
   "requested": 56,
@@ -293,7 +293,7 @@
     },
     {
       "name": "@dzhechkov/skills-decision-mockups",
-      "version": "0.1.8",
+      "version": "0.1.9",
       "files": 15
     },
     {
@@ -333,7 +333,7 @@
     },
     {
       "name": "@dzhechkov/skills-meta",
-      "version": "0.9.63",
+      "version": "0.9.64",
       "files": 143
     },
     {
@@ -404,8 +404,8 @@
   ],
   "lastRegistryRefresh": {
     "versions": {
-      "@dzhechkov/harness-core": "0.8.49",
-      "@dzhechkov/harness-cli": "0.8.41"
+      "@dzhechkov/skills-decision-mockups": "0.1.9",
+      "@dzhechkov/skills-meta": "0.9.64"
     },
     "verification": "Exact registry tarball bytes, publisher SHA256, registry SHA512/SHA1 and trusted repository Ed25519 signatures; other packages preserved."
   }
