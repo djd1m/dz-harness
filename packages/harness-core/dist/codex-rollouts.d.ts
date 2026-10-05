@@ -31,11 +31,12 @@
  * @packageDocumentation
  */
 export interface CodexRolloutTotals {
-    readonly input: number;
-    readonly cachedInput: number;
-    readonly output: number;
-    readonly reasoning: number;
-    readonly total: number;
+    readonly cachedWrite?: number | null;
+    readonly input: number | null;
+    readonly cachedInput: number | null;
+    readonly output: number | null;
+    readonly reasoning: number | null;
+    readonly total: number | null;
 }
 /**
  * measurement-integrity fix-round-1/F5 (Codex r1 HIGH #5): one TURN of a session — the span between
@@ -45,6 +46,7 @@ export interface CodexRolloutTotals {
  * such record fell inside this turn's interval (nothing to attribute to it).
  */
 export interface CodexRolloutTurn {
+    readonly turnId?: string | null;
     readonly model: string | null;
     readonly cwd: string | null;
     readonly startedAt: string | null;
@@ -52,6 +54,30 @@ export interface CodexRolloutTurn {
     readonly totals: CodexRolloutTotals | null;
 }
 export interface CodexRollout {
+    readonly sourcePath?: string;
+    readonly turnId?: string | null;
+    readonly diagnostics?: readonly string[];
+    readonly cumulativeWitness?: CodexRolloutTotals | null;
+    /** Fresh validation of an observed cumulative prefix; compact association avoids copying key sets. */
+    readonly scopeDiagnostics?: readonly {
+        sourceRecord: number;
+        receiptCount: number;
+        timestamp: string | null;
+        diagnostics: readonly string[];
+        witness?: CodexRolloutTotals;
+    }[];
+    readonly receipts?: readonly {
+        key: string;
+        responseId: string | null;
+        turnId: string | null;
+        turnIndex?: number | null;
+        timestamp: string | null;
+        totals: CodexRolloutTotals;
+        payloadDigest: string;
+        source: string;
+        sourceRecord?: number;
+        diagnostics?: readonly string[];
+    }[];
     readonly id: string;
     readonly cwd: string | null;
     readonly model: string | null;
@@ -94,13 +120,15 @@ export type CodexRolloutMatch = {
 };
 export interface CodexRolloutMatchWindow {
     /** ISO instant — the window's lower bound. */
-    readonly from: string;
+    readonly from?: string;
     /** ISO instant — the window's upper bound. */
-    readonly to: string;
+    readonly to?: string;
     /** Exact match against {@link CodexRollout.cwd}, when given. */
     readonly cwd?: string;
     /** Exact match against {@link CodexRollout.model}, when given. */
     readonly model?: string;
+    readonly rolloutId?: string;
+    readonly turnId?: string;
 }
 /**
  * Which candidate VIEWS (session-level, or — per {@link candidateViewsOf} — turn-level whenever the

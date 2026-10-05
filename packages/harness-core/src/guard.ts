@@ -22,6 +22,7 @@ import {
   type VolumeShadowResult,
 } from './guard-volume.js';
 import { findReleaseLine } from './release-line.js';
+import type { NpmHomepageFactSet } from './npm-homepage.js';
 
 export type GuardSeverity = 'hard' | 'soft';
 // The 'code' operation checks facts already established when code changes, such as shared skill-copy
@@ -216,6 +217,12 @@ export interface GuardFacts {
   };
   /** for skills-registrable: per skill pack, dirs that would ship un-registrable (no depth-1 SKILL.md). */
   readonly skillPacks?: readonly { readonly name: string; readonly nonRegistrable: readonly string[] }[];
+  /**
+   * for npm-homepage: one entry per `packages/@dzhechkov/*` package (private and hidden dirs included) plus
+   * every entry the reader could not decide, built by the pure `npmHomepageFacts`. No packages and no
+   * failures, or an unreadable packages directory, is not a pass — the rule is then NOT ESTABLISHED.
+   */
+  readonly npmHomepage?: NpmHomepageFactSet;
   /** for readme-first: per publishable package, is a version bump staged without a README change? */
   readonly readmeFirst?: readonly { readonly name: string; readonly versionBumped: boolean; readonly readmeChanged: boolean; readonly versionUnknown?: boolean }[];
   /**
@@ -541,6 +548,7 @@ export const DEFAULT_RULES: readonly GuardRule[] = [
   { id: 'rounds-closed', severity: 'soft', ops: ['publish'], description: 'focused rounds older than 120 minutes are named before publish; a dead owner is reported as an abandoned round' },
   { id: 'rounds-traced', severity: 'soft', ops: ['publish'], description: '10 or more package-code commits without a round ledger receipt are named; unavailable git evidence is not a pass' },
   { id: 'no-workspace-star', severity: 'hard', ops: ['publish'], description: 'a published package.json must carry no workspace:* dep (npm ships it verbatim → the install breaks)' },
+  { id: 'npm-homepage', severity: 'hard', ops: ['publish'], description: 'every packages/@dzhechkov/* package.json (private too) has homepage = https://aicoding.space exactly, and keeps GitHub in repository.url + repository.directory and bugs.url' },
   { id: 'plugin-manifest-audit', severity: 'hard', ops: ['publish'], description: 'every .claude-plugin/plugin.json parses and declares a non-empty name, description and a STRICT N.N.N version' },
   { id: 'sibling-dep-protocol', severity: 'hard', ops: ['publish'], description: 'a dependencies/devDependencies entry on a sibling @dzhechkov package must use the workspace: protocol on disk (peer/optional deps are deliberately exempt — a range is their point)' },
   { id: 'no-skill-drift', severity: 'hard', ops: ['publish', 'consolidate', 'code'], description: 'no unexpected byte-drift between shared skill copies' },
@@ -723,6 +731,38 @@ const CHECKERS: Record<string, (f: GuardFacts, sev: GuardSeverity) => Violation[
         }
       }
     }
+    return out;
+  },
+  'npm-homepage': (f, sev) => {
+    // Owner rule 2026-09-28 (.claude/rules/npm-homepage.md), lifted from rules text to a gate. One violation
+    // per package, listing all of its defects, so the fix list is the violation list. A malformed fact entry
+    // is a violation too: a rule that cannot read its evidence accuses, it does not acquit.
+    // Fix round 1 (review r1 finding 3): an entry is accepted only with a non-empty dir AND name and a
+    // problems array of non-empty strings — `{ problems: [] }` used to count as clean evidence.
+    const out: Violation[] = [];
+    const nonEmpty = (v: unknown): v is string => typeof v === 'string' && v !== '';
+    const set = f.npmHomepage!; // Presence is established by HAS_INPUT.
+    const packages: readonly unknown[] = Array.isArray(set.packages) ? set.packages : [];
+    packages.forEach((p, i) => {
+      const e = (p && typeof p === 'object' ? p : {}) as Record<string, unknown>;
+      const problems = e['problems'];
+      if (!nonEmpty(e['dir']) || !nonEmpty(e['name']) || !Array.isArray(problems) || !problems.every(nonEmpty)) {
+        const who = nonEmpty(e['name']) ? e['name'] : nonEmpty(e['dir']) ? `packages/@dzhechkov/${e['dir']}` : `entry #${i}`;
+        out.push({ rule: 'npm-homepage', severity: sev, detail: `${who}: malformed npm-homepage fact (needs non-empty dir, name and string problems) — ${JSON.stringify(p)}` });
+        return;
+      }
+      if (problems.length === 0) return;
+      out.push({ rule: 'npm-homepage', severity: sev, detail: `${e['name']} (packages/@dzhechkov/${e['dir']}): ${(problems as string[]).join('; ')}` });
+    });
+    // Fix round 1 (review r1 finding 2): an entry the reader could not decide is a violation naming the path,
+    // never a silent omission — partial discovery must not look complete.
+    const failures: readonly unknown[] = Array.isArray(set.discoveryFailures) ? set.discoveryFailures : [];
+    failures.forEach((d, i) => {
+      const e = (d && typeof d === 'object' ? d : {}) as Record<string, unknown>;
+      const where = nonEmpty(e['path']) ? e['path'] : `discovery failure #${i}`;
+      const why = nonEmpty(e['reason']) ? e['reason'] : 'no reason given';
+      out.push({ rule: 'npm-homepage', severity: sev, detail: `${where}: could not be inspected (${why}) — a package here would go unchecked` });
+    });
     return out;
   },
   'plugin-manifest-audit': (f, sev) => {
@@ -1182,6 +1222,12 @@ const HAS_INPUT: Partial<Record<string, (f: GuardFacts) => boolean>> = {
   'readme-consistency': (f) => Array.isArray(f.counts),
   'skills-registrable': (f) => Array.isArray(f.skillPacks),
   'readme-first': (f) => Array.isArray(f.readmeFirst),
+  // Zero packages is "nobody looked", not "all compliant": vacuity is NOT ESTABLISHED, never green.
+  'npm-homepage': (f) => {
+    const s = f.npmHomepage;
+    if (typeof s !== 'object' || s === null || s.unreadableRoot !== undefined) return false;
+    return (Array.isArray(s.packages) && s.packages.length > 0) || (Array.isArray(s.discoveryFailures) && s.discoveryFailures.length > 0);
+  },
   'store-bloat-cap': (f) => f.store !== undefined,
   'template-context-token-weight': volumeInputPresent,
   'template-context-largest-file-share': volumeInputPresent,
@@ -1396,6 +1442,12 @@ export function evaluateGuard(facts: GuardFacts, rules: readonly GuardRule[] = D
     if (typeof error === 'string' && error.trim() !== '') {
       notes.push(`backlog-covers-features: летопись переходов не прочитана (${error}) — покрытие проверено только по текстам записей бэклога`);
     }
+  }
+  // Only an UNREADABLE packages directory earns a note: a tree that simply has no packages/@dzhechkov (most
+  // test fixtures, any non-monorepo root) is "nothing to check", and a note there would be noise on every run.
+  if (notEstablished.includes('npm-homepage')) {
+    const root = facts.npmHomepage?.unreadableRoot;
+    if (typeof root === 'string') notes.push(`npm-homepage: NOT ESTABLISHED — the packages directory could not be read (${root})`);
   }
   if (notEstablished.includes('rounds-traced')) {
     const fact = facts.codeCommitsSinceLastRound;

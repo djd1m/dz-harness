@@ -19,6 +19,8 @@ export { REPOSITORY_ORIGIN } from './repository-origin.js';
 export { noSearchableTermsReason } from '@dzhechkov/memory';
 
 export * from './skills.js';
+export { buildStageUsageReport } from './stage-usage.js';
+export { deriveStageUsageReport, renderStageUsageReport } from './cost-ledger.js';
 export * from './apply.js';
 export {
   buildPublicSnapshot,
@@ -175,6 +177,8 @@ export {
   parseBridgeOutput,
   buildBridgeFailureRecord,
   renderBridgeReport,
+  resolveBridgeRoundIdentity,
+  selectQeBridgeRoundSignoff,
 } from './qe-bridge.js';
 export type { BridgeFamily, BridgeFailureReason, BridgeFinding, BridgeSignoff, BridgeParse, BridgeParseOk, BridgeParseFail, BridgeChannels, BridgeAudit, ClaudeResultExtraction, NamedExtract, BridgePromptInput } from './qe-bridge.js';
 export type { PatternRecord, SessionRecord, LearningConfig, MemoryLearningConfig, LoadOptions, ConsolidateResult, ConsolidateOptions, SqliteBackendMode, RecallHit, RecallPatternsOptions, RecordLessonFormsResult, SessionsSource, PruneNoiseResult, RemovePatternsResult, SnapshotStoreResult, ReinforcementState, ReinforcePatternResult, StoreStats, LessonDeltaReport, LessonDeltaRow, QuarantineState, PromoteResult, QuarantineExpiryCandidate } from './patterns.js';
@@ -325,8 +329,8 @@ export type {
   StoreGuardPrunePlan,
   StoreGuardPruneDeps,
 } from './store-guard-prune.js';
-export { statuslineData, readFeatureAdrState, writeFeatureAdrState, featureAdrStateDir, featureAdrStatePath, writeFeatureAdrStateDetailed, renderFeatureAdrPhaseLine } from './statusline.js';
-export type { StatuslineData, StatuslineStoreHealth, FeatureAdrState, WriteFeatureAdrStateInput, WriteFeatureAdrStateResult } from './statusline.js';
+export { statuslineData, readFeatureAdrObservation, readFeatureAdrState, writeFeatureAdrState, featureAdrStateDir, featureAdrStatePath, writeFeatureAdrStateDetailed, renderFeatureAdrPhaseLine } from './statusline.js';
+export type { StatuslineData, StatuslineStoreHealth, FeatureAdrObservation, FeatureAdrSelector, FeatureAdrState, WriteFeatureAdrStateInput, WriteFeatureAdrStateResult } from './statusline.js';
 export {
   ETA_MAX_STAGE_MS,
   estimateEta,
@@ -782,7 +786,7 @@ export type {
 } from './event-chain.js';
 export { packArtifact, readWorkspaceVersions, UnknownWorkspaceSpecError } from './pack-artifact.js';
 export type { PackArtifactResult, ExecLike } from './pack-artifact.js';
-export { decideProvenance, environmentCanMintProvenance, publishArgv, matchesPublishFilter, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, rewriteWorkspaceSpecs, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion, planReadmeVersionSync } from './publish.js';
+export { decideProvenance, environmentCanMintProvenance, publishArgv, matchesPublishFilter, validatePublishFilters, discoverPackages, publishPackages, bumpPatch, compareVersions, findUnpackagedSkills, findUnpublishedWorkspaceFloors, rewriteWorkspaceSpecs, orderByDependencies, syncReadmeVersion, isChangelogEntryLine, changelogRegion, planReadmeVersionSync } from './publish.js';
 export type { ReadmeVersionSyncPlan, ReadmeSyncRewrite } from './publish.js';
 export { RELEASE_LINE_RE, parseReleaseLine, findReleaseLine, rewriteReleaseLine, shortPackageName } from './release-line.js';
 export type { ReleaseLineToken, ReleaseLineParse, ReleaseLineMatch } from './release-line.js';
@@ -958,6 +962,8 @@ export {
   PLAN_GATE_SCRIPT,
   planCompletenessGateCmd,
   parsePlanGateVerdict,
+  // landed-barrier-anchored-line: the design/plan/plan-repair landing-barrier reply parser.
+  parseLandedProbe,
   // p16-non-js-portability: the gate-script search chain's operator note (ADR-002/AM-7) and the
   // dzBin absolutization (ADR-003). Named for the same reason as the three above.
   refusalNoteFor,
@@ -1036,6 +1042,7 @@ export type {
   ParsedBaselineCapture,
   ParsedLandingSignal,
   PlanGateVerdict,
+  LandedProbeVerdict,
   PlanSnapshot,
   PlanGateCmdOpts,
   CodexReviewCommandInput,
@@ -1156,6 +1163,8 @@ export * from './bto-optimize.js';
 export * from './discrimination-gate.js';
 export * from './guard.js';
 export * from './guard-volume.js';
+// npm-homepage-guard (backlog e5d0d383): pure facts + fs reader for the `npm-homepage` guard rule.
+export * from './npm-homepage.js';
 // Root AGENTS.md policy projection: pure anchor extraction/render/hash drift +
 // the shared-emitter I/O entry point exported from operations.
 export * from './agents-policy.js';
@@ -1384,3 +1393,6 @@ export { decideTestReceipt, renderTestReceiptVerdict } from './test-receipt.js';
 export type { TestReceipt, TestReceiptVerdict, TestReceiptScopeState } from './test-receipt.js';
 export { decideBackupFreshness, renderBackupFreshness } from './backup-freshness.js';
 export type { BackupFreshnessVerdict } from './backup-freshness.js';
+
+export { planReleasePackageAudit, judgeReleasePackageAudit, judgeReleaseCohortAudit } from './release-package-audit.js';
+export type { ReleasePackageAuditPlan, ReleasePackageAuditResult, ReleaseWorkspaceAuditReport } from './release-package-audit.js';

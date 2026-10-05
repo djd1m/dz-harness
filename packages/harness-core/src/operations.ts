@@ -18,12 +18,14 @@ import {
   buildCodexHookManifest,
   codexHooksPaths,
   diffCodexHooks,
+  looksLikeDzEntry,
   parseCodexHookManifest,
   planCodexHooks,
   removeCodexHooks,
   selectOwnHookMetadata,
   upsertTrustBlock,
   type CodexHooksPaths,
+  type CodexRegistry,
   type HooksListHookMetadata,
   type ManagedEntry,
 } from './codex-hooks.js';
@@ -1922,6 +1924,12 @@ export interface CodexHooksSyncOptions {
   readonly probeModel?: string;
   /** Test seam: replace the live probe. Production runs {@link runCodexVetoProbe}. */
   readonly probe?: (options: CodexVetoProbeOptions) => CodexVetoProbeRun;
+  /**
+   * Test seam (codex-hooks-remove-never-orphans, review r1 item 1): how a helper body reaches disk.
+   * Production writes atomically; a test injects a failing writer (ENOSPC) to prove the section-2
+   * restore fails CLOSED. Nothing else in the operation goes through it.
+   */
+  readonly writeHelperFile?: (path: string, body: string) => void;
 }
 
 export interface CodexHooksSyncReport {
@@ -2204,24 +2212,44 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
       // 2 deleted them after the lock was released, so a concurrent installer could observe (and
       // rebuild against) a registry that had already been emptied — or leave a manifest describing
       // entries that no longer exist. One decision, one critical section.
-      if (planned.ok) {
-        for (const p of [paths.vetoHelper, paths.recallHelper, paths.manifest]) rmSync(p, { force: true });
-      }
-      return planned;
+      //
+      // codex-hooks-remove-never-orphans (ADR-001): the helpers go ONLY when nothing left in the
+      // registry still points at them. Keyed on the OBSERVED fact — dz-like entries surviving this
+      // plan — not on a flag: an installer between its two sections (no manifest yet), or a manifest
+      // deleted by hand, leaves entries we cannot attribute; deleting their helpers anyway turned the
+      // entry into `exit 127`, which Codex reads as ALLOW. A dead reference is worse than a stray file.
+      //
+      // Review r1 item 3: "nothing left points at them" is measured on the registry AS IT WILL BE
+      // WRITTEN — every surviving handler, attributed-and-salvaged or not. `unattributable` counts
+      // whole unattributed entries only; a handler salvaged from an attributed matcher group (another
+      // interpreter sharing these helpers) would slip past it and lose its helper.
+      if (!planned.ok) return { planned, references: 0 };
+      const references = dzHelperReferences(planned.result.registry);
+      const doomed = references > 0 ? [paths.manifest] : [paths.vetoHelper, paths.recallHelper, paths.manifest];
+      for (const p of doomed) rmSync(p, { force: true });
+      return { planned, references };
     });
-    if (!removal.ok) return { ...base, codexVersion, exitCode: 1, warnings, errors: [removal.error] };
+    const planned = removal.planned;
+    if (!planned.ok) return { ...base, codexVersion, exitCode: 1, warnings, errors: [planned.error] };
+    // A remove that leaves dz references in the registry did not remove dz — it must not say it did.
+    const kept = removal.references;
     return {
       ...base,
       codexVersion,
-      written: removal.result.changed,
-      removed: removal.result.removed,
-      unattributable: removal.result.unattributable,
-      exitCode: 0,
-      warnings:
-        removal.result.unattributable > 0
-          ? [`${removal.result.unattributable} entr(ies) resemble dz hooks but are not manifest-attributed — KEPT, remove them by hand if you want them gone`]
-          : warnings,
-      errors,
+      written: planned.result.changed,
+      removed: planned.result.removed,
+      unattributable: planned.result.unattributable,
+      exitCode: kept > 0 ? 1 : 0,
+      warnings,
+      errors:
+        kept > 0
+          ? [
+              `remove-unattributed-entries-kept: ${kept} handler(s) in ${paths.registry} still reference the dz helpers but are ` +
+                'not manifest-attributed, so they were KEPT — and the helper files they reference were KEPT with them ' +
+                '(deleting a referenced helper makes the hook exit 127, which Codex treats as ALLOW). An install may be ' +
+                'in flight: let it finish and re-run `--remove`; otherwise delete those entries by hand, then re-run.',
+            ]
+          : errors,
       writes,
     };
   }
@@ -2305,8 +2333,8 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
     if (!plan.ok) return { plan, wrote: false as const, freshText };
     mkdirSync(paths.helperDir, { recursive: true, mode: 0o700 });
     const helpers = generateCodexHelpers();
-    writeHelperIfChanged(paths.vetoHelper, helpers.veto, writes);
-    writeHelperIfChanged(paths.recallHelper, helpers.recall, writes);
+    writeHelperIfChanged(paths.vetoHelper, helpers.veto, writes, options.writeHelperFile);
+    writeHelperIfChanged(paths.recallHelper, helpers.recall, writes, options.writeHelperFile);
     if (plan.plan.changed) {
       backupRegistry(paths, freshText, now, writes);
       atomicWrite(paths.registry, plan.plan.text);
@@ -2368,13 +2396,58 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
     const nowText = existsSync(paths.registry) ? readFileSync(paths.registry, 'utf8') : undefined;
     const nowDrift = diffCodexHooks(nowText, entries, undefined);
     if (!nowDrift.installed) {
-      return { wrote: false, drift: nowDrift };
+      return { wrote: false, drift: nowDrift, restored: false, restoreFailure: null };
     }
+    // codex-hooks-remove-never-orphans (ADR-001): the entries are ours and present — so are their
+    // helpers, or the registry points into nothing (exit 127 = ALLOW). Something that ignores the lock
+    // (an older dz's `--remove`, a hand) may have deleted or altered them since section one. Re-assert
+    // them HERE, under the lock, before the manifest calls this install complete. Two small writes,
+    // no probe: the section stays a short transaction.
+    const before = writes.length;
+    try {
+      mkdirSync(paths.helperDir, { recursive: true, mode: 0o700 });
+      const helpers = generateCodexHelpers();
+      writeHelperIfChanged(paths.vetoHelper, helpers.veto, writes, options.writeHelperFile);
+      writeHelperIfChanged(paths.recallHelper, helpers.recall, writes, options.writeHelperFile);
+    } catch (err) {
+      // Review r1 item 1: the restore FAILED (ENOSPC, a file where the helper dir should be, …). The
+      // entries this install wrote now point at helpers that may not exist — fail CLOSED on the
+      // invariant: take OUR entries back out of the registry (same lock, same transaction), write no
+      // manifest, and let the report say why. Foreign entries are untouched by construction:
+      // `removeCodexHooks` attributes by the hashes of the commands this very run emitted.
+      return {
+        wrote: false,
+        drift: nowDrift,
+        restored: false,
+        restoreFailure: rollBackOwnEntries(paths, entries, nowText, manifestText, `${now}-rollback`, writes, String((err as Error)?.message ?? err)),
+      };
+    }
+    const restored = writes.length > before;
     atomicWrite(paths.manifest, manifestText);
     writes.push(paths.manifest);
-    return { wrote: true, drift: nowDrift };
+    return { wrote: true, drift: nowDrift, restored, restoreFailure: null };
   });
-  if (!manifestOutcome.wrote) {
+  if (manifestOutcome.restoreFailure !== null) {
+    const f = manifestOutcome.restoreFailure;
+    errors.push(
+      `helpers-restore-failed: the helper files were missing or altered after the registry transaction and could not be ` +
+        `rewritten (${f.cause}). ` +
+        (f.rolledBack
+          ? 'This install\u2019s own entries were REMOVED from the registry again, so none of THEM references a missing helper (exit 127 = ALLOW); no manifest was written.'
+          : `Rolling this install\u2019s entries back ALSO failed (${f.rollbackError ?? 'unknown'}) — ${paths.registry} may reference a missing helper: fix the disk and re-run, or run \`--remove\`.`) +
+        (f.missing.length > 0
+          ? ` Missing helper path(s): ${f.missing.join(', ')}. Handlers not written by this run that reference these paths were left untouched and will exit 127 (Codex reads that as ALLOW) — run \`dz hooks-sync --target codex --check\` and repair.`
+          : ''),
+    );
+  }
+  if (manifestOutcome.restored) {
+    warnings.push(
+      'helpers-restored: the helper files were missing or altered between the registry transaction and the manifest ' +
+      'write (an older dz `--remove`, or a process that ignores the codex-hooks lock) — they were rewritten under the lock so the ' +
+      'registry never references a helper that does not exist.',
+    );
+  }
+  if (!manifestOutcome.wrote && manifestOutcome.restoreFailure === null) {
     warnings.push(
       'the registry no longer carries this install\u2019s entries — a concurrent remover won the window between the ' +
       'registry transaction and the manifest write, so NO manifest was written (a manifest describing entries that are ' +
@@ -2382,7 +2455,7 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
     );
   }
 
-  const drift = manifestOutcome.drift;
+  const drift = manifestOutcome.restoreFailure !== null ? manifestOutcome.restoreFailure.drift : manifestOutcome.drift;
   const installed = drift.installed;
   const armedState = installed && executable && trustResult.trust === 'trusted';
   // The install is not finished when the file is written — it is finished when the guard has been
@@ -2615,11 +2688,93 @@ function atomicWrite(path: string, text: string): void {
 }
 
 /** 0600: the helpers are invoked as `node <path>`, never executed directly (AM-35c). */
-function writeHelperIfChanged(path: string, body: string, writes: string[]): void {
+function writeHelperIfChanged(
+  path: string,
+  body: string,
+  writes: string[],
+  write: (path: string, body: string) => void = atomicWrite,
+): void {
   const current = existsSync(path) ? readFileSync(path, 'utf8') : undefined;
   if (current === body) return; // byte-idempotence: no change ⇒ no write ⇒ trust survives (FR-2)
-  atomicWrite(path, body);
+  write(path, body);
   writes.push(path);
+}
+
+/**
+ * Handlers in a registry that reference the dz helper files (codex-hooks-remove-never-orphans).
+ * Counted per HANDLER, over every surviving entry — so a foreign-looking handler salvaged from an
+ * attributed matcher group still counts as a reference.
+ */
+function dzHelperReferences(registry: CodexRegistry): number {
+  let n = 0;
+  for (const list of Object.values(registry.hooks)) {
+    for (const entry of list) {
+      const e = entry as { hooks?: unknown };
+      const handlers = Array.isArray(e?.hooks) ? (e.hooks as unknown[]) : [entry];
+      for (const h of handlers) if (looksLikeDzEntry(h)) n += 1;
+    }
+  }
+  return n;
+}
+
+interface HelperRestoreFailure {
+  readonly cause: string;
+  readonly rolledBack: boolean;
+  readonly rollbackError: string | null;
+  /** Helper paths of this home that are absent on disk after the failed restore. */
+  readonly missing: readonly string[];
+  readonly drift: ReturnType<typeof diffCodexHooks>;
+}
+
+/**
+ * Section-2 fail-closed path: remove exactly the entries THIS run emitted (attributed by the hashes
+ * in the manifest it was about to write) and any stale manifest, under the caller's lock.
+ */
+function rollBackOwnEntries(
+  paths: CodexHooksPaths,
+  entries: readonly ManagedEntry[],
+  registryText: string | undefined,
+  manifestText: string,
+  backupStamp: string,
+  writes: string[],
+  cause: string,
+): HelperRestoreFailure {
+  const ours = parseCodexHookManifest(manifestText);
+  const planned = removeCodexHooks(registryText, ours);
+  let rolledBack = false;
+  let rollbackError: string | null = null;
+  let finalText = registryText;
+  if (!planned.ok) {
+    rollbackError = planned.error;
+  } else {
+    try {
+      if (planned.result.changed) {
+        backupRegistry(paths, registryText, backupStamp, writes);
+        atomicWrite(paths.registry, planned.result.text);
+        writes.push(paths.registry);
+      }
+      finalText = planned.result.text;
+      rolledBack = true;
+    } catch (err) {
+      rollbackError = String((err as Error)?.message ?? err);
+    }
+  }
+  // A stale manifest from an earlier install would now describe entries that are gone.
+  try {
+    rmSync(paths.manifest, { force: true });
+  } catch { /* the helper dir may itself be the obstacle (a file) — nothing to describe there */ }
+  // Named, never pruned (AM-6, review r3): a handler this run did not write is left untouched even if
+  // it references a missing helper. Deciding "does this shell command execute our helper?" needs a
+  // shell parser; a substring match misfired BOTH ways (removed a valid foreign guard that merely
+  // mentioned the path; missed an escaped path). Detection is `--check`'s job.
+  const missing = [paths.vetoHelper, paths.recallHelper].filter((p) => !existsSync(p));
+  return {
+    cause,
+    rolledBack,
+    rollbackError,
+    missing,
+    drift: diffCodexHooks(finalText, entries, undefined),
+  };
 }
 
 function backupRegistry(paths: CodexHooksPaths, currentText: string | undefined, now: string, writes: string[]): void {

@@ -80,11 +80,6 @@ export interface DriftReport {
 export declare function findArchitectureDrift(map: ArchitectureMap, trackedPackages: ReadonlySet<string>): DriftReport;
 /** Human render of a DriftReport for `dz architecture --revise`. Deterministic. */
 export declare function renderDriftReport(report: DriftReport): string;
-/**
- * Scan `packages/@dzhechkov/*` into `ScannedPackage[]` (unscoped name + unscoped internal deps). Impure
- * I/O helper (lazy `require`, never throws) shared by the CLI and the feature-adr end-of-run auto-update
- * (FR-3), so both build the map from the identical scan. Deterministic: output is sorted.
- */
 export declare function scanWorkspacePackages(repoRoot: string): ScannedPackage[];
 /** A proposed feature, as known at feature-adr Step 0 (before it exists). */
 export interface FeatureDescriptor {

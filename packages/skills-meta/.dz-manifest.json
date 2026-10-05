@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "40914d7903dbde9b937f47d423f47818d8e88dce2e7d91450ba225267ebc3a19"
+        "sha256": "22520153a4bcef3d64ca46052afd27fd29eddf75d3393785581657e077e2360d"
       },
       {
         "path": "adversarial-verifier/SKILL.md",
@@ -185,7 +185,7 @@
       },
       {
         "path": "feature-adr/SKILL.md",
-        "sha256": "67eb730c815e6b8f9b9b61084c67ceb85440548f00b21f52187d16e81e3d7af8"
+        "sha256": "28c265603481f976a52ea4c627e11194f3c0283801ea93d02cbb9f4248b43c68"
       },
       {
         "path": "feature-adr/examples/sample-feature-output.md",
@@ -209,7 +209,7 @@
       },
       {
         "path": "feature-adr/modules/03.5-ideation-swarm.md",
-        "sha256": "d48a8d6eebf9760cc8f1a4f19df0e6afc31fcc1284b5eacfb604ad8ced6a0b53"
+        "sha256": "b6e505083c1b8bc92243379b72ff4667b5b91ef65fd9c2ef7407129018b3e56b"
       },
       {
         "path": "feature-adr/modules/04-ddd.md",
@@ -221,15 +221,15 @@
       },
       {
         "path": "feature-adr/modules/06-implementation-plan.md",
-        "sha256": "5c8d4c79d5329702b8c75b9afb36ae335aa63c99e74045c0afa98e12658ee975"
+        "sha256": "d7a2a4e56b24451da234b1ac4ef440ba9b0370617e1c0cde8ad5f3d575a53209"
       },
       {
         "path": "feature-adr/modules/07-code.md",
-        "sha256": "fb054591e86d55cee184eab96b5f0440053ada8fa9edf619e4a66ec5ac371587"
+        "sha256": "db79f8d026cc47edd1e5d2f30d0e1455c55c570dd022d549d440985a3e5940a5"
       },
       {
         "path": "feature-adr/modules/08-qe.md",
-        "sha256": "5355e2b36ab13b6acb65abe5b206685915ef2b08191b4a3130574620012b9135"
+        "sha256": "4aa7ef1dea08b8d1995d968a317da5d36a4859ec299637bdc60170cf577c87af"
       },
       {
         "path": "feature-adr/modules/09-fleet-qe.md",
@@ -320,8 +320,16 @@
         "sha256": "238d8896996dc53559f58b24aa7eca966cc8845c3b9dda6d982c717c657b91e4"
       },
       {
+        "path": "feature-adr/scripts/build-coder-context.mjs",
+        "sha256": "19c3991bfb5e88205c9ff6d4d44037c136a190581bab199d3928196e4616fe15"
+      },
+      {
         "path": "feature-adr/scripts/check-plan-completeness.mjs",
-        "sha256": "eb77822f121ade10bd6265b0f0145ec38507a07d2cb72ba5fa8336c962096bda"
+        "sha256": "8b93949ce4f671d932c5389050db3a3e2750efcbed69681d69f392ccf4d2a168"
+      },
+      {
+        "path": "feature-adr/scripts/check-review-convergence.mjs",
+        "sha256": "80f9691b8e94bf310461aeaaaa23af6e336d41d0962fdf137737639655cbdeb8"
       },
       {
         "path": "feature-adr/scripts/markdown-masker.mjs",
@@ -465,7 +473,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "5ea6e55965de142cc3732d4d257e2fa2607d055d3ea1d0ddf9a2f901ceffb97d"
+        "sha256": "9556f88d6d0d3cc8bf5664711f9ef75e1ddbb0a0813b64c9ca06fe32a1e2feb1"
       },
       {
         "path": "problem-solver-enhanced/SKILL.md",
@@ -561,5 +569,5 @@
       }
     ]
   },
-  "signature": "dfpG4PyxjhGpNKF7kAOQEWDFrCZcMpKGdHonc5IrZBJslzjyfC6gRcQSE005lxo+QtXyJWmXmEiNfhBXdYIdDQ=="
+  "signature": "5z/ULO7HWiFRRmSlG7NwSlCvuQy/Ge1PU1VJfpZynCuRfAc9VoUehf5EyKP3Bnsxx6hdLwwNm6nswbmaC5zJDw=="
 }

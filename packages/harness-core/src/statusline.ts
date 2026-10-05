@@ -14,7 +14,7 @@
  * @packageDocumentation
  */
 
-import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
+import { closeSync, constants, fstatSync, lstatSync, openSync, readSync, realpathSync, appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 
@@ -163,6 +163,154 @@ export function featureAdrStatePath(projectRoot: string, slug?: string): string 
   return slug === undefined
     ? join(projectRoot, '.dz', 'feature-adr', 'learning-state.json')
     : join(featureAdrStateDir(projectRoot), `${featureAdrStateSlug(slug)}.json`);
+}
+
+/** Exact content selectors; slot filenames alone never establish run identity. */
+export interface FeatureAdrSelector {
+  readonly slug?: string;
+  readonly runId?: string;
+}
+
+/** Diagnostic observation, separate from the legacy active-only statusline DTO. */
+export interface FeatureAdrObservation {
+  readonly status: 'missing' | 'fresh' | 'stale' | 'expired' | 'completed' | 'unreadable' | 'limited-search';
+  readonly state?: Omit<FeatureAdrState, 'pool' | 'recalled' | 'stored'> & {
+    readonly pool?: number;
+    readonly recalled?: number;
+    readonly stored?: number;
+  };
+  readonly ageMs?: number;
+  readonly reason?: string;
+  readonly limitedSearch?: boolean;
+}
+
+/**
+ * Read bounded, regular local slots without writing or borrowing a different selected run.
+ * A deliberate symlink project root is resolved once; state ancestors/slots cannot be symlinks.
+ * These checks prevent accidental escapes/blocking files, not hostile concurrent replacement.
+ */
+export function readFeatureAdrObservation(
+  projectRoot: string,
+  selector: FeatureAdrSelector = {},
+  now: number = Date.now(),
+): FeatureAdrObservation {
+  const failure = (reason: string): FeatureAdrObservation => ({ status: 'unreadable', reason });
+  const missing = (): FeatureAdrObservation => ({ status: 'missing' });
+  const absent = (error: unknown): boolean => (error as { code?: string })?.code === 'ENOENT';
+  const limit = 256 * 1024;
+  let root: string;
+  try {
+    root = realpathSync(resolve(projectRoot));
+    for (const path of [join(root, '.dz'), join(root, '.dz', 'feature-adr'), featureAdrStateDir(root)]) {
+      try {
+        const stat = lstatSync(path);
+        if (stat.isSymbolicLink() || !stat.isDirectory()) return failure('state ancestor is not a regular directory');
+      } catch (error) { if (!absent(error)) return failure('state directory unavailable'); }
+    }
+  } catch (error) { return absent(error) ? missing() : failure('project root unavailable'); }
+
+  const read = (path: string): FeatureAdrObservation => {
+    let fd: number | undefined;
+    try {
+      const stat = lstatSync(path);
+      if (!stat.isFile() || stat.isSymbolicLink()) return failure('slot is not a regular file');
+      if (stat.size > limit) return failure('slot exceeds 256 KiB');
+      // NONBLOCK also keeps a replacement FIFO from blocking between lstat and open.
+      fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
+      const opened = fstatSync(fd);
+      if (!opened.isFile() || opened.size > limit) return failure('slot is not a bounded regular file');
+      const buffer = Buffer.alloc(limit + 1);
+      let bytes = 0;
+      while (bytes <= limit) {
+        const count = readSync(fd, buffer, bytes, buffer.length - bytes, null);
+        if (count === 0) break;
+        bytes += count;
+        if (bytes > limit) return failure('slot exceeds 256 KiB');
+      }
+      const value: unknown = JSON.parse(buffer.subarray(0, bytes).toString('utf8'));
+      if (typeof value !== 'object' || value === null || Array.isArray(value)) return failure('invalid slot object');
+      const parsed = value as Record<string, unknown>;
+      if (typeof parsed['slug'] !== 'string' || parsed['slug'].trim() === ''
+        || typeof parsed['step'] !== 'string' || parsed['step'].trim() === ''
+        || typeof parsed['ts'] !== 'string') return failure('invalid slot identity or timestamp');
+      const tsMs = Date.parse(parsed['ts']);
+      if (!Number.isFinite(now) || !Number.isFinite(tsMs) || tsMs > now) return failure('invalid or future report timestamp');
+      for (const field of ['pool', 'recalled', 'stored', 'reinforced']) {
+        const count = parsed[field];
+        if (count !== undefined && (typeof count !== 'number' || !Number.isSafeInteger(count) || count < 0)) {
+          return failure(`invalid ${field} counter`);
+        }
+      }
+      for (const field of ['runId', 'mode', 'tier', 'phaseStartTs']) {
+        if (parsed[field] !== undefined && (typeof parsed[field] !== 'string' || (parsed[field] as string).trim() === '')) {
+          return failure(`invalid ${field}`);
+        }
+      }
+      if (parsed['tier'] !== undefined && !FEATURE_ADR_TIERS.has(parsed['tier'] as string)) return failure('invalid tier');
+      if (parsed['kind'] !== undefined && parsed['kind'] !== 'feature-adr' && parsed['kind'] !== 'loop') return failure('invalid producer kind');
+      if (typeof parsed['phaseStartTs'] === 'string') {
+        const start = Date.parse(parsed['phaseStartTs']);
+        if (!Number.isFinite(start) || start > tsMs) return failure('invalid phase start timestamp');
+      }
+      const state: NonNullable<FeatureAdrObservation['state']> = {
+        slug: parsed['slug'], step: parsed['step'], ts: parsed['ts'],
+        kind: parsed['kind'] === 'loop' ? 'loop' : 'feature-adr',
+        ...(parsed['pool'] === undefined ? {} : { pool: parsed['pool'] as number }),
+        ...(parsed['recalled'] === undefined ? {} : { recalled: parsed['recalled'] as number }),
+        ...(parsed['stored'] === undefined ? {} : { stored: parsed['stored'] as number }),
+        ...(parsed['reinforced'] === undefined ? {} : { reinforced: parsed['reinforced'] as number }),
+        ...(parsed['runId'] === undefined ? {} : { runId: parsed['runId'] as string }),
+        ...(parsed['mode'] === undefined ? {} : { mode: parsed['mode'] as string }),
+        ...(parsed['tier'] === undefined ? {} : { tier: parsed['tier'] as string }),
+        ...(parsed['phaseStartTs'] === undefined ? {} : { phaseStartTs: parsed['phaseStartTs'] as string }),
+      };
+      const ageMs = now - tsMs;
+      const status = state.step.trim() === 'done' ? 'completed'
+        : ageMs >= FEATURE_ADR_FRESH_MS ? 'expired' : ageMs >= FEATURE_ADR_WARN_MS ? 'stale' : 'fresh';
+      return { status, state, ageMs };
+    } catch (error) { return absent(error) ? missing() : failure('slot unreadable or invalid JSON'); }
+    finally { if (fd !== undefined) closeSync(fd); }
+  };
+  const matches = (observation: FeatureAdrObservation): boolean => observation.state !== undefined
+    && (selector.slug === undefined || observation.state.slug === selector.slug)
+    && (selector.runId === undefined || observation.state.runId === selector.runId);
+  if (selector.slug !== undefined) {
+    const direct = read(featureAdrStatePath(root, selector.slug));
+    if (direct.status !== 'missing') return direct.status === 'unreadable' ? direct : matches(direct) ? direct : missing();
+    const legacy = read(featureAdrStatePath(root));
+    return legacy.status === 'unreadable' ? legacy : matches(legacy) ? legacy : missing();
+  }
+
+  const candidates: Array<{ path: string; mtime: number }> = [];
+  try {
+    const legacy = featureAdrStatePath(root);
+    try { candidates.push({ path: legacy, mtime: lstatSync(legacy).mtimeMs }); }
+    catch (error) { if (!absent(error)) return failure('legacy slot unavailable'); }
+    let names: string[] = [];
+    try { names = readdirSync(featureAdrStateDir(root)); }
+    catch (error) { if (!absent(error)) return failure('state discovery unavailable'); }
+    for (const name of names) {
+      if (!name.endsWith('.json')) continue;
+      const path = join(featureAdrStateDir(root), name);
+      let mtime = -Infinity;
+      try { mtime = lstatSync(path).mtimeMs; } catch { /* read reports a racing entry */ }
+      candidates.push({ path, mtime });
+    }
+  } catch { return failure('state discovery unavailable'); }
+  candidates.sort((a, b) => b.mtime - a.mtime || (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+  const limitedSearch = candidates.length > 64;
+  const observations = candidates.slice(0, 64).map(({ path }) => read(path));
+  const eligible = observations.filter(matches);
+  if (eligible.length > 0) {
+    eligible.sort((a, b) => {
+      const rank = (o: FeatureAdrObservation): number => (o.status === 'fresh' || o.status === 'stale')
+        ? o.state?.kind === 'loop' ? 1 : 2 : 0;
+      return rank(b) - rank(a) || (a.ageMs ?? Infinity) - (b.ageMs ?? Infinity);
+    });
+    return { ...eligible[0]!, ...(limitedSearch ? { limitedSearch: true } : {}) };
+  }
+  if (limitedSearch) return { status: 'limited-search', reason: 'only 64 candidates searched', limitedSearch: true };
+  return observations.find((o) => o.status === 'unreadable') ?? missing();
 }
 
 /**

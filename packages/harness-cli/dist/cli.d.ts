@@ -3,9 +3,11 @@
  *
  * @packageDocumentation
  */
+import { type StatuslineWatchIo } from './statusline-watch.js';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { type JournalIo } from '@dzhechkov/harness-core';
 import { type RoundLedgerRow, type RoundExecLedgerRow } from '@dzhechkov/harness-core';
+import { type NpmHomepageRecord, type NpmHomepageDiscoveryFailure } from '@dzhechkov/harness-core';
 declare module '@dzhechkov/harness-core' {
     interface RoundState {
         /** 16 random hex chars, minted once by `open`. The identity comparison `exec`/`close` use
@@ -66,6 +68,8 @@ export interface CliIo {
     readonly stdin?: string;
     /** Human-terminal rendering seam; production defaults to stdout TTY detection. */
     readonly interactive?: boolean;
+    /** Dedicated terminal watcher seams; never reuse the line-oriented one-shot output sink. */
+    readonly statuslineWatch?: StatuslineWatchIo;
     /** Fault seam proving that class-form recall degrades to specific recall with a stderr receipt. */
     readonly classMatcher?: RecallPatternsOptions['classMatcher'];
     /** Focused-round seams: production still uses the real store, writer, ledger tail and pid probe. */
@@ -196,6 +200,15 @@ export interface CliIo {
     readonly installRunner?: (command: string, cwd: string) => void;
     /** Fault seam for proving mutation-gate catches and retries thrown runner internals. */
     readonly mutationGateRunner?: MutationGateRunner;
+    /** Fault seam (mutation-gate-kills-scratch-children fix-round 2): the /proc the scratch-process reaper reads. */
+    readonly mutationGateProcIo?: MutationGateProcIo;
+    /**
+     * Test seam (vitest-ceiling-injection-hardening FR-2): the platform the testCommand runs on — on
+     * win32 a backslash is a literal path character (not a POSIX escape) when the `--maxWorkers`
+     * ceiling is injected; cmd.exe quoting (^ escapes, no single-quote quoting) is NOT modelled.
+     * Production leaves it unset → `process.platform`.
+     */
+    readonly mutationGatePlatform?: NodeJS.Platform;
     /** Read-back fault seam; production uses the real filesystem. */
     readonly journalIo?: JournalIo;
 }
@@ -203,6 +216,8 @@ export interface CliIo {
 export type ReleaseExecRunner = (cmd: string, opts: {
     readonly cwd: string;
     readonly timeoutMs: number;
+    readonly argv?: readonly string[];
+    readonly env?: NodeJS.ProcessEnv;
 }) => {
     exitCode: number;
     stdout: string;
@@ -364,6 +379,62 @@ interface PublishGateAuditFsLayer {
     readonly fsyncSync: (fd: number) => void;
     readonly closeSync: (fd: number) => void;
 }
+/**
+ * `dz discrimination-check` — the §42 test-discrimination gate (feature learned from cve-bench/evaluate.mjs).
+ * feature-adr Step-8 already asserts the ADR safety property HAS a test; this asserts that test DISCRIMINATES:
+ * run the property test(s) in an isolated git worktree at the pre-feature base (default HEAD, since the feature
+ * diff is uncommitted mid-pipeline). They MUST go red without the feature diff — a green is a false green.
+ *
+ *   --test <a.test.ts[,b.test.ts]>  the property test file(s) mapped from the ADR Confirmation (comma list)
+ *   --base <ref>                    the base ref to fail against (default HEAD)
+ *   --name '<filter>'               optional -t test-name filter applied to every target
+ *   --runner '<cmd>'                test runner (default `npx vitest run`)
+ *   --timeout <ms>                  per-run timeout (default 300000; a timed-out run is CANNOT_ISOLATE)
+ *   --json                          machine-readable {plan, results, tipTree, perTest, aggregate,
+ *                                   findings, measurementValid, primaryAction}
+ *
+ * This executor is THIN by design (house style: pure classifier + thin executor). It performs exactly the
+ * I/O the pure gate cannot — stat, worktree, run, capture — and hands OBSERVATIONS back. It no longer
+ * interprets anything: the pre-epoch load-error regex that lived here (`/cannot find module|failed to
+ * load|.../i`) is DELETED, because a regex over a runner's stderr, written in the executor, is exactly the
+ * probabilistic channel that minted `DISCRIMINATES` for `--runner false`.
+ *
+ * NEVER auto-aborts: a non-discriminating (false-green) test is reported as a HIGH finding for the owner to
+ * decide (dz's rule — a false gate kills trust). Exit code is 0 on a clean run regardless of verdict; 2 only on
+ * a usage/setup error, so a caller distinguishes "gate ran" from "gate could not run".
+ */
+/**
+ * Есть ли в этом каталоге НЕЗАКОММИЧЕННЫЕ правки. Это и отличает «фича ещё в рабочем дереве»
+ * (тогда `HEAD` — законная предфичевая база) от «фича уже закоммичена» (тогда `HEAD` её содержит).
+ *
+ * Не удалось спросить git — возвращается null, и вызывающий обязан считать положение НЕ
+ * УСТАНОВЛЕННЫМ, а не выбрать удобный ответ.
+ */
+/** What `readNpmHomepageRecords` saw: the records, plus every entry it could not decide. */
+export interface NpmHomepageRead {
+    readonly records: NpmHomepageRecord[];
+    readonly failures: NpmHomepageDiscoveryFailure[];
+    /** Set when `packagesDir` itself could not be listed — the rule is then NOT ESTABLISHED with this reason. */
+    readonly unreadableRoot?: string;
+}
+/** The three fs calls the reader makes; injectable so a test can make one entry throw EACCES. */
+export interface NpmHomepageReaderIo {
+    readonly readdir: (dir: string) => string[];
+    readonly stat: (path: string) => {
+        isDirectory(): boolean;
+    };
+    /** Does not follow symlinks: decides whether a directory ENTRY named `package.json` exists. */
+    readonly lstat: (path: string) => unknown;
+    readonly readText: (path: string) => string;
+}
+/**
+ * npm-homepage guard, filesystem half (backlog e5d0d383; the pure half is `npmHomepageFacts` in
+ * harness-core). Every directory under `packagesDir` — hidden ones included — that holds a `package.json`
+ * becomes a record (parsed JSON or `parseError`, plus README.md text). Only a confirmed ENOENT on the
+ * directory ENTRY (lstat) counts as "absent"; a present entry whose target cannot be inspected is a failure; any other error on an entry, its manifest or its README existence is a NAMED failure, never a
+ * skip (fix round 1, review r1 finding 2). An unlistable `packagesDir` sets `unreadableRoot` (ENOENT does not).
+ */
+export declare function readNpmHomepageRecords(packagesDir: string, io?: NpmHomepageReaderIo): NpmHomepageRead;
 export declare function discriminationCompat(result: {
     readonly findings: readonly {
         readonly detail: string;
@@ -377,6 +448,55 @@ export declare function discriminationCompat(result: {
     };
 };
 export declare function boundedMutationGateOutputTail(output: string): string | undefined;
+export declare const MUTATION_GATE_REAP_BUDGET_MS = 2000;
+/** The /proc surface the reaper reads and the signal it sends — a seam so the races are testable. */
+export interface MutationGateProcIo {
+    readonly listPids: () => readonly number[];
+    readonly environ: (pid: number) => string | null;
+    readonly cwd: (pid: number) => string | null;
+    /** `/proc/<pid>/stat`: state (field 3) and starttime (field 22), parsed after the LAST ')'; null = gone. */
+    readonly stat: (pid: number) => {
+        readonly state: string;
+        readonly startTime: string;
+    } | null;
+    /** SIGKILL; throws when the pid no longer exists. */
+    readonly kill: (pid: number) => void;
+    readonly now: () => number;
+    readonly sleep: (ms: number) => void;
+}
+export interface MutationGateReapResult {
+    /** pids a SIGKILL was sent to (the ATTEMPT). */
+    readonly killed: readonly number[];
+    /** killed pids still alive — same starttime, not a zombie — when the budget ran out (the DEATH not confirmed). */
+    readonly survivors: readonly number[];
+    /**
+     * fix-round 2 (astra r2 #6): false when the budget stopped a scan before it visited every pid, or
+     * before a full scan could confirm that nothing of ours is left — an owned process may then be
+     * UNSEEN, so an empty `killed` is NOT "clean". Never reported as clean.
+     */
+    readonly complete: boolean;
+    /** present iff `complete` is false: pids inspected / listed in the scan the budget stopped (`total` null = the confirming scan never started). */
+    readonly incomplete?: {
+        readonly inspected: number;
+        readonly total: number | null;
+    };
+}
+export declare const LINUX_MUTATION_GATE_PROC_IO: MutationGateProcIo;
+/**
+ * SIGKILL every live process owned by this gate invocation, wait (bounded) for their death, rescan
+ * once for members born after the last pass, and NAME whoever is still alive.
+ *
+ * fix-round 1 (astra r1):
+ *  - finding 1 (pid reuse): a pid's starttime (stat field 22) is read BEFORE the ownership check and
+ *    RE-READ immediately before the signal; a vanished pid or a changed starttime is skipped as
+ *    "gone". Honest remaining window: the microseconds between that re-read and `kill(2)` — Node
+ *    exposes no pidfd_send_signal, so it cannot be closed from here, only narrowed.
+ *  - finding 2 (death not confirmed / late member): after the kill passes the reaper polls every
+ *    killed pid (same starttime, not a zombie) until dead or out of budget, then rescans once and
+ *    repeats the wait for anything new; the still-alive pids come back as `survivors`.
+ *  - finding 3: every step is bounded by ONE wall-clock budget, not only by the pass count.
+ */
+export declare function reapMutationGateScratchProcesses(runToken: string, realScratchRoot: string, io?: MutationGateProcIo | null, budgetMs?: number): MutationGateReapResult;
 /** Test seam for the chokepoint: NEW-C4's proof needs to call it with a hostile pid. */
 export declare function __wfSignalChildTestSeam(child: unknown, signal: string, detached: boolean): boolean;
 /** Exposed for the unit test: the kill set must NAME every live child's pid. */

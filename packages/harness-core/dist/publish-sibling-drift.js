@@ -25,22 +25,46 @@
  *
  * @packageDocumentation
  */
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync, lstatSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, relative, isAbsolute } from 'node:path';
-function listFilesRecursive(root, dir) {
-    if (!existsSync(dir))
-        return [];
-    const out = [];
-    for (const entry of readdirSync(dir).sort()) {
-        const abs = join(dir, entry);
-        const st = statSync(abs);
-        if (st.isDirectory())
-            out.push(...listFilesRecursive(root, abs));
-        else
-            out.push(relative(root, abs));
+import { judgeReleaseCohortAudit } from './release-package-audit.js';
+import { rewriteWorkspaceSpecs } from './pack-artifact.js';
+import { hashPackBytes, verifyManifest, isSafeManifestPath } from './sign.js';
+function listFilesRecursive(root, dir, strictPacked = false) {
+    try {
+        if (!existsSync(dir)) {
+            if (strictPacked)
+                throw new InventoryListingError('missing packed tree');
+            return [];
+        }
+        if (strictPacked && !lstatSync(dir).isDirectory())
+            throw new InventoryListingError('packed directory is a symlink or unsupported entry');
+        const out = [];
+        const seen = new Set();
+        for (const entry of readdirSync(dir).sort()) {
+            const abs = join(dir, entry);
+            const path = relative(root, abs);
+            const st = strictPacked ? lstatSync(abs) : statSync(abs);
+            if (strictPacked) {
+                if (!isSafeManifestPath(path) || seen.has(path.toLowerCase()))
+                    throw new InventoryListingError('noncanonical or aliased packed path: ' + path);
+                seen.add(path.toLowerCase());
+                if (!st.isDirectory() && !st.isFile())
+                    throw new InventoryListingError('symlink or special packed entry: ' + path);
+            }
+            if (st.isDirectory())
+                out.push(...listFilesRecursive(root, abs, strictPacked));
+            else
+                out.push(path);
+        }
+        return out;
     }
-    return out;
+    catch (error) {
+        if (strictPacked && !(error instanceof InventoryListingError))
+            throw new InventoryListingError('physical packed inventory unreadable: ' + String(error));
+        throw error;
+    }
 }
 function sha256(data) {
     return createHash('sha256').update(data).digest('hex');
@@ -149,6 +173,196 @@ function readManifest(dir) {
     }
     catch {
         return null;
+    }
+}
+/** Readonly exception for two original, fully verified artifact trees. Every other delta refuses. */
+function classifyOwnerBrandingDelta(localDir, registryDir, name, version, publicKey, declaredPaths, retained) {
+    let coverageVerified = false;
+    const decline = (detail) => ({ accepted: false, coverageVerified, changedFiles: [], reason: 'owner-branding not proven: ' + detail });
+    if (!publicKey)
+        return decline('no trusted external public key');
+    try {
+        for (const dir of [localDir, registryDir]) {
+            for (const path of ['.dz-manifest.json', 'sbom.json', 'package.json', 'README.md']) {
+                if (!lstatSync(join(dir, path)).isFile())
+                    return decline('original metadata is not a regular file');
+            }
+        }
+        const localSignedBytes = readFileSync(join(localDir, '.dz-manifest.json'), 'utf8');
+        const registrySignedBytes = readFileSync(join(registryDir, '.dz-manifest.json'), 'utf8');
+        const localSigned = JSON.parse(localSignedBytes);
+        const registrySigned = JSON.parse(registrySignedBytes);
+        // No projected/re-signed object reaches the verifier. Both untouched inventories and SBOMs first.
+        if (!verifyManifest(localDir, localSigned, publicKey).ok || !verifyManifest(registryDir, registrySigned, publicKey).ok)
+            return decline('original signature, SBOM or full signed inventory failed verification');
+        for (const [signed, bytes] of [[localSigned, localSignedBytes], [registrySigned, registrySignedBytes]]) {
+            const serializations = [JSON.stringify(signed), JSON.stringify(signed, null, 2)];
+            if (!serializations.some(text => bytes === text || bytes === text + '\n'))
+                return decline('manifest serialization has unexplained or ambiguous bytes');
+            if (Buffer.from(signed.signature, 'base64').toString('base64') !== signed.signature)
+                return decline('signature encoding is not canonical');
+        }
+        const paths = listFilesRecursive(localDir, localDir, true).sort();
+        const registryPaths = listFilesRecursive(registryDir, registryDir, true).sort();
+        if (JSON.stringify(paths) !== JSON.stringify(registryPaths))
+            return decline('artifact file sets differ');
+        if (declaredPaths !== undefined && JSON.stringify([...declaredPaths].sort()) !== JSON.stringify(paths))
+            return decline('declared packed inventory is incomplete or duplicated');
+        // Installed/source verifier exclusions are not packed-artifact signing coverage.
+        // Every physical regular leaf is authenticated; only the two validated ROOT metadata files self-exempt.
+        for (const [signed, physical] of [[localSigned, paths], [registrySigned, registryPaths]]) {
+            const signedPaths = signed.manifest.files.map(entry => entry.path).sort();
+            if (signedPaths.some(path => !isSafeManifestPath(path) || path === '.dz-manifest.json' || path === 'sbom.json'))
+                return decline('invalid signed leaf or generated-root self-reference');
+            const expected = physical.filter(path => path !== '.dz-manifest.json' && path !== 'sbom.json');
+            if (JSON.stringify(signedPaths) !== JSON.stringify(expected))
+                return decline('physical packed leaves are not fully covered by the signed inventory');
+        }
+        coverageVerified = true;
+        const localPkgBytes = readFileSync(join(localDir, 'package.json'));
+        const registryPkgBytes = readFileSync(join(registryDir, 'package.json'));
+        const localPkg = JSON.parse(localPkgBytes.toString('utf8'));
+        const registryPkg = JSON.parse(registryPkgBytes.toString('utf8'));
+        if (localPkg['name'] !== name || registryPkg['name'] !== name || localPkg['version'] !== version || registryPkg['version'] !== version)
+            return decline('package identity/version does not bind both artifacts');
+        const source = 'https://github.com/djd1m/dz-harness/tree/main/packages/' + name;
+        if (localPkg['homepage'] !== 'https://aicoding.space' || !['https://aicoding.space', source + '#readme'].includes(String(registryPkg['homepage'])))
+            return decline('homepage is not the exact directional owner policy');
+        const projectedPkg = { ...localPkg, homepage: registryPkg['homepage'] };
+        if (retained !== undefined) {
+            const left = localPkg['dependencies'];
+            const right = registryPkg['dependencies'];
+            if (!left || !right || left['@dzhechkov/core'] !== retained.localFloor || right['@dzhechkov/core'] !== retained.registeredFloor)
+                return decline('retained exact dependency binding contradicts originals');
+            projectedPkg['dependencies'] = { ...left, '@dzhechkov/core': right['@dzhechkov/core'] };
+        }
+        // Existing v3 canonical handling preserves order-sensitive exports/imports; no dependency values omitted.
+        if (hashPackBytes('package.json', Buffer.from(JSON.stringify(projectedPkg))) !== hashPackBytes('package.json', registryPkgBytes))
+            return decline('packed metadata differs beyond homepage (including dependency values)');
+        const stamp = 'Site: https://aicoding.space · Source: ' + source;
+        const stripTopStamp = (bytes, required) => {
+            const text = bytes.toString('utf8');
+            if (!Buffer.from(text).equals(bytes))
+                return undefined;
+            const lines = text.split('\n');
+            const stamps = lines.filter(line => line.startsWith('Site: ') || line.includes(' · Source: '));
+            if (stamps.length === 0)
+                return required ? undefined : bytes;
+            if (stamps.length !== 1 || !/^# [^\r\n]+$/.test(lines[0] ?? '') || lines[1] !== '' || lines[2] !== stamp || lines[3] !== '')
+                return undefined;
+            // Remove only the inserted blank/stamp framing; retain every other byte including trailing newlines.
+            return Buffer.from(lines[0] + '\n' + lines.slice(3).join('\n'));
+        };
+        const localReadme = readFileSync(join(localDir, 'README.md'));
+        const registryReadme = readFileSync(join(registryDir, 'README.md'));
+        const localRest = stripTopStamp(localReadme, true), registryRest = stripTopStamp(registryReadme, false);
+        if (!localRest || !registryRest || !localRest.equals(registryRest))
+            return decline('README differs beyond the one exact top owner stamp');
+        const admitted = new Set();
+        if (!localReadme.equals(registryReadme))
+            admitted.add('README.md');
+        if (hashPackBytes('package.json', localPkgBytes, localSigned.manifest.version) !== hashPackBytes('package.json', registryPkgBytes, registrySigned.manifest.version))
+            admitted.add('package.json');
+        if (admitted.size === 0)
+            return decline('no admitted branding leaf changed');
+        const canonical = (value) => Array.isArray(value) ? '[' + value.map(canonical).join(',') + ']' : value !== null && typeof value === 'object' ? '{' + Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => JSON.stringify(k) + ':' + canonical(v)).join(',') + '}' : JSON.stringify(value);
+        const projectManifest = (signed) => ({ ...signed, signature: '<verified-original>', manifest: { ...signed.manifest, files: [...signed.manifest.files].sort((a, b) => a.path.localeCompare(b.path)).map(entry => ({ ...entry, sha256: admitted.has(entry.path) ? '<admitted-digest>' : entry.sha256 })) } });
+        if (canonical(projectManifest(localSigned)) !== canonical(projectManifest(registrySigned)))
+            return decline('unexplained signed-manifest field or digest change');
+        const projectSbom = (dir, signed) => {
+            const sbom = JSON.parse(readFileSync(join(dir, 'sbom.json'), 'utf8'));
+            for (const component of sbom.components) {
+                if (!admitted.has(component.name))
+                    continue;
+                const digest = signed.manifest.files.find(entry => entry.path === component.name)?.sha256;
+                for (const hash of component.hashes ?? [])
+                    if (hash.alg === 'SHA-256' && hash.content === digest)
+                        hash.content = '<admitted-digest>';
+                for (const prop of component.properties ?? [])
+                    if (['dz:canonical-json-sha256-v1', 'dz:canonical-json-sha256-v2'].includes(prop.name) && prop.value === digest)
+                        prop.value = '<admitted-digest>';
+            }
+            return sbom;
+        };
+        if (canonical(projectSbom(localDir, localSigned)) !== canonical(projectSbom(registryDir, registrySigned)))
+            return decline('unexplained SBOM field or digest change');
+        const changedFiles = [];
+        for (const path of paths) {
+            const left = readFileSync(join(localDir, path)), right = readFileSync(join(registryDir, path));
+            if (left.equals(right))
+                continue;
+            if (!admitted.has(path) && !['.dz-manifest.json', 'sbom.json'].includes(path))
+                return decline('other shipped bytes changed: ' + path);
+            changedFiles.push(path);
+        }
+        return { accepted: true, coverageVerified, changedFiles, reason: 'owner-branding-only: both original signatures/full inventories verified; exact owner leaves and corresponding manifest/SBOM digests only' };
+    }
+    catch {
+        return decline('artifact proof is missing, unreadable or malformed');
+    }
+}
+function classifyRetainedBindingDelta(opts, localDir, registryDir, sourceDir, name, version, paths) {
+    const proof = opts.retainedBindingProof;
+    if (!proof)
+        return undefined;
+    const decline = (reason) => ({ accepted: false, coverageVerified: true, changedFiles: [], reason: 'retained registered binding not proven: ' + reason });
+    try {
+        const roots = ['harness-core', 'harness-cli', 'skills-meta', 'keysarium', 'skills-feature-adr'].map(n => '@dzhechkov/' + n).sort();
+        const adapters = ['adapter-agents-md', 'adapter-claude', 'adapter-codex', 'adapter-copilot', 'adapter-cursor', 'adapter-gemini', 'adapter-hermes', 'adapter-openclaude', 'adapter-opencode', 'adapter-windsurf'].map(n => '@dzhechkov/' + n).sort();
+        if (proof.version !== 1 || !['preview', 'final'].includes(proof.phase) || JSON.stringify([...opts.batch].sort()) !== JSON.stringify(roots) || JSON.stringify([...proof.batch].sort()) !== JSON.stringify(roots) || !adapters.includes(name) || opts.batch.has(name) || JSON.stringify(Object.keys(proof.adapters).sort()) !== JSON.stringify(adapters))
+            return decline('batch or literal adapter identity differs');
+        const canonical = (v) => Array.isArray(v) ? '[' + v.map(canonical).join(',') + ']' : v !== null && typeof v === 'object' ? '{' + Object.entries(v).sort(([a], [b]) => a.localeCompare(b)).map(([k, value]) => JSON.stringify(k) + ':' + canonical(value)).join(',') + '}' : JSON.stringify(v);
+        const { digest, ...payload } = proof;
+        if (sha256(canonical(payload)) !== digest || !/^[a-f0-9]{40,64}$/.test(proof.head) || proof.refs.length === 0 || proof.refs.some(r => !/^[a-f0-9]{40,64}$/.test(r.oid)))
+            return decline('snapshot/digest incomplete');
+        const baselineExecution = proof.baseline.evidence, candidateExecution = proof.candidate.evidence;
+        if (canonical(baselineExecution.platform) !== canonical(candidateExecution.platform) || baselineExecution.npmVersion !== candidateExecution.npmVersion)
+            return decline('host/npm identity differs across cohorts');
+        const baseline = judgeReleaseCohortAudit(proof.baseline.roots, proof.baseline.evidence), candidate = judgeReleaseCohortAudit(proof.candidate.roots, proof.candidate.evidence);
+        if (baseline.status !== 'clean' || candidate.status !== 'clean' || !baseline.graph || !candidate.graph)
+            return decline('fresh five-root cohorts are not both clean and complete');
+        for (const adapter of adapters) {
+            const fact = proof.adapters[adapter];
+            if (!fact || ![baseline.graph, candidate.graph].every(graph => graph.some(node => node.name === adapter && !node.selectedRoot && node.installed && node.version === fact.version && node.integrity === fact.registryIntegrity && node.declarations.dependencies?.['@dzhechkov/core'] === fact.registeredFloor && node.edges.some((edge) => edge.table === 'dependencies' && edge.name === '@dzhechkov/core' && graph.some(target => target.path === edge.target && !target.selectedRoot && target.version === fact.registeredFloor)))))
+                return decline('all ten registered adapter bindings must occur in both complete graphs');
+        }
+        const project = (graph) => graph.map(node => {
+            if (!node.selectedRoot)
+                return node;
+            const expectedPath = 'node_modules/' + node.name;
+            if (node.path !== expectedPath || !roots.includes(node.name))
+                throw new Error('selected projection is not a root occurrence');
+            const declarations = Object.fromEntries(Object.entries(node.declarations).map(([table, values]) => [table, Object.fromEntries(Object.entries(values).map(([dep, spec]) => [dep, node.edges.some((edge) => edge.table === table && edge.name === dep && edge.target === 'node_modules/' + dep && roots.includes(dep)) ? '<selected-root-step>' : spec]))]));
+            return { ...node, version: '<provided-root>', resolved: '<provided-root>', integrity: '<provided-root>', declarations, edges: node.edges.map((edge) => ({ ...edge, spec: roots.includes(edge.name) && edge.target === 'node_modules/' + edge.name ? '<selected-root-step>' : edge.spec })) };
+        });
+        if (canonical(project(baseline.graph)) !== canonical(project(candidate.graph)) || canonical(baseline.optionalAbsences) !== canonical(candidate.optionalAbsences))
+            return decline('unselected graph, occurrence, edge or omission differs');
+        const record = proof.adapters[name];
+        if (!record)
+            return decline('adapter record missing');
+        const sourceBytes = readFileSync(join(sourceDir, 'package.json'));
+        hashPackBytes('package.json', sourceBytes);
+        const source = JSON.parse(sourceBytes.toString('utf8'));
+        if (sha256(sourceBytes) !== record.sourceSha256 || source.name !== name || source.version !== version || source.dependencies?.['@dzhechkov/core'] !== 'workspace:*' || record.version !== version || !/^[a-f0-9]{40,64}$/.test(record.creation) || !record.history.some(row => row.oid === record.creation && !row.boundary) || record.history.length === 0 || record.history.length > 2048 || record.history.some(row => !/^[a-f0-9]{40,64}$/.test(row.oid) || (row.boundary ? row.literal !== null || row.blob !== null : row.literal !== 'workspace:*' || !/^[a-f0-9]{40,64}$/.test(row.blob ?? ''))))
+            return decline('current source or complete declaration history differs');
+        if (JSON.stringify([...opts.workspaceVersions].sort()) !== JSON.stringify([...proof.workspaceVersions].sort()))
+            return decline('captured workspace materialization map changed');
+        const expected = JSON.parse(rewriteWorkspaceSpecs(sourceBytes.toString('utf8'), new Map(proof.workspaceVersions)));
+        if (expected.scripts)
+            delete expected.scripts.prepublishOnly;
+        const actual = readFileSync(join(localDir, 'package.json'));
+        if (hashPackBytes('package.json', Buffer.from(JSON.stringify(expected))) !== hashPackBytes('package.json', actual))
+            return decline('source-to-packed materialization differs');
+        const treeHash = (dir) => sha256(canonical(listFilesRecursive(dir, dir, true).sort().map(path => [path, sha256(readFileSync(join(dir, path)))])));
+        if (treeHash(localDir) !== record.localTreeSha256 || treeHash(registryDir) !== record.registryTreeSha256 || !/^sha512-[A-Za-z0-9+/]+={0,2}$/.test(record.registryIntegrity) || !/^\d+\.\d+\.\d+$/.test(record.registeredFloor) || record.localFloor === record.registeredFloor || expected.dependencies?.['@dzhechkov/core'] !== record.localFloor)
+            return decline('artifact/SRI/exact-floor binding differs');
+        const verified = classifyOwnerBrandingDelta(localDir, registryDir, name, version, opts.trustedPublicKeyPem, paths, { localFloor: record.localFloor, registeredFloor: record.registeredFloor });
+        if (!verified.accepted)
+            return verified;
+        return { ...verified, reason: `retained-registered-binding: registered core ${record.registeredFloor} retained; workspace materializes ${record.localFloor}; fresh cohort/source/artifact proof ${proof.digest}; historical release gitHead not established` };
+    }
+    catch {
+        return decline('source/artifact/graph proof unreadable or inconsistent');
     }
 }
 /** package.json normalized for comparison: strip fields that legitimately differ (version, gitHead, npm-internal `_*`). */
@@ -314,6 +528,19 @@ export function detectSiblingDrift(opts) {
         // AM-3: a missing/unparseable package.json on EITHER side must not silently drop out of the
         // comparison (the old `hashTree` simply omitted the key, which — with an empty/matching
         // `dist/**` on both sides — could report `same` about an input that was never actually read).
+        if (opts.localInventory !== undefined && inventorySource === 'pack-artifact') {
+            try {
+                listFilesRecursive(fetched.dir, fetched.dir, true);
+                if (!lstatSync(workspaceDir).isDirectory())
+                    throw new InventoryListingError('workspace artifact root is a symlink or unsupported entry');
+                if (!lstatSync(join(fetched.dir, 'package.json')).isFile() || !lstatSync(join(workspaceDir, 'package.json')).isFile())
+                    throw new InventoryListingError('package metadata is not a regular file');
+            }
+            catch (error) {
+                results.push({ name: dep, version, status: 'unavailable', changedFiles: [], missingExports: [], reason: 'physical packed admission failed: ' + String(error), inventorySource });
+                continue;
+            }
+        }
         const publishedManifest = readManifest(fetched.dir);
         const workspaceManifest = readManifest(workspaceDir);
         if (publishedManifest === null || workspaceManifest === null) {
@@ -341,6 +568,8 @@ export function detectSiblingDrift(opts) {
         // pack`) correctly includes them, reading as a false "only in workspace" drift. WITHOUT a
         // provider, core has no way to ask npm on either side, so it degrades to the SAME approximation
         // on BOTH sides (symmetry preserved, just cruder) — a named approximation, never a subprocess.
+        let localPackedDir;
+        let localPackedPaths;
         let workspaceHashes;
         let publishedHashes;
         if (opts.localInventory !== undefined) {
@@ -357,7 +586,16 @@ export function detectSiblingDrift(opts) {
                 });
                 continue;
             }
+            if ('packedDir' in localResult) {
+                localPackedDir = localResult.packedDir;
+                localPackedPaths = localResult.paths;
+            }
             try {
+                if ('packedDir' in localResult && inventorySource === 'pack-artifact') {
+                    const physical = listFilesRecursive(localResult.packedDir, localResult.packedDir, true).sort();
+                    if (localResult.paths !== undefined && (!Array.isArray(localResult.paths) || localResult.paths.some(path => !isSafeManifestPath(path)) || JSON.stringify([...localResult.paths].sort()) !== JSON.stringify(physical)))
+                        throw new InventoryListingError('declared packed inventory is not the complete canonical physical leaf set');
+                }
                 workspaceHashes = 'packedDir' in localResult
                     ? localResult.paths !== undefined
                         ? hashTreeFromPaths(localResult.packedDir, localResult.paths, workspaceManifest)
@@ -391,6 +629,23 @@ export function detectSiblingDrift(opts) {
                 changed.push(key);
         }
         changed.sort();
+        const branding = (changed.length > 0 || opts.trustedPublicKeyPem !== undefined) && localPackedDir !== undefined && inventorySource === 'pack-artifact'
+            ? classifyOwnerBrandingDelta(localPackedDir, fetched.dir, dep, version, opts.trustedPublicKeyPem, localPackedPaths)
+            : undefined;
+        const retained = !branding?.accepted && localPackedDir !== undefined && inventorySource === 'pack-artifact'
+            ? classifyRetainedBindingDelta(opts, localPackedDir, fetched.dir, workspaceDir, dep, version, localPackedPaths) : undefined;
+        if (retained?.accepted) {
+            results.push({ name: dep, version, status: 'same', classification: 'retained-registered-binding', changedFiles: retained.changedFiles, missingExports: [], reason: retained.reason, inventorySource });
+            continue;
+        }
+        if (opts.trustedPublicKeyPem !== undefined && branding !== undefined && !branding.coverageVerified) {
+            results.push({ name: dep, version, status: 'unavailable', changedFiles: changed, missingExports: [], reason: branding.reason, inventorySource });
+            continue;
+        }
+        if (branding?.accepted) {
+            results.push({ name: dep, version, status: 'same', classification: 'owner-branding-only', changedFiles: branding.changedFiles, missingExports: [], reason: branding.reason, inventorySource });
+            continue;
+        }
         if (changed.length === 0) {
             results.push({ name: dep, version, status: 'same', changedFiles: [], missingExports: [], inventorySource });
         }
@@ -400,6 +655,7 @@ export function detectSiblingDrift(opts) {
                 version,
                 status: 'drift',
                 changedFiles: changed,
+                ...(branding !== undefined ? { reason: branding.reason } : {}),
                 missingExports: missingExportNames(fetched.dir, workspaceDir),
                 inventorySource,
             });

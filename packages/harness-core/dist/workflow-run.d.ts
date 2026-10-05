@@ -24,7 +24,7 @@
  */
 import type { LoopPlan, RunProjection, RunStepSpec } from './loop-plan.js';
 import { type BridgeFamily } from './qe-bridge.js';
-import { type Dispatcher } from './workflow-run-dispatch.js';
+import { type DispatchResult, type Dispatcher, type ProbeOutcome } from './workflow-run-dispatch.js';
 export declare const WF_RUN_STATE_SCHEMA = "wf-run-state/1";
 export declare const WF_BUDGET_ROW_SCHEMA = "wf-budget-1";
 export declare const WF_PAUSE_ENVELOPE_SCHEMA = "wf-pause-envelope/1";
@@ -141,7 +141,8 @@ export interface WfRunState {
      * a test seam that leaves no trace in the artifact is indistinguishable from a real run. */
     dispatcherOverride?: boolean;
 }
-export interface WfBudgetRow {
+export interface WfBudgetRow extends Pick<DispatchResult, 'tokensTotal' | 'tokensCacheRead' | 'tokensCacheWrite' | 'tokensReasoning' | 'reportedTotalBasis' | 'inputCacheSemantics' | 'reportedCostUsd' | 'usageDiagnostics' | 'usageSource' | 'totalDerivation'> {
+    projectRoot?: string;
     schema: typeof WF_BUDGET_ROW_SCHEMA;
     kind: 'stage' | 'probe';
     runId: string;
@@ -152,10 +153,23 @@ export interface WfBudgetRow {
     attempt: number | null;
     family: BridgeFamily;
     model: string | null;
+    modelProvenance?: string;
+    requestedModel?: string | null;
+    plannedModel?: string | null;
+    plannedModelSource?: 'plan-declared' | 'plan-omitted' | 'unavailable';
+    probeId?: string | null;
+    probeProvenance?: Exclude<ProbeOutcome['provenance'], undefined>;
+    probeSource?: 'dispatcher-child-seam' | 'scripted-dispatcher';
+    probeObservationReason?: 'producer-not-recorded' | 'id-factory-missing' | 'id-factory-invalid' | 'provenance-invalid' | 'candidate-model-invalid' | 'wrapper-result-invalid' | 'selected-model-invalid' | null;
     wallMs: number;
     tokensIn: number | null;
     tokensOut: number | null;
-    tokensSource: 'claude-envelope' | 'codex-stderr' | null;
+    tokensSource: DispatchResult['tokensSource'];
+    phase?: string | null;
+    role?: string | null;
+    tier?: string | null;
+    mode?: string | null;
+    estimate?: unknown;
     outcome: 'ok' | 'null' | 'error' | null;
     timeoutMs: number | null;
 }
@@ -209,6 +223,7 @@ export interface RunnerInputs {
     wallClockExtraMs: number | null;
     runnerVersion: string;
     cwdRoot: string;
+    projectRoot?: string;
 }
 /**
  * The run-args identity hash, over the inputs MINUS an ENUMERATED exclusion list (AM-13 / W12).
@@ -462,6 +477,7 @@ export interface SchedulerDeps {
     /** Injected ISO clock (determinism, NFR-2). */
     now(): string;
     monotonicMs(): number;
+    newProbeId?: () => string;
     /**
      * TEST SEAM (named, never a casual flag): disables the landed barrier so the F5 mutant can show
      * the lying file-step passing. Default false; a run that sets it records `dispatcherOverride`.

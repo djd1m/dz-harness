@@ -12,7 +12,7 @@
  * @packageDocumentation
  */
 
-import { existsSync, mkdirSync, copyFileSync, realpathSync, readFileSync, writeFileSync, renameSync, unlinkSync } from 'node:fs';
+import { existsSync, mkdirSync, copyFileSync, realpathSync, readFileSync, writeFileSync, renameSync, unlinkSync, lstatSync, rmSync, constants as fsConstants } from 'node:fs';
 import { join, dirname, resolve, relative, isAbsolute, basename } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
@@ -1408,6 +1408,31 @@ export async function reindexAgentdbRows(
     if (rel.startsWith('..') || isAbsolute(rel)) {
       return { reembedded: 0, error: `opts.backupPath must stay inside ${dbDir}, got: ${opts.backupPath}` };
     }
+    // agentdb-backup-no-symlink-escape (backlog c2a85b540a293ea2): the check above resolves only the
+    // PARENT physically and re-joins the basename lexically, so a LAST component that is itself a
+    // symlink out of the store passed it and the snapshot was written through the link (MEASURED on
+    // HEAD: a dangling link got a snapshot created outside, a link to an empty outside file had it
+    // overwritten). The leaf is lstat'ed — never followed — and refused by name. The snapshot writer
+    // repeats this check and writes via a staging dir + rename, so a link planted after this point is
+    // replaced, not followed (agentdb-snapshot.ts, stageThenRename).
+    // Review r1 (MINOR): only ENOENT means "absent" — EACCES/EIO/ENOTDIR are a path whose kind cannot
+    // be determined, refused by name rather than read as free.
+    let leaf: ReturnType<typeof lstatSync> | undefined;
+    try {
+      leaf = lstatSync(candidate);
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException)?.code;
+      if (code !== 'ENOENT') {
+        return { reembedded: 0, error: `opts.backupPath cannot be inspected (${code ?? 'unknown error'}): ${opts.backupPath}` };
+      }
+      leaf = undefined;
+    }
+    if (leaf?.isSymbolicLink()) {
+      return { reembedded: 0, error: `opts.backupPath is a symbolic link — refusing to follow it: ${opts.backupPath}` };
+    }
+    if (leaf !== undefined && !leaf.isFile()) {
+      return { reembedded: 0, error: `opts.backupPath exists and is not a regular file: ${opts.backupPath}` };
+    }
   }
 
   // FR-3: sqlite resolves BEFORE any snapshot is taken — an unavailable dependency must abort with
@@ -1474,7 +1499,11 @@ export async function reindexAgentdbRows(
         snapshotMethod = outcome.method;
         snapshotNote = outcome.note;
         if (existsSync(`${dbFile}.embed-manifest.json`)) {
-          copyFileSync(`${dbFile}.embed-manifest.json`, `${backupPath}.embed-manifest.json`);
+          // no-symlink-escape (FR-5): remove whatever sits at the sibling (rmSync removes a symlink
+          // itself, never its target), then copy with COPYFILE_EXCL — O_CREAT|O_EXCL refuses a link
+          // planted in between (EEXIST) instead of writing through it.
+          rmSync(`${backupPath}.embed-manifest.json`, { force: true });
+          copyFileSync(`${dbFile}.embed-manifest.json`, `${backupPath}.embed-manifest.json`, fsConstants.COPYFILE_EXCL);
         }
       }
       } catch (snapErr) {

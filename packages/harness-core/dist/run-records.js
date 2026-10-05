@@ -12,9 +12,26 @@
  *
  * Pure: payload in, verdict out. The CLI owns paths, the append, the read-back and the exit code.
  */
+import { createHash } from 'node:crypto';
 import { matchCodexRollouts } from './codex-rollouts.js';
-import { redactTrainingPayload } from './feature-adr-checkpoints.js';
+import { fnv1a64, redactTrainingPayload } from './feature-adr-checkpoints.js';
 import { validateExperimentEnvelope } from './feature-adr-envelope.js';
+// Capture contract: ordered named fields, with absent distinct from explicit null.
+// Kept private at producer/reader boundaries; both use this exact sha256 representation.
+function capturedPayload(evidence) {
+    const value = (v) => v === undefined ? { absent: true } : v;
+    const receipts = Array.isArray(evidence['receipts']) ? evidence['receipts'] : [];
+    return JSON.stringify([
+        ...['schema', 'sessionId', 'turnId', 'sourcePath', 'matchBasis', 'capturedFrom', 'capturedTo', 'model', 'cwd', 'reportedTotalBasis', 'inputCacheSemantics'].map((k) => [k, value(evidence[k])]),
+        ['owner', ...['runId', 'taskId', 'stage', 'attempt', 'role'].map((k) => [k, value(evidence['owner']?.[k])])],
+        receipts.map((raw) => {
+            const r = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+            const t = r['totals'];
+            return [...['key', 'responseId', 'turnId', 'turnIndex', 'timestamp', 'payloadDigest', 'source'].map((k) => [k, value(r[k])]),
+                ['totals', ...['input', 'output', 'cachedInput', 'cachedWrite', 'reasoning', 'total'].map((k) => [k, value(t?.[k])])]];
+        }),
+    ]);
+}
 /** Bare Claude model names the pipeline actually emits with no `claude:` prefix (`coder: 'sonnet'`,
  *  `'opus'`, `'fable'`, real values observed in `.dz/feature-adr/run-cost-ledger.jsonl`). */
 const BARE_CLAUDE_NAMES = new Set(['sonnet', 'opus', 'haiku', 'fable']);
@@ -63,6 +80,61 @@ export function parseModelSpec(spec) {
         return { family: 'claude', model: head, effort: null };
     }
     return null;
+}
+/** Internal shared ledger authority resolver; not a package-public barrel API.
+ * Capture/source values are comparison targets and never participate in claimant resolution. */
+export function resolveLedgerModelProvenance(row) {
+    const diagnostics = [];
+    const canonicalFamily = (v) => v === 'openai' ? 'codex' : v;
+    const direct = typeof row['model'] === 'string' && row['model'].length <= 128 && /^[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)?$/.test(row['model']) ? row['model'] : null;
+    if (row['model'] != null && direct === null)
+        diagnostics.push('model-invalid-direct');
+    const family = typeof row['family'] === 'string' && SPEC_PART.test(row['family']) ? row['family'] : null;
+    if (row['family'] != null && family === null)
+        diagnostics.push('model-invalid-family');
+    const specs = [];
+    const familyHints = [];
+    for (const key of ['coder', 'reviewer']) {
+        const raw = row[key];
+        if (raw == null)
+            continue;
+        if (raw === 'codex' || raw === 'claude') {
+            familyHints.push(raw);
+            continue;
+        }
+        const spec = parseModelSpec(raw);
+        const parts = typeof raw === 'string' ? raw.trim().split(':') : [];
+        if (!spec || !SPEC_PART.test(spec.model) || (parts[0] === 'claude' && parts.length !== 2)) {
+            diagnostics.push('model-invalid-executor:' + key);
+            continue;
+        }
+        specs.push(spec);
+        familyHints.push(spec.family);
+    }
+    const models = new Set(specs.map((v) => v.model));
+    const families = new Set(familyHints);
+    if (models.size > 1 || families.size > 1)
+        diagnostics.push('model-executor-conflict');
+    const unique = models.size === 1 ? specs[0] : null;
+    if (direct !== null && unique && direct !== unique.model)
+        diagnostics.push('model-direct-executor-conflict');
+    if (family !== null && [...families].some((v) => canonicalFamily(family) !== v))
+        diagnostics.push('model-family-conflict');
+    const declaredProvenance = row['modelProvenance'];
+    const validProvenance = new Set(['caller-recorded', 'executor-spec', 'provider-reported', 'dispatcher-reported', 'probed-request', 'not-recorded']);
+    if (declaredProvenance != null && (typeof declaredProvenance !== 'string' || !validProvenance.has(declaredProvenance)))
+        diagnostics.push('model-invalid-provenance');
+    if (declaredProvenance === 'executor-spec' && (!unique || (direct !== null && direct !== unique.model)))
+        diagnostics.push('model-provenance-conflict');
+    if (declaredProvenance != null && declaredProvenance !== 'executor-spec' && declaredProvenance !== 'not-recorded' && direct === null)
+        diagnostics.push('model-provenance-conflict');
+    const conflict = diagnostics.some((d) => /invalid|conflict/.test(d));
+    const model = conflict ? null : direct ?? unique?.model ?? null;
+    if (model === null && !conflict)
+        diagnostics.push('model-not-recorded');
+    const resolvedFamily = family ?? (families.size === 1 ? [...families][0] : null);
+    return { model, family: resolvedFamily, modelProvenance: model === null ? 'not-recorded' : direct !== null
+            ? typeof declaredProvenance === 'string' ? declaredProvenance : 'caller-recorded' : 'executor-spec', diagnostics };
 }
 function isCodexFamily(v) {
     return typeof v === 'string' && /codex/i.test(v);
@@ -365,31 +437,33 @@ export function decideRecordWrite(input) {
         // one that already has a token figure, is left untouched. The loose `/codex/i` check below only
         // decides whether this row is WORTH TRYING at all.
         const tokensIsNull = stamped['tokens'] === null;
-        const looksCodexFamily = isCodexFamily(stamped['coder']) || isCodexFamily(stamped['reviewer']);
-        if (tokensIsNull && looksCodexFamily) {
-            // measurement-integrity fix-round-1/F4 (Codex r1 HIGH #4): the matcher REQUIRES a reliable
-            // model, parsed the same way FR-7's price lookup parses one — never `/codex/i` alone. If
-            // `coder`/`reviewer` do not resolve to exactly ONE codex model between them (a bare `'codex'`
-            // with no model at all, or the two fields naming DIFFERENT codex models), the matcher is never
-            // even called with an unreliable/omitted model filter — a lone rollout in the window would
-            // otherwise be accepted as `'one'` on time+cwd alone and its tokens misattributed to the wrong
-            // model's stage.
-            const codexModels = new Set([parseModelSpec(stamped['coder']), parseModelSpec(stamped['reviewer'])]
-                .filter((s) => s !== null && s.family === 'codex')
-                .map((s) => s.model));
-            if (codexModels.size !== 1) {
+        const looksCodexFamily = isCodexFamily(stamped['coder']) || isCodexFamily(stamped['reviewer']) || stamped['family'] === 'codex' || stamped['family'] === 'openai';
+        if (enrich.discoveryDiagnostics?.length) {
+            stamped['usageDiagnostics'] = enrich.discoveryDiagnostics;
+            stamped['tokensSource'] = 'codex-rollout:source-discovery-unavailable';
+        }
+        else if ((tokensIsNull || enrich.rolloutId !== undefined || enrich.turnId !== undefined) && looksCodexFamily) {
+            // Use the same authority contract as the readonly source comparison and normalized report.
+            // A direct model or unique agreeing executor specs supply authority; a source never does.
+            const identity = resolveLedgerModelProvenance(stamped);
+            if (identity.model === null || !['codex', 'openai'].includes(identity.family ?? '')) {
                 stamped['tokensSource'] = 'codex-rollout:no-model';
+                stamped['usageDiagnostics'] = [...(Array.isArray(stamped['usageDiagnostics']) ? stamped['usageDiagnostics'] : []), ...identity.diagnostics];
             }
-            else if (enrich.window !== undefined) {
-                const model = [...codexModels][0];
+            else if (enrich.window !== undefined || enrich.rolloutId !== undefined || enrich.turnId !== undefined) {
+                const model = identity.model;
                 const match = matchCodexRollouts(enrich.rollouts ?? [], {
-                    from: enrich.window.from,
-                    to: enrich.window.to,
+                    ...(enrich.window !== undefined ? { from: enrich.window.from, to: enrich.window.to } : {}),
                     model,
+                    ...(enrich.rolloutId !== undefined ? { rolloutId: enrich.rolloutId } : {}),
+                    ...(enrich.turnId !== undefined ? { turnId: enrich.turnId } : {}),
                     ...(enrich.cwd !== undefined ? { cwd: enrich.cwd } : {}),
                 });
                 if (match.status === 'one') {
-                    stamped['tokens'] = match.rollout.totals.total;
+                    if (tokensIsNull || stamped['tokens'] === undefined)
+                        stamped['tokens'] = match.rollout.totals.total;
+                    else if (stamped['tokens'] !== match.rollout.totals.total)
+                        stamped['usageDiagnostics'] = ['caller-source-total-mismatch'];
                     const startMs = match.rollout.startedAt !== null ? Date.parse(match.rollout.startedAt) : NaN;
                     const endMs = match.rollout.endedAt !== null ? Date.parse(match.rollout.endedAt) : NaN;
                     // measurement-integrity fix-round-1/F6 (Codex r1 HIGH #6): fill-ONLY-null — an existing
@@ -400,10 +474,31 @@ export function decideRecordWrite(input) {
                     }
                     stamped['tokensSource'] = 'codex-rollout';
                     stamped['rolloutId'] = match.rollout.id;
+                    const found = match.rollout;
+                    for (const [key, value] of Object.entries({ tokensTotal: found.totals.total, tokensIn: found.totals.input,
+                        tokensOut: found.totals.output, tokensCacheRead: found.totals.cachedInput, tokensCacheWrite: found.totals.cachedWrite ?? null,
+                        tokensReasoning: found.totals.reasoning, reportedTotalBasis: 'raw-inclusive', inputCacheSemantics: 'includes-cache-read-write',
+                        usageDiagnostics: found.diagnostics ?? [] }))
+                        if (stamped[key] === undefined || stamped[key] === null)
+                            stamped[key] = value;
+                    const receipts = (found.receipts ?? []).map((receipt) => ({ ...receipt, key: JSON.stringify([found.id, receipt.key]) }));
+                    const usageEvidence = { schema: 'codex-rollout-scope-1', sessionId: found.id, turnId: found.turnId ?? null,
+                        sourcePath: found.sourcePath ?? null, matchBasis: enrich.rolloutId !== undefined || enrich.turnId !== undefined ? 'exact' : 'legacy-window',
+                        capturedFrom: found.startedAt, capturedTo: found.endedAt, receipts, model: found.model, cwd: found.cwd,
+                        owner: Object.fromEntries(['runId', 'taskId', 'stage', 'attempt', 'role'].map((key) => [key, stamped[key] ?? null])),
+                        reportedTotalBasis: 'raw-inclusive', inputCacheSemantics: 'includes-cache-read-write',
+                        payloadDigest: fnv1a64(JSON.stringify(receipts.map((r) => [r.key, r.payloadDigest]))) };
+                    usageEvidence['captureSha256'] = createHash('sha256').update(capturedPayload(usageEvidence)).digest('hex');
+                    if (JSON.stringify(usageEvidence).length <= 16000) {
+                        if (stamped['usageEvidence'] === undefined || stamped['usageEvidence'] === null)
+                            stamped['usageEvidence'] = usageEvidence;
+                    }
+                    else
+                        stamped['usageDiagnostics'] = [...(Array.isArray(stamped['usageDiagnostics']) ? stamped['usageDiagnostics'] : []), 'source-scope-over-record-limit'];
                 }
                 else {
                     // `none` or `ambiguous` — NFR-3: an explicit status, never a guessed number.
-                    stamped['tokensSource'] = `codex-rollout:${match.status}`;
+                    stamped['tokensSource'] = `codex-rollout:${enrich.rolloutId !== undefined || enrich.turnId !== undefined ? 'exact-' : ''}${match.status}`;
                 }
             }
             else {
@@ -417,6 +512,8 @@ export function decideRecordWrite(input) {
         // above (a Claude row gets priced too; only tokens enrichment is codex-specific).
         if (enrich.prices !== undefined) {
             const modelIds = new Set();
+            if (typeof stamped['model'] === 'string' && stamped['model'].trim())
+                modelIds.add(stamped['model'].trim());
             for (const v of [stamped['coder'], stamped['reviewer']]) {
                 if (typeof v === 'string' && v.trim() !== '')
                     modelIds.add(v.trim());
@@ -443,7 +540,14 @@ export function decideRecordWrite(input) {
                 else
                     table[modelId] = { prompt: price.prompt, completion: price.completion, cachedInput: price.cachedInput, cacheCreation: price.cacheCreation };
             }
+            const matches = Object.fromEntries([...modelIds].map((id) => {
+                const parsed = parseModelSpec(id);
+                const normalized = parsed?.family === 'claude' ? 'claude-' + parsed.model : parsed?.model ?? id;
+                const key = Object.keys(enrich.prices ?? {}).filter((k) => normalized.toLowerCase().startsWith(k)).sort((a, b) => b.length - a.length)[0] ?? null;
+                return [id, { tableKey: key, kind: key !== null && key === normalized && !key.includes('claude') ? 'exact' : key !== null ? 'family-estimate' : 'unknown' }];
+            }));
             const computedPrices = {
+                matches,
                 snapshotAt: input.timestamp ?? null,
                 table,
                 ...(unknown.length > 0 ? { unknown } : {}),

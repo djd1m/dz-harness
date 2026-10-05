@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/harness-cli",
-  "version": "0.8.38",
+  "version": "0.8.40",
   "description": "The dz CLI — install AI skills for Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot. 87 commands, 14 presets, 10 platform targets.",
   "type": "module",
   "license": "MIT",
@@ -43,7 +43,6 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "prepublishOnly": "node scripts/refuse-wrong-publisher.mjs && node ../../../scripts/prepublish-gate.mjs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
@@ -51,23 +50,23 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@dzhechkov/harness-core": "workspace:^",
-    "@dzhechkov/harness-presets": "workspace:^",
-    "@dzhechkov/scout": "workspace:^",
-    "@dzhechkov/skills-devops": "workspace:^",
-    "@dzhechkov/skills-mcp": "workspace:^",
-    "@dzhechkov/skills-web3": "workspace:^",
-    "@dzhechkov/skills-qe": "workspace:^",
-    "@dzhechkov/skills-meta": "workspace:^",
-    "@dzhechkov/skills-academic": "workspace:^",
-    "@dzhechkov/skills-ecc": "workspace:^",
-    "@dzhechkov/skills-news": "workspace:^",
-    "@dzhechkov/skills-pm": "workspace:^",
-    "@dzhechkov/skills-taste": "workspace:^",
-    "@dzhechkov/skills-idea2prd": "workspace:^",
-    "@dzhechkov/skills-reverse-engineering": "workspace:^",
-    "@dzhechkov/skills-presentation-storyteller": "workspace:^",
-    "@dzhechkov/skills-website-cloner": "workspace:^"
+    "@dzhechkov/harness-core": "^0.8.48",
+    "@dzhechkov/harness-presets": "^0.5.24",
+    "@dzhechkov/scout": "^0.8.12",
+    "@dzhechkov/skills-devops": "^0.3.18",
+    "@dzhechkov/skills-mcp": "^0.3.11",
+    "@dzhechkov/skills-web3": "^0.2.10",
+    "@dzhechkov/skills-qe": "^0.3.15",
+    "@dzhechkov/skills-meta": "^0.9.63",
+    "@dzhechkov/skills-academic": "^0.3.8",
+    "@dzhechkov/skills-ecc": "^0.1.13",
+    "@dzhechkov/skills-news": "^0.1.17",
+    "@dzhechkov/skills-pm": "^0.1.6",
+    "@dzhechkov/skills-taste": "^0.1.6",
+    "@dzhechkov/skills-idea2prd": "^0.1.16",
+    "@dzhechkov/skills-reverse-engineering": "^0.3.5",
+    "@dzhechkov/skills-presentation-storyteller": "^0.1.15",
+    "@dzhechkov/skills-website-cloner": "^0.1.6"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
@@ -85,7 +84,7 @@
     "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/harness-cli"
   },
-  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/harness-cli#readme",
+  "homepage": "https://aicoding.space",
   "bugs": {
     "url": "https://github.com/djd1m/dz-harness/issues"
   }

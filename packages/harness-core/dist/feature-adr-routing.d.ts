@@ -1085,6 +1085,22 @@ export declare function planCompletenessGateCmd(repo: string, featureDir: string
  * quiet failure this forecloses: a dead or chatty agent reading as a clean gate.
  */
 export declare function parsePlanGateVerdict(raw: string | null | undefined): PlanGateVerdict;
+/** Verdict of the design/plan/plan-repair Codex landing barrier (landed-barrier-anchored-line). */
+export interface LandedProbeVerdict {
+    landed: boolean;
+    bytes: number | null;
+    reason: 'landed' | 'empty-agent-reply' | 'no-landed-line' | 'zero-bytes';
+}
+/**
+ * Read the transport agent's reply to `landedProbeCmd` (backlog 1f0353f7bdb53588). The probe writes its
+ * verdict as its LAST line — `landed=<bytes>` for a non-empty file, `absent` otherwise — so only the
+ * last non-empty line decides, and it must be exactly `landed=<digits>` with a positive number. A
+ * `landed=` anywhere else (a diagnostic the agent added, an earlier line) is not a landing: the old
+ * substring read accepted it. After the probe line only blank lines and code-fence lines may follow —
+ * an agent wrapping "stdout verbatim" in a fence adds no content; any other trailing text means the
+ * last word is no longer the probe's, and the barrier falls back (the safe direction).
+ */
+export declare function parseLandedProbe(raw: string | null | undefined): LandedProbeVerdict;
 /** Snapshot of a plan taken around the ONE repair round (FR-6 preservation check, plan-inherits-requirements). */
 export interface PlanSnapshot {
     present: boolean;

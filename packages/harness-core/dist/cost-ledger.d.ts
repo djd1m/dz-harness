@@ -48,6 +48,7 @@
  * @packageDocumentation
  */
 import type { CanonicalStage } from './feature-adr-stage-canon.js';
+import { buildStageUsageReport } from './stage-usage.js';
 /** The one sentence that states what the ledger is and is not. Printed by EVERY surface (ADR-003). */
 export declare const COST_LEDGER_SCOPE: string;
 export type CostLedgerDefectKind = 
@@ -157,7 +158,18 @@ export interface CostLedgerRow {
     /** Cost-weighted input-equivalent tokens — the PRIMARY number of the row. */
     readonly weightedTokens: number;
     /** Secondary, derived estimate. `pricingKnown === false` ⇒ sonnet-class fallback pricing. */
-    readonly costUsd: number;
+    readonly costUsd: number | null;
+    readonly knownEstimatedCostUsd?: number;
+    readonly familyEstimatedCostUsd?: number | null;
+    readonly pricingProvenance?: readonly {
+        model: string;
+        tableKey: string | null;
+        matchKind: string;
+        source: string;
+        fingerprint: string;
+        current: false;
+        billed: false;
+    }[];
     readonly pricingKnown: boolean;
     /** ISO, from the run record's stage boundaries (ADR-001) — `null` when the record lacked them. */
     readonly startedTs: string | null;
@@ -204,6 +216,11 @@ export interface CostLedgerReconciliation {
     };
 }
 export interface CostLedgerReport {
+    /** Actual readonly input inventory for derived-export admission; absent on pure builder results. */
+    readonly authoritativeEvidence?: {
+        readonly roots: readonly string[];
+        readonly files: readonly string[];
+    };
     readonly runId: string;
     readonly slug: string | null;
     readonly workflowName: string | null;
@@ -223,7 +240,8 @@ export interface CostLedgerReport {
     readonly reconciliation: CostLedgerReconciliation;
     /** The record's cached raw sum — reported, never the invariant's right-hand side (ADR-002). */
     readonly recordTotalTokens: number | null;
-    readonly totalCostUsd: number;
+    readonly totalCostUsd: number | null;
+    readonly knownEstimatedCostUsd?: number;
     /** Model ids whose USD figures used sonnet-class fallback pricing (ADR-003). */
     readonly pricingFallbackModels: readonly string[];
     /** ALWAYS `true` — a local aggregation, not an official API (mirrors `dz usage`). */
@@ -238,7 +256,7 @@ export interface StageCostAggregate {
     readonly avgTokens: number;
     readonly runs: number;
     readonly totalTokens: number;
-    readonly avgCostUsd: number;
+    readonly avgCostUsd: number | null;
 }
 /**
  * Extract deduped, weighted usage samples from ONE transcript's text. Pure and never-throw — a
@@ -344,6 +362,7 @@ export interface CostLedgerRunRef {
  */
 export declare function listCostLedgerRuns(opts?: CostLedgerIoOptions): CostLedgerRunRef[];
 export interface DeriveCostLedgerOptions extends CostLedgerIoOptions {
+    readonly projectRoot?: string;
     /** Exact run id. Must match `[A-Za-z0-9_.-]{1,128}` — it becomes a path segment. */
     readonly runId?: string;
     /** Most recent run with this `args.slug`. Same pattern restriction. */
@@ -367,4 +386,24 @@ export declare function deriveStageCostAggregates(opts?: CostLedgerIoOptions & {
  * Returns `true` on success; never throws.
  */
 export declare function writeCostLedgerJsonl(path: string, report: CostLedgerReport): boolean;
+/** Scoped source selection. Explicit project/run never falls through to an unrelated global run. */
+export declare function deriveStageUsageReport(opts: {
+    projectRoot: string;
+    source?: string;
+    runId?: string;
+    slug?: string;
+    runDir?: string;
+    codexSessionsRoot?: string;
+    projectsRoot?: string;
+    maxBytes?: number;
+    maxRecords?: number;
+    epsilon?: number;
+}): ReturnType<typeof buildStageUsageReport> & {
+    legacyCostLedger?: CostLedgerReport;
+    authoritativeEvidence: {
+        roots: string[];
+        files: string[];
+    };
+};
+export declare function renderStageUsageReport(report: ReturnType<typeof buildStageUsageReport>): string;
 //# sourceMappingURL=cost-ledger.d.ts.map

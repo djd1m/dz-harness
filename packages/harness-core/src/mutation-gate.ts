@@ -121,6 +121,51 @@ export interface InjectVitestWorkerCeilingResult {
   /** segments where `vitest run` was found only by the LOOSE token-pair fallback (command position
    * unrecognised) — the CLI reports these so an odd wrapper shape is visible, not silent. */
   readonly looseSegments: number;
+  /**
+   * vitest-ceiling-injection-hardening FR-1: set when the command cannot be split with confidence —
+   * an UNTERMINATED quote leaves both the segment boundaries and the argument ends to guesswork (a
+   * swallowed `&&` would move a boundary). The command is then returned byte-identical, all counts
+   * are 0, and the reason is named here — never a best-effort injection. Absent on the normal path.
+   */
+  readonly notEstablished?: VitestInjectionNotEstablished;
+}
+
+/** vitest-ceiling-injection-hardening FR-1: why the injection was not attempted. */
+export interface VitestInjectionNotEstablished {
+  readonly reason: 'unterminated-single-quote' | 'unterminated-double-quote' | 'unsupported-shell-construct';
+  /**
+   * set only for `unsupported-shell-construct` (astra r1, MAJOR 1): the construct the scanner does NOT
+   * model — reading the quotes inside it as ordinary quotes gave valid commands a false
+   * `unterminated-*` reason. Deliberately a refusal, not a parser: heuristic shell parsing does not converge.
+   */
+  readonly construct?: UnsupportedShellConstruct;
+  /** human-readable, names the quote kind / construct and the raw offset where it starts. */
+  readonly message: string;
+}
+
+/** shell constructs `splitUnquotedSegments` detects and REFUSES rather than models. */
+export type UnsupportedShellConstruct =
+  | 'comment' // unquoted `#` at a word start
+  | 'heredoc' // unquoted `<<` (also `<<<`)
+  | 'command-substitution' // `$(` unquoted or inside double quotes
+  | 'backtick-substitution' // a backtick unquoted or inside double quotes
+  | 'parameter-expansion' // `${` unquoted or inside double quotes
+  | 'ansi-c-quoting'; // unquoted `$'`
+
+/**
+ * vitest-ceiling-injection-hardening FR-2: the backslash policy. The gate spawns the command with
+ * `shell: true` (`/bin/sh` on POSIX, `cmd.exe` on win32), and the two disagree on `\`: `/bin/sh`
+ * treats it as an escape (so `C:\proj\vitest` unquoted really becomes `C:projvitest` and is not
+ * vitest), `cmd.exe` does not. `win32` here means ONLY: backslash is a literal path character.
+ * cmd.exe quoting (`^` escapes, no single-quote quoting) is NOT modelled — quotes, operators and the
+ * unsupported-construct refusals stay POSIX-shaped on both (astra r1, MAJOR 2). Core never reads
+ * `process.platform` (core-boundary rule A), so the caller passes it; the default is `posix`.
+ */
+export type VitestInjectionPlatform = 'posix' | 'win32';
+
+export interface InjectVitestWorkerCeilingOptions {
+  /** default `'posix'` — HEAD behaviour. `'win32'`: backslash is a literal path character (never an escape, no line continuation); cmd.exe quoting (`^` escapes, no single-quote quoting) is NOT modelled. */
+  readonly platform?: VitestInjectionPlatform;
 }
 
 interface RawSegment {
@@ -129,17 +174,54 @@ interface RawSegment {
   readonly terminator: string;
 }
 
+interface SplitResult {
+  readonly segments: RawSegment[];
+  /** the quote left open at the end of the command, with the raw offset that opened it; null when all closed. */
+  readonly unterminated: { readonly quote: "'" | '"'; readonly offset: number } | null;
+  /** the first construct the scanner does not model, with its raw offset; null when none. Checked before `unterminated`. */
+  readonly unsupported: { readonly construct: UnsupportedShellConstruct; readonly offset: number } | null;
+}
+
+/** `$(` / `${` / backtick — active both unquoted and inside double quotes. */
+function substitutionAt(cmd: string, i: number): UnsupportedShellConstruct | null {
+  const ch = cmd[i];
+  if (ch === '`') return 'backtick-substitution';
+  if (ch === '$' && cmd[i + 1] === '(') return 'command-substitution';
+  if (ch === '$' && cmd[i + 1] === '{') return 'parameter-expansion';
+  return null;
+}
+
 /**
  * Split on unquoted `&&`/`||`/`;`/`|`, preserving each segment's own text (incl. surrounding
  * whitespace). POSIX-escape aware (fix-round 1, F1): outside quotes `\` makes the next character
  * literal (so it can neither open a quote nor start an operator); inside double quotes `\"` and `\\`
  * are recognised escapes that do NOT close the string; inside single quotes nothing is escaped.
+ * With `backslashEscapes` false (win32, vitest-ceiling-injection-hardening FR-2) backslash is a
+ * literal path character everywhere; cmd.exe quoting (`^` escapes, no single-quote quoting) is NOT
+ * modelled. A quote still open at the end is REPORTED, never guessed past (FR-1); a construct the
+ * scanner does not model (comment, heredoc, `$(`, backtick, `${`, `$'`) is REFUSED before that (astra r1).
  */
-function splitUnquotedSegments(cmd: string): RawSegment[] {
+function splitUnquotedSegments(cmd: string, backslashEscapes: boolean): SplitResult {
   const segments: RawSegment[] = [];
   let segStart = 0;
   let inSingle = false;
   let inDouble = false;
+  let quoteOpenedAt = -1;
+  // astra r2: raw indices of characters made literal by an unquoted POSIX `\` — an escaped space
+  // continues the word, so a `#` after it is NOT at a word start (`issue\ #123` is one word).
+  const escapedAt = new Set<number>();
+  /** true when position `at` starts a shell word: string start, or an UNESCAPED whitespace/operator
+   * before it; a `\<newline>` continuation is removed by the shell, so look past it. */
+  const atWordStart = (at: number): boolean => {
+    let prev = at - 1;
+    for (;;) {
+      if (prev < 0) return true;
+      if (escapedAt.has(prev) && cmd[prev] === '\n') { prev -= 2; continue; } // `\<LF>` continuation
+      if (escapedAt.has(prev) && cmd[prev] === '\r' && cmd[prev + 1] === '\n') { prev -= 2; continue; }
+      break;
+    }
+    return !escapedAt.has(prev) && /[\s;&|()<>]/u.test(cmd[prev]!);
+  };
   let i = 0;
   while (i < cmd.length) {
     const ch = cmd[i];
@@ -150,30 +232,45 @@ function splitUnquotedSegments(cmd: string): RawSegment[] {
     }
     if (inDouble) {
       if (ch === '"') { inDouble = false; i += 1; continue; }
-      if (ch === '\\') {
+      if (ch === '\\' && backslashEscapes) {
         const next = cmd[i + 1];
-        // at least \" and \\ (F1's floor) — an escaped quote must not close the double-quoted span.
-        if (next === '"' || next === '\\') { i += 2; continue; }
+        // at least \" and \\ (F1's floor) — an escaped quote must not close the double-quoted span;
+        // \$ and \` are POSIX double-quote escapes too — an escaped `$(` is not a substitution.
+        if (next === '"' || next === '\\' || next === '$' || next === '`') { i += 2; continue; }
         i += 1;
         continue;
       }
+      const inner = substitutionAt(cmd, i);
+      if (inner !== null) return { segments, unterminated: null, unsupported: { construct: inner, offset: i } };
       i += 1;
       continue;
     }
+    if (ch === '\\' && backslashEscapes) {
+      // Outside any quote, POSIX makes the character AFTER `\` literal — skip both so it can never
+      // be mis-read as a quote-open, a construct or an operator boundary.
+      if (cmd[i + 1] !== undefined) escapedAt.add(i + 1);
+      if (cmd[i + 1] === '\r' && cmd[i + 2] === '\n') escapedAt.add(i + 2); // `\<CR><LF>` continuation
+      i += cmd[i + 1] === '\r' && cmd[i + 2] === '\n' ? 3 : cmd[i + 1] !== undefined ? 2 : 1;
+      continue;
+    }
+    // astra r1, MAJOR 1: constructs the scanner does NOT model are refused BEFORE quote tracking can
+    // misread the quotes inside them (a comment's apostrophe, a heredoc body, a nested substitution).
+    const construct: UnsupportedShellConstruct | null = substitutionAt(cmd, i)
+      ?? (ch === '$' && cmd[i + 1] === "'" ? 'ansi-c-quoting'
+        : ch === '<' && cmd[i + 1] === '<' ? 'heredoc'
+        : ch === '#' && atWordStart(i) ? 'comment'
+        : null);
+    if (construct !== null) return { segments, unterminated: null, unsupported: { construct, offset: i } };
     if (ch === "'") {
       inSingle = true;
+      quoteOpenedAt = i;
       i += 1;
       continue;
     }
     if (ch === '"') {
       inDouble = true;
+      quoteOpenedAt = i;
       i += 1;
-      continue;
-    }
-    if (ch === '\\') {
-      // Outside any quote, POSIX makes the character AFTER `\` literal — skip both so it can never
-      // be mis-read as a quote-open or an operator boundary.
-      i += cmd[i + 1] !== undefined ? 2 : 1;
       continue;
     }
     const terminatorMatch = /^(&&|\|\||;|\|)/.exec(cmd.slice(i));
@@ -186,7 +283,10 @@ function splitUnquotedSegments(cmd: string): RawSegment[] {
     i += 1;
   }
   segments.push({ text: cmd.slice(segStart), terminator: '' });
-  return segments;
+  const unterminated = inSingle ? { quote: "'" as const, offset: quoteOpenedAt }
+    : inDouble ? { quote: '"' as const, offset: quoteOpenedAt }
+    : null;
+  return { segments, unterminated, unsupported: null };
 }
 
 interface SegmentToken {
@@ -208,7 +308,7 @@ function isWhitespaceChar(ch: string | undefined): boolean {
  * `<char>` outside any quote, single-quoted content kept verbatim) while `token.end` keeps the RAW
  * source offset so `injectIntoSegment` can still splice into the ORIGINAL text unchanged elsewhere.
  */
-function tokenizeSegment(text: string): SegmentToken[] {
+function tokenizeSegment(text: string, backslashEscapes: boolean): SegmentToken[] {
   const tokens: SegmentToken[] = [];
   let i = 0;
   while (i < text.length) {
@@ -229,7 +329,7 @@ function tokenizeSegment(text: string): SegmentToken[] {
       }
       if (inDouble) {
         if (ch === '"') { inDouble = false; i += 1; continue; }
-        if (ch === '\\') {
+        if (ch === '\\' && backslashEscapes) {
           const next = text[i + 1];
           if (next === '"' || next === '\\') { value += next; i += 2; continue; }
           // not one of the two claimed double-quote escapes: the backslash is literal (F1's floor).
@@ -243,7 +343,7 @@ function tokenizeSegment(text: string): SegmentToken[] {
       }
       if (ch === "'") { inSingle = true; i += 1; continue; }
       if (ch === '"') { inDouble = true; i += 1; continue; }
-      if (ch === '\\') {
+      if (ch === '\\' && backslashEscapes) {
         const next = text[i + 1];
         // POSIX line continuation (lead delta after Codex r2, MEDIUM): `\<newline>` (and `\<CR><LF>`)
         // is REMOVED by the shell, never a literal — a token must not swallow a newline as its value.
@@ -357,8 +457,8 @@ function findVitestRunLooseIndex(tokens: readonly SegmentToken[]): number | null
   return null;
 }
 
-function injectIntoSegment(text: string, maxWorkers: number): { readonly text: string; readonly isVitest: boolean; readonly injected: boolean; readonly loose: boolean } {
-  const tokens = tokenizeSegment(text);
+function injectIntoSegment(text: string, maxWorkers: number, backslashEscapes: boolean): { readonly text: string; readonly isVitest: boolean; readonly injected: boolean; readonly loose: boolean } {
+  const tokens = tokenizeSegment(text, backslashEscapes);
   const strictIdx = findVitestRunCommandIndex(tokens);
   const looseIdx = strictIdx === null ? findVitestRunLooseIndex(tokens) : null;
   const runTokenIdx = strictIdx ?? looseIdx;
@@ -373,13 +473,47 @@ function injectIntoSegment(text: string, maxWorkers: number): { readonly text: s
   return { text: injectedText, isVitest: true, injected: true, loose };
 }
 
-export function injectVitestWorkerCeiling(testCmd: string, maxWorkers: number): InjectVitestWorkerCeilingResult {
-  const segments = splitUnquotedSegments(testCmd);
+export function injectVitestWorkerCeiling(
+  testCmd: string,
+  maxWorkers: number,
+  options: InjectVitestWorkerCeilingOptions = {},
+): InjectVitestWorkerCeilingResult {
+  const backslashEscapes = options.platform !== 'win32';
+  const split = splitUnquotedSegments(testCmd, backslashEscapes);
+  if (split.unsupported !== null) {
+    const { construct, offset } = split.unsupported;
+    return {
+      cmd: testCmd,
+      vitestSegments: 0,
+      injected: 0,
+      looseSegments: 0,
+      notEstablished: {
+        reason: 'unsupported-shell-construct',
+        construct,
+        message: `unsupported shell construct '${construct}' at offset ${offset} — the scanner does not model it, so segment boundaries cannot be established; the command is left unchanged and --maxWorkers is NOT injected`,
+      },
+    };
+  }
+  if (split.unterminated !== null) {
+    const { quote, offset } = split.unterminated;
+    const kind = quote === '"' ? 'double' : 'single';
+    return {
+      cmd: testCmd,
+      vitestSegments: 0,
+      injected: 0,
+      looseSegments: 0,
+      notEstablished: {
+        reason: quote === '"' ? 'unterminated-double-quote' : 'unterminated-single-quote',
+        message: `unterminated ${kind} quote opened at offset ${offset} — segment boundaries cannot be established; the command is left unchanged and --maxWorkers is NOT injected`,
+      },
+    };
+  }
+  const segments = split.segments;
   let vitestSegments = 0;
   let injected = 0;
   let looseSegments = 0;
   const rebuilt = segments.map((segment) => {
-    const result = injectIntoSegment(segment.text, maxWorkers);
+    const result = injectIntoSegment(segment.text, maxWorkers, backslashEscapes);
     if (result.isVitest) vitestSegments += 1;
     if (result.injected) injected += 1;
     if (result.loose) looseSegments += 1;

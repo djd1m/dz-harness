@@ -633,6 +633,42 @@ export function buildPauseEnvelope(runId, pauseState, reason, planPath, resumeAr
         resumeCmd,
     };
 }
+const safeRoutingModel = (value) => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$/.test(value);
+function probeRecordReason(probe, family) {
+    const exact = (value, keys) => value !== null && typeof value === 'object'
+        && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null)
+        && Reflect.ownKeys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
+    if (probe.id !== null && !safeRoutingModel(probe.id))
+        return 'selected-model-invalid';
+    const present = [Object.hasOwn(probe, 'provenance'), Object.hasOwn(probe, 'provenanceReason')];
+    if (present.every(value => !value))
+        return 'producer-not-recorded';
+    if (!present.every(Boolean))
+        return 'provenance-invalid';
+    if (probe.provenance === null && (probe.provenanceReason === 'candidate-model-invalid' || probe.provenanceReason === 'wrapper-result-invalid'))
+        return probe.provenanceReason;
+    const p = probe.provenance;
+    if (probe.provenanceReason !== null || !exact(p, ['schema', 'complete', 'totalConsidered', 'attempts']) || p.schema !== 'wf-probe-attempts-1'
+        || typeof p.complete !== 'boolean' || !Number.isSafeInteger(p.totalConsidered) || p.totalConsidered <= 0 || !Array.isArray(p.attempts)
+        || p.attempts.length !== Math.min(p.totalConsidered, 32) || p.complete !== (p.totalConsidered <= 32))
+        return 'provenance-invalid';
+    for (const [index, a] of p.attempts.entries()) {
+        if (!exact(a, ['ordinal', 'model', 'family', 'wrapperInvoked', 'outcome', 'reason', 'selected']) || a.ordinal !== index + 1
+            || a.family !== family || typeof a.wrapperInvoked !== 'boolean' || typeof a.selected !== 'boolean')
+            return 'provenance-invalid';
+        const rejected = family === 'claude' && !a.wrapperInvoked && !a.selected && a.model === null && a.outcome === 'rejected' && a.reason === 'invalid-candidate';
+        const answered = a.wrapperInvoked && a.selected && safeRoutingModel(a.model) && a.outcome === 'answered' && a.reason === 'answered';
+        const failed = a.wrapperInvoked && !a.selected && safeRoutingModel(a.model) && a.outcome === 'failed'
+            && ['timeout', 'spawn-error', 'no-exit-code', 'exit-nonzero', 'unexpected-response'].includes(a.reason);
+        if (!(rejected || answered || failed))
+            return 'provenance-invalid';
+    }
+    const selected = p.attempts.filter(a => a.selected);
+    if (!p.complete ? selected.length !== 0 : probe.id === null ? selected.length !== 0
+        : selected.length !== 1 || selected[0]?.ordinal !== p.totalConsidered || selected[0]?.model !== probe.id)
+        return 'provenance-invalid';
+    return null;
+}
 /** The item-key domain is the SHARED one (`TRACE_KEY_RE`): a registry value that the trace plane
  * would refuse must never reach a dispatch, or a trace-on run refuses what a trace-off run completes. */
 function safeItemKey(k) {
@@ -704,16 +740,41 @@ export async function runWorkflow(inputs, pre, deps) {
     const effectiveArgs = accumulated.args;
     const usedFamilies = [...new Set(Object.values(pre.families))];
     const probedIds = {};
+    const probeIds = {};
     let probeAgentCalls = 0;
     const probeDetail = {};
     for (const family of usedFamilies) {
         const candidates = [...new Set(allSpecs(pre.projection).filter((s) => pre.families[s.stepId] === family).map((s) => s.model).filter((m) => typeof m === 'string'))];
         const probe = await deps.dispatchers[family].probe(candidates);
         probeAgentCalls++;
+        let probeId = null;
+        let idReason = 'id-factory-missing';
+        if (deps.newProbeId) {
+            try {
+                const id = deps.newProbeId();
+                if (typeof id === 'string' && /^[0-9a-f]{32}$/.test(id)) {
+                    probeId = id;
+                    idReason = null;
+                }
+                else
+                    idReason = 'id-factory-invalid';
+            }
+            catch {
+                idReason = 'id-factory-invalid';
+            }
+        }
+        const producerReason = probeRecordReason(probe, family);
+        const probeObservationReason = producerReason && producerReason !== 'producer-not-recorded' ? producerReason : idReason ?? producerReason;
+        probeIds[family] = probeId;
         store.appendBudgetRow({
             schema: WF_BUDGET_ROW_SCHEMA,
             kind: 'probe',
+            probeId,
+            probeProvenance: probeObservationReason === null ? probe.provenance : null,
+            probeSource: deps.dispatcherOverride ? 'scripted-dispatcher' : 'dispatcher-child-seam',
+            probeObservationReason,
             runId: inputs.runId,
+            projectRoot: inputs.projectRoot ?? inputs.cwdRoot,
             dispatchSeq: null,
             stepId: null,
             itemKey: null,
@@ -724,6 +785,14 @@ export async function runWorkflow(inputs, pre, deps) {
             tokensIn: null,
             tokensOut: null,
             tokensSource: null,
+            tokensTotal: null,
+            tokensCacheRead: null,
+            tokensCacheWrite: null,
+            tokensReasoning: null,
+            reportedTotalBasis: 'unknown',
+            inputCacheSemantics: 'unknown',
+            reportedCostUsd: null,
+            usageDiagnostics: ['probe-usage-not-recorded'],
             outcome: null,
             timeoutMs: null,
         });
@@ -825,6 +894,7 @@ export async function runWorkflow(inputs, pre, deps) {
     }
     const opened = openTrace(inputs, pre, store, inputs.resume !== null);
     const ctx = {
+        probeIds,
         inputs,
         pre,
         deps,
@@ -1119,16 +1189,37 @@ async function dispatchOnce(ctx, spec, itemKey, upstream, causedBy) {
             schema: WF_BUDGET_ROW_SCHEMA,
             kind: 'stage',
             runId: ctx.inputs.runId,
+            projectRoot: ctx.inputs.projectRoot ?? ctx.inputs.cwdRoot,
             dispatchSeq,
             stepId: spec.stepId,
             itemKey,
             attempt,
             family,
-            model: res.modelUsed ?? model,
+            model: res.modelUsed,
+            requestedModel: model,
+            plannedModel: safeRoutingModel(spec.model) ? spec.model : null,
+            plannedModelSource: safeRoutingModel(spec.model) ? 'plan-declared' : spec.model == null ? 'plan-omitted' : 'unavailable',
+            probeId: ctx.probeIds[family] ?? null,
+            modelProvenance: res.modelProvenance ?? (res.modelUsed === null ? 'not-recorded' : 'dispatcher-reported'),
             wallMs,
             tokensIn: res.tokensIn,
             tokensOut: res.tokensOut,
             tokensSource: res.tokensSource,
+            tokensTotal: res.tokensTotal ?? null,
+            totalDerivation: res.totalDerivation ?? 'not-recorded',
+            tokensCacheRead: res.tokensCacheRead ?? null,
+            tokensCacheWrite: res.tokensCacheWrite ?? null,
+            tokensReasoning: res.tokensReasoning ?? null,
+            reportedTotalBasis: res.reportedTotalBasis ?? 'unknown',
+            inputCacheSemantics: res.inputCacheSemantics ?? 'unknown',
+            reportedCostUsd: res.reportedCostUsd ?? null,
+            usageDiagnostics: res.usageDiagnostics ?? [],
+            ...(res.usageSource !== undefined ? { usageSource: res.usageSource } : {}),
+            phase: spec.phase,
+            role: spec.role ?? null,
+            tier: spec.tier ?? null,
+            mode: spec.mode ?? null,
+            estimate: spec.estimate ?? null,
             outcome,
             timeoutMs,
         });
@@ -1304,7 +1395,7 @@ function appendLedger(ctx, outcome) {
         date: null,
     });
     if (line !== null)
-        ctx.deps.store.appendLedgerLine(line);
+        ctx.deps.store.appendLedgerLine(JSON.stringify({ ...JSON.parse(line), summary: true, sourceProjection: 'workflow-budget', workflowRunId: ctx.inputs.runId }));
 }
 /** PAUSE — flush WITHOUT `run.closed` (parity with the render's top-level terminal return, which
  * skips the epilogue). The trace legitimately parses as incomplete, and window-truncated invariants

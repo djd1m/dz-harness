@@ -56,7 +56,24 @@ export interface DispatchResult {
     /** null when the runtime did not report a count — NEVER 0, never estimated (ADR-004 C4). */
     tokensIn: number | null;
     tokensOut: number | null;
-    tokensSource: 'claude-envelope' | 'codex-stderr' | null;
+    tokensSource: 'claude-envelope' | 'codex-stderr' | 'codex-json' | null;
+    tokensTotal?: number | null;
+    tokensCacheRead?: number | null;
+    tokensCacheWrite?: number | null;
+    tokensReasoning?: number | null;
+    reportedTotalBasis?: 'raw-inclusive' | 'uncached-display' | 'reported-unknown' | 'output-only' | 'unknown';
+    inputCacheSemantics?: 'includes-cache-read-write' | 'excludes-cache-read-write' | 'uncached-display' | 'unknown';
+    reportedCostUsd?: number | null;
+    usageDiagnostics?: string[];
+    totalDerivation?: string;
+    modelProvenance?: string;
+    usageSource?: {
+        schema: string;
+        scope: string;
+        threadId: string | null;
+        turnId: string | null;
+        receiptId: string | null;
+    };
     failure?: DispatchFailure;
 }
 export interface ProbeOutcome {
@@ -64,6 +81,21 @@ export interface ProbeOutcome {
     id: string | null;
     wallMs: number;
     detail: string;
+    provenance?: {
+        schema: 'wf-probe-attempts-1';
+        complete: boolean;
+        totalConsidered: number;
+        attempts: Array<{
+            ordinal: number;
+            model: string | null;
+            family: BridgeFamily;
+            wrapperInvoked: boolean;
+            outcome: 'answered' | 'failed' | 'rejected';
+            selected: boolean;
+            reason: 'answered' | 'timeout' | 'spawn-error' | 'no-exit-code' | 'exit-nonzero' | 'unexpected-response' | 'invalid-candidate';
+        }>;
+    } | null;
+    provenanceReason?: 'candidate-model-invalid' | 'wrapper-result-invalid' | null;
 }
 export interface Dispatcher {
     /** Once per run per family; the result is cached by the SCHEDULER and persisted into run-state
@@ -171,24 +203,9 @@ export declare function interpretCodexProbe(out: {
  * builds/configs do print one; it is tested, not assumed. (Named consequence: codex runs report no
  * token counts today. That is the honest state, not a bug to paper over — see the manifest.)
  */
-export declare function extractCodexTokens(stderr: string): {
-    tokensIn: number | null;
-    tokensOut: number | null;
-};
-/**
- * The claude `--output-format json` USAGE fields, pinned to the LIVE envelope shape.
- *
- * MEASURED this session (`claude -p --output-format json`, sonnet):
- * `usage.input_tokens = 2`, `usage.output_tokens = 4`, alongside `cache_read_input_tokens` and
- * `cache_creation_input_tokens`. Only the two plain counters are reported — cache tokens are a
- * SEPARATE dimension `wf-budget-1` has no field for, and silently folding them into `tokensIn`
- * would inflate every cached run's cost picture. Added to the architecture's export list; see the
- * manifest.
- */
-export declare function extractClaudeUsage(stdout: string): {
-    tokensIn: number | null;
-    tokensOut: number | null;
-};
+type ObservedUsage = Pick<DispatchResult, 'tokensIn' | 'tokensOut' | 'tokensSource' | 'tokensTotal' | 'tokensCacheRead' | 'tokensCacheWrite' | 'tokensReasoning' | 'reportedTotalBasis' | 'inputCacheSemantics' | 'reportedCostUsd' | 'usageDiagnostics' | 'usageSource' | 'totalDerivation'>;
+export declare function extractCodexTokens(stderr: string): ObservedUsage;
+export declare function extractClaudeUsage(stdout: string): ObservedUsage;
 /**
  * The codex adapter. Conventions, each a Confirmation-1 assertion:
  * stdin ALWAYS closed; the prompt as one argv element; scoping prefix + `--sandbox read-only` on

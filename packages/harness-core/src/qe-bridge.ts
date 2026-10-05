@@ -32,6 +32,7 @@
  */
 
 import { extractReportGrade } from './reqe.js';
+import { readOpenRoundTaskId, type RoundState } from './round.js';
 
 export const QE_BRIDGE_SCHEMA = 'qe-bridge-signoff-1';
 export const QE_BRIDGE_FAILURE_SCHEMA = 'qe-bridge-failure-1';
@@ -155,13 +156,97 @@ export interface BridgeSignoff {
   elapsedMs: number;
   emittedAt: string;
   /** experiment-instrument FR-1/FR-3/T5 (ADR-001): the task identity of the slug's single open
-   *  round at the moment this signoff was emitted — filled by the cli (it owns `.dz/rounds/`), null
+   *  round snapshot captured before the reviewer child — filled by the cli (it owns `.dz/rounds/`), null
    *  when there was no open round to fill from, never guessed. Optional so a signoff written before
    *  this feature landed parses unchanged (NFR-1). */
   taskId?: string | null;
   /** experiment-instrument FR-1/FR-3/T5: present whenever `taskId` above was filled from a lookup —
    *  names where it came from (`readOpenRoundTaskId`'s own source, r1-1/r1-2 extended to five values). */
   taskIdSource?: 'open-round' | 'derived-legacy' | 'no-open-round' | 'ambiguous' | 'unavailable';
+  /** Pipeline round identity; runId in BridgeAudit remains the bridge invocation. */
+  round?: number | null;
+  roundRun?: string | null;
+  roundIdentitySource?: 'explicit' | 'open-round' | 'derived-legacy' | 'no-open-round' | 'ambiguous' | 'unavailable';
+}
+
+type BridgeRoundIdentity = {
+  round: number | null; roundRun: string | null; taskId: string | null;
+  taskIdSource: NonNullable<BridgeSignoff['taskIdSource']>;
+  roundIdentitySource: NonNullable<BridgeSignoff['roundIdentitySource']>;
+};
+const identityTextValid = (value: unknown, max: number): value is string =>
+  typeof value === 'string' && value.trim() !== '' && value.length <= max && !/[\u0000-\u001f\u007f]/.test(value);
+const identityRoundValid = (value: unknown): value is number => typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
+
+/** Resolve copied values from ONE already-read authority snapshot, without IO or new IDs. */
+export function resolveBridgeRoundIdentity(input: {
+  slug: string; states: readonly RoundState[]; unreadableCount?: number; readError?: string;
+  explicit?: { round?: unknown; roundRun?: unknown; taskId?: unknown };
+}): { ok: true; identity: BridgeRoundIdentity } | { ok: false; reason: string } {
+  const explicit = input.explicit ?? {};
+  const hasExplicit = Object.keys(explicit).length > 0;
+  const suppliedRound = typeof explicit.round === 'string' && /^\d+$/.test(explicit.round) ? Number(explicit.round) : explicit.round;
+  if ('round' in explicit && !identityRoundValid(suppliedRound)) return { ok: false, reason: '--round must be a safe positive integer' };
+  if ('roundRun' in explicit && !identityTextValid(explicit.roundRun, 512)) return { ok: false, reason: '--round-run must be nonempty, at most 512 characters, without controls' };
+  if ('taskId' in explicit && !identityTextValid(explicit.taskId, 120)) return { ok: false, reason: '--task must be nonempty, at most 120 characters, without controls' };
+  const lookup = readOpenRoundTaskId(input.states, input.slug, input.unreadableCount ?? 0, input.readError !== undefined);
+  const empty: BridgeRoundIdentity = { round: null, roundRun: null, taskId: null, taskIdSource: lookup.source, roundIdentitySource: lookup.source };
+  if (lookup.source === 'no-open-round' || lookup.source === 'ambiguous' || lookup.source === 'unavailable') {
+    return hasExplicit ? { ok: false, reason: `round identity authority ${lookup.source}${input.readError ? ': ' + input.readError : ''}` } : { ok: true, identity: empty };
+  }
+  const state = input.states.find((s) => s.slug === input.slug)!;
+  if (!identityRoundValid(state.round) || !identityTextValid(lookup.taskId, 120) || (state.taskId != null && !identityTextValid(state.taskId, 120)) || (state.run != null && !identityTextValid(state.run, 512))) {
+    return hasExplicit ? { ok: false, reason: 'round identity authority unavailable: malformed state identity' }
+      : { ok: true, identity: { ...empty, taskIdSource: 'unavailable', roundIdentitySource: 'unavailable' } };
+  }
+  const roundRun = state.run?.trim() ?? null;
+  for (const [field, claim, current] of [['round', suppliedRound, state.round], ['roundRun', explicit.roundRun, roundRun], ['taskId', explicit.taskId, lookup.taskId]] as const) {
+    if (field in explicit && current === null) return { ok: false, reason: `round identity unverified: ${field} absent in authority` };
+    if (field in explicit && (typeof claim === 'string' ? claim.trim() : claim) !== current) return { ok: false, reason: `round identity conflict: ${field} does not match open round` };
+  }
+  return { ok: true, identity: { round: state.round, roundRun, taskId: lookup.taskId, taskIdSource: lookup.source,
+    roundIdentitySource: hasExplicit ? 'explicit' : lookup.source } };
+}
+
+/** Compare all present claims before cardinality. Raw invalid fields can never become legacy. */
+export function selectQeBridgeRoundSignoff<T extends { round?: unknown; roundRun?: unknown; taskId?: unknown; roundIdentitySource?: unknown; bridgeRunId?: string | null }>(
+  candidates: readonly T[], closing: { round: number; run?: string | null; taskId?: string | null },
+): { status: 'none' } | { status: 'ambiguous'; candidates: readonly T[] }
+  | { status: 'identity-mismatch' | 'identity-unverified'; reason: string; candidates: readonly T[] }
+  | { status: 'one'; candidate: T; reviewIdentitySource: 'round-run-task' | 'partial-identity' | 'legacy-window'; reviewIdentity: { round: number | null; roundRun: string | null; taskId: string | null; bridgeRunId: string | null } } {
+  const compatible: T[] = []; const legacy: T[] = []; const foreign: T[] = [];
+  for (const candidate of candidates) {
+    let present = 0; let mismatch = false;
+    if (candidate.roundIdentitySource != null && (typeof candidate.roundIdentitySource !== 'string' || !['explicit', 'open-round', 'derived-legacy', 'no-open-round', 'ambiguous', 'unavailable'].includes(candidate.roundIdentitySource))) {
+      return { status: 'identity-unverified', reason: 'malformed roundIdentitySource', candidates };
+    }
+    for (const [field, current, valid] of [['round', closing.round, identityRoundValid], ['roundRun', closing.run, (v: unknown) => identityTextValid(v, 512)], ['taskId', closing.taskId, (v: unknown) => identityTextValid(v, 120)]] as const) {
+      const claim = candidate[field];
+      if (claim === undefined || claim === null) continue;
+      if (!valid(claim)) return { status: 'identity-unverified', reason: `malformed ${field}`, candidates };
+      present++;
+      if (current === undefined || current === null || !valid(current)) return { status: 'identity-unverified', reason: `closing authority missing ${field}`, candidates };
+      if (claim !== current) mismatch = true;
+    }
+    if (present === 0 && ['explicit', 'open-round', 'derived-legacy'].includes(String(candidate.roundIdentitySource))) {
+      return { status: 'identity-unverified', reason: 'claimed round identity has no fields', candidates };
+    }
+    if (mismatch) foreign.push(candidate);
+    else if (present > 0) compatible.push(candidate);
+    else legacy.push(candidate);
+  }
+  if (compatible.length > 1) return { status: 'ambiguous', candidates: compatible };
+  const chosen = compatible[0] ?? (foreign.length === 0 && legacy.length === 1 ? legacy[0] : undefined);
+  if (!chosen) {
+    if (foreign.length) return { status: 'identity-mismatch', reason: 'present round/run/task differs from closing round', candidates };
+    return legacy.length > 1 ? { status: 'ambiguous', candidates: legacy } : { status: 'none' };
+  }
+  const round = chosen.round == null ? null : chosen.round as number;
+  const roundRun = chosen.roundRun == null ? null : chosen.roundRun as string;
+  const taskId = chosen.taskId == null ? null : chosen.taskId as string;
+  return { status: 'one', candidate: chosen, reviewIdentitySource: round !== null && roundRun !== null && taskId !== null ? 'round-run-task'
+    : round !== null || roundRun !== null || taskId !== null ? 'partial-identity' : 'legacy-window',
+    reviewIdentity: { round, roundRun, taskId, bridgeRunId: chosen.bridgeRunId ?? null } };
 }
 
 /** Where each channel was found, for the audit bundle: an auditor can re-derive the verdict from

@@ -43,6 +43,18 @@
  * bug, a backup that looked complete but carried a wrong-generation `-wal`. It now refuses up front
  * (before `VACUUM INTO` or any copy) when `backupPath` already exists and is non-empty.
  *
+ * **agentdb-backup-no-symlink-escape (backlog c2a85b540a293ea2).** A `backupPath` that is itself a
+ * symbolic link used to be written THROUGH: `statSync` in AM-4 follows the link (so a link to a
+ * non-empty file was refused, by accident), but a dangling link got a fresh snapshot created at its
+ * target and a link to an EMPTY file had it overwritten — outside the store (MEASURED on HEAD, /var/tmp
+ * probe, features/agentdb-backup-no-symlink-escape/00_complexity_assessment.md). Two layers now:
+ * {@link assertBackupLeafWritable} refuses a symlink or non-regular leaf by name before anything is
+ * written, and {@link stageThenRename} writes the snapshot (main file and any `-wal`) into a fresh
+ * private `mkdtempSync` directory next to the target and moves it into place with `renameSync`.
+ * `rename(2)` replaces a directory ENTRY — a link planted at `backupPath` between the check and the
+ * write is replaced by the snapshot, never followed. `O_NOFOLLOW` was not an option: the main path
+ * writes through sqlite's `VACUUM INTO`, which takes no open flags.
+ *
  * {@link restoreSqliteSnapshot} (FR-4) is the paired rollback. MEASURED (same repro): copying the
  * old main file back over `dbFile` WITHOUT removing a `-wal` left over from the aborted operation
  * — reopening the "restored" db returned ZERO rows, not the restored one, because sqlite replayed
@@ -61,7 +73,8 @@
  * @packageDocumentation
  */
 
-import { copyFileSync, existsSync, rmSync, statSync } from 'node:fs';
+import { copyFileSync, existsSync, lstatSync, mkdtempSync, renameSync, rmSync, statSync, unlinkSync } from 'node:fs';
+import { basename, dirname, join } from 'node:path';
 
 /** How a snapshot was actually taken — always reported by the caller, never assumed. */
 export type SnapshotMethod = 'vacuum-into' | 'copy+wal' | 'copy';
@@ -130,6 +143,77 @@ function clearBackupSidecars(backupPath: string): void {
   rmSync(`${backupPath}-shm`, { force: true });
 }
 
+/**
+ * no-symlink-escape (FR-1/FR-2/FR-4): refuse a `backupPath` whose LAST component is a symbolic link
+ * (whatever it points at) or an existing non-regular file (directory, FIFO, socket, device). `lstatSync`
+ * never follows the link; only a confirmed `ENOENT` means "free". Any other lstat error propagates —
+ * a target whose kind cannot be determined is not written to.
+ */
+function assertBackupLeafWritable(backupPath: string): void {
+  let st: ReturnType<typeof lstatSync>;
+  try {
+    st = lstatSync(backupPath);
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException)?.code === 'ENOENT') return;
+    throw err;
+  }
+  if (st.isSymbolicLink()) {
+    throw new Error(`snapshot target is a symbolic link — refusing to follow it: ${backupPath}`);
+  }
+  if (!st.isFile()) {
+    throw new Error(`snapshot target exists and is not a regular file: ${backupPath}`);
+  }
+}
+
+/**
+ * no-symlink-escape (FR-3, the TOCTOU half): run `write` against a path inside a fresh private staging
+ * directory (`mkdtempSync` — atomic, unpredictable name, mode 0700) next to `backupPath`, then move the
+ * result into place with `renameSync`: the main file first, then its `-wal` only when the outcome says
+ * `'copy+wal'` (AM-1: decided by the explicit method, never by what happens to exist on disk). A symlink
+ * planted at the target after {@link assertBackupLeafWritable} is REPLACED by the rename, never
+ * followed. The staging directory is always removed; one left by a crashed process is named
+ * `.<basename>.staging-XXXXXX`, which the rotation pattern (`<db>.pre-reindex-<ms>.bak…`) never matches.
+ */
+function stageThenRename(backupPath: string, write: (staged: string) => SnapshotOutcome): SnapshotOutcome {
+  const staging = mkdtempSync(join(dirname(backupPath), `.${basename(backupPath)}.staging-`));
+  try {
+    const staged = join(staging, basename(backupPath));
+    const outcome = write(staged);
+    // Order main -> wal is deliberate: publishing the -wal FIRST would put a foreign WAL next to
+    // whatever main file sits at backupPath, which sqlite could apply to it.
+    const stagedId = lstatSync(staged); // identity of the file we are about to publish
+    renameSync(staged, backupPath);
+    if (outcome.method === 'copy+wal') {
+      try {
+        renameSync(`${staged}-wal`, `${backupPath}-wal`);
+      } catch (cause) {
+        // Review r1 (MAJOR): a published main file without its -wal is a half snapshot that reads
+        // as complete. Withdraw it — only if the entry is still the very file we just renamed
+        // (same dev+ino, regular file) — and fail loudly under a named reason.
+        let withdrawn = false;
+        try {
+          const now = lstatSync(backupPath);
+          if (now.isFile() && now.dev === stagedId.dev && now.ino === stagedId.ino) {
+            unlinkSync(backupPath);
+            withdrawn = true;
+          }
+        } catch { /* withdrawn stays false and is reported below */ }
+        const why = cause instanceof Error ? cause.message : String(cause);
+        throw new Error(
+          `snapshot-wal-publish-failed: could not move the -wal sidecar to ${backupPath}-wal (${why}); ` +
+            (withdrawn
+              ? 'the just-published main file was withdrawn — no half snapshot left'
+              : `the main file at ${backupPath} could NOT be confirmed as ours and was left in place`),
+          { cause },
+        );
+      }
+    }
+    return outcome;
+  } finally {
+    rmSync(staging, { recursive: true, force: true });
+  }
+}
+
 function copyWithWal(dbFile: string, backupPath: string, note: string): SnapshotOutcome {
   // AM-2: statSync directly; only a confirmed ENOENT means "no -wal to copy" — any other stat error
   // propagates out of this function (and out of snapshotSqliteDatabase) as a thrown exception.
@@ -158,7 +242,8 @@ function copyWithWal(dbFile: string, backupPath: string, note: string): Snapshot
  *
  * Throws (no snapshot taken, or an incomplete one left in a fully-cleared state) when: `backupPath`
  * already names an existing, non-empty file (AM-4); or a `-wal` stat probe hits a non-ENOENT error
- * (AM-2, inside the fallback path). Never silently overwrites, never mis-reports a lesser guarantee
+ * (AM-2, inside the fallback path); or `backupPath` is a symbolic link or an existing non-regular file
+ * (no-symlink-escape). Never silently overwrites, never mis-reports a lesser guarantee
  * as a stronger one.
  */
 export function snapshotSqliteDatabase(
@@ -167,8 +252,25 @@ export function snapshotSqliteDatabase(
   backupPath: string,
   opts: { strategy?: 'vacuum-into' | 'copy+wal' } = {},
 ): SnapshotOutcome {
+  assertBackupLeafWritable(backupPath); // no-symlink-escape — a link or non-file leaf is never written through
   assertBackupTargetFree(backupPath); // AM-4 — before any write, on either strategy
   clearBackupSidecars(backupPath); // AM-1 — clean slate before either strategy writes anything
+  const outcome = stageThenRename(backupPath, (staged) => writeSnapshot(Database, dbFile, staged, opts));
+  // AM-1 — VACUUM INTO's output never has a matching -wal of its own: clear again once it is in place.
+  if (outcome.method === 'vacuum-into') clearBackupSidecars(backupPath);
+  return outcome;
+}
+
+/**
+ * The two snapshot strategies, writing to `backupPath` — which {@link snapshotSqliteDatabase} always
+ * passes as the STAGED path inside its private staging directory, never the final target.
+ */
+function writeSnapshot(
+  Database: SnapshotDbCtor,
+  dbFile: string,
+  backupPath: string,
+  opts: { strategy?: 'vacuum-into' | 'copy+wal' },
+): SnapshotOutcome {
   if (opts.strategy === 'copy+wal') {
     return copyWithWal(dbFile, backupPath, 'snapshotStrategy=copy+wal forced by caller');
   }
@@ -179,8 +281,7 @@ export function snapshotSqliteDatabase(
     } finally {
       db.close();
     }
-    clearBackupSidecars(backupPath); // AM-1 — VACUUM INTO's output never has a matching -wal of its own
-    return { method: 'vacuum-into' };
+    return { method: 'vacuum-into' }; // AM-1 sidecar clear runs in snapshotSqliteDatabase, after the rename
   } catch (err) {
     return copyWithWal(dbFile, backupPath, `VACUUM INTO failed: ${err instanceof Error ? err.message : String(err)}`);
   }

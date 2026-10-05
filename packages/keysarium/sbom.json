@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3b4f6570d8cebd26429409ed23da99ddd082c378946cf722fe62d5b405e288c2"
+          "content": "13e7e27322403ce45af5be7df1fa565178b5df73ffeea1b0bbe6b3faddce9f45"
         }
       ]
     },
@@ -59,7 +59,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "85ee0ef212bb69ac511c116c59e09244ca872d47a017cfa2a8e1c6dce66a99dc"
+          "value": "96bcc52bfe2180fd9976589895f1f328f6c8ac62e24d22042d1105a5c16f4148"
         }
       ]
     },
@@ -879,7 +879,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "67eb730c815e6b8f9b9b61084c67ceb85440548f00b21f52187d16e81e3d7af8"
+          "content": "28c265603481f976a52ea4c627e11194f3c0283801ea93d02cbb9f4248b43c68"
         }
       ]
     },
@@ -939,7 +939,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d48a8d6eebf9760cc8f1a4f19df0e6afc31fcc1284b5eacfb604ad8ced6a0b53"
+          "content": "b6e505083c1b8bc92243379b72ff4667b5b91ef65fd9c2ef7407129018b3e56b"
         }
       ]
     },
@@ -969,7 +969,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5c8d4c79d5329702b8c75b9afb36ae335aa63c99e74045c0afa98e12658ee975"
+          "content": "d7a2a4e56b24451da234b1ac4ef440ba9b0370617e1c0cde8ad5f3d575a53209"
         }
       ]
     },
@@ -979,7 +979,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fb054591e86d55cee184eab96b5f0440053ada8fa9edf619e4a66ec5ac371587"
+          "content": "db79f8d026cc47edd1e5d2f30d0e1455c55c570dd022d549d440985a3e5940a5"
         }
       ]
     },
@@ -989,7 +989,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5355e2b36ab13b6acb65abe5b206685915ef2b08191b4a3130574620012b9135"
+          "content": "4aa7ef1dea08b8d1995d968a317da5d36a4859ec299637bdc60170cf577c87af"
         }
       ]
     },
@@ -1215,11 +1215,31 @@
     },
     {
       "type": "file",
+      "name": "templates/.claude/skills/feature-adr/scripts/build-coder-context.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "19c3991bfb5e88205c9ff6d4d44037c136a190581bab199d3928196e4616fe15"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "templates/.claude/skills/feature-adr/scripts/check-plan-completeness.mjs",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eb77822f121ade10bd6265b0f0145ec38507a07d2cb72ba5fa8336c962096bda"
+          "content": "8b93949ce4f671d932c5389050db3a3e2750efcbed69681d69f392ccf4d2a168"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/scripts/check-review-convergence.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "80f9691b8e94bf310461aeaaaa23af6e336d41d0962fdf137737639655cbdeb8"
         }
       ]
     },

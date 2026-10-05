@@ -1,5 +1,9 @@
 # @dzhechkov/skills-feature-adr
 
+Current package version: `1.5.16`. <!-- dz:version -->
+
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-feature-adr
+
 **Spec-Driven Development pipeline for AI coding agents (Claude Code, Codex, …)**
 
 An 11-step, complexity-routed pipeline that makes an AI coding agent build a feature the way a
@@ -36,6 +40,21 @@ npx @dzhechkov/skills-feature-adr init
 ```
 
 After installation, open Claude Code in your project directory and use `/feature-adr`.
+
+Plain usage guidance joins the existing stage writer to `usage --by-stage --project` with explicit FA/
+Wf source selection and observed receipt IDs. It preserves unknown splits/prices, caller estimates and
+separate conservation/inventory/source verification. No billing inference, new ledger or paid replay.
+
+Plain Step 8 bridge guidance now passes current `--round`, `--round-run` and `--task` from the existing
+round receipt with the execution `--project`. Explicit conflicts refuse before reviewer work; the
+bridge's invocation `runId` stays distinct from pipeline identity. Native Workflow QE remains its own
+review path. Historical window correlation is disclosed as lower assurance, without guessed identity.
+
+Step 7 uses the installed `scripts/build-coder-context.mjs` helper to include literal requirements,
+plan tasks and ADR Decision/Confirmation. Workflow reads current inputs before code checkpoint
+lookup; plain coding runs the same helper and reads or embeds its successful `promptBlock`.
+Missing required sections, invalid files and exceeded UTF-8 bounds refuse coding instead of trimming
+the context. Existing decision recall and code-wrapper routing remain in place.
 
 ---
 
@@ -1363,3 +1382,39 @@ harness-core's `src/markdown-masker.ts`. It runs without a core build. Amendment
 and K2 share the parser while retaining their existing unclosed-block and indentation policies.
 The four-space indented-code gap remains open for amendment checks and K2; swarm briefs retain their
 existing masking of indented code. Versions are unchanged in this staged change.
+
+### Codex companion for feature-adr
+
+`dz statusline --watch --project "/path/to/worktree" --brain "/path/to/shared-brain"
+--slug "feature-slug" --run-id "stable-run-id"` adds an explicitly launched adjacent terminal
+companion, including Plain runs. Until installed, invoke the worktree-built
+`node packages/@dzhechkov/harness-cli/dist/bin.js statusline --watch ...`. This extends the existing
+command inventory. Canonical feature-adr guidance supplies the quoted producer/observer recipe: record
+a stable run ID and actual tier at the START of each step, then `done` on real completion; recall/teach
+remain scoped to the shared brain. Project run state and brain counts are separate. One slug retains
+one latest run; report freshness is not process liveness and stage position is not passed gates.
+
+The readonly companion requires a dedicated stdout TTY, uses serial 2-second refreshes (0.25–60
+allowed), sanitizes/clips text and handles resize. Below 40x8 it shows a size warning. Ctrl-C/SIGTERM
+exit 0; output failure 1; invalid/piped watch 2. Failed/absent counts and optional values are explicit;
+watch v1 ETA is unavailable and global source inventory omitted. No stdin/raw mode, models, logical
+store writes or automatic terminal/settings changes. Normal SQLite ephemeral WAL/SHM sidecars are
+permitted. One-shot Claude text/JSON/ETA remain unchanged. Codex native footer capability is not
+asserted; parity names manual `dz statusline --watch` access.
+
+
+Review convergence in `/feature-adr` now uses one installed Node gate in Plain and native Workflow.
+Step 3.5 closes before planning; Step 8 closes before completion and delivery, including S tier and
+resumed runs. The host measures current artifact bytes and preserves originating reviewer conditions;
+focused rework includes an explicit author delta/new-risk assessment and independent own-condition
+verification. Serious primary or precision findings remain visible at the round ceiling.
+
+Missing or stale receipts, legacy resume, unavailable reviewers and read-only Codex mode A pause
+with host-driven repair instructions. Parallel native design can require focused review after sibling
+artifacts settle. Clean initial supported review closes without invented conditions or an extra review.
+This is a receipt consistency/freshness gate, not reviewer authentication or semantic proof; existing
+Confirmation, scope, family and budget gates still apply. No automatic repair loop or new CLI command.
+
+Repeated prepare retains all pending paths until verified closure. Actual fallback families bind before dispatch while prior owners remain required. Same-slug QE repair uses current own-reviewer evidence bound to the complete historical checkpoint; original findings/grades remain visible, and failed Confirmation still blocks delivery.
+
+Before fallback, host prepare retains independently written pending receipt findings under the original owner even if that reviewer returned null. Unreconciled pending evidence pauses dispatch for originating-reviewer repair; it cannot be replaced by a clean fallback to obtain closure.

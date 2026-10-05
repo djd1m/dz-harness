@@ -81,8 +81,43 @@ export interface InjectVitestWorkerCeilingResult {
     /** segments where `vitest run` was found only by the LOOSE token-pair fallback (command position
      * unrecognised) — the CLI reports these so an odd wrapper shape is visible, not silent. */
     readonly looseSegments: number;
+    /**
+     * vitest-ceiling-injection-hardening FR-1: set when the command cannot be split with confidence —
+     * an UNTERMINATED quote leaves both the segment boundaries and the argument ends to guesswork (a
+     * swallowed `&&` would move a boundary). The command is then returned byte-identical, all counts
+     * are 0, and the reason is named here — never a best-effort injection. Absent on the normal path.
+     */
+    readonly notEstablished?: VitestInjectionNotEstablished;
 }
-export declare function injectVitestWorkerCeiling(testCmd: string, maxWorkers: number): InjectVitestWorkerCeilingResult;
+/** vitest-ceiling-injection-hardening FR-1: why the injection was not attempted. */
+export interface VitestInjectionNotEstablished {
+    readonly reason: 'unterminated-single-quote' | 'unterminated-double-quote' | 'unsupported-shell-construct';
+    /**
+     * set only for `unsupported-shell-construct` (astra r1, MAJOR 1): the construct the scanner does NOT
+     * model — reading the quotes inside it as ordinary quotes gave valid commands a false
+     * `unterminated-*` reason. Deliberately a refusal, not a parser: heuristic shell parsing does not converge.
+     */
+    readonly construct?: UnsupportedShellConstruct;
+    /** human-readable, names the quote kind / construct and the raw offset where it starts. */
+    readonly message: string;
+}
+/** shell constructs `splitUnquotedSegments` detects and REFUSES rather than models. */
+export type UnsupportedShellConstruct = 'comment' | 'heredoc' | 'command-substitution' | 'backtick-substitution' | 'parameter-expansion' | 'ansi-c-quoting';
+/**
+ * vitest-ceiling-injection-hardening FR-2: the backslash policy. The gate spawns the command with
+ * `shell: true` (`/bin/sh` on POSIX, `cmd.exe` on win32), and the two disagree on `\`: `/bin/sh`
+ * treats it as an escape (so `C:\proj\vitest` unquoted really becomes `C:projvitest` and is not
+ * vitest), `cmd.exe` does not. `win32` here means ONLY: backslash is a literal path character.
+ * cmd.exe quoting (`^` escapes, no single-quote quoting) is NOT modelled — quotes, operators and the
+ * unsupported-construct refusals stay POSIX-shaped on both (astra r1, MAJOR 2). Core never reads
+ * `process.platform` (core-boundary rule A), so the caller passes it; the default is `posix`.
+ */
+export type VitestInjectionPlatform = 'posix' | 'win32';
+export interface InjectVitestWorkerCeilingOptions {
+    /** default `'posix'` — HEAD behaviour. `'win32'`: backslash is a literal path character (never an escape, no line continuation); cmd.exe quoting (`^` escapes, no single-quote quoting) is NOT modelled. */
+    readonly platform?: VitestInjectionPlatform;
+}
+export declare function injectVitestWorkerCeiling(testCmd: string, maxWorkers: number, options?: InjectVitestWorkerCeilingOptions): InjectVitestWorkerCeilingResult;
 export interface MutationRegistry {
     /** optional suite command override for the whole registry (default `npm test`). */
     readonly testCommand?: string;

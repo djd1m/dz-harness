@@ -20,6 +20,7 @@
  *
  * @packageDocumentation
  */
+import type { ReleasePackageAuditPlan, ReleasePackageAuditResult, ReleaseWorkspaceAuditReport } from './release-package-audit.js';
 import type { PackedInstallPlan } from './packed-install-smoke.js';
 /** The four HARD verify gates, in execution order. */
 export type ReleaseGateId = 'tests' | 'audit' | 'syntax' | 'smoke';
@@ -67,7 +68,7 @@ export interface GateStep {
      * `exec` (default): the CLI runs `cmd`. `synthetic-fail`: the PLAN already knows this step
      * fails (missing bin, stale dist) — classification sees it without any execution.
      */
-    readonly kind?: 'exec' | 'synthetic-fail' | undefined;
+    readonly kind?: 'exec' | 'synthetic-fail' | 'package-audit' | undefined;
     /** For `synthetic-fail` steps: the failure class the verdict must carry. */
     readonly failClass?: ReleaseFailureClass | undefined;
     /**
@@ -100,6 +101,9 @@ export interface GatePlan {
      * refuses it — the two doors would not be equal, contradicting FR-6's own claim.
      */
     readonly packedInstallPlan?: PackedInstallPlan | undefined;
+    readonly packageAuditPlans?: readonly ReleasePackageAuditPlan[];
+    readonly workspaceAuditStep?: GateStep;
+    readonly workspaceAuditIncludeDev?: boolean;
 }
 /** The CLI's record of running one exec step. */
 export interface GateExecution {
@@ -108,6 +112,7 @@ export interface GateExecution {
     readonly stdout: string;
     readonly stderr: string;
     readonly durationMs: number;
+    readonly packageAuditEvidence?: unknown;
     readonly timedOut?: boolean | undefined;
 }
 /** One classified failure inside a gate. */
@@ -149,6 +154,8 @@ export interface ReleaseVerdict {
     /** Fail-closed decision point: `'proceed'` iff every gate is clean AND something ran. */
     readonly publishAction: 'proceed' | 'blocked';
     readonly timestamp: string;
+    readonly packageAudits: readonly ReleasePackageAuditResult[];
+    readonly workspaceAudit: ReleaseWorkspaceAuditReport;
 }
 /** Default per-step timeouts (NFR-4: a hung child is a classified failure, not a hung release). */
 export declare const RELEASE_TIMEOUTS: {

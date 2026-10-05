@@ -96,6 +96,13 @@ export interface RoundLedgerRow {
      *  fix-round-1 #1/#2 (ADR-001 п.2 amended): also present when an EXPLICIT `--reviewer` AGREES with
      *  the sidecar's own `gradedBy` (`reviewSource:'flag+qe-bridge'` below names that case). */
     readonly reviewMinutes?: number;
+    readonly reviewIdentitySource?: 'round-run-task' | 'partial-identity' | 'legacy-window';
+    readonly reviewIdentity?: {
+        readonly round: number | null;
+        readonly roundRun: string | null;
+        readonly taskId: string | null;
+        readonly bridgeRunId: string | null;
+    };
     /** measurement-integrity FR-7: present ONLY alongside `reviewMinutes` — names where `reviewer` and
      *  `reviewMinutes` came from, so a reader never confuses a sidecar-sourced figure for a flag.
      *  review-cost-ledger fix-round-1 #1/#2 (ADR-001 п.2 amended): `'qe-bridge'` when `reviewer` was
@@ -181,6 +188,8 @@ export interface RoundLedgerRow {
  * `closeRound` never opens a file.
  */
 export interface RoundReviewSidecar {
+    readonly reviewIdentitySource?: RoundLedgerRow['reviewIdentitySource'];
+    readonly reviewIdentity?: RoundLedgerRow['reviewIdentity'];
     /** Who graded it — family + model, e.g. `codex:gpt-5.6-sol`. */
     readonly gradedBy: string;
     readonly elapsedMs: number;
@@ -326,7 +335,7 @@ export declare function validateClosedRoundLedgerRow(row: unknown): {
  *   Codex r1 CRITICAL #1: this used to report `'open-round'` for an invented value, indistinguishable
  *   from a value the round itself actually minted).
  */
-export declare function readOpenRoundTaskId(states: readonly RoundState[], slug: string, unreadableStateCount?: number): {
+export declare function readOpenRoundTaskId(states: readonly RoundState[], slug: string, unreadableStateCount?: number, authorityReadError?: boolean): {
     readonly taskId: string | null;
     readonly source: 'open-round' | 'derived-legacy' | 'no-open-round' | 'ambiguous' | 'unavailable';
 };

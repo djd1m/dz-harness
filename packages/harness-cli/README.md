@@ -1,5 +1,7 @@
 # @dzhechkov/harness-cli
 
+Current package version: `0.8.40`. <!-- dz:version -->
+
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
 ## Install in 30 seconds
@@ -12,6 +14,8 @@ dz doctor
 
 You do NOT need to clone any repository to use dz. Source is for contributors — see
 [From source (contributors only)](#from-source-contributors-only) at the end of this README.
+
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/harness-cli
 
 ## Why dz?
 
@@ -1592,9 +1596,9 @@ zero-config `architecture/gates/delivery-check.md` whose runnable-here gate list
 
 `dz publish` gates on guard / claim-check / signatures / provenance / files-whitelist — none of which
 prove the code **works**. `dz release` is the opt-in VERIFY phase in front of it: (1) each package's full
-test suite, (2) `pnpm audit --prod --audit-level high` (production deps by default — a dev-only advisory
-is not a false gate; `--audit-dev` widens; an audit that *cannot run* also blocks, classified
-`AUDIT_ERROR`), (3) `node --check` of every `dist/**/*.js` + bin file (a dist older than `src/` is
+test suite, (2) an npm audit of each selected tarball installed alone in a fresh consumer outside
+the workspace (runtime transitives, ordinary peers, optional and bundled dependencies included;
+high/critical findings block as `VULNS_HIGH`, unavailable or malformed evidence as `AUDIT_ERROR`), (3) `node --check` of every `dist/**/*.js` + bin file (a dist older than `src/` is
 `STALE_DIST`, never checked as-is; a package that declares a `build` script but has **no** dist JS is
 `MISSING_DIST` — an unbuilt package cannot ship), (4) smoke-boot every bin via `node <bin> --help` in a
 throwaway cwd with a timeout. Packages without a `test` script are **named skips** in the report — never
@@ -1621,12 +1625,33 @@ shrinking every tail evenly rather than dropping some whole while leaving others
 ```bash
 dz release --dry-run              # full gate plan, zero commands executed
 dz release --filter harness-core  # gates for one release set
+dz release --filter harness-core --test-timeout-ms 1200000 # full test budget for each selected package
 dz release --affected             # narrow to packages touched by working tree + last commit (git down ⇒ FAIL-OPEN to full set)
 dz release --tag                  # on green: annotated git tag + short notes from recent commits
 dz release --publish              # on green: chain in-process into dz publish (its own dry-run protocol)
 dz release --json                 # CI-parseable verdict; valid JSON on error paths too (with --publish, publish output rides INSIDE the envelope)
-dz release --audit-dev            # widen the audit gate to dev dependencies too
+dz release --audit-dev            # include development dependencies in the separate workspace report
 ```
+
+The workspace audit remains separately visible in text and JSON as `workspaceAudit`, with
+`scope:"workspace"`, `nonBlocking:true` and clean/findings/error/not-run status. Workspace
+findings or endpoint errors cannot replace or block a proven package audit. `packageAudits`
+records each candidate/lock digest, npm version, host platform, resolved/installed counts,
+optional absences and phase outcomes. Lock-only platform-excluded optional nodes remain
+conservatively audited; absent optional peers are named. Unknown closure/lock/report evidence
+blocks. The current supported contracts are npm10, lockv2/v3 and npm audit JSONv2.
+
+Consumer installs explicitly disable lifecycle scripts and override ambient omit/offline/peer/
+workspace/global settings. Trusted source pack hooks retain the shared sign/publish behavior;
+packed-bin smoke remains a separate gate. The fresh consumer uses no workspace overrides,
+lockfile, source links or other selected tarballs. Staged sibling pins must resolve from registry;
+an unpublished sibling is an install failure. Audits require registry access and cover known
+advisories for one fresh resolution on this host, rather than every semver resolution/platform
+or malicious-code safety.
+
+`--dry-run` displays pack → install → validate → audit and both scopes without verification,
+network or scratch allocation. `--affected --dry-run` retains only the existing read-only Git
+selection. `--publish` still enters the publisher's preview protocol after green HARD gates.
 
 Expected flow: gate table (`✓/✗/○` per gate with per-package failures + named skips) → on any red gate:
 release STOPPED, exit 1, best-effort `gh issue create` (no `gh`/network ⇒ loud log, never a block;
@@ -2208,10 +2233,10 @@ dz vector export     <path> [--project <dir>]       # portable VECTOR form (.rvf
 dz vector import     <file.rvf> [--project <dir>] [--json]         # RVF import — UPSERT-BY-dzId (idempotent, never overwrites; orphans skipped)
 dz vector harmonize  [--apply] [--threshold <0..1>] [--json]       # SEMANTIC merge of near-dups (dry-run default; --apply after a restorable backup)
 dz teach --harmonize [--apply] [--threshold <0..1>]                # alias of `dz vector harmonize`
-dz statusline        [--json] [--install]   # compact Claude Code statusline: live self-learning pattern count + brain sources
+dz statusline        [--json] [--install] [--watch --project <dir> --brain <dir> --slug <s> --run-id <id> --interval <seconds>]   # compact Claude Code statusline: live self-learning pattern count + brain sources
 dz store-guard       [--status|--reset|--prune [--apply]] [--yes] [--project <dir>]   # inspect the monotonic external high-water mark; --reset is the only lowering path and requires confirmation; --prune removes marks whose project is gone (dry run by default)
 dz usage             [--json] [--project <dir>]   # 7-day UTC spend from local Claude Code + subagent transcripts; provider-limit routing disabled by design
-                     --by-stage [--run <id> | --slug <s>] [--epsilon <0..1>] [--write <file.jsonl>] [--json]         # per-stage cost ledger for ONE feature-adr run + reconciliation invariant (BALANCED | DEFECT | INSUFFICIENT_DATA)
+                     --by-stage [--project <root>] [--run <id> | --slug <s>] [--run-dir <dir>] [--source auto|workflow-budget|fa-ledger|claude-transcript] [--codex-sessions <dir>] [--epsilon <0..1>] [--write <file.jsonl>] [--json]   # source-aware Wf/Plain/Claude stage usage; legacy Claude epsilon; separate metric, inventory, source-verification and pricing status
 dz chain             [--project <dir>] [--json]   # verify EVERY hash-chained journal in one command; coverage is DERIVED from the CHAINED_JOURNALS registry, so a journal cannot be chained and checked by nobody; an ABSENT journal is NAMED, never omitted; exit 1 on broken/unreadable
 dz claim-check       [paths...] [--json] [--fail-on high|medium|none] [--project <dir>]   # enforce the Integrity Rule: flag untagged/overstated accuracy claims; default scan = READMEs + features' 08_qe_report.md; exit 1 only at/above --fail-on (default high)
 dz lint              [paths...] [--json] [--config <file>] [--registry <file>] [--project <dir>]   # advisory EN/RU prose-style lint; findings exit 0, incomplete input/policy exits 1, usage exits 2
@@ -2402,11 +2427,52 @@ publish sweeps multiple packages/features in one run, so no single slug's open r
 task identity. A writer failure only warns (`⚠ the publish ledger row was not verified on reread…`)
 and never changes the publish exit code.
 
-`dz qe-bridge`'s signoff record also carries `taskId`/`taskIdSource`, filled the same way at write
-time; `round close`'s own signoff lookup additionally narrows an otherwise-AMBIGUOUS window by taskId
-when EXACTLY ONE candidate's own `taskId` matches the closing round's — zero or multiple matches still
-refuse as ambiguous, and a round with no taskId to compare falls straight through unchanged (closes
-backlog `1affd89e`).
+`dz usage --by-stage --project <root> --run <id> --source auto|workflow-budget|fa-ledger|claude-transcript`
+reads one selected usage universe. `--run-dir` names custom Wf artifacts; colon-containing FA run IDs
+are filtering data. Independent source collisions require an explicit source and scoped requests never
+fall through to an unrelated global latest run. Legacy unscoped Claude transcript reporting remains.
+
+Wf Codex exec now requests supported JSON events and returns final agent text plus terminal usage;
+genuine plain output remains compatible, malformed event streams refuse without a second generation.
+Failed attempts retain trustworthy usage; scheduler retries have distinct dispatch identities and cached
+resume adds no spend. Claude cache creation/read remain separate from ordinary input; Codex cache and
+reasoning are subsets. Missing dimensions are null rather than zero; human totals retain their basis.
+
+`feature-adr-record --kind ledger --stage <s> --project <root> --row <json>` preserves actual run/model/
+role/attempt/tier/mode and optional pre-run estimate. `--rollout-id <id>`/`--turn-id <id>` select existing
+source identity; optional `--window-from`/`--window-to` retains labelled weaker correlation. Use
+`--codex-sessions` for an explicit receipt root. The captured receipt scope is immutable; reimports
+dedup by source identity, while conflicts or overlapping stage claims are diagnosed.
+
+JSON/text/derived exports separate known subtotal, unavailable full totals, conservation, inventory,
+source verification and pricing coverage. Wf trace verifies inventory only; independent same-scope
+evidence is required for `sourceVerifiedTotalTokens`. Unknown model/mix leaves estimated USD null;
+family rates and provider-reported cost are separate and never billed/current exact rates. Exports cannot
+overwrite any discovered authoritative source, including custom run directories, witnesses and
+selected transcript roots. New output paths resolve existing-parent symlink aliases; unrelated derived
+exports remain supported. Captured payload SHA-256 and full independent dimension comparisons reject
+mutated receipt mixes even when totals remain unchanged. Monetary observations count once across
+receipt expansion; `reportedCostObservation: { id, scope, basis }` in `--row` can retain distinct caller
+observations. Without that metadata a captured source scope supplies a stable identity, or money
+attribution remains unavailable. `knownReportedCostUsd` and money coverage distinguish missing from
+zero; reported money remains separate from estimates and billing. No provider replay, billing query or monthly-data
+repair is performed.
+
+`dz qe-bridge --round <n> --round-run <id> --task <id> --project <execution-repo>` validates claims
+against one readable open round before any probe, directory setup or review child. Its signoff freezes
+`round`, `roundRun`, `taskId` and `roundIdentitySource`; omitted fields fill only from that snapshot.
+The existing signoff `runId` remains the bridge invocation and audit filename, distinct from pipeline
+`roundRun`. No-flags standalone reviews preserve best-effort lookup and explicitly null/unavailable
+identity. `control-review` forwards the same fields explicitly and refuses conflicts before setup.
+
+`round close` compares every present round/run/task claim before counting candidates. A sole foreign
+or malformed candidate refuses even with manual grade/reviewer; unique compatible identity wins over
+foreign or identity-free candidates, while malformed/unverifiable evidence and multiple matches refuse.
+Only a sole truly identity-free signoff without foreign evidence uses `legacy-window`; valid partial
+identity is `partial-identity`, and a complete matched triple is `round-run-task`. JSON and trusted ledger
+attribution carry `reviewIdentitySource` and selected `reviewIdentity`, including the bridge invocation
+ID. Same-slug inclusive timestamp windows, cost-file pinning and witnessed retry order remain in force.
+These local fixtures do not verify a live Claude generation or all native Codex QE paths.
 
 Every mutation of `.dz/rounds/<slug>-<round>.json` (`open`'s archive+write, `exec`'s owner-claim and
 owner-restore writes, `close`'s final reread+delete) runs under ONE named lock,
@@ -2510,7 +2576,7 @@ dz brief-check        <file> [--json]   Swarm brief declares OUTPUT_DIR, UNITS, 
 dz tg-post            --draft <file.html> [--manifest <sources.json>] [--channel <@name>] [--send --yes] [--night] [--max-per-day <n>] [--json]   # the sender for an APPROVED genai-tweets-channel post, held to the channel's own accepted ADRs: HTML mode only (never MarkdownV2 — 18 escapes against 3, one miss is a 400); link preview OFF by default (x.com previews in Telegram are broken since 2022); the 00:00-06:00 MSK quiet window refuses without an explicit --night. THE DEFAULT RUN IS A DRY-RUN: tag balance and allowed-tag checks, bare &/< detection, the 4096 visible-character limit with the overshoot counted — every issue named in one pass, not just the first. The provenance gate runs IN-PROCESS over --manifest, and a draft with no manifest is refused as unchecked when a send is asked. A real send needs --send AND --yes — ADR-004's standing order that publishing stays manual, stated out loud each time. Three autopublish guards run FAIL-CLOSED, in a fixed order: the **stop-cord** (`.dz/tg-post/HALT` exists ⇒ nothing publishes, checked FIRST so no bug in a later gate can route around it), **dedup** by the sha256 of the post's VISIBLE text (what the reader sees, not the bytes — a whitespace-different draft is the same post), and the **daily limit** (10 by default, `--max-per-day <n>` to change it), counted over the trailing 24h. The journal is two-phase: a `pending` row is written BEFORE the network call and a `sent` row after Telegram accepts, so a crash between the two is caught by dedup on the next run instead of double-publishing; only `sent` rows eat the daily ceiling. An UNREADABLE journal REFUSES — an unreadable counter does not prove the ceiling is unreached. The provenance gate also clears `kind: url`: a well-formed http(s) URL is public by construction so there is nothing local to protect, while a `file://`, a bare path or a non-URL is refused, never inferred. The bot token (TELEGRAM_BOT_TOKEN or telegram.tokenFile) is never printed, and the gates run BEFORE any secret is read. exit 0 sent or clean dry-run / 1 refused / 2 usage
 dz feature-adr-checkpoint (--slug <feature> | --feature-dir <abs>) --stage <s> --input-hash <h> --result <json> [--artifact a,b] [--json]
 dz reqe              [--slug <feature> [--done --report <f>]] [--project <dir>] [--json]   # the re-QE debt ledger: a usage-switched feature-adr run whose Step-8 QE ran on the coder's OWN family (cross-model guard suspended, FR-2.9) records a debt; list debts (also surfaced by dz usage), print the cross-family review brief, settle FAIL-CLOSED against an existing GRADED report (the run's own 08_qe_report.md — even hard-linked — can never settle its own debt); settlement lands in 08_qe_report.md, evidence rotates to reqe-settled.json — exit 0 settled (ready or unassessed) / 1 refused, nothing written / 3 settled but BLOCKER or HIGH named: stop, owner decides
-dz qe-bridge         --family claude --slug <feature> [--coder-family codex|claude] [--model <id>] [--files a,b] [--out <f>] [--timeout <s>] [--allow-same-family] [--json]   # the REVERSE QE bridge (Codex-hosted → Claude reviewer): the reviewer runs ISOLATED (an empty temp cwd + --safe-mode --strict-mcp-config --tools '' --no-session-persistence, so no CLAUDE.md/skills/plugins/hooks/MCP load) and its verdict is read from the --output-format json RESULT ENVELOPE, so text a customization printed onto the same stdout can never become a signoff. Probes the model first; sends SCOPED extracts under a loud 200k-char ceiling; the grade must agree across three LAST-anchored channels AND the marker must be the final content — empty/gradeless/mismatched/miscounted output is a named failure with an audit record under features/<slug>/.fa-state/qe-bridge/, never a clean review. exit 0 signoff parsed (ANY grade — it reports, it does not gate) / 1 named failure / 2 usage. DZ_QE_BRIDGE_CLAUDE_BIN is a TEST SEAM (recorded as binOverride:true)
+dz qe-bridge         --family claude --slug <feature> [--round <n>] [--round-run <id>] [--task <id>] [--coder-family codex|claude] [--model <id>] [--files a,b] [--out <f>] [--timeout <s>] [--allow-same-family] [--json]   # the REVERSE QE bridge (Codex-hosted → Claude reviewer): the reviewer runs ISOLATED (an empty temp cwd + --safe-mode --strict-mcp-config --tools '' --no-session-persistence, so no CLAUDE.md/skills/plugins/hooks/MCP load) and its verdict is read from the --output-format json RESULT ENVELOPE, so text a customization printed onto the same stdout can never become a signoff. Probes the model first; sends SCOPED extracts under a loud 200k-char ceiling; the grade must agree across three LAST-anchored channels AND the marker must be the final content — empty/gradeless/mismatched/miscounted output is a named failure with an audit record under features/<slug>/.fa-state/qe-bridge/, never a clean review. exit 0 signoff parsed (ANY grade — it reports, it does not gate) / 1 named failure / 2 usage. DZ_QE_BRIDGE_CLAUDE_BIN is a TEST SEAM (recorded as binOverride:true)
 dz control-review    --slug <feature> --files a,b [--brief <file>] [--coder-family codex|claude] [--codex-model gpt-5.6-sol] [--effort high] [--claude-model <id>] [--timeout-min 30] [--adjudicate <file>] [--project <dir>] [--json]   # ADR-001 cross-family-control-branch: two INDEPENDENT scoped reviews over the SAME tree, the Codex half run from an ISOLATED scope copy — diffed into confirmed (adjudicated)/candidate (automatic)/onlyCodex/onlyClaude per severity. Automatic overlap is a CANDIDATE only, never confirmed (title-Jaccard>=0.5 with compatible file, or same file+line±3 AND jaccard>=0.2); an explicit --adjudicate file (none entries family-qualified as codex:<id>/claude:<id>) produces the only CONFIRMED pairs. `git rev-parse HEAD` + a sha256 of every scoped file is snapshotted before and after EACH half; any drift, an unreadable Claude signoff, a half with no accepted findings table, a nonzero Codex exit/timeout, or an ambiguous answer boundary refuses with NO ledger row written; an out-of-scope or unnormalizable finding lands in the row's own refused/complete fields instead. A written row is trusted only after an exactly-one-new-line, prefix-preserving, deep-compared reread that also checks the writer's exit status. NAMED LIMITS: the isolated scope copy is NOT filesystem isolation (`codex exec --sandbox read-only` can still read the repository — the enforced half is ingestion: every Codex finding must carry an in-scope `<path>:<line> — ` title prefix or it is refused); the Codex answer is the text after the LAST standalone `codex` banner line, so a model that prints the word `codex` alone on a line truncates its own answer (the brief forbids it; an accepted table left in an earlier segment is refused as an ambiguous boundary). exit 0 written+verified / 1 refused / 2 usage / 3 written-but-not-reread
 dz score --by-family [--project <dir>] [--json]   # the per-(coder,reviewer)-family aggregate over the WHOLE run-cost ledger: grade distribution, shippedShare, notShipped, mean fixRounds, foreign-unique findings folded in from every COMPLETE `dz control-review` row (n, incompleteRuns, bySeverity, auto vs adjudicated as FINDING sums plus autoRuns/adjudicatedRuns — every field "unknown" when n=0, never a fabricated zero; a `complete:false` row is counted in incompleteRuns, excluded from the measured figures, and marks the aggregate INCOMPLETE), refutedShare, costPerConfirmed, draftToShipped (shipped-outcome-only finals, latest by ts). "control rows: 0" prints honestly when no control runs exist yet; an unreadable ledger line marks the whole aggregate INCOMPLETE. Descriptive-only — exit 0 always
 dz backlog <sub>     add "<idea>" | list | show <id> | goals [--validate] | roulette [--seed n] [--commit <id>] | ship <id…> | drop <id…> | reopen <id…> | enrich <id> | jira <id> | harmonize [--apply]   # brain-backed idea backlog: capture an idea → semantic dedup against past ideas/features via the REUSED agentdb vector engine (two-signal: bounded-excerpt cosine DUPLICATE≥0.92 corroborated by shared subject vocabulary — a register-only 0.94 is demoted to RELATED, a length-only re-capture is caught as a subset duplicate; absorbed texts kept in absorbed.jsonl) + GoalMap alignment ("map+compass") → weighted seeded roulette picks one to work on → enrich STAGES an idea2prd hand-off → jira writes an auditable outbox via a configurable MCP adapter seam (jira-mcp|copilot-mcp|none). No 2nd vector store; without agentdb it degrades to exact-text dedup (honest)
@@ -2522,7 +2588,7 @@ dz guard promote [--dry-run | --apply] [--window-days <N>] [--periods <N>] [--js
 dz feature-adr-setup --guards [--loc-cap <n>] [--apply]   # P3: scaffold DETERMINISTIC guard tests into the project — guards.config.json + a zero-dependency check.mjs runner (LOC cap, secret scan, frozen-file sha256 pins, waivers-with-reasons); wire `node architecture/guards/check.mjs` into CI
 dz publish           [--filter <name>] [--bump-only] [--claim-check <off|warn|error>] [--mirror-cmd <cmd>|--no-mirror] [--allow-sibling-drift] [--include-drifted]   (dry-run by default; pass --yes/--confirm to go live; a configured mirror must return a live receipt or the published run exits 3; config: publish.mirrorCommand; sibling-drift + packed-install-smoke gates, feature publish-sibling-drift-gate, ADR-001 — a workspace sibling whose registry build differs blocks with a `--filter <batch>,<S>` fix-it, --allow-sibling-drift overrides (logged to .dz/guard-audit.jsonl), --include-drifted auto-extends the batch; the whole batch is packed + installed together and every bin runs `--version`, exit 0 + non-empty stdout required)
 dz parity            [--target <name>] [--json]   # honest feature×target map COMPUTED from the capability model — full / manual (via which form) / absent, per target
-dz release           [--filter <name>] [--affected] [--audit-dev] [--tag] [--publish] [--json] [--dry-run] [--no-issue]   # VERIFIED release: 4 HARD gates in front of dz publish — package test suites, pnpm audit --prod >=high (--audit-dev widens), node --check of every dist/bin file (unbuilt package with a build script ⇒ MISSING_DIST fail), bin smoke-boot "node <bin> --help" (temp cwd + timeout), packed-install smoke (same rule as dz publish's, feature publish-sibling-drift-gate — pack the batch, install together, `--version` every bin) when the set has a bin; --affected narrows to git-touched packages (fail-open); any red gate STOPS the release (exit 1) + best-effort gh issue; green ⇒ re-sign reminder, then the ready dz publish command (never with --yes injected)
+dz release           [--filter <name>] [--test-timeout-ms <ms>] [--affected] [--audit-dev] [--tag] [--publish] [--json] [--dry-run] [--no-issue]   # VERIFIED release: 4 HARD gates in front of dz publish — package test suites, isolated selected-tarball npm audit >=high (workspace audit is nonblocking; --audit-dev widens only workspace scope), node --check of every dist/bin file (unbuilt package with a build script ⇒ MISSING_DIST fail), bin smoke-boot "node <bin> --help" (temp cwd + timeout), packed-install smoke (same rule as dz publish's, feature publish-sibling-drift-gate — pack the batch, install together, `--version` every bin) when the set has a bin; --affected narrows to git-touched packages (fail-open); any red gate STOPS the release (exit 1) + best-effort gh issue; green ⇒ re-sign reminder, then the ready dz publish command (never with --yes injected)
 dz auto-canonicalize --source <github-url> --pack <skills-pack>
 dz sync-upstream     [--package <dir>] [--list] [--all]
 dz drift-check       [--all] [--json] [--project <dir>]   # CI gate: exit 1 on NEW shared-skill drift, canonicalDefects, or blocking signatures (drift baseline: .dz/drift-allowlist.json; --all incl .claude dogfood)
@@ -2799,12 +2865,52 @@ distills new learnings. It's **opt-in** and **non-clobbering**: `--install` merg
 existing `statusLine` config rather than overwriting it, and nothing changes until you run it.
 Modeled on the Agentic QE statusline pattern (e.g. AQE's `🎓 12 patterns`).
 
+#### Adjacent terminal companion (`dz statusline --watch`)
+
+Start this explicitly beside Codex in a dedicated terminal or manual tmux split. It observes producer
+reports; Codex's native footer is not modified. Until installed, use this worktree's built entrypoint:
+
+```bash
+PANEL_CLI="/path/to/worktree/packages/@dzhechkov/harness-cli/dist/bin.js"
+PANEL_PROJECT="/path/to/worktree"
+PANEL_BRAIN="/path/to/canonical-brain"
+PANEL_SLUG="add-user-auth"
+PANEL_RUN="fa-20261002-1"
+node "$PANEL_CLI" statusline --watch --project "$PANEL_PROJECT" --brain "$PANEL_BRAIN" \
+  --slug "$PANEL_SLUG" --run-id "$PANEL_RUN" --interval 2
+# Producer: record START of each actual step, with the same project/identity and real tier/counts.
+node "$PANEL_CLI" statusline --fa-record --project "$PANEL_PROJECT" --slug "$PANEL_SLUG" \
+  --run-id "$PANEL_RUN" --tier M --step "Step 7 Code" --recalled 3 --stored 0
+# After actual completion, record --step "done" with the same identity.
+```
+
+Project supplies run slots, branch and phase elapsed; brain supplies learning counts and defaults to
+project. Recall/teach still name the shared brain. Exact slug/run selectors never fall back; only one
+latest run per slug is retained. Without selectors, selection is labelled automatic. Report age is
+producer freshness, not process liveness: <30 minutes fresh, 30–<90 stale, >=90 expired; done stays
+completed regardless of age. Position does not prove gates passed. Optional values remain unknown;
+failed/absent counts are unavailable, known empty readable stores are zero. Global brain-source
+inventory is omitted. Watch v1 ETA is unavailable; one-shot ETA is unchanged.
+
+Default refresh is 2 seconds; accepted interval is 0.25–60 inclusive. Refreshes run serially after the
+previous one finishes. The frame escapes Unicode/control text into ASCII, clips with `...`, reserves
+last column/bottom row and clears on resize. Below 40x8 or unknown size it shows only a size warning.
+Watch requires stdout TTY, does not read stdin or set raw mode, and rejects JSON/install/fa-record
+combinations (exit 2; use one-shot/JSON for pipes). SIGINT/SIGTERM restore cursor and exit 0; output
+failure exits 1. Read failures are displayed and retried. No model calls, logical store writes, lock or
+snapshot creation, repair or schema changes; normal SQLite ephemeral WAL/SHM sidecars are permitted.
+Slot reads reject state symlinks, nonregular and >256 KiB files; run-only discovery parses at most 64
+candidates and reports limited search. Directory enumeration remains a local filesystem limit.
+
 #### Live run segment — `dz statusline --fa-record`
 
 A long-running pipeline can PREPEND its own segment to that line, so the bar shows what is in
 flight rather than only the standing pattern count. The `/feature-adr` pipeline records its
 Pattern-memory state at each step; a generated `loop-designer` loop records its current step on
 every trace flush:
+
+`--reinforced <n>` records the number of existing patterns reinforced during the run. Like
+`--recalled` and `--stored`, it accepts a non-negative integer and defaults to zero.
 
 ```bash
 # the /feature-adr pipeline — reports the learning loop it is actually running
@@ -5839,6 +5945,8 @@ refusal as the honest answer.
 
 ## Status
 
+Memory setup update: saved dependency pins and native readiness are validated before later setup delivery; incomplete setup reports its failure. Published release history follows.
+
 `v0.8.38` — **published 2026-09-26 (night plan 25→26.09).** `dz retro --scan-tail` keeps its debt sentinel per session (`.dz/retro/<sessionId>/pending.json`; the UserPromptSubmit hook reads only its own session, an empty `session_id` is never a guess); `dz verify-pack` names an unsigned path outside `package.json#files` as a directory file the packer would not ship and prints one count line after FAILED — the verdict and exit code are unchanged, and the signature-fresh guard treats both sweep wordings alike; `dz round exec` takes over a claim whose owner process is proven dead (PID probe false, older than 10 min) with a loud line naming the old claim — a live owner or an inconclusive probe still refuses; the serial-suite census of both packages ignores markers in comments and fixture strings (TypeScript parser, fail-safe on parse errors).
 
 `v0.8.37` — **published 2026-09-24 (day plan).** `dz publish`, `dz sign` and the sibling-drift gate pack through one
@@ -5861,7 +5969,7 @@ command}` (exit 2), never the help envelope. Global help is unchanged at 156 lin
 `next` — staged, not yet versioned or published. Feature `measurement-integrity` (ADR-001, tier M) grows two
 existing commands: `dz round close` takes `--grade <A|A-|B+|…>` (mandatory for `outcome shipped|refuted`,
 dropped-with-a-warning for `blocked|abandoned`) and auto-fills `reviewer`/`reviewMinutes`/`reviewSource` from
-the latest `features/<slug>/.fa-state/qe-bridge/signoff-*.json` when `--reviewer` is absent; `dz
+the unique identity-compatible same-slug/in-window `features/<slug>/.fa-state/qe-bridge/signoff-*.json` when `--reviewer` is absent; `dz
 feature-adr-record --kind ledger` takes `--window-from/--window-to` (+ `--codex-sessions <dir>`) to enrich a
 codex-family row's `tokens`/`minutes` from real Codex rollout logs instead of leaving them `null`, and every
 ledger row now carries a `prices` snapshot. See `@dzhechkov/harness-core`'s README (same feature) for the full
@@ -6358,3 +6466,64 @@ The serial paths in `test/serial-suites.txt` are regenerated from
 process markers, including `execSync(` and `execFile(`, and fails when the list and census differ.
 CF-2 records uncommented explicit test budgets in each package's `test/budget-debt-ceiling.json`: growth fails with `file:line` findings; shrinkage passes and suggests a lower ceiling.
 The ceiling files live in `packages/@dzhechkov/harness-core/test/` and `packages/@dzhechkov/harness-cli/test/` and are lowered by hand: a ratchet on existing debt, not a migration that clears it in one shot.
+
+Release `--test-timeout-ms` accepts decimal digits for a positive safe integer. Omission keeps 600000ms per test step. It changes only the invocation’s full package test budgets; consumer/workspace audits, syntax, bins and staged pack/install smoke retain their existing steps and budgets. Invalid values refuse before release effects. A real timeout still blocks verification; no gate is skipped.
+
+
+Release and publish filters accept `=NAME` for an exact, case-sensitive `package.name`, for example `--filter '=@dzhechkov/keysarium'` excludes `@dzhechkov/keysarium-core`. Unprefixed tokens keep their existing name/path substring behavior; comma-separated mixed tokens form a union and duplicates select each package once. Exact tokens with an empty name, whitespace/control characters, another equals sign or comma are malformed. Every exact name must exist in discovered packages; an unknown exact token blocks the whole mixed request before guard, registry or execution effects. CLI outer whitespace and empty comma segments retain their existing handling. All release/publication gates and private-package skips remain.
+
+The authorized five-package selection is `--filter '=@dzhechkov/harness-core,=@dzhechkov/harness-cli,=@dzhechkov/skills-meta,=@dzhechkov/keysarium,=@dzhechkov/skills-feature-adr'` for both `dz release` and `dz publish`. A release remains verification; a publish remains dry-run by default.
+
+
+Sibling comparison can report `owner-branding-only` for two complete original packed artifacts verified against the repository's external public trust root. It permits only the canonical `https://aicoding.space` homepage replacing the exact legacy package GitHub-readme URL and one canonical Site/Source stamp at the established README top position. Every other README/runtime/skill byte, artifact file set and packed package/dependency value must match. Original signatures/inventories/SBOMs verify before the readonly comparison projection; only precisely explained branding file hashes, valid signatures and corresponding SBOM digests may differ. Missing proof or any other change remains non-exempt. This class is explicitly reported with original changed paths; it does not assert byte identity or dependency/version equivalence. Dependency-floor and selected-package signing gates remain mandatory.
+
+
+The branding exception also requires a separate physical packed-artifact signing check: every regular shipped leaf, including bundled `node_modules` and state-named directories, must appear exactly once in that original authenticated manifest. Only the validated root `.dz-manifest.json` and canonical root `sbom.json` are generated metadata exceptions. Nested same-named files are ordinary signed leaves. Symlinks, FIFOs/specials, noncanonical paths, unsigned extras and incomplete inventories refuse before unsafe hashing. General installed-state verification retains its existing behavior; it is not used as proof of full packed coverage.
+
+
+### Retaining registered adapter bindings
+
+For the exact batch `@dzhechkov/harness-core`, `@dzhechkov/harness-cli`, `@dzhechkov/skills-meta`, `@dzhechkov/keysarium` and `@dzhechkov/skills-feature-adr`, normal publication can additionally report `retained-registered-binding`. The ten supported adapters remain at their exact registered versions and are consumed from their registered artifacts. They are never added to this publication batch by that classification. A selected adapter, different batch, `--include-drifted` or sibling override cannot use it.
+
+Admission requires both original adapter signatures, complete physical signed coverage, exact current `workspace:*` core declarations throughout reachable local history, and source-to-pack materialization. Only the known owner branding and that derived core dependency value may differ. Fresh registered baseline and candidate consumers install all five roots together, independently check installed manifests against complete locks, run scoped npm audits, and retain every unselected node, resolved edge, registry SRI and optional platform witness. Nested registered occurrences remain checked. The recorded registered core floor and workspace floor are distinct; this proof does not assert version or runtime equivalence or establish the historical registry release commit.
+
+Preview is preliminary. Live publication repeats the proof against **all five final signed tarballs before the first registry write**, including batches without bins, and rechecks their hashes after proof cleanup and before transport. Changed payloads, dependencies, registry bindings, source/history, missing evidence, execution failures or cleanup failures block the whole batch. Failed final admission restores owned signature/SBOM bytes and modes alongside the existing package/version/README rollback so a healthy retry can build a fresh proof. Existing signature, dependency-floor, release audit, smoke, guard and registry confirmation gates remain mandatory. There is no proof-file input or new bypass flag.
+
+
+`dz setup --memory agentdb` now saves `agentdb` and `better-sqlite3` as exact local devDependencies
+and repairs their npm lock/local state before checking native SQLite with SELECT 42. Existing
+supported exact pins govern repairs; supported installed-only legacy versions are preserved when
+orphan lock metadata agrees. Conflicting/ranged/peer or incomplete lock-only state refuses without
+replacing user declarations. Repeat setup avoids unnecessary npm/config/hooks changes. This promise
+includes devDependencies in `npm ci`; `npm ci --omit=dev` does not retain these memory dependencies.
+
+An explicit jsonl → agentdb upgrade no longer requires force: only `memory.backend` changes,
+atomically, while unrelated config, hooks, skills and existing data remain. Failures print the observed
+saved backend and incomplete phase; unknown state is explicit, and rerunning setup without force
+can repair it. `--no-hooks` still validates dependency/native/saved-backend consistency; `--no-memory`
+performs no memory dependency/backend/store/hook migration. Full manifest/transition messages appear
+outside the abbreviated setup table. Native SQLite readiness does not establish embeddings or daemon
+liveness. Core's existing two-valued `SetupResult.memoryBackend` remains source compatible; optional
+`memoryBackendObserved` names the saved state or unknown on failures/uninitialized disabled setup.
+
+Setup output separates the requested backend and its selection source from the observed saved
+backend. A failed transition names the observed backend as INCOMPLETE; a successful `--no-hooks`
+run names native readiness and disabled hooks separately. `--no-memory` also suppresses downstream
+memory hook delivery while preserving existing memory bytes.
+
+The existing hook APIs have no memory-only delivery selector. With `--no-memory`, setup therefore
+preserves all existing hook registries and destructive-guard bodies and performs no hook delivery
+or live guard verification. The summary names this partial setup explicitly; existing guards remain
+registered. Use ordinary setup or the existing hooks-sync command separately to deliver new guards.
+
+If core setup reports INCOMPLETE, the CLI withholds subsequent skill hook/MCP integrations and
+Codex hook delivery or live verification, preserving the current registries in those later phases.
+Unrelated skill files may still be installed. Earlier partial changes remain visible in the setup
+report; resolve the named failure and rerun ordinary setup to complete delivery.
+
+
+### Routing fields in stage usage JSON
+
+`dz usage --by-stage --json` and its safe `--write` export add `routingProvenance` with schema `routing-provenance-1`, status, nullable probes/stages and closed diagnostics. Each stage separates declared `plannedModel` from selected `requestedModel`, and links to a fresh per-family `probeId`. The normalized rows also add plannedModel/plannedModelSource/probeId.
+
+Probe summaries contain safe model IDs and bounded attempt records, never raw child prompts, output, stderr or errors. `wrapperInvoked` means the wrapper function was called; it does not prove an OS child started. At most32 attempts are retained while real probing continues; source and attempt truncation remain distinct partial diagnostics. Legacy/Plain evidence is null/not-recorded, unsafe/conflicting links suppress new attribution, and source omissions cannot appear observed. Existing numerical totals and unknown probe cost retain their prior meanings; this is no live model comparison or training readiness claim.

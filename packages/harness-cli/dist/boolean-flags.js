@@ -116,6 +116,7 @@ export const BOOLEAN_CLI_FLAGS = new Set([
     'usage',
     'validate',
     'weak',
+    'watch',
     'week',
     'with-pairs',
     'with-references',

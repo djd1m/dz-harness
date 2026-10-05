@@ -25,7 +25,10 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import type { Dirent } from 'node:fs';
 import { join, relative } from 'node:path';
 
-import { discoverPackages, matchesPublishFilter, orderByDependencies } from './publish.js';
+import { planReleasePackageAudit, judgeReleasePackageAudit } from './release-package-audit.js';
+import type { ReleasePackageAuditPlan, ReleasePackageAuditResult, ReleaseWorkspaceAuditReport } from './release-package-audit.js';
+
+import { discoverPackages, matchesPublishFilter, validatePublishFilters, orderByDependencies } from './publish.js';
 import { planPackedInstallSmoke, judgePackedInstallSmoke } from './packed-install-smoke.js';
 import type { PackedInstallPlan, PackedInstallExecution } from './packed-install-smoke.js';
 
@@ -90,7 +93,7 @@ export interface GateStep {
    * `exec` (default): the CLI runs `cmd`. `synthetic-fail`: the PLAN already knows this step
    * fails (missing bin, stale dist) — classification sees it without any execution.
    */
-  readonly kind?: 'exec' | 'synthetic-fail' | undefined;
+  readonly kind?: 'exec' | 'synthetic-fail' | 'package-audit' | undefined;
   /** For `synthetic-fail` steps: the failure class the verdict must carry. */
   readonly failClass?: ReleaseFailureClass | undefined;
   /**
@@ -125,6 +128,9 @@ export interface GatePlan {
    * refuses it — the two doors would not be equal, contradicting FR-6's own claim.
    */
   readonly packedInstallPlan?: PackedInstallPlan | undefined;
+  readonly packageAuditPlans?: readonly ReleasePackageAuditPlan[];
+  readonly workspaceAuditStep?: GateStep;
+  readonly workspaceAuditIncludeDev?: boolean;
 }
 
 /** The CLI's record of running one exec step. */
@@ -134,6 +140,7 @@ export interface GateExecution {
   readonly stdout: string;
   readonly stderr: string;
   readonly durationMs: number;
+  readonly packageAuditEvidence?: unknown;
   readonly timedOut?: boolean | undefined;
 }
 
@@ -175,6 +182,8 @@ export interface ReleaseVerdict {
   /** Fail-closed decision point: `'proceed'` iff every gate is clean AND something ran. */
   readonly publishAction: 'proceed' | 'blocked';
   readonly timestamp: string;
+  readonly packageAudits: readonly ReleasePackageAuditResult[];
+  readonly workspaceAudit: ReleaseWorkspaceAuditReport;
 }
 
 /** Default per-step timeouts (NFR-4: a hung child is a classified failure, not a hung release). */
@@ -249,6 +258,7 @@ export function collectPackageFacts(monorepoRoot: string, filter?: readonly stri
     throw new Error('release: --filter requires non-empty package-name substrings (empty would match ALL packages)');
   }
   const discovered = discoverPackages(monorepoRoot);
+  validatePublishFilters(filter, discovered);
   const selected =
     filter === undefined ? discovered : discovered.filter((p) => filter.some((f) => matchesPublishFilter(p, f, monorepoRoot)));
   const ordered = orderByDependencies(selected);
@@ -379,21 +389,22 @@ export function planReleaseGates(facts: readonly ReleasePackageFacts[], opts: Pl
     }
   }
 
-  // Gate 2 — audit: ONE workspace-level step (AM-1: pnpm primary; npm only without pnpm-lock).
-  const dev = opts.includeDevDeps === true;
-  steps.push({
-    id: 'audit:workspace',
-    gate: 'audit',
-    cmd: opts.pnpmLockPresent
-      ? `pnpm audit${dev ? '' : ' --prod'} --audit-level high`
-      : `npm audit${dev ? '' : ' --omit=dev'} --audit-level=high`,
-    cwd: opts.monorepoRoot,
-    timeoutMs: t.audit,
-    reason: dev
-      ? 'no >=high advisories across ALL workspace dependencies (dev included via --audit-dev)'
-      : 'no >=high advisories in production dependencies (dev-only chains excluded — widen with --audit-dev)',
-    kind: 'exec',
+  // HARD audit: every selected root, including binless/dependency-free packages.
+  const packageAuditPlans = facts.map(f => planReleasePackageAudit(f, t.audit));
+  for (const audit of packageAuditPlans) steps.push({
+    id: `audit:package:${audit.package}`, gate: 'audit', pkg: audit.package,
+    cmd: 'pack → install (--ignore-scripts, prod/optional/peer) → validate closure → npm audit --json --audit-level=high',
+    cwd: audit.dir, timeoutMs: t.audit, reason: 'isolated selected tarball consumer must have no high/critical advisories', kind: 'package-audit',
   });
+  const dev = opts.includeDevDeps === true;
+  const workspaceAuditStep: GateStep = {
+    id: 'audit:workspace', gate: 'audit',
+    cmd: opts.pnpmLockPresent
+      ? `pnpm audit${dev ? '' : ' --prod'} --audit-level high --json`
+      : `npm audit${dev ? '' : ' --omit=dev'} --audit-level=high --json --offline=false`,
+    cwd: opts.monorepoRoot, timeoutMs: t.audit,
+    reason: 'separate nonblocking workspace advisory observation', kind: 'exec',
+  };
 
   // Gates 3+4 — per package. AM-3: a stale dist is NEVER checked/booted as-is.
   for (const f of facts) {
@@ -559,7 +570,7 @@ export function planReleaseGates(facts: readonly ReleasePackageFacts[], opts: Pl
     }
   }
 
-  return { steps, skips, packages: facts.map((f) => f.name), ...(packedInstallPlan !== undefined ? { packedInstallPlan } : {}) };
+  return { packageAuditPlans, workspaceAuditStep, workspaceAuditIncludeDev: dev, steps, skips, packages: facts.map((f) => f.name), ...(packedInstallPlan !== undefined ? { packedInstallPlan } : {}) };
 }
 
 /* ------------------------------------------------------------------ */
@@ -802,6 +813,23 @@ export function classifyGateExecutions(
     packedInstallVerdict = judgePackedInstallSmoke(packedInstallPlan, translated);
   }
 
+  const packageAudits: ReleasePackageAuditResult[] = [];
+  for (const name of plan?.packages ?? []) {
+    const auditPlans = (plan.packageAuditPlans ?? []).filter(p => p.package === name);
+    const steps = (plan.steps ?? []).filter(s => s.gate === 'audit' && s.pkg === name && s.kind === 'package-audit');
+    const records = (executions ?? []).filter(e => e?.stepId === `audit:package:${name}`);
+    if (auditPlans.length !== 1 || steps.length !== 1 || records.length !== 1) {
+      packageAudits.push({ scope: 'package-consumer', package: name, version: auditPlans[0]?.version ?? '', status: 'error', failureClass: 'UNEXECUTED_STEP', reason: 'selected package audit plan/step/execution missing or duplicated', phases: [] });
+    } else {
+      const result = judgeReleasePackageAudit(auditPlans[0]!, records[0]!.packageAuditEvidence);
+      packageAudits.push(records[0]!.timedOut === true || (result.status === 'clean' && records[0]!.exitCode !== 0)
+        ? { ...result, status: 'error', failureClass: 'AUDIT_ERROR', reason: 'package audit wrapper timeout or exit/evidence inconsistency' }
+        : result);
+    }
+  }
+  const workspaceRecords = (executions ?? []).filter(e => e?.stepId === 'audit:workspace');
+  const workspaceAudit = judgeReleasePackageAudit(undefined, workspaceRecords.length === 1 ? { ...workspaceRecords[0], includeDev: plan.workspaceAuditIncludeDev === true } : undefined, plan.workspaceAuditIncludeDev === true);
+
   const gates: GateResult[] = RELEASE_GATE_ORDER.map((gate) => {
     const gateSteps = (plan?.steps ?? []).filter((s) => s?.gate === gate);
     const gateSkips = (plan?.skips ?? []).filter((s) => s?.gate === gate);
@@ -810,6 +838,8 @@ export function classifyGateExecutions(
 
     for (const step of gateSteps) {
       try {
+        if (gate === 'audit') continue; // typed per-root judge below owns this gate
+
         if (packedInstallBinStepIds.has(step.id)) continue; // judged separately below (AM-7)
         if (step.kind === 'synthetic-fail') {
           failures.push({ pkg: step.pkg, reason: step.reason, class: step.failClass ?? 'EXIT_NONZERO' });
@@ -836,11 +866,6 @@ export function classifyGateExecutions(
           continue;
         }
         if (typeof exec.exitCode !== 'number' || exec.exitCode !== 0) {
-          if (gate === 'audit') {
-            const { cls, reason } = classifyAuditFailure(`${exec.stdout ?? ''}\n${exec.stderr ?? ''}`);
-            const detail = auditDetailLine(exec.stdout, exec.stderr);
-            failures.push({ pkg: step.pkg, reason: `${reason}${detail ? ` — ${detail}` : ''}`, class: cls });
-          } else {
             // FR-1: for tests/syntax/smoke, name the ACTUAL failure (summary + failing tests),
             // not just the first output line — see testsFailureDetail's doc comment for why.
             const detail = testsFailureDetail(exec.stderr, exec.stdout);
@@ -851,13 +876,19 @@ export function classifyGateExecutions(
               // AM-4: per-stream tails, never merged — see GateFailure.tails doc comment.
               tails: { stdout: outputTail(exec.stdout, undefined), stderr: outputTail(undefined, exec.stderr) },
             });
-          }
           continue;
         }
         passed += 1;
       } catch {
         // Hostile/malformed step or execution record: classify as failure, never throw.
         failures.push({ pkg: step?.pkg, reason: 'unclassifiable step/execution record', class: 'EXIT_NONZERO' });
+      }
+    }
+
+    if (gate === 'audit') {
+      for (const result of packageAudits) {
+        if (result.status === 'clean') passed += 1;
+        else failures.push({ pkg: result.package, class: result.failureClass ?? 'AUDIT_ERROR', reason: result.reason ?? 'package consumer audit unavailable' });
       }
     }
 
@@ -893,6 +924,8 @@ export function classifyGateExecutions(
 
   return {
     gates,
+    packageAudits,
+    workspaceAudit,
     ok,
     blockedBy,
     skipped: plan?.skips ?? [],

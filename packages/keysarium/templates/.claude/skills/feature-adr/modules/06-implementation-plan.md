@@ -235,6 +235,16 @@ C2 recognises JS/TS, pytest, Go, Rust, JVM and .NET test paths, extensible per p
 
 Never proceed on a non-zero exit, and never treat empty output as a pass — the last line
 (`K2 plan-completeness: PASS|FAIL|NOT-ESTABLISHED`) is the verdict, and its absence is not one.
+
+**Where an id counts (the default since 2026-09-27, owner decision).** C1 and C8 read the plan's
+TASK LINES only: a heading, a list item or a table row. An `ADR-<n>` or `FR-<n>` that appears only
+in a prose paragraph, a fenced code block (the SPARC-GOAP ```yaml goal state included), an HTML
+comment, the `## Amendments` section or the `EXPECTED_CODE_TARGETS:` block is a mention, not a task,
+and the gate FAILs it with `(cited only outside task lines)`. Write the id on the FIRST line of the
+task that implements it: a wrapped continuation line of a list item is not read either. Measured on the archive when the default changed: 56 of 102 plans that had
+passed would fail this reader, so a plan written before that date may be red on a re-check — move
+the citation onto a task line, or re-check that one plan with `--no-require-task-lines` and say so
+in the checkpoint banner.
 What it checks: C1 every ADR **decision** (a `# ADR-NNN` / `## ADR-NNN` heading INSIDE the file, not
 just the filename prefix — a file with several headings owes several plan citations) has a plan task
 citing it · C2 every ADR Confirmation test path is named in the plan · C3 the `EXPECTED_CODE_TARGETS:`

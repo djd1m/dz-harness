@@ -3,6 +3,7 @@
  *
  * @packageDocumentation
  */
+import { runReleasePackageAudit, buildRetainedBindingProof } from './release-package-audit-runner.js';
 import { fetchPublishedViaNpmPack } from './sibling-drift-fetch.js';
 import { packArtifact, readWorkspaceVersions, formatDriftFiles } from '@dzhechkov/harness-core';
 // Fix-round 1 (Codex HIGH-1c, feature recall-short-terms): the ONE place `dz recall` prints an
@@ -21,6 +22,7 @@ import { fileURLToPath } from 'node:url';
 import { request as httpsRequest } from 'node:https';
 import { KNOWN_CLI_FLAGS } from './known-flags.js';
 import { isBooleanFlag } from './boolean-flags.js';
+import { watchStatusline } from './statusline-watch.js';
 import { resolveInstallSpec } from './install-spec.js';
 import { dispatchedCommands, documentedCommands } from './command-inventory.js';
 import { execFile, execFileSync, execSync, spawn, spawnSync } from 'node:child_process';
@@ -30,17 +32,18 @@ import { createRequire } from 'node:module';
 import { isDeepStrictEqual } from 'node:util';
 import { JOURNAL_KINDS, formatLine, parseLine, selectWindow, appendWitnessed } from '@dzhechkov/harness-core';
 import { appendRunEvent, readRunRegistry, liveParents, liveness, probePid, settleDeadRuns, decideExecClaimTakeover, planRegistryArchive, planWorktreeCleanup, renderCleanupPlan, worktreeRemovalsToApply } from '@dzhechkov/harness-core';
-import { openRound, closeRound, listRounds, validateClosedRoundLedgerRow, readOpenRoundTaskId, parseCodexTokens, classifyRoundExecOutcome, buildRoundExecRow, parseQeBridgeStdoutCost, } from '@dzhechkov/harness-core';
+import { openRound, closeRound, listRounds, validateClosedRoundLedgerRow, readOpenRoundTaskId, resolveBridgeRoundIdentity, selectQeBridgeRoundSignoff, parseCodexTokens, classifyRoundExecOutcome, buildRoundExecRow, parseQeBridgeStdoutCost, } from '@dzhechkov/harness-core';
 // measurement-integrity: canonical stage taxonomy, Codex rollout reader, ledger price snapshot.
 import { canonicalStage } from '@dzhechkov/harness-core';
+import { npmHomepageFacts } from '@dzhechkov/harness-core';
 import { parseCodexRollout } from '@dzhechkov/harness-core';
 import { MODEL_PRICES } from '@dzhechkov/harness-core';
 // ablation-c-start (ADR-001): the pure assignment core — no fs, no lock, no ledger — for
 // `dz experiment assign|status`.
 import { assignArm, readAssignments, verifyAssignmentRecord } from '@dzhechkov/harness-core';
-import { createSkill, getSkillInfo, listSkillsDetailed, formatSkillLoadFailures, formatSkillApplyFailures, resolveTargetName, formatTargetProblem, formatTargetAliasNote, TARGET_NAMES_SORTED, runDoctor, runInit, discoverSkillIds, loadSkillFromDir, resolveSelection, formatSelectRefusal, runIntegrationsVerify, resolvePackageSkillRoots, PACKAGE_SKILL_LAYOUTS, benchmarkSkill, benchmarkSkills, scanMcp, reconcileCapabilities, RECONCILE_BANNER, buildRegistry, discoverSkillPackDirs, discoverVerifiablePackDirs, verifiedScopeNote, checkUpstream, compareSkills, checkAllUpstream, sweepSkillDrift, syncCanonicalSkill, checkUpgrades, discoverPackages, matchesPublishFilter, discoverSourcePackages, fetchAllDownloads, filterByCategory, pretrain, recommend, generatePlugin, publishPackages, runSetup, memoryBackendSourceLabel, runMigrate, searchRegistry, runSync, runVerify, runInitAgentsMd, runInitGeminiMd, runSyncAgentsPolicy, runSyncCodexHooks, resolveCodexHome, withProjectLockSync, withDirLockSync, 
+import { createSkill, getSkillInfo, listSkillsDetailed, formatSkillLoadFailures, formatSkillApplyFailures, resolveTargetName, formatTargetProblem, formatTargetAliasNote, TARGET_NAMES_SORTED, runDoctor, runInit, discoverSkillIds, loadSkillFromDir, resolveSelection, formatSelectRefusal, runIntegrationsVerify, resolvePackageSkillRoots, PACKAGE_SKILL_LAYOUTS, benchmarkSkill, benchmarkSkills, scanMcp, reconcileCapabilities, RECONCILE_BANNER, buildRegistry, discoverSkillPackDirs, discoverVerifiablePackDirs, verifiedScopeNote, checkUpstream, compareSkills, checkAllUpstream, sweepSkillDrift, syncCanonicalSkill, checkUpgrades, discoverPackages, matchesPublishFilter, validatePublishFilters, discoverSourcePackages, fetchAllDownloads, filterByCategory, pretrain, recommend, generatePlugin, publishPackages, runSetup, memoryBackendSourceLabel, runMigrate, searchRegistry, runSync, runVerify, runInitAgentsMd, runInitGeminiMd, runSyncAgentsPolicy, runSyncCodexHooks, resolveCodexHome, withProjectLockSync, withDirLockSync, storeExists, isRepoBoundary, 
 // dz workflow run (feature dz-workflow-run): the pure scheduler + the dispatch adapters.
-TRACE_RUNID_RE, WF_RUN_OWNER_HOST, preflight, runWorkflow, makeClaudePDispatcher, makeCodexExecDispatcher, NamedLockTimeoutError, NamedLockCompromisedError, POLICY_SOURCES, detectPolicyDrift, hasPolicyFence, TARGET_NAMES, buildParityMatrix, computeParity, PARITY_FEATURES, downgradeForStaleEvidence, findStaleTranscriptEvidence, TARGET_CAPABILITIES, TARGET_SHORT_LABELS, applyLegStatus, applyLegReasonMessage, probeApplyLeg, resolveAgentdbPath, WORKFLOW_TEMPLATES_RETIRED_MESSAGE, parsePlan, isParseErrors, validatePlan, normalizePlan, planDigest, toTraceProjection, renderPlan, mergeRender, lint, lintExitCode, LOOP_BLOBS, parseTrace, assembleTimeline, runInvariants, deriveAttestation, stampAttestation, corroborate, NOT_WITNESSED, renderTimelineHtml, importEcc, recordPattern, recordLessonForms, normalizeLessonForms, resolveLearningBackend, storeStats, consolidateSessions, pruneNoisePatterns, lessonDeltaReport, removePatternsByIds, snapshotStore, recallHybrid, teachGuard, mirrorPatternsToVector, mirrorEntriesToVector, patternVectorEntry, readMemoryLearningConfig, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns, clearAgentdbQuarantine, vectorMirrorEnabled, vectorTierStatus, resolveVectorEngine, reindexVectorStore, harmonizeVectorStore, importRvfCheckpoint, renderFeatureAdrPhaseLine, statuslineData, countLearningStoreRowsReadonly, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, planStoreGuardPrune, storeGuardPath, storeSnapshotPath, writeFeatureAdrState, writeFeatureAdrStateDetailed, CHECKPOINT_STAGES, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, computeSpendReport, deriveCostLedger, planLedgerBackfill, listCostLedgerRuns, resolveLedgerRunId, AMBIGUOUS, stampCheckpointLine, LEDGER_FILL_SOURCE, renderCostLedger, verifyCostLedgerReport, writeCostLedgerJsonl, COST_LEDGER_SCOPE, spendReport, claimCheck, summarize, BUNDLED_SLOP_REGISTRY_URL, DEFAULT_SLOP_CONFIG, parseSlopRegistry, slopLint, validateSlopLintConfig, queryBookKnowledge, loadStorePatternsSync, patternRecordId, patternIdentityOf, mergeLessonMatchedForms, SWARM_BRIEF_CONTRACT, checkSwarmBrief, visibleText, loadStoreRecords, findExactLesson, recordToPattern, bundleSkills, brainHome, brainAgentdbPath, listPreReindexSnapshots, rotatePreReindexSnapshots, scanSnapshotDir, listBrain, bookKbPath, promoteProjectToBrain, updateBrainSource, queryBrain, groundPrompt, expandKu, reindexBrainVectors, buildPrimer, exportBrainSlice, importBrainSlice, registerKusToBrain, RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, parseRecallUsageLog, buildRecallUsageReport, EVENT_CHAIN_TAIL_BYTES, EMPTY_LOG_TAIL, readTailInfo, appendChainedLines, verifyEventChainText, classifyChainDefects, liveSegmentStart, CHAINED_JOURNALS, buildManifest, buildSbom, resolveTrustRoot, decideVerifyPolicy, explainPackVerificationFailure, resolveReinforceTarget, isShippedSource, generateSigningKeypair, appendTransition, readTransitions, transitionLogPath, evaluateGuard, GUARD_OPS, resolveRules, auditRecord, guardExitCode, DEFAULT_RULES, parsePnpmLockImporters, scannableStubPath, 
+TRACE_RUNID_RE, WF_RUN_OWNER_HOST, preflight, runWorkflow, makeClaudePDispatcher, makeCodexExecDispatcher, NamedLockTimeoutError, NamedLockCompromisedError, POLICY_SOURCES, detectPolicyDrift, hasPolicyFence, TARGET_NAMES, buildParityMatrix, computeParity, PARITY_FEATURES, downgradeForStaleEvidence, findStaleTranscriptEvidence, TARGET_CAPABILITIES, TARGET_SHORT_LABELS, applyLegStatus, applyLegReasonMessage, probeApplyLeg, resolveAgentdbPath, WORKFLOW_TEMPLATES_RETIRED_MESSAGE, parsePlan, isParseErrors, validatePlan, normalizePlan, planDigest, toTraceProjection, renderPlan, mergeRender, lint, lintExitCode, LOOP_BLOBS, parseTrace, assembleTimeline, runInvariants, deriveAttestation, stampAttestation, corroborate, NOT_WITNESSED, renderTimelineHtml, importEcc, recordPattern, recordLessonForms, normalizeLessonForms, resolveLearningBackend, storeStats, consolidateSessions, pruneNoisePatterns, lessonDeltaReport, removePatternsByIds, snapshotStore, recallHybrid, teachGuard, mirrorPatternsToVector, mirrorEntriesToVector, patternVectorEntry, readMemoryLearningConfig, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns, clearAgentdbQuarantine, vectorMirrorEnabled, vectorTierStatus, resolveVectorEngine, reindexVectorStore, harmonizeVectorStore, importRvfCheckpoint, renderFeatureAdrPhaseLine, statuslineData, countLearningStoreRowsReadonly, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, planStoreGuardPrune, storeGuardPath, storeSnapshotPath, writeFeatureAdrState, writeFeatureAdrStateDetailed, CHECKPOINT_STAGES, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, computeSpendReport, deriveCostLedger, deriveStageUsageReport, renderStageUsageReport, planLedgerBackfill, listCostLedgerRuns, resolveLedgerRunId, AMBIGUOUS, stampCheckpointLine, LEDGER_FILL_SOURCE, renderCostLedger, verifyCostLedgerReport, costLedgerJsonl, COST_LEDGER_SCOPE, spendReport, claimCheck, summarize, BUNDLED_SLOP_REGISTRY_URL, DEFAULT_SLOP_CONFIG, parseSlopRegistry, slopLint, validateSlopLintConfig, queryBookKnowledge, loadStorePatternsSync, patternRecordId, patternIdentityOf, mergeLessonMatchedForms, SWARM_BRIEF_CONTRACT, checkSwarmBrief, visibleText, loadStoreRecords, findExactLesson, recordToPattern, bundleSkills, brainHome, brainAgentdbPath, listPreReindexSnapshots, rotatePreReindexSnapshots, scanSnapshotDir, listBrain, bookKbPath, promoteProjectToBrain, updateBrainSource, queryBrain, groundPrompt, expandKu, reindexBrainVectors, buildPrimer, exportBrainSlice, importBrainSlice, registerKusToBrain, RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, parseRecallUsageLog, buildRecallUsageReport, EVENT_CHAIN_TAIL_BYTES, EMPTY_LOG_TAIL, readTailInfo, appendChainedLines, verifyEventChainText, classifyChainDefects, liveSegmentStart, CHAINED_JOURNALS, buildManifest, buildSbom, resolveTrustRoot, decideVerifyPolicy, explainPackVerificationFailure, resolveReinforceTarget, isShippedSource, generateSigningKeypair, appendTransition, readTransitions, transitionLogPath, evaluateGuard, GUARD_OPS, resolveRules, auditRecord, guardExitCode, DEFAULT_RULES, parsePnpmLockImporters, scannableStubPath, 
 // guard-promotion (feature guard-promotion, scout idea #1)
 assembleCandidates, renderPromotionReport, renderPromotionAdr, normalizePromotionState, nextPromotionState, recordPromotionRunEvidence, isLessonRuleContentAnchor, isOffsetIsoTimestamp, globMatch, promotionAdrRelPath, DEFAULT_WINDOW_DAYS, DEFAULT_PERIODS, MAX_CONTENT_FETCHES, BUILTIN_COVERAGE, decideProvenance, isInsideTree, signManifest, verifyManifest, hashPackBytes, rewriteWorkspaceSpecs, detectSiblingDrift, planPackedInstallSmoke, judgePackedInstallSmoke, gatherPublishSecretFacts, listSignablePackFiles, assertKeyOutsideTree, decidePublishGate, collectPackageFacts, planReleaseGates, selectAffectedPackages, classifyGateExecutions, buildFailureIssue, shouldRetryGhWithoutToken, buildReleaseNotes, releaseTagName, firstOutputLine, formatPublishError, MANIFEST_NAME, SBOM_NAME, buildArchitectureMap, renderMapHuman, findArchitectureDrift, renderDriftReport, scanWorkspacePackages, loadSubsystemManifest, loadProductVision, checkFeatureAgainstArchitecture, renderArchCheck, planProjectSkills, guidanceForStage, renderInjectionReport, analyzeCorpus, renderRakeReport, renderCriticSection, rakeAsLesson, rakeReward, DEFAULT_RAKE_THRESHOLDS, streamSessionEvents, findLatestTranscript, resolveScanTailTranscript, detectProcessRakes, buildRetro, renderRetro, retroLessonText, PROCESS_SIGNATURES, RETRO_DOMAIN, runRetroTailScan, scanForSetup, buildSetupPlan, scaffoldFromSpec, renderScaffoldPreview, readExistingForScaffold, assembleChallengeContext, buildChallengeBrief, planDiscriminationCheck, classifyDiscrimination, classifyExecutionEvidence, pickAdversaryModel, CHALLENGE_QUESTIONS, loadOutcomes, renderOutcomes, statsForKey, selectAutoCost, recordProvisional, finalizeOutcome, harvestStageOutcomes, recommendModels, planFeed, unfedRuns, GRADE_SUCCESS_FLOOR, COST_LADDER, splitScenarios, budgetPlan, selectWinner, proseScopeOk, renderProseDiff, readScenarioIds, DEFAULT_MAX_JUDGE_RUNS, collectDeliveryFacts, planDeliveryCheck, renderDeliveryBrief, classifyDelivery, isUsablePlaneResult, renderDeliveryReview, scanSkillsLayout, declaredPluginSurface, parseInitFacts, verifyRegistration, buildContentProbePrompt, classifyContentProbe, renderContentProbe, findNonRegistrableSkillDirs, assembleCompoundingReport, buildDeadwoodReport, compactCmdUsageIfNeeded, measureCmdUsageDepthDays, recordCommandInvocation, resolveCmdUsageRoot, renderDeadwoodReport, CMD_USAGE_LOG_RELATIVE, banditStats, narrowBanditReport, renderBanditHealth, 
 // Cold-vs-warm EPOCH RUNNER (feature epoch-replay) — orchestrates + scores, never calls a model.
@@ -128,8 +131,8 @@ Usage:
   dz upgrade [--target <name>] [--pubkey <path>] [--require-signing]   (a TAMPERED pack aborts the upgrade)
   dz sign   --pack <dir> --key <path-outside-repo>          (Ed25519 manifest + CycloneDX SBOM for a pack)
   dz verify-pack --pack <dir> [--pubkey <path>]             (signature check; fail-closed; key from the repo, never the pack)
-  dz publish [--filter <name>] [--bump-only] [--claim-check <off|warn|error>] [--mirror-cmd <cmd>|--no-mirror] [--require-signing] [--provenance|--no-provenance]   (dry-run by default; pass --yes/--confirm/--no-dry-run to go live; claim-check gate default warn — surfaces README claim findings, never blocks; error fails an offending package)
-  dz release [--filter <name>] [--tag] [--publish] [--json] [--dry-run] [--no-issue]   (VERIFIED release: 4 HARD gates in FRONT of dz publish — full package test suites, audit >=high, node --check of every dist/bin file, bin smoke-boot via "node <bin> --help" — any red gate STOPS the release (exit 1) + best-effort gh issue; all green ⇒ re-sign reminder, then prints the ready dz publish command (or chains with --publish); never duplicates publish's own gates)
+  dz publish [--filter <name|=NAME>] [--bump-only] [--claim-check <off|warn|error>] [--mirror-cmd <cmd>|--no-mirror] [--require-signing] [--provenance|--no-provenance]   (dry-run by default; pass --yes/--confirm/--no-dry-run to go live; claim-check gate default warn — surfaces README claim findings, never blocks; error fails an offending package)  (=NAME selects exact package.name; malformed or unknown exact names refuse before effects)
+  dz release [--filter <name|=NAME>] [--test-timeout-ms <ms>] [--affected] [--audit-dev] [--tag] [--publish] [--json] [--dry-run] [--no-issue]   (VERIFIED release: 4 HARD gates in FRONT of dz publish — full package test suites (--test-timeout-ms overrides each test-step budget; default600000ms), isolated tarball consumer audit >=high; workspace audit nonblocking (--audit-dev widens workspace only), node --check of every dist/bin file, bin smoke-boot via "node <bin> --help" — any red gate STOPS the release (exit 1) + best-effort gh issue; all green ⇒ re-sign reminder, then prints the ready dz publish command (or chains with --publish); never duplicates publish's own gates)  (=NAME selects exact package.name; malformed or unknown exact names refuse before effects)
   dz parity [--target <name>] [--json]   (the honest feature×target map, COMPUTED from the capability model — which harness feature is full / manual / absent on each of the ${TARGET_NAMES.length} targets, and via which form)
   dz delivery-check --slug <slug> [--context-only] [--findings <f.json>] [--strict] [--author <model>] [--json]   (portable Step-10 Delivery Gate: prints the 4-plane review brief + artifact probes; --findings classifies a fed-back review into a fail-closed ready|blocked hand-off and writes features/<slug>/10_delivery_review.md; --strict exits 1 on blocked)
   dz challenge --plan <plan.md> [--author <model>]   (the deterministic cartridge behind the challenge-panel adversarial plan-gate (R6): assembles the wide brief — plan + architecture/vision.md + testing.md + map.json + degradations.md — and prints the C1-C8 adversary prompt naming the cross-family reviewer to dispatch. exit 0 brief printed / 1 plan missing or empty)
@@ -158,14 +161,14 @@ Usage:
   dz amendment-check --slug <slug> | --feature-dir <dir> | --all [--json]   (the deterministic Step-8 amendment gate: every AM-N / AM-CP-N row must resolve to a test found INSIDE the file the row names (the challenge-panel prefix is part of the id: AM-CP-1 is never AM-1); the PLAN is authoritative when it carries rows, and an ideation amendment the plan drops is a failure. exit 0 pass/skip, 1 fail, 3 NOT-ESTABLISHED — a section that parsed ZERO rows is never a pass, UNLESS the plan explicitly declares \"None\"/\"нет\", which is an answer and reports skip. --all is a CENSUS and always exits 0. Does NOT prove non-vacuity — that is dz discrimination-check)
   dz contract-check --slug <s> [--json]   (read-only retrospective feature contract gate: extracts canonical AC-N + ADR Confirmation items, requires one artifact-anchored met|unmet|not-testable verdict per CC-N, and rejects A/B with unmet. exit 0 pass / 1 readable contract or verdict violation / 2 invalid invocation or unreadable/not-established artifacts)
   dz journal add --kind decision|verdict|run|error|block "<text>" [--ref <trace>] [--at <ISO>] [--quote <file>] [--commit-quote]; dz journal show [--day|--week] [--at <date>] [--kind <kind>] [--json]   (UTC day files, witnessed append; quotes stay local unless explicitly staged)
-  dz feature-adr-record --kind ledger|training-pair --stage <s> [--slug <s>] [--row|--pair <json>] [--run-id <id>] [--mark <n>] [--once] [--auto] [--strict] [--allow-incomplete <fields>] [--incomplete-reason <code>] [--window-from <iso> --window-to <iso>] [--codex-sessions <dir>] [--json]   (the witnessed writer for the run-cost ledger and training pairs: experiment-instrument FR-1/FR-2/FR-3 — taskId is filled fill-only-null from the single open round of this row's slug (payload wins on a conflict, recorded as taskIdConflict; no/ambiguous open round fills taskId:null with taskIdSource naming why); for an auto:true ledger row, minutes is fill-only-null from a payload wallSec (minutesSource:'wallSec'), and the row gets complete/incompleteReasons (missing minutes/tokens) — instrument-round-b FR-4/A5 (круг B), fix-round-1 (Codex r1 HIGH finding 3): an incomplete auto row is REFUSED (exit 2) BEFORE any write BY DEFAULT now — the old blanket no strict opt-out flag is REMOVED (it was a blanket opt-out every real automatic writer had to pass, making the default operationally empty); the only escape hatch is a NAMED, SCOPED one: '--allow-incomplete <comma-separated fields>' together with '--incomplete-reason <code>' (closed set: sandbox-metrics-unavailable, manual-entry) permits a write ONLY when the row's ACTUAL incompleteness is a subset of the named fields — a field growing incomplete beyond what was declared still refuses, naming it. '--allow-incomplete' and '--incomplete-reason' must be given TOGETHER (exit 2 usage error if only one is present) and are mutually exclusive with '--strict' (exit 2 usage error naming both flags, before any payload is even parsed) — '--strict' remains accepted alone as a no-op, the default already does what it asked for; measurement-integrity FR-5/FR-6 — a ledger row with a codex-family coder/reviewer and tokens:null is enriched from Codex rollout logs (~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl, or --codex-sessions <dir>) matched to --window-from/--window-to by [cwd+time] overlap: exactly one match fills tokens/minutes/tokensSource:'codex-rollout'/rolloutId, none/ambiguous name the status instead of guessing, and no window at all leaves tokensSource:'unavailable'; every ledger row ALSO gets a 'prices' snapshot (named models' {prompt,completion,cachedInput} from the CURRENT pricing table, taken at write time — never re-priced later); the payload arrives as an ARGUMENT, never as shell; a malformed or wrong-kind payload is REFUSED before any write; for a ledger row, 'ts' is ALWAYS the actual write instant (ledger-stage-minutes FR-1) — a payload-supplied 'ts' is never trusted for the delta below, and is preserved as 'payloadTs' rather than discarded; --run-id fills the payload's runId ONLY when it is a gap — absent, null, '', or non-string, the same 'missing when absent or blank' rule runnerId uses — and stamps runIdSource:'cli-flag' when it does; for an auto:true ledger row that carries a runId — from the payload, from --run-id, or resolved at write time — the append also carries minutesSincePrev/minutesSource:'ledger-ts-delta' measured against the LAST row of the same run found by a best-effort reverse scan that reports 'unavailable' (never a guess) on a missing prior row OR a corrupt/non-object ledger line anywhere between it and the file's end (ledger-corrupt-line); minutes itself stays untouched. New fields (ts, minutesSincePrev, minutesSource) are always appended after every existing key, never reordering one. --auto (fix-round-1/F2, experiment-envelope) is the TRUSTED CLI-level marker for a ledger row written by the automated pipeline — it sets auto:true on the written row and REQUIRES a valid 'envelope' (exit 2 refused otherwise), independent of whether the --row payload itself remembered to carry auto:true; a present payload 'auto' field must be the literal true or the row is refused. Omit --auto for a manual/hand-entered row (unaffected — no envelope required). The append is verified by re-reading the tail. exit 0 written|duplicate|skipped, 2 refused, 3 not-verified — a record failure is never blocking)
-  dz round open --slug <s> --round <n|auto> --topic <text> [--project <brain>] [--run <id>] [--owner-pid <n>|--owner-run <runId>] [--envelope <json>] [--task <id>] [--force] [--json]; dz round exec --slug <s> --round <n> --brief <file> [--log <file>] [--model gpt-5.6-sol] [--effort high] [--timeout-min 30] [--json]; dz round close --slug <s> --round <n> --outcome shipped|refuted|blocked|abandoned [--grade <A|A-|B+|…>] [--reason <text>] [--lesson teach:<id>...]|[--no-new-knowledge <reason>] [--tokens N] [--agents N] [--coder <spec>] [--reviewer <spec>] [--note <text>] [--no-cost] [--json]; dz round status [--older-than <minutes>] [--json]   (focused rounds outside feature-adr: open tracks the parent process by default, an explicit pid, or a registered run; live/stalled run owners stay live and missing registry evidence stays unknown; open --force refuses a live or unknown owner and archives a known-dead owner's state; recall precedes work, then the witnessed ledger is trusted only after reading it back; measurement-integrity FR-7: --grade is REQUIRED for outcome shipped|refuted (exit 2 without it), dropped with a warning for blocked|abandoned; --reviewer absent ⇒ filled from the LATEST features/<slug>/.fa-state/qe-bridge/signoff-*.json by emittedAt, which also sets reviewMinutes/reviewSource:'qe-bridge'; a --grade that disagrees with that sidecar's own grade is refused naming both; experiment-instrument FR-1/FR-3: --task mints this round's taskId (a non-empty string ≤120 chars, no control characters — refused otherwise), defaulting to slug@startedAt; a state written before this feature derives the same default at close time and names it taskIdSource:'derived-legacy'; close on outcome shipped|refuted also resolves shipSha via 'git rev-parse HEAD' in --project (null + shipShaReason when not a git repo or git fails) and stamps shippedAt; round status prints each open round's task)
+  dz feature-adr-record --kind ledger|training-pair --stage <s> [--slug <s>] [--row|--pair <json>] [--run-id <id>] [--mark <n>] [--once] [--auto] [--strict] [--allow-incomplete <fields>] [--incomplete-reason <code>] [--window-from <iso> --window-to <iso>] [--codex-sessions <dir>] [--rollout-id <id>] [--turn-id <id>] [--json]   (the witnessed writer for the run-cost ledger and training pairs: experiment-instrument FR-1/FR-2/FR-3 — taskId is filled fill-only-null from the single open round of this row's slug (payload wins on a conflict, recorded as taskIdConflict; no/ambiguous open round fills taskId:null with taskIdSource naming why); for an auto:true ledger row, minutes is fill-only-null from a payload wallSec (minutesSource:'wallSec'), and the row gets complete/incompleteReasons (missing minutes/tokens) — instrument-round-b FR-4/A5 (круг B), fix-round-1 (Codex r1 HIGH finding 3): an incomplete auto row is REFUSED (exit 2) BEFORE any write BY DEFAULT now — the old blanket no strict opt-out flag is REMOVED (it was a blanket opt-out every real automatic writer had to pass, making the default operationally empty); the only escape hatch is a NAMED, SCOPED one: '--allow-incomplete <comma-separated fields>' together with '--incomplete-reason <code>' (closed set: sandbox-metrics-unavailable, manual-entry) permits a write ONLY when the row's ACTUAL incompleteness is a subset of the named fields — a field growing incomplete beyond what was declared still refuses, naming it. '--allow-incomplete' and '--incomplete-reason' must be given TOGETHER (exit 2 usage error if only one is present) and are mutually exclusive with '--strict' (exit 2 usage error naming both flags, before any payload is even parsed) — '--strict' remains accepted alone as a no-op, the default already does what it asked for; measurement-integrity FR-5/FR-6 — a ledger row with a codex-family coder/reviewer and tokens:null is enriched from Codex rollout logs (~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl, or --codex-sessions <dir>) matched to --window-from/--window-to by [cwd+time] overlap: exactly one match fills tokens/minutes/tokensSource:'codex-rollout'/rolloutId, none/ambiguous name the status instead of guessing, and no window at all leaves tokensSource:'unavailable'; every ledger row ALSO gets a 'prices' snapshot (named models' {prompt,completion,cachedInput} from the CURRENT pricing table, taken at write time — never re-priced later); the payload arrives as an ARGUMENT, never as shell; a malformed or wrong-kind payload is REFUSED before any write; for a ledger row, 'ts' is ALWAYS the actual write instant (ledger-stage-minutes FR-1) — a payload-supplied 'ts' is never trusted for the delta below, and is preserved as 'payloadTs' rather than discarded; --run-id fills the payload's runId ONLY when it is a gap — absent, null, '', or non-string, the same 'missing when absent or blank' rule runnerId uses — and stamps runIdSource:'cli-flag' when it does; for an auto:true ledger row that carries a runId — from the payload, from --run-id, or resolved at write time — the append also carries minutesSincePrev/minutesSource:'ledger-ts-delta' measured against the LAST row of the same run found by a best-effort reverse scan that reports 'unavailable' (never a guess) on a missing prior row OR a corrupt/non-object ledger line anywhere between it and the file's end (ledger-corrupt-line); minutes itself stays untouched. New fields (ts, minutesSincePrev, minutesSource) are always appended after every existing key, never reordering one. --auto (fix-round-1/F2, experiment-envelope) is the TRUSTED CLI-level marker for a ledger row written by the automated pipeline — it sets auto:true on the written row and REQUIRES a valid 'envelope' (exit 2 refused otherwise), independent of whether the --row payload itself remembered to carry auto:true; a present payload 'auto' field must be the literal true or the row is refused. Omit --auto for a manual/hand-entered row (unaffected — no envelope required). The append is verified by re-reading the tail. exit 0 written|duplicate|skipped, 2 refused, 3 not-verified — a record failure is never blocking)
+  dz round open --slug <s> --round <n|auto> --topic <text> [--project <brain>] [--run <id>] [--owner-pid <n>|--owner-run <runId>] [--envelope <json>] [--task <id>] [--force] [--json]; dz round exec --slug <s> --round <n> --brief <file> [--log <file>] [--model gpt-5.6-sol] [--effort high] [--timeout-min 30] [--json]; dz round close --slug <s> --round <n> --outcome shipped|refuted|blocked|abandoned [--grade <A|A-|B+|…>] [--reason <text>] [--lesson teach:<id>...]|[--no-new-knowledge <reason>] [--tokens N] [--agents N] [--coder <spec>] [--reviewer <spec>] [--note <text>] [--no-cost] [--json]; dz round status [--older-than <minutes>] [--json]   (focused rounds outside feature-adr: open tracks the parent process by default, an explicit pid, or a registered run; live/stalled run owners stay live and missing registry evidence stays unknown; open --force refuses a live or unknown owner and archives a known-dead owner's state; recall precedes work, then the witnessed ledger is trusted only after reading it back; measurement-integrity FR-7: --grade is REQUIRED for outcome shipped|refuted (exit 2 without it), dropped with a warning for blocked|abandoned; --reviewer absent ⇒ filled from the unique identity-compatible same-slug/in-window qe-bridge signoff; foreign or unverified claims refuse, legacy-window assurance is explicit, which also sets reviewMinutes/reviewSource:'qe-bridge'; a --grade that disagrees with that sidecar's own grade is refused naming both; experiment-instrument FR-1/FR-3: --task mints this round's taskId (a non-empty string ≤120 chars, no control characters — refused otherwise), defaulting to slug@startedAt; a state written before this feature derives the same default at close time and names it taskIdSource:'derived-legacy'; close on outcome shipped|refuted also resolves shipSha via 'git rev-parse HEAD' in --project (null + shipShaReason when not a git repo or git fails) and stamps shippedAt; round status prints each open round's task)
   dz experiment init --experiment <name> --seed <n> [--arms direct,reference] [--project <dir>] [--json]; dz experiment assign --experiment <name> --task <taskId> --stratum <stratum> [--project <dir>] [--json]; dz experiment resolve --experiment <name> --task <taskId> [--project <dir>] [--json]; dz experiment status --experiment <name> [--project <dir>] [--json]   (ablation-c-start, ADR-001, fix-round-1: deterministic block-randomized arm assignment, PRE-registered and idempotent — init writes .dz/experiments/<experiment>/config.json ONCE (seed, arms, createdAt); a re-init with a DIFFERENT seed or arms refuses (exit 2, seed-conflict) rather than silently drifting a live experiment's randomness (fix-round-1 BLOCKER #1); assign no longer accepts a --seed flag at all (exit 2, seed-not-accepted) — it reads the seed from that config, and refuses (not-initialized) if init was never run. assign computes 'direct'/'reference' from '(experiment, stratum, seed, ordinal-within-stratum)' via assignArm (harness-core, pure, mulberry32-seeded), appends one JSONL record to .dz/experiments/<experiment>/assignments.jsonl under a named lock with a re-read verification of the appended tail; a repeat --task returns the SAME arm and writes nothing (idempotency, A1); refuses (exit 2) a --task that already has a line in .dz/feature-adr/run-cost-ledger.jsonl — the work already started, so a random assignment now would no longer be random (A4, fail-closed on an unreadable ledger line too, fix-round-1 CRITICAL #4); a corrupted journal line is reported as 'unreadable' and refuses rather than silently concluding "not yet assigned" (A5); a non-empty journal missing its final newline refuses as 'truncated' rather than gluing a new record onto the old one (fix-round-1 CRITICAL #5); an experiment name is restricted to lowercase letters/digits/hyphen (fix-round-1 CRITICAL #3 — no alias via '.' or '/'); every record READ back (by assign's duplicate check, by resolve, or by status) is RE-VERIFIED by rederiving its arm/block/position/propensity from its own tuple — a valid-shaped but hand-edited row refuses as 'assignment-tampered' with both the expected and actual values (fix-round-1 HIGH #7). resolve prints the assignment already on file for a taskId — never invents one — so a downstream pipeline can trust it without accepting a caller-supplied arm (fix-round-1 BLOCKER #2); a task never assigned refuses as 'assignment-missing'. status prints an intention-to-treat table by arm (n, completed observations via a ledger row carrying taskId+shippedAt, median task minutes, aqeInvoked compliance, incomplete count broken down by reason: pending/bad-shippedAt/negative-duration — a task only counts as completed with a finite nonnegative duration, fix-round-1 HIGH #8); any malformed OR tampered record refuses the WHOLE report rather than computing from the survivors (fix-round-1 CRITICAL #6); zero assignments prints INSUFFICIENT_DATA with the assignment count, never an empty table (A7). exit 0 initialized/already-initialized/assigned/duplicate/resolved/status, 2 usage error or refusal, 3 append-not-verified)
   dz feature-adr-checkpoint (--slug <feature> | --feature-dir <abs>) --stage <s> --input-hash <h> --result <json> [--artifact a,b] [--json]   (record a pipeline stage ONLY after measuring its artifacts on disk; refuses a null result, an absent artifact, or a stage that declares none — the subagent runs a COMMAND instead of hand-writing durable state)
   dz profile [init|show|set|sync] [--json]   (WHO the assistant is talking to — per-user store at ~/.dz/profile.json (0600, NEVER in a project), delivered as a marked block in ~/.claude/CLAUDE.md so it loads in EVERY project, dz installed or not. init = five questions (language, register, deep/weak domains as comma lists — "networking (CCIE; NSX)" keeps the parenthetical as the note, Enter skips — teaches y/n with one re-ask, never a silent default); show ALWAYS prints the store path + age + drift verdict + the rendered block; set register|language|teaches <v> or set deep|weak add|rm <tag> [note] — register accepts the owner's own words (профи / профи лайт / просто), an unknown value is REFUSED naming the accepted set; sync re-writes the block (runs automatically after init/set; foreign content byte-for-byte, timestamped backup before every modifying write). The register changes FORM, never FACTS, and governs dialogue only — never ADRs/commits/QE reports; both rules are baked into the rendered block at every level. exit 0 done / 1 no profile or failed / 2 refused input)
   dz reqe [--slug <feature> [--done --report <f>]] [--json]   (the re-QE debt ledger: a usage-switched run whose Step-8 QE ran on the coder's OWN family records a debt; list debts, print the cross-family review brief, settle FAIL-CLOSED against a graded report — the settlement lands in 08_qe_report.md; exit 0 settled / 1 refused / 3 blocked (BLOCKER or HIGH named by the reviewer — stop, owner decides))
-  dz qe-bridge --family claude --slug <feature> [--coder-family codex|claude] [--model <id>] [--files a,b] [--out <f>] [--timeout <s>] [--allow-same-family] [--json]   (the REVERSE QE bridge: run an INDEPENDENT Claude reviewer over a feature's Step-8 artifacts from ANY host — a Codex session included, plain shell, no Claude agent plane needed — and land a PARSED signoff. The reviewer runs ISOLATED: an EMPTY temp cwd plus --safe-mode --strict-mcp-config --tools '' --no-session-persistence, so no CLAUDE.md/skills/plugins/hooks/MCP load, and the verdict is read from the --output-format json RESULT ENVELOPE — text a session customization printed onto the same stdout can never become a signoff. Probes the model before trusting it; sends SCOPED extracts with a loud 200k-char ceiling (never silent truncation); the grade must AGREE across three LAST-anchored channels (terminal marker line, fenced qe-bridge-signoff JSON, the report's own GRADE line) AND the marker must be the FINAL content — empty, gradeless, self-contradicting or miscounted output is one of 17 NAMED failures with an audit record under features/<slug>/.fa-state/qe-bridge/ (runId, resolved executable + binOverride, prompt sha256, channel offsets, requestedOut, reportWritten, retained raw stdout; 0600 files in a 0700 dir), never a clean review. A --coder-family that contradicts the recorded reqe debt is refused. Writes features/<slug>/08b_reqe_report.md, which dz reqe --done settles unchanged. DISCLOSURE: the extracts you scope are sent to the Claude runtime; the bridge cannot classify secrets. DZ_QE_BRIDGE_CLAUDE_BIN is a TEST SEAM, not a flag. exit 0 signoff parsed (ANY grade — it reports, it does not gate) / 1 named failure / 2 usage)
-  dz control-review --slug <feature> --files a,b [--brief <file>] [--coder-family codex|claude] [--codex-model gpt-5.6-sol] [--effort high] [--claude-model <id>] [--timeout-min 30] [--adjudicate <file>] [--project <dir>] [--json]   (ADR-001 cross-family-control-branch: two INDEPENDENT scoped reviews over the SAME tree, Codex run from an ISOLATED scope copy — a Claude qe-bridge half then a Codex round-exec half — diffed into confirmed/candidate/onlyCodex/onlyClaude per severity; automatic overlap is a CANDIDATE only (title-Jaccard>=0.5 with compatible file, or same-file+line±3 AND jaccard>=0.2) — --adjudicate produces the only CONFIRMED pairs, none entries family-qualified as codex:<id>/claude:<id>; a tree-hash drift, an unreadable Claude signoff, a half with no accepted table, a nonzero Codex exit/timeout, or an ambiguous answer boundary refuses with NO ledger row; an out-of-scope or unnormalizable finding lands in the row's own refused/complete fields instead; a written row is trusted only after an exactly-one-new-line deep-compared reread. exit 0 written+verified / 1 refused / 2 usage / 3 written-but-not-reread)
+  dz qe-bridge --family claude --slug <feature> [--round <n>] [--round-run <id>] [--task <id>] [--coder-family codex|claude] [--model <id>] [--files a,b] [--out <f>] [--timeout <s>] [--allow-same-family] [--json]   (the REVERSE QE bridge: run an INDEPENDENT Claude reviewer over a feature's Step-8 artifacts from ANY host — a Codex session included, plain shell, no Claude agent plane needed — and land a PARSED signoff. The reviewer runs ISOLATED: an EMPTY temp cwd plus --safe-mode --strict-mcp-config --tools '' --no-session-persistence, so no CLAUDE.md/skills/plugins/hooks/MCP load, and the verdict is read from the --output-format json RESULT ENVELOPE — text a session customization printed onto the same stdout can never become a signoff. Probes the model before trusting it; sends SCOPED extracts with a loud 200k-char ceiling (never silent truncation); the grade must AGREE across three LAST-anchored channels (terminal marker line, fenced qe-bridge-signoff JSON, the report's own GRADE line) AND the marker must be the FINAL content — empty, gradeless, self-contradicting or miscounted output is one of 17 NAMED failures with an audit record under features/<slug>/.fa-state/qe-bridge/ (runId, resolved executable + binOverride, prompt sha256, channel offsets, requestedOut, reportWritten, retained raw stdout; 0600 files in a 0700 dir), never a clean review. A --coder-family that contradicts the recorded reqe debt is refused. Writes features/<slug>/08b_reqe_report.md, which dz reqe --done settles unchanged. DISCLOSURE: the extracts you scope are sent to the Claude runtime; the bridge cannot classify secrets. DZ_QE_BRIDGE_CLAUDE_BIN is a TEST SEAM, not a flag. exit 0 signoff parsed (ANY grade — it reports, it does not gate) / 1 named failure / 2 usage)
+  dz control-review --slug <feature> --files a,b [--round <n>] [--round-run <id>] [--task <id>] [--brief <file>] [--coder-family codex|claude] [--codex-model gpt-5.6-sol] [--effort high] [--claude-model <id>] [--timeout-min 30] [--adjudicate <file>] [--project <dir>] [--json]   (ADR-001 cross-family-control-branch: two INDEPENDENT scoped reviews over the SAME tree, Codex run from an ISOLATED scope copy — a Claude qe-bridge half then a Codex round-exec half — diffed into confirmed/candidate/onlyCodex/onlyClaude per severity; automatic overlap is a CANDIDATE only (title-Jaccard>=0.5 with compatible file, or same-file+line±3 AND jaccard>=0.2) — --adjudicate produces the only CONFIRMED pairs, none entries family-qualified as codex:<id>/claude:<id>; a tree-hash drift, an unreadable Claude signoff, a half with no accepted table, a nonzero Codex exit/timeout, or an ambiguous answer boundary refuses with NO ledger row; an out-of-scope or unnormalizable finding lands in the row's own refused/complete fields instead; a written row is trusted only after an exactly-one-new-line deep-compared reread. exit 0 written+verified / 1 refused / 2 usage / 3 written-but-not-reread)
   dz mutation-gate [--package <dir>] [--registry <file>] [--test-cmd "<cmd>"] [--only <id[,id]>] [--touched <path[,path]>] [--added-since <git-ref>] [--timeout <ms>] [--max-workers <n>] [--rebaseline per-entry|final] [--verdicts <file>] [--run-id <id>] [--keep-scratch] [--json]   (prove each NAMED protection has a test that DISCRIMINATES: after classifying, one JSONL line per classified entry ({ts, package, entryId, verdict, failingCount, observed, drop, dropComparable, runId}) is appended to a DURABLE file, SEPARATE from the registry (the registry is the gate's INPUT — what to mutate — a verdict is its OUTPUT; mixing them would change the registry on every run and break the mutation-registry-freshness guard) — default '.dz/mutation-gate/verdicts.jsonl' under the invocation cwd, '--verdicts <file>' overrides; '--run-id <id>' names the run in every appended row (absent -> runId:null, never guessed). Observability only: a write failure is a LOUD warning on stderr and NEVER changes the gate's own exit code — the instrument cannot become a second way for the gate to fail. '--max-workers' resolves flag > the registry's own 'maxWorkers' field > 'min(4, max(1, floor(cpus/2)))' (an invalid flag value — 0, negative, fractional, non-numeric — is a usage error, exit 2, never a silent default; fix-round 1), injects '--maxWorkers=<n>' right after 'run' in EVERY 'vitest run' segment of a (possibly compound) command (unless that segment already names the flag itself, token-scoped — not a whole-command substring check; mutation-gate-inject-tokens fix-round 2) and sets 'VITEST_MAX_WORKERS=<n>' in the env regardless — an uncapped full-suite baseline/mutant run at vitest's default worker count (= cpu cores) has measured load 62-358 and <2GB free on an 8-core/16GB box under embedding-daemon tests, killing full overnight gate runs (0bb74d66); the env is read by vitest CONFIGS that opt in (this repo's harness-core/harness-cli vitest.config.ts do) — vitest itself does NOT read it (MEASURED 3.2.4); printed as 'mutation-gate: workers: <n> (<flag|registry|default>)', or 'mutation-gate: workers: n/a — test command is not vitest (VITEST_MAX_WORKERS set; honoured only by configs that read it)' when the command is not recognised as vitest. '--touched' selects entries whose 'file' matches one of the given paths, accepted in ANY of package-relative, './'-prefixed, absolute-inside-the-package, repo-relative, or backslash-separated form — all normalized to package-relative POSIX before matching (fix-round 1, AM-1); a path that resolves OUTSIDE the package is counted, never silently dropped, as '<K> outside package' in the 'selected N of M' line; '--added-since <ref>' selects entries whose id is not present in the registry as it read at that ref ('git show <ref>:<registry path>'): a registry genuinely ABSENT at that ref means every current entry counts as added (said explicitly); an unresolvable ref, any OTHER git failure, or an invalid/malformed base registry at that ref is a usage error (exit 2), never folded into "absent" (AM-3) — a feature scopes the gate to its own touched files and any entries it just added instead of the whole registry (MEASURED: an unscoped run over 358 entries on this repo's core package ran 30-40 minutes and hit the timeout wall, INCONCLUSIVE every time). The two selectors UNION and the result INTERSECTS with '--only' when both are given; an empty selection prints 'selected 0 of M entries (…)' and exits 0 — never a silent skip; '--json' always carries a 'selection' object ({selected, total, touched, addedSince, base, outsidePackage}) on every scoped run (AM-4). copy the package to a scratch dir, verify the baseline suite is green, apply each registry mutation, run the suite, REQUIRE red, restore. The red must be BEHAVIOURAL: a mutation that no longer parses is MUTATION_UNPARSEABLE; a red run whose OWN output reports a test FILE failing to load (node --test file-level not-ok with exitCode, vitest Failed Suites) is MUTATION_LOAD_FATAL — the signal comes from the same run as the failing count, never from a separate isolated import; red output whose shape matches no known runner is INCONCLUSIVE (a runner-coverage gap, loud, never PROVEN); a count far above the entry's bound is OVER_FAILING; a restored tree that does not reproduce green makes the entry INCONCLUSIVE (flaky). Mutation writes are realpath-contained to the scratch copy: a symlink escape or a node_modules/ target is refused (exit 2), the real tree is never written. A mutation that does not apply, a green suite, or an inconclusive run is a FAILURE — never a skip. exit 0 all proven / 1 gate failed / 2 setup error)
   dz backlog add "<idea>" [--from-file <path>] [--effort 1-5] [--proposal <text>] [--dry-run] [--allow-cold-start] [--project <dir>] [--json]   (capture an idea: semantic dedup against existing ideas via the Brain vector engine (DUPLICATE>=0.92 merges, RELATED links, NEW creates) + GoalMap alignment; --dry-run classifies without writing)
   dz backlog list [--status <s>] [--goal <id>] [--project <dir>] [--json]   (list captured ideas, filterable by status/goal)
@@ -201,11 +204,11 @@ Usage:
   dz brain ground [<prompt>] [--k <N>] [--source <slug>] [--text] [--budget <N>] [--full]  (UserPromptSubmit hook; --budget inlines top-K KUs within ~N tokens; --full = ~8000)
   dz brain expand <kuId> [--source <slug>] [--json]                    (full-content lookup for a citation kuId; --json emits the full KU object)
   dz brain init  [--project <dir>] [--k <N>]                           (wire the grounding hook into .claude/settings.json — opt-in)
-  dz statusline [--json] [--install] [--project <dir>]                 (live self-learning panel for Claude Code's status bar; reads the CC JSON payload from STDIN)
+  dz statusline [--json] [--install] [--project <dir>]                 (live self-learning panel for Claude Code's status bar; reads the CC JSON payload from STDIN) | dz statusline --watch [--interval <0.25..60>] [--project <dir>] [--brain <dir>] [--slug <s>] [--run-id <id>]   (readonly adjacent TTY companion; default interval 2s; no stdin; SIGINT/SIGTERM exit 0; output failure 1; usage 2; not native Codex footer)
   dz store-guard [--status|--reset|--prune [--apply]] [--yes] [--project <dir>]   (show the monotonic external high-water mark; --reset is the only lowering path and requires confirmation or --yes; --prune is a dry run unless --apply is given)
-  dz statusline --fa-record --slug <s> --step "<label>" [--kind <feature-adr|loop>] [--tier <S|M|L|XL>] [--run-id <id>] [--recalled <n>] [--stored <n>] [--mode <m>]   (feature-adr: record live per-run learning state + phase → 📐 SECOND-LINE phase panel; the monotone guard absorbs a backwards plain "Step <n>" only within the same non-empty run id, while an absent/empty id retains legacy fresh-slot behavior — prefix the label with ⛔ or ⏸ to record a legitimate regression)
+  dz statusline --fa-record --slug <s> --step "<label>" [--kind <feature-adr|loop>] [--tier <S|M|L|XL>] [--run-id <id>] [--recalled <n>] [--stored <n>] [--mode <m>] [--reinforced <n>]   (feature-adr: record live per-run learning state + phase → 📐 SECOND-LINE phase panel; the monotone guard absorbs a backwards plain "Step <n>" only within the same non-empty run id, while an absent/empty id retains legacy fresh-slot behavior — prefix the label with ⛔ or ⏸ to record a legitimate regression)
   dz usage [--json] [--project <dir>]  (7-day UTC spend from local Claude Code + subagent transcripts; provider-limit routing disabled by design)
-  dz usage --by-stage [--run <runId> | --slug <slug>] [--epsilon <0..1>] [--write <file.jsonl>] [--json]   (per-stage cost ledger for ONE feature-adr run + the reconciliation invariant: accounted + unaccounted = run total; verdict BALANCED | DEFECT | INSUFFICIENT_DATA; local transcript ESTIMATES — catches ATTRIBUTION errors, not pricing errors)
+  dz usage --by-stage [--project <dir>] [--source auto|workflow-budget|fa-ledger|claude-transcript] [--run-dir <dir>] [--run <runId> | --slug <slug>] [--epsilon <0..1>] [--write <file.jsonl>] [--json]   (per-stage cost ledger for ONE feature-adr run + the reconciliation invariant: accounted + unaccounted = run total; verdict BALANCED | DEFECT | INSUFFICIENT_DATA; local transcript ESTIMATES — catches ATTRIBUTION errors, not pricing errors)
   dz chain [--project <dir>] [--json]   (verify EVERY hash-chained journal in ONE command: coverage is DERIVED from the CHAINED_JOURNALS registry, never typed, so a journal cannot be given a chain and checked by nobody. An ABSENT journal is NAMED absent, never omitted — omission and cleanliness are indistinguishable in a report. Statuses: ok | healed (defects the current unbroken run has outlived — verdicts over present records are sound) | unchained (present, no chained record yet — legal) | absent | broken | unreadable. Exit 1 on broken/unreadable: a verifier that reports damage and exits 0 is one no automation can act on)
   dz claim-check [paths...] [--json] [--fail-on high|medium|none] [--project <dir>]  (enforce the Integrity Rule: flag untagged/overstated accuracy claims; default scan = root README.md + every discovered package's README.md + features/*/08_qe_report.md + docs/**/*.md (historical feature artifacts are NOT scanned — pass paths explicitly); exit 1 only at/above --fail-on, default high)
   dz lint [paths...] [--json] [--config <file>] [--registry <file>] [--project <dir>]  (advisory EN/RU prose-style lint; findings exit 0, incomplete input/policy exits 1, usage exits 2)
@@ -2458,11 +2461,79 @@ function cmdStatusline(options, flags, cwd, write, readStdin, writeErr) {
  * Exit code is 0 ALWAYS, matching the rest of `dz usage`; the VERDICT (`BALANCED` / `DEFECT` /
  * `INSUFFICIENT_DATA`) is the signal, and `INSUFFICIENT_DATA` is not success.
  */
-function cmdUsageByStage(options, flags, write) {
-    const runId = options.get('run');
-    const slug = options.get('slug');
+function cmdUsageByStage(options, flags, cwd, write) {
     const epsilonRaw = options.get('epsilon');
     const epsilon = epsilonRaw === undefined ? undefined : Number(epsilonRaw);
+    const exportDerived = (path, content, evidence, suffix) => {
+        const out = resolve(cwd, path);
+        const tmp = out + suffix;
+        const canonical = (path) => {
+            let ancestor = resolve(path);
+            const suffix = [];
+            while (true) {
+                try {
+                    return resolve(realpathSync(ancestor), ...suffix);
+                }
+                catch {
+                    if (ancestor === dirname(ancestor))
+                        throw new Error('unresolvable-export-path');
+                    suffix.unshift(basename(ancestor));
+                    ancestor = dirname(ancestor);
+                }
+            }
+        };
+        const contained = (path, root) => path === root || path.startsWith(root + sep);
+        const safe = () => {
+            const targets = [canonical(out), canonical(tmp)];
+            const roots = evidence.roots.map(canonical);
+            const files = evidence.files.map(canonical);
+            return targets.every((target) => roots.every((root) => !contained(target, root) && !contained(root, target)) && files.every((file) => !contained(file, target)));
+        };
+        let created = false;
+        try {
+            if (!safe())
+                return false;
+            mkdirSync(dirname(out), { recursive: true });
+            if (!safe())
+                return false;
+            writeFileSync(tmp, content, { flag: 'wx', mode: 0o600 });
+            created = true;
+            if (!safe())
+                return false;
+            renameSync(tmp, out);
+            created = false;
+            return true;
+        }
+        catch {
+            return false;
+        }
+        finally {
+            if (created) {
+                try {
+                    unlinkSync(tmp);
+                }
+                catch { /* remove only this invocation's temp */ }
+            }
+        }
+    };
+    if (options.has('source') || options.has('project') || options.has('run-dir') || options.has('run') || options.has('slug')) {
+        const report = deriveStageUsageReport({ ...(epsilon !== undefined && Number.isFinite(epsilon) ? { epsilon } : {}), projectRoot: resolve(cwd, options.get('project') ?? '.'),
+            ...(options.has('run') ? { runId: options.get('run') } : {}),
+            ...(options.has('slug') ? { slug: options.get('slug') } : {}),
+            ...(options.has('source') ? { source: options.get('source') } : {}),
+            ...(options.has('run-dir') ? { runDir: options.get('run-dir') } : {}),
+            ...(options.has('codex-sessions') ? { codexSessionsRoot: options.get('codex-sessions') } : {}),
+        });
+        const output = options.get('write');
+        let wrote = null;
+        if (output) {
+            wrote = exportDerived(output, JSON.stringify(report) + '\n', report.authoritativeEvidence, '.stage-usage.tmp');
+        }
+        write(flags.has('json') ? JSON.stringify({ ...report, ...(wrote === null ? {} : { wrote }) }) : renderStageUsageReport(report) + (wrote === null ? '' : '\nexport: ' + (wrote ? 'written' : 'refused or failed')));
+        return 0;
+    }
+    const runId = options.get('run');
+    const slug = options.get('slug');
     const report = deriveCostLedger({
         ...(runId !== undefined ? { runId } : {}),
         ...(slug !== undefined ? { slug } : {}),
@@ -2486,7 +2557,10 @@ function cmdUsageByStage(options, flags, write) {
     const outPath = options.get('write');
     let wrote = null;
     if (outPath !== undefined && outPath.length > 0)
-        wrote = writeCostLedgerJsonl(resolve(outPath), report);
+        wrote = exportDerived(outPath, costLedgerJsonl(report), {
+            roots: [join(cwd, '.dz'), resolve(options.get('codex-sessions') ?? join(homedir(), '.codex/sessions')), ...(report.authoritativeEvidence?.roots ?? [])],
+            files: report.authoritativeEvidence?.files ?? [],
+        }, '.tmp');
     if (flags.has('json')) {
         write(JSON.stringify({ ...report, verifyDefects, ...(wrote === null ? {} : { wrote, writePath: resolve(outPath ?? '') }) }));
         return 0;
@@ -2808,7 +2882,7 @@ function cmdUsage(options, _optionLists, flags, cwd, write) {
             return 2;
         }
         if (flags.has('by-stage'))
-            return cmdUsageByStage(options, flags, write);
+            return cmdUsageByStage(options, flags, cwd, write);
         const spend = computeSpendReport();
         if (flags.has('json')) {
             write(jsonContract(spend));
@@ -5740,10 +5814,23 @@ async function cmdSetup(options, flags, cwd, write, writeErr) {
     });
     // FR-3: name the source of the backend actually used — never left to be inferred from the flag
     // alone, since the backend may now come from `.dz/config.json` or the jsonl default.
-    write(`dz setup: memory backend: ${setupResult.memoryBackend} (${memoryBackendSourceLabel(setupResult.memoryBackendSource)})`);
+    const observedMemory = setupResult.memoryBackendObserved ?? setupResult.memoryBackend;
+    const requestedMemory = memoryOpt ?? setupResult.memoryBackend;
+    const setupIncomplete = setupResult.steps.some(step => step.status === 'error');
+    if (setupIncomplete)
+        write('dz setup: INCOMPLETE: later hook/MCP delivery and live verification not run; downstream phases preserve current registries');
+    if (flags.has('no-memory'))
+        write('dz setup: --no-memory: existing memory hooks and destructive guards preserved; no hook delivery or live verification requested');
+    const observedSource = observedMemory === requestedMemory
+        ? memoryBackendSourceLabel(setupResult.memoryBackendSource)
+        : 'observed saved state';
+    write(`dz setup: memory backend: ${observedMemory} (${observedSource})`);
+    write(`dz setup: requested memory backend: ${requestedMemory} (${memoryBackendSourceLabel(setupResult.memoryBackendSource)}); observed saved backend: ${observedMemory}${setupIncomplete ? ' INCOMPLETE' : ''}`);
     for (const step of setupResult.steps) {
         const icon = step.status === 'done' ? '✓' : step.status === 'skipped' ? '○' : '✗';
         write(`║     ${icon} ${step.name.padEnd(25)} ${step.detail.slice(0, 20).padEnd(20)}║`);
+        if (step.status === 'error' || step.name === 'Memory dependencies' || step.name === 'Memory backend transition' || step.name === 'Memory saved state' || step.name === 'Write .dz/config.json')
+            write(`dz setup: ${step.name}: ${step.detail}`);
     }
     // Step 4: Install skills — actually compile them to the target (shared with `dz init`).
     // Honors --select (overrides the preset); otherwise installs the resolved preset's skills.
@@ -5755,8 +5842,8 @@ async function cmdSetup(options, flags, cwd, write, writeErr) {
     const install = select !== undefined && select.length > 0
         ? await installSkills({
             target, projectRoot, cwd, explicitSkillsDir: options.get('skills-dir'), select,
-            force: flags.has('force'), enrich: flags.has('enrich'), noHooks: flags.has('no-hooks'),
-            noIntegrations: flags.has('no-integrations'),
+            force: flags.has('force'), enrich: flags.has('enrich'), noHooks: flags.has('no-hooks') || flags.has('no-memory') || setupIncomplete,
+            noIntegrations: flags.has('no-integrations') || setupIncomplete,
             noVerify: flags.has('no-verify'),
             ...(options.get('allow-integrations') !== undefined ? { allowIntegrations: options.get('allow-integrations') } : {}),
         })
@@ -5771,7 +5858,7 @@ async function cmdSetup(options, flags, cwd, write, writeErr) {
     // setup has already run and the summary still prints; only the exit code carries the failure.
     let setupIntegrationOutcomes = install?.integrations ?? [];
     let codexHooksOk = true;
-    if (target === 'codex' && !flags.has('no-hooks')) {
+    if (target === 'codex' && !flags.has('no-hooks') && !flags.has('no-memory') && !setupIncomplete) {
         write(`║  5. Delivering codex hooks (live verify)...           ║`);
         const delivery = deliverCodexHooks({ project: projectRoot, verify: !flags.has('no-verify') }, undefined, 'dz setup');
         codexHooksOk = delivery.ok;
@@ -5795,11 +5882,13 @@ async function cmdSetup(options, flags, cwd, write, writeErr) {
     // flag can be absent while the actual backend is still agentdb (config-sourced) — the old
     // `memoryOpt === 'agentdb'` check would have mislabeled that run as jsonl right after fixing the
     // underlying steps to keep it agentdb.
-    const backendLabel = setupResult.memoryBackend === 'agentdb'
-        ? (wiring?.status === 'done' ? 'agentdb (.dz/agentdb.db + .dz/agentdb-mcp.db, separate stores)' : `agentdb INCOMPLETE — see setup steps`)
-        : 'sessions.jsonl + patterns.jsonl';
+    const backendLabel = setupIncomplete ? `${observedMemory} INCOMPLETE — see setup steps`
+        : flags.has('no-memory') ? 'disabled (--no-memory)' : observedMemory === 'agentdb'
+            ? (flags.has('no-hooks') ? 'agentdb native ready; hooks disabled' : wiring?.status === 'done' ? 'agentdb (.dz/agentdb.db + .dz/agentdb-mcp.db, separate stores)' : `agentdb INCOMPLETE — see setup steps`)
+            : 'sessions.jsonl + patterns.jsonl';
     write(`║  Learning: ${backendLabel.padEnd(41)}║`);
-    write(`║  Hooks: ${flags.has('no-hooks') ? 'disabled' : 'session-start + session-end'}${' '.repeat(flags.has('no-hooks') ? 30 : 15)}║`);
+    const hooksLabel = setupIncomplete ? 'no later delivery (INCOMPLETE)' : flags.has('no-memory') ? 'preserved; no delivery (--no-memory)' : flags.has('no-hooks') ? 'disabled' : 'session-start + session-end';
+    write(`║  Hooks: ${hooksLabel.padEnd(41)}║`);
     write(`╚══════════════════════════════════════════════════════╝`);
     // Plain detail after the box (avoids box-width fragility) + missing-skill guidance.
     if (install) {
@@ -6663,7 +6752,7 @@ registrySeam) {
     // silently swallowed and flip the command into live-publish mode.
     const allowedFlags = new Set(['dry-run', 'no-dry-run', 'yes', 'confirm', 'bump-only', 'help', 'require-signing', 'provenance', 'no-provenance', 'json', 'no-mirror', 'allow-sibling-drift', 'include-drifted']);
     const allowedOptions = new Set(['filter', 'claim-check', 'no-guard', 'sign-key', 'mirror-cmd']);
-    const allowedHelp = '  allowed: --dry-run (default), --yes/--confirm/--no-dry-run (go live), --bump-only, --filter <substr>, --claim-check <off|warn|error>, --mirror-cmd <cmd>, --no-mirror, --no-guard "<reason>" (skip the guard pre-flight; logged), --allow-sibling-drift (override the sibling-drift gate; logged), --include-drifted (auto-extend the batch with a drifted sibling)';
+    const allowedHelp = '  allowed: --dry-run (default), --yes/--confirm/--no-dry-run (go live), --bump-only, --filter <substr|=NAME>, --claim-check <off|warn|error>, --mirror-cmd <cmd>, --no-mirror, --no-guard "<reason>" (skip the guard pre-flight; logged), --allow-sibling-drift (override the sibling-drift gate; logged), --include-drifted (auto-extend the batch with a drifted sibling)';
     for (const flag of flags) {
         if (!allowedFlags.has(flag)) {
             write(`dz publish: unknown option --${flag}`);
@@ -6698,15 +6787,33 @@ registrySeam) {
             return 1;
         }
     }
+    // Exact selectors must reject the whole request before guard scans/logging or registry work.
+    let validatedPackages;
+    if (filter?.some(token => token.startsWith('='))) {
+        try {
+            validatedPackages = discoverPackages(cwd);
+            validatePublishFilters(filter, validatedPackages);
+        }
+        catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            write(`dz publish: ${message}`);
+            if (json)
+                emitJson({ ok: false, error: message, exitCode: 1 });
+            return 1;
+        }
+    }
     // dz guard pre-flight (ADR-002 option A): publish is the most dangerous, least-reversible self-mutation, so
     // it ALWAYS runs the declarative guard first. A HARD violation refuses the publish; `--no-guard "<reason>"`
     // is the logged escape hatch (the override lands in .dz/guard-audit.jsonl — visible, never silent).
     {
-        let guardRoot = cwd;
-        try {
-            guardRoot = execSync('git rev-parse --show-toplevel', { cwd, encoding: 'utf-8' }).trim() || cwd;
+        const resolvedRoot = resolveGuardRoot(cwd);
+        if (!resolvedRoot.ok) {
+            write(`dz publish: ✗ refused (${resolvedRoot.reason}): ${resolvedRoot.detail}`);
+            if (json)
+                emitJson({ ok: false, reason: resolvedRoot.reason, error: `dz publish: ${resolvedRoot.detail}`, exitCode: 1 });
+            return 1;
         }
-        catch { /* not git */ }
+        const guardRoot = resolvedRoot.root;
         const noGuard = options.get('no-guard');
         if (noGuard !== undefined && noGuard.trim() === '') {
             write('dz publish: --no-guard requires a reason (it is logged): --no-guard "hotfix, guard re-run after"');
@@ -6715,6 +6822,17 @@ registrySeam) {
             return 1;
         }
         const guardResult = runGuardEvaluation(guardRoot, 'publish', undefined, noGuard, filter);
+        const guardAuditSkip = guardAuditSkipLine(guardResult.audit);
+        if (guardAuditSkip !== undefined)
+            write(`dz publish: ℹ ${guardAuditSkip}`); // FR-3
+        if (guardResult.verdict === 'block' && noGuard !== undefined && !guardResult.audit.written) {
+            // FR-4: `--no-guard` is "logged, never silent" — with no row on disk it is refused, not applied.
+            const detail = `--no-guard "${noGuard}" cannot be logged (${guardAuditSkip ?? 'audit not written'}), so the guard BLOCK stands`;
+            write(`dz publish: ✗ refused (guard-override-unlogged): ${detail}`);
+            if (json)
+                emitJson({ ok: false, blocked: true, gate: 'guard-hard', reason: 'guard-override-unlogged', error: `dz publish: ${detail}`, exitCode: 1 });
+            return 1;
+        }
         if (guardResult.verdict === 'block' && noGuard === undefined) {
             write('dz publish: ✗ BLOCKED by dz guard (HARD invariant violated):');
             for (const v of guardResult.violations.filter((x) => x.severity === 'hard'))
@@ -6785,7 +6903,7 @@ registrySeam) {
     // (AM-1) — the one gate that tests the tarball bytes actually handed to `npm publish`.
     const allowSiblingDrift = flags.has('allow-sibling-drift');
     const includeDrifted = flags.has('include-drifted');
-    const allPackages = discoverPackages(cwd);
+    const allPackages = validatedPackages ?? discoverPackages(cwd);
     const workspaceVersions = new Map(allPackages.map((p) => [p.name, p.version]));
     const workspaceDirs = new Map(allPackages.map((p) => [p.name, p.dir]));
     const matchesFilter = (pk) => filter === undefined || filter.length === 0 || filter.some((f) => matchesPublishFilter(pk, f, cwd));
@@ -6850,6 +6968,31 @@ registrySeam) {
         return out;
     };
     const localInventorySource = 'pack-artifact';
+    const siblingPublicKey = (() => {
+        try {
+            return readFileSync(resolve(cwd, TRUST_ROOT_REL), 'utf8');
+        }
+        catch {
+            return undefined;
+        }
+    })();
+    const retainedInvocation = {};
+    const retainedPreviewPhase = {};
+    let retainedPreview;
+    const retainedAuthorized = new WeakSet();
+    const retainedFive = ['harness-core', 'harness-cli', 'skills-meta', 'keysarium', 'skills-feature-adr'].map(n => '@dzhechkov/' + n).sort();
+    const retainedTen = ['adapter-agents-md', 'adapter-claude', 'adapter-codex', 'adapter-copilot', 'adapter-cursor', 'adapter-gemini', 'adapter-hermes', 'adapter-openclaude', 'adapter-opencode', 'adapter-windsurf'].map(n => '@dzhechkov/' + n);
+    const retainedBatchEligible = !allowSiblingDrift && !includeDrifted && siblingPublicKey !== undefined && JSON.stringify(targets.map(pk => pk.name).sort()) === JSON.stringify(retainedFive);
+    const retainedRun = packedInstallRunner ?? ((command, options) => {
+        try {
+            const stdout = options.argv ? execFileSync(options.argv[0], options.argv.slice(1), { cwd: options.cwd, env: options.env, timeout: options.timeoutMs, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 }) : execSync(command, { cwd: options.cwd, env: options.env, timeout: options.timeoutMs, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
+            return { exitCode: 0, stdout: String(stdout), stderr: '' };
+        }
+        catch (error) {
+            const e = error;
+            return { exitCode: e.status ?? 1, stdout: '', stderr: 'retained proof subprocess unavailable', ...(e.signal ? { timedOut: true } : {}) };
+        }
+    });
     // AM-3 (Codex round-1 review, finding 4, high): sibling-drift audit records are EXACTLY one per
     // package per rule per RUN. The old code appended one JSONL record per SIBLING a package depends
     // on (a package with two drifted deps wrote two rows under the same rule), and the `unavailable`
@@ -6924,9 +7067,10 @@ registrySeam) {
                 let pkVerdict = 'pass';
                 let pkOverrideUsed = false;
                 if (anyWorkspaceDep) {
-                    const drifts = detectSiblingDrift({
+                    let drifts = detectSiblingDrift({
                         localInventory: npmPackInventory,
                         localInventorySource,
+                        ...(siblingPublicKey !== undefined ? { trustedPublicKeyPem: siblingPublicKey } : {}),
                         dependencies: deps,
                         peerDependencies: peerDeps,
                         optionalDependencies: optionalDeps,
@@ -6935,10 +7079,32 @@ registrySeam) {
                         batch: batchNames,
                         fetchPublished,
                     });
+                    if (retainedBatchEligible && drifts.some(r => r.status === 'drift' && retainedTen.includes(r.name))) {
+                        if (retainedPreview === undefined) {
+                            retainedPreview = buildRetainedBindingProof({ monorepoRoot: cwd, roots: targets, phase: 'preview', invocation: retainedInvocation, phaseIdentity: retainedPreviewPhase, run: retainedRun, trustedPublicKeyPem: siblingPublicKey });
+                            if (retainedPreview.ok && retainedPreview.proof && retainedPreview.authorize(retainedPreview.proof, retainedInvocation, retainedPreviewPhase))
+                                retainedAuthorized.add(retainedPreview.proof);
+                        }
+                        if (retainedPreview.proof && retainedAuthorized.has(retainedPreview.proof) && retainedPreview.authorize(retainedPreview.proof, retainedInvocation, retainedPreviewPhase)) {
+                            drifts = detectSiblingDrift({ localInventory: npmPackInventory, localInventorySource, trustedPublicKeyPem: siblingPublicKey, retainedBindingProof: retainedPreview.proof, dependencies: deps, peerDependencies: peerDeps, optionalDependencies: optionalDeps, workspaceVersions, workspaceDirs, batch: batchNames, fetchPublished });
+                        }
+                        else
+                            write('dz publish: retained registered binding unavailable — ' + (retainedPreview.reason ?? 'invocation completion not established'));
+                    }
                     for (const r of drifts) {
                         if (r.status === 'same') {
-                            pkParts.push(`${r.name}@${r.version}: same`);
-                            write(`dz publish: ✓ sibling drift: none (${r.name}@${r.version} = workspace)`);
+                            if (r.classification === 'retained-registered-binding') {
+                                pkParts.push(`${r.name}@${r.version}: ${r.reason}`);
+                                write(`dz publish: ✓ sibling comparison: ${r.reason}`);
+                            }
+                            else if (r.classification === 'owner-branding-only') {
+                                pkParts.push(`${r.name}@${r.version}: owner-branding-only (${formatDriftFiles(r.changedFiles, r.inventorySource)}) — ${r.reason}`);
+                                write(`dz publish: ✓ sibling comparison: owner-branding-only (${r.name}@${r.version}; original changed paths: ${r.changedFiles.join(', ')}; both original signed artifacts verified)`);
+                            }
+                            else {
+                                pkParts.push(`${r.name}@${r.version}: same`);
+                                write(`dz publish: ✓ sibling drift: none (${r.name}@${r.version} = workspace)`);
+                            }
                         }
                         else if (r.status === 'unavailable') {
                             if (allowSiblingDrift) {
@@ -6975,11 +7141,11 @@ registrySeam) {
                             pkOverrideUsed = true;
                         }
                         else {
-                            pkParts.push(`${r.name}@${r.version}: drift (${formatDriftFiles(r.changedFiles, r.inventorySource)})`);
+                            pkParts.push(`${r.name}@${r.version}: drift (${formatDriftFiles(r.changedFiles, r.inventorySource)})${r.reason ? ' — ' + r.reason : ''}`);
                             pkVerdict = 'block';
                             const suggestFilter = filterStr !== undefined ? `${filterStr},${r.name}` : `${pk.name},${r.name}`;
-                            write(`dz publish: BLOCKED ${pk.name} — sibling drift: @dzhechkov/${r.name.replace(/^@dzhechkov\//, '')}@${r.version} on the registry differs from the workspace (${formatDriftFiles(r.changedFiles, r.inventorySource)}); add ${r.name} to the batch (--filter ${suggestFilter}) or publish it first`);
-                            driftRows.push({ name: pk.name, version: pk.version, reason: `dz publish: BLOCKED ${pk.name} — sibling drift: @dzhechkov/${r.name.replace(/^@dzhechkov\//, '')}@${r.version} on the registry differs from the workspace (${formatDriftFiles(r.changedFiles, r.inventorySource)}); add ${r.name} to the batch (--filter ${suggestFilter}) or publish it first` });
+                            write(`dz publish: BLOCKED ${pk.name} — sibling drift: @dzhechkov/${r.name.replace(/^@dzhechkov\//, '')}@${r.version} on the registry differs from the workspace (${formatDriftFiles(r.changedFiles, r.inventorySource)})${r.reason ? ' — ' + r.reason : ''}; add ${r.name} to the batch (--filter ${suggestFilter}) or publish it first`);
+                            driftRows.push({ name: pk.name, version: pk.version, reason: `dz publish: BLOCKED ${pk.name} — sibling drift: @dzhechkov/${r.name.replace(/^@dzhechkov\//, '')}@${r.version} on the registry differs from the workspace (${formatDriftFiles(r.changedFiles, r.inventorySource)})${r.reason ? ' — ' + r.reason : ''}; add ${r.name} to the batch (--filter ${suggestFilter}) or publish it first` });
                             driftBlocked++;
                         }
                     }
@@ -7262,6 +7428,28 @@ registrySeam) {
     // AM-1: the packedTransport smoke closure and the actual `npm publish <tgz>` inside
     // `publishPackages` both read from THIS SAME directory — created once, cleaned up once, after
     // publishPackages returns (it needs the tarballs on disk through its own publish step).
+    const retainedMetadataSnapshots = retainedPreview?.ok ? targets.flatMap(pk => [MANIFEST_NAME, 'sbom.json'].map(name => { const path = join(pk.dir, name); return { path, bytes: existsSync(path) ? readFileSync(path) : undefined, mode: existsSync(path) ? statSync(path).mode & 0o777 : undefined }; })) : [];
+    const retainedFailure = (reason) => {
+        try {
+            for (const snapshot of retainedMetadataSnapshots) {
+                if (snapshot.bytes === undefined) {
+                    rmSync(snapshot.path, { force: true });
+                    if (existsSync(snapshot.path))
+                        throw new Error('absent metadata restoration failed');
+                }
+                else {
+                    writeFileSync(snapshot.path, snapshot.bytes);
+                    chmodSync(snapshot.path, snapshot.mode);
+                    if (!readFileSync(snapshot.path).equals(snapshot.bytes) || (statSync(snapshot.path).mode & 0o777) !== snapshot.mode)
+                        throw new Error('metadata restoration failed');
+                }
+            }
+            return { ok: false, reason };
+        }
+        catch {
+            return { ok: false, reason: 'retained final proof failed and owned pre-bump metadata restoration failed' };
+        }
+    };
     const packedTransportPackDestDir = mkdtempSync(join(packedInstallScratchRoot(), 'dz-publish-packed-'));
     const publishReport = publishPackages(cwd, {
         provenance,
@@ -7288,11 +7476,34 @@ registrySeam) {
             smoke: (artifacts) => {
                 for (const a of artifacts)
                     write(`dz publish: tarball ${a.name}@${a.newVersion} sha256:${a.sha256}`);
+                // Fresh final ALL-root proof is before every transport write, including the no-bin return below.
+                if (retainedPreview !== undefined) {
+                    const finalPhase = {};
+                    if (!retainedBatchEligible || !retainedPreview.ok || !retainedPreview.proof || !retainedAuthorized.has(retainedPreview.proof) || JSON.stringify(artifacts.map(a => a.name).sort()) !== JSON.stringify(retainedFive))
+                        return retainedFailure('retained final batch/preview authority invalid');
+                    const final = buildRetainedBindingProof({ monorepoRoot: cwd, roots: targets, phase: 'final', invocation: retainedInvocation, phaseIdentity: finalPhase, run: retainedRun, trustedPublicKeyPem: siblingPublicKey, previous: retainedPreview, artifacts });
+                    if (!final.ok || !final.proof || !final.authorize(final.proof, retainedInvocation, finalPhase) || final.proof === retainedPreview.proof || final.proof.phase !== 'final')
+                        return retainedFailure(final.reason ?? 'retained final owned completion missing');
+                    retainedAuthorized.add(final.proof);
+                    write('dz publish: ✓ fresh final retained registered binding cohort proof ' + final.proof.digest + ' (ALL five final tarballs, before registry writes)');
+                }
+                const retainedTransportReady = () => {
+                    if (retainedPreview === undefined)
+                        return { ok: true };
+                    try {
+                        if (artifacts.some(a => createHash('sha256').update(readFileSync(a.tgzPath)).digest('hex') !== a.sha256))
+                            return retainedFailure('final artifact changed after retained proof and before transport');
+                    }
+                    catch {
+                        return retainedFailure('final artifact unavailable before transport');
+                    }
+                    return { ok: true };
+                };
                 const auditPackages = artifacts.map((a) => ({ name: a.name, version: a.newVersion, tarballSha256: a.sha256 }));
                 if (bins.length === 0) {
                     const wrote = appendPublishGateAudit(cwd, 'packed-install-smoke', 'pass', 'n/a — nothing in the batch declares a bin', auditPackages, undefined, gateAuditFsLayer);
                     write(`dz publish: ○ packed install smoke: n/a (nothing in the batch declares a bin)${auditSuffix(wrote)}`);
-                    return { ok: true };
+                    return retainedTransportReady();
                 }
                 const scratchRoot = packedInstallScratchRoot();
                 const installDir = mkdtempSync(join(scratchRoot, 'dz-publish-install-'));
@@ -7328,21 +7539,25 @@ registrySeam) {
                     smokeExecutions.push({ stepId: step.id, exitCode: r.exitCode, stdout: r.stdout, stderr: r.stderr, ...(r.timedOut !== undefined ? { timedOut: r.timedOut } : {}) });
                 }
                 const verdict = judgePackedInstallSmoke(smokePlan, smokeExecutions);
+                let smokeCleaned = false;
                 try {
                     rmSync(installDir, { recursive: true, force: true });
+                    smokeCleaned = !existsSync(installDir);
                 }
-                catch { /* best-effort cleanup */ }
+                catch { /* ordinary singleton transport retains its existing behavior */ }
+                if (retainedPreview !== undefined && !smokeCleaned)
+                    return retainedFailure('retained final packed-smoke cleanup failed');
                 if (verdict.ok) {
                     const wrote = appendPublishGateAudit(cwd, 'packed-install-smoke', 'pass', 'pack/install/--version all clean (live, packedTransport)', auditPackages, undefined, gateAuditFsLayer);
                     write(`dz publish: ✓ packed install smoke${auditSuffix(wrote)}`);
-                    return { ok: true };
+                    return retainedTransportReady();
                 }
                 const detail = verdict.failureDetail ?? verdict.bins.find((b) => !b.ok)?.detail ?? '(no detail)';
                 const wrote = appendPublishGateAudit(cwd, 'packed-install-smoke', 'block', detail, auditPackages, undefined, gateAuditFsLayer);
                 write(`dz publish: BLOCKED — packed install smoke failed: ${detail}${auditSuffix(wrote)}`);
                 for (const b of verdict.bins.filter((b) => !b.ok))
                     write(`  ✗ ${b.pkg} (${b.binName}): ${b.detail ?? '(no detail)'}`);
-                return { ok: false, reason: detail };
+                return retainedPreview !== undefined ? retainedFailure(detail) : { ok: false, reason: detail };
             },
         },
         signKey: signKey === '' ? undefined : resolve(cwd, signKey),
@@ -7864,7 +8079,7 @@ async function cmdParity(options, flags, write, writeErr, cwd) {
  *   (AM-5): live publish stays the operator's explicit act, and `--publish` chains into
  *   publish's own default (dry-run) protocol with ALL its gates untouched.
  */
-function cmdRelease(options, flags, cwd, write, runner) {
+function cmdRelease(options, flags, cwd, write, runner, publishExecRunner) {
     const json = flags.has('json');
     const warnings = [];
     const say = (line) => {
@@ -7887,8 +8102,8 @@ function cmdRelease(options, flags, cwd, write, runner) {
     // `--verified` is accepted but not read: verified is the DEFAULT and only mode of
     // `dz release` in this slice — the flag exists so the branded invocation is not a typo error.
     const allowedFlags = new Set(['verified', 'tag', 'publish', 'json', 'dry-run', 'no-issue', 'affected', 'audit-dev', 'help']);
-    const allowedOptions = new Set(['filter']);
-    const allowedHelp = '  allowed: --verified, --filter <substr>, --affected, --audit-dev, --tag, --publish, --json, --dry-run, --no-issue';
+    const allowedOptions = new Set(['filter', 'test-timeout-ms']);
+    const allowedHelp = '  allowed: --verified, --filter <substr|=NAME>, --test-timeout-ms <positive-integer-ms>, --affected, --audit-dev, --tag, --publish, --json, --dry-run, --no-issue';
     const rejectUnknown = (key) => {
         if (json)
             write(JSON.stringify({ error: `unknown option --${key}`, allowed: allowedHelp.trim(), publishAction: 'blocked', exitCode: 1 }, null, 2));
@@ -7898,6 +8113,21 @@ function cmdRelease(options, flags, cwd, write, runner) {
         }
         return 1;
     };
+    let testTimeoutMs;
+    if (flags.has('test-timeout-ms') || options.has('test-timeout-ms')) {
+        const raw = options.get('test-timeout-ms');
+        if (flags.has('test-timeout-ms') || raw === undefined || !/^[0-9]+$/.test(raw) || !Number.isSafeInteger(Number(raw)) || Number(raw) <= 0) {
+            const error = '--test-timeout-ms requires decimal digits representing a positive safe integer in milliseconds';
+            if (json)
+                write(JSON.stringify({ error, publishAction: 'blocked', exitCode: 1 }, null, 2));
+            else {
+                write('dz release: ' + error);
+                write(allowedHelp);
+            }
+            return 1;
+        }
+        testTimeoutMs = Number(raw);
+    }
     for (const flag of flags)
         if (!allowedFlags.has(flag))
             return rejectUnknown(flag);
@@ -7948,7 +8178,10 @@ function cmdRelease(options, flags, cwd, write, runner) {
     const run = runner ??
         ((cmd, opts) => {
             try {
-                const stdout = execSync(cmd, { cwd: opts.cwd, stdio: 'pipe', encoding: 'utf-8', timeout: opts.timeoutMs });
+                const execOpts = { cwd: opts.cwd, stdio: 'pipe', encoding: 'utf-8', timeout: opts.timeoutMs, ...(opts.env !== undefined ? { env: opts.env } : {}) };
+                const stdout = opts.argv !== undefined
+                    ? execFileSync(opts.argv[0], opts.argv.slice(1), execOpts)
+                    : execSync(cmd, execOpts);
                 return { exitCode: 0, stdout: stdout == null ? '' : String(stdout), stderr: '' };
             }
             catch (err) {
@@ -7989,12 +8222,14 @@ function cmdRelease(options, flags, cwd, write, runner) {
     // nothing this gate exists to catch). Planning stays pure (planReleaseGates never mkdtemps
     // itself); these are cleaned up on every exit path below, dry-run included.
     const packedInstallEligible = factsList.some((f) => f.bins.some((b) => b.exists));
-    const releaseScratchRoot = packedInstallScratchRoot();
+    const dryRun = flags.has('dry-run');
+    const releaseScratchRoot = dryRun ? '<scratch>' : packedInstallScratchRoot();
     const packedInstallDirs = packedInstallEligible
-        ? { packDir: mkdtempSync(join(releaseScratchRoot, 'dz-release-pack-')), installDir: mkdtempSync(join(releaseScratchRoot, 'dz-release-install-')) }
+        ? dryRun ? { packDir: '<scratch>/dz-release-pack-<tmp>', installDir: '<scratch>/dz-release-install-<tmp>' }
+            : { packDir: mkdtempSync(join(releaseScratchRoot, 'dz-release-pack-')), installDir: mkdtempSync(join(releaseScratchRoot, 'dz-release-install-')) }
         : undefined;
     const cleanupPackedInstallDirs = () => {
-        if (packedInstallDirs === undefined)
+        if (packedInstallDirs === undefined || dryRun)
             return;
         try {
             rmSync(packedInstallDirs.packDir, { recursive: true, force: true });
@@ -8009,16 +8244,17 @@ function cmdRelease(options, flags, cwd, write, runner) {
         monorepoRoot: cwd,
         pnpmLockPresent: existsSync(join(cwd, 'pnpm-lock.yaml')),
         includeDevDeps: flags.has('audit-dev'),
+        ...(testTimeoutMs !== undefined ? { testTimeoutMs } : {}),
         packedInstall: packedInstallDirs,
     });
     // --dry-run: print the full plan, execute NOTHING (deterministic, byte-testable preview).
     if (flags.has('dry-run')) {
         cleanupPackedInstallDirs();
         if (json) {
-            write(JSON.stringify({ dryRun: true, packages: plan.packages, steps: plan.steps, skips: plan.skips, warnings }, null, 2));
+            write(JSON.stringify({ dryRun: true, packages: plan.packages, steps: plan.steps, packageAuditPlans: plan.packageAuditPlans, workspaceAudit: { ...plan.workspaceAuditStep, scope: 'workspace', nonBlocking: true, includeDev: flags.has('audit-dev') }, skips: plan.skips, warnings }, null, 2));
             return 0;
         }
-        write(`\ndz release --dry-run — plan only, zero commands executed (${plan.packages.length} package(s))`);
+        write(`\ndz release --dry-run — plan only, zero verification commands executed (${plan.packages.length} package(s))`);
         for (const gate of ['tests', 'audit', 'syntax', 'smoke']) {
             const steps = plan.steps.filter((s) => s.gate === gate);
             write(`  ${gate} (${steps.length} step(s)):`);
@@ -8032,6 +8268,7 @@ function cmdRelease(options, flags, cwd, write, runner) {
                 for (const sk of plan.skips)
                     write(`    ○ [${sk.class}] ${sk.pkg}: ${sk.reason}`);
         }
+        write(`  workspace audit (nonblocking, ${flags.has('audit-dev') ? 'all dependencies' : 'production dependencies'}): ${plan.workspaceAuditStep?.cmd}`);
         write('  → run without --dry-run to execute the gates');
         return 0;
     }
@@ -8054,6 +8291,15 @@ function cmdRelease(options, flags, cwd, write, runner) {
         .filter((s) => s.kind === 'pack')
         .map((s) => `smoke:packed-install:${s.id}`));
     const runGateStep = (step) => {
+        if (step.kind === 'package-audit') {
+            const auditPlan = plan.packageAuditPlans?.find(p => p.package === step.pkg);
+            if (auditPlan === undefined)
+                return;
+            const started = Date.now();
+            const audit = runReleasePackageAudit(auditPlan, { monorepoRoot: cwd, scratchRoot: releaseScratchRoot, run });
+            executions.push({ stepId: step.id, exitCode: audit.result.status === 'clean' ? 0 : 1, stdout: '', stderr: audit.result.reason ?? '', durationMs: Date.now() - started, packageAuditEvidence: audit.evidence });
+            return;
+        }
         let stepCwd = step.cwd;
         if (step.tempCwd === true) {
             // AM-4: boot bins in a throwaway cwd so an installer-style bin cannot mutate the workspace.
@@ -8110,7 +8356,18 @@ function cmdRelease(options, flags, cwd, write, runner) {
         catch { /* best-effort cleanup */ }
     }
     cleanupPackedInstallDirs();
+    if (plan.workspaceAuditStep !== undefined) {
+        try {
+            runGateStep(plan.workspaceAuditStep);
+        }
+        catch (error) {
+            executions.push({ stepId: 'audit:workspace', exitCode: 1, stdout: '', stderr: formatPublishError(error), durationMs: 0 });
+        }
+    }
     const verdict = classifyGateExecutions(plan, executions);
+    say(`  workspace audit (nonblocking, ${verdict.workspaceAudit.includeDev ? 'all dependencies' : 'production dependencies'}): ${verdict.workspaceAudit.status}${verdict.workspaceAudit.reason ? ` — ${verdict.workspaceAudit.reason}` : ''}`);
+    for (const audit of verdict.packageAudits)
+        say(`  package consumer audit ${audit.package}: ${audit.status}${audit.reason ? ` — ${audit.reason}` : ''}`);
     // Report: per-gate ✓/✗/○ with package granularity + timestamp (NFR-5). Skips are named,
     // never folded into pass wording (AM-2: "N passed, M skipped", not "all tests passed").
     for (const g of verdict.gates) {
@@ -8180,6 +8437,8 @@ function cmdRelease(options, flags, cwd, write, runner) {
         }
         emitJson({
             gates: verdict.gates,
+            packageAudits: verdict.packageAudits,
+            workspaceAudit: verdict.workspaceAudit,
             ok: verdict.ok,
             blockedBy: verdict.blockedBy,
             skipped: verdict.skipped,
@@ -8224,10 +8483,10 @@ function cmdRelease(options, flags, cwd, write, runner) {
             const captured = publishOutput;
             publishExit = cmdPublish(pubOptions, new Set(), cwd, (line) => {
                 captured.push(line);
-            });
+            }, undefined, undefined, undefined, publishExecRunner);
         }
         else {
-            publishExit = cmdPublish(pubOptions, new Set(), cwd, write);
+            publishExit = cmdPublish(pubOptions, new Set(), cwd, write, undefined, undefined, undefined, publishExecRunner);
         }
     }
     else {
@@ -8235,6 +8494,8 @@ function cmdRelease(options, flags, cwd, write, runner) {
     }
     emitJson({
         gates: verdict.gates,
+        packageAudits: verdict.packageAudits,
+        workspaceAudit: verdict.workspaceAudit,
         ok: verdict.ok,
         blockedBy: verdict.blockedBy,
         skipped: verdict.skipped,
@@ -10619,6 +10880,11 @@ function gatherGuardFacts(op, root, text, storeCap, publishFilter) {
         };
         walkPlugins(root, 0);
         facts['pluginManifests'] = pluginManifests;
+        // npm-homepage (backlog e5d0d383): EVERY packages/@dzhechkov/* directory with a package.json, private
+        // included, read from disk rather than `git ls-files` — an untracked new package is checked too, and an
+        // unparseable manifest becomes a named violation instead of the silent skip `readWorkspaceManifests` does.
+        const npmHomepageRead = readNpmHomepageRecords(join(root, 'packages', '@dzhechkov'));
+        facts['npmHomepage'] = npmHomepageFacts(npmHomepageRead.records, npmHomepageRead);
         facts['volume'] = gatherVolumeShadowFacts(root, located.map(({ dir, m }) => ({
             dir,
             name: m.name ?? dir,
@@ -11019,6 +11285,95 @@ function gatherGuardFacts(op, root, text, storeCap, publishFilter) {
  * shared by `dz guard check` and the `dz publish` pre-flight (ADR-002 option A) so they can never disagree.
  * `overrideReason` (when the caller forces through a block) is logged, never silent.
  */
+/** `statSync` follows the link; a broken or unreadable link is simply not a directory (01 AM-4). */
+function isDirectoryFollowingLinks(path) {
+    try {
+        return statSync(path).isDirectory();
+    }
+    catch {
+        return false;
+    }
+}
+/**
+ * Filesystem facts for harness-core `isRepoBoundary` — the ONE answer to "is this `.git` a repository?"
+ * (feature `empty-git-is-not-a-project`, backlog 582b39a6734cd1da). Codex's bubblewrap mounts an EMPTY
+ * `.git` into every writable root and can leave it on the host; a `.git` without HEAD (or without a
+ * `gitdir:` pointer) is not a repository — `git rev-parse` there exits 128 — and must not mark a child.
+ */
+const GUARD_CHILD_REPO_IO = {
+    exists: (path) => existsSync(path),
+    isDirectory: (path) => {
+        try {
+            return statSync(path).isDirectory();
+        }
+        catch {
+            return false;
+        }
+    },
+    readText: (path) => {
+        try {
+            return readFileSync(path, 'utf8');
+        }
+        catch {
+            return null;
+        }
+    },
+};
+/**
+ * Project markers of a directory (feature `guard-root-never-seeds-parent`, 01 AM-1): its own
+ * `package.json`, `packages/`, or `.claude-plugin/plugin.json`. `.git` counts only for CHILDREN — a cwd
+ * with its own work tree never reaches this check (`git rev-parse` answered first) — and only as a real
+ * repository boundary (HEAD or a `gitdir:` file, `isRepoBoundary`), never an empty synthetic `.git`.
+ */
+function hasOwnProjectMarkers(dir) {
+    return existsSync(join(dir, 'package.json')) || existsSync(join(dir, 'packages')) || existsSync(join(dir, '.claude-plugin', 'plugin.json'));
+}
+/**
+ * The directory `dz guard` / the `dz publish` guard pre-flight evaluate and audit (feature
+ * `guard-root-never-seeds-parent`, FR-1 as amended by 01 AM-1). Inside git: the work-tree top level,
+ * unchanged. Outside git the old fallback was `cwd` itself — which, MEASURED 2026-09-26 10:50:52, made a
+ * run from the hub's PARENT (no .git, no packages/) audit every sibling project. The rule, once:
+ *   own project markers ⇒ root = cwd;
+ *   else any DIRECT child with project markers (its own markers, or a `.git` repository boundary) ⇒ refuse `guard-root-contains-projects`;
+ *   else root = cwd (an empty directory keeps the old fallback).
+ * Refused before anything is evaluated or written.
+ */
+function resolveGuardRoot(cwd) {
+    try {
+        const top = execSync('git rev-parse --show-toplevel', { cwd, encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+        if (top !== '')
+            return { ok: true, root: top };
+    }
+    catch { /* not git — fall through to the marker rule */ }
+    if (hasOwnProjectMarkers(cwd))
+        return { ok: true, root: cwd };
+    let children = [];
+    try {
+        children = readdirSync(cwd, { withFileTypes: true })
+            // AM-4 (review r2 #5): a child attached as a SYMLINK (`parent/project -> /repos/project`) is a
+            // Dirent with isDirectory() === false — follow the link (statSync) and treat a directory target like
+            // any other child; a broken link is ignored, never a crash.
+            .filter((e) => (e.isDirectory() || (e.isSymbolicLink() && isDirectoryFollowingLinks(join(cwd, e.name)))) && !e.name.startsWith('.') && e.name !== 'node_modules')
+            .map((e) => e.name)
+            .filter((name) => isRepoBoundary(join(cwd, name), GUARD_CHILD_REPO_IO, join) || hasOwnProjectMarkers(join(cwd, name)))
+            .sort();
+    }
+    catch { /* unreadable cwd — nothing to say about children */ }
+    if (children.length === 0)
+        return { ok: true, root: cwd };
+    const shown = children.slice(0, 3).join(', ') + (children.length > 3 ? `, … (${children.length} in all)` : '');
+    return {
+        ok: false,
+        reason: 'guard-root-contains-projects',
+        detail: `${cwd} is not a git work tree and has no project markers of its own (package.json, packages/, .claude-plugin/plugin.json), but it CONTAINS project(s): ${shown} — run from the project root itself; nothing was evaluated or written`,
+    };
+}
+/** One printable line for a skipped audit row (FR-3) — shared by `dz guard check` and `dz publish`. */
+function guardAuditSkipLine(audit) {
+    if (audit.written)
+        return undefined;
+    return `guard audit not written (${audit.reason}): ${audit.detail}`;
+}
 function runGuardEvaluation(root, op, text, overrideReason, publishFilter) {
     const cfg = loadGuardConfig(root);
     // Number.isFinite, not just > 0: a config `storeCap: 1e400` parses to Infinity, passes `> 0`, and would
@@ -11028,9 +11383,21 @@ function runGuardEvaluation(root, op, text, overrideReason, publishFilter) {
     const facts = gatherGuardFacts(op, root, text, storeCap, publishFilter);
     const result = evaluateGuard(facts, rules);
     // audit (append-only). ts is real time here (a CLI, not the sandboxed workflow).
+    // FR-2: the store must ALREADY exist — the same predicate `withProjectLockSync` refuses on
+    // (`StoreAbsentError`); an audit write never seeds a `.dz`.
+    if (!storeExists(root)) {
+        return {
+            ...result,
+            audit: {
+                written: false,
+                reason: 'guard-audit-store-absent',
+                root,
+                detail: `no .dz store at ${root} — nothing was created; run from the project root (or \`dz init\` there) to keep an audit`,
+            },
+        };
+    }
     try {
         const rec = auditRecord(result, new Date().toISOString(), overrideReason !== undefined ? { reason: overrideReason } : undefined);
-        mkdirSync(join(root, '.dz'), { recursive: true });
         const auditPath = join(root, '.dz', 'guard-audit.jsonl');
         // event-chain (ADR-001): seq + prevHash derived from the LAST LINE ONLY — this file is the
         // evidence base `dz guard promote` decides on, and a rewrite that loses or duplicates a record
@@ -11038,8 +11405,15 @@ function runGuardEvaluation(root, op, text, overrideReason, publishFilter) {
         // than blocking the audit: the verdict is never held hostage to a broken log.
         writeFileSync(auditPath, appendChainedLines([rec], readLogTail(auditPath)), { flag: 'a' });
     }
-    catch { /* audit is best-effort, never blocks the verdict */ }
-    return result;
+    catch (err) {
+        // audit is best-effort, never blocks the verdict — but a failed write is NAMED, not swallowed:
+        // an override (FR-4) must not pass on a row that never landed.
+        return {
+            ...result,
+            audit: { written: false, reason: 'guard-audit-write-failed', root, detail: `${join(root, '.dz', 'guard-audit.jsonl')}: ${String(err.message ?? err).split('\n')[0]}` },
+        };
+    }
+    return { ...result, audit: { written: true } };
 }
 /**
  * AM-2: loop `writeSync` until every byte of `data` has been accepted, checking the RETURNED
@@ -11613,12 +11987,19 @@ function cmdGuardPromote(options, flags, root, write) {
  * Exit 1 on a HARD block (0 with --force <reason>, which is logged); 0 on warn/pass.
  */
 function cmdGuard(options, flags, cwd, write) {
-    let root = cwd;
-    try {
-        root = execSync('git rev-parse --show-toplevel', { cwd, encoding: 'utf-8' }).trim() || cwd;
-    }
-    catch { /* not git */ }
     const sub = options.get('_positional_0') ?? 'check';
+    // `promote --project <dir>` names its root explicitly — only the IMPLICIT root is resolved (FR-1).
+    const explicitRoot = sub === 'promote' && options.get('project') !== undefined;
+    const resolvedRoot = explicitRoot ? { ok: true, root: cwd } : resolveGuardRoot(cwd);
+    if (!resolvedRoot.ok) {
+        // AM-2: a --json caller gets ONE structured document, the same shape family as publish --json refusals.
+        if (flags.has('json'))
+            write(JSON.stringify({ ok: false, reason: resolvedRoot.reason, error: `dz guard: ${resolvedRoot.detail}`, exitCode: 1 }, null, 2));
+        else
+            write(`dz guard: ✗ refused (${resolvedRoot.reason}): ${resolvedRoot.detail}`);
+        return 1;
+    }
+    const root = resolvedRoot.root;
     if (flags.has('init') || sub === 'init') {
         const p = join(root, '.dz', 'guard.json');
         if (existsSync(p) && !flags.has('force')) {
@@ -11681,9 +12062,12 @@ function cmdGuard(options, flags, cwd, write) {
     const force = options.get('force');
     const forced = force !== undefined;
     const result = runGuardEvaluation(root, op, options.get('text'), force);
+    // FR-4: an override is real only with its audit row behind it — a block forced through with no
+    // row on disk would be a silent override, the one thing the audit exists to prevent.
+    const overrideUnlogged = forced && result.verdict === 'block' && !result.audit.written;
     if (flags.has('json')) {
-        write(JSON.stringify({ ...result, forced }, null, 2));
-        return guardExitCode(result, forced);
+        write(JSON.stringify({ ...result, forced: forced && !overrideUnlogged, ...(overrideUnlogged ? { refused: 'guard-override-unlogged' } : {}) }, null, 2));
+        return overrideUnlogged ? 1 : guardExitCode(result, forced);
     }
     const glyph = result.verdict === 'block' ? '✗' : result.verdict === 'warn' ? '⚠' : '✓';
     write(`dz guard (${op}): ${glyph} ${result.verdict.toUpperCase()}  [checked: ${result.checked.join(', ') || 'no rules for this op'}]`);
@@ -11693,6 +12077,13 @@ function cmdGuard(options, flags, cwd, write) {
         write(`  [${v.severity === 'hard' ? 'BLOCK' : 'warn'}] ${v.rule}: ${v.detail}`);
     for (const n of result.notes ?? [])
         write(`  [note] ${n}`); // information, never a verdict input (FN-7)
+    const auditSkip = guardAuditSkipLine(result.audit);
+    if (auditSkip !== undefined)
+        write(`  [audit] ${auditSkip}`); // FR-3: a skipped row is said out loud
+    if (overrideUnlogged) {
+        write(`  → REFUSED (guard-override-unlogged): --force "${force}" cannot be logged, so it is not applied — run from the project root that holds a .dz store`);
+        return 1;
+    }
     if (result.verdict === 'block' && forced)
         write(`  → forced through: ${force} (logged to .dz/guard-audit.jsonl)`);
     else if (result.verdict === 'block')
@@ -12327,37 +12718,92 @@ function cmdChallenge(options, flags, cwd, write) {
     write(`\n── dispatch (panel ≠ plan author) ──\n${adversary.model}: ${adversary.note}`);
     return 0;
 }
+const NPM_HOMEPAGE_REAL_IO = {
+    readdir: (dir) => readdirSync(dir),
+    stat: (path) => statSync(path),
+    lstat: (path) => lstatSync(path),
+    readText: (path) => readFileSync(path, 'utf8'),
+};
 /**
- * `dz discrimination-check` — the §42 test-discrimination gate (feature learned from cve-bench/evaluate.mjs).
- * feature-adr Step-8 already asserts the ADR safety property HAS a test; this asserts that test DISCRIMINATES:
- * run the property test(s) in an isolated git worktree at the pre-feature base (default HEAD, since the feature
- * diff is uncommitted mid-pipeline). They MUST go red without the feature diff — a green is a false green.
- *
- *   --test <a.test.ts[,b.test.ts]>  the property test file(s) mapped from the ADR Confirmation (comma list)
- *   --base <ref>                    the base ref to fail against (default HEAD)
- *   --name '<filter>'               optional -t test-name filter applied to every target
- *   --runner '<cmd>'                test runner (default `npx vitest run`)
- *   --timeout <ms>                  per-run timeout (default 300000; a timed-out run is CANNOT_ISOLATE)
- *   --json                          machine-readable {plan, results, tipTree, perTest, aggregate,
- *                                   findings, measurementValid, primaryAction}
- *
- * This executor is THIN by design (house style: pure classifier + thin executor). It performs exactly the
- * I/O the pure gate cannot — stat, worktree, run, capture — and hands OBSERVATIONS back. It no longer
- * interprets anything: the pre-epoch load-error regex that lived here (`/cannot find module|failed to
- * load|.../i`) is DELETED, because a regex over a runner's stderr, written in the executor, is exactly the
- * probabilistic channel that minted `DISCRIMINATES` for `--runner false`.
- *
- * NEVER auto-aborts: a non-discriminating (false-green) test is reported as a HIGH finding for the owner to
- * decide (dz's rule — a false gate kills trust). Exit code is 0 on a clean run regardless of verdict; 2 only on
- * a usage/setup error, so a caller distinguishes "gate ran" from "gate could not run".
+ * npm-homepage guard, filesystem half (backlog e5d0d383; the pure half is `npmHomepageFacts` in
+ * harness-core). Every directory under `packagesDir` — hidden ones included — that holds a `package.json`
+ * becomes a record (parsed JSON or `parseError`, plus README.md text). Only a confirmed ENOENT on the
+ * directory ENTRY (lstat) counts as "absent"; a present entry whose target cannot be inspected is a failure; any other error on an entry, its manifest or its README existence is a NAMED failure, never a
+ * skip (fix round 1, review r1 finding 2). An unlistable `packagesDir` sets `unreadableRoot` (ENOENT does not).
  */
-/**
- * Есть ли в этом каталоге НЕЗАКОММИЧЕННЫЕ правки. Это и отличает «фича ещё в рабочем дереве»
- * (тогда `HEAD` — законная предфичевая база) от «фича уже закоммичена» (тогда `HEAD` её содержит).
- *
- * Не удалось спросить git — возвращается null, и вызывающий обязан считать положение НЕ
- * УСТАНОВЛЕННЫМ, а не выбрать удобный ответ.
- */
+export function readNpmHomepageRecords(packagesDir, io = NPM_HOMEPAGE_REAL_IO) {
+    const why = (error) => {
+        const code = error?.code;
+        const msg = (error instanceof Error ? error.message : String(error)).replace(/\s+/g, ' ').slice(0, 200);
+        return typeof code === 'string' && !msg.startsWith(code) ? `${code}: ${msg}` : msg;
+    };
+    const isAbsent = (error) => error?.code === 'ENOENT';
+    let names;
+    try {
+        names = io.readdir(packagesDir);
+    }
+    catch (error) {
+        // A confirmed-absent directory is "nothing to check" (NOT ESTABLISHED, no reason needed); any other
+        // error is carried as the reason.
+        return isAbsent(error) ? { records: [], failures: [] } : { records: [], failures: [], unreadableRoot: why(error) };
+    }
+    const records = [];
+    const failures = [];
+    for (const dir of [...names].sort()) {
+        const full = join(packagesDir, dir);
+        try {
+            if (!io.stat(full).isDirectory())
+                continue;
+        }
+        catch (error) {
+            failures.push({ path: full, reason: why(error) });
+            continue;
+        }
+        const manifest = join(full, 'package.json');
+        // Fix round 2 (review r2 finding 1): absence is decided by the DIRECTORY ENTRY (lstat), not by stat —
+        // stat follows symlinks, so a dangling `package.json` symlink used to read as "absent" and vanish.
+        try {
+            io.lstat(manifest);
+        }
+        catch (error) {
+            if (!isAbsent(error))
+                failures.push({ path: manifest, reason: why(error) });
+            continue;
+        }
+        try {
+            io.stat(manifest);
+        }
+        catch (error) {
+            failures.push({ path: manifest, reason: why(error) });
+            continue;
+        }
+        let text;
+        try {
+            text = io.readText(manifest);
+        }
+        catch (error) {
+            failures.push({ path: manifest, reason: why(error) });
+            continue;
+        }
+        let readme = null;
+        let readmeError;
+        try {
+            readme = io.readText(join(full, 'README.md'));
+        }
+        catch (error) {
+            if (!isAbsent(error))
+                readmeError = why(error);
+        }
+        const extra = readmeError !== undefined ? { readmeError } : { readme };
+        try {
+            records.push({ dir, json: JSON.parse(text), ...extra });
+        }
+        catch (error) {
+            records.push({ dir, parseError: why(error), ...extra });
+        }
+    }
+    return { records, failures };
+}
 /**
  * Каталоги с `SKILL.md` внутри коробки ОДНОГО пакета — то, что РЕАЛЬНО лежит на складе.
  * Возвращаются ПУТИ относительно коробки, как их объявляет манифест, а не имена.
@@ -12871,6 +13317,156 @@ export function boundedMutationGateOutputTail(output) {
 // whose redness means "the copy itself is broken", where the full transcript is the only way to
 // tell what actually happened.
 const MUTATION_GATE_OUTPUT_FILE_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
+// Feature mutation-gate-kills-scratch-children (backlog fd793e77): the gate OWNS the processes its
+// suite runs leave behind. `spawnSync(..., { shell: true })` returns when the SHELL exits; anything
+// the suite forked and `unref()`-ed keeps running, and the gate then deletes the directory it lives
+// in (MEASURED 2026-09-15: an embedding daemon orphaned under an already DELETED scratch copy;
+// Step 0 of this feature: 6 of 6 fixture grandchildren alive after the gate returned, cwd
+// "(deleted)"). A process-GROUP kill was rejected as the mechanism: the daemon's self-heal path
+// spawns it `detached: true` (its own session — no group kill reaches it), and moving the suite into
+// its own group would detach it from Ctrl-C and from a caller's tree kill, turning every interrupted
+// gate into a new orphan source. Ownership is instead read from /proc: a process belongs to THIS
+// gate invocation when its environ carries the per-invocation token (inherited through setsid,
+// double forks and nohup) OR its cwd lies inside this invocation's scratch root (a child started
+// with a scrubbed env). Linux only; elsewhere this is a no-op — a named limit, not a promise.
+const MUTATION_GATE_RUN_TOKEN_ENV = 'DZ_MUTATION_GATE_RUN';
+// fix-round 1 (astra r1 findings 2+3): the WHOLE cleanup of one run — every scan pass, the wait for
+// death and the one rescan — is bounded by wall time, not only by a pass count. MEASURED 2026-09-27
+// on this box (414 processes): one full /proc scan (environ + cwd + stat of every pid) 16.5-24.8 ms,
+// SIGKILL -> zombie 2.5 ms. 2_000 ms = ~80 scans at the measured cost: room for the 5 kill passes +
+// the rescan on a box with ~10x the processes, while an unkillable (D-state) survivor can delay one
+// suite run by at most this much. A run that leaves nothing behind pays ONE scan (~20 ms): with no
+// owned process alive there is no parent left to fork a late member, so no wait and no rescan.
+export const MUTATION_GATE_REAP_BUDGET_MS = 2_000;
+export const LINUX_MUTATION_GATE_PROC_IO = {
+    listPids: () => {
+        try {
+            return readdirSync('/proc').filter((name) => /^\d+$/u.test(name)).map(Number);
+        }
+        catch {
+            return [];
+        }
+    },
+    environ: (pid) => { try {
+        return readFileSync(`/proc/${pid}/environ`, 'latin1');
+    }
+    catch {
+        return null;
+    } },
+    cwd: (pid) => { try {
+        return readlinkSync(`/proc/${pid}/cwd`);
+    }
+    catch {
+        return null;
+    } },
+    stat: (pid) => {
+        try {
+            const text = readFileSync(`/proc/${pid}/stat`, 'utf-8');
+            const rest = text.slice(text.lastIndexOf(')') + 2).split(' ');
+            const state = rest[0];
+            const startTime = rest[19];
+            return state !== undefined && startTime !== undefined ? { state, startTime } : null;
+        }
+        catch {
+            return null;
+        }
+    },
+    kill: (pid) => { process.kill(pid, 'SIGKILL'); },
+    now: () => performance.now(),
+    sleep: (ms) => { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms); },
+};
+/**
+ * SIGKILL every live process owned by this gate invocation, wait (bounded) for their death, rescan
+ * once for members born after the last pass, and NAME whoever is still alive.
+ *
+ * fix-round 1 (astra r1):
+ *  - finding 1 (pid reuse): a pid's starttime (stat field 22) is read BEFORE the ownership check and
+ *    RE-READ immediately before the signal; a vanished pid or a changed starttime is skipped as
+ *    "gone". Honest remaining window: the microseconds between that re-read and `kill(2)` — Node
+ *    exposes no pidfd_send_signal, so it cannot be closed from here, only narrowed.
+ *  - finding 2 (death not confirmed / late member): after the kill passes the reaper polls every
+ *    killed pid (same starttime, not a zombie) until dead or out of budget, then rescans once and
+ *    repeats the wait for anything new; the still-alive pids come back as `survivors`.
+ *  - finding 3: every step is bounded by ONE wall-clock budget, not only by the pass count.
+ */
+export function reapMutationGateScratchProcesses(runToken, realScratchRoot, io = process.platform === 'linux' ? LINUX_MUTATION_GATE_PROC_IO : null, budgetMs = MUTATION_GATE_REAP_BUDGET_MS) {
+    if (io === null)
+        return { killed: [], survivors: [], complete: true };
+    const marker = `${MUTATION_GATE_RUN_TOKEN_ENV}=${runToken}`;
+    const deadline = io.now() + budgetMs;
+    const killedAt = new Map(); // pid -> starttime of the incarnation we signalled
+    const isZombie = (state) => state === 'Z' || state === 'X';
+    const isOwned = (pid) => {
+        if ((io.environ(pid) ?? '').split('\0').includes(marker))
+            return true;
+        const procCwd = io.cwd(pid);
+        return procCwd !== null && (procCwd === realScratchRoot || procCwd.startsWith(realScratchRoot + sep));
+    };
+    const stillAlive = (pid, startTime) => {
+        const st = io.stat(pid);
+        return st !== null && st.startTime === startTime && !isZombie(st.state);
+    };
+    // One full pass over /proc. `inspected < total` ⇔ the deadline stopped it part-way.
+    const sweep = () => {
+        const pids = io.listPids();
+        let sent = 0;
+        let inspected = 0;
+        for (const pid of pids) {
+            if (io.now() >= deadline)
+                break;
+            inspected++;
+            if (pid === process.pid)
+                continue;
+            const before = io.stat(pid);
+            if (before === null || isZombie(before.state))
+                continue;
+            if (killedAt.get(pid) === before.startTime)
+                continue; // already signalled this incarnation
+            if (!isOwned(pid))
+                continue;
+            const again = io.stat(pid);
+            if (again === null || again.startTime !== before.startTime)
+                continue; // gone or reused: not ours
+            try {
+                io.kill(pid);
+                killedAt.set(pid, before.startTime);
+                sent++;
+            }
+            catch { /* exited between the re-read and the kill */ }
+        }
+        return { sent, inspected, total: pids.length };
+    };
+    const waitForDeath = () => {
+        while (io.now() < deadline && [...killedAt].some(([pid, st]) => stillAlive(pid, st)))
+            io.sleep(10);
+    };
+    // fix-round 2: kill → wait for death → rescan, until ONE full scan finds nothing new (the only
+    // proof that nothing of ours is left) or the budget runs out (then the result says INCOMPLETE).
+    let incomplete;
+    for (;;) {
+        if (io.now() >= deadline) {
+            incomplete = { inspected: 0, total: null };
+            break;
+        }
+        const scan = sweep();
+        if (scan.inspected < scan.total) {
+            incomplete = { inspected: scan.inspected, total: scan.total };
+            break;
+        }
+        if (scan.sent === 0)
+            break; // a full scan found nothing new: confirmed
+        waitForDeath();
+    }
+    // fix-round 2 (astra r2 #3): this final check is NOT deadline-gated on purpose — it is one stat()
+    // per pid this call signalled (each signalled inside the budget), a bounded count, and skipping it
+    // would turn an unverified pid into a silent non-survivor.
+    return {
+        killed: [...killedAt.keys()],
+        survivors: [...killedAt].filter(([pid, st]) => stillAlive(pid, st)).map(([pid]) => pid),
+        complete: incomplete === undefined,
+        ...(incomplete !== undefined ? { incomplete } : {}),
+    };
+}
 function mutationGateOutputDir() {
     return process.env.DZ_MUTGATE_OUTPUT_DIR ?? join(tmpdir(), 'dz-mutgate-output');
 }
@@ -13017,7 +13613,7 @@ function resolveStrictVerdictPath(p) {
     }
     return tail.length > 0 ? join(base, ...tail) : base;
 }
-function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
+function cmdMutationGate(options, flags, cwd, write, injectedRunner, injectedProcIo, shellPlatform = process.platform) {
     const json = flags.has('json');
     const fail = (what) => {
         write(json ? JSON.stringify({ error: what, exitCode: 2 }) : `dz mutation-gate: ${what}`);
@@ -13297,10 +13893,21 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
     // and could stack a second `--maxWorkers` on top of the user's own `--max-workers=<n>` (D4)
     // instead of deferring to it. The new function detects the flag per TOKEN and scopes both
     // detection and insertion to each individual vitest segment.
-    const injectionResult = injectVitestWorkerCeiling(testCmd, maxWorkers);
+    // vitest-ceiling-injection-hardening FR-1/FR-2: the platform decides ONE thing — on win32 a
+    // backslash is a literal path character (not a POSIX escape); cmd.exe quoting (^ escapes, no
+    // single-quote quoting) is NOT modelled. An unterminated quote or a shell construct the scanner
+    // does not model (comment, heredoc, $( ), backtick, ${ }, $' ') makes the injection NOT-ESTABLISHED
+    // (command left byte-identical); the reason is said out loud here and carried in --json as
+    // `workerCeilingNotEstablished` — never "not vitest".
+    const injectionResult = injectVitestWorkerCeiling(testCmd, maxWorkers, { platform: shellPlatform === 'win32' ? 'win32' : 'posix' });
     testCmd = injectionResult.cmd;
     const isVitestCommand = injectionResult.vitestSegments > 0;
-    if (!json) {
+    const injectionNotEstablished = injectionResult.notEstablished;
+    const injectionJson = injectionNotEstablished !== undefined ? { workerCeilingNotEstablished: injectionNotEstablished } : {};
+    if (!json && injectionNotEstablished !== undefined) {
+        write(`mutation-gate: workers: NOT ESTABLISHED (${injectionNotEstablished.reason}) — ${injectionNotEstablished.message} (VITEST_MAX_WORKERS=${maxWorkers} still set; honoured only by configs that read it)`);
+    }
+    else if (!json) {
         write(isVitestCommand
             ? `mutation-gate: workers: ${maxWorkers} (${maxWorkersSource})${injectionResult.looseSegments > 0 ? ` — ${injectionResult.looseSegments} segment(s) matched \`vitest run\` only LOOSELY (command position not recognised; capped anyway)` : ''}`
             : 'mutation-gate: workers: n/a — test command is not vitest (VITEST_MAX_WORKERS set; honoured only by configs that read it)');
@@ -13327,6 +13934,40 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
     //     and after the run — they compare before WITH after, so a pre-mutation commit keeps them
     //     discriminating (MEASURED: without it, 2 tests failed at baseline on "not a git repository").
     const scratchParent = mkdtempSync(join(tmpdir(), 'dz-mutgate-'));
+    // mutation-gate-kills-scratch-children FR-1/FR-2: one ownership token per gate invocation (so a
+    // gate nested inside another gate's suite reaps only its own), and the scratch root as /proc shows it.
+    const mutationGateRunToken = `${process.pid}-${randomBytes(16).toString('hex')}`;
+    const realScratchParent = realpathSync(scratchParent);
+    const processCleanup = [];
+    let scratchKept = null;
+    // fix-round 2 (astra r2 #4): set once the early red-baseline JSON is printed — a later `finally`
+    // cleanup line can then no longer join that JSON and goes to stderr instead (never silently).
+    let jsonAlreadyWritten = false;
+    const reapScratchProcesses = (phase, entryId) => {
+        const { killed: pids, survivors, complete, incomplete } = reapMutationGateScratchProcesses(mutationGateRunToken, realScratchParent, ...(injectedProcIo !== undefined ? [injectedProcIo] : []));
+        if (pids.length === 0 && complete)
+            return null;
+        const record = {
+            phase, ...(entryId !== undefined ? { entryId } : {}), pids, signal: 'SIGKILL',
+            ...(survivors.length > 0 ? { survivors } : {}), complete, ...(incomplete !== undefined ? { incomplete } : {}),
+        };
+        processCleanup.push(record);
+        const what = [
+            ...(pids.length > 0 ? [`killed ${pids.length} leftover process(es): pid ${pids.join(', ')}`] : []),
+            ...(survivors.length > 0 ? [`STILL ALIVE after the ${MUTATION_GATE_REAP_BUDGET_MS} ms cleanup budget: pid ${survivors.join(', ')}`] : []),
+            ...(incomplete !== undefined
+                ? [incomplete.total === null
+                        ? `cleanup INCOMPLETE — budget exhausted before a confirming scan`
+                        : `cleanup INCOMPLETE — budget exhausted after ${incomplete.inspected} of ${incomplete.total} pids`]
+                : []),
+        ].join('; ');
+        const line = `mutation-gate: after the ${phase} run${entryId !== undefined ? ` (${entryId})` : ''}: ${what}`;
+        if (!json)
+            write(line);
+        else if (jsonAlreadyWritten)
+            process.stderr.write(`${line}\n`);
+        return record;
+    };
     let gitTop = null;
     try {
         gitTop = execSync('git rev-parse --show-toplevel', { cwd: pkgDir, stdio: 'pipe', encoding: 'utf-8' }).trim() || null;
@@ -13489,9 +14130,12 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
                 encoding: 'utf-8',
                 timeout,
                 maxBuffer: 64 * 1024 * 1024,
-                env: { ...process.env, FORCE_COLOR: '0', ...extraEnv },
+                env: { ...process.env, FORCE_COLOR: '0', ...extraEnv, [MUTATION_GATE_RUN_TOKEN_ENV]: mutationGateRunToken },
             });
             const elapsedMs = Math.round(performance.now() - startedAt);
+            // FR-2: on EVERY outcome (green, red, timeout, ENOBUFS, spawn error) — before any early return
+            // or throw below — so the next run and the final rmSync never share the copy with a survivor.
+            reapScratchProcesses(phase, entryId);
             const errorCode = run.error && 'code' in run.error && typeof run.error.code === 'string'
                 ? run.error.code
                 : undefined;
@@ -13585,8 +14229,13 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
             // fix-round 1 (MEDIUM finding 2): the `--json` path used to discard the scratch-copy skip
             // observability entirely; it is now part of the structured verdict on every JSON exit,
             // including this early baseline-failure return.
+            // mutation-gate-kills-scratch-children fix-round 1 (astra r1 finding 4): this JSON is printed
+            // BEFORE the `finally` teardown pass, so run that pass here first — its record then reaches the
+            // early JSON too (the `finally` pass still runs and normally finds nothing).
+            reapScratchProcesses('teardown');
+            jsonAlreadyWritten = json;
             if (json) {
-                write(JSON.stringify({ packageDir: pkgDir, registryPath, testCommand: testCmd, baseline, results, internalRetries, scratchCopy: { skippedSpecialFiles, skippedRootDz: skippedDzRoot, vanished }, exitCode: 1 }, null, 2));
+                write(JSON.stringify({ packageDir: pkgDir, registryPath, ...(processCleanup.length > 0 ? { processCleanup } : {}), ...injectionJson, testCommand: testCmd, baseline, results, internalRetries, scratchCopy: { skippedSpecialFiles, skippedRootDz: skippedDzRoot, vanished }, exitCode: 1 }, null, 2));
                 return 1;
             }
             write(renderMutationReport(results, baseline, pkgDir));
@@ -13790,8 +14439,23 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
         }
     }
     finally {
+        // FR-3: a last pass before the copy is deleted (or kept) — the gate never leaves a process behind
+        // in a directory it is about to remove, and --keep-scratch keeps the files, not the processes.
+        const teardown = reapScratchProcesses('teardown');
         if (flags.has('keep-scratch')) {
             write(`mutation-gate: scratch copy kept at ${copyDir}`);
+        }
+        else if (teardown !== null && (!teardown.complete || (teardown.survivors?.length ?? 0) > 0)) {
+            // fix-round 2 (astra r2 #2): the last cleanup could not CONFIRM the copy is empty of our
+            // processes — deleting it would recreate the field defect (a live process under a deleted
+            // directory). Keep it, say where and why. Verdict and exit code are NOT changed by this.
+            scratchKept = scratchParent;
+            const why = teardown.complete ? `survivors: pid ${(teardown.survivors ?? []).join(', ')}` : 'cleanup incomplete';
+            const line = `mutation-gate: scratch copy KEPT at ${scratchParent} — processes of this run may still be running inside it (${why})`;
+            if (!json)
+                write(line);
+            else if (jsonAlreadyWritten)
+                process.stderr.write(`${line}\n`);
         }
         else {
             try {
@@ -13882,7 +14546,7 @@ function cmdMutationGate(options, flags, cwd, write, injectedRunner) {
         // non-JSON path prints as text lines — special-file count/relative paths, whether the
         // package-root `.dz/` store was excluded, and any vanished-during-copy entries — so a caller
         // reading `--json` output is never blind to what the scratch copy silently dropped.
-        write(JSON.stringify({ packageDir: pkgDir, registryPath, testCommand: testCmd, rebaselineMode, baseline, results, summary: summarizeMutationResults(results), warnings, internalRetries, scratchCopy: { skippedSpecialFiles, skippedRootDz: skippedDzRoot, vanished }, ...(selectionMeta !== null ? { selection: selectionMeta } : {}), exitCode }, null, 2));
+        write(JSON.stringify({ packageDir: pkgDir, registryPath, ...injectionJson, testCommand: testCmd, rebaselineMode, baseline, results, summary: summarizeMutationResults(results), warnings, internalRetries, scratchCopy: { skippedSpecialFiles, skippedRootDz: skippedDzRoot, vanished }, ...(processCleanup.length > 0 ? { processCleanup } : {}), ...(scratchKept !== null ? { scratchKept } : {}), ...(selectionMeta !== null ? { selection: selectionMeta } : {}), exitCode }, null, 2));
         return exitCode;
     }
     write(renderMutationReport(results, baseline, pkgDir));
@@ -14430,6 +15094,7 @@ async function cmdWorkflowRun(options, optionLists, flags, cwd, write) {
             wallClockExtraMs: nums['wall-clock-extra'] ?? null,
             runnerVersion: dzOwnVersion(),
             cwdRoot: targetCwd,
+            projectRoot: root,
         };
         const pre = preflight(inputs, {
             realpath: (p) => { try {
@@ -14466,6 +15131,7 @@ async function cmdWorkflowRun(options, optionLists, flags, cwd, write) {
         }
         const store = wfMakeStore(runDir, root, targetCwd);
         const deps = {
+            newProbeId: () => randomBytes(16).toString('hex'),
             store,
             dispatchers,
             lock: (fn) => withProjectLockSync(root, `wf-run-${runId}`, fn),
@@ -16077,8 +16743,7 @@ function generateRoundStateId() {
 /** experiment-instrument FR-1/T3 (ADR-001): every currently-open round STATE FILE for one slug —
  *  `<root>/.dz/rounds/<slug>-<round>.json` for any round number — used by writers OTHER than `round
  *  open/close` (an auto ledger row, a training pair, a control-review row) to feed
- *  `readOpenRoundTaskId`. Never throws: an unreadable DIRECTORY is an honest empty result, exactly
- *  the same "no open round" a genuinely-empty directory would report.
+ *  `readOpenRoundTaskId`. Never throws: ENOENT means no open round; other directory errors remain explicit unavailable authority.
  *
  *  r1-2 (Codex r1 HIGH #2): a matching FILENAME that fails to parse (`readRoundState` returns `null`
  *  — absent between readdir and read, corrupt JSON, wrong shape) used to be silently dropped from the
@@ -16095,8 +16760,9 @@ function readOpenRoundStatesForSlug(root, slug) {
     try {
         names = readdirSync(dir);
     }
-    catch {
-        return { states, unreadableCount };
+    catch (error) {
+        const code = error.code;
+        return { states, unreadableCount, ...(code === 'ENOENT' ? {} : { readError: code ?? 'directory-read-failed' }) };
     }
     const pattern = new RegExp(`^${slug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}-\\d+\\.json$`);
     for (const name of names) {
@@ -16114,8 +16780,17 @@ function readOpenRoundStatesForSlug(root, slug) {
  *  state files for `slug` once and hands both the readable ones and the unreadable count to the
  *  pure lookup, instead of each of the five call sites re-deriving the same two-step call. */
 function lookupOpenRoundTaskId(root, slug) {
-    const { states, unreadableCount } = readOpenRoundStatesForSlug(root, slug);
-    return readOpenRoundTaskId(states, slug, unreadableCount);
+    const snapshot = readOpenRoundStatesForSlug(root, slug);
+    return readOpenRoundTaskId(snapshot.states, slug, snapshot.unreadableCount, snapshot.readError !== undefined);
+}
+/** Identity flags are checked against one captured authority before ANY bridge/control setup. */
+function bridgeRoundPreflight(root, slug, options) {
+    const snapshot = readOpenRoundStatesForSlug(root, slug);
+    return resolveBridgeRoundIdentity({ slug, ...snapshot, explicit: {
+            ...(options.has('round') ? { round: options.get('round') } : {}),
+            ...(options.has('round-run') ? { roundRun: options.get('round-run') } : {}),
+            ...(options.has('task') ? { taskId: options.get('task') } : {}),
+        } });
 }
 /** Lead edit after Codex re-review: a LEGACY state (written before stateId existed) must not be
  * matched by `undefined === undefined` — under the lock, the first exec/close that meets it mints
@@ -17434,10 +18109,16 @@ async function cmdRound(options, optionLists, flags, cwd, write, io) {
         // experiment-instrument FR-3/T5 (backlog 1affd89e): the SAME legacy fallback closeRound itself
         // uses for a state predating this feature — kept in lockstep so this lookup never disagrees
         // with what the eventual ledger row will say the round's own taskId was.
-        state.taskId ?? `${at.slug}@${state.startedAt}`);
+        { round: state.round, run: state.run ?? null, taskId: readOpenRoundTaskId([state], at.slug).taskId });
         if (signoffLookup.status === 'ambiguous') {
             emit(`несколько подходящих сайдкаров qe-bridge для slug ${at.slug} в интервале круга — не удаётся выбрать: ` +
                 signoffLookup.candidates.map((c) => `${c.file} (emittedAt ${c.emittedAt})`).join(', '), { ambiguousSignoffs: signoffLookup.candidates.map((c) => ({ file: c.file, emittedAt: c.emittedAt })) });
+            return 2;
+        }
+        if (signoffLookup.status === 'identity-mismatch' || signoffLookup.status === 'identity-unverified') {
+            emit(`qe-bridge ${signoffLookup.status}: ${signoffLookup.reason} — round state retained`, {
+                reviewIdentityFailure: signoffLookup.status, candidates: signoffLookup.candidates.map((c) => ({ file: c.file, round: c.round, roundRun: c.roundRun, taskId: c.taskId })),
+            });
             return 2;
         }
         // review-cost-ledger T3/FR-4 (ADR-001 п.1/п.3): a found signoff always gets its stdout priced
@@ -17709,10 +18390,8 @@ function findPreviousLedgerRowTs(ledgerPath, runId) {
  * "absence is not a signal either way" the ledger-lookup helper above already uses.
  */
 function findQeBridgeSignoffForRound(projectRoot, slug, windowFrom, windowTo, 
-/** experiment-instrument FR-3/T5 (backlog 1affd89e): the CLOSING round's own taskId, when known —
- *  used ONLY to narrow an otherwise-ambiguous window (never to widen it beyond the interval, and
- *  never consulted at all when `undefined`/`null`, which is byte-identical to the old behavior). */
-roundTaskId) {
+/** Closing authority, compared with every present sidecar claim before candidate count. */
+closingIdentity) {
     const dir = join(projectRoot, 'features', slug, '.fa-state', 'qe-bridge');
     let entries;
     try {
@@ -17764,7 +18443,6 @@ roundTaskId) {
         // — a DIFFERENT id space from `RoundState.run`, carried through for traceability/audit only.
         const runIdMatch = /^signoff-(.+)\.json$/.exec(name);
         const runId = runIdMatch !== null ? (runIdMatch[1] ?? null) : null;
-        const signoffTaskId = typeof rec['taskId'] === 'string' && rec['taskId'] !== '' ? rec['taskId'] : null;
         // review-cost-ledger T3/FR-4: the signoff's own rawStdoutFile — repo-relative, read later (best
         // effort, never here) by `readQeBridgeCostSidecar` to price this review.
         const rawStdoutFile = typeof rec['rawStdoutFile'] === 'string' && rec['rawStdoutFile'] !== '' ? rec['rawStdoutFile'] : null;
@@ -17772,24 +18450,15 @@ roundTaskId) {
             file: name,
             emittedAt,
             sidecar: { gradedBy: `${family}:${model}`, elapsedMs, grade, slug, runId, emittedAt },
-            taskId: signoffTaskId,
+            taskId: rec['taskId'], round: rec['round'], roundRun: rec['roundRun'], roundIdentitySource: rec['roundIdentitySource'], bridgeRunId: runId,
             rawStdoutFile,
         });
     }
-    if (candidates.length === 0)
-        return { status: 'none' };
-    if (candidates.length === 1)
-        return { status: 'one', sidecar: candidates[0].sidecar, rawStdoutFile: candidates[0].rawStdoutFile };
-    // experiment-instrument FR-3/T5 (backlog 1affd89e): an otherwise-ambiguous window is narrowed by
-    // taskId ONLY when it resolves to EXACTLY one candidate — zero or multiple matches still refuse
-    // (never "the latest wins", never a guess), and a round with no taskId to compare skips this
-    // entirely, falling straight through to the same ambiguity refusal as before this feature.
-    if (roundTaskId !== undefined && roundTaskId !== null) {
-        const byTask = candidates.filter((c) => c.taskId === roundTaskId);
-        if (byTask.length === 1)
-            return { status: 'one', sidecar: byTask[0].sidecar, rawStdoutFile: byTask[0].rawStdoutFile };
-    }
-    return { status: 'ambiguous', candidates };
+    const selected = selectQeBridgeRoundSignoff(candidates, closingIdentity);
+    if (selected.status !== 'one')
+        return selected;
+    return { status: 'one', rawStdoutFile: selected.candidate.rawStdoutFile,
+        sidecar: { ...selected.candidate.sidecar, reviewIdentitySource: selected.reviewIdentitySource, reviewIdentity: selected.reviewIdentity } };
 }
 /**
  * review-cost-ledger T3/FR-4/A3/A6 (ADR-001 п.1): best-effort reader for the qe-bridge reviewer's own
@@ -17863,41 +18532,79 @@ function readQeBridgeCostSidecar(root, rawStdoutFile, slug, runId) {
  * `{error}` is not this function's problem to surface — `matchCodexRollouts` reports `none` for a
  * window with nothing usable in it, which is the correct outward signal either way).
  */
-function readCodexRolloutsForWindow(sessionsDir, fromIso, toIso) {
-    const fromMs = Date.parse(fromIso);
-    const toMs = Date.parse(toIso);
-    if (!Number.isFinite(fromMs) || !Number.isFinite(toMs))
-        return [];
+function readCodexRolloutsForWindow(sessionsDir, fromIso, toIso, exactId) {
+    const diagnostics = [];
+    const paths = [];
     const out = [];
-    const dayMs = 24 * 60 * 60 * 1000;
-    const startDay = Math.floor(fromMs / dayMs) * dayMs;
-    const endDay = Math.floor(toMs / dayMs) * dayMs;
-    for (let day = startDay; day <= endDay; day += dayMs) {
-        const d = new Date(day);
-        const dayDir = join(sessionsDir, String(d.getUTCFullYear()), String(d.getUTCMonth() + 1).padStart(2, '0'), String(d.getUTCDate()).padStart(2, '0'));
-        let files;
-        try {
-            files = readdirSync(dayDir);
-        }
-        catch {
-            continue; // no sessions that day — not an error, just nothing to read
-        }
-        for (const f of files) {
-            if (!f.startsWith('rollout-') || !f.endsWith('.jsonl'))
-                continue;
-            let text;
+    const root = resolve(sessionsDir);
+    const hasWindow = fromIso !== undefined || toIso !== undefined;
+    if (hasWindow) {
+        const fromMs = Date.parse(fromIso ?? '');
+        const toMs = Date.parse(toIso ?? '');
+        const dayMs = 86400000;
+        if (!Number.isFinite(fromMs) || !Number.isFinite(toMs) || fromMs > toMs || (toMs - fromMs) / dayMs > 366)
+            return { rollouts: [], diagnostics: ['source-window-invalid-or-over-limit'] };
+        for (let day = Math.floor(fromMs / dayMs) * dayMs; day <= toMs; day += dayMs) {
+            const date = new Date(day);
+            const dir = join(root, String(date.getUTCFullYear()), String(date.getUTCMonth() + 1).padStart(2, '0'), String(date.getUTCDate()).padStart(2, '0'));
             try {
-                text = readFileSync(join(dayDir, f), 'utf-8');
+                paths.push(...readdirSync(dir).filter((name) => /^rollout-.*\.jsonl$/.test(name)).map((name) => join(dir, name)));
             }
-            catch {
+            catch { /* absent day */ }
+        }
+    }
+    else if (exactId !== undefined) {
+        const uuid = /^[0-9a-f-]{36}$/i.test(exactId) ? exactId : null;
+        const walk = (dir, depth) => {
+            if (depth > 4 || paths.length >= 10000)
+                return;
+            try {
+                for (const entry of readdirSync(dir, { withFileTypes: true })) {
+                    if (entry.isSymbolicLink())
+                        continue;
+                    const path = join(dir, entry.name);
+                    if (entry.isDirectory())
+                        walk(path, depth + 1);
+                    else if (entry.isFile() && /^rollout-.*\.jsonl$/.test(entry.name) && (uuid === null || entry.name.includes(uuid)))
+                        paths.push(path);
+                    if (paths.length >= 10000)
+                        break;
+                }
+            }
+            catch (error) {
+                if (error.code !== 'ENOENT')
+                    diagnostics.push('source-discovery-unreadable');
+            }
+        };
+        walk(root, 0);
+    }
+    if (paths.length >= 10000)
+        diagnostics.push('source-discovery-truncated');
+    let totalBytes = 0;
+    for (const path of paths.slice(0, 10000)) {
+        try {
+            const stat = lstatSync(path);
+            const realRoot = realpathSync(root);
+            const real = realpathSync(path);
+            if (!stat.isFile() || stat.isSymbolicLink() || !real.startsWith(realRoot + '/'))
                 continue;
+            if (totalBytes + stat.size > 64 * 1024 * 1024) {
+                diagnostics.push('source-discovery-over-byte-limit');
+                break;
             }
-            const parsed = parseCodexRollout(text, f);
+            const contents = readFileSync(path, 'utf8');
+            totalBytes += Buffer.byteLength(contents);
+            if (totalBytes > 64 * 1024 * 1024) {
+                diagnostics.push('source-discovery-over-byte-limit');
+                break;
+            }
+            const parsed = parseCodexRollout(contents, path);
             if (!('error' in parsed))
                 out.push(parsed);
         }
+        catch { /* unresolved authority is never inferred from a different source */ }
     }
-    return out;
+    return { rollouts: out, diagnostics };
 }
 function cmdFeatureAdrRecord(options, flags, cwd, write) {
     const json = flags.has('json');
@@ -18156,18 +18863,21 @@ function cmdFeatureAdrRecord(options, flags, cwd, write) {
     // even possible" (AC-4's "old row without a window").
     const windowFrom = options.get('window-from');
     const windowTo = options.get('window-to');
-    const enrich = kind === 'ledger'
-        ? {
-            prices: MODEL_PRICES,
-            ...(windowFrom !== undefined && windowTo !== undefined
-                ? {
-                    window: { from: windowFrom, to: windowTo },
-                    rollouts: readCodexRolloutsForWindow((options.get('codex-sessions') ?? '').trim() || join(homedir(), '.codex', 'sessions'), windowFrom, windowTo),
-                    ...(repo !== '' ? { cwd: repo } : {}),
-                }
-                : {}),
+    const rolloutId = options.get('rollout-id');
+    const turnId = options.get('turn-id');
+    for (const [name, value] of [['rollout-id', rolloutId], ['turn-id', turnId]]) {
+        if (value !== undefined && (value.trim() === '' || value.length > 512 || /[\u0000-\u001f\u007f]/.test(value))) {
+            write(json ? JSON.stringify({ ok: false, reason: '--' + name + ' must be a nonempty bounded source identity', exit: 2 }) : '--' + name + ' must be a nonempty bounded source identity');
+            return 2;
         }
-        : undefined;
+    }
+    const rolloutRead = kind === 'ledger' && (windowFrom !== undefined && windowTo !== undefined || rolloutId !== undefined || turnId !== undefined)
+        ? readCodexRolloutsForWindow((options.get('codex-sessions') ?? '').trim() || join(homedir(), '.codex/sessions'), windowFrom, windowTo, rolloutId ?? (turnId !== undefined ? '' : undefined)) : null;
+    const enrich = kind === 'ledger' ? { prices: MODEL_PRICES,
+        ...(rolloutId !== undefined ? { rolloutId } : {}), ...(turnId !== undefined ? { turnId } : {}),
+        ...(windowFrom !== undefined && windowTo !== undefined ? { window: { from: windowFrom, to: windowTo } } : {}),
+        ...(rolloutRead !== null ? { rollouts: rolloutRead.rollouts, discoveryDiagnostics: rolloutRead.diagnostics, cwd: repo } : {}),
+    } : undefined;
     const decision = decideRecordWrite({
         kind,
         payloadRaw: effectivePayloadRaw,
@@ -19230,7 +19940,7 @@ function containedUnderRoot(root, target) {
  */
 async function cmdQeBridge(options, flags, cwd, write) {
     const json = flags.has('json');
-    const usage = 'dz qe-bridge --family claude --slug <feature> [--coder-family codex|claude] [--model <id>] [--files a,b] [--out <file>] [--timeout <s>] [--allow-same-family] [--project <dir>] [--json]';
+    const usage = 'dz qe-bridge --family claude --slug <feature> [--round <n>] [--round-run <id>] [--task <id>] [--coder-family codex|claude] [--model <id>] [--files a,b] [--out <file>] [--timeout <s>] [--allow-same-family] [--project <dir>] [--json]';
     const usageError = (message) => {
         write(json ? JSON.stringify({ ok: false, error: message, exitCode: 2 }) : `dz qe-bridge: ${message}\n${usage}`);
         return 2;
@@ -19257,10 +19967,10 @@ async function cmdQeBridge(options, flags, cwd, write) {
     const ALLOWED_FLAGS = new Set(['json', 'help', 'allow-same-family']);
     for (const flag of flags) {
         if (!ALLOWED_FLAGS.has(flag)) {
-            return usageError(`unknown option --${flag}` + (['model', 'slug', 'family', 'out', 'files', 'timeout', 'coder-family', 'project'].includes(flag) ? ` (it takes a value: --${flag} <value>)` : ''));
+            return usageError(`unknown option --${flag}` + (['model', 'slug', 'family', 'out', 'files', 'timeout', 'coder-family', 'project', 'round', 'round-run', 'task'].includes(flag) ? ` (it takes a value: --${flag} <value>)` : ''));
         }
     }
-    const ALLOWED_OPTIONS = new Set(['family', 'slug', 'coder-family', 'model', 'files', 'out', 'timeout', 'project']);
+    const ALLOWED_OPTIONS = new Set(['family', 'slug', 'coder-family', 'model', 'files', 'out', 'timeout', 'project', 'round', 'round-run', 'task']);
     for (const key of options.keys()) {
         if (key.startsWith('_positional_'))
             return usageError(`unexpected argument "${options.get(key)}"`);
@@ -19285,6 +19995,10 @@ async function cmdQeBridge(options, flags, cwd, write) {
     const featureDir = join(root, 'features', slug);
     if (!existsSync(featureDir))
         return usageError(`no feature directory at features/${slug} — the bridge reviews an existing feature’s artifacts`);
+    const roundPreflight = bridgeRoundPreflight(root, slug, options);
+    if (!roundPreflight.ok)
+        return usageError(roundPreflight.reason);
+    const frozenRoundIdentity = roundPreflight.identity;
     // ── coder family: the RECORDED DEBT is the authority; the flag may only fill a gap ──
     //
     // Round-2 MAJOR M3: round 1 let `--coder-family codex` override a debt that said `claude`, which
@@ -19577,13 +20291,9 @@ async function cmdQeBridge(options, flags, cwd, write) {
             const reason = parsed.reason;
             return failRun(reason, parsed.detail, probed, { stdout: review.stdout, stderr: review.stderr });
         }
-        // experiment-instrument FR-1/FR-3/T5 (ADR-001, backlog 1affd89e): the signoff's task identity —
-        // fill-only-null from the single open round of this slug, the same lookup every other writer in
-        // this feature uses. Field lands at the end of the object, after everything `parseBridgeOutput`
-        // already set (NFR-1) — `parsed.signoff` never carries `taskId` itself, so this is always a fill,
-        // never an overwrite.
-        const qeBridgeTaskLookup = lookupOpenRoundTaskId(root, slug);
-        const signoff = { ...parsed.signoff, taskId: qeBridgeTaskLookup.taskId, taskIdSource: qeBridgeTaskLookup.source };
+        // Host-owned identity was captured before setup/child work; never reread mutable round state
+        // here or accept identity from reviewer prose. Bridge audit runId remains its own namespace.
+        const signoff = { ...parsed.signoff, ...frozenRoundIdentity };
         // ── landing (R3-3 ordering): AUDIT FIRST, then the report, then the truth about the report ──
         //
         // Round 2 wrote the report BEFORE the record, so a crash between the two left a report on disk
@@ -19932,7 +20642,7 @@ export function claudeHalfFailureReason(bridgeExit, bridgeResult, bridgeOut) {
 }
 async function cmdControlReview(options, flags, cwd, write, io) {
     const json = flags.has('json');
-    const usage = 'dz control-review --slug <feature> --files a,b [--brief <file>] [--coder-family codex|claude] ' +
+    const usage = 'dz control-review --slug <feature> --files a,b [--round <n>] [--round-run <id>] [--task <id>] [--brief <file>] [--coder-family codex|claude] ' +
         '[--codex-model gpt-5.6-sol] [--effort high] [--claude-model <id>] [--timeout-min 30] [--adjudicate <file>] ' +
         '[--project <dir>] [--json]';
     const usageError = (message) => {
@@ -19962,7 +20672,7 @@ async function cmdControlReview(options, flags, cwd, write, io) {
     for (const flag of flags)
         if (!ALLOWED_FLAGS.has(flag))
             return usageError(`unknown option --${flag}`);
-    const ALLOWED_OPTIONS = new Set(['slug', 'round', 'files', 'brief', 'coder-family', 'codex-model', 'effort', 'claude-model', 'timeout-min', 'adjudicate', 'project']);
+    const ALLOWED_OPTIONS = new Set(['slug', 'round', 'round-run', 'task', 'files', 'brief', 'coder-family', 'codex-model', 'effort', 'claude-model', 'timeout-min', 'adjudicate', 'project']);
     for (const key of options.keys()) {
         if (key.startsWith('_positional_'))
             return usageError(`unexpected argument "${options.get(key)}"`);
@@ -19977,6 +20687,10 @@ async function cmdControlReview(options, flags, cwd, write, io) {
     if (!scoped.ok)
         return usageError(scoped.reason);
     const files = scoped.files;
+    const controlRoundPreflight = bridgeRoundPreflight(root, slug, options);
+    if (!controlRoundPreflight.ok)
+        return usageError(controlRoundPreflight.reason);
+    const controlRoundIdentity = controlRoundPreflight.identity;
     const coderFamilyOpt = options.get('coder-family');
     if (coderFamilyOpt !== undefined && coderFamilyOpt !== 'codex' && coderFamilyOpt !== 'claude') {
         return usageError(`--coder-family must be codex or claude (got "${coderFamilyOpt}")`);
@@ -20123,6 +20837,12 @@ async function cmdControlReview(options, flags, cwd, write, io) {
         ['files', files.join(',')],
         ['out', relative(root, join(dir, 'claude.md'))],
     ]);
+    if (controlRoundIdentity.round !== null)
+        bridgeOptions.set('round', String(controlRoundIdentity.round));
+    if (controlRoundIdentity.roundRun !== null)
+        bridgeOptions.set('round-run', controlRoundIdentity.roundRun);
+    if (controlRoundIdentity.taskId !== null)
+        bridgeOptions.set('task', controlRoundIdentity.taskId);
     if (coderFamilyOpt !== undefined)
         bridgeOptions.set('coder-family', coderFamilyOpt);
     const claudeModel = options.get('claude-model');
@@ -23454,8 +24174,47 @@ export async function runCli(argv, io = {}) {
                 return await cmdVector(options, flags, cwd, write, writeErr);
             case 'brain':
                 return await cmdBrain(options, flags, cwd, write, readStdin);
-            case 'statusline':
+            case 'statusline': {
+                if (flags.has('watch')) {
+                    const supplied = (name) => flags.has(name) || options.has(name);
+                    const incompatible = ['json', 'install', 'fa-record', 'step', 'kind', 'tier', 'recalled', 'stored', 'reinforced', 'mode', 'run'];
+                    if (incompatible.some(supplied)) {
+                        writeErr('dz statusline --watch: incompatible writer/JSON options; use --watch alone with project, brain and run selectors.');
+                        return 2;
+                    }
+                    if (['interval', 'project', 'brain', 'slug', 'run-id'].some(name => flags.has(name) || (options.has(name) && options.get(name).trim() === ''))) {
+                        writeErr('dz statusline --watch: interval, project, brain and selectors require nonempty values.');
+                        return 2;
+                    }
+                    const interval = options.get('interval') === undefined ? 2 : Number(options.get('interval'));
+                    if (!Number.isFinite(interval) || interval < 0.25 || interval > 60) {
+                        writeErr('dz statusline --watch: --interval must be 0.25 through 60 seconds.');
+                        return 2;
+                    }
+                    if (!(io.statuslineWatch?.isTTY ?? process.stdout.isTTY === true)) {
+                        writeErr('dz statusline --watch requires stdout TTY; use dz statusline or --json for piped output.');
+                        return 2;
+                    }
+                    // Resolve deliberately supplied root symlinks once without creating anything.
+                    const canonical = (path) => { try {
+                        return realpathSync(path);
+                    }
+                    catch {
+                        return path;
+                    } };
+                    const projectRoot = canonical(statuslineProjectRoot('', options, cwd));
+                    const brainRoot = options.get('brain') === undefined ? projectRoot : canonical(resolve(cwd, options.get('brain')));
+                    return await watchStatusline({ projectRoot, brainRoot, intervalSeconds: interval,
+                        selector: { ...(options.get('slug') === undefined ? {} : { slug: options.get('slug') }),
+                            ...(options.get('run-id') === undefined ? {} : { runId: options.get('run-id') }) },
+                    }, { ...io.statuslineWatch, writeErr, branch: () => statuslineGitBranch(projectRoot) });
+                }
+                if (flags.has('interval') || options.has('interval') || flags.has('brain') || options.has('brain')) {
+                    writeErr('dz statusline: --interval and --brain require --watch.');
+                    return 2;
+                }
                 return cmdStatusline(options, flags, cwd, write, readStdin, writeErr);
+            }
             case 'store-guard':
                 return await cmdStoreGuard(options, flags, cwd, write, writeErr, io.stdin, io.interactive ?? process.stdin.isTTY === true);
             case 'usage':
@@ -23491,7 +24250,7 @@ export async function runCli(argv, io = {}) {
             case 'publish':
                 return cmdPublish(options, flags, cwd, write, io.publishMirrorRunner, io.publishSiblingDriftFetcher, io.publishPackedInstallRunner, io.publishExecRunner, io.publishGateAuditFsLayer, io.publishPackRunner, io.publishRegistry);
             case 'release':
-                return cmdRelease(options, flags, cwd, write, io.releaseRunner);
+                return cmdRelease(options, flags, cwd, write, io.releaseRunner, io.publishExecRunner);
             case 'parity':
                 return await cmdParity(options, flags, write, writeErr, cwd);
             case 'registry':
@@ -23534,7 +24293,7 @@ export async function runCli(argv, io = {}) {
                 return cmdDiscriminationCheck(options, flags, cwd, write);
             case 'mutation-gate': {
                 try {
-                    return cmdMutationGate(options, flags, cwd, write, io.mutationGateRunner);
+                    return cmdMutationGate(options, flags, cwd, write, io.mutationGateRunner, io.mutationGateProcIo, io.mutationGatePlatform);
                 }
                 catch (error) {
                     const raw = error instanceof Error ? error.message : String(error);
