@@ -1,6 +1,25 @@
 # @dzhechkov/harness-core
 
-Current package version: `0.8.48`. <!-- dz:version -->
+Scoped test receipts now require valid v2 `observed-test-execution-1` evidence. The pure
+`decideTestReceipt` validates every segment, file and sibling scope before accepting matching
+content. Legacy/unsupported/invalid history is `unobserved`; valid changed content is
+`changed`. Historical ledger bytes remain preserved and need a real observed rerun.
+
+From this package directory:
+
+```bash
+../../../scripts/with-test-receipt.sh packages/@dzhechkov/harness-core -- npx vitest run test/test-receipt.test.ts
+```
+
+Exact `npm test` can observe this package's serial then parallel project script; both segments
+must execute passing cases. Package-manager forwarded filters refuse with direct project
+commands. Use `node --test <file>` through the same wrapper for Node tests. Focused execution
+is supported; it does not prove a complete suite, meaningful tests or authenticated evidence.
+See the repository `.githooks/README.md` for bounds, supported commands and reasoned overrides.
+
+Current package version: `0.8.49`. <!-- dz:version -->
+
+Joint current metadata requires `<!-- dz:version -->` on a dedicated undated core/CLI line. Both README writers preserve unmarked historical joint pairs; the guard and release-line report skip them. Fenced examples cannot become current joint metadata. `parseReleaseLine` remains structural, while selection requires this explicit opt-in. The marker still forces per-package rewriting of every matching version on its line, even inside history; keep it off historical records.
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/harness-core
 
@@ -2293,9 +2312,9 @@ documented it as an "allowlist" while the code rewrote by default — a cross-mo
 rewrites ONLY when `isAllowlistedRewriteContext` recognises one of six shapes — the lock-step feature
 this sync exists for, and nothing beyond it:
 
-1. a release-line token — `` `harness-core vX` · `harness-cli vY` `` and any generalised
-   `` `<name> vX` `` on the same line, including a trailing `` · `memory vZ` `` segment
-   (`release-line.ts`: `isReleaseLineToken` now delegates to `parseReleaseLine`, which uses
+1. an explicitly marked current release-line token — `` `harness-core vX` · `harness-cli vY` `` and any generalised
+   `` `<name> vX` `` in its contiguous chain, including a trailing `` · `memory vZ` `` segment
+   (`release-line.ts`: `isReleaseLineToken` selects marked metadata via `findReleaseLine` and `parseReleaseLine`, which uses
    `GENERIC_RELEASE_TOKEN_RE` and preserves the same accepted boundary: the joint pair plus its
    contiguous token chain on one physical line; prose ends the chain).
 2. a current-release FOOTER prefix — `Status:`/`Version:`/`Current release:`/`Current status:`/

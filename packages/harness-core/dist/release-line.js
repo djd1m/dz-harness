@@ -1,8 +1,17 @@
+import { maskMarkdown } from './markdown-masker.js';
 export const RELEASE_LINE_RE = /`harness-core v(\d+\.\d+\.\d+)` · `harness-cli v(\d+\.\d+\.\d+)`/;
 export function findReleaseLine(text) {
     const lines = text.split('\n');
+    // A closed leading opt-in is metadata, not an HTML example block. Blank only
+    // that exact marker before masking, retaining offsets and all enclosing blocks.
+    const maskInput = text.replace(/^ {0,3}<!-- dz:version -->/gm, (marker) => ' '.repeat(marker.length));
+    const visible = String(maskMarkdown(maskInput, { unclosed: 'hide' })).split('\n');
     for (let index = 0; index < lines.length; index++) {
         const line = lines[index];
+        // A joint pair is structural history until the author opts this physical line in.
+        // Masked examples cannot supply current metadata to the writer, report, or guard.
+        if (!line.includes('<!-- dz:version -->') || !RELEASE_LINE_RE.test(visible[index]))
+            continue;
         const parsed = parseReleaseLine(line);
         if (parsed !== null) {
             return { index, line, core: parsed.tokens[0].version, cli: parsed.tokens[1].version, ...parsed };
@@ -60,20 +69,9 @@ export function parseReleaseLine(line) {
     }
     return { tokens, chainEnd, wrapped: /\s*·\s*$/.test(line.slice(chainEnd)) };
 }
-/**
- * Is the OLD-VERSION occurrence at `[start, end)` in `line` sitting inside a `` `<name> vX` ``
- * backtick token? A POSITIVE override for `planReadmeVersionSync`'s citation heuristic: a token
- * this shape matches is a release-line stamp, never a historical citation, even where it sits next
- * to punctuation ("/", "on ") the citation heuristic would otherwise read as a citation cue.
- */
+/** A marked current joint chain grants token permission only through its structural boundary. */
 export function isReleaseLineToken(line, start, end) {
-    // Codex r2 HIGH (lead): a `` `<name> vX` `` token is a release-line stamp ONLY on a line that carries
-    // the JOINT release-line shape (`RELEASE_LINE_RE`); an isolated `` `memory v0.8.25` `` in a
-    // historical sentence is history and must not move.
-    // Codex r3 HIGH (lead): the permission is the joint pair PLUS the CONTIGUOUS ` · `<name> vX``
-    // chain that follows it — not the whole line. `` `harness-core vX` · `harness-cli vY` — historically
-    // `memory vZ` `` moves the first two and keeps the third (prose broke the chain).
-    const p = parseReleaseLine(line);
+    const p = findReleaseLine(line);
     return p !== null && p.tokens[0].start <= start && end <= p.chainEnd;
 }
 //# sourceMappingURL=release-line.js.map

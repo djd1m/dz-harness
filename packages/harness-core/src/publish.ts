@@ -161,7 +161,7 @@ export interface PublishReport {
   readonly skipped: number;
   readonly errors: number;
   readonly dryRun: boolean;
-  /** Repo-relative README paths whose first joint core/CLI release line was rewritten. */
+  /** Repo-relative README paths whose first explicitly marked joint core/CLI release line was rewritten. */
   readonly releaseLineSynced: readonly string[];
   readonly releaseLineReport: readonly ReleaseLineReport[];
   /** Post-publication sync failures are warnings: registry-confirmed packages cannot be unpublished. */
@@ -677,8 +677,8 @@ function isInstallPinContext(line: string, tokenStart: number): boolean {
  * bare "X" in a sentence) rewrote by default until someone thought to deny it too. An allowlist has
  * no such gap: an unrecognised shape is history by default, not by enumeration.
  *
- *  1. a release-line token — `` `harness-core vX` · `harness-cli vY` `` and any generalised
- *     `` `<name> vX` `` on the same line, including a trailing `` · `memory vZ` `` segment
+ *  1. an explicitly marked current release-line token — `` `harness-core vX` · `harness-cli vY` `` and any generalised
+ *     `` `<name> vX` `` in its contiguous chain, including a trailing `` · `memory vZ` `` segment
  *     (release-line.ts `isReleaseLineToken`/`GENERIC_RELEASE_TOKEN_RE`).
  *  2. a current-release FOOTER prefix (`FOOTER_STAMP_PREFIX_RE`) — position-aware, so only the
  *     token immediately after the label is allowed.

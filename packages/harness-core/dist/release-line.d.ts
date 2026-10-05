@@ -30,11 +30,6 @@ export declare function shortPackageName(name: string): string;
  */
 export declare const GENERIC_RELEASE_TOKEN_RE: RegExp;
 export declare function parseReleaseLine(line: string): ReleaseLineParse | null;
-/**
- * Is the OLD-VERSION occurrence at `[start, end)` in `line` sitting inside a `` `<name> vX` ``
- * backtick token? A POSITIVE override for `planReadmeVersionSync`'s citation heuristic: a token
- * this shape matches is a release-line stamp, never a historical citation, even where it sits next
- * to punctuation ("/", "on ") the citation heuristic would otherwise read as a citation cue.
- */
+/** A marked current joint chain grants token permission only through its structural boundary. */
 export declare function isReleaseLineToken(line: string, start: number, end: number): boolean;
 //# sourceMappingURL=release-line.d.ts.map

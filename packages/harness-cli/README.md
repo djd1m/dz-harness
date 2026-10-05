@@ -1,6 +1,6 @@
 # @dzhechkov/harness-cli
 
-Current package version: `0.8.40`. <!-- dz:version -->
+Current package version: `0.8.41`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -16,6 +16,10 @@ You do NOT need to clone any repository to use dz. Source is for contributors �
 [From source (contributors only)](#from-source-contributors-only) at the end of this README.
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/harness-cli
+
+Current package versions: `harness-core v0.8.49` · `harness-cli v0.8.41`. <!-- dz:version -->
+
+Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. The marker retains its explicit whole-line override for per-package synchronization, so keep it off historical records.
 
 ## Why dz?
 
@@ -5976,7 +5980,7 @@ ledger row now carries a `prices` snapshot. See `@dzhechkov/harness-core`'s READ
 decision list (D1–D5) and the two new pure modules (`feature-adr-stage-canon.ts`, `codex-rollouts.ts`) behind
 `dz usage --by-stage`'s new `INCOMPLETE_INVENTORY` verdict and canonical-stage breakdown.
 
-`harness-core v0.8.46` · `harness-cli v0.8.38` — **this release (night 22→23.09 plus 23.09, two
+`harness-core v0.8.42` · `harness-cli v0.8.35` — **this release (night 22→23.09 plus 23.09, two
 packages, five features): command help is ADDRESSED — twelve commands answer `dz <cmd> --help` with
 their own text, and ownership is keyed by the PAIR (command + first positional token) rather than by
 the bare command name, because two of the twelve are branches of a shared sub-dispatcher whose
