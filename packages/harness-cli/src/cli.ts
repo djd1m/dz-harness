@@ -1559,6 +1559,10 @@ async function cmdVerify(options: Map<string, string>, cwd: string, write: Write
     skillsDir,
     ...(target !== undefined ? { target } : {}),
   });
+  if (report.total === 0) {
+    writeErr(`dz verify: no skills found in ${skillsDir} — nothing was verified`);
+    return 1;
+  }
   write(`dz verify (${report.target}): ${report.valid}/${report.total} skill(s) valid`);
   for (const skill of report.skills) {
     if (!skill.ok) write(`  FAIL ${skill.id}: ${skill.errors.join('; ')}`);
@@ -9305,21 +9309,47 @@ function cmdRelease(options: Map<string, string>, flags: Set<string>, cwd: strin
   return publishExit ?? 0;
 }
 
-function cmdRegistry(options: Map<string, string>, cwd: string, write: Write): number {
-  const registry = buildRegistry(cwd);
+function cmdRegistry(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): number {
+  const sub = options.get('_positional_0');
+  const searchQuery = sub === 'search' ? options.get('_positional_1') : sub;
+  const category = options.get('category');
+  const filter = searchQuery
+    ? { kind: 'search', query: searchQuery, category: null }
+    : category
+      ? { kind: 'category', query: null, category }
+      : { kind: 'all', query: null, category: null };
+
+  let registry: ReturnType<typeof buildRegistry>;
+  try {
+    registry = buildRegistry(cwd);
+  } catch (error) {
+    if (!flags.has('json')) throw error;
+    write(JSON.stringify({
+      schema: 'dz-registry/1', ok: false, filter, catalog: null, count: 0, entries: [],
+      error: { code: 'REGISTRY_READ_FAILED', message: error instanceof Error ? error.message : String(error) },
+    }));
+    return 1;
+  }
+  const results = searchQuery ? searchRegistry(registry, searchQuery)
+    : category ? filterByCategory(registry, category) : registry.entries;
+  if (flags.has('json')) {
+    const empty = registry.totalSkills === 0;
+    write(JSON.stringify({
+      schema: 'dz-registry/1', ok: !empty, filter,
+      catalog: { totalSkills: registry.totalSkills, totalPacks: registry.totalPacks, categories: registry.categories },
+      count: results.length, entries: results,
+      error: empty ? { code: 'EMPTY_CATALOG', message: 'No skills found' } : null,
+    }));
+    return empty ? 1 : 0;
+  }
   if (registry.totalSkills === 0) {
     write('dz registry: no skills found');
     return 1;
   }
 
-  const sub = options.get('_positional_0');
-  const searchQuery = sub === 'search' ? options.get('_positional_1') : sub;
-  const category = options.get('category');
-
   // Search mode
   if (searchQuery) {
     const query = searchQuery;
-    const results = searchRegistry(registry, query);
     if (results.length === 0) {
       write(`dz registry: no skills matching "${query}"`);
       return 0;
@@ -9335,7 +9365,6 @@ function cmdRegistry(options: Map<string, string>, cwd: string, write: Write): n
 
   // Category filter
   if (category) {
-    const results = filterByCategory(registry, category);
     if (results.length === 0) {
       write(`dz registry: no skills in category "${category}". Available: ${registry.categories.join(', ')}`);
       return 0;
@@ -24652,7 +24681,7 @@ export async function runCli(argv: string[], io: CliIo = {}): Promise<number> {
       case 'parity':
         return await cmdParity(options, flags, write, writeErr, cwd);
       case 'registry':
-        return cmdRegistry(options, cwd, write);
+        return cmdRegistry(options, flags, cwd, write);
       case 'benchmark':
         return cmdBenchmark(options, flags, cwd, write);
       case 'mcp-scan':

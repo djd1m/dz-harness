@@ -1,6 +1,6 @@
 # @dzhechkov/harness-cli
 
-Current package version: `0.8.45`. <!-- dz:version -->
+Current package version: `0.8.46`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -64,7 +64,7 @@ Each launch creates one snapshot; remove selected old snapshot files yourself wh
 Live backpressure waits for writable callbacks. Explicit termination cancels pending writes; after
 child exit a stalled output sink has a two-second final drain window before cancellation.
 
-Current package versions: `harness-core v0.8.53` · `harness-cli v0.8.45`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.53` · `harness-cli v0.8.46`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. The marker retains its explicit whole-line override for per-package synchronization, so keep it off historical records.
 
@@ -176,6 +176,45 @@ dz stats                       # totals + full preset & target lists
 dz help                        # all commands; the Presets:/Targets: lines list valid --preset/--target values
 dz recommend "<your task>"     # task → recommended skills + preset
 ```
+
+`dz verify [--skills-dir <dir>] [--target <name>]` reads skills without writing files.
+Its default root is `.claude/skills` relative to the current directory. A missing,
+empty, or non-skill-only root exits 1 and names the searched root on stderr with
+“nothing was verified”. For nonempty roots, all valid skills exit 0; any broken
+skill exits 1 with per-skill failure details. Invalid targets are rejected before scanning.
+
+`dz registry --json` emits one JSON value on stdout for full, search, and category
+results, including no matches. The version-1 contract is:
+
+```json
+{
+  "schema": "dz-registry/1",
+  "ok": true,
+  "filter": { "kind": "all", "query": null, "category": null },
+  "catalog": { "totalSkills": 1, "totalPacks": 1, "categories": ["devops"] },
+  "count": 1,
+  "entries": [{ "id": "alpha", "pack": "skills-devops", "description": "Example skill", "trustTier": 1, "hasSchema": false, "hasEvals": false, "lineCount": 8, "category": "devops", "path": "node_modules/@dzhechkov/skills-devops/alpha" }],
+  "error": null
+}
+```
+
+`catalog` always describes the full unfiltered catalog; `count` equals the selected
+`entries.length`. Entries preserve every registry field and their order, including
+optional `path` and complete descriptions. `filter.kind` is `all`, `search`, or
+`category`; only the effective query/category is a string, and unused fields are null.
+`registry search <query>` and `registry <query>` use the existing case-insensitive
+search; a nonempty query takes precedence over `--category`. Categories match exactly.
+Bare `registry search` falls back to the category, when supplied, or the full catalog.
+
+A nonempty catalog with no matches exits 0 with `ok: true`, `entries: []`, and
+`error: null`. An empty catalog exits 1 with its actual zero-skill summary, `ok: false`,
+and `error: { "code": "EMPTY_CATALOG", "message": "No skills found" }`.
+A read failure exits 1 with `catalog: null`, `count: 0`, `entries: []`, `ok: false`,
+and `error: { "code": "REGISTRY_READ_FAILED", "message": "<actual error message>" }`.
+Both errors retain `schema` and the effective `filter`. Human registry output and
+its exit behavior stay the same; `--help` retains the global help behavior.
+
+
 
 **New project:**
 
@@ -2343,7 +2382,7 @@ dz update            (alias for sync)
 dz list              [--skills-dir <dir>]
 dz info              --id <skill-id> [--skills-dir <dir>]
 dz create-skill      --name <id> [--description <text>] [--tier 1|2|3] [--with-references] [--no-evals] [--bto]
-dz registry          [search <query>] [--category <cat>]
+dz registry          [search <query>] [--category <cat>] [--json]
 dz benchmark         <skill-dir> [--compare <dir>] [--all]
 dz mcp-scan          [path] [--json]   (static agent-permission audit; exit 0/1/2 = clean/medium/high)
 dz architecture      [--json] [--revise] [--check --slug <s> --desc "<text>" [--cmd a,b] [--subsystem <id>]]   # product map (subsystems = the README jobs + foundation/arsenal/ops); --revise = drift check (exit 1); --check = forward-looking сverka of a proposed feature vs map+vision (exit 2 on a hard-stop dup)
