@@ -1,8 +1,8 @@
 # @dzhechkov/skills-meta
 
-Current package version: `0.9.64`. <!-- dz:version -->
+Current package version: `0.9.65`. <!-- dz:version -->
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-meta
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-meta
 
 The **canonical meta-skill pack** — the development-process skills, packaged as
 [Agent Skills](https://agentskills.io) for distribution and cross-platform use.
@@ -31,7 +31,7 @@ The pack contains **21 development-process skills**:
 | `explore` | 3 | Socratic task clarification |
 | `problem-solver-enhanced` | 1 | First-principles + TRIZ + game-theory problem solving |
 | `loop-plan-author` | 2 | Author agent LOOPS as typed `loop-plan/1` plans — four patterns, INV-1..8, claims/defers, USER regions, reading a run's trace. Packaged for Claude Code as `@dzhechkov/loop-designer-plugin`; `dz` AUTHORS, GATES and READS loops — it never RUNS one |
-| `decision-mockups` | 10 | Owner-facing DECISION PAGE — plain-language explanation, browser-frame before/after mockups, clickable option forks and a copy-answers export that pastes back into the session, plus a zero-dependency deterministic gate (`references/check_page.py`, G0–G15) that refuses a page with fewer than two options per fork, an untokenised colour, an external resource or a leftover placeholder. **Vendored mirror** — the canon (and the test suite) lives in [`@dzhechkov/skills-decision-mockups`](https://www.npmjs.com/package/@dzhechkov/skills-decision-mockups); heal with `dz sync-canonical decision-mockups --from packages/@dzhechkov/skills-decision-mockups/decision-mockups`. **Honest scope:** the skill writes Russian (its gate hard-requires the export literals) |
+| `decision-mockups` | 13 | Plain-language decision context in HTML or compact text, CSS before/after and offline flow/boundary diagrams. Opt-in v2 preserves four answer states, material context and a separate complete JSON document; shipped stdlib `check_answer.py` checks the receiver's current revision. Legacy export remains compatible. **Vendored mirror** — canon/tests in [`@dzhechkov/skills-decision-mockups`](https://www.npmjs.com/package/@dzhechkov/skills-decision-mockups); sync explicitly with `dz sync-canonical decision-mockups --from packages/@dzhechkov/skills-decision-mockups/decision-mockups`. Structural checks do not prove truth, semantic viability or human benefit. |
 
 
 > **`goap-research-ed25519` — self-learning (optional, since this release).** When
@@ -171,7 +171,7 @@ deliberately excluded — "skeleton first" is nonsense there.
 `0.9.45` — the bundled `feature-adr` Step-8 module now describes the amendment gate as the command
 `dz amendment-check` instead of a judgement the reviewer is asked to make. Text only; no pipeline change.
 
-## Signature scope (this release)
+## Historical signature-scope correction
 
 The pack's `.dz-manifest.json` now covers exactly the files this package SHIPS, as reported by
 `npm pack` — not everything present in the author's working tree. Previously it signed files that
@@ -179,7 +179,7 @@ The pack's `.dz-manifest.json` now covers exactly the files this package SHIPS, 
 `listed in the manifest but absent` and the pack read as TAMPERED. Re-signing at any earlier moment
 could not fix that: those files were never in the tarball.
 
-Nothing about the shipped content changed in this release — only what the signature describes.
+That earlier correction changed signature coverage only. The current staged candidate also updates decision-mockups.
 
 ### Shared Markdown masking in feature-adr gates
 

@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-decision-mockups",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "decision-mockups — build a Russian decision page with plain-language explanations, synthetic teaching examples, CSS before/after mockups, viable option forks and a copy-answers export. Includes a zero-dependency structural gate (G0–G15); semantic tradeoffs require review.",
   "license": "MIT",
   "author": "dzhechko",
@@ -17,7 +17,6 @@
     "html"
   ],
   "scripts": {
-    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
     "test": "node --test test/*.test.mjs",
     "check-page": "python3 decision-mockups/references/check_page.py"
   },
@@ -26,6 +25,7 @@
     "decision-mockups/BTO_REPORT.md",
     "decision-mockups/references/*.md",
     "decision-mockups/references/check_page.py",
+    "decision-mockups/references/check_answer.py",
     "decision-mockups/templates/*.html",
     "decision-mockups/templates/*.js",
     "decision-mockups/examples/*.md",

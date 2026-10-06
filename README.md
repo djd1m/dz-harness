@@ -47,7 +47,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/skills-book-digitizer` | 0.2.20 |
 | `@dzhechkov/skills-book-fundamental-software-architecture` | 0.1.4 |
 | `@dzhechkov/skills-bto` | 1.4.7 |
-| `@dzhechkov/skills-decision-mockups` | 0.1.9 |
+| `@dzhechkov/skills-decision-mockups` | 0.2.0 |
 | `@dzhechkov/skills-demo-publisher` | 0.1.2 |
 | `@dzhechkov/skills-devops` | 0.3.18 |
 | `@dzhechkov/skills-ecc` | 0.1.13 |
@@ -55,7 +55,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/skills-feature-adr` | 1.5.16 |
 | `@dzhechkov/skills-idea2prd` | 0.1.16 |
 | `@dzhechkov/skills-mcp` | 0.3.11 |
-| `@dzhechkov/skills-meta` | 0.9.64 |
+| `@dzhechkov/skills-meta` | 0.9.65 |
 | `@dzhechkov/skills-news` | 0.1.17 |
 | `@dzhechkov/skills-package-story-page` | 0.2.5 |
 | `@dzhechkov/skills-pm` | 0.1.6 |

@@ -1,7 +1,7 @@
 {
-  "builtAt": "2026-10-06T15:33:46.777Z",
+  "builtAt": "2026-10-06T21:09:42.934970+00:00",
   "builtFrom": "dz-harness-hub (private monorepo)",
-  "rule": "each package mirrors exactly its npm-pack tarball inventory — the already-public surface",
+  "rule": "each package mirrors exactly its npm-pack tarball inventory \u2014 the already-public surface",
   "requested": 56,
   "built": 56,
   "requestedPackages": [
@@ -293,8 +293,8 @@
     },
     {
       "name": "@dzhechkov/skills-decision-mockups",
-      "version": "0.1.9",
-      "files": 15
+      "version": "0.2.0",
+      "files": 18
     },
     {
       "name": "@dzhechkov/skills-demo-publisher",
@@ -333,8 +333,8 @@
     },
     {
       "name": "@dzhechkov/skills-meta",
-      "version": "0.9.64",
-      "files": 143
+      "version": "0.9.65",
+      "files": 146
     },
     {
       "name": "@dzhechkov/skills-news",
@@ -401,5 +401,12 @@
       "version": "1.0.12",
       "files": 52
     }
-  ]
+  ],
+  "lastRegistryRefresh": {
+    "versions": {
+      "@dzhechkov/skills-decision-mockups": "0.2.0",
+      "@dzhechkov/skills-meta": "0.9.65"
+    },
+    "verification": "Exact registry tarball bytes, publisher SHA256, registry SHA512/SHA1 and trusted repository Ed25519 signatures; other packages preserved."
+  }
 }

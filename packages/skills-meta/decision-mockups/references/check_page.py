@@ -34,6 +34,244 @@ CALQUES = [(re.compile(p, re.I), plain) for p, plain in [
     (r'\bапрув\w*',                      'одобрение'),
 ]]
 
+# V2 is parsed before legacy regex/comment transformations. No browser repair guessing.
+from html.parser import HTMLParser
+from html import unescape, escape
+from check_answer import load_strict_json, validate_decision_manifest, normalize_material_text, ContractError
+
+
+class FragmentParser(HTMLParser):
+    CDATA_CONTENT_ELEMENTS = ('script', 'style', 'textarea', 'title')
+    VOID = {'br', 'hr', 'wbr', 'input', 'meta', 'col'}
+    SUPPORTED = set(('title style script div span p b strong em i u s small code pre '
+                     'section article header footer main aside nav h1 h2 h3 h4 h5 h6 '
+                     'ul ol li dl dt dd figure figcaption button a label textarea input '
+                     'details summary time table caption colgroup col thead tbody tfoot '
+                     'tr td th br hr wbr meta blockquote abbr mark sup sub kbd samp').split())
+    BLOCK = set(('div p section article header footer main aside nav h1 h2 h3 h4 h5 h6 '
+                 'ul ol dl figure table pre blockquote').split())
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.root = {'tag': '', 'attrs': {}, 'children': [], 'parent': None, 'parts': [], 'pos': -1}
+        self.stack = [self.root]
+        self.nodes, self.errors, self.markers = [], [], []
+        self.serial = 0
+
+    def handle_starttag(self, tag, attrs):
+        parent = self.stack[-1]
+        self.serial += 1
+        node = {'tag': tag, 'attrs': dict(attrs), 'children': [], 'parent': parent,
+                'parts': [], 'pos': self.serial}
+        if any(key == 'id' and value == 'decision-manifest' for key, value in attrs):
+            self.markers.append(node)
+        keys = [key for key, value in attrs]
+        if len(keys) != len(set(keys)):
+            self.errors.append('duplicate attributes')
+        if tag not in self.SUPPORTED:
+            self.errors.append('unsupported fragment element: ' + tag)
+        if any(item['tag'] == 'p' for item in self.stack) and tag in self.BLOCK:
+            self.errors.append('block element inside p would require browser repair')
+        if tag == 'li' and parent['tag'] not in ('ul', 'ol'):
+            self.errors.append('li requires list parent')
+        if parent['tag'] in ('ul', 'ol') and tag != 'li':
+            self.errors.append('list requires li children')
+        table_parents = {'caption': ('table',), 'colgroup': ('table',), 'col': ('colgroup',),
+                         'thead': ('table',), 'tbody': ('table',), 'tfoot': ('table',),
+                         'tr': ('thead', 'tbody', 'tfoot'), 'td': ('tr',), 'th': ('tr',)}
+        if tag in table_parents and parent['tag'] not in table_parents[tag]:
+            self.errors.append('unsupported table nesting: ' + tag)
+        allowed_table_children = {'table': ('caption', 'colgroup', 'thead', 'tbody', 'tfoot'),
+                                  'thead': ('tr',), 'tbody': ('tr',), 'tfoot': ('tr',),
+                                  'tr': ('td', 'th'), 'colgroup': ('col',)}
+        if parent['tag'] in allowed_table_children and tag not in allowed_table_children[parent['tag']]:
+            self.errors.append('table child would require browser repair: ' + tag)
+        if tag == 'button' and any(item['tag'] == 'button' for item in self.stack):
+            self.errors.append('nested button')
+        if any(item['tag'] == 'button' for item in self.stack) and tag in ('a', 'input', 'textarea'):
+            self.errors.append('interactive element inside button')
+        parent['children'].append(node)
+        parent['parts'].append(node)
+        self.nodes.append(node)
+        if tag not in self.VOID:
+            self.stack.append(node)
+
+    def handle_startendtag(self, tag, attrs):
+        self.handle_starttag(tag, attrs)
+        if tag not in self.VOID:
+            self.errors.append('self-closing non-void element')
+            self.handle_endtag(tag)
+
+    def handle_endtag(self, tag):
+        if len(self.stack) == 1 or self.stack[-1]['tag'] != tag:
+            self.errors.append('misnested closing element: ' + tag)
+            return
+        self.stack.pop()
+
+    def handle_data(self, data):
+        parent = self.stack[-1]
+        if parent['tag'] in ('table', 'thead', 'tbody', 'tfoot', 'tr', 'colgroup') and data.strip():
+            self.errors.append('table text would require browser repair')
+        parent['parts'].append(data)
+
+    def finish(self):
+        self.close()
+        if len(self.stack) != 1:
+            self.errors.append('unclosed elements')
+
+
+def node_text(node):
+    if not visible_node(node):
+        return ''
+    return ''.join(node_text(part) if isinstance(part, dict) else
+                   unescape(part) if node['tag'] in ('title', 'textarea') else part
+                   for part in node['parts'])
+
+
+def material_text(node):
+    return normalize_material_text(node_text(node))
+
+
+def descendants(node, attribute):
+    result = []
+    for child in node['children']:
+        if attribute in child['attrs']:
+            result.append(child)
+        result.extend(descendants(child, attribute))
+    return result
+
+
+def ancestor(node, attribute):
+    parent = node['parent']
+    while parent:
+        if attribute in parent['attrs']:
+            return parent
+        parent = parent['parent']
+    return None
+
+
+def visible_node(node):
+    current = node
+    while current:
+        attrs = current['attrs']
+        if 'hidden' in attrs or attrs.get('aria-hidden') == 'true' or current['tag'] in ('script', 'style', 'details'):
+            return False
+        if re.search(r'display\s*:\s*none|visibility\s*:\s*(?:hidden|collapse)|content-visibility\s*:\s*hidden', attrs.get('style') or '', re.I):
+            return False
+        current = current['parent']
+    return True
+
+
+def check_v2(raw):
+    parser = FragmentParser()
+    parser.feed(raw)
+    parser.finish()
+    if not parser.markers:
+        if any('data-option-id' in node['attrs'] or 'data-answer-state' in node['attrs'] for node in parser.nodes):
+            return False, ['missing actual v2 manifest'], parser
+        return None, [], parser
+    errors = list(parser.errors)
+    try:
+        def require(condition, message):
+            if not condition:
+                raise ContractError(message)
+        require(len(parser.markers) == 1, 'exactly one actual manifest required')
+        marker = parser.markers[0]
+        require(marker['tag'] == 'script' and marker['attrs'].get('type') == 'application/json'
+                and 'src' not in marker['attrs'], 'manifest must be inert application/json without src')
+        manifest_raw = ''.join(part for part in marker['parts'] if isinstance(part, str))
+        manifest = validate_decision_manifest(load_strict_json(manifest_raw))
+        groups = [node for node in parser.nodes if 'data-group' in node['attrs']]
+        require(len(groups) == len(manifest['decisions']), 'decision count mismatch')
+        seen, controls = set(), []
+        for group in groups:
+            gid = group['attrs']['data-group']
+            decision = next((d for d in manifest['decisions'] if d['id'] == gid), None)
+            require(decision is not None and gid not in seen and ancestor(group, 'data-group') is None,
+                    'unknown, duplicate or nested decision group')
+            seen.add(gid)
+            labels = descendants(group, 'data-decision-label')
+            require(group['attrs'].get('data-label') == decision['label'] and len(labels) == 1
+                    and material_text(labels[0]) == normalize_material_text(decision['label']) and visible_node(labels[0]), 'visible decision label mismatch')
+            options = descendants(group, 'data-option-id')
+            require(len(options) == len(decision['options']), 'option count mismatch')
+            option_ids = set()
+            for option in options:
+                oid = option['attrs']['data-option-id']
+                item = next((o for o in decision['options'] if o['id'] == oid), None)
+                require(ancestor(option, 'data-group') is group and item is not None and oid not in option_ids,
+                        'foreign, duplicate or nested option')
+                require(ancestor(option, 'data-option-id') is None, 'nested option control')
+                option_ids.add(oid)
+                labels = descendants(option, 'data-option-label')
+                require(option['attrs'].get('data-val') == item['label'] and len(labels) == 1
+                        and material_text(labels[0]) == normalize_material_text(item['label']) and visible_node(labels[0]), 'visible option label mismatch')
+                require('data-answer-state' not in option['attrs'], 'option cannot be a state control')
+                controls.append(option)
+            rationale_nodes = descendants(group, 'data-rationale')
+            require(len(rationale_nodes) == 1 and material_text(rationale_nodes[0]) == normalize_material_text(decision['rationale'])
+                    and visible_node(rationale_nodes[0]), 'rationale mismatch')
+            for option in options:
+                item = next(o for o in decision['options'] if o['id'] == option['attrs']['data-option-id'])
+                for field in ('cost', 'whenUseful'):
+                    values = descendants(option, 'data-' + field.lower())
+                    require(len(values) == 1 and material_text(values[0]) == normalize_material_text(item[field]) and visible_node(values[0]), 'option consequence mismatch: ' + field)
+            states = descendants(group, 'data-answer-state')
+            require(len(states) == 3 and set(s['attrs']['data-answer-state'] for s in states) ==
+                    {'deferred', 'needs-data', 'unanswered'}, 'three distinct non-consent controls required')
+            for state in states:
+                require(ancestor(state, 'data-group') is group and 'data-val' not in state['attrs']
+                        and 'data-option-id' not in state['attrs'] and ancestor(state, 'data-option-id') is None,
+                        'foreign or nested state control')
+                controls.append(state)
+        for node in parser.nodes:
+            attrs = node['attrs']
+            if any(name in attrs for name in ('data-val', 'data-option-id', 'data-answer-state')):
+                require(node in controls, 'orphan or unidentified control')
+                require(visible_node(node) and ((node['tag'] == 'button' and attrs.get('type') == 'button') or
+                        (attrs.get('role') == 'button' and attrs.get('tabindex') == '0')), 'control must be visible keyboard button')
+            if 'data-option-label' in attrs:
+                require(ancestor(node, 'data-option-id') in controls, 'orphan option label')
+        first_control = min(node['pos'] for node in controls)
+        for key, value in manifest['context'].items():
+            items = [node for node in parser.nodes if node['attrs'].get('data-context') == key]
+            require(len(items) == 1 and visible_node(items[0]) and items[0]['pos'] < first_control, 'missing or late visible context: ' + key)
+            if isinstance(value, list):
+                rows = [node for node in items[0]['children'] if node['tag'] == 'li']
+                require([material_text(row) for row in rows] == [normalize_material_text(item) for item in value] and
+                        (bool(value) or material_text(items[0])), 'context list mismatch: ' + key)
+            else:
+                require(material_text(items[0]) == normalize_material_text(value), 'context text mismatch: ' + key)
+        all_context = [node['attrs']['data-context'] for node in parser.nodes if 'data-context' in node['attrs']]
+        require(set(all_context) == set(manifest['context']), 'unknown context marker')
+        ground_nodes = [node for node in parser.nodes if 'data-ground-id' in node['attrs']]
+        require(len(ground_nodes) == len(manifest['grounds']), 'evidence count mismatch')
+        ground_ids = set()
+        for node in ground_nodes:
+            attrs = node['attrs']; ground = next((g for g in manifest['grounds'] if g['id'] == attrs['data-ground-id']), None)
+            require(ground is not None and ground['id'] not in ground_ids, 'unknown or duplicate ground')
+            ground_ids.add(ground['id'])
+            require(attrs.get('data-evidence-kind') == ground['kind'] and attrs.get('data-source') == ground['source']
+                    and visible_node(node) and node['pos'] < first_control, 'evidence kind/source/visibility mismatch')
+            require(normalize_material_text(ground['claim']) in material_text(node) and normalize_material_text(ground['source']) in material_text(node)
+                    and ('basis' not in ground or normalize_material_text(ground['basis']) in material_text(node)), 'material evidence text missing')
+        components = {c['id']: c['label'] for c in manifest.get('components', [])}
+        for node in parser.nodes:
+            attrs = node['attrs']
+            if 'data-component-id' in attrs:
+                require(attrs['data-component-id'] in components and material_text(node) == normalize_material_text(components[attrs['data-component-id']]), 'component name/ID mismatch')
+            if 'data-diagram' in attrs:
+                ids = (attrs.get('aria-describedby') or '').split()
+                alternatives = [n for n in parser.nodes if n['attrs'].get('id') in ids and 'data-diagram-text' in n['attrs']]
+                require(len(alternatives) == 1 and bool(material_text(alternatives[0]))
+                        and alternatives[0]['parent'] is node['parent'] and visible_node(alternatives[0]), 'diagram requires adjacent visible text equivalent')
+        require(set(components) <= {node['attrs']['data-component-id'] for node in parser.nodes if 'data-component-id' in node['attrs']}, 'missing component names')
+        return manifest, errors, parser
+    except (ContractError, ValueError, RecursionError) as error:
+        errors.append(str(error))
+        return False, errors, parser
+
+
 if len(sys.argv) < 2:
     print('usage: python3 check_page.py путь/к/странице.html'); sys.exit(2)
 path = sys.argv[1]
@@ -44,6 +282,8 @@ try:
 except OSError as e:
     print(f'не читается {path}: {e}'); sys.exit(2)
 
+v2_manifest, v2_errors, v2_parser = check_v2(raw)
+
 # Комментарии — не разметка. Шаблон и picker.js носят в комментариях ПРИМЕРЫ разметки
 # (`data-group="f2"`, `data-val="…"`); без вырезания они считаются настоящими развилками
 # и дают фантомные G6b/G9. Режем HTML-комментарии и блочные JS/CSS-комментарии;
@@ -51,15 +291,32 @@ except OSError as e:
 src = re.sub(r'<!--.*?-->', '', raw, flags=re.S)
 src = re.sub(r'/\*.*?\*/', '', src, flags=re.S)
 
-FAIL, WARN = [], []
+FAIL, WARN = ['V2 ' + error for error in v2_errors], []
 def gate(cond, msg):  (FAIL if not cond else []).append(msg)
 def soft(cond, msg):  (WARN if not cond else []).append(msg)
 
+if v2_manifest is not None:
+    def serialize(node):
+        if node['tag'] in ('script', 'style', 'textarea', 'title'):
+            if node['attrs'].get('id') == 'decision-manifest':
+                return ''
+            return '<' + node['tag'] + '>' + ''.join(part for part in node['parts'] if isinstance(part, str)) + '</' + node['tag'] + '>'
+        attrs = ''.join(' ' + key + '="' + escape(value or '', quote=True) + '"' for key, value in node['attrs'].items())
+        content = ''.join(serialize(part) if isinstance(part, dict) else escape(part) for part in node['parts'])
+        return '<' + node['tag'] + attrs + '>' + content + ('' if node['tag'] in FragmentParser.VOID else '</' + node['tag'] + '>')
+    src = ''.join(serialize(child) for child in v2_parser.root['children'])
+    src = re.sub(r'/\*.*?\*/', '', src, flags=re.S)
+
+# Raw-text elements contain strings, not layout or selectable controls. Keep their
+# bytes in src for script/style/export checks; equal-length masking preserves offsets.
+layoutsrc = re.sub(r'<(?:script|style|textarea|title)\b[^>]*>.*?</(?:script|style|textarea|title)>',
+                   lambda match: ' ' * len(match.group(0)), src, flags=re.S | re.I) if v2_manifest is not None else src
+
 # ---------- G1. Баланс div ----------
-o, c = len(re.findall(r'<div\b', src)), len(re.findall(r'</div\s*>', src))
+o, c = len(re.findall(r'<div\b', layoutsrc)), len(re.findall(r'</div\s*>', layoutsrc))
 gate(o == c, f'G1 баланс div: открыто {o}, закрыто {c}')
 for t in ('section', 'figure', 'aside', 'ul', 'li', 'p'):
-    oo = len(re.findall(r'<%s\b' % t, src)); cc = len(re.findall(r'</%s\s*>' % t, src))
+    oo = len(re.findall(r'<%s\b' % t, layoutsrc)); cc = len(re.findall(r'</%s\s*>' % t, layoutsrc))
     soft(oo == cc, f'G1b <{t}>: открыто {oo}, закрыто {cc}')
 
 # ---------- разбор <style> ----------
@@ -149,7 +406,8 @@ gate(not re.findall(r'<(img|iframe|video|audio|link|object|embed)\b', src),
 # рапортовала «на странице нет ни одной развилки» при двух живых развилках.
 FORK = re.compile(r'<[a-zA-Z][\w-]*\b[^>]*\bdata-group="([^"]*)"[^>]*>')
 OPTTAG = re.compile(r'<[a-zA-Z][\w-]*\b[^>]*\bdata-val="[^"]*"[^>]*>')
-forks = [(m.group(1), m.start(), m.group(0)) for m in FORK.finditer(src)]
+forksrc = layoutsrc
+forks = [(m.group(1), m.start(), m.group(0)) for m in FORK.finditer(forksrc)]
 labels = {}
 groups = []
 for gid, start, tag in forks:
@@ -165,20 +423,20 @@ def subtree(idx):
     в тексте, а не по вложенности: любой декоративный элемент с data-val, стоявший
     НИЖЕ развилки, засчитывался ей в варианты (и одноопционная развилка проходила
     G9), а тело последней развилки тянулось до конца файла вместе со скриптом."""
-    m0 = re.match(r'<([a-zA-Z][\w-]*)', src[idx:])
+    m0 = re.match(r'<([a-zA-Z][\w-]*)', forksrc[idx:])
     if not m0: return ''
     op = re.compile(r'<%s\b' % m0.group(1))
     cl = re.compile(r'</%s\s*>' % m0.group(1))
     depth, pos = 0, idx
-    while pos < len(src):
-        a, b = op.search(src, pos), cl.search(src, pos)
-        if not b: return src[idx:]
+    while pos < len(forksrc):
+        a, b = op.search(forksrc, pos), cl.search(forksrc, pos)
+        if not b: return forksrc[idx:]
         if a and a.start() < b.start():
             depth += 1; pos = a.end()
         else:
             depth -= 1; pos = b.end()
-            if depth == 0: return src[idx:pos]
-    return src[idx:]
+            if depth == 0: return forksrc[idx:pos]
+    return forksrc[idx:]
 
 # ---------- G6. Уникальность data-group ----------
 dup = [k for k, n in collections.Counter(g for g, _ in groups).items() if n > 1]
@@ -197,10 +455,10 @@ for gid, vals in per.items():
     gate(len(vals) >= 2, f'G9 развилка {gid}: живых вариантов {len(vals)} — мнимая развилка, её надо убрать')
     for v in vals:
         gate(bool(v.strip()), f'G7a пустой data-val в {gid}')
-        gate(len(v) <= 120, f'G7b слишком длинный data-val в {gid} ({len(v)} симв.): {v[:50]}...')
-    gate(len(set(vals)) == len(vals), f'G7c одинаковые data-val внутри {gid}')
-allvals = re.findall(r'data-val="([^"]*)"', src)
-gate(all(re.search(r'role="button"[^>]*tabindex="0"|tabindex="0"[^>]*role="button"', t)
+        gate(v2_manifest is not None or len(v) <= 120, f'G7b слишком длинный data-val в {gid} ({len(v)} симв.): {v[:50]}...')
+    gate(v2_manifest is not None or len(set(vals)) == len(vals), f'G7c одинаковые data-val внутри {gid}')
+allvals = re.findall(r'data-val="([^"]*)"', forksrc)
+gate(v2_manifest is not None or all(re.search(r'role="button"[^>]*tabindex="0"|tabindex="0"[^>]*role="button"', t)
          for t in re.findall(r'<[^>]*data-val="[^"]*"[^>]*>', src)),
      'G7d есть вариант без role="button" + tabindex="0" (не кликается с клавиатуры)')
 # G7e: data-val вне какой-либо развилки. Такой элемент выглядит как вариант, но пикер
@@ -247,7 +505,7 @@ def has_class(tag, name):
 def inner(h):
     h = h[h.index('>') + 1:] if '>' in h else h
     return re.sub(r'</[a-zA-Z][\w-]*\s*>\s*$', '', h)
-prose = [inner(subtree(m.start())) for m in OPTTAG.finditer(src) if has_class(m.group(0), 'opt')]
+prose = [inner(subtree(m.start())) for m in OPTTAG.finditer(forksrc) if has_class(m.group(0), 'opt')]
 bad10a = [re.sub(r'<[^>]+>', '', t).strip()[:60] for t in prose
           if not re.match(r'\s*<b>[^<]{3,70}</b>', t)]
 gate(not bad10a, f'G10a развёрнутые варианты без жирного вердикта в начале: {bad10a[:3]}')

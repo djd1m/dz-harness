@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "89d6d9c099f2e8aa10eed013c98b32d58e53eb1352e7b43b6dbacf9c5a326438"
+          "content": "22b8b94df8cafc17bb98f005ac8cc77f1675ad3b216835fdd938df48cff74d8b"
         }
       ]
     },
@@ -45,7 +45,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e143731cc2d4e317dd40b2dde93201e7cffeda1fcc026c5808af9fac4a959634"
+          "content": "6af149dcfcc60d55157de11117922f0714ad040c26d517e5eaf4d4e2cfa7c6e7"
         }
       ]
     },
@@ -55,7 +55,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "852ea0fff758a94ceb85585af2f746e8ecb86997c9dacbef1fd0f77eb43183ad"
+          "content": "780973b465bdddc614a9903a414797d7cebe0a6b5b61c60efa35122661888eee"
         }
       ]
     },
@@ -65,7 +65,37 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "91bb6a2607b2efe1f228dc7bd2fc72614497a4730182e99e67eed58e3123564d"
+          "content": "f57fc9225815ef953284ef47e1d9603dac7e16ce21e7b84eafa6c4d6b9ee88b0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "decision-mockups/examples/context-cases.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "29403785fc72c1a22cb0e731d5b14d73780ab65b38a1f3f3beca2d2faac80046"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "decision-mockups/references/answer-contract.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "68f353bf5f54ce0975553d9cdfed2452143b41efb9fd8f7d1ba965c4db49c5a3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "decision-mockups/references/check_answer.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4f2bcbcd4d9ceef1948d8438b6874b47092f8d2ceb68c8e569a71fd7530dc936"
         }
       ]
     },
@@ -75,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e32115ad76e7e0dcc10a52634f98ad23bb531579a91c20a3aa9e8ff52d4524f8"
+          "content": "78822d446d19d7b370a043f4a7de56e6adef755887666ecd16c1a9a51a34b092"
         }
       ]
     },
@@ -85,7 +115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a7ae49b1dacec502b5720641128c00411cef73799e10917fbc73efdeb59583f9"
+          "content": "143f8ebbd7c9d109b38f58c21ebb253eca43350b9f6a4cd360ec4878eefe9f82"
         }
       ]
     },
@@ -95,7 +125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8fa5a84b859abe09fe7a65444ac9e800d2560446fbafb389400d8132c5f57f61"
+          "content": "97fc4b64d51f2c9bc0a191fa2a21754fca86e1a3b36be1d16bf5ad51a9b5885a"
         }
       ]
     },
@@ -105,7 +135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6fcbc8b7cdde9816f3ce8572c9d9c7783d6020c0a254bcb060eec67642cc9f72"
+          "content": "c26ff6a267f720dd1f357e98f86898556a53eea2b0b4a59b0485d5e989e88942"
         }
       ]
     },
@@ -115,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3a5698da235b841537433158aa460a6766cf3820938a7905481287b84e76af96"
+          "content": "3684d41e2738ce84705322b67fceb051ba514958af28fc5cef6084c31735502d"
         }
       ]
     },
@@ -125,7 +155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4c4af18aaf7df9ed35788041bb7d8c65412b3a9965a123b6d53b52adf6ed53b1"
+          "content": "d0391ad71175d115b5563c6bd11b0c245fb66bb53bc9dcdb54bc98f8d6b2d79a"
         }
       ]
     },
@@ -139,7 +169,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "8885d62aff953e56c9242649a4cb00f6dba71367205acb6cb946666919ed5776"
+          "value": "69c125ed06cc94332f9b6b10c07ec1bd7da9152a0983d2ed3c8f3be738d0e1ae"
         }
       ]
     }

@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "96c743d079631b1719b4b009ec7570109687c7370d647df93f487b0142e2eb6c"
+        "sha256": "cbca22a4fe9e0544dc15a075d0892b99e884af6ef7baa5bf4892177ce26ef36a"
       },
       {
         "path": "adversarial-verifier/SKILL.md",
@@ -97,39 +97,51 @@
       },
       {
         "path": "decision-mockups/SKILL.md",
-        "sha256": "e143731cc2d4e317dd40b2dde93201e7cffeda1fcc026c5808af9fac4a959634"
+        "sha256": "6af149dcfcc60d55157de11117922f0714ad040c26d517e5eaf4d4e2cfa7c6e7"
       },
       {
         "path": "decision-mockups/evals/eval-cases.md",
-        "sha256": "852ea0fff758a94ceb85585af2f746e8ecb86997c9dacbef1fd0f77eb43183ad"
+        "sha256": "780973b465bdddc614a9903a414797d7cebe0a6b5b61c60efa35122661888eee"
       },
       {
         "path": "decision-mockups/examples/README.md",
-        "sha256": "91bb6a2607b2efe1f228dc7bd2fc72614497a4730182e99e67eed58e3123564d"
+        "sha256": "f57fc9225815ef953284ef47e1d9603dac7e16ce21e7b84eafa6c4d6b9ee88b0"
+      },
+      {
+        "path": "decision-mockups/examples/context-cases.md",
+        "sha256": "29403785fc72c1a22cb0e731d5b14d73780ab65b38a1f3f3beca2d2faac80046"
+      },
+      {
+        "path": "decision-mockups/references/answer-contract.md",
+        "sha256": "68f353bf5f54ce0975553d9cdfed2452143b41efb9fd8f7d1ba965c4db49c5a3"
+      },
+      {
+        "path": "decision-mockups/references/check_answer.py",
+        "sha256": "4f2bcbcd4d9ceef1948d8438b6874b47092f8d2ceb68c8e569a71fd7530dc936"
       },
       {
         "path": "decision-mockups/references/check_page.py",
-        "sha256": "e32115ad76e7e0dcc10a52634f98ad23bb531579a91c20a3aa9e8ff52d4524f8"
+        "sha256": "78822d446d19d7b370a043f4a7de56e6adef755887666ecd16c1a9a51a34b092"
       },
       {
         "path": "decision-mockups/references/language-guide.md",
-        "sha256": "a7ae49b1dacec502b5720641128c00411cef73799e10917fbc73efdeb59583f9"
+        "sha256": "143f8ebbd7c9d109b38f58c21ebb253eca43350b9f6a4cd360ec4878eefe9f82"
       },
       {
         "path": "decision-mockups/references/mockup-kit.md",
-        "sha256": "8fa5a84b859abe09fe7a65444ac9e800d2560446fbafb389400d8132c5f57f61"
+        "sha256": "97fc4b64d51f2c9bc0a191fa2a21754fca86e1a3b36be1d16bf5ad51a9b5885a"
       },
       {
         "path": "decision-mockups/references/quality-checklist.md",
-        "sha256": "6fcbc8b7cdde9816f3ce8572c9d9c7783d6020c0a254bcb060eec67642cc9f72"
+        "sha256": "c26ff6a267f720dd1f357e98f86898556a53eea2b0b4a59b0485d5e989e88942"
       },
       {
         "path": "decision-mockups/templates/page-skeleton.html",
-        "sha256": "3a5698da235b841537433158aa460a6766cf3820938a7905481287b84e76af96"
+        "sha256": "3684d41e2738ce84705322b67fceb051ba514958af28fc5cef6084c31735502d"
       },
       {
         "path": "decision-mockups/templates/picker.js",
-        "sha256": "4c4af18aaf7df9ed35788041bb7d8c65412b3a9965a123b6d53b52adf6ed53b1"
+        "sha256": "d0391ad71175d115b5563c6bd11b0c245fb66bb53bc9dcdb54bc98f8d6b2d79a"
       },
       {
         "path": "design-thinking/SKILL.md",
@@ -473,7 +485,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "81fcdb79952e16331d44fc0cc2f303f5f1472141be69b8932bfb8e55606f3993"
+        "sha256": "b6a2f55363a4bba403fe8f38e10ed30d28b0021ecd189deb5f3b9aa6655260b3"
       },
       {
         "path": "problem-solver-enhanced/SKILL.md",
@@ -569,5 +581,5 @@
       }
     ]
   },
-  "signature": "sEcBvBpzK9CyUEHBiJq0famLkGYFFupkD/FLRZ+8nr1XpcHC3BOn9v0LKyZx0R9VE3yR6vVFz7C5ySfL89amDA=="
+  "signature": "JLxx8o56Ydm0Sog0cqG6E4PMpruxcFqHdi0CbHdQSIf7PHwzavUCpmyjztWvQpBBY3obB9bevenmywdmMdTLAQ=="
 }
