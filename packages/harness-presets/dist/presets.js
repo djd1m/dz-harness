@@ -8,6 +8,7 @@
  */
 const meta = {
     name: 'meta',
+    providers: ['@dzhechkov/skills-meta'],
     description: 'Development process — explore, research, problem-solving, design thinking, feature pipeline, knowledge extraction, codebase context, security scanning, whole-codebase audit, design-token contract, agent-loop authoring, owner-facing decision pages.',
     skills: [
         'explore',
@@ -34,6 +35,7 @@ const meta = {
 };
 const qeEngineer = {
     name: 'qe-engineer',
+    providers: ['@dzhechkov/skills-qe'],
     description: 'Quality engineering — test generation, coverage, chaos, defect prediction, QCSD swarms, code review, SFDIPOT.',
     skills: [
         'qe-test-generation',
@@ -60,12 +62,14 @@ const qeEngineer = {
 };
 const bto = {
     name: 'bto',
+    providers: ['@dzhechkov/skills-bto'],
     description: 'Build-Benchmark-Test-Optimize pipeline.',
     skills: ['bto'],
     toolkit: '@dzhechkov/skills-bto',
 };
 const reasoning = {
     name: 'reasoning',
+    providers: ['@dzhechkov/skills-reasoning'],
     description: 'Generic, stack-neutral reasoning & code-quality skills: root-cause investigation, SOLID/TDD, anti-LLM-mistake guidelines, AGENTS.md authoring.',
     skills: [
         'investigate',
@@ -76,6 +80,7 @@ const reasoning = {
 };
 const health = {
     name: 'health',
+    providers: ['@dzhechkov/health-advisor'],
     description: 'Medical AI skills — diagnostics, drug interactions, clinical decision support.',
     toolkit: '@dzhechkov/health-advisor',
     skills: [
@@ -91,6 +96,7 @@ const health = {
 };
 const keysarium = {
     name: 'keysarium',
+    providers: ['@dzhechkov/keysarium'],
     description: 'Full research toolkit — feature-adr, explore, presentation, reverse-engineering.',
     toolkit: '@dzhechkov/keysarium',
     skills: [
@@ -107,6 +113,7 @@ const keysarium = {
 };
 const pReplicator = {
     name: 'p-replicator',
+    providers: ['@dzhechkov/p-replicator'],
     description: 'AI-assisted product development — /replicate pipeline, reverse-engineering, SPARC PRD.',
     toolkit: '@dzhechkov/p-replicator',
     skills: [
@@ -124,6 +131,7 @@ const pReplicator = {
 };
 const featureAdr = {
     name: 'feature-adr',
+    providers: ['@dzhechkov/skills-feature-adr'],
     description: 'Full feature development pipeline — 11-step ADR-driven architecture + frontend design.',
     toolkit: '@dzhechkov/skills-feature-adr',
     skills: [
@@ -140,6 +148,7 @@ const featureAdr = {
 };
 const devops = {
     name: 'devops',
+    providers: ['@dzhechkov/skills-devops'],
     description: 'DevOps skills — code review, security audit, testing, CI/CD, debugging, API design.',
     skills: [
         'api-design',
@@ -176,6 +185,7 @@ const devops = {
 };
 const web3 = {
     name: 'web3',
+    providers: ['@dzhechkov/skills-web3'],
     description: 'Web3/DeFi skills — blockchain RPC, wallet analytics, cross-chain swaps, identity, privacy, trading.',
     skills: [
         'quicknode',
@@ -194,6 +204,7 @@ const web3 = {
 };
 const mcp = {
     name: 'mcp',
+    providers: ['@dzhechkov/skills-mcp'],
     description: 'MCP server skills — Brave Search, Exa, Gmail, Google Sheets/Calendar/Tasks, ClickUp, Reddit, Jina, Context7.',
     skills: [
         'agentdb-memory',
@@ -216,6 +227,7 @@ const mcp = {
 };
 const academic = {
     name: 'academic',
+    providers: ['@dzhechkov/skills-academic'],
     description: 'Academic skills — dissertation review, question generation, document checking for thesis defense (ГЭК).',
     skills: [
         'dissertation-review',
@@ -228,6 +240,7 @@ const academic = {
 /** Every preset, keyed by name. */
 const news = {
     name: 'news',
+    providers: ['@dzhechkov/skills-news'],
     description: 'News & monitoring — source-cited digests on any topic plus lightweight delta watches.',
     skills: [
         'news-digest',
@@ -237,6 +250,7 @@ const news = {
 };
 const pm = {
     name: 'pm',
+    providers: ['@dzhechkov/skills-pm'],
     description: 'Product management — OST, prioritization (RICE/ICE), strategy, pricing, OKRs, metrics/A-B/cohort, roadmap, stakeholders, GTM, growth, market sizing.',
     skills: [
         'opportunity-solution-tree',

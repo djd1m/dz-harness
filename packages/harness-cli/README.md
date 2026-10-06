@@ -1,6 +1,6 @@
 # @dzhechkov/harness-cli
 
-Current package version: `0.8.44`. <!-- dz:version -->
+Current package version: `0.8.45`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -64,7 +64,7 @@ Each launch creates one snapshot; remove selected old snapshot files yourself wh
 Live backpressure waits for writable callbacks. Explicit termination cancels pending writes; after
 child exit a stalled output sink has a two-second final drain window before cancellation.
 
-Current package versions: `harness-core v0.8.52` · `harness-cli v0.8.44`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.53` · `harness-cli v0.8.45`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. The marker retains its explicit whole-line override for per-package synchronization, so keep it off historical records.
 
@@ -137,9 +137,34 @@ cd /tmp && npm install -g @dzhechkov/harness-cli@latest
 
 ## Using the arsenal: new vs. existing project
 
-Install `dz` **once, globally** — it ships **all skill packs bundled**, so you never install packs
-per-project. Then run `dz` from inside a project to write skills into its agent directory
-(`.claude/skills/`, `.codex/`, …). Nothing lands until you choose a target + skills.
+Install `dz` once, then run it from inside a project to compile available skills into
+its agent directory. The CLI includes provider dependencies for `meta`, `qe-engineer`, `devops`, `web3`,
+`mcp`, `academic`, `news`, and `pm`. Optional presets require their provider in the
+invocation project; equivalent local skill sources also work:
+
+| Preset | Install command |
+|---|---|
+| `bto` | `npm install --prefix . @dzhechkov/skills-bto` |
+| `reasoning` | `npm install --prefix . @dzhechkov/skills-reasoning` |
+| `health` | `npm install --prefix . @dzhechkov/health-advisor` |
+| `keysarium` | `npm install --prefix . @dzhechkov/keysarium` |
+| `p-replicator` | `npm install --prefix . @dzhechkov/p-replicator` |
+| `feature-adr` | `npm install --prefix . @dzhechkov/skills-feature-adr` |
+
+Rerun the original `dz init`/`dz setup` command after installing the provider.
+`--skills-dir` excludes package discovery: remove it or point it to the provider's
+skill root. Discovery checks project `.claude/skills`, then the existing bounded
+package carrier/layout search; earlier roots win duplicate ids, including with
+`--force`. Each selected skill and its integration manifest come from that winner.
+
+`dz setup` resolves `--select`, a named preset, or its automatic recommendation before
+writing hooks, memory, configuration, and adapter output. Explicit `--select` overrides
+the preset; missing or empty selections refuse before writes. Later load/apply failures,
+refused integrations, and failed setup steps exit nonzero and may leave partial output.
+An all-skipped rerun succeeds. No provider is installed automatically.
+
+Presets compile skills. To initialize the full companion toolkit's commands/hooks/assets,
+use its separate initializer, such as `npx @dzhechkov/p-replicator init`.
 
 **See what's available (from any directory):**
 

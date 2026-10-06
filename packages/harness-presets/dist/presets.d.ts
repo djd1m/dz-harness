@@ -14,13 +14,9 @@ export interface Preset {
     readonly description: string;
     /** Skill ids this preset selects. */
     readonly skills: readonly string[];
-    /**
-     * When set, this preset is primarily backed by a standalone npx toolkit whose
-     * skills live inside that package's `templates/`, NOT in the discoverable
-     * `@dzhechkov/skills-*` collection packs. `dz init --preset <name>` can only
-     * install the subset of skills that also ship in a `skills-*` pack; the rest
-     * require `npx <toolkit> init`. The CLI surfaces this when skills are missing.
-     */
+    /** npm packages providing these skills; advisory remediation, not a runtime restriction. */
+    readonly providers?: readonly string[];
+    /** Companion toolkit's full installer (commands/hooks/assets beyond skill installation). */
     readonly toolkit?: string;
 }
 export declare const PRESETS: {

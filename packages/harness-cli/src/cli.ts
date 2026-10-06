@@ -108,6 +108,7 @@ import {
   RECONCILE_BANNER,
   buildRegistry,
   discoverSkillPackDirs,
+  discoverSkillCarryingDirs,
   discoverVerifiablePackDirs,
   verifiedScopeNote,
   checkUpstream,
@@ -919,7 +920,13 @@ EXIT CODES - "workflow run" and "workflow-lint" have DIFFERENT tables, side by s
 Workflows: author loop-plan/1 plans with dz workflow init/validate/render; gate them with dz workflow-lint; read runs with dz workflow-trace (the ADR-005 templates are retired)
 
 Targets: ${TARGET_NAMES.join(', ')}
-Presets: ${PRESET_NAMES.join(', ')}`;
+Presets: ${PRESET_NAMES.join(', ')}
+Preset providers: ${PRESET_NAMES.map(name => `${name}: ${(getPreset(name)?.providers ?? []).join(', ')}`).join('; ')}
+Install missing providers in the invocation project: npm install --prefix . <provider-package>, then rerun init/setup.
+CLI dependencies are bundled providers; other provider packages are optional. Equivalent local skills also qualify.
+An explicit --skills-dir excludes package discovery; remove it or point it to the provider skill root.
+init/setup install skills; npx <toolkit> init installs companion commands/hooks/assets too.
+setup refuses unresolved presets before any configuration, skill or hook writes.`;
 
 const USAGE_LINES: readonly string[] = USAGE.split('\n');
 
@@ -1193,9 +1200,9 @@ type WriteErr = (line: string) => void;
 
 /**
  * Discover skill source directories: explicit `--skills-dir` if given, else
- * `.claude/skills` + every `skills-*` pack found across all `@dzhechkov` base dirs —
+ * `.claude/skills` + every populated allowed layout of each skill carrier —
  * monorepo `packages/@dzhechkov`, project-local `node_modules/@dzhechkov`, **and** the
- * CLI's own install location (see {@link discoverSkillPackDirs}). The self-location scan
+ * CLI's own install location (see {@link discoverSkillCarryingDirs}). The self-location scan
  * is what makes a globally-installed `dz` find its bundled packs when run in a project
  * that does not itself depend on them. Shared by `installSkills` and `bundle`.
  */
@@ -1204,8 +1211,15 @@ function discoverSkillsDirs(cwd: string, explicitSkillsDir?: string | undefined)
   const skillsDirs: string[] = [];
   const defaultDir = resolve(cwd, '.claude/skills');
   if (existsSync(defaultDir)) skillsDirs.push(defaultDir);
-  for (const { dir } of discoverSkillPackDirs(cwd)) {
-    if (!skillsDirs.includes(dir)) skillsDirs.push(dir);
+  for (const { dir: carrier } of discoverSkillCarryingDirs(cwd)) {
+    for (const { rel } of PACKAGE_SKILL_LAYOUTS) {
+      const dir = resolve(carrier, rel);
+      // Alternate layouts can be absent, unreadable, or occupied by an ordinary file.
+      // As in registry discovery, only implicit candidates are skipped on probe failure.
+      try {
+        if (statSync(dir).isDirectory() && discoverSkillIds(dir).length > 0 && !skillsDirs.includes(dir)) skillsDirs.push(dir);
+      } catch { /* not a readable skill directory */ }
+    }
   }
   if (skillsDirs.length === 0) skillsDirs.push(defaultDir);
   return skillsDirs;
@@ -1223,7 +1237,7 @@ interface InstallSkillsResult {
   readonly dirsSearched: number;
   readonly written: number;
   readonly skipped: number;
-  /** Selected ids found in NO searched directory (empty when no `select` was given). */
+  /** Selected ids found in no searched directory. */
   readonly missing: string[];
   /** Skill dirs that could not be LOADED, across every searched directory (D1). */
   readonly failures: SkillLoadFailure[];
@@ -1238,8 +1252,8 @@ interface InstallSkillsResult {
 }
 
 /**
- * Discover skill directories (explicit > `.claude/skills` > `node_modules/@dzhechkov/skills-*`
- * > `packages/@dzhechkov/skills-*`) and compile the requested skills to `target` across all of
+ * Discover skill directories (explicit > `.claude/skills` > discovered package layouts)
+ * and compile each requested skill from its winning provider to `target`. Shared across
  * them. Shared by `dz init` and `dz setup` so both install identically.
  */
 async function installSkills(opts: {
@@ -1273,24 +1287,30 @@ async function installSkills(opts: {
   //
   // Dependency closure is deliberately NOT resolved here — that is PR-B. This preflight fixes the
   // count and the exit contract, and gives that work a base it can trust.
-  if (select !== undefined) {
-    const roots = skillsDirs.map((dir) => ({ dir, ids: discoverSkillIds(dir) }));
-    const resolution = resolveSelection(select, roots);
-    for (const shadow of resolution.shadowed) {
-      opts.writeErr?.(
-        `dz: skill '${shadow.id}' is offered by ${shadow.alsoIn.length + 1} roots; ` +
-        `installing from ${shadow.chosen} (earlier root wins). Also present in: ${shadow.alsoIn.join(', ')}`,
-      );
-    }
-    const refusal = formatSelectRefusal(resolution, roots);
-    if (refusal !== null) {
-      return {
-        selectRefusal: refusal,
-        results: [], dirsSearched: skillsDirs.length, written: 0, skipped: 0,
-        missing: [...resolution.missing], failures: [], applyFailures: [], integrations: [],
-      };
-    }
+  const roots = skillsDirs.map((dir) => ({ dir, ids: discoverSkillIds(dir) }));
+  const requested = select ?? [...new Set(roots.flatMap(root => root.ids))];
+  const resolution = resolveSelection(requested, roots);
+  for (const shadow of resolution.shadowed) {
+    opts.writeErr?.(
+      `dz: skill '${shadow.id}' is offered by ${shadow.alsoIn.length + 1} roots; ` +
+      `installing from ${shadow.chosen} (earlier root wins). Also present in: ${shadow.alsoIn.join(', ')}`,
+    );
   }
+  const refusal = formatSelectRefusal(resolution, roots);
+  if (refusal !== null) {
+    return {
+      selectRefusal: refusal,
+      results: [], dirsSearched: skillsDirs.length, written: 0, skipped: 0,
+      missing: [...resolution.missing], failures: [], applyFailures: [], integrations: [],
+    };
+  }
+
+  // Route only the winning rows. A partly shadowed root can still own other ids.
+  const groups = skillsDirs.map(skillsDir => ({
+    skillsDir, select: resolution.chosen.filter(row => row.dir === skillsDir).map(row => row.id),
+  })).filter(group => group.select.length > 0);
+  const winningDirs = groups.map(group => group.skillsDir);
+  const chosenIds = resolution.chosen.map(row => row.id);
 
   // agents-md and gemini are FLATTENING single-file targets: each must aggregate
   // every selected skill from ALL discovered dirs into ONE root file (AGENTS.md /
@@ -1299,8 +1319,8 @@ async function installSkills(opts: {
   // route them through one aggregation.
   if (target === 'agents-md' || target === 'gemini') {
     const report = target === 'gemini'
-      ? runInitGeminiMd({ skillsDirs, projectRoot, ...(select !== undefined ? { select } : {}), ...(opts.noHooks !== undefined ? { noHooks: opts.noHooks } : {}), ...(opts.noIntegrations !== undefined ? { noIntegrations: opts.noIntegrations } : {}) })
-      : runInitAgentsMd({ skillsDirs, projectRoot, ...(select !== undefined ? { select } : {}), ...(opts.noHooks !== undefined ? { noHooks: opts.noHooks } : {}), ...(opts.noIntegrations !== undefined ? { noIntegrations: opts.noIntegrations } : {}) });
+      ? runInitGeminiMd({ skillsDirs: winningDirs, projectRoot, select: chosenIds, ...(opts.noHooks !== undefined ? { noHooks: opts.noHooks } : {}), ...(opts.noIntegrations !== undefined ? { noIntegrations: opts.noIntegrations } : {}) })
+      : runInitAgentsMd({ skillsDirs: winningDirs, projectRoot, select: chosenIds, ...(opts.noHooks !== undefined ? { noHooks: opts.noHooks } : {}), ...(opts.noIntegrations !== undefined ? { noIntegrations: opts.noIntegrations } : {}) });
     const results = report.skills.map((s) => ({
       id: s.id,
       written: s.written.length,
@@ -1317,20 +1337,18 @@ async function installSkills(opts: {
   const applyFailures: SkillApplyFailure[] = [];
   let integrations: readonly IntegrationOutcome[] = [];
   let integrationDigest: string | undefined;
-  const integrationManifestSources: readonly IntegrationManifestSource[] = skillsDirs.flatMap((skillsDir) => {
-    const discovered = discoverSkillIds(skillsDir);
-    return discovered
-      .filter((id) => select === undefined || select.includes(id))
-      .map((skillId) => ({ skillId, skillDir: skillsDir }));
-  });
-  for (const [dirIndex, skillsDir] of skillsDirs.entries()) {
+  const integrationManifestSources: readonly IntegrationManifestSource[] = resolution.chosen.map(
+    ({ id, dir }) => ({ skillId: id, skillDir: dir }),
+  );
+  for (const [dirIndex, group] of groups.entries()) {
+    const { skillsDir } = group;
     const r = await runInit({
       target,
       skillsDir,
       projectRoot,
       force,
       enrich,
-      ...(select !== undefined ? { select } : {}),
+      select: group.select,
       ...(opts.noHooks !== undefined ? { noHooks: opts.noHooks } : {}),
       ...(dirIndex === 0
         ? {
@@ -1355,20 +1373,28 @@ async function installSkills(opts: {
   let skipped = 0;
   for (const s of results) { written += s.written; skipped += s.skipped; }
   const installed = new Set(results.map((s) => s.id));
-  const missing = select !== undefined ? [...select].filter((id) => !installed.has(id)) : [];
+  const missing = chosenIds.filter(id => !installed.has(id));
   return { results, dirsSearched: skillsDirs.length, written, skipped, missing, failures, applyFailures, integrations, ...(integrationDigest !== undefined ? { integrationDigest } : {}) };
 }
 
 /** Warn about preset/select ids that weren't found in any installed pack. */
-function writeMissingSkillsHint(write: Write, missing: string[], presetName: string | undefined): void {
+function writeMissingSkillsHint(write: Write, missing: readonly string[], presetName: string | undefined, explicitSkillsDir?: string): void {
   if (missing.length === 0) return;
-  write(`  ⚠️  ${missing.length} skill(s) not found in any installed pack: ${missing.join(', ')}`);
+  write(`  ${missing.length} skill(s) not found in installed sources: ${missing.join(', ')}`);
   const preset = presetName !== undefined ? getPreset(presetName) : undefined;
-  if (preset?.toolkit !== undefined) {
-    write(`     The '${preset.name}' preset is backed by a standalone toolkit. Install the full set with:`);
-    write(`     npx ${preset.toolkit} init`);
+  if (preset?.providers !== undefined && preset.providers.length > 0) {
+    const dependencies = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).dependencies ?? {};
+    for (const provider of preset.providers) {
+      write(`  Provider: ${provider} (${Object.hasOwn(dependencies, provider) ? 'CLI dependency' : 'optional package'})`);
+    }
+    write(`  In the invocation project: npm install --prefix . ${preset.providers.join(' ')}`);
+    write('  Then rerun the original dz init/setup command. Equivalent local skill sources can satisfy the preset too.');
+    if (preset.toolkit !== undefined) write(`  Full companion toolkit (commands/hooks/assets): npx ${preset.toolkit} init`);
   } else {
-    write(`     Install their packs first (e.g. dz install @dzhechkov/skills-<pack>) or check the ids.`);
+    write('  Install the provider package or fix the skill ids, then rerun the original command.');
+  }
+  if (explicitSkillsDir !== undefined) {
+    write('  An explicit --skills-dir excludes package discovery: remove that override or point it to the provider skill root, then rerun.');
   }
 }
 
@@ -1429,6 +1455,7 @@ async function cmdInit(options: Map<string, string>, flags: Set<string>, cwd: st
   // Printed and returned here, before any target adapter runs — nothing has been written yet.
   if (r.selectRefusal !== undefined) {
     writeErr(r.selectRefusal);
+    writeMissingSkillsHint(writeErr, r.missing, presetName, explicitSkillsDir);
     return 1;
   }
 
@@ -1464,7 +1491,7 @@ async function cmdInit(options: Map<string, string>, flags: Set<string>, cwd: st
       write(`${label}: ${outcome.status.toUpperCase()} (${detail})`);
     }
   }
-  writeMissingSkillsHint(write, r.missing, presetName);
+  writeMissingSkillsHint(write, r.missing, presetName, explicitSkillsDir);
 
   // Skip-and-collect must not become skip-and-SILENCE: a skill that failed to load is
   // named on stderr and the command exits 1 (it exited 1 before too — by throwing).
@@ -6605,24 +6632,25 @@ async function cmdSetup(options: Map<string, string>, flags: Set<string>, cwd: s
   const projectRoot = resolve(cwd, options.get('project') ?? '.');
   const presetName = options.get('preset');
 
-  // PREFLIGHT BEFORE THE FIRST WRITE (backlog 9d15b9b6, PR-A). Step 3 configures the learning
-  // environment and step 4 installs skills, so refusing at step 4 would leave a project that has
-  // memory and hooks but not the skills the operator asked for — a half-configured state worse than
-  // either clean outcome. The request is therefore resolved HERE, before the banner's first step.
-  //
-  // Only an EXPLICIT --select is refused. A preset names skills the package itself ships, so a gap
-  // there is our packaging defect, not the operator's typo, and it is reported by the existing
-  // missing-list rather than by refusing the whole run.
-  const setupSelectRaw = options.get('select');
-  if (setupSelectRaw !== undefined) {
-    const requested = setupSelectRaw.split(',').map((x) => x.trim()).filter((x) => x.length > 0);
-    const roots = discoverSkillsDirs(cwd, options.get('skills-dir')).map((dir) => ({ dir, ids: discoverSkillIds(dir) }));
-    const resolution = resolveSelection(requested, roots);
-    for (const shadow of resolution.shadowed) {
-      writeErr(`dz: skill '${shadow.id}' is offered by ${shadow.alsoIn.length + 1} roots; installing from ${shadow.chosen} (earlier root wins). Also present in: ${shadow.alsoIn.join(', ')}`);
-    }
-    const refusal = formatSelectRefusal(resolution, roots);
-    if (refusal !== null) { writeErr(refusal); return 1; }
+  const analysis = pretrain(projectRoot);
+  const preset = presetName ?? analysis.recommendedPresets[0] ?? 'devops';
+  const selectArg = options.get('select');
+  let select: readonly string[];
+  if (selectArg !== undefined) {
+    select = selectArg.split(',').map(id => id.trim()).filter(id => id.length > 0);
+    if (select.length === 0) { writeErr('dz setup: --select requires comma-separated skill ids'); return 1; }
+  } else {
+    const selectedPreset = getPreset(preset);
+    if (selectedPreset === undefined) { writeErr(`dz setup: --preset must be one of: ${PRESET_NAMES.join(', ')}`); return 1; }
+    select = selectedPreset.skills;
+  }
+  const roots = discoverSkillsDirs(cwd, options.get('skills-dir')).map(dir => ({ dir, ids: discoverSkillIds(dir) }));
+  const selected = resolveSelection(select, roots);
+  const refusal = formatSelectRefusal(selected, roots);
+  if (refusal !== null) {
+    writeErr(refusal);
+    writeMissingSkillsHint(writeErr, selected.missing, selectArg !== undefined ? undefined : preset, options.get('skills-dir'));
+    return 1;
   }
 
   write(`\n╔══════════════════════════════════════════════════════╗`);
@@ -6631,11 +6659,9 @@ async function cmdSetup(options: Map<string, string>, flags: Set<string>, cwd: s
 
   // Step 1: Run pretrain to analyze project
   write(`║  1. Analyzing project...                              ║`);
-  const analysis = pretrain(projectRoot);
   write(`║     Type: ${analysis.projectType.padEnd(15)} Techs: ${String(analysis.techs.length).padStart(2)}                 ║`);
 
   // Step 2: Determine preset (auto or manual)
-  const preset = presetName ?? analysis.recommendedPresets[0] ?? 'devops';
   write(`║  2. Preset: ${preset.padEnd(40)}║`);
 
   // Step 3: Run setup (hooks + memory + config)
@@ -6694,24 +6720,18 @@ async function cmdSetup(options: Map<string, string>, flags: Set<string>, cwd: s
   // Step 4: Install skills — actually compile them to the target (shared with `dz init`).
   // Honors --select (overrides the preset); otherwise installs the resolved preset's skills.
   write(`║  4. Installing skills...                              ║`);
-  const selectArg = options.get('select');
-  const select = selectArg !== undefined
-    ? selectArg.split(',').map((s) => s.trim()).filter((s) => s.length > 0)
-    : getPreset(preset)?.skills;
-  const install = select !== undefined && select.length > 0
-    ? await installSkills({
-        target, projectRoot, cwd, explicitSkillsDir: options.get('skills-dir'), select,
-        force: flags.has('force'), enrich: flags.has('enrich'), noHooks: flags.has('no-hooks') || flags.has('no-memory') || setupIncomplete,
-        noIntegrations: flags.has('no-integrations') || setupIncomplete,
-        noVerify: flags.has('no-verify'),
-        ...(options.get('allow-integrations') !== undefined ? { allowIntegrations: options.get('allow-integrations')! } : {}),
-      })
-    : undefined;
-  if (install) {
-    write(`║     ${String(install.results.length).padStart(2)} skill(s), ${String(install.written).padStart(3)} file(s) written${' '.repeat(15)}║`);
-  } else {
-    write(`║     (no skills resolved)                              ║`);
-  }
+  const install = await installSkills({
+    target, projectRoot, cwd, explicitSkillsDir: options.get('skills-dir'), select,
+    writeErr,
+    force: flags.has('force'), enrich: flags.has('enrich'), noHooks: flags.has('no-hooks') || flags.has('no-memory') || setupIncomplete,
+    noIntegrations: flags.has('no-integrations') || setupIncomplete,
+    noVerify: flags.has('no-verify'),
+    ...(options.get('allow-integrations') !== undefined ? { allowIntegrations: options.get('allow-integrations')! } : {}),
+  });
+  if (install.selectRefusal !== undefined) writeErr(install.selectRefusal);
+  for (const line of formatSkillLoadFailures(install.failures)) writeErr(line);
+  for (const line of formatSkillApplyFailures(install.applyFailures)) writeErr(line);
+  write(`║     ${String(install.results.length).padStart(2)} skill(s), ${String(install.written).padStart(3)} file(s) written${' '.repeat(15)}║`);
 
   // Step 5 (ADR-001 §8): DELIVER the codex hooks and verify them live. Non-aborting — the rest of
   // setup has already run and the summary still prints; only the exit code carries the failure.
@@ -6756,7 +6776,7 @@ async function cmdSetup(options: Map<string, string>, flags: Set<string>, cwd: s
     for (const outcome of setupIntegrationOutcomes) {
       write(`dz setup integration ${outcome.component}: ${outcome.status.toUpperCase()}${outcome.reasonCode ? ` (${outcome.reasonCode})` : ''}`);
     }
-    writeMissingSkillsHint(write, install.missing, selectArg !== undefined ? undefined : preset);
+    writeMissingSkillsHint(writeErr, install.missing, selectArg !== undefined ? undefined : preset, options.get('skills-dir'));
   }
   // A hook that was written but never witnessed firing is NOT a completed setup (ADR-002 §5): the
   // step is reported failed, the process was not aborted.
@@ -6771,7 +6791,9 @@ async function cmdSetup(options: Map<string, string>, flags: Set<string>, cwd: s
     write(`\n✗ setup reported ${erroredSteps.length} failed step(s): ${erroredSteps.join(', ')} — exit 1`);
   }
   const integrationsOk = !setupIntegrationOutcomes.some((row) => row.status === 'refused');
-  return codexHooksOk && erroredSteps.length === 0 && integrationsOk ? 0 : 1;
+  const skillsOk = install.selectRefusal === undefined && install.missing.length === 0
+    && install.failures.length === 0 && install.applyFailures.length === 0;
+  return codexHooksOk && erroredSteps.length === 0 && integrationsOk && skillsOk ? 0 : 1;
 }
 
 function cmdPretrain(options: Map<string, string>, cwd: string, write: Write): number {

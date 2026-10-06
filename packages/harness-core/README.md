@@ -17,7 +17,7 @@ commands. Use `node --test <file>` through the same wrapper for Node tests. Focu
 is supported; it does not prove a complete suite, meaningful tests or authenticated evidence.
 See the repository `.githooks/README.md` for bounds, supported commands and reasoned overrides.
 
-Current package version: `0.8.52`. <!-- dz:version -->
+Current package version: `0.8.53`. <!-- dz:version -->
 
 Joint current metadata requires `<!-- dz:version -->` on a dedicated undated core/CLI line. Both README writers preserve unmarked historical joint pairs; the guard and release-line report skip them. Fenced examples cannot become current joint metadata. `parseReleaseLine` remains structural, while selection requires this explicit opt-in. The marker still forces per-package rewriting of every matching version on its line, even inside history; keep it off historical records.
 
