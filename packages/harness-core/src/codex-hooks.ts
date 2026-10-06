@@ -69,7 +69,7 @@ import { mergeManagedHookEntries } from './managed-hooks.js';
  * the SAME conclusion, scoped honestly as "not observed on codex-cli 0.154.0 across 3 scenarios / 6
  * captures", not "does not exist". A changed body ⇒ re-trust.
  */
-export const DZ_HOOK_HELPER_VERSION = 10;
+export const DZ_HOOK_HELPER_VERSION = 11;
 
 /** Seconds. Probe-proven (spike S2): `timeout` is honored, the unset default is 600 s. */
 export const DZ_HOOK_TIMEOUT_SECONDS = 5;

@@ -35,6 +35,7 @@ import { connect as netConnect } from 'node:net';
 import { tmpdir, uptime } from 'node:os';
 import { join, resolve } from 'node:path';
 import { hookCommandsOf } from './managed-hooks.js';
+import { HYBRID_RECALL_HOOK_SCORE_FLOOR } from './recall-hook-policy.js';
 import { patternRecordId, recordPattern, removePatternsByIds, loadStorePatternsSync } from './patterns.js';
 /**
  * FR-6 (feature `hook-recall-hybrid-parity`, ADR-001 C-4): send ONE `op: recall` probe to a LIVE
@@ -395,7 +396,7 @@ const TIMEOUT_MS = Number(process.env.DZ_RECALL_HOOK_TIMEOUT_MS || 800);
 // (zero/negative/NaN from a malformed hit), so it is set well BELOW the measured noise floor
 // (0.01471) rather than attempting to rank-filter — deliberately permissive, matching ADR-001 D2's
 // stated intent that an exact lexical match (FR-4) must never be defeated by an unmeasured cutoff.
-const HOOK_SCORE_FLOOR = Number(process.env.DZ_RECALL_HOOK_SCORE_FLOOR || 0.005);
+const HOOK_SCORE_FLOOR = Number(process.env.DZ_RECALL_HOOK_SCORE_FLOOR || ${HYBRID_RECALL_HOOK_SCORE_FLOOR});
 
 const safe = (fn, fb) => {
   try {

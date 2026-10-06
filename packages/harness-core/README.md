@@ -17,7 +17,7 @@ commands. Use `node --test <file>` through the same wrapper for Node tests. Focu
 is supported; it does not prove a complete suite, meaningful tests or authenticated evidence.
 See the repository `.githooks/README.md` for bounds, supported commands and reasoned overrides.
 
-Current package version: `0.8.51`. <!-- dz:version -->
+Current package version: `0.8.52`. <!-- dz:version -->
 
 Joint current metadata requires `<!-- dz:version -->` on a dedicated undated core/CLI line. Both README writers preserve unmarked historical joint pairs; the guard and release-line report skip them. Fenced examples cannot become current joint metadata. `parseReleaseLine` remains structural, while selection requires this explicit opt-in. The marker still forces per-package rewriting of every matching version on its line, even inside history; keep it off historical records.
 
@@ -25,6 +25,24 @@ Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree
 
 Shared logic for the DZ harness — the engine behind `@dzhechkov/harness-cli`
 and any other consumer.
+
+## Experimental owned Codex recall accounting
+
+`runCodexRecallProxy` exposes an owned App Server stdio launch, and
+`readCodexRecallObserverSnapshot(projectRoot, observerId)` reads one explicitly selected private
+recorded snapshot. See the harness-cli README's experimental Codex recall observer section for
+installation and client launch. Native stdout alone feeds `CodexRecallObserver`; arbitrary JSON
+files and client stdin do not establish provenance. Supported experimental runtime is `0.160.1`,
+whose raw-event option is available on thread start only. Restart/resume without native raw events
+remains unknown. Existing producer `hostConfirmation` is unchanged.
+
+The generated Codex recall helper preserves daemon engine metadata: an explicit hybrid reply
+uses `HYBRID_RECALL_HOOK_SCORE_FLOOR` (`0.005`), shared with the Claude helper. Cosine, unknown and
+missing engines retain the cosine policy. Framing activates only under the owned proxy nonce;
+ordinary recall output stays byte compatible. Exact complete framed segments, verified native
+hook identity and per-item native attribution are required before lesson IDs receive accounted
+input facts. Item tokens may include other context or cached input, and are not billing or model-use
+proof. State and private persisted DTOs are bounded; lifecycle transitions invalidate active joins.
 
 ## Repository links for npm packages
 

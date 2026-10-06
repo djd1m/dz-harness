@@ -1,6 +1,6 @@
 # @dzhechkov/harness-cli
 
-Current package version: `0.8.43`. <!-- dz:version -->
+Current package version: `0.8.44`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -17,7 +17,54 @@ You do NOT need to clone any repository to use dz. Source is for contributors �
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/harness-cli
 
-Current package versions: `harness-core v0.8.51` · `harness-cli v0.8.43`. <!-- dz:version -->
+## Experimental Codex recall observer
+
+`dz codex-recall-observe` launches and proxies one Codex App Server over newline-delimited JSON
+on stdin/stdout. Configure your App Server client to launch this command in place of
+`codex app-server`; it observes only that owned child. It cannot attach to an already running
+Codex CLI, desktop app or platform session.
+
+```bash
+# Install and arm the actual generated dz hooks using the normal trust workflow.
+dz hooks-sync --target codex --project /path/to/project --codex-home /path/to/codex-home
+
+# Client subprocess argv (stdin/stdout remain the native App Server protocol):
+dz codex-recall-observe --project /path/to/project --codex-home /path/to/codex-home --binary /path/to/codex
+
+# stderr prints observer=<32-hex-id>. Query that exact observer separately:
+dz codex-recall-observe --status --observer <32-hex-id> --project /path/to/project --json
+```
+
+The project must already have a `.dz` directory for snapshots. No store is created by the
+observer. It enables `initialize.capabilities.experimentalApi` and, on `thread/start`,
+`experimentalRawEvents`. Supported evidence is pinned to Codex `0.160.1`. That version has no
+raw-event option on `thread/resume`; an actual restart/resume without new native raw events
+reports unknown. Compaction, rollback, resume and disconnect clear current pending evidence.
+Existing clients must explicitly support this proxy launch; no global client configuration is changed.
+
+`accounted-input` requires verified generated hook ownership, native hook completion, complete
+framed lesson bytes in a tagged developer context item, and positive item attribution for the same
+thread, turn and response. Partial spill proves only complete surviving lesson segments; the
+observer never follows spill paths. Item tokens cover the entire native context item, which may
+include sibling context or cached input. They do not measure tokens per lesson, fresh injections,
+billed cost, model attention or lesson usefulness. Missing or unsupported evidence stays unknown.
+`currentStage` separately reports `hook-completed` and `context-recorded` before accounting is
+available. A new turn clears the current stage; late contradictory sibling evidence retracts
+that turn's accounting. Other historical observations remain separate from current evidence.
+Normal helper output remains unchanged outside the proxy; genuine hybrid daemon replies use
+the established hybrid score floor, while cosine replies retain their existing score policy.
+
+The separate status is **recorded local experimental telemetry**, editable by the local user;
+it does not change producer `hostConfirmation`, which remains unknown. Snapshots retain only
+digests, opaque identity aliases, lesson IDs and accounting facts, up to 32 historical records
+and 64 KiB per observer. Raw prompt/context/auth/path text is not persisted. Files are `0600`
+under `.dz/recall-host-observations/` (`0700`); unsafe paths and corrupt/oversize files report unknown.
+Status requires an explicit observer ID, is read-only, and rejects snapshots older than 24 hours.
+Each launch creates one snapshot; remove selected old snapshot files yourself when no longer needed.
+Live backpressure waits for writable callbacks. Explicit termination cancels pending writes; after
+child exit a stalled output sink has a two-second final drain window before cancellation.
+
+Current package versions: `harness-core v0.8.52` · `harness-cli v0.8.44`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. The marker retains its explicit whole-line override for per-package synchronization, so keep it off historical records.
 
@@ -298,7 +345,7 @@ you know exactly which file is at fault, and you know whose defect it is.
 
 ## User Journey — from install to mastery
 
-All 94 commands (MEASURED — reproducer: `node --input-type=module -e "import('./dist/index.js').then(m=>console.log(m.DZ_COMMANDS.length))"` from this package; rendered help documents 95 unique top-level names — the 94 plus the built-in `help` — pinned NAME-FOR-NAME by `test/command-inventory-parity.test.ts`) mapped to a real workflow:
+All 95 commands (MEASURED — reproducer: `node --input-type=module -e "import('./dist/index.js').then(m=>console.log(m.DZ_COMMANDS.length))"` from this package; rendered help documents 96 unique top-level names — the 95 plus the built-in `help` — pinned NAME-FOR-NAME by `test/command-inventory-parity.test.ts`) mapped to a real workflow:
 
 ```
 DISCOVER → INSTALL → USE → CREATE → MAINTAIN → SHARE
@@ -2214,10 +2261,10 @@ runs a command that MEASURES the declared artifacts itself. It refuses a null re
 never recorded as done), an absent or partially-present artifact set, and a stage that declares nothing
 to witness — so a stage that did not happen can no longer be recorded, which the old mechanism allowed.
 
-## All Commands (94)
+## All Commands (95)
 
-*(94 MEASURED from the bounded command inventory below; rendered `dz --help` exposes 95 unique
-top-level names — the 94 plus the built-in `help`, which prints USAGE before the dispatch switch and
+*(95 MEASURED from the bounded command inventory below; rendered `dz --help` exposes 96 unique
+top-level names — the 95 plus the built-in `help`, which prints USAGE before the dispatch switch and
 is therefore documented without being a command. Both numbers are COMPUTED, never typed: the name
 sets of this section, the root README, the docs site and `DZ_COMMANDS` are pinned to each other by
 `test/command-inventory-parity.test.ts`.)*
@@ -2241,6 +2288,7 @@ dz vector export     <path> [--project <dir>]       # portable VECTOR form (.rvf
 dz vector import     <file.rvf> [--project <dir>] [--json]         # RVF import — UPSERT-BY-dzId (idempotent, never overwrites; orphans skipped)
 dz vector harmonize  [--apply] [--threshold <0..1>] [--json]       # SEMANTIC merge of near-dups (dry-run default; --apply after a restorable backup)
 dz teach --harmonize [--apply] [--threshold <0..1>]                # alias of `dz vector harmonize`
+dz codex-recall-observe [--project <dir>] [--binary <codex>] [--codex-home <dir>] | --status --observer <id> [--json]   # owned experimental App Server stdio observer
 dz statusline        [--json] [--install] [--watch --project <dir> --brain <dir> --slug <s> --run-id <id> --interval <seconds>]   # compact Claude Code statusline: live self-learning pattern count + brain sources
 dz store-guard       [--status|--reset|--prune [--apply]] [--yes] [--project <dir>]   # inspect the monotonic external high-water mark; --reset is the only lowering path and requires confirmation; --prune removes marks whose project is gone (dry run by default)
 dz usage             [--json] [--project <dir>]   # 7-day UTC spend from local Claude Code + subagent transcripts; provider-limit routing disabled by design
@@ -2621,7 +2669,7 @@ dz import-ecc       [--local-path <dir>] [--select id,id,...] [--limit N] [--out
 ```
 
 Built-in, not a command: `dz help` prints this same USAGE and is handled before the dispatch switch,
-so `dz --help` lists 95 names while the canonical inventory above holds 94 (ADR-001 of feature
+so `dz --help` lists 96 names while the canonical inventory above holds 95 (ADR-001 of feature
 `command-count-triad`).
 
 **Adding a command — the whole checklist, in order.** It replaces the seven-place folklore that used
@@ -6171,7 +6219,7 @@ exports (`commandInventory`, `declaredCommands`, `dispatchedCommands`, `document
 `stripNonCode`, `validateExceptionList`, `INTERNAL_ENTRY_POINTS`, `PSEUDO_COMMANDS`) — instead of a
 fourth private regex and a fourth number. Four hidden commands (`mr-rakes`, `retro`,
 `feature-adr-setup`, `bto-optimize`) gained USAGE lines, so `--help` changed; `help` is a documented
-pseudo-command, not a `case` label. **94 canonical commands, 95 names in rendered `--help`** (the 94
+pseudo-command, not a `case` label. **95 canonical commands, 96 names in rendered `--help`** (the 95
 plus the built-in `help`) — both COMPUTED from `cli.ts`, neither typed into a test. Three cross-family QE rounds closed
 six parser defects the naive version had: four that INVENTED a command (regex literals with a lone
 `}`, `case` labels in comments or templates, sub-verb labels from nested switches, `  dz <name>` lines

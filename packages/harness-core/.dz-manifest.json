@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "ce306cef01cda472875a3545af5b4d037966c422eb829e737ff131cc32ee106a"
+        "sha256": "7599d4ad790025b0c6a6cb4da2df7c47a0bb31b0592eefcf53575a97141859ff"
       },
       {
         "path": "dist/__tests__/golden-baseline.test.d.ts",
@@ -129,15 +129,15 @@
       },
       {
         "path": "dist/apply-leg.d.ts.map",
-        "sha256": "136d07e2dfb92b3e5ebfc9a5fc4d176148da20adab9c49118eac2b5c78ea183b"
+        "sha256": "244755f54d764b9c2f3460a215e2b7d67059d907f42f162fdc4cf7c0e01124be"
       },
       {
         "path": "dist/apply-leg.js",
-        "sha256": "eb1f62c20da218a0067b281a8fb6d9ab6b068b32d0f677f5d8e3adc9a6795179"
+        "sha256": "c289518df85ed761251441d8d3212b3f79cdd8d7b2fd628e7a923460f24a6536"
       },
       {
         "path": "dist/apply-leg.js.map",
-        "sha256": "07bc318673c6071af71e277ef17790fd738b6c3e336d4ddd0a8f005f80fc0695"
+        "sha256": "44c249773377ae95e0d7dcc71259e20328af57fce4209b491b9f3e96e65b4936"
       },
       {
         "path": "dist/apply.d.ts",
@@ -497,15 +497,15 @@
       },
       {
         "path": "dist/codex-hooks-assets.d.ts.map",
-        "sha256": "99225624ddd4003700a78e3bae73484510db69f925335d549e35509c577426ee"
+        "sha256": "6d3413bf8eed3926edce1552cf4cd30c121a2c624d25f48234d8c918ae21c505"
       },
       {
         "path": "dist/codex-hooks-assets.js",
-        "sha256": "64f65d5568a9e231c7b692e45549321d3748a9edaa69d368509085f0f3ab5f00"
+        "sha256": "5c3e129df56fb1415b9be1c484d6149f1c042f6d12936c23be03a01228d131b3"
       },
       {
         "path": "dist/codex-hooks-assets.js.map",
-        "sha256": "0e2a92800c9fd1a01aa3b98d4e8f3c0a7bd4695f50f59b06bc0d116df5c78838"
+        "sha256": "815e1eb72c2ee6fdfe1d1e1c18913386c0e4bb513c85a47e2c6f5d53cf1ce7a6"
       },
       {
         "path": "dist/codex-hooks-verify.d.ts",
@@ -525,7 +525,7 @@
       },
       {
         "path": "dist/codex-hooks.d.ts",
-        "sha256": "8ea98ceaeb196a9bc373678e749d0dd237869a9e9a0b0e7e928e290d431391cf"
+        "sha256": "0980a35bf7745a7741afac0882eca352f454719b785cdef1b8b381d4df72b6d3"
       },
       {
         "path": "dist/codex-hooks.d.ts.map",
@@ -533,7 +533,7 @@
       },
       {
         "path": "dist/codex-hooks.js",
-        "sha256": "7ecf358344dd25d4a814deb2f67875ba52ada5a0f3157eead480238641588438"
+        "sha256": "9f5c8d036ee97cfb46bf2b70f05d4da0c1f661c7da0e73c36ece2db20c388bc4"
       },
       {
         "path": "dist/codex-hooks.js.map",
@@ -554,6 +554,70 @@
       {
         "path": "dist/codex-invoke.js.map",
         "sha256": "bbd71ccc9e7bc61620e9a598ca71e3e1b42691e2e001a0b22df0b68260488cbe"
+      },
+      {
+        "path": "dist/codex-recall-frame.d.ts",
+        "sha256": "966bfe64a5a8e674c7c9dcd40e7ced9d26891d4d47fa1e14e787c0c41de87bb8"
+      },
+      {
+        "path": "dist/codex-recall-frame.d.ts.map",
+        "sha256": "0f16d6f1823d4a9f40632730739eb69faa5792db4db8fc69c3c98ebbe87f9acc"
+      },
+      {
+        "path": "dist/codex-recall-frame.js",
+        "sha256": "0bb1430c6a94720e08c0b75725c67c197437955a6c130fe2a830b52f44897bc6"
+      },
+      {
+        "path": "dist/codex-recall-frame.js.map",
+        "sha256": "f1d81ec54d695d21c5c35160e2002ab599ae88c4d4c6a2fceb09135033323ecb"
+      },
+      {
+        "path": "dist/codex-recall-observer.d.ts",
+        "sha256": "339ffa2ba73e7c10edc909e83799e7f159108cc6118c97ee85493e224781f932"
+      },
+      {
+        "path": "dist/codex-recall-observer.d.ts.map",
+        "sha256": "0d6123a90d88cc91584d933be9285e96cd8c512daea1f8c7810b50ded29f5708"
+      },
+      {
+        "path": "dist/codex-recall-observer.js",
+        "sha256": "e8e362e9de7439b31b8330044ef21cb36e3331ecbcbd09e97fe8ac659c9962d9"
+      },
+      {
+        "path": "dist/codex-recall-observer.js.map",
+        "sha256": "b37ae4115007e787ac3f82b68e1085ca21bb08465ac4f4c25acfef66f0440f95"
+      },
+      {
+        "path": "dist/codex-recall-proxy.d.ts",
+        "sha256": "321b5af0d1f62ec9476697f5f66669e0fb1bd52aecc2f9908ea17f46534b38de"
+      },
+      {
+        "path": "dist/codex-recall-proxy.d.ts.map",
+        "sha256": "04f608451ceef5b845d69cd4febdad3cbf2e5dcfc49d3852a284c59ae59257b2"
+      },
+      {
+        "path": "dist/codex-recall-proxy.js",
+        "sha256": "c0c6893e08c2e020a88ca5179b6ac71f8cb21b2adc501467b0a8486c43de9f48"
+      },
+      {
+        "path": "dist/codex-recall-proxy.js.map",
+        "sha256": "e230c13304c03d98130cebf74c980ad20d07f6113b5ce9b5aff86082a8a990c1"
+      },
+      {
+        "path": "dist/codex-recall-store.d.ts",
+        "sha256": "2f99e28c1d7247d8905e0203737948aab208be7802b435719b0b29dc1181aabd"
+      },
+      {
+        "path": "dist/codex-recall-store.d.ts.map",
+        "sha256": "ddbedc1ad03e0bb14c0a94f5e93666e7269a31906acbe5831158f2dfb8f86d90"
+      },
+      {
+        "path": "dist/codex-recall-store.js",
+        "sha256": "17b5cf68fa2ab5d8dc8555d737df2a89a8fb347d6ff0c57afb4da0af57de5509"
+      },
+      {
+        "path": "dist/codex-recall-store.js.map",
+        "sha256": "2a9de9bbf28dcd11f5e722e178921fb68e1a313769049308be91ab48d15e8906"
       },
       {
         "path": "dist/codex-rollouts.d.ts",
@@ -1165,19 +1229,19 @@
       },
       {
         "path": "dist/index.d.ts",
-        "sha256": "42c6dc05bc6dd240298694b6c6eed2000e99cc48a862cc3a1375adadf3c09cd0"
+        "sha256": "d1f19e1272e6b761262dc13bc1fdc468b7e2a68f1529d27aa3a511800f12ce80"
       },
       {
         "path": "dist/index.d.ts.map",
-        "sha256": "15beaa30c421e03a5d43d27d1033ba7bfc5f464bddb4c4a774b1a55eae913636"
+        "sha256": "d0815f9ade8eb55697efd788d85b0d591bbe8b49d839201ab171913e9912bb99"
       },
       {
         "path": "dist/index.js",
-        "sha256": "71d602c75266011393e8776fc3f6c39288f8b57b308b3816e85d335434b3ebdf"
+        "sha256": "eb18981e0a793e7a50f57fd7c2e9511b151c6daa2f563b16046c07b9728cfb79"
       },
       {
         "path": "dist/index.js.map",
-        "sha256": "952b570f677c201c22245bd93c193c343835af31a16518a96207735ace8bd5b2"
+        "sha256": "fdb475004642edc3d139d978d40a9d0fce2fe44801aeb3c7b1b435f205913af5"
       },
       {
         "path": "dist/integration-apply.d.ts",
@@ -2013,19 +2077,19 @@
       },
       {
         "path": "dist/recall-hook-policy.d.ts",
-        "sha256": "69f7a8c2046b943fd39a32a9c1641cfa7e321c2066529705ba1d025cafd69f68"
+        "sha256": "a4c9ba7be0f6c16d6afc06b9446251c2027e693b7ed83e41b9bb777a87d54a39"
       },
       {
         "path": "dist/recall-hook-policy.d.ts.map",
-        "sha256": "7173317e1f06b40f416ad25ab5818bcab375f81ee99e7c883da6228f30829f52"
+        "sha256": "52d25533d9ea8a794d76baf7af9823f87e3d729f53c821905b9888a6f6ff414c"
       },
       {
         "path": "dist/recall-hook-policy.js",
-        "sha256": "8f5a5c9b2cb393bd2cf929d6e3a3fa1bf63a2bff6718f64d0352d57bad1ac8ab"
+        "sha256": "b08020985b366664cf1737ad0ac00a4417e1e35e58dbe6cb7ae8d8483cb0a372"
       },
       {
         "path": "dist/recall-hook-policy.js.map",
-        "sha256": "55ceb778442304323aa1b00b05e5aca78ffa8ab8be4a8b2494297a32a891d7f2"
+        "sha256": "0a6b795377d84a0ddbb5828ebb7370e61bc2e9fb75911631a0391727d337a71a"
       },
       {
         "path": "dist/recall-observation.d.ts",
@@ -3133,7 +3197,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "74fc13ceafb0a6cc4dda341b624853d3857e6456a2e0320088d545cc752bf1df"
+        "sha256": "c45266525aa640ec78d7bb37a79b55f8e7ac2a3d0072a34274265731abcff1eb"
       },
       {
         "path": "src/__tests__/golden-baseline.test.ts",
@@ -3165,7 +3229,7 @@
       },
       {
         "path": "src/apply-leg.ts",
-        "sha256": "9506f2064c3b70c26424d4b794c6904d08bf88e5e7976248d8336ed21eb89444"
+        "sha256": "6ad447e7d99cc5a6bdbae21fc61ddaab6555bb7dadb3bd350fa333afd070c35e"
       },
       {
         "path": "src/apply.ts",
@@ -3257,7 +3321,7 @@
       },
       {
         "path": "src/codex-hooks-assets.ts",
-        "sha256": "283c3fa5b37e169039a78c2aa6efdb85e3505756b5ae3ec95e92c88dceb09ee7"
+        "sha256": "18871570165c34cb2d26d291aa169d93210a86355a43210b62d3c29307977c06"
       },
       {
         "path": "src/codex-hooks-verify.ts",
@@ -3265,11 +3329,27 @@
       },
       {
         "path": "src/codex-hooks.ts",
-        "sha256": "1bbd4ce5590be09729d06919db446491022276475f0efc91faa882b7e0cf7819"
+        "sha256": "fb86cd04c17f0f5007a07514f17abbab0bb2ea13df30adfd844565b809ebfd27"
       },
       {
         "path": "src/codex-invoke.ts",
         "sha256": "ae5688a2686675438eb7ac5b13d5a4870c82741cdf3a7105c892f52746ddceca"
+      },
+      {
+        "path": "src/codex-recall-frame.ts",
+        "sha256": "f630eabbf7293159657d646e9452ba247582acd03ba20ab6c6f0a67885b70c27"
+      },
+      {
+        "path": "src/codex-recall-observer.ts",
+        "sha256": "d81f906a65e6a9da6d7a6528406c162f16ab929ccacfc16f45a3c06a9b0bf3ba"
+      },
+      {
+        "path": "src/codex-recall-proxy.ts",
+        "sha256": "5c7b0069b5fed04c81011ba6bf294949286529b1ca212a133cc452b166f2a3ee"
+      },
+      {
+        "path": "src/codex-recall-store.ts",
+        "sha256": "7b9dc56068f8f1aeec2f6a1290c8993f70143da85c96c6abe4f448be4603b120"
       },
       {
         "path": "src/codex-rollouts.ts",
@@ -3429,7 +3509,7 @@
       },
       {
         "path": "src/index.ts",
-        "sha256": "61229e807d4bd72c3db435bd4f778ee0020f9c08a69445e8c9928a23384d70d9"
+        "sha256": "fdc46a9ede311569de9dd92ef19a2733d16812279b901c9f1af3208af56ea699"
       },
       {
         "path": "src/integration-apply.ts",
@@ -3649,7 +3729,7 @@
       },
       {
         "path": "src/recall-hook-policy.ts",
-        "sha256": "b9adba18b29c07788cc27e2f46880e810c484471476abb04b5727d85698485cc"
+        "sha256": "88893747a4b8ba02efb9dab3101183d3912f05908d37b5329e735628e30b154d"
       },
       {
         "path": "src/recall-observation.ts",
@@ -3937,5 +4017,5 @@
       }
     ]
   },
-  "signature": "Li9yaBfXgHDeaAQZuV9Esc9C3uYc72/+31r6zAYxeE4cP8WsVBEKSP5zwmvqQ17LcufBlXR4jU/Z92QKa2myDw=="
+  "signature": "8MkBImHi5n45ijm0ELg/EMUatjDKiPl/PbCLo8/RN0tD60Ul3+Rz8qoSltP8U0rCVh0Mu+BvNcTnEnixQCQgCw=="
 }

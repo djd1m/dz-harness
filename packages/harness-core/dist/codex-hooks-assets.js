@@ -428,7 +428,7 @@ function askDaemon(root, prompt) {
       clearTimeout(timer);
       let msg = null;
       try { msg = JSON.parse(buf.slice(0, nl)); } catch (_) { msg = null; }
-      done(msg && Array.isArray(msg.hits) ? msg.hits : undefined);
+      done(msg && Array.isArray(msg.hits) ? { hits: msg.hits, engine: msg.engine } : undefined);
     });
     sock.on('error', () => { clearTimeout(timer); done(undefined); });
   });
@@ -461,13 +461,16 @@ async function main() {
   const policy = await loadCore(root, 'recall-hook-policy.js', (m) => typeof m.selectHookHits === 'function');
   if (policy === null) { selected({ unknown: 'core-unavailable' }); return; }
 
-  const candidates = await askDaemon(root, prompt);
-  if (!candidates) { selected({ unknown: 'daemon-unavailable' }); return; }
+  const reply = await askDaemon(root, prompt);
+  if (!reply) { selected({ unknown: 'daemon-unavailable' }); return; }
+  const candidates = reply.hits;
   if (candidates.length === 0) { selected({ hits: [], reason: 'no-candidates' }); return; }
 
   let selection = null;
   try {
-    selection = policy.selectHookHits(prompt, candidates);
+    const hybridFloor = Number(process.env.DZ_RECALL_HOOK_SCORE_FLOOR || policy.HYBRID_RECALL_HOOK_SCORE_FLOOR || 0.005);
+    selection = policy.selectHookHits(prompt, candidates, reply.engine === 'hybrid'
+      ? { floors: { ru: hybridFloor, en: hybridFloor } } : {});
   } catch (err) {
     selected({ unknown: 'selection-failed' });
     note('select-hits', err);
@@ -480,6 +483,13 @@ async function main() {
   let context = '';
   try { context = policy.renderHookContext(selection); } catch (err) { emitted('render-failed'); note('render', err); return; }
   if (context === '') { emitted('no-selected-context'); return; } // empty context => print NOTHING
+
+  // Only an owned experimental observer sets this nonce. Ordinary hook output stays byte-equal.
+  if (process.env.DZ_CODEX_RECALL_OBSERVER_NONCE) {
+    const framing = await loadCore(root, 'codex-recall-frame.js', (m) => typeof m.renderCodexRecallFrame === 'function');
+    try { if (framing) context = framing.renderCodexRecallFrame(selection, process.env.DZ_CODEX_RECALL_OBSERVER_NONCE, event && event.eventId); }
+    catch (_) { /* observation must never suppress recall */ }
+  }
 
   const envelope = JSON.stringify({ hookSpecificOutput: { hookEventName: 'UserPromptSubmit', additionalContext: context } }) + '\\n';
   process.stdout.on('error', () => {});

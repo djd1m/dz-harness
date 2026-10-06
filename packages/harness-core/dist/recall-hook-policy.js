@@ -33,6 +33,8 @@
  *
  * @packageDocumentation
  */
+/** Existing hybrid-hook policy: RRF is a rank score, not a cosine relevance measurement. */
+export const HYBRID_RECALL_HOOK_SCORE_FLOOR = 0.005;
 /**
  * MEASURED defaults. RU sits higher than EN because a multilingual encoder places any Cyrillic text
  * slightly closer to any Latin text than two unrelated Latin texts are to each other — the baseline,

@@ -333,6 +333,12 @@ export { statuslineData, readFeatureAdrObservation, readFeatureAdrState, writeFe
 export type { StatuslineData, StatuslineStoreHealth, FeatureAdrObservation, FeatureAdrSelector, FeatureAdrState, WriteFeatureAdrStateInput, WriteFeatureAdrStateResult } from './statusline.js';
 export { beginRecallObservation, updateRecallSelection, updateRecallEmission, readRecallObservation, renderRecallObservationLine, renderRecallObservationDetails, recallSessionAlias, resolveRecallObservationProjectRoot, writeRecallEnvelope, RECALL_OBSERVATION_MAX_BYTES, RECALL_OBSERVATION_MAX_SESSIONS, RECALL_OBSERVATION_MAX_ITEMS, RECALL_OBSERVATION_TTL_MS, RECALL_OBSERVATION_CLOCK_SKEW_MS, RECALL_EMISSION_TIMEOUT_MS } from './recall-observation.js';
 export type { RecallObservation, RecallObservationEvent, RecallObservationSelector, BeginRecallObservationInput, RecallSelection, RecallEmission, RecallProducer, RecallOutputSink } from './recall-observation.js';
+export { renderCodexRecallFrame, parseCodexRecallFrame, CODEX_RECALL_FRAME_MAX_BYTES, CODEX_RECALL_OBSERVER_NONCE_ENV } from './codex-recall-frame.js';
+export { CodexRecallObserver, CODEX_RECALL_OBSERVER_VERSION } from './codex-recall-observer.js';
+export type { CodexRecallObserverSnapshot, CodexRecallAccountedInput } from './codex-recall-observer.js';
+export { runCodexRecallProxy } from './codex-recall-proxy.js';
+export type { CodexRecallProxyOptions } from './codex-recall-proxy.js';
+export { readCodexRecallObserverSnapshot } from './codex-recall-store.js';
 export {
   ETA_MAX_STAGE_MS,
   estimateEta,

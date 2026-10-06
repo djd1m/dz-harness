@@ -12,6 +12,7 @@ import { packArtifact, readWorkspaceVersions, formatDriftFiles } from '@dzhechko
 // `@dzhechkov/memory`: a new package-graph edge is a publishing-surface change outside this
 // feature's scope, and harness-core already depends on memory.
 import { noSearchableTermsReason } from '@dzhechkov/harness-core';
+import { runCodexRecallProxy, readCodexRecallObserverSnapshot } from '@dzhechkov/harness-core';
 import { OUTSIDE_FILES_REASON } from '@dzhechkov/harness-core';
 import { shortPackageName } from '@dzhechkov/harness-core';
 import { detectMangledText } from '@dzhechkov/harness-core';
@@ -92,7 +93,7 @@ export const DZ_COMMANDS = [
     'usage', 'claim-check', 'lint', 'sign', 'sbom', 'guard', 'verify-pack', 'setup',
     'pretrain', 'compose', 'diff', 'recommend', 'upgrade', 'auto-canonicalize',
     'publish', 'release', 'parity', 'registry', 'benchmark', 'mcp-scan',
-    'sync-upstream', 'drift-check', 'hooks-sync', 'integrations-verify', 'agents-sync', 'sync-canonical',
+    'sync-upstream', 'drift-check', 'hooks-sync', 'codex-recall-observe', 'integrations-verify', 'agents-sync', 'sync-canonical',
     'plugin', 'downloads', 'stats', 'architecture', 'project-skills', 'mr-rakes',
     'retro', 'feature-adr-setup', 'challenge', 'discrimination-check',
     'mutation-gate', 'delivery-check', 'skills-verify', 'compounding', 'deadwood',
@@ -108,6 +109,7 @@ const USAGE = `dz - DZ cross-platform harness CLI
   dz runs-clean [--apply] [--retention-days N] [--project <dir>] [--json]   (plan cleanup of old clean merged worktrees and completed/dead registry events; apply explicitly)
 
 Usage:
+  dz codex-recall-observe [--project <dir>] [--binary <codex>] [--codex-home <dir>] | --status --observer <id> [--json]   (experimental owned App Server stdio proxy; status is recorded local telemetry)
   dz init   --target <name> [--skills-dir <dir>] [--project <dir>] [--preset <name>] [--select id,id,...] [--force] [--enrich] [--allow-integrations <sha256:digest>] [--no-integrations] [--no-hooks] [--no-verify]   (integration manifests require exact digest consent; --no-integrations = explicit skills-only)
   dz verify [--skills-dir <dir>] [--target <name>]
   dz sync   [--canonical <dir>] [--project <dir>] [--dry-run] [--force]
@@ -24279,6 +24281,40 @@ export async function runCli(argv, io = {}) {
                 return cmdDriftCheck(options, flags, cwd, write);
             case 'hooks-sync':
                 return cmdHooksSync(options, flags, cwd, write, writeErr);
+            case 'codex-recall-observe': {
+                const projectRoot = resolve(options.get('project') ?? cwd);
+                for (const key of options.keys())
+                    if (!['project', 'binary', 'codex-home', 'observer'].includes(key)) {
+                        writeErr('dz codex-recall-observe: unsupported argument');
+                        return 2;
+                    }
+                for (const flag of flags)
+                    if (!['status', 'json'].includes(flag)) {
+                        writeErr('dz codex-recall-observe: unsupported option');
+                        return 2;
+                    }
+                if (flags.has('status')) {
+                    const status = readCodexRecallObserverSnapshot(projectRoot, options.get('observer'));
+                    if (flags.has('json'))
+                        write(JSON.stringify(status));
+                    else if (status.state === 'unknown')
+                        write(`recorded-local-experimental: unknown (${status.reason})`);
+                    else {
+                        const observation = status.observation;
+                        write(`recorded-local-experimental observer=${observation.observerId} connection=${observation.connection}`);
+                        write(`stage=${observation.currentStage}; current=${observation.current.state}${observation.current.state === 'unknown' ? ` (${observation.current.reason})` : ''}; historical response records=${observation.historical.length}`);
+                        write('Context item tokens may include sibling hooks and cached input; these records do not establish model use or billing.');
+                    }
+                    return status.state === 'recorded' ? 0 : 3;
+                }
+                if (flags.has('json') || options.has('observer')) {
+                    writeErr('dz codex-recall-observe: --json/--observer require --status');
+                    return 2;
+                }
+                return await runCodexRecallProxy({ projectRoot,
+                    ...(options.get('binary') === undefined ? {} : { binary: options.get('binary') }),
+                    ...(options.get('codex-home') === undefined ? {} : { codexHome: options.get('codex-home') }) });
+            }
             case 'integrations-verify':
                 return cmdIntegrationsVerify(options, flags, cwd, write, writeErr);
             case 'agents-sync':
