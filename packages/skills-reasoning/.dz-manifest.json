@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "1425fbf9fd53eaf6c5b73006293d5c2aab50d62f7de4bc289b9417663e9ab3e9"
+        "sha256": "71f98574cfbd8fc00e63b2e20357acac99ce8b84e9949b6800a6e44a3e974484"
       },
       {
         "path": "agents-md-creator/SKILL.md",
@@ -25,7 +25,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "bd6c1483a8a8942fedf320bd677b871cd57ed9ce3d16d97b582a178714f73a60"
+        "sha256": "4f3b9de63e733bbe4c5e04beb70059638d986a80780c7b43126daf0eb2cd1edf"
       },
       {
         "path": "solid/SKILL.md",
@@ -73,5 +73,5 @@
       }
     ]
   },
-  "signature": "DeIQQdUBIQlNuMgF7T/NikjD5nWWLmxDKOwnUFeBTafwlX3/JNQs9N8xkZDzwI203rjMc3/bQGQTWOPdyeDGCQ=="
+  "signature": "m3Q9CsSC9ZYJ6AncOY9IAzbguJp9F/QsqUQYtVTzKct6CoZ6PtzdG+zZnJu+yrV5GXqlIfmYYyUBK15AT8TpAw=="
 }

@@ -1,5 +1,7 @@
 # @dzhechkov/skills-analyst-manual
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-analyst-manual
+
 Composite analyst skill for [Claude Code](https://claude.com/claude-code) — 3-phase manual pipeline with checkpoints for strategic product analysis.
 
 

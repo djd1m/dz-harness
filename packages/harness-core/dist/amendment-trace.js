@@ -32,13 +32,57 @@ export const MIN_MATCHABLE_ID_LENGTH = 8;
 /**
  * Every `it()` / `test()` / `describe()` title in a test file. Empty when none parse.
  *
- * Comments are stripped FIRST. A commented-out `it('deny admin writes')` is not a test, and counting
- * it would leave open the very forgery the title basis exists to close — the cross-family reviewer's
+ * Comments are masked FIRST, preserving quoted literals. A commented-out
+ * `it('deny admin writes')` is not a test, and counting it would leave open the very forgery
+ * the title basis exists to close — the cross-family reviewer's
  * two-comment-line attack in a slightly better costume. Table forms (`test.each([…])('…')`) carry an
  * argument list between the modifier and the title, so the pattern allows one.
  */
 export function extractTestTitles(body) {
-    const code = body.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+    const parts = [];
+    let quote = null;
+    let comment = null;
+    // Only comment preprocessing is lexical: the declaration matcher below keeps its existing
+    // limits. Backticks are treated as quoted text, without parsing template interpolation.
+    for (let i = 0; i < body.length; i++) {
+        const ch = body[i];
+        const next = body[i + 1];
+        if (comment !== null) {
+            if (ch === '\n' || ch === '\r') {
+                parts.push(ch);
+                if (comment === 'line')
+                    comment = null;
+            }
+            else if (comment === 'block' && ch === '*' && next === '/') {
+                comment = null;
+                i++;
+            }
+            continue;
+        }
+        if (quote !== null) {
+            parts.push(ch);
+            if (ch === '\\' && next !== undefined) {
+                parts.push(next);
+                i++;
+            }
+            else if (ch === quote) {
+                quote = null;
+            }
+            continue;
+        }
+        if (ch === '/' && (next === '/' || next === '*')) {
+            // A separator prevents comments from joining tokens into a declaration.
+            parts.push(' ');
+            comment = next === '/' ? 'line' : 'block';
+            i++;
+        }
+        else {
+            parts.push(ch);
+            if (ch === "'" || ch === '"' || ch === '`')
+                quote = ch;
+        }
+    }
+    const code = parts.join('');
     const out = [];
     // The modifier-argument group admits ONE level of nested parens: `it.skipIf(!existsSync(BIN))`
     // carries a call inside the guard, and the flat `[^()]{0,200}` failed on it — so every title in

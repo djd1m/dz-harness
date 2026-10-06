@@ -1,5 +1,7 @@
 # @dzhechkov/skills-qe
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-qe
+
 Curated quality engineering skill pack — 22 skills for Claude Code agents: 20 from [agentic-qe](https://github.com/proffesor-for-testing/agentic-qe) + 2 vendor-neutral engineering-discipline skills (`validate`, `systematic-debugging`, from [obra/superpowers](https://github.com/obra/superpowers)).
 
 ## Install

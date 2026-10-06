@@ -7,13 +7,11 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { writeFileSync, mkdtempSync, mkdirSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, dirname, resolve } from 'node:path';
+import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const EXTRACT = join(__dirname, '..', 'package-tutorial-factory', 'scripts', 'extract-brief.mjs');
-const REPO = resolve(__dirname, '..', '..', '..', '..'); // repo root
-const BOOK_DIGITIZER = join(REPO, 'packages', '@dzhechkov', 'skills-book-digitizer');
 
 function run(pkgDir, extra = []) {
   const dir = mkdtempSync(join(tmpdir(), 'brief-'));
@@ -25,8 +23,30 @@ function run(pkgDir, extra = []) {
   return { code: r.status, stdout: r.stdout, brief };
 }
 
-test('doc-rich pack (skills-book-digitizer) → >=3 topics, source provenance, NO escalation', () => {
-  const { code, brief, stdout } = run(BOOK_DIGITIZER);
+// Synthetic documentation authored here; no sibling package or private repository is needed.
+function withDocRichSkillPkg(fn) {
+  const pkg = mkdtempSync(join(tmpdir(), 'synthetic-skill-pack-'));
+  try {
+    writeFileSync(join(pkg, 'package.json'), JSON.stringify({ name: 'synthetic-skill-pack', version: '1.0.0' }));
+    writeFileSync(join(pkg, 'README.md'), '# Synthetic skill pack\n\nThree teachable skill units used only by extractor tests.\n');
+    const units = [
+      ['prepare-evidence', 'Collect observations before choosing a change.',
+        'Record the input, command and observed outcome so another reader can repeat the observation. Distinguish what was measured from what the operator inferred. Keep the original input beside the result rather than replacing a failing sample with a convenient successful one.'],
+      ['choose-route', 'Choose a route by the decision it supports.',
+        'Compare the available routes using the actual constraint and the evidence gathered earlier. A route that is fast but cannot answer the question should be rejected with a recorded reason. Select the smallest useful experiment and state what outcome would change the decision.'],
+      ['verify-result', 'Verify the result against the intended outcome.',
+        'Repeat the selected experiment after the change and compare its observable result with the original input. Check both the intended success and the named failure control. Report unresolved uncertainty explicitly so a later reader can tell an observation from a promise.'],
+    ];
+    for (const [name, description, prose] of units) {
+      const dir = join(pkg, 'skills', name); mkdirSync(dir, { recursive: true });
+      writeFileSync(join(dir, 'SKILL.md'), `---\nname: ${name}\ndescription: ${description}\n---\n\n# ${name}\n\n${prose}\n\n## When to use\n\nUse this unit when the decision needs an explicit input, an observation and an accountable next step. Keep the learner's working example small enough to inspect and preserve the evidence needed to repeat it.\n\n## Handoff\n\nName the result, the constraint and the next check. A peer should be able to understand why this step was chosen and which observation would show that the route needs to change.\n`);
+    }
+    return fn(pkg);
+  } finally { rmSync(pkg, { recursive: true, force: true }); }
+}
+
+test('doc-rich synthetic SKILL pack → >=3 topics, source provenance, NO escalation', () => withDocRichSkillPkg(pkg => {
+  const { code, brief, stdout } = run(pkg);
   assert.equal(code, 0, 'doc-rich pack must not escalate (exit 0)');
   assert.ok(brief, 'brief JSON must be written');
   assert.equal(brief.generatedFrom, 'doc-harvest');
@@ -36,10 +56,15 @@ test('doc-rich pack (skills-book-digitizer) → >=3 topics, source provenance, N
     assert.ok(Array.isArray(t.keyConcepts) && t.keyConcepts.length >= 1, `topic ${t.id} needs keyConcepts`);
     assert.ok(typeof t.source === 'string' && t.source.length > 0, `topic ${t.id} needs a source provenance pointer`);
   }
+  const skills = brief.topics.filter(t => t.kind === 'skill');
+  assert.equal(skills.length, 3, 'all three actual SKILL.md units must be harvested');
+  assert.deepEqual(skills.map(t => t.source).sort(), ['skills/choose-route/SKILL.md', 'skills/prepare-evidence/SKILL.md', 'skills/verify-result/SKILL.md']);
+  assert.equal(brief.counts.readmeSections, 0, 'the SKILL branch, not README sections, supplies these topics');
+  assert.ok(brief.counts.docChars >= 1500, 'synthetic skill documentation must satisfy the real volume floor');
   // understand-anything was NOT invoked: the extractor is pure fs, no KG artifact is written.
   assert.ok(!/understand-anything/i.test(stdout) || /no escalation/i.test(stdout),
     'doc-harvest must not invoke understand-anything for a doc-rich pack');
-});
+}));
 
 test('doc-thin pack (source files, empty README) → trips floor, escalate: understand-anything', () => {
   const pkg = mkdtempSync(join(tmpdir(), 'thin-'));
@@ -55,11 +80,11 @@ test('doc-thin pack (source files, empty README) → trips floor, escalate: unde
   assert.equal(code, 3, 'escalation uses the distinct exit code 3 so a caller can branch');
 });
 
-test('non-finite --min-topics clamps (Infinity-recidivism)', () => {
-  const { code } = run(BOOK_DIGITIZER, ['--min-topics', 'Infinity']);
+test('non-finite --min-topics clamps (Infinity-recidivism)', () => withDocRichSkillPkg(pkg => {
+  const { code } = run(pkg, ['--min-topics', 'Infinity']);
   // Infinity floor would force escalation on everything; a clamp keeps the doc-rich pack usable.
   assert.equal(code, 0, 'Infinity min-topics must clamp to the default, not escalate everything');
-});
+}));
 
 // ---- F1 (backlog 48efd82c): the 2-topic ceiling for no-SKILL.md packs ----
 

@@ -1,5 +1,7 @@
 # @dzhechkov/adapter-hermes
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-hermes
+
 The **Hermes Agent** (Nous Research) platform adapter for the DZ cross-platform
 harness.
 

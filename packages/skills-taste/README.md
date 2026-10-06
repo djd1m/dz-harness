@@ -1,5 +1,7 @@
 # @dzhechkov/skills-taste
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-taste
+
 Anti-slop **frontend taste** skill for [Claude Code](https://claude.com/claude-code) — ships **non-templated landing pages, portfolios, and redesigns**.
 
 ## What It Does

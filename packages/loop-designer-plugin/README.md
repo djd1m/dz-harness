@@ -1,5 +1,7 @@
 # @dzhechkov/loop-designer-plugin
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/loop-designer-plugin
+
 > **`dz` AUTHORS, GATES and READS loops — it never RUNS one.**
 
 A Claude Code plugin for **designing agent loops**: one authoring skill (`loop-plan-author`) and

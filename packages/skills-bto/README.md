@@ -1,5 +1,7 @@
 # @dzhechkov/skills-bto
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-bto
+
 **Build-Benchmark-Test-Optimize skill pack for Claude Code**
 
 Multi-agent evaluation and iterative optimization pipeline for Claude Code skills, commands, and prompts. Includes deterministic benchmarking with golden sample comparison, test suites, consistency probes, and performance metrics. Part of the [Keysarium](https://www.npmjs.com/package/@dzhechkov/keysarium) ecosystem.

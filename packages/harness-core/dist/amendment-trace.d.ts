@@ -79,8 +79,9 @@ export declare const MIN_MATCHABLE_ID_LENGTH = 8;
 /**
  * Every `it()` / `test()` / `describe()` title in a test file. Empty when none parse.
  *
- * Comments are stripped FIRST. A commented-out `it('deny admin writes')` is not a test, and counting
- * it would leave open the very forgery the title basis exists to close — the cross-family reviewer's
+ * Comments are masked FIRST, preserving quoted literals. A commented-out
+ * `it('deny admin writes')` is not a test, and counting it would leave open the very forgery
+ * the title basis exists to close — the cross-family reviewer's
  * two-comment-line attack in a slightly better costume. Table forms (`test.each([…])('…')`) carry an
  * argument list between the modifier and the title, so the pattern allows one.
  */

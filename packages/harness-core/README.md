@@ -274,6 +274,17 @@ node ../harness-cli/dist/bin.js mutation-gate --only rule-a-tokenizer-not-regex,
 Only the intentionally red debt test is excluded from that gate's baseline. The scanner accuracy
 test remains included.
 
+## Test title extraction
+
+`extractTestTitles` preserves comment markers inside single-quoted, double-quoted and backtick
+literals, including glob paths such as `runs/*.json` and URLs. Comment preprocessing respects
+backslash escapes and masks real line/block comments as separators, so commented-out declarations
+cannot supply test titles for amendment confirmation.
+
+The existing declaration matcher, synchronous API and normalization remain unchanged. This is a
+limited recognizer: no new title decoding, template-expression or regex-literal parsing, aliases,
+or deeper guard support; guards still admit only one nested call level.
+
 ## Shared Markdown masking
 
 `maskMarkdown` in `src/markdown-masker.ts` is the single implementation used by amendment-trace

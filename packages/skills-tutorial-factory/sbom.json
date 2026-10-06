@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0333f4064470ceeb62fff007f7465be545434e1328ef1e34d6c4d4e48bc46515"
+          "content": "63039f6e4bd871feee5906481b4886ab0e649d45d4f63463963555fdad12b5d9"
         }
       ]
     },
@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "315a21a3d4b47dac4269c2fecf532984504039892c17d39d64352dd3243c306f"
+          "content": "cfb2110d4ab998d511f43bb96269f4dffe0cfe6dd32246ee28d0977a82536c4f"
         }
       ]
     },
@@ -111,11 +111,41 @@
     },
     {
       "type": "file",
+      "name": "package-tutorial-factory/references/JetBrainsMono-OFL.txt",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "30f0c136e3c88e422d0791acd97238870f9054a9729bc34cf2ff0d4ed8cac4ad"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/references/Onest-OFL.txt",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "071195d8806e226faeee60259c28ca67b458227af5195a73f5cfcab06e3003bc"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "package-tutorial-factory/references/course-skeleton.md",
       "hashes": [
         {
           "alg": "SHA-256",
           "content": "0b0b11661150cd6b47870f9b815767ea2d44ad079a73360cdccff26f99afefb1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/references/course-theme-compat.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2bbcc2b1b3196810fb4ddd40d3d1ab9735ac6d10ab1692c321733580120bbe87"
         }
       ]
     },
@@ -145,7 +175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cda4b74d279ae1aa81dfb5790e91c395c84cb6cbec6551f844a31a8fc2d217ac"
+          "content": "dd26a487d535f3bc6b61f8261e00b7ec280a40602d29fcb1427003d56291c65d"
         }
       ]
     },
@@ -166,6 +196,16 @@
         {
           "alg": "SHA-256",
           "content": "bc21ad70d331318cbcfdde2501fd1273d01489c473487e96c6313aa3f5b88dac"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "package-tutorial-factory/scripts/course-theme.css",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "29a4c6b8a3d784a1e42cde1886a093ef1e52da09bdba7541c686ac74d1cdc97d"
         }
       ]
     },
@@ -195,7 +235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dbe95eccc014dd2537a76f548b47ebe16c0ca6bad433d91bfd8964676e5978b4"
+          "content": "c8af135cc54231b9c87b7f6b1f892f8bc89e013d829d152c4e24524a927ea2ae"
         }
       ]
     },
@@ -215,7 +255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "018a6ea16a7e0b1724a6a8d3bcb85aa70da2853cba3ec1866c0a41f5574aa68a"
+          "content": "d9d6de477451fdcbc9e825657cfce0254e0566a1d2ffebb314d1e9aa45f68f51"
         }
       ]
     },
@@ -229,7 +269,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "2f2a9eac14510ac6b8e7d0e8e960fff2cc853f2443c0602a4207607cefe4ee1f"
+          "value": "41ed08bb0a90aa8fedb2d1b10d6127d0066454da0484f0572e23cc95b0562d14"
         }
       ]
     },
@@ -245,11 +285,21 @@
     },
     {
       "type": "file",
+      "name": "test/course-theme.test.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "41d09c77dd6f40c938dc21f6a2fd18ccef4fcde385d9757b18ba5b72cf9f5b1d"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "test/extract-brief.test.mjs",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bb4f105ed0857d41362d34d940871a6dd2b3822cbd95a0a0fc472dc3e44e326d"
+          "content": "6d53e3d88e1055670f915fc6aea98a4516d3042cf56896714355860c5f179cbe"
         }
       ]
     },
@@ -289,7 +339,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "16a87668312388bc59a8d00d58c1e68a4cdd10b66d6ad3ed19428b4465a56978"
+          "content": "1174ffe4971ce8b59fd266222035d4343f4a44aec4ce5da62e964b5d8e479af4"
         }
       ]
     },
@@ -309,7 +359,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "52b9dccae094f6dee61435d1456e6af23e111d25ef787e7e2f8fe113f3c231d7"
+          "content": "fe074ad681999996ae443b2607a80cd0ef0daee6e0942d794b9da6053b621f84"
         }
       ]
     }

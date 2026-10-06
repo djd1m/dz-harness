@@ -1,5 +1,7 @@
 # @dzhechkov/adapter-opencode
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-opencode
+
 The **OpenCode** platform adapter for the DZ cross-platform harness.
 
 It implements the `Adapter` contract from [`@dzhechkov/core`](../core), compiling

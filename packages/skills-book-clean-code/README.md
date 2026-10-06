@@ -1,5 +1,7 @@
 # Clean Code — приватный набор навыков
 
+Сайт: https://aicoding.space · Исходники: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-book-clean-code
+
 9 навыков и 259 проверенных единиц знаний по утверждённому охвату: главы 1–17 и приложение A. Каждое правило связано со страницами источника; PDF и OCR-корпус в пакет не входят.
 
 ## Usage scenarios

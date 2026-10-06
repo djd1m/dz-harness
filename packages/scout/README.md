@@ -1,5 +1,7 @@
 # @dzhechkov/scout
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/scout
+
 Multi-source ecosystem intelligence — scans **11 sources** for new agent-skill projects, detects formats, scores relevance, and generates actionable intelligence reports.
 
 ## Sources (11)

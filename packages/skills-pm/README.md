@@ -1,5 +1,7 @@
 # @dzhechkov/skills-pm
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-pm
+
 Product-management skill pack for [Claude Code](https://claude.com/claude-code) — **18 framework-grounded PM skills** that move beyond generic text to rigorous, step-by-step methodology (Teresa Torres, Marty Cagan, Wodtke, RICE/ICE/Kano, JTBD, Lean Analytics, Crossing-the-Chasm).
 
 ## Why

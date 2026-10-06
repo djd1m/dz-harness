@@ -1,5 +1,7 @@
 # @dzhechkov/skills-reverse-engineering
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-reverse-engineering
+
 Reverse Engineering Unicorn — composite skill for [Claude Code](https://claude.com/claude-code) that reverse-engineers **any company** into an actionable **launch playbook** (plus, in DEEP mode, a clickable CJM prototype).
 
 

@@ -1,5 +1,7 @@
 # @dzhechkov/adapter-openclaude
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-openclaude
+
 OpenClaude platform adapter — compiles canonical [agentskills.io](https://agentskills.io) skills into the `.openclaude/skills/` tree.
 
 [OpenClaude](https://github.com/gitlawb/openclaude) (28K+ stars) is an open-source coding-agent CLI supporting multiple LLM providers (OpenAI, Gemini, Ollama, DeepSeek, and more). It uses the same SKILL.md format as Claude Code.

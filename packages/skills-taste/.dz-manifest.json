@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "93c2b0d432bc7cff3bfde3a2fe7a78641fd5218df19db1a4abbe15bd5e881763"
+        "sha256": "67233815560bbbb9ff9b0a4019c405eff7ef49108002ae10cb170b44440c9aee"
       },
       {
         "path": "design-taste-frontend/SKILL.md",
@@ -17,7 +17,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "0470854fb6e646f2d3be7401feec1022a11cb4b138920fb64c70a5970a10997a"
+        "sha256": "fdb3df2751e97324cc2c7feaa2e5972eddf4d6f1b0eba5171308f65830c3bd01"
       },
       {
         "path": "sources.json",
@@ -25,5 +25,5 @@
       }
     ]
   },
-  "signature": "plJJvb0ZqR+Ep/NXAXUL4Zs4Dddwwzg8PzMAHE74NmgHhKPD3lj/pWhrzXPXRT8ecqCrduEZobis16LMLcGIAA=="
+  "signature": "dGGxw2kyQa888479HFA21RDvs85mLsbMcFtQNAPjUuvxGoXuB4Gd05rtwOL2osDTxQFMF5HOohC28sJQe5XHBQ=="
 }

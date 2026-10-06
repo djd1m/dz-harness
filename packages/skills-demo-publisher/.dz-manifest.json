@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "73585c8e20fe9514fdfee61751b61b0edcdf5dddf5b06a0d4e39e98c4109e863"
+        "sha256": "e121965b12b82cea6348ab4a629d30ed73c150ece7c5d0804007a98ed86a03a3"
       },
       {
         "path": "demo-site-publisher/SKILL.md",
@@ -125,11 +125,11 @@
       },
       {
         "path": "package.json",
-        "sha256": "38c7b21e92cf7c49e9d23871a5dd2339ca7735c0a7b1239be45c12a813130058"
+        "sha256": "f86eaccb2aa8fdf1e7509bd3a525c2325643bdb23411fdb6b454a81a99d38f89"
       },
       {
         "path": "test/_fixtures.mjs",
-        "sha256": "17435961eb9012d2b0ea1f2f3d81fb627a4e4c240b1fa57acb056e7690ea99f6"
+        "sha256": "3d3396d7baa44d7e006dca078def628aa6f3cb34d59608e5f8dd857c1fd8cf1c"
       },
       {
         "path": "test/fixtures/demo-site.config.smoke.json",
@@ -184,6 +184,10 @@
         "sha256": "523260aa0d6d4c9f28b0516635c77264996d36b52b73acdfe44228b171507f47"
       },
       {
+        "path": "test/unit/no-litter.test.mjs",
+        "sha256": "450d6654c609278d55f069a690592241be9434d0434341b14ca4136189fa5835"
+      },
+      {
         "path": "test/unit/preflight.test.mjs",
         "sha256": "a16d3d10e2847b3f0bd3f06038e4147b186dd6d183b263487aae928357941344"
       },
@@ -213,5 +217,5 @@
       }
     ]
   },
-  "signature": "PQu4LKOlFav/NGtqlO/kLroqtQsxMKRXVmVQx3csWzNik9uKECOTS8BWfhft17j8ZsKiZIMZvItj9zdRk9htCQ=="
+  "signature": "lkEAHbHJTgta3eQk/CEuYk42hZmzFb3SC6vw1nct5UfcTUyNBydR8ADwIOh0isdIxbqGMaVH/KgH8ClPwZgQCw=="
 }

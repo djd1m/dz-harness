@@ -1,5 +1,7 @@
 # @dzhechkov/skills-demo-publisher
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-demo-publisher
+
 An installable skill pack for repeatable product recordings and static GitHub Pages demo sites. JSON
 scenarios drive headless Chromium; ffmpeg produces a constrained H.264 MP4; the renderer emits an index,
 one page per demo, subtitles, and transcripts. Public delivery is fail-closed on size, confidentiality,

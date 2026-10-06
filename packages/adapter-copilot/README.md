@@ -1,5 +1,7 @@
 # @dzhechkov/adapter-copilot
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-copilot
+
 The **GitHub Copilot** platform adapter for [DZ Harness Hub](https://github.com/djd1m/dz-harness-hub) — compiles a canonical skill into a GitHub Copilot **instruction file**.
 
 ```bash

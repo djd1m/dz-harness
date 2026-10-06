@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "22c5b04b2eee7da8f367c6628a0c258d98d60e64bacb05e535364b57a8b82dcc"
+        "sha256": "ce8acbb63dc874b405829bcb2930d034d847eccc76bdc619570f67fd42b7d0d0"
       },
       {
         "path": "goap-research-ed25519/SKILL.md",
@@ -153,9 +153,9 @@
       },
       {
         "path": "package.json",
-        "sha256": "f643e957aa2edef3d47e168e0d20ed3dc05dd9cb6a9902685c97f4997fa88f88"
+        "sha256": "679fa36591a13741dffa00a746174df814a03186cd13e0ab7add8088b4d4fa49"
       }
     ]
   },
-  "signature": "OG8MXq4vFah6YATyEcoEDOTNvLuMtEUfOGT9iAK/2/aAfvHtb6R6NGSB3Mwa3qS63YPa15BEgigtW69kNrY5Cg=="
+  "signature": "w5ysl9MdBu4D/9vePK5IQgapyRXgAJ2tPYATkuKxAjsBTt3Vxh6Ncsckgur1fw6WXPigD15tWUywD3yQJ5plAA=="
 }

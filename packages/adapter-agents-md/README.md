@@ -1,5 +1,7 @@
 # @dzhechkov/adapter-agents-md
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-agents-md
+
 The **AGENTS.md** platform adapter for [DZ Harness Hub](https://github.com/djd1m/dz-harness-hub) — flattens canonical skills into a single, root-level `AGENTS.md`.
 
 ```bash

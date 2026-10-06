@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "e8ea80b2a309644708237b917c1e620c4df3c475ff33d5ada61b0765d4d92064"
+        "sha256": "109e5e2165db1306de909363bec5bb29e3495432d29c146c5fe85ce57c80e558"
       },
       {
         "path": "brain/clean-code.sqlite",
@@ -125,7 +125,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "941d245df3b839225a49a933ba8d3b8dde0674116993125b810642a3a1009a52"
+        "sha256": "7d6c0c5ae74e5dea9645cce926694d3195d37517373b1c478ad1f57566c57172"
       },
       {
         "path": "sources.json",
@@ -133,5 +133,5 @@
       }
     ]
   },
-  "signature": "k4kmGISNykE0QVCbrmH7u0jqQitdTFrCvIITbllYl50niOSfZPVqhvcH6fnm9F6DLLghncfPp3HDiDMm3qjnBw=="
+  "signature": "kVrakLZZqXRAnZo1xetel7JndpSXYQdd3na9uqbeu5nT4J+gelg1YWZ/tIvDAIO/9MkI0REmMMX1yASb0AWRAA=="
 }

@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-transcript-site",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },
@@ -13,6 +13,8 @@
     "bin/",
     "src/",
     "templates/",
+    "CHANGELOG.md",
+    "LICENSE",
     ".dz-manifest.json",
     "sbom.json"
   ],
@@ -39,7 +41,7 @@
     "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-transcript-site"
   },
-  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-transcript-site#readme",
+  "homepage": "https://aicoding.space",
   "bugs": {
     "url": "https://github.com/djd1m/dz-harness/issues"
   },

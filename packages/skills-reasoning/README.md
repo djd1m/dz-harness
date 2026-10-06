@@ -1,5 +1,7 @@
 # @dzhechkov/skills-reasoning
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-reasoning
+
 **Generic reasoning & code-quality skill pack for Claude Code** — 4 stack-neutral agentic skills that improve
 how an agent thinks, investigates, and writes code. Depersonalized from a curated skills archive; **zero
 product coupling** (no vendor, framework, or repo specifics). Part of the [dz-harness-hub](https://github.com/djd1m/dz-harness-hub)

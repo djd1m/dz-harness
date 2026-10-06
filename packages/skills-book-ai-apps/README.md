@@ -1,5 +1,7 @@
 # @dzhechkov/skills-book-ai-apps
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-book-ai-apps
+
 Decision-moment skills **machine-distilled** from «Building Applications with AI Agents»
 (Michael Albada, рус. пер., ISBN 978-601-14-1158-5) by the
 [book-knowledge-digitizer](https://www.npmjs.com/package/@dzhechkov/skills-book-digitizer) pipeline.

@@ -42,7 +42,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/health-advisor#readme",
+  "homepage": "https://aicoding.space",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
     "test": "node --test --test-concurrency=4",

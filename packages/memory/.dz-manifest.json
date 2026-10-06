@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "e8c8db201cbcf2c7bbb7a4c577a9b53a77df09b84545a3883543b4bc1304281f"
+        "sha256": "4f6120e0889db4e780cf8d7e55d1a0e4378e8954ad85292d2b3ea17b884f4d5a"
       },
       {
         "path": "dist/backend.d.ts",
@@ -189,7 +189,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "dca75c7cf3545b17ccdefd71edf672c08b535045d8b767ab09fa172f87d249f5"
+        "sha256": "be22a1ce21faa30e41b9e8b161e4c9c59b2ed4981d722ddc782b4afe99de8e8d"
       },
       {
         "path": "src/backend.ts",
@@ -237,5 +237,5 @@
       }
     ]
   },
-  "signature": "XVCn/0cmEKX2fDNZa5wIC67kw1KYGpxTqAMJee15khIJEgIAqL01m34QBfQKeEks64wRz3jAMgXFbS5Nilu0Ag=="
+  "signature": "LA5aUA2YZ1Hmk+8wq+tLNENMhvC6jSBvNgMECjY+BoE3hU9fLi7Fd7hNZBsQBNy8u68aKm+zLHJ4wh4FdKidCg=="
 }

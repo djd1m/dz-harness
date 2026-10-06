@@ -36,7 +36,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/loop-designer-plugin` | 0.1.6 |
 | `@dzhechkov/mcp-server-tools` | 0.2.11 |
 | `@dzhechkov/memory` | 0.2.23 |
-| `@dzhechkov/p-replicator` | 1.13.4 |
+| `@dzhechkov/p-replicator` | 1.13.5 |
 | `@dzhechkov/scout` | 0.8.12 |
 | `@dzhechkov/skills-12factor` | 0.1.14 |
 | `@dzhechkov/skills-academic` | 0.3.8 |
@@ -64,8 +64,8 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/skills-reasoning` | 0.1.6 |
 | `@dzhechkov/skills-reverse-engineering` | 0.3.5 |
 | `@dzhechkov/skills-taste` | 0.1.6 |
-| `@dzhechkov/skills-transcript-site` | 1.0.11 |
-| `@dzhechkov/skills-tutorial-factory` | 0.7.1 |
+| `@dzhechkov/skills-transcript-site` | 1.0.12 |
+| `@dzhechkov/skills-tutorial-factory` | 0.7.3 |
 | `@dzhechkov/skills-web3` | 0.2.10 |
 | `@dzhechkov/skills-website-cloner` | 0.1.6 |
 | `@dzhechkov/trip-planner` | 1.0.12 |

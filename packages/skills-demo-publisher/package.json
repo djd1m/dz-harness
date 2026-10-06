@@ -92,5 +92,9 @@
     "type": "git",
     "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-demo-publisher"
+  },
+  "homepage": "https://aicoding.space",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
   }
 }

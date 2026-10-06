@@ -1,5 +1,7 @@
 # @dzhechkov/adapter-claude
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-claude
+
 The **Claude Code** platform adapter for the DZ cross-platform harness.
 
 It implements the `Adapter` contract from [`@dzhechkov/core`](../core): it

@@ -12,7 +12,7 @@ var COURSE = JSON.parse(document.getElementById('course-data').textContent);
 // UI chrome strings. EN defaults live here; a localized table (chosen by course.language) is
 // embedded by render-site.mjs as #ui-strings and MERGES over the defaults — one source, no drift.
 var UI_EN = {
-  achievement: 'Achievement — ', locked: 'Locked: ',
+  achievement: 'Achievement — ', locked: 'Locked: ', unlocked: 'Unlocked: ', feedbackCorrect: 'Correct. ', feedbackWrong: 'Try again. ', feedbackPartial: 'Result. ', matchWrong: 'These do not match. Choose another pair.', codeScroll: 'Code — scroll horizontally',
   flashHint: 'Click the card to flip it. See every card to clear this section.',
   sideFront: 'front', sideBack: 'back', seen: 'seen',
   prev: '\u2190 Prev', next: 'Next \u2192',
@@ -90,6 +90,11 @@ function el(tag, attrs, kids) {
     else if (k.slice(0, 2) === 'on') n.addEventListener(k.slice(2), v);
     else n.setAttribute(k, v);
   }
+  if (/(^| )explain( |$)/.test(attrs.class || '')) {
+    n.setAttribute('role', 'status');
+    var feedback = /(^| )good( |$)/.test(attrs.class) ? T.feedbackCorrect : /(^| )bad( |$)/.test(attrs.class) ? T.feedbackWrong : T.feedbackPartial;
+    n.appendChild(document.createTextNode(feedback));
+  }
   var list = [].concat(kids || []);
   for (var i = 0; i < list.length; i++) {
     var c = list[i];
@@ -113,7 +118,7 @@ function md(src) {
       var body = block
         .replace(new RegExp('^' + FENCE + '[a-z]*\\n?'), '')
         .replace(new RegExp('\\n?' + FENCE + '$'), '');
-      out.push('<pre><code>' + escHtml(body) + '</code></pre>');
+      out.push('<pre tabindex="0" role="region" aria-label="' + escHtml(T.codeScroll) + '"><code>' + escHtml(body) + '</code></pre>');
       continue;
     }
     var lines = block.split('\n');
@@ -229,6 +234,7 @@ function exMatching(sec, done) {
   var sel = null;
   var solved = {};
   var solvedCount = 0;
+  var feedback = el('p', { class: 'match-feedback', role: 'status' });
   var wrap = el('div', {});
   var status = el('span', { class: 'score-pill' });
   var L = el('div', {});
@@ -255,6 +261,7 @@ function exMatching(sec, done) {
     b.addEventListener('click', function () {
       if (solved[i] || sel === null) return;
       if (sel === i) {
+        feedback.textContent = T.feedbackCorrect;
         solved[i] = true;
         solvedCount++;
         b.classList.add('done');
@@ -264,6 +271,7 @@ function exMatching(sec, done) {
         sel = null;
         refresh();
       } else {
+        feedback.textContent = T.matchWrong;
         b.classList.add('miss');
         setTimeout(function () { b.classList.remove('miss'); }, 320);
       }
@@ -272,6 +280,7 @@ function exMatching(sec, done) {
   });
   wrap.appendChild(el('p', { class: 'hint' }, T.matchHint));
   wrap.appendChild(el('div', { class: 'match-grid' }, [L, R]));
+  wrap.appendChild(feedback);
   wrap.appendChild(el('div', { class: 'row' }, [el('span', { class: 'spacer', style: 'flex:1' }), status]));
   refresh();
   return wrap;
@@ -299,9 +308,9 @@ function exDragOrder(sec, done) {
       list.appendChild(el('div', { class: 'order-item' + (right === true ? ' ok' : right === false ? ' no' : '') }, [
         el('span', { class: 'idx' }, (n + 1) + '.'),
         el('span', { class: 'grab' }, '⣿'),
-        el('span', { style: 'flex:1' }, byId[id].label),
-        el('button', { class: 'mini', title: T.moveUp, onclick: function () { move(id, -1); } }, '↑'),
-        el('button', { class: 'mini', title: T.moveDown, onclick: function () { move(id, 1); } }, '↓')
+        el('span', { class: 'order-label' }, byId[id].label),
+        el('button', { class: 'mini', title: T.moveUp, 'aria-label': T.moveUp, onclick: function () { move(id, -1); } }, '↑'),
+        el('button', { class: 'mini', title: T.moveDown, 'aria-label': T.moveDown, onclick: function () { move(id, 1); } }, '↓')
       ]));
     });
   }
@@ -339,7 +348,7 @@ function exBuilder(sec, done) {
       line.appendChild(el('span', { style: 'color:var(--muted)' }, T.builderEmpty));
     }
     built.forEach(function (p, i) {
-      line.appendChild(el('span', { class: 'tok', title: 'remove', onclick: function () { built.splice(i, 1); drawLine(); drawParts(); } }, p));
+      line.appendChild(el('button', { class: 'tok', type: 'button', title: T.clear, onclick: function () { built.splice(i, 1); drawLine(); drawParts(); } }, p));
     });
   }
   function drawParts() {
@@ -386,7 +395,7 @@ function exScenario(sec, done) {
   var step = 0, points = 0;
   var wrap = el('div', {});
   var body = el('div', {});
-  wrap.appendChild(el('h3', { style: 'margin:0 0 6px;font-size:17px' }, ex.title));
+  wrap.appendChild(el('h3', { class: 'scenario-title' }, ex.title));
   wrap.appendChild(el('div', { class: 'lede', style: 'margin-bottom:4px', html: md(ex.scenario) }));
   function draw() {
     body.innerHTML = '';
@@ -483,9 +492,12 @@ var RENDERERS = {
 
 // --- views ---------------------------------------------------------------------------------------
 var view = { kind: 'intro', i: 0 };
+var achievementOpen = false;
 
 function renderAside() {
   var a = $('#aside');
+  var oldNav = $('nav ul', a);
+  var navScrollLeft = oldNav ? oldNav.scrollLeft : 0;
   a.innerHTML = '';
   a.appendChild(el('div', { class: 'brand' }, [
     COURSE.courseTitle,
@@ -522,17 +534,24 @@ function renderAside() {
     onclick: function () { go({ kind: 'faq' }); }
   }, [el('span', { class: 'tick' }, ''), '❓ ' + T.faqNav])]));
   a.appendChild(el('nav', {}, [ul]));
+  ul.scrollLeft = navScrollLeft;
 
-  a.appendChild(el('div', { class: 'navhead' }, T.achievements + S.unlocked.length + ' / ' + COURSE.achievements.length));
+  var disclosure = el('details', { class: 'achievements' });
+  disclosure.open = achievementOpen;
+  disclosure.appendChild(el('summary', {}, T.achievements + S.unlocked.length + ' / ' + COURSE.achievements.length));
+  disclosure.addEventListener('toggle', function () { achievementOpen = disclosure.open; });
   var grid = el('div', { class: 'ach-grid' });
   COURSE.achievements.forEach(function (ac) {
     var on = S.unlocked.indexOf(ac.id) !== -1;
     grid.appendChild(el('div', {
       class: 'ach' + (on ? ' on' : ''),
+      role: 'img',
+      'aria-label': (on ? T.unlocked : T.locked) + ac.title + ' — ' + ac.description,
       title: on ? (ac.title + ' — ' + ac.description) : (T.locked + ac.description)
     }, ac.icon));
   });
-  a.appendChild(grid);
+  disclosure.appendChild(grid);
+  a.appendChild(disclosure);
 
   a.appendChild(el('div', { class: 'navhead' }, T.settings));
   a.appendChild(el('div', { class: 'row' }, [
@@ -697,12 +716,14 @@ function introView() {
     el('p', {}, COURSE.persona.description),
     // Optional course-authored honesty/context note (introNote). No fabricated default: if the
     // author wrote nothing, nothing is shown.
-    COURSE.introNote ? el('p', { style: 'color:var(--muted);font-size:14.5px' }, COURSE.introNote) : null
+    COURSE.introNote ? el('p', { class: 'muted-copy' }, COURSE.introNote) : null
   ]));
   m.appendChild(el('h2', {}, COURSE.introHeading || T.whatYouLearn));
   SECTIONS.forEach(function (s, k) {
     m.appendChild(el('div', {
       class: 'card', style: 'margin:10px 0;padding:16px 20px;cursor:pointer',
+      role: 'button', tabindex: '0', 'aria-label': s.title,
+      onkeydown: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go({ kind: 'section', i: k }); } },
       onclick: function () { go({ kind: 'section', i: k }); }
     }, [
       el('div', { class: 'meta-row' }, [
@@ -710,7 +731,7 @@ function introView() {
         el('span', { class: 'pattern-chip' }, s.methodPattern),
         S.completed[s.id] ? el('span', { class: 'score-pill good' }, '✓') : null
       ]),
-      el('div', { style: 'color:var(--muted);font-size:14.5px' }, s.description)
+      el('div', { class: 'muted-copy' }, s.description)
     ]));
   });
   m.appendChild(el('div', { class: 'footer-nav' }, [
@@ -748,7 +769,7 @@ function finalView() {
       // 'Passed' is STRUCTURAL (verify-site keys on it); the flavour after the dash is course data.
       el('p', { style: 'font-weight:600;margin:.5em 0 .2em' },
         pct >= PASS ? T.passed + ((COURSE.outro && COURSE.outro.pass) || T.courseComplete) : fmt(T.notYet, { p: PASS })),
-      el('p', { style: 'color:var(--muted);font-size:14.5px' },
+      el('p', { class: 'muted-copy' },
         pct >= PASS
           ? ((COURSE.outro && COURSE.outro.next) || T.revisit)
           : T.reread)
@@ -789,12 +810,27 @@ function applyTheme() {
 }
 
 function go(v) {
+  var active = document.activeElement;
+  var focusNav = active && active.closest && active.closest('#aside nav');
   view = v;
   if (v.kind === 'section') sectionView(v.i);
   else if (v.kind === 'final') finalView();
   else if (v.kind === 'faq') faqView();
   else introView();
   renderAside();
+  if (focusNav) {
+    var current = $('#aside nav button[aria-current="true"]');
+    if (current) {
+      current.focus({ preventScroll: true });
+      // Reveal only inside the horizontal row; go and the site wrapper own page scrolling.
+      var row = current.closest('ul');
+      if (row && row.scrollWidth > row.clientWidth) {
+        var buttonBounds = current.getBoundingClientRect();
+        var rowBounds = row.getBoundingClientRect();
+        row.scrollLeft += buttonBounds.left - rowBounds.left - (row.clientWidth - buttonBounds.width) / 2;
+      }
+    }
+  }
   window.scrollTo(0, 0);
 }
 

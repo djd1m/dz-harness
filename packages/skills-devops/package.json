@@ -61,7 +61,7 @@
     "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-devops"
   },
-  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-devops#readme",
+  "homepage": "https://aicoding.space",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
     "test": "node --test \"test/*.test.mjs\""

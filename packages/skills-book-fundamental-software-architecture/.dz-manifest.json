@@ -13,7 +13,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "4476ec908e614ba706db2b1badabd17bff61a954024f382dc5b50c96dba89459"
+        "sha256": "9e2e74c717149813264e69cfc5d8acdadac82547fbf4c005d77083e9d1ccb657"
       },
       {
         "path": "brain/fundamental-software-architecture.sqlite",
@@ -157,7 +157,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "d9e79f53749eead9f593cc9b102294674fb54bfca06ac5bcbd12e2b0c550f6f5"
+        "sha256": "fd7ee303b2c6d0b19e556950f82c78f844990ab95c41a663d22aef278543f6fb"
       },
       {
         "path": "route-manifest.json",
@@ -177,5 +177,5 @@
       }
     ]
   },
-  "signature": "IIFxakyhkb7PBGjg99MjCWmhXZg4hmyeQrviRhFqGli0pGtUnTp3GzXNi9o/Y15j+kYyaTpRvm8s4AyRFGfbBg=="
+  "signature": "QNWYiadBpjDRbdnZxng4iDQ+a+bf7H36VjQb13JsaRMwgbM+6z+//ueqC4H0DzCujAzP8t0DlFED+UKETgNuCA=="
 }

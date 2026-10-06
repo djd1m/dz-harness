@@ -1,5 +1,7 @@
 # @dzhechkov/skills-book-digitizer
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-book-digitizer
+
 Turn an engineering **book / textbook / monograph** into an **installable skill pack** whose skills
 make AI coders (Claude Code, Codex, …) *work within the book's methodologies* — plus a searchable
 Knowledge Base behind them. dz-original; design & rationale in

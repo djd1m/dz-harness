@@ -1,5 +1,7 @@
 # @dzhechkov/skills-devops
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-devops
+
 > **0.3.9 shipped after a CLEAN independent round.** Six rounds of cross-family review: C, C, D, C,
 > then A with no findings. Ten defects were found in 115 lines of new gate and all were closed, each
 > pinned by a test carrying the input that produced it. The hold this package carried while that was

@@ -1,5 +1,7 @@
 # @dzhechkov/skills-news
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-news
+
 **2 dz-original skills for news & monitoring** — turn any topic + period into a professional,
 source-cited report, and watch for what's new in between.
 

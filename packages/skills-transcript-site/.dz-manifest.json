@@ -4,12 +4,16 @@
     "pack": "skills-transcript-site",
     "files": [
       {
+        "path": "CHANGELOG.md",
+        "sha256": "a84990c2b136772ecc6723484982fc340d6a588eeec1ae260bd9485a5cddb53f"
+      },
+      {
         "path": "LICENSE",
         "sha256": "3b93f7070f6843f37e0cae255f7caff22b466a4017fd2020d7d3216237e5a701"
       },
       {
         "path": "README.md",
-        "sha256": "a8e6acbc052c92b0956b91e25a50b32d8423153c4a8243131334c864058289c3"
+        "sha256": "80732a9fedcf5c1321325429f076878dfb6f8e0e977b8b4af7cf9379929acf67"
       },
       {
         "path": "bin/cli.js",
@@ -17,7 +21,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "6c0a9e4e5dde4fb4dfe4b0f7ac9ef3539b0e456dfa3bc12c8927abff29193dea"
+        "sha256": "6333f102f8be90d2ddebf0292815ae6152643d2ccac6e36a148a20a3ad155ed8"
       },
       {
         "path": "src/cli.js",
@@ -97,5 +101,5 @@
       }
     ]
   },
-  "signature": "CUQ7CzaHt5Pn+rMIW0ocTXHKzuxCdLyicsEJ7xXU6Y3LOJJDn/c0viPuv3frbDvHNt8AdAMDMt8Y5UPrQuYbAQ=="
+  "signature": "COVnIl2vnw/mfDR6icF6AHKBlcIm5RgeP+ik97zBSr4mNgZEHlxlvMqZ65iZJD6A0Z3ZYxbHWVbePIdBZ18KCg=="
 }

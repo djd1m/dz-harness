@@ -1,5 +1,7 @@
 # @dzhechkov/adapter-codex
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-codex
+
 The **OpenAI Codex CLI** platform adapter for the DZ cross-platform harness.
 
 It implements the `Adapter` contract from [`@dzhechkov/core`](../core), compiling

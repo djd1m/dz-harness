@@ -1,7 +1,9 @@
 {
   "name": "@dzhechkov/keysarium",
   "version": "1.7.9",
-  "scripts": {},
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
   "description": "AI Case Research Toolkit for Claude Code — full 7-phase pipeline with feature-adr, dream cycles, background workers, multi-platform support, reward learning, and Cloud.ru AI Factory mapping (--ai-factory flag)",
   "main": "src/cli.js",
   "bin": {

@@ -1,5 +1,7 @@
 # @dzhechkov/core
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/core
+
 Foundation package of the **DZ cross-platform harness**. It owns the
 platform-neutral contracts that every other `@dzhechkov/*` package depends on.
 

@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "db6be755138b495d6bee78a83c199bfb5234eba2af91b966ce95a818ff6128f1"
+        "sha256": "964c51b067c41244ff5a2e80f1f74dfd53af71b030c02549e272ed9ddb86a28c"
       },
       {
         "path": "brutal-honesty-review/README.md",
@@ -49,7 +49,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "7c547ed42d0c2b536867a7082ab6a639857836a7c4b3a3898444267500938f26"
+        "sha256": "4661add7aa52d00654d19c084814bb177698e90e05a9e3f9126f7a382074d98e"
       },
       {
         "path": "qcsd-cicd-swarm/SKILL.md",
@@ -593,5 +593,5 @@
       }
     ]
   },
-  "signature": "Jro2NgpGlPHRF2YPwKg6nL9oc3/7y5rHzvosNdINcPii5BjZQ1HCZgHWYTMWRdaKiGWbZXzAa/PWGU6+JlksCg=="
+  "signature": "9vQutoX1ClpBEkOFXqE9a45cCdrjhnASFCWTghbdsY073IcEsGxz19/BOQn2a9MBW228ZM/rO9cp+UqW3GmTCQ=="
 }

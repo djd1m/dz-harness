@@ -1,5 +1,7 @@
 # @dzhechkov/skills-book-fundamental-software-architecture
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-book-fundamental-software-architecture
+
 This public, book-derived pack turns architecture-level design questions into a traceable
 decision: context and drivers, boundary, style/topology, distributed interaction, guardrail,
 and an explicit downside plus verification condition. It ships the deep-lookup references and a

@@ -46,7 +46,7 @@
     "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/trip-planner"
   },
-  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/trip-planner#readme",
+  "homepage": "https://aicoding.space",
   "bugs": {
     "url": "https://github.com/djd1m/dz-harness/issues"
   },

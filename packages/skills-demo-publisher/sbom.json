@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "73585c8e20fe9514fdfee61751b61b0edcdf5dddf5b06a0d4e39e98c4109e863"
+          "content": "e121965b12b82cea6348ab4a629d30ed73c150ece7c5d0804007a98ed86a03a3"
         }
       ]
     },
@@ -319,7 +319,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "38c7b21e92cf7c49e9d23871a5dd2339ca7735c0a7b1239be45c12a813130058"
+          "value": "f86eaccb2aa8fdf1e7509bd3a525c2325643bdb23411fdb6b454a81a99d38f89"
         }
       ]
     },
@@ -329,7 +329,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "17435961eb9012d2b0ea1f2f3d81fb627a4e4c240b1fa57acb056e7690ea99f6"
+          "content": "3d3396d7baa44d7e006dca078def628aa6f3cb34d59608e5f8dd857c1fd8cf1c"
         }
       ]
     },
@@ -460,6 +460,16 @@
         {
           "alg": "SHA-256",
           "content": "523260aa0d6d4c9f28b0516635c77264996d36b52b73acdfe44228b171507f47"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "test/unit/no-litter.test.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "450d6654c609278d55f069a690592241be9434d0434341b14ca4136189fa5835"
         }
       ]
     },

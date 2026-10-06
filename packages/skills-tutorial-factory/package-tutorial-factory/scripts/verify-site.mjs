@@ -458,7 +458,13 @@ const unsatisfiable = course.achievements.filter((a) => !satisfiable(a, true)).m
   // the footer's channel links are navigation, and counting them would conflate "self-contained
   // runtime" with "no outbound links", two different properties.
   const htmlSansData = html.replace(jsonMatch[0], '');
-  const refs = (htmlSansData.match(/\ssrc=|url\(|@import|<link\b[^>]*\shref=/gi) || []);
+  // Admit only canonical base64 with a minimum WOFF2 header/signature. This is not a full
+  // font validator; original-byte pins and real browser glyph checks prove font identity/use.
+  const htmlSansFonts = htmlSansData.replace(/url\(data:font\/woff2;base64,([A-Za-z0-9+/]+={0,2})\)/g, (match, encoded) => {
+    const bytes = Buffer.from(encoded, 'base64');
+    return bytes.length >= 48 && bytes.subarray(0, 4).toString() === 'wOF2' && bytes.toString('base64') === encoded ? '' : match;
+  });
+  const refs = (htmlSansFonts.match(/\ssrc=|url\(|@import|<link\b[^>]*\shref=/gi) || []);
   const netApis = (appJs.match(/\b(fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon|importScripts|navigator\.serviceWorker)\b|\bimport\s*\(/g) || []);
   const cleanRefs = refs.length === 0;
   const cleanApis = netApis.length === 0;

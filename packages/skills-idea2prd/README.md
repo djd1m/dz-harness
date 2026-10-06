@@ -1,5 +1,7 @@
 # @dzhechkov/skills-idea2prd
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-idea2prd
+
 Idea2PRD Manual — composite skill for [Claude Code](https://claude.com/claude-code) that takes a **problem or an idea** all the way to **Vibe-Coding-ready documentation**, with a user checkpoint between every phase.
 
 

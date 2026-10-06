@@ -54,7 +54,7 @@
     "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/adapter-claude"
   },
-  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-claude#readme",
+  "homepage": "https://aicoding.space",
   "bugs": {
     "url": "https://github.com/djd1m/dz-harness/issues"
   }

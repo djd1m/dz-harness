@@ -1,5 +1,7 @@
 # @dzhechkov/skills-edu-site
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-edu-site
+
 **Gamified Educational Site Generator skill pack for Claude Code**
 
 Transform documentation, guides, and knowledge bases into interactive learning SPAs with quizzes, flashcards, achievements, progress tracking, and GitHub Pages deployment. Part of the [Keysarium](https://www.npmjs.com/package/@dzhechkov/keysarium) ecosystem.

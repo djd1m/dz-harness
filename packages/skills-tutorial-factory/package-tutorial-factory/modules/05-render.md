@@ -52,6 +52,21 @@ Optional authored fields the renderer honours (all omit-safe, nothing is fabrica
 - per-section `notebook {when, note}` — the persona's margin-note device; if ANY section has one,
   EVERY section must (verify-site enforces device consistency)
 
+## Theme and consumer compatibility
+
+`render-site.mjs` reads `scripts/course-theme.css` and both `references/*-OFL.txt` notices. Keep these
+resources with the installed renderer. They produce one offline HTML file with embedded original fonts
+and readable licenses, Phosphor dark and compatibility light themes, and native achievement disclosure.
+Keyboard navigation reveals the focused section within its horizontal row without changing page/hash
+scrolling. Generic footer links retain spacing and 44px targets; normal shake/pop animations are disabled
+under reduced motion. Fresh light and saved true/false preferences retain their current behavior; data
+and scoring are unchanged.
+
+The versioned `html[data-course-theme="phosphor-v1"]` marker identifies factory-owned presentation.
+Preserve literal body/layout/main/footer and final-runtime seams, plus `go`, `SECTIONS` and `view` globals.
+The site continues to own hash routing and augmentation. Follow
+`$SKILL_ROOT/references/course-theme-compat.md` for the separate migration boundary.
+
 ## Secondary medium — edu-site-generator SPA (agent skill, opt-in heavyweight)
 When the caller explicitly wants the React/Vite gamified site, delegate to the `edu-site-generator`
 skill (its Steps 1–7) mapping the course object per `edu-site-generator/references/data-schemas.md`

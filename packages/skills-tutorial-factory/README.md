@@ -1,5 +1,9 @@
 # @dzhechkov/skills-tutorial-factory
 
+Current release: **0.7.3**. <!-- dz:version -->
+
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-tutorial-factory
+
 **`package-tutorial-factory`** — a meta-skill that turns ONE harness-hub package into a **Head-First-style,
 gamified edu-site learning course**. It does not rebuild engines; it **composes** three that already exist:
 
@@ -28,7 +32,7 @@ method by editing the KB, not the code.
                        ── checkpoint: confirm-topics ──
 03 headfirst-gate    → Plane 1: deterministic zero-LLM Head-First checklist (must PASS before render)
 04 brain-friendliness→ Plane 2: cross-model, KB-grounded semantic review (tone/surprise/story) — advisory
-05 render            → stamp source from live npm, then render the factory's deterministic SPA
+05 render            → repository publisher stamps source; factory renders offline
                        ── checkpoint: review-course ──
 06 verify-handoff    → gate PASS + IP clean + KB resolves + SPA builds
 ```
@@ -53,9 +57,10 @@ node package-tutorial-factory/scripts/extract-brief.mjs --pkg ../harness-cli
 # 3. Gate it — deterministic Head First checklist (fix the COURSE if it fails, never the gate)
 node package-tutorial-factory/scripts/headfirst-gate.mjs --course /tmp/course.json --json /tmp/gate.json
 
-# 4. Render + drive-verify. Render first adds source.package/source.version/source.authoredTs to
-#    course.json without a hand edit. The version comes from the LIVE npm registry, never a local
-#    package.json. mirrorReceipt stays absent unless a real mirror receipt is available.
+# 4. Render + drive-verify. The repository publisher stamps source.package/source.version/
+#    source.authoredTs before render, using the live npm registry rather than a local manifest.
+#    The deterministic renderer stays offline and does not mutate course.json; it renders the
+#    source metadata already supplied. mirrorReceipt stays absent unless a real receipt exists.
 #    Since v0.5.0 every emitted site carries a footer with the workshop's
 #    channel links (default: t.me/llm_notes + aicoding.space). Override per course:
 #      "footer": { "links": [{ "label": "My site", "href": "https://example.org" }] }
@@ -171,7 +176,7 @@ controls the course text.** So the promises are deliberately narrowed:
   the shingling gate catches normal verbatim reuse. **Adversarial obfuscation** (e.g. hand-crafted
   JSON-duplicate keys, arbitrary homoglyph/steganographic tricks) is **out of scope and documented** —
   it is not the factory's failure mode, since the factory authors the text from the cleared KB.
-- **The Ed25519 manifest authenticates the 30 signable files in the `pnpm` publish tarball, not
+- **The Ed25519 manifest authenticates the 35 signable files in the `pnpm` publish tarball, not
   `sbom.json` itself.** Source and tarball keep the same path inventory, while `pnpm` may re-serialize
   `package.json`; the manifest and SBOM therefore bind the packed artifact using raw SHA-256 for every
   path except the repository-wide canonical JSON hash for `package.json`. Treat a source
@@ -193,6 +198,9 @@ controls the course text.** So the promises are deliberately narrowed:
 - `package-tutorial-factory/references/course-skeleton.md`
 - `package-tutorial-factory/references/head-first-method.md`
 - `package-tutorial-factory/references/method-to-edusite-map.md`
+- `package-tutorial-factory/references/Onest-OFL.txt`
+- `package-tutorial-factory/references/JetBrainsMono-OFL.txt`
+- `package-tutorial-factory/references/course-theme-compat.md`
 - `package-tutorial-factory/scripts/app.src.js`
 - `package-tutorial-factory/scripts/brain-friendliness-prompt.mjs`
 - `package-tutorial-factory/scripts/course-schema.mjs`
@@ -201,13 +209,14 @@ controls the course text.** So the promises are deliberately narrowed:
 - `package-tutorial-factory/scripts/render-site.mjs`
 - `package-tutorial-factory/scripts/shingling-check.mjs`
 - `package-tutorial-factory/scripts/verify-site.mjs`
+- `package-tutorial-factory/scripts/course-theme.css`
 
 <!-- runtime-paths:end -->
 
 ## Tests
 
 ```bash
-npm test        # node --test — extract-brief, factory-authoring, headfirst-gate, honest-scope, ip-shingling, render-site
+npm test        # node --test — extract-brief, factory-authoring, headfirst-gate, honest-scope, ip-shingling, render-site, course-theme
 ```
 
 The test files are the ADR Confirmation gates. The IP-verbatim tests require the local (gitignored)
@@ -221,11 +230,23 @@ methods are not copyrightable); no verbatim book expression is redistributed. Se
 
 ## Changelog
 
-- **Unreleased** — every render stamps the course's published source package and LIVE npm version,
-  plus its authoring timestamp, through one reusable writer. Registry failure remains visible by
-  omitting `version`; it never falls back to a local package manifest. The optional mirror receipt is
-  preserved when real and never invented. A repository backfill command covers existing tutorials
-  idempotently, and the published/working skill copies have byte-drift tests for the new seam.
+- **0.7.3** — portable packaged tests: doc-rich extractor coverage uses a self-contained synthetic
+  SKILL pack, retaining provenance, no-escalation and Infinity-clamping checks. Shipped honest-scope
+  checks read the package README/module; repository-only ADR phrase assertions remain enforced in
+  CLI integration. Adds the current-release marker, preserves prior version history, and corrects
+  source-stamping ownership. Runtime, fonts and skill modules remain unchanged.
+
+- **0.7.2** — delivered the Phosphor dark and compatibility light course themes, embedded Onest and
+  JetBrains Mono fonts with their complete SIL OFL notices, and offline single-file rendering.
+  Keyboard disclosure and mobile navigation retain visible focus; footer links retain 44px targets,
+  and matching/achievement animations respect reduced motion. Existing progress, scores and saved
+  theme preferences are preserved.
+
+Source stamping belongs to the repository publisher: it records the published source package,
+live npm version and authoring timestamp before rendering. Registry failure remains visible by
+omitting `version`, without a local-manifest fallback; a mirror receipt is included only when real.
+The deterministic renderer stays offline and does not mutate the course input. Repository backfill
+of existing tutorials remains a separate publisher operation.
 
 - **0.7.1** — **four diagram kinds, because content has four shapes.** 0.6.0 shipped only `flow`,
   and the result was measurable: 2 diagrams in a 14-section course, 5 in a 17-section one — not
@@ -318,3 +339,22 @@ methods are not copyrightable); no verbatim book expression is redistributed. Se
 - **0.1.2** — F4: the gate now CHECKS the `topics[]` Step-0 projection (present + ids match sections 1:1, exactly what `toStepZero` derives) — the contract the shipped dogfood example had silently diverged from; the dogfood is regenerated via the contract's own projection (MEASURED — reproducer: `node package-tutorial-factory/scripts/headfirst-gate.mjs --course <course-without-topics>` → FAIL 1/13).
 
 - **0.1.1** — the Plane-2 prompt builder is now FAIL-CLOSED on its KB precondition (mirror of the gate's pin): an absent or counterfeit --kb refuses with exit 1 instead of emitting a confident "grounded" prompt (MEASURED — reproducer: `node package-tutorial-factory/scripts/brain-friendliness-prompt.mjs --kb /nonexistent-kb.md --course <any>` → exit 1).
+
+## Offline course theme
+
+The deterministic renderer emits a single HTML file with the Phosphor dark palette and a compatibility
+light palette. Fresh courses start light; existing `dz-course:<courseTitle>` progress, scores and saved
+theme preferences survive. The theme uses flat panels, Onest prose and JetBrains Mono service/code
+text, local code scrolling, one horizontal mobile navigation row, and keyboard-accessible achievement
+disclosure. Keyboard activation keeps later mobile sections visible in the navigation row; footer links
+retain spacing and 44px targets. Normal matching/achievement animations respect reduced-motion
+preferences. It introduces no schema or hash-routing change.
+
+Seven original WOFF2 resources are embedded as data URLs, so copying only `index.html` works offline
+and under non-root static paths. Both complete font notices accompany the HTML and npm package.
+The package code is MIT; the original Onest and JetBrains Mono fonts remain **SIL OFL 1.1**. JetBrains
+Mono is release 2.304; the exact upstream revision of the supplied variable Onest subsets is unknown.
+See [font provenance and site compatibility](package-tutorial-factory/references/course-theme-compat.md).
+
+Generated pages declare `html[data-course-theme="phosphor-v1"]`. The existing site overlay is tolerated;
+website migration, hash navigation, SEO, workshop inserts, analytics and deployment remain site-owned.

@@ -1,5 +1,7 @@
 # @dzhechkov/health-advisor
 
+Сайт: https://aicoding.space · Исходники: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/health-advisor
+
 **AI-помощник для анализа здоровья — установи одной командой, используй с Claude Code**
 
 - Загрузите анализы, получите понятную интерпретацию с научными ссылками

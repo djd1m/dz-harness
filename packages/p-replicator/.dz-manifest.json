@@ -5,7 +5,7 @@
     "files": [
       {
         "path": "CHANGELOG.md",
-        "sha256": "f22379706da56c3a7c1741011d8bf69b7a2dd332825b4b2846aa4f86c16f8cee"
+        "sha256": "badb66f104b7fa76ad9ea561bc89c370c70ee7b3aab57838880f228fc102071c"
       },
       {
         "path": "KNOWN_LIMITATIONS.md",
@@ -21,7 +21,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "a70fc43d33972f0472a3fdb6628f79b22c5a4cdd459b5d89bce06e240ca93bf1"
+        "sha256": "d001191307076f5671382d25e31958d3d09c8d9be722f36ceca1306428dd9443"
       },
       {
         "path": "README/eng/01_quickstart.md",
@@ -109,7 +109,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "085a7e742af097d9df173fee66eecba5cc2b4f5482b600b2de51f742cc38c8f4"
+        "sha256": "761be8fd3b947edfe535891f774c23d9b51370640480d9ddaafcf459b21621b2"
       },
       {
         "path": "scripts/check-pipeline-gaps.sh",
@@ -1161,5 +1161,5 @@
       }
     ]
   },
-  "signature": "IPug/ckSoPF/GAYSyqfLpCyFRvqT85EIrUZRFV9UXzUBjF8gqLQhTw0qFbgh+4LId9LkxtD/tblF09Az8DfcCA=="
+  "signature": "+TFCToceG2DpHxhrWRIp6T4k1Qdsyu8tOIk0JLXn7fXw5b2Ingbnr4XC7dFBv49eNo3OnbHrz+befIc7zN2GBw=="
 }

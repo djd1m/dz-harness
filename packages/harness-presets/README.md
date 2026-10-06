@@ -1,5 +1,7 @@
 # @dzhechkov/harness-presets
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/harness-presets
+
 Named **skill-set presets** for `dz init --preset <name>`.
 
 A preset is a curated selection of skill ids. `dz init` reads skills from a

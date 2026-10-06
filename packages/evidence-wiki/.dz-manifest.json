@@ -17,7 +17,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "024ed8174464da6d613b83cb4da95052e0bd3e19765630aacfae9087e9246713"
+        "sha256": "da95a20b9e6a572c2239942e18892354c69690f33f68bf98a8ed8188021e5723"
       },
       {
         "path": "commands/triple-check.md",
@@ -53,7 +53,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "9d5d78d73649849e9fec1d1992716d31c1cabe31f18a8428536f6bdc9d2539a0"
+        "sha256": "73e7ad211741975bd542f2b4f281d4ce304025a6b4809a62f35ffaa255cd330c"
       },
       {
         "path": "shards/triple-pillar.shard.md",
@@ -73,5 +73,5 @@
       }
     ]
   },
-  "signature": "wmS6XcS5PhLyFhu9NtGQV+tHrobYh/h3uMOLsugFz2Qka9nyyxz+lVBnmZ3f1VEgbwUJioPPsQI6WGUmwIwFAg=="
+  "signature": "KAlGTUtT2Nizmb73Pz8Ai7gvIONN55Z4dVrEoWwpMrFVmsAqumBfvvLEmTy6VEVn8cPmHDjXgYU0QXv79WYGCw=="
 }

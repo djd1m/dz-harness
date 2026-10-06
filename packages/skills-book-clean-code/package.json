@@ -20,6 +20,10 @@
     "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/skills-book-clean-code"
   },
+  "homepage": "https://aicoding.space",
+  "bugs": {
+    "url": "https://github.com/djd1m/dz-harness/issues"
+  },
   "publishConfig": {
     "access": "public"
   },

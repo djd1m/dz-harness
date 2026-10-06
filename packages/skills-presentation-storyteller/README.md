@@ -1,5 +1,7 @@
 # @dzhechkov/skills-presentation-storyteller
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-presentation-storyteller
+
 Presentation Storyteller — composite skill for [Claude Code](https://claude.com/claude-code) that builds a **selling presentation with verified sources** plus a slide-by-slide **storytelling speaker script**.
 
 

@@ -135,7 +135,7 @@ test('QE#2 attribute injection: quotes in course fields cannot mint new attribut
   const html = readFileSync(out, 'utf-8');
   // the payload must stay INSIDE one quoted value: the tag closes right after the attribute,
   // with no raw quote terminating it early (escaped &quot; text within the value is safe)
-  assert.match(html, /<html lang="[^"]*">/, 'lang attribute breakout (raw quote escaped the value)');
+  assert.match(html, /<html lang="[^"]*" data-course-theme="phosphor-v1">/, 'lang attribute breakout (raw quote escaped the value)');
   assert.match(html, /<meta name="description" content="[^"]*">/, 'description attribute breakout');
 });
 

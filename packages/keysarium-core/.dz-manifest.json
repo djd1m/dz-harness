@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "cca9be80a303307fff55310a6fd4ab3aa74c83f591b527ea080630f91a1c5c22"
+        "sha256": "0aca114d3b597637af7ed239e3f8709db9b64b72f76e74451b90f04765891e4b"
       },
       {
         "path": "governance/checkpoint-protocol.md",
@@ -57,7 +57,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "3e1dded7dc094f18d869368f481d694d588762d8d1d76c9a3f49a3776cc2d654"
+        "sha256": "663c5b630d77a1111e92559fc45a546a4c701302ede944a4a9aa7c0637b91918"
       },
       {
         "path": "platform/adapter-registry.md",
@@ -97,5 +97,5 @@
       }
     ]
   },
-  "signature": "GHfMa8/0f1Iw/6yiggIU+qP+pHo/ETY5zXuHiqbOR7XsMTkcHdu317uhq+aqfp466gFaUNafThoBASDDE93RBQ=="
+  "signature": "zPq4Rr++GVeTvMirpj7lOdsULPxmuNHKRihzr+g+dOdgal4n3T3r/W8iex8DLfg+dbftJE9XDmqA/Sab+6Y2CA=="
 }

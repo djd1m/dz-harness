@@ -1,5 +1,7 @@
 # @dzhechkov/memory
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/memory
+
 The harness **memory layer** — records skill outcomes, ranks skills, and imports
 host memory files.
 

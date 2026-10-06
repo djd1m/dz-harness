@@ -57,7 +57,7 @@
     "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/adapter-gemini"
   },
-  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-gemini#readme",
+  "homepage": "https://aicoding.space",
   "bugs": {
     "url": "https://github.com/djd1m/dz-harness/issues"
   }

@@ -1,5 +1,7 @@
 # @dzhechkov/design-thinking
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/design-thinking
+
 > Human-centered product design toolkit for Claude Code — Stanford **d.school 5-phase
 > Design Thinking** + a 6th **Validate** phase, **25** academically-grounded methodologies,
 > as an installable npx toolkit.

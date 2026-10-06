@@ -54,7 +54,7 @@
     "url": "git+https://github.com/djd1m/dz-harness.git",
     "directory": "packages/@dzhechkov/adapter-windsurf"
   },
-  "homepage": "https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-windsurf#readme",
+  "homepage": "https://aicoding.space",
   "bugs": {
     "url": "https://github.com/djd1m/dz-harness/issues"
   }

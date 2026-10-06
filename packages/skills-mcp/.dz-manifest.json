@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "60e199910e74bb5d6acef80199a95cebece2229bf44158aa6e85ed7e8597a01e"
+        "sha256": "827261cd5ad026347e9599d752ba70d2b0ca7b2141a73d1b6189362092311279"
       },
       {
         "path": "agentdb-memory/SKILL.md",
@@ -253,7 +253,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "ed36024a6d2ff8053ffc7245c0ae5605e56fbef0cfcbb7a5dcb843602c3b3052"
+        "sha256": "0029a34577ee8a5128a2bcc186f969260a3193b9cf75c4a5f8c5845cbd03f25a"
       },
       {
         "path": "reddit/SKILL.md",
@@ -277,5 +277,5 @@
       }
     ]
   },
-  "signature": "URQ443gv4NR5BgsUhSJitGCPsZe1oYJOeJLhR1hDanaKHbQV4bjbP3MT0F2qmiWsn192X0PEtLS41NqjGE+iBA=="
+  "signature": "NSGo23ytu4MadbQl64+BEypOXYCWcwHTCFPukF7wbax+BkyAw/aJ3/HNT6MLGotZcTLoAz5YgFopN1+tI/V0CA=="
 }

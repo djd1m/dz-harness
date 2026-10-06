@@ -1,5 +1,7 @@
 # @dzhechkov/skills-ecc
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-ecc
+
 20 curated skills imported from [ECC](https://github.com/affaan-m/ECC).
 
 ## Install

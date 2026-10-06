@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "0333f4064470ceeb62fff007f7465be545434e1328ef1e34d6c4d4e48bc46515"
+        "sha256": "63039f6e4bd871feee5906481b4886ab0e649d45d4f63463963555fdad12b5d9"
       },
       {
         "path": "package-tutorial-factory/SKILL.md",
@@ -37,15 +37,27 @@
       },
       {
         "path": "package-tutorial-factory/modules/05-render.md",
-        "sha256": "315a21a3d4b47dac4269c2fecf532984504039892c17d39d64352dd3243c306f"
+        "sha256": "cfb2110d4ab998d511f43bb96269f4dffe0cfe6dd32246ee28d0977a82536c4f"
       },
       {
         "path": "package-tutorial-factory/modules/06-verify-handoff.md",
         "sha256": "b88329e2b49cf3ffaa0856aab7d2f94ecf447bdd9710af7d440b3cb0f0e4f165"
       },
       {
+        "path": "package-tutorial-factory/references/JetBrainsMono-OFL.txt",
+        "sha256": "30f0c136e3c88e422d0791acd97238870f9054a9729bc34cf2ff0d4ed8cac4ad"
+      },
+      {
+        "path": "package-tutorial-factory/references/Onest-OFL.txt",
+        "sha256": "071195d8806e226faeee60259c28ca67b458227af5195a73f5cfcab06e3003bc"
+      },
+      {
         "path": "package-tutorial-factory/references/course-skeleton.md",
         "sha256": "0b0b11661150cd6b47870f9b815767ea2d44ad079a73360cdccff26f99afefb1"
+      },
+      {
+        "path": "package-tutorial-factory/references/course-theme-compat.md",
+        "sha256": "2bbcc2b1b3196810fb4ddd40d3d1ab9735ac6d10ab1692c321733580120bbe87"
       },
       {
         "path": "package-tutorial-factory/references/head-first-method.md",
@@ -57,7 +69,7 @@
       },
       {
         "path": "package-tutorial-factory/scripts/app.src.js",
-        "sha256": "cda4b74d279ae1aa81dfb5790e91c395c84cb6cbec6551f844a31a8fc2d217ac"
+        "sha256": "dd26a487d535f3bc6b61f8261e00b7ec280a40602d29fcb1427003d56291c65d"
       },
       {
         "path": "package-tutorial-factory/scripts/brain-friendliness-prompt.mjs",
@@ -66,6 +78,10 @@
       {
         "path": "package-tutorial-factory/scripts/course-schema.mjs",
         "sha256": "bc21ad70d331318cbcfdde2501fd1273d01489c473487e96c6313aa3f5b88dac"
+      },
+      {
+        "path": "package-tutorial-factory/scripts/course-theme.css",
+        "sha256": "29a4c6b8a3d784a1e42cde1886a093ef1e52da09bdba7541c686ac74d1cdc97d"
       },
       {
         "path": "package-tutorial-factory/scripts/extract-brief.mjs",
@@ -77,7 +93,7 @@
       },
       {
         "path": "package-tutorial-factory/scripts/render-site.mjs",
-        "sha256": "dbe95eccc014dd2537a76f548b47ebe16c0ca6bad433d91bfd8964676e5978b4"
+        "sha256": "c8af135cc54231b9c87b7f6b1f892f8bc89e013d829d152c4e24524a927ea2ae"
       },
       {
         "path": "package-tutorial-factory/scripts/shingling-check.mjs",
@@ -85,19 +101,23 @@
       },
       {
         "path": "package-tutorial-factory/scripts/verify-site.mjs",
-        "sha256": "018a6ea16a7e0b1724a6a8d3bcb85aa70da2853cba3ec1866c0a41f5574aa68a"
+        "sha256": "d9d6de477451fdcbc9e825657cfce0254e0566a1d2ffebb314d1e9aa45f68f51"
       },
       {
         "path": "package.json",
-        "sha256": "2f2a9eac14510ac6b8e7d0e8e960fff2cc853f2443c0602a4207607cefe4ee1f"
+        "sha256": "41ed08bb0a90aa8fedb2d1b10d6127d0066454da0484f0572e23cc95b0562d14"
       },
       {
         "path": "test/_fixtures.mjs",
         "sha256": "aff72d82565b06355d410f3c3e26d7f5dc51b170988f406873c17e4e9d0ac503"
       },
       {
+        "path": "test/course-theme.test.mjs",
+        "sha256": "41d09c77dd6f40c938dc21f6a2fd18ccef4fcde385d9757b18ba5b72cf9f5b1d"
+      },
+      {
         "path": "test/extract-brief.test.mjs",
-        "sha256": "bb4f105ed0857d41362d34d940871a6dd2b3822cbd95a0a0fc472dc3e44e326d"
+        "sha256": "6d53e3d88e1055670f915fc6aea98a4516d3042cf56896714355860c5f179cbe"
       },
       {
         "path": "test/factory-authoring.test.mjs",
@@ -113,7 +133,7 @@
       },
       {
         "path": "test/honest-scope.test.mjs",
-        "sha256": "16a87668312388bc59a8d00d58c1e68a4cdd10b66d6ad3ed19428b4465a56978"
+        "sha256": "1174ffe4971ce8b59fd266222035d4343f4a44aec4ce5da62e964b5d8e479af4"
       },
       {
         "path": "test/ip-shingling.test.mjs",
@@ -121,9 +141,9 @@
       },
       {
         "path": "test/render-site.test.mjs",
-        "sha256": "52b9dccae094f6dee61435d1456e6af23e111d25ef787e7e2f8fe113f3c231d7"
+        "sha256": "fe074ad681999996ae443b2607a80cd0ef0daee6e0942d794b9da6053b621f84"
       }
     ]
   },
-  "signature": "zRZyk/ma78cNE+Fu0QLdKa9JjSfYNQbl6vPuluSRbA1CryPSNx3zarxxrRmTjN7xWmEHyevrPwj4OUJ/Krh3Bw=="
+  "signature": "QDqN7VnA9H3E1+GFD0kqGsCBpGJYWFbHaTf58kSv37l0pKJR/o9U5eTRTS3WCQ0S+Fsh8pbeco7oME+JWJxeDA=="
 }

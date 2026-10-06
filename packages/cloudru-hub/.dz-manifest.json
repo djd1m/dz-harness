@@ -13,7 +13,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "504ce5cd5b6293b3606f861f31406ae89aa6fee45a03c9099d793aa5a456ced1"
+        "sha256": "43f570e3b915e9b9ff9fc54dec23a76a15ef61831f9459c07fc878e070aa9158"
       },
       {
         "path": "THIRD_PARTY_NOTICES.md",
@@ -45,7 +45,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "c40ea35a6a994034e4643310bdd990367abcb033f49279f5349e95fe489b4e1a"
+        "sha256": "183ad11b6467fc144b8df4c039392ba74df964e138811e5b7b3704630961f1bd"
       },
       {
         "path": "src/classification.js",
@@ -105,5 +105,5 @@
       }
     ]
   },
-  "signature": "nPOsYhX3nMHd1DfjVVwhuu7rx6X+o4ViPp7Bt+ejPSCrpWogFw1i+remesozkS7nhSx6y7rVe0bUVyw+1kFABw=="
+  "signature": "wfHHxguJrvUlbRPfYEhtSpbRsI0p0HrV6OnmyUSSk3jEJ7n79Q6X9cbf2GdOQlSDX6FzaSbXSHOq/PkEy1K8DA=="
 }

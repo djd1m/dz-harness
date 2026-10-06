@@ -1,5 +1,7 @@
 # @dzhechkov/mcp-server-tools
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/mcp-server-tools
+
 An **MCP server** that exposes the DZ cross-platform harness as Model Context
 Protocol tools, so any MCP client can drive the harness without the CLI.
 

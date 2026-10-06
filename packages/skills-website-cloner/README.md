@@ -1,5 +1,7 @@
 # @dzhechkov/skills-website-cloner
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-website-cloner
+
 Website Cloner — skill for [Claude Code](https://claude.com/claude-code) that reverse-engineers **any website** into a **pixel-perfect Next.js clone**.
 
 ## What It Does

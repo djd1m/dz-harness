@@ -88,6 +88,14 @@ Staged, not published — a disk version is not a shipped one.
   inside the untouched 4037.75 trigger. The instrument's own doctrine lives in its file header,
   which is not part of that corpus — nothing reads a hook on every run.
 
+## [1.13.5] - 2026-10-06
+
+### Fixed
+
+- Explicitly include the existing MIT `LICENSE` in the npm package.
+- Refresh the signed manifest and CycloneDX SBOM from the packed artifact.
+- Delivery patch only; skill behavior is unchanged.
+
 ## [1.13.0] - 2026-09-01
 
 **MINOR — `/replicate` gains a mandatory Phase 0.5 (Source Product Profile): when a project

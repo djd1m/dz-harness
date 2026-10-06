@@ -1,5 +1,7 @@
 # @dzhechkov/skills-academic
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-academic
+
 Academic skill pack — 5 skills for master's thesis defense evaluation (ГЭК — Государственная экзаменационная комиссия). Contains only evaluation criteria and methodology; **no student data**.
 
 ## Install

@@ -1,5 +1,7 @@
 # @dzhechkov/skills-package-story-page
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-package-story-page
+
 An evidence-first skill for turning one existing package into a short story page ordinary people can
 understand. It shows a concrete input → process → inspectable output scenario before architecture,
 installation, cost, security, or FAQ copy.

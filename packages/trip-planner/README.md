@@ -1,5 +1,7 @@
 # @dzhechkov/trip-planner
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/trip-planner
+
 > Travel-itinerary → **interactive mobile site** generator for Claude Code. Give it a city, dates,
 > arrival/departure, lodging, party size and constraints — get a self-contained, one-handed mobile
 > HTML itinerary with maps, weather, verified venue contacts + review evidence, and a day-by-day

@@ -1,5 +1,7 @@
 # @dzhechkov/cloudru-hub
 
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/cloudru-hub
+
 > **STATUS: published — the ADR-001 licence hold is SATISFIED (AM-2, 2026-08-12).**
 > [Тимур](https://shkrbkv.ru/about/), the author of the Hermes engine additions, approved publication (owner-reported
 > 2026-08-12 — the grant record is linked from the `Grant-Confirmation:` line in LICENSE
