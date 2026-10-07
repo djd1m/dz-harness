@@ -55,7 +55,7 @@ const canonicalPath = (path: unknown): path is string => typeof path === 'string
 const canonicalScope = (scope: string) => ['tests', 'scripts', '.githooks'].includes(scope) ||
   (canonicalPath(scope) && /^packages\/[^/]+(?:\/[^/]+)?$/.test(scope));
 const rootAssociations: Readonly<Record<string, readonly string[]>> = {
-  scripts: ['tests/test-receipt-script.test.mjs', 'tests/prepush-receipt-gate.test.mjs'],
+  scripts: ['tests/test-receipt-script.test.mjs', 'tests/prepush-receipt-gate.test.mjs', 'scripts/catalog-inventory-evidence.test.mjs', 'scripts/generate-catalog-docs.test.mjs'],
   '.githooks': ['tests/prepush-receipt-gate.test.mjs', 'tests/prepush-drift-gate.test.mjs'],
 };
 export function receiptTestPathMatchesScope(scope: string, path: string): boolean {

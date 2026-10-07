@@ -1,6 +1,6 @@
 # @dzhechkov/harness-cli
 
-Current package version: `0.8.46`. <!-- dz:version -->
+Current package version: `0.8.47`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -16,6 +16,36 @@ You do NOT need to clone any repository to use dz. Source is for contributors �
 [From source (contributors only)](#from-source-contributors-only) at the end of this README.
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/harness-cli
+
+## CLI delivery catalog
+
+The [repository catalog](https://github.com/djd1m/dz-harness#catalog-scopes) also includes source packages outside this pinned CLI installation.
+
+<!-- dz:catalog:cli BEGIN -->
+CLI delivery: **@dzhechkov/harness-cli** (observed version **0.8.46**), historical-published, observed 2026-10-06, namespace **@dzhechkov**, linux/x64. Lock SHA256: `dac6a350dfe2cd56110c6bd04781e3d39b11ae23cdcf7d5e91a68ebe58adfa4c`.
+
+MEASURED totals and carrier table for this exact cli scope; authority: saved `docs/catalog-inventory/evidence.json` artifact memberships and retained installation observation. Reproduce offline from the repository root: `node scripts/generate-catalog-docs.mjs --check`.
+Packages: **31** · carriers: **14** · distinct skills: **151** · categories: **10**.
+Categories: academic, design, devops, ecc, mcp, meta, news, product, qe, web3.
+| Carrier package | Version | Skills before global deduplication | Supported layouts |
+|---|---|---:|---|
+| @dzhechkov/skills-academic | 0.3.8 | 5 | flat |
+| @dzhechkov/skills-devops | 0.3.18 | 30 | flat |
+| @dzhechkov/skills-ecc | 0.1.13 | 20 | flat |
+| @dzhechkov/skills-idea2prd | 0.1.16 | 4 | npx-template |
+| @dzhechkov/skills-mcp | 0.3.11 | 16 | flat |
+| @dzhechkov/skills-meta | 0.9.65 | 21 | flat |
+| @dzhechkov/skills-news | 0.1.17 | 3 | flat |
+| @dzhechkov/skills-pm | 0.1.6 | 18 | flat |
+| @dzhechkov/skills-presentation-storyteller | 0.1.15 | 3 | npx-template |
+| @dzhechkov/skills-qe | 0.3.15 | 22 | flat |
+| @dzhechkov/skills-reverse-engineering | 0.3.5 | 4 | npx-template |
+| @dzhechkov/skills-taste | 0.1.6 | 1 | flat |
+| @dzhechkov/skills-web3 | 0.2.10 | 12 | flat |
+| @dzhechkov/skills-website-cloner | 0.1.6 | 1 | npx-template |
+
+<!-- dz:catalog:membership sha256:b5bfd9102cf1176bc98c675d4d07907416dcbbca11434ebfaed132ea401ea07a -->
+<!-- dz:catalog:cli END -->
 
 ## Experimental Codex recall observer
 
@@ -64,7 +94,7 @@ Each launch creates one snapshot; remove selected old snapshot files yourself wh
 Live backpressure waits for writable callbacks. Explicit termination cancels pending writes; after
 child exit a stalled output sink has a two-second final drain window before cancellation.
 
-Current package versions: `harness-core v0.8.53` · `harness-cli v0.8.46`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.54` · `harness-cli v0.8.47`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. The marker retains its explicit whole-line override for per-package synchronization, so keep it off historical records.
 
@@ -72,7 +102,7 @@ Joint current status requires `<!-- dz:version -->` on a dedicated undated line.
 
 > **`dz` is a package manager + cross-compiler for your AI agent harness.** Write a skill once in one canonical form; `dz` installs it into any agent's harness, holds it to a quality bar, and lets the harness learn over time.
 
-**The problem.** You accumulate 260 skills (design-thinking, QE, devops, web3, MCP, academic…). Five pains follow:
+**The problem.** You accumulate skills from the catalog scopes below (design-thinking, QE, devops, web3, MCP, academic…). Five pains follow:
 
 1. **Every agent wants a different layout.** Claude Code reads `.claude/skills/`, Codex `.codex/`, OpenCode/Hermes/OpenClaude their own. Hand-maintaining N copies is sync hell.
 2. **Skills arrive from many upstream repos** — they must be *canonicalized* (brought to one form) and kept in sync without losing provenance.
@@ -475,9 +505,9 @@ dz help                                   # see all commands
 dz pretrain                                # analyze project files → recommend by tech stack
 dz recommend "build API and deploy to K8s" # keyword match → skills + toolkits
 dz recommend "work on this project"        # unmatched? → labels suggestions as PROJECT-STACK, not task-derived
-dz stats                                  # 57 packages, 260 skills, 10 targets, 14 presets
+dz stats                                  # observed installation totals; 10 targets, 14 presets
 dz dashboard                              # visual panel — packages, adapters, skill packs
-dz registry                               # browse all 260 skills by category
+dz registry                               # browse installed skills by category
 dz registry search kubernetes             # find specific skills
 dz registry --category devops             # filter by domain
 dz downloads                              # npm weekly download stats
@@ -1786,32 +1816,32 @@ an object that was never built. **When to use:**
 before a multi-package npm release, or whenever a broken dist/bin must be impossible to ship; keep plain
 `dz publish` for routine pushes. `dz publish` itself is byte-identical whether or not release exists.
 
-### Skill Packs (18 packs · 189 skills)
+### Repository package descriptions
 
-Each pack is an npm package — click through for the **full per-skill documentation** (what each skill does + how to trigger it). Install a whole pack with `dz install <pkg>`, or pick skills with `dz init --select` / a `--preset`.
+Membership and counts come from the scoped catalog above or the linked repository catalog. Each pack is an npm package — click through for the **full per-skill documentation** (what each skill does + how to trigger it). Install a whole pack with `dz install <pkg>`, or pick skills with `dz init --select` / a `--preset`.
 
-| Pack | Skills | What's inside |
+| Pack | Catalog scope | What's inside |
 |------|--------|---------------|
-| [@dzhechkov/skills-devops](https://www.npmjs.com/package/@dzhechkov/skills-devops) | 30 | CI/CD, IaC, containers, databases, observability, incident & problem mgmt, ITSM/ITIL, deploy-to-Cloud.ru-VM |
-| [@dzhechkov/skills-mcp](https://www.npmjs.com/package/@dzhechkov/skills-mcp) | 16 | MCP-server integrations — search, git/GitLab, Google Workspace, Notion, AgentDB memory |
-| [@dzhechkov/skills-web3](https://www.npmjs.com/package/@dzhechkov/skills-web3) | 12 | On-chain / DeFi — wallets, swaps, bridges, ENS, agent identity (ERC-8004) |
-| [@dzhechkov/skills-qe](https://www.npmjs.com/package/@dzhechkov/skills-qe) | 20 | Quality engineering — test-gen, coverage, chaos, defect intelligence, QCSD swarms |
-| [@dzhechkov/skills-reasoning](https://www.npmjs.com/package/@dzhechkov/skills-reasoning) | 4 | Generic reasoning & code-quality — investigate (root-cause), solid (SOLID/TDD), karpathy-guidelines, agents-md-creator |
-| [@dzhechkov/skills-ecc](https://www.npmjs.com/package/@dzhechkov/skills-ecc) | 20 | Claude-Code engineering craft — agent architecture, autonomous loops, framework patterns |
-| [@dzhechkov/skills-meta](https://www.npmjs.com/package/@dzhechkov/skills-meta) | 20 | Dev-process meta skills — explore, feature-adr, design-thinking, audit, skill-advisor, loop-plan-author, decision-mockups (vendored mirror of `@dzhechkov/skills-decision-mockups`) |
-| [@dzhechkov/skills-academic](https://www.npmjs.com/package/@dzhechkov/skills-academic) | 5 | Thesis-defense toolkit — dissertation review, questions, doc-check, defense eval |
-| [@dzhechkov/skills-news](https://www.npmjs.com/package/@dzhechkov/skills-news) | 3 | *dz-original* — news digests (`news-digest`) + delta watches (`news-monitor`) + bundled `goap-research-ed25519` verified-research backend (mandatory) |
-| [@dzhechkov/skills-demo-publisher](https://github.com/djd1m/dz-harness/tree/main/packages/%40dzhechkov/skills-demo-publisher) | 1 | *dz-original, staged* — scenario-driven product recording → budgeted static HTML5 video site with Russian captions and fail-closed Pages delivery checks |
-| [@dzhechkov/skills-idea2prd](https://www.npmjs.com/package/@dzhechkov/skills-idea2prd) | 1 | *dz-original* — `idea2prd-manual`: idea/problem → PRD+ADR+DDD+C4+Pseudocode+Tests+Completion (9 checkpoints); bundles the analyst trio as a sources.json-tracked vendor (ADR-0001, contributors-only doc) |
-| [@dzhechkov/skills-reverse-engineering](https://www.npmjs.com/package/@dzhechkov/skills-reverse-engineering) | 1 | *dz-original* — `reverse-engineering-unicorn`: company → launch playbook (+CJM) via 6-module QUICK/DEEP/VERIFIED pipeline; canonical home that resolved the keysarium↔p-replicator drift (ADR-0001, contributors-only doc) |
-| [@dzhechkov/skills-presentation-storyteller](https://www.npmjs.com/package/@dzhechkov/skills-presentation-storyteller) | 1 | *dz-original* — `presentation-storyteller`: selling deck + verified sources + slide-by-slide speaker script; referenced (not vendored) by reverse-engineering-unicorn's Post-M6 step (ADR-0001, contributors-only doc) |
-| [@dzhechkov/skills-website-cloner](https://www.npmjs.com/package/@dzhechkov/skills-website-cloner) | 1 | *imported (MIT)* — `clone-website`: live site → pixel-perfect Next.js clone (recon → specs → parallel build → visual QA); needs a browser-MCP + Next.js scaffold; referenced by p-replicator's `/replicate` (ADR-0001, contributors-only doc) |
-| [@dzhechkov/skills-pm](https://www.npmjs.com/package/@dzhechkov/skills-pm) | 18 | *imported (MIT)* — product-management toolkit: OST, RICE/ICE prioritization, product-strategy, pricing, OKRs, NSM/metrics/A-B/cohort, outcome-roadmap, stakeholder-map, sprint-plan, strategy-red-team, GTM/growth/beachhead, market-sizing; curated from phuryn/pm-skills (`dz init --preset pm`) (ADR-0002, contributors-only doc) |
-| [@dzhechkov/skills-taste](https://www.npmjs.com/package/@dzhechkov/skills-taste) | 1 | *imported (MIT)* — `design-taste-frontend`: anti-slop landing/portfolio/redesign framework (dials + pre-flight + GSAP skeletons); complements frontend-design (`dz init --select design-taste-frontend`) (ADR-0002, contributors-only doc) |
-| [@dzhechkov/skills-book-digitizer](https://www.npmjs.com/package/@dzhechkov/skills-book-digitizer) | 8 | *dz-original* — book → installable methodology pack: `digitize-book` (orchestrator) + ingest/extract/distill/pack/kb-index + `book-brain-register` (CP6 promote → cross-project brain) + `source-brain-ingest` (repo sibling). Verified provenance, IP-safe, resumable (`dz init --select digitize-book`) (ADR-001, contributors-only doc) |
-| [@dzhechkov/skills-12factor](https://www.npmjs.com/package/@dzhechkov/skills-12factor) | 12 | *generated by the digitizer, CC BY 4.0* — The Twelve-Factor App distilled into 12 decision-moment skills (one per factor). The first PUBLIC digitized-book pack; paraphrased (shingling-gated), routing-gated (every factor carries triggers), attributed (`NOTICE`) (`dz init --select 12factor-config-in-environment,…`) |
-| [@dzhechkov/skills-book-ai-apps](https://www.npmjs.com/package/@dzhechkov/skills-book-ai-apps) | 17 | *generated by the digitizer, CP5-published* — «Building Applications with AI Agents» (Albada, рус. пер.) distilled into 17 decision-moment skills across the whole agent-building arc: agent-fit & model choice, single-vs-multi, orchestration, tool design, knowledge & memory, context engineering, evaluation, probabilistic behaviour checks, release gates, improvement loops, drift, human-in-the-loop, agent UX, governance, security. Ships our page-anchored Knowledge Units, NOT the book text — shingling-gated at 0 uncited verbatim runs >=8 words; publication is the recorded CP5 owner decision; `trust_tier 1` (routing-gated, not human-reviewed) Since 0.2.2 it also ships `brain/ai-apps.sqlite`, the 223-KU knowledge slice: `dz brain add --from-pack @dzhechkov/skills-book-ai-apps` loads it into your `~/.dz/brain`, then `dz brain query --source ai-apps` answers in any project (`dz install @dzhechkov/skills-book-ai-apps --target claude-code`) |
-| [@dzhechkov/skills-book-clean-code](https://www.npmjs.com/package/@dzhechkov/skills-book-clean-code) | 9 | *generated by the digitizer, CP5-published 2026-09-11* — «Чистый код» (Robert C. Martin, рус. пер.): intent/comment contract, source layout, function contracts, object/data ownership, error and boundary handling, test-suite feedback, legacy refactoring loop, architecture assembly, concurrency safety; ships `brain/clean-code.sqlite` (259 KU). Shingling IP gate 0 violations on the published bytes; trust tier 1. |
+| [@dzhechkov/skills-devops](https://www.npmjs.com/package/@dzhechkov/skills-devops) | repository | CI/CD, IaC, containers, databases, observability, incident & problem mgmt, ITSM/ITIL, deploy-to-Cloud.ru-VM |
+| [@dzhechkov/skills-mcp](https://www.npmjs.com/package/@dzhechkov/skills-mcp) | repository | MCP-server integrations — search, git/GitLab, Google Workspace, Notion, AgentDB memory |
+| [@dzhechkov/skills-web3](https://www.npmjs.com/package/@dzhechkov/skills-web3) | repository | On-chain / DeFi — wallets, swaps, bridges, ENS, agent identity (ERC-8004) |
+| [@dzhechkov/skills-qe](https://www.npmjs.com/package/@dzhechkov/skills-qe) | repository | Quality engineering — test-gen, coverage, chaos, defect intelligence, QCSD swarms |
+| [@dzhechkov/skills-reasoning](https://www.npmjs.com/package/@dzhechkov/skills-reasoning) | repository | Generic reasoning & code-quality — investigate (root-cause), solid (SOLID/TDD), karpathy-guidelines, agents-md-creator |
+| [@dzhechkov/skills-ecc](https://www.npmjs.com/package/@dzhechkov/skills-ecc) | repository | Claude-Code engineering craft — agent architecture, autonomous loops, framework patterns |
+| [@dzhechkov/skills-meta](https://www.npmjs.com/package/@dzhechkov/skills-meta) | repository | Dev-process meta skills — explore, feature-adr, design-thinking, audit, skill-advisor, loop-plan-author, decision-mockups (vendored mirror of `@dzhechkov/skills-decision-mockups`) |
+| [@dzhechkov/skills-academic](https://www.npmjs.com/package/@dzhechkov/skills-academic) | repository | Thesis-defense toolkit — dissertation review, questions, doc-check, defense eval |
+| [@dzhechkov/skills-news](https://www.npmjs.com/package/@dzhechkov/skills-news) | repository | *dz-original* — news digests (`news-digest`) + delta watches (`news-monitor`) + bundled `goap-research-ed25519` verified-research backend (mandatory) |
+| [@dzhechkov/skills-demo-publisher](https://github.com/djd1m/dz-harness/tree/main/packages/%40dzhechkov/skills-demo-publisher) | repository | *dz-original, staged* — scenario-driven product recording → budgeted static HTML5 video site with Russian captions and fail-closed Pages delivery checks |
+| [@dzhechkov/skills-idea2prd](https://www.npmjs.com/package/@dzhechkov/skills-idea2prd) | repository | *dz-original* — `idea2prd-manual`: idea/problem → PRD+ADR+DDD+C4+Pseudocode+Tests+Completion (9 checkpoints); bundles the analyst trio as a sources.json-tracked vendor (ADR-0001, contributors-only doc) |
+| [@dzhechkov/skills-reverse-engineering](https://www.npmjs.com/package/@dzhechkov/skills-reverse-engineering) | repository | *dz-original* — `reverse-engineering-unicorn`: company → launch playbook (+CJM) via 6-module QUICK/DEEP/VERIFIED pipeline; canonical home that resolved the keysarium↔p-replicator drift (ADR-0001, contributors-only doc) |
+| [@dzhechkov/skills-presentation-storyteller](https://www.npmjs.com/package/@dzhechkov/skills-presentation-storyteller) | repository | *dz-original* — `presentation-storyteller`: selling deck + verified sources + slide-by-slide speaker script; referenced (not vendored) by reverse-engineering-unicorn's Post-M6 step (ADR-0001, contributors-only doc) |
+| [@dzhechkov/skills-website-cloner](https://www.npmjs.com/package/@dzhechkov/skills-website-cloner) | repository | *imported (MIT)* — `clone-website`: live site → pixel-perfect Next.js clone (recon → specs → parallel build → visual QA); needs a browser-MCP + Next.js scaffold; referenced by p-replicator's `/replicate` (ADR-0001, contributors-only doc) |
+| [@dzhechkov/skills-pm](https://www.npmjs.com/package/@dzhechkov/skills-pm) | repository | *imported (MIT)* — product-management toolkit: OST, RICE/ICE prioritization, product-strategy, pricing, OKRs, NSM/metrics/A-B/cohort, outcome-roadmap, stakeholder-map, sprint-plan, strategy-red-team, GTM/growth/beachhead, market-sizing; curated from phuryn/pm-skills (`dz init --preset pm`) (ADR-0002, contributors-only doc) |
+| [@dzhechkov/skills-taste](https://www.npmjs.com/package/@dzhechkov/skills-taste) | repository | *imported (MIT)* — `design-taste-frontend`: anti-slop landing/portfolio/redesign framework (dials + pre-flight + GSAP skeletons); complements frontend-design (`dz init --select design-taste-frontend`) (ADR-0002, contributors-only doc) |
+| [@dzhechkov/skills-book-digitizer](https://www.npmjs.com/package/@dzhechkov/skills-book-digitizer) | repository | *dz-original* — book → installable methodology pack: `digitize-book` (orchestrator) + ingest/extract/distill/pack/kb-index + `book-brain-register` (CP6 promote → cross-project brain) + `source-brain-ingest` (repo sibling). Verified provenance, IP-safe, resumable (`dz init --select digitize-book`) (ADR-001, contributors-only doc) |
+| [@dzhechkov/skills-12factor](https://www.npmjs.com/package/@dzhechkov/skills-12factor) | repository | *generated by the digitizer, CC BY 4.0* — The Twelve-Factor App distilled into 12 decision-moment skills (one per factor). The first PUBLIC digitized-book pack; paraphrased (shingling-gated), routing-gated (every factor carries triggers), attributed (`NOTICE`) (`dz init --select 12factor-config-in-environment,…`) |
+| [@dzhechkov/skills-book-ai-apps](https://www.npmjs.com/package/@dzhechkov/skills-book-ai-apps) | repository | *generated by the digitizer, CP5-published* — «Building Applications with AI Agents» (Albada, рус. пер.) distilled into 17 decision-moment skills across the whole agent-building arc: agent-fit & model choice, single-vs-multi, orchestration, tool design, knowledge & memory, context engineering, evaluation, probabilistic behaviour checks, release gates, improvement loops, drift, human-in-the-loop, agent UX, governance, security. Ships our page-anchored Knowledge Units, NOT the book text — shingling-gated at 0 uncited verbatim runs >=8 words; publication is the recorded CP5 owner decision; `trust_tier 1` (routing-gated, not human-reviewed) Since 0.2.2 it also ships `brain/ai-apps.sqlite`, the 223-KU knowledge slice: `dz brain add --from-pack @dzhechkov/skills-book-ai-apps` loads it into your `~/.dz/brain`, then `dz brain query --source ai-apps` answers in any project (`dz install @dzhechkov/skills-book-ai-apps --target claude-code`) |
+| [@dzhechkov/skills-book-clean-code](https://www.npmjs.com/package/@dzhechkov/skills-book-clean-code) | repository | *generated by the digitizer, CP5-published 2026-09-11* — «Чистый код» (Robert C. Martin, рус. пер.): intent/comment contract, source layout, function contracts, object/data ownership, error and boundary handling, test-suite feedback, legacy refactoring loop, architecture assembly, concurrency safety; ships `brain/clean-code.sqlite` (259 KU). Shingling IP gate 0 violations on the published bytes; trust tier 1. |
 
 ### Available Presets (14)
 
@@ -3476,7 +3506,7 @@ dz scout --since 2026-05-01           # only recent repos
 **Radar mode** (`dz scout`) scans **11 sources** in parallel (GitHub + npm + HN + MCP Registry + Glama + OSSInsight + Smithery + Semantic Scholar + arXiv + ECC + AgentBox):
 1. **Detects skill format** — SKILL.md, plugin.json, .claude/skills/, .claude-plugin/, MCP manifests
 2. **Scores relevance** — format (40%) + stars (30%) + recency (20%) + novelty (10%)
-3. **Compares against our 46 packages** — finds skills we don't have
+3. **Compares against the selected package catalog** — finds skills we don't have
 4. **Recommends** — integrate (score ≥70) / monitor (40-69 + ≥50 stars) / skip
 
 **Deep analyst mode** (`dz scout --deep`) goes further for top-scored repos:
@@ -3857,8 +3887,16 @@ Compares installed skills with canonical source, reports which need `dz init --f
 ### dz downloads — npm weekly download stats
 
 ```bash
-dz downloads     # fetch weekly downloads for all 46 packages
+dz downloads     # fetch weekly downloads for the selected packages
 ```
+
+Run from a workspace root containing readable `packages/@dzhechkov/<package>/package.json`
+files. `dz downloads` uses the current working directory and ignores `--project`; change
+directory to select a workspace. Missing, empty, folder-only or flat-only package layouts,
+broken/malformed manifests, and an empty or partly unusable discovered name list return
+exit 1 with a stderr recovery diagnostic before any banner or npm request. Existing
+publication discovery selects direct package directories, with no version or private filter;
+accepted names are sent unchanged. Package-directory symlinks do not widen that selection.
 
 ### dz benchmark — L0 quality gate
 
@@ -4049,7 +4087,7 @@ Scans a GitHub repo for SKILL.md files, generates `dz create-skill` commands.
 ### dz registry — searchable skill index
 
 ```bash
-dz registry                    # visual panel: 179 skills in 11 categories
+dz registry                    # visual panel: installed scope skills and categories
 dz registry search security    # fuzzy search
 dz registry --category mcp     # filter by category
 ```
@@ -4060,6 +4098,15 @@ dz registry --category mcp     # filter by category
 dz stats        # Quick metrics: packages, skills, targets, presets
 dz dashboard    # Visual panel with all packages, adapters, skill packs
 ```
+
+`dz stats` uses the current working directory and ignores `--project`. Change directory to
+a workspace root with readable `packages/@dzhechkov/<package>/package.json` files. Missing,
+empty, folder-only or flat-only layouts and broken/malformed manifests return exit 1 with
+a stderr recovery diagnostic before the stats header. Stats counts manifest-bearing
+directories (including valid directory links) without requiring name/version metadata,
+and retains the default registry sources, target/preset lists and optional learn-loop output.
+If the subsequent counter observes zero packages, stats refuses; there is no atomic snapshot
+or retry guarantee while the filesystem changes.
 
 ---
 
@@ -6628,7 +6675,7 @@ For the exact batch `@dzhechkov/harness-core`, `@dzhechkov/harness-cli`, `@dzhec
 
 Admission requires both original adapter signatures, complete physical signed coverage, exact current `workspace:*` core declarations throughout reachable local history, and source-to-pack materialization. Only the known owner branding and that derived core dependency value may differ. Fresh registered baseline and candidate consumers install all five roots together, independently check installed manifests against complete locks, run scoped npm audits, and retain every unselected node, resolved edge, registry SRI and optional platform witness. Nested registered occurrences remain checked. The recorded registered core floor and workspace floor are distinct; this proof does not assert version or runtime equivalence or establish the historical registry release commit.
 
-Preview is preliminary. Live publication repeats the proof against **all five final signed tarballs before the first registry write**, including batches without bins, and rechecks their hashes after proof cleanup and before transport. Changed payloads, dependencies, registry bindings, source/history, missing evidence, execution failures or cleanup failures block the whole batch. Failed final admission restores owned signature/SBOM bytes and modes alongside the existing package/version/README rollback so a healthy retry can build a fresh proof. Existing signature, dependency-floor, release audit, smoke, guard and registry confirmation gates remain mandatory. There is no proof-file input or new bypass flag.
+Preview is preliminary. Live publication repeats the proof against **all five final signed tarballs before the first registry write**, including batches without bins, and rechecks their hashes after proof cleanup and before transport. Final README bytes must match the publisher’s own-version sync; only CLI additionally projects its marked release line to the exact final CLI/core artifact versions. Every other README byte and binary payload remains checked. Changed payloads, dependencies, registry bindings, source/history, missing evidence, execution failures or cleanup failures block the whole batch. Failed final admission restores owned signature/SBOM bytes and modes alongside the existing package/version/README rollback so a healthy retry can build a fresh proof. Existing signature, dependency-floor, release audit, smoke, guard and registry confirmation gates remain mandatory. There is no proof-file input or new bypass flag.
 
 
 `dz setup --memory agentdb` now saves `agentdb` and `better-sqlite3` as exact local devDependencies

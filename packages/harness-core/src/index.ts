@@ -143,7 +143,7 @@ export { uniqueStampedPath, writeUniqueStampedFile } from './stamped-path.js';
 export type { LedgerBackfillPlan, LedgerBackfillRow, RunCostFacts } from './ledger-backfill.js';
 export type { SweepResult, DriftedSkill, SyncResult, SyncCanonicalOptions, CanonicalDefect, CanonicalDefectKind } from './skill-drift.js';
 export { benchmarkSkill, benchmarkSkills, compareSkills } from './benchmark.js';
-export { buildRegistry, buildShowcaseRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs, packScope, verifiedScopeNote } from './registry.js';
+export { buildRegistryFromCarriers, buildRegistry, buildShowcaseRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs, packScope, verifiedScopeNote } from './registry.js';
 export { tokenize, stemToken, stems } from './stem.js';
 // Package skill-layout resolution (feature dz-install-npx-init) — the ONE seam that knows where an
 // npm package keeps its skills (flat / templates/.claude/skills / skills). `cmdInstall` calls it;
@@ -1404,3 +1404,5 @@ export type { BackupFreshnessVerdict } from './backup-freshness.js';
 
 export { planReleasePackageAudit, judgeReleasePackageAudit, judgeReleaseCohortAudit } from './release-package-audit.js';
 export type { ReleasePackageAuditPlan, ReleasePackageAuditResult, ReleaseWorkspaceAuditReport } from './release-package-audit.js';
+
+export { buildScopedCatalogInventory } from './scoped-catalog-inventory.js';

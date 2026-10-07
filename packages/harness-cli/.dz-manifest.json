@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "d27adaeed143e0c2fd6c8aa071ca5db57b95a687dd9f1659867b53a8e9e9f442"
+        "sha256": "f04cc93779d4b483bc1bcaada073c5663fb015553588fd0a3ae120ded10783c9"
       },
       {
         "path": "dist/bin.d.ts",
@@ -49,15 +49,15 @@
       },
       {
         "path": "dist/cli.d.ts.map",
-        "sha256": "23a42c9271108611021d50491cbf12ed8e3dae7df5ea113fc89c2df65c7d6685"
+        "sha256": "fdd29219c0c6c1b86ce1fef7ef34303c80ac9fa8ed62d248370336eadd62c52c"
       },
       {
         "path": "dist/cli.js",
-        "sha256": "25b235d485c6ae811fed9091cf0c652c2dd36b2a4b4df702cc461bba3bd8cac7"
+        "sha256": "e18a137c919b35dc7bfcc09fecf517edf81f37c64d0b9a55fa750a3f767a9126"
       },
       {
         "path": "dist/cli.js.map",
-        "sha256": "4ba49480fedcb73e33b713972eae91e83325b2e72c4befcc67ced5d54272b37a"
+        "sha256": "2178b0678d3c947e7b7c3efdd07aa724f41af788882f50aacee607a90216565d"
       },
       {
         "path": "dist/command-inventory.d.ts",
@@ -145,15 +145,15 @@
       },
       {
         "path": "dist/release-package-audit-runner.d.ts.map",
-        "sha256": "73800f12e08ce7f7fe071a26ab2a6fdbb014adfaef3a08690958ebe86bc706be"
+        "sha256": "f14e004d73328c1cc72d72c307dc81c851f742d37f3f7353313902af7f4a949b"
       },
       {
         "path": "dist/release-package-audit-runner.js",
-        "sha256": "a8e7bf884936e284100e839bd37fc6c0e3265369febfa4e8dd79f0c4dd2a0a3d"
+        "sha256": "fc02984a22735bf5a6e58a952b9587537fdbb29a0539de9d3413de11a280bf3e"
       },
       {
         "path": "dist/release-package-audit-runner.js.map",
-        "sha256": "fbde6496e1beafb734f30f10bc1d15b377e566c512c05f605d95062e484c72d9"
+        "sha256": "4a645e5115d3bd93154dab987dac54bcedc612994ed31ae949b4d2e320ac35e4"
       },
       {
         "path": "dist/sibling-drift-fetch.d.ts",
@@ -170,6 +170,22 @@
       {
         "path": "dist/sibling-drift-fetch.js.map",
         "sha256": "be85783c6a13cde5a6e3819f8c796395c13a2aff3cf6a3129bbb187403f04eee"
+      },
+      {
+        "path": "dist/statistics-workspace.d.ts",
+        "sha256": "f112d307253f0035f703484dc979ff9e3bc70af22e13ae27c61ee1419cd6e5b1"
+      },
+      {
+        "path": "dist/statistics-workspace.d.ts.map",
+        "sha256": "405aabdb0c380e4339eb1b1f404394fd5f9c6466eef6420cea52c8810e17f428"
+      },
+      {
+        "path": "dist/statistics-workspace.js",
+        "sha256": "984e7b5309b726cf2c5bdf32fb02c826fcbb680d576e74a1393902cfd49a9c89"
+      },
+      {
+        "path": "dist/statistics-workspace.js.map",
+        "sha256": "eec78e8f90f6c7d6aa808c8021314a7bbbe26931acc0afc21e44b330d2f46512"
       },
       {
         "path": "dist/statusline-watch.d.ts",
@@ -197,7 +213,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "21c48523b4228381c09b4d8b411b26413c97d0af124128bc35b3294239787bc8"
+        "sha256": "5b2ca063989f0b0db5e7e3cd4d12a41383bb40f08bd7f3eacea3c8afa743e362"
       },
       {
         "path": "src/bin.ts",
@@ -209,7 +225,7 @@
       },
       {
         "path": "src/cli.ts",
-        "sha256": "c8235457b75dd374a05d2f2a97186b683c7bf7c7e3ecd23286373452d3ffaa46"
+        "sha256": "b56adf7a493dcfe31b2d341c336581e8753965e9fe4f71b1aeb45c5cd265578f"
       },
       {
         "path": "src/command-inventory.ts",
@@ -233,11 +249,15 @@
       },
       {
         "path": "src/release-package-audit-runner.ts",
-        "sha256": "c1534aae38f84e7203ee8806d9f55d84f69c97838642d80e8f05fa25265dff9a"
+        "sha256": "3dbe979bc4d65e0e1a4b18f0bdb37dba2952bba3f821214c05fea03d9ee54d65"
       },
       {
         "path": "src/sibling-drift-fetch.ts",
         "sha256": "5a1ea48502c78d3f140eea8f14a41b28619791741b3ca2688bd1fc3055139d98"
+      },
+      {
+        "path": "src/statistics-workspace.ts",
+        "sha256": "36f3bd650826c0ce20b5764bea592194c9ad3d6fda365b57d945e50299d5529a"
       },
       {
         "path": "src/statusline-watch.ts",
@@ -245,5 +265,5 @@
       }
     ]
   },
-  "signature": "VoDKVxfxIf6dGJJjvAuxU9JauxZgPmSAoH0fClus0RJHpl5Dp0U4u/f1RzC+vJScq/ekENmdGrqbPhdVKenjCg=="
+  "signature": "lpSlNo3UqDQgdE6WGpbDD2tM16TWpfdrZbVGAIo/+JxJSC9YcADhgTv65T4qBPsEct/oeUyOOoT08pdgpmkHAg=="
 }

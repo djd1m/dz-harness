@@ -62,7 +62,7 @@ export { uniqueStampedPath, writeUniqueStampedFile } from './stamped-path.js';
 export type { LedgerBackfillPlan, LedgerBackfillRow, RunCostFacts } from './ledger-backfill.js';
 export type { SweepResult, DriftedSkill, SyncResult, SyncCanonicalOptions, CanonicalDefect, CanonicalDefectKind } from './skill-drift.js';
 export { benchmarkSkill, benchmarkSkills, compareSkills } from './benchmark.js';
-export { buildRegistry, buildShowcaseRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs, packScope, verifiedScopeNote } from './registry.js';
+export { buildRegistryFromCarriers, buildRegistry, buildShowcaseRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs, packScope, verifiedScopeNote } from './registry.js';
 export { tokenize, stemToken, stems } from './stem.js';
 export * from './package-skill-layouts.js';
 export { recommend } from './recommend.js';
@@ -315,4 +315,5 @@ export { decideBackupFreshness, renderBackupFreshness } from './backup-freshness
 export type { BackupFreshnessVerdict } from './backup-freshness.js';
 export { planReleasePackageAudit, judgeReleasePackageAudit, judgeReleaseCohortAudit } from './release-package-audit.js';
 export type { ReleasePackageAuditPlan, ReleasePackageAuditResult, ReleaseWorkspaceAuditReport } from './release-package-audit.js';
+export { buildScopedCatalogInventory } from './scoped-catalog-inventory.js';
 //# sourceMappingURL=index.d.ts.map

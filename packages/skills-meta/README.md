@@ -1,6 +1,6 @@
 # @dzhechkov/skills-meta
 
-Current package version: `0.9.65`. <!-- dz:version -->
+Current package version: `0.9.66`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-meta
 
@@ -224,3 +224,7 @@ Confirmation, scope, family and budget gates still apply. No automatic repair lo
 Repeated prepare retains all pending paths until verified closure. Actual fallback families bind before dispatch while prior owners remain required. Same-slug QE repair uses current own-reviewer evidence bound to the complete historical checkpoint; original findings/grades remain visible, and failed Confirmation still blocks delivery.
 
 Before fallback, host prepare retains independently written pending receipt findings under the original owner even if that reviewer returned null. Unreconciled pending evidence pauses dispatch for originating-reviewer repair; it cannot be replaced by a clean fallback to obtain closure.
+
+After a reviewed artifact is renamed or removed, convergence keeps its previously host-bound condition scope in the measured manifest; an absent old path has a null digest. Current discovered paths remain measured. Both prepare and evaluate validate the retained snapshot and reject unbound or unsafe scope paths. The original condition and originating reviewer verification remain required; a rename alone does not close a finding.
+
+QE also measures the exact `.dz/guard.json` policy configuration when it is in the current Git index or selected review base. This includes newly staged and intent-to-add files; base-tracked deletions retain a null digest. Both declared targets and discovered changes use this rule. Untracked files absent from that base do not qualify through older history. Other `.dz/` runtime files remain excluded, and existing path, symlink, freshness and reviewer-ownership checks still apply.

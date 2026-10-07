@@ -6,6 +6,7 @@
 
 import { runReleasePackageAudit, buildRetainedBindingProof } from './release-package-audit-runner.js';
 import { fetchPublishedViaNpmPack } from './sibling-drift-fetch.js';
+import { inspectStatisticsWorkspace } from './statistics-workspace.js';
 import { packArtifact, readWorkspaceVersions, formatDriftFiles, type InventorySource, type LocalInventoryResult } from '@dzhechkov/harness-core';
 // Fix-round 1 (Codex HIGH-1c, feature recall-short-terms): the ONE place `dz recall` prints an
 // empty result must name WHY — via the shared helper, not by re-deriving the decision. Routed
@@ -12922,8 +12923,40 @@ function cmdPlugin(options: Map<string, string>, cwd: string, write: Write): num
   return 0;
 }
 
-async function cmdDownloads(cwd: string, write: Write): Promise<number> {
-  const packages = discoverPackages(cwd).map((p) => p.name);
+/** Fixed command/path/recovery diagnostics never render manifest data or raw exceptions. */
+function statisticsWorkspaceDiagnostic(command: 'stats' | 'downloads', path: string, reason: string): string {
+  const messages: Record<string, string> = {
+    'root-missing': 'package directory is missing',
+    'root-type': 'expected a package directory',
+    'root-read': 'cannot read the package directory',
+    empty: 'no package manifests found',
+    'manifest-type': 'expected a manifest file',
+    'manifest-read': 'cannot read the package manifest',
+    'manifest-json': 'cannot parse the package manifest',
+    discovery: 'cannot discover package names',
+    names: 'no usable complete package-name list',
+    recount: 'no package manifests remain visible',
+  };
+  return `dz ${command}: ${messages[reason] ?? 'cannot inspect the workspace'} at ${JSON.stringify(path)}. Change directory to a workspace root with readable packages/@dzhechkov package manifests, and repair any broken manifests.`;
+}
+
+async function cmdDownloads(cwd: string, write: Write, writeErr: Write): Promise<number> {
+  const workspace = inspectStatisticsWorkspace(cwd);
+  if (!workspace.ok) {
+    writeErr(statisticsWorkspaceDiagnostic('downloads', workspace.path ?? join(workspace.root, 'packages', '@dzhechkov'), workspace.reason));
+    return 1;
+  }
+  let packages: string[];
+  try {
+    packages = discoverPackages(workspace.root).map((p) => p.name);
+  } catch {
+    writeErr(statisticsWorkspaceDiagnostic('downloads', join(workspace.root, 'packages', '@dzhechkov'), 'discovery'));
+    return 1;
+  }
+  if (packages.length === 0 || packages.some((name) => typeof name !== 'string' || name.trim().length === 0)) {
+    writeErr(statisticsWorkspaceDiagnostic('downloads', join(workspace.root, 'packages', '@dzhechkov'), 'names'));
+    return 1;
+  }
   write(`Fetching npm downloads for ${packages.length} packages...`);
   const report = await fetchAllDownloads(packages);
 
@@ -23907,13 +23940,18 @@ export function countPackageDirs(baseDir: string): number {
   return count;
 }
 
-function cmdStats(cwd: string, write: Write): number {
-  const baseDir = join(cwd, 'packages', '@dzhechkov');
-  if (!existsSync(baseDir)) {
-    write('dz stats: no packages/@dzhechkov found');
+function cmdStats(cwd: string, write: Write, writeErr: Write): number {
+  const workspace = inspectStatisticsWorkspace(cwd);
+  if (!workspace.ok) {
+    writeErr(statisticsWorkspaceDiagnostic('stats', workspace.path ?? join(workspace.root, 'packages', '@dzhechkov'), workspace.reason));
     return 1;
   }
+  const baseDir = join(workspace.root, 'packages', '@dzhechkov');
   const packages = countPackageDirs(baseDir);
+  if (packages === 0) {
+    writeErr(statisticsWorkspaceDiagnostic('stats', baseDir, 'recount'));
+    return 1;
+  }
   // Backlog e160aeee. This used to walk the tree ITSELF, and was wrong in two independent ways:
   // it counted only packages whose NAME starts with `skills-` (health-advisor, p-replicator,
   // keysarium and trip-planner were therefore invisible), and it knew only ONE of the three skill
@@ -24724,9 +24762,9 @@ export async function runCli(argv: string[], io: CliIo = {}): Promise<number> {
       case 'plugin':
         return cmdPlugin(options, cwd, write);
       case 'downloads':
-        return await cmdDownloads(cwd, write);
+        return await cmdDownloads(cwd, write, writeErr);
       case 'stats':
-        return cmdStats(cwd, write);
+        return cmdStats(cwd, write, writeErr);
       case 'architecture':
         return cmdArchitecture(options, flags, cwd, write);
       case 'project-skills':

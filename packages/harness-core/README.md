@@ -17,7 +17,7 @@ commands. Use `node --test <file>` through the same wrapper for Node tests. Focu
 is supported; it does not prove a complete suite, meaningful tests or authenticated evidence.
 See the repository `.githooks/README.md` for bounds, supported commands and reasoned overrides.
 
-Current package version: `0.8.53`. <!-- dz:version -->
+Current package version: `0.8.54`. <!-- dz:version -->
 
 Joint current metadata requires `<!-- dz:version -->` on a dedicated undated core/CLI line. Both README writers preserve unmarked historical joint pairs; the guard and release-line report skip them. Fenced examples cannot become current joint metadata. `parseReleaseLine` remains structural, while selection requires this explicit opt-in. The marker still forces per-package rewriting of every matching version on its line, even inside history; keep it off historical records.
 
@@ -2837,3 +2837,13 @@ keep npm cache at the original user's default cache unless the caller supplies a
 Stage usage adds `routingProvenance` (`routing-provenance-1`) separately from token/cost accounting. Probe observations retain the first32 reached candidates and the actual consideration count; `wrapperInvoked` records the ChildRunner seam call, without attesting OS child start or provider billing.
 
 Stages expose safe `plannedModel`, `plannedModelSource` and invocation-local `probeId`, separately from the existing selected `requestedModel`. Legacy/Plain history is null/not-recorded. Missing sources or links are partial; malformed/conflicting identities suppress new attribution and report defect. Probe spend remains unknown. These observations establish neither model quality nor training readiness.
+
+### Explicit catalog scopes
+
+`buildRegistryFromCarriers(cwd, carriers)` projects only supplied ordered carrier roots;
+`buildRegistry(cwd)` keeps its existing runtime discovery. `buildScopedCatalogInventory`
+accepts manifest package facts plus ordered carrier references and reports package identities,
+carrier totals, distinct IDs, per-package IDs/layout occurrences, categories and a SHA256 membership
+witness. Exact artifact member lists filter files before counting. Normalized occurrences support
+read-only saved evidence projection through the same registry winner/category rules. Bare package
+root `SKILL.md` remains absent from registry entries; empty `skills-*` carriers still count.

@@ -158,9 +158,27 @@ export declare function buildShowcaseRegistry(registry: Registry, opts: {
     readonly version: string;
     readonly generated: string;
 }): ShowcaseRegistry;
+/** An explicit catalog root; normalized occurrences permit offline evidence projection. */
+interface RegistryCarrier {
+    readonly pack: string;
+    readonly dir: string;
+    readonly members?: readonly string[];
+    readonly occurrences?: readonly {
+        readonly id: string;
+        readonly layout: string;
+        readonly path: string;
+    }[];
+}
 export declare function buildRegistry(cwd: string): Registry;
+/** Build only the supplied ordered roots, preserving default registry winner semantics. */
+export declare function buildRegistryFromCarriers(cwd: string, packs: readonly RegistryCarrier[], observe?: (carrier: RegistryCarrier, occurrence: {
+    id: string;
+    layout: string;
+    path: string;
+}) => void): Registry;
 /** Search registry by query (matches id and description, case-insensitive). */
 export declare function searchRegistry(registry: Registry, query: string): readonly RegistryEntry[];
 /** Filter registry by category. */
 export declare function filterByCategory(registry: Registry, category: string): readonly RegistryEntry[];
+export {};
 //# sourceMappingURL=registry.d.ts.map

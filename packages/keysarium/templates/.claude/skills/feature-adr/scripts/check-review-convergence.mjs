@@ -34,13 +34,25 @@ function reviewerEntry(r, roster) {
 }
 function result(phase, verdict, revision, reasons, unresolved = []) { return { schema: SCHEMA, phase, verdict, revision, unresolved, reasons } }
 
+function artifactPath(rel) {
+  return text(rel) && !rel.startsWith('/') && !rel.includes('\\') && !rel.split('/').some(p => !p || p === '.' || p === '..') && !/[\x00-\x1f]/.test(rel)
+}
+function hostProblem(host) {
+  if (!dictionary(host, ['schema', 'phase', 'reviewers', 'snapshot', 'conditions', 'reviewSeen', 'rework', 'changedPaths']) || host.schema !== SCHEMA || !phases.includes(host.phase) || !array(host.reviewers, 16) || host.reviewers.length === 0) return 'host-lineage-invalid'
+  const owners = host.reviewers.map(r => r?.id)
+  if (new Set(owners).size !== owners.length || !host.reviewers.every(r => dictionary(r, ['id', 'family']) && text(r.id) && ['codex', 'claude', 'owner-exception'].includes(r.family))) return 'host-reviewers-invalid'
+  if (!dictionary(host.snapshot, ['nonce', 'revision', 'manifest']) || !text(host.snapshot.nonce) || !hash(host.snapshot.revision) || !array(host.conditions) || !host.conditions.every(c => condition(c, owners)) || new Set(host.conditions.map(c => c.id)).size !== host.conditions.length || typeof host.reviewSeen !== 'boolean' || typeof host.rework !== 'boolean' || !strings(host.changedPaths) || !host.changedPaths.every(artifactPath)) return 'host-snapshot-invalid'
+  const manifest = host.snapshot.manifest
+  if (!Array.isArray(manifest) || !manifest.every(p => dictionary(p, ['path', 'digest']) && artifactPath(p.path) && (p.digest === null || hash(p.digest))) || new Set(manifest.map(p => p.path)).size !== manifest.length || digest(JSON.stringify(manifest)) !== host.snapshot.revision) return 'host-manifest-invalid'
+  if (host.conditions.some(c => c.scope.some(path => !manifest.some(p => p.path === path)))) return 'host-condition-scope-unbound'
+  return null
+}
 export function evaluateReviewConvergence(host, receipt, currentManifest) {
   const phase = host?.phase
-  const refuse = reason => result(phase || 'qe', 'not-established', host?.snapshot?.revision || null, [reason], (host?.conditions || []).map(c => c.id))
-  if (!dictionary(host, ['schema', 'phase', 'reviewers', 'snapshot', 'conditions', 'reviewSeen', 'rework', 'changedPaths']) || host.schema !== SCHEMA || !phases.includes(phase) || !array(host.reviewers, 16) || host.reviewers.length === 0) return refuse('host-lineage-invalid')
+  const refuse = reason => result(phase || 'qe', 'not-established', host?.snapshot?.revision || null, [reason], (array(host?.conditions) ? host.conditions : []).map(c => c?.id))
+  const problem = hostProblem(host)
+  if (problem) return refuse(problem)
   const owners = host.reviewers.map(r => r.id)
-  if (new Set(owners).size !== owners.length || !host.reviewers.every(r => dictionary(r, ['id', 'family']) && text(r.id) && ['codex', 'claude', 'owner-exception'].includes(r.family))) return refuse('host-reviewers-invalid')
-  if (!dictionary(host.snapshot, ['nonce', 'revision', 'manifest']) || !text(host.snapshot.nonce) || !hash(host.snapshot.revision) || !array(host.conditions) || !host.conditions.every(c => condition(c, owners)) || typeof host.reviewSeen !== 'boolean' || typeof host.rework !== 'boolean' || !strings(host.changedPaths)) return refuse('host-snapshot-invalid')
   if (!same(host.snapshot.manifest, currentManifest) || digest(JSON.stringify(currentManifest)) !== host.snapshot.revision) return refuse('artifact-manifest-changed')
   if (!dictionary(receipt, ['schema', 'phase', 'nonce', 'revision', 'reviews', 'author']) || receipt.schema !== SCHEMA || receipt.phase !== phase || receipt.nonce !== host.snapshot.nonce || receipt.revision !== host.snapshot.revision) return refuse('receipt-phase-or-revision-invalid')
   if (!array(receipt.reviews, 16) || receipt.reviews.length !== owners.length || new Set(receipt.reviews.map(r => r?.reviewer)).size !== owners.length) return refuse('reviewer-set-invalid')
@@ -96,12 +108,17 @@ export function evaluateReviewConvergence(host, receipt, currentManifest) {
 }
 
 function safePath(root, rel, allowMissing = true) {
-  if (!text(rel) || rel.startsWith('/') || rel.includes('\\') || rel.split('/').some(p => !p || p === '.' || p === '..') || /[\x00-\x1f]/.test(rel)) throw Error('unsafe-artifact-path')
+  if (!artifactPath(rel)) throw Error('unsafe-artifact-path')
   let path = root
   for (const part of rel.split('/')) {
     path = resolve(path, part)
-    if (!existsSync(path)) { if (allowMissing) return resolve(root, rel); throw Error('artifact-missing:' + rel) }
-    if (lstatSync(path).isSymbolicLink()) throw Error('symlink-artifact:' + rel)
+    let entry
+    try { entry = lstatSync(path) } catch (error) {
+      if (error.code !== 'ENOENT') throw error
+      if (allowMissing) return resolve(root, rel)
+      throw Error('artifact-missing:' + rel)
+    }
+    if (entry.isSymbolicLink()) throw Error('symlink-artifact:' + rel)
   }
   return path
 }
@@ -134,21 +151,30 @@ function pathsFor(repo, feature, phase) {
       return match[1]
     })
     if (!planned.length) throw Error('target-block-empty')
-    if (planned.some(p => /^(features|\.dz|\.agentic-qe|roam)\//.test(p))) throw Error('circular-review-target')
-    paths.push(...planned)
-    // Additions/deletions are discovered by the host, not the author delta request.
     const baseFile = resolve(feature, '.fa-state/base-ref')
     const base = existsSync(baseFile) ? readFileSync(baseFile, 'utf8').trim() : 'HEAD'
     if (!/^[A-Za-z0-9_./:-]+$/.test(base) || base.startsWith('-')) throw Error('base-ref-invalid')
-    for (const command of [['diff', '--name-only', '-z', base, '--'], ['ls-files', '--others', '--exclude-standard', '-z']]) {
+    const guard = '.dz/guard.json'
+    // Exact index membership includes staged additions/intent-to-add. The selected
+    // base proves deletions; descendants and unrelated history confer no authority.
+    const proof = [['ls-files', '--cached', '-z', '--', guard], ['ls-tree', '-r', '--name-only', '-z', base, '--', guard]].map(command =>
+      execFileSync('git', command, { cwd: repo, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 }).split('\0').includes(guard))
+    const allowedGuard = p => p === guard && proof.some(Boolean)
+    if (planned.some(p => /^(features|\.dz|\.agentic-qe|roam)\//.test(p) && !allowedGuard(p))) throw Error('circular-review-target')
+    paths.push(...planned)
+    // Additions/deletions are discovered by the host, not the author delta request.
+    for (const command of [['diff', '--no-renames', '--name-only', '-z', base, '--'], ['ls-files', '--others', '--exclude-standard', '-z']]) {
       const names = execFileSync('git', command, { cwd: repo, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 }).split('\0').filter(Boolean)
-      paths.push(...names.filter(p => !p.startsWith('features/') && !p.startsWith('.dz/') && !p.startsWith('.agentic-qe/') && !p.startsWith('roam/') && p !== 'architecture/map.json'))
+      paths.push(...names.filter(p => allowedGuard(p) || !p.startsWith('features/') && !p.startsWith('.dz/') && !p.startsWith('.agentic-qe/') && !p.startsWith('roam/') && p !== 'architecture/map.json'))
     }
   }
   return [...new Set(paths)].sort()
 }
 export function measureManifest(repo, feature, phase) {
-  return pathsFor(repo, feature, phase).map(path => {
+  return measurePaths(repo, pathsFor(repo, feature, phase))
+}
+function measurePaths(repo, paths) {
+  return [...new Set(paths)].sort().map(path => {
     const absolute = safePath(repo, path)
     if (!existsSync(absolute)) return { path, digest: null }
     if (!lstatSync(absolute).isFile()) throw Error('non-file-artifact:' + path)
@@ -243,17 +269,27 @@ function bindReviewers(host, requested, measured) {
 export function runGate({ action, repo, feature, phase, reviewers }) {
   if (!phases.includes(phase) || !['prepare', 'evaluate'].includes(action)) throw Error('invalid-command')
   repo = realpathSync(repo); feature = resolve(repo, feature)
-  const current = measureManifest(repo, feature, phase)
   const paths = checkpointPaths(repo, feature, phase)
-  let host = existsSync(paths.host) ? readJson(paths.host) : null
+  const hostExists = existsSync(paths.host)
+  let host = hostExists ? readJson(paths.host) : null
+  if (hostExists) {
+    const problem = hostProblem(host)
+    if (problem) throw Error(problem)
+    if (host.phase !== phase) throw Error('host-lineage-conflict')
+  }
+  let pending = null
+  if (host && existsSync(paths.review)) {
+    try { pending = retainPendingReceipt(host, paths.review) } catch (error) { if (action === 'prepare') throw error }
+  }
+  const retained = pending?.next || host
+  // Only scopes bound by the validated prior snapshot can extend current discovery.
+  const current = measurePaths(repo, pathsFor(repo, feature, phase).concat((retained?.conditions || []).flatMap(c => c.scope)))
   const measuredCheckpoint = phase === 'qe' ? qeCheckpoint(repo, feature) : null
   if (action === 'prepare') {
     if (!array(reviewers, 16) || !reviewers.length || !reviewers.every(r => dictionary(r, ['id', 'family']) && text(r.id) && ['codex', 'claude', 'owner-exception'].includes(r.family)) || new Set(reviewers.map(r => r.id)).size !== reviewers.length) throw Error('reviewers-invalid')
-    if (host && (host.phase !== phase || host.schema !== SCHEMA || !array(host.conditions) || typeof host.reviewSeen !== 'boolean')) throw Error('host-lineage-conflict')
-    if (host && existsSync(paths.review)) {
-      const pending = retainPendingReceipt(host, paths.review)
-      host = pending.next; writeJson(paths.host, host)
-      if (pending.problem) throw Error('pending-reviewer-receipt-needs-origin-review')
+    if (pending) {
+      host = pending.next
+      if (pending.problem) { writeJson(paths.host, host); throw Error('pending-reviewer-receipt-needs-origin-review') }
     }
     reviewers = bindReviewers(host, reviewers, measuredCheckpoint)
     const revision = digest(JSON.stringify(current))
@@ -274,21 +310,14 @@ export function runGate({ action, repo, feature, phase, reviewers }) {
     closure = reconcileCheckpoint(host, receipt, measuredCheckpoint, repo, feature)
     if (!closure) verdict = result(phase, 'not-established', host.snapshot.revision, ['historical-checkpoint-own-verification-missing'])
   }
-  // Preserve independently owned findings even on refusal. Never import author/scribe claims.
-  // Invalid ownership/meaning refuses without overwriting the prior host authority.
+  // Preserve only fresh, independently owned findings bound by the prior snapshot.
+  // Stale or malformed receipts cannot originate measurement authority on refusal.
+  const preserved = new Map((pending?.next.conditions || host.conditions).map(c => [c.id, c]))
   const owners = host.reviewers.map(r => r.id)
-  const preserved = new Map(host.conditions.map(c => [c.id, c]))
-  if (receipt?.schema === SCHEMA && receipt.phase === phase && array(receipt.reviews)) {
-    for (const r of receipt.reviews) if (owners.includes(r?.reviewer) && host.reviewers.find(p => p.id === r.reviewer)?.family === r.family && r.independent === true) {
-      for (const c of [...(array(r.conditions) ? r.conditions : []), ...(array(r.newRisks?.conditions) ? r.newRisks.conditions : [])]) {
-        if (condition(c, owners) && c.owner === r.reviewer && !preserved.has(c.id)) preserved.set(c.id, c)
-      }
-    }
-  }
   if (receipt?.phase === phase && receipt.nonce === host.snapshot.nonce && receipt.revision === host.snapshot.revision && risks(receipt.author?.newRisks, owners)) {
-    for (const c of receipt.author.newRisks.conditions) if (!preserved.has(c.id)) preserved.set(c.id, c)
+    for (const c of receipt.author.newRisks.conditions) if (!preserved.has(c.id) && c.scope.every(path => host.snapshot.manifest.some(p => p.path === path))) preserved.set(c.id, c)
   }
-  writeJson(paths.host, { ...host, conditions: [...preserved.values()], reviewSeen: true, changedPaths: verdict.verdict === 'closed' ? [] : host.changedPaths })
+  writeJson(paths.host, { ...host, conditions: [...preserved.values()], reviewSeen: pending?.next.reviewSeen || host.reviewSeen, changedPaths: verdict.verdict === 'closed' ? [] : host.changedPaths })
   if (closure && verdict.verdict === 'closed') return { ...verdict, checkpointClosure: closure }
   return verdict
 }

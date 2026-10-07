@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "13e7e27322403ce45af5be7df1fa565178b5df73ffeea1b0bbe6b3faddce9f45"
+        "sha256": "10e8e4f470823f26d20a8cb4b5680dde97fd9654f9545b81de099405bd2dba32"
       },
       {
         "path": "README.ru.md",
@@ -21,7 +21,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "96bcc52bfe2180fd9976589895f1f328f6c8ac62e24d22042d1105a5c16f4148"
+        "sha256": "fec2ebcb8a572ee95f1ac5b41264933d853a01d96b85a826e208a7bf4b49da1b"
       },
       {
         "path": "src/cli.js",
@@ -493,7 +493,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/scripts/check-review-convergence.mjs",
-        "sha256": "80f9691b8e94bf310461aeaaaa23af6e336d41d0962fdf137737639655cbdeb8"
+        "sha256": "09c74f1441d9c42603fbb84402e6826cf96535d209be9802e0e4b2fea01dac7d"
       },
       {
         "path": "templates/.claude/skills/feature-adr/scripts/markdown-masker.mjs",
@@ -1001,5 +1001,5 @@
       }
     ]
   },
-  "signature": "n1PCRDF3YW7Tcdp+QdGzlK+p7PQGfraCKUO8yQxu6zrvXx6WUALgVsvmfAwh+QXmPZzINT6kYnKmzijtcEkrCw=="
+  "signature": "wfYnIS4MAw7T3m282RmpXCeIUVVAi+TDfNI4DmRaHJEy3h/gpJdtlv1TMTRz6dVfMA0fOcxZrJKWBXO+JFEcCg=="
 }

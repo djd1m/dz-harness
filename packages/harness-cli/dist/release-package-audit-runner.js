@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-import { judgeReleasePackageAudit, judgeReleaseCohortAudit, packArtifact, readWorkspaceVersions, detectSiblingDrift, hashPackBytes, isSafeManifestPath, verifyManifest, planReadmeVersionSync, rewriteWorkspaceSpecs } from '@dzhechkov/harness-core';
+import { judgeReleasePackageAudit, judgeReleaseCohortAudit, packArtifact, readWorkspaceVersions, detectSiblingDrift, hashPackBytes, isSafeManifestPath, verifyManifest, planReadmeVersionSync, rewriteReleaseLine, rewriteWorkspaceSpecs } from '@dzhechkov/harness-core';
 const quote = (s) => `'${s.replace(/'/g, `'\\''`)}'`;
 const digest = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const policy = ['--omit=dev', '--include=prod', '--include=optional', '--include=peer', '--workspaces=false', '--global=false', '--legacy-peer-deps=false', '--strict-peer-deps=true', '--force=false', '--dry-run=false', '--offline=false', '--package-lock=true', '--package-lock-only=false', '--ignore-scripts=true', '--fetch-retries=0', '--fetch-timeout=30000'];
@@ -489,7 +489,15 @@ export function buildRetainedBindingProof(options) {
                     if (['package.json', '.dz-manifest.json', 'sbom.json'].includes(path))
                         continue;
                     const previousBytes = Buffer.from(old[path], 'base64');
-                    const expected = path === 'README.md' ? Buffer.from(planReadmeVersionSync(previousBytes.toString('utf8'), previousState.selectedVersions[name], parsed.version).text) : previousBytes;
+                    let expected = previousBytes;
+                    if (path === 'README.md') {
+                        const synced = planReadmeVersionSync(previousBytes.toString('utf8'), previousState.selectedVersions[name], parsed.version).text;
+                        const projected = name === '@dzhechkov/harness-cli' ? rewriteReleaseLine(synced, {
+                            'harness-cli': options.artifacts.find(a => a.name === name).newVersion,
+                            'harness-core': options.artifacts.find(a => a.name === '@dzhechkov/harness-core').newVersion,
+                        }) ?? synced : synced;
+                        expected = Buffer.from(projected);
+                    }
                     if (!Buffer.from(bytes, 'base64').equals(expected))
                         throw new Error('final selected payload changed');
                 }

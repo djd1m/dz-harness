@@ -71,7 +71,7 @@ export { projectSkillsOneRoot, projectSkillsProbeCommand } from './project-skill
 export { isRepoBoundary } from './repo-boundary.js';
 export { uniqueStampedPath, writeUniqueStampedFile } from './stamped-path.js';
 export { benchmarkSkill, benchmarkSkills, compareSkills } from './benchmark.js';
-export { buildRegistry, buildShowcaseRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs, packScope, verifiedScopeNote } from './registry.js';
+export { buildRegistryFromCarriers, buildRegistry, buildShowcaseRegistry, searchRegistry, filterByCategory, skillPackBaseDirs, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs, packScope, verifiedScopeNote } from './registry.js';
 export { tokenize, stemToken, stems } from './stem.js';
 // Package skill-layout resolution (feature dz-install-npx-init) — the ONE seam that knows where an
 // npm package keeps its skills (flat / templates/.claude/skills / skills). `cmdInstall` calls it;
@@ -319,4 +319,5 @@ export { debtRatchetVerdict, parsePinnedCeiling, ceilingUnreadableMessage } from
 export { decideTestReceipt, renderTestReceiptVerdict } from './test-receipt.js';
 export { decideBackupFreshness, renderBackupFreshness } from './backup-freshness.js';
 export { planReleasePackageAudit, judgeReleasePackageAudit, judgeReleaseCohortAudit } from './release-package-audit.js';
+export { buildScopedCatalogInventory } from './scoped-catalog-inventory.js';
 //# sourceMappingURL=index.js.map

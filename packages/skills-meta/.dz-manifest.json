@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "cbca22a4fe9e0544dc15a075d0892b99e884af6ef7baa5bf4892177ce26ef36a"
+        "sha256": "37326e392f8736ca08a97a9cfa34272e5ccf16ca920f6ba9a5bcf88fee983639"
       },
       {
         "path": "adversarial-verifier/SKILL.md",
@@ -341,7 +341,7 @@
       },
       {
         "path": "feature-adr/scripts/check-review-convergence.mjs",
-        "sha256": "80f9691b8e94bf310461aeaaaa23af6e336d41d0962fdf137737639655cbdeb8"
+        "sha256": "09c74f1441d9c42603fbb84402e6826cf96535d209be9802e0e4b2fea01dac7d"
       },
       {
         "path": "feature-adr/scripts/markdown-masker.mjs",
@@ -485,7 +485,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "b6a2f55363a4bba403fe8f38e10ed30d28b0021ecd189deb5f3b9aa6655260b3"
+        "sha256": "ae9387846f6b2b37338a67fa169f823c15be4671d0da6ca80102e6a12c6a5876"
       },
       {
         "path": "problem-solver-enhanced/SKILL.md",
@@ -581,5 +581,5 @@
       }
     ]
   },
-  "signature": "JLxx8o56Ydm0Sog0cqG6E4PMpruxcFqHdi0CbHdQSIf7PHwzavUCpmyjztWvQpBBY3obB9bevenmywdmMdTLAQ=="
+  "signature": "ZotqvlaEJAJkss1ViElfzWKR0knXClIqNufUr7LHFmtQEjfB2gh4dASP3HPnpu5dg0CC7gy0oJoRVc2lqQYEDw=="
 }

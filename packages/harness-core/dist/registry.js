@@ -459,34 +459,39 @@ export function buildShowcaseRegistry(registry, opts) {
     };
 }
 export function buildRegistry(cwd) {
+    return buildRegistryFromCarriers(cwd, discoverSkillCarryingDirs(cwd));
+}
+/** Build only the supplied ordered roots, preserving default registry winner semantics. */
+export function buildRegistryFromCarriers(cwd, packs, observe) {
     const entries = [];
-    const packs = discoverSkillCarryingDirs(cwd);
-    // The catalogue collects ALL allowed layouts, and reading only the first made 41 real skills
-    // invisible (MEASURED 2026-09-01): the pack root (`skills-*` packs), a `skills/` subdirectory
-    // (health-advisor and friends), and `templates/.claude/skills/` for packs that roll their skills
-    // out into the user's project. A template pack ships the skills it will roll out; from the
-    // catalogue's point of view those skills EXIST — `trip-planner` and `presentation-storyteller`
-    // are installable answers to a task — so hiding them would make the advisor deny a real
-    // capability. The layouts themselves now come from PACKAGE_SKILL_LAYOUTS so the knowledge lives
-    // in ONE place; resolvePackageSkillRoots deliberately selects only the FIRST non-empty root
-    // (installation semantics, plan AM-4) and therefore cannot serve this enumeration — calling it
-    // here would silently drop skills from a pack that fills two layouts (backlog 86b787b8).
     const seenSkillIds = new Set();
-    for (const { pack, dir: packDir } of packs) {
+    for (const carrier of packs) {
+        const { pack, dir: packDir } = carrier;
         const found = [];
-        for (const { rel } of PACKAGE_SKILL_LAYOUTS) {
-            const root = rel === '.' ? packDir : join(packDir, rel);
-            if (!existsSync(root))
-                continue;
-            try {
-                for (const e of readdirSync(root, { withFileTypes: true })) {
-                    if (e.isDirectory() && existsSync(join(root, e.name, 'SKILL.md')))
-                        found.push({ name: e.name, root });
-                }
+        if (carrier.occurrences) {
+            for (const occurrence of carrier.occurrences) {
+                found.push({ name: occurrence.id, root: dirname(join(packDir, occurrence.path)), layout: occurrence.layout, path: occurrence.path });
             }
-            catch { /* an unreadable layout contributes nothing; the others still count */ }
+        }
+        else {
+            const allowed = carrier.members ? new Set(carrier.members) : undefined;
+            for (const { layout, rel } of PACKAGE_SKILL_LAYOUTS) {
+                const root = rel === '.' ? packDir : join(packDir, rel);
+                if (!existsSync(root))
+                    continue;
+                try {
+                    for (const e of readdirSync(root, { withFileTypes: true })) {
+                        const path = relative(packDir, join(root, e.name)).split(sep).join('/');
+                        if (e.isDirectory() && (!allowed || allowed.has(`${path}/SKILL.md`)) && existsSync(join(root, e.name, 'SKILL.md'))) {
+                            found.push({ name: e.name, root, layout, path });
+                        }
+                    }
+                }
+                catch { /* unreadable layouts contribute nothing */ }
+            }
         }
         for (const skill of found) {
+            observe?.(carrier, { id: skill.name, layout: skill.layout, path: skill.path });
             // One skill id can ship in several packs (frontend-design is bundled by three). The catalogue
             // answers "is this available", not "in how many packs" — so the first sighting wins and the
             // list stays a list of capabilities rather than of copies.
@@ -494,7 +499,7 @@ export function buildRegistry(cwd) {
                 continue;
             seenSkillIds.add(skill.name);
             const skillMdPath = join(skill.root, skill.name, 'SKILL.md');
-            const content = readFileSync(skillMdPath, 'utf-8');
+            const content = carrier.occurrences ? '' : readFileSync(skillMdPath, 'utf-8');
             const { description, trustTier } = extractFrontmatter(content);
             entries.push({
                 id: skill.name,
@@ -502,8 +507,8 @@ export function buildRegistry(cwd) {
                 path: relative(cwd, join(skill.root, skill.name)) || join(skill.root, skill.name),
                 description,
                 trustTier,
-                hasSchema: existsSync(join(skill.root, skill.name, 'schemas', 'output.json')),
-                hasEvals: existsSync(join(skill.root, skill.name, 'evals')),
+                hasSchema: !carrier.occurrences && existsSync(join(skill.root, skill.name, 'schemas', 'output.json')),
+                hasEvals: !carrier.occurrences && existsSync(join(skill.root, skill.name, 'evals')),
                 lineCount: content.split('\n').length,
                 category: categoryFromPack(pack),
             });
