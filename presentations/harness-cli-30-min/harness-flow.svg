@@ -16,18 +16,47 @@
     .arrow { fill: var(--cyan); }
     .accepted-arrow { fill: var(--lime); }
     .repair-arrow { fill: var(--repair); }
-    .emphasis { fill: none; stroke: var(--cyan); stroke-width: 3; opacity: .15; animation: focus 10s linear infinite; }
-    .contract-focus { animation-delay: 1.4s; }
-    .agent-focus { animation-delay: 2.8s; }
-    .checks-focus { animation-delay: 4.2s; }
-    .verdict-focus { animation-delay: 5.6s; }
-    .result-focus { stroke: var(--lime); animation-delay: 7s; }
-    .repair-focus { stroke: var(--repair); animation-delay: 7s; }
-    @keyframes focus { 0%, 22%, 100% { opacity: .15; } 8%, 14% { opacity: .95; } }
+    .motion-marker { fill: var(--cyan); stroke: var(--paper); stroke-width: 3; opacity: 0; }
+    .forward-marker { animation: forward-travel 10s linear infinite; }
+    .accepted-marker { fill: var(--lime); animation: accepted-travel 10s linear infinite; }
+    .repair-marker { fill: var(--repair); animation: repair-travel 10s linear infinite; }
+    @keyframes forward-travel {
+      0%, 1% { transform: translate(200px, 133px); opacity: 0; }
+      2% { transform: translate(204px, 133px); opacity: 1; }
+      8% { transform: translate(228px, 133px); opacity: 1; }
+      9% { transform: translate(232px, 133px); opacity: 0; }
+      11% { transform: translate(408px, 133px); opacity: 0; }
+      12% { transform: translate(412px, 133px); opacity: 1; }
+      18% { transform: translate(436px, 133px); opacity: 1; }
+      19% { transform: translate(440px, 133px); opacity: 0; }
+      21% { transform: translate(528px, 178px); opacity: 0; }
+      22% { transform: translate(528px, 184px); opacity: 1; }
+      32% { transform: translate(528px, 258px); opacity: 1; }
+      33% { transform: translate(528px, 264px); opacity: 0; }
+      35% { transform: translate(440px, 315px); opacity: 0; }
+      36% { transform: translate(436px, 315px); opacity: 1; }
+      42% { transform: translate(412px, 315px); opacity: 1; }
+      43%, 100% { transform: translate(408px, 315px); opacity: 0; }
+    }
+    @keyframes accepted-travel {
+      0%, 46% { transform: translate(232px, 315px); opacity: 0; }
+      47% { transform: translate(228px, 315px); opacity: 1; }
+      54% { transform: translate(204px, 315px); opacity: 1; }
+      55%, 100% { transform: translate(200px, 315px); opacity: 0; }
+    }
+    @keyframes repair-travel {
+      0%, 60% { transform: translate(320px, 366px); opacity: 0; }
+      61% { transform: translate(320px, 372px); opacity: 1; }
+      64% { transform: translate(320px, 427px); opacity: 1; }
+      81% { transform: translate(628px, 427px); opacity: 1; }
+      97% { transform: translate(628px, 133px); opacity: 1; }
+      98% { transform: translate(616px, 133px); opacity: 1; }
+      99%, 100% { transform: translate(616px, 133px); opacity: 0; }
+    }
     @media (prefers-color-scheme: light) {
       svg { --paper: #f4f7f8; --panel: #ffffff; --ink: #15232b; --muted: #475c68; --line: #7d929d; --cyan: #007c9e; --lime: #477000; --repair: #b33d24; }
     }
-    @media (prefers-reduced-motion: reduce) { .emphasis { animation: none; opacity: .35; } }
+    @media (prefers-reduced-motion: reduce) { .motion-marker { animation: none; opacity: 0; } }
   </style>
   <defs>
     <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="arrow" d="M0 0 8 4 0 8Z"/></marker>
@@ -70,14 +99,11 @@
     <text class="repair-label" x="448" y="405">Если есть замечания</text>
     <text class="repair-label" x="320" y="467">Исправить → повторить проверки</text>
   </g>
-  <!-- A separate overlay changes emphasis only; it never hides base content. -->
+  <!-- Decorative travel stays on arrows. The two conditional branches start
+       separately at the verdict: accepted at 4.6–5.5s, repair at 6.0–9.9s. -->
   <g aria-hidden="true">
-    <rect class="emphasis" x="24" y="88" width="176" height="90" rx="12"/>
-    <rect class="emphasis contract-focus" x="232" y="88" width="176" height="90" rx="12"/>
-    <rect class="emphasis agent-focus" x="440" y="88" width="176" height="90" rx="12"/>
-    <rect class="emphasis checks-focus" x="440" y="264" width="176" height="102" rx="12"/>
-    <rect class="emphasis verdict-focus" x="232" y="264" width="176" height="102" rx="12"/>
-    <rect class="emphasis result-focus" x="24" y="264" width="176" height="102" rx="12"/>
-    <path class="emphasis repair-focus" d="M320 366V427H628V133H616"/>
+    <circle id="forward-marker" class="motion-marker forward-marker" r="7"/>
+    <circle id="accepted-marker" class="motion-marker accepted-marker" r="7"/>
+    <circle id="repair-marker" class="motion-marker repair-marker" r="7"/>
   </g>
 </svg>
