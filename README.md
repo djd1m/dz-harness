@@ -1,5 +1,15 @@
 # @dzhechkov packages — public mirror
 
+Harness CLI связывает задачу, контракт, реализацию агентом и независимые проверки.
+Вердикт опирается на evidence: замечания возвращают работу к реализации, а принятые
+проверки ведут к результату с проверяемыми свидетельствами.
+
+[![Задача → контракт → реализация → независимые проверки → evidence и вердикт; результат при принятии или возврат на исправление](presentations/harness-cli-30-min/harness-flow.svg)](https://djd1m.github.io/dz-harness/presentations/harness-cli-30-min/)
+
+- Контракт до реализации
+- Проверка независима от исполнителя
+- Результат содержит проверяемое evidence
+
 Read-only mirror of the published surface of 56 npm packages under the
 `@dzhechkov` scope. Each `packages/<name>/` directory contains exactly the files that
 package's npm tarball ships — nothing more. The development monorepo is private; this mirror

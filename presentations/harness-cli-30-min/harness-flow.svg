@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 500" width="640" height="500" role="img" aria-labelledby="flow-title flow-desc">
+  <title id="flow-title">От задачи к проверяемому результату</title>
+  <desc id="flow-desc">Задача задаёт контракт до реализации агентом. Затем независимые проверки дают evidence и вердикт. Принятый вердикт ведёт к результату с evidence; замечания возвращают к реализации и повторной проверке. Весь процесс виден без анимации.</desc>
+  <style>
+    svg { --paper: #0b1116; --panel: #111a21; --ink: #f4f1e8; --muted: #a8b1b8; --line: #52646f; --cyan: #54d8ff; --lime: #c7ff4a; --repair: #ff8066; background: var(--paper); font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .paper { fill: var(--paper); }
+    .node { fill: var(--panel); stroke: var(--line); stroke-width: 2; }
+    text { fill: var(--ink); text-anchor: middle; font-size: 20px; }
+    .heading { font-size: 24px; font-weight: 650; }
+    .caption { fill: var(--muted); font-size: 18px; }
+    .condition { fill: var(--lime); font-size: 18px; }
+    .repair-label { fill: var(--repair); font-size: 18px; }
+    .edge { fill: none; stroke: var(--cyan); stroke-width: 2; }
+    .accepted { stroke: var(--lime); }
+    .repair { stroke: var(--repair); }
+    .arrow { fill: var(--cyan); }
+    .accepted-arrow { fill: var(--lime); }
+    .repair-arrow { fill: var(--repair); }
+    .emphasis { fill: none; stroke: var(--cyan); stroke-width: 3; opacity: .15; animation: focus 10s linear infinite; }
+    .contract-focus { animation-delay: 1.4s; }
+    .agent-focus { animation-delay: 2.8s; }
+    .checks-focus { animation-delay: 4.2s; }
+    .verdict-focus { animation-delay: 5.6s; }
+    .result-focus { stroke: var(--lime); animation-delay: 7s; }
+    .repair-focus { stroke: var(--repair); animation-delay: 7s; }
+    @keyframes focus { 0%, 22%, 100% { opacity: .15; } 8%, 14% { opacity: .95; } }
+    @media (prefers-color-scheme: light) {
+      svg { --paper: #f4f7f8; --panel: #ffffff; --ink: #15232b; --muted: #475c68; --line: #7d929d; --cyan: #007c9e; --lime: #477000; --repair: #b33d24; }
+    }
+    @media (prefers-reduced-motion: reduce) { .emphasis { animation: none; opacity: .35; } }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="arrow" d="M0 0 8 4 0 8Z"/></marker>
+    <marker id="accepted-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="accepted-arrow" d="M0 0 8 4 0 8Z"/></marker>
+    <marker id="repair-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="repair-arrow" d="M0 0 8 4 0 8Z"/></marker>
+  </defs>
+  <rect class="paper" width="640" height="500" rx="16"/>
+  <text class="heading" x="320" y="38">От задачи к проверяемому результату</text>
+  <text class="caption" x="320" y="65">Контракт · независимая проверка · evidence</text>
+
+  <!-- The base graph and every label remain visible in every frame. -->
+  <g id="base-flow">
+    <path class="edge" d="M200 133H232" marker-end="url(#arrow)"/>
+    <path class="edge" d="M408 133H440" marker-end="url(#arrow)"/>
+    <path class="edge" d="M528 178V264" marker-end="url(#arrow)"/>
+    <path class="edge" d="M440 315H408" marker-end="url(#arrow)"/>
+    <path class="edge accepted" d="M232 315H200" marker-end="url(#accepted-arrow)"/>
+    <path class="edge repair" d="M320 366V427H628V133H616" marker-end="url(#repair-arrow)"/>
+
+    <rect class="node" x="24" y="88" width="176" height="90" rx="12"/>
+    <text x="112" y="127">Задача</text>
+    <text class="caption" x="112" y="155">Ожидаемый итог</text>
+    <rect class="node" x="232" y="88" width="176" height="90" rx="12"/>
+    <text x="320" y="127">Контракт</text>
+    <text class="caption" x="320" y="155">До реализации</text>
+    <rect class="node" x="440" y="88" width="176" height="90" rx="12"/>
+    <text x="528" y="127">Агент</text>
+    <text class="caption" x="528" y="155">Реализация</text>
+
+    <rect class="node" x="440" y="264" width="176" height="102" rx="12"/>
+    <text x="528" y="307">Независимые</text>
+    <text x="528" y="335">проверки</text>
+    <rect class="node" x="232" y="264" width="176" height="102" rx="12"/>
+    <text x="320" y="307">Evidence</text>
+    <text x="320" y="335">и вердикт</text>
+    <rect class="node" x="24" y="264" width="176" height="102" rx="12"/>
+    <text class="condition" x="112" y="290">Если принято</text>
+    <text x="112" y="320">Результат</text>
+    <text class="caption" x="112" y="346">с evidence</text>
+    <text class="repair-label" x="448" y="405">Если есть замечания</text>
+    <text class="repair-label" x="320" y="467">Исправить → повторить проверки</text>
+  </g>
+  <!-- A separate overlay changes emphasis only; it never hides base content. -->
+  <g aria-hidden="true">
+    <rect class="emphasis" x="24" y="88" width="176" height="90" rx="12"/>
+    <rect class="emphasis contract-focus" x="232" y="88" width="176" height="90" rx="12"/>
+    <rect class="emphasis agent-focus" x="440" y="88" width="176" height="90" rx="12"/>
+    <rect class="emphasis checks-focus" x="440" y="264" width="176" height="102" rx="12"/>
+    <rect class="emphasis verdict-focus" x="232" y="264" width="176" height="102" rx="12"/>
+    <rect class="emphasis result-focus" x="24" y="264" width="176" height="102" rx="12"/>
+    <path class="emphasis repair-focus" d="M320 366V427H628V133H616"/>
+  </g>
+</svg>
