@@ -368,6 +368,22 @@ export declare function publishPackages(monorepoRoot: string, opts?: {
     targetNames?: readonly string[] | undefined;
     bumpOnly?: boolean | undefined;
     /**
+     * Synchronous, immutable observations of this invocation's dependency-ordered decisions,
+     * delivered once before version/README mutation. Unknown rows have no target. Throwing
+     * aborts before mutation; rows cannot supply execution authority or a replacement plan.
+     * Omitting this observer preserves lazy own-version probing after dependency checks.
+     */
+    onVersionPlan?: ((rows: readonly Readonly<{
+        name: string;
+        oldVersion: string;
+        probe: RegistryProbe['kind'];
+        registryVersion?: string;
+        firstPublish: boolean;
+        probeOverride?: true;
+        newVersion?: string;
+        reason?: string;
+    }>[]) => void) | undefined;
+    /**
      * Path to the Ed25519 signing key, OUTSIDE the repository. A pack that carries a
      * `.dz-manifest.json` must be re-signed after publish's own bump and README sync, or the tarball
      * ships an inventory it already invalidated. Absent + a signed pack ⇒ publish REFUSES that pack.

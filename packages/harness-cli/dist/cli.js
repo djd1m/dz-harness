@@ -7360,24 +7360,6 @@ registrySeam) {
             emitJson({ ok: false, blocked: true, gate: 'sibling-drift+packed-smoke', reason: `${driftBlocked} sibling-drift violation(s)${packedInstallSmokePreviewFailed ? ', packed install smoke failed' : ''}`, rows: [...driftRows, ...smokeRows], exitCode: 1 });
         return 1;
     }
-    if (!dryRun) {
-        // Loud confirmation banner listing exactly what is about to be published.
-        write(`\n╔══════════════════════════════════════════════════════════════════════╗`);
-        write(`║  ⚠  LIVE PUBLISH — this will bump versions and run \`pnpm publish\`      ║`);
-        write(`╠══════════════════════════════════════════════════════════════════════╣`);
-        if (targets.length === 0) {
-            write(`║  (no packages match the current filter — nothing to publish)          ║`);
-        }
-        else {
-            write(`║  ${String(targets.length).padStart(3)} package(s) will be published to npm:${' '.repeat(33 - String(targets.length).length)}║`);
-            for (const p of targets) {
-                const next = `${p.version.split('.').slice(0, 2).join('.')}.${parseInt(p.version.split('.')[2] ?? '0', 10) + 1}`;
-                const line = `${p.name}  ${p.version} → ${next}`;
-                write(`║    • ${line.padEnd(64)}║`);
-            }
-        }
-        write(`╚══════════════════════════════════════════════════════════════════════╝`);
-    }
     // FR-4 — the signature gate, BEFORE anything is published (ADR-001).
     // Strictness follows the trust root: with no keys/dz.pub committed there is nothing to verify
     // against, and blocking would refuse every release forever. That is stated on every run.
@@ -7494,6 +7476,30 @@ registrySeam) {
         dryRun,
         filter,
         targetNames: targets.map((pk) => pk.name),
+        onVersionPlan: dryRun ? undefined : (rows) => {
+            write(`\n╔══════════════════════════════════════════════════════════════════════╗`);
+            write(`║  ⚠  ${bumpOnly ? 'LOCAL VERSION PLAN — no publication' : 'LIVE PUBLISH PLAN — targets subject to remaining gates'}`);
+            write(`╠══════════════════════════════════════════════════════════════════════╣`);
+            if (rows.length === 0) {
+                write(`║  (no packages match the current filter — nothing to ${bumpOnly ? 'change' : 'publish'})`);
+            }
+            else {
+                write(`║  ${rows.length} package(s) planned; later gates may refuse an attempt`);
+                for (const row of rows) {
+                    const cell = renderPublishVersionCell({
+                        oldVersion: row.oldVersion,
+                        // Unknown has no target; the renderer's unknown branch never renders this fallback.
+                        newVersion: row.newVersion ?? row.oldVersion,
+                        probe: row.probe,
+                        firstPublish: row.firstPublish,
+                        error: row.probe === 'unknown' ? `NOT ESTABLISHED (registry unreachable: ${row.reason})` : undefined,
+                    });
+                    const line = `${row.name}  ${cell}${row.probeOverride === true ? ' [scripted probe]' : ''}`;
+                    write(`║    • ${line.padEnd(64)}║`);
+                }
+            }
+            write(`╚══════════════════════════════════════════════════════════════════════╝`);
+        },
         bumpOnly,
         claimGate: claimCheckOpt,
         exec: publishExecRunner,

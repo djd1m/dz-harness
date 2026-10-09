@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "10e8e4f470823f26d20a8cb4b5680dde97fd9654f9545b81de099405bd2dba32"
+          "content": "a81456ef7ae79788d7859aab9a2238c541bb61a41b9d289a27ae6992119538db"
         }
       ]
     },
@@ -59,7 +59,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "fec2ebcb8a572ee95f1ac5b41264933d853a01d96b85a826e208a7bf4b49da1b"
+          "value": "844c32f67fc8ed8099a388aa53f597a100371c6a693d4b99730a5808593a4843"
         }
       ]
     },
@@ -979,7 +979,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "db79f8d026cc47edd1e5d2f30d0e1455c55c570dd022d549d440985a3e5940a5"
+          "content": "d5c03890b2b3a34277c73a14d3d7c97741dec1d6c382e87ee4cc6a5a52d938d7"
         }
       ]
     },
@@ -1220,6 +1220,16 @@
         {
           "alg": "SHA-256",
           "content": "19c3991bfb5e88205c9ff6d4d44037c136a190581bab199d3928196e4616fe15"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/scripts/check-code-targets.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bfbad12b54508d5d4c71de640c5e19b3d19317f660e2986d02338ef502f8007e"
         }
       ]
     },

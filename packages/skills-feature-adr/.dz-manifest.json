@@ -13,7 +13,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "6e696b16cd8e7b1007305073e02dae14fc86a123e5cc800586850192aee25795"
+        "sha256": "3d7f3a635afab7e4ac3c375b52f59a1cdb6972140668d8b2e01e1be6e0bb5423"
       },
       {
         "path": "bin/cli.js",
@@ -25,7 +25,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "f861fe69d5a9cb039b4b4d4f90bceaf56d21774018aafc8997cdccb855ab760d"
+        "sha256": "a06e3fed35e2aa3091051db145bbfe8c3c89bb2883e41149665e6e342aa11f7e"
       },
       {
         "path": "src/cli.js",
@@ -153,7 +153,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/07-code.md",
-        "sha256": "db79f8d026cc47edd1e5d2f30d0e1455c55c570dd022d549d440985a3e5940a5"
+        "sha256": "d5c03890b2b3a34277c73a14d3d7c97741dec1d6c382e87ee4cc6a5a52d938d7"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/08-qe.md",
@@ -252,6 +252,10 @@
         "sha256": "19c3991bfb5e88205c9ff6d4d44037c136a190581bab199d3928196e4616fe15"
       },
       {
+        "path": "templates/.claude/skills/feature-adr/scripts/check-code-targets.mjs",
+        "sha256": "bfbad12b54508d5d4c71de640c5e19b3d19317f660e2986d02338ef502f8007e"
+      },
+      {
         "path": "templates/.claude/skills/feature-adr/scripts/check-plan-completeness.mjs",
         "sha256": "8b93949ce4f671d932c5389050db3a3e2750efcbed69681d69f392ccf4d2a168"
       },
@@ -325,7 +329,7 @@
       },
       {
         "path": "templates/.claude/workflows/feature-adr.js",
-        "sha256": "6f9e6205c8f78bef8086603bf0efe8099011a2cc273d786b8404bd77af565354"
+        "sha256": "e41a536a172b71001e9cad97167f0c014edd9e7c2ffa9cf138617e0ed9f3eab8"
       },
       {
         "path": "templates/lib/memory-protocol.md",
@@ -337,5 +341,5 @@
       }
     ]
   },
-  "signature": "rOI0RajwLO3l/h955A/8jZMuzWmzvOrM9QzcYsCZwcOPDgSqw6doL38ZXL7Om0U+DTu/mNXMu8kBUCp8WpiXAQ=="
+  "signature": "GG2pLdmbnJXFkDnBdPqEoaHm5ygoHwbm6oilWPcjPwxZPCdOLWYMTBeq7/nGsOeqCHrtCRfBMEUUERiiV22LBw=="
 }

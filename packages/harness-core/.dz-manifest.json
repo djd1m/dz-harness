@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "ca6332b7c62e1c4fa6da973fe75a50f4d9183c761a4e543dd986cc11ba177d3b"
+        "sha256": "b8c3ef3b1a72af6e1f1976ad3075fe939c4d25abb4c9d0bf2a4b41450d488af8"
       },
       {
         "path": "dist/__tests__/golden-baseline.test.d.ts",
@@ -417,15 +417,15 @@
       },
       {
         "path": "dist/claim-check.d.ts.map",
-        "sha256": "509f0b46686e31f348298c8aa30d8aced2847111ce540bf9eae6e40e45fabab2"
+        "sha256": "11415d84410d11ae0cc97ba96075d481d8f662f1a39be6d2c16100872389eaee"
       },
       {
         "path": "dist/claim-check.js",
-        "sha256": "7a62b57e16ee86d7ab4efad7090d58be280c046cdfd1919ccac08c0053724f2c"
+        "sha256": "5cf79685d0ec36c3ec24add292db395323c7610d21efb62f9478b563521e81e0"
       },
       {
         "path": "dist/claim-check.js.map",
-        "sha256": "aef50c8917051c0f21e1bc9e81916c2ff32d9c4cc90606d4f715d54669740dd2"
+        "sha256": "15a747a32fe85430cf933949529d1ab04a0d9fa64af45a54366cf8357ed5a7b5"
       },
       {
         "path": "dist/claude-hooks-assets.d.ts",
@@ -1981,19 +1981,19 @@
       },
       {
         "path": "dist/publish.d.ts",
-        "sha256": "40975c8defdaf041e61135a2bd85b05ff45c95441cc6a6807d1ae6b1e455b6a5"
+        "sha256": "94dc26d71a56249a99eed776ae29613e4f6f1a2169e9c4950eb519b18d4045b3"
       },
       {
         "path": "dist/publish.d.ts.map",
-        "sha256": "ed312fda843af0c6cb18c4fb621aba6e73350465f15a0de6c26bd88cc40e991d"
+        "sha256": "777e20be834e5a48451c4bc4872093fd101c2b042c7d65954b96ac6eacf9fd12"
       },
       {
         "path": "dist/publish.js",
-        "sha256": "e974de704e49782cf102eabe05bf79313d0056b8a6ad2ea051a3362a357c3483"
+        "sha256": "b27647da49cf9fc27e25cb521b473387344349b3918063150a9853054a960949"
       },
       {
         "path": "dist/publish.js.map",
-        "sha256": "794f6e0fddb8814a34aef964b1fa10b9404639d83422045da137ceef6c67a7da"
+        "sha256": "c39dcb0d70401d228e539ac4821a13a704ea704a94d45b551c6bba7214e83fc0"
       },
       {
         "path": "dist/qe-bridge.d.ts",
@@ -3213,7 +3213,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "bb256421aad3ae843a00c484c4e38f2c525619762e9df8c8accdc2fd79a5e07a"
+        "sha256": "5baeb2778970a53b3b9c706fb1485757f935237b24e5283208871803972cb8d6"
       },
       {
         "path": "src/__tests__/golden-baseline.test.ts",
@@ -3317,7 +3317,7 @@
       },
       {
         "path": "src/claim-check.ts",
-        "sha256": "59d217b1171336514e22d35ae29f08ebf53dff4be6dafaf3e411ccc9e814fedb"
+        "sha256": "83ab5f0261b274ef662fdb3e296cccb1e3af4e237312ae647b4be7f1993b0bb7"
       },
       {
         "path": "src/claude-hooks-assets.ts",
@@ -3717,7 +3717,7 @@
       },
       {
         "path": "src/publish.ts",
-        "sha256": "6f32dcaf20f5007132981036e34a594efea29a1711064071a79443c52a0e0b06"
+        "sha256": "186c860401a0fb9e64be31f4adcc6598e35d8e0fa54ab63d19d0f9400c1fbe4f"
       },
       {
         "path": "src/qe-bridge.ts",
@@ -4037,5 +4037,5 @@
       }
     ]
   },
-  "signature": "H2dtJy+q9TWTZ1Huyfr3zDgbVzbeqIEjfxkI/6uuPoxtDerumPdW1JLkmjC4jdrZh9fLntHC5LINpiw19sG2DQ=="
+  "signature": "m+BgeAlIEsf6x3C2vQUlCDwjoBvEkiwchrIiTfr1jM80UmTT3tig5IHr+3HEyMVvq6q+VCnVbHSZHp/0+v4wBw=="
 }

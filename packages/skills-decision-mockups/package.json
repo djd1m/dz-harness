@@ -17,6 +17,7 @@
     "html"
   ],
   "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
     "test": "node --test test/*.test.mjs",
     "check-page": "python3 decision-mockups/references/check_page.py"
   },

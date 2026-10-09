@@ -4,9 +4,10 @@
 // MIT. Adapted for the dz harness monorepo. The hard-won detection semantics (label-vs-metric
 // disambiguation, short-token `.map`/`map-reduce` guards, the `\b`-free `PERFECT_PCT_RE`, the
 // code-span-scrub asymmetry, and the four-branch check order) are ported VERBATIM with their
-// explanatory comments intact; ONLY the domain vocabulary lists (metric terms, reproducer hints,
+// explanatory comments intact. The domain vocabulary lists (metric terms, reproducer hints,
 // honest tags) and the human-facing reason/suggestion strings are re-worded from WiFi-sensing
-// (ruview) to a skills/harness monorepo (dz).
+// (ruview) to a skills/harness monorepo (dz). A later finite numeric-role projection narrows
+// numeric candidacy without changing those metric/perfect views or branch ordering.
 //
 // The dz Integrity Rule (CLAUDE.md) declares "NO shortcuts, fake data, or false claims; ALWAYS
 // verify before claiming success." Today that rule is prose. This module is the static enforcement
@@ -63,6 +64,23 @@ function stripUrls(s) {
     return s.replace(MD_URL_RE, '] ').replace(AUTOLINK_RE, ' ');
 }
 const HAS_NUMBER_RE = /\d/;
+// Only these reviewed syntactic roles are non-quantitative. Lexical boundaries admit
+// hyphen-separated names (skills-web3, ed25519-signed), but reject web30/ed25519x.
+const LIST_ROLE_RE = /^\s*\d+[.)](?=\s)/;
+const PHASE_STEP_ROLE_RE = /(?<![\p{L}\p{N}_])(?:phase|step)\s+\d+(?=:)/giu;
+const EXIT_ROLE_RE = /(?<![\p{L}\p{N}_])exits?(?:\s+codes?)?\s+(\*{1,3}|_{1,3})?(`)?\d+\2\1(?![\p{L}\p{N}_%`*]|\.\d|\s*%)/giu;
+// Check after complete Markdown wrappers, so a quoted exit duration stays a quantity.
+const EXIT_QUANTITY_SUFFIX_RE = /^(?:[\t\p{Zs}]+(?:ns|us|[µμ]s|ms|s|secs?|mins?|hrs?|(?:nano|micro|milli)seconds?|seconds?|minutes?|hours?|days?|weeks?)(?![\p{L}\p{N}_])|[-/]\p{L})/iu;
+const IDENTIFIER_ROLE_RE = /(?<![\p{L}\p{N}_])(?:web3|ed25519|(?:erc|adr)-\d+)(?![\p{L}\p{N}_])/giu;
+/** Project only role digits out of the numeric view; retain all other evidence. */
+function stripNumericRoles(s) {
+    const maskDigits = (role) => role.replace(/\d/g, ' ');
+    return s
+        .replace(LIST_ROLE_RE, maskDigits)
+        .replace(PHASE_STEP_ROLE_RE, maskDigits)
+        .replace(EXIT_ROLE_RE, (role, _emphasis, _code, offset, numericLine) => EXIT_QUANTITY_SUFFIX_RE.test(numericLine.slice(offset + role.length)) ? role : maskDigits(role))
+        .replace(IDENTIFIER_ROLE_RE, maskDigits);
+}
 /** Line with code spans and finding/option labels removed. */
 function scrubLine(lower) {
     return lower.replace(CODE_SPAN_RE, ' ').replace(LABEL_TOKEN_RE, ' ');
@@ -308,7 +326,11 @@ export function claimCheck(text) {
         // MEASURED-without-reproducer checks below. A bare metric word in prose
         // ("precision matters here", "every accuracy number must be MEASURED") has no
         // number and is not a taggable claim (ADR-263 F11).
-        if (!hasPercent && !HAS_NUMBER_RE.test(lower.replace(LABEL_TOKEN_RE, ' ')))
+        // This projection changes only numeric candidacy, never the metric/perfect views
+        // above. An ordinal, exit code or identifier licenses no later quantity. Keep
+        // unrelated code-span digits, and keep this return AFTER the perfect branch.
+        const numeric = stripNumericRoles(lower.replace(LABEL_TOKEN_RE, ' '));
+        if (!hasPercent && !HAS_NUMBER_RE.test(numeric))
             return;
         // A metric/percent with no honesty tag at all — unless the paragraph carries a SOURCE PAGE
         // anchor, which is provenance of a different and stricter kind (see PAGE_ANCHOR_RE).

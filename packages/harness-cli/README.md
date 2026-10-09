@@ -1,10 +1,13 @@
 # @dzhechkov/harness-cli
 
-Current package version: `0.8.47`. <!-- dz:version -->
+Current package version: `0.8.48`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
 ## Install in 30 seconds
+
+Installation time varies with npm downloads, Node/npm setup and available providers;
+this quickstart has no measured time bound.
 
 ```bash
 npm install -g @dzhechkov/harness-cli
@@ -94,7 +97,7 @@ Each launch creates one snapshot; remove selected old snapshot files yourself wh
 Live backpressure waits for writable callbacks. Explicit termination cancels pending writes; after
 child exit a stalled output sink has a two-second final drain window before cancellation.
 
-Current package versions: `harness-core v0.8.54` · `harness-cli v0.8.47`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.55` · `harness-cli v0.8.48`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. The marker retains its explicit whole-line override for per-package synchronization, so keep it off historical records.
 
@@ -102,13 +105,13 @@ Joint current status requires `<!-- dz:version -->` on a dedicated undated line.
 
 > **`dz` is a package manager + cross-compiler for your AI agent harness.** Write a skill once in one canonical form; `dz` installs it into any agent's harness, holds it to a quality bar, and lets the harness learn over time.
 
-**The problem.** You accumulate skills from the catalog scopes below (design-thinking, QE, devops, web3, MCP, academic…). Five pains follow:
+**The problem.** You accumulate skills from the catalog scopes below (design-thinking, QE, devops, blockchain, MCP, academic…). Common maintenance problems follow:
 
-1. **Every agent wants a different layout.** Claude Code reads `.claude/skills/`, Codex `.codex/`, OpenCode/Hermes/OpenClaude their own. Hand-maintaining N copies is sync hell.
-2. **Skills arrive from many upstream repos** — they must be *canonicalized* (brought to one form) and kept in sync without losing provenance.
-3. **It's hard to know which skill** to reach for out of a hundred.
-4. **Quality drifts** — there's no single bar.
-5. **Experience doesn't accumulate** — the harness doesn't learn from feedback.
+- **Every agent wants a different layout.** Claude Code reads `.claude/skills/`, Codex `.agents/skills/`, OpenCode/Hermes/OpenClaude their own. Hand-maintaining N copies is sync hell.
+- **Skills arrive from many upstream repos** — they must be *canonicalized* (brought to one form) and kept in sync without losing provenance.
+- **It's hard to know which skill** to reach for out of a hundred.
+- **Quality drifts** — there's no single bar.
+- **Experience doesn't accumulate** — the harness doesn't learn from feedback.
 
 **The answer — one canon → many platforms.** There is a single source of truth (a `CanonicalSkill`); `dz` compiles it for each target — so the same skill drops into `.claude/skills/`, `.codex/`, etc. without hand-copying.
 
@@ -117,14 +120,14 @@ Joint current status requires `<!-- dz:version -->` on a dedicated undated line.
 | Job | Commands | What it does |
 |-----|----------|--------------|
 | **Author / canonicalize** | `auto-canonicalize`, `sync-upstream`, `diff`, `create-skill` | pull a skill from any repo into one canonical form + keep it in sync with upstream |
-| **Install / assemble** | `init`, `setup`, `install`, `compose`, presets, `upgrade` | deploy the right set of skills into a chosen agent harness (10 targets) |
+| **Install / assemble** | `init`, `setup`, `install`, `compose`, presets, `upgrade` | deploy selected skills into a chosen agent harness; see the target table for layouts and conversion limits |
 | **Find / recommend** | `registry`, `scout`, `recommend`, `skill-advisor` | for a task, suggest which skill / preset / package to use |
-| **Guarantee quality** | `benchmark` (L0 A–F), `verify`, `doctor` | one bar — 20 deterministic checks per skill |
+| **Check structure and integrity** | `benchmark` (L0 A–F), `verify`, `doctor` | structural grading, skill validation, and environment-dependent diagnostics |
 | **Learn** | `teach`, `consolidate`, `recall` (hybrid lexical+vector), `vector`, `pretrain`, `roam` (reward-learning) | accumulate patterns, harvest session outcomes, recall ranked memory (semantic when the vector tier is enabled), improve recommendations over time |
 
 (+ ops: `publish`, `bundle` (portable export), `stats`, `downloads`, `dashboard`, `plugin`.)
 
-**Analogy:** **npm** for distribution, a **compiler / Babel** for one source → many targets (adapters for 10 targets), and a **linter / CI** for a quality bar (`benchmark`) — but for AI agent skills, not ordinary code.
+**Analogy:** **npm** for distribution, a **compiler / Babel** for one source → many targets (see the target table for supported adapters and conversion limits), and a **linter / CI** for a quality bar (`benchmark`) — but for AI agent skills, not ordinary code.
 
 ## Install
 
@@ -210,8 +213,8 @@ dz recommend "<your task>"     # task → recommended skills + preset
 `dz verify [--skills-dir <dir>] [--target <name>]` reads skills without writing files.
 Its default root is `.claude/skills` relative to the current directory. A missing,
 empty, or non-skill-only root exits 1 and names the searched root on stderr with
-“nothing was verified”. For nonempty roots, all valid skills exit 0; any broken
-skill exits 1 with per-skill failure details. Invalid targets are rejected before scanning.
+“nothing was verified”. For nonempty roots, validation succeeds with exit `0` only when every discovered skill is valid; a broken
+skill produces exit `1` with per-skill failure details. Invalid targets are rejected before scanning.
 
 `dz registry --json` emits one JSON value on stdout for full, search, and category
 results, including no matches. The version-1 contract is:
@@ -496,7 +499,7 @@ self-contained; every term gets its gloss at first use in THIS passage, because 
 scrolled away and a new session never had it.**
 
 
-### Phase 1: Discover (what's available?)
+### Discover (what's available?)
 
 ```bash
 npm install -g @dzhechkov/harness-cli    # install the CLI
@@ -531,7 +534,7 @@ $ dz recommend "пришли анализы крови, хочу разобра�
 matches, human output explicitly says that any suggestions came from the project stack; if the
 stack also yields nothing, it prints that no recommendations were found.
 
-### Phase 2: Install (set up your workspace)
+### Install (set up your workspace)
 
 ```bash
 # Full setup with self-learning (recommended):
@@ -575,12 +578,12 @@ dz install @dzhechkov/skills-devops            # npm install + copy skills
 
 # Verify everything is correct:
 dz verify                                       # structural validation
-dz doctor                                       # 19 health checks (in this monorepo)
+dz doctor                                       # environment-specific health and signature diagnostics
 dz list                                         # show installed skills
 dz info --id terraform                          # detailed info about a skill
 ```
 
-### Phase 3: Use (work with your agent)
+### Use (work with your agent)
 
 ```bash
 # Now use Claude Code / Codex / OpenCode / Hermes normally.
@@ -592,7 +595,7 @@ dz info --id terraform                          # detailed info about a skill
 #   "Сделай AI-дайджест за февраль" → news-digest (cited report); "what's new since last week" → news-monitor (delta)
 ```
 
-### Phase 4: Create (build your own skills)
+### Create (build your own skills)
 
 ```bash
 # Scaffold a new skill:
@@ -612,7 +615,7 @@ dz scout --deep                                 # deep analysis with SKILL.md pa
 dz auto-canonicalize --source github.com/user/repo --pack packages/@dzhechkov/skills-devops
 ```
 
-### Phase 5: Maintain (keep skills fresh)
+### Maintain (keep skills fresh)
 
 ```bash
 # Check for upstream changes (canonicalized skills):
@@ -643,7 +646,7 @@ dz epoch-replay --mock --n 24 --effect 0.9      # $0 dry run of the cold-vs-warm
 dz epoch-replay --emit                          # ready? emit the real cold-vs-warm work order
 ```
 
-### Phase 6: Share (publish to the world)
+### Share (publish to the world)
 
 ```bash
 # Verified release — 4 HARD gates (tests, audit, syntax, smoke-boot) in FRONT of dz publish:
@@ -662,6 +665,20 @@ dz publish --yes --no-mirror                    # explicit one-run mirror opt-ou
 dz bundle --preset news --out ./dist            # → ./dist/skills/<id>/ (SKILL.md + references/scripts/assets)
 dz bundle --select news-digest,goap-research-ed25519 --out ./dist
 ```
+
+Publishing defaults to dry-run. `--yes`, `--confirm` or `--no-dry-run` opts in; these aliases retain
+precedence when combined with `--dry-run`. The live banner observes core's retained version plan for
+the final public batch, including filtering, `--include-drifted` expansion and dependency order,
+before core changes versions or READMEs. It shows the exact planned target: prerelease `1.2.3-beta.1`
+with registry `1.2.2` plans `1.2.3`; local `1.0.0` with registry `9.9.9` plans `9.9.10`. Explicit
+registry absence shows the unchanged local version as first publish, including prereleases.
+
+Unknown registry state shows `NOT ESTABLISHED` and its reason without a target arrow. Scripted probe
+rows are marked explicitly. Planned targets remain subject to existing gates, transport and exact
+receipt confirmation; the banner does not promise success. A changed package name/version before
+its core write is refused, with no hidden replan after a conflict. This is a synchronous stale-input
+check, not a lock against external writers. Live `--bump-only` shows a local version plan and never
+publishes. With `--json`, human progress and the banner go to stderr and stdout contains one report.
 
 When core and CLI release together, `dz publish` stages the CLI README's marked current pair before
 its build, signature and pack. The core version in the npm README agrees with the packed dependency
@@ -696,11 +713,11 @@ prints exactly one JSON document (the `dz publish` epilogue always selects this 
 | | **Individual Skill** | **Preset** | **npx Package** |
 |---|---|---|---|
 | **What** | 1 SKILL.md file | Curated list of skill names | Full toolkit with orchestration |
-| **Contains** | Instructions for 1 task | N skill references | Skills + commands + rules + shards + agents + memory |
+| **Contains** | Task-specific instructions | N skill references | Skills + commands + rules + shards + agents + memory |
 | **Pipeline** | No | No | Yes (phases, checkpoints, governance) |
 | **Self-learning** | No | `dz setup` adds it | Built-in |
 | **Install** | `dz init --select X` | `dz setup --preset X` | `npx @dzhechkov/X init` |
-| **Example** | `terraform` | `devops` (30 skills) | `keysarium` (7-phase research) |
+| **Example** | `terraform` | `devops` (see exact source selection below) | `keysarium` (7-phase research) |
 
 ```bash
 # One skill:
@@ -810,7 +827,7 @@ already failed before.
 verifies what it just installed. A pack that does not match its signed manifest is **fatal**:
 
 ```bash
-dz doctor                      # ... signatures: 23 verified, 0 unsigned, 0 TAMPERED (the gate is ARMED: keys/dz.pub committed)
+dz doctor                      # diagnose this environment and summarize discovered pack signatures
 dz doctor --require-signing    # an unsigned pack becomes fatal too
 dz upgrade                     # a TAMPERED pack aborts the upgrade
 dz doctor --pubkey ./my.pub    # verify against a key you pinned yourself
@@ -822,8 +839,10 @@ key that travelled inside it.
 
 **Honest limits.** The packaged key lives in the verifier and vouches for *other* packs; a compromised
 `harness-cli` is outside the threat model, because you have already run its code. And a signature proves
-the bytes are unmodified — never that the skill is any good. Today no key is committed, so every pack
-reports `unverifiable` and nothing fails.
+the signed bytes match the pinned key's manifest; it does not establish functional quality or
+the truth of a skill's content. Discovery and counts depend on this installation: a source tree is
+reported as `source-tree (not an artifact)`, without counting it as verified. A missing trust root
+can make an artifact `unverifiable`; read the named diagnostic rather than treating it as a pass.
 
 **From Claude Code, in plain language:**
 > "Run doctor and tell me if any installed pack was modified."
@@ -915,9 +934,7 @@ a target for a project; as the requirements input for porting a feature to more 
 
 dz's self-learning has collect, rank and apply legs — this command answers whether they COMPOUND,
 honestly. Ported from rUv's darwin-mode with a deliberate split: the seeded statistics came over
-verbatim (deterministic bootstrap, lower-95 promotion, and a minimum of 5 samples per arm — darwin's
-own calibration measured a 33% false-discovery rate at n=3); darwin's measurement legs did NOT (they
-score fixtures, not your data). The measurements here run over what your machine actually recorded:
+verbatim (deterministic bootstrap, lower-95 promotion and a minimum of 5 samples per arm). The upstream calibration is CLAIMED by the indexed port notes: roughly 33% false-discovery rate at n=3, citing `packages/darwin-mode/bench/results/fdr-calibration.json`. The repository port map `features/compounding/00_port_map.md` identifies the indexed source and its limits; that upstream result was not remeasured on your installation. Darwin's measurement legs did NOT transfer (they score fixtures, not your data). The measurements here run over what your machine actually recorded:
 
 ```
 $ dz compounding
@@ -1290,10 +1307,11 @@ ad-hoc resets make a local denominator non-measurable. Feature routing is theref
 
 Two things changed to make it mean something:
 
-- **Cost-weighted, not a raw sum.** A flat token sum is 89–99.7% cache-read (MEASURED), which grows
-  with *conversation length*, not with work done — two sessions doing identical work differed by
-  orders of magnitude. Tokens are now **input-equivalents** (input 1x, cache-write 1.25x — 2x for a
-  1-hour TTL write, cache-read 0.1x, output 5x).
+- **Cost-weighted, not a raw sum.** Cache reads can dominate a raw total, so `dz usage` separates
+  token dimensions and reports its cost-weighted basis. Historical input-equivalent reporting used
+  input 1x, cache-write 1.25x (2x for a one-hour TTL), cache-read 0.1x and output 5x.
+  Read the reported model, rate and estimate basis for the selected observation; cache reuse and
+  conversation length do not by themselves measure useful work or the provider's bill.
 - **Subagent transcripts count.** `<session>/subagents/*.jsonl` carry real, non-duplicated usage and
   were silently excluded.
 - **Symlinked project directories are scanned by real path, each real directory once.** Broken links
@@ -1822,45 +1840,48 @@ Membership and counts come from the scoped catalog above or the linked repositor
 
 | Pack | Catalog scope | What's inside |
 |------|--------|---------------|
-| [@dzhechkov/skills-devops](https://www.npmjs.com/package/@dzhechkov/skills-devops) | repository | CI/CD, IaC, containers, databases, observability, incident & problem mgmt, ITSM/ITIL, deploy-to-Cloud.ru-VM |
-| [@dzhechkov/skills-mcp](https://www.npmjs.com/package/@dzhechkov/skills-mcp) | repository | MCP-server integrations — search, git/GitLab, Google Workspace, Notion, AgentDB memory |
-| [@dzhechkov/skills-web3](https://www.npmjs.com/package/@dzhechkov/skills-web3) | repository | On-chain / DeFi — wallets, swaps, bridges, ENS, agent identity (ERC-8004) |
-| [@dzhechkov/skills-qe](https://www.npmjs.com/package/@dzhechkov/skills-qe) | repository | Quality engineering — test-gen, coverage, chaos, defect intelligence, QCSD swarms |
-| [@dzhechkov/skills-reasoning](https://www.npmjs.com/package/@dzhechkov/skills-reasoning) | repository | Generic reasoning & code-quality — investigate (root-cause), solid (SOLID/TDD), karpathy-guidelines, agents-md-creator |
-| [@dzhechkov/skills-ecc](https://www.npmjs.com/package/@dzhechkov/skills-ecc) | repository | Claude-Code engineering craft — agent architecture, autonomous loops, framework patterns |
-| [@dzhechkov/skills-meta](https://www.npmjs.com/package/@dzhechkov/skills-meta) | repository | Dev-process meta skills — explore, feature-adr, design-thinking, audit, skill-advisor, loop-plan-author, decision-mockups (vendored mirror of `@dzhechkov/skills-decision-mockups`) |
-| [@dzhechkov/skills-academic](https://www.npmjs.com/package/@dzhechkov/skills-academic) | repository | Thesis-defense toolkit — dissertation review, questions, doc-check, defense eval |
-| [@dzhechkov/skills-news](https://www.npmjs.com/package/@dzhechkov/skills-news) | repository | *dz-original* — news digests (`news-digest`) + delta watches (`news-monitor`) + bundled `goap-research-ed25519` verified-research backend (mandatory) |
-| [@dzhechkov/skills-demo-publisher](https://github.com/djd1m/dz-harness/tree/main/packages/%40dzhechkov/skills-demo-publisher) | repository | *dz-original, staged* — scenario-driven product recording → budgeted static HTML5 video site with Russian captions and fail-closed Pages delivery checks |
-| [@dzhechkov/skills-idea2prd](https://www.npmjs.com/package/@dzhechkov/skills-idea2prd) | repository | *dz-original* — `idea2prd-manual`: idea/problem → PRD+ADR+DDD+C4+Pseudocode+Tests+Completion (9 checkpoints); bundles the analyst trio as a sources.json-tracked vendor (ADR-0001, contributors-only doc) |
-| [@dzhechkov/skills-reverse-engineering](https://www.npmjs.com/package/@dzhechkov/skills-reverse-engineering) | repository | *dz-original* — `reverse-engineering-unicorn`: company → launch playbook (+CJM) via 6-module QUICK/DEEP/VERIFIED pipeline; canonical home that resolved the keysarium↔p-replicator drift (ADR-0001, contributors-only doc) |
-| [@dzhechkov/skills-presentation-storyteller](https://www.npmjs.com/package/@dzhechkov/skills-presentation-storyteller) | repository | *dz-original* — `presentation-storyteller`: selling deck + verified sources + slide-by-slide speaker script; referenced (not vendored) by reverse-engineering-unicorn's Post-M6 step (ADR-0001, contributors-only doc) |
-| [@dzhechkov/skills-website-cloner](https://www.npmjs.com/package/@dzhechkov/skills-website-cloner) | repository | *imported (MIT)* — `clone-website`: live site → pixel-perfect Next.js clone (recon → specs → parallel build → visual QA); needs a browser-MCP + Next.js scaffold; referenced by p-replicator's `/replicate` (ADR-0001, contributors-only doc) |
-| [@dzhechkov/skills-pm](https://www.npmjs.com/package/@dzhechkov/skills-pm) | repository | *imported (MIT)* — product-management toolkit: OST, RICE/ICE prioritization, product-strategy, pricing, OKRs, NSM/metrics/A-B/cohort, outcome-roadmap, stakeholder-map, sprint-plan, strategy-red-team, GTM/growth/beachhead, market-sizing; curated from phuryn/pm-skills (`dz init --preset pm`) (ADR-0002, contributors-only doc) |
-| [@dzhechkov/skills-taste](https://www.npmjs.com/package/@dzhechkov/skills-taste) | repository | *imported (MIT)* — `design-taste-frontend`: anti-slop landing/portfolio/redesign framework (dials + pre-flight + GSAP skeletons); complements frontend-design (`dz init --select design-taste-frontend`) (ADR-0002, contributors-only doc) |
-| [@dzhechkov/skills-book-digitizer](https://www.npmjs.com/package/@dzhechkov/skills-book-digitizer) | repository | *dz-original* — book → installable methodology pack: `digitize-book` (orchestrator) + ingest/extract/distill/pack/kb-index + `book-brain-register` (CP6 promote → cross-project brain) + `source-brain-ingest` (repo sibling). Verified provenance, IP-safe, resumable (`dz init --select digitize-book`) (ADR-001, contributors-only doc) |
-| [@dzhechkov/skills-12factor](https://www.npmjs.com/package/@dzhechkov/skills-12factor) | repository | *generated by the digitizer, CC BY 4.0* — The Twelve-Factor App distilled into 12 decision-moment skills (one per factor). The first PUBLIC digitized-book pack; paraphrased (shingling-gated), routing-gated (every factor carries triggers), attributed (`NOTICE`) (`dz init --select 12factor-config-in-environment,…`) |
-| [@dzhechkov/skills-book-ai-apps](https://www.npmjs.com/package/@dzhechkov/skills-book-ai-apps) | repository | *generated by the digitizer, CP5-published* — «Building Applications with AI Agents» (Albada, рус. пер.) distilled into 17 decision-moment skills across the whole agent-building arc: agent-fit & model choice, single-vs-multi, orchestration, tool design, knowledge & memory, context engineering, evaluation, probabilistic behaviour checks, release gates, improvement loops, drift, human-in-the-loop, agent UX, governance, security. Ships our page-anchored Knowledge Units, NOT the book text — shingling-gated at 0 uncited verbatim runs >=8 words; publication is the recorded CP5 owner decision; `trust_tier 1` (routing-gated, not human-reviewed) Since 0.2.2 it also ships `brain/ai-apps.sqlite`, the 223-KU knowledge slice: `dz brain add --from-pack @dzhechkov/skills-book-ai-apps` loads it into your `~/.dz/brain`, then `dz brain query --source ai-apps` answers in any project (`dz install @dzhechkov/skills-book-ai-apps --target claude-code`) |
-| [@dzhechkov/skills-book-clean-code](https://www.npmjs.com/package/@dzhechkov/skills-book-clean-code) | repository | *generated by the digitizer, CP5-published 2026-09-11* — «Чистый код» (Robert C. Martin, рус. пер.): intent/comment contract, source layout, function contracts, object/data ownership, error and boundary handling, test-suite feedback, legacy refactoring loop, architecture assembly, concurrency safety; ships `brain/clean-code.sqlite` (259 KU). Shingling IP gate 0 violations on the published bytes; trust tier 1. |
+| [`@dzhechkov/skills-devops`](https://www.npmjs.com/package/@dzhechkov/skills-devops) | repository | CI/CD, IaC, containers, databases, observability, incident & problem mgmt, ITSM/ITIL, deploy-to-Cloud.ru-VM |
+| [`@dzhechkov/skills-mcp`](https://www.npmjs.com/package/@dzhechkov/skills-mcp) | repository | MCP-server integrations — search, git/GitLab, Google Workspace, Notion, AgentDB memory |
+| [`@dzhechkov/skills-web3`](https://www.npmjs.com/package/@dzhechkov/skills-web3) | repository | On-chain / DeFi — wallets, swaps, bridges, ENS, agent identity (ERC-8004) |
+| [`@dzhechkov/skills-qe`](https://www.npmjs.com/package/@dzhechkov/skills-qe) | repository | Quality engineering — test-gen, coverage, chaos, defect intelligence, QCSD swarms |
+| [`@dzhechkov/skills-reasoning`](https://www.npmjs.com/package/@dzhechkov/skills-reasoning) | repository | Generic reasoning & code-quality — investigate (root-cause), solid (SOLID/TDD), karpathy-guidelines, agents-md-creator |
+| [`@dzhechkov/skills-ecc`](https://www.npmjs.com/package/@dzhechkov/skills-ecc) | repository | Claude-Code engineering craft — agent architecture, autonomous loops, framework patterns |
+| [`@dzhechkov/skills-meta`](https://www.npmjs.com/package/@dzhechkov/skills-meta) | repository | Dev-process meta skills — explore, feature-adr, design-thinking, audit, skill-advisor, loop-plan-author, decision-mockups (vendored mirror of `@dzhechkov/skills-decision-mockups`) |
+| [`@dzhechkov/skills-academic`](https://www.npmjs.com/package/@dzhechkov/skills-academic) | repository | Thesis-defense toolkit — dissertation review, questions, doc-check, defense eval |
+| [`@dzhechkov/skills-news`](https://www.npmjs.com/package/@dzhechkov/skills-news) | repository | *dz-original* — news digests (`news-digest`) + delta watches (`news-monitor`) + bundled `goap-research-ed25519` verified-research backend (mandatory) |
+| [`@dzhechkov/skills-demo-publisher`](https://github.com/djd1m/dz-harness/tree/main/packages/%40dzhechkov/skills-demo-publisher) | repository | *dz-original, staged* — scenario-driven product recording → budgeted static HTML5 video site with Russian captions and fail-closed Pages delivery checks |
+| [`@dzhechkov/skills-idea2prd`](https://www.npmjs.com/package/@dzhechkov/skills-idea2prd) | repository | *dz-original* — primary `idea2prd-manual`: idea/problem → PRD+ADR+DDD+C4+Pseudocode+Tests+Completion (9 checkpoints); the source carrier also contains `explore`, `goap-research-ed25519` and `problem-solver-enhanced` under `templates/.claude/skills/`, tracked in sources.json (ADR-0001, contributors-only doc). Full carrier membership is in the generated catalog; source selection is separate from the dated CLI installation |
+| [`@dzhechkov/skills-reverse-engineering`](https://www.npmjs.com/package/@dzhechkov/skills-reverse-engineering) | repository | *dz-original* — `reverse-engineering-unicorn`: company → launch playbook (+CJM) via 6-module QUICK/DEEP/VERIFIED pipeline; canonical home that resolved the keysarium↔p-replicator drift (ADR-0001, contributors-only doc) |
+| [`@dzhechkov/skills-presentation-storyteller`](https://www.npmjs.com/package/@dzhechkov/skills-presentation-storyteller) | repository | *dz-original* — `presentation-storyteller`: selling deck + verified sources + slide-by-slide speaker script; referenced (not vendored) by reverse-engineering-unicorn's Post-M6 step (ADR-0001, contributors-only doc) |
+| [`@dzhechkov/skills-website-cloner`](https://www.npmjs.com/package/@dzhechkov/skills-website-cloner) | repository | *imported (MIT)* — `clone-website`: live site → pixel-perfect Next.js clone (recon → specs → parallel build → visual QA); needs a browser-MCP + Next.js scaffold; referenced by p-replicator's `/replicate` (ADR-0001, contributors-only doc) |
+| [`@dzhechkov/skills-pm`](https://www.npmjs.com/package/@dzhechkov/skills-pm) | repository | *imported (MIT)* — product-management toolkit: OST, RICE/ICE prioritization, product-strategy, pricing, OKRs, NSM/metrics/A-B/cohort, outcome-roadmap, stakeholder-map, sprint-plan, strategy-red-team, GTM/growth/beachhead, market-sizing; curated from phuryn/pm-skills (`dz init --preset pm`) (`ADR-0002`, contributors-only design document) |
+| [`@dzhechkov/skills-taste`](https://www.npmjs.com/package/@dzhechkov/skills-taste) | repository | *imported (MIT)* — `design-taste-frontend`: anti-slop landing/portfolio/redesign framework (dials + pre-flight + GSAP skeletons); complements frontend-design (`dz init --select design-taste-frontend`) (`ADR-0002`, contributors-only design document) |
+| [`@dzhechkov/skills-book-digitizer`](https://www.npmjs.com/package/@dzhechkov/skills-book-digitizer) | repository | *dz-original* — book → installable methodology pack: `digitize-book` (orchestrator) + ingest/extract/distill/pack/kb-index + `book-brain-register` (CP6 promote → cross-project brain) + `source-brain-ingest` (repo sibling). Source-provenance and shingling checks, explicit distribution decisions, resumable (`dz init --select digitize-book`) (ADR-001, contributors-only doc) |
+| [`@dzhechkov/skills-12factor`](https://www.npmjs.com/package/@dzhechkov/skills-12factor) | repository | *generated by the digitizer, CC BY 4.0* — The Twelve-Factor App distilled into 12 decision-moment skills (MEASURED repository membership 2026-10-07; `node scripts/generate-catalog-docs.mjs --check` from the repository root) (one per factor). Its distribution decision is recorded in the package sources; paraphrased (shingling-gated), routing-gated (every factor carries triggers), attributed (`NOTICE`) (`dz init --select 12factor-config-in-environment,…`) |
+| [`@dzhechkov/skills-book-ai-apps`](https://www.npmjs.com/package/@dzhechkov/skills-book-ai-apps) | repository | *generated by the digitizer, CP5-published* — «Building Applications with AI Agents» (Albada, рус. пер.) distilled into 17 decision-moment skills (MEASURED repository membership 2026-10-07; `node scripts/generate-catalog-docs.mjs --check` from the repository root) across the whole agent-building arc: agent-fit & model choice, single-vs-multi, orchestration, tool design, knowledge & memory, context engineering, evaluation, probabilistic behaviour checks, release gates, improvement loops, drift, human-in-the-loop, agent UX, governance, security. Ships our page-anchored Knowledge Units, NOT the book text — historical shingling measurements are documented in its package README; publication is the recorded CP5 owner decision; `trust_tier 1` (routing-gated, not human-reviewed) Since `0.2.2` it also ships `brain/ai-apps.sqlite`, the knowledge slice (historical 223-KU observation documented in its package README): `dz brain add --from-pack @dzhechkov/skills-book-ai-apps` loads it into your `~/.dz/brain`, then `dz brain query --source ai-apps` answers in any project (`dz install @dzhechkov/skills-book-ai-apps --target claude-code`) |
+| [`@dzhechkov/skills-book-clean-code`](https://www.npmjs.com/package/@dzhechkov/skills-book-clean-code) | repository | *generated by the digitizer, CP5-published 2026-09-11* — «Чистый код» (Robert C. Martin, рус. пер.): intent/comment contract, source layout, function contracts, object/data ownership, error and boundary handling, test-suite feedback, legacy refactoring loop, architecture assembly, concurrency safety; ships `brain/clean-code.sqlite` (259 KU). Shingling IP gate 0 violations on the published bytes; trust tier 1. |
 
-### Available Presets (14)
+### Source presets
+The table lists every source preset and its exact skill IDs. The dated measurement and
+reproducer below read the built source authority; provider installation is a separate requirement.
 
-| Preset | Skills | Description |
-|--------|--------|-------------|
-| `meta` | 20 | Development process (explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, adversarial-verifier, skill-advisor, audit, loop-plan-author, decision-mockups) |
-| `qe-engineer` | 20 | Quality engineering (test-gen, coverage, chaos, defect, ...) |
-| `bto` | 1 | Build-Benchmark-Test-Optimize pipeline |
-| `health` | 8 | Medical AI (diagnostics, drugs, labs, clinical decisions) |
-| `keysarium` | 9 | Full research toolkit (feature-adr, presentation, reverse-eng) |
-| `p-replicator` | 10 | AI product development (/replicate, SPARC PRD, pipeline-forge) |
-| `feature-adr` | 9 | Feature pipeline (feature-adr, explore, knowledge-extractor, problem-solver-enhanced, frontend-design, code-critic, code-impl, system-grill, code-skills-creator) |
-| `reasoning` | 4 | Generic reasoning & code-quality (investigate, solid, karpathy-guidelines, agents-md-creator) — stack-neutral, zero coupling |
-| `devops` | 30 | DevOps skills (terraform, kubernetes, c4-architecture, incident-response, problem-management, risk-assessment, ...) |
-| `web3` | 12 | Web3/DeFi (quicknode, zerion, symbiosis, bankr, veil, neynar, ...) |
-| `mcp` | 16 | MCP servers (agentdb, brave-search, gmail, gitlab, comfyui, notion, ...) |
-| `academic` | 5 | Thesis defense (review, questions, doc-check, live defense + answer eval) |
-| `news` | 3 | News & monitoring (news-digest cited reports + news-monitor delta watches) |
-| `pm` | 18 | Product management (OST, prioritization, strategy, pricing, OKRs, metrics, GTM, growth) |
+| Preset | Skills | Purpose | Exact selected skill IDs |
+|--------|-------:|---------|--------------------------|
+| `academic` | 5 | Thesis defense | `dissertation-review`, `question-generator`, `document-checker`, `defense-evaluator`, `answer-assessor` |
+| `meta` | 20 | Development process | `explore`, `goap-research-ed25519`, `problem-solver-enhanced`, `design-thinking`, `feature-adr`, `knowledge-extractor`, `understand-anything-bridge`, `agentshield-scan`, `skill-crystallizer`, `structured-reasoning`, `reflection-loop`, `context-window-management`, `external-comms-gate`, `capture-adr`, `adversarial-verifier`, `skill-advisor`, `audit`, `design-tokens`, `loop-plan-author`, `decision-mockups` |
+| `qe-engineer` | 20 | Quality engineering | `qe-test-generation`, `qe-test-execution`, `qe-coverage-analysis`, `qe-quality-assessment`, `qe-requirements-validation`, `qe-defect-intelligence`, `qe-iterative-loop`, `qe-chaos-resilience`, `qe-browser`, `qe-code-intelligence`, `qe-learning-optimization`, `qe-visual-accessibility`, `brutal-honesty-review`, `six-thinking-hats`, `sfdipot-product-factors`, `qcsd-ideation-swarm`, `qcsd-development-swarm`, `qcsd-cicd-swarm`, `qcsd-production-swarm`, `qcsd-refinement-swarm` |
+| `bto` | 1 | Build-Benchmark-Test-Optimize | `bto` |
+| `reasoning` | 4 | Reasoning and code quality | `investigate`, `solid`, `karpathy-guidelines`, `agents-md-creator` |
+| `health` | 8 | Medical research and decision support | `drug-interaction-checker`, `clinical-diagnostic-reasoning`, `lab-results`, `pubmed-search`, `clinical-decision-support`, `nutrition-analyzer`, `fitness-analyzer`, `sleep-analyzer` |
+| `keysarium` | 9 | Research toolkit | `explore`, `feature-adr`, `knowledge-extractor`, `problem-solver-enhanced`, `analyst-manual-full`, `goap-research-ed25519`, `presentation-storyteller`, `edu-site-generator`, `transcript-site-generator` |
+| `p-replicator` | 10 | Product development | `explore`, `problem-solver-enhanced`, `knowledge-extractor`, `brutal-honesty-review`, `goap-research-ed25519`, `reverse-engineering-unicorn`, `sparc-prd-mini`, `requirements-validator`, `pipeline-forge`, `cc-toolkit-generator-enhanced` |
+| `feature-adr` | 9 | Feature development | `explore`, `feature-adr`, `knowledge-extractor`, `problem-solver-enhanced`, `frontend-design`, `code-critic`, `code-impl`, `system-grill`, `code-skills-creator` |
+| `devops` | 30 | Infrastructure and delivery | `api-design`, `c4-architecture`, `pr-review`, `security-audit`, `test-writer`, `ci-fix`, `codeql-fix`, `database-review`, `debugging`, `frontend-implementation`, `data-pipeline`, `database-migration`, `docker-compose`, `github-actions`, `incident-response`, `problem-management`, `kubernetes`, `observability`, `monorepo-management`, `terraform`, `git-conflict-resolve`, `graphql-schema`, `nginx-config`, `playwright-testing`, `redis-patterns`, `retrospective`, `risk-assessment`, `provider-debug`, `itsm-itil`, `deploy-on-cloudru-vm` |
+| `web3` | 12 | Blockchain and DeFi | `quicknode`, `zerion`, `symbiosis`, `ens-primary-name`, `erc-8004`, `veil`, `neynar`, `trails`, `bankr`, `siwa`, `hydrex`, `quotient` |
+| `mcp` | 16 | MCP integrations | `agentdb-memory`, `brave-search`, `comfyui`, `exa-search`, `gmail`, `google-sheets`, `google-calendar`, `google-tasks`, `clickup`, `reddit`, `jina-reader`, `context7`, `git-mcp`, `gitlab`, `notion`, `obsidian` |
+| `news` | 3 | Cited digests and delta monitoring | `news-digest`, `news-monitor`, `goap-research-ed25519` |
+| `pm` | 18 | Product management | `opportunity-solution-tree`, `prioritize-features`, `prioritization-frameworks`, `product-strategy`, `pricing-strategy`, `brainstorm-okrs`, `north-star-metric`, `metrics-dashboard`, `ab-test-analysis`, `cohort-analysis`, `outcome-roadmap`, `stakeholder-map`, `sprint-plan`, `strategy-red-team`, `gtm-strategy`, `growth-loops`, `beachhead-segment`, `market-sizing` |
+MEASURED source selection on 2026-10-07, not installed or published availability. Reproduce from the repository root with `node --input-type=module -e "import('./packages/@dzhechkov/harness-presets/dist/index.js').then(m=>console.log(JSON.stringify(m.PRESETS,null,2)))"`. Counts and skill IDs in the table describe that same source selection; use the provider guidance above before installing.
 
 #### What the `meta` skills do & how to trigger them
 
@@ -1873,7 +1894,7 @@ Get the whole set with `dz init --target claude-code --preset meta`, or pick one
 | `adversarial-verifier` | False-positive killer: a skeptic refutes a finding and classifies it (TRUE_POSITIVE / FALSE_POSITIVE / …) | "verify this finding" / "is this a real bug" / "false positive check" |
 | `capture-adr` | Records architecture decisions mid-session as minimal MADR-4.0 ADRs (tagged `needs-oversight`) | "record this decision" / "ADR for this" / "capture that as an ADR" |
 | `external-comms-gate` | Screens outbound text (PR / issue / npm / README) for secrets, PII and leaks → SAFE / WARNING / BLOCK | "leak check" / "safe to publish?" / "screen this before publishing" |
-| `context-window-management` | Strategies for context pressure (prune / checkpoint / summarize / delegate); kicks in ~60% capacity | "running out of context" / "manage context" / "compact" |
+| `context-window-management` | Strategies for context pressure (prune / checkpoint / summarize / delegate); the skill prescribes management at **estimated ~60% context usage**, based on a rough capacity estimate; automatic host activation is not established | "running out of context" / "manage context" / "compact" |
 | `reflection-loop` | Standalone critique → revise cycle (≤3 rounds) for code, text, architecture or research | `/reflection-loop` · "critique this" / "review and improve" |
 | `structured-reasoning` | Picks the reasoning strategy (Tree-of-Thought / CoT / compression) and checks the conclusion follows | "reason about…" / "explore options" / "compare approaches" |
 | `skill-crystallizer` | Auto-creates skills from execution traces, combines skills, and repairs broken ones | "create skill from this" / "combine skills" / "fix skill" |
@@ -1884,15 +1905,15 @@ Get the whole set with `dz init --target claude-code --preset meta`, or pick one
 | Package | Install | What it does |
 |---------|---------|-------------|
 | [@dzhechkov/keysarium](https://www.npmjs.com/package/@dzhechkov/keysarium) | `npx @dzhechkov/keysarium init` | Full 7-phase research toolkit |
-| [@dzhechkov/design-thinking](https://www.npmjs.com/package/@dzhechkov/design-thinking) | `npx @dzhechkov/design-thinking init` | d.school 6-phase Design Thinking (8 skills) |
+| [@dzhechkov/design-thinking](https://www.npmjs.com/package/@dzhechkov/design-thinking) | `npx @dzhechkov/design-thinking init` | d.school Design Thinking; MEASURED repository membership 2026-10-07: 8 skills (`node scripts/generate-catalog-docs.mjs --check` from the repository root); methodology phases are described in its package README |
 | [@dzhechkov/trip-planner](https://www.npmjs.com/package/@dzhechkov/trip-planner) | `npx @dzhechkov/trip-planner init` | Travel itinerary → interactive mobile site (pending publish) |
 | [@dzhechkov/p-replicator](https://www.npmjs.com/package/@dzhechkov/p-replicator) | `npx @dzhechkov/p-replicator init` | AI product development (/replicate pipeline) |
-| [@dzhechkov/health-advisor](https://www.npmjs.com/package/@dzhechkov/health-advisor) | `npx @dzhechkov/health-advisor init` | Medical AI (25 skills) |
-| [@dzhechkov/skills-bto](https://www.npmjs.com/package/@dzhechkov/skills-bto) | `npx @dzhechkov/skills-bto init` | BTO benchmarking (Build-Test-Optimize) |
-| [@dzhechkov/skills-feature-adr](https://www.npmjs.com/package/@dzhechkov/skills-feature-adr) | `npx @dzhechkov/skills-feature-adr init` | 11-step feature pipeline with two-axis `primary` + per-family `budget` routing (`normal`/`eco`/`hybrid`); explicit stage models keep precedence |
-| [@dzhechkov/skills-edu-site](https://www.npmjs.com/package/@dzhechkov/skills-edu-site) | `npx @dzhechkov/skills-edu-site init` | Gamified edu site generator |
-| [@dzhechkov/skills-transcript-site](https://www.npmjs.com/package/@dzhechkov/skills-transcript-site) | `npx @dzhechkov/skills-transcript-site init` | Transcript → interactive site |
-| [@dzhechkov/skills-analyst-manual](https://www.npmjs.com/package/@dzhechkov/skills-analyst-manual) | `npx @dzhechkov/skills-analyst-manual init` | 3-phase analyst composite |
+| [@dzhechkov/health-advisor](https://www.npmjs.com/package/@dzhechkov/health-advisor) | `npx @dzhechkov/health-advisor init` | Medical research and decision support (see the repository catalog for source membership) |
+| [`@dzhechkov/skills-bto`](https://www.npmjs.com/package/@dzhechkov/skills-bto) | `npx @dzhechkov/skills-bto init` | BTO benchmarking (Build-Test-Optimize) |
+| [`@dzhechkov/skills-feature-adr`](https://www.npmjs.com/package/@dzhechkov/skills-feature-adr) | `npx @dzhechkov/skills-feature-adr init` | 11-step feature pipeline with two-axis `primary` + per-family `budget` routing (`normal`/`eco`/`hybrid`); explicit stage models keep precedence |
+| [`@dzhechkov/skills-edu-site`](https://www.npmjs.com/package/@dzhechkov/skills-edu-site) | `npx @dzhechkov/skills-edu-site init` | Gamified edu site generator |
+| [`@dzhechkov/skills-transcript-site`](https://www.npmjs.com/package/@dzhechkov/skills-transcript-site) | `npx @dzhechkov/skills-transcript-site init` | Transcript → interactive site |
+| [`@dzhechkov/skills-analyst-manual`](https://www.npmjs.com/package/@dzhechkov/skills-analyst-manual) | `npx @dzhechkov/skills-analyst-manual init` | 3-phase analyst composite |
 
 **Difference:** `dz init --preset` installs individual skills from `.claude/skills/` source into a target platform tree. Standalone `npx` packages have their own CLI and install a complete toolkit with commands, rules, shards, and agents — a richer but self-contained experience.
 
@@ -2020,9 +2041,10 @@ npm i -g @dzhechkov/harness-cli     # gives you the `dz` binary
 # or zero-install per call:  npx @dzhechkov/harness-cli workflow init …
 ```
 
-**The division of labour, honestly stated up front:** `dz` AUTHORS, GATES and READS loops — it never
-RUNS one. Execution belongs to a host with the `Workflow({scriptPath})` runtime, which today means
-**Claude Code**. So: author anywhere (Codex included), run under Claude Code.
+**The division of labour:** author, validate and render a plan with `dz`. The rendered script
+executes in Claude Code's `Workflow({scriptPath})` runtime. From a shell, `dz workflow run <plan.json>`
+can instead interpret the plan and dispatch isolated agents; it does not execute the rendered script.
+Choose the route for your available host and inspect its prerequisites and exit codes before running.
 
 #### Step 1 — scaffold the plan shape closest to your scenario
 
@@ -2356,6 +2378,11 @@ never recorded as done), an absent or partially-present artifact set, and a stag
 to witness — so a stage that did not happen can no longer be recorded, which the old mechanism allowed.
 
 ## All Commands (95)
+MEASURED local source inventory on 2026-10-07: **95 canonical commands**, with **96 help names**
+including the built-in `help`. Reproduce from the repository root with
+`node --input-type=module -e "import('./packages/@dzhechkov/harness-cli/dist/index.js').then(m=>console.log(m.DZ_COMMANDS))"`
+and `node packages/@dzhechkov/harness-cli/dist/bin.js --json --help`. These observations describe
+the built source CLI; they do not establish a new published release.
 
 *(95 MEASURED from the bounded command inventory below; rendered `dz --help` exposes 96 unique
 top-level names — the 95 plus the built-in `help`, which prints USAGE before the dispatch switch and
@@ -2843,7 +2870,7 @@ file, now with your interactive queries in it too.
 ## Help is addressed: twelve commands answer for themselves
 
 ```bash
-dz parity --help          # the parity usage — NOT the 156-line global block
+dz parity --help          # the parity usage; other commands may use global help
 dz score --help           # the score usage
 dz workflow run --help    # the sub-command's own usage
 dz workflow --help        # still the GLOBAL block: `workflow` alone owns no help
@@ -2888,16 +2915,19 @@ plan says `будет переписано` where the live run says `переп�
 ## Global: help in machine mode (`--json --help`)
 
 ```bash
-dz publish --help            # 156 lines of plain text, exit 0 — unchanged
+dz publish --help            # current global usage, exit 0
 dz publish --json --help     # {"ok":true,"help":["dz - DZ cross-platform harness CLI", …],"command":"publish"}
 dz -h --json                 # same envelope, "command":""
 dz --json                    # same envelope, "command":""
 dz help --json               # same envelope, "command":"help"
 ```
 
-Exit 0 in every form. The `help` array is the usage text split into lines — 156 today — built
-from the usage template itself, never from captured output (capturing adds a trailing newline
-and would yield a phantom 157th, empty element).
+Exit 0 in every form. The `help` array is built by splitting the usage template itself,
+not captured terminal output. It contains **163 lines** in the local source build
+(MEASURED 2026-10-07: from the repository root,
+`node packages/@dzhechkov/harness-cli/dist/bin.js --json --help`; inspect `help.length` in that JSON).
+This length can change with the command surface; appending a captured trailing newline would add
+an empty element. The envelope's fields, rather than a fixed line count, are the consumer contract.
 
 **Why it exists.** `dz <command> --json --help` used to print the same 156 lines of PLAIN TEXT
 with exit 0 (MEASURED 2026-09-22, reproducer: `node dist/bin.js publish --json --help`). A wrapper
@@ -3165,7 +3195,7 @@ nothing as success is how a stale panel becomes invisible. Argument errors (a ba
 For a live `/feature-adr` run, the panel derives remaining-stage timing from timestamped
 `features/*/.fa-state/checkpoints.jsonl` runs of the **same tier**. Every estimate prints its
 evidence basis: distinct-run `n`, tier, and date window. A Codex-shaped `code` leg always renders
-as p25–p75 rather than a false-precision point. The floor is three runs for **each** remaining
+as p25–p75 rather than a point estimate. The floor is three runs for **each** remaining
 `(tier, stage)` bucket; one thin bucket makes the whole result `ETA: недостаточно истории` instead
 of silently shortening the sum. Missing/unreadable checkpoints omit ETA, never `~0м`, and never
 take down the rest of the statusline. `dz statusline --json` includes the typed `eta` verdict for
@@ -3467,15 +3497,15 @@ Five platforms natively support the [agentskills.io](https://agentskills.io) `SK
 
 Same SKILL.md file, different directory — no format conversion needed.
 
-The **6th target — `copilot`** (GitHub Copilot) — is an intentionally *lossy* adapter that emits `.github/instructions/<id>.instructions.md` instead of a skills tree.
+The **`copilot` target** (GitHub Copilot) — is an intentionally *lossy* adapter that emits `.github/instructions/<id>.instructions.md` instead of a skills tree.
 
-The **7th target — `agents-md`** compiles ~15 AGENTS.md-reading tools (Zed, Warp, Aider, goose, Gemini CLI, RooCode, Kilo, Junie, Trae, Augment, Devin, pi, Windsurf) into a single merged root `AGENTS.md`. It **merges** (preserves user `AGENTS.md` content, owns a fenced block) and is lossy/flattening — no per-skill frontmatter, no directory tree.
+The **`agents-md` target** compiles selected skills into a single merged root `AGENTS.md` for tools that read that file. It **merges** (preserves user `AGENTS.md` content, owns a fenced block) and is lossy/flattening — no per-skill frontmatter, no directory tree.
 
-The **8th target — `cursor`** compiles **per-skill** to `.cursor/rules/<id>.mdc` (one file per skill, YAML frontmatter `description`, `globs`, `alwaysApply`). Plain `.md` files in `.cursor/rules/` are **ignored** by Cursor — the extension must be `.mdc`. Unlike `agents-md`, this keeps per-skill boundaries and glob-scoped activation.
+The **`cursor` target** compiles **per-skill** to `.cursor/rules/<id>.mdc` (one file per skill, YAML frontmatter `description`, `globs`, `alwaysApply`). Plain `.md` files in `.cursor/rules/` are **ignored** by Cursor — the extension must be `.mdc`. Unlike `agents-md`, this keeps per-skill boundaries and glob-scoped activation.
 
-The **9th target — `gemini`** compiles the selected skills into a single merged root `GEMINI.md` for the **Gemini CLI** and **Gemini Code Assist** (loaded hierarchically: `~/.gemini/GEMINI.md` → workspace → subdir). It is `agents-md` with a different filename — it **reuses the same fenced-block merge**, so it preserves any user-authored `GEMINI.md` content and is idempotent; lossy/flattening (plain Markdown, no per-skill frontmatter, no tree). Example: `dz init --target gemini --select design-thinking`.
+The **`gemini` target** compiles the selected skills into a single merged root `GEMINI.md` for the **Gemini CLI** and **Gemini Code Assist** (loaded hierarchically: `~/.gemini/GEMINI.md` → workspace → subdir). It is `agents-md` with a different filename — it **reuses the same fenced-block merge**, so it preserves any user-authored `GEMINI.md` content and is idempotent; lossy/flattening (plain Markdown, no per-skill frontmatter, no tree). Example: `dz init --target gemini --select design-thinking`.
 
-The **10th target — `windsurf`** compiles **per-skill** to `.windsurf/rules/<id>.md` (one plain-Markdown file per skill) with Windsurf's YAML frontmatter: an activation `trigger` (`always_on`/`manual`/`model_decision`/`glob` — dz emits `model_decision`), a `description`, and an optional `globs`. It is essentially `cursor` with a different directory + a `.md` extension (Windsurf reads plain `.md`, not `.mdc`) + a `trigger` key instead of `alwaysApply`; per-skill and intentionally *transforming* (excluded from the byte-identical equivalence suite, loss surfaced as a warning). Some Windsurf/Devin builds also read `.devin/rules/` — out of scope; dz emits only `.windsurf/rules/*.md`. Example: `dz init --target windsurf --select design-thinking`.
+The **`windsurf` target** compiles **per-skill** to `.windsurf/rules/<id>.md` (one plain-Markdown file per skill) with Windsurf's YAML frontmatter: an activation `trigger` (`always_on`/`manual`/`model_decision`/`glob` — dz emits `model_decision`), a `description`, and an optional `globs`. It is essentially `cursor` with a different directory + a `.md` extension (Windsurf reads plain `.md`, not `.mdc`) + a `trigger` key instead of `alwaysApply`; per-skill and intentionally *transforming* (excluded from the byte-identical equivalence suite, loss surfaced as a warning). Some Windsurf/Devin builds also read `.devin/rules/` — out of scope; dz emits only `.windsurf/rules/*.md`. Example: `dz init --target windsurf --select design-thinking`.
 
 **Optional platform enrichment** (skills work without these):
 
@@ -3485,14 +3515,28 @@ The **10th target — `windsurf`** compiles **per-skill** to `.windsurf/rules/<i
 | OpenCode | `opencode.json` + `.opencode/agents/*.md` | Config, custom agents |
 | Hermes | `cli-config.yaml` | Agent config, persona, memory |
 
-### Workflows (Opus 4.8+ dynamic workflows)
+### Workflows: author, validate, render and run
 
 ```bash
-dz workflow --task coverage-lift     # parallel coverage improvement
-dz workflow --task mutation-kill     # kill surviving mutants
-dz workflow --task canonicalize      # canonicalize new packages
-dz workflow --task security-audit    # adversarial security scan
+dz workflow init --name docs-demo --pattern gate --o plan.json
+# Edit the scaffold prompts and declare the work/perimeters before running it.
+dz workflow validate plan.json --json
+dz workflow render plan.json --o workflow.js
+dz workflow-lint workflow.js --plan plan.json --require-plan
+dz workflow run --help
 ```
+
+`init` scaffolds a plan; it does not improve coverage, kill mutants or perform a security audit.
+The retired template forms `dz workflow --task …` and `dz workflow --name …` refuse with exit 1.
+For feature development, invoke the installed `feature-adr` skill in your host and follow its
+requirements, architecture and review checkpoints. For a custom loop, edit and gate the plan above.
+A lint exit 3 is inconclusive, never a pass.
+
+A rendered script executes in Claude Code's `Workflow({scriptPath})` runtime. Alternatively,
+`dz workflow run <plan.json>` interprets the plan itself and dispatches through `codex exec` or
+an isolated `claude -p`, subject to its prerequisites. Run exits are 0 completed, 1 failed,
+2 usage/invalid plan, and 75 typed pause. Successful authoring or `run --help` does not establish
+that any agents executed; see [plan execution](#run-a-plan-without-the-claude-host-dz-workflow-run).
 
 ### Scout (ecosystem intelligence)
 
@@ -3504,21 +3548,21 @@ dz scout --since 2026-05-01           # only recent repos
 ```
 
 **Radar mode** (`dz scout`) scans **11 sources** in parallel (GitHub + npm + HN + MCP Registry + Glama + OSSInsight + Smithery + Semantic Scholar + arXiv + ECC + AgentBox):
-1. **Detects skill format** — SKILL.md, plugin.json, .claude/skills/, .claude-plugin/, MCP manifests
-2. **Scores relevance** — format (40%) + stars (30%) + recency (20%) + novelty (10%)
-3. **Compares against the selected package catalog** — finds skills we don't have
-4. **Recommends** — integrate (score ≥70) / monitor (40-69 + ≥50 stars) / skip
+- **Detects skill format** — SKILL.md, plugin.json, .claude/skills/, .claude-plugin/, MCP manifests
+- **Scores relevance** — format, logarithmic star activity, recency and catalog novelty. MEASURED source scoring maxima on 2026-10-07 are 40, 30, 20 and 10 points respectively (not accuracy percentages); reproduce with `node --input-type=module -e "import('./packages/@dzhechkov/scout/dist/analyzer.js').then(m=>console.log([m.computeRelevanceScore(['agentskills-io'],0,366,0),m.computeRelevanceScore([],1023,366,0),m.computeRelevanceScore([],0,0,0),m.computeRelevanceScore([],0,366,1)]))"` from the repository root. The recency floor contributes to the other probes; the analyzer source defines each term.
+- **Compares against the selected package catalog** — finds skills we don't have
+- **Recommends** — integrate (score ≥70) / monitor (40-69 + ≥50 stars) / skip
 
 **Deep analyst mode** (`dz scout --deep`) goes further for top-scored repos:
-1. **Downloads SKILL.md** from each repo, parses frontmatter + body
-2. **Finds closest match** in our inventory by keyword overlap
-3. **Explains the delta** — what the found skill adds that ours doesn't
-4. **Recommends integration path:**
+- **Downloads SKILL.md** from each repo, parses frontmatter + body
+- **Finds closest match** in our inventory by keyword overlap
+- **Explains the delta** — what the found skill adds that ours doesn't
+- **Recommends integration path:**
    - **canonicalize** — high-signal novel skill → new `@dzhechkov/skills-*` pack
    - **merge** — similar to existing skill → add unique features to ours
    - **new-preset** — novel skill → add to preset or create new pack
    - **skip** — already in our inventory
-5. **Gap analysis** — identifies trending categories across the ecosystem that our harness lacks
+- **Gap analysis** — identifies trending categories across the ecosystem that our harness lacks
 
 Example deep analysis output:
 
@@ -3554,11 +3598,13 @@ dz create-skill --name my-skill --bto
 #   references/judge-rubrics.md — scoring rubrics for 3-judge panel
 ```
 
-The `--bto` flag generates eval templates compatible with `/bto-test`:
+The `--bto` flag generates eval templates compatible with `/bto-test`. The table describes
+the scaffold's suggested thresholds and weights, not an evaluation result; inspect and adapt the
+emitted rubric for your skill before using it as an acceptance gate. MEASURED scaffold output on 2026-10-07: `dz create-skill --name my-skill --bto --skills-dir <owned-scratch-dir>` emits `evals/my-skill.yaml` for readback; this measures configuration, not skill effectiveness:
 
 | Layer | What | Gate |
 |-------|------|------|
-| L0 | Deterministic checks (U1-U5 universal + S1-S15 skill-specific) | Pass rate >= 80% |
+| L0 | Deterministic checks (`U1`–`U5` universal + `S1`–`S10` skill-specific) | `gate_threshold: 80` (minimum percentage passing) |
 | L1 | Single LLM judge (Haiku) — 5 dimensions: Clarity, Completeness, Actionability, Quality, Anti-patterns | Average >= 7.0 |
 | L2 | 3-judge panel (Sonnet) — Expert (0.40), Critic (0.30), Auditor (0.30) — 5 dimensions: Methodology, Depth, Correctness, Usability, Robustness | Weighted avg >= 7.0 |
 
@@ -3831,7 +3877,7 @@ cannot prove it wrote. Foreign entries are preserved byte-for-byte by every oper
 
 - `dz drift-check` — the **detector + CI gate**. Finds every skill that lives in ≥2 **package** locations and reports which copies **byte-differ**. Exit **1** if any *unexpected* drift, canonical defect, or blocking signature finding, **0** if clean. By default it compares published-package copies only; the `.claude/skills/<skill>` dogfood copies legitimately lag, so add `--all` to include them in a raw audit.
 - `dz sync-canonical <skill>` — the **healer**. Treats `skills-meta/<skill>` (or `--from <dir>`) as canonical and overwrites every other copy, proving byte-identity. `--check` reports drift and canonical defects and writes **nothing** (exit 1 on either finding) — the CI-safe dry-run. A canonical defect also refuses write mode with exit **1**, `synced: 0`, and `wrote: []`; all copies stay unchanged. It always prints how the canonical resolved: `resolved: from | skills-meta | auto | none`.
-  - **No `skills-meta` home + no `--from`?** (~half of shared skills live in a domain pack, not `skills-meta`.) `--check` still works: it runs a **canonical-free** comparison — are the copies byte-identical to **each other**? — and exits **0** if they all match / **1** if any differ (this used to dead-end at exit 2). A bare **write** in that state **refuses** (exit 2, writes nothing) rather than guess a canonical — a wrong guess would silently destroy the good copy. Pass **`--auto`** to opt in to auto-picking the **most-complete** copy as canonical; it prints a **loud warning naming the pick and the exact overwrite list** before healing (completeness ≠ correctness — review the diff).
+  - **No `skills-meta` home + no `--from`?** (A shared skill may have its canonical source in a domain pack.) `--check` still works: it runs a **canonical-free** comparison — are the copies byte-identical to **each other**? — and exits **0** if they all match / **1** if any differ (this used to dead-end at exit 2). A bare **write** in that state **refuses** (exit 2, writes nothing) rather than guess a canonical — a wrong guess would silently destroy the good copy. Pass **`--auto`** to opt in to auto-picking the **most-complete** copy as canonical; it prints a **loud warning naming the pick and the exact overwrite list** before healing (completeness ≠ correctness — review the diff).
 
 **Drift baseline.** `drift-check` reads **`.dz/drift-allowlist.json`** — a documented baseline of skills whose drift is *accepted* (intentional forks like `knowledge-extractor`, or a package that owns the primary vs a registry snapshot). For copy drift it fails only on **new** drift in any other shared skill. To accept a drift, add the skill name + a **reason** to that file; to re-arm the gate, heal it (`dz sync-canonical`) and remove the entry. Canonical defects are not allowlisted: a repo whose `skills-meta` already contains a misplaced asset can fail the gate immediately.
 
@@ -3898,7 +3944,7 @@ exit 1 with a stderr recovery diagnostic before any banner or npm request. Exist
 publication discovery selects direct package directories, with no version or private filter;
 accepted names are sent unchanged. Package-directory symlinks do not widen that selection.
 
-### dz benchmark — L0 quality gate
+### `dz benchmark` — structural gate
 
 ```bash
 dz benchmark packages/@dzhechkov/skills-devops/terraform     # single skill
@@ -3906,7 +3952,14 @@ dz benchmark packages/@dzhechkov/skills-devops --all          # batch all
 dz benchmark skill-a --compare skill-b                        # A/B compare
 ```
 
-20 graded deterministic checks (U1-U5 universal + S1-S15 skill-specific) + S16 advisory (capability-declaration nudge, not graded). Grade A = 95%+. For L1/L2 LLM judges, use `/bto-test` inside Claude Code.
+For a present skill, L0 evaluates **20 graded structural checks** (U1–U5 and S1–S15);
+S16 is an advisory capability-declaration nudge excluded from the grade. Grade A starts at **90%**,
+not a functional-quality score. A missing SKILL.md returns early with a failed existence check.
+These are MEASURED source rules as of 2026-10-07; reproduce the structural result with
+`node packages/@dzhechkov/harness-cli/dist/bin.js benchmark packages/@dzhechkov/skills-devops/terraform`
+and inspect `gradeFromRate` in `packages/@dzhechkov/harness-core/src/benchmark.ts` for the thresholds.
+For L1/L2 LLM judges, invoke `/bto-test` in a host where that skill is installed and retain its
+model, rubric and outputs separately.
 
 ### dz mcp-scan — static agent-permission audit
 
@@ -4218,13 +4271,17 @@ Phase 6: VALIDATE   → Pilot with variance analysis: projected vs actual → Sc
 
 ### What's included vs what's optional
 
-**Core DT** — the `meta` preset includes all required dependencies (18 skills):
+**Core DT** — use the `meta` preset for the core design-thinking workflow. Its source selection
+contains **20 skills** (MEASURED 2026-10-07 from the built preset authority; reproduce with
+`node --input-type=module -e "import('./packages/@dzhechkov/harness-presets/dist/index.js').then(m=>console.log(m.PRESETS.meta.skills))"`
+from the repository root). The preset table lists the exact selection; installation still depends
+on available providers.
 
 ```bash
 dz setup --target claude-code --preset meta
 # → explore, goap-research-ed25519, problem-solver-enhanced,
 #   design-thinking, feature-adr, knowledge-extractor,
-#   understand-anything-bridge, ... (18 total)
+#   understand-anything-bridge, ... (20 selected in source; see the exact preset table)
 ```
 
 **Full DT** — for ALL optional integrations, install [agentic-qe](https://github.com/proffesor-for-testing/agentic-qe):
@@ -4246,7 +4303,8 @@ Or cherry-pick: `dz compose meta+keysarium` for competitive analysis.
 
 Without optional skills, design-thinking uses built-in fallbacks.
 
-BTO benchmark: L0 Grade A, L2 Opus weighted 7.58/10.
+To assess an installed design-thinking skill, run its applicable BTO evaluation and retain the
+model, rubric and output. No current LLM-judge score is established by this README.
 
 ---
 
@@ -5043,7 +5101,7 @@ hold-out"** / **"optimize this skill with hold-out validation"**.
 ## Recipes & FAQ
 
 Scenario → exact command → how to verify → gotcha. **Three gotchas worth calling out up front:**
-1. `dz setup` **without `--preset`/`--select` auto-picks a preset** (your stack's best match, else `devops` ≈ 30 skills) — pass `--select <ids>` for a minimal footprint.
+1. `dz setup` **without `--preset`/`--select` auto-picks a preset** (your stack's best match, else the `devops` source selection; installation depends on available providers) — pass `--select <ids>` for a minimal footprint.
 2. There are **two memory stores** — lexical (`dz teach`/`dz recall`) and semantic (agentdb MCP). Different tools, different recall.
 3. With `--memory agentdb`, session hooks now make **real** vector-store writes (fixed) — see the AgentDB section above.
 
@@ -5898,7 +5956,9 @@ dz teach "ping" --reward 0.5 && dz recall "ping" # end-to-end lexical loop
 - `dz init` compiles canonical skills from the [agentskills.io](https://agentskills.io) standard into the target platform's layout
 - Writing is **additive** — existing files are never overwritten without `--force`
 - All 5 platform adapters produce **byte-identical** output (ADR-005)
-- `dz doctor` runs 7 health checks (node version, adapters, config, SQLite, skills)
+- `dz doctor` checks the current environment (Node, applicable adapters/config, storage, skills
+  and discovered signatures). The set and totals depend on the project and installed providers;
+  warnings and unavailable evidence must be read alongside failures.
 - `dz migrate` detects legacy keysarium/bto installations and recommends migration path
 
 ---
@@ -6135,7 +6195,7 @@ refusal as the honest answer.
 
 Memory setup update: saved dependency pins and native readiness are validated before later setup delivery; incomplete setup reports its failure. Published release history follows.
 
-`v0.8.38` — **published 2026-09-26 (night plan 25→26.09).** `dz retro --scan-tail` keeps its debt sentinel per session (`.dz/retro/<sessionId>/pending.json`; the UserPromptSubmit hook reads only its own session, an empty `session_id` is never a guess); `dz verify-pack` names an unsigned path outside `package.json#files` as a directory file the packer would not ship and prints one count line after FAILED — the verdict and exit code are unchanged, and the signature-fresh guard treats both sweep wordings alike; `dz round exec` takes over a claim whose owner process is proven dead (PID probe false, older than 10 min) with a loud line naming the old claim — a live owner or an inconclusive probe still refuses; the serial-suite census of both packages ignores markers in comments and fixture strings (TypeScript parser, fail-safe on parse errors).
+`v0.8.38` — **published 2026-09-26 (night plan 25→26.09).** `dz retro --scan-tail` keeps its debt sentinel per session (`.dz/retro/<sessionId>/pending.json`; the UserPromptSubmit hook reads only its own session, an empty `session_id` is never a guess); `dz verify-pack` names an unsigned path outside `package.json#files` as a directory file the packer would not ship and prints one count line after FAILED — the verdict and exit code are unchanged, and the signature-fresh guard treats both sweep wordings alike; `dz round exec` takes over a claim whose owner process is proven dead (PID probe false, older than 10 min) with a loud line naming the old claim — a live owner or an inconclusive probe still refuses; the serial-suite census ignores markers in comments and fixture strings (TypeScript parser, fail-safe on parse errors).
 
 `v0.8.37` — **published 2026-09-24 (day plan).** `dz publish`, `dz sign` and the sibling-drift gate pack through one
 function (`packArtifact`, harness-core): the BLOCKED line names up to five drifted files and the inventory source instead of
@@ -6324,19 +6384,18 @@ those states is named in the report. This is the first release published THROUGH
 `dz guard check --op publish` now warns when either release line disagrees with the core/CLI package versions, and a registry-confirmed live core or CLI publish synchronizes the first such line in both release READMEs: each README is rewritten atomically; the pair is not one transaction (dry-run and bump-only never write them).
 
 **Previously (`v0.8.12`):** ONE definition of "a dz
-command" (ADR-001, feature `command-count-triad`). `src/command-inventory.ts` is the single pure
+command" (`ADR-001`, feature `command-count-triad`). `src/command-inventory.ts` is the single pure
 parser every consumer derives from — the layer-1 parity test, `dz name-check`, and the new public
 exports (`commandInventory`, `declaredCommands`, `dispatchedCommands`, `documentedCommands`,
 `stripNonCode`, `validateExceptionList`, `INTERNAL_ENTRY_POINTS`, `PSEUDO_COMMANDS`) — instead of a
 fourth private regex and a fourth number. Four hidden commands (`mr-rakes`, `retro`,
 `feature-adr-setup`, `bto-optimize`) gained USAGE lines, so `--help` changed; `help` is a documented
-pseudo-command, not a `case` label. **95 canonical commands, 96 names in rendered `--help`** (the 95
-plus the built-in `help`) — both COMPUTED from `cli.ts`, neither typed into a test. Three cross-family QE rounds closed
+pseudo-command, not a `case` label. The dated inventory above gives the current counts; rendered help includes the built-in `help` pseudo-command in addition to canonical dispatch names. Counts are computed from `cli.ts`, neither typed into a test. Three cross-family QE rounds closed
 six parser defects the naive version had: four that INVENTED a command (regex literals with a lone
 `}`, `case` labels in comments or templates, sub-verb labels from nested switches, `  dz <name>` lines
 outside the USAGE literal), one that LOST one (an escaped newline destroyed a line and misaligned
 every later label), and one performance defect (a full-prefix rescan per slash made the parser
-quadratic — 4 000 division-heavy lines went from 10 366 ms to 53 ms).
+quadratic — 4 000 division-heavy lines went from 10 366 ms to 53 ms). These are historical MEASURED parser timings from the recorded QE test output for `command-count-triad`, not current runtime performance.
 
 `harness-core v0.8.11` · `harness-cli v0.8.10` — **published 2026-09-02** (core 0.8.11 also carries
 the Russian-catalogue stemming, the fixed `discrimination-check` / `mutation-gate` seams, `dz chain` and
@@ -6492,7 +6551,7 @@ happen; `dz vector status` counts like with like and distinguishes "not queued" 
 failed"; and a `--books` search that finds nothing says where it looked and, when the machine-wide
 brain holds sources, names the command that searches them.
 
-`v0.6.1` — two commands that move checks off the model's judgement and onto the disk.
+`v0.6.1` introduced `dz amendment-check` and `dz feature-adr-record`, moving amendment checks and witnessed run-cost records onto disk.
 `dz amendment-check` resolves every `AM-N` / `AM-CP-N` amendment row to a test found INSIDE the file the row names
 (the plan is authoritative; an amendment it drops or rewords under the same id is a failure; `--all` is
 a census that never blocks). `dz feature-adr-record` is the witnessed writer for the run-cost ledger
@@ -6549,9 +6608,13 @@ Install above). A public marketplace install does **not** work today: `claude pl
 # From a cloned repo (contributors / plugin developers only):
 claude --plugin-dir /path/to/dz-harness-hub
 
-# Generate plugin manifest from current inventory:
+# Generate a plugin manifest with an operator-chosen plugin version:
 dz plugin --version 0.3.86
 ```
+
+`--version` writes `.claude-plugin/plugin.json.version`; the example chooses `0.3.86` for that
+plugin manifest independently of the CLI release. Omitting it uses the source default `0.1.0`.
+Generation alone does not establish plugin installation, usable skills or marketplace availability.
 
 The `.claude-plugin/` directory (source repo only) contains `plugin.json` + `marketplace.json`
 compatible with [pi-claude-marketplace](https://npm.im/pi-claude-marketplace) and
@@ -6561,15 +6624,15 @@ compatible with [pi-claude-marketplace](https://npm.im/pi-claude-marketplace) an
 
 ### Skill sources
 
-- [agentic-qe](https://github.com/proffesor-for-testing/agentic-qe) — 20 QE skills + 55 agents (test generation, coverage, chaos, QCSD swarms)
-- [ECC](https://github.com/affaan-m/ECC) — 20 curated skills (agent patterns, autonomous loops, docker, git workflows)
+- [agentic-qe](https://github.com/proffesor-for-testing/agentic-qe) — the curated `qe-engineer` selection covers test generation, coverage, chaos and QCSD swarms; the preset table gives exact IDs, and upstream agent tooling requires its separate installation.
+- [ECC](https://github.com/affaan-m/ECC) — Curated repository selection in `skills-ecc` (agent patterns, autonomous loops, docker, git workflows); exact membership is in the generated catalog
 - [AgentShield](https://github.com/affaan-m/agentshield) — Security scanning (170 rules for .claude/ configs)
 - [Understand-Anything](https://github.com/Lum1104/Understand-Anything) — Codebase knowledge graph → architecture context
 
 ### Platform & infrastructure
 
 - [AgentDB](https://github.com/ruvnet/agentdb) — Self-learning vector memory (`--memory agentdb`, 41 MCP tools)
-- [agentskills.io](https://agentskills.io) — Open standard for SKILL.md format (adopted by all 5 platforms)
+- [agentskills.io](https://agentskills.io) — Open standard for SKILL.md format used by the five native adapters described above
 - [OpenAI Codex](https://github.com/openai/codex) — 2nd target platform
 - [OpenCode](https://github.com/sst/opencode) — 3rd target platform (160K+ stars)
 - [Hermes Agent](https://github.com/NousResearch/hermes-agent) — 4th target platform
@@ -6647,8 +6710,38 @@ The buildable source lives in the public mirror, [github.com/djd1m/dz-harness](h
 
 Per ADR `every-budget-is-measured`, cases measured at 2.5–5 s in a quiet full run receive an explicit budget of 4× quiet time, rounded up to whole seconds, with a 20 s minimum; a larger existing budget is retained. Each budget has a `Measured:` comment immediately above its closer naming the duration, date, quiet full run and measurement location. Five false reds on 2026-09-22 cost about four minutes per rerun. To re-measure, run `npx vitest run --reporter=json --outputFile=<f>` on a quiet tree with the default TMPDIR and use the recorded case durations.
 
-`npx vitest run` uses two projects and returns one combined verdict: `parallel` runs the ordinary
-suites concurrently, while `serial` runs process-spawning and real-time suites one file at a time.
+In the monorepo developer checkout, `pnpm --filter @dzhechkov/harness-cli test`, package-local
+`pnpm test`, and `npm test` use the guarded runner. It discovers matching files, completes `serial`
+first in fresh isolated forks with max/min 1/1, and starts `parallel` only after success, with default
+max/min 2/1. A failed or interrupted phase stops the command; SIGINT/SIGTERM are forwarded to its
+active child process group. The default two-worker parallel budget is a conservative policy, not a
+memory, RPC, or full-suite success guarantee. The root runner is not shipped in this npm package or
+the public source mirror; these protected commands require the monorepo checkout.
+
+Forward file filters and quoted test names with `npm test -- test/version-flag.test.ts -t 'name'`
+or `pnpm test -- test/version-flag.test.ts --testNamePattern='name'`. One leading forwarded `--` is
+normalized; an internal separator refuses. Supported options accept `--name=value` and `--name value`:
+`-t`/`--testNamePattern`, `--project serial|parallel` (each once), `--maxWorkers`, `--minWorkers`,
+`--reporter default|verbose|dot|json|junit`, and `--outputFile`. For pnpm calls containing options, use a leading separator, for example
+`pnpm test -- --maxWorkers=1`; pnpm 9 parses unseparated flags itself. Singleton options cannot repeat. `--help` prints this contract.
+A globally empty file selection fails; a project with no selected files is omitted. Name filters
+retain Vitest semantics and do not change file discovery.
+
+Parallel budgets use CLI worker flags, then `VITEST_MAX_WORKERS`/`VITEST_MIN_WORKERS`, then
+`VITEST_MAX_FORKS`/`VITEST_MIN_FORKS`, then defaults. Every supplied worker/fork value must be a
+positive safe decimal integer, even when shadowed; effective min greater than max refuses before
+discovery. The runner consumes these four env controls, clears them from children, and supplies
+explicit root worker/fork flags without injecting per-phase env into nested tests. Serial stays 1/1.
+
+Text output labels each phase separately. JSON, JUnit, or `--outputFile` requires one explicit
+project before discovery and preserves the exact requested output path; combined machine reports
+refuse without overwriting it. Unknown options and config/root/workspace, pool/isolation,
+file-parallelism, watch/coverage, retry/bail/shard/changed/related, passWithNoTests, and unhandled-error
+suppression switches refuse. Direct `npx vitest run`, `test:coverage`, and `test:watch` remain separate
+entrypoints with their existing config behavior and no new serial-first guarantee. The unchanged
+ordinary receipt adapter cannot unwrap `with-test-receipt ... -- pnpm test`; use its supported direct
+Vitest per-project route instead. The direct mutation registry is unchanged; the narrow shadow-cwd
+check does not establish whole-registry or arbitrary custom mutation verdict compatibility.
 The serial paths in `test/serial-suites.txt` are regenerated from
 `test/serial-suites-census.test.ts`, which scans test sources for synchronous and asynchronous
 process markers, including `execSync(` and `execFile(`, and fails when the list and census differ.

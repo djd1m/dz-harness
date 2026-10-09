@@ -26,6 +26,40 @@ opus (complex code generation)
 
 ### 1. Pre-Implementation Checklist
 
+### Current target admission (before any coding)
+
+After prerequisite gates complete, and on **every** Step-7 entry (including auto/force resume),
+run the installed `scripts/check-code-targets.mjs` beside this module **before** context assembly,
+code-cache lookup, delegation or in-session edits. Set `TARGET_HELPER` to that installation's
+absolute helper path, `EXECUTION_PROJECT` to the absolute execution repository root, and
+`FEATURE_DIR` to its absolute `features/<slug>` directory:
+
+```bash
+node "$TARGET_HELPER" --repo "$EXECUTION_PROJECT" --feature "$FEATURE_DIR"
+```
+
+Require the actual command exit 0 and exactly one `fa-code-targets-1` JSON document with
+`status: "admitted"`, a SHA-256 `manifestDigest` and empty `reasons`. Any missing/broken helper,
+command failure, refused/unavailable status or malformed/contradictory output stops coding and
+cache access; repair the named cause first. Do not substitute a narrated success or saved admission.
+For a host relay, the shell must capture the producer's exit immediately and append one terminal
+`RC_EXIT:<integer>` line; Workflow requires both admitted JSON and observed `RC_EXIT:0` and refuses
+missing/duplicate/conflicting witnesses. Keep stderr separate from the bounded relay.
+
+The helper only calls the colocated review checker's `measureManifest(repo, feature, 'qe')`.
+Its strict `- ` target grammar, circular-root exclusions, discovered changed/untracked paths,
+filesystem/Git safety and exact `.dz/guard.json` index-or-selected-base authority remain unchanged.
+K2 remains an additional legacy Markdown-friendly check; admission does not normalize its bullets
+or backticks. Planned missing files/deletions can have null digests. The admission digest records
+this observation, not QE approval or a replacement cache key. Admission never prepares/evaluates
+review lineage or writes source, receipts or `.fa-state`.
+
+The selected baseline is existing `.fa-state/base-ref`, otherwise HEAD. Before actual coding,
+initialize HEAD only if that base file is absent; preserve an existing original selection through
+retries/re-entry. Refuse a failed initialization before edits. Admission does not initialize it.
+This is executable Plain guidance with mandatory orchestration, not an automatic Plain dispatcher.
+An unrelated process can change source after admission; ordinary final QE still checks freshness.
+
 ### Current literal context (plain and delegated coding)
 
 Before coding or delegating, run the installed helper beside this module. Set `CONTEXT_HELPER` to

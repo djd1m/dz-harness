@@ -1,7 +1,9 @@
 {
   "name": "@dzhechkov/skills-meta",
-  "version": "0.9.66",
-  "scripts": {},
+  "version": "0.9.67",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
   "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups.",
   "license": "MIT",
   "author": "dzhechko",

@@ -1,6 +1,6 @@
 # @dzhechkov/skills-feature-adr
 
-Current package version: `1.5.17`. <!-- dz:version -->
+Current package version: `1.5.18`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-feature-adr
 
@@ -10,8 +10,8 @@ An 11-step, complexity-routed pipeline that makes an AI coding agent build a fea
 disciplined engineering team does: **spec first, code last.** Every phase emits a durable,
 versioned, human-approved **specification artifact** (`00_…`–`09_…`), and code is *generated from
 the frozen spec* — not reverse-documented after the fact. Scales from a 3-file config change to a
-cross-cutting 30+ file refactor via a Complexity Router (S/M/L/XL). Integrates 15 skills from
-[agentic-qe](https://github.com/proffesor-for-testing/agentic-qe) for quality engineering. Part of
+cross-cutting refactor via a Complexity Router (S/M/L/XL). Uses the bundled
+[agentic-qe](https://github.com/proffesor-for-testing/agentic-qe) protocols described below for quality engineering. Part of
 the [Keysarium](https://www.npmjs.com/package/@dzhechkov/keysarium) ecosystem.
 
 > **For your team:** the `features/<slug>/` folder this produces *is* the spec — reviewable in a PR,
@@ -535,7 +535,11 @@ Workflow({ scriptPath: '.claude/workflows/feature-adr.js',
           models: { code: 'opus', qe: 'codex:gpt-5.6:high', architecture: 'opus', router: 'fable' } } })
 ```
 
-### Usage-adaptive routing — pre-emptive Codex switch at ≥ 70% Claude usage
+### Usage-adaptive routing — pre-emptive Codex switch
+
+The default switching threshold is a configuration rule, not a measured saving.
+Its value and override are listed below; the shipped rule is in
+`templates/.claude/rules/feature-adr-ultracode.md`.
 
 The `codex-fallback` knobs above are **reactive** — they catch a stage *after* it dies on a limit. At
 true exhaustion even the fallback dispatch can die, so the pipeline also switches **pre-emptively**:
@@ -946,7 +950,11 @@ features/<feature-slug>/
 
 ## Agentic QE Integration
 
-Feature ADR integrates 15 skills from [agentic-qe](https://github.com/proffesor-for-testing/agentic-qe) for quality engineering at every step.
+MEASURED reference inventory: 15 protocol files adapted from
+[agentic-qe](https://github.com/proffesor-for-testing/agentic-qe), grouped in the tables below.
+Reproduce with `npm pack --dry-run --json` from this package directory: count Markdown files in
+`templates/.claude/skills/feature-adr/references/agentic-qe/`, excluding its `README.md`.
+These are bundled instructions; their presence does not prove that an agent ran them.
 
 ### Three Modes
 
@@ -970,7 +978,7 @@ Source: [github.com/proffesor-for-testing/agentic-qe](https://github.com/proffes
 
 After installation, feature-adr auto-detects agentic-qe when you use the `--full-qe` or `--full-qe-extended` flags. If agentic-qe is not found, the pipeline falls back to Reference Mode with a warning.
 
-### Core Skills (9, all modes)
+### Core protocols — all modes
 
 | Skill | Step | Purpose |
 |-------|------|---------|
@@ -984,7 +992,7 @@ After installation, feature-adr auto-detects agentic-qe when you use the `--full
 | regression-testing | 9 | Change-based test selection |
 | qe-coverage-analysis | 9 | Risk-weighted coverage |
 
-### Extended Skills (6, `--full-qe-extended` only)
+### Extended protocols — `--full-qe-extended` only
 
 | Skill | Step | Condition |
 |-------|------|-----------|
@@ -1422,3 +1430,15 @@ Before fallback, host prepare retains independently written pending receipt find
 After a reviewed artifact is renamed or removed, convergence keeps its previously host-bound condition scope in the measured manifest; an absent old path has a null digest. Current discovered paths remain measured. Both prepare and evaluate validate the retained snapshot and reject unbound or unsafe scope paths. The original condition and originating reviewer verification remain required; a rename alone does not close a finding.
 
 QE also measures the exact `.dz/guard.json` policy configuration when it is in the current Git index or selected review base. This includes newly staged and intent-to-add files; base-tracked deletions retain a null digest. Both declared targets and discovered changes use this rule. Untracked files absent from that base do not qualify through older history. Other `.dz/` runtime files remain excluded, and existing path, symlink, freshness and reviewer-ownership checks still apply.
+
+### Pre-code target admission
+
+Step 7 now runs the installed read-only `scripts/check-code-targets.mjs` before literal context,
+code-cache lookup or any coder route, on every entry including auto/force resume. It reuses the
+colocated review manifest authority: strict targets, circular exclusions, discovered source changes,
+path/Git safety and the exact `.dz/guard.json` index-or-selected-base exception are unchanged.
+Missing planned files remain admissible. Workflow requires admitted JSON plus the actual producer's
+terminal `RC_EXIT:0` witness; failure refuses coding/cache access. Admission preserves review state
+and existing `.fa-state/base-ref` (HEAD only when absent); actual coder initialization never resets
+an existing base. Plain uses the same executable helper and mandatory instructions, without an
+automatic dispatcher. Admission observes current bytes; final QE remains the freshness check.

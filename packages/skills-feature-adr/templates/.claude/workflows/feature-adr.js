@@ -3597,6 +3597,56 @@ function parseCoderContextEnvelope(raw, tier) {
   return value
 }
 
+// Inline current code-target admission. Policy stays in the installed sibling checker.
+const CODE_TARGETS_SCHEMA = 'fa-code-targets-1'
+function codeTargetsCommand(repo, featureDir, opts) {
+  const q = (s) => "'" + String(s).replace(/'/g, "'\\''") + "'"
+  const absolute = (value) => {
+    if (typeof value !== 'string' || value.charAt(0) !== '/' || /(^|\/)\.\.(\/|$)/.test(value) || /[\x00-\x1f]/.test(value)) throw new Error('code target paths must be absolute without traversal or control characters')
+    return value
+  }
+  absolute(repo)
+  const selected = featureDir.charAt(0) === '/' ? absolute(featureDir) : absolute(repo + '/' + featureDir)
+  const script = '.claude/skills/feature-adr/scripts/check-code-targets.mjs'
+  const explicit = opts && opts.script != null ? absolute(opts.script) : null
+  const workspace = opts && opts.workspace != null ? absolute(opts.workspace) : null
+  const unavailable = JSON.stringify({ schema: CODE_TARGETS_SCHEMA, status: 'unavailable', manifestDigest: null, reasons: ['helper-missing'] })
+  return [
+    'CT_WORKSPACE=' + (workspace === null ? '$(pwd -P)' : q(workspace)) + "; CT_SCRIPT=''",
+    'CT_ONE=' + (explicit === null ? "''" : q(explicit)) + '; CT_TWO="$CT_WORKSPACE/' + script + '"; CT_THREE=' + q(repo + '/' + script),
+    'for c in "$CT_ONE" "$CT_TWO" "$CT_THREE"; do if [ -n "$c" ] && [ -f "$c" ]; then CT_SCRIPT="$c"; break; fi; done',
+    // The conditional tolerates errexit and binds the immediate producer result.
+    'if [ -n "$CT_SCRIPT" ]; then if node "$CT_SCRIPT" --repo ' + q(repo) + ' --feature ' + q(selected) + '; then CT_STATUS=0; else CT_STATUS=$?; fi; else printf \'%s\\n\' ' + q(unavailable) + '; CT_STATUS=1; fi',
+    'printf \'RC_EXIT:%s\\n\' "$CT_STATUS"',
+    'exit "$CT_STATUS"',
+  ].join('\n')
+}
+function parseCodeTargetsResult(raw) {
+  const failed = (reason, reasons) => ({ schema: CODE_TARGETS_SCHEMA, status: 'unavailable', manifestDigest: null, reasons: (reasons || []).concat([reason]) })
+  if (typeof raw !== 'string' || coderContextUtf8Bytes(raw) > 64 * 1024) return failed('invalid-target-relay')
+  // Exactly one helper document and one terminal witness; no narrative/fences or
+  // later command result can replace the observed producer exit.
+  const match = /^([^\r\n]+)\r?\nRC_EXIT:(0|[1-9][0-9]{0,2})\r?\n?$/.exec(raw)
+  if (!match || Number(match[2]) > 255) return failed('invalid-exit-witness')
+  let value
+  try { value = JSON.parse(match[1]) } catch (_) { return failed('invalid-target-json') }
+  const keys = ['schema', 'status', 'manifestDigest', 'reasons']
+  if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== keys.length || !Object.keys(value).every((key) => keys.indexOf(key) >= 0) || value.schema !== CODE_TARGETS_SCHEMA || ['admitted', 'refused', 'unavailable'].indexOf(value.status) < 0 || !Array.isArray(value.reasons) || !value.reasons.every((reason) => typeof reason === 'string' && reason.trim().length > 0 && reason.length <= 4096)) return failed('invalid-target-envelope')
+  if (value.status === 'admitted') {
+    if (typeof value.manifestDigest !== 'string' || !/^[0-9a-f]{64}$/.test(value.manifestDigest) || value.reasons.length !== 0) return failed('contradictory-target-admission')
+    if (match[2] !== '0') return failed('producer-exit-nonzero:' + match[2])
+  } else {
+    if (value.manifestDigest !== null || value.reasons.length === 0) return failed('contradictory-target-refusal')
+    if (match[2] === '0') return failed('producer-exit-contradiction', value.reasons)
+  }
+  return value
+}
+function codeBaseInitializeCommand(repo, featureDir) {
+  const q = (s) => "'" + String(s).replace(/'/g, "'\\''") + "'"
+  const base = featureDir + '/.fa-state/base-ref'
+  return 'if [ -e ' + q(base) + ' ] || [ -L ' + q(base) + ' ]; then test -f ' + q(base) + ' && test -r ' + q(base) + '; else mkdir -p ' + q(featureDir + '/.fa-state') + ' && git -C ' + q(repo) + ' rev-parse --verify HEAD > ' + q(base + '.tmp') + ' && mv ' + q(base + '.tmp') + ' ' + q(base) + '; fi'
+}
+
 // Review convergence host contract BEGIN. No Node imports in the Workflow sandbox.
 const REVIEW_CONVERGENCE_SCHEMA = 'fa-review-convergence-1'
 function reviewConvergenceCommand(action, reviewPhase, reviewers) {
@@ -5133,6 +5183,21 @@ if (registryOutcome !== 'unverified') registryOutcome = checkpointAfterPlanOutco
 }
 
 // Step 7: Code (optional Codex fallback on Claude-limit exhaustion)
+// Re-measure on every entry, including auto/force resume, before any later probe,
+// code checkpoint read or coder route. This host relay is read-only admission IO.
+let codeTargetsAdmission
+try {
+  const targetCommand = codeTargetsCommand(REPO, FDIR, { script: A.codeTargetsScript, workspace: WS === null ? undefined : WS })
+  const targetRaw = await dispatchAgent(newRung(), 'Run EXACTLY this shell snippet via Bash as ONE command. Return ONLY stdout including the terminal RC_EXIT witness, without fences, narration or synthesized results. Keep stderr separate:\n' + targetCommand, { label: 'code:targets', phase: 'Code', effort: 'low' })
+  codeTargetsAdmission = parseCodeTargetsResult(targetRaw)
+} catch (_) {
+  codeTargetsAdmission = { schema: CODE_TARGETS_SCHEMA, status: 'unavailable', manifestDigest: null, reasons: ['target-host-command-failed'] }
+}
+if (codeTargetsAdmission.status !== 'admitted') {
+  log('Step 7 refused: current code targets ' + codeTargetsAdmission.status + ': ' + JSON.stringify(codeTargetsAdmission.reasons))
+  return { tier: tier, phase: 'code-targets-failed', outcome: 'unverified', slug: SLUG, artifactsDir: FDIR, codeTargets: codeTargetsAdmission, gates: { code: 'not-run', qe: 'not-run' }, resumedStages: resumedStages, checkpointing: CHECKPOINTS_ON ? RESUME_MODE : 'off', note: 'Current source admission was not established; no baseline/context probe, code checkpoint lookup, decision recall or coder dispatch occurred.' }
+}
+
 // PRE-CODE BASELINE. The QE change set used to be one `git status` taken AFTER Step 7, which answers
 // the wrong question in both directions (cross-family review of the 2026-08-21 wave, P1): a target
 // already dirty BEFORE the coder ran counted as this run's change, and with scope commit/base real
@@ -5173,7 +5238,7 @@ await usageProbe('Code')
 // non-interactive dispatch can never deliver. Three of six Step-7 dispatches that night landed
 // nothing; every hand-dispatched round that carried this preamble landed code. The routing is
 // decided before this prompt exists, so saying so is the whole fix.
-const codePromptBase = 'GATE-ANSWERED — the routing questions are already settled and must NOT be asked again: the mode and the coder family were chosen before this dispatch, you ARE the coder, and an independent cross-family QE runs after you. This dispatch is non-interactive: asking a question and exiting returns exit 0 with nothing written, which is indistinguishable from a crash to everything downstream. FIRST, via Bash run EXACTLY `mkdir -p ' + FDIR + '/.fa-state && git -C ' + REPO + ' rev-parse HEAD > "' + FDIR + '/.fa-state/base-ref.tmp" && mv "' + FDIR + '/.fa-state/base-ref.tmp" "' + FDIR + '/.fa-state/base-ref"` — an atomic record of HEAD before your changes; Step 8 scopes `--added-since` on it (AM-2). Begin implementing immediately.\n\nStep 7 (Code) of /feature-adr for "' + DESC + '" (' + SLUG + '). READ THESE INPUTS FIRST, by name (0691e163: the coder used to get one directory pointer; measured over three real runs, the plan was opened by all coders but the ADR unevenly and requirements/domain model not at all): ' + FDIR + '/06_implementation_plan.md (the tasks + EXPECTED_CODE_TARGETS + Amendments), every ' + FDIR + '/03_adr/NNN-*.md (each names a load-bearing property and its Required automated check), ' + FDIR + '/05_architecture.md, ' + FDIR + '/01_requirements.md, and ' + FDIR + '/04_domain_model.md when present (L/XL). Then implement the feature. Write the ACTUAL production code + its tests (mirror the closest existing implementation named in research/architecture). If the plan carries a `## Amendments` section, implement every AM-N row AND its named Confirmation test (for a safeguard amendment: a test proving it FIRES on a real input). IO-ON-PURE-PATH RULE: if your diff adds I/O (DB/network/file) to a previously-pure path — especially a startup/lifespan/health path — also write a NEGATIVE resource-down test (broken/unbound resource handle → the path degrades per its declared contract: fail-open for an advisory feature, explicit fail-fast for a load-bearing one) alongside the happy-path test; never fix a failing test by swapping a broken fixture for a healthy one without keeping BOTH cases. Follow repo conventions; build must pass. Write a change manifest ' + FDIR + '/07_code_changes/change_manifest.md listing every file touched. Return wrote[] (incl. real source files) + summary.' + ABSOLUTE_PATH_NOTE + PS_GUIDANCE('code')
+const codePromptBase = 'GATE-ANSWERED — the routing questions are already settled and must NOT be asked again: the mode and the coder family were chosen before this dispatch, you ARE the coder, and an independent cross-family QE runs after you. This dispatch is non-interactive: asking a question and exiting returns exit 0 with nothing written, which is indistinguishable from a crash to everything downstream. FIRST, via Bash run EXACTLY `' + codeBaseInitializeCommand(REPO, FDIR) + '` — initialize HEAD only when base-ref is absent; preserve an existing original selection. If this command fails, STOP before any edits. Step 8 scopes `--added-since` on that selection (AM-2). Begin implementing immediately.\n\nStep 7 (Code) of /feature-adr for "' + DESC + '" (' + SLUG + '). READ THESE INPUTS FIRST, by name (0691e163: the coder used to get one directory pointer; measured over three real runs, the plan was opened by all coders but the ADR unevenly and requirements/domain model not at all): ' + FDIR + '/06_implementation_plan.md (the tasks + EXPECTED_CODE_TARGETS + Amendments), every ' + FDIR + '/03_adr/NNN-*.md (each names a load-bearing property and its Required automated check), ' + FDIR + '/05_architecture.md, ' + FDIR + '/01_requirements.md, and ' + FDIR + '/04_domain_model.md when present (L/XL). Then implement the feature. Write the ACTUAL production code + its tests (mirror the closest existing implementation named in research/architecture). If the plan carries a `## Amendments` section, implement every AM-N row AND its named Confirmation test (for a safeguard amendment: a test proving it FIRES on a real input). IO-ON-PURE-PATH RULE: if your diff adds I/O (DB/network/file) to a previously-pure path — especially a startup/lifespan/health path — also write a NEGATIVE resource-down test (broken/unbound resource handle → the path degrades per its declared contract: fail-open for an advisory feature, explicit fail-fast for a load-bearing one) alongside the happy-path test; never fix a failing test by swapping a broken fixture for a healthy one without keeping BOTH cases. Follow repo conventions; build must pass. Write a change manifest ' + FDIR + '/07_code_changes/change_manifest.md listing every file touched. Return wrote[] (incl. real source files) + summary.' + ABSOLUTE_PATH_NOTE + PS_GUIDANCE('code')
 // Read current documents on EVERY invocation, before lookup, using one captured host snapshot.
 let coderContextSnapshot
 try {

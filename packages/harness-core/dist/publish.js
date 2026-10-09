@@ -102,6 +102,14 @@ function probeRegistry(name, exec = execSync) {
         return classifyRegistryProbe(String(error?.stderr ?? ''), String(error?.message ?? ''));
     }
 }
+/** One own-version classification; unknown state never establishes a target. */
+function planPublishVersion(pkg, exec) {
+    const registryProbe = probeRegistry(pkg.name, exec);
+    const newVersion = registryProbe.kind === 'unknown' ? undefined
+        : registryProbe.kind === 'never-published' ? pkg.version
+            : bumpPatch(compareVersions(registryProbe.version, pkg.version) > 0 ? registryProbe.version : pkg.version);
+    return { registryProbe, newVersion };
+}
 /** The higher of the local version and the npm-published version (audit #10). */
 function maxPublished(name, localVersion, exec = execSync) {
     const probe = probeRegistry(name, exec);
@@ -683,6 +691,25 @@ export function publishPackages(monorepoRoot, opts = {}) {
     // Publish dependencies before dependents so pnpm rewrites workspace:* to the
     // freshly-bumped version, never a stale one (the harness-cli@0.3.122 breakage).
     const ordered = orderByDependencies(filtered);
+    // Keep private decisions separate from report decoration and dependency execution authority.
+    // A dependent can be observed now yet still be refused later when its dependency fails.
+    const versionPlans = opts.onVersionPlan === undefined ? undefined
+        : new Map(ordered.map(pkg => [pkg.name, planPublishVersion(pkg, exec)]));
+    if (versionPlans !== undefined) {
+        const rows = ordered.map(pkg => {
+            const { registryProbe, newVersion } = versionPlans.get(pkg.name);
+            return Object.freeze({
+                name: pkg.name,
+                oldVersion: pkg.version,
+                probe: registryProbe.kind,
+                firstPublish: registryProbe.kind === 'never-published',
+                ...(registryProbe.kind === 'published' ? { registryVersion: registryProbe.version } : {}),
+                ...(registryProbe.scripted === true ? { probeOverride: true } : {}),
+                ...(registryProbe.kind === 'unknown' ? { reason: registryProbe.reason } : { newVersion: newVersion }),
+            });
+        });
+        opts.onVersionPlan(Object.freeze(rows));
+    }
     // Workspace-floor preflight inputs: the full workspace version map (what pnpm would pack each
     // floor from), and the names whose publish has LANDED so far in this run — grown as the loop
     // proceeds, never assumed from batch membership (Codex P1: a sibling that failed its own gates
@@ -761,9 +788,16 @@ export function publishPackages(monorepoRoot, opts = {}) {
             failedInBatch.add(pkg.name);
             continue;
         }
+        if (versionPlans !== undefined && (manifest.name !== pkg.name || manifest.version !== oldVersion)) {
+            results.push({ name: pkg.name, oldVersion, newVersion: oldVersion, status: 'error',
+                error: `stale version plan: expected ${pkg.name}@${oldVersion}, found ${String(manifest.name)}@${String(manifest.version)}; not applying an unshown target` });
+            failedInBatch.add(pkg.name);
+            continue;
+        }
         // Both modes establish registry state before planning: absence keeps the disk version,
         // uncertainty refuses a bump, and an existing release bumps from max(local, published).
-        const registryProbe = probeRegistry(pkg.name, exec);
+        const plan = versionPlans?.get(pkg.name) ?? planPublishVersion(pkg, exec);
+        const registryProbe = plan.registryProbe;
         registryProbes.set(pkg.name, registryProbe);
         if (registryProbe.kind === 'unknown') {
             results.push({
@@ -778,13 +812,7 @@ export function publishPackages(monorepoRoot, opts = {}) {
                 failedInBatch.add(pkg.name);
             continue;
         }
-        const plan = {
-            base: registryProbe.kind === 'published' && compareVersions(registryProbe.version, oldVersion) > 0
-                ? registryProbe.version : oldVersion,
-            firstPublish: registryProbe.kind === 'never-published',
-            probe: registryProbe.kind,
-        };
-        const newVersion = plan.firstPublish ? oldVersion : bumpPatch(plan.base);
+        const newVersion = plan.newVersion;
         // Preflight: refuse to publish a pack whose `files` whitelist would silently
         // drop a skill dir from the tarball (the bug that shipped skills-meta without
         // audit/skill-advisor, skills-devops without problem-management, etc.). Block
@@ -892,6 +920,17 @@ export function publishPackages(monorepoRoot, opts = {}) {
             });
             landedInBatch.add(pkg.name);
             continue;
+        }
+        // Check again at the write boundary; a synchronous gate/probe can change the inputs too.
+        // Refuse outside the rollback try so another writer's bytes are never replaced by our snapshot.
+        if (versionPlans !== undefined) {
+            const current = JSON.parse(readFileSync(pkgJsonPath, 'utf-8'));
+            if (current.name !== pkg.name || current.version !== oldVersion) {
+                results.push({ name: pkg.name, oldVersion, newVersion: oldVersion, status: 'error',
+                    error: `stale version plan: expected ${pkg.name}@${oldVersion}, found ${String(current.name)}@${String(current.version)}; not applying an unshown target` });
+                failedInBatch.add(pkg.name);
+                continue;
+            }
         }
         let originalReadme;
         const probeLog = [];

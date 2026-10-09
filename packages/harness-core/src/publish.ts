@@ -245,6 +245,15 @@ function probeRegistry(name: string, exec: PublishExec = execSync): RegistryProb
   }
 }
 
+/** One own-version classification; unknown state never establishes a target. */
+function planPublishVersion(pkg: { name: string; version: string }, exec: PublishExec) {
+  const registryProbe = probeRegistry(pkg.name, exec);
+  const newVersion = registryProbe.kind === 'unknown' ? undefined
+    : registryProbe.kind === 'never-published' ? pkg.version
+    : bumpPatch(compareVersions(registryProbe.version, pkg.version) > 0 ? registryProbe.version : pkg.version);
+  return { registryProbe, newVersion };
+}
+
 /** The higher of the local version and the npm-published version (audit #10). */
 function maxPublished(name: string, localVersion: string, exec: PublishExec = execSync): string {
   const probe = probeRegistry(name, exec);
@@ -884,6 +893,22 @@ export function publishPackages(
     targetNames?: readonly string[] | undefined;
     bumpOnly?: boolean | undefined;
     /**
+     * Synchronous, immutable observations of this invocation's dependency-ordered decisions,
+     * delivered once before version/README mutation. Unknown rows have no target. Throwing
+     * aborts before mutation; rows cannot supply execution authority or a replacement plan.
+     * Omitting this observer preserves lazy own-version probing after dependency checks.
+     */
+    onVersionPlan?: ((rows: readonly Readonly<{
+      name: string;
+      oldVersion: string;
+      probe: RegistryProbe['kind'];
+      registryVersion?: string;
+      firstPublish: boolean;
+      probeOverride?: true;
+      newVersion?: string;
+      reason?: string;
+    }>[]) => void) | undefined;
+    /**
      * Path to the Ed25519 signing key, OUTSIDE the repository. A pack that carries a
      * `.dz-manifest.json` must be re-signed after publish's own bump and README sync, or the tarball
      * ships an inventory it already invalidated. Absent + a signed pack ⇒ publish REFUSES that pack.
@@ -971,6 +996,25 @@ export function publishPackages(
   // Publish dependencies before dependents so pnpm rewrites workspace:* to the
   // freshly-bumped version, never a stale one (the harness-cli@0.3.122 breakage).
   const ordered = orderByDependencies(filtered);
+  // Keep private decisions separate from report decoration and dependency execution authority.
+  // A dependent can be observed now yet still be refused later when its dependency fails.
+  const versionPlans = opts.onVersionPlan === undefined ? undefined
+    : new Map(ordered.map(pkg => [pkg.name, planPublishVersion(pkg, exec)]));
+  if (versionPlans !== undefined) {
+    const rows = ordered.map(pkg => {
+      const { registryProbe, newVersion } = versionPlans.get(pkg.name)!;
+      return Object.freeze({
+        name: pkg.name,
+        oldVersion: pkg.version,
+        probe: registryProbe.kind,
+        firstPublish: registryProbe.kind === 'never-published',
+        ...(registryProbe.kind === 'published' ? { registryVersion: registryProbe.version } : {}),
+        ...(registryProbe.scripted === true ? { probeOverride: true as const } : {}),
+        ...(registryProbe.kind === 'unknown' ? { reason: registryProbe.reason } : { newVersion: newVersion! }),
+      });
+    });
+    opts.onVersionPlan!(Object.freeze(rows));
+  }
 
   // Workspace-floor preflight inputs: the full workspace version map (what pnpm would pack each
   // floor from), and the names whose publish has LANDED so far in this run — grown as the loop
@@ -1051,6 +1095,8 @@ export function publishPackages(
     const pkgJsonPath = join(pkg.dir, 'package.json');
     const originalPkgJson = readFileSync(pkgJsonPath, 'utf-8');
     const manifest = JSON.parse(originalPkgJson) as {
+      name?: string;
+      version?: string;
       dependencies?: Record<string, string>;
       peerDependencies?: Record<string, string>;
       scripts?: Record<string, string>;
@@ -1075,9 +1121,16 @@ export function publishPackages(
       failedInBatch.add(pkg.name);
       continue;
     }
+    if (versionPlans !== undefined && (manifest.name !== pkg.name || manifest.version !== oldVersion)) {
+      results.push({ name: pkg.name, oldVersion, newVersion: oldVersion, status: 'error',
+        error: `stale version plan: expected ${pkg.name}@${oldVersion}, found ${String(manifest.name)}@${String(manifest.version)}; not applying an unshown target` });
+      failedInBatch.add(pkg.name);
+      continue;
+    }
     // Both modes establish registry state before planning: absence keeps the disk version,
     // uncertainty refuses a bump, and an existing release bumps from max(local, published).
-    const registryProbe = probeRegistry(pkg.name, exec);
+    const plan = versionPlans?.get(pkg.name) ?? planPublishVersion(pkg, exec);
+    const registryProbe = plan.registryProbe;
     registryProbes.set(pkg.name, registryProbe);
     if (registryProbe.kind === 'unknown') {
       results.push({
@@ -1091,13 +1144,7 @@ export function publishPackages(
       if (!opts.dryRun) failedInBatch.add(pkg.name);
       continue;
     }
-    const plan = {
-      base: registryProbe.kind === 'published' && compareVersions(registryProbe.version, oldVersion) > 0
-        ? registryProbe.version : oldVersion,
-      firstPublish: registryProbe.kind === 'never-published',
-      probe: registryProbe.kind,
-    };
-    const newVersion = plan.firstPublish ? oldVersion : bumpPatch(plan.base);
+    const newVersion = plan.newVersion!;
 
     // Preflight: refuse to publish a pack whose `files` whitelist would silently
     // drop a skill dir from the tarball (the bug that shipped skills-meta without
@@ -1210,6 +1257,17 @@ export function publishPackages(
       continue;
     }
 
+    // Check again at the write boundary; a synchronous gate/probe can change the inputs too.
+    // Refuse outside the rollback try so another writer's bytes are never replaced by our snapshot.
+    if (versionPlans !== undefined) {
+      const current = JSON.parse(readFileSync(pkgJsonPath, 'utf-8')) as { name?: string; version?: string };
+      if (current.name !== pkg.name || current.version !== oldVersion) {
+        results.push({ name: pkg.name, oldVersion, newVersion: oldVersion, status: 'error',
+          error: `stale version plan: expected ${pkg.name}@${oldVersion}, found ${String(current.name)}@${String(current.version)}; not applying an unshown target` });
+        failedInBatch.add(pkg.name);
+        continue;
+      }
+    }
     let originalReadme: string | undefined;
     const probeLog: ProbeOutcome[] = [];
     try {

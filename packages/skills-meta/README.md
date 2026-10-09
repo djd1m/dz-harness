@@ -1,21 +1,24 @@
 # @dzhechkov/skills-meta
 
-Current package version: `0.9.66`. <!-- dz:version -->
+Current package version: `0.9.67`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-meta
 
 The **canonical meta-skill pack** — the development-process skills, packaged as
 [Agent Skills](https://agentskills.io) for distribution and cross-platform use.
 
-The pack contains **21 development-process skills**:
+MEASURED package inventory: **21 development-process skills**. Reproduce from this package directory
+with `npm pack --dry-run --json`: count `<skill>/SKILL.md` entries and all files beneath each
+skill directory. The Files column counts shipped files, including the skill document and its assets.
 
+MEASURED inventory from `npm pack --dry-run --json` (the procedure above):
 | Skill | Files | Purpose |
 |---|---|---|
-| `feature-adr` | 38 | ADR-driven feature development pipeline (per-stage model routing incl. Codex, cross-model QE, usage-adaptive pre-emptive Codex switch at ≥70% Claude usage; amendment-Confirmation discipline, derived 🚦 Gates line, opt-in Step-10 Delivery Gate, Step-8 no-stubs gate — an unwaived `TODO`-class marker in the run's touched files is a HIGH gap; waivers require a reason) |
+| `feature-adr` | 39 | ADR-driven feature development pipeline (per-stage model routing incl. Codex, cross-model QE, usage-adaptive pre-emptive Codex switch at ≥70% Claude usage; amendment-Confirmation discipline, derived 🚦 Gates line, opt-in Step-10 Delivery Gate, Step-8 no-stubs gate — an unwaived `TODO`-class marker in the run's touched files is a HIGH gap; waivers require a reason) |
 | `design-tokens` | 1 | DESIGN.md design-token contract — lint (WCAG AA) / diff / export Tailwind+DTCG (wraps `@google/design.md`) |
 | `knowledge-extractor` | 10 | Harvest reusable knowledge from a project (`/harvest`) |
 | `audit` | 4 | Whole-codebase 5-phase deep audit-and-act (recon → self-challenge → P0-P3 → approval → fix) |
-| `goap-research-ed25519` | 6 | GOAP-planned research with ed25519-signed provenance |
+| `goap-research-ed25519` | 22 | GOAP-planned research with ed25519-signed provenance |
 | `design-thinking` | 5 | Stanford d.school 5-phase + validate product discovery |
 | `agentshield-scan` | 4 | Security scanner for `.claude/` agent configurations |
 | `adversarial-verifier` | 4 | Adversarial claim verification / paranoid fact-checking |
@@ -228,3 +231,15 @@ Before fallback, host prepare retains independently written pending receipt find
 After a reviewed artifact is renamed or removed, convergence keeps its previously host-bound condition scope in the measured manifest; an absent old path has a null digest. Current discovered paths remain measured. Both prepare and evaluate validate the retained snapshot and reject unbound or unsafe scope paths. The original condition and originating reviewer verification remain required; a rename alone does not close a finding.
 
 QE also measures the exact `.dz/guard.json` policy configuration when it is in the current Git index or selected review base. This includes newly staged and intent-to-add files; base-tracked deletions retain a null digest. Both declared targets and discovered changes use this rule. Untracked files absent from that base do not qualify through older history. Other `.dz/` runtime files remain excluded, and existing path, symlink, freshness and reviewer-ownership checks still apply.
+
+### Pre-code target admission
+
+Step 7 now runs the installed read-only `scripts/check-code-targets.mjs` before literal context,
+code-cache lookup or any coder route, on every entry including auto/force resume. It reuses the
+colocated review manifest authority: strict targets, circular exclusions, discovered source changes,
+path/Git safety and the exact `.dz/guard.json` index-or-selected-base exception are unchanged.
+Missing planned files remain admissible. Workflow requires admitted JSON plus the actual producer's
+terminal `RC_EXIT:0` witness; failure refuses coding/cache access. Admission preserves review state
+and existing `.fa-state/base-ref` (HEAD only when absent); actual coder initialization never resets
+an existing base. Plain uses the same executable helper and mandatory instructions, without an
+automatic dispatcher. Admission observes current bytes; final QE remains the freshness check.

@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "37326e392f8736ca08a97a9cfa34272e5ccf16ca920f6ba9a5bcf88fee983639"
+        "sha256": "6edc66c29e3600877f0190a43d024c9c6e44182f4ac2f8ad712a22de9c3bb222"
       },
       {
         "path": "adversarial-verifier/SKILL.md",
@@ -237,7 +237,7 @@
       },
       {
         "path": "feature-adr/modules/07-code.md",
-        "sha256": "db79f8d026cc47edd1e5d2f30d0e1455c55c570dd022d549d440985a3e5940a5"
+        "sha256": "d5c03890b2b3a34277c73a14d3d7c97741dec1d6c382e87ee4cc6a5a52d938d7"
       },
       {
         "path": "feature-adr/modules/08-qe.md",
@@ -334,6 +334,10 @@
       {
         "path": "feature-adr/scripts/build-coder-context.mjs",
         "sha256": "19c3991bfb5e88205c9ff6d4d44037c136a190581bab199d3928196e4616fe15"
+      },
+      {
+        "path": "feature-adr/scripts/check-code-targets.mjs",
+        "sha256": "bfbad12b54508d5d4c71de640c5e19b3d19317f660e2986d02338ef502f8007e"
       },
       {
         "path": "feature-adr/scripts/check-plan-completeness.mjs",
@@ -485,7 +489,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "ae9387846f6b2b37338a67fa169f823c15be4671d0da6ca80102e6a12c6a5876"
+        "sha256": "5e8700cef9b19c84ad61e30e8e0490c0c122f1a99b0f89a320a46298c14f08ab"
       },
       {
         "path": "problem-solver-enhanced/SKILL.md",
@@ -581,5 +585,5 @@
       }
     ]
   },
-  "signature": "ZotqvlaEJAJkss1ViElfzWKR0knXClIqNufUr7LHFmtQEjfB2gh4dASP3HPnpu5dg0CC7gy0oJoRVc2lqQYEDw=="
+  "signature": "zB+7cZJFwN3UBXBjRFwu+AUKEBUlTpkPsJw/fLM7yP+3m/2OeopmdRVGefZqDq1xtWPYqu3to9Bzb7/56FTbDQ=="
 }

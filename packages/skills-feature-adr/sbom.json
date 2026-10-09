@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6e696b16cd8e7b1007305073e02dae14fc86a123e5cc800586850192aee25795"
+          "content": "3d7f3a635afab7e4ac3c375b52f59a1cdb6972140668d8b2e01e1be6e0bb5423"
         }
       ]
     },
@@ -69,7 +69,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "f861fe69d5a9cb039b4b4d4f90bceaf56d21774018aafc8997cdccb855ab760d"
+          "value": "a06e3fed35e2aa3091051db145bbfe8c3c89bb2883e41149665e6e342aa11f7e"
         }
       ]
     },
@@ -389,7 +389,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "db79f8d026cc47edd1e5d2f30d0e1455c55c570dd022d549d440985a3e5940a5"
+          "content": "d5c03890b2b3a34277c73a14d3d7c97741dec1d6c382e87ee4cc6a5a52d938d7"
         }
       ]
     },
@@ -635,6 +635,16 @@
     },
     {
       "type": "file",
+      "name": "templates/.claude/skills/feature-adr/scripts/check-code-targets.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bfbad12b54508d5d4c71de640c5e19b3d19317f660e2986d02338ef502f8007e"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "templates/.claude/skills/feature-adr/scripts/check-plan-completeness.mjs",
       "hashes": [
         {
@@ -819,7 +829,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6f9e6205c8f78bef8086603bf0efe8099011a2cc273d786b8404bd77af565354"
+          "content": "e41a536a172b71001e9cad97167f0c014edd9e7c2ffa9cf138617e0ed9f3eab8"
         }
       ]
     },

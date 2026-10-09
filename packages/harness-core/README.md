@@ -17,7 +17,7 @@ commands. Use `node --test <file>` through the same wrapper for Node tests. Focu
 is supported; it does not prove a complete suite, meaningful tests or authenticated evidence.
 See the repository `.githooks/README.md` for bounds, supported commands and reasoned overrides.
 
-Current package version: `0.8.54`. <!-- dz:version -->
+Current package version: `0.8.55`. <!-- dz:version -->
 
 Joint current metadata requires `<!-- dz:version -->` on a dedicated undated core/CLI line. Both README writers preserve unmarked historical joint pairs; the guard and release-line report skip them. Fenced examples cannot become current joint metadata. `parseReleaseLine` remains structural, while selection requires this explicit opt-in. The marker still forces per-package rewriting of every matching version on its line, even inside history; keep it off historical records.
 
@@ -25,6 +25,48 @@ Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree
 
 Shared logic for the DZ harness — the engine behind `@dzhechkov/harness-cli`
 and any other consumer.
+
+## Claim-check numeric roles
+
+`claimCheck(text)` excludes a finite set of role numbers when deciding whether a
+quantitative claim contains digits: a leading ordered-list marker (`2.` or `2)`
+followed by whitespace; integer labels `Phase N:` and `Step N:`; the directly
+governed standalone integer in `exit N`, `exits N`, `exit code N`, or `exit codes N`
+(including a backticked integer or ordinary Markdown emphasis); and complete
+`web3`, `ed25519`, `ERC-N`, or `ADR-N` tokens. Matching is case-insensitive and
+allows hyphen-separated names. Only the role digits are excluded. An adjacent
+count, score, or percentage still needs the existing evidence conventions.
+
+Decimal, percentage, and attached letter unit suffixes prevent an exit integer
+from being partially recognized. After any complete backtick/emphasis wrappers,
+horizontal whitespace followed by a complete duration unit also retains the
+digits. The finite, case-insensitive vocabulary is `ns`, `us`, `µs`, `μs`, `ms`,
+`s`, `sec`, `secs`, `min`, `mins`, `hr`, `hrs`, and singular/plural `nanosecond`,
+`microsecond`, `millisecond`, `second`, `minute`, `hour`, `day`, `week`. A unit
+must have a complete lexical boundary; `secondhand` is not a duration token.
+An immediately attached `-` or `/` followed by a letter retains the numeral
+conservatively, including unknown compound/rate units. A separated clause such
+as `exit 0 - success` remains an exit role, as do `exit 0 on success`,
+`exit 1 if validation fails`, and `exit code **1** when invalid`. Unknown units
+separated by whitespace remain outside this finite vocabulary and may still
+be interpreted as exit-code continuations; unit recognition is not universal.
+Exit-code lists and ranges receive no blanket exemption;
+later values remain numeric candidates. Workflow counts such as `11-step`,
+unknown identifiers such as `build42`, and incomplete tokens such as `web30` or
+`ed25519x` retain conservative handling. The grammar does not generalize to
+arbitrary identifiers, dates, versions, or other ordinal forms.
+
+The metric view retains its existing code-span exclusions; the numeric view
+keeps quoted scores beside prose metrics. Existing perfect framing is checked
+before any return for absent quantity digits, preserving its severity even when
+only a role number remains. Findings retain their original excerpts, lines, and
+ordering. Fence/URL handling, paragraph evidence, page anchors, reproducer
+syntax, and severity policies keep their existing contracts.
+
+Role recognition judges syntax. It does not verify an exit contract, identifier,
+citation, measurement, or claim's truth. Existing vocabulary limits and
+paragraph-wide evidence exposure still apply; this is not general semantic
+verification or a repository-wide precision estimate.
 
 ## Experimental owned Codex recall accounting
 
@@ -52,6 +94,21 @@ Other package tails, traversal and extra path segments remain blocked. Homepage,
 bugs URL and README link checks still apply to every package, including private packages.
 
 ## One artifact for signing and publishing
+
+`publishPackages` accepts an optional synchronous `onVersionPlan` observer. It receives one frozen
+array of frozen, detached rows for the actual selected dependency-ordered batch, before any core
+version or README mutation. Established rows include `newVersion`; unknown registry rows carry
+`reason` and no target. The private decisions are retained for mutation, packing and exact-version
+receipt checks. Explicit registry absence keeps the local version (including prereleases); existing
+releases use the existing core comparison and patch policy. Scripted probes carry `probeOverride`.
+
+The observer cannot replace a target, and throwing aborts before mutation. Core rechecks each planned
+package's name/version at entry and before its write, refusing stale inputs and dependent execution.
+This synchronous check is not a filesystem lock and does not protect against arbitrary concurrent
+writers or later build-script changes. A displayed target can still fail existing gates, transport or
+receipt confirmation; registry conflicts never authorize a hidden replan. Without the observer,
+own-version probes remain lazy after dependency-failure checks. Unknown independent packages retain
+existing per-package handling, including the existing rollback policy for packed cohorts.
 
 For a joint core/CLI release, publishing stages the CLI README's explicitly marked current pair
 before building, signing or packing it. Its core token uses the confirmed core release, or the core

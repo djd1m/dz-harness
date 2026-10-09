@@ -1,6 +1,6 @@
 # @dzhechkov/keysarium
 
-Current package version: `1.7.10`. <!-- dz:version -->
+Current package version: `1.7.11`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/keysarium
 
@@ -70,6 +70,11 @@ After installation, open Claude Code in your project directory and start using s
 
 ## What You Get
 
+MEASURED package inventory from `npm pack --dry-run --json` in this package directory.
+Skills are `templates/.claude/skills/*/SKILL.md`; commands are Markdown files in
+`templates/.claude/commands/`. Rules, shards and agent templates are beneath `templates/.claude/`; the library is
+`templates/lib/` and optional documentation is `templates/docs/`. Counts describe bundled files,
+not execution results.
 | Component | Count | Description |
 |-----------|-------|-------------|
 | **Skills** | 12 | `explore`, `frontend-design`, `goap-research-ed25519`, `presentation-storyteller`, `problem-solver-enhanced`, `reverse-engineering-unicorn`, `knowledge-extractor`, `ai-factory-mapper`, `analyst-manual-full`, `edu-site-generator`, `transcript-site-generator`, `feature-adr` |
@@ -84,9 +89,10 @@ After installation, open Claude Code in your project directory and start using s
 Everything is installed into your project's `.claude/` directory and works natively with Claude Code.
 
 > Counts above are MEASURED from the shipped `templates/` tree — reproducer:
-> `npx @dzhechkov/keysarium init --dry-run` (the install plan prints the same numbers, computed at
-> runtime) or, on a real install, `npx @dzhechkov/keysarium list`. If a count here disagrees with the
-> CLI, trust the CLI — it counts files, this table is hand-written.
+> `npx @dzhechkov/keysarium init --dry-run --with-docs` prints these component counts, including
+> optional documentation. On an installed project, `npx @dzhechkov/keysarium list` reports recursive
+> file totals; its skills row counts skill assets, not skill directories, so its units differ from
+> this table. Compare matching units when checking an installed project.
 
 ---
 
@@ -245,7 +251,9 @@ The toolkit automatically detects the domain from the case description and appli
 - Visual palette: Blue / Navy / Silver
 
 ### Retail / E-commerce
-- Latency budget: < 200ms for real-time recommendations
+- ESTIMATED example design target: response latency below 200 ms for real-time recommendations.
+  This is a planning constraint for a retail case, not measured Keysarium performance; validate it
+  against the proposed system and its workload.
 - A/B testing as primary validation method
 - Personalization vs. privacy balance (GDPR / FZ-152)
 - Seasonality and cold-start handling
@@ -530,3 +538,15 @@ Before fallback, host prepare retains independently written pending receipt find
 After a reviewed artifact is renamed or removed, convergence keeps its previously host-bound condition scope in the measured manifest; an absent old path has a null digest. Current discovered paths remain measured. Both prepare and evaluate validate the retained snapshot and reject unbound or unsafe scope paths. The original condition and originating reviewer verification remain required; a rename alone does not close a finding.
 
 QE also measures the exact `.dz/guard.json` policy configuration when it is in the current Git index or selected review base. This includes newly staged and intent-to-add files; base-tracked deletions retain a null digest. Both declared targets and discovered changes use this rule. Untracked files absent from that base do not qualify through older history. Other `.dz/` runtime files remain excluded, and existing path, symlink, freshness and reviewer-ownership checks still apply.
+
+### Pre-code target admission
+
+Step 7 now runs the installed read-only `scripts/check-code-targets.mjs` before literal context,
+code-cache lookup or any coder route, on every entry including auto/force resume. It reuses the
+colocated review manifest authority: strict targets, circular exclusions, discovered source changes,
+path/Git safety and the exact `.dz/guard.json` index-or-selected-base exception are unchanged.
+Missing planned files remain admissible. Workflow requires admitted JSON plus the actual producer's
+terminal `RC_EXIT:0` witness; failure refuses coding/cache access. Admission preserves review state
+and existing `.fa-state/base-ref` (HEAD only when absent); actual coder initialization never resets
+an existing base. Plain uses the same executable helper and mandatory instructions, without an
+automatic dispatcher. Admission observes current bytes; final QE remains the freshness check.
