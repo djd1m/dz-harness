@@ -5,7 +5,7 @@ description: Gate a rendered loop script with dz workflow-lint — layer-1 rules
 
 # /loop-designer:lint
 
-> **`dz` AUTHORS, GATES and READS loops — it never RUNS one.**
+> **The plugin authors, gates and reads plans; execution uses a separate runtime.**
 
 The deterministic layer-1 gate over a rendered script: `meta-complete`, `phase-parity`,
 `sandbox-bans`, `shq-hygiene`, `agent-labelled`, `budget-before-spawn`, `fanout-bounded`,

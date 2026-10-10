@@ -109,7 +109,9 @@ key a re-invoke supplies to resume. A pause without a `resumeArg` is refused by 
 **false**. `trainingPairs` defaults off deliberately: capture is never on by default. `codexDispatch`
 is NOT ENACTED in v1 and enabling it is rejected.
 
-## Not the runtime
+## Execution paths
 
-Nothing in this schema starts a loop. `dz` AUTHORS, GATES and READS loops — it never RUNS one; the
-rendered script is executed by the host harness (`Workflow({ scriptPath })` in Claude Code).
+This schema describes the plan; parsing it does not start work. Claude Code's Workflow host
+executes the rendered script (`Workflow({ scriptPath })`). Portable `dz workflow run <plan.json>`
+interprets the same plan directly, with CLI dispatchers and `trace.emit: true`; it does not execute
+rendered JavaScript or USER regions. See the co-located skill for prerequisites and resume limits.

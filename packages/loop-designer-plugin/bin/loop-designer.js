@@ -11,7 +11,7 @@
  * ONE deterministic decision point (P-INV-16): the version guard lives HERE, in code, and never in
  * a command wrapper's prose. Prose cannot be tested and drifts silently across five files.
  *
- * dz AUTHORS, GATES and READS loops — it never RUNS one. Neither does this binary: `run render`
+ * This plugin authors, gates and reads plans; execution uses a separate runtime. This binary: `run render`
  * produces a script; executing it is the host harness's job (`Workflow({ scriptPath })`).
  */
 
@@ -35,8 +35,10 @@ const USAGE = `loop-designer — author, gate and read agent loops (a thin, guar
   loop-designer codex [--into <dir>]                deliver the authoring skill to a Codex project
   loop-designer verify [--static] [--dir <p>]       does the install actually REGISTER?
 
-dz AUTHORS, GATES and READS loops — it never RUNS one. A rendered script is executed by the host
-harness: Workflow({ scriptPath: '<rendered>.js' }).`;
+The plugin authors, gates and reads plans; execution uses a separate runtime.
+Rendered scripts use the Claude Code Workflow host: Workflow({ scriptPath: '<rendered>.js' }).
+Separately, current dz workflow run <plan.json> interprets plans with CLI dispatch prerequisites;
+it does not execute rendered JavaScript or USER regions.`;
 
 function parse(argv) {
   const positional = [];

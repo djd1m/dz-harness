@@ -20,7 +20,7 @@ import { detectMangledText } from '@dzhechkov/harness-core';
 import { appendFileSync, chmodSync, closeSync, constants as fsConstants, copyFileSync, cpSync, existsSync, fstatSync, fsyncSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readSync, readdirSync, readlinkSync, realpathSync, renameSync, rmdirSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync, writeSync } from 'node:fs';
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep, posix as nodePosixPath } from 'node:path';
 const posixNormalize = nodePosixPath.normalize;
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { request as httpsRequest } from 'node:https';
 import { KNOWN_CLI_FLAGS } from './known-flags.js';
 import { isBooleanFlag } from './boolean-flags.js';
@@ -31,6 +31,8 @@ import { execFile, execFileSync, execSync, spawn, spawnSync } from 'node:child_p
 import { createHash, randomBytes } from 'node:crypto';
 import { cpus, homedir, hostname, tmpdir } from 'node:os';
 import { createRequire } from 'node:module';
+// Namespace access lets an old core refuse native actions without a missing named import.
+import * as nativeQeCore from '@dzhechkov/harness-core';
 import { isDeepStrictEqual } from 'node:util';
 import { JOURNAL_KINDS, formatLine, parseLine, selectWindow, appendWitnessed } from '@dzhechkov/harness-core';
 import { appendRunEvent, readRunRegistry, liveParents, liveness, probePid, settleDeadRuns, decideExecClaimTakeover, planRegistryArchive, planWorktreeCleanup, renderCleanupPlan, worktreeRemovalsToApply } from '@dzhechkov/harness-core';
@@ -150,7 +152,7 @@ Usage:
   dz score --all [--project <dir>] [--json]              (sweep features/*/.fa-state/score-*.json into the append-only chained scorecards aggregate — descriptive-only, always exits 0)
   dz recap [--day|--week|--month] [--at <ISO date>] [--project <dir>] [--json]   (what was done over a window, from records only: deliveries with the grade an independent review STATED — a report naming two grades is reported ambiguous, never guessed — registry publishes, gate verdicts, knowledge reuse. --quarter/--half-year/--year are RECOGNISED and REFUSED with the real span in days: there is one complete quarter and the longest record is 174 days. Every section carries its own data-start date, and "the source was not read" never prints as zero. Contaminated measures — commit count, lines, tokens, learning-event volume, inventory counts, lesson count — are not computed, and the report says so. exit 0 reported / 2 refused)
   dz cadence [--window day|week|month|quarter|halfyear|year] [--json]   (the WHAT-SHIPPED aggregator: graded-shipment cadence by ISO week + npm-publish cadence (recap cache) + guard repeat decay on the FIXED rule set + recall reuse; a window deeper than 2× the record is REFUSED with the depth named (ADR: a cadence from one point is scale forgery); exit 0 report / 2 refused-window / 1 usage)
-  dz qe-rounds (--slug <feature> | --feature-dir <abs>) [--ceiling <n>] [--project <dir>] [--json]   (how many Step-8 review rounds has this feature ALREADY had? Reads what dz qe-bridge already wrote — signoff-<runId>.json and failed-*.json under features/<slug>/.fa-state/qe-bridge — and writes nothing itself, so it can answer for runs already past. A round is a runId, not a file; an attempt with no verdict is counted SEPARATELY and never merged; an unreadable record is NAMED and the count is declared a LOWER BOUND. ONE directory, never a union across checkouts. exit 0 under the ceiling / 1 at-or-over — owner decides, the command does not judge whether the rounds were warranted / 2 NOT ESTABLISHED, which is never "zero rounds")
+  dz qe-rounds (--slug <feature> | --feature-dir <abs>) [--source bridge|native] [--action prepare|evaluate|begin-repair --reviewers <json>] [--ceiling <n> (bridge only)] [--project <dir>] [--json]   (native actions use the installed CLI-owned helper and durable fixed-three-cycle history; omitted action is read-only. how many Step-8 review rounds has this feature ALREADY had? Reads what dz qe-bridge already wrote — signoff-<runId>.json and failed-*.json under features/<slug>/.fa-state/qe-bridge — and writes nothing itself, so it can answer for runs already past. A round is a runId, not a file; an attempt with no verdict is counted SEPARATELY and never merged; an unreadable record is NAMED and the count is declared a LOWER BOUND. ONE directory, never a union across checkouts. exit 0 under the ceiling / 1 at-or-over — owner decides, the command does not judge whether the rounds were warranted / 2 NOT ESTABLISHED, which is never "zero rounds")
   dz restart-advisor --slug <s> [--threshold C|D] [--rounds N] [--json]   (read-only advisory decision over features/<slug>/.fa-state/checkpoints.jsonl and .dz/fa-training/<slug>/qe.jsonl. Defaults: threshold D, rounds 2 — both origins are printed. Equal sources corroborate; conflicts, torn/unreadable evidence, gaps, and unsafe paths are NOT ESTABLISHED. RECOMMENDATION ONLY: autoAction=false; never invokes feature-adr, deletes a stage, or writes advisor state. exit 0 established recommendation/no-recommendation / 2 NOT ESTABLISHED or invalid input / 1 unexpected runtime failure)
   dz tg-post --draft <file.html> [--manifest <sources.json>] [--channel <@name|id>] [--send --yes] [--night] [--preview] [--json]   (the sender for an APPROVED channel post, per the accepted genai-tweets-channel ADRs: HTML mode only — never MarkdownV2; link preview OFF by default (x.com previews in Telegram are broken); the 00:00-06:00 MSK quiet window refuses without an explicit --night. DEFAULT IS A DRY-RUN: it validates the draft (tag balance, allowed tags, bare &/<, the 4096 visible-character limit with the overshoot counted) and runs the provenance gate over --manifest IN-PROCESS — a draft with no manifest is refused as unchecked, and anything but ALLOWED refuses. A real send needs --send --yes, stating ADR-004's manual-publishing decision out loud each time. The token comes from TELEGRAM_BOT_TOKEN or telegram.tokenFile in .dz/config.json and is never printed. exit 0 sent or clean dry-run / 1 refused or Telegram error / 2 usage)
   dz name-check [--command <n>] [--module <basename>] [--export <a,b>] [--project <dir>] [--json]   (is this name free, BEFORE a line of code? Scans workspace SOURCE — never dist, because a stale build answers 'free' confidently. Checks a dz command name against the dispatcher AND the help block, a module basename against every package's src/, and exported identifiers against every declaration in the workspace. exit 0 all free / 1 at least one taken, naming where / 2 nothing asked or the scan did not run — an empty sweep is never a clean bill. Honest limit, printed on the passing path: it reads declarations, so a re-export under a different name stays the build's job)
@@ -2619,7 +2621,36 @@ function cmdUsageByStage(options, flags, cwd, write) {
  * owner rather than concluding, because whether 38 rounds were warranted is not a thing a counter
  * can know.
  */
-function cmdQeRounds(options, flags, cwd, write) {
+async function cmdQeRounds(options, flags, cwd, write, argv) {
+    const source = options.get('source');
+    const native = source === 'native';
+    const emitRefusal = (reason, usage = false) => {
+        write(JSON.stringify({ source: source ?? 'bridge', status: 'not-established', verdict: 'not-established', reasons: [reason], notEstablishedReason: reason }));
+        return 2;
+    };
+    if (argv.slice(1).some(a => /^(--source|--action|--reviewers)(=|$)/.test(a))) {
+        const allowed = new Set(['source', 'action', 'reviewers', 'slug', 'feature-dir', 'project', 'json', 'ceiling']);
+        const seen = new Set();
+        for (let i = 1; i < argv.length; i++) {
+            const token = argv[i] ?? '';
+            if (!token.startsWith('--') || !allowed.has(token.slice(2)) || seen.has(token))
+                return emitRefusal('native-invalid-or-duplicate-option:' + token, true);
+            seen.add(token);
+            if (token !== '--json') {
+                const value = argv[++i];
+                if (!value || value.startsWith('--'))
+                    return emitRefusal('native-option-value-missing:' + token, true);
+            }
+        }
+        if (!['native', 'bridge'].includes(source ?? ''))
+            return emitRefusal('qe-source-invalid', true);
+        if (native && seen.has('--ceiling'))
+            return emitRefusal('native-ceiling-override-refused', true);
+        if (!native && (seen.has('--action') || seen.has('--reviewers')))
+            return emitRefusal('native-action-requires-native-source', true);
+        if (seen.has('--slug') === seen.has('--feature-dir'))
+            return emitRefusal('native-requires-one-feature-binding', true);
+    }
     const root = resolve(cwd, options.get('project') ?? '.');
     const slug = (options.get('slug') ?? '').trim();
     const dirOpt = (options.get('feature-dir') ?? '').trim();
@@ -2631,6 +2662,48 @@ function cmdQeRounds(options, flags, cwd, write) {
     // checkouts holding 38 and 7 records; a tool that searched for the slug would report 45 for a run
     // that had 38, and the output would look identical to a correct one.
     const featureDir = dirOpt ? resolve(cwd, dirOpt) : join(root, 'features', slug);
+    if (native) {
+        if (slug && !/^[a-z0-9][a-z0-9-]*$/.test(slug) || dirOpt && !isAbsolute(dirOpt))
+            return emitRefusal('native-feature-binding-invalid', true);
+        const capability = nativeQeCore;
+        if (capability['NATIVE_QE_HISTORY_API_VERSION'] !== 1 || typeof capability['createNativeQeHistoryApi'] !== 'function')
+            return emitRefusal('native-core-capability-not-established');
+        const action = options.get('action');
+        if (action !== undefined && !['prepare', 'evaluate', 'begin-repair'].includes(action))
+            return emitRefusal('native-action-invalid', true);
+        if (options.has('reviewers') && (!action || action === 'evaluate'))
+            return emitRefusal('native-reviewers-not-supported-for-action', true);
+        try {
+            // Exact installed package, resolved from this CLI module, never the execution project.
+            const factory = capability['createNativeQeHistoryApi'];
+            let helper = null;
+            let reviewers;
+            if (action) {
+                const packageFile = createRequire(import.meta.url).resolve('@dzhechkov/skills-meta/package.json');
+                const helperFile = join(dirname(packageFile), 'feature-adr', 'scripts', 'check-review-convergence.mjs');
+                helper = await import(pathToFileURL(helperFile).href);
+                if (helper['NATIVE_REVIEW_API_VERSION'] !== 1 || typeof helper['runNativeReviewGate'] !== 'function')
+                    return emitRefusal('native-helper-capability-not-established');
+                if (action !== 'evaluate') {
+                    if (!options.has('reviewers'))
+                        return emitRefusal('native-reviewers-required', true);
+                    reviewers = JSON.parse(options.get('reviewers') ?? '');
+                }
+            }
+            const api = factory({ projectRoot: root, featurePath: featureDir });
+            const output = action
+                ? helper['runNativeReviewGate']({ action, repo: root, feature: featureDir, reviewers, api })
+                : api.read();
+            write(flags.has('json') ? JSON.stringify(output) : 'dz qe-rounds: ' + JSON.stringify(output));
+            return output['verdict'] === 'not-established' || output['status'] === 'not-established' ? 2
+                : output['verdict'] === 'unresolved' ? 1
+                    : action ? 0 : output['status'] === 'at-or-over-ceiling' ? 1 : 0;
+        }
+        catch (error) {
+            const e = error;
+            return emitRefusal(e.stdout !== undefined || e.stderr !== undefined ? 'native-git-evidence-unavailable' : 'native-producer-not-established:' + e.message.slice(0, 4096));
+        }
+    }
     const ceilingRaw = options.get('ceiling');
     let ceiling = QE_ROUNDS_DEFAULT_CEILING;
     if (ceilingRaw !== undefined) {
@@ -24475,7 +24548,7 @@ export async function runCli(argv, io = {}) {
             case 'cadence':
                 return cmdCadence(options, flags, cwd, write);
             case 'qe-rounds':
-                return cmdQeRounds(options, flags, cwd, write);
+                return cmdQeRounds(options, flags, cwd, write, argv);
             case 'restart-advisor':
                 return cmdRestartAdvisor(options, flags, cwd, write);
             case 'tg-post':

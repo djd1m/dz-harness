@@ -5,6 +5,7 @@
  */
 import { type StatuslineWatchIo } from './statusline-watch.js';
 import { spawn, type ChildProcess } from 'node:child_process';
+import * as nativeQeCore from '@dzhechkov/harness-core';
 import { type JournalIo } from '@dzhechkov/harness-core';
 import { type RoundLedgerRow, type RoundExecLedgerRow } from '@dzhechkov/harness-core';
 import { type NpmHomepageRecord, type NpmHomepageDiscoveryFailure } from '@dzhechkov/harness-core';
@@ -277,7 +278,7 @@ export declare function partitionPrivatePackages<T extends {
     version: string;
 }>(packages: readonly T[], readPkgJson: (dir: string) => string): {
     targets: T[];
-    skipped: import("@dzhechkov/harness-core").PublishResult[];
+    skipped: nativeQeCore.PublishResult[];
     lines: string[];
 };
 /**

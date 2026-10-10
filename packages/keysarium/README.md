@@ -1,6 +1,9 @@
 # @dzhechkov/keysarium
 
-Current package version: `1.7.11`. <!-- dz:version -->
+The bundled Feature ADR projection supports installed-CLI native QE history opt-in with a fixed three-cycle ceiling and explicit repair. Its canonical helper/guidance remain synchronized; compatible core/CLI capabilities are required, and historical bridge behavior remains available.
+
+
+Current package version: `1.7.12`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/keysarium
 
@@ -33,6 +36,13 @@ Required missing or incomplete context refuses coding. This helper is separate f
 > leave. A format check refuses identifier shapes (email, phone, record numbers) — it does NOT judge
 > whether a lesson describes a method or a person, and says so: that judgement is the agent's, per
 > the teach protocol. See `skills/goap-research-ed25519/SKILL.md`.
+
+Feature-adr structural `implementationVerified:true` has phase-specific meaning: ideation verifies
+corrected ADR, architecture and phase artifacts at the current revision/nonce, without claiming
+production code or implementation tests exist; QE requires actual implementation and relevant tests.
+False or missing structural verification still blocks. Receipt fields, boolean strength, originating
+reviewer ownership, phase/nonce/manifest binding and legacy receipt compatibility remain unchanged.
+The gate checks receipt consistency and freshness; independent reviewers judge the evidence.
 
 ## Growth engine (reverse-engineering-unicorn M5)
 ### What M5 produces, since 0.2.0 / 1.7.5 / 1.6.0

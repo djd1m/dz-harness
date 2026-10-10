@@ -1,5 +1,8 @@
 # @dzhechkov/harness-core
 
+Native QE history exposes `NATIVE_QE_HISTORY_API_VERSION` and `createNativeQeHistoryApi`: bounded append-only journal/head replay, one directory-lock transaction, fixed three witnessed cycles, explicit repair and typed corruption/collision refusal. It preserves legacy bridge accounting; writable host evidence establishes consistency, not reviewer authentication.
+
+
 Scoped test receipts now require valid v2 `observed-test-execution-1` evidence. The pure
 `decideTestReceipt` validates every segment, file and sibling scope before accepting matching
 content. Legacy/unsupported/invalid history is `unobserved`; valid changed content is
@@ -17,7 +20,7 @@ commands. Use `node --test <file>` through the same wrapper for Node tests. Focu
 is supported; it does not prove a complete suite, meaningful tests or authenticated evidence.
 See the repository `.githooks/README.md` for bounds, supported commands and reasoned overrides.
 
-Current package version: `0.8.55`. <!-- dz:version -->
+Current package version: `0.8.56`. <!-- dz:version -->
 
 Joint current metadata requires `<!-- dz:version -->` on a dedicated undated core/CLI line. Both README writers preserve unmarked historical joint pairs; the guard and release-line report skip them. Fenced examples cannot become current joint metadata. `parseReleaseLine` remains structural, while selection requires this explicit opt-in. The marker still forces per-package rewriting of every matching version on its line, even inside history; keep it off historical records.
 

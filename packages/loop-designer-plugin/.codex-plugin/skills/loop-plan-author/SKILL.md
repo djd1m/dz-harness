@@ -7,23 +7,24 @@ description: >
   turning a sketched orchestration into a plan a gate can check, hardening an existing loop script,
   or reading what a finished run actually did from its trace. Triggers on: "design a loop",
   "multi-agent workflow", "loop-plan", "workflow init/validate/render", "fanout and join",
-  "why did my loop hang", "read the run trace". Does NOT run loops — see the boundary below.
+  "why did my loop hang", "read the run trace". For execution, choose the host or portable runner below.
 trust_tier: 1
 trust_tier_label: "Structured"
 ---
 
 # Loop Plan Author
 
-> **`dz` AUTHORS, GATES and READS loops — it never RUNS one.**
+> **Author a plan once; choose its execution runtime.**
 
-That sentence is the whole boundary and it is not a disclaimer. `dz workflow init|validate|render`
-produce and check a plan and a script; `dz workflow-lint` gates the script; `dz workflow-trace`
-reads what a finished run recorded. The rendered script is executed by the **host harness** —
-in Claude Code, `Workflow({ scriptPath: '<rendered>.js' })`. Nothing in this skill, and no `dz`
-command, starts a loop.
+`dz workflow init|validate|render` produces and checks a `loop-plan/1` plan and a script;
+`dz workflow-lint` gates the script; `dz workflow-trace` reads run records. There are two execution
+paths: Claude Code's **Workflow host** executes the rendered JavaScript with
+`Workflow({ scriptPath: '<rendered>.js' })`; portable **`dz workflow run <plan.json>`** interprets
+the plan directly through Codex/Claude CLI dispatchers. A Codex shell can invoke the portable
+runner without the Claude Code Workflow host.
 
-Read that boundary as a division of labour, not a limitation: a plan you can check before spending
-a single agent-token is worth more than a runner you can only observe after the money is gone.
+The portable runner does not execute rendered JavaScript or hand-written USER regions. Choose
+the host path for those script customizations; use the portable path for plan-declared orchestration.
 
 ---
 
@@ -141,6 +142,8 @@ the plan it was rendered from, so a script rendered from a *different* plan cann
 
 `dz workflow-trace <runDir|--slug <s>|--run <id>> [--invariants <plan.json>] [--html <out>] [--json]`
 reads a run's `trace.jsonl` and reports the timeline plus the plan-derived runtime invariants.
+`--slug <s>` reads `features/<s>/`; `--run <id>` reads `.dz/loop-trace/<id>/`, the portable
+runner's default location. Use an explicit run directory when the execution path overrides it.
 
 Three honesty rules of the reader, which you should repeat to whoever asks you for the numbers:
 
@@ -158,11 +161,12 @@ The same authoring body ships to several places, and they are NOT equivalent:
 
 | Vehicle | What you get | What you do NOT get |
 |---|---|---|
-| **Claude Code plugin** (marketplace or `--plugin-dir`) | this skill + the five `/loop-designer:*` commands | no execution — only `Workflow({scriptPath})` starts a loop |
+| **Claude Code plugin** (marketplace or `--plugin-dir`) | this skill + the five `/loop-designer:*` commands | no run command wrapper; use the Workflow host or a separate portable `dz workflow run` invocation |
 | **Bare skill** (`.claude/skills/loop-designer-plan-author/`) | this skill only | no slash commands: commands require a plugin load |
-| **Codex** (`.agents/skills/` or the `.codex-plugin` showcase) | this skill, plus `dz` over Codex's shell | no Claude Code `Workflow` runtime at all — a Codex session can author, validate, render and lint a loop, and must hand the rendered script to Claude Code to run it |
+| **Codex** (`.agents/skills/` or the `.codex-plugin` showcase) | this skill, plus `dz` over Codex's shell | no Claude Code `Workflow` host; run the plan via `dz workflow run` when its CLI prerequisites are met, or hand the rendered script to Claude Code |
 
-On every one of them the boundary sentence holds unchanged.
+The plugin wrappers provide authoring, gating and trace reading; the portable runner is a separate
+`dz` CLI capability and is not supplied by loading this skill.
 
 ---
 
@@ -173,7 +177,30 @@ field. Field-by-field reference: `references/loop-plan-1-schema.md`, co-located 
 
 ---
 
-## 10. A worked sequence
+## 10. Execution prerequisites and limits
+
+For portable execution, install a `dz` CLI exposing `workflow run` (`dz workflow run --help`),
+plus installed/authenticated `codex` and/or `claude` CLIs for every family the plan needs.
+The runner probes candidate models; a configured model name alone does not establish availability.
+The plugin's `^0.4.6` fallback is for its five wrapped verbs and does not establish runner support.
+
+Use a validating `loop-plan/1` JSON plan with `trace.emit: true`. Each dispatched step needs a
+routable model family, or supply `--default-family codex|claude`. Declared artifact reads/writes
+must stay inside the execution project. Supply `--coder-family` with the actual coding family
+when steps use `x-role: qe`; same-family QE is refused unless `--allow-same-family-qe` is supplied,
+which records re-QE debt. That waiver does not establish independent review.
+
+Runs write trace, budget and checkpoints under `.dz/loop-trace/<runId>/` by default
+(`--run-dir` overrides). Exit **0** means completed, **1** failed with a named reason,
+**2** usage/invalid plan, **75** a resumable typed pause with a final `wf-pause-envelope/1` JSON
+line. Lint's **3** remains inconclusive. Resume using the same plan and run ID; stale inputs,
+foreign runs and already completed runs are refused. Budget counts dispatch units rather than
+raw total tokens; a budget or wall-clock pause may need a bounded extension before resuming.
+
+Scheduler, resume, dispatch and trace tests check specific contracts. They do not prove blanket
+live parity across model CLIs, account availability, Workflow hosts or custom JavaScript.
+
+## 11. A worked sequence
 
 ```bash
 dz workflow init --name review-swarm --pattern barrier --o review-swarm.plan.json
@@ -181,9 +208,15 @@ $EDITOR review-swarm.plan.json          # replace every TODO; state claims/defer
 dz workflow validate review-swarm.plan.json          # INV-1..8, exit non-zero on any violation
 dz workflow render review-swarm.plan.json --o review-swarm.js
 dz workflow-lint review-swarm.js --plan review-swarm.plan.json --require-plan   # 0 / 1 / 3
-# then, in the host harness — this is the ONLY step dz does not perform:
+# Choose rendered-script execution in the Claude Code Workflow host:
 #   Workflow({ scriptPath: 'review-swarm.js' })
-dz workflow-trace --slug review-swarm --invariants review-swarm.plan.json
+# For a host trace written under features/review-swarm:
+#   dz workflow-trace --slug review-swarm --invariants review-swarm.plan.json
+# Or interpret the plan directly (set trace.emit: true and replace all TODOs first):
+dz workflow run review-swarm.plan.json --run-id review-swarm-1 --default-family codex --coder-family codex
+# If exit 75 pauses, use its envelope; after satisfying the named pause:
+#   dz workflow run review-swarm.plan.json --resume review-swarm-1 --default-family codex --coder-family codex
+dz workflow-trace --run review-swarm-1 --invariants review-swarm.plan.json
 ```
 
 ---

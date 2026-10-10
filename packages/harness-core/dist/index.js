@@ -320,4 +320,5 @@ export { decideTestReceipt, renderTestReceiptVerdict } from './test-receipt.js';
 export { decideBackupFreshness, renderBackupFreshness } from './backup-freshness.js';
 export { planReleasePackageAudit, judgeReleasePackageAudit, judgeReleaseCohortAudit } from './release-package-audit.js';
 export { buildScopedCatalogInventory } from './scoped-catalog-inventory.js';
+export { NATIVE_QE_HISTORY_API_VERSION, createNativeQeHistoryApi } from './native-review-history.js';
 //# sourceMappingURL=index.js.map

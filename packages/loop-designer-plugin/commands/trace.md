@@ -5,7 +5,7 @@ description: Read what a finished run actually did — timeline plus plan-derive
 
 # /loop-designer:trace
 
-> **`dz` AUTHORS, GATES and READS loops — it never RUNS one.**
+> **The plugin authors, gates and reads plans; execution uses a separate runtime.**
 
 Reads a completed run's `trace.jsonl`. Three honesty rules to repeat when reporting the result:
 an **empty trace is expected**, not an error (a loop may simply not have emitted one); a run with

@@ -5,7 +5,7 @@ description: Check a loop-plan/1 plan against the schema and the eight invariant
 
 # /loop-designer:validate
 
-> **`dz` AUTHORS, GATES and READS loops — it never RUNS one.**
+> **The plugin authors, gates and reads plans; execution uses a separate runtime.**
 
 Runs schema parsing (`loop-plan/1` is CLOSED-WORLD — an unknown non-`x-` key is a parse error) and
 the invariants INV-1..8: reference closure and acyclicity, bounded fanout, an explicit join with a

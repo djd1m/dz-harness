@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "b8c3ef3b1a72af6e1f1976ad3075fe939c4d25abb4c9d0bf2a4b41450d488af8"
+        "sha256": "20caa5f7b107bd80cd3696337a371ff2b9d0ee1c92306a9e515f5b78ca828a78"
       },
       {
         "path": "dist/__tests__/golden-baseline.test.d.ts",
@@ -1229,19 +1229,19 @@
       },
       {
         "path": "dist/index.d.ts",
-        "sha256": "2b1ae021c49e4150b5907cedfd5e0bdf417a22770ebbedf547e8b46e37364d0f"
+        "sha256": "3c843bd1c82d2fc9417e1c0f3d4994557876193034d8bb21f474dc26310aebc6"
       },
       {
         "path": "dist/index.d.ts.map",
-        "sha256": "91695ce4bc34d7f9360a20c2f716156d2a7353b4b78e50ae7545a8ade7434838"
+        "sha256": "64c8ea1e52b620f6770b1076a83996c5422be01cfa31dc1c2340efda5c1d2684"
       },
       {
         "path": "dist/index.js",
-        "sha256": "c808c29e694b43dab0f8d21493633b1140a3f69bd05efa76ac07b5343d96af0d"
+        "sha256": "875d85b39385a0f2aa26fd6bce1155f497f69ca295841e20494f0617bd6c0021"
       },
       {
         "path": "dist/index.js.map",
-        "sha256": "94ab39d3b56c68c76d6b098adc35c9ce04adba7b5d808d41748806ad27c8b8fb"
+        "sha256": "9984e5e03f00109c12ee11498decc0eb2accb57c253a003b91a894a16035914f"
       },
       {
         "path": "dist/integration-apply.d.ts",
@@ -1676,6 +1676,22 @@
         "sha256": "66e17ce84508b1136e30b2de97a3c98138de54904469eefd0cb2a6c21a95193b"
       },
       {
+        "path": "dist/native-review-history.d.ts",
+        "sha256": "dd0ac27a113a825c88d7ad3138f5f9308e47f73124e40a4550decca87aaa7696"
+      },
+      {
+        "path": "dist/native-review-history.d.ts.map",
+        "sha256": "2d0b3bed520105ea6db09a9822c7b3226ae64e9e08b5d9cb66a134a77d85caa1"
+      },
+      {
+        "path": "dist/native-review-history.js",
+        "sha256": "93428b94a4cf3a31b02a1c2324e32901b7152b7712b870e5a83399614ffb7535"
+      },
+      {
+        "path": "dist/native-review-history.js.map",
+        "sha256": "00c44a6b9b87d49ee7632777ae92b371b7b22995560e0b273be57358ca8f9669"
+      },
+      {
         "path": "dist/no-stubs.d.ts",
         "sha256": "ea9830fcc8a355ef712fad090ff7fda0fcbc0bca9de9f0f4939a4a2ffc213284"
       },
@@ -2033,15 +2049,15 @@
       },
       {
         "path": "dist/qe-rounds.d.ts.map",
-        "sha256": "449989c47f9c447e168d9c4f028e9f83b10fc7b72663ae4429d2a84367c34b7f"
+        "sha256": "f1da87c7a127529c6faa289a1a57af72b3e2ab6dc89cc2d56337d84a65910a11"
       },
       {
         "path": "dist/qe-rounds.js",
-        "sha256": "f86b7a11ce9080ffa3360d01a8743e649c3f14287a13f685994d2ba4da6a76b6"
+        "sha256": "cdc71cf196ec973044db1aaba9c0fe5f49f014b63de2ed75fd65720737326a11"
       },
       {
         "path": "dist/qe-rounds.js.map",
-        "sha256": "104f23d7f953b1f4e96098774c45876831a5a054c10932cfd5e7378774b5b738"
+        "sha256": "bf0bc2ebc96b323675a7d6ac2e3bb352c600769bf5238041c2fdaf0d995f5555"
       },
       {
         "path": "dist/rake-analyzer.d.ts",
@@ -3213,7 +3229,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "5baeb2778970a53b3b9c706fb1485757f935237b24e5283208871803972cb8d6"
+        "sha256": "2fec5c2a7b06e4c40b6e818900bfd8e573045ca3275ad5df9beb7a3fb7ebfc96"
       },
       {
         "path": "src/__tests__/golden-baseline.test.ts",
@@ -3525,7 +3541,7 @@
       },
       {
         "path": "src/index.ts",
-        "sha256": "c1389dbd7353724224602232a01189c1e9ca9b9fca91e8b0f6c1253c9c16f0c4"
+        "sha256": "43d03fa4dda87d4c375a10862666e08443f9ed82265b6c216f2e30c8cea423cc"
       },
       {
         "path": "src/integration-apply.ts",
@@ -3640,6 +3656,10 @@
         "sha256": "7c75b8ebad0067ce1ad25fc4ab81476fe7ae35099962b93f66d82d8222ba6ff2"
       },
       {
+        "path": "src/native-review-history.ts",
+        "sha256": "8a719aba7ba5f4620e1fc8571ba8727221fa79e4fa8061e8eff78261849e973e"
+      },
+      {
         "path": "src/no-stubs.ts",
         "sha256": "6037eb030d5cfb82e9a8e8b4ba0365f5a63edae8e0d9e7737461a88883403593"
       },
@@ -3729,7 +3749,7 @@
       },
       {
         "path": "src/qe-rounds.ts",
-        "sha256": "8fc9f53f580725db31f2b4b25d39f548c3150265f411d62d8b2e76bd2c75ec5e"
+        "sha256": "03e2ca245c18b207e445a3adecc4ee1d3b1b08b52eeec67ab9d336570b9db5a5"
       },
       {
         "path": "src/rake-analyzer.ts",
@@ -4037,5 +4057,5 @@
       }
     ]
   },
-  "signature": "m+BgeAlIEsf6x3C2vQUlCDwjoBvEkiwchrIiTfr1jM80UmTT3tig5IHr+3HEyMVvq6q+VCnVbHSZHp/0+v4wBw=="
+  "signature": "McmHLYEa1kJugtANfdQpXpTHjzoZc9y+cMjol2Ijd5+YcS1z/0zlfWnnz6Pnc5vjvFBW5oaPS9lAH9fD2MmgDA=="
 }

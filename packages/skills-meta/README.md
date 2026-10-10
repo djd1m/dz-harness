@@ -1,6 +1,9 @@
 # @dzhechkov/skills-meta
 
-Current package version: `0.9.67`. <!-- dz:version -->
+Feature ADR native QE opt-in uses the installed CLI-owned convergence helper, bounded measurement and durable fixed-three-cycle history. Legacy synchronous standalone convergence remains supported; see feature-adr/modules/08-qe.md for prepare, evaluate, explicit repair and failure limits.
+
+
+Current package version: `0.9.68`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-meta
 
@@ -33,7 +36,7 @@ MEASURED inventory from `npm pack --dry-run --json` (the procedure above):
 | `understand-anything-bridge` | 4 | Bridge to the Understand-Anything knowledge-graph tooling |
 | `explore` | 3 | Socratic task clarification |
 | `problem-solver-enhanced` | 1 | First-principles + TRIZ + game-theory problem solving |
-| `loop-plan-author` | 2 | Author agent LOOPS as typed `loop-plan/1` plans — four patterns, INV-1..8, claims/defers, USER regions, reading a run's trace. Packaged for Claude Code as `@dzhechkov/loop-designer-plugin`; `dz` AUTHORS, GATES and READS loops — it never RUNS one |
+| `loop-plan-author` | 2 | Author agent LOOPS as typed `loop-plan/1` plans — four patterns, INV-1..8, claims/defers, USER regions, reading a run's trace. Packaged for Claude Code as `@dzhechkov/loop-designer-plugin`; execute rendered JavaScript with the Claude Code Workflow host, or interpret the plan with portable `dz workflow run` (CLI prerequisites apply) |
 | `decision-mockups` | 13 | Plain-language decision context in HTML or compact text, CSS before/after and offline flow/boundary diagrams. Opt-in v2 preserves four answer states, material context and a separate complete JSON document; shipped stdlib `check_answer.py` checks the receiver's current revision. Legacy export remains compatible. **Vendored mirror** — canon/tests in [`@dzhechkov/skills-decision-mockups`](https://www.npmjs.com/package/@dzhechkov/skills-decision-mockups); sync explicitly with `dz sync-canonical decision-mockups --from packages/@dzhechkov/skills-decision-mockups/decision-mockups`. Structural checks do not prove truth, semantic viability or human benefit. |
 
 
@@ -46,6 +49,13 @@ MEASURED inventory from `npm pack --dry-run --json` (the procedure above):
 > leave. A format check refuses identifier shapes (email, phone, record numbers) — it does NOT judge
 > whether a lesson describes a method or a person, and says so: that judgement is the agent's, per
 > the teach protocol. See `skills/goap-research-ed25519/SKILL.md`.
+
+Feature-adr structural `implementationVerified:true` has phase-specific meaning: ideation verifies
+corrected ADR, architecture and phase artifacts at the current revision/nonce, without claiming
+production code or implementation tests exist; QE requires actual implementation and relevant tests.
+False or missing structural verification still blocks. Receipt fields, boolean strength, originating
+reviewer ownership, phase/nonce/manifest binding and legacy receipt compatibility remain unchanged.
+The gate checks receipt consistency and freshness; independent reviewers judge the evidence.
 
 ## Install
 

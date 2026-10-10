@@ -8,7 +8,7 @@
     {
       "name": "loop-designer",
       "source": "./",
-      "description": "Author agent loops as typed loop-plan/1 plans — four patterns, eight invariants, a layer-1 script gate and a run reader. dz AUTHORS, GATES and READS loops — it never RUNS one."
+      "description": "The plugin authors, gates and reads plans; execution uses a separate runtime. Author loop-plan/1 plans with five plugin wrappers; rendered scripts use the Claude Code Workflow host, while a separate current dz workflow run CLI interprets plans with dispatch prerequisites."
     }
   ]
 }

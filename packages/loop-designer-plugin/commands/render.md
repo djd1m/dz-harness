@@ -5,7 +5,7 @@ description: Render a validated loop-plan/1 plan into a region-delimited loop sc
 
 # /loop-designer:render
 
-> **`dz` AUTHORS, GATES and READS loops — it never RUNS one.**
+> **The plugin authors, gates and reads plans; execution uses a separate runtime.**
 
 Emits the script from the plan. Only `// ── BEGIN USER … ──` regions are hand-editable, and they
 survive re-render byte-for-byte; everything else is generated and will be overwritten. `--check`
@@ -13,7 +13,8 @@ writes a `.proposed.js` and reports the diff instead of overwriting.
 
 **Hand-off, stated plainly:** the rendered script is NOT executed here. It runs only under the host
 harness — in Claude Code, `Workflow({ scriptPath: "<rendered>.js" })`. Producing the file completes
-this command; running it is a separate, deliberate act by the user.
+this command. Separately, `dz workflow run <plan.json>` interprets the plan with CLI prerequisites;
+it does not execute this rendered script or its USER regions.
 
 ## Run exactly this
 

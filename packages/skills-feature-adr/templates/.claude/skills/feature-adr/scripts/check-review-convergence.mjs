@@ -1,8 +1,14 @@
 #!/usr/bin/env node
 // Host checkpoint lineage, not a reviewer-supplied prior array, owns historical conditions.
 // This checks consistency/freshness; it does not authenticate models or judge their evidence.
+// For structural condition/delta verification, implementationVerified:true is phase-specific:
+// ideation = independently verified corrected ADR, architecture and phase artifacts at the
+// current revision/nonce, without claiming production code or implementation tests exist;
+// qe = independently verified actual implementation and relevant tests at that revision/nonce.
+// False/missing remains blocking in both phases; field names, boolean strength, origin ownership,
+// phase/nonce/manifest binding and legacy receipt compatibility are unchanged.
 import { createHash, randomUUID } from 'node:crypto'
-import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, realpathSync, renameSync, writeFileSync } from 'node:fs'
+import { closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, openSync, opendirSync, readSync, readFileSync, readdirSync, realpathSync, renameSync, writeFileSync } from 'node:fs'
 import { dirname, relative, resolve, sep } from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
@@ -47,7 +53,7 @@ function hostProblem(host) {
   if (host.conditions.some(c => c.scope.some(path => !manifest.some(p => p.path === path)))) return 'host-condition-scope-unbound'
   return null
 }
-export function evaluateReviewConvergence(host, receipt, currentManifest) {
+export function evaluateReviewConvergence(host, receipt, currentManifest, originOnly = false) {
   const phase = host?.phase
   const refuse = reason => result(phase || 'qe', 'not-established', host?.snapshot?.revision || null, [reason], (array(host?.conditions) ? host.conditions : []).map(c => c?.id))
   const problem = hostProblem(host)
@@ -55,7 +61,7 @@ export function evaluateReviewConvergence(host, receipt, currentManifest) {
   const owners = host.reviewers.map(r => r.id)
   if (!same(host.snapshot.manifest, currentManifest) || digest(JSON.stringify(currentManifest)) !== host.snapshot.revision) return refuse('artifact-manifest-changed')
   if (!dictionary(receipt, ['schema', 'phase', 'nonce', 'revision', 'reviews', 'author']) || receipt.schema !== SCHEMA || receipt.phase !== phase || receipt.nonce !== host.snapshot.nonce || receipt.revision !== host.snapshot.revision) return refuse('receipt-phase-or-revision-invalid')
-  if (!array(receipt.reviews, 16) || receipt.reviews.length !== owners.length || new Set(receipt.reviews.map(r => r?.reviewer)).size !== owners.length) return refuse('reviewer-set-invalid')
+  if (!array(receipt.reviews, 16) || (originOnly ? !receipt.reviews.length || receipt.reviews.length > owners.length : receipt.reviews.length !== owners.length) || new Set(receipt.reviews.map(r => r?.reviewer)).size !== receipt.reviews.length) return refuse('reviewer-set-invalid')
   const all = new Map(host.conditions.map(c => [c.id, c]))
   const verified = new Set()
   const reasons = []
@@ -129,7 +135,7 @@ function writeJson(path, value) {
   writeFileSync(temporary, JSON.stringify(value, null, 2) + '\n', { flag: 'wx' })
   renameSync(temporary, path)
 }
-function pathsFor(repo, feature, phase) {
+function pathsFor(repo, feature, phase, native = false) {
   const prefix = relative(repo, feature).split(sep).join('/')
   if (!prefix || prefix.startsWith('../')) throw Error('feature-must-be-inside-repo')
   safePath(repo, prefix, false)
@@ -137,12 +143,13 @@ function pathsFor(repo, feature, phase) {
   if (phase === 'qe') targets.push('06_implementation_plan.md', '03.5_ideation_report.md')
   const adr = safePath(repo, prefix + '/03_adr')
   if (existsSync(adr) && !lstatSync(adr).isDirectory()) throw Error('adr-not-directory')
-  const decisions = existsSync(adr) ? readdirSync(adr).filter(p => /^[0-9]{3}-.+\.md$/.test(p)).sort() : []
+  const decisions = existsSync(adr) ? (native ? nativeNames(adr) : readdirSync(adr)).filter(p => /^[0-9]{3}-.+\.md$/.test(p)).sort() : []
   if (phase === 'ideation' && !decisions.length) throw Error('adr-missing')
   const paths = targets.filter(p => existsSync(resolve(feature, p))).concat(decisions.map(p => '03_adr/' + p)).map(p => prefix + '/' + p)
   for (const required of phase === 'ideation' ? ['01_requirements.md', '05_architecture.md'] : ['01_requirements.md', '06_implementation_plan.md']) if (!paths.includes(prefix + '/' + required)) throw Error('design-input-missing:' + required)
   if (phase === 'qe') {
-    const plan = readFileSync(safePath(repo, prefix + '/06_implementation_plan.md', false), 'utf8')
+    const planFile = safePath(repo, prefix + '/06_implementation_plan.md', false)
+    const plan = native ? new TextDecoder('utf-8', { fatal: true }).decode(nativeBytes(planFile, 2 * 1024 * 1024)) : readFileSync(planFile, 'utf8')
     const block = plan.split(/^EXPECTED_CODE_TARGETS:\s*$/m)
     if (block.length !== 2) throw Error('target-block-missing-or-duplicate')
     const planned = block[1].split('\n').filter(line => line.trim()).map(line => {
@@ -152,19 +159,19 @@ function pathsFor(repo, feature, phase) {
     })
     if (!planned.length) throw Error('target-block-empty')
     const baseFile = resolve(feature, '.fa-state/base-ref')
-    const base = existsSync(baseFile) ? readFileSync(baseFile, 'utf8').trim() : 'HEAD'
+    const base = existsSync(baseFile) ? (native ? nativeBytes(baseFile, 256 * 1024).toString('utf8') : readFileSync(baseFile, 'utf8')).trim() : 'HEAD'
     if (!/^[A-Za-z0-9_./:-]+$/.test(base) || base.startsWith('-')) throw Error('base-ref-invalid')
     const guard = '.dz/guard.json'
     // Exact index membership includes staged additions/intent-to-add. The selected
     // base proves deletions; descendants and unrelated history confer no authority.
     const proof = [['ls-files', '--cached', '-z', '--', guard], ['ls-tree', '-r', '--name-only', '-z', base, '--', guard]].map(command =>
-      execFileSync('git', command, { cwd: repo, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 }).split('\0').includes(guard))
+      execFileSync('git', command, { cwd: repo, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024, ...(native ? { timeout: 2000, env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' } } : {}) }).split('\0').includes(guard))
     const allowedGuard = p => p === guard && proof.some(Boolean)
     if (planned.some(p => /^(features|\.dz|\.agentic-qe|roam)\//.test(p) && !allowedGuard(p))) throw Error('circular-review-target')
     paths.push(...planned)
     // Additions/deletions are discovered by the host, not the author delta request.
     for (const command of [['diff', '--no-renames', '--name-only', '-z', base, '--'], ['ls-files', '--others', '--exclude-standard', '-z']]) {
-      const names = execFileSync('git', command, { cwd: repo, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 }).split('\0').filter(Boolean)
+      const names = execFileSync('git', command, { cwd: repo, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024, ...(native ? { timeout: 2000, env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' } } : {}) }).split('\0').filter(Boolean)
       paths.push(...names.filter(p => allowedGuard(p) || !p.startsWith('features/') && !p.startsWith('.dz/') && !p.startsWith('.agentic-qe/') && !p.startsWith('roam/') && p !== 'architecture/map.json'))
     }
   }
@@ -201,7 +208,7 @@ function qeCheckpoint(repo, feature) {
 function seriousFindings(source) {
   return (array(source?.gaps) ? source.gaps : []).filter(gap => [gap.sev, gap.severity, gap.priority].some(v => /(?:^|[^A-Z0-9])(BLOCKER|CRITICAL|HIGH|P0|P1)(?:$|[^A-Z0-9])/.test(String(v || '').toUpperCase())))
 }
-function reconcileCheckpoint(host, receipt, measured, repo, feature) {
+function reconcileCheckpoint(host, receipt, measured, repo, feature, knownReport) {
   if (!measured) return null
   const stage = measured.checkpoint
   for (const [base, source, family, missing] of [
@@ -222,7 +229,8 @@ function reconcileCheckpoint(host, receipt, measured, repo, feature) {
     }
     if (base === 'qe-precision' && missing) {
       const file = safePath(repo, relative(repo, feature).split(sep).join('/') + '/08_qe_report.md', false)
-      const report = readFileSync(file)
+      const report = knownReport === undefined ? readFileSync(file) : knownReport
+      if (report === null) return null
       if (digest(report) !== proof.reportDigest || !/## Primary QE pass/.test(report.toString()) || !/## Precision QE pass/.test(report.toString()) || !/Combined Step-8 grade:/.test(report.toString())) return null
     }
   }
@@ -320,6 +328,154 @@ export function runGate({ action, repo, feature, phase, reviewers }) {
   writeJson(paths.host, { ...host, conditions: [...preserved.values()], reviewSeen: pending?.next.reviewSeen || host.reviewSeen, changedPaths: verdict.verdict === 'closed' ? [] : host.changedPaths })
   if (closure && verdict.verdict === 'closed') return { ...verdict, checkpointClosure: closure }
   return verdict
+}
+
+// Only the CLI supplies this capability. The default standalone runGate remains synchronous.
+export const NATIVE_REVIEW_API_VERSION = 1
+function nativeNames(dir) {
+  if (!existsSync(dir)) return []
+  const st = lstatSync(dir)
+  if (!st.isDirectory() || st.isSymbolicLink()) throw Error('native-directory-unsafe:' + dir)
+  const names = [], fd = opendirSync(dir)
+  try { let entry; while ((entry = fd.readSync())) { names.push(entry.name); if (names.length > 256) throw Error('native-directory-candidate-limit:' + dir) } }
+  finally { fd.closeSync() }
+  return names.sort()
+}
+function nativeBytes(file, limit) {
+  let st
+  try { st = lstatSync(file) } catch (error) { if (error.code === 'ENOENT') return null; throw error }
+  if (!st.isFile() || st.isSymbolicLink()) throw Error('native-file-unsafe:' + file)
+  if (st.size > limit) throw Error('native-file-limit:' + file)
+  const fd = openSync(file, constants.O_RDONLY | constants.O_NOFOLLOW)
+  try {
+    const opened = fstatSync(fd)
+    if (!opened.isFile() || opened.ino !== st.ino || opened.dev !== st.dev) throw Error('native-file-changed:' + file)
+    const bytes = Buffer.alloc(limit + 1); let n = 0
+    while (n <= limit) { const got = readSync(fd, bytes, n, bytes.length - n, null); if (!got) break; n += got }
+    if (n > limit) throw Error('native-file-limit:' + file)
+    return bytes.subarray(0, n)
+  } finally { closeSync(fd) }
+}
+function nativeManifest(repo, paths) {
+  if (new Set(paths).size > 256) throw Error('native-artifact-path-limit')
+  let total = 0
+  return [...new Set(paths)].sort().map(path => {
+    const bytes = nativeBytes(safePath(repo, path), 2 * 1024 * 1024)
+    total += bytes?.length || 0
+    if (total > 16 * 1024 * 1024) throw Error('native-artifact-aggregate-limit')
+    return { path, digest: bytes === null ? null : digest(bytes) }
+  })
+}
+function nativeReceipt(host, receipt, manifest) {
+  // Reuse the unchanged strong aggregate gate with just the originating subset roster.
+  // Missing reviewers can prevent closure without invalidating a structurally valid partial origin.
+  if (!host || host.phase !== 'qe' || !dictionary(receipt, ['schema', 'phase', 'nonce', 'revision', 'reviews', 'author']) || receipt.schema !== SCHEMA || receipt.phase !== 'qe' || receipt.nonce !== host.snapshot.nonce || receipt.revision !== host.snapshot.revision || !array(receipt.reviews, 16) || !receipt.reviews.length || new Set(receipt.reviews.map(r => r?.reviewer)).size !== receipt.reviews.length) return null
+  if (!receipt.reviews.every(r => reviewerEntry(r, host.reviewers))) return null
+  const checked = evaluateReviewConvergence(host, receipt, manifest, true)
+  if (checked.verdict === 'not-established') return null
+  return receipt.reviews.map(r => ({ reviewer: r.reviewer, family: r.family }))
+}
+export function runNativeReviewGate({ action, repo, feature, reviewers, api }) {
+  if (!api || api.version !== 1 || typeof api.transact !== 'function') throw Error('native-core-capability-not-established')
+  if (!['prepare', 'evaluate', 'begin-repair'].includes(action)) throw Error('native-action-invalid')
+  repo = realpathSync(repo); feature = realpathSync(resolve(repo, feature))
+  const prefix = relative(repo, feature).split(sep).join('/')
+  if (!prefix || prefix.startsWith('../') || api.projectRoot !== repo || api.featurePath !== feature) throw Error('native-feature-binding-invalid')
+  safePath(repo, prefix, false)
+  const stateDir = safePath(repo, prefix + '/.fa-state')
+  const hostFile = safePath(repo, prefix + '/.fa-state/review-convergence-qe-host.json')
+  const receiptFile = safePath(repo, prefix + '/.fa-state/review-convergence-qe-review.json')
+  const checkpointFile = safePath(repo, prefix + '/.fa-state/checkpoints.jsonl')
+  const baseFile = safePath(repo, prefix + '/.fa-state/base-ref')
+  // Index bytes fence staging changes; no Git is run by the locked callback.
+  let gitDir = resolve(repo, '.git')
+  const gitStat = lstatSync(gitDir)
+  if (gitStat.isFile()) {
+    const match = /^gitdir: ([^\r\n]+)\r?\n?$/.exec(nativeBytes(gitDir, 256 * 1024).toString('utf8'))
+    if (!match) throw Error('native-gitdir-invalid')
+    gitDir = realpathSync(resolve(repo, match[1]))
+  } else if (!gitStat.isDirectory() || gitStat.isSymbolicLink()) throw Error('native-gitdir-invalid')
+  const indexFile = resolve(gitDir, 'index')
+  const measuredFiles = [hostFile, receiptFile, checkpointFile, baseFile, indexFile,
+    safePath(repo, prefix + '/.fa-state/review-convergence-ideation-host.json'),
+    safePath(repo, prefix + '/.fa-state/review-convergence-ideation-review.json'),
+    safePath(repo, prefix + '/08_qe_report.md'),
+    ...(gitStat.isFile() ? [resolve(repo, '.git')] : []), resolve(gitDir, 'HEAD')]
+  const limits = measuredFiles.map(f => f === indexFile ? 4 * 1024 * 1024 : f === checkpointFile ? 2 * 1024 * 1024 : 256 * 1024)
+  const observed = measuredFiles.map((f, i) => nativeBytes(f, limits[i]))
+  const json = (index) => observed[index] === null ? null : JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(observed[index]))
+  const host = json(0)
+  let receipt = null, receiptProblem = null
+  try { receipt = json(1) } catch { receiptProblem = 'reviewer-receipt-malformed' }
+  if (observed[0] !== null && (hostProblem(host) || host.phase !== 'qe')) throw Error(hostProblem(host) || 'native-host-phase-invalid')
+  if (observed[3] !== null && !/^[A-Za-z0-9_./:-]+$/.test(observed[3].toString('utf8').trim())) throw Error('native-base-ref-invalid')
+  const ideationHost = json(5), ideationReceipt = json(6)
+  if (observed[5] !== null && (hostProblem(ideationHost) || ideationHost.phase !== 'ideation')) throw Error('native-ideation-state-invalid')
+  if (observed[6] !== null) {
+    if (!ideationHost || !dictionary(ideationReceipt, ['schema', 'phase', 'nonce', 'revision', 'reviews', 'author']) || ideationReceipt.schema !== SCHEMA || ideationReceipt.phase !== 'ideation' || !text(ideationReceipt.nonce) || !hash(ideationReceipt.revision) || !array(ideationReceipt.reviews, 16) || !ideationReceipt.reviews.length || new Set(ideationReceipt.reviews.map(r => r?.reviewer)).size !== ideationReceipt.reviews.length || !ideationReceipt.reviews.every(r => reviewerEntry(r, ideationHost.reviewers) && (!Object.hasOwn(r, 'checkpointVerification') || checkpointProof(r.checkpointVerification)))) throw Error('native-ideation-receipt-invalid')
+    const owners = ideationHost.reviewers.map(r => r.id), author = ideationReceipt.author
+    if (author !== null && (!dictionary(author, ['addressed', 'changedScope', 'classification', 'delta', 'evidence', 'newRisks']) || !strings(author.addressed) || !strings(author.changedScope, true) || !kinds.includes(author.classification) || !text(author.delta) || !text(author.evidence) || !risks(author.newRisks, owners))) throw Error('native-ideation-author-invalid')
+    for (const r of ideationReceipt.reviews) {
+      if (author ? !dictionary(r.deltaVerification, ['classification', 'evidence', 'implementationVerified']) || !kinds.includes(r.deltaVerification.classification) || !text(r.deltaVerification.evidence) || typeof r.deltaVerification.implementationVerified !== 'boolean' : r.deltaVerification !== null) throw Error('native-ideation-delta-invalid')
+      if (!r.verifications.every(v => dictionary(v, ['id', 'revision', 'classification', 'evidence', 'implementationVerified']) && text(v.id) && hash(v.revision) && kinds.includes(v.classification) && text(v.evidence) && typeof v.implementationVerified === 'boolean') || new Set(r.verifications.map(v => v.id)).size !== r.verifications.length) throw Error('native-ideation-verification-invalid')
+    }
+  }
+  let checkpoint = null
+  if (observed[2] !== null) {
+    if (observed[2].length && observed[2][observed[2].length - 1] !== 10) throw Error('native-checkpoint-candidate-torn')
+    for (const line of new TextDecoder('utf-8', { fatal: true }).decode(observed[2]).split('\n').filter(Boolean)) {
+      const entry = JSON.parse(line)
+      if (!entry || typeof entry !== 'object' || typeof entry.stage !== 'string' || !entry.stage || typeof entry.inputHash !== 'string' || !entry.inputHash || !Object.hasOwn(entry, 'result') || entry.result === null) throw Error('native-checkpoint-candidate-invalid')
+      if (entry.stage === 'qe') checkpoint = { checkpointDigest: digest(JSON.stringify(entry.result)), checkpoint: entry.result }
+    }
+  }
+  const directoryFence = () => ({ adr: nativeNames(safePath(repo, prefix + '/03_adr')), bridge: nativeNames(safePath(repo, prefix + '/.fa-state/qe-bridge')), fragments: nativeNames(stateDir).filter(n => /^native-qe-(history\.jsonl|head\.json)\..*\.tmp$/.test(n)) })
+  const membership = directoryFence()
+  const paths = pathsFor(repo, feature, 'qe', true).concat((host?.conditions || []).flatMap(c => c.scope))
+  const manifest = nativeManifest(repo, paths)
+  if (action !== 'evaluate' && (!array(reviewers, 16) || !reviewers.length || !reviewers.every(r => dictionary(r, ['id', 'family']) && text(r.id) && ['codex', 'claude', 'owner-exception'].includes(r.family)) || new Set(reviewers.map(r => r.id)).size !== reviewers.length)) throw Error('reviewers-invalid')
+  const observationDigest = digest(JSON.stringify({ files: observed.slice(1).map(b => b === null ? null : digest(b)), membership, manifest }))
+  const checkpointClosure = host && receipt && checkpoint ? reconcileCheckpoint(host, receipt, checkpoint, repo, feature, observed[7]) : null
+  return api.transact(action, active => {
+    if (realpathSync(repo) !== repo || realpathSync(feature) !== feature) throw Error('native-project-feature-observation-changed')
+    const currentGit = lstatSync(resolve(repo, '.git'))
+    if (currentGit.ino !== gitStat.ino || currentGit.dev !== gitStat.dev) throw Error('native-gitdir-observation-changed')
+    // Only descriptor/known-path work here; no discovery through runGate, Git, model or network.
+    measuredFiles.forEach((file, i) => { const bytes = nativeBytes(file, limits[i]); if ((bytes === null) !== (observed[i] === null) || bytes !== null && !bytes.equals(observed[i])) throw Error('native-observation-changed:' + file) })
+    const currentMembership = directoryFence()
+    if (currentMembership.bridge.some(n => /^(signoff-|failed-).*\.json$/.test(n))) throw Error('native-bridge-source-collision:' + stateDir + '/native-qe-history.jsonl:' + stateDir + '/qe-bridge')
+    if (!same(membership, currentMembership)) throw Error('native-candidate-membership-changed')
+    if (!same(manifest, nativeManifest(repo, paths))) throw Error('native-artifact-observation-changed')
+    if (membership.bridge.some(n => /^(signoff-|failed-).*\.json$/.test(n))) throw Error('native-bridge-source-collision:' + stateDir + '/native-qe-history.jsonl:' + stateDir + '/qe-bridge')
+    if (membership.fragments.length) throw Error('native-temporary-fragment')
+    if (!active && (observed[1] !== null || host && (host.reviewSeen || host.rework || host.conditions.length) || checkpoint)) throw Error('native-surviving-review-evidence-refuses-admission')
+    if (active && (!host || !same(host.snapshot, active.snapshot))) throw Error('native-host-admitted-snapshot-mismatch')
+    const revision = digest(JSON.stringify(manifest))
+    const priorOrigins = nativeReceipt(host, receipt, host?.snapshot.manifest)
+    if (action === 'prepare' && host && host.snapshot.revision !== revision && (active?.witnessed || priorOrigins)) throw Error('native-repair-required')
+    if (action === 'evaluate') {
+      if (!active || !host) throw Error('native-prepare-required')
+      if (!same(manifest, host.snapshot.manifest)) throw Error('native-repair-required')
+      const origins = nativeReceipt(host, receipt, manifest)
+      let verdict = receipt === null ? result('qe', 'not-established', revision, [receiptProblem || 'reviewer-receipt-missing']) : evaluateReviewConvergence(host, receipt, manifest)
+      // Closure is deliberately stronger than originating partial/unresolved evidence.
+      if (verdict.verdict === 'closed' && checkpoint && !checkpointClosure) verdict = result('qe', 'not-established', revision, ['historical-checkpoint-own-verification-missing'])
+      const preserved = new Map(host.conditions.map(c => [c.id, c]))
+      if (origins) {
+        for (const r of receipt.reviews) for (const c of r.conditions.concat(r.newRisks.conditions)) preserved.set(c.id, c)
+        if (receipt.author) for (const c of receipt.author.newRisks.conditions) if (c.scope.every(path => manifest.some(p => p.path === path))) preserved.set(c.id, c)
+      }
+      if (verdict.verdict === 'closed' && checkpointClosure) verdict = { ...verdict, checkpointClosure }
+      const next = { ...host, conditions: [...preserved.values()], reviewSeen: host.reviewSeen || Boolean(origins), changedPaths: verdict.verdict === 'closed' ? [] : host.changedPaths }
+      return { host: next, snapshot: host.snapshot, origins: origins || [], receiptDigest: observed[1] === null ? null : digest(observed[1]), reason: origins ? null : verdict.reasons[0] || 'native-no-valid-origin', observationDigest, result: verdict, admission: false }
+    }
+    const bound = bindReviewers(host, reviewers, checkpoint)
+    const snapshot = active?.snapshot.revision === revision ? active.snapshot : host?.snapshot.revision === revision ? host.snapshot : { nonce: randomUUID(), revision, manifest }
+    const old = new Map((host?.snapshot.manifest || []).map(p => [p.path, p.digest])), current = new Map(manifest.map(p => [p.path, p.digest]))
+    const changedPaths = host && host.snapshot.revision !== revision ? [...new Set([...old.keys(), ...current.keys()])].filter(p => old.get(p) !== current.get(p)).sort() : host?.changedPaths || []
+    const next = { schema: SCHEMA, phase: 'qe', reviewers: bound, snapshot, conditions: host?.conditions || [], reviewSeen: host?.reviewSeen || false, rework: Boolean(host && (host.rework || host.reviewSeen && host.snapshot.revision !== revision)), changedPaths }
+    return { host: next, snapshot, origins: [], receiptDigest: null, reason: null, observationDigest, result: { ...result('qe', 'prepared', revision, []), nonce: snapshot.nonce, manifest, reviewers: bound, conditions: next.conditions, checkpointDigest: checkpoint?.checkpointDigest || null }, admission: !active }
+  })
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

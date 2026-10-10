@@ -5,23 +5,23 @@
     "files": [
       {
         "path": ".claude-plugin/marketplace.json",
-        "sha256": "abe08315cf78508304330a5eb518f65e68f1bdfdfbcc9ddde14f0a4e995cfc72"
+        "sha256": "5e5b95394993c1561c3549641c046703abc45e6530732e429b1b0e6fc091961d"
       },
       {
         "path": ".claude-plugin/plugin.json",
-        "sha256": "cae2852bcc41d5f73fbc2098840c87d3f692270de1b644cfd110b1c5857dc3d2"
+        "sha256": "28addd8ed153935b408b945e179aa2c7b2e1765bb41b51fad7d4c56dd7e82b57"
       },
       {
         "path": ".codex-plugin/plugin.json",
-        "sha256": "93b736e237d579eb2d9500ce8d35cf5e6c8144abeeac06c0b2abe0cc7b31b503"
+        "sha256": "81d0880fb05b62445c377f61f654dc9b1b1a77fbc759d39e716c003d27c0883c"
       },
       {
         "path": ".codex-plugin/skills/loop-plan-author/SKILL.md",
-        "sha256": "45d2377b281d69f44424e67736e09be10a754e638fbd9ae48c2fb0eb8f2b0d32"
+        "sha256": "044ee382bc14d922ae86e246a95de3bd00953dce2ffd0a3e3742e61a83976458"
       },
       {
         "path": ".codex-plugin/skills/loop-plan-author/references/loop-plan-1-schema.md",
-        "sha256": "397e5fe9a830fb4eb2eaf03ab57bc6e69ca22fbad12d36541a687175cf0cf84e"
+        "sha256": "a7c0f4535c2c54ea4f50dc1b54c52446575017fdeaee73eec1c78278697a7844"
       },
       {
         "path": "LICENSE",
@@ -29,31 +29,31 @@
       },
       {
         "path": "README.md",
-        "sha256": "24007fbc0f7fbdb30d71924b16edd49f0ada1672d4380e56f4a358fc96ea1f6a"
+        "sha256": "d234cd81afb6132862ac778d34c759ce7a150380da2416986e81839f96df612c"
       },
       {
         "path": "bin/loop-designer.js",
-        "sha256": "c3a28a70c9b4b2a75945bb0279637f36a6ba4e1a4f5a5d7240949fd41f2283f1"
+        "sha256": "7d42841786f5249291ee624880f7158015e42698147ebe869c42e4bac66690c0"
       },
       {
         "path": "commands/init.md",
-        "sha256": "f4eebad267e3e2a774f8ce546e8bd0efca9269bdeed2069437e6e23adbadfbca"
+        "sha256": "b59a5d4c4c20247a8a1d4f4e74be809ef2e0d55c28b2fc1e42d75ff18e47e6cc"
       },
       {
         "path": "commands/lint.md",
-        "sha256": "1654375d0737297329822cf22529273222e36bc11d062cfeed2a8cdf42b6be0a"
+        "sha256": "49b19942a76d272828dce5e9bbea232afff4959def0841844bceb39e112b5e82"
       },
       {
         "path": "commands/render.md",
-        "sha256": "0bb5ed7d154064bd396e7d1dc338a54f43eaf31718563777aa426d779ca0e5af"
+        "sha256": "866547402de27e9959018b92561851c32595fb50185763c5bdcf74f2287a3ce8"
       },
       {
         "path": "commands/trace.md",
-        "sha256": "4041bf988d3347a16d84ce7562ce8bbd2fa6f641ec0654a9a7f78f37a4ccbe9d"
+        "sha256": "a58f7aa9f334fdeca9e83b516e6d43d9cc8cf4be2f9f7fe1ba9e89c912b05a14"
       },
       {
         "path": "commands/validate.md",
-        "sha256": "fc73a3871892f9e6cf869c4b38406680f4485beee98c1e0a9e5627609b3c5edc"
+        "sha256": "df9223bbb5857df46c4e06bd9ddcee3c92a6386e9a7468134ad6b195476e7fc2"
       },
       {
         "path": "lib/compat.js",
@@ -77,17 +77,17 @@
       },
       {
         "path": "package.json",
-        "sha256": "da35a225c5a0acb38f014d916f3d1823528e5c7043360e9723b645533dd03fb1"
+        "sha256": "f1a26b43628b76bd5d94e2e916295a5ae85a07b40b38235146c190546033c267"
       },
       {
         "path": "skills/loop-plan-author/SKILL.md",
-        "sha256": "45d2377b281d69f44424e67736e09be10a754e638fbd9ae48c2fb0eb8f2b0d32"
+        "sha256": "044ee382bc14d922ae86e246a95de3bd00953dce2ffd0a3e3742e61a83976458"
       },
       {
         "path": "skills/loop-plan-author/references/loop-plan-1-schema.md",
-        "sha256": "397e5fe9a830fb4eb2eaf03ab57bc6e69ca22fbad12d36541a687175cf0cf84e"
+        "sha256": "a7c0f4535c2c54ea4f50dc1b54c52446575017fdeaee73eec1c78278697a7844"
       }
     ]
   },
-  "signature": "RZ1VPslDUeJh88EzwB46xE0Z66ah5Mi6MyvIQQEoi5O7SAqvzuQ+knUDz8pFeL78qDmurWHihtLzpXz78oS6Cw=="
+  "signature": "oKsZkzNnmJ21gaUMJT4BVmZqpUVMnfwCKpB/ulN6/oLeZjvfHqFansFbQ4m7N5gsfjT0ZxDdVxBk2a6ilC12AA=="
 }

@@ -13,6 +13,7 @@
  * To regenerate: node scripts/gen-known-flags.mjs
  */
 export const KNOWN_CLI_FLAGS: readonly string[] = [
+  'action',
   'added-since',
   'adjudicate',
   'affected',
@@ -276,6 +277,7 @@ export const KNOWN_CLI_FLAGS: readonly string[] = [
   'resume',
   'retention-days',
   'reviewer',
+  'reviewers',
   'revise',
   'reward',
   'rollout-id',

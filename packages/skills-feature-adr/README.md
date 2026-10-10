@@ -1,6 +1,9 @@
 # @dzhechkov/skills-feature-adr
 
-Current package version: `1.5.18`. <!-- dz:version -->
+Feature ADR includes synchronized guidance and the versioned helper for `dz qe-rounds --source native`. Native opt-in requires compatible installed CLI/core capabilities, preserves actual independent receipts and refuses a fourth review cycle; the legacy standalone synchronous helper remains usable.
+
+
+Current package version: `1.5.19`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-feature-adr
 
@@ -57,6 +60,13 @@ Missing required sections, invalid files and exceeded UTF-8 bounds refuse coding
 the context. Existing decision recall and code-wrapper routing remain in place.
 
 ---
+
+Feature-adr structural `implementationVerified:true` has phase-specific meaning: ideation verifies
+corrected ADR, architecture and phase artifacts at the current revision/nonce, without claiming
+production code or implementation tests exist; QE requires actual implementation and relevant tests.
+False or missing structural verification still blocks. Receipt fields, boolean strength, originating
+reviewer ownership, phase/nonce/manifest binding and legacy receipt compatibility remain unchanged.
+The gate checks receipt consistency and freshness; independent reviewers judge the evidence.
 
 ## What You Get
 

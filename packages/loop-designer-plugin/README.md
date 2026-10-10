@@ -2,15 +2,23 @@
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/loop-designer-plugin
 
-> **`dz` AUTHORS, GATES and READS loops — it never RUNS one.**
+> **The plugin authors, gates and reads plans; execution uses a separate runtime.**
 
 A Claude Code plugin for **designing agent loops**: one authoring skill (`loop-plan-author`) and
 five thin command wrappers over `dz workflow` — `/loop-designer:init｜validate｜render｜lint｜trace`.
 
-The boundary above is the product, not a caveat. This plugin produces a typed `loop-plan/1` plan,
-renders it into a script, gates that script deterministically, and reads what a finished run did.
-**Executing** the script is the host harness's job — in Claude Code, `Workflow({ scriptPath })`.
-Nothing here starts a loop, and no surface in this package claims otherwise.
+This plugin produces a typed `loop-plan/1` plan, renders it into a script, gates that script,
+and reads run records. Claude Code's **Workflow host** executes the rendered JavaScript with
+`Workflow({ scriptPath })`. Separately, a current `dz` CLI exposing **`workflow run <plan.json>`**
+can interpret the plan through Codex/Claude CLI dispatchers, including from a Codex shell.
+It does not execute the rendered JavaScript or custom USER regions. Loading this plugin does
+not install a portable runner or add a loop-execution wrapper.
+
+Portable runs need `trace.emit: true`, routable families (or `--default-family`), installed and
+authenticated CLIs for the needed families, answering model probes and contained artifact paths.
+Set the actual `--coder-family` for `x-role: qe` checks. See the packaged authoring skill for
+pause/resume, budget and QE limits. The five-verb compatibility fallback below does not prove
+`workflow run` is available; check the separately invoked `dz workflow run --help`.
 
 ---
 
@@ -142,12 +150,23 @@ $ loop-designer run trace --slug review-swarm
 dz workflow-trace: no trace.jsonl under <cwd>/features/review-swarm (the loop writes its own trace only when the plan sets trace.emit: true)
 ```
 
-That last line is the boundary made visible: the script exists and passes its gate, and there is no
-trace **because nothing ran it**. Running it is a separate, deliberate act:
+This authoring sequence has not executed the script. For rendered-script execution, use the
+Claude Code Workflow host:
 
 ```js
 Workflow({ scriptPath: 'review-swarm.js' })
 ```
+
+Alternatively, set `trace.emit: true`, replace the plan's TODOs, and invoke a current `dz` directly:
+
+```bash
+dz workflow run review-swarm.plan.json --run-id review-swarm-1 --default-family codex --coder-family codex
+# On exit 75, follow the final pause envelope and resume with --resume review-swarm-1.
+```
+
+Run exits are 0 completed, 1 failed, 2 usage/invalid plan, and 75 typed pause; lint's 3 remains
+inconclusive. Portable run records default to `.dz/loop-trace/<runId>/`. These are distinct
+execution paths; source and fixture tests do not establish blanket live parity.
 
 ---
 
@@ -155,10 +174,10 @@ Workflow({ scriptPath: 'review-swarm.js' })
 
 | Vehicle | Skill | The five commands | Loop execution |
 |---|---|---|---|
-| **V1** marketplace install | yes, as `loop-designer:loop-plan-author` | yes | no — `Workflow({scriptPath})` |
-| **V2** `claude --plugin-dir <pkg>` | yes, session-scoped | yes, session-scoped | no |
-| **V3** bare skill (`init --dir .`) — MEASURED, reproducer `.fa-state/probe-frontmatter-name.md` | yes, as `loop-designer-plan-author` | **no** — commands require a plugin load | no |
-| **V4** Codex (`dz init --target codex`, or the `.codex-plugin` showcase) | yes | no — `dz` over Codex's shell instead | **no runtime at all**: author, validate, render, lint in Codex, then hand the script to Claude Code |
+| **V1** marketplace install | yes, as `loop-designer:loop-plan-author` | yes | separate Workflow host or portable CLI |
+| **V2** `claude --plugin-dir <pkg>` | yes, session-scoped | yes, session-scoped | separate Workflow host or portable CLI |
+| **V3** bare skill (`init --dir .`) — MEASURED, reproducer `.fa-state/probe-frontmatter-name.md` | yes, as `loop-designer-plan-author` | **no** — commands require a plugin load | separate runtime required |
+| **V4** Codex (`dz init --target codex`, or the `.codex-plugin` showcase) | yes | no — `dz` over Codex's shell instead | portable `dz workflow run` when CLI prerequisites are met; rendered scripts require the Workflow host |
 
 Evidence tags for that table, stated rather than implied: **V2 and V3 are MEASURED** on Claude Code
 2.1.233 (reproducers: `features/loop-designer-plugin/.fa-state/probe-plugin-root.md` and

@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "6edc66c29e3600877f0190a43d024c9c6e44182f4ac2f8ad712a22de9c3bb222"
+        "sha256": "95a60e6399e1a39d25ab9f87ea1840ac149fe3b59822571e7053a1693bedcecb"
       },
       {
         "path": "adversarial-verifier/SKILL.md",
@@ -221,7 +221,7 @@
       },
       {
         "path": "feature-adr/modules/03.5-ideation-swarm.md",
-        "sha256": "b6e505083c1b8bc92243379b72ff4667b5b91ef65fd9c2ef7407129018b3e56b"
+        "sha256": "798c04595c5b0f8c5688334413c744b6d1dda6f9ad9d4fab263c96dcc2c4187e"
       },
       {
         "path": "feature-adr/modules/04-ddd.md",
@@ -241,7 +241,7 @@
       },
       {
         "path": "feature-adr/modules/08-qe.md",
-        "sha256": "4aa7ef1dea08b8d1995d968a317da5d36a4859ec299637bdc60170cf577c87af"
+        "sha256": "759e67695b5761ff5a80e0aa89dccf18d38807063c7d911f3a80fe03bd56b82a"
       },
       {
         "path": "feature-adr/modules/09-fleet-qe.md",
@@ -345,7 +345,7 @@
       },
       {
         "path": "feature-adr/scripts/check-review-convergence.mjs",
-        "sha256": "09c74f1441d9c42603fbb84402e6826cf96535d209be9802e0e4b2fea01dac7d"
+        "sha256": "e903d0eb52a126db98a70d3851d3ed630598d10e843164683d6e48b29c93ff64"
       },
       {
         "path": "feature-adr/scripts/markdown-masker.mjs",
@@ -481,15 +481,15 @@
       },
       {
         "path": "loop-plan-author/SKILL.md",
-        "sha256": "45d2377b281d69f44424e67736e09be10a754e638fbd9ae48c2fb0eb8f2b0d32"
+        "sha256": "044ee382bc14d922ae86e246a95de3bd00953dce2ffd0a3e3742e61a83976458"
       },
       {
         "path": "loop-plan-author/references/loop-plan-1-schema.md",
-        "sha256": "397e5fe9a830fb4eb2eaf03ab57bc6e69ca22fbad12d36541a687175cf0cf84e"
+        "sha256": "a7c0f4535c2c54ea4f50dc1b54c52446575017fdeaee73eec1c78278697a7844"
       },
       {
         "path": "package.json",
-        "sha256": "5e8700cef9b19c84ad61e30e8e0490c0c122f1a99b0f89a320a46298c14f08ab"
+        "sha256": "face34481de1aadbec8c41f7fda161afbdcc1037506de88f33a005c5ccc252f7"
       },
       {
         "path": "problem-solver-enhanced/SKILL.md",
@@ -585,5 +585,5 @@
       }
     ]
   },
-  "signature": "zB+7cZJFwN3UBXBjRFwu+AUKEBUlTpkPsJw/fLM7yP+3m/2OeopmdRVGefZqDq1xtWPYqu3to9Bzb7/56FTbDQ=="
+  "signature": "9NP2MR+nEca7FI3SH1sdDVGJlx67I7OYl4xTnIZS+bE1o0RiHOyFSGA/MY/oedCFY6TS4uu0nK0X+utqcS5pCA=="
 }

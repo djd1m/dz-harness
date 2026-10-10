@@ -1406,3 +1406,4 @@ export { planReleasePackageAudit, judgeReleasePackageAudit, judgeReleaseCohortAu
 export type { ReleasePackageAuditPlan, ReleasePackageAuditResult, ReleaseWorkspaceAuditReport } from './release-package-audit.js';
 
 export { buildScopedCatalogInventory } from './scoped-catalog-inventory.js';
+export { NATIVE_QE_HISTORY_API_VERSION, createNativeQeHistoryApi } from './native-review-history.js';

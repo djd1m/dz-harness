@@ -5,7 +5,7 @@ description: Scaffold a new loop-plan/1 plan (pipeline | barrier | fanout | gate
 
 # /loop-designer:init
 
-> **`dz` AUTHORS, GATES and READS loops — it never RUNS one.**
+> **The plugin authors, gates and reads plans; execution uses a separate runtime.**
 
 Scaffolds a `loop-plan/1` plan. Pick the pattern by the SHAPE of the work: `pipeline` (one item
 through ordered stages), `barrier` (independent lanes, then one synthesis), `fanout` (spread work),

@@ -15,7 +15,7 @@
  * a counter that starts recording today could not answer for the 38 rounds already on disk, which are
  * the only real evidence this feature has.
  */
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { lstatSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 export const QE_ROUNDS_DEFAULT_CEILING = 3;
 const isRecord = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -56,6 +56,23 @@ export function readQeRounds(featureDir, opts) {
         status: 'not-established', dir, ceiling, rounds: 0,
         roundList: [], failedAttempts: [], unreadable: [], grades: [],
     };
+    // An explicit bridge selection and the legacy omitted source cannot hide local native authority.
+    const nativePaths = ['native-qe-history.jsonl', 'native-qe-head.json'].map(n => join(featureDir, '.fa-state', n));
+    if (nativePaths.some(p => { try {
+        lstatSync(p);
+        return true;
+    }
+    catch (e) {
+        return e.code !== 'ENOENT';
+    } })) {
+        try {
+            if (readdirSync(dir).some(n => /^(signoff-|failed-).*\.json$/.test(n)))
+                return {
+                    ...base, notEstablishedReason: `native-bridge-source-collision: ${nativePaths.join(', ')} and ${dir}`,
+                };
+        }
+        catch { /* The unchanged bridge reader below names absent/unreadable bridge history. */ }
+    }
     // "No bridge has ever run here" and "zero rounds so far" are DIFFERENT facts. Reporting the first
     // as the second would tell a caller to keep going on the basis of a measurement never taken.
     let entries;

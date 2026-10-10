@@ -1,7 +1,7 @@
 {
   "name": "loop-designer",
   "version": "0.1.0",
-  "description": "dz AUTHORS, GATES and READS loops — it never RUNS one. Author agent loops as typed loop-plan/1 plans; the rendered script is executed by the host harness via Workflow({ scriptPath }).",
+  "description": "The plugin authors, gates and reads plans; execution uses a separate runtime. Author loop-plan/1 plans with five plugin wrappers. Execute rendered scripts with the Claude Code Workflow host, or interpret plans separately with a current dz workflow run CLI and its dispatch prerequisites.",
   "author": {
     "name": "Dmitry Zhechkov",
     "email": "jechkov.dmitriy@gmail.com"
