@@ -5,7 +5,8 @@
 (структурный Head-First гейт + поведенческая верификация сайта). Колонка «онлайн» — живой
 GitHub Pages, курс открывается в браузере без скачивания.
 
-[Engineering pipeline — карты действий](./engineering-pipeline/): статичные превью
+[Engineering pipeline — карты действий](./engineering-pipeline/)
+([English](./engineering-pipeline/en/), курсы на русском): статичные превью
 и анимированные схемы семейства, feature-adr и decision-mockups с переходами к курсам.
 
 | Курс | Онлайн | Пакет | Какую задачу решает? |

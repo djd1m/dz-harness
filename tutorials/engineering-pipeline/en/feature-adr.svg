@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="980" viewBox="0 0 390 980" role="img" aria-labelledby="title desc">
+<title id="title">feature-adr — 10-second cycle</title>
+<desc id="desc">The feature-adr loop: agreed contracts, an architecture decision record (ADR), implementation, independent quality review (QE), evidence, and readiness. If QE finds a problem, fix the implementation and repeat the review. Readiness requires evidence that the result meets the acceptance criteria.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 1l8 4-8 4" fill="none" stroke="#385360" stroke-width="2"/></marker><marker id="repair-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 1l8 4-8 4" fill="none" stroke="#c5f277" stroke-width="2"/></marker></defs>
+<style>svg{background:#0b141b;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#e9f3f6}
+text{fill:#e9f3f6}.title{font-size:25px;font-weight:750;letter-spacing:-.5px}.subtitle,.body{font-size:15px}.subtitle,.note{fill:#adbec7}.heading{font-size:18px;font-weight:650}.label{font-size:14px;font-weight:700;letter-spacing:.4px;fill:#66d9ed}.note{font-size:15px}.surface{fill:#12232d;stroke:#385360;stroke-width:1.5}.connector,.branch{fill:none;stroke:#385360;stroke-width:2}.connector{marker-end:url(#arrow)}.repair{stroke:#c5f277;marker-end:url(#repair-arrow)}.track{fill:#385360}.meter{fill:#66d9ed;transform-origin:40px 0}.mini{fill:none;stroke:#66d9ed;stroke-width:2}.mini-line{stroke:#adbec7;stroke-width:2;stroke-linecap:round}
+.panel .surface{animation:focus 10s linear infinite}.phase-1 .surface{animation-delay:-8.3s}.phase-2 .surface{animation-delay:-6.6s}.phase-3 .surface{animation-delay:-4.9s}.phase-4 .surface{animation-delay:-3.2s}.phase-5 .surface{animation-delay:-1.5s}
+.meter{animation:cycle 10s linear infinite}.repair{stroke-dasharray:6 5;animation:travel 10s linear infinite}
+@keyframes focus{0%,15%{stroke:#66d9ed;fill:#183744}20%,95%{stroke:#385360;fill:#12232d}100%{stroke:#66d9ed;fill:#183744}}
+@keyframes cycle{0%{transform:scaleX(.02)}95%,100%{transform:scaleX(1)}}
+@keyframes travel{from{stroke-dashoffset:0}to{stroke-dashoffset:-110}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.meter{transform:none}.repair{stroke-dasharray:none}}</style>
+<rect width="390" height="980" fill="#0b141b" rx="16"/>
+<text x="24" y="34" class="label">ENGINEERING / ACTION MAP</text>
+<text x="24" y="73" class="title">feature-adr</text>
+<text x="24" y="102" class="subtitle">One feature. Verified delivery.</text>
+<path class="connector" d="M203 216v22"/>
+<path class="connector" d="M203 326v22"/>
+<path class="connector" d="M203 436v22"/>
+<path class="connector" d="M203 546v22"/>
+<path class="connector" d="M203 656v22"/>
+<path class="connector repair" d="M40 502H18V392h22"/>
+<g class="panel phase-0"><rect class="surface" x="40" y="128" width="326" height="88" rx="12"/>
+<text x="56" y="150" class="label">01 / CONTRACTS</text>
+<text x="56" y="175" class="heading">Agree on the expected result</text>
+<text x="56" y="198" class="body">Requirements and acceptance criteria.</text></g>
+<g class="panel phase-1"><rect class="surface" x="40" y="238" width="326" height="88" rx="12"/>
+<text x="56" y="260" class="label">02 / ADR</text>
+<text x="56" y="285" class="heading">Explain the decision</text>
+<text x="56" y="308" class="body">Choice, reasons and trade-offs.</text></g>
+<g class="panel phase-2"><rect class="surface" x="40" y="348" width="326" height="88" rx="12"/>
+<text x="56" y="370" class="label">03 / IMPLEMENTATION</text>
+<text x="56" y="395" class="heading">Write and test the code</text>
+<text x="56" y="418" class="body">Follow the contracts and the ADR.</text></g>
+<g class="panel phase-3"><rect class="surface" x="40" y="458" width="326" height="88" rx="12"/>
+<text x="56" y="480" class="label">04 / INDEPENDENT QE</text>
+<text x="56" y="505" class="heading">Get an independent review</text>
+<text x="56" y="528" class="body">Another model checks for gaps.</text></g>
+<g class="panel phase-4"><rect class="surface" x="40" y="568" width="326" height="88" rx="12"/>
+<text x="56" y="590" class="label">05 / EVIDENCE</text>
+<text x="56" y="615" class="heading">Support the result with facts</text>
+<text x="56" y="638" class="body">Tests, measurements and verification.</text></g>
+<g class="panel phase-5"><rect class="surface" x="40" y="678" width="326" height="88" rx="12"/>
+<text x="56" y="700" class="label">06 / READINESS</text>
+<text x="56" y="725" class="heading">Confirm acceptance</text>
+<text x="56" y="748" class="body">Acceptance is backed by evidence.</text></g>
+
+<text x="40" y="796" class="note">QE found a problem → fix the code</text>
+<text x="40" y="819" class="note">→ repeat the independent review.</text>
+<text x="40" y="842" class="note">The loop on the left shows the return.</text>
+<rect class="track" x="40" y="908" width="326" height="4" rx="2"/>
+<rect class="meter" x="40" y="908" width="326" height="4" rx="2"/>
+<text x="40" y="938" class="note">Step highlights · 10-second cycle</text>
+</svg>
