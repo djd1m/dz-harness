@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="830" viewBox="0 0 390 830" role="img" aria-labelledby="title desc">
+<title id="title">Инженерный конвейер — статичная схема</title>
+<desc id="desc">Семейство Engineering pipeline: требование задаёт результат, решение выбирает путь, доставка создаёт изменение, проверка подтверждает его. decision-mockups помогает получить ответ владельца на развилке; feature-adr ведёт выбранную фичу через доставку и проверку.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 1l8 4-8 4" fill="none" stroke="#385360" stroke-width="2"/></marker><marker id="repair-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 1l8 4-8 4" fill="none" stroke="#c5f277" stroke-width="2"/></marker></defs>
+<style>svg{background:#0b141b;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#e9f3f6}
+text{fill:#e9f3f6}.title{font-size:25px;font-weight:750;letter-spacing:-.5px}.subtitle,.body{font-size:15px}.subtitle,.note{fill:#adbec7}.heading{font-size:18px;font-weight:650}.label{font-size:14px;font-weight:700;letter-spacing:.4px;fill:#66d9ed}.note{font-size:15px}.surface{fill:#12232d;stroke:#385360;stroke-width:1.5}.connector,.branch{fill:none;stroke:#385360;stroke-width:2}.connector{marker-end:url(#arrow)}.repair{stroke:#c5f277;marker-end:url(#repair-arrow)}.track{fill:#385360}.meter{fill:#66d9ed;transform-origin:40px 0}.mini{fill:none;stroke:#66d9ed;stroke-width:2}.mini-line{stroke:#adbec7;stroke-width:2;stroke-linecap:round}</style>
+<rect width="390" height="830" fill="#0b141b" rx="16"/>
+<text x="24" y="34" class="label">ENGINEERING / КАРТА ДЕЙСТВИЙ</text>
+<text x="24" y="73" class="title">Инженерный конвейер</text>
+<text x="24" y="102" class="subtitle">От задачи к проверяемому результату</text>
+<path class="connector" d="M203 224v32"/>
+<path class="connector" d="M203 344v32"/>
+<path class="connector" d="M203 464v32"/>
+
+<g class="panel phase-0"><rect class="surface" x="40" y="136" width="326" height="88" rx="12"/>
+<text x="56" y="158" class="label">01 / ТРЕБОВАНИЕ</text>
+<text x="56" y="183" class="heading">Что должно измениться?</text>
+<text x="56" y="206" class="body">Результат и критерии приёмки.</text></g>
+<g class="panel phase-1"><rect class="surface" x="40" y="256" width="326" height="88" rx="12"/>
+<text x="56" y="278" class="label">02 / РЕШЕНИЕ</text>
+<text x="56" y="303" class="heading">Какой путь выбираем?</text>
+<text x="56" y="326" class="body">decision-mockups → ответ владельца.</text></g>
+<g class="panel phase-2"><rect class="surface" x="40" y="376" width="326" height="88" rx="12"/>
+<text x="56" y="398" class="label">03 / ДОСТАВКА</text>
+<text x="56" y="423" class="heading">Сделать выбранную фичу</text>
+<text x="56" y="446" class="body">feature-adr → от контрактов до кода.</text></g>
+<g class="panel phase-3"><rect class="surface" x="40" y="496" width="326" height="88" rx="12"/>
+<text x="56" y="518" class="label">04 / ПРОВЕРКА</text>
+<text x="56" y="543" class="heading">Подтвердить результат</text>
+<text x="56" y="566" class="body">feature-adr → QE и доказательства.</text></g>
+
+<text x="40" y="624" class="note">Два пакета — разные точки помощи.</text>
+<text x="40" y="647" class="note">Решение требует ответа владельца.</text>
+<text x="40" y="670" class="note">Готовность требует доказательств.</text>
+<rect class="track" x="40" y="758" width="326" height="4" rx="2"/>
+<rect class="meter" x="40" y="758" width="326" height="4" rx="2"/>
+<text x="40" y="788" class="note">Все шаги · без анимации</text>
+</svg>

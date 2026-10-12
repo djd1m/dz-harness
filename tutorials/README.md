@@ -5,6 +5,9 @@
 (структурный Head-First гейт + поведенческая верификация сайта). Колонка «онлайн» — живой
 GitHub Pages, курс открывается в браузере без скачивания.
 
+[Engineering pipeline — карты действий](./engineering-pipeline/): статичные превью
+и анимированные схемы семейства, feature-adr и decision-mockups с переходами к курсам.
+
 | Курс | Онлайн | Пакет | Какую задачу решает? |
 |---|---|---|---|
 | [adapters](./adapters/) | **[открыть курс](https://djd1m.github.io/dz-harness/tutorials/adapters/)** | [@dzhechkov/adapter-claude](https://www.npmjs.com/package/@dzhechkov/adapter-claude) | Показывает, как один навык dz превращается в формат каждого редактора — и что при этом теряется. |

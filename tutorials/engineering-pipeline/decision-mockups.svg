@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="1000" viewBox="0 0 390 1000" role="img" aria-labelledby="title desc">
+<title id="title">decision-mockups — цикл 10 секунд</title>
+<desc id="desc">Вопрос: как показать 30 задач? Вариант A — общий список, проще внедрение, но поиск вручную. Вариант B — группы по статусу, быстрее обзор, но нужны правила группировки. Макет нужен только при значимых видимых различиях. Владелец явно отвечает A, B или просит уточнить.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 1l8 4-8 4" fill="none" stroke="#385360" stroke-width="2"/></marker><marker id="repair-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M1 1l8 4-8 4" fill="none" stroke="#c5f277" stroke-width="2"/></marker></defs>
+<style>svg{background:#0b141b;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#e9f3f6}
+text{fill:#e9f3f6}.title{font-size:25px;font-weight:750;letter-spacing:-.5px}.subtitle,.body{font-size:15px}.subtitle,.note{fill:#adbec7}.heading{font-size:18px;font-weight:650}.label{font-size:14px;font-weight:700;letter-spacing:.4px;fill:#66d9ed}.note{font-size:15px}.surface{fill:#12232d;stroke:#385360;stroke-width:1.5}.connector,.branch{fill:none;stroke:#385360;stroke-width:2}.connector{marker-end:url(#arrow)}.repair{stroke:#c5f277;marker-end:url(#repair-arrow)}.track{fill:#385360}.meter{fill:#66d9ed;transform-origin:40px 0}.mini{fill:none;stroke:#66d9ed;stroke-width:2}.mini-line{stroke:#adbec7;stroke-width:2;stroke-linecap:round}
+.panel .surface{animation:focus 10s linear infinite}.phase-1 .surface{animation-delay:-8.3s}.phase-2 .surface{animation-delay:-6.6s}.phase-3 .surface{animation-delay:-4.9s}.phase-4 .surface{animation-delay:-3.2s}.phase-5 .surface{animation-delay:-1.5s}
+.meter{animation:cycle 10s linear infinite}.repair{stroke-dasharray:6 5;animation:travel 10s linear infinite}
+@keyframes focus{0%,15%{stroke:#66d9ed;fill:#183744}20%,95%{stroke:#385360;fill:#12232d}100%{stroke:#66d9ed;fill:#183744}}
+@keyframes cycle{0%{transform:scaleX(.02)}95%,100%{transform:scaleX(1)}}
+@keyframes travel{from{stroke-dashoffset:0}to{stroke-dashoffset:-110}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.meter{transform:none}.repair{stroke-dasharray:none}}</style>
+<rect width="390" height="1000" fill="#0b141b" rx="16"/>
+<text x="24" y="34" class="label">ENGINEERING / КАРТА ДЕЙСТВИЙ</text>
+<text x="24" y="73" class="title">decision-mockups</text>
+<text x="24" y="102" class="subtitle">Показать развилку. Получить ответ.</text>
+<path class="connector" d="M203 216v18H18v172h22"/><path class="connector" d="M18 296h22"/><path class="connector" d="M366 296h16v180H203v14"/><path class="branch" d="M366 406h16"/><path class="connector" d="M203 672v28"/>
+
+<g class="panel phase-0"><rect class="surface" x="40" y="128" width="326" height="88" rx="12"/>
+<text x="56" y="150" class="label">01 / НАСТОЯЩИЙ ВОПРОС</text>
+<text x="56" y="175" class="heading">Как показать 30 задач?</text>
+<text x="56" y="198" class="body">Быстро найти работу на день.</text></g>
+<g class="panel phase-1"><rect class="surface" x="40" y="252" width="326" height="88" rx="12"/>
+<text x="56" y="274" class="label">02 / ВАРИАНТ A</text>
+<text x="56" y="299" class="heading">Общий список</text>
+<text x="56" y="322" class="body">Просто внедрить; поиск вручную.</text></g>
+<g class="panel phase-2"><rect class="surface" x="40" y="362" width="326" height="88" rx="12"/>
+<text x="56" y="384" class="label">02 / ВАРИАНТ B</text>
+<text x="56" y="409" class="heading">Группы по статусу</text>
+<text x="56" y="432" class="body">Быстрее обзор; настройка групп.</text></g>
+<g class="panel phase-4"><rect class="surface" x="40" y="700" width="326" height="88" rx="12"/>
+<text x="56" y="722" class="label">04 / ОТВЕТ ВЛАДЕЛЬЦА</text>
+<text x="56" y="747" class="heading">A, B или «уточнить»</text>
+<text x="56" y="770" class="body">Ждём ответа владельца.</text></g>
+<g class="panel phase-3"><rect class="surface" x="40" y="490" width="326" height="182" rx="12"/>
+<text x="56" y="514" class="label">03 / МАКЕТ, ЕСЛИ РАЗНИЦА ВИДНА</text>
+<rect class="mini" x="56" y="534" width="132" height="84" rx="6"/><path class="mini-line" d="M70 548h100"/>
+<path class="mini-line" d="M70 568h100"/>
+<path class="mini-line" d="M70 588h100"/>
+<rect class="mini" x="218" y="534" width="132" height="84" rx="6"/>
+<path class="mini" d="M226 544h51v26h-51z M289 544h51v26h-51z"/>
+<path class="mini-line" d="M228 584h47 M291 584h47 M228 600h47"/>
+<text x="56" y="645" class="body">A: список</text><text x="218" y="645" class="body">B: группы</text></g>
+<text x="40" y="820" class="note">Макет — только если разница видна.</text>
+<text x="40" y="843" class="note">Стоимость вариантов остаётся рядом.</text>
+<text x="40" y="866" class="note">Ответ возвращается в работу.</text>
+<rect class="track" x="40" y="928" width="326" height="4" rx="2"/>
+<rect class="meter" x="40" y="928" width="326" height="4" rx="2"/>
+<text x="40" y="958" class="note">Подсветка шагов · цикл 10 секунд</text>
+</svg>
