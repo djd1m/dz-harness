@@ -1,0 +1,1 @@
+{"version":3,"file":"sqlite-driver.d.ts","sourceRoot":"","sources":["../src/sqlite-driver.ts"],"names":[],"mappings":"AAMA;;;;GAIG;AACH,wBAAgB,sBAAsB,IAAI,KACxC,QAAQ,EAAE,MAAM,EAAE,OAAO,CAAC,EAAE;IAAE,QAAQ,CAAC,EAAE,OAAO,CAAC;IAAC,aAAa,CAAC,EAAE,OAAO,CAAA;CAAE,KACxE,GAAG,CAEP"}

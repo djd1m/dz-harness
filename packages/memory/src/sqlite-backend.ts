@@ -8,16 +8,14 @@
  * @packageDocumentation
  */
 
-import { createRequire } from 'node:module';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 
 import type { MemoryBackend, MemoryQuery, MemoryRecord } from './backend.js';
+import { loadMemorySqliteDriver } from './sqlite-driver.js';
 import { openSqliteReadOnly, SqliteReadOnlyStore } from './sqlite-readonly.js';
 import type { OpenReadOnlyOptions, ReadOnlyStore } from './sqlite-readonly.js';
 import { tokenize, hasSearchableTerms } from './tokenize.js';
-
-const require = createRequire(import.meta.url);
 
 const DEFAULT_LIMIT = 20;
 
@@ -277,9 +275,7 @@ export class SqliteBackend implements MemoryBackend {
   /** Open (or create) a SQLite database at the given path. */
   static open(filePath: string): SqliteBackend {
     mkdirSync(dirname(filePath), { recursive: true });
-    // Dynamic require — better-sqlite3 must be available at runtime
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const Database = require('better-sqlite3');
+    const Database = loadMemorySqliteDriver();
     const db = new Database(filePath);
     db.pragma('journal_mode = WAL');
     db.pragma('synchronous = NORMAL');

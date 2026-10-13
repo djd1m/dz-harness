@@ -2,8 +2,10 @@
 
 Feature ADR includes synchronized guidance and the versioned helper for `dz qe-rounds --source native`. Native opt-in requires compatible installed CLI/core capabilities, preserves actual independent receipts and refuses a fourth review cycle; the legacy standalone synchronous helper remains usable.
 
+If bytes change before first evaluation, native `evaluate` retains valid old-snapshot receipt origins and conditions while reporting `not-established/native-repair-required`. Follow with explicit `begin-repair` and fresh independent verification of the new snapshot. Recovery preserves authority and the three-cycle ceiling; old evidence never closes changed bytes.
 
-Current package version: `1.5.19`. <!-- dz:version -->
+
+Current package version: `1.5.20`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-feature-adr
 

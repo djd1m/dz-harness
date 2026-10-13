@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4f6120e0889db4e780cf8d7e55d1a0e4378e8954ad85292d2b3ea17b884f4d5a"
+          "content": "cf1846d64487103fc688270b3f806adab159d052e987fc13d207fd38785de121"
         }
       ]
     },
@@ -325,7 +325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "62b60365ba990ae1be666b5190e4f01d4a60989ddc62cea687e3823a4f0bb2cc"
+          "content": "bea7f2e37576e0211bb6d9551b73d00536c42572614300ad1703e510fda9d6dd"
         }
       ]
     },
@@ -335,7 +335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "664eb414c5438dda67b5e6b2e9c3281a20c38c4b85a1e9ee48b004a1e7c08d24"
+          "content": "a869255278c6ea8e1ebcea485d5ba469f4f2d0c2ff219318d8142c950237118b"
         }
       ]
     },
@@ -345,7 +345,47 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "12ba0851550864589cb8fad02950cfc7ff468bdf0e87b429ba4bfc6a7294e28d"
+          "content": "9f9452b3438cf4bc6086885c313c1f22cf14fd6d5a7c05fed8a7e788d45c0d9b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/sqlite-driver.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a8bb140284f5290f75401c2da7e7b9b5b790b7ae7ec809b9476cf09a30a84db1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/sqlite-driver.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "19d5824ac4a721c09a577b35c5f3c5d260b152e310d295da2116817f5cbead0a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/sqlite-driver.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f85d5aa7494a62f065bdd91fcba0859d4e3ece4b6e6305fdd384c9b4672b8422"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/sqlite-driver.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "462d1ba21729e7ae759dfde08541b9c41981eb2d4affe4ce6fb793a6d2c2429b"
         }
       ]
     },
@@ -405,7 +445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "09688dd92c8d5956865795394ebc47d69108997281a891aa54ce81d5a00c6e36"
+          "content": "4c1f829b50b6ea6f59cf7182bca69b2d97b4ee6a2b5f9e06657bf7cb97fb412a"
         }
       ]
     },
@@ -415,7 +455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7dbb93d4bd754e761e73b82ea7cd944743d41b44e4d376af871145555e136f45"
+          "content": "bbdaca3400dce43b5e5b7ca6f6542ed07a2d959abe3c07c0fa66ffa268b55c92"
         }
       ]
     },
@@ -425,7 +465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "03ddeec35c1389f249b0595f2612b8c3f86e5069b4c3f1be1e30eb6f6949bf1c"
+          "content": "9ad37e3919461ddac220309ddcf61fdd72d91a3ee819698f0f48392b459aa46a"
         }
       ]
     },
@@ -479,7 +519,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "be22a1ce21faa30e41b9e8b161e4c9c59b2ed4981d722ddc782b4afe99de8e8d"
+          "value": "df1d541562d09c0e9bbc99d0d6de0fc6d2987a27f82bd0053998886fc49a754d"
         }
       ]
     },
@@ -559,7 +599,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d91cff21f894ae44483b06807fdbbe4958bee00292c0cd85469e2c5f3374c055"
+          "content": "674f8210219cdb7c4834b2c0272afc3ad7bca56abefd43da953f6c8dd8fdfc09"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/sqlite-driver.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e46a83cdc712d5760eea580e8aa3c275d2615c7d17ab772b573723e66dbb9472"
         }
       ]
     },
@@ -579,7 +629,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c973b0eeae5567af4c519c178ccb48d496fa1cf2ad226363b26ecc2e7d11dc45"
+          "content": "a8c422063c10604442ccf424d1b23009ee8fd24e01e12fea46f92d800bf9ce42"
         }
       ]
     },

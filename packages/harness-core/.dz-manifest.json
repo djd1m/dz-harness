@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "20caa5f7b107bd80cd3696337a371ff2b9d0ee1c92306a9e515f5b78ca828a78"
+        "sha256": "e50fc4cfbc3dd5d77bf2141fbb25500271cd02b873c5d3c28a3761e8623a0b99"
       },
       {
         "path": "dist/__tests__/golden-baseline.test.d.ts",
@@ -3229,7 +3229,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "2fec5c2a7b06e4c40b6e818900bfd8e573045ca3275ad5df9beb7a3fb7ebfc96"
+        "sha256": "062bf93d32fc560f5cf906ea7ee0ca309e8f07d67382d17eec982ffad5d71d25"
       },
       {
         "path": "src/__tests__/golden-baseline.test.ts",
@@ -4057,5 +4057,5 @@
       }
     ]
   },
-  "signature": "McmHLYEa1kJugtANfdQpXpTHjzoZc9y+cMjol2Ijd5+YcS1z/0zlfWnnz6Pnc5vjvFBW5oaPS9lAH9fD2MmgDA=="
+  "signature": "WaMgjHpxyH+iv5JA/nkpzFFi5TUy9oWPcD1mhQ/vEXNdtoTqQB/h/Yq4Q8Cq1GSA7r3JQu81EVWgEvVr1FyhDA=="
 }

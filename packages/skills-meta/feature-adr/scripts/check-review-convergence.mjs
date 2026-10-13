@@ -455,16 +455,21 @@ export function runNativeReviewGate({ action, repo, feature, reviewers, api }) {
     if (action === 'prepare' && host && host.snapshot.revision !== revision && (active?.witnessed || priorOrigins)) throw Error('native-repair-required')
     if (action === 'evaluate') {
       if (!active || !host) throw Error('native-prepare-required')
-      if (!same(manifest, host.snapshot.manifest)) throw Error('native-repair-required')
-      const origins = nativeReceipt(host, receipt, manifest)
-      let verdict = receipt === null ? result('qe', 'not-established', revision, [receiptProblem || 'reviewer-receipt-missing']) : evaluateReviewConvergence(host, receipt, manifest)
+      const drift = !same(manifest, host.snapshot.manifest)
+      // A surviving receipt may witness admitted A after bytes become B. It cannot
+      // accept B: retain A and its origins, then require a separate begin-repair.
+      // Current bytes still participate in the observation digest and every fence.
+      const origins = priorOrigins
+      let verdict = drift ? result('qe', 'not-established', host.snapshot.revision, ['native-repair-required'])
+        : receipt === null ? result('qe', 'not-established', revision, [receiptProblem || 'reviewer-receipt-missing']) : evaluateReviewConvergence(host, receipt, manifest)
       // Closure is deliberately stronger than originating partial/unresolved evidence.
       if (verdict.verdict === 'closed' && checkpoint && !checkpointClosure) verdict = result('qe', 'not-established', revision, ['historical-checkpoint-own-verification-missing'])
       const preserved = new Map(host.conditions.map(c => [c.id, c]))
       if (origins) {
         for (const r of receipt.reviews) for (const c of r.conditions.concat(r.newRisks.conditions)) preserved.set(c.id, c)
-        if (receipt.author) for (const c of receipt.author.newRisks.conditions) if (c.scope.every(path => manifest.some(p => p.path === path))) preserved.set(c.id, c)
+        if (receipt.author) for (const c of receipt.author.newRisks.conditions) if (c.scope.every(path => host.snapshot.manifest.some(p => p.path === path))) preserved.set(c.id, c)
       }
+      if (drift) verdict.unresolved = [...preserved.keys()]
       if (verdict.verdict === 'closed' && checkpointClosure) verdict = { ...verdict, checkpointClosure }
       const next = { ...host, conditions: [...preserved.values()], reviewSeen: host.reviewSeen || Boolean(origins), changedPaths: verdict.verdict === 'closed' ? [] : host.changedPaths }
       return { host: next, snapshot: host.snapshot, origins: origins || [], receiptDigest: observed[1] === null ? null : digest(observed[1]), reason: origins ? null : verdict.reasons[0] || 'native-no-valid-origin', observationDigest, result: verdict, admission: false }

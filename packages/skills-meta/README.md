@@ -2,8 +2,10 @@
 
 Feature ADR native QE opt-in uses the installed CLI-owned convergence helper, bounded measurement and durable fixed-three-cycle history. Legacy synchronous standalone convergence remains supported; see feature-adr/modules/08-qe.md for prepare, evaluate, explicit repair and failure limits.
 
+If bytes change before first evaluation, native `evaluate` retains valid old-snapshot receipt origins and conditions while reporting `not-established/native-repair-required`. Follow with explicit `begin-repair` and fresh independent verification of the new snapshot. Recovery preserves authority and the three-cycle ceiling; old evidence never closes changed bytes.
 
-Current package version: `0.9.68`. <!-- dz:version -->
+
+Current package version: `0.9.69`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-meta
 

@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-10-10T19:43:01.067Z",
+  "builtAt": "2026-10-13T20:09:41.720Z",
   "builtFrom": "dz-harness-hub (private monorepo)",
   "rule": "each package mirrors exactly its npm-pack tarball inventory — the already-public surface",
   "requested": 56,
@@ -123,52 +123,52 @@
   "packages": [
     {
       "name": "@dzhechkov/adapter-agents-md",
-      "version": "0.1.9",
+      "version": "0.1.10",
       "files": 10
     },
     {
       "name": "@dzhechkov/adapter-claude",
-      "version": "0.2.9",
+      "version": "0.2.10",
       "files": 25
     },
     {
       "name": "@dzhechkov/adapter-codex",
-      "version": "0.2.8",
+      "version": "0.2.9",
       "files": 10
     },
     {
       "name": "@dzhechkov/adapter-copilot",
-      "version": "0.1.9",
+      "version": "0.1.10",
       "files": 10
     },
     {
       "name": "@dzhechkov/adapter-cursor",
-      "version": "0.1.9",
+      "version": "0.1.10",
       "files": 10
     },
     {
       "name": "@dzhechkov/adapter-gemini",
-      "version": "0.1.9",
+      "version": "0.1.10",
       "files": 10
     },
     {
       "name": "@dzhechkov/adapter-hermes",
-      "version": "0.2.8",
+      "version": "0.2.9",
       "files": 10
     },
     {
       "name": "@dzhechkov/adapter-openclaude",
-      "version": "0.1.8",
+      "version": "0.1.9",
       "files": 10
     },
     {
       "name": "@dzhechkov/adapter-opencode",
-      "version": "0.2.8",
+      "version": "0.2.9",
       "files": 10
     },
     {
       "name": "@dzhechkov/adapter-windsurf",
-      "version": "0.1.9",
+      "version": "0.1.10",
       "files": 10
     },
     {
@@ -193,12 +193,12 @@
     },
     {
       "name": "@dzhechkov/harness-cli",
-      "version": "0.8.49",
+      "version": "0.8.50",
       "files": 67
     },
     {
       "name": "@dzhechkov/harness-core",
-      "version": "0.8.56",
+      "version": "0.8.57",
       "files": 1015
     },
     {
@@ -213,7 +213,7 @@
     },
     {
       "name": "@dzhechkov/keysarium",
-      "version": "1.7.12",
+      "version": "1.7.13",
       "files": 252
     },
     {
@@ -233,8 +233,8 @@
     },
     {
       "name": "@dzhechkov/memory",
-      "version": "0.2.23",
-      "files": 60
+      "version": "0.2.24",
+      "files": 65
     },
     {
       "name": "@dzhechkov/p-replicator",
@@ -318,7 +318,7 @@
     },
     {
       "name": "@dzhechkov/skills-feature-adr",
-      "version": "1.5.19",
+      "version": "1.5.20",
       "files": 86
     },
     {
@@ -333,7 +333,7 @@
     },
     {
       "name": "@dzhechkov/skills-meta",
-      "version": "0.9.68",
+      "version": "0.9.69",
       "files": 147
     },
     {

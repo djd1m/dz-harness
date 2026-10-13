@@ -20,17 +20,13 @@
  *
  * @packageDocumentation
  */
-import { createRequire } from 'node:module';
 import { existsSync, copyFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
+import { loadMemorySqliteDriver } from './sqlite-driver.js';
 import { searchPreparedRecords, FTS5_SEARCH_SQL, FTS5_SEARCH_SKILL_SQL, ALL_SQL, COUNT_SQL, BY_SKILL_SQL, rowToRecord, } from './sqlite-backend.js';
-const require = createRequire(import.meta.url);
 function defaultDatabaseCtor() {
-    // Dynamic require — better-sqlite3 must be available at runtime, same discipline as
-    // `SqliteBackend.open` (sqlite-backend.ts).
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    return require('better-sqlite3');
+    return loadMemorySqliteDriver();
 }
 function errorMessage(err) {
     return err instanceof Error ? err.message : String(err);
@@ -81,7 +77,7 @@ export function openSqliteReadOnly(filePath, opts) {
         if (inPlaceDb !== undefined)
             closeQuietly(inPlaceDb);
         if (!isCantOpenError(stepOneErr)) {
-            throw new Error(`failed to open ${filePath} for reading: ${errorMessage(stepOneErr)}`);
+            throw new Error(`failed to open ${filePath} for reading: ${errorMessage(stepOneErr)}`, { cause: stepOneErr });
         }
         // Step 2 — copy into a fresh tmp directory.
         let tmpDir;
@@ -113,7 +109,7 @@ export function openSqliteReadOnly(filePath, opts) {
                 closeQuietly(copyDb);
             if (tmpDir !== undefined)
                 removeQuietly(tmpDir);
-            throw new Error(`failed to open ${filePath} for reading: ${errorMessage(stepTwoErr)}`);
+            throw new Error(`failed to open ${filePath} for reading: ${errorMessage(stepTwoErr)}`, { cause: stepTwoErr });
         }
     }
 }

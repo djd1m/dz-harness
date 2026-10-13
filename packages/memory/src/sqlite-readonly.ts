@@ -21,12 +21,12 @@
  * @packageDocumentation
  */
 
-import { createRequire } from 'node:module';
 import { existsSync, copyFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 
 import type { MemoryQuery, MemoryRecord } from './backend.js';
+import { loadMemorySqliteDriver } from './sqlite-driver.js';
 import {
   searchPreparedRecords,
   FTS5_SEARCH_SQL,
@@ -36,8 +36,6 @@ import {
   BY_SKILL_SQL,
   rowToRecord,
 } from './sqlite-backend.js';
-
-const require = createRequire(import.meta.url);
 
 /** Constructor shape `openSqliteReadOnly` needs from `better-sqlite3` (or a caller-supplied one). */
 type DatabaseCtor = new (p: string, o?: { readonly?: boolean; fileMustExist?: boolean }) => any;
@@ -67,10 +65,7 @@ export interface OpenReadOnlyOptions {
 }
 
 function defaultDatabaseCtor(): DatabaseCtor {
-  // Dynamic require — better-sqlite3 must be available at runtime, same discipline as
-  // `SqliteBackend.open` (sqlite-backend.ts).
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  return require('better-sqlite3');
+  return loadMemorySqliteDriver();
 }
 
 function errorMessage(err: unknown): string {
@@ -124,7 +119,7 @@ export function openSqliteReadOnly(filePath: string, opts?: OpenReadOnlyOptions)
   } catch (stepOneErr) {
     if (inPlaceDb !== undefined) closeQuietly(inPlaceDb);
     if (!isCantOpenError(stepOneErr)) {
-      throw new Error(`failed to open ${filePath} for reading: ${errorMessage(stepOneErr)}`);
+      throw new Error(`failed to open ${filePath} for reading: ${errorMessage(stepOneErr)}`, { cause: stepOneErr });
     }
 
     // Step 2 — copy into a fresh tmp directory.
@@ -154,7 +149,7 @@ export function openSqliteReadOnly(filePath: string, opts?: OpenReadOnlyOptions)
       // leaves the tmp directory behind too. Close before removing (fix round 1, HIGH #1).
       if (copyDb !== undefined) closeQuietly(copyDb);
       if (tmpDir !== undefined) removeQuietly(tmpDir);
-      throw new Error(`failed to open ${filePath} for reading: ${errorMessage(stepTwoErr)}`);
+      throw new Error(`failed to open ${filePath} for reading: ${errorMessage(stepTwoErr)}`, { cause: stepTwoErr });
     }
   }
 }

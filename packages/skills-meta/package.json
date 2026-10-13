@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/skills-meta",
-  "version": "0.9.68",
+  "version": "0.9.69",
   "scripts": {
     "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
   },

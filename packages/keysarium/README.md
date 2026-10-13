@@ -2,8 +2,10 @@
 
 The bundled Feature ADR projection supports installed-CLI native QE history opt-in with a fixed three-cycle ceiling and explicit repair. Its canonical helper/guidance remain synchronized; compatible core/CLI capabilities are required, and historical bridge behavior remains available.
 
+If bytes change before first evaluation, native `evaluate` retains valid old-snapshot receipt origins and conditions while reporting `not-established/native-repair-required`. Follow with explicit `begin-repair` and fresh independent verification of the new snapshot. Recovery preserves authority and the three-cycle ceiling; old evidence never closes changed bytes.
 
-Current package version: `1.7.12`. <!-- dz:version -->
+
+Current package version: `1.7.13`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/keysarium
 

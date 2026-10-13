@@ -5,6 +5,10 @@ Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree
 The harness **memory layer** — records skill outcomes, ranks skills, and imports
 host memory files.
 
+Read-only SQLite open failures preserve the original exception in `Error.cause`, including native SQLite codes and module-resolution diagnostics. The outer message still names the database path; the existing in-place and temporary-copy retry behavior remains the same.
+
+Default SQLite readers and writers lazily load the memory package's selected `better-sqlite3` entry by its physical path, so dependency symlinks share one native constructor. Supplying `openSqliteReadOnly(..., { Database })` still uses that constructor directly; importing memory does not require the optional SQLite dependency.
+
 ## What it provides
 
 | Module | Exports | Purpose |
