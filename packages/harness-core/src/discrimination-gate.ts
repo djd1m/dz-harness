@@ -81,7 +81,9 @@ export type CannotIsolateReason =
   | 'inconsistent-evidence'
   | 'tip-control-missing'
   | 'tip-evidence-missing'
-  | 'timeout';
+  | 'timeout'
+  | 'baseline-dependency-unavailable'
+  | 'capture-incomplete';
 
 /**
  * The CLOSED verdict vocabulary, as DATA (QE F6).
@@ -116,6 +118,8 @@ const CANNOT_ISOLATE_REASON_SET: Record<CannotIsolateReason, true> = {
   'tip-control-missing': true,
   'tip-evidence-missing': true,
   timeout: true,
+  'baseline-dependency-unavailable': true,
+  'capture-incomplete': true,
 };
 export const CANNOT_ISOLATE_REASONS = Object.keys(CANNOT_ISOLATE_REASON_SET) as readonly CannotIsolateReason[];
 
@@ -127,6 +131,18 @@ export interface PropertyTestRef {
   readonly name?: string;
 }
 
+/** An actual bounded process observation. Core consumes data only; it performs no I/O. */
+interface CapturedDiscriminationRun {
+  readonly command: string;
+  readonly cwd: string;
+  readonly stdout: string;
+  readonly stderr: string;
+  readonly exitCode: number | null;
+  readonly signal: string | null;
+  readonly captureComplete: boolean;
+  readonly captureError: string | null;
+}
+
 /** One observed row fed back by the executor. */
 export interface ClassifyResultRow {
   readonly file: string;
@@ -135,6 +151,14 @@ export interface ClassifyResultRow {
   readonly evidence?: ExecutionEvidence;
   readonly tipOutcome?: TipOutcome;
   readonly tipEvidence?: ExecutionEvidence;
+  readonly baseRun?: CapturedDiscriminationRun;
+  readonly tipRun?: CapturedDiscriminationRun;
+  readonly baselineDependency?: {
+    readonly kind: 'unavailable' | 'feature-module-absent';
+    readonly specifier: string | null;
+    readonly path: string | null;
+    readonly detail: string;
+  };
 }
 
 /** A CLOSED runner selection derived from the target package, never a command copied from package.json. */
@@ -697,6 +721,11 @@ function classifyRow(row: ClassifyResultRow | undefined): RowVerdict {
   if (row === undefined) return cannotIsolate('no-execution-evidence');
   if (row.outcome === 'absent') return { verdict: 'TEST_FILE_ABSENT' };
 
+  // Absence stays evidence-exempt. Timeout retains its existing null-exit precedence;
+  // capped/spawn-failed captures cannot turn a partial recognized summary into trust.
+  if (row.baseRun?.captureComplete === false && !row.baseRun.captureError?.startsWith('ETIMEDOUT')) return cannotIsolate('capture-incomplete');
+  if (row.evidence?.exitCode === null) return cannotIsolate('timeout');
+  if (row.baselineDependency?.kind === 'unavailable') return cannotIsolate('baseline-dependency-unavailable');
   const baseGate = gateObservation(row.outcome, row.evidence);
   if (!baseGate.evidenced) return cannotIsolate(baseGate.reason);
 
@@ -705,6 +734,7 @@ function classifyRow(row: ClassifyResultRow | undefined): RowVerdict {
 
   // EVIDENCED base error — the only cell where the tip control decides.
   if (row.tipOutcome === undefined) return cannotIsolate('tip-control-missing');
+  if (row.tipRun?.captureComplete === false && !row.tipRun.captureError?.startsWith('ETIMEDOUT')) return cannotIsolate('capture-incomplete');
   const tipGate = gateObservation(row.tipOutcome, row.tipEvidence);
   if (!tipGate.evidenced) {
     // a tip that TIMED OUT is named as such; every other unevidenced tip is 'tip-evidence-missing'.
@@ -782,6 +812,8 @@ function detailFor(verdict: DiscriminationVerdict, rows: readonly PerTestVerdict
     case 'FAILS_AT_TIP':
       return `the test errored at base and fails BY ASSERTION at tip: ${list}. The feature's own property test is red with the feature present, so discrimination is unestablishable. Action: fix-red-feature-test — grade the feature code accordingly.`;
     case 'CANNOT_ISOLATE':
+      if (rows.some(row => row.reason === 'baseline-dependency-unavailable')) return `Baseline dependency isolation is unavailable for: ${list}.${tail} Action: fix-runner-invocation — restore the required local install or prepare genuine baseline build artifacts separately, then rerun. Never borrow tip workspace dist.`;
+      if (rows.some(row => row.reason === 'capture-incomplete')) return `Runner capture is incomplete for: ${list}.${tail} Action: fix-runner-invocation — resolve the output cap or capture failure and rerun; partial output cannot establish proof.`;
       return `no ESTABLISHED observation for: ${list}. A degraded reading is not a pass and not a failure — it means the instrument did not measure. Action: map-a-test when no test was mapped/ran, otherwise fix-runner-invocation.`;
     case 'DISCRIMINATES_VIA_ERROR':
       return `the property test could not LOAD at pre-feature base and PASSES at tip, both with execution evidence: ${list}. Discrimination is INFERRED from that pair, not proven by an assertion — acceptable, but a green-path assertion would be stronger.`;
@@ -854,7 +886,12 @@ export function classifyDiscrimination(input: ClassifyInput): DiscriminationResu
                 .filter((l): l is string => typeof l === 'string' && l.length > 0),
             ),
           ]
-        : [];
+        : verdict === 'CANNOT_ISOLATE'
+          ? [...new Set(rows.flatMap(p => {
+              const row = byKey.get(`${p.file}|${p.name ?? ''}`);
+              return [row?.baselineDependency?.detail, row?.baseRun?.captureError, row?.tipRun?.captureError].filter((detail): detail is string => typeof detail === 'string' && detail.length > 0);
+            }))]
+          : [];
     return {
       severity: SEVERITY_OF[verdict],
       verdict,

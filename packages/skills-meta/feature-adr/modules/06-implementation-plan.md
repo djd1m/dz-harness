@@ -245,10 +245,21 @@ task that implements it: a wrapped continuation line of a list item is not read 
 passed would fail this reader, so a plan written before that date may be red on a re-check — move
 the citation onto a task line, or re-check that one plan with `--no-require-task-lines` and say so
 in the checkpoint banner.
+**Literal target declaration:** K2, native source admission and core plan authority read raw text.
+Use exactly one column-zero uppercase `EXPECTED_CODE_TARGETS:` marker (ASCII spaces/tabs after
+it are allowed), followed through EOF by nonempty `- <repo-relative path>` rows and optional
+trim()-empty blank lines. Use LF throughout the declaration; CR/CRLF, another marker, headings,
+prose, fences/comments or alternate/indented bullets after it refuse the whole block. Final LF is
+optional. Markers inside examples/comments count too; this is not a Markdown authenticity check.
+Payloads stay literal: no trimming, backtick removal, slash rewriting or `./` repair. A well-formed
+block still owes the existing path checks; neither malformed grammar nor a rejected/rewritten
+plan path establishes a valid subset. Explicit target args retain their separate normalization
+and precedence; coder text supplies diagnostics only.
+
 What it checks: C1 every ADR **decision** (a `# ADR-NNN` / `## ADR-NNN` heading INSIDE the file, not
 just the filename prefix — a file with several headings owes several plan citations) has a plan task
 citing it · C2 every ADR Confirmation test path is named in the plan · C3 the `EXPECTED_CODE_TARGETS:`
-block parses line by line · C4 the feature's declared acid corpus is named · C5 (WARN) the
+block satisfies the literal trailing grammar and every path passes C3 · C4 the feature's declared acid corpus is named · C5 (WARN) the
 `Inputs read:` line · C8 every requirement id declared in `01_requirements.md` (`FR-N`, `NFR-N`,
 `AC-N`, `C-N`) is cited by the plan by word boundary — WARN with a count by default, FAIL per missing
 id under `--require-requirements` (the pipeline passes this flag; a bare interactive run of the

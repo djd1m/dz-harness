@@ -447,10 +447,11 @@ export declare function needsCodeLandedBarrier(coderUsed: string | null | undefi
 /** Why a declared expected-target line was refused. Pre-epoch `normalizeCodeLandingPath` returned
  *  `''` for every reject with NO reason, so a plan whose whole block was mistyped looked exactly
  *  like a plan with no block — and both degraded to "any code change counts". */
-export type ExpectedTargetRejectReason = 'empty-after-strip' | 'absolute-path' | 'traversal' | 'pipeline-artifact-path' | 'not-a-path';
+export type ExpectedTargetRejectReason = 'empty-after-strip' | 'absolute-path' | 'traversal' | 'pipeline-artifact-path' | 'not-a-path' | 'nonliteral-path';
 export interface ExpectedTargetsValidation {
-    /** the EXPECTED_CODE_TARGETS: block exists in the plan text at all. */
+    /** at least one lexical uppercase EXPECTED_CODE_TARGETS: marker exists. */
     readonly present: boolean;
+    readonly grammarReason?: ExpectedTargetBlockReason;
     readonly accepted: readonly string[];
     readonly rejected: readonly {
         readonly line: string;
@@ -471,9 +472,22 @@ export interface SourcedCodeTargets {
 }
 /** Flatten the many shapes an expected-target value arrives in (string, array, {wrote}, {paths}). */
 export declare function addExpectedCodeTarget(value: unknown, out: string[]): void;
-/** Read the `EXPECTED_CODE_TARGETS:` block out of arbitrary text. The block ends at the next
- *  ALL-CAPS heading line — the shared grammar, used for BOTH the plan block (which establishes)
- *  and the Codex scrape (which only ever diagnoses). */
+export type ExpectedTargetBlockReason = 'target-block-missing-or-duplicate' | 'target-block-malformed' | 'target-block-empty';
+export type ExpectedTargetBlock = {
+    readonly ok: true;
+    readonly targets: readonly string[];
+    readonly startLine: number;
+    readonly reason?: never;
+} | {
+    readonly ok: false;
+    readonly targets: readonly string[];
+    readonly startLine: number;
+    readonly reason: ExpectedTargetBlockReason;
+};
+/** Portable raw-text grammar equivalent to the skill helper, with no Node dependencies.
+ *  Path authority is a separate layer. */
+export declare function parseExpectedTargetBlock(text: string | null | undefined): ExpectedTargetBlock;
+/** Lenient diagnostic extraction only. This reader never establishes plan authority. */
 export declare function extractExpectedCodeTargetsFromText(text: string | null | undefined): string[];
 /**
  * Where the barrier's expected targets come from, in ADR-003's precedence: an explicit non-empty

@@ -12,6 +12,8 @@ import { closeSync, constants, existsSync, fstatSync, lstatSync, mkdirSync, open
 import { dirname, relative, resolve, sep } from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import { parseExpectedTargetBlock } from './expected-target-grammar.mjs'
+import { measureNativePostCiEvidence } from './native-post-ci-evidence.mjs'
 
 export const SCHEMA = 'fa-review-convergence-1'
 const phases = ['ideation', 'qe']
@@ -34,9 +36,9 @@ function checkpointProof(p) {
   return dictionary(p, ['checkpointDigest', 'evidence', 'supported', 'route', 'findings', 'reportDigest']) && hash(p.checkpointDigest) && text(p.evidence) && p.supported === true && ['native', 'mode-b', 'fallback'].includes(p.route) && array(p.findings) && p.findings.every(v => dictionary(v, ['digest', 'conditionId']) && hash(v.digest) && text(v.conditionId)) && (p.reportDigest === null || hash(p.reportDigest))
 }
 function reviewerFamily(stage) { return stage.qeReviewerUsed === 'codex-fallback' ? 'codex' : stage.qeReviewerUsed }
-function reviewerEntry(r, roster) {
+function reviewerEntry(r, roster, postCi = false) {
   const owners = roster.map(p => p.id)
-  return !(!dictionary(r, ['reviewer', 'family', 'independent', 'verdict', 'conditions', 'verifications', 'newRisks', 'authorAssessmentChecked', 'deltaVerification', 'checkpointVerification'], ['reviewer', 'family', 'independent', 'verdict', 'conditions', 'verifications', 'newRisks', 'authorAssessmentChecked', 'deltaVerification']) || !owners.includes(r.reviewer) || roster.find(p => p.id === r.reviewer)?.family !== r.family || r.independent !== true || !['clean', 'conditional', 'no-go'].includes(r.verdict) || !array(r.conditions) || !r.conditions.every(c => condition(c, owners) && c.owner === r.reviewer) || !array(r.verifications) || !risks(r.newRisks, owners) || !r.newRisks.conditions.every(c => c.owner === r.reviewer) || typeof r.authorAssessmentChecked !== 'boolean')
+  return !(!dictionary(r, ['reviewer', 'family', 'independent', 'verdict', 'conditions', 'verifications', 'newRisks', 'authorAssessmentChecked', 'deltaVerification', 'checkpointVerification', ...(postCi ? ['postCiEvidenceVerification'] : [])], ['reviewer', 'family', 'independent', 'verdict', 'conditions', 'verifications', 'newRisks', 'authorAssessmentChecked', 'deltaVerification']) || !owners.includes(r.reviewer) || roster.find(p => p.id === r.reviewer)?.family !== r.family || r.independent !== true || !['clean', 'conditional', 'no-go'].includes(r.verdict) || !array(r.conditions) || !r.conditions.every(c => condition(c, owners) && c.owner === r.reviewer) || !array(r.verifications) || !risks(r.newRisks, owners) || !r.newRisks.conditions.every(c => c.owner === r.reviewer) || typeof r.authorAssessmentChecked !== 'boolean')
 }
 function result(phase, verdict, revision, reasons, unresolved = []) { return { schema: SCHEMA, phase, verdict, revision, unresolved, reasons } }
 
@@ -53,7 +55,7 @@ function hostProblem(host) {
   if (host.conditions.some(c => c.scope.some(path => !manifest.some(p => p.path === path)))) return 'host-condition-scope-unbound'
   return null
 }
-export function evaluateReviewConvergence(host, receipt, currentManifest, originOnly = false) {
+export function evaluateReviewConvergence(host, receipt, currentManifest, originOnly = false, postCi = false) {
   const phase = host?.phase
   const refuse = reason => result(phase || 'qe', 'not-established', host?.snapshot?.revision || null, [reason], (array(host?.conditions) ? host.conditions : []).map(c => c?.id))
   const problem = hostProblem(host)
@@ -78,7 +80,7 @@ export function evaluateReviewConvergence(host, receipt, currentManifest, origin
     }
   }
   for (const r of receipt.reviews) {
-    if (!reviewerEntry(r, host.reviewers)) return refuse('reviewer-contract-invalid')
+    if (!reviewerEntry(r, host.reviewers, postCi)) return refuse('reviewer-contract-invalid')
     if (Object.hasOwn(r, 'checkpointVerification') && !checkpointProof(r.checkpointVerification)) return refuse('checkpoint-verification-contract-invalid')
     if (receipt.author && !r.authorAssessmentChecked) return refuse('author-risk-assessment-not-reviewed')
     if (receipt.author) {
@@ -150,14 +152,9 @@ function pathsFor(repo, feature, phase, native = false) {
   if (phase === 'qe') {
     const planFile = safePath(repo, prefix + '/06_implementation_plan.md', false)
     const plan = native ? new TextDecoder('utf-8', { fatal: true }).decode(nativeBytes(planFile, 2 * 1024 * 1024)) : readFileSync(planFile, 'utf8')
-    const block = plan.split(/^EXPECTED_CODE_TARGETS:\s*$/m)
-    if (block.length !== 2) throw Error('target-block-missing-or-duplicate')
-    const planned = block[1].split('\n').filter(line => line.trim()).map(line => {
-      const match = /^- (.+)$/.exec(line)
-      if (!match) throw Error('target-block-malformed')
-      return match[1]
-    })
-    if (!planned.length) throw Error('target-block-empty')
+    const block = parseExpectedTargetBlock(plan)
+    if (!block.ok) throw Error(block.reason)
+    const planned = block.targets
     const baseFile = resolve(feature, '.fa-state/base-ref')
     const base = existsSync(baseFile) ? (native ? nativeBytes(baseFile, 256 * 1024).toString('utf8') : readFileSync(baseFile, 'utf8')).trim() : 'HEAD'
     if (!/^[A-Za-z0-9_./:-]+$/.test(base) || base.startsWith('-')) throw Error('base-ref-invalid')
@@ -165,13 +162,13 @@ function pathsFor(repo, feature, phase, native = false) {
     // Exact index membership includes staged additions/intent-to-add. The selected
     // base proves deletions; descendants and unrelated history confer no authority.
     const proof = [['ls-files', '--cached', '-z', '--', guard], ['ls-tree', '-r', '--name-only', '-z', base, '--', guard]].map(command =>
-      execFileSync('git', command, { cwd: repo, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024, ...(native ? { timeout: 2000, env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' } } : {}) }).split('\0').includes(guard))
+      execFileSync('git', native ? ['-c', 'diff.autoRefreshIndex=false', ...command] : command, { cwd: repo, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024, ...(native ? { timeout: 2000, env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' } } : {}) }).split('\0').includes(guard))
     const allowedGuard = p => p === guard && proof.some(Boolean)
     if (planned.some(p => /^(features|\.dz|\.agentic-qe|roam)\//.test(p) && !allowedGuard(p))) throw Error('circular-review-target')
     paths.push(...planned)
     // Additions/deletions are discovered by the host, not the author delta request.
     for (const command of [['diff', '--no-renames', '--name-only', '-z', base, '--'], ['ls-files', '--others', '--exclude-standard', '-z']]) {
-      const names = execFileSync('git', command, { cwd: repo, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024, ...(native ? { timeout: 2000, env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' } } : {}) }).split('\0').filter(Boolean)
+      const names = execFileSync('git', native ? ['-c', 'diff.autoRefreshIndex=false', ...command] : command, { cwd: repo, encoding: 'utf8', maxBuffer: 4 * 1024 * 1024, ...(native ? { timeout: 2000, env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' } } : {}) }).split('\0').filter(Boolean)
       paths.push(...names.filter(p => allowedGuard(p) || !p.startsWith('features/') && !p.startsWith('.dz/') && !p.startsWith('.agentic-qe/') && !p.startsWith('roam/') && p !== 'architecture/map.json'))
     }
   }
@@ -332,6 +329,8 @@ export function runGate({ action, repo, feature, phase, reviewers }) {
 
 // Only the CLI supplies this capability. The default standalone runGate remains synchronous.
 export const NATIVE_REVIEW_API_VERSION = 1
+export const NATIVE_REVIEW_CONTINUATION_API_VERSION = 1
+export const NATIVE_REVIEW_POST_CI_CORRECTION_API_VERSION = 2
 function nativeNames(dir) {
   if (!existsSync(dir)) return []
   const st = lstatSync(dir)
@@ -366,18 +365,22 @@ function nativeManifest(repo, paths) {
     return { path, digest: bytes === null ? null : digest(bytes) }
   })
 }
-function nativeReceipt(host, receipt, manifest) {
+function nativeReceipt(host, receipt, manifest, postCi = false) {
   // Reuse the unchanged strong aggregate gate with just the originating subset roster.
   // Missing reviewers can prevent closure without invalidating a structurally valid partial origin.
   if (!host || host.phase !== 'qe' || !dictionary(receipt, ['schema', 'phase', 'nonce', 'revision', 'reviews', 'author']) || receipt.schema !== SCHEMA || receipt.phase !== 'qe' || receipt.nonce !== host.snapshot.nonce || receipt.revision !== host.snapshot.revision || !array(receipt.reviews, 16) || !receipt.reviews.length || new Set(receipt.reviews.map(r => r?.reviewer)).size !== receipt.reviews.length) return null
-  if (!receipt.reviews.every(r => reviewerEntry(r, host.reviewers))) return null
-  const checked = evaluateReviewConvergence(host, receipt, manifest, true)
+  if (!receipt.reviews.every(r => reviewerEntry(r, host.reviewers, postCi))) return null
+  const checked = evaluateReviewConvergence(host, receipt, manifest, true, postCi)
   if (checked.verdict === 'not-established') return null
   return receipt.reviews.map(r => ({ reviewer: r.reviewer, family: r.family }))
 }
-export function runNativeReviewGate({ action, repo, feature, reviewers, api }) {
+export function runNativeReviewGate({ action, repo, feature, reviewers, ownerApproval, correctionEvidence, api }) {
   if (!api || api.version !== 1 || typeof api.transact !== 'function') throw Error('native-core-capability-not-established')
-  if (!['prepare', 'evaluate', 'begin-repair'].includes(action)) throw Error('native-action-invalid')
+  if (!['prepare', 'evaluate', 'begin-repair', 'begin-continuation', 'begin-post-ci-correction'].includes(action)) throw Error('native-action-invalid')
+  if (action === 'begin-continuation' && api.continuationVersion !== 1) throw Error('native-continuation-capability-not-established')
+  if (!['begin-continuation', 'begin-post-ci-correction'].includes(action) && ownerApproval !== undefined) throw Error('native-owner-approval-action-invalid')
+  if (action === 'begin-post-ci-correction' && (api.postCiCorrectionVersion !== 2 || typeof api.validateEvidence !== 'function')) throw Error('native-post-ci-capability-not-established')
+  if (action !== 'begin-post-ci-correction' && correctionEvidence !== undefined) throw Error('native-post-ci-evidence-action-invalid')
   repo = realpathSync(repo); feature = realpathSync(resolve(repo, feature))
   const prefix = relative(repo, feature).split(sep).join('/')
   if (!prefix || prefix.startsWith('../') || api.projectRoot !== repo || api.featurePath !== feature) throw Error('native-feature-binding-invalid')
@@ -420,8 +423,9 @@ export function runNativeReviewGate({ action, repo, feature, reviewers, api }) {
       if (!r.verifications.every(v => dictionary(v, ['id', 'revision', 'classification', 'evidence', 'implementationVerified']) && text(v.id) && hash(v.revision) && kinds.includes(v.classification) && text(v.evidence) && typeof v.implementationVerified === 'boolean') || new Set(r.verifications.map(v => v.id)).size !== r.verifications.length) throw Error('native-ideation-verification-invalid')
     }
   }
+  const nativeState = api.read?.(), postCi = Boolean(nativeState?.postCiCorrection?.used)
   let checkpoint = null
-  if (observed[2] !== null) {
+  try { if (observed[2] !== null) {
     if (observed[2].length && observed[2][observed[2].length - 1] !== 10) throw Error('native-checkpoint-candidate-torn')
     for (const line of new TextDecoder('utf-8', { fatal: true }).decode(observed[2]).split('\n').filter(Boolean)) {
       const entry = JSON.parse(line)
@@ -429,11 +433,13 @@ export function runNativeReviewGate({ action, repo, feature, reviewers, api }) {
       if (entry.stage === 'qe') checkpoint = { checkpointDigest: digest(JSON.stringify(entry.result)), checkpoint: entry.result }
     }
   }
+  } catch (error) { if (!postCi) throw error }
   const directoryFence = () => ({ adr: nativeNames(safePath(repo, prefix + '/03_adr')), bridge: nativeNames(safePath(repo, prefix + '/.fa-state/qe-bridge')), fragments: nativeNames(stateDir).filter(n => /^native-qe-(history\.jsonl|head\.json)\..*\.tmp$/.test(n)) })
   const membership = directoryFence()
   const paths = pathsFor(repo, feature, 'qe', true).concat((host?.conditions || []).flatMap(c => c.scope))
   const manifest = nativeManifest(repo, paths)
   if (action !== 'evaluate' && (!array(reviewers, 16) || !reviewers.length || !reviewers.every(r => dictionary(r, ['id', 'family']) && text(r.id) && ['codex', 'claude', 'owner-exception'].includes(r.family)) || new Set(reviewers.map(r => r.id)).size !== reviewers.length)) throw Error('reviewers-invalid')
+  const correction = action === 'begin-post-ci-correction' ? measureNativePostCiEvidence({ repo, featurePath: prefix, evidencePath: correctionEvidence, previous: nativeState?.postCiCorrection?.evidence?.predecessorHost?.snapshot?.manifest || nativeState?.snapshot?.manifest, current: manifest, validate: api.validateEvidence }) : null
   const observationDigest = digest(JSON.stringify({ files: observed.slice(1).map(b => b === null ? null : digest(b)), membership, manifest }))
   const checkpointClosure = host && receipt && checkpoint ? reconcileCheckpoint(host, receipt, checkpoint, repo, feature, observed[7]) : null
   return api.transact(action, active => {
@@ -451,18 +457,19 @@ export function runNativeReviewGate({ action, repo, feature, reviewers, api }) {
     if (!active && (observed[1] !== null || host && (host.reviewSeen || host.rework || host.conditions.length) || checkpoint)) throw Error('native-surviving-review-evidence-refuses-admission')
     if (active && (!host || !same(host.snapshot, active.snapshot))) throw Error('native-host-admitted-snapshot-mismatch')
     const revision = digest(JSON.stringify(manifest))
-    const priorOrigins = nativeReceipt(host, receipt, host?.snapshot.manifest)
-    if (action === 'prepare' && host && host.snapshot.revision !== revision && (active?.witnessed || priorOrigins)) throw Error('native-repair-required')
+    const priorOrigins = nativeReceipt(host, receipt, host?.snapshot.manifest, Boolean(active?.postCiCorrection?.used))
+    if (action === 'prepare' && host && host.snapshot.revision !== revision && (active?.witnessed || priorOrigins) && !active?.continuation) throw Error('native-repair-required')
     if (action === 'evaluate') {
       if (!active || !host) throw Error('native-prepare-required')
       const drift = !same(manifest, host.snapshot.manifest)
       // A surviving receipt may witness admitted A after bytes become B. It cannot
       // accept B: retain A and its origins, then require a separate begin-repair.
       // Current bytes still participate in the observation digest and every fence.
-      const origins = priorOrigins
+      const origins = active?.postCiCorrection?.used && priorOrigins ? host.reviewers.filter(r => priorOrigins.some(o => o.reviewer === r.id && o.family === r.family)).map(r => ({ reviewer: r.id, family: r.family })) : priorOrigins
       let verdict = drift ? result('qe', 'not-established', host.snapshot.revision, ['native-repair-required'])
-        : receipt === null ? result('qe', 'not-established', revision, [receiptProblem || 'reviewer-receipt-missing']) : evaluateReviewConvergence(host, receipt, manifest)
+        : receipt === null ? result('qe', 'not-established', revision, [receiptProblem || 'reviewer-receipt-missing']) : evaluateReviewConvergence(host, receipt, manifest, false, Boolean(active?.postCiCorrection?.used))
       // Closure is deliberately stronger than originating partial/unresolved evidence.
+      if (verdict.verdict === 'closed' && active.continuation && active.checkpointDigest && checkpoint?.checkpointDigest !== active.checkpointDigest) verdict = result('qe', 'not-established', revision, ['native-continuation-checkpoint-unavailable-or-changed'])
       if (verdict.verdict === 'closed' && checkpoint && !checkpointClosure) verdict = result('qe', 'not-established', revision, ['historical-checkpoint-own-verification-missing'])
       const preserved = new Map(host.conditions.map(c => [c.id, c]))
       if (origins) {
@@ -471,15 +478,23 @@ export function runNativeReviewGate({ action, repo, feature, reviewers, api }) {
       }
       if (drift) verdict.unresolved = [...preserved.keys()]
       if (verdict.verdict === 'closed' && checkpointClosure) verdict = { ...verdict, checkpointClosure }
-      const next = { ...host, conditions: [...preserved.values()], reviewSeen: host.reviewSeen || Boolean(origins), changedPaths: verdict.verdict === 'closed' ? [] : host.changedPaths }
+      if (verdict.verdict === 'closed' && active.postCiCorrection?.used) {
+        const p = active.postCiCorrection, bound = { evidenceDigest: p.evidence.approval.evidenceDigest, revision: host.snapshot.revision, nonce: host.snapshot.nonce, anchorSequence: p.anchorSequence, anchorEventDigest: p.anchorEventDigest }
+        const required = ['schema', ...Object.keys(bound), 'supported', 'evidence']
+        const proofs = host.reviewers.map(r => ({ reviewer: r.id, family: r.family, verification: receipt.reviews.find(v => v.reviewer === r.id && v.family === r.family)?.postCiEvidenceVerification }))
+        const valid = proofs.every(({ verification: v }) => dictionary(v, required) && v.schema === 'native-qe-post-ci-verification-1' && Object.keys(bound).every(k => v[k] === bound[k]) && v.supported === true && text(v.evidence))
+        verdict = valid ? { ...verdict, postCiEvidenceClosure: { ...bound, origins: proofs } } : result('qe', 'not-established', revision, ['native-post-ci-origin-verification-missing-or-stale'])
+      }
+      const next = { ...host, conditions: [...preserved.values()], reviewSeen: host.reviewSeen || Boolean(origins), changedPaths: verdict.verdict === 'closed' && !active.postCiCorrection?.used ? [] : host.changedPaths }
       return { host: next, snapshot: host.snapshot, origins: origins || [], receiptDigest: observed[1] === null ? null : digest(observed[1]), reason: origins ? null : verdict.reasons[0] || 'native-no-valid-origin', observationDigest, result: verdict, admission: false }
     }
     const bound = bindReviewers(host, reviewers, checkpoint)
     const snapshot = active?.snapshot.revision === revision ? active.snapshot : host?.snapshot.revision === revision ? host.snapshot : { nonce: randomUUID(), revision, manifest }
     const old = new Map((host?.snapshot.manifest || []).map(p => [p.path, p.digest])), current = new Map(manifest.map(p => [p.path, p.digest]))
-    const changedPaths = host && host.snapshot.revision !== revision ? [...new Set([...old.keys(), ...current.keys()])].filter(p => old.get(p) !== current.get(p)).sort() : host?.changedPaths || []
+    const deltaPaths = host && host.snapshot.revision !== revision ? [...new Set([...old.keys(), ...current.keys()])].filter(p => old.get(p) !== current.get(p)).sort() : host?.changedPaths || []
+    const changedPaths = ['begin-continuation', 'begin-post-ci-correction'].includes(action) ? [...new Set([...(host?.changedPaths || []), ...deltaPaths])].sort() : deltaPaths
     const next = { schema: SCHEMA, phase: 'qe', reviewers: bound, snapshot, conditions: host?.conditions || [], reviewSeen: host?.reviewSeen || false, rework: Boolean(host && (host.rework || host.reviewSeen && host.snapshot.revision !== revision)), changedPaths }
-    return { host: next, snapshot, origins: [], receiptDigest: null, reason: null, observationDigest, result: { ...result('qe', 'prepared', revision, []), nonce: snapshot.nonce, manifest, reviewers: bound, conditions: next.conditions, checkpointDigest: checkpoint?.checkpointDigest || null }, admission: !active }
+    return { host: next, snapshot, origins: [], receiptDigest: null, reason: null, observationDigest, result: { ...result('qe', 'prepared', revision, []), nonce: snapshot.nonce, manifest, reviewers: bound, conditions: next.conditions, checkpointDigest: active?.continuation ? active.checkpointDigest : checkpoint?.checkpointDigest || null }, admission: !active, ...(['begin-continuation', 'begin-post-ci-correction'].includes(action) ? { ownerApproval } : {}), ...(correction ? { correctionEvidence: correction } : {}) }
   })
 }
 

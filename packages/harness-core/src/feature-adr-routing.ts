@@ -946,11 +946,13 @@ export type ExpectedTargetRejectReason =
   | 'absolute-path'
   | 'traversal'
   | 'pipeline-artifact-path'
-  | 'not-a-path';
+  | 'not-a-path'
+  | 'nonliteral-path';
 
 export interface ExpectedTargetsValidation {
-  /** the EXPECTED_CODE_TARGETS: block exists in the plan text at all. */
+  /** at least one lexical uppercase EXPECTED_CODE_TARGETS: marker exists. */
   readonly present: boolean;
+  readonly grammarReason?: ExpectedTargetBlockReason;
   readonly accepted: readonly string[];
   readonly rejected: readonly { readonly line: string; readonly reason: ExpectedTargetRejectReason }[];
 }
@@ -963,8 +965,8 @@ function stripCodeLandingPath(path: string): string {
 }
 
 /** The rejection half, in classification order, NAMING the reason. `normalizeCodeLandingPath` and
- *  `validateExpectedTargetsBlock` both route through this, so the accept set cannot drift between
- *  "what the barrier polls" and "what the Step-6/7 boundary reports as accepted". */
+ *  argument/diagnostic polling route through this. Plan validation additionally refuses any spelling
+ *  this argument interface would normalize, preserving literal plan authority. */
 function classifyCodeLandingPathReject(path: string): ExpectedTargetRejectReason | null {
   const p = stripCodeLandingPath(path);
   if (!p) return 'empty-after-strip';
@@ -1063,9 +1065,36 @@ export function addExpectedCodeTarget(value: unknown, out: string[]): void {
   }
 }
 
-/** Read the `EXPECTED_CODE_TARGETS:` block out of arbitrary text. The block ends at the next
- *  ALL-CAPS heading line — the shared grammar, used for BOTH the plan block (which establishes)
- *  and the Codex scrape (which only ever diagnoses). */
+export type ExpectedTargetBlockReason = 'target-block-missing-or-duplicate' | 'target-block-malformed' | 'target-block-empty';
+export type ExpectedTargetBlock =
+  | { readonly ok: true; readonly targets: readonly string[]; readonly startLine: number; readonly reason?: never }
+  | { readonly ok: false; readonly targets: readonly string[]; readonly startLine: number; readonly reason: ExpectedTargetBlockReason };
+
+/** Portable raw-text grammar equivalent to the skill helper, with no Node dependencies.
+ *  Path authority is a separate layer. */
+export function parseExpectedTargetBlock(text: string | null | undefined): ExpectedTargetBlock {
+  const lines = String(text || '').split('\n');
+  const markers: number[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const match = /^EXPECTED_CODE_TARGETS:[ \t]*\r?$/.exec(lines[i]!);
+    if (match && match[0] === lines[i]) markers.push(i);
+  }
+  const startLine = markers.length ? markers[0]! : -1;
+  if (markers.length !== 1) return { ok: false, targets: [], startLine, reason: 'target-block-missing-or-duplicate' };
+  if (lines.slice(startLine).some(line => line.includes('\r'))) return { ok: false, targets: [], startLine, reason: 'target-block-malformed' };
+  const targets: string[] = [];
+  for (const line of lines.slice(startLine + 1)) {
+    if (!line.trim()) continue;
+    const match = /^- (.+)$/.exec(line);
+    // Full-line equality also refuses a final U+2028/U+2029 that $ can match before.
+    if (!match || match[0] !== line) return { ok: false, targets: [], startLine, reason: 'target-block-malformed' };
+    targets.push(match[1]!);
+  }
+  if (!targets.length) return { ok: false, targets: [], startLine, reason: 'target-block-empty' };
+  return { ok: true, targets, startLine };
+}
+
+/** Lenient diagnostic extraction only. This reader never establishes plan authority. */
 export function extractExpectedCodeTargetsFromText(text: string | null | undefined): string[] {
   const out: string[] = []
   const lines = String(text || '').split(/\r?\n/)
@@ -1111,10 +1140,10 @@ export function sourceExpectedCodeTargets(
   if (planBlockText === null || planBlockText === undefined) {
     return { targets: [], establishedBy: null, reason: 'no-plan-block', scrapeDiagnostic: scrapeDiagnostic }
   }
-  const planRaw: string[] = []
-  addExpectedCodeTarget(extractExpectedCodeTargetsFromText(planBlockText), planRaw)
-  const planPaths = filterPollableCodePaths(planRaw)
-  if (planPaths.length > 0) return { targets: planPaths, establishedBy: 'plan', scrapeDiagnostic: scrapeDiagnostic }
+  const validation = validateExpectedTargetsBlock(planBlockText)
+  if (!validation.grammarReason && validation.rejected.length === 0 && validation.accepted.length > 0) {
+    return { targets: validation.accepted, establishedBy: 'plan', scrapeDiagnostic: scrapeDiagnostic }
+  }
   return { targets: [], establishedBy: null, reason: 'empty-plan-block', scrapeDiagnostic: scrapeDiagnostic }
 }
 
@@ -1124,19 +1153,19 @@ export function sourceExpectedCodeTargets(
  * as "no block declared".
  */
 export function validateExpectedTargetsBlock(planText: string | null): ExpectedTargetsValidation {
-  const text = String(planText || '')
-  const present = /^EXPECTED_CODE_TARGETS:\s*$/im.test(text)
-  const lines = extractExpectedCodeTargetsFromText(text)
+  const block = parseExpectedTargetBlock(planText)
+  const present = block.startLine >= 0
+  if (!block.ok) return { present: present, accepted: [], rejected: [], grammarReason: block.reason }
   const accepted: string[] = []
   const rejected: { line: string; reason: ExpectedTargetRejectReason }[] = []
   const seen = new Set<string>()
-  for (const line of lines) {
+  for (const line of block.targets) {
     const reason = classifyCodeLandingPathReject(line)
     if (reason !== null) { rejected.push({ line: line, reason: reason }); continue }
-    const normalized = normalizeCodeLandingPath(line)
-    if (seen.has(normalized)) continue
-    seen.add(normalized)
-    accepted.push(normalized)
+    if (stripCodeLandingPath(line) !== line) { rejected.push({ line: line, reason: 'nonliteral-path' }); continue }
+    if (seen.has(line)) continue
+    seen.add(line)
+    accepted.push(line)
   }
   return { present: present, accepted: accepted, rejected: rejected }
 }

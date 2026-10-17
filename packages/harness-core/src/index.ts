@@ -1406,4 +1406,6 @@ export { planReleasePackageAudit, judgeReleasePackageAudit, judgeReleaseCohortAu
 export type { ReleasePackageAuditPlan, ReleasePackageAuditResult, ReleaseWorkspaceAuditReport } from './release-package-audit.js';
 
 export { buildScopedCatalogInventory } from './scoped-catalog-inventory.js';
-export { NATIVE_QE_HISTORY_API_VERSION, createNativeQeHistoryApi } from './native-review-history.js';
+export { NATIVE_QE_HISTORY_API_VERSION, NATIVE_QE_CONTINUATION_API_VERSION, NATIVE_QE_POST_CI_CORRECTION_API_VERSION, createNativeQeHistoryApi } from './native-review-history.js';
+
+export { validateNativePostCiEvidence } from './native-post-ci-evidence.js';

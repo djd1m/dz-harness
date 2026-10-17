@@ -60,6 +60,16 @@ retries/re-entry. Refuse a failed initialization before edits. Admission does no
 This is executable Plain guidance with mandatory orchestration, not an automatic Plain dispatcher.
 An unrelated process can change source after admission; ordinary final QE still checks freshness.
 
+The plan's target declaration uses the same literal grammar as K2: exactly one raw column-zero
+uppercase `EXPECTED_CODE_TARGETS:` marker, optional ASCII marker padding, LF-only declaration,
+nonempty dash-space rows and trim()-empty blank lines through EOF. A later heading, prose,
+fence/comment delimiter, alternate bullet, CR or second marker refuses the whole block.
+Raw markers in examples/comments count; no Markdown authenticity is inferred. Path payloads
+are not unquoted, trimmed or repaired. Native containment, symlink/circular exclusions, guard
+provenance, bounded reads and history remain separate authority checks. Core establishes no
+plan targets if grammar or any applicable literal path check fails; coder output remains
+advisory and explicit target args retain their separate precedence and normalization.
+
 ### Current literal context (plain and delegated coding)
 
 Before coding or delegating, run the installed helper beside this module. Set `CONTEXT_HELPER` to
@@ -205,4 +215,4 @@ Tasks completed: {completed}/{total}
 - [ ] ADR decisions reflected in code
 - [ ] No unintended side effects on existing functionality
 - [ ] Change manifest is complete and accurate
-- [ ] No TODO/FIXME/HACK left without justification
+- [ ] No unfinished-work or workaround markers left without justification

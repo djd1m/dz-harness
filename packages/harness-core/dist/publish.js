@@ -406,9 +406,9 @@ export function orderByDependencies(pkgs) {
     return ordered;
 }
 /**
- * A line carrying this HTML comment opts BACK IN to rewriting, overriding both the changelog-region
+ * A visible line carrying this HTML comment opts BACK IN to rewriting, overriding both the changelog-region
  * protection and the allowlist below — the author's explicit "this token is a stamp, not history"
- * (AC-3).
+ * (AC-3). Masked fences and HTML comment blocks never grant stamp authority.
  */
 const DZ_VERSION_MARKER = '<!-- dz:version -->';
 /**
@@ -479,7 +479,7 @@ function isInstallPinContext(line, tokenStart) {
  *     token immediately after the label is allowed.
  *  3. an install/dependency-pin context (`isInstallPinContext`).
  *  4. the `dz publish: tarball <name>@X sha256:…` example line (`TARBALL_EXAMPLE_LINE_RE`).
- *  5. (handled by the caller, not here) a `<!-- dz:version -->` marker forces the rewrite outright,
+ *  5. (handled by the caller, not here) a visible `<!-- dz:version -->` marker forces the rewrite,
  *     overriding this predicate AND the changelog-region protection (AC-3).
  *  6. a shields badge URL segment (`BADGE_SEGMENT_RE`).
  */
@@ -500,8 +500,9 @@ function isAllowlistedRewriteContext(line, tokenStart, versionEnd) {
  * FR-1 (allowlist, not denylist). Outside a changelog region (FR-2: EVERY entry-shaped run, not
  * only the first — see `changelogRegion`), a token rewrites ONLY when `isAllowlistedRewriteContext`
  * recognises its shape; every other token — historical prose of ANY form — is left untouched by
- * default. A `<!-- dz:version -->` marker on the line forces the rewrite regardless of either
- * protection (AC-3).
+ * default. On a visible line, `<!-- dz:version -->` overrides the changelog and allowlist
+ * protections (AC-3). Canonically masked fences and HTML comment blocks stay literal, even
+ * with a marker or allowlisted shape.
  *
  * FR-3 (never silent): every rewritten line is reported with its line number and before/after text;
  * every token left untouched as history is counted AND located, whether the reason was the
@@ -511,6 +512,10 @@ export function planReadmeVersionSync(text, oldVersion, newVersion) {
     const escaped = oldVersion.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const token = new RegExp(`(^|[^0-9A-Za-z.])(v?)${escaped}(?![0-9])(?!\\.[0-9])`, 'g');
     const lines = text.split('\n');
+    // Match findReleaseLine: neutralize only leading closed metadata in the projection,
+    // retaining enclosing fence/comment state and all original source bytes for output/reporting.
+    const maskInput = text.replace(/^ {0,3}<!-- dz:version -->/gm, (marker) => ' '.repeat(marker.length));
+    const visible = String(maskMarkdown(maskInput, { unclosed: 'hide' })).split('\n');
     const history = changelogRegion(lines);
     const rewritten = [];
     const historyLineSet = new Set();
@@ -523,7 +528,8 @@ export function planReadmeVersionSync(text, oldVersion, newVersion) {
             const tokenStart = offset + sep.length; // includes the optional 'v' — allowlist shapes need it
             const versionStart = tokenStart + vPrefix.length;
             const versionEnd = versionStart + oldVersion.length;
-            const allowed = forced || (!lineIsHistory && isAllowlistedRewriteContext(line, tokenStart, versionEnd));
+            const allowed = visible[i].trim().length > 0
+                && (forced || (!lineIsHistory && isAllowlistedRewriteContext(line, tokenStart, versionEnd)));
             if (!allowed) {
                 skippedHistorical++;
                 historyLineSet.add(i + 1);

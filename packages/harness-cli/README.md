@@ -1,9 +1,9 @@
 # @dzhechkov/harness-cli
 
-`dz qe-rounds --source native` reports durable native QE history without writing. Explicit `--action prepare|evaluate|begin-repair` invokes the exact installed skills-meta helper from the CLI module, checks core/helper capabilities and uses the existing receipt schema. Prepare and begin-repair require `--reviewers <json>`. The native ceiling is fixed at three; native `--ceiling`, duplicate/unknown options, legacy reconstruction and source collisions refuse. Omitted source retains the bridge reader.
+`dz qe-rounds --source native` reports durable native QE history without writing. Explicit `--action prepare|evaluate|begin-repair|begin-continuation` invokes the exact installed skills-meta helper from the CLI module, checks core/helper capabilities and uses the existing receipt schema. Prepare and begin-repair require `--reviewers <json>`. The default native ceiling is three; native `--ceiling`, duplicate/unknown options, legacy reconstruction and source collisions refuse. Omitted source retains the bridge reader.
 
 
-Current package version: `0.8.50`. <!-- dz:version -->
+Current package version: `0.8.51`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -100,9 +100,9 @@ Each launch creates one snapshot; remove selected old snapshot files yourself wh
 Live backpressure waits for writable callbacks. Explicit termination cancels pending writes; after
 child exit a stalled output sink has a two-second final drain window before cancellation.
 
-Current package versions: `harness-core v0.8.57` · `harness-cli v0.8.50`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.58` · `harness-cli v0.8.51`. <!-- dz:version -->
 
-Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. The marker retains its explicit whole-line override for per-package synchronization, so keep it off historical records.
+Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. On visible lines, the marker retains its whole-line override for per-package synchronization, including explicit changelog overrides, so keep it off historical records. The previous all-protections override is corrected: fenced marker, footer, install/JSON-pin, tarball and badge examples remain literal, as do supported HTML comment blocks. Their visible counterparts still stamp; place current metadata outside examples.
 
 ## Why dz?
 
@@ -685,7 +685,18 @@ publishes. With `--json`, human progress and the banner go to stderr and stdout 
 
 When core and CLI release together, `dz publish` stages the CLI README's marked current pair before
 its build, signature and pack. The core version in the npm README agrees with the packed dependency
-floor; historical unmarked release records remain intact. Dry-run previews leave both READMEs untouched.
+floor; historical unmarked release records and fenced outgoing-version examples remain intact in
+signed and packed bytes. Dry-run previews leave both READMEs untouched. Example-only own-version sync
+writes nothing; mixed sync keeps the exact original for failure restore and reports preserved tokens
+with their line numbers.
+
+Own-version stamp visibility uses the canonical Markdown masker: backtick/tilde fences with runs of
+at least three characters, zero through three leading spaces, and a same-character closing run at
+least as long with only trailing whitespace. Shorter, opposite-character or trailing-text closers
+leave the example hidden; unclosed blocks hide through EOF. A backtick in a backtick opener's info
+invalidates the opener. Only exact leading closed version metadata is neutralized in the projection;
+inline-code stamps remain supported. Containers, tab indentation and four-space code are outside
+this bounded syntax, which is not a complete Markdown parser.
 
 For a live sweep that publishes at least one package, `dz publish` can run a command-hook epilogue.
 Set it for one invocation with `--mirror-cmd`, or persist the command in `.dz/config.json`:
@@ -4542,6 +4553,47 @@ the embed daemon needs agentdb's transitive `@huggingface/transformers`/`@xenova
 dependency, which jsonl mode never installs. This is an honest boundary, not a missing feature: run
 `dz setup --memory agentdb` when you want the automatic apply leg.
 
+**Optional daemon RSS budget.**
+
+The daemon supports an opt-in sampled RSS budget via `DZ_EMBED_MAX_RSS_MB`, read once
+from its launch environment. Here MB means MiB (1,048,576 bytes). Unset or exactly `0`
+disables the budget; otherwise use a positive ASCII decimal integer (leading zeros are
+allowed). Empty/whitespace, signs, fractions, exponent notation, zero spellings such as
+`00`, and unsafe byte conversions fail before dependency/model work with exit `2`.
+There is no finite default.
+
+Native newline-JSON `{"op":"ping"}` retains `ok`, `model`, `uptimeMs`, and `patterns`, and
+adds integer `rssBytes` sampled from `process.memoryUsage().rss` at reply time plus
+`rssLimitBytes` (bytes, or `null` when disabled). With a budget, the daemon samples before
+initialization, every 1000 ms independently of requests/idle timers, and immediately after
+awaited model initialization before listening. RSS strictly above the limit exits `4` with
+observed bytes, limit, and phase on stderr. Startup peaks count; `DZ_EMBED_IDLE_MS=0`
+does not disable RSS sampling. Shutdown rejects new work, closes owned clients, clears
+timers, and does not await pending recall/model work. Native stop retains its `{ok:true}`
+acknowledgement with at most 100 ms flush allowance; stop/idle/signals exit `0`, bind or
+pointer publication failure exits `3`.
+
+This is a soft process RSS budget, not an OS hard cap or a guarantee against host OOM.
+With a responsive event loop, detection takes the next 1000 ms sample plus scheduling
+delay; synchronous native/model work can overshoot until control returns. Choose a limit
+using your own model's startup and working-set measurements.
+
+To apply a changed limit, explicitly stop your own daemon with native `{"op":"stop"}`,
+wait for its exit, then launch `.claude/helpers/dz-embed-daemon.mjs` with the chosen
+`DZ_EMBED_MAX_RSS_MB` in its environment. `dz setup` updates the generated helper bodies;
+it does not reconfigure a running daemon. An enabled-budget duplicate launch confirms a
+live owner's native ping within 500 ms (response capped at 64 KiB): missing/malformed RSS
+fields or a different limit exits `5` with a configuration-drift diagnostic and leaves
+the owner untouched. Disabled-budget duplicate launch retains legacy live-socket reuse.
+Changing the parent environment cannot change an existing daemon. Hook revive inherits
+its launch environment and retains the existing 120 s revive lock; use an explicit
+stop/restart when changing policy. Shutdown cleanup checks recorded filesystem identities
+before removing socket/pointer/temp-pointer files, so a replacement created after readiness
+is preserved. Cooperative launches for the same socket take an exclusive
+`<socket>.startup.lock` during stale cleanup and bind, then recheck liveness. An
+abandoned lock causes exit `6`; remove it only after confirming no startup owns it.
+Hostile same-user path replacement remains outside this guarantee.
+
 **Memory footprint and idle lifecycle.** OWNER-MEASURED: the resident embed daemon holds ~1.0 GB
 RSS with only 7 patterns loaded — the multilingual embedding model dominates that number, not the
 pattern count, so it does not grow materially with a larger store. The recommended mental model is
@@ -5145,6 +5197,33 @@ Verify: after a session, `.dz/agentdb.db` grows and `.dz/sessions.jsonl` stays e
 Bridge: with the agentdb backend enabled, `dz recall` itself is the bridge — it merges lexical FTS5 with vector similarity over the same store (see *Semantic recall* below). `dz recall --all --json` stays the portable SHARING form.
 
 ### `dz discrimination-check` — when a test is green but you're not sure it actually catches anything
+
+Baseline dependency preparation reuses already-installed external packages and maps
+scoped, unscoped and transitive workspace links into the detached base checkout.
+It prepares owned package-local dependency directories and supports ordinary pnpm
+relative executable wrappers. It never installs dependencies, runs lifecycle scripts,
+builds the baseline or copies tip workspace `dist`. External versions are reused
+current installations, not a reconstruction of the historical lockfile. The baseline
+needs runnable tracked entrypoints or separately prepared genuine base artifacts.
+Relevant tracked dependency directories are refused before execution; the checker
+reports an unavailable baseline and emits no raw run for a child that never ran.
+
+`--json` retains each actual `baseRun` and any executed `tipRun`: command, cwd,
+separate stdout/stderr, actual exit code and signal, `captureComplete` and
+`captureError`. Parsed evidence comes from those same streams, stdout before stderr.
+The per-stream cap is 1,048,576 bytes of retained UTF-8 text. Invalid input bytes use
+replacement characters; any extra truncation needed to keep that text within the cap
+is explicit. Cap/capture failures cannot establish proof. `dependencyPreparation` reports external reuse, baseline workspace
+mapping and diagnostics. `baseline-dependency-unavailable` and `capture-incomplete`
+produce `CANNOT_ISOLATE`, with repair guidance under `fix-runner-invocation`.
+
+A passing tip cannot convert an unrelated or ambiguous missing dependency into
+`DISCRIMINATES_VIA_ERROR`. Missing-module inference requires positively attributed
+contained feature-local source, measured absence at base, presence at tip and an
+evidenced tip pass. It remains inference, not assertion proof. Other recognized
+non-resolution load errors retain their existing limited inference. Arbitrary
+third-party/custom-loader layouts are not an isolation guarantee.
+
 
 feature-adr Step-8 asserts the ADR's load-bearing safety property **has** a test. But a green test can be a
 false green — it may never exercise the property, so it would stay green even if the property regressed. The
@@ -6741,9 +6820,14 @@ project before discovery and preserves the exact requested output path; combined
 refuse without overwriting it. Unknown options and config/root/workspace, pool/isolation,
 file-parallelism, watch/coverage, retry/bail/shard/changed/related, passWithNoTests, and unhandled-error
 suppression switches refuse. Direct `npx vitest run`, `test:coverage`, and `test:watch` remain separate
-entrypoints with their existing config behavior and no new serial-first guarantee. The unchanged
-ordinary receipt adapter cannot unwrap `with-test-receipt ... -- pnpm test`; use its supported direct
-Vitest per-project route instead. The direct mutation registry is unchanged; the narrow shadow-cwd
+entrypoints with their existing config behavior and no new serial-first guarantee. The receipt wrapper supports bare `pnpm test`, `npm test`, and `npm run test` from the canonical
+CLI package directory. It owns discovery and each Vitest phase's private JSON report, verifies all
+discovered files (including skipped files), and writes one unchanged-schema receipt only after
+every scheduled phase succeeds with positive test execution and source/planning inputs remain
+unchanged. Forwarded options, lifecycle hooks, and altered/custom runner scripts refuse before
+discovery; direct Vitest per-project observation remains available. Receipt coverage establishes
+observed positive execution for the source digest; endpoint hashes cannot detect a hostile local
+writer that changes and restores bytes during execution. The direct mutation registry is unchanged; the narrow shadow-cwd
 check does not establish whole-registry or arbitrary custom mutation verdict compatibility.
 The serial paths in `test/serial-suites.txt` are regenerated from
 `test/serial-suites-census.test.ts`, which scans test sources for synchronous and asynchronous
@@ -6752,6 +6836,7 @@ CF-2 records uncommented explicit test budgets in each package's `test/budget-de
 The ceiling files live in `packages/@dzhechkov/harness-core/test/` and `packages/@dzhechkov/harness-cli/test/` and are lowered by hand: a ratchet on existing debt, not a migration that clears it in one shot.
 
 Release `--test-timeout-ms` accepts decimal digits for a positive safe integer. Omission keeps 600000ms per test step. It changes only the invocation’s full package test budgets; consumer/workspace audits, syntax, bins and staged pack/install smoke retain their existing steps and budgets. Invalid values refuse before release effects. A real timeout still blocks verification; no gate is skipped.
+Release gives subprocess output a 64 MiB capture bound so verbose test diagnostics do not hit Node's 1 MiB default buffer. If output exceeds that bound, the step fails with `ENOBUFS`; only a real `ETIMEDOUT` is reported as a timeout. The release verdict still blocks on either failure.
 
 
 Release and publish filters accept `=NAME` for an exact, case-sensitive `package.name`, for example `--filter '=@dzhechkov/keysarium'` excludes `@dzhechkov/keysarium-core`. Unprefixed tokens keep their existing name/path substring behavior; comma-separated mixed tokens form a union and duplicates select each package once. Exact tokens with an empty name, whitespace/control characters, another equals sign or comma are malformed. Every exact name must exist in discovered packages; an unknown exact token blocks the whole mixed request before guard, registry or execution effects. CLI outer whitespace and empty comma segments retain their existing handling. All release/publication gates and private-package skips remain.
@@ -6811,3 +6896,15 @@ report; resolve the named failure and rerun ordinary setup to complete delivery.
 `dz usage --by-stage --json` and its safe `--write` export add `routingProvenance` with schema `routing-provenance-1`, status, nullable probes/stages and closed diagnostics. Each stage separates declared `plannedModel` from selected `requestedModel`, and links to a fresh per-family `probeId`. The normalized rows also add plannedModel/plannedModelSource/probeId.
 
 Probe summaries contain safe model IDs and bounded attempt records, never raw child prompts, output, stderr or errors. `wrapperInvoked` means the wrapper function was called; it does not prove an OS child started. At most32 attempts are retained while real probing continues; source and attempt truncation remain distinct partial diagnostics. Legacy/Plain evidence is null/not-recorded, unsafe/conflicting links suppress new attribution, and source omissions cannot appear observed. Existing numerical totals and unknown probe cost retain their prior meanings; this is no live model comparison or training readiness claim.
+
+Native QE keeps its default ceiling at three. `dz qe-rounds --source native --action begin-continuation --project <root> --slug <feature> --reviewers <actual-roster-json> --owner-approval <inline-json>` can admit exactly one additional cycle after three witnessed cycles whose active cycle has never closed. A second ordinary continuation refuses. The target is pinned before its fourth origin; prepare and repair cannot redirect it. Fresh independent receipts, original reviewer conditions, author delta assessment and checkpoint verification still govern closure. An admitted checkpoint remains required if its file is removed or replaced; restore the original checkpoint and obtain independent verification before closure. Prepare retains its digest, and replay rejects a closed continuation without matching checkpoint evidence.
+
+The exact flat declaration has schema `native-qe-owner-approval-1`, a UUIDv4 `approvalId`, nonempty `owner` (≤256 characters), `decision` (≤2048), `evidenceSource` (≤4096), canonical `projectRoot` and `featurePath`, `journalId`, `sequence`, `eventDigest`, `cycleId`, prior `revision` and distinct measured `targetRevision`. Native read-only reporting exposes the predecessor event digest. Inline JSON and its serialized declaration are capped at 16 KiB. Obtain the changed target digest from the bounded artifact manifest; consent must explicitly bind it. No helper fills missing consent or updates stale bindings. Exact committed retries can return the admitted cycle without appending.
+
+This is surviving local owner evidence, not human authentication or acceptance. Core and the CLI-owned installed helper require continuation capability 1 while legacy APIs remain 1. Older readers reject the extended event explicitly. Install only accepted, signed local packed candidates before authoritative use; no npm publication is required. Journal/head/host publication remains conservatively crash detecting under the existing lock, with no filesystem atomicity claim.
+
+Native QE also supports one explicit `begin-post-ci-correction` after the current witnessed fourth cycle is CLOSED. Supply the original `--reviewers`, strict `--owner-approval` declaration (`native-qe-post-ci-owner-approval-1`, including the exact descriptor SHA256), and `--correction-evidence <repo-relative-json-file>`. Core and the installed helper require post-CI capability 2; history and ordinary continuation APIs remain 1. Default ceiling three and the ordinary continuation remain unchanged; the separate fifth target is pinned and no sixth cycle is available.
+
+The canonical local descriptor binds failed CI bytes, one existing test fixture patch, enumerated accepted Git integration, unchanged dependencies, genuine color/neutral full controls and the complete successful mandatory CI identity set. Logs stream within separate 16 MiB/file, four-log/64 MiB bounds; existing source and transaction limits remain unchanged. This is local measured evidence, not remote authentication. Retained test output: [native core and installed CLI](../../../features/native-qe-post-ci-correction/qa/runtime-checkpoint-6/actual-checks.json). Required proof and checkpoints remain obligations. The correction QA namespace must contain exactly its descriptor, referenced proofs and digest-bound `excludedEvidence` supplements, including tracked, untracked and ignored files. Extra entries or changed/missing listed proof block availability; keep inline consent and evolving native/review outputs outside this immutable namespace. Complete fifth receipts may list reviewers in any order; durable closure preserves the original roster order. A mutating evaluate that records loss or replacement invalidates earlier per-reviewer proof verifications; restored bytes require fresh originating receipts bound to the durable observation anchor. Reads and refused prepare do not remember transient loss. Use accepted signed packed local packages before authoritative admission; this change does not publish or activate packages globally.
+
+Schema 2 (`native-qe-post-ci-evidence-2`) adds exact `scope.importedArtifacts` rows (`path`, absent `before`, SHA256 `digest`, byte `size`) for foreign feature history imported by a normal two-parent merge. Schema 1 remains supported with its original closed shape. Selected foreign roots must be absent from the failed/base/preimport trees and have identical complete membership and bytes in accepted, integrated, qualified and current views. Ignored or untracked extras, active-feature/authority paths, source/proof overlap, links and file/directory aliases refuse admission. Imported support shares the existing 2 MiB/file and 16 MiB source aggregate; schema 2 jointly bounds immutable proof/support to 256 files and 256 derived directories. Source manifests remain limited to 256 entries. Support is reobserved by core; recorded loss requires fresh bound originating reviews after restoration.

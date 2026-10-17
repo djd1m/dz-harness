@@ -217,8 +217,10 @@ export function probeRecallEngine(socketPath: string, timeoutMs = 1000): Promise
  * `INSTALL_ROOT` is two levels above its own directory (it was one short — `<root>/.claude` — so the
  * install-root link never fired and the daemon served, and resolved its deps from, `cwd`); the hook's
  * `reviveDaemon()` spawns it with `cwd: PROJECT` and `DZ_PROJECT_ROOT: PROJECT`.
+ * Version 16 adds opt-in process RSS telemetry/budget and early, owned lifecycle shutdown.
+ * Version 17 serializes stale-socket cleanup and bind across concurrent daemon starts.
  */
-export const APPLY_LEG_VERSION = 15;
+export const APPLY_LEG_VERSION = 17;
 
 /**
  * Parse the `dz-apply-leg-version` stamp from a deployed helper file. Unlike
@@ -974,7 +976,7 @@ export function embedDaemonSource(coreDistDir: string | null = null): string {
  *
  * PROTOCOL — newline-delimited JSON over a unix socket:
  *   → {"op":"recall","prompt":"…","limit":8}   ← {"hits":[{"dzId","pattern","score","domain"}],"engine":"hybrid"|"cosine-fallback","reason"?}
- *   → {"op":"ping"}                              ← {"ok":true,"model":"…","uptimeMs":N}
+ *   → {"op":"ping"}                              ← {"ok":true,"model":"…","uptimeMs":N,"patterns":N,"rssBytes":N,"rssLimitBytes":N|null}
  *   → {"op":"stop"}                              ← {"ok":true}   (then exits)
  *
  * ADR-001 (feature \`hook-recall-hybrid-parity\`): \`op: recall\` first tries core's \`recallHybrid\`
@@ -988,7 +990,7 @@ export function embedDaemonSource(coreDistDir: string | null = null): string {
  */
 
 import { createServer } from 'node:net';
-import { existsSync, unlinkSync, readFileSync, mkdirSync, writeFileSync, renameSync, statSync } from 'node:fs';
+import { existsSync, unlinkSync, readFileSync, mkdirSync, writeFileSync as writeFileSyncNative, renameSync, statSync, lstatSync, openSync, closeSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 import { connect } from 'node:net';
@@ -997,6 +999,19 @@ import { tmpdir } from 'node:os';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 
 const log = (...a) => console.error('[dz-embed]', ...a);
+
+/** ASCII integer MiB policy, read once before probing or loading any dependency. */
+function readRssBudgetBytes(raw) {
+  if (raw === undefined || raw === '0') return null;
+  const mb = Number(raw);
+  if (!/^[0-9]+$/.test(raw) || !Number.isSafeInteger(mb) || mb <= 0 ||
+      !Number.isSafeInteger(mb * 1048576)) {
+    log('invalid DZ_EMBED_MAX_RSS_MB: expected a positive decimal integer MiB or literal 0');
+    process.exit(2);
+  }
+  return mb * 1048576;
+}
+const rssLimitBytes = readRssBudgetBytes(process.env['DZ_EMBED_MAX_RSS_MB']);
 
 /** Never let a diagnostic reach stdout — the hook that spawns us may be parsing it. */
 console.log = (...a) => console.error(...a);
@@ -1121,13 +1136,18 @@ function socketAlive(path) {
   return new Promise((resolve) => {
     if (!existsSync(path)) return resolve(false);
     const c = connect(path);
+    clients.add(c);
+    c.on('close', () => clients.delete(c));
+    const timer = setTimeout(() => done(false), 500);
+    workTimers.add(timer);
     const done = (v) => {
+      clearTimeout(timer);
+      workTimers.delete(timer);
       c.destroy();
       resolve(v);
     };
     c.on('connect', () => done(true));
     c.on('error', () => done(false));
-    setTimeout(() => done(false), 500);
   });
 }
 
@@ -1220,21 +1240,162 @@ function filterProbeHits(hits, probe) {
   return probe ? hits : hits.filter((h) => h.domain !== PROBE_BEACON_DOMAIN);
 }
 
-async function main() {
-  if (await socketAlive(SOCKET)) {
-    log('a daemon already owns', SOCKET, '— exiting');
-    process.exit(0);
-  }
-  if (existsSync(SOCKET)) {
+// Lifecycle exists before model/dependency initialization, including pending awaits.
+let stopping = false;
+let server;
+let idleTimer;
+let rssTimer;
+let socketIdentity;
+let pointerIdentity;
+let tempPointerIdentity;
+let tempPointerPath;
+const STARTUP_LOCK = SOCKET + '.startup.lock';
+let startupLockIdentity;
+const clients = new Set();
+const workTimers = new Set();
+function pathIdentity(path, bytes) {
+  const st = lstatSync(path);
+  return { dev: st.dev, ino: st.ino, mode: st.mode, bytes };
+}
+function ownedPathMatches(path, identity) {
+  if (!identity) return false;
+  try {
+    const st = lstatSync(path);
+    return st.dev === identity.dev && st.ino === identity.ino && st.mode === identity.mode &&
+      (identity.bytes === undefined || readFileSync(path, 'utf8') === identity.bytes);
+  } catch { return false; }
+}
+function removeOwned(path, identity) {
+  if (!ownedPathMatches(path, identity)) return;
+  try { unlinkSync(path); } catch (err) { log('cleanup failed:', path, err?.message ?? err); }
+}
+function releaseStartupLock() {
+  removeOwned(STARTUP_LOCK, startupLockIdentity);
+  startupLockIdentity = undefined;
+}
+async function acquireStartupLock() {
+  const deadline = Date.now() + 2000;
+  while (!stopping) {
+    let fd;
     try {
-      unlinkSync(SOCKET); // stale socket from a crashed predecessor
-    } catch {
-      /* the bind below will fail loudly enough */
+      fd = openSync(STARTUP_LOCK, 'wx', 0o600);
+    } catch (err) {
+      if (err?.code !== 'EEXIST') {
+        log('cannot acquire startup lock:', err?.message ?? err);
+        return false;
+      }
+      if (Date.now() >= deadline) {
+        log('startup lock busy:', STARTUP_LOCK, '— confirm no startup owns it before removing a stale lock');
+        return false;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      continue;
+    }
+    try {
+      startupLockIdentity = pathIdentity(STARTUP_LOCK);
+      writeFileSyncNative(fd, String(process.pid));
+      return true;
+    } catch (err) {
+      releaseStartupLock();
+      log('cannot initialize startup lock:', err?.message ?? err);
+      return false;
+    } finally {
+      closeSync(fd);
     }
   }
+  return false;
+}
+function shutdown(code, stopSocket) {
+  if (stopping) return;
+  stopping = true; // the first terminal reason owns the exit decision
+  clearTimeout(idleTimer);
+  clearInterval(rssTimer);
+  for (const timer of workTimers) clearTimeout(timer);
+  workTimers.clear();
+  for (const sock of clients) if (sock !== stopSocket) sock.destroy();
+  // net.Server.close() unlinks its Unix pathname: never give it a successor's path.
+  if (server && ownedPathMatches(SOCKET, socketIdentity)) {
+    try { server.close(); } catch { /* pre-bind or already closed */ }
+  }
+  removeOwned(SOCKET, socketIdentity);
+  removeOwned(SOCKET_POINTER, pointerIdentity);
+  if (tempPointerPath) removeOwned(tempPointerPath, tempPointerIdentity);
+  releaseStartupLock();
+  const finish = () => {
+    for (const sock of clients) sock.destroy();
+    if (code === 3) process.exit(3);
+    process.exit(code);
+  };
+  if (stopSocket && !stopSocket.destroyed) {
+    const flush = setTimeout(finish, 100);
+    stopSocket.end(JSON.stringify({ ok: true }) + '\\n', () => { clearTimeout(flush); finish(); });
+  } else finish();
+}
+function sampleRssBudget(phase) {
+  if (stopping) return false;
+  const rssBytes = process.memoryUsage().rss;
+  if (rssLimitBytes !== null && rssBytes > rssLimitBytes) {
+    log('RSS budget exceeded:', 'rssBytes=' + rssBytes, 'rssLimitBytes=' + rssLimitBytes, 'phase=' + phase);
+    shutdown(4);
+    return false;
+  }
+  return true;
+}
+for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(sig, () => shutdown(0));
+process.on('uncaughtException', (err) => { log('fatal:', err?.message ?? err); shutdown(1); });
+process.on('unhandledRejection', (err) => { log('fatal:', err?.message ?? err); shutdown(1); });
 
+/** One native ping with a total 500 ms deadline and bounded response bytes. */
+function probeRssBudget(path) {
+  return new Promise((resolve) => {
+    let settled = false;
+    let bytes = 0;
+    let buf = '';
+    const c = connect(path);
+    clients.add(c);
+    c.on('close', () => clients.delete(c));
+    const timer = setTimeout(() => done(false), 500);
+    workTimers.add(timer);
+    function done(ok) {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      workTimers.delete(timer);
+      c.destroy();
+      resolve(ok);
+    }
+    c.on('connect', () => c.write(JSON.stringify({ op: 'ping' }) + '\\n'));
+    c.on('data', (chunk) => {
+      bytes += chunk.length;
+      if (bytes > 65536) return done(false);
+      buf += chunk.toString('utf8');
+      const nl = buf.indexOf('\\n');
+      if (nl < 0) return;
+      try {
+        const ping = JSON.parse(buf.slice(0, nl));
+        done(ping.ok === true && Number.isInteger(ping.rssBytes) && ping.rssBytes > 0 &&
+          ping.rssLimitBytes === rssLimitBytes);
+      } catch { done(false); }
+    });
+    c.on('error', () => done(false));
+    c.on('end', () => done(false));
+  });
+}
+
+async function main() {
+  if (await socketAlive(SOCKET)) {
+    if (rssLimitBytes !== null && !(await probeRssBudget(SOCKET))) {
+      log('DZ_EMBED_MAX_RSS_MB configuration drift: live daemon did not confirm the requested RSS budget');
+      return shutdown(5);
+    }
+    log('a daemon already owns', SOCKET, '— exiting');
+    return shutdown(0);
+  }
   const started = Date.now();
   const model = configuredModel();
+
+  if (stopping || !sampleRssBudget('initial')) return;
+  if (rssLimitBytes !== null) rssTimer = setInterval(() => sampleRssBudget('periodic'), 1000);
 
   // better-sqlite3 is required regardless of which embedder answers a request (ADR-001, T3) — the
   // cosine-fallback leg always reads the mirror through it.
@@ -1243,7 +1404,7 @@ async function main() {
     Database = resolveDatabase();
   } catch (err) {
     log('deps unavailable — not starting:', err?.message ?? err);
-    process.exit(0); // never a hard failure: the hook degrades to silence
+    return shutdown(0); // never a hard failure: the hook degrades to silence
   }
 
   // ADR-001 D1 (embed-daemon-memory): the daemon SHARES core's single per-process embedder and
@@ -1275,10 +1436,12 @@ async function main() {
   if (coreHasSharedEmbedder) {
     embedderSource = 'core-shared';
     embed = async (text) => {
+      if (stopping) throw new Error('daemon stopping');
       const shared = await startupCore.resolveAgentdbEmbedder(PROJECT);
       if (!shared || typeof shared.embed !== 'function' || 'error' in shared) {
         throw new Error((shared && shared.error) || 'resolveAgentdbEmbedder returned no embed()');
       }
+      if (stopping) throw new Error('daemon stopping');
       return shared.embed(text);
     };
     let startupProbe;
@@ -1301,7 +1464,7 @@ async function main() {
       deps = resolveDeps();
     } catch (err) {
       log('deps unavailable — not starting:', err?.message ?? err);
-      process.exit(0); // never a hard failure: the hook degrades to silence
+      return shutdown(0); // never a hard failure: the hook degrades to silence
     }
     // F1 (fix round 1, Codex #1b): the daemon has no core to ask, so it reads the STORE's own dtype
     // manifest directly — an own pipeline built blindly at fp32 would silently compare vectors from
@@ -1347,6 +1510,8 @@ async function main() {
     }
   }
 
+  if (stopping || !sampleRssBudget('post-init')) return;
+
   // AM-1 (fix round 1): warm resolveAgentdbEmbedder — cached PER PROCESS since db1521ba (cold
   // ~2-3.6 s, warm ~1 ms, MEASURED, see the manifest's T8/AM-1 discussion) — OFF the request path,
   // so the first REAL \`op: recall\` is not the one that pays the cold init. Fired fire-and-forget as
@@ -1362,9 +1527,10 @@ async function main() {
   const WARMUP_TIMEOUT_MS = 10_000;
   async function warmUpHybridEngine() {
     const core = await loadCoreModule();
-    if (core === undefined) return;
+    if (stopping || core === undefined) return;
     const guard = new Promise((resolve) => {
-      const t = setTimeout(resolve, WARMUP_TIMEOUT_MS);
+      const t = setTimeout(() => { workTimers.delete(t); resolve(); }, WARMUP_TIMEOUT_MS);
+      workTimers.add(t);
       t.unref?.();
     });
     // An empty-string query still exercises the FULL semantic leg (embed + engine.search), which is
@@ -1438,14 +1604,19 @@ async function main() {
     const TIMED_OUT = Symbol('timed-out');
     let timer;
     const budget = new Promise((resolve) => {
-      timer = setTimeout(() => resolve(TIMED_OUT), HOOK_RECALL_BUDGET_MS);
+      timer = setTimeout(() => { workTimers.delete(timer); resolve(TIMED_OUT); }, HOOK_RECALL_BUDGET_MS);
+      workTimers.add(timer);
       timer.unref?.();
     });
     hybridInFlight += 1;
     const attempt = (async () => {
       const core = await loadCoreModule();
-      if (core === undefined) return { unavailable: true };
-      if (DZ_EMBED_HYBRID_DELAY_MS > 0) await new Promise((r) => setTimeout(r, DZ_EMBED_HYBRID_DELAY_MS));
+      if (stopping || core === undefined) return { unavailable: true };
+      if (DZ_EMBED_HYBRID_DELAY_MS > 0) await new Promise((r) => {
+        const delay = setTimeout(() => { workTimers.delete(delay); r(); }, DZ_EMBED_HYBRID_DELAY_MS);
+        workTimers.add(delay);
+      });
+      if (stopping) return { unavailable: true };
       const result = await core.recallHybrid(PROJECT, prompt, { limit, mode: 'hook', deferExposures: true });
       return { unavailable: false, result, core };
     })();
@@ -1456,6 +1627,7 @@ async function main() {
     try {
       const raced = await Promise.race([attempt, budget]);
       clearTimeout(timer);
+      workTimers.delete(timer);
       if (raced === TIMED_OUT) return { ok: false, reason: \`budget exceeded (\${HOOK_RECALL_BUDGET_MS} ms)\` };
       if (raced.unavailable) return { ok: false, reason: 'core module unavailable' };
       // AM-3 (fix round 1): everything past the race — reading result.hits, a hit missing its
@@ -1477,6 +1649,7 @@ async function main() {
       return { ok: true, hits: filterProbeHits(hits, probe).slice(0, limit) };
     } catch (err) {
       clearTimeout(timer);
+      workTimers.delete(timer);
       return { ok: false, reason: \`recallHybrid failed: \${err?.message ?? err}\` };
     }
   }
@@ -1487,6 +1660,7 @@ async function main() {
     const limit = Math.min(Number(limitRaw) || 8, 32);
     if (prompt.trim() === '') return { hits: [], engine: 'none', reason: 'empty prompt' }; // Codex round-2: every reply carries \`engine\`
     const hybrid = await hybridRecall(prompt, limit, probe);
+    if (stopping) return { hits: [], engine: 'none', reason: 'daemon stopping' };
     if (hybrid.ok) return { hits: hybrid.hits, engine: 'hybrid' };
     // Reload the cosine mirror if it changed on disk (a \`dz teach\` between turns) — the SAME
     // staleness window as before this feature, just checked only when actually falling back.
@@ -1515,9 +1689,9 @@ async function main() {
     return { hits: filterProbeHits(scored, probe).slice(0, limit), engine: 'cosine-fallback', reason: hybrid.reason };
   }
 
-  let idleTimer;
   let lastActivityAt = Date.now();
   const touch = () => {
+    if (stopping) return;
     lastActivityAt = Date.now();
     clearTimeout(idleTimer);
     if (IDLE_MS === null) return; // idle exit disabled (AM-10)
@@ -1531,23 +1705,27 @@ async function main() {
     idleTimer.unref?.();
   };
 
-  const server = createServer((sock) => {
+  server = createServer((sock) => {
+    if (stopping) return sock.destroy();
+    clients.add(sock);
+    sock.on('close', () => clients.delete(sock));
     touch();
     let buf = '';
     sock.on('data', async (chunk) => {
+      if (stopping) return;
+      touch();
       buf += chunk.toString('utf8');
       let nl;
-      while ((nl = buf.indexOf('\\n')) !== -1) {
+      while (!stopping && (nl = buf.indexOf('\\n')) !== -1) {
         const line = buf.slice(0, nl);
         buf = buf.slice(nl + 1);
         let reply;
         try {
           const msg = JSON.parse(line);
           if (msg.op === 'ping') {
-            reply = { ok: true, model, uptimeMs: Date.now() - started, patterns: patterns.length };
+            reply = { ok: true, model, uptimeMs: Date.now() - started, patterns: patterns.length, rssBytes: process.memoryUsage().rss, rssLimitBytes };
           } else if (msg.op === 'stop') {
-            sock.write(JSON.stringify({ ok: true }) + '\\n');
-            return shutdown(0);
+            return shutdown(0, sock);
           } else if (msg.op === 'recall') {
             const prompt = typeof msg.prompt === 'string' ? msg.prompt : '';
             reply = await answerRecall(prompt, msg.limit, msg.probe === true);
@@ -1557,6 +1735,7 @@ async function main() {
         } catch (err) {
           reply = { error: err?.message ?? String(err) };
         }
+        if (stopping || sock.destroyed) return;
         try {
           sock.write(JSON.stringify(reply) + '\\n');
         } catch {
@@ -1567,34 +1746,12 @@ async function main() {
     sock.on('error', () => sock.destroy());
   });
 
-  function shutdown(code) {
-    try {
-      server.close();
-    } catch {
-      /* ignore */
-    }
-    try {
-      if (existsSync(SOCKET)) unlinkSync(SOCKET);
-    } catch {
-      /* ignore */
-    }
-    try {
-      // Only OUR pointer is removed — one that already names another daemon's socket stays.
-      if (SOCKET_REASON === 'tmpdir-short' && existsSync(SOCKET_POINTER) && readFileSync(SOCKET_POINTER, 'utf-8').trim() === SOCKET) unlinkSync(SOCKET_POINTER);
-    } catch {
-      /* ignore */
-    }
-    process.exit(code);
-  }
-
-  for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) process.on(sig, () => shutdown(0));
-
   // FR-3 ("absence of a receipt is not success"): \`ready\` is printed ONLY after \`listen\`'s callback
   // AND a fresh \`existsSync(SOCKET)\` both confirm the socket file is actually on disk — a caller
   // that greps stderr for "ready" must never see it for a socket that silently failed to bind.
   function bindFailed(detail) {
     log(\`bind failed: \${detail} (path \${Buffer.byteLength(SOCKET, 'utf8')} bytes)\`);
-    process.exit(3);
+    shutdown(3);
   }
 
   // A fresh project's SOCKET directory (\`.dz/\`, or a caller-injected DZ_EMBED_SOCKET's own parent)
@@ -1608,15 +1765,38 @@ async function main() {
     if (SOCKET_REASON === 'tmpdir-short') {
       const st = statSync(dirname(SOCKET));
       const ownUid = typeof process.getuid === 'function' ? process.getuid() : st.uid;
-      if (st.uid !== ownUid || (st.mode & 0o077) !== 0) bindFailed(\`socket directory \${dirname(SOCKET)} is not private (uid \${st.uid}, mode \${(st.mode & 0o777).toString(8)})\`);
+      if (st.uid !== ownUid || (st.mode & 0o077) !== 0) return bindFailed(\`socket directory \${dirname(SOCKET)} is not private (uid \${st.uid}, mode \${(st.mode & 0o777).toString(8)})\`);
     }
   } catch (err) {
-    if (SOCKET_REASON === 'tmpdir-short') bindFailed(\`cannot prepare socket directory: \${err?.message ?? err}\`);
+    if (SOCKET_REASON === 'tmpdir-short') return bindFailed(\`cannot prepare socket directory: \${err?.message ?? err}\`);
     /* project branch: listen() below reports the real reason if the directory truly cannot be created */
   }
 
+  if (stopping) return;
+  if (!(await acquireStartupLock())) return shutdown(6);
+  if (stopping) return shutdown(0);
+  // The first probe was only an optimization. A peer may have bound during initialization;
+  // only this second probe, under the exclusive startup lock, may authorize stale cleanup.
+  if (await socketAlive(SOCKET)) {
+    if (rssLimitBytes !== null && !(await probeRssBudget(SOCKET))) {
+      log('DZ_EMBED_MAX_RSS_MB configuration drift: live daemon did not confirm the requested RSS budget');
+      return shutdown(5);
+    }
+    log('a daemon already owns', SOCKET, '— exiting');
+    return shutdown(0);
+  }
+  if (existsSync(SOCKET)) {
+    try {
+      const staleIdentity = pathIdentity(SOCKET);
+      if (lstatSync(SOCKET).isSocket()) removeOwned(SOCKET, staleIdentity);
+    } catch {
+      /* the bind below will fail loudly enough */
+    }
+  }
   server.listen(SOCKET, () => {
+    if (stopping) return;
     if (!existsSync(SOCKET)) return bindFailed('socket file missing after listen');
+    socketIdentity = pathIdentity(SOCKET);
     if (SOCKET_REASON === 'tmpdir-short') {
       // Lead edit after Codex review (finding 3): the pointer is published ATOMICALLY (tmp + rename)
       // and BEFORE \`ready\` — a reader never sees a half-written or missing pointer after \`ready\`;
@@ -1624,8 +1804,20 @@ async function main() {
       try {
         mkdirSync(join(PROJECT, '.dz'), { recursive: true });
         const tmp = \`\${SOCKET_POINTER}.\${process.pid}.tmp\`;
+        // This daemon only writes the pointer: keep its writer exclusive.
+        const writeFileSync = (path, bytes) => {
+          const fd = openSync(path, 'wx');
+          tempPointerPath = path;
+          tempPointerIdentity = pathIdentity(path); // own even a partially written file
+          try {
+            writeFileSyncNative(fd, bytes);
+            tempPointerIdentity = pathIdentity(path, bytes);
+          } finally { closeSync(fd); }
+        };
         writeFileSync(tmp, SOCKET);
         renameSync(tmp, SOCKET_POINTER);
+        pointerIdentity = pathIdentity(SOCKET_POINTER, SOCKET);
+        tempPointerIdentity = undefined;
       } catch (err) {
         return bindFailed(\`could not publish socket pointer: \${err?.message ?? err}\`);
       }
@@ -1636,13 +1828,14 @@ async function main() {
     const embedderReadyLabel = embedderSource === 'own-fallback' ? \`\${embedderSource} dtype=\${ownFallbackDtypeLabel}\` : \`\${embedderSource}\${embedderReadyDetail}\`;
     log(\`ready: \${patterns.length} pattern vectors, model \${model}, socket \${SOCKET} embedder=\${embedderReadyLabel}\`);
     touch();
+    releaseStartupLock();
   });
   server.on('error', (err) => bindFailed(err?.message ?? String(err)));
 }
 
 main().catch((err) => {
   log('fatal:', err?.message ?? err);
-  process.exit(0); // a dead daemon must never fail a session
+  shutdown(0); // a dead daemon must never fail a session
 });
 `;
 }

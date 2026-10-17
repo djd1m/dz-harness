@@ -1,11 +1,11 @@
 # @dzhechkov/skills-meta
 
-Feature ADR native QE opt-in uses the installed CLI-owned convergence helper, bounded measurement and durable fixed-three-cycle history. Legacy synchronous standalone convergence remains supported; see feature-adr/modules/08-qe.md for prepare, evaluate, explicit repair and failure limits.
+Feature ADR native QE opt-in uses the installed CLI-owned convergence helper, bounded measurement and durable history with a default three-cycle ceiling. Legacy synchronous standalone convergence remains supported; see feature-adr/modules/08-qe.md for prepare, evaluate, explicit repair and failure limits.
 
 If bytes change before first evaluation, native `evaluate` retains valid old-snapshot receipt origins and conditions while reporting `not-established/native-repair-required`. Follow with explicit `begin-repair` and fresh independent verification of the new snapshot. Recovery preserves authority and the three-cycle ceiling; old evidence never closes changed bytes.
 
 
-Current package version: `0.9.69`. <!-- dz:version -->
+Current package version: `0.9.70`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-meta
 
@@ -255,3 +255,27 @@ terminal `RC_EXIT:0` witness; failure refuses coding/cache access. Admission pre
 and existing `.fa-state/base-ref` (HEAD only when absent); actual coder initialization never resets
 an existing base. Plain uses the same executable helper and mandatory instructions, without an
 automatic dispatcher. Admission observes current bytes; final QE remains the freshness check.
+
+### Literal implementation-plan targets
+
+Feature-ADR K2 completeness, native admission and core plan authority share a raw-text trailing
+`EXPECTED_CODE_TARGETS:` grammar: one uppercase column-zero marker with optional ASCII padding,
+LF-only declaration, nonempty `- ` path rows and trim()-empty blanks through EOF. Suffix headings,
+prose, alternate bullets, CR/CRLF or duplicate raw markers refuse the whole block; markers inside
+examples/comments also count. Payloads stay literal, including backticks and whitespace. Existing
+path authority and native I/O/history bounds still apply. Core establishes no valid subset from
+malformed or rejected/rewritten plan paths. Explicit args retain their separate normalization and
+precedence; coder text remains diagnostic. The standalone grammar helper ships beside the skill's
+native checker and K2 script. No Markdown authenticity is inferred.
+
+Native QE keeps its default ceiling at three. `dz qe-rounds --source native --action begin-continuation --project <root> --slug <feature> --reviewers <actual-roster-json> --owner-approval <inline-json>` can admit exactly one additional cycle after three witnessed cycles whose active cycle has never closed. A second ordinary continuation refuses. The target is pinned before its fourth origin; prepare and repair cannot redirect it. Fresh independent receipts, original reviewer conditions, author delta assessment and checkpoint verification still govern closure. An admitted checkpoint remains required if its file is removed or replaced; restore the original checkpoint and obtain independent verification before closure. Prepare retains its digest, and replay rejects a closed continuation without matching checkpoint evidence.
+
+The exact flat declaration has schema `native-qe-owner-approval-1`, a UUIDv4 `approvalId`, nonempty `owner` (≤256 characters), `decision` (≤2048), `evidenceSource` (≤4096), canonical `projectRoot` and `featurePath`, `journalId`, `sequence`, `eventDigest`, `cycleId`, prior `revision` and distinct measured `targetRevision`. Native read-only reporting exposes the predecessor event digest. Inline JSON and its serialized declaration are capped at 16 KiB. Obtain the changed target digest from the bounded artifact manifest; consent must explicitly bind it. No helper fills missing consent or updates stale bindings. Exact committed retries can return the admitted cycle without appending.
+
+This is surviving local owner evidence, not human authentication or acceptance. Core and the CLI-owned installed helper require continuation capability 1 while legacy APIs remain 1. Older readers reject the extended event explicitly. Install only accepted, signed local packed candidates before authoritative use; no npm publication is required. Journal/head/host publication remains conservatively crash detecting under the existing lock, with no filesystem atomicity claim.
+
+Native QE also supports one explicit `begin-post-ci-correction` after the current witnessed fourth cycle is CLOSED. Supply the original `--reviewers`, strict `--owner-approval` declaration (`native-qe-post-ci-owner-approval-1`, including the exact descriptor SHA256), and `--correction-evidence <repo-relative-json-file>`. Core and the installed helper require post-CI capability 2; history and ordinary continuation APIs remain 1. Default ceiling three and the ordinary continuation remain unchanged; the separate fifth target is pinned and no sixth cycle is available.
+
+The canonical local descriptor binds failed CI bytes, one existing test fixture patch, enumerated accepted Git integration, unchanged dependencies, genuine color/neutral full controls and the complete successful mandatory CI identity set. Logs stream within separate 16 MiB/file, four-log/64 MiB bounds; existing source and transaction limits remain unchanged. This is local measured evidence, not remote authentication. Required proof and checkpoints remain obligations. The correction QA namespace must contain exactly its descriptor, referenced proofs and digest-bound `excludedEvidence` supplements, including tracked, untracked and ignored files. Extra entries or changed/missing listed proof block availability; keep inline consent and evolving native/review outputs outside this immutable namespace. Complete fifth receipts may list reviewers in any order; durable closure preserves the original roster order. A mutating evaluate that records loss or replacement invalidates earlier per-reviewer proof verifications; restored bytes require fresh originating receipts bound to the durable observation anchor. Reads and refused prepare do not remember transient loss. Use accepted signed packed local packages before authoritative admission; this change does not publish or activate packages globally.
+
+Schema 2 (`native-qe-post-ci-evidence-2`) adds exact `scope.importedArtifacts` rows (`path`, absent `before`, SHA256 `digest`, byte `size`) for foreign feature history imported by a normal two-parent merge. Schema 1 remains supported with its original closed shape. Selected foreign roots must be absent from the failed/base/preimport trees and have identical complete membership and bytes in accepted, integrated, qualified and current views. Ignored or untracked extras, active-feature/authority paths, source/proof overlap, links and file/directory aliases refuse admission. Imported support shares the existing 2 MiB/file and 16 MiB source aggregate; schema 2 jointly bounds immutable proof/support to 256 files and 256 derived directories. Source manifests remain limited to 256 entries. Support is reobserved by core; recorded loss requires fresh bound originating reviews after restoration.

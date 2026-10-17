@@ -156,8 +156,10 @@ export declare function probeRecallEngine(socketPath: string, timeoutMs?: number
  * `INSTALL_ROOT` is two levels above its own directory (it was one short — `<root>/.claude` — so the
  * install-root link never fired and the daemon served, and resolved its deps from, `cwd`); the hook's
  * `reviveDaemon()` spawns it with `cwd: PROJECT` and `DZ_PROJECT_ROOT: PROJECT`.
+ * Version 16 adds opt-in process RSS telemetry/budget and early, owned lifecycle shutdown.
+ * Version 17 serializes stale-socket cleanup and bind across concurrent daemon starts.
  */
-export declare const APPLY_LEG_VERSION = 15;
+export declare const APPLY_LEG_VERSION = 17;
 /**
  * Parse the `dz-apply-leg-version` stamp from a deployed helper file. Unlike
  * `writerVersionOf` (which floors an absent stamp at `0`), this returns `-1` for "no stamp at

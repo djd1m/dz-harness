@@ -28,7 +28,7 @@ export interface ExecutionEvidence {
 }
 /** Why a row degraded to CANNOT_ISOLATE. Typed so the operator repair is machine-derivable — the
  *  pre-epoch gate had one untyped bucket that read like "meh, no test", hiding a broken instrument. */
-export type CannotIsolateReason = 'no-execution-evidence' | 'unrecognised-runner-output' | 'no-tests-executed' | 'inconsistent-evidence' | 'tip-control-missing' | 'tip-evidence-missing' | 'timeout';
+export type CannotIsolateReason = 'no-execution-evidence' | 'unrecognised-runner-output' | 'no-tests-executed' | 'inconsistent-evidence' | 'tip-control-missing' | 'tip-evidence-missing' | 'timeout' | 'baseline-dependency-unavailable' | 'capture-incomplete';
 export declare const DISCRIMINATION_VERDICTS: readonly DiscriminationVerdict[];
 export declare const CANNOT_ISOLATE_REASONS: readonly CannotIsolateReason[];
 /** A property test mapped from the ADR Confirmation `Required automated check`. */
@@ -38,6 +38,17 @@ export interface PropertyTestRef {
     /** optional test-name filter (e.g. vitest `-t`) to run just the property case. */
     readonly name?: string;
 }
+/** An actual bounded process observation. Core consumes data only; it performs no I/O. */
+interface CapturedDiscriminationRun {
+    readonly command: string;
+    readonly cwd: string;
+    readonly stdout: string;
+    readonly stderr: string;
+    readonly exitCode: number | null;
+    readonly signal: string | null;
+    readonly captureComplete: boolean;
+    readonly captureError: string | null;
+}
 /** One observed row fed back by the executor. */
 export interface ClassifyResultRow {
     readonly file: string;
@@ -46,6 +57,14 @@ export interface ClassifyResultRow {
     readonly evidence?: ExecutionEvidence;
     readonly tipOutcome?: TipOutcome;
     readonly tipEvidence?: ExecutionEvidence;
+    readonly baseRun?: CapturedDiscriminationRun;
+    readonly tipRun?: CapturedDiscriminationRun;
+    readonly baselineDependency?: {
+        readonly kind: 'unavailable' | 'feature-module-absent';
+        readonly specifier: string | null;
+        readonly path: string | null;
+        readonly detail: string;
+    };
 }
 /** A CLOSED runner selection derived from the target package, never a command copied from package.json. */
 export type RunnerSelection = {
@@ -233,4 +252,5 @@ export declare function classifyExecutionEvidence(rawOutput: string, exitCode: n
  * runtime behavior change for compiling callers is the ADR-002 headline, not a side effect.
  */
 export declare function classifyDiscrimination(input: ClassifyInput): DiscriminationResult;
+export {};
 //# sourceMappingURL=discrimination-gate.d.ts.map

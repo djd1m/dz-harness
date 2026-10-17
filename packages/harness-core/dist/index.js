@@ -320,5 +320,6 @@ export { decideTestReceipt, renderTestReceiptVerdict } from './test-receipt.js';
 export { decideBackupFreshness, renderBackupFreshness } from './backup-freshness.js';
 export { planReleasePackageAudit, judgeReleasePackageAudit, judgeReleaseCohortAudit } from './release-package-audit.js';
 export { buildScopedCatalogInventory } from './scoped-catalog-inventory.js';
-export { NATIVE_QE_HISTORY_API_VERSION, createNativeQeHistoryApi } from './native-review-history.js';
+export { NATIVE_QE_HISTORY_API_VERSION, NATIVE_QE_CONTINUATION_API_VERSION, NATIVE_QE_POST_CI_CORRECTION_API_VERSION, createNativeQeHistoryApi } from './native-review-history.js';
+export { validateNativePostCiEvidence } from './native-post-ci-evidence.js';
 //# sourceMappingURL=index.js.map

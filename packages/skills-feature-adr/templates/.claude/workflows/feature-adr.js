@@ -3158,6 +3158,29 @@ function addExpectedCodeTarget(value, out) {
   }
 }
 
+/** Raw-text trailing declaration grammar. Path authority is a separate layer. */
+function parseExpectedTargetBlock(text) {
+  const lines = String(text || '').split('\n');
+  const markers = [];
+  for (let i = 0; i < lines.length; i++) {
+    const match = /^EXPECTED_CODE_TARGETS:[ \t]*\r?$/.exec(lines[i]);
+    if (match && match[0] === lines[i]) markers.push(i);
+  }
+  const startLine = markers.length ? markers[0] : -1;
+  if (markers.length !== 1) return { ok: false, targets: [], startLine, reason: 'target-block-missing-or-duplicate' };
+  if (lines.slice(startLine).some(line => line.includes('\r'))) return { ok: false, targets: [], startLine, reason: 'target-block-malformed' };
+  const targets = [];
+  for (const line of lines.slice(startLine + 1)) {
+    if (!line.trim()) continue;
+    const match = /^- (.+)$/.exec(line);
+    // Full-line equality also refuses a final U+2028/U+2029 that $ can match before.
+    if (!match || match[0] !== line) return { ok: false, targets: [], startLine, reason: 'target-block-malformed' };
+    targets.push(match[1]);
+  }
+  if (!targets.length) return { ok: false, targets: [], startLine, reason: 'target-block-empty' };
+  return { ok: true, targets, startLine };
+}
+
 function extractExpectedCodeTargetsFromText(text) {
   const out = []
   const lines = String(text || '').split(/\r?\n/)
@@ -3194,29 +3217,29 @@ function sourceExpectedCodeTargets(argTargets, planBlockText, codexText) {
   if (planBlockText === null || planBlockText === undefined) {
     return { targets: [], establishedBy: null, reason: 'no-plan-block', scrapeDiagnostic: scrapeDiagnostic }
   }
-  const planRaw = []
-  addExpectedCodeTarget(extractExpectedCodeTargetsFromText(planBlockText), planRaw)
-  const planPaths = filterPollableCodePaths(planRaw)
-  if (planPaths.length > 0) return { targets: planPaths, establishedBy: 'plan', scrapeDiagnostic: scrapeDiagnostic }
+  const validation = validateExpectedTargetsBlock(planBlockText)
+  if (!validation.grammarReason && validation.rejected.length === 0 && validation.accepted.length > 0) {
+    return { targets: validation.accepted, establishedBy: 'plan', scrapeDiagnostic: scrapeDiagnostic }
+  }
   return { targets: [], establishedBy: null, reason: 'empty-plan-block', scrapeDiagnostic: scrapeDiagnostic }
 }
 
 // R13: line-level validation of the plan's block at the Step-6/7 boundary, BEFORE Step 7 spends
 // tokens. Every rejected line reports WHY, so a whole-block typo can never present as "no block".
 function validateExpectedTargetsBlock(planText) {
-  const text = String(planText || '')
-  const present = /^EXPECTED_CODE_TARGETS:\s*$/im.test(text)
-  const lines = extractExpectedCodeTargetsFromText(text)
+  const block = parseExpectedTargetBlock(planText)
+  const present = block.startLine >= 0
+  if (!block.ok) return { present: present, accepted: [], rejected: [], grammarReason: block.reason }
   const accepted = []
   const rejected = []
   const seen = new Set()
-  for (const line of lines) {
+  for (const line of block.targets) {
     const reason = classifyCodeLandingPathReject(line)
     if (reason !== null) { rejected.push({ line: line, reason: reason }); continue }
-    const normalized = normalizeCodeLandingPath(line)
-    if (seen.has(normalized)) continue
-    seen.add(normalized)
-    accepted.push(normalized)
+    if (stripCodeLandingPath(line) !== line) { rejected.push({ line: line, reason: 'nonliteral-path' }); continue }
+    if (seen.has(line)) continue
+    seen.add(line)
+    accepted.push(line)
   }
   return { present: present, accepted: accepted, rejected: rejected }
 }
@@ -4981,6 +5004,7 @@ if (plan) {
   const planTextForTargets = await dispatchAgent(newRung(), 'Read ' + FDIR + '/06_implementation_plan.md and return ONLY its `EXPECTED_CODE_TARGETS:` block verbatim (the header line plus the list lines under it). If there is no such block, return exactly: (no block)', { label: 'plan:targets-block', phase: 'Plan', effort: 'low' })
   const targetsCheck = validateExpectedTargetsBlock(planTextForTargets)
   if (!targetsCheck.present) log('Step-6/7 boundary: the plan declares NO EXPECTED_CODE_TARGETS block — a codex-coded Step 7 would produce an INCONCLUSIVE landing verdict')
+  else if (targetsCheck.grammarReason) log('Step-6/7 boundary: ' + targetsCheck.grammarReason)
   else log('Step-6/7 boundary: EXPECTED_CODE_TARGETS accepted=' + targetsCheck.accepted.length + ' rejected=' + targetsCheck.rejected.length)
   for (const r of targetsCheck.rejected) log('Step-6/7 boundary: expected-target line REJECTED (' + r.reason + '): ' + r.line)
 }
@@ -5213,7 +5237,7 @@ let preCodeBaseline = null
 if (QE_SCOPE === 'uncommitted') {
   const planPeek = await dispatchAgent(newRung(), 'Read the EXPECTED_CODE_TARGETS: block of ' + FDIR + '/06_implementation_plan.md and return it VERBATIM; if there is no such block reply with exactly NONE.', { label: 'qe:baseline-targets', phase: 'Code', effort: 'low' })
   if (planPeek && String(planPeek).indexOf('EXPECTED_CODE_TARGETS:') >= 0) {
-    const peeked = filterPollableCodePaths(extractExpectedCodeTargetsFromText(String(planPeek)))
+    const peeked = sourceExpectedCodeTargets(A.expectedCodeTargets, String(planPeek), '').targets
     if (peeked.length > 0) preCodeTargets = peeked
   }
   const baseCmd = changeSetProbeCmd({ scope: 'uncommitted', paths: preCodeTargets, quote: shq })

@@ -101,6 +101,7 @@ import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { isAbsolute, join, resolve } from 'node:path';
+import { parseExpectedTargetBlock } from './expected-target-grammar.mjs';
 
 const argv = process.argv.slice(2);
 const acidArg = argv.find((a) => a.startsWith('--acid='));
@@ -151,8 +152,8 @@ if (!existsSync(FDIR)) notEstablished(`feature dir absent: ${FDIR}`);
 if (!existsSync(planPath)) notEstablished('06_implementation_plan.md absent');
 const plan = readFileSync(planPath, 'utf-8');
 if (plan.trim().length < 200) notEstablished('plan suspiciously small (<200 chars)');
-// The EXPECTED_CODE_TARGETS block as C3 reads it (C3 below reuses THIS match — one reader).
-const blockM = plan.match(/EXPECTED_CODE_TARGETS:\s*\n((?:\s*[-*]\s*.+\n?)+)/);
+// C3 and task exclusion share the raw trailing declaration boundary, even on malformed input.
+const targetBlock = parseExpectedTargetBlock(plan);
 
 // `## Amendments` as C6 reads it: up to three leading spaces, two to four hashes, trailing text
 // allowed; the section ends at the next level-1..4 heading. Returned as LINE indices over masked
@@ -179,15 +180,11 @@ function findAmendmentsSection(maskedLines) {
 function planTaskText(planText) {
   const lines = maskMarkdown(planText, { unclosed: 'mask' }).split('\n');
   const am = findAmendmentsSection(lines);
-  let tFrom = -1, tTo = -1;
-  if (blockM) {
-    tFrom = planText.slice(0, blockM.index).split('\n').length - 1;
-    tTo = planText.slice(0, blockM.index + blockM[0].length - 1).split('\n').length - 1;
-  }
+  const tFrom = targetBlock.startLine;
   const keep = [];
   for (let i = 0; i < lines.length; i++) {
     if (am.head >= 0 && i >= am.head && i < am.end) continue;
-    if (tFrom >= 0 && i >= tFrom && i <= tTo) continue;
+    if (tFrom >= 0 && i >= tFrom) continue;
     const l = lines[i];
     if (/^ {0,3}#{1,6}\s/.test(l) || /^\s*(?:[-*+]|\d+[.)])\s+/.test(l) || /^\s*\|/.test(l)) keep.push(l);
   }
@@ -408,14 +405,11 @@ function classifyTargetPath(path) {
 
 // C3 — EXPECTED_CODE_TARGETS block, line-level validation
 const listedTargets = new Set();
-if (!blockM) failures.push('C3: no EXPECTED_CODE_TARGETS: block in the plan');
+if (!targetBlock.ok) failures.push(`C3: EXPECTED_CODE_TARGETS declaration refused — ${targetBlock.reason}`);
 else {
-  const lines = blockM[1].split('\n').map(s => s.trim()).filter(Boolean);
-  if (lines.length === 0) failures.push('C3: EXPECTED_CODE_TARGETS block is empty');
-  for (const ln of lines) {
-    const path = ln.replace(/^[-*]\s*/, '').replace(/`/g, '').trim();
+  for (const path of targetBlock.targets) {
     const reasons = classifyTargetPath(path);
-    if (reasons.length) failures.push(`C3: target line rejected: "${safe(ln)}" — ${reasons.join(', ')}`);
+    if (reasons.length) failures.push(`C3: target line rejected: "${safe(path)}" — ${reasons.join(', ')}`);
     else listedTargets.add(path);
   }
 }

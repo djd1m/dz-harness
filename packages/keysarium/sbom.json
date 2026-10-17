@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "399f8032d0723d371c63c4d94d351614f4a2e11865a6475ab3f1db5c02e45058"
+          "content": "8e3d0f7279b85203b4c7a35ae6375f016e607276066e6c73396ac94e58b399cb"
         }
       ]
     },
@@ -59,7 +59,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "3ab5dc27c4025613b6d9d9c5932eff6ef31927190723f63a8fd32b68e462050b"
+          "value": "52ff221d4ce111588f31f3940e4374e5ca76eb868753e28560e4ba2b5487d768"
         }
       ]
     },
@@ -969,7 +969,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d7a2a4e56b24451da234b1ac4ef440ba9b0370617e1c0cde8ad5f3d575a53209"
+          "content": "4eae99dfc266f9c32be3fd302b6a8316924461db8ae5038a169d7a0ec6398e89"
         }
       ]
     },
@@ -979,7 +979,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d5c03890b2b3a34277c73a14d3d7c97741dec1d6c382e87ee4cc6a5a52d938d7"
+          "content": "7cd05898db005ad19fbaeb25af3d958d47946f5db195e6969009fd45953e3e30"
         }
       ]
     },
@@ -989,7 +989,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e2fb5fb869005b05d13fcc52da7ded281bb6758250a1cdf695dace286029d791"
+          "content": "4c80cbbae3c4acfb61e4cd0dfbf97e873ef7bded9d41ecaf84959e6fe5e0640f"
         }
       ]
     },
@@ -1239,7 +1239,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8b93949ce4f671d932c5389050db3a3e2750efcbed69681d69f392ccf4d2a168"
+          "content": "1c8f8e6ffad01ebdb1bcf6fce6cfb6baae6fe40a9ce377b3894f8addc06c8180"
         }
       ]
     },
@@ -1249,7 +1249,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6fdacc0ee6c1d2b00029da8d300a574c051895ee98a9c88c9509a39b9bdccc71"
+          "content": "91fe091ed7ab8f38340b8ac0fd3194c90b357cb9bab381a86594ac96600ced97"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/scripts/expected-target-grammar.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e763efd3af9c7ba71f758f6d6c349b21f2a41ded0420fc165269eab82b6433fb"
         }
       ]
     },
@@ -1260,6 +1270,16 @@
         {
           "alg": "SHA-256",
           "content": "82c3c48c25f400f3a64d1caba3d47357f3db87460f0746f88706f901eb6ff689"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/skills/feature-adr/scripts/native-post-ci-evidence.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b19b5491cb42f1e9f2fdefd642e7938640d68fd8bdff991f66fdcebef61f55ae"
         }
       ]
     },

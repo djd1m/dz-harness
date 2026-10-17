@@ -32,6 +32,7 @@ import { execFile, execFileSync, execSync, spawn, spawnSync, type ChildProcess }
 import { createHash, randomBytes } from 'node:crypto';
 import { cpus, homedir, hostname, tmpdir } from 'node:os';
 import { createRequire } from 'node:module';
+import { StringDecoder } from 'node:string_decoder';
 // Namespace access lets an old core refuse native actions without a missing named import.
 import * as nativeQeCore from '@dzhechkov/harness-core';
 import { isDeepStrictEqual } from 'node:util';
@@ -713,6 +714,7 @@ import type { MutationEntryResult, MutationObservation, MutationRegistryEntry, M
 import type { SkillApplyFailure, SkillLoadFailure } from '@dzhechkov/harness-core';
 import type { ReqeDebt } from '@dzhechkov/harness-core';
 import type { ClassifyResultRow, ExecutionEvidence } from '@dzhechkov/harness-core';
+import { materializeDiscriminationDependencies } from './discrimination-dependencies.js';
 import type { IdeaRecord, IdeaStatus } from '@dzhechkov/harness-core';
 import type { Family, ModelRung, Candidate as BtoCandidate, DimScores } from '@dzhechkov/harness-core';
 import type { SetupSpec } from '@dzhechkov/harness-core';
@@ -813,7 +815,7 @@ Usage:
   dz score --all [--project <dir>] [--json]              (sweep features/*/.fa-state/score-*.json into the append-only chained scorecards aggregate — descriptive-only, always exits 0)
   dz recap [--day|--week|--month] [--at <ISO date>] [--project <dir>] [--json]   (what was done over a window, from records only: deliveries with the grade an independent review STATED — a report naming two grades is reported ambiguous, never guessed — registry publishes, gate verdicts, knowledge reuse. --quarter/--half-year/--year are RECOGNISED and REFUSED with the real span in days: there is one complete quarter and the longest record is 174 days. Every section carries its own data-start date, and "the source was not read" never prints as zero. Contaminated measures — commit count, lines, tokens, learning-event volume, inventory counts, lesson count — are not computed, and the report says so. exit 0 reported / 2 refused)
   dz cadence [--window day|week|month|quarter|halfyear|year] [--json]   (the WHAT-SHIPPED aggregator: graded-shipment cadence by ISO week + npm-publish cadence (recap cache) + guard repeat decay on the FIXED rule set + recall reuse; a window deeper than 2× the record is REFUSED with the depth named (ADR: a cadence from one point is scale forgery); exit 0 report / 2 refused-window / 1 usage)
-  dz qe-rounds (--slug <feature> | --feature-dir <abs>) [--source bridge|native] [--action prepare|evaluate|begin-repair --reviewers <json>] [--ceiling <n> (bridge only)] [--project <dir>] [--json]   (native actions use the installed CLI-owned helper and durable fixed-three-cycle history; omitted action is read-only. how many Step-8 review rounds has this feature ALREADY had? Reads what dz qe-bridge already wrote — signoff-<runId>.json and failed-*.json under features/<slug>/.fa-state/qe-bridge — and writes nothing itself, so it can answer for runs already past. A round is a runId, not a file; an attempt with no verdict is counted SEPARATELY and never merged; an unreadable record is NAMED and the count is declared a LOWER BOUND. ONE directory, never a union across checkouts. exit 0 under the ceiling / 1 at-or-over — owner decides, the command does not judge whether the rounds were warranted / 2 NOT ESTABLISHED, which is never "zero rounds")
+  dz qe-rounds (--slug <feature> | --feature-dir <abs>) [--source bridge|native] [--action prepare|evaluate|begin-repair|begin-continuation|begin-post-ci-correction --reviewers <json>] [--owner-approval <json>] [--correction-evidence <path>] [--ceiling <n> (bridge only)] [--project <dir>] [--json]   (native actions use the installed CLI-owned helper and durable fixed-three-cycle history; omitted action is read-only. how many Step-8 review rounds has this feature ALREADY had? Reads what dz qe-bridge already wrote — signoff-<runId>.json and failed-*.json under features/<slug>/.fa-state/qe-bridge — and writes nothing itself, so it can answer for runs already past. A round is a runId, not a file; an attempt with no verdict is counted SEPARATELY and never merged; an unreadable record is NAMED and the count is declared a LOWER BOUND. ONE directory, never a union across checkouts. exit 0 under the ceiling / 1 at-or-over — owner decides, the command does not judge whether the rounds were warranted / 2 NOT ESTABLISHED, which is never "zero rounds")
   dz restart-advisor --slug <s> [--threshold C|D] [--rounds N] [--json]   (read-only advisory decision over features/<slug>/.fa-state/checkpoints.jsonl and .dz/fa-training/<slug>/qe.jsonl. Defaults: threshold D, rounds 2 — both origins are printed. Equal sources corroborate; conflicts, torn/unreadable evidence, gaps, and unsafe paths are NOT ESTABLISHED. RECOMMENDATION ONLY: autoAction=false; never invokes feature-adr, deletes a stage, or writes advisor state. exit 0 established recommendation/no-recommendation / 2 NOT ESTABLISHED or invalid input / 1 unexpected runtime failure)
   dz tg-post --draft <file.html> [--manifest <sources.json>] [--channel <@name|id>] [--send --yes] [--night] [--preview] [--json]   (the sender for an APPROVED channel post, per the accepted genai-tweets-channel ADRs: HTML mode only — never MarkdownV2; link preview OFF by default (x.com previews in Telegram are broken); the 00:00-06:00 MSK quiet window refuses without an explicit --night. DEFAULT IS A DRY-RUN: it validates the draft (tag balance, allowed tags, bare &/<, the 4096 visible-character limit with the overshoot counted) and runs the provenance gate over --manifest IN-PROCESS — a draft with no manifest is refused as unchecked, and anything but ALLOWED refuses. A real send needs --send --yes, stating ADR-004's manual-publishing decision out loud each time. The token comes from TELEGRAM_BOT_TOKEN or telegram.tokenFile in .dz/config.json and is never printed. exit 0 sent or clean dry-run / 1 refused or Telegram error / 2 usage)
   dz name-check [--command <n>] [--module <basename>] [--export <a,b>] [--project <dir>] [--json]   (is this name free, BEFORE a line of code? Scans workspace SOURCE — never dist, because a stale build answers 'free' confidently. Checks a dz command name against the dispatcher AND the help block, a module basename against every package's src/, and exported identifiers against every declaration in the workspace. exit 0 all free / 1 at least one taken, naming where / 2 nothing asked or the scan did not run — an empty sweep is never a clean bill. Honest limit, printed on the passing path: it reads declarations, so a re-export under a different name stays the build's job)
@@ -3497,8 +3499,8 @@ async function cmdQeRounds(options: Map<string, string>, flags: Set<string>, cwd
     write(JSON.stringify({ source: source ?? 'bridge', status: 'not-established', verdict: 'not-established', reasons: [reason], notEstablishedReason: reason }));
     return 2;
   };
-  if (argv.slice(1).some(a => /^(--source|--action|--reviewers)(=|$)/.test(a))) {
-    const allowed = new Set(['source', 'action', 'reviewers', 'slug', 'feature-dir', 'project', 'json', 'ceiling']);
+  if (argv.slice(1).some(a => /^(--source|--action|--reviewers|--owner-approval|--correction-evidence)(=|$)/.test(a))) {
+    const allowed = new Set(['source', 'action', 'reviewers', 'owner-approval', 'correction-evidence', 'slug', 'feature-dir', 'project', 'json', 'ceiling']);
     const seen = new Set<string>();
     for (let i = 1; i < argv.length; i++) {
       const token = argv[i] ?? '';
@@ -3511,7 +3513,7 @@ async function cmdQeRounds(options: Map<string, string>, flags: Set<string>, cwd
     }
     if (!['native', 'bridge'].includes(source ?? '')) return emitRefusal('qe-source-invalid', true);
     if (native && seen.has('--ceiling')) return emitRefusal('native-ceiling-override-refused', true);
-    if (!native && (seen.has('--action') || seen.has('--reviewers'))) return emitRefusal('native-action-requires-native-source', true);
+    if (!native && (seen.has('--action') || seen.has('--reviewers') || seen.has('--owner-approval') || seen.has('--correction-evidence'))) return emitRefusal('native-action-requires-native-source', true);
     if (seen.has('--slug') === seen.has('--feature-dir')) return emitRefusal('native-requires-one-feature-binding', true);
   }
   const root = resolve(cwd, options.get('project') ?? '.');
@@ -3531,18 +3533,33 @@ async function cmdQeRounds(options: Map<string, string>, flags: Set<string>, cwd
     const capability = nativeQeCore as unknown as Record<string, unknown>;
     if (capability['NATIVE_QE_HISTORY_API_VERSION'] !== 1 || typeof capability['createNativeQeHistoryApi'] !== 'function') return emitRefusal('native-core-capability-not-established');
     const action = options.get('action');
-    if (action !== undefined && !['prepare', 'evaluate', 'begin-repair'].includes(action)) return emitRefusal('native-action-invalid', true);
+    if (action !== undefined && !['prepare', 'evaluate', 'begin-repair', 'begin-continuation', 'begin-post-ci-correction'].includes(action)) return emitRefusal('native-action-invalid', true);
+    if (options.has('owner-approval') && !['begin-continuation', 'begin-post-ci-correction'].includes(action ?? '')) return emitRefusal('native-owner-approval-not-supported-for-action', true);
+    if (['begin-continuation', 'begin-post-ci-correction'].includes(action ?? '') && !options.has('owner-approval')) return emitRefusal('native-owner-approval-required', true);
+    if (action === 'begin-continuation' && capability['NATIVE_QE_CONTINUATION_API_VERSION'] !== 1) return emitRefusal('native-core-continuation-capability-not-established');
+    if (options.has('correction-evidence') && action !== 'begin-post-ci-correction') return emitRefusal('native-correction-evidence-action-invalid', true);
+    if (action === 'begin-post-ci-correction' && !options.has('correction-evidence')) return emitRefusal('native-correction-evidence-required', true);
+    if (action === 'begin-post-ci-correction' && capability['NATIVE_QE_POST_CI_CORRECTION_API_VERSION'] !== 2) return emitRefusal('native-core-post-ci-capability-not-established');
     if (options.has('reviewers') && (!action || action === 'evaluate')) return emitRefusal('native-reviewers-not-supported-for-action', true);
     try {
       // Exact installed package, resolved from this CLI module, never the execution project.
       const factory = capability['createNativeQeHistoryApi'] as (o: { projectRoot: string; featurePath: string }) => { read(): Record<string, unknown> };
       let helper: Record<string, unknown> | null = null;
       let reviewers: unknown;
+      let ownerApproval: unknown;
+      if (['begin-continuation', 'begin-post-ci-correction'].includes(action ?? '')) {
+        const inline = options.get('owner-approval') ?? '';
+        if (Buffer.byteLength(inline, 'utf8') > 16 * 1024) return emitRefusal('native-owner-approval-limit', true);
+        ownerApproval = JSON.parse(inline);
+        if (action === 'begin-post-ci-correction' && JSON.stringify(ownerApproval) !== inline) return emitRefusal('native-owner-approval-noncanonical', true);
+      }
       if (action) {
         const packageFile = createRequire(import.meta.url).resolve('@dzhechkov/skills-meta/package.json');
         const helperFile = join(dirname(packageFile), 'feature-adr', 'scripts', 'check-review-convergence.mjs');
         helper = await import(pathToFileURL(helperFile).href) as Record<string, unknown>;
         if (helper['NATIVE_REVIEW_API_VERSION'] !== 1 || typeof helper['runNativeReviewGate'] !== 'function') return emitRefusal('native-helper-capability-not-established');
+        if (action === 'begin-continuation' && helper['NATIVE_REVIEW_CONTINUATION_API_VERSION'] !== 1) return emitRefusal('native-helper-continuation-capability-not-established');
+        if (action === 'begin-post-ci-correction' && helper['NATIVE_REVIEW_POST_CI_CORRECTION_API_VERSION'] !== 2) return emitRefusal('native-helper-post-ci-capability-not-established');
         if (action !== 'evaluate') {
           if (!options.has('reviewers')) return emitRefusal('native-reviewers-required', true);
           reviewers = JSON.parse(options.get('reviewers') ?? '');
@@ -3550,7 +3567,7 @@ async function cmdQeRounds(options: Map<string, string>, flags: Set<string>, cwd
       }
       const api = factory({ projectRoot: root, featurePath: featureDir });
       const output = action
-        ? (helper!['runNativeReviewGate'] as (o: Record<string, unknown>) => Record<string, unknown>)({ action, repo: root, feature: featureDir, reviewers, api })
+        ? (helper!['runNativeReviewGate'] as (o: Record<string, unknown>) => Record<string, unknown>)({ action, repo: root, feature: featureDir, reviewers, ownerApproval, correctionEvidence: options.get('correction-evidence'), api })
         : api.read();
       write(flags.has('json') ? JSON.stringify(output) : 'dz qe-rounds: ' + JSON.stringify(output));
       return output['verdict'] === 'not-established' || output['status'] === 'not-established' ? 2
@@ -8963,6 +8980,40 @@ async function cmdParity(options: Map<string, string>, flags: Set<string>, write
 /*  ADR-001): 4 HARD gates in FRONT of the untouched dz publish.       */
 /* ------------------------------------------------------------------ */
 
+const RELEASE_EXEC_MAX_BUFFER = 64 * 1024 * 1024;
+
+export function releaseExecFailure(err: unknown): ReturnType<ReleaseExecRunner> {
+  const e = err as Error & { code?: string; status?: number | null; stdout?: unknown; stderr?: unknown };
+  const overflow = e.code === 'ENOBUFS';
+  const diagnostic = overflow
+    ? `release step output exceeded ${RELEASE_EXEC_MAX_BUFFER} bytes (ENOBUFS)`
+    : formatPublishError(e);
+  const stderr = e.stderr == null || String(e.stderr).trim() === ''
+    ? diagnostic
+    : overflow ? `${diagnostic}\n${String(e.stderr)}` : String(e.stderr);
+  return {
+    // A caught execution error is red even if a child handles SIGTERM and exits zero.
+    exitCode: typeof e.status === 'number' && e.status !== 0 ? e.status : 1,
+    stdout: e.stdout == null ? '' : String(e.stdout), stderr,
+    timedOut: e.code === 'ETIMEDOUT',
+  };
+}
+
+/** Capture large test diagnostics without turning an output overflow into a fake timeout. */
+export const runReleaseExec: ReleaseExecRunner = (cmd, opts) => {
+  try {
+    const execOpts = {
+      cwd: opts.cwd, stdio: 'pipe' as const, encoding: 'utf-8' as const,
+      timeout: opts.timeoutMs, maxBuffer: RELEASE_EXEC_MAX_BUFFER,
+      ...(opts.env !== undefined ? { env: opts.env } : {}),
+    };
+    const stdout = opts.argv !== undefined
+      ? execFileSync(opts.argv[0]!, opts.argv.slice(1), execOpts)
+      : execSync(cmd, execOpts);
+    return { exitCode: 0, stdout: stdout == null ? '' : String(stdout), stderr: '' };
+  } catch (err) { return releaseExecFailure(err); }
+};
+
 /**
  * The single executor of the pure engine's {@link GateStep} plan. ALL subprocess side effects
  * of the release live here (engine purity, NFR-1). Contract highlights:
@@ -9058,27 +9109,7 @@ function cmdRelease(options: Map<string, string>, flags: Set<string>, cwd: strin
 
   // Executor: default = real execSync with piped stdio + timeout; injectable for tests.
   // Defined BEFORE planning because --affected needs read-only git diffs at DETECT time.
-  const run: ReleaseExecRunner =
-    runner ??
-    ((cmd, opts) => {
-      try {
-        const execOpts = { cwd: opts.cwd, stdio: 'pipe' as const, encoding: 'utf-8' as const, timeout: opts.timeoutMs, ...(opts.env !== undefined ? { env: opts.env } : {}) };
-        const stdout = opts.argv !== undefined
-          ? execFileSync(opts.argv[0]!, opts.argv.slice(1), execOpts)
-          : execSync(cmd, execOpts);
-        return { exitCode: 0, stdout: stdout == null ? '' : String(stdout), stderr: '' };
-      } catch (err) {
-        const e = err as Error & { status?: number | null; signal?: string | null; killed?: boolean; stdout?: unknown; stderr?: unknown };
-        // execSync's timeout kills via signal and leaves status null — that IS the timeout shape.
-        const timedOut = (e.status === null || e.status === undefined) && (e.signal != null || e.killed === true);
-        return {
-          exitCode: typeof e.status === 'number' ? e.status : 1,
-          stdout: e.stdout == null ? '' : String(e.stdout),
-          stderr: e.stderr == null || String(e.stderr).trim() === '' ? formatPublishError(e) : String(e.stderr),
-          timedOut,
-        };
-      }
-    });
+  const run: ReleaseExecRunner = runner ?? runReleaseExec;
 
   // AM-8/--affected: narrow the release set to packages touched by the working tree + last
   // commit. Selection is the PURE selectAffectedPackages; the two read-only git diffs are the
@@ -13791,6 +13822,7 @@ function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>
 
   const results: ClassifyResultRow[] = [...absent];
   let tipTree: { headSha: string; dirtyFiles: number } | null = null;
+  let dependencyPreparation: ReturnType<typeof materializeDiscriminationDependencies>['preparation'] | undefined;
 
   // Confirmation 12: with nothing present there is nothing to run — no worktree is built at all.
   if (present.length > 0) {
@@ -13803,34 +13835,29 @@ function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>
       const addCmd = plan.commands[0]!.replace(/\{\{WORKTREE\}\}/g, worktree);
       execSync(addCmd, { cwd: repoRoot, stdio: 'pipe', encoding: 'utf-8' });
 
-      // 1b) a fresh worktree has NO node_modules — without this, every test fails to load (runner + deps
-      // unresolvable) and the gate collapses to always-VIA_ERROR, blind to false greens. Absolute-path
-      // symlinks point back at the main checkout's already-installed trees, robust across pnpm's layout.
-      const linkNodeModules = (relDir: string): void => {
-        const srcNm = join(repoRoot, relDir, 'node_modules');
-        if (!existsSync(srcNm)) return;
-        const dstNm = join(worktree, relDir, 'node_modules');
-        if (existsSync(dstNm)) return;
-        try { mkdirSync(dirname(dstNm), { recursive: true }); symlinkSync(srcNm, dstNm, 'dir'); } catch { /* best effort */ }
-      };
-      linkNodeModules('.'); // root (hoisted deps + .bin)
-      const pkgDirs = new Set<string>();
-      for (const t of present) {
-        let d = dirname(t.file);
-        while (d && d !== '.' && d !== sep) {
-          if (existsSync(join(repoRoot, d, 'package.json'))) { pkgDirs.add(d); break; }
-          d = dirname(d);
-        }
-      }
-      for (const d of pkgDirs) linkNodeModules(d);
+      const dependencies = materializeDiscriminationDependencies(repoRoot, worktree);
+      dependencyPreparation = dependencies.preparation;
 
       // 2) copy each property test into the base worktree, then 3) run it and record the OBSERVATION.
       for (const t of present) {
+        const unsafeDependency = dependencies.preflight(t.file);
+        if (unsafeDependency !== null) {
+          // No child ran: preserve the setup diagnosis without fabricating raw observations.
+          results.push({ ...nameFor(t, 'error'), baselineDependency: unsafeDependency });
+          continue;
+        }
         try {
           const src = resolve(repoRoot, t.file);
           // containment guard (defense in depth beyond planDiscriminationCheck's path sanitation).
           if (!resolve(src).startsWith(resolve(repoRoot) + sep)) { results.push(nameFor(t, 'error')); continue; }
           const dst = join(worktree, t.file);
+          // Overlay writes must not follow tracked baseline symlinks outside scratch.
+          let ancestor = worktree;
+          for (const part of t.file.split('/')) {
+            ancestor = join(ancestor, part);
+            try { if (lstatSync(ancestor).isSymbolicLink()) throw Error('unsafe baseline overlay symlink'); }
+            catch (error) { if ((error as { code?: string }).code !== 'ENOENT') throw error; }
+          }
           mkdirSync(dirname(dst), { recursive: true });
           writeFileSync(dst, readFileSync(src));
         } catch {
@@ -13859,11 +13886,16 @@ function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>
         const base = runCapturedTest(cmd, execDirBase, timeoutMs);
         // The classifier's targetSeen is a substring probe: the run now prints PACKAGE-relative
         // paths, so it must be probed with the same form, or every hit reads as target-unseen.
-        const evidence = classifyExecutionEvidence(base.output, base.exitCode, fileInPkg);
+        const evidence = classifyExecutionEvidence(base.stdout + base.stderr, base.exitCode, fileInPkg);
         const outcome = discriminationOutcomeOf(base.exitCode, evidence);
         const row: Record<string, unknown> = t.name !== undefined
-          ? { file: t.file, name: t.name, outcome, evidence }
-          : { file: t.file, outcome, evidence };
+          ? { file: t.file, name: t.name, outcome, evidence, baseRun: base }
+          : { file: t.file, outcome, evidence, baseRun: base };
+        // A failed running test may contain a real resolver exception or quote one in an
+        // assertion. Attribute only supported reporter diagnostics; preserve raw evidence.
+        const diagnosis = base.exitCode !== null && base.exitCode !== 0
+          ? dependencies.diagnose(base.stdout + base.stderr, evidence.runner, evidence.failureKind === 'assertions') : null;
+        if (diagnosis !== null) row['baselineDependency'] = diagnosis;
 
         // 4) TIP CONTROL (FR-A2 + Confirmation 17). Run it for ALL non-assertion redness — file-load
         // redness (the matrix's EVIDENCED-error rows) AND unrecognised redness (so the invocation
@@ -13872,9 +13904,10 @@ function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>
         // Do NOT "simplify" this to evidenced-error-only — that silently breaks Confirmation 17.
         if (base.exitCode !== null && base.exitCode !== 0 && evidence.failureKind !== 'assertions') {
           const tip = runCapturedTest(cmd, execDirTip, timeoutMs);
-          const tipEvidence = classifyExecutionEvidence(tip.output, tip.exitCode, fileInPkg);
+          const tipEvidence = classifyExecutionEvidence(tip.stdout + tip.stderr, tip.exitCode, fileInPkg);
           row['tipOutcome'] = discriminationOutcomeOf(tip.exitCode, tipEvidence);
           row['tipEvidence'] = tipEvidence;
+          row['tipRun'] = tip;
           // R15, named honestly: the base run is isolated in a worktree, but the tip runs in the LIVE
           // tree, where a concurrent writer can flip the observation mid-gate. No lock is taken
           // (deferred to backlog 9520e506); instead every tip-derived reading carries the tree
@@ -13896,7 +13929,7 @@ function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>
   }
 
   const result = classifyDiscrimination({ propertyTests, results });
-  if (flags.has('json')) { write(JSON.stringify({ plan, results, tipTree, ...result, ...discriminationCompat(result) }, null, 2)); return 0; }
+  if (flags.has('json')) { write(JSON.stringify({ plan, results, tipTree, ...(dependencyPreparation !== undefined ? { dependencyPreparation } : {}), ...result, ...discriminationCompat(result) }, null, 2)); return 0; }
 
   write(`discrimination-check @ ${baseRef} — verdict: ${result.aggregate}`);
   for (const p of result.perTest) {
@@ -13915,21 +13948,40 @@ function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>
 
 /**
  * Run one test command and CAPTURE the observation — output plus the exit code, including the
- * "no exit code at all" case. `execSync`'s timeout kills the child via signal and leaves
+ * "no exit code at all" case. `spawnSync`'s timeout kills the child via signal and leaves
  * `status` null; a spawn failure does the same. That null is not an error to swallow, it is the
  * evidence (`CANNOT_ISOLATE` reason `'timeout'`), so it is returned as data.
  */
-function runCapturedTest(cmd: string, cwd: string, timeoutMs: number): { output: string; exitCode: number | null } {
-  try {
-    const stdout = execSync(cmd, { cwd, stdio: 'pipe', encoding: 'utf-8', timeout: timeoutMs });
-    return { output: String(stdout ?? ''), exitCode: 0 };
-  } catch (e) {
-    const err = e as { stdout?: string; stderr?: string; status?: unknown };
+function runCapturedTest(cmd: string, cwd: string, timeoutMs: number): NonNullable<ClassifyResultRow['baseRun']> {
+  const cap = 1_048_576;
+  // spawnSync's native buffer allowance counts both streams together. Permit two caps,
+  // then bound each retained stream independently and mark any reached cap incomplete.
+  const child = spawnSync(cmd, { cwd, shell: true, stdio: ['ignore', 'pipe', 'pipe'], timeout: timeoutMs, maxBuffer: 2 * cap });
+  const stdout = child.stdout ?? Buffer.alloc(0), stderr = child.stderr ?? Buffer.alloc(0);
+  // Streaming decode retains complete UTF-8 characters at a truncated boundary. Invalid
+  // bytes can expand into replacement characters, so also cap the retained string's UTF-8
+  // representation and report that additional truncation as an incomplete observation.
+  const decode = (bytes: Buffer): { text: string; capped: boolean } => {
+    const rawCapped = bytes.length >= cap;
+    const text = rawCapped ? new StringDecoder('utf8').write(bytes.subarray(0, cap)) : bytes.toString('utf8');
+    const encoded = Buffer.from(text, 'utf8');
     return {
-      output: String(err.stdout ?? '') + String(err.stderr ?? ''),
-      exitCode: typeof err.status === 'number' ? err.status : null,
+      text: encoded.length >= cap ? new StringDecoder('utf8').write(encoded.subarray(0, cap)) : text,
+      capped: rawCapped || encoded.length >= cap,
     };
-  }
+  };
+  const capturedStdout = decode(stdout), capturedStderr = decode(stderr);
+  const capped = capturedStdout.capped || capturedStderr.capped;
+  const error = child.error as (Error & { code?: string }) | undefined;
+  const captureError = error ? `${error.code ?? 'capture-error'}: ${error.message}`
+    : capped ? `output-cap: reached ${cap} bytes per stream` : child.signal ? `signal: ${child.signal}` : null;
+  return {
+    command: cmd, cwd,
+    stdout: capturedStdout.text, stderr: capturedStderr.text,
+    exitCode: child.status, signal: child.signal,
+    captureComplete: error === undefined && !capped && child.signal === null,
+    captureError,
+  };
 }
 
 /**

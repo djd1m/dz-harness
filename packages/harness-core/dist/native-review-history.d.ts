@@ -1,4 +1,7 @@
+import { validateNativePostCiEvidence } from './native-post-ci-evidence.js';
 export declare const NATIVE_QE_HISTORY_API_VERSION = 1;
+export declare const NATIVE_QE_CONTINUATION_API_VERSION = 1;
+export declare const NATIVE_QE_POST_CI_CORRECTION_API_VERSION = 2;
 type Artifact = {
     path: string;
     digest: string | null;
@@ -21,6 +24,47 @@ type Proposal = {
     observationDigest: string;
     result: Record<string, unknown>;
     admission: boolean;
+    ownerApproval?: unknown;
+    correctionEvidence?: {
+        evidencePath: string;
+        evidence: any;
+    };
+};
+type Host = {
+    schema: string;
+    phase: string;
+    reviewers: {
+        id: string;
+        family: string;
+    }[];
+    snapshot: Snapshot;
+    conditions: unknown[];
+    reviewSeen: boolean;
+    rework: boolean;
+    changedPaths: string[];
+};
+type Approval = {
+    schema: string;
+    approvalId: string;
+    owner: string;
+    decision: string;
+    evidenceSource: string;
+    projectRoot: string;
+    featurePath: string;
+    journalId: string;
+    sequence: number;
+    eventDigest: string;
+    cycleId: string;
+    revision: string;
+    targetRevision: string;
+};
+type Correction = {
+    approval: Approval & {
+        evidenceDigest: string;
+    };
+    evidencePath: string;
+    evidence: any;
+    predecessorHost: Host;
 };
 type Fault = (cut: string) => void;
 /** A versioned capability supplied to the CLI-owned installed helper. No generic counter writes. */
@@ -31,6 +75,9 @@ export declare function createNativeQeHistoryApi(options: {
     now?: () => number;
 }): {
     version: number;
+    continuationVersion: number;
+    postCiCorrectionVersion: number;
+    validateEvidence: typeof validateNativePostCiEvidence;
     projectRoot: string;
     featurePath: string;
     read(): {
@@ -49,6 +96,22 @@ export declare function createNativeQeHistoryApi(options: {
         nonce: string;
         revision: string;
         sequence: number;
+        eventDigest: string;
+        snapshot: Snapshot;
+        postCiCorrection: {
+            capacity: number;
+            used: boolean;
+            targetRevision: string | null;
+            evidence: Correction | null;
+            anchorSequence: number | null;
+            anchorEventDigest: string | null;
+        };
+        checkpointDigest: unknown;
+        continuation: {
+            capacity: number;
+            used: boolean;
+            targetRevision: string | null;
+        };
         stopReason: string | null;
         locations: {
             journal: string;
@@ -77,6 +140,10 @@ export declare function createNativeQeHistoryApi(options: {
         witnessed: boolean;
         rounds: number;
         cycleId: string;
+        continuation: boolean;
+        checkpointDigest: string | null;
+        postCiCorrection?: any;
+        deadline?: () => void;
     }) => Proposal): {
         source: string;
         history: string;
@@ -109,6 +176,22 @@ export declare function createNativeQeHistoryApi(options: {
         nonce: string;
         revision: string;
         sequence: number;
+        eventDigest: string;
+        snapshot: Snapshot;
+        postCiCorrection: {
+            capacity: number;
+            used: boolean;
+            targetRevision: string | null;
+            evidence: Correction | null;
+            anchorSequence: number | null;
+            anchorEventDigest: string | null;
+        };
+        checkpointDigest: unknown;
+        continuation: {
+            capacity: number;
+            used: boolean;
+            targetRevision: string | null;
+        };
         stopReason: string | null;
         locations: {
             journal: string;

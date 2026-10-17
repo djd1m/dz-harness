@@ -287,7 +287,7 @@ export interface ReadmeVersionSyncPlan {
     readonly text: string;
     readonly rewritten: readonly ReadmeSyncRewrite[];
     /** Count of OLD-VERSION token OCCURRENCES left untouched as history (changelog region + every
-     *  token outside every recognised ALLOWLIST shape — FR-1). */
+     *  token in a masked example or outside every recognised ALLOWLIST shape — FR-1). */
     readonly skippedHistorical: number;
     /** The 1-based line numbers carrying at least one of those kept-as-history tokens (fix-round 1,
      *  Codex HIGH: "history has only an aggregate count, not locations; rewritten lines have
@@ -300,8 +300,9 @@ export interface ReadmeVersionSyncPlan {
  * FR-1 (allowlist, not denylist). Outside a changelog region (FR-2: EVERY entry-shaped run, not
  * only the first — see `changelogRegion`), a token rewrites ONLY when `isAllowlistedRewriteContext`
  * recognises its shape; every other token — historical prose of ANY form — is left untouched by
- * default. A `<!-- dz:version -->` marker on the line forces the rewrite regardless of either
- * protection (AC-3).
+ * default. On a visible line, `<!-- dz:version -->` overrides the changelog and allowlist
+ * protections (AC-3). Canonically masked fences and HTML comment blocks stay literal, even
+ * with a marker or allowlisted shape.
  *
  * FR-3 (never silent): every rewritten line is reported with its line number and before/after text;
  * every token left untouched as history is counted AND located, whether the reason was the

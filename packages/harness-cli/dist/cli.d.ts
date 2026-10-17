@@ -319,6 +319,9 @@ registrySeam?: {
     };
     readonly sleep?: (milliseconds: number) => void;
 }): number;
+export declare function releaseExecFailure(err: unknown): ReturnType<ReleaseExecRunner>;
+/** Capture large test diagnostics without turning an output overflow into a fake timeout. */
+export declare const runReleaseExec: ReleaseExecRunner;
 export interface CodexHooksSyncInput {
     readonly codexHome?: string | undefined;
     readonly project?: string | undefined;

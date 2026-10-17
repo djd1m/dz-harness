@@ -37,11 +37,11 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/core` | 0.2.30 |
 | `@dzhechkov/design-thinking` | 1.0.15 |
 | `@dzhechkov/evidence-wiki` | 0.2.7 |
-| `@dzhechkov/harness-cli` | 0.8.50 |
-| `@dzhechkov/harness-core` | 0.8.57 |
+| `@dzhechkov/harness-cli` | 0.8.51 |
+| `@dzhechkov/harness-core` | 0.8.58 |
 | `@dzhechkov/harness-presets` | 0.5.25 |
 | `@dzhechkov/health-advisor` | 1.10.8 |
-| `@dzhechkov/keysarium` | 1.7.13 |
+| `@dzhechkov/keysarium` | 1.7.14 |
 | `@dzhechkov/keysarium-core` | 1.1.32 |
 | `@dzhechkov/loop-designer-plugin` | 0.1.7 |
 | `@dzhechkov/mcp-server-tools` | 0.2.11 |
@@ -62,10 +62,10 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/skills-devops` | 0.3.18 |
 | `@dzhechkov/skills-ecc` | 0.1.13 |
 | `@dzhechkov/skills-edu-site` | 1.1.11 |
-| `@dzhechkov/skills-feature-adr` | 1.5.20 |
+| `@dzhechkov/skills-feature-adr` | 1.5.21 |
 | `@dzhechkov/skills-idea2prd` | 0.1.16 |
 | `@dzhechkov/skills-mcp` | 0.3.11 |
-| `@dzhechkov/skills-meta` | 0.9.69 |
+| `@dzhechkov/skills-meta` | 0.9.70 |
 | `@dzhechkov/skills-news` | 0.1.17 |
 | `@dzhechkov/skills-package-story-page` | 0.2.5 |
 | `@dzhechkov/skills-pm` | 0.1.6 |
