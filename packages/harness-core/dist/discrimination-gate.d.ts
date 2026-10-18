@@ -19,8 +19,13 @@ export interface ExecutionEvidence {
     readonly exitCode: number | null;
     readonly runner: EvidenceRunner;
     readonly failureKind: EvidenceFailureKind;
-    /** parsed from the runner's own summary; null = unparseable (never assumed to be ≥ 1). */
+    /**
+     * Legacy secondary signal. On green this is the passed count; on red it is the failed count,
+     * so consumers must not display it as an exact total. Preserved for existing JSON consumers.
+     */
     readonly testsExecuted: number | null;
+    /** Exact passed + failed count from a complete recognized summary; null = not established. */
+    readonly testsRun?: number | null;
     /** target identity: the named test file appears in the recognized output. */
     readonly targetSeen: boolean;
     /** the classifier's evidence string when it has one (quotable in 08_qe_report.md, K7). */

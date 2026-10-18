@@ -3,7 +3,7 @@
 `dz qe-rounds --source native` reports durable native QE history without writing. Explicit `--action prepare|evaluate|begin-repair|begin-continuation` invokes the exact installed skills-meta helper from the CLI module, checks core/helper capabilities and uses the existing receipt schema. Prepare and begin-repair require `--reviewers <json>`. The default native ceiling is three; native `--ceiling`, duplicate/unknown options, legacy reconstruction and source collisions refuse. Omitted source retains the bridge reader.
 
 
-Current package version: `0.8.51`. <!-- dz:version -->
+Current package version: `0.8.52`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -100,7 +100,7 @@ Each launch creates one snapshot; remove selected old snapshot files yourself wh
 Live backpressure waits for writable callbacks. Explicit termination cancels pending writes; after
 child exit a stalled output sink has a two-second final drain window before cancellation.
 
-Current package versions: `harness-core v0.8.58` · `harness-cli v0.8.51`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.59` · `harness-cli v0.8.52`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. On visible lines, the marker retains its whole-line override for per-package synchronization, including explicit changelog overrides, so keep it off historical records. The previous all-protections override is corrected: fenced marker, footer, install/JSON-pin, tarball and badge examples remain literal, as do supported HTML comment blocks. Their visible counterparts still stamp; place current metadata outside examples.
 
@@ -5211,6 +5211,11 @@ reports an unavailable baseline and emits no raw run for a child that never ran.
 `--json` retains each actual `baseRun` and any executed `tipRun`: command, cwd,
 separate stdout/stderr, actual exit code and signal, `captureComplete` and
 `captureError`. Parsed evidence comes from those same streams, stdout before stderr.
+Each evidence row carries `testsRun`: the exact passed-plus-failed count when a
+complete Vitest or TAP summary establishes it, or `null` when it cannot be
+established. The human report prints that count per test, or `unknown`. The older
+`testsExecuted` field remains for compatibility; on a red run it counts failures,
+so it must not be used as an exact total.
 The per-stream cap is 1,048,576 bytes of retained UTF-8 text. Invalid input bytes use
 replacement characters; any extra truncation needed to keep that text within the cap
 is explicit. Cap/capture failures cannot establish proof. `dependencyPreparation` reports external reuse, baseline workspace
@@ -5244,7 +5249,7 @@ dz discrimination-check --test packages/x/test/auth-property.test.ts \
 ```
 ```
 discrimination-check @ HEAD — verdict: NON_DISCRIMINATING
-  ✗ packages/x/test/auth-property.test.ts: NON_DISCRIMINATING
+  ✗ packages/x/test/auth-property.test.ts: NON_DISCRIMINATING · testsRun: 1
   measurementValid: true · primaryAction: strengthen-test
 
   [high] non-discriminating property test (false green)

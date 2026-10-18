@@ -13370,12 +13370,16 @@ function cmdDiscriminationCheck(options, flags, cwd, write) {
         return 0;
     }
     write(`discrimination-check @ ${baseRef} — verdict: ${result.aggregate}`);
+    const evidenceByTarget = new Map();
+    for (const row of results)
+        evidenceByTarget.set(`${row.file}|${row.name ?? ''}`, row.evidence);
     for (const p of result.perTest) {
         // FR-A6: ✓ is reserved for the two ESTABLISHED trust verdicts. Every other value — including
         // every degraded reading — renders ✗, because a ✗ the operator investigates beats a ✓ that
         // silently meant "we could not tell".
         const mark = p.verdict === 'DISCRIMINATES' || p.verdict === 'DISCRIMINATES_VIA_ERROR' ? '✓' : '✗';
-        write(`  ${mark} ${p.file}${p.name ? ` (${p.name})` : ''}: ${p.verdict}${p.reason ? ` (reason: ${p.reason})` : ''}`);
+        const testsRun = evidenceByTarget.get(`${p.file}|${p.name ?? ''}`)?.testsRun;
+        write(`  ${mark} ${p.file}${p.name ? ` (${p.name})` : ''}: ${p.verdict}${p.reason ? ` (reason: ${p.reason})` : ''} · testsRun: ${testsRun ?? 'unknown'}`);
     }
     write(`  measurementValid: ${String(result.measurementValid)} · primaryAction: ${result.primaryAction}`);
     // ALL findings print, not just the worst: the scalar aggregate names one state, and a corpus with

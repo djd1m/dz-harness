@@ -319,6 +319,66 @@ function countExecutedTests(rawOutput) {
         return Number(vitest[1]);
     return null;
 }
+/** Exact completed tests, excluding skipped/todo tests; never inferred from exit status. */
+function countTestsRun(rawOutput, runner) {
+    const output = rawOutput.replace(SGR, '');
+    if (runner === 'vitest') {
+        // Reject a second partial summary or run: an earlier complete line is not this run's count.
+        const lines = [...output.matchAll(/^[ \t]*Tests[ \t]+([^\r\n]*)\r?$/gm)];
+        const runHeaders = [...output.matchAll(/^[ \t]*RUN[ \t]+v\d+\.[^\r\n]*\r?$/gm)];
+        if (lines.length !== 1 || runHeaders.length > 1)
+            return null;
+        const complete = /^([^()]+?)\s*\((\d+)\)[ \t]*$/.exec(lines[0][1]);
+        if (complete === null)
+            return null;
+        const total = Number(complete[2]);
+        const segments = complete[1].trim().split(/[ \t]*\|[ \t]*/);
+        if (!Number.isSafeInteger(total) || segments.length === 0)
+            return null;
+        const seen = new Set();
+        let sum = 0;
+        let run = 0;
+        for (const segment of segments) {
+            const part = /^(\d+)[ \t]+(passed|failed|skipped|todo)$/.exec(segment);
+            if (part === null || seen.has(part[2]))
+                return null;
+            seen.add(part[2]);
+            const count = Number(part[1]);
+            if (!Number.isSafeInteger(count))
+                return null;
+            sum += count;
+            if (part[2] === 'passed' || part[2] === 'failed')
+                run += count;
+        }
+        return Number.isSafeInteger(sum) && sum === total ? run : null;
+    }
+    if (runner === 'node-test') {
+        const count = (name) => {
+            const lines = [...output.matchAll(new RegExp(`^#[ \\t]*${name}([^\\r\\n]*)\\r?$`, 'gm'))];
+            if (lines.length === 0)
+                return undefined;
+            if (lines.length !== 1)
+                return null;
+            const field = /^[ \t]+(\d+)[ \t]*$/.exec(lines[0][1]);
+            if (field === null)
+                return null;
+            const value = Number(field[1]);
+            return Number.isSafeInteger(value) ? value : null;
+        };
+        const total = count('tests');
+        const passed = count('pass');
+        const failed = count('fail');
+        const cancelled = count('cancelled');
+        const skipped = count('skipped');
+        const todo = count('todo');
+        if (total == null || passed == null || failed == null || cancelled === null || skipped === null || todo === null)
+            return null;
+        const run = passed + failed;
+        const accounted = run + (cancelled ?? 0) + (skipped ?? 0) + (todo ?? 0);
+        return Number.isSafeInteger(accounted) && accounted === total ? run : null;
+    }
+    return null;
+}
 /** mutation-gate's internal `'unknown'` is the PUBLISHED `'unrecognised'` here (H2). */
 function toEvidenceRunner(kind) {
     return kind === 'unknown' ? 'unrecognised' : kind;
@@ -342,16 +402,18 @@ function toEvidenceRunner(kind) {
  */
 export function classifyExecutionEvidence(rawOutput, exitCode, targetFile) {
     if (exitCode === null) {
-        return { exitCode: null, runner: 'unrecognised', failureKind: 'unrecognised', testsExecuted: null, targetSeen: false };
+        return { exitCode: null, runner: 'unrecognised', failureKind: 'unrecognised', testsExecuted: null, testsRun: null, targetSeen: false };
     }
     const raw = typeof rawOutput === 'string' ? rawOutput : '';
     const targetSeen = typeof targetFile === 'string' && targetFile.length > 0 && raw.replace(SGR, '').includes(targetFile);
     if (exitCode === 0) {
+        const runner = toEvidenceRunner(detectRunnerKind(raw));
         return {
             exitCode,
-            runner: toEvidenceRunner(detectRunnerKind(raw)),
+            runner,
             failureKind: 'none',
             testsExecuted: countExecutedTests(raw),
+            testsRun: countTestsRun(raw, runner),
             targetSeen,
         };
     }
@@ -362,6 +424,7 @@ export function classifyExecutionEvidence(rawOutput, exitCode, targetFile) {
         // This gate has no infrastructure policy; preserve its existing unrecognised-run behavior.
         failureKind: red.kind === 'runner-infrastructure' ? 'unrecognised' : red.kind,
         testsExecuted: countFailingTests(raw),
+        testsRun: countTestsRun(raw, toEvidenceRunner(red.runner)),
         targetSeen,
     };
     // exactOptionalPropertyTypes: an absent evidence line is OMITTED, never set to undefined.
