@@ -37,11 +37,11 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/core` | 0.2.30 |
 | `@dzhechkov/design-thinking` | 1.0.15 |
 | `@dzhechkov/evidence-wiki` | 0.2.7 |
-| `@dzhechkov/harness-cli` | 0.8.52 |
-| `@dzhechkov/harness-core` | 0.8.59 |
+| `@dzhechkov/harness-cli` | 0.8.53 |
+| `@dzhechkov/harness-core` | 0.8.60 |
 | `@dzhechkov/harness-presets` | 0.5.25 |
-| `@dzhechkov/health-advisor` | 1.10.8 |
-| `@dzhechkov/keysarium` | 1.7.14 |
+| `@dzhechkov/health-advisor` | 1.10.9 |
+| `@dzhechkov/keysarium` | 1.7.15 |
 | `@dzhechkov/keysarium-core` | 1.1.32 |
 | `@dzhechkov/loop-designer-plugin` | 0.1.7 |
 | `@dzhechkov/mcp-server-tools` | 0.2.11 |
@@ -50,7 +50,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/scout` | 0.8.12 |
 | `@dzhechkov/skills-12factor` | 0.1.14 |
 | `@dzhechkov/skills-academic` | 0.3.8 |
-| `@dzhechkov/skills-analyst-manual` | 1.0.15 |
+| `@dzhechkov/skills-analyst-manual` | 1.0.16 |
 | `@dzhechkov/skills-book-ai-apps` | 0.2.11 |
 | `@dzhechkov/skills-book-clean-code` | 0.1.2 |
 | `@dzhechkov/skills-book-ddia` | 0.1.6 |

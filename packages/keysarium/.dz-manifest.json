@@ -9,11 +9,11 @@
       },
       {
         "path": "README.md",
-        "sha256": "8e3d0f7279b85203b4c7a35ae6375f016e607276066e6c73396ac94e58b399cb"
+        "sha256": "a590413d707d91ebe9cf15a204bfce3988bccccb0727eca0cc1e47aaadaf2684"
       },
       {
         "path": "README.ru.md",
-        "sha256": "7fe1563b4f7a4ebe165fc0f9ef7be040db6e6bbd4cd7a98ae753bcf942c3cd40"
+        "sha256": "acccc3d79ba5cbdb5d2a0b2b38328d55e8f38c3209e9b538be57917da8344ecd"
       },
       {
         "path": "bin/cli.js",
@@ -21,7 +21,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "52ff221d4ce111588f31f3940e4374e5ca76eb868753e28560e4ba2b5487d768"
+        "sha256": "4e6cb01409f1361cedfd28baff49920073a182c976a21ffa761c994f400a4641"
       },
       {
         "path": "src/cli.js",
@@ -73,7 +73,7 @@
       },
       {
         "path": "templates/.claude/commands/analyst-manual.md",
-        "sha256": "9c84b795424197c9fb4ac6be8c444808a8a04cf829434c9b7c5c581a61b5e966"
+        "sha256": "924206fde1d36f98b31c2d4495edc506499d58e89464a75fb872774d2426638c"
       },
       {
         "path": "templates/.claude/commands/architecture-phase.md",
@@ -277,7 +277,7 @@
       },
       {
         "path": "templates/.claude/skills/analyst-manual-full/SKILL.md",
-        "sha256": "4733b487b8a2772ada4108561429611308e7a785c43d4dab0de8c9112637f3d0"
+        "sha256": "ebcb4decc419af099b94cf66fa588ca5cd837e3dfb0587170206093cb786ac72"
       },
       {
         "path": "templates/.claude/skills/edu-site-generator/SKILL.md",
@@ -1013,5 +1013,5 @@
       }
     ]
   },
-  "signature": "mcdM1pWxiIzC5bkl/QD4KSoJh1L8lBnQLn7KwGZL2ueH3vAvNjOnuef0d02eVjB86skGdmuapJcb5jqZHX/mCw=="
+  "signature": "eyp74YajdZXj/DTT1fEaRgwmHs+b6ohWmMy8kCssElJV7BriGhzfBo+R3OULGy2kiWM46j03kdBadjTXM7jbAg=="
 }

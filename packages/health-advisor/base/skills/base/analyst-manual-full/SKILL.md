@@ -35,7 +35,7 @@ Scripts и references для Phase 2 находятся в:
 
 **Контрольные точки:** После каждой фазы скилл останавливается для подтверждения. Пользователь может скорректировать направление или продолжить.
 
-**Cryptographic Verification:** Ed25519 подписи для верификации источников (через goap-research-ed25519).
+**Проверка происхождения:** Research фиксирует, какие источники были прочитаны и какие утверждения ими поддержаны. Ed25519 проверяет подпись издателя только при наличии настоящих ключей издателя и источника с подписанной выдачей. Подпись подтверждает происхождение конкретных байтов, а не истинность утверждения.
 
 ## Workflow Architecture
 
@@ -52,9 +52,9 @@ Scripts и references для Phase 2 находятся в:
 │  → Output: Task Brief                                           │
 │  → ⏸️ CHECKPOINT 1: "Подтвердите Task Brief"                    │
 │                         ↓                                       │
-│  Phase 2: RESEARCH (Ed25519 Verified)                           │
+│  Phase 2: RESEARCH (GOAP + статус доказательств)                 │
 │  → Загрузи: ../goap-research-ed25519/SKILL.md                   │
-│  → Output: Verified Research Findings                           │
+│  → Output: Research Findings + Verification Status              │
 │  → ⏸️ CHECKPOINT 2: "Подтвердите findings"                      │
 │                         ↓                                       │
 │  Phase 3: SOLVE                                                 │
@@ -105,14 +105,21 @@ Scripts и references для Phase 2 находятся в:
 [показать Task Brief]
 
 Варианты действий:
-• "ок" — перейти к Verified Research (moderate mode)
-• "режим strict" — research с порогом 0.95
-• "режим paranoid" — research с порогом 0.99
+• "ок" — перейти к Research (moderate mode)
 • "скорректируй X" — внести изменения
 
 Что выберете?
 ═══════════════════════════════════════════════════════════════
 ```
+
+Показывай дополнительные варианты `режим strict` и `режим paranoid` только после проверки **обоих** фактов для выбранного класса источников: `issuer_keys_available` (реальные закреплённые ключи издателей) и `source_class_verified` (источники действительно отдают подписанные данные). Если пользователь просит один из этих режимов без подтверждения хотя бы одного факта, назови недостающий факт и остановись на CHECKPOINT 1. Предложи `moderate` отдельно; не подменяй выбор молча. Для обычных PubMed/PMC/DOI/WHO эти факты не установлены.
+
+| Ключи издателя | Подписанная выдача | Можно предложить `strict`/`paranoid`? |
+|---|---|---|
+| Нет | Нет | Нет; штатный выбор — `moderate`. |
+| Да | Нет | Нет; назови недостающую подписанную выдачу. |
+| Нет | Да | Нет; назови недостающие ключи издателя. |
+| Да | Да | Да, после явного выбора пользователя. |
 
 ### Phase 2: Research (goap-research-ed25519)
 
@@ -120,42 +127,60 @@ Scripts и references для Phase 2 находятся в:
 
 **Verification Modes (выбор на CHECKPOINT 1):**
 
-| Mode | Threshold | Команда на checkpoint |
-|------|-----------|----------------------|
-| `moderate` | 0.85 | "ок" или "продолжай" |
-| `strict` | 0.95 | "режим strict" |
-| `paranoid` | 0.99 | "режим paranoid" |
+| Mode | Threshold | Условие |
+|------|-----------|---------|
+| `moderate` | 0.85 | Штатный режим по "ок" или "продолжай"; неподписанные факты остаются явно отмеченными. |
+| `strict` | 0.95 | Только когда установлены оба capability-факта и пользователь выбрал режим. |
+| `paranoid` | 0.99 | То же условие; более сильные требования к избыточности источников. |
 
-**Output — Verified Research Findings:**
+Перед исследованием передай установленные capability-факты в `GOAPResearchPlanner`; не выставляй флаги `True` по имени сайта, наличию URL или желанию получить высокий confidence. Обрабатывай ответ как `ResearchPlan` **или** `PlanNotFound`, не как `None`:
+
+- `PlanNotFound` с `GOAL_UNREACHABLE`: покажи verdict, причину и недостающие факты; остановись на research checkpoint. Увеличение бюджета поиска не исправит недоступные подписи.
+- `PlanNotFound` с `SEARCH_EXHAUSTED`: покажи verdict и причину; остановись на research checkpoint. Можно предложить ограниченный повторный поиск, но не объявлять план найденным.
+- Только `ResearchPlan` разрешает перейти к сбору находок; Phase 3: Solve доступна после успешного CHECKPOINT 2. `ResearchPlan` сам по себе не доказывает подписи или истинность фактов.
+
+Если получен `PlanNotFound`, вместо шаблона «Research Findings Ready» покажи отдельный CHECKPOINT 2: «Research остановлен», фактический verdict, сообщение planner и недостающие capability-факты либо исчерпанный бюджет поиска. Предложи новый явный выбор: перейти на `moderate` при `GOAL_UNREACHABLE` из-за недоступной подписи, исправить интеграцию подписанной выдачи или сузить цель/повторить поиск при `SEARCH_EXHAUSTED`. Не переходи к Solve и не заполняй успешный research-шаблон на этом пути.
+
+Для каждого использованного факта запиши результат `Ed25519Verifier.verify_fact`: `verified`, `trust_class` и причину отказа. Отдельно запиши результат `verify_citation_chain`; целостность цепочки исследователя не превращает `SELF_ATTESTED` в подпись издателя. Считай `issuer-verified` только факты с `verified=true` и `trust_class=ISSUER_SIGNED`; `SELF_ATTESTED` и `UNVERIFIED` показывай отдельно. Confidence, наличие DOI/URL и подпись исследователя не повышают класс до `ISSUER_SIGNED`. Если проверка не запускалась, напиши «не проверено», не ноль успешных или зелёный статус.
+
+**Output — Research Findings:**
 ```markdown
-## Verified Research Findings
+## Research Findings
 
 ### Verification Status
 - **Mode:** [selected_mode] ([threshold] threshold)
-- **Chain Integrity:** ✅ VERIFIED (ed25519)
-- **Unsigned Claims:** 0
-- **Total Citations:** [число]
+- **Source access:** [сколько источников прочитано; сколько только из выдачи; сколько не открыто]
+- **Issuer provenance:** [issuer-verified X/N; SELF_ATTESTED Y/N; UNVERIFIED Z/N из результатов verify_fact]
+- **Citation-chain integrity:** [verified / failed / not checked по verify_citation_chain]
+- **Claims without issuer verification:** [идентификаторы и причины; если нет — 0 по результатам]
+- **Total citations:** [из списка фактически использованных ссылок]
 
-### Verified Findings
-[Findings с signed citations]
+### Findings
+[Утверждение, ссылка, evidence class и его фактический trust class]
 
 ### Confidence Assessment
-- **Cryptographically Verified (≥0.95):** [список]
-- **Cross-Reference Verified (0.85-0.95):** [список]
+- **Confidence:** [оценки с отдельным основанием; порог не заменяет подпись]
 
 ### Citation Chain
-[Ed25519 verified chain — см. Appendix]
+[Что именно проверено, каким ключом и с каким результатом; если не запускалось — not checked]
 ```
+
+| Состояние результатов | Допустимая формулировка |
+|---|---|
+| Нет `ISSUER_SIGNED` с `verified=true` | «Источники процитированы; криптографическая проверка издателя не установлена». Укажи `SELF_ATTESTED` и `UNVERIFIED` отдельно. |
+| Часть фактов issuer-verified | «Подпись издателя подтверждена для X из N фактов». Перечисли остальные факты и причины; общего «все проверено» нет. |
+| Все факты issuer-verified | «Подпись издателя подтверждена для N из N фактов» **только после** фактического `verify_fact` для каждого факта. Целостность цепочки заявляй лишь при отдельном успешном `verify_citation_chain`; истинность фактов из подписи не следует. |
 
 **⏸️ CHECKPOINT 2:**
 ```
 ═══════════════════════════════════════════════════════════════
-⏸️ CHECKPOINT 2: Verified Research Complete
+⏸️ CHECKPOINT 2: Research Findings Ready
 
 **Verification Status:**
-- Mode: [strict/moderate/paranoid]
-- Unsigned Claims: 0 ✅
-- Citation Chain: VERIFIED (Ed25519) ✅
+- Mode: [фактически выбранный режим]
+- Issuer provenance: [X/N issuer-verified; Y self-attested; Z unverified]
+- Citation-chain integrity: [verified / failed / not checked]
+- Неустановленные элементы: [факты и причины]
 
 **Ключевые находки:**
 [краткое summary]
@@ -165,7 +190,7 @@ Scripts и references для Phase 2 находятся в:
 
 Варианты действий:
 • "ок" — перейти к Solution
-• "исследуй глубже X" — дополнительный verified research
+• "исследуй глубже X" — дополнительный research с новыми источниками
 • "повысь confidence для Y" — найти больше источников
 
 Что выберете?
@@ -210,8 +235,9 @@ Scripts и references для Phase 2 находятся в:
 [краткое summary]
 
 **Data Quality:**
-- Все рекомендации основаны на verified research ✅
-- Citation chain integrity: VERIFIED (Ed25519) ✅
+- Основание рекомендаций: [перечень подтверждённых и неподтверждённых находок]
+- Issuer provenance: [X/N фактов, по результатам verify_fact]
+- Citation-chain integrity: [отдельный результат verify_citation_chain]
 
 Варианты действий:
 • "ок" — создать все документы
@@ -228,10 +254,11 @@ Scripts и references для Phase 2 находятся в:
 ## Strategic Analysis: [Название задачи]
 
 ### Executive Summary
-### Verification Status (Ed25519)
+### Verification Status
 - Research Mode: [mode]
-- All Claims Verified: ✅
-- Citation Chain: CRYPTOGRAPHICALLY VERIFIED ✅
+- Issuer provenance: [X/N фактов; причины для остальных]
+- Citation-chain integrity: [verified / failed / not checked]
+- Source support: [какие утверждения подтверждены прочитанными источниками; какие нет]
 
 ### Key Research Insights
 ### Recommended Strategy
@@ -258,17 +285,18 @@ Scripts и references для Phase 2 находятся в:
 | Документ | Файлы |
 |----------|-------|
 | Task Brief | `01_task_brief.md`, `01_task_brief.docx` |
-| Verified Research | `02_research_findings.md`, `02_research_findings.docx` |
+| Research Findings | `02_research_findings.md`, `02_research_findings.docx` |
 | Solution | `03_solution.md`, `03_solution.docx` |
 | Final Summary | `04_final_summary.md`, `04_final_summary.docx` |
 
 ## Quality Standards
 
 **Anti-Hallucination Checks:**
-- [ ] 100% claims имеют citations
-- [ ] Citation chain cryptographically verified (Ed25519)
-- [ ] Нет утверждений без DOI/URL
-- [ ] Confidence levels для всех findings
+- [ ] Для каждого существенного утверждения указан источник либо явно сказано, что подтверждения нет.
+- [ ] Статус `ISSUER_SIGNED` взят из результата `verify_fact`, а не из confidence, режима или подписи исследователя.
+- [ ] Статус цепочки взят отдельно из `verify_citation_chain`; если проверка не запускалась, это написано.
+- [ ] Утверждения без issuer verification перечислены, а `SELF_ATTESTED` не названы подписями издателя.
+- [ ] Confidence и ограничения источника показаны отдельно от криптографического происхождения.
 
 **Completeness:**
 - [ ] Все 9 модулей problem-solver пройдены
@@ -278,7 +306,7 @@ Scripts и references для Phase 2 находятся в:
 
 **Required skills** (installed as sibling skill directories alongside this skill):
 - `explore` — task clarification and brief generation
-- `goap-research-ed25519` — verified research with Ed25519 (includes scripts/ and references/)
+- `goap-research-ed25519` — source-aware research with optional issuer-signature verification (includes scripts/ and references/)
 - `problem-solver-enhanced` — 9-module problem solving with TRIZ
 
 **Runtime:**

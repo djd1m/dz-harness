@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "c126ca403e5e0059aa61c40d137a7ef30fdc60f6bd728d4f4d0baf5ac065ebb4"
+        "sha256": "6426b740690e4c30a9e313b191a1840fdc59e6885269543398d129902998c274"
       },
       {
         "path": "base/assets/html-template.js",
@@ -85,7 +85,7 @@
       },
       {
         "path": "base/skills/base/analyst-manual-full/SKILL.md",
-        "sha256": "4733b487b8a2772ada4108561429611308e7a785c43d4dab0de8c9112637f3d0"
+        "sha256": "ebcb4decc419af099b94cf66fa588ca5cd837e3dfb0587170206093cb786ac72"
       },
       {
         "path": "base/skills/base/explore/SKILL.md",
@@ -369,7 +369,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "2c2848b0681ecbb60874c40f5cb70c782e1007cbe763195f7d7238922981a0e2"
+        "sha256": "3f6683016732fdd0a05e2b710cbdc35ac60b10c58db9a86b28b18d6ebf53a5e0"
       },
       {
         "path": "skills/case-state/SKILL.md",
@@ -977,5 +977,5 @@
       }
     ]
   },
-  "signature": "QnXbXWNK7BcKdFJwi2cZVUARWXic/ZZ6ppcWgYN4Y3y9sKo1ofJhYfNevmDh3S3uvCfU+kP3kRypCxpGYVE2Cg=="
+  "signature": "729iOvgaIho+5fQ+VvRrdEeQLzl3SebdhdsjabY9DIoo3GHaUNIAXFa9mNqBhQEQzHFMVabqrkq/tcU2chBXBA=="
 }

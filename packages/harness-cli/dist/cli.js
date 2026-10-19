@@ -13,6 +13,7 @@ import { packArtifact, readWorkspaceVersions, formatDriftFiles } from '@dzhechko
 // `@dzhechkov/memory`: a new package-graph edge is a publishing-surface change outside this
 // feature's scope, and harness-core already depends on memory.
 import { noSearchableTermsReason } from '@dzhechkov/harness-core';
+import { retroReceiptIsPending, writeRetroTeachReceipt } from '@dzhechkov/harness-core';
 import { runCodexRecallProxy, readCodexRecallObserverSnapshot } from '@dzhechkov/harness-core';
 import { OUTSIDE_FILES_REASON } from '@dzhechkov/harness-core';
 import { shortPackageName } from '@dzhechkov/harness-core';
@@ -191,7 +192,7 @@ Usage:
   dz backlog harmonize [--apply] [--threshold <0-1>] [--project <dir>] [--json]   (batch semantic dedup of the backlog ideas; --dry-run default, --apply snapshots first)
   dz routing recommend [--tier <t>] [--apply] [--json]   (per-stage args.models suggestion from REAL telemetry — harness records + imported run-meta sidecars — printed WITH its basis + current/STALE/UNFED store receipt; qe is FORCED cross-family of code; --apply feeds .dz/routing-outcomes.json idempotently by runId)
   dz setup --target <name> [--preset <name>] [--select id,id,...] [--skills-dir <dir>] [--project <dir>] [--memory agentdb] [--no-memory] [--no-hooks] [--no-verify] [--install-driver] [--force] [--enrich]   (--target codex ALSO installs + LIVE-verifies the codex hooks; an unverified hook exits non-zero WITHOUT aborting the rest of setup)
-  dz teach "<pattern>" [--from-file <path>] [--class-form "<template with :slot>"] [--reward <0-1>] [--domain <name>] [--type rule|success-pattern|lesson-learned] [--project <dir>] [--no-mirror] [--allow-cold-start]   (class form is optional; rejection never blocks the specific write; --project pins the learned store to <dir>/.dz)
+  dz teach "<pattern>" [--from-file <path>] [--class-form "<template with :slot>"] [--reward <0-1>] [--domain <name>] [--type rule|success-pattern|lesson-learned] [--project <dir>] [--no-mirror] [--allow-cold-start] [--retro-receipt <session:debt-id>]   (class form is optional; rejection never blocks the specific write; --project pins the learned store to <dir>/.dz; retro receipt requires a pending admission)
   dz teach --from-json <file> [--project <dir>] [--no-mirror]   (bulk-import a 'dz recall --all --json' export — share a learned store across machines)
   dz consolidate [--sessions-dir <dir>] [--project <dir>] [--no-mirror] [--prune-noise [--apply]] [--prune-quarantine [--apply]]   (both prunes: DRY-RUN by default; --apply snapshots then deletes; prune-quarantine = expired unproven lessons ONLY, never coupled to noise)
   dz recall "<query>" [--limit <N>] [--domain <name>] [--semantic | --no-semantic] [--books [--book <slug>]] [--project <dir>] | dz recall --all [--json] | dz recall --usage [--json] | dz recall --forget <dzId>[,<dzId>] [--apply] | dz recall --promote <dzId>[,<dzId>] [--apply]   (--domain <name> BOOSTS lessons of that domain without dropping foreign ones — a shared store keeps its cross-domain transfers; forget/promote: dry-run default; forget snapshots before removing; promote lifts lesson-quarantine)
@@ -3546,7 +3547,26 @@ async function cmdTeach(options, flags, cwd, write, writeErr = (line) => { conso
     // The default keeps writing exactly where it wrote before this feature existed — MEASURED: this
     // repo's own store holds 361 records written under that behaviour, and every other user's store
     // is the same. Only an explicit choice moves it.
-    const { storeRoot, target: teachTarget } = resolved;
+    const { projectRoot, storeRoot, target: teachTarget } = resolved;
+    const retroRef = options.get('retro-receipt');
+    if (options.has('retro-receipt')) {
+        if (retroRef === undefined || retroRef === '' || flags.has('harmonize') || options.has('from-json')) {
+            writeErr('dz teach: --retro-receipt requires one lesson or --reinforce, not import/harmonize');
+            return 2;
+        }
+        if (!retroReceiptIsPending(projectRoot, retroRef)) {
+            writeErr('dz teach: --retro-receipt does not name this project\'s active retro debt');
+            return 2;
+        }
+    }
+    const settleRetro = (lessonId) => {
+        if (retroRef === undefined)
+            return true;
+        if (writeRetroTeachReceipt(projectRoot, retroRef, storeRoot, lessonId))
+            return true;
+        writeErr('dz teach: lesson write completed, but retro receipt was not persisted; debt remains pending');
+        return false;
+    };
     const teachWillWrite = flags.has('harmonize')
         ? false
         : options.has('from-json') || options.has('from-file')
@@ -3754,6 +3774,12 @@ async function cmdTeach(options, flags, cwd, write, writeErr = (line) => { conso
             const reinforcedDzId = trained.dzId
                 ?? findExactLesson(records, reinforce)?.id
                 ?? records.find((record) => record.id === reinforce)?.id;
+            if (retroRef !== undefined && reinforcedDzId === undefined) {
+                writeErr('dz teach: reinforcement flushed, but no lesson ID was confirmed for retro receipt');
+                return 1;
+            }
+            if (!settleRetro(reinforcedDzId ?? reinforce))
+                return 1;
             // Name HOW it matched, from the resolver — never inferred from `resolved !== input`, which is
             // true for a text match and a bare-suffix match alike and mislabelled the second as the first.
             const how = trained.matchedBy;
@@ -3833,6 +3859,8 @@ async function cmdTeach(options, flags, cwd, write, writeErr = (line) => { conso
             else {
                 const trained = await reinforceRunner(storeRoot, verdict.dzId, Math.max(0, Math.min(1, reward)));
                 if (trained.flushed > 0) {
+                    if (!settleRetro(verdict.dzId))
+                        return 1;
                     write(`↳ reinforced existing pattern ${verdict.dzId} (cos=${verdict.cosine.toFixed(2)}) — not re-added`);
                     const clearedQ = clearAgentdbQuarantine(storeRoot, [verdict.dzId]);
                     if (clearedQ.cleared > 0)
@@ -3847,7 +3875,13 @@ async function cmdTeach(options, flags, cwd, write, writeErr = (line) => { conso
     if (!flags.has('guard')) {
         const exact = findExactLesson(loadStoreRecords(storeRoot), pattern, domain);
         if (exact !== null) {
-            await reinforceRunner(storeRoot, exact.id, Math.max(0, Math.min(1, reward)), exact.quarantined);
+            const trained = await reinforceRunner(storeRoot, exact.id, Math.max(0, Math.min(1, reward)), exact.quarantined);
+            if (trained.flushed <= 0) {
+                writeErr(`dz teach: exact lesson ${exact.id} was found, but reinforcement did not flush — no new reinforcement recorded`);
+                return 1;
+            }
+            if (!settleRetro(exact.id))
+                return 1;
             write(`Reinforced existing: ${exact.id} (exact text)${exact.quarantined ? ' [quarantined]' : ''}`);
             write(`  Total patterns: ${loadStorePatternsSync(storeRoot).length}`);
             return 0;
@@ -3916,6 +3950,11 @@ async function cmdTeach(options, flags, cwd, write, writeErr = (line) => { conso
         }
     }
     const count = guardedExisting === undefined ? stored.count : loadStorePatternsSync(storeRoot).length;
+    // Do not print a legacy write-bearing success line if the explicit receipt could not be saved:
+    // a compound shell command could otherwise exit 0 later and make that line falsely pay the debt.
+    if (retroRef !== undefined && (commandFailed || stored.records.length === 0
+        || !settleRetro(patternRecordId(stored.records[0]))))
+        return 1;
     write(`${guardedExisting !== undefined && stored.class === 'stored' ? 'Enriched' : 'Learned'}: "${pattern.slice(0, 60)}${pattern.length > 60 ? '...' : ''}"`);
     write(`  Domain: ${entry.domain}  Reward: ${entry.reward} (${entry.rewardSource ?? 'stored, source unknown'})  Backend: memory (@dzhechkov/memory)`);
     write(`  Total patterns: ${count}`);

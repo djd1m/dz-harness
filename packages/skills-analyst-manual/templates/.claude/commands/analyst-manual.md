@@ -20,9 +20,11 @@ $ARGUMENTS
    - Output: `01_task_brief.md`
    - ⏸️ **CHECKPOINT 1:** Подтверждение Task Brief + выбор verification mode
 
-4. **Phase 2: Verified Research** (goap-research-ed25519)
+4. **Phase 2: Research** (goap-research-ed25519)
    - Используй `scripts/goap_planner.py` и `scripts/ed25519_verifier.py`
-   - Режим: выбранный на CHECKPOINT 1 (moderate/strict/paranoid)
+   - По умолчанию `moderate`; `strict`/`paranoid` выбираются только при подтверждённых `issuer_keys_available` и `source_class_verified`
+   - Если planner вернул `PlanNotFound`, покажи verdict и причину и остановись до Solve
+   - Статус подписи издателя бери из `verify_fact`, а целостность цепочки — отдельно из `verify_citation_chain`
    - Output: `02_research_findings.md`
    - ⏸️ **CHECKPOINT 2:** Подтверждение findings
 

@@ -22,6 +22,12 @@ export interface SessionEvent {
     /** `tool_use.id` on a call, `tool_result.tool_use_id` on its result — the pairing key that lets
      * the fold tell WHICH executed command a failure belongs to (ADR-004). Absent ⇒ no pairing. */
     readonly toolUseId?: string;
+    /** Valid transcript line timestamp used to retain the admission's origin. */
+    readonly timestamp?: string;
+    /** Index of the JSONL message within this parsed chunk; events in one assistant message share it. */
+    readonly messageIndex?: number;
+    /** Searched over the full tool-result body before the short diagnostic text is retained. */
+    readonly teachReceipt?: boolean;
 }
 export interface ProcessSignature {
     readonly id: string;
@@ -119,6 +125,11 @@ export interface RetroSessionPaths {
 }
 /** Where ONE session's debt and bookmark live: `<dzDir>/retro/<safeId>/{pending,scan-state}.json`. PURE, no fs. */
 export declare function retroSessionPaths(dzDir: string, sessionId: string): RetroSessionPaths;
+/** Validate BEFORE teach writes, so a stale or mistyped debt reference cannot silently teach elsewhere. */
+export declare function retroReceiptIsPending(projectRoot: string, ref: string): boolean;
+/** Call only after a lexical teach write or reinforcement has actually flushed. The scanner and
+ * this writer share a lock, so a newer admission cannot borrow an older command's receipt. */
+export declare function writeRetroTeachReceipt(projectRoot: string, ref: string, storeRoot: string, lessonId: string): boolean;
 export interface AdmissionDebt {
     readonly snippet: string;
     /** Paired call ids issued against THIS debt, in registration order (oldest first).
@@ -132,6 +143,22 @@ export interface RetroPendingSentinel {
     readonly snippet: string;
     readonly ts: string;
     readonly awaiting?: readonly string[];
+    /** CLI-generated proof names this admission, never a generic store row or timestamp. */
+    readonly receiptId?: string;
+    /** Identity of the transcript's first JSONL line when this debt was recorded. */
+    readonly transcriptFingerprint?: string;
+    /** Exact covered byte range and its digest; protects against same-header replacements. */
+    readonly coverageStartOffset?: number;
+    readonly coverageHash?: string;
+    /** End of the transcript bytes already folded into this debt, for safe paid-origin replay. */
+    readonly scanEndOffset?: number;
+    /** Identifies the admission line if a committed sentinel is replayed after scan-state fails. */
+    readonly originScanOffset?: number;
+    readonly originMessageIndex?: number;
+    /** When this admission first appeared, rather than the last time its sentinel was refreshed. */
+    readonly admittedAt?: string;
+    /** True only while no later assistant activity has been scanned. Missing means unknown/old. */
+    readonly lastTurn?: boolean;
 }
 /** Where the Stop-hook scan got its transcript path — or why it has none. */
 export interface ScanTailSource {
@@ -176,19 +203,6 @@ export interface TailScanOutcome {
 /** The scan-state + sentinel pair is a read-modify-write store; per the repo concurrency rule
  * (`.claude/rules/cross-runtime-concurrency.md`) it gets a named lock in the same change. */
 export declare const RETRO_SCAN_LOCK_NAME = "retro-scan";
-/**
- * Fold the admission debt over an event chunk. PURE. Asymmetric by design (ADR-001 D4): a new
- * assistant admission ARMS the debt; only {@link isTeachCommand} — a Bash tool_use invoking teach
- * at a command boundary — PAYS it. Neither prose ("I'll run dz teach"), nor an `echo`/`grep` decoy,
- * nor a tool_result echoing the phrase settles anything (cross-family QE P1-2). Since the fix round's
- * own review (finding R1) the command text is NECESSARY but not SUFFICIENT: a teach that carries a
- * `tool_use_id` is only REGISTERED by its call, and the debt is settled by that call's own result
- * carrying a teach RECEIPT ({@link TEACH_RECEIPT_RE}) — `exit 0\ndz teach "never runs"` pays nothing,
- * and two parallel teaches that both come back receipt-less leave the debt armed (round 3, P1-2).
- * A teach with NO id still pays on the call alone: nothing could ever confirm it. The detector in
- * detectProcessRakes stays looser (any non-directive text mention) because its failure mode is a
- * false accusation, while this fold's failure mode is a silently forgiven debt.
- */
 export declare function foldAdmissionDebt(events: readonly SessionEvent[], prior: AdmissionDebt | null): AdmissionDebt | null;
 /**
  * One incremental scan transaction: read state → read the new transcript bytes (whole lines only —
@@ -198,8 +212,9 @@ export declare function foldAdmissionDebt(events: readonly SessionEvent[], prior
  * The WHOLE read→fold→write runs under `withProjectLockSync` (cross-family QE P1-3): two overlapping
  * Stop scans that both read the same offset/sentinel and then rename/unlink independently lose one
  * side's update — atomic per-file renames do not prevent that, only mutual exclusion does. The
- * critical section is short and synchronous (bounded ≤8 MB read, no subprocess, 65 ms measured on
- * a 5 MB first scan) and the lock lives beside the store it guards: `<root>/.dz/locks/retro-scan.lock`
+ * critical section is synchronous (new tail reads are bounded ≤8 MB; validating an existing
+ * pending debt also streams its covered range, which can grow across turns; no subprocess) and
+ * the lock lives beside the store it guards: `<root>/.dz/locks/retro-scan.lock`
  * for the store files in `<root>/.dz/`. A contended scan gives up fast and reports `contended` —
  * nothing advanced, so the next turn re-scans the same bytes (self-healing, never a lost update).
  */
@@ -228,6 +243,9 @@ export declare function retroSentinelIsFresh(sentinel: Partial<RetroPendingSenti
  */
 export declare function renderRetroDebtDirective(sentinel: {
     snippet: string;
+    lastTurn?: boolean;
+    sessionId?: string;
+    receiptId?: string;
 }): string;
 export {};
 //# sourceMappingURL=session-retro.d.ts.map

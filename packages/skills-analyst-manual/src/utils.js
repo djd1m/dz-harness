@@ -122,7 +122,7 @@ const COMPONENTS = {
   },
   skill_goap: {
     src: '.claude/skills/goap-research-ed25519',
-    label: 'GOAP Research + Ed25519 Skill (verified research)',
+    label: 'GOAP Research + Ed25519 Skill (source-checked research)',
     group: 'deps',
   },
   skill_solver: {

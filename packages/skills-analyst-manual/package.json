@@ -1,10 +1,11 @@
 {
   "name": "@dzhechkov/skills-analyst-manual",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "scripts": {
-    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
+    "test": "node --test test/*.test.mjs"
   },
-  "description": "Composite analyst skill for Claude Code — 3-phase manual pipeline (explore → verified research → solve) with checkpoints, Ed25519 verification, and TRIZ problem solving",
+  "description": "Composite analyst skill for Claude Code — 3-phase manual pipeline with source evidence, optional issuer-signature verification, checkpoints, and TRIZ problem solving",
   "main": "src/cli.js",
   "bin": {
     "skills-analyst-manual": "./bin/cli.js"

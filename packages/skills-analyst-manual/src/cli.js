@@ -7,7 +7,7 @@ function showBanner() {
   console.log('');
   console.log(cyan('╔══════════════════════════════════════════════════════════╗'));
   console.log(cyan('║') + bold('   ANALYST MANUAL — Strategic Analysis with Checkpoints   ') + cyan('║'));
-  console.log(cyan('║') + '   explore → verified research → solve (3 phases)         ' + cyan('║'));
+  console.log(cyan('║') + '   explore → source-checked research → solve (3 phases)   ' + cyan('║'));
   console.log(cyan('╚══════════════════════════════════════════════════════════╝'));
   console.log('');
 }

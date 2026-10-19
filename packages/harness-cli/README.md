@@ -3,7 +3,7 @@
 `dz qe-rounds --source native` reports durable native QE history without writing. Explicit `--action prepare|evaluate|begin-repair|begin-continuation` invokes the exact installed skills-meta helper from the CLI module, checks core/helper capabilities and uses the existing receipt schema. Prepare and begin-repair require `--reviewers <json>`. The default native ceiling is three; native `--ceiling`, duplicate/unknown options, legacy reconstruction and source collisions refuse. Omitted source retains the bridge reader.
 
 
-Current package version: `0.8.52`. <!-- dz:version -->
+Current package version: `0.8.53`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -100,7 +100,7 @@ Each launch creates one snapshot; remove selected old snapshot files yourself wh
 Live backpressure waits for writable callbacks. Explicit termination cancels pending writes; after
 child exit a stalled output sink has a two-second final drain window before cancellation.
 
-Current package versions: `harness-core v0.8.59` · `harness-cli v0.8.52`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.60` · `harness-cli v0.8.53`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. On visible lines, the marker retains its whole-line override for per-package synchronization, including explicit changelog overrides, so keep it off historical records. The previous all-protections override is corrected: fenced marker, footer, install/JSON-pin, tarball and badge examples remain literal, as do supported HTML comment blocks. Their visible counterparts still stamp; place current metadata outside examples.
 
@@ -2410,7 +2410,7 @@ dz init              --target <name> [--preset <name>] [--select id,id,...] [--a
 dz integrations-verify --target <name> --component <mcp|hooks> [--project <dir>] [--json]
 dz install           <npm-pkg> [--target <name>] [--project <dir>] [--force]
 dz bundle            [--preset <name> | --select id,...] [--out <dir>] [--skills-dir <dir>] [--force]
-dz teach             "<pattern>" [--class-form "<template with :slot>"] [--reward <0-1>] [--domain <name>] [--type rule|success-pattern|lesson-learned] [--project <dir>] [--to project|global] [--no-mirror] [--guard]   # --class-form is optional and never blocks the specific write; --project pins the learned store to <dir>/.dz; --to picks WHICH store (global = ~/.dz, shared across projects). Every write prints the path AND what chose it.
+dz teach             "<pattern>" [--class-form "<template with :slot>"] [--reward <0-1>] [--domain <name>] [--type rule|success-pattern|lesson-learned] [--project <dir>] [--to project|global] [--no-mirror] [--guard] [--retro-receipt <session:debt-id>]   # --class-form is optional and never blocks the specific write; --project pins the learned store to <dir>/.dz; --to picks WHICH store (global = ~/.dz, shared across projects). Retro receipts require a pending admission and a real store write.
 dz teach --reinforce "<dzId-or-exact-text>" [--project <dir>] # bump an existing learned pattern instead of writing a near-duplicate. The id is the FULL printed form (`teach:1a4a9bdd…` — what the `ID:` line and `dz recall --json`'s `dzId` both print); since 2026-09-20 a BARE suffix (`1a4a9bdd…`) also resolves, and a suffix shared by two namespaces is refused by name rather than guessed. The receipt says HOW it matched — `(matched by text)` / `(matched by bare id suffix)` / nothing for a full-id hit. A lesson taught minutes ago is QUARANTINED and damped in recall, so `dz recall "<terms>"` may not find it by its own words: list ids with `dz recall --all --json`
 dz teach --from-json <file> [--project <dir>] [--no-mirror] [--harmonize]   # bulk-import a `dz recall --all --json` export; prints a harmonize dry-run advisory
 dz consolidate       [--sessions-dir <dir>] [--project <dir>] [--no-mirror]
@@ -5045,18 +5045,27 @@ routinely another session's. Wire the hook as `dz retro --scan-tail` (Claude Cod
 stdin) or pass `--transcript <path>`.
 ```
 
-**What settles a debt is the RECEIPT, not the command text.** A `dz teach` that merely APPEARS at a shell
+**What settles a debt is a paired result with evidence, not the command text.** A `dz teach` that merely APPEARS at a shell
 command boundary proves nothing — `exit 0` on the line above it, and the command never runs. So a teach
 call carrying a `tool_use_id` is only *registered*; the debt is cleared when that call's own tool result
-carries a line `dz teach` prints on a real write (`Learned: "…"`, `Total patterns:`, `store (written):`,
-`↳ reinforced …`, `↳ mirrored to vector tier …`, `Imported N pattern(s) …`). Every teach still awaiting its
-result is retained, so two parallel teaches cannot cancel each other out.
+carries a write-bearing line from `dz teach` (`Learned: "…"`, `Enriched: "…"`,
+`Reinforced existing: …` after a successful flush, `↳ reinforced …`, `↳ mirrored to vector tier …`,
+or `Imported N pattern(s) …` for N > 0). A count or store-path line alone cannot prove a lesson was
+written: even an import of zero lessons prints a store path. Every teach still awaiting its
+result is retained, so two parallel teaches cannot cancel each other out. The receipt search covers
+the full tool result, including text after the 2,000 characters kept for diagnostics. The next-prompt
+directive also gives a `--retro-receipt <session:debt-id>` argument. With that argument, `dz teach`
+writes a session-scoped receipt after its lexical write or reinforcement flush. The scanner reads
+this receipt even when stdout was redirected; a no-flush attempt writes none. The ID must match the
+active admission in that project, so a newer admission or another session cannot borrow it. A
+matching lesson in the store is insufficient: its timestamp does not prove which command wrote or
+reinforced it.
 
 ```
 $ dz retro --scan-tail --transcript <path> --json
 {"status":"pending","snippet":"Моя ошибка — гейт читал не тот стор…","scannedBytes":1841,"offset":204233,"source":"flag"}
 
-# …the same turn, after a teach that actually wrote to the store:
+# …the same turn, after a paired teach result carrying a receipt:
 {"status":"cleared","scannedBytes":612,"offset":204845,"source":"stop-hook-stdin"}
 ```
 
@@ -5064,11 +5073,14 @@ $ dz retro --scan-tail --transcript <path> --json
 `retro-scan` lock — nothing advanced, the next turn re-reads the same bytes), plus `not-established` on
 the refusal above. It always exits 0: a Stop hook must never fail a turn.
 
-**Honest limits, measured:** a genuine teach whose output was redirected away (`>/dev/null`, `| tail -1`)
-carries no receipt, so the debt stays armed — 41 of 329 real teach calls across 95 transcripts, most of
-them decoys the rule *should* arm. And a teach whose result lands in the NEXT scan chunk cannot be
-confirmed there, so it stays armed too. Both err toward one visible directive rather than a silently
-forgiven error.
+**Honest limits:** a genuine teach with redirected output and without `--retro-receipt` leaves debt armed.
+A transcript output line remains a compatibility receipt for ordinary teach calls; it is not a
+cryptographic proof against a shell command deliberately printing a matching line.
+A result in the next
+scan chunk is paired with its saved call. The original 95-transcript probe found 41 of 329 teach-shaped
+calls with no visible receipt; that historic count does not measure how many genuine writes occurred.
+A pending directive says “last turn” only while that is established; later turns say
+“an earlier turn in this session.”
 
 ### `dz challenge` — when you have an implementation plan and want it broken BEFORE you code
 

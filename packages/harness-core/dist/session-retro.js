@@ -133,19 +133,21 @@ const TEACH_CMD_RE = /(?:^|&&|\|\||;|\|)\s*(?:node\s+)?(?:[^\s&|;]*\/)?(?:dz|bin
 // proves a teach stood at a command boundary, never that it RAN. The reviewer's reproducer
 // `exit 0\ndz teach "never runs"` matched `TEACH_CMD_RE` and settled the debt with nothing stored.
 // So the text stays NECESSARY and this receipt — a line `dz teach` itself prints once the store was
-// written — is what is SUFFICIENT. The five shapes are quoted from live runs against a scratch store
-// (2026-09-06): `Learned: "…"` + `Total patterns:` + `store (written):` on a new lesson,
-// `↳ reinforced …` on `--reinforce`, `↳ mirrored to vector tier (…)` from the quarantine mirror, and
-// `Imported N pattern(s) …` from `--from-json`. Deliberately NOT line-anchored: a `tool_result`
-// reaches the fold either as raw stdout or as a JSON-stringified block list, and is truncated at
-// 2000 chars, so `^` would miss the receipt in the second shape.
-// MEASURED cost, reproducer
+// written — is what is SUFFICIENT. Accepted write-bearing lines include `Learned: "…"`,
+// `Enriched: "…"`, `Reinforced existing: …`, `↳ reinforced …`,
+// `↳ mirrored to vector tier (…)`, and positive `Imported N pattern(s) …`.
+// Search decoded result text before truncating the diagnostic excerpt; anchor each marker to an
+// output line so a filename cannot masquerade as a positive import receipt.
+// Historical field probe under the earlier, broader receipt matcher; these counts are not a
+// coverage claim for the stricter markers above. Reproducer:
 // `node features/narrated-error-must-be-taught/07_code_changes/field-teach-receipt-probe.mjs`:
-// of 329 executed-teach-shaped Bash calls in 95 transcripts, 288 carry a receipt in their paired
-// result, 41 do not (decoys, failures, and real teaches whose stdout was redirected away) and 4 are
-// is_error. Those 41 now stay ARMED — a false ARM costs one visible directive, a false CLEAR costs
-// an untaught error, and ADR-003 D2 ranks it that way.
-const TEACH_RECEIPT_RE = /Learned:\s*"|\u21b3\s*(?:reinforced|mirrored to vector tier)|store \(written\):|Total patterns:|Imported \d+ pattern/;
+// of 329 executed-teach-shaped Bash calls in 95 transcripts, 288 carried a receipt in their paired
+// result, 41 did not (decoys, failures, and redirected stdout), and 4 were is_error. Receipt-less
+// calls remain armed. A matching store row cannot attribute a write to this specific call.
+// Store-path and count lines also appear after a zero-row import, so neither proves a lesson was
+// committed. Anchor each marker to its own output line: an import filename can contain a phrase
+// such as "Imported 1 pattern" even when the actual imported count is zero.
+const TEACH_RECEIPT_RE = /^(?:Learned:\s*"|Enriched:\s*"|Reinforced existing:\s+\S+|[ \t]*\u21b3[ \t]*(?:reinforced\b|mirrored to vector tier\b)|Imported [1-9]\d* pattern\(s\) from )/m;
 // The injected debt directive itself names `dz teach` and lands in the transcript — without this
 // exclusion the scanner would read its OWN directive as the payment (ADR-001 D4, the self-clearing
 // trap). Events carrying the marker are excluded from BOTH teach and admission matching.
@@ -425,7 +427,7 @@ export function streamSessionEvents(path) {
  */
 export function parseSessionJsonl(raw) {
     const out = [];
-    for (const line of raw.split('\n')) {
+    for (const [messageIndex, line] of raw.split('\n').entries()) {
         const t = line.trim();
         if (t === '')
             continue;
@@ -438,6 +440,12 @@ export function parseSessionJsonl(raw) {
         }
         if (!isObj(obj))
             continue;
+        // Claude's compacted summary is a transcript-only user line that can quote an old confession.
+        // It is context, not a new turn/admission; ignore it regardless of its declared role.
+        if (obj.isCompactSummary === true)
+            continue;
+        const timestamp = typeof obj.timestamp === 'string' && Number.isFinite(Date.parse(obj.timestamp))
+            ? obj.timestamp : undefined;
         const msg = obj.message;
         if (!isObj(msg))
             continue;
@@ -445,7 +453,7 @@ export function parseSessionJsonl(raw) {
         const content = msg.content;
         if (typeof content === 'string') {
             if (content.trim() !== '')
-                out.push({ kind: role === 'assistant' ? 'assistant' : 'user', text: content });
+                out.push({ kind: role === 'assistant' ? 'assistant' : 'user', text: content, messageIndex, ...(timestamp ? { timestamp } : {}) });
             continue;
         }
         if (!Array.isArray(content))
@@ -456,7 +464,7 @@ export function parseSessionJsonl(raw) {
         const flushText = () => {
             if (textParts.length === 0)
                 return;
-            out.push({ kind: role === 'assistant' ? 'assistant' : 'user', text: textParts.join('\n') });
+            out.push({ kind: role === 'assistant' ? 'assistant' : 'user', text: textParts.join('\n'), messageIndex, ...(timestamp ? { timestamp } : {}) });
             textParts.length = 0;
         };
         for (const b of content) {
@@ -473,13 +481,19 @@ export function parseSessionJsonl(raw) {
                 // Capture the Bash COMMAND as the event text so a real verification (`pnpm tsc`, `npm test`) is
                 // visible — dropping it made the "done without verify" check blind (cross-model QE).
                 const text = (name === 'Bash' && typeof input?.command === 'string') ? input.command : (name ?? '');
-                out.push({ kind: 'tool', text, ...(name ? { tool: name } : {}), ...(file ? { file } : {}), ...(typeof b.id === 'string' ? { toolUseId: b.id } : {}) });
+                out.push({ kind: 'tool', text, messageIndex, ...(name ? { tool: name } : {}), ...(file ? { file } : {}), ...(typeof b.id === 'string' ? { toolUseId: b.id } : {}), ...(timestamp ? { timestamp } : {}) });
             }
             else if (b.type === 'tool_result') {
                 flushText();
                 const c = b.content;
-                const text = typeof c === 'string' ? c : JSON.stringify(c ?? '');
-                out.push({ kind: 'tool', text: text.slice(0, 2000), ok: b.is_error !== true, ...(typeof b.tool_use_id === 'string' ? { toolUseId: b.tool_use_id } : {}) });
+                const text = typeof c === 'string' ? c : Array.isArray(c)
+                    ? c.map((part) => typeof part === 'string' ? part
+                        : isObj(part) && part.type === 'text' && typeof part.text === 'string' ? part.text : '').filter(Boolean).join('\n')
+                    : JSON.stringify(c ?? '');
+                out.push({ kind: 'tool', text: text.slice(0, 2000), ok: b.is_error !== true, messageIndex,
+                    ...(TEACH_RECEIPT_RE.test(text) ? { teachReceipt: true } : {}),
+                    ...(typeof b.tool_use_id === 'string' ? { toolUseId: b.tool_use_id } : {}),
+                    ...(timestamp ? { timestamp } : {}) });
             }
         }
         flushText();
@@ -518,7 +532,7 @@ export function findLatestTranscript(repoRoot) {
 }
 // ── Per-turn admission-debt scan (feature narrated-error-must-be-taught, ADR-001 D2/D4) ────────────
 // The Stop hook runs `dz retro --scan-tail` after EVERY assistant turn, so this half is built around
-// one budget: O(new bytes) — a persisted byte offset, no full re-read, no store open, no subprocess.
+// one budget: O(new bytes) — a persisted byte offset, no full re-read, no store open and no subprocess.
 // The sentinel `.dz/retro/<session>/pending.json` is the debt; the recall hook turns it into a
 // next-prompt directive; a REAL teach invocation (a TOOL event — prose promises never pay, ADR-001 D4)
 // clears it.
@@ -564,6 +578,124 @@ export function sessionIdFromTranscript(transcriptPath) {
 export function retroSessionPaths(dzDir, sessionId) {
     const dir = join(dzDir, RETRO_SESSION_DIRNAME, safeSessionDirName(sessionId));
     return { dir, pendingPath: join(dir, RETRO_SESSION_PENDING_BASENAME), statePath: join(dir, RETRO_SESSION_STATE_BASENAME) };
+}
+const RETRO_RECEIPT_ID_RE = /^[0-9a-f]{32}$/;
+const retroReceiptPath = (dzDir, sessionId, id) => join(retroSessionPaths(dzDir, sessionId).dir, `receipt-${id}.json`);
+/** An opaque ID is stable when the same transcript bytes are replayed after an interrupted scan. */
+function retroReceiptId(transcript, fingerprint, offset, messageIndex, snippet, timestamp) {
+    return createHash('sha256').update(JSON.stringify([transcript, fingerprint, offset, messageIndex,
+        debtSnippetKey(snippet), timestamp ?? '']))
+        .digest('hex').slice(0, 32);
+}
+/** A bounded identity of the first JSONL line. Appending later lines does not change it; replacing
+ * the transcript with a new first message normally does. Admission timestamps also enter the ID. */
+function transcriptFingerprint(path) {
+    const fd = openSync(path, 'r');
+    try {
+        const bytes = Buffer.allocUnsafe(8_192);
+        const got = readSync(fd, bytes, 0, bytes.length, 0);
+        const firstNl = bytes.subarray(0, got).indexOf(0x0a);
+        const length = firstNl >= 0 ? firstNl + 1 : got;
+        return createHash('sha256').update(bytes.subarray(0, length)).digest('hex').slice(0, 32);
+    }
+    finally {
+        closeSync(fd);
+    }
+}
+/** Verify the exact bytes a pending debt covered, even when a replacement keeps its header,
+ * path and length. The range begins at the scan that armed the debt, never at a huge session's
+ * unscanned prefix. Stream in fixed blocks to keep memory bounded. */
+function transcriptRangeHash(path, start, end) {
+    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || end < start) {
+        throw new Error('invalid retro transcript range');
+    }
+    const fd = openSync(path, 'r');
+    try {
+        const hash = createHash('sha256');
+        const buf = Buffer.allocUnsafe(256 * 1024);
+        for (let at = start; at < end;) {
+            const got = readSync(fd, buf, 0, Math.min(buf.length, end - at), at);
+            if (got <= 0)
+                throw new Error('retro transcript changed during scan');
+            hash.update(buf.subarray(0, got));
+            at += got;
+        }
+        return hash.digest('hex');
+    }
+    finally {
+        closeSync(fd);
+    }
+}
+function parseRetroReceiptRef(ref) {
+    const colon = ref.lastIndexOf(':');
+    const sessionKey = ref.slice(0, colon);
+    const id = ref.slice(colon + 1);
+    if (colon < 1 || sessionKey.length > 128 || safeSessionDirName(sessionKey) !== sessionKey
+        || !RETRO_RECEIPT_ID_RE.test(id))
+        return null;
+    return { sessionKey, id };
+}
+function readPendingForReceipt(projectRoot, ref) {
+    const parsed = parseRetroReceiptRef(ref);
+    if (parsed === null)
+        return null;
+    try {
+        const pending = JSON.parse(readFileSync(retroSessionPaths(join(projectRoot, '.dz'), parsed.sessionKey).pendingPath, 'utf8'));
+        if (typeof pending.sessionId !== 'string' || safeSessionDirName(pending.sessionId) !== parsed.sessionKey
+            || pending.receiptId !== parsed.id
+            || typeof pending.transcript !== 'string' || typeof pending.snippet !== 'string' || pending.snippet === ''
+            || typeof pending.coverageHash !== 'string' || !/^[0-9a-f]{64}$/.test(pending.coverageHash)
+            || typeof pending.coverageStartOffset !== 'number' || !Number.isSafeInteger(pending.coverageStartOffset)
+            || typeof pending.scanEndOffset !== 'number' || !Number.isSafeInteger(pending.scanEndOffset)
+            || pending.coverageStartOffset < 0 || pending.scanEndOffset < pending.coverageStartOffset)
+            return null;
+        return { sessionId: pending.sessionId, id: parsed.id, pending };
+    }
+    catch {
+        return null;
+    }
+}
+/** Validate BEFORE teach writes, so a stale or mistyped debt reference cannot silently teach elsewhere. */
+export function retroReceiptIsPending(projectRoot, ref) {
+    try {
+        return withProjectLockSync(projectRoot, RETRO_SCAN_LOCK_NAME, () => readPendingForReceipt(projectRoot, ref) !== null, { timeoutMs: RETRO_SCAN_LOCK_TIMEOUT_MS });
+    }
+    catch {
+        return false;
+    }
+}
+/** Call only after a lexical teach write or reinforcement has actually flushed. The scanner and
+ * this writer share a lock, so a newer admission cannot borrow an older command's receipt. */
+export function writeRetroTeachReceipt(projectRoot, ref, storeRoot, lessonId) {
+    if (storeRoot === '' || lessonId === '')
+        return false;
+    try {
+        return withProjectLockSync(projectRoot, RETRO_SCAN_LOCK_NAME, () => {
+            const active = readPendingForReceipt(projectRoot, ref);
+            if (active === null)
+                return false;
+            const path = retroReceiptPath(join(projectRoot, '.dz'), active.sessionId, active.id);
+            writeJsonAtomic(path, { schema: 1, sessionId: active.sessionId, transcript: active.pending.transcript,
+                receiptId: active.id, storeRoot, lessonId, writtenAt: new Date().toISOString() });
+            return true;
+        }, { timeoutMs: RETRO_SCAN_LOCK_TIMEOUT_MS });
+    }
+    catch {
+        return false;
+    }
+}
+function hasRetroTeachReceipt(dzDir, sessionId, transcript, id) {
+    if (!RETRO_RECEIPT_ID_RE.test(id))
+        return false;
+    try {
+        const receipt = JSON.parse(readFileSync(retroReceiptPath(dzDir, sessionId, id), 'utf8'));
+        return receipt['schema'] === 1 && receipt['sessionId'] === sessionId && receipt['transcript'] === transcript
+            && receipt['receiptId'] === id && typeof receipt['storeRoot'] === 'string' && receipt['storeRoot'] !== ''
+            && typeof receipt['lessonId'] === 'string' && receipt['lessonId'] !== '';
+    }
+    catch {
+        return false;
+    }
 }
 /** Bound the very FIRST scan of an already-huge transcript; later scans read only the new bytes. */
 const MAX_TAIL_SCAN_BYTES = 8 * 1024 * 1024;
@@ -625,21 +757,15 @@ export const RETRO_SCAN_LOCK_NAME = 'retro-scan';
 /** A Stop hook must not queue behind a long holder — give up fast; the skipped scan self-heals
  * (state not advanced ⇒ the next turn re-reads the same bytes). */
 const RETRO_SCAN_LOCK_TIMEOUT_MS = 2_000;
-/**
- * Fold the admission debt over an event chunk. PURE. Asymmetric by design (ADR-001 D4): a new
- * assistant admission ARMS the debt; only {@link isTeachCommand} — a Bash tool_use invoking teach
- * at a command boundary — PAYS it. Neither prose ("I'll run dz teach"), nor an `echo`/`grep` decoy,
- * nor a tool_result echoing the phrase settles anything (cross-family QE P1-2). Since the fix round's
- * own review (finding R1) the command text is NECESSARY but not SUFFICIENT: a teach that carries a
- * `tool_use_id` is only REGISTERED by its call, and the debt is settled by that call's own result
- * carrying a teach RECEIPT ({@link TEACH_RECEIPT_RE}) — `exit 0\ndz teach "never runs"` pays nothing,
- * and two parallel teaches that both come back receipt-less leave the debt armed (round 3, P1-2).
- * A teach with NO id still pays on the call alone: nothing could ever confirm it. The detector in
- * detectProcessRakes stays looser (any non-directive text mention) because its failure mode is a
- * false accusation, while this fold's failure mode is a silently forgiven debt.
- */
-export function foldAdmissionDebt(events, prior) {
+const debtSnippetKey = (snippet) => snippet.replace(/\s+/g, ' ').trim().slice(0, 200);
+function foldAdmissionDebtWithAge(events, prior, priorAge, fallbackTime, scanOffset, receipt) {
     let pending = prior;
+    let admittedAt = priorAge.admittedAt;
+    let lastTurn = priorAge.lastTurn === true;
+    let admissionMessageIndex;
+    let originScanOffset = priorAge.originScanOffset;
+    let originMessageIndex = priorAge.originMessageIndex;
+    let receiptId = priorAge.receiptId;
     // EVERY teach issued against the live debt and still awaiting its own result, by `tool_use_id`.
     // Round 3, P1-2: a single `lastPaid` slot lost the FIRST of two parallel teaches — the second call
     // saw an already-cleared `pending` and overwrote the slot with null, so when both results came back
@@ -648,14 +774,36 @@ export function foldAdmissionDebt(events, prior) {
     // Old or malformed sentinels mean no candidates, without skipping the rest of the scan.
     const saved = prior?.awaiting;
     const awaiting = new Set(Array.isArray(saved) && saved.every((id) => typeof id === 'string') ? saved : []);
+    const payRecorded = () => {
+        if (pending === null || receiptId === undefined || receipt?.paid(receiptId) !== true)
+            return;
+        pending = null;
+        awaiting.clear();
+        admittedAt = undefined;
+        lastTurn = false;
+        admissionMessageIndex = undefined;
+        originScanOffset = undefined;
+        originMessageIndex = undefined;
+        receiptId = undefined;
+    };
     for (const e of events) {
+        // A CLI receipt can arrive without any visible tool output. Check it before EACH event so a
+        // second, identically worded admission after payment starts a distinct debt, including on replay.
+        payRecorded();
+        // A tool call within the admission's own JSONL message is still the same assistant turn.
+        // Across scan chunks the origin index is unknown, so any new assistant activity ages it.
+        if (pending !== null && (e.kind === 'assistant' || (e.kind === 'tool' && e.tool !== undefined))
+            && (admissionMessageIndex === undefined || e.messageIndex !== admissionMessageIndex))
+            lastTurn = false;
         if (isTeachCommand(e)) {
             if (typeof e.toolUseId === 'string') {
                 // Registered, not settled. The debt stands until this call's own result carries a receipt.
                 if (pending !== null) {
                     awaiting.add(e.toolUseId);
-                    if (awaiting.size > MAX_AWAITING_TEACHES)
-                        awaiting.delete(awaiting.values().next().value);
+                    if (awaiting.size > MAX_AWAITING_TEACHES) {
+                        const oldest = awaiting.values().next().value;
+                        awaiting.delete(oldest);
+                    }
                 }
             }
             else {
@@ -664,6 +812,12 @@ export function foldAdmissionDebt(events, prior) {
                 // transcript written before ids reproduce their old outcome exactly.
                 pending = null;
                 awaiting.clear();
+                admittedAt = undefined;
+                lastTurn = false;
+                admissionMessageIndex = undefined;
+                originScanOffset = undefined;
+                originMessageIndex = undefined;
+                receiptId = undefined;
             }
             continue;
         }
@@ -673,27 +827,67 @@ export function foldAdmissionDebt(events, prior) {
         // candidate is simply dropped — the debt stays armed for the other candidates and for the scan.
         if (e.kind === 'tool' && e.tool === undefined && typeof e.toolUseId === 'string' && awaiting.has(e.toolUseId)) {
             awaiting.delete(e.toolUseId);
-            if (e.ok !== false && TEACH_RECEIPT_RE.test(e.text)) {
+            if (e.ok !== false && (e.teachReceipt === true || TEACH_RECEIPT_RE.test(e.text))) {
                 pending = null;
                 awaiting.clear();
+                admittedAt = undefined;
+                lastTurn = false;
+                admissionMessageIndex = undefined;
+                originScanOffset = undefined;
+                originMessageIndex = undefined;
+                receiptId = undefined;
             }
             continue;
         }
         if (e.kind === 'assistant') {
             const snippet = admissionSnippet(e.text);
-            // A NEW admission supersedes every teach still in flight: those calls were issued against the
-            // OLDER debt, so their receipts must not settle this one (ADR-001 D4 asymmetry).
+            // A distinct or newly armed admission supersedes in-flight teaches. Repeating identical
+            // wording while the same debt remains unpaid preserves its origin and pending calls.
             if (snippet !== null) {
-                if (pending === null || pending.snippet !== snippet)
+                const sameDebt = pending !== null && debtSnippetKey(pending.snippet) === debtSnippetKey(snippet);
+                const replayedOrigin = prior !== null && debtSnippetKey(prior.snippet) === debtSnippetKey(snippet)
+                    && scanOffset !== undefined && priorAge.originScanOffset === scanOffset
+                    && e.messageIndex !== undefined && priorAge.originMessageIndex === e.messageIndex;
+                if (replayedOrigin) {
+                    // Replaying earlier bytes can have armed a DIFFERENT debt before reaching this origin.
+                    // Restore only the age; this admission must still discard that older debt's calls.
+                    if (!sameDebt)
+                        awaiting.clear();
+                    admittedAt = priorAge.admittedAt;
+                    lastTurn = priorAge.lastTurn === true;
+                    admissionMessageIndex = e.messageIndex;
+                    originScanOffset = priorAge.originScanOffset;
+                    originMessageIndex = priorAge.originMessageIndex;
+                    receiptId = priorAge.receiptId;
+                }
+                else if (!sameDebt) {
+                    admittedAt = e.timestamp ?? fallbackTime;
+                    lastTurn = true;
+                    admissionMessageIndex = e.messageIndex;
+                    originScanOffset = scanOffset;
+                    originMessageIndex = e.messageIndex;
+                    receiptId = receipt !== undefined && e.messageIndex !== undefined
+                        ? receipt.idFor(e.messageIndex, snippet, e.timestamp) : undefined;
                     awaiting.clear();
+                }
                 pending = { snippet };
             }
         }
     }
-    return pending === null ? null : {
+    payRecorded();
+    const debt = pending === null ? null : {
         snippet: pending.snippet,
         ...(awaiting.size > 0 ? { awaiting: [...awaiting] } : {}),
     };
+    return { debt, age: {
+            ...(admittedAt !== undefined ? { admittedAt } : {}), lastTurn,
+            ...(originScanOffset !== undefined ? { originScanOffset } : {}),
+            ...(originMessageIndex !== undefined ? { originMessageIndex } : {}),
+            ...(receiptId !== undefined ? { receiptId } : {}),
+        } };
+}
+export function foldAdmissionDebt(events, prior) {
+    return foldAdmissionDebtWithAge(events, prior, {}).debt;
 }
 const writeJsonAtomic = (path, value) => {
     const tmp = `${path}.${process.pid}.tmp`;
@@ -708,8 +902,9 @@ const writeJsonAtomic = (path, value) => {
  * The WHOLE read→fold→write runs under `withProjectLockSync` (cross-family QE P1-3): two overlapping
  * Stop scans that both read the same offset/sentinel and then rename/unlink independently lose one
  * side's update — atomic per-file renames do not prevent that, only mutual exclusion does. The
- * critical section is short and synchronous (bounded ≤8 MB read, no subprocess, 65 ms measured on
- * a 5 MB first scan) and the lock lives beside the store it guards: `<root>/.dz/locks/retro-scan.lock`
+ * critical section is synchronous (new tail reads are bounded ≤8 MB; validating an existing
+ * pending debt also streams its covered range, which can grow across turns; no subprocess) and
+ * the lock lives beside the store it guards: `<root>/.dz/locks/retro-scan.lock`
  * for the store files in `<root>/.dz/`. A contended scan gives up fast and reports `contended` —
  * nothing advanced, so the next turn re-scans the same bytes (self-healing, never a lost update).
  */
@@ -741,23 +936,30 @@ function scanTailUnderLock(dzDir, transcriptPath, nowIso) {
         const readOffset = (p) => {
             try {
                 const st = JSON.parse(readFileSync(p, 'utf8'));
-                if (st.transcript === transcriptPath && typeof st.offset === 'number' && Number.isFinite(st.offset) && st.offset >= 0)
-                    return Math.floor(st.offset);
+                if (st.transcript === transcriptPath && typeof st.offset === 'number' && Number.isFinite(st.offset) && st.offset >= 0) {
+                    return { offset: Math.floor(st.offset),
+                        ...(typeof st.fingerprint === 'string' && RETRO_RECEIPT_ID_RE.test(st.fingerprint)
+                            ? { fingerprint: st.fingerprint } : {}) };
+                }
             }
             catch { /* absent or unreadable */ }
             return null;
         };
         let offset = 0;
+        let savedFingerprint;
         let adoptLegacyState = false;
         const ownOffset = readOffset(statePath);
-        if (ownOffset !== null)
-            offset = ownOffset;
+        if (ownOffset !== null) {
+            offset = ownOffset.offset;
+            savedFingerprint = ownOffset.fingerprint;
+        }
         else if (!existsSync(statePath)) {
             // FR-4: the flat bookmark is adopted ONCE — only while this session has no bookmark of its own,
             // and only when it names THIS transcript. Another session's stays where it is.
             const legacyOffset = readOffset(legacyStatePath);
             if (legacyOffset !== null) {
-                offset = legacyOffset;
+                offset = legacyOffset.offset;
+                savedFingerprint = legacyOffset.fingerprint;
                 adoptLegacyState = true;
             }
         }
@@ -765,7 +967,30 @@ function scanTailUnderLock(dzDir, transcriptPath, nowIso) {
             try {
                 const s = JSON.parse(readFileSync(p, 'utf8'));
                 if (s.transcript === transcriptPath && typeof s.snippet === 'string') {
-                    return { prior: { snippet: s.snippet, ...(s.awaiting !== undefined ? { awaiting: s.awaiting } : {}) }, present: true };
+                    return {
+                        prior: { snippet: s.snippet,
+                            ...(s.awaiting !== undefined ? { awaiting: s.awaiting } : {}),
+                        },
+                        present: true,
+                        ...(typeof s.admittedAt === 'string' && Number.isFinite(Date.parse(s.admittedAt)) ? { admittedAt: s.admittedAt } : {}),
+                        ...(typeof s.lastTurn === 'boolean' ? { lastTurn: s.lastTurn } : {}),
+                        ...(typeof s.originScanOffset === 'number' && Number.isSafeInteger(s.originScanOffset) && s.originScanOffset >= 0
+                            ? { originScanOffset: s.originScanOffset } : {}),
+                        ...(typeof s.originMessageIndex === 'number' && Number.isSafeInteger(s.originMessageIndex) && s.originMessageIndex >= 0
+                            ? { originMessageIndex: s.originMessageIndex } : {}),
+                        ...(typeof s.scanEndOffset === 'number' && Number.isSafeInteger(s.scanEndOffset) && s.scanEndOffset >= 0
+                            ? { scanEndOffset: s.scanEndOffset } : {}),
+                        ...(typeof s.transcriptFingerprint === 'string' && RETRO_RECEIPT_ID_RE.test(s.transcriptFingerprint)
+                            ? { transcriptFingerprint: s.transcriptFingerprint } : {}),
+                        ...(typeof s.coverageStartOffset === 'number' && Number.isSafeInteger(s.coverageStartOffset)
+                            && s.coverageStartOffset >= 0 ? { coverageStartOffset: s.coverageStartOffset } : {}),
+                        ...(typeof s.coverageHash === 'string' && /^[0-9a-f]{64}$/.test(s.coverageHash)
+                            ? { coverageHash: s.coverageHash } : {}),
+                        ...(typeof s.receiptId === 'string' && RETRO_RECEIPT_ID_RE.test(s.receiptId)
+                            ? { receiptId: s.receiptId }
+                            : { receiptId: createHash('sha256').update(JSON.stringify(['legacy', transcriptPath, s.snippet, s.ts ?? '']))
+                                    .digest('hex').slice(0, 32) }),
+                    };
                 }
                 return { prior: null, present: true };
             }
@@ -779,6 +1004,7 @@ function scanTailUnderLock(dzDir, transcriptPath, nowIso) {
         // unlinked a sentinel of another transcript deleted the NEIGHBOUR session's live debt (FR-2).
         const own = readSentinel(pendingPath);
         let prior = own.prior;
+        let priorAge = own;
         const staleOwn = own.present && own.prior === null;
         let adoptLegacyPending = false;
         if (!own.present) {
@@ -787,6 +1013,7 @@ function scanTailUnderLock(dzDir, transcriptPath, nowIso) {
             const legacy = readSentinel(legacyPendingPath);
             if (legacy.prior !== null) {
                 prior = legacy.prior;
+                priorAge = legacy;
                 adoptLegacyPending = true;
             }
         }
@@ -800,8 +1027,33 @@ function scanTailUnderLock(dzDir, transcriptPath, nowIso) {
                 ? { status: 'pending', snippet: prior.snippet, scannedBytes: 0, offset, ...ids }
                 : { status: 'none', scannedBytes: 0, offset, ...ids };
         }
-        if (size < offset)
-            offset = 0; // truncated/rotated transcript
+        const fingerprint = transcriptFingerprint(transcriptPath);
+        const cheapRotated = size < offset || (priorAge.scanEndOffset !== undefined && size < priorAge.scanEndOffset)
+            || (savedFingerprint !== undefined && savedFingerprint !== fingerprint)
+            || (priorAge.transcriptFingerprint !== undefined && priorAge.transcriptFingerprint !== fingerprint);
+        const coverageChanged = !cheapRotated && priorAge.coverageHash !== undefined
+            && priorAge.coverageStartOffset !== undefined && priorAge.scanEndOffset !== undefined
+            && priorAge.scanEndOffset <= size
+            && transcriptRangeHash(transcriptPath, priorAge.coverageStartOffset, priorAge.scanEndOffset)
+                !== priorAge.coverageHash;
+        const rotated = cheapRotated || coverageChanged;
+        if (rotated) {
+            offset = 0;
+            prior = null;
+            priorAge = {};
+        }
+        // A receipt pays every admission already folded into its pending debt. If the bookmark was
+        // interrupted, skip those bytes as a unit; a later identical admission beyond this boundary
+        // must still arm a new debt. The sentinel remains until the bookmark is committed below.
+        const paidPrior = prior !== null && priorAge.receiptId !== undefined
+            && priorAge.coverageHash !== undefined && priorAge.coverageStartOffset !== undefined
+            && priorAge.scanEndOffset !== undefined
+            && hasRetroTeachReceipt(dzDir, sessionId, transcriptPath, priorAge.receiptId);
+        if (paidPrior && priorAge.scanEndOffset !== undefined && priorAge.scanEndOffset <= size) {
+            offset = Math.max(offset, priorAge.scanEndOffset);
+            prior = null;
+            priorAge = {};
+        }
         let jumped = offset === 0 && size > MAX_TAIL_SCAN_BYTES; // bound the first scan of a huge file
         if (size - offset > MAX_TAIL_SCAN_BYTES) {
             offset = size - MAX_TAIL_SCAN_BYTES;
@@ -835,7 +1087,22 @@ function scanTailUnderLock(dzDir, transcriptPath, nowIso) {
                 closeSync(fd);
             }
         }
-        const next = foldAdmissionDebt(events, prior);
+        const paidCache = new Map();
+        const { debt: next, age } = foldAdmissionDebtWithAge(events, prior, priorAge, nowIso ?? new Date().toISOString(), offset, {
+            idFor: (messageIndex, snippet, timestamp) => retroReceiptId(transcriptPath, fingerprint, offset, messageIndex, snippet, timestamp),
+            // This scan holds retro-scan.lock, so a receipt cannot appear mid-fold. One file read per
+            // admission ID keeps a large first transcript scan O(events), not O(events × disk reads).
+            paid: (id) => {
+                if (id === priorAge.receiptId && priorAge.coverageHash === undefined)
+                    return false;
+                const cached = paidCache.get(id);
+                if (cached !== undefined)
+                    return cached;
+                const value = hasRetroTeachReceipt(dzDir, sessionId, transcriptPath, id);
+                paidCache.set(id, value);
+                return value;
+            },
+        });
         const newOffset = offset + consumed;
         mkdirSync(dir, { recursive: true });
         let outcome;
@@ -846,6 +1113,15 @@ function scanTailUnderLock(dzDir, transcriptPath, nowIso) {
                 transcript: transcriptPath,
                 snippet: next.snippet.replace(/\s+/g, ' ').trim().slice(0, 200),
                 ts: nowIso ?? new Date().toISOString(),
+                ...(age.admittedAt !== undefined ? { admittedAt: age.admittedAt } : {}),
+                lastTurn: age.lastTurn === true,
+                ...(age.originScanOffset !== undefined ? { originScanOffset: age.originScanOffset } : {}),
+                ...(age.originMessageIndex !== undefined ? { originMessageIndex: age.originMessageIndex } : {}),
+                ...(age.receiptId !== undefined ? { receiptId: age.receiptId } : {}),
+                transcriptFingerprint: fingerprint,
+                scanEndOffset: newOffset,
+                coverageStartOffset: age.originScanOffset ?? offset,
+                coverageHash: transcriptRangeHash(transcriptPath, age.originScanOffset ?? offset, newOffset),
                 ...(next.awaiting !== undefined ? { awaiting: next.awaiting } : {}),
             };
             writeJsonAtomic(pendingPath, sentinel);
@@ -858,6 +1134,10 @@ function scanTailUnderLock(dzDir, transcriptPath, nowIso) {
             // forever. Only "already gone" is benign; any other failure must leave the bytes replayable,
             // so it propagates and the offset write below never runs. This makes the CLEAR branch
             // symmetric with the ARM branch, which already blocks the offset on a failed write.
+            // With a CLI receipt, commit the bookmark first. If that write fails, keep the pending
+            // sentinel and its scanEndOffset so a retry skips the same paid bytes safely.
+            if (paidPrior)
+                writeJsonAtomic(statePath, { schema: 1, transcript: transcriptPath, offset: newOffset, fingerprint });
             try {
                 unlinkSync(pendingPath);
             }
@@ -882,7 +1162,9 @@ function scanTailUnderLock(dzDir, transcriptPath, nowIso) {
             outcome = { status: 'none', scannedBytes: consumed, offset: newOffset };
         }
         // Commit the debt BEFORE its offset: an interruption must leave these bytes replayable.
-        writeJsonAtomic(statePath, { schema: 1, transcript: transcriptPath, offset: newOffset });
+        if (!(hadSentinel && next === null && paidPrior)) {
+            writeJsonAtomic(statePath, { schema: 1, transcript: transcriptPath, offset: newOffset, fingerprint });
+        }
         // FR-4: the adopted flat files go only AFTER the per-session copies are committed — a failure
         // above leaves them in place for the next scan to adopt again. Best-effort: leftover debris
         // is harmless (a present per-session file blocks re-adoption), a thrown error here would
@@ -964,6 +1246,14 @@ export function retroSentinelIsFresh(sentinel, ctx) {
  */
 export function renderRetroDebtDirective(sentinel) {
     const snip = sentinel.snippet.replace(/\s+/g, ' ').trim().slice(0, 70);
-    return `${RETRO_DEBT_MARKER}: last turn admitted an error — «${snip}» — with no recorded lesson. FIRST, before other work: run the dz \`teach\` command with the lesson + reproducer, then verify via dz recall. Narrating and recording are ONE action.`;
+    const when = sentinel.lastTurn === true ? 'last turn' : 'an earlier turn in this session';
+    if (typeof sentinel.sessionId === 'string' && typeof sentinel.receiptId === 'string'
+        && RETRO_RECEIPT_ID_RE.test(sentinel.receiptId)) {
+        const ref = `${safeSessionDirName(sentinel.sessionId)}:${sentinel.receiptId}`;
+        const lead = `${RETRO_DEBT_MARKER}: ${when} admitted an error`;
+        const action = `; dz teach "<lesson+reproducer>" --retro-receipt ${ref}; dz recall to verify.`;
+        return `${lead} «${snip.slice(0, Math.max(0, 300 - lead.length - action.length - 3))}»${action}`;
+    }
+    return `${RETRO_DEBT_MARKER}: ${when} admitted an error — «${snip}» — with no recorded lesson. First, run dz \`teach\` with the lesson + reproducer, then verify via dz recall. Narrating and recording are one action.`;
 }
 //# sourceMappingURL=session-retro.js.map

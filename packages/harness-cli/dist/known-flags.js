@@ -278,6 +278,7 @@ export const KNOWN_CLI_FLAGS = [
     'result',
     'resume',
     'retention-days',
+    'retro-receipt',
     'reviewer',
     'reviewers',
     'revise',

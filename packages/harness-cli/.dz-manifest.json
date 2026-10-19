@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "ac86f71b4de8e7b3ac28762e0e06dba2fab74fe931556bdac8f148fc05ceb47b"
+        "sha256": "b5f087524fb608b19a745e5060aa7df67e7450dbf83c2dbbf967c3ade6c658ba"
       },
       {
         "path": "dist/bin.d.ts",
@@ -49,15 +49,15 @@
       },
       {
         "path": "dist/cli.d.ts.map",
-        "sha256": "e9dd5aeeb7a35a4aaa282a54d1736cb1a2a26ef088eb850715ba9929c2db7682"
+        "sha256": "6b6f6103b33dc1f3472f38a5d5ebdc8c1ad9c7653d3e00a2e58f0cd418404adc"
       },
       {
         "path": "dist/cli.js",
-        "sha256": "15f9d614d22ca1a21ed6f56788caa0c74f03500d2698a4f8b8bde67802db9ce8"
+        "sha256": "133fe59d9a6ccf8f503fb61793af7c53ac9a8034c93cac5fdaaf66d20529aeb8"
       },
       {
         "path": "dist/cli.js.map",
-        "sha256": "d50149c58a3100e33f2685d317c6f2c35cb2946970f4547389991b959bc2247e"
+        "sha256": "70108bbd7f57852dac5cb55e9bed2ac98e7a2f6802e9deec6e364707bab72284"
       },
       {
         "path": "dist/command-inventory.d.ts",
@@ -145,15 +145,15 @@
       },
       {
         "path": "dist/known-flags.d.ts.map",
-        "sha256": "598f5f300b9be8698c3b4d429561c290ed10465e7e684e1783492c6b51af2385"
+        "sha256": "672356ab17f552fd013b0e656296d743cead556a657313424603d28f1e88fc63"
       },
       {
         "path": "dist/known-flags.js",
-        "sha256": "0bedd7343e33f40365ccd5b244a3e9bbd9a22ea3072c582fd18d7f27eec717b2"
+        "sha256": "9ac5a1da4900baf4d74e655514ff9edbd793cf63a4d65c9c1b6ba403f89f1d8a"
       },
       {
         "path": "dist/known-flags.js.map",
-        "sha256": "1af35e21f9f3e594ca56b5370060d869544fbfe4f3fa3f5decf8e9d0bf5b8d4d"
+        "sha256": "a19c54a6720e0f301be70d5fd378ed3091d2a06431ece9e5d8bd29f7006f7c6c"
       },
       {
         "path": "dist/release-package-audit-runner.d.ts",
@@ -229,7 +229,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "9f578de9b40cdae1e79962e403f4d74808578de20b950fa8e12ff8f68ef7be2f"
+        "sha256": "5884e5f4bd93ecb018f014e616fe2adce56442f892d62023af2c58a922ebdaee"
       },
       {
         "path": "src/bin.ts",
@@ -241,7 +241,7 @@
       },
       {
         "path": "src/cli.ts",
-        "sha256": "0e591674721728a41d4fd7ea1c674b817c184565a2db88cdde5264794b8775b3"
+        "sha256": "2e58cd13a4b1a9ac33deee5febd41055fbe4c002a38d94b8f85484e7f2b7a230"
       },
       {
         "path": "src/command-inventory.ts",
@@ -265,7 +265,7 @@
       },
       {
         "path": "src/known-flags.ts",
-        "sha256": "a1fe94af23d4df933eae9dbcf7392e8f5b8056ddbc178ba1ca2c23860813c09b"
+        "sha256": "07a91cf2c16b499a11dc439a642dd7fa183ba0e590dee8da83aca2c1d1133d3e"
       },
       {
         "path": "src/release-package-audit-runner.ts",
@@ -285,5 +285,5 @@
       }
     ]
   },
-  "signature": "l0YA+q16OvH92LHUYb+hE/rmvTFGyuTJB3YzRLYQizBkqHI+llxFTOslAlRSOtLXY98GMvy6Lat4wOeQtfUbDw=="
+  "signature": "08VqWe4FynaYb2/unfQYMSEFiJ+8sC3sngGqAQz3BiLAko0v1Dp9wNpGgNS2dSBkwp4AwlAmaPJp287IT9jMCQ=="
 }

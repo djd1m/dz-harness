@@ -5,13 +5,19 @@ The bundled Feature ADR projection supports installed-CLI native QE history opt-
 If bytes change before first evaluation, native `evaluate` retains valid old-snapshot receipt origins and conditions while reporting `not-established/native-repair-required`. Follow with explicit `begin-repair` and fresh independent verification of the new snapshot. Recovery preserves authority and the three-cycle ceiling; old evidence never closes changed bytes.
 
 
-Current package version: `1.7.14`. <!-- dz:version -->
+Current package version: `1.7.15`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/keysarium
 
 **AI Case Research Toolkit for Claude Code**
 
 Full 7-phase pipeline for AI case studies, hackathons, and casariums. Provides skills, commands, rules, shards, agent templates, and brain portability for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+
+The bundled `analyst-manual-full` research checkpoint uses `moderate` for ordinary web and health
+sources. It offers `strict` or `paranoid` only when pinned issuer keys and signed delivery are
+established for the selected source class. If a requested mode lacks either capability, research
+stops with the missing condition instead of claiming cryptographic verification. Its reports
+distinguish cited sources, issuer verification, and citation-chain integrity.
 
 Bundled feature-adr usage guidance records observed stage metadata/source IDs through existing
 writers and reads explicit Wf/FA project evidence. Unknown dimensions and full prices stay null;

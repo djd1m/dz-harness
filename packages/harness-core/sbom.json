@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "670a85e3cbc19d099a11b138940e23c004c2314cdaf923ea32022060d21fb270"
+          "content": "2fa87f308c745e4177712658994487cb36a739abc852efe64ad7bbf2cb5e7768"
         }
       ]
     },
@@ -6355,7 +6355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "48a74602b20dd51467ab48a09886e876bee6821dfa89255d0100e5147595d744"
+          "content": "e2c97c983c9151cc37a98452ce73ea20af729a0074b563828e96f0a61ddb8fd7"
         }
       ]
     },
@@ -6365,7 +6365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d2f2685f09be7823be59ffdb3bb24efef865a62987a638c029f4c3452f061a09"
+          "content": "ca331305b8ee412c6f31b071a34727b57938b4af7fc4bbcdc431524178f8e8f1"
         }
       ]
     },
@@ -6375,7 +6375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5d869d3a224d52964b296d9224933f6ecb2f4edf573a946888d9166f1489ce92"
+          "content": "150e1781122124a37e0f7555dbc7bd7bbf45729cab446a8139e01ff1af3aaf83"
         }
       ]
     },
@@ -6385,7 +6385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f4744745a940e18d9591cbfcafc81cbc029c31e0c450918a4957fbdc87ba2070"
+          "content": "c5a8df5ea6a6fce0207308f9d8c9d6817a53c1a373fefa7050f143524f669ce7"
         }
       ]
     },
@@ -8119,7 +8119,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "62955524721d25c1f4f24930eda683113388c849c64b8f297b6fa3d6b993d7e5"
+          "value": "a0a460e9c9e28c01a3f3ae5da62a9a97303d59237005c9cfe375d5ad5f0319bf"
         }
       ]
     },
@@ -9749,7 +9749,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9c27223147bed72c41c80723a87123662200b72700a05f44714aaaa1d7fa5dc5"
+          "content": "40a91062f4523a11aaf038391925b9430391c13e074ea5a7ee13c523cf9df0d2"
         }
       ]
     },

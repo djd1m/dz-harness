@@ -49,7 +49,7 @@ DISCOVERY         EXPLORE           RESEARCH           CJM ПРОТОТИП     
 |------|---------|-------|-----------|----------|
 | **0** | `/discovery` | reverse-engineering-unicorn | JTBD + конкуренты + ROI + бизнес-кейс | `00_product_discovery.md` |
 | **1** | `/explore-case` | explore | Глубокое понимание кейса, 5 Whys, критерии успеха | `01_case_brief.md` |
-| **2** | `/research` | goap-research-ed25519 | PARANOID research: аналоги, технологии, регуляторика (3 параллельных агента) | `02_research_findings.md` |
+| **2** | `/research` | goap-research-ed25519 | Исследование аналогов, технологий и регуляторики с явным статусом источников (3 параллельных агента) | `02_research_findings.md` |
 | **2.5** ⭐ | `/cjm-prototype` | reverse-eng + frontend-design | 3 варианта CJM → кликабельный React прототип → выбор | `prototype/cjm-prototype.jsx` |
 | **3** | `/solve` | problem-solver-enhanced | Стратегия решения: SCQA, Process Design, AI Pipeline, HITL | `03_solution_strategy.md` |
 | **4** | `/architecture-phase` | (встроенный) | C4 диаграммы, компоненты, безопасность, MVP scope | `04_architecture.md` |
@@ -59,7 +59,7 @@ DISCOVERY         EXPLORE           RESEARCH           CJM ПРОТОТИП     
 - Phase 2.5 (CJM) — **ОБЯЗАТЕЛЬНА, нельзя пропустить**
 - `08_executive_summary.md` — **ОБЯЗАТЕЛЕН**
 - Checkpoint после каждой фазы — ждёт `"ок"` от пользователя
-- Research в PARANOID mode — ноль непроверенных утверждений
+- Research помечает неподтверждённые утверждения; `strict` и `paranoid` требуют подтверждённой возможности проверки подписей источника
 - `{CHOSEN_CJM}` передаётся из Phase 2.5 в Phase 3-5
 
 ---
@@ -71,7 +71,7 @@ DISCOVERY         EXPLORE           RESEARCH           CJM ПРОТОТИП     
 ```
 reverse-engineering-unicorn (оркестратор pipeline)
   ├── explore (Socratic кларификация)
-  ├── goap-research-ed25519 (GOAP + Ed25519 верификация)
+  ├── goap-research-ed25519 (GOAP + статус источников; проверка подписи при наличии условий)
   ├── problem-solver-enhanced (TRIZ + Game Theory + 5 Whys)
   ├── frontend-design (UI для CJM прототипа)
   └── presentation-storyteller (слайды + speaker script)
@@ -91,18 +91,18 @@ reverse-engineering-unicorn (оркестратор pipeline)
 
 **Когда вызывается:** Phase 1, а также как зависимость в reverse-engineering-unicorn, presentation-storyteller, analyst-manual, feature-adr, ai-factory-mapper.
 
-### 2. goap-research-ed25519 — верифицированный research
+### 2. goap-research-ed25519 — исследование с проверяемыми ограничениями
 
-**Что делает:** GOAP (Goal-Oriented Action Planning) + OODA loop + Ed25519 криптографические подписи для антигаллюцинации.
+**Что делает:** GOAP (Goal-Oriented Action Planning) + OODA loop; отделяет ссылки на источники от криптографического подтверждения их происхождения.
 
 **Протокол:**
 1. Оценивает текущее состояние (что знаем / не знаем)
 2. Строит план исследования через A* алгоритм с учётом стоимости верификации
-3. Выполняет OODA цикл (Observe → Orient → Decide → Act) с checkpoint'ами подписей
-4. Каждый факт подписывается Ed25519 → цепочка доверия (citation chain)
-5. Генерирует подписанный research report
+3. Выполняет OODA цикл (Observe → Orient → Decide → Act) с контрольными точками
+4. Для каждого вывода указывает источник и степень подтверждения; подпись издателя проверяется только при наличии подписанной выдачи и закреплённого ключа
+5. Формирует отчёт с отдельным статусом источников, подписей и цепочки цитирования
 
-**3 уровня строгости:** moderate (0.85), strict (0.95), paranoid (0.99)
+**3 уровня строгости:** `moderate` (0.85) доступен для обычных веб-источников. `strict` (0.95) и `paranoid` (0.99) требуют реальных ключей издателей и подписанной выдачи выбранного класса источников; без них план возвращает `GOAL_UNREACHABLE`.
 
 **Когда вызывается:** Phase 2 (основной), а также все DEEP/VERIFIED режимы в других скиллах.
 
@@ -142,7 +142,7 @@ reverse-engineering-unicorn (оркестратор pipeline)
 
 **Протокол:**
 1. Кларификация (explore) → цель, аудитория, ограничения
-2. Research (goap-research-ed25519) → верифицированные данные и источники
+2. Research (goap-research-ed25519) → данные с источниками и явными ограничениями проверки
 3. Структура (storytelling arc + outline с тезисами)
 4. Полная презентация в Markdown со ссылками на источники
 5. Speaker script «Как рассказывать?» — связная история для каждого слайда
@@ -180,8 +180,8 @@ reverse-engineering-unicorn (оркестратор pipeline)
 **Что делает:** Композитный оркестратор: explore → goap-research → problem-solver с ручными checkpoint'ами.
 
 **3 фазы с подтверждением:**
-1. Explore → Task Brief → **CHECKPOINT** (выбор verification mode: moderate/strict/paranoid)
-2. Verified Research (Ed25519) → **CHECKPOINT**
+1. Explore → Task Brief → **CHECKPOINT** (`moderate` по умолчанию; `strict`/`paranoid` только после проверки возможностей источников)
+2. Research с явным статусом источников и подписей → **CHECKPOINT**; при `GOAL_UNREACHABLE` переход к Solve не выполняется
 3. Solve (9-module framework) → **CHECKPOINT**
 4. Синтез: 4 документа × 2 формата (md + docx)
 
@@ -215,7 +215,7 @@ reverse-engineering-unicorn (оркестратор pipeline)
 |-------|---------|--------|-------|
 | 🟢 **QUICK** | Статические запросы | Шаблоны | ~70 мин |
 | 🔵 **DEEP** | GOAP A* + OODA | + Game Theory, TRIZ, CJM прототип, BS-check | ~140 мин |
-| 🟣 **VERIFIED** | GOAP + Ed25519 | + Криптоподписи, audit trail, trusted issuers | ~170 мин |
+| 🟣 **VERIFIED** | GOAP + проверка происхождения при наличии подписанной выдачи и ключей издателей | Audit trail и явные ограничения проверки; подпись не доказывает истинность факта | ~170 мин |
 
 ### 7 модулей
 
@@ -226,7 +226,7 @@ reverse-engineering-unicorn (оркестратор pipeline)
 #### Module 1: INTELLIGENCE → Verified Fact Sheet
 - Год основания, штаб-квартира, команда, финансирование
 - Ключевые метрики: выручка, MAU, NPS
-- Каждый факт верифицирован (DEEP → GOAP, VERIFIED → Ed25519)
+- Для каждого факта указываются источник и уровень уверенности; наличие подписи издателя отражается отдельно
 - **Артефакт:** Fact Sheet с confidence scores
 
 #### Module 2: PRODUCT & CUSTOMERS → JTBD + Segments + Voice of Customer
@@ -313,7 +313,7 @@ Module 2.5:  Agent 1 (opus) → Variant A
 | `/casarium --ai-factory [текст]` | Все | + маппинг на Cloud.ru AI Factory |
 | `/discovery` | 0 | Product Discovery |
 | `/explore-case` | 1 | Глубокое понимание кейса |
-| `/research` | 2 | PARANOID research (3 агента) |
+| `/research` | 2 | Исследование с проверкой источников (3 агента); криптографический режим зависит от возможностей источника |
 | `/cjm-prototype` | 2.5 | CJM → React прототип |
 | `/solve` | 3 | Стратегия решения |
 | `/architecture-phase` | 4 | Техническая архитектура |
@@ -355,7 +355,7 @@ Module 2.5:  Agent 1 (opus) → Variant A
 
 | Правило | Назначение |
 |---------|-----------|
-| `research-quality` | PARANOID mode: каждый факт должен иметь источник, confidence ≥ 0.99 |
+| `research-quality` | Политика источников с названием PARANOID: для каждого факта требуется источник и confidence ≥ 0.99; это не подтверждает подпись издателя |
 | `checkpoint-protocol` | Формат checkpoint'ов, promise tags, запрет авто-продвижения |
 | `agent-swarm` | Когда и как запускать параллельных агентов, модели, изоляция |
 | `domain-specific` | Авто-детекция домена → доменные правила (Banking, Retail, Enterprise, Healthcare) |
@@ -395,6 +395,9 @@ Module 2.5:  Agent 1 (opus) → Variant A
 | `phase-5-presentation` | Presentation | `ARCHITECTURE_DEFINED` |
 | `phase-ai-factory` | AI Factory (все фазы) | Только при `--ai-factory` |
 | `feature-adr` | Feature Development | Независим от casarium |
+
+Имя checkpoint `RESEARCH_PARANOID_PASSED` сохраняется в существующем pipeline. Оно обозначает
+прохождение его исследовательского этапа, а не доказанную Ed25519-подпись каждого источника.
 
 ---
 

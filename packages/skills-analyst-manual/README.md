@@ -20,7 +20,7 @@ Composite analyst skill for [Claude Code](https://claude.com/claude-code) — 3-
 Orchestrates three phases with user confirmation between each:
 
 1. **Explore** — Task clarification, brief generation
-2. **Verified Research** — GOAP planning + Ed25519 cryptographic verification
+2. **Research** — GOAP planning, source evidence and an explicit issuer-signature status. Ed25519 issuer verification is available only when sources deliver signed content and real issuer keys are pinned.
 3. **Solve** — 9-module problem solving (TRIZ, Game Theory, OODA, SCQA)
 
 Each phase produces a document. User confirms before proceeding to the next.
@@ -39,13 +39,13 @@ Then in Claude Code:
 
 ## Self-Contained Package
 
-This package bundles everything needed — no additional dependencies required:
+This package bundles the skill files and CLI. Issuer-signature verification additionally needs a Python Ed25519 backend, pinned issuer keys and signed-source delivery; ordinary PubMed/PMC/DOI/WHO research does not provide those issuer signatures by default.
 
 | Component | Description |
 |-----------|-------------|
 | `analyst-manual-full` | Orchestrator skill (3-phase pipeline with checkpoints) |
 | `explore` | Task clarification and brief generation |
-| `goap-research-ed25519` | GOAP research with Ed25519 verification |
+| `goap-research-ed25519` | GOAP research with source status and optional issuer-signature verification |
 | `problem-solver-enhanced` | 9-module solver (TRIZ + Game Theory) |
 | `/analyst-manual` | Slash command |
 
@@ -61,27 +61,29 @@ npx @dzhechkov/skills-analyst-manual remove    # Uninstall
 
 ## Verification Modes
 
-Choose at Checkpoint 1:
+The ordinary Checkpoint 1 offers `moderate`. Show `strict` or `paranoid` only after both `issuer_keys_available` and `source_class_verified` are established for the selected source class. If a requested mode lacks either fact, stop at the checkpoint, name the missing fact and offer `moderate` separately. A `PlanNotFound` result stops Research before Solve; report its `GOAL_UNREACHABLE` or `SEARCH_EXHAUSTED` verdict and reason.
 
-| Mode | Threshold | Command |
-|------|-----------|---------|
-| Moderate | 0.85 | "ok" |
-| Strict | 0.95 | "strict mode" |
-| Paranoid | 0.99 | "paranoid mode" |
+| Mode | Threshold | Availability |
+|------|-----------|--------------|
+| Moderate | 0.85 | Default on "ok"; unsigned findings remain labeled |
+| Strict | 0.95 | Both deployment capability facts confirmed, then explicitly selected |
+| Paranoid | 0.99 | Same prerequisites, with stronger source redundancy |
+
+The report counts issuer-verified, researcher-self-attested and unverified facts from the verifier's results. Citation-chain integrity is a separate result. Neither a confidence threshold nor a valid researcher signature proves publisher provenance or the truth of a claim.
 
 ## Output Documents
 
 | # | Document | Description |
 |---|----------|-------------|
 | 1 | `01_task_brief.md` | Clarified objectives, constraints, success criteria |
-| 2 | `02_research_findings.md` | Verified findings with Ed25519 citation chain |
+| 2 | `02_research_findings.md` | Findings with source access, issuer provenance and separate chain-integrity status |
 | 3 | `03_solution.md` | Strategy with TRIZ contradictions resolved |
 | 4 | `04_final_summary.md` | Executive summary + next steps |
 
 ## Use Cases
 
 - Product pricing and positioning strategy
-- Competitive analysis with verified data
+- Competitive analysis with explicit evidence limits
 - GTM (Go-to-Market) strategy development
 - Strategic product decisions requiring evidence-based analysis
 

@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "8b47cf21dbab1c7cb422789d2436810a85e0db0be45051545af216decc1882ca"
+        "sha256": "4a930f0ba02d3ffa0a0a776dbc1537da3c42a1250b488139af065ef14d500781"
       },
       {
         "path": "bin/cli.js",
@@ -17,11 +17,11 @@
       },
       {
         "path": "package.json",
-        "sha256": "aa7ea69172ea6cf175c391daf865ab865e69a1fd9144e8fbe479dbfe00d523f6"
+        "sha256": "c5e9f4933b3a4ca3cc52900ac56bd98063c55297e0a1f4a7fdae14093b3867ff"
       },
       {
         "path": "src/cli.js",
-        "sha256": "135c6e9c74f251b0750b5b2fec533e0d757e34157829a42e1fed3cf9cca0b1d7"
+        "sha256": "197affda73658bc776e3df3d8de9e185a731e158ea28a550dc3dcd817812b712"
       },
       {
         "path": "src/commands/doctor.js",
@@ -45,15 +45,15 @@
       },
       {
         "path": "src/utils.js",
-        "sha256": "72b97e065b01b7a4e4e0223122784b77464243315446a6a4749d642fd997097e"
+        "sha256": "f95340a7288a68c5af0da3512eabdfa96e615863bc6dcf3e4e61b02b6b97e453"
       },
       {
         "path": "templates/.claude/commands/analyst-manual.md",
-        "sha256": "9c84b795424197c9fb4ac6be8c444808a8a04cf829434c9b7c5c581a61b5e966"
+        "sha256": "924206fde1d36f98b31c2d4495edc506499d58e89464a75fb872774d2426638c"
       },
       {
         "path": "templates/.claude/skills/analyst-manual-full/SKILL.md",
-        "sha256": "4733b487b8a2772ada4108561429611308e7a785c43d4dab0de8c9112637f3d0"
+        "sha256": "ebcb4decc419af099b94cf66fa588ca5cd837e3dfb0587170206093cb786ac72"
       },
       {
         "path": "templates/.claude/skills/explore/SKILL.md",
@@ -161,5 +161,5 @@
       }
     ]
   },
-  "signature": "KnHRQSrmrA0ZL68SU4U6f+iH4GdlwCLYEqBNyWXIXQ78m57+0wHEVQNq0dYbHYZ6hPja6oiwmxw5abI0NxGsAw=="
+  "signature": "VxreqQNxbBP7/gJU0oOm/NKta9NEaVQwQ5pmz3lPvX5ZP5HVX+bn8bKg9wmjM19ucgSYgWIKMJ8nPfNTAi/wDw=="
 }

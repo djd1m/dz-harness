@@ -22,7 +22,7 @@ commands. Use `node --test <file>` through the same wrapper for Node tests. Focu
 is supported; it does not prove a complete suite, meaningful tests or authenticated evidence.
 See the repository `.githooks/README.md` for bounds, supported commands and reasoned overrides.
 
-Current package version: `0.8.59`. <!-- dz:version -->
+Current package version: `0.8.60`. <!-- dz:version -->
 
 Joint current metadata requires `<!-- dz:version -->` on a dedicated undated core/CLI line. Both README writers preserve unmarked historical joint pairs; the guard and release-line report skip them. Fenced examples cannot become current joint metadata. `parseReleaseLine` remains structural, while selection requires this explicit opt-in. On a visible line, the marker still forces per-package rewriting of every matching version, including an explicit changelog override; keep it off historical records. Fenced examples and supported HTML comment blocks remain literal even when they contain the marker, a footer, an install/JSON pin, a tarball line or a badge. Put current stamps outside these examples.
 
@@ -428,6 +428,12 @@ retro-debt-sentinel-per-session also the pure resolver `retroSessionPaths(dzDir,
 `RETRO_SESSION_DIRNAME`, `RETRO_SESSION_PENDING_BASENAME`, `RETRO_SESSION_STATE_BASENAME`,
 `RETRO_SESSION_STALE_MS`.
 
+`retroReceiptIsPending` validates a session-scoped debt ID before a teach, and
+`writeRetroTeachReceipt` records it only after the CLI confirms a lexical lesson write or
+reinforcement flush. The tail scanner accepts that receipt even when stdout is redirected. A
+receipt names one admission origin; a replay recreates the same ID, while a later admission gets
+a different one. The existing paired transcript-result receipt remains for compatibility.
+
 **One directory per session (retro-debt-sentinel-per-session).** The sentinel and the scan bookmark
 live at `.dz/retro/<session>/pending.json` and `.dz/retro/<session>/scan-state.json`, where
 `<session>` is the transcript basename without `.jsonl` (Claude Code names the transcript after the
@@ -460,9 +466,16 @@ Load-bearing properties, each pinned by a test that goes RED when the property i
   a non-Bash tool call never settles anything (`retro-p1-2-bash-only-teach`).
 - **A newline is a command boundary.** The dominant field form (`DZ=…\n$DZ teach … --project $B`) pays;
   every decoy still stays armed (`retro-adr5-newline-boundary`).
-- **The RECEIPT settles, not the command text.** A teach with a `tool_use_id` is registered by its call
-  and cleared only by that call's own result carrying a line `dz teach` prints on a real write — so
-  `exit 0\ndz teach "never runs"` pays nothing (`retro-r1-teach-receipt-required`).
+- **A paired teach result needs evidence, not just command text.** A teach with a `tool_use_id` is
+  registered by its call. Its successful paired result clears debt when a recognised teach receipt appears anywhere in the
+  result, even after the retained 2,000-character excerpt. A successful result without a visible
+  receipt, including redirected output, leaves the debt armed. A zero-row import's store-path or
+  count line is not a receipt. An existing lesson row cannot prove
+  that this particular call wrote it (`retro-r1-teach-receipt-required`).
+- **Admission age is preserved.** `admittedAt` stays at the original admission and `lastTurn` becomes
+  false after later assistant activity. Claude's transcript-only compaction summary does not create
+  a new admission. A legacy sentinel with no
+  origin is described as an earlier admission, never falsely as the last turn.
 - **Every awaiting teach is retained.** Two parallel teach calls cannot cancel each other out; if both
   results come back receipt-less the debt stays armed (`retro-r3-retain-awaiting-teaches`).
 - **An admission is a confession, not a bug-fix report.** The Russian branch is an allowlist of verb and
