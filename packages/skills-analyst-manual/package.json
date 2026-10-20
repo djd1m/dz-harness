@@ -16,7 +16,9 @@
     "templates/",
     "LICENSE",
     ".dz-manifest.json",
-    "sbom.json"
+    "sbom.json",
+    "!**/__pycache__/**",
+    "!**/*.pyc"
   ],
   "keywords": [
     "claude",

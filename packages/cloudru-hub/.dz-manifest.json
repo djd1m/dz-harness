@@ -5,7 +5,7 @@
     "files": [
       {
         "path": "CHANGELOG.md",
-        "sha256": "edc0f1b076a22dc14b863bef8b287c1b9d8618a12b7ecf9f6eb0c497f74361f3"
+        "sha256": "d2be06e900ab3d02d367ff5d91129ef3faa9a16e1afac6fba8ae9cec4a51c322"
       },
       {
         "path": "LICENSE",
@@ -13,7 +13,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "43f570e3b915e9b9ff9fc54dec23a76a15ef61831f9459c07fc878e070aa9158"
+        "sha256": "c505a9bb7ab6f8d9fbe1cac64e22b12ec14f674f979af7120457b8ba49039484"
       },
       {
         "path": "THIRD_PARTY_NOTICES.md",
@@ -33,19 +33,23 @@
       },
       {
         "path": "data/tools-classification.json",
-        "sha256": "13d6a3e87d767d0015f6b2af0223633fa99e49c69c9a8adcec8f6fce6e46d36e"
+        "sha256": "b1216e31ed28655ea99d9ef06d82d4d35d5499bad1ecadc8e7051e8c74bd7c97"
       },
       {
         "path": "data/tools-list-snapshot.json",
-        "sha256": "56221fa8170f2b32ab6d3a907261badc07695f47ae9ac4adca4e43d2ea5ee06f"
+        "sha256": "c9f53d02b7ee06791eac22214ca91e999aeec2ee4dbd53b6a27dc46d4e5bcbc2"
+      },
+      {
+        "path": "docs/HERMES-CODEX.md",
+        "sha256": "08e1e83985c31b51aa053811b1b6a76fb1960323c5ccb8ae1d5fdd8b91b8df11"
       },
       {
         "path": "docs/LOCAL-TESTING.md",
-        "sha256": "092142c00295c54866330f2159a13284d04e2f35a749b32dff0ca4f2ab28ea54"
+        "sha256": "f043a370b9f23b2efc6c64702ab358ee168b6c9cd1b5d9efe4a9da287274e42c"
       },
       {
         "path": "package.json",
-        "sha256": "183ad11b6467fc144b8df4c039392ba74df964e138811e5b7b3704630961f1bd"
+        "sha256": "671ebb618e9d0a939a047433791cd9a34e502339596d11a697b50fb32a0694ec"
       },
       {
         "path": "src/classification.js",
@@ -53,7 +57,15 @@
       },
       {
         "path": "src/cli.js",
-        "sha256": "db981ad0078c80ba7a859057638a2576d7f02d87ca2891f8083a92a8147742dd"
+        "sha256": "af553e9261300eb46240212eb03b01ccc17234fed1a9f1587d5784f3bfacb5f4"
+      },
+      {
+        "path": "src/credentials.js",
+        "sha256": "21f074b4bf5b5ee9e893a2c1919cf4bb62f9fa05a0d7a1a8c04afc051ccb0e78"
+      },
+      {
+        "path": "src/deploy-approval.js",
+        "sha256": "5c1fba3d298df73ff82f28c72bc5199d23acc6dfc64022438874b0e3381c9394"
       },
       {
         "path": "src/dialects.js",
@@ -61,19 +73,43 @@
       },
       {
         "path": "src/install.js",
-        "sha256": "5d087b289aaf8cd2e1b4cffbd2227eb3bdc7264cddc0877561e08bc0ea6d6fd2"
+        "sha256": "c928db48febfb4a79884ce1830365a8302122a55fb5d6ada8e771c049396ca89"
+      },
+      {
+        "path": "src/k8s-approval.js",
+        "sha256": "014c2effd1e843d870ae1af4f93f5c82faff9972e9f6ca028ed39d47ec33ee3a"
+      },
+      {
+        "path": "src/probe-child.js",
+        "sha256": "0f7a0c1f6d0d033006ca816df49c24e69eb82aa6b70ec03491bce9e4d674bdd4"
       },
       {
         "path": "src/resolve.js",
         "sha256": "5cbd0861c2973fab62271269b10f748b9638e74f40e8ea034f78ac63bed58001"
       },
       {
+        "path": "src/safe-mcp.js",
+        "sha256": "4f95cfb9576c411232503b26053ece6d8d186e4b337beff9bd4afd249f74a014"
+      },
+      {
+        "path": "src/toolsets.js",
+        "sha256": "89229c882b6a3f5bb9ee542b31d1a40374b91879747582a3e82e8aadc72decb3"
+      },
+      {
         "path": "templates/.claude/hooks/cloudru-ssh-guard.cjs",
         "sha256": "ad8c4ea89b28a366fa72e3507dbef9f774f4f2777e6bd2289a429329ab94cc0c"
       },
       {
+        "path": "test/billing-credentials.test.mjs",
+        "sha256": "f2e1b05bdb6a6e811844ee19b0142daa02647b387f5d96b4a5d29bd34e3c985d"
+      },
+      {
         "path": "test/classification.test.mjs",
-        "sha256": "25290e9a8715d13670d617e23cb47c4c2d71b1506a8d98e5b682733b626a18b8"
+        "sha256": "026e3031180ce9227b4d31775b9c886b10ad0cb418ed0754aed75b12ded84e31"
+      },
+      {
+        "path": "test/deploy-approval.test.mjs",
+        "sha256": "d72e4363fd50d0fcc65fd23b40601516bd73368c3659f2a55a394c4d1ed3f85c"
       },
       {
         "path": "test/dialects.test.mjs",
@@ -85,7 +121,11 @@
       },
       {
         "path": "test/install.test.mjs",
-        "sha256": "d28e8689b6885c5fc5eac4af29851871acd51e62b8b079489f3db232eea91cba"
+        "sha256": "07fe729b0dc6955329d0a3121ce97d575582f8c6f2895e72d0c38175f82b52d2"
+      },
+      {
+        "path": "test/k8s-approval.test.mjs",
+        "sha256": "af04d1941fb7aed2cc51b05f65ffed1c440d4d23a7fb26e13261d45e07b0a1f8"
       },
       {
         "path": "test/mutation-registry-freshness.test.mjs",
@@ -93,7 +133,7 @@
       },
       {
         "path": "test/mutation-registry.json",
-        "sha256": "e56ee7b4ba160f28687423ca113d1bfbcbfdd351fe9d31ad5a19b4d0069dbe3a"
+        "sha256": "09b8fdc28bbe5df9b4cfd7d563c1acb479532157bbe1a99e909b3b370dd96630"
       },
       {
         "path": "test/pack-holds.test.mjs",
@@ -101,9 +141,13 @@
       },
       {
         "path": "test/resolve.test.mjs",
-        "sha256": "d3001ad5610d7c6ec5ceba7ad3d53c4a71c7886bc863d8b4c7a6611d57a8053d"
+        "sha256": "3b695381c2df4f5b592b377bd3ef5b3f3953af9f6f140600cfcddc975563bffc"
+      },
+      {
+        "path": "test/safe-mcp.test.mjs",
+        "sha256": "45406dabeee0635ede5cda3d2f4144c5c13886d624287fd223b01252d2859b87"
       }
     ]
   },
-  "signature": "wfHHxguJrvUlbRPfYEhtSpbRsI0p0HrV6OnmyUSSk3jEJ7n79Q6X9cbf2GdOQlSDX6FzaSbXSHOq/PkEy1K8DA=="
+  "signature": "beMcp+gzzBo2SQYH5kzMMqppEdWawWJo+JCttjU/Hf0Wns8Jzc6fNT4uU5d2NBuTP3+8bt2lKaPQn1WvlHWiBg=="
 }

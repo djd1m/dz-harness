@@ -5,7 +5,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const { resolveEngine, sha256File, platformKey } = require('../src/resolve.js');
@@ -31,6 +33,37 @@ test('env CLOUDRU_VM_BIN wins and is hashed; a non-pinned file reports verified:
   assert.equal(r.source, 'env');
   assert.equal(r.sha256, crypto.createHash('sha256').update('fake-engine-bytes').digest('hex'));
   assert.equal(r.verified, false);
+});
+
+test('mcp refuses a non-pinned engine before executing it', () => {
+  const dir = tmp();
+  const marker = path.join(dir, 'executed');
+  const fake = path.join(dir, 'cloudru-vm');
+  fs.writeFileSync(fake, `#!/bin/sh\ntouch "${marker}"\n`);
+  fs.chmodSync(fake, 0o755);
+  const result = spawnSync(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), '../bin/cloudru-hub.js'), 'mcp'], {
+    encoding: 'utf8', timeout: 5000,
+    env: { ...process.env, CLOUDRU_VM_BIN: fake, CLOUDRU_HUB_CONFIG: path.join(dir, 'none.json') },
+  });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /does not match pinned .*refusing to launch/);
+  assert.equal(fs.existsSync(marker), false);
+});
+
+test('self-test stops on a non-pinned engine before version or MCP probe', () => {
+  const dir = tmp();
+  const marker = path.join(dir, 'executed');
+  const fake = path.join(dir, 'cloudru-vm');
+  fs.writeFileSync(fake, `#!/bin/sh\ntouch "${marker}"\n`);
+  fs.chmodSync(fake, 0o755);
+  const result = spawnSync(process.execPath, [path.join(path.dirname(fileURLToPath(import.meta.url)), '../bin/cloudru-hub.js'), 'self-test', '--json'], {
+    encoding: 'utf8', timeout: 5000,
+    env: { ...process.env, CLOUDRU_VM_BIN: fake, CLOUDRU_HUB_CONFIG: path.join(dir, 'none.json') },
+  });
+  assert.equal(result.status, 1);
+  const report = JSON.parse(result.stdout);
+  assert.deepEqual(report.steps.map((step) => [step.name, step.ok]), [['resolve', true], ['sha256', false]]);
+  assert.equal(fs.existsSync(marker), false);
 });
 
 test('a file matching the pinned baseline hash reports verified:true', () => {
@@ -82,9 +115,9 @@ test('sha256File matches node crypto', () => {
   assert.equal(sha256File(f), crypto.createHash('sha256').update('abc').digest('hex'));
 });
 
-test('the pinned linux-x64 hash is the ADR-002 measured engine sha256', () => {
+test('the pinned linux-x64 hash is the rebuilt private engine sha256', () => {
   assert.equal(
     PKG.cloudruHub.binaryHashes['linux-x64'],
-    '59f83fc0678b95146ca539764d0c805bd2514b8588f198c1e835b26e54c05124',
+    '89c5073418927ee71ac1de381eaba5ab69d599d615edc51b868d876e712dbf10',
   );
 });

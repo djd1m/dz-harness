@@ -1,5 +1,83 @@
 # Changelog — @dzhechkov/cloudru-hub
 
+## 0.1.13 — 2026-10-20
+
+This release publishes the previously private launcher and host-adapter preview.
+The Go engine is not included in this npm archive or available as a platform
+package yet. All Cloud.ru operations require an owner-supplied engine matching
+the pinned SHA-256; both MCP launcher routes refuse a mismatched engine.
+
+- Complete both OpenCode and Pi live static-site VM scenarios: agent-authored
+  Snake and the pinned 12-file repository archive. Each host retained one
+  `deploy_apply` result per run, independent HTTP bytes matched the reviewed
+  source, and exact VM/security-group cleanup restored baseline inventory.
+  Set the host-specific long-call timeout to 1,200 seconds.
+- Add an opt-in `k8s-deploy` pilot for Codex, Claude Code, Hermes, OpenCode and
+  Pi. A local one-use approval binds an exact three-resource Snake manifest to
+  an existing cluster, namespace and project; the proxy exposes only bounded
+  readback and sends `create_only=true` to avoid patching name collisions.
+  The private Go engine is rebuilt as `0.2.6-20261020` with SHA-256
+  `89c5073418927ee71ac1de381eaba5ab69d599d615edc51b868d876e712dbf10`.
+  Local tests pass; a Kubernetes role was later granted and the four available
+  hosts passed live deployment. Claude Code inference remains unavailable.
+
+- Keep Hermes MCP discovery responsive while a long `deploy_apply` is running:
+  cache the pinned proxy's filtered tool list after its first successful read.
+  The previous serial Go backend could not answer Hermes' keepalive during VM
+  creation, causing a reconnect and an unknown outcome for the agent. Both
+  post-fix live Snake scenarios passed: Hermes received the final apply result,
+  independently served bytes matched the approved source, and each temporary
+  VM and dedicated security group was removed.
+
+- Verify Hermes' built-in import of this server's existing Codex CLI OAuth
+  credentials. The isolated and default Hermes profiles now select
+  `openai-codex` / `gpt-6-sol` and each passed a short inference probe. This
+  cleared the model-provider blocker before the live Hermes VM acceptance runs.
+
+- Accept both flat and nested Cloud.ru subnet availability-zone IDs during VM
+  planning; reject conflicting IDs. Live `/api/v1/subnets` returned the nested
+  form and previously made the planner reject a valid project subnet. Add API
+  response and planner regression tests.
+- Complete both Codex-hosted static-site VM acceptance scenarios (new Snake
+  source and a pinned GitHub archive), with exact-byte HTTP verification and
+  cleanup of each test VM/security group. Hermes connects to the 12-tool
+  profile but its available model-provider credentials failed before inference;
+  OpenCode and Pi were still pending at this point. The final rebuilt binary
+  was checked with a read-only live plan, Go and package tests; the two paid
+  deploys used the immediately preceding binary before fail-closed zone-field
+  hardening.
+
+- In the private preview, add bounded static-site Cloud-init deployment with
+  reviewed source digests, a dedicated HTTP security group, existing-IP
+  approval, exact-byte HTTP checks, and durable run checkpoints. The preview
+  engine pin was `0.2.5-20261020` at that stage; public engine redistribution remains a
+  separate gate.
+
+- Add `mcp-safe`, a pinned MCP process boundary that exposes only allow-classified tools,
+  blocks other calls before the engine, and supports named toolsets. Host installers default
+  to the 11-tool inventory group; `all` exposes the full 78-tool allow-classified surface.
+- Add project MCP registrations for Codex, OpenCode and Pi and a guarded Hermes YAML
+  registration. Hermes receives an explicit path to a locally hash-verified engine because
+  it filters inherited environment variables. Complex configuration and pre-existing Cloud.ru entries are refused.
+- Canonicalize forwarded JSON-RPC requests to prevent case-insensitive Go field aliases
+  from bypassing tool filtering; close the proxy when its engine exits unexpectedly.
+- Repair `self-test` tools/list probing so a persistent MCP server is stopped after its
+  response; report a SHA-256 mismatch as a failed step.
+- Add fake-engine boundary tests and verify the real pinned engine's 144-tool classification
+  and the proxy's 11-tool inventory list locally. The installed Hermes client connected to
+  the generated server and discovered 11 tools; other host-session activation and real
+  Cloud.ru operations remain unverified.
+- Import the Go engine into the private source tree with provenance; fix shell quoting in
+  `logs`, make `stack_status` observational, fail `doctor` on failed checks, refuse a VM
+  create when inventory fails, and report state-persistence failure after a create.
+- Pin the locally rebuilt `0.2.4-20261019` Go engine and recapture its 144-tool schema.
+  `stack_status` changes from ask to allow after its Go behavior fix; `stack_apply`
+  remains ask. The current public platform package does not match this private pin.
+- Add an opt-in `vm-deploy` profile for Hermes and Codex with a private credentials
+  file, exact-plan/cost approval, one-use apply, and VM-scoped remote execution.
+  Fake-engine tests cover forged confirmation, approval replay, changed plans and
+  execution on an unrelated VM. Live Cloud.ru acceptance is pending temporary keys.
+
 ## 0.1.6
 
 Corrects the link added in 0.1.5: the Тимур credit now points at his about page

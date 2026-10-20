@@ -1,17 +1,17 @@
 {
-  "capturedAt": "2026-08-09",
-  "engineVersion": "cloudru-vm 0.2.3-20260718",
-  "engineSha256": "59f83fc0678b95146ca539764d0c805bd2514b8588f198c1e835b26e54c05124",
-  "method": "echo tools/list JSON-RPC | cloudru-vm mcp",
+  "capturedAt": "2026-10-20",
+  "engineVersion": "cloudru-vm 0.2.6-20261020",
+  "engineSha256": "89c5073418927ee71ac1de381eaba5ab69d599d615edc51b868d876e712dbf10",
+  "method": "JSON-RPC tools/list via src/probe-child.js against locally built private engine",
   "toolCount": 144,
   "tools": [
     {
       "name": "deploy",
-      "gated": false
+      "gated": true
     },
     {
       "name": "provision",
-      "gated": false
+      "gated": true
     },
     {
       "name": "status",

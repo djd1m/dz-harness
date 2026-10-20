@@ -6,6 +6,9 @@ const { spawn, spawnSync } = require('child_process');
 const { resolveEngine } = require('./resolve');
 const { loadClassification, loadSnapshot, coverageGaps } = require('./classification');
 const { install } = require('./install');
+const { runSafeMcp } = require('./safe-mcp');
+const { issueApproval } = require('./deploy-approval');
+const { issueK8sApproval } = require('./k8s-approval');
 const { compileSkill, writeCompiled } = require('./dialects');
 const PKG = require('../package.json');
 
@@ -21,14 +24,23 @@ Usage: cloudru-hub <command> [options]
 Commands:
   resolve [--json]         Locate the engine binary (env CLOUDRU_VM_BIN → ~/.cloudru-hub/config.json
                            enginePath → optional platform package) and verify its sha256 pin.
-  self-test [--json]       End-to-end local check: resolve → sha256 → engine version → live
-                           tools/list probe → golden-classification coverage. Exit 0 = all green.
+  self-test [--json]       Local check: resolve → sha256 → engine version → live tools/list
+                           → golden-classification coverage. Exit 0 = all green.
   mcp                      Run the resolved engine as an MCP stdio server (what .mcp.json points at).
-  install --target <t>     Emit the per-target integration per ADR-005 tiering:
-                           claude-code (full: .mcp.json + permission brake + PreToolUse veto, with an
-                           EXECUTED veto probe), codex (plan-only), agents-md|gemini (pointer-only),
-                           openclaude|opencode|cursor|windsurf|copilot (refused: DEGRADED until live probe).
-           [--dir <path>]  Project directory (default: cwd).  [--npx] use the npx form in .mcp.json.
+  mcp-safe [--toolsets <groups>]  Run a pinned MCP proxy; vm-deploy and k8s-deploy enable bounded deployment.
+  approve --plan-id <id> --max-monthly-rub <amount> [--site-sha256 <digest>]
+                           Authorize one exact VM plan for ten minutes within a RUB/month cap.
+                           Static sites require the artifact digest shown by deploy_plan.
+  k8s-approve --cluster-id <uuid> --namespace <name> --manifest <file> --manifest-sha256 <digest>
+                           Authorize one exact three-resource Snake manifest on an existing cluster.
+  install --target <t>     claude-code: permissions + executed hook probe;
+                           codex|opencode|pi: project MCP config using mcp-safe;
+                           hermes: guarded $HERMES_HOME/config.yaml entry using mcp-safe;
+                           openclaude|cursor|windsurf|copilot: refused pending live probe.
+           [--dir <path>]  Project directory (default: cwd). [--toolsets <groups>] defaults to
+                           inventory for safe hosts; all|compute|kubernetes|data|network|storage|billing|vm-deploy|k8s-deploy.
+                           [--hermes-home <dir>] overrides $HERMES_HOME for Hermes.
+                           [--npx] use the npx form in Claude .mcp.json.
   compile-skill --canonical <dir> --target <t> --out <dir>
                            Generate a target dialect of the canonical skill tree (ADR-006). The
                            canonical corpus is NOT shipped here; point --canonical at the skill/
@@ -53,8 +65,7 @@ function parseArgs(argv) {
 }
 
 function jsonRpcProbe(binPath, timeoutMs = 20_000) {
-  const req = JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }) + '\n';
-  const r = spawnSync(binPath, ['mcp'], { input: req, encoding: 'utf8', timeout: timeoutMs, maxBuffer: 16 * 1024 * 1024 });
+  const r = spawnSync(process.execPath, [require('path').join(__dirname, 'probe-child.js'), binPath], { encoding: 'utf8', timeout: timeoutMs, maxBuffer: 16 * 1024 * 1024 });
   if (r.error) return { error: String(r.error.message || r.error) };
   const line = String(r.stdout || '').split('\n').find((l) => l.trim().startsWith('{'));
   if (!line) return { error: 'engine produced no JSON-RPC response line' };
@@ -76,7 +87,7 @@ function cmdResolve(flags, write) {
   write(`source   ${r.source}`);
   write(`sha256   ${r.sha256}`);
   write(`pinned   ${r.pinned || '<no pin for ' + r.key + '>'}`);
-  write(`verified ${r.verified ? 'yes — matches the pinned baseline' : 'NO — not the pinned baseline (tolerated for env/config paths)'}`);
+  write(`verified ${r.verified ? 'yes — matches the pinned baseline' : 'NO — not the pinned baseline (resolution only; MCP launch refused)'}`);
   return 0;
 }
 
@@ -87,7 +98,11 @@ function cmdSelfTest(flags, write) {
   const r = resolveEngine();
   if (r.error) { step('resolve', false, r.error.split('\n')[0]); if (flags.has('json')) write(JSON.stringify(out, null, 2)); return 1; }
   step('resolve', true, `${r.path} (source: ${r.source})`);
-  step('sha256', true, `${r.sha256}${r.verified ? ' — MATCHES pinned baseline' : ' — no pin match (dev build?)'}`);
+  step('sha256', r.verified, `${r.sha256}${r.verified ? ' — MATCHES pinned baseline' : ' — DOES NOT MATCH pinned baseline'}`);
+  if (!r.verified) {
+    if (flags.has('json')) write(JSON.stringify(out, null, 2));
+    return 1;
+  }
 
   const ver = spawnSync(r.path, ['version'], { encoding: 'utf8', timeout: 10_000 });
   const verOk = ver.status === 0;
@@ -97,13 +112,13 @@ function cmdSelfTest(flags, write) {
   if (probe.error) { step('tools-list', false, probe.error); if (flags.has('json')) write(JSON.stringify(out, null, 2)); return 1; }
   const names = probe.tools.map((t) => t.name);
   const snap = loadSnapshot();
-  step('tools-list', true, `${names.length} tools live (snapshot: ${snap.toolCount})`);
+  step('tools-list', names.length === snap.toolCount, `${names.length} tools live (snapshot: ${snap.toolCount})`);
 
   const gaps = coverageGaps(names);
-  const gapsOk = gaps.unknown.length === 0;
+  const gapsOk = gaps.unknown.length === 0 && gaps.missing.length === 0;
   step('classification-coverage', gapsOk, gapsOk
     ? `every live tool is classified (${Object.keys(loadClassification().tools).length} golden entries)${gaps.missing.length ? `; ${gaps.missing.length} classified tool(s) absent live: ${gaps.missing.join(', ')}` : ''}`
-    : `UNCLASSIFIED live tools (deny-by-default — update data/tools-classification.json): ${gaps.unknown.join(', ')}`);
+    : `tool drift: unclassified=${gaps.unknown.join(', ') || '<none>'}; missing=${gaps.missing.join(', ') || '<none>'}`);
 
   out.ok = out.steps.every((s) => s.ok);
   if (flags.has('json')) write(JSON.stringify(out, null, 2));
@@ -114,6 +129,10 @@ function cmdSelfTest(flags, write) {
 function cmdMcp() {
   const r = resolveEngine();
   if (r.error) { process.stderr.write(r.error + '\n'); return 1; }
+  if (!r.verified) {
+    process.stderr.write(`cloudru-hub mcp: engine sha256 ${r.sha256} does not match pinned ${r.pinned || '<none>'}; refusing to launch\n`);
+    return 1;
+  }
   const child = spawn(r.path, ['mcp'], { stdio: 'inherit' });
   child.on('exit', (code, signal) => process.exit(signal ? 1 : code === null ? 1 : code));
   child.on('error', (e) => { process.stderr.write('cloudru-hub mcp: ' + e.message + '\n'); process.exit(1); });
@@ -139,10 +158,40 @@ function main(argv, write = (s) => process.stdout.write(s + '\n')) {
       const rc = cmdMcp();
       return rc === null ? null : rc;
     }
+    case 'mcp-safe':
+      return runSafeMcp({ toolsets: opts.get('toolsets') || 'all' });
+    case 'approve': {
+      const amount = Number(opts.get('max-monthly-rub'));
+      if (!opts.get('plan-id') || !opts.has('max-monthly-rub') || !Number.isFinite(amount) || amount < 0) {
+        write('cloudru-hub approve: --plan-id and non-negative --max-monthly-rub are required');
+        return 1;
+      }
+      try {
+        const approval = issueApproval(opts.get('plan-id'), amount, process.env, Date.now(), opts.get('site-sha256') || '');
+        write(flags.has('json') ? JSON.stringify(approval, null, 2) :
+          `approved ${approval.planId}: ${approval.vmName}, estimated ${approval.estimatedMonthlyRub} RUB/month (cap ${approval.maxMonthlyRub}); expires ${new Date(approval.expiresAt).toISOString()}${approval.staticSite ? `; static source ${approval.staticSite.source}, SHA-256 ${approval.staticSite.sha256} (${approval.staticSite.sizeBytes} bytes, ${approval.staticSite.files.length} files), ${approval.staticSite.ingress}; ${approval.staticSite.estimateScope}` : ''}`);
+        return 0;
+      } catch (error) {
+        write(`cloudru-hub approve: ${error.message}`);
+        return 1;
+      }
+    }
+    case 'k8s-approve': {
+      try {
+        const approval = issueK8sApproval(opts.get('cluster-id'), opts.get('namespace'),
+          opts.get('manifest'), opts.get('manifest-sha256'));
+        write(flags.has('json') ? JSON.stringify(approval, null, 2) :
+          `approved ${approval.approvalId}: cluster ${approval.clusterId}, namespace ${approval.namespace}, SHA-256 ${approval.manifestSha256}; expires ${new Date(approval.expiresAt).toISOString()}`);
+        return 0;
+      } catch (error) {
+        write(`cloudru-hub k8s-approve: ${error.message}`);
+        return 1;
+      }
+    }
     case 'install': {
       const target = opts.get('target');
       if (!target) { write('cloudru-hub install: --target is required (claude-code|codex|agents-md|gemini|…)'); return 1; }
-      const res = install(target, opts.get('dir') || process.cwd(), { npx: flags.has('npx') });
+      const res = install(target, opts.get('dir') || process.cwd(), { npx: flags.has('npx'), toolsets: opts.get('toolsets') || 'inventory', hermesHome: opts.get('hermes-home') });
       for (const line of res.lines) write(line);
       return res.code;
     }
