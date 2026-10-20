@@ -4,7 +4,7 @@
 //   1. env CLOUDRU_VM_BIN                          — explicit path (local baseline testing)
 //   2. config enginePath                           — ~/.cloudru-hub/config.json (or $CLOUDRU_HUB_CONFIG)
 //   3. platform package @dzhechkov/cloudru-vm-<os>-<cpu>/native/cloudru-vm
-//      (does not exist until the ADR-001 licence grant clears — see LICENSE Part 2)
+//      (installed automatically when its optional dependency is published)
 //   4. loud, esbuild-style error explaining all three paths and the licence hold.
 //
 // sha256 policy: the resolved binary is hashed and compared against the pinned map in
@@ -64,7 +64,7 @@ function resolveEngine(env = process.env) {
       const pkgJson = require.resolve(`${platformPkg}/package.json`);
       candidates.push({ path: path.join(path.dirname(pkgJson), 'native', 'cloudru-vm'), source: 'platform-package' });
     } catch {
-      /* optional platform package not installed — expected while the ADR-001 hold is in force */
+      /* optional platform package unavailable on this host or omitted by the installer */
     }
   }
 
@@ -94,7 +94,7 @@ function resolveEngine(env = process.env) {
       `  2. enginePath in ${configPath(env)}          ${cfg.enginePath ? `(set, but not a file: ${cfg.enginePath})` : '(unset/absent)'}\n` +
       `  3. optional dependency ${(PKG.cloudruHub && PKG.cloudruHub.platformPackages && PKG.cloudruHub.platformPackages[key]) || '<none for ' + key + '>'} (not installed)\n` +
       'Local testing: point $CLOUDRU_VM_BIN at an engine build (see docs/LOCAL-TESTING.md).\n' +
-      'The hosted platform package does not exist yet: its first publication still requires the ADR-002 trusted-CI binary build (see LICENSE Part 2 and THIRD_PARTY_NOTICES).',
+      'If the platform package has been released, install optional dependencies; otherwise provide a pinned local engine build.',
   };
 }
 

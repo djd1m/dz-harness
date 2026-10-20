@@ -16,8 +16,7 @@ function showHelp(write) {
   write(`cloudru-hub ${PKG.version} — unofficial Cloud.ru Evolution launcher (NOT affiliated with Cloud.ru)
 
 The cloudru-vm engine binary is resolved at RUNTIME, never bundled in this package.
-Engine additions authored by Тимур (publication approved — grant record in LICENSE Part 2);
-launcher, adapters and CLI foundation by Dmitry Zhechkov (MIT).
+Тимур contributed extensive Cloud.ru API testing and identified API defects.
 
 Usage: cloudru-hub <command> [options]
 

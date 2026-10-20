@@ -10,7 +10,7 @@ The separate `--toolsets vm-deploy` profile allows one reviewed VM plan and remo
 
 This local approval is an operator workflow, not a hard security boundary against an agent with unrestricted shell access as the same Unix user: such an agent could invoke `approve` or edit the local files itself. Use process/user isolation and cloud IAM limits if the deployment agent is untrusted. The cost number is an estimate, and the operator cap controls the reviewed plan, not Cloud.ru's final bill.
 
-The engine binary is **not bundled**. The pinned preview is built from the private `go/cloudru-vm` source as `go/cloudru-vm/out/cloudru/cloudru-vm`; elsewhere set `CLOUDRU_VM_BIN` to an owner-supplied trusted copy whose hash matches `package.json.cloudruHub.binaryHashes`. Run `cloudru-hub self-test --json` first. A missing or changed binary makes `mcp-safe` refuse startup. The platform package `@dzhechkov/cloudru-vm-linux-x64` has not been published; this launcher release alone does not supply a working engine to a fresh npm installation.
+The launcher archive does **not bundle** the engine. A Linux/x64 npm install pulls `@dzhechkov/cloudru-vm-linux-x64@0.2.6` as an exact optional dependency. On other platforms, or when optional dependencies are disabled, set `CLOUDRU_VM_BIN` to a trusted copy whose hash matches `package.json.cloudruHub.binaryHashes`. Run `cloudru-hub self-test --json` first. A missing or changed binary makes `mcp-safe` refuse startup.
 
 | Host | Setup | Activation check |
 |---|---|---|

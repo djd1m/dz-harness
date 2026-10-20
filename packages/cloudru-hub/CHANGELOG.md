@@ -1,5 +1,16 @@
 # Changelog — @dzhechkov/cloudru-hub
 
+## 0.1.14 — 2026-10-20
+
+- Prepare an exact optional dependency on `@dzhechkov/cloudru-vm-linux-x64@0.2.6`.
+  A fresh Linux/x64 installation resolves the separately packed Go engine;
+  no postinstall download is used.
+- Credit Timur's substantial Cloud.ru API testing and the defects it revealed;
+  correct the earlier attribution in current package materials.
+- Build the Linux/x64 platform engine with `CGO_ENABLED=0` and pin the resulting
+  static binary. The first GitHub Actions build exposed a C-toolchain-dependent
+  hash from the earlier dynamic build; the static artifact passed its GitHub CI build.
+
 ## 0.1.13 — 2026-10-20
 
 This release publishes the previously private launcher and host-adapter preview.

@@ -1,0 +1,46 @@
+/**
+ * `@dzhechkov/adapter-windsurf` — the Windsurf platform adapter.
+ *
+ * Windsurf (the Codeium/Cognition agent IDE) reads **workspace rules** from
+ * `.windsurf/rules/` — one `.md` file PER rule. Unlike Cursor (whose directory
+ * demands a `.mdc` extension), Windsurf reads **plain Markdown** (`.md`). Each
+ * file is YAML frontmatter with Windsurf's keys — an activation `trigger` (one of
+ * `always_on | manual | model_decision | glob`), a `description`, and an optional
+ * `globs` scope — followed by a Markdown body.
+ *
+ * This is essentially the {@link https://cursor.com | cursor} adapter with a
+ * different directory + `.md` extension + Windsurf's `trigger` frontmatter in
+ * place of Cursor's `alwaysApply`. Like cursor/copilot it is an intentionally
+ * **transforming** adapter: our canonical `SKILL.md` frontmatter (~26
+ * project-local keys) is replaced by Windsurf's own frontmatter, so the emit is
+ * NOT byte-identical to the source. It is therefore EXCLUDED from the
+ * cross-adapter byte-identical equivalence suite (which only covers the lossless
+ * per-skill tree adapters). We emit `trigger: model_decision` — the rule is
+ * **agent-requested** (pulled in on demand when the model judges it relevant)
+ * rather than injected into every turn.
+ *
+ * Per the {@link Adapter} contract the transform loss surfaces as a **warning**;
+ * under `strict` the adapter **throws**. The canonical skill stays the lossless
+ * source of truth — recompiling to `claude` is still full fidelity.
+ *
+ * NOTE (out of scope): some Windsurf/Devin builds (Cognition's rebrand) also read
+ * `.devin/rules/`. We emit only `.windsurf/rules/*.md`, which every current
+ * Windsurf/Devin build reads.
+ *
+ * @packageDocumentation
+ */
+import type { Adapter } from '@dzhechkov/core';
+/** The directory Windsurf scans for workspace rules. */
+export declare const WINDSURF_RULES_ROOT = ".windsurf/rules";
+/** Package version. Kept in sync with `package.json`. */
+export declare const ADAPTER_WINDSURF_VERSION = "0.1.0";
+/**
+ * The Windsurf adapter — an intentionally **transforming** {@link Adapter}.
+ *
+ * `compile` emits ONE `.md` rule file per skill at `.windsurf/rules/<id>.md`
+ * (Windsurf reads plain `.md`, unlike Cursor's `.mdc`); the file is Windsurf's
+ * `trigger`/`description`/optional-`globs` frontmatter plus the skill body,
+ * produced by core's `renderWindsurfMd`.
+ */
+export declare const windsurfAdapter: Adapter;
+//# sourceMappingURL=index.d.ts.map

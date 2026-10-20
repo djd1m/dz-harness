@@ -1,6 +1,6 @@
 {
   "$comment": "Golden classification of every cloudru-vm engine tool. allow requires a BEHAVIOUR audit of the handler at the pinned engine SHA proving both axes: (1) observational with no cloud mutation, job advancement or secret return (a local plan write is disclosed), and (2) no user-controlled argument reaching shell/exec/SSH. Shell-reaching tools remain ask even when arguments are quoted. Schema shape alone never proves allow. The old baseline had two hazards: stack_status advanced planned jobs into paid actions and logs inserted an unescaped service into a shell command. In the pinned engine, stack_status reads persisted state only; stack_apply explicitly advances jobs, and logs shell-quotes service. The specific regression tests are in go/cloudru-vm/internal/mcp/stack_status_test.go and internal/engine/logs_test.go. Any unknown live tool fails drift checks; deny by default.",
-  "engineSha256": "89c5073418927ee71ac1de381eaba5ab69d599d615edc51b868d876e712dbf10",
+  "engineSha256": "4463b09323c9dfe0c32d618d335734a947e7fab0a75d07a7bea089b97a97c9b6",
   "toolCount": 144,
   "counts": {
     "ask": 64,

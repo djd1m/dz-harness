@@ -1,14 +1,12 @@
-// The iron guardrails as layer-1 tests (feature hermes-claude-adaptation) — POST-GRANT state.
-// ADR-001 AM-2 (2026-08-12): the Hermes author's publication approval is recorded
-// (features/hermes-claude-adaptation/03_adr/grant-record-2026-08-12.md), the hold is
-// SATISFIED. The hold-era protections (private:true, PENDING placeholder, EPRIVATE probe)
+// The iron guardrails as layer-1 tests (feature hermes-claude-adaptation).
+// ADR-001 AM-3 (2026-10-20) corrects the historical engine attribution.
+// The hold-era protections (private:true, PENDING placeholder, EPRIVATE probe)
 // retired; what must now hold forever:
-//   1. LICENSE carries the recorded grant (Grant-Confirmation URL), honest attribution,
-//      and NO fabricated grant wording on the author's behalf.
+//   1. LICENSE links the corrected provenance record, credits API validation,
+//      and does not assign Go source authorship to the API tester.
 //   2. The `licenseHold` trigger field STAYS so the dz guard `licence-hold` rule keeps
 //      verifying LICENSE/NOTICES/SPDX on every publish (a satisfied hold passes with it).
-//   3. package.json.license matches the SPDX id of the actual LICENSE text (ADR-001
-//      Confirmation), and covers ONLY the owner's code.
+//   3. package.json.license matches the SPDX id of the actual LICENSE text.
 //   4. ZERO upstream engine bytes in the tarball — unchanged.
 // Discrimination: test/mutation-registry.json flips each protection and requires red here.
 import { test } from 'node:test';
@@ -24,22 +22,22 @@ const license = fs.readFileSync(path.join(pkgDir, 'LICENSE'), 'utf8');
 
 const PENDING_MARKER = '<!-- PENDING:';
 
-test('LICENSE is post-grant and honest: no PENDING placeholder, grant recorded with a confirmation link, no fabricated grant wording', () => {
+test('LICENSE preserves MIT text and links the corrected provenance record', () => {
   assert.ok(license.length > 400);
   assert.ok(license.includes('MIT License'), 'owner code is MIT');
   assert.ok(license.includes('Dmitry Zhechkov'), 'owner copyright line');
   assert.ok(!license.includes(PENDING_MARKER), 'the PENDING placeholder must be gone post-grant');
-  assert.match(license, /GRANT RECORDED/, 'the grant record paragraph exists');
-  assert.match(license, /Grant-Confirmation:\s*https?:\/\/\S+/, 'the Grant-Confirmation line carries a URL (dz guard licence-hold requires it)');
-  assert.match(license, /owner-attested/, 'honesty: the approval is stated as owner-attested, not as a written artifact we do not hold');
+  assert.match(license, /Grant-Confirmation:\s*https?:\/\/\S+/, 'the provenance record link is present (dz guard licence-hold requires it)');
+  assert.match(license, /corrected attribution record/, 'the superseding attribution correction is linked');
   assert.ok(!/Hermes author(.|\n){0,120}hereby grants/i.test(license), 'no fabricated grant wording');
   assert.ok(!/hereby grants/i.test(license), 'no grant-deed language fabricated on anyone’s behalf');
 });
 
-test('LICENSE attribution chain (owner condition + ADR-001 AM-1): engine additions credited to their author, CLI foundation to the owner, zero engine bytes', () => {
-  assert.ok(license.includes('Тимур'), 'the Hermes engine author is credited by name');
-  assert.match(license, /ZERO bytes of the engine additions|ZERO bytes of them/, 'zero-engine-bytes statement present');
-  assert.match(license, /nothing in this file grants any\s+third party rights to the engine additions/, 'no rights to engine additions are granted by this LICENSE');
+test('LICENSE credits Timur for API validation', () => {
+  assert.ok(license.includes('Тимур'), 'the API tester is credited by name');
+  assert.match(license, /API testing/, 'the contribution is specified');
+  assert.doesNotMatch(license, /(?:Timur|Тимур).{0,100}(?:author|authored)/i, 'no unsupported source authorship claim');
+  assert.match(license, /ZERO bytes of the Go engine/, 'the launcher still contains no engine bytes');
 });
 
 test('the licenseHold trigger for the dz guard rule STAYS declared post-grant (satisfied hold passes with it in place)', () => {

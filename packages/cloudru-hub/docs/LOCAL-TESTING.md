@@ -1,6 +1,6 @@
-# Local testing — @dzhechkov/cloudru-hub (owner-supplied engine)
+# Local testing — @dzhechkov/cloudru-hub
 
-The launcher runs against the private Go build. These checks do not publish engine bytes; public redistribution still requires the separate engine grant and dependency review.
+The launcher runs against the pinned Go build. Its archive contains no engine bytes; the Linux/x64 optional package contains the static engine and its dependency-license inventory.
 
 ## 1. Point the launcher at an engine binary
 
@@ -8,19 +8,19 @@ Any of the three, in this precedence order:
 
 ```bash
 # a) environment variable (simplest — what the self-test proof below uses)
-export CLOUDRU_VM_BIN=/path/to/dz-harness-hub/go/cloudru-vm/out/cloudru/cloudru-vm
+export CLOUDRU_VM_BIN=/path/to/dz-harness-hub/packages/@dzhechkov/cloudru-vm-linux-x64/native/cloudru-vm
 
 # b) persistent config
 mkdir -p ~/.cloudru-hub
 cat > ~/.cloudru-hub/config.json <<'EOF'
-{ "enginePath": "/path/to/dz-harness-hub/go/cloudru-vm/out/cloudru/cloudru-vm" }
+{ "enginePath": "/path/to/dz-harness-hub/packages/@dzhechkov/cloudru-vm-linux-x64/native/cloudru-vm" }
 EOF
 
-# c) a future platform package matching the private build's pin
+# c) no override: the installed Linux/x64 optional platform package
 ```
 
 The pinned binary identifies itself as `cloudru-vm 0.2.6-20261020` and has SHA-256
-`89c5073418927ee71ac1de381eaba5ab69d599d615edc51b868d876e712dbf10`.
+`4463b09323c9dfe0c32d618d335734a947e7fab0a75d07a7bea089b97a97c9b6`.
 
 ## 2. Self-test (end-to-end, no credentials required)
 
@@ -32,8 +32,8 @@ node bin/cloudru-hub.js self-test
 Expected output for the current private build:
 
 ```
-✓ resolve: …/out/cloudru/cloudru-vm (source: env)
-✓ sha256: 89c5073418927ee71ac1de381eaba5ab69d599d615edc51b868d876e712dbf10 — MATCHES pinned baseline
+✓ resolve: …/cloudru-vm-linux-x64/native/cloudru-vm (source: env)
+✓ sha256: 4463b09323c9dfe0c32d618d335734a947e7fab0a75d07a7bea089b97a97c9b6 — MATCHES pinned baseline
 ✓ engine-version: cloudru-vm 0.2.6-20261020
 ✓ tools-list: 144 tools live (snapshot: 144)
 ✓ classification-coverage: every live tool is classified (144 golden entries)
@@ -66,4 +66,4 @@ appears; note which prefix spelling the runtime used.
 
 ## 5. Testing from another server (`npm install` path)
 
-The platform package is not published. Until the engine redistribution gate clears, another private server can install the launcher from npm but still needs an owner-supplied Go binary matching the pinned SHA-256.
+On Linux/x64, install `@dzhechkov/cloudru-hub@0.1.14` normally and run `cloudru-hub self-test` without setting `CLOUDRU_VM_BIN`. npm installs the exact optional engine package. If optional dependencies were disabled or the platform is unsupported, provide a matching trusted binary explicitly.

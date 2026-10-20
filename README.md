@@ -10,7 +10,7 @@ Harness CLI связывает задачу, контракт, реализац�
 - Проверка независима от исполнителя
 - Результат содержит проверяемое evidence
 
-Read-only mirror of the published surface of 56 npm packages under the
+Read-only mirror of the published surface of 57 npm packages under the
 `@dzhechkov` scope. Each `packages/<name>/` directory contains exactly the files that
 package's npm tarball ships — nothing more. The development monorepo is private; this mirror
 exists so the `repository`/`homepage` links on npmjs.com resolve instead of 404ing.
@@ -33,7 +33,8 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/adapter-openclaude` | 0.1.9 |
 | `@dzhechkov/adapter-opencode` | 0.2.9 |
 | `@dzhechkov/adapter-windsurf` | 0.1.10 |
-| `@dzhechkov/cloudru-hub` | 0.1.13 |
+| `@dzhechkov/cloudru-hub` | 0.1.14 |
+| `@dzhechkov/cloudru-vm-linux-x64` | 0.2.6 |
 | `@dzhechkov/core` | 0.2.30 |
 | `@dzhechkov/design-thinking` | 1.0.15 |
 | `@dzhechkov/evidence-wiki` | 0.2.7 |

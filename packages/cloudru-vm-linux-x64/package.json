@@ -1,0 +1,23 @@
+{
+  "name": "@dzhechkov/cloudru-vm-linux-x64",
+  "version": "0.2.6",
+  "description": "Linux x64 Go engine for the unofficial Cloud.ru Evolution launcher",
+  "license": "MIT",
+  "author": "Dmitry Zhechkov",
+  "os": ["linux"],
+  "cpu": ["x64"],
+  "files": ["native/cloudru-vm", "licenses/", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md", ".dz-manifest.json", "sbom.json"],
+  "scripts": {
+    "prepare:binary": "node ../../../scripts/prepare-cloudru-vm-linux-x64.mjs",
+    "prepack": "node ../../../scripts/ensure-cloudru-vm-linux-x64.mjs",
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/djd1m/dz-harness.git",
+    "directory": "packages/@dzhechkov/cloudru-vm-linux-x64"
+  },
+  "homepage": "https://aicoding.space",
+  "bugs": { "url": "https://github.com/djd1m/dz-harness/issues" },
+  "publishConfig": { "access": "public" }
+}

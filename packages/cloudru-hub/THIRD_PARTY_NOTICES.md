@@ -3,10 +3,11 @@
 This npm package itself contains no third-party code (its launcher, adapters, installer
 and tests are original work — see LICENSE Part 1, MIT).
 
-This file exists because of ADR-001 point 4: the `cloudru-vm` engine binary that the
-launcher RESOLVES AT RUNTIME (and that a future `@dzhechkov/cloudru-vm-linux-x64`
-platform package would carry, post-grant) is a statically linked Go executable that
-embeds the following third-party modules (source of record: `engine/go.mod` in the
+This file provides background for the `cloudru-vm` engine binary that the launcher
+RESOLVES AT RUNTIME. The separate Linux/x64 package carries its own generated inventory
+and full license/NOTICE texts for modules linked into the exact packed binary. The
+current Linux/x64 binary is built with `CGO_ENABLED=0`. The historical table below
+comes from `engine/go.mod` in the
 pinned baseline `hermes-engine-src-20260718.tgz`, sha256
 `007e7cbe851d3ecd78f457f81ae3679904b2fd4dac660a0e349dabcde61bbe5c` — see
 `features/hermes-claude-adaptation/evidence/ENGINE-BASELINE.json`).

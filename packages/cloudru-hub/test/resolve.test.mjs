@@ -13,6 +13,15 @@ const require = createRequire(import.meta.url);
 const { resolveEngine, sha256File, platformKey } = require('../src/resolve.js');
 const PKG = require('../package.json');
 
+function resolveWithoutOptionalPlatform(env) {
+  const packages = PKG.cloudruHub.platformPackages;
+  const key = platformKey();
+  const original = packages[key];
+  delete packages[key];
+  try { return resolveEngine(env); }
+  finally { if (original !== undefined) packages[key] = original; }
+}
+
 // Every scratch dir is removed at the end (after() + process exit) unless DZ_KEEP_TMP=1 —
 // MEASURED 2026-09-20: 18 cloudru-resolve-* dirs per full sweep (backlog 7cb6f9b7).
 const created = [];
@@ -91,19 +100,17 @@ test('config enginePath is used when env is unset', () => {
 
 test('nothing resolvable → loud error naming all three paths and the platform-package status', () => {
   const dir = tmp();
-  const r = resolveEngine({ CLOUDRU_HUB_CONFIG: path.join(dir, 'absent.json') });
+  const r = resolveWithoutOptionalPlatform({ CLOUDRU_HUB_CONFIG: path.join(dir, 'absent.json') });
   assert.ok(r.error);
   assert.match(r.error, /CLOUDRU_VM_BIN/);
   assert.match(r.error, /enginePath/);
   assert.match(r.error, /never bundled/);
-  // post-grant (ADR-001 AM-2) the missing platform package awaits its ADR-002 trusted-CI
-  // build — it is no longer a licence hold, and the error must say so honestly.
-  assert.match(r.error, /ADR-002 trusted-CI/);
+  assert.match(r.error, /optional dependencies/);
 });
 
 test('a dangling env path falls through to the error, not a crash', () => {
   const dir = tmp();
-  const r = resolveEngine({ CLOUDRU_VM_BIN: path.join(dir, 'nope'), CLOUDRU_HUB_CONFIG: path.join(dir, 'absent.json') });
+  const r = resolveWithoutOptionalPlatform({ CLOUDRU_VM_BIN: path.join(dir, 'nope'), CLOUDRU_HUB_CONFIG: path.join(dir, 'absent.json') });
   assert.ok(r.error);
   assert.match(r.error, /set, but not a file/);
 });
@@ -118,6 +125,6 @@ test('sha256File matches node crypto', () => {
 test('the pinned linux-x64 hash is the rebuilt private engine sha256', () => {
   assert.equal(
     PKG.cloudruHub.binaryHashes['linux-x64'],
-    '89c5073418927ee71ac1de381eaba5ab69d599d615edc51b868d876e712dbf10',
+    '4463b09323c9dfe0c32d618d335734a947e7fab0a75d07a7bea089b97a97c9b6',
   );
 });
