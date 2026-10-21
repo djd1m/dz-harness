@@ -1,6 +1,6 @@
 # @dzhechkov/skills-transcript-site
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-transcript-site
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-transcript-site
 
 Package version: **1.0.12**. This delivery patch explicitly includes the MIT `LICENSE` in the npm package and refreshes its signed manifest and SBOM from the packed artifact. Skill behavior is unchanged.
 

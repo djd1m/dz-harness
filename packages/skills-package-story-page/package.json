@@ -59,7 +59,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/djd1m/dz-harness.git",
-    "directory": "packages/@dzhechkov/skills-package-story-page"
+    "directory": "packages/skills-package-story-page"
   },
   "homepage": "https://aicoding.space",
   "bugs": {

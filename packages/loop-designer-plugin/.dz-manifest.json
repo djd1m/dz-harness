@@ -29,7 +29,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "d234cd81afb6132862ac778d34c759ce7a150380da2416986e81839f96df612c"
+        "sha256": "291e69394cc25676b28b041322295aa0426f4919d6eaed9945aa76a476cdb9e9"
       },
       {
         "path": "bin/loop-designer.js",
@@ -77,7 +77,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "f1a26b43628b76bd5d94e2e916295a5ae85a07b40b38235146c190546033c267"
+        "sha256": "5fc12461cfa8134a41fa2b31375965b35091895776c095e4c9355f59e5b36234"
       },
       {
         "path": "skills/loop-plan-author/SKILL.md",
@@ -89,5 +89,5 @@
       }
     ]
   },
-  "signature": "oKsZkzNnmJ21gaUMJT4BVmZqpUVMnfwCKpB/ulN6/oLeZjvfHqFansFbQ4m7N5gsfjT0ZxDdVxBk2a6ilC12AA=="
+  "signature": "YErq5UNNwVLzbg+wGtYfHK2Vu2sWuhEyyqdBnmJ0FQgUlAEuzcXpAQ1qNxBpPP8UpJhOQ42cElOLzT8z/VrbBA=="
 }

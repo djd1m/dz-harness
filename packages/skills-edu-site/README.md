@@ -1,6 +1,6 @@
 # @dzhechkov/skills-edu-site
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-edu-site
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-edu-site
 
 **Gamified Educational Site Generator skill pack for Claude Code**
 

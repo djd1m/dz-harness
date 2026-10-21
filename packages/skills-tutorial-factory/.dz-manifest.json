@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "63039f6e4bd871feee5906481b4886ab0e649d45d4f63463963555fdad12b5d9"
+        "sha256": "a6f56fbab356fb7e1491508952eac030d93c4e934da443efb743ecad5409d0c0"
       },
       {
         "path": "package-tutorial-factory/SKILL.md",
@@ -105,7 +105,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "41ed08bb0a90aa8fedb2d1b10d6127d0066454da0484f0572e23cc95b0562d14"
+        "sha256": "0c335536dd4e624cc157f8a65a887a5bdc372a8c5ece4beae09f322ff461b264"
       },
       {
         "path": "test/_fixtures.mjs",
@@ -145,5 +145,5 @@
       }
     ]
   },
-  "signature": "QDqN7VnA9H3E1+GFD0kqGsCBpGJYWFbHaTf58kSv37l0pKJR/o9U5eTRTS3WCQ0S+Fsh8pbeco7oME+JWJxeDA=="
+  "signature": "HE8VG0WUgM43VHX4oJrqLXynDYV7NKCrEYGxelT2MB9dtD2I1DpNNJgA9pNjF3vm6ESTPRegMdQijncXftl5Dg=="
 }

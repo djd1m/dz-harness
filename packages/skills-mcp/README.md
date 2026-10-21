@@ -1,6 +1,6 @@
 # @dzhechkov/skills-mcp
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-mcp
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-mcp
 
 Canonical MCP skill pack — **16 agentic skills** wrapping top Model Context Protocol servers for search, email, productivity, knowledge management, version control, and self-learning memory.
 

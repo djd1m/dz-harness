@@ -1,6 +1,6 @@
 # @dzhechkov/adapter-opencode
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-opencode
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/adapter-opencode
 
 The **OpenCode** platform adapter for the DZ cross-platform harness.
 

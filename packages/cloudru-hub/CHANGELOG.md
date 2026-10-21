@@ -1,5 +1,14 @@
 # Changelog — @dzhechkov/cloudru-hub
 
+## Unreleased — staged, no version change
+
+- Add `cost-compare --input <json> [--json]`, an offline VM/Kubernetes cost worksheet
+  with explicit topology, dated tariff provenance, exact decimal sums and per-node
+  normal/failure capacity bounds. Incomplete prices, insufficient capacity or unknown
+  architecture equivalence suppress a winner. The packaged official-rate example
+  leaves traffic and equivalence unknown. See `docs/COST-COMPARE.md` for the schema
+  and limits. No engine or MCP tool changes are included.
+
 ## 0.1.14 — 2026-10-20
 
 - Prepare an exact optional dependency on `@dzhechkov/cloudru-vm-linux-x64@0.2.6`.

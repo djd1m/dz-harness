@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4d6d0e6f47b09b017a32e4f3287c0669821e61569835c397245e5077435f5b15"
+          "content": "2b0dbd83deb813844a658814b9a6fa1640f1e5255c676210e61dceaa6b42195b"
         }
       ]
     },
@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c25bbd9659f1a02e2a7a5413de8673e8735d67e583458fdede75dfd032b6106"
+          "content": "4f6a2d5928fec42f021eb10471677b902e831b99d53096661a821f6460bd55a6"
         }
       ]
     },
@@ -101,6 +101,16 @@
     },
     {
       "type": "file",
+      "name": "docs/COST-COMPARE.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "80b4d7ac3868f17d93565274cd6736fe5f2bd7fb059cbed0c2f0afe3f4924317"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "docs/HERMES-CODEX.md",
       "hashes": [
         {
@@ -121,6 +131,16 @@
     },
     {
       "type": "file",
+      "name": "docs/cost-compare.example.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7eafb1ff555fb5443ded1a2c578b17eae6e73e3056efb9cbb5129b424c8c5097"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "package.json",
       "properties": [
         {
@@ -129,7 +149,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "d906ed1871af834274d77dbd3a345b168604456b15360f009a9474778273b11f"
+          "value": "1b355df670fb092da7ce8956141e702f9f78e1e2f2724c6aaba61bbab2acd8c8"
         }
       ]
     },
@@ -149,7 +169,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a22f3fcced6e9970e7bed6b935fc03637b6d4b8d3cd6cc65a2685595a6549c1c"
+          "content": "b1bd4a0ce7f1ca869c2873ca1979a74630483ee2909ff8b4f91189622f5aa2a7"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/cost-compare.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6084ecd7f7fc53bbd441fb9e91dcd7c7bd5c409d1d4e95613fad0fd0735b7b05"
         }
       ]
     },
@@ -270,6 +300,16 @@
         {
           "alg": "SHA-256",
           "content": "026e3031180ce9227b4d31775b9c886b10ad0cb418ed0754aed75b12ded84e31"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "test/cost-compare.test.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b354913220bf725ec6b8a708b7851e2f5779a3c594cd411732d19acad9001870"
         }
       ]
     },

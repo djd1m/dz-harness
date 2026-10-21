@@ -5,7 +5,7 @@
     "files": [
       {
         "path": "CHANGELOG.md",
-        "sha256": "4d6d0e6f47b09b017a32e4f3287c0669821e61569835c397245e5077435f5b15"
+        "sha256": "2b0dbd83deb813844a658814b9a6fa1640f1e5255c676210e61dceaa6b42195b"
       },
       {
         "path": "LICENSE",
@@ -13,7 +13,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "2c25bbd9659f1a02e2a7a5413de8673e8735d67e583458fdede75dfd032b6106"
+        "sha256": "4f6a2d5928fec42f021eb10471677b902e831b99d53096661a821f6460bd55a6"
       },
       {
         "path": "THIRD_PARTY_NOTICES.md",
@@ -40,6 +40,10 @@
         "sha256": "dff98bb859dfbbf8ed2fb6f16f17b767444cc2172ecc7684ca3df8188c95707c"
       },
       {
+        "path": "docs/COST-COMPARE.md",
+        "sha256": "80b4d7ac3868f17d93565274cd6736fe5f2bd7fb059cbed0c2f0afe3f4924317"
+      },
+      {
         "path": "docs/HERMES-CODEX.md",
         "sha256": "3605797972f9a7c79c13fbcce0cd9ac8b8fb3a8249abbab938f2b1a45f515420"
       },
@@ -48,8 +52,12 @@
         "sha256": "de6f709e820fbb831f390e274238b28ba938644670a8db04fd50d1fa0d86da75"
       },
       {
+        "path": "docs/cost-compare.example.json",
+        "sha256": "7eafb1ff555fb5443ded1a2c578b17eae6e73e3056efb9cbb5129b424c8c5097"
+      },
+      {
         "path": "package.json",
-        "sha256": "d906ed1871af834274d77dbd3a345b168604456b15360f009a9474778273b11f"
+        "sha256": "1b355df670fb092da7ce8956141e702f9f78e1e2f2724c6aaba61bbab2acd8c8"
       },
       {
         "path": "src/classification.js",
@@ -57,7 +65,11 @@
       },
       {
         "path": "src/cli.js",
-        "sha256": "a22f3fcced6e9970e7bed6b935fc03637b6d4b8d3cd6cc65a2685595a6549c1c"
+        "sha256": "b1bd4a0ce7f1ca869c2873ca1979a74630483ee2909ff8b4f91189622f5aa2a7"
+      },
+      {
+        "path": "src/cost-compare.js",
+        "sha256": "6084ecd7f7fc53bbd441fb9e91dcd7c7bd5c409d1d4e95613fad0fd0735b7b05"
       },
       {
         "path": "src/credentials.js",
@@ -108,6 +120,10 @@
         "sha256": "026e3031180ce9227b4d31775b9c886b10ad0cb418ed0754aed75b12ded84e31"
       },
       {
+        "path": "test/cost-compare.test.mjs",
+        "sha256": "b354913220bf725ec6b8a708b7851e2f5779a3c594cd411732d19acad9001870"
+      },
+      {
         "path": "test/deploy-approval.test.mjs",
         "sha256": "d72e4363fd50d0fcc65fd23b40601516bd73368c3659f2a55a394c4d1ed3f85c"
       },
@@ -149,5 +165,5 @@
       }
     ]
   },
-  "signature": "l3G7HKnPVq9k2pUtMFbeaNybS7PUSGnlJAn3dSZvcXRKKQ4TEFmxYfgO4Urjw2spCra9M3UAkRVSJfkUX7zYCw=="
+  "signature": "dwHxhW1FRdiGNeOrlmZDXpWHEV3i/V9QenSrenI7+SvF6HNfxc1cM++fUKzWXZKRvTfbreooCqZHfcipil4vAw=="
 }

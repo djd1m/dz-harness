@@ -1,6 +1,6 @@
 # @dzhechkov/keysarium-core
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/keysarium-core
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/keysarium-core
 
 Core framework for building multi-agent pipelines with governance, memory, orchestration, verification, and trust tier systems.
 

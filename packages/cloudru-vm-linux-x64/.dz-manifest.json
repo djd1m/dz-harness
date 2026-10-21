@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "0d9e3c7c83baa4b18e4a5d67600e4598420b53c7a9d406eb12847019f00d109b"
+        "sha256": "8856b357bb027258a28fa7e3196596a5407c63beb157bf75aeecb803d12e9e75"
       },
       {
         "path": "THIRD_PARTY_NOTICES.md",
@@ -129,9 +129,9 @@
       },
       {
         "path": "package.json",
-        "sha256": "b78ec11963c42da6c011af3650dd553ce3f5279aec91b2cdfc48712d8b8f2312"
+        "sha256": "ec0e5aec7b8baa4fd50ef8b53a85b4d4de390ab138f4c70655b12c0e1c0ab971"
       }
     ]
   },
-  "signature": "z/FvYnBrEVplrqJVds6Zacw+wN+IWk1EDWlfr5tPZ+wnpYRrJMtcf9nYUk72J4UdTqWFwn8cswpmUQ2wI+qACw=="
+  "signature": "5sN2bMdV1P+Plho4Soa1ahsOzklDHsHHMklQDqHwiYY4PtA7tyhvCrpNjEDOqyACMW/AJIAFSFkmY378NRvIAA=="
 }

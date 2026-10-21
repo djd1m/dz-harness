@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "2fa87f308c745e4177712658994487cb36a739abc852efe64ad7bbf2cb5e7768"
+        "sha256": "fa616f2ed563521a3c463d04819f5f2e655e7dded5c40276a4ee4dc7b1091b13"
       },
       {
         "path": "dist/__tests__/golden-baseline.test.d.ts",
@@ -1969,15 +1969,15 @@
       },
       {
         "path": "dist/publish-sibling-drift.d.ts.map",
-        "sha256": "a418bf4b0848fca901b659ed92eb0008844c6a1fe7f5ea8e591d1f25ac27e19e"
+        "sha256": "b01699bfb9fea1533d71be1eec45d7680b09251110d979375bc564e0c7aec6cb"
       },
       {
         "path": "dist/publish-sibling-drift.js",
-        "sha256": "3ad4721c7161225b20a93bfe01b748b582ed931a6cef5505428a505e28c5806d"
+        "sha256": "5f41397571dc2953bcee9ea083f3916a149c7b57b2665980882d7f03e5914451"
       },
       {
         "path": "dist/publish-sibling-drift.js.map",
-        "sha256": "1cb363ac635100b7945ee8f00f400a914d72b9db1bb1c66f42901be8b619fb99"
+        "sha256": "5377ce69592440fa98e3585fcb60aab212a2dd5cbef57c1b3a474e7e5aa328b3"
       },
       {
         "path": "dist/publish-signing.d.ts",
@@ -3045,11 +3045,11 @@
       },
       {
         "path": "dist/test-receipt.js",
-        "sha256": "5681f625f59c2603acce73824497a8ab84ee60dfce9274dc999421abe72ca1fd"
+        "sha256": "a6b07936ad3e2fa65389e460d80e1c2705539dbeb56d4a2323b64dc8e4a7ccff"
       },
       {
         "path": "dist/test-receipt.js.map",
-        "sha256": "b8e884c7bc83e63c1588fcc19a10fc6a4330b3e860ca897623bd942e9b13fe92"
+        "sha256": "ed897a11f7959fd9df53c943aea85d1ee6ad6c52984c08a659c9224ab789fd35"
       },
       {
         "path": "dist/text-mangling.d.ts",
@@ -3245,7 +3245,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "a0a460e9c9e28c01a3f3ae5da62a9a97303d59237005c9cfe375d5ad5f0319bf"
+        "sha256": "84730dc4f92cf8e63611abfe70f89e924f2a43a27f34a81245c1af9458eb6d54"
       },
       {
         "path": "src/__tests__/golden-baseline.test.ts",
@@ -3745,7 +3745,7 @@
       },
       {
         "path": "src/publish-sibling-drift.ts",
-        "sha256": "2d36eb17597ff50103ba624b7bfd607f9d4834ac40c4920ade59e905b61814e6"
+        "sha256": "c46249c7c35c35fd305c6b813075f8b4a1ee07120982bf50763cf0075688d7ee"
       },
       {
         "path": "src/publish-signing.ts",
@@ -4025,7 +4025,7 @@
       },
       {
         "path": "src/test-receipt.ts",
-        "sha256": "358d157b68afadfd9784616fc8b1df685801c139d2a76f8972ca08dd61feb338"
+        "sha256": "90beb4b4957be6934815c1b3e960f9f350364fe512a6f473d542bafd1304821c"
       },
       {
         "path": "src/text-mangling.ts",
@@ -4077,5 +4077,5 @@
       }
     ]
   },
-  "signature": "14LlX7HRC46SezD8+bjrXrFVVFPivDHFP/6764fWMQvRvieMO43hQvC3ExNLGiW3h9z58669OlJvp7l08YteDA=="
+  "signature": "i3W3ARdoe6tO1CUTz82pFH2jd4+heO1G2U4viPBb7LI+lUa+C8VFhAqO3C4fCNlNIVmQMAcCqqQLobpwyWbVDA=="
 }

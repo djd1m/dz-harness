@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "horizonHours": "24",
+  "currency": "RUB",
+  "vatBasis": "included",
+  "workload": {
+    "replicas": 3,
+    "cpuPerReplica": "1",
+    "ramGBPerReplica": "1",
+    "survivingReplicas": 2,
+    "failedNodes": 1
+  },
+  "equivalence": {
+    "status": "unknown",
+    "reason": "Application placement, availability and performance equivalence have not been verified.",
+    "assumptions": ["Both scenarios run the same three replicas for the full 24-hour horizon."]
+  },
+  "scenarios": [
+    {
+      "id": "vm",
+      "kind": "vm",
+      "nodes": { "count": 3, "cpu": "2", "ramGB": "4", "reservedCpu": "0", "reservedRamGB": "0", "cpuShare": "1" },
+      "controlPlaneCount": 0,
+      "resources": { "storageGB": "60", "publicIpCount": 3, "snatGatewayCount": 0, "loadBalancerCount": 0, "trafficGB": null },
+      "categories": {
+        "compute": { "status": "priced", "items": [{
+          "id": "vm-2cpu-4gb", "description": "Three active 2vCPU/4GB VM instances",
+          "quantity": "3", "unit": "instance-hour", "rateRub": "2.9707",
+          "tariff": { "url": "https://cdn.cloud.ru/docs/legal/tariffs/evolution/current-version/evolution-compute.pdf", "version": "261014", "asOf": "2026-10-21", "vatBasis": "included", "pageOrRow": "VM 2vCPU/4GB row 18", "sha256": "a459226e73c8db4dc650307f3f07d99d9f17be31e0e22cd65c7a360dc1685dc5" }
+        }] },
+        "controlPlane": { "status": "not-used", "reason": "VM scenario has no separately billed control-plane service." },
+        "storage": { "status": "priced", "items": [{
+          "id": "ssd-60gb", "description": "Assumed 60GB billed SSD allocation across the VM scenario",
+          "quantity": "60", "unit": "GB-hour", "rateRub": "0.01586",
+          "tariff": { "url": "https://cdn.cloud.ru/docs/legal/tariffs/evolution/current-version/evolution-compute.pdf", "version": "261014", "asOf": "2026-10-21", "vatBasis": "included", "pageOrRow": "SSD row 85", "sha256": "a459226e73c8db4dc650307f3f07d99d9f17be31e0e22cd65c7a360dc1685dc5" }
+        }] },
+        "publicIp": { "status": "priced", "items": [{
+          "id": "vm-public-ip", "description": "Three assumed active public IP allocations",
+          "quantity": "3", "unit": "IP-hour", "rateRub": "0.2074",
+          "tariff": { "url": "https://cdn.cloud.ru/docs/legal/tariffs/evolution/current-version/evolution-compute.pdf", "version": "261014", "asOf": "2026-10-21", "vatBasis": "included", "pageOrRow": "Public IP row 2", "sha256": "a459226e73c8db4dc650307f3f07d99d9f17be31e0e22cd65c7a360dc1685dc5" }
+        }] },
+        "snat": { "status": "not-used", "reason": "No SNAT gateway is declared in this VM scenario." },
+        "loadBalancer": { "status": "not-used", "reason": "No load balancer is declared; direct public IP exposure is assumed." },
+        "traffic": { "status": "unpriced", "reason": "Traffic quantity and applicable tariff are unknown; do not assume zero traffic cost." }
+      }
+    },
+    {
+      "id": "k8s",
+      "kind": "k8s",
+      "nodes": { "count": 3, "cpu": "2", "ramGB": "4", "reservedCpu": "0", "reservedRamGB": "0", "cpuShare": "1" },
+      "controlPlaneCount": 1,
+      "resources": { "storageGB": "80", "publicIpCount": 2, "snatGatewayCount": 1, "loadBalancerCount": 0, "trafficGB": null },
+      "categories": {
+        "compute": { "status": "priced", "items": [{
+          "id": "worker-2cpu-4gb", "description": "Three active 2vCPU/4GB Kubernetes workers",
+          "quantity": "3", "unit": "instance-hour", "rateRub": "2.9768",
+          "tariff": { "url": "https://cdn.cloud.ru/docs/legal/tariffs/evolution/current-version/managed-kubernetes.pdf", "version": "260918", "asOf": "2026-10-21", "vatBasis": "included", "pageOrRow": "Worker 2vCPU/4GB row 6", "sha256": "5493f6da595b67482277ca420512db8f7f953375536a6169db8d1b282f24f345" }
+        }] },
+        "controlPlane": { "status": "priced", "items": [{
+          "id": "zonal-master", "description": "One billed zonal control-plane service instance",
+          "quantity": "1", "unit": "instance-hour", "rateRub": "8.601",
+          "tariff": { "url": "https://cdn.cloud.ru/docs/legal/tariffs/evolution/current-version/managed-kubernetes.pdf", "version": "260918", "asOf": "2026-10-21", "vatBasis": "included", "pageOrRow": "Zonal master 2vCPU/4GB row 42", "sha256": "5493f6da595b67482277ca420512db8f7f953375536a6169db8d1b282f24f345" }
+        }] },
+        "storage": { "status": "priced", "items": [{
+          "id": "ssd-80gb", "description": "Assumed 80GB billed SSD allocation across the Kubernetes scenario",
+          "quantity": "80", "unit": "GB-hour", "rateRub": "0.01586",
+          "tariff": { "url": "https://cdn.cloud.ru/docs/legal/tariffs/evolution/current-version/managed-kubernetes.pdf", "version": "260918", "asOf": "2026-10-21", "vatBasis": "included", "pageOrRow": "SSD row 39", "sha256": "5493f6da595b67482277ca420512db8f7f953375536a6169db8d1b282f24f345" }
+        }] },
+        "publicIp": { "status": "priced", "items": [{
+          "id": "k8s-public-ip", "description": "Two assumed active public IP allocations",
+          "quantity": "2", "unit": "IP-hour", "rateRub": "0.2074",
+          "tariff": { "url": "https://cdn.cloud.ru/docs/legal/tariffs/evolution/current-version/managed-kubernetes.pdf", "version": "260918", "asOf": "2026-10-21", "vatBasis": "included", "pageOrRow": "Public IP row 40", "sha256": "5493f6da595b67482277ca420512db8f7f953375536a6169db8d1b282f24f345" }
+        }] },
+        "snat": { "status": "priced", "items": [{
+          "id": "public-snat", "description": "One assumed active public SNAT gateway",
+          "quantity": "1", "unit": "gateway-hour", "rateRub": "0.2074",
+          "tariff": { "url": "https://cdn.cloud.ru/docs/legal/tariffs/evolution/current-version/evolution-compute.pdf", "version": "261014", "asOf": "2026-10-21", "vatBasis": "included", "pageOrRow": "Public SNAT row 3", "sha256": "a459226e73c8db4dc650307f3f07d99d9f17be31e0e22cd65c7a360dc1685dc5" }
+        }] },
+        "loadBalancer": { "status": "not-used", "reason": "No load balancer is declared; the assumed application architecture avoids it." },
+        "traffic": { "status": "unpriced", "reason": "Traffic quantity and applicable tariff are unknown; do not assume zero traffic cost." }
+      }
+    }
+  ]
+}

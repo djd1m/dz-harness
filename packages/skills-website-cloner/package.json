@@ -40,7 +40,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/djd1m/dz-harness.git",
-    "directory": "packages/@dzhechkov/skills-website-cloner"
+    "directory": "packages/skills-website-cloner"
   },
   "homepage": "https://aicoding.space",
   "bugs": {

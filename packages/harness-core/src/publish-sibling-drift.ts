@@ -327,9 +327,20 @@ function classifyOwnerBrandingDelta(
     const localPkg = JSON.parse(localPkgBytes.toString('utf8')) as Record<string, unknown>;
     const registryPkg = JSON.parse(registryPkgBytes.toString('utf8')) as Record<string, unknown>;
     if (localPkg['name'] !== name || registryPkg['name'] !== name || localPkg['version'] !== version || registryPkg['version'] !== version) return decline('package identity/version does not bind both artifacts');
-    const source = 'https://github.com/djd1m/dz-harness/tree/main/packages/' + name;
-    if (localPkg['homepage'] !== 'https://aicoding.space' || !['https://aicoding.space', source + '#readme'].includes(String(registryPkg['homepage']))) return decline('homepage is not the exact directional owner policy');
+    if (!/^@dzhechkov\/[a-z0-9][a-z0-9-]*$/.test(name)) return decline('package name is not an exact public mirror identity');
+    const legacySource = 'https://github.com/djd1m/dz-harness/tree/main/packages/' + name;
+    const source = 'https://github.com/djd1m/dz-harness/tree/main/packages/' + name.slice('@dzhechkov/'.length);
+    if (localPkg['homepage'] !== 'https://aicoding.space' || !['https://aicoding.space', legacySource + '#readme', source + '#readme'].includes(String(registryPkg['homepage']))) return decline('homepage is not the exact directional owner policy');
     const projectedPkg: Record<string, unknown> = { ...localPkg, homepage: registryPkg['homepage'] };
+    const canonicalRepository = { type: 'git', url: 'git+https://github.com/djd1m/dz-harness.git', directory: 'packages/' + name.slice('@dzhechkov/'.length) };
+    const legacyRepository = { ...canonicalRepository, directory: 'packages/' + name };
+    const sameRepository = (value: unknown, expected: typeof canonicalRepository) => value !== null && typeof value === 'object' && !Array.isArray(value)
+      && Object.keys(value).length === 3 && Object.entries(expected).every(([key, item]) => (value as Record<string, unknown>)[key] === item);
+    if (localPkg['repository'] !== undefined || registryPkg['repository'] !== undefined) {
+      if (!sameRepository(localPkg['repository'], canonicalRepository) ||
+          ![canonicalRepository, legacyRepository].some(expected => sameRepository(registryPkg['repository'], expected))) return decline('repository is not the exact canonical/legacy mirror migration');
+      projectedPkg['repository'] = registryPkg['repository'];
+    }
     if (retained !== undefined) {
       const left = localPkg['dependencies'] as Record<string, unknown> | undefined;
       const right = registryPkg['dependencies'] as Record<string, unknown> | undefined;
@@ -338,21 +349,53 @@ function classifyOwnerBrandingDelta(
     }
 
     // Existing v3 canonical handling preserves order-sensitive exports/imports; no dependency values omitted.
-    if (hashPackBytes('package.json', Buffer.from(JSON.stringify(projectedPkg))) !== hashPackBytes('package.json', registryPkgBytes)) return decline('packed metadata differs beyond homepage (including dependency values)');
-    const stamp = 'Site: https://aicoding.space · Source: ' + source;
+    if (hashPackBytes('package.json', Buffer.from(JSON.stringify(projectedPkg))) !== hashPackBytes('package.json', registryPkgBytes)) return decline('packed metadata differs beyond homepage/repository migration (including dependency values)');
+    const stamps = [source, legacySource].flatMap(url => [
+      'Site: https://aicoding.space · Source: ' + url,
+      'Сайт: https://aicoding.space · Исходники: ' + url,
+    ]);
     const stripTopStamp = (bytes: Buffer, required: boolean): Buffer | undefined => {
       const text = bytes.toString('utf8'); if (!Buffer.from(text).equals(bytes)) return undefined;
       const lines = text.split('\n');
-      const stamps = lines.filter(line => line.startsWith('Site: ') || line.includes(' · Source: '));
-      if (stamps.length === 0) return required ? undefined : bytes;
-      if (stamps.length !== 1 || !/^# [^\r\n]+$/.test(lines[0] ?? '') || lines[1] !== '' || lines[2] !== stamp || lines[3] !== '') return undefined;
+      const present = lines.filter(line => /^(?:Site|Сайт): /.test(line) || / · (?:Source|Исходники): /.test(line));
+      if (present.length === 0) return required ? undefined : bytes;
+      if (present.length !== 1 || !/^# [^\r\n]+$/.test(lines[0] ?? '') || lines[1] !== '' || !stamps.includes(lines[2] ?? '') || lines[3] !== '') return undefined;
       // Remove only the inserted blank/stamp framing; retain every other byte including trailing newlines.
       return Buffer.from(lines[0] + '\n' + lines.slice(3).join('\n'));
     };
     const localReadme = readFileSync(join(localDir, 'README.md'));
     const registryReadme = readFileSync(join(registryDir, 'README.md'));
     const localRest = stripTopStamp(localReadme, true), registryRest = stripTopStamp(registryReadme, false);
-    if (!localRest || !registryRest || !localRest.equals(registryRest)) return decline('README differs beyond the one exact top owner stamp');
+    // Compare direct, standalone package links in their original direction. A flat link can
+    // already exist on either side; only a registry scoped link becoming flat is a migration.
+    // The one sanctioned cross-package migration is cloudru-vm's link to cloudru-hub.
+    const directPackageUrl = /(^|\s|\]\(|<)(https:\/\/github\.com\/djd1m\/dz-harness\/tree\/main\/packages\/)(@dzhechkov\/)?([a-z0-9][a-z0-9-]*)/gm;
+    const compareLinks = (bytes: Buffer): { text: string; forms: { name: string; legacy: boolean }[] } | undefined => {
+      const text = bytes.toString('utf8'); if (!Buffer.from(text).equals(bytes)) return undefined;
+      const forms: { name: string; legacy: boolean }[] = [];
+      const normalized = text.replace(directPackageUrl, (match, left: string, base: string, scope: string | undefined, packageName: string, offset: number) => {
+        const start = offset + left.length;
+        const end = offset + match.length;
+        const next = text[end];
+        // A URL must occupy its complete destination. Delimiters from another link
+        // form cannot end it, and a bare URL must fill a whitespace-delimited token.
+        if (left === '](' ? next !== ')' : left === '<' ? next !== '>' : next !== undefined && !/\s/.test(next)) return match;
+        let tokenStart = start;
+        while (tokenStart > 0 && !/\s/.test(text[tokenStart - 1]!)) tokenStart--;
+        if (text.slice(tokenStart, start).includes('://')) return match;
+        const allowed = packageName === name.slice('@dzhechkov/'.length) ||
+          (name === '@dzhechkov/cloudru-vm-linux-x64' && packageName === 'cloudru-hub');
+        if (!allowed) return match;
+        forms.push({ name: packageName, legacy: scope !== undefined });
+        return left + base + packageName;
+      });
+      return { text: normalized, forms };
+    };
+    const localLinks = localRest && compareLinks(localRest), registryLinks = registryRest && compareLinks(registryRest);
+    if (!localLinks || !registryLinks || localLinks.text !== registryLinks.text ||
+        localLinks.forms.length !== registryLinks.forms.length ||
+        localLinks.forms.some((link, index) => link.name !== registryLinks.forms[index]?.name ||
+          (link.legacy && !registryLinks.forms[index]?.legacy))) return decline('README differs beyond the one exact top owner stamp and directional standalone package URL migration');
     const admitted = new Set<string>();
     if (!localReadme.equals(registryReadme)) admitted.add('README.md');
     if (hashPackBytes('package.json', localPkgBytes, localSigned.manifest.version) !== hashPackBytes('package.json', registryPkgBytes, registrySigned.manifest.version)) admitted.add('package.json');

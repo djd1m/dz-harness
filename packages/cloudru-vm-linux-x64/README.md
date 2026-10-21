@@ -1,8 +1,8 @@
 # @dzhechkov/cloudru-vm-linux-x64
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/cloudru-vm-linux-x64
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/cloudru-vm-linux-x64
 
-The Linux/x64 engine for [`@dzhechkov/cloudru-hub`](https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/cloudru-hub). This is an unofficial Cloud.ru integration, unaffiliated with Cloud.ru.
+The Linux/x64 engine for [`@dzhechkov/cloudru-hub`](https://github.com/djd1m/dz-harness/tree/main/packages/cloudru-hub). This is an unofficial Cloud.ru integration, unaffiliated with Cloud.ru.
 
 Install `@dzhechkov/cloudru-hub@0.1.14` on Linux/x64 to receive this package as an exact optional dependency. The launcher verifies the engine SHA-256 before starting it. No postinstall download is used.
 

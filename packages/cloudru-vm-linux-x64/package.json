@@ -15,7 +15,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/djd1m/dz-harness.git",
-    "directory": "packages/@dzhechkov/cloudru-vm-linux-x64"
+    "directory": "packages/cloudru-vm-linux-x64"
   },
   "homepage": "https://aicoding.space",
   "bugs": { "url": "https://github.com/djd1m/dz-harness/issues" },

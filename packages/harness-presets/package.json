@@ -47,7 +47,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/djd1m/dz-harness.git",
-    "directory": "packages/@dzhechkov/harness-presets"
+    "directory": "packages/harness-presets"
   },
   "homepage": "https://aicoding.space",
   "bugs": {

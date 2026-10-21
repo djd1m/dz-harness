@@ -21,7 +21,7 @@ dz doctor
 You do NOT need to clone any repository to use dz. Source is for contributors — see
 [From source (contributors only)](#from-source-contributors-only) at the end of this README.
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/harness-cli
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/harness-cli
 
 ## CLI delivery catalog
 
@@ -100,7 +100,7 @@ Each launch creates one snapshot; remove selected old snapshot files yourself wh
 Live backpressure waits for writable callbacks. Explicit termination cancels pending writes; after
 child exit a stalled output sink has a two-second final drain window before cancellation.
 
-Current package versions: `harness-core v0.8.60` · `harness-cli v0.8.53`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.61` · `harness-cli v0.8.53`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. On visible lines, the marker retains its whole-line override for per-package synchronization, including explicit changelog overrides, so keep it off historical records. The previous all-protections override is corrected: fenced marker, footer, install/JSON-pin, tarball and badge examples remain literal, as do supported HTML comment blocks. Their visible counterparts still stamp; place current metadata outside examples.
 

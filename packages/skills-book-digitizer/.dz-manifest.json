@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "5fae40e8dca88989298d8f4127ee28630b9ec7d3f1610e808f88cea2160c2bbf"
+        "sha256": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af"
       },
       {
         "path": "book-brain-register/SKILL.md",
@@ -41,7 +41,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "246f1eb1a60052a020e83587a80a8e1f8fc170c84bb5083fa06ca0579c283e72"
+        "sha256": "6fc85e4d8966e1e132a9d0e489adaaafdc1a7c985f378d973146e822b2074058"
       },
       {
         "path": "scripts/book-ingest.mjs",
@@ -61,5 +61,5 @@
       }
     ]
   },
-  "signature": "p0pECuiTKSYfJEJbM9S8PhzzXaCsMfWtAakbnefahq46/l5E8jV4jkv9yYSDd4edw6Ncxj0EnZD+01UpqykEDQ=="
+  "signature": "QlkPpkgXehz5PiDYaq4ocAXysSstT6foPUbFZO3RWVWgKGimJiyHV1UCpuZ+3Q8+xIiecdlBMiREDrhzRnb4CQ=="
 }

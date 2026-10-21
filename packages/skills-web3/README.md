@@ -1,6 +1,6 @@
 # @dzhechkov/skills-web3
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-web3
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-web3
 
 Canonical Web3/DeFi skill pack — **12 agentic skills** for blockchain RPC, wallet analytics, cross-chain swaps, DeFi governance, privacy, on-chain identity, and social protocols.
 

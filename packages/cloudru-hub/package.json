@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/cloudru-hub",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "licenseHold": {
     "adr": "features/hermes-claude-adaptation/03_adr/001-licence-and-provenance-precondition.md",
     "note": "SATISFIED hold. Timur is credited for substantial Cloud.ru API testing. The 2026-10-20 correction is in the historical grant record. This field keeps the dz guard licence-hold rule checking LICENSE, THIRD_PARTY_NOTICES and SPDX on every publish."
@@ -62,7 +62,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/djd1m/dz-harness.git",
-    "directory": "packages/@dzhechkov/cloudru-hub"
+    "directory": "packages/cloudru-hub"
   },
   "homepage": "https://aicoding.space",
   "bugs": {

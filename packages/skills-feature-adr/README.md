@@ -7,7 +7,7 @@ If bytes change before first evaluation, native `evaluate` retains valid old-sna
 
 Current package version: `1.5.21`. <!-- dz:version -->
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-feature-adr
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-feature-adr
 
 **Spec-Driven Development pipeline for AI coding agents (Claude Code, Codex, …)**
 

@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "f9c9a60fc2c3d51dfed698b31556aec3b76e485933b313157ba48c379a93797b"
+        "sha256": "a8b32d687c6c1bbcdfd3c24fe4fb644d45c8ee11a20cb62277805cd21c4c021f"
       },
       {
         "path": "answer-assessor/SKILL.md",
@@ -77,7 +77,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "78c2f38e12a548479915f733c342f638c3801ded21246f84f53e529e9bb11b6e"
+        "sha256": "78f8343d86ab93910651851c099b728beb1936b20d12861642f3933d206e45c6"
       },
       {
         "path": "question-generator/SKILL.md",
@@ -101,5 +101,5 @@
       }
     ]
   },
-  "signature": "EUMFnZ/+31JYpqCB8QTEBAS2nROriFXDQWPJ2fYUYoLAuGpwQ9WuOdslMa7bjqAi+1Tp2jciaDSVopk2rd/0CQ=="
+  "signature": "ysfIlno5S5gViJBAow4EiRD0O++hSFIrzKN8Jwm4IO6waDbfvLLTCKiIkbwbtFHAYXmb/TpLfgyl/NvqnjZ8Ag=="
 }

@@ -31,7 +31,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/djd1m/dz-harness.git",
-    "directory": "packages/@dzhechkov/skills-news"
+    "directory": "packages/skills-news"
   },
   "homepage": "https://aicoding.space",
   "bugs": {

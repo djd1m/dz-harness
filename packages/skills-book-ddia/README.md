@@ -1,6 +1,6 @@
 # @dzhechkov/skills-book-ddia
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-book-ddia
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-book-ddia
 
 Decision-moment skills for building data-intensive systems.
 

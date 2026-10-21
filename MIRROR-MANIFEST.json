@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-10-20T23:15:17.831Z",
+  "builtAt": "2026-10-21T10:45:14.416Z",
   "builtFrom": "dz-harness-hub (private monorepo)",
   "rule": "each package mirrors exactly its npm-pack tarball inventory — the already-public surface",
   "requested": 57,
@@ -175,8 +175,8 @@
     },
     {
       "name": "@dzhechkov/cloudru-hub",
-      "version": "0.1.14",
-      "files": 38
+      "version": "0.1.15",
+      "files": 42
     },
     {
       "name": "@dzhechkov/cloudru-vm-linux-x64",
@@ -205,7 +205,7 @@
     },
     {
       "name": "@dzhechkov/harness-core",
-      "version": "0.8.60",
+      "version": "0.8.61",
       "files": 1020
     },
     {

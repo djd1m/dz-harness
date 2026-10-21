@@ -1,6 +1,6 @@
 # @dzhechkov/skills-12factor
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-12factor
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-12factor
 
 **12 decision-moment skills distilled from [The Twelve-Factor App](https://12factor.net)** — one per
 factor — so AI coders (Claude Code, Codex, …) apply 12-factor decisions at the moments they arise:

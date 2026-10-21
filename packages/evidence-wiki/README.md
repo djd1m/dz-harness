@@ -1,6 +1,6 @@
 # evidence-wiki
 
-Сайт: https://aicoding.space · Исходники: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/evidence-wiki
+Сайт: https://aicoding.space · Исходники: https://github.com/djd1m/dz-harness/tree/main/packages/evidence-wiki
 
 Claude Code plugin: **evidence-disciplined wiki** — атомарный граф-связанный слой концепт-страниц, где каждый факт несёт inline-источник.
 

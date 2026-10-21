@@ -39,7 +39,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/djd1m/dz-harness.git",
-    "directory": "packages/@dzhechkov/keysarium-core"
+    "directory": "packages/keysarium-core"
   },
   "homepage": "https://aicoding.space",
   "bugs": {

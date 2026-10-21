@@ -2,7 +2,7 @@
 
 Current release: **0.7.3**. <!-- dz:version -->
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-tutorial-factory
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-tutorial-factory
 
 **`package-tutorial-factory`** — a meta-skill that turns ONE harness-hub package into a **Head-First-style,
 gamified edu-site learning course**. It does not rebuild engines; it **composes** three that already exist:

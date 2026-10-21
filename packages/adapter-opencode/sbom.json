@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a88dd731356f49599d256dcd88a73316e984dc248a8f458b929a0a004927f4c5"
+          "content": "ff7abd62fe720c85454836025d3c3ec83f700f36df0c29ff6bfb7e358789ec1f"
         }
       ]
     },
@@ -79,7 +79,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "8bfcad33cc2d64d32e6f2102dec5dae94786b7421f758fac48f97252523884ed"
+          "value": "a20bfefe726e817465eeb2dc088df5303ba4956e486ccc3853afc916ff4829d8"
         }
       ]
     },

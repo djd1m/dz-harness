@@ -3,14 +3,21 @@
 // Zero dependencies, CommonJS, boots from any cwd (dz release smoke contract).
 
 const { spawn, spawnSync } = require('child_process');
-const { resolveEngine } = require('./resolve');
-const { loadClassification, loadSnapshot, coverageGaps } = require('./classification');
-const { install } = require('./install');
-const { runSafeMcp } = require('./safe-mcp');
-const { issueApproval } = require('./deploy-approval');
-const { issueK8sApproval } = require('./k8s-approval');
-const { compileSkill, writeCompiled } = require('./dialects');
 const PKG = require('../package.json');
+let resolveEngine, loadClassification, loadSnapshot, coverageGaps, install, runSafeMcp;
+let issueApproval, issueK8sApproval, compileSkill, writeCompiled;
+let legacyLoaded = false;
+function loadLegacyCommands() {
+  if (legacyLoaded) return;
+  ({ resolveEngine } = require('./resolve'));
+  ({ loadClassification, loadSnapshot, coverageGaps } = require('./classification'));
+  ({ install } = require('./install'));
+  ({ runSafeMcp } = require('./safe-mcp'));
+  ({ issueApproval } = require('./deploy-approval'));
+  ({ issueK8sApproval } = require('./k8s-approval'));
+  ({ compileSkill, writeCompiled } = require('./dialects'));
+  legacyLoaded = true;
+}
 
 function showHelp(write) {
   write(`cloudru-hub ${PKG.version} — unofficial Cloud.ru Evolution launcher (NOT affiliated with Cloud.ru)
@@ -32,6 +39,8 @@ Commands:
                            Static sites require the artifact digest shown by deploy_plan.
   k8s-approve --cluster-id <uuid> --namespace <name> --manifest <file> --manifest-sha256 <digest>
                            Authorize one exact three-resource Snake manifest on an existing cluster.
+  cost-compare --input <json> [--json]
+                           Offline VM vs Kubernetes cost worksheet; no engine or credentials.
   install --target <t>     claude-code: permissions + executed hook probe;
                            codex|opencode|pi: project MCP config using mcp-safe;
                            hermes: guarded $HERMES_HOME/config.yaml entry using mcp-safe;
@@ -139,6 +148,9 @@ function cmdMcp() {
 }
 
 function main(argv, write = (s) => process.stdout.write(s + '\n')) {
+  // This command validates its raw flags before the permissive legacy parser sees them.
+  if (argv[0] === 'cost-compare') return require('./cost-compare').run(argv.slice(1), write);
+  loadLegacyCommands();
   const { flags, opts, positional } = parseArgs(argv);
   const cmd = positional[0] || 'help';
   if (flags.has('help') || flags.has('h') || cmd === 'help') { showHelp(write); return 0; }

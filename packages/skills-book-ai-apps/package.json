@@ -50,7 +50,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/djd1m/dz-harness.git",
-    "directory": "packages/@dzhechkov/skills-book-ai-apps"
+    "directory": "packages/skills-book-ai-apps"
   },
   "homepage": "https://aicoding.space",
   "bugs": {

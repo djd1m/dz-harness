@@ -1,6 +1,6 @@
 # @dzhechkov/skills-bto
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/skills-bto
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-bto
 
 **Build-Benchmark-Test-Optimize skill pack for Claude Code**
 

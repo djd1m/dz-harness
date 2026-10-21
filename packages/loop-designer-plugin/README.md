@@ -1,6 +1,6 @@
 # @dzhechkov/loop-designer-plugin
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/loop-designer-plugin
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/loop-designer-plugin
 
 > **The plugin authors, gates and reads plans; execution uses a separate runtime.**
 

@@ -1,6 +1,6 @@
 # @dzhechkov/adapter-windsurf
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-windsurf
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/adapter-windsurf
 
 The **Windsurf** platform adapter for [DZ Harness Hub](https://github.com/djd1m/dz-harness-hub) — transforms canonical skills into per-skill Windsurf **workspace rules**.
 

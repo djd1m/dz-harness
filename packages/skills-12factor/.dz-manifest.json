@@ -157,11 +157,11 @@
       },
       {
         "path": "README.md",
-        "sha256": "f9de5d9999ffc203303c07595009931cc5a2d6c1f761590891b730eb20677077"
+        "sha256": "42fa0033987e5ca638b8aeb2897f5e9f6aa956462e3794353c08b6b76f5e11f2"
       },
       {
         "path": "package.json",
-        "sha256": "03f6566ab5804dc391ffc2a470a5d6277ec8d926b640964e7246d30009700543"
+        "sha256": "f216f3f852ead8977705b33ada583f1cddb50c2b4315d0613ded2b0a1e775c39"
       },
       {
         "path": "sources.json",
@@ -169,5 +169,5 @@
       }
     ]
   },
-  "signature": "xJoXu0OqNj3lLwmPtN+MZsqM1CtEo8P6VbLfgNbTR5shocwiObq+s+HXpRpTGKAMH1KkeVQCenQ3zvu513nVCA=="
+  "signature": "zOOoDF19D19izBltrFuyteuuFZPYtKrwHb8RHPWngRgBVVQDOS7SUceDi53+hHJpsslOdfP4A42IPKfaW5Y0Cw=="
 }

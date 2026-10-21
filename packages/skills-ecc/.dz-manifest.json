@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "53d647fd97c06d90a877b0f44519f48580b31715d928a71e7f3bd21b8ad39b80"
+        "sha256": "612b756ba2c5c81b35951f4fb5de8ae27235ebef3f85273d485be5fc005b61cf"
       },
       {
         "path": "agent-architecture-audit/SKILL.md",
@@ -97,7 +97,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "23909dcc36dd1b8bebfe72964e50019504bcf22b376440b50b987e995d75859d"
+        "sha256": "91662914ac36ae7fc2ddc6cb0ad059a573de15cf807245210b1b5ffd83fde8c2"
       },
       {
         "path": "sources.json",
@@ -105,5 +105,5 @@
       }
     ]
   },
-  "signature": "74/wRkETPgm2WLTXfqfdAG6XhbbjCp3DL3LHayi8DqQWvmJHr7JZMhlQbCsd2eE65AHj43rjx5B14XmtNcqMDA=="
+  "signature": "2lhOB/UkJcL7p5kyCj3KwwHUE9RWruI7xWoKrwhJHS0rp/6T1p71PbjkOTPFfI4aiO512uChqLTgwKwqY2+cAw=="
 }

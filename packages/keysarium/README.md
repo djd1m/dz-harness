@@ -7,7 +7,7 @@ If bytes change before first evaluation, native `evaluate` retains valid old-sna
 
 Current package version: `1.7.15`. <!-- dz:version -->
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/keysarium
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/keysarium
 
 **AI Case Research Toolkit for Claude Code**
 

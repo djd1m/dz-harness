@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "efc518f170d693a4acce8b8838dafd0446b3c4b493332d3186543f1a9400dffa"
+        "sha256": "3e10ea3a9033d2f2a8157b85588a144eabe9ce3309ba096d3aeb6739979d5a01"
       },
       {
         "path": "bankr/SKILL.md",
@@ -93,7 +93,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "97d3a36304987531de3ce1b59ce64d3911a3e8c3e3ab7d414647d30dbb250769"
+        "sha256": "39478d68cc529e211c8cc535ec7e8a51fdfeb4fcfbcb2ca461bc23112820a5c6"
       },
       {
         "path": "quicknode/SKILL.md",
@@ -213,5 +213,5 @@
       }
     ]
   },
-  "signature": "R8opSDvYaPoF5SNgXZcKDd1BMII43bwvXri/EpGaO0MtrURuIslwgjefGAR7TgqUbKU4RKY6FqmwcSpL2fbWAA=="
+  "signature": "VTyjS+ouSfQGpQ8rLCumCtWR6sF8naBJsAoZj1u+AmTY3rz2XqZKeWglBQv9y3BeAxxOF79niwkKwd39UvK3BA=="
 }

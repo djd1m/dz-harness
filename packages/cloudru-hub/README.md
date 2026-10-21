@@ -1,6 +1,6 @@
 # @dzhechkov/cloudru-hub
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/cloudru-hub
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/cloudru-hub
 
 > **Linux/x64 distribution:** version 0.1.14 installs the exact optional engine
 > package `@dzhechkov/cloudru-vm-linux-x64@0.2.6`. The `dz guard` `licence-hold`
@@ -42,12 +42,14 @@ The JS launcher remains MIT-licensed; its archive contains no Go engine bytes.
 | Target integration | `src/install.js`, `src/safe-mcp.js` | Codex, OpenCode and Pi get project MCP configs using a pinned proxy; Hermes gets a guarded `$HERMES_HOME/config.yaml` entry with a verified engine path. Claude Code's general install keeps its permissions and hook probe. The opt-in `vm-deploy` profile requires an exact-plan approval and confines remote commands to the returned VM. Codex, Hermes, OpenCode and Pi each completed both live static-site scenarios on 2026-10-20 with HTTP byte checks and exact resource cleanup. The `k8s-deploy` profile uses a separate exact-manifest approval and create-only Kubernetes operation; the same four hosts completed live Kubernetes deployment, readiness, exact-byte HTTP and cleanup checks. Claude Code has installer/registration checks but no live inference pass. |
 | Skill dialect compiler (ADR-006) | `src/dialects.js`, `data/dialects.json` | generates per-target variants of the canonical skill tree (which is NOT shipped — point `--canonical` at an engine distribution); hard-fails if any Hermes-dialect token survives AND if the engine codename survives in any case in any emitted file (positive invariant, not just the enumerated denylist); unlinks dangling links; enforces the 12 000-char router cap on lossy layouts; byte-deterministic |
 | Golden classification | `data/tools-classification.json` | every engine tool → allow/ask/deny; `allow` requires a BEHAVIOUR audit of the handler (read-only proven at the pinned baseline, engine file:line cited per entry). The previous `stack_status` behavior was unsafe; the imported engine now makes it observational and tests that invariant. A live tool unknown to the classifier is a drift finding. |
+| Offline cost worksheet | `src/cost-compare.js`, `docs/cost-compare.example.json` | compares supplied VM and Kubernetes topology, capacity and dated tariff lines with exact decimal arithmetic; needs no engine, credentials or network access |
 
 ## Usage
 
 ```bash
 cloudru-hub resolve                 # where is the engine, which sha256, is it the pinned baseline
 cloudru-hub self-test               # resolve → sha256 → engine version → live tools/list → coverage
+cloudru-hub cost-compare --input docs/cost-compare.example.json --json  # offline cost worksheet
 cloudru-hub mcp                     # run the engine as an MCP stdio server (what .mcp.json points at)
 cloudru-hub mcp-safe --toolsets inventory   # pinned MCP proxy with a small allow-classified surface
 cloudru-hub install --target codex --toolsets billing  # read-only balance, consumption and FinOps
@@ -64,6 +66,12 @@ cloudru-hub install --target hermes        # require a hash-verified engine; add
 cloudru-hub install --target agents-md     # pointer-only section (no tools, no fake support)
 cloudru-hub compile-skill --canonical <engine>/skill/cloudru-hub --target claude-code --out ./skill-out
 ```
+
+The [cost worksheet guide](docs/COST-COMPARE.md) describes the versioned input, supported
+units, exact calculations and limits. The packaged example uses checked official
+VAT-inclusive tariff rows but leaves traffic unpriced and architecture equivalence
+unknown; it therefore reports known subtotals with no winner. Supplied quantities
+and tariff applicability remain operator assumptions, not verified inventory or a live bill.
 
 ## Using an owner-supplied engine instead
 

@@ -1,6 +1,6 @@
 # @dzhechkov/adapter-claude
 
-Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/@dzhechkov/adapter-claude
+Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/adapter-claude
 
 The **Claude Code** platform adapter for the DZ cross-platform harness.
 

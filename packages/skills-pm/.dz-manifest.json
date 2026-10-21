@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "e37705f1bc4aab21d7081bba71eb8c0760af6b8989800a0ddf4ce3af16506476"
+        "sha256": "c7d1d71dcd51a11c75abcc34cbcd5527ad815dc82edc7d00a66822a94ee51368"
       },
       {
         "path": "ab-test-analysis/SKILL.md",
@@ -57,7 +57,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "a054371240dbb26127e3505d1734cd896245d789b677e11948fcf1e947587fbc"
+        "sha256": "39281c80f68b6669debb7d7e545cebf3c30320e541ecc33de3d9cb3af74c39a0"
       },
       {
         "path": "pricing-strategy/SKILL.md",
@@ -93,5 +93,5 @@
       }
     ]
   },
-  "signature": "pt7Q1SKdQ4dgkEPggFJsYf6JacpJKvaf1WkLKkegV+KQbBM2/M3PXset6iIe7mNSB9KakheNhLkp9PsIPN6dCg=="
+  "signature": "xa+USmyg2Hqd1+0bYS6GgUuezoA8O5Ka2s35oF2fMLP7OxZBB4L+7cCp82uF83uJWwB8Zh6bR0P17Zyg/dsVAA=="
 }

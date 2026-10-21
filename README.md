@@ -33,13 +33,13 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/adapter-openclaude` | 0.1.9 |
 | `@dzhechkov/adapter-opencode` | 0.2.9 |
 | `@dzhechkov/adapter-windsurf` | 0.1.10 |
-| `@dzhechkov/cloudru-hub` | 0.1.14 |
+| `@dzhechkov/cloudru-hub` | 0.1.15 |
 | `@dzhechkov/cloudru-vm-linux-x64` | 0.2.6 |
 | `@dzhechkov/core` | 0.2.30 |
 | `@dzhechkov/design-thinking` | 1.0.15 |
 | `@dzhechkov/evidence-wiki` | 0.2.7 |
 | `@dzhechkov/harness-cli` | 0.8.53 |
-| `@dzhechkov/harness-core` | 0.8.60 |
+| `@dzhechkov/harness-core` | 0.8.61 |
 | `@dzhechkov/harness-presets` | 0.5.25 |
 | `@dzhechkov/health-advisor` | 1.10.9 |
 | `@dzhechkov/keysarium` | 1.7.15 |
