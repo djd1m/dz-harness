@@ -1,0 +1,573 @@
+<!DOCTYPE html><html lang="en" dir="ltr" data-theme="dark" data-has-toc data-has-sidebar class="astro-fludlhlc"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>CLI Reference | DZ Harness Hub</title><link rel="canonical" href="https://djd1m.github.io/dz-harness/docs/cli/overview/"/><link rel="sitemap" href="/dz-harness/docs/sitemap-index.xml"/><link rel="shortcut icon" href="/dz-harness/docs/favicon.svg" type="image/svg+xml"/><meta name="generator" content="Astro v7.2.10"/><meta name="generator" content="Starlight v0.42.6"/><meta property="og:title" content="CLI Reference"/><meta property="og:type" content="article"/><meta property="og:url" content="https://djd1m.github.io/dz-harness/docs/cli/overview/"/><meta property="og:locale" content="en"/><meta property="og:description" content="dz command reference, grouped by customer journey phase."/><meta property="og:site_name" content="DZ Harness Hub"/><meta name="twitter:card" content="summary_large_image"/><meta name="description" content="dz command reference, grouped by customer journey phase."/><script>
+	window.StarlightThemeProvider = (() => {
+		const storedTheme =
+			typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
+		const theme =
+			storedTheme ||
+			(window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+		document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+		return {
+			updatePickers(theme = storedTheme || 'auto') {
+				document.querySelectorAll('starlight-theme-select').forEach((picker) => {
+					const select = picker.querySelector('select');
+					if (select) select.value = theme;
+					/** @type {HTMLTemplateElement | null} */
+					const tmpl = document.querySelector(`#theme-icons`);
+					const newIcon = tmpl && tmpl.content.querySelector('.' + theme);
+					if (newIcon) {
+						const oldIcon = picker.querySelector('svg.label-icon');
+						if (oldIcon) {
+							oldIcon.replaceChildren(...newIcon.cloneNode(true).childNodes);
+						}
+					}
+				});
+			},
+		};
+	})();
+</script><template id="theme-icons"><svg aria-hidden="true" class="light astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M5 12a1 1 0 0 0-1-1H3a1 1 0 0 0 0 2h1a1 1 0 0 0 1-1Zm.64 5-.71.71a1 1 0 0 0 0 1.41 1 1 0 0 0 1.41 0l.71-.71A1 1 0 0 0 5.64 17ZM12 5a1 1 0 0 0 1-1V3a1 1 0 0 0-2 0v1a1 1 0 0 0 1 1Zm5.66 2.34a1 1 0 0 0 .7-.29l.71-.71a1 1 0 1 0-1.41-1.41l-.66.71a1 1 0 0 0 0 1.41 1 1 0 0 0 .66.29Zm-12-.29a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.71-.71a1.004 1.004 0 1 0-1.43 1.41l.73.71ZM21 11h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0-2Zm-2.64 6A1 1 0 0 0 17 18.36l.71.71a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.76-.66ZM12 6.5a5.5 5.5 0 1 0 5.5 5.5A5.51 5.51 0 0 0 12 6.5Zm0 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm0 3.5a1 1 0 0 0-1 1v1a1 1 0 0 0 2 0v-1a1 1 0 0 0-1-1Z"/></svg><svg aria-hidden="true" class="dark astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.64 13a1 1 0 0 0-1.05-.14 8.049 8.049 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05Zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.784 9.784 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32v-.04Z"/></svg><svg aria-hidden="true" class="auto astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg></template><link rel="stylesheet" href="/dz-harness/docs/_astro/print.ehPL0gv-.css" media="print"><link rel="stylesheet" href="/dz-harness/docs/_astro/common.B2pDx8tR.css"><script type="module" src="/dz-harness/docs/_astro/page.LAbJoB63.js"></script></head><body class="astro-fludlhlc"><a class="sl-skip-link astro-rd7f3ilo" href="#_top">Skip to content</a><div class="page sl-flex astro-7kvyt4cj"><header class="header astro-7kvyt4cj"><div class="header astro-x3hkj6ex"><div class="title-wrapper sl-flex astro-x3hkj6ex"><a href="/dz-harness/docs/" class="site-title sl-flex astro-jj6aqubv"><span class="astro-jj6aqubv" translate="no">DZ Harness Hub</span></a></div><div class="sl-flex print:hidden astro-x3hkj6ex"><site-search class="astro-x3hkj6ex astro-h7bgna6q" data-translations="{&quot;placeholder&quot;:&quot;Search&quot;}"><button data-open-modal disabled aria-label="Search" aria-keyshortcuts="Control+K" class="astro-h7bgna6q"><svg aria-hidden="true" class="astro-h7bgna6q astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.71 20.29 18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/></svg><span class="sl-hidden md:sl-block astro-h7bgna6q" aria-hidden="true">Search</span><kbd class="sl-hidden md:sl-flex astro-h7bgna6q" style="display: none;"><kbd class="astro-h7bgna6q">Ctrl</kbd><kbd class="astro-h7bgna6q">K</kbd></kbd></button><dialog style="padding:0" aria-label="Search" class="astro-h7bgna6q"><div class="dialog-frame sl-flex astro-h7bgna6q"><button data-close-modal class="sl-flex md:sl-hidden astro-h7bgna6q">Cancel</button><div class="search-container astro-h7bgna6q"><div id="starlight__search" class="astro-h7bgna6q"></div></div></div></dialog></site-search><script>
+	(() => {
+		const openBtn = document.querySelector('button[data-open-modal]');
+		const shortcut = openBtn?.querySelector('kbd');
+		if (!openBtn || !(shortcut instanceof HTMLElement)) return;
+		const platformKey = shortcut.querySelector('kbd');
+		if (platformKey && /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)) {
+			platformKey.textContent = '⌘';
+			openBtn.setAttribute('aria-keyshortcuts', 'Meta+K');
+		}
+		shortcut.style.display = '';
+	})();
+</script><script type="module" src="/dz-harness/docs/_astro/Search.astro_astro_type_script_index_0_lang.CuKRta-H.js"></script></div><div class="sl-hidden md:sl-flex print:hidden right-group astro-x3hkj6ex"><div class="sl-flex social-icons astro-x3hkj6ex"><a href="https://github.com/djd1m/dz-harness" rel="me" class="sl-flex astro-dsk2mrgn"><span class="sr-only astro-dsk2mrgn">GitHub</span><svg aria-hidden="true" class="astro-dsk2mrgn astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-uovo5zfy"><span class="sr-only astro-uovo5zfy">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-uovo5zfy astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-uovo5zfy"><option value="dark" class="astro-uovo5zfy">Dark</option><option value="light" class="astro-uovo5zfy">Light</option><option value="auto" selected class="astro-uovo5zfy">Auto</option></select><svg aria-hidden="true" class="icon caret astro-uovo5zfy astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script><script type="module">var e=`starlight-theme`,t=e=>e===`auto`||e===`dark`||e===`light`?e:`auto`,n=()=>t(typeof localStorage<`u`&&localStorage.getItem(e));function r(t){typeof localStorage<`u`&&localStorage.setItem(e,t===`light`||t===`dark`?t:``)}var i=()=>matchMedia(`(prefers-color-scheme: light)`).matches?`light`:`dark`;function a(e){StarlightThemeProvider.updatePickers(e),document.documentElement.dataset.theme=e===`auto`?i():e,r(e)}matchMedia(`(prefers-color-scheme: light)`).addEventListener(`change`,()=>{n()===`auto`&&a(`auto`)});var o=class extends HTMLElement{constructor(){super(),a(n()),this.querySelector(`select`)?.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&a(t(e.currentTarget.value))})}};customElements.define(`starlight-theme-select`,o);</script><script type="module">var e=class extends HTMLElement{constructor(){super();let e=this.querySelector(`select`);e&&(e.addEventListener(`change`,e=>{e.currentTarget instanceof HTMLSelectElement&&(window.location.pathname=e.currentTarget.value)}),window.addEventListener(`pageshow`,t=>{if(!t.persisted)return;let n=e.querySelector(`option[selected]`)?.index;n!==e.selectedIndex&&(e.selectedIndex=n??0)}))}};customElements.define(`starlight-lang-select`,e);</script></div></div></header><nav class="sidebar print:hidden astro-7kvyt4cj" aria-label="Main"><button popovertarget="starlight__sidebar" class="sl-menu-button sl-flex md:sl-hidden print:hidden astro-aefmddap"><svg aria-hidden="true" class="open-menu astro-aefmddap astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M3 8h18a1 1 0 1 0 0-2H3a1 1 0 0 0 0 2Zm18 8H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Zm0-5H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Z"/></svg><svg aria-hidden="true" class="close-menu astro-aefmddap astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="m13.41 12 6.3-6.29a1.004 1.004 0 1 0-1.42-1.42L12 10.59l-6.29-6.3a1.004 1.004 0 0 0-1.42 1.42l6.3 6.29-6.3 6.29a1 1 0 0 0 0 1.42.998.998 0 0 0 1.42 0l6.29-6.3 6.29 6.3a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.42L13.41 12Z"/></svg><span class="sr-only astro-aefmddap">Menu</span></button><script type="module">var e=class extends HTMLElement{constructor(){super();let e=matchMedia(`(min-width: 50em)`),t=()=>{this.popover=e.matches?null:`auto`};t(),e.addEventListener(`change`,()=>t()),this.addEventListener(`toggle`,({newState:e})=>this.trapFocus(e===`open`))}trapFocus(e){document.querySelectorAll(`.main-frame, .sl-skip-link`).forEach(t=>{t.toggleAttribute(`inert`,e)})}};customElements.define(`sl-sidebar-pane`,e);</script><sl-sidebar-pane popover id="starlight__sidebar" class="sidebar-pane astro-7kvyt4cj"><div class="sidebar-content sl-flex astro-7kvyt4cj"><sl-sidebar-state-persist data-hash="0wvp3bg" class="astro-kd46a6jf"><script aria-hidden="true">
+		(() => {
+			try {
+				if (!matchMedia('(min-width: 50em)').matches) return;
+				/** @type {HTMLElement | null} */
+				const target = document.querySelector('sl-sidebar-state-persist');
+				const state = JSON.parse(sessionStorage.getItem('sl-sidebar-state') || '0');
+				if (!target || !state || target.dataset.hash !== state.hash) return;
+				window._starlightScrollRestore = state.scroll;
+				customElements.define(
+					'sl-sidebar-restore',
+					class SidebarRestore extends HTMLElement {
+						connectedCallback() {
+							try {
+								const idx = parseInt(this.dataset.index || '');
+								const details = this.closest('details');
+								if (details && typeof state.open[idx] === 'boolean') details.open = state.open[idx];
+							} catch {}
+						}
+					}
+				);
+			} catch {}
+		})();
+	</script><ul class="top-level astro-76zexjuq"><li class="astro-76zexjuq"><details open class="astro-76zexjuq"><summary class="astro-76zexjuq"><span class="group-label astro-76zexjuq"><span class="large astro-76zexjuq">Skills</span></span><svg aria-hidden="true" class="caret astro-76zexjuq astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="0"></sl-sidebar-restore><ul class="astro-76zexjuq"><li class="astro-76zexjuq"><a href="/dz-harness/docs/skills/academic/" class="astro-76zexjuq"><span class="astro-76zexjuq">Academic Skills</span></a></li><li class="astro-76zexjuq"><a href="/dz-harness/docs/skills/devops/" class="astro-76zexjuq"><span class="astro-76zexjuq">DevOps Skills</span></a></li><li class="astro-76zexjuq"><a href="/dz-harness/docs/skills/ecc/" class="astro-76zexjuq"><span class="astro-76zexjuq">ECC Skills</span></a></li><li class="astro-76zexjuq"><a href="/dz-harness/docs/skills/mcp/" class="astro-76zexjuq"><span class="astro-76zexjuq">MCP Skills</span></a></li><li class="astro-76zexjuq"><a href="/dz-harness/docs/skills/meta/" class="astro-76zexjuq"><span class="astro-76zexjuq">Meta Skills</span></a></li><li class="astro-76zexjuq"><a href="/dz-harness/docs/skills/news/" class="astro-76zexjuq"><span class="astro-76zexjuq">News Skills</span></a></li><li class="astro-76zexjuq"><a href="/dz-harness/docs/skills/overview/" class="astro-76zexjuq"><span class="astro-76zexjuq">Skills Catalog</span></a></li><li class="astro-76zexjuq"><a href="/dz-harness/docs/skills/qe/" class="astro-76zexjuq"><span class="astro-76zexjuq">QE Skills</span></a></li><li class="astro-76zexjuq"><a href="/dz-harness/docs/skills/web3/" class="astro-76zexjuq"><span class="astro-76zexjuq">Web3 Skills</span></a></li></ul></details></li><li class="astro-76zexjuq"><details open class="astro-76zexjuq"><summary class="astro-76zexjuq"><span class="group-label astro-76zexjuq"><span class="large astro-76zexjuq">Presets</span></span><svg aria-hidden="true" class="caret astro-76zexjuq astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="1"></sl-sidebar-restore><ul class="astro-76zexjuq"><li class="astro-76zexjuq"><a href="/dz-harness/docs/presets/overview/" class="astro-76zexjuq"><span class="astro-76zexjuq">Presets Overview</span></a></li></ul></details></li><li class="astro-76zexjuq"><details open class="astro-76zexjuq"><summary class="astro-76zexjuq"><span class="group-label astro-76zexjuq"><span class="large astro-76zexjuq">CLI</span></span><svg aria-hidden="true" class="caret astro-76zexjuq astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="2"></sl-sidebar-restore><ul class="astro-76zexjuq"><li class="astro-76zexjuq"><a href="/dz-harness/docs/cli/benchmark/" class="astro-76zexjuq"><span class="astro-76zexjuq">dz benchmark</span></a></li><li class="astro-76zexjuq"><a href="/dz-harness/docs/cli/import-ecc/" class="astro-76zexjuq"><span class="astro-76zexjuq">dz import-ecc</span></a></li><li class="astro-76zexjuq"><a href="/dz-harness/docs/cli/learning/" class="astro-76zexjuq"><span class="astro-76zexjuq">Self-Learning Guide</span></a></li><li class="astro-76zexjuq"><a href="/dz-harness/docs/cli/overview/" aria-current="page" class="astro-76zexjuq"><span class="astro-76zexjuq">CLI Reference</span></a></li><li class="astro-76zexjuq"><a href="/dz-harness/docs/cli/recommend/" class="astro-76zexjuq"><span class="astro-76zexjuq">dz recommend</span></a></li><li class="astro-76zexjuq"><a href="/dz-harness/docs/cli/scout/" class="astro-76zexjuq"><span class="astro-76zexjuq">dz scout</span></a></li><li class="astro-76zexjuq"><a href="/dz-harness/docs/cli/setup/" class="astro-76zexjuq"><span class="astro-76zexjuq">dz setup</span></a></li></ul></details></li><li class="astro-76zexjuq"><details open class="astro-76zexjuq"><summary class="astro-76zexjuq"><span class="group-label astro-76zexjuq"><span class="large astro-76zexjuq">Targets</span></span><svg aria-hidden="true" class="caret astro-76zexjuq astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></summary><sl-sidebar-restore data-index="3"></sl-sidebar-restore><ul class="astro-76zexjuq"><li class="astro-76zexjuq"><a href="/dz-harness/docs/targets/overview/" class="astro-76zexjuq"><span class="astro-76zexjuq">Targets Guide</span></a></li></ul></details></li></ul><script aria-hidden="true">
+		(() => {
+			const scroller = document.getElementById('starlight__sidebar');
+			if (!window._starlightScrollRestore || !scroller) return;
+			scroller.scrollTop = window._starlightScrollRestore;
+			delete window._starlightScrollRestore;
+		})();
+	</script></sl-sidebar-state-persist><div class="md:sl-hidden"><div class="mobile-preferences sl-flex astro-s6jrwamp"><div class="social-icons astro-s6jrwamp"><a href="https://github.com/djd1m/dz-harness" rel="me" class="sl-flex astro-dsk2mrgn"><span class="sr-only astro-dsk2mrgn">GitHub</span><svg aria-hidden="true" class="astro-dsk2mrgn astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a></div><starlight-theme-select><label style="--sl-select-width: 6.25em" class="astro-uovo5zfy"><span class="sr-only astro-uovo5zfy">Select theme</span><svg aria-hidden="true" class="icon label-icon astro-uovo5zfy astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg><select autocomplete="off" class="astro-uovo5zfy"><option value="dark" class="astro-uovo5zfy">Dark</option><option value="light" class="astro-uovo5zfy">Light</option><option value="auto" selected class="astro-uovo5zfy">Auto</option></select><svg aria-hidden="true" class="icon caret astro-uovo5zfy astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg></label></starlight-theme-select><script>
+	StarlightThemeProvider.updatePickers();
+</script></div></div></div></sl-sidebar-pane></nav><div class="main-frame astro-7kvyt4cj"><script type="module">var e=document.getElementById(`starlight__sidebar`),t=e?.querySelector(`sl-sidebar-state-persist`),n=`sl-sidebar-state`,r=()=>{let r=[],i=t?.dataset.hash||``;try{let e=sessionStorage.getItem(n),t=JSON.parse(e||`{}`);Array.isArray(t.open)&&t.hash===i&&(r=t.open)}catch{}return{hash:i,open:r,scroll:e?.scrollTop||0}},i=e=>{try{sessionStorage.setItem(n,JSON.stringify(e))}catch{}},a=()=>i(r()),o=(e,t)=>{let n=r();n.open[t]=e,i(n)};t?.addEventListener(`click`,e=>{if(!(e.target instanceof Element))return;let t=e.target.closest(`summary`)?.closest(`details`);if(!t)return;let n=t.querySelector(`sl-sidebar-restore`),r=parseInt(n?.dataset.index||``);isNaN(r)||o(!t.open,r)}),addEventListener(`visibilitychange`,()=>{document.visibilityState===`hidden`&&a()});</script><div class="lg:sl-flex astro-2wijdgge"><aside class="right-sidebar-container print:hidden astro-2wijdgge"><div class="right-sidebar astro-2wijdgge"><div class="lg:sl-hidden astro-nf3ifux4"><mobile-starlight-toc data-min-h="2" data-max-h="3" class="astro-gtc23x42"><nav aria-labelledby="starlight__on-this-page--mobile" class="astro-gtc23x42"><details id="starlight__mobile-toc" class="astro-gtc23x42"><summary id="starlight__on-this-page--mobile" class="sl-flex astro-gtc23x42"><span class="toggle sl-flex astro-gtc23x42">On this page<svg aria-hidden="true" class="caret astro-gtc23x42 astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></span><span class="display-current astro-gtc23x42"></span></summary><div class="dropdown astro-gtc23x42"><ul class="isMobile astro-4s7xacyl" style="--depth: 0;"><li style="--depth: 0;" class="astro-4s7xacyl"><a href="#_top" style="--depth: 0;" class="astro-4s7xacyl"><span style="--depth: 0;" class="astro-4s7xacyl">Overview</span></a></li><li style="--depth: 0;" class="astro-4s7xacyl"><a href="#install" style="--depth: 0;" class="astro-4s7xacyl"><span style="--depth: 0;" class="astro-4s7xacyl">Install</span></a></li><li style="--depth: 0;" class="astro-4s7xacyl"><a href="#commands-by-cjm-phase" style="--depth: 0;" class="astro-4s7xacyl"><span style="--depth: 0;" class="astro-4s7xacyl">Commands by CJM Phase</span></a><ul class="isMobile astro-4s7xacyl" style="--depth: 1;"><li style="--depth: 1;" class="astro-4s7xacyl"><a href="#discover" style="--depth: 1;" class="astro-4s7xacyl"><span style="--depth: 1;" class="astro-4s7xacyl">Discover</span></a></li><li style="--depth: 1;" class="astro-4s7xacyl"><a href="#install-1" style="--depth: 1;" class="astro-4s7xacyl"><span style="--depth: 1;" class="astro-4s7xacyl">Install</span></a></li><li style="--depth: 1;" class="astro-4s7xacyl"><a href="#configure" style="--depth: 1;" class="astro-4s7xacyl"><span style="--depth: 1;" class="astro-4s7xacyl">Configure</span></a></li><li style="--depth: 1;" class="astro-4s7xacyl"><a href="#create" style="--depth: 1;" class="astro-4s7xacyl"><span style="--depth: 1;" class="astro-4s7xacyl">Create</span></a></li><li style="--depth: 1;" class="astro-4s7xacyl"><a href="#maintain" style="--depth: 1;" class="astro-4s7xacyl"><span style="--depth: 1;" class="astro-4s7xacyl">Maintain</span></a></li><li style="--depth: 1;" class="astro-4s7xacyl"><a href="#share" style="--depth: 1;" class="astro-4s7xacyl"><span style="--depth: 1;" class="astro-4s7xacyl">Share</span></a></li></ul></li><li style="--depth: 0;" class="astro-4s7xacyl"><a href="#common-options" style="--depth: 0;" class="astro-4s7xacyl"><span style="--depth: 0;" class="astro-4s7xacyl">Common Options</span></a></li></ul></div></details></nav></mobile-starlight-toc><script type="module" src="/dz-harness/docs/_astro/MobileTableOfContents.astro_astro_type_script_index_0_lang.C3fM4Kra.js"></script></div><div class="right-sidebar-panel sl-hidden lg:sl-block astro-nf3ifux4"><div class="sl-container astro-nf3ifux4"><starlight-toc data-min-h="2" data-max-h="3"><nav aria-labelledby="starlight__on-this-page"><h2 id="starlight__on-this-page">On this page</h2><ul class="astro-4s7xacyl" style="--depth: 0;"><li style="--depth: 0;" class="astro-4s7xacyl"><a href="#_top" style="--depth: 0;" class="astro-4s7xacyl"><span style="--depth: 0;" class="astro-4s7xacyl">Overview</span></a></li><li style="--depth: 0;" class="astro-4s7xacyl"><a href="#install" style="--depth: 0;" class="astro-4s7xacyl"><span style="--depth: 0;" class="astro-4s7xacyl">Install</span></a></li><li style="--depth: 0;" class="astro-4s7xacyl"><a href="#commands-by-cjm-phase" style="--depth: 0;" class="astro-4s7xacyl"><span style="--depth: 0;" class="astro-4s7xacyl">Commands by CJM Phase</span></a><ul class="astro-4s7xacyl" style="--depth: 1;"><li style="--depth: 1;" class="astro-4s7xacyl"><a href="#discover" style="--depth: 1;" class="astro-4s7xacyl"><span style="--depth: 1;" class="astro-4s7xacyl">Discover</span></a></li><li style="--depth: 1;" class="astro-4s7xacyl"><a href="#install-1" style="--depth: 1;" class="astro-4s7xacyl"><span style="--depth: 1;" class="astro-4s7xacyl">Install</span></a></li><li style="--depth: 1;" class="astro-4s7xacyl"><a href="#configure" style="--depth: 1;" class="astro-4s7xacyl"><span style="--depth: 1;" class="astro-4s7xacyl">Configure</span></a></li><li style="--depth: 1;" class="astro-4s7xacyl"><a href="#create" style="--depth: 1;" class="astro-4s7xacyl"><span style="--depth: 1;" class="astro-4s7xacyl">Create</span></a></li><li style="--depth: 1;" class="astro-4s7xacyl"><a href="#maintain" style="--depth: 1;" class="astro-4s7xacyl"><span style="--depth: 1;" class="astro-4s7xacyl">Maintain</span></a></li><li style="--depth: 1;" class="astro-4s7xacyl"><a href="#share" style="--depth: 1;" class="astro-4s7xacyl"><span style="--depth: 1;" class="astro-4s7xacyl">Share</span></a></li></ul></li><li style="--depth: 0;" class="astro-4s7xacyl"><a href="#common-options" style="--depth: 0;" class="astro-4s7xacyl"><span style="--depth: 0;" class="astro-4s7xacyl">Common Options</span></a></li></ul></nav></starlight-toc><script type="module" src="/dz-harness/docs/_astro/TableOfContents.astro_astro_type_script_index_0_lang.BpJaGz7G.js"></script></div></div></div></aside><div class="main-pane astro-2wijdgge"><main data-pagefind-body class="astro-fludlhlc" lang="en" dir="ltr"><div class="content-panel astro-dzfoerhc"><div class="sl-container astro-dzfoerhc"><h1 id="_top" class="astro-uiu2hxiv">CLI Reference</h1></div></div><div class="content-panel astro-dzfoerhc"><div class="sl-container astro-dzfoerhc"><div class="sl-markdown-content"><p>The <code dir="auto">dz</code> CLI manages skill installation, preset switching, project configuration, learning, benchmarking, and publishing. It ships as <code dir="auto">@dzhechkov/harness-cli</code> on npm.</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="install">Install</h2><a class="sl-anchor-link" href="#install"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore>Section titled “Install”</span></a></div>
+<div class="expressive-code"><link rel="stylesheet" href="/dz-harness/docs/_astro/ec.w36nc.css"><script type="module" src="/dz-harness/docs/_astro/ec.0vx5m.js"></script><figure class="frame is-terminal not-content"><figcaption class="header"><span class="title"></span><span class="sr-only">Terminal window</span></figcaption><pre data-language="bash"><code><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">npm</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">i</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">-g</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">@dzhechkov/harness-cli</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="npm i -g @dzhechkov/harness-cli"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h2"><h2 id="commands-by-cjm-phase">Commands by CJM Phase</h2><a class="sl-anchor-link" href="#commands-by-cjm-phase"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore>Section titled “Commands by CJM Phase”</span></a></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="discover">Discover</h3><a class="sl-anchor-link" href="#discover"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore>Section titled “Discover”</span></a></div>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code dir="auto">dz recommend "&lt;task&gt;"</code></td>
+<td>Analyze a task description and recommend skills, presets, and npx toolkits</td>
+</tr>
+<tr>
+<td><code dir="auto">dz scout</code></td>
+<td>Scout 9 sources (GitHub, npm, HN, MCP Registry, Glama, OSSInsight, Smithery, Semantic Scholar, arXiv) for new skill packages</td>
+</tr>
+<tr>
+<td><code dir="auto">dz registry [search &lt;query&gt;]</code></td>
+<td>Browse and search the local skill registry; filter with <code dir="auto">--category</code></td>
+</tr>
+<tr>
+<td><code dir="auto">dz downloads</code></td>
+<td>Show npm download stats for the skill packages</td>
+</tr>
+<tr>
+<td><code dir="auto">dz stats</code></td>
+<td>Quick metrics: packages, skills, targets, presets</td>
+</tr>
+<tr>
+<td><code dir="auto">dz architecture</code></td>
+<td>Top-level product architecture map — attention-ranked modules and their relations</td>
+</tr>
+<tr>
+<td><code dir="auto">dz mcp-scan</code></td>
+<td>Scan configured MCP (Model Context Protocol) servers and report their tools</td>
+</tr>
+<tr>
+<td><code dir="auto">dz parity</code></td>
+<td>Honest feature × target map, computed from the capability model — full / manual / absent per target (<code dir="auto">--target</code>, <code dir="auto">--json</code>)</td>
+</tr>
+</tbody>
+</table>
+<div class="expressive-code"><figure class="frame is-terminal not-content"><figcaption class="header"><span class="title"></span><span class="sr-only">Terminal window</span></figcaption><pre data-language="bash"><code><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Get recommendations for a task</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">recommend</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#D9F5DD;--1:#111111">"</span><span style="--0:#ECC48D;--1:#984E4D">set up CI/CD with security scanning</span><span style="--0:#D9F5DD;--1:#111111">"</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Scout for new skills from 9 sources</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">scout</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--since</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">2026-05-01</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Scout with deep SKILL.md analysis</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">scout</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--deep</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Search the registry for kubernetes-related skills</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">registry</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">search</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">kubernetes</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Show current metrics</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">stats</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="dz recommend &quot;set up CI/CD with security scanning&quot;dz scout --since 2026-05-01dz scout --deepdz registry search kubernetesdz stats"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="install-1">Install</h3><a class="sl-anchor-link" href="#install-1"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore>Section titled “Install”</span></a></div>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code dir="auto">dz init</code></td>
+<td>Install a preset (or selected skills) for a target. <code dir="auto">--preset &lt;name&gt;</code>, <code dir="auto">--select id,...</code>, <code dir="auto">--enrich</code></td>
+</tr>
+<tr>
+<td><code dir="auto">dz integrations-verify</code></td>
+<td>Repeat a target-owned live MCP/hooks registration probe; inconclusive or unsupported evidence is a named refusal</td>
+</tr>
+<tr>
+<td><code dir="auto">dz setup</code></td>
+<td>Bootstrap a project — config, hooks, learning memory. Supports <code dir="auto">--memory agentdb</code></td>
+</tr>
+<tr>
+<td><code dir="auto">dz install &lt;npm-pkg&gt;</code></td>
+<td>Install a skill package from npm into the current project</td>
+</tr>
+<tr>
+<td><code dir="auto">dz update</code></td>
+<td>Re-sync installed skills from the canonical source (alias of <code dir="auto">dz sync</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz upgrade</code></td>
+<td>Detect installed skills with newer canonical versions available</td>
+</tr>
+<tr>
+<td><code dir="auto">dz import-ecc</code></td>
+<td>Import curated skills from the ECC project (github.com/affaan-m/ECC)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz feature-adr-setup</code></td>
+<td>Guided feature-adr onboarding for a target project; <code dir="auto">--guards</code> scaffolds a zero-dependency deterministic guard runner (<code dir="auto">check.mjs</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz project-skills</code></td>
+<td>Read-only view of role-default skills wired into the feature-adr pipeline</td>
+</tr>
+<tr>
+<td><code dir="auto">dz codex-recall-observe</code></td>
+<td>Experimental owned App Server stdio proxy; separate recorded input-accounting status with explicit observer selection</td>
+</tr>
+<tr>
+<td><code dir="auto">dz statusline</code></td>
+<td>Claude Code status line: live 🚦 gates, learning and pipeline state</td>
+</tr>
+</tbody>
+</table>
+<div class="expressive-code"><figure class="frame is-terminal not-content"><figcaption class="header"><span class="title"></span><span class="sr-only">Terminal window</span></figcaption><pre data-language="bash"><code><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Initialize a target with a preset</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">init</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--target</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">claude-code</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--preset</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">devops</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Bootstrap with agentdb memory backend</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">setup</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--target</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">claude-code</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--preset</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">meta</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--memory</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">agentdb</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Install a single npm skill pack</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">install</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">@dzhechkov/skills-devops</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Import ECC skills (first 20, no force-overwrite)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">import-ecc</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--limit</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#F78C6C;--1:#AA0982">20</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Check for upgrades</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">upgrade</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="dz init --target claude-code --preset devopsdz setup --target claude-code --preset meta --memory agentdbdz install @dzhechkov/skills-devopsdz import-ecc --limit 20dz upgrade"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="configure">Configure</h3><a class="sl-anchor-link" href="#configure"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore>Section titled “Configure”</span></a></div>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code dir="auto">dz verify</code></td>
+<td>Verify installed skill structure against the agentskills.io schema</td>
+</tr>
+<tr>
+<td><code dir="auto">dz doctor</code></td>
+<td>Check installation health — verifies skills, presets, targets</td>
+</tr>
+<tr>
+<td><code dir="auto">dz diff &lt;skill-dir&gt;</code></td>
+<td>Show line-level differences between an installed skill and its canonical version</td>
+</tr>
+<tr>
+<td><code dir="auto">dz migrate</code></td>
+<td>Migrate an existing project layout to the current harness conventions</td>
+</tr>
+<tr>
+<td><code dir="auto">dz roam</code></td>
+<td>Roam across project sessions and memory states</td>
+</tr>
+</tbody>
+</table>
+<div class="expressive-code"><figure class="frame is-terminal not-content"><figcaption class="header"><span class="title"></span><span class="sr-only">Terminal window</span></figcaption><pre data-language="bash"><code><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Verify skill structure</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">verify</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Health check</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">doctor</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># See what changed vs canonical</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">diff</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">.claude/skills/pr-review</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Roam session history</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">roam</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="dz verifydz doctordz diff .claude/skills/pr-reviewdz roam"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="create">Create</h3><a class="sl-anchor-link" href="#create"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore>Section titled “Create”</span></a></div>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code dir="auto">dz create-skill --name &lt;id&gt;</code></td>
+<td>Scaffold a new skill with the agentskills.io directory structure (<code dir="auto">--bto</code> for eval templates)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz compose &lt;preset1+preset2+...&gt;</code></td>
+<td>Compose multiple presets into one install (deduplicates overlapping skills)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz teach "&lt;pattern&gt;"</code></td>
+<td>Teach the harness a new pattern (<code dir="auto">--reward &lt;0-1&gt;</code>, <code dir="auto">--domain &lt;name&gt;</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz plugin</code></td>
+<td>Generate a Claude Plugin manifest (<code dir="auto">.claude-plugin/</code>) from the registry</td>
+</tr>
+<tr>
+<td><code dir="auto">dz workflow &lt;sub&gt;</code></td>
+<td>Author loop-plan/1 Workflow loops: <code dir="auto">init</code> scaffold, <code dir="auto">validate</code> (INV checks, CI-runnable), <code dir="auto">render</code> (plan → region-delimited script, USER regions preserved), <code dir="auto">blobs</code> (subsystem-blob registry) — the ADR-005 templates are retired</td>
+</tr>
+<tr>
+<td><code dir="auto">dz workflow-lint &lt;script.js&gt;</code></td>
+<td>17-rule deterministic gate over a loop script (<code dir="auto">--plan</code>, <code dir="auto">--require-plan</code>/<code dir="auto">--legacy</code>); exit 0/1/3 — inconclusive is never a pass</td>
+</tr>
+<tr>
+<td><code dir="auto">dz workflow-trace &lt;runDir&gt;</code></td>
+<td>Timeline + SEQ invariant runner over a run’s own trace.jsonl (<code dir="auto">--invariants</code>, <code dir="auto">--html</code>, <code dir="auto">--json</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz recall "&lt;query&gt;"</code></td>
+<td>Recall learned patterns — lexical + semantic (vector) ranking; <code dir="auto">--forget &lt;dzId&gt;</code> removes with a snapshot</td>
+</tr>
+<tr>
+<td><code dir="auto">dz store-guard</code></td>
+<td>Monotonic high-water mark over the learned store: refuses a cold start over an existing store (<code dir="auto">--reset</code> to re-arm deliberately)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz consolidate</code></td>
+<td>Consolidate session lessons into the learned store; <code dir="auto">--prune-noise</code> (dry-run by default)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz vector &lt;sub&gt;</code></td>
+<td>Vector tier over the learned store: index, search, reindex, import</td>
+</tr>
+<tr>
+<td><code dir="auto">dz brain &lt;sub&gt;</code></td>
+<td>Cross-project knowledge brain: book knowledge units, grounding, rerank</td>
+</tr>
+<tr>
+<td><code dir="auto">dz retro</code></td>
+<td>Retrospective over recent work — surfaces lessons worth teaching</td>
+</tr>
+<tr>
+<td><code dir="auto">dz mr-rakes</code></td>
+<td>Analyze merge requests for the project’s recurring rakes (learn from mistakes)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz challenge</code></td>
+<td>Adversarial challenge-panel over a plan (break-it questions + cross-validation)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz bto-optimize</code></td>
+<td>Optimize a skill with hold-out evaluation and no-regress winner selection</td>
+</tr>
+</tbody>
+</table>
+<div class="expressive-code"><figure class="frame is-terminal not-content"><figcaption class="header"><span class="title"></span><span class="sr-only">Terminal window</span></figcaption><pre data-language="bash"><code><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Scaffold a new skill</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">create-skill</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--name</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">my-custom-skill</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Scaffold with BTO eval templates (L0/L1/L2)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">create-skill</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--name</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">my-skill</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--bto</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Compose a workflow from existing presets</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">compose</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">devops+mcp+web3</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Teach a pattern</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">teach</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#D9F5DD;--1:#111111">"</span><span style="--0:#ECC48D;--1:#984E4D">always run linting before commit</span><span style="--0:#D9F5DD;--1:#111111">"</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--reward</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#F78C6C;--1:#AA0982">1.0</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Generate Claude Plugin manifest</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">plugin</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Run a dynamic workflow</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">workflow</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">init</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--name</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">my-loop</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--pattern</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">pipeline</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--o</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">my-loop.plan.json</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">workflow</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">render</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">my-loop.plan.json</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--o</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">my-loop.js</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">workflow-lint</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">my-loop.js</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--plan</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">my-loop.plan.json</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--require-plan</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="dz create-skill --name my-custom-skilldz create-skill --name my-skill --btodz compose devops+mcp+web3dz teach &quot;always run linting before commit&quot; --reward 1.0dz plugindz workflow init --name my-loop --pattern pipeline --o my-loop.plan.jsondz workflow render my-loop.plan.json --o my-loop.jsdz workflow-lint my-loop.js --plan my-loop.plan.json --require-plan"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="maintain">Maintain</h3><a class="sl-anchor-link" href="#maintain"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore>Section titled “Maintain”</span></a></div>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code dir="auto">dz benchmark &lt;skill-dir&gt;</code></td>
+<td>Benchmark a skill against 19 Layer-0 deterministic checks (Grade A–F)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz pretrain</code></td>
+<td>Pre-train the harness on your codebase (tech-stack detectors)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz sync</code></td>
+<td>Re-sync installed skills from the canonical source</td>
+</tr>
+<tr>
+<td><code dir="auto">dz sync-upstream</code></td>
+<td>Check skills against their origin repos via <code dir="auto">sources.json</code></td>
+</tr>
+<tr>
+<td><code dir="auto">dz auto-canonicalize</code></td>
+<td>Scan a GitHub repo for SKILL.md files and generate <code dir="auto">create-skill</code> commands</td>
+</tr>
+<tr>
+<td><code dir="auto">dz dashboard</code></td>
+<td>Visual panel: all packages, adapters, presets, and health at a glance</td>
+</tr>
+<tr>
+<td><code dir="auto">dz chain</code></td>
+<td>Verify EVERY hash-chained journal in one command. Coverage is DERIVED from the <code dir="auto">CHAINED_JOURNALS</code> registry, never typed, so a journal cannot be given a chain and then checked by nobody. An ABSENT journal is NAMED absent rather than omitted — omission and cleanliness read alike in a report. Statuses <code dir="auto">ok / healed / unchained / absent / broken / unreadable</code>; exit 1 on broken or unreadable (<code dir="auto">--project</code>, <code dir="auto">--json</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz claim-check</code></td>
+<td>Integrity gate: flag untagged accuracy/count claims in docs and READMEs</td>
+</tr>
+<tr>
+<td><code dir="auto">dz discrimination-check</code></td>
+<td>§42 gate: prove a property test goes RED at pre-feature base (not vacuous)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz amendment-check</code></td>
+<td>Every <code dir="auto">AM-N</code> amendment row must resolve to a test found INSIDE the file it names; <code dir="auto">--all</code> is a census that never blocks</td>
+</tr>
+<tr>
+<td><code dir="auto">dz journal</code></td>
+<td><code dir="auto">add --kind decision|verdict|run|error|block "&lt;text&gt;" [--ref &lt;trace&gt;] [--at &lt;ISO&gt;] [--quote &lt;file&gt;] [--commit-quote]</code>; <code dir="auto">show [--day|--week] [--at &lt;date&gt;] [--kind &lt;kind&gt;] [--json]</code>. Existing UTC day files, witnessed append; quotes remain local by default.</td>
+</tr>
+<tr>
+<td><code dir="auto">dz feature-adr-record</code></td>
+<td>Witnessed writer for the run-cost ledger and training pairs — refused before any write, verified by re-reading</td>
+</tr>
+<tr>
+<td><code dir="auto">dz round</code></td>
+<td>Focused work outside feature-adr: <code dir="auto">open</code> recalls up to five lessons into the brief; <code dir="auto">close</code> requires a stored <code dir="auto">teach:&lt;id&gt;</code> or <code dir="auto">--no-new-knowledge</code>, writes through <code dir="auto">feature-adr-record</code>, and removes state only after read-back; <code dir="auto">status</code> reports old live or abandoned rounds</td>
+</tr>
+<tr>
+<td><code dir="auto">dz experiment</code></td>
+<td>Ablation-C: <code dir="auto">assign --experiment &lt;name&gt; --task &lt;taskId&gt; --stratum &lt;s&gt;</code> computes a pre-registered, block-randomized direct/reference arm (idempotent — a repeat <code dir="auto">--task</code> returns the same arm, refuses one already started per the run-cost ledger); <code dir="auto">status --experiment &lt;name&gt;</code> reports an intention-to-treat table by arm</td>
+</tr>
+<tr>
+<td><code dir="auto">dz runs</code></td>
+<td>Read the run registry: live, stalled, orphaned, inconclusive, or finished; show parent and heartbeat age ; <code dir="auto">--settle</code> records confirmed death, <code dir="auto">--stall-minutes</code> controls the display-only stalled state</td>
+</tr>
+<tr>
+<td><code dir="auto">dz runs-record</code></td>
+<td>Append started, heartbeat, or finished; Workflow uses the host PID and a distinct run ID</td>
+</tr>
+<tr>
+<td><code dir="auto">dz runs-clean</code></td>
+<td>Plan cleanup of old clean merged worktrees and dead/finished run histories; <code dir="auto">--apply</code> removes and confirms, <code dir="auto">--retention-days</code> defaults to 2</td>
+</tr>
+<tr>
+<td><code dir="auto">dz mutation-gate</code></td>
+<td>The mutation gate: delete each NAMED protection (declarative <code dir="auto">{find, replace}</code> registry) in a scratch copy of the package, run its suite, REQUIRE red — and require the red to be ATTRIBUTABLE: a mutation that no longer parses is <code dir="auto">MUTATION_UNPARSEABLE</code>, a failing count far above the entry’s bound is <code dir="auto">OVER_FAILING</code>, and a restored tree that does not reproduce green makes the entry <code dir="auto">INCONCLUSIVE</code> (flaky). A does-not-apply mutation, a green suite, or an inconclusive run is a FAILURE, never a skip (<code dir="auto">--package</code>, <code dir="auto">--registry</code>, <code dir="auto">--only</code>, <code dir="auto">--rebaseline per-entry|final</code>, <code dir="auto">--json</code>; exit 0 proven / 1 failed / 2 setup)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz delivery-check --slug &lt;slug&gt;</code></td>
+<td>Portable Step-10 Delivery Gate: 4-plane review brief + artifact probes; <code dir="auto">--findings</code> → fail-closed ready/blocked hand-off + <code dir="auto">10_delivery_review.md</code> (<code dir="auto">--strict</code>, <code dir="auto">--json</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz skills-verify</code></td>
+<td>Does <code dir="auto">.claude/skills/</code> actually REGISTER? <code dir="auto">--static</code> = instant CI-safe layout scan (flags dirs that can never register); default reads the authoritative <code dir="auto">system/init</code> listing from a real session. exit 0 pass / 1 fail / 2 inconclusive — never a false pass (<code dir="auto">--dir</code>, <code dir="auto">--expect</code>, <code dir="auto">--strict</code>, <code dir="auto">--json</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz compounding</code></td>
+<td>Does the learning loop pay? Pool write-only ratio, guard trajectory by rate, replay readiness, apply-leg staleness — INSUFFICIENT_DATA is a finding, never a verdict (<code dir="auto">--project</code>, <code dir="auto">--json</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz deadwood</code></td>
+<td>Advisory zero-usage report for commands and guard-rule firings over <code dir="auto">--weeks &lt;n&gt;</code>. Safety-net exclusions carry written reasons; skills without an invocation signal never become candidates; shallow history reports <code dir="auto">INSUFFICIENT_DATA</code>. Human deprecation review only — never deletes or modifies harness surface (<code dir="auto">--json</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz lint</code></td>
+<td>Advisory EN/RU prose-style lint for the lexical layer claim-check and voice review don’t cover — dense marker clusters (leverage/comprehensive/robust/seamless/synergy/…), bullet walls, triple-adjective stacks. PARAGRAPH-LOCAL policy, not single-occurrence: the two-distinct-marker floor owns paragraphs through 50 words under defaults, then density rejects diffuse clusters; a legitimate <code dir="auto">robust parser</code> stays clean (<code dir="auto">[paths...]</code>, <code dir="auto">--json</code>, <code dir="auto">--config</code>, <code dir="auto">--registry</code>, <code dir="auto">--project</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz contract-check</code></td>
+<td>Per-item verdict (met/unmet/not-testable) against a feature’s numbered, testable acceptance criteria and ADR Confirmation — complements the single load-bearing ADR Confirmation property with completeness: an unmet item can’t hide inside a holistic A/B grade (<code dir="auto">--slug</code>, <code dir="auto">--json</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz epoch-replay</code></td>
+<td>RUNS the cold-vs-warm replay <code dir="auto">dz compounding</code> reports readiness for. PAIRED test — one binomial over DECISIVE pairs (ties excluded, reported): <code dir="auto">p̂ = warm/(warm+cold)</code>, 95% Wilson, on the lift scale <code dir="auto">2p̂−1</code>. SUPPORTED only when the lift interval lies entirely above zero; FALSIFIED only on harm or a passed non-superiority test (lift upper bound below the PRE-REGISTERED margin, default 0.05, at 10+ decisive pairs) so a tie — even 500/500 — is INCONCLUSIVE, not “refuted”; no verdict below 5 decisive pairs. Orchestrates + scores, never calls a model: <code dir="auto">--emit</code> (work order + pre-registered margin + sha256 integrity digest, an accident check and NOT a cryptographic commitment) → <code dir="auto">--judge</code> (the file carries <code dir="auto">{id, prompt}</code> ONLY) → <code dir="auto">--score --work-order</code> (verifies digest + seed-derived assignment; refuses forged orders, a <code dir="auto">--margin</code> flag, and duplicate judgement ids); <code dir="auto">--mock</code> runs the same math on seeded synthetic outcomes at $0</td>
+</tr>
+<tr>
+<td><code dir="auto">dz score</code></td>
+<td>Process scorecard for one feature-adr run: ADR confirmation, discrimination, cross-model QE grade, live verification, README-first, learning loop — descriptive-only, never a gate (<code dir="auto">--slug</code>, <code dir="auto">--json</code>). <code dir="auto">--by-family</code> (ADR-001 cross-family-control-branch) aggregates the WHOLE ledger per (coder,reviewer) family pair — grades, shippedShare, fixRounds, foreign-unique findings folded in from <code dir="auto">dz control-review</code> rows, refutedShare, costPerConfirmed, draftToShipped; prints “control rows: 0” honestly when none exist yet</td>
+</tr>
+<tr>
+<td><code dir="auto">dz recap</code></td>
+<td>What was done over a day, a week or a month, from records only: deliveries with the grade an independent review STATED (a report naming two grades is reported ambiguous, never guessed), registry publishes from a cache, gate verdicts, knowledge reuse. <code dir="auto">--quarter</code>/<code dir="auto">--half-year</code>/<code dir="auto">--year</code> are recognised and REFUSED with the real span in days; contaminated measures (commit count, lines, tokens, inventory counts) are not computed and the report says so (<code dir="auto">--day</code>/<code dir="auto">--week</code>/<code dir="auto">--month</code>, <code dir="auto">--at &lt;ISO&gt;</code>, <code dir="auto">--refresh-publishes</code>, <code dir="auto">--json</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz cadence</code></td>
+<td>The RHYTHM sibling of <code dir="auto">dz recap</code>: graded shipments bucketed by ISO week, npm-publish cadence off the recap cache, guard repeat decay on the FIXED rule set (newborn rules excluded and listed), recall reuse. A window deeper than 2× the record is REFUSED with the measured depth and the largest honest window named (<code dir="auto">--window day|week|month|quarter|halfyear|year</code>, <code dir="auto">--json</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz qe-rounds</code></td>
+<td>How many Step-8 review rounds has this feature ALREADY had? Reads what <code dir="auto">dz qe-bridge</code> already wrote and records nothing itself, so it answers for runs already past. A round is a runId, not a file; an attempt with no verdict is counted separately; ONE directory, never a union across checkouts. FAILS CLOSED — an uncountable record makes the answer NOT ESTABLISHED rather than a smaller number presented as the answer (<code dir="auto">--slug</code>|<code dir="auto">--feature-dir</code>, <code dir="auto">--ceiling</code>, <code dir="auto">--json</code>; exit 0 under / 1 at-or-over, the owner decides / 2 not established)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz restart-advisor</code></td>
+<td>Manual, read-only advice over one feature’s QE-grade history. Defaults to threshold D for 2 adjacent trailing rounds; checkpoint and training-pair evidence must normalize identically when both are usable and is never unioned. A <code dir="auto">RESTART_CODE_STAGE</code> result is operator data with <code dir="auto">autoAction:false</code>, not a pipeline dispatch (<code dir="auto">--slug</code>, <code dir="auto">--threshold C|D</code>, <code dir="auto">--rounds</code>, <code dir="auto">--json</code>; exit 0 established / 2 invalid or not established / 1 unexpected runtime failure)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz provenance-check</code></td>
+<td>Nothing goes out citing a source that may not leave this machine: every claim names its source, repo paths are classified by git’s own ignore rules over the RESOLVED path (a symlink into an ignored directory is refused), store records must be named in a git-tracked public list, and an undeclared kind is refused rather than guessed. exit 0/1/3 — an empty manifest or a failed oracle is never a pass (<code dir="auto">--manifest</code>, <code dir="auto">--json</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz name-check</code></td>
+<td>Is a name free before a line of code? Checks a command name, a module basename and exported identifiers against workspace SOURCE — never dist, since a stale build answers ‘free’ confidently — and names the declaring file. exit 0/1/2; an empty sweep is never a clean bill (<code dir="auto">--command</code>, <code dir="auto">--module</code>, <code dir="auto">--export</code>, <code dir="auto">--json</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz brief-check</code></td>
+<td>Does a swarm brief say WHERE its agent writes? Parses <code dir="auto">OUTPUT_DIR</code>, <code dir="auto">UNITS</code> and <code dir="auto">ASSEMBLY_UNIT</code> as DATA and refuses by name. LIMIT, printed with every green answer: it verifies the brief DECLARED the contract, not that the agent will follow it. Measurement behind it: <code dir="auto">docs/incidents/33-background-agent-server-error-death.md</code> — five of seven background agents died on one API error; only the one writing a file per finding kept its work.</td>
+</tr>
+<tr>
+<td><code dir="auto">dz tg-post</code></td>
+<td>Sender for an approved channel post, per the channel’s accepted ADRs: HTML only, preview off, the MSK quiet window, dry-run by default, the provenance gate in-process — and a real send needs <code dir="auto">--send --yes</code>, stating the manual-publishing decision out loud (<code dir="auto">--draft</code>, <code dir="auto">--manifest</code>, <code dir="auto">--channel</code>, <code dir="auto">--night</code>, <code dir="auto">--json</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz feature-adr-checkpoint</code></td>
+<td>Record a feature-adr pipeline stage, but only after MEASURING the artifacts it declared on disk. Refuses a null result (a dead stage is never recorded as done), an absent or partially-present artifact set, and a stage that declares nothing to witness. The workflow calls it after every expensive stage so a crashed run resumes instead of restarting; it exists as a command — rather than a line of shell — because handing a subagent a finished JSON line to append made the write indistinguishable from fabricated state, and a safety classifier blocked nine such writes in one run, silently killing resume.</td>
+</tr>
+<tr>
+<td><code dir="auto">dz reqe</code></td>
+<td>The re-QE debt ledger: a usage-switched feature-adr run whose Step-8 QE ran on the coder’s OWN family (cross-model guard suspended under limit pressure) records a debt; list debts (also surfaced by <code dir="auto">dz usage</code>), print the cross-family review brief, settle FAIL-CLOSED against an existing graded report — the run’s own 08_qe_report.md can never settle its own debt (<code dir="auto">--slug</code>, <code dir="auto">--done --report &lt;f&gt;</code>, <code dir="auto">--json</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz qe-bridge</code></td>
+<td>The REVERSE QE bridge: run an INDEPENDENT Claude reviewer over a feature’s Step-8 artifacts from ANY host — a Codex session included, plain shell, no Claude agent plane needed — and land a PARSED signoff. Probes the model before trusting it; sends SCOPED extracts under a loud 200 000-char ceiling (never silent truncation); the grade must AGREE across three LAST-anchored channels (terminal marker line, fenced <code dir="auto">qe-bridge-signoff</code> JSON, the report’s own GRADE line), so quoted repo content can never mint a verdict and an empty or gradeless answer is a NAMED failure with a forensic record, never a clean review. Writes <code dir="auto">features/&lt;slug&gt;/08b_reqe_report.md</code>, which <code dir="auto">dz reqe --done</code> settles unchanged (<code dir="auto">--family claude</code>, <code dir="auto">--slug</code>, <code dir="auto">--coder-family</code>, <code dir="auto">--model</code>, <code dir="auto">--files</code>, <code dir="auto">--out</code>, <code dir="auto">--timeout</code>, <code dir="auto">--allow-same-family</code>, <code dir="auto">--json</code>; exit 0 signoff parsed — ANY grade / 1 named failure / 2 usage). The reviewer runs ISOLATED — an empty temp cwd plus <code dir="auto">--safe-mode --strict-mcp-config --tools '' --no-session-persistence</code> — and its verdict is read from the <code dir="auto">--output-format json</code> result envelope, so text a customization printed onto the same stdout can never become a signoff</td>
+</tr>
+<tr>
+<td><code dir="auto">dz control-review</code></td>
+<td>ADR-001 cross-family-control-branch: two INDEPENDENT scoped reviews over the SAME tree — a Claude <code dir="auto">qe-bridge</code> half, then a Codex <code dir="auto">round exec</code> half — diffed for foreign-unique findings per severity. Automatic overlap is a LOWER BOUND (title-Jaccard&gt;=0.5, or same file with |line delta|&lt;=3); <code dir="auto">--adjudicate &lt;file&gt;</code> overrides named pairs and marks confirmed non-matches. A <code dir="auto">git rev-parse HEAD</code> + sha256 tree snapshot is taken before and after EACH half; any drift, or a half with no accepted findings table, refuses with NO ledger row written; a written row is trusted only after being reread from the ledger (<code dir="auto">--slug</code>, <code dir="auto">--files</code>, <code dir="auto">--brief</code>, <code dir="auto">--coder-family</code>, <code dir="auto">--codex-model</code>, <code dir="auto">--effort</code>, <code dir="auto">--claude-model</code>, <code dir="auto">--timeout-min</code>, <code dir="auto">--adjudicate</code>, <code dir="auto">--json</code>; exit 0 written+verified / 1 refused / 2 usage / 3 written-but-not-reread)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz backlog</code></td>
+<td>Brain-backed idea inbox: add → semantic dedup + goal alignment; roulette picks the next idea; enrich stages an idea2prd hand-off; jira via a configurable MCP adapter seam</td>
+</tr>
+<tr>
+<td><code dir="auto">dz guard check --op &lt;op&gt;</code></td>
+<td>Declarative HARD/SOFT constraints before self-mutating ops; auto pre-flight in <code dir="auto">dz publish</code></td>
+</tr>
+<tr>
+<td><code dir="auto">dz guard promote</code></td>
+<td>Lesson → guard-rule promotion: ranks lessons by firings × cost, reduces each to a fixed rule template (pairing/absence/format — rule code is never synthesised from lesson text), SHADOW-replays it over real commits, and proposes only after TWO consecutive wins <strong>and</strong> two window-lengths of REAL elapsed time since first observation (zero firings resets the counter; a thin window is skipped, never a loss; commit dates are author-supplied, so elapsed time is gated by the local clock in <code dir="auto">.dz/promotion-state.json</code>). Proposes by default (<code dir="auto">--dry-run</code> writes nothing — and so never starts that clock; <code dir="auto">--apply</code> installs it SOFT, a promoted rule can never block, and a same-id/different-body clash exits 1 as a CONFLICT); promotions and refusals both recorded as mini-ADRs</td>
+</tr>
+<tr>
+<td><code dir="auto">dz drift-check</code></td>
+<td>Byte-drift sweep between canonical skills and their installed copies</td>
+</tr>
+<tr>
+<td><code dir="auto">dz agents-sync</code></td>
+<td>Projects the repository’s bearing rules — the ones marked <code dir="auto">&lt;!-- dz:policy id=… --&gt;</code> in <code dir="auto">CLAUDE.md</code> and <code dir="auto">.claude/rules/*.md</code> — into a <code dir="auto">dz:policies</code> fence in the root <code dir="auto">AGENTS.md</code>, so a runtime that reads only <code dir="auto">AGENTS.md</code> (Codex and friends) starts with them instead of guessing. Each section is emitted VERBATIM with a 12-hex source hash; <code dir="auto">--check</code> RECOMPUTES that hash from the source, so editing a rule without re-syncing goes red in CI. Byte-budgeted against the MEASURED 32 768 B Codex project-doc cap (over budget fails loudly, never truncates). Exit <strong>0</strong> in sync/written · <strong>1</strong> drift or over budget · <strong>3</strong> inconclusive — unreadable sources are never a pass (<code dir="auto">--project</code>, <code dir="auto">--check</code>, <code dir="auto">--json</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz hooks-sync</code></td>
+<td>Installs the dz veto + auto-recall hooks into the <strong>user-global</strong> <code dir="auto">$CODEX_HOME/hooks.json</code> and <strong>arms</strong> them: Codex hooks are trust-gated, so a written entry is silently never run until trust is recorded per entry in <code dir="auto">config.toml</code> — dz reads codex’s own <code dir="auto">hooks/list</code> for the key and hash rather than computing them. Foreign entries are preserved byte-for-byte; a backup is taken before each modifying write (newest 3 kept); the write is atomic. The <code dir="auto">PreToolUse</code> veto ships ONE rule (<code dir="auto">ssh-explicit-auth-weakening</code>) that <strong>warns by default and never blocks</strong> — enforcement is per-project opt-in via <code dir="auto">.dz/config.json</code> → <code dir="auto">{"hooks":{"shellVeto":"block"}}</code>. An install-time liveness self-probe through <code dir="auto">$SHELL -lc</code> refuses to grade an entry that exits 127 (which the runtime reads as ALLOW) as installed. <code dir="auto">--remove</code> deletes only manifest-attributed entries. Exit <strong>0</strong> armed <strong>and</strong> trusted · <strong>1</strong> not armed / drift / refusal · <strong>3</strong> inconclusive, including no <code dir="auto">codex</code> binary — where dz writes nothing (<code dir="auto">--target codex</code>, <code dir="auto">--check</code>, <code dir="auto">--remove</code>, <code dir="auto">--json</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz sync-canonical &lt;skill&gt;</code></td>
+<td>Push a canonical skill edit out to all derived copies</td>
+</tr>
+<tr>
+<td><code dir="auto">dz routing</code></td>
+<td>Learned cost-optimal model routing stats for pipeline stages</td>
+</tr>
+<tr>
+<td><code dir="auto">dz usage</code></td>
+<td>Session/weekly token usage estimates against configured limits</td>
+</tr>
+<tr>
+<td><code dir="auto">dz usage --by-stage</code></td>
+<td>Per-stage cost ledger for ONE feature-adr run — an itemized receipt instead of one number — plus the reconciliation invariant (<code dir="auto">accounted + unaccounted = run total</code>, mismatches are NAMED defects). Verdicts: <code dir="auto">BALANCED</code> / <code dir="auto">DEFECT</code> / <code dir="auto">INSUFFICIENT_DATA</code>. Totals are LOCAL transcript ESTIMATES, so it catches attribution errors, not pricing errors. Реестр расходов по стадиям: детализированный счёт вместо одного числа + инвариант сверки</td>
+</tr>
+</tbody>
+</table>
+<div class="expressive-code"><figure class="frame is-terminal not-content"><figcaption class="header"><span class="title"></span><span class="sr-only">Terminal window</span></figcaption><pre data-language="bash"><code><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Benchmark a skill (19 L0 checks, Grade A-F)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">benchmark</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">.claude/skills/pr-review</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Benchmark all skills in a directory</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">benchmark</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--all</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># A/B compare two skill versions</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">benchmark</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">.claude/skills/pr-review</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--compare</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">./pr-review-v2</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Pre-train on current codebase</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">pretrain</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Re-sync from canonical</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">sync</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Check upstream drift</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">sync-upstream</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--all</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Launch dashboard</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">dashboard</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="dz benchmark .claude/skills/pr-reviewdz benchmark --alldz benchmark .claude/skills/pr-review --compare ./pr-review-v2dz pretraindz syncdz sync-upstream --alldz dashboard"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="share">Share</h3><a class="sl-anchor-link" href="#share"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore>Section titled “Share”</span></a></div>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code dir="auto">dz publish</code></td>
+<td>Automated bump + build + npm publish (<code dir="auto">--dry-run</code>, <code dir="auto">--filter</code>, <code dir="auto">--bump-only</code>)</td>
+</tr>
+<tr>
+<td><code dir="auto">dz bundle</code></td>
+<td>Emit minimal self-contained skill bundles (<code dir="auto">SKILL.md</code> + references/scripts/assets, no dz-internal schemas/evals) for a generic consumer — e.g. a LangGraph app. <code dir="auto">--preset</code>/<code dir="auto">--select</code>, <code dir="auto">--out &lt;dir&gt;</code></td>
+</tr>
+<tr>
+<td><code dir="auto">dz list</code></td>
+<td>List all installed skills</td>
+</tr>
+<tr>
+<td><code dir="auto">dz info &lt;skill-id&gt;</code></td>
+<td>Show details for a single installed skill</td>
+</tr>
+<tr>
+<td><code dir="auto">dz release</code></td>
+<td>Verified release: 4 HARD gates (tests, prod audit, dist syntax, bin smoke-boot) in front of <code dir="auto">dz publish</code></td>
+</tr>
+<tr>
+<td><code dir="auto">dz sign</code></td>
+<td>Ed25519-sign a pack (<code dir="auto">.dz-manifest.json</code> + CycloneDX <code dir="auto">sbom.json</code>); <code dir="auto">--init</code> generates a keypair outside the repo</td>
+</tr>
+<tr>
+<td><code dir="auto">dz profile</code></td>
+<td>Who is being talked to: a per-user register (<code dir="auto">pro</code> / <code dir="auto">pro-lite</code> / <code dir="auto">plain</code>) plus deep domains (full pro, no scaffolding) and weak domains (one plain sentence every time, mandatory there). Stored at <code dir="auto">~/.dz/profile.json</code> (0600, never in a project), delivered as a marked block in <code dir="auto">~/.claude/CLAUDE.md</code> so it loads in every project on the machine. Three rules the register can never override travel with it: an explanation is self-contained, it governs dialogue but never ADRs/commits/QE reports, and it changes form, never facts</td>
+</tr>
+<tr>
+<td><code dir="auto">dz sbom</code></td>
+<td>Emit a standalone CycloneDX Software Bill of Materials for a pack</td>
+</tr>
+<tr>
+<td><code dir="auto">dz verify-pack</code></td>
+<td>Signature check of a pack — fail-closed; the trust root comes from the repo, never from the pack being verified</td>
+</tr>
+</tbody>
+</table>
+<div class="expressive-code"><figure class="frame is-terminal not-content"><figcaption class="header"><span class="title"></span><span class="sr-only">Terminal window</span></figcaption><pre data-language="bash"><code><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># List installed skills</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">list</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Inspect one skill</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">info</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">pr-review</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Publish (dry-run preview)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">publish</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--dry-run</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F"># Publish a specific package</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">dz</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">publish</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">--filter</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#ECC48D;--1:#3B61B0">@dzhechkov/skills-devops</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="dz listdz info pr-reviewdz publish --dry-rundz publish --filter @dzhechkov/skills-devops"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h2"><h2 id="common-options">Common Options</h2><a class="sl-anchor-link" href="#common-options"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 1 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 0 0-1.42-1.42m8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 1 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l3.88-3.89a4.49 4.49 0 0 0 0-6.33M8.83 15.17a1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.92-4.92a1 1 0 1 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42"></path></svg></span><span class="sr-only" data-pagefind-ignore>Section titled “Common Options”</span></a></div>
+<p>Different commands accept different flags — there are no truly global options. Frequently used ones include:</p>
+<ul>
+<li><code dir="auto">--target &lt;name&gt;</code> — target an agent platform (claude-code, codex, opencode, hermes, openclaude); used by <code dir="auto">init</code>, <code dir="auto">setup</code>, <code dir="auto">verify</code>, <code dir="auto">compose</code>, <code dir="auto">upgrade</code>, <code dir="auto">install</code></li>
+<li><code dir="auto">--preset &lt;name&gt;</code> — choose a preset bundle; used by <code dir="auto">init</code> and <code dir="auto">setup</code></li>
+<li><code dir="auto">--dry-run</code> — preview without applying; used by <code dir="auto">sync</code>, <code dir="auto">publish</code>, <code dir="auto">workflow</code></li>
+<li><code dir="auto">--force</code> — overwrite existing files; used by <code dir="auto">init</code>, <code dir="auto">setup</code>, <code dir="auto">sync</code>, <code dir="auto">import-ecc</code></li>
+</ul>
+<p><code dir="auto">dz help</code> is a built-in, not a command: it prints the same USAGE and is handled before the dispatch
+switch, so <code dir="auto">dz --help</code> lists 96 names while the canonical inventory above holds 95 (ADR-001 of
+feature <code dir="auto">command-count-triad</code>).</p>
+</div><footer class="sl-flex astro-b7evamvq"><div class="meta sl-flex astro-b7evamvq"></div><div class="pagination-links print:hidden astro-rcfxfjxa" dir="ltr"><a href="/dz-harness/docs/cli/learning/" rel="prev" class="astro-rcfxfjxa"><svg aria-hidden="true" class="astro-rcfxfjxa astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17 11H9.41l3.3-3.29a1.004 1.004 0 1 0-1.42-1.42l-5 5a1 1 0 0 0-.21.33 1 1 0 0 0 0 .76 1 1 0 0 0 .21.33l5 5a1.002 1.002 0 0 0 1.639-.325 1 1 0 0 0-.219-1.095L9.41 13H17a1 1 0 0 0 0-2Z"/></svg><span class="astro-rcfxfjxa">Previous<br class="astro-rcfxfjxa"><span class="link-title astro-rcfxfjxa">Self-Learning Guide</span></span></a><a href="/dz-harness/docs/cli/recommend/" rel="next" class="astro-rcfxfjxa"><svg aria-hidden="true" class="astro-rcfxfjxa astro-c7blenk7" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.5rem;"><path d="M17.92 11.62a1.001 1.001 0 0 0-.21-.33l-5-5a1.003 1.003 0 1 0-1.42 1.42l3.3 3.29H7a1 1 0 0 0 0 2h7.59l-3.3 3.29a1.002 1.002 0 0 0 .325 1.639 1 1 0 0 0 1.095-.219l5-5a1 1 0 0 0 .21-.33 1 1 0 0 0 0-.76Z"/></svg><span class="astro-rcfxfjxa">Next<br class="astro-rcfxfjxa"><span class="link-title astro-rcfxfjxa">dz recommend</span></span></a></div></footer></div></div></main></div></div></div></div></body></html>
