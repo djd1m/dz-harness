@@ -17,6 +17,10 @@ exists so the `repository`/`homepage` links on npmjs.com resolve instead of 404i
 
 Issues and questions: use this repository's issue tracker.
 
+## Documentation
+
+- [DZ Harness reference](https://djd1m.github.io/dz-harness/docs/) — CLI, skills, presets and targets.
+
 ## Presentations
 
 - [Harness CLI + Codex: от промпта к проверяемому результату](presentations/harness-cli-30-min/)
