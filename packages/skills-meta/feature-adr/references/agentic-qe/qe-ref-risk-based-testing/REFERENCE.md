@@ -16,28 +16,26 @@ validation:
   schema_path: schemas/output.json
   validator_path: scripts/validate-config.json
   eval_path: evals/risk-based-testing.yaml
-
 ---
+
+<!-- Vendored from https://github.com/proffesor-for-testing/agentic-qe at 0a6de058575cbe292afe220df105cc74120f7674 (MIT, Copyright (c) 2025 Agentic QE Contributors), 2026-10-23. Bundled references do not install aqe, MCP tools, pattern memory, or fleet runtime. See ../LICENSE.agentic-qe and ../README.md. -->
+
+## Keysarium execution adapter
+
+This pinned upstream body is methodology inside the bundled feature-ADR pipeline. In Reference Mode, the feature-ADR module that loaded this file owns orchestration and checkpoints. Use the reasoning and output shape below with the host's available tools. Do not treat upstream `aqe` CLI/MCP calls, named agent roles, browser tools, or example absolute paths as installed capabilities. Name a missing capability or evidence in the checkpoint instead of reporting that an upstream step ran. The schemas and eval files are bundled for explicit validation; bundling them does not run those checks automatically.
+
+Relative paths such as `schemas/output.json`, `evals/...` and `steps/...` resolve from this skill directory under `references/agentic-qe/`. When Direct Mode has a separately installed `aqe` runtime, follow the feature-ADR module's direct-mode branch and verify that each required runtime capability is actually available.
+
+<!-- BEGIN AGENTIC-QE UPSTREAM BODY -->
 
 # Risk-Based Testing
 
 <default_to_action>
 When planning tests or allocating testing resources:
-1. IDENTIFY risks: What can go wrong? What's the impact? What's the likelihood?
-2. CALCULATE risk: Risk = Probability × Impact (use 1-5 scale for each)
-3. PRIORITIZE: Critical (20+) → High (12-19) → Medium (6-11) → Low (1-5)
-4. ALLOCATE effort: 60% critical, 25% high, 10% medium, 5% low
-5. REASSESS continuously: New info, changes, production incidents
-
-**Quick Risk Assessment:**
-- Probability factors: Complexity, change frequency, developer experience, technical debt
-- Impact factors: User count, revenue, safety, reputation, regulatory
-- Dynamic adjustment: Production bugs increase risk; stable code decreases
-
-**Critical Success Factors:**
-- Test where bugs hurt most, not everywhere equally
-- Risk is dynamic - reassess with new information
-- Production data informs risk (shift-right feeds shift-left)
+1. IDENTIFY risks per component (use 1-5 scale for probability and impact)
+2. PRIORITIZE: Critical (20+) → High (12-19) → Medium (6-11) → Low (1-5)
+3. ALLOCATE effort: 60% critical, 25% high, 10% medium, 5% low
+4. REASSESS continuously: Production incidents raise risk; stable code lowers it
 </default_to_action>
 
 ## Quick Reference Card
@@ -48,11 +46,7 @@ When planning tests or allocating testing resources:
 - Allocating limited testing time
 - Justifying test coverage decisions
 
-### Risk Calculation
-```
-Risk Score = Probability (1-5) × Impact (1-5)
-```
-
+### Effort Allocation by Risk Score
 | Score | Priority | Effort | Action |
 |-------|----------|--------|--------|
 | 20-25 | Critical | 60% | Comprehensive testing, multiple techniques |
@@ -60,37 +54,9 @@ Risk Score = Probability (1-5) × Impact (1-5)
 | 6-11 | Medium | 10% | Standard testing, basic automation |
 | 1-5 | Low | 5% | Smoke test, exploratory only |
 
-### Probability Factors
-| Factor | Low (1) | Medium (3) | High (5) |
-|--------|---------|------------|----------|
-| Complexity | Simple CRUD | Business logic | Algorithms, integrations |
-| Change Rate | Stable 6+ months | Monthly changes | Weekly/daily changes |
-| Developer Experience | Senior, domain expert | Mid-level | Junior, new to codebase |
-| Technical Debt | Clean code | Some debt | Legacy, no tests |
-
-### Impact Factors
-| Factor | Low (1) | Medium (3) | High (5) |
-|--------|---------|------------|----------|
-| Users Affected | Admin only | Department | All users |
-| Revenue | None | Indirect | Direct (checkout) |
-| Safety | Convenience | Data loss | Physical harm |
-| Reputation | Internal | Industry | Public scandal |
-
 ---
 
-## Risk Assessment Workflow
-
-### Step 1: List Features/Components
-```
-Feature | Probability | Impact | Risk | Priority
---------|-------------|--------|------|----------
-Checkout | 4 | 5 | 20 | Critical
-User Auth | 3 | 5 | 15 | High
-Admin Panel | 2 | 2 | 4 | Low
-Search | 3 | 3 | 9 | Medium
-```
-
-### Step 2: Apply Test Depth
+## Apply Test Depth by Risk
 ```typescript
 await Task("Risk-Based Test Generation", {
   critical: {
@@ -207,6 +173,11 @@ const riskFleet = await FleetManager.coordinate({
 
 ## Remember
 
-**Risk = Probability × Impact.** Test where bugs hurt most. Critical gets 60%, low gets 5%. Risk is dynamic - reassess with new info. Production incidents raise risk scores.
-
 **With Agents:** Agents calculate risk using ML on historical data, select risk-appropriate tests, and adjust scores from production feedback. Use agents to maintain dynamic risk profiles at scale.
+<!-- END AGENTIC-QE UPSTREAM BODY -->
+
+## Keysarium local addition: probability and impact worksheet
+
+For each candidate failure, write down the conditions that make it likely and the consequence if it occurs. Complexity, recent change, fragile integration, and missing observability can raise probability; data loss, user reach, and recovery difficulty can raise impact. Record the reason for each rating so another reviewer can challenge it.
+
+Use the ranking to choose test depth. A high-impact boundary may need a real integration check and a failure-recovery check; a low-impact presentation detail may need a focused component check. Reassess after incidents or architecture changes. Numerical effort shares are examples only, not promises of defect detection.

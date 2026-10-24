@@ -28,11 +28,11 @@ sonnet (analytical fleet coordination — multiple parallel agents)
 ### 1. Fleet Assembly
 
 > Load agent protocols:
-> - Agent 1: `references/agentic-qe/qe-requirements-validation.md`
-> - Agent 2: `references/agentic-qe/risk-based-testing.md`
-> - Agent 3: `references/agentic-qe/enterprise-integration-testing.md`
-> - Agent 4: `references/agentic-qe/regression-testing.md`
-> - Shared: `references/agentic-qe/qe-coverage-analysis.md`
+> - Agent 1: `references/agentic-qe/qe-ref-qe-requirements-validation/REFERENCE.md`
+> - Agent 2: `references/agentic-qe/qe-ref-risk-based-testing/REFERENCE.md`
+> - Agent 3: `references/agentic-qe/qe-ref-enterprise-integration-testing/REFERENCE.md`
+> - Agent 4: `references/agentic-qe/qe-ref-regression-testing/REFERENCE.md`
+> - Shared: `references/agentic-qe/qe-ref-qe-coverage-analysis/REFERENCE.md`
 
 Spawn a QE fleet of 4 parallel assessment agents:
 
@@ -100,7 +100,7 @@ Any UNMITIGATED critical risk (score ≥ 20) = GAP.
 
 ### 4. Integration Check (Agent 3)
 
-> Protocol from: `enterprise-integration-testing` (Tier 3, condensed)
+> Protocol from: `enterprise-integration-testing` (pinned upstream protocol)
 
 Apply the **enterprise-integration-testing** hierarchical testing strategy:
 
@@ -251,17 +251,17 @@ Gaps requiring attention:
 ## Direct Mode (`--full-qe`)
 
 When `{AGENTIC_QE_MODE}` = `direct` (activated via `--full-qe` flag), Step 9
-uses full agentic-qe protocols for the same 4 core agents. No additional agents
-are added — the same fleet runs with deeper methodology from the full skill files.
+uses the same four pinned full protocols as Reference Mode. No additional agents
+are added; the installed aqe runtime adds its memory and fleet services.
 
 ### What changes
 
 | Agent | Reference Mode | Direct Mode (`--full-qe`) |
 |-------|---------------|---------------------------|
-| Agent 1 | Condensed qe-requirements-validation | Full SMART + BDD + sprint coverage protocol |
-| Agent 2 | Condensed risk-based-testing | Full 5×5 matrix + ML-enhanced + dynamic reassessment |
-| Agent 3 | Condensed enterprise-integration | Full hierarchical fleet + QCSD flags |
-| Agent 4 | Condensed regression-testing | Full change-based + historical + time-budget strategies |
+| Agent 1 | Pinned qe-requirements-validation protocol | Same protocol; aqe runtime services |
+| Agent 2 | Pinned risk-based-testing protocol | Same protocol; aqe runtime services |
+| Agent 3 | Pinned enterprise-integration protocol | Same protocol; aqe fleet services |
+| Agent 4 | Pinned regression-testing protocol | Same protocol; aqe runtime services |
 
 ## Pattern Memory Loop (Direct Modes)
 

@@ -1,6 +1,6 @@
 # @dzhechkov/harness-presets
 
-Current package version: `0.5.25`. <!-- dz:version -->
+Current package version: `0.5.26`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/harness-presets
 

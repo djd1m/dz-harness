@@ -44,7 +44,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/evidence-wiki` | 0.2.7 |
 | `@dzhechkov/harness-cli` | 0.8.53 |
 | `@dzhechkov/harness-core` | 0.8.61 |
-| `@dzhechkov/harness-presets` | 0.5.25 |
+| `@dzhechkov/harness-presets` | 0.5.26 |
 | `@dzhechkov/health-advisor` | 1.10.9 |
 | `@dzhechkov/keysarium` | 1.7.15 |
 | `@dzhechkov/keysarium-core` | 1.1.32 |
@@ -70,7 +70,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/skills-feature-adr` | 1.5.21 |
 | `@dzhechkov/skills-idea2prd` | 0.1.16 |
 | `@dzhechkov/skills-mcp` | 0.3.11 |
-| `@dzhechkov/skills-meta` | 0.9.70 |
+| `@dzhechkov/skills-meta` | 0.9.72 |
 | `@dzhechkov/skills-news` | 0.1.17 |
 | `@dzhechkov/skills-package-story-page` | 0.2.5 |
 | `@dzhechkov/skills-pm` | 0.1.6 |

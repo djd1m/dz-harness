@@ -1,13 +1,24 @@
 ---
-name: "QE Coverage Analysis"
-description: "O(log n) sublinear coverage gap detection with risk-weighted analysis and intelligent test prioritization."
+name: "qe-coverage-analysis"
+description: "Analyzes test coverage data (Istanbul, c8, lcov) to identify uncovered lines, branches, and functions with risk-weighted gap detection. Use when analyzing coverage reports, identifying coverage gaps, comparing coverage between branches, or prioritizing which untested code to cover first."
 trust_tier: 3
 validation:
   schema_path: schemas/output.json
   validator_path: scripts/validate-config.json
   eval_path: evals/qe-coverage-analysis.yaml
-
 ---
+
+<!-- Vendored from https://github.com/proffesor-for-testing/agentic-qe at 0a6de058575cbe292afe220df105cc74120f7674 (MIT, Copyright (c) 2025 Agentic QE Contributors), 2026-10-23. Bundled references do not install aqe, MCP tools, pattern memory, or fleet runtime. See ../LICENSE.agentic-qe and ../README.md. -->
+
+## Keysarium execution adapter
+
+This pinned upstream body is methodology inside the bundled feature-ADR pipeline. In Reference Mode, the feature-ADR module that loaded this file owns orchestration and checkpoints. Use the reasoning and output shape below with the host's available tools. Do not treat upstream `aqe` CLI/MCP calls, named agent roles, browser tools, or example absolute paths as installed capabilities. Name a missing capability or evidence in the checkpoint instead of reporting that an upstream step ran. The schemas and eval files are bundled for explicit validation; bundling them does not run those checks automatically.
+
+Relative paths such as `schemas/output.json`, `evals/...` and `steps/...` resolve from this skill directory under `references/agentic-qe/`. When Direct Mode has a separately installed `aqe` runtime, follow the feature-ADR module's direct-mode branch and verify that each required runtime capability is actually available.
+
+The upstream `run-history.json` is execution history, not a reference contract, and is intentionally omitted. Do not run the upstream example that reads or writes it unless an installed aqe runtime supplies its own history.
+
+<!-- BEGIN AGENTIC-QE UPSTREAM BODY -->
 
 # QE Coverage Analysis
 
@@ -186,8 +197,36 @@ quality_gates:
       - alert_on_decline: 3  # consecutive PRs
 ```
 
+## Run History
+
+After each coverage analysis, append results to `run-history.json` in this skill directory:
+```bash
+# Read current history, append new entry, write back
+node -e "
+const fs = require('fs');
+const h = JSON.parse(fs.readFileSync('.claude/skills/qe-coverage-analysis/run-history.json'));
+h.runs.push({date: new Date().toISOString().split('T')[0], statements_pct: STATEMENTS, branches_pct: BRANCHES, gaps_found: GAPS});
+fs.writeFileSync('.claude/skills/qe-coverage-analysis/run-history.json', JSON.stringify(h, null, 2));
+"
+```
+Read `run-history.json` before each run to detect trends (e.g., "coverage dropped 3 consecutive times").
+
+## Skill Composition
+
+- **Coverage dropped?** → Use `/coverage-drop-investigator` to trace the cause
+- **Need more tests** → Use `/qe-test-generation` to fill gaps
+- **Validate quality** → Use `/mutation-testing` to ensure coverage means quality
+- **Ship decision** → Feed into `/qe-quality-assessment` for deployment readiness
+
+## Gotchas
+
+- High line coverage does NOT mean good tests — 100% coverage with 0% assertions is common agent output. Use mutation testing to verify
+- coverage-analysis domain has 86% success rate — 14% of runs fail on initialization. Always verify results and have fallback plan (e.g. manual coverage tools)
+- Self-learning pipeline may silently stop learning (statusline frozen for days) — only human inspection catches this
+
 ## Coordination
 
 **Primary Agents**: qe-coverage-specialist, qe-coverage-analyzer, qe-gap-detector
 **Coordinator**: qe-coverage-coordinator
 **Related Skills**: qe-test-generation, qe-quality-assessment
+<!-- END AGENTIC-QE UPSTREAM BODY -->

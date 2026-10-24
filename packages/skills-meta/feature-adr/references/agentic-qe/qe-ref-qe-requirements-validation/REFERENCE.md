@@ -1,13 +1,22 @@
 ---
-name: "QE Requirements Validation"
-description: "Requirements traceability, acceptance criteria validation, and BDD scenario management for complete requirements coverage."
+name: "qe-requirements-validation"
+description: "Validates acceptance criteria for testability, traces requirements to test cases, and generates BDD scenarios from user stories. Use when validating acceptance criteria, building requirements traceability matrices, managing Gherkin scenarios, or ensuring complete requirements coverage before development."
 trust_tier: 3
 validation:
   schema_path: schemas/output.json
   validator_path: scripts/validate-config.json
   eval_path: evals/qe-requirements-validation.yaml
-
 ---
+
+<!-- Vendored from https://github.com/proffesor-for-testing/agentic-qe at 0a6de058575cbe292afe220df105cc74120f7674 (MIT, Copyright (c) 2025 Agentic QE Contributors), 2026-10-23. Bundled references do not install aqe, MCP tools, pattern memory, or fleet runtime. See ../LICENSE.agentic-qe and ../README.md. -->
+
+## Keysarium execution adapter
+
+This pinned upstream body is methodology inside the bundled feature-ADR pipeline. In Reference Mode, the feature-ADR module that loaded this file owns orchestration and checkpoints. Use the reasoning and output shape below with the host's available tools. Do not treat upstream `aqe` CLI/MCP calls, named agent roles, browser tools, or example absolute paths as installed capabilities. Name a missing capability or evidence in the checkpoint instead of reporting that an upstream step ran. The schemas and eval files are bundled for explicit validation; bundling them does not run those checks automatically.
+
+Relative paths such as `schemas/output.json`, `evals/...` and `steps/...` resolve from this skill directory under `references/agentic-qe/`. When Direct Mode has a separately installed `aqe` runtime, follow the feature-ADR module's direct-mode branch and verify that each required runtime capability is actually available.
+
+<!-- BEGIN AGENTIC-QE UPSTREAM BODY -->
 
 # QE Requirements Validation
 
@@ -252,3 +261,4 @@ await requirementsValidator.sprintReview({
 **Primary Agents**: qe-acceptance-criteria, qe-traceability-builder, qe-bdd-specialist
 **Coordinator**: qe-requirements-coordinator
 **Related Skills**: qe-test-generation, qe-quality-assessment
+<!-- END AGENTIC-QE UPSTREAM BODY -->

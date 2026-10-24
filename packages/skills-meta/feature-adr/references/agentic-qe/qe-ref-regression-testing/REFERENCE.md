@@ -16,8 +16,17 @@ validation:
   schema_path: schemas/output.json
   validator_path: scripts/validate-config.json
   eval_path: evals/regression-testing.yaml
-
 ---
+
+<!-- Vendored from https://github.com/proffesor-for-testing/agentic-qe at 0a6de058575cbe292afe220df105cc74120f7674 (MIT, Copyright (c) 2025 Agentic QE Contributors), 2026-10-23. Bundled references do not install aqe, MCP tools, pattern memory, or fleet runtime. See ../LICENSE.agentic-qe and ../README.md. -->
+
+## Keysarium execution adapter
+
+This pinned upstream body is methodology inside the bundled feature-ADR pipeline. In Reference Mode, the feature-ADR module that loaded this file owns orchestration and checkpoints. Use the reasoning and output shape below with the host's available tools. Do not treat upstream `aqe` CLI/MCP calls, named agent roles, browser tools, or example absolute paths as installed capabilities. Name a missing capability or evidence in the checkpoint instead of reporting that an upstream step ran. The schemas and eval files are bundled for explicit validation; bundling them does not run those checks automatically.
+
+Relative paths such as `schemas/output.json`, `evals/...` and `steps/...` resolve from this skill directory under `references/agentic-qe/`. When Direct Mode has a separately installed `aqe` runtime, follow the feature-ADR module's direct-mode branch and verify that each required runtime capability is actually available.
+
+<!-- BEGIN AGENTIC-QE UPSTREAM BODY -->
 
 # Regression Testing
 
@@ -47,14 +56,6 @@ When verifying changes don't break existing functionality:
 - Before release
 - After dependency updates
 - After environment changes
-
-### Regression Types
-| Type | When | Scope |
-|------|------|-------|
-| **Corrective** | No code change | Full suite |
-| **Progressive** | New features | Existing + new |
-| **Selective** | Specific changes | Changed + dependent |
-| **Complete** | Major refactor | Everything |
 
 ### Test Selection Strategies
 | Strategy | How | Reduction |
@@ -91,22 +92,6 @@ function selectTests(changedFiles: string[]): string[] {
 
 ---
 
-## Regression Suite Pyramid
-
-```
-         /\
-        /  \  Full Regression (weekly)
-       /    \  - All tests (2-4 hours)
-      /------\
-     /        \  Extended Regression (nightly)
-    /          \  - Unit + integration + critical E2E (30-60 min)
-   /------------\
-  /              \  Quick Regression (per commit)
- /________________\  - Changed code + smoke tests (5-10 min)
-```
-
----
-
 ## CI/CD Integration
 
 ```yaml
@@ -137,27 +122,6 @@ jobs:
     timeout-minutes: 120
     steps:
       - run: npm test -- --coverage
-```
-
----
-
-## Optimization Techniques
-
-```javascript
-// 1. Parallel execution
-module.exports = {
-  maxWorkers: '50%', // Use half CPU cores
-  testTimeout: 30000
-};
-
-// 2. Sharding across CI workers
-// npm test -- --shard=1/4
-
-// 3. Incremental testing (only changed since last run)
-// Track last run state, skip passing unchanged tests
-
-// 4. Fast-fail on smoke
-// Run critical tests first, abort if they fail
 ```
 
 ---
@@ -226,8 +190,25 @@ const regressionFleet = await FleetManager.coordinate({
 
 ## Remember
 
-**Regression testing is insurance against change.** Every code change is a risk. Smart regression testing mitigates that risk by testing what matters based on what changed.
-
-**Good regression testing is strategic, not exhaustive.** You cannot test everything, every time. Select based on changes, risk, and time budget.
-
 **With Agents:** `qe-regression-risk-analyzer` provides intelligent test selection achieving 90% defect detection in 10% of execution time. Agents generate regression tests from production bugs automatically.
+
+## Skill Composition
+
+- **Test failing?** → Use `/test-failure-investigator` to diagnose root cause
+- **File a bug** → Use `/bug-reporting-excellence` for proper bug reporting
+- **Test selection** → Use `/risk-based-testing` for risk-based prioritization
+
+## Gotchas
+
+- Agent defaults to "run everything" despite being told to select — explicitly constrain with `--affected` or file list
+- Change-based selection misses transitive dependencies — a model change can break a controller test 3 hops away
+- Flaky tests in regression suites erode trust faster than missing tests — quarantine immediately, don't skip
+- Agent may report "0 regressions" when tests simply weren't run — verify test count in output, not just pass/fail
+- Running full regression in containers often OOMs — use `--workers=2` and `--shard` for CI environments
+<!-- END AGENTIC-QE UPSTREAM BODY -->
+
+## Keysarium local addition: regression suite tiers
+
+Use a quick suite for the changed behavior and its direct dependents, a broader suite for important neighboring contracts, and a full suite when the change crosses many boundaries or before a release. A corrective run checks existing behavior after an environment change; a progressive run covers new behavior as well; a selective run is justified by a trace from changed code to affected tests.
+
+A skipped test is an explicit scope decision. Record the changed files, selected tests, and the risk that remains outside the run. Every production defect should lead to a focused reproducer before it is called fixed.

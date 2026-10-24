@@ -60,17 +60,19 @@ Trigger on:
 │   ├── adr-template.md                ← ADR document template
 │   ├── c4-template.md                 ← C4 diagram templates
 │   ├── qe-checklist.md                ← Quality engineering checklist
-│   └── agentic-qe/                    ← Integrated agentic-qe skills (15 total)
+│   └── agentic-qe/                    ← 15 QE references (8 pinned protocols)
 │       ├── README.md                  ← Skill mapping, modes, install guide
-│       ├── shift-left-testing.md      ← Step 3: ADR testability (Tier 3)
-│       ├── qcsd-ideation-swarm.md     ← Step 3.5: Quality swarm (Tier 3)
+│       ├── UPSTREAM-MANIFEST.json     ← Pinned upstream paths and hashes
+│       ├── LICENSE.agentic-qe         ← Upstream MIT notice
+│       ├── qe-ref-shift-left-testing/REFERENCE.md      ← Step 3: ADR testability (Tier 3)
+│       ├── qe-ref-qcsd-ideation-swarm/REFERENCE.md     ← Step 3.5: Quality swarm (Tier 3)
 │       ├── code-goal-planner.md       ← Step 6: SPARC-GOAP agent
-│       ├── brutal-honesty-review.md   ← Step 8: Code review (Tier 2)
-│       ├── qe-requirements-validation.md  ← Step 9: Traceability (Tier 3)
-│       ├── risk-based-testing.md      ← Step 9: Risk scoring (Tier 3)
-│       ├── enterprise-integration-testing.md ← Step 9: Integration (Tier 3, condensed)
-│       ├── regression-testing.md      ← Step 9: Regression (Tier 3)
-│       ├── qe-coverage-analysis.md    ← Step 9: Coverage (Tier 3)
+│       ├── qe-ref-brutal-honesty-review/REFERENCE.md   ← Step 8: Code review (Tier 2)
+│       ├── qe-ref-qe-requirements-validation/REFERENCE.md  ← Step 9: Traceability (Tier 3)
+│       ├── qe-ref-risk-based-testing/REFERENCE.md      ← Step 9: Risk scoring (Tier 3)
+│       ├── qe-ref-enterprise-integration-testing/REFERENCE.md ← Step 9: Integration
+│       ├── qe-ref-regression-testing/REFERENCE.md      ← Step 9: Regression (Tier 3)
+│       ├── qe-ref-qe-coverage-analysis/REFERENCE.md    ← Step 9: Coverage (Tier 3)
 │       ├── chaos-engineering-resilience.md ← Extended: Chaos (Tier 3)
 │       ├── security-testing.md        ← Extended: OWASP (Tier 3)
 │       ├── performance-testing.md     ← Extended: Load/stress (Tier 3)
@@ -649,17 +651,17 @@ statusline/JSON and its ETA keep their existing behavior. Do not start a termina
 
 ### What changes with `--full-qe`
 
-Full agentic-qe protocols for the same 9 core skills. No new agents, just deeper methodology.
+The eight vendored core skills already provide pinned full protocols in Reference Mode. Direct Mode adds the installed aqe runtime, its MCP pattern memory, and the steps explicitly listed below; it does not make the bundled references more complete.
 
 | Step | Reference Mode (default) | Direct Mode (`--full-qe`) |
 |------|--------------------------|---------------------------|
 | Step 0 | Standard routing | + pattern recall → `{LEARNED_PATTERNS}` |
-| Step 3 | Condensed shift-left protocol | Full Level 1-4 shift-left with BDD generators |
-| Step 3.5 | 3 core + flag-based conditionals | Full QCSD swarm with all 9 agents + DDD mapping |
-| Step 6 | SPARC-GOAP goal state analysis | Full agent with milestone tracking + success metrics |
+| Step 3 | Pinned shift-left protocol | Same protocol; installed aqe tooling when available |
+| Step 3.5 | Bundled QCSD protocol and conditional perspectives | Installed aqe runtime can coordinate its full swarm |
+| Step 6 | SPARC-GOAP goal state analysis | Installed planner agent when available |
 | Step 7 | Standard code generation | Standard code generation (no change) |
-| Step 8 | Brutal-honesty 3-mode review | Full calibration levels (1-3) + evidence protocol + QE pattern recall/store |
-| Step 9 | 4 agents with condensed protocols | 4 agents with full agentic-qe protocols + fleet pattern recall/store |
+| Step 8 | Pinned brutal-honesty protocol | Same review plus aqe pattern recall/store |
+| Step 9 | 4 agents with pinned full protocols | Same agents plus aqe fleet pattern recall/store |
 
 ### What `--full-qe-extended` adds on top
 

@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-10-21T10:45:14.416Z",
+  "builtAt": "2026-10-24T01:52:49.412Z",
   "builtFrom": "dz-harness-hub (private monorepo)",
   "rule": "each package mirrors exactly its npm-pack tarball inventory — the already-public surface",
   "requested": 57,
@@ -210,7 +210,7 @@
     },
     {
       "name": "@dzhechkov/harness-presets",
-      "version": "0.5.25",
+      "version": "0.5.26",
       "files": 15
     },
     {
@@ -340,8 +340,8 @@
     },
     {
       "name": "@dzhechkov/skills-meta",
-      "version": "0.9.70",
-      "files": 149
+      "version": "0.9.72",
+      "files": 187
     },
     {
       "name": "@dzhechkov/skills-news",

@@ -5,12 +5,14 @@ Feature ADR native QE opt-in uses the installed CLI-owned convergence helper, bo
 If bytes change before first evaluation, native `evaluate` retains valid old-snapshot receipt origins and conditions while reporting `not-established/native-repair-required`. Follow with explicit `begin-repair` and fresh independent verification of the new snapshot. Recovery preserves authority and the three-cycle ceiling; old evidence never closes changed bytes.
 
 
-Current package version: `0.9.70`. <!-- dz:version -->
+Current package version: `0.9.72`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-meta
 
 The **canonical meta-skill pack** — the development-process skills, packaged as
 [Agent Skills](https://agentskills.io) for distribution and cross-platform use.
+
+The `feature-adr` skill now carries eight pinned agentic-qe core protocol directories with schemas and evals. Its modules own the checkpoints in Reference Mode; the bundled files do not install the upstream runtime.
 
 MEASURED package inventory: **21 development-process skills**. Reproduce from this package directory
 with `npm pack --dry-run --json`: count `<skill>/SKILL.md` entries and all files beneath each
@@ -19,7 +21,7 @@ skill directory. The Files column counts shipped files, including the skill docu
 MEASURED inventory from `npm pack --dry-run --json` (the procedure above):
 | Skill | Files | Purpose |
 |---|---|---|
-| `feature-adr` | 39 | ADR-driven feature development pipeline (per-stage model routing incl. Codex, cross-model QE, usage-adaptive pre-emptive Codex switch at ≥70% Claude usage; amendment-Confirmation discipline, derived 🚦 Gates line, opt-in Step-10 Delivery Gate, Step-8 no-stubs gate — an unwaived `TODO`-class marker in the run's touched files is a HIGH gap; waivers require a reason) |
+| `feature-adr` | 79 | ADR-driven feature development pipeline with eight pinned agentic-qe core protocols, per-stage model routing, cross-model QE and evidence-based gates |
 | `design-tokens` | 1 | DESIGN.md design-token contract — lint (WCAG AA) / diff / export Tailwind+DTCG (wraps `@google/design.md`) |
 | `knowledge-extractor` | 10 | Harvest reusable knowledge from a project (`/harvest`) |
 | `audit` | 4 | Whole-codebase 5-phase deep audit-and-act (recon → self-challenge → P0-P3 → approval → fix) |

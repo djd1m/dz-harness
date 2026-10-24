@@ -15,8 +15,17 @@ trust_tier: 2
 validation:
   schema_path: schemas/output.json
   validator_path: scripts/validate-config.json
-
 ---
+
+<!-- Vendored from https://github.com/proffesor-for-testing/agentic-qe at 0a6de058575cbe292afe220df105cc74120f7674 (MIT, Copyright (c) 2025 Agentic QE Contributors), 2026-10-23. Bundled references do not install aqe, MCP tools, pattern memory, or fleet runtime. See ../LICENSE.agentic-qe and ../README.md. -->
+
+## Keysarium execution adapter
+
+This pinned upstream body is methodology inside the bundled feature-ADR pipeline. In Reference Mode, the feature-ADR module that loaded this file owns orchestration and checkpoints. Use the reasoning and output shape below with the host's available tools. Do not treat upstream `aqe` CLI/MCP calls, named agent roles, browser tools, or example absolute paths as installed capabilities. Name a missing capability or evidence in the checkpoint instead of reporting that an upstream step ran. The schemas and eval files are bundled for explicit validation; bundling them does not run those checks automatically.
+
+Relative paths such as `schemas/output.json`, `evals/...` and `steps/...` resolve from this skill directory under `references/agentic-qe/`. When Direct Mode has a separately installed `aqe` runtime, follow the feature-ADR module's direct-mode branch and verify that each required runtime capability is actually available.
+
+<!-- BEGIN AGENTIC-QE UPSTREAM BODY -->
 
 # Brutal Honesty Review
 
@@ -39,6 +48,9 @@ When brutal honesty is needed:
 - Level 3 (Brutal): "This is negligent. You're exposing user data because..."
 
 **DO NOT USE FOR:** Junior devs' first PRs, demoralized teams, public forums, low psychological safety
+
+## Minimum Findings Enforcement
+All brutal honesty reviews enforce a minimum of 3 weighted findings (CRITICAL=3, HIGH=2, MEDIUM=1, LOW=0.5). If the initial review finds fewer, escalate to deeper analysis. Brutally honest reviewers should ALWAYS find something -- if you can't, explain exactly why with evidence.
 </default_to_action>
 
 ## Quick Reference Card
@@ -238,3 +250,4 @@ const reviewFleet = await FleetManager.coordinate({
 **Brutal honesty eliminates ambiguity but has costs.** Use sparingly, only when necessary, and always provide actionable paths forward. Attack the work, never the worker.
 
 **The Brutal Honesty Contract**: Get explicit consent. "I'm going to give unfiltered technical feedback. This will be direct, possibly harsh. The goal is clarity, not cruelty."
+<!-- END AGENTIC-QE UPSTREAM BODY -->
