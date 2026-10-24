@@ -735,13 +735,6 @@ function installDriverDocs(projectRoot: string, force: boolean): string {
  */
 function applyLegStepResult(opts: SetupOptions, backend: MemoryBackend): SetupStep {
   if (opts.noHooks) return { name: 'Install apply-leg', status: 'skipped', detail: '--no-hooks' };
-  if (backend !== 'agentdb') {
-    return {
-      name: 'Install apply-leg',
-      status: 'skipped',
-      detail: "apply-leg needs --memory agentdb (embed daemon requires agentdb's transformers)",
-    };
-  }
   try {
     const coreDistDir = opts.coreDistDir ?? harnessCoreDistDir();
     // Re-review Codex (B) finding: the hub's own portable `null` marker must survive an ordinary
@@ -780,7 +773,7 @@ function applyLegStepResult(opts: SetupOptions, backend: MemoryBackend): SetupSt
       writeFileSync(recallHookPath, recallHookSource(bakeTarget), { mode: 0o755 });
       wroteHelpers = true;
     }
-    if (deployedEmbedVersion === -1 || opts.force || deployedEmbedVersion < APPLY_LEG_VERSION) {
+    if (backend === 'agentdb' && (deployedEmbedVersion === -1 || opts.force || deployedEmbedVersion < APPLY_LEG_VERSION)) {
       mkdirSync(helpersDir, { recursive: true });
       writeFileSync(embedDaemonPath, embedDaemonSource(), { mode: 0o755 });
       wroteHelpers = true;
@@ -878,12 +871,37 @@ function applyLegStepResult(opts: SetupOptions, backend: MemoryBackend): SetupSt
       '.claude/helpers/recall-hook.cjs',
       entries.userPromptSubmit,
     );
-    addIfMissing(
-      'SessionStart',
-      entries.sessionStart.hooks[0]?.command ?? '',
-      '.claude/helpers/dz-embed-daemon.mjs',
-      entries.sessionStart,
-    );
+    if (backend === 'agentdb') {
+      addIfMissing(
+        'SessionStart',
+        entries.sessionStart.hooks[0]?.command ?? '',
+        '.claude/helpers/dz-embed-daemon.mjs',
+        entries.sessionStart,
+      );
+    } else {
+      // A downgrade must stop the old daemon command. Keep each foreign command and matcher in
+      // place; only the command invoking our helper is removed from each SessionStart group.
+      const current = Array.isArray(hooks['SessionStart']) ? hooks['SessionStart'] : [];
+      let removedDaemon = false;
+      const cleaned = current.flatMap((entry) => {
+        const group = entry as { hooks?: { command?: unknown }[]; command?: unknown };
+        if (Array.isArray(group.hooks)) {
+          const kept = group.hooks.filter((hook) => !hookCommandInvokes(String(hook?.command ?? ''), '.claude/helpers/dz-embed-daemon.mjs'));
+          if (kept.length === group.hooks.length) return [entry];
+          removedDaemon = true;
+          return kept.length > 0 ? [{ ...group, hooks: kept }] : [];
+        }
+        if (hookCommandInvokes(String(group.command ?? ''), '.claude/helpers/dz-embed-daemon.mjs')) {
+          removedDaemon = true;
+          return [];
+        }
+        return [entry];
+      });
+      if (removedDaemon) {
+        hooks['SessionStart'] = cleaned;
+        hooksAdded = true;
+      }
+    }
     if (hooksAdded) {
       existingSettings['hooks'] = hooks;
       mkdirSync(dirname(settingsPath), { recursive: true });
@@ -897,7 +915,7 @@ function applyLegStepResult(opts: SetupOptions, backend: MemoryBackend): SetupSt
     // store" is a claim about a store that did not exist.
     const dbPath = join(opts.projectRoot, '.dz', 'agentdb.db');
     let schemaDetail = '';
-    if (!existsSync(dbPath)) {
+    if (backend === 'agentdb' && !existsSync(dbPath)) {
       const schemaResult = ensureAgentdbSchema(opts.projectRoot);
       schemaDetail = schemaResult.ok ? '; empty agentdb.db created' : `; agentdb.db NOT created (${schemaResult.error ?? 'unknown error'})`;
     }
@@ -906,7 +924,7 @@ function applyLegStepResult(opts: SetupOptions, backend: MemoryBackend): SetupSt
     return {
       name: 'Install apply-leg',
       status: changed ? 'done' : 'skipped',
-      detail: (changed ? `Apply-leg: installed v${APPLY_LEG_VERSION}` : `Apply-leg: current (v${APPLY_LEG_VERSION})`) + schemaDetail,
+      detail: (changed ? `Apply-leg: installed v${APPLY_LEG_VERSION}` : `Apply-leg: current (v${APPLY_LEG_VERSION})`) + ` (${backend})` + schemaDetail,
     };
   } catch (err) {
     return {

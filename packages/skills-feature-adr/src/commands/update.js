@@ -355,6 +355,7 @@ async function run(options) {
   manifest.version = newVersion;
   manifest.updatedAt = new Date().toISOString();
   manifest.files = allFiles.sort();
+  manifest.components = installedKeys;
   // Additive: only attach `hashes` when we actually have baseline hashes, so a
   // no-op/empty rebuild never introduces an empty key.
   if (Object.keys(newHashes).length > 0) {

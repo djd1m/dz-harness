@@ -17,6 +17,7 @@
  *      `mkdtemp` directory and open THAT read-only.
  *   3. **Honest failure.** Any other error, or step 2 itself failing, throws — naming the path
  *      and the original cause. Never a swallowed `{ hits: [] }`.
+ * `copyFirst` skips step 1 for callers whose status reads must not create source-side WAL files.
  *
  * @packageDocumentation
  */
@@ -58,7 +59,7 @@ function removeQuietly(dir) {
     }
 }
 /**
- * Open `filePath` for reading only, climbing the ladder described above.
+ * Open `filePath` for reading only, climbing the ladder described above unless `copyFirst` is set.
  *
  * Deliberately does NOT: `mkdirSync` any directory, run any DDL/DML, set `journal_mode` or
  * `synchronous`, or check `existsSync` itself (FR-5 keeps that check with the caller, before this
@@ -66,6 +67,33 @@ function removeQuietly(dir) {
  */
 export function openSqliteReadOnly(filePath, opts) {
     const Database = opts?.Database ?? defaultDatabaseCtor();
+    const openCopy = () => {
+        let tmpDir;
+        let copyDb;
+        try {
+            tmpDir = mkdtempSync(join(tmpdir(), 'dz-ro-'));
+            const dest = join(tmpDir, basename(filePath));
+            copyFileSync(filePath, dest);
+            const walSource = `${filePath}-wal`;
+            if (existsSync(walSource)) {
+                copyFileSync(walSource, `${dest}-wal`);
+            }
+            // `-shm` is derived and is intentionally recreated beside the temporary copy.
+            copyDb = new Database(dest, { readonly: true, fileMustExist: true });
+            probe(copyDb);
+            const dir = tmpDir;
+            return { db: copyDb, source: 'tmp-copy', cleanup: () => removeQuietly(dir) };
+        }
+        catch (copyErr) {
+            if (copyDb !== undefined)
+                closeQuietly(copyDb);
+            if (tmpDir !== undefined)
+                removeQuietly(tmpDir);
+            throw new Error(`failed to open ${filePath} for reading: ${errorMessage(copyErr)}`, { cause: copyErr });
+        }
+    };
+    if (opts?.copyFirst)
+        return openCopy();
     // Step 1 — in place.
     let inPlaceDb;
     try {
@@ -80,37 +108,7 @@ export function openSqliteReadOnly(filePath, opts) {
             throw new Error(`failed to open ${filePath} for reading: ${errorMessage(stepOneErr)}`, { cause: stepOneErr });
         }
         // Step 2 — copy into a fresh tmp directory.
-        let tmpDir;
-        let copyDb;
-        try {
-            tmpDir = mkdtempSync(join(tmpdir(), 'dz-ro-'));
-            const dest = join(tmpDir, basename(filePath));
-            copyFileSync(filePath, dest);
-            const walSource = `${filePath}-wal`;
-            if (existsSync(walSource)) {
-                copyFileSync(walSource, `${dest}-wal`);
-            }
-            // `-shm` is intentionally NOT copied — it is derived and SQLite recreates it; a stale one
-            // next to a fresh copy is worse than none (ADR-001, Решение 1, ступень 2).
-            copyDb = new Database(dest, { readonly: true, fileMustExist: true });
-            probe(copyDb);
-            const dir = tmpDir;
-            return {
-                db: copyDb,
-                source: 'tmp-copy',
-                cleanup: () => removeQuietly(dir),
-            };
-        }
-        catch (stepTwoErr) {
-            // `copyDb` may have opened successfully and THEN failed in `probe()` — an unclosed handle
-            // here leaks a file descriptor and, on a platform that refuses to delete an open file,
-            // leaves the tmp directory behind too. Close before removing (fix round 1, HIGH #1).
-            if (copyDb !== undefined)
-                closeQuietly(copyDb);
-            if (tmpDir !== undefined)
-                removeQuietly(tmpDir);
-            throw new Error(`failed to open ${filePath} for reading: ${errorMessage(stepTwoErr)}`, { cause: stepTwoErr });
-        }
+        return openCopy();
     }
 }
 /** `sqlite_master` lookup used to discover FTS5 presence WITHOUT attempting to (re)create it. */

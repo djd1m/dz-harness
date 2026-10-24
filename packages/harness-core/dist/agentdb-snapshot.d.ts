@@ -136,4 +136,17 @@ export declare function snapshotSqliteDatabase(Database: SnapshotDbCtor, dbFile:
  * attempted, with nothing on record to say so.
  */
 export declare function restoreSqliteSnapshot(dbFile: string, backupPath: string, method: SnapshotMethod): RestoreOutcome;
+export type PersistedAgentdbCounts = {
+    readonly state: 'counted';
+    readonly total: number;
+    readonly learned: number;
+} | {
+    readonly state: 'unavailable';
+    readonly reason: 'absent' | 'reader-unavailable' | 'busy' | 'unreadable';
+};
+/**
+ * Count actual `pattern_embeddings` rows. `reasoning_patterns` alone can hold rows without vectors.
+ * The optional loader is a test seam for Node 20, which has no `node:sqlite` module.
+ */
+export declare function readPersistedAgentdbCounts(dbPath: string, loadSqlite?: () => unknown): PersistedAgentdbCounts;
 //# sourceMappingURL=agentdb-snapshot.d.ts.map

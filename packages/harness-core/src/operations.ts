@@ -1509,12 +1509,25 @@ export async function runDoctor(options: { projectRoot: string; instrumentPath?:
       // implies the recall hook + settings entries exist; whether the daemon is CURRENTLY alive is
       // a separate, already-covered fact.
     } else if (configuredBackend === 'jsonl') {
-      checks.push({
-        name: 'apply-leg',
-        ok: true,
-        level: 'warn',
-        detail: 'automatic recall is unavailable on jsonl; run dz setup --target claude-code --memory agentdb to enable it',
-      });
+      const status = applyLegStatus(root);
+      if (!status.installed) {
+        checks.push({ name: 'apply-leg', ok: false, level: 'warn', detail: applyLegReasonMessage(status) });
+      } else {
+        checks.push({ name: 'apply-leg', ok: true, detail: 'JSONL lexical UserPromptSubmit hook installed (no embed daemon required)' });
+        try {
+          const { probeApplyLeg } = await import('./apply-leg.js');
+          const probe = await probeApplyLeg(root);
+          checks.push({
+            name: 'apply-leg injects (live probe)', ok: probe.ok,
+            detail: probe.ok
+              ? `lexical hook injected its beacon lesson in ${probe.elapsedMs}ms`
+              : `JSONL hook installed but silent: ${probe.reason ?? 'unknown'} (probed in ${probe.elapsedMs}ms)`,
+          });
+        } catch (err) {
+          checks.push({ name: 'apply-leg injects (live probe)', ok: false,
+            detail: `JSONL live probe could not run: ${err instanceof Error ? err.message : String(err)}` });
+        }
+      }
     }
     // configuredBackend === 'unknown' (no .dz/config.json yet): nothing to check — a project that
     // never ran `dz setup` gets no apply-leg opinion, same as every other doctor check here.

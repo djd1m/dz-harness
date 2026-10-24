@@ -31,6 +31,7 @@
  *
  * @packageDocumentation
  */
+import { type PersistedAgentdbCounts } from './agentdb-snapshot.js';
 import type { DreamPattern, MemoryRecord } from '@dzhechkov/memory';
 import { type PatternRecord, type RecallHit, type RecallPatternsOptions } from './patterns.js';
 import { type BanditRecallReport } from './lesson-payoff.js';
@@ -224,6 +225,8 @@ export interface VectorTierStatus {
     readonly embeddingModel?: string | undefined;
     readonly lexicalTotal: number;
     readonly lexicalMirrorable: number;
+    /** Exact disk rows when a configured AgentDB engine is missing; distinct from record-level `mirrored`. */
+    readonly persisted?: PersistedAgentdbCounts | undefined;
     /**
      * How many MIRRORABLE RECORDS are in the vector store, counted in the same scope
      * `lexicalMirrorable` counts — so the two may be read as a pair.

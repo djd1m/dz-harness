@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "d437e64caa79756d90b6a3ba90ba09e53b8d96975b3f42386db168bdaddec60b"
+        "sha256": "af4b81a9609aca255c33679aed6e3305503d3dae589cd409f007aecb9bdedb1a"
       },
       {
         "path": "dist/backend.d.ts",
@@ -173,19 +173,19 @@
       },
       {
         "path": "dist/sqlite-readonly.d.ts",
-        "sha256": "58f6de024b2cd030c79fa056353537eb595f443868cdc1351d06be28c2dda367"
+        "sha256": "38941bf27e0e6ed56fb539521c31cca7ec624133f21de9eeaeb9a85fb8fa3f53"
       },
       {
         "path": "dist/sqlite-readonly.d.ts.map",
-        "sha256": "4c1f829b50b6ea6f59cf7182bca69b2d97b4ee6a2b5f9e06657bf7cb97fb412a"
+        "sha256": "321c50ddea89f718662d48baa4d72786a086e5e63b724e7d6a21ecc69d85131f"
       },
       {
         "path": "dist/sqlite-readonly.js",
-        "sha256": "bbdaca3400dce43b5e5b7ca6f6542ed07a2d959abe3c07c0fa66ffa268b55c92"
+        "sha256": "e098d33c474233fd4e9d6a63a70a481bec4b613904a4166542c478cc553e822b"
       },
       {
         "path": "dist/sqlite-readonly.js.map",
-        "sha256": "9ad37e3919461ddac220309ddcf61fdd72d91a3ee819698f0f48392b459aa46a"
+        "sha256": "b3a30a3037ba2e6b6e236f0d057ab88c8cff5a7e0f449c52b457bcb95dae6a57"
       },
       {
         "path": "dist/tokenize.d.ts",
@@ -205,7 +205,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "98982fb2fc4b086d71cc93a199b2a11765bf9bfe5e0725b9bfc4710a5f4d1f68"
+        "sha256": "dfcb94ebe544e6df318f8e57e175346d58f9770b287b8f65b224abbc3f5eca0c"
       },
       {
         "path": "src/backend.ts",
@@ -249,7 +249,7 @@
       },
       {
         "path": "src/sqlite-readonly.ts",
-        "sha256": "a8c422063c10604442ccf424d1b23009ee8fd24e01e12fea46f92d800bf9ce42"
+        "sha256": "f20d0ad1a91248cb20350b96ee85c32698b2a6ebadc5365cb38e31cbeb5bb6a8"
       },
       {
         "path": "src/tokenize.ts",
@@ -257,5 +257,5 @@
       }
     ]
   },
-  "signature": "rvtOX4vlu/Q8IeeUbiO7SjJ2FDqJu+eGpG8vdPaECt8/Fh3UsxWizUATGt50Skjp+lx6gcl0DHuUBU0BkkSmBA=="
+  "signature": "NN6647amH1ixgg/Qf4qC54IHPALyDI1n3/iYcNjXzsTx3x4eU98Evz6GtWkaoYFXdYD7DmNjD6KSUkOeQoATDg=="
 }

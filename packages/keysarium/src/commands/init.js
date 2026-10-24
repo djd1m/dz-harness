@@ -8,6 +8,7 @@ const {
   copyDirRecursive, copyDirTracked, fileExists, readJSON,
   ensureDir, getRelativePaths,
   createManifest, writeManifest, getTemplatesDir,
+  hashFile,
   COMPONENTS, MANIFEST_FILE,
 } = require('../utils');
 
@@ -165,6 +166,15 @@ async function run(options) {
   const version = pkg ? pkg.version : '0.0.0';
 
   const manifest = createManifest(version, componentKeys, installedFiles.sort());
+  // Only claim a baseline for the planner when the installed bytes equal the template.
+  // A pre-existing user file preserved by init must not be adopted as our version.
+  const plannerRel = path.join('.claude', 'agents', 'code-goal-planner.md');
+  const installedPlanner = path.join(targetDir, plannerRel);
+  const templatePlanner = path.join(templatesDir, plannerRel);
+  if (fileExists(installedPlanner) && fileExists(templatePlanner)
+      && hashFile(installedPlanner) === hashFile(templatePlanner)) {
+    manifest.templateHashes = { [plannerRel]: hashFile(templatePlanner) };
+  }
   writeManifest(targetDir, manifest);
   info('Created .keysarium.json manifest');
 

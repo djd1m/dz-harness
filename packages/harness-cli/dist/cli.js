@@ -5027,6 +5027,16 @@ async function cmdVector(options, flags, cwd, write, writeErr) {
         // as half the index orphaned, and a task was filed to prune it. MEASURED: 273 of those were
         // `dz-backlog` idea ids and there were ZERO orphans (ADR-001, features/mirror-counts-comparable).
         write(`  Mirrored vectors (learned patterns): ${st.mirrored !== undefined ? st.mirrored : 'n/a (no engine)'}`);
+        if (st.persisted?.state === 'counted') {
+            write(`  Persisted vector rows on disk: ${st.persisted.total} total | ${st.persisted.learned} learned patterns (read-only)`);
+        }
+        else if (st.persisted?.state === 'unavailable') {
+            const detail = st.persisted.reason === 'reader-unavailable' ? 'Node SQLite reader unavailable (requires Node 22.16+)'
+                : st.persisted.reason === 'busy' ? 'database busy; retry status'
+                    : st.persisted.reason === 'absent' ? 'database absent'
+                        : 'database unreadable';
+            write(`  Persisted vector rows on disk: unknown (${detail})`);
+        }
         if (st.mirroredOther !== undefined && st.mirroredOther > 0) {
             write(`  Other dz-owned vectors (backlog ideas): ${st.mirroredOther}  — counted separately, not part of the pair above`);
         }
@@ -8153,7 +8163,7 @@ async function cmdParity(options, flags, write, writeErr, cwd) {
             if (applyLegStatusVal.reason === 'stale-version' || applyLegStatusVal.reason === 'unreadable') {
                 return ` — ${applyLegReasonMessage(applyLegStatusVal)}`;
             }
-            return ' — not installed — run dz setup --target claude-code --memory agentdb';
+            return ` — ${applyLegReasonMessage(applyLegStatusVal)}`;
         }
         return ` — installed but silent: ${applyLegProbe?.reason ?? 'unknown'}`;
     };

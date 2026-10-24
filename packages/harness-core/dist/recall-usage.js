@@ -101,8 +101,8 @@ export function aggregateRecallUsage(records) {
         reads: a.reads,
         firstReadAt: a.firstReadAt,
         lastReadAt: a.lastReadAt,
-        maxScore: a.maxScore,
-        avgScore: a.totalScore / a.reads,
+        ...(a.scoredReads > 0 ? { maxScore: a.maxScore, avgScore: a.totalScore / a.scoredReads } : {}),
+        ...(a.scoredReads !== a.reads ? { scoredReads: a.scoredReads } : {}),
         runtimes: [...a.runtimes].sort(),
     }))
         .sort(compareStats);
@@ -129,8 +129,8 @@ export function buildRecallUsageReport(patterns, parsed) {
                 reads: stat.reads,
                 firstReadAt: stat.firstReadAt,
                 lastReadAt: stat.lastReadAt,
-                maxScore: stat.maxScore,
-                avgScore: stat.avgScore,
+                ...(stat.maxScore !== undefined ? { maxScore: stat.maxScore } : {}),
+                ...(stat.avgScore !== undefined ? { avgScore: stat.avgScore } : {}),
             });
         }
     }
@@ -274,7 +274,13 @@ function normalizeReadRecord(value) {
     const ts = value['ts'];
     if (typeof dzId !== 'string' || dzId.trim() === '')
         return undefined;
-    if (typeof score !== 'number' || !Number.isFinite(score))
+    const lexical = value['engine'] === 'lexical';
+    const rank = value['rank'];
+    if (lexical) {
+        if (score !== undefined || typeof rank !== 'number' || !Number.isSafeInteger(rank) || rank < 1)
+            return undefined;
+    }
+    else if (typeof score !== 'number' || !Number.isFinite(score) || rank !== undefined || value['engine'] !== undefined)
         return undefined;
     if (!validTs(ts))
         return undefined;
@@ -282,7 +288,7 @@ function normalizeReadRecord(value) {
     const runId = value['runId'];
     return {
         dzId: dzId.trim(),
-        score,
+        ...(lexical ? { engine: 'lexical', rank: rank } : { score: score }),
         ts,
         ...(typeof query === 'string' && query.trim() !== ''
             ? { query: query.slice(0, RECALL_USAGE_QUERY_MAX_CHARS) }
@@ -303,6 +309,7 @@ function normalizeAggregateRecord(value) {
     const lastReadAt = value['lastReadAt'];
     const maxScore = value['maxScore'];
     const totalScore = value['totalScore'];
+    const scoredReads = value['scoredReads'] === undefined ? reads : value['scoredReads'];
     const compactedAt = value['compactedAt'];
     if (typeof dzId !== 'string' || dzId.trim() === '')
         return undefined;
@@ -310,9 +317,12 @@ function normalizeAggregateRecord(value) {
         return undefined;
     if (!validTs(firstReadAt) || !validTs(lastReadAt) || !validTs(compactedAt))
         return undefined;
-    if (typeof maxScore !== 'number' || !Number.isFinite(maxScore))
+    if (typeof scoredReads !== 'number' || !Number.isSafeInteger(scoredReads) || scoredReads < 0 || scoredReads > reads)
         return undefined;
-    if (typeof totalScore !== 'number' || !Number.isFinite(totalScore))
+    if (scoredReads > 0 && (typeof maxScore !== 'number' || !Number.isFinite(maxScore)
+        || typeof totalScore !== 'number' || !Number.isFinite(totalScore)))
+        return undefined;
+    if (scoredReads === 0 && (maxScore !== undefined || totalScore !== undefined))
         return undefined;
     const runtimes = normalizeRuntimes(value['runtimes']);
     return {
@@ -321,14 +331,15 @@ function normalizeAggregateRecord(value) {
         reads,
         firstReadAt,
         lastReadAt,
-        maxScore,
-        totalScore,
+        ...(scoredReads > 0 ? { maxScore: maxScore, totalScore: totalScore } : {}),
+        ...(scoredReads !== reads ? { scoredReads } : {}),
         compactedAt,
         ...(runtimes !== undefined ? { runtimes } : {}),
     };
 }
 function mergeRead(byId, rec) {
     const ms = Date.parse(rec.ts);
+    const score = rec.score;
     const prev = byId.get(rec.dzId);
     if (prev === undefined) {
         byId.set(rec.dzId, {
@@ -338,16 +349,20 @@ function mergeRead(byId, rec) {
             firstMs: ms,
             lastReadAt: rec.ts,
             lastMs: ms,
-            maxScore: rec.score,
-            totalScore: rec.score,
+            maxScore: score ?? -Infinity,
+            totalScore: score ?? 0,
+            scoredReads: score === undefined ? 0 : 1,
             runtimes: new Set([runtimeOf(rec)]),
         });
         return;
     }
     prev.runtimes.add(runtimeOf(rec));
     prev.reads += 1;
-    prev.totalScore += rec.score;
-    prev.maxScore = Math.max(prev.maxScore, rec.score);
+    if (score !== undefined) {
+        prev.totalScore += score;
+        prev.maxScore = Math.max(prev.maxScore, score);
+        prev.scoredReads += 1;
+    }
     if (ms < prev.firstMs) {
         prev.firstMs = ms;
         prev.firstReadAt = rec.ts;
@@ -361,6 +376,7 @@ function mergeAggregate(byId, rec) {
     const firstMs = Date.parse(rec.firstReadAt);
     const lastMs = Date.parse(rec.lastReadAt);
     const prev = byId.get(rec.dzId);
+    const scoredReads = rec.scoredReads ?? rec.reads;
     if (prev === undefined) {
         byId.set(rec.dzId, {
             dzId: rec.dzId,
@@ -369,8 +385,9 @@ function mergeAggregate(byId, rec) {
             firstMs,
             lastReadAt: rec.lastReadAt,
             lastMs,
-            maxScore: rec.maxScore,
-            totalScore: rec.totalScore,
+            maxScore: rec.maxScore ?? -Infinity,
+            totalScore: rec.totalScore ?? 0,
+            scoredReads,
             runtimes: new Set(rec.runtimes ?? []),
         });
         return;
@@ -378,8 +395,9 @@ function mergeAggregate(byId, rec) {
     for (const r of rec.runtimes ?? [])
         prev.runtimes.add(r);
     prev.reads += rec.reads;
-    prev.totalScore += rec.totalScore;
-    prev.maxScore = Math.max(prev.maxScore, rec.maxScore);
+    prev.totalScore += rec.totalScore ?? 0;
+    prev.maxScore = Math.max(prev.maxScore, rec.maxScore ?? -Infinity);
+    prev.scoredReads += scoredReads;
     if (firstMs < prev.firstMs) {
         prev.firstMs = firstMs;
         prev.firstReadAt = rec.firstReadAt;
@@ -396,8 +414,9 @@ function aggregateRecord(stat, compactedAt) {
         reads: stat.reads,
         firstReadAt: stat.firstReadAt,
         lastReadAt: stat.lastReadAt,
-        maxScore: stat.maxScore,
-        totalScore: stat.avgScore * stat.reads,
+        ...(stat.maxScore !== undefined && stat.avgScore !== undefined
+            ? { maxScore: stat.maxScore, totalScore: stat.avgScore * (stat.scoredReads ?? stat.reads) } : {}),
+        ...(stat.scoredReads !== undefined ? { scoredReads: stat.scoredReads } : {}),
         compactedAt,
         // AM-27's mutant: dropping this union silently destroys per-runtime provenance at the first
         // compaction, and the READ-record allowlist cannot save it because this path never sees one.
@@ -466,6 +485,8 @@ export function appendRecallUsage(input) {
             const rec = normalizeReadRecord({
                 dzId: hit?.dzId,
                 score: hit?.score,
+                rank: hit?.rank,
+                engine: hit?.engine,
                 ts,
                 query,
                 runId: input.runId,

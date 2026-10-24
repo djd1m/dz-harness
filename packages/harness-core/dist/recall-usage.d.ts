@@ -20,7 +20,11 @@ export declare const RECALL_USAGE_COMPACT_TARGET_BYTES: number;
 export declare const RECALL_USAGE_REPLAY_KEEP = 500;
 export interface RecallUsageReadRecord {
     readonly dzId: string;
-    readonly score: number;
+    /** Present only for scored recall. A lexical rank is never a similarity score. */
+    readonly score?: number;
+    /** One-based order in a lexical result set. Requires `engine: 'lexical'`. */
+    readonly rank?: number;
+    readonly engine?: 'lexical';
     readonly ts: string;
     /**
      * The PROMPT the lesson was injected into (truncated). Without it the log can say a lesson was
@@ -54,8 +58,10 @@ export interface RecallUsageAggregateRecord {
     readonly reads: number;
     readonly firstReadAt: string;
     readonly lastReadAt: string;
-    readonly maxScore: number;
-    readonly totalScore: number;
+    readonly maxScore?: number;
+    readonly totalScore?: number;
+    /** Absent on legacy aggregates means every read was scored. */
+    readonly scoredReads?: number;
     readonly compactedAt: string;
     /**
      * The SET UNION of the runtimes whose reads were folded into this record (sorted, deduped).
@@ -84,8 +90,10 @@ export interface RecallUsageStat {
     readonly reads: number;
     readonly firstReadAt: string;
     readonly lastReadAt: string;
-    readonly maxScore: number;
-    readonly avgScore: number;
+    readonly maxScore?: number;
+    readonly avgScore?: number;
+    /** Present only when some reads were lexical, so old scored-only output stays stable. */
+    readonly scoredReads?: number;
     /** Set union of contributing runtimes (AM-27). Empty ⇒ nothing carried provenance. */
     readonly runtimes: readonly Runtime[];
 }
@@ -117,6 +125,8 @@ export interface RecallUsageReport {
 export interface RecallUsageRecordInput {
     readonly dzId?: unknown;
     readonly score?: unknown;
+    readonly rank?: unknown;
+    readonly engine?: unknown;
     readonly ts?: unknown;
     readonly query?: unknown;
     readonly runId?: unknown;
@@ -178,7 +188,9 @@ export declare function compactRecallUsageLogChecked(text: string, opts?: Compac
 export declare function compactRecallUsageLog(text: string, opts?: CompactRecallUsageOptions): string;
 export interface AppendRecallUsageHit {
     readonly dzId: unknown;
-    readonly score: unknown;
+    readonly score?: unknown;
+    readonly rank?: unknown;
+    readonly engine?: unknown;
 }
 export interface AppendRecallUsageInput {
     /** Project ROOT (the helper walks up to it; a cwd-relative writer splits the log — AM-5). */

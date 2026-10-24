@@ -17,6 +17,7 @@
  *      `mkdtemp` directory and open THAT read-only.
  *   3. **Honest failure.** Any other error, or step 2 itself failing, throws — naming the path
  *      and the original cause. Never a swallowed `{ hits: [] }`.
+ * `copyFirst` skips step 1 for callers whose status reads must not create source-side WAL files.
  *
  * @packageDocumentation
  */
@@ -37,6 +38,8 @@ export interface ReadOnlyHandle {
 }
 /** Options for {@link openSqliteReadOnly}. */
 export interface OpenReadOnlyOptions {
+    /** Never open the source SQLite file: copy DB + WAL to a temporary directory first. */
+    readonly copyFirst?: boolean;
     /**
      * The `better-sqlite3` constructor to use. Callers that resolve their own copy of the native
      * module (`book-kb.ts`, `agentdb-index.ts` — both resolve from the TARGET project, not from
@@ -49,7 +52,7 @@ export interface OpenReadOnlyOptions {
     readonly Database?: DatabaseCtor;
 }
 /**
- * Open `filePath` for reading only, climbing the ladder described above.
+ * Open `filePath` for reading only, climbing the ladder described above unless `copyFirst` is set.
  *
  * Deliberately does NOT: `mkdirSync` any directory, run any DDL/DML, set `journal_mode` or
  * `synchronous`, or check `existsSync` itself (FR-5 keeps that check with the caller, before this

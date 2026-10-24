@@ -17,6 +17,7 @@
  *      `mkdtemp` directory and open THAT read-only.
  *   3. **Honest failure.** Any other error, or step 2 itself failing, throws — naming the path
  *      and the original cause. Never a swallowed `{ hits: [] }`.
+ * `copyFirst` skips step 1 for callers whose status reads must not create source-side WAL files.
  *
  * @packageDocumentation
  */
@@ -52,6 +53,8 @@ export interface ReadOnlyHandle {
 
 /** Options for {@link openSqliteReadOnly}. */
 export interface OpenReadOnlyOptions {
+  /** Never open the source SQLite file: copy DB + WAL to a temporary directory first. */
+  readonly copyFirst?: boolean;
   /**
    * The `better-sqlite3` constructor to use. Callers that resolve their own copy of the native
    * module (`book-kb.ts`, `agentdb-index.ts` — both resolve from the TARGET project, not from
@@ -101,7 +104,7 @@ function removeQuietly(dir: string): void {
 }
 
 /**
- * Open `filePath` for reading only, climbing the ladder described above.
+ * Open `filePath` for reading only, climbing the ladder described above unless `copyFirst` is set.
  *
  * Deliberately does NOT: `mkdirSync` any directory, run any DDL/DML, set `journal_mode` or
  * `synchronous`, or check `existsSync` itself (FR-5 keeps that check with the caller, before this
@@ -109,6 +112,31 @@ function removeQuietly(dir: string): void {
  */
 export function openSqliteReadOnly(filePath: string, opts?: OpenReadOnlyOptions): ReadOnlyHandle {
   const Database = opts?.Database ?? defaultDatabaseCtor();
+
+  const openCopy = (): ReadOnlyHandle => {
+    let tmpDir: string | undefined;
+    let copyDb: any | undefined;
+    try {
+      tmpDir = mkdtempSync(join(tmpdir(), 'dz-ro-'));
+      const dest = join(tmpDir, basename(filePath));
+      copyFileSync(filePath, dest);
+      const walSource = `${filePath}-wal`;
+      if (existsSync(walSource)) {
+        copyFileSync(walSource, `${dest}-wal`);
+      }
+      // `-shm` is derived and is intentionally recreated beside the temporary copy.
+      copyDb = new Database(dest, { readonly: true, fileMustExist: true });
+      probe(copyDb);
+      const dir = tmpDir;
+      return { db: copyDb, source: 'tmp-copy', cleanup: () => removeQuietly(dir) };
+    } catch (copyErr) {
+      if (copyDb !== undefined) closeQuietly(copyDb);
+      if (tmpDir !== undefined) removeQuietly(tmpDir);
+      throw new Error(`failed to open ${filePath} for reading: ${errorMessage(copyErr)}`, { cause: copyErr });
+    }
+  };
+
+  if (opts?.copyFirst) return openCopy();
 
   // Step 1 — in place.
   let inPlaceDb: any | undefined;
@@ -123,34 +151,7 @@ export function openSqliteReadOnly(filePath: string, opts?: OpenReadOnlyOptions)
     }
 
     // Step 2 — copy into a fresh tmp directory.
-    let tmpDir: string | undefined;
-    let copyDb: any | undefined;
-    try {
-      tmpDir = mkdtempSync(join(tmpdir(), 'dz-ro-'));
-      const dest = join(tmpDir, basename(filePath));
-      copyFileSync(filePath, dest);
-      const walSource = `${filePath}-wal`;
-      if (existsSync(walSource)) {
-        copyFileSync(walSource, `${dest}-wal`);
-      }
-      // `-shm` is intentionally NOT copied — it is derived and SQLite recreates it; a stale one
-      // next to a fresh copy is worse than none (ADR-001, Решение 1, ступень 2).
-      copyDb = new Database(dest, { readonly: true, fileMustExist: true });
-      probe(copyDb);
-      const dir = tmpDir;
-      return {
-        db: copyDb,
-        source: 'tmp-copy',
-        cleanup: () => removeQuietly(dir),
-      };
-    } catch (stepTwoErr) {
-      // `copyDb` may have opened successfully and THEN failed in `probe()` — an unclosed handle
-      // here leaks a file descriptor and, on a platform that refuses to delete an open file,
-      // leaves the tmp directory behind too. Close before removing (fix round 1, HIGH #1).
-      if (copyDb !== undefined) closeQuietly(copyDb);
-      if (tmpDir !== undefined) removeQuietly(tmpDir);
-      throw new Error(`failed to open ${filePath} for reading: ${errorMessage(stepTwoErr)}`, { cause: stepTwoErr });
-    }
+    return openCopy();
   }
 }
 

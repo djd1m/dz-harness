@@ -98,7 +98,7 @@ export declare function updateRecallSelection(projectRoot: string, event: Recall
     readonly reason?: SelectionReason;
     readonly quarantinedExcluded?: number;
 } | {
-    readonly unknown: 'daemon-unavailable' | 'core-unavailable' | 'selection-failed';
+    readonly unknown: 'daemon-unavailable' | 'core-unavailable' | 'store-unavailable' | 'selection-failed';
 }, now?: number): boolean;
 export declare function updateRecallEmission(projectRoot: string, event: RecallObservationEvent, result: 'emitted' | 'render-failed' | 'no-selected-context' | 'emit-failed' | 'pending', now?: number): boolean;
 /** No locks, pruning, directory creation, database opens or host assertion imports. */

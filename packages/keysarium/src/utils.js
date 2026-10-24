@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { createHash } = require('node:crypto');
 
 // ===========================================================================
 // Colors — ANSI escape codes (zero dependencies)
@@ -34,6 +35,10 @@ function error(msg) { console.log(red('[ERROR]') + ' ' + msg); }
 
 function step(n, total, msg) {
   console.log(cyan(`[${n}/${total}]`) + ' ' + msg);
+}
+
+function hashFile(file) {
+  return createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 }
 
 // ===========================================================================
@@ -371,6 +376,7 @@ module.exports = {
   warn,
   error,
   step,
+  hashFile,
 
   // File operations
   copyDirRecursive,

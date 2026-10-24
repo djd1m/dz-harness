@@ -74,6 +74,8 @@
  */
 import { copyFileSync, existsSync, lstatSync, mkdtempSync, renameSync, rmSync, statSync, unlinkSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
+import { createRequire } from 'node:module';
+import { openSqliteReadOnly } from '@dzhechkov/memory';
 /** Escape `path` as a single-quoted sqlite string literal (double any embedded `'`). */
 function sqlQuote(path) {
     return `'${path.replace(/'/g, "''")}'`;
@@ -287,5 +289,88 @@ export function restoreSqliteSnapshot(dbFile, backupPath, method) {
     catch (err) {
         return { ok: false, error: err instanceof Error ? err.message : String(err) };
     }
+}
+const loadBuiltin = () => createRequire(import.meta.url)('node:sqlite');
+/**
+ * Count actual `pattern_embeddings` rows. `reasoning_patterns` alone can hold rows without vectors.
+ * The optional loader is a test seam for Node 20, which has no `node:sqlite` module.
+ */
+export function readPersistedAgentdbCounts(dbPath, loadSqlite = loadBuiltin) {
+    if (!existsSync(dbPath))
+        return { state: 'unavailable', reason: 'absent' };
+    // `node:sqlite` was unflagged in 22.13; the bounded timeout option arrived in 22.16.
+    // Earlier runtimes cannot meet this read-only, bounded inspection contract.
+    const [major = 0, minor = 0] = process.versions.node.split('.').map(Number);
+    if (major < 22 || (major === 22 && minor < 16)) {
+        return { state: 'unavailable', reason: 'reader-unavailable' };
+    }
+    let DatabaseSync;
+    try {
+        const module = loadSqlite();
+        if (typeof module?.DatabaseSync !== 'function')
+            return { state: 'unavailable', reason: 'reader-unavailable' };
+        DatabaseSync = module.DatabaseSync;
+    }
+    catch {
+        return { state: 'unavailable', reason: 'reader-unavailable' };
+    }
+    // Never open the source: even a read-only WAL connection can create -wal/-shm sidecars.
+    // The shared opener copies DB+WAL and cleans up the temporary directory after counting.
+    class BuiltinAdapter {
+        db;
+        constructor(path, _options) {
+            this.db = new DatabaseSync(path, { readOnly: true, timeout: 100 });
+        }
+        prepare(sql) { return this.db.prepare(sql); }
+        close() { this.db.close(); }
+    }
+    try {
+        // A rollback journal may hold uncommitted pages already written to the main DB.
+        // Raw copying without journal recovery could misreport those pages as committed.
+        if (existsSync(`${dbPath}-journal`))
+            return { state: 'unavailable', reason: 'busy' };
+        const before = sourceFingerprint(dbPath);
+        const handle = openSqliteReadOnly(dbPath, { Database: BuiltinAdapter, copyFirst: true });
+        try {
+            const counts = handle.db.prepare(`SELECT
+        (SELECT COUNT(*) FROM pattern_embeddings) AS total,
+        (SELECT COUNT(*) FROM pattern_embeddings e JOIN reasoning_patterns p ON p.id = e.pattern_id
+          WHERE p.task_type IN ('dz-teach', 'dz-learning')) AS learned`).get();
+            // A raw DB+WAL copy is not a SQLite backup. Reject a source changed during the copy/read.
+            if (existsSync(`${dbPath}-journal`) || before !== sourceFingerprint(dbPath)) {
+                return { state: 'unavailable', reason: 'busy' };
+            }
+            if (!validCount(counts?.total) || !validCount(counts?.learned) || counts.learned > counts.total) {
+                return { state: 'unavailable', reason: 'unreadable' };
+            }
+            return { state: 'counted', total: counts.total, learned: counts.learned };
+        }
+        finally {
+            try {
+                handle.db.close();
+            }
+            finally {
+                handle.cleanup();
+            }
+        }
+    }
+    catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return { state: 'unavailable', reason: /busy|locked/i.test(message) ? 'busy' : 'unreadable' };
+    }
+}
+function sourceFingerprint(path) {
+    return [path, `${path}-wal`].map(file => {
+        try {
+            const st = statSync(file, { bigint: true });
+            return `${st.dev}:${st.ino}:${st.size}:${st.mtimeNs}:${st.ctimeNs}`;
+        }
+        catch {
+            return 'absent';
+        }
+    }).join('|');
+}
+function validCount(value) {
+    return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 }
 //# sourceMappingURL=agentdb-snapshot.js.map

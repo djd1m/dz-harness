@@ -374,6 +374,8 @@ export interface RecallHit {
 }
 export interface RecallPatternsOptions {
     readonly onClassDegraded?: (message: string) => void;
+    /** Advisory: the JSON fallback could not be read; ordinary callers still receive `[]`. */
+    readonly onReadFailure?: (message: string) => void;
     readonly classMatcher?: typeof validateClassTemplate;
 }
 /**

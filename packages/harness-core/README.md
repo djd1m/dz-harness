@@ -24,7 +24,7 @@ commands. Use `node --test <file>` through the same wrapper for Node tests. Focu
 is supported; it does not prove a complete suite, meaningful tests or authenticated evidence.
 See the repository `.githooks/README.md` for bounds, supported commands and reasoned overrides.
 
-Current package version: `0.8.62`. <!-- dz:version -->
+Current package version: `0.8.63`. <!-- dz:version -->
 
 Joint current metadata requires `<!-- dz:version -->` on a dedicated undated core/CLI line. Both README writers preserve unmarked historical joint pairs; the guard and release-line report skip them. Fenced examples cannot become current joint metadata. `parseReleaseLine` remains structural, while selection requires this explicit opt-in. On a visible line, the marker still forces per-package rewriting of every matching version, including an explicit changelog override; keep it off historical records. Fenced examples and supported HTML comment blocks remain literal even when they contain the marker, a footer, an install/JSON pin, a tarball line or a badge. Put current stamps outside these examples.
 
@@ -1103,21 +1103,25 @@ hook entry at all).
   commands as `node "<installRoot>/.claude/helpers/<file>" …`; omitting it (every zero-arg caller
   before feature `apply-leg-install-root`) keeps the original `${CLAUDE_PROJECT_DIR:-.}`-relative
   form. See "Install-root resolution" below for why the absolute form exists.
-- `applyLegStatus(root)` — the ONE measurement `dz doctor` and `dz parity` both read: do both helper
-  files exist, at what version, and does `settings.json` actually reference them? Neither surface
+- `applyLegStatus(root)` — the ONE measurement `dz doctor` and `dz parity` both read: does the
+  backend's required helper exist at the current version, and does `settings.json` reference it?
+  AgentDB also requires the embed daemon and its `SessionStart` command; JSONL only needs the
+  prompt hook. Neither surface
   may declare the leg "installed" from a static capability table again (ADR-001 Decision 3) — a
   project with `memory.backend=agentdb` configured and nothing else gets a NAMED red row from
   `dz doctor` (`apply-leg installed`, `ok:false`) and a `manual` cell from `dz parity`, never a
   silent `✓`.
 
-`runSetup`'s "Install apply-leg" step (agentdb backend only — jsonl reports `skipped` with the
-named reason: the embed daemon needs agentdb's transitive transformers dependency) also creates an
-EMPTY, schema-only `.dz/agentdb.db` via `ensureAgentdbSchema` (`agentdb-index.ts`, reusing
+`runSetup`'s "Install apply-leg" step installs the prompt hook for either memory backend. On JSONL
+it calls the same lexical `recallPatterns` path as manual `dz recall`, injects up to three promoted
+matches, and stays silent when none match. It does not need an embed daemon or claim a numeric
+similarity score. On AgentDB the existing hybrid/vector daemon path remains. The AgentDB setup
+also creates an EMPTY, schema-only `.dz/agentdb.db` via `ensureAgentdbSchema` (`agentdb-index.ts`, reusing
 `REASONING_BANK_SCHEMA` verbatim — never a second, duplicated schema string) when the file does not
 already exist, so `dz teach` has somewhere to mirror into before any session has ever ended.
-For a `jsonl` project, `dz doctor` reports the absent automatic recall as `[WARN] apply-leg` with
-the command to enable AgentDB. It no longer reports an unavailable apply leg as `[OK]`. Manual
-`dz recall` remains available on `jsonl`; a lexical automatic hook is tracked separately.
+For a JSONL project, `dz doctor` reports an absent hook as `[WARN] apply-leg` with the setup command;
+an installed hook is checked by a live injection probe. Its `lexical-no-hits` reason differs from
+AgentDB's missing daemon or vector mirror. Manual `dz recall` remains available on either backend.
 
 The hub regenerates its OWN `.claude/helpers/recall-hook.cjs`/`dz-embed-daemon.mjs` from this same
 generator (with the hub's own `coreDistDir`, via `harnessCoreDistDir()`) — a twins test
@@ -2950,8 +2954,11 @@ includes devDependencies in `npm ci`; `npm ci --omit=dev` does not retain these 
 If a configured AgentDB project still has a deployed writer or a nonempty `.dz/agentdb.db` but
 loses its local engine, `dz vector status` and semantic recall name that condition and suggest
 `dz setup --memory agentdb`. Ordinary recall continues with lexical matches and warns; with
-`--json`, its portable result array stays on stdout and the warning goes to stderr. Without an
-engine, the surviving vector count is unknown rather than inferred from the database file.
+`--json`, its portable result array stays on stdout and the warning goes to stderr. On Node 22.16 or
+newer, `dz vector status` reads a temporary copy of `.dz/agentdb.db` with SQLite's read-only API and reports the exact
+number of persisted vector rows, including the learned-pattern subset. This disk count is separate
+from live mirror parity: without the engine, mirrored and missing pattern counts remain unknown.
+On Node 20 or when the database cannot be read, the disk count is explicitly unknown.
 
 An explicit jsonl → agentdb upgrade no longer requires force: only `memory.backend` changes,
 atomically, while unrelated config, hooks, skills and existing data remain. Failures print the observed

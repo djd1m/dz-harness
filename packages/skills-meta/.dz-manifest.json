@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "b69f209e248754c2266d16412e8d55de01fe72ed441d492926f4f5a2ac69f1e6"
+        "sha256": "9c99ab0d960782d1dcc2608cf078e8a34b42aa0524654692e68dd685bed2b927"
       },
       {
         "path": "adversarial-verifier/SKILL.md",
@@ -233,7 +233,7 @@
       },
       {
         "path": "feature-adr/modules/06-implementation-plan.md",
-        "sha256": "5d092141e9e5f399ac2b7fbce9dced2094d50175b8d9355bf809c79a02d7590a"
+        "sha256": "eed9869118d865776dd3dea7688b5d597fc7f95b811d71069143006701b69974"
       },
       {
         "path": "feature-adr/modules/07-code.md",
@@ -649,7 +649,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "fbde335699aba627594055063f1132a3ff4e6ff06214aa3279aac42f2a2752cd"
+        "sha256": "416c1b67aeef5511a2b10d32af03363ab62ffab8eaed2a33160cf9eec3efc146"
       },
       {
         "path": "problem-solver-enhanced/SKILL.md",
@@ -745,5 +745,5 @@
       }
     ]
   },
-  "signature": "K6AOGBTab8nOWiF+fmls/h0WHYqOgFmFH/XAr5zzk0zumd3Wqj1vd87GyTpGytLOJOW7Tnz8vlAok4S7IhZBCg=="
+  "signature": "bd16SgxcM/nZ+jx3BJzu/v7YVT399gtNduX6118NHa89XuTBifpha/YgRWm4pUj41RXZTGGYPmo8HPh8d9NRBQ=="
 }

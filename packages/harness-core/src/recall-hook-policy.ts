@@ -183,6 +183,51 @@ export function selectHookHits(
   return { hits, floor, lang, quarantinedExcluded };
 }
 
+/** A lexical hit has an ORDER, never a cosine or RRF score. */
+export interface LexicalHookCandidate {
+  readonly dzId?: string;
+  readonly pattern: string;
+  readonly domain?: string;
+  readonly quarantined?: boolean;
+}
+
+export interface LexicalHookSelection {
+  readonly hits: readonly LexicalHookCandidate[];
+  readonly quarantinedExcluded: number;
+}
+
+/** Preserve the store's lexical ranking while applying the hook's signal, safety and size gates. */
+export function selectLexicalHookHits(
+  prompt: unknown,
+  candidates: readonly LexicalHookCandidate[] | null | undefined,
+  opts: { limit?: number; budgetChars?: number; includeProbe?: boolean } = {},
+): LexicalHookSelection {
+  if (!hasEnoughSignal(prompt)) return { hits: [], quarantinedExcluded: 0 };
+  const limit = intOr(opts.limit, DEFAULT_RECALL_HOOK_LIMIT);
+  const budget = intOr(opts.budgetChars, DEFAULT_RECALL_HOOK_BUDGET_CHARS);
+  let quarantinedExcluded = 0;
+  let used = 0;
+  const hits: LexicalHookCandidate[] = [];
+  for (const candidate of candidates ?? []) {
+    if (candidate === null || typeof candidate !== 'object') continue;
+    if (candidate.quarantined === true) { quarantinedExcluded += 1; continue; }
+    if (candidate.domain === 'apply-leg-probe' && opts.includeProbe !== true) continue;
+    if (typeof candidate.pattern !== 'string' || candidate.pattern.trim() === '') continue;
+    if (hits.length >= limit) break;
+    if (hits.length > 0 && used + candidate.pattern.length > budget) break;
+    hits.push(candidate);
+    used += candidate.pattern.length;
+  }
+  return { hits, quarantinedExcluded };
+}
+
+/** Lexical context intentionally carries no numeric similarity or threshold claim. */
+export function renderLexicalHookContext(selection: LexicalHookSelection): string {
+  if (selection.hits.length === 0) return '';
+  const lines = selection.hits.map((hit) => `  - [${hit.domain ?? 'general'}] ${hit.pattern}`);
+  return `Learned lessons matching this prompt (dz recall, lexical ranking):\n${lines.join('\n')}`;
+}
+
 function intOr(v: unknown, fallback: number): number {
   return typeof v === 'number' && isFinite(v) && v > 0 ? Math.floor(v) : fallback;
 }

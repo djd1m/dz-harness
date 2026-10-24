@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9d68c0c27d09a391cc60d97325809c3bb33df3688ba86ec84445efa01f0a388b"
+          "content": "405fcd9e00c49d1eba445dc57ba1a0c855f038e60e8f793af054e297d3aae856"
         }
       ]
     },
@@ -69,7 +69,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "e01e39942e23d569ee6ccf452b903d1728e955a6efbab842f0da2b439903a62e"
+          "value": "0dac5e1aa213939fe7cb1504f8498884672f87d02a08dc1a953e0ad41f3d9132"
         }
       ]
     },
@@ -129,7 +129,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e75d417fd1544f94c2cf9d2cfd0e11e5bb72ac1a8d38a97c3ba3858ca2548c60"
+          "content": "c3d4919c286d0cdec43808c2528eb027577d33fa6a15bebaeff255e9c4aa1d08"
         }
       ]
     },
@@ -139,7 +139,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b1041465cb70877878d7d4b79bfec3f52ba3e64df5bbcbd33c8eaccf63c3e041"
+          "content": "c6feb77970fa386f8e7b441ec52210d8db1ad6db15ad35ebe38486f720b13dc3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "templates/.claude/agents/code-goal-planner.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1f510abfcee18c23f558efa6a25c34566397a9ee7ea6c799edd075d4273868db"
         }
       ]
     },
@@ -379,7 +389,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5d092141e9e5f399ac2b7fbce9dced2094d50175b8d9355bf809c79a02d7590a"
+          "content": "eed9869118d865776dd3dea7688b5d597fc7f95b811d71069143006701b69974"
         }
       ]
     },

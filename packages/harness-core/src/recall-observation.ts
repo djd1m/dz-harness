@@ -280,10 +280,10 @@ function update(projectRoot: string, event: RecallObservationEvent, now: number,
 }
 export function updateRecallSelection(projectRoot: string, event: RecallObservationEvent,
   input: { readonly hits: readonly { readonly dzId?: unknown }[]; readonly reason?: SelectionReason; readonly quarantinedExcluded?: number }
-    | { readonly unknown: 'daemon-unavailable' | 'core-unavailable' | 'selection-failed' }, now = Date.now()): boolean {
+    | { readonly unknown: 'daemon-unavailable' | 'core-unavailable' | 'store-unavailable' | 'selection-failed' }, now = Date.now()): boolean {
   let selected: RecallSelection;
   if ('unknown' in input) {
-    if (!['daemon-unavailable', 'core-unavailable', 'selection-failed'].includes(input.unknown)) throw new SourceError('corrupt');
+    if (!['daemon-unavailable', 'core-unavailable', 'store-unavailable', 'selection-failed'].includes(input.unknown)) throw new SourceError('corrupt');
     selected = { state: 'unknown', reason: input.unknown };
   }
   else {

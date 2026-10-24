@@ -135,6 +135,42 @@ export function selectHookHits(prompt, candidates, opts = {}) {
     }
     return { hits, floor, lang, quarantinedExcluded };
 }
+/** Preserve the store's lexical ranking while applying the hook's signal, safety and size gates. */
+export function selectLexicalHookHits(prompt, candidates, opts = {}) {
+    if (!hasEnoughSignal(prompt))
+        return { hits: [], quarantinedExcluded: 0 };
+    const limit = intOr(opts.limit, DEFAULT_RECALL_HOOK_LIMIT);
+    const budget = intOr(opts.budgetChars, DEFAULT_RECALL_HOOK_BUDGET_CHARS);
+    let quarantinedExcluded = 0;
+    let used = 0;
+    const hits = [];
+    for (const candidate of candidates ?? []) {
+        if (candidate === null || typeof candidate !== 'object')
+            continue;
+        if (candidate.quarantined === true) {
+            quarantinedExcluded += 1;
+            continue;
+        }
+        if (candidate.domain === 'apply-leg-probe' && opts.includeProbe !== true)
+            continue;
+        if (typeof candidate.pattern !== 'string' || candidate.pattern.trim() === '')
+            continue;
+        if (hits.length >= limit)
+            break;
+        if (hits.length > 0 && used + candidate.pattern.length > budget)
+            break;
+        hits.push(candidate);
+        used += candidate.pattern.length;
+    }
+    return { hits, quarantinedExcluded };
+}
+/** Lexical context intentionally carries no numeric similarity or threshold claim. */
+export function renderLexicalHookContext(selection) {
+    if (selection.hits.length === 0)
+        return '';
+    const lines = selection.hits.map((hit) => `  - [${hit.domain ?? 'general'}] ${hit.pattern}`);
+    return `Learned lessons matching this prompt (dz recall, lexical ranking):\n${lines.join('\n')}`;
+}
 function intOr(v, fallback) {
     return typeof v === 'number' && isFinite(v) && v > 0 ? Math.floor(v) : fallback;
 }

@@ -318,6 +318,11 @@ const COMPONENTS = {
     label: 'Feature ADR Skill (11 modules + references + agentic-qe)',
     group: 'core',
   },
+  planner_agent: {
+    src: '.claude/agents',
+    label: 'Code goal planner agent (Step 6)',
+    group: 'core',
+  },
   skill_explore: {
     src: '.claude/skills/explore',
     label: 'Explore Skill (task clarification)',

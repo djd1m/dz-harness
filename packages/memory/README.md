@@ -16,7 +16,7 @@ Default SQLite readers and writers lazily load the memory package's selected `be
 | `backend` | `MemoryBackend`, `MemoryRecord`, `MemoryQuery` | The storage contract |
 | `json-backend` | `JsonFileBackend` | The default backend — pure JS, zero-dependency, JSON-file persistence, scored keyword retrieval |
 | `cascade` | `selectBackend`, `BackendProbe` | Probe optional backends, fall back gracefully |
-| `sqlite-readonly` | `openSqliteReadOnly`, `SqliteReadOnlyStore`, `ReadOnlyHandle`, `ReadOnlyStore`, `OpenReadOnlyOptions` | Read-only SQLite access from directories the process may not write to (in-place → tmp-copy → honest failure) — see "Reading from a read-only directory" below |
+| `sqlite-readonly` | `openSqliteReadOnly`, `SqliteReadOnlyStore`, `ReadOnlyHandle`, `ReadOnlyStore`, `OpenReadOnlyOptions` | Read-only SQLite access from directories the process may not write to (in-place → tmp-copy → honest failure); `copyFirst` keeps the source directory untouched — see below |
 | `reflexion` | `Reflexion` | Record skill outcomes (`record(skillId, outcome, score)`); rank skills |
 | `bridge` | `MemoryBridge`, `importMemoryMarkdown` | Import a host memory markdown file into `MemoryRecord`s |
 
@@ -120,6 +120,11 @@ works:
    fresh `mkdtemp` directory and opens *that* read-only.
 3. **Honest failure.** Any other error, or step 2 itself failing, throws — naming both the file
    path and the original cause. Never a swallowed empty result.
+
+Callers that must leave the source directory untouched can pass `{ copyFirst: true }`. This skips
+the in-place connection, copies the database and WAL to a temporary directory, and cleans up that
+copy when the handle closes. It does not provide a transactional backup of a concurrently changing
+database; such callers must validate their own snapshot requirements.
 
 `SqliteBackend.openReadOnly(filePath, opts?)` builds on this: it returns a `ReadOnlyStore`
 (`querySync`/`allSync`/`countSync`/`close`) that shares the writer's exact ranking logic

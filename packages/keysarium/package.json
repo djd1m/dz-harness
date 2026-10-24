@@ -1,7 +1,9 @@
 {
   "name": "@dzhechkov/keysarium",
-  "version": "1.7.18",
-  "scripts": {},
+  "version": "1.7.19",
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs"
+  },
   "description": "AI Case Research Toolkit for Claude Code and Codex — full 7-phase pipeline with feature-adr, dream cycles, background workers, and Cloud.ru AI Factory mapping",
   "main": "src/cli.js",
   "bin": {

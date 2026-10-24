@@ -5,7 +5,7 @@ Feature ADR native QE opt-in uses the installed CLI-owned convergence helper, bo
 If bytes change before first evaluation, native `evaluate` retains valid old-snapshot receipt origins and conditions while reporting `not-established/native-repair-required`. Follow with explicit `begin-repair` and fresh independent verification of the new snapshot. Recovery preserves authority and the three-cycle ceiling; old evidence never closes changed bytes.
 
 
-Current package version: `0.9.72`. <!-- dz:version -->
+Current package version: `0.9.73`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-meta
 
@@ -13,6 +13,8 @@ The **canonical meta-skill pack** — the development-process skills, packaged a
 [Agent Skills](https://agentskills.io) for distribution and cross-platform use.
 
 The `feature-adr` skill now carries eight pinned agentic-qe core protocol directories with schemas and evals. Its modules own the checkpoints in Reference Mode; the bundled files do not install the upstream runtime.
+
+Step 6 can dispatch a separately installed Claude Code `code-goal-planner` agent when the active planner route selects Sonnet. This skills pack supplies the reference protocol for Codex and for hosts without that agent; it does not itself install a project agent.
 
 MEASURED package inventory: **21 development-process skills**. Reproduce from this package directory
 with `npm pack --dry-run --json`: count `<skill>/SKILL.md` entries and all files beneath each

@@ -25,7 +25,7 @@ Use the planning model selected by the active feature-ADR routing policy, distin
 
 ## Protocol
 
-In Claude Code, if the `code-goal-planner` agent is available, delegate goal-state analysis to it with the requirements, ADR decisions and quality risks. Check its proposed milestones against the project evidence before writing the plan. In Codex, or whenever that agent surface is unavailable, load `references/agentic-qe/code-goal-planner.md` and apply the same methodology directly. Do not report agent execution when only the reference was read.
+When the active planner route selects Claude Sonnet and the project agent is available in Claude Code, dispatch `Agent({ subagent_type: 'code-goal-planner', description: 'SPARC-GOAP plan', prompt: '<requirements, ADR decisions, quality risks, repository evidence, requested milestones and checks>' })`. Provide the actual feature paths and constraints in the prompt. Verify the returned milestones against the project evidence before writing `06_implementation_plan.md`; the agent's answer is a proposal, not a completed artifact. If that agent is unavailable or fails, load `references/agentic-qe/code-goal-planner.md` and apply the same methodology with the selected planner model. In Codex, use that reference path directly. Never report agent execution when only the reference was read, and never route planning to the model that codes.
 
 ### 0. Apply SPARC-GOAP Goal State Analysis
 

@@ -7,6 +7,7 @@ const {
   info, success, warn, error: logError, step,
   copyDirRecursive, fileExists, readJSON,
   ensureDir, getRelativePaths, diffFiles,
+  hashFile,
   readManifest, writeManifest, getTemplatesDir,
   COMPONENTS, MANIFEST_FILE,
 } = require('../utils');
@@ -20,11 +21,11 @@ const {
  *
  * @param {object} options
  * @param {boolean} options.dryRun    — Preview without writing anything
- * @param {boolean} options.force     — Passed through (unused here)
+ * @param {boolean} options.force     — Back up and replace a locally edited planner agent
  * @param {string}  options.targetDir — Destination project root
  */
 async function run(options) {
-  const { dryRun, targetDir } = options;
+  const { dryRun, force, targetDir } = options;
   const manifestPath = path.join(targetDir, MANIFEST_FILE);
 
   // ── a) Read existing manifest ───────────────────────────────────────────
@@ -60,7 +61,11 @@ async function run(options) {
   let totalAdded = 0;
   let totalModified = 0;
   let totalUnchanged = 0;
+  let preservedPlanner = false;
   const filesToCopy = []; // { src, dest, status, relPath }
+  const plannerRel = path.join('.claude', 'agents', 'code-goal-planner.md');
+  // The unmodified wrapper shipped before the full agent was introduced.
+  const legacyPlannerHash = 'fd6faca31bacfa3c70c0ff2a8ba152957d952b8590b4df0934ffd19af5078592';
 
   for (const key of installedKeys) {
     const comp = COMPONENTS[key];
@@ -107,11 +112,24 @@ async function run(options) {
       }
 
       for (const rel of diff.modified) {
+        const relPath = path.join(comp.src, rel);
+        let backup = false;
+        if (relPath === plannerRel) {
+          const currentHash = hashFile(path.join(destBase, rel));
+          const baseline = manifest.templateHashes?.[plannerRel];
+          const clean = currentHash === baseline || (!baseline && currentHash === legacyPlannerHash);
+          if (!clean && !force) {
+            preservedPlanner = true;
+            continue;
+          }
+          backup = !clean;
+        }
         filesToCopy.push({
           src: path.join(srcBase, rel),
           dest: path.join(destBase, rel),
           status: 'modified',
-          relPath: path.join(comp.src, rel),
+          relPath,
+          backup,
         });
         totalModified++;
       }
@@ -125,6 +143,7 @@ async function run(options) {
   console.log(`  ${green('+')} ${totalAdded} file(s) to add`);
   console.log(`  ${yellow('~')} ${totalModified} file(s) to update`);
   console.log(`  ${dim('=')} ${totalUnchanged} file(s) unchanged`);
+  if (preservedPlanner) warn(`Local edit preserved: ${plannerRel}. Use --force to back up and replace it.`);
   console.log('');
 
   if (totalAdded === 0 && totalModified === 0) {
@@ -137,6 +156,7 @@ async function run(options) {
     for (const f of filesToCopy) {
       const marker = f.status === 'added' ? green('+ ADD') : yellow('~ MOD');
       console.log(`  ${marker}  ${f.relPath}`);
+      if (f.backup) console.log(`         backup: ${f.relPath}.bak`);
     }
     console.log('');
     warn('Dry run — no files were written.');
@@ -150,6 +170,7 @@ async function run(options) {
     step(i + 1, filesToCopy.length, `${label} ${f.relPath}`);
 
     ensureDir(path.dirname(f.dest));
+    if (f.backup) fs.copyFileSync(f.dest, `${f.dest}.bak`);
     fs.copyFileSync(f.src, f.dest);
   }
 
@@ -176,6 +197,12 @@ async function run(options) {
   manifest.version = newVersion;
   manifest.updatedAt = new Date().toISOString();
   manifest.files = allFiles.sort();
+  const installedPlanner = path.join(targetDir, plannerRel);
+  const templatePlanner = path.join(templatesDir, plannerRel);
+  if (fileExists(installedPlanner) && fileExists(templatePlanner)
+      && hashFile(installedPlanner) === hashFile(templatePlanner)) {
+    manifest.templateHashes = { ...manifest.templateHashes, [plannerRel]: hashFile(templatePlanner) };
+  }
 
   writeManifest(targetDir, manifest);
   info('Updated .keysarium.json manifest');

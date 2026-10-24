@@ -220,7 +220,8 @@ export function probeRecallEngine(socketPath: string, timeoutMs = 1000): Promise
  * Version 16 adds opt-in process RSS telemetry/budget and early, owned lifecycle shutdown.
  * Version 17 serializes stale-socket cleanup and bind across concurrent daemon starts.
  */
-export const APPLY_LEG_VERSION = 17;
+// Version 18 adds direct JSONL lexical recall. The daemon's own bytes are otherwise unchanged.
+export const APPLY_LEG_VERSION = 20;
 
 /**
  * Parse the `dz-apply-leg-version` stamp from a deployed helper file. Unlike
@@ -329,6 +330,13 @@ const PROJECT = ROOT_SOURCE === 'install' ? INSTALL_ROOT : (process.env.CLAUDE_P
 // INVOKING session rather than to the store.
 const SESSION_ROOT = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const CORE_DIST_DIR = ${coreDistDir === null ? 'null' : JSON.stringify(coreDistDir)};
+
+// The installed command is shared by both backends. Read the persisted choice on every prompt so
+// a jsonl ↔ agentdb migration cannot leave a stale route alive inside a long Claude session.
+function memoryBackend() {
+  const config = safe(() => JSON.parse(fs.readFileSync(path.join(PROJECT, '.dz', 'config.json'), 'utf-8')), undefined);
+  return config && config.memory && config.memory.backend === 'jsonl' ? 'jsonl' : 'agentdb';
+}
 
 // embed-socket-short-path (FR-1/FR-2): byte-for-byte the same logic as \`resolveEmbedSocketPath\` /
 // \`resolveEffectiveEmbedSocketPath\` in \`embed-socket-path.ts\` — inlined as TEXT because this file
@@ -449,6 +457,10 @@ async function loadCoreModule(fileName, predicate) {
 
 async function loadPolicy() {
   return loadCoreModule('recall-hook-policy.js', (mod) => typeof mod.selectHookHits === 'function');
+}
+
+async function loadLexicalRecall() {
+  return loadCoreModule('patterns.js', (mod) => typeof mod.recallPatterns === 'function');
 }
 
 /**
@@ -621,14 +633,14 @@ function reviveDaemon() {
   }, undefined);
 }
 
-function recordUsage(hits, usage, query, chain) {
+function recordUsage(hits, usage, query, chain, engine) {
   safe(() => {
     const ts = new Date().toISOString();
     // One PROMPT = one event: the report must count prompts, not injected-hit rows (up to 3 per
     // prompt), or readiness is fabricated from multiplicity.
     const eventId = ts + ':' + Math.random().toString(36).slice(2, 10);
     const records = [];
-    for (const h of hits || []) {
+    for (const [index, h] of (hits || []).entries()) {
       if (typeof h?.dzId !== 'string' || h.dzId.trim() === '') continue;
       // query + runId make the log REPLAYABLE: without them it can say a lesson was used but never
       // say for what, which made cold-vs-warm measurement unbuildable from the recorded history.
@@ -638,11 +650,14 @@ function recordUsage(hits, usage, query, chain) {
       // A truncated prefix cannot REPRODUCE the original recall — flagged so the report excludes it
       // from replay readiness instead of counting a false pair.
       const queryTruncated = full.length > 200 ? true : undefined;
-      const input = { dzId: h.dzId, score: h.score, ts, query: q, runId, eventId, queryTruncated };
+      const lexical = engine === 'lexical';
+      const input = { dzId: h.dzId, ...(lexical ? { engine: 'lexical', rank: index + 1 } : { score: h.score }),
+        ts, query: q, runId, eventId, queryTruncated };
       const rec =
         usage && typeof usage.buildRecallUsageRecord === 'function'
           ? usage.buildRecallUsageRecord(input)
-          : { dzId: h.dzId, score: h.score, ts, ...(q ? { query: q } : {}), ...(runId ? { runId } : {}), eventId, ...(queryTruncated ? { queryTruncated } : {}) };
+          : { dzId: h.dzId, ...(lexical ? { engine: 'lexical', rank: index + 1 } : { score: h.score }),
+            ts, ...(q ? { query: q } : {}), ...(runId ? { runId } : {}), eventId, ...(queryTruncated ? { queryTruncated } : {}) };
       if (rec && typeof rec === 'object') records.push(rec);
     }
     if (records.length === 0) return;
@@ -839,6 +854,62 @@ async function main() {
     observation.selection({ unknown: 'core-unavailable' });
     skip('core-unavailable');
     return emitContext(debt, observation);
+  }
+
+  if (memoryBackend() === 'jsonl') {
+    const lexical = await loadLexicalRecall();
+    if (!lexical || typeof policy.selectLexicalHookHits !== 'function' || typeof policy.renderLexicalHookContext !== 'function') {
+      observation.selection({ unknown: 'core-unavailable' });
+      skip('lexical-core-unavailable');
+      return emitContext(debt, observation);
+    }
+    const hasLegacyStore = fs.existsSync(path.join(PROJECT, '.dz', 'patterns.jsonl'));
+    const hasUnifiedStore = fs.existsSync(path.join(PROJECT, '.dz', 'memory', 'patterns.json'))
+      || fs.existsSync(path.join(PROJECT, '.dz', 'memory', 'patterns.sqlite'));
+    if (!hasLegacyStore && !hasUnifiedStore) {
+      observation.selection({ unknown: 'store-unavailable' });
+      skip('lexical-store-not-found');
+      return emitContext(debt, observation);
+    }
+    let found;
+    let readFailure;
+    try { found = lexical.recallPatterns(PROJECT, prompt, 8, { onReadFailure: (message) => { readFailure = message; } }); }
+    catch { observation.selection({ unknown: 'selection-failed' }); skip('lexical-read-failed'); return emitContext(debt, observation); }
+    if (readFailure !== undefined) {
+      observation.selection({ unknown: 'store-unavailable' });
+      skip('lexical-read-failed');
+      return emitContext(debt, observation);
+    }
+    if (!Array.isArray(found) || found.length === 0) {
+      observation.selection({ hits: [], reason: 'no-candidates' });
+      skip('lexical-no-hits');
+      return emitContext(debt, observation);
+    }
+    const candidates = found.map((hit) => ({
+      dzId: hit?.pattern?.dzId, pattern: hit?.pattern?.pattern, domain: hit?.pattern?.domain,
+      quarantined: hit?.quarantined === true || hit?.pattern?.quarantined === true,
+    }));
+    let selection;
+    try { selection = policy.selectLexicalHookHits(prompt, candidates, { includeProbe: IS_LIVENESS_PROBE }); }
+    catch { observation.selection({ unknown: 'selection-failed' }); skip('lexical-selection-failed'); return emitContext(debt, observation); }
+    observation.selection({ hits: selection.hits, quarantinedExcluded: selection.quarantinedExcluded });
+    if (selection.quarantinedExcluded > 0) noteEvent('quarantine-excluded', { count: selection.quarantinedExcluded, engine: 'lexical' });
+    let context;
+    try { context = policy.renderLexicalHookContext(selection); }
+    catch { observation.emission('render-failed'); return emitContext(debt, observation); }
+    if (context === '') {
+      observation.emission('no-selected-context');
+      skip('lexical-no-eligible-hits');
+      return emitContext(debt, observation);
+    }
+    safe(() => process.stderr.write(\`[dz-recall] engine=lexical root=\${PROJECT} (\${ROOT_SOURCE}) session=\${SESSION_ROOT}\\n\`));
+    const emitted = await emitContext(debt === '' ? context : \`\${debt}\\n\${context}\`, observation);
+    if (emitted !== false) {
+      const usage = await loadUsagePolicy();
+      const chain = await loadChainPolicy();
+      recordUsage(selection.hits, usage, prompt, chain, 'lexical');
+    }
+    return;
   }
 
   const daemonReply = await askDaemon(prompt);
@@ -2091,11 +2162,12 @@ export function applyLegStatus(root: string): ApplyLegStatus {
     // config.json absent or unreadable — 'unknown' is the honest answer, not a guess.
   }
 
-  const anyUnreadable = recallHook.unreadable === true || embedDaemon.unreadable === true;
-  const helpersPresent = recallHook.exists && embedDaemon.exists;
-  const helpersCurrent =
-    helpersPresent && !anyUnreadable && recallHook.version >= APPLY_LEG_VERSION && embedDaemon.version >= APPLY_LEG_VERSION;
-  const hooksPresent = userPromptSubmitPresent && sessionStartPresent;
+  const needsDaemon = backend !== 'jsonl';
+  const anyUnreadable = recallHook.unreadable === true || (needsDaemon && embedDaemon.unreadable === true);
+  const helpersPresent = recallHook.exists && (!needsDaemon || embedDaemon.exists);
+  const helpersCurrent = helpersPresent && !anyUnreadable && recallHook.version >= APPLY_LEG_VERSION
+    && (!needsDaemon || embedDaemon.version >= APPLY_LEG_VERSION);
+  const hooksPresent = userPromptSubmitPresent && (!needsDaemon || sessionStartPresent);
   const installed = helpersCurrent && hooksPresent;
 
   let reason: ApplyLegNotInstalledReason | undefined;
@@ -2135,16 +2207,18 @@ export function applyLegStatus(root: string): ApplyLegStatus {
  */
 export function applyLegReasonMessage(status: ApplyLegStatus): string {
   if (status.reason === 'stale-version') {
-    const deployedMin = Math.min(status.helpers.recallHook.version, status.helpers.embedDaemon.version);
+    const deployedMin = status.backend === 'jsonl'
+      ? status.helpers.recallHook.version
+      : Math.min(status.helpers.recallHook.version, status.helpers.embedDaemon.version);
     return `installed v${deployedMin}, current v${APPLY_LEG_VERSION} — re-run dz setup to upgrade (no --force needed)`;
   }
   if (status.reason === 'unreadable') {
-    const bad = [status.helpers.recallHook, status.helpers.embedDaemon]
+    const bad = (status.backend === 'jsonl' ? [status.helpers.recallHook] : [status.helpers.recallHook, status.helpers.embedDaemon])
       .filter((h) => h.unreadable === true)
       .map((h) => h.path);
-    return `cannot read deployed helper(s): ${bad.join(', ')} — fix or remove it and re-run: dz setup --target claude-code --memory agentdb`;
+    return `cannot read deployed helper(s): ${bad.join(', ')} — fix or remove it and re-run: dz setup --target claude-code --memory ${status.backend === 'jsonl' ? 'jsonl' : 'agentdb'}`;
   }
-  return 'not installed — run dz setup --target claude-code --memory agentdb';
+  return `not installed — run dz setup --target claude-code --memory ${status.backend === 'jsonl' ? 'jsonl' : 'agentdb'}`;
 }
 
 /**

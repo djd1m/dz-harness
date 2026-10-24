@@ -5,7 +5,7 @@ The bundled Feature ADR projection supports installed-CLI native QE history opt-
 If bytes change before first evaluation, native `evaluate` retains valid old-snapshot receipt origins and conditions while reporting `not-established/native-repair-required`. Follow with explicit `begin-repair` and fresh independent verification of the new snapshot. Recovery preserves authority and the three-cycle ceiling; old evidence never closes changed bytes.
 
 
-Current package version: `1.7.18`. <!-- dz:version -->
+Current package version: `1.7.19`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/keysarium
 
@@ -14,7 +14,7 @@ Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree
 Full 7-phase pipeline for AI case studies, hackathons, and casariums. Provides skills, commands, rules, shards, agent templates, and brain portability. Claude Code uses `/casarium`; Codex uses a local `$casarium` skill that reads the same phase sources.
 
 The bundled feature-ADR reference mode includes eight full agentic-qe skill protocols pinned to upstream commit `0a6de058575cbe292afe220df105cc74120f7674`, with their output schemas, evals and supporting files. Keysarium-specific teaching notes are marked separately. The vendored references do not install the `aqe` executable, MCP tools, pattern memory or fleet runtime; direct `--full-qe` mode still requires agentic-qe to be installed.
-The existing `code-goal-planner` protocol is also installed as a Claude Code project agent; Step 6 uses its agent surface when available and keeps the same reference fallback for Codex.
+The complete pinned `code-goal-planner` protocol is installed as a Claude Code project agent with `model: sonnet`. Step 6 dispatches it only when that model matches the active planner route, checks its proposal against project evidence, and uses the reference directly in Codex or when the agent is unavailable.
 
 The bundled `analyst-manual-full` research checkpoint uses `moderate` for ordinary web and health
 sources. It offers `strict` or `paranoid` only when pinned issuer keys and signed delivery are

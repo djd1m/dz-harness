@@ -106,17 +106,22 @@ export function readMemoryLearningConfig(projectRoot) {
  * Parse a `.jsonl` file with per-line tolerance: one malformed line is skipped,
  * never fatal. Returns `[]` for an absent file or any top-level I/O failure.
  */
-function readJsonl(path, keep) {
+function readJsonl(path, keep, onReadFailure) {
     if (!existsSync(path))
         return [];
     let content;
     try {
         content = readFileSync(path, 'utf-8');
     }
-    catch {
+    catch (error) {
+        try {
+            onReadFailure?.(error);
+        }
+        catch { /* an advisory sink cannot suppress the tolerant reader */ }
         return [];
     }
     const out = [];
+    let rejected = 0;
     for (const line of content.split('\n')) {
         const trimmed = line.trim();
         if (trimmed.length === 0)
@@ -125,10 +130,19 @@ function readJsonl(path, keep) {
             const value = JSON.parse(trimmed);
             if (keep(value))
                 out.push(value);
+            else
+                rejected += 1;
         }
         catch {
             /* skip a single corrupt line, keep going */
+            rejected += 1;
         }
+    }
+    if (out.length === 0 && rejected > 0) {
+        try {
+            onReadFailure?.(new Error(`${path}: ${rejected} invalid JSONL record(s), no usable rows`));
+        }
+        catch { /* an advisory sink cannot suppress the tolerant reader */ }
     }
     return out;
 }
@@ -1082,25 +1096,39 @@ function mergeRecallRows(records, ranked, backend, query, limit, opts) {
  */
 export function recallPatterns(projectRoot, query, limit = 10, opts = {}) {
     const { sqliteBackend } = readLearningConfig(projectRoot);
+    let sqliteReadFailure;
+    const reportReadFailure = (error) => {
+        try {
+            opts.onReadFailure?.(error instanceof Error ? error.message : String(error));
+        }
+        catch { /* an advisory sink may not change recall's graceful contract */ }
+    };
     if (sqliteBackend !== 'json' && existsSync(sqlitePath(projectRoot))) {
         try {
             const db = SqliteBackend.openReadOnly(sqlitePath(projectRoot));
             try {
                 if (!classFormIndexPresent(projectRoot)) {
-                    return sinkQuarantined(db.querySync({ text: query, limit: limit * 2 }).map((r) => ({
+                    const hits = sinkQuarantined(db.querySync({ text: query, limit: limit * 2 }).map((r) => ({
                         pattern: recordToPattern(r),
                         backend: 'sqlite',
                         ...(readQuarantineState(r).quarantined ? { quarantined: true } : {}),
                     })), limit);
+                    if (hits.length > 0)
+                        return hits;
                 }
-                const records = db.allSync();
-                return mergeRecallRows(records, db.querySync({ text: query, limit: limit * 4 }), 'sqlite', query, limit, opts);
+                else {
+                    const records = db.allSync();
+                    const hits = mergeRecallRows(records, db.querySync({ text: query, limit: limit * 4 }), 'sqlite', query, limit, opts);
+                    if (hits.length > 0)
+                        return hits;
+                }
             }
             finally {
                 db.close();
             }
         }
         catch (err) {
+            sqliteReadFailure = err;
             // FR-2 (readonly-residuals): same classify-then-warn-once as loadStoreRecordsSync — a
             // native-unavailable failure keeps the silent JSON fallback; a store-unreadable failure
             // warns once instead of silently looking like "fewer lessons".
@@ -1112,18 +1140,41 @@ export function recallPatterns(projectRoot, query, limit = 10, opts = {}) {
         }
     }
     try {
-        const backend = JsonFileBackend.openSync(storePath(projectRoot));
+        const jsonPath = storePath(projectRoot);
+        let backend = JsonFileBackend.openSync(jsonPath);
+        // Earlier dz teach versions wrote only the JSONL tail. Read that tail through the SAME
+        // lexical ranking backend if no unified JSON store exists; never migrate during a prompt.
+        if (!existsSync(jsonPath)) {
+            const legacy = readJsonl(join(projectRoot, '.dz', 'patterns.jsonl'), isPatternRecord, reportReadFailure);
+            if (legacy.length > 0) {
+                backend = new JsonFileBackend();
+                // JsonFileBackend.put updates its in-memory map synchronously and returns a resolved Promise.
+                for (const pattern of legacy) {
+                    const record = patternToRecord(pattern);
+                    void backend.put(pattern.quarantined === true
+                        ? { ...record, metadata: { ...record.metadata, ...encodeQuarantineState(pattern.ts) } }
+                        : record);
+                }
+            }
+        }
+        let hits;
         if (!classFormIndexPresent(projectRoot)) {
-            return sinkQuarantined(backend.querySync({ text: query, limit: limit * 2 }).map((r) => ({
+            hits = sinkQuarantined(backend.querySync({ text: query, limit: limit * 2 }).map((r) => ({
                 pattern: recordToPattern(r),
                 backend: 'json',
                 ...(readQuarantineState(r).quarantined ? { quarantined: true } : {}),
             })), limit);
         }
-        const records = backend.allSync();
-        return mergeRecallRows(records, backend.querySync({ text: query, limit: limit * 4 }), 'json', query, limit, opts);
+        else {
+            const records = backend.allSync();
+            hits = mergeRecallRows(records, backend.querySync({ text: query, limit: limit * 4 }), 'json', query, limit, opts);
+        }
+        if (hits.length === 0 && sqliteReadFailure !== undefined)
+            reportReadFailure(sqliteReadFailure);
+        return hits;
     }
-    catch {
+    catch (error) {
+        reportReadFailure(error);
         return [];
     }
 }

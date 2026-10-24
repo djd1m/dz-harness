@@ -300,7 +300,7 @@ function update(projectRoot, event, now, change) {
 export function updateRecallSelection(projectRoot, event, input, now = Date.now()) {
     let selected;
     if ('unknown' in input) {
-        if (!['daemon-unavailable', 'core-unavailable', 'selection-failed'].includes(input.unknown))
+        if (!['daemon-unavailable', 'core-unavailable', 'store-unavailable', 'selection-failed'].includes(input.unknown))
             throw new SourceError('corrupt');
         selected = { state: 'unknown', reason: input.unknown };
     }

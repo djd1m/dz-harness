@@ -35,6 +35,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync, renameSync,
 import { basename, dirname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
+import { readPersistedAgentdbCounts } from './agentdb-snapshot.js';
 import { isNoiseInsight } from '@dzhechkov/memory';
 import { recallPatterns, recordToPattern, patternRecordId, patternIdentityOf, dreamRecordId, lessonDeltaMap, loadStoreRecords, readMemoryLearningConfig, readReinforcementState, readQuarantineState, removePatternsByIds, snapshotStore, updateReinforcementState, } from './patterns.js';
 import { indexPatternsToAgentdb, searchAgentdbPatterns, listAgentdbDzIds, DZ_PATTERN_TASK_TYPES, resolveAgentdbEmbedder, cosineSimilarity, importVectorsToAgentdb, reindexAgentdbRows, readAgentdbRowsByTaskType, DZ_OWNED_TASK_TYPES, readStoreGeneration, } from './agentdb-index.js';
@@ -346,7 +347,7 @@ function missingConfiguredAgentdbReason(projectRoot, fallback) {
         return fallback;
     const evidence = [databasePresent ? '.dz/agentdb.db' : '', writerPresent ? '.dz/agentdb-writer.mjs' : '']
         .filter(Boolean).join(' and ');
-    return `AgentDB is configured but its engine is missing: agentdb/better-sqlite3 not installed in project; ${evidence} exists on disk (vector count unknown until the engine is restored) — run: dz setup --memory agentdb`;
+    return `AgentDB is configured but its engine is missing: agentdb/better-sqlite3 not installed in project; ${evidence} exists on disk (record-level mirror parity unknown without the engine) — run: dz setup --memory agentdb`;
 }
 export function resolveVectorEngine(projectRoot) {
     const mode = readVectorEngineMode(projectRoot);
@@ -1186,6 +1187,9 @@ export async function vectorTierStatus(projectRoot, opts = {}) {
     const mirrorWriterEnabled = mirror.enabled;
     const resolved = pickEngine(projectRoot, opts);
     if (resolved.engine === undefined) {
+        const persisted = resolved.reason?.startsWith('AgentDB is configured but its engine is missing:')
+            ? readPersistedAgentdbCounts(join(projectRoot, '.dz', 'agentdb.db'))
+            : undefined;
         // No engine to ask ⇒ the debt is UNKNOWN. Reporting 0 here is precisely the defect this feature
         // closes: a number nobody computed is not a number anyone may print (ADR-001, AM-5).
         return {
@@ -1195,6 +1199,7 @@ export async function vectorTierStatus(projectRoot, opts = {}) {
             ...(!('error' in model) ? { embeddingModel: model.model } : {}),
             lexicalTotal: records.length,
             lexicalMirrorable,
+            ...(persisted !== undefined ? { persisted } : {}),
             pending,
             mirrorWriterEnabled,
             mirrorWriterState: mirror.state,

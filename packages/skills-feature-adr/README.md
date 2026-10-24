@@ -4,10 +4,12 @@ Feature ADR includes synchronized guidance and the versioned helper for `dz qe-r
 
 Reference Mode now includes eight complete, pinned agentic-qe core protocols and their companion files. The `qe-ref-` directories distinguish bundled references from separately installed skills. The feature-ADR modules retain control of checkpoints; the reference files alone do not provide the `aqe` CLI, MCP tools, memory or fleet agents.
 
+The installer also supplies the complete pinned Step 6 `code-goal-planner` as a Claude Code project agent (`model: sonnet`). Step 6 checks its proposal before recording a plan. Codex and hosts without that agent use the same bundled reference methodology through the selected planning model.
+
 If bytes change before first evaluation, native `evaluate` retains valid old-snapshot receipt origins and conditions while reporting `not-established/native-repair-required`. Follow with explicit `begin-repair` and fresh independent verification of the new snapshot. Recovery preserves authority and the three-cycle ceiling; old evidence never closes changed bytes.
 
 
-Current package version: `1.5.23`. <!-- dz:version -->
+Current package version: `1.5.24`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-feature-adr
 

@@ -102,6 +102,25 @@ export declare function selectHookHits(prompt: unknown, candidates: readonly Hoo
     limit?: number;
     budgetChars?: number;
 }): HookSelection;
+/** A lexical hit has an ORDER, never a cosine or RRF score. */
+export interface LexicalHookCandidate {
+    readonly dzId?: string;
+    readonly pattern: string;
+    readonly domain?: string;
+    readonly quarantined?: boolean;
+}
+export interface LexicalHookSelection {
+    readonly hits: readonly LexicalHookCandidate[];
+    readonly quarantinedExcluded: number;
+}
+/** Preserve the store's lexical ranking while applying the hook's signal, safety and size gates. */
+export declare function selectLexicalHookHits(prompt: unknown, candidates: readonly LexicalHookCandidate[] | null | undefined, opts?: {
+    limit?: number;
+    budgetChars?: number;
+    includeProbe?: boolean;
+}): LexicalHookSelection;
+/** Lexical context intentionally carries no numeric similarity or threshold claim. */
+export declare function renderLexicalHookContext(selection: LexicalHookSelection): string;
 /**
  * Render the `additionalContext` block. Returns `''` when there is nothing to say — the caller emits
  * NOTHING (not an empty JSON envelope) and exits 0, so an off-topic turn costs the reader zero tokens.
