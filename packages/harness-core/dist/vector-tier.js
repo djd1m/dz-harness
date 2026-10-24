@@ -327,10 +327,11 @@ function isPackageInstalled(projectRoot, pkgName) {
         dir = parent;
     }
 }
-/** Config plus a deployed artifact proves setup intent, but cannot prove a live vector count. */
-function missingConfiguredAgentdbReason(projectRoot, fallback) {
-    if (!mirrorWriterReason(projectRoot).enabled || readVectorEngineMode(projectRoot) === 'rvf')
-        return fallback;
+/** Setup artifacts are evidence of a previous AgentDB tier, not proof of current parity. */
+export function agentdbSetupEvidence(projectRoot) {
+    const mode = readVectorEngineMode(projectRoot);
+    if (mode === 'off' || mode === 'rvf')
+        return undefined;
     const dzDir = join(projectRoot, '.dz');
     let databasePresent = false;
     let writerPresent = false;
@@ -344,10 +345,30 @@ function missingConfiguredAgentdbReason(projectRoot, fallback) {
     }
     catch { /* no deployed writer evidence */ }
     if (!databasePresent && !writerPresent)
-        return fallback;
-    const evidence = [databasePresent ? '.dz/agentdb.db' : '', writerPresent ? '.dz/agentdb-writer.mjs' : '']
+        return undefined;
+    const artifacts = [databasePresent ? '.dz/agentdb.db' : '', writerPresent ? '.dz/agentdb-writer.mjs' : '']
         .filter(Boolean).join(' and ');
-    return `AgentDB is configured but its engine is missing: agentdb/better-sqlite3 not installed in project; ${evidence} exists on disk (record-level mirror parity unknown without the engine) — run: dz setup --memory agentdb`;
+    const writer = mirrorWriterReason(projectRoot);
+    return {
+        state: writer.enabled ? 'configured' : 'artifacts-without-current-config',
+        databasePresent,
+        writerPresent,
+        artifacts,
+        mirrorWriterState: writer.state,
+    };
+}
+/** Config and deployed artifacts distinguish a lost engine from a plain lexical-only project. */
+function missingConfiguredAgentdbReason(projectRoot, fallback) {
+    const evidence = agentdbSetupEvidence(projectRoot);
+    if (evidence === undefined)
+        return fallback;
+    if (evidence.state === 'artifacts-without-current-config') {
+        if (evidence.mirrorWriterState === 'config-unreadable' || evidence.mirrorWriterState === 'legacy-shape') {
+            return `AgentDB setup artifacts remain but the current mirror cannot start: ${mirrorWriterExplanation(evidence.mirrorWriterState)}; ${evidence.artifacts} exists on disk (record-level mirror parity unknown)`;
+        }
+        return `AgentDB setup artifacts remain but the current mirror is not configured: ${evidence.artifacts} exists on disk; no vector engine is available (record-level mirror parity unknown) — run: dz setup --memory agentdb`;
+    }
+    return `AgentDB is configured but its engine is missing: agentdb/better-sqlite3 not installed in project; ${evidence.artifacts} exists on disk (record-level mirror parity unknown without the engine) — run: dz setup --memory agentdb`;
 }
 export function resolveVectorEngine(projectRoot) {
     const mode = readVectorEngineMode(projectRoot);
@@ -1187,7 +1208,8 @@ export async function vectorTierStatus(projectRoot, opts = {}) {
     const mirrorWriterEnabled = mirror.enabled;
     const resolved = pickEngine(projectRoot, opts);
     if (resolved.engine === undefined) {
-        const persisted = resolved.reason?.startsWith('AgentDB is configured but its engine is missing:')
+        const evidence = agentdbSetupEvidence(projectRoot);
+        const persisted = evidence?.databasePresent
             ? readPersistedAgentdbCounts(join(projectRoot, '.dz', 'agentdb.db'))
             : undefined;
         // No engine to ask ⇒ the debt is UNKNOWN. Reporting 0 here is precisely the defect this feature

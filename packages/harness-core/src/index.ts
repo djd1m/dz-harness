@@ -207,6 +207,7 @@ export {
   vectorMirrorEnabled,
   mirrorWriterReason,
   mirrorWriterExplanation,
+  agentdbSetupEvidence,
   resolveVectorEngine,
   mirrorEntriesToVector,
   mirrorPatternsToVector,

@@ -524,6 +524,8 @@ import {
   unknownFlagNotice,
   mirrorWriterExplanation,
   mirrorWriterReason,
+  agentdbSetupEvidence,
+  readVectorEngineMode,
   appendRecallUsage,
   closenessLine,
   anyAboveFloor,
@@ -4461,8 +4463,15 @@ async function cmdTeach(
   // `dz consolidate`/a later teach (once the store exists) runs. BOTH signals are required so this
   // never misfires for an rvf-configured project (whose store is not `.dz/agentdb.db` at all) or
   // for the ordinary "already mirrored, nothing new" case (which resolves an engine successfully).
-  const emitVectorTierAbsentIfNeeded = (root: string, receipt: { readonly engine?: string | undefined }): void => {
-    if (receipt.engine === undefined && !existsSync(resolveAgentdbPath(root))) {
+  const emitVectorTierAbsentIfNeeded = (root: string, receipt: {
+    readonly engine?: string | undefined; readonly queued?: number | undefined; readonly error?: string | undefined;
+  }): void => {
+    if (receipt.engine !== undefined) return;
+    const evidence = agentdbSetupEvidence(root);
+    if (evidence?.state === 'configured' && receipt.error !== undefined) {
+      const queued = receipt.queued ?? 0;
+      write(`  ↳ vector tier unavailable — saved lexically; ${queued} vector ${queued === 1 ? 'entry' : 'entries'} queued. ${receipt.error}`);
+    } else if (!existsSync(resolveAgentdbPath(root))) {
       write('  ↳ vector tier absent — run dz consolidate');
     }
   };
@@ -4483,9 +4492,16 @@ async function cmdTeach(
   // two states that are unambiguously a mistake.
   const emitMirrorOffIfNeeded = (root: string): boolean => {
     const reason = mirrorWriterReason(root);
-    if (reason.state !== 'config-unreadable' && reason.state !== 'legacy-shape') return false;
-    write(`  ↳ vector tier OFF: ${mirrorWriterExplanation(reason.state)}`);
-    return true;
+    const evidence = agentdbSetupEvidence(root);
+    if (reason.state === 'config-unreadable' || reason.state === 'legacy-shape') {
+      write(`  ↳ vector tier OFF: ${mirrorWriterExplanation(reason.state)}${evidence === undefined ? '' : `; ${evidence.artifacts} remains`}`);
+      return true;
+    }
+    if (evidence?.state === 'artifacts-without-current-config') {
+      write(`  ↳ vector mirror not configured — saved lexically, not queued; ${evidence.artifacts} remains. Run dz setup --memory agentdb to restore mirroring`);
+      return true;
+    }
+    return false;
   };
   const emitMirror = async (root: string, records: readonly PatternRecord[], source: string): Promise<void> => {
     if (flags.has('no-mirror') || records.length === 0) return;
@@ -4960,6 +4976,14 @@ async function cmdConsolidate(
     if (result.mirrored > 0) write(`  Mirrored to agentdb vector index: ${result.mirrored}`);
   }
   if (result.mirrorError !== undefined) write(`  Mirror: ${result.mirrorError}`);
+  else if (!flags.has('no-mirror')) {
+    const evidence = agentdbSetupEvidence(projectRoot);
+    if (evidence?.state === 'artifacts-without-current-config') {
+      const specific = evidence.mirrorWriterState === 'config-unreadable' || evidence.mirrorWriterState === 'legacy-shape';
+      const why = specific ? mirrorWriterExplanation(evidence.mirrorWriterState) : 'not configured in this working tree';
+      write(`  Mirror: ${why}; ${evidence.artifacts} remains${specific ? '' : '. Run dz setup --memory agentdb to restore mirroring'}`);
+    }
+  }
 
   // SAFLA delta ranking (rUv-scout #2 Phase 2): rank lessons by payoff SLOPE from reinforce history.
   // INFORMATIONAL — deletes nothing (a stale-but-valid lesson is not "noise"). Surfaced so the operator
@@ -5471,8 +5495,8 @@ async function cmdRecall(
     write(asJson ? JSON.stringify({ error: 'semantic-unavailable', reason: why, hits: [] }) : `dz recall --semantic: ${why}`);
     return 1;
   }
-  const configuredEngineMissing = mode !== 'lexical' && result.vectorEngine === 'none'
-    && result.vectorReason?.startsWith('AgentDB is configured but its engine is missing:') === true;
+  const agentdbArtifactEngineUnavailable = mode !== 'lexical' && result.vectorEngine === 'none'
+    && agentdbSetupEvidence(projectRoot) !== undefined;
   // Domain-aware re-ranking (health-advisor slice H): `--domain <name>` lifts lessons
   // tagged with that domain WITHOUT dropping foreign ones — a boost, not a filter, so a
   // shared store keeps the cross-domain transfers that make it worth more than two stores.
@@ -5585,7 +5609,7 @@ async function cmdRecall(
     // through `dz teach --from-json`, and wrapping it in an object to make room for one report
     // would break every existing consumer. The block travels beside the other honesty notes.
     if (banditBlock !== undefined) process.stderr.write(`${JSON.stringify({ bandit: banditBlock })}\n`);
-    if (configuredEngineMissing) writeErr(`dz recall: ⚠ ${result.vectorReason} — showing lexical results`);
+    if (agentdbArtifactEngineUnavailable) writeErr(`dz recall: ⚠ ${result.vectorReason} — showing lexical results`);
     return semanticUnserved ? 1 : 0;
   }
 
@@ -5607,7 +5631,7 @@ async function cmdRecall(
     // silently said nothing about the domain, so the reader could not tell whether the
     // boost had been applied and found nothing, or had not run at all.
     if (boost !== null && shownDomain !== undefined) write(renderDomainBoostNote(boost, shownDomain));
-    if (configuredEngineMissing) write(`  ⚠ ${result.vectorReason} — showing lexical results`);
+    if (agentdbArtifactEngineUnavailable) write(`  ⚠ ${result.vectorReason} — showing lexical results`);
     return semanticUnserved ? 1 : 0;
   }
   // `vectorOn` used to mean "an engine RESOLVED", so the header claimed vector ranking over a store
@@ -5755,9 +5779,11 @@ async function cmdRecall(
   // reports `vectorEngine: 'none'` BY CONSTRUCTION, so this line fired over a tier that was installed
   // and full — in this repo, 539 vectors and a 2.9 MB agentdb.db, advising the user to install it
   // (MEASURED 2026-08-22). Someone who passed --no-semantic has opted out; advice is noise there.
-  if (configuredEngineMissing) {
+  if (agentdbArtifactEngineUnavailable) {
     write(`  ⚠ ${result.vectorReason} — showing lexical results`);
-  } else if (!vectorOn && !engineInstalled && mode !== 'lexical' && existsSync(join(projectRoot, '.dz', 'agentdb.db'))) {
+  } else if (!vectorOn && !engineInstalled && mode !== 'lexical'
+    && !['off', 'rvf'].includes(readVectorEngineMode(projectRoot))
+    && existsSync(join(projectRoot, '.dz', 'agentdb.db'))) {
     write(`  ℹ semantic (vector) recall needs the agentdb vector tier — run: dz setup --memory agentdb`);
   }
   // An EXPLICIT --semantic that no vector could serve is not a success. The caller who most needs to

@@ -3,7 +3,7 @@
 `dz qe-rounds --source native` reports durable native QE history without writing. Explicit `--action prepare|evaluate|begin-repair|begin-continuation` invokes the exact installed skills-meta helper from the CLI module, checks core/helper capabilities and uses the existing receipt schema. Prepare and begin-repair require `--reviewers <json>`. The default native ceiling is three; native `--ceiling`, duplicate/unknown options, legacy reconstruction and source collisions refuse. Omitted source retains the bridge reader.
 
 
-Current package version: `0.8.55`. <!-- dz:version -->
+Current package version: `0.8.56`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -100,7 +100,7 @@ Each launch creates one snapshot; remove selected old snapshot files yourself wh
 Live backpressure waits for writable callbacks. Explicit termination cancels pending writes; after
 child exit a stalled output sink has a two-second final drain window before cancellation.
 
-Current package versions: `harness-core v0.8.63` · `harness-cli v0.8.55`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.64` · `harness-cli v0.8.56`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. On visible lines, the marker retains its whole-line override for per-package synchronization, including explicit changelog overrides, so keep it off historical records. The previous all-protections override is corrected: fenced marker, footer, install/JSON-pin, tarball and badge examples remain literal, as do supported HTML comment blocks. Their visible counterparts still stamp; place current metadata outside examples.
 
@@ -5960,11 +5960,12 @@ dz consolidate                                    # also BACKFILLS the mirror (h
 - **The TOP lexical match is never displaced by `--semantic`.** It keeps a reserved seat, so a rare identifier, a file name or an error code still surfaces when you weight the vector leg (MEASURED on a live store: survival 2 of 5 → 5 of 5). The seat is taken only under `--semantic`, and never from a hit BOTH legs found. Ties break by evidence — a hit both legs found outranks one only a single leg found.
 - **Every claim the output makes follows what the run did.** The header says `+ vector (…)` only when a vector actually ranked something; with an empty tier it says `FTS5 only (semantic tier empty — run: dz vector reindex)` instead of promising a ranking that did not happen, and the `dz setup --memory agentdb` hint no longer fires at a tier that is already installed.
 - **`dz vector status` counts like with like.** `Mirrored vectors (learned patterns)` covers exactly the scope the lexical count covers; vectors of other dz-owned task types (backlog ideas) are reported on their own line, and a true orphan — a pattern vector whose record is gone — is named for the first time. The old single number counted three task types while sitting under a one-task-type lexical count: on this repository it read 547 against 274, which looks like half the index orphaned, and 273 of those were backlog ideas with ZERO real orphans.
-- **When AgentDB is configured but its engine is missing,** `dz vector status` reads a temporary SQLite copy without changing the source and shows persisted vector-row totals and the learned-pattern subset on Node 22.16 or newer. It keeps live mirror parity as unknown. An absent or unreadable database, or a Node runtime without the SQLite reader, produces an explicit unknown count.
+- **When AgentDB setup artifacts remain but the engine is unavailable,** `dz vector status` distinguishes a configured tier with missing dependencies from a database or writer left behind after the current config was removed. For a saved database it reads a temporary SQLite copy without changing the source and shows persisted vector-row totals and the learned-pattern subset on Node 22.16 or newer. It keeps live mirror parity as unknown. An unreadable database or a Node runtime without the SQLite reader produces an explicit unknown count; a writer without a database does not imply any saved rows.
+- **Learning reports the actual mirror outcome.** With a configured tier and missing engine, `dz teach` says the lesson was saved lexically and gives the queued vector-entry count. With only prior artifacts and no current mirror config, it says the lexical write was not queued. `dz consolidate` reports that state even when no new sessions were found; `dz recall` reports lexical fallback while preserving JSON stdout.
 - **`dz vector status` distinguishes three states, not two:** `Mirror writer: ON/OFF` (whether teach is queueing at all) and `Not in the mirror: N` — mirrorable patterns in neither the mirror nor the pending queue, counted as a SET DIFFERENCE over ids. `Pending mirror queue: 0` no longer stands alone for "no debt": it used to read the same whether the queue was empty or had never been opened.
 - **`dz teach --from-json` says so when the mirror writer is off** — carrying a brain to a new machine used to land a fully unindexed store that reported zero debt.
 
-- **Optional by design:** no engine installed ⇒ `teach`/`recall`/`consolidate` behave byte-identically to the pre-vector versions; every engine call is time-bounded and failures degrade to lexical with one honest ℹ line.
+- **Optional by design:** an ordinary project without AgentDB configuration or artifacts keeps the lexical-only behavior; every engine call is time-bounded and failures degrade to lexical with an explicit diagnostic when setup evidence remains.
 - **The lexical store stays the source of truth** — vector hits are pointers; a pattern pruned from the store can never "resurrect" via the mirror.
 - **Two portable forms:** `dz recall --all --json` = the SHARING form (patterns themselves, re-import with `dz teach --from-json`); `dz vector export <path>` = the VECTOR form (a portable `.rvf` checkpoint, opt-in `@ruvector/rvf` engine via `.dz/config.json` → `memory.vector.engine: "rvf"`).
 - `--no-mirror` on `teach`/`consolidate` skips the vector tier entirely.

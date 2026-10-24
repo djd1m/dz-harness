@@ -225,7 +225,7 @@ export interface VectorTierStatus {
     readonly embeddingModel?: string | undefined;
     readonly lexicalTotal: number;
     readonly lexicalMirrorable: number;
-    /** Exact disk rows when a configured AgentDB engine is missing; distinct from record-level `mirrored`. */
+    /** Exact disk rows when AgentDB artifacts remain but its engine is unavailable; distinct from record-level `mirrored`. */
     readonly persisted?: PersistedAgentdbCounts | undefined;
     /**
      * How many MIRRORABLE RECORDS are in the vector store, counted in the same scope
@@ -470,6 +470,14 @@ export declare function mirrorWriterReason(projectRoot: string): {
 };
 /** The sentence a reader can act on, for each state. */
 export declare function mirrorWriterExplanation(state: MirrorWriterState): string;
+/** Setup artifacts are evidence of a previous AgentDB tier, not proof of current parity. */
+export declare function agentdbSetupEvidence(projectRoot: string): {
+    readonly state: 'configured' | 'artifacts-without-current-config';
+    readonly databasePresent: boolean;
+    readonly writerPresent: boolean;
+    readonly artifacts: string;
+    readonly mirrorWriterState: MirrorWriterState;
+} | undefined;
 export declare function resolveVectorEngine(projectRoot: string): ResolvedVectorEngine;
 /** Options shared by the mirror/recall services. `engine: null` force-disables (tests). */
 export interface VectorServiceOptions {

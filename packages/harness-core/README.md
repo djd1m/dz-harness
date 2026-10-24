@@ -24,7 +24,7 @@ commands. Use `node --test <file>` through the same wrapper for Node tests. Focu
 is supported; it does not prove a complete suite, meaningful tests or authenticated evidence.
 See the repository `.githooks/README.md` for bounds, supported commands and reasoned overrides.
 
-Current package version: `0.8.63`. <!-- dz:version -->
+Current package version: `0.8.64`. <!-- dz:version -->
 
 Joint current metadata requires `<!-- dz:version -->` on a dedicated undated core/CLI line. Both README writers preserve unmarked historical joint pairs; the guard and release-line report skip them. Fenced examples cannot become current joint metadata. `parseReleaseLine` remains structural, while selection requires this explicit opt-in. On a visible line, the marker still forces per-package rewriting of every matching version, including an explicit changelog override; keep it off historical records. Fenced examples and supported HTML comment blocks remain literal even when they contain the marker, a footer, an install/JSON pin, a tarball line or a badge. Put current stamps outside these examples.
 
@@ -1122,9 +1122,13 @@ already exist, so `dz teach` has somewhere to mirror into before any session has
 For a JSONL project, `dz doctor` reports an absent hook as `[WARN] apply-leg` with the setup command;
 an installed hook is checked by a live injection probe. Its `lexical-no-hits` reason differs from
 AgentDB's missing daemon or vector mirror. Manual `dz recall` remains available on either backend.
+When an AgentDB daemon returns no candidates, the hook's stderr keeps `reason=no-hits` and reports
+`mirror-writer-config=on|off|unknown` plus a known `mirror-state` as a separate configuration fact.
+An off writer does not establish why this particular prompt had no match; a saved vector database
+can still contain older rows. This diagnostic adds no stdout context and does not block the prompt.
 
 The hub regenerates its OWN `.claude/helpers/recall-hook.cjs`/`dz-embed-daemon.mjs` from this same
-generator (with the hub's own `coreDistDir`, via `harnessCoreDistDir()`) — a twins test
+generator (with the portable `null` core path; runtime lookup finds this checkout) — a twins test
 (`test/apply-leg-twins.test.ts`) keeps the two byte-identical, the same discipline `feature-adr`'s
 workflow twins test applies to its own generated scripts.
 
@@ -2959,6 +2963,11 @@ newer, `dz vector status` reads a temporary copy of `.dz/agentdb.db` with SQLite
 number of persisted vector rows, including the learned-pattern subset. This disk count is separate
 from live mirror parity: without the engine, mirrored and missing pattern counts remain unknown.
 On Node 20 or when the database cannot be read, the disk count is explicitly unknown.
+If the config disappears but the database or writer remains, the diagnostic names those artifacts
+and says the current mirror is not configured. That evidence does not establish vector parity.
+`dz teach` reports whether its lexical write also queued vector entries; `dz consolidate` reports
+the disabled mirror even when no new session was harvested. Explicit `engine=off` and ordinary
+projects without AgentDB artifacts do not get a lost-engine warning.
 
 An explicit jsonl → agentdb upgrade no longer requires force: only `memory.backend` changes,
 atomically, while unrelated config, hooks, skills and existing data remain. Failures print the observed

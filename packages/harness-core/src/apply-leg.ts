@@ -221,7 +221,9 @@ export function probeRecallEngine(socketPath: string, timeoutMs = 1000): Promise
  * Version 17 serializes stale-socket cleanup and bind across concurrent daemon starts.
  */
 // Version 18 adds direct JSONL lexical recall. The daemon's own bytes are otherwise unchanged.
-export const APPLY_LEG_VERSION = 20;
+// Version 21 adds the AgentDB zero-hit mirror configuration diagnostic; both generated helpers
+// share one version stamp, so regenerate the hub twins together.
+export const APPLY_LEG_VERSION = 21;
 
 /**
  * Parse the `dz-apply-leg-version` stamp from a deployed helper file. Unlike
@@ -818,8 +820,19 @@ async function beginObservation(payload) {
 // which spawns this exact command as a child process and reads ITS OWN child's stderr directly —
 // unmediated by Claude Code's UI, so the redirect policy of any particular hook EVENT is moot; and
 // (2) a human running the command by hand from a terminal, who sees stderr exactly as printed.
-const skip = (reason) =>
-  safe(() => process.stderr.write(\`[dz-recall] skipped reason=\${reason} root=\${PROJECT} (\${ROOT_SOURCE}) session=\${SESSION_ROOT}\\n\`));
+const skip = (reason, detail = '') =>
+  safe(() => process.stderr.write(\`[dz-recall] skipped reason=\${reason}\${detail ? \` \${detail}\` : ''} root=\${PROJECT} (\${ROOT_SOURCE}) session=\${SESSION_ROOT}\\n\`));
+
+// A zero-hit daemon response establishes only that this prompt found no candidates. Report the
+// mirror writer's CONFIGURATION as a separate fact; an off writer does not prove why this prompt
+// missed, and an on writer does not prove the vector engine is healthy. Load the existing policy
+// only on this path so successful injections pay no extra import cost.
+async function mirrorWriterDiagnostic() {
+  const mod = await loadCoreModule('vector-tier.js', (m) => typeof m.mirrorWriterReason === 'function');
+  const state = mod && safe(() => mod.mirrorWriterReason(PROJECT), undefined);
+  if (!state || typeof state.enabled !== 'boolean' || typeof state.state !== 'string') return 'mirror-writer-config=unknown';
+  return \`mirror-writer-config=\${state.enabled ? 'on' : 'off'} mirror-state=\${state.state}\`;
+}
 
 async function main() {
   const raw = readStdin();
@@ -935,7 +948,7 @@ async function main() {
   }
   if (hits.length === 0) {
     observation.selection({ hits: [], reason: 'no-candidates' });
-    skip('no-hits');
+    skip('no-hits', await mirrorWriterDiagnostic());
     return emitContext(debt, observation); // daemon alive, nothing relevant — silence is correct
   }
 

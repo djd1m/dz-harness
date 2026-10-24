@@ -159,7 +159,7 @@ export declare function probeRecallEngine(socketPath: string, timeoutMs?: number
  * Version 16 adds opt-in process RSS telemetry/budget and early, owned lifecycle shutdown.
  * Version 17 serializes stale-socket cleanup and bind across concurrent daemon starts.
  */
-export declare const APPLY_LEG_VERSION = 20;
+export declare const APPLY_LEG_VERSION = 21;
 /**
  * Parse the `dz-apply-leg-version` stamp from a deployed helper file. Unlike
  * `writerVersionOf` (which floors an absent stamp at `0`), this returns `-1` for "no stamp at
