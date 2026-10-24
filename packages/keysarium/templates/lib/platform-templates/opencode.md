@@ -24,7 +24,7 @@ project:
 instructions: |
   {Extract the critical rules from CLAUDE.md:
    - File conventions
-   - Research quality requirements (PARANOID mode)
+   - Research quality requirements and GOAP mode capability gate
    - Checkpoint protocol summary
    - Anti-patterns to avoid
    Keep to 30-50 lines.}

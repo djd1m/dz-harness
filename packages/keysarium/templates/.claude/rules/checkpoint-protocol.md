@@ -29,7 +29,7 @@ Promises are machine-readable markers that formalize phase gates.
 |-------|------------|---------|
 | Phase 0 | `<promise>DISCOVERY_COMPLETE</promise>` | JTBD + competitors + ROI analyzed |
 | Phase 1 | `<promise>CASE_EXPLORED</promise>` | Case fully understood, brief created |
-| Phase 2 | `<promise>RESEARCH_PARANOID_PASSED</promise>` | All claims verified, zero unverified |
+| Phase 2 | `<promise>RESEARCH_PARANOID_PASSED</promise>` | Legacy tag: evidence gate passed in the selected GOAP mode; no issuer-signature claim unless independently confirmed |
 | Phase 2.5 | `<promise>CJM_VALIDATED</promise>` | CJM prototype created and variant chosen |
 | Phase 3 | `<promise>SOLUTION_DESIGNED</promise>` | Solution strategy formulated |
 | Phase 4 | `<promise>ARCHITECTURE_DEFINED</promise>` | C4 diagrams + sequence flows ready |
@@ -57,6 +57,7 @@ Files created: [list] ✅
 ### Promise Validation Rules
 
 - A promise tag MUST only be emitted AFTER its conditions are verifiably met
+- GOAP `GOAL_UNREACHABLE` cannot satisfy the Phase 2 promise; report the missing capability and stop
 - If conditions are NOT met, emit `<promise>[TAG]_INCOMPLETE</promise>` instead
 - Downstream phases SHOULD check for upstream promises before starting
 - Promise tags serve as formal phase gates — they replace informal "phase done" signals

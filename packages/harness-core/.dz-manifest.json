@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "fa616f2ed563521a3c463d04819f5f2e655e7dded5c40276a4ee4dc7b1091b13"
+        "sha256": "9e63b1be93b9f619215d11baaf23722cb85ad7d8010a078be00a19f675ac59e8"
       },
       {
         "path": "dist/__tests__/golden-baseline.test.d.ts",
@@ -1745,15 +1745,15 @@
       },
       {
         "path": "dist/operations.d.ts.map",
-        "sha256": "50a2554dcc1091008fdf3f7b8eb1e1c7429ee67fb839c5ae5c1b6d7e6f53188f"
+        "sha256": "e8b691888e19e93190bf2c5cc281984cdb97af2410e15116ca771422db571d5e"
       },
       {
         "path": "dist/operations.js",
-        "sha256": "8b72afe6bbfa5b6c6f5738f65b83bb646bf7350af23d47ace52da01fde1590b8"
+        "sha256": "1597d47f95cfe46ea17ccfaf38efa2976d93f06251254428e40a457da1bb292e"
       },
       {
         "path": "dist/operations.js.map",
-        "sha256": "ecf94fb7522d5019dec22aa921285195f3d662933e2edd4c65e0168bd9aa4bf3"
+        "sha256": "3b5947fd08924835e8a89c6a1ae5e127a2bc639951c908e9d5a8a722ad6615fd"
       },
       {
         "path": "dist/pack-artifact.d.ts",
@@ -1761,15 +1761,15 @@
       },
       {
         "path": "dist/pack-artifact.d.ts.map",
-        "sha256": "fc5ec05405710ec6cb543121d9c6f14ba9c5c11e5edc918e15622c9efc24bfe8"
+        "sha256": "79ba99acb65a3fc523ee862e5ebf7fc04de86a7d42f1bf5543c7f5617e6955fd"
       },
       {
         "path": "dist/pack-artifact.js",
-        "sha256": "6ad53e00466d96653f88ab0ec69f9a2d63552023bf5b851ce37918f44466ba8f"
+        "sha256": "d0ed44f23b99f6b80602f61ede396eb626048be8975b38f977c94363f46cb4b1"
       },
       {
         "path": "dist/pack-artifact.js.map",
-        "sha256": "3b1537b2de837841488829eaf12ee76fc405dbe12716a5b6677b2339ac5276cb"
+        "sha256": "9fbc3245cddd10f8c473ebc972344a11188b0d23f5e93f5bf1368bf83a20a194"
       },
       {
         "path": "dist/pack-inventory.d.ts",
@@ -3165,19 +3165,19 @@
       },
       {
         "path": "dist/vector-tier.d.ts",
-        "sha256": "29f17c93d7d1a702195007a540717916c759956888d69a9c79673c06e2e37e37"
+        "sha256": "789e3903d6fa76de3b8437cee990e376300e3bed1c9dd8ce106993a46146d9a7"
       },
       {
         "path": "dist/vector-tier.d.ts.map",
-        "sha256": "6e89cc42c34eb4779792b89cc4a24e96179e28c1e6e343bc43682fe25b4be703"
+        "sha256": "4b86f4719747912d99cd26ccf76d7bdde7d355accc1a7b39860cf8b8238fa533"
       },
       {
         "path": "dist/vector-tier.js",
-        "sha256": "2e8d87067df268d285a1c140b2ab4f81d91b1fa28f4e605fac343f1293c5c932"
+        "sha256": "9c6c31e8efd42f6934cd31fca349bd3f604f3224554f773c7f518ee83a242f45"
       },
       {
         "path": "dist/vector-tier.js.map",
-        "sha256": "d7135aa3aa0866426d656a943ad482ebd99e4201c032bbee6b9bed74d1a52464"
+        "sha256": "2837039e1f222c0c274c0716311d655a30286787a589dc40125d5b7ea5795836"
       },
       {
         "path": "dist/workflow-run-dispatch.d.ts",
@@ -3245,7 +3245,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "84730dc4f92cf8e63611abfe70f89e924f2a43a27f34a81245c1af9458eb6d54"
+        "sha256": "9b011f019a9680a2c89e362d95ff21beb6983a1a2f7949498e4a901a8901a058"
       },
       {
         "path": "src/__tests__/golden-baseline.test.ts",
@@ -3689,11 +3689,11 @@
       },
       {
         "path": "src/operations.ts",
-        "sha256": "13368491b2e27d4f2f71359b2065755791af2ff675f65b9522cd92fcb3f6ae00"
+        "sha256": "f21bff7e879793ddebf82a0df1b85c6d1fb13eae531dcf2c5e463c16f29c66c7"
       },
       {
         "path": "src/pack-artifact.ts",
-        "sha256": "7c7679225a5d5057ecd71f195d8dbda105a9082bc3ce257a5eddd9e47b7dadd1"
+        "sha256": "9ef495eb241114e33849703c5e40cc42bf877e5375c7310dc83f2e8f49e8012a"
       },
       {
         "path": "src/pack-inventory.ts",
@@ -4057,7 +4057,7 @@
       },
       {
         "path": "src/vector-tier.ts",
-        "sha256": "eefb77f2aa10cb4273b84cb611a5c490a736aa4ffeff3d5396efec2f665a329b"
+        "sha256": "dbb7b020880fa7cc7b1668fc9ea1888a5db2e97dd3850c28f76f96e50eb3f8b3"
       },
       {
         "path": "src/workflow-run-dispatch.ts",
@@ -4077,5 +4077,5 @@
       }
     ]
   },
-  "signature": "i3W3ARdoe6tO1CUTz82pFH2jd4+heO1G2U4viPBb7LI+lUa+C8VFhAqO3C4fCNlNIVmQMAcCqqQLobpwyWbVDA=="
+  "signature": "YkWIufxZpmxewUVYfUnQQG4udAsTnC9KsgRgpkCogeF81it7Z3mXD1gPzuQJC+J8sgRwWVa7QsZVQy8kun96Bw=="
 }

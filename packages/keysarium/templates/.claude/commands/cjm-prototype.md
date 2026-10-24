@@ -23,7 +23,7 @@ $ARGUMENTS
 4. **Step 2:** Определить 3 варианта CJM (A/B/C)
 5. **Step 2.5:** VARIANT D — Future-Ready CJM (Trend-Based)
    - Загрузи `.claude/skills/goap-research-ed25519/SKILL.md` для trend research
-   - Исследуй 5 категорий трендов (PARANOID mode)
+   - Исследуй 5 категорий трендов в режиме, разрешённом `.claude/rules/research-quality.md`
    - Создай Trend Brief
    - Синтезируй Variant D
 6. **Step 3:** Сгенерируй React-прототип (.jsx) с 4 вариантами
@@ -38,5 +38,5 @@ $ARGUMENTS
 Запусти 3 агента параллельно:
 - Agent 1: CJM Variant A — один подход к точке входа
 - Agent 2: CJM Variant B + C — альтернативные подходы
-- Agent 3: Trend Research для Variant D (GOAP PARANOID)
+- Agent 3: Trend Research для Variant D (GOAP `moderate` для обычных источников)
 Затем синтезируй в единый прототип с 4 вариантами.

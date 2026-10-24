@@ -195,7 +195,9 @@ researches/CASE_NAME/
 - Файлы создаются в момент фазы, не в Phase 6
 - ⭐ Phase 2.5 (CJM Prototype) — НИКОГДА НЕ ПРОПУСКАТЬ
 - ⭐ 08_executive_summary.md — ОБЯЗАТЕЛЕН
-- Research в paranoid mode — ноль непроверенных утверждений
+- Research: `moderate` для обычных источников; `strict`/`paranoid` только после проверки
+  `issuer_keys_available` и `source_class_verified` по `.claude/rules/research-quality.md`.
+  Недостижимая цель исследования останавливает checkpoint и следующие фазы.
 - {CHOSEN_CJM} передаётся в Phase 3-5
 - Если банк: on-premise, ФЗ-152, ЦБ, GigaChat/YandexGPT
 - Если мало времени: Quick Mode

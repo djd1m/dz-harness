@@ -1512,7 +1512,8 @@ export async function runDoctor(options: { projectRoot: string; instrumentPath?:
       checks.push({
         name: 'apply-leg',
         ok: true,
-        detail: 'apply-leg unavailable on jsonl backend (needs --memory agentdb)',
+        level: 'warn',
+        detail: 'automatic recall is unavailable on jsonl; run dz setup --target claude-code --memory agentdb to enable it',
       });
     }
     // configuredBackend === 'unknown' (no .dz/config.json yet): nothing to check — a project that

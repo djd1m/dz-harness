@@ -2,10 +2,12 @@
 
 Feature ADR includes synchronized guidance and the versioned helper for `dz qe-rounds --source native`. Native opt-in requires compatible installed CLI/core capabilities, preserves actual independent receipts and refuses an ordinary fourth review cycle; the legacy standalone synchronous helper remains usable.
 
+Reference Mode now includes eight complete, pinned agentic-qe core protocols and their companion files. The `qe-ref-` directories distinguish bundled references from separately installed skills. The feature-ADR modules retain control of checkpoints; the reference files alone do not provide the `aqe` CLI, MCP tools, memory or fleet agents.
+
 If bytes change before first evaluation, native `evaluate` retains valid old-snapshot receipt origins and conditions while reporting `not-established/native-repair-required`. Follow with explicit `begin-repair` and fresh independent verification of the new snapshot. Recovery preserves authority and the three-cycle ceiling; old evidence never closes changed bytes.
 
 
-Current package version: `1.5.21`. <!-- dz:version -->
+Current package version: `1.5.23`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-feature-adr
 
@@ -76,7 +78,7 @@ The gate checks receipt consistency and freshness; independent reviewers judge t
 |-----------|-------|-------------|
 | **Skill** | 1 | `feature-adr` — 11-step pipeline with complexity routing |
 | **Modules** | 12 | Steps 00-09 + 03.5 + opt-in 10: Router → Requirements → Research → ADR → QCSD → DDD → Architecture → Plan → Code → QE → Fleet QE → Delivery Gate (opt-in) |
-| **References** | 4+15 | Complexity matrix, ADR/C4/QE templates + 15 agentic-qe skill protocols |
+| **References** | 4+15 | Complexity matrix, ADR/C4/QE templates + 8 pinned core protocols and 7 adapted reference documents |
 | **Examples** | 1 | Sample M-tier feature output |
 | **Command** | 1 | `/feature-adr` — orchestrator (supports `--full-qe` and `--full-qe-extended`) |
 | **Rules** | 1 | `feature-adr-conventions` — directory structure and naming |
@@ -962,18 +964,18 @@ features/<feature-slug>/
 
 ## Agentic QE Integration
 
-MEASURED reference inventory: 15 protocol files adapted from
-[agentic-qe](https://github.com/proffesor-for-testing/agentic-qe), grouped in the tables below.
-Reproduce with `npm pack --dry-run --json` from this package directory: count Markdown files in
-`templates/.claude/skills/feature-adr/references/agentic-qe/`, excluding its `README.md`.
+The package includes eight pinned core protocol directories from
+[agentic-qe](https://github.com/proffesor-for-testing/agentic-qe) commit
+`0a6de058575cbe292afe220df105cc74120f7674`, plus seven older adapted reference documents.
+`references/agentic-qe/UPSTREAM-MANIFEST.json` records each pinned file and its original path.
 These are bundled instructions; their presence does not prove that an agent ran them.
 
 ### Three Modes
 
 | Mode | Flag | Skills | Requires |
 |------|------|--------|----------|
-| **Reference** | (none) | 9 core (condensed copies) | Nothing — works out of the box |
-| **Direct** | `--full-qe` | 9 core (full protocols) | [agentic-qe](https://github.com/proffesor-for-testing/agentic-qe) installed |
+| **Reference** | (none) | 8 pinned core protocols + adapted planner | Nothing — works out of the box |
+| **Direct** | `--full-qe` | Core protocols with verified runtime capabilities | [agentic-qe](https://github.com/proffesor-for-testing/agentic-qe) installed |
 | **Direct Extended** | `--full-qe-extended` | 15 (9 core + 6 extended) | [agentic-qe](https://github.com/proffesor-for-testing/agentic-qe) installed |
 
 ### Installing agentic-qe (required for `--full-qe` and `--full-qe-extended`)

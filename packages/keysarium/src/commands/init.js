@@ -22,8 +22,10 @@ const {
  *   --with-docs: add docs group
  */
 function resolveComponents(options) {
-  const { minimal, withDocs } = options;
-  const coreKeys = ['skills', 'commands', 'rules', 'shards', 'agents', 'hooks', 'claude_md', 'harvest'];
+  const { minimal, withDocs, target } = options;
+  const coreKeys = ['skills', 'commands', 'rules', 'shards', 'agents', 'claude_md', 'harvest'];
+  if (target === 'codex') coreKeys.push('codex_entry');
+  else coreKeys.push('hooks');
   const keys = [...coreKeys];
 
   if (!minimal) {
@@ -81,9 +83,10 @@ function installComponent(comp, templatesDir, targetDir, force) {
  * @param {boolean} options.withDocs  — Include docs/ directory
  * @param {boolean} options.dryRun    — Preview without writing anything
  * @param {string}  options.targetDir — Destination project root
+ * @param {string}  options.target    — claude (default) or codex
  */
 async function run(options) {
-  const { force, dryRun, targetDir } = options;
+  const { force, dryRun, targetDir, target = 'claude' } = options;
   const manifestPath = path.join(targetDir, MANIFEST_FILE);
 
   // ── a) Check for existing installation ──────────────────────────────────
@@ -93,7 +96,23 @@ async function run(options) {
       info(`Run ${cyan('npx @dzhechkov/keysarium update')} to update, or use ${yellow('--force')} to overwrite.`);
       process.exit(1);
     }
+    const existing = readJSON(manifestPath);
+    if (!existing || !Array.isArray(existing.components)) {
+      logError('Existing .keysarium.json is invalid; refusing to overwrite its ownership record.');
+      process.exit(1);
+    }
+    const existingTarget = existing.components.includes('codex_entry') ? 'codex' : 'claude';
+    if (existingTarget !== target) {
+      logError(`Cannot switch an installed ${existingTarget} toolkit to ${target} with --force. Remove it first, then init for the new target.`);
+      process.exit(1);
+    }
     warn('Existing installation found — overwriting (--force).');
+  }
+
+  const codexEntryPath = path.join(targetDir, '.agents', 'skills', 'casarium', 'SKILL.md');
+  if (target === 'codex' && fileExists(codexEntryPath) && !force) {
+    logError('A project skill named casarium already exists. Use --force only if it may be replaced.');
+    process.exit(1);
   }
 
   // ── b) Determine components ─────────────────────────────────────────────
@@ -103,6 +122,7 @@ async function run(options) {
   // ── c) Show plan ────────────────────────────────────────────────────────
   console.log('');
   info(bold('Installation plan:'));
+  info(`Target: ${target}; project: ${targetDir}`);
   console.log('');
 
   for (const key of componentKeys) {
@@ -161,16 +181,30 @@ async function run(options) {
 
   console.log('');
   console.log(bold('Next steps:'));
-  console.log(`  1. Open ${cyan('Claude Code')} in this directory`);
-  console.log(`  2. Run ${cyan('/casarium [your case description]')}`);
-  console.log(`  3. Follow the 7-phase pipeline`);
+  if (target === 'codex') {
+    console.log(`  1. Open ${cyan('Codex')} in ${targetDir}`);
+    console.log(`  2. Invoke ${cyan('$casarium [your case description]')}`);
+    console.log(`  3. Confirm each phase checkpoint and select a CJM variant`);
+    console.log('');
+    console.log(bold('Codex integration status:'));
+    console.log('  Bundled workflow skills: installed under .claude/skills/ as phase references');
+    console.log('  Full pipeline entrypoint: installed at .agents/skills/casarium/SKILL.md');
+    console.log('  Codex hooks and MCP integrations: not installed');
+    console.log('  Claude settings/hooks: not installed for this target');
+  } else {
+    console.log(`  1. Open ${cyan('Claude Code')} in this directory`);
+    console.log(`  2. Run ${cyan('/casarium [your case description]')}`);
+    console.log(`  3. Follow the 7-phase pipeline`);
+  }
   console.log('');
-  console.log(bold('Available commands:'));
-  console.log(`  ${cyan('/casarium')}          ${dim('\u2014 Full pipeline')}`);
-  console.log(`  ${cyan('/new-research')}      ${dim('\u2014 New research')}`);
-  console.log(`  ${cyan('/parallel-research')} ${dim('\u2014 Multiple cases in parallel')}`);
-  console.log(`  ${cyan('/harvest')}           ${dim('\u2014 Extract knowledge')}`);
-  console.log('');
+  if (target === 'claude') {
+    console.log(bold('Available commands:'));
+    console.log(`  ${cyan('/casarium')}          ${dim('\u2014 Full pipeline')}`);
+    console.log(`  ${cyan('/new-research')}      ${dim('\u2014 New research')}`);
+    console.log(`  ${cyan('/parallel-research')} ${dim('\u2014 Multiple cases in parallel')}`);
+    console.log(`  ${cyan('/harvest')}           ${dim('\u2014 Extract knowledge')}`);
+    console.log('');
+  }
 
   process.exit(0);
 }

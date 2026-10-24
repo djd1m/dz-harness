@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.5.22] - 2026-10-23
+
+- Synced eight pinned agentic-qe core protocol directories, companion schemas and evals into the feature-ADR Reference Mode. Runtime-only capabilities remain conditional on a verified aqe installation.
+- Gave the vendored references distinct `qe-ref-` paths to avoid conflicts with standalone skills and kept the Step 6 planner agent optional.
+
 ## [Unreleased]
 
 ### Fixed — `init --force` больше не стирает локальную правку молча

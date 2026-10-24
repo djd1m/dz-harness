@@ -5,13 +5,16 @@ The bundled Feature ADR projection supports installed-CLI native QE history opt-
 If bytes change before first evaluation, native `evaluate` retains valid old-snapshot receipt origins and conditions while reporting `not-established/native-repair-required`. Follow with explicit `begin-repair` and fresh independent verification of the new snapshot. Recovery preserves authority and the three-cycle ceiling; old evidence never closes changed bytes.
 
 
-Current package version: `1.7.15`. <!-- dz:version -->
+Current package version: `1.7.18`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/keysarium
 
-**AI Case Research Toolkit for Claude Code**
+**AI Case Research Toolkit for Claude Code and Codex**
 
-Full 7-phase pipeline for AI case studies, hackathons, and casariums. Provides skills, commands, rules, shards, agent templates, and brain portability for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+Full 7-phase pipeline for AI case studies, hackathons, and casariums. Provides skills, commands, rules, shards, agent templates, and brain portability. Claude Code uses `/casarium`; Codex uses a local `$casarium` skill that reads the same phase sources.
+
+The bundled feature-ADR reference mode includes eight full agentic-qe skill protocols pinned to upstream commit `0a6de058575cbe292afe220df105cc74120f7674`, with their output schemas, evals and supporting files. Keysarium-specific teaching notes are marked separately. The vendored references do not install the `aqe` executable, MCP tools, pattern memory or fleet runtime; direct `--full-qe` mode still requires agentic-qe to be installed.
+The existing `code-goal-planner` protocol is also installed as a Claude Code project agent; Step 6 uses its agent surface when available and keeps the same reference fallback for Codex.
 
 The bundled `analyst-manual-full` research checkpoint uses `moderate` for ordinary web and health
 sources. It offers `strict` or `paranoid` only when pinned issuer keys and signed delivery are
@@ -84,6 +87,24 @@ keysarium init
 
 After installation, open Claude Code in your project directory and start using slash commands right away.
 
+### Codex project-local entrypoint
+
+```bash
+npx @dzhechkov/keysarium init --target codex --project ./my-case
+cd ./my-case
+# In Codex, invoke: $casarium <case description>
+```
+
+The installer writes `.agents/skills/casarium/SKILL.md` and keeps the command, phase shards
+and referenced skills under `.claude/`. Codex reads those files as workflow references; the
+Claude slash commands, model names and Agent tool instructions are not executable Codex
+configuration. The Codex target does not install Claude settings hooks, Codex hooks or MCP
+integrations. `--dry-run` previews a local installation without writes. `doctor --project
+./my-case` checks the installed entrypoint and source files. Existing `casarium` project
+skills are preserved unless `--force` is explicit.
+Switching an existing installation between Claude and Codex requires `remove` followed by
+`init --target ...`; `--force` does not silently abandon files owned by the previous target.
+
 ---
 
 ## What You Get
@@ -104,7 +125,9 @@ not execution results.
 | **Library** | 18 | `phase-utils`, `agent-patterns`, `skill-loader`, `domain-templates`, `memory-protocol`, `reward-tracker`, `dream-engine`, `witness-chain`, `judge-attestation`, `platform-adapters`, `background-workers` + `platform-templates/` (3) and `worker-templates/` (4) |
 | **Documentation** | 38 | Deployment, admin, user guide, infrastructure, architecture, flows — 6 doc sets + 2 loose guides (installed only with `--with-docs`) |
 
-Everything is installed into your project's `.claude/` directory and works natively with Claude Code.
+The Claude target installs into the project's `.claude/` directory. The Codex target also
+installs a project skill in `.agents/skills/casarium/` and uses the `.claude/` files as phase
+references.
 
 > Counts above are MEASURED from the shipped `templates/` tree — reproducer:
 > `npx @dzhechkov/keysarium init --dry-run --with-docs` prints these component counts, including
@@ -126,7 +149,7 @@ DISCOVERY   EXPLORE     RESEARCH    CJM PROTO      SOLVE       ARCHITECTURE    P
 |-------|---------|--------------|
 | **Phase 0 -- Discovery** | `/discovery` | Deep-dive into the product/company: JTBD analysis, competitor landscape, ROI estimation. Powered by the `reverse-engineering` skill. |
 | **Phase 1 -- Explore** | `/explore-case` | Adaptive clarification of the case brief. Asks the right questions, structures ambiguity into actionable scope. |
-| **Phase 2 -- Research** | `/research` | Paranoid-mode research: analogues, technologies, regulations. Every claim must have a verifiable source. |
+| **Phase 2 -- Research** | `/research` | Source-attributed research on analogues, technologies and regulations. Ordinary sources use `moderate`; `strict`/`paranoid` require verified issuer capabilities. |
 | **Phase 2.5 -- CJM Prototype** | `/cjm-prototype` | Customer Journey Map prototyping with multiple variants. Generates a working React prototype. **Mandatory -- never skip this phase.** |
 | **Phase 3 -- Solve** | `/solve` | Solution strategy using TRIZ + Game Theory. Produces process diagrams (as-is / to-be). |
 | **Phase 4 -- Architecture** | `/architecture-phase` | Technical architecture: C4 diagrams, sequence flows, component design, integration plan. |

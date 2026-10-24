@@ -728,6 +728,25 @@ function isPackageInstalled(projectRoot: string, pkgName: string): boolean {
   }
 }
 
+/** Config plus a deployed artifact proves setup intent, but cannot prove a live vector count. */
+function missingConfiguredAgentdbReason(projectRoot: string, fallback: string): string {
+  if (!mirrorWriterReason(projectRoot).enabled || readVectorEngineMode(projectRoot) === 'rvf') return fallback;
+  const dzDir = join(projectRoot, '.dz');
+  let databasePresent = false;
+  let writerPresent = false;
+  try {
+    const db = statSync(join(dzDir, 'agentdb.db'));
+    databasePresent = db.isFile() && db.size > 0;
+  } catch { /* no readable database evidence */ }
+  try {
+    writerPresent = statSync(join(dzDir, 'agentdb-writer.mjs')).isFile();
+  } catch { /* no deployed writer evidence */ }
+  if (!databasePresent && !writerPresent) return fallback;
+  const evidence = [databasePresent ? '.dz/agentdb.db' : '', writerPresent ? '.dz/agentdb-writer.mjs' : '']
+    .filter(Boolean).join(' and ');
+  return `AgentDB is configured but its engine is missing: agentdb/better-sqlite3 not installed in project; ${evidence} exists on disk (vector count unknown until the engine is restored) — run: dz setup --memory agentdb`;
+}
+
 export function resolveVectorEngine(projectRoot: string): ResolvedVectorEngine {
   const mode = readVectorEngineMode(projectRoot);
   if (mode === 'off') return { reason: 'vector tier disabled (memory.vector.engine = "off")' };
@@ -751,7 +770,8 @@ export function resolveVectorEngine(projectRoot: string): ResolvedVectorEngine {
       return { engine: agentdbVectorEngine(projectRoot) };
     }
     if (mode === 'agentdb') {
-      return { reason: 'agentdb/better-sqlite3 not installed in project (run: dz setup --memory agentdb)' };
+      return { reason: missingConfiguredAgentdbReason(projectRoot,
+        'agentdb/better-sqlite3 not installed in project (run: dz setup --memory agentdb)') };
     }
   }
   if (mode === 'rvf' || mode === 'auto') {
@@ -768,7 +788,8 @@ export function resolveVectorEngine(projectRoot: string): ResolvedVectorEngine {
   if (autoAgentdbFailure !== undefined) {
     return { reason: `${autoAgentdbFailure}; @ruvector/rvf not installed in project (npm i @ruvector/rvf) — vector tier inactive` };
   }
-  return { reason: 'no vector engine available: agentdb/better-sqlite3 not installed in project (run: dz setup --memory agentdb)' };
+  return { reason: missingConfiguredAgentdbReason(projectRoot,
+    'no vector engine available: agentdb/better-sqlite3 not installed in project (run: dz setup --memory agentdb)') };
 }
 
 /* ------------------------------------------------------------------ */
@@ -1098,8 +1119,8 @@ export async function mirrorPatternsToVector(
 /**
  * Eventual consistency (FR-2): diff `lexical dzIds ∖ engine.listIds()` and mirror the missing
  * set (bounded batch) + drain the pending queue. Run by `dz consolidate` after the watermark
- * write, so a teach-time mirror failure heals on the next consolidate (AC-3). Engine absent ⇒
- * silent no-op (the absent tier is a state, not an error).
+ * write, so a teach-time mirror failure heals on the next consolidate (AC-3). An absent tier
+ * is silent for a lexical-only project; a configured tier with setup evidence reports its loss.
  */
 export async function backfillVectorMirror(
   projectRoot: string,
@@ -1108,7 +1129,10 @@ export async function backfillVectorMirror(
   try {
     const resolved = pickEngine(projectRoot, opts);
     if (resolved.engine === undefined) {
-      return { mirrored: 0, skipped: 0, queued: readVectorPending(projectRoot).length };
+      const receipt: MirrorReceipt = { mirrored: 0, skipped: 0, queued: readVectorPending(projectRoot).length };
+      return resolved.reason?.startsWith('AgentDB is configured but its engine is missing:')
+        ? { ...receipt, error: resolved.reason }
+        : receipt;
     }
     const engine = resolved.engine;
     const timeoutMs = opts.timeoutMs ?? DEFAULT_VECTOR_TIMEOUT_MS;

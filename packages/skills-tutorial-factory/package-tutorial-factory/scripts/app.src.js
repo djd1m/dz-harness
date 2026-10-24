@@ -104,40 +104,83 @@ function el(tag, attrs, kids) {
   return n;
 }
 function escHtml(s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-// --- markdown-lite: fenced code, inline code, **bold**, ordered lists, paragraphs --------------
+// --- markdown-lite: authored course prose, headings, tables, lists and fenced code --------------
 var FENCE = '```';
 function md(src) {
+  var lines = String(src).replace(/\r\n?/g, '\n').split('\n');
   var out = [];
-  var blocks = String(src).split(/\n\n+/);
-  for (var b = 0; b < blocks.length; b++) {
-    var block = blocks[b];
-    if (block.indexOf(FENCE) === 0) {
-      var body = block
-        .replace(new RegExp('^' + FENCE + '[a-z]*\\n?'), '')
-        .replace(new RegExp('\\n?' + FENCE + '$'), '');
-      out.push('<pre tabindex="0" role="region" aria-label="' + escHtml(T.codeScroll) + '"><code>' + escHtml(body) + '</code></pre>');
-      continue;
-    }
-    var lines = block.split('\n');
-    var allNumbered = lines.length > 0 && lines.every(function (l) { return /^\s*\d+\.\s/.test(l); });
-    if (allNumbered) {
-      out.push('<ol>' + lines.map(function (l) {
-        return '<li>' + inline(l.replace(/^\s*\d+\.\s/, '')) + '</li>';
-      }).join('') + '</ol>');
-      continue;
-    }
-    var allBullets = lines.length > 0 && lines.every(function (l) { return /^\s*[-\u2022]\s/.test(l); });
-    if (allBullets) {
-      out.push('<ul>' + lines.map(function (l) {
-        return '<li>' + inline(l.replace(/^\s*[-\u2022]\s/, '')) + '</li>';
-      }).join('') + '</ul>');
-      continue;
-    }
-    out.push('<p>' + inline(block).replace(/\n/g, '<br>') + '</p>');
+  var para = [];
+  function flushPara() {
+    if (para.length) out.push('<p>' + para.map(inline).join('<br>') + '</p>');
+    para = [];
   }
+  function tableCells(line) {
+    var row = line.trim().replace(/^\|/, '').replace(/\|$/, '');
+    return row.split('|').map(function (cell) { return cell.trim(); });
+  }
+  function tableStart(i) {
+    if (i + 1 >= lines.length || lines[i].indexOf('|') < 0 || lines[i + 1].indexOf('|') < 0) return false;
+    var head = tableCells(lines[i]);
+    var dividers = tableCells(lines[i + 1]);
+    return head.length > 1 && head.length === dividers.length &&
+      dividers.every(function (cell) { return /^:?-{3,}:?$/.test(cell); });
+  }
+  for (var i = 0; i < lines.length;) {
+    var line = lines[i];
+    if (!line.trim()) { flushPara(); i++; continue; }
+    if (/^```[^`]*$/.test(line)) {
+      flushPara(); i++;
+      var code = [];
+      while (i < lines.length && !/^```\s*$/.test(lines[i])) code.push(lines[i++]);
+      if (i < lines.length) i++;
+      out.push('<pre tabindex="0" role="region" aria-label="' + escHtml(T.codeScroll) + '"><code>' + escHtml(code.join('\n')) + '</code></pre>');
+      continue;
+    }
+    var heading = line.match(/^(#{2,3})\s+(.+)$/);
+    if (heading) {
+      flushPara();
+      var level = heading[1].length;
+      out.push('<h' + level + '>' + inline(heading[2]) + '</h' + level + '>');
+      i++; continue;
+    }
+    if (tableStart(i)) {
+      flushPara();
+      var headers = tableCells(lines[i]);
+      out.push('<table class="md-table"><thead><tr>' + headers.map(function (cell) {
+        return '<th scope="col">' + inline(cell) + '</th>';
+      }).join('') + '</tr></thead><tbody>');
+      i += 2;
+      while (i < lines.length && lines[i].trim() && lines[i].indexOf('|') >= 0) {
+        var cells = tableCells(lines[i]);
+        if (cells.length !== headers.length) break;
+        out.push('<tr>' + cells.map(function (cell) { return '<td>' + inline(cell) + '</td>'; }).join('') + '</tr>');
+        i++;
+      }
+      out.push('</tbody></table>');
+      continue;
+    }
+    var list = line.match(/^\s*(\d+\.\s+|[-\u2022]\s+)(.*)$/);
+    if (list) {
+      flushPara();
+      var ordered = /^\d/.test(list[1]);
+      var tag = ordered ? 'ol' : 'ul';
+      var items = [];
+      while (i < lines.length) {
+        var item = lines[i].match(ordered ? /^\s*\d+\.\s+(.*)$/ : /^\s*[-\u2022]\s+(.*)$/);
+        if (!item) break;
+        items.push('<li>' + inline(item[1]) + '</li>');
+        i++;
+      }
+      out.push('<' + tag + '>' + items.join('') + '</' + tag + '>');
+      continue;
+    }
+    para.push(line); i++;
+  }
+  flushPara();
   return out.join('');
 }
 function inline(s) {
@@ -650,9 +693,9 @@ function sectionView(k) {
   ]));
   m.appendChild(el('h1', {}, s.icon + '  ' + s.title));
   m.appendChild(el('p', { class: 'lede' }, s.description));
-  m.appendChild(el('div', { class: 'card theory', html: md(s.theory) }));
   var dg = renderDiagram(s.diagram);
   if (dg !== null) m.appendChild(dg);
+  m.appendChild(el('div', { class: 'card theory', html: md(s.theory) }));
 
   // The persona's notebook — the second recurring visual device. One hand-written margin note per
   // section, in the persona's own voice, stamped with when it was written: the reader watches the

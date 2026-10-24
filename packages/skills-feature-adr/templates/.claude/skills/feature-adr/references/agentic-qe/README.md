@@ -1,6 +1,6 @@
 # Agentic QE Skills Integration
 
-Skills from [agentic-qe](https://github.com/proffesor-for-testing/agentic-qe) integrated into the feature-adr pipeline.
+Reference material from [agentic-qe](https://github.com/proffesor-for-testing/agentic-qe) integrated into the feature-ADR pipeline. Eight core skills are vendored from commit `0a6de058575cbe292afe220df105cc74120f7674` (MIT; see `LICENSE.agentic-qe`). The remaining reference files are Keysarium's older adapted copies.
 
 ## Installation (for Direct Mode)
 
@@ -51,7 +51,7 @@ Without installation, all core skills work in Reference Mode (no setup needed).
 ## Source Repository
 
 - Repository: https://github.com/proffesor-for-testing/agentic-qe
-- Skills path: `assets/skills/`
+- Pinned skills path: `.claude/skills/`
 - Agents path: `.claude/agents/goal/`
 - Total skills in repo: 77+
 - Skills integrated: 15 (9 core + 6 extended)
@@ -79,13 +79,11 @@ Without installation, all core skills work in Reference Mode (no setup needed).
 
 ### Reference Mode (default, no setup)
 
-Skills are stored as condensed copies in `references/agentic-qe/`.
-Feature-adr modules read the skill instructions and apply their methodology
-within the feature-adr checkpoint framework.
+The eight core skills listed below include their pinned upstream `SKILL.md`, output schemas, evals, and supporting files. Feature-ADR modules load those instructions from their own directories and apply the methodology within the feature-ADR checkpoint framework. Five skills also carry clearly marked Keysarium additions. The other reference files remain adapted copies.
 
 - Works out of the box
-- 15 files, ~50KB total
 - Covers all core pipeline steps
+- No `aqe` executable, MCP tools, pattern memory, or fleet runtime is installed by these reference files
 
 ### Direct Mode (`--full-qe`, requires installation)
 
@@ -95,7 +93,7 @@ When `--full-qe` flag is used and agentic-qe is installed:
 2. Sets `{AGENTIC_QE_MODE}` = `direct`
 3. Modules load full skill files from agentic-qe package for the same 9 core skills
 4. Full QCSD swarm protocols with all agents + DDD mapping
-5. No additional skills — same agents, deeper protocols
+5. The same pinned core protocols can use the installed runtime's CLI, MCP tools, memory and fleet agents when those capabilities are verified
 
 **When to use:**
 - L/XL tier features needing deeper QE methodology
@@ -123,16 +121,22 @@ Everything from `--full-qe` PLUS 6 additional skills:
 
 ## Files in this directory
 
-### Core (always loaded)
-- `shift-left-testing.md` — Full copy (Tier 3)
-- `qcsd-ideation-swarm.md` — Condensed from ~77KB (Tier 3)
+### Core (loaded by the corresponding module)
+- `qe-ref-shift-left-testing/REFERENCE.md` — pinned upstream plus Keysarium addition
+- `qe-ref-qcsd-ideation-swarm/REFERENCE.md` — pinned upstream plus Keysarium addition
 - `code-goal-planner.md` — Full copy (Agent)
-- `brutal-honesty-review.md` — Full copy (Tier 2)
-- `qe-requirements-validation.md` — Full copy, 254 lines (Tier 3)
-- `risk-based-testing.md` — Full copy, 212 lines (Tier 3)
-- `enterprise-integration-testing.md` — Condensed from 735 lines (Tier 3)
-- `regression-testing.md` — Full copy, 233 lines (Tier 3)
-- `qe-coverage-analysis.md` — Full copy, 193 lines (Tier 3)
+- `qe-ref-brutal-honesty-review/REFERENCE.md` — pinned upstream
+- `qe-ref-qe-requirements-validation/REFERENCE.md` — pinned upstream
+- `qe-ref-risk-based-testing/REFERENCE.md` — pinned upstream plus Keysarium addition
+- `qe-ref-enterprise-integration-testing/REFERENCE.md` — pinned upstream plus Keysarium addition
+- `qe-ref-regression-testing/REFERENCE.md` — pinned upstream plus Keysarium addition
+- `qe-ref-qe-coverage-analysis/REFERENCE.md` — pinned upstream
+
+Each vendored skill keeps its auxiliary files under the same directory, so its frontmatter paths such as `schemas/output.json` resolve from the skill root. `run-history.json` is excluded because it records upstream run history rather than the skill contract.
+
+The `qe-ref-` directory prefix marks these as bundled references and keeps them distinct from separately installed skills with the same names. `UPSTREAM-MANIFEST.json` maps each local path to its original upstream path and hash.
+
+The upstream `brutal-honesty-review/scripts/*.sh` files are bundled as reference utilities and are not run by Keysarium. They use simple text heuristics and, in one case, invoke the consumer project's `npm test`; their output is not a feature-ADR gate verdict. `assess-tests.sh` has a known upstream early-exit at its first `((found_count++))` under `set -e`; keep its verdict out of the gate. The JSON schemas are available for machine checks, but the pipeline does not yet claim that it runs every upstream eval automatically.
 
 ### Extended (loaded in Direct Mode)
 - `chaos-engineering-resilience.md` — Full copy, 164 lines (Tier 3)

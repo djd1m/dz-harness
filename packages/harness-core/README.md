@@ -1,5 +1,7 @@
 # @dzhechkov/harness-core
 
+`packArtifact` uses `pnpm pack` for packages with a `prepack` lifecycle script. The script still runs, and the signed `package.json` now matches the form that `pnpm publish` ships. Packages without `prepack` retain their existing npm packing path. The publish signature gate remains mandatory.
+
 Native QE history exposes `NATIVE_QE_HISTORY_API_VERSION`, additive `NATIVE_QE_CONTINUATION_API_VERSION` and `createNativeQeHistoryApi`: bounded append-only journal/head replay, one directory-lock transaction, a default ceiling of three witnessed cycles, explicit repair and typed corruption/collision refusal. It preserves legacy bridge accounting; writable host evidence establishes consistency, not reviewer authentication.
 
 When bytes change before a receipt's first evaluation, the installed producer can preserve valid origins and conditions against the admitted old snapshot. Evaluation reports `not-established/native-repair-required`; separate repair and fresh independent verification must establish the new bytes. The original journal, reviewer ownership and three-cycle ceiling survive recovery.
@@ -22,7 +24,7 @@ commands. Use `node --test <file>` through the same wrapper for Node tests. Focu
 is supported; it does not prove a complete suite, meaningful tests or authenticated evidence.
 See the repository `.githooks/README.md` for bounds, supported commands and reasoned overrides.
 
-Current package version: `0.8.61`. <!-- dz:version -->
+Current package version: `0.8.62`. <!-- dz:version -->
 
 Joint current metadata requires `<!-- dz:version -->` on a dedicated undated core/CLI line. Both README writers preserve unmarked historical joint pairs; the guard and release-line report skip them. Fenced examples cannot become current joint metadata. `parseReleaseLine` remains structural, while selection requires this explicit opt-in. On a visible line, the marker still forces per-package rewriting of every matching version, including an explicit changelog override; keep it off historical records. Fenced examples and supported HTML comment blocks remain literal even when they contain the marker, a footer, an install/JSON pin, a tarball line or a badge. Put current stamps outside these examples.
 
@@ -1113,6 +1115,9 @@ named reason: the embed daemon needs agentdb's transitive transformers dependenc
 EMPTY, schema-only `.dz/agentdb.db` via `ensureAgentdbSchema` (`agentdb-index.ts`, reusing
 `REASONING_BANK_SCHEMA` verbatim — never a second, duplicated schema string) when the file does not
 already exist, so `dz teach` has somewhere to mirror into before any session has ever ended.
+For a `jsonl` project, `dz doctor` reports the absent automatic recall as `[WARN] apply-leg` with
+the command to enable AgentDB. It no longer reports an unavailable apply leg as `[OK]`. Manual
+`dz recall` remains available on `jsonl`; a lexical automatic hook is tracked separately.
 
 The hub regenerates its OWN `.claude/helpers/recall-hook.cjs`/`dz-embed-daemon.mjs` from this same
 generator (with the hub's own `coreDistDir`, via `harnessCoreDistDir()`) — a twins test
@@ -2941,6 +2946,12 @@ supported exact pins govern repairs; supported installed-only legacy versions ar
 orphan lock metadata agrees. Conflicting/ranged/peer or incomplete lock-only state refuses without
 replacing user declarations. Repeat setup avoids unnecessary npm/config/hooks changes. This promise
 includes devDependencies in `npm ci`; `npm ci --omit=dev` does not retain these memory dependencies.
+
+If a configured AgentDB project still has a deployed writer or a nonempty `.dz/agentdb.db` but
+loses its local engine, `dz vector status` and semantic recall name that condition and suggest
+`dz setup --memory agentdb`. Ordinary recall continues with lexical matches and warns; with
+`--json`, its portable result array stays on stdout and the warning goes to stderr. Without an
+engine, the surviving vector count is unknown rather than inferred from the database file.
 
 An explicit jsonl → agentdb upgrade no longer requires force: only `memory.backend` changes,
 atomically, while unrelated config, hooks, skills and existing data remain. Failures print the observed

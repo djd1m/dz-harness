@@ -3,7 +3,7 @@
 `dz qe-rounds --source native` reports durable native QE history without writing. Explicit `--action prepare|evaluate|begin-repair|begin-continuation` invokes the exact installed skills-meta helper from the CLI module, checks core/helper capabilities and uses the existing receipt schema. Prepare and begin-repair require `--reviewers <json>`. The default native ceiling is three; native `--ceiling`, duplicate/unknown options, legacy reconstruction and source collisions refuse. Omitted source retains the bridge reader.
 
 
-Current package version: `0.8.53`. <!-- dz:version -->
+Current package version: `0.8.54`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -100,7 +100,7 @@ Each launch creates one snapshot; remove selected old snapshot files yourself wh
 Live backpressure waits for writable callbacks. Explicit termination cancels pending writes; after
 child exit a stalled output sink has a two-second final drain window before cancellation.
 
-Current package versions: `harness-core v0.8.61` · `harness-cli v0.8.53`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.62` · `harness-cli v0.8.54`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. On visible lines, the marker retains its whole-line override for per-package synchronization, including explicit changelog overrides, so keep it off historical records. The previous all-protections override is corrected: fenced marker, footer, install/JSON-pin, tarball and badge examples remain literal, as do supported HTML comment blocks. Their visible counterparts still stamp; place current metadata outside examples.
 
@@ -1784,6 +1784,8 @@ high/critical findings block as `VULNS_HIGH`, unavailable or malformed evidence 
 `MISSING_DIST` — an unbuilt package cannot ship), (4) smoke-boot every bin via `node <bin> --help` in a
 throwaway cwd with a timeout. Packages without a `test` script are **named skips** in the report — never
 silent passes; a template-only pack (no build, no artifacts, no bin) is a named `SKIP_NO_ARTIFACTS`. The
+consumer audit accepts the shared packer's `pnpm pack` path for packages with `scripts.prepack` and its
+`npm pack` path for other packages; both paths use bounded argv, then install the produced archive. The
 packed-install smoke's `pack` steps run against a **staged** `package.json` — `workspace:*` sibling
 deps rewritten to the exact sibling version, `scripts.prepublishOnly` dropped, written and restored
 atomically (temp file + rename), one package at a time — the same staging `dz publish`'s preview

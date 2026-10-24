@@ -60,7 +60,7 @@
 .claude/shards/
 ├── phase-0-discovery.shard.md      ← Правила для Phase 0
 ├── phase-1-explore.shard.md        ← Правила для Phase 1
-├── phase-2-research.shard.md       ← Правила для Phase 2 (PARANOID mode)
+├── phase-2-research.shard.md       ← Правила выбора режима и проверки источников Phase 2
 ├── phase-25-cjm.shard.md           ← Правила для Phase 2.5 (MANDATORY)
 ├── phase-3-solve.shard.md          ← Правила для Phase 3
 ├── phase-4-architecture.shard.md   ← Правила для Phase 4
@@ -93,7 +93,7 @@ AQE определяет 7 неизменяемых инвариантов:
 |-----------|-------------|
 | CJM Phase 2.5 НИКОГДА не пропускается | Gate check перед Phase 3 |
 | Executive Summary (08) ОБЯЗАТЕЛЕН | Gate check перед packaging |
-| PARANOID mode: ноль unverified claims | Automated scan артефактов Phase 2 |
+| Подтверждённые источники и явные пробелы, без выдуманных цитат | Проверка артефактов Phase 2 |
 | BTO: judge и generator — разные модели | Model check в BTO pipeline |
 | Layer 0 rejection = NO escalation без 3 retries | Retry counter в BTO test |
 | Файлы создаются в момент фазы, не в Phase 6 | File existence check на checkpoint |
@@ -275,7 +275,7 @@ AQE использует semantic promises:
 |---------|------|----------|
 | `DISCOVERY_COMPLETE` | Phase 0 | JTBD + конкуренты + ROI проанализированы |
 | `CASE_EXPLORED` | Phase 1 | Кейс полностью понят, brief создан |
-| `RESEARCH_PARANOID_PASSED` | Phase 2 | Все claims верифицированы, zero unverified |
+| `RESEARCH_PARANOID_PASSED` | Phase 2 | Унаследованное имя: evidence gate пройден в выбранном GOAP режиме; подпись издателя не подразумевается |
 | `CJM_VALIDATED` | Phase 2.5 | CJM прототип создан и выбран |
 | `SOLUTION_DESIGNED` | Phase 3 | Стратегия решения сформирована |
 | `ARCHITECTURE_DEFINED` | Phase 4 | C4 диаграммы + sequence flows готовы |

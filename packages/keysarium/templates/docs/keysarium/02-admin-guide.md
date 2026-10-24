@@ -401,7 +401,7 @@ CHECKPOINT X: [Phase Name] Complete
 | `domain-specific.md` | Доменные правила (банк, ритейл, enterprise, healthcare) |
 | `file-conventions.md` | Конвенции именования файлов и директорий |
 | `modular-reuse.md` | Правила модульного переиспользования скиллов и команд |
-| `research-quality.md` | Требования к качеству research (PARANOID mode) |
+| `research-quality.md` | Выбор режима GOAP и требования к источникам |
 | `witness-chain.md` | Witness chain integration: SHA-256 хеширование артефактов |
 | `reward-learning.md` | Reward-calibrated learning: memory_query/memory_store протокол |
 | `background-workers.md` | Background workers: isolation, model routing, concurrency limits |
@@ -700,7 +700,7 @@ Markdown-документ с чёткой структурой:
 
 ## Instructions (Variant D — Trend Research)
 1. Загрузить goap-research-ed25519 SKILL.md
-2. Исследовать 5 категорий трендов (PARANOID mode)
+2. Исследовать 5 категорий трендов в режиме, разрешённом возможностями источников (`moderate` по умолчанию)
 3. Синтезировать Future-Ready CJM
 4. Записать в промежуточный файл: _variant_d_draft.md
 

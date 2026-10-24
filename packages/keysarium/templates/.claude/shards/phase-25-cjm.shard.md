@@ -21,14 +21,15 @@
 ## Process
 1. Extract: primary_user, segments, aha_moment, solution_concept from Phases 0-2
 2. Define 3 CJM variants (A/B/C) with different approaches
-3. Research 5 trend categories for Variant D (PARANOID mode)
+3. Research 5 trend categories for Variant D in the GOAP mode allowed by
+   `.claude/rules/research-quality.md`; ordinary sources use `moderate`
 4. Generate React .jsx prototype with all 4 variants
 5. User selects winning variant → sets `{CHOSEN_CJM}`
 
 ## Agent Swarm (3 parallel)
 - Agent 1 (opus): CJM Variant A design
 - Agent 2 (opus): CJM Variants B + C design
-- Agent 3 (sonnet): Trend Research for Variant D (PARANOID mode, 5 categories)
+- Agent 3 (sonnet): Trend Research for Variant D (selected GOAP mode, 5 categories)
 
 ## Critical Variable
 `{CHOSEN_CJM}` — MUST be set by user selection. Passed to Phases 3-5.
@@ -36,7 +37,8 @@
 ## Quality Gates
 - Minimum 3 CJM variants (A/B/C) + 1 trend variant (D)
 - Prototype must be valid React JSX
-- Trend research in PARANOID mode (verified sources)
+- Trend research cites sources, labels uncertainty and does not claim issuer verification
+  without confirmed capabilities
 - User MUST explicitly select a variant
 
 ## Promise

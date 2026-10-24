@@ -13,7 +13,7 @@ Always runs, and ALWAYS writes `features/<slug>/06_implementation_plan.md` — e
 
 ## Model
 
-sonnet (analytical decomposition) + code-goal-planner SPARC-GOAP methodology
+Use the planning model selected by the active feature-ADR routing policy, distinct from the coding model, with code-goal-planner SPARC-GOAP methodology.
 
 ## Input
 
@@ -25,7 +25,7 @@ sonnet (analytical decomposition) + code-goal-planner SPARC-GOAP methodology
 
 ## Protocol
 
-> Load: `references/agentic-qe/code-goal-planner.md` for SPARC-GOAP methodology.
+In Claude Code, if the `code-goal-planner` agent is available, delegate goal-state analysis to it with the requirements, ADR decisions and quality risks. Check its proposed milestones against the project evidence before writing the plan. In Codex, or whenever that agent surface is unavailable, load `references/agentic-qe/code-goal-planner.md` and apply the same methodology directly. Do not report agent execution when only the reference was read.
 
 ### 0. Apply SPARC-GOAP Goal State Analysis
 

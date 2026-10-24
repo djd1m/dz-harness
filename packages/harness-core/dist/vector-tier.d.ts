@@ -510,8 +510,8 @@ export declare function mirrorPatternsToVector(projectRoot: string, patterns: re
 /**
  * Eventual consistency (FR-2): diff `lexical dzIds ∖ engine.listIds()` and mirror the missing
  * set (bounded batch) + drain the pending queue. Run by `dz consolidate` after the watermark
- * write, so a teach-time mirror failure heals on the next consolidate (AC-3). Engine absent ⇒
- * silent no-op (the absent tier is a state, not an error).
+ * write, so a teach-time mirror failure heals on the next consolidate (AC-3). An absent tier
+ * is silent for a lexical-only project; a configured tier with setup evidence reports its loss.
  */
 export declare function backfillVectorMirror(projectRoot: string, opts?: VectorServiceOptions & {
     readonly batchLimit?: number | undefined;

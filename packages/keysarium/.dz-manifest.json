@@ -9,11 +9,11 @@
       },
       {
         "path": "README.md",
-        "sha256": "d73ad738d6adb071e67350373a4bf2c0af1bcedf9b019917ca1bb929e46bc494"
+        "sha256": "607fb5f6f05c073ece45cb0dc7d93133a2b8092f8803af38f1b62cfe63634ee0"
       },
       {
         "path": "README.ru.md",
-        "sha256": "acccc3d79ba5cbdb5d2a0b2b38328d55e8f38c3209e9b538be57917da8344ecd"
+        "sha256": "25975926bdaadfea4f91f592774d455666740573c70339a479ced6cfadff3502"
       },
       {
         "path": "bin/cli.js",
@@ -21,19 +21,19 @@
       },
       {
         "path": "package.json",
-        "sha256": "dfeba398ee4b7df8afad7d4b7382f114d18a93a43f245439ced6d2d6120303c8"
+        "sha256": "833c9ffe6b49c512ffc36c8b215ab56679c6a76b1d38c25d0fb4f8e7e2b2f52c"
       },
       {
         "path": "src/cli.js",
-        "sha256": "357db08901be93a254a594ac185756077a919db5488d5dfef6e236e27ceec188"
+        "sha256": "52664bc867abb7cd59ebec3b2d608fe1fcede9136ca7740322b1dc243826137e"
       },
       {
         "path": "src/commands/doctor.js",
-        "sha256": "c378ac7ea4943fdbddb176abdd5dae04a4680919ddc475e3d1dc1dfb8a696287"
+        "sha256": "dbc2b1aa76a543a294fc31dd579c36aaf419298ad9503cc441bc9ba528fd7b8b"
       },
       {
         "path": "src/commands/init.js",
-        "sha256": "c25118fca72fae774906da099ec4f414fb3ae46694f2c5e5843d73bee0d1b647"
+        "sha256": "99e5466cc690382f8131f4c08239bcb703b4b9a0df534583060bc83b75abf904"
       },
       {
         "path": "src/commands/list.js",
@@ -49,11 +49,19 @@
       },
       {
         "path": "src/utils.js",
-        "sha256": "c1ba04e4cf8ca75ac3e0da779f5361a87e909acc5527ee982b547c71f5cba208"
+        "sha256": "a1b53cfbf211161b3cb219734184b065a49b636a4f45c6db0bc3f623a120d73b"
+      },
+      {
+        "path": "templates/.agents/skills/casarium/SKILL.md",
+        "sha256": "56944257dbd543853e24ffcf418accba7628976fa6cc199562e2924a114bafb4"
       },
       {
         "path": "templates/.claude/agents/cjm-variant-worker.md",
         "sha256": "1fa078fd614fbb2f023564aa7d37ca0725c91cae44c255e083ad2b6e08bf864b"
+      },
+      {
+        "path": "templates/.claude/agents/code-goal-planner.md",
+        "sha256": "fd6faca31bacfa3c70c0ff2a8ba152957d952b8590b4df0934ffd19af5078592"
       },
       {
         "path": "templates/.claude/agents/discovery-worker.md",
@@ -89,11 +97,11 @@
       },
       {
         "path": "templates/.claude/commands/casarium.md",
-        "sha256": "efe1370bee9ac6e1a599f3bf13e89be9bfd6ff23341d6f90f0513da32a511681"
+        "sha256": "9b537854fd65997b576f553750f78208ddfc7bb5ead38736a429a1b7305789f4"
       },
       {
         "path": "templates/.claude/commands/cjm-prototype.md",
-        "sha256": "c4824204f2cbc876e26f83dd464fdc6bc10cb509017352740cadef363f5d8a57"
+        "sha256": "d725aee33c7131ddbe6039ede607ffaf0ecc87b6c586ffd057d3f630a61a6ca2"
       },
       {
         "path": "templates/.claude/commands/discovery.md",
@@ -137,7 +145,7 @@
       },
       {
         "path": "templates/.claude/commands/research.md",
-        "sha256": "6c29ed322577a940b46fe2b8ea5912c2c08ae05f20db131cec3ec1f5a642806b"
+        "sha256": "1d8d458781429b092b5f9f539b6b024b16fc8e21cdbd0205cf14b2103ed50098"
       },
       {
         "path": "templates/.claude/commands/solve.md",
@@ -161,7 +169,7 @@
       },
       {
         "path": "templates/.claude/rules/checkpoint-protocol.md",
-        "sha256": "1dc2865535add12930ffe42c03f68430b449f0b4610a0099594c42991484f88d"
+        "sha256": "3977fec1c5e4274efd9dcf6a90f2fa10ca3035bc66ea10f41c085f80c84787a3"
       },
       {
         "path": "templates/.claude/rules/domain-specific.md",
@@ -193,7 +201,7 @@
       },
       {
         "path": "templates/.claude/rules/research-quality.md",
-        "sha256": "c6a4bf54a6d3106823c7b21459f850259dce7b1e01f2b705c77094580ba8ab67"
+        "sha256": "5df26effe50ec81c442aa19ff4eae50ef96328adfc848b4db7dfe2deda2f4f24"
       },
       {
         "path": "templates/.claude/rules/reward-learning.md",
@@ -221,11 +229,11 @@
       },
       {
         "path": "templates/.claude/shards/phase-2-research.shard.md",
-        "sha256": "7117da259ebc8749df2b8f244fed330ad823ea66806304c79404ad95d12cdd27"
+        "sha256": "3453469af7fd7efbd2676d1037d4d7d4d795252f1088c7929ed1b25b17395816"
       },
       {
         "path": "templates/.claude/shards/phase-25-cjm.shard.md",
-        "sha256": "b7a43bd7310178ad3378596563266a8ce556efd33b72cfb2f7146e49f9a0bec0"
+        "sha256": "ae62dd105c31e77a78a4b4f3eb7c0a91cdbd91ff8659396bbfd226f26efbfe40"
       },
       {
         "path": "templates/.claude/shards/phase-3-solve.shard.md",
@@ -349,7 +357,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/SKILL.md",
-        "sha256": "28c265603481f976a52ea4c627e11194f3c0283801ea93d02cbb9f4248b43c68"
+        "sha256": "f422866e4a2386ed01ed0c7f24893663a5f6875bd0666b7eac1c45f36964f89a"
       },
       {
         "path": "templates/.claude/skills/feature-adr/examples/sample-feature-output.md",
@@ -369,11 +377,11 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/03-adr.md",
-        "sha256": "ea03eee136c89267888b8034baa1a1cb0057314a2e745df71654a9ebee5d46b6"
+        "sha256": "a5c30451982f67e635f21d03c72a5523ca6cd414798edcbcbfbc0ab1a6cc302e"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/03.5-ideation-swarm.md",
-        "sha256": "798c04595c5b0f8c5688334413c744b6d1dda6f9ad9d4fab263c96dcc2c4187e"
+        "sha256": "abc381bbe9897c3321110b63f8c82a02782a6361c41233743a16f5d0aa3f34d5"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/04-ddd.md",
@@ -385,7 +393,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/06-implementation-plan.md",
-        "sha256": "4eae99dfc266f9c32be3fd302b6a8316924461db8ae5038a169d7a0ec6398e89"
+        "sha256": "5d092141e9e5f399ac2b7fbce9dced2094d50175b8d9355bf809c79a02d7590a"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/07-code.md",
@@ -393,11 +401,11 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/08-qe.md",
-        "sha256": "4c80cbbae3c4acfb61e4cd0dfbf97e873ef7bded9d41ecaf84959e6fe5e0640f"
+        "sha256": "69be57b551736897d5febfa4089e0de3b573626c1829ece19e400a340cd56a23"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/09-fleet-qe.md",
-        "sha256": "67a88305ce6ca5b70d235f11c820a319dbdd0dfb50cea4b152c72377be12d2d5"
+        "sha256": "017c89ac8c98eff5d261d8243b0c75cee07e551ede26780e0b9f11c50250f0d2"
       },
       {
         "path": "templates/.claude/skills/feature-adr/modules/10-delivery-gate.md",
@@ -408,12 +416,16 @@
         "sha256": "32cb1b23cde7a72d4af5683f54f95938acc568b2fec7e6fdd4c215d2e4d00b69"
       },
       {
-        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/README.md",
-        "sha256": "fa9488302d0aaa4f3174c387f105f41f3fb5f66b2d9b89de8c27a1ebee3b359c"
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/LICENSE.agentic-qe",
+        "sha256": "111b6a25c16ad88f06c175d22b41f2f3e646f8164960528e34574bcf9f1f66fa"
       },
       {
-        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/brutal-honesty-review.md",
-        "sha256": "831bb03478dcda3d260fcee31732cceb37e28af4e3d1e5cc252b6602df451e13"
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/README.md",
+        "sha256": "ed3f44ef853390c18d5311a9475c6e5b8432b82a8200de0e02823c5d5659e935"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/UPSTREAM-MANIFEST.json",
+        "sha256": "6f7822e4c21c00b2c0999917e1ba6eecd26b8c5ee966772383951e6ad6743fd0"
       },
       {
         "path": "templates/.claude/skills/feature-adr/references/agentic-qe/chaos-engineering-resilience.md",
@@ -424,10 +436,6 @@
         "sha256": "6923711f4630073b9de7314f2aa9a94993c4f40bf29dfa728995e7dc14a497ac"
       },
       {
-        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/enterprise-integration-testing.md",
-        "sha256": "10d66f5f371dcdb28069baa10a01f63e2ddd07c623e6a5ad354d255a39956f29"
-      },
-      {
         "path": "templates/.claude/skills/feature-adr/references/agentic-qe/mutation-testing.md",
         "sha256": "293a26497acbf33255b62ed48dc0b9db7419600e2871cb11ce7fc1ebd7a7b15f"
       },
@@ -436,36 +444,188 @@
         "sha256": "ae04d14c552988d0f19d56ba0ad125d477ebcdeca4945ef08e65a808e0c8622d"
       },
       {
-        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qcsd-ideation-swarm.md",
-        "sha256": "b2717c5d95dcca7102cfb995ace206656931e355b2ed536db52b7ff8bb935906"
-      },
-      {
         "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qcsd-production-swarm.md",
         "sha256": "d75d23eaff754d2d8b547fd858dbb70fe2b207c5d055749ec82a0acae2c2c9ef"
       },
       {
-        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-coverage-analysis.md",
-        "sha256": "e526595fc48a893518e4d48e12644c40a50fbf86bd17c81ae4638507ed71d77d"
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-brutal-honesty-review/README.md",
+        "sha256": "2a026b4af50b21456e50424fbfa089cb983fbbaa0c68024c8c17c695bea25a57"
       },
       {
-        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-requirements-validation.md",
-        "sha256": "53612e7b8141b5c453b40d5583160f07903c530f0fe379899e897ddd4c68abea"
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-brutal-honesty-review/REFERENCE.md",
+        "sha256": "7a395e32fda72b52b94a32ba774d5158575b3e42e6d0b23c24dc57ccb7a3fc53"
       },
       {
-        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/regression-testing.md",
-        "sha256": "f040fdfa356c99e7a444e26c2c62e3308ed68b6ce498e2a91d5da8d9393c971c"
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-brutal-honesty-review/resources/assessment-rubrics.md",
+        "sha256": "dac09c91c765e2211799cc230738fb72a966f47511edb872306a906e49640cbe"
       },
       {
-        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/risk-based-testing.md",
-        "sha256": "72ab0c133601a8369e9ed1e8a7d9494ec7486e18909062b685caa63ca185aea5"
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-brutal-honesty-review/resources/review-template.md",
+        "sha256": "95182c8605b1d821360257e1c5dbac4300bda333d861785de417cbb84090b25b"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-brutal-honesty-review/schemas/output.json",
+        "sha256": "b8c0c2c823ff8a48c6bd7d62036ac5e3ce9c71f198abd9051692564d3645eed9"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-brutal-honesty-review/scripts/assess-code.sh",
+        "sha256": "7e9722c1533f1b7d1a9d11a7add13ac12a2a5f0acfc0ed2cdede2bcf0dab788f"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-brutal-honesty-review/scripts/assess-tests.sh",
+        "sha256": "afa5acc685c9621075596058761ace9b72242abdefc088c6bbfbf25ad1978b6c"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-brutal-honesty-review/scripts/validate-config.json",
+        "sha256": "7418284839f89735d01f50eefdb488b013e0076f6003a67683062429c14984c6"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-enterprise-integration-testing/REFERENCE.md",
+        "sha256": "57734f17998f7c3fdd75dbb8452d0df726d3a1b5cb6e7f2a6265e3f3dc2ec3ab"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-enterprise-integration-testing/evals/enterprise-integration-testing.yaml",
+        "sha256": "f7287d1e453569bc5414005a73383880c4333ba539ec679a3241772c34bac68a"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-enterprise-integration-testing/schemas/output.json",
+        "sha256": "837e7a27bfc139d2bedeb5c1a7854ef7078a34900f4aae1b73bf776e6d6c8727"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-enterprise-integration-testing/scripts/validate-config.json",
+        "sha256": "db45ee1e7912fce0321efcbad152a88ae4e656c03404dd6bae54302ecca6a3a1"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qcsd-ideation-swarm/REFERENCE.md",
+        "sha256": "51e130790da856b53d67420070eb734c042dd0ad613dca7b76685b5758d0fe50"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qcsd-ideation-swarm/evals/qcsd-ideation-swarm.yaml",
+        "sha256": "1820e848888ea413a6f8a2cd399901605618bbc170b80ef11c5549e182491b5a"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qcsd-ideation-swarm/schemas/output.json",
+        "sha256": "79c5c37538313a06dc294dfef0176286b29a7a26e9ab952cfe42d21c48c7b1a3"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qcsd-ideation-swarm/scripts/validate-config.json",
+        "sha256": "626c135503831060c9ef0c13003ef3e2ea3a396f67787d0cf7b17d37a9afe160"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qcsd-ideation-swarm/steps/01-flag-detection.md",
+        "sha256": "68a9771fd2ae18716ef4265b0b15a4df4a4f5e2a24a8794da78cc2f784444ba0"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qcsd-ideation-swarm/steps/02-core-agents.md",
+        "sha256": "512308d211773383249c485402aa7c36f550dad2fc7a6a73b19ca80162347138"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qcsd-ideation-swarm/steps/03-batch1-results.md",
+        "sha256": "ddaf64b2bff27081954577b97968f2ce181c41d3f2386364a2de0b9ec311cd5b"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qcsd-ideation-swarm/steps/04-conditional-agents.md",
+        "sha256": "752b00367d4b5cd75fa17cd96cf9c268e032fba47e0d5806aa3bf6539d773f36"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qcsd-ideation-swarm/steps/05-decision-synthesis.md",
+        "sha256": "0f87a1997d38803f2ce181e6506e5053b317c461f2718949841790ccc89b76c4"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qcsd-ideation-swarm/steps/06-report-generation.md",
+        "sha256": "27ecb7146d1f80806651ff9566065cd5c680f32979ef6a0ea4576360a66fb229"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qcsd-ideation-swarm/steps/07-learning-persistence.md",
+        "sha256": "dac7068b81298b58db63ef64a41961b17c70dcb72b1da64c186b31564cb1f2ea"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qcsd-ideation-swarm/steps/08-final-output.md",
+        "sha256": "b45df9c32aafbb5382fb86620a2c019294ab5bcdf510c3209b17c4470bf5fff5"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qe-coverage-analysis/REFERENCE.md",
+        "sha256": "0d9c9f095cbc7c3d7a3c97d68b7361afee1d1c489c1ec0e7969e831e690065f6"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qe-coverage-analysis/evals/qe-coverage-analysis.yaml",
+        "sha256": "43a46034f5121cc4288eb3ea1d4b366f52d19208244e85547c6cfd6342f67900"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qe-coverage-analysis/schemas/output.json",
+        "sha256": "dc6093a03d68b0ac2a5be95dc4eb1f5617d58d74cb09839ac13c8ab3bed7d7f2"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qe-coverage-analysis/scripts/validate-config.json",
+        "sha256": "ee48023424cb990194a7bbbd0fa3175057e3b5db36deffedaabd2e36881f5c8e"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qe-requirements-validation/REFERENCE.md",
+        "sha256": "ce99af5ba445718f8ccd9a4c87565f360d3e24f1916d2bc4e7bccf2cda480b09"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qe-requirements-validation/evals/qe-requirements-validation.yaml",
+        "sha256": "6d2f778cf100e518376256510646de9a04a7b95507df7366eaecfbdae4295ee8"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qe-requirements-validation/schemas/output.json",
+        "sha256": "3267c56bdf01e0bc796cd52802e0d3639956575b5befb306d5d2548abe7fb1f4"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-qe-requirements-validation/scripts/validate-config.json",
+        "sha256": "654ecc8427172a16f287df7e2309b0a8901609096bf4d52a907820e79c65f792"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-regression-testing/REFERENCE.md",
+        "sha256": "906992551d34b7155410a2dca81b890e11f1c291301124d9e84fec74ac04f5cf"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-regression-testing/evals/regression-testing.yaml",
+        "sha256": "186f58281db454d32d15806271c986ca894f38350585ee3fa68a65b736f4c989"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-regression-testing/schemas/output.json",
+        "sha256": "11aa506b771c1078b30c57f2e706abd69efb141b00c62b8d29f7bf6866f30d11"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-regression-testing/scripts/validate-config.json",
+        "sha256": "16dd3267fd849d3543388edb31fcc4fee435f4f5eca55646cfba12bb41ed5ab9"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-risk-based-testing/REFERENCE.md",
+        "sha256": "d862c475303eac5709b900b813c1043c357d65a666520bb62858986eb6e2d0cc"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-risk-based-testing/evals/risk-based-testing.yaml",
+        "sha256": "eaa33701c0728c741b06169e1ee54ba3edd0aa034213624b2ac33f3911c91e8e"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-risk-based-testing/schemas/output.json",
+        "sha256": "c5437704333f64c35d13421d4b2a84f2c84658f0bafba653cbfa4acd8e0aa73a"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-risk-based-testing/scripts/validate-config.json",
+        "sha256": "c6f9f14da0875db2b14b48c8bc53c631af907a15f65a07e34053268efc58f7b2"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-shift-left-testing/REFERENCE.md",
+        "sha256": "2da7863d7fd6b1c2b048402c63a8da1c7d928443253e05a47cca7f94d5107a99"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-shift-left-testing/evals/shift-left-testing.yaml",
+        "sha256": "bd78f3a8f4c2efac6357e39db73349fb324d94d657dcde97a02ae79ae4a44a3e"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-shift-left-testing/schemas/output.json",
+        "sha256": "1f1c26b303ea08b1e864e0ad48ec71a588b25704e7f21459539363c88f406166"
+      },
+      {
+        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/qe-ref-shift-left-testing/scripts/validate-config.json",
+        "sha256": "ba8aab0c04f21731b63dda53fa5c64bbc2a892e6f13c76b99f58864f5bba2956"
       },
       {
         "path": "templates/.claude/skills/feature-adr/references/agentic-qe/security-testing.md",
         "sha256": "486cb8b560153345b4efcd31ac0b47dc1ece642745add61720937c1bc1717606"
-      },
-      {
-        "path": "templates/.claude/skills/feature-adr/references/agentic-qe/shift-left-testing.md",
-        "sha256": "e716a9caf2c701c14c4fa69d297047c420494d6d34d392552801025ce81e623a"
       },
       {
         "path": "templates/.claude/skills/feature-adr/references/agentic-qe/tdd-london-chicago.md",
@@ -777,7 +937,7 @@
       },
       {
         "path": "templates/CLAUDE.md",
-        "sha256": "fe7c4569e3a8b7465c2ede1e4b764d95beb07417f777ccc2dec10a4fb9237195"
+        "sha256": "f729f145cd5f7216486dff7c1d09aef9ed2d1897e9767b850cb5a9173ac9bc8b"
       },
       {
         "path": "templates/TOOLKIT_HARVEST.md",
@@ -825,7 +985,7 @@
       },
       {
         "path": "templates/docs/feature-adr/04-admin-guide.md",
-        "sha256": "233c67195dc9727655f2f69a014fdbae4ddbdb9bbca5c7bd347c079204e1f6ff"
+        "sha256": "6214d8995e4b36cd3b442cc0d08c4a48ad46dd3763a8a2bb4769c4dc2d75c0d3"
       },
       {
         "path": "templates/docs/feature-adr/05-user-guide.md",
@@ -837,7 +997,7 @@
       },
       {
         "path": "templates/docs/improvement-directions.md",
-        "sha256": "df7649c930a622ee7467a3a16765196d27634a0ed9f23da36427da0bed79d2d5"
+        "sha256": "48e9aa72b883c45285404dae1289dfb0d3c5910c5dc5fa50cfcd79af50fd0766"
       },
       {
         "path": "templates/docs/keysarium-core/01-architecture.md",
@@ -869,11 +1029,11 @@
       },
       {
         "path": "templates/docs/keysarium/02-admin-guide.md",
-        "sha256": "abfe96ab001e649b9c1813f7dffabb016d6fe279a058e9eecd9e57a3468c814a"
+        "sha256": "f96ba0aacb3fa768450aafe9ccdac0d73356d734d875d0c912522437f4a33a10"
       },
       {
         "path": "templates/docs/keysarium/03-user-guide.md",
-        "sha256": "1d843e70458b09d535c6b6b33800c7a2de539054966e25bc463d616cc793e62b"
+        "sha256": "c99b40ac69a003346012746d4e6c579ecd0f18bdc7b6408f2589e8a70cf7c5e6"
       },
       {
         "path": "templates/docs/keysarium/04-infrastructure-requirements.md",
@@ -881,11 +1041,11 @@
       },
       {
         "path": "templates/docs/keysarium/05-architecture.md",
-        "sha256": "4e167e622ebaffcbfe710d72d47d1c56bd0188de699cdf223cd66bcba2f4b595"
+        "sha256": "e33b5d93ec6e6e2153aa5f0bf5b02e823b97e135d25c64eef62bc9508207e922"
       },
       {
         "path": "templates/docs/keysarium/06-user-flows.md",
-        "sha256": "bff121a07af83343febd0e1715f51b7b8314e31bc21f5c2f3577954b369700b5"
+        "sha256": "b2b18172a3941d9861d6da20b8ab46873e8dc30782364d4e5025bf16712c3bf6"
       },
       {
         "path": "templates/docs/skills-bto/01-deployment-guide.md",
@@ -969,7 +1129,7 @@
       },
       {
         "path": "templates/lib/platform-templates/copilot.md",
-        "sha256": "21a69d0dfd062dcba78747e4b4f5d69b9d0e58d1170a13b585d8c2829f74c2d1"
+        "sha256": "a90a31234344e647c91cddbefefe0d9708272d9d23ae5cf41c65b83a191c3cdb"
       },
       {
         "path": "templates/lib/platform-templates/cursor.md",
@@ -977,7 +1137,7 @@
       },
       {
         "path": "templates/lib/platform-templates/opencode.md",
-        "sha256": "d093eb0cc533f0459ce745a9ded5cabafca91a96ab09480bb1f04f0038971bbd"
+        "sha256": "96003e3405e03114a44f7e17139b74d11968e7c9a679bc7dc20fe1fa7da12d29"
       },
       {
         "path": "templates/lib/reward-tracker.md",
@@ -1013,5 +1173,5 @@
       }
     ]
   },
-  "signature": "LxR1W3SoXE/8wJ/SdbqLU5MVAzJNvl3gC3XnNd+rwECqIQbh2Uaa1Y4u1LJdz6FWfVaSK3gbZucbPE4gR0hiCg=="
+  "signature": "XOQDHt6LMUiK0ifYq/k9FeLlNm/abBOj2AjEIyr7PBOmSllQqiLWkBUIS5Sr40dinHaZj1/JG+mjvPHh9Ay+DA=="
 }

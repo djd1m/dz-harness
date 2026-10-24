@@ -14,6 +14,7 @@ import { compliantCourse } from './_fixtures.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RENDER = join(__dirname, '..', 'package-tutorial-factory', 'scripts', 'render-site.mjs');
 const VERIFY = join(__dirname, '..', 'package-tutorial-factory', 'scripts', 'verify-site.mjs');
+const APP = join(__dirname, '..', 'package-tutorial-factory', 'scripts', 'app.src.js');
 const GATE = join(__dirname, '..', 'package-tutorial-factory', 'scripts', 'headfirst-gate.mjs');
 
 // Every scratch dir is removed at the end (after() + process exit) unless DZ_KEEP_TMP=1 —
@@ -32,6 +33,23 @@ const render = (dir, course, out = join(dir, 'site', 'index.html')) => {
   writeFileSync(cp, JSON.stringify(course));
   return { out, res: run(RENDER, ['--course', cp, '--out', out, '--no-stamp']) };
 };
+
+test('course markdown renders headings, tables and a list after prose without granting HTML', () => {
+  const source = readFileSync(APP, 'utf8');
+  const start = source.indexOf('function escHtml(s)');
+  const end = source.indexOf('// --- achievements', start);
+  assert.ok(start > 0 && end > start, 'markdown runtime functions must be present');
+  const markdown = new Function('T', `${source.slice(start, end)}\nreturn md;`)({ codeScroll: 'Code' });
+  const html = markdown('## Choices\nIntro **first**.\n- Alpha\n- Beta\n### Costs\n| Option | Price |\n| --- | ---: |\n| A | Low |\n| B | High |');
+  assert.match(html, /<h2>Choices<\/h2><p>Intro <strong>first<\/strong>\.<\/p><ul><li>Alpha<\/li><li>Beta<\/li><\/ul>/);
+  assert.match(html, /<h3>Costs<\/h3><table class="md-table"><thead><tr><th scope="col">Option<\/th><th scope="col">Price<\/th>/);
+  assert.match(html, /<tbody><tr><td>A<\/td><td>Low<\/td><\/tr><tr><td>B<\/td><td>High<\/td><\/tr><\/tbody>/);
+  const hostile = markdown('| Name | Link |\n| --- | --- |\n| <img src=x> | [view](https://example.com/"onload="alert(1)) |');
+  assert.ok(!hostile.includes('<img'), 'table cells must remain text');
+  assert.ok(!hostile.includes('href="https://example.com/"onload='), 'URL quotes must stay inside the href attribute');
+  assert.match(hostile, /&lt;img src=x&gt;/);
+  assert.match(markdown('```js\nconst x = "<script>";\n```'), /<pre[^>]*><code>const x = &quot;&lt;script&gt;&quot;;<\/code><\/pre>/);
+});
 
 test('roundtrip: gated fixture course renders and the driven verifier passes every check', () => {
   const dir = tmp();
@@ -429,6 +447,20 @@ test('diagram: a declared flow is drawn with every label, note and caption', () 
   assert.equal(v.status, 0, v.stdout + v.stderr);
   assert.match(v.stdout, /diagram\.renders/);
   assert.match(v.stdout, /1 diagram\(s\) drawn/);
+});
+
+test('diagram: verifier rejects a rendered section whose diagram follows theory', () => {
+  const dir = tmp();
+  const { out, res } = render(dir, withDiagram(compliantCourse()));
+  assert.equal(res.status, 0, res.stderr);
+  const html = readFileSync(out, 'utf8');
+  const correct = "if (dg !== null) m.appendChild(dg);\n  m.appendChild(el('div', { class: 'card theory', html: md(s.theory) }));";
+  const reversed = "m.appendChild(el('div', { class: 'card theory', html: md(s.theory) }));\n  if (dg !== null) m.appendChild(dg);";
+  assert.ok(html.includes(correct), 'sabotage must target the emitted runtime');
+  writeFileSync(out, html.replace(correct, reversed));
+  const v = run(VERIFY, ['--site', out]);
+  assert.equal(v.status, 1, 'verify-site must reject the wrong reading order');
+  assert.match(v.stdout, /diagram must appear before the theory block/);
 });
 
 test('diagram: a course without diagrams stays green — the feature is optional, never required', () => {

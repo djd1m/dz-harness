@@ -311,6 +311,7 @@ const COMPONENT_SPECS = {
   docs:      { src: 'docs',                  name: 'Documentation',    unit: 'guides',         countMode: 'files', group: 'docs' },
   claude_md: { src: 'CLAUDE.md',             name: 'Master instructions', group: 'core', isFile: true },
   harvest:   { src: 'TOOLKIT_HARVEST.md',    name: 'Knowledge harvest tracker', group: 'core', isFile: true },
+  codex_entry: { src: '.agents/skills/casarium', name: 'Codex pipeline entrypoint', unit: 'entrypoint', countMode: 'files', group: 'codex' },
 };
 
 /**

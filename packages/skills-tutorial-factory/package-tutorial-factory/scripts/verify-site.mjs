@@ -489,6 +489,12 @@ const unsatisfiable = course.achievements.filter((a) => !satisfiable(a, true)).m
       openSection(s.shortTitle);
       const figs = main().querySelectorAll('FIGURE').filter((f) => f.classList.contains('diagram'));
       if (figs.length !== 1) { problems.push(`${s.id}: expected exactly 1 diagram figure, saw ${figs.length}`); continue; }
+      const sectionBlocks = main().children;
+      const diagramIndex = sectionBlocks.indexOf(figs[0]);
+      const theoryIndex = sectionBlocks.findIndex((n) => n.classList.contains('theory'));
+      if (diagramIndex < 0 || theoryIndex < 0 || diagramIndex >= theoryIndex) {
+        problems.push(`${s.id}: diagram must appear before the theory block`);
+      }
       const t = text(figs[0]);
       for (const n of s.diagram.nodes) {
         if (!t.includes(String(n.label))) problems.push(`${s.id}: label ${JSON.stringify(n.label)} absent from the rendered figure`);

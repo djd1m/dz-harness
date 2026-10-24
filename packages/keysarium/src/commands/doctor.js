@@ -293,6 +293,28 @@ function checkSettingsValid(targetDir) {
   });
 }
 
+function checkCodexEntrypoint(targetDir) {
+  return check('Codex entrypoint', () => {
+    const entry = path.join(targetDir, '.agents', 'skills', 'casarium', 'SKILL.md');
+    const command = path.join(targetDir, '.claude', 'commands', 'casarium.md');
+    const shards = path.join(targetDir, '.claude', 'shards');
+    const missing = [entry, command, shards].filter((item) => !fileExists(item));
+    if (missing.length > 0) {
+      return { passed: false, detail: `Missing ${missing.map((item) => path.relative(targetDir, item)).join(', ')}`,
+        fix: 'Run keysarium update to restore the installed Codex entrypoint.' };
+    }
+    const body = fs.readFileSync(entry, 'utf8');
+    const frontmatter = body.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
+    if (!frontmatter || !/^name:\s*casarium\s*$/m.test(frontmatter[1])
+      || !/^description:\s*\S.+$/m.test(frontmatter[1])
+      || !body.includes('.claude/commands/casarium.md')) {
+      return { passed: false, detail: 'SKILL.md lacks Codex discovery metadata or the canonical command reference',
+        fix: 'Run keysarium update to restore the Codex entrypoint.' };
+    }
+    return { passed: true, detail: 'Project skill and canonical pipeline references present' };
+  });
+}
+
 /**
  * Check 8: researches/ directory exists.
  */
@@ -372,7 +394,9 @@ async function run(options) {
     checkRulesPresent(targetDir),
     checkShardsPresent(targetDir),
     checkAgentsPresent(targetDir),
-    checkSettingsValid(targetDir),
+    manifest.components?.includes('codex_entry')
+      ? checkCodexEntrypoint(targetDir)
+      : checkSettingsValid(targetDir),
     checkResearchDir(targetDir),
   ];
 

@@ -227,7 +227,7 @@ Fitness readiness:
 
 After all ADRs are drafted, apply **shift-left-testing** protocol (Level 4: Risk Analysis in Design).
 
-> Load: `references/agentic-qe/shift-left-testing.md`
+> Load: `references/agentic-qe/qe-ref-shift-left-testing/REFERENCE.md`
 
 ### Testability Check per ADR
 

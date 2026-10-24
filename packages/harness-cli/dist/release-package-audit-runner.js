@@ -8,6 +8,20 @@ const quote = (s) => `'${s.replace(/'/g, `'\\''`)}'`;
 const digest = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const policy = ['--omit=dev', '--include=prod', '--include=optional', '--include=peer', '--workspaces=false', '--global=false', '--legacy-peer-deps=false', '--strict-peer-deps=true', '--force=false', '--dry-run=false', '--offline=false', '--package-lock=true', '--package-lock-only=false', '--ignore-scripts=true', '--fetch-retries=0', '--fetch-timeout=30000'];
 const within = (child, root) => { const r = relative(root, child); return r === '' || (!r.startsWith('..') && !isAbsolute(r)); };
+/** Only the two packArtifact packers and its tar listing may reach the audit runner. */
+function sharedPackArgv(command) {
+    const pack = /^(npm pack \.|pnpm pack) --pack-destination ("(?:[^"\\]|\\.)*")$/.exec(command);
+    if (pack !== null) {
+        const destination = JSON.parse(pack[2]);
+        return pack[1] === 'pnpm pack'
+            ? ['pnpm', 'pack', '--pack-destination', destination]
+            : ['npm', 'pack', '.', '--pack-destination', destination];
+    }
+    const tar = /^tar -tzf ("(?:[^"\\]|\\.)*")$/.exec(command);
+    if (tar !== null)
+        return ['tar', '-tzf', JSON.parse(tar[1])];
+    throw new Error('unsupported shared pack command template');
+}
 function captureInstalledConsumer(consumer, cache, checked) {
     const e = { optionalMetadata: {} };
     let metadataProbes = 0;
@@ -103,18 +117,9 @@ export function runReleasePackageAudit(plan, options) {
             return r;
         };
         const artifact = packArtifact({ pkgDir: plan.dir, destDir: packDir, pinVersions: readWorkspaceVersions(options.monorepoRoot), exec: (command, opts) => {
-                // AM-1: accept only the shared packer's two closed templates. JSON paths are DATA,
+                // AM-1: accept only the shared packer's closed templates. JSON paths are DATA,
                 // decoded without eval and passed as argv; double-quoted shell interpolation is forbidden.
-                let argv;
-                const pack = /^npm pack \. --pack-destination ("(?:[^"\\]|\\.)*")$/.exec(command);
-                const tar = /^tar -tzf ("(?:[^"\\]|\\.)*")$/.exec(command);
-                if (pack !== null)
-                    argv = ['npm', 'pack', '.', '--pack-destination', JSON.parse(pack[1])];
-                else if (tar !== null)
-                    argv = ['tar', '-tzf', JSON.parse(tar[1])];
-                else
-                    throw new Error('unsupported shared pack command template');
-                return checked(argv, opts.cwd, packEnv).stdout;
+                return checked(sharedPackArgv(command), opts.cwd, packEnv).stdout;
             } });
         e.tarball = artifact.tgzPath;
         e.candidateSha256 = artifact.sha256;
@@ -415,9 +420,7 @@ export function buildRetainedBindingProof(options) {
         const registryArtifact = (name, version, index) => { const m = metadata(name, version); const dir = join(scratch, index); mkdirSync(dir); const list = JSON.parse(checked(['npm', 'pack', name + '@' + version, '--json', '--pack-destination', dir, '--ignore-scripts=true', '--offline=false', '--fetch-retries=0', '--fetch-timeout=30000', '--cache=' + cache], dir)); if (!Array.isArray(list) || list.length !== 1 || typeof list[0].filename !== 'string' || !isSafeManifestPath(list[0].filename) || list[0].filename.includes('/'))
             throw new Error('registry pack identity missing'); const tarball = join(dir, list[0].filename); const bytes = readFileSync(tarball); if (bytesSri(bytes) !== m.dist.integrity || createHash('sha1').update(bytes).digest('hex') !== m.dist.shasum)
             throw new Error('registry SRI mismatch'); return { metadata: m, tarball, dir: unpack(tarball, join(dir, 'unpacked')), sha256: digest(bytes), integrity: bytesSri(bytes) }; };
-        const sourcePack = (name, index) => { const dir = sourceDir(name); const before = readFileSync(join(dir, 'package.json')); const dest = join(scratch, index); mkdirSync(dest); const artifact = packArtifact({ pkgDir: dir, destDir: dest, pinVersions: workspace, exec: (command, opts) => { const pack = /^npm pack \. --pack-destination ("(?:[^"\\]|\\.)*")$/.exec(command), tar = /^tar -tzf ("(?:[^"\\]|\\.)*")$/.exec(command); if (pack)
-                return checked(['npm', 'pack', '.', '--pack-destination', JSON.parse(pack[1])], opts.cwd, packEnv); if (tar)
-                return checked(['tar', '-tzf', JSON.parse(tar[1])], opts.cwd, packEnv); throw new Error('pack template unsupported'); } }); if (!readFileSync(join(dir, 'package.json')).equals(before))
+        const sourcePack = (name, index) => { const dir = sourceDir(name); const before = readFileSync(join(dir, 'package.json')); const dest = join(scratch, index); mkdirSync(dest); const artifact = packArtifact({ pkgDir: dir, destDir: dest, pinVersions: workspace, exec: (command, opts) => checked(sharedPackArgv(command), opts.cwd, packEnv) }); if (!readFileSync(join(dir, 'package.json')).equals(before))
             throw new Error('source restoration failed'); return { tarball: artifact.tgzPath, dir: unpack(artifact.tgzPath, join(dest, 'unpacked')), sha256: artifact.sha256, integrity: bytesSri(readFileSync(artifact.tgzPath)) }; };
         const baselineVersions = previousState?.baselineVersions ?? Object.fromEntries(retainedRoots.map(name => [name, metadata(name).version]));
         const baselineRoots = [];

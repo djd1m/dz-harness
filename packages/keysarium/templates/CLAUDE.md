@@ -153,7 +153,9 @@ DISCOVERY → EXPLORE  → RESEARCH → CJM PROTO    → SOLVE    → ARCHITECTU
 1. **Файлы создаются в момент фазы**, не в Phase 6
 2. **Phase 2.5 (CJM Prototype) — НИКОГДА НЕ ПРОПУСКАТЬ**
 3. **08_executive_summary.md — ОБЯЗАТЕЛЕН**
-4. **Research в PARANOID mode** — ноль непроверенных утверждений
+4. **Research по `.claude/rules/research-quality.md`** — `moderate` для обычных источников;
+   `strict`/`paranoid` только при подтверждённых ключах издателей и подписанной выдаче.
+   Неподтверждённые сведения помечаются и не становятся основанием решения.
 5. **{CHOSEN_CJM} передаётся** из Phase 2.5 в Phase 3-5
 6. **Checkpoint после каждой фазы** — ждём "ок" от пользователя + `<promise>` тег
 7. **Всё в researches/<slug>/** — не засоряем корень

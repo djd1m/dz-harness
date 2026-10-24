@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "a6f56fbab356fb7e1491508952eac030d93c4e934da443efb743ecad5409d0c0"
+        "sha256": "ffd76fe42b06557209655ab98c727d7068fa4b5b07909d1d3dd300c607ddfd98"
       },
       {
         "path": "package-tutorial-factory/SKILL.md",
@@ -69,7 +69,7 @@
       },
       {
         "path": "package-tutorial-factory/scripts/app.src.js",
-        "sha256": "dd26a487d535f3bc6b61f8261e00b7ec280a40602d29fcb1427003d56291c65d"
+        "sha256": "056d7ba930ea4a298aab12bea7a825d9addcaf57759232e69cb0e4c3cdac08f8"
       },
       {
         "path": "package-tutorial-factory/scripts/brain-friendliness-prompt.mjs",
@@ -101,11 +101,11 @@
       },
       {
         "path": "package-tutorial-factory/scripts/verify-site.mjs",
-        "sha256": "d9d6de477451fdcbc9e825657cfce0254e0566a1d2ffebb314d1e9aa45f68f51"
+        "sha256": "5def2799395574cbe4a4c99fbfca6d6c169139ac54554729def623a0ee61d945"
       },
       {
         "path": "package.json",
-        "sha256": "0c335536dd4e624cc157f8a65a887a5bdc372a8c5ece4beae09f322ff461b264"
+        "sha256": "c6afd14927dc1eee1d5433ca416ddd831cdb32e85bd51582d93f4905702aa0e6"
       },
       {
         "path": "test/_fixtures.mjs",
@@ -141,9 +141,9 @@
       },
       {
         "path": "test/render-site.test.mjs",
-        "sha256": "fe074ad681999996ae443b2607a80cd0ef0daee6e0942d794b9da6053b621f84"
+        "sha256": "07ad75696ed6c8a09a75ff4dca990bd105ce985fee787b02b2d538f6585d4b90"
       }
     ]
   },
-  "signature": "HE8VG0WUgM43VHX4oJrqLXynDYV7NKCrEYGxelT2MB9dtD2I1DpNNJgA9pNjF3vm6ESTPRegMdQijncXftl5Dg=="
+  "signature": "z1xxxM9awkDukz7m1jhQndJci+L8i472vKIgUXdglh9IaawvU6edt9/ZI06GIKskRxPXTf0RpwaeTX1NmgtUDw=="
 }

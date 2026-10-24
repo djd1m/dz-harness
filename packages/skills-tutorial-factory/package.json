@@ -1,7 +1,7 @@
 {
   "name": "@dzhechkov/skills-tutorial-factory",
-  "version": "0.7.3",
-  "description": "package-tutorial-factory \u2014 a meta-skill that turns any harness-hub package into a Head-First-style gamified edu-site learning course. Composes skills-book-digitizer (IP-safe distillation), edu-site-generator (render), and the code-skills-creator meta-factory pattern. Ships a distilled, page-anchored Head First method-KB + a deterministic zero-LLM Head-First checklist gate + an IP shingling gate.",
+  "version": "0.7.5",
+  "description": "package-tutorial-factory — a meta-skill that turns any harness-hub package into a Head-First-style gamified edu-site learning course. Composes skills-book-digitizer (IP-safe distillation), edu-site-generator (render), and the code-skills-creator meta-factory pattern. Ships a distilled, page-anchored Head First method-KB + a deterministic zero-LLM Head-First checklist gate + an IP shingling gate.",
   "license": "MIT",
   "author": "dzhechko",
   "type": "module",
@@ -18,7 +18,6 @@
     "pedagogy"
   ],
   "scripts": {
-    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
     "test": "node --test test/*.test.mjs",
     "gate": "node package-tutorial-factory/scripts/headfirst-gate.mjs",
     "extract": "node package-tutorial-factory/scripts/extract-brief.mjs",

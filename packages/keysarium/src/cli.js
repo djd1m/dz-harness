@@ -10,7 +10,7 @@ function showBanner() {
   console.log('');
   console.log(cyan('╔══════════════════════════════════════════════════════╗'));
   console.log(cyan('║') + bold('        \uD83D\uDD2C DZ-KEYSARIUM — AI Research Toolkit        ') + cyan('║'));
-  console.log(cyan('║') + '     Full 7-phase pipeline for Claude Code           ' + cyan('║'));
+  console.log(cyan('║') + '        Full 7-phase research pipeline               ' + cyan('║'));
   console.log(cyan('╚══════════════════════════════════════════════════════╝'));
   console.log('');
 }
@@ -40,6 +40,8 @@ function showHelp() {
   console.log('  ' + yellow('--minimal') + '    Install only .claude/ directory (skills, commands, rules)');
   console.log('  ' + yellow('--force') + '      Overwrite existing files without prompting');
   console.log('  ' + yellow('--with-docs') + '  Include docs/ directory');
+  console.log('  ' + yellow('--target') + '     Install for claude (default) or codex');
+  console.log('  ' + yellow('--project') + '    Project directory (default: current directory)');
   console.log('  ' + yellow('--dry-run') + '    Show what would be done without making changes');
   console.log('  ' + yellow('--help, -h') + '   Show this help message');
   console.log('  ' + yellow('--version, -v') + ' Show version number');
@@ -47,6 +49,7 @@ function showHelp() {
   console.log(bold('Examples:'));
   console.log(dim('  $ ') + 'npx @dzhechkov/keysarium init');
   console.log(dim('  $ ') + 'npx @dzhechkov/keysarium init --minimal --force');
+  console.log(dim('  $ ') + 'npx @dzhechkov/keysarium init --target codex --project ./my-case');
   console.log(dim('  $ ') + 'npx @dzhechkov/keysarium update --dry-run');
   console.log(dim('  $ ') + 'npx @dzhechkov/keysarium doctor');
   console.log('');
@@ -64,11 +67,14 @@ function parseArgs(argv) {
     withDocs: false,
     dryRun: false,
     targetDir: process.cwd(),
+    target: 'claude',
+    targetSpecified: false,
   };
 
   let command = null;
 
-  for (const arg of args) {
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
     switch (arg) {
       case '--minimal':
         flags.minimal = true;
@@ -82,6 +88,25 @@ function parseArgs(argv) {
       case '--dry-run':
         flags.dryRun = true;
         break;
+      case '--target': {
+        const value = args[++index];
+        if (value !== 'claude' && value !== 'codex') {
+          error('--target must be claude or codex');
+          process.exit(1);
+        }
+        flags.target = value;
+        flags.targetSpecified = true;
+        break;
+      }
+      case '--project': {
+        const value = args[++index];
+        if (!value || value.startsWith('-')) {
+          error('--project requires a directory path');
+          process.exit(1);
+        }
+        flags.targetDir = path.resolve(value);
+        break;
+      }
       case '--help':
       case '-h':
         command = 'help';
@@ -132,6 +157,11 @@ function main() {
 
   // Route to command handlers
   const resolvedCommand = command || 'init';
+  if (flags.targetSpecified && resolvedCommand !== 'init') {
+    error('--target is supported only by init; update and doctor use the installation manifest');
+    process.exitCode = 1;
+    return;
+  }
 
   switch (resolvedCommand) {
     case 'init':

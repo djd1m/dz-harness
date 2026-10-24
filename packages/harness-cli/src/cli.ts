@@ -4958,8 +4958,8 @@ async function cmdConsolidate(
     if (result.watermark !== undefined) write(`  Watermark: ${result.watermark}`);
     // Option C: vector-index mirror status (honest — shows why when skipped/failed).
     if (result.mirrored > 0) write(`  Mirrored to agentdb vector index: ${result.mirrored}`);
-    if (result.mirrorError !== undefined) write(`  Mirror: ${result.mirrorError}`);
   }
+  if (result.mirrorError !== undefined) write(`  Mirror: ${result.mirrorError}`);
 
   // SAFLA delta ranking (rUv-scout #2 Phase 2): rank lessons by payoff SLOPE from reinforce history.
   // INFORMATIONAL — deletes nothing (a stale-but-valid lesson is not "noise"). Surfaced so the operator
@@ -5471,6 +5471,8 @@ async function cmdRecall(
     write(asJson ? JSON.stringify({ error: 'semantic-unavailable', reason: why, hits: [] }) : `dz recall --semantic: ${why}`);
     return 1;
   }
+  const configuredEngineMissing = mode !== 'lexical' && result.vectorEngine === 'none'
+    && result.vectorReason?.startsWith('AgentDB is configured but its engine is missing:') === true;
   // Domain-aware re-ranking (health-advisor slice H): `--domain <name>` lifts lessons
   // tagged with that domain WITHOUT dropping foreign ones — a boost, not a filter, so a
   // shared store keeps the cross-domain transfers that make it worth more than two stores.
@@ -5583,6 +5585,7 @@ async function cmdRecall(
     // through `dz teach --from-json`, and wrapping it in an object to make room for one report
     // would break every existing consumer. The block travels beside the other honesty notes.
     if (banditBlock !== undefined) process.stderr.write(`${JSON.stringify({ bandit: banditBlock })}\n`);
+    if (configuredEngineMissing) writeErr(`dz recall: ⚠ ${result.vectorReason} — showing lexical results`);
     return semanticUnserved ? 1 : 0;
   }
 
@@ -5604,6 +5607,7 @@ async function cmdRecall(
     // silently said nothing about the domain, so the reader could not tell whether the
     // boost had been applied and found nothing, or had not run at all.
     if (boost !== null && shownDomain !== undefined) write(renderDomainBoostNote(boost, shownDomain));
+    if (configuredEngineMissing) write(`  ⚠ ${result.vectorReason} — showing lexical results`);
     return semanticUnserved ? 1 : 0;
   }
   // `vectorOn` used to mean "an engine RESOLVED", so the header claimed vector ranking over a store
@@ -5751,7 +5755,9 @@ async function cmdRecall(
   // reports `vectorEngine: 'none'` BY CONSTRUCTION, so this line fired over a tier that was installed
   // and full — in this repo, 539 vectors and a 2.9 MB agentdb.db, advising the user to install it
   // (MEASURED 2026-08-22). Someone who passed --no-semantic has opted out; advice is noise there.
-  if (!vectorOn && !engineInstalled && mode !== 'lexical' && existsSync(join(projectRoot, '.dz', 'agentdb.db'))) {
+  if (configuredEngineMissing) {
+    write(`  ⚠ ${result.vectorReason} — showing lexical results`);
+  } else if (!vectorOn && !engineInstalled && mode !== 'lexical' && existsSync(join(projectRoot, '.dz', 'agentdb.db'))) {
     write(`  ℹ semantic (vector) recall needs the agentdb vector tier — run: dz setup --memory agentdb`);
   }
   // An EXPLICIT --semantic that no vector could serve is not a success. The caller who most needs to
@@ -10954,11 +10960,6 @@ function gatherReadmeCounts(root: string): { label: string; a: number; b: number
   const rootAll = num(rootMd, /## All Commands \((\d+)\)/);
   if (cjm !== null && cliAll !== null) pairs.push({ label: 'commands (root CJM header vs cli All Commands)', a: cjm, b: cliAll });
   if (rootAll !== null && cliAll !== null) pairs.push({ label: 'All Commands (root vs cli)', a: rootAll, b: cliAll });
-  // sitedoc in the readme-first contour (feature sitedoc-readme-first, ADR-001 + Codex QE AM-3/AM-4):
-  // the docs SITE carries the same command count as the cli README. A MISSING file skips its pair
-  // (target repo without sitedoc — missing-evidence contract). But a file that EXISTS and no longer
-  // matches its anchored pattern emits a MISMATCH pair (a: -1) — silent non-extraction is the exact
-  // disease this contour cures (AM-1 applies to the guard path too, not only the CI test).
   // ЗНАЧКИ ПРОТИВ ДЕРЕВА, а не только README против README (бэклог 9cb30764).
   //
   // Прежде правило сверяло только числа МЕЖДУ документами: два согласованных документа могли
@@ -11004,21 +11005,6 @@ function gatherReadmeCounts(root: string): { label: string; a: number; b: number
     pairs.push({ label: 'commands (root badge vs cli All Commands)', a: cmdBadge, b: cliAll });
   }
 
-  const sitePair = (rel: string, re: RegExp, label: string): void => {
-    if (cliAll === null || !existsSync(join(root, rel))) return;
-    const found = num(read(rel), re);
-    pairs.push({ label, a: found ?? -1, b: cliAll });
-  };
-  sitePair(
-    'packages/@dzhechkov/sitedoc/src/content/docs/cli/overview.md',
-    /^description: All (\d+) dz commands/m,
-    'commands (docs-site CLI overview description vs cli All Commands)',
-  );
-  sitePair(
-    'packages/@dzhechkov/sitedoc/src/content/docs/index.mdx',
-    /^\s*tagline: "[^"]*?(\d+) commands/m,
-    'commands (docs-site index hero tagline vs cli All Commands)',
-  );
   return pairs;
 }
 

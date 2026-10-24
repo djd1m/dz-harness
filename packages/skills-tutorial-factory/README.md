@@ -1,6 +1,8 @@
 # @dzhechkov/skills-tutorial-factory
 
-Current release: **0.7.3**. <!-- dz:version -->
+Version 0.7.4 renders authored `##`/`###` headings, simple Markdown tables and lists that follow prose without a blank line. Section diagrams appear before the theory block, and `verify-site` checks that reading order when a diagram is present. Table cells and Markdown link attributes are HTML-escaped.
+
+Current release: **0.7.5**. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-tutorial-factory
 

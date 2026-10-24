@@ -34,7 +34,7 @@ Create `.github/copilot-instructions.md` with the following structure:
 {Summarize the rule to 5-10 key bullet points.
  Focus on actionable instructions.
  Omit implementation details specific to Claude Code.
- Preserve critical constraints (PARANOID mode, mandatory phases, etc.)
+ Preserve critical constraints (research mode capability gate, mandatory phases, etc.)
 }
 
 ---

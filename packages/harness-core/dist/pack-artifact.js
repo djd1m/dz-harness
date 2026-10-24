@@ -73,6 +73,8 @@ export function packArtifact(opts) {
             }
         }
         const scripts = staged['scripts'];
+        const hasPrepack = scripts !== null && typeof scripts === 'object' && !Array.isArray(scripts)
+            && typeof scripts['prepack'] === 'string';
         if (scripts !== null && typeof scripts === 'object' && !Array.isArray(scripts)) {
             delete scripts['prepublishOnly'];
         }
@@ -83,9 +85,12 @@ export function packArtifact(opts) {
         mkdirSync(destDir, { recursive: true });
         writeFileSync(manifestPath, JSON.stringify(staged, null, 2) + '\n');
         const execOptions = { cwd: pkgDir, stdio: 'pipe', encoding: 'utf-8', maxBuffer: 64 * 1024 * 1024 };
-        // The command shape is a CONTRACT: publish's test fake admits exactly this template — double-quoted
-        // via JSON.stringify, verbatim from the publish.ts template it replaced (publish-confirm-seam.test.ts).
-        opts.exec(`npm pack . --pack-destination ${JSON.stringify(destDir)}`, execOptions);
+        // pnpm publish executes prepack and strips that lifecycle script from the packed package.json.
+        // npm pack retains it, so signing npm's artifact would make a real pnpm publication fail its
+        // signature gate. Use pnpm for that package class; keep the existing npm command for packs
+        // without prepack, whose injected command shape is covered by publish-confirm-seam tests.
+        const packCommand = hasPrepack ? 'pnpm pack' : 'npm pack .';
+        opts.exec(`${packCommand} --pack-destination ${JSON.stringify(destDir)}`, execOptions);
         const tgzPath = join(destDir, packedTarballName(name, version));
         const listing = opts.exec(`tar -tzf ${JSON.stringify(tgzPath)}`, execOptions);
         const files = listing.split(/\r?\n/).filter(p => p !== '' && !p.endsWith('/')).map(p => p.replace(/^package\//, '')).sort();
