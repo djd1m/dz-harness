@@ -322,7 +322,7 @@ These agents are spawned alongside Agents 1-4 in the same message.
 ### Post-Assessment: Production Feedback
 
 After Step 9 completes, if `--full-qe-extended` is active:
-1. Load `qcsd-production-swarm` feedback loop patterns
+1. Read `references/agentic-qe/qe-ref-qcsd-production-swarm/REFERENCE.md` for the pinned feedback protocol, then use the installed runtime only for capabilities actually available
 2. Store Fleet QE findings via the Pattern Memory Loop above (`patterns/feature-adr/fleet/{timestamp}`)
 3. Flag production health risks for monitoring post-deploy
 4. Advisory: suggest post-deploy monitoring checklist

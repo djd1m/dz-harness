@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ad306ea5f23bbdd74912c9f55fa558f6755b04885c7e3f54f6e46c8b49deb359"
+          "content": "147d12be1113e3735631c3789970af1df77b8525c91c2b6cc0cda0fb95cfdbec"
         }
       ]
     },
@@ -125,7 +125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ffeb3ae859d779a733046de47248ced28e45a0e626ce111a85f77cdb5fe1a8a1"
+          "content": "8e213ddbb4ae19cd5996d1f5ded216526f76c8fb28f2189773eceac648e7619a"
         }
       ]
     },
@@ -135,7 +135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6f44862d64a146fc6e95fde6ca30a0b4affc700134e12c645be4849ceda82e95"
+          "content": "4bcc86f8faae4bab3bd22e2364e395c09f68ee8a9a058930924d71511c8fe6af"
         }
       ]
     },
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "12a2d9921683982f6741c121004e26eb576655f321aaf7f5ce65c36449074e6c"
+          "content": "5857d0a9daa6148053dba0403f51a2ca9a9664fc46a6226b0e279fec9be2157c"
         }
       ]
     },
@@ -431,6 +431,46 @@
     },
     {
       "type": "file",
+      "name": "dist/setup-q8-hint.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "348c0624d888eb67bbeea573d6c3d52911781df43a815eb3ed6a362d801556ea"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/setup-q8-hint.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6b151157d5339993b6792279b36648ea5542536a8014db8bff9e64ffa2e8377f"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/setup-q8-hint.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "22a143e8b806ad4ee3c26e188fdf33efb28f79ec078a15834038a2b3f7a1760c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/setup-q8-hint.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6b6faa5fb1f7a455a0d329128cba5eb1150db776049596c961a4b53642849d95"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "dist/sibling-drift-fetch.d.ts",
       "hashes": [
         {
@@ -579,7 +619,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "18df6f47be6c832f1d04fc86d073df5bf18be3ccb52e0a003b9a18679068950d"
+          "value": "0d8ce60e47074d75080a535ec9de8b34cce5b3291b48db1cef4887faecace383"
         }
       ]
     },
@@ -609,7 +649,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a547b5541e61a62474dbf4813746d0960e4a8b23f49028d618782dce6ffe5657"
+          "content": "a2f13fe39f07a2a34817378b383eb084b34754ef19a8803481f6be7a7ac211ea"
         }
       ]
     },
@@ -680,6 +720,16 @@
         {
           "alg": "SHA-256",
           "content": "e8559e81c095347931c04bc3bd2944fe093ca52699b5f2897d1dab7d3447d175"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/setup-q8-hint.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cdcc58f794921bc1cc7491c95979902122194b1d7c80d9b0fee1ab5eeeefcde2"
         }
       ]
     },

@@ -3,7 +3,7 @@
 `dz qe-rounds --source native` reports durable native QE history without writing. Explicit `--action prepare|evaluate|begin-repair|begin-continuation` invokes the exact installed skills-meta helper from the CLI module, checks core/helper capabilities and uses the existing receipt schema. Prepare and begin-repair require `--reviewers <json>`. The default native ceiling is three; native `--ceiling`, duplicate/unknown options, legacy reconstruction and source collisions refuse. Omitted source retains the bridge reader.
 
 
-Current package version: `0.8.56`. <!-- dz:version -->
+Current package version: `0.8.57`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -100,7 +100,7 @@ Each launch creates one snapshot; remove selected old snapshot files yourself wh
 Live backpressure waits for writable callbacks. Explicit termination cancels pending writes; after
 child exit a stalled output sink has a two-second final drain window before cancellation.
 
-Current package versions: `harness-core v0.8.64` · `harness-cli v0.8.56`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.64` · `harness-cli v0.8.57`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. On visible lines, the marker retains its whole-line override for per-package synchronization, including explicit changelog overrides, so keep it off historical records. The previous all-protections override is corrected: fenced marker, footer, install/JSON-pin, tarball and badge examples remain literal, as do supported HTML comment blocks. Their visible counterparts still stamp; place current metadata outside examples.
 
@@ -6908,6 +6908,11 @@ Setup output separates the requested backend and its selection source from the o
 backend. A failed transition names the observed backend as INCOMPLETE; a successful `--no-hooks`
 run names native readiness and disabled hooks separately. `--no-memory` also suppresses downstream
 memory hook delivery while preserving existing memory bytes.
+
+On a host reporting at most 4 GiB RAM, a successful AgentDB setup in `auto` or `agentdb` vector mode with
+`fp32` embeddings suggests the existing opt-in `memory.embed.dtype=q8`. Setup does not change the
+dtype. Quantized model weights may need downloading; after choosing q8, reindex existing vectors with
+`dz vector reindex`. The hint uses host RAM reported by Node, which may exceed a container's limit.
 
 The existing hook APIs have no memory-only delivery selector. With `--no-memory`, setup therefore
 preserves all existing hook registries and destructive-guard bodies and performs no hook delivery

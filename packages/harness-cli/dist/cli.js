@@ -6,6 +6,7 @@
 import { runReleasePackageAudit, buildRetainedBindingProof } from './release-package-audit-runner.js';
 import { fetchPublishedViaNpmPack } from './sibling-drift-fetch.js';
 import { inspectStatisticsWorkspace } from './statistics-workspace.js';
+import { setupQ8Hint, setupSucceeded } from './setup-q8-hint.js';
 import { packArtifact, readWorkspaceVersions, formatDriftFiles } from '@dzhechkov/harness-core';
 // Fix-round 1 (Codex HIGH-1c, feature recall-short-terms): the ONE place `dz recall` prints an
 // empty result must name WHY — via the shared helper, not by re-deriving the decision. Routed
@@ -30,7 +31,7 @@ import { resolveInstallSpec } from './install-spec.js';
 import { dispatchedCommands, documentedCommands } from './command-inventory.js';
 import { execFile, execFileSync, execSync, spawn, spawnSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { cpus, homedir, hostname, tmpdir } from 'node:os';
+import { cpus, homedir, hostname, tmpdir, totalmem } from 'node:os';
 import { createRequire } from 'node:module';
 import { StringDecoder } from 'node:string_decoder';
 // Namespace access lets an old core refuse native actions without a missing named import.
@@ -53,7 +54,7 @@ TRACE_RUNID_RE, WF_RUN_OWNER_HOST, preflight, runWorkflow, makeClaudePDispatcher
 // guard-promotion (feature guard-promotion, scout idea #1)
 assembleCandidates, renderPromotionReport, renderPromotionAdr, normalizePromotionState, nextPromotionState, recordPromotionRunEvidence, isLessonRuleContentAnchor, isOffsetIsoTimestamp, globMatch, promotionAdrRelPath, DEFAULT_WINDOW_DAYS, DEFAULT_PERIODS, MAX_CONTENT_FETCHES, BUILTIN_COVERAGE, decideProvenance, isInsideTree, signManifest, verifyManifest, hashPackBytes, rewriteWorkspaceSpecs, detectSiblingDrift, planPackedInstallSmoke, judgePackedInstallSmoke, gatherPublishSecretFacts, listSignablePackFiles, assertKeyOutsideTree, decidePublishGate, collectPackageFacts, planReleaseGates, selectAffectedPackages, classifyGateExecutions, buildFailureIssue, shouldRetryGhWithoutToken, buildReleaseNotes, releaseTagName, firstOutputLine, formatPublishError, MANIFEST_NAME, SBOM_NAME, buildArchitectureMap, renderMapHuman, findArchitectureDrift, renderDriftReport, scanWorkspacePackages, loadSubsystemManifest, loadProductVision, checkFeatureAgainstArchitecture, renderArchCheck, planProjectSkills, guidanceForStage, renderInjectionReport, analyzeCorpus, renderRakeReport, renderCriticSection, rakeAsLesson, rakeReward, DEFAULT_RAKE_THRESHOLDS, streamSessionEvents, findLatestTranscript, resolveScanTailTranscript, detectProcessRakes, buildRetro, renderRetro, retroLessonText, PROCESS_SIGNATURES, RETRO_DOMAIN, runRetroTailScan, scanForSetup, buildSetupPlan, scaffoldFromSpec, renderScaffoldPreview, readExistingForScaffold, assembleChallengeContext, buildChallengeBrief, planDiscriminationCheck, classifyDiscrimination, classifyExecutionEvidence, pickAdversaryModel, CHALLENGE_QUESTIONS, loadOutcomes, renderOutcomes, statsForKey, selectAutoCost, recordProvisional, finalizeOutcome, harvestStageOutcomes, recommendModels, planFeed, unfedRuns, GRADE_SUCCESS_FLOOR, COST_LADDER, splitScenarios, budgetPlan, selectWinner, proseScopeOk, renderProseDiff, readScenarioIds, DEFAULT_MAX_JUDGE_RUNS, collectDeliveryFacts, planDeliveryCheck, renderDeliveryBrief, classifyDelivery, isUsablePlaneResult, renderDeliveryReview, scanSkillsLayout, declaredPluginSurface, parseInitFacts, verifyRegistration, buildContentProbePrompt, classifyContentProbe, renderContentProbe, findNonRegistrableSkillDirs, assembleCompoundingReport, buildDeadwoodReport, compactCmdUsageIfNeeded, measureCmdUsageDepthDays, recordCommandInvocation, resolveCmdUsageRoot, renderDeadwoodReport, CMD_USAGE_LOG_RELATIVE, banditStats, narrowBanditReport, renderBanditHealth, 
 // Cold-vs-warm EPOCH RUNNER (feature epoch-replay) — orchestrates + scores, never calls a model.
-replayableInstances, buildWorkOrder, buildJudgePrompts, unblindJudgments, verifyWorkOrder, isValidMargin, DIGEST_HONEST_SCOPE, scoreEpochReplay, generateMockOutcomes, renderEpochReplayResult, renderWorkOrderSummary, renderJudgePromptsSummary, WORK_ORDER_KIND, DEFAULT_MOCK_N, DEFAULT_MOCK_SEED, scoreRun, readQeGrade, parseQeFindings, scoreReceiptToAggregateRow, readScoreAggregateRows, dedupeScoreAggregateRows, buildScoreAggregateReport, renderScoreAggregateReport, recapWindow, decideHorizon, withinWindow, buildRecap, renderRecap, parseSourceManifest, tgPostHtmlIssues, tgVisibleLength, decideTgSend, TG_TEXT_LIMIT, countRecallEventsForRun, unknownFlagNotice, mirrorWriterExplanation, mirrorWriterReason, agentdbSetupEvidence, readVectorEngineMode, appendRecallUsage, closenessLine, anyAboveFloor, decideNameCheck, renderNameCheck, exportedNamesIn, dispatchedCommandsIn, decideSourceProvenance, renderSourceProvenance, REFUSED_HORIZONS, renderScorecard, chainTrust, renderCompoundingReport, readReinforcementState, readQuarantineState, registrationExitCode, renderRegistrationReport, 
+replayableInstances, buildWorkOrder, buildJudgePrompts, unblindJudgments, verifyWorkOrder, isValidMargin, DIGEST_HONEST_SCOPE, scoreEpochReplay, generateMockOutcomes, renderEpochReplayResult, renderWorkOrderSummary, renderJudgePromptsSummary, WORK_ORDER_KIND, DEFAULT_MOCK_N, DEFAULT_MOCK_SEED, scoreRun, readQeGrade, parseQeFindings, scoreReceiptToAggregateRow, readScoreAggregateRows, dedupeScoreAggregateRows, buildScoreAggregateReport, renderScoreAggregateReport, recapWindow, decideHorizon, withinWindow, buildRecap, renderRecap, parseSourceManifest, tgPostHtmlIssues, tgVisibleLength, decideTgSend, TG_TEXT_LIMIT, countRecallEventsForRun, unknownFlagNotice, mirrorWriterExplanation, mirrorWriterReason, agentdbSetupEvidence, readVectorEngineMode, resolveEmbedModel, appendRecallUsage, closenessLine, anyAboveFloor, decideNameCheck, renderNameCheck, exportedNamesIn, dispatchedCommandsIn, decideSourceProvenance, renderSourceProvenance, REFUSED_HORIZONS, renderScorecard, chainTrust, renderCompoundingReport, readReinforcementState, readQuarantineState, registrationExitCode, renderRegistrationReport, 
 // Smart Backlog (feature smart-backlog) — goal-directed idea pipeline over the Brain vector engine.
 readBacklogConfig, readIdeas, writeIdeas, ideaId, dedupIdea, readGoalMap, readGoalMapDetailed, parseEffort, ensureBacklogGitignored, isSafeId, alignIdea, mirrorIdeaVector, ensureBacklogEmbedForm, readBacklogEmbedFormVersion, recordAbsorption, DEDUP_EMBED_FORM_VERSION, snapshotIdeas, spinRoulette, rankRoulette, seededRng, eligibleIdeas, stageEnrichment, buildJiraDraft, resolveJiraAdapter, makeBacklogIO, harmonizeBacklog, transitionIdeas, editIdea, clearEmbedStale, BACKLOG_BACKENDS, applyDomainBoost, DZ_OWNED_TASK_TYPES, applyExportHoldout, DEFAULT_HELD_OUT_DOMAINS, canonicalDomainKey, readAgentdbRowsByTaskType, heldOutAfterOptIn, renderHoldoutNote, renderSharedStoreAdvice, decideVectorExport, countDisplacedByCut, renderDomainBoostNote, renderDomainCutNote, parseReqeDebt, 
 // qe-bridge (feature qe-bridge-claude, ADR-001): the pure half of the reverse QE bridge.
@@ -6131,7 +6132,21 @@ async function cmdSetup(options, flags, cwd, write, writeErr) {
     const integrationsOk = !setupIntegrationOutcomes.some((row) => row.status === 'refused');
     const skillsOk = install.selectRefusal === undefined && install.missing.length === 0
         && install.failures.length === 0 && install.applyFailures.length === 0;
-    return codexHooksOk && erroredSteps.length === 0 && integrationsOk && skillsOk ? 0 : 1;
+    const setupOk = setupSucceeded({ codexHooksOk, failedStepCount: erroredSteps.length, integrationsOk, skillsOk });
+    if (setupOk) {
+        const embedModel = resolveEmbedModel(projectRoot);
+        const q8Hint = setupQ8Hint({
+            totalMemoryBytes: totalmem(),
+            memoryBackend: observedMemory,
+            setupComplete: setupOk,
+            memoryEnabled: !flags.has('no-memory'),
+            vectorMode: readVectorEngineMode(projectRoot),
+            embedDtype: 'error' in embedModel ? 'error' : embedModel.dtype,
+        });
+        if (q8Hint)
+            write(q8Hint);
+    }
+    return setupOk ? 0 : 1;
 }
 function cmdPretrain(options, cwd, write) {
     const projectRoot = resolve(cwd, options.get('project') ?? '.');

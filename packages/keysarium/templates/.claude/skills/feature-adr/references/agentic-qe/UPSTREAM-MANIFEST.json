@@ -3,12 +3,79 @@
   "commit": "0a6de058575cbe292afe220df105cc74120f7674",
   "license": "MIT",
   "excluded": [
-    "qe-coverage-analysis/run-history.json"
+    "mutation-testing/run-history.json",
+    "performance-testing/run-history.json",
+    "qe-coverage-analysis/run-history.json",
+    "security-testing/run-history.json"
   ],
   "files": [
     {
+      "path": "qe-ref-brutal-honesty-review/README.md",
+      "sha256": "2a026b4af50b21456e50424fbfa089cb983fbbaa0c68024c8c17c695bea25a57",
+      "upstreamPath": ".claude/skills/brutal-honesty-review/README.md"
+    },
+    {
+      "path": "qe-ref-brutal-honesty-review/REFERENCE.md",
+      "sha256": "7a395e32fda72b52b94a32ba774d5158575b3e42e6d0b23c24dc57ccb7a3fc53",
+      "upstreamBodySha256": "5a261a712c8435090f40ecef63012d64edfcdd2df0a60a5e46a2c371990466db",
+      "upstreamPath": ".claude/skills/brutal-honesty-review/SKILL.md",
+      "upstreamFrontmatterSha256": "5dfb2f11c45c478d77762eead8c274e6b86b6e91b60cd98b5248307d346eaec2"
+    },
+    {
+      "path": "qe-ref-brutal-honesty-review/resources/assessment-rubrics.md",
+      "sha256": "dac09c91c765e2211799cc230738fb72a966f47511edb872306a906e49640cbe",
+      "upstreamPath": ".claude/skills/brutal-honesty-review/resources/assessment-rubrics.md"
+    },
+    {
+      "path": "qe-ref-brutal-honesty-review/resources/review-template.md",
+      "sha256": "95182c8605b1d821360257e1c5dbac4300bda333d861785de417cbb84090b25b",
+      "upstreamPath": ".claude/skills/brutal-honesty-review/resources/review-template.md"
+    },
+    {
+      "path": "qe-ref-brutal-honesty-review/schemas/output.json",
+      "sha256": "b8c0c2c823ff8a48c6bd7d62036ac5e3ce9c71f198abd9051692564d3645eed9",
+      "upstreamPath": ".claude/skills/brutal-honesty-review/schemas/output.json"
+    },
+    {
+      "path": "qe-ref-brutal-honesty-review/scripts/assess-code.sh",
+      "sha256": "7e9722c1533f1b7d1a9d11a7add13ac12a2a5f0acfc0ed2cdede2bcf0dab788f",
+      "upstreamPath": ".claude/skills/brutal-honesty-review/scripts/assess-code.sh"
+    },
+    {
+      "path": "qe-ref-brutal-honesty-review/scripts/assess-tests.sh",
+      "sha256": "afa5acc685c9621075596058761ace9b72242abdefc088c6bbfbf25ad1978b6c",
+      "upstreamPath": ".claude/skills/brutal-honesty-review/scripts/assess-tests.sh"
+    },
+    {
+      "path": "qe-ref-brutal-honesty-review/scripts/validate-config.json",
+      "sha256": "7418284839f89735d01f50eefdb488b013e0076f6003a67683062429c14984c6",
+      "upstreamPath": ".claude/skills/brutal-honesty-review/scripts/validate-config.json"
+    },
+    {
+      "path": "qe-ref-chaos-engineering-resilience/REFERENCE.md",
+      "sha256": "7ec1e1988f090af622d39927079af47b984d1c45fdf613991a9498f7838c551e",
+      "upstreamBodySha256": "2100021a39e9fdd4dce9fbe4ac556844f3e52f7b27b3857c157777845ace2238",
+      "upstreamPath": ".claude/skills/chaos-engineering-resilience/SKILL.md",
+      "upstreamFrontmatterSha256": "1cb85c1e12f047a0e92a377748b0b0da06c38462453e581e04fe7a26032a7c2d"
+    },
+    {
+      "path": "qe-ref-chaos-engineering-resilience/evals/chaos-engineering-resilience.yaml",
+      "sha256": "037460144e9eef80faf416f685c0abaf1aa3d101032c8af5910ebb3b06d9db95",
+      "upstreamPath": ".claude/skills/chaos-engineering-resilience/evals/chaos-engineering-resilience.yaml"
+    },
+    {
+      "path": "qe-ref-chaos-engineering-resilience/schemas/output.json",
+      "sha256": "cb67c5ddd0eb983100090b8664a8e25a717d652bf25bcd1d23c6e1b2f3de8687",
+      "upstreamPath": ".claude/skills/chaos-engineering-resilience/schemas/output.json"
+    },
+    {
+      "path": "qe-ref-chaos-engineering-resilience/scripts/validate-config.json",
+      "sha256": "6f0b31925425238211d0939db1c99954adaa9c5d8a8c627098ec164c88a690ea",
+      "upstreamPath": ".claude/skills/chaos-engineering-resilience/scripts/validate-config.json"
+    },
+    {
       "path": "qe-ref-enterprise-integration-testing/REFERENCE.md",
-      "sha256": "77cb3880c7750c010c449dcfb5d27491cef0162a8bc069e02d0540601a664425",
+      "sha256": "57734f17998f7c3fdd75dbb8452d0df726d3a1b5cb6e7f2a6265e3f3dc2ec3ab",
       "upstreamBodySha256": "131e613be41919f3545a29d346c8133738765b30e9206633d41c0e8ea406c8b2",
       "upstreamPath": ".claude/skills/enterprise-integration-testing/SKILL.md",
       "upstreamFrontmatterSha256": "b89a5492c7d3b421669673156b5f56bd91bd6c9da50fd2d86fd05075fec09fa7"
@@ -29,8 +96,77 @@
       "upstreamPath": ".claude/skills/enterprise-integration-testing/scripts/validate-config.json"
     },
     {
+      "path": "qe-ref-mutation-testing/REFERENCE.md",
+      "sha256": "a8448c1da2dcf856d10b6ab01433f8c01a234d8203616ad1730a1e5325a09667",
+      "upstreamBodySha256": "84a3bdf84a86feffa1e6c8cd2bd270c929ec8254f049ee8e48ae7d1123248708",
+      "upstreamPath": ".claude/skills/mutation-testing/SKILL.md",
+      "upstreamFrontmatterSha256": "5f236bb5fac25501aa6082dc3583537c49b7d2a098666aa229ac51551b157641"
+    },
+    {
+      "path": "qe-ref-mutation-testing/config.json",
+      "sha256": "a8ffd966f966d7852efd5ea49f72f4313c184ff366665c23fc0f0f5c0af2470a",
+      "upstreamPath": ".claude/skills/mutation-testing/config.json"
+    },
+    {
+      "path": "qe-ref-mutation-testing/evals/mutation-testing.yaml",
+      "sha256": "237c874a77f31237adac56acc928202226052736f14d6e5167faa2b64f356cc9",
+      "upstreamPath": ".claude/skills/mutation-testing/evals/mutation-testing.yaml"
+    },
+    {
+      "path": "qe-ref-mutation-testing/references/mutation-operators.md",
+      "sha256": "d724ee4af13410adc87774a24068a19d089e5b5260d2a850998fbbeb109f374c",
+      "upstreamPath": ".claude/skills/mutation-testing/references/mutation-operators.md"
+    },
+    {
+      "path": "qe-ref-mutation-testing/schemas/output.json",
+      "sha256": "2c98f1a21c5f72f31a996b58f74b3b256ef85f5abaa8d3eedf9c3bc44ebfa403",
+      "upstreamPath": ".claude/skills/mutation-testing/schemas/output.json"
+    },
+    {
+      "path": "qe-ref-mutation-testing/scripts/validate-config.json",
+      "sha256": "57a598d0876b19c4fad3ae86541b8f2217f92cae197b299c77f4974e09bc4b04",
+      "upstreamPath": ".claude/skills/mutation-testing/scripts/validate-config.json"
+    },
+    {
+      "path": "qe-ref-mutation-testing/test-data/sample-output.json",
+      "sha256": "193d1990b773733745b1529335a4e72d3e7a44c11b4be85aa254348b5bf71cb5",
+      "upstreamPath": ".claude/skills/mutation-testing/test-data/sample-output.json"
+    },
+    {
+      "path": "qe-ref-performance-testing/REFERENCE.md",
+      "sha256": "1282b2a76d6059958b49fcdde9c126b3a9a971e26aff1b511312f73b7be17c60",
+      "upstreamBodySha256": "f44777663e2bb7eb732ff89ad4191cd07b66ef012fe23c184d46289be63ee5c2",
+      "upstreamPath": ".claude/skills/performance-testing/SKILL.md",
+      "upstreamFrontmatterSha256": "a559d8fdf6876e072cf1cfc68348fa9c626c166aa39595c4caf7401ec239acd9"
+    },
+    {
+      "path": "qe-ref-performance-testing/config.json",
+      "sha256": "5b8655feecb4c3b8d861c1763a9600571592acb185687f563663755050044884",
+      "upstreamPath": ".claude/skills/performance-testing/config.json"
+    },
+    {
+      "path": "qe-ref-performance-testing/evals/performance-testing.yaml",
+      "sha256": "7375dfb8e847b46db3b2327c7b3f192b92ee5a5d62719baeb99ea0dd2705e39d",
+      "upstreamPath": ".claude/skills/performance-testing/evals/performance-testing.yaml"
+    },
+    {
+      "path": "qe-ref-performance-testing/references/k6-patterns.md",
+      "sha256": "288676b061627419b5f848fa58d373ee8c6f2977a9128d8d837529e947672106",
+      "upstreamPath": ".claude/skills/performance-testing/references/k6-patterns.md"
+    },
+    {
+      "path": "qe-ref-performance-testing/schemas/output.json",
+      "sha256": "e8f8079c7fb7b96d8a8a8cf2d77b4bc117b0dfa6411c03d2a0ca918b5e6a4942",
+      "upstreamPath": ".claude/skills/performance-testing/schemas/output.json"
+    },
+    {
+      "path": "qe-ref-performance-testing/scripts/validate-config.json",
+      "sha256": "497535fd28734adab2dea89b9e74c9e4437f77a5d8eddfee9b1c3b23100a5feb",
+      "upstreamPath": ".claude/skills/performance-testing/scripts/validate-config.json"
+    },
+    {
       "path": "qe-ref-qcsd-ideation-swarm/REFERENCE.md",
-      "sha256": "4f9958206be90609a06e5709d486d71cccfcf79799ef450278b15e26af8c9227",
+      "sha256": "51e130790da856b53d67420070eb734c042dd0ad613dca7b76685b5758d0fe50",
       "upstreamBodySha256": "2dd6197fd5786b988441c7b183b1df20e5156370bfbd85ed2facea21f6f7fe0b",
       "upstreamPath": ".claude/skills/qcsd-ideation-swarm/SKILL.md",
       "upstreamFrontmatterSha256": "b08428be3d2d38693b411132db807d0902cf07420a1b7dee51b6763d2e7bdab3"
@@ -91,8 +227,75 @@
       "upstreamPath": ".claude/skills/qcsd-ideation-swarm/steps/08-final-output.md"
     },
     {
+      "path": "qe-ref-qcsd-production-swarm/REFERENCE.md",
+      "sha256": "bf6d9a14b7a4416ad3806d3af360c7eb41e9e1be964c9099f91a2976cd6132cd",
+      "upstreamBodySha256": "8d0f9d892adfe0add7fb3a9398dbe8c015c92878d8d35158b6de35611aa80590",
+      "upstreamPath": ".claude/skills/qcsd-production-swarm/SKILL.md",
+      "upstreamFrontmatterSha256": "a0bc4ca965716e2abef1484f1fc815b7daa611b1e545bed26937db37de793e1f"
+    },
+    {
+      "path": "qe-ref-qcsd-production-swarm/evals/qcsd-production-swarm.yaml",
+      "sha256": "3abe84e08b0f020c44838578aff66dcb6f2465f1ce62a092099006643d587e5c",
+      "upstreamPath": ".claude/skills/qcsd-production-swarm/evals/qcsd-production-swarm.yaml"
+    },
+    {
+      "path": "qe-ref-qcsd-production-swarm/schemas/output.json",
+      "sha256": "295db4d32a93117933aa59a4a521e81d3a3510abb673875e0df3c260b7dd916d",
+      "upstreamPath": ".claude/skills/qcsd-production-swarm/schemas/output.json"
+    },
+    {
+      "path": "qe-ref-qcsd-production-swarm/scripts/validate-config.json",
+      "sha256": "4f9bc93bc280ca167f1c1c0d4eede18654c70bd8d064a0b77e449b43b3fd2d60",
+      "upstreamPath": ".claude/skills/qcsd-production-swarm/scripts/validate-config.json"
+    },
+    {
+      "path": "qe-ref-qcsd-production-swarm/steps/01-flag-detection.md",
+      "sha256": "7bbbdd1fc74f13c8fcf06ccc7c8f0a86d38f445046cdedcd19a9d3e4d209a723",
+      "upstreamPath": ".claude/skills/qcsd-production-swarm/steps/01-flag-detection.md"
+    },
+    {
+      "path": "qe-ref-qcsd-production-swarm/steps/02-core-agents.md",
+      "sha256": "b97e9614043ee508d5adcd070bbf3fd51431c37163b7fb3a3c116b2b4c8ad482",
+      "upstreamPath": ".claude/skills/qcsd-production-swarm/steps/02-core-agents.md"
+    },
+    {
+      "path": "qe-ref-qcsd-production-swarm/steps/03-batch1-results.md",
+      "sha256": "9468ffba31fc36e9bda4bd8a5341157ea6f615318159350c9027814c62909ffd",
+      "upstreamPath": ".claude/skills/qcsd-production-swarm/steps/03-batch1-results.md"
+    },
+    {
+      "path": "qe-ref-qcsd-production-swarm/steps/04-conditional-agents.md",
+      "sha256": "f688f3db3c84a7e448f7003e1d86a5b5ac38564cdd514ca52c565daa31f7cec2",
+      "upstreamPath": ".claude/skills/qcsd-production-swarm/steps/04-conditional-agents.md"
+    },
+    {
+      "path": "qe-ref-qcsd-production-swarm/steps/05-decision-synthesis.md",
+      "sha256": "a41915ac5d49c8a91b196e3da9622d46ed87506c4c487b7708420d1df83ee915",
+      "upstreamPath": ".claude/skills/qcsd-production-swarm/steps/05-decision-synthesis.md"
+    },
+    {
+      "path": "qe-ref-qcsd-production-swarm/steps/06-report-generation.md",
+      "sha256": "65cee5082c12cf9ccb09954d223879ecdf1c93250e0de4d352a75c2c6e6ff78e",
+      "upstreamPath": ".claude/skills/qcsd-production-swarm/steps/06-report-generation.md"
+    },
+    {
+      "path": "qe-ref-qcsd-production-swarm/steps/07-learning-persistence.md",
+      "sha256": "2990b62c1a9d45447c9cad1ae37f607eec77b3147a91339babd65019917819f1",
+      "upstreamPath": ".claude/skills/qcsd-production-swarm/steps/07-learning-persistence.md"
+    },
+    {
+      "path": "qe-ref-qcsd-production-swarm/steps/08-feedback-loop.md",
+      "sha256": "63ed09b20d08b0a1b58e31f8bce15f3b3ed8985c8a5aea350c4cb6fc6defa360",
+      "upstreamPath": ".claude/skills/qcsd-production-swarm/steps/08-feedback-loop.md"
+    },
+    {
+      "path": "qe-ref-qcsd-production-swarm/steps/09-final-output.md",
+      "sha256": "3b25c936cd2a7dc34440ffb25e064accd870f9a10b06c9963f0a5140bf19aa51",
+      "upstreamPath": ".claude/skills/qcsd-production-swarm/steps/09-final-output.md"
+    },
+    {
       "path": "qe-ref-qe-coverage-analysis/REFERENCE.md",
-      "sha256": "1d97eae9c6b2220a170f1ba50ae66b79bfbe9bd1fb0e09953daaab51cd24396c",
+      "sha256": "0d9c9f095cbc7c3d7a3c97d68b7361afee1d1c489c1ec0e7969e831e690065f6",
       "upstreamBodySha256": "199ffd11a6ff114900b5f4a4dfbf6dbd9899be4b530b7575fd6ec931dae56bb4",
       "upstreamPath": ".claude/skills/qe-coverage-analysis/SKILL.md",
       "upstreamFrontmatterSha256": "dbc89c60ee705dc7f2df88f939606ea5b012aedb1874e8331cee7a8f83524b8b"
@@ -114,7 +317,7 @@
     },
     {
       "path": "qe-ref-qe-requirements-validation/REFERENCE.md",
-      "sha256": "e2af956e3097a36ac8f796d660a4199cb58857ee65c8db2a8de3b1a2381e4fe8",
+      "sha256": "ce99af5ba445718f8ccd9a4c87565f360d3e24f1916d2bc4e7bccf2cda480b09",
       "upstreamBodySha256": "050bc55a746b8341589bf2600cf939d0f3a3b1f3e588aa5aafc0ffd11b1f981c",
       "upstreamPath": ".claude/skills/qe-requirements-validation/SKILL.md",
       "upstreamFrontmatterSha256": "45895cb98e7a8ffaa0306250f68ed875124bbb7294cb895ac183b5fb20def20d"
@@ -135,72 +338,30 @@
       "upstreamPath": ".claude/skills/qe-requirements-validation/scripts/validate-config.json"
     },
     {
-      "path": "qe-ref-brutal-honesty-review/README.md",
-      "sha256": "2a026b4af50b21456e50424fbfa089cb983fbbaa0c68024c8c17c695bea25a57",
-      "upstreamPath": ".claude/skills/brutal-honesty-review/README.md"
+      "path": "qe-ref-regression-testing/REFERENCE.md",
+      "sha256": "906992551d34b7155410a2dca81b890e11f1c291301124d9e84fec74ac04f5cf",
+      "upstreamBodySha256": "4ae8e621bfac77c18accaaa27d33f43206c299b77a69e5a0c93149e1bcf3cd78",
+      "upstreamPath": ".claude/skills/regression-testing/SKILL.md",
+      "upstreamFrontmatterSha256": "c0745ae4125ede985b785574e929845c8ca97ab0b83e38e3c963a2ba11ff1d29"
     },
     {
-      "path": "qe-ref-brutal-honesty-review/REFERENCE.md",
-      "sha256": "22bb4f512ec3d20caea2f113b76dd3680d99184d2f32dfc8c4ce6f7b901b5921",
-      "upstreamBodySha256": "5a261a712c8435090f40ecef63012d64edfcdd2df0a60a5e46a2c371990466db",
-      "upstreamPath": ".claude/skills/brutal-honesty-review/SKILL.md",
-      "upstreamFrontmatterSha256": "5dfb2f11c45c478d77762eead8c274e6b86b6e91b60cd98b5248307d346eaec2"
+      "path": "qe-ref-regression-testing/evals/regression-testing.yaml",
+      "sha256": "186f58281db454d32d15806271c986ca894f38350585ee3fa68a65b736f4c989",
+      "upstreamPath": ".claude/skills/regression-testing/evals/regression-testing.yaml"
     },
     {
-      "path": "qe-ref-brutal-honesty-review/resources/assessment-rubrics.md",
-      "sha256": "dac09c91c765e2211799cc230738fb72a966f47511edb872306a906e49640cbe",
-      "upstreamPath": ".claude/skills/brutal-honesty-review/resources/assessment-rubrics.md"
+      "path": "qe-ref-regression-testing/schemas/output.json",
+      "sha256": "11aa506b771c1078b30c57f2e706abd69efb141b00c62b8d29f7bf6866f30d11",
+      "upstreamPath": ".claude/skills/regression-testing/schemas/output.json"
     },
     {
-      "path": "qe-ref-brutal-honesty-review/resources/review-template.md",
-      "sha256": "95182c8605b1d821360257e1c5dbac4300bda333d861785de417cbb84090b25b",
-      "upstreamPath": ".claude/skills/brutal-honesty-review/resources/review-template.md"
-    },
-    {
-      "path": "qe-ref-brutal-honesty-review/schemas/output.json",
-      "sha256": "b8c0c2c823ff8a48c6bd7d62036ac5e3ce9c71f198abd9051692564d3645eed9",
-      "upstreamPath": ".claude/skills/brutal-honesty-review/schemas/output.json"
-    },
-    {
-      "path": "qe-ref-brutal-honesty-review/scripts/assess-code.sh",
-      "sha256": "7e9722c1533f1b7d1a9d11a7add13ac12a2a5f0acfc0ed2cdede2bcf0dab788f",
-      "upstreamPath": ".claude/skills/brutal-honesty-review/scripts/assess-code.sh"
-    },
-    {
-      "path": "qe-ref-brutal-honesty-review/scripts/assess-tests.sh",
-      "sha256": "afa5acc685c9621075596058761ace9b72242abdefc088c6bbfbf25ad1978b6c",
-      "upstreamPath": ".claude/skills/brutal-honesty-review/scripts/assess-tests.sh"
-    },
-    {
-      "path": "qe-ref-brutal-honesty-review/scripts/validate-config.json",
-      "sha256": "7418284839f89735d01f50eefdb488b013e0076f6003a67683062429c14984c6",
-      "upstreamPath": ".claude/skills/brutal-honesty-review/scripts/validate-config.json"
-    },
-    {
-      "path": "qe-ref-shift-left-testing/REFERENCE.md",
-      "sha256": "3e60dccf6dc39d0745770941cab492f3080b786ec82e1b36ace5a4fca99bcb66",
-      "upstreamBodySha256": "5c23ab40a117e34f017c9ae10f7356227e8070593628148535e359492029ca51",
-      "upstreamPath": ".claude/skills/shift-left-testing/SKILL.md",
-      "upstreamFrontmatterSha256": "c68d3e1279ef411dfe7e601e5dff94665d8dfd5054b8d6ab9f7acc5427d01ef1"
-    },
-    {
-      "path": "qe-ref-shift-left-testing/evals/shift-left-testing.yaml",
-      "sha256": "bd78f3a8f4c2efac6357e39db73349fb324d94d657dcde97a02ae79ae4a44a3e",
-      "upstreamPath": ".claude/skills/shift-left-testing/evals/shift-left-testing.yaml"
-    },
-    {
-      "path": "qe-ref-shift-left-testing/schemas/output.json",
-      "sha256": "1f1c26b303ea08b1e864e0ad48ec71a588b25704e7f21459539363c88f406166",
-      "upstreamPath": ".claude/skills/shift-left-testing/schemas/output.json"
-    },
-    {
-      "path": "qe-ref-shift-left-testing/scripts/validate-config.json",
-      "sha256": "ba8aab0c04f21731b63dda53fa5c64bbc2a892e6f13c76b99f58864f5bba2956",
-      "upstreamPath": ".claude/skills/shift-left-testing/scripts/validate-config.json"
+      "path": "qe-ref-regression-testing/scripts/validate-config.json",
+      "sha256": "16dd3267fd849d3543388edb31fcc4fee435f4f5eca55646cfba12bb41ed5ab9",
+      "upstreamPath": ".claude/skills/regression-testing/scripts/validate-config.json"
     },
     {
       "path": "qe-ref-risk-based-testing/REFERENCE.md",
-      "sha256": "369447d4903cd1265f78e8ed69be3f085a901f5015c79fa20d218497147837a7",
+      "sha256": "d862c475303eac5709b900b813c1043c357d65a666520bb62858986eb6e2d0cc",
       "upstreamBodySha256": "22ee476e13268a23f7e6c641d2f2f37ed2b7cfda0456367a1159cf2fe698821f",
       "upstreamPath": ".claude/skills/risk-based-testing/SKILL.md",
       "upstreamFrontmatterSha256": "120a81584210e8895f4ae90860f9ba83d4f931057f955707626c00a62fcef3fe"
@@ -221,26 +382,85 @@
       "upstreamPath": ".claude/skills/risk-based-testing/scripts/validate-config.json"
     },
     {
-      "path": "qe-ref-regression-testing/REFERENCE.md",
-      "sha256": "b66f58f233a0d8e11efc995dd0d588aabfadc0ab489bd9a223b3b77f46371406",
-      "upstreamBodySha256": "4ae8e621bfac77c18accaaa27d33f43206c299b77a69e5a0c93149e1bcf3cd78",
-      "upstreamPath": ".claude/skills/regression-testing/SKILL.md",
-      "upstreamFrontmatterSha256": "c0745ae4125ede985b785574e929845c8ca97ab0b83e38e3c963a2ba11ff1d29"
+      "path": "qe-ref-security-testing/REFERENCE.md",
+      "sha256": "dcb6cbf0b3a4b936f2f9de4d2c7806777b56c1f18afe166785d0eabc3cf06fa9",
+      "upstreamBodySha256": "7784837cee3900f9dff13231659a0f3c95518e3600374ad21d1c5e558dc81085",
+      "upstreamPath": ".claude/skills/security-testing/SKILL.md",
+      "upstreamFrontmatterSha256": "3433515e786cbfa7632ca4b2d735e6166eeece6cf082a37cf316f0bc3d378f88"
     },
     {
-      "path": "qe-ref-regression-testing/evals/regression-testing.yaml",
-      "sha256": "186f58281db454d32d15806271c986ca894f38350585ee3fa68a65b736f4c989",
-      "upstreamPath": ".claude/skills/regression-testing/evals/regression-testing.yaml"
+      "path": "qe-ref-security-testing/config.json",
+      "sha256": "45dc3b438b860621bc1e761217ba9e93ef9abd0e16e9cd9758546b34942f989e",
+      "upstreamPath": ".claude/skills/security-testing/config.json"
     },
     {
-      "path": "qe-ref-regression-testing/schemas/output.json",
-      "sha256": "11aa506b771c1078b30c57f2e706abd69efb141b00c62b8d29f7bf6866f30d11",
-      "upstreamPath": ".claude/skills/regression-testing/schemas/output.json"
+      "path": "qe-ref-security-testing/evals/security-testing.yaml",
+      "sha256": "2f70c87d08cd819673f58c2619a6874eb08ddf32b387f80fda75393d303227e3",
+      "upstreamPath": ".claude/skills/security-testing/evals/security-testing.yaml"
     },
     {
-      "path": "qe-ref-regression-testing/scripts/validate-config.json",
-      "sha256": "16dd3267fd849d3543388edb31fcc4fee435f4f5eca55646cfba12bb41ed5ab9",
-      "upstreamPath": ".claude/skills/regression-testing/scripts/validate-config.json"
+      "path": "qe-ref-security-testing/references/compliance-agent-commands.md",
+      "sha256": "dab99b852befa106dc80838d31f8aa072d7180518fcf65a877a40ac04c7e0af5",
+      "upstreamPath": ".claude/skills/security-testing/references/compliance-agent-commands.md"
+    },
+    {
+      "path": "qe-ref-security-testing/references/owasp-top-10.md",
+      "sha256": "87bdcc77838d62fbd7e25f52e5eec6c7e8ed80a992f19cf5bab072bd7e69b004",
+      "upstreamPath": ".claude/skills/security-testing/references/owasp-top-10.md"
+    },
+    {
+      "path": "qe-ref-security-testing/schemas/output.json",
+      "sha256": "61e9a2b77689ada5457c12182e835e643d18fc69e698dfb25cddff002ae72cd9",
+      "upstreamPath": ".claude/skills/security-testing/schemas/output.json"
+    },
+    {
+      "path": "qe-ref-security-testing/scripts/validate-config.json",
+      "sha256": "499da64ba110ccc83ae506641ea6f32e1d41acf66421676eb0b6f5aa989ef313",
+      "upstreamPath": ".claude/skills/security-testing/scripts/validate-config.json"
+    },
+    {
+      "path": "qe-ref-security-testing/templates/security-report.md",
+      "sha256": "dd930867219960ce323cb3432609b9fa68a785647b2d93d3115b9d3cdabc67af",
+      "upstreamPath": ".claude/skills/security-testing/templates/security-report.md"
+    },
+    {
+      "path": "qe-ref-shift-left-testing/REFERENCE.md",
+      "sha256": "2da7863d7fd6b1c2b048402c63a8da1c7d928443253e05a47cca7f94d5107a99",
+      "upstreamBodySha256": "5c23ab40a117e34f017c9ae10f7356227e8070593628148535e359492029ca51",
+      "upstreamPath": ".claude/skills/shift-left-testing/SKILL.md",
+      "upstreamFrontmatterSha256": "c68d3e1279ef411dfe7e601e5dff94665d8dfd5054b8d6ab9f7acc5427d01ef1"
+    },
+    {
+      "path": "qe-ref-shift-left-testing/evals/shift-left-testing.yaml",
+      "sha256": "bd78f3a8f4c2efac6357e39db73349fb324d94d657dcde97a02ae79ae4a44a3e",
+      "upstreamPath": ".claude/skills/shift-left-testing/evals/shift-left-testing.yaml"
+    },
+    {
+      "path": "qe-ref-shift-left-testing/schemas/output.json",
+      "sha256": "1f1c26b303ea08b1e864e0ad48ec71a588b25704e7f21459539363c88f406166",
+      "upstreamPath": ".claude/skills/shift-left-testing/schemas/output.json"
+    },
+    {
+      "path": "qe-ref-shift-left-testing/scripts/validate-config.json",
+      "sha256": "ba8aab0c04f21731b63dda53fa5c64bbc2a892e6f13c76b99f58864f5bba2956",
+      "upstreamPath": ".claude/skills/shift-left-testing/scripts/validate-config.json"
+    },
+    {
+      "path": "qe-ref-tdd-london-chicago/REFERENCE.md",
+      "sha256": "396bbc2bfddecf30fe7ab862ecf5855e47cd7ab285b4b7ff92274f4f6cdaa1a7",
+      "upstreamBodySha256": "ae660774447566484120f14835fd3a809498978bdad62cdfe9a40cb5d0a952d5",
+      "upstreamPath": ".claude/skills/tdd-london-chicago/SKILL.md",
+      "upstreamFrontmatterSha256": "964648fa98a1d21ffe5cf1aae077f9b504891f1e346ac52a2c09034cd35d35a3"
+    },
+    {
+      "path": "qe-ref-tdd-london-chicago/schemas/output.json",
+      "sha256": "bacc9ac2916afbafac80e6aa08efdcdc1d3aa2652fc2eb648e81fb4a27db2001",
+      "upstreamPath": ".claude/skills/tdd-london-chicago/schemas/output.json"
+    },
+    {
+      "path": "qe-ref-tdd-london-chicago/scripts/validate-config.json",
+      "sha256": "0fe0cfc1192e208f3ecb2e5f6b8f4491450d772ef4545f4613e8b37c10ff350e",
+      "upstreamPath": ".claude/skills/tdd-london-chicago/scripts/validate-config.json"
     }
   ]
 }

@@ -60,7 +60,7 @@ Trigger on:
 │   ├── adr-template.md                ← ADR document template
 │   ├── c4-template.md                 ← C4 diagram templates
 │   ├── qe-checklist.md                ← Quality engineering checklist
-│   └── agentic-qe/                    ← 15 QE references (8 pinned protocols)
+│   └── agentic-qe/                    ← 15 QE references (14 pinned protocols)
 │       ├── README.md                  ← Skill mapping, modes, install guide
 │       ├── UPSTREAM-MANIFEST.json     ← Pinned upstream paths and hashes
 │       ├── LICENSE.agentic-qe         ← Upstream MIT notice
@@ -73,12 +73,12 @@ Trigger on:
 │       ├── qe-ref-enterprise-integration-testing/REFERENCE.md ← Step 9: Integration
 │       ├── qe-ref-regression-testing/REFERENCE.md      ← Step 9: Regression (Tier 3)
 │       ├── qe-ref-qe-coverage-analysis/REFERENCE.md    ← Step 9: Coverage (Tier 3)
-│       ├── chaos-engineering-resilience.md ← Extended: Chaos (Tier 3)
-│       ├── security-testing.md        ← Extended: OWASP (Tier 3)
-│       ├── performance-testing.md     ← Extended: Load/stress (Tier 3)
-│       ├── mutation-testing.md        ← Extended: Mutation (Tier 3)
-│       ├── tdd-london-chicago.md      ← Extended: TDD schools (Tier 3)
-│       └── qcsd-production-swarm.md   ← Extended: Prod health (Tier 3, condensed)
+│       ├── qe-ref-chaos-engineering-resilience/REFERENCE.md ← Extended: Chaos (Tier 3)
+│       ├── qe-ref-security-testing/REFERENCE.md        ← Extended: OWASP (Tier 3)
+│       ├── qe-ref-performance-testing/REFERENCE.md     ← Extended: Load/stress (Tier 3)
+│       ├── qe-ref-mutation-testing/REFERENCE.md        ← Extended: Mutation (Tier 3)
+│       ├── qe-ref-tdd-london-chicago/REFERENCE.md      ← Extended: TDD schools (Tier 3)
+│       └── qe-ref-qcsd-production-swarm/REFERENCE.md   ← Extended: Prod health (Tier 3)
 └── examples/
     └── sample-feature-output.md       ← Example output for M-tier feature
 ```
@@ -675,6 +675,8 @@ Everything from `--full-qe` plus 6 additional skills and up to 3 extra agents in
 | performance-testing | Step 8, 9 | If `HAS_PERFORMANCE_SLA` flag set |
 | chaos-engineering-resilience | Step 9 | If `HAS_INFRASTRUCTURE_CHANGE` flag set |
 | qcsd-production-swarm | Post-Step 9 | Advisory — informs future pipeline runs via feedback loops |
+
+The pinned source text and schemas for these six skills live under `references/agentic-qe/qe-ref-<skill>/`. They are available for inspection even without the upstream runtime; the flag does not gain extended agent execution from these files alone.
 
 ### When to use
 

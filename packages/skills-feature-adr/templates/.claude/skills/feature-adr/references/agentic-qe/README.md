@@ -1,6 +1,6 @@
 # Agentic QE Skills Integration
 
-Reference material from [agentic-qe](https://github.com/proffesor-for-testing/agentic-qe) integrated into the feature-ADR pipeline. Eight core skills are vendored from commit `0a6de058575cbe292afe220df105cc74120f7674` (MIT; see `LICENSE.agentic-qe`). The remaining reference files are Keysarium's older adapted copies.
+Reference material from [agentic-qe](https://github.com/proffesor-for-testing/agentic-qe) integrated into the feature-ADR pipeline. Fourteen core and extended skills are vendored from commit `0a6de058575cbe292afe220df105cc74120f7674` (MIT; see `LICENSE.agentic-qe`). The planner agent is a separate pinned reference.
 
 ## Installation (for Direct Mode)
 
@@ -79,7 +79,7 @@ Without installation, all core skills work in Reference Mode (no setup needed).
 
 ### Reference Mode (default, no setup)
 
-The eight core skills listed below include their pinned upstream `SKILL.md`, output schemas, evals, and supporting files. Feature-ADR modules load those instructions from their own directories and apply the methodology within the feature-ADR checkpoint framework. Five skills also carry clearly marked Keysarium additions. The other reference files remain adapted copies.
+The eight core skills and six extended references include their pinned upstream `SKILL.md`, output schemas, evals, and supporting files. Feature-ADR modules load those instructions from their own directories and apply the methodology within the feature-ADR checkpoint framework. Core references and the production-swarm reference carry clearly marked Keysarium additions. Extended agent execution still requires Direct Extended Mode.
 
 - Works out of the box
 - Covers all core pipeline steps
@@ -138,10 +138,12 @@ The `qe-ref-` directory prefix marks these as bundled references and keeps them 
 
 The upstream `brutal-honesty-review/scripts/*.sh` files are bundled as reference utilities and are not run by Keysarium. They use simple text heuristics and, in one case, invoke the consumer project's `npm test`; their output is not a feature-ADR gate verdict. `assess-tests.sh` has a known upstream early-exit at its first `((found_count++))` under `set -e`; keep its verdict out of the gate. The JSON schemas are available for machine checks, but the pipeline does not yet claim that it runs every upstream eval automatically.
 
-### Extended (loaded in Direct Mode)
-- `chaos-engineering-resilience.md` — Full copy, 164 lines (Tier 3)
-- `security-testing.md` — Full copy, 312 lines (Tier 3)
-- `performance-testing.md` — Full copy, 316 lines (Tier 3)
-- `mutation-testing.md` — Full copy, 237 lines (Tier 3)
-- `tdd-london-chicago.md` — Full copy, 250 lines (Tier 3)
-- `qcsd-production-swarm.md` — Condensed from 2781 lines (Tier 3)
+### Extended references (agent execution requires Direct Extended Mode)
+- `qe-ref-chaos-engineering-resilience/REFERENCE.md` — pinned upstream protocol and companions
+- `qe-ref-security-testing/REFERENCE.md` — pinned upstream protocol and companions
+- `qe-ref-performance-testing/REFERENCE.md` — pinned upstream protocol and companions
+- `qe-ref-mutation-testing/REFERENCE.md` — pinned upstream protocol and companions
+- `qe-ref-tdd-london-chicago/REFERENCE.md` — pinned upstream protocol and companions
+- `qe-ref-qcsd-production-swarm/REFERENCE.md` — pinned upstream protocol, nine step files, and a marked feature-ADR handoff note
+
+These files support inspection and explicit schema validation. They do not spawn the named AQE agents, read production telemetry, or run the upstream evals automatically. `--full-qe-extended` continues to require a separately installed runtime for agent execution.

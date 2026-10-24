@@ -7,6 +7,7 @@
 import { runReleasePackageAudit, buildRetainedBindingProof } from './release-package-audit-runner.js';
 import { fetchPublishedViaNpmPack } from './sibling-drift-fetch.js';
 import { inspectStatisticsWorkspace } from './statistics-workspace.js';
+import { setupQ8Hint, setupSucceeded } from './setup-q8-hint.js';
 import { packArtifact, readWorkspaceVersions, formatDriftFiles, type InventorySource, type LocalInventoryResult } from '@dzhechkov/harness-core';
 // Fix-round 1 (Codex HIGH-1c, feature recall-short-terms): the ONE place `dz recall` prints an
 // empty result must name WHY — via the shared helper, not by re-deriving the decision. Routed
@@ -31,7 +32,7 @@ import { resolveInstallSpec } from './install-spec.js';
 import { dispatchedCommands, documentedCommands } from './command-inventory.js';
 import { execFile, execFileSync, execSync, spawn, spawnSync, type ChildProcess } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
-import { cpus, homedir, hostname, tmpdir } from 'node:os';
+import { cpus, homedir, hostname, tmpdir, totalmem } from 'node:os';
 import { createRequire } from 'node:module';
 import { StringDecoder } from 'node:string_decoder';
 // Namespace access lets an old core refuse native actions without a missing named import.
@@ -526,6 +527,7 @@ import {
   mirrorWriterReason,
   agentdbSetupEvidence,
   readVectorEngineMode,
+  resolveEmbedModel,
   appendRecallUsage,
   closenessLine,
   anyAboveFloor,
@@ -6950,7 +6952,20 @@ async function cmdSetup(options: Map<string, string>, flags: Set<string>, cwd: s
   const integrationsOk = !setupIntegrationOutcomes.some((row) => row.status === 'refused');
   const skillsOk = install.selectRefusal === undefined && install.missing.length === 0
     && install.failures.length === 0 && install.applyFailures.length === 0;
-  return codexHooksOk && erroredSteps.length === 0 && integrationsOk && skillsOk ? 0 : 1;
+  const setupOk = setupSucceeded({ codexHooksOk, failedStepCount: erroredSteps.length, integrationsOk, skillsOk });
+  if (setupOk) {
+    const embedModel = resolveEmbedModel(projectRoot);
+    const q8Hint = setupQ8Hint({
+      totalMemoryBytes: totalmem(),
+      memoryBackend: observedMemory,
+      setupComplete: setupOk,
+      memoryEnabled: !flags.has('no-memory'),
+      vectorMode: readVectorEngineMode(projectRoot),
+      embedDtype: 'error' in embedModel ? 'error' : embedModel.dtype,
+    });
+    if (q8Hint) write(q8Hint);
+  }
+  return setupOk ? 0 : 1;
 }
 
 function cmdPretrain(options: Map<string, string>, cwd: string, write: Write): number {

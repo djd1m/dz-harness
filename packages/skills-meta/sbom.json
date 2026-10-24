@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9c99ab0d960782d1dcc2608cf078e8a34b42aa0524654692e68dd685bed2b927"
+          "content": "652cc157792d0eaf986fdd3326851a5c0cec16ce5455cf1bb6c6a5dc0c5bab90"
         }
       ]
     },
@@ -495,7 +495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f422866e4a2386ed01ed0c7f24893663a5f6875bd0666b7eac1c45f36964f89a"
+          "content": "e802a99edc2a83511fda898575539139e764cbd2f315d75c408c10de03085775"
         }
       ]
     },
@@ -615,7 +615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "017c89ac8c98eff5d261d8243b0c75cee07e551ede26780e0b9f11c50250f0d2"
+          "content": "b81c6b730899b1fa7e2e5656f720199d9184dca1ba31bef00023c8214d07de51"
         }
       ]
     },
@@ -655,7 +655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ed3f44ef853390c18d5311a9475c6e5b8432b82a8200de0e02823c5d5659e935"
+          "content": "aaa9fce4feffcdb997733e6898914f542b089e761c50a0470a4073930aa505ba"
         }
       ]
     },
@@ -665,17 +665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6f7822e4c21c00b2c0999917e1ba6eecd26b8c5ee966772383951e6ad6743fd0"
-        }
-      ]
-    },
-    {
-      "type": "file",
-      "name": "feature-adr/references/agentic-qe/chaos-engineering-resilience.md",
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "2f6a1371957d8f0d80290c0b7579aa0405010cf24550dd4b8bdf21829696f16d"
+          "content": "54e54dc5413bf1436492605c186e98b9adc9e79dc8c665d0bf1090aba57ff329"
         }
       ]
     },
@@ -686,36 +676,6 @@
         {
           "alg": "SHA-256",
           "content": "6923711f4630073b9de7314f2aa9a94993c4f40bf29dfa728995e7dc14a497ac"
-        }
-      ]
-    },
-    {
-      "type": "file",
-      "name": "feature-adr/references/agentic-qe/mutation-testing.md",
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "293a26497acbf33255b62ed48dc0b9db7419600e2871cb11ce7fc1ebd7a7b15f"
-        }
-      ]
-    },
-    {
-      "type": "file",
-      "name": "feature-adr/references/agentic-qe/performance-testing.md",
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "ae04d14c552988d0f19d56ba0ad125d477ebcdeca4945ef08e65a808e0c8622d"
-        }
-      ]
-    },
-    {
-      "type": "file",
-      "name": "feature-adr/references/agentic-qe/qcsd-production-swarm.md",
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "d75d23eaff754d2d8b547fd858dbb70fe2b207c5d055749ec82a0acae2c2c9ef"
         }
       ]
     },
@@ -801,6 +761,46 @@
     },
     {
       "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-chaos-engineering-resilience/REFERENCE.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7ec1e1988f090af622d39927079af47b984d1c45fdf613991a9498f7838c551e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-chaos-engineering-resilience/evals/chaos-engineering-resilience.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "037460144e9eef80faf416f685c0abaf1aa3d101032c8af5910ebb3b06d9db95"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-chaos-engineering-resilience/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cb67c5ddd0eb983100090b8664a8e25a717d652bf25bcd1d23c6e1b2f3de8687"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-chaos-engineering-resilience/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6f0b31925425238211d0939db1c99954adaa9c5d8a8c627098ec164c88a690ea"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "feature-adr/references/agentic-qe/qe-ref-enterprise-integration-testing/REFERENCE.md",
       "hashes": [
         {
@@ -836,6 +836,136 @@
         {
           "alg": "SHA-256",
           "content": "db45ee1e7912fce0321efcbad152a88ae4e656c03404dd6bae54302ecca6a3a1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-mutation-testing/REFERENCE.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a8448c1da2dcf856d10b6ab01433f8c01a234d8203616ad1730a1e5325a09667"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-mutation-testing/config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a8ffd966f966d7852efd5ea49f72f4313c184ff366665c23fc0f0f5c0af2470a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-mutation-testing/evals/mutation-testing.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "237c874a77f31237adac56acc928202226052736f14d6e5167faa2b64f356cc9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-mutation-testing/references/mutation-operators.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d724ee4af13410adc87774a24068a19d089e5b5260d2a850998fbbeb109f374c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-mutation-testing/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2c98f1a21c5f72f31a996b58f74b3b256ef85f5abaa8d3eedf9c3bc44ebfa403"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-mutation-testing/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "57a598d0876b19c4fad3ae86541b8f2217f92cae197b299c77f4974e09bc4b04"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-mutation-testing/test-data/sample-output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "193d1990b773733745b1529335a4e72d3e7a44c11b4be85aa254348b5bf71cb5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-performance-testing/REFERENCE.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1282b2a76d6059958b49fcdde9c126b3a9a971e26aff1b511312f73b7be17c60"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-performance-testing/config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5b8655feecb4c3b8d861c1763a9600571592acb185687f563663755050044884"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-performance-testing/evals/performance-testing.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7375dfb8e847b46db3b2327c7b3f192b92ee5a5d62719baeb99ea0dd2705e39d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-performance-testing/references/k6-patterns.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "288676b061627419b5f848fa58d373ee8c6f2977a9128d8d837529e947672106"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-performance-testing/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e8f8079c7fb7b96d8a8a8cf2d77b4bc117b0dfa6411c03d2a0ca918b5e6a4942"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-performance-testing/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "497535fd28734adab2dea89b9e74c9e4437f77a5d8eddfee9b1c3b23100a5feb"
         }
       ]
     },
@@ -956,6 +1086,136 @@
         {
           "alg": "SHA-256",
           "content": "b45df9c32aafbb5382fb86620a2c019294ab5bcdf510c3209b17c4470bf5fff5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/REFERENCE.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bf6d9a14b7a4416ad3806d3af360c7eb41e9e1be964c9099f91a2976cd6132cd"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/evals/qcsd-production-swarm.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3abe84e08b0f020c44838578aff66dcb6f2465f1ce62a092099006643d587e5c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "295db4d32a93117933aa59a4a521e81d3a3510abb673875e0df3c260b7dd916d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4f9bc93bc280ca167f1c1c0d4eede18654c70bd8d064a0b77e449b43b3fd2d60"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/01-flag-detection.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7bbbdd1fc74f13c8fcf06ccc7c8f0a86d38f445046cdedcd19a9d3e4d209a723"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/02-core-agents.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b97e9614043ee508d5adcd070bbf3fd51431c37163b7fb3a3c116b2b4c8ad482"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/03-batch1-results.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9468ffba31fc36e9bda4bd8a5341157ea6f615318159350c9027814c62909ffd"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/04-conditional-agents.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f688f3db3c84a7e448f7003e1d86a5b5ac38564cdd514ca52c565daa31f7cec2"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/05-decision-synthesis.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a41915ac5d49c8a91b196e3da9622d46ed87506c4c487b7708420d1df83ee915"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/06-report-generation.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "65cee5082c12cf9ccb09954d223879ecdf1c93250e0de4d352a75c2c6e6ff78e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/07-learning-persistence.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2990b62c1a9d45447c9cad1ae37f607eec77b3147a91339babd65019917819f1"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/08-feedback-loop.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "63ed09b20d08b0a1b58e31f8bce15f3b3ed8985c8a5aea350c4cb6fc6defa360"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/09-final-output.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b25c936cd2a7dc34440ffb25e064accd870f9a10b06c9963f0a5140bf19aa51"
         }
       ]
     },
@@ -1121,6 +1381,86 @@
     },
     {
       "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-security-testing/REFERENCE.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dcb6cbf0b3a4b936f2f9de4d2c7806777b56c1f18afe166785d0eabc3cf06fa9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-security-testing/config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "45dc3b438b860621bc1e761217ba9e93ef9abd0e16e9cd9758546b34942f989e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-security-testing/evals/security-testing.yaml",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2f70c87d08cd819673f58c2619a6874eb08ddf32b387f80fda75393d303227e3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-security-testing/references/compliance-agent-commands.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dab99b852befa106dc80838d31f8aa072d7180518fcf65a877a40ac04c7e0af5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-security-testing/references/owasp-top-10.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "87bdcc77838d62fbd7e25f52e5eec6c7e8ed80a992f19cf5bab072bd7e69b004"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-security-testing/schemas/output.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "61e9a2b77689ada5457c12182e835e643d18fc69e698dfb25cddff002ae72cd9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-security-testing/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "499da64ba110ccc83ae506641ea6f32e1d41acf66421676eb0b6f5aa989ef313"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-security-testing/templates/security-report.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dd930867219960ce323cb3432609b9fa68a785647b2d93d3115b9d3cdabc67af"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "feature-adr/references/agentic-qe/qe-ref-shift-left-testing/REFERENCE.md",
       "hashes": [
         {
@@ -1161,21 +1501,31 @@
     },
     {
       "type": "file",
-      "name": "feature-adr/references/agentic-qe/security-testing.md",
+      "name": "feature-adr/references/agentic-qe/qe-ref-tdd-london-chicago/REFERENCE.md",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "486cb8b560153345b4efcd31ac0b47dc1ece642745add61720937c1bc1717606"
+          "content": "396bbc2bfddecf30fe7ab862ecf5855e47cd7ab285b4b7ff92274f4f6cdaa1a7"
         }
       ]
     },
     {
       "type": "file",
-      "name": "feature-adr/references/agentic-qe/tdd-london-chicago.md",
+      "name": "feature-adr/references/agentic-qe/qe-ref-tdd-london-chicago/schemas/output.json",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "568c6807674aaa5ff47015da8f513485b0f62c71eac0e15f0fc6b96d4aa9370f"
+          "content": "bacc9ac2916afbafac80e6aa08efdcdc1d3aa2652fc2eb648e81fb4a27db2001"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "feature-adr/references/agentic-qe/qe-ref-tdd-london-chicago/scripts/validate-config.json",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0fe0cfc1192e208f3ecb2e5f6b8f4491450d772ef4545f4613e8b37c10ff350e"
         }
       ]
     },
@@ -1629,7 +1979,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "416c1b67aeef5511a2b10d32af03363ab62ffab8eaed2a33160cf9eec3efc146"
+          "value": "03b01a0645073ced0359993c20725ab2b6eaa89fec9858f97afed9656beecca1"
         }
       ]
     },

@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "9c99ab0d960782d1dcc2608cf078e8a34b42aa0524654692e68dd685bed2b927"
+        "sha256": "652cc157792d0eaf986fdd3326851a5c0cec16ce5455cf1bb6c6a5dc0c5bab90"
       },
       {
         "path": "adversarial-verifier/SKILL.md",
@@ -197,7 +197,7 @@
       },
       {
         "path": "feature-adr/SKILL.md",
-        "sha256": "f422866e4a2386ed01ed0c7f24893663a5f6875bd0666b7eac1c45f36964f89a"
+        "sha256": "e802a99edc2a83511fda898575539139e764cbd2f315d75c408c10de03085775"
       },
       {
         "path": "feature-adr/examples/sample-feature-output.md",
@@ -245,7 +245,7 @@
       },
       {
         "path": "feature-adr/modules/09-fleet-qe.md",
-        "sha256": "017c89ac8c98eff5d261d8243b0c75cee07e551ede26780e0b9f11c50250f0d2"
+        "sha256": "b81c6b730899b1fa7e2e5656f720199d9184dca1ba31bef00023c8214d07de51"
       },
       {
         "path": "feature-adr/modules/10-delivery-gate.md",
@@ -261,31 +261,15 @@
       },
       {
         "path": "feature-adr/references/agentic-qe/README.md",
-        "sha256": "ed3f44ef853390c18d5311a9475c6e5b8432b82a8200de0e02823c5d5659e935"
+        "sha256": "aaa9fce4feffcdb997733e6898914f542b089e761c50a0470a4073930aa505ba"
       },
       {
         "path": "feature-adr/references/agentic-qe/UPSTREAM-MANIFEST.json",
-        "sha256": "6f7822e4c21c00b2c0999917e1ba6eecd26b8c5ee966772383951e6ad6743fd0"
-      },
-      {
-        "path": "feature-adr/references/agentic-qe/chaos-engineering-resilience.md",
-        "sha256": "2f6a1371957d8f0d80290c0b7579aa0405010cf24550dd4b8bdf21829696f16d"
+        "sha256": "54e54dc5413bf1436492605c186e98b9adc9e79dc8c665d0bf1090aba57ff329"
       },
       {
         "path": "feature-adr/references/agentic-qe/code-goal-planner.md",
         "sha256": "6923711f4630073b9de7314f2aa9a94993c4f40bf29dfa728995e7dc14a497ac"
-      },
-      {
-        "path": "feature-adr/references/agentic-qe/mutation-testing.md",
-        "sha256": "293a26497acbf33255b62ed48dc0b9db7419600e2871cb11ce7fc1ebd7a7b15f"
-      },
-      {
-        "path": "feature-adr/references/agentic-qe/performance-testing.md",
-        "sha256": "ae04d14c552988d0f19d56ba0ad125d477ebcdeca4945ef08e65a808e0c8622d"
-      },
-      {
-        "path": "feature-adr/references/agentic-qe/qcsd-production-swarm.md",
-        "sha256": "d75d23eaff754d2d8b547fd858dbb70fe2b207c5d055749ec82a0acae2c2c9ef"
       },
       {
         "path": "feature-adr/references/agentic-qe/qe-ref-brutal-honesty-review/README.md",
@@ -320,6 +304,22 @@
         "sha256": "7418284839f89735d01f50eefdb488b013e0076f6003a67683062429c14984c6"
       },
       {
+        "path": "feature-adr/references/agentic-qe/qe-ref-chaos-engineering-resilience/REFERENCE.md",
+        "sha256": "7ec1e1988f090af622d39927079af47b984d1c45fdf613991a9498f7838c551e"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-chaos-engineering-resilience/evals/chaos-engineering-resilience.yaml",
+        "sha256": "037460144e9eef80faf416f685c0abaf1aa3d101032c8af5910ebb3b06d9db95"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-chaos-engineering-resilience/schemas/output.json",
+        "sha256": "cb67c5ddd0eb983100090b8664a8e25a717d652bf25bcd1d23c6e1b2f3de8687"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-chaos-engineering-resilience/scripts/validate-config.json",
+        "sha256": "6f0b31925425238211d0939db1c99954adaa9c5d8a8c627098ec164c88a690ea"
+      },
+      {
         "path": "feature-adr/references/agentic-qe/qe-ref-enterprise-integration-testing/REFERENCE.md",
         "sha256": "57734f17998f7c3fdd75dbb8452d0df726d3a1b5cb6e7f2a6265e3f3dc2ec3ab"
       },
@@ -334,6 +334,58 @@
       {
         "path": "feature-adr/references/agentic-qe/qe-ref-enterprise-integration-testing/scripts/validate-config.json",
         "sha256": "db45ee1e7912fce0321efcbad152a88ae4e656c03404dd6bae54302ecca6a3a1"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-mutation-testing/REFERENCE.md",
+        "sha256": "a8448c1da2dcf856d10b6ab01433f8c01a234d8203616ad1730a1e5325a09667"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-mutation-testing/config.json",
+        "sha256": "a8ffd966f966d7852efd5ea49f72f4313c184ff366665c23fc0f0f5c0af2470a"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-mutation-testing/evals/mutation-testing.yaml",
+        "sha256": "237c874a77f31237adac56acc928202226052736f14d6e5167faa2b64f356cc9"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-mutation-testing/references/mutation-operators.md",
+        "sha256": "d724ee4af13410adc87774a24068a19d089e5b5260d2a850998fbbeb109f374c"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-mutation-testing/schemas/output.json",
+        "sha256": "2c98f1a21c5f72f31a996b58f74b3b256ef85f5abaa8d3eedf9c3bc44ebfa403"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-mutation-testing/scripts/validate-config.json",
+        "sha256": "57a598d0876b19c4fad3ae86541b8f2217f92cae197b299c77f4974e09bc4b04"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-mutation-testing/test-data/sample-output.json",
+        "sha256": "193d1990b773733745b1529335a4e72d3e7a44c11b4be85aa254348b5bf71cb5"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-performance-testing/REFERENCE.md",
+        "sha256": "1282b2a76d6059958b49fcdde9c126b3a9a971e26aff1b511312f73b7be17c60"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-performance-testing/config.json",
+        "sha256": "5b8655feecb4c3b8d861c1763a9600571592acb185687f563663755050044884"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-performance-testing/evals/performance-testing.yaml",
+        "sha256": "7375dfb8e847b46db3b2327c7b3f192b92ee5a5d62719baeb99ea0dd2705e39d"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-performance-testing/references/k6-patterns.md",
+        "sha256": "288676b061627419b5f848fa58d373ee8c6f2977a9128d8d837529e947672106"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-performance-testing/schemas/output.json",
+        "sha256": "e8f8079c7fb7b96d8a8a8cf2d77b4bc117b0dfa6411c03d2a0ca918b5e6a4942"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-performance-testing/scripts/validate-config.json",
+        "sha256": "497535fd28734adab2dea89b9e74c9e4437f77a5d8eddfee9b1c3b23100a5feb"
       },
       {
         "path": "feature-adr/references/agentic-qe/qe-ref-qcsd-ideation-swarm/REFERENCE.md",
@@ -382,6 +434,58 @@
       {
         "path": "feature-adr/references/agentic-qe/qe-ref-qcsd-ideation-swarm/steps/08-final-output.md",
         "sha256": "b45df9c32aafbb5382fb86620a2c019294ab5bcdf510c3209b17c4470bf5fff5"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/REFERENCE.md",
+        "sha256": "bf6d9a14b7a4416ad3806d3af360c7eb41e9e1be964c9099f91a2976cd6132cd"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/evals/qcsd-production-swarm.yaml",
+        "sha256": "3abe84e08b0f020c44838578aff66dcb6f2465f1ce62a092099006643d587e5c"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/schemas/output.json",
+        "sha256": "295db4d32a93117933aa59a4a521e81d3a3510abb673875e0df3c260b7dd916d"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/scripts/validate-config.json",
+        "sha256": "4f9bc93bc280ca167f1c1c0d4eede18654c70bd8d064a0b77e449b43b3fd2d60"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/01-flag-detection.md",
+        "sha256": "7bbbdd1fc74f13c8fcf06ccc7c8f0a86d38f445046cdedcd19a9d3e4d209a723"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/02-core-agents.md",
+        "sha256": "b97e9614043ee508d5adcd070bbf3fd51431c37163b7fb3a3c116b2b4c8ad482"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/03-batch1-results.md",
+        "sha256": "9468ffba31fc36e9bda4bd8a5341157ea6f615318159350c9027814c62909ffd"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/04-conditional-agents.md",
+        "sha256": "f688f3db3c84a7e448f7003e1d86a5b5ac38564cdd514ca52c565daa31f7cec2"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/05-decision-synthesis.md",
+        "sha256": "a41915ac5d49c8a91b196e3da9622d46ed87506c4c487b7708420d1df83ee915"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/06-report-generation.md",
+        "sha256": "65cee5082c12cf9ccb09954d223879ecdf1c93250e0de4d352a75c2c6e6ff78e"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/07-learning-persistence.md",
+        "sha256": "2990b62c1a9d45447c9cad1ae37f607eec77b3147a91339babd65019917819f1"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/08-feedback-loop.md",
+        "sha256": "63ed09b20d08b0a1b58e31f8bce15f3b3ed8985c8a5aea350c4cb6fc6defa360"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-qcsd-production-swarm/steps/09-final-output.md",
+        "sha256": "3b25c936cd2a7dc34440ffb25e064accd870f9a10b06c9963f0a5140bf19aa51"
       },
       {
         "path": "feature-adr/references/agentic-qe/qe-ref-qe-coverage-analysis/REFERENCE.md",
@@ -448,6 +552,38 @@
         "sha256": "c6f9f14da0875db2b14b48c8bc53c631af907a15f65a07e34053268efc58f7b2"
       },
       {
+        "path": "feature-adr/references/agentic-qe/qe-ref-security-testing/REFERENCE.md",
+        "sha256": "dcb6cbf0b3a4b936f2f9de4d2c7806777b56c1f18afe166785d0eabc3cf06fa9"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-security-testing/config.json",
+        "sha256": "45dc3b438b860621bc1e761217ba9e93ef9abd0e16e9cd9758546b34942f989e"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-security-testing/evals/security-testing.yaml",
+        "sha256": "2f70c87d08cd819673f58c2619a6874eb08ddf32b387f80fda75393d303227e3"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-security-testing/references/compliance-agent-commands.md",
+        "sha256": "dab99b852befa106dc80838d31f8aa072d7180518fcf65a877a40ac04c7e0af5"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-security-testing/references/owasp-top-10.md",
+        "sha256": "87bdcc77838d62fbd7e25f52e5eec6c7e8ed80a992f19cf5bab072bd7e69b004"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-security-testing/schemas/output.json",
+        "sha256": "61e9a2b77689ada5457c12182e835e643d18fc69e698dfb25cddff002ae72cd9"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-security-testing/scripts/validate-config.json",
+        "sha256": "499da64ba110ccc83ae506641ea6f32e1d41acf66421676eb0b6f5aa989ef313"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-security-testing/templates/security-report.md",
+        "sha256": "dd930867219960ce323cb3432609b9fa68a785647b2d93d3115b9d3cdabc67af"
+      },
+      {
         "path": "feature-adr/references/agentic-qe/qe-ref-shift-left-testing/REFERENCE.md",
         "sha256": "2da7863d7fd6b1c2b048402c63a8da1c7d928443253e05a47cca7f94d5107a99"
       },
@@ -464,12 +600,16 @@
         "sha256": "ba8aab0c04f21731b63dda53fa5c64bbc2a892e6f13c76b99f58864f5bba2956"
       },
       {
-        "path": "feature-adr/references/agentic-qe/security-testing.md",
-        "sha256": "486cb8b560153345b4efcd31ac0b47dc1ece642745add61720937c1bc1717606"
+        "path": "feature-adr/references/agentic-qe/qe-ref-tdd-london-chicago/REFERENCE.md",
+        "sha256": "396bbc2bfddecf30fe7ab862ecf5855e47cd7ab285b4b7ff92274f4f6cdaa1a7"
       },
       {
-        "path": "feature-adr/references/agentic-qe/tdd-london-chicago.md",
-        "sha256": "568c6807674aaa5ff47015da8f513485b0f62c71eac0e15f0fc6b96d4aa9370f"
+        "path": "feature-adr/references/agentic-qe/qe-ref-tdd-london-chicago/schemas/output.json",
+        "sha256": "bacc9ac2916afbafac80e6aa08efdcdc1d3aa2652fc2eb648e81fb4a27db2001"
+      },
+      {
+        "path": "feature-adr/references/agentic-qe/qe-ref-tdd-london-chicago/scripts/validate-config.json",
+        "sha256": "0fe0cfc1192e208f3ecb2e5f6b8f4491450d772ef4545f4613e8b37c10ff350e"
       },
       {
         "path": "feature-adr/references/c4-template.md",
@@ -649,7 +789,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "416c1b67aeef5511a2b10d32af03363ab62ffab8eaed2a33160cf9eec3efc146"
+        "sha256": "03b01a0645073ced0359993c20725ab2b6eaa89fec9858f97afed9656beecca1"
       },
       {
         "path": "problem-solver-enhanced/SKILL.md",
@@ -745,5 +885,5 @@
       }
     ]
   },
-  "signature": "bd16SgxcM/nZ+jx3BJzu/v7YVT399gtNduX6118NHa89XuTBifpha/YgRWm4pUj41RXZTGGYPmo8HPh8d9NRBQ=="
+  "signature": "mFpxf98zStNKf2e7EbfM+lUguH6hwYC2tH0bLkQOYtU39ANOHMRXIJjFWNfaqibVjYkaADzVgeOKgOcGY5JrDw=="
 }
