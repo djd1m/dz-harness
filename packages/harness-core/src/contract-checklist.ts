@@ -411,7 +411,7 @@ class JsonDecodeError extends Error {
 }
 
 /** Strict JSON decoder whose object parser sees duplicate members before a value can overwrite one. */
-class DuplicateSafeJsonDecoder {
+export class DuplicateSafeJsonDecoder {
   private index = 0;
 
   constructor(private readonly text: string) {}

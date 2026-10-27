@@ -141,6 +141,7 @@ export { decidePublishSigning, decidePostSigningVerification, decideSignableSet,
 // contract-checklist (ADR-001): pure extraction, canonical rendering, typed report parsing, and
 // exact per-item verification. Filesystem discovery/containment stays in harness-cli.
 export { extractContractChecklist, renderContractChecklist, parseContractVerdictReport, verifyContractVerdicts, } from './contract-checklist.js';
+export { parseAcceptanceObligations, parseAcceptanceObligationReport, verifyAcceptanceObligations, } from './acceptance-obligations.js';
 export * from './feature-tier.js';
 export { DOMAIN_LIFT_EXACT, DOMAIN_LIFT_RELATED, normalizeDomain, domainMatch, applyDomainBoost, countDisplacedByCut, renderDomainBoostNote, renderDomainCutNote, } from './recall-domain-boost.js';
 export { DEFAULT_HELD_OUT_DOMAINS, applyExportHoldout, canonicalDomainKey, heldOutAfterOptIn, renderHoldoutNote, renderSharedStoreAdvice, decideVectorExport, } from './export-holdout.js';

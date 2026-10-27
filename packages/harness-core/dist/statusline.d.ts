@@ -53,7 +53,7 @@ export interface FeatureAdrState {
 export interface StatuslineData {
     /** Count of learned patterns in the project's unified memory store. */
     readonly patterns: number;
-    /** Absent on parity; missing/unreadable mirror is explicitly unavailable. */
+    /** Lesson identity state; absent mirror omits this diagnostic. */
     readonly patternMirror?: {
         readonly state: 'in-sync' | 'different';
         readonly lexicalMirrorable: number;
@@ -63,14 +63,17 @@ export interface StatuslineData {
             readonly noise: number;
         };
     } | {
-        readonly state: 'unavailable';
+        readonly state: 'unavailable' | 'unknown';
     };
     /** Vector-mirror inventory; absence is explicit instead of being encoded as a missing field. */
     readonly mirror: {
         readonly available: boolean;
         readonly rows: number;
         readonly lessons: number;
-        readonly pending: number;
+        readonly pending: number | 'unknown';
+        /** Identity counts include quarantined lessons; absent when comparison is unknown. */
+        readonly mirrorOnly?: number;
+        readonly quarantinedPending?: number;
         readonly source: 'agentdb';
     };
     /** Exact lexical-tier availability split; omitted when the enhanced readonly count cannot be established. */

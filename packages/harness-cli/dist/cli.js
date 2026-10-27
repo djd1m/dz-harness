@@ -60,7 +60,7 @@ readBacklogConfig, readIdeas, writeIdeas, ideaId, dedupIdea, readGoalMap, readGo
 // qe-bridge (feature qe-bridge-claude, ADR-001): the pure half of the reverse QE bridge.
 KNOWN_CLAUDE, isSafeClaudeId, claudeProbeArgs, claudeReviewArgs, interpretClaudeProbe, modelFamily, buildBridgePrompt, parseBridgeOutput, buildBridgeFailureRecord, buildBridgeSignoffRecord, renderBridgeReport, isSafeSlug, hasUnsafePathChars, hasDotDotSegment, buildReqeBrief, settleReqeDebt, renderReqeList, countReqeByCause, REQE_SCOPE, 
 // Mutation gate (feature ha-mutation-gate) — break each named protection, run the suite, require red.
-REGISTRY_SELFCHECK_TESTS, buildMutationTestCommand, parseMutationRegistry, registryEntriesAddedSince, applyMutationToText, attributeBaselineRedness, countFailingTests, detectSuiteCompletionReceipt, detectSuiteReceiptMismatch, classifyBaseline, classifyRunFailure, classifyMutationOutcome, parseSuitePaths, suiteSelectionNamesModule, injectVitestWorkerCeiling, mutationGateExitCode, mutationVerdictRow, summarizeMutationResults, renderMutationReport, runWithOneInternalRetry, TRACE_BUNDLE_LEDGER_PATH, TRACE_BUNDLE_SCHEMA, TRACE_BUNDLE_RUN_META_FILE, buildBundle, serializeBundle, parseBundle, planImport, decideCheckpointWrite, amendmentSection, amendmentSectionCount, amendmentDeclarationAmbiguity, planSaysNoAmendments, parseAmendments, resolveAmendments, decideAmendmentOutcome, amendmentVerdictLine, amendmentsMissingFromPlan, AMENDMENT_VACUITY_NOTE, extractContractChecklist, readFeatureTier, parseContractVerdictReport, verifyContractVerdicts, decideSignableSet, signableSetLine, decideRecordWrite, decideReadBack, recordVerdictLine, applyTaskId, buildCadenceReport, tgVisibleSha256, CADENCE_WINDOW_DAYS, readQeRounds, QE_ROUNDS_DEFAULT_CEILING, adviseRestart, describeStoreLocation, storeLocationLine, resolveTeachTarget, teachReasonPhrase, readTeachToConfig, TeachTargetError, mergeStoreHits, sameStore, globalStoreRoot, storeCountLabel, 
+REGISTRY_SELFCHECK_TESTS, buildMutationTestCommand, parseMutationRegistry, registryEntriesAddedSince, applyMutationToText, attributeBaselineRedness, countFailingTests, detectSuiteCompletionReceipt, detectSuiteReceiptMismatch, classifyBaseline, classifyRunFailure, classifyMutationOutcome, parseSuitePaths, suiteSelectionNamesModule, injectVitestWorkerCeiling, mutationGateExitCode, mutationVerdictRow, summarizeMutationResults, renderMutationReport, runWithOneInternalRetry, TRACE_BUNDLE_LEDGER_PATH, TRACE_BUNDLE_SCHEMA, TRACE_BUNDLE_RUN_META_FILE, buildBundle, serializeBundle, parseBundle, planImport, decideCheckpointWrite, amendmentSection, amendmentSectionCount, amendmentDeclarationAmbiguity, planSaysNoAmendments, parseAmendments, resolveAmendments, decideAmendmentOutcome, amendmentVerdictLine, amendmentsMissingFromPlan, AMENDMENT_VACUITY_NOTE, extractContractChecklist, readFeatureTier, parseContractVerdictReport, verifyContractVerdicts, parseAcceptanceObligations, parseAcceptanceObligationReport, verifyAcceptanceObligations, decideSignableSet, signableSetLine, decideRecordWrite, decideReadBack, recordVerdictLine, applyTaskId, buildCadenceReport, tgVisibleSha256, CADENCE_WINDOW_DAYS, readQeRounds, QE_ROUNDS_DEFAULT_CEILING, adviseRestart, describeStoreLocation, storeLocationLine, resolveTeachTarget, teachReasonPhrase, readTeachToConfig, TeachTargetError, mergeStoreHits, sameStore, globalStoreRoot, storeCountLabel, 
 // operator-profile (ADR-001): per-user 0600 store + marked block in ~/.claude/CLAUDE.md
 renderProfileBlock, readProfile, writeProfile, syncProfileBlock, checkProfileDrift, parseRegister, registerOwnerWord, profileAgeDays, parseDomainList, domainListText, parseYesNo, REGISTERS, 
 // cross-family-control-branch (ADR-001): the two-scoped-review measurement's pure core.
@@ -19571,6 +19571,28 @@ function cmdContractCheck(options, flags, cwd, write, writeErr) {
     });
     if (!extracted.ok)
         return emitEarly('fail', 1, extracted.diagnostics);
+    const obligationsRel = `features/${slug}/acceptance-obligations.json`;
+    const obligationsPath = join(featureDir, 'acceptance-obligations.json');
+    let hasObligations = false;
+    try {
+        lstatSync(obligationsPath);
+        hasObligations = true;
+    }
+    catch (error) {
+        if (error.code !== 'ENOENT')
+            return emitEarly('not-established', 2, [{
+                    code: 'obligation-artifact-unreadable', message: 'cannot inspect acceptance obligations', artifact: obligationsRel,
+                }]);
+    }
+    let declaration;
+    if (hasObligations) {
+        const read = contractReadConfined(repoRoot, obligationsPath, obligationsRel);
+        if (!read.ok)
+            return emitEarly('not-established', 2, [read.diagnostic]);
+        declaration = parseAcceptanceObligations(read.text);
+        if (!declaration.ok)
+            return emitEarly('fail', 1, declaration.diagnostics.map((entry) => ({ ...entry, artifact: obligationsRel })));
+    }
     const reportRead = contractReadConfined(repoRoot, join(featureDir, '08_qe_report.md'), reportRel);
     if (!reportRead.ok)
         return emitEarly('not-established', 2, [reportRead.diagnostic]);
@@ -19605,18 +19627,28 @@ function cmdContractCheck(options, flags, cwd, write, writeErr) {
         },
     };
     const rawVerification = verifyContractVerdicts(extracted.checklist, parsed.report, reader);
+    let obligations;
+    if (declaration?.ok) {
+        const obligationReport = parseAcceptanceObligationReport(reportRead.text);
+        if (!obligationReport.ok)
+            return emitEarly('fail', 1, obligationReport.diagnostics.map((entry) => ({ ...entry, artifact: reportRel })));
+        obligations = verifyAcceptanceObligations(extracted.checklist, declaration.value, obligationReport.value, reader);
+    }
     const withReportArtifact = (entry) => ({
         ...entry,
         artifact: entry.artifact ?? reportRel,
     });
     const verification = {
         ...rawVerification,
-        diagnostics: [...informationalDiagnostics, ...rawVerification.diagnostics.map(withReportArtifact)],
+        diagnostics: [...informationalDiagnostics, ...rawVerification.diagnostics.map(withReportArtifact),
+            ...(obligations?.diagnostics.map(withReportArtifact) ?? [])],
         items: rawVerification.items.map((item) => ({
             ...item,
             diagnostics: item.diagnostics.map(withReportArtifact),
         })),
     };
+    const outcome = rawVerification.outcome === 'pass' && (obligations === undefined || obligations.outcome === 'pass') ? 'pass' : 'fail';
+    const exitCode = outcome === 'pass' ? 0 : 1;
     if (json) {
         write(JSON.stringify({
             contract: extracted.checklist,
@@ -19625,10 +19657,11 @@ function cmdContractCheck(options, flags, cwd, write, writeErr) {
             diagnostics: verification.diagnostics,
             counts: verification.counts,
             overallGrade: verification.overallGrade,
-            outcome: verification.outcome,
-            exitCode: verification.exitCode,
+            ...(obligations === undefined ? {} : { obligations }),
+            outcome,
+            exitCode,
         }));
-        return verification.exitCode;
+        return exitCode;
     }
     for (const item of verification.items) {
         const reason = item.reason === undefined ? '' : ` — ${item.reason}`;
@@ -19636,13 +19669,17 @@ function cmdContractCheck(options, flags, cwd, write, writeErr) {
     }
     write(`  counts: contract=${verification.counts.contractItems} verdict=${verification.counts.verdictItems} met=${verification.counts.met} unmet=${verification.counts.unmet} not-testable=${verification.counts.notTestable} invalid-evidence=${verification.counts.invalidEvidence}`);
     write(`  overall grade: ${verification.overallGrade}`);
+    if (obligations !== undefined)
+        write(`  acceptance obligations: ${obligations.outcome} · ${obligations.checked} checked`);
     for (const entry of verification.diagnostics)
         writeErr(contractDiagnosticLine(entry));
-    const summary = verification.outcome === 'pass'
+    const summary = outcome === 'pass'
         ? `${verification.counts.met} contract item(s) met`
-        : `${rawVerification.diagnostics.length} contract or evidence violation(s)`;
-    write(`contract-check: ${verification.outcome === 'pass' ? 'PASS' : 'FAIL'} — ${summary}`);
-    return verification.exitCode;
+        : obligations === undefined
+            ? `${rawVerification.diagnostics.length} contract or evidence violation(s)`
+            : `${verification.diagnostics.length} contract, obligation or evidence violation(s)`;
+    write(`contract-check: ${outcome === 'pass' ? 'PASS' : 'FAIL'} — ${summary}`);
+    return exitCode;
 }
 function cmdAmendmentCheck(options, flags, cwd, write) {
     const json = flags.has('json');

@@ -69,7 +69,7 @@ export interface FeatureAdrState {
 export interface StatuslineData {
   /** Count of learned patterns in the project's unified memory store. */
   readonly patterns: number;
-  /** Absent on parity; missing/unreadable mirror is explicitly unavailable. */
+  /** Lesson identity state; absent mirror omits this diagnostic. */
   readonly patternMirror?:
     | {
       readonly state: 'in-sync' | 'different';
@@ -77,13 +77,16 @@ export interface StatuslineData {
       readonly vector: number;
       readonly excluded: { readonly class: number; readonly noise: number };
     }
-    | { readonly state: 'unavailable' };
+    | { readonly state: 'unavailable' | 'unknown' };
   /** Vector-mirror inventory; absence is explicit instead of being encoded as a missing field. */
   readonly mirror: {
     readonly available: boolean;
     readonly rows: number;
     readonly lessons: number;
-    readonly pending: number;
+    readonly pending: number | 'unknown';
+    /** Identity counts include quarantined lessons; absent when comparison is unknown. */
+    readonly mirrorOnly?: number;
+    readonly quarantinedPending?: number;
     readonly source: 'agentdb';
   };
   /** Exact lexical-tier availability split; omitted when the enhanced readonly count cannot be established. */
@@ -820,14 +823,9 @@ export function statuslineData(projectRoot: string, now: number = Date.now(), re
     storeHealth = undefined;
   }
 
-  // Сравнивать можно только сравнимое: слева уроки лексического слоя, справа уроки зеркала.
-  // Полный объём зеркала (`vectorRows`) для этого не годится — в него входят идеи бэклога и
-  // книжные единицы, и показатель на нём горел бы всегда. Неизвестное число уроков — это
-  // ТРЕТЬЕ состояние «не читается», а не молчание: молчание означает «величины сошлись».
-  // ОТСУТСТВИЕ зеркала и НЕЧИТАЕМОСТЬ зеркала — разные положения (решение владельца 2026-09-09).
-  // Зеркала нет вовсе: сравнивать не с чем, показатель молчит — иначе у любого проекта, который
-  // зеркалом не пользуется, он горел бы всегда, а вечно горящий показатель не несёт сведений.
-  // Зеркало ЕСТЬ, но прочитать или разложить его не удалось: это отказ инструмента, и он горит.
+  // Physical rows belong to store health. Lesson agreement requires actual own-id/derived-id
+  // evidence; equal totals alone cannot certify it. Unknown identities in readable stores are
+  // separate from unavailable storage. An absent mirror keeps its existing compact presentation.
   const mirrorLessons = storeRows?.vectorLessonRows;
   const mirrorRows = storeRows?.vectorRows;
   const mirrorAbsent = storeRows !== undefined && storeRows.vectorSourcePath === undefined;
@@ -839,13 +837,15 @@ export function statuslineData(projectRoot: string, now: number = Date.now(), re
   const mirrorAvailable = storeRows?.vectorSourcePath !== undefined
     && typeof mirrorRows === 'number'
     && mirrorLessons !== undefined;
+  const parity = storeRows?.lessonTierParity;
   const patternMirror: StatuslineData['patternMirror'] = mirrorAbsent
     ? undefined
     : storeRows === undefined || storeRows.vectorRows === 'unreadable' || storeRows.vectorRows === 'busy'
       || mirrorLessons === undefined || lexicalMirrorable === undefined
-      ? { state: 'unavailable' }
+      ? mirrorAvailable && typeof storeRows?.lexicalRows === 'number' ? { state: 'unknown' } : { state: 'unavailable' }
+      : parity === undefined ? { state: 'unknown' }
       : {
-        state: mirrorLessons !== lexicalMirrorable ? 'different' : 'in-sync',
+        state: parity.lexicalOnly > 0 || parity.mirrorOnly > 0 ? 'different' : 'in-sync',
         lexicalMirrorable,
         vector: mirrorLessons,
         excluded,
@@ -854,11 +854,9 @@ export function statuslineData(projectRoot: string, now: number = Date.now(), re
     available: mirrorAvailable,
     rows: typeof mirrorRows === 'number' ? mirrorRows : 0,
     lessons: mirrorAvailable ? mirrorLessons : 0,
-    pending: mirrorAbsent && lexicalMirrorable !== undefined
-      ? lexicalMirrorable
-      : mirrorAvailable && lexicalMirrorable !== undefined
-        ? Math.max(0, lexicalMirrorable - mirrorLessons)
-        : 0,
+    pending: parity?.lexicalOnly ?? 'unknown',
+    ...(parity === undefined || (mirrorAbsent && lexicalMirrorable === undefined)
+      ? {} : { mirrorOnly: parity.mirrorOnly, quarantinedPending: parity.quarantinedLexicalOnly }),
     source: 'agentdb',
   };
 

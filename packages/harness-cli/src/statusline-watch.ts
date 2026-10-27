@@ -48,6 +48,14 @@ function safe(value: unknown): string {
 }
 function number(value: number | undefined): string { return value === undefined ? 'unknown' : String(value); }
 
+function readDate(value: string): number {
+  const date = value.match(/^\d{4}-\d{2}-\d{2}(?=T|$)/)?.[0];
+  if (date === undefined) return NaN;
+  const calendar = new Date(`${date}T00:00:00.000Z`);
+  if (!Number.isFinite(calendar.getTime()) || calendar.toISOString().slice(0, 10) !== date) return NaN;
+  return Date.parse(value);
+}
+
 function learning(root: string, readCounts: StatuslineWatchIo['readCounts']): string[] {
   try {
     for (const path of [join(root, '.dz', 'patterns.jsonl'), join(root, '.dz', 'memory', 'patterns.sqlite'), join(root, '.dz', 'agentdb.db')]) {
@@ -72,12 +80,20 @@ function learning(root: string, readCounts: StatuslineWatchIo['readCounts']): st
       }
     }
     const lines = [typeof lexical === 'number'
-      ? `Pool: ${lexical} patterns | active ${counts.lexicalQuarantinedRows === undefined ? 'unknown' : lexical - counts.lexicalQuarantinedRows} | quarantined ${number(counts.lexicalQuarantinedRows)}`
+      ? `Pool: ${lexical} patterns (includes quarantine)`
       : `Pool: unavailable (${lexical})`];
+    if (typeof lexical === 'number') lines.push(`Lexical state: non-quarantined ${counts.lexicalQuarantinedRows === undefined ? 'unknown' : lexical - counts.lexicalQuarantinedRows} | quarantined ${number(counts.lexicalQuarantinedRows)}`);
     lines.push(counts.vectorSourcePath === undefined ? 'Mirror: unavailable (absent)'
       : typeof counts.vectorRows !== 'number' ? `Mirror: unavailable (${counts.vectorRows})`
-      : `Mirror: ${counts.vectorRows} rows | lessons ${number(counts.vectorLessonRows)} | quarantined ${number(counts.vectorQuarantinedRows)}`);
-    let used: number | undefined;
+      : `Mirror: ${counts.vectorRows} physical rows`);
+    if (counts.vectorSourcePath !== undefined && typeof counts.vectorRows === 'number') {
+      lines.push(`Mirror lessons: ${number(counts.vectorLessonRows)} (includes quarantine) | quarantined ${number(counts.vectorQuarantinedRows)}`);
+    }
+    const parity = counts.lessonTierParity;
+    lines.push(parity === undefined ? 'Lesson identities: unknown'
+      : `Lesson identities (includes quarantine): missing ${parity.lexicalOnly} | mirror-only ${parity.mirrorOnly}`);
+    if (parity !== undefined) lines.push(`Quarantined missing: ${parity.quarantinedLexicalOnly}`);
+    let usage = ['Legacy usage: unknown | read period unknown'];
     try {
       const path = join(root, '.dz', 'recall-usage.jsonl');
       const stat = lstatSync(path);
@@ -85,9 +101,20 @@ function learning(root: string, readCounts: StatuslineWatchIo['readCounts']): st
       const text = readFileSync(path, 'utf8');
       for (const line of text.split('\n').filter(line => line.trim() !== '')) JSON.parse(line);
       const parsed = parseRecallUsageLog(text);
-      if (parsed.invalidLines === 0 && parsed.records.length > 0) used = aggregateRecallUsage(parsed.records).length;
+      if (parsed.invalidLines === 0 && parsed.records.length > 0) {
+        // Aggregate dates describe actual reads; compactedAt is not a read timestamp.
+        const dates = parsed.records.map(record => 'kind' in record
+          ? [readDate(record.firstReadAt), readDate(record.lastReadAt)] : [readDate(record.ts), readDate(record.ts)]);
+        if (dates.every(([first, last]) => first !== undefined && last !== undefined && Number.isFinite(first)
+          && Number.isFinite(last) && first <= last)) {
+          let first = Infinity, last = -Infinity;
+          for (const range of dates) { first = Math.min(first, range[0]!); last = Math.max(last, range[1]!); }
+          usage = [`Legacy usage: ${aggregateRecallUsage(parsed.records).length} distinct historical ids`,
+            `First read: ${new Date(first).toISOString()}`, `Last read: ${new Date(last).toISOString()}`];
+        }
+      }
     } catch { /* unknown auxiliary count never becomes zero */ }
-    lines.push(`Legacy usage: ${number(used)}`);
+    lines.push(...usage);
     try {
       const markPath = storeGuardPath(root);
       if (existsSync(markPath)) {
@@ -101,7 +128,7 @@ function learning(root: string, readCounts: StatuslineWatchIo['readCounts']): st
       if (health.verdict !== 'ok' && health.verdict !== 'no-mark') lines.push(`Store: ${health.verdict} | ${health.reason}`);
     } catch { lines.push('Store health: unavailable'); }
     return lines;
-  } catch { return ['Pool: unavailable (read failed)', 'Mirror: unavailable (read failed)', 'Legacy usage: unknown', 'Store health: unavailable']; }
+  } catch { return ['Pool: unavailable (read failed)', 'Mirror: unavailable (read failed)', 'Lesson identities: unknown', 'Legacy usage: unknown | read period unknown', 'Store health: unavailable']; }
 }
 
 function frame(data: FrameData, options: StatuslineWatchOptions, now: number, dimensions: { columns?: number; rows?: number }): string {

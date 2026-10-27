@@ -156,6 +156,8 @@ export type { PublishSigningVerdict, PublishSigningDecision, SignableSetDecision
 export type { RecordKind, RecordVerdict, RecordDecision, LedgerEnrichInput, LedgerPriceEntry, ParsedModelSpec, TaskIdLookup, IncompleteReasonCode } from './run-records.js';
 export type { AmendmentAmbiguity, AmendmentRow, AmendmentVerdict, AmendmentResolution, AmendmentOutcome, AmendmentDecision, PlanCoverageGap } from './amendment-trace.js';
 export { extractContractChecklist, renderContractChecklist, parseContractVerdictReport, verifyContractVerdicts, } from './contract-checklist.js';
+export { parseAcceptanceObligations, parseAcceptanceObligationReport, verifyAcceptanceObligations, } from './acceptance-obligations.js';
+export type { AcceptanceObligations, AcceptanceObligationReport, ObligationVerification, } from './acceptance-obligations.js';
 export type { ContractSourceKind, ContractVerdict, ContractObservedOutcome, ContractGrade, ContractSourceArtifact, ContractChecklistSource, ContractItem, ContractChecklist, ContractDiagnostic, ContractChecklistResult, ContractVerdictEvidence, ContractVerdictItem, ContractVerdictReport, ContractVerdictParseResult, ContractEvidenceReadResult, ContractEvidenceReader, ContractItemVerification, ContractVerificationCounts, ContractVerification, } from './contract-checklist.js';
 export * from './feature-tier.js';
 export { DOMAIN_LIFT_EXACT, DOMAIN_LIFT_RELATED, normalizeDomain, domainMatch, applyDomainBoost, countDisplacedByCut, renderDomainBoostNote, renderDomainCutNote, } from './recall-domain-boost.js';

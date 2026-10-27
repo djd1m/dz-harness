@@ -3,7 +3,7 @@
 `dz qe-rounds --source native` reports durable native QE history without writing. Explicit `--action prepare|evaluate|begin-repair|begin-continuation` invokes the exact installed skills-meta helper from the CLI module, checks core/helper capabilities and uses the existing receipt schema. Prepare and begin-repair require `--reviewers <json>`. The default native ceiling is three; native `--ceiling`, duplicate/unknown options, legacy reconstruction and source collisions refuse. Omitted source retains the bridge reader.
 
 
-Current package version: `0.8.57`. <!-- dz:version -->
+Current package version: `0.8.58`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -100,7 +100,7 @@ Each launch creates one snapshot; remove selected old snapshot files yourself wh
 Live backpressure waits for writable callbacks. Explicit termination cancels pending writes; after
 child exit a stalled output sink has a two-second final drain window before cancellation.
 
-Current package versions: `harness-core v0.8.64` · `harness-cli v0.8.57`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.65` · `harness-cli v0.8.58`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. On visible lines, the marker retains its whole-line override for per-package synchronization, including explicit changelog overrides, so keep it off historical records. The previous all-protections override is corrected: fenced marker, footer, install/JSON-pin, tarball and badge examples remain literal, as do supported HTML comment blocks. Their visible counterparts still stamp; place current metadata outside examples.
 
@@ -3028,7 +3028,12 @@ echo "how do I handle replication lag?" | dz brain ground --budget 2000   # eage
 ### Live self-learning panel (`dz statusline`)
 
 The panel always names the mirror: `mirror: N lessons (pending M)` when readable, or `mirror: absent` when it is not configured.
-Its JSON `mirror` section reports `{available, rows, lessons, pending, source:'agentdb'}`; `patternMirror` compares only mirrorable lexical lessons and reports class/noise exclusions.
+Its JSON `mirror` section retains `{available, rows, lessons, pending, source:'agentdb'}` and adds
+`mirrorOnly` and `quarantinedPending` when identity comparison is established. `pending` is the
+actual number of missing lexical identities, or `unknown`; it never subtracts aggregate counts.
+`patternMirror` compares mirrorable lexical identities using current ids or their canonical derived
+aliases. Equal counts with different identities report `different`; malformed/incomplete identity
+evidence in otherwise readable stores reports `unknown`, rendered as `pending unknown`.
 
 A mirror that EXISTS but cannot be read remains a distinct degraded state (`mirror: unreadable ⚠`).
 Mirror lesson counts exclude backlog ideas and book units, while the lexical comparison also excludes
@@ -3106,6 +3111,16 @@ producer freshness, not process liveness: <30 minutes fresh, 30–<90 stale, >=9
 completed regardless of age. Position does not prove gates passed. Optional values remain unknown;
 failed/absent counts are unavailable, known empty readable stores are zero. Global brain-source
 inventory is omitted. Watch v1 ETA is unavailable; one-shot ETA is unchanged.
+
+Pool includes quarantined lexical patterns; the separate lexical state labels its complement
+`non-quarantined`. Physical mirror rows include books/backlog; lesson counts include quarantine.
+Identity diagnostics report missing and mirror-only lessons separately, plus quarantined missing
+lessons. For example, 32 missing with two mirror-only lessons reports 32 and 2, not net 30.
+Unknown evidence remains explicit. Legacy usage shows distinct historical ids and separate first/
+last read dates, including aggregate `firstReadAt`/`lastReadAt`; compaction time never sets the
+period. Absent/corrupt/empty ledgers and invalid dates report an unknown period/count. This history
+does not establish current-session recall or host consumption. The split lines fit common 80-column
+terminals and retain existing clipping/escaping.
 
 Default refresh is 2 seconds; accepted interval is 0.25–60 inclusive. Refreshes run serially after the
 previous one finishes. The frame escapes Unicode/control text into ASCII, clips with `...`, reserves
@@ -6248,7 +6263,8 @@ dz contract-check --slug my-feature --json
 ```
 
 The read-only adapter discovers the repository root, then reads only
-`features/<slug>/01_requirements.md`, direct `features/<slug>/03_adr/*.md`, the QE report, and the
+`features/<slug>/01_requirements.md`, direct `features/<slug>/03_adr/*.md`, an optional
+`features/<slug>/acceptance-obligations.json`, the QE report, and the
 repository-relative evidence paths declared by that report. It writes no feature artifact, command
 usage ledger, or checkpoint. Slug traversal, absolute/traversing evidence, symlink escape, and QE
 self-citation are refused.
@@ -6290,6 +6306,49 @@ means every established item is `met`; `1` means readable contract/verdict/evide
 
 The command checks structure and declared artifact anchors; it does not judge semantic sufficiency,
 run tests, replace the ADR Confirmation test, or replace independent cross-family QE.
+
+For a criterion that requires several cases, add an optional `acceptance-obligations.json`:
+
+```json
+{"schema":"acceptance-obligations/1","items":[{"contractId":"CC-1","revision":1,"requiredCases":["positive","negative","malformed"],"originalAuthority":"integration","verifierAuthority":"integration"}]}
+```
+
+Then add `## Acceptance obligations` to `08_qe_report.md` with one fenced `json` object of schema
+`acceptance-obligations-verdict/1`. Each result repeats `contractId` and `revision`, supplies
+`original: {authority,evidence}`, `cases: [{kind,authority,passed,evidence}]`,
+`verifier: {authority,passed,evidence}`, and `unresolvedQuestions` and `contradictions` arrays.
+Each evidence object has `artifact` and `quote` and uses the same confined, uniquely matching
+artifact rules as the main checklist. Supported cases are `positive`, `negative`, `malformed`,
+`lifecycle`, or named phases such as `lifecycle:startup` and `lifecycle:teardown`;
+authority order is `static < unit < integration < process`. A missing or failed case,
+weaker verifier, unresolved question or contradiction blocks the command. The verifier and case
+authority must also be at least as strong as the actual original observation. When the sidecar is
+absent, the old report and JSON output shape remain unchanged. Independent QE still judges whether
+the author declared sufficient cases and classified authority honestly.
+
+For the declaration above, a complete QE section can look like this (each quoted phrase must
+occur exactly once in the named artifact, and each role cites a different phrase):
+
+````md
+## Acceptance obligations
+
+```json
+{
+  "schema": "acceptance-obligations-verdict/1",
+  "items": [{
+    "contractId": "CC-1", "revision": 1,
+    "original": {"authority": "integration", "evidence": {"artifact": "evidence/parser.txt", "quote": "original parser observation"}},
+    "cases": [
+      {"kind": "positive", "authority": "integration", "passed": true, "evidence": {"artifact": "evidence/parser.txt", "quote": "valid input accepted"}},
+      {"kind": "negative", "authority": "integration", "passed": true, "evidence": {"artifact": "evidence/parser.txt", "quote": "invalid option rejected"}},
+      {"kind": "malformed", "authority": "integration", "passed": true, "evidence": {"artifact": "evidence/parser.txt", "quote": "malformed input rejected"}}
+    ],
+    "verifier": {"authority": "integration", "passed": true, "evidence": {"artifact": "evidence/parser.txt", "quote": "integration verifier passed"}},
+    "unresolvedQuestions": [], "contradictions": []
+  }]
+}
+```
+````
 
 The exact-vocabulary contract is fail-closed by design (ADR-001 D4 rejected a loose/heuristic
 parser), and the real-world consequence is narrow coverage today: MEASURED against the three

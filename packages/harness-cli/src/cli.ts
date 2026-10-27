@@ -665,6 +665,9 @@ import {
   readFeatureTier,
   parseContractVerdictReport,
   verifyContractVerdicts,
+  parseAcceptanceObligations,
+  parseAcceptanceObligationReport,
+  verifyAcceptanceObligations,
   decideSignableSet,
   signableSetLine,
   decideRecordWrite,
@@ -19992,6 +19995,23 @@ function cmdContractCheck(
   });
   if (!extracted.ok) return emitEarly('fail', 1, extracted.diagnostics);
 
+  const obligationsRel = `features/${slug}/acceptance-obligations.json`;
+  const obligationsPath = join(featureDir, 'acceptance-obligations.json');
+  let hasObligations = false;
+  try { lstatSync(obligationsPath); hasObligations = true; }
+  catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') return emitEarly('not-established', 2, [{
+      code: 'obligation-artifact-unreadable', message: 'cannot inspect acceptance obligations', artifact: obligationsRel,
+    }]);
+  }
+  let declaration: ReturnType<typeof parseAcceptanceObligations> | undefined;
+  if (hasObligations) {
+    const read = contractReadConfined(repoRoot, obligationsPath, obligationsRel);
+    if (!read.ok) return emitEarly('not-established', 2, [read.diagnostic]);
+    declaration = parseAcceptanceObligations(read.text);
+    if (!declaration.ok) return emitEarly('fail', 1, declaration.diagnostics.map((entry) => ({ ...entry, artifact: obligationsRel })));
+  }
+
   const reportRead = contractReadConfined(repoRoot, join(featureDir, '08_qe_report.md'), reportRel);
   if (!reportRead.ok) return emitEarly('not-established', 2, [reportRead.diagnostic]);
 
@@ -20024,18 +20044,27 @@ function cmdContractCheck(
     },
   };
   const rawVerification = verifyContractVerdicts(extracted.checklist, parsed.report, reader);
+  let obligations: ReturnType<typeof verifyAcceptanceObligations> | undefined;
+  if (declaration?.ok) {
+    const obligationReport = parseAcceptanceObligationReport(reportRead.text);
+    if (!obligationReport.ok) return emitEarly('fail', 1, obligationReport.diagnostics.map((entry) => ({ ...entry, artifact: reportRel })));
+    obligations = verifyAcceptanceObligations(extracted.checklist, declaration.value, obligationReport.value, reader);
+  }
   const withReportArtifact = (entry: ContractDiagnostic): ContractDiagnostic => ({
     ...entry,
     artifact: entry.artifact ?? reportRel,
   });
   const verification = {
     ...rawVerification,
-    diagnostics: [...informationalDiagnostics, ...rawVerification.diagnostics.map(withReportArtifact)],
+    diagnostics: [...informationalDiagnostics, ...rawVerification.diagnostics.map(withReportArtifact),
+      ...(obligations?.diagnostics.map(withReportArtifact) ?? [])],
     items: rawVerification.items.map((item) => ({
       ...item,
       diagnostics: item.diagnostics.map(withReportArtifact),
     })),
   };
+  const outcome = rawVerification.outcome === 'pass' && (obligations === undefined || obligations.outcome === 'pass') ? 'pass' : 'fail';
+  const exitCode = outcome === 'pass' ? 0 : 1;
   if (json) {
     write(JSON.stringify({
       contract: extracted.checklist,
@@ -20044,10 +20073,11 @@ function cmdContractCheck(
       diagnostics: verification.diagnostics,
       counts: verification.counts,
       overallGrade: verification.overallGrade,
-      outcome: verification.outcome,
-      exitCode: verification.exitCode,
+      ...(obligations === undefined ? {} : { obligations }),
+      outcome,
+      exitCode,
     }));
-    return verification.exitCode;
+    return exitCode;
   }
   for (const item of verification.items) {
     const reason = item.reason === undefined ? '' : ` — ${item.reason}`;
@@ -20055,12 +20085,15 @@ function cmdContractCheck(
   }
   write(`  counts: contract=${verification.counts.contractItems} verdict=${verification.counts.verdictItems} met=${verification.counts.met} unmet=${verification.counts.unmet} not-testable=${verification.counts.notTestable} invalid-evidence=${verification.counts.invalidEvidence}`);
   write(`  overall grade: ${verification.overallGrade}`);
+  if (obligations !== undefined) write(`  acceptance obligations: ${obligations.outcome} · ${obligations.checked} checked`);
   for (const entry of verification.diagnostics) writeErr(contractDiagnosticLine(entry));
-  const summary = verification.outcome === 'pass'
+  const summary = outcome === 'pass'
     ? `${verification.counts.met} contract item(s) met`
-    : `${rawVerification.diagnostics.length} contract or evidence violation(s)`;
-  write(`contract-check: ${verification.outcome === 'pass' ? 'PASS' : 'FAIL'} — ${summary}`);
-  return verification.exitCode;
+    : obligations === undefined
+      ? `${rawVerification.diagnostics.length} contract or evidence violation(s)`
+      : `${verification.diagnostics.length} contract, obligation or evidence violation(s)`;
+  write(`contract-check: ${outcome === 'pass' ? 'PASS' : 'FAIL'} — ${summary}`);
+  return exitCode;
 }
 
 function cmdAmendmentCheck(options: Map<string, string>, flags: Set<string>, cwd: string, write: Write): number {

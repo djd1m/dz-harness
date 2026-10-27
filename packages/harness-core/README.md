@@ -24,7 +24,7 @@ commands. Use `node --test <file>` through the same wrapper for Node tests. Focu
 is supported; it does not prove a complete suite, meaningful tests or authenticated evidence.
 See the repository `.githooks/README.md` for bounds, supported commands and reasoned overrides.
 
-Current package version: `0.8.64`. <!-- dz:version -->
+Current package version: `0.8.65`. <!-- dz:version -->
 
 Joint current metadata requires `<!-- dz:version -->` on a dedicated undated core/CLI line. Both README writers preserve unmarked historical joint pairs; the guard and release-line report skip them. Fenced examples cannot become current joint metadata. `parseReleaseLine` remains structural, while selection requires this explicit opt-in. On a visible line, the marker still forces per-package rewriting of every matching version, including an explicit changelog override; keep it off historical records. Fenced examples and supported HTML comment blocks remain literal even when they contain the marker, a footer, an install/JSON pin, a tarball line or a badge. Put current stamps outside these examples.
 
@@ -263,16 +263,24 @@ and reports whether that existing lesson is quarantined.
 `vectorRows` stays the whole mirror (lessons + backlog ideas + book units) because the store guard
 reads it as an integrity signal against a recorded high-water mark; narrowing it would present a
 healthy store as a collapse. `vectorLessonRows` counts mirrored LESSONS only (`dz-teach` and
-`dz-learning`) and is the figure comparable with `lexicalRows`. It survives the metadata fallback
+`dz-learning`) and is the coarse figure comparable with mirrorable lexical rows. It survives the metadata fallback
 path whenever `task_type` is still readable, and is absent when the mirror cannot be decomposed —
 absent means "unknown", which the panel must report rather than treat as agreement.
 If a readonly guard count meets another SQLite writer, the guard reports `busy`: the write is not
 refused, health is explicitly not measured for that run, and the high-water mark does not move.
-`statuslineData().patternMirror` is absent on equal counts AND when there is no mirror at all —
-nothing to compare, and a permanently-lit indicator on every project without a vector tier would
-carry no information. It is `{ state: 'different', lexical, vector }` on divergence, and
-`{ state: 'unavailable' }` only when the mirror EXISTS but cannot be read or decomposed: that is a
-tool failure and it is worth saying out loud. `statuslineData().brainKuCounts` carries the KU volume of each brain source in
+`lessonTierParity` compares mirrorable lexical identities against mirror lessons using the current
+id or canonical `patternRecordId(recordToPattern(record))` alias. It includes quarantine and reports
+`both`, `lexicalOnly`, `mirrorOnly`, and `quarantinedLexicalOnly`; missing/invalid metadata, incomplete
+schemas and ambiguous duplicate identities leave this optional field absent. Same text alone does
+not establish identity. The readonly comparison uses maps/sets and opens no embedding engine.
+
+`statuslineData().patternMirror` reports `in-sync` only on established identity parity, `different`
+on either direction of mismatch, `unknown` for incomplete identities in readable stores, and
+`unavailable` when storage cannot be read/decomposed. An absent mirror omits that diagnostic.
+`mirror.pending` is the actual lexical-only count or `unknown`; it never subtracts mirror totals.
+Optional `mirrorOnly` and `quarantinedPending` accompany established counts. An absent mirror with
+established lexical identities has every eligible lesson pending. Physical `rows` and `lessons`
+keep their existing meaning. `statuslineData().brainKuCounts` carries the KU volume of each brain source in
 brain order; an empty array means the volumes could not be listed, never that the sources are empty.
 
 `recall-observation.ts` records local hook stages separately from legacy usage. Both generated
@@ -1557,6 +1565,12 @@ import {
 - `verifyContractVerdicts(checklist, report, evidenceReader)` requires exact ordered coverage,
   repository-relative artifact syntax, one exact quote occurrence, verdict/outcome polarity, and
   rejects grade A/B when any item is `unmet`.
+- `parseAcceptanceObligations`, `parseAcceptanceObligationReport`, and
+  `verifyAcceptanceObligations` add an optional `acceptance-obligations/1` case matrix and
+  `acceptance-obligations-verdict/1` QE section. They fail on missing/duplicate cases,
+  stale revisions, weaker authority, unresolved questions, contradictions, and invalid
+  evidence quotes. Authority is a local ordered threshold (`static < unit < integration < process`);
+  semantic adequacy still requires independent QE. The existing checklist/verdict schemas are unchanged.
 
 This is a structural assurance boundary. It proves grammar, identity completeness, evidence
 containment/uniqueness, polarity, and grade coherence. It does not judge whether a quote semantically

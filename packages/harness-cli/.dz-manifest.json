@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "147d12be1113e3735631c3789970af1df77b8525c91c2b6cc0cda0fb95cfdbec"
+        "sha256": "6adf7a1ecc0ce6cec7e3ccd8fc9d49e1c6301f934c177eb4a118e1a462d25461"
       },
       {
         "path": "dist/bin.d.ts",
@@ -49,15 +49,15 @@
       },
       {
         "path": "dist/cli.d.ts.map",
-        "sha256": "8e213ddbb4ae19cd5996d1f5ded216526f76c8fb28f2189773eceac648e7619a"
+        "sha256": "d075dd561c7ab80a4976034179a3c5a41640d374504644361e25cd056cea4cf0"
       },
       {
         "path": "dist/cli.js",
-        "sha256": "4bcc86f8faae4bab3bd22e2364e395c09f68ee8a9a058930924d71511c8fe6af"
+        "sha256": "8ca63c2dc346144cc62fe28f02cb6d4736bce490f991deeeac3852b4f9140753"
       },
       {
         "path": "dist/cli.js.map",
-        "sha256": "5857d0a9daa6148053dba0403f51a2ca9a9664fc46a6226b0e279fec9be2157c"
+        "sha256": "227e2fe516274862ec8e8d0e4218292808f8bf170617e9a66f8623551ac3a4c2"
       },
       {
         "path": "dist/command-inventory.d.ts",
@@ -225,15 +225,15 @@
       },
       {
         "path": "dist/statusline-watch.d.ts.map",
-        "sha256": "ea1b39c38a8a7bf4b92a8ad5243b5aeb064fdb3525a014ab1d5574a9625a282d"
+        "sha256": "dea318520b369ada88553a41905f3726c6eed71fc3acfe2b6fe8779c8f4f5aeb"
       },
       {
         "path": "dist/statusline-watch.js",
-        "sha256": "b56306f30fc2b51d2dd570d4ad21f02dca97c9010a46545097e362e12df6aa7b"
+        "sha256": "dbd02ea08a3dc278bda16261b3bd60fada0af1ff49dcc2ea84a2616025334dfb"
       },
       {
         "path": "dist/statusline-watch.js.map",
-        "sha256": "750ac71efdef428376a120ae071be8b313f1cc50d5b58c532e40f7d0baf6f6e8"
+        "sha256": "f36ba3c5da989780597ddd00d4052ea07c0a027b1d787cf17840154f9aa62579"
       },
       {
         "path": "keys/README.md",
@@ -245,7 +245,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "0d8ce60e47074d75080a535ec9de8b34cce5b3291b48db1cef4887faecace383"
+        "sha256": "a500436cbf9bf5598b56220d1b3b2ec42bb4fd1bb3e30051955df2e6a1d3a493"
       },
       {
         "path": "src/bin.ts",
@@ -257,7 +257,7 @@
       },
       {
         "path": "src/cli.ts",
-        "sha256": "a2f13fe39f07a2a34817378b383eb084b34754ef19a8803481f6be7a7ac211ea"
+        "sha256": "9dab7785f7363888341b180bde180686aef736fa0a10b4b8c07dff2d54878d13"
       },
       {
         "path": "src/command-inventory.ts",
@@ -301,9 +301,9 @@
       },
       {
         "path": "src/statusline-watch.ts",
-        "sha256": "9fe387ce17b79a6b6f4ba939ca39b0d570a648e60fa317224d66e49aceae0e94"
+        "sha256": "c2b009526a9d0abccf2ae92df003f24c89d4fb3b9714941b75f87f9740264b1f"
       }
     ]
   },
-  "signature": "dR1ZkeEjR57pbNK36G0qt3koeUoVtsnf5kfJrtbNzWUctqhG/tKwdc/q/CVMo0sHy7jtjtzghnf1rBVTiX8YCw=="
+  "signature": "6Vs8XhddeBDA8Tg2+2OkAmJah3rVH3aroCx+SzCv4PCn0ZXWPMhGZHqjrVzSW1bcZmVvGMfNxEIYypGN8XfGDQ=="
 }

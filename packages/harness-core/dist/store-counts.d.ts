@@ -62,6 +62,13 @@ export interface LearningStoreRowCounts {
     readonly vectorSourcePath?: string;
     /** Exact qStatus parity by dzId; absent when either tier cannot establish quarantine ids. */
     readonly quarantineTierParity?: QuarantineTierParity;
+    /** Exact lesson identities including quarantine; absent when identity evidence is incomplete. */
+    readonly lessonTierParity?: {
+        readonly both: number;
+        readonly lexicalOnly: number;
+        readonly mirrorOnly: number;
+        readonly quarantinedLexicalOnly: number;
+    };
 }
 /** Best-effort readonly SQLite count with a short busy timeout. */
 export declare function countSqliteRowsReadonly(sqlitePath: string, table: 'memory_records' | 'reasoning_patterns'): number | undefined;

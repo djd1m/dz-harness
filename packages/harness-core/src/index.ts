@@ -573,6 +573,16 @@ export {
   parseContractVerdictReport,
   verifyContractVerdicts,
 } from './contract-checklist.js';
+export {
+  parseAcceptanceObligations,
+  parseAcceptanceObligationReport,
+  verifyAcceptanceObligations,
+} from './acceptance-obligations.js';
+export type {
+  AcceptanceObligations,
+  AcceptanceObligationReport,
+  ObligationVerification,
+} from './acceptance-obligations.js';
 export type {
   ContractSourceKind,
   ContractVerdict,

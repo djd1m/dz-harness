@@ -119,6 +119,19 @@ export interface ContractVerification {
 }
 export declare function extractContractChecklist(input: ContractChecklistSource): ContractChecklistResult;
 export declare function renderContractChecklist(checklist: ContractChecklist): string;
+/** Strict JSON decoder whose object parser sees duplicate members before a value can overwrite one. */
+export declare class DuplicateSafeJsonDecoder {
+    private readonly text;
+    private index;
+    constructor(text: string);
+    decode(): unknown;
+    private space;
+    private value;
+    private object;
+    private array;
+    private string;
+    private number;
+}
 export declare function parseContractVerdictReport(text: string): ContractVerdictParseResult;
 export declare function verifyContractVerdicts(checklist: ContractChecklist, report: ContractVerdictReport, evidence: ContractEvidenceReader): ContractVerification;
 //# sourceMappingURL=contract-checklist.d.ts.map

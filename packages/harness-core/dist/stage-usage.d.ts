@@ -108,7 +108,7 @@ export declare function buildStageUsageReport(input: {
         evidenceKey: string | null;
         runId: string | null;
         stage: string | null;
-        stageCanonical: "unknown" | "code" | "plan" | "architecture" | "router" | "qe" | "fleet" | "requirements" | "adr" | "research" | "ideation" | "ddd" | "infra";
+        stageCanonical: "code" | "unknown" | "plan" | "architecture" | "router" | "qe" | "fleet" | "requirements" | "adr" | "research" | "ideation" | "ddd" | "infra";
         model: string | null;
         family: string | null;
         modelProvenance: string;
@@ -170,7 +170,7 @@ export declare function buildStageUsageReport(input: {
         evidenceKey: string | null;
         runId: string | null;
         stage: string | null;
-        stageCanonical: "unknown" | "code" | "plan" | "architecture" | "router" | "qe" | "fleet" | "requirements" | "adr" | "research" | "ideation" | "ddd" | "infra";
+        stageCanonical: "code" | "unknown" | "plan" | "architecture" | "router" | "qe" | "fleet" | "requirements" | "adr" | "research" | "ideation" | "ddd" | "infra";
         model: string | null;
         family: string | null;
         modelProvenance: string;
