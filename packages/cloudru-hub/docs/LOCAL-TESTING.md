@@ -19,8 +19,8 @@ EOF
 # c) no override: the installed Linux/x64 optional platform package
 ```
 
-The pinned binary identifies itself as `cloudru-vm 0.2.7-20261029` and has SHA-256
-`94fdba4fe4d1a71e684be998c3d2f94f374ff4e4054db2683bcc04d72bfabc03`.
+The pinned binary identifies itself as `cloudru-vm 0.2.8-20261029` and has SHA-256
+`0095d3911da7e3a93f1d2ee064708820b9b9c50bfc5cbd99fc46c7da6db8be08`.
 
 ## 2. Self-test (end-to-end, no credentials required)
 
@@ -29,18 +29,26 @@ cd packages/@dzhechkov/cloudru-hub
 node bin/cloudru-hub.js self-test
 ```
 
-Expected output for the current private build:
+Example output from the verified engine (installation path varies):
 
 ```
 ✓ resolve: …/cloudru-vm-linux-x64/native/cloudru-vm (source: env)
-✓ sha256: 94fdba4fe4d1a71e684be998c3d2f94f374ff4e4054db2683bcc04d72bfabc03 — MATCHES pinned baseline
-✓ engine-version: cloudru-vm 0.2.7-20261029
+✓ sha256: 0095d3911da7e3a93f1d2ee064708820b9b9c50bfc5cbd99fc46c7da6db8be08 — MATCHES pinned baseline
+✓ engine-version: cloudru-vm 0.2.8-20261029
 ✓ tools-list: 146 tools live (snapshot: 146)
 ✓ classification-coverage: every live tool is classified (146 golden entries)
 self-test: ALL GREEN
 ```
 
-`tools/list` needs no Cloud.ru credentials. For `--toolsets vm-deploy`, place temporary keys in the owner-only JSON file described in `HERMES-CODEX.md`; the proxy maps them to the Go child's environment without shell evaluation.
+The tool's word “live” means a real local MCP catalog observation: 146
+registered tools, without Cloud.ru credentials or cloud API calls. It does
+not mean 146 cloud operations were exercised. A sandbox that prohibits child
+processes can instead report `spawnSync /usr/bin/node EPERM`; run the same
+self-test where the engine can start, rather than treating that refusal as a pass.
+
+For `--toolsets vm-deploy`, place
+temporary keys in the owner-only JSON file described in `HERMES-CODEX.md`;
+the proxy maps them to the Go child's environment without shell evaluation.
 
 ## 3. Optional: `npm link` for a global `cloudru-hub`
 
@@ -66,4 +74,4 @@ appears; note which prefix spelling the runtime used.
 
 ## 5. Testing from another server (`npm install` path)
 
-On Linux/x64, install `@dzhechkov/cloudru-hub@0.1.16` normally and run `cloudru-hub self-test` without setting `CLOUDRU_VM_BIN`. npm installs the exact optional engine package. If optional dependencies were disabled or the platform is unsupported, provide a matching trusted binary explicitly.
+On Linux/x64, install `@dzhechkov/cloudru-hub@0.1.17` normally and run `cloudru-hub self-test` without setting `CLOUDRU_VM_BIN`. npm installs the exact `@dzhechkov/cloudru-vm-linux-x64@0.2.8` optional engine package. If optional dependencies were disabled or the platform is unsupported, provide a matching trusted binary explicitly.

@@ -1,5 +1,22 @@
 # Changelog — @dzhechkov/cloudru-hub
 
+## 0.1.17 — 2026-10-29
+
+- Pin the matched Linux/x64 engine `0.2.8-20261029` (SHA-256
+  `0095d3911da7e3a93f1d2ee064708820b9b9c50bfc5cbd99fc46c7da6db8be08`)
+  as the exact `@dzhechkov/cloudru-vm-linux-x64@0.2.8` optional dependency.
+  The local `tools/list` observation retains the 146 ordered registered catalog
+  names and gate flags; classification permissions and tool schemas are unchanged.
+- Add the source-reviewed, exclusive shared-local project/VM-name claim before
+  VM or static-site security-group mutation. Retain uncertain, partial and empty
+  claims across restart; no expiry, unlock or blind replay. Different roots,
+  hosts, older clients and direct API calls are outside coordination.
+- Add action-scoped, immutable configured-project/exact-cluster delete intent
+  before `k8s_delete`. Duplicate or uncertain attempts refuse another DELETE.
+  Receipt recovery is GET-only; accepted operation and operation completion do
+  not prove cluster absence or cleanup. Existing create/nodepool behavior remains.
+  Both corrections have local synthetic controls, not new paid-cloud acceptance.
+
 ## 0.1.16 — 2026-10-29
 
 - Pin the matched Linux/x64 engine `0.2.7-20261029` (SHA-256

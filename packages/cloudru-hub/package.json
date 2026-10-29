@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/cloudru-hub",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "licenseHold": {
     "adr": "features/hermes-claude-adaptation/03_adr/001-licence-and-provenance-precondition.md",
     "note": "SATISFIED hold. Timur is credited for substantial Cloud.ru API testing. The 2026-10-20 correction is in the historical grant record. This field keeps the dz guard licence-hold rule checking LICENSE, THIRD_PARTY_NOTICES and SPDX on every publish."
@@ -26,9 +26,9 @@
   ],
   "cloudruHub": {
     "binaryHashes": {
-      "linux-x64": "94fdba4fe4d1a71e684be998c3d2f94f374ff4e4054db2683bcc04d72bfabc03"
+      "linux-x64": "0095d3911da7e3a93f1d2ee064708820b9b9c50bfc5cbd99fc46c7da6db8be08"
     },
-    "engineVersion": "cloudru-vm 0.2.7-20261029",
+    "engineVersion": "cloudru-vm 0.2.8-20261029",
     "platformPackages": {
       "linux-x64": "@dzhechkov/cloudru-vm-linux-x64"
     }
@@ -53,7 +53,7 @@
     "yaml": "^2.9.0"
   },
   "optionalDependencies": {
-    "@dzhechkov/cloudru-vm-linux-x64": "0.2.7"
+    "@dzhechkov/cloudru-vm-linux-x64": "0.2.8"
   },
   "repository": {
     "type": "git",

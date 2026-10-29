@@ -1,6 +1,6 @@
 # Third-party licenses in cloudru-vm Linux/x64
 
-This inventory was generated from the packages linked by `go list -deps` for the exact Go build with SHA-256 `94fdba4fe4d1a71e684be998c3d2f94f374ff4e4054db2683bcc04d72bfabc03`.
+This inventory was generated from the packages linked by `go list -deps` for the exact Go build with SHA-256 `0095d3911da7e3a93f1d2ee064708820b9b9c50bfc5cbd99fc46c7da6db8be08`.
 Each linked module’s complete top-level LICENSE/COPYING and NOTICE files are included at the paths below.
 The Go standard library is distributed under the Go Authors BSD license.
 
