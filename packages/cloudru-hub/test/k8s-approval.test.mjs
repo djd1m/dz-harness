@@ -67,6 +67,46 @@ test('unexpected mutators, exposure, privilege, image and namespace are rejected
   }
 });
 
+test('web-image profile accepts a reviewed digest-pinned application and refuses privilege or exposure drift', () => {
+  const app = 'lesson-web';
+  const image = `registry.example.com/lesson-web@sha256:${'a'.repeat(64)}`;
+  const web = [
+    { apiVersion: 'apps/v1', kind: 'Deployment', metadata: { name: app, namespace: 'lesson-app' }, spec: {
+      replicas: 1, selector: { matchLabels: { app } }, template: { metadata: { labels: { app } }, spec: {
+        automountServiceAccountToken: false, securityContext: { runAsNonRoot: true },
+        containers: [{ name: app, image, ports: [{ containerPort: 8080 }], readinessProbe: { httpGet: { path: '/health', port: 8080 } },
+          resources: { requests: { cpu: '50m', memory: '64Mi' }, limits: { cpu: '200m', memory: '256Mi' } },
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, runAsUser: 10001,
+            runAsGroup: 10001, capabilities: { drop: ['ALL'] } } }],
+      } } } },
+    { apiVersion: 'v1', kind: 'Service', metadata: { name: app, namespace: 'lesson-app' },
+      spec: { type: 'ClusterIP', selector: { app }, ports: [{ port: 80, targetPort: 8080 }] } },
+  ];
+  const raw = serialize(web);
+  assert.equal(validateManifest(raw, 'lesson-app', 'web-image').image, image);
+  assert.throws(() => validateManifest(raw, 'lesson-app'), /three valid YAML documents/);
+  for (const mutate of [
+    (r) => { r[0].spec.template.spec.containers[0].image = 'registry.example.com/lesson-web:latest'; },
+    (r) => { r[0].spec.template.spec.containers[0].image = `https://registry.example.com/lesson-web@sha256:${'a'.repeat(64)}`; },
+    (r) => { r[0].spec.template.spec.hostNetwork = true; },
+    (r) => { r[0].spec.template.spec.containers[0].securityContext.privileged = true; },
+    (r) => { r[1].spec.type = 'LoadBalancer'; },
+    (r) => { r[0].metadata.namespace = 'default'; },
+    (r) => { r[0].metadata.name = r[1].metadata.name = '123'; r[0].spec.selector.matchLabels.app = r[0].spec.template.metadata.labels.app = r[1].spec.selector.app = '123'; r[0].spec.template.spec.containers[0].name = '123'; },
+  ]) {
+    const changed = structuredClone(web); mutate(changed);
+    assert.throws(() => validateManifest(serialize(changed), 'lesson-app', 'web-image'));
+  }
+  const source = path.join(scratch, 'lesson-app.yaml');
+  fs.writeFileSync(source, raw);
+  const reviewed = require('crypto').createHash('sha256').update(raw).digest('hex');
+  const approval = issueK8sApproval(clusterId, 'lesson-app', source, reviewed, env, Date.now(), 'web-image');
+  assert.equal(approval.profile, 'web-image');
+  assert.equal(consumeK8sApproval(approval.approvalId, env).manifest, raw);
+  fs.writeFileSync(source, serialize([{ ...web[0], metadata: { name: 'changed', namespace: 'lesson-app' } }, web[1]]));
+  assert.throws(() => issueK8sApproval(clusterId, 'lesson-app', source, reviewed, env, Date.now(), 'web-image'), /digest differs|must match/);
+});
+
 test('digest, project, expiry and single-use approval bind the exact manifest', () => {
   assert.throws(() => issueK8sApproval(clusterId, 'snake-pilot', manifestFile, '0'.repeat(64), env), /digest differs/);
   const a = issueK8sApproval(clusterId, 'snake-pilot', manifestFile, digest, env, 1000);

@@ -1,13 +1,36 @@
 # Changelog — @dzhechkov/cloudru-hub
 
-## Unreleased — staged, no version change
+## 0.1.16 — 2026-10-29
+
+- Pin the matched Linux/x64 engine `0.2.7-20261029` (SHA-256
+  `94fdba4fe4d1a71e684be998c3d2f94f374ff4e4054db2683bcc04d72bfabc03`).
+  Kubernetes `k8s_plan(preflight:true)` is included and reports time/project-bound
+  observed checks, exact same-project name
+  conflicts and explicit unknowns for inventory completeness, create grants,
+  quota capacity, integration settings and tariffs. It always reports
+  `ready_to_apply:false`; it does not authorize create or promise readiness.
+
+- Include placement resolution and durable Kubernetes create/nodepool intent
+  receipts in the matched engine. `k8s_get` can observe `receipt_id`,
+  `operation_id` and bounded `receipts:true` discovery after a lost reply.
+  No automatic retry is unlocked, and this candidate has no new live
+  Kubernetes deployment or `web-image` acceptance result.
 
 - Add `cost-compare --input <json> [--json]`, an offline VM/Kubernetes cost worksheet
   with explicit topology, dated tariff provenance, exact decimal sums and per-node
   normal/failure capacity bounds. Incomplete prices, insufficient capacity or unknown
   architecture equivalence suppress a winner. The packaged official-rate example
   leaves traffic and equivalence unknown. See `docs/COST-COMPARE.md` for the schema
-  and limits. No engine or MCP tool changes are included.
+  and limits.
+
+- Retain read-only `deploy_reconcile` and
+  `deploy_preflight`. Ordinary VM apply journals intent before create; an
+  ambiguous response requires observation before any retry. A new plan cannot
+  reuse the project and VM name of an earlier run receipt on sequential submission;
+  concurrent distinct VM plans are not serialized.
+- Add a separate `web-image` Kubernetes approval profile for a reviewed,
+  digest-pinned one-pod web workload in an existing namespace. Source build,
+  registry publication and live host acceptance remain separate steps.
 
 ## 0.1.14 — 2026-10-20
 

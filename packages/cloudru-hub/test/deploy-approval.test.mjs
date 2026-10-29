@@ -110,6 +110,18 @@ test('partial deploy preserves its VM UUID for recovery and redacts nested secre
   assert.ok(denied.responses[0].error);
 });
 
+test('unreadable apply result names the consumed plan and requires read-only reconciliation', () => {
+  const id = 'plan-555555555555';
+  fs.writeFileSync(path.join(path.dirname(planFile), `${id}.json`), JSON.stringify({ ...plan, plan_id: id }));
+  issueApproval(id, 50, env);
+  const out = run([rpc(1, 'deploy_apply', { plan_id: id })], { FAKE_DEPLOY_OUTCOME: JSON.stringify('unreadable') });
+  const result = JSON.parse(out.responses[0].result.content[0].text);
+  assert.equal(out.responses[0].result.isError, true);
+  assert.equal(result.plan_id, id);
+  assert.equal(result.verdict, 'unknown');
+  assert.match(result.next, /deploy_reconcile/);
+});
+
 test('static site requires the reviewed digest and never grants an SSH command session', () => {
   const id = 'plan-aabbccddeeff';
   const digest = 'a'.repeat(64);

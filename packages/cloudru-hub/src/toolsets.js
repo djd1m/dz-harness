@@ -15,7 +15,7 @@ const GROUPS = Object.freeze({
 // A separate, opt-in workflow. Mutators pass the proxy's local plan/VM guard;
 // combining this with a read-only group would blur that boundary.
 const VM_DEPLOY = Object.freeze([
-  'deploy_plan', 'deploy_apply', 'vm_exec', 'vm_list', 'vm_get',
+  'deploy_plan', 'deploy_preflight', 'deploy_apply', 'deploy_reconcile', 'vm_exec', 'vm_list', 'vm_get',
   'list_zones', 'list_images', 'list_flavors', 'list_disk_types',
   'list_subnets', 'list_security_groups', 'status',
 ]);

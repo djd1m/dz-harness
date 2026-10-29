@@ -45,7 +45,7 @@ const TIERS = {
 const DEGRADED_REASONS = {
   openclaude: 'all three legs exist upstream (.mcp.json, PreToolUse deny, .openclaude/skills) but NOTHING has been probed live — degraded-until-proven (ADR-005).',
   cursor: 'veto hooks documented only; R3 broken by the .mdc adapter, R4 truncation history (~40 tools) unresolved (ADR-005).',
-  windsurf: 'R4 FAILS as-is: Cascade budget 100 tools < 144 — needs the engine tool-profile before any delivery (ADR-005).',
+  windsurf: 'R4 FAILS as-is: Cascade budget 100 tools < 146 — needs the engine tool-profile before any delivery (ADR-005).',
   copilot: 'only Copilot CLI is a candidate; the coding agent fails R2 by construction ("will not ask for your approval" + hook timeout fail-open) (ADR-005).',
 };
 

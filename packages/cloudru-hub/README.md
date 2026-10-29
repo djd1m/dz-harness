@@ -2,28 +2,28 @@
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/cloudru-hub
 
-> **Linux/x64 distribution:** version 0.1.14 installs the exact optional engine
-> package `@dzhechkov/cloudru-vm-linux-x64@0.2.6`. The `dz guard` `licence-hold`
+> **Linux/x64:** version 0.1.16 names the exact optional engine
+> package `@dzhechkov/cloudru-vm-linux-x64@0.2.7`. The `dz guard` `licence-hold`
 > rule continues to check LICENSE, notices and SPDX on publish.
 
 > **Unofficial. NOT affiliated with, endorsed, or supported by Cloud.ru.** "Cloud.ru" is a
 > trademark of its owner; this launcher merely talks to the public Cloud.ru Evolution API
 > through the `cloudru-vm` engine.
 
-Thin JS launcher for the **`cloudru-vm` MCP engine** — a Go MCP server with **144 tools**
+Thin JS launcher for the **`cloudru-vm` MCP engine** — a Go MCP server with **146 tools**
 (MEASURED — live `tools/list` probe, `data/tools-list-snapshot.json`) for Cloud.ru
 Evolution: VMs, k8s, PostgreSQL/Kafka/Redis, DNS, S3, certificates, billing/FinOps, and a
 docker-compose deploy wizard.
 
-The launcher archive contains no engine binary. On Linux/x64, npm installs the exact
-optional platform package with the pinned Go engine. Run:
+The launcher archive contains no engine binary. npm installs the exact optional
+platform package with the pinned Go engine on Linux/x64. Run:
 
 ```bash
-npm install -g @dzhechkov/cloudru-hub@0.1.14
+npm install -g @dzhechkov/cloudru-hub@0.1.16
 cloudru-hub self-test
 ```
 
-The self-test verifies the engine SHA-256, version, 144 live MCP tools and their
+The self-test verifies the engine SHA-256, version, 146 live MCP tools and their
 classification without Cloud.ru credentials. On another platform, or if optional
 dependencies were disabled, provide a trusted binary with the same SHA-256.
 
@@ -38,7 +38,7 @@ The JS launcher remains MIT-licensed; its archive contains no Go engine bytes.
 | Piece | Where | What it does |
 |---|---|---|
 | Launcher | `bin/cloudru-hub.js` | resolves the engine binary at **runtime** (never bundled): `$CLOUDRU_VM_BIN` → `~/.cloudru-hub/config.json` `enginePath` → optional platform package `@dzhechkov/cloudru-vm-linux-x64`; verifies sha256 against the pin in `package.json.cloudruHub.binaryHashes` |
-| Paid-step brake (ADR-004) | `src/install.js`, `templates/.claude/hooks/` | emits `permissions` **ask** rules for every mutating-or-shell-reaching tool (64 tools — MEASURED, `data/tools-classification.json` counts), **deny** for `secret_value`/`cert_private_key`, **allow** for 78 behaviour-audited read-only tools, in BOTH `mcp__cloudru-vm__`/`mcp__cloudru_vm__` spellings (prefix normalization not yet live-probed), plus a PreToolUse veto hook (ssh-guard + the kubectl `rollout` hole) — and **executes** the veto probe before declaring install success |
+| Paid-step brake (ADR-004) | `src/install.js`, `templates/.claude/hooks/` | emits `permissions` **ask** rules for every mutating-or-shell-reaching tool (64 tools — MEASURED, `data/tools-classification.json` counts), **deny** for `secret_value`/`cert_private_key`, **allow** for 80 behaviour-audited read-only tools, in BOTH `mcp__cloudru-vm__`/`mcp__cloudru_vm__` spellings (prefix normalization not yet live-probed), plus a PreToolUse veto hook (ssh-guard + the kubectl `rollout` hole) — and **executes** the veto probe before declaring install success |
 | Target integration | `src/install.js`, `src/safe-mcp.js` | Codex, OpenCode and Pi get project MCP configs using a pinned proxy; Hermes gets a guarded `$HERMES_HOME/config.yaml` entry with a verified engine path. Claude Code's general install keeps its permissions and hook probe. The opt-in `vm-deploy` profile requires an exact-plan approval and confines remote commands to the returned VM. Codex, Hermes, OpenCode and Pi each completed both live static-site scenarios on 2026-10-20 with HTTP byte checks and exact resource cleanup. The `k8s-deploy` profile uses a separate exact-manifest approval and create-only Kubernetes operation; the same four hosts completed live Kubernetes deployment, readiness, exact-byte HTTP and cleanup checks. Claude Code has installer/registration checks but no live inference pass. |
 | Skill dialect compiler (ADR-006) | `src/dialects.js`, `data/dialects.json` | generates per-target variants of the canonical skill tree (which is NOT shipped — point `--canonical` at an engine distribution); hard-fails if any Hermes-dialect token survives AND if the engine codename survives in any case in any emitted file (positive invariant, not just the enumerated denylist); unlinks dangling links; enforces the 12 000-char router cap on lossy layouts; byte-deterministic |
 | Golden classification | `data/tools-classification.json` | every engine tool → allow/ask/deny; `allow` requires a BEHAVIOUR audit of the handler (read-only proven at the pinned baseline, engine file:line cited per entry). The previous `stack_status` behavior was unsafe; the imported engine now makes it observational and tests that invariant. A live tool unknown to the classifier is a drift finding. |
@@ -54,8 +54,9 @@ cloudru-hub mcp                     # run the engine as an MCP stdio server (wha
 cloudru-hub mcp-safe --toolsets inventory   # pinned MCP proxy with a small allow-classified surface
 cloudru-hub install --target codex --toolsets billing  # read-only balance, consumption and FinOps
 cloudru-hub install --target codex --toolsets vm-deploy  # guarded VM deployment profile
-cloudru-hub install --target codex --toolsets k8s-deploy # bounded existing-cluster Snake profile
+cloudru-hub install --target codex --toolsets k8s-deploy # bounded existing-cluster profile
 cloudru-hub k8s-approve --cluster-id <uuid> --namespace snake-pilot --manifest <snake.yaml> --manifest-sha256 <digest>
+cloudru-hub k8s-approve --cluster-id <uuid> --namespace lesson-app --manifest <web.yaml> --manifest-sha256 <digest> --profile web-image
 cloudru-hub approve --plan-id <id> --max-monthly-rub <cap>  # one reviewed SSH plan
 cloudru-hub approve --plan-id <id> --max-monthly-rub <cap> --site-sha256 <digest>  # reviewed static-site artifact
 cloudru-hub install --target claude-code   # emit .mcp.json + permission brake + veto hook, PROBE the veto
@@ -81,7 +82,7 @@ node bin/cloudru-hub.js self-test
 ```
 
 Expected: 5 green steps ending `self-test: ALL GREEN` (resolution, sha256 match against
-the pinned baseline `4463b093…97a97c9b6`, engine version, 144 live tools, full
+the pinned baseline `94fdba4f…bfabc03`, engine version, 146 live tools, full
 classification coverage). Full walkthrough incl. `npm link` and MCP registration:
 [`docs/LOCAL-TESTING.md`](docs/LOCAL-TESTING.md).
 
@@ -89,9 +90,56 @@ Host setup, checks and limits: [`docs/HERMES-CODEX.md`](docs/HERMES-CODEX.md). T
 
 For billing through `mcp-safe`, add the optional `"agreement_id":"…"` to the owner-only `~/.config/cloudru-hub/credentials.json` alongside `key_id`, `secret` and `project_id`. The proxy forwards it to the Go child as `CLOUDRU_AGREEMENT_ID`. Existing environment-only billing setups remain supported when no credential file is configured. The current consumption tool reports the agreement-wide total; its output should not be presented as a per-project bill. See the [Cloud.ru instructions for locating the agreement ID](https://cloud.ru/docs/billing/ug/topics/faq__api_id_agreement).
 
-The `vm-deploy` and `k8s-deploy` profiles are included in the launcher as **opt-in previews**. They require the matching pinned Go binary and temporary credentials in a private local file. On Linux/x64, a normal npm installation supplies that binary through the optional platform package. A static site can be planned from a local HTML file or a bounded ZIP snapshot with `deploy_plan(static_site_source=...)`; the operator checks the source digest shown in the plan and supplies that digest to `approve`. Every included ZIP file is served publicly, so review the file list in the plan and keep credentials out of the artifact. Planning requires an existing available floating IP, whose ID is bound to the approval. Apply creates a dedicated TCP-80 security group, boots the VM from fixed Cloud-init data, and reports the site as verified only after the approved IP is attached to that VM and exact-byte HTTP checks pass. A private run journal keeps resource IDs for interrupted-run recovery and blocks blind replay. The estimate covers compute and disk; a public IP may have a separate charge. The static-site route does not authorize `vm_exec` over SSH. See the two-Snake acceptance procedure in `features/cloudru-cli-vm-deploy/SNAKE-ACCEPTANCE.md` in the private source tree.
+The `vm-deploy` and `k8s-deploy` profiles are opt-in previews requiring a matching pinned Go binary and credentials in a private local file. `deploy_plan` resolves a VM and a compute/disk estimate; `deploy_preflight(plan_id)` observes live name collisions and available quota usage, naming unknown create rights, capacity and billed tariffs. After an exact-plan approval, `deploy_apply` writes a private run intent before VM creation. If the API outcome is uncertain, `deploy_reconcile(plan_id)` reads the receipt and project inventory; it never adopts a same-name VM or authorizes a retry. A prior receipt for the same project and VM name also blocks a new plan, even if the cloud inventory has not caught up; inspect the prior run and choose a new name. The static-site route still snapshots approved HTML/ZIP bytes, uses fixed Cloud-init and a dedicated TCP-80 group, and reports verified only after exact-byte HTTP checks against the approved IP. Every public file must be reviewed; a public IP may incur additional charges. Static sites do not grant `vm_exec` SSH access. See `features/cloudru-cli-vm-deploy/SNAKE-ACCEPTANCE.md` in the private source tree for the earlier live acceptance.
 
-The Kubernetes preview accepts only one reviewed manifest containing a ConfigMap, a non-root single-pod Deployment and a ClusterIP Service in an existing namespace. `k8s-approve` binds exact manifest bytes, cluster, namespace, project and a ten-minute single-use approval. The agent passes only the approval ID; the proxy forwards `create_only=true`, so an existing resource name is a conflict instead of being patched. Kubernetes `create` is not transactional across three documents: inspect and clean up any partially created resources by exact name before trying again. Use a dedicated namespace with no pre-existing resources matching the app label or the three approved names. The profile does not create a cluster, namespace, nodes, NAT, ingress or load balancer. The example, local evidence and four-host live acceptance are in `features/cloudru-k8s-snake-deploy/` in private source. The service account's initial 403 was resolved by granting the Kubernetes role; Claude Code inference remains unavailable for a live host test.
+Concurrent distinct VM plans for the same project and VM name are not serialized. Avoid launching those plans together; the prior-receipt check protects sequential submissions and is not an atomic name reservation.
+
+In the matched `0.2.7-20261029` engine, operator `k8s_plan` resolves a supported zone name or ID to `zone_id`/`zones`, and `k8s_create` explicitly sends that ID for control-plane placement. The VIP subnet must match the same zone. This does not establish why a worker pool may fail to register nodes.
+
+The matched engine also accepts `k8s_plan` with
+`{"preflight":true}` to collect read-only observations before a possible paid
+cluster creation. It is separate from VM `deploy_preflight(plan_id)`. The
+versioned report includes its observation time and configured project, with
+`observed_checks`, `observed_conflicts` and `unknowns`. It attempts exact
+zone/subnet resolution, checks returned project cluster rows for an exact name
+collision, and reads project-filtered quota usage. A matching cluster with an
+explicit same-project identity is a conflict; an empty or unmatched response
+does not prove the name is free because inventory completeness is unknown.
+Denied, malformed or unavailable quota responses remain unknown; usage does
+not prove create capacity. Failed probes leave the established findings intact.
+
+Every diagnostic report says `ready_to_apply:false`. Authentication, successful
+listing and JWT scope roles do not prove effective caller or cluster service
+account create grants. The [Cloud.ru cluster service-account role guide](https://cloud.ru/docs/kubernetes-evolution/ug/topics/concepts__roles-for-cluster-sa) lists
+`k8s.user`, `nlb.user` and `vpc.user` as base dependencies; `auditlog.writer`, `logaas.writer`
+and `monaas.write` depend on the actual audit, logging and monitoring settings,
+which this report cannot inspect. Verify assignments and settings in IAM before
+a separate paid-operation approval. Exact placement resolution also does not
+prove region-wide availability or runtime readiness. Prospective tariffs are
+not supplied: include compute, control plane, disk, public IP, SNAT, load
+balancer and traffic, then run `cloudru-hub cost-compare --input <json> --json`
+separately with verified tariff inputs. This diagnostic does not create an
+approval or unlock a retry.
+
+Kubernetes recovery is included in the matched `0.2.7-20261029` engine.
+The operator flow records a private durable intent before
+`k8s_create` or `k8s_add_nodepool`, then saves known operation/resource IDs.
+After a lost reply, `k8s_get` supports `receipt_id`, `operation_id` and
+bounded `receipts:true` discovery in addition to its existing cluster lookup.
+These observations distinguish provider operation state from resource presence;
+they do not check Ready Nodes or application HTTP. This candidate has no new
+live Kubernetes deployment or `web-image` acceptance result.
+
+The first recovery increment keeps the same project/kind/parent/name blocked
+after any submitted intent, including an ambiguous outcome or later deletion.
+Changing a request's size does not permit another submission. There is no
+automatic retry, force flag or receipt-removal procedure. A different name is a
+separate deployment with possible duplicate cost. Diagnostics do not create a
+cluster, and existing guarded profiles still deny infrastructure create tools.
+
+The Kubernetes preview has two explicit profiles. The default `snake` profile retains its exact ConfigMap, non-root Deployment and ClusterIP Service. `web-image` accepts one reviewed digest-pinned OCI image in a bounded one-pod Deployment and internal ClusterIP Service. It requires a `/health` endpoint on port 8080, a dedicated namespace, non-root UID 10001, a read-only root filesystem and bounded CPU/RAM. The image must already be built, pushed and pullable by the existing cluster. This package does not build code from a repository or prove that an image digest corresponds to a source commit. `k8s-approve` binds exact manifest bytes, cluster, namespace, project and a ten-minute single-use approval. The proxy uses `create_only=true`; inspect partial resources before retrying because Kubernetes multi-document create is not transactional. Neither profile creates a cluster, namespace, nodes, NAT, ingress or load balancer. The four-host live acceptance in `features/cloudru-k8s-snake-deploy/` covers only Snake; `web-image` currently has deterministic local tests.
+
+See the [web-image procedure](docs/WEB-IMAGE.md) for authored code and pinned repository inputs.
 
 ## Safety properties (all layer-1, discrimination-proven)
 
@@ -134,7 +182,7 @@ protections proven:
 
 ## Platform package status
 
-The separate `@dzhechkov/cloudru-vm-linux-x64@0.2.6` package is installed
+The separate `@dzhechkov/cloudru-vm-linux-x64@0.2.7` package is installed
 automatically on Linux/x64 unless optional dependencies are disabled. Its static
 build reproduces the pinned SHA-256 and bundles the license and NOTICE files
 of linked Go modules. `CLOUDRU_VM_BIN` and `~/.cloudru-hub/config.json` remain

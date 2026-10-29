@@ -1,11 +1,11 @@
 {
   "$comment": "Golden classification of every cloudru-vm engine tool. allow requires a BEHAVIOUR audit of the handler at the pinned engine SHA proving both axes: (1) observational with no cloud mutation, job advancement or secret return (a local plan write is disclosed), and (2) no user-controlled argument reaching shell/exec/SSH. Shell-reaching tools remain ask even when arguments are quoted. Schema shape alone never proves allow. The old baseline had two hazards: stack_status advanced planned jobs into paid actions and logs inserted an unescaped service into a shell command. In the pinned engine, stack_status reads persisted state only; stack_apply explicitly advances jobs, and logs shell-quotes service. The specific regression tests are in go/cloudru-vm/internal/mcp/stack_status_test.go and internal/engine/logs_test.go. Any unknown live tool fails drift checks; deny by default.",
-  "engineSha256": "4463b09323c9dfe0c32d618d335734a947e7fab0a75d07a7bea089b97a97c9b6",
-  "toolCount": 144,
+  "engineSha256": "94fdba4fe4d1a71e684be998c3d2f94f374ff4e4054db2683bcc04d72bfabc03",
+  "toolCount": 146,
   "counts": {
     "ask": 64,
     "deny": 2,
-    "allow": 78
+    "allow": 80
   },
   "tools": {
     "deploy": {
@@ -72,6 +72,16 @@
       "effect": "mutating",
       "permission": "ask",
       "why": "engine schema declares confirmed prop (gated upstream; belt-plus-braces per ADR-004 §3)"
+    },
+    "deploy_reconcile": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleDeployReconcile (tools_deploy.go:259) reads a local receipt and project-scoped VM inventory; ReconcileRun only compares observed identities and never writes state or reaches shell."
+    },
+    "deploy_preflight": {
+      "effect": "read-only",
+      "permission": "allow",
+      "why": "behaviour-audited read-only: handleDeployPreflight (tools_deploy.go:278) reads a saved plan, VM inventory and quota usage with HTTP GET; EvaluatePreflight does not create cloud resources, write state or reach shell."
     },
     "list_flavors": {
       "effect": "read-only",

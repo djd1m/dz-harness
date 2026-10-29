@@ -6,13 +6,18 @@ const { spawn } = require('child_process');
 const { loadClassification } = require('./classification');
 const { resolveEngine } = require('./resolve');
 const { selectedToolNames } = require('./toolsets');
-const { readCredentials, readOptionalCredentials } = require('./credentials');
+const { readCredentials, readOptionalCredentials, UUID } = require('./credentials');
 const { consumeApproval, recordDeployedVM, approvedVM } = require('./deploy-approval');
 const { consumeK8sApproval, k8sSession, verificationArgs } = require('./k8s-approval');
 
 const MAX_LINE = 1024 * 1024;
 const idKey = (id) => JSON.stringify(id);
 const errorResponse = (id, message, code = -32000) => ({ jsonrpc: '2.0', id, error: { code, message } });
+const uncertainDeploy = (id, approval, reason) => ({ jsonrpc: '2.0', id,
+  result: { isError: true, content: [{ type: 'text', text: JSON.stringify({
+    status: 'recovery_required', plan_id: approval.planId, verdict: 'unknown',
+    reason, next: 'Call deploy_reconcile with this plan_id; inspect live inventory before any new plan or mutation.',
+  }) }] } });
 
 function redactDeploySecrets(value) {
   if (Array.isArray(value)) return value.map(redactDeploySecrets);
@@ -81,8 +86,10 @@ function runSafeMcp(options = {}) {
     if (stopped) return;
     stopped = true;
     stderr.write(`cloudru-hub mcp-safe: ${reason}\n`);
-    for (const key of pending.keys()) {
-      emit(errorResponse(JSON.parse(key), 'Cloud.ru engine connection closed'));
+    for (const [key, request] of pending) {
+      const id = JSON.parse(key);
+      emit(request.approval ? uncertainDeploy(id, request.approval, 'Cloud.ru engine connection closed during deploy_apply') :
+        errorResponse(id, 'Cloud.ru engine connection closed'));
     }
     pending.clear();
     stdin.destroy();
@@ -210,10 +217,10 @@ function runSafeMcp(options = {}) {
         tool && typeof tool.name === 'string' && selected.has(tool.name)).map((tool) => {
         if (!k8sProfile) return tool;
         if (tool.name === 'k8s_apply') return { ...tool,
-          description: 'Apply one locally reviewed Snake manifest to one existing cluster. Pass only the local approval ID.',
+          description: 'Apply one locally reviewed bounded Snake or web-image manifest to one existing cluster. Pass only the local approval ID.',
           inputSchema: { type: 'object', properties: { approval_id: { type: 'string' } }, required: ['approval_id'], additionalProperties: false } };
         if (tool.name === 'k8s_kubectl') return { ...tool,
-          description: 'Read only pods, deployment, service or rollout status for the previously approved Snake workload.',
+          description: 'Read only pods, deployment, service or rollout status for the previously approved workload.',
           inputSchema: { type: 'object', properties: { approval_id: { type: 'string' },
             query: { type: 'string', enum: ['pods', 'deployment', 'service', 'rollout'] } },
           required: ['approval_id', 'query'], additionalProperties: false } };
@@ -226,7 +233,11 @@ function runSafeMcp(options = {}) {
     if (method === 'initialize' && message.result && message.result.capabilities) {
       message.result = { ...message.result, capabilities: { tools: message.result.capabilities.tools || {} } };
     }
-    if (approval && !message.error) {
+    if (approval && message.error) {
+      emit(uncertainDeploy(message.id, approval, 'Cloud.ru engine returned an error after approval was consumed'));
+      closeIfDone(); return;
+    }
+    if (approval) {
       // The engine returns an MCP text result containing its JSON deploy result.
       // Keep the model from seeing a generated login password: vm_exec uses the
       // engine-managed SSH key. Ambiguous responses require inspection.
@@ -234,28 +245,32 @@ function runSafeMcp(options = {}) {
       let deploy;
       try { deploy = JSON.parse(item?.text || ''); }
       catch {
-        message.result = { isError: true, content: [{ type: 'text', text: 'deploy_apply returned an unreadable outcome; inspect the live VM inventory before retrying' }] };
-        emit(message); closeIfDone(); return;
+        emit(uncertainDeploy(message.id, approval, 'deploy_apply returned an unreadable outcome'));
+        closeIfDone(); return;
       }
       if (!deploy || typeof deploy !== 'object' || Array.isArray(deploy)) {
-        message.result = { isError: true, content: [{ type: 'text', text: 'deploy_apply returned an invalid outcome; inspect the live VM inventory before retrying' }] };
-        emit(message); closeIfDone(); return;
+        emit(uncertainDeploy(message.id, approval, 'deploy_apply returned an invalid outcome'));
+        closeIfDone(); return;
       }
       const safe = redactDeploySecrets(deploy);
-      if (!message.result?.isError && approval.siteMode && deploy.status === 'running' && deploy.http_verification?.verified === true) {
+      safe.operation = { plan_id: approval.planId, verdict: 'unknown', observed_at: new Date().toISOString() };
+      if (!message.result?.isError && approval.siteMode && deploy.status === 'running' && deploy.http_verification?.verified === true &&
+          UUID.test(deploy.vm_id || '')) {
         // Static-site delivery is verified over HTTP. It does not imply SSH is
         // available, so never create a vm_exec session for this VM.
+        safe.operation.verdict = 'http_verified';
       } else if (!message.result?.isError && !approval.siteMode && deploy.status === 'running') {
         try {
           const session = recordDeployedVM(approval, deploy, options.env || process.env);
           safe.approved_vm_session_expires_at = new Date(session.expiresAt).toISOString();
+          safe.operation.verdict = 'vm_running';
         } catch (error) {
           message.result.isError = true;
           safe.recovery = `VM may exist but the approved execution session was not recorded: ${error.message}. Inspect VM inventory before retrying.`;
         }
       } else {
         message.result.isError = true;
-        safe.recovery = 'A VM may exist. Inspect the returned VM UUID and live inventory before retrying; a fresh plan and approval may be needed.';
+        safe.recovery = 'A VM may exist. Call deploy_reconcile with the plan_id. Inspect live inventory before retrying; a fresh plan and approval may be needed.';
       }
       item.text = JSON.stringify(safe);
     }

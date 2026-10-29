@@ -1,9 +1,9 @@
 {
-  "capturedAt": "2026-10-20",
-  "engineVersion": "cloudru-vm 0.2.6-20261020",
-  "engineSha256": "4463b09323c9dfe0c32d618d335734a947e7fab0a75d07a7bea089b97a97c9b6",
+  "capturedAt": "2026-10-29",
+  "engineVersion": "cloudru-vm 0.2.7-20261029",
+  "engineSha256": "94fdba4fe4d1a71e684be998c3d2f94f374ff4e4054db2683bcc04d72bfabc03",
   "method": "JSON-RPC tools/list via src/probe-child.js against locally built private engine",
-  "toolCount": 144,
+  "toolCount": 146,
   "tools": [
     {
       "name": "deploy",
@@ -56,6 +56,14 @@
     {
       "name": "deploy_apply",
       "gated": true
+    },
+    {
+      "name": "deploy_reconcile",
+      "gated": false
+    },
+    {
+      "name": "deploy_preflight",
+      "gated": false
     },
     {
       "name": "list_flavors",

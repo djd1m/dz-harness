@@ -38,7 +38,8 @@ Commands:
                            Authorize one exact VM plan for ten minutes within a RUB/month cap.
                            Static sites require the artifact digest shown by deploy_plan.
   k8s-approve --cluster-id <uuid> --namespace <name> --manifest <file> --manifest-sha256 <digest>
-                           Authorize one exact three-resource Snake manifest on an existing cluster.
+              [--profile snake|web-image]
+                           Authorize one exact bounded manifest on an existing cluster.
   cost-compare --input <json> [--json]
                            Offline VM vs Kubernetes cost worksheet; no engine or credentials.
   install --target <t>     claude-code: permissions + executed hook probe;
@@ -190,7 +191,7 @@ function main(argv, write = (s) => process.stdout.write(s + '\n')) {
     case 'k8s-approve': {
       try {
         const approval = issueK8sApproval(opts.get('cluster-id'), opts.get('namespace'),
-          opts.get('manifest'), opts.get('manifest-sha256'));
+          opts.get('manifest'), opts.get('manifest-sha256'), process.env, Date.now(), opts.get('profile') || 'snake');
         write(flags.has('json') ? JSON.stringify(approval, null, 2) :
           `approved ${approval.approvalId}: cluster ${approval.clusterId}, namespace ${approval.namespace}, SHA-256 ${approval.manifestSha256}; expires ${new Date(approval.expiresAt).toISOString()}`);
         return 0;

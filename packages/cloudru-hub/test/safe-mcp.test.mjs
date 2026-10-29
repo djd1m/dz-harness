@@ -47,6 +47,26 @@ test('safe proxy filters listed tools and blocks ask, deny, unknown and other me
   assert.deepEqual(out.forwarded.filter((m) => m.method === 'tools/call').map((m) => m.params.name), ['vm_list']);
 });
 
+test('k8s_get recovery selectors pass existing read profiles while paid creates stay denied', () => {
+  const snapshot = JSON.parse(fs.readFileSync(path.join(pkg, 'data/tools-list-snapshot.json'), 'utf8'));
+  assert.equal(snapshot.toolCount, 146);
+  assert.equal(snapshot.tools.length, 146);
+  for (const profile of ['all', 'kubernetes', 'k8s-deploy']) {
+    const out = run([
+      msg(1, 'tools/call', { name: 'k8s_get', arguments: { receipts: true, limit: 10 } }),
+      msg(2, 'tools/call', { name: 'k8s_get', arguments: { receipt_id: 'a'.repeat(64) } }),
+      msg(3, 'tools/call', { name: 'k8s_create', arguments: { confirmed: true } }),
+      msg(4, 'tools/call', { name: 'k8s_add_nodepool', arguments: { confirmed: true } }),
+    ], profile);
+    const byId = Object.fromEntries(out.responses.map((r) => [r.id, r]));
+    assert.match(byId[1].result.content[0].text, /executed k8s_get/);
+    assert.match(byId[2].result.content[0].text, /executed k8s_get/);
+    assert.ok(byId[3].error, `${profile}: k8s_create must be denied`);
+    assert.ok(byId[4].error, `${profile}: k8s_add_nodepool must be denied`);
+    assert.deepEqual(out.forwarded.map((m) => m.params.name), ['k8s_get', 'k8s_get']);
+  }
+});
+
 test('Hermes keepalive gets the filtered tool list while the serial engine is busy', async () => {
   const serial = path.join(scratch, 'serial-engine');
   const serialLog = path.join(scratch, 'serial-forwarded.jsonl');

@@ -10,6 +10,7 @@ const { isDeepStrictEqual } = require('util');
 const YAML = require('yaml');
 const { readCredentials, UUID } = require('./credentials');
 const { approvalRoot } = require('./deploy-approval');
+const { validateImageManifest } = require('./k8s-image-manifest');
 
 const APPROVAL_ID = /^k8s-[0-9a-f]{12}$/;
 const DNS_NAME = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
@@ -49,7 +50,9 @@ function privateJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
-function validateManifest(raw, namespace) {
+function validateManifest(raw, namespace, profile = 'snake') {
+  if (profile === 'web-image') return validateImageManifest(raw, namespace);
+  if (profile !== 'snake') throw new Error('unsupported Kubernetes profile');
   if (typeof raw !== 'string' || Buffer.byteLength(raw) < 1 || Buffer.byteLength(raw) > MAX_MANIFEST) {
     throw new Error('manifest must be non-empty and at most 64 KiB');
   }
@@ -143,7 +146,7 @@ function approvalFile(id, env = process.env) {
   return path.join(approvalRoot(env), `${id}.json`);
 }
 
-function issueK8sApproval(clusterId, namespace, manifestFile, reviewedSha256, env = process.env, now = Date.now()) {
+function issueK8sApproval(clusterId, namespace, manifestFile, reviewedSha256, env = process.env, now = Date.now(), profile = 'snake') {
   if (!UUID.test(clusterId || '')) throw new Error('cluster_id must be a UUID');
   if (!DIGEST.test(reviewedSha256 || '')) throw new Error('reviewed manifest SHA-256 is required');
   const st = fs.lstatSync(manifestFile);
@@ -151,17 +154,17 @@ function issueK8sApproval(clusterId, namespace, manifestFile, reviewedSha256, en
     throw new Error('manifest source must be a bounded regular file');
   }
   const manifest = fs.readFileSync(manifestFile, 'utf8');
-  const details = validateManifest(manifest, namespace);
+  const details = validateManifest(manifest, namespace, profile);
   const digest = sha256(manifest);
   if (digest !== reviewedSha256) throw new Error('manifest digest differs from reviewed SHA-256');
   const credentials = readCredentials(env);
   const root = approvalRoot(env);
   privateDir(root);
   const id = `k8s-${crypto.randomBytes(6).toString('hex')}`;
-  const record = { id, projectId: credentials.projectId, clusterId, namespace, manifest, digest,
+  const record = { id, projectId: credentials.projectId, clusterId, namespace, manifest, digest, profile,
     app: details.app, issuedAt: now, expiresAt: now + 10 * 60_000 };
   fs.writeFileSync(approvalFile(id, env), JSON.stringify(record) + '\n', { flag: 'wx', mode: 0o600 });
-  return { approvalId: id, projectId: record.projectId, clusterId, namespace, manifestSha256: digest,
+  return { approvalId: id, projectId: record.projectId, clusterId, namespace, manifestSha256: digest, profile,
     resources: details.resources, image: details.image, expiresAt: record.expiresAt,
     estimateScope: 'existing cluster only; no cluster, worker, NAT or public load balancer is created' };
 }
@@ -172,7 +175,7 @@ function consumeK8sApproval(id, env = process.env, now = Date.now()) {
   const credentials = readCredentials(env);
   if (a.id !== id || a.projectId !== credentials.projectId || !UUID.test(a.clusterId || '') ||
       !Number.isFinite(a.expiresAt) || a.expiresAt <= now || !DIGEST.test(a.digest || '') ||
-      sha256(a.manifest) !== a.digest || validateManifest(a.manifest, a.namespace).app !== a.app) {
+      sha256(a.manifest) !== a.digest || validateManifest(a.manifest, a.namespace, a.profile).app !== a.app) {
     throw new Error('Kubernetes approval does not match manifest, project or time');
   }
   const spent = path.join(approvalRoot(env), `${id}.used-${crypto.randomBytes(8).toString('hex')}.json`);

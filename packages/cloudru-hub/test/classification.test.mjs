@@ -16,15 +16,15 @@ test('every snapshot tool is classified, and nothing extra', () => {
   const snapNames = snap.tools.map((t) => t.name).sort();
   const clsNames = Object.keys(cls.tools).sort();
   assert.deepEqual(clsNames, snapNames);
-  assert.equal(snapNames.length, 144);
+  assert.equal(snapNames.length, 146);
 });
 
-test('counts are the reviewed golden split: 64 ask / 2 deny / 78 allow', () => {
-  assert.deepEqual(cls.counts, { ask: 64, deny: 2, allow: 78 });
+test('counts are the reviewed golden split: 64 ask / 2 deny / 80 allow', () => {
+  assert.deepEqual(cls.counts, { ask: 64, deny: 2, allow: 80 });
   const by = namesByPermission(cls);
   assert.equal(by.ask.length, 64);
   assert.equal(by.deny.length, 2);
-  assert.equal(by.allow.length, 78);
+  assert.equal(by.allow.length, 80);
 });
 
 // The imported engine now makes status observational. The Go regression test
@@ -121,7 +121,7 @@ test('permissionRules expands every name in BOTH prefix spellings (unverified no
   assert.equal(SERVER_PREFIXES.length, 2);
   assert.equal(rules.ask.length, 64 * 2);
   assert.equal(rules.deny.length, 2 * 2);
-  assert.equal(rules.allow.length, 78 * 2);
+  assert.equal(rules.allow.length, 80 * 2);
   assert.ok(rules.ask.includes('mcp__cloudru-vm__deploy'));
   assert.ok(rules.ask.includes('mcp__cloudru_vm__deploy'));
   assert.ok(rules.deny.includes('mcp__cloudru-vm__secret_value'));
