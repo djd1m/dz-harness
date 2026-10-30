@@ -1,5 +1,22 @@
 # Changelog — @dzhechkov/cloudru-hub
 
+## 0.1.18 — 2026-10-30
+
+- Add the source-accepted official DeepSeek Harness installer and guide from
+  `cloudru-deepseek-harness` (`36c944a9`). It emits an explicit project Cordis
+  overlay for the existing guarded proxy; `--dry-run` previews it, repeated
+  installation is idempotent, and conflicting managed content is refused.
+- The released `@deepseek-ai/dsh@0.2.1-rc.5` passed official-client composition,
+  MCP registration and a local status call, plus full web-host startup and
+  registration. Default `inventory` cloud calls are limited by the client's
+  credential scrubber; existing `vm-deploy` and `k8s-deploy` file-backed profiles
+  remain supported. See `docs/DEEPSEEK.md` for setup and limits. No DeepSeek
+  inference or live-cloud deployment acceptance is claimed.
+- Keep the exact `@dzhechkov/cloudru-vm-linux-x64@0.2.8` optional engine,
+  `cloudru-vm 0.2.8-20261029` SHA-256 pin and 146 catalog classifications;
+  no new native release or runtime dependency is introduced. This entry stages
+  release metadata and does not claim publication.
+
 ## 0.1.17 — 2026-10-29
 
 - Pin the matched Linux/x64 engine `0.2.8-20261029` (SHA-256

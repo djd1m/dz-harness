@@ -74,4 +74,4 @@ appears; note which prefix spelling the runtime used.
 
 ## 5. Testing from another server (`npm install` path)
 
-On Linux/x64, install `@dzhechkov/cloudru-hub@0.1.17` normally and run `cloudru-hub self-test` without setting `CLOUDRU_VM_BIN`. npm installs the exact `@dzhechkov/cloudru-vm-linux-x64@0.2.8` optional engine package. If optional dependencies were disabled or the platform is unsupported, provide a matching trusted binary explicitly.
+On Linux/x64, install `@dzhechkov/cloudru-hub@0.1.18` normally and run `cloudru-hub self-test` without setting `CLOUDRU_VM_BIN`. npm installs the exact `@dzhechkov/cloudru-vm-linux-x64@0.2.8` optional engine package. If optional dependencies were disabled or the platform is unsupported, provide a matching trusted binary explicitly.

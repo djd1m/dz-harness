@@ -365,6 +365,11 @@ function probeBrake(hookPath) {
 /** Install files or print guarded setup instructions; code 0 emitted, 2 refused, 3 manual setup. */
 function install(target, projectDir, opts = {}) {
   const lines = [];
+  if (target === 'deepseek-harness') {
+    if (opts.npx) return { code: 1, lines: ['cloudru-hub install: --npx is not supported for deepseek-harness.'] };
+    return require('./deepseek-install').installDeepseek(projectDir, opts);
+  }
+  if (opts.dryRun) return { code: 1, lines: [`cloudru-hub install: --dry-run is supported only for deepseek-harness (target ${target}).`] };
   const tier = TIERS[target];
   if (!tier) {
     return { code: 1, lines: [`cloudru-hub install: unknown target "${target}" (known: ${Object.keys(TIERS).join(', ')})`] };

@@ -2,7 +2,7 @@
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/cloudru-hub
 
-> **Linux/x64:** version 0.1.17 names the exact optional engine
+> **Linux/x64:** version 0.1.18 names the exact optional engine
 > package `@dzhechkov/cloudru-vm-linux-x64@0.2.8`. The `dz guard` `licence-hold`
 > rule continues to check LICENSE, notices and SPDX on publish.
 
@@ -19,7 +19,7 @@ The launcher archive contains no engine binary. npm installs the exact optional
 platform package with the pinned Go engine on Linux/x64. Run:
 
 ```bash
-npm install -g @dzhechkov/cloudru-hub@0.1.17
+npm install -g @dzhechkov/cloudru-hub@0.1.18
 cloudru-hub self-test
 ```
 
@@ -64,6 +64,8 @@ cloudru-hub install --target codex         # project .codex/config.toml using mc
 cloudru-hub install --target opencode      # project opencode.json using mcp-safe
 cloudru-hub install --target pi            # project .pi/mcp.json using mcp-safe
 cloudru-hub install --target hermes        # require a hash-verified engine; add safe entry to $HERMES_HOME/config.yaml
+cloudru-hub install --target deepseek-harness --dir /path/to/project --dry-run
+cloudru-hub install --target deepseek-harness --dir /path/to/project
 cloudru-hub install --target agents-md     # pointer-only section (no tools, no fake support)
 cloudru-hub compile-skill --canonical <engine>/skill/cloudru-hub --target claude-code --out ./skill-out
 ```
@@ -88,13 +90,26 @@ classification coverage). Full walkthrough incl. `npm link` and MCP registration
 
 Host setup, checks and limits: [`docs/HERMES-CODEX.md`](docs/HERMES-CODEX.md). These adapters are generated from our own classification and do not reuse EVO code. EVO's broader standalone CLI and toolset selection remain advantages to carry into the owner's Go engine.
 
+For the official DeepSeek harness, see [the DeepSeek overlay guide](docs/DEEPSEEK.md).
+The installer writes only the project overlay `.cloudru-hub/deepseek.cordis.patch.yml`;
+preview it with `--dry-run`, then pass it explicitly as `--patch` to an existing
+profile. Repeating the install is idempotent; conflicting managed content is refused.
+The overlay registers the existing guarded `mcp-safe` proxy. The released
+`@deepseek-ai/dsh@0.2.1-rc.5` passed official-client configuration composition,
+MCP registration and a local status call, plus full web-host startup and registration.
+These checks do not establish DeepSeek inference or live Cloud.ru deployment. The
+default `inventory` selection exposes 11 classified safe tools, but the official
+client scrubs ambient Cloud.ru credential variables; its default inventory cloud
+calls are not established by a credentials file. The existing `vm-deploy` and
+`k8s-deploy` profiles can read the private credential file through `mcp-safe`.
+
 For billing through `mcp-safe`, add the optional `"agreement_id":"…"` to the owner-only `~/.config/cloudru-hub/credentials.json` alongside `key_id`, `secret` and `project_id`. The proxy forwards it to the Go child as `CLOUDRU_AGREEMENT_ID`. Existing environment-only billing setups remain supported when no credential file is configured. The current consumption tool reports the agreement-wide total; its output should not be presented as a per-project bill. See the [Cloud.ru instructions for locating the agreement ID](https://cloud.ru/docs/billing/ug/topics/faq__api_id_agreement).
 
 The `vm-deploy` and `k8s-deploy` profiles are opt-in previews requiring a matching pinned Go binary and credentials in a private local file. `deploy_plan` resolves a VM and a compute/disk estimate; `deploy_preflight(plan_id)` observes live name collisions and available quota usage, naming unknown create rights, capacity and billed tariffs. After an exact-plan approval, `deploy_apply` writes a private run intent before VM creation. If the API outcome is uncertain, `deploy_reconcile(plan_id)` reads the receipt and project inventory; it never adopts a same-name VM or authorizes a retry. A prior receipt for the same project and VM name also blocks a new plan, even if the cloud inventory has not caught up; inspect the prior run and choose a new name. The static-site route still snapshots approved HTML/ZIP bytes, uses fixed Cloud-init and a dedicated TCP-80 group, and reports verified only after exact-byte HTTP checks against the approved IP. Every public file must be reviewed; a public IP may incur additional charges. Static sites do not grant `vm_exec` SSH access.
 
 **Published versions `cloudru-hub@0.1.16` and `cloudru-vm-linux-x64@0.2.7`:** concurrent distinct VM plans for the same project and VM name are not serialized. Avoid launching those plans together; the prior-receipt check protects sequential submissions and is not an atomic name reservation.
 
-**Matched `cloudru-hub@0.1.17` / `cloudru-vm-linux-x64@0.2.8`:** the initial deployment checkpoint exclusively claims the exact project/VM-name pair in private shared local state before either a VM or static-site security group is mutated. The claim remains after process exit, an uncertain provider response, or a later checkpoint failure; even an empty or partial claim blocks another plan. There is no TTL, unlock, forced replay or name-based adoption. Inspect the retained claim and run receipt in the shared state root, reconcile live project inventory and known resource IDs, then choose a new name for a separate deployment if needed. Coordination covers upgraded processes sharing one local state root. Old clients, raw engine paths, different roots or hosts, and direct Cloud.ru API calls remain outside it; this is not distributed idempotency. Local synthetic race, restart and I/O-fault controls cover this correction; no new live VM creation was used for these controls.
+**Matched `cloudru-hub@0.1.18` / `cloudru-vm-linux-x64@0.2.8`:** the initial deployment checkpoint exclusively claims the exact project/VM-name pair in private shared local state before either a VM or static-site security group is mutated. The claim remains after process exit, an uncertain provider response, or a later checkpoint failure; even an empty or partial claim blocks another plan. There is no TTL, unlock, forced replay or name-based adoption. Inspect the retained claim and run receipt in the shared state root, reconcile live project inventory and known resource IDs, then choose a new name for a separate deployment if needed. Coordination covers upgraded processes sharing one local state root. Old clients, raw engine paths, different roots or hosts, and direct Cloud.ru API calls remain outside it; this is not distributed idempotency. Local synthetic race, restart and I/O-fault controls cover this correction; no new live VM creation was used for these controls.
 
 In the previous `0.2.7-20261029` engine (retained in `0.2.8-20261029`), operator `k8s_plan` resolves a supported zone name or ID to `zone_id`/`zones`, and `k8s_create` explicitly sends that ID for control-plane placement. The VIP subnet must match the same zone. This does not establish why a worker pool may fail to register nodes.
 
@@ -139,7 +154,7 @@ automatic retry, force flag or receipt-removal procedure. A different name is a
 separate deployment with possible duplicate cost. Diagnostics do not create a
 cluster, and existing guarded profiles still deny infrastructure create tools.
 
-**Matched `cloudru-hub@0.1.17` / `cloudru-vm-linux-x64@0.2.8`:**
+**Matched `cloudru-hub@0.1.18` / `cloudru-vm-linux-x64@0.2.8`:**
 before one confirmed `k8s_delete` DELETE, the engine writes a private, durable
 `cluster-delete` intent scoped to the action, configured project and exact
 cluster ID. That target is immutable. A duplicate call or restart after an

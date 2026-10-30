@@ -1,5 +1,5 @@
 {
-  "builtAt": "2026-10-29T23:27:17.271Z",
+  "builtAt": "2026-10-30T20:00:21.038Z",
   "builtFrom": "dz-harness-hub (private monorepo)",
   "rule": "each package mirrors exactly its npm-pack tarball inventory — the already-public surface",
   "requested": 57,
@@ -175,8 +175,8 @@
     },
     {
       "name": "@dzhechkov/cloudru-hub",
-      "version": "0.1.17",
-      "files": 44
+      "version": "0.1.18",
+      "files": 47
     },
     {
       "name": "@dzhechkov/cloudru-vm-linux-x64",

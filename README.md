@@ -37,7 +37,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/adapter-openclaude` | 0.1.9 |
 | `@dzhechkov/adapter-opencode` | 0.2.9 |
 | `@dzhechkov/adapter-windsurf` | 0.1.10 |
-| `@dzhechkov/cloudru-hub` | 0.1.17 |
+| `@dzhechkov/cloudru-hub` | 0.1.18 |
 | `@dzhechkov/cloudru-vm-linux-x64` | 0.2.8 |
 | `@dzhechkov/core` | 0.2.30 |
 | `@dzhechkov/design-thinking` | 1.0.15 |

@@ -43,6 +43,7 @@ Commands:
   cost-compare --input <json> [--json]
                            Offline VM vs Kubernetes cost worksheet; no engine or credentials.
   install --target <t>     claude-code: permissions + executed hook probe;
+                           deepseek-harness: private project Cordis --patch overlay for official MCP client;
                            codex|opencode|pi: project MCP config using mcp-safe;
                            hermes: guarded $HERMES_HOME/config.yaml entry using mcp-safe;
                            openclaude|cursor|windsurf|copilot: refused pending live probe.
@@ -50,6 +51,7 @@ Commands:
                            inventory for safe hosts; all|compute|kubernetes|data|network|storage|billing|vm-deploy|k8s-deploy.
                            [--hermes-home <dir>] overrides $HERMES_HOME for Hermes.
                            [--npx] use the npx form in Claude .mcp.json.
+                           [--dry-run] validate and print DeepSeek overlay without writes (DeepSeek only).
   compile-skill --canonical <dir> --target <t> --out <dir>
                            Generate a target dialect of the canonical skill tree (ADR-006). The
                            canonical corpus is NOT shipped here; point --canonical at the skill/
@@ -66,7 +68,7 @@ function parseArgs(argv) {
   const positional = [];
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
-    if (a === '--json' || a === '--npx' || a === '--help' || a === '-h') flags.add(a.replace(/^-+/, ''));
+    if (a === '--json' || a === '--npx' || a === '--dry-run' || a === '--help' || a === '-h') flags.add(a.replace(/^-+/, ''));
     else if (a.startsWith('--')) { opts.set(a.slice(2), argv[i + 1]); i++; }
     else positional.push(a);
   }
@@ -203,7 +205,7 @@ function main(argv, write = (s) => process.stdout.write(s + '\n')) {
     case 'install': {
       const target = opts.get('target');
       if (!target) { write('cloudru-hub install: --target is required (claude-code|codex|agents-md|gemini|…)'); return 1; }
-      const res = install(target, opts.get('dir') || process.cwd(), { npx: flags.has('npx'), toolsets: opts.get('toolsets') || 'inventory', hermesHome: opts.get('hermes-home') });
+      const res = install(target, opts.get('dir') || process.cwd(), { npx: flags.has('npx'), dryRun: flags.has('dry-run'), toolsets: opts.get('toolsets') || 'inventory', hermesHome: opts.get('hermes-home') });
       for (const line of res.lines) write(line);
       return res.code;
     }

@@ -5,7 +5,7 @@
     "files": [
       {
         "path": "CHANGELOG.md",
-        "sha256": "70bc9263f657739464a56bf220ce370da7baa73dae086565417ccf62b6806078"
+        "sha256": "f7f55935cb61367bee11bf371dfd2217c3a5c076930b322a1c58168cdb5747a0"
       },
       {
         "path": "LICENSE",
@@ -13,7 +13,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "0ca9b07e9194d91645194140c23d715b741a4503ad261305bf1b8af28470c494"
+        "sha256": "fcf3146be7e031034f9539f9b7d2a059c5138fbbc9e5fca50c39e496e4696c8b"
       },
       {
         "path": "THIRD_PARTY_NOTICES.md",
@@ -44,12 +44,16 @@
         "sha256": "80b4d7ac3868f17d93565274cd6736fe5f2bd7fb059cbed0c2f0afe3f4924317"
       },
       {
+        "path": "docs/DEEPSEEK.md",
+        "sha256": "e42e1bf699d72ef926857b1193bcf3d84d873a9fc4eed2d7598abf2bc74ee1e1"
+      },
+      {
         "path": "docs/HERMES-CODEX.md",
         "sha256": "00a5c9acc3999c5e07f230ba63bc1a0e202d62c8d15d2204620feca762eece8f"
       },
       {
         "path": "docs/LOCAL-TESTING.md",
-        "sha256": "6b2f6b18f863a9a467ad08977b14de4fdf3285a70ae5a35ce855c4f143c05958"
+        "sha256": "bd949d14d88b62c6346f3b147500ee45ed7132bb668d62a77163af7b8903534e"
       },
       {
         "path": "docs/WEB-IMAGE.md",
@@ -61,7 +65,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "7fe766354e40487c5dd90461d41edcde781cf4775d46376daad9c5abbaf8b314"
+        "sha256": "6a4d6a0429bc5b01314d2282eef07e596a685f871ed963c54e59b70af6f562be"
       },
       {
         "path": "src/classification.js",
@@ -69,7 +73,7 @@
       },
       {
         "path": "src/cli.js",
-        "sha256": "590265903b3a242b3d9c1367801ce6ce10e23e18abbc28938c5a26f735ea7d75"
+        "sha256": "7768037a3f6d670783bd3fffdb661557b8090138f6da25a490fbc7d8eb061d79"
       },
       {
         "path": "src/cost-compare.js",
@@ -78,6 +82,10 @@
       {
         "path": "src/credentials.js",
         "sha256": "21f074b4bf5b5ee9e893a2c1919cf4bb62f9fa05a0d7a1a8c04afc051ccb0e78"
+      },
+      {
+        "path": "src/deepseek-install.js",
+        "sha256": "a230e2553bb6d78a4be87b7459550258eb4e72485a4ac9f1869cc1b308c13360"
       },
       {
         "path": "src/deploy-approval.js",
@@ -89,7 +97,7 @@
       },
       {
         "path": "src/install.js",
-        "sha256": "90af414aabda1c48c82c9c2ecf0dbe4d7dd4744486efdce0d8367182b6a67a38"
+        "sha256": "58f6c5689cacc92738c525d3447656f7b4f8c5fd20a097ef6be71b14606e00bd"
       },
       {
         "path": "src/k8s-approval.js",
@@ -130,6 +138,10 @@
       {
         "path": "test/cost-compare.test.mjs",
         "sha256": "b354913220bf725ec6b8a708b7851e2f5779a3c594cd411732d19acad9001870"
+      },
+      {
+        "path": "test/deepseek-install.test.mjs",
+        "sha256": "bc1d6e0c4e86186c96f4281177c516bc0d657686a36db312350105b3f52cd401"
       },
       {
         "path": "test/deploy-approval.test.mjs",
@@ -173,5 +185,5 @@
       }
     ]
   },
-  "signature": "H9IFrg1rkdQ36/YEY4aH9uYXFczQB7h+PSmA5LV+mwEkF08uYlis6QAArIaDBpz6d85no/YvOS97A2rneTFbDw=="
+  "signature": "BkeAPoquimwhxkwVPJcBZhNFXWZ48WE0EAtkFVUbYbwPz6vO/MitpYQXhmHbeF1fOvFkHczmEy9rRQ6qvpGBBw=="
 }

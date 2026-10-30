@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "70bc9263f657739464a56bf220ce370da7baa73dae086565417ccf62b6806078"
+          "content": "f7f55935cb61367bee11bf371dfd2217c3a5c076930b322a1c58168cdb5747a0"
         }
       ]
     },
@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0ca9b07e9194d91645194140c23d715b741a4503ad261305bf1b8af28470c494"
+          "content": "fcf3146be7e031034f9539f9b7d2a059c5138fbbc9e5fca50c39e496e4696c8b"
         }
       ]
     },
@@ -111,6 +111,16 @@
     },
     {
       "type": "file",
+      "name": "docs/DEEPSEEK.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e42e1bf699d72ef926857b1193bcf3d84d873a9fc4eed2d7598abf2bc74ee1e1"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "docs/HERMES-CODEX.md",
       "hashes": [
         {
@@ -125,7 +135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6b2f6b18f863a9a467ad08977b14de4fdf3285a70ae5a35ce855c4f143c05958"
+          "content": "bd949d14d88b62c6346f3b147500ee45ed7132bb668d62a77163af7b8903534e"
         }
       ]
     },
@@ -159,7 +169,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "7fe766354e40487c5dd90461d41edcde781cf4775d46376daad9c5abbaf8b314"
+          "value": "6a4d6a0429bc5b01314d2282eef07e596a685f871ed963c54e59b70af6f562be"
         }
       ]
     },
@@ -179,7 +189,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "590265903b3a242b3d9c1367801ce6ce10e23e18abbc28938c5a26f735ea7d75"
+          "content": "7768037a3f6d670783bd3fffdb661557b8090138f6da25a490fbc7d8eb061d79"
         }
       ]
     },
@@ -200,6 +210,16 @@
         {
           "alg": "SHA-256",
           "content": "21f074b4bf5b5ee9e893a2c1919cf4bb62f9fa05a0d7a1a8c04afc051ccb0e78"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/deepseek-install.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a230e2553bb6d78a4be87b7459550258eb4e72485a4ac9f1869cc1b308c13360"
         }
       ]
     },
@@ -229,7 +249,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "90af414aabda1c48c82c9c2ecf0dbe4d7dd4744486efdce0d8367182b6a67a38"
+          "content": "58f6c5689cacc92738c525d3447656f7b4f8c5fd20a097ef6be71b14606e00bd"
         }
       ]
     },
@@ -330,6 +350,16 @@
         {
           "alg": "SHA-256",
           "content": "b354913220bf725ec6b8a708b7851e2f5779a3c594cd411732d19acad9001870"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "test/deepseek-install.test.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bc1d6e0c4e86186c96f4281177c516bc0d657686a36db312350105b3f52cd401"
         }
       ]
     },
