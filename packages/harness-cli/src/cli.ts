@@ -723,6 +723,7 @@ import type { SkillApplyFailure, SkillLoadFailure } from '@dzhechkov/harness-cor
 import type { ReqeDebt } from '@dzhechkov/harness-core';
 import type { ClassifyResultRow, ExecutionEvidence } from '@dzhechkov/harness-core';
 import { materializeDiscriminationDependencies } from './discrimination-dependencies.js';
+import { runGoDiscriminationCheck } from './go-discrimination-executor.js';
 import type { IdeaRecord, IdeaStatus } from '@dzhechkov/harness-core';
 import type { Family, ModelRung, Candidate as BtoCandidate, DimScores } from '@dzhechkov/harness-core';
 import type { SetupSpec } from '@dzhechkov/harness-core';
@@ -25001,6 +25002,9 @@ export async function runCli(argv: string[], io: CliIo = {}): Promise<number> {
       case 'challenge':
         return cmdChallenge(options, flags, cwd, write);
       case 'discrimination-check':
+        if ((options.get('test') ?? '').split(',').some(file => file.trim().endsWith('.go'))) {
+          return await runGoDiscriminationCheck(options, flags, cwd, write, reapMutationGateScratchProcesses);
+        }
         return cmdDiscriminationCheck(options, flags, cwd, write);
       case 'mutation-gate': {
         try {

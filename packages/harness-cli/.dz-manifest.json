@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "6adf7a1ecc0ce6cec7e3ccd8fc9d49e1c6301f934c177eb4a118e1a462d25461"
+        "sha256": "0b72665b9ca31725a7efdc9e039eb058e77de39f9e76bcdb4efb6735f0de457c"
       },
       {
         "path": "dist/bin.d.ts",
@@ -49,15 +49,15 @@
       },
       {
         "path": "dist/cli.d.ts.map",
-        "sha256": "d075dd561c7ab80a4976034179a3c5a41640d374504644361e25cd056cea4cf0"
+        "sha256": "9eeb1e23eb069f349df2f98527300b66efd2a44414016454419a72b4d9a812f6"
       },
       {
         "path": "dist/cli.js",
-        "sha256": "8ca63c2dc346144cc62fe28f02cb6d4736bce490f991deeeac3852b4f9140753"
+        "sha256": "37e743a781b3fcc07fcd68b0c16bf8b50ab7500c8302bd770dc44e8802ebcf81"
       },
       {
         "path": "dist/cli.js.map",
-        "sha256": "227e2fe516274862ec8e8d0e4218292808f8bf170617e9a66f8623551ac3a4c2"
+        "sha256": "910bb8dc4090df5dd22c559237843ecb052465bc55422aff5d53e752e119a82f"
       },
       {
         "path": "dist/command-inventory.d.ts",
@@ -106,6 +106,22 @@
       {
         "path": "dist/discrimination-dependencies.js.map",
         "sha256": "0498ddcb5a52ec845d07fe4cf0787c23eccf84c52463e92fd9050cba2aa8bf44"
+      },
+      {
+        "path": "dist/go-discrimination-executor.d.ts",
+        "sha256": "26371492a203fc82e9c7aa2d13834059a65215c6c11fb6a399b246f6408eb0cb"
+      },
+      {
+        "path": "dist/go-discrimination-executor.d.ts.map",
+        "sha256": "77fdfffbd3f66feeb4ba664c62af0451033dacfc967ad5e5c4a2486e2a92b4c3"
+      },
+      {
+        "path": "dist/go-discrimination-executor.js",
+        "sha256": "cc327018a1b9baf4ea7caaa2d1fbf158be09e3375bea911258946748feaf5c90"
+      },
+      {
+        "path": "dist/go-discrimination-executor.js.map",
+        "sha256": "eb98967cac96073226341a917f783abcc1638089f0732c3fda4948cc249dc8dd"
       },
       {
         "path": "dist/index.d.ts",
@@ -245,7 +261,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "a500436cbf9bf5598b56220d1b3b2ec42bb4fd1bb3e30051955df2e6a1d3a493"
+        "sha256": "c18e77b5c9a07a49d5cf8049a377ddafba4ba7cfa9a38e0d3adba230912a1229"
       },
       {
         "path": "src/bin.ts",
@@ -257,7 +273,7 @@
       },
       {
         "path": "src/cli.ts",
-        "sha256": "9dab7785f7363888341b180bde180686aef736fa0a10b4b8c07dff2d54878d13"
+        "sha256": "2ac9d952515e2130f782fef6ed9e79be025caa4e8fd5675db57ff027c2a614fd"
       },
       {
         "path": "src/command-inventory.ts",
@@ -270,6 +286,10 @@
       {
         "path": "src/discrimination-dependencies.ts",
         "sha256": "58a5031b49ccc57ae3f6d90cd82e283c617cacefb0fba6a11dc6befe5f4fb6fc"
+      },
+      {
+        "path": "src/go-discrimination-executor.ts",
+        "sha256": "e744d42f9b86540d32c0cff0bc258296a94e42f4c233f88f3cba9488611f8eb5"
       },
       {
         "path": "src/index.ts",
@@ -305,5 +325,5 @@
       }
     ]
   },
-  "signature": "6Vs8XhddeBDA8Tg2+2OkAmJah3rVH3aroCx+SzCv4PCn0ZXWPMhGZHqjrVzSW1bcZmVvGMfNxEIYypGN8XfGDQ=="
+  "signature": "KL13UxSKYr4SnPeYChuSuduW1hqDOJAeIg8AW4Dmk2okF8/PuI3OwKD7DjwQUHuQI75qd86adK/pGt90ntcsBA=="
 }

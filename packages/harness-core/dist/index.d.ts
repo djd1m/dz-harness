@@ -243,6 +243,7 @@ export * from './routing-outcomes.js';
 export * from './model-recommender.js';
 export * from './bto-optimize.js';
 export * from './discrimination-gate.js';
+export * from './go-discrimination-evidence.js';
 export * from './guard.js';
 export * from './guard-volume.js';
 export * from './npm-homepage.js';

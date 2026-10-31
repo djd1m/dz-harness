@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6adf7a1ecc0ce6cec7e3ccd8fc9d49e1c6301f934c177eb4a118e1a462d25461"
+          "content": "0b72665b9ca31725a7efdc9e039eb058e77de39f9e76bcdb4efb6735f0de457c"
         }
       ]
     },
@@ -125,7 +125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d075dd561c7ab80a4976034179a3c5a41640d374504644361e25cd056cea4cf0"
+          "content": "9eeb1e23eb069f349df2f98527300b66efd2a44414016454419a72b4d9a812f6"
         }
       ]
     },
@@ -135,7 +135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8ca63c2dc346144cc62fe28f02cb6d4736bce490f991deeeac3852b4f9140753"
+          "content": "37e743a781b3fcc07fcd68b0c16bf8b50ab7500c8302bd770dc44e8802ebcf81"
         }
       ]
     },
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "227e2fe516274862ec8e8d0e4218292808f8bf170617e9a66f8623551ac3a4c2"
+          "content": "910bb8dc4090df5dd22c559237843ecb052465bc55422aff5d53e752e119a82f"
         }
       ]
     },
@@ -266,6 +266,46 @@
         {
           "alg": "SHA-256",
           "content": "0498ddcb5a52ec845d07fe4cf0787c23eccf84c52463e92fd9050cba2aa8bf44"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/go-discrimination-executor.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "26371492a203fc82e9c7aa2d13834059a65215c6c11fb6a399b246f6408eb0cb"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/go-discrimination-executor.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "77fdfffbd3f66feeb4ba664c62af0451033dacfc967ad5e5c4a2486e2a92b4c3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/go-discrimination-executor.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cc327018a1b9baf4ea7caaa2d1fbf158be09e3375bea911258946748feaf5c90"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/go-discrimination-executor.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "eb98967cac96073226341a917f783abcc1638089f0732c3fda4948cc249dc8dd"
         }
       ]
     },
@@ -619,7 +659,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "a500436cbf9bf5598b56220d1b3b2ec42bb4fd1bb3e30051955df2e6a1d3a493"
+          "value": "c18e77b5c9a07a49d5cf8049a377ddafba4ba7cfa9a38e0d3adba230912a1229"
         }
       ]
     },
@@ -649,7 +689,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9dab7785f7363888341b180bde180686aef736fa0a10b4b8c07dff2d54878d13"
+          "content": "2ac9d952515e2130f782fef6ed9e79be025caa4e8fd5675db57ff027c2a614fd"
         }
       ]
     },
@@ -680,6 +720,16 @@
         {
           "alg": "SHA-256",
           "content": "58a5031b49ccc57ae3f6d90cd82e283c617cacefb0fba6a11dc6befe5f4fb6fc"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/go-discrimination-executor.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e744d42f9b86540d32c0cff0bc258296a94e42f4c233f88f3cba9488611f8eb5"
         }
       ]
     },

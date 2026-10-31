@@ -8,7 +8,7 @@ export type DiscriminationVerdict = 'DISCRIMINATES' | 'DISCRIMINATES_VIA_ERROR' 
 /** Runner identity for the evidence model. ADR-001's spelling is normative for the PUBLISHED type;
  *  mutation-gate's internal `RunnerKind` says `'unknown'` and is mapped here (H2) rather than renamed —
  *  mutation-gate stays untouched beyond the `detectRunnerKind` extraction. */
-export type EvidenceRunner = 'vitest' | 'node-test' | 'unrecognised';
+export type EvidenceRunner = 'vitest' | 'node-test' | 'go-test' | 'unrecognised';
 /** How the run went, as read off the output shape (mutation-gate's `RunFailureClassification.kind`
  *  plus `'none'` for a green run — `classifyRunFailure` classifies RED runs only, H3). */
 export type EvidenceFailureKind = 'assertions' | 'file-load' | 'none' | 'unrecognised';
@@ -251,8 +251,9 @@ export declare function classifyExecutionEvidence(rawOutput: string, exitCode: n
  * Classify observed base outcomes (+ evidence + the tip control) into per-test verdicts, the compat
  * aggregate, the full findings[] list, and the two orthogonal axes.
  *
- * Every constituent is evidence-gated FIRST; verdict combination is consulted only over EVIDENCED
- * constituents. Old callers that pass bare outcome values (no evidence, no tipOutcome) therefore
+ * Every constituent needed for a trust verdict is evidence-gated. An evidenced red Go tip reports
+ * FAILS_AT_TIP even if base compilation is unknown. Old callers that pass bare outcome values
+ * (no evidence, no tipOutcome) therefore
  * degrade to a loud CANNOT_ISOLATE — never to a near-pass and never to a false DISCRIMINATES. That
  * runtime behavior change for compiling callers is the ADR-002 headline, not a side effect.
  */

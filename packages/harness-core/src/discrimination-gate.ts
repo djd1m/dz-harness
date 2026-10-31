@@ -46,12 +46,12 @@ export type DiscriminationVerdict =
   | 'CANNOT_ISOLATE' // no ESTABLISHED observation; the row's `reason` says which bar failed
   | 'TEST_FILE_ABSENT' // the named check is not a regular file (its evidence IS the layer-1 stat)
   | 'LOAD_ERROR_AT_BOTH_REVS' // errored at base AND at tip — the instrument could not execute it at all
-  | 'FAILS_AT_TIP'; // errored at base, assertion-red at tip — the feature's own test is red WITH the feature
+  | 'FAILS_AT_TIP'; // evidenced assertion-red at tip — the feature's own test is red WITH the feature
 
 /** Runner identity for the evidence model. ADR-001's spelling is normative for the PUBLISHED type;
  *  mutation-gate's internal `RunnerKind` says `'unknown'` and is mapped here (H2) rather than renamed —
  *  mutation-gate stays untouched beyond the `detectRunnerKind` extraction. */
-export type EvidenceRunner = 'vitest' | 'node-test' | 'unrecognised';
+export type EvidenceRunner = 'vitest' | 'node-test' | 'go-test' | 'unrecognised';
 
 /** How the run went, as read off the output shape (mutation-gate's `RunFailureClassification.kind`
  *  plus `'none'` for a green run — `classifyRunFailure` classifies RED runs only, H3). */
@@ -707,9 +707,9 @@ function degraded(reason: CannotIsolateReason): GateResult {
 }
 
 /**
- * Is this observation EVIDENCED? Applied to the base observation and (independently) to the tip
- * control, BEFORE any verdict combination — uniform precedence, uniquely implementable: no verdict,
- * trust OR alarm, fires from an unevidenced runner constituent.
+ * Is this observation EVIDENCED? Applied independently to each observation before that observation
+ * supports a verdict. Go tip assertion redness can be reported while the base remains unestablished;
+ * Go discrimination still requires both observations.
  *
  * PARSE-NEVER-SYNTHESIZE: an outcome value CONTRADICTED by its own evidence (`fail` + `file-load`,
  * `error` + `assertions`, `pass` + a non-zero exit, and — symmetrically — any RED outcome with
@@ -785,6 +785,24 @@ function classifyRow(row: ClassifyResultRow | undefined): RowVerdict {
   if (row.baseRun?.captureComplete === false && !row.baseRun.captureError?.startsWith('ETIMEDOUT')) return cannotIsolate('capture-incomplete');
   if (row.evidence?.exitCode === null) return cannotIsolate('timeout');
   if (row.baselineDependency?.kind === 'unavailable') return cannotIsolate('baseline-dependency-unavailable');
+  if (row.evidence?.runner === 'go-test' || row.tipEvidence?.runner === 'go-test') {
+    // A measured red Go tip is useful even if the frozen base did not compile. Neither a
+    // green tip nor a base load error can establish discrimination without base evidence.
+    if (row.baseRun?.captureComplete === false) return cannotIsolate(row.baseRun.captureError?.startsWith('ETIMEDOUT') ? 'timeout' : 'capture-incomplete');
+    if (row.tipOutcome === undefined) return cannotIsolate('tip-control-missing');
+    if (row.tipRun?.captureComplete === false) return cannotIsolate(row.tipRun.captureError?.startsWith('ETIMEDOUT') ? 'timeout' : 'capture-incomplete');
+    if (row.tipOutcome === 'fail' && row.tipEvidence?.runner === 'go-test') {
+      const tipRed = gateObservation('fail', row.tipEvidence);
+      return tipRed.evidenced ? { verdict: 'FAILS_AT_TIP' } : cannotIsolate('tip-evidence-missing');
+    }
+    const tipGreen = row.tipOutcome === 'pass' ? gateObservation('pass', row.tipEvidence) : degraded('tip-evidence-missing');
+    if (!tipGreen.evidenced || row.tipEvidence?.runner !== 'go-test') return cannotIsolate('tip-evidence-missing');
+    const baseGate = gateObservation(row.outcome, row.evidence);
+    if (!baseGate.evidenced) return cannotIsolate(baseGate.reason);
+    if (row.evidence?.runner !== 'go-test' || row.outcome === 'error') return cannotIsolate('no-execution-evidence');
+    return { verdict: row.outcome === 'fail' ? 'DISCRIMINATES' : 'NON_DISCRIMINATING' };
+  }
+
   const baseGate = gateObservation(row.outcome, row.evidence);
   if (!baseGate.evidenced) return cannotIsolate(baseGate.reason);
 
@@ -869,7 +887,7 @@ function detailFor(verdict: DiscriminationVerdict, rows: readonly PerTestVerdict
     case 'LOAD_ERROR_AT_BOTH_REVS':
       return `the test errored at the pre-feature base AND at tip: ${list}. The instrument could not execute it at either rev, so the reading carries ZERO signal about discrimination. Action: fix-runner-invocation (wrong runner for this file type, or a broken config).`;
     case 'FAILS_AT_TIP':
-      return `the test errored at base and fails BY ASSERTION at tip: ${list}. The feature's own property test is red with the feature present, so discrimination is unestablishable. Action: fix-red-feature-test — grade the feature code accordingly.`;
+      return `the property test fails BY ASSERTION at tip: ${list}. The feature's own property test is red with the feature present, so discrimination is unestablishable. Action: fix-red-feature-test — grade the feature code accordingly.`;
     case 'CANNOT_ISOLATE':
       if (rows.some(row => row.reason === 'baseline-dependency-unavailable')) return `Baseline dependency isolation is unavailable for: ${list}.${tail} Action: fix-runner-invocation — restore the required local install or prepare genuine baseline build artifacts separately, then rerun. Never borrow tip workspace dist.`;
       if (rows.some(row => row.reason === 'capture-incomplete')) return `Runner capture is incomplete for: ${list}.${tail} Action: fix-runner-invocation — resolve the output cap or capture failure and rerun; partial output cannot establish proof.`;
@@ -885,8 +903,9 @@ function detailFor(verdict: DiscriminationVerdict, rows: readonly PerTestVerdict
  * Classify observed base outcomes (+ evidence + the tip control) into per-test verdicts, the compat
  * aggregate, the full findings[] list, and the two orthogonal axes.
  *
- * Every constituent is evidence-gated FIRST; verdict combination is consulted only over EVIDENCED
- * constituents. Old callers that pass bare outcome values (no evidence, no tipOutcome) therefore
+ * Every constituent needed for a trust verdict is evidence-gated. An evidenced red Go tip reports
+ * FAILS_AT_TIP even if base compilation is unknown. Old callers that pass bare outcome values
+ * (no evidence, no tipOutcome) therefore
  * degrade to a loud CANNOT_ISOLATE — never to a near-pass and never to a false DISCRIMINATES. That
  * runtime behavior change for compiling callers is the ADR-002 headline, not a side effect.
  */

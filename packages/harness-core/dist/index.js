@@ -222,6 +222,7 @@ export * from './routing-outcomes.js';
 export * from './model-recommender.js';
 export * from './bto-optimize.js';
 export * from './discrimination-gate.js';
+export * from './go-discrimination-evidence.js';
 export * from './guard.js';
 export * from './guard-volume.js';
 // npm-homepage-guard (backlog e5d0d383): pure facts + fs reader for the `npm-homepage` guard rule.

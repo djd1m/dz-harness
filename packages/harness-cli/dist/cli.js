@@ -67,6 +67,7 @@ renderProfileBlock, readProfile, writeProfile, syncProfileBlock, checkProfileDri
 normalizeBridgeSeverity, diffFamilyFindings, buildControlRow, parseControlRows, aggregateByFamily, } from '@dzhechkov/harness-core';
 import { QE_FINDINGS_HEADER, QE_LEDGER_HEADING } from '@dzhechkov/harness-core';
 import { materializeDiscriminationDependencies } from './discrimination-dependencies.js';
+import { runGoDiscriminationCheck } from './go-discrimination-executor.js';
 import { getPreset, PRESET_NAMES } from '@dzhechkov/harness-presets';
 import { scanGitHub, analyzeRepo, generateReport, deepAnalyze, scanAllSources, ScoutMemory } from '@dzhechkov/scout';
 /**
@@ -24696,6 +24697,9 @@ export async function runCli(argv, io = {}) {
             case 'challenge':
                 return cmdChallenge(options, flags, cwd, write);
             case 'discrimination-check':
+                if ((options.get('test') ?? '').split(',').some(file => file.trim().endsWith('.go'))) {
+                    return await runGoDiscriminationCheck(options, flags, cwd, write, reapMutationGateScratchProcesses);
+                }
                 return cmdDiscriminationCheck(options, flags, cwd, write);
             case 'mutation-gate': {
                 try {
