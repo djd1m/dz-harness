@@ -2,8 +2,9 @@
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/cloudru-hub
 
-> **Linux/x64:** staged version 0.1.19 names the exact optional engine
-> package `@dzhechkov/cloudru-vm-linux-x64@0.2.9`. The `dz guard` `licence-hold`
+> **Linux/x64:** the `0.1.20` launcher names the exact optional engine
+> package `@dzhechkov/cloudru-vm-linux-x64@0.2.10`. The previous
+> `0.1.19`/`0.2.9` archives remain unchanged. The `dz guard` `licence-hold`
 > rule continues to check LICENSE, notices and SPDX on publish.
 
 > **Unofficial. NOT affiliated with, endorsed, or supported by Cloud.ru.** "Cloud.ru" is a
@@ -16,10 +17,10 @@ Evolution: VMs, k8s, PostgreSQL/Kafka/Redis, DNS, S3, certificates, billing/FinO
 docker-compose deploy wizard.
 
 The launcher archive contains no engine binary. npm installs the exact optional
-platform package with the pinned Go engine on Linux/x64. Run:
+platform package with the pinned Go engine on Linux/x64. For the matched pair, run:
 
 ```bash
-npm install -g @dzhechkov/cloudru-hub@0.1.19
+npm install -g @dzhechkov/cloudru-hub@0.1.20
 cloudru-hub self-test
 ```
 
@@ -86,7 +87,7 @@ node bin/cloudru-hub.js self-test
 ```
 
 Expected: 5 green steps ending `self-test: ALL GREEN` (resolution, sha256 match against
-the pinned build `12adec02…91a1f9f`, engine version, 146 registered catalog tools, full
+the pinned build `054aadf7…abb1b525`, engine version, 146 registered catalog tools, full
 classification coverage). Full walkthrough incl. `npm link` and MCP registration:
 [`docs/LOCAL-TESTING.md`](docs/LOCAL-TESTING.md).
 
@@ -226,7 +227,7 @@ protections proven:
 
 ## Platform package status
 
-The staged `0.2.9-20261102` engine adds bounded public-IP recovery for `deploy_apply`.
+The published `0.2.9-20261102` engine adds bounded public-IP recovery for `deploy_apply`.
 An uncertain IP attach/create or failed IP read returns a partial result and keeps
 the plan and a private, redacted run receipt for `deploy_reconcile`. Recovery only
 observes the configured project's exact VM/IP identities; it never retries the
@@ -235,7 +236,20 @@ request release of a run-created IP only after an exact unbound observation.
 An accepted delete remains pending until separately observed. These properties
 are covered by local synthetic tests; no new live Cloud.ru operation was used.
 
-The separate `@dzhechkov/cloudru-vm-linux-x64@0.2.9` package is installed
+The `0.2.10-20261103` IP deletion recovery update records an exclusive, durable claim
+for the exact project and floating-IP ID before targeted cleanup sends one
+DELETE. An occupied, partial or unreadable claim blocks another local attempt
+across processes. A successful DELETE response is recorded as
+`accepted_pending`; a lost response is `unknown`. `deploy_reconcile` reports the
+retained release phase and separate project IP observation even when the VM is
+missing or VM inventory fails. An IP absent from one inventory response is only
+`not_observed`, not proven deleted. This local claim does not provide
+provider-side exactly-once deletion or make VM deletion replay-safe; a crash
+before DELETE can leave a permanent intent, and the external unbound-read/DELETE
+race remains. Local synthetic tests cover this change; the measured binary
+pin and matched package versions define this release pair.
+
+The separate `@dzhechkov/cloudru-vm-linux-x64@0.2.10` package is installed
 automatically on Linux/x64 unless optional dependencies are disabled. Its static
 build reproduces the pinned SHA-256 and bundles the license and NOTICE files
 of linked Go modules. `CLOUDRU_VM_BIN` and `~/.cloudru-hub/config.json` remain

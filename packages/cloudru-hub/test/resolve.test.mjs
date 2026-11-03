@@ -125,6 +125,6 @@ test('sha256File matches node crypto', () => {
 test('the pinned linux-x64 hash is the rebuilt private engine sha256', () => {
   assert.equal(
     PKG.cloudruHub.binaryHashes['linux-x64'],
-    '12adec025f0b39c750457355c8c4e70dd1d430af6c5a59e55ad903bbc91a1f9f',
+    '054aadf793e4b2f695a9d75095a7d0ad94f0e68ba1f224449ba71662abb1b525',
   );
 });

@@ -1,6 +1,21 @@
 # Changelog — @dzhechkov/cloudru-hub
 
-## 0.1.19 — 2026-11-02 (staged, not published)
+## 0.1.20 — 2026-11-03
+
+- Use matched `@dzhechkov/cloudru-vm-linux-x64@0.2.10` with engine
+  `0.2.10-20261103`, SHA-256
+  `054aadf793e4b2f695a9d75095a7d0ad94f0e68ba1f224449ba71662abb1b525`.
+  The normal Go 1.25.0 builder reproduces the pin; 146 tool names and permission
+  categories remain unchanged. Published `0.1.19`/`0.2.9` archives are immutable.
+- Before targeted cleanup requests floating-IP DELETE, persist an exclusive
+  project/IP claim. Occupied or uncertain claims block replay across processes;
+  read-only `deploy_reconcile` reports retained phase and separate IP inventory
+  observation even without a visible VM. A request accepted by Cloud.ru remains
+  pending. Local synthetic tests cover faults, restart and duplicate inventory;
+  there is no new live provider deletion proof or provider-side exactly-once
+  guarantee.
+
+## 0.1.19 — 2026-11-02 (published)
 
 - Add explicit `--credentials-file default|path` for DeepSeek read profiles.
   The private file is validated at proxy startup and only its marker/path is

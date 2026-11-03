@@ -1,7 +1,7 @@
 {
-  "capturedAt": "2026-11-02",
-  "engineVersion": "cloudru-vm 0.2.9-20261102",
-  "engineSha256": "12adec025f0b39c750457355c8c4e70dd1d430af6c5a59e55ad903bbc91a1f9f",
+  "capturedAt": "2026-11-03",
+  "engineVersion": "cloudru-vm 0.2.10-20261103",
+  "engineSha256": "054aadf793e4b2f695a9d75095a7d0ad94f0e68ba1f224449ba71662abb1b525",
   "method": "JSON-RPC tools/list via src/probe-child.js against locally built private engine; gated flags retained from prior snapshot (not emitted by tools/list)",
   "toolCount": 146,
   "tools": [

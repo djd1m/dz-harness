@@ -4,14 +4,14 @@ Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree
 
 The Linux/x64 engine for [`@dzhechkov/cloudru-hub`](https://github.com/djd1m/dz-harness/tree/main/packages/cloudru-hub). This is an unofficial Cloud.ru integration, unaffiliated with Cloud.ru.
 
-The staged `@dzhechkov/cloudru-hub@0.1.19` names this `0.2.9` package as its exact Linux/x64 optional dependency. The hub verifies the engine SHA-256 before startup. No postinstall download is used.
-The pinned binary has SHA-256 `12adec025f0b39c750457355c8c4e70dd1d430af6c5a59e55ad903bbc91a1f9f`.
+`@dzhechkov/cloudru-hub@0.1.20` names this `0.2.10` package as its exact Linux/x64 optional dependency. The previous `0.1.19`/`0.2.9` pair is unchanged. The hub verifies the engine SHA-256 before startup. No postinstall download is used.
+The pinned binary has SHA-256 `054aadf793e4b2f695a9d75095a7d0ad94f0e68ba1f224449ba71662abb1b525`.
 
 For maintainers, the binary is generated from the private `go/cloudru-vm` source and is not committed to Git. Packing from a fresh checkout builds it automatically; an existing binary is verified before packing or mirroring. The build requires Go 1.25.0 on Linux/x64 in `PATH` (or set `CLOUDRU_GO` to its executable) and checks the SHA-256 pinned by the launcher. Run `npm run prepare:binary` to rebuild explicitly.
 
 Timur contributed extensive Cloud.ru API testing and helped identify API behavior and defects.
 
-The staged `0.2.9-20261102` engine retains Kubernetes placement resolution,
+The `0.2.10-20261103` engine retains Kubernetes placement resolution,
 read-only `k8s_plan(preflight:true)` observations and receipt-based recovery for
 `k8s_create` and `k8s_add_nodepool`. The diagnostic reports unknown create
 permissions, quota capacity and inventory completeness explicitly; it does not
@@ -25,7 +25,7 @@ raw engine paths and direct API callers are outside this coordination.
 Local synthetic race, restart and I/O-fault controls cover these corrections;
 no new live VM creation or paid-cluster test was used.
 
-This staged engine journals one public-IP attempt
+This engine journals one public-IP attempt
 before attach/create. An uncertain response stops further IP mutations,
 returns a partial deployment and retains the plan for read-only
 `deploy_reconcile`. Targeted VM cleanup keeps borrowed or unproven IPs; a
@@ -33,6 +33,15 @@ run-created IP is eligible for one release request only when its exact ID is
 freshly observed as available with explicit null VM and interface bindings.
 Accepted deletion is reported as pending. Local synthetic tests cover these
 paths; no new live Cloud.ru operation was used.
+
+This update also records an exclusive, durable local project/IP claim
+before one targeted floating-IP DELETE. Repeated or uncertain cleanup cannot
+send another DELETE through the same state tree. `deploy_reconcile` reads its
+phase and project IP observation independently of VM inventory. An accepted
+request remains pending; a missing inventory row is not proof of deletion.
+The claim does not make remote deletion atomic, prevent the unbound-read/DELETE
+race or cover VM DELETE replay. This correction has local synthetic evidence;
+no new live provider deletion was run.
 
 The executable is built with `CGO_ENABLED=0` for a static Linux/x64 binary. The archive contains complete top-level license and notice files for the third-party Go modules linked into this binary. See `THIRD_PARTY_NOTICES.md`.
 

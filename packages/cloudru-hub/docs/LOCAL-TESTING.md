@@ -19,8 +19,8 @@ EOF
 # c) no override: the installed Linux/x64 optional platform package
 ```
 
-The pinned binary identifies itself as `cloudru-vm 0.2.9-20261102` and has SHA-256
-`12adec025f0b39c750457355c8c4e70dd1d430af6c5a59e55ad903bbc91a1f9f`.
+The pinned binary identifies itself as `cloudru-vm 0.2.10-20261103` and has SHA-256
+`054aadf793e4b2f695a9d75095a7d0ad94f0e68ba1f224449ba71662abb1b525`.
 
 ## 2. Self-test (end-to-end, no credentials required)
 
@@ -33,8 +33,8 @@ Example output from the verified engine (installation path varies):
 
 ```
 ✓ resolve: …/cloudru-vm-linux-x64/native/cloudru-vm (source: env)
-✓ sha256: 12adec025f0b39c750457355c8c4e70dd1d430af6c5a59e55ad903bbc91a1f9f — MATCHES pinned build
-✓ engine-version: cloudru-vm 0.2.9-20261102
+✓ sha256: 054aadf793e4b2f695a9d75095a7d0ad94f0e68ba1f224449ba71662abb1b525 — MATCHES pinned build
+✓ engine-version: cloudru-vm 0.2.10-20261103
 ✓ tools-list: 146 tools live (snapshot: 146)
 ✓ classification-coverage: every live tool is classified (146 golden entries)
 self-test: ALL GREEN
@@ -74,4 +74,4 @@ appears; note which prefix spelling the runtime used.
 
 ## 5. Testing from another server (`npm install` path)
 
-On Linux/x64, install `@dzhechkov/cloudru-hub@0.1.19` normally and run `cloudru-hub self-test` without setting `CLOUDRU_VM_BIN`. npm installs the exact `@dzhechkov/cloudru-vm-linux-x64@0.2.9` optional engine package. If optional dependencies were disabled or the platform is unsupported, provide a matching trusted binary explicitly.
+On Linux/x64, `@dzhechkov/cloudru-hub@0.1.20` names the exact `@dzhechkov/cloudru-vm-linux-x64@0.2.10` optional engine package. The previous pair was `0.1.19`/`0.2.9`. For prepublication testing, install both matching local archives for a fresh-consumer test. If optional dependencies were disabled or the platform is unsupported, provide a matching trusted binary explicitly.
