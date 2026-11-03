@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f7f55935cb61367bee11bf371dfd2217c3a5c076930b322a1c58168cdb5747a0"
+          "content": "c55f62b2210734aa5fcbd13c09eac3457fdebeba11f08035567c0e95f54b468c"
         }
       ]
     },
@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fcf3146be7e031034f9539f9b7d2a059c5138fbbc9e5fca50c39e496e4696c8b"
+          "content": "8c2ad3b4423bbb93c3dbc9ea51b468fec8ded98b1e62961d051ae03f2cac47a6"
         }
       ]
     },
@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0f09cb2fffd2feebfa5e7e97e8503a47ae1b63d1035e309540a4211f0bace477"
+          "content": "f35636c6531f5c82964382879cab8d9712ce913370ed013063823172986e8321"
         }
       ]
     },
@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "247fe8a6d9c47d3b7c4d218d1047df842e41e3b1880594d7dbc7b3f5e6ce52ed"
+          "content": "4a4d2334fde06837256f213cbffc90748cfeefccf1559af46726b44e43372863"
         }
       ]
     },
@@ -115,7 +115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e42e1bf699d72ef926857b1193bcf3d84d873a9fc4eed2d7598abf2bc74ee1e1"
+          "content": "56d59b28230c6bf83bfe99675d0b85493cadf85309b25fb13dd39b7f8c40d126"
         }
       ]
     },
@@ -125,7 +125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "00a5c9acc3999c5e07f230ba63bc1a0e202d62c8d15d2204620feca762eece8f"
+          "content": "2c6baab36bd1e9da63ddd97ca68a9f3e4651bee209634ad2a217c24a5acc4c5c"
         }
       ]
     },
@@ -135,7 +135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bd949d14d88b62c6346f3b147500ee45ed7132bb668d62a77163af7b8903534e"
+          "content": "cf537eddfce3221b30d327275fff38e13bb9e51913b2b576e598cfe03e0121fa"
         }
       ]
     },
@@ -169,7 +169,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "6a4d6a0429bc5b01314d2282eef07e596a685f871ed963c54e59b70af6f562be"
+          "value": "4c5daba83ada58d6f593c107c7b35b15e60a7b8876d7965808c2515856d32d7a"
         }
       ]
     },
@@ -189,7 +189,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7768037a3f6d670783bd3fffdb661557b8090138f6da25a490fbc7d8eb061d79"
+          "content": "3f0dec786e3d8f16d7e5313290b1e4ce154e53b1d6285b049838b67d5e8d8e65"
         }
       ]
     },
@@ -219,7 +219,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a230e2553bb6d78a4be87b7459550258eb4e72485a4ac9f1869cc1b308c13360"
+          "content": "b6ac324715e1d92119985421630bef5641cc81ec09dc9a806e7d8291bca8fd4a"
         }
       ]
     },
@@ -249,7 +249,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "58f6c5689cacc92738c525d3447656f7b4f8c5fd20a097ef6be71b14606e00bd"
+          "content": "3ba7da80627d6f69564ad74b36dc70b2bf4ddc770e5977f4bad1e130c857b255"
         }
       ]
     },
@@ -299,7 +299,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "60a5db44db9518835f98f23aa104b86c3621f0b0c030196c2130715f5c19c219"
+          "content": "c34b1b86147bba97ee44e4024403044965f5a3ae2899ef5ef32976cb76b8825b"
         }
       ]
     },
@@ -359,7 +359,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bc1d6e0c4e86186c96f4281177c516bc0d657686a36db312350105b3f52cd401"
+          "content": "d9f3e782bbc587900ca2527619c99a93f4a9668279981d86cea52979eb853d8d"
         }
       ]
     },
@@ -399,7 +399,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "07fe729b0dc6955329d0a3121ce97d575582f8c6f2895e72d0c38175f82b52d2"
+          "content": "6b799690a5106b68e9656e20068b8bef245409586b8b0dbae7d75dff1f2ee6c0"
         }
       ]
     },
@@ -445,11 +445,21 @@
     },
     {
       "type": "file",
+      "name": "test/read-profile-credentials.test.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6358d86af284bd516ad26f4d6cc225a5be8f51e2076a90096959a0a6db405162"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "test/resolve.test.mjs",
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dcaede3dea29d98d93f3c902b8f9f389f24dc7b9a84665d1c206263915282f06"
+          "content": "63b11fe9b5952cba47c834ddf998bb34e093a68b27aeebfd7cb5987471d2e7ea"
         }
       ]
     },
@@ -459,7 +469,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e99200ccdd8368260af18532478addc08e3b6195986cecf68b669e9dc639d119"
+          "content": "d4aa112522258523f5e075a6a262d37ccc7e2ddf24fb6a512fae185c3a327735"
         }
       ]
     }

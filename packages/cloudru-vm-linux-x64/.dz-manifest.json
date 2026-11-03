@@ -9,11 +9,11 @@
       },
       {
         "path": "README.md",
-        "sha256": "30359155bf552d9ec1d457b341f5907981d281b44614ab9bfa2d8794be3ed518"
+        "sha256": "62ab3a198804c1435176b6145ce24aabf560570f03859cf3c59c109fbe8baad1"
       },
       {
         "path": "THIRD_PARTY_NOTICES.md",
-        "sha256": "709e9af1ec69e5514b09766718c95de9e73be2ea93868dcf001202ed8d6bc414"
+        "sha256": "7aef49a2f714f5b59c7307e6cf31ac824f562732859f2fb9114e799b9d78e2ef"
       },
       {
         "path": "licenses/github.com/cespare/xxhash/v2/v2.3.0/LICENSE.txt",
@@ -125,13 +125,13 @@
       },
       {
         "path": "native/cloudru-vm",
-        "sha256": "0095d3911da7e3a93f1d2ee064708820b9b9c50bfc5cbd99fc46c7da6db8be08"
+        "sha256": "12adec025f0b39c750457355c8c4e70dd1d430af6c5a59e55ad903bbc91a1f9f"
       },
       {
         "path": "package.json",
-        "sha256": "5c10e9a4628d1e63c208371973200a007dc7f20e96920c19834bce47ca264c11"
+        "sha256": "36d7e74e47f9e445aa3d71888639ba80e274e3b87e34a7f24195ecf598fba087"
       }
     ]
   },
-  "signature": "AvjVxGVopePIWhbfD0NM+Ms4ZfgmMxohnLG+v6oks0DyI0qrjzXw9ClDV6LcVSEOZBdECB/5HG4saRi3JHRnBw=="
+  "signature": "JKkpgqojVzuX2PKqhjdgSoX0K8H8IPzRh5QbngrSoQKwPwTD1U5Cw92TTea6P+1aTSFTEqeOoMWKdBPMsAbnDQ=="
 }

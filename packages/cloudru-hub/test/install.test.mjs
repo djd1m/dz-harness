@@ -101,6 +101,16 @@ test('DEGRADED targets are refused with the ADR-005 reason — never a fake inst
   }
 });
 
+test('credential-file option refuses other installer targets before project writes', () => {
+  for (const target of ['codex', 'opencode', 'pi', 'hermes', 'claude-code']) {
+    const dir = path.join(tmp(), 'new');
+    const res = install(target, dir, { credentialsFile: 'default' });
+    assert.equal(res.code, 1, `${target}: ${res.lines.join('\n')}`);
+    assert.match(res.lines.join('\n'), /credentials-file.*only for deepseek-harness/);
+    assert.equal(fs.existsSync(dir), false);
+  }
+});
+
 test('POINTER-ONLY targets get the ≤2048-char pointer with the mandatory no-veto warning', () => {
   for (const target of ['agents-md', 'gemini']) {
     const dir = tmp();

@@ -2,8 +2,8 @@
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/cloudru-hub
 
-> **Linux/x64:** version 0.1.18 names the exact optional engine
-> package `@dzhechkov/cloudru-vm-linux-x64@0.2.8`. The `dz guard` `licence-hold`
+> **Linux/x64:** staged version 0.1.19 names the exact optional engine
+> package `@dzhechkov/cloudru-vm-linux-x64@0.2.9`. The `dz guard` `licence-hold`
 > rule continues to check LICENSE, notices and SPDX on publish.
 
 > **Unofficial. NOT affiliated with, endorsed, or supported by Cloud.ru.** "Cloud.ru" is a
@@ -19,7 +19,7 @@ The launcher archive contains no engine binary. npm installs the exact optional
 platform package with the pinned Go engine on Linux/x64. Run:
 
 ```bash
-npm install -g @dzhechkov/cloudru-hub@0.1.18
+npm install -g @dzhechkov/cloudru-hub@0.1.19
 cloudru-hub self-test
 ```
 
@@ -52,6 +52,7 @@ cloudru-hub self-test               # resolve → sha256 → engine version → 
 cloudru-hub cost-compare --input docs/cost-compare.example.json --json  # offline cost worksheet
 cloudru-hub mcp                     # run the engine as an MCP stdio server (what .mcp.json points at)
 cloudru-hub mcp-safe --toolsets inventory   # pinned MCP proxy with a small allow-classified surface
+cloudru-hub mcp-safe --toolsets inventory --credentials-file default  # explicit private-file opt-in
 cloudru-hub install --target codex --toolsets billing  # read-only balance, consumption and FinOps
 cloudru-hub install --target codex --toolsets vm-deploy  # guarded VM deployment profile
 cloudru-hub install --target codex --toolsets k8s-deploy # bounded existing-cluster profile
@@ -66,6 +67,7 @@ cloudru-hub install --target pi            # project .pi/mcp.json using mcp-safe
 cloudru-hub install --target hermes        # require a hash-verified engine; add safe entry to $HERMES_HOME/config.yaml
 cloudru-hub install --target deepseek-harness --dir /path/to/project --dry-run
 cloudru-hub install --target deepseek-harness --dir /path/to/project
+cloudru-hub install --target deepseek-harness --dir /path/to/project --toolsets compute --credentials-file private/credentials.json
 cloudru-hub install --target agents-md     # pointer-only section (no tools, no fake support)
 cloudru-hub compile-skill --canonical <engine>/skill/cloudru-hub --target claude-code --out ./skill-out
 ```
@@ -84,7 +86,7 @@ node bin/cloudru-hub.js self-test
 ```
 
 Expected: 5 green steps ending `self-test: ALL GREEN` (resolution, sha256 match against
-the pinned baseline `0095d391…db8be08`, engine version, 146 registered catalog tools, full
+the pinned build `12adec02…91a1f9f`, engine version, 146 registered catalog tools, full
 classification coverage). Full walkthrough incl. `npm link` and MCP registration:
 [`docs/LOCAL-TESTING.md`](docs/LOCAL-TESTING.md).
 
@@ -97,11 +99,17 @@ profile. Repeating the install is idempotent; conflicting managed content is ref
 The overlay registers the existing guarded `mcp-safe` proxy. The released
 `@deepseek-ai/dsh@0.2.1-rc.5` passed official-client configuration composition,
 MCP registration and a local status call, plus full web-host startup and registration.
-These checks do not establish DeepSeek inference or live Cloud.ru deployment. The
-default `inventory` selection exposes 11 classified safe tools, but the official
-client scrubs ambient Cloud.ru credential variables; its default inventory cloud
-calls are not established by a credentials file. The existing `vm-deploy` and
-`k8s-deploy` profiles can read the private credential file through `mcp-safe`.
+The official MCP client scrubs ambient Cloud.ru credential variables. For read
+profiles, pass `--credentials-file default` or a path explicitly to the DeepSeek
+installer (or directly to `mcp-safe`); the file is checked when the proxy starts.
+The default marker uses the existing home or `CLOUDRU_HUB_CREDENTIALS` lookup;
+a relative installer path is resolved from the selected project. The overlay
+stores only this marker or absolute path, never credential contents. Without the
+flag, `inventory`, `compute` and `network` keep their previous no-file behavior.
+The flag is refused for `vm-deploy` and `k8s-deploy`, which retain their original
+required-file approval context. Local synthetic official-client calls confirmed
+selected tool names and file-to-child delivery for two distinct project fixtures;
+they do not establish DeepSeek inference or live Cloud.ru access.
 
 For billing through `mcp-safe`, add the optional `"agreement_id":"…"` to the owner-only `~/.config/cloudru-hub/credentials.json` alongside `key_id`, `secret` and `project_id`. The proxy forwards it to the Go child as `CLOUDRU_AGREEMENT_ID`. Existing environment-only billing setups remain supported when no credential file is configured. The current consumption tool reports the agreement-wide total; its output should not be presented as a per-project bill. See the [Cloud.ru instructions for locating the agreement ID](https://cloud.ru/docs/billing/ug/topics/faq__api_id_agreement).
 
@@ -218,7 +226,16 @@ protections proven:
 
 ## Platform package status
 
-The separate `@dzhechkov/cloudru-vm-linux-x64@0.2.8` package is installed
+The staged `0.2.9-20261102` engine adds bounded public-IP recovery for `deploy_apply`.
+An uncertain IP attach/create or failed IP read returns a partial result and keeps
+the plan and a private, redacted run receipt for `deploy_reconcile`. Recovery only
+observes the configured project's exact VM/IP identities; it never retries the
+IP mutation. Targeted VM cleanup preserves borrowed or unproven IPs, and can
+request release of a run-created IP only after an exact unbound observation.
+An accepted delete remains pending until separately observed. These properties
+are covered by local synthetic tests; no new live Cloud.ru operation was used.
+
+The separate `@dzhechkov/cloudru-vm-linux-x64@0.2.9` package is installed
 automatically on Linux/x64 unless optional dependencies are disabled. Its static
 build reproduces the pinned SHA-256 and bundles the license and NOTICE files
 of linked Go modules. `CLOUDRU_VM_BIN` and `~/.cloudru-hub/config.json` remain
@@ -226,7 +243,7 @@ available for an explicitly supplied matching binary (see *Local testing*).
 
 ## Tests
 
-`npm test` — 107 tests, 107 passing (MEASURED — `node --test 'test/*.test.mjs'`, 2026-10-20;
+`npm test` — 166 tests, 166 passing (MEASURED — `npm test`, 2026-11-02;
 node:test with `yaml` as the sole runtime dependency). Suite includes the tarball-content gate,
 the post-grant licence gates, the brake acid tests, installer tiering, and dialect
 compilation.

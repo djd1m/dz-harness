@@ -33,7 +33,8 @@ Commands:
   self-test [--json]       Local check: resolve → sha256 → engine version → live tools/list
                            → golden-classification coverage. Exit 0 = all green.
   mcp                      Run the resolved engine as an MCP stdio server (what .mcp.json points at).
-  mcp-safe [--toolsets <groups>]  Run a pinned MCP proxy; vm-deploy and k8s-deploy enable bounded deployment.
+  mcp-safe [--toolsets <groups>] [--credentials-file <default|path>]
+                           Run a pinned MCP proxy; credential-file opt-in is limited to read profiles.
   approve --plan-id <id> --max-monthly-rub <amount> [--site-sha256 <digest>]
                            Authorize one exact VM plan for ten minutes within a RUB/month cap.
                            Static sites require the artifact digest shown by deploy_plan.
@@ -52,6 +53,7 @@ Commands:
                            [--hermes-home <dir>] overrides $HERMES_HOME for Hermes.
                            [--npx] use the npx form in Claude .mcp.json.
                            [--dry-run] validate and print DeepSeek overlay without writes (DeepSeek only).
+                           [--credentials-file <default|path>] DeepSeek read profiles only.
   compile-skill --canonical <dir> --target <t> --out <dir>
                            Generate a target dialect of the canonical skill tree (ADR-006). The
                            canonical corpus is NOT shipped here; point --canonical at the skill/
@@ -157,6 +159,14 @@ function main(argv, write = (s) => process.stdout.write(s + '\n')) {
   const { flags, opts, positional } = parseArgs(argv);
   const cmd = positional[0] || 'help';
   if (flags.has('help') || flags.has('h') || cmd === 'help') { showHelp(write); return 0; }
+  if (cmd === 'mcp-safe' || cmd === 'install') {
+    const credentialFlags = argv.flatMap((arg, index) => arg === '--credentials-file' ? [index] : []);
+    if (credentialFlags.length > 1 || credentialFlags.some((index) =>
+      !argv[index + 1] || argv[index + 1].startsWith('--'))) {
+      write(`cloudru-hub ${cmd}: --credentials-file requires one default or path value`);
+      return 1;
+    }
+  }
 
   switch (cmd) {
     case 'version':
@@ -173,7 +183,7 @@ function main(argv, write = (s) => process.stdout.write(s + '\n')) {
       return rc === null ? null : rc;
     }
     case 'mcp-safe':
-      return runSafeMcp({ toolsets: opts.get('toolsets') || 'all' });
+      return runSafeMcp({ toolsets: opts.get('toolsets') || 'all', credentialsFile: opts.get('credentials-file') });
     case 'approve': {
       const amount = Number(opts.get('max-monthly-rub'));
       if (!opts.get('plan-id') || !opts.has('max-monthly-rub') || !Number.isFinite(amount) || amount < 0) {
@@ -205,7 +215,7 @@ function main(argv, write = (s) => process.stdout.write(s + '\n')) {
     case 'install': {
       const target = opts.get('target');
       if (!target) { write('cloudru-hub install: --target is required (claude-code|codex|agents-md|gemini|…)'); return 1; }
-      const res = install(target, opts.get('dir') || process.cwd(), { npx: flags.has('npx'), dryRun: flags.has('dry-run'), toolsets: opts.get('toolsets') || 'inventory', hermesHome: opts.get('hermes-home') });
+      const res = install(target, opts.get('dir') || process.cwd(), { npx: flags.has('npx'), dryRun: flags.has('dry-run'), toolsets: opts.get('toolsets') || 'inventory', hermesHome: opts.get('hermes-home'), credentialsFile: opts.get('credentials-file') });
       for (const line of res.lines) write(line);
       return res.code;
     }

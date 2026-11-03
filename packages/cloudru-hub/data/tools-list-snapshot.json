@@ -1,8 +1,8 @@
 {
-  "capturedAt": "2026-10-29",
-  "engineVersion": "cloudru-vm 0.2.8-20261029",
-  "engineSha256": "0095d3911da7e3a93f1d2ee064708820b9b9c50bfc5cbd99fc46c7da6db8be08",
-  "method": "JSON-RPC tools/list via src/probe-child.js against locally built private engine",
+  "capturedAt": "2026-11-02",
+  "engineVersion": "cloudru-vm 0.2.9-20261102",
+  "engineSha256": "12adec025f0b39c750457355c8c4e70dd1d430af6c5a59e55ad903bbc91a1f9f",
+  "method": "JSON-RPC tools/list via src/probe-child.js against locally built private engine; gated flags retained from prior snapshot (not emitted by tools/list)",
   "toolCount": 146,
   "tools": [
     {
@@ -589,5 +589,30 @@
       "name": "stack_destroy",
       "gated": true
     }
-  ]
+  ],
+  "destroyTool": {
+    "name": "destroy",
+    "description": "Request permanent VM deletion (irreversible). ALWAYS requires confirmed=true (captain approval). With no arguments, deletes the current local deployment without releasing its IP. To target a specific VM, pass vm_id or name. With release_ip=true (default), targeted cleanup requests IP release only when a matching run receipt proves creation and the exact IP is freshly observed unbound; accepted deletion remains pending.",
+    "inputSchema": {
+      "properties": {
+        "confirmed": {
+          "description": "Must be true for ANY destroy — set only after the captain approves.",
+          "type": "boolean"
+        },
+        "name": {
+          "description": "Delete a specific VM by name (alternative to vm_id). Requires confirmed=true.",
+          "type": "string"
+        },
+        "release_ip": {
+          "description": "For a targeted VM, request release of an exactly owned and unbound IP when proven (default: true).",
+          "type": "boolean"
+        },
+        "vm_id": {
+          "description": "Delete this specific VM by UUID (see the list tool / vms). Requires confirmed=true.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  }
 }

@@ -13,6 +13,28 @@ const pkg = path.resolve(import.meta.dirname, '..');
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'cloudru-safe-mcp-'));
 after(() => fs.rmSync(scratch, { recursive: true, force: true }));
 
+const credentials = path.join(scratch, 'credentials.json');
+fs.writeFileSync(credentials, JSON.stringify({
+  key_id: 'fixture-key@example.com',
+  secret: 'fixture-secret@example.com',
+  project_id: '00000000-0000-4000-8000-000000000001',
+}), { mode: 0o600, flag: 'wx' });
+
+function childEnv(credentialsFile = credentials, extra = {}) {
+  const clean = Object.fromEntries(Object.entries(process.env)
+    .filter(([name]) => !name.toUpperCase().startsWith('CLOUDRU')));
+  return {
+    ...clean,
+    ...extra,
+    HOME: fs.mkdtempSync(path.join(scratch, 'home-')),
+    CLOUDRU_HUB_CREDENTIALS: credentialsFile,
+  };
+}
+
+function safeMcpScript(engine, toolsets = 'all') {
+  return `const {runSafeMcp}=require(${JSON.stringify(path.join(pkg, 'src/safe-mcp.js'))});const status=runSafeMcp({toolsets:${JSON.stringify(toolsets)},resolved:{path:${JSON.stringify(engine)},verified:true,sha256:${JSON.stringify(cls.engineSha256)}}});if(typeof status==='number')process.exitCode=status;`;
+}
+
 const fake = path.join(scratch, 'fake-engine');
 const log = path.join(scratch, 'forwarded.jsonl');
 fs.writeFileSync(fake, `#!/usr/bin/env node
@@ -21,13 +43,31 @@ const fs=require('fs');let b='';process.stdin.setEncoding('utf8');process.stdin.
 fs.chmodSync(fake, 0o755);
 
 const msg = (id, method, params) => JSON.stringify({ jsonrpc: '2.0', id, method, ...(params ? { params } : {}) });
-function run(lines, toolsets = 'all') {
+function spawnSafeMcp(lines, toolsets = 'all', credentialsFile = credentials) {
   fs.writeFileSync(log, '');
-  const script = `const {runSafeMcp}=require(${JSON.stringify(path.join(pkg, 'src/safe-mcp.js'))});runSafeMcp({toolsets:${JSON.stringify(toolsets)},resolved:{path:${JSON.stringify(fake)},verified:true,sha256:${JSON.stringify(cls.engineSha256)}}});`;
-  const r = spawnSync(process.execPath, ['-e', script], { input: lines.join('\n') + '\n', encoding: 'utf8', timeout: 5000, env: { ...process.env, FAKE_LOG: log } });
+  return spawnSync(process.execPath, ['-e', safeMcpScript(fake, toolsets)], {
+    input: lines.join('\n') + '\n', encoding: 'utf8', timeout: 5000,
+    env: childEnv(credentialsFile, { FAKE_LOG: log }),
+  });
+}
+
+function run(lines, toolsets = 'all') {
+  const r = spawnSafeMcp(lines, toolsets);
+  assert.ifError(r.error);
   assert.equal(r.status, 0, r.stderr || r.error?.message);
   return { responses: r.stdout.trim().split('\n').map(JSON.parse), forwarded: fs.readFileSync(log, 'utf8').trim().split('\n').filter(Boolean).map(JSON.parse) };
 }
+
+test('explicit missing credentials refuse startup with a diagnostic before JSON parsing', () => {
+  const missing = path.join(scratch, 'absent-credentials.json');
+  assert.equal(fs.existsSync(missing), false);
+  const r = spawnSafeMcp([msg(1, 'tools/list')], 'k8s-deploy', missing);
+  assert.ifError(r.error);
+  assert.equal(r.status, 1, r.stderr || r.error?.message);
+  assert.match(r.stderr, /cloudru-hub mcp-safe: ENOENT:.*absent-credentials\.json/);
+  assert.equal(r.stdout, '');
+  assert.equal(fs.readFileSync(log, 'utf8'), '');
+});
 
 test('safe proxy filters listed tools and blocks ask, deny, unknown and other methods before engine', () => {
   const out = run([
@@ -80,8 +120,9 @@ process.stdin.setEncoding('utf8');process.stdin.on('data',chunk=>{buffer+=chunk;
 `);
   fs.chmodSync(serial, 0o755);
   fs.writeFileSync(serialLog, '');
-  const script = `const {runSafeMcp}=require(${JSON.stringify(path.join(pkg, 'src/safe-mcp.js'))});runSafeMcp({resolved:{path:${JSON.stringify(serial)},verified:true,sha256:${JSON.stringify(cls.engineSha256)}}});`;
-  const child = spawn(process.execPath, ['-e', script], { stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, FAKE_LOG: serialLog } });
+  const child = spawn(process.execPath, ['-e', safeMcpScript(serial)], {
+    stdio: ['pipe', 'pipe', 'pipe'], env: childEnv(credentials, { FAKE_LOG: serialLog }),
+  });
   const responses = new Map();
   const listeners = new Map();
   let buffer = '';
@@ -140,8 +181,9 @@ test('a failed backend closes the proxy and resolves pending requests without ho
   const crashing = path.join(scratch, 'crashing-engine');
   fs.writeFileSync(crashing, '#!/usr/bin/env node\nprocess.stdin.once("data", () => process.exit(2));\n');
   fs.chmodSync(crashing, 0o755);
-  const script = `const {runSafeMcp}=require(${JSON.stringify(path.join(pkg, 'src/safe-mcp.js'))});runSafeMcp({resolved:{path:${JSON.stringify(crashing)},verified:true,sha256:${JSON.stringify(cls.engineSha256)}}});`;
-  const child = spawn(process.execPath, ['-e', script], { stdio: ['pipe', 'pipe', 'pipe'] });
+  const child = spawn(process.execPath, ['-e', safeMcpScript(crashing)], {
+    stdio: ['pipe', 'pipe', 'pipe'], env: childEnv(),
+  });
   let output = '';
   child.stdout.on('data', (chunk) => { output += chunk; });
   child.stdin.write(msg(1, 'tools/list') + '\n');
@@ -162,8 +204,9 @@ test('safe proxy rejects malformed JSON and batch requests', () => {
 test('production command refuses an engine with a different hash', () => {
   const r = spawnSync(process.execPath, [path.join(pkg, 'bin/cloudru-hub.js'), 'mcp-safe'], {
     input: msg(1, 'tools/list') + '\n', encoding: 'utf8', timeout: 5000,
-    env: { ...process.env, CLOUDRU_VM_BIN: fake },
+    env: childEnv(credentials, { CLOUDRU_VM_BIN: fake }),
   });
+  assert.ifError(r.error);
   assert.equal(r.status, 1);
   assert.match(r.stderr, /pinned engine SHA-256 required/);
   assert.equal(r.stdout, '');

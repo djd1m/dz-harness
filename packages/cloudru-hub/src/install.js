@@ -365,6 +365,9 @@ function probeBrake(hookPath) {
 /** Install files or print guarded setup instructions; code 0 emitted, 2 refused, 3 manual setup. */
 function install(target, projectDir, opts = {}) {
   const lines = [];
+  if (opts.credentialsFile !== undefined && target !== 'deepseek-harness') {
+    return { code: 1, lines: ['cloudru-hub install: --credentials-file is supported only for deepseek-harness.'] };
+  }
   if (target === 'deepseek-harness') {
     if (opts.npx) return { code: 1, lines: ['cloudru-hub install: --npx is not supported for deepseek-harness.'] };
     return require('./deepseek-install').installDeepseek(projectDir, opts);

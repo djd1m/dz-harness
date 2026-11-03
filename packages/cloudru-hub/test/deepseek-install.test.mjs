@@ -62,6 +62,75 @@ test('apply is private and byte-idempotent, with no user file changes', () => {
   assert.deepEqual(fs.readdirSync(path.dirname(file)), ['deepseek.cordis.patch.yml']);
 });
 
+test('credential-file opt-in writes only the selected marker or project-resolved path', () => {
+  for (const [value, expected] of [['default', 'default'],
+    ['private/credentials.json', 'private/credentials.json']]) {
+    const dir = scratch();
+    const selected = expected === 'default' ? expected : path.join(dir, expected);
+    const first = run(dir, { credentialsFile: value });
+    assert.equal(first.code, 0, first.lines.join('\n'));
+    const contents = fs.readFileSync(overlay(dir), 'utf8');
+    const config = YAML.parse(contents)[0].insert[0].config;
+    assert.deepEqual(config.args.slice(-2), ['--credentials-file', selected]);
+    assert.deepEqual(Object.keys(config.env), ['CLOUDRU_VM_BIN']);
+    assert.doesNotMatch(contents + first.lines.join('\n'), /fixture-secret|fixture-key/);
+    assert.equal(run(dir, { credentialsFile: value }).code, 0);
+    assert.equal(fs.readFileSync(overlay(dir), 'utf8'), contents);
+    assert.equal(run(dir, { credentialsFile: value === 'default' ? 'another.json' : 'default' }).code, 2);
+    assert.equal(fs.readFileSync(overlay(dir), 'utf8'), contents);
+  }
+});
+
+test('deployment profiles refuse credential-file before overlay mutation', () => {
+  for (const profile of ['vm-deploy', 'k8s-deploy']) {
+    for (const option of ['default', 'private/a.json', 'private/b.json']) {
+      const dir = path.join(scratch(), 'new');
+      const result = run(dir, { toolsets: profile, credentialsFile: option });
+      assert.equal(result.code, 2, result.lines.join('\n'));
+      assert.match(result.lines.join('\n'), /credentials-file.*unsupported for deployment profiles/);
+      assert.equal(fs.existsSync(dir), false);
+    }
+    const dir = scratch();
+    assert.equal(run(dir, { toolsets: profile, dryRun: true }).code, 0);
+  }
+});
+
+test('CLI validates missing credential-file values and forwards explicit file inputs', () => {
+  const bin = path.join(packageDir, 'bin/cloudru-hub.js');
+  const clean = { ...Object.fromEntries(Object.entries(process.env)
+    .filter(([key]) => !key.toUpperCase().startsWith('CLOUDRU_'))), HOME: scratch() };
+  for (const args of [
+    ['mcp-safe', '--toolsets', 'inventory', '--credentials-file'],
+    ['mcp-safe', '--credentials-file', '--toolsets', 'inventory'],
+    ['install', '--target', 'deepseek-harness', '--credentials-file'],
+  ]) {
+    const result = spawnSync(process.execPath, [bin, ...args], { encoding: 'utf8', env: clean });
+    assert.ifError(result.error);
+    assert.equal(result.status, 1, result.stdout + result.stderr);
+    assert.match(result.stdout, /credentials-file requires one default or path value/);
+  }
+  const missing = path.join(scratch(), 'missing.json');
+  const forwarded = spawnSync(process.execPath,
+    [bin, 'mcp-safe', '--toolsets', 'inventory', '--credentials-file', missing],
+    { encoding: 'utf8', env: clean });
+  assert.ifError(forwarded.error);
+  assert.equal(forwarded.status, 1, forwarded.stdout + forwarded.stderr);
+  assert.match(forwarded.stderr, /ENOENT:.*missing\.json/);
+
+  const installModule = path.join(packageDir, 'src/install.js');
+  const cliModule = path.join(packageDir, 'src/cli.js');
+  const script = `const mod=require(${JSON.stringify(installModule)});` +
+    `mod.install=(target,project,opts)=>({code:0,lines:[JSON.stringify({target,project,credentialsFile:opts.credentialsFile})]});` +
+    `const {main}=require(${JSON.stringify(cliModule)});` +
+    `process.exitCode=main(['install','--target','deepseek-harness','--dir','project','--credentials-file','private/b.json']);`;
+  const installForwarded = spawnSync(process.execPath, ['-e', script], { encoding: 'utf8', env: clean });
+  assert.ifError(installForwarded.error);
+  assert.equal(installForwarded.status, 0, installForwarded.stdout + installForwarded.stderr);
+  assert.deepEqual(JSON.parse(installForwarded.stdout), {
+    target: 'deepseek-harness', project: 'project', credentialsFile: 'private/b.json',
+  });
+});
+
 test('existing managed directory and unrelated file are preserved', () => {
   const dir = scratch();
   const managed = path.join(dir, '.cloudru-hub');

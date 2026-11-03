@@ -1,6 +1,6 @@
 {
   "$comment": "Golden classification of every cloudru-vm engine tool. allow requires a BEHAVIOUR audit of the handler at the pinned engine SHA proving both axes: (1) observational with no cloud mutation, job advancement or secret return (a local plan write is disclosed), and (2) no user-controlled argument reaching shell/exec/SSH. Shell-reaching tools remain ask even when arguments are quoted. Schema shape alone never proves allow. The old baseline had two hazards: stack_status advanced planned jobs into paid actions and logs inserted an unescaped service into a shell command. In the pinned engine, stack_status reads persisted state only; stack_apply explicitly advances jobs, and logs shell-quotes service. The specific regression tests are in go/cloudru-vm/internal/mcp/stack_status_test.go and internal/engine/logs_test.go. Any unknown live tool fails drift checks; deny by default.",
-  "engineSha256": "0095d3911da7e3a93f1d2ee064708820b9b9c50bfc5cbd99fc46c7da6db8be08",
+  "engineSha256": "12adec025f0b39c750457355c8c4e70dd1d430af6c5a59e55ad903bbc91a1f9f",
   "toolCount": 146,
   "counts": {
     "ask": 64,
@@ -76,7 +76,7 @@
     "deploy_reconcile": {
       "effect": "read-only",
       "permission": "allow",
-      "why": "behaviour-audited read-only: handleDeployReconcile (tools_deploy.go:259) reads a local receipt and project-scoped VM inventory; ReconcileRun only compares observed identities and never writes state or reaches shell."
+      "why": "behaviour-audited read-only: handleDeployReconcile (tools_deploy.go:278) reads a local receipt; ReconcileRun reads project-scoped VM/FIP inventories and exact VM interface binding, with no state write, cloud mutation or shell call."
     },
     "deploy_preflight": {
       "effect": "read-only",

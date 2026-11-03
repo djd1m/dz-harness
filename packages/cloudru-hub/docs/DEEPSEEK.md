@@ -13,10 +13,15 @@ Cloud.ru engine to match this package's SHA-256 pin. Run:
 
 ```bash
 cloudru-hub install --target deepseek-harness --dir /absolute/project --dry-run
-cloudru-hub install --target deepseek-harness --dir /absolute/project
+cloudru-hub install --target deepseek-harness --dir /absolute/project --toolsets inventory --credentials-file default
 dsh --profile <existing-profile> --patch '/absolute/project/.cloudru-hub/deepseek.cordis.patch.yml' --dump-config
 dsh --profile <existing-profile> --patch '/absolute/project/.cloudru-hub/deepseek.cordis.patch.yml'
 ```
+
+Choose one configuration per project overlay. For an alternate project-local
+file and compute tools, use `--toolsets compute --credentials-file
+private/credentials.json` in place of the inventory install command. Omit the
+credential-file option to keep the previous no-file read-profile behavior.
 
 Replace `<existing-profile>` with the name of a profile already configured in your
 DeepSeek home. The installer prints commands with the actual absolute overlay path.
@@ -33,22 +38,26 @@ contents are written into the overlay.
 The released `@deepseek-ai/dsh@0.2.1-rc.5` MCP transport scrubs ambient
 `CLOUDRU_KEY_ID`, `CLOUDRU_SECRET`, and `CLOUDRU_API_KEY`; it preserves
 `CLOUDRU_HUB_CREDENTIALS`. The generated overlay explicitly passes only the
-verified `CLOUDRU_VM_BIN` path. For `vm-deploy` and `k8s-deploy`, `mcp-safe`
-requires a private JSON file. Its default path is
-`~/.config/cloudru-hub/credentials.json`; the MCP process must see the same
-home. A selection containing `billing_` tools reads that file if present; an
-explicit `CLOUDRU_HUB_CREDENTIALS` path must be readable. Keep the file
-owner-only (`0600`). For these profiles, set `CLOUDRU_HUB_CREDENTIALS` in the
-harness environment before startup to use an alternate file. The alternate
-path survives the tested scrubber but works only for these file-loading
-profiles. The installer neither emits that variable nor reads the file; do not
-put credentials in the patch.
+verified `CLOUDRU_VM_BIN` path. For read profiles such as `inventory`, `compute`
+and `network`, add `--credentials-file default` to load the existing reader's
+standard path, `~/.config/cloudru-hub/credentials.json`, or its explicit
+`CLOUDRU_HUB_CREDENTIALS` override. Use `--credentials-file private/credentials.json`
+to resolve an alternate path from the selected project. The generated patch
+contains the absolute path only; it does not contain key, secret or JSON bytes.
+The installer can name a file before it exists, but proxy startup then requires
+a readable, owner-only regular JSON file. Create it with `chmod 600` and the
+existing `key_id`, `secret`, `project_id` and optional `region` fields. A missing,
+malformed, symlinked, wrong-owner or unsafe file refuses before engine spawn.
+The same option works on direct `cloudru-hub mcp-safe --toolsets inventory`.
 
-Default `inventory` and `compute`, like other groups with neither a deployment
-profile nor `billing_` tools, do not load the JSON file. Creating it alone does
-not give their credential-dependent calls cloud authentication under this
-transport. Credential-dependent cloud calls from default `inventory` are not
-established in this integration.
+Without `--credentials-file`, read profiles retain their existing behavior:
+`inventory`, `compute` and `network` do not load an unrelated private file; a
+selection containing `billing_` tools still reads the optional file, and an
+explicit billing file path must be readable. `vm-deploy` and `k8s-deploy` still
+require their original private file and approval context. They refuse the new
+flag, whether it names `default` or an alternate path, before engine spawn or
+overlay write. Other installer targets refuse it. The tool groups and host
+permissions are unchanged.
 
 The installer checks only its own overlay and managed paths. It does not audit or
 remove servers from earlier profile, bundle, or home layers. Another raw Cloud.ru
@@ -58,8 +67,11 @@ overlay does not create a global veto or automatic host approval behavior.
 Evidence has distinct levels: generated YAML and no-write tests; official
 `--dump-config` composition; actual official MCP-client registration and local
 no-cloud call; full-host startup and registration; and inference or live-cloud
-behavior. Each needs its own observed result. A direct JSON-RPC proxy refusal
-checks the proxy, not official client activation. No inference or live-cloud
-behavior is implied by installation, a config dump, or a successful local status
-call. A failed optional MCP plugin may leave the full harness running, so report
-plugin and full-host startup outcomes separately.
+behavior. The added credential path was exercised through the installed official
+MCP client with a declared fixture-only engine pin: exact selected tool sets,
+boolean key/project/region matches for default and alternate files, no-option
+absence, failed-file refusal before engine spawn and process disposal. This is
+synthetic client-boundary evidence, not a provider or model request. A direct
+JSON-RPC proxy refusal checks the proxy, not official client activation. A failed
+optional MCP plugin may leave the full harness running, so report plugin and
+full-host startup outcomes separately.

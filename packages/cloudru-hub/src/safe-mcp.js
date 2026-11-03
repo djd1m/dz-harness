@@ -3,6 +3,7 @@
 // Read-only MCP boundary for hosts whose hook/permission paths have not been
 // live-probed. The host never gets a raw engine channel through this command.
 const { spawn } = require('child_process');
+const path = require('path');
 const { loadClassification } = require('./classification');
 const { resolveEngine } = require('./resolve');
 const { selectedToolNames } = require('./toolsets');
@@ -58,9 +59,19 @@ function runSafeMcp(options = {}) {
   let credentials;
   try {
     selected = new Set(selectedToolNames(options.toolsets || 'all', cls));
-    if (deployProfile || k8sProfile) credentials = readCredentials(options.env || process.env);
+    const env = options.env || process.env;
+    if (options.credentialsFile !== undefined) {
+      if (typeof options.credentialsFile !== 'string' || !options.credentialsFile.trim()) {
+        throw new Error('--credentials-file requires default or a path');
+      }
+      if (deployProfile || k8sProfile) {
+        throw new Error('--credentials-file is unsupported for deployment profiles');
+      }
+      credentials = readCredentials(options.credentialsFile === 'default' ? env :
+        { ...env, CLOUDRU_HUB_CREDENTIALS: path.resolve(options.credentialsFile) });
+    } else if (deployProfile || k8sProfile) credentials = readCredentials(env);
     else if ([...selected].some((name) => name.startsWith('billing_'))) {
-      credentials = readOptionalCredentials(options.env || process.env);
+      credentials = readOptionalCredentials(env);
     }
   }
   catch (error) { stderr.write(`cloudru-hub mcp-safe: ${error.message}\n`); return 1; }

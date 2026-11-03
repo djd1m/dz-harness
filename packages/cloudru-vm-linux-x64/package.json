@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/cloudru-vm-linux-x64",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Linux x64 Go engine for the unofficial Cloud.ru Evolution launcher",
   "license": "MIT",
   "author": "Dmitry Zhechkov",

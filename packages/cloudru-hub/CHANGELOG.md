@@ -1,5 +1,26 @@
 # Changelog — @dzhechkov/cloudru-hub
 
+## 0.1.19 — 2026-11-02 (staged, not published)
+
+- Add explicit `--credentials-file default|path` for DeepSeek read profiles.
+  The private file is validated at proxy startup and only its marker/path is
+  written to the project overlay. Deployment profiles reject this new override
+  before spawn or overlay write; no-option credential behavior is unchanged.
+  Synthetic official MCP-client tests confirmed delivery and selected tools for
+  two project fixtures, with no Cloud.ru or model calls.
+- Pin the matched Linux/x64 engine `0.2.9-20261102` (SHA-256
+  `12adec025f0b39c750457355c8c4e70dd1d430af6c5a59e55ad903bbc91a1f9f`)
+  as the exact `@dzhechkov/cloudru-vm-linux-x64@0.2.9` optional dependency.
+- Journal one public-IP attach/create attempt before mutation. Uncertain replies
+  stop later IP mutations, retain the plan and expose read-only reconciliation.
+  Targeted cleanup preserves borrowed or unproven IPs and requests release of
+  an exact run-created IP only after a strict unbound observation. Accepted
+  deletion remains pending. Local synthetic fault and mutation controls cover
+  these paths; no new live provider acceptance is claimed.
+- Keep the existing 146 tool names and permission categories. Refresh the
+  catalog snapshot from the staged binary, including the conditional cleanup
+  description.
+
 ## 0.1.18 — 2026-10-30
 
 - Add the source-accepted official DeepSeek Harness installer and guide from

@@ -47,6 +47,15 @@ function installDeepseek(projectDir, opts = {}) {
   const toolsets = opts.toolsets || 'inventory';
   try {
     selectedToolNames(toolsets);
+    if (opts.credentialsFile !== undefined && (toolsets === 'vm-deploy' || toolsets === 'k8s-deploy')) {
+      return refuse('--credentials-file is unsupported for deployment profiles');
+    }
+    if (opts.credentialsFile !== undefined &&
+        (typeof opts.credentialsFile !== 'string' || !opts.credentialsFile.trim())) {
+      return refuse('--credentials-file requires default or a path');
+    }
+    const credentialArg = opts.credentialsFile === undefined ? [] :
+      ['--credentials-file', opts.credentialsFile === 'default' ? 'default' : path.resolve(project, opts.credentialsFile)];
     inspectParents(project);
     inspectPath(managed, 'managed directory');
     inspectPath(file, 'overlay');
@@ -60,7 +69,7 @@ function installDeepseek(projectDir, opts = {}) {
       name: '@deepseek-ai/dsh-mcp-client',
       config: {
         serverName: 'cloudru_hub', transport: 'stdio', command: process.execPath,
-        args: [path.join(__dirname, '..', 'bin', 'cloudru-hub.js'), 'mcp-safe', '--toolsets', toolsets],
+        args: [path.join(__dirname, '..', 'bin', 'cloudru-hub.js'), 'mcp-safe', '--toolsets', toolsets, ...credentialArg],
         env: { CLOUDRU_VM_BIN: path.resolve(engine.path) }, cwd: project,
         failOnStartupError: true, toolCallTimeoutMs: longRunning ? 1_200_000 : 120_000,
         reconnect: { enabled: true, initialDelayMs: 500, maxDelayMs: 30_000, maxAttempts: 10 },
