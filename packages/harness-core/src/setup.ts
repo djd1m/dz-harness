@@ -434,7 +434,9 @@ export function probeInstalledGuard(
  * project wrote no `PreToolUse` key at all and created no `.claude/hooks/` — the guard we document
  * protected only our own checkout.
  */
-const CLAUDE_DESTRUCTIVE_HOOK_TIMEOUT_MS = 5000;
+// Claude's settings hook `timeout` is in seconds (unlike Node's spawn timeout).
+// The previous 5000 was named as milliseconds but configured a 5000-second wait.
+const CLAUDE_DESTRUCTIVE_HOOK_TIMEOUT_SECONDS = 5;
 const LEGACY_CLAUDE_DESTRUCTIVE_HOOK_COMMANDS: ReadonlySet<string> = new Set([
   `node "\${CLAUDE_PROJECT_DIR:-.}/${CLAUDE_DESTRUCTIVE_HOOK_RELPATH}"`,
 ]);
@@ -451,7 +453,7 @@ function destructiveGuardHookEntry(): { matcher: string; hooks: { type: string; 
     hooks: [{
       type: 'command',
       command: CLAUDE_DESTRUCTIVE_HOOK_COMMAND,
-      timeout: CLAUDE_DESTRUCTIVE_HOOK_TIMEOUT_MS,
+      timeout: CLAUDE_DESTRUCTIVE_HOOK_TIMEOUT_SECONDS,
     }],
   };
 }

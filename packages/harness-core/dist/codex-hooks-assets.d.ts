@@ -28,6 +28,9 @@
  *
  * @packageDocumentation
  */
+export interface CodexHelperGenerationOptions {
+    readonly errorLog?: string;
+}
 /**
  * The PreToolUse veto helper — TWO checks behind one registry entry.
  *
@@ -46,7 +49,7 @@
  * The destructive check runs FIRST and is loaded SEPARATELY, so a project whose build lacks the
  * shell-veto policy still gets it, and vice versa.
  */
-export declare function generateCodexVetoHelper(installedDistDir?: string | null): string;
+export declare function generateCodexVetoHelper(installedDistDir?: string | null, options?: CodexHelperGenerationOptions): string;
 /**
  * The UserPromptSubmit recall helper.
  *
@@ -54,7 +57,7 @@ export declare function generateCodexVetoHelper(installedDistDir?: string | null
  * relevant, which is exactly why the acceptance canary is a FORCED HIT plus a removed-hook twin
  * (AM-4) — a dead hook and a correctly-silent one are indistinguishable from the outside.
  */
-export declare function generateCodexRecallHelper(installedDistDir?: string | null): string;
+export declare function generateCodexRecallHelper(installedDistDir?: string | null, options?: CodexHelperGenerationOptions): string;
 /**
  * Both helper bodies, keyed by the file they are written to.
  *
@@ -62,5 +65,5 @@ export declare function generateCodexRecallHelper(installedDistDir?: string | nu
  * no absolute fallback (the pre-fix behaviour, kept so a test can prove the fallback is what makes
  * a global install work rather than asserting it).
  */
-export declare function generateCodexHelpers(installedDistDir?: string | null): Readonly<Record<'veto' | 'recall', string>>;
+export declare function generateCodexHelpers(installedDistDir?: string | null, options?: CodexHelperGenerationOptions): Readonly<Record<'veto' | 'recall', string>>;
 //# sourceMappingURL=codex-hooks-assets.d.ts.map

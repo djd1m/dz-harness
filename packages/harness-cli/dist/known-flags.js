@@ -297,6 +297,7 @@ export const KNOWN_CLI_FLAGS = [
     'save-dev',
     'scan-tail',
     'scenarios',
+    'scope',
     'scope-check',
     'score',
     'seed',

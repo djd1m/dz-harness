@@ -1,5 +1,11 @@
 # @dzhechkov/skills-feature-adr
 
+Feature ADR documents Codex project or user hook delivery through a compatible @dzhechkov/harness-cli
+installation; this package does not bundle a hook runtime. New or changed native definitions require
+manual review. Verification is bounded to the selected project. Host acceptance on Codex CLI 0.160.0
+observed the production hook blocking an exact nonce command and both controls creating sentinels.
+Exact tool identity, native edit, nested code-mode coverage and recall remain unverified.
+
 Feature ADR includes synchronized guidance and the versioned helper for `dz qe-rounds --source native`. Native opt-in requires compatible installed CLI/core capabilities, preserves actual independent receipts and refuses an ordinary fourth review cycle; the legacy standalone synchronous helper remains usable.
 
 The package includes eight core and six extended pinned agentic-qe reference protocols and their companion files. The `qe-ref-` directories distinguish bundled references from separately installed skills. The feature-ADR modules retain control of checkpoints; the reference files alone do not provide the `aqe` CLI, MCP tools, memory or fleet agents. Direct extended agent execution still requires the separate runtime.
@@ -9,7 +15,7 @@ The installer also supplies the complete pinned Step 6 `code-goal-planner` as a 
 If bytes change before first evaluation, native `evaluate` retains valid old-snapshot receipt origins and conditions while reporting `not-established/native-repair-required`. Follow with explicit `begin-repair` and fresh independent verification of the new snapshot. Recovery preserves authority and the three-cycle ceiling; old evidence never closes changed bytes.
 
 
-Current package version: `1.5.25`. <!-- dz:version -->
+Current package version: `1.5.26`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-feature-adr
 
@@ -1474,6 +1480,8 @@ native checker and K2 script. No Markdown authenticity is inferred.
 Native QE keeps its default ceiling at three. `dz qe-rounds --source native --action begin-continuation --project <root> --slug <feature> --reviewers <actual-roster-json> --owner-approval <inline-json>` can admit exactly one additional cycle after three witnessed cycles whose active cycle has never closed. A second ordinary continuation refuses. The target is pinned before its fourth origin; prepare and repair cannot redirect it. Fresh independent receipts, original reviewer conditions, author delta assessment and checkpoint verification still govern closure. An admitted checkpoint remains required if its file is removed or replaced; restore the original checkpoint and obtain independent verification before closure. Prepare retains its digest, and replay rejects a closed continuation without matching checkpoint evidence.
 
 The exact flat declaration has schema `native-qe-owner-approval-1`, a UUIDv4 `approvalId`, nonempty `owner` (≤256 characters), `decision` (≤2048), `evidenceSource` (≤4096), canonical `projectRoot` and `featurePath`, `journalId`, `sequence`, `eventDigest`, `cycleId`, prior `revision` and distinct measured `targetRevision`. Native read-only reporting exposes the predecessor event digest. Inline JSON and its serialized declaration are capped at 16 KiB. Obtain the changed target digest from the bounded artifact manifest; consent must explicitly bind it. No helper fills missing consent or updates stale bindings. Exact committed retries can return the admitted cycle without appending.
+
+Native QE also admits one terminal `begin-final-continuation` only when the ordinary continuation is the active, witnessed fourth cycle, its latest evaluation is `unresolved`, and that cycle has never closed. It requires a changed measured target, fresh nonce, original `--reviewers` and `--owner-approval`; it cannot coexist with `begin-post-ci-correction`. Core exports `NATIVE_QE_FINAL_CONTINUATION_API_VERSION = 1`, the API exposes `finalContinuationVersion: 1`, and the installed helper exports `NATIVE_REVIEW_FINAL_CONTINUATION_API_VERSION = 1`; both capabilities are required. The read summary reports `finalContinuation: { capacity: 1, used, targetRevision }`, where capacity is a fixed maximum rather than present eligibility. Admission preserves the journal prefix, reviewer roster, conditions, checkpoint and accumulated delta, pins the fifth target before origin, and leaves the witnessed count at four until fresh original-role evidence arrives. No sixth cycle is available. For this new action only, the same bounded `native-qe-owner-approval-1` declaration may truthfully record earlier owner consent to a limited repair procedure and a later operator binding of the measured target: `owner` names the actual authorizing owner, `decision` states that the operator bound the target under that delegation and the owner did not inspect the then-future digest, and `evidenceSource` identifies the real consent context and binding record. It does not authenticate a person, prove delegated scope, or imply owner inspection or acceptance of future bytes. Missing consent or scope must stop admission; the operator and independent reviewer assess the actual evidence. The existing ordinary continuation and CLOSED4 post-CI approval meanings are unchanged. Use only an independently accepted matching packed CLI/core/helper combination before authoritative use.
 
 This is surviving local owner evidence, not human authentication or acceptance. Core and the CLI-owned installed helper require continuation capability 1 while legacy APIs remain 1. Older readers reject the extended event explicitly. Install only accepted, signed local packed candidates before authoritative use; no npm publication is required. Journal/head/host publication remains conservatively crash detecting under the existing lock, with no filesystem atomicity claim.
 

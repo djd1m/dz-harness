@@ -5,7 +5,7 @@ Feature ADR native QE opt-in uses the installed CLI-owned convergence helper, bo
 If bytes change before first evaluation, native `evaluate` retains valid old-snapshot receipt origins and conditions while reporting `not-established/native-repair-required`. Follow with explicit `begin-repair` and fresh independent verification of the new snapshot. Recovery preserves authority and the three-cycle ceiling; old evidence never closes changed bytes.
 
 
-Current package version: `0.9.74`. <!-- dz:version -->
+Current package version: `0.9.75`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/skills-meta
 
@@ -13,6 +13,17 @@ The **canonical meta-skill pack** — the development-process skills, packaged a
 [Agent Skills](https://agentskills.io) for distribution and cross-platform use.
 
 The `feature-adr` skill carries eight core and six extended pinned agentic-qe protocol directories with schemas and evals. Its modules own the checkpoints in Reference Mode; the bundled files do not install the upstream runtime or execute extended agents.
+
+For Codex project hooks, the canonical `feature-adr` skill now separates event context from
+deterministic receipt checks and explicit QE/checkpoint decisions. A Stop event or exit zero does
+not approve a gate or authorize teaching. Future automated `dz teach` needs evidence binding,
+dedupe and a proposed/accepted decision record. Plain Reference mode uses pinned methods only;
+it does not imply MCP or fleet execution.
+For project veto evidence, Codex 0.160.0 public hook lifecycle notifications can bind selected
+project source and the exact denied nonce command to a completed turn. They do not expose the
+attempted tool name. Bounded host acceptance on 0.160.0 observed the production hook blocking the
+exact nonce command; removed-hook and neighboring-project controls created sentinels. This does
+not establish recall or coverage of other tool surfaces.
 
 Step 6 can dispatch a separately installed Claude Code `code-goal-planner` agent when the active planner route selects Sonnet. This skills pack supplies the reference protocol for Codex and for hosts without that agent; it does not itself install a project agent.
 
@@ -275,6 +286,8 @@ native checker and K2 script. No Markdown authenticity is inferred.
 Native QE keeps its default ceiling at three. `dz qe-rounds --source native --action begin-continuation --project <root> --slug <feature> --reviewers <actual-roster-json> --owner-approval <inline-json>` can admit exactly one additional cycle after three witnessed cycles whose active cycle has never closed. A second ordinary continuation refuses. The target is pinned before its fourth origin; prepare and repair cannot redirect it. Fresh independent receipts, original reviewer conditions, author delta assessment and checkpoint verification still govern closure. An admitted checkpoint remains required if its file is removed or replaced; restore the original checkpoint and obtain independent verification before closure. Prepare retains its digest, and replay rejects a closed continuation without matching checkpoint evidence.
 
 The exact flat declaration has schema `native-qe-owner-approval-1`, a UUIDv4 `approvalId`, nonempty `owner` (≤256 characters), `decision` (≤2048), `evidenceSource` (≤4096), canonical `projectRoot` and `featurePath`, `journalId`, `sequence`, `eventDigest`, `cycleId`, prior `revision` and distinct measured `targetRevision`. Native read-only reporting exposes the predecessor event digest. Inline JSON and its serialized declaration are capped at 16 KiB. Obtain the changed target digest from the bounded artifact manifest; consent must explicitly bind it. No helper fills missing consent or updates stale bindings. Exact committed retries can return the admitted cycle without appending.
+
+Native QE also admits one terminal `begin-final-continuation` only when the ordinary continuation is the active, witnessed fourth cycle, its latest evaluation is `unresolved`, and that cycle has never closed. It requires a changed measured target, fresh nonce, original `--reviewers` and `--owner-approval`; it cannot coexist with `begin-post-ci-correction`. Core exports `NATIVE_QE_FINAL_CONTINUATION_API_VERSION = 1`, the API exposes `finalContinuationVersion: 1`, and the installed helper exports `NATIVE_REVIEW_FINAL_CONTINUATION_API_VERSION = 1`; both capabilities are required. The read summary reports `finalContinuation: { capacity: 1, used, targetRevision }`, where capacity is a fixed maximum rather than present eligibility. Admission preserves the journal prefix, reviewer roster, conditions, checkpoint and accumulated delta, pins the fifth target before origin, and leaves the witnessed count at four until fresh original-role evidence arrives. No sixth cycle is available. For this new action only, the same bounded `native-qe-owner-approval-1` declaration may truthfully record earlier owner consent to a limited repair procedure and a later operator binding of the measured target: `owner` names the actual authorizing owner, `decision` states that the operator bound the target under that delegation and the owner did not inspect the then-future digest, and `evidenceSource` identifies the real consent context and binding record. It does not authenticate a person, prove delegated scope, or imply owner inspection or acceptance of future bytes. Missing consent or scope must stop admission; the operator and independent reviewer assess the actual evidence. The existing ordinary continuation and CLOSED4 post-CI approval meanings are unchanged. Use only an independently accepted matching packed CLI/core/helper combination before authoritative use.
 
 This is surviving local owner evidence, not human authentication or acceptance. Core and the CLI-owned installed helper require continuation capability 1 while legacy APIs remain 1. Older readers reject the extended event explicitly. Install only accepted, signed local packed candidates before authoritative use; no npm publication is required. Journal/head/host publication remains conservatively crash detecting under the existing lock, with no filesystem atomicity claim.
 

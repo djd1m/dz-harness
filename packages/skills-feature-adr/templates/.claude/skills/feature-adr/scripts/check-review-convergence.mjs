@@ -330,6 +330,7 @@ export function runGate({ action, repo, feature, phase, reviewers }) {
 // Only the CLI supplies this capability. The default standalone runGate remains synchronous.
 export const NATIVE_REVIEW_API_VERSION = 1
 export const NATIVE_REVIEW_CONTINUATION_API_VERSION = 1
+export const NATIVE_REVIEW_FINAL_CONTINUATION_API_VERSION = 1
 export const NATIVE_REVIEW_POST_CI_CORRECTION_API_VERSION = 2
 function nativeNames(dir) {
   if (!existsSync(dir)) return []
@@ -376,9 +377,10 @@ function nativeReceipt(host, receipt, manifest, postCi = false) {
 }
 export function runNativeReviewGate({ action, repo, feature, reviewers, ownerApproval, correctionEvidence, api }) {
   if (!api || api.version !== 1 || typeof api.transact !== 'function') throw Error('native-core-capability-not-established')
-  if (!['prepare', 'evaluate', 'begin-repair', 'begin-continuation', 'begin-post-ci-correction'].includes(action)) throw Error('native-action-invalid')
+  if (!['prepare', 'evaluate', 'begin-repair', 'begin-continuation', 'begin-final-continuation', 'begin-post-ci-correction'].includes(action)) throw Error('native-action-invalid')
   if (action === 'begin-continuation' && api.continuationVersion !== 1) throw Error('native-continuation-capability-not-established')
-  if (!['begin-continuation', 'begin-post-ci-correction'].includes(action) && ownerApproval !== undefined) throw Error('native-owner-approval-action-invalid')
+  if (action === 'begin-final-continuation' && api.finalContinuationVersion !== 1) throw Error('native-final-continuation-capability-not-established')
+  if (!['begin-continuation', 'begin-final-continuation', 'begin-post-ci-correction'].includes(action) && ownerApproval !== undefined) throw Error('native-owner-approval-action-invalid')
   if (action === 'begin-post-ci-correction' && (api.postCiCorrectionVersion !== 2 || typeof api.validateEvidence !== 'function')) throw Error('native-post-ci-capability-not-established')
   if (action !== 'begin-post-ci-correction' && correctionEvidence !== undefined) throw Error('native-post-ci-evidence-action-invalid')
   repo = realpathSync(repo); feature = realpathSync(resolve(repo, feature))
@@ -438,6 +440,7 @@ export function runNativeReviewGate({ action, repo, feature, reviewers, ownerApp
   const membership = directoryFence()
   const paths = pathsFor(repo, feature, 'qe', true).concat((host?.conditions || []).flatMap(c => c.scope))
   const manifest = nativeManifest(repo, paths)
+  if (nativeState?.finalContinuation?.used && action === 'evaluate' && digest(JSON.stringify(manifest)) !== nativeState.snapshot.revision) throw Error('native-final-continuation-target-pinned')
   if (action !== 'evaluate' && (!array(reviewers, 16) || !reviewers.length || !reviewers.every(r => dictionary(r, ['id', 'family']) && text(r.id) && ['codex', 'claude', 'owner-exception'].includes(r.family)) || new Set(reviewers.map(r => r.id)).size !== reviewers.length)) throw Error('reviewers-invalid')
   const correction = action === 'begin-post-ci-correction' ? measureNativePostCiEvidence({ repo, featurePath: prefix, evidencePath: correctionEvidence, previous: nativeState?.postCiCorrection?.evidence?.predecessorHost?.snapshot?.manifest || nativeState?.snapshot?.manifest, current: manifest, validate: api.validateEvidence }) : null
   const observationDigest = digest(JSON.stringify({ files: observed.slice(1).map(b => b === null ? null : digest(b)), membership, manifest }))
@@ -492,9 +495,9 @@ export function runNativeReviewGate({ action, repo, feature, reviewers, ownerApp
     const snapshot = active?.snapshot.revision === revision ? active.snapshot : host?.snapshot.revision === revision ? host.snapshot : { nonce: randomUUID(), revision, manifest }
     const old = new Map((host?.snapshot.manifest || []).map(p => [p.path, p.digest])), current = new Map(manifest.map(p => [p.path, p.digest]))
     const deltaPaths = host && host.snapshot.revision !== revision ? [...new Set([...old.keys(), ...current.keys()])].filter(p => old.get(p) !== current.get(p)).sort() : host?.changedPaths || []
-    const changedPaths = ['begin-continuation', 'begin-post-ci-correction'].includes(action) ? [...new Set([...(host?.changedPaths || []), ...deltaPaths])].sort() : deltaPaths
+    const changedPaths = ['begin-continuation', 'begin-final-continuation', 'begin-post-ci-correction'].includes(action) ? [...new Set([...(host?.changedPaths || []), ...deltaPaths])].sort() : deltaPaths
     const next = { schema: SCHEMA, phase: 'qe', reviewers: bound, snapshot, conditions: host?.conditions || [], reviewSeen: host?.reviewSeen || false, rework: Boolean(host && (host.rework || host.reviewSeen && host.snapshot.revision !== revision)), changedPaths }
-    return { host: next, snapshot, origins: [], receiptDigest: null, reason: null, observationDigest, result: { ...result('qe', 'prepared', revision, []), nonce: snapshot.nonce, manifest, reviewers: bound, conditions: next.conditions, checkpointDigest: active?.continuation ? active.checkpointDigest : checkpoint?.checkpointDigest || null }, admission: !active, ...(['begin-continuation', 'begin-post-ci-correction'].includes(action) ? { ownerApproval } : {}), ...(correction ? { correctionEvidence: correction } : {}) }
+    return { host: next, snapshot, origins: [], receiptDigest: null, reason: null, observationDigest, result: { ...result('qe', 'prepared', revision, []), nonce: snapshot.nonce, manifest, reviewers: bound, conditions: next.conditions, checkpointDigest: active?.continuation ? active.checkpointDigest : checkpoint?.checkpointDigest || null }, admission: !active, ...(['begin-continuation', 'begin-final-continuation', 'begin-post-ci-correction'].includes(action) ? { ownerApproval } : {}), ...(correction ? { correctionEvidence: correction } : {}) }
   })
 }
 

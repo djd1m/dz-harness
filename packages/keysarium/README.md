@@ -1,11 +1,20 @@
 # @dzhechkov/keysarium
 
+The bundled feature-ADR guidance covers Codex project or user hook delivery through a compatible
+@dzhechkov/harness-cli installation; this package does not bundle a hook runtime. Select the scope
+explicitly when needed, review new or changed native hook definitions manually, and treat verification
+as a bounded selected-project observation. Host acceptance on Codex CLI 0.160.0 observed the
+production hook blocking an exact nonce command and both controls creating sentinels. Exact tool
+identity, native edit, nested code-mode coverage and recall remain unverified.
+
 The bundled Feature ADR projection supports installed-CLI native QE history opt-in with a fixed three-cycle ceiling and explicit repair. Its canonical helper/guidance remain synchronized; compatible core/CLI capabilities are required, and historical bridge behavior remains available.
+
+The delivered Feature ADR helper also exposes final-continuation capability 1 for one changed, pinned fifth target after an unresolved witnessed fourth, when the installed core and CLI support the matching action. The new-action declaration may record prior limited owner policy consent and the operator’s later measured target binding, while stating that the owner did not inspect that future digest. It does not authenticate consent or prove delegated scope; use an independently accepted matching packed CLI/core/helper before authoritative admission. The ordinary continuation and CLOSED4 post-CI route retain their existing meanings.
 
 If bytes change before first evaluation, native `evaluate` retains valid old-snapshot receipt origins and conditions while reporting `not-established/native-repair-required`. Follow with explicit `begin-repair` and fresh independent verification of the new snapshot. Recovery preserves authority and the three-cycle ceiling; old evidence never closes changed bytes.
 
 
-Current package version: `1.7.20`. <!-- dz:version -->
+Current package version: `1.7.21`. <!-- dz:version -->
 
 Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree/main/packages/keysarium
 

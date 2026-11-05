@@ -174,13 +174,14 @@ export { RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, RECALL_USAGE_COM
 export type { RecallUsageReadRecord, RecallUsageAggregateRecord, RecallUsageRecord, ParsedRecallUsageLog, RecallUsageStat, RecallPatternUsageRef, RecallUsagePatternRow, RecallUsageReport, RecallUsageRecordInput, CompactRecallUsageOptions, CompactRecallUsageResult, CompactRecallUsageStatus, AppendRecallUsageInput, AppendRecallUsageHit, Runtime, } from './recall-usage.js';
 export { mergeManagedHookEntries, hookCommandsOf } from './managed-hooks.js';
 export type { HookMergePlan, MergeManagedHookOptions, ManagedHookEntry } from './managed-hooks.js';
-export { CODEX_MANAGED_HOOKS, DZ_HOOK_HELPER_VERSION, DZ_HOOK_TIMEOUT_SECONDS, DZ_VETO_MATCHER, buildHookCommand, buildManagedEntries, buildCodexHookManifest, codexHooksPaths, diffCodexHooks, emitterWriteSet, expectedTrustKey, isDzManagedEntry, isSafeForSingleQuote, looksLikeDzEntry, managedByEvent, parseCodexRegistry, parseCodexHookManifest, planCodexHooks, removeCodexHooks, renderTrustBlock, runtimeWriteSet, selectOwnHookMetadata, serializeCodexRegistry, codexHookSha256, trustEventName, upsertTrustBlock, } from './codex-hooks.js';
-export type { CodexHookEvent, CodexHookId, CodexHookManifest, CodexHookManifestEntry, CodexHooksPaths, CodexHooksPlan, CodexRegistry, DriftReport, HooksListHookMetadata, HookTrustRow, ManagedEntry, } from './codex-hooks.js';
+export { CODEX_MANAGED_HOOKS, DZ_HOOK_HELPER_VERSION, DZ_HOOK_TIMEOUT_SECONDS, DZ_VETO_MATCHER, buildHookCommand, buildManagedEntries, buildCodexHookManifest, codexHooksPaths, resolveCodexHookLocation, classifyCodexHookRegistration, diffCodexHooks, emitterWriteSet, expectedTrustKey, isDzManagedEntry, isSafeForSingleQuote, looksLikeDzEntry, managedByEvent, parseCodexRegistry, parseCodexHookManifest, planCodexHooks, removeCodexHooks, renderTrustBlock, runtimeWriteSet, selectOwnHookMetadata, serializeCodexRegistry, codexHookSha256, trustEventName, upsertTrustBlock, } from './codex-hooks.js';
+export type { CodexHookEvent, CodexHookScope, CodexHookLocation, CodexHookRegistration, CodexHookId, CodexHookManifest, CodexHookManifestEntry, CodexHooksPaths, CodexHooksPlan, CodexRegistry, DriftReport, HooksListHookMetadata, HookTrustRow, ManagedEntry, } from './codex-hooks.js';
 export { DZ_VETO_MARKER, DZ_VETO_WARN_MARKER, RUNTIME_BLOCK_PHRASE, classifyTrust, classifyVetoProbe, isReadyVerdict, verifyExitCode, } from './codex-hooks-verify.js';
 export type { CodexHookTrustStatus, VetoProbeEvidence, VetoProbeResult, VetoTrust, VetoVerdict, } from './codex-hooks-verify.js';
 export { SHELL_VETO_RULE_ID, resolveVetoMode, vetoShellCommand } from './shell-veto-policy.js';
 export type { VetoHit, VetoMode } from './shell-veto-policy.js';
 export { generateCodexHelpers, generateCodexRecallHelper, generateCodexVetoHelper } from './codex-hooks-assets.js';
+export type { CodexHelperGenerationOptions } from './codex-hooks-assets.js';
 export { EVENT_CHAIN_SCOPE, EVENT_CHAIN_GENESIS_HASH, EVENT_CHAIN_TAIL_BYTES, EVENT_CHAIN_FIELD_OVERHEAD_BYTES, EVENT_CHAIN_LEDGER_KIND, EVENT_CHAIN_DEFECT_KINDS, fnv1a32, chainHashOf, chainLinesOf, lastChainLine, readTailInfo, appendChainedLines, EMPTY_LOG_TAIL, nextChainFields, withChainFields, chainRecordLines, chainRewrite, defaultEventWeight, eventWeightOfText, verifyEventChain, verifyEventChainText, renderEventChainVerification, rewriteSnapshot, rewriteSnapshotUnchanged, guardedRewrite, DEFAULT_REWRITE_ATTEMPTS, liveSegmentStart, classifyChainDefects, CHAINED_JOURNALS, } from './event-chain.js';
 export type { ChainFields, LogTail, EventChainLedger, RewriteSnapshot, GuardedRewriteIo, GuardedRewriteResult, GuardedRewriteStatus, RewriteProposal, EventChainDefect, EventChainDefectKind, EventChainVerification, VerifyEventChainOptions, ChainDefectAge, ChainDefectAges, ChainedJournal, } from './event-chain.js';
 export { packArtifact, readWorkspaceVersions, UnknownWorkspaceSpecError } from './pack-artifact.js';
@@ -319,6 +320,6 @@ export type { BackupFreshnessVerdict } from './backup-freshness.js';
 export { planReleasePackageAudit, judgeReleasePackageAudit, judgeReleaseCohortAudit } from './release-package-audit.js';
 export type { ReleasePackageAuditPlan, ReleasePackageAuditResult, ReleaseWorkspaceAuditReport } from './release-package-audit.js';
 export { buildScopedCatalogInventory } from './scoped-catalog-inventory.js';
-export { NATIVE_QE_HISTORY_API_VERSION, NATIVE_QE_CONTINUATION_API_VERSION, NATIVE_QE_POST_CI_CORRECTION_API_VERSION, createNativeQeHistoryApi } from './native-review-history.js';
+export { NATIVE_QE_HISTORY_API_VERSION, NATIVE_QE_CONTINUATION_API_VERSION, NATIVE_QE_FINAL_CONTINUATION_API_VERSION, NATIVE_QE_POST_CI_CORRECTION_API_VERSION, createNativeQeHistoryApi } from './native-review-history.js';
 export { validateNativePostCiEvidence } from './native-post-ci-evidence.js';
 //# sourceMappingURL=index.d.ts.map

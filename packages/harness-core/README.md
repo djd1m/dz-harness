@@ -24,7 +24,9 @@ commands. Use `node --test <file>` through the same wrapper for Node tests. Focu
 is supported; it does not prove a complete suite, meaningful tests or authenticated evidence.
 See the repository `.githooks/README.md` for bounds, supported commands and reasoned overrides.
 
-Current package version: `0.8.66`. <!-- dz:version -->
+Current package version: `0.8.67`. <!-- dz:version -->
+
+Claude destructive-guard hook settings serialize `timeout: 5` in seconds.
 
 Joint current metadata requires `<!-- dz:version -->` on a dedicated undated core/CLI line. Both README writers preserve unmarked historical joint pairs; the guard and release-line report skip them. Fenced examples cannot become current joint metadata. `parseReleaseLine` remains structural, while selection requires this explicit opt-in. On a visible line, the marker still forces per-package rewriting of every matching version, including an explicit changelog override; keep it off historical records. Fenced examples and supported HTML comment blocks remain literal even when they contain the marker, a footer, an install/JSON pin, a tarball line or a badge. Put current stamps outside these examples.
 
@@ -974,47 +976,83 @@ content plus the existing `dz:skills` fence is preserved.
 
 ## Codex hook carrier (`hooks-sync --target codex`)
 
-Five modules deliver the dz veto + auto-recall hooks to Codex's user-global registry, and one of them
+Five modules deliver the dz veto + auto-recall hooks to a selected Codex project or user registry, and one of them
 is shared with the Claude Code path rather than duplicated:
 
 | Module | What it is |
 |---|---|
 | `managed-hooks.ts` | `mergeManagedHookEntries` — the **one** event-level hook merge, used by BOTH targets. Foreign entries are kept byte-for-byte; the attribution predicate is the only parameter that differs (substring for Claude, sha-over-manifest for Codex). |
-| `codex-hooks.ts` | paths (all `CODEX_HOME`-relative), the two managed entries, sha attribution, manifest, drift, and the `config.toml` trust block. Pure. |
+| `codex-hooks.ts` | Scope/location paths, managed entries, manifest attribution, drift and strict native registration classification. Pure. Runtime `CODEX_HOME` remains the real user home. |
 | `codex-hooks-verify.ts` | `classifyVetoProbe` — a fail-closed two-axis classifier (`verdict` × `trust`). No branch defaults to a pass; a `--dangerously-bypass-hook-trust` run can never yield one. |
 | `shell-veto-policy.ts` | `vetoShellCommand` + `resolveVetoMode`. ONE rule, `ssh-explicit-auth-weakening`; **warn by default**, block only on explicit project opt-in. Pure, no I/O. |
 | `codex-hooks-assets.ts` | the two emitted `.cjs` helper bodies (the `generateAgentdbWriter` pattern). |
 
-`runSyncCodexHooks` (in `operations.ts`) is the I/O shell: refuse → read → merge → back up → atomic
-write → helpers → **install-time liveness self-probe** → arm trust → manifest → **live veto probe**.
+`runSyncCodexHooks` (in `operations.ts`) is the I/O shell: resolve scope → refuse unsafe state →
+publish immutable content-addressed helper bodies → merge/back up/atomically write the selected
+registry → observe native registration and trust → write the manifest → optionally run a bounded
+veto probe. It never approves hooks or changes project/config trust. New and changed definitions
+need interactive native review. An unchanged definition keeps its existing trust state.
 
-The last step is the one that decides what may be printed. `runCodexVetoProbe` drives ONE
-non-bypassed `codex exec` in a hermetic, consenting workspace with a nonce-scoped sentinel, and
-`classifyVetoProbe` grades it; the report's `ready` is `installed ∧ executable ∧ trusted ∧ a
-witnessed block`, and nothing else may reach a success word. `verify: false` (the CLI's
-`--no-verify`) never yields exit 0 — a refusal to measure is inconclusive, not success. This is the
-independent review's CRITICAL finding: the classifier and its exit map existed and were never called
-from any production path.
+The last step is the one that decides what may be printed. For project scope,
+`runCodexVetoProbe` drives a bounded App Server session in the selected consenting project; it
+never substitutes another workspace. It requires native `hooks/list`, a selected-project
+`hook/started` and blocked `hook/completed` pair, an exact nonce command in that completion's
+feedback, a successful same-turn `turn/completed`, and stable local and native postflight identity.
+Assistant text, stderr and foreign hook output cannot prove the block. The legacy user-scope
+smoke is reported separately and cannot certify project execution. `ready` requires installed,
+registered, trusted, executable and executionVerified. `verify: false` (the CLI's `--no-verify`)
+cannot establish executionVerified or readiness.
 
 Two spellings that are NOT the same fact, both MEASURED on codex-cli 0.148.0: a trust KEY embeds
 `pre_tool_use`, while `hooks/list`'s `eventName` FIELD says `preToolUse`. `sameHookEvent` normalises
 both — pinning either alone matches zero rows, writes no trust, and the guard stops firing while
 every unit test stays green (it did; the live probe caught it).
 
-Two runtime facts it encodes, both MEASURED on `codex-cli 0.147.0` and RE-CONFIRMED on `0.148.0` at
-the independent-QE fix round (a capability grant now records the runtime version it was measured on,
-and a grant whose recorded version is not the installed one is reported `stale-runtime-version` —
-inconclusive until re-probed). Both are load-bearing:
+The current project source envelope was measured on `codex-cli 0.160.0` (M0), and its public
+hook lifecycle was measured separately. Blocked CLI JSONL emitted no command_execution item in
+the host control, so it cannot certify a project veto. These are protocol observations, not a
+minimum-version promise or a live project veto acceptance result. Two facts matter:
 
-- **Hooks are trust-gated.** A written entry is silently never run until trust is recorded per entry
-  in `$CODEX_HOME/config.toml` as `[hooks.state."<key>"] trusted_hash = "<currentHash>"`. Both values
-  are READ from codex's own `hooks/list` app-server RPC — never computed — so dz cannot arm an entry
-  it did not just emit, and editing a helper disarms it rather than inheriting its trust.
+- **Hooks are trust-gated.** Native `hooks/list` must show the exact selected source/path, event,
+  command, matcher, enabled state, currentHash and trustStatus. Native currentHash is opaque; local
+  helper-body SHA-256 only names the immutable executable path. Editing an external helper body did
+  not change currentHash in M0, so do not treat native trust as authentication of arbitrary script
+  bytes. Update and removal retain old generations and legacy stable helpers for cached sessions;
+  restart old sessions to stop their old commands. Mutable imports and manual tampering remain limits.
 - **The runner spawns via `$SHELL -lc`.** A bare `node` is frequently absent from a non-interactive
   login shell, and the helper then exits **127**, which the runtime reads as **ALLOW** — a blocking
   guard silently dead in the fail-open direction. So the interpreter is an absolute `process.execPath`,
   both paths are single-quoted, and install runs a liveness self-probe through the same shell. A hook
-  that cannot execute is reported **not armed**, never "installed".
+  that cannot execute may still be locally installed, but it is never **READY** or execution verified;
+  installed, registered, trusted and executionVerified remain separate report axes.
+
+```bash
+dz hooks-sync --target codex --scope project --project /path/to/project
+dz hooks-sync --target codex --scope project --project /path/to/project --check
+dz hooks-sync --target codex --scope project --project /path/to/project --remove
+dz hooks-sync --target codex --scope user --project /path/to/project
+dz hooks-sync --target codex --scope user --project /path/to/project --check
+dz hooks-sync --target codex --scope user --project /path/to/project --remove
+```
+
+Fresh CLI installs select project scope (`<project>/.codex/hooks.json`); an attributable existing
+user-only install retains user scope. If both scopes are installed or evidence is damaged, choose
+`--scope` explicitly. `--check` writes nothing. Project helpers, manifest, backups, diagnostics and
+lock live under that project's `.codex`; runtime `CODEX_HOME` still points to the real user home.
+After delivery, open Codex in the selected project and review the project and both hook definitions
+interactively, then run `--check` or `--verify`. Helper generations and old stable helpers are
+retained after update/removal; disk use grows until a future session-aware cleanup mechanism exists.
+
+| Surface | Evidence in this change |
+|---|---|
+| `hooks/list` project metadata | M0 on Codex 0.160.0: `source=project`, selected sourcePath, matcher, hash and untrusted status |
+| Shell command through native preToolUse | Bounded production acceptance on Codex 0.160.0: selected hook blocked the exact nonce command; removed-hook and neighboring-project controls created sentinels |
+| Exact Bash/exec_command identity | Unverified: public hook metadata does not expose the attempted tool name |
+| Native edits/apply_patch | Unverified |
+| Nested code mode | Unverified |
+
+The veto result covers only the attempted shell command and selected project. It does not establish
+recall, universal write protection, or revalidation of `write_stdin`.
 
 `appendRecallUsage` in `recall-usage.ts` is the single chained writer both runtimes call; rows carry
 `runtime: 'claude-code' | 'codex'` (absent ⇒ `claude-code`), and the compaction aggregate carries a
@@ -3047,6 +3085,8 @@ native checker and K2 script. No Markdown authenticity is inferred.
 Native QE keeps its default ceiling at three. `dz qe-rounds --source native --action begin-continuation --project <root> --slug <feature> --reviewers <actual-roster-json> --owner-approval <inline-json>` can admit exactly one additional cycle after three witnessed cycles whose active cycle has never closed. A second ordinary continuation refuses. The target is pinned before its fourth origin; prepare and repair cannot redirect it. Fresh independent receipts, original reviewer conditions, author delta assessment and checkpoint verification still govern closure. An admitted checkpoint remains required if its file is removed or replaced; restore the original checkpoint and obtain independent verification before closure. Prepare retains its digest, and replay rejects a closed continuation without matching checkpoint evidence.
 
 The exact flat declaration has schema `native-qe-owner-approval-1`, a UUIDv4 `approvalId`, nonempty `owner` (≤256 characters), `decision` (≤2048), `evidenceSource` (≤4096), canonical `projectRoot` and `featurePath`, `journalId`, `sequence`, `eventDigest`, `cycleId`, prior `revision` and distinct measured `targetRevision`. Native read-only reporting exposes the predecessor event digest. Inline JSON and its serialized declaration are capped at 16 KiB. Obtain the changed target digest from the bounded artifact manifest; consent must explicitly bind it. No helper fills missing consent or updates stale bindings. Exact committed retries can return the admitted cycle without appending.
+
+Native QE also admits one terminal `begin-final-continuation` only when the ordinary continuation is the active, witnessed fourth cycle, its latest evaluation is `unresolved`, and that cycle has never closed. It requires a changed measured target, fresh nonce, original `--reviewers` and `--owner-approval`; it cannot coexist with `begin-post-ci-correction`. Core exports `NATIVE_QE_FINAL_CONTINUATION_API_VERSION = 1`, the API exposes `finalContinuationVersion: 1`, and the installed helper exports `NATIVE_REVIEW_FINAL_CONTINUATION_API_VERSION = 1`; both capabilities are required. The read summary reports `finalContinuation: { capacity: 1, used, targetRevision }`, where capacity is a fixed maximum rather than present eligibility. Admission preserves the journal prefix, reviewer roster, conditions, checkpoint and accumulated delta, pins the fifth target before origin, and leaves the witnessed count at four until fresh original-role evidence arrives. No sixth cycle is available. For this new action only, the same bounded `native-qe-owner-approval-1` declaration may truthfully record earlier owner consent to a limited repair procedure and a later operator binding of the measured target: `owner` names the actual authorizing owner, `decision` states that the operator bound the target under that delegation and the owner did not inspect the then-future digest, and `evidenceSource` identifies the real consent context and binding record. It does not authenticate a person, prove delegated scope, or imply owner inspection or acceptance of future bytes. Missing consent or scope must stop admission; the operator and independent reviewer assess the actual evidence. The existing ordinary continuation and CLOSED4 post-CI approval meanings are unchanged. Use only an independently accepted matching packed CLI/core/helper combination before authoritative use.
 
 This is surviving local owner evidence, not human authentication or acceptance. Core and the CLI-owned installed helper require continuation capability 1 while legacy APIs remain 1. Older readers reject the extended event explicitly. Install only accepted, signed local packed candidates before authoritative use; no npm publication is required. Journal/head/host publication remains conservatively crash detecting under the existing lock, with no filesystem atomicity claim.
 

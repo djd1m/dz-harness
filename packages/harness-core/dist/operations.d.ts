@@ -5,7 +5,7 @@
  *
  * @packageDocumentation
  */
-import { type CodexHooksPaths, type HooksListHookMetadata } from './codex-hooks.js';
+import { type CodexHooksPaths, type CodexHookScope, type HooksListHookMetadata } from './codex-hooks.js';
 import { type CodexHookTrustStatus, type VetoProbeEvidence, type VetoProbeResult } from './codex-hooks-verify.js';
 import type { SkillApplyFailure, SkillLoadFailure } from './skills.js';
 import type { TargetName } from './targets.js';
@@ -286,6 +286,7 @@ export declare function runDoctor(options: {
 export interface CodexHooksSyncOptions {
     /** Defaults to `$CODEX_HOME`, then `~/.codex`. Every automated probe passes a temp dir (AM-11). */
     readonly codexHome?: string;
+    readonly scope?: CodexHookScope;
     /** Verify only. NOTHING is created — not even the helper directory. */
     readonly check?: boolean;
     /** Remove manifest-attributed entries and stop. */
@@ -315,7 +316,7 @@ export interface CodexHooksSyncOptions {
      * block for minutes, far past any advisory lock's stale threshold, at which point a waiter is
      * entitled to break the lock and the holder becomes a liar. Default: run unwrapped.
      */
-    readonly criticalSection?: <T>(fn: () => T) => T;
+    readonly criticalSection?: <T>(fn: () => T, registryDir?: string) => T;
     /** The project whose consent the probe runs under (`--project`). See {@link runCodexVetoProbe}. */
     readonly project?: string;
     /** Pinned probe model id; defaults to `DZ_CODEX_PROBE_MODEL`, then codex's own configured model. */
@@ -328,12 +329,22 @@ export interface CodexHooksSyncOptions {
      * restore fails CLOSED. Nothing else in the operation goes through it.
      */
     readonly writeHelperFile?: (path: string, body: string) => void;
+    /** Offline publication discriminator only; production always generates the real bodies. */
+    readonly helperBodies?: Readonly<{
+        veto: string;
+        recall: string;
+    }>;
 }
 export interface CodexHooksSyncReport {
     readonly codexHome: string;
+    readonly scope?: CodexHookScope;
+    readonly projectRoot?: string;
     readonly registryPath: string;
     /** Both managed entries are present in the file (recomputed from the FILE, not the manifest). */
     readonly installed: boolean;
+    readonly registered?: boolean;
+    readonly trusted?: boolean;
+    readonly executionVerified?: boolean;
     /** The emitted command actually RUNS through `$SHELL -lc`. A hook that cannot execute is not armed. */
     readonly executable: boolean;
     readonly written: boolean;
@@ -395,6 +406,7 @@ export declare function probeHookLiveness(command: string, payload: string, opts
 export declare function runSyncCodexHooks(options?: CodexHooksSyncOptions): CodexHooksSyncReport;
 export interface CodexVetoProbeOptions {
     readonly paths: CodexHooksPaths;
+    readonly scope?: CodexHookScope;
     /** Where the probe runs. Absent ⇒ a hermetic temp workspace that opts INTO block mode. */
     readonly project?: string | undefined;
     /** Pinned model id (`DZ_CODEX_PROBE_MODEL`). Absent ⇒ codex's own configured default. */
@@ -413,7 +425,8 @@ export interface CodexVetoProbeRun {
     readonly notes: readonly string[];
 }
 /**
- * Drive ONE live, NON-bypassed veto probe through `codex exec` and classify what it produced.
+ * Drive one selected project probe through public App Server hook events, or the legacy user
+ * smoke probe through `codex exec`. The project branch never grades CLI prose or JSONL items.
  *
  * This is the half the shipped CLI was missing: `--verify` and `--project` were accepted and
  * dropped, `classifyVetoProbe` was never called from any production path, and `ready` printed off
@@ -423,8 +436,7 @@ export interface CodexVetoProbeRun {
  * Fail-closed by construction:
  * - `--dangerously-bypass-hook-trust` is NEVER passed (`bypassedTrust: false` is a fact here, not a
  *   parameter): a bypassed run proves the helper body works and nothing about the installed state.
- * - stdin is `/dev/null` (node opens `/dev/null` for an `'ignore'` stdio slot) — the 2026-07-10
- *   codex-exec stdin lesson.
+ * - the user smoke child receives `/dev/null`; the native project child's stdin carries RPC only.
  * - Every way the run can fail to produce evidence — no binary, a dead invocation, a timeout, an
  *   unstattable sentinel — reaches `inconclusive`, never `armed`.
  */
@@ -447,6 +459,6 @@ export declare function statSentinelPresence(path: string): {
  * MEASURED headless (M0 spike, probe 1): `initialize` → `initialized` → `hooks/list` answers with
  * `key`, `currentHash`, `trustStatus` and `sourcePath` for every discovered entry, no TUI involved.
  */
-export declare function listCodexHooks(codexHome: string, cwd?: string): readonly HooksListHookMetadata[] | null;
+export declare function listCodexHooks(codexHome: string, cwd?: string, timeoutMs?: number): readonly HooksListHookMetadata[] | null;
 export {};
 //# sourceMappingURL=operations.d.ts.map

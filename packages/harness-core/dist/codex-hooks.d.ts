@@ -78,8 +78,17 @@ export interface CodexHooksPaths {
     readonly manifest: string;
     readonly errorLog: string;
 }
+export type CodexHookScope = 'project' | 'user';
+export interface CodexHookLocation {
+    readonly scope: CodexHookScope;
+    readonly projectRoot: string;
+    readonly registryDir: string;
+    readonly codexHome: string;
+}
+/** Filesystem discovery and implicit-scope selection belong to operations. */
+export declare function resolveCodexHookLocation(scope: CodexHookScope, projectRoot: string, codexHome: string): CodexHookLocation;
 /** Every path this leg touches, all `CODEX_HOME`-relative (AM-13). */
-export declare function codexHooksPaths(codexHome: string): CodexHooksPaths;
+export declare function codexHooksPaths(codexHome: string, location?: CodexHookLocation): CodexHooksPaths;
 /** The EMITTER's write-set (AM-12). The RUNTIME's is stated separately — see {@link runtimeWriteSet}. */
 export declare function emitterWriteSet(paths: CodexHooksPaths): readonly string[];
 /**
@@ -89,7 +98,7 @@ export declare function emitterWriteSet(paths: CodexHooksPaths): readonly string
  * ALREADY-EXISTING opted-in project's `.dz/`, so nothing is ever created.)
  */
 export declare function runtimeWriteSet(paths: CodexHooksPaths): readonly string[];
-/** A single quote inside a single-quoted shell word cannot be escaped — such a path is REFUSED. */
+/** Shell words allow apostrophes; control characters are refused before delivery. */
 export declare function isSafeForSingleQuote(path: string): boolean;
 export declare function singleQuote(path: string): string;
 /**
@@ -348,7 +357,16 @@ export interface HooksListHookMetadata {
     readonly trustStatus: 'managed' | 'untrusted' | 'trusted' | 'modified';
     readonly enabled: boolean;
     readonly timeoutSec: number;
+    readonly matcher?: string | null;
 }
+export interface CodexHookRegistration {
+    readonly registered: boolean;
+    readonly trusted: boolean;
+    readonly reason: string;
+    readonly rows: readonly HooksListHookMetadata[];
+}
+/** A native row is evidence only when every exposed identity field agrees with this registry. */
+export declare function classifyCodexHookRegistration(hooks: readonly HooksListHookMetadata[] | null, entries: readonly ManagedEntry[], location: CodexHookLocation): CodexHookRegistration;
 export interface SelectOwnHookOptions {
     /** The registry file dz wrote. A row from any other source path is not dz's row. */
     readonly registryPath: string;

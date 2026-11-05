@@ -325,6 +325,7 @@ export declare const runReleaseExec: ReleaseExecRunner;
 export interface CodexHooksSyncInput {
     readonly codexHome?: string | undefined;
     readonly project?: string | undefined;
+    readonly scope?: string | undefined;
     readonly check?: boolean;
     readonly remove?: boolean;
     /** `false` = the user's `--no-verify`. Anything else runs the live probe. */

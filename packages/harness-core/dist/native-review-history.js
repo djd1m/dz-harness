@@ -7,6 +7,7 @@ import { withDirLockSync } from './named-lock.js';
 import { validateNativePostCiEvidence, nativePostCiIdentityRegistry } from './native-post-ci-evidence.js';
 export const NATIVE_QE_HISTORY_API_VERSION = 1;
 export const NATIVE_QE_CONTINUATION_API_VERSION = 1;
+export const NATIVE_QE_FINAL_CONTINUATION_API_VERSION = 1;
 export const NATIVE_QE_POST_CI_CORRECTION_API_VERSION = 2;
 const ceiling = 3;
 const sha = (value) => createHash('sha256').update(value).digest('hex');
@@ -433,7 +434,7 @@ export function createNativeQeHistoryApi(options) {
         if (!shape(head, ['schema', 'journalId', 'projectRoot', 'featurePath', 'ceiling', 'sequence', 'eventDigest', 'activeCycle', 'hostProjectionDigest']) || head.schema !== 'native-qe-head-1' || !uuid(head.journalId) || head.projectRoot !== projectRoot || head.featurePath !== featurePath || head.ceiling !== ceiling || !Number.isInteger(head.sequence) || !hash(head.eventDigest) || !uuid(head.activeCycle) || !hash(head.hostProjectionDigest))
             return fail('native-head-identity-invalid');
         const events = [], witnessed = new Set(), eventIds = new Set(), cycles = new Set(), closed = new Set();
-        let continuation, correction, anchor;
+        let continuation, finalContinuation, correction, anchor;
         let roster = [];
         let previous, previousDigest = null;
         for (const line of lines) {
@@ -445,13 +446,16 @@ export function createNativeQeHistoryApi(options) {
                 return fail('native-journal-malformed');
             }
             const extended = record(e) && e.schema === 'native-qe-continuation-1';
+            const final = record(e) && e.schema === 'native-qe-final-continuation-1';
             const post = record(e) && e.schema === 'native-qe-post-ci-correction-1';
-            if (!shape(e, ['schema', 'journalId', 'projectRoot', 'featurePath', 'ceiling', 'sequence', 'eventId', 'cycleId', 'previousDigest', 'kind', 'timestamp', 'nonce', 'revision', 'snapshot', 'hostProjectionDigest', 'origins', 'receiptDigest', 'reason', 'observationDigest', 'result'].concat(extended ? ['continuation'] : post ? ['postCiCorrection'] : [])) || !(extended || post || e.schema === 'native-qe-history-1') || e.journalId !== head.journalId || e.projectRoot !== projectRoot || e.featurePath !== featurePath || e.ceiling !== ceiling || e.sequence !== events.length + 1 || !uuid(e.eventId) || eventIds.has(e.eventId) || !uuid(e.cycleId) || e.previousDigest !== previousDigest || !['prepare', 'evaluate', 'begin-repair', 'begin-continuation', 'begin-post-ci-correction'].includes(e.kind) || !text(e.timestamp) || new Date(e.timestamp).toISOString() !== e.timestamp || !snapshotValid(e.snapshot) || e.nonce !== e.snapshot.nonce || e.revision !== e.snapshot.revision || !hash(e.hostProjectionDigest) || !Array.isArray(e.origins) || e.origins.length > 16 || !e.origins.every(o => shape(o, ['reviewer', 'family']) && text(o.reviewer) && ['codex', 'claude', 'owner-exception'].includes(o.family)) || new Set(e.origins.map(o => o.reviewer)).size !== e.origins.length || !(e.receiptDigest === null || hash(e.receiptDigest)) || !(e.reason === null || text(e.reason)) || !hash(e.observationDigest) || !resultValid(e.result, e.snapshot))
+            if (!shape(e, ['schema', 'journalId', 'projectRoot', 'featurePath', 'ceiling', 'sequence', 'eventId', 'cycleId', 'previousDigest', 'kind', 'timestamp', 'nonce', 'revision', 'snapshot', 'hostProjectionDigest', 'origins', 'receiptDigest', 'reason', 'observationDigest', 'result'].concat(extended ? ['continuation'] : final ? ['finalContinuation'] : post ? ['postCiCorrection'] : [])) || !(extended || final || post || e.schema === 'native-qe-history-1') || e.journalId !== head.journalId || e.projectRoot !== projectRoot || e.featurePath !== featurePath || e.ceiling !== ceiling || e.sequence !== events.length + 1 || !uuid(e.eventId) || eventIds.has(e.eventId) || !uuid(e.cycleId) || e.previousDigest !== previousDigest || !['prepare', 'evaluate', 'begin-repair', 'begin-continuation', 'begin-final-continuation', 'begin-post-ci-correction'].includes(e.kind) || !text(e.timestamp) || new Date(e.timestamp).toISOString() !== e.timestamp || !snapshotValid(e.snapshot) || e.nonce !== e.snapshot.nonce || e.revision !== e.snapshot.revision || !hash(e.hostProjectionDigest) || !Array.isArray(e.origins) || e.origins.length > 16 || !e.origins.every(o => shape(o, ['reviewer', 'family']) && text(o.reviewer) && ['codex', 'claude', 'owner-exception'].includes(o.family)) || new Set(e.origins.map(o => o.reviewer)).size !== e.origins.length || !(e.receiptDigest === null || hash(e.receiptDigest)) || !(e.reason === null || text(e.reason)) || !hash(e.observationDigest) || !resultValid(e.result, e.snapshot))
                 return fail('native-event-invalid');
             if (post !== (e.kind === 'begin-post-ci-correction'))
                 return fail('native-post-ci-schema-invalid');
             if (extended !== (e.kind === 'begin-continuation'))
                 return fail('native-continuation-schema-invalid');
+            if (final !== (e.kind === 'begin-final-continuation'))
+                return fail('native-final-continuation-schema-invalid');
             if (extended) {
                 if (continuation || !previous || witnessed.size !== ceiling || !witnessed.has(previous.cycleId) || closed.has(previous.cycleId))
                     return fail('native-continuation-eligibility-invalid');
@@ -465,8 +469,21 @@ export function createNativeQeHistoryApi(options) {
                     return fail('native-continuation-obligations-invalid');
                 continuation = e;
             }
+            else if (final) {
+                if (finalContinuation || correction || !continuation || !previous || witnessed.size !== 4 || !witnessed.has(previous.cycleId) || previous.cycleId !== continuation.cycleId || previous.kind !== 'evaluate' || previous.result.verdict !== 'unresolved' || closed.has(previous.cycleId))
+                    fail('native-final-continuation-eligibility-invalid');
+                const c = e.finalContinuation;
+                if (!shape(c, ['approval', 'predecessorHost']) || !approvalValid(c.approval) || !approvalBound(c.approval, previous, previousDigest, e.snapshot))
+                    fail('native-final-continuation-approval-invalid');
+                if (!hostValid(c.predecessorHost, previous.snapshot) || sha(hostBytes(c.predecessorHost)) !== previous.hostProjectionDigest)
+                    fail('native-final-continuation-predecessor-host-invalid');
+                const expected = continuedHost(c.predecessorHost, e.snapshot);
+                if (events.some(p => p.nonce === e.nonce) || !same(e.result.reviewers, expected.reviewers) || !same(e.result.conditions, expected.conditions) || e.result.checkpointDigest !== continuation.result.checkpointDigest || sha(hostBytes(expected)) !== e.hostProjectionDigest || e.reason !== null || e.receiptDigest !== null)
+                    fail('native-final-continuation-obligations-invalid');
+                finalContinuation = e;
+            }
             else if (post) {
-                if (correction || !continuation || !previous || witnessed.size !== 4 || !witnessed.has(previous.cycleId) || previous.cycleId !== continuation.cycleId || previous.kind !== 'evaluate' || previous.result.verdict !== 'closed')
+                if (correction || finalContinuation || !continuation || !previous || witnessed.size !== 4 || !witnessed.has(previous.cycleId) || previous.cycleId !== continuation.cycleId || previous.kind !== 'evaluate' || previous.result.verdict !== 'closed')
                     fail('native-post-ci-eligibility-invalid');
                 const c = e.postCiCorrection;
                 if (!shape(c, ['approval', 'evidencePath', 'evidence', 'predecessorHost']) || !approvalValid(c.approval, true) || !approvalBound(c.approval, previous, previousDigest, e.snapshot) || c.approval.evidenceDigest !== sha(JSON.stringify(c.evidence) + '\n'))
@@ -479,7 +496,7 @@ export function createNativeQeHistoryApi(options) {
                 correction = e;
                 anchor = e;
             }
-            else if ((correction || continuation) && (e.cycleId !== (correction || continuation).cycleId || e.revision !== (correction || continuation).revision || !same(e.snapshot, (correction || continuation).snapshot)))
+            else if ((finalContinuation || correction || continuation) && (e.cycleId !== (finalContinuation || correction || continuation).cycleId || e.revision !== (finalContinuation || correction || continuation).revision || !same(e.snapshot, (finalContinuation || correction || continuation).snapshot)))
                 return fail('native-continuation-target-pinned');
             if (correction) {
                 if (!post && e.kind === 'evaluate' && e.reason === 'native-post-ci-proof-unavailable') {
@@ -510,12 +527,12 @@ export function createNativeQeHistoryApi(options) {
                 cycles.add(e.cycleId);
             }
             else if (e.cycleId !== previous.cycleId) {
-                if (!['begin-repair', 'begin-continuation', 'begin-post-ci-correction'].includes(e.kind) || !witnessed.has(previous.cycleId) || cycles.has(e.cycleId) || (e.kind === 'begin-repair' && witnessed.size >= ceiling) || e.revision === previous.revision || e.origins.length)
+                if (!['begin-repair', 'begin-continuation', 'begin-final-continuation', 'begin-post-ci-correction'].includes(e.kind) || !witnessed.has(previous.cycleId) || cycles.has(e.cycleId) || (e.kind === 'begin-repair' && witnessed.size >= ceiling) || e.revision === previous.revision || e.origins.length)
                     return fail('native-repair-transition-invalid');
                 cycles.add(e.cycleId);
             }
             else {
-                if (['begin-repair', 'begin-continuation', 'begin-post-ci-correction'].includes(e.kind) || (e.revision !== previous.revision && (e.kind !== 'prepare' || witnessed.has(e.cycleId))) || (e.revision === previous.revision && !same(e.snapshot, previous.snapshot)))
+                if (['begin-repair', 'begin-continuation', 'begin-final-continuation', 'begin-post-ci-correction'].includes(e.kind) || (e.revision !== previous.revision && (e.kind !== 'prepare' || witnessed.has(e.cycleId))) || (e.revision === previous.revision && !same(e.snapshot, previous.snapshot)))
                     return fail('native-cycle-transition-invalid');
             }
             if (e.origins.length)
@@ -541,14 +558,16 @@ export function createNativeQeHistoryApi(options) {
         }
         if (!hostValid(parsedHost, previous.snapshot))
             return fail('native-host-projection-invalid');
-        if (continuation && (!preservedHost(continuedHost(correction ? correction.postCiCorrection.predecessorHost : continuation.continuation.predecessorHost, (correction || continuation).snapshot), parsedHost) || previous.result.verdict !== 'closed' && !continuedHost(correction ? correction.postCiCorrection.predecessorHost : continuation.continuation.predecessorHost, (correction || continuation).snapshot).changedPaths.every(path => parsedHost.changedPaths.includes(path))))
+        const terminal = finalContinuation || correction || continuation;
+        const terminalHost = finalContinuation?.finalContinuation?.predecessorHost || correction?.postCiCorrection?.predecessorHost || continuation?.continuation?.predecessorHost;
+        if (terminal && terminalHost && (!preservedHost(continuedHost(terminalHost, terminal.snapshot), parsedHost) || previous.result.verdict !== 'closed' && !continuedHost(terminalHost, terminal.snapshot).changedPaths.every(path => parsedHost.changedPaths.includes(path))))
             return fail('native-continuation-obligations-invalid');
-        return { head, events, active: previous, witnessed: witnessed.has(previous.cycleId), rounds: witnessed.size, host: parsedHost, continuation, correction, anchor, closed };
+        return { head, events, active: previous, witnessed: witnessed.has(previous.cycleId), rounds: witnessed.size, host: parsedHost, continuation, finalContinuation, correction, anchor, closed };
     };
-    const summary = (s) => ({ source: 'native', history: 'complete', status: s.rounds >= ceiling ? 'at-or-over-ceiling' : 'under-ceiling', ceiling, rounds: s.rounds, failedAttempts: s.events.filter(e => e.reason !== null).map(e => ({ eventId: e.eventId, cycleId: e.cycleId, reason: e.reason })), journalId: s.head.journalId, cycleId: s.head.activeCycle, nonce: s.active.nonce, revision: s.active.revision, sequence: s.head.sequence, eventDigest: s.head.eventDigest, snapshot: s.active.snapshot, postCiCorrection: { capacity: 1, used: Boolean(s.correction), targetRevision: s.correction?.revision ?? null, evidence: s.correction?.postCiCorrection ?? null, anchorSequence: s.anchor?.sequence ?? null, anchorEventDigest: s.anchor ? eventDigest(s.anchor) : null }, checkpointDigest: s.continuation ? s.continuation.result.checkpointDigest : [...s.events].reverse().find(e => e.result.verdict === 'prepared')?.result.checkpointDigest ?? null, continuation: { capacity: s.continuation ? 1 : 0, used: Boolean(s.continuation), targetRevision: s.continuation?.revision ?? null }, stopReason: s.rounds >= ceiling ? 'native-fixed-ceiling-reached' : null, locations });
+    const summary = (s) => ({ source: 'native', history: 'complete', status: s.rounds >= ceiling ? 'at-or-over-ceiling' : 'under-ceiling', ceiling, rounds: s.rounds, failedAttempts: s.events.filter(e => e.reason !== null).map(e => ({ eventId: e.eventId, cycleId: e.cycleId, reason: e.reason })), journalId: s.head.journalId, cycleId: s.head.activeCycle, nonce: s.active.nonce, revision: s.active.revision, sequence: s.head.sequence, eventDigest: s.head.eventDigest, snapshot: s.active.snapshot, postCiCorrection: { capacity: 1, used: Boolean(s.correction), targetRevision: s.correction?.revision ?? null, evidence: s.correction?.postCiCorrection ?? null, anchorSequence: s.anchor?.sequence ?? null, anchorEventDigest: s.anchor ? eventDigest(s.anchor) : null }, finalContinuation: { capacity: 1, used: Boolean(s.finalContinuation), targetRevision: s.finalContinuation?.revision ?? null }, checkpointDigest: s.continuation ? s.continuation.result.checkpointDigest : [...s.events].reverse().find(e => e.result.verdict === 'prepared')?.result.checkpointDigest ?? null, continuation: { capacity: s.continuation ? 1 : 0, used: Boolean(s.continuation), targetRevision: s.continuation?.revision ?? null }, stopReason: s.rounds >= ceiling ? 'native-fixed-ceiling-reached' : null, locations });
     const refusal = (reason, partialCommit = false) => ({ source: 'native', history: 'incomplete', status: 'not-established', verdict: 'not-established', ceiling, reasons: [reason], notEstablishedReason: reason, partialCommit, locations });
     return {
-        version: NATIVE_QE_HISTORY_API_VERSION, continuationVersion: NATIVE_QE_CONTINUATION_API_VERSION, postCiCorrectionVersion: NATIVE_QE_POST_CI_CORRECTION_API_VERSION, validateEvidence: validateNativePostCiEvidence, projectRoot, featurePath,
+        version: NATIVE_QE_HISTORY_API_VERSION, continuationVersion: NATIVE_QE_CONTINUATION_API_VERSION, finalContinuationVersion: NATIVE_QE_FINAL_CONTINUATION_API_VERSION, postCiCorrectionVersion: NATIVE_QE_POST_CI_CORRECTION_API_VERSION, validateEvidence: validateNativePostCiEvidence, projectRoot, featurePath,
         read() {
             try {
                 const s = replay();
@@ -573,7 +592,7 @@ export function createNativeQeHistoryApi(options) {
             }
         },
         transact(action, observe) {
-            if (!['prepare', 'evaluate', 'begin-repair', 'begin-continuation', 'begin-post-ci-correction'].includes(action))
+            if (!['prepare', 'evaluate', 'begin-repair', 'begin-continuation', 'begin-final-continuation', 'begin-post-ci-correction'].includes(action))
                 return refusal('native-action-invalid');
             let partialCommit = false;
             try {
@@ -625,7 +644,7 @@ export function createNativeQeHistoryApi(options) {
                         fail('native-initial-admission-refused');
                     if (s && p.admission)
                         fail('native-existing-authority-cannot-bootstrap');
-                    if (!['begin-continuation', 'begin-post-ci-correction'].includes(action) && p.ownerApproval !== undefined)
+                    if (!['begin-continuation', 'begin-final-continuation', 'begin-post-ci-correction'].includes(action) && p.ownerApproval !== undefined)
                         fail('native-owner-approval-action-invalid');
                     if (action !== 'begin-post-ci-correction' && p.correctionEvidence !== undefined)
                         fail('native-post-ci-evidence-action-invalid');
@@ -636,21 +655,30 @@ export function createNativeQeHistoryApi(options) {
                             fail('native-post-ci-already-used');
                         return { ...s.correction.result, ...summary(s), replayed: true };
                     }
+                    if (action === 'begin-final-continuation' && s?.finalContinuation) {
+                        if (same(p.ownerApproval, s.finalContinuation.finalContinuation.approval) && same(p.snapshot, s.finalContinuation.snapshot))
+                            return { ...s.finalContinuation.result, ...summary(s), cycleId: s.finalContinuation.cycleId, replayed: true };
+                        fail('native-final-continuation-already-used');
+                    }
                     const changed = s && !same(p.snapshot.manifest, s.active.snapshot.manifest);
                     let cycleId = s?.active.cycleId ?? randomUUID();
                     if (s?.continuation && action === 'begin-continuation') {
+                        if (s.finalContinuation || s.correction)
+                            fail('native-continuation-already-used');
                         if (same(p.ownerApproval, s.continuation.continuation.approval) && same(p.snapshot, s.continuation.snapshot))
                             return { ...s.continuation.result, ...summary(s), cycleId: s.continuation.cycleId, replayed: true };
                         fail('native-continuation-already-used');
                     }
                     if (s?.continuation && !checkpointProtected(p.result, s.continuation.result.checkpointDigest))
                         fail('native-continuation-checkpoint-obligation-invalid');
-                    if (s?.continuation && changed && !post)
+                    if (s?.continuation && changed && !post && action !== 'begin-final-continuation')
                         fail('native-continuation-target-pinned');
+                    if (s?.finalContinuation && ['begin-repair', 'begin-continuation', 'begin-post-ci-correction'].includes(action))
+                        fail('native-final-continuation-terminal');
                     if (s?.continuation && (!preservedHost(s.host, p.host) || p.result.verdict !== 'closed' && !s.host.changedPaths.every(path => p.host.changedPaths.includes(path)) || p.result.verdict === 'prepared' && (!same(p.result.conditions, p.host.conditions) || !same(p.result.reviewers, p.host.reviewers))))
                         fail('native-continuation-obligations-invalid');
                     if (post) {
-                        if (!s?.continuation || s.rounds !== 4 || !s.witnessed || s.active.cycleId !== s.continuation.cycleId || s.active.kind !== 'evaluate' || s.active.result.verdict !== 'closed')
+                        if (s?.finalContinuation || !s?.continuation || s.rounds !== 4 || !s.witnessed || s.active.cycleId !== s.continuation.cycleId || s.active.kind !== 'evaluate' || s.active.result.verdict !== 'closed')
                             fail('native-post-ci-eligibility-invalid');
                         if (!approvalValid(p.ownerApproval, true) || !approvalBound(p.ownerApproval, s.active, s.head.eventDigest, p.snapshot))
                             fail('native-post-ci-approval-invalid');
@@ -662,6 +690,17 @@ export function createNativeQeHistoryApi(options) {
                         observeProof(c, s.active.snapshot, p.snapshot, deadline);
                         if (!checkpointAvailable(s.continuation.result.checkpointDigest) || !same(p.host, continuedHost(s.host, p.snapshot)) || !same(p.result.reviewers, s.host.reviewers) || !same(p.result.conditions, s.host.conditions) || p.result.checkpointDigest !== s.continuation.result.checkpointDigest || p.receiptDigest !== null || p.reason !== null)
                             fail('native-post-ci-obligations-invalid');
+                        cycleId = randomUUID();
+                    }
+                    if (action === 'begin-final-continuation') {
+                        if (!s?.continuation || s.correction || s.rounds !== 4 || !s.witnessed || s.active.cycleId !== s.continuation.cycleId || s.active.kind !== 'evaluate' || s.active.result.verdict !== 'unresolved' || s.closed.has(s.active.cycleId))
+                            fail('native-final-continuation-eligibility-invalid');
+                        if (!approvalValid(p.ownerApproval) || !approvalBound(p.ownerApproval, s.active, s.head.eventDigest, p.snapshot))
+                            fail('native-final-continuation-approval-invalid');
+                        if (!changed || s.events.some(e => e.nonce === p.snapshot.nonce))
+                            fail('native-final-continuation-target-delta-invalid');
+                        if (!same(p.host, continuedHost(s.host, p.snapshot)) || !same(p.result.reviewers, s.host.reviewers) || !same(p.result.conditions, s.host.conditions) || p.result.checkpointDigest !== s.continuation.result.checkpointDigest || p.receiptDigest !== null || p.reason !== null)
+                            fail('native-final-continuation-obligations-invalid');
                         cycleId = randomUUID();
                     }
                     if (action === 'begin-continuation') {
@@ -690,7 +729,7 @@ export function createNativeQeHistoryApi(options) {
                             fail('native-fourth-cycle-refused');
                         cycleId = randomUUID();
                     }
-                    else if (!['begin-continuation', 'begin-post-ci-correction'].includes(action) && s && changed && (s.witnessed || action !== 'prepare'))
+                    else if (!['begin-continuation', 'begin-final-continuation', 'begin-post-ci-correction'].includes(action) && s && changed && (s.witnessed || action !== 'prepare'))
                         fail('native-repair-required');
                     if (s && !changed && !same(p.snapshot, s.active.snapshot))
                         fail('native-admitted-snapshot-changed');
@@ -718,9 +757,11 @@ export function createNativeQeHistoryApi(options) {
                     if (s && action === s.active.kind && same(p.snapshot, s.active.snapshot) && p.receiptDigest === s.active.receiptDigest && projection === s.active.hostProjectionDigest && same(p.origins, s.active.origins) && p.reason === s.active.reason && p.observationDigest === s.active.observationDigest && same(p.result, s.active.result))
                         return { ...s.active.result, ...summary(s), replayed: true };
                     const identity = s ? { journalId: s.head.journalId, projectRoot, featurePath, ceiling } : { journalId: randomUUID(), projectRoot, featurePath, ceiling };
-                    const e = { ...identity, schema: post ? 'native-qe-post-ci-correction-1' : action === 'begin-continuation' ? 'native-qe-continuation-1' : 'native-qe-history-1', sequence: (s?.head.sequence ?? 0) + 1, eventId: randomUUID(), cycleId, previousDigest: s?.head.eventDigest ?? null, kind: action, timestamp: new Date().toISOString(), nonce: p.snapshot.nonce, revision: p.snapshot.revision, snapshot: p.snapshot, hostProjectionDigest: projection, origins: p.origins, receiptDigest: p.receiptDigest, reason: p.reason, observationDigest: p.observationDigest, result: p.result };
+                    const e = { ...identity, schema: post ? 'native-qe-post-ci-correction-1' : action === 'begin-final-continuation' ? 'native-qe-final-continuation-1' : action === 'begin-continuation' ? 'native-qe-continuation-1' : 'native-qe-history-1', sequence: (s?.head.sequence ?? 0) + 1, eventId: randomUUID(), cycleId, previousDigest: s?.head.eventDigest ?? null, kind: action, timestamp: new Date().toISOString(), nonce: p.snapshot.nonce, revision: p.snapshot.revision, snapshot: p.snapshot, hostProjectionDigest: projection, origins: p.origins, receiptDigest: p.receiptDigest, reason: p.reason, observationDigest: p.observationDigest, result: p.result };
                     if (action === 'begin-continuation')
                         e.continuation = { approval: p.ownerApproval, predecessorHost: s.host };
+                    if (action === 'begin-final-continuation')
+                        e.finalContinuation = { approval: p.ownerApproval, predecessorHost: s.host };
                     if (post)
                         e.postCiCorrection = { approval: p.ownerApproval, evidencePath: p.correctionEvidence.evidencePath, evidence: p.correctionEvidence.evidence, predecessorHost: s.host };
                     const line = JSON.stringify(e), bytes = Buffer.from(line + '\n');

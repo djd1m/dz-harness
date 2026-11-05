@@ -378,8 +378,8 @@ Two flags for integrating with the full agentic-qe package:
 
 | Flag | Mode | What it does |
 |------|------|-------------|
-| (none) | Reference | Condensed copies of 9 core skills, no install needed — the **no-install fallback** |
-| `--full-qe` | Direct | **RECOMMENDED DEFAULT when agentic-qe is installed.** Full agentic-qe protocols for the 9 core skills, and BOTH halves of the learning loop run: Step-0 recall = `memory_query("patterns/feature-adr/*")` **+** `dz recall`; Step-8 teach = the aqe `qe-outcome` store **+** `dz teach` |
+| (none) | Reference | Pinned local protocol text for the core QE methods; no upstream MCP/fleet execution is implied |
+| `--full-qe` | Direct | Full agentic-qe protocols when the runtime is installed: Step-0 may combine MCP memory with `dz recall`; accepted Step-8 lessons may be written to aqe `qe-outcome` and `dz teach` after evidence binding and dedupe |
 | `--full-qe-extended` | Direct Extended | Full protocols + 6 additional skills (chaos, security, performance, mutation, TDD, production-swarm) |
 
 **Which one to run:** if `aqe` is installed (`which aqe` or `node_modules/agentic-qe/`), run
@@ -510,16 +510,32 @@ percentages are **ESTIMATES** from local transcript aggregation (there is no off
 
 ### Pattern memory loop (self-learning — runs in ALL modes)
 
-**Self-learning is MANDATORY on EVERY `/feature-adr` run — including plain `/feature-adr` without any
-`--full-qe` flag and outside ultracode.** The **dz durable loop runs UNCONDITIONALLY** (no MCP, no
-`fleet_init` needed): **Step 0** `dz recall "<domain terms>"` → fold the top patterns into
-`{LEARNED_PATTERNS}` → apply in Step 1; **Step 8** `dz teach "<durable lesson>"` for each real lesson;
-each step records the live panel via `dz statusline --fa-record`. This half NEVER depends on the mode.
+The **dz recall step runs in every `/feature-adr` mode**, including Plain mode: Step 0 reads
+`dz recall "<domain terms>"`, folds relevant patterns into `{LEARNED_PATTERNS}` and records the
+observation. Teaching is a separate decision after evidence is accepted. A Stop event, a zero exit
+code, or a generated report cannot approve Step-8 QE, an L/XL checkpoint, or a lesson.
+
+| Event / moment | Permitted action | Evidence boundary |
+|---|---|---|
+| Session start / prompt submission | Recall and supply process context | Context is advisory; it cannot set a gate verdict |
+| Tool completion / checkpoint | Check deterministic artifacts, receipts and exact source identities | A successful command is one observation, not approval or independent QE |
+| Step-8/9 decision | Propose a lesson, dedupe it against the selected store, bind it to accepted test/review evidence | Record proposed versus accepted; only an explicit accepted decision may call `dz teach` |
+| Stop | Report open gates and saved artifacts | Never convert process exit into approval, QE completion or teach authorization |
+
+For Codex project veto verification, public App Server `hook/started` and `hook/completed`
+notifications may bind a selected project hook's blocked feedback to an exact nonce command only
+with the same completed turn, absent sentinel and stable native/local registration. A hook event
+does not name the attempted tool, approve a definition or replace the separate Step-8 review.
+
+Future automated teaching must bind a proposed lesson to its accepted evidence, reject duplicates,
+and preserve both proposed and accepted states in a reviewable record before writing the durable
+store. Plain Reference mode reads the pinned AQE reference methods; it does not execute MCP agents
+or an agentic fleet merely because those files are present.
 
 The **agentic-qe MCP layer below is an ADDITIONAL enrichment, active only in Direct modes**
 (`--full-qe` / `--full-qe-extended`, needs `fleet_init`) — it adds semantic in-session recall on top of
-the always-on dz loop. This is why `--full-qe` is the RECOMMENDED default wherever agentic-qe is
-installed: only then do BOTH recall halves run at Step 0 and BOTH teach halves at Step 8.
+the always-on dz recall. Direct mode can add MCP recall when its runtime is present; accepted
+lessons may be written to both stores only after the decision boundary above.
 
 When `{AGENTIC_QE_MODE}` = `direct` | `direct-extended`, the pipeline ALSO runs a recall → store cycle
 over agentic-qe's MCP pattern memory (`namespace: "learning"`, `fleet_init` first):
@@ -529,18 +545,19 @@ over agentic-qe's MCP pattern memory (`namespace: "learning"`, `fleet_init` firs
   After the recall, record live state:
   `dz statusline --fa-record --slug <feature-slug> --step "Step 0" --recalled <count of patterns loaded> --stored 0 --mode <reference|direct|direct-extended>`.
 - **Step 8** — recalls `patterns/feature-adr/qe/*` to prime the review checklist; after the gap loop
-  closes, stores a `qe-outcome` record in aqe **and** the same lesson via `dz teach` (durable).
+  and explicit acceptance, a deduped evidence-bound lesson may be stored as `qe-outcome` in aqe
+  **and** via `dz teach` (durable). A closed loop alone does not authorize either write.
   After the store: `dz statusline --fa-record --slug <slug> --step "Step 8 QE" --recalled <recalled so far> --stored <stored so far>`.
-- **Step 9** — recalls `patterns/feature-adr/fleet/*` to prime agent focus; after the fleet verdict,
-  stores a `fleet-qe-finding` in aqe **and** the same lesson via `dz teach`.
+- **Step 9** — recalls `patterns/feature-adr/fleet/*` to prime agent focus; an accepted, deduped,
+  evidence-bound fleet finding may be stored in aqe **and** via `dz teach`.
   After the store: `dz statusline --fa-record --slug <slug> --step "Step 9 Fleet" --recalled <recalled so far> --stored <stored so far>` with updated counts.
 
 **Two stores by design:** the aqe kv store is *ephemeral across MCP-server restarts* (janitor/TTL —
 observed live), so it serves fast in-session semantic recall; the dz lexical store
-(`dz teach`/`dz recall`) is the durable half that survives to the next day. All calls are
-non-blocking — an error or empty result never stalls the pipeline. This layer is
+(`dz teach`/`dz recall`) is the durable half that survives to the next day. A failed recall
+does not stall the pipeline; a failed accepted write remains open and must not be counted as stored. This layer is
 **distinct from the Keysarium reward layer** installed by `--with-learning`: it uses agentic-qe MCP
-memory + the dz store, is UNCONDITIONAL for the dz half (recall/teach/fa-record run in every mode) and Direct-mode-only for the aqe-MCP half, and never touches `.keysarium/memory/`.
+memory + the dz store. The dz recall/record observations apply in every mode; `dz teach` runs only for an explicitly accepted, deduped, evidence-bound lesson. The aqe-MCP half is Direct-mode-only, and neither half touches `.keysarium/memory/`.
 
 **Canonical brain store — `args.brain` (never fragment the loop).** The dz durable loop only compounds if
 Step-0 recall and Step-8 teach hit the SAME store. The workflow pins both to a canonical **brain** —

@@ -151,7 +151,7 @@ export { detectQueryLang, relevanceFloorFor, selectHookHits, renderHookContext, 
 export { RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, RECALL_USAGE_COMPACT_TARGET_BYTES, formatRecallUsageRecord, buildRecallUsageRecord, parseRecallUsageLog, aggregateRecallUsage, buildRecallUsageReport, shouldCompactRecallUsageLogSize, compactRecallUsageLog, compactRecallUsageLogChecked, appendRecallUsage, countRecallEventsForRun, runtimeOf, RUNTIMES, } from './recall-usage.js';
 /* crossrt-2-codex-hooks (leg 2 of umbrella 98ed3967) */
 export { mergeManagedHookEntries, hookCommandsOf } from './managed-hooks.js';
-export { CODEX_MANAGED_HOOKS, DZ_HOOK_HELPER_VERSION, DZ_HOOK_TIMEOUT_SECONDS, DZ_VETO_MATCHER, buildHookCommand, buildManagedEntries, buildCodexHookManifest, codexHooksPaths, diffCodexHooks, emitterWriteSet, expectedTrustKey, isDzManagedEntry, isSafeForSingleQuote, looksLikeDzEntry, managedByEvent, parseCodexRegistry, parseCodexHookManifest, planCodexHooks, removeCodexHooks, renderTrustBlock, runtimeWriteSet, selectOwnHookMetadata, serializeCodexRegistry, codexHookSha256, trustEventName, upsertTrustBlock, } from './codex-hooks.js';
+export { CODEX_MANAGED_HOOKS, DZ_HOOK_HELPER_VERSION, DZ_HOOK_TIMEOUT_SECONDS, DZ_VETO_MATCHER, buildHookCommand, buildManagedEntries, buildCodexHookManifest, codexHooksPaths, resolveCodexHookLocation, classifyCodexHookRegistration, diffCodexHooks, emitterWriteSet, expectedTrustKey, isDzManagedEntry, isSafeForSingleQuote, looksLikeDzEntry, managedByEvent, parseCodexRegistry, parseCodexHookManifest, planCodexHooks, removeCodexHooks, renderTrustBlock, runtimeWriteSet, selectOwnHookMetadata, serializeCodexRegistry, codexHookSha256, trustEventName, upsertTrustBlock, } from './codex-hooks.js';
 export { DZ_VETO_MARKER, DZ_VETO_WARN_MARKER, RUNTIME_BLOCK_PHRASE, classifyTrust, classifyVetoProbe, isReadyVerdict, verifyExitCode, } from './codex-hooks-verify.js';
 export { SHELL_VETO_RULE_ID, resolveVetoMode, vetoShellCommand } from './shell-veto-policy.js';
 export { generateCodexHelpers, generateCodexRecallHelper, generateCodexVetoHelper } from './codex-hooks-assets.js';
@@ -322,6 +322,6 @@ export { decideTestReceipt, renderTestReceiptVerdict } from './test-receipt.js';
 export { decideBackupFreshness, renderBackupFreshness } from './backup-freshness.js';
 export { planReleasePackageAudit, judgeReleasePackageAudit, judgeReleaseCohortAudit } from './release-package-audit.js';
 export { buildScopedCatalogInventory } from './scoped-catalog-inventory.js';
-export { NATIVE_QE_HISTORY_API_VERSION, NATIVE_QE_CONTINUATION_API_VERSION, NATIVE_QE_POST_CI_CORRECTION_API_VERSION, createNativeQeHistoryApi } from './native-review-history.js';
+export { NATIVE_QE_HISTORY_API_VERSION, NATIVE_QE_CONTINUATION_API_VERSION, NATIVE_QE_FINAL_CONTINUATION_API_VERSION, NATIVE_QE_POST_CI_CORRECTION_API_VERSION, createNativeQeHistoryApi } from './native-review-history.js';
 export { validateNativePostCiEvidence } from './native-post-ci-evidence.js';
 //# sourceMappingURL=index.js.map

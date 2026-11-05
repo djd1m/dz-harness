@@ -24,7 +24,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 import { mergeManagedHookEntries } from './managed-hooks.js';
 
@@ -88,12 +88,29 @@ export interface CodexHooksPaths {
   readonly errorLog: string;
 }
 
+export type CodexHookScope = 'project' | 'user';
+
+export interface CodexHookLocation {
+  readonly scope: CodexHookScope;
+  readonly projectRoot: string;
+  readonly registryDir: string;
+  readonly codexHome: string;
+}
+
+/** Filesystem discovery and implicit-scope selection belong to operations. */
+export function resolveCodexHookLocation(scope: CodexHookScope, projectRoot: string, codexHome: string): CodexHookLocation {
+  const root = resolve(projectRoot);
+  const home = resolve(codexHome);
+  return { scope, projectRoot: root, registryDir: scope === 'project' ? join(root, '.codex') : home, codexHome: home };
+}
+
 /** Every path this leg touches, all `CODEX_HOME`-relative (AM-13). */
-export function codexHooksPaths(codexHome: string): CodexHooksPaths {
-  const helperDir = join(codexHome, 'dz-hooks');
+export function codexHooksPaths(codexHome: string, location?: CodexHookLocation): CodexHooksPaths {
+  const registryDir = location?.registryDir ?? codexHome;
+  const helperDir = join(registryDir, 'dz-hooks');
   return {
     codexHome,
-    registry: join(codexHome, 'hooks.json'),
+    registry: join(registryDir, 'hooks.json'),
     configToml: join(codexHome, 'config.toml'),
     helperDir,
     vetoHelper: join(helperDir, 'dz-codex-veto.cjs'),
@@ -122,13 +139,13 @@ export function runtimeWriteSet(paths: CodexHooksPaths): readonly string[] {
 /* Quoting                                                                     */
 /* -------------------------------------------------------------------------- */
 
-/** A single quote inside a single-quoted shell word cannot be escaped — such a path is REFUSED. */
+/** Shell words allow apostrophes; control characters are refused before delivery. */
 export function isSafeForSingleQuote(path: string): boolean {
-  return typeof path === 'string' && path !== '' && !path.includes("'") && !path.includes('\n');
+  return typeof path === 'string' && path !== '' && !/[\x00-\x1f\x7f]/.test(path);
 }
 
 export function singleQuote(path: string): string {
-  return `'${path}'`;
+  return `'${path.replace(/'/g, "'\\''")}'`;
 }
 
 /**
@@ -138,7 +155,7 @@ export function singleQuote(path: string): string {
 export function buildHookCommand(nodePath: string, scriptPath: string): string {
   if (!isSafeForSingleQuote(nodePath) || !isSafeForSingleQuote(scriptPath)) {
     throw new Error(
-      `refusing to emit a hook command containing an unquotable path (single quote or newline): ${nodePath} ${scriptPath}`,
+      'refusing to emit a hook command containing a control character or an empty path',
     );
   }
   return `${singleQuote(nodePath)} ${singleQuote(scriptPath)}`;
@@ -705,6 +722,43 @@ export interface HooksListHookMetadata {
   readonly trustStatus: 'managed' | 'untrusted' | 'trusted' | 'modified';
   readonly enabled: boolean;
   readonly timeoutSec: number;
+  readonly matcher?: string | null;
+}
+
+export interface CodexHookRegistration {
+  readonly registered: boolean;
+  readonly trusted: boolean;
+  readonly reason: string;
+  readonly rows: readonly HooksListHookMetadata[];
+}
+
+/** A native row is evidence only when every exposed identity field agrees with this registry. */
+export function classifyCodexHookRegistration(
+  hooks: readonly HooksListHookMetadata[] | null,
+  entries: readonly ManagedEntry[],
+  location: CodexHookLocation,
+): CodexHookRegistration {
+  if (hooks === null) return { registered: false, trusted: false, reason: 'native hooks/list unavailable or invalid', rows: [] };
+  const expected = location.scope;
+  const registry = join(location.registryDir, 'hooks.json');
+  const rows: HooksListHookMetadata[] = [];
+  for (const entry of entries) {
+    const claims = hooks.filter((row) => row.command === entry.command && row.sourcePath === registry);
+    if (claims.length !== 1) return { registered: false, trusted: false, reason: `native ${entry.id} row missing or ambiguous; review project and hook trust`, rows };
+    const row = claims[0]!;
+    const key = typeof row.key === 'string' ? parseTrustKey(row.key) : null;
+    const matcher = (entry.entry.matcher as string | undefined) ?? null;
+    if (row.source !== expected || !sameHookEvent(row.eventName, entry.event) ||
+        key === null || key.sourcePath !== registry || !sameHookEvent(key.event, entry.event) ||
+        row.enabled !== true || typeof row.currentHash !== 'string' || row.currentHash.length === 0 ||
+        (row.matcher !== undefined && row.matcher !== matcher) ||
+        !['trusted', 'managed', 'untrusted', 'modified'].includes(row.trustStatus)) {
+      return { registered: false, trusted: false, reason: `native ${entry.id} metadata conflicts with selected ${expected} registry`, rows };
+    }
+    rows.push(row);
+  }
+  const trusted = rows.every((row) => row.trustStatus === 'trusted' || row.trustStatus === 'managed');
+  return { registered: true, trusted, reason: trusted ? 'native registration and trust observed' : 'native registration observed; approve hook definitions interactively', rows };
 }
 
 export interface SelectOwnHookOptions {

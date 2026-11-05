@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "0b72665b9ca31725a7efdc9e039eb058e77de39f9e76bcdb4efb6735f0de457c"
+        "sha256": "5dae29634e5d9ded6b8eff4e50b2c9c74c18de485066c287c6119a7149fbff53"
       },
       {
         "path": "dist/bin.d.ts",
@@ -45,19 +45,19 @@
       },
       {
         "path": "dist/cli.d.ts",
-        "sha256": "655ee5920071d15f54e8452c539a752622b9c109cbd5dc7c047434add735c720"
+        "sha256": "ce881a3a17a533f8e1e5d0b731af33c5b84e5b57872a5b0c26dabd4f244f7ed5"
       },
       {
         "path": "dist/cli.d.ts.map",
-        "sha256": "9eeb1e23eb069f349df2f98527300b66efd2a44414016454419a72b4d9a812f6"
+        "sha256": "c77dd082e13ee75d713225f532cb8c03a504167ea8c6621f877e414ea0a617e8"
       },
       {
         "path": "dist/cli.js",
-        "sha256": "37e743a781b3fcc07fcd68b0c16bf8b50ab7500c8302bd770dc44e8802ebcf81"
+        "sha256": "d1adf077df0b402052508ffbf96b76df69efab39e16d82c48b5cc9a14e795c55"
       },
       {
         "path": "dist/cli.js.map",
-        "sha256": "910bb8dc4090df5dd22c559237843ecb052465bc55422aff5d53e752e119a82f"
+        "sha256": "a79262b448cac75679bf10532923cdbf91fe791bec231b31904f2227b01e6b64"
       },
       {
         "path": "dist/command-inventory.d.ts",
@@ -161,15 +161,15 @@
       },
       {
         "path": "dist/known-flags.d.ts.map",
-        "sha256": "672356ab17f552fd013b0e656296d743cead556a657313424603d28f1e88fc63"
+        "sha256": "a84d2d6cb28d49fd613bdc36b0c55d36e688634dd587c77e23f51863f45c5d15"
       },
       {
         "path": "dist/known-flags.js",
-        "sha256": "9ac5a1da4900baf4d74e655514ff9edbd793cf63a4d65c9c1b6ba403f89f1d8a"
+        "sha256": "b3019eef62ae2dfb490ca88b1505b34e86c69964f0b8c3b461a48e13c9d7e0d1"
       },
       {
         "path": "dist/known-flags.js.map",
-        "sha256": "a19c54a6720e0f301be70d5fd378ed3091d2a06431ece9e5d8bd29f7006f7c6c"
+        "sha256": "d2cefaa2e23b4f8c78e74f40159f189075aecade397211c861030d108e24caa0"
       },
       {
         "path": "dist/release-package-audit-runner.d.ts",
@@ -261,7 +261,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "c18e77b5c9a07a49d5cf8049a377ddafba4ba7cfa9a38e0d3adba230912a1229"
+        "sha256": "f12a29de69e33e8458c8ac1b8efb966fa9f1d426d5434061c3410075a08caeb5"
       },
       {
         "path": "src/bin.ts",
@@ -273,7 +273,7 @@
       },
       {
         "path": "src/cli.ts",
-        "sha256": "2ac9d952515e2130f782fef6ed9e79be025caa4e8fd5675db57ff027c2a614fd"
+        "sha256": "7d0df4e8f7f74e66c4b385efea7fb9d99f674417c6db216a41fea77c84b3a686"
       },
       {
         "path": "src/command-inventory.ts",
@@ -301,7 +301,7 @@
       },
       {
         "path": "src/known-flags.ts",
-        "sha256": "07a91cf2c16b499a11dc439a642dd7fa183ba0e590dee8da83aca2c1d1133d3e"
+        "sha256": "3da43f55e9c7c213750a0883181206e80f50edd999af1fb1d01af305cac25eed"
       },
       {
         "path": "src/release-package-audit-runner.ts",
@@ -325,5 +325,5 @@
       }
     ]
   },
-  "signature": "KL13UxSKYr4SnPeYChuSuduW1hqDOJAeIg8AW4Dmk2okF8/PuI3OwKD7DjwQUHuQI75qd86adK/pGt90ntcsBA=="
+  "signature": "oGxooQKKuNwb4KSrA7JIqyHABY9f7D0aOArIDRNGHiBlP+hOHmwqOg6Kc5hRiF/7Mpev3cnmOk6V6g3MSs/4Cw=="
 }

@@ -704,6 +704,8 @@ export {
   buildManagedEntries,
   buildCodexHookManifest,
   codexHooksPaths,
+  resolveCodexHookLocation,
+  classifyCodexHookRegistration,
   diffCodexHooks,
   emitterWriteSet,
   expectedTrustKey,
@@ -725,6 +727,9 @@ export {
 } from './codex-hooks.js';
 export type {
   CodexHookEvent,
+  CodexHookScope,
+  CodexHookLocation,
+  CodexHookRegistration,
   CodexHookId,
   CodexHookManifest,
   CodexHookManifestEntry,
@@ -755,6 +760,7 @@ export type {
 export { SHELL_VETO_RULE_ID, resolveVetoMode, vetoShellCommand } from './shell-veto-policy.js';
 export type { VetoHit, VetoMode } from './shell-veto-policy.js';
 export { generateCodexHelpers, generateCodexRecallHelper, generateCodexVetoHelper } from './codex-hooks-assets.js';
+export type { CodexHelperGenerationOptions } from './codex-hooks-assets.js';
 export {
   EVENT_CHAIN_SCOPE,
   EVENT_CHAIN_GENESIS_HASH,
@@ -1418,6 +1424,6 @@ export { planReleasePackageAudit, judgeReleasePackageAudit, judgeReleaseCohortAu
 export type { ReleasePackageAuditPlan, ReleasePackageAuditResult, ReleaseWorkspaceAuditReport } from './release-package-audit.js';
 
 export { buildScopedCatalogInventory } from './scoped-catalog-inventory.js';
-export { NATIVE_QE_HISTORY_API_VERSION, NATIVE_QE_CONTINUATION_API_VERSION, NATIVE_QE_POST_CI_CORRECTION_API_VERSION, createNativeQeHistoryApi } from './native-review-history.js';
+export { NATIVE_QE_HISTORY_API_VERSION, NATIVE_QE_CONTINUATION_API_VERSION, NATIVE_QE_FINAL_CONTINUATION_API_VERSION, NATIVE_QE_POST_CI_CORRECTION_API_VERSION, createNativeQeHistoryApi } from './native-review-history.js';
 
 export { validateNativePostCiEvidence } from './native-post-ci-evidence.js';

@@ -824,7 +824,7 @@ Usage:
   dz score --all [--project <dir>] [--json]              (sweep features/*/.fa-state/score-*.json into the append-only chained scorecards aggregate — descriptive-only, always exits 0)
   dz recap [--day|--week|--month] [--at <ISO date>] [--project <dir>] [--json]   (what was done over a window, from records only: deliveries with the grade an independent review STATED — a report naming two grades is reported ambiguous, never guessed — registry publishes, gate verdicts, knowledge reuse. --quarter/--half-year/--year are RECOGNISED and REFUSED with the real span in days: there is one complete quarter and the longest record is 174 days. Every section carries its own data-start date, and "the source was not read" never prints as zero. Contaminated measures — commit count, lines, tokens, learning-event volume, inventory counts, lesson count — are not computed, and the report says so. exit 0 reported / 2 refused)
   dz cadence [--window day|week|month|quarter|halfyear|year] [--json]   (the WHAT-SHIPPED aggregator: graded-shipment cadence by ISO week + npm-publish cadence (recap cache) + guard repeat decay on the FIXED rule set + recall reuse; a window deeper than 2× the record is REFUSED with the depth named (ADR: a cadence from one point is scale forgery); exit 0 report / 2 refused-window / 1 usage)
-  dz qe-rounds (--slug <feature> | --feature-dir <abs>) [--source bridge|native] [--action prepare|evaluate|begin-repair|begin-continuation|begin-post-ci-correction --reviewers <json>] [--owner-approval <json>] [--correction-evidence <path>] [--ceiling <n> (bridge only)] [--project <dir>] [--json]   (native actions use the installed CLI-owned helper and durable fixed-three-cycle history; omitted action is read-only. how many Step-8 review rounds has this feature ALREADY had? Reads what dz qe-bridge already wrote — signoff-<runId>.json and failed-*.json under features/<slug>/.fa-state/qe-bridge — and writes nothing itself, so it can answer for runs already past. A round is a runId, not a file; an attempt with no verdict is counted SEPARATELY and never merged; an unreadable record is NAMED and the count is declared a LOWER BOUND. ONE directory, never a union across checkouts. exit 0 under the ceiling / 1 at-or-over — owner decides, the command does not judge whether the rounds were warranted / 2 NOT ESTABLISHED, which is never "zero rounds")
+  dz qe-rounds (--slug <feature> | --feature-dir <abs>) [--source bridge|native] [--action prepare|evaluate|begin-repair|begin-continuation|begin-final-continuation|begin-post-ci-correction --reviewers <json>] [--owner-approval <json>] [--correction-evidence <path>] [--ceiling <n> (bridge only)] [--project <dir>] [--json]   (native actions use the installed CLI-owned helper and durable fixed-three-cycle history; omitted action is read-only. how many Step-8 review rounds has this feature ALREADY had? Reads what dz qe-bridge already wrote — signoff-<runId>.json and failed-*.json under features/<slug>/.fa-state/qe-bridge — and writes nothing itself, so it can answer for runs already past. A round is a runId, not a file; an attempt with no verdict is counted SEPARATELY and never merged; an unreadable record is NAMED and the count is declared a LOWER BOUND. ONE directory, never a union across checkouts. exit 0 under the ceiling / 1 at-or-over — owner decides, the command does not judge whether the rounds were warranted / 2 NOT ESTABLISHED, which is never "zero rounds")
   dz restart-advisor --slug <s> [--threshold C|D] [--rounds N] [--json]   (read-only advisory decision over features/<slug>/.fa-state/checkpoints.jsonl and .dz/fa-training/<slug>/qe.jsonl. Defaults: threshold D, rounds 2 — both origins are printed. Equal sources corroborate; conflicts, torn/unreadable evidence, gaps, and unsafe paths are NOT ESTABLISHED. RECOMMENDATION ONLY: autoAction=false; never invokes feature-adr, deletes a stage, or writes advisor state. exit 0 established recommendation/no-recommendation / 2 NOT ESTABLISHED or invalid input / 1 unexpected runtime failure)
   dz tg-post --draft <file.html> [--manifest <sources.json>] [--channel <@name|id>] [--send --yes] [--night] [--preview] [--json]   (the sender for an APPROVED channel post, per the accepted genai-tweets-channel ADRs: HTML mode only — never MarkdownV2; link preview OFF by default (x.com previews in Telegram are broken); the 00:00-06:00 MSK quiet window refuses without an explicit --night. DEFAULT IS A DRY-RUN: it validates the draft (tag balance, allowed tags, bare &/<, the 4096 visible-character limit with the overshoot counted) and runs the provenance gate over --manifest IN-PROCESS — a draft with no manifest is refused as unchecked, and anything but ALLOWED refuses. A real send needs --send --yes, stating ADR-004's manual-publishing decision out loud each time. The token comes from TELEGRAM_BOT_TOKEN or telegram.tokenFile in .dz/config.json and is never printed. exit 0 sent or clean dry-run / 1 refused or Telegram error / 2 usage)
   dz name-check [--command <n>] [--module <basename>] [--export <a,b>] [--project <dir>] [--json]   (is this name free, BEFORE a line of code? Scans workspace SOURCE — never dist, because a stale build answers 'free' confidently. Checks a dz command name against the dispatcher AND the help block, a module basename against every package's src/, and exported identifiers against every declaration in the workspace. exit 0 all free / 1 at least one taken, naming where / 2 nothing asked or the scan did not run — an empty sweep is never a clean bill. Honest limit, printed on the passing path: it reads declarations, so a re-export under a different name stays the build's job)
@@ -902,7 +902,7 @@ Usage:
   dz sync-upstream [--package <dir>] [--list] [--all]
   dz drift-check [--json] [--project <dir>]                             (CI gate: exit 1 if any shared skill drifted between its monorepo copies)
   dz agents-sync [--project <dir>] [--check] [--json]                   (sync/verify the always-on policy fence in root AGENTS.md; exit 0 synced/written, 1 drift, 3 inconclusive)
-  dz hooks-sync --target codex [--check] [--verify] [--remove] [--json]  (install/verify the dz veto + recall hooks in $CODEX_HOME/hooks.json; exit 0 armed+trusted, 1 not armed/drift, 3 inconclusive)
+  dz hooks-sync --target codex [--scope project|user] [--project <dir>] [--check] [--verify] [--remove] [--json]  (fresh installs use <project>/.codex/hooks.json; explicit --scope user uses $CODEX_HOME/hooks.json; exit 0 completed, 1 refusal/drift, 3 inconclusive; readiness is reported separately)
   dz integrations-verify --target <name> --component <mcp|hooks> [--project <dir>] [--json]  (non-executing exact-version registration probe; exit 0 observed / 1 refused)
   dz sync-canonical <skill> [--check|--dry-run] [--from <dir>] [--auto] [--project <dir>]  (heal every copy from skills-meta/<skill> or --from; no canonical + --check = compare copies to each other (exit 1 on drift); no canonical + write = refuse unless --auto (LOUD, picks most-complete copy); --check / --dry-run write nothing)
   dz plugin [--version <ver>]
@@ -1479,7 +1479,7 @@ async function cmdInit(options: Map<string, string>, flags: Set<string>, cwd: st
   let integrationOutcomes: readonly IntegrationOutcome[] = r.integrations;
   let codexHooksOk = true;
   if (target === 'codex' && !flags.has('no-hooks')) {
-    const delivery = deliverCodexHooks({ project: projectRoot, verify: !flags.has('no-verify') }, undefined, 'dz init');
+    const delivery = deliverCodexHooks({ project: projectRoot, scope: options.get('scope'), verify: !flags.has('no-verify') }, undefined, 'dz init');
     codexHooksOk = delivery.ok;
     for (const line of delivery.stdout) write(line);
     for (const line of delivery.stderr) writeErr(line);
@@ -3542,10 +3542,11 @@ async function cmdQeRounds(options: Map<string, string>, flags: Set<string>, cwd
     const capability = nativeQeCore as unknown as Record<string, unknown>;
     if (capability['NATIVE_QE_HISTORY_API_VERSION'] !== 1 || typeof capability['createNativeQeHistoryApi'] !== 'function') return emitRefusal('native-core-capability-not-established');
     const action = options.get('action');
-    if (action !== undefined && !['prepare', 'evaluate', 'begin-repair', 'begin-continuation', 'begin-post-ci-correction'].includes(action)) return emitRefusal('native-action-invalid', true);
-    if (options.has('owner-approval') && !['begin-continuation', 'begin-post-ci-correction'].includes(action ?? '')) return emitRefusal('native-owner-approval-not-supported-for-action', true);
-    if (['begin-continuation', 'begin-post-ci-correction'].includes(action ?? '') && !options.has('owner-approval')) return emitRefusal('native-owner-approval-required', true);
+    if (action !== undefined && !['prepare', 'evaluate', 'begin-repair', 'begin-continuation', 'begin-final-continuation', 'begin-post-ci-correction'].includes(action)) return emitRefusal('native-action-invalid', true);
+    if (options.has('owner-approval') && !['begin-continuation', 'begin-final-continuation', 'begin-post-ci-correction'].includes(action ?? '')) return emitRefusal('native-owner-approval-not-supported-for-action', true);
+    if (['begin-continuation', 'begin-final-continuation', 'begin-post-ci-correction'].includes(action ?? '') && !options.has('owner-approval')) return emitRefusal('native-owner-approval-required', true);
     if (action === 'begin-continuation' && capability['NATIVE_QE_CONTINUATION_API_VERSION'] !== 1) return emitRefusal('native-core-continuation-capability-not-established');
+    if (action === 'begin-final-continuation' && capability['NATIVE_QE_FINAL_CONTINUATION_API_VERSION'] !== 1) return emitRefusal('native-core-final-continuation-capability-not-established');
     if (options.has('correction-evidence') && action !== 'begin-post-ci-correction') return emitRefusal('native-correction-evidence-action-invalid', true);
     if (action === 'begin-post-ci-correction' && !options.has('correction-evidence')) return emitRefusal('native-correction-evidence-required', true);
     if (action === 'begin-post-ci-correction' && capability['NATIVE_QE_POST_CI_CORRECTION_API_VERSION'] !== 2) return emitRefusal('native-core-post-ci-capability-not-established');
@@ -3556,7 +3557,7 @@ async function cmdQeRounds(options: Map<string, string>, flags: Set<string>, cwd
       let helper: Record<string, unknown> | null = null;
       let reviewers: unknown;
       let ownerApproval: unknown;
-      if (['begin-continuation', 'begin-post-ci-correction'].includes(action ?? '')) {
+      if (['begin-continuation', 'begin-final-continuation', 'begin-post-ci-correction'].includes(action ?? '')) {
         const inline = options.get('owner-approval') ?? '';
         if (Buffer.byteLength(inline, 'utf8') > 16 * 1024) return emitRefusal('native-owner-approval-limit', true);
         ownerApproval = JSON.parse(inline);
@@ -3568,6 +3569,7 @@ async function cmdQeRounds(options: Map<string, string>, flags: Set<string>, cwd
         helper = await import(pathToFileURL(helperFile).href) as Record<string, unknown>;
         if (helper['NATIVE_REVIEW_API_VERSION'] !== 1 || typeof helper['runNativeReviewGate'] !== 'function') return emitRefusal('native-helper-capability-not-established');
         if (action === 'begin-continuation' && helper['NATIVE_REVIEW_CONTINUATION_API_VERSION'] !== 1) return emitRefusal('native-helper-continuation-capability-not-established');
+        if (action === 'begin-final-continuation' && helper['NATIVE_REVIEW_FINAL_CONTINUATION_API_VERSION'] !== 1) return emitRefusal('native-helper-final-continuation-capability-not-established');
         if (action === 'begin-post-ci-correction' && helper['NATIVE_REVIEW_POST_CI_CORRECTION_API_VERSION'] !== 2) return emitRefusal('native-helper-post-ci-capability-not-established');
         if (action !== 'evaluate') {
           if (!options.has('reviewers')) return emitRefusal('native-reviewers-required', true);
@@ -6902,7 +6904,7 @@ async function cmdSetup(options: Map<string, string>, flags: Set<string>, cwd: s
   let codexHooksOk = true;
   if (target === 'codex' && !flags.has('no-hooks') && !flags.has('no-memory') && !setupIncomplete) {
     write(`║  5. Delivering codex hooks (live verify)...           ║`);
-    const delivery = deliverCodexHooks({ project: projectRoot, verify: !flags.has('no-verify') }, undefined, 'dz setup');
+    const delivery = deliverCodexHooks({ project: projectRoot, scope: options.get('scope'), verify: !flags.has('no-verify') }, undefined, 'dz setup');
     codexHooksOk = delivery.ok;
     for (const line of delivery.stdout) write(line);
     for (const line of delivery.stderr) writeErr(line);
@@ -10535,11 +10537,12 @@ function cmdHooksSync(
   writeErr: WriteErr,
 ): number {
   const json = flags.has('json');
-  const usage = 'dz hooks-sync --target codex [--check] [--verify] [--remove] [--json] [--project <dir>] [--no-verify]';
+  const usage = 'dz hooks-sync --target codex [--scope project|user] [--check] [--verify] [--remove] [--json] [--project <dir>] [--no-verify]';
   if (flags.has('help')) {
     const help = [
-      `${usage} — install/verify the dz veto + recall hooks in $CODEX_HOME/hooks.json`,
-      '  exit 0 armed+trusted · 1 not armed or drift · 3 inconclusive.',
+      `${usage} — install/verify the dz veto + recall hooks in the selected project or user registry`,
+      '  project is the fresh-install default; existing user installs retain user scope. Native review is required.',
+      '  exit 0 completed (including removal or --no-verify) · 1 refusal/drift · 3 inconclusive; only ready=true establishes verified readiness.',
     ].flatMap(line => line.split('\n'));
     if (json) write(JSON.stringify({ ok: true, help, command: 'hooks-sync' }));
     else for (const line of help) write(line);
@@ -10553,7 +10556,7 @@ function cmdHooksSync(
     }
   }
   for (const key of options.keys()) {
-    if (key !== 'target' && key !== 'project' && key !== 'codex-home') {
+    if (key !== 'target' && key !== 'project' && key !== 'codex-home' && key !== 'scope') {
       const message = key.startsWith('_positional_') ? `unexpected argument ${JSON.stringify(options.get(key))}` : `unknown option --${key}`;
       (json ? write : writeErr)(json ? JSON.stringify({ error: message, exitCode: 1 }) : `dz hooks-sync: ${message}\n${usage}`);
       return 1;
@@ -10593,7 +10596,8 @@ function cmdHooksSync(
   const report = runSyncCodexHooksGuarded(
     codexHooksSyncOptions({
       ...(codexHome !== undefined ? { codexHome } : {}),
-      ...(projectOpt !== undefined ? { project: resolve(cwd, projectOpt) } : {}),
+      project: projectOpt !== undefined ? resolve(cwd, projectOpt) : cwd,
+      ...(options.get('scope') !== undefined ? { scope: options.get('scope') } : {}),
       check: flags.has('check'),
       remove: flags.has('remove'),
       verify: !flags.has('no-verify'),
@@ -10633,6 +10637,7 @@ function cmdHooksSync(
 export interface CodexHooksSyncInput {
   readonly codexHome?: string | undefined;
   readonly project?: string | undefined;
+  readonly scope?: string | undefined;
   readonly check?: boolean;
   readonly remove?: boolean;
   /** `false` = the user's `--no-verify`. Anything else runs the live probe. */
@@ -10652,6 +10657,7 @@ export function codexHooksSyncOptions(input: CodexHooksSyncInput): Parameters<ty
   return {
     ...(input.codexHome !== undefined ? { codexHome: input.codexHome } : {}),
     ...(input.project !== undefined ? { project: input.project } : {}),
+    ...(input.scope !== undefined ? { scope: input.scope as 'project' | 'user' } : {}),
     check: input.check === true,
     remove: input.remove === true,
     verify: input.verify !== false,
@@ -10673,8 +10679,8 @@ export function normalizeCodexHookOutcome(
   if (delivery.report.ready) {
     return {
       target: 'codex', component: 'hooks', status: 'emitted',
-      registrations: [{ id: 'dz-codex-hooks', scope: 'user', registered: delivery.report.installed, approval: delivery.report.trust === 'trusted' ? 'approved' : 'unknown', ready: true }],
-      carrier: { scope: 'user', path: '$CODEX_HOME/hooks.json' },
+      registrations: [{ id: 'dz-codex-hooks', scope: delivery.report.scope ?? 'user', registered: delivery.report.registered === true, approval: delivery.report.trusted === true ? 'approved' : 'unknown', ready: true }],
+      carrier: { scope: delivery.report.scope ?? 'user', path: delivery.report.registryPath },
       ...(delivery.report.codexVersion !== null ? { runtimeVersion: delivery.report.codexVersion } : {}),
       evidenceVersion: 'codex-hooks-live-v1',
     };
@@ -10682,7 +10688,7 @@ export function normalizeCodexHookOutcome(
   return {
     ...base,
     target: 'codex', component: 'hooks', status: 'refused',
-    registrations: [{ id: 'dz-codex-hooks', scope: 'user', registered: delivery.report.installed, approval: delivery.report.trust === 'trusted' ? 'approved' : 'unknown', ready: false }],
+    registrations: [{ id: 'dz-codex-hooks', scope: delivery.report.scope ?? 'user', registered: delivery.report.registered === true, approval: delivery.report.trusted === true ? 'approved' : 'unknown', ready: false }],
     reasonCode: 'CURRENT_LIVE_CHECK_FAILED',
     remediation: noVerify ? '--no-verify cannot establish ready; rerun with live verification' : 'approve the managed hooks and rerun the live verification',
     applied: delivery.report.written || delivery.report.installed,
@@ -10699,8 +10705,10 @@ export function normalizeCodexHookOutcome(
 export function codexHooksSummary(report: CodexHooksSyncReport, label = 'dz hooks-sync'): CodexHooksSummary {
   const stdout: string[] = [];
   const stderr: string[] = [];
+  const identity = `scope: ${report.scope ?? 'unresolved'}, project: ${report.projectRoot ?? 'unresolved'}, registry: ${report.registryPath}, version: ${report.codexVersion ?? 'unknown'}`;
+  const axes = `installed: ${report.installed}, registered: ${report.registered === true}, trusted: ${report.trusted === true}, executionVerified: ${report.executionVerified === true}`;
   if (report.ready) {
-    stdout.push(`${label}: codex hooks installed and ARMED (trust: ${report.trust}) — VERIFIED by a live veto probe — ready`);
+    stdout.push(`${label}: ${identity}; ${axes}; codex hooks ARMED — VERIFIED by a bounded live veto probe — ready`);
     return { ok: true, stdout, stderr };
   }
   if (report.installed) {
@@ -10710,10 +10718,10 @@ export function codexHooksSummary(report: CodexHooksSyncReport, label = 'dz hook
     // non-closure note). A message that argues with its own parenthesis teaches the reader to skip
     // the parenthesis.
     const established = report.trust === 'trusted' ? 'installed+trusted' : `installed, trust ${report.trust}`;
-    stderr.push(`${label}: ${established}, NOT verified — ARMED = NO (trust: ${report.trust}, executable: ${report.executable}, verify: ${verdict})`);
+    stderr.push(`${label}: ${identity}; ${axes}; ${established}, NOT verified — ARMED = NO (trust: ${report.trust}, executable: ${report.executable}, verify: ${verdict})`);
     stderr.push('→ open an interactive Codex session in this directory, approve the two dz hooks, then re-run `dz hooks-sync --target codex --verify`');
   } else {
-    stderr.push(`${label}: ARMED = NO — the managed entries are not present in the registry`);
+    stderr.push(`${label}: ${identity}; ${axes}; ARMED = NO — installation was not established${report.writes.length > 0 ? `; recorded writes: ${report.writes.join(', ')}` : ''}`);
   }
   return { ok: false, stdout, stderr };
 }
@@ -10731,9 +10739,8 @@ export function codexHooksSummary(report: CodexHooksSyncReport, label = 'dz hook
  * (feature qe-bridge-claude, ADR-001 D4-A — the exit condition of the accepted degradation in
  * `architecture/degradations.md`).
  *
- * The lock lives BESIDE the registry it guards (`$CODEX_HOME/.dz/locks/codex-hooks.lock`), not in
- * this repo: two dz processes running from two different worktrees share a `CODEX_HOME`, not a
- * project root, so a lock under the project would serialize nothing.
+ * The lock lives beside the selected registry (project `.codex` or user `CODEX_HOME`).
+ * Writers for one canonical project contend even when their runtime homes differ.
  *
  * READ-ONLY runs (`--check`) are NOT locked: they write nothing, and a check that can be blocked by
  * a writer would be a new failure mode in exchange for no guarantee.
@@ -10751,10 +10758,11 @@ function runSyncCodexHooksLocked(options: Parameters<typeof runSyncCodexHooks>[0
   // Taking the lock creates `<codexHome>/.dz/locks/`, so when the guarded operation turned out to
   // write nothing, the lock scaffolding is removed again (empty-dir removals only: a directory that
   // still holds another process's live lock simply refuses to go).
-  const preexisting = existsSync(join(codexHome, '.dz'));
+  let registryDir = codexHome;
+  let preexisting = existsSync(join(codexHome, '.dz'));
   const tidyLockScaffold = (report: CodexHooksSyncReport): void => {
     if (preexisting || report.written || report.writes.length > 0) return;
-    for (const dir of [join(codexHome, '.dz', 'locks'), join(codexHome, '.dz')]) {
+    for (const dir of [join(registryDir, '.dz', 'locks'), join(registryDir, '.dz')]) {
       try {
         rmdirSync(dir);
       } catch { /* non-empty (someone else's lock) or gone — leave it */ }
@@ -10765,15 +10773,17 @@ function runSyncCodexHooksLocked(options: Parameters<typeof runSyncCodexHooks>[0
   // probe that can block for ~300s — ten times the 30s stale threshold, after which a waiter is
   // entitled to break the lock and the holder is no longer excluding anyone. The probes mutate
   // nothing shared, so they run unlocked by design.
-  let lockError: Error | null = null;
+  const lockFailure: { error?: NamedLockTimeoutError | NamedLockCompromisedError } = {};
   const report = runSyncCodexHooks({
     ...options,
-    criticalSection: <T>(fn: () => T): T => {
+    criticalSection: <T>(fn: () => T, selectedDir?: string): T => {
       try {
-        return withDirLockSync(codexHome, 'codex-hooks', fn);
+        registryDir = selectedDir ?? codexHome;
+        preexisting = existsSync(join(registryDir, '.dz'));
+        return withDirLockSync(registryDir, 'codex-hooks', fn);
       } catch (error) {
         if (error instanceof NamedLockTimeoutError || error instanceof NamedLockCompromisedError) {
-          lockError = error;
+          lockFailure.error = error;
           throw error;
         }
         throw error;
@@ -10781,43 +10791,26 @@ function runSyncCodexHooksLocked(options: Parameters<typeof runSyncCodexHooks>[0
     },
   });
   tidyLockScaffold(report);
-  if (lockError !== null) throw lockError;
+  if (lockFailure.error !== undefined) {
+    // The named-lock timeout describes only the section it failed to enter. Earlier short
+    // sections may already have published helpers and the selected registry.
+    const priorWrites = report.writes.length > 0;
+    const timeoutDetail = lockFailure.error.message.replace(/ Nothing was written; retry\.$/, ' This lock attempt made no writes.');
+    const why = lockFailure.error instanceof NamedLockTimeoutError
+      ? priorWrites
+        ? `another dz process is writing ${report.registryPath} (${timeoutDetail}) — this run already wrote ${report.writes.length} path(s): ${report.writes.join(', ')}; the manifest was not written by this run; inspect the selected installation before retrying`
+        : `another dz process is writing ${report.registryPath} (${timeoutDetail}) — nothing was written by this run; retry once it finishes`
+      : `the codex-hooks lock for ${report.registryPath} was broken while this run held it (${lockFailure.error.message}) — ${priorWrites ? `this run recorded writes to ${report.writes.join(', ')}; ` : ''}the registry write may have raced; re-run and re-verify`;
+    return { ...report, installed: false, registered: false, trusted: false,
+      executionVerified: false, executable: false, verified: false, ready: false,
+      exitCode: 1, errors: [why] };
+  }
   return report;
 }
 
-/** Wrap the delivery so a lock refusal becomes a REPORT (loud, nothing written), not a stack trace. */
+/** Wrap the delivery so a lock refusal becomes a report with its actual writes, not a stack trace. */
 function runSyncCodexHooksGuarded(options: Parameters<typeof runSyncCodexHooks>[0] = {}): CodexHooksSyncReport {
-  const codexHome = resolveCodexHome(options?.codexHome);
-  try {
-    return runSyncCodexHooksLocked(options);
-  } catch (error) {
-    if (error instanceof NamedLockTimeoutError || error instanceof NamedLockCompromisedError) {
-      const why = error instanceof NamedLockTimeoutError
-        ? `another dz process is writing ${join(codexHome, 'hooks.json')} (${error.message}) — NOTHING was written; retry once it finishes`
-        : `the codex-hooks lock was broken while this run held it (${error.message}) — the registry write may have raced; re-run and re-verify`;
-      return {
-        codexHome,
-        registryPath: join(codexHome, 'hooks.json'),
-        installed: false,
-        executable: false,
-        written: false,
-        removed: 0,
-        foreignPreserved: 0,
-        unattributable: 0,
-        drift: [],
-        trust: 'unknown',
-        codexVersion: null,
-        writes: [],
-        verify: null,
-        verified: false,
-        ready: false,
-        exitCode: 1,
-        warnings: [],
-        errors: [why],
-      };
-    }
-    throw error;
-  }
+  return runSyncCodexHooksLocked(options);
 }
 
 export function deliverCodexHooks(

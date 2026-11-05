@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "652cc157792d0eaf986fdd3326851a5c0cec16ce5455cf1bb6c6a5dc0c5bab90"
+        "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
       },
       {
         "path": "adversarial-verifier/SKILL.md",
@@ -197,7 +197,7 @@
       },
       {
         "path": "feature-adr/SKILL.md",
-        "sha256": "e802a99edc2a83511fda898575539139e764cbd2f315d75c408c10de03085775"
+        "sha256": "6eb5ab29e0d30115cd2377dc1e800034557228d78f687c4db7c10e7a2c3ce613"
       },
       {
         "path": "feature-adr/examples/sample-feature-output.md",
@@ -637,7 +637,7 @@
       },
       {
         "path": "feature-adr/scripts/check-review-convergence.mjs",
-        "sha256": "91fe091ed7ab8f38340b8ac0fd3194c90b357cb9bab381a86594ac96600ced97"
+        "sha256": "4d05f5159711d5105b7b4daaf979f92208401a352ce16b90aac3174dd9402dfb"
       },
       {
         "path": "feature-adr/scripts/expected-target-grammar.mjs",
@@ -789,7 +789,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "03b01a0645073ced0359993c20725ab2b6eaa89fec9858f97afed9656beecca1"
+        "sha256": "8baadbadfd51c5a6d7e2808935e0188b26db802be2fb56dca48d6c2686b64f10"
       },
       {
         "path": "problem-solver-enhanced/SKILL.md",
@@ -885,5 +885,5 @@
       }
     ]
   },
-  "signature": "mFpxf98zStNKf2e7EbfM+lUguH6hwYC2tH0bLkQOYtU39ANOHMRXIJjFWNfaqibVjYkaADzVgeOKgOcGY5JrDw=="
+  "signature": "zaxJax+kpGJPlDQ3dvxKMbdsA7fzDu24z0HtxnZ0boyPKGllaWnxwQEAjIWF7FSLdRvpYJwesgsragPyo3wJBQ=="
 }

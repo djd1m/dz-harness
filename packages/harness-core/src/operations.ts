@@ -8,7 +8,7 @@
 
 import { execFileSync, spawnSync, type SpawnSyncOptionsWithStringEncoding } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, linkSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, renameSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { dirname, join, resolve as resolvePath } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,20 +17,27 @@ import {
   buildManagedEntries,
   buildCodexHookManifest,
   codexHooksPaths,
+  codexHookSha256,
+  classifyCodexHookRegistration,
+  resolveCodexHookLocation,
   diffCodexHooks,
   looksLikeDzEntry,
+  parseCodexRegistry,
   parseCodexHookManifest,
   planCodexHooks,
   removeCodexHooks,
   selectOwnHookMetadata,
   upsertTrustBlock,
   type CodexHooksPaths,
+  type CodexHookLocation,
+  type CodexHookScope,
   type CodexRegistry,
   type HooksListHookMetadata,
   type ManagedEntry,
 } from './codex-hooks.js';
 import { sweepSkillDrift } from './skill-drift.js';
 import { generateCodexHelpers } from './codex-hooks-assets.js';
+import { NamedLockTimeoutError } from './named-lock.js';
 import {
   classifyVetoProbe,
   isReadyVerdict,
@@ -1902,6 +1909,7 @@ export async function runDoctor(options: { projectRoot: string; instrumentPath?:
 export interface CodexHooksSyncOptions {
   /** Defaults to `$CODEX_HOME`, then `~/.codex`. Every automated probe passes a temp dir (AM-11). */
   readonly codexHome?: string;
+  readonly scope?: CodexHookScope;
   /** Verify only. NOTHING is created — not even the helper directory. */
   readonly check?: boolean;
   /** Remove manifest-attributed entries and stop. */
@@ -1931,7 +1939,7 @@ export interface CodexHooksSyncOptions {
    * block for minutes, far past any advisory lock's stale threshold, at which point a waiter is
    * entitled to break the lock and the holder becomes a liar. Default: run unwrapped.
    */
-  readonly criticalSection?: <T>(fn: () => T) => T;
+  readonly criticalSection?: <T>(fn: () => T, registryDir?: string) => T;
   /** The project whose consent the probe runs under (`--project`). See {@link runCodexVetoProbe}. */
   readonly project?: string;
   /** Pinned probe model id; defaults to `DZ_CODEX_PROBE_MODEL`, then codex's own configured model. */
@@ -1944,13 +1952,20 @@ export interface CodexHooksSyncOptions {
    * restore fails CLOSED. Nothing else in the operation goes through it.
    */
   readonly writeHelperFile?: (path: string, body: string) => void;
+  /** Offline publication discriminator only; production always generates the real bodies. */
+  readonly helperBodies?: Readonly<{ veto: string; recall: string }>;
 }
 
 export interface CodexHooksSyncReport {
   readonly codexHome: string;
+  readonly scope?: CodexHookScope;
+  readonly projectRoot?: string;
   readonly registryPath: string;
   /** Both managed entries are present in the file (recomputed from the FILE, not the manifest). */
   readonly installed: boolean;
+  readonly registered?: boolean;
+  readonly trusted?: boolean;
+  readonly executionVerified?: boolean;
   /** The emitted command actually RUNS through `$SHELL -lc`. A hook that cannot execute is not armed. */
   readonly executable: boolean;
   readonly written: boolean;
@@ -1985,6 +2000,50 @@ export function resolveCodexHome(explicit: string | undefined): string {
   const env = process.env['CODEX_HOME'];
   if (typeof env === 'string' && env !== '') return env;
   return join(homedir(), '.codex');
+}
+
+function codexProjectRoot(start: string): string {
+  let dir = realpathSync(resolvePath(start));
+  const home = resolvePath(homedir());
+  for (;;) {
+    const marker = join(dir, '.git');
+    try {
+      const stat = lstatSync(marker);
+      if ((stat.isDirectory() && existsSync(join(marker, 'HEAD'))) ||
+          (stat.isFile() && /^gitdir:\s*\S/m.test(readFileSync(marker, 'utf8')))) return dir;
+    } catch { /* keep walking */ }
+    if (dir === home || dirname(dir) === dir) return realpathSync(resolvePath(start));
+    dir = dirname(dir);
+  }
+}
+
+/** Resolve once before a writer locks or reads either registry. */
+function selectCodexHookLocation(options: CodexHooksSyncOptions): CodexHookLocation {
+  const codexHome = resolvePath(resolveCodexHome(options.codexHome));
+  const projectRoot = codexProjectRoot(options.project ?? process.cwd());
+  if (options.scope !== undefined && options.scope !== 'project' && options.scope !== 'user') {
+    throw new Error('--scope must be project or user');
+  }
+  const project = resolveCodexHookLocation('project', projectRoot, codexHome);
+  const user = resolveCodexHookLocation('user', projectRoot, codexHome);
+  const probe = (location: CodexHookLocation): 'none' | 'owned' | 'damaged' => {
+    const paths = codexHooksPaths(codexHome, location);
+    const registry = parseCodexRegistry(existsSync(paths.registry) ? readFileSync(paths.registry, 'utf8') : undefined);
+    const hasDz = registry.ok && Object.values(registry.registry.hooks).some(group => group.some(looksLikeDzEntry));
+    if (!existsSync(paths.manifest)) return hasDz ? 'damaged' : 'none';
+    const manifest = parseCodexHookManifest(readFileSync(paths.manifest, 'utf8'));
+    return manifest === undefined || manifest.registryPath !== paths.registry || !registry.ok ? 'damaged' : 'owned';
+  };
+  if (options.scope !== undefined) return options.scope === 'project' ? project : user;
+  const p = probe(project);
+  const u = probe(user);
+  if (p === 'damaged' || u === 'damaged' || (p === 'owned' && u === 'owned')) {
+    throw new Error('ambiguous or damaged Codex hook scope; choose --scope project or --scope user explicitly');
+  }
+  // Direct legacy callers that supplied only a Codex home retain the old user API.
+  // CLI callers always supply a selected project, where a fresh install defaults there.
+  if (u === 'owned' || (options.project === undefined && options.codexHome !== undefined && p === 'none')) return user;
+  return project;
 }
 
 /** `codex --version` → `codex-cli 0.147.0`. `null` when the binary is absent or silent. */
@@ -2107,6 +2166,8 @@ function verifyPlan(options: CodexHooksSyncOptions): { readonly run: boolean; re
 
 interface VerifyStageContext {
   readonly paths: CodexHooksPaths;
+  readonly scope?: CodexHookScope;
+  readonly projectRoot?: string;
   /** What the runtime reports NOW. */
   readonly probedCodexVersion: string;
   /** What the manifest was written against. A mismatch is inconclusive (AM-10). */
@@ -2140,7 +2201,8 @@ function verifyStage(
   try {
     run = probe({
       paths: ctx.paths,
-      ...(options.project !== undefined ? { project: options.project } : {}),
+      ...(ctx.scope !== undefined ? { scope: ctx.scope } : {}),
+      ...((ctx.projectRoot ?? options.project) !== undefined ? { project: ctx.projectRoot ?? options.project } : {}),
       ...(options.probeModel ?? process.env['DZ_CODEX_PROBE_MODEL'] ? { model: options.probeModel ?? process.env['DZ_CODEX_PROBE_MODEL'] } : {}),
       ...(ctx.trustStatus !== undefined ? { trustStatus: ctx.trustStatus } : {}),
       ...(ctx.recordedCodexVersion !== undefined ? { recordedCodexVersion: ctx.recordedCodexVersion } : {}),
@@ -2163,18 +2225,41 @@ function verifyStage(
 }
 
 export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHooksSyncReport {
-  const codexHome = resolveCodexHome(options.codexHome);
-  const paths = codexHooksPaths(codexHome);
+  const codexHome = resolvePath(resolveCodexHome(options.codexHome));
+  let location: CodexHookLocation;
+  try {
+    location = selectCodexHookLocation(options);
+  } catch (err) {
+    return {
+      codexHome, registryPath: join(codexHome, 'hooks.json'), installed: false, registered: false,
+      trusted: false, executionVerified: false, executable: false, written: false, removed: 0,
+      foreignPreserved: 0, unattributable: 0, drift: [], trust: 'unknown', codexVersion: null,
+      writes: [], verify: null, verified: false, ready: false, exitCode: 1, warnings: [],
+      errors: [String((err as Error).message)],
+    };
+  }
+  const paths = codexHooksPaths(codexHome, location);
   const warnings: string[] = [];
   const errors: string[] = [];
   const writes: string[] = [];
   const now = options.now ?? new Date().toISOString();
   const nodePath = options.nodePath ?? process.execPath;
+  const helpers = options.helperBodies ?? generateCodexHelpers(undefined, { errorLog: paths.errorLog });
+  const generationPaths: CodexHooksPaths = {
+    ...paths,
+    vetoHelper: join(paths.helperDir, 'generations', codexHookSha256(helpers.veto), 'dz-codex-veto.cjs'),
+    recallHelper: join(paths.helperDir, 'generations', codexHookSha256(helpers.recall), 'dz-codex-recall.cjs'),
+  };
 
   const base = {
     codexHome,
+    scope: location.scope,
+    projectRoot: location.projectRoot,
     registryPath: paths.registry,
     installed: false,
+    registered: false,
+    trusted: false,
+    executionVerified: false,
     executable: false,
     written: false,
     removed: 0,
@@ -2199,23 +2284,42 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
   // (2) REFUSE an unquotable CODEX_HOME rather than emit a broken `$SHELL -lc` string (AM-35d).
   let entries;
   try {
-    entries = buildManagedEntries({ nodePath, paths });
+    entries = buildManagedEntries({ nodePath, paths: generationPaths });
   } catch (err) {
     return { ...base, codexVersion, exitCode: 1, warnings, errors: [String((err as Error).message)] };
   }
 
-  const criticalSection = options.criticalSection ?? (<T>(fn: () => T): T => fn());
+  const criticalSection = <T>(fn: () => T): T => options.criticalSection === undefined ? fn() : options.criticalSection(fn, location.registryDir);
 
   const currentText = existsSync(paths.registry) ? readFileSync(paths.registry, 'utf8') : undefined;
   const manifest = existsSync(paths.manifest) ? parseCodexHookManifest(readFileSync(paths.manifest, 'utf8')) : undefined;
+  if (existsSync(paths.manifest) && manifest === undefined) {
+    return { ...base, codexVersion, exitCode: 1, warnings, errors: ['damaged Codex hook manifest; selected installation cannot be attributed'] };
+  }
+  if (manifest !== undefined && manifest.registryPath !== paths.registry) {
+    return { ...base, codexVersion, exitCode: 1, warnings, errors: ['manifest registry identity conflicts with selected registry'] };
+  }
+  const parsedCurrent = parseCodexRegistry(currentText);
+  if (manifest === undefined && parsedCurrent.ok && Object.values(parsedCurrent.registry.hooks).some(group => group.some(looksLikeDzEntry))) {
+    return { ...base, codexVersion, exitCode: 1, warnings, errors: ['damaged Codex hook installation: registry contains dz commands without an attributable manifest'] };
+  }
 
   // (3) --remove: delete only what the manifest proves is ours.
   if (options.remove === true) {
     // TRANSACTION: re-read under the lock, plan from THOSE bytes, write. A plan computed outside the
     // guarded window is a plan against bytes another writer may already have replaced.
-    const removal = criticalSection(() => {
+    let removal;
+    try {
+      removal = criticalSection(() => {
       const freshText = existsSync(paths.registry) ? readFileSync(paths.registry, 'utf8') : undefined;
       const freshManifest = existsSync(paths.manifest) ? parseCodexHookManifest(readFileSync(paths.manifest, 'utf8')) : undefined;
+      if (freshManifest !== undefined && freshManifest.registryPath !== paths.registry) {
+        return { planned: { ok: false as const, error: 'manifest registry identity conflicts with selected registry' }, references: 0 };
+      }
+      const parsed = parseCodexRegistry(freshText);
+      if (parsed.ok && freshManifest === undefined && Object.values(parsed.registry.hooks).some(group => group.some(looksLikeDzEntry))) {
+        return { planned: { ok: false as const, error: 'damaged Codex hook installation: registry contains dz commands without an attributable manifest' }, references: 0 };
+      }
       const planned = removeCodexHooks(freshText, freshManifest);
       if (planned.ok && planned.result.changed) {
         backupRegistry(paths, freshText, now, writes);
@@ -2227,11 +2331,9 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
       // rebuild against) a registry that had already been emptied — or leave a manifest describing
       // entries that no longer exist. One decision, one critical section.
       //
-      // codex-hooks-remove-never-orphans (ADR-001): the helpers go ONLY when nothing left in the
-      // registry still points at them. Keyed on the OBSERVED fact — dz-like entries surviving this
-      // plan — not on a flag: an installer between its two sections (no manifest yet), or a manifest
-      // deleted by hand, leaves entries we cannot attribute; deleting their helpers anyway turned the
-      // entry into `exit 127`, which Codex reads as ALLOW. A dead reference is worse than a stray file.
+      // codex-hooks-remove-never-orphans (ADR-001): count surviving references for the refusal
+      // report. Historical and current executable helpers are retained even when this count is zero:
+      // a cached native session can still hold an old command after registry removal.
       //
       // Review r1 item 3: "nothing left points at them" is measured on the registry AS IT WILL BE
       // WRITTEN — every surviving handler, attributed-and-salvaged or not. `unattributable` counts
@@ -2239,14 +2341,21 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
       // interpreter sharing these helpers) would slip past it and lose its helper.
       if (!planned.ok) return { planned, references: 0 };
       const references = dzHelperReferences(planned.result.registry);
-      const doomed = references > 0 ? [paths.manifest] : [paths.vetoHelper, paths.recallHelper, paths.manifest];
-      for (const p of doomed) rmSync(p, { force: true });
+      // Native sessions may still hold an old command. Retain every generation and legacy helper.
+      rmSync(paths.manifest, { force: true });
       return { planned, references };
-    });
+      });
+    } catch (err) {
+      return { ...base, codexVersion, written: writes.length > 0, exitCode: 1, warnings,
+        errors: [String((err as Error).message)], writes };
+    }
     const planned = removal.planned;
     if (!planned.ok) return { ...base, codexVersion, exitCode: 1, warnings, errors: [planned.error] };
     // A remove that leaves dz references in the registry did not remove dz — it must not say it did.
     const kept = removal.references;
+    if (existsSync(join(paths.helperDir, 'generations')) || existsSync(paths.vetoHelper) || existsSync(paths.recallHelper)) {
+      warnings.push('Executable hook helpers were retained for cached sessions and foreign references. Existing sessions may continue using cached commands; restart Codex sessions to stop using removed registrations.');
+    }
     return {
       ...base,
       codexVersion,
@@ -2272,35 +2381,37 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
   //     a home that never opted in (the leg-1 F12 lesson).
   if (options.check === true) {
     const drift = diffCodexHooks(currentText, entries, manifest);
-    const live = drift.installed && options.liveness !== false ? probeHookLiveness(entries[0]!.command, ALLOWED_PROBE_PAYLOAD) : { status: null, stdout: '', stderr: '' };
-    const executable = drift.installed && (options.liveness === false || live.status === 0 || live.status === 2);
+    const helperIntact = helperGenerationIntact(generationPaths.vetoHelper, helpers.veto) &&
+      helperGenerationIntact(generationPaths.recallHelper, helpers.recall);
+    if (drift.installed && !helperIntact) warnings.push('local helper generation body drift; native currentHash is opaque and was not recomputed');
+    const locallyInstalled = drift.installed && helperIntact;
+    const live = locallyInstalled && options.liveness !== false ? probeHookLiveness(entries[0]!.command, ALLOWED_PROBE_PAYLOAD) : { status: null, stdout: '', stderr: '' };
+    const executable = locallyInstalled && (options.liveness === false || live.status === 0 || live.status === 2);
     // `--check` must report the TRUST axis too. Without it the report said `installed && executable`
     // with `trust: 'unknown'`, and the CLI printed a success word for it — the exact G-G/AM-17
     // failure ("no success word without armed AND trusted"), reached through the read-only path.
-    const listed = drift.installed && options.liveness !== false ? listCodexHooks(codexHome) : null;
-    const own = listed === null ? [] : selectOwnHookMetadata(listed, entries, { registryPath: paths.registry });
-    const checkTrust: 'trusted' | 'trust-pending' | 'unknown' =
-      listed === null
-        ? 'unknown'
-        : own.length === entries.length && own.every((o) => o.meta.trustStatus === 'trusted' || o.meta.trustStatus === 'managed')
-          ? 'trusted'
-          : 'trust-pending';
+    const listed = drift.installed && options.liveness !== false ? listCodexHooks(codexHome, location.projectRoot) : null;
+    const registration = classifyCodexHookRegistration(listed, entries, location);
+    const checkTrust: 'trusted' | 'trust-pending' | 'unknown' = registration.trusted ? 'trusted' : registration.registered ? 'trust-pending' : 'unknown';
+    if (drift.installed && !registration.registered) warnings.push(registration.reason);
     if (drift.installed && !executable) {
       warnings.push(`the registry entry exists but exits ${String(live.status)} through \`$SHELL -lc\` — a hook that cannot execute is NOT armed`);
     }
     // `--check` is the READ-ONLY verify: it recomputes state from the file AND, by default, proves
     // the guard actually fires. Only when the entries are present — a home that never opted in must
     // stay silent and must not spend a live model call (the leg-1 F12 lesson).
-    const checkVerify = drift.installed && executable && checkTrust === 'trusted'
+    const checkVerify = locallyInstalled && executable && registration.registered && checkTrust === 'trusted'
       ? verifyStage(options, {
           paths,
+          scope: location.scope,
+          projectRoot: location.projectRoot,
           probedCodexVersion: codexVersion,
           ...(manifest?.codexVersion !== undefined ? { recordedCodexVersion: manifest.codexVersion } : {}),
-          ...(own[0] !== undefined ? { trustStatus: own[0].meta.trustStatus } : {}),
+          ...(registration.rows[0] !== undefined ? { trustStatus: registration.rows[0].trustStatus } : {}),
           warnings,
         })
       : { result: null as VetoProbeResult | null, declined: verifyPlan(options).declined };
-    const checkArmedState = drift.installed && executable && checkTrust === 'trusted';
+    const checkArmedState = locallyInstalled && executable && registration.registered && checkTrust === 'trusted';
     const checkExit: 0 | 1 | 3 = drift.installed
       ? checkArmedState
         ? checkVerify.result !== null
@@ -2315,14 +2426,17 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
     return {
       ...base,
       codexVersion,
-      installed: drift.installed,
+      installed: locallyInstalled,
+      registered: registration.registered,
+      trusted: registration.trusted,
       executable,
       trust: checkTrust,
       foreignPreserved: drift.foreignPreserved,
       unattributable: drift.unattributable,
-      drift: drift.drifted,
+      drift: helperIntact ? drift.drifted : [...drift.drifted, 'helper-body-drift'],
       verify: checkVerify.result,
       verified: checkVerify.result !== null && isReadyVerdict(checkVerify.result),
+      executionVerified: checkVerify.result !== null && isReadyVerdict(checkVerify.result),
       ready: checkArmedState && checkVerify.result !== null && isReadyVerdict(checkVerify.result),
       // A home that never opted in is NOT a failure: `--check` is silent and exits 0 there (the
       // leg-1 F12 lesson — a check that chatters in every unrelated project trains its reader to
@@ -2340,22 +2454,27 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
   // section — and the LIVE PROBES below deliberately do NOT. Holding a lock across a 300s model call
   // is how a holder outlives its own stale threshold; the probes mutate nothing shared, so they need
   // no exclusion.
-  const planned = criticalSection(() => {
+  let plannedSection;
+  try {
+    plannedSection = criticalSection(() => {
     const freshText = existsSync(paths.registry) ? readFileSync(paths.registry, 'utf8') : undefined;
     const freshManifest = existsSync(paths.manifest) ? parseCodexHookManifest(readFileSync(paths.manifest, 'utf8')) : undefined;
     const plan = planCodexHooks({ currentText: freshText, entries, manifest: freshManifest });
     if (!plan.ok) return { plan, wrote: false as const, freshText };
-    mkdirSync(paths.helperDir, { recursive: true, mode: 0o700 });
-    const helpers = generateCodexHelpers();
-    writeHelperIfChanged(paths.vetoHelper, helpers.veto, writes, options.writeHelperFile);
-    writeHelperIfChanged(paths.recallHelper, helpers.recall, writes, options.writeHelperFile);
+    publishHelperGeneration(generationPaths.vetoHelper, helpers.veto, writes, options.writeHelperFile);
+    publishHelperGeneration(generationPaths.recallHelper, helpers.recall, writes, options.writeHelperFile);
     if (plan.plan.changed) {
       backupRegistry(paths, freshText, now, writes);
       atomicWrite(paths.registry, plan.plan.text);
       writes.push(paths.registry);
     }
     return { plan, wrote: plan.plan.changed, freshText };
-  }).plan;
+    });
+  } catch (err) {
+    return { ...base, codexVersion, written: writes.length > 0, exitCode: 1, warnings,
+      errors: [String((err as Error).message)], writes };
+  }
+  const planned = plannedSection.plan;
   if (!planned.ok) {
     return {
       ...base,
@@ -2379,19 +2498,21 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
     );
   }
 
-  // (7) TRUST: arm the entry unattended by writing codex's own key+hash into config.toml.
-  //     Both values are READ from `hooks/list` — `currentHash`'s preimage is internal to codex, so
-  //     a computed hash would arm nothing while reading like success (M0 spike §4).
-  const trustResult =
-    options.liveness === false
-      ? { trust: 'unknown' as const, rows: [] as { id: string; key: string }[], warnings: [] as string[] }
-      : armCodexHookTrust(paths, entries, writes);
-  for (const w of trustResult.warnings) warnings.push(w);
-
+  // Native registration and trust are observations. Installation never writes trust/config layers.
+  const listed = options.liveness === false ? null : listCodexHooks(codexHome, location.projectRoot);
+  const registration = classifyCodexHookRegistration(listed, entries, location);
+  const trustResult = {
+    trust: registration.trusted ? 'trusted' as const : registration.registered ? 'trust-pending' as const : 'unknown' as const,
+    rowStatus: registration.rows[0]?.trustStatus,
+  };
+  if (!registration.trusted) warnings.push(registration.reason);
   const trustKeys: Record<string, string> = {};
-  for (const row of trustResult.rows) trustKeys[row.id] = row.key;
+  for (let i = 0; i < registration.rows.length; i++) trustKeys[entries[i]!.id] = registration.rows[i]!.key;
+  if (registration.rows.length === 0 && manifest !== undefined && !planned.plan.changed) {
+    for (const row of manifest.entries) if (row.trustKey !== undefined) trustKeys[row.id] = row.trustKey;
+  }
   const manifestText = `${JSON.stringify(
-    buildCodexHookManifest({ entries, paths, codexVersion, writtenAt: now, nodePath, trustKeys }),
+    buildCodexHookManifest({ entries, paths, codexVersion, writtenAt: !planned.plan.changed && manifest !== undefined ? manifest.writtenAt : now, nodePath, trustKeys }),
     null,
     2,
   )}\n`;
@@ -2401,12 +2522,14 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
   // `hooks/list` query; folding it into the first section would drag that probe back under the lock,
   // which is exactly the CRITICAL the previous round closed. Two short sections, no long hold.
   //
-  // R4-3: section two REVALIDATES before it writes. Round 3 wrote a manifest computed in section one,
+  // R4-3: section two REVALIDATES before it writes. Round 3 wrote a manifest computed before this section,
   // which meant a remover that won the window in between had its removal partially undone: the
   // registry said "no dz entries", the manifest said "here are dz entries", and `--remove` reads the
   // manifest to decide what is ours. Recompute from what is on disk NOW; if our entries are gone,
   // write NOTHING and report the state honestly.
-  const manifestOutcome = criticalSection(() => {
+  let manifestOutcome;
+  try {
+    manifestOutcome = criticalSection(() => {
     const nowText = existsSync(paths.registry) ? readFileSync(paths.registry, 'utf8') : undefined;
     const nowDrift = diffCodexHooks(nowText, entries, undefined);
     if (!nowDrift.installed) {
@@ -2419,10 +2542,8 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
     // no probe: the section stays a short transaction.
     const before = writes.length;
     try {
-      mkdirSync(paths.helperDir, { recursive: true, mode: 0o700 });
-      const helpers = generateCodexHelpers();
-      writeHelperIfChanged(paths.vetoHelper, helpers.veto, writes, options.writeHelperFile);
-      writeHelperIfChanged(paths.recallHelper, helpers.recall, writes, options.writeHelperFile);
+      publishHelperGeneration(generationPaths.vetoHelper, helpers.veto, writes, options.writeHelperFile);
+      publishHelperGeneration(generationPaths.recallHelper, helpers.recall, writes, options.writeHelperFile);
     } catch (err) {
       // Review r1 item 1: the restore FAILED (ENOSPC, a file where the helper dir should be, …). The
       // entries this install wrote now point at helpers that may not exist — fail CLOSED on the
@@ -2433,14 +2554,24 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
         wrote: false,
         drift: nowDrift,
         restored: false,
-        restoreFailure: rollBackOwnEntries(paths, entries, nowText, manifestText, `${now}-rollback`, writes, String((err as Error)?.message ?? err)),
+        restoreFailure: rollBackOwnEntries(generationPaths, entries, nowText, manifestText, `${now}-rollback`, writes, String((err as Error)?.message ?? err)),
       };
     }
     const restored = writes.length > before;
-    atomicWrite(paths.manifest, manifestText);
-    writes.push(paths.manifest);
-    return { wrote: true, drift: nowDrift, restored, restoreFailure: null };
-  });
+    const prior = existsSync(paths.manifest) ? readFileSync(paths.manifest, 'utf8') : undefined;
+    if (prior !== manifestText) {
+      atomicWrite(paths.manifest, manifestText);
+      writes.push(paths.manifest);
+    }
+    return { wrote: prior !== manifestText, drift: nowDrift, restored, restoreFailure: null };
+    });
+  } catch (err) {
+    const detail = err instanceof NamedLockTimeoutError && writes.length > 0
+      ? `${err.message.replace(/ Nothing was written; retry\.$/, '')} Earlier publication wrote the paths in writes; this attempt's manifest was not committed. Check the selected registry before retrying.`
+      : String((err as Error).message);
+    return { ...base, codexVersion, written: writes.length > 0, exitCode: 1, warnings,
+      errors: [detail], writes };
+  }
   if (manifestOutcome.restoreFailure !== null) {
     const f = manifestOutcome.restoreFailure;
     errors.push(
@@ -2461,7 +2592,7 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
       'registry never references a helper that does not exist.',
     );
   }
-  if (!manifestOutcome.wrote && manifestOutcome.restoreFailure === null) {
+  if (!manifestOutcome.wrote && !manifestOutcome.drift.installed && manifestOutcome.restoreFailure === null) {
     warnings.push(
       'the registry no longer carries this install\u2019s entries — a concurrent remover won the window between the ' +
       'registry transaction and the manifest write, so NO manifest was written (a manifest describing entries that are ' +
@@ -2470,8 +2601,11 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
   }
 
   const drift = manifestOutcome.restoreFailure !== null ? manifestOutcome.restoreFailure.drift : manifestOutcome.drift;
-  const installed = drift.installed;
-  const armedState = installed && executable && trustResult.trust === 'trusted';
+  const helperIntact = helperGenerationIntact(generationPaths.vetoHelper, helpers.veto) &&
+    helperGenerationIntact(generationPaths.recallHelper, helpers.recall);
+  if (drift.installed && !helperIntact) warnings.push('local helper generation body drift; native currentHash is opaque and was not recomputed');
+  const installed = drift.installed && helperIntact;
+  const armedState = installed && executable && registration.registered && trustResult.trust === 'trusted';
   // The install is not finished when the file is written — it is finished when the guard has been
   // WITNESSED blocking (ADR-002, finding 1). Probing an install that is already known-broken would
   // spend a live model call to re-learn what the liveness probe just said, so it is gated on
@@ -2479,6 +2613,8 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
   const verification = armedState
     ? verifyStage(options, {
         paths,
+        scope: location.scope,
+        projectRoot: location.projectRoot,
         probedCodexVersion: codexVersion,
         recordedCodexVersion: codexVersion,
         ...(trustResult.rowStatus !== undefined ? { trustStatus: trustResult.rowStatus } : {}),
@@ -2494,18 +2630,23 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
     : 1;
   return {
     codexHome,
+    scope: location.scope,
+    projectRoot: location.projectRoot,
     registryPath: paths.registry,
     installed,
+    registered: registration.registered,
+    trusted: registration.trusted,
     executable,
     written: planned.plan.changed || writes.length > 0,
     removed: 0,
     foreignPreserved: planned.plan.foreignPreserved,
     unattributable: planned.plan.unattributable,
-    drift: drift.drifted,
+    drift: helperIntact ? drift.drifted : [...drift.drifted, 'helper-body-drift'],
     trust: trustResult.trust,
     codexVersion,
     verify: verification.result,
     verified: verification.result !== null && isReadyVerdict(verification.result),
+    executionVerified: verification.result !== null && isReadyVerdict(verification.result),
     ready: armedState && verification.result !== null && isReadyVerdict(verification.result),
     exitCode,
     warnings,
@@ -2528,7 +2669,7 @@ export function runSyncCodexHooks(options: CodexHooksSyncOptions = {}): CodexHoo
 function forbiddenProbeCommand(sentinel: string, nonce: string): string {
   return (
     'ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o BatchMode=yes ' +
-    `-o ConnectTimeout=1 -p 65533 nobody@127.0.0.1 true ; echo ${nonce} > "${sentinel}"`
+    `-o ConnectTimeout=1 -p 65533 nobody@127.0.0.1 true ; echo ${nonce} > '${sentinel.replace(/'/g, "'\\''")}'`
   );
 }
 
@@ -2539,6 +2680,7 @@ function harnessCoreRoot(): string {
 
 export interface CodexVetoProbeOptions {
   readonly paths: CodexHooksPaths;
+  readonly scope?: CodexHookScope;
   /** Where the probe runs. Absent ⇒ a hermetic temp workspace that opts INTO block mode. */
   readonly project?: string | undefined;
   /** Pinned model id (`DZ_CODEX_PROBE_MODEL`). Absent ⇒ codex's own configured default. */
@@ -2558,8 +2700,213 @@ export interface CodexVetoProbeRun {
   readonly notes: readonly string[];
 }
 
+/** Public App Server lifecycle only. This child emits a small proof envelope, never model text. */
+const NATIVE_VETO_RPC = String.raw`
+const {spawn}=require('node:child_process');
+const [home,project,registry,expectedJson,command,model,limitText]=process.argv.slice(1);
+const expected=JSON.parse(expectedJson), limit=Number(limitText);
+const p=spawn('codex',['app-server'],{cwd:project,env:{...process.env,CODEX_HOME:home},stdio:['pipe','pipe','pipe']});
+let bytes=0,frames=0,line=Buffer.alloc(0),phase=0,done=false,thread='',turn='',sequence=0;
+const result={pre:null,post:null,hooks:[],turns:[],thread:'',turn:'',error:null,cleanup:false};
+const send=(id,method,params)=>p.stdin.write(JSON.stringify({jsonrpc:'2.0',id,method,params})+'\n');
+const validList=m=>{
+  const data=m?.result?.data;
+  if(!Array.isArray(data)||data.length!==1||data[0]?.cwd!==project||!Array.isArray(data[0].hooks)||
+     !Array.isArray(data[0].errors)||data[0].errors.length||!Array.isArray(data[0].warnings)||data[0].hooks.length>4096) return null;
+  const rows=[];
+  for(const e of expected){
+    const claims=data[0].hooks.filter(r=>r?.command===e.command&&r?.sourcePath===registry);
+    if(claims.length!==1)return null;
+    const r=claims[0], suffix=e.event==='PreToolUse'?'pre_tool_use':'user_prompt_submit';
+    if(r.source!=='project'||r.eventName!==(e.event==='PreToolUse'?'preToolUse':'userPromptSubmit')||typeof r.key!=='string'||
+       !r.key.startsWith(registry+':')||!new RegExp('^'+suffix+':\\d+:\\d+$').test(r.key.slice(registry.length+1))||
+       r.matcher!==e.matcher||r.enabled!==true||typeof r.currentHash!=='string'||!r.currentHash||
+       !['trusted','managed'].includes(r.trustStatus)||!Number.isInteger(r.displayOrder)||r.displayOrder<0||
+       r.handlerType!=='command'||r.async!==false) return null;
+    rows.push(r);
+  }
+  return rows;
+};
+const finish=async error=>{
+  if(done)return;done=true;clearTimeout(timer);result.error=error;
+  try{p.stdin.end()}catch{}
+  if(Number.isInteger(p.pid)&&p.pid>0){
+    try{process.kill(p.pid,'SIGTERM')}catch{}
+    await new Promise(resolve=>{if(p.exitCode!==null||p.signalCode!==null)return resolve();
+      const t=setTimeout(resolve,2000);p.once('exit',()=>{clearTimeout(t);resolve()})});
+    try{process.kill(p.pid,'SIGKILL')}catch{}
+    await new Promise(resolve=>{if(p.exitCode!==null||p.signalCode!==null)return resolve();
+      const t=setTimeout(resolve,2000);p.once('exit',()=>{clearTimeout(t);resolve()})});
+    result.cleanup=p.exitCode!==null||p.signalCode!==null;
+  }
+  process.stdout.write(JSON.stringify(result));
+};
+const fail=reason=>void finish(reason);
+const timer=setTimeout(()=>fail('native deadline exceeded'),limit);
+process.on('SIGTERM',()=>fail('outer deadline exceeded'));
+p.on('error',()=>fail('App Server unavailable'));
+p.on('exit',()=>{if(!done)fail('App Server exited before postflight')});
+p.stderr.on('data',chunk=>{bytes+=chunk.length;if(bytes>1048576)fail('combined output limit exceeded')});
+p.stdout.on('data',chunk=>{
+  bytes+=chunk.length;if(bytes>1048576)return fail('combined output limit exceeded');
+  line=Buffer.concat([line,chunk]);if(line.length>1048576)return fail('incomplete line limit exceeded');
+  let at;
+  while(!done&&(at=line.indexOf(10))>=0){
+    const raw=line.subarray(0,at);line=line.subarray(at+1);
+    if(++frames>4096)return fail('frame limit exceeded');
+    let m;try{m=JSON.parse(raw.toString('utf8'))}catch{return fail('invalid JSON frame')}
+    if(!m||typeof m!=='object'||(Object.prototype.hasOwnProperty.call(m,'jsonrpc')&&m.jsonrpc!=='2.0'))return fail('invalid RPC envelope');
+    if(Object.prototype.hasOwnProperty.call(m,'id')){
+      if(m.error||!m.result)return fail('RPC error');
+      if(m.id===1&&phase===0){phase=1;p.stdin.write(JSON.stringify({jsonrpc:'2.0',method:'initialized'})+'\n');send(2,'hooks/list',{cwds:[project]});continue}
+      if(m.id===2&&phase===1){result.pre=validList(m);if(!result.pre)return fail('selected registration unavailable or untrusted');
+        phase=2;send(3,'thread/start',{cwd:project,approvalPolicy:'never',ephemeral:true,experimentalRawEvents:false,sandbox:'workspace-write',...(model?{model}: {})});continue}
+      if(m.id===3&&phase===2){thread=m.result?.thread?.id;if(typeof thread!=='string'||!thread||m.result?.cwd!==project||
+        (m.result.thread.cwd!==undefined&&m.result.thread.cwd!==project)||
+        (m.result.thread.ephemeral!==undefined&&m.result.thread.ephemeral!==true)||
+        (m.result.thread.approvalPolicy!==undefined&&m.result.thread.approvalPolicy!=='never'))return fail('invalid thread identity or cwd');
+        result.thread=thread;phase=3;send(4,'turn/start',{threadId:thread,input:[{type:'text',text:'Execute the following shell command exactly once with one tool call. Use the command as written, without an sh -c wrapper or any other wrapping or rewriting. It targets only a loopback endpoint and a sentinel in the selected project.\nExact command:\n'+command}]});continue}
+      if(m.id===4&&phase===3){turn=m.result?.turn?.id;if(typeof turn!=='string'||!turn)return fail('invalid turn identity');
+        result.turn=turn;phase=4;
+        if(result.turns.length===1){const early=result.turns[0];if(early.threadId!==thread||early.turn?.id!==turn)return fail('early turn identity mismatch');
+          phase=5;send(5,'hooks/list',{cwds:[project]})}continue}
+      if(m.id===5&&phase===5){result.post=validList(m);if(!result.post)return fail('postflight registration unavailable or untrusted');
+        if(JSON.stringify(result.pre)!==JSON.stringify(result.post))return fail('native registration changed during probe');
+        void finish(null);continue}
+      return fail('unexpected RPC response or duplicate id');
+    }
+    if(typeof m.method!=='string'||!m.params||typeof m.params!=='object')return fail('invalid notification or interactive request');
+    if(m.method==='hook/started'||m.method==='hook/completed'){
+      if(result.hooks.length>=4096)return fail('hook notification limit exceeded');result.hooks.push({method:m.method,params:m.params,sequence:++sequence});
+    }else if(m.method==='turn/completed'){
+      result.turns.push({...m.params,sequence:++sequence});if(result.turns.length!==1||(phase!==3&&phase!==4))return fail('duplicate or misplaced turn completion');
+      if(phase===4){phase=5;send(5,'hooks/list',{cwds:[project]})}
+    }
+  }
+});
+send(1,'initialize',{clientInfo:{name:'dz',version:'1.0.0'},capabilities:{experimentalApi:true}});
+`;
+
+function runNativeProjectVetoProbe(options: CodexVetoProbeOptions, project: string, nonce: string): CodexVetoProbeRun {
+  const paths = options.paths;
+  const sentinel = join(project, `PROBE-SENTINEL-${nonce}`);
+  const command = forbiddenProbeCommand(sentinel, nonce);
+  const base: VetoProbeEvidence = { transcript: '', nonce, sentinelPresent: null, shellAttempted: false, bypassedTrust: false, ran: false };
+  const inconclusive = (reason: string, evidence: VetoProbeEvidence = base): CodexVetoProbeRun => ({
+    evidence, result: { verdict: 'inconclusive', trust: 'unknown', reason }, workspace: project, command, notes: [reason],
+  });
+  if (options.project === undefined || paths.registry !== join(project, '.codex', 'hooks.json') || vetoModeOf(project) !== 'block') {
+    return inconclusive('selected project registry and explicit block consent required; no workspace substituted');
+  }
+  const before = statSentinelPresence(sentinel);
+  if (before.present !== false) return inconclusive('nonce sentinel was present or unreadable before invocation');
+  const local = (): { readonly entries: readonly ManagedEntry[]; readonly registryText: string; readonly manifestText: string } | null => {
+    try {
+      const manifestText = readFileSync(paths.manifest, 'utf8');
+      const manifest = parseCodexHookManifest(manifestText);
+      if (manifest?.registryPath !== paths.registry || typeof manifest.nodePath !== 'string') return null;
+      const bodies = generateCodexHelpers(undefined, { errorLog: paths.errorLog });
+      const generated = { ...paths,
+        vetoHelper: join(paths.helperDir, 'generations', codexHookSha256(bodies.veto), 'dz-codex-veto.cjs'),
+        recallHelper: join(paths.helperDir, 'generations', codexHookSha256(bodies.recall), 'dz-codex-recall.cjs') };
+      if (!helperGenerationIntact(generated.vetoHelper, bodies.veto) || !helperGenerationIntact(generated.recallHelper, bodies.recall)) return null;
+      const entries = buildManagedEntries({ nodePath: manifest.nodePath, paths: generated });
+      const registryText = readFileSync(paths.registry, 'utf8');
+      return diffCodexHooks(registryText, entries, manifest).installed ? { entries, registryText, manifestText } : null;
+    } catch { return null; }
+  };
+  const preLocal = local();
+  if (preLocal === null) return inconclusive('selected registry or immutable helper integrity unavailable');
+  if (options.recordedCodexVersion && options.probedCodexVersion &&
+      options.recordedCodexVersion !== options.probedCodexVersion) {
+    return inconclusive('recorded and probed Codex versions differ; refresh installation facts before verification');
+  }
+  const deadline = Math.min(300_000, Math.max(1, options.timeoutMs ?? 300_000));
+  const expected = preLocal.entries.map(e => ({ event: e.id === 'codex-veto' ? 'PreToolUse' : 'UserPromptSubmit',
+    command: e.command, matcher: (e.entry.matcher as string | undefined) ?? null }));
+  const spawnOptions: SpawnSyncOptionsWithStringEncoding & { readonly detached: boolean } = {
+    cwd: project, encoding: 'utf8', timeout: deadline + 15_000, maxBuffer: 1_048_576,
+    stdio: ['ignore', 'pipe', 'pipe'], detached: true, env: { ...process.env, CODEX_HOME: paths.codexHome },
+  };
+  const run = spawnSync(process.execPath,
+    ['-e', NATIVE_VETO_RPC, paths.codexHome, project, paths.registry, JSON.stringify(expected), command, options.model ?? '', String(deadline)],
+    spawnOptions);
+  let ownedGroupClean = true;
+  if (typeof run.pid === 'number' && run.pid > 0) {
+    try { process.kill(-run.pid, 'SIGKILL'); } catch { /* reaped group */ }
+    // The signal is asynchronous. Do not return while an ordinary descendant in the owned
+    // invocation group is still live (including when the reader itself died by SIGKILL).
+    if (existsSync('/proc')) {
+      const end = Date.now() + 2_000;
+      while (Date.now() < end) {
+        const live = readdirSync('/proc').some((name) => {
+          if (!/^\d+$/.test(name)) return false;
+          try {
+            const stat = readFileSync(join('/proc', name, 'stat'), 'utf8');
+            const fields = stat.slice(stat.lastIndexOf(')') + 1).trim().split(/\s+/);
+            return Number(fields[2]) === run.pid && fields[0] !== 'Z';
+          } catch { return false; }
+        });
+        ownedGroupClean = !live;
+        if (!live) break;
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 20);
+      }
+    }
+  }
+  const after = statSentinelPresence(sentinel);
+  if (after.present === true && before.present === false) try { unlinkSync(sentinel); } catch { return inconclusive('invocation sentinel cleanup failed'); }
+  const evidence: VetoProbeEvidence = { ...base, sentinelPresent: after.present,
+    ...(options.trustStatus !== undefined ? { trustStatus: options.trustStatus } : {}),
+    ...(options.recordedCodexVersion !== undefined ? { recordedCodexVersion: options.recordedCodexVersion } : {}),
+    ...(options.probedCodexVersion !== undefined ? { probedCodexVersion: options.probedCodexVersion } : {}) };
+  if (!ownedGroupClean) return inconclusive('owned native process group remained live after bounded cleanup', evidence);
+  if (after.present === true) return { evidence, result: { verdict: 'not-armed', trust: 'unknown', reason: 'nonce sentinel was created' }, workspace: project, command, notes: [] };
+  const postLocal = local();
+  if (run.error || run.status !== 0 || after.present !== false || !run.stdout || postLocal === null ||
+      postLocal.registryText !== preLocal.registryText || postLocal.manifestText !== preLocal.manifestText) {
+    return inconclusive('native invocation, sentinel stat or postflight local integrity incomplete', evidence);
+  }
+  let rpc: any;
+  try { rpc = JSON.parse(run.stdout); } catch { return inconclusive('invalid native proof envelope', evidence); }
+  if (rpc?.error !== null || rpc.cleanup !== true || !Array.isArray(rpc.pre) || !Array.isArray(rpc.post) ||
+      JSON.stringify(rpc.pre) !== JSON.stringify(rpc.post) || !Array.isArray(rpc.hooks) || !Array.isArray(rpc.turns) || rpc.turns.length !== 1) {
+    return inconclusive(`native lifecycle, cleanup or registration stability incomplete: ${String(rpc?.error ?? 'no error')}; cleanup=${String(rpc?.cleanup)}`, evidence);
+  }
+  const veto = rpc.pre.find((r: any) => r.eventName === 'preToolUse' && r.command === preLocal.entries[0]?.command);
+  if (!veto || rpc.pre.length !== 2 || typeof rpc.thread !== 'string' || !rpc.thread || typeof rpc.turn !== 'string' || !rpc.turn) {
+    return inconclusive('selected native veto identity incomplete', evidence);
+  }
+  const turn = rpc.turns[0];
+  if (turn?.threadId !== rpc.thread || turn.turn?.id !== rpc.turn || turn.turn?.status !== 'completed' || turn.turn?.error !== null) {
+    return inconclusive('selected model turn did not complete successfully', evidence);
+  }
+  const candidates = rpc.hooks.filter((h: any) => h?.params?.run?.eventName === 'preToolUse' &&
+    h.params.run.sourcePath === paths.registry && h.params.run.source === 'project');
+  if (candidates.length !== 2 || candidates[0]?.method !== 'hook/started' || candidates[1]?.method !== 'hook/completed') {
+    return inconclusive('selected hook lifecycle missing or ambiguous', evidence);
+  }
+  const start = candidates[0].params, complete = candidates[1].params, a = start.run, b = complete.run;
+  const identity = (r: any) => r?.eventName === 'preToolUse' && r?.sourcePath === paths.registry && r?.source === 'project' &&
+    r?.displayOrder === veto.displayOrder && r?.handlerType === 'command' && r?.executionMode === 'sync' && r?.scope === 'turn';
+  const feedback = Array.isArray(b?.entries) ? b.entries.filter((e: any) => e?.kind === 'feedback' && typeof e.text === 'string' &&
+    /^DZ-VETO: ssh-explicit-auth-weakening(?: [^\r\n]*)? — command: /.test(e.text) && e.text.slice(e.text.indexOf(' — command: ') + 12) === command) : [];
+  if (!identity(a) || !identity(b) || start.threadId !== rpc.thread || complete.threadId !== rpc.thread ||
+      start.turnId !== rpc.turn || complete.turnId !== rpc.turn || typeof a.id !== 'string' || !a.id || a.id !== b.id ||
+      a.status !== 'running' || a.completedAt !== null || a.durationMs !== null || b.status !== 'blocked' ||
+      !Number.isFinite(a.startedAt) || a.startedAt !== b.startedAt ||
+      !Number.isFinite(b.completedAt) || b.completedAt < a.startedAt || !Number.isFinite(b.durationMs) || b.durationMs < 0 ||
+      !Number.isInteger(candidates[0].sequence) || !Number.isInteger(candidates[1].sequence) ||
+      !(candidates[0].sequence < candidates[1].sequence && candidates[1].sequence < turn.sequence) || feedback.length !== 1) {
+    return inconclusive('selected dz hook did not bind one exact nonce command to a blocked run', evidence);
+  }
+  const proved: VetoProbeEvidence = { ...evidence, transcript: feedback[0].text, shellAttempted: true, ran: true, timedOut: false };
+  return { evidence: proved, result: { verdict: 'armed', trust: 'trusted', reason: 'selected native hook blocked the exact nonce command in a completed turn' },
+    workspace: project, command, notes: ['native preToolUse shell observation; exact attempted tool name unavailable'] };
+}
+
 /**
- * Drive ONE live, NON-bypassed veto probe through `codex exec` and classify what it produced.
+ * Drive one selected project probe through public App Server hook events, or the legacy user
+ * smoke probe through `codex exec`. The project branch never grades CLI prose or JSONL items.
  *
  * This is the half the shipped CLI was missing: `--verify` and `--project` were accepted and
  * dropped, `classifyVetoProbe` was never called from any production path, and `ready` printed off
@@ -2569,8 +2916,7 @@ export interface CodexVetoProbeRun {
  * Fail-closed by construction:
  * - `--dangerously-bypass-hook-trust` is NEVER passed (`bypassedTrust: false` is a fact here, not a
  *   parameter): a bypassed run proves the helper body works and nothing about the installed state.
- * - stdin is `/dev/null` (node opens `/dev/null` for an `'ignore'` stdio slot) — the 2026-07-10
- *   codex-exec stdin lesson.
+ * - the user smoke child receives `/dev/null`; the native project child's stdin carries RPC only.
  * - Every way the run can fail to produce evidence — no binary, a dead invocation, a timeout, an
  *   unstattable sentinel — reaches `inconclusive`, never `armed`.
  */
@@ -2578,6 +2924,7 @@ export function runCodexVetoProbe(options: CodexVetoProbeOptions): CodexVetoProb
   const notes: string[] = [];
   const nonce = `dzverify-${randomBytes(6).toString('hex')}`;
   const timeoutMs = options.timeoutMs ?? 300_000;
+  if (options.scope === 'project') return runNativeProjectVetoProbe(options, resolvePath(options.project ?? ''), nonce);
 
   // (1) The workspace. The veto helper is inert outside an opted-in `.dz` project and only BLOCKS
   //     under an explicit `hooks.shellVeto: "block"` (ADR-004 consent). A probe therefore needs a
@@ -2618,12 +2965,14 @@ export function runCodexVetoProbe(options: CodexVetoProbeOptions): CodexVetoProb
     cwd: workspace,
     encoding: 'utf8',
     timeout: timeoutMs,
+    maxBuffer: 1_048_576,
     stdio: ['ignore', 'pipe', 'pipe'], // stdin = /dev/null
     env: { ...process.env, CODEX_HOME: options.paths.codexHome },
   });
-  const transcript = `${run.stdout ?? ''}${run.stderr ?? ''}`;
+  const rawTranscript = `${run.stdout ?? ''}${run.stderr ?? ''}`;
+  const transcript = rawTranscript;
   const timedOut = (run.error as NodeJS.ErrnoException | undefined)?.code === 'ETIMEDOUT' || run.signal === 'SIGTERM';
-  const ran = run.error === undefined || timedOut;
+  const ran = run.error === undefined && run.signal === null && run.status !== null;
   if (run.error !== undefined && !timedOut) notes.push(`codex exec did not run: ${String(run.error.message)}`);
 
   // (3) The sentinel, stat'ed — `null` when we could not look, which is NOT the same as absent.
@@ -2631,8 +2980,7 @@ export function runCodexVetoProbe(options: CodexVetoProbeOptions): CodexVetoProb
   const sentinelPresent = sentinelStat.present;
   if (sentinelStat.error !== undefined) notes.push(`could not stat the sentinel: ${sentinelStat.error}`);
 
-  const shellAttempted =
-    /\/bin\/(?:ba)?sh -l?c/.test(transcript) ||
+  const shellAttempted = /\/bin\/(?:ba)?sh -l?c/.test(transcript) ||
     transcript.includes('Command blocked by PreToolUse hook') ||
     transcript.includes('DZ-VETO');
 
@@ -2701,17 +3049,40 @@ function atomicWrite(path: string, text: string): void {
   renameSync(tmp, path);
 }
 
-/** 0600: the helpers are invoked as `node <path>`, never executed directly (AM-35c). */
-function writeHelperIfChanged(
-  path: string,
-  body: string,
-  writes: string[],
-  write: (path: string, body: string) => void = atomicWrite,
-): void {
-  const current = existsSync(path) ? readFileSync(path, 'utf8') : undefined;
-  if (current === body) return; // byte-idempotence: no change ⇒ no write ⇒ trust survives (FR-2)
-  write(path, body);
+/** Publish a content-addressed body without ever replacing an existing executable. */
+function publishHelperGeneration(path: string, body: string, writes: string[], injected?: (path: string, body: string) => void): void {
+  mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
+  if (existsSync(path)) {
+    const stat = lstatSync(path);
+    if (!stat.isFile() || stat.isSymbolicLink() || readFileSync(path, 'utf8') !== body) {
+      throw new Error(`immutable helper generation mismatch: ${path}`);
+    }
+    return;
+  }
+  if (injected !== undefined) {
+    injected(path, body);
+  } else {
+    const tmp = `${path}.tmp-${process.pid}-${randomBytes(6).toString('hex')}`;
+    try {
+      writeFileSync(tmp, body, { flag: 'wx', mode: 0o600 });
+      try { linkSync(tmp, path); } catch (err) {
+        if ((err as NodeJS.ErrnoException).code !== 'EEXIST') throw err;
+      }
+    } finally {
+      try { unlinkSync(tmp); } catch { /* already absent */ }
+    }
+  }
+  if (!lstatSync(path).isFile() || lstatSync(path).isSymbolicLink() || readFileSync(path, 'utf8') !== body) {
+    throw new Error(`immutable helper generation mismatch: ${path}`);
+  }
   writes.push(path);
+}
+
+function helperGenerationIntact(path: string, body: string): boolean {
+  try {
+    const stat = lstatSync(path);
+    return stat.isFile() && !stat.isSymbolicLink() && readFileSync(path, 'utf8') === body;
+  } catch { return false; }
 }
 
 /**
@@ -2869,28 +3240,69 @@ function armCodexHookTrust(
  * MEASURED headless (M0 spike, probe 1): `initialize` → `initialized` → `hooks/list` answers with
  * `key`, `currentHash`, `trustStatus` and `sourcePath` for every discovered entry, no TUI involved.
  */
-export function listCodexHooks(codexHome: string, cwd: string = process.cwd()): readonly HooksListHookMetadata[] | null {
-  const script = [
-    "const{spawn}=require('node:child_process');",
-    "const p=spawn('codex',['app-server'],{env:{...process.env,CODEX_HOME:process.argv[1]},stdio:['pipe','pipe','ignore']});",
-    "let b='';const send=o=>p.stdin.write(JSON.stringify(o)+'\\n');",
-    "const bail=()=>{try{p.kill()}catch(e){};process.stdout.write('null');process.exit(0)};",
-    "const t=setTimeout(bail,45000);",
-    "p.on('error',bail);",
-    "p.stdout.on('data',d=>{b+=d.toString();let i;while((i=b.indexOf('\\n'))>=0){const l=b.slice(0,i);b=b.slice(i+1);if(!l.trim())continue;let m;try{m=JSON.parse(l)}catch(e){continue}",
-    "if(m.id===1){send({jsonrpc:'2.0',method:'initialized'});send({jsonrpc:'2.0',id:2,method:'hooks/list',params:{cwds:[process.argv[2]]}})}",
-    "else if(m.id===2){clearTimeout(t);process.stdout.write(JSON.stringify(m.result&&m.result.data?m.result.data:null));try{p.kill()}catch(e){};process.exit(0)}}});",
-    "send({jsonrpc:'2.0',id:1,method:'initialize',params:{clientInfo:{name:'dz',version:'1.0.0'}}});",
-  ].join('');
+export function listCodexHooks(codexHome: string, cwd: string = process.cwd(), timeoutMs = 45_000): readonly HooksListHookMetadata[] | null {
+  const script = `
+const {spawn}=require('node:child_process');
+const p=spawn('codex',['app-server'],{cwd:process.argv[2],env:{...process.env,CODEX_HOME:process.argv[1]},stdio:['pipe','pipe','ignore']});
+let b='', bytes=0, frames=0, state=0, done=false;
+const finish=v=>{if(done)return;done=true;clearTimeout(timer);try{p.stdin.end()}catch{};process.stdout.write(JSON.stringify(v),()=>process.exit(0));};
+const send=o=>{if(!done)p.stdin.write(JSON.stringify(o)+'\\n')};
+const timer=setTimeout(()=>finish(null),Number(process.argv[3]));
+p.on('error',()=>finish(null));p.on('exit',()=>finish(null));
+p.stdout.on('data',d=>{bytes+=d.length;if(bytes>1048576)return finish(null);b+=d.toString();let at;
+while(!done&&(at=b.indexOf('\\n'))>=0){const line=b.slice(0,at);b=b.slice(at+1);if(++frames>4096)return finish(null);
+let m;try{m=JSON.parse(line)}catch{return finish(null)}
+if(!m||typeof m!=='object'||('jsonrpc'in m&&m.jsonrpc!=='2.0'))return finish(null);
+if(m.id===1){if(state!==0||m.error||!m.result)return finish(null);state=1;send({jsonrpc:'2.0',method:'initialized'});send({jsonrpc:'2.0',id:2,method:'hooks/list',params:{cwds:[process.argv[2]]}});continue}
+if(m.id===2){if(state!==1||m.error||!m.result||!Array.isArray(m.result.data))return finish(null);return finish(m.result.data)}
+if('id'in m||typeof m.method!=='string')return finish(null);
+}});
+send({jsonrpc:'2.0',id:1,method:'initialize',params:{clientInfo:{name:'dz',version:'1.0.0'}}});`;
+  // The reader is the invocation group leader; App Server and its ordinary children inherit
+  // that group. The caller retains cleanup authority even if the reader dies before finish().
+  const spawnOptions: SpawnSyncOptionsWithStringEncoding & { readonly detached: boolean } = {
+    encoding: 'utf8', timeout: Math.min(60_000, timeoutMs + 15_000), maxBuffer: 1_100_000,
+    stdio: ['ignore', 'pipe', 'ignore'], detached: true,
+  };
+  const run = spawnSync(process.execPath, ['-e', script, codexHome, cwd, String(timeoutMs)], spawnOptions);
+  let ownedGroupClean = true;
+  if (typeof run.pid === 'number' && run.pid > 0) {
+    try { process.kill(-run.pid, 'SIGKILL'); } catch { /* group already reaped */ }
+    if (existsSync('/proc')) {
+      const end = Date.now() + 2_000;
+      while (Date.now() < end) {
+        const live = readdirSync('/proc').some((name) => {
+          if (!/^\d+$/.test(name)) return false;
+          try {
+            const stat = readFileSync(join('/proc', name, 'stat'), 'utf8');
+            const fields = stat.slice(stat.lastIndexOf(')') + 1).trim().split(/\s+/);
+            return Number(fields[2]) === run.pid && fields[0] !== 'Z';
+          } catch { return false; }
+        });
+        ownedGroupClean = !live;
+        if (!live) break;
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 20);
+      }
+    }
+  }
   try {
-    const out = execFileSync(process.execPath, ['-e', script, codexHome, cwd], {
-      encoding: 'utf8',
-      timeout: 60_000,
-      stdio: ['ignore', 'pipe', 'ignore'],
-    });
-    const data = JSON.parse(out) as { hooks?: HooksListHookMetadata[] }[] | null;
-    if (data === null || !Array.isArray(data)) return null;
-    return data.flatMap((entry) => entry.hooks ?? []);
+    if (!ownedGroupClean || run.error || run.status !== 0 || !run.stdout) return null;
+    const out = run.stdout;
+    const data = JSON.parse(out) as unknown;
+    if (!Array.isArray(data) || data.length !== 1) return null;
+    const selected = data[0] as Record<string, unknown>;
+    if (selected === null || typeof selected !== 'object' || selected.cwd !== cwd ||
+        !Array.isArray(selected.hooks) || !Array.isArray(selected.warnings) || !Array.isArray(selected.errors) ||
+        selected.errors.length !== 0 || selected.hooks.length > 4096) return null;
+    for (const row of selected.hooks) {
+      if (row === null || typeof row !== 'object') return null;
+      const h = row as Record<string, unknown>;
+      if (typeof h.key !== 'string' || typeof h.eventName !== 'string' || typeof h.sourcePath !== 'string' ||
+          typeof h.source !== 'string' || typeof h.command !== 'string' || typeof h.currentHash !== 'string' ||
+          typeof h.enabled !== 'boolean' || typeof h.trustStatus !== 'string' ||
+          (h.matcher !== undefined && h.matcher !== null && typeof h.matcher !== 'string')) return null;
+    }
+    return selected.hooks as HooksListHookMetadata[];
   } catch {
     return null;
   }

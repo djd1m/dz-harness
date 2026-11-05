@@ -1,6 +1,7 @@
 import { validateNativePostCiEvidence } from './native-post-ci-evidence.js';
 export declare const NATIVE_QE_HISTORY_API_VERSION = 1;
 export declare const NATIVE_QE_CONTINUATION_API_VERSION = 1;
+export declare const NATIVE_QE_FINAL_CONTINUATION_API_VERSION = 1;
 export declare const NATIVE_QE_POST_CI_CORRECTION_API_VERSION = 2;
 type Artifact = {
     path: string;
@@ -76,6 +77,7 @@ export declare function createNativeQeHistoryApi(options: {
 }): {
     version: number;
     continuationVersion: number;
+    finalContinuationVersion: number;
     postCiCorrectionVersion: number;
     validateEvidence: typeof validateNativePostCiEvidence;
     projectRoot: string;
@@ -105,6 +107,11 @@ export declare function createNativeQeHistoryApi(options: {
             evidence: Correction | null;
             anchorSequence: number | null;
             anchorEventDigest: string | null;
+        };
+        finalContinuation: {
+            capacity: number;
+            used: boolean;
+            targetRevision: string | null;
         };
         checkpointDigest: unknown;
         continuation: {
@@ -185,6 +192,11 @@ export declare function createNativeQeHistoryApi(options: {
             evidence: Correction | null;
             anchorSequence: number | null;
             anchorEventDigest: string | null;
+        };
+        finalContinuation: {
+            capacity: number;
+            used: boolean;
+            targetRevision: string | null;
         };
         checkpointDigest: unknown;
         continuation: {

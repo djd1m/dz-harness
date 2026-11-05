@@ -1,9 +1,9 @@
 # @dzhechkov/harness-cli
 
-`dz qe-rounds --source native` reports durable native QE history without writing. Explicit `--action prepare|evaluate|begin-repair|begin-continuation` invokes the exact installed skills-meta helper from the CLI module, checks core/helper capabilities and uses the existing receipt schema. Prepare and begin-repair require `--reviewers <json>`. The default native ceiling is three; native `--ceiling`, duplicate/unknown options, legacy reconstruction and source collisions refuse. Omitted source retains the bridge reader.
+`dz qe-rounds --source native` reports durable native QE history without writing. Explicit `--action prepare|evaluate|begin-repair|begin-continuation|begin-final-continuation|begin-post-ci-correction` invokes the exact installed skills-meta helper from the CLI module, checks core/helper capabilities and uses the existing receipt schema. Prepare and begin-repair require `--reviewers <json>`. The default native ceiling is three; native `--ceiling`, duplicate/unknown options, legacy reconstruction and source collisions refuse. Omitted source retains the bridge reader.
 
 
-Current package version: `0.8.59`. <!-- dz:version -->
+Current package version: `0.8.60`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -100,7 +100,7 @@ Each launch creates one snapshot; remove selected old snapshot files yourself wh
 Live backpressure waits for writable callbacks. Explicit termination cancels pending writes; after
 child exit a stalled output sink has a two-second final drain window before cancellation.
 
-Current package versions: `harness-core v0.8.66` · `harness-cli v0.8.59`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.67` · `harness-cli v0.8.60`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. On visible lines, the marker retains its whole-line override for per-package synchronization, including explicit changelog overrides, so keep it off historical records. The previous all-protections override is corrected: fenced marker, footer, install/JSON-pin, tarball and badge examples remain literal, as do supported HTML comment blocks. Their visible counterparts still stamp; place current metadata outside examples.
 
@@ -2787,7 +2787,7 @@ dz auto-canonicalize --source <github-url> --pack <skills-pack>
 dz sync-upstream     [--package <dir>] [--list] [--all]
 dz drift-check       [--all] [--json] [--project <dir>]   # CI gate: exit 1 on NEW shared-skill drift, canonicalDefects, or blocking signatures (drift baseline: .dz/drift-allowlist.json; --all incl .claude dogfood)
 dz agents-sync       [--check] [--json] [--project <dir>] # sync anchored bearing rules into the root AGENTS.md policy fence; exit 0 sync / 1 drift / 3 inconclusive
-dz hooks-sync        --target codex [--check] [--verify|--no-verify] [--project <dir>] [--remove] [--json]  # install + ARM the dz veto/recall hooks in $CODEX_HOME/hooks.json and PROVE they fire with a live veto probe; exit 0 armed+trusted+verified / 1 not armed / 3 inconclusive (incl. --no-verify)
+dz hooks-sync        --target codex [--scope project|user] [--project <dir>] [--check|--remove] [--verify|--no-verify] [--json]  # selected project or user registry; native review required; separate installed/registered/trusted/executionVerified facts
 dz sync-canonical    <skill> [--check] [--from <dir>] [--auto] [--project <dir>]   # heal every copy from skills-meta/<skill> or --from; canonicalDefects = exit 1, write refused; no canonical + --check = compare copies to each other (exit 1 on drift); no canonical + write = refuse unless --auto (LOUD, picks most-complete copy); --check writes nothing
 dz scout             [--topics <list>] [--since <date>] [--deep] [--output <file>] [--diff] [--report]
 dz workflow          init --name <n> [--pattern pipeline|barrier|fanout|gate] [--o <plan.json>] | validate <plan.json> [--json] | render <plan.json> --o <script.js> [--check] [--force] | blobs [--check]   # loop-plan/1 authoring (the ADR-005 templates are retired)
@@ -3834,37 +3834,48 @@ separate cold-start acceptance probe establishes runtime visibility.
 
 ### dz hooks-sync — Codex runs the same veto and recall hooks Claude Code does
 
-**When to use it.** Once per machine, after `npm i -g @dzhechkov/harness-cli`, if you drive Codex as
-well as Claude Code. It installs two hooks into the **user-global** `$CODEX_HOME/hooks.json`
-(default `~/.codex/hooks.json`) and **arms** them — Codex hooks are trust-gated, and an untrusted
-entry is silently never run. Re-run it after a dz upgrade; it is byte-idempotent, so an unchanged
-install rewrites nothing and the hook keeps its trust.
+Fresh project delivery writes `<project>/.codex/hooks.json`; existing attributable user-only delivery
+keeps `$CODEX_HOME/hooks.json`. Both present or damaged evidence requires explicit `--scope`.
+`dz init` and `dz setup --target codex` forward the same scope. Neither command writes Codex trust.
 
-```console
-$ dz hooks-sync --target codex
-dz hooks-sync: codex hooks installed and ARMED (trust: trusted) — VERIFIED by a live veto probe — ready
-
-$ dz hooks-sync --target codex --check          # read-only, and it re-proves the guard fires
-dz hooks-sync: codex hooks installed and ARMED (trust: trusted) — VERIFIED by a live veto probe — ready
-
-$ dz hooks-sync --target codex --no-verify      # skips the probe — and can never say "ready"
-dz hooks-sync: installed+trusted, NOT verified — ARMED = NO (trust: trusted, executable: true, verify: not verified (no live probe ran))
-
-$ dz hooks-sync --target codex --remove
-dz hooks-sync: removed 2 managed entr(ies) from /root/.codex/hooks.json
+```bash
+dz hooks-sync --target codex --scope project --project /path/to/project
+dz hooks-sync --target codex --scope project --project /path/to/project --check
+dz hooks-sync --target codex --scope project --project /path/to/project --remove
+dz hooks-sync --target codex --scope user --project /path/to/project
+dz hooks-sync --target codex --scope user --project /path/to/project --check
+dz hooks-sync --target codex --scope user --project /path/to/project --remove
 ```
 
-**"ready" means a command was actually blocked, in this run.** By default `dz hooks-sync` runs a
-LIVE, nonce-scoped veto probe through `codex exec` in a hermetic workspace: it asks Codex to run one
-forbidden command and requires BOTH halves of the evidence — dz's `DZ-VETO:` marker in the
-transcript AND the absence of the command's side effect. `--dangerously-bypass-hook-trust` is never
-passed, because a bypassed run proves the helper body works and nothing about the installed state.
-Anything else — a silent transcript, a dead invocation, a timeout, a version mismatch — is
-**inconclusive**, never ready. `--no-verify` skips the probe and is reported as unverified;
-`--project <dir>` runs the probe in a project that has already opted into `"shellVeto": "block"`
-instead of the hermetic workspace.
+After install, open an interactive Codex session in the selected project and approve the project
+and both hook definitions through native review. Re-run `--check` or `--verify` to observe native
+registration and trust. A definition changed by an update needs review again; unchanged trust
+state is preserved. `--check` never edits delivery files. Helpers are published at immutable
+body-SHA-256 paths under `dz-hooks/generations/` and old generations plus legacy stable helpers
+remain after update/removal. They consume disk space, and old sessions may keep cached commands
+until restarted. Native `currentHash` is opaque: M0 on Codex 0.160.0 found that editing external
+helper bytes did not change it. Mutable imported modules and manual tampering remain outside the
+generated-body guarantee.
 
-Exit codes are **0** for armed **and** trusted **and** verified, **1** for not-armed / drift / a
+**"ready" means a bounded selected-project shell veto was observed.** The project branch requires
+`hooks.shellVeto=block` consent and never substitutes another workspace. It binds the dz marker
+to one exact nonce command in the selected native `hook/started` → `hook/completed` blocked run's
+feedback, a successful same-turn `turn/completed`, stable pre/post registration and an absent
+sentinel. It requires installed, registered, trusted and executable state. An untrusted hook,
+missing tool attempt, foreign output, timeout or `--no-verify` cannot establish readiness.
+The user-scope legacy probe is separately labelled; it cannot prove project registration.
+
+| Surface | Measured status |
+|---|---|
+| Native project `hooks/list` | M0 on Codex 0.160.0 observed project source/path, matcher, hash and untrusted status |
+| Shell command through native preToolUse | Bounded production acceptance on Codex 0.160.0: selected hook blocked the exact nonce command; removed-hook and neighboring-project controls created sentinels |
+| Exact Bash/exec_command identity | Unverified: public hook metadata omits the attempted tool name |
+| Native edits/apply_patch | Unverified |
+| Nested code mode | Unverified |
+
+This check does not establish recall, universal write prevention or `write_stdin` revalidation.
+
+Exit codes are **0** for armed **and** trusted **and** verified (or an uninstalled read-only check), **1** for not-armed / drift / a
 refusal, and **3** when the answer is inconclusive (including "no `codex` binary on PATH", where dz
 writes **nothing**, and `--no-verify`, where nothing was measured). `--check` writes nothing and is
 **silent** in a home that never opted in.
@@ -6996,6 +7007,8 @@ Probe summaries contain safe model IDs and bounded attempt records, never raw ch
 Native QE keeps its default ceiling at three. `dz qe-rounds --source native --action begin-continuation --project <root> --slug <feature> --reviewers <actual-roster-json> --owner-approval <inline-json>` can admit exactly one additional cycle after three witnessed cycles whose active cycle has never closed. A second ordinary continuation refuses. The target is pinned before its fourth origin; prepare and repair cannot redirect it. Fresh independent receipts, original reviewer conditions, author delta assessment and checkpoint verification still govern closure. An admitted checkpoint remains required if its file is removed or replaced; restore the original checkpoint and obtain independent verification before closure. Prepare retains its digest, and replay rejects a closed continuation without matching checkpoint evidence.
 
 The exact flat declaration has schema `native-qe-owner-approval-1`, a UUIDv4 `approvalId`, nonempty `owner` (≤256 characters), `decision` (≤2048), `evidenceSource` (≤4096), canonical `projectRoot` and `featurePath`, `journalId`, `sequence`, `eventDigest`, `cycleId`, prior `revision` and distinct measured `targetRevision`. Native read-only reporting exposes the predecessor event digest. Inline JSON and its serialized declaration are capped at 16 KiB. Obtain the changed target digest from the bounded artifact manifest; consent must explicitly bind it. No helper fills missing consent or updates stale bindings. Exact committed retries can return the admitted cycle without appending.
+
+Native QE also admits one terminal `begin-final-continuation` only when the ordinary continuation is the active, witnessed fourth cycle, its latest evaluation is `unresolved`, and that cycle has never closed. It requires a changed measured target, fresh nonce, original `--reviewers` and `--owner-approval`; it cannot coexist with `begin-post-ci-correction`. Core exports `NATIVE_QE_FINAL_CONTINUATION_API_VERSION = 1`, the API exposes `finalContinuationVersion: 1`, and the installed helper exports `NATIVE_REVIEW_FINAL_CONTINUATION_API_VERSION = 1`; both capabilities are required. The read summary reports `finalContinuation: { capacity: 1, used, targetRevision }`, where capacity is a fixed maximum rather than present eligibility. Admission preserves the journal prefix, reviewer roster, conditions, checkpoint and accumulated delta, pins the fifth target before origin, and leaves the witnessed count at four until fresh original-role evidence arrives. No sixth cycle is available. For this new action only, the same bounded `native-qe-owner-approval-1` declaration may truthfully record earlier owner consent to a limited repair procedure and a later operator binding of the measured target: `owner` names the actual authorizing owner, `decision` states that the operator bound the target under that delegation and the owner did not inspect the then-future digest, and `evidenceSource` identifies the real consent context and binding record. It does not authenticate a person, prove delegated scope, or imply owner inspection or acceptance of future bytes. Missing consent or scope must stop admission; the operator and independent reviewer assess the actual evidence. The existing ordinary continuation and CLOSED4 post-CI approval meanings are unchanged. Use only an independently accepted matching packed CLI/core/helper combination before authoritative use.
 
 This is surviving local owner evidence, not human authentication or acceptance. Core and the CLI-owned installed helper require continuation capability 1 while legacy APIs remain 1. Older readers reject the extended event explicitly. Install only accepted, signed local packed candidates before authoritative use; no npm publication is required. Journal/head/host publication remains conservatively crash detecting under the existing lock, with no filesystem atomicity claim.
 

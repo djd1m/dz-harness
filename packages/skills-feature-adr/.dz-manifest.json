@@ -13,7 +13,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "380845f87282c6246fb0414de836a759b8ea5e00616a807ea6dee6c7c74dd199"
+        "sha256": "7f1345504f2b6fed333b492750a389c9fa6d0e377a9906bfbff7697ed6daf00f"
       },
       {
         "path": "bin/cli.js",
@@ -25,7 +25,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "8397941651587b2e543014e34d424a057fc8af3b62a35a73ed526d1b16e3a4dc"
+        "sha256": "fc3dd7d6020a3f07a7e0ff05401d19a7f3607614fdcdbc3b06fcfda32d53c00a"
       },
       {
         "path": "src/cli.js",
@@ -117,7 +117,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/SKILL.md",
-        "sha256": "e802a99edc2a83511fda898575539139e764cbd2f315d75c408c10de03085775"
+        "sha256": "6eb5ab29e0d30115cd2377dc1e800034557228d78f687c4db7c10e7a2c3ce613"
       },
       {
         "path": "templates/.claude/skills/feature-adr/examples/sample-feature-output.md",
@@ -557,7 +557,7 @@
       },
       {
         "path": "templates/.claude/skills/feature-adr/scripts/check-review-convergence.mjs",
-        "sha256": "91fe091ed7ab8f38340b8ac0fd3194c90b357cb9bab381a86594ac96600ced97"
+        "sha256": "4d05f5159711d5105b7b4daaf979f92208401a352ce16b90aac3174dd9402dfb"
       },
       {
         "path": "templates/.claude/skills/feature-adr/scripts/expected-target-grammar.mjs",
@@ -645,5 +645,5 @@
       }
     ]
   },
-  "signature": "2fmHrKTuE1j2wgzjgCzYx1zB4kh6zjYTC4hDB+eYdaY68vQKRHILfA0HSSEtmba/LRO6mLM1MVuI2sv5EoIVAA=="
+  "signature": "hyrnFr4P+YeGUkumOAjahgcJgVLDGm6sg+AhYY734I+aCUbomtXOy0NFk5crysd++VhWIi/7xmvEzWTd9huEDg=="
 }
