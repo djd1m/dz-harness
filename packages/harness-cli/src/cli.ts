@@ -7,6 +7,7 @@
 import { runReleasePackageAudit, buildRetainedBindingProof } from './release-package-audit-runner.js';
 import { fetchPublishedViaNpmPack } from './sibling-drift-fetch.js';
 import { inspectStatisticsWorkspace } from './statistics-workspace.js';
+import { loadModActivation, ModParityInputError } from './mods-parity.js';
 import { setupQ8Hint, setupSucceeded } from './setup-q8-hint.js';
 import { packArtifact, readWorkspaceVersions, formatDriftFiles, type InventorySource, type LocalInventoryResult } from '@dzhechkov/harness-core';
 // Fix-round 1 (Codex HIGH-1c, feature recall-short-terms): the ONE place `dz recall` prints an
@@ -723,6 +724,7 @@ import type { SkillApplyFailure, SkillLoadFailure } from '@dzhechkov/harness-cor
 import type { ReqeDebt } from '@dzhechkov/harness-core';
 import type { ClassifyResultRow, ExecutionEvidence } from '@dzhechkov/harness-core';
 import { materializeDiscriminationDependencies } from './discrimination-dependencies.js';
+import { prepareDiscriminationBaselineBuild } from './discrimination-baseline-build.js';
 import { runGoDiscriminationCheck } from './go-discrimination-executor.js';
 import type { IdeaRecord, IdeaStatus } from '@dzhechkov/harness-core';
 import type { Family, ModelRung, Candidate as BtoCandidate, DimScores } from '@dzhechkov/harness-core';
@@ -810,7 +812,7 @@ Usage:
   dz verify-pack --pack <dir> [--pubkey <path>]             (signature check; fail-closed; key from the repo, never the pack)
   dz publish [--filter <name|=NAME>] [--bump-only] [--claim-check <off|warn|error>] [--mirror-cmd <cmd>|--no-mirror] [--require-signing] [--provenance|--no-provenance]   (dry-run by default; pass --yes/--confirm/--no-dry-run to go live; claim-check gate default warn — surfaces README claim findings, never blocks; error fails an offending package)  (=NAME selects exact package.name; malformed or unknown exact names refuse before effects)
   dz release [--filter <name|=NAME>] [--test-timeout-ms <ms>] [--affected] [--audit-dev] [--tag] [--publish] [--json] [--dry-run] [--no-issue]   (VERIFIED release: 4 HARD gates in FRONT of dz publish — full package test suites (--test-timeout-ms overrides each test-step budget; default600000ms), isolated tarball consumer audit >=high; workspace audit nonblocking (--audit-dev widens workspace only), node --check of every dist/bin file, bin smoke-boot via "node <bin> --help" — any red gate STOPS the release (exit 1) + best-effort gh issue; all green ⇒ re-sign reminder, then prints the ready dz publish command (or chains with --publish); never duplicates publish's own gates)  (=NAME selects exact package.name; malformed or unknown exact names refuse before effects)
-  dz parity [--target <name>] [--json]   (the honest feature×target map, COMPUTED from the capability model — which harness feature is full / manual / absent on each of the ${TARGET_NAMES.length} targets, and via which form)
+  dz parity [--target <name>] [--mods-intent <file> [--mods-observation <file>]] [--json]   (computed feature×target map; optional read-only Claude mods activation report with unverified evidence)
   dz delivery-check --slug <slug> [--context-only] [--findings <f.json>] [--strict] [--author <model>] [--json]   (portable Step-10 Delivery Gate: prints the 4-plane review brief + artifact probes; --findings classifies a fed-back review into a fail-closed ready|blocked hand-off and writes features/<slug>/10_delivery_review.md; --strict exits 1 on blocked)
   dz challenge --plan <plan.md> [--author <model>]   (the deterministic cartridge behind the challenge-panel adversarial plan-gate (R6): assembles the wide brief — plan + architecture/vision.md + testing.md + map.json + degradations.md — and prints the C1-C8 adversary prompt naming the cross-family reviewer to dispatch. exit 0 brief printed / 1 plan missing or empty)
   dz skills-verify [--dir <project>] [--expect a,b] [--static] [--strict] [--json]   (does .claude/skills/ actually REGISTER? --static = instant layout scan for CI; default reads the authoritative system/init listing from a real session. exit 0 pass / 1 fail / 2 inconclusive — never a false pass)
@@ -831,7 +833,7 @@ Usage:
   dz brief-check <file> [--json]   (does a swarm brief declare OUTPUT_DIR, UNITS and ASSEMBLY_UNIT? parsed as DATA, refused by name; verifies the brief DECLARED the contract, not that the agent follows it. exit 0 ok / 1 refused / 2 unreadable)
   dz provenance-check --manifest <sources.json> [--project <dir>] [--json]   (nothing goes out citing a source that may not leave this machine. Checks PROVENANCE, not words: every claim names its source, and only a KNOWN kind that resolves safely is cleared. Repo paths go through 'git -C <root> check-ignore' over the RESOLVED path — a symlink into an ignored directory is REFUSED (git classifies the string and never dereferences, MEASURED), and the verdict does not change with your working directory. Store records must be named in the git-TRACKED provenance-public.json, so declaring one public is a reviewable commit rather than a field inside an ignored store. An undeclared kind is refused, never inferred from the path's shape. exit 0 allowed / 1 blocked / 3 NOT ESTABLISHED — an empty manifest, an unreadable one, or an oracle that did not run is never a pass. It proves what was CITED: it cannot see a paraphrase with no citation, nor confidential text pasted by hand into an allowed file)
   dz project-skills [--project <dir>] [--json] [--stages-json]   (polymorphic feature-adr: resolve architecture/project-skills.json — fixed roles product-vision/critic/brand/impl-bar plus an open extra[] — into per-stage guidance. READ-ONLY. --project names the root explicitly, so it works from any cwd; without it the manifest is read from the current repo. No manifest ⇒ a byte-identical generic run)
-  dz discrimination-check --slug <slug> [--base <ref>] [--json]   (does the ADR's named test actually DISCRIMINATE? Re-runs it on a worktree at the pre-feature commit, where it MUST go red. A test that passes with the feature removed proves nothing; dz amendment-check proves the test exists, this proves it bites)
+  dz discrimination-check --slug <slug> [--base <ref>] [--baseline-build <package-dir[,package-dir…]>] [--json]   (does the ADR's named test actually DISCRIMINATE? Re-runs it on a worktree at the pre-feature commit, where it MUST go red. A test that passes with the feature removed proves nothing; dz amendment-check proves the test exists, this proves it bites)
   dz guard [check|promote|init] [--json] [--force]   (HARD/SOFT repo rules — readme-first, lockfile-in-sync, claim tagging — run automatically as a pre-flight inside dz publish. HARD blocks, SOFT warns)
   dz architecture [--check --slug <s> --desc <text>] [--project <dir>] [--revise]   (the live product map + vision: --check is the soft Step-0 сверка of a new feature against them, reporting {signal,confidence} rather than blocking)
   dz sbom [--pack <name>] [--out <file>]   (CycloneDX software bill of materials for the workspace, or for one pack with --pack)
@@ -881,7 +883,8 @@ Usage:
   dz brain ground [<prompt>] [--k <N>] [--source <slug>] [--text] [--budget <N>] [--full]  (UserPromptSubmit hook; --budget inlines top-K KUs within ~N tokens; --full = ~8000)
   dz brain expand <kuId> [--source <slug>] [--json]                    (full-content lookup for a citation kuId; --json emits the full KU object)
   dz brain init  [--project <dir>] [--k <N>]                           (wire the grounding hook into .claude/settings.json — opt-in)
-  dz statusline [--json] [--install] [--project <dir>] [--recall-session <32hex>]   (live self-learning panel; CC JSON stdin carries exact session/turn) | dz statusline --watch [--interval <0.25..60>] [--project <dir>] [--brain <dir>] [--slug <s>] [--run-id <id>] [--recall-session <32hex>]   (readonly adjacent TTY companion; recall selector independent of pipeline run; default interval 2s; no stdin; SIGINT/SIGTERM exit 0; output failure 1; usage 2; not native Codex footer)
+  dz statusline [--json [--read-only]] [--install] [--project <dir>] [--recall-session <32hex>]   (--read-only: JSON snapshot without stdin or store-mark refresh; ordinary CC statusline still uses session/turn stdin and refreshes marks) | dz statusline --watch [--interval <0.25..60>] [--project <dir>] [--brain <dir>] [--slug <s>] [--run-id <id>] [--recall-session <32hex>]   (readonly adjacent TTY companion; recall selector independent of pipeline run; default interval 2s; no stdin; SIGINT/SIGTERM exit 0; output failure 1; usage 2; not native Codex footer)
+  dz statusline --json --read-only --recall-from-stdin [--project <dir>]   (read session_id from a small JSON stdin payload for exact-session recall; project always comes from --project or cwd)
   dz store-guard [--status|--reset|--prune [--apply]] [--yes] [--project <dir>]   (show the monotonic external high-water mark; --reset is the only lowering path and requires confirmation or --yes; --prune is a dry run unless --apply is given)
   dz statusline --fa-record --slug <s> --step "<label>" [--kind <feature-adr|loop>] [--tier <S|M|L|XL>] [--run-id <id>] [--recalled <n>] [--stored <n>] [--mode <m>] [--reinforced <n>]   (feature-adr: record live per-run learning state + phase → 📐 SECOND-LINE phase panel; the monotone guard absorbs a backwards plain "Step <n>" only within the same non-empty run id, while an absent/empty id retains legacy fresh-slot behavior — prefix the label with ⛔ or ⏸ to record a legitimate regression)
   dz usage [--json] [--project <dir>]  (7-day UTC spend from local Claude Code + subagent transcripts; provider-limit routing disabled by design)
@@ -2974,6 +2977,20 @@ function statuslineContext(stdinRaw: string, options: Map<string, string>, cwd: 
   }
 }
 
+/** Explicit mod snapshot input: session identity only; stdin cannot redirect the project root. */
+function statuslineSnapshotContext(stdinRaw: string, options: Map<string, string>, cwd: string): { projectRoot: string; recallContext: RecallObservationSelector } {
+  const projectRoot = resolve(cwd, options.get('project') ?? '.');
+  if (stdinRaw.length > 4096) return { projectRoot, recallContext: {} };
+  try {
+    const payload: unknown = JSON.parse(stdinRaw);
+    if (payload === null || typeof payload !== 'object' || Array.isArray(payload)) return { projectRoot, recallContext: {} };
+    const fields = payload as Record<string, unknown>;
+    return { projectRoot, recallContext: { producer: 'claude-hook', sessionId: fields['session_id'], turnId: fields['turn_id'] } };
+  } catch {
+    return { projectRoot, recallContext: {} };
+  }
+}
+
 /**
  * `dz statusline --install` — merge a `statusLine` block into `.claude/settings.json` pointing at
  * this CLI's own bin (`<abs dz bin> statusline`). NON-CLOBBERING: an existing `statusLine` is left
@@ -3281,7 +3298,9 @@ function statuslineEta(projectRoot: string, state: FeatureAdrState, nowMs: numbe
  * least a minimal `dz` even on total failure.
  *
  * Flags: `--install` wires it into settings.json; `--fa-record` records a live `/feature-adr`
- * learning state (WRITES — see {@link cmdStatuslineFaRecord}); `--json` prints the raw data object
+ * learning state (WRITES — see {@link cmdStatuslineFaRecord}); `--json` prints the raw data object.
+ * `--json --read-only` also skips the reader's store-mark refresh and normally ignores stdin.
+ * `--recall-from-stdin` opts in to a small session-only JSON payload without accepting a project path.
  * (plus `featureAdrLine`, the rendered phase line, when a fresh /feature-adr run is in flight);
  * default prints the status line, with the 📐 phase panel as its OWN SECOND LINE (format B —
  * fa-phase-statusline ADR-001 D1; Claude Code renders every stdout line of a statusline command).
@@ -3300,13 +3319,18 @@ function cmdStatusline(
   if (flags.has('fa-record')) return cmdStatuslineFaRecord(options, cwd, write, writeErr);
 
   try {
-    const { projectRoot, recallContext } = statuslineContext(readStdin(), options, cwd);
-    warnLearningStoreRead(projectRoot, writeErr, 'dz statusline');
+    const readonlySnapshot = flags.has('read-only');
+    const { projectRoot, recallContext } = readonlySnapshot
+      ? flags.has('recall-from-stdin') ? statuslineSnapshotContext(readStdin(), options, cwd) : statuslineContext('', options, cwd)
+      : statuslineContext(readStdin(), options, cwd);
+    if (!readonlySnapshot) warnLearningStoreRead(projectRoot, writeErr, 'dz statusline');
     const data = statuslineData(projectRoot, Date.now(), recallContext);
     const fa = data.featureAdr;
     let eta: EtaEstimate | undefined;
     let etaFragment: string | undefined;
-    if (fa !== undefined && fa.kind !== 'loop') {
+    // The ETA corpus has an opt-in debug trace append (DZ_ETA_TRACE). Snapshot consumers need
+    // a strict no-dz-writes path, and the mod does not display ETA, so omit this optional read.
+    if (!readonlySnapshot && fa !== undefined && fa.kind !== 'loop') {
       try {
         eta = statuslineEta(projectRoot, fa, Date.now());
         if (eta !== undefined) etaFragment = formatEta(eta);
@@ -8896,16 +8920,17 @@ async function cmdParity(options: Map<string, string>, flags: Set<string>, write
   const json = flags.has('json');
   if (flags.has('help')) {
     const help = [
-      'dz parity [--target <name>] [--json] — the computed feature×target map (never hand-written)',
+      'dz parity [--target <name>] [--mods-intent <file> [--mods-observation <file>]] [--json] — the computed feature×target map (never hand-written)',
       `  targets: ${TARGET_NAMES.join(', ')}`,
       '  Each cell is full / manual / absent, and the map names via which form it is reached.',
+      '  Mods input requires --target claude-code; reported evidence is never authenticated or promoted to a parity capability.',
     ].flatMap(line => line.split('\n'));
     if (json) write(JSON.stringify({ ok: true, help, command: 'parity' }));
     else for (const line of help) write(line);
     return 0;
   }
   const allowedFlags = new Set(['json', 'help']);
-  const allowedOptions = new Set(['target']);
+  const allowedOptions = new Set(['target', 'mods-intent', 'mods-observation']);
   // A stray positional is a typo'd invocation, not something to silently ignore (Codex QE gap 7).
   if (options.has('_positional_0')) {
     write(json ? JSON.stringify({ error: `unexpected argument "${options.get('_positional_0')}"`, exitCode: 1 }) : `dz parity: unexpected argument "${options.get('_positional_0')}"\n  allowed: --target <name>, --json`);
@@ -9011,6 +9036,27 @@ async function cmdParity(options: Map<string, string>, flags: Set<string>, write
     if (parityResolution.via === 'alias') writeErr(formatTargetAliasNote('dz parity', targetOpt, target));
   }
 
+  const modIntentPath = options.get('mods-intent');
+  const modObservationPath = options.get('mods-observation');
+  const modInputError = (code: string): number => {
+    writeErr(json ? JSON.stringify({ error: code, exitCode: 1 }) : `dz parity: ${code}`);
+    return 1;
+  };
+  if (modObservationPath !== undefined && modIntentPath === undefined) {
+    return modInputError('mods-observation-requires-mods-intent');
+  }
+  if (modIntentPath !== undefined && target !== 'claude-code') {
+    return modInputError('mods-intent-requires-target-claude-code');
+  }
+  let modActivation: ReturnType<typeof loadModActivation> | undefined;
+  if (modIntentPath !== undefined) {
+    try { modActivation = loadModActivation(modIntentPath, modObservationPath, cwd); }
+    catch (error) {
+      if (error instanceof ModParityInputError) return modInputError(`mods-${error.input}-${error.code}`);
+      return modInputError('mods-input-unavailable');
+    }
+  }
+
   if (json) {
     const shown = target !== undefined ? [target] : TARGET_NAMES;
     const rows = matrix.map((r) => {
@@ -9031,6 +9077,7 @@ async function cmdParity(options: Map<string, string>, flags: Set<string>, write
       // read why a cell is inconclusive without a second command.
       staleEvidence: staleEvidence.filter((sv) => shown.includes(sv.target)),
       features: rows,
+      ...(modActivation === undefined ? {} : { modsActivation: modActivation }),
     }, null, 2));
     return 0;
   }
@@ -9050,6 +9097,13 @@ async function cmdParity(options: Map<string, string>, flags: Set<string>, write
     }
     write('\n  ✓ full (the complete experience)   ◐ manual (works, you drive it by hand)   ? evidence stale (re-probe)   — not available');
     for (const line of staleNote(t)) write(line);
+    if (modActivation !== undefined) {
+      write('\n  Claude mods activation (input evidence not authenticated):');
+      for (const stage of ['installed', 'apiAvailable', 'handlerExecuted', 'uiDisplayed'] as const) {
+        const fact = modActivation[stage];
+        write(`    ${stage}: ${fact.state} (${fact.reasonCode})`);
+      }
+    }
     return 0;
   }
 
@@ -13756,6 +13810,10 @@ function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>
   // R11: a hung runner is a loud non-answer, never a pass. Same default + parse shape as mutation-gate.
   const timeoutOpt = Number(options.get('timeout') ?? '300000');
   const timeoutMs = Number.isFinite(timeoutOpt) && timeoutOpt > 0 ? timeoutOpt : 300000;
+  if (flags.has('baseline-build')) {
+    write('discrimination-check: --baseline-build requires an explicit comma-separated package list');
+    return 2;
+  }
 
   // Runner honesty (feature instrument-honesty, ADR-001): the runner is selected from the TARGET
   // package's own scripts.test, never from a global default. The package dir is the nearest
@@ -13889,6 +13947,7 @@ function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>
   const results: ClassifyResultRow[] = [...absent];
   let tipTree: { headSha: string; dirtyFiles: number } | null = null;
   let dependencyPreparation: ReturnType<typeof materializeDiscriminationDependencies>['preparation'] | undefined;
+  let baselineBuild: ReturnType<typeof prepareDiscriminationBaselineBuild> | undefined;
 
   // Confirmation 12: with nothing present there is nothing to run — no worktree is built at all.
   if (present.length > 0) {
@@ -13903,9 +13962,19 @@ function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>
 
       const dependencies = materializeDiscriminationDependencies(repoRoot, worktree);
       dependencyPreparation = dependencies.preparation;
+      if (options.has('baseline-build')) {
+        const baseSha = String(execFileSync('git', ['rev-parse', 'HEAD'], { cwd: worktree, encoding: 'utf8', timeout: 5000 })).trim();
+        baselineBuild = prepareDiscriminationBaselineBuild({ sourceRoot: repoRoot, baselineRoot: worktree, baseSha,
+          selection: options.get('baseline-build')!, dependencyPreparation, timeoutMs });
+      }
 
       // 2) copy each property test into the base worktree, then 3) run it and record the OBSERVATION.
       for (const t of present) {
+        if (baselineBuild !== undefined && baselineBuild.status !== 'prepared') {
+          results.push({ ...nameFor(t, 'error'), baselineDependency: { kind: 'unavailable', specifier: null, path: null,
+            detail: `baseline build ${baselineBuild.status}: ${baselineBuild.detail ?? 'incomplete preparation'}` } });
+          continue;
+        }
         const unsafeDependency = dependencies.preflight(t.file);
         if (unsafeDependency !== null) {
           // No child ran: preserve the setup diagnosis without fabricating raw observations.
@@ -13995,7 +14064,7 @@ function cmdDiscriminationCheck(options: Map<string, string>, flags: Set<string>
   }
 
   const result = classifyDiscrimination({ propertyTests, results });
-  if (flags.has('json')) { write(JSON.stringify({ plan, results, tipTree, ...(dependencyPreparation !== undefined ? { dependencyPreparation } : {}), ...result, ...discriminationCompat(result) }, null, 2)); return 0; }
+  if (flags.has('json')) { write(JSON.stringify({ plan, results, tipTree, ...(dependencyPreparation !== undefined ? { dependencyPreparation } : {}), ...(baselineBuild !== undefined ? { baselineBuild } : {}), ...result, ...discriminationCompat(result) }, null, 2)); return 0; }
 
   write(`discrimination-check @ ${baseRef} — verdict: ${result.aggregate}`);
   const evidenceByTarget = new Map<string, ExecutionEvidence | undefined>();
@@ -24788,7 +24857,10 @@ export async function runCli(argv: string[], io: CliIo = {}): Promise<number> {
   // `contract-check` has an explicit byte-for-byte read-only contract: even the advisory command
   // usage ledger would mutate the repository being audited and invalidate its own safety proof.
   // Help has never counted as an invocation, including help handled by a command owner.
-  if (command !== 'contract-check' && !flags.has('help')) {
+  // The opt-in status snapshot is also read-only: a mod must not append command telemetry
+  // in the caller's cwd merely by refreshing a pane.
+  if (command !== 'contract-check' && !flags.has('help')
+    && !(command === 'statusline' && flags.has('read-only'))) {
     recordCommandInvocation(cwd, DZ_COMMANDS.includes(command) ? command : '', new Date());
   }
 
@@ -24845,6 +24917,14 @@ export async function runCli(argv: string[], io: CliIo = {}): Promise<number> {
       case 'brain':
         return await cmdBrain(options, flags, cwd, write, readStdin);
       case 'statusline': {
+        if (flags.has('read-only') && (!flags.has('json') || flags.has('install') || flags.has('fa-record') || flags.has('watch'))) {
+          writeErr('dz statusline: --read-only requires --json and cannot be combined with --install, --fa-record, or --watch.');
+          return 2;
+        }
+        if (flags.has('recall-from-stdin') && (!flags.has('read-only') || !flags.has('json') || options.has('recall-session') || flags.has('recall-session'))) {
+          writeErr('dz statusline: --recall-from-stdin requires --json --read-only and cannot be combined with --recall-session.');
+          return 2;
+        }
         if (flags.has('recall-session') || (options.has('recall-session') && !/^[a-f0-9]{32}$/.test(options.get('recall-session')!))) {
           writeErr('dz statusline: --recall-session requires a project-scoped 32hex session alias.');
           return 2;
@@ -24996,6 +25076,10 @@ export async function runCli(argv: string[], io: CliIo = {}): Promise<number> {
         return cmdChallenge(options, flags, cwd, write);
       case 'discrimination-check':
         if ((options.get('test') ?? '').split(',').some(file => file.trim().endsWith('.go'))) {
+          if (options.has('baseline-build') || flags.has('baseline-build')) {
+            write(flags.has('json') ? JSON.stringify({ aggregate: 'CANNOT_ISOLATE', measurementValid: false, error: 'baseline-build is TypeScript-only and unsupported for Go' }) : 'discrimination-check: --baseline-build is TypeScript-only and unsupported for Go');
+            return 2;
+          }
           return await runGoDiscriminationCheck(options, flags, cwd, write, reapMutationGateScratchProcesses);
         }
         return cmdDiscriminationCheck(options, flags, cwd, write);

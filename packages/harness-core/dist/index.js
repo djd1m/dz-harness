@@ -28,6 +28,8 @@ export * from './integrations-verify.js';
 export { redactProbeText, PROBE_REDACTION_MARKER } from './integration-probe-worker.js';
 // Target-parity model (feature target-parity-matrix, ADR-001) — the computed feature×target map.
 export { RUNTIME_CAPABILITIES, TARGET_CAPABILITIES, PARITY_FEATURES, TARGET_SHORT_LABELS, GATE_FEATURE_IDS, computeParity, buildParityMatrix, CAPABILITY_EVIDENCE, findUnbackedCapabilities, findStaleTranscriptEvidence, newestRecordedRuntimeVersion, downgradeForStaleEvidence, } from './parity.js';
+export { projectModActivation } from './mods-activation.js';
+export { parseModRuntimeIntentJson, parseModRuntimeObservationJson } from '@dzhechkov/core';
 export * from './operations.js';
 export { checkInstrumentFreshness, checkRankingState } from './doctor-instrument.js';
 // workflows.ts: the ADR-005 templates are RETIRED (feature loop-designer, AM-6) — the module is a

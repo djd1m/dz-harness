@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fe0b9810d0b576332fc06e38167a115aae15fcf438b03897ac5e14365227e28c"
+          "content": "043c86fb24960ec16553fddc1a4c0b632b25be8186aa27b05342278afd025ab9"
         }
       ]
     },
@@ -195,7 +195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "576390436db031108088634d70798e2727eb39b10debde42593b1eb8a058a8e2"
+          "content": "e55558e485066a59aa2d9a107168b8ce5e5bb48cb758588082e65753c884b748"
         }
       ]
     },
@@ -205,7 +205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f017a622ce5ffddccc9fbf300b233795c452410ddae2ed418bfc0791ab3e1aa7"
+          "content": "43e2c24becf0a3b7db5e52b6471e0f4b5ae8026216c205d2521ac43b868da53a"
         }
       ]
     },
@@ -215,7 +215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d9d3f1406eca72fe264a2065cee9b61e760d29a349569e5f1db64f6957bd7f1b"
+          "content": "9a9d76b098af273ab88691650682eb3ed974cfed007b1b5b1ccb40e750fd93a6"
         }
       ]
     },
@@ -225,7 +225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f32818a9ee3ccce4371ca78caae3e71166d339b7e079708e70e9f18d8fdb0582"
+          "content": "99ad155d20dd8131157c5c9dec0c04e86d876f1a69d87bd2ed4bf68569ba43db"
         }
       ]
     },
@@ -266,6 +266,46 @@
         {
           "alg": "SHA-256",
           "content": "5d86f717e29012f41ec7d5591f349313228a50205462c34799d3b701f23aeeaa"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/mods-runtime.schema.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cd8e2b99a9beee77cc9ad35358a8aa9be8008d4e1fdd04477dbd5d1a550309e4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/mods-runtime.schema.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0a1146aaaa3f81e387611cdf53b78bbff9725198e6b4e908af1ffc823105a69d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/mods-runtime.schema.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f67577c246ca5a5c19599fea6a3ca758038c2f9d288cdc914571154d18fa83c0"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/mods-runtime.schema.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "20c2b98c969a4fb4cdd4896ee965b0e7568d7e9200a9139895de3791592db693"
         }
       ]
     },
@@ -599,7 +639,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "9c70853de01d221330dc5aecf0f35d6824237af0887acdc520c6ae8325da67c4"
+          "value": "7b7221e73c3a46f1b36cdf31da60dc911c1500789359d09c01d4e4f74fdd1e4f"
         }
       ]
     },
@@ -659,7 +699,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1d1946bff7c11c91f0cd9b50fbefe5a53742cd89cbaa8ba8111d180851043e4d"
+          "content": "ff9b721e4166b25cf53df54a2a6f04e5528d5568ef589f8db947815a7c0ea6c8"
         }
       ]
     },
@@ -670,6 +710,16 @@
         {
           "alg": "SHA-256",
           "content": "ba82824738073ebbc915028c3aeac56634896da888bd2876233af79659270416"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/mods-runtime.schema.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c006b56eece99e01080216ded39db187cfd530552662a5cff594a7ff69578330"
         }
       ]
     },

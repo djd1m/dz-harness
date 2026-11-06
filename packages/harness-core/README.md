@@ -24,9 +24,7 @@ commands. Use `node --test <file>` through the same wrapper for Node tests. Focu
 is supported; it does not prove a complete suite, meaningful tests or authenticated evidence.
 See the repository `.githooks/README.md` for bounds, supported commands and reasoned overrides.
 
-Current package version: `0.8.67`. <!-- dz:version -->
-
-Claude destructive-guard hook settings serialize `timeout: 5` in seconds.
+Current package version: `0.8.68`. <!-- dz:version -->
 
 Joint current metadata requires `<!-- dz:version -->` on a dedicated undated core/CLI line. Both README writers preserve unmarked historical joint pairs; the guard and release-line report skip them. Fenced examples cannot become current joint metadata. `parseReleaseLine` remains structural, while selection requires this explicit opt-in. On a visible line, the marker still forces per-package rewriting of every matching version, including an explicit changelog override; keep it off historical records. Fenced examples and supported HTML comment blocks remain literal even when they contain the marker, a footer, an install/JSON pin, a tarball line or a badge. Put current stamps outside these examples.
 
@@ -758,6 +756,7 @@ compatibility path.
 | `setup` (memory backend) | `resolveSetupMemoryBackend`, `memoryBackendSourceLabel` | `dz setup` backend resolution flag > `.dz/config.json` > default, with the source named (`flag`/`config`/`default`/`default-unreadable`/`disabled`); a downgrade rewrites only `memory.backend`. |
 | `embed-socket-path` | `resolveEmbedSocketPath`, `embedSocketPointerPath`, `readEmbedSocketPointer`, `resolveEffectiveEmbedSocketPath`, `EMBED_SOCKET_PATH_BYTES_LIMIT` | Unix-socket path resolver shared by the embed daemon, the recall hook and `dz doctor`: env override > project `.dz/embed.sock` when ≤ 100 bytes > `<tmpdir>/dz-<uid>/embed-<sha1[12]>.sock` (`tooLong` when even that overflows); the pointer file `.dz/embed.sock.path` is trusted only while its target exists. |
 | `parity` | `TARGET_CAPABILITIES`, `PARITY_FEATURES`, `computeParity`, `buildParityMatrix` | Declarative target-parity model behind `dz parity`: verified capability flags per target × feature FORMS with requirements; the feature×target matrix is always COMPUTED (never hand-written), and the model must classify exactly `TARGET_NAMES` — an unclassified new target refuses to compile |
+| `mods-activation` | `projectModActivation` | Read-only projection of a Claude mod intent and optional observation report into four independent stages; input evidence stays explicitly unverified and never grants a parity capability |
 | `delivery-check` | `PLANE_SPECS`, `collectDeliveryFacts`, `planDeliveryCheck`, `renderDeliveryBrief`, `classifyDelivery`, `renderDeliveryReview` | Pure portable Step-10 Delivery Gate engine behind `dz delivery-check`: the four review planes as shared DATA (prose-identical to the workflow's inline `planePrompts`, held by a drift-guard test), a deterministic plan/classify over injected facts+findings, and the FAIL-CLOSED hand-off verdict — `ready` only off complete, cross-validated, clean evidence; classification reads only numeric severity counts so injected instruction-like text cannot move the verdict. No `child_process`; the only fs is `existsSync` in `collectDeliveryFacts` |
 | `skills-verify` | `scanSkillsLayout`, `parseInitFacts`, `verifyRegistration`, `registrationExitCode`, `renderRegistrationReport` | Pure registration-gate engine behind `dz skills-verify`: a static scan of `.claude/skills/` (which dirs CAN register + the shapes that never can) and a **sealed** verdict over one atomic evidence bundle (`RegistrationEvidence` = the whole scan + a tagged probe result + a provenance record). Cardinality and parse integrity are derived INSIDE from the raw `system/init` stream, so no caller can omit or falsify them. FAIL-CLOSED: an unobservable registration is `inconclusive`, never `pass`; a plugin-shaped container is advisory and its fate is decided by whether the session says that plugin LOADED, never by the layout. Also exports `findNonRegistrableSkillDirs` — the publish-time guard fact behind the `skills-registrable` rule (a pack counts only if it already has one registrable skill; a dir is flagged only when a `SKILL.md` exists inside but below depth 1 — the discriminator was chosen after MEASURING the real packs, since a naive rule flagged ~40 healthy dirs across 9 npx toolkits). Plugin containers are attributed by `init.plugins[].path`, never by directory name; a container whose plugin did not load FAILS, one that loaded PASSES with an advisory that its individual skills are unverified (modelling Claude Code's command-name resolution produced a new wrong verdict in every review round — the gap is disclosed, not guessed). Sees SLASH COMMANDS too: `InitFacts.slash_commands` carries the session's command listing (MEASURED on Claude Code 2.1.233 — `system/init` emits `slash_commands`, and a plugin command registers as `<plugin>:<file basename>`, not as its frontmatter name), `RegistrationEvidence.expectedCommands` names what must appear, and an ABSENT `slash_commands` key is `inconclusive` exactly like an absent `skills` key — never an empty list, because schema drift and "the commands did not load" are different facts. `declaredPluginSurface(dir)` derives the expected names from a plugin's own manifest so a gate run cannot drift from the manifest it checks, and returns `null` (never an empty, vacuously-passing expectation) for an unreadable one. Also ships the ADVISORY content layer (`buildContentProbePrompt` / `classifyContentProbe`): registration is not usability, so an extra model turn asks for a VERBATIM quote as evidence — advisory by construction, it never gates. No `child_process` — the CLI owns the probe |
 
@@ -1111,6 +1110,16 @@ Missing build output does **not** imply that the project contains no valuable da
 requires a working decider: build harness-core in this repository, or reinstall the CLI and repeat
 `dz setup --target claude-code` for a consumer installation. The Codex helper's loading-failure
 behaviour described above is unchanged.
+
+Claude's generated `PreToolUse` entry sets `timeout: 5` in **seconds**, as required by the host
+schema. The previous numeric `5000` used millisecond naming in source but was interpreted as
+seconds by Claude Code. Rerun `dz setup --target claude-code` after installing an updated package
+to replace an older dz-owned entry. On Linux/macOS and Windows with Git Bash, a timeout gives no
+blocking verdict by default because dz does not set `onFailure: "block"`; a shell-form hook on
+Windows without Git Bash can instead block on failure. The dz classifier's own errors remain
+fail-open. Project hooks
+can also be bypassed by some mods and permission configurations; see the
+[Claude Code precedence rules](https://code.claude.com/docs/en/permissions#precedence-among-rules-hooks-and-mods).
 
 The registry currently contains 121 `guard-*` entries. R17's exhaustive anchor census identifies
 the anchors displaced by the source refactor; new/repointed entries are staged separately under

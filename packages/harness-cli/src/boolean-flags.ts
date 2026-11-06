@@ -92,6 +92,8 @@ export const BOOLEAN_CLI_FLAGS: ReadonlySet<string> = new Set([
   'prune-noise',
   'prune-quarantine',
   'publish',
+  'read-only',
+  'recall-from-stdin',
   'reconcile',
   'record-provisional',
   'refresh-publishes',

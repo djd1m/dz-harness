@@ -55,6 +55,10 @@
   "optionalDependencies": {
     "@dzhechkov/cloudru-vm-linux-x64": "0.2.10"
   },
+  "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
+    "test": "node --test 'test/*.test.mjs'"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/djd1m/dz-harness.git",
@@ -66,8 +70,5 @@
   },
   "publishConfig": {
     "access": "public"
-  },
-  "scripts": {
-    "test": "node --test 'test/*.test.mjs'"
   }
 }

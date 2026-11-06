@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5dae29634e5d9ded6b8eff4e50b2c9c74c18de485066c287c6119a7149fbff53"
+          "content": "94eb694d96b611182b7b11ba6557300d1b54daa37fc2c707c039d7e42d7fbcf7"
         }
       ]
     },
@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0ee5fe7a8fb4ba685d773d87665aea66584ae943a59159568b02a01b0bd2a18b"
+          "content": "15c0371904b7bbc0ca62ccffaeeedc602d2bc8eae5c7278ac6873114655cf89b"
         }
       ]
     },
@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "da2797a8bae05a4d90f3443582ec972afa4f430e427705e1f6d0a48f7e9480f9"
+          "content": "47a81855c43a1568a52eefcf765cadf1e91ee534dcf9ff99eab8be549ae91652"
         }
       ]
     },
@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "16a8dd0fa97411f35d49b65d8c57221be47fbe226da22dec141c424d489d423d"
+          "content": "f0079933f0694ae1a181a3b4d7d30221168a2c3b75508afa7e98fec3fc6b6d69"
         }
       ]
     },
@@ -125,7 +125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c77dd082e13ee75d713225f532cb8c03a504167ea8c6621f877e414ea0a617e8"
+          "content": "0abbefda322c48f1f8af6c2461f93d33284acbd20b5f85d63fdc249a4e1deee2"
         }
       ]
     },
@@ -135,7 +135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d1adf077df0b402052508ffbf96b76df69efab39e16d82c48b5cc9a14e795c55"
+          "content": "72beeaae87faa056c901fd0fb4bec54d643be3991d30c99e68d6882c634d9b8c"
         }
       ]
     },
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a79262b448cac75679bf10532923cdbf91fe791bec231b31904f2227b01e6b64"
+          "content": "360e4ba0fca7d97122b52cacb41d341d3758fa11408e547969125f78c60382f0"
         }
       ]
     },
@@ -226,6 +226,46 @@
         {
           "alg": "SHA-256",
           "content": "f6a34e759665afbea21ab814b51b96badc73e04ce5ff8f81db9c7532c34fc14c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/discrimination-baseline-build.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ede08181e5cc9aba05bdb2ac677de3460beac31200937e5de9d7f8ee11f5a807"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/discrimination-baseline-build.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "83136c0becb1041ba68c6ef24567764970ff88d52d833bbbfdf8bd22a5ad9ac4"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/discrimination-baseline-build.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "acc566b389927f1fb0adf55fb1b7d59b675c7a4198e8edb959dd1359c76bdbb5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/discrimination-baseline-build.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c09fe0f5434f79e832d2920ac506f8d53b087952a92bd8fb3e54c669600864b2"
         }
       ]
     },
@@ -405,7 +445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a84d2d6cb28d49fd613bdc36b0c55d36e688634dd587c77e23f51863f45c5d15"
+          "content": "e5a0f60d44f4d2f548cd5e2f08127cdedb2029c0593c170daf5b2696351a5bae"
         }
       ]
     },
@@ -415,7 +455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b3019eef62ae2dfb490ca88b1505b34e86c69964f0b8c3b461a48e13c9d7e0d1"
+          "content": "23a68ad3a4a04aedf5cb26726f16cc66f83b4bb6c3db38ceb69022e7578bc781"
         }
       ]
     },
@@ -425,7 +465,47 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d2cefaa2e23b4f8c78e74f40159f189075aecade397211c861030d108e24caa0"
+          "content": "11925616080a5d029048515689e75c892b182af43e8d8bbdae5a6338912e208e"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/mods-parity.d.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6c67b7d78dd56cdc9e73db26aac80cb19003feb7738ea1e3d58d634359b1fbde"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/mods-parity.d.ts.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a9b7a2e405e93ed25770197fdb62382589ca8e2a017cc472a12f423be584647b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/mods-parity.js",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "75ee90ac957d543022d86eaa4664857ea175bd8967f14079a49e36bb1eb9c79b"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "dist/mods-parity.js.map",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2a157d2bc71f0155f843597d8978882d9888c974b4c01ac6f4dde37e454e172f"
         }
       ]
     },
@@ -659,7 +739,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "f12a29de69e33e8458c8ac1b8efb966fa9f1d426d5434061c3410075a08caeb5"
+          "value": "2b22743fe1168639e557744e7b31ad661b0775741b93c43fbbab2e445b3af868"
         }
       ]
     },
@@ -679,7 +759,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3494bfd16eb53b57648892bbda3a0f507617a0c661a240fd662ee378ffbee029"
+          "content": "e106e48dc5f327a7490659214c4b7f9e737fb51cb8f3e9f3ff609057834c3653"
         }
       ]
     },
@@ -689,7 +769,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7d0df4e8f7f74e66c4b385efea7fb9d99f674417c6db216a41fea77c84b3a686"
+          "content": "973be7832288ce402ca20b6c8245c9020298d5296e5f36ef300780c33263afcd"
         }
       ]
     },
@@ -710,6 +790,16 @@
         {
           "alg": "SHA-256",
           "content": "ca1d5d8ac597964df0a53a5a5e233e9fb35c1c2c2bfc0380082af74a1d81acd9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/discrimination-baseline-build.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "35de5428e63d214af6ef94b9f5ba6b92bb89ef6e2813a2e855e6755e68802dac"
         }
       ]
     },
@@ -759,7 +849,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3da43f55e9c7c213750a0883181206e80f50edd999af1fb1d01af305cac25eed"
+          "content": "ef930cccd8b29240628f1d608a0d8510d9f87a7e8e89971f979dae894946021d"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "src/mods-parity.ts",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9927d1d594970dce42a07e157c644892e18ddf5333a75fe7836df20169f1c350"
         }
       ]
     },

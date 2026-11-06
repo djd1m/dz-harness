@@ -3,7 +3,7 @@
 `dz qe-rounds --source native` reports durable native QE history without writing. Explicit `--action prepare|evaluate|begin-repair|begin-continuation|begin-final-continuation|begin-post-ci-correction` invokes the exact installed skills-meta helper from the CLI module, checks core/helper capabilities and uses the existing receipt schema. Prepare and begin-repair require `--reviewers <json>`. The default native ceiling is three; native `--ceiling`, duplicate/unknown options, legacy reconstruction and source collisions refuse. Omitted source retains the bridge reader.
 
 
-Current package version: `0.8.60`. <!-- dz:version -->
+Current package version: `0.8.61`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -100,7 +100,7 @@ Each launch creates one snapshot; remove selected old snapshot files yourself wh
 Live backpressure waits for writable callbacks. Explicit termination cancels pending writes; after
 child exit a stalled output sink has a two-second final drain window before cancellation.
 
-Current package versions: `harness-core v0.8.67` · `harness-cli v0.8.60`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.68` · `harness-cli v0.8.61`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. On visible lines, the marker retains its whole-line override for per-package synchronization, including explicit changelog overrides, so keep it off historical records. The previous all-protections override is corrected: fenced marker, footer, install/JSON-pin, tarball and badge examples remain literal, as do supported HTML comment blocks. Their visible counterparts still stamp; place current metadata outside examples.
 
@@ -559,6 +559,14 @@ them, so a global install (`npm i -g @dzhechkov/harness-cli`) guards a project t
 copy of the package. If the guard cannot load it says so on one line and lets the command through —
 it never blocks on its own failure, and it is never silent about failing.
 
+The Claude hook setting uses `timeout: 5` **seconds**. After updating the package, rerun
+`dz setup --target claude-code` in each project to replace the older dz-owned setting, which
+incorrectly used `5000` as though the field were milliseconds. The dz classifier's own errors
+remain non-blocking. A host-level hook timeout or failure normally continues on Linux/macOS and
+Windows with Git Bash, but a shell-form hook can block on Windows without Git Bash;
+[Claude Code's mods precedence](https://code.claude.com/docs/en/permissions#precedence-among-rules-hooks-and-mods)
+can also change the final decision in unmanaged sessions.
+
 Setup is additive here too, and deliberately incurious: if `.claude/hooks/destructive-guard.cjs`
 already exists WITHOUT dz's ownership marker, the file is yours. dz does not overwrite it, does not
 touch your `settings.json` entry for it, and — since a hook can only be proven to work by running it
@@ -929,7 +937,14 @@ refuse an unclassified 11th target).
 dz parity                    # the full grid: ✓ full / ◐ manual (via which form) / — absent
 dz parity --target codex     # one target in detail: what works, THROUGH what
 dz parity --json             # machine contract (targets, capabilities, per-cell level + via)
+dz parity --target claude-code --mods-intent mod-intent.json --mods-observation mod-observation.json --json
 ```
+
+The optional Claude mods section reads bounded local JSON files and separates installation,
+API availability, handler completion and visible UI. It labels input evidence `reported_yes` or
+`reported_no`, never verified; missing reports remain `unknown`. The existing feature matrix and
+capability grants do not change. Supply `--mods-intent` alone to inspect what still needs a live
+probe. The command does not load a mod or authenticate referenced evidence files.
 
 Example (real output, trimmed):
 
@@ -2466,7 +2481,7 @@ dz feature-adr-setup [--plan] [--from-spec <f>] [--apply]   # guided project onb
 dz challenge --plan <plan.md> [--json] [--context-only] [--author <model>]   # adversarial plan-gate (behind the `challenge-panel` skill): assemble a WIDE context pack (plan + vision + testing + map + degradations) + the fixed C1-C8 "break it" brief for a FRESH adversary (≠ plan author); advisory, never blocks
 dz routing [--stage <s>] [--json]   # inspect the learned cost-optimal routing store: what `args.models.<stage>='auto-cost'` believes per (stage, complexity-tier, model) — gated attempts/successes/rate (feeds feature-adr model selection)
 dz bto-optimize --split|--plan|--select|--scope-check|--diff [--json]   # deterministic engine behind /bto-optimize: hold-out split + hard-capped budget + no-regress-on-holdout winner selection (defeats judge-gaming); prose-only, diff-confirmed, never auto-writes
-dz discrimination-check --test <f[,f]> [--base <ref>] [--name <filter>] [--runner <cmd>] [--timeout <ms>] [--json]   # §42 test-discrimination gate for feature-adr Step-8: run the ADR's property test in an isolated git worktree at pre-feature base — it MUST go red without the fix. SEVEN verdicts, each gated on EXECUTION evidence: DISCRIMINATES · DISCRIMINATES_VIA_ERROR · NON_DISCRIMINATING (false green) · TEST_FILE_ABSENT · LOAD_ERROR_AT_BOTH_REVS · FAILS_AT_TIP · CANNOT_ISOLATE (+ typed reason). Advisory, never auto-aborts
+dz discrimination-check --test <f[,f]> [--base <ref>] [--name <filter>] [--runner <cmd>] [--baseline-build <package-dir[,package-dir…]>] [--timeout <ms>] [--json]   # §42 test-discrimination gate for feature-adr Step-8: run the ADR's property test in an isolated git worktree at pre-feature base — it MUST go red without the fix. SEVEN verdicts, each gated on EXECUTION evidence: DISCRIMINATES · DISCRIMINATES_VIA_ERROR · NON_DISCRIMINATING (false green) · TEST_FILE_ABSENT · LOAD_ERROR_AT_BOTH_REVS · FAILS_AT_TIP · CANNOT_ISOLATE (+ typed reason). Advisory, never auto-aborts
 
 dz amendment-check   --slug <slug> | --feature-dir <dir> | --all [--json]   (every AM-N / AM-CP-N amendment row must resolve to a test found INSIDE the file the row names; the PLAN is authoritative when it carries rows, and an ideation amendment the plan drops is a failure; --all is a census that always exits 0; exit 0 pass/skip, 1 fail, 3 NOT-ESTABLISHED — ZERO parsed rows may skip only when the whole first paragraph or heading suffix is exactly "None"/"N/A"/"нет", optionally with a full stop; an optional CommonMark closing # sequence is heading furniture, qualified text is refused, and AM-like content beside the declaration is NOT-ESTABLISHED)
 dz contract-check    --slug <s> [--json]   (read-only retrospective feature contract gate: canonical AC-N + ADR Confirmation → CC-N; every item needs one artifact-anchored met|unmet|not-testable verdict; A/B with unmet is refused; exit 0 pass / 1 readable violation / 2 invalid invocation or unreadable/not-established artifacts)
@@ -3061,6 +3076,8 @@ enumerated, rather than printing invented zeros. Panel text is English by owner 
 ```bash
 dz statusline --install    # wires it into .claude/settings.json → statusLine
 dz statusline --json       # emit the raw payload for custom status tooling
+dz statusline --json --read-only  # snapshot without dz store-mark or command-usage writes
+printf '%s' '{"session_id":"<current Claude session ID>"}' | dz statusline --json --read-only --recall-from-stdin --project .
 ```
 
 Claude Code then refreshes the panel in real time, so the pattern count climbs as `dz consolidate`
@@ -3084,6 +3101,19 @@ and diagnostic reasons. Telemetry retains no prompt, lesson text, raw session/tu
 path. `usedPatterns` arithmetic is unchanged and its display is labeled `legacy usage`.
 The observation reader writes nothing. Standard CLI dispatch retains its existing command-name-only
 append to `.dz/cmd-usage.jsonl` at the caller cwd, including validation and watch invocations.
+The explicit `--json --read-only` snapshot is the exception: it normally ignores stdin, uses
+`--project` or cwd, and skips the store-mark refresh, command-usage append, and optional ETA
+computation (which can append a debug trace). `--recall-from-stdin` opts in to a small JSON payload
+containing `session_id` and optional `turn_id`; any project path in that payload is ignored. This
+lets a mod read the exact current session without putting its raw ID in process arguments. The
+local emission field means the hook's stdout callback completed; host acceptance remains unknown.
+`--recall-from-stdin` requires `--json --read-only` and cannot combine with `--recall-session`.
+The read-only mode is rejected with
+`--install`, `--fa-record`, `--watch`, or without `--json`.
+
+The raw JSON can contain paths, aliases and free text. External views should whitelist display
+fields rather than show the object unchanged. SQLite may create its normal transient read sidecars;
+the mode guarantees that dz does not update its store mark or command-usage ledger.
 
 #### Adjacent terminal companion (`dz statusline --watch`)
 
@@ -5247,7 +5277,7 @@ Bridge: with the agentdb backend enabled, `dz recall` itself is the bridge — i
 
 ### `dz discrimination-check` — when a test is green but you're not sure it actually catches anything
 
-For one named Go test, run `dz discrimination-check --test path/to/value_test.go --name TestX --base <SHA> --json`. The Linux Go path requires readable `/proc`, a real nearest `go.mod`, one safe repo-relative `_test.go`, and one exact top-level `TestX`. It overlays only that test onto a full frozen base checkout, checks its declaration with Go's AST and package membership with `go list` at both revisions, then always runs a tip control. Mixed lists, subtest/regex/benchmark/fuzz names, custom runners, symlinked inspected paths/config, local replacements, missing dependencies, and incomplete output are refused as unestablished. Go runs are offline with `GOENV=off`, `GOWORK=off`, `GOTOOLCHAIN=local`, empty `GOFLAGS`, `GOPROXY=off`, `GOSUMDB=off`, `-mod=readonly`, and `-count=1`; no package or toolchain is installed. Timeout is at most 300 seconds and output at most 1 MiB per stream. Build or load failures cannot establish Go discrimination.
+MEASURED — reproducer: `pnpm --filter @dzhechkov/harness-cli exec vitest run --project serial test/discrimination-go-cli.test.ts --maxWorkers=1 --minWorkers=1`. For one named Go test, run `dz discrimination-check --test path/to/value_test.go --name TestX --base <SHA> --json`. The Linux Go path requires readable `/proc`, a real nearest `go.mod`, one safe repo-relative `_test.go`, and one exact top-level `TestX`. It overlays only that test onto a full frozen base checkout, checks its declaration with Go's AST and package membership with `go list` at both revisions, then always runs a tip control. Mixed lists, subtest/regex/benchmark/fuzz names, custom runners, symlinked inspected paths/config, local replacements, missing dependencies, and incomplete output are refused as unestablished. Go runs are offline with `GOENV=off`, `GOWORK=off`, `GOTOOLCHAIN=local`, empty `GOFLAGS`, `GOPROXY=off`, `GOSUMDB=off`, `-mod=readonly`, and `-count=1`; no package or toolchain is installed. Timeout is at most 300 seconds and output at most 1 MiB per stream. Build or load failures cannot establish Go discrimination.
 
 Baseline dependency preparation reuses already-installed external packages and maps
 scoped, unscoped and transitive workspace links into the detached base checkout.
@@ -5298,6 +5328,53 @@ dz discrimination-check --test packages/x/test/auth-property.test.ts --base HEAD
 dz discrimination-check --test packages/x/test/auth-property.test.ts \
   --base HEAD --runner "node --test" --timeout 600000
 ```
+
+For baseline packages whose exports require `dist`, list their prerequisite directories in
+dependency order. This opt-in runs **only** those packages' installed external TypeScript 5.9.3
+compiler before the property overlay. It does not run `scripts.build`, lifecycle scripts, an
+implicit workspace build, or a package manager. The default still runs no preparation compiler.
+
+The supported baseline package has a tracked ordinary `package.json` with
+`scripts.build: "tsc -p tsconfig.json"`, tracked ordinary `src` files, no existing `dist`, and a
+flat JSON `tsconfig.json`: top-level `compilerOptions`, `include: ["src/**/*"]`, and optional
+`exclude` containing unique values from `dist`, `node_modules`, `test`. `rootDir` must be
+`"./src"` and `outDir` must be `"./dist"`. Optional compiler options are exactly
+`target: "ES2022"`, `lib: ["ES2022"]`, `module` and `moduleResolution: "NodeNext"`, boolean `strict`,
+`noUncheckedIndexedAccess`, `noImplicitOverride`, `noFallthroughCasesInSwitch`,
+`exactOptionalPropertyTypes`, `verbatimModuleSyntax`, `isolatedModules`,
+`forceConsistentCasingInFileNames`, `declaration`, `declarationMap`, `sourceMap`, and
+`skipLibCheck`; `noEmitOnError` may only be `true` and is always forced in compiler argv.
+Other keys, inherited configs, symlinked inputs, alternate output paths, and unsupported
+compiler layouts are refused. Install the local TypeScript and test runner beforehand; this
+command never downloads them. It does not promise a sandbox for trusted local compiler or
+project globalSetup code.
+
+Package exports may name generated files under `./dist/`, the already checked
+`./package.json`, and ordinary tracked JSON files under the validated `./src/` inventory.
+Static JSON exports must parse as JSON and be at most 256 KiB. Source JS/TS exports,
+traversal, symlinks and other non-dist paths are refused. Every declared dist export must
+still appear in the compiler's emitted output inventory.
+
+Measured fixture procedure (`test/discrimination-baseline-build.test.ts`): baseline leaf
+exports 41 through sibling `dist`, tip leaf exports 42, and real app globalSetup compiles the
+app before Vitest executes its property. The fixture passes a resolved baseline SHA and invokes:
+
+```text
+discrimination-check --base <fixture-baseline-sha> --test packages/app/test/property.test.js --name baseline-build-property --runner 'sh node_modules/.bin/vitest run --maxWorkers=1 --minWorkers=1' --baseline-build packages/leaf,packages/sibling --timeout 10000 --json
+```
+
+The fixture's tip control passes; the prepared baseline reaches `expected 41 to be 42` and
+`DISCRIMINATES`. The top-level `baselineBuild` appears only when selected and keeps package
+order, resolved base SHA, dependency mapping, runtime/compiler identities, exact argv, raw
+compiler streams, capture status, and output hashes separate from `results[].baseRun` test
+evidence. A refusal, failed compile, deadline, or missing dependency is `CANNOT_ISOLATE` with
+`measurementValid: false`; no test run is invented. The phase permits at most 32 packages,
+`min(--timeout, 180000)` ms, 10000 inventory entries, 4 MiB of actual serialized retained
+inventory/provenance metadata (including failure fields), 256 KiB per config or
+manifest, and 1 MiB retained per compiler stream across all packages. Go targets explicitly
+refuse this TypeScript-only option. A successful fixture does not establish a complete build
+closure for another repository; inspect that baseline's package manifests and supply its own
+deps-first list.
 ```
 discrimination-check @ HEAD — verdict: NON_DISCRIMINATING
   ✗ packages/x/test/auth-property.test.ts: NON_DISCRIMINATING · testsRun: 1

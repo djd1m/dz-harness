@@ -79,6 +79,9 @@ export {
   downgradeForStaleEvidence,
 } from './parity.js';
 export type { RuntimeCapability, FeatureForm, ParityFeature, ParityCell, ParityReportCell, ParityMatrixRow, CapabilityEvidence, UnbackedCapability, ProbedRuntimeVersions } from './parity.js';
+export { projectModActivation } from './mods-activation.js';
+export type { ModActivationState, ModActivationStage, ModActivationProjection } from './mods-activation.js';
+export { parseModRuntimeIntentJson, parseModRuntimeObservationJson } from '@dzhechkov/core';
 export * from './operations.js';
 export { checkInstrumentFreshness, checkRankingState } from './doctor-instrument.js';
 export type { InstrumentFreshness, InstrumentCheckInput, InstrumentCheckResult, RankingStateCheckInput, RankingStateCheckResult } from './doctor-instrument.js';

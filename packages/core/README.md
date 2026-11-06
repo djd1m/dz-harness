@@ -13,6 +13,7 @@ platform-neutral contracts that every other `@dzhechkov/*` package depends on.
 | `hooks.schema` | `HookSchema` | Shape of lifecycle hooks |
 | `adapter` | `Adapter`, `Platform`, `EmitResult`, … | The contract every `@dzhechkov/adapter-*` implements |
 | `integration.schema` | `HarnessIntegrationManifestV1Schema`, `integrationManifestDigest`, outcome types | Bounded `INTEGRATIONS.json` parsing, canonical digests, and the MCP/hooks result vocabulary consumed by live registration probes |
+| `mods-runtime.schema` | `ModRuntimeIntentV1Schema`, `ModRuntimeObservationV1Schema` | Separate, bounded intent and evidence vocabulary for Claude Code mods; no plugin loading or runtime claims from parsing |
 | `agents-md` | `mergeAgentsMd`, `mergeGeminiMd`, `mergePolicyBlock`, fence constants | One parameterized managed-Markdown merge path for skill and always-on policy blocks; authored bytes outside each fence are preserved |
 
 ## Two-layer skill schema
@@ -55,6 +56,23 @@ idempotent; a `dz:skills` block, when present, remains independent.
 credentials. It represents intent only: parsing never runs a command or performs network I/O.
 Harness orchestration binds the canonical digest to operator authorization and requires separate
 live evidence before an adapter may emit a target carrier.
+
+## Claude Code mods contract
+
+`ModRuntimeIntentV1Schema` describes one plugin module and target host: event handlers,
+mods API calls, intended render sites, lifecycle invalidation and fallback. It is a harness
+contract, not Claude Code's `plugin.json`. `ModRuntimeObservationV1Schema` keeps installation,
+API availability, handler completion and visible UI as four independent facts. Offline checks
+must leave runtime/UI facts `unknown`; an observed runtime fact needs an exact host build,
+session, plugin hash, nonce and appropriate evidence. An observed UI display also needs a
+capture with a visible marker. Parsing does not authenticate evidence or run a probe.
+
+The schema does not prescribe a minimum Claude Code version or certify that a named event,
+method or render site exists in a particular build. Check the installed build's declarations
+and the [official mods reference](https://code.claude.com/docs/en/plugins/mods/reference)
+before enabling a mod. Settings hooks remain governed by `hooks.schema.ts`; matching names
+do not make the two mechanisms equivalent. Guard interactions and a live UI probe are
+separate follow-up work.
 
 ## Test-run temp-root guard
 

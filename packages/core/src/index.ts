@@ -19,6 +19,7 @@ export * from './skill-document.js';
 export * from './skill.schema.js';
 export * from './hooks.schema.js';
 export * from './integration.schema.js';
+export * from './mods-runtime.schema.js';
 export * from './adapter.js';
 export * from './skill-emit.js';
 export * from './agents-md.js';
