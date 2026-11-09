@@ -10,7 +10,7 @@ MEASURED на settled tree после finite-float correction:
 
 | Проверка reviewer | Результат |
 | --- | --- |
-| Все plugin Python `test_*.py` в pinned image | 95 tests PASS, 0 fail/skip; 35.705 s; exit0 |
+| MEASURED: все plugin Python `test_*.py` в pinned image | 95 tests PASS, 0 fail/skip; 35.705 s; exit0 |
 | `integration_recognized_confirm.py` в том же image + candidate core overlay | 1 integration test PASS, 28.645 s; exit0; внутри пять отдельных SIGKILL сценариев |
 | Независимый strict JSON probe: nested escaped duplicate key, ±1e999, NUL | Каждый отказан фиксированным Refusal |
 | Full-duplex probe: 2 MiB stdin, child сначала пишет 60 KiB stderr, затем читает stdin | Завершён; child вернул точный input byte count, stderr не возвращён |
@@ -85,8 +85,8 @@ Git HEAD при фиксации отчёта: `2172a56f1b32381369443c40c3c94f0b
 | tests/test_pdf_draft.py | `622f75b8bd0644783ca40b9f0e7566fab6ee8369b32796bc09142c162260847d` |
 | tests/test_health_plugin.py | `a0ff9fea92713a5c4bcef9ce62b49f41a4c39d3f970274499468fcfa0502eb82` |
 | README.md | `2e951992a41406bfcf6dd740b28b62e384b03092e3e90ec7664620c5bf9c233c` |
-| skills/health-read/SKILL.md | `7957d4d3c87ffb566de7e483c79ed1a4fc4a7d510fdc9675614e1c5d662e354f` |
+| MEASURED SHA-256: (git commit 2172a56) skills/health-read/SKILL.md | `7957d4d3c87ffb566de7e483c79ed1a4fc4a7d510fdc9675614e1c5d662e354f` |
 
-Accepted candidate core source dependency: store `14dc9770bcdec8465fd85adc5d54aa52e577f3618d898c919db9d3fa93100ff3`, CLI `00a1bdb0fcdafb6c92609b5d1356f7acedf542e570314da760e941fb08aa0395`, отдельный core QE — 35 tests PASS. Не изменялся этим review.
+MEASURED SHA-256 и проверенные тесты: (git commit 2172a56) accepted candidate core source dependency: store `14dc9770bcdec8465fd85adc5d54aa52e577f3618d898c919db9d3fa93100ff3`, CLI `00a1bdb0fcdafb6c92609b5d1356f7acedf542e570314da760e941fb08aa0395`, отдельный core QE — 35 tests PASS. Не изменялся этим review.
 
 Границы K1 native Python sweep и target/context admission изложены change manifest; focused QE не переписывает их в более сильный pre-code/process PASS. Следующий обязательный gate для L — самостоятельный fleet с traceability/risk/integration/regression evidence. Production transport, managed indexing и recovery/rebind остаются открытыми задачами.
