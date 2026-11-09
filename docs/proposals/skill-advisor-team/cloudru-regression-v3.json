@@ -1,0 +1,137 @@
+{
+  "scope": "Known Cloud.ru development regression",
+  "error": "Unverified source quote",
+  "trace": [
+    {
+      "role": "regression-reviewer",
+      "model": "anthropic/claude-haiku-5.5",
+      "elapsedMs": 22917,
+      "usage": {
+        "prompt_tokens": 8052,
+        "completion_tokens": 5708,
+        "total_tokens": 13760,
+        "cost": 0.003622608,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0036592,
+          "upstream_inference_prompt_cost": 0.0008052,
+          "upstream_inference_completions_cost": 0.002854
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 3506,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "answer": {
+        "requestHash": "1505756c18728fe96d3ceec2e9fdf04d47fd8e3b76adbe3168ac9bdbed1d6635",
+        "checks": [
+          {
+            "id": "why:deploy-on-cloudru-vm",
+            "status": "supported",
+            "reason": "Каждая часть обоснования есть в тексте навыка: анализ репозитория (Step 1), синтез compose с показом пользователю до деплоя (Step 2), деплой через cloudru-vm, handover с IP/URL/ssh (Step 4–5), успех только после verify, status/logs/destroy, пропуск провижининга при неизменном hash, и ограничения из When NOT to use.",
+            "evidence": [
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "If you synthesized anything, show it to the user before deploying."
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "report to the user only after `verify`"
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "Re-runs with an unchanged compose hash skip provisioning"
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "Providers other than Cloud.ru (the CLI is Cloud.ru-specific)"
+              }
+            ]
+          },
+          {
+            "id": "why:canary-watch",
+            "status": "unsupported",
+            "reason": "Описание возможностей (HTTP, статические ресурсы, SSE, console errors, LCP/CLS относительно baseline, sustained watch с интервалом и временем) подтверждается источником. Однако утверждение «Запускать только после того, как verify из deploy-on-cloudru-vm прошёл; при провале сначала логи и исправление» не подтверждается canary-watch: источник не упоминает cloudru-vm verify и не задаёт такого порядка. Это правило взято из deploy-навыка, а не из canary-watch, поэтому утверждение как обоснование навыка не подкреплено.",
+            "evidence": [
+              {
+                "source": "canary-watch",
+                "quote": "**Sustained watch**: check every N minutes for M hours"
+              },
+              {
+                "source": "canary-watch",
+                "quote": "4. Performance — LCP/CLS/INP regression vs baseline?"
+              }
+            ]
+          },
+          {
+            "id": "gap:0",
+            "status": "supported",
+            "reason": "Источник подтверждает, что CLI нужно ставить отдельно (Go, готовых бинарников нет на момент текста), что IAM-ключ и project id не находятся навыком и спрашиваются у пользователя, что region и image подбираются через list-zones и list-images с подтверждением, и что секреты приложения не придумываются. Утверждение о том, что доступность CLI в среде не проверялась, является описанием границы оценки, а не утверждением о среде.",
+            "evidence": [
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "# cloudru-vm is a Go CLI (no npm package; pre-built binaries not yet released):"
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "| `CLOUDRU_PROJECT_ID` | Cloud.ru project UUID | ASK — cannot be discovered |"
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "run `cloudru-vm list-images --json`, prefer an Ubuntu LTS image, confirm with the user"
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "never invent credentials"
+              }
+            ]
+          },
+          {
+            "id": "gap:1",
+            "status": "supported",
+            "reason": "Источник помечен как coverage: excerpt, что подтверждает неполноту оценки. CI упомянут только в разделе Integration без инструкций. Baseline для сравнения упомянут как требование, но способ его получения в выдержке не описан.",
+            "evidence": [
+              {
+                "source": "canary-watch",
+                "quote": "\"coverage\":\"excerpt\""
+              },
+              {
+                "source": "canary-watch",
+                "quote": "CI: run in GitHub Actions after deploy step"
+              },
+              {
+                "source": "canary-watch",
+                "quote": "4. Performance — LCP/CLS/INP regression vs baseline?"
+              }
+            ]
+          },
+          {
+            "id": "taskFit",
+            "status": "supported",
+            "reason": "Оба навыка релевантны: deploy-on-cloudru-vm закрывает развёртывание и verify, canary-watch закрывает периодические проверки и сопровождение после выкладки. Они не дублируют друг друга, поскольку разовый verify и продолжительный мониторинг разные. Ограничения (один ВМ, только Cloud.ru, неполная выдержка canary-watch) указаны.",
+            "evidence": []
+          },
+          {
+            "id": "pipeline",
+            "status": "supported",
+            "reason": "Порядок deploy-on-cloudru-vm → canary-watch соответствует условной рекомендации (canary только после verify) и заявленному порядку в advice. Пайплайн содержит оба выбранных навыка.",
+            "evidence": []
+          }
+        ],
+        "issues": [
+          "Правило «canary-watch только после verify» поставлено как свойство canary-watch, но источник canary-watch его не содержит. Порядок корректен как рекомендация по объединению навыков, но обоснование для canary-watch должно опираться на deploy-навык или быть явно помечено как рекомендация комбинации.",
+          "Канал передачи URL из выдачи деплоя в canary-watch (например, как аргумент /canary-watch) не описан ни в одном источнике. Это интеграционный шаг, который advice подразумевает без подтверждения.",
+          "canary-watch имеет trust_tier 0 (Community, импорт из ECC). Advice не упоминает этот уровень доверия при рекомендации навыка с средней релевантностью. Это не основание для отклонения, но уместно как caveat.",
+          "Уведомления canary-watch (desktop notification, лог в ~/.claude/canary-watch.log) привязаны к окружению Claude; для использования в других средах это не подтверждено и в advice не упоминается."
+        ]
+      }
+    }
+  ]
+}
