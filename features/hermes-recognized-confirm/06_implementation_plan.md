@@ -32,6 +32,12 @@ Tier L из-за доверенного command context, durable state и отд
 | AM-6 (C6) | TASK-1/2: fsync MD/HTML→exclusive sidecar/fsync→child dir fsync→root fsync→eligible. Sidecar closed schema; manifest ROW binding. Payload весь rendered draft.md. Один bounded no-follow fd snapshot hash/bytes/send. | → test `test_sidecar_completion` in `integrations/hermes-health/tests/test_pdf_draft.py` |
 | AM-7 (C7) | TASK-4: unverified/untrusted/not_requested на всех summary; никакого read exception/autoindex/text в summary/errors. Integrity не clinical verification; saved не searchable. | → test `test_no_index` in `integrations/hermes-health/tests/test_recognized_confirm.py` |
 
+| AM-8 | FR-2/3/4/7: measured gaps закрыть реальными отрицательными snapshot/runtime/config fixtures, malformed prepare/command и failure receipt recovery. Проверять no core save, неизменный opid, uncertainty/privacy и owner cancel; source и critical90% threshold не менять. | → test `test_prepare_refuses_unbound_source_without_receipt` in `integrations/hermes-health/tests/test_recognized_confirm.py` |
+
+### Tests-only remediation по measured fleet coverage
+
+Дополнительные confirmations: `test_snapshot_rejects_source_and_workspace_drift`, `test_runtime_rejects_missing_or_linked_code`, `test_reconcile_pin_drift_and_receipt_failure_stay_uncertain`. Финальное измерение выполняет независимый fleet reviewer на settled test bytes.
+
 ### Таблица переходов и ограничение crash модели
 
 | Исходное состояние | Событие | Следующее состояние / действие |
