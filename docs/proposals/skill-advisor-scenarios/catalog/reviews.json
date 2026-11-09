@@ -1,0 +1,173 @@
+{
+  "schema": "dz-scenario-review/1",
+  "reviews": [
+    {
+      "id": "meta-explore-product",
+      "recordHash": "1b21e8f3e5182c55e8a799f4dd5b2359e474eba3b10354343bee931a5155f5b8",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Исходник задаёт классификацию задачи, адаптивное уточнение и Task Brief с критериями успеха; ограничение на преждевременные решения сохранено."
+    },
+    {
+      "id": "meta-feature-adr",
+      "recordHash": "a9b6daf3253ed14ac28e42c3ecab95f0c3867222e2eef4c2eca3f1c93a2818f6",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Сценарий соответствует Complexity Router и разработке по активным этапам. Не обещает запуск полного внешнего QE runtime; различие режимов обозначено. Подтверждён только снимок документации checkout."
+    },
+    {
+      "id": "devops-cloudru-deploy",
+      "recordHash": "241ed6b7b6a54ff14393d95f2060cac18783c5583cd14d8e70546e1ef58b391a",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Прямой сценарий исходника: анализ репозитория, Compose, внешний cloudru-vm, данные провайдера и проверка перед выдачей адреса. Одна ВМ и исключённые платформы указаны."
+    },
+    {
+      "id": "devops-github-actions",
+      "recordHash": "5a20be20d048dd6da83ab479f6857002edde7d71f715a8345a8243e03864d646",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Исходник явно поддерживает review workflow на корректность и безопасность и отделяет конфигурацию от ошибок тестовой логики и других CI-платформ."
+    },
+    {
+      "id": "mcp-git-research",
+      "recordHash": "8e25b7d92a152a5adb792497da9eaad7e634c02caec67ba494f0633ddd5eac50",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "git_clone, git_log с file_path и git_diff покрывают сценарий; внешний сервер и системные credentials явно названы. Исследование репозитория не подменено поиском документации."
+    },
+    {
+      "id": "mcp-context7-docs",
+      "recordHash": "c167861e3786b4c694e9a1eb2f5e4b4d7df0e3dd5eb81fce7d2bfd9fa91305d3",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Resolve/fetch документации и примеров описаны в исходнике; внешний сервер указан. Одобрение не устанавливает полноту индекса: исходник отдельно ограничивает новые, частные и неиндексированные библиотеки."
+    },
+    {
+      "id": "qe-generate-tests",
+      "recordHash": "001633e28d7b633d3e3b15ecaba82c1bf6599d15709034edfa670bd087f35312",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Повторное ревью: явно различены ручное применение инструкций и автоматический путь с внешним AQE и initialized fleet; добавлен запуск тестов. Gotchas исходника подтверждают необходимость инициализации и проверки фактических результатов. Предыдущий пропуск устранён."
+    },
+    {
+      "id": "qe-coverage-gaps",
+      "recordHash": "dc9fcc0af048403b32f03e3643d4265332db3e30f770d9b8bf9fa038cf2fdbb2",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Повторное ревью: внешний AQE ограничен автоматическим путём, указан ручной анализ и fallback при сбое; ограничение покрытия как метрики сохранено. Это соответствует Quick Start и Gotchas исходника и не обещает runtime в пакете."
+    },
+    {
+      "id": "news-period-digest",
+      "recordHash": "0119d3bae5d66f16a022d55b8da0bc20d92fcc2d7a6a78394013e0247febd448",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Периодный обзор, mandatory backend, аудит покрытия, Markdown и индекс источников соответствуют источнику. Подписанная provenance не трактуется как доказательство истинности фактов или как измеренное качество результата."
+    },
+    {
+      "id": "news-monitor-delta",
+      "recordHash": "35f2b60459b4a10c1ed55ae03a085b92c00b5e914258da54188c44571ef58656",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Источник подтверждает watermark, дедупликацию, обновление состояния и начальное окно 14 дней. Сценарий отделён от полного дайджеста и не обещает развёрнутый автономный бот."
+    },
+    {
+      "id": "pm-sprint-plan",
+      "recordHash": "0cd8b6ce6784f1b12dc3f5f5d2fc2800fbe7da08eddd8694a619fddbd8845d47",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Источник требует ёмкость команды, готовые задачи из приоритизированного бэклога, зависимости и риски. Карточка не подменяет предварительную приоритизацию планом спринта."
+    },
+    {
+      "id": "pm-feature-priority",
+      "recordHash": "6ff49804c682e841ee0e86d01cc5cd79c82c5375b01999b383b73e1027eada9f",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Ранжирование пяти идей по влиянию, усилиям, риску и стратегическому соответствию прямо описано. Зависимость оценок от входных данных обозначена."
+    },
+    {
+      "id": "bto-build",
+      "recordHash": "bbcfb645763b7bf0fdf5446b370bcbcc327f298f0b5e0f2d9cbc3703fbd16262",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "BUILD в источнике содержит уточнение требований, выбор шаблона, генерацию и самопроверку полноты и ссылок. Карточка не приписывает самопроверке независимое подтверждение качества."
+    },
+    {
+      "id": "bto-evaluate",
+      "recordHash": "3a9b0831804cfa9a9ccf5f54a12417c9e1b22043c48eee3dce4a467a24e1aa5f",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Повторное ревью: переход к коллегии теперь условный; BLOCK, ABORT и INCONCLUSIVE не объявляются успехом. Модели и многоагентная среда явно требуются. README включён в снимок и подтверждает уточнённые условия gate."
+    },
+    {
+      "id": "reasoning-diagnose",
+      "recordHash": "8ae058669fd32dd30584696e764d706740263d4ab4e0805041fbc38b09ae6910",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Диагноз, воспроизведение по возможности, обратная трассировка и честная фиксация неопределённости соответствуют исходнику. Запрет на изменения кода сохранён."
+    },
+    {
+      "id": "reasoning-refactor",
+      "recordHash": "a363ffd5f194055a1d2e539fabd345c3337cdfed5b9ab77e4e57d45839eb7954",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Исходник явно применяет SOLID к рефакторингу и предписывает red-green-refactor. Карточка передаёт это как процесс и не утверждает, что тесты уже выполнены."
+    },
+    {
+      "id": "reverse-business",
+      "recordHash": "0eca6056e5b3fd696510fd892ff33b8f34e4f536be4af7b79001c108ee2b5fe0",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Сбор сведений о компании, анализ клиентов, рынка и экономики с итоговым планом запуска поддержан модулями M1–M6. Зависимость глубины от режима указана; прототип или готовое приложение здесь не обещаются."
+    },
+    {
+      "id": "reverse-cjm",
+      "recordHash": "8412786e7db02cd61a09e15a44f41eee8199a0e48e39bda4f6e803fa5a24948c",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Повторное ревью: указан DEEP, внешний frontend-design и отличие гипотезы/прототипа от проверенного клиентского поведения. README подтверждает, что frontend-design не входит в пакет; ограничения теперь самостоятельны."
+    },
+    {
+      "id": "tutorial-create",
+      "recordHash": "08652563dbd4dafb1eba8479e0ee1c551299e97c12d3919f1235b5552887515b",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Создание курса по одному пакету, извлечение понятий, согласование тем и остановка при insufficient-surface подтверждены источником. Сжатый обзор не заявляет, что механические проверки сами доказывают педагогическое качество."
+    },
+    {
+      "id": "tutorial-check",
+      "recordHash": "152578892846393eecbf826b9c445ea8ca97c6df1c3f12aeb59954395e31677a",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Повторное ревью: добавлены свежий reviewer другой модели, отдельная семантическая оценка и запрет принимать пустое ревью за проход. Доверенный HTML явно требуется, исполнение JavaScript в verify-site обозначено. SKILL.md и добавленный README подтверждают обе границы."
+    },
+    {
+      "id": "website-clone-page",
+      "recordHash": "af776171be484f342795de0430646e1cf8a4c356a7ea7db7f123f9e2d3d9d274",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Визуальный интерфейс, взаимодействия, browser automation, Next/shadcn/Tailwind и визуальное сравнение соответствуют источнику. Реальные backend/auth и аудит доступности явно исключены."
+    },
+    {
+      "id": "website-clone-multiple",
+      "recordHash": "e4ffc19073d45cf9be898316eea6fed0f9c3dec80fc784910a110e08f3ebd931",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Повторное ревью: карточка самостоятельно называет Next.js/shadcn/ui/Tailwind v4 и исключает реальные backend/auth/realtime, SEO и аудит доступности. Независимая обработка URL и условная параллельность соответствуют источнику."
+    },
+    {
+      "id": "presentation-sales",
+      "recordHash": "7e620d2c7008d06fd7a9f87a1489df7ecf71615b1671727e25a43439776b5692",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Источник подтверждает продающий сюжет AIDA, бриф, исследование, структуру, содержание и сценарий. Карточка обещает содержание, а не непредусмотренный готовый PPTX; источники требуют отдельной проверки в ходе работы."
+    },
+    {
+      "id": "presentation-speaker",
+      "recordHash": "d0c3371e0af8835088fbf05e0a4d097d5f1aec8f956f298a34c6f162fa231bde",
+      "reviewer": "gpt-6-astra",
+      "verdict": "approved",
+      "reason": "Текст выступления к каждому слайду, индекс источников и согласование с хронометражом прямо поддержаны источником. Это акцент на устной подаче в составе создания презентации, не отдельный неподтверждённый конвертер слайдов."
+    }
+  ]
+}

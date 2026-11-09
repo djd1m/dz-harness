@@ -1,0 +1,326 @@
+{
+  "schema": "dz-scenario-questions/1",
+  "authoredBeforeCards": true,
+  "authoringNote": "Автор прочитал план и исходные README/SKILL.md/manifest пакетов, но не открывал сгенерированные карточки. Флаг означает независимость от просмотра карточек, а не утверждение о времени создания чужих файлов. Набор скрыт от авторов карточек до завершения записи. Это небольшой разработческий набор, не статистически независимый публичный benchmark.",
+  "scope": "Только 12 пакетов офлайн-пилота; no-match означает отсутствие подтверждённого соответствия в этом наборе, не во всём реестре. expectedPackages задаёт основной подходящий пакет, не полный список допустимых альтернатив. expectedSkillIds — подтверждённые исходниками навыки; покрытие конкретных карточек оценивается отдельно.",
+  "cases": [
+    {
+      "id": "q01",
+      "query": "Мы уже решили перейти с REST на GraphQL. Сохрани короткое архитектурное решение с причинами и последствиями прямо по итогам этой беседы.",
+      "expectedPackages": [
+        "@dzhechkov/skills-meta"
+      ],
+      "expectedSkillIds": [
+        "capture-adr"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Решение уже принято; источник описывает лёгкую фиксацию решения в ходе разговора.",
+      "sourcePaths": [
+        "packages/skills-meta/capture-adr/SKILL.md"
+      ]
+    },
+    {
+      "id": "q02",
+      "query": "Закрыли большой проект. Найди в его папке полезные команды, шаблоны и правила, которые можно перенести в следующие проекты.",
+      "expectedPackages": [
+        "@dzhechkov/skills-meta"
+      ],
+      "expectedSkillIds": [
+        "knowledge-extractor"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Исходный навык извлекает повторно используемые знания из завершённых проектов.",
+      "sourcePaths": [
+        "packages/skills-meta/knowledge-extractor/SKILL.md"
+      ]
+    },
+    {
+      "id": "q03",
+      "query": "В рабочей базе большая таблица заказов. Нужно переименовать колонку без остановки сервиса, предусмотреть совместимость старой версии приложения и откат.",
+      "expectedPackages": [
+        "@dzhechkov/skills-devops"
+      ],
+      "expectedSkillIds": [
+        "database-migration"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Прямой сценарий изменения схемы production-базы с минимизацией простоя и планом отката.",
+      "sourcePaths": [
+        "packages/skills-devops/database-migration/SKILL.md"
+      ]
+    },
+    {
+      "id": "q04",
+      "query": "У микросервисов есть разрозненные логи. Хочу связать запросы сквозными трассами, задать цели надёжности и получить дашборд с полезными алертами.",
+      "expectedPackages": [
+        "@dzhechkov/skills-devops"
+      ],
+      "expectedSkillIds": [
+        "observability"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Источник охватывает логи, трассировку, SLO, дашборды и правила оповещений.",
+      "sourcePaths": [
+        "packages/skills-devops/observability/SKILL.md"
+      ]
+    },
+    {
+      "id": "q05",
+      "query": "Найди в моей почте Google письма со счетами за прошлый месяц и пометь их отдельным ярлыком.",
+      "expectedPackages": [
+        "@dzhechkov/skills-mcp"
+      ],
+      "expectedSkillIds": [
+        "gmail"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Поддерживаются поиск и ярлыки; рекомендация требует отдельного сервера и авторизации, установка навыка сама доступ не даёт.",
+      "sourcePaths": [
+        "packages/skills-mcp/gmail/SKILL.md"
+      ]
+    },
+    {
+      "id": "q06",
+      "query": "Агент всё время использует старый API библиотеки. Нужен способ получать актуальную документацию и примеры для конкретной версии прямо во время разработки.",
+      "expectedPackages": [
+        "@dzhechkov/skills-mcp"
+      ],
+      "expectedSkillIds": [
+        "context7"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Навык направляет поиск библиотечной документации и примеров; требуется внешний сервер.",
+      "sourcePaths": [
+        "packages/skills-mcp/context7/SKILL.md"
+      ]
+    },
+    {
+      "id": "q07",
+      "query": "На тестовом стенде хочу искусственно задержать ответы зависимого сервиса и проверить, сработает ли предохранитель и восстановится ли система после сбоя.",
+      "expectedPackages": [
+        "@dzhechkov/skills-qe"
+      ],
+      "expectedSkillIds": [
+        "qe-chaos-resilience"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Контролируемая инъекция задержек и проверка circuit breaker прямо указаны в источнике; runtime не следует считать входящим в пакет.",
+      "sourcePaths": [
+        "packages/skills-qe/qe-chaos-resilience/SKILL.md"
+      ]
+    },
+    {
+      "id": "q08",
+      "query": "Собери за октябрь связный обзор событий в генеративном ИИ: релизы, исследования, важные сделки, со ссылками на источники и проверкой полноты.",
+      "expectedPackages": [
+        "@dzhechkov/skills-news"
+      ],
+      "expectedSkillIds": [
+        "news-digest"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Полный тематический обзор за период с проверяемыми источниками и аудитом покрытия.",
+      "sourcePaths": [
+        "packages/skills-news/news-digest/SKILL.md"
+      ]
+    },
+    {
+      "id": "q09",
+      "query": "У меня сохранён прошлый обзор релизов. Покажи только действительно новые события после него, исключи уже виденные и дубли.",
+      "expectedPackages": [
+        "@dzhechkov/skills-news"
+      ],
+      "expectedSkillIds": [
+        "news-monitor"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Ключевое отличие — дельта относительно сохранённой отметки и удаление дублей.",
+      "sourcePaths": [
+        "packages/skills-news/news-monitor/SKILL.md"
+      ]
+    },
+    {
+      "id": "q10",
+      "query": "В бэклоге тридцать идей, ресурсов на пять. Есть оценки влияния, трудозатрат и рисков; помоги выбрать первые пять под нашу продуктовую цель.",
+      "expectedPackages": [
+        "@dzhechkov/skills-pm"
+      ],
+      "expectedSkillIds": [
+        "prioritize-features"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Источник явно предусматривает ранжирование бэклога и пять приоритетных рекомендаций.",
+      "sourcePaths": [
+        "packages/skills-pm/prioritize-features/SKILL.md"
+      ]
+    },
+    {
+      "id": "q11",
+      "query": "Выгрузил результаты эксперимента с двумя вариантами регистрации. Проверь размер выборки, перекос распределения пользователей и доверительный интервал: выкатывать вариант или продолжать сбор данных?",
+      "expectedPackages": [
+        "@dzhechkov/skills-pm"
+      ],
+      "expectedSkillIds": [
+        "ab-test-analysis"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Это оценка результатов продуктового эксперимента, включая SRM и решение ship/extend/stop.",
+      "sourcePaths": [
+        "packages/skills-pm/ab-test-analysis/SKILL.md"
+      ]
+    },
+    {
+      "id": "q12",
+      "query": "Есть инструкция для кодового агента и эталонные ответы. Хочу измерить её качество и стабильность, затем улучшать формулировки с повторной оценкой.",
+      "expectedPackages": [
+        "@dzhechkov/skills-bto"
+      ],
+      "expectedSkillIds": [
+        "bto"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Пакет предназначен для оценки и оптимизации инструкций, skills, команд и промптов с эталонами и пробами согласованности.",
+      "sourcePaths": [
+        "packages/skills-bto/templates/.claude/skills/bto/SKILL.md"
+      ]
+    },
+    {
+      "id": "q13",
+      "query": "Разберись, почему после повторного входа теряется корзина. Нужны воспроизведение и документ с первопричиной; код менять и исправления предлагать пока нельзя.",
+      "expectedPackages": [
+        "@dzhechkov/skills-reasoning"
+      ],
+      "expectedSkillIds": [
+        "investigate"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Явное ограничение расследованием соответствует диагнозу без патча и без предложений изменений.",
+      "sourcePaths": [
+        "packages/skills-reasoning/investigate/SKILL.md"
+      ]
+    },
+    {
+      "id": "q14",
+      "query": "У нас четыре связанных репозитория, и агент каждый раз заново выясняет, кто чем владеет. Подготовь для каждого постоянные архитектурные инструкции с границами ответственности и направлением зависимостей.",
+      "expectedPackages": [
+        "@dzhechkov/skills-reasoning"
+      ],
+      "expectedSkillIds": [
+        "agents-md-creator"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Источник предназначен для инструкций AGENTS.md нескольких репозиториев, а не для общего код-ревью.",
+      "sourcePaths": [
+        "packages/skills-reasoning/agents-md-creator/SKILL.md"
+      ]
+    },
+    {
+      "id": "q15",
+      "query": "Разбери, как зарабатывает Miro, кто его покупает и как он растёт. На этой основе нужен практический план запуска похожего бизнеса, а не копия интерфейса.",
+      "expectedPackages": [
+        "@dzhechkov/skills-reverse-engineering"
+      ],
+      "expectedSkillIds": [
+        "reverse-engineering-unicorn"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Пакет анализирует компанию, клиентов, экономику и рост и сводит это в план запуска.",
+      "sourcePaths": [
+        "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md"
+      ]
+    },
+    {
+      "id": "q16",
+      "query": "Есть наш пакет командной строки с README и примерами. Сделай по нему интерактивный учебный курс с упражнениями и финальным тестом, который открывается одним HTML-файлом без сети.",
+      "expectedPackages": [
+        "@dzhechkov/skills-tutorial-factory"
+      ],
+      "expectedSkillIds": [
+        "package-tutorial-factory"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Документированный результат — курс по одному пакету с упражнениями и автономным детерминированным HTML-рендером.",
+      "sourcePaths": [
+        "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md"
+      ]
+    },
+    {
+      "id": "q17",
+      "query": "Вот URL нашего старого лендинга. Воссоздай его внешний вид и интерактивность на новом фронтенде, включая мобильную версию. Готовый каркас Next.js с Tailwind и доступ к браузерной автоматизации уже есть.",
+      "expectedPackages": [
+        "@dzhechkov/skills-website-cloner"
+      ],
+      "expectedSkillIds": [
+        "clone-website"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Визуальное воспроизведение существующего сайта; предусловия явно заданы, реальные backend/auth не запрашиваются.",
+      "sourcePaths": [
+        "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md"
+      ]
+    },
+    {
+      "id": "q18",
+      "query": "Нужна презентация нашего сервиса для потенциального заказчика: аргументы с проверенными ссылками и связный текст выступления к каждому слайду. Содержимое можно отдать в Markdown.",
+      "expectedPackages": [
+        "@dzhechkov/skills-presentation-storyteller"
+      ],
+      "expectedSkillIds": [
+        "presentation-storyteller"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Источник обещает тезисы, Markdown-презентацию, индекс источников и речь для каждого слайда; экспорт PPTX не предполагается.",
+      "sourcePaths": [
+        "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md"
+      ]
+    },
+    {
+      "id": "q19",
+      "query": "Хочу сделать как у конкурента. С чего начать?",
+      "expectedPackages": [],
+      "expectedSkillIds": [],
+      "expectedDecision": "clarify",
+      "rationale": "Неясно, нужен анализ бизнеса, копирование интерфейса или другая задача; требуется уточнить результат."
+    },
+    {
+      "id": "q20",
+      "query": "Помоги с тестами.",
+      "expectedPackages": [],
+      "expectedSkillIds": [],
+      "expectedDecision": "clarify",
+      "rationale": "Не указан объект: программный модуль, продуктовый эксперимент, инструкция агента либо обучение; фиксированный выбор преждевременен."
+    },
+    {
+      "id": "q21",
+      "query": "Мне нужен мониторинг.",
+      "expectedPackages": [],
+      "expectedSkillIds": [],
+      "expectedDecision": "clarify",
+      "rationale": "Неясно, речь о состоянии сервиса, новостях или продуктовых показателях; нужны объект и желаемый результат."
+    },
+    {
+      "id": "q22",
+      "query": "Сочини короткое поздравление бабушке с юбилеем в стихах.",
+      "expectedPackages": [],
+      "expectedSkillIds": [],
+      "expectedDecision": "no-match",
+      "rationale": "В выбранных двенадцати пакетах нет документированного сценария личной поздравительной поэзии."
+    },
+    {
+      "id": "q23",
+      "query": "Закажи доставку двух пицц на мой домашний адрес сегодня к семи.",
+      "expectedPackages": [],
+      "expectedSkillIds": [],
+      "expectedDecision": "no-match",
+      "rationale": "В пилоте нет документированного заказа еды или доступа к сервису доставки."
+    },
+    {
+      "id": "q24",
+      "query": "Обрежь этот аудиофайл до первых тридцати секунд и сохрани в WAV.",
+      "expectedPackages": [],
+      "expectedSkillIds": [],
+      "expectedDecision": "no-match",
+      "rationale": "В пилоте нет документированного сценария монтажа или преобразования аудио."
+    }
+  ]
+}
