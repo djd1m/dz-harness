@@ -1,6 +1,6 @@
 # Требования ночной итерации
 
-- FR-1: восстановить последний согласованный health snapshot напрямую из primary S3 в новый root0700 каталог; сверить исходники manifest и SQLite integrity, не запускать восстановленный gateway.
+- FR-1: восстановить согласованный offsite S3 health snapshot в новый root0700 каталог через штатный `restore.sh --from offsite --snapshot <id>`; сверить manifest/raw SHA-256 и SQLite integrity, не запускать восстановленный gateway. Доказательство относится к явно выбранному snapshot, не к автоматически определённому «последнему» состоянию.
 - FR-2: проверить чистую установку pinned plugin/runtime на технической карте, без production credentials и медицинских документов в тестах.
 - FR-3: ADR жизненного цикла OAuth, синтетический прототип одного refresh-owner; проверить concurrency, неоднозначный refresh, отказ записи и revoke без реального refresh.
 - FR-4: определить и реализовать в тестовой среде подтверждаемое сохранение извлечённого текста со source entry_id/SHA, engine/version, draft hash и human_verification=not_established; подтверждение сохранения не равно клинической проверке.
