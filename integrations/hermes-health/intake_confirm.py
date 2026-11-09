@@ -88,6 +88,8 @@ def open_private_directory(path):
                     os.mkdir(part, 0o700, dir_fd=fd)
                 except FileExistsError:
                     pass
+                # Also sync on reopen: a prior mkdir may have succeeded before its fsync failed.
+                os.fsync(fd)
             child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=fd)
             os.close(fd)
             fd = child
@@ -257,11 +259,15 @@ def result_sources(tools, receipt):
         if len(matches) != 1:
             raise Refusal('committed_source_missing_or_ambiguous')
         row = matches[0]
+        if row.get('archive_id') != 'sha256:' + receipt['archive_sha256']:
+            raise Refusal('committed_source_identity_drift')
         raw = tools.read(row['stored_at'])
         if digest(raw) != expected['sha256'] or len(raw) != expected['bytes']:
             raise Refusal('committed_source_drift')
         results.append({'entry_id': row['entry_id'], 'stored_at': row['stored_at'],
-                        'sha256': row['sha256'], 'bytes': row['bytes']})
+                        'sha256': row['sha256'], 'bytes': row['bytes'], 'archive_id': row['archive_id']})
+    if receipt.get('state') == 'committed' and results != receipt.get('sources'):
+        raise Refusal('committed_source_identity_drift')
     return results
 
 

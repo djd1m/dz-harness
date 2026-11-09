@@ -1,6 +1,6 @@
 name: hermes-health
 version: 0.3.0
-description: "Чтение медицинских источников и поиск через health-advisor; без клинической верификации."
+description: "Чтение, поиск и добавление оригиналов через health-advisor с явным подтверждением пользователя; без клинической верификации."
 author: djd1m
 provides_tools:
   - health_intake_prepare

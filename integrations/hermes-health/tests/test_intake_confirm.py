@@ -112,6 +112,8 @@ class ConfirmTests(unittest.TestCase):
             receipt = store.load(ident); receipt['expires_at'] = 0; store.save(receipt)
         self.assertEqual(self.command(ident)['error'], 'receipt_expired')
         self.assertEqual(self.command(ident, 'status')['state'], 'expired')
+        self.assertTrue((self.state / (ident + '.original')).is_file())
+        self.assertTrue((self.state / (ident + '.zip')).is_file())
         self.assertEqual(self.manifest.read_bytes(), self.original_manifest)
 
     def test_cancelled_receipt(self):
@@ -299,6 +301,60 @@ class ConfirmTests(unittest.TestCase):
         with patch.object(m, 'core_run', side_effect=old_capability):
             self.assertEqual(self.command(ident)['error'], 'core_write_contract_unavailable')
         self.assertEqual(self.manifest.read_bytes(), self.original_manifest)
+
+    def test_state_parent_synced_before_first_receipt(self):
+        real_fsync = os.fsync
+        events = []
+        def record(fd):
+            info = os.fstat(fd)
+            events.append((info.st_dev, info.st_ino))
+            return real_fsync(fd)
+        parent = self.root.stat()
+        with patch.object(m.os, 'fsync', side_effect=record):
+            self.receipt()
+        self.assertGreater(len(events), 1)
+        self.assertEqual(events[0], (parent.st_dev, parent.st_ino))
+
+    def test_parent_sync_retried_after_initial_failure(self):
+        with patch.object(m.os, 'fsync', side_effect=OSError('injected parent fsync failure')):
+            self.assertFalse(self.prepare()['ok'])
+        self.assertTrue(self.state.is_dir())
+        real_fsync = os.fsync
+        events = []
+        def record(fd):
+            info = os.fstat(fd)
+            events.append((info.st_dev, info.st_ino))
+            return real_fsync(fd)
+        with patch.object(m.os, 'fsync', side_effect=record):
+            self.receipt()
+        parent = self.root.stat()
+        self.assertEqual(events[0], (parent.st_dev, parent.st_ino))
+
+    def test_replay_refuses_changed_entry_id(self):
+        ident = self.receipt()
+        result = self.command(ident); self.assertTrue(result['ok'], result)
+        manifest = json.loads(self.manifest.read_text())
+        manifest['entries'][0]['entry_id'] = 'replaced-identity'
+        self.manifest.write_text(json.dumps(manifest))
+        self.assertEqual(self.command(ident)['error'], 'committed_source_identity_drift')
+
+    def test_replay_refuses_changed_archive_identity(self):
+        ident = self.receipt()
+        result = self.command(ident); self.assertTrue(result['ok'], result)
+        manifest = json.loads(self.manifest.read_text())
+        manifest['entries'][0]['archive_id'] = 'sha256:' + '0' * 64
+        self.manifest.write_text(json.dumps(manifest))
+        self.assertEqual(self.command(ident)['error'], 'committed_source_identity_drift')
+
+    def test_replay_refuses_rebound_stored_at(self):
+        ident = self.receipt()
+        result = self.command(ident); self.assertTrue(result['ok'], result)
+        manifest = json.loads(self.manifest.read_text())
+        target = 'sources/raw/rebound.pdf'
+        (self.map / target).write_bytes(self.pdf)
+        manifest['entries'][0]['stored_at'] = target
+        self.manifest.write_text(json.dumps(manifest))
+        self.assertEqual(self.command(ident)['error'], 'committed_source_identity_drift')
 
     def test_bad_command_does_not_raise_through_gateway(self):
         self.assertFalse(json.loads(m.command_handler('confirm')('../path'))['ok'])
