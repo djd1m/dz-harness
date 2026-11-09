@@ -67,3 +67,8 @@ OCR, индекс и статусы человеческой проверки н
 сохранены plugin, broker, unit и parser image archive (47,869,952 байта) с SHA-256;
 откат сохраняет карту/receipts/историю. Полный clean-host restore этого релиза
 ещё не проверялся; не смешивать его с ранее проверенным восстановлением карты.
+
+Архив parser image загружен через docker image load: восстановлен ожидаемый
+immutable ID. Подтверждены эффективные NoNewPrivileges=yes, ProtectSystem=strict,
+ProtectHome=yes, RestrictAddressFamilies=AF_UNIX у broker. В mounts Hermes только
+home, карта, архивы и broker socket parent; Docker socket не передан.
