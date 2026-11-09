@@ -28,3 +28,17 @@ test('split UTF-8 characters survive request streaming',async t=>{
  await new Promise((resolve,reject)=>{const req=request(f.origin+'/api/answer',{method:'POST',headers:{origin:f.origin,'content-type':'application/json'}},res=>{res.resume();res.on('end',resolve);});req.on('error',reject);req.write(bytes.subarray(0,split));setTimeout(()=>req.end(bytes.subarray(split)),5);});
  assert.equal(seen,'Привет');
 });
+test('HTTP provider failure consumes persistent budget across server restart',async t=>{
+ const {mkdtempSync,rmSync}=await import('node:fs');const {tmpdir}=await import('node:os');const {join}=await import('node:path');
+ const {createRequestLedger}=await import('./request-ledger.mjs');
+ const dir=mkdtempSync(join(tmpdir(),'advisor-http-ledger-'));t.after(()=>rmSync(dir,{recursive:true,force:true}));const path=join(dir,'calls.json');
+ let calls=0;
+ for(let round=0;round<2;round++){
+  const server=createPreview({requestBudget:1,requestLedger:createRequestLedger(path,1),answer:async()=>{calls++;throw Error('upstream down');}});
+  await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`;
+  try{const response=await fetch(origin+'/api/answer',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify({query:'task'})});
+   assert.equal(response.status,round===0?502:429);
+  }finally{await new Promise(r=>{server.closeAllConnections();server.close(r);});}
+ }
+ assert.equal(calls,1);
+});

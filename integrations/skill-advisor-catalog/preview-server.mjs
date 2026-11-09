@@ -4,13 +4,15 @@ import {fileURLToPath} from 'node:url';
 import {resolve} from 'node:path';
 import {currentCatalog} from './cli.mjs';
 import {retrieve} from './search.mjs';
-import {approvedPresentation,answerContract,renderAnswer} from './answer.mjs';
+import {approvedPresentation} from './answer.mjs';
+import {dialogueContract,renderDialogue} from './dialogue.mjs';
+import {createRequestLedger} from './request-ledger.mjs';
 import {selectScenarios} from './selector.mjs';
 
 const directory=fileURLToPath(new URL('./preview/',import.meta.url));
 const data=fileURLToPath(new URL('../../docs/proposals/skill-advisor-scenarios/',import.meta.url));
 const read=name=>JSON.parse(readFileSync(data+name));
-export function createPreview({answer,fontsDirectory,requestBudget=30}){
+export function createPreview({answer,fontsDirectory,requestBudget=30,requestLedger=null}){
  let active=false,attempts=0;
  if(!Number.isInteger(requestBudget)||requestBudget<1||requestBudget>100)throw Error('Invalid request budget');
  const server=createServer(async(req,res)=>{
@@ -36,27 +38,33 @@ export function createPreview({answer,fontsDirectory,requestBudget=30}){
    for await(const chunk of req){size+=chunk.length;if(size>24000){send(413,{error:'Слишком длинный запрос.'});return;}chunks.push(chunk);}
    let parsed;try{parsed=JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{send(400,{error:'Не удалось прочитать запрос.'});return;}
    if(typeof parsed.query!=='string'||!parsed.query.trim()||parsed.query.length>6000){send(400,{error:'Введите задачу: от 1 до 6000 символов.'});return;}
+   if(requestLedger&&!requestLedger.reserve()){send(429,{error:'Лимит тестовой сессии исчерпан.'});return;}
    attempts++;
    send(200,await answer(parsed.query));
   }catch{if(!res.headersSent)send(502,{error:'Не удалось получить ответ модели. Ваш текст остался в форме; попробуйте ещё раз.'});}
   finally{active=false;}
  });
+ server.on('close',()=>requestLedger?.close());
  server.requestTimeout=15000;server.headersTimeout=10000;
  return server;
 }
 export function liveAnswer(apiKey){
  const catalog=currentCatalog();if(catalog.excluded.length)throw Error('Catalog exclusions');
  const presentation=approvedPresentation(catalog,read('presentation.json'),read('presentation-reviews.json'));
- const contract=answerContract(presentation),courses=read('course-map.json');
+ const contract=dialogueContract(presentation),courses=read('course-map.json');
  return async query=>{
   const result=await selectScenarios(retrieve(catalog,query),{model:'anthropic/claude-haiku-5.5',apiKey,contract});
-  return renderAnswer(result.output,presentation,courses);
+  return renderDialogue(result.output,presentation,courses);
  };
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  if(!process.env.OPENROUTER_API_KEY)throw Error('OPENROUTER_API_KEY required in server environment');
  const port=Number(process.env.ADVISOR_PREVIEW_PORT||8893);
  if(!Number.isInteger(port)||port<1024||port>65535)throw Error('Invalid preview port');
- createPreview({answer:liveAnswer(process.env.OPENROUTER_API_KEY),fontsDirectory:process.env.ADVISOR_FONTS_DIR})
- .listen(port,'127.0.0.1',()=>console.log(`Advisor preview: http://127.0.0.1:${port} (30 calls maximum; no prompt logs)`));
+ const answer=liveAnswer(process.env.OPENROUTER_API_KEY);
+ const ledger=process.env.ADVISOR_REQUEST_LEDGER?createRequestLedger(process.env.ADVISOR_REQUEST_LEDGER,30):null;
+ const server=createPreview({answer,fontsDirectory:process.env.ADVISOR_FONTS_DIR,requestLedger:ledger});
+ server.on('error',()=>{ledger?.close();process.exitCode=1;});
+ for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>server.close());
+ server.listen(port,'127.0.0.1',()=>console.log(`Advisor preview: http://127.0.0.1:${port} (30 calls maximum; no prompt logs)`));
 }

@@ -5,6 +5,12 @@ from pathlib import Path
 import sys
 
 env = os.environ.copy()
+if sys.argv[1:] not in ([], ['--gateway']):
+    sys.exit('Usage: start-preview.py [--gateway]')
+if '--gateway' in sys.argv:
+    ledger = env.get('ADVISOR_REQUEST_LEDGER', '')
+    if not ledger or not Path(ledger).is_absolute():
+        sys.exit('Gateway mode requires an absolute ADVISOR_REQUEST_LEDGER path; no in-memory fallback.')
 if 'OPENROUTER_API_KEY' not in env:
     path = Path('/etc/aicoding/e2b-tests.env')
     if not path.is_file():

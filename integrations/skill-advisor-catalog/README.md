@@ -34,3 +34,7 @@ A source change requires regenerating affected drafts and independent approval, 
 ## Optional short-answer path
 
 `answer.mjs` adds independently approved short presentations and explicit partial fit without changing the legacy selector default. `selectScenarios` accepts a host-owned contract; never accept a contract from model output. `answer-evaluate.mjs --run` is an explicit paid evaluation with OPENROUTER_API_KEY; refuses an existing answer-results.json. No production route is installed. [Results and examples](../../docs/proposals/skill-advisor-scenarios/ITERATION-3.md).
+
+## Dialogue/readiness continuation
+
+The private preview now uses `dialogue.mjs`: quoted missing task parts plus fixed targeted questions. Legacy answer/selector contracts remain available. `acceptance-evaluate.mjs --run` runs the frozen24-case development set and refuses overwriting its report. Gateway mode: `start-preview.py --gateway` requires persistent ADVISOR_REQUEST_LEDGER; normal local mode stays compatible. [Final report](../../features/advisor-preview-readiness/08_report.md) and [updated interface](../../docs/proposals/skill-advisor-scenarios/preview-8h/README.md).

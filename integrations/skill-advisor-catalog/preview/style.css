@@ -141,3 +141,6 @@ textarea{font:inherit;color:var(--text);background:var(--bg);width:100%;min-heig
 
 .choices{margin:22px 0 0}.nav{flex-wrap:wrap}.chooser{min-width:0}
 @media(max-width:700px){.choices{display:grid}.results{padding-bottom:100px}.back-task{bottom:12px}}#result-title:focus{outline:none}#result-title:focus-visible{outline:2px solid var(--green);outline-offset:6px}
+.answer-turn{padding-top:20px;overflow-wrap:anywhere}.answer-turn+.answer-turn{margin-top:28px;border-top:1px solid var(--line)}.turn-label{color:var(--muted);font-size:14px;font-weight:500}.turn-query{white-space:pre-wrap;margin:5px 0 18px;color:#c9d4cb}.answer-lead{font-size:21px;line-height:1.4;font-weight:500}.clarification-question{margin-top:18px;font-size:18px;color:var(--text)}.missing-label{margin-top:14px;color:var(--muted)}.missing-parts{padding-left:22px;margin:6px 0}.answer-turn:focus-visible{outline:2px solid var(--green);outline-offset:5px}#completion-text{display:block}#completion button{max-width:100%}
+
+@media(max-width:700px){.back-task{position:static;display:block;margin:0 22px 22px;text-align:center}.results{padding-bottom:30px}}

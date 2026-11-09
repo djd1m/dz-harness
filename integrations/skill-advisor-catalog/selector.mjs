@@ -12,7 +12,7 @@ export class SelectorError extends Error {
 export async function selectScenarios(retrieval, { model, apiKey, fetchImpl = fetch,
   contract = { instructions: pickerInstructions, input: pickerInput, materialize } }) {
   if (!retrieval.query.trim()) {
-    return { output: contract.materialize(retrieval, { decision: 'clarify', intent: 'learn', scenarioIds: [] }), modelCalled: false };
+    return { output: contract.materialize(retrieval, { decision: 'clarify', intent: 'learn', scenarioIds: [], missingParts: [], clarification: 'task-object' }), modelCalled: false };
   }
   if (!model || !apiKey) throw Error('Model and provider credential required');
   const response = await fetchImpl('https://openrouter.ai/api/v1/chat/completions', {
