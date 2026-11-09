@@ -61,7 +61,10 @@ class HealthTests(unittest.TestCase):
 
     def test_deep_json_is_sanitized(self):
         (self.root / 'sources/manifest.json').write_text('[' * 10000 + '0' + ']' * 10000)
-        self.assertEqual(self.tools.call('validate', {})['error'], 'unavailable_or_invalid_source')
+        result = self.tools.call('validate', {})
+        self.assertFalse(result['ok'])
+        # Python 3.14 may parse deeper JSON than 3.12: either sanitized refusal is valid.
+        self.assertIn(result['error'], {'unavailable_or_invalid_source', 'manifest_schema'})
 
     def test_index_view_is_refused(self):
         db = self.root / '.health-brain/.dz/memory/patterns.sqlite'
@@ -104,13 +107,18 @@ class HealthTests(unittest.TestCase):
         class Context:
             tools = {}
             skills = {}
+            commands = {}
+            def register_command(self, **kwargs):
+                self.commands[kwargs['name']] = kwargs
             def register_tool(self, **kwargs):
                 self.tools[kwargs['name']] = kwargs
             def register_skill(self, **kwargs):
                 self.skills[kwargs['name']] = kwargs
         ctx = Context()
         package.register(ctx)
-        self.assertEqual(set(ctx.tools), {'health_search', 'health_source_get', 'health_validate'})
+        self.assertEqual(set(ctx.tools), {'health_search', 'health_source_get', 'health_validate', 'health_intake_preview', 'health_intake_prepare'})
+        self.assertEqual(set(ctx.commands), {'health-confirm', 'health-cancel', 'health-status'})
+        self.assertNotIn('health_confirm', ctx.tools)
         self.assertIn('health-read', ctx.skills)
         with patch.dict(os.environ, {'HEALTH_WORKSPACE': str(self.root)}):
             result = json.loads(ctx.tools['health_source_get']['handler']({'entry_id': 'technical-1'}))

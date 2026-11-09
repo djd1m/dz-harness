@@ -1,6 +1,6 @@
 # План реализации
 
-Текущий PR реализует только T1 и проект. T2–T6 — последовательная следующая разработка, не выполненные изменения.
+T1–T5 реализованы и проверены офлайн; внутренний Mattermost gateway проверен реальным кодом без сети. T6: проверка настоящего клиента и технический pilot остаются до включения production writer.
 
 - T1 (AC-1, ADR-001): воспроизвести контракты ядра синтетическим probe без сети и production mounts; сохранить результаты.
 - T2 (FR-4, FR-5, FR-6, NFR-2): расширить source/release ядра проверкой expected manifest под общим lock на всех ветках, хеш-проверкой idempotency и явным журналом/сверкой частичной записи. Не менять tarballs публичного зеркала вручную.
@@ -29,3 +29,14 @@
 | OCR/индексирование не запускались | Это явно отражено в ответе |
 
 Rollback отключает новую запись и возвращает предыдущую версию плагина. Принятые документы не удаляются, manifest целиком не заменяется старой копией. До pilot эти gates должны быть выполнены, а не только перечислены.
+
+Inputs read: 03_adr/001-human-confirmed-intake.md, 05_architecture.md.
+
+- T7 (ADR-001, FR-1, FR-2, FR-3, FR-4, FR-5, FR-6, NFR-1, NFR-2, AC-1, AC-2): реализовать адаптер и проверить integrations/hermes-health/tests/test_intake_confirm.py; не включать writer без транспортной приёмки.
+
+EXPECTED_CODE_TARGETS:
+- integrations/hermes-health/intake_confirm.py
+- integrations/hermes-health/__init__.py
+- integrations/hermes-health/health_plugin.py
+- integrations/hermes-health/plugin.yaml
+- integrations/hermes-health/tests/test_intake_confirm.py

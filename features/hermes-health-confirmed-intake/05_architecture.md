@@ -19,7 +19,7 @@ flowchart LR
 
 ## Подготовка
 
-Предлагаемый инструмент health_intake_prepare (пока не существует) использует проверенный inbox, сохраняет копию исходника и детерминированный пакет в приватной директории состояния вне карты. Перед выдачей квитанции выполняет полноценный preview и проверку текущих источников. Задаётся TTL 30 минут, лимиты preview0.2 и квота prepared-пакетов на профиль; квоту проверить до записи. Удалять только expired/cancelled пакеты после регистрации очистки; unknown/committing не очищать по TTL.
+Инструмент health_intake_prepare кандидата0.3 использует проверенный inbox, сохраняет копию исходника и детерминированный пакет в приватной директории состояния вне карты. Перед выдачей квитанции выполняет полноценный preview и проверку текущих источников. Задаётся TTL 30 минут, лимиты preview0.2 и квота prepared-пакетов на профиль; квоту проверить до записи. Удалять только expired/cancelled пакеты после регистрации очистки; unknown/committing не очищать по TTL.
 
 Квитанция: schema, receipt_id (128+ случайных бит), runtime/plugin version, platform/profile/user_id/chat_id, source_message_id при доступности, workspace identity, created_at/expires_at, state, original_name (не authority), attachment_sha256/bytes, archive_sha256/bytes, manifest_sha256, sorted files[path,sha256,bytes], result. Не включать токены Mattermost. Пакеты 0600, каталог 0700, no symlink, atomic rename + fsync файла и родительского каталога. State store — не общий tmp и не публичный Git.
 
