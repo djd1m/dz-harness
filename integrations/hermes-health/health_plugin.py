@@ -256,6 +256,10 @@ class HealthTools:
             return {'ok': True, 'hits': hits, 'indexed_records': count, 'coverage': 'third_brain_only',
                     'empty_result_proves_absence': False}
 
+    def intake_preview(self, args):
+        from .intake_preview import preview
+        return preview(self, args)
+
     def call(self, operation, args):
         try:
             if not isinstance(args, dict):

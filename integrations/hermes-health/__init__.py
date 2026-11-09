@@ -16,6 +16,9 @@ def handler(operation):
 
 def register(ctx):
     specs = [
+        ('health_intake_preview', 'intake_preview', 'Предпросмотр PDF/ZIP по имени вложения из HEALTH_INBOX. Не пишет карту, не выполняет OCR или клиническую проверку.',
+         {'attachment': {'type': 'string', 'maxLength': 240},
+          'expect_sha256': {'type': 'string', 'pattern': '^[0-9a-f]{64}$'}}, ['attachment']),
         ('health_search', 'search', 'Поиск только по third-brain. Возвращает источники со сверенными хешами; пустой результат не доказывает отсутствия данных.',
          {'query': {'type': 'string', 'minLength': 1, 'maxLength': 500},
           'limit': {'type': 'integer', 'minimum': 1, 'maximum': 10}}, ['query']),
