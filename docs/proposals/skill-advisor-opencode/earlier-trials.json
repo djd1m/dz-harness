@@ -1,0 +1,165 @@
+[
+  {
+    "trial": "v1",
+    "model": "qwen/qwen3.7-flash",
+    "startedAt": "2026-11-09T19:32:22.395Z",
+    "finishedAt": "2026-11-09T19:33:34.191Z",
+    "error": null,
+    "deleted": true,
+    "independentlyAbsent": null,
+    "turns": [
+      {
+        "id": "feature",
+        "gateAccepted": null,
+        "error": null
+      },
+      {
+        "id": "research",
+        "gateAccepted": null,
+        "error": null
+      },
+      {
+        "id": "cloudru",
+        "gateAccepted": null,
+        "error": null
+      }
+    ],
+    "note": "Earlier exploratory result, not final acceptance. V8 raw events were replayed separately with the decoder; V9 reran final native source and decoder end-to-end."
+  },
+  {
+    "trial": "v2",
+    "model": "qwen/qwen3.7-flash",
+    "startedAt": "2026-11-09T19:37:49.559Z",
+    "finishedAt": "2026-11-09T19:38:40.329Z",
+    "error": null,
+    "deleted": true,
+    "independentlyAbsent": null,
+    "turns": [
+      {
+        "id": "feature",
+        "gateAccepted": null,
+        "error": null
+      },
+      {
+        "id": "cloudru",
+        "gateAccepted": null,
+        "error": null
+      }
+    ],
+    "note": "Earlier exploratory result, not final acceptance. V8 raw events were replayed separately with the decoder; V9 reran final native source and decoder end-to-end."
+  },
+  {
+    "trial": "v3",
+    "model": "openrouter/qwen/qwen3.7-flash",
+    "startedAt": "2026-11-09T19:47:16.326Z",
+    "finishedAt": "2026-11-09T19:48:25.172Z",
+    "error": null,
+    "deleted": true,
+    "independentlyAbsent": true,
+    "turns": [
+      {
+        "id": "feature",
+        "gateAccepted": false,
+        "error": "Unexpected token 'П', \"Первым бер\"... is not valid JSON"
+      },
+      {
+        "id": "research",
+        "gateAccepted": false,
+        "error": "Unexpected token 'Н', \"На основе \"... is not valid JSON"
+      },
+      {
+        "id": "cloudru",
+        "gateAccepted": false,
+        "error": "Unexpected token 'Н', \"На основе \"... is not valid JSON"
+      }
+    ],
+    "note": "Earlier exploratory result, not final acceptance. V8 raw events were replayed separately with the decoder; V9 reran final native source and decoder end-to-end."
+  },
+  {
+    "trial": "v4",
+    "model": "openrouter/qwen/qwen3.7-flash",
+    "startedAt": "2026-11-09T19:49:20.126Z",
+    "finishedAt": "2026-11-09T19:49:38.001Z",
+    "error": "exit status 1",
+    "deleted": true,
+    "independentlyAbsent": true,
+    "turns": [],
+    "note": "Earlier exploratory result, not final acceptance. V8 raw events were replayed separately with the decoder; V9 reran final native source and decoder end-to-end."
+  },
+  {
+    "trial": "v5",
+    "model": "openrouter/qwen/qwen3.7-flash",
+    "startedAt": "2026-11-09T19:50:04.892Z",
+    "finishedAt": "2026-11-09T19:52:23.346Z",
+    "error": "cd advisor && PATH=\"/home/user/advisor/node_modules/.bin:$PATH\" node structured.mjs question.txt [deadline_exceeded] the operation timed out: This error is likely due to exceeding 'timeoutMs' — the total time a long running request (like command execution or directory watch) can be active. It can be modified by passing 'timeoutMs' when making the request. Use '0' to disable the timeout. ",
+    "deleted": true,
+    "independentlyAbsent": true,
+    "turns": [],
+    "note": "Earlier exploratory result, not final acceptance. V8 raw events were replayed separately with the decoder; V9 reran final native source and decoder end-to-end."
+  },
+  {
+    "trial": "v6",
+    "model": "openrouter/anthropic/claude-haiku-5.5",
+    "startedAt": "2026-11-09T19:53:30.711Z",
+    "finishedAt": "2026-11-09T19:55:49.526Z",
+    "error": "cd advisor && PATH=\"/home/user/advisor/node_modules/.bin:$PATH\" node structured.mjs question.txt [deadline_exceeded] the operation timed out: This error is likely due to exceeding 'timeoutMs' — the total time a long running request (like command execution or directory watch) can be active. It can be modified by passing 'timeoutMs' when making the request. Use '0' to disable the timeout. ",
+    "deleted": true,
+    "independentlyAbsent": true,
+    "turns": [],
+    "note": "Earlier exploratory result, not final acceptance. V8 raw events were replayed separately with the decoder; V9 reran final native source and decoder end-to-end."
+  },
+  {
+    "trial": "v7",
+    "model": "openrouter/anthropic/claude-haiku-5.5",
+    "startedAt": "2026-11-09T19:56:51.564Z",
+    "finishedAt": "2026-11-09T19:58:00.843Z",
+    "error": null,
+    "deleted": true,
+    "independentlyAbsent": true,
+    "turns": [
+      {
+        "id": "feature",
+        "gateAccepted": false,
+        "error": "Unexpected token 'M', \"My searche\"... is not valid JSON"
+      },
+      {
+        "id": "research",
+        "gateAccepted": true,
+        "error": null
+      },
+      {
+        "id": "cloudru",
+        "gateAccepted": false,
+        "error": "Unexpected token 'T', \"The bash t\"... is not valid JSON"
+      }
+    ],
+    "note": "Earlier exploratory result, not final acceptance. V8 raw events were replayed separately with the decoder; V9 reran final native source and decoder end-to-end."
+  },
+  {
+    "trial": "v8",
+    "model": "openrouter/anthropic/claude-haiku-5.5",
+    "startedAt": "2026-11-09T19:59:05.032Z",
+    "finishedAt": "2026-11-09T19:59:49.693Z",
+    "error": null,
+    "deleted": true,
+    "independentlyAbsent": true,
+    "turns": [
+      {
+        "id": "feature",
+        "gateAccepted": false,
+        "error": "Unexpected token 'I', \"I'm not ru\"... is not valid JSON"
+      },
+      {
+        "id": "research",
+        "gateAccepted": false,
+        "error": "Unexpected token 'R', \"Registry r\"... is not valid JSON"
+      },
+      {
+        "id": "cloudru",
+        "gateAccepted": false,
+        "error": "Unexpected token 'T', \"The regist\"... is not valid JSON"
+      }
+    ],
+    "note": "Earlier exploratory result, not final acceptance. V8 raw events were replayed separately with the decoder; V9 reran final native source and decoder end-to-end."
+  }
+]

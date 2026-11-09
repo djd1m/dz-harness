@@ -73,6 +73,79 @@ constantly. **Never hardcode the list** — it rots. Instead:
 
 ## Procedure
 
+### OpenCode runtime: native skills route
+
+First identify the runtime and the user's intended installation target. The Claude
+Code commands in the examples below are platform-specific examples, not defaults
+for other runtimes. In OpenCode, load this skill through the native `skill` tool
+and follow this section for installation advice.
+
+- Install this advisor with `dz init --target opencode --select skill-advisor`.
+  The existing adapter copies the complete skill tree to
+  `.opencode/skills/skill-advisor/`; do not create a second rewritten skill.
+- Retrieve `dz registry --json` and `dz recommend "<task>"`. The registry lists
+  skills from discovered providers, not every published npm toolkit. An absent
+  provider is missing coverage, not proof that a package does not exist.
+  Preserve the original registry for validation. For model retrieval, pretty-print
+  JSON or use a readable projection of its exact IDs/descriptions: a large single
+  JSON line can be truncated by `read`/`grep`, hiding valid catalog entries.
+- For the checked native OpenCode route, recommend `type: "skill"` entries from
+  that observed registry. Prefer one primary pick, with at most one complementary
+  pick when it adds a different capability. Two installation routes to the same
+  workflow are alternatives, not packages to install together.
+  Do not add a weaker pick just to fill the shortlist: each pick must address a
+  requested outcome, rather than share a keyword such as "GitHub". Before making
+  detailed capability claims, read the selected skill's actual source at its
+  registry `path` (providers can carry different variants). If the host supplies
+  a separate source-path index, use it. Verify absence claims against catalog
+  evidence; "not selected" and "requires configuration" do not mean "unavailable".
+  Distinguish optional evidence/signing from guarantees. If the user asks for an
+  execution order, include a short `pipeline` of the recommended names.
+- Native skill installation does not install a toolkit's companion commands,
+  hooks or assets. Note this limit in `gaps` when relevant. A package's existence
+  does not verify its installer supports OpenCode; do not invent a universal
+  `npx ... init --target opencode` flag or assume plain `npx ... init` is compatible.
+  Unverified toolkit/preset routes belong in `gaps`, without an installation command.
+- Prepare the Output Format JSON as a draft, using native skill IDs. You may omit
+  `install` in the draft; the checker generates it deterministically. Include
+  `task`, `recommendations`, `fit`, `why`, `gaps` and an optional pipeline containing only recommended native skills.
+  Save the real registry stdout as `registry.json` and the draft as `draft.json`;
+  use scratch paths appropriate to your environment. Run (resolving the script
+  relative to this loaded skill's directory):
+
+  ```bash
+  node <skill-directory>/scripts/check-opencode-advice.mjs registry.json draft.json
+  ```
+
+  Use only a successful checker's JSON for the final recommendation. On nonzero
+  exit, fix the named issue and recheck, or report that advice could not be
+  verified. Do not present the rejected draft as checked advice. If running inside
+  a web service, the service must enforce this gate before displaying the answer;
+  instructions alone do not guarantee a model will invoke it.
+  If the host explicitly takes responsibility for this gate, return the draft
+  to the host without claiming it has already passed; do not try to execute a
+  checker that the host's tool policy intentionally excludes.
+  CLI `--format json` emits an event stream; it does not force the assistant's
+  text to be valid JSON. The checker accepts plain JSON, a single final fenced
+  JSON block, or JSON on the final line; preceding prose is discarded. It rejects
+  malformed JSON and ambiguous multiple JSON blocks. Display only its checked
+  output and bound retries/timeouts. Do not assume SDK structured output works on
+  every runtime version: the tested E2B OpenCode 1.19.4 returns
+  `Expected OutputFormatJsonSchema` on structured session reads, consistent with
+  [upstream issue #26929](https://github.com/anomalyco/opencode/issues/26929).
+  Verify that path separately before adopting it in a host application.
+- Explain the verified picks in the user's language, briefly, with the checked
+  installation commands and honest limitations. Recommend tools; do not execute
+  installations or perform the user's deployment task.
+
+The checker is dependency-free (Node.js >=20), reads local JSON and never runs an
+install command. It checks structural/catalog/target consistency, not factual
+correctness of rationales, ranking quality, snapshot freshness or course links.
+Course URLs, if provided by a host application, must come from its separate
+verified mapping; this generic skill contains no site-specific course catalog.
+
+Regression checks: `node --test <skill-directory>/evals/opencode.test.mjs`.
+
 ### Step 1 — Clarify the task
 
 Restate the task in one sentence. If it is genuinely vague (no concrete deliverable,
