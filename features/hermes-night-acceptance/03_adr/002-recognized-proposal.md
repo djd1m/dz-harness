@@ -1,3 +1,5 @@
+> Первоначальная целевая архитектура. Исполняемые срезы уточнены отдельно: core `health-recognized-unverified` в dz-harness-hub и [gateway adapter](../../hermes-recognized-confirm/README.md). Active CAS, индекс и UI-доступ не считаются реализованными по этому плану.
+
 # ADR и план: подтверждаемое сохранение непроверенного PDF draft
 
 Статус: проект для ночной тестовой итерации, 2026-11-09. Основание: `/tmp/hermes-night-contract-audit.md`, `integrations/hermes-health/{intake_confirm.py,pdf_draft.py,health_plugin.py}`. Код и production не изменены этим документом.

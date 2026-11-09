@@ -10,7 +10,7 @@
 python3 -m unittest discover -s integrations/hermes-health/experiments/tests -p test_night_oauth_lab.py -v
 ```
 
-Результат первичного прогона: 16 tests, OK; повторного после изменения реализации: 17 tests, OK, без skips. Команда `python` недоступна; документированная команда `python3` работает.
+MEASURED — результат первичного прогона: 16 tests, OK; повторного после изменения реализации: 17 tests, OK, без skips. Команда `python` недоступна; документированная команда `python3` работает.
 
 ## Q1 — неполная проверка чисел, средняя серьёзность, исправлен
 
