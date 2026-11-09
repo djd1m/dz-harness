@@ -1,0 +1,26 @@
+{
+  "schema": "dz-scenario-answer-questions/1",
+  "scope": "Старые q03/q04 — регрессии, не новые вопросы.",
+  "cases": [
+    {
+      "id": "q03",
+      "query": "В рабочей базе большая таблица заказов. Нужно переименовать колонку без остановки сервиса, предусмотреть совместимость старой версии приложения и откат.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "devops-database-migration"
+        ]
+      ]
+    },
+    {
+      "id": "q04",
+      "query": "У микросервисов есть разрозненные логи. Хочу связать запросы сквозными трассами, задать цели надёжности и получить дашборд с полезными алертами.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "devops-observability"
+        ]
+      ]
+    }
+  ]
+}

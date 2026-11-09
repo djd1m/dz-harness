@@ -30,3 +30,7 @@ A source change requires regenerating affected drafts and independent approval, 
 [First-iteration results and verified course links](../../docs/proposals/skill-advisor-scenarios/REPORT.md) · [Scenario table](../../docs/proposals/skill-advisor-scenarios/SCENARIOS.md)
 
 [Iteration 2 results](../../docs/proposals/skill-advisor-scenarios/ITERATION-2.md) include expanded coverage, original failed runs and a bounded output-budget repair.
+
+## Optional short-answer path
+
+`answer.mjs` adds independently approved short presentations and explicit partial fit without changing the legacy selector default. `selectScenarios` accepts a host-owned contract; never accept a contract from model output. `answer-evaluate.mjs --run` is an explicit paid evaluation with OPENROUTER_API_KEY; refuses an existing answer-results.json. No production route is installed. [Results and examples](../../docs/proposals/skill-advisor-scenarios/ITERATION-3.md).

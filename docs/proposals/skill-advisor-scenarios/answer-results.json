@@ -1,0 +1,871 @@
+{
+  "scope": "Development cases; last two are previous regression questions; no native runtime or website rollout",
+  "inputs": {
+    "answer-questions.json": "9c464d7ede1b5201462b8b261a2336ba7c16f65a0ed02bbd82c7aafe99a2071e",
+    "answer-regression-questions.json": "3f5b53b28271b50a58b0a96daf54ca03858e7c21aec6242face0d7dff2609b45",
+    "presentation.json": "a2966a9e3081f26b2a76ab9d2e927553302c118c6ac212882abc775f3ff3ddcb",
+    "presentation-reviews.json": "033319b38e9fbc1db7e4b9fbb857595520b6a04a341da9e557bc79644bd13be5",
+    "course-map.json": "2fe8c4c87c8ee86307869f52870af51cb1d45340c65ac5ced5ddaaa75b507143"
+  },
+  "code": {
+    "answer.mjs": "6219b23ec0438edd0d61b43a977523d6ab0715ee1e0d693d73adfe7bf527aff6",
+    "selector.mjs": "bc8d8ab699a56f6571e5e103ed31c7db74fbd4ba7e6c5d98d0aa94e3769f6034",
+    "search.mjs": "33ceabf849721756bdfd50ef72a83b8ca229837adbd16ab3decb79828be1b8d7",
+    "answer-evaluate.mjs": "1cf299838aee0b76747be97acd7154dc7b197698eedc1f33d4673638876a5e78"
+  },
+  "promptSha256": "23d23ecb9b8e4d404abaa01510b5693d9180032f432693dae01986af18d5beed",
+  "catalogRevision": "298c5b2030cd139553fdddc21cc008ae7c68b03db1fecba380d487d01e80fda2",
+  "rows": [
+    {
+      "id": "a01",
+      "query": "Набросай только план перевода идентификаторов таблицы с числа на UUID: этапы, совместимость потребителей и откат. Базу сейчас не трогай.",
+      "expectedDecision": "recommend",
+      "retrievedIds": [
+        "devops-database-migration",
+        "meta-feature-adr",
+        "mcp-gmail-search",
+        "pm-sprint-plan",
+        "presentation-sales"
+      ],
+      "usage": {
+        "prompt_tokens": 5708,
+        "completion_tokens": 495,
+        "total_tokens": 6203,
+        "cost": 0.000810117,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0008183,
+          "upstream_inference_prompt_cost": 0.0005708,
+          "upstream_inference_completions_cost": 0.0002475
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 459,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "partial",
+        "intent": "plan",
+        "scenarioIds": [
+          "devops-database-migration"
+        ],
+        "forcedPartial": false
+      },
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Помогает спланировать изменение схемы, откат, тестирование и последовательность развёртывания.",
+                "boundary": "Сценарий охватывает планирование, а не выполнение миграции; отсутствие простоя и потери данных не гарантируется.",
+                "nextAction": "Опишите текущую схему, изменение и используемый стек."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-devops/"
+          }
+        ]
+      },
+      "valid": true,
+      "correct": false,
+      "responseMs": 3102.8344819999998
+    },
+    {
+      "id": "a02",
+      "query": "Подготовь проект наблюдаемости для нового сервиса: какие метрики собирать, какие панели нужны и как задать цели надёжности. Внедрение будет позже.",
+      "expectedDecision": "recommend",
+      "retrievedIds": [
+        "devops-observability",
+        "mcp-context7-docs",
+        "news-period-digest",
+        "pm-ab-test-analysis",
+        "news-monitor-delta"
+      ],
+      "usage": {
+        "prompt_tokens": 6459,
+        "completion_tokens": 157,
+        "total_tokens": 6616,
+        "cost": 0.000717156,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0007244,
+          "upstream_inference_prompt_cost": 0.0006459,
+          "upstream_inference_completions_cost": 0.0000785
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 122,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "recommend",
+        "intent": "plan",
+        "scenarioIds": [
+          "devops-observability"
+        ],
+        "forcedPartial": false
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Помогает спроектировать метрики, логи, трассировку, дашборды, SLO и оповещения.",
+                "boundary": "Сценарий охватывает проектирование, а не внедрение; набор инструментов зависит от системы.",
+                "nextAction": "Опишите сервисы, имеющиеся сигналы и цели надёжности."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-devops/"
+          }
+        ]
+      },
+      "valid": true,
+      "correct": true,
+      "responseMs": 1529.144644
+    },
+    {
+      "id": "a03",
+      "query": "Измени тип поля времени в действующей базе, перенеси существующие значения и выполни миграцию с проверкой отката.",
+      "expectedDecision": "partial",
+      "retrievedIds": [
+        "devops-database-migration",
+        "bto-evaluate",
+        "devops-cloudru-deploy",
+        "devops-github-actions",
+        "meta-capture-adr"
+      ],
+      "usage": {
+        "prompt_tokens": 5866,
+        "completion_tokens": 236,
+        "total_tokens": 6102,
+        "cost": 0.000697554,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0007046,
+          "upstream_inference_prompt_cost": 0.0005866,
+          "upstream_inference_completions_cost": 0.000118
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 200,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "partial",
+        "intent": "execute",
+        "scenarioIds": [
+          "devops-database-migration"
+        ],
+        "forcedPartial": false
+      },
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Помогает спланировать изменение схемы, откат, тестирование и последовательность развёртывания.",
+                "boundary": "Сценарий охватывает планирование, а не выполнение миграции; отсутствие простоя и потери данных не гарантируется.",
+                "nextAction": "Опишите текущую схему, изменение и используемый стек."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-devops/"
+          }
+        ]
+      },
+      "valid": true,
+      "correct": true,
+      "responseMs": 1925.3086000000003
+    },
+    {
+      "id": "a04",
+      "query": "Подключи сквозную трассировку между нашими сервисами и создай рабочие панели с алертами в Grafana.",
+      "expectedDecision": "partial",
+      "retrievedIds": [
+        "devops-observability",
+        "reasoning-agents-md",
+        "mcp-git-research",
+        "bto-build",
+        "qe-chaos-latency"
+      ],
+      "usage": {
+        "prompt_tokens": 5321,
+        "completion_tokens": 315,
+        "total_tokens": 5636,
+        "cost": 0.000682704,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0006896,
+          "upstream_inference_prompt_cost": 0.0005321,
+          "upstream_inference_completions_cost": 0.0001575
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 281,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "partial",
+        "intent": "execute",
+        "scenarioIds": [
+          "devops-observability"
+        ],
+        "forcedPartial": false
+      },
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Помогает спроектировать метрики, логи, трассировку, дашборды, SLO и оповещения.",
+                "boundary": "Сценарий охватывает проектирование, а не внедрение; набор инструментов зависит от системы.",
+                "nextAction": "Опишите сервисы, имеющиеся сигналы и цели надёжности."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-devops/"
+          }
+        ]
+      },
+      "valid": true,
+      "correct": true,
+      "responseMs": 2021.125047
+    },
+    {
+      "id": "a05",
+      "query": "Подготовь текст презентации для инвесторов со ссылками и речью к каждому слайду, затем сгенерируй аудиодорожку выступления.",
+      "expectedDecision": "partial",
+      "retrievedIds": [
+        "presentation-speaker",
+        "presentation-sales",
+        "news-period-digest",
+        "news-monitor-delta",
+        "reasoning-agents-md"
+      ],
+      "usage": {
+        "prompt_tokens": 5645,
+        "completion_tokens": 332,
+        "total_tokens": 5977,
+        "cost": 0.000723195,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0007305,
+          "upstream_inference_prompt_cost": 0.0005645,
+          "upstream_inference_completions_cost": 0.000166
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 296,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "partial",
+        "intent": "execute",
+        "scenarioIds": [
+          "presentation-speaker"
+        ],
+        "forcedPartial": false
+      },
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-presentation-storyteller",
+            "scenarios": [
+              {
+                "summary": "Описывает подготовку содержания слайдов, связной речи и индекса источников в Markdown.",
+                "boundary": "Текст речи должен соответствовать слайдам и хронометражу.",
+                "nextAction": "Предоставьте тему, аудиторию и желаемую длительность."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/presentation-storyteller/"
+          }
+        ]
+      },
+      "valid": true,
+      "correct": true,
+      "responseMs": 2035.1498470000001
+    },
+    {
+      "id": "a06",
+      "query": "Сделай по нашему пакету интерактивный курс и настрой вход учеников через корпоративный SSO.",
+      "expectedDecision": "partial",
+      "retrievedIds": [
+        "tutorial-create",
+        "tutorial-check",
+        "mcp-context7-docs",
+        "mcp-git-research",
+        "meta-feature-adr"
+      ],
+      "usage": {
+        "prompt_tokens": 5972,
+        "completion_tokens": 281,
+        "total_tokens": 6253,
+        "cost": 0.000730323,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0007377,
+          "upstream_inference_prompt_cost": 0.0005972,
+          "upstream_inference_completions_cost": 0.0001405
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 246,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "partial",
+        "intent": "execute",
+        "scenarioIds": [
+          "tutorial-create"
+        ],
+        "forcedPartial": false
+      },
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-tutorial-factory",
+            "scenarios": [
+              {
+                "summary": "Описывает создание учебного сайта по пакету с упражнениями и проверкой знаний.",
+                "boundary": "При недостатке учебного материала процесс должен остановиться; форматы различаются по интерактивности.",
+                "nextAction": "Укажите пакет и желаемый формат курса."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/tutorial-factory/"
+          }
+        ]
+      },
+      "valid": true,
+      "correct": true,
+      "responseMs": 1861.8044089999994
+    },
+    {
+      "id": "a07",
+      "query": "Найди письма от транспортной компании за последние две недели и покажи отправителей, даты и темы. Почта Google подключена.",
+      "expectedDecision": "recommend",
+      "retrievedIds": [
+        "mcp-gmail-search",
+        "mcp-context7-docs",
+        "news-monitor-delta",
+        "reverse-business",
+        "reverse-cjm"
+      ],
+      "usage": {
+        "prompt_tokens": 6045,
+        "completion_tokens": 170,
+        "total_tokens": 6215,
+        "cost": 0.000682605,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0006895,
+          "upstream_inference_prompt_cost": 0.0006045,
+          "upstream_inference_completions_cost": 0.000085
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 131,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "partial",
+        "intent": "execute",
+        "scenarioIds": [
+          "mcp-gmail-search"
+        ],
+        "forcedPartial": true
+      },
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-mcp",
+            "scenarios": [
+              {
+                "summary": "Описывает поиск и чтение писем Gmail через MCP; нужны gogcli и авторизация Gmail.",
+                "boundary": "Сценарий ограничен поиском и чтением писем; изменение меток и другие операции не входят в него.",
+                "nextAction": "Укажите критерии поиска писем."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-mcp/"
+          }
+        ]
+      },
+      "valid": true,
+      "correct": false,
+      "responseMs": 1351.9643210000004
+    },
+    {
+      "id": "a08",
+      "query": "Найди письма со счетами, затем поставь на все найденные письма новый ярлык «К оплате».",
+      "expectedDecision": "partial",
+      "retrievedIds": [
+        "mcp-gmail-search",
+        "mcp-context7-docs",
+        "news-monitor-delta",
+        "qe-generate-tests",
+        "reverse-cjm"
+      ],
+      "usage": {
+        "prompt_tokens": 6685,
+        "completion_tokens": 195,
+        "total_tokens": 6880,
+        "cost": 0.00075834,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.000766,
+          "upstream_inference_prompt_cost": 0.0006685,
+          "upstream_inference_completions_cost": 0.0000975
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 157,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "partial",
+        "intent": "execute",
+        "scenarioIds": [
+          "mcp-gmail-search"
+        ],
+        "forcedPartial": false
+      },
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-mcp",
+            "scenarios": [
+              {
+                "summary": "Описывает поиск и чтение писем Gmail через MCP; нужны gogcli и авторизация Gmail.",
+                "boundary": "Сценарий ограничен поиском и чтением писем; изменение меток и другие операции не входят в него.",
+                "nextAction": "Укажите критерии поиска писем."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-mcp/"
+          }
+        ]
+      },
+      "valid": true,
+      "correct": true,
+      "responseMs": 1497.2324290000006
+    },
+    {
+      "id": "a09",
+      "query": "Составь реалистичный план следующей итерации: есть приоритетный бэклог, доступность инженеров и скорость предыдущих трёх итераций.",
+      "expectedDecision": "recommend",
+      "retrievedIds": [
+        "pm-sprint-plan",
+        "presentation-sales",
+        "pm-feature-priority",
+        "reverse-cjm",
+        "devops-database-migration"
+      ],
+      "usage": {
+        "prompt_tokens": 5991,
+        "completion_tokens": 191,
+        "total_tokens": 6182,
+        "cost": 0.000687654,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0006946,
+          "upstream_inference_prompt_cost": 0.0005991,
+          "upstream_inference_completions_cost": 0.0000955
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 152,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "recommend",
+        "intent": "plan",
+        "scenarioIds": [
+          "pm-sprint-plan"
+        ],
+        "forcedPartial": false
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-pm",
+            "scenarios": [
+              {
+                "summary": "Помогает составить план спринта с целью, ёмкостью, задачами, зависимостями и рисками.",
+                "boundary": "Оценка зависит от данных о доступности и скорости команды.",
+                "nextAction": "Предоставьте приоритетный бэклог и данные команды."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-pm/"
+          }
+        ]
+      },
+      "valid": true,
+      "correct": true,
+      "responseMs": 1648.877195
+    },
+    {
+      "id": "a10",
+      "query": "Мне нужно что-нибудь для анализа.",
+      "expectedDecision": "clarify",
+      "retrievedIds": [
+        "news-monitor-delta",
+        "meta-knowledge-harvest",
+        "pm-ab-test-analysis",
+        "qe-coverage-gaps",
+        "qe-generate-tests"
+      ],
+      "usage": {
+        "prompt_tokens": 6573,
+        "completion_tokens": 134,
+        "total_tokens": 6707,
+        "cost": 0.000717057,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0007243,
+          "upstream_inference_prompt_cost": 0.0006573,
+          "upstream_inference_completions_cost": 0.000067
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 104,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "clarify",
+        "intent": "analyze",
+        "scenarioIds": [],
+        "forcedPartial": false
+      },
+      "answer": {
+        "decision": "clarify",
+        "lead": "Какой результат вам нужен: подготовить план, выполнить изменения, разобраться в вопросе или получить учебные материалы?",
+        "items": []
+      },
+      "valid": true,
+      "correct": true,
+      "responseMs": 1149.666972
+    },
+    {
+      "id": "a11",
+      "query": "Помоги организовать проверку перед сдачей.",
+      "expectedDecision": "clarify",
+      "retrievedIds": [
+        "devops-cloudru-deploy",
+        "devops-database-migration",
+        "devops-github-actions",
+        "meta-capture-adr",
+        "meta-feature-adr"
+      ],
+      "usage": {
+        "prompt_tokens": 5780,
+        "completion_tokens": 305,
+        "total_tokens": 6085,
+        "cost": 0.000723195,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0007305,
+          "upstream_inference_prompt_cost": 0.000578,
+          "upstream_inference_completions_cost": 0.0001525
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 275,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "clarify",
+        "intent": "analyze",
+        "scenarioIds": [],
+        "forcedPartial": false
+      },
+      "answer": {
+        "decision": "clarify",
+        "lead": "Какой результат вам нужен: подготовить план, выполнить изменения, разобраться в вопросе или получить учебные материалы?",
+        "items": []
+      },
+      "valid": true,
+      "correct": true,
+      "responseMs": 2105.3968670000004
+    },
+    {
+      "id": "a12",
+      "query": "Нарисуй чертёж ювелирной оправы для огранённого сапфира по размерам камня.",
+      "expectedDecision": "no-match",
+      "retrievedIds": [
+        "website-clone-multiple",
+        "website-clone-page"
+      ],
+      "usage": {
+        "prompt_tokens": 2724,
+        "completion_tokens": 196,
+        "total_tokens": 2920,
+        "cost": 0.000366696,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0003704,
+          "upstream_inference_prompt_cost": 0.0002724,
+          "upstream_inference_completions_cost": 0.000098
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 167,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "no-match",
+        "intent": "execute",
+        "scenarioIds": [],
+        "forcedPartial": false
+      },
+      "answer": {
+        "decision": "no-match",
+        "lead": "Среди найденных сценариев подходящего пока нет. Можно уточнить задачу или расширить поиск.",
+        "items": []
+      },
+      "valid": true,
+      "correct": true,
+      "responseMs": 1519.9703009999994
+    },
+    {
+      "id": "q03",
+      "query": "В рабочей базе большая таблица заказов. Нужно переименовать колонку без остановки сервиса, предусмотреть совместимость старой версии приложения и откат.",
+      "expectedDecision": "partial",
+      "retrievedIds": [
+        "devops-database-migration",
+        "mcp-context7-docs",
+        "reasoning-diagnose",
+        "devops-cloudru-deploy",
+        "devops-observability"
+      ],
+      "usage": {
+        "prompt_tokens": 5801,
+        "completion_tokens": 346,
+        "total_tokens": 6147,
+        "cost": 0.000745569,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0007531,
+          "upstream_inference_prompt_cost": 0.0005801,
+          "upstream_inference_completions_cost": 0.000173
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 310,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "partial",
+        "intent": "execute",
+        "scenarioIds": [
+          "devops-database-migration"
+        ],
+        "forcedPartial": false
+      },
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Помогает спланировать изменение схемы, откат, тестирование и последовательность развёртывания.",
+                "boundary": "Сценарий охватывает планирование, а не выполнение миграции; отсутствие простоя и потери данных не гарантируется.",
+                "nextAction": "Опишите текущую схему, изменение и используемый стек."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-devops/"
+          }
+        ]
+      },
+      "valid": true,
+      "correct": true,
+      "responseMs": 2431.671284
+    },
+    {
+      "id": "q04",
+      "query": "У микросервисов есть разрозненные логи. Хочу связать запросы сквозными трассами, задать цели надёжности и получить дашборд с полезными алертами.",
+      "expectedDecision": "partial",
+      "retrievedIds": [
+        "devops-observability",
+        "mcp-context7-docs",
+        "mcp-git-research",
+        "mcp-gmail-search",
+        "news-period-digest"
+      ],
+      "usage": {
+        "prompt_tokens": 6179,
+        "completion_tokens": 467,
+        "total_tokens": 6646,
+        "cost": 0.000842886,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0008514,
+          "upstream_inference_prompt_cost": 0.0006179,
+          "upstream_inference_completions_cost": 0.0002335
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 433,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "partial",
+        "intent": "execute",
+        "scenarioIds": [
+          "devops-observability"
+        ],
+        "forcedPartial": false
+      },
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Помогает спроектировать метрики, логи, трассировку, дашборды, SLO и оповещения.",
+                "boundary": "Сценарий охватывает проектирование, а не внедрение; набор инструментов зависит от системы.",
+                "nextAction": "Опишите сервисы, имеющиеся сигналы и цели надёжности."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-devops/"
+          }
+        ]
+      },
+      "valid": true,
+      "correct": true,
+      "responseMs": 3166.8025039999993
+    }
+  ]
+}
