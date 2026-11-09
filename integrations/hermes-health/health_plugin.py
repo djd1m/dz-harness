@@ -260,6 +260,10 @@ class HealthTools:
         from .intake_preview import preview
         return preview(self, args)
 
+    def intake_prepare(self, args):
+        from .intake_confirm import prepare
+        return prepare(self, args)
+
     def call(self, operation, args):
         try:
             if not isinstance(args, dict):

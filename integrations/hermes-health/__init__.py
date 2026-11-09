@@ -15,7 +15,15 @@ def handler(operation):
 
 
 def register(ctx):
+    from .intake_confirm import command_handler
+    for action in ('confirm', 'cancel', 'status'):
+        ctx.register_command(name='health-' + action, handler=command_handler(action),
+                             description='Подтверждение, отмена или статус подготовленного intake; только доверенный gateway.',
+                             args_hint='<receipt_id>', argument_mode='text')
     specs = [
+        ('health_intake_prepare', 'intake_prepare', 'Подготовить неизменный PDF/ZIP для явного подтверждения владельцем через gateway. Не пишет карту. Не обещать доставку slash-команд до проверки оператором.',
+         {'attachment': {'type': 'string', 'maxLength': 240},
+          'expect_sha256': {'type': 'string', 'pattern': '^[0-9a-f]{64}$'}}, ['attachment']),
         ('health_intake_preview', 'intake_preview', 'Предпросмотр PDF/ZIP по имени вложения из HEALTH_INBOX. Не пишет карту, не выполняет OCR или клиническую проверку.',
          {'attachment': {'type': 'string', 'maxLength': 240},
           'expect_sha256': {'type': 'string', 'pattern': '^[0-9a-f]{64}$'}}, ['attachment']),

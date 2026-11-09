@@ -1,5 +1,6 @@
 """Preview local attachments through the shared intake core; never commit to the live map."""
 import hashlib
+import io
 import json
 import os
 from pathlib import Path
@@ -18,7 +19,7 @@ LIMITS = {'schema': 'ha-intake-limits-1', 'max_entries': 100,
           'total_timeout_ms': 25000, 'idle_timeout_ms': 10000}
 
 
-def preview(tools, args):
+def capture_attachment(tools, args):
     if set(args) - {'attachment', 'expect_sha256'}:
         raise Refusal('arguments_invalid')
     name = args.get('attachment')
@@ -44,6 +45,27 @@ def preview(tools, args):
         raise Refusal('attachment_digest_mismatch')
     if suffix == '.pdf' and (not content.startswith(b'%PDF-') or b'%%EOF' not in content[-1024:]):
         raise Refusal('pdf_envelope_invalid')
+    return name, content
+
+
+def archive_bytes(name, content):
+    if Path(name).suffix.lower() != '.pdf':
+        return content
+    target = io.BytesIO()
+    member = zipfile.ZipInfo('documents/' + hashlib.sha256(content).hexdigest() + '.pdf',
+                             date_time=(1980, 1, 1, 0, 0, 0))
+    member.create_system = 3
+    member.external_attr = 0o100600 << 16
+    with zipfile.ZipFile(target, 'w', compression=zipfile.ZIP_STORED) as z:
+        z.writestr(member, content)
+    return target.getvalue()
+
+
+def preview(tools, args, *, snapshot=None):
+    # snapshot is internal only: prepare freezes the exact bytes it has already checked.
+    name, content = snapshot if snapshot is not None else capture_attachment(tools, args)
+    digest = hashlib.sha256(content).hexdigest()
+    expected = args.get('expect_sha256')
     original_manifest = tools.read('sources/manifest.json', limit=8 * 1024 * 1024)
     with tempfile.TemporaryDirectory(prefix='hermes-health-preview-') as temp:
         root = Path(temp)
@@ -55,11 +77,7 @@ def preview(tools, args):
         (compare / 'sources/manifest.json').write_bytes(original_manifest)
         live_rows = HealthTools(compare, tools.node, tools.runtime).catalog()
         archive = root / 'input.zip'
-        if suffix == '.pdf':
-            with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_STORED) as z:
-                z.writestr(name, content)
-        else:
-            archive.write_bytes(content)
+        archive.write_bytes(archive_bytes(name, content))
         archive_digest = hashlib.sha256(archive.read_bytes()).hexdigest()
         limits = root / 'limits.json'
         limits.write_text(json.dumps(LIMITS))

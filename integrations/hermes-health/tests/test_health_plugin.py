@@ -107,13 +107,18 @@ class HealthTests(unittest.TestCase):
         class Context:
             tools = {}
             skills = {}
+            commands = {}
+            def register_command(self, **kwargs):
+                self.commands[kwargs['name']] = kwargs
             def register_tool(self, **kwargs):
                 self.tools[kwargs['name']] = kwargs
             def register_skill(self, **kwargs):
                 self.skills[kwargs['name']] = kwargs
         ctx = Context()
         package.register(ctx)
-        self.assertEqual(set(ctx.tools), {'health_search', 'health_source_get', 'health_validate', 'health_intake_preview'})
+        self.assertEqual(set(ctx.tools), {'health_search', 'health_source_get', 'health_validate', 'health_intake_preview', 'health_intake_prepare'})
+        self.assertEqual(set(ctx.commands), {'health-confirm', 'health-cancel', 'health-status'})
+        self.assertNotIn('health_confirm', ctx.tools)
         self.assertIn('health-read', ctx.skills)
         with patch.dict(os.environ, {'HEALTH_WORKSPACE': str(self.root)}):
             result = json.loads(ctx.tools['health_source_get']['handler']({'entry_id': 'technical-1'}))
