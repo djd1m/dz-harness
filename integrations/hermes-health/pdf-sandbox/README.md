@@ -1,6 +1,6 @@
 # Host-only PDF sandbox
 
-Экспериментальный broker для синтетических PDF. Этот каталог не включает подключение к production Hermes. PDF, извлечённый текст и ошибки парсера не записываются в файлы или журналы. Worker не получает исходный путь, окружение Hermes, секреты, сеть или host mounts. Это не медицинская интерпретация: текст всегда остаётся непроверенными данными.
+Изолированный broker извлечения текста PDF. Установка оператора описана ниже; результаты пилота — в `features/hermes-health-pdf-draft/verification.md`. PDF, извлечённый текст и ошибки парсера не записываются в файлы или журналы. Worker не получает исходный путь, окружение Hermes, секреты, сеть или host mounts. Это не медицинская интерпретация: текст всегда остаётся непроверенными данными.
 
 ## Граница доверия
 
@@ -19,7 +19,7 @@ Broker не импортирует pypdf. Он мультиплексирует 
 ```sh
 sudo docker build -t hermes-health-pdf-test integrations/hermes-health/pdf-sandbox
 sudo docker image inspect --format '{{.Id}}' hermes-health-pdf-test
-sudo install -d -o root -g 1001 -m 0750 /run/hermes-health-pdf
+sudo install -d -o root -g 1001 -m 0750 /srv/hermes-dz-health/pdf-socket
 ```
 
 Base image закреплён в Dockerfile по digest, pypdf wheel — версией и SHA-256. Изменение `PYTHON_BASE` при сборке является отдельным доверенным решением оператора; не передавать mutable tag. Проверить сборочный контекст: broker использует только image ID/digest, mutable tag отвергается. Runtime `--pull never`: broker не загружает образы автоматически.
@@ -28,7 +28,7 @@ Base image закреплён в Dockerfile по digest, pypdf wheel — вер�
 
 ```sh
 sudo python3 -B /opt/hermes-health/pdf-sandbox/broker.py \
-  --socket /run/hermes-health-pdf/broker.sock \
+  --socket /srv/hermes-dz-health/pdf-socket/broker.sock \
   --image sha256:FULL_64_HEX_IMAGE_ID
 ```
 
@@ -55,3 +55,36 @@ python3 -m unittest discover -s integrations/hermes-health/pdf-sandbox -p 'test_
 ```
 
 Тесты используют только синтетические байты, временный socket и fake Docker. Они проверяют усечение prefix/body, нулевую/слишком большую длину, таймаут клиента, большой stdin без deadlock, лимит stdout, malformed JSON/engine, flags, cleanup после таймаута и смерти docker client. Реальный Docker smoke test должен отдельно проверить pinned image, синтетические PDF и отсутствие оставшихся контейнеров.
+
+## Подключение к контейнеру Hermes
+
+Сохраняйте каталог socket постоянным: удаление и пересоздание родителя при
+restart systemd оставит bind mount контейнера на старом inode. Поэтому пример
+не использует RuntimeDirectory. Перед запуском создайте root:GID каталог0750,
+после запуска дождитесь socket0660 и проверьте соединение. GID должен совпадать
+с дополнительной или основной группой процесса Hermes.
+
+Compose: добавьте только `./pdf-socket:/run/health-pdf:ro` и переменные
+`HEALTH_PDF_SOCKET=/run/health-pdf/broker.sock`,
+`HEALTH_DRAFTS=/opt/data/health-drafts`. Каталог drafts создаёт оператор:0700,
+владелец UID процесса Hermes, вне карты/Git. Не помещайте туда посторонние файлы
+отчётов: адаптер проверяет структуру хранилища перед записью. В Hermes устанавливайте
+только runtime Python-файлы, plugin.yaml и skills, без ops, venv и экспериментов.
+
+Проверяйте broker restart отдельно от контейнера, затем restart Hermes:
+обработка технического PDF должна сохраняться; хеш manifest должен быть прежним.
+Не менять clinical verification по результату извлечения текста. Документы без
+текстового слоя требуют отдельного будущего OCR, автоматического fallback нет.
+
+## Восстановление и откат
+
+В резервную копию включайте plugin, исходники broker, установленный unit, полный
+parser image (`docker image save`), его SHA-256 и immutable image ID; Compose и
+Hermes home сохраняются существующим защищённым backup. Socket не архивируется.
+При восстановлении: проверить архив, `docker image load`, сверить image ID,
+вернуть root-owned broker/unit, создать приватный каталог socket, запустить
+broker и проверить готовность, затем запустить Hermes с его постоянными томами.
+
+Откат: вернуть предыдущие plugin и Compose, пересоздать только медицинский
+контейнер, остановить и отключить broker. Карту, receipts, черновики и историю
+не удалять. Не восстанавливать старую карту поверх новых подтверждённых записей.

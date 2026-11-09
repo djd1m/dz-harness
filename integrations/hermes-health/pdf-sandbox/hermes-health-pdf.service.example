@@ -7,17 +7,17 @@ Requires=docker.service
 Type=simple
 User=root
 Group=1001
-RuntimeDirectory=hermes-health-pdf
-RuntimeDirectoryMode=0750
+# Create this persistent private directory before starting the service.
+# Keep its inode stable across service restarts: Hermes bind-mounts the parent.
 UMask=0117
 # Replace image digest with the immutable ID obtained from the local build.
-ExecStart=/usr/bin/python3 -B /opt/hermes-health/pdf-sandbox/broker.py --socket /run/hermes-health-pdf/broker.sock --image sha256:REPLACE_WITH_64_HEX_DIGITS
+ExecStart=/usr/bin/python3 -B /opt/hermes-health/pdf-sandbox/broker.py --socket /srv/hermes-dz-health/pdf-socket/broker.sock --image sha256:REPLACE_WITH_64_HEX_DIGITS
 Restart=no
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/run/hermes-health-pdf
+ReadWritePaths=/srv/hermes-dz-health/pdf-socket
 RestrictAddressFamilies=AF_UNIX
 
 [Install]
