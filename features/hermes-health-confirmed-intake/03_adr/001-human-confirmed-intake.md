@@ -32,3 +32,7 @@ PDF получает стабильный путь documents/<полный_sha25
 
 ## Confirmation
 Эксперимент: integrations/hermes-health/tests/intake_write_contract_probe.py. Он фиксирует существующие ограничения, а не сертифицирует будущую запись. Матрица целевых тестов — 06_implementation_plan.md.
+
+
+
+1. Проверка выбранного контракта: `integrations/hermes-health/tests/test_intake_confirm.py` — отказ при drift, проверка повторов и неизвестного результата; тесты должны проверять реальные байты, а не только exit code.
