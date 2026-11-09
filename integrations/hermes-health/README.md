@@ -126,3 +126,20 @@ PYTHONPATH=/opt/hermes HERMES_HOME=/tmp/preview-test-home python3 /plugin/tests/
 Ограничения: срок30мин,64 receipts,256MiB state; очистка пока административная. OCR, медицинская верификация, обновление индекса и git push не выполняются. Подробности: `features/hermes-health-confirmed-intake/11_operator_runbook.md`.
 
 Validator предупреждает об использовании приватных ContextVars Hermes. Это сознательная зависимость от закреплённой версии0.22.2: публичный get_session_env допускает небезопасный для подтверждения environment fallback. После обновления Hermes требуется повторная проверка этого интерфейса; при его отсутствии подтверждение отказывает.
+
+## Candidate 0.4: isolated PDF text drafts
+
+`health_pdf_draft` accepts exactly `{"entry_id":"manifest-entry-id"}`. It resolves the original using `HealthTools.catalog/read`, verifies manifest SHA-256 and byte count before parsing, then re-reads the original after parsing to reject drift. Only `.pdf` files up to 8 MiB are accepted. No map, recognized, index, clinical verification, OCR, or transport changes are performed.
+
+Operator configuration (not model arguments):
+
+- `HEALTH_PDF_SOCKET`: absolute path to the separately installed sandbox broker's Unix stream socket. One connection carries a 4-byte big-endian length followed by raw PDF bytes. The framed response is UTF-8 JSON, at most 1 MiB. Adapter total socket deadline: 12 seconds.
+- `HEALTH_DRAFTS`: existing dedicated directory outside both the medical workspace and Git, owned by the Hermes UID with mode `0700`. Every path component must be a real directory, never a symlink. Artifacts are unique subdirectories (`0700`) containing `draft.md` and `draft.html` (`0600`), never overwritten. A private advisory lock serializes writes; quota is 100 draft directories and 256 MiB. On quota exhaustion the operator must review/retire old drafts; the tool never silently removes them.
+
+The broker contract has exact keys `status`, `engine`, `pages`; engine must be `{"name":"pypdf","version":"7.0.0"}`. Each page has exactly `number` (sequential, starting at 1), `text`, `text_status` (`text` or `no_text`). Limits: 50 pages, 100,000 characters/page, 500,000 total. All broker fields are untrusted; injected provenance or unexpected keys are rejected. Provenance comes only from the adapter's independently checked source. Socket access and real OS sandbox deployment are separate operator prerequisites; the adapter never imports pypdf locally or falls back to unsandboxed execution.
+
+`ok` and `partial_text` produce explicitly unverified Russian-language drafts with engine version and original SHA-256. Markdown uses fences longer than any backtick sequence in the extracted text; HTML escapes text and applies `default-src 'none'` CSP without scripts or external assets. `no_text`, `encrypted`, or errors produce no draft files. Partial extraction is explicit and is not OCR. The result includes absolute paths, artifact hashes, original entry ID/hash, and `human_verification=not_established`.
+
+This tool does not send network messages. On an explicit user request to deliver drafts, the existing Hermes `send_file` tool must receive the actual returned paths; never fabricate `sandbox:` links or claim successful delivery without the transport result. This is a candidate change only, not deployment authorization.
+
+Synthetic adapter checks: `python3 -m unittest discover -s integrations/hermes-health/tests -p test_pdf_draft.py -v`.
