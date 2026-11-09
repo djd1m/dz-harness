@@ -1,0 +1,28 @@
+[
+  {
+    "name": "desktop",
+    "width": 1440,
+    "errors": [],
+    "tabAutocomplete": true,
+    "overflow": false,
+    "live": true,
+    "mobileResponse": "fixture when mobile",
+    "failedFollowupRetryable": true
+  },
+  {
+    "name": "mobile",
+    "width": 390,
+    "errors": [],
+    "tabAutocomplete": true,
+    "overflow": false,
+    "live": false,
+    "mobileResponse": "fixture when mobile"
+  },
+  {
+    "finalMobile": true,
+    "touchAutocomplete": true,
+    "examplesVisible": true,
+    "overflow": false,
+    "response": "saved approved replay fixture; no paid model call"
+  }
+]
