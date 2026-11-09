@@ -57,11 +57,14 @@ export async function runAdviceTeam({ registry, sources, userTask, select, revie
     let advice = boundedAdvice(trustedRegistry, draft, limits);
     let request = makeAdviceReviewRequest(trustedRegistry, advice, trustedSources, userTask);
     stage = 'review';
-    let verdict = checkAdviceReview(request, await call(review, request, limits.timeoutMs));
+    const firstReview = await call(review, request, limits.timeoutMs);
+    let verdict = checkAdviceReview(request, firstReview);
     if (verdict.accepted) return { ok: true, advice: verdict.advice };
 
     stage = 'edit';
-    const edited = await call(edit, { userTask, advice, issues: verdict.issues, sources: trustedSources, limits }, limits.timeoutMs);
+    const edited = await call(edit, { userTask, advice, issues: verdict.issues, sources: trustedSources, limits,
+      hostContext: request.hostContext, request: { schema: request.schema, requestHash: request.requestHash, claims: request.claims },
+      review: firstReview }, limits.timeoutMs);
     stage = 'edit_validation';
     const selectedNames = new Set(advice.recommendations.map(pick => pick.name));
     advice = boundedAdvice(trustedRegistry, edited, limits);

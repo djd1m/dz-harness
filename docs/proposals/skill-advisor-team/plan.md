@@ -44,3 +44,16 @@ Build → BTO benchmark (preconditions, golden structure, deterministic checks,
 consistency probes, size metrics) → independent cross-model review → targeted
 optimization → final tests → push branch and PR. Record unavailable layers honestly;
 no trust-tier promotion or production-readiness claim from structural tests.
+
+## Follow-up: explicit evidence handoffs
+
+Paired model replay showed that stronger review alone can accept false claims about
+host verification and confuse a skill with its external dependency. The next bounded
+slice preserves quote checks and one-repair limits while adding host-derived context
+to the hashed review request and giving the editor the structured review, original
+request and host facts. Host context attests only name membership, normalized native
+route and generated command; it does not claim execution readiness or nonexistent
+registry metadata. Test stale bindings and callback mutation. Repeat the same paired
+frozen-draft replay to isolate the handoff change, then independently assess every
+accepted answer. Preserve failed attempts and keep PR draft until native/held-out
+acceptance is demonstrated.

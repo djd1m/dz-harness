@@ -55,6 +55,21 @@ test('binds the original user task separately from the model summary', () => {
   const changed = makeAdviceReviewRequest(registry, draft, sources, 'Deploy and monitor continuously');
   assert.throws(() => checkAdviceReview(changed, approval(req)));
 });
+test('host context comes from normalized advice and is bound, not model metadata', () => {
+  const req = makeAdviceReviewRequest({ ...registry, entries: [{ id: 'sample', instructions: 'injected' }] },
+    { ...draft, hostContext: { target: 'injected' } }, sources, draft.task);
+  assert.deepEqual(req.hostContext.selectedRegistryEntries, [{ id: 'sample' }]);
+  assert.equal(req.hostContext.target, 'opencode');
+  assert.equal(req.hostContext.installCommands[0].command, 'dz init --target opencode --select sample');
+  const review = approval(req);
+  req.hostContext.target = 'changed';
+  assert.throws(() => checkAdviceReview(req, review));
+});
+test('host metadata cannot serve as a source quotation', () => {
+  const req = request(); const review = approval(req);
+  review.checks[0].evidence = [{ source: 'sample', quote: req.hostContext.scope }];
+  assert.throws(() => checkAdviceReview(req, review), /Unverified source quote/);
+});
 test('accepts line wrapping but not changed wording in source quotes', () => {
   const req = request(); const review = approval(req);
   review.checks[0].evidence[0].quote = 'Checks health for a\nsupplied URL.';

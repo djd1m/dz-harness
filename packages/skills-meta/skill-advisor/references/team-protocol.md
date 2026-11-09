@@ -55,3 +55,20 @@ the host can show a short retry/unavailable notice. No course links are generate
 by this helper. Attach them from verified mapping after acceptance. The generic
 Claude Code protocol also supports presets/toolkits; this executable helper is
 intentionally limited to the checked native OpenCode skill route.
+
+### Evidence scopes across handoffs
+
+The reviewer and editor must distinguish **host facts** (a name was found in the
+provided registry snapshot; a native command was generated) from **source claims**
+(what the selected skill does and under what conditions). Neither implies successful
+runtime execution. Registry entries can lack metadata; do not invent missing fields
+or present a reviewer's missing context as proof that the host skipped its checks.
+A skill may describe an external MCP server or CLI dependency without itself being
+that server or CLI. Source `coverage` labels describe the captured evidence, not
+skill capability. Keep such internal processing details out of the reader's gaps.
+
+For a repair, use the host-supplied original request and structured verdict, including
+claim-specific evidence and findings, instead of reconstructing them from a short
+issue summary. Explain only capabilities and limitations that affect the user's task.
+Review the entire edited answer again; do not accept a correct quote when another
+clause contradicts a condition in the source.

@@ -108,3 +108,35 @@ test('reviewer mutation cannot alter retained advice or source snapshots', async
   assert.equal(result.advice.recommendations[0].why, 'Supports testing workflows.');
   assert.equal(sources[0].text, 'alpha supports testing workflows with reliable checks.');
 });
+test('editor receives bound host context and structured review checks in isolation', async () => {
+  const args = base(); let calls = 0; let firstHash;
+  args.review = async request => {
+    calls++;
+    if (calls === 1) {
+      firstHash = request.requestHash;
+      const review = rejected(request);
+      review.checks[0].status = 'uncertain';
+      review.checks[0].reason = 'Clarify the source';
+      return review;
+    }
+    assert.equal(request.hostContext.target, 'opencode');
+    assert.equal(request.sources[0].text, sources[0].text);
+    return approved(request);
+  };
+  args.edit = async input => {
+    assert.equal(input.userTask, 'Original task');
+    assert.equal(input.request.requestHash, firstHash);
+    assert.equal(input.hostContext.target, 'opencode');
+    assert.equal(input.review.requestHash, firstHash);
+    assert.equal(input.review.checks[0].status, 'uncertain');
+    assert.equal(input.review.checks[0].reason, 'Clarify the source');
+    assert.deepEqual(input.review.issues, ['Rationale needs correction']);
+    assert.equal(input.request.claims[0].id, 'why:alpha');
+    assert.equal(Object.hasOwn(input.request, 'sources'), false);
+    input.hostContext.target = 'tampered';
+    input.sources[0].text = 'tampered';
+    input.review.checks[0].reason = 'tampered';
+    return input.advice;
+  };
+  assert.equal((await runAdviceTeam(args)).ok, true);
+});
