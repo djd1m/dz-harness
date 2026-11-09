@@ -1,0 +1,68 @@
+[
+  {
+    "file": "recognized_confirm.py",
+    "qe08_sha256": "05b4022f2ee785f53c2236314578ca874fd9408d4e65730ba19a88cdacfba366",
+    "current_sha256": "05b4022f2ee785f53c2236314578ca874fd9408d4e65730ba19a88cdacfba366",
+    "unchanged": true
+  },
+  {
+    "file": "pdf_draft.py",
+    "qe08_sha256": "3acdeee91064572a35c9ebfcd301c0216b9fa5067c8fef3c2596ea0206b2037d",
+    "current_sha256": "3acdeee91064572a35c9ebfcd301c0216b9fa5067c8fef3c2596ea0206b2037d",
+    "unchanged": true
+  },
+  {
+    "file": "__init__.py",
+    "qe08_sha256": "d19b018199019cbb723504c0514e158b99f4b694d73ac5dce2471f58247cdafc",
+    "current_sha256": "d19b018199019cbb723504c0514e158b99f4b694d73ac5dce2471f58247cdafc",
+    "unchanged": true
+  },
+  {
+    "file": "health_plugin.py",
+    "qe08_sha256": "3ba85a33d7f000a178cbc062d2db9a42fbd60c567084b79d308847cf392350dd",
+    "current_sha256": "3ba85a33d7f000a178cbc062d2db9a42fbd60c567084b79d308847cf392350dd",
+    "unchanged": true
+  },
+  {
+    "file": "plugin.yaml",
+    "qe08_sha256": "3b0cede6c3f89b0417b0105b75cf38fec57c3c7c8e482f98685dc09e637a19c8",
+    "current_sha256": "3b0cede6c3f89b0417b0105b75cf38fec57c3c7c8e482f98685dc09e637a19c8",
+    "unchanged": true
+  },
+  {
+    "file": "tests/test_recognized_confirm.py",
+    "qe08_sha256": "10bc935aa6a891a1843206be2054b9f6c7b8dab1365738160fdf761c1fa49091",
+    "current_sha256": "4e803601355437b856bada092fb118234f4c64ae2caa13975d717f39c6d862b8",
+    "unchanged": false
+  },
+  {
+    "file": "tests/integration_recognized_confirm.py",
+    "qe08_sha256": "1dad565a29ba3228d1861636c5a12dda02c882541077626fbc0f4585310c1ea6",
+    "current_sha256": "1dad565a29ba3228d1861636c5a12dda02c882541077626fbc0f4585310c1ea6",
+    "unchanged": true
+  },
+  {
+    "file": "tests/test_pdf_draft.py",
+    "qe08_sha256": "622f75b8bd0644783ca40b9f0e7566fab6ee8369b32796bc09142c162260847d",
+    "current_sha256": "622f75b8bd0644783ca40b9f0e7566fab6ee8369b32796bc09142c162260847d",
+    "unchanged": true
+  },
+  {
+    "file": "tests/test_health_plugin.py",
+    "qe08_sha256": "a0ff9fea92713a5c4bcef9ce62b49f41a4c39d3f970274499468fcfa0502eb82",
+    "current_sha256": "a0ff9fea92713a5c4bcef9ce62b49f41a4c39d3f970274499468fcfa0502eb82",
+    "unchanged": true
+  },
+  {
+    "file": "README.md",
+    "qe08_sha256": "2e951992a41406bfcf6dd740b28b62e384b03092e3e90ec7664620c5bf9c233c",
+    "current_sha256": "2e951992a41406bfcf6dd740b28b62e384b03092e3e90ec7664620c5bf9c233c",
+    "unchanged": true
+  },
+  {
+    "file": "skills/health-read/SKILL.md",
+    "qe08_sha256": "7957d4d3c87ffb566de7e483c79ed1a4fc4a7d510fdc9675614e1c5d662e354f",
+    "current_sha256": "7957d4d3c87ffb566de7e483c79ed1a4fc4a7d510fdc9675614e1c5d662e354f",
+    "unchanged": true
+  }
+]

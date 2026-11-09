@@ -12,3 +12,8 @@ unreadable (2026-11-09). Не сбрасывали guard и не создава�
 как успешный поиск по истории. Статус feature-adr записывается через dz statusline;
 это не означает прохождения gates. Reference mode, plain, Codex coding;
 независимое QE другой Codex-моделью — явное предпочтение владельца.
+
+Текущий результат: [итоговый отчёт](10_final_report.md),
+[четыре роли аудита](09_fleet_qe_assessment.md),
+[воспроизводимый runbook](07_lab_runbook.md).
+Новые возможности остаются лабораторным кандидатом, без production deployment.

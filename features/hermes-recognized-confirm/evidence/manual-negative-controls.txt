@@ -1,0 +1,75 @@
+=== command_authority baseline ===
+test_command_boundary (test_recognized_confirm.StateTests.test_command_boundary) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.002s
+
+OK
+
+=== command_authority mutant ===
+test_command_boundary (test_recognized_confirm.StateTests.test_command_boundary) ... FAIL
+
+======================================================================
+FAIL: test_command_boundary (test_recognized_confirm.StateTests.test_command_boundary)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/plugin/tests/test_recognized_confirm.py", line 143, in test_command_boundary
+    with self.assertRaises(Refusal):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^
+AssertionError: Refusal not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.005s
+
+FAILED (failures=1)
+
+=== exact_source_digest baseline ===
+test_snapshot_rejects_source_and_workspace_drift (test_recognized_confirm.StateTests.test_snapshot_rejects_source_and_workspace_drift) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.007s
+
+OK
+
+=== exact_source_digest mutant ===
+test_snapshot_rejects_source_and_workspace_drift (test_recognized_confirm.StateTests.test_snapshot_rejects_source_and_workspace_drift) ... 
+  test_snapshot_rejects_source_and_workspace_drift (test_recognized_confirm.StateTests.test_snapshot_rejects_source_and_workspace_drift) (error='source_drift') ... FAIL
+
+======================================================================
+FAIL: test_snapshot_rejects_source_and_workspace_drift (test_recognized_confirm.StateTests.test_snapshot_rejects_source_and_workspace_drift) (error='source_drift')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/plugin/tests/test_recognized_confirm.py", line 378, in test_snapshot_rejects_source_and_workspace_drift
+    with self.assertRaisesRegex(Refusal,error):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.007s
+
+FAILED (failures=1)
+
+=== runtime_pin baseline ===
+test_runtime_drift (test_recognized_confirm.StateTests.test_runtime_drift) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.004s
+
+OK
+
+=== runtime_pin mutant ===
+test_runtime_drift (test_recognized_confirm.StateTests.test_runtime_drift) ... FAIL
+
+======================================================================
+FAIL: test_runtime_drift (test_recognized_confirm.StateTests.test_runtime_drift)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/plugin/tests/test_recognized_confirm.py", line 229, in test_runtime_drift
+    with self.assertRaisesRegex(Refusal,'prepare_again'):
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Refusal not raised
+
+----------------------------------------------------------------------
+Ran 1 test in 0.004s
+
+FAILED (failures=1)
