@@ -30,3 +30,20 @@ ContextVars intake сохраняется; поддержка произволь
 Это чистый home/runtime-контейнер на текущем Docker host, не полностью новый
 VPS и не rebuild всего образа из публичного registry. Архив образа восстановлен
 из S3 и проверен; восстановленный production gateway намеренно не запускался.
+
+## Повторная чистая установка candidate adapter
+
+После independent adapter QE выполнена отдельная установка curated candidate из
+commit `2172a56` (документация QE добавлена `3f77c23`) в новый tmpfs Hermes home.
+Core read-only overlay — `1dbdcaed0`. Тот же pinned image, сеть отключена,
+никаких production volumes или credentials.
+
+MEASURED: enable/doctor/validate PASS, **7 tools**, integration_check.py PASS
+для synthetic ingest, real CLI search, source hash, tampered index body,
+read-only, stale source и missing runtime. Exit0, лог
+`/tmp/hermes-night-candidate-clean.log`. Предупреждение private ContextVars
+сохранилось. Это проверка загрузки candidate, не реальной Mattermost доставки.
+
+Повторный fresh-home тест не переустанавливал production plugin. Сохранённые
+recognized artifacts привязаны к dev/inode workspace: старый S3 restore не
+доказывает их переносимость, recovery/rebind остаётся отдельным deployment gate.
