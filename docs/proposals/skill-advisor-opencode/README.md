@@ -70,3 +70,8 @@ The latest instruction fixes a contradictory description of bundled files: nativ
 Local regressions remain 16/16. Both new E2B/Haiku runs passed all three mechanical smoke cases; both sandboxes were killed and independently confirmed absent. V13 ran the current skill bytes; [verification-v13.json](verification-v13.json) checks their hashes against the live report. Raw outputs are [V12](evidence-haiku-v12.json) and [V13](evidence-haiku-v13.json); earlier evidence is preserved. V13 latencies were 17.7 / 11.4 / 15.5 seconds, excluding setup.
 
 Prompt rules do not enforce semantic quality or even the requested two-caveat limit: V13 research returned three caveats. These additional experiments are not production editorial acceptance. See [semantic-review.md](semantic-review.md) for the independent assessment. No code was pushed and no PR, npm release or site deployment was made.
+
+
+## Evidence review continuation
+
+A separate host-owned review candidate is documented in [semantic-gate.md](semantic-gate.md). It binds the original user request, normalized advice and source snapshots, rejects incomplete/nonpositive reviews, and only releases accepted advice. The model reviewer remains fallible; mechanical quote/binding checks are not a factual guarantee. [Issue drafts](issues/pending.json) track source grounding, conditional pipelines and runtime installation guidance.

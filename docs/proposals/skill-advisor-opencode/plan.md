@@ -23,3 +23,7 @@ EXPECTED_CODE_TARGETS:
 - packages/skills-meta/skill-advisor/SKILL.md
 - packages/skills-meta/skill-advisor/scripts/check-opencode-advice.mjs
 - packages/skills-meta/skill-advisor/evals/opencode.test.mjs
+
+## Semantic gate continuation
+FR-4: Before presentation, a host-owned separate reviewer checks each rationale and caveat against caller-captured skill sources, plus task fit and pipeline consistency. FR-5: bind the verdict to exact normalized advice and sources; missing/invalid/incomplete/negative verdicts never release an answer. NFR-3: reuse structural checker; no installs, tools or autonomous retries in the reviewer; explicit uncertainty is rejection, not a claim of proof.
+Implementation: dependency-free request/verdict helper and tests; opt-in OpenRouter smoke for saved erroneous answers and fresh native OpenCode answers. A source quote proves textual presence only; semantic entailment remains a fallible model judgment. No production host is wired in this candidate.

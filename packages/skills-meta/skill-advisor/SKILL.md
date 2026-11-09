@@ -161,6 +161,15 @@ and follow this section for installation advice.
 The checker is dependency-free (Node.js >=20), reads local JSON and never runs an
 install command. It checks structural/catalog/target consistency, not factual
 correctness of rationales, ranking quality, snapshot freshness or course links.
+For a host that requires evidence review before presentation, use
+`scripts/check-advice-review.mjs`: the host builds a request from normalized
+advice and captured sources, obtains a separate reviewer verdict, and releases
+only `accepted: true` output. Missing, stale, incomplete or negative reviews
+withhold the answer. This checks review completeness and exact source quotes;
+semantic entailment remains a fallible reviewer judgment. A positive structural
+check alone is not editorial approval. The model must not fabricate its own
+approval or the host-owned source snapshots.
+
 Course URLs, if provided by a host application, must come from its separate
 verified mapping; this generic skill contains no site-specific course catalog.
 

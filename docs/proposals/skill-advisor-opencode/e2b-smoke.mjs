@@ -53,6 +53,8 @@ try {
     [
       "SKILL.md",
       "scripts/check-opencode-advice.mjs",
+    "scripts/check-advice-review.mjs",
+    "evals/advice-review.test.mjs",
       "evals/opencode.test.mjs",
     ].map((file) => [
       file,
@@ -87,6 +89,8 @@ try {
   for (const file of [
     "SKILL.md",
     "scripts/check-opencode-advice.mjs",
+    "scripts/check-advice-review.mjs",
+    "evals/advice-review.test.mjs",
     "evals/opencode.test.mjs",
   ]) {
     await sandbox.files.write(
@@ -103,6 +107,8 @@ try {
   for (const file of [
     "SKILL.md",
     "scripts/check-opencode-advice.mjs",
+    "scripts/check-advice-review.mjs",
+    "evals/advice-review.test.mjs",
     "evals/opencode.test.mjs",
   ]) {
     const actual = await sandbox.files.read(
@@ -113,7 +119,7 @@ try {
   }
   report.adapterCopiedAllChangedFiles = true;
   const unit = await run(
-    "cd advisor && node --test .opencode/skills/skill-advisor/evals/opencode.test.mjs",
+    "cd advisor && node --test .opencode/skills/skill-advisor/evals/*.test.mjs",
   );
   report.sandboxUnitTests = safe(unit.stdout);
   const registry = JSON.parse(
@@ -252,6 +258,12 @@ try {
     } catch (error) {
       turn.gateAccepted = false;
       turn.error = safe(error.message);
+    }
+    if (turn.checked) {
+      turn.sources = await Promise.all(turn.checked.recommendations.map(async (pick) => {
+        const entry = registry.entries.find(entry => entry.id === pick.name);
+        return { id: pick.name, coverage: "excerpt", text: await sandbox.files.read(resolve("/home/user/advisor", entry.path, "SKILL.md")) };
+      }));
     }
     turn.expectedPrimary =
       turn.checked?.recommendations[0]?.name === c.expected;
