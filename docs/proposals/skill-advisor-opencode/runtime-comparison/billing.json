@@ -1,0 +1,158 @@
+{
+  "attempt2": {
+    "requests": [
+      {
+        "id": "gen-1794257095-uzisFGHX6pp3MYLRz48h",
+        "status": 200,
+        "model": "anthropic/claude-haiku-5.5-20261007",
+        "total_cost": 0.000353925,
+        "provider_name": "Claude Platform on AWS",
+        "tokens_prompt": 11138,
+        "tokens_completion": 246
+      },
+      {
+        "id": "gen-1794257098-RJcKAHBNcQM884YwPxW6",
+        "status": 200,
+        "model": "anthropic/claude-haiku-5.5-20261007",
+        "total_cost": 0.001166962,
+        "provider_name": "Claude Platform on AWS",
+        "tokens_prompt": 16182,
+        "tokens_completion": 73
+      },
+      {
+        "id": "gen-1794257100-2RyAcJrQm1woJp5MGT4p",
+        "status": 200,
+        "model": "anthropic/claude-haiku-5.5-20261007",
+        "total_cost": 0.003579349,
+        "provider_name": "Claude Platform on AWS",
+        "tokens_prompt": 32429,
+        "tokens_completion": 87
+      },
+      {
+        "id": "gen-1794257103-P96SDIDDtC6R6YOoWuHo",
+        "status": 200,
+        "model": "anthropic/claude-haiku-5.5-20261007",
+        "total_cost": 0.004765459,
+        "provider_name": "Claude Platform on AWS",
+        "tokens_prompt": 48073,
+        "tokens_completion": 374
+      }
+    ],
+    "observedCostUSD": 0.009865694999999999,
+    "completeForCapturedRequestIds": true
+  },
+  "attempt3": {
+    "requests": [
+      {
+        "id": "gen-1794257164-hE45YFzT3w3pmdMpNQBa",
+        "status": 200,
+        "model": "anthropic/claude-haiku-5.5-20261007",
+        "total_cost": 0.000786807,
+        "provider_name": "Claude Platform on AWS",
+        "tokens_prompt": 11137,
+        "tokens_completion": 494
+      },
+      {
+        "id": "gen-1794257168-HM1Aa1JMl4bJMh8HhVS2",
+        "status": 200,
+        "model": "anthropic/claude-haiku-5.5-20261007",
+        "total_cost": 0.001286712,
+        "provider_name": "Claude Platform on AWS",
+        "tokens_prompt": 16679,
+        "tokens_completion": 70
+      },
+      {
+        "id": "gen-1794257170-kHpNAkkdfyYbsQjLlKPw",
+        "status": 200,
+        "model": "anthropic/claude-haiku-5.5-20261007",
+        "total_cost": 0.000424828,
+        "provider_name": "Claude Platform on AWS",
+        "tokens_prompt": 16810,
+        "tokens_completion": 82
+      },
+      {
+        "id": "gen-1794257173-Tusrbc7J2biQIVDA9K17",
+        "status": 200,
+        "model": "anthropic/claude-haiku-5.5-20261007",
+        "total_cost": 0.003673385,
+        "provider_name": "Claude Platform on AWS",
+        "tokens_prompt": 32604,
+        "tokens_completion": 109
+      },
+      {
+        "id": "gen-1794257177-EbZOZ1aMiloobesgzGXU",
+        "status": 200,
+        "model": "anthropic/claude-haiku-5.5-20261007",
+        "total_cost": 0.005862478,
+        "provider_name": "Claude Platform on AWS",
+        "tokens_prompt": 51464,
+        "tokens_completion": 478
+      }
+    ],
+    "observedCostUSD": 0.01203421,
+    "completeForCapturedRequestIds": true
+  },
+  "attempt4": {
+    "requests": [
+      {
+        "id": "gen-1794257238-U0WorS0D5n20PpwQ2Syf",
+        "status": 200,
+        "model": "anthropic/claude-haiku-5.5-20261007",
+        "total_cost": 0.000776848,
+        "provider_name": "Claude Platform on AWS",
+        "tokens_prompt": 10931,
+        "tokens_completion": 252
+      },
+      {
+        "id": "gen-1794257241-HfVsmworaoXaksNqsvt7",
+        "status": 200,
+        "model": "anthropic/claude-haiku-5.5-20261007",
+        "total_cost": 0.00116465,
+        "provider_name": "Claude Platform on AWS",
+        "tokens_prompt": 16000,
+        "tokens_completion": 54
+      },
+      {
+        "id": "gen-1794257243-sqfT9nQ9FkPzQCApwPBv",
+        "status": 404
+      },
+      {
+        "id": "gen-1794257250-TCSOYBSsn3td6uOfNpgb",
+        "status": 200,
+        "model": "anthropic/claude-haiku-5.5-20261007",
+        "total_cost": 0.004810226,
+        "provider_name": "Claude Platform on AWS",
+        "tokens_prompt": 45722,
+        "tokens_completion": 660
+      },
+      {
+        "id": "gen-1794257267-Le9ot54o5qwdGQffo1Si",
+        "status": 200,
+        "model": "anthropic/claude-haiku-5.5-20261007",
+        "total_cost": 0.000932278,
+        "provider_name": "Claude Platform on AWS",
+        "tokens_prompt": 10931,
+        "tokens_completion": 460
+      },
+      {
+        "id": "gen-1794257271-ffh2QcTROPxK3nAjsUfD",
+        "status": 200,
+        "model": "anthropic/claude-haiku-5.5-20261007",
+        "total_cost": 0.001236381,
+        "provider_name": "Claude Platform on AWS",
+        "tokens_prompt": 16375,
+        "tokens_completion": 51
+      },
+      {
+        "id": "gen-1794257273-48kVOiiZ3sdGxqBmS0Cq",
+        "status": 404
+      },
+      {
+        "id": "gen-1794257276-2bTsppN5w0K7ZP5U75HE",
+        "status": 404
+      }
+    ],
+    "observedCostUSD": 0.008920383,
+    "completeForCapturedRequestIds": false
+  }
+}
