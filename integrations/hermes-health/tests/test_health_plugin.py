@@ -116,8 +116,8 @@ class HealthTests(unittest.TestCase):
                 self.skills[kwargs['name']] = kwargs
         ctx = Context()
         package.register(ctx)
-        self.assertEqual(set(ctx.tools), {'health_search', 'health_source_get', 'health_validate', 'health_intake_preview', 'health_intake_prepare', 'health_pdf_draft'})
-        self.assertEqual(set(ctx.commands), {'health-confirm', 'health-cancel', 'health-status'})
+        self.assertEqual(set(ctx.tools), {'health_search', 'health_source_get', 'health_validate', 'health_intake_preview', 'health_intake_prepare', 'health_pdf_draft', 'health_recognized_prepare'})
+        self.assertEqual(set(ctx.commands), {'health-confirm', 'health-cancel', 'health-status', 'health-recognized-confirm', 'health-recognized-cancel', 'health-recognized-status'})
         self.assertNotIn('health_confirm', ctx.tools)
         self.assertIn('health-read', ctx.skills)
         with patch.dict(os.environ, {'HEALTH_WORKSPACE': str(self.root)}):

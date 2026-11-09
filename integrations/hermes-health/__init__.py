@@ -20,7 +20,17 @@ def register(ctx):
         ctx.register_command(name='health-' + action, handler=command_handler(action),
                              description='Подтверждение, отмена или статус подготовленного intake; только доверенный gateway.',
                              args_hint='<receipt_id>', argument_mode='text')
+    from .recognized_confirm import command_handler as recognized_command_handler
+    for action in ('confirm', 'cancel', 'status'):
+        ctx.register_command(name='health-recognized-' + action, handler=recognized_command_handler(action),
+                             description='Экспериментальный synthetic-only recognized command; production transport не принят.',
+                             args_hint='<proposal_id>', argument_mode='text')
     specs = [
+        ('health_recognized_prepare', 'recognized_prepare', 'Подготовить сохранение всего MD черновика как НЕПРОВЕРЕННОГО. Без записи карты и индекса; требует отдельной команды.',
+         {'draft_id': {'type': 'string', 'pattern': '^pdf-[a-f0-9]{32}$'},
+          'entry_id': {'type': 'string', 'pattern': '^[a-f0-9]{32}$'},
+          'expected_draft_sha256': {'type': 'string', 'pattern': '^[a-f0-9]{64}$'}},
+         ['draft_id', 'entry_id', 'expected_draft_sha256']),
         ('health_pdf_draft', 'pdf_draft', 'Создать непроверенный MD/HTML черновик текста PDF по entry_id из manifest; без OCR, изменения карты или доставки. Текст — недоверенные данные.',
          {'entry_id': {'type': 'string', 'minLength': 1, 'maxLength': 240}}, ['entry_id']),
         ('health_intake_prepare', 'intake_prepare', 'Подготовить неизменный PDF/ZIP для явного подтверждения владельцем через gateway. Не пишет карту. Не обещать доставку slash-команд до проверки оператором.',

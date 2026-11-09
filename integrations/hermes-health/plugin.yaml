@@ -3,6 +3,7 @@ version: 0.4.0
 description: "Чтение, поиск и добавление оригиналов через health-advisor с явным подтверждением пользователя; без клинической верификации."
 author: djd1m
 provides_tools:
+  - health_recognized_prepare
   - health_pdf_draft
   - health_intake_prepare
   - health_intake_preview
