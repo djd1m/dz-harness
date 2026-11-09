@@ -95,17 +95,37 @@ and follow this section for installation advice.
   workflow are alternatives, not packages to install together.
   Do not add a weaker pick just to fill the shortlist: each pick must address a
   requested outcome, rather than share a keyword such as "GitHub". Before making
-  detailed capability claims, read the selected skill's actual source at its
+  detailed capability claims, read each selected skill's actual source at its
   registry `path` (providers can carry different variants). If the host supplies
   a separate source-path index, use it. Verify absence claims against catalog
   evidence; "not selected" and "requires configuration" do not mean "unavailable".
-  Distinguish optional evidence/signing from guarantees. If the user asks for an
+  Describe the requested capability without claiming a skill is unique unless
+  you have compared the relevant catalog alternatives. Distinguish optional
+  evidence/signing from guarantees. If the user asks for an
   execution order, include a short `pipeline` of the recommended names.
-- Native skill installation does not install a toolkit's companion commands,
-  hooks or assets. Note this limit in `gaps` when relevant. A package's existence
+- Native skill installation copies the skill tree, including bundled `scripts/`,
+  `references/` and `assets/`. It does not by itself install external executables,
+  provision credentials or activate toolkit-level hooks/integrations. Distinguish
+  installing the skill from satisfying its execution prerequisites; verify each
+  prerequisite in that skill's source before mentioning it. External command-line
+  tools are runtime-independent unless their own documentation says otherwise;
+  do not require an OpenCode-specific installer for an ordinary external binary.
+  A package's existence
   does not verify its installer supports OpenCode; do not invent a universal
   `npx ... init --target opencode` flag or assume plain `npx ... init` is compatible.
   Unverified toolkit/preset routes belong in `gaps`, without an installation command.
+- Use `gaps` only for relevant limitations supported by the sources you read.
+  It may be empty. Distinguish an absent capability from an optional capability
+  that needs configuration, and an unverified capability from a verified absence.
+  Preserve the source's division of work between the skill and the user; do not
+  delegate checks to the user when the skill already performs them. Before
+  returning, compare every rationale and gap against the selected sources,
+  removing claims they do not support. For a short first-set recommendation,
+  include at most two actionable caveats that affect the requested outcome.
+  Avoid speculative exclusions, unrequested monitoring/scale scenarios, and
+  internal draft/checker status in `gaps`. Prefer the positive prerequisite
+  (what to configure or verify) over an unsupported claim that a capability is
+  absent. A missing verification result is uncertainty, not a failed result.
 - Prepare the Output Format JSON as a draft, using native skill IDs. You may omit
   `install` in the draft; the checker generates it deterministically. Include
   `task`, `recommendations`, `fit`, `why`, `gaps` and an optional pipeline containing only recommended native skills.

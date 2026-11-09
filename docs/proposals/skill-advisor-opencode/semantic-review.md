@@ -15,3 +15,22 @@ The original V9 evidence is preserved to make these findings reviewable. Later e
 ## Follow-up on V11
 
 The independent reviewer confirmed the core shortlist improvements: no irrelevant CI filler in research, useful canary checks and an explicit deployment sequence, and recorded reads of exact primary sources. Residual limitations remain: the model confused a Go CLI prerequisite with native skill installation, understated optional canary webhooks, claimed bundled scripts are excluded without adapter evidence, called feature-adr unique without catalog-wide comparison, and overstated delegation of content checks to the user. These are preserved as known editorial errors; the technical smoke is not advertised as factual verification of all explanation text.
+
+
+## Follow-up on V12
+
+Independent gpt-6-astra review inspected source text in actual read-tool events. The shortlists stayed useful; the unsupported uniqueness claim, excluded bundled scripts and total delegation of research verification disappeared. Remaining errors: the Cloud.ru response demanded an OpenCode-specific installer for an external Go binary and delegated its installation to the user despite source instructions; canary webhooks were understated; a checked answer retained stale draft/checker status; Advisory tier was treated as proof BTO never ran; conditional deployment logs were presented as unconditional. Raw evidence is preserved in [evidence-haiku-v12.json](evidence-haiku-v12.json).
+
+The instruction correction distinguishes bundled files, external executables and toolkit integrations, requires reading every selected source, and limits short first-set answers to two actionable, source-supported caveats. It avoids speculative exclusions and internal checker status. Independent gpt-6.1-terra review confirmed the bundled-file correction agrees with the native adapter.
+
+
+## Follow-up on V13
+
+Independent gpt-6-astra review used actual read-tool source text and found V13 is not a consistent improvement over V12. The external Go binary/OpenCode installer confusion and stale checker status disappeared. However:
+
+- Feature rationale says feature-adr first while the pipeline unconditionally starts with conditionally useful explore. The claimed absence of operational checks overlooks source production/post-release checks.
+- Research again asserts mandatory manual verification although the source requires content cross-checking without assigning it exclusively to a human. The assertion that GitHub lacks publisher keys/signed delivery is not established by the read source.
+- Cloud.ru picks github-actions instead of canary-watch. Automation is relevant, but the rationale incorrectly limits the selected pair to one-shot verify despite github-actions describing scheduled maintenance/health checks.
+- Research has three gaps and Cloud.ru four, despite the requested maximum of two; an unrequested Kubernetes caveat remains.
+
+Conclusion: native mechanical compatibility is confirmed on the smoke set and primary picks are useful for orientation. Caveat accuracy and execution-order consistency remain unstable. Neither the prompt nor the structural checker is a semantic publication gate. V13 is retained as raw evidence, not advertised as editorial acceptance.
