@@ -82,3 +82,8 @@ usage probe ранее в этой итерации вернулHTTP200 для �
 Rollback рабочей системы не требуется: новые изменения в неё не применялись.
 Для тестовой неопределённой операции используется status/reconcile прежнего
 operation ID; квитанции/артефакты не удаляются ради повторного запуска.
+
+Дополнительно подготовлены proposed
+[ADR восстановления](03_adr/003-plan-recognized-recovery.md) и
+[независимый challenge](recognized-recovery-challenge.md). Миграционный writer
+не реализовывался: сначала нужен read-only verifier и закрытие B1–B5.
