@@ -1,17 +1,37 @@
-# Hermes PDF draft — candidate 0.4
+# Hermes PDF draft — план и актуальный статус
 
-1. Resolve only manifest entry_id; verify bounded PDF bytes and SHA-256 before isolated parsing.
-2. Send raw bytes to operator-configured Unix socket; strictly validate bounded broker JSON.
-3. Re-read original to reject drift; create private, unverified Markdown/HTML drafts outside map/Git.
-4. Register candidate tool and document real-file delivery using existing Hermes send_file.
-5. Exercise synthetic source, hostile broker text/schema, drift, and filesystem permissions.
+## Выполнено
 
-No production deployment, patient data, commits, OCR, clinical verification, or automatic delivery.
+1. Разрешение оригинала только по manifest entry_id, проверка размера и SHA-256.
+2. Передача байтов PDF в изолированный parser через приватный Unix socket.
+3. Строгая проверка ответа, повторная проверка оригинала и создание непроверенных
+   MD/HTML вне карты и Git.
+4. Регистрация health_pdf_draft в плагине0.4.0 и инструкция отправки реальных файлов.
+5. Синтетические проверки отказов и реальная Docker-интеграция. Независимое QE
+   другой моделью:PASS в согласованном объёме, см. review.md.
+6. Пилот в медицинском Hermes, technical PDF, реальные вложения через API
+   Mattermost, restart broker и Hermes, неизменность123 записей manifest.
+7. Реальный вызов health_pdf_draft моделью gpt-6.1-terra через Hermes CLI
+   на отдельной технической карте: созданы MD/HTML, exit0.
+8. Сохранены материалы отката, parser image и контрольная сумма; backup и
+   primary offsite sync завершены успешно. Подробности в verification.md.
 
-## Adapter completed
+## Что ещё не подтверждено
 
-- Candidate plugin 0.4 registration and strict `entry_id` tool implemented.
-- Strict framed broker client, schema/version validation, pre/post source hash checks.
-- Private unique artifacts, escaped Russian drafts with pypdf version, fsync, 100-directory/256-MiB quota and advisory write lock.
-- Delivery docs require actual file paths and existing Hermes transport.
-- Verification: 9 synthetic PDF adapter tests and 15 existing adapter tests passed. Real sandbox integration remains parent/broker validation scope.
+- Вызов нового инструмента моделью по пользовательскому сообщению в Mattermost
+  и подтверждение пользователем получения именно этих файлов.
+- Полный clean-host restore нового parser-релиза и восстановление последнего
+  снимка из S3. Локальный docker image load пройден.
+- Слияние цепочки PR: изменения опубликованы отдельными ветками, не в main.
+
+## Следующий функциональный этап
+
+Отдельный контракт перехода непроверенного черновика в recognized с явным
+подтверждением человеком; затем управляемое обновление индекса. До утверждения
+контракта не писать recognized, не назначать clinical verification и не
+объявлять OCR выполненным. Для OCR сначала выбрать и проверить изолированный
+движок на синтетических сканах. Нынешний этап этого не реализует.
+
+Авторизация проверяется отдельно от медицинской приёмки; ограничения общей
+OAuth-сессии и варианты устранения описаны в
+../../integrations/hermes-health/ops/openai-auth-lifecycle.md.
