@@ -113,3 +113,7 @@ result_sources: committed, один источник; health_validate — 123 з
 Точный исполняемый скрипт сохранён в integrations/hermes-health/ops.
 Базовый Docker-образ отдельно не архивирован: восстановление на чистом хосте
 требует этого образа или проверенного источника его воспроизводимой сборки.
+
+Штатный backup завершился с exit 0 и `health backup and primary offsite sync: OK`.
+Локальный snapshot 740b5ffe включён в завершённую синхронизацию primary offsite.
+Восстановление именно этого нового snapshot из S3 в данной итерации не выполнялось.
