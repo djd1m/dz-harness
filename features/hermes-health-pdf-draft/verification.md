@@ -72,3 +72,7 @@ OCR, индекс и статусы человеческой проверки н
 immutable ID. Подтверждены эффективные NoNewPrivileges=yes, ProtectSystem=strict,
 ProtectHome=yes, RestrictAddressFamilies=AF_UNIX у broker. В mounts Hermes только
 home, карта, архивы и broker socket parent; Docker socket не передан.
+
+Резервное копирование после установки: локальный снимок создан; штатный backup
+и primary offsite sync завершились с exit0 (2026-11-09 22:13 UTC). Восстановление
+этого нового снимка непосредственно из S3 отдельно не выполнялось.
