@@ -167,4 +167,3 @@
 Следующий шаг: Опишите сервисы, имеющиеся сигналы и цели надёжности.
 
 [Курс](https://djd1m.github.io/dz-harness/tutorials/skills-devops/)
-
