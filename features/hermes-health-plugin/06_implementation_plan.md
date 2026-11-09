@@ -21,3 +21,4 @@ EXPECTED_CODE_TARGETS:
 - integrations/hermes-health/README.md
 - integrations/hermes-health/tests/test_health_plugin.py
 - integrations/hermes-health/tests/integration_check.py
+- integrations/hermes-health/tests/acceptance_check.py
